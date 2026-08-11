@@ -16,7 +16,7 @@ the same Payment Link / Checkout surface.
 | **Payment Link** | **live** `https://buy.stripe.com/dRmeVegcH1AM2mmdbsa3u03` (`plink_1U01D2Jz64n6uEibnSK45nuS`) |
 | `SITE.urls.starterKitCheckout` | **wired** on marketing (`SITE.urls.starterKitCheckout`) |
 | Fulfillment | **manual**: GitHub invite + Skool buyer invite (launch volume). Substack = broadcast list only (URL OWNER_FILL later). |
-| First-month Pro coupon | **seed script ready** (§4); run once on live key |
+| First-month Pro coupon | **LIVE** `STARTERKITPRO1` (check OK 2026-08-11) |
 | Stripe Tax | confirm `STRIPE_TAX_ENABLED=true` on prod api if selling broadly |
 | Managed Payments (D) | enable in Dashboard when eligible |
 
