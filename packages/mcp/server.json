@@ -6,13 +6,13 @@
     "url": "https://github.com/RevealUIStudio/revealui",
     "source": "github"
   },
-  "version": "0.8.6",
+  "version": "0.8.7",
   "packages": [
     {
       "registry_type": "npm",
       "registry_base_url": "https://registry.npmjs.org",
       "identifier": "@revealui/mcp",
-      "version": "0.8.6",
+      "version": "0.8.7",
       "runtime_hint": "npx",
       "transport": {
         "type": "stdio"
