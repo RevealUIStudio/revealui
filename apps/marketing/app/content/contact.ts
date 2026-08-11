@@ -29,7 +29,7 @@ export const CONTACT_METHODS: readonly ContactMethod[] = [
     ? [
         {
           title: 'Essays',
-          body: 'Product notes and long-form posts on',
+          body: '',
           linkLabel: 'Substack',
           href: COMMUNITY.substack.url,
           external: true,
@@ -38,14 +38,14 @@ export const CONTACT_METHODS: readonly ContactMethod[] = [
     : []),
   {
     title: 'Support',
-    body: 'Billing, licenses, and private account issues:',
+    body: '',
     linkLabel: SITE.emails.support,
     href: `mailto:${SITE.emails.support}`,
     isEmail: true,
   },
   {
     title: 'Help channels',
-    body: 'Full channel map (docs, email SLA, paid-buyer community):',
+    body: '',
     linkLabel: 'Support page',
     href: '/support',
   },
