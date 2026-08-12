@@ -145,8 +145,8 @@ export function Hero() {
         </div>
 
         {/* Receipt-motif moment (frontend-excellence Phase 5): one orchestrated
-            print entrance. Signature creative element only — Linear: one moment,
-            not competing chrome. */}
+            print entrance. Signature creative element only (Linear craft: one
+            moment, not competing chrome). */}
         <div className="mt-12 w-full max-w-md min-w-0 mx-auto text-left sm:mt-14 sm:max-w-lg">
           <ReceiptCard
             title={RECEIPT_HERO_TITLE}

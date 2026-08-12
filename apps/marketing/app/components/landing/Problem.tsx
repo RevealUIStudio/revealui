@@ -111,17 +111,12 @@ export function Problem() {
           ))}
         </ul>
 
-        <div
-          className="mx-auto mt-14 max-w-3xl border-t border-border sm:mt-16"
-          role="list"
+        <ul
+          className="mx-auto mt-14 max-w-3xl list-none border-t border-border p-0 sm:mt-16"
           aria-label={HOME_PROBLEM.tableAriaLabel}
         >
           {HOME_PROBLEM.rows.map((row) => (
-            <div
-              key={row.capability}
-              role="listitem"
-              className="border-b border-border py-8 first:pt-10 last:pb-2"
-            >
+            <li key={row.capability} className="border-b border-border py-8 first:pt-10 last:pb-2">
               <h3 className="font-display text-base font-semibold tracking-tight text-foreground sm:text-lg">
                 {row.capability}
               </h3>
@@ -152,9 +147,9 @@ export function Problem() {
                   </div>
                 ))}
               </dl>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
 
         <p className="mx-auto mt-8 max-w-3xl text-center text-xs leading-5 text-muted-foreground">
           {HOME_PROBLEM.footnote}
