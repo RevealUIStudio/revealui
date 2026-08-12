@@ -255,7 +255,7 @@ export const blogMetaClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/component-library',
     exportPath: 'title',
-    text: '65 Components, One Dependency',
+    text: '66 Components, One Dependency',
     evidence: [
       { kind: 'code', ref: 'docs/blog/09-component-library.md', note: 'static post body source' },
       {
@@ -268,7 +268,7 @@ export const blogMetaClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/component-library',
     exportPath: 'excerpt',
-    text: 'A native React component library with 65 components and a single runtime dependency. No Radix, no MUI, no lock-in, just components you own.',
+    text: 'A native React component library with 66 components and a single runtime dependency. No Radix, no MUI, no lock-in, just components you own.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/09-component-library.md', note: 'static post body source' },
       {
