@@ -45,14 +45,14 @@ export function Hero({ data, path, annotation }: ServicesHeroProps = {}) {
         </h1>
 
         <p
-          className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl"
+          className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-body sm:text-xl"
           {...(base ? fieldAttrs(ann, `${base}.subtitle`) : {})}
         >
           {content.subtitle}
         </p>
 
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button asChild size="lg" className="w-full sm:w-auto">
+          <Button asChild size="lg" glow className="w-full sm:w-auto">
             <a
               href={content.primaryCta.href}
               {...(content.primaryCta.external

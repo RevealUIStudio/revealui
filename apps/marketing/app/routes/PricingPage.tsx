@@ -111,7 +111,7 @@ export function PricingPage() {
               RevealUI
             </span>
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-body sm:text-xl">
             {PRICING_HERO.subtitle}
           </p>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">
@@ -650,9 +650,7 @@ export function PricingPage() {
           <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {PRICING_FINAL_CTA.title}
           </h2>
-          <p className="mt-6 text-lg leading-8 text-muted-foreground">
-            {PRICING_FINAL_CTA.subtitle}
-          </p>
+          <p className="mt-6 text-lg leading-8 text-body">{PRICING_FINAL_CTA.subtitle}</p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Button asChild size="lg" className="w-full sm:w-auto">
               <a

@@ -86,7 +86,7 @@ export function BlogIndexPage() {
           <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
             Blog
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-body sm:text-xl">
             Updates, guides, and insights from the RevealUI team.
           </p>
         </div>

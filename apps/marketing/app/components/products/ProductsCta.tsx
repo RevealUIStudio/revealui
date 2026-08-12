@@ -25,10 +25,7 @@ export function ProductsCta({
         >
           {data.heading}
         </h2>
-        <p
-          className="mt-6 text-lg leading-8 text-muted-foreground"
-          {...fieldAttrs(annotation, `${path}.body`)}
-        >
+        <p className="mt-6 text-lg leading-8 text-body" {...fieldAttrs(annotation, `${path}.body`)}>
           {data.body}
         </p>
         <div

@@ -11,7 +11,7 @@ export function ContactPage() {
             <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
               {CONTACT_HERO.title}
             </h1>
-            <p className="mt-6 text-lg leading-8 text-muted-foreground">{CONTACT_HERO.subtitle}</p>
+            <p className="mt-6 text-lg leading-8 text-body">{CONTACT_HERO.subtitle}</p>
           </div>
 
           <ContactForm />

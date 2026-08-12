@@ -45,7 +45,7 @@ function LocalAiHero({ data, path, annotation }: LocalAiHeroProps) {
           {data.h1}
         </h1>
         <p
-          className="mt-6 text-lg leading-8 text-muted-foreground"
+          className="mt-6 text-lg leading-8 text-body"
           {...fieldAttrs(annotation, `${path}.subtitle`)}
         >
           {data.lead}

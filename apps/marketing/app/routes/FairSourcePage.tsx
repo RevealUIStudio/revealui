@@ -381,10 +381,7 @@ function FairSourceCta({ data, path, annotation }: CtaProps) {
         >
           {data.heading}
         </h2>
-        <p
-          className="mt-6 text-lg leading-8 text-muted-foreground"
-          {...fieldAttrs(annotation, `${path}.body`)}
-        >
+        <p className="mt-6 text-lg leading-8 text-body" {...fieldAttrs(annotation, `${path}.body`)}>
           {data.body}
         </p>
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -451,7 +448,7 @@ export function FairSourcePage() {
             {FAIR_SOURCE_HERO.headline}
             <span className="block text-primary">{FAIR_SOURCE_HERO.headlineHighlight}</span>
           </h1>
-          <p className="mx-auto mt-8 max-w-2xl text-xl leading-8 text-muted-foreground sm:text-2xl">
+          <p className="mx-auto mt-8 max-w-2xl text-xl leading-8 text-body sm:text-2xl">
             {FAIR_SOURCE_HERO.subhead}
           </p>
           <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-muted-foreground">

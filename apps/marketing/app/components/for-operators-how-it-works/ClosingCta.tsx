@@ -30,15 +30,12 @@ export function ClosingCta({
         >
           {data.heading}
         </h2>
-        <p
-          className="mx-auto mt-6 max-w-2xl text-base leading-7 text-muted-foreground"
-          {...field('body')}
-        >
+        <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-body" {...field('body')}>
           {data.body}
         </p>
 
         <div className="mt-10 flex justify-center">
-          <Button asChild size="lg">
+          <Button asChild size="lg" glow>
             <a
               href={data.primaryCta.href}
               {...(data.primaryCta.external
