@@ -1,19 +1,19 @@
 /**
- * Account-scoped feature entitlement lookup for admin routes (GAP-476).
+ * Account-scoped feature entitlement lookup for admin routes (GAP-477).
  *
- * Mirrors apps/server/src/lib/account-entitlement.ts accountHasAiFeature:
- * membership → account_entitlements (stripe mode) → grace-expired fail-closed →
- * features from row or getFeaturesForTier(tier).
+ * Mirrors apps/server/src/lib/account-entitlement.ts:
+ * resolve membership (preferred + deterministic oldest) → account_entitlements
+ * (stripe mode) → grace-expired fail-closed → features from row or tier map.
  *
- * Do not import from apps/server; keep this admin-local mirror in sync with
- * the server helper when entitlement rules change.
+ * Do not import from apps/server; keep this admin-local mirror in sync.
  */
 
 import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import { type FeatureFlags, getFeaturesForTier } from '@revealui/core/features';
 import type { Database } from '@revealui/db/client';
-import { accountEntitlements, accountMemberships } from '@revealui/db/schema';
+import { accountEntitlements } from '@revealui/db/schema';
 import { and, eq } from 'drizzle-orm';
+import { resolveActiveMembership } from './resolve-membership.js';
 
 function isHealthyStatus(status: string | null): boolean {
   return status === 'active' || status === 'trialing';
@@ -31,22 +31,17 @@ function featureRecord(features: object | null | undefined): Record<string, bool
 /**
  * Whether the account owning `userId` currently has `featureKey`.
  *
- * Fail-closed: null userId, no active membership, no entitlement row, or a
- * grace-expired subscription all resolve to false.
+ * @param preferredAccountId - Optional account id/slug (X-Tenant-ID / workspace).
  */
 export async function accountHasFeature(
   db: Database,
   userId: string | null | undefined,
   featureKey: keyof FeatureFlags,
+  preferredAccountId?: string | null,
 ): Promise<boolean> {
   if (!userId) return false;
 
-  const [membership] = await db
-    .select({ accountId: accountMemberships.accountId })
-    .from(accountMemberships)
-    .where(and(eq(accountMemberships.userId, userId), eq(accountMemberships.status, 'active')))
-    .limit(1);
-
+  const membership = await resolveActiveMembership(db, userId, preferredAccountId);
   if (!membership?.accountId) return false;
 
   const [entitlement] = await db

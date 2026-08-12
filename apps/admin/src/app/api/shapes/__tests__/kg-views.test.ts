@@ -47,7 +47,7 @@ const mockSession = {
     email: 'test@example.com',
     avatarUrl: null,
     password: null,
-    role: 'viewer',
+    role: 'admin',
     status: 'active',
     emailVerified: false,
     emailVerificationToken: null,
