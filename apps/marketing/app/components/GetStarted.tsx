@@ -18,22 +18,22 @@ export function GetStarted({
   annotation = {},
 }: GetStartedProps) {
   return (
-    <section className="py-24 bg-card sm:py-32">
+    <section className="border-t border-border bg-background py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2
-            className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+            className="font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
             {...fieldAttrs(annotation, `${path}.heading`)}
           >
             {data.heading}
           </h2>
           <p
-            className="mt-6 text-lg leading-8 text-muted-foreground"
+            className="mt-5 text-lg leading-8 text-muted-foreground"
             {...fieldAttrs(annotation, `${path}.body`)}
           >
             {data.body}
           </p>
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:mt-10 sm:flex-row sm:gap-4">
             <Button asChild size="lg" variant="brand">
               <a href={data.cta.primary.href}>{data.cta.primary.label}</a>
             </Button>
@@ -75,9 +75,8 @@ export function GetStarted({
             {data.cli.caption}
           </p>
 
-          {/* Newsletter */}
-          <div className="mt-16 pt-10 border-t border-border">
-            <p className="text-sm font-medium text-muted-foreground mb-4">
+          <div className="mt-14 border-t border-border pt-10">
+            <p className="mb-4 text-sm font-medium text-muted-foreground">
               {data.newsletter.label}
             </p>
             <NewsletterSignup variant="stacked" />

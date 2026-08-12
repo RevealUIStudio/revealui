@@ -184,7 +184,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
       {
         kind: 'code',
         ref: 'packages',
-        note: 'framing sentence; the table below carries the claims',
+        note: 'framing sentence; the three-path comparison below carries the claims',
       },
     ],
   },
@@ -193,6 +193,39 @@ export const claimsPart1: readonly ClaimEntry[] = [
     exportPath: 'HOME_PROBLEM.body',
     proofGrade: 'outcome',
     text: 'Most teams stitch sign-in, content, billing, and agents from different vendors. Or they pick an agent framework and rebuild the rest underneath it. RevealUI is the third path: one self-hosted runtime for the business and the agents that run it.',
+    evidence: [AUTH_SESSIONS, COLLECTIONS, BILLING, LICENSE_MIT],
+  },
+  {
+    file: 'home.ts',
+    exportPath: 'HOME_PROBLEM.pathBlurbs.sprawl',
+    proofGrade: 'path',
+    text: 'Rent a product for each slice. Glue them together yourself.',
+    evidence: [
+      {
+        kind: 'url',
+        ref: 'https://revealui.com/pricing',
+        note: 'competitor-path framing; cost detail lives on the pricing page',
+      },
+    ],
+  },
+  {
+    file: 'home.ts',
+    exportPath: 'HOME_PROBLEM.pathBlurbs.agentOnly',
+    proofGrade: 'path',
+    text: 'Agents first. Rebuild sign-in, content, and billing underneath.',
+    evidence: [
+      {
+        kind: 'url',
+        ref: 'https://revealui.com/pricing',
+        note: 'competitor-path framing; cost detail lives on the pricing page',
+      },
+    ],
+  },
+  {
+    file: 'home.ts',
+    exportPath: 'HOME_PROBLEM.pathBlurbs.revealui',
+    proofGrade: 'outcome',
+    text: 'One self-hosted runtime for the business and the agents that run it.',
     evidence: [AUTH_SESSIONS, COLLECTIONS, BILLING, LICENSE_MIT],
   },
   {

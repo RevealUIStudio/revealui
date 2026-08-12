@@ -24,12 +24,15 @@ const TRUST_SIGNALS = ['Open source', 'Self-hostable', 'Local-first AI'] as cons
  * to `--color-primary` rather than a literal color. Lives inside an
  * overflow-hidden box so the off-canvas offset never creates a scrollbar.
  * Reads in both light and dark.
+ *
+ * Craft pass 2026-08: lower opacity, smaller glow. Linear redesign lesson:
+ * reduce chrome noise; let type and the receipt carry hierarchy.
  */
 function HeroBackground() {
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
-      <div className="absolute -top-40 left-1/2 h-[700px] w-[1100px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--color-primary),transparent_70%)] opacity-10 blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.03] via-background to-background" />
+      <div className="absolute -top-32 left-1/2 h-[520px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--color-primary),transparent_70%)] opacity-[0.07] blur-3xl" />
     </div>
   );
 }
@@ -38,15 +41,15 @@ function HeroBackground() {
 function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
   return (
     <>
-      <h1 className="font-display text-5xl font-extrabold tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
+      <h1 className="font-display text-[2.75rem] font-extrabold leading-[1.05] tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
         {hero.h1}
       </h1>
 
-      <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
+      <p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-muted-foreground sm:mt-8 sm:text-xl sm:leading-8">
         {hero.subtitle.sentence1} {hero.subtitle.sentence2} {hero.subtitle.support}
       </p>
 
-      <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+      <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:mt-10 sm:flex-row sm:gap-4">
         <Button asChild size="lg" className="w-full sm:w-auto gap-2">
           <a href={hero.cta.primary.href}>
             {hero.cta.primary.label}
@@ -67,12 +70,12 @@ function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
         </Button>
       </div>
 
-      {/* Trust strip: the signals the retired eyebrow pill used to carry. */}
-      <ul className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground list-none p-0">
-        {TRUST_SIGNALS.map((signal) => (
-          <li key={signal} className="flex items-center gap-2">
-            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-primary" />
-            {signal}
+      {/* Trust strip: quiet separators, not competing brand dots. */}
+      <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-0 gap-y-2 text-sm text-muted-foreground list-none p-0">
+        {TRUST_SIGNALS.map((signal, index) => (
+          <li key={signal} className="flex items-center">
+            {index > 0 && <span aria-hidden="true" className="mx-3 h-3 w-px bg-border sm:mx-4" />}
+            <span>{signal}</span>
           </li>
         ))}
       </ul>
@@ -89,7 +92,7 @@ function NonTechnicalHero() {
   const hero = FOR_OPERATORS_HERO;
   return (
     <>
-      <h1 className="font-display text-5xl font-extrabold tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
+      <h1 className="font-display text-[2.75rem] font-extrabold leading-[1.05] tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
         {hero.h1Lines.map((line) => (
           <span key={line} className="block">
             {line}
@@ -97,11 +100,11 @@ function NonTechnicalHero() {
         ))}
       </h1>
 
-      <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
+      <p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-muted-foreground sm:mt-8 sm:text-xl sm:leading-8">
         {hero.subtitle}
       </p>
 
-      <div className="mt-10 flex justify-center">
+      <div className="mt-9 flex justify-center sm:mt-10">
         <Button asChild size="lg" className="w-full sm:w-auto gap-2">
           <a href={hero.primaryCta.href} target="_blank" rel="noopener noreferrer">
             {hero.primaryCta.label}
@@ -110,12 +113,11 @@ function NonTechnicalHero() {
         </Button>
       </div>
 
-      {/* Trust strip: mirror of TechnicalHero; same signals for the operator view. */}
-      <ul className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground list-none p-0">
-        {TRUST_SIGNALS.map((signal) => (
-          <li key={signal} className="flex items-center gap-2">
-            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-primary" />
-            {signal}
+      <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-0 gap-y-2 text-sm text-muted-foreground list-none p-0">
+        {TRUST_SIGNALS.map((signal, index) => (
+          <li key={signal} className="flex items-center">
+            {index > 0 && <span aria-hidden="true" className="mx-3 h-3 w-px bg-border sm:mx-4" />}
+            <span>{signal}</span>
           </li>
         ))}
       </ul>
@@ -129,13 +131,13 @@ export function Hero() {
   const hero = selectHomeHero(search);
 
   return (
-    <section className="relative isolate overflow-hidden bg-background px-6 pt-20 pb-20 sm:px-6 sm:pt-28 sm:pb-28 lg:px-8">
+    <section className="relative isolate overflow-hidden bg-background px-6 pt-16 pb-16 sm:px-6 sm:pt-24 sm:pb-20 lg:px-8">
       <HeroBackground />
 
       <div className="relative mx-auto max-w-7xl">
         <div className="mx-auto max-w-3xl text-center">
           {/* Audience switch: replaces the former eyebrow pill. */}
-          <div className="mb-8 flex justify-center">
+          <div className="mb-7 flex justify-center sm:mb-8">
             <AudienceToggle current={audience} />
           </div>
 
@@ -143,8 +145,9 @@ export function Hero() {
         </div>
 
         {/* Receipt-motif moment (frontend-excellence Phase 5): one orchestrated
-            print entrance, shared verbatim by both audience variants. */}
-        <div className="mt-12 w-full max-w-md min-w-0 mx-auto text-left">
+            print entrance. Signature creative element only (Linear craft: one
+            moment, not competing chrome). */}
+        <div className="mt-12 w-full max-w-md min-w-0 mx-auto text-left sm:mt-14 sm:max-w-lg">
           <ReceiptCard
             title={RECEIPT_HERO_TITLE}
             lines={[...RECEIPT_HERO_LINES]}
