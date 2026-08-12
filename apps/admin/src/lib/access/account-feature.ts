@@ -13,7 +13,7 @@ import { type FeatureFlags, getFeaturesForTier } from '@revealui/core/features';
 import type { Database } from '@revealui/db/client';
 import { accountEntitlements } from '@revealui/db/schema';
 import { and, eq } from 'drizzle-orm';
-import { resolveActiveMembership } from './resolve-membership.js';
+import { resolveActiveMembership } from './resolve-membership';
 
 function isHealthyStatus(status: string | null): boolean {
   return status === 'active' || status === 'trialing';
