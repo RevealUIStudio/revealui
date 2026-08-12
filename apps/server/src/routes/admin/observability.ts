@@ -30,6 +30,7 @@ import {
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, count, desc, eq, gte, lte, type SQL, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
+import { isAdminRole } from '../../lib/access.js';
 import { recordUsageMeter } from '../../lib/metering.js';
 import {
   AUDIT_EXPORT_METER_NAME,
@@ -48,11 +49,12 @@ type AdminVariables = {
 // Shared
 // =============================================================================
 
-const ADMIN_ROLES = new Set(['admin', 'super-admin', 'admin', 'super-admin']);
-
 function requireAdmin(user: { id: string; role: string } | undefined): void {
   if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-  if (!ADMIN_ROLES.has(user.role)) {
+  // Match CMS shell isAdminRole (owner | admin | super-admin) — the prior
+  // local set omitted `owner`, so bootstrap/founder sessions could open
+  // /audit but the API returned 403.
+  if (!isAdminRole(user.role)) {
     throw new HTTPException(403, { message: 'Admin access required' });
   }
 }
