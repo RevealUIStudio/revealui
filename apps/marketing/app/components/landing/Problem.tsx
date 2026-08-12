@@ -1,91 +1,162 @@
 import { HOME_PROBLEM } from '../../content/home';
 
+/**
+ * Capability stack (craft pass 2026-08, Linear redesign principles).
+ *
+ * Replaces:
+ * - desktop spreadsheet table
+ * - mobile per-capability cards that restated the matrix
+ * - three marketing "path" cards (still too much chrome)
+ *
+ * One layout at every breakpoint: capability rows with three aligned answers.
+ * Hierarchy comes from type weight and spacing, not rings, fills, or boxes.
+ * Claims stay in HOME_PROBLEM.rows so claims-evidence export paths hold.
+ *
+ * Linear lessons applied:
+ * - reduce visual noise
+ * - maintain visual alignment (label column + answer column)
+ * - increase hierarchy via density, not decoration
+ * - limit brand chrome; neutral surfaces
+ */
+
+interface Answer {
+  readonly label: string;
+  readonly value: string;
+  readonly emphasis: boolean;
+}
+
+function answersFor(row: (typeof HOME_PROBLEM.rows)[number]): readonly Answer[] {
+  return [
+    {
+      label: HOME_PROBLEM.columns.sprawl,
+      value: row.sprawl,
+      emphasis: false,
+    },
+    {
+      label: HOME_PROBLEM.columns.agentOnly,
+      value: row.agentOnly,
+      emphasis: false,
+    },
+    {
+      label: HOME_PROBLEM.columns.revealui,
+      value: row.revealui,
+      emphasis: true,
+    },
+  ];
+}
+
 export function Problem() {
   return (
-    <section className="bg-background py-24 sm:py-32">
+    <section className="bg-background py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             {HOME_PROBLEM.eyebrow}
           </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+          <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {HOME_PROBLEM.heading}
           </h2>
-          <p className="mt-6 text-lg leading-8 text-muted-foreground">{HOME_PROBLEM.body}</p>
+          <p className="mt-5 text-lg leading-8 text-muted-foreground">{HOME_PROBLEM.body}</p>
         </div>
 
-        {/* Mobile (<md): each capability becomes a card so the RevealUI column is
-            never hidden behind a horizontal scrollbar. No sidescroll. */}
-        <div className="mt-16 space-y-4 md:hidden">
-          <h3 className="sr-only">{HOME_PROBLEM.tableAriaLabel}</h3>
-          {HOME_PROBLEM.rows.map((r) => (
-            <div
-              key={r.capability}
-              className="overflow-hidden rounded-2xl bg-card ring-1 ring-border shadow-sm"
+        {/* Path blurbs: three quiet lines under the intro, not three cards. */}
+        <ul
+          className="mx-auto mt-10 flex max-w-3xl flex-col gap-3 text-left sm:mt-12"
+          aria-label="Three paths"
+        >
+          {(
+            [
+              ['sprawl', HOME_PROBLEM.columns.sprawl, HOME_PROBLEM.pathBlurbs.sprawl, false],
+              [
+                'agentOnly',
+                HOME_PROBLEM.columns.agentOnly,
+                HOME_PROBLEM.pathBlurbs.agentOnly,
+                false,
+              ],
+              ['revealui', HOME_PROBLEM.columns.revealui, HOME_PROBLEM.pathBlurbs.revealui, true],
+            ] as const
+          ).map(([id, name, blurb, emphasis]) => (
+            <li
+              key={id}
+              className="grid grid-cols-1 gap-1 sm:grid-cols-[11rem_1fr] sm:gap-6 sm:items-baseline"
             >
-              <p className="bg-secondary px-4 py-3 text-sm font-semibold text-foreground">
-                {r.capability}
-              </p>
-              <dl className="divide-y divide-border">
-                <div className="flex items-start justify-between gap-4 px-4 py-3">
-                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    {HOME_PROBLEM.columns.sprawl}
-                  </dt>
-                  <dd className="text-right text-sm text-muted-foreground">{r.sprawl}</dd>
-                </div>
-                <div className="flex items-start justify-between gap-4 px-4 py-3">
-                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    {HOME_PROBLEM.columns.agentOnly}
-                  </dt>
-                  <dd className="text-right text-sm text-muted-foreground">{r.agentOnly}</dd>
-                </div>
-                <div className="flex items-start justify-between gap-4 bg-primary/5 px-4 py-3">
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-primary">
-                    {HOME_PROBLEM.columns.revealui}
-                  </dt>
-                  <dd className="text-right text-sm font-medium text-primary">{r.revealui}</dd>
-                </div>
+              <span
+                className={
+                  emphasis
+                    ? 'text-sm font-semibold text-foreground'
+                    : 'text-sm font-medium text-muted-foreground'
+                }
+              >
+                {emphasis ? (
+                  <>
+                    <span className="mr-2 text-[11px] font-semibold uppercase tracking-widest text-primary">
+                      {HOME_PROBLEM.highlightedLabel}
+                    </span>
+                    <span className="block sm:inline">{name}</span>
+                  </>
+                ) : (
+                  name
+                )}
+              </span>
+              <span
+                className={
+                  emphasis
+                    ? 'text-sm leading-6 text-foreground'
+                    : 'text-sm leading-6 text-muted-foreground'
+                }
+              >
+                {blurb}
+              </span>
+            </li>
+          ))}
+        </ul>
+
+        <div
+          className="mx-auto mt-14 max-w-3xl border-t border-border sm:mt-16"
+          role="list"
+          aria-label={HOME_PROBLEM.tableAriaLabel}
+        >
+          {HOME_PROBLEM.rows.map((row) => (
+            <div
+              key={row.capability}
+              role="listitem"
+              className="border-b border-border py-8 first:pt-10 last:pb-2"
+            >
+              <h3 className="font-display text-base font-semibold tracking-tight text-foreground sm:text-lg">
+                {row.capability}
+              </h3>
+              <dl className="mt-4 space-y-3">
+                {answersFor(row).map((answer) => (
+                  <div
+                    key={answer.label}
+                    className="grid grid-cols-1 gap-0.5 sm:grid-cols-[11rem_1fr] sm:items-baseline sm:gap-6"
+                  >
+                    <dt
+                      className={
+                        answer.emphasis
+                          ? 'text-sm font-semibold text-foreground'
+                          : 'text-sm text-muted-foreground'
+                      }
+                    >
+                      {answer.label}
+                    </dt>
+                    <dd
+                      className={
+                        answer.emphasis
+                          ? 'text-sm leading-6 font-medium text-foreground'
+                          : 'text-sm leading-6 text-muted-foreground'
+                      }
+                    >
+                      {answer.value}
+                    </dd>
+                  </div>
+                ))}
               </dl>
             </div>
           ))}
         </div>
 
-        {/* Tablet/desktop (>=md): full comparison table. Four short columns fit
-            within the container at md+, so no horizontal scroll is needed. */}
-        <div className="mx-auto mt-16 hidden max-w-6xl overflow-hidden rounded-2xl ring-1 ring-border shadow-sm md:block">
-          <table className="w-full text-left text-sm" aria-label={HOME_PROBLEM.tableAriaLabel}>
-            <thead>
-              <tr className="bg-secondary text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                <th scope="col" className="px-4 py-3 sm:px-6 sm:py-4">
-                  {HOME_PROBLEM.columns.capability}
-                </th>
-                <th scope="col" className="px-4 py-3 sm:px-6 sm:py-4">
-                  {HOME_PROBLEM.columns.sprawl}
-                </th>
-                <th scope="col" className="px-4 py-3 sm:px-6 sm:py-4">
-                  {HOME_PROBLEM.columns.agentOnly}
-                </th>
-                <th scope="col" className="bg-primary/10 px-4 py-3 text-primary sm:px-6 sm:py-4">
-                  {HOME_PROBLEM.columns.revealui}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border bg-card">
-              {HOME_PROBLEM.rows.map((r) => (
-                <tr key={r.capability} className="hover:bg-secondary/60 transition">
-                  <td className="px-4 py-4 font-medium text-foreground sm:px-6">{r.capability}</td>
-                  <td className="px-4 py-4 text-muted-foreground sm:px-6">{r.sprawl}</td>
-                  <td className="px-4 py-4 text-muted-foreground sm:px-6">{r.agentOnly}</td>
-                  <td className="bg-primary/5 px-4 py-4 font-medium text-primary sm:px-6">
-                    {r.revealui}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <p className="mx-auto mt-6 max-w-3xl text-center text-xs text-muted-foreground">
+        <p className="mx-auto mt-8 max-w-3xl text-center text-xs leading-5 text-muted-foreground">
           {HOME_PROBLEM.footnote}
         </p>
       </div>

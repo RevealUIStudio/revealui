@@ -55,62 +55,59 @@ export function Primitives({
   annotation = {},
 }: PrimitivesProps) {
   return (
-    <section className="bg-background py-24 sm:py-32">
+    <section className="bg-background py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p
-            className="text-sm font-semibold uppercase tracking-widest text-muted-foreground"
+            className="text-xs font-semibold uppercase tracking-widest text-muted-foreground"
             {...fieldAttrs(annotation, `${path}.eyebrow`)}
           >
             {data.eyebrow}
           </p>
           <h2
-            className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+            className="mt-3 font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
             {...fieldAttrs(annotation, `${path}.heading`)}
           >
             {data.heading}
           </h2>
           <p
-            className="mt-6 text-lg leading-8 text-muted-foreground"
+            className="mt-5 text-lg leading-8 text-muted-foreground"
             {...fieldAttrs(annotation, `${path}.body`)}
           >
             {data.body}
           </p>
         </div>
 
-        {/* Alternating feature rows (a zigzag), not a card grid — gives the page
-            rhythm. Each primitive is a generous row with a large accent icon that
-            alternates sides; the copy hugs toward it. */}
-        <div className="mx-auto mt-16 max-w-4xl space-y-10 sm:space-y-14">
+        {/* Quiet stacked rows (not a card grid). Linear craft: density + alignment
+            over decorative cards. Alternating icon side still gives rhythm. */}
+        <div className="mx-auto mt-14 max-w-3xl divide-y divide-border border-y border-border sm:mt-16">
           {data.items.map((item, index) => {
             const flipped = index % 2 === 1;
             const style = primitiveStyles[index];
             return (
               <div
                 key={item.label}
-                className={`flex flex-col gap-5 sm:items-center sm:gap-10 ${
+                className={`flex flex-col gap-4 py-8 sm:items-center sm:gap-8 sm:py-10 ${
                   flipped ? 'sm:flex-row-reverse' : 'sm:flex-row'
                 }`}
               >
                 <div
-                  className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl ring-1 ${style ? accentBg[style.color] : ''}`}
+                  className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl ring-1 ${style ? accentBg[style.color] : ''}`}
                 >
                   {(() => {
                     const Icon = PRIMITIVE_ICONS[index];
-                    return Icon ? (
-                      <Icon className="h-10 w-10" size="xl" label={item.label} />
-                    ) : null;
+                    return Icon ? <Icon className="h-7 w-7" size="lg" label={item.label} /> : null;
                   })()}
                 </div>
-                <div className={`flex-1 ${flipped ? 'sm:text-right' : ''}`}>
+                <div className={`flex-1 min-w-0 ${flipped ? 'sm:text-right' : ''}`}>
                   <h3
-                    className="text-xl font-semibold text-foreground"
+                    className="font-display text-lg font-semibold tracking-tight text-foreground"
                     {...fieldAttrs(annotation, `${path}.items.${index}.label`)}
                   >
                     {item.label}
                   </h3>
                   <p
-                    className="mt-2 text-base leading-7 text-muted-foreground"
+                    className="mt-1.5 text-base leading-7 text-muted-foreground"
                     {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
                   >
                     {item.body}
@@ -121,7 +118,7 @@ export function Primitives({
           })}
         </div>
 
-        <div className="mt-12 text-center">
+        <div className="mt-10 text-center">
           <Button
             asChild
             appearance="link"

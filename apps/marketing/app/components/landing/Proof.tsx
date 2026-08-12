@@ -5,23 +5,23 @@ import { LiveMetricsBadge } from './LiveMetricsBadge';
 
 export function Proof() {
   return (
-    <section className="bg-background py-24 sm:py-32">
+    <section className="bg-background py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             {PROOF_SECTION.eyebrow}
           </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+          <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {PROOF_SECTION.heading}
           </h2>
-          <p className="mt-6 text-lg leading-8 text-muted-foreground">{PROOF_SECTION.body}</p>
+          <p className="mt-5 text-lg leading-8 text-muted-foreground">{PROOF_SECTION.body}</p>
 
           <div className="mt-6 flex justify-center">
             <a
               href={SITE.urls.repo}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-md bg-card px-3 py-1.5 text-sm font-medium text-foreground ring-1 ring-border hover:ring-border/80 transition"
+              className="inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-1.5 text-sm font-medium text-foreground ring-1 ring-border transition hover:ring-border/80"
             >
               <GitHubIcon className="size-4" />
               {PROOF_SECTION.repoLinkLabel}
@@ -29,11 +29,11 @@ export function Proof() {
           </div>
         </div>
 
-        <div className="mt-16">
+        <div className="mt-14 sm:mt-16">
           <LiveMetricsBadge />
         </div>
 
-        <div className="mx-auto mt-16 max-w-2xl text-center">
+        <div className="mx-auto mt-12 max-w-2xl text-center">
           <p className="text-base leading-7 text-muted-foreground">
             {PROOF_TRUST.body}{' '}
             <a
@@ -47,7 +47,7 @@ export function Proof() {
           </p>
         </div>
 
-        <div className="mt-12 text-center">
+        <div className="mt-8 text-center">
           <Button
             asChild
             appearance="link"
@@ -59,11 +59,11 @@ export function Proof() {
         </div>
 
         {/* Secondary FDE layer — same homepage section (≤7 rule), not a new section */}
-        <div className="mx-auto mt-20 max-w-2xl rounded-2xl border border-border bg-card px-6 py-10 text-center sm:px-10">
-          <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+        <div className="mx-auto mt-16 max-w-2xl border-t border-border pt-14 text-center">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             {PROOF_DEPLOYERS.eyebrow}
           </p>
-          <h3 className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          <h3 className="mt-3 font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {PROOF_DEPLOYERS.heading}
           </h3>
           <p className="mt-4 text-base leading-7 text-muted-foreground">{PROOF_DEPLOYERS.body}</p>
