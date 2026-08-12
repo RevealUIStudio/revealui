@@ -77,7 +77,9 @@ export const HOME_HERO_L2 = {
 } as const;
 
 // ---------------------------------------------------------------------------
-// Problem (comparison table)
+// Problem (three-path comparison — not a table)
+// Craft pass 2026-08: desktop spreadsheet + mobile capability cards replaced
+// with three equal paths. Row claims stay for claims-evidence export paths.
 // ---------------------------------------------------------------------------
 
 export interface ProblemRow {
@@ -91,12 +93,20 @@ export const HOME_PROBLEM = {
   eyebrow: 'The problem',
   heading: 'Stop buying a separate product for each slice of the stack.',
   body: 'Most teams stitch sign-in, content, billing, and agents from different vendors. Or they pick an agent framework and rebuild the rest underneath it. RevealUI is the third path: one self-hosted runtime for the business and the agents that run it.',
+  /** Accessible name for the three-path comparison region. */
   tableAriaLabel: 'Vendor sprawl vs agent-framework vs RevealUI comparison',
+  /** Label on the winning path only. */
+  highlightedLabel: 'The third path',
   columns: {
     capability: 'Capability',
     sprawl: 'Vendor sprawl',
     agentOnly: 'Agent framework only',
     revealui: 'RevealUI',
+  },
+  pathBlurbs: {
+    sprawl: 'Rent a product for each slice. Glue them together yourself.',
+    agentOnly: 'Agents first. Rebuild sign-in, content, and billing underneath.',
+    revealui: 'One self-hosted runtime for the business and the agents that run it.',
   },
   rows: [
     {

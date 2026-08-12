@@ -105,7 +105,10 @@ export function VerdictChip({
       </span>
       <span aria-hidden="true">{meta.word}</span>
       {actor && (
-        <span aria-hidden="true" className="opacity-70">
+        // Full-opacity secondary label (not opacity-70): success/error chip
+        // surfaces fail WCAG AA when the actor string is alpha-faded (axe
+        // color-contrast ~2.9 on approve). Actor stays in aria-label above.
+        <span aria-hidden="true" className="font-normal">
           · {actor}
         </span>
       )}
