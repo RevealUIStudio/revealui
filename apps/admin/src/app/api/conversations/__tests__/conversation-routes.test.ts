@@ -9,7 +9,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockGetSession = vi.fn();
 const mockIsFeatureEnabled = vi.fn();
-const mockGetClient = vi.fn();
+const mockGetClient = vi.fn(() => ({}));
+const mockAccountHasFeature = vi.fn();
 const mockGetConversations = vi.fn();
 const mockCreateConversation = vi.fn();
 const mockGetConversationById = vi.fn();
@@ -26,8 +27,17 @@ vi.mock('@revealui/core/features', () => ({
   isFeatureEnabled: (...args: unknown[]) => mockIsFeatureEnabled(...args),
 }));
 
+// Gate imports getClient from @revealui/db/client (not @revealui/db).
+vi.mock('@revealui/db/client', () => ({
+  getClient: () => mockGetClient(),
+}));
+
 vi.mock('@revealui/db', () => ({
   getClient: () => mockGetClient(),
+}));
+
+vi.mock('@/lib/access/account-feature', () => ({
+  accountHasFeature: (...args: unknown[]) => mockAccountHasFeature(...args),
 }));
 
 vi.mock('@revealui/db/queries/conversations', () => ({
@@ -62,6 +72,8 @@ function makeRequest(opts: { searchParams?: Record<string, string>; body?: unkno
 describe('GET /api/conversations', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAccountHasFeature.mockResolvedValue(false);
+    mockGetClient.mockReturnValue({});
   });
 
   async function loadRoute() {
@@ -80,6 +92,7 @@ describe('GET /api/conversations', () => {
 
   it('returns 403 when AI features disabled', async () => {
     mockGetSession.mockResolvedValue({ user: { id: 'u1' } });
+    mockAccountHasFeature.mockResolvedValue(false);
     mockIsFeatureEnabled.mockReturnValue(false);
     const GET = await loadRoute();
     const res = await GET(makeRequest());
@@ -89,7 +102,6 @@ describe('GET /api/conversations', () => {
   it('returns paginated conversations', async () => {
     mockGetSession.mockResolvedValue({ user: { id: 'u1' } });
     mockIsFeatureEnabled.mockReturnValue(true);
-    mockGetClient.mockReturnValue({});
     mockGetConversations.mockResolvedValue([{ id: 'c1', title: 'Test' }]);
 
     const GET = await loadRoute();
@@ -125,6 +137,8 @@ describe('GET /api/conversations', () => {
 describe('POST /api/conversations', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAccountHasFeature.mockResolvedValue(false);
+    mockGetClient.mockReturnValue({});
   });
 
   async function loadRoute() {
@@ -142,7 +156,6 @@ describe('POST /api/conversations', () => {
   it('creates conversation and returns 201', async () => {
     mockGetSession.mockResolvedValue({ user: { id: 'u1' } });
     mockIsFeatureEnabled.mockReturnValue(true);
-    mockGetClient.mockReturnValue({});
     mockCreateConversation.mockResolvedValue({ id: 'c-new', title: 'New Chat' });
 
     const POST = await loadRoute();
@@ -159,6 +172,8 @@ describe('POST /api/conversations', () => {
 describe('GET /api/conversations/:id', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAccountHasFeature.mockResolvedValue(false);
+    mockGetClient.mockReturnValue({});
   });
 
   async function loadRoute() {
@@ -195,6 +210,8 @@ describe('GET /api/conversations/:id', () => {
 describe('PATCH /api/conversations/:id', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAccountHasFeature.mockResolvedValue(false);
+    mockGetClient.mockReturnValue({});
   });
 
   async function loadRoute() {
@@ -231,6 +248,8 @@ describe('PATCH /api/conversations/:id', () => {
 describe('DELETE /api/conversations/:id', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAccountHasFeature.mockResolvedValue(false);
+    mockGetClient.mockReturnValue({});
   });
 
   async function loadRoute() {
@@ -269,6 +288,8 @@ describe('DELETE /api/conversations/:id', () => {
 describe('GET /api/conversations/:id/messages', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAccountHasFeature.mockResolvedValue(false);
+    mockGetClient.mockReturnValue({});
   });
 
   async function loadRoute() {
@@ -306,6 +327,8 @@ describe('GET /api/conversations/:id/messages', () => {
 describe('POST /api/conversations/:id/messages', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAccountHasFeature.mockResolvedValue(false);
+    mockGetClient.mockReturnValue({});
   });
 
   async function loadRoute() {
