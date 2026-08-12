@@ -1,14 +1,16 @@
-# Owner publish checklist — Railway marketplace template (GAP-430)
+# Owner publish checklist — customer marketplace sales channel (GAP-430)
 
-**Filename is historical.** Studio production hosting stays on **Vercel + Neon + Fly**.
-This template is a **customer sales channel** only (`deployment/railway/*`).
+**Filename is historical** (`RAILWAY-MARKETPLACE-…`). Studio production hosting is
+**Vercel + Neon + Fly** only. This template is a **customer self-host sales channel**
+under `deployment/railway/*` — not Studio production.
 
 Agent config-as-code is **done** on `main`. Closure is **owner dashboard publish** +
 clean-account deploy walk.
 
-Full service/env/first-boot detail lives in:
+Full service/env/first-boot detail:
 
 [`deployment/railway/README.md`](../../deployment/railway/README.md)
+(customer marketplace path; Studio prod stays off that stack.)
 
 ## 0. Product decision (before public list)
 
@@ -19,10 +21,10 @@ Pick one and put it in the listing description:
 
 Do not ship a public Deploy button that dead-ends at a license prompt for most visitors.
 
-## 1. Account
+## 1. Account (customer marketplace dashboard)
 
-1. Railway Hobby (paid) account signed in.
-2. Partner / Template Queue / payout enrollment ready (`station.railway.com/my-template-queue`).
+1. Hobby (paid) account signed in on the customer marketplace host.
+2. Partner / Template Queue / payout enrollment ready (Template Queue URL in the platform docs).
 
 ## 2. Clean-account compose (acceptance walk)
 
@@ -46,7 +48,7 @@ Generate secrets with `openssl` (see README env tables). Set Free flag **or** re
 3. Log in with `REVEALUI_ADMIN_EMAIL` / `REVEALUI_ADMIN_PASSWORD`.
 4. Rotate admin password immediately.
 
-## 4. Marketplace publish
+## 4. Marketplace publish (sales channel only)
 
 1. Project → Generate Template (or current dashboard equivalent).
 2. Listing name, description, icon, category (state Free vs licensed audience).
@@ -62,6 +64,6 @@ Generate secrets with `openssl` (see README env tables). Set Free flag **or** re
 ## Do not
 
 - Re-scaffold `deployment/railway/api.json` / `admin.json` without a new residual.
-- Present Railway as Studio production hosting.
+- Present the customer marketplace host as Studio production (Studio = Vercel + Neon + Fly).
 - Use vanilla `postgres` image (vector extension fails).
 - Leave migrate Restart Policy on ALWAYS/ON_FAILURE (crash loop).
