@@ -31,6 +31,7 @@ vi.mock('@revealui/auth/server', () => ({
   verifyCookiePayload: vi.fn(),
   createSession: vi.fn(),
   rotateSession: vi.fn(),
+  auditLoginSuccess: vi.fn().mockResolvedValue(undefined),
   initiateMFASetup: vi.fn(),
   verifyMFASetup: vi.fn(),
   checkRateLimit: vi.fn(),
@@ -850,6 +851,11 @@ describe('POST /api/auth/passkey/authenticate-verify', () => {
       expect.objectContaining({
         metadata: { mfaVerified: true, mfaMethod: 'passkey' },
       }),
+    );
+    expect(vi.mocked(authServer.auditLoginSuccess)).toHaveBeenCalledWith(
+      'user-123',
+      expect.any(String),
+      expect.any(String),
     );
 
     // Session cookie should be set

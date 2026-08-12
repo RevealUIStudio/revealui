@@ -9,7 +9,12 @@
  * On success, creates a full session and sets `revealui-session` + `revealui-role`.
  */
 
-import { rotateSession, verifyBackupCode, verifyCookiePayload } from '@revealui/auth/server';
+import {
+  auditLoginSuccess,
+  rotateSession,
+  verifyBackupCode,
+  verifyCookiePayload,
+} from '@revealui/auth/server';
 import config from '@revealui/config';
 import { MFABackupCodeRequestContract } from '@revealui/contracts';
 import { getClient } from '@revealui/db';
@@ -102,6 +107,9 @@ async function backupHandler(request: NextRequest): Promise<NextResponse> {
       ipAddress,
       metadata: { mfaVerified: true },
     });
+
+    // Same as MFA TOTP verify: full session is established only after step-up.
+    await auditLoginSuccess(payload.userId, ipAddress ?? 'unknown', userAgent ?? 'unknown');
 
     const user = await getUserById(getClient(), payload.userId);
 
