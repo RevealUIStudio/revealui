@@ -1,5 +1,5 @@
 /**
- * AI Feature Gate Middleware Tests (GAP-476)
+ * AI Feature Gate Middleware Tests (GAP-477)
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -14,6 +14,10 @@ vi.mock('@revealui/core/features', () => ({
 
 vi.mock('@revealui/db/client', () => ({
   getClient: () => mockGetClient(),
+}));
+
+vi.mock('@revealui/utils/logger', () => ({
+  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
 vi.mock('@/lib/access/account-feature', () => ({
@@ -111,5 +115,18 @@ describe('checkAIFeatureGate', () => {
     const result = await checkAIFeatureGate('user-1');
     expect(result).not.toBeNull();
     expect((result as { status: number }).status).toBe(403);
+  });
+
+  it('falls back to process license when getClient throws (no DB in unit tests)', async () => {
+    mockGetClient.mockImplementation(() => {
+      throw new Error('Database connection string not provided');
+    });
+    mockIsFeatureEnabled.mockReturnValue(true);
+    const checkAIFeatureGate = await loadFn();
+
+    const result = await checkAIFeatureGate('user-1');
+    expect(result).toBeNull();
+    expect(mockIsFeatureEnabled).toHaveBeenCalledWith('ai');
+    expect(mockAccountHasFeature).not.toHaveBeenCalled();
   });
 });
