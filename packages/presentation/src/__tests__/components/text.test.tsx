@@ -24,6 +24,13 @@ describe('Text', () => {
     expect(p).toHaveAttribute('data-slot', 'text');
   });
 
+  it('defaults to the body type rung (not muted)', () => {
+    render(<Text>Body copy</Text>);
+    const p = screen.getByText('Body copy');
+    expect(p).toHaveClass('text-body');
+    expect(p).not.toHaveClass('text-muted-foreground');
+  });
+
   it('should apply custom className', () => {
     render(<Text className="custom-text">Styled</Text>);
 

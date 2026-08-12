@@ -56,6 +56,19 @@ export { FormLabel, type FormLabelProps } from './components/FormLabel.js';
 export { FormField, type FormFieldProps } from './components/form-field.js';
 export { Input as InputCVA, type InputProps } from './components/Input.js';
 export { Label, Label as ControlLabel, type LabelProps } from './components/Label.js';
+// Marketing section shells (no hooks; safe for RSC and static SPAs)
+export {
+  MarketingSection,
+  type MarketingSectionDensity,
+  type MarketingSectionProps,
+  type MarketingSectionTone,
+  type MarketingSectionWidth,
+  SectionHeader,
+  type SectionHeaderAlign,
+  type SectionHeaderEyebrowTone,
+  type SectionHeaderProps,
+  type SectionHeaderTitleAs,
+} from './components/marketing-section.js';
 export {
   Pagination,
   PaginationContent,

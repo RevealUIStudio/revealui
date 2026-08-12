@@ -43,7 +43,7 @@ export function SectionBlock({
         </h2>
         {body ? (
           <p
-            className="mt-4 text-lg text-muted-foreground"
+            className="mt-4 text-lg leading-8 text-body"
             {...fieldAttrs(annotation, `${path}.body`)}
           >
             {body}
