@@ -9,9 +9,10 @@
 import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import { getFeaturesForTier } from '@revealui/core/features';
 import { getClient } from '@revealui/db';
-import { accountEntitlements, accountMemberships } from '@revealui/db/schema';
+import { accountEntitlements } from '@revealui/db/schema';
 import { and, eq } from 'drizzle-orm';
 import type { MiddlewareHandler } from 'hono';
+import { resolveActiveMembership } from '../lib/resolve-membership.js';
 
 export interface EntitlementContext {
   userId: string | null;
@@ -81,14 +82,16 @@ export const entitlementMiddleware = (): MiddlewareHandler => {
     }
 
     const db = getClient();
-    const [membership] = await db
-      .select({
-        accountId: accountMemberships.accountId,
-        role: accountMemberships.role,
-      })
-      .from(accountMemberships)
-      .where(and(eq(accountMemberships.userId, userId), eq(accountMemberships.status, 'active')))
-      .limit(1);
+    // Preferred workspace: tenant middleware context, then X-Tenant-ID / X-Account-ID.
+    // resolveActiveMembership only admits accounts the user actually belongs to.
+    const tenant = c.get('tenant') as { id?: string } | undefined;
+    const preferredAccountId =
+      tenant?.id?.trim() ||
+      c.req.header('X-Tenant-ID')?.trim() ||
+      c.req.header('X-Account-ID')?.trim() ||
+      null;
+
+    const membership = await resolveActiveMembership(db, userId, preferredAccountId);
 
     if (!membership?.accountId) {
       c.set('entitlements', createFreeEntitlements(userId));

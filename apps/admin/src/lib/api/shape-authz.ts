@@ -1,5 +1,5 @@
 /**
- * Shared AuthZ helpers for Electric shape proxy routes (GAP-476).
+ * Shared AuthZ helpers for Electric shape proxy routes (GAP-477).
  */
 
 import type { Database } from '@revealui/db/client';

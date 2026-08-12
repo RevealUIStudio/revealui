@@ -12,8 +12,9 @@
 import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import { getFeaturesForTier } from '@revealui/core/features';
 import type { Database } from '@revealui/db/client';
-import { accountEntitlements, accountMemberships } from '@revealui/db/schema';
+import { accountEntitlements } from '@revealui/db/schema';
 import { and, eq } from 'drizzle-orm';
+import { resolveActiveMembership } from './resolve-membership.js';
 
 /** A subscription status that still confers the paid tier (mirrors the middleware). */
 function isHealthyStatus(status: string | null): boolean {
@@ -38,23 +39,18 @@ function featureRecord(features: object | null | undefined): Record<string, bool
  * the authenticated dispatcher captured server-side at enqueue time for the
  * durable worker (`AgentDispatchPayload.userId`) — never a client-writable
  * value such as a ticket row's `reporterId` (§6.1).
+ *
+ * Membership pick: {@link resolveActiveMembership} (preferred account, else
+ * oldest active — GAP-477 Phase C; no more unordered `.limit(1)`).
  */
-export async function accountHasAiFeature(db: Database, userId: string | null): Promise<boolean> {
+export async function accountHasAiFeature(
+  db: Database,
+  userId: string | null,
+  preferredAccountId?: string | null,
+): Promise<boolean> {
   if (!userId) return false;
 
-  // TODO(GAP-360 follow-up): `.limit(1)` picks an arbitrary active membership
-  // for a user who belongs to multiple accounts. `entitlementMiddleware` has
-  // the same shape (entitlements.ts `entitlementMiddleware`), so this mirrors
-  // existing behavior rather than introducing new ambiguity, but multi-account
-  // BYOK resolution deserves its own design pass (which membership "wins" for
-  // both entitlement and key lookup should be the same account, and today
-  // that's just "whichever active row postgres returns first").
-  const [membership] = await db
-    .select({ accountId: accountMemberships.accountId })
-    .from(accountMemberships)
-    .where(and(eq(accountMemberships.userId, userId), eq(accountMemberships.status, 'active')))
-    .limit(1);
-
+  const membership = await resolveActiveMembership(db, userId, preferredAccountId);
   if (!membership?.accountId) return false;
 
   const [entitlement] = await db

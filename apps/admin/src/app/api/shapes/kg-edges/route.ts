@@ -3,15 +3,14 @@
  *
  * GET /api/shapes/kg-edges[?repo=<repo>]
  *
- * Authenticated, read-only proxy for the ElectricSQL `kg_edges` shape
- * (GAP-349 P4, design spec §8.2/§9). Same repo-partition and validation
- * contract as `kg-nodes` — see that route's header comment.
+ * Same AuthZ as kg-nodes (GAP-477 Phase C): admin_platform + AI gate.
  */
 
 import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/utils/logger';
 import type { NextRequest, NextResponse } from 'next/server';
 import { prepareElectricUrl, proxyElectricRequest } from '@/lib/api/electric-proxy';
+import { requireAdminRole } from '@/lib/api/shape-authz';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
   createApplicationErrorResponse,
@@ -33,6 +32,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const aiGate = await checkAIFeatureGate(session.user.id);
     if (aiGate) return aiGate;
+
+    if (!requireAdminRole(session.user.role)) {
+      return createApplicationErrorResponse('Forbidden', 'FORBIDDEN', 403);
+    }
 
     const repo = new URL(request.url).searchParams.get('repo');
     if (repo !== null && !isRepoIdentifier(repo)) {

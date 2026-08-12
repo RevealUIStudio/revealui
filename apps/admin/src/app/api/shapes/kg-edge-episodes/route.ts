@@ -22,6 +22,7 @@ import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/utils/logger';
 import type { NextRequest, NextResponse } from 'next/server';
 import { prepareElectricUrl, proxyElectricRequest } from '@/lib/api/electric-proxy';
+import { requireAdminRole } from '@/lib/api/shape-authz';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
 import { extractRequestContext } from '@/lib/utils/request-context';
@@ -38,6 +39,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const aiGate = await checkAIFeatureGate(session.user.id);
     if (aiGate) return aiGate;
+
+    // GAP-477: full provenance join is fleet-operator data only.
+    if (!requireAdminRole(session.user.role)) {
+      return createApplicationErrorResponse('Forbidden', 'FORBIDDEN', 403);
+    }
 
     const originUrl = prepareElectricUrl(request.url);
     originUrl.searchParams.set('table', 'kg_edge_episodes');

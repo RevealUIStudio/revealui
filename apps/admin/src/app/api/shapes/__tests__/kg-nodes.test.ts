@@ -50,7 +50,7 @@ const mockSession = {
     email: 'test@example.com',
     avatarUrl: null,
     password: null,
-    role: 'viewer',
+    role: 'admin',
     status: 'active',
     emailVerified: false,
     emailVerificationToken: null,
@@ -83,6 +83,17 @@ describe('GET /api/shapes/kg-nodes', () => {
 
     expect(response.status).toBe(401);
     expect(data.error).toBe('UNAUTHORIZED');
+  });
+
+  it('returns 403 when non-admin (GAP-477)', async () => {
+    mockGetSession.mockResolvedValue({
+      ...mockSession,
+      user: { ...mockSession.user, role: 'viewer' },
+    });
+
+    const request = new NextRequest('http://localhost:3000/api/shapes/kg-nodes');
+    const response = await GET(request);
+    expect(response.status).toBe(403);
   });
 
   it('proxies with no where clause when repo is omitted', async () => {
