@@ -44,8 +44,6 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
   const [task, setTask] = useState<A2ATask | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
-
   async function submit() {
     if (!instruction.trim()) return;
     setState('submitting');
@@ -58,7 +56,8 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
     };
 
     try {
-      const res = await apiFetch(`${apiUrl}/a2a`, {
+      // Same-origin /a2a rewrite so the admin session authenticates AI feature gates.
+      const res = await apiFetch('/a2a', {
         method: 'POST',
         headers,
         credentials: 'include',

@@ -419,8 +419,14 @@ a2a.openapi(
       return c.json(aiModuleUnavailableBody(), 503);
     }
     const baseUrl = getBaseUrl(c.req.raw);
-    const cards = aiMod.agentCardRegistry.listCards(baseUrl);
-    return c.json({ agents: cards });
+    // Include registry id on each card. Display name alone is not a stable id
+    // (e.g. "Ticket Agent" ≠ "revealui-ticket-agent") — admin list UIs must not
+    // invent ids by slugifying the name.
+    const agents = aiMod.agentCardRegistry.listDefs().map((def) => ({
+      id: def.id,
+      ...aiMod.agentCardRegistry.getCard(def.id, baseUrl),
+    }));
+    return c.json({ agents });
   },
 );
 

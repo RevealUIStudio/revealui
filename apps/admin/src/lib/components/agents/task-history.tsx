@@ -35,15 +35,13 @@ export function TaskHistory({ agentId, refreshKey }: TaskHistoryProps) {
   const [rows, setRows] = useState<AgentActionRow[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
-
   // biome-ignore lint/correctness/useExhaustiveDependencies: refreshKey is an intentional re-fetch trigger passed from parent
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     (async () => {
       try {
-        const r = await fetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}/tasks`, {
+        const r = await fetch(`/a2a/agents/${encodeURIComponent(agentId)}/tasks`, {
           credentials: 'include',
         });
         if (!r.ok) {
@@ -68,7 +66,7 @@ export function TaskHistory({ agentId, refreshKey }: TaskHistoryProps) {
     return () => {
       cancelled = true;
     };
-  }, [agentId, apiUrl, refreshKey]);
+  }, [agentId, refreshKey]);
 
   if (loading) {
     return (

@@ -57,9 +57,11 @@ export default function AgentDetailPage({ params }: PageProps) {
   const [retireError, setRetireError] = useState<string | null>(null);
 
   const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
+  // Same-origin /a2a rewrite → API (session cookie authenticates feature gates).
+  const a2aBase = '/a2a';
 
   useEffect(() => {
-    fetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}`, { credentials: 'include' })
+    fetch(`${a2aBase}/agents/${encodeURIComponent(agentId)}`, { credentials: 'include' })
       .then((r) => {
         if (!r.ok) throw new Error(`Agent '${agentId}' not found`);
         return r.json();
@@ -72,13 +74,13 @@ export default function AgentDetailPage({ params }: PageProps) {
         );
       })
       .finally(() => setLoading(false));
-  }, [agentId, apiUrl]);
+  }, [agentId]);
 
   async function handleEditStart() {
     setLoadingDef(true);
     setSaveError(null);
     try {
-      const res = await fetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}/def`, {
+      const res = await fetch(`${a2aBase}/agents/${encodeURIComponent(agentId)}/def`, {
         credentials: 'include',
       });
       if (!res.ok) throw new Error('Unable to load agent definition');
@@ -106,7 +108,7 @@ export default function AgentDetailPage({ params }: PageProps) {
     setRetiring(true);
     setRetireError(null);
     try {
-      const res = await apiFetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}`, {
+      const res = await apiFetch(`${a2aBase}/agents/${encodeURIComponent(agentId)}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -130,7 +132,7 @@ export default function AgentDetailPage({ params }: PageProps) {
     setSaving(true);
     setSaveError(null);
     try {
-      const res = await apiFetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}`, {
+      const res = await apiFetch(`${a2aBase}/agents/${encodeURIComponent(agentId)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
