@@ -4,14 +4,15 @@
  * GET /api/shapes/coordination-work-items
  *
  * Authenticated proxy for ElectricSQL coordination_work_items shape.
- * Admin-scoped: any authenticated user can observe all coordination work
- * items (this endpoint backs the coordination dashboard, not a per-user view).
+ * Admin-scoped (GAP-476): full-table Electric for isAdminRole only.
+ * Backs the coordination dashboard, not a per-user view.
  */
 
 import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/utils/logger';
 import type { NextRequest, NextResponse } from 'next/server';
 import { prepareElectricUrl, proxyElectricRequest } from '@/lib/api/electric-proxy';
+import { requireAdminRole } from '@/lib/api/shape-authz';
 import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
@@ -24,6 +25,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     if (!session) {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
+    }
+
+    if (!requireAdminRole(session.user.role)) {
+      return createApplicationErrorResponse('Forbidden', 'FORBIDDEN', 403);
     }
 
     const originUrl = prepareElectricUrl(request.url);

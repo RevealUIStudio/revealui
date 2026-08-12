@@ -63,7 +63,7 @@ export function RoadmapPage() {
               Roadmap
             </span>
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-body sm:text-xl">
             {ROADMAP_HERO.subtitle} See our{' '}
             <a
               href={ROADMAP_HERO_LINK.href}

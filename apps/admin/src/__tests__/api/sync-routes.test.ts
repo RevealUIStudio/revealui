@@ -125,7 +125,8 @@ describe('POST /api/sync/agent-memories', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('returns 403 when AI feature gate is active', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(
+    mockGetSession.mockResolvedValue(makeSession());
+    mockCheckAIFeatureGate.mockResolvedValue(
       new Response(JSON.stringify({ error: 'AI features require a Pro license' }), { status: 403 }),
     );
     const req = makeRequest('http://localhost/api/sync/agent-memories', 'POST', {});
@@ -134,7 +135,7 @@ describe('POST /api/sync/agent-memories', () => {
   });
 
   it('returns 401 when not authenticated', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(null);
     const req = makeRequest('http://localhost/api/sync/agent-memories', 'POST', {});
     const res = await memoriesPost(req);
@@ -142,7 +143,7 @@ describe('POST /api/sync/agent-memories', () => {
   });
 
   it('returns 400 for invalid agent_id', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(makeSession());
     const req = makeRequest('http://localhost/api/sync/agent-memories', 'POST', {
       agent_id: 'bad agent!',
@@ -156,7 +157,7 @@ describe('POST /api/sync/agent-memories', () => {
   });
 
   it('returns 400 for invalid memory type', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(makeSession());
     const req = makeRequest('http://localhost/api/sync/agent-memories', 'POST', {
       agent_id: 'agent-1',
@@ -170,7 +171,7 @@ describe('POST /api/sync/agent-memories', () => {
   });
 
   it('returns 400 when source is not an object', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(makeSession());
     const req = makeRequest('http://localhost/api/sync/agent-memories', 'POST', {
       agent_id: 'agent-1',
@@ -184,7 +185,7 @@ describe('POST /api/sync/agent-memories', () => {
   });
 
   it('returns 201 with created memory on success', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(makeSession());
     const created = { id: VALID_UUID, agentId: 'agent-1', content: 'text', type: 'fact' };
     // selectRows: ownership check returns a site owned by user-1
@@ -212,7 +213,8 @@ describe('PATCH /api/sync/agent-memories/:id', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('returns 403 when AI gate is active', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(
+    mockGetSession.mockResolvedValue(makeSession());
+    mockCheckAIFeatureGate.mockResolvedValue(
       new Response(JSON.stringify({ error: 'AI features require a Pro license' }), { status: 403 }),
     );
     const req = makeRequest(`http://localhost/api/sync/agent-memories/${VALID_UUID}`, 'PATCH', {});
@@ -221,7 +223,7 @@ describe('PATCH /api/sync/agent-memories/:id', () => {
   });
 
   it('returns 401 when not authenticated', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(null);
     const req = makeRequest(`http://localhost/api/sync/agent-memories/${VALID_UUID}`, 'PATCH', {});
     const res = await memoriesPatch(req, { params: Promise.resolve({ id: VALID_UUID }) });
@@ -229,7 +231,7 @@ describe('PATCH /api/sync/agent-memories/:id', () => {
   });
 
   it('returns 400 for invalid UUID', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(makeSession());
     const req = makeRequest('http://localhost/api/sync/agent-memories/not-a-uuid', 'PATCH', {
       content: 'updated',
@@ -239,7 +241,7 @@ describe('PATCH /api/sync/agent-memories/:id', () => {
   });
 
   it('returns 400 when no fields to update', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(makeSession());
     const chain = makeDbChain([]);
     mockGetClient.mockReturnValue(chain);
@@ -253,7 +255,7 @@ describe('PATCH /api/sync/agent-memories/:id', () => {
   });
 
   it('returns 404 when memory not found', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(makeSession());
     const chain = makeDbChain([]); // empty → no rows returned
     mockGetClient.mockReturnValue(chain);
@@ -265,7 +267,7 @@ describe('PATCH /api/sync/agent-memories/:id', () => {
   });
 
   it('returns 200 on success', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(makeSession());
     const updated = { id: VALID_UUID, content: 'updated' };
     const chain = makeDbChain([updated]);
@@ -286,7 +288,7 @@ describe('DELETE /api/sync/agent-memories/:id', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('returns 401 when not authenticated', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(null);
     const req = new NextRequest(`http://localhost/api/sync/agent-memories/${VALID_UUID}`, {
       method: 'DELETE',
@@ -296,7 +298,7 @@ describe('DELETE /api/sync/agent-memories/:id', () => {
   });
 
   it('returns 404 when memory not found', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(makeSession());
     const chain = makeDbChain([]);
     mockGetClient.mockReturnValue(chain);
@@ -308,7 +310,7 @@ describe('DELETE /api/sync/agent-memories/:id', () => {
   });
 
   it('returns 200 on success', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(makeSession());
     const chain = makeDbChain([{ id: VALID_UUID }]);
     mockGetClient.mockReturnValue(chain);
@@ -330,7 +332,8 @@ describe('POST /api/sync/agent-contexts', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('returns 403 when AI gate is active', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(
+    mockGetSession.mockResolvedValue(makeSession());
+    mockCheckAIFeatureGate.mockResolvedValue(
       new Response(JSON.stringify({ error: 'AI features require a Pro license' }), { status: 403 }),
     );
     const req = makeRequest('http://localhost/api/sync/agent-contexts', 'POST', {});
@@ -339,7 +342,7 @@ describe('POST /api/sync/agent-contexts', () => {
   });
 
   it('returns 400 for priority out of range', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(makeSession());
     const req = makeRequest('http://localhost/api/sync/agent-contexts', 'POST', {
       agent_id: 'agent-1',
@@ -350,7 +353,7 @@ describe('POST /api/sync/agent-contexts', () => {
   });
 
   it('returns 201 on successful upsert', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(makeSession());
     const created = { id: 'sess-1:agent-1', sessionId: 'sess-1', agentId: 'agent-1' };
     const chain = makeDbChain([created]);
@@ -373,7 +376,7 @@ describe('PATCH /api/sync/agent-contexts/:id', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('returns 401 when not authenticated', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(null);
     const req = makeRequest('http://localhost/api/sync/agent-contexts/ctx-1', 'PATCH', {});
     const res = await contextsPatch(req, { params: Promise.resolve({ id: 'ctx-1' }) });
@@ -381,7 +384,7 @@ describe('PATCH /api/sync/agent-contexts/:id', () => {
   });
 
   it('returns 400 for priority out of range', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(makeSession());
     const req = makeRequest('http://localhost/api/sync/agent-contexts/ctx-1', 'PATCH', {
       priority: -0.1,
@@ -391,7 +394,7 @@ describe('PATCH /api/sync/agent-contexts/:id', () => {
   });
 
   it('returns 404 when context not found for this session', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(makeSession());
     const chain = makeDbChain([]);
     mockGetClient.mockReturnValue(chain);
@@ -403,7 +406,7 @@ describe('PATCH /api/sync/agent-contexts/:id', () => {
   });
 
   it('returns 200 on success', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(makeSession());
     const chain = makeDbChain([{ id: 'ctx-1' }]);
     mockGetClient.mockReturnValue(chain);
@@ -423,7 +426,7 @@ describe('DELETE /api/sync/agent-contexts/:id', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('returns 404 when context not found for this session', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(makeSession());
     const chain = makeDbChain([]);
     mockGetClient.mockReturnValue(chain);
@@ -435,7 +438,7 @@ describe('DELETE /api/sync/agent-contexts/:id', () => {
   });
 
   it('returns 200 on success', async () => {
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIFeatureGate.mockResolvedValue(null);
     mockGetSession.mockResolvedValue(makeSession());
     const chain = makeDbChain([{ id: 'ctx-1' }]);
     mockGetClient.mockReturnValue(chain);

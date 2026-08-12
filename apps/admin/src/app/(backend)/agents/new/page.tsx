@@ -157,7 +157,6 @@ function formReducer(state: FormState, action: FormAction): FormState {
 
 export default function NewAgentPage() {
   const router = useRouter();
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
 
   const [state, dispatch] = useReducer(formReducer, initialState);
   const { selectedTemplate, name, description, systemPrompt, submitting, error } = state;
@@ -238,7 +237,8 @@ export default function NewAgentPage() {
     };
 
     try {
-      const res = await apiFetch(`${apiUrl}/a2a/agents`, {
+      // Same-origin /a2a rewrite so admin session cookie reaches the API feature gate.
+      const res = await apiFetch('/a2a/agents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

@@ -42,7 +42,7 @@ export function Hero({ data, path, annotation }: FoManagedHeroProps = {}) {
         </h1>
 
         <p
-          className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl"
+          className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-body sm:text-xl"
           {...(base ? fieldAttrs(ann, `${base}.subtitle`) : {})}
         >
           {content.subtitle}

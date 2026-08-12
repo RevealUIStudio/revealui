@@ -23,6 +23,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const {
   mockGetCard,
   mockListCards,
+  mockListDefs,
   mockHas,
   mockGetDef,
   mockRegister,
@@ -37,6 +38,7 @@ const {
 } = vi.hoisted(() => ({
   mockGetCard: vi.fn(),
   mockListCards: vi.fn(),
+  mockListDefs: vi.fn(),
   mockHas: vi.fn(),
   mockGetDef: vi.fn(),
   mockRegister: vi.fn(),
@@ -59,6 +61,7 @@ vi.mock('@revealui/ai', () => ({
   agentCardRegistry: {
     getCard: mockGetCard,
     listCards: mockListCards,
+    listDefs: mockListDefs,
     has: mockHas,
     getDef: mockGetDef,
     register: mockRegister,
@@ -239,6 +242,7 @@ function resetMocks() {
 
   mockGetCard.mockReturnValue(MOCK_CARD);
   mockListCards.mockReturnValue([MOCK_CARD]);
+  mockListDefs.mockReturnValue([MOCK_DEF]);
   mockHas.mockReturnValue(false);
   mockGetDef.mockReturnValue(MOCK_DEF);
   mockRegister.mockImplementation(() => undefined);
@@ -412,12 +416,31 @@ describe('GET /agents', () => {
   });
 
   it('returns empty agents array when registry is empty', async () => {
+    mockListDefs.mockReturnValue([]);
     mockListCards.mockReturnValue([]);
     const app = makeA2AApp();
     const res = await app.request(get('/agents'));
     expect(res.status).toBe(200);
     const body = (await res.json()) as { agents: unknown[] };
     expect(body.agents).toHaveLength(0);
+  });
+
+  it('includes registry id so list UIs do not invent ids from display names', async () => {
+    mockListDefs.mockReturnValue([
+      { ...MOCK_DEF, id: 'revealui-ticket-agent', name: 'Ticket Agent' },
+    ]);
+    mockGetCard.mockReturnValue({
+      ...MOCK_CARD,
+      id: undefined,
+      name: 'Ticket Agent',
+    });
+    const app = makeA2AApp();
+    const res = await app.request(get('/agents'));
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { agents: Array<{ id: string; name: string }> };
+    expect(body.agents).toHaveLength(1);
+    expect(body.agents[0]?.id).toBe('revealui-ticket-agent');
+    expect(body.agents[0]?.name).toBe('Ticket Agent');
   });
 });
 

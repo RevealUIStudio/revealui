@@ -11,8 +11,8 @@ vi.mock('@revealui/auth/server', () => ({
   getSession: vi.fn(),
 }));
 
-vi.mock('@revealui/core/features', () => ({
-  isFeatureEnabled: vi.fn().mockReturnValue(true),
+vi.mock('@/lib/middleware/ai-feature-gate', () => ({
+  checkAIFeatureGate: vi.fn().mockResolvedValue(null),
 }));
 
 vi.mock('@/lib/api/electric-proxy', () => ({
@@ -47,7 +47,7 @@ const mockSession = {
     email: 'test@example.com',
     avatarUrl: null,
     password: null,
-    role: 'viewer',
+    role: 'admin',
     status: 'active',
     emailVerified: false,
     emailVerificationToken: null,

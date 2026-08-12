@@ -40,14 +40,14 @@ export const runtime = 'nodejs';
  * }
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const aiGate = checkAIMemoryFeatureGate();
-  if (aiGate) return aiGate;
-
   try {
     const authSession = await getSession(request.headers, extractRequestContext(request));
     if (!authSession) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const aiGate = await checkAIMemoryFeatureGate(authSession.user.id);
+    if (aiGate) return aiGate;
 
     // Rate limit per user
     const rateLimit = await checkRateLimit(

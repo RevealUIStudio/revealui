@@ -67,7 +67,7 @@ export function CostCalculator() {
           <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {C.heading}
           </h2>
-          <p className="mt-6 text-lg leading-8 text-muted-foreground">{C.body}</p>
+          <p className="mt-6 text-lg leading-8 text-body">{C.body}</p>
         </div>
 
         <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-2">

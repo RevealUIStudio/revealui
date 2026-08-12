@@ -36,7 +36,7 @@ export function WhatYouGet({ data, path, annotation }: WhatYouGetProps = {}) {
             {content.heading}
           </h2>
           <p
-            className="mt-6 text-lg leading-8 text-muted-foreground"
+            className="mt-6 text-lg leading-8 text-body"
             {...(base ? fieldAttrs(ann, `${base}.body`) : {})}
           >
             {content.body}

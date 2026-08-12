@@ -32,7 +32,7 @@ export function ProductsHero({
           {data.h1}
         </h1>
         <p
-          className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl"
+          className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-body sm:text-xl"
           {...fieldAttrs(annotation, `${path}.subtitle`)}
         >
           {data.subtitle}

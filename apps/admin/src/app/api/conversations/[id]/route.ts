@@ -27,7 +27,7 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   const session = await getSession(request.headers, extractRequestContext(request));
   if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-  const aiGate = checkAIFeatureGate();
+  const aiGate = await checkAIFeatureGate(session.user.id);
   if (aiGate) return aiGate;
 
   const { id } = await params;
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   const session = await getSession(request.headers, extractRequestContext(request));
   if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-  const aiGate = checkAIFeatureGate();
+  const aiGate = await checkAIFeatureGate(session.user.id);
   if (aiGate) return aiGate;
 
   const { id } = await params;
@@ -58,7 +58,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   const session = await getSession(request.headers, extractRequestContext(request));
   if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-  const aiGate = checkAIFeatureGate();
+  const aiGate = await checkAIFeatureGate(session.user.id);
   if (aiGate) return aiGate;
 
   const { id } = await params;

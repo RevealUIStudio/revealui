@@ -28,14 +28,14 @@ export function ClosingCta({ data, path, annotation }: ClosingCtaProps = {}) {
           {content.heading}
         </h2>
         <p
-          className="mx-auto mt-6 max-w-2xl text-base leading-7 text-muted-foreground"
+          className="mx-auto mt-6 max-w-2xl text-base leading-7 text-body"
           {...(base ? fieldAttrs(ann, `${base}.body`) : {})}
         >
           {content.body}
         </p>
 
         <div className="mt-10 flex justify-center">
-          <Button asChild size="lg">
+          <Button asChild size="lg" glow>
             <a
               href={content.primaryCta.href}
               {...(content.primaryCta.external

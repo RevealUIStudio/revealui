@@ -24,12 +24,25 @@ vi.mock('@revealui/core/features', () => ({
 }));
 
 const mockDbLimitFn = vi.fn().mockResolvedValue([]);
+
+/** Fluent select chain: membership uses orderBy/innerJoin; entitlement uses where.limit. */
+function makeSelectChain() {
+  const chain = {
+    from: vi.fn(),
+    innerJoin: vi.fn(),
+    where: vi.fn(),
+    orderBy: vi.fn(),
+    limit: mockDbLimitFn,
+  };
+  chain.from.mockReturnValue(chain);
+  chain.innerJoin.mockReturnValue(chain);
+  chain.where.mockReturnValue(chain);
+  chain.orderBy.mockReturnValue(chain);
+  return chain;
+}
+
 const mockDb = {
-  select: vi.fn().mockReturnValue({
-    from: vi.fn().mockReturnValue({
-      where: vi.fn().mockReturnValue({ limit: mockDbLimitFn }),
-    }),
-  }),
+  select: vi.fn().mockImplementation(() => makeSelectChain()),
 };
 
 vi.mock('@revealui/db', () => ({
@@ -42,6 +55,11 @@ vi.mock('@revealui/db/schema', () => ({
     status: 'am.status',
     accountId: 'am.accountId',
     role: 'am.role',
+    createdAt: 'am.createdAt',
+  },
+  accounts: {
+    id: 'accounts.id',
+    slug: 'accounts.slug',
   },
   accountEntitlements: {
     accountId: 'ae.accountId',
@@ -51,12 +69,15 @@ vi.mock('@revealui/db/schema', () => ({
     graceUntil: 'ae.graceUntil',
     features: 'ae.features',
     limits: 'ae.limits',
+    cogsBreakerTrippedAt: 'ae.cogsBreakerTrippedAt',
   },
 }));
 
 vi.mock('drizzle-orm', () => ({
   eq: vi.fn((_c: unknown, _v: unknown) => 'eq'),
   and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
+  asc: vi.fn((_c: unknown) => 'asc'),
+  or: vi.fn((...args: unknown[]) => `or(${args.join(',')})`),
 }));
 
 import { accountEntitlements } from '@revealui/db/schema';
@@ -83,11 +104,7 @@ describe('Entitlement middleware — mode-scoped reader (GAP-266 Track B)', () =
     vi.clearAllMocks();
     mockGetConfiguredStripeMode.mockReturnValue('live');
     mockDbLimitFn.mockReset().mockResolvedValue([]);
-    vi.mocked(mockDb.select).mockReturnValue({
-      from: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({ limit: mockDbLimitFn }),
-      }),
-    });
+    vi.mocked(mockDb.select).mockImplementation(() => makeSelectChain());
   });
 
   afterEach(() => {

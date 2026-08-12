@@ -159,9 +159,17 @@ unhealthy. Investigate via `flyctl logs --app revealui-worker`.
 
 ## Electric (Phase 5)
 
-ElectricSQL Fly setup lives in a separate `fly.electric.toml`
-(landing in Phase 5 of the infra-consolidation lane). Same region
-(iad), same Fly account. Connects to the same Neon `POSTGRES_URL`
-the worker uses. The cutover from the retired Railway-hosted Electric
-(dropped per ADR 2026-05-18) to Fly-hosted Electric is the load-bearing
-piece of Phase 5 — see the lane plan for sequencing.
+Config: [`deployment/fly/electric/fly.toml`](../../deployment/fly/electric/fly.toml)
++ runbook [`deployment/fly/electric/README.md`](../../deployment/fly/electric/README.md).
+
+| | |
+|--|--|
+| App | `revealui-electric` |
+| Image | `electricsql/electric:1.0.17` |
+| Region | `iad` (same Neon us-east-1) |
+| URL | `https://revealui-electric.fly.dev` |
+
+Connects to Neon via `revealui/prod/db/postgres-url` (direct, non-pooler).
+Vault paths after cutover: `revealui/prod/electric/service-url` +
+`revealui/prod/electric/secret` (GAP-230 / GAP-231). Electric Cloud is
+**retired** (2026-08-11); self-host only.

@@ -195,6 +195,10 @@ const nextConfig = {
       )
       return []
     }
+    // Same-origin /a2a proxy: admin UI used to call api.revealui.com cross-origin
+    // with credentials. Host-only session cookies (or any Domain mismatch) never
+    // reach the API, so requireFeature('ai') saw tier free and blocked create/
+    // task routes. Browser → admin /a2a → rewrite → API forwards Cookie.
     return [
       {
         source: '/api/agent-stream',
@@ -203,6 +207,14 @@ const nextConfig = {
       {
         source: '/api/agent-stream/:path*',
         destination: `${apiUrl}/api/agent-stream/:path*`,
+      },
+      {
+        source: '/a2a',
+        destination: `${apiUrl}/a2a`,
+      },
+      {
+        source: '/a2a/:path*',
+        destination: `${apiUrl}/a2a/:path*`,
       },
     ]
   },

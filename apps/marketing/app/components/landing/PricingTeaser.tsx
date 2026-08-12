@@ -55,9 +55,7 @@ export function PricingTeaser() {
           <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {PRICING_TEASER_SECTION.heading}
           </h2>
-          <p className="mt-5 text-lg leading-8 text-muted-foreground">
-            {PRICING_TEASER_SECTION.body}
-          </p>
+          <p className="mt-5 text-lg leading-8 text-body">{PRICING_TEASER_SECTION.body}</p>
         </div>
 
         <div className="mx-auto mt-14 grid max-w-3xl grid-cols-1 gap-5 sm:mt-16 sm:grid-cols-2 sm:gap-6">
