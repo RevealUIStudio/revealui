@@ -74,7 +74,7 @@ function PhilosophyBody({ data, path, annotation }: PhilosophyBodyProps) {
           return (
             <p
               key={`body-${index}`}
-              className="text-lg leading-8 text-muted-foreground"
+              className="text-lg leading-8 text-body"
               {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
             >
               {section.body}

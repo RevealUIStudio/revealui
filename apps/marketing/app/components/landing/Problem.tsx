@@ -56,7 +56,7 @@ export function Problem() {
           <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {HOME_PROBLEM.heading}
           </h2>
-          <p className="mt-5 text-lg leading-8 text-muted-foreground">{HOME_PROBLEM.body}</p>
+          <p className="mt-5 text-lg leading-8 text-body">{HOME_PROBLEM.body}</p>
         </div>
 
         {/* Path blurbs: three quiet lines under the intro, not three cards. */}
