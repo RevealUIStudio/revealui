@@ -1,3 +1,4 @@
+import { MarketingSection, SectionHeader } from '@revealui/presentation';
 import { ContactForm } from '../components/ContactForm';
 import { Footer } from '../components/Footer';
 import { CONTACT_HERO, CONTACT_METHODS } from '../content/contact';
@@ -5,37 +6,46 @@ import { CONTACT_HERO, CONTACT_METHODS } from '../content/contact';
 export function ContactPage() {
   return (
     <div className="min-h-screen bg-background">
-      <section className="relative overflow-hidden bg-gradient-to-br from-secondary via-background to-secondary px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
-        <div className="mx-auto max-w-2xl">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-              {CONTACT_HERO.title}
-            </h1>
-            <p className="mt-6 text-lg leading-8 text-body">{CONTACT_HERO.subtitle}</p>
-          </div>
+      <MarketingSection
+        tone="background"
+        density="spacious"
+        width="narrow"
+        className="relative overflow-hidden"
+      >
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-secondary via-background to-secondary"
+        />
+        <SectionHeader
+          title={CONTACT_HERO.title}
+          description={CONTACT_HERO.subtitle}
+          titleAs="h1"
+          align="center"
+          titleClassName="text-4xl sm:text-5xl"
+          className="mb-12"
+        />
 
-          <ContactForm />
+        <ContactForm />
 
-          <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-3 text-center">
-            {CONTACT_METHODS.map((method) => (
-              <div key={method.title}>
-                <h3 className="text-sm font-semibold text-foreground">{method.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {method.body ? <>{method.body} </> : null}
-                  <a
-                    href={method.href}
-                    target={method.external ? '_blank' : undefined}
-                    rel={method.external ? 'noopener noreferrer' : undefined}
-                    className="text-primary hover:text-primary/80 underline"
-                  >
-                    {method.linkLabel}
-                  </a>
-                </p>
-              </div>
-            ))}
-          </div>
+        <div className="mt-16 grid grid-cols-1 gap-8 text-center sm:grid-cols-3">
+          {CONTACT_METHODS.map((method) => (
+            <div key={method.title}>
+              <h3 className="text-sm font-semibold text-foreground">{method.title}</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {method.body ? <>{method.body} </> : null}
+                <a
+                  href={method.href}
+                  target={method.external ? '_blank' : undefined}
+                  rel={method.external ? 'noopener noreferrer' : undefined}
+                  className="text-primary underline hover:text-primary/80"
+                >
+                  {method.linkLabel}
+                </a>
+              </p>
+            </div>
+          ))}
         </div>
-      </section>
+      </MarketingSection>
       <Footer />
     </div>
   );

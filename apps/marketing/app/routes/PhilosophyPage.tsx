@@ -1,4 +1,4 @@
-import { type BlockAnnotation, Button, fieldAttrs } from '@revealui/presentation';
+import { type BlockAnnotation, Button, fieldAttrs, MarketingSection } from '@revealui/presentation';
 import { Footer } from '../components/Footer';
 import {
   PHILOSOPHY_FALLBACK_BLOCKS,
@@ -19,22 +19,29 @@ interface PhilosophyHeroProps {
 
 function PhilosophyHero({ data, path, annotation }: PhilosophyHeroProps) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-violet-500/10 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
-      <div className="mx-auto max-w-3xl">
-        <p
-          className="text-sm font-semibold uppercase tracking-wide text-primary"
-          {...fieldAttrs(annotation, `${path}.eyebrow`)}
-        >
-          {data.eyebrow}
-        </p>
-        <h1
-          className="mt-4 text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
-          {...fieldAttrs(annotation, `${path}.title`)}
-        >
-          {data.h1}
-        </h1>
-      </div>
-    </section>
+    <MarketingSection
+      tone="background"
+      density="spacious"
+      width="narrow"
+      className="relative overflow-hidden"
+    >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-primary/10 via-background to-violet-500/10"
+      />
+      <p
+        className="text-sm font-semibold uppercase tracking-wide text-primary"
+        {...fieldAttrs(annotation, `${path}.eyebrow`)}
+      >
+        {data.eyebrow}
+      </p>
+      <h1
+        className="mt-4 text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
+        {...fieldAttrs(annotation, `${path}.title`)}
+      >
+        {data.h1}
+      </h1>
+    </MarketingSection>
   );
 }
 
@@ -46,8 +53,8 @@ interface PhilosophyBodyProps {
 
 function PhilosophyBody({ data, path, annotation }: PhilosophyBodyProps) {
   return (
-    <section className="px-6 py-16 sm:py-24 lg:px-8">
-      <div className="mx-auto max-w-3xl space-y-8">
+    <MarketingSection tone="background" density="default" width="narrow">
+      <div className="space-y-8">
         {data.sections.map((section, index) => {
           if (section.role === 'lead') {
             return (
@@ -82,7 +89,7 @@ function PhilosophyBody({ data, path, annotation }: PhilosophyBodyProps) {
           );
         })}
       </div>
-    </section>
+    </MarketingSection>
   );
 }
 
@@ -94,8 +101,8 @@ interface PhilosophyCtaProps {
 
 function PhilosophyCta({ data, path, annotation }: PhilosophyCtaProps) {
   return (
-    <section className="px-6 pb-24 sm:pb-32 lg:px-8">
-      <div className="mx-auto flex max-w-3xl flex-col items-start gap-4 sm:flex-row">
+    <MarketingSection tone="background" density="default" width="narrow">
+      <div className="flex flex-col items-start gap-4 sm:flex-row">
         <Button asChild size="lg" variant="brand">
           <a
             href={data.primary.href}
@@ -117,7 +124,7 @@ function PhilosophyCta({ data, path, annotation }: PhilosophyCtaProps) {
           </a>
         </Button>
       </div>
-    </section>
+    </MarketingSection>
   );
 }
 

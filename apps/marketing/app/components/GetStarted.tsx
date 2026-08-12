@@ -1,4 +1,11 @@
-import { type BlockAnnotation, Button, fieldAttrs, IconArrowRight } from '@revealui/presentation';
+import {
+  type BlockAnnotation,
+  Button,
+  fieldAttrs,
+  IconArrowRight,
+  MarketingSection,
+  SectionHeader,
+} from '@revealui/presentation';
 import { HOME_GET_STARTED } from '../content/home';
 import type { GetStartedData } from '../lib/page-blocks';
 import { NewsletterSignup } from './NewsletterSignup';
@@ -18,71 +25,66 @@ export function GetStarted({
   annotation = {},
 }: GetStartedProps) {
   return (
-    <section className="border-t border-border bg-background py-20 sm:py-28">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2
-            className="font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
-            {...fieldAttrs(annotation, `${path}.heading`)}
-          >
-            {data.heading}
-          </h2>
-          <p
-            className="mt-5 text-lg leading-8 text-body"
-            {...fieldAttrs(annotation, `${path}.body`)}
-          >
-            {data.body}
-          </p>
-          <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:mt-10 sm:flex-row sm:gap-4">
-            <Button asChild size="lg" variant="brand" glow>
-              <a href={data.cta.primary.href}>{data.cta.primary.label}</a>
-            </Button>
-            <Button asChild appearance="outline" variant="neutral" size="lg">
-              <a href={data.cta.secondary.href}>
-                {data.cta.secondary.label}
-                <IconArrowRight size="sm" className="ml-1.5" />
-              </a>
-            </Button>
-          </div>
+    <MarketingSection
+      tone="background"
+      density="default"
+      width="default"
+      className="border-t border-border"
+    >
+      <SectionHeader
+        title={<span {...fieldAttrs(annotation, `${path}.heading`)}>{data.heading}</span>}
+        description={<span {...fieldAttrs(annotation, `${path}.body`)}>{data.body}</span>}
+        align="center"
+      />
 
-          {/* CLI quick-start, moved here from the hero (frontend-excellence
-              Phase 1 hero declutter). */}
-          <div
-            className="mt-8 inline-flex items-center gap-3 rounded-xl bg-foreground px-5 py-3 font-mono text-sm shadow-lg ring-1 ring-background/10"
-            {...fieldAttrs(annotation, `${path}.snippet.lines`)}
-          >
-            <span className="select-none text-background/50">$</span>
-            {data.cli.command.map((token, index) => (
-              <span
-                // biome-ignore lint/suspicious/noArrayIndexKey: static, order-fixed command tokens
-                key={index}
-                className={
-                  index === 0
-                    ? 'text-emerald-400' // adherence-ignore: emerald-utility - apps/marketing/app/index.css:80-92 remaps emerald-* to cobalt oklch values (Cobalt v5 palette remap); renders cobalt today, zero visual change
-                    : index === data.cli.command.length - 1
-                      ? 'text-blue-300'
-                      : 'text-background'
-                }
-              >
-                {token}
-              </span>
-            ))}
-          </div>
-          <p
-            className="mt-4 text-sm text-muted-foreground"
-            {...fieldAttrs(annotation, `${path}.snippet.caption`)}
-          >
-            {data.cli.caption}
-          </p>
+      <div className="mx-auto max-w-2xl text-center">
+        <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:mt-10 sm:flex-row sm:gap-4">
+          <Button asChild size="lg" variant="brand" glow>
+            <a href={data.cta.primary.href}>{data.cta.primary.label}</a>
+          </Button>
+          <Button asChild appearance="outline" variant="neutral" size="lg">
+            <a href={data.cta.secondary.href}>
+              {data.cta.secondary.label}
+              <IconArrowRight size="sm" className="ml-1.5" />
+            </a>
+          </Button>
+        </div>
 
-          <div className="mt-14 border-t border-border pt-10">
-            <p className="mb-4 text-sm font-medium text-muted-foreground">
-              {data.newsletter.label}
-            </p>
-            <NewsletterSignup variant="stacked" />
-          </div>
+        {/* CLI quick-start, moved here from the hero (frontend-excellence
+            Phase 1 hero declutter). */}
+        <div
+          className="mt-8 inline-flex items-center gap-3 rounded-xl bg-foreground px-5 py-3 font-mono text-sm shadow-lg ring-1 ring-background/10"
+          {...fieldAttrs(annotation, `${path}.snippet.lines`)}
+        >
+          <span className="select-none text-background/50">$</span>
+          {data.cli.command.map((token, index) => (
+            <span
+              // biome-ignore lint/suspicious/noArrayIndexKey: static, order-fixed command tokens
+              key={index}
+              className={
+                index === 0
+                  ? 'text-emerald-400' // adherence-ignore: emerald-utility - apps/marketing/app/index.css:80-92 remaps emerald-* to cobalt oklch values (Cobalt v5 palette remap); renders cobalt today, zero visual change
+                  : index === data.cli.command.length - 1
+                    ? 'text-blue-300'
+                    : 'text-background'
+              }
+            >
+              {token}
+            </span>
+          ))}
+        </div>
+        <p
+          className="mt-4 text-sm text-muted-foreground"
+          {...fieldAttrs(annotation, `${path}.snippet.caption`)}
+        >
+          {data.cli.caption}
+        </p>
+
+        <div className="mt-14 border-t border-border pt-10">
+          <p className="mb-4 text-sm font-medium text-muted-foreground">{data.newsletter.label}</p>
+          <NewsletterSignup variant="stacked" />
         </div>
       </div>
-    </section>
+    </MarketingSection>
   );
 }

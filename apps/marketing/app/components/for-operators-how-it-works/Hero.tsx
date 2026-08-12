@@ -1,4 +1,4 @@
-import { type BlockAnnotation, Button, fieldAttrs } from '@revealui/presentation';
+import { type BlockAnnotation, Button, fieldAttrs, MarketingSection } from '@revealui/presentation';
 import { FO_HIW_HERO } from '../../content/for-operators-how-it-works';
 import type { FoHiwHeroData } from '../../lib/page-blocks';
 
@@ -23,12 +23,17 @@ export function Hero({
     annotation && path ? fieldAttrs(annotation, `${path}.${suffix}`) : {};
 
   return (
-    <section className="relative isolate overflow-hidden bg-background px-6 pt-20 pb-20 sm:px-6 sm:pt-28 sm:pb-28 lg:px-8">
+    <MarketingSection
+      tone="background"
+      density="spacious"
+      width="narrow"
+      className="relative isolate overflow-hidden"
+    >
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background" />
 
-      <div className="relative mx-auto max-w-3xl text-center">
+      <div className="relative text-center">
         <p
-          className="text-sm font-semibold uppercase tracking-[0.2em] text-primary mb-6"
+          className="mb-6 text-sm font-semibold uppercase tracking-[0.2em] text-primary"
           {...field('eyebrow')}
         >
           {data.eyebrow}
@@ -52,7 +57,7 @@ export function Hero({
           {data.subtitle}
         </p>
 
-        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Button asChild size="lg" glow className="w-full sm:w-auto">
             <a
               href={data.primaryCta.href}
@@ -69,13 +74,13 @@ export function Hero({
         <p className="mt-8 text-sm text-muted-foreground">
           <a
             href={data.backLink.href}
-            className="hover:text-foreground transition-colors underline decoration-dotted underline-offset-4"
+            className="underline decoration-dotted underline-offset-4 transition-colors hover:text-foreground"
             {...field('links.1.label')}
           >
             {data.backLink.label}
           </a>
         </p>
       </div>
-    </section>
+    </MarketingSection>
   );
 }
