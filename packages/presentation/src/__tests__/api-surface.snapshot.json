@@ -437,14 +437,7 @@
     "buttonVariants",
     "useToast"
   ],
-  "./primitives": [
-    "Box",
-    "Flex",
-    "Grid",
-    "HeadingPrimitive",
-    "Slot",
-    "TextPrimitive"
-  ],
+  "./primitives": ["Box", "Flex", "Grid", "HeadingPrimitive", "Slot", "TextPrimitive"],
   "./server": [
     "AuthLayout",
     "Box",
