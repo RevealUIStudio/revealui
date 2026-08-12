@@ -211,7 +211,9 @@ describe('collab routes', () => {
       });
 
       expect(mockLoadDocument).toHaveBeenCalledWith(docId, expect.any(Object));
-      expect(mockSaveDocument).toHaveBeenCalledWith(docId, expect.any(Object));
+      expect(mockSaveDocument).toHaveBeenCalledWith(docId, expect.any(Object), {
+        ownerId: testUser.id,
+      });
     });
   });
 
