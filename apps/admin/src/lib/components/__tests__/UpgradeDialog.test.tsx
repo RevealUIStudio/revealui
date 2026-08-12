@@ -8,11 +8,12 @@ vi.mock('@/lib/providers/LicenseProvider', () => ({
 }));
 
 // Mock @revealui/contracts/pricing
+const mockGetTiersFromCurrent = vi.fn(() => [
+  { id: 'pro', name: 'Pro', price: '$49/mo' },
+  { id: 'max', name: 'Max', price: '$299/mo' },
+]);
 vi.mock('@revealui/contracts/pricing', () => ({
-  getTiersFromCurrent: vi.fn(() => [
-    { id: 'pro', name: 'Pro', price: '$49/mo' },
-    { id: 'max', name: 'Max', price: '$299/mo' },
-  ]),
+  getTiersFromCurrent: (...args: unknown[]) => mockGetTiersFromCurrent(...args),
 }));
 
 // Mock presentation components
@@ -110,6 +111,10 @@ afterEach(() => {
 beforeEach(() => {
   vi.clearAllMocks();
   mockUseLicense.mockReturnValue({ tier: 'free' });
+  mockGetTiersFromCurrent.mockReturnValue([
+    { id: 'pro', name: 'Pro', price: '$49/mo' },
+    { id: 'max', name: 'Max', price: '$299/mo' },
+  ]);
 });
 
 describe('UpgradeDialog', () => {
@@ -193,6 +198,19 @@ describe('UpgradeDialog', () => {
       const link = screen.getByText('View full pricing');
       expect(link).toHaveAttribute('href', '/upgrade');
     });
+  });
+
+  it('does not upsell when already on the top commercial tier', async () => {
+    mockUseLicense.mockReturnValue({ tier: 'enterprise' });
+    mockGetTiersFromCurrent.mockReturnValue([]);
+    render(<UpgradeDialog />);
+    await dispatchUpgradeRequired();
+    await waitFor(() => {
+      expect(screen.getByText('You are on the top plan')).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId('pricing-table')).not.toBeInTheDocument();
+    expect(screen.queryByText('View full pricing')).not.toBeInTheDocument();
+    expect(screen.getByText('Close')).toBeInTheDocument();
   });
 
   it('calls fetch with checkout endpoint when tier is selected', async () => {

@@ -72,32 +72,40 @@ export function UpgradeDialog() {
   }, []);
 
   const upgradeTiers = getTiersFromCurrent(tier);
+  // Enterprise / top grant: no higher commercial plan — do not upsell empty tables.
+  const atTopTier = upgradeTiers.length === 0;
 
   return (
     <Dialog open={open} onClose={handleClose} size="2xl">
-      <DialogTitle>Upgrade Your Plan</DialogTitle>
+      <DialogTitle>{atTopTier ? 'You are on the top plan' : 'Upgrade Your Plan'}</DialogTitle>
       <DialogDescription>
-        {featureName
-          ? `"${featureName}" requires a higher tier. Choose a plan to unlock it.`
-          : 'Unlock more features by upgrading your plan.'}
+        {atTopTier
+          ? 'Your account already has the highest commercial tier. No further upgrade is available.'
+          : featureName
+            ? `"${featureName}" requires a higher tier. Choose a plan to unlock it.`
+            : 'Unlock more features by upgrading your plan.'}
       </DialogDescription>
       <DialogBody>
         {error && <div className="mb-4 rounded-md bg-error/10 p-3 text-sm text-error">{error}</div>}
-        <PricingTable
-          tiers={upgradeTiers}
-          currentTier={tier ?? 'free'}
-          compact
-          onSelectTier={(id) => void handleSelectTier(id)}
-        />
+        {!atTopTier && (
+          <PricingTable
+            tiers={upgradeTiers}
+            currentTier={tier ?? 'free'}
+            compact
+            onSelectTier={(id) => void handleSelectTier(id)}
+          />
+        )}
       </DialogBody>
       <DialogActions>
-        <Link
-          href="/upgrade"
-          className="text-sm font-medium text-primary hover:underline"
-          onClick={handleClose}
-        >
-          View full pricing
-        </Link>
+        {!atTopTier && (
+          <Link
+            href="/upgrade"
+            className="text-sm font-medium text-primary hover:underline"
+            onClick={handleClose}
+          >
+            View full pricing
+          </Link>
+        )}
         <Button
           type="button"
           appearance="ghost"
@@ -105,7 +113,7 @@ export function UpgradeDialog() {
           onClick={handleClose}
           className="text-muted-foreground hover:text-foreground"
         >
-          Maybe later
+          {atTopTier ? 'Close' : 'Maybe later'}
         </Button>
       </DialogActions>
     </Dialog>

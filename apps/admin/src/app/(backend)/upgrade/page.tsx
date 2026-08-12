@@ -1,10 +1,18 @@
 'use client';
 
-import { FEATURE_LABELS, SUBSCRIPTION_TIERS, TIER_LIMITS } from '@revealui/contracts/pricing';
+import {
+  FEATURE_LABELS,
+  getTiersFromCurrent,
+  type LicenseTierId,
+  SUBSCRIPTION_TIERS,
+  TIER_LABELS,
+  TIER_LIMITS,
+} from '@revealui/contracts/pricing';
 import { type FeatureFlags, getFeaturesForTier } from '@revealui/core/features';
 import { PricingTable } from '@revealui/presentation/client';
 import { useState } from 'react';
 import { TestModeBanner } from '@/components/TestModeBanner';
+import { hasCommercialUpgradePath } from '@/lib/components/should-show-upgrade-nav';
 import { useLicense } from '@/lib/providers/LicenseProvider';
 import { apiFetch } from '@/lib/utils/csrf';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
@@ -12,8 +20,11 @@ import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 export default function UpgradePage() {
   const { tier: currentTier } = useLicense();
   const [error, setError] = useState<string | null>(null);
+  const tierId = (currentTier ?? 'free') as LicenseTierId;
+  const canUpgrade = hasCommercialUpgradePath(tierId);
+  const selectableTiers = canUpgrade ? getTiersFromCurrent(tierId) : [];
 
-  const handleSelectTier = async (tierId: string) => {
+  const handleSelectTier = async (nextTierId: string) => {
     setError(null);
     try {
       const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
@@ -30,14 +41,14 @@ export default function UpgradePage() {
         max: process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID,
         enterprise: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
       };
-      const priceId = priceIdMap[tierId];
+      const priceId = priceIdMap[nextTierId];
       const res = await apiFetch(`${apiUrl}/api/billing/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
           ...(priceId && { priceId }),
-          tier: tierId,
+          tier: nextTierId,
         }),
       });
 
@@ -53,7 +64,7 @@ export default function UpgradePage() {
         setError(data.error || 'Failed to start checkout. Please try again.');
       }
     } catch {
-      window.location.href = `/account/billing?upgrade=${tierId}`;
+      window.location.href = `/account/billing?upgrade=${nextTierId}`;
     }
   };
 
@@ -61,10 +72,12 @@ export default function UpgradePage() {
     <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
       <div className="text-center mb-12">
         <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
-          Choose Your Plan
+          {canUpgrade ? 'Choose Your Plan' : 'Your Plan'}
         </h1>
         <p className="mt-4 text-lg text-zinc-600 dark:text-zinc-400">
-          Upgrade to unlock more features, higher limits, and priority support.
+          {canUpgrade
+            ? 'Upgrade to unlock more features, higher limits, and priority support.'
+            : `You are on ${TIER_LABELS[tierId]}. There is no higher commercial plan to upgrade into.`}
         </p>
       </div>
 
@@ -78,11 +91,21 @@ export default function UpgradePage() {
         </div>
       )}
 
-      <PricingTable
-        tiers={SUBSCRIPTION_TIERS}
-        currentTier={currentTier}
-        onSelectTier={(id: string) => void handleSelectTier(id)}
-      />
+      {canUpgrade ? (
+        <PricingTable
+          tiers={selectableTiers.length > 0 ? selectableTiers : SUBSCRIPTION_TIERS}
+          currentTier={currentTier}
+          onSelectTier={(id: string) => void handleSelectTier(id)}
+        />
+      ) : (
+        <div className="mx-auto max-w-2xl rounded-lg border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+          Manage invoices and payment methods from{' '}
+          <a href="/account/billing" className="font-medium text-primary hover:underline">
+            account billing
+          </a>
+          .
+        </div>
+      )}
 
       {/* Feature comparison matrix */}
       <div className="mt-16">
