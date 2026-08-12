@@ -25,6 +25,8 @@ vi.mock('@revealui/auth/server', () => ({
   getSession: vi.fn(),
   createSession: vi.fn(),
   rotateSession: vi.fn(),
+  // Login receipt after session mint on MFA / passkey / recovery paths
+  auditLoginSuccess: vi.fn().mockResolvedValue(undefined),
   deleteAllUserSessions: vi.fn(),
   verifyCookiePayload: vi.fn(),
   signCookiePayload: vi.fn(),
