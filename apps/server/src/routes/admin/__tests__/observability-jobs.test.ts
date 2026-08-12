@@ -113,6 +113,46 @@ describe('GET /admin/jobs', () => {
   });
 });
 
+describe('GET /admin/audit', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns 403 for non-admin roles', async () => {
+    const { app } = createApp({ id: 'u1', role: 'editor' });
+    const res = await app.fetch(new Request('http://localhost/audit?limit=20&offset=0'));
+    expect(res.status).toBe(403);
+  });
+
+  it('grants access to the canonical owner role (bootstrap / founder)', async () => {
+    const row = {
+      id: 'a1',
+      timestamp: new Date('2026-08-12T00:00:00Z'),
+      eventType: 'auth.login',
+      severity: 'low',
+      agentId: 'user-1',
+      taskId: null,
+      sessionId: null,
+      payload: {},
+      policyViolations: [],
+    };
+    const { app } = createApp({ id: 'u1', role: 'owner' }, [[row], [{ total: 1 }]]);
+    const res = await app.fetch(new Request('http://localhost/audit?limit=20&offset=0'));
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { success: boolean; total: number; data: unknown[] };
+    expect(body.success).toBe(true);
+    expect(body.total).toBe(1);
+    expect(body.data).toHaveLength(1);
+  });
+
+  it('rejects limit above PaginationQuery max (100)', async () => {
+    const { app } = createApp({ id: 'u1', role: 'admin' });
+    // Admin UI previously sent limit=200 and showed a broken [object Object] error.
+    const res = await app.fetch(new Request('http://localhost/audit?limit=200&offset=0'));
+    expect(res.status).toBe(400);
+  });
+});
+
 describe('GET /admin/jobs/summary', () => {
   beforeEach(() => {
     vi.clearAllMocks();

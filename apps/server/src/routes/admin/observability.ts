@@ -36,6 +36,7 @@ import {
   AUDIT_VIEW_METER_NAME,
   recordMilestoneMeterFirstSafe,
 } from '../../lib/nudges/milestone-meters.js';
+import { isAdminRole } from '../../lib/access.js';
 import { PaginationQuery } from '../_helpers/pagination.js';
 import { dateToString } from '../_helpers/serialize.js';
 
@@ -48,11 +49,12 @@ type AdminVariables = {
 // Shared
 // =============================================================================
 
-const ADMIN_ROLES = new Set(['admin', 'super-admin', 'admin', 'super-admin']);
-
 function requireAdmin(user: { id: string; role: string } | undefined): void {
   if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-  if (!ADMIN_ROLES.has(user.role)) {
+  // Match CMS shell isAdminRole (owner | admin | super-admin) — the prior
+  // local set omitted `owner`, so bootstrap/founder sessions could open
+  // /audit but the API returned 403.
+  if (!isAdminRole(user.role)) {
     throw new HTTPException(403, { message: 'Admin access required' });
   }
 }

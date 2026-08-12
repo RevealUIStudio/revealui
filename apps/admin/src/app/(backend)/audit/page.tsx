@@ -108,10 +108,31 @@ function AuditDashboard() {
     ? searchParams.get('severity')
     : undefined;
   const filterAgent = searchParams.get('agent') || undefined;
-  const limit = Math.min(Number(searchParams.get('limit')) || 200, 1000);
+  // Must stay within PaginationQuery max (100) on /api/admin/audit — higher
+  // values produce a validation error and a blank trail UI.
+  const limit = Math.min(Math.max(Number(searchParams.get('limit')) || 100, 1), 100);
 
   useEffect(() => {
     let cancelled = false;
+
+    function formatApiError(body: unknown, status: number): string {
+      if (body && typeof body === 'object') {
+        const err = (body as { error?: unknown }).error;
+        if (typeof err === 'string' && err.trim()) return err;
+        if (err && typeof err === 'object') {
+          try {
+            return JSON.stringify(err);
+          } catch {
+            // fall through
+          }
+        }
+        const code = (body as { code?: unknown }).code;
+        if (typeof code === 'string' && code.trim()) {
+          return `Request failed (${status}, ${code})`;
+        }
+      }
+      return `Failed to load audit log (${status})`;
+    }
 
     async function fetchAudit() {
       dispatch({ type: 'FETCH_START' });
@@ -126,8 +147,8 @@ function AuditDashboard() {
           credentials: 'include',
         });
         if (!res.ok) {
-          const body = (await res.json().catch(() => null)) as { error?: string } | null;
-          throw new Error(body?.error ?? `Failed to load audit log (${res.status})`);
+          const body: unknown = await res.json().catch(() => null);
+          throw new Error(formatApiError(body, res.status));
         }
         const data = (await res.json()) as PaginatedResponse;
         if (!cancelled) {
