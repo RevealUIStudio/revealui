@@ -14,7 +14,8 @@ describe('ProductFrame', () => {
       />,
     );
 
-    expect(screen.getByRole('img', { name: /RevealUI admin shell/i })).toBeTruthy();
+    // figure (not role=img): interactive descendants make role=img invalid for axe
+    expect(screen.getByRole('figure', { name: /RevealUI admin shell/i })).toBeTruthy();
     expect(screen.getByText(/support-agent · refund flow/i)).toBeTruthy();
     expect(screen.getByLabelText(/Agent online/i)).toBeTruthy();
     expect(screen.getByLabelText(/Approved/i)).toBeTruthy();

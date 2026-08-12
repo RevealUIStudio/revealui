@@ -43,8 +43,9 @@ const FRAME_EVENTS: readonly AuditEvent[] = [
     ts: '09:41:10',
     actor: 'audit-log',
     action: 'recorded',
+    // No refId: CopyRef is interactive; this frame is a static product demo
+    // (axe nested-interactive fails if buttons sit inside role=img chrome).
     object: 'the receipt',
-    refId: 'rcpt_8f3ka91',
   },
 ] as const;
 
@@ -64,14 +65,12 @@ export function ProductFrame({
   caption,
 }: ProductFrameProps) {
   return (
-    <figure className="mx-auto w-full max-w-5xl">
+    <figure className="mx-auto w-full max-w-5xl" aria-label={label}>
       {/* Product mat: dark outer frame (design system demo pattern), quiet chrome.
-          Linear: hierarchy via surface elevation, not brand-colored decoration. */}
-      <div
-        role="img"
-        aria-label={label}
-        className="overflow-hidden rounded-2xl bg-foreground p-1.5 shadow-2xl shadow-foreground/10 sm:p-2"
-      >
+          Linear: hierarchy via surface elevation, not brand-colored decoration.
+          Do NOT put role=img on this mat: it may contain focusable controls
+          (AuditLine CopyRef) and nested-interactive fails axe WCAG 4.1.2. */}
+      <div className="overflow-hidden rounded-2xl bg-foreground p-1.5 shadow-2xl shadow-foreground/10 sm:p-2">
         <div className="overflow-hidden rounded-xl bg-background">
           {/* Window chrome — inverted-L: title bar only; density over ornament */}
           <div className="flex h-10 items-center gap-3 border-b border-border px-3 sm:px-4">
