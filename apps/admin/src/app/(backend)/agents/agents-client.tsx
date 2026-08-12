@@ -77,19 +77,20 @@ function AgentCardsPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
-
   useEffect(() => {
-    fetch(`${apiUrl}/a2a/agents`, { credentials: 'include' })
+    // Same-origin /a2a (admin rewrite → API) so the session cookie authenticates.
+    fetch('/a2a/agents', { credentials: 'include' })
       .then((r) => r.json())
-      .then((data: { agents: A2AAgentCard[] }) => {
-        const withIds: AgentWithId[] = (data.agents ?? []).map((card) => ({
-          card,
-          agentId: card.name
-            .toLowerCase()
-            .replace(/\s+/g, '-')
-            .replace(/[^a-z0-9-]/g, ''),
-        }));
+      .then((data: { agents: Array<A2AAgentCard & { id?: string }> }) => {
+        // Prefer registry id from the API. Never invent ids from display names
+        // ("Ticket Agent" must not become "ticket-agent").
+        const withIds: AgentWithId[] = (data.agents ?? [])
+          .map((row) => {
+            if (typeof row.id !== 'string' || row.id.length === 0) return null;
+            const { id, ...cardFields } = row;
+            return { card: cardFields as A2AAgentCard, agentId: id };
+          })
+          .filter((row): row is AgentWithId => row !== null);
         setAgents(withIds);
       })
       .catch((e: unknown) => {
@@ -99,7 +100,7 @@ function AgentCardsPanel() {
         );
       })
       .finally(() => setLoading(false));
-  }, [apiUrl]);
+  }, []);
 
   if (loading) {
     return (

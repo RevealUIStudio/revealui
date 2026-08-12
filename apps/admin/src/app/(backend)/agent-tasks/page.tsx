@@ -95,31 +95,29 @@ function AgentTasksDashboard() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { tasks, loading, error, statusFilter, dateFilter, expandedId } = state;
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
-
   useEffect(() => {
     let cancelled = false;
     dispatch({ type: 'FETCH_START' });
 
     (async () => {
       try {
-        // Fetch tasks from all registered agents
-        const agentsRes = await fetch(`${apiUrl}/a2a/agents`, { credentials: 'include' });
+        // Fetch tasks from all registered agents (same-origin /a2a rewrite).
+        const agentsRes = await fetch('/a2a/agents', { credentials: 'include' });
         if (!agentsRes.ok) throw new Error('Failed to load agents');
 
-        const agentsData = (await agentsRes.json()) as { agents: Array<{ name: string }> };
-        const agentNames = (agentsData.agents ?? []).map((a) =>
-          a.name
-            .toLowerCase()
-            .replace(/\s+/g, '-')
-            .replace(/[^a-z0-9-]/g, ''),
-        );
+        const agentsData = (await agentsRes.json()) as {
+          agents: Array<{ id?: string; name: string }>;
+        };
+        // Registry id from API only — do not slugify display names.
+        const agentIds = (agentsData.agents ?? [])
+          .map((a) => (typeof a.id === 'string' && a.id.length > 0 ? a.id : null))
+          .filter((id): id is string => id !== null);
 
         // Fetch tasks from each agent in parallel
         const allTasks: AgentTask[] = [];
         const results = await Promise.allSettled(
-          agentNames.map(async (agentId) => {
-            const res = await fetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}/tasks`, {
+          agentIds.map(async (agentId) => {
+            const res = await fetch(`/a2a/agents/${encodeURIComponent(agentId)}/tasks`, {
               credentials: 'include',
             });
             if (!res.ok) return [];
@@ -152,7 +150,7 @@ function AgentTasksDashboard() {
     return () => {
       cancelled = true;
     };
-  }, [apiUrl]);
+  }, []);
 
   const dateThreshold: Date | null = (() => {
     if (dateFilter === 'all') return null;
