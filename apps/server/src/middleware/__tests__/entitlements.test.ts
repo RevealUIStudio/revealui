@@ -1,9 +1,12 @@
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+/** Fluent select chain for resolveActiveMembership + entitlement lookup. */
 const mockDbSelectChain = {
   from: vi.fn(),
+  innerJoin: vi.fn(),
   where: vi.fn(),
+  orderBy: vi.fn(),
   limit: vi.fn(),
 };
 
@@ -21,19 +24,29 @@ vi.mock('@revealui/db/schema', () => ({
     userId: 'account_memberships.userId',
     role: 'account_memberships.role',
     status: 'account_memberships.status',
+    createdAt: 'account_memberships.createdAt',
+  },
+  accounts: {
+    id: 'accounts.id',
+    slug: 'accounts.slug',
   },
   accountEntitlements: {
     accountId: 'account_entitlements.accountId',
+    mode: 'account_entitlements.mode',
     tier: 'account_entitlements.tier',
     status: 'account_entitlements.status',
+    graceUntil: 'account_entitlements.graceUntil',
     features: 'account_entitlements.features',
     limits: 'account_entitlements.limits',
+    cogsBreakerTrippedAt: 'account_entitlements.cogsBreakerTrippedAt',
   },
 }));
 
 vi.mock('drizzle-orm', () => ({
   and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
+  asc: vi.fn((_col: unknown) => `asc(${String(_col)})`),
   eq: vi.fn((_col: unknown, _val: unknown) => `eq(${String(_col)},${String(_val)})`),
+  or: vi.fn((...args: unknown[]) => `or(${args.join(',')})`),
 }));
 
 import { entitlementMiddleware, getEntitlementsFromContext } from '../entitlements.js';
@@ -57,7 +70,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   selectResults = [];
   mockDbSelectChain.from.mockReturnValue(mockDbSelectChain);
+  mockDbSelectChain.innerJoin.mockReturnValue(mockDbSelectChain);
   mockDbSelectChain.where.mockReturnValue(mockDbSelectChain);
+  mockDbSelectChain.orderBy.mockReturnValue(mockDbSelectChain);
   mockDbSelectChain.limit.mockImplementation(() => Promise.resolve(selectResults.shift() ?? []));
   mockDb.select.mockReturnValue(mockDbSelectChain);
 });
