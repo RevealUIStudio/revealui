@@ -28,13 +28,13 @@ export function GetStarted({
             {data.heading}
           </h2>
           <p
-            className="mt-5 text-lg leading-8 text-muted-foreground"
+            className="mt-5 text-lg leading-8 text-body"
             {...fieldAttrs(annotation, `${path}.body`)}
           >
             {data.body}
           </p>
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:mt-10 sm:flex-row sm:gap-4">
-            <Button asChild size="lg" variant="brand">
+            <Button asChild size="lg" variant="brand" glow>
               <a href={data.cta.primary.href}>{data.cta.primary.label}</a>
             </Button>
             <Button asChild appearance="outline" variant="neutral" size="lg">

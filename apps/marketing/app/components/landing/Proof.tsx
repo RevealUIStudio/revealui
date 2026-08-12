@@ -14,7 +14,7 @@ export function Proof() {
           <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {PROOF_SECTION.heading}
           </h2>
-          <p className="mt-5 text-lg leading-8 text-muted-foreground">{PROOF_SECTION.body}</p>
+          <p className="mt-5 text-lg leading-8 text-body">{PROOF_SECTION.body}</p>
 
           <div className="mt-6 flex justify-center">
             <a
@@ -66,8 +66,8 @@ export function Proof() {
           <h3 className="mt-3 font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {PROOF_DEPLOYERS.heading}
           </h3>
-          <p className="mt-4 text-base leading-7 text-muted-foreground">{PROOF_DEPLOYERS.body}</p>
-          <p className="mt-4 text-sm leading-6 text-muted-foreground">{PROOF_DEPLOYERS.foil}</p>
+          <p className="mt-4 text-base leading-7 text-body">{PROOF_DEPLOYERS.body}</p>
+          <p className="mt-4 text-sm leading-6 text-body">{PROOF_DEPLOYERS.foil}</p>
           <div className="mt-8">
             <Button asChild size="default" className="items-center justify-center">
               <a href={PROOF_DEPLOYERS.cta.href} target="_blank" rel="noopener noreferrer">

@@ -12,9 +12,8 @@ import { selectHomeHero } from '../../lib/hero-variant';
 import { AudienceToggle } from './AudienceToggle';
 
 // Shared trust strip (the signals the retired eyebrow pill used to carry).
-// Rendered above BOTH hero H1 variants and for both audiences, so the
-// "Local-first AI" chip lands without forking the ?hero=foundation A/B or
-// adding a third hero variant (positioning decision d).
+// Rendered for both audiences. Separators (not brand dots) keep chrome quiet —
+// Linear craft: limit decoration; hierarchy from type weight and spacing.
 const TRUST_SIGNALS = ['Open source', 'Self-hostable', 'Local-first AI'] as const;
 
 /**
@@ -24,16 +23,29 @@ const TRUST_SIGNALS = ['Open source', 'Self-hostable', 'Local-first AI'] as cons
  * to `--color-primary` rather than a literal color. Lives inside an
  * overflow-hidden box so the off-canvas offset never creates a scrollbar.
  * Reads in both light and dark.
- *
- * Craft pass 2026-08: lower opacity, smaller glow. Linear redesign lesson:
- * reduce chrome noise; let type and the receipt carry hierarchy.
  */
 function HeroBackground() {
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.03] via-background to-background" />
-      <div className="absolute -top-32 left-1/2 h-[520px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--color-primary),transparent_70%)] opacity-[0.07] blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.04] via-background to-background" />
+      <div className="absolute -top-32 left-1/2 h-[520px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--color-primary),transparent_70%)] opacity-[0.12] blur-3xl" />
     </div>
+  );
+}
+
+/** Trust strip: vertical rules between labels, no brand-dot decoration. */
+function TrustStrip() {
+  return (
+    <ul className="mt-8 flex flex-wrap items-center justify-center gap-y-2 text-sm text-body list-none p-0">
+      {TRUST_SIGNALS.map((signal, index) => (
+        <li key={signal} className="flex items-center">
+          {index > 0 ? (
+            <span aria-hidden="true" className="mx-3 h-3 w-px bg-border-strong sm:mx-4" />
+          ) : null}
+          <span>{signal}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -41,16 +53,23 @@ function HeroBackground() {
 function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
   return (
     <>
-      <h1 className="font-display text-[2.75rem] font-extrabold leading-[1.05] tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
+      {/*
+        Type ladder (P0 craft):
+        - H1 = text-foreground (ink, max contrast)
+        - subtitle = text-body (rvui-text-1) for long reading, not muted
+        - trust / captions = muted only when meta
+        SwipePages/SaaS LPs fail when body is grey-on-paper; text-body clears AA.
+      */}
+      <h1 className="font-display text-[2.75rem] font-extrabold leading-[1.05] tracking-tighter text-foreground text-balance sm:text-6xl lg:text-7xl">
         {hero.h1}
       </h1>
 
-      <p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-muted-foreground sm:mt-8 sm:text-xl sm:leading-8">
+      <p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-body sm:mt-8 sm:text-xl">
         {hero.subtitle.sentence1} {hero.subtitle.sentence2} {hero.subtitle.support}
       </p>
 
-      <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:mt-10 sm:flex-row sm:gap-4">
-        <Button asChild size="lg" className="w-full sm:w-auto gap-2">
+      <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3 sm:mt-10 sm:gap-4">
+        <Button asChild size="lg" glow className="w-full sm:w-auto gap-2">
           <a href={hero.cta.primary.href}>
             {hero.cta.primary.label}
             <IconArrowRight size="sm" />
@@ -70,15 +89,7 @@ function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
         </Button>
       </div>
 
-      {/* Trust strip: quiet separators, not competing brand dots. */}
-      <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-0 gap-y-2 text-sm text-muted-foreground list-none p-0">
-        {TRUST_SIGNALS.map((signal, index) => (
-          <li key={signal} className="flex items-center">
-            {index > 0 && <span aria-hidden="true" className="mx-3 h-3 w-px bg-border sm:mx-4" />}
-            <span>{signal}</span>
-          </li>
-        ))}
-      </ul>
+      <TrustStrip />
     </>
   );
 }
@@ -92,7 +103,7 @@ function NonTechnicalHero() {
   const hero = FOR_OPERATORS_HERO;
   return (
     <>
-      <h1 className="font-display text-[2.75rem] font-extrabold leading-[1.05] tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
+      <h1 className="font-display text-[2.75rem] font-extrabold leading-[1.05] tracking-tighter text-foreground text-balance sm:text-6xl lg:text-7xl">
         {hero.h1Lines.map((line) => (
           <span key={line} className="block">
             {line}
@@ -100,12 +111,12 @@ function NonTechnicalHero() {
         ))}
       </h1>
 
-      <p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-muted-foreground sm:mt-8 sm:text-xl sm:leading-8">
+      <p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-body sm:mt-8 sm:text-xl">
         {hero.subtitle}
       </p>
 
       <div className="mt-9 flex justify-center sm:mt-10">
-        <Button asChild size="lg" className="w-full sm:w-auto gap-2">
+        <Button asChild size="lg" glow className="w-full sm:w-auto gap-2">
           <a href={hero.primaryCta.href} target="_blank" rel="noopener noreferrer">
             {hero.primaryCta.label}
             <IconArrowRight size="sm" />
@@ -113,14 +124,7 @@ function NonTechnicalHero() {
         </Button>
       </div>
 
-      <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-0 gap-y-2 text-sm text-muted-foreground list-none p-0">
-        {TRUST_SIGNALS.map((signal, index) => (
-          <li key={signal} className="flex items-center">
-            {index > 0 && <span aria-hidden="true" className="mx-3 h-3 w-px bg-border sm:mx-4" />}
-            <span>{signal}</span>
-          </li>
-        ))}
-      </ul>
+      <TrustStrip />
     </>
   );
 }
@@ -145,8 +149,7 @@ export function Hero() {
         </div>
 
         {/* Receipt-motif moment (frontend-excellence Phase 5): one orchestrated
-            print entrance. Signature creative element only (Linear craft: one
-            moment, not competing chrome). */}
+            print entrance, shared verbatim by both audience variants. */}
         <div className="mt-12 w-full max-w-md min-w-0 mx-auto text-left sm:mt-14 sm:max-w-lg">
           <ReceiptCard
             title={RECEIPT_HERO_TITLE}
@@ -154,11 +157,11 @@ export function Hero() {
             integrity={RECEIPT_HERO_INTEGRITY}
             animate="print"
           />
-          <p className="mt-4 text-center text-sm text-muted-foreground">
+          <p className="mt-4 text-center text-sm text-body">
             {RECEIPT_HERO_CAPTION.text}{' '}
             <Link
               to={RECEIPT_HERO_CAPTION.link.href}
-              className="text-foreground underline underline-offset-4 hover:text-primary"
+              className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
             >
               {RECEIPT_HERO_CAPTION.link.label}
             </Link>
