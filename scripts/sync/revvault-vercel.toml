@@ -179,6 +179,11 @@ skip = [
   # NEXT_PUBLIC_IS_LIVE. Keeping in skip means existing Vercel value is
   # not tracked by sync and will surface as an Orphan until removed.
   "REVEALUI_PUBLIC_STRIPE_IS_TEST_KEY",
+  # GAP-260 P4-4: plain hosted|forge flag, not vaulted. Owner sets
+  # REVEALUI_DEPLOYMENT_MODE=hosted on admin (preview then prod) BEFORE
+  # applying a sync that drops the private key. Skip so apply does not
+  # orphan or delete the owner-set value.
+  "REVEALUI_DEPLOYMENT_MODE",
 ]
 
 [projects.revealui-admin.vars]
@@ -214,7 +219,9 @@ NEON_API_KEY  = { path = "revealui/prod/db/neon-api-key", sensitive = true }
 # admin's production instrumentation hard-requires it (apps/admin/src/lib/utils/env-validation.ts);
 # leaving it untracked here is what let it go missing when the prod env was rebuilt (regression #928).
 REVEALUI_KEK                 = { path = "revealui/prod/kek", sensitive = true }
-REVEALUI_LICENSE_PRIVATE_KEY = { path = "revdev/license-signing-private-key", sensitive = true }
+# GAP-260 P4-4: admin is verify-only. Do not sync the signing private key here.
+# Mint stays on api (local fallback) until SIGN_VIA_SIGNER is the sole path,
+# then apps/license-signer. Public key remains so admin can verify JWTs.
 REVEALUI_LICENSE_PUBLIC_KEY  = "revdev/license-signing-public-key"
 REVEALUI_AUDIT_SIGNING_KEY   = { path = "revealui/prod/audit/signing-private-key", sensitive = true }
 REVEALUI_AUDIT_PUBLIC_KEY    = "revealui/prod/audit/signing-public-key"

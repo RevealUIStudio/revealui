@@ -129,6 +129,17 @@ describe('validateRequiredEnvVars', () => {
       expect(result.valid).toBe(true);
       expect(result.missing).toEqual([]);
     });
+
+    it('treats MODE=hosted without a signing private key as hosted SaaS (GAP-260 P4-4)', () => {
+      setCriticalRequiredVars();
+      process.env.REVEALUI_DEPLOYMENT_MODE = 'hosted';
+      delete process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+
+      const result = validateRequiredEnvVars({ environment: 'production' });
+
+      expect(result.valid).toBe(false);
+      expect(result.missing).toEqual(expect.arrayContaining(['SESSION_COOKIE_DOMAIN']));
+    });
   });
 
   describe('non-production environments', () => {

@@ -102,7 +102,7 @@ value is never UI/API-revealable after write (credentials + private signing keys
 
 | Path | Kind | Sensitive | Consumers | Notes |
 | --- | --- | --- | --- | --- |
-| `revdev/license-signing-private-key` | signing-private | yes | vercel:api, vercel:admin, fly:worker, with-secrets:license-signing | → migrating to `revealui/prod/license/private-key` (since 2026-06-28); Ed25519 license-signing key - the fleet crown jewel; only api mints |
+| `revdev/license-signing-private-key` | signing-private | yes | vercel:api, fly:worker, with-secrets:license-signing | → migrating to `revealui/prod/license/private-key` (since 2026-06-28); Ed25519 license-signing key - the fleet crown jewel; api (+ worker until Fly drop) mints. Admin dropped P4-4 (verify-only). |
 | `revdev/license-signing-public-key` | signing-public | no | vercel:api, vercel:admin, fly:worker, with-secrets:license | → migrating to `revealui/prod/license/public-key` (since 2026-06-28); Ed25519 verification key - rotating invalidates all issued customer licenses |
 | `revealui/prod/admin/api-key` | credential | yes | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/admin/email` | public-config | no | vercel:admin |  |
@@ -174,7 +174,7 @@ value is never UI/API-revealable after write (credentials + private signing keys
 | `revealui/staging/cron-secret` | credential | yes | vercel:api-staging, vercel:admin-staging |  |
 | `revealui/staging/db/postgres-url` | credential | yes | vercel:api-staging, vercel:admin-staging | Phase 1 (owner-run empty Neon branch + full migrate) fills this |
 | `revealui/staging/kek` | credential | yes | vercel:api-staging, vercel:admin-staging | fresh staging value (scripts/setup/gen-staging-secrets.ts) |
-| `revealui/staging/license/private-key` | signing-private | yes | vercel:api-staging, vercel:admin-staging | fresh Ed25519 pair, isolated from revdev/license-signing-* (GAP-343 decision 1) |
+| `revealui/staging/license/private-key` | signing-private | yes | vercel:api-staging | fresh Ed25519 pair, isolated from revdev/license-signing-* (GAP-343 decision 1). Admin-staging dropped P4-4 (verify-only). |
 | `revealui/staging/license/public-key` | signing-public | no | vercel:api-staging, vercel:admin-staging |  |
 | `revealui/staging/passkey/origin` | public-config | no | vercel:api-staging, vercel:admin-staging | the admin app origin, https://admin.staging.revealui.com |
 | `revealui/staging/passkey/rp-id` | public-config | no | vercel:api-staging, vercel:admin-staging |  |
@@ -341,7 +341,13 @@ requires `REVEALUI_LICENSE_PRIVATE_KEY` + `REVEALUI_SIGNER_INVOKE_SECRET` at boo
 `POST /api/license/generate`) call `@revealui/core/license/mint-client`. Default remains
 local private-key mint. Set `REVEALUI_LICENSE_SIGN_VIA_SIGNER=1` plus
 `REVEALUI_LICENSE_SIGNER_URL` and `REVEALUI_SIGNER_INVOKE_SECRET` on api (and worker if
-it mints) to route mints to the signer. Private-key drop from admin/Fly is P4-4.
+it mints) to route mints to the signer.
+
+**P4-4 admin drop:** prod and staging admin manifests no longer sync
+`REVEALUI_LICENSE_PRIVATE_KEY`. Set `REVEALUI_DEPLOYMENT_MODE=hosted` on admin
+preview, prove boot GREEN, then owner-apply `revvault sync vercel` so the
+private key is not re-pushed. Fly worker still lists the private key until
+executor-off is proven live. Do not apply this train without that MODE set.
 
 ### LLM / AI providers
 

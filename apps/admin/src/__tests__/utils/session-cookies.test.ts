@@ -92,6 +92,15 @@ describe('requireSessionCookieDomain', () => {
     );
   });
 
+  it('throws in production when MODE=hosted even if the signing private key is absent (GAP-260 P4-4)', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('SESSION_COOKIE_DOMAIN', '');
+    vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', 'hosted');
+    expect(() => requireSessionCookieDomain()).toThrow(
+      'SESSION_COOKIE_DOMAIN env var is required in production for cross-subdomain auth on a RevealUI Studio hosted deployment',
+    );
+  });
+
   it('falls back to host-only under REVEALUI_FLEET_MODE instead of throwing', () => {
     vi.stubEnv('NODE_ENV', 'production');
     vi.stubEnv('SESSION_COOKIE_DOMAIN', '');
