@@ -7,13 +7,15 @@ vi.mock('@/lib/providers/LicenseProvider', () => ({
   useLicense: () => mockUseLicense(),
 }));
 
-// Mock @revealui/contracts/pricing
-const mockGetTiersFromCurrent = vi.fn(() => [
-  { id: 'pro', name: 'Pro', price: '$49/mo' },
-  { id: 'max', name: 'Max', price: '$299/mo' },
-]);
+// Mock @revealui/contracts/pricing (hoisted so factory can close over the mock).
+const { mockGetTiersFromCurrent } = vi.hoisted(() => ({
+  mockGetTiersFromCurrent: vi.fn(() => [
+    { id: 'pro', name: 'Pro', price: '$49/mo' },
+    { id: 'max', name: 'Max', price: '$299/mo' },
+  ]),
+}));
 vi.mock('@revealui/contracts/pricing', () => ({
-  getTiersFromCurrent: (...args: unknown[]) => mockGetTiersFromCurrent(...args),
+  getTiersFromCurrent: mockGetTiersFromCurrent,
 }));
 
 // Mock presentation components
