@@ -1,57 +1,69 @@
-# Owner publish checklist — customer Railway marketplace template (GAP-430)
+# Owner publish checklist — customer marketplace sales channel (GAP-430)
 
-Agent work for template definition, first-boot docs, and monorepo cross-links is
-**done** (`deployment/railway/*` on `test`). Closure is **owner dashboard publish**
-only. Studio production hosting stays Vercel + Neon + Fly; this listing is a
-customer self-host **sales channel** (marketplace template), not Studio infra.
+**Filename is historical** (`RAILWAY-MARKETPLACE-…`). Studio production hosting is
+**Vercel + Neon + Fly** only. This template is a **customer self-host sales channel**
+under `deployment/railway/*` — not Studio production.
 
-## 1. Account
+Agent config-as-code is **done** on `main`. Closure is **owner dashboard publish** +
+clean-account deploy walk.
 
-1. Sign in to the RevealUI author account on the customer marketplace platform
-   (Hobby paid account already used for early sales-channel work 2026-07-27).
-2. Confirm billing is active (marketplace author kickback requires a paid plan
-   context as the marketplace vendor documents it).
-3. Optional: enable support-bonus queue / author program settings if offered.
+Full service/env/first-boot detail:
 
-## 2. Template source
+[`deployment/railway/README.md`](../../deployment/railway/README.md)
+(customer marketplace path; Studio prod stays off that stack.)
 
-- Config-as-code: `deployment/railway/README.md`, `api.json`, `admin.json`
-- Images: `apps/server/Dockerfile`, `apps/admin/Dockerfile`, migrate image
-  `ghcr.io/revealuistudio/revealui-migrate`, Postgres `pgvector/pgvector:pg16`
-- Docs already cross-link from README and `docs/guides/deployment.md`
+## 0. Product decision (before public list)
 
-Do **not** re-author a parallel compose path. Extend `deployment/railway/` only.
+Pick one and put it in the listing description:
 
-## 3. Publish (dashboard)
+1. **Licensed Fleet customers only** — visitor already has `REVEALUI_LICENSE_KEY` + public key from Studio; or
+2. **Free (OSS) try path** — set `REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true` on **both** `api` and `admin`, omit license keys.
 
-1. Create or update a marketplace **Template** from this monorepo, pointing
-   services at the config in `deployment/railway/`.
-2. Ensure template services match the README architecture table (postgres,
-   migrate, api, admin).
-3. Document required env vars in the template UI (no secrets baked in).
-4. Set Free-tier path: `REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true` on **both**
-   api and admin when no license key is supplied (see README).
-5. Publish to the marketplace; opt into author kickback / support bonus if
-   separate toggles exist.
-6. Wire payout (Stripe Connect or the marketplace vendor payout path) for the
-   $100 threshold on this sales channel.
+Do not ship a public Deploy button that dead-ends at a license prompt for most visitors.
 
-## 4. Clean-account acceptance walk (close GAP-430)
+## 1. Account (customer marketplace dashboard)
 
-From a **second** buyer account on the marketplace (or reset project):
+1. Hobby (paid) account signed in on the customer marketplace host.
+2. Partner / Template Queue / payout enrollment ready (Template Queue URL in the platform docs).
 
-1. Deploy template one-click.
-2. Wait migrate success; api + admin healthy.
-3. Open admin; seeded login works with documented defaults / env.
-4. Record: marketplace listing URL, deploy project id, screenshot or log note
-   of healthy services, kickback/payout status.
+## 2. Clean-account compose (acceptance walk)
 
-## 5. Record on GAP-430
+Create a **new** project (not Studio prod). Order:
 
-Paste listing URL + smoke date into `docs/gaps/GAP-430.yml` progress, then close
-when acceptance is met.
+| # | Service | Source | Config path / notes |
+|---|---------|--------|---------------------|
+| 1 | `postgres` | Docker `pgvector/pgvector:pg16` | **Not** plain Postgres; set `POSTGRES_*` |
+| 2 | `migrate` | `ghcr.io/revealuistudio/revealui-migrate` (`latest` from `main`, or `sha-…`) | Restart policy **NEVER**; run once after postgres healthy |
+| 3 | `api` | This GitHub repo, root context | Config File Path `/deployment/railway/api.json`; public domain |
+| 4 | `admin` | This GitHub repo, root context | Config File Path `/deployment/railway/admin.json`; public domain |
 
-## Peers
+Generate secrets with `openssl` (see README env tables). Set Free flag **or** real license keys on **api and admin**.
 
-Do not re-scaffold `deployment/railway/api.json` or `admin.json` without a new
-proven residual. Owner publish is the remaining door.
+**Build order:** generate `api` public domain **before** first `admin` build (`NEXT_PUBLIC_API_URL` is build-time). Redeploy admin if api domain was late.
+
+## 3. First-boot
+
+1. `migrate` exits 0 once.
+2. `api` `/health` and `admin` `/api/health` healthy.
+3. Log in with `REVEALUI_ADMIN_EMAIL` / `REVEALUI_ADMIN_PASSWORD`.
+4. Rotate admin password immediately.
+
+## 4. Marketplace publish (sales channel only)
+
+1. Project → Generate Template (or current dashboard equivalent).
+2. Listing name, description, icon, category (state Free vs licensed audience).
+3. Submit Template Queue for review.
+4. Confirm partner kickback / payout settings.
+
+## 5. Acceptance (close GAP-430)
+
+1. Clean-account walk green (login works).
+2. Public marketplace listing URL recorded on GAP-430 progress.
+3. Payout enrollment confirmed (or explicitly deferred with reason).
+
+## Do not
+
+- Re-scaffold `deployment/railway/api.json` / `admin.json` without a new residual.
+- Present the customer marketplace host as Studio production (Studio = Vercel + Neon + Fly).
+- Use vanilla `postgres` image (vector extension fails).
+- Leave migrate Restart Policy on ALWAYS/ON_FAILURE (crash loop).
