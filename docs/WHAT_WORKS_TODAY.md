@@ -22,7 +22,7 @@ Full content management engine with collections, access control, hooks, field ty
 and a REST API. The heart of RevealUI and the most mature part of the codebase.
 
 ### UI component library
-**66 native React components in `@revealui/presentation`** (plus admin and rich-text UI in `@revealui/core`), built on Tailwind CSS v4. No external UI dependencies (no Radix, no Headless UI, no shadcn). Just React hooks, clsx, and CVA. Buttons, forms, modals, tables, toasts, navigation, data display, and layout primitives.
+**66 native React components in `@revealui/presentation`** (plus admin and rich-text UI in `@revealui/core`), built on Tailwind CSS v4. No external UI dependencies (no Radix, no Headless UI, no shadcn). Just React hooks, clsx, and CVA. Buttons, forms, modals, tables, toasts, navigation, data display, and layout primitives.
 
 ### Database schema
 **104 PostgreSQL tables** with Drizzle ORM, **81 CHECK constraints** enforced at the database level. NeonDB is the sole primary database (REST, agent memories, and RAG via pgvector on Neon). Supabase is not an internal datastore (ADR `2026-05-01-supabase-removal`); the customer-facing Supabase MCP adapter was removed (use Neon MCP). ElectricSQL is an optional sync layer (off by default).
