@@ -4,17 +4,18 @@
  * GET /api/shapes/yjs-documents?document_id=<uuid>
  *
  * Authenticated proxy for ElectricSQL yjs_documents shape.
- * GAP-476: fail-closed to isAdminRole — table has no user_id / ACL column.
- * Residual Phase C: document-level ACL when ownership model lands.
- * UUID-only document_id still required for the Electric where clause.
+ * GAP-477: acl_resource — platform admin may read any UUID doc; non-admin
+ * only when owner_id matches session user (legacy null owner = admin-only).
  */
 
 import { getSession } from '@revealui/auth/server';
+import { getClient } from '@revealui/db';
 import { logger } from '@revealui/utils/logger';
 import type { NextRequest, NextResponse } from 'next/server';
 import { prepareElectricUrl, proxyElectricRequest } from '@/lib/api/electric-proxy';
-import { isUuid, requireAdminRole } from '@/lib/api/shape-authz';
+import { isUuid, requireAdminRole, userCanAccessYjsDocument } from '@/lib/api/shape-authz';
 import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
+import { isSyncIdentifier } from '@/lib/utils/identifier-validation';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
@@ -28,10 +29,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
 
-    if (!requireAdminRole(session.user.role)) {
-      return createApplicationErrorResponse('Forbidden', 'FORBIDDEN', 403);
-    }
-
     const url = new URL(request.url);
     const documentId = url.searchParams.get('document_id');
 
@@ -43,9 +40,32 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    const db = getClient();
+    const allowed = await userCanAccessYjsDocument(
+      db,
+      session.user.id,
+      documentId,
+      session.user.role,
+    );
+    if (!allowed) {
+      return createApplicationErrorResponse('Forbidden', 'FORBIDDEN', 403);
+    }
+
     const originUrl = prepareElectricUrl(request.url);
     originUrl.searchParams.set('table', 'yjs_documents');
-    originUrl.searchParams.set('where', `id = '${documentId}'`);
+
+    // Admin: document id only. Owner: id + owner_id match (defense in depth with the gate above).
+    if (requireAdminRole(session.user.role)) {
+      originUrl.searchParams.set('where', `id = '${documentId}'`);
+    } else {
+      if (!isSyncIdentifier(session.user.id)) {
+        return createApplicationErrorResponse('Forbidden', 'FORBIDDEN', 403);
+      }
+      originUrl.searchParams.set(
+        'where',
+        `id = '${documentId}' AND owner_id = '${session.user.id}'`,
+      );
+    }
 
     return proxyElectricRequest(originUrl);
   } catch (error) {

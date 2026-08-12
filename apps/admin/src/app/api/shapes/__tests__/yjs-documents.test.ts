@@ -11,6 +11,15 @@ vi.mock('@revealui/auth/server', () => ({
   getSession: vi.fn(),
 }));
 
+const mockLimit = vi.fn();
+const mockWhere = vi.fn(() => ({ limit: mockLimit }));
+const mockFrom = vi.fn(() => ({ where: mockWhere }));
+const mockSelect = vi.fn(() => ({ from: mockFrom }));
+
+vi.mock('@revealui/db', () => ({
+  getClient: vi.fn(() => ({ select: mockSelect })),
+}));
+
 vi.mock('@/lib/api/electric-proxy', () => ({
   prepareElectricUrl: vi.fn((_url: string) => {
     const electricUrl = new URL('http://localhost:5133/v1/shape');
@@ -88,8 +97,9 @@ describe('GET /api/shapes/yjs-documents', () => {
     expect(data.error).toBe('UNAUTHORIZED');
   });
 
-  it('should return 403 for non-admin', async () => {
+  it('should return 403 for non-admin without document ownership', async () => {
     mockGetSession.mockResolvedValue(makeSession('viewer') as never);
+    mockLimit.mockResolvedValue([{ ownerId: 'other-user' }]);
 
     const request = new NextRequest(
       `http://localhost:3000/api/shapes/yjs-documents?document_id=${VALID_DOC_ID}`,
@@ -99,6 +109,24 @@ describe('GET /api/shapes/yjs-documents', () => {
 
     expect(response.status).toBe(403);
     expect(data.error).toBe('FORBIDDEN');
+  });
+
+  it('should proxy for document owner (non-admin) with owner_id where clause', async () => {
+    mockGetSession.mockResolvedValue(makeSession('viewer') as never);
+    mockLimit.mockResolvedValue([{ ownerId: '123e4567-e89b-12d3-a456-426614174001' }]);
+
+    const { prepareElectricUrl, proxyElectricRequest } = await import('@/lib/api/electric-proxy');
+
+    const request = new NextRequest(
+      `http://localhost:3000/api/shapes/yjs-documents?document_id=${VALID_DOC_ID}`,
+    );
+    const response = await GET(request);
+
+    expect(response.status).toBe(200);
+    expect(prepareElectricUrl).toHaveBeenCalled();
+    expect(proxyElectricRequest).toHaveBeenCalled();
+    const originUrl = vi.mocked(proxyElectricRequest).mock.calls[0]?.[0] as URL;
+    expect(originUrl.searchParams.get('where')).toContain('owner_id =');
   });
 
   it('should return 400 when document_id is missing', async () => {
@@ -127,6 +155,7 @@ describe('GET /api/shapes/yjs-documents', () => {
 
   it('should proxy request when admin with valid UUID', async () => {
     mockGetSession.mockResolvedValue(makeSession('admin') as never);
+    mockLimit.mockResolvedValue([]);
 
     const { prepareElectricUrl, proxyElectricRequest } = await import('@/lib/api/electric-proxy');
 

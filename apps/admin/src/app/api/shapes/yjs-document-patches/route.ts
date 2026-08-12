@@ -4,15 +4,15 @@
  * GET /api/shapes/yjs-document-patches?document_id=<document_id>
  *
  * Authenticated proxy for ElectricSQL yjs_document_patches shape.
- * GAP-476: fail-closed to isAdminRole — no document ACL join.
- * Residual Phase C: document-level ACL when ownership model lands.
+ * GAP-477: same document ACL as yjs-documents (owner or platform admin).
  */
 
 import { getSession } from '@revealui/auth/server';
+import { getClient } from '@revealui/db';
 import { logger } from '@revealui/utils/logger';
 import type { NextRequest, NextResponse } from 'next/server';
 import { prepareElectricUrl, proxyElectricRequest } from '@/lib/api/electric-proxy';
-import { requireAdminRole } from '@/lib/api/shape-authz';
+import { userCanAccessYjsDocument } from '@/lib/api/shape-authz';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
   createApplicationErrorResponse,
@@ -35,10 +35,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const aiGate = await checkAIFeatureGate(session.user.id);
     if (aiGate) return aiGate;
 
-    if (!requireAdminRole(session.user.role)) {
-      return createApplicationErrorResponse('Forbidden', 'FORBIDDEN', 403);
-    }
-
     const documentId = new URL(request.url).searchParams.get('document_id');
     if (!documentId || documentId.trim().length === 0) {
       return createValidationErrorResponse(
@@ -55,6 +51,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         'document_id',
         documentId,
       );
+    }
+
+    const db = getClient();
+    const allowed = await userCanAccessYjsDocument(
+      db,
+      session.user.id,
+      documentId,
+      session.user.role,
+    );
+    if (!allowed) {
+      return createApplicationErrorResponse('Forbidden', 'FORBIDDEN', 403);
     }
 
     const originUrl = prepareElectricUrl(request.url);

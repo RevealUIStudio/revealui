@@ -146,6 +146,12 @@
       "rationale": "GAP-256 PR-1: CREATE TABLE margin_snapshots, account_margin_daily, admission_waitlist; ADD COGS breaker columns on account_entitlements; widen source CHECK to include signup. Hand-written IF NOT EXISTS / DO $$ for idempotency and partial unique index WHERE status='pending' (not fully expressible via plain drizzle-kit without snapshot debt). Companion Drizzle schemas: packages/db/src/schema/margin-admission.ts + accounts.ts cogsBreaker* + source check.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Same regen path as peer hand-written migrations; Drizzle schemas are the type contract for PR-2+."
+    },
+    {
+      "tag": "0040_gap477_yjs_owner_id",
+      "rationale": "GAP-477 residual: ADD COLUMN yjs_documents.owner_id (nullable text) + btree index for Electric shape ACL (creator stamp). Hand-written ADD COLUMN IF NOT EXISTS + CREATE INDEX IF NOT EXISTS for idempotency, following the 0011/0031/0036 column-addition precedent. Companion Drizzle schema at packages/db/src/schema/yjs-documents.ts models ownerId; write paths stamp session user on insert and never clear owner on update.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as peer hand-written migrations; Drizzle schema is the type contract."
     }
   ]
 }

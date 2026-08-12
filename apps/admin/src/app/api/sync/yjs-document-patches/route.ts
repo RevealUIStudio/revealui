@@ -13,7 +13,7 @@ import { getClient } from '@revealui/db';
 import { yjsDocumentPatches, yjsDocuments } from '@revealui/db/schema';
 import { applyPatches } from '@revealui/sync/collab/server';
 import { logger } from '@revealui/utils/logger';
-import { eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
@@ -128,11 +128,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         .update(yjsDocuments)
         .set({ state, stateVector, updatedAt: new Date() })
         .where(eq(yjsDocuments.id, body.document_id));
+      // Durable heal: stamp creator once for legacy null-owner rows.
+      await db
+        .update(yjsDocuments)
+        .set({ ownerId: session.user.id })
+        .where(and(eq(yjsDocuments.id, body.document_id), isNull(yjsDocuments.ownerId)));
     } else {
       await db.insert(yjsDocuments).values({
         id: body.document_id,
         state,
         stateVector,
+        ownerId: session.user.id,
       });
     }
 

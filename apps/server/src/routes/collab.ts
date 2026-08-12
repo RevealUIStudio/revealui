@@ -114,7 +114,7 @@ export function createCollabRoute(): OpenAPIHono<{ Variables: Variables }> {
       const doc = new Y.Doc();
       await persistence.loadDocument(documentId, doc);
       Y.applyUpdate(doc, updateBytes);
-      await persistence.saveDocument(documentId, doc);
+      await persistence.saveDocument(documentId, doc, { ownerId: user.id });
       doc.destroy();
       return c.json({ success: true as const });
     } catch (err) {

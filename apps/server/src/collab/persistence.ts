@@ -1,5 +1,5 @@
 import { yjsDocuments } from '@revealui/db/schema/yjs-documents';
-import { eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import * as Y from 'yjs';
 
 interface DrizzleDb {
@@ -20,9 +20,14 @@ interface DrizzleDb {
   };
 }
 
+export type SaveDocumentOptions = {
+  /** Creating user when known (GAP-477). Set on insert; never cleared on update. */
+  ownerId?: string | null;
+};
+
 export interface YjsPersistence {
   loadDocument(id: string, doc: Y.Doc): Promise<void>;
-  saveDocument(id: string, doc: Y.Doc): Promise<void>;
+  saveDocument(id: string, doc: Y.Doc, options?: SaveDocumentOptions): Promise<void>;
   updateClientCount(id: string, count: number): Promise<void>;
 }
 
@@ -40,10 +45,11 @@ export function createYjsPersistence(db: DrizzleDb): YjsPersistence {
       }
     },
 
-    async saveDocument(id: string, doc: Y.Doc): Promise<void> {
+    async saveDocument(id: string, doc: Y.Doc, options?: SaveDocumentOptions): Promise<void> {
       const state = Buffer.from(Y.encodeStateAsUpdate(doc));
       const stateVector = Buffer.from(Y.encodeStateVector(doc));
       const now = new Date();
+      const ownerId = options?.ownerId?.trim() || null;
 
       await db
         .insert(yjsDocuments)
@@ -51,6 +57,7 @@ export function createYjsPersistence(db: DrizzleDb): YjsPersistence {
           id,
           state,
           stateVector,
+          ownerId,
           connectedClients: 0,
           createdAt: now,
           updatedAt: now,
@@ -63,6 +70,14 @@ export function createYjsPersistence(db: DrizzleDb): YjsPersistence {
             updatedAt: now,
           },
         });
+
+      // Durable heal for legacy rows: stamp owner once, never reassign.
+      if (ownerId) {
+        await db
+          .update(yjsDocuments)
+          .set({ ownerId })
+          .where(and(eq(yjsDocuments.id, id), isNull(yjsDocuments.ownerId)));
+      }
     },
 
     async updateClientCount(id: string, count: number): Promise<void> {
