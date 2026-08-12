@@ -8,6 +8,7 @@
  */
 
 import {
+  auditLoginSuccess,
   readUsersRole,
   rotateSession,
   verifyAuthentication,
@@ -141,6 +142,9 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
       ipAddress,
       metadata: { mfaVerified: true, mfaMethod: 'passkey' },
     });
+
+    // Full session minted (passkeys are phishing-resistant MFA). Land login receipt.
+    await auditLoginSuccess(storedPasskey.userId, ipAddress ?? 'unknown', userAgent ?? 'unknown');
 
     // After createSession shell repair (GAP-473), cookie + JSON must match DB.
     let userRole = user.role ?? 'viewer';

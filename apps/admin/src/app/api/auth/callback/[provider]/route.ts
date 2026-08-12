@@ -11,6 +11,7 @@
 
 import {
   admitFreeIntake,
+  auditLoginSuccess,
   ensureFreeSignupEntitlement,
   exchangeCode,
   fetchProviderUser,
@@ -179,6 +180,9 @@ export async function GET(
       undefined;
 
     const { token } = await rotateSession(user.id, { userAgent, ipAddress, persistent: true });
+
+    // Login receipt (GAP-338 dogfood): password signIn already emits; OAuth did not.
+    await auditLoginSuccess(user.id, ipAddress ?? 'unknown', userAgent ?? 'unknown');
 
     // Resolve redirectTo: reject cross-origin URLs to prevent open redirect.
     // startsWith('/') is insufficient  -  paths like /..//..//attacker.com pass.

@@ -16,6 +16,7 @@ vi.mock('@revealui/auth/server', () => ({
   verifyMagicLink: vi.fn(),
   createSession: vi.fn(),
   deleteAllUserSessions: vi.fn(),
+  auditLoginSuccess: vi.fn().mockResolvedValue(undefined),
   checkRateLimit: vi.fn(),
 }));
 

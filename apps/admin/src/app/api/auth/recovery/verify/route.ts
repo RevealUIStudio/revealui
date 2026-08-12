@@ -7,7 +7,12 @@
  * The session has a 30-minute expiry and metadata marking it as a recovery session.
  */
 
-import { createSession, deleteAllUserSessions, verifyMagicLink } from '@revealui/auth/server';
+import {
+  auditLoginSuccess,
+  createSession,
+  deleteAllUserSessions,
+  verifyMagicLink,
+} from '@revealui/auth/server';
 import { RecoveryVerifyRequestSchema } from '@revealui/contracts';
 import { getClient } from '@revealui/db';
 import { getUserById } from '@revealui/db/queries/users';
@@ -82,6 +87,9 @@ async function verifyHandler(request: NextRequest): Promise<NextResponse> {
       userAgent,
       ipAddress,
     });
+
+    // Recovery magic-link establishes a session; record a login receipt.
+    await auditLoginSuccess(verified.userId, ipAddress ?? 'unknown', userAgent ?? 'unknown');
 
     const user = await getUserById(getClient(), verified.userId);
 

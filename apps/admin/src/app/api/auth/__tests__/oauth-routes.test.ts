@@ -38,6 +38,8 @@ vi.mock('@revealui/auth/server', () => ({
   upsertOAuthUser: (...args: unknown[]) => mockUpsertOAuthUser(...args),
   createSession: (...args: unknown[]) => mockCreateSession(...args),
   rotateSession: (...args: unknown[]) => mockCreateSession(...args),
+  // Login receipt after OAuth session mint (GAP-338 dogfood residual)
+  auditLoginSuccess: vi.fn().mockResolvedValue(undefined),
   // Default: signup allowed. Tests can override via
   // mockIsSignupAllowed.mockReturnValueOnce(false) to exercise the
   // revealui#833 closed-signup gate.

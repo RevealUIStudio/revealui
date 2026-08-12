@@ -27,6 +27,7 @@ vi.mock('@revealui/auth/server', () => ({
   isMFAEnabled: vi.fn(),
   createSession: vi.fn(),
   rotateSession: vi.fn(),
+  auditLoginSuccess: vi.fn().mockResolvedValue(undefined),
   verifyCookiePayload: vi.fn(),
   verifyAuthentication: vi.fn(),
   checkRateLimit: vi.fn(),
