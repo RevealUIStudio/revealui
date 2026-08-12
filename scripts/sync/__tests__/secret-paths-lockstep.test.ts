@@ -100,6 +100,24 @@ describe('manifest ↔ spec lockstep', () => {
     expect(pub?.sensitive).toBe(false);
   });
 
+  it('admin (prod + staging) does not sync the license private key (GAP-260 P4-4)', () => {
+    const adminPriv = vercelVars.filter(
+      (v) =>
+        v.name === 'REVEALUI_LICENSE_PRIVATE_KEY' &&
+        (v.source === 'vercel:revealui-admin' || v.source === 'vercel:revealui-admin-staging'),
+    );
+    const stagingAdminPriv = stagingVars.filter(
+      (v) =>
+        v.name === 'REVEALUI_LICENSE_PRIVATE_KEY' && v.source === 'vercel:revealui-admin-staging',
+    );
+    expect(adminPriv).toEqual([]);
+    expect(stagingAdminPriv).toEqual([]);
+    const apiPriv = vercelVars.find(
+      (v) => v.name === 'REVEALUI_LICENSE_PRIVATE_KEY' && v.source === 'vercel:revealui-api',
+    );
+    expect(apiPriv?.path).toBe('revdev/license-signing-private-key');
+  });
+
   it('the staging license private key is sensitive and the public key is bare', () => {
     const priv = stagingVars.find((v) => v.name === 'REVEALUI_LICENSE_PRIVATE_KEY');
     const pub = stagingVars.find((v) => v.name === 'REVEALUI_LICENSE_PUBLIC_KEY');

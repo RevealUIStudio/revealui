@@ -258,10 +258,10 @@ export const SECRET_PATHS: SecretPathDef[] = [
     kind: 'signing-private',
     sensitive: true,
     tier: 'prod',
-    consumers: ['vercel:api', 'vercel:admin', 'fly:worker', 'with-secrets:license-signing'],
+    consumers: ['vercel:api', 'fly:worker', 'with-secrets:license-signing'],
     migratingTo: 'revealui/prod/license/private-key',
     migratingSince: '2026-06-28',
-    note: 'Ed25519 license-signing key - the fleet crown jewel; only api mints',
+    note: 'Ed25519 license-signing key - the fleet crown jewel; api (+ worker until Fly drop) mints. Admin dropped P4-4 (verify-only).',
   },
   {
     path: 'revdev/license-signing-public-key',
@@ -673,8 +673,8 @@ export const SECRET_PATHS: SecretPathDef[] = [
     kind: 'signing-private',
     sensitive: true,
     tier: 'staging',
-    consumers: ['vercel:api-staging', 'vercel:admin-staging'],
-    note: 'fresh Ed25519 pair, isolated from revdev/license-signing-* (GAP-343 decision 1)',
+    consumers: ['vercel:api-staging'],
+    note: 'fresh Ed25519 pair, isolated from revdev/license-signing-* (GAP-343 decision 1). Admin-staging dropped P4-4 (verify-only).',
   },
   {
     path: 'revealui/staging/license/public-key',
