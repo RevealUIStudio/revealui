@@ -1,0 +1,65 @@
+# deployment/fly/electric/fly.toml
+#
+# Fly.io configuration for the ElectricSQL sync service (Phase 5 of
+# drop-railway-migrate-to-fly / GAP-230 / GAP-231).
+#
+# Replicates from Neon prod Postgres (logical replication) and serves
+# shape HTTP to apps/admin shape proxies via ELECTRIC_SERVICE_URL.
+#
+# Separate app from revealui-worker (512 MB Node-only today). ADR 2026-05-18
+# preferred co-location; isolation keeps worker memory headroom and lets
+# Electric scale/restart independently. Same region as Neon (iad / us-east-1).
+#
+# Deploy (from monorepo root or this directory):
+#   flyctl deploy --config deployment/fly/electric/fly.toml --remote-only
+#
+# Secrets (stream-safe):
+#   revvault run --env DATABASE_URL=revealui/prod/db/postgres-url \
+#     --env ELECTRIC_SECRET=revealui/prod/electric/secret -- \
+#     flyctl secrets set -a revealui-electric \
+#       DATABASE_URL="$DATABASE_URL" ELECTRIC_SECRET="$ELECTRIC_SECRET"
+#
+# Public URL after first deploy: https://revealui-electric.fly.dev
+# Pin image deliberately (not :latest) — matches monorepo compose 1.0.17.
+
+app = 'revealui-electric'
+primary_region = 'iad'
+
+[build]
+  image = 'electricsql/electric:1.0.17'
+
+[env]
+  ELECTRIC_USAGE_REPORTING = 'false'
+  ELECTRIC_STORAGE_DIR = '/var/lib/electric/persistent'
+  ELECTRIC_LISTEN_ON_IPV6 = 'false'
+  # HTTP port Electric binds (image default 3000)
+  ELECTRIC_HTTP_PORT = '3000'
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = 'off'
+  auto_start_machines = false
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = 'connections'
+    hard_limit = 200
+    soft_limit = 150
+
+  # Electric health (v1); longer grace for first WAL catch-up / slot create
+  [[http_service.checks]]
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '120s'
+    method = 'GET'
+    path = '/v1/health'
+
+[[vm]]
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 512
+
+[mounts]
+  source = 'electric_data'
+  destination = '/var/lib/electric/persistent'
