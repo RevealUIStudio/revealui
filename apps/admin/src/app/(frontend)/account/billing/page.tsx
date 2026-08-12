@@ -20,6 +20,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { TestModeBanner } from '@/components/TestModeBanner';
+import { hasCommercialUpgradePath } from '@/lib/components/should-show-upgrade-nav';
 import { apiFetch } from '@/lib/utils/csrf';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 
@@ -472,9 +473,12 @@ function BillingContent() {
           )}
 
           <div className="flex flex-col gap-2 border-t pt-4">
-            <Button asChild appearance="outline" variant="neutral" className="w-full">
-              <Link href="/upgrade">Change plan →</Link>
-            </Button>
+            {/* Top commercial tier (enterprise): no higher plan — hide upsell. */}
+            {hasCommercialUpgradePath(tier) && (
+              <Button asChild appearance="outline" variant="neutral" className="w-full">
+                <Link href="/upgrade">Change plan →</Link>
+              </Button>
+            )}
             {tier !== 'free' && (
               <Button
                 onClick={handleManageBilling}

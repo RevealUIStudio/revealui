@@ -24,6 +24,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type ChangeEvent, useCallback, useEffect, useState } from 'react';
+import { hasCommercialUpgradePath } from '@/lib/components/should-show-upgrade-nav';
 import { apiFetch } from '@/lib/utils/csrf';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 
@@ -186,7 +187,8 @@ export default function LicensePage() {
   const tier = subscription?.tier ?? 'free';
   const limits = TIER_LIMITS[tier];
   const tierFeatures = features?.[tier];
-  const canUpgrade = tier === 'free' || tier === 'pro';
+  // free / pro / max can climb; enterprise is the commercial top (GAP-473).
+  const canUpgrade = hasCommercialUpgradePath(tier);
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 py-12">
@@ -252,7 +254,11 @@ export default function LicensePage() {
                 href="/account/billing"
                 className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
               >
-                {tier === 'free' ? 'Upgrade to Pro →' : 'Upgrade to Enterprise →'}
+                {tier === 'free'
+                  ? 'Upgrade to Pro →'
+                  : tier === 'pro'
+                    ? 'Upgrade to Max →'
+                    : 'Upgrade to Enterprise →'}
               </Link>
             </div>
           )}

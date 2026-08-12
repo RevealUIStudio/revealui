@@ -1,5 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { shouldShowUpgradeNavItem } from '../should-show-upgrade-nav';
+import { hasCommercialUpgradePath, shouldShowUpgradeNavItem } from '../should-show-upgrade-nav';
+
+describe('hasCommercialUpgradePath', () => {
+  it('is true below enterprise', () => {
+    expect(hasCommercialUpgradePath('free')).toBe(true);
+    expect(hasCommercialUpgradePath('pro')).toBe(true);
+    expect(hasCommercialUpgradePath('max')).toBe(true);
+  });
+
+  it('is false for enterprise, unknown, empty', () => {
+    expect(hasCommercialUpgradePath('enterprise')).toBe(false);
+    expect(hasCommercialUpgradePath('')).toBe(false);
+    expect(hasCommercialUpgradePath(null)).toBe(false);
+    expect(hasCommercialUpgradePath(undefined)).toBe(false);
+    expect(hasCommercialUpgradePath('unknown')).toBe(false);
+  });
+});
 
 describe('shouldShowUpgradeNavItem', () => {
   const base = { isFleetMode: false, isLoading: false, resolveError: null };

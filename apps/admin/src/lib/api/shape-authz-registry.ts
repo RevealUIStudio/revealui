@@ -64,13 +64,13 @@ export const SHAPE_AUTHZ_REGISTRY: Readonly<Record<string, ShapeAuthzEntry>> = {
   },
   'yjs-documents': {
     table: 'yjs_documents',
-    scope: 'admin_platform',
-    enforcement: 'isAdminRole until owner_id ACL migrates (Phase C residual)',
+    scope: 'acl_resource',
+    enforcement: 'admin: id where; owner: id AND owner_id = session user; null owner = admin-only',
   },
   'yjs-document-patches': {
     table: 'yjs_document_patches',
-    scope: 'admin_platform',
-    enforcement: 'isAdminRole until document ACL migrates',
+    scope: 'acl_resource',
+    enforcement: 'userCanAccessYjsDocument on parent document_id, then document_id where',
   },
   'kg-nodes': {
     table: 'kg_nodes',
