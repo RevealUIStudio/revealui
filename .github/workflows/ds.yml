@@ -51,6 +51,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      # Runner flake seen on promote PRs: git fetch fails with
+      # "server certificate verification failed. CAfile: none". Ensure the
+      # system CA bundle is present and exported before checkout (checkout
+      # already retries, but retries without CAs still fail).
+      - name: Ensure git SSL CA bundle
+        run: |
+          set -euo pipefail
+          CA=/etc/ssl/certs/ca-certificates.crt
+          if [ ! -s "$CA" ]; then
+            sudo apt-get update -qq
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ca-certificates
+            sudo update-ca-certificates
+          fi
+          test -s "$CA"
+          {
+            echo "SSL_CERT_FILE=$CA"
+            echo "GIT_SSL_CAINFO=$CA"
+            echo "CURL_CA_BUNDLE=$CA"
+            echo "REQUESTS_CA_BUNDLE=$CA"
+          } >> "$GITHUB_ENV"
+          git config --global http.sslCAInfo "$CA"
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
@@ -76,6 +97,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      # Runner flake seen on promote PRs: git fetch fails with
+      # "server certificate verification failed. CAfile: none". Ensure the
+      # system CA bundle is present and exported before checkout (checkout
+      # already retries, but retries without CAs still fail).
+      - name: Ensure git SSL CA bundle
+        run: |
+          set -euo pipefail
+          CA=/etc/ssl/certs/ca-certificates.crt
+          if [ ! -s "$CA" ]; then
+            sudo apt-get update -qq
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ca-certificates
+            sudo update-ca-certificates
+          fi
+          test -s "$CA"
+          {
+            echo "SSL_CERT_FILE=$CA"
+            echo "GIT_SSL_CAINFO=$CA"
+            echo "CURL_CA_BUNDLE=$CA"
+            echo "REQUESTS_CA_BUNDLE=$CA"
+          } >> "$GITHUB_ENV"
+          git config --global http.sslCAInfo "$CA"
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
@@ -102,6 +144,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      # Runner flake seen on promote PRs: git fetch fails with
+      # "server certificate verification failed. CAfile: none". Ensure the
+      # system CA bundle is present and exported before checkout (checkout
+      # already retries, but retries without CAs still fail).
+      - name: Ensure git SSL CA bundle
+        run: |
+          set -euo pipefail
+          CA=/etc/ssl/certs/ca-certificates.crt
+          if [ ! -s "$CA" ]; then
+            sudo apt-get update -qq
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ca-certificates
+            sudo update-ca-certificates
+          fi
+          test -s "$CA"
+          {
+            echo "SSL_CERT_FILE=$CA"
+            echo "GIT_SSL_CAINFO=$CA"
+            echo "CURL_CA_BUNDLE=$CA"
+            echo "REQUESTS_CA_BUNDLE=$CA"
+          } >> "$GITHUB_ENV"
+          git config --global http.sslCAInfo "$CA"
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
@@ -129,6 +192,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      # Runner flake seen on promote PRs: git fetch fails with
+      # "server certificate verification failed. CAfile: none". Ensure the
+      # system CA bundle is present and exported before checkout (checkout
+      # already retries, but retries without CAs still fail).
+      - name: Ensure git SSL CA bundle
+        run: |
+          set -euo pipefail
+          CA=/etc/ssl/certs/ca-certificates.crt
+          if [ ! -s "$CA" ]; then
+            sudo apt-get update -qq
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ca-certificates
+            sudo update-ca-certificates
+          fi
+          test -s "$CA"
+          {
+            echo "SSL_CERT_FILE=$CA"
+            echo "GIT_SSL_CAINFO=$CA"
+            echo "CURL_CA_BUNDLE=$CA"
+            echo "REQUESTS_CA_BUNDLE=$CA"
+          } >> "$GITHUB_ENV"
+          git config --global http.sslCAInfo "$CA"
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
@@ -184,6 +268,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      # Runner flake seen on promote PRs: git fetch fails with
+      # "server certificate verification failed. CAfile: none". Ensure the
+      # system CA bundle is present and exported before checkout (checkout
+      # already retries, but retries without CAs still fail).
+      - name: Ensure git SSL CA bundle
+        run: |
+          set -euo pipefail
+          CA=/etc/ssl/certs/ca-certificates.crt
+          if [ ! -s "$CA" ]; then
+            sudo apt-get update -qq
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ca-certificates
+            sudo update-ca-certificates
+          fi
+          test -s "$CA"
+          {
+            echo "SSL_CERT_FILE=$CA"
+            echo "GIT_SSL_CAINFO=$CA"
+            echo "CURL_CA_BUNDLE=$CA"
+            echo "REQUESTS_CA_BUNDLE=$CA"
+          } >> "$GITHUB_ENV"
+          git config --global http.sslCAInfo "$CA"
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
