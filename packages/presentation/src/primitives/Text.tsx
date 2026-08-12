@@ -32,6 +32,8 @@ function Text({
     weight === 'medium' && 'font-medium',
     weight === 'semibold' && 'font-semibold',
     weight === 'bold' && 'font-bold',
+    // default → body rung (rvui-text-1); muted is explicit meta only
+    (color === 'default' || color == null) && 'text-body',
     color === 'muted' && 'text-muted-foreground',
     color === 'primary' && 'text-primary',
     color === 'secondary' && 'text-secondary-foreground',
