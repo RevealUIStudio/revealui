@@ -422,10 +422,16 @@ a2a.openapi(
     // Include registry id on each card. Display name alone is not a stable id
     // (e.g. "Ticket Agent" ≠ "revealui-ticket-agent") — admin list UIs must not
     // invent ids by slugifying the name.
-    const agents = aiMod.agentCardRegistry.listDefs().map((def) => ({
-      id: def.id,
-      ...aiMod.agentCardRegistry.getCard(def.id, baseUrl),
-    }));
+    // Registry id must be applied AFTER the card spread so a missing/undefined
+    // id field on the A2A card shape cannot overwrite the real agent id.
+    const agents = aiMod.agentCardRegistry
+      .listDefs()
+      .map((def) => {
+        const card = aiMod.agentCardRegistry.getCard(def.id, baseUrl);
+        if (!card) return null;
+        return { ...card, id: def.id };
+      })
+      .filter((row): row is NonNullable<typeof row> => row !== null);
     return c.json({ agents });
   },
 );
