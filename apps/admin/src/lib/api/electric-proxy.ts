@@ -39,13 +39,11 @@ export function prepareElectricUrl(requestUrl: string): URL {
     }
   });
 
-  // Add Electric authentication if configured (self-hosted ELECTRIC_SECRET)
+  // Add Electric authentication if configured
   if (process.env.ELECTRIC_SECRET) {
     originUrl.searchParams.set('secret', process.env.ELECTRIC_SECRET);
   }
-  // Legacy Electric Cloud source_id. Cloud is retired (Electric joined Neon at
-  // Databricks, 2026-08-11). Keep passthrough only so a stale env does not
-  // crash the proxy; do not set ELECTRIC_SOURCE_ID on new deploys (GAP-478).
+  // Add Electric Cloud source ID if configured (Cloud-only, not needed for self-hosted)
   if (process.env.ELECTRIC_SOURCE_ID) {
     originUrl.searchParams.set('source_id', process.env.ELECTRIC_SOURCE_ID);
   }
