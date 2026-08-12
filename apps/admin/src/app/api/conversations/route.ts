@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
   if (!session) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  const aiGate = checkAIFeatureGate();
+  const aiGate = await checkAIFeatureGate(session.user.id);
   if (aiGate) return aiGate;
 
   const db = getClient();
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
   if (!session) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  const aiGate = checkAIFeatureGate();
+  const aiGate = await checkAIFeatureGate(session.user.id);
   if (aiGate) return aiGate;
 
   const body = (await request.json()) as { title?: string };

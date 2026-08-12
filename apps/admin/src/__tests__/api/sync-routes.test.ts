@@ -125,6 +125,7 @@ describe('POST /api/sync/agent-memories', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('returns 403 when AI feature gate is active', async () => {
+    mockGetSession.mockResolvedValue(makeSession());
     mockCheckAIFeatureGate.mockReturnValue(
       new Response(JSON.stringify({ error: 'AI features require a Pro license' }), { status: 403 }),
     );
@@ -212,6 +213,7 @@ describe('PATCH /api/sync/agent-memories/:id', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('returns 403 when AI gate is active', async () => {
+    mockGetSession.mockResolvedValue(makeSession());
     mockCheckAIFeatureGate.mockReturnValue(
       new Response(JSON.stringify({ error: 'AI features require a Pro license' }), { status: 403 }),
     );
@@ -330,6 +332,7 @@ describe('POST /api/sync/agent-contexts', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('returns 403 when AI gate is active', async () => {
+    mockGetSession.mockResolvedValue(makeSession());
     mockCheckAIFeatureGate.mockReturnValue(
       new Response(JSON.stringify({ error: 'AI features require a Pro license' }), { status: 403 }),
     );

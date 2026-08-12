@@ -44,9 +44,6 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string; agentId: string }> },
 ): Promise<NextResponse> {
-  const aiGate = checkAIMemoryFeatureGate();
-  if (aiGate) return aiGate;
-
   let sessionId: string | undefined;
   let agentId: string | undefined;
 
@@ -55,6 +52,9 @@ export async function GET(
     if (!authSession) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const aiGate = await checkAIMemoryFeatureGate(authSession.user.id);
+    if (aiGate) return aiGate;
 
     const paramsResolved = await params;
     sessionId = paramsResolved.sessionId;
@@ -133,9 +133,6 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string; agentId: string }> },
 ): Promise<NextResponse> {
-  const aiGate = checkAIMemoryFeatureGate();
-  if (aiGate) return aiGate;
-
   let sessionId: string | undefined;
   let agentId: string | undefined;
 
@@ -144,6 +141,9 @@ export async function POST(
     if (!authSession) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const aiGate = await checkAIMemoryFeatureGate(authSession.user.id);
+    if (aiGate) return aiGate;
 
     const paramsResolved = await params;
     sessionId = paramsResolved.sessionId;
@@ -274,8 +274,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const memoryGate = checkAIMemoryFeatureGate();
-    if (memoryGate) return memoryGate;
+    const aiGate = await checkAIMemoryFeatureGate(authSession.user.id);
+    if (aiGate) return aiGate;
 
     const paramsResolved = await params;
     sessionId = paramsResolved.sessionId;

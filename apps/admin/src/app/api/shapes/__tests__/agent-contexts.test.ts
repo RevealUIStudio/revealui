@@ -1,24 +1,23 @@
 /**
  * Agent Contexts Shape Proxy Route Tests
- *
- * Tests the authenticated proxy route for ElectricSQL agent_contexts shape.
  */
 
 import * as authServer from '@revealui/auth/server';
 import { NextRequest } from 'next/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { GET } from '../agent-contexts/route';
 
-// Mock the auth server
+const { mockCheckAIFeatureGate } = vi.hoisted(() => ({
+  mockCheckAIFeatureGate: vi.fn(),
+}));
+
 vi.mock('@revealui/auth/server', () => ({
   getSession: vi.fn(),
 }));
 
-vi.mock('@revealui/core/features', () => ({
-  isFeatureEnabled: vi.fn().mockReturnValue(true),
+vi.mock('@/lib/middleware/ai-feature-gate', () => ({
+  checkAIFeatureGate: mockCheckAIFeatureGate,
 }));
 
-// Mock the electric proxy utilities
 vi.mock('@/lib/api/electric-proxy', () => ({
   prepareElectricUrl: vi.fn((_url: string) => {
     const electricUrl = new URL('http://localhost:5133/v1/shape');
@@ -32,6 +31,8 @@ vi.mock('@/lib/api/electric-proxy', () => ({
     });
   }),
 }));
+
+import { GET } from '../agent-contexts/route';
 
 const mockSession = {
   session: {
@@ -77,6 +78,7 @@ describe('GET /api/shapes/agent-contexts', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCheckAIFeatureGate.mockResolvedValue(null);
   });
 
   it('should return 401 when session is missing', async () => {
@@ -91,7 +93,7 @@ describe('GET /api/shapes/agent-contexts', () => {
   });
 
   it('should proxy request filtered by session_id when authenticated', async () => {
-    mockGetSession.mockResolvedValue(mockSession);
+    mockGetSession.mockResolvedValue(mockSession as never);
 
     const { prepareElectricUrl, proxyElectricRequest } = await import('@/lib/api/electric-proxy');
 
@@ -101,8 +103,8 @@ describe('GET /api/shapes/agent-contexts', () => {
     expect(response.status).toBe(200);
     expect(prepareElectricUrl).toHaveBeenCalled();
     expect(proxyElectricRequest).toHaveBeenCalled();
+    expect(mockCheckAIFeatureGate).toHaveBeenCalledWith(mockSession.user.id);
 
-    // Verify the prepared URL included the request URL
     const callArgs = vi.mocked(prepareElectricUrl).mock.calls[0];
     expect(callArgs?.[0]).toContain('/api/shapes/agent-contexts');
   });

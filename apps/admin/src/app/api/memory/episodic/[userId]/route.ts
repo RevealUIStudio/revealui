@@ -43,9 +43,6 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string }> },
 ): Promise<NextResponse> {
-  const aiGate = checkAIMemoryFeatureGate();
-  if (aiGate) return aiGate;
-
   let userId: string | undefined;
 
   try {
@@ -53,6 +50,9 @@ export async function GET(
     if (!authSession) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const aiGate = await checkAIMemoryFeatureGate(authSession.user.id);
+    if (aiGate) return aiGate;
 
     const paramsResolved = await params;
     userId = paramsResolved.userId;
@@ -111,9 +111,6 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string }> },
 ): Promise<NextResponse> {
-  const aiGate = checkAIMemoryFeatureGate();
-  if (aiGate) return aiGate;
-
   let userId: string | undefined;
 
   try {
@@ -121,6 +118,9 @@ export async function POST(
     if (!authSession) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const aiGate = await checkAIMemoryFeatureGate(authSession.user.id);
+    if (aiGate) return aiGate;
 
     const paramsResolved = await params;
     userId = paramsResolved.userId;

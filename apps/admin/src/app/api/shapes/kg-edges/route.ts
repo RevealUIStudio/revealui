@@ -25,14 +25,14 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const aiGate = checkAIFeatureGate();
-  if (aiGate) return aiGate;
-
   try {
     const session = await getSession(request.headers, extractRequestContext(request));
     if (!session) {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
+
+    const aiGate = await checkAIFeatureGate(session.user.id);
+    if (aiGate) return aiGate;
 
     const repo = new URL(request.url).searchParams.get('repo');
     if (repo !== null && !isRepoIdentifier(repo)) {
