@@ -37,14 +37,14 @@ const VALID_MEMORY_TYPES = new Set([
 ]);
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const aiGate = checkAIFeatureGate();
-  if (aiGate) return aiGate;
-
   try {
     const session = await getSession(request.headers, extractRequestContext(request));
     if (!session) {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
+
+    const aiGate = await checkAIFeatureGate(session.user.id);
+    if (aiGate) return aiGate;
 
     const body = (await request.json()) as {
       agent_id?: string;

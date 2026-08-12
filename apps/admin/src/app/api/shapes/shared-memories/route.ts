@@ -5,33 +5,38 @@
  *
  * Authenticated proxy for ElectricSQL agent_memories shape,
  * filtered to shared and reconciled memories within a coordination session.
+ * GAP-476: admin-scoped until ACL — no user ownership join on session_scope.
  */
 
 import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/utils/logger';
 import type { NextRequest, NextResponse } from 'next/server';
 import { prepareElectricUrl, proxyElectricRequest } from '@/lib/api/electric-proxy';
+import { requireAdminRole } from '@/lib/api/shape-authz';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
   createApplicationErrorResponse,
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
+import { isSyncIdentifier } from '@/lib/utils/identifier-validation';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-const SESSION_SCOPE_RE = /^[a-zA-Z0-9_-]+$/;
-
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const aiGate = checkAIFeatureGate();
-  if (aiGate) return aiGate;
-
   try {
     const session = await getSession(request.headers, extractRequestContext(request));
     if (!session) {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
+    }
+
+    const aiGate = await checkAIFeatureGate(session.user.id);
+    if (aiGate) return aiGate;
+
+    if (!requireAdminRole(session.user.role)) {
+      return createApplicationErrorResponse('Forbidden', 'FORBIDDEN', 403);
     }
 
     const sessionScope = new URL(request.url).searchParams.get('session_scope');
@@ -44,7 +49,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    if (!SESSION_SCOPE_RE.test(sessionScope)) {
+    if (!isSyncIdentifier(sessionScope)) {
       return createValidationErrorResponse(
         'session_scope must contain only alphanumeric characters, hyphens, and underscores',
         'session_scope',

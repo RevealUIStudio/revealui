@@ -1,7 +1,5 @@
 /**
- * Yjs Documents Shape Proxy Route Tests
- *
- * Tests the authenticated proxy route for ElectricSQL yjs_documents shape.
+ * Yjs Documents Shape Proxy Route Tests (GAP-476 admin-scoped)
  */
 
 import * as authServer from '@revealui/auth/server';
@@ -9,12 +7,10 @@ import { NextRequest } from 'next/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GET } from '../yjs-documents/route';
 
-// Mock the auth server
 vi.mock('@revealui/auth/server', () => ({
   getSession: vi.fn(),
 }));
 
-// Mock the electric proxy utilities
 vi.mock('@/lib/api/electric-proxy', () => ({
   prepareElectricUrl: vi.fn((_url: string) => {
     const electricUrl = new URL('http://localhost:5133/v1/shape');
@@ -29,44 +25,46 @@ vi.mock('@/lib/api/electric-proxy', () => ({
   }),
 }));
 
-const VALID_SESSION = {
-  session: {
-    id: '123e4567-e89b-12d3-a456-426614174000',
-    userId: '123e4567-e89b-12d3-a456-426614174001',
-    schemaVersion: '1',
-    tokenHash: 'token-hash',
-    expiresAt: new Date(Date.now() + 86400000),
-    userAgent: 'test-agent',
-    ipAddress: '127.0.0.1',
-    persistent: false,
-    lastActivityAt: new Date(),
-    createdAt: new Date(),
-    metadata: null,
-  },
-  user: {
-    id: '123e4567-e89b-12d3-a456-426614174001',
-    schemaVersion: '1',
-    type: 'human',
-    name: 'Test User',
-    email: 'test@example.com',
-    avatarUrl: null,
-    password: null,
-    role: 'viewer',
-    status: 'active',
-    emailVerified: false,
-    emailVerificationToken: null,
-    emailVerifiedAt: null,
-    mfaEnabled: false,
-    mfaVerifiedAt: null,
-    agentModel: null,
-    agentCapabilities: null,
-    agentConfig: null,
-    preferences: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    lastActiveAt: null,
-  },
-};
+function makeSession(role: string) {
+  return {
+    session: {
+      id: '123e4567-e89b-12d3-a456-426614174000',
+      userId: '123e4567-e89b-12d3-a456-426614174001',
+      schemaVersion: '1',
+      tokenHash: 'token-hash',
+      expiresAt: new Date(Date.now() + 86400000),
+      userAgent: 'test-agent',
+      ipAddress: '127.0.0.1',
+      persistent: false,
+      lastActivityAt: new Date(),
+      createdAt: new Date(),
+      metadata: null,
+    },
+    user: {
+      id: '123e4567-e89b-12d3-a456-426614174001',
+      schemaVersion: '1',
+      type: 'human',
+      name: 'Test User',
+      email: 'test@example.com',
+      avatarUrl: null,
+      password: null,
+      role,
+      status: 'active',
+      emailVerified: false,
+      emailVerificationToken: null,
+      emailVerifiedAt: null,
+      mfaEnabled: false,
+      mfaVerifiedAt: null,
+      agentModel: null,
+      agentCapabilities: null,
+      agentConfig: null,
+      preferences: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastActiveAt: null,
+    },
+  };
+}
 
 const VALID_DOC_ID = 'aaaabbbb-cccc-dddd-eeee-ffff00001111';
 
@@ -90,8 +88,21 @@ describe('GET /api/shapes/yjs-documents', () => {
     expect(data.error).toBe('UNAUTHORIZED');
   });
 
+  it('should return 403 for non-admin', async () => {
+    mockGetSession.mockResolvedValue(makeSession('viewer') as never);
+
+    const request = new NextRequest(
+      `http://localhost:3000/api/shapes/yjs-documents?document_id=${VALID_DOC_ID}`,
+    );
+    const response = await GET(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(data.error).toBe('FORBIDDEN');
+  });
+
   it('should return 400 when document_id is missing', async () => {
-    mockGetSession.mockResolvedValue(VALID_SESSION);
+    mockGetSession.mockResolvedValue(makeSession('admin') as never);
 
     const request = new NextRequest('http://localhost:3000/api/shapes/yjs-documents');
     const response = await GET(request);
@@ -102,7 +113,7 @@ describe('GET /api/shapes/yjs-documents', () => {
   });
 
   it('should return 400 when document_id is not a UUID', async () => {
-    mockGetSession.mockResolvedValue(VALID_SESSION);
+    mockGetSession.mockResolvedValue(makeSession('admin') as never);
 
     const request = new NextRequest(
       'http://localhost:3000/api/shapes/yjs-documents?document_id=not-a-valid-uuid',
@@ -114,8 +125,8 @@ describe('GET /api/shapes/yjs-documents', () => {
     expect(data.error).toBe('VALIDATION_ERROR');
   });
 
-  it('should proxy request when authenticated with valid UUID', async () => {
-    mockGetSession.mockResolvedValue(VALID_SESSION);
+  it('should proxy request when admin with valid UUID', async () => {
+    mockGetSession.mockResolvedValue(makeSession('admin') as never);
 
     const { prepareElectricUrl, proxyElectricRequest } = await import('@/lib/api/electric-proxy');
 

@@ -59,8 +59,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const memoryGate = checkAIMemoryFeatureGate();
-    if (memoryGate) return memoryGate;
+    const aiGate = await checkAIMemoryFeatureGate(authSession.user.id);
+    if (aiGate) return aiGate;
 
     const paramsResolved = await params;
     userId = paramsResolved.userId;
@@ -202,9 +202,6 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string; memoryId: string }> },
 ): Promise<NextResponse> {
-  const aiGate = checkAIMemoryFeatureGate();
-  if (aiGate) return aiGate;
-
   let userId: string | undefined;
   let memoryId: string | undefined;
 
@@ -213,6 +210,9 @@ export async function DELETE(
     if (!authSession) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const aiGate = await checkAIMemoryFeatureGate(authSession.user.id);
+    if (aiGate) return aiGate;
 
     const paramsResolved = await params;
     userId = paramsResolved.userId;

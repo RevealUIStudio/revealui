@@ -1,5 +1,5 @@
 /**
- * Coordination Sessions Shape Proxy Route Tests
+ * Coordination Sessions Shape Proxy Route Tests (GAP-476)
  */
 
 import * as authServer from '@revealui/auth/server';
@@ -25,44 +25,46 @@ vi.mock('@/lib/api/electric-proxy', () => ({
   }),
 }));
 
-const VALID_SESSION = {
-  session: {
-    id: 'session-id',
-    userId: '123e4567-e89b-12d3-a456-426614174000',
-    schemaVersion: '1',
-    tokenHash: 'token-hash',
-    expiresAt: new Date(Date.now() + 86400000),
-    userAgent: 'test-agent',
-    ipAddress: '127.0.0.1',
-    persistent: false,
-    lastActivityAt: new Date(),
-    createdAt: new Date(),
-    metadata: null,
-  },
-  user: {
-    id: '123e4567-e89b-12d3-a456-426614174000',
-    schemaVersion: '1',
-    type: 'human',
-    name: 'Test User',
-    email: 'test@example.com',
-    avatarUrl: null,
-    password: null,
-    role: 'viewer',
-    status: 'active',
-    emailVerified: false,
-    emailVerificationToken: null,
-    emailVerifiedAt: null,
-    mfaEnabled: false,
-    mfaVerifiedAt: null,
-    agentModel: null,
-    agentCapabilities: null,
-    agentConfig: null,
-    preferences: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    lastActiveAt: null,
-  },
-};
+function makeSession(role: string) {
+  return {
+    session: {
+      id: 'session-id',
+      userId: '123e4567-e89b-12d3-a456-426614174000',
+      schemaVersion: '1',
+      tokenHash: 'token-hash',
+      expiresAt: new Date(Date.now() + 86400000),
+      userAgent: 'test-agent',
+      ipAddress: '127.0.0.1',
+      persistent: false,
+      lastActivityAt: new Date(),
+      createdAt: new Date(),
+      metadata: null,
+    },
+    user: {
+      id: '123e4567-e89b-12d3-a456-426614174000',
+      schemaVersion: '1',
+      type: 'human',
+      name: 'Test User',
+      email: 'test@example.com',
+      avatarUrl: null,
+      password: null,
+      role,
+      status: 'active',
+      emailVerified: false,
+      emailVerificationToken: null,
+      emailVerifiedAt: null,
+      mfaEnabled: false,
+      mfaVerifiedAt: null,
+      agentModel: null,
+      agentCapabilities: null,
+      agentConfig: null,
+      preferences: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastActiveAt: null,
+    },
+  };
+}
 
 describe('GET /api/shapes/coordination-sessions', () => {
   const mockGetSession = vi.mocked(authServer.getSession);
@@ -82,8 +84,19 @@ describe('GET /api/shapes/coordination-sessions', () => {
     expect(data.error).toBe('UNAUTHORIZED');
   });
 
-  it('should proxy request without row-level filtering when authenticated', async () => {
-    mockGetSession.mockResolvedValue(VALID_SESSION);
+  it('should return 403 for viewer role', async () => {
+    mockGetSession.mockResolvedValue(makeSession('viewer') as never);
+
+    const request = new NextRequest('http://localhost:3000/api/shapes/coordination-sessions');
+    const response = await GET(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(data.error).toBe('FORBIDDEN');
+  });
+
+  it('should proxy for admin role', async () => {
+    mockGetSession.mockResolvedValue(makeSession('admin') as never);
 
     const { prepareElectricUrl, proxyElectricRequest } = await import('@/lib/api/electric-proxy');
 
@@ -96,7 +109,7 @@ describe('GET /api/shapes/coordination-sessions', () => {
   });
 
   it('should set table param to coordination_sessions', async () => {
-    mockGetSession.mockResolvedValue(VALID_SESSION);
+    mockGetSession.mockResolvedValue(makeSession('owner') as never);
 
     const { prepareElectricUrl } = await import('@/lib/api/electric-proxy');
     const mockUrl = new URL('http://localhost:5133/v1/shape');

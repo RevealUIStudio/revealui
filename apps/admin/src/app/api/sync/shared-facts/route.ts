@@ -30,13 +30,15 @@ const AGENT_ID_RE = /^[a-zA-Z0-9_-]+$/;
 const VALID_FACT_TYPES = new Set(['discovery', 'bug', 'decision', 'warning', 'question', 'answer']);
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const aiGate = checkAIFeatureGate();
-  if (aiGate) return aiGate;
   try {
     const session = await getSession(request.headers, extractRequestContext(request));
     if (!session) {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
+
+    const aiGate = await checkAIFeatureGate(session.user.id);
+    if (aiGate) return aiGate;
+
     const sessionId = request.nextUrl.searchParams.get('session_id');
     if (!(sessionId && SESSION_ID_RE.test(sessionId))) {
       return createValidationErrorResponse(
@@ -70,14 +72,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const aiGate = checkAIFeatureGate();
-  if (aiGate) return aiGate;
-
   try {
     const session = await getSession(request.headers, extractRequestContext(request));
     if (!session) {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
+
+    const aiGate = await checkAIFeatureGate(session.user.id);
+    if (aiGate) return aiGate;
 
     const body = (await request.json()) as {
       session_id?: string;

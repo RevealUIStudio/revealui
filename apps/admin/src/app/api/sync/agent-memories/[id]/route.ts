@@ -30,14 +30,14 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
-  const aiGate = checkAIFeatureGate();
-  if (aiGate) return aiGate;
-
   try {
     const session = await getSession(request.headers, extractRequestContext(request));
     if (!session) {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
+
+    const aiGate = await checkAIFeatureGate(session.user.id);
+    if (aiGate) return aiGate;
 
     const { id } = await params;
     if (!UUID_RE.test(id)) {
@@ -88,14 +88,14 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
-  const aiGate = checkAIFeatureGate();
-  if (aiGate) return aiGate;
-
   try {
     const session = await getSession(request.headers, extractRequestContext(request));
     if (!session) {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
+
+    const aiGate = await checkAIFeatureGate(session.user.id);
+    if (aiGate) return aiGate;
 
     const { id } = await params;
     if (!UUID_RE.test(id)) {

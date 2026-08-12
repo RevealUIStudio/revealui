@@ -77,7 +77,8 @@ function makeRequest(body?: unknown) {
 describe('POST /api/memory/search', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockCheckAIMemoryFeatureGate.mockReturnValue(null);
+    // Gate is async (GAP-477); resolve so await in the route works.
+    mockCheckAIMemoryFeatureGate.mockResolvedValue(null);
     mockCheckRateLimit.mockResolvedValue({
       allowed: true,
       remaining: 29,
@@ -93,7 +94,8 @@ describe('POST /api/memory/search', () => {
 
   it('returns feature gate response when AI is disabled', async () => {
     const { NextResponse } = require('next/server');
-    mockCheckAIMemoryFeatureGate.mockReturnValue(
+    mockGetSession.mockResolvedValue({ user: { id: 'u1' } });
+    mockCheckAIMemoryFeatureGate.mockResolvedValue(
       NextResponse.json({ error: 'AI disabled' }, { status: 403 }),
     );
 
@@ -163,7 +165,7 @@ describe('POST /api/memory/search', () => {
 describe('POST /api/memory/search-text', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockCheckAIMemoryFeatureGate.mockReturnValue(null);
+    mockCheckAIMemoryFeatureGate.mockResolvedValue(null);
   });
 
   async function loadRoute() {
@@ -173,7 +175,8 @@ describe('POST /api/memory/search-text', () => {
 
   it('returns feature gate response when AI is disabled', async () => {
     const { NextResponse } = require('next/server');
-    mockCheckAIMemoryFeatureGate.mockReturnValue(
+    mockGetSession.mockResolvedValue({ user: { id: 'u1' } });
+    mockCheckAIMemoryFeatureGate.mockResolvedValue(
       NextResponse.json({ error: 'AI disabled' }, { status: 403 }),
     );
 

@@ -26,6 +26,20 @@ vi.mock('@revealui/core/features', () => ({
   isFeatureEnabled: vi.fn().mockReturnValue(true),
 }));
 
+vi.mock('@revealui/db/client', () => ({
+  getClient: vi.fn(() => {
+    throw new Error('no database in unit test');
+  }),
+}));
+
+vi.mock('@/lib/access/account-feature', () => ({
+  accountHasFeature: vi.fn().mockResolvedValue(false),
+}));
+
+vi.mock('@revealui/utils/logger', () => ({
+  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+}));
+
 vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));

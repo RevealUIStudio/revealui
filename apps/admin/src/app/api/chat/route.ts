@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
       headers: { 'Content-Type': 'application/json' },
     });
   }
-  const aiGate = checkAIFeatureGate();
+  const aiGate = await checkAIFeatureGate(authSession.user.id);
   if (aiGate) return aiGate;
 
   try {
