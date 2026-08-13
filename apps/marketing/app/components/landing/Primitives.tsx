@@ -57,7 +57,7 @@ export function Primitives({
   annotation = {},
 }: PrimitivesProps) {
   return (
-    <MarketingSection tone="background" density="default" width="default">
+    <MarketingSection tone="secondary" density="compact" width="default">
       <SectionHeader
         eyebrow={<span {...fieldAttrs(annotation, `${path}.eyebrow`)}>{data.eyebrow}</span>}
         eyebrowTone="muted"

@@ -27,7 +27,7 @@ export function GetStarted({
   return (
     <MarketingSection
       tone="background"
-      density="default"
+      density="compact"
       width="default"
       className="border-t border-border"
     >

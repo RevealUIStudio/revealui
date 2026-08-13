@@ -48,7 +48,12 @@ function answersFor(row: (typeof HOME_PROBLEM.rows)[number]): readonly Answer[] 
 
 export function Problem() {
   return (
-    <MarketingSection tone="background" density="default" width="default">
+    <MarketingSection
+      // Secondary band after hero stage — homepage rhythm (GAP-480 Phase C).
+      tone="secondary"
+      density="default"
+      width="default"
+    >
       <SectionHeader
         eyebrow={HOME_PROBLEM.eyebrow}
         eyebrowTone="muted"
