@@ -7,13 +7,13 @@ import {
   buildSkillInvokeRequest,
   classifySkillInvokeFailure,
   extractSkillInvokeText,
-  PHASE_C_INFERENCE_SNAP,
   parseSkillInvokeTimeoutOverride,
+  PHASE_C_INFERENCE_SNAP,
   resolveNativeWorkflowSkillId,
-  skillInvokeTimeoutMs,
   SKILL_INVOKE_DECODE_BUDGET_MS,
   SKILL_INVOKE_MIN_TIMEOUT_MS,
   SKILL_INVOKE_MS_PER_PROMPT_TOKEN,
+  skillInvokeTimeoutMs,
 } from '../content/skill-invoke.js';
 
 function entry(id: string, dir: string): SkillCatalogEntry {
