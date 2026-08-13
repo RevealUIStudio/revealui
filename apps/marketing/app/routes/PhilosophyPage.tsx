@@ -36,7 +36,7 @@ function PhilosophyHero({ data, path, annotation }: PhilosophyHeroProps) {
         {data.eyebrow}
       </p>
       <h1
-        className="mt-4 text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
+        className="mt-4 font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
         {...fieldAttrs(annotation, `${path}.title`)}
       >
         {data.h1}
@@ -71,7 +71,7 @@ function PhilosophyBody({ data, path, annotation }: PhilosophyBodyProps) {
             return (
               <p
                 key={`footer-${index}`}
-                className="mt-12 border-t border-border pt-8 text-base font-medium text-muted-foreground"
+                className="mt-12 border-t border-border pt-8 text-base font-medium leading-7 text-body"
                 {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
               >
                 {section.body}
