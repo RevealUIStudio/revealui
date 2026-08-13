@@ -17,7 +17,7 @@
  *   publish/discard -> session API; per-doc 409 conflicts surfaced as plain text
  */
 
-import { Button, cn } from '@revealui/presentation';
+import { Button, cn, Input, Textarea } from '@revealui/presentation';
 import { type ReactElement, useCallback, useEffect, useRef, useState } from 'react';
 import {
   type ClickMessage,
@@ -200,10 +200,9 @@ function FieldEditorPopover({
       }}
     >
       {kind === 'url' ? (
-        <input
+        <Input
           type="url"
           aria-label="Link URL"
-          className="block w-full rounded border border-neutral-600 bg-neutral-800 p-1.5 text-sm text-neutral-100"
           value={value}
           placeholder="https://…"
           onChange={(e) => {
@@ -213,10 +212,9 @@ function FieldEditorPopover({
         />
       ) : kind === 'media' ? (
         <div className="space-y-2">
-          <input
+          <Input
             type="url"
             aria-label="Image URL"
-            className="block w-full rounded border border-neutral-600 bg-neutral-800 p-1.5 text-sm text-neutral-100"
             value={value}
             placeholder="https://… or pick below"
             onChange={(e) => {
@@ -235,9 +233,11 @@ function FieldEditorPopover({
             <ul className="grid max-h-48 grid-cols-3 gap-1">
               {media.map((item) => (
                 <li key={item.id}>
-                  <button
+                  <Button
                     type="button"
-                    className="block w-full overflow-hidden rounded border border-neutral-700 hover:border-primary"
+                    appearance="outline"
+                    variant="neutral"
+                    className="h-auto w-full overflow-hidden p-0"
                     onClick={() => pickMedia(item.url)}
                     title={item.alt ?? item.filename}
                   >
@@ -246,16 +246,15 @@ function FieldEditorPopover({
                       alt={item.alt ?? item.filename}
                       className="aspect-square h-16 w-full object-cover"
                     />
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
           )}
         </div>
       ) : (
-        <textarea
+        <Textarea
           aria-label="Field value"
-          className="block w-full resize-y rounded border border-neutral-600 bg-neutral-800 p-1 text-sm text-neutral-100"
           rows={3}
           value={value}
           onChange={(e) => {
@@ -294,11 +293,12 @@ function ThemePanel({ tokens, onChange, onApply }: ThemePanelProps): ReactElemen
         Brand tokens only. Arbitrary CSS is rejected.
       </p>
       {EDITABLE_THEME_TOKENS.map((token) => (
-        <label key={token} className="block text-[10px] text-neutral-400">
+        <label key={token} htmlFor={token} className="block text-[10px] text-neutral-400">
           {token}
-          <input
+          <Input
+            id={token}
             type="text"
-            className="mt-0.5 block w-full rounded border border-neutral-700 bg-neutral-900 px-1 py-0.5 font-mono text-xs text-neutral-100"
+            className="mt-0.5 font-mono text-xs"
             value={tokens[token] ?? ''}
             onChange={(e) => onChange(token, e.target.value)}
           />

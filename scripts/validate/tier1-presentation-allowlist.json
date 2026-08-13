@@ -25,21 +25,6 @@
       "path": "apps/marketing/app/routes/ProductsPage.tsx",
       "tag": "svg",
       "reason": "content-driven product icon path data; no Icon* match (GAP-398 residual)"
-    },
-    {
-      "path": "packages/editor/src/canvas/EditSessionCanvas.tsx",
-      "tag": "button",
-      "reason": "GAP-479 later slice: visual-edit canvas chrome; use presentation Button/Input/Textarea"
-    },
-    {
-      "path": "packages/editor/src/canvas/EditSessionCanvas.tsx",
-      "tag": "input",
-      "reason": "GAP-479 later slice: visual-edit canvas chrome; use presentation Button/Input/Textarea"
-    },
-    {
-      "path": "packages/editor/src/canvas/EditSessionCanvas.tsx",
-      "tag": "textarea",
-      "reason": "GAP-479 later slice: visual-edit canvas chrome; use presentation Button/Input/Textarea"
     }
   ]
 }
