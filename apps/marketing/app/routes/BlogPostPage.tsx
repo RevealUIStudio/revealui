@@ -110,7 +110,7 @@ export function BlogPostPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <article className="py-24 sm:py-32">
+      <article className="py-16 sm:py-24 lg:py-28">
         <div className="mx-auto max-w-3xl px-6 lg:px-8">
           {/* Back link */}
           <a
