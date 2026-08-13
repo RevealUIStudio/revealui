@@ -253,6 +253,7 @@
     "validate:page-blocks-modules": "tsx scripts/validate/page-blocks-modules.ts",
     "validate:client-safety": "tsx scripts/validate/client-safety.ts",
     "validate:tier1-presentation": "tsx scripts/validate/tier1-presentation.ts",
+    "validate:mcp-admin-runtime": "vitest run scripts/validate/__tests__/mcp-admin-nodejs-runtime.test.ts",
     "validate:design-context": "tsx scripts/validate/design-context-drift.ts",
     "validate:brand-bridge": "tsx scripts/validate/brand-bridge.ts",
     "validate:versions": "tsx scripts/validate/version-policy.ts",

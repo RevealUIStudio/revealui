@@ -24,6 +24,8 @@ import {
 import { type NextRequest, NextResponse } from 'next/server';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
+export const runtime = 'nodejs';
+
 const PENDING_PATH_PREFIX = 'mcp/oauth/pending';
 const RESULT_PAGE = '/mcp/connect';
 /** Reject pending records older than this — authorization code TTL is ~minutes per OAuth 2.1 §4.1.2. */

@@ -26,6 +26,8 @@ import {
 } from '@/lib/mcp/remote-server-client';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
+export const runtime = 'nodejs';
+
 const IDENTIFIER_RE = /^[A-Za-z0-9_-]{1,64}$/;
 
 type ParsedRef = { type: 'ref/prompt'; name: string } | { type: 'ref/resource'; uri: string };

@@ -31,6 +31,8 @@ import { assertPublicUrl } from '@revealui/security/server';
 import { type NextRequest, NextResponse } from 'next/server';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
+export const runtime = 'nodejs';
+
 const PENDING_PATH_PREFIX = 'mcp/oauth/pending';
 const IDENTIFIER_RE = /^[A-Za-z0-9_-]{1,64}$/;
 

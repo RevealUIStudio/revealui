@@ -18,6 +18,8 @@ import { listConnectedMcpServers } from '@revealui/mcp/remote-client';
 import { type NextRequest, NextResponse } from 'next/server';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
+export const runtime = 'nodejs';
+
 const IDENTIFIER_RE = /^[A-Za-z0-9_-]{1,64}$/;
 
 /**
