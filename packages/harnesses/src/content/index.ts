@@ -70,6 +70,14 @@ export {
 } from './schemas/index.js';
 export type { SkillCatalogEntry, SkillCatalogSource } from './skill-catalog.js';
 export { listSkillCatalog, skimSkillFrontmatter } from './skill-catalog.js';
+export type { NativeWorkflowSkillId, SkillInvokeRequest } from './skill-invoke.js';
+export {
+  buildSkillInvokeRequest,
+  isNativeWorkflowSkillId,
+  NATIVE_WORKFLOW_SKILL_IDS,
+  PHASE_C_INFERENCE_SNAP,
+  resolveNativeWorkflowSkillId,
+} from './skill-invoke.js';
 export type {
   ContentSnapshot,
   ContentSnapshotFile,
