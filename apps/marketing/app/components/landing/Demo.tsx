@@ -57,7 +57,7 @@ export function Demo({ data = HOME_DEMO, path = 'blocks.0.data', annotation = {}
               {b.title}
             </h3>
             <p
-              className="mt-2 text-sm leading-6 text-muted-foreground"
+              className="mt-2 text-sm leading-6 text-body"
               {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
             >
               {b.body}

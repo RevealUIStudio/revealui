@@ -24,7 +24,7 @@ export function Faq() {
                 <IconPlus size="sm" label="Toggle" />
               </span>
             </summary>
-            <div className="mt-4 pr-9 text-base leading-7 text-muted-foreground">{item.answer}</div>
+            <div className="mt-4 pr-9 text-base leading-7 text-body">{item.answer}</div>
           </details>
         ))}
       </div>

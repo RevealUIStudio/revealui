@@ -210,9 +210,7 @@ export function ProductsPage() {
                       <h3 className="text-xl font-bold tracking-tight text-foreground">
                         {product.name}
                       </h3>
-                      <p className="mt-0.5 text-sm font-medium text-muted-foreground">
-                        {product.tagline}
-                      </p>
+                      <p className="mt-0.5 text-sm font-medium text-body">{product.tagline}</p>
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1.5 text-xs font-semibold">
@@ -233,7 +231,7 @@ export function ProductsPage() {
                   {product.highlights.map((highlight) => (
                     <li
                       key={highlight}
-                      className="flex items-start gap-2.5 text-sm leading-6 text-muted-foreground"
+                      className="flex items-start gap-2.5 text-sm leading-6 text-body"
                     >
                       <IconCheckCircle size="sm" className="mt-1 flex-shrink-0 text-primary" />
                       {highlight}

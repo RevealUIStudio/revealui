@@ -9,7 +9,7 @@ export function NotFoundPage() {
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
           Page not found
         </h1>
-        <p className="mt-4 max-w-md text-base text-muted-foreground">
+        <p className="mt-4 max-w-md text-base text-body">
           The page you're looking for doesn't exist or has moved.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

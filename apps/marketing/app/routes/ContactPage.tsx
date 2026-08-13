@@ -31,7 +31,7 @@ export function ContactPage() {
           {CONTACT_METHODS.map((method) => (
             <div key={method.title}>
               <h3 className="text-sm font-semibold text-foreground">{method.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-2 text-sm text-body">
                 {method.body ? <>{method.body} </> : null}
                 <a
                   href={method.href}

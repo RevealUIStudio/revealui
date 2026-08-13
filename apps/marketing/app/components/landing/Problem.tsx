@@ -93,9 +93,7 @@ export function Problem() {
             </span>
             <span
               className={
-                emphasis
-                  ? 'text-sm leading-6 text-foreground'
-                  : 'text-sm leading-6 text-muted-foreground'
+                emphasis ? 'text-sm leading-6 text-foreground' : 'text-sm leading-6 text-body'
               }
             >
               {blurb}
@@ -132,7 +130,7 @@ export function Problem() {
                     className={
                       answer.emphasis
                         ? 'text-sm leading-6 font-medium text-foreground'
-                        : 'text-sm leading-6 text-muted-foreground'
+                        : 'text-sm leading-6 text-body'
                     }
                   >
                     {answer.value}

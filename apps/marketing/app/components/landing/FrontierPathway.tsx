@@ -20,7 +20,7 @@ export function FrontierPathway() {
               {step.n}
             </span>
             <h4 className="mt-4 text-base font-semibold text-foreground">{step.title}</h4>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">{step.body}</p>
+            <p className="mt-2 text-sm leading-6 text-body">{step.body}</p>
           </li>
         ))}
       </ol>
