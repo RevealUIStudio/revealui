@@ -34,17 +34,21 @@ Rules:
 | `width` | `narrow` \| `default` \| `wide` \| `full` | Content max-width |
 | `density` | `compact` \| `default` \| `spacious` | Vertical padding |
 | `bleed` | boolean | Skip outer horizontal pad (rare) |
+| `backdrop` | `ReactNode` | Full-bleed layer on the **outer** section (not the max-w rail). Hero washes/glows. |
 
 `SectionHeader` owns intro stack: optional eyebrow, title, optional description (`text-body`).
 
 Eyebrow tones: `primary` (default brand signal) or `muted` (quiet sections).
 
+**Viewport-stage heroes:** put decoration in `backdrop` (absolute inset-0), put min-height on the section (`min-h-[calc(100svh-var(--marketing-nav-h))]`), never nest absolute paint inside the max-width children.
+
 ## Consumer rules
 
 1. Prefer shells over raw `py-24` / `max-w-7xl` / `px-6` duplication.
 2. Keep page-specific content (matrices, calculators) as **children** of the shell.
-3. CMS `SectionBlock` body copy must use the body rung (aligned with this ladder).
-4. Route craft only after consumers adopt shells (frontend-excellence sequence).
+3. Full-bleed washes go in `backdrop`, not as absolute children of the content rail.
+4. CMS `SectionBlock` body copy must use the body rung (aligned with this ladder).
+5. Route craft only after consumers adopt shells (frontend-excellence sequence).
 
 ## Pilot + Phase 2 rewire
 
