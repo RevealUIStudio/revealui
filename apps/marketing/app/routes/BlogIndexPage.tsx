@@ -90,19 +90,19 @@ export function BlogIndexPage() {
       >
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-primary/10 via-background to-background"
+          className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background"
         />
         <SectionHeader
           title="Blog"
           description="Updates, guides, and insights from the RevealUI team."
           titleAs="h1"
           align="center"
-          titleClassName="text-4xl sm:text-5xl lg:text-6xl"
+          titleClassName="font-display text-4xl sm:text-5xl lg:text-6xl"
           descriptionClassName="sm:text-xl"
         />
       </MarketingSection>
 
-      <MarketingSection tone="background" density="default" width="default">
+      <MarketingSection tone="secondary" density="default" width="default">
         {posts.length === 0 ? (
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-lg text-body">
@@ -110,11 +110,11 @@ export function BlogIndexPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 sm:gap-8">
             {posts.map((post) => (
               <article
                 key={post.id}
-                className="rounded-2xl bg-card p-8 shadow-lg ring-1 ring-border transition-all hover:ring-primary/40"
+                className="rounded-2xl bg-card p-6 ring-1 ring-border transition-colors hover:ring-primary/30 sm:p-8"
               >
                 <div className="flex items-center gap-x-4 text-xs text-muted-foreground">
                   <time dateTime={post.publishedAt ?? post.createdAt}>

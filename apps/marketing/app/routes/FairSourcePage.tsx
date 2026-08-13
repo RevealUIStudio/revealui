@@ -358,6 +358,7 @@ export function FairSourcePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero — static: headline/subhead/body interpolate METRICS counts */}
+      {/* One quiet wash only (no radial blob + brand-dot chrome). */}
       <MarketingSection
         tone="background"
         density="spacious"
@@ -368,24 +369,19 @@ export function FairSourcePage() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background"
         />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[600px] w-[1000px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--rvui-brand-glow),transparent_70%)] blur-2xl"
-        />
 
         <div className="relative text-center">
           <p className="mb-6 text-sm font-semibold uppercase tracking-[0.2em] text-primary">
-            <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-primary align-middle" />
             {FAIR_SOURCE_HERO.eyebrow}
           </p>
-          <h1 className="text-5xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+          <h1 className="font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
             {FAIR_SOURCE_HERO.headline}
             <span className="block text-primary">{FAIR_SOURCE_HERO.headlineHighlight}</span>
           </h1>
-          <p className="mx-auto mt-8 max-w-2xl text-xl leading-8 text-body sm:text-2xl">
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-body sm:text-xl">
             {FAIR_SOURCE_HERO.subhead}
           </p>
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-body">
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-body">
             {/* COUNT: packages-fsl = 5, packages-mit = 21 (of 26 total — see /packages/ in repo) */}
             {FAIR_SOURCE_HERO.body.prefix}{' '}
             <a

@@ -44,7 +44,7 @@ function LocalAiHero({ data, path, annotation }: LocalAiHeroProps) {
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-primary/10 via-background to-background"
+        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background"
       />
       <p
         className="text-sm font-semibold uppercase tracking-wide text-primary"
