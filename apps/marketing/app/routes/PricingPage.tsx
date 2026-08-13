@@ -128,7 +128,7 @@ export function PricingPage() {
         <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-body sm:text-xl">
           {PRICING_HERO.subtitle}
         </p>
-        <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">
+        <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-body">
           {PRICING_HERO_SUBTEXT.prefix}{' '}
           <a
             href={PRICING_HERO_SUBTEXT.linkHref}
@@ -167,10 +167,10 @@ export function PricingPage() {
           <h3 className="text-2xl font-bold tracking-tight text-foreground">
             {PRICING_VALUE_BAND.heading}
           </h3>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">{PRICING_VALUE_BAND.body}</p>
+          <p className="mt-3 text-sm leading-6 text-body">{PRICING_VALUE_BAND.body}</p>
           <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {PRICING_VALUE_BAND.points.map((point) => (
-              <li key={point} className="flex items-start gap-2 text-sm text-muted-foreground">
+              <li key={point} className="flex items-start gap-2 text-sm text-body">
                 <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
                 <span>{point}</span>
               </li>
@@ -254,12 +254,10 @@ export function PricingPage() {
           <h3 className="mt-2 text-2xl font-bold tracking-tight text-foreground">
             {PRICING_AGENCY_VALUE_BAND.heading}
           </h3>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            {PRICING_AGENCY_VALUE_BAND.body}
-          </p>
+          <p className="mt-3 text-sm leading-6 text-body">{PRICING_AGENCY_VALUE_BAND.body}</p>
           <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {PRICING_AGENCY_VALUE_BAND.points.map((point) => (
-              <li key={point} className="flex items-start gap-2 text-sm text-muted-foreground">
+              <li key={point} className="flex items-start gap-2 text-sm text-body">
                 <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
                 <span>{point}</span>
               </li>
@@ -281,7 +279,7 @@ export function PricingPage() {
                 </div>
               )}
               <h3 className="text-lg font-bold text-foreground">{tier.name}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{tier.description}</p>
+              <p className="mt-1 text-sm text-body">{tier.description}</p>
               {tier.price ? (
                 <p className="mt-4 flex items-baseline gap-x-1">
                   <span className="text-4xl font-bold text-foreground">{tier.price}</span>
@@ -297,7 +295,7 @@ export function PricingPage() {
                 {tier.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-x-3">
                     <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
-                    <span className="text-sm text-muted-foreground">{feature}</span>
+                    <span className="text-sm text-body">{feature}</span>
                   </li>
                 ))}
               </ul>
@@ -339,7 +337,7 @@ export function PricingPage() {
               <h3 className="text-base font-semibold text-foreground">
                 {PRICING_AGENT_A2A.heading}
               </h3>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-2 text-sm text-body">
                 {PRICING_AGENT_A2A.body.prefix}{' '}
                 <a
                   href={PRICING_AGENT_A2A.body.linkHref}
@@ -360,7 +358,7 @@ export function PricingPage() {
               <h3 className="text-base font-semibold text-foreground">
                 {PRICING_AGENT_X402.heading}
               </h3>
-              <p className="mt-2 text-sm text-muted-foreground">{PRICING_AGENT_X402.body}</p>
+              <p className="mt-2 text-sm text-body">{PRICING_AGENT_X402.body}</p>
             </div>
 
             <div className="rounded-2xl bg-card p-6 ring-1 ring-border">
@@ -370,7 +368,7 @@ export function PricingPage() {
               <h3 className="text-base font-semibold text-foreground">
                 {PRICING_AGENT_MCP.heading}
               </h3>
-              <p className="mt-2 text-sm text-muted-foreground">{PRICING_AGENT_MCP.body}</p>
+              <p className="mt-2 text-sm text-body">{PRICING_AGENT_MCP.body}</p>
               <a
                 href={PRICING_AGENT_MCP.docsLink.href}
                 className="mt-3 inline-block text-xs font-semibold text-violet-600 hover:text-violet-700"
@@ -420,12 +418,12 @@ export function PricingPage() {
             <span className="text-4xl font-bold text-foreground">{PRICING_STARTER_KIT.price}</span>
             <span className="text-sm text-muted-foreground">{PRICING_STARTER_KIT.priceNote}</span>
           </p>
-          <p className="mt-4 text-lg text-muted-foreground">{PRICING_STARTER_KIT.body}</p>
+          <p className="mt-4 text-lg text-body">{PRICING_STARTER_KIT.body}</p>
           <ul className="mt-6 space-y-3">
             {PRICING_STARTER_KIT.points.map((point) => (
               <li key={point} className="flex items-start gap-x-3">
                 <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
-                <span className="text-sm text-muted-foreground">{point}</span>
+                <span className="text-sm text-body">{point}</span>
               </li>
             ))}
           </ul>
@@ -475,12 +473,12 @@ export function PricingPage() {
               {PRICING_AGENCY_FOUNDING_KIT.priceNote}
             </span>
           </p>
-          <p className="mt-4 text-lg text-muted-foreground">{PRICING_AGENCY_FOUNDING_KIT.body}</p>
+          <p className="mt-4 text-lg text-body">{PRICING_AGENCY_FOUNDING_KIT.body}</p>
           <ul className="mt-6 space-y-3">
             {PRICING_AGENCY_FOUNDING_KIT.points.map((point) => (
               <li key={point} className="flex items-start gap-x-3">
                 <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
-                <span className="text-sm text-muted-foreground">{point}</span>
+                <span className="text-sm text-body">{point}</span>
               </li>
             ))}
           </ul>
@@ -531,7 +529,7 @@ export function PricingPage() {
             <div key={rung.name} className="rounded-2xl bg-card p-6 ring-1 ring-border">
               <h3 className="text-base font-semibold text-foreground">{rung.name}</h3>
               <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">{rung.price}</p>
-              <p className="mt-3 text-sm text-muted-foreground">{rung.note}</p>
+              <p className="mt-3 text-sm text-body">{rung.note}</p>
             </div>
           ))}
         </div>

@@ -60,7 +60,7 @@ export function EngagementPricing({ data, path, annotation }: EngagementPricingP
           >
             <h3 className="text-lg font-semibold leading-7 text-foreground">{rung.title}</h3>
             <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">{rung.price}</p>
-            <p className="mt-4 flex-1 text-base leading-7 text-muted-foreground">{rung.body}</p>
+            <p className="mt-4 flex-1 text-base leading-7 text-body">{rung.body}</p>
             <div className="mt-8">
               <Button asChild appearance="outline" variant="neutral" className="w-full">
                 <a

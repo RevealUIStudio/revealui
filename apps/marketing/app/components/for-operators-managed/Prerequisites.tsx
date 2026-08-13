@@ -62,7 +62,7 @@ export function Prerequisites({ data, path, annotation }: FoManagedPrereqsProps 
               {prereq.title}
             </h3>
             <p
-              className="mt-2 text-base leading-7 text-muted-foreground"
+              className="mt-2 text-base leading-7 text-body"
               {...(base ? fieldAttrs(ann, `${base}.items.${index}.body`) : {})}
             >
               {prereq.body}

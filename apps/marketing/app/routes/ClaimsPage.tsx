@@ -184,9 +184,7 @@ export function ClaimsPage() {
           <h1 className="mt-3 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
             {CLAIMS_HERO.h1}
           </h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
-            {CLAIMS_HERO.subtitle}
-          </p>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-body">{CLAIMS_HERO.subtitle}</p>
           <div className="mt-6 flex flex-wrap gap-x-8 gap-y-2 font-mono text-sm tabular-nums text-foreground">
             <span>
               <strong className="font-semibold">{CLAIMS.length}</strong>{' '}
@@ -228,7 +226,7 @@ export function ClaimsPage() {
               <Badge color={KIND_BADGE_COLOR} className="mt-0.5 shrink-0">
                 {entry.label}
               </Badge>
-              <dd className="text-sm text-muted-foreground">{entry.description}</dd>
+              <dd className="text-sm text-body">{entry.description}</dd>
             </div>
           ))}
         </dl>
@@ -236,7 +234,7 @@ export function ClaimsPage() {
 
       <nav aria-label="Sections" className="border-b border-border px-6 py-6 lg:px-8">
         <div className="mx-auto max-w-3xl">
-          <p className="mb-3 text-sm leading-6 text-muted-foreground">{CLAIMS_LEDGER_INTRO}</p>
+          <p className="mb-3 text-sm leading-6 text-body">{CLAIMS_LEDGER_INTRO}</p>
           <ul className="flex flex-wrap gap-x-4 gap-y-2 font-mono text-xs">
             {FILE_SECTIONS.map((section) => (
               <li key={section.file}>
@@ -279,9 +277,7 @@ export function ClaimsPage() {
                 </code>
               </p>
               {section.claims.length === 0 ? (
-                <p className="mt-4 text-sm text-muted-foreground">
-                  No indexed claims yet for this file.
-                </p>
+                <p className="mt-4 text-sm text-body">No indexed claims yet for this file.</p>
               ) : (
                 <ol className="mt-4 divide-y divide-border">
                   {section.claims.map((claim) => (
@@ -319,7 +315,7 @@ export function ClaimsPage() {
             <p className="text-sm font-semibold text-foreground">
               {CLAIMS_HONESTY_RAILS_SECTION.notCheckedHeading}
             </p>
-            <div className="mt-1 space-y-1 text-sm text-muted-foreground">
+            <div className="mt-1 space-y-1 text-sm text-body">
               {CLAIMS_HONESTY_RAILS_SECTION.doesNotCheck.map((sentence) => (
                 <p key={sentence}>{sentence}</p>
               ))}

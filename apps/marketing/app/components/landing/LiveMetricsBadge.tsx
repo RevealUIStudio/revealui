@@ -43,7 +43,7 @@ export function LiveMetricsBadge() {
         ))}
       </dl>
 
-      <p className="mt-5 text-sm leading-6 text-muted-foreground">{M.body}</p>
+      <p className="mt-5 text-sm leading-6 text-body">{M.body}</p>
     </div>
   );
 }
