@@ -7,12 +7,17 @@ import {
   buildSkillInvokeRequest,
   classifySkillInvokeFailure,
   extractSkillInvokeText,
+  extractSkillInvokeToolCalls,
+  nativeWorkflowToolDefinitions,
   PHASE_C_INFERENCE_SNAP,
+  parseNativeWorkflowTools,
   parseSkillInvokeTimeoutOverride,
   resolveNativeWorkflowSkillId,
   SKILL_INVOKE_DECODE_BUDGET_MS,
+  SKILL_INVOKE_MAX_COMPLETION_TOKENS,
   SKILL_INVOKE_MIN_TIMEOUT_MS,
   SKILL_INVOKE_MS_PER_PROMPT_TOKEN,
+  skillInvokeCompletionBody,
   skillInvokeTimeoutMs,
 } from '../content/skill-invoke.js';
 
@@ -53,7 +58,64 @@ describe('skill invoke (GAP-293 Phase C)', () => {
     expect(result.model).toBe(PHASE_C_INFERENCE_SNAP);
     expect(result.model).toBe('gemma3');
     expect(result.system).toContain('# revealui-doctor body');
+    expect(result.allowedTools).toEqual([]);
     expect(result.user).toContain('cannot execute tools');
+  });
+
+  it('parses SKILL.md allowed-tools and puts them on the completion body', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'skill-tools-'));
+    mkdirSync(dir, { recursive: true });
+    const path = join(dir, 'SKILL.md');
+    writeFileSync(
+      path,
+      `---
+name: revealui-doctor
+description: fixture
+allowed-tools: Bash, Read, Glob, Grep
+---
+# body
+`,
+    );
+    const result = buildSkillInvokeRequest('doctor', [
+      { id: 'revealui-doctor', name: 'Doc', description: 'd', path, source: 'revskills' },
+    ]);
+    expect('error' in result).toBe(false);
+    if ('error' in result) return;
+    expect(result.allowedTools).toEqual(['Bash', 'Read', 'Glob', 'Grep']);
+    expect(result.user).toContain('Use the provided tools');
+    const body = skillInvokeCompletionBody(
+      [
+        { role: 'system', content: result.system },
+        { role: 'user', content: result.user },
+      ],
+      result.allowedTools,
+    );
+    expect(body.max_tokens).toBe(SKILL_INVOKE_MAX_COMPLETION_TOKENS);
+    expect(body.tool_choice).toBe('auto');
+    expect(body.tools?.map((t) => t.function.name)).toEqual(['Bash', 'Read', 'Glob', 'Grep']);
+  });
+
+  it('extracts OpenAI tool_calls and drops unknown tool names from the allowlist parser', () => {
+    expect(parseNativeWorkflowTools(['Read', 'Write', 'Bash', 'Read'])).toEqual(['Read', 'Bash']);
+    expect(nativeWorkflowToolDefinitions(['Read']).length).toBe(1);
+    expect(
+      extractSkillInvokeToolCalls({
+        choices: [
+          {
+            message: {
+              content: '',
+              tool_calls: [
+                {
+                  id: 'c1',
+                  type: 'function',
+                  function: { name: 'Read', arguments: '{"path":"a"}' },
+                },
+              ],
+            },
+          },
+        ],
+      }),
+    ).toEqual([{ id: 'c1', name: 'Read', arguments: '{"path":"a"}' }]);
   });
 
   it('prefers message.content and falls back to reasoning_content', () => {

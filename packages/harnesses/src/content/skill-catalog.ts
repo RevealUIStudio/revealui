@@ -48,11 +48,16 @@ function unquote(raw: string): string {
 }
 
 /** Line-oriented YAML frontmatter skim. No authored regex. */
-export function skimSkillFrontmatter(text: string): { name: string; description: string } {
+export function skimSkillFrontmatter(text: string): {
+  name: string;
+  description: string;
+  allowedTools: string[];
+} {
   const lines = text.split('\n');
   let inFm = false;
   let name = '';
   let description = '';
+  let allowedToolsRaw = '';
   for (const line of lines) {
     if (line === '---') {
       if (!inFm) {
@@ -64,8 +69,13 @@ export function skimSkillFrontmatter(text: string): { name: string; description:
     if (!inFm) break;
     if (line.startsWith('name:')) name = unquote(line.slice(5).trim());
     else if (line.startsWith('description:')) description = unquote(line.slice(12).trim());
+    else if (line.startsWith('allowed-tools:')) allowedToolsRaw = unquote(line.slice(14).trim());
   }
-  return { name, description };
+  const allowedTools = allowedToolsRaw
+    .split(',')
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+  return { name, description, allowedTools };
 }
 
 function readSkillFile(filePath: string): string | null {
