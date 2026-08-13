@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@revealui/presentation';
 import { useState } from 'react';
 
 export function Counter(): React.ReactNode {
@@ -15,13 +16,13 @@ export function Counter(): React.ReactNode {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-      <button type="button" onClick={decrement}>
+      <Button type="button" variant="neutral" appearance="outline" size="sm" onClick={decrement}>
         -
-      </button>
+      </Button>
       <span>Count: {count}</span>
-      <button type="button" onClick={increment}>
+      <Button type="button" variant="neutral" appearance="outline" size="sm" onClick={increment}>
         +
-      </button>
+      </Button>
     </div>
   );
 }

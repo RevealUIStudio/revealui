@@ -25,7 +25,17 @@ type DateType = (typeof dateTypes)[number];
 
 type InputProps = {
   className?: string;
-  type?: 'email' | 'file' | 'number' | 'password' | 'search' | 'tel' | 'text' | 'url' | DateType;
+  type?:
+    | 'email'
+    | 'file'
+    | 'hidden'
+    | 'number'
+    | 'password'
+    | 'search'
+    | 'tel'
+    | 'text'
+    | 'url'
+    | DateType;
   disabled?: boolean;
   invalid?: boolean;
   ref?: React.Ref<HTMLInputElement>;
@@ -34,6 +44,10 @@ type InputProps = {
 export function Input({ className, disabled, invalid, ref, ...props }: InputProps) {
   const interactiveProps = useDataInteractive({ disabled });
   const fieldProps = useFieldControlProps();
+
+  if (props.type === 'hidden') {
+    return <input ref={ref} disabled={disabled} className={className} {...props} />;
+  }
 
   return (
     <span

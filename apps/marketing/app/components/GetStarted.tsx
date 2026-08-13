@@ -65,7 +65,7 @@ export function GetStarted({
                 index === 0
                   ? 'text-emerald-400' // adherence-ignore: emerald-utility - apps/marketing/app/index.css:80-92 remaps emerald-* to cobalt oklch values (Cobalt v5 palette remap); renders cobalt today, zero visual change
                   : index === data.cli.command.length - 1
-                    ? 'text-blue-300'
+                    ? 'text-primary'
                     : 'text-background'
               }
             >

@@ -90,7 +90,7 @@ export function BlogIndexPage() {
       >
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-blue-500/10 via-background to-indigo-500/10"
+          className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-primary/10 via-background to-background"
         />
         <SectionHeader
           title="Blog"
