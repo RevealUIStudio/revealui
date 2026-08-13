@@ -43,9 +43,11 @@ export const PROOF_TRUST = {
   },
 } as const;
 
-// Secondary FDE / deployers band (ADR 2026-07-21 accepted). Nested under Proof
-// so the homepage stays within the ≤7 section hard rule (ADR 2026-07-10).
+// Secondary FDE / deployers line (ADR 2026-07-21 accepted). Nested under Proof
+// as a single footer sentence (GAP-480 residual: not a second H3 band).
 // Never a H1 or primary ICP. Copy pack §3 (scenario first, runtime noun).
+// eyebrow/heading/foil remain in the content module for claims-evidence; the
+// live UI renders body + CTA only.
 export const PROOF_DEPLOYERS = {
   eyebrow: 'For deployers',
   heading: 'Built for people who deploy, not only demo.',

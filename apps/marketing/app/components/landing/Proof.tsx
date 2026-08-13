@@ -4,8 +4,8 @@ import { SITE } from '../../content/site';
 import { LiveMetricsBadge } from './LiveMetricsBadge';
 
 /**
- * Homepage proof band (GAP-480 Phase C rhythm).
- * Metrics first; deployers as a quiet sub-band (border only, no card chrome).
+ * Homepage proof band: one story (inspectable open source + live metrics).
+ * FDE / Studio handoff is a single quiet footer line (not a second section).
  */
 export function Proof() {
   return (
@@ -18,7 +18,7 @@ export function Proof() {
         align="center"
       />
 
-      <div className="mt-10 flex justify-center sm:mt-12">
+      <div className="mt-8 flex justify-center sm:mt-10">
         <a
           href={SITE.urls.repo}
           target="_blank"
@@ -46,7 +46,7 @@ export function Proof() {
             {PROOF_TRUST.linkLabel}
           </a>
         </p>
-        <div className="mt-5">
+        <div className="mt-4">
           <Button
             asChild
             appearance="link"
@@ -58,26 +58,18 @@ export function Proof() {
         </div>
       </div>
 
-      {/* FDE sub-band: border-only (≤7 sections rule). Demoted chrome. */}
-      <div className="mx-auto mt-10 max-w-2xl border-t border-border pt-8 text-center sm:mt-12 sm:pt-10">
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          {PROOF_DEPLOYERS.eyebrow}
-        </p>
-        <h3 className="mt-2 font-display text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-          {PROOF_DEPLOYERS.heading}
-        </h3>
-        <p className="mt-3 text-sm leading-6 text-body sm:text-base sm:leading-7">
-          {PROOF_DEPLOYERS.body}
-        </p>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">{PROOF_DEPLOYERS.foil}</p>
-        <div className="mt-6">
-          <Button asChild appearance="outline" variant="neutral" size="default">
-            <a href={PROOF_DEPLOYERS.cta.href} target="_blank" rel="noopener noreferrer">
-              {PROOF_DEPLOYERS.cta.label}
-            </a>
-          </Button>
-        </div>
-      </div>
+      {/* Single-line handoff (keeps ≤7 sections; no second H3 narrative). */}
+      <p className="mx-auto mt-8 max-w-2xl border-t border-border pt-6 text-center text-sm leading-6 text-muted-foreground sm:mt-10">
+        {PROOF_DEPLOYERS.body}{' '}
+        <a
+          href={PROOF_DEPLOYERS.cta.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
+        >
+          {PROOF_DEPLOYERS.cta.label}
+        </a>
+      </p>
     </MarketingSection>
   );
 }
