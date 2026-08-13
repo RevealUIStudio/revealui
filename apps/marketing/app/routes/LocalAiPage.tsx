@@ -87,7 +87,7 @@ function LocalAiPillars({ data, path, annotation }: LocalAiPillarsProps) {
               {pillar.title}
             </h2>
             <p
-              className="mt-3 text-sm leading-6 text-muted-foreground"
+              className="mt-3 text-sm leading-6 text-body"
               {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
             >
               {pillar.body}
@@ -169,7 +169,7 @@ function LocalAiMarketProof({ data, path, annotation }: LocalAiMarketProofProps)
         ))}
       </ul>
       <p
-        className="mt-6 text-sm italic leading-6 text-muted-foreground"
+        className="mt-6 text-sm italic leading-6 text-body"
         {...fieldAttrs(annotation, `${path}.items.${data.adopters.length}.body`)}
       >
         {data.disclaimer}
@@ -202,7 +202,7 @@ function LocalAiNotes({ data, path, annotation }: LocalAiNotesProps) {
           >
             {data.roadmapHeading}
           </p>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          <p className="mt-2 text-sm leading-6 text-body">
             <span {...fieldAttrs(annotation, `${path}.items.2.body`)}>{data.roadmapBody}</span>{' '}
             <a href={data.roadmapHref} className="font-medium text-primary hover:underline">
               See the roadmap
@@ -211,7 +211,7 @@ function LocalAiNotes({ data, path, annotation }: LocalAiNotesProps) {
           </p>
         </div>
         <p
-          className="border-t border-border pt-6 text-sm leading-6 text-muted-foreground"
+          className="border-t border-border pt-6 text-sm leading-6 text-body"
           {...fieldAttrs(annotation, `${path}.items.1.body`)}
         >
           {data.honesty}

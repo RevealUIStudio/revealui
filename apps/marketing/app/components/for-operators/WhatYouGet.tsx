@@ -61,7 +61,7 @@ export function WhatYouGet({ data, path, annotation }: WhatYouGetProps = {}) {
               {card.title}
             </h3>
             <p
-              className="mt-3 text-base leading-7 text-muted-foreground"
+              className="mt-3 text-base leading-7 text-body"
               {...(base ? fieldAttrs(ann, `${base}.items.${index}.body`) : {})}
             >
               {card.body}

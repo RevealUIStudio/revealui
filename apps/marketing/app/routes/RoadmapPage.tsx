@@ -46,7 +46,7 @@ function FeatureCard({ feature }: { feature: RoadmapItem }) {
         </span>
       </div>
       <h3 className="text-lg font-bold tracking-tight text-foreground">{feature.name}</h3>
-      <p className="mt-3 text-sm leading-6 text-muted-foreground">{feature.description}</p>
+      <p className="mt-3 text-sm leading-6 text-body">{feature.description}</p>
     </div>
   );
 }

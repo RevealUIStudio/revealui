@@ -47,7 +47,7 @@ export function FearRemoval({ data = FO_HIW_FEAR, path, annotation }: FearRemova
               {option.title}
             </h3>
             <p
-              className="mt-1 text-base leading-7 text-muted-foreground"
+              className="mt-1 text-base leading-7 text-body"
               {...field(`items.${optionStart + index}.body`)}
             >
               {option.body}

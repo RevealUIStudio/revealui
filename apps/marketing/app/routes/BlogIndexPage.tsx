@@ -105,7 +105,7 @@ export function BlogIndexPage() {
       <MarketingSection tone="background" density="default" width="default">
         {posts.length === 0 ? (
           <div className="mx-auto max-w-2xl text-center">
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg text-body">
               No posts yet. Check back soon for updates from the RevealUI team.
             </p>
           </div>
@@ -127,7 +127,7 @@ export function BlogIndexPage() {
                     {post.title}
                   </a>
                 </h3>
-                <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                <p className="mt-4 text-sm leading-6 text-body">
                   {post.excerpt ?? getExcerpt(post.content)}
                 </p>
                 <a
@@ -143,7 +143,7 @@ export function BlogIndexPage() {
 
         <div className="mx-auto mt-16 max-w-2xl rounded-2xl bg-secondary p-8 text-center ring-1 ring-border">
           <h3 className="text-lg font-semibold text-foreground">Get notified when we publish</h3>
-          <p className="mb-6 mt-2 text-sm text-muted-foreground">
+          <p className="mb-6 mt-2 text-sm text-body">
             Engineering insights, product updates, and launch announcements. No spam.
           </p>
           <NewsletterSignup variant="stacked" />

@@ -77,7 +77,7 @@ export function PricingTeaser() {
                 </span>
                 {period && <span className="text-sm text-muted-foreground">{period}</span>}
               </div>
-              <p className="mt-4 text-sm leading-6 text-muted-foreground">{t.description}</p>
+              <p className="mt-4 text-sm leading-6 text-body">{t.description}</p>
 
               <ul className="mt-6 flex-1 space-y-3">
                 {t.features.map((f) => (

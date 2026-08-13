@@ -31,7 +31,7 @@ export function Proof() {
       </div>
 
       <div className="mx-auto mt-12 max-w-2xl text-center">
-        <p className="text-base leading-7 text-muted-foreground">
+        <p className="text-base leading-7 text-body">
           {PROOF_TRUST.body}{' '}
           <a
             href={PROOF_TRUST.linkHref}

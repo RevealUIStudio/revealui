@@ -43,7 +43,7 @@ export function Faq({ data = HOME_FAQ, path = 'blocks.1.data', annotation = {} }
               </span>
             </summary>
             <div
-              className="mt-4 pr-9 text-base leading-7 text-muted-foreground"
+              className="mt-4 pr-9 text-base leading-7 text-body"
               {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
             >
               {item.answer}

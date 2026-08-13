@@ -45,10 +45,7 @@ export function EngagementSteps({ data = FO_HIW_STEPS, path, annotation }: Engag
               >
                 {step.title}
               </h3>
-              <p
-                className="mt-2 text-base leading-7 text-muted-foreground"
-                {...field(`items.${index}.body`)}
-              >
+              <p className="mt-2 text-base leading-7 text-body" {...field(`items.${index}.body`)}>
                 {step.body}
               </p>
             </div>

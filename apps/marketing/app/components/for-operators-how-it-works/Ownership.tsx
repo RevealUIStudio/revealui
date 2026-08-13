@@ -41,10 +41,7 @@ export function Ownership({ data = FO_HIW_OWNERSHIP, path, annotation }: Ownersh
             >
               {claim.title}
             </h3>
-            <p
-              className="mt-1 text-base leading-7 text-muted-foreground"
-              {...field(`items.${index}.body`)}
-            >
+            <p className="mt-1 text-base leading-7 text-body" {...field(`items.${index}.body`)}>
               {claim.body}
             </p>
           </li>

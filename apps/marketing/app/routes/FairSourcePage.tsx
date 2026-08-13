@@ -79,7 +79,7 @@ function FairSourceContract({ data, path, annotation }: ContractProps) {
                   {c.title}
                 </h3>
                 <p
-                  className="mt-2 text-sm leading-6 text-muted-foreground"
+                  className="mt-2 text-sm leading-6 text-body"
                   {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
                 >
                   {c.body}
@@ -158,7 +158,7 @@ function FairSourcePackagesIntro({ data, path, annotation }: PackagesIntroProps)
         </table>
       </div>
       <p
-        className="mx-auto mt-6 max-w-2xl text-center text-sm text-muted-foreground"
+        className="mx-auto mt-6 max-w-2xl text-center text-sm text-body"
         {...fieldAttrs(annotation, `${path}.items.0.body`)}
       >
         {data.footer.includes(data.footerCommand) ? (
@@ -210,7 +210,7 @@ function FairSourceClock({ data, path, annotation }: ClockProps) {
                 {step.title}
               </h3>
               <p
-                className="mt-1 text-sm text-muted-foreground"
+                className="mt-1 text-sm text-body"
                 {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
               >
                 {step.body}
@@ -253,7 +253,7 @@ function FairSourcePeers({ data, path, annotation }: PeersProps) {
               {p.name}
             </h3>
             <p
-              className="mt-2 text-sm leading-6 text-muted-foreground"
+              className="mt-2 text-sm leading-6 text-body"
               {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
             >
               {p.note}
@@ -295,7 +295,7 @@ function FairSourceFaq({ data, path, annotation }: FaqProps) {
               </span>
             </summary>
             <div
-              className="mt-4 pr-9 text-base leading-7 text-muted-foreground"
+              className="mt-4 pr-9 text-base leading-7 text-body"
               {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
             >
               {f.answer}
@@ -390,7 +390,7 @@ export function FairSourcePage() {
           <p className="mx-auto mt-8 max-w-2xl text-xl leading-8 text-body sm:text-2xl">
             {FAIR_SOURCE_HERO.subhead}
           </p>
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-muted-foreground">
+          <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-body">
             {/* COUNT: packages-fsl = 5, packages-mit = 21 (of 26 total — see /packages/ in repo) */}
             {FAIR_SOURCE_HERO.body.prefix}{' '}
             <a

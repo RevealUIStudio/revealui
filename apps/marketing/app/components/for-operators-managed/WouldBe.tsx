@@ -61,7 +61,7 @@ export function WouldBe({ data, path, annotation }: FoManagedWouldBeProps = {}) 
               {capability.title}
             </h3>
             <p
-              className="mt-2 text-base leading-7 text-muted-foreground"
+              className="mt-2 text-base leading-7 text-body"
               {...(base ? fieldAttrs(ann, `${base}.items.${index}.body`) : {})}
             >
               {capability.body}

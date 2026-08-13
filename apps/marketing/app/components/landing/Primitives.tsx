@@ -95,7 +95,7 @@ export function Primitives({
                   {item.label}
                 </h3>
                 <p
-                  className="mt-1.5 text-base leading-7 text-muted-foreground"
+                  className="mt-1.5 text-base leading-7 text-body"
                   {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
                 >
                   {item.body}
