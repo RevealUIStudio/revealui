@@ -272,6 +272,7 @@
     "validate:kek-rotation": "vitest run scripts/security/__tests__/rotate-kek.test.ts",
     "validate:migrations": "tsx scripts/validate/migration-journal.ts",
     "validate:prod-env": "tsx scripts/validate/prod-env.ts",
+    "validate:vercel-settings": "tsx scripts/validate/vercel-project-settings.ts",
     "validate:raw-sql": "tsx scripts/validate/raw-sql.ts",
     "validate:seed-wiring": "tsx scripts/validate/seed-script-wiring.ts",
     "validate:stripe-client": "tsx scripts/validate/stripe-client.ts",

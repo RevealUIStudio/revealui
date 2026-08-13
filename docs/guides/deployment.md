@@ -93,15 +93,15 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 
 ### Build Configuration
 
-The admin app uses Next.js standalone output mode. Vercel detects the framework automatically. No custom build settings are needed beyond environment variables.
+Each official app has a `vercel.json` next to it (`apps/marketing`, `apps/docs`, `apps/admin`, `apps/server`). That file is the source of truth for Framework, Build Command, Output Directory, and Install Command. The Vercel dashboard must match it. Check or apply:
 
-The API app uses Hono and builds with tsup. Set the Vercel project framework to "Other" and configure:
+```bash
+pnpm validate:vercel-settings           # files only
+pnpm validate:vercel-settings -- --live # compare dashboard
+pnpm validate:vercel-settings -- --sync # write dashboard from vercel.json
+```
 
-| Setting | Value |
-|---------|-------|
-| Build Command | `pnpm build:api` |
-| Output Directory | `apps/server/dist` |
-| Install Command | `pnpm install` |
+Project ids live in `.github/vercel-projects.json`. Root Directory is `apps/<app>` (`apps/server` for api). Git Integration stays disconnected. The repo-root `vercel.json` only turns off Git auto-deploys if someone reconnects a root project.
 
 ### CI/CD Pipeline
 
