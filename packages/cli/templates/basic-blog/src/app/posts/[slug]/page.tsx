@@ -1,3 +1,5 @@
+import { Heading, LinkButton, Text } from '@revealui/presentation';
+
 const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000';
 
 interface Post {
@@ -29,12 +31,12 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   if (!post) {
     return (
       <main className="mx-auto max-w-2xl px-4 py-16">
-        <h1 className="text-2xl font-bold">Post not found</h1>
-        <p className="mt-4">
-          <a href="/posts" className="text-accent underline">
+        <Heading>Post not found</Heading>
+        <Text className="mt-4">
+          <LinkButton href="/posts" appearance="link" size="sm">
             Back to blog
-          </a>
-        </p>
+          </LinkButton>
+        </Text>
       </main>
     );
   }
@@ -42,12 +44,12 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   return (
     <main className="mx-auto max-w-2xl px-4 py-16">
       <nav className="mb-8">
-        <a href="/posts" className="text-sm text-accent underline">
-          &larr; Back to blog
-        </a>
+        <LinkButton href="/posts" appearance="link" size="sm">
+          Back to blog
+        </LinkButton>
       </nav>
       <article>
-        <h1 className="mb-2 text-3xl font-bold">{post.title}</h1>
+        <Heading className="mb-2">{post.title}</Heading>
         {post.publishedAt && (
           <time className="mb-8 block text-sm text-gray-500">
             {new Date(post.publishedAt).toLocaleDateString()}

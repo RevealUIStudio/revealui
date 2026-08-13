@@ -1,3 +1,4 @@
+import { Input } from '@revealui/presentation';
 import type React from 'react';
 import type { Block, Field, RevealUIBlock, RevealUIContext } from '../types/index.js';
 import { convertToRevealUIField } from './field-conversion.js';
@@ -136,7 +137,7 @@ export function getRevealUIBlockComponent(block: RevealUIBlock): React.Component
                 </label>
                 <div className="reveal-ui-field-input">
                   {/* Placeholder for field rendering - would need actual field components */}
-                  <input
+                  <Input
                     type="text"
                     id={`field-${fieldName}`}
                     value={formatValue(value)}

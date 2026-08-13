@@ -23,7 +23,7 @@ import {
 } from '@lexical/rich-text';
 import { $setBlocksType } from '@lexical/selection';
 import { $findMatchingParent, $getNearestNodeOfType, mergeRegister } from '@lexical/utils';
-
+import { Button, Select } from '@revealui/presentation';
 import {
   $createParagraphNode,
   $getSelection,
@@ -361,7 +361,10 @@ export function FloatingToolbarPlugin({ features }: FloatingToolbarPluginProps) 
       {/* History */}
       {hasFeature('history') && (
         <div className="toolbar-group">
-          <button
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             disabled={!state.canUndo}
             onClick={undo}
@@ -370,8 +373,11 @@ export function FloatingToolbarPlugin({ features }: FloatingToolbarPluginProps) 
             aria-label="Undo"
           >
             ↶
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             disabled={!state.canRedo}
             onClick={redo}
@@ -380,14 +386,17 @@ export function FloatingToolbarPlugin({ features }: FloatingToolbarPluginProps) 
             aria-label="Redo"
           >
             ↷
-          </button>
+          </Button>
         </div>
       )}
 
       {/* Text formatting */}
       <div className="toolbar-group">
         {hasFeature('bold') && (
-          <button
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             onClick={formatBold}
             className={`toolbar-btn ${state.isBold ? 'active' : ''}`}
@@ -396,10 +405,13 @@ export function FloatingToolbarPlugin({ features }: FloatingToolbarPluginProps) 
             aria-pressed={state.isBold}
           >
             <strong>B</strong>
-          </button>
+          </Button>
         )}
         {hasFeature('italic') && (
-          <button
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             onClick={formatItalic}
             className={`toolbar-btn ${state.isItalic ? 'active' : ''}`}
@@ -408,10 +420,13 @@ export function FloatingToolbarPlugin({ features }: FloatingToolbarPluginProps) 
             aria-pressed={state.isItalic}
           >
             <em>I</em>
-          </button>
+          </Button>
         )}
         {hasFeature('underline') && (
-          <button
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             onClick={formatUnderline}
             className={`toolbar-btn ${state.isUnderline ? 'active' : ''}`}
@@ -420,10 +435,13 @@ export function FloatingToolbarPlugin({ features }: FloatingToolbarPluginProps) 
             aria-pressed={state.isUnderline}
           >
             <span style={{ textDecoration: 'underline' }}>U</span>
-          </button>
+          </Button>
         )}
         {hasFeature('link') && (
-          <button
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             onClick={insertLink}
             className={`toolbar-btn ${state.isLink ? 'active' : ''}`}
@@ -432,7 +450,7 @@ export function FloatingToolbarPlugin({ features }: FloatingToolbarPluginProps) 
             aria-pressed={state.isLink}
           >
             🔗
-          </button>
+          </Button>
         )}
         {hasFeature('upload') && <ImageUploadButton />}
       </div>
@@ -440,7 +458,7 @@ export function FloatingToolbarPlugin({ features }: FloatingToolbarPluginProps) 
       {/* Block formatting - simplified for floating toolbar */}
       {hasFeature('heading') && (
         <div className="toolbar-group">
-          <select
+          <Select
             className="toolbar-select"
             value={state.blockType}
             onChange={(e) => {
@@ -454,14 +472,17 @@ export function FloatingToolbarPlugin({ features }: FloatingToolbarPluginProps) 
             <option value="h1">H1</option>
             <option value="h2">H2</option>
             <option value="h3">H3</option>
-          </select>
+          </Select>
         </div>
       )}
 
       {/* List formatting */}
       {(hasFeature('list') || hasFeature('orderedList') || hasFeature('unorderedList')) && (
         <div className="toolbar-group">
-          <button
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             onClick={formatBulletList}
             className={`toolbar-btn ${state.blockType === 'bullet' ? 'active' : ''}`}
@@ -469,8 +490,11 @@ export function FloatingToolbarPlugin({ features }: FloatingToolbarPluginProps) 
             aria-label="Bullet List"
           >
             •
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             onClick={formatNumberedList}
             className={`toolbar-btn ${state.blockType === 'number' ? 'active' : ''}`}
@@ -478,7 +502,7 @@ export function FloatingToolbarPlugin({ features }: FloatingToolbarPluginProps) 
             aria-label="Numbered List"
           >
             1.
-          </button>
+          </Button>
         </div>
       )}
     </div>

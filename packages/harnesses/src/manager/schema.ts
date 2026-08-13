@@ -3,8 +3,8 @@ import { z } from 'zod';
 /**
  * Project manager manifest (`.revealui/manager.json`).
  *
- * Equal vendor authority: Claude, Grok, Cursor, OpenCode, VSCode all
- * *reference* this tree; none is the policy SSOT (GAP-406).
+ * Equal vendor authority: Claude, Grok, Cursor, OpenCode, VSCode, RevDev all
+ * *reference* this tree; none is the policy SSOT (GAP-406 / GAP-293).
  */
 export const ManagerSchema = z.object({
   version: z.literal(1).default(1),
@@ -23,8 +23,16 @@ export const ManagerSchema = z.object({
   adapters: z
     .array(
       z.object({
-        id: z.enum(['claude-code', 'cursor', 'opencode', 'vscode', 'grok', 'revealui-agent']),
-        /** Vendor tree relative to project root (null = machine-home only) */
+        id: z.enum([
+          'claude-code',
+          'cursor',
+          'opencode',
+          'vscode',
+          'grok',
+          'revealui-agent',
+          'revdev',
+        ]),
+        /** Vendor tree relative to project root (null = consume .revealui/content) */
         projectTree: z.string().nullable().default(null),
         /** Equal rank — no adapter is more authoritative than another */
         rank: z.literal('equal').default('equal'),
@@ -37,6 +45,7 @@ export const ManagerSchema = z.object({
       { id: 'vscode', projectTree: null, rank: 'equal' },
       { id: 'grok', projectTree: null, rank: 'equal' },
       { id: 'revealui-agent', projectTree: null, rank: 'equal' },
+      { id: 'revdev', projectTree: null, rank: 'equal' },
     ]),
   mcp: z
     .object({

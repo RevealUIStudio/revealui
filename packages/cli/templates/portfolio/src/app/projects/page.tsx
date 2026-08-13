@@ -1,3 +1,4 @@
+import { Heading, LinkButton, Text } from '@revealui/presentation';
 import Image from 'next/image';
 
 const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000';
@@ -30,24 +31,25 @@ export default async function ProjectsPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-16">
-      <h1 className="mb-8 text-3xl font-bold">Projects</h1>
+      <Heading className="mb-8">Projects</Heading>
 
       {projects.length === 0 ? (
-        <p className="text-gray-500">
+        <Text>
           No projects yet. Add projects in the{' '}
-          <a href="/admin/collections/projects" className="text-accent underline">
+          <LinkButton href="/admin/collections/projects" appearance="link" size="sm">
             admin panel
-          </a>
+          </LinkButton>
           , or run <code className="rounded bg-gray-100 px-1">pnpm db:seed</code> to add sample
           data.
-        </p>
+        </Text>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           {projects.map((project) => (
-            <a
+            <LinkButton
               key={project.id}
               href={`/projects/${project.slug}`}
-              className="block rounded-lg border border-gray-200 p-4 transition-shadow hover:shadow-md"
+              appearance="link"
+              className="h-auto flex-col items-start rounded-lg border border-gray-200 p-4 transition-shadow hover:shadow-md"
             >
               {project.image?.url && (
                 <Image
@@ -58,7 +60,9 @@ export default async function ProjectsPage() {
                   className="mb-4 aspect-video w-full rounded object-cover"
                 />
               )}
-              <h2 className="text-xl font-semibold">{project.title}</h2>
+              <Heading level={2} className="text-xl">
+                {project.title}
+              </Heading>
               {project.tags && project.tags.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {project.tags.map((t) => (
@@ -71,12 +75,8 @@ export default async function ProjectsPage() {
                   ))}
                 </div>
               )}
-              {project.link && (
-                <span className="mt-3 inline-block text-sm text-accent underline">
-                  View project &rarr;
-                </span>
-              )}
-            </a>
+              {project.link && <Text className="mt-3 text-sm">View project</Text>}
+            </LinkButton>
           ))}
         </div>
       )}

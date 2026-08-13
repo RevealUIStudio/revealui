@@ -128,11 +128,11 @@ export default function OnboardingChecklist() {
   };
 
   return (
-    <div className="mb-6 rounded-lg border border-zinc-700 bg-zinc-800/50 p-6">
-      <div className="mb-4 flex items-center justify-between">
+    <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+      <div className="mb-4 flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-white">Getting Started</h2>
-          <p className="mt-0.5 text-sm text-zinc-400">
+          <h2 className="text-lg font-semibold text-foreground">Getting Started</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Welcome to {SITE_NAME}. Here are a few things to get you going.
           </p>
         </div>
@@ -142,7 +142,7 @@ export default function OnboardingChecklist() {
           variant="neutral"
           size="sm"
           onClick={handleDismiss}
-          className="shrink-0 text-xs text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
+          className="shrink-0 text-xs text-muted-foreground"
         >
           Dismiss
         </Button>
@@ -156,20 +156,20 @@ export default function OnboardingChecklist() {
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-start gap-3 rounded-lg border border-zinc-700/50 bg-zinc-800 p-3 transition-colors hover:border-zinc-500 hover:bg-zinc-750"
+              className="flex items-start gap-3 rounded-lg border border-border bg-background p-3 transition-colors hover:border-primary/40 hover:bg-muted/40"
             >
               <span
                 className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border text-xs ${
                   checked
                     ? 'border-success bg-success/20 text-success'
-                    : 'border-zinc-600 text-zinc-500'
+                    : 'border-border text-muted-foreground'
                 }`}
               >
                 {checked ? <span aria-hidden="true">&#10003;</span> : index + 1}
               </span>
               <div>
-                <p className="text-sm font-medium text-white">{item.label}</p>
-                <p className="mt-0.5 text-xs text-zinc-400">{item.description}</p>
+                <p className="text-sm font-medium text-foreground">{item.label}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{item.description}</p>
               </div>
             </Link>
           );

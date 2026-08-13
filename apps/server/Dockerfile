@@ -26,10 +26,12 @@ COPY packages/knowledge-graph/package.json ./packages/knowledge-graph/
 COPY packages/mcp/package.json ./packages/mcp/
 COPY packages/openapi/package.json ./packages/openapi/
 COPY packages/paywall/package.json ./packages/paywall/
+COPY packages/presentation/package.json ./packages/presentation/
 COPY packages/resilience/package.json ./packages/resilience/
 COPY packages/security/package.json ./packages/security/
 COPY packages/services/package.json ./packages/services/
 COPY packages/setup/package.json ./packages/setup/
+COPY packages/tokens/package.json ./packages/tokens/
 COPY packages/utils/package.json ./packages/utils/
 COPY packages/ts-strada/package.json ./packages/ts-strada/
 COPY apps/server/package.json ./apps/server/

@@ -4,6 +4,7 @@
  * Reusable fallback components for error states, loading states, and degraded functionality
  */
 
+import { Button } from '@revealui/presentation';
 /// <reference types="react" />
 import React, { type ReactNode } from 'react';
 
@@ -46,22 +47,16 @@ export function ErrorFallback({
         <strong>{title}</strong>
         {message && <p style={{ margin: '4px 0 0 0', fontSize: '14px' }}>{message}</p>}
         {onRetry && (
-          <button
+          <Button
             type="button"
+            variant="danger"
+            appearance="solid"
+            size="sm"
             onClick={onRetry}
-            style={{
-              marginTop: '8px',
-              padding: '4px 12px',
-              fontSize: '12px',
-              backgroundColor: 'var(--rvui-error, #c00)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
+            className="mt-2"
           >
             Retry
-          </button>
+          </Button>
         )}
       </div>
     );
@@ -120,38 +115,15 @@ export function ErrorFallback({
 
       <div style={{ marginTop: '24px', display: 'flex', gap: '12px' }}>
         {onRetry && (
-          <button
-            type="button"
-            onClick={onRetry}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: 'var(--rvui-brand, #2196f3)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-            }}
-          >
+          <Button type="button" variant="brand" appearance="solid" onClick={onRetry}>
             Try Again
-          </button>
+          </Button>
         )}
 
         {onDismiss && (
-          <button
-            type="button"
-            onClick={onDismiss}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: 'var(--rvui-surface-0, #fff)',
-              color: 'var(--rvui-text-2, #666)',
-              border: '1px solid var(--rvui-border, #ddd)',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
-          >
+          <Button type="button" variant="neutral" appearance="outline" onClick={onDismiss}>
             Dismiss
-          </button>
+          </Button>
         )}
       </div>
     </div>
@@ -181,22 +153,9 @@ export function NetworkErrorFallback({
       <h3 style={{ color: 'var(--rvui-text-1, #333)', marginTop: 0 }}>Connection Error</h3>
       <p style={{ color: 'var(--rvui-text-2, #666)', lineHeight: 1.6 }}>{message}</p>
       {onRetry && (
-        <button
-          type="button"
-          onClick={onRetry}
-          style={{
-            marginTop: '16px',
-            padding: '10px 20px',
-            backgroundColor: 'var(--rvui-brand, #2196f3)',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontWeight: 'bold',
-          }}
-        >
+        <Button type="button" variant="brand" appearance="solid" onClick={onRetry} className="mt-4">
           Retry Connection
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -227,22 +186,15 @@ export function NotFoundFallback({
       <h2 style={{ color: 'var(--rvui-text-1, #333)', marginTop: 0 }}>{title}</h2>
       <p style={{ color: 'var(--rvui-text-2, #666)', lineHeight: 1.6 }}>{message}</p>
       {onGoHome && (
-        <button
+        <Button
           type="button"
+          variant="brand"
+          appearance="solid"
           onClick={onGoHome}
-          style={{
-            marginTop: '16px',
-            padding: '10px 20px',
-            backgroundColor: 'var(--rvui-brand, #2196f3)',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontWeight: 'bold',
-          }}
+          className="mt-4"
         >
           Go Home
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -445,37 +397,14 @@ export function PermissionDeniedFallback({
       <p style={{ color: 'var(--rvui-text-2, #666)', lineHeight: 1.6 }}>{message}</p>
       <div style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'center' }}>
         {onRequestAccess && (
-          <button
-            type="button"
-            onClick={onRequestAccess}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: 'var(--rvui-brand, #2196f3)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-            }}
-          >
+          <Button type="button" variant="brand" appearance="solid" onClick={onRequestAccess}>
             Request Access
-          </button>
+          </Button>
         )}
         {onGoBack && (
-          <button
-            type="button"
-            onClick={onGoBack}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: 'var(--rvui-surface-0, #fff)',
-              color: 'var(--rvui-text-2, #666)',
-              border: '1px solid var(--rvui-border, #ddd)',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
-          >
+          <Button type="button" variant="neutral" appearance="outline" onClick={onGoBack}>
             Go Back
-          </button>
+          </Button>
         )}
       </div>
     </div>
@@ -624,21 +553,17 @@ export function InlineError({
         {message}
       </span>
       {onDismiss && (
-        <button
+        <Button
           type="button"
+          variant="danger"
+          appearance="ghost"
+          size="icon"
           onClick={onDismiss}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--rvui-error, #c00)',
-            cursor: 'pointer',
-            fontSize: '18px',
-            padding: '0 4px',
-          }}
           aria-label="Dismiss"
+          className="size-8"
         >
           ×
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -672,21 +597,17 @@ export function SuccessMessage({
         {message}
       </span>
       {onDismiss && (
-        <button
+        <Button
           type="button"
+          variant="success"
+          appearance="ghost"
+          size="icon"
           onClick={onDismiss}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--rvui-success, #060)',
-            cursor: 'pointer',
-            fontSize: '18px',
-            padding: '0 4px',
-          }}
           aria-label="Dismiss"
+          className="size-8"
         >
           ×
-        </button>
+        </Button>
       )}
     </output>
   );
@@ -765,21 +686,18 @@ export function Toast({
       <span style={{ fontSize: '20px' }}>{color.icon}</span>
       <span style={{ flex: 1 }}>{message}</span>
       {onDismiss && (
-        <button
+        <Button
           type="button"
+          variant="neutral"
+          appearance="ghost"
+          size="icon"
           onClick={onDismiss}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: color.text,
-            cursor: 'pointer',
-            fontSize: '20px',
-            padding: '0 4px',
-          }}
           aria-label="Dismiss"
+          className="size-8"
+          style={{ color: color.text }}
         >
           ×
-        </button>
+        </Button>
       )}
     </div>
   );

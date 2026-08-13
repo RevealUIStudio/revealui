@@ -4,6 +4,7 @@
  * Catch and handle React component errors gracefully
  */
 
+import { Button } from '@revealui/presentation';
 /// <reference types="react" />
 import React, { Component, type ReactNode } from 'react';
 import { logger } from '../observability/logger.js';
@@ -201,21 +202,9 @@ function DefaultErrorFallback({
         </details>
       )}
 
-      <button
-        type="button"
-        onClick={onReset}
-        style={{
-          marginTop: '16px',
-          padding: '8px 16px',
-          backgroundColor: 'var(--rvui-brand, #2196f3)',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer',
-        }}
-      >
+      <Button type="button" variant="brand" appearance="solid" onClick={onReset} className="mt-4">
         Try again
-      </button>
+      </Button>
     </div>
   );
 }

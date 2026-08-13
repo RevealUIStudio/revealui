@@ -15,6 +15,7 @@ export {
   materializeGrokPointer,
   materializeManager,
   materializeOpenCodeStub,
+  materializeRevDevPointer,
   writeManager,
   writeManagerPreserving,
 } from './materialize.js';

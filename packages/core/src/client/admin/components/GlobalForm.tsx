@@ -1,4 +1,5 @@
 'use client';
+import { Button, Checkbox, Input, Select, Textarea } from '@revealui/presentation';
 import type React from 'react';
 import { useState } from 'react';
 import type { RevealDocument, RevealGlobalConfig, RevealUIField } from '../../../types/index.js';
@@ -94,20 +95,12 @@ export function GlobalForm({
           ))}
 
           <div className="flex justify-end space-x-3 pt-6">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="bg-card py-2 px-4 border border-input rounded-md shadow-sm text-sm font-medium text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-ring"
-            >
+            <Button type="button" variant="neutral" appearance="outline" onClick={onCancel}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            </Button>
+            <Button type="submit" variant="brand" appearance="solid" disabled={isLoading}>
               {isLoading ? 'Saving...' : 'Save'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -122,13 +115,12 @@ interface FieldInputProps {
 }
 
 function FieldInput({ field, value, onChange }: FieldInputProps) {
-  const baseClasses =
-    'mt-1 block w-full border-input rounded-md shadow-sm focus:ring-ring focus:border-primary sm:text-sm';
+  const baseClasses = 'mt-1';
 
   switch (field.type) {
     case 'text':
       return (
-        <input
+        <Input
           type="text"
           id={field.name}
           value={formatTextValue(value)}
@@ -140,7 +132,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
 
     case 'textarea':
       return (
-        <textarea
+        <Textarea
           id={field.name}
           value={formatTextValue(value)}
           onChange={(e) => onChange(e.target.value)}
@@ -152,7 +144,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
 
     case 'number':
       return (
-        <input
+        <Input
           type="number"
           id={field.name}
           value={typeof value === 'number' ? value : value ? Number(value) : ''}
@@ -166,18 +158,16 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
 
     case 'checkbox':
       return (
-        <input
-          type="checkbox"
-          id={field.name}
+        <Checkbox
           checked={Boolean(value)}
-          onChange={(e) => onChange(e.target.checked)}
-          className="h-4 w-4 text-primary focus:ring-ring border-input rounded"
+          onChange={(checked) => onChange(checked)}
+          name={field.name}
         />
       );
 
     case 'select':
       return (
-        <select
+        <Select
           id={field.name}
           value={formatTextValue(value)}
           onChange={(e) => onChange(e.target.value)}
@@ -194,12 +184,12 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
               </option>
             );
           })}
-        </select>
+        </Select>
       );
 
     case 'date':
       return (
-        <input
+        <Input
           type="datetime-local"
           id={field.name}
           value={formatDateInputValue(value)}
@@ -211,7 +201,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
 
     default:
       return (
-        <input
+        <Input
           type="text"
           id={field.name}
           value={formatTextValue(value)}

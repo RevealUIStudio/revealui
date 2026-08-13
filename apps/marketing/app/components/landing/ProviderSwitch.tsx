@@ -19,7 +19,9 @@ export function ProviderSwitch() {
     <div className="mx-auto mt-12 max-w-3xl rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
       <div className="text-center">
         <p className="text-xs font-semibold uppercase tracking-widest text-primary">{P.eyebrow}</p>
-        <h3 className="mt-2 text-xl font-semibold text-foreground">{P.heading}</h3>
+        <h3 className="mt-2 font-display text-xl font-semibold tracking-tight text-foreground">
+          {P.heading}
+        </h3>
       </div>
 
       <div
@@ -39,12 +41,16 @@ export function ProviderSwitch() {
               variant={selected ? 'brand' : 'neutral'}
               size="sm"
               onClick={() => setMode(m)}
-              className={`w-full justify-center gap-2 rounded-lg ${
-                selected ? 'shadow-sm ring-1 ring-border' : ''
-              }`}
+              className={`w-full justify-center gap-2 rounded-lg ${selected ? 'shadow-sm' : ''}`}
             >
               {P.modes[m].label}
-              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[0.65rem] font-semibold uppercase text-primary">
+              <span
+                className={
+                  selected
+                    ? 'rounded-full bg-primary-foreground/15 px-2 py-0.5 text-[0.65rem] font-semibold uppercase text-primary-foreground'
+                    : 'rounded-full bg-primary/10 px-2 py-0.5 text-[0.65rem] font-semibold uppercase text-primary'
+                }
+              >
                 {P.modes[m].badge}
               </span>
             </Button>
@@ -65,13 +71,13 @@ export function ProviderSwitch() {
         ))}
       </dl>
 
-      <div className="mt-4 rounded-xl bg-primary/5 p-4 ring-1 ring-primary/20">
-        <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+      <div className="mt-5 rounded-xl bg-secondary/60 p-4 ring-1 ring-border">
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           {P.constant.label}
         </p>
-        <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 list-none p-0">
+        <ul className="mt-2 flex list-none flex-wrap gap-x-4 gap-y-1 p-0">
           {P.constant.items.map((item) => (
-            <li key={item} className="text-sm text-foreground">
+            <li key={item} className="text-sm leading-6 text-body">
               {item}
             </li>
           ))}

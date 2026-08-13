@@ -20,6 +20,7 @@
     "@revealui/db": "latest",
     "@revealui/auth": "latest",
     "@revealui/contracts": "latest",
+    "@revealui/presentation": "latest",
     "next": "^16.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

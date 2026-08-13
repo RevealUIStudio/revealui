@@ -1,3 +1,5 @@
+import { IconCheck, IconPrimitiveContent, IconSettings } from '@revealui/presentation';
+
 // Local Metadata type to avoid dependency on Next.js
 interface Metadata {
   title?: string;
@@ -65,21 +67,11 @@ export function RootPage({ config }: RootPageProps) {
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <svg
+                    <IconPrimitiveContent
+                      size="lg"
                       className="h-8 w-8 text-muted-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <title>Collections icon</title>
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                      />
-                    </svg>
+                      label="Collections"
+                    />
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
@@ -116,21 +108,11 @@ export function RootPage({ config }: RootPageProps) {
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <svg
+                    <IconSettings
+                      size="lg"
                       className="h-8 w-8 text-muted-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <title>Globals icon</title>
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
-                      />
-                    </svg>
+                      label="Globals"
+                    />
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
@@ -168,21 +150,11 @@ export function RootPage({ config }: RootPageProps) {
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <div className="h-8 w-8 bg-success/15 rounded-full flex items-center justify-center">
-                      <svg
+                      <IconCheck
+                        size="sm"
                         className="h-5 w-5 text-success"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                      >
-                        <title>System operational</title>
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
+                        label="System operational"
+                      />
                     </div>
                   </div>
                   <div className="ml-5 w-0 flex-1">

@@ -25,7 +25,7 @@ type DateType = (typeof dateTypes)[number];
 
 type InputProps = {
   className?: string;
-  type?: 'email' | 'number' | 'password' | 'search' | 'tel' | 'text' | 'url' | DateType;
+  type?: 'email' | 'file' | 'number' | 'password' | 'search' | 'tel' | 'text' | 'url' | DateType;
   disabled?: boolean;
   invalid?: boolean;
   ref?: React.Ref<HTMLInputElement>;

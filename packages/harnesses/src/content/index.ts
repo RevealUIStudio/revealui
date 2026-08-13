@@ -68,6 +68,8 @@ export {
   RuleSchema,
   SkillSchema,
 } from './schemas/index.js';
+export type { SkillCatalogEntry, SkillCatalogSource } from './skill-catalog.js';
+export { listSkillCatalog, skimSkillFrontmatter } from './skill-catalog.js';
 export type {
   ContentSnapshot,
   ContentSnapshotFile,

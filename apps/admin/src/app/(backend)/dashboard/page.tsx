@@ -3,6 +3,7 @@ import { serializeConfig } from '@revealui/core/admin/utils/serializeConfig';
 import type { RevealConfig } from '@revealui/core/types/core';
 import { IconSettings } from '@revealui/presentation';
 import Link from 'next/link';
+import HomeOnboarding from '@/lib/components/BeforeDashboard/HomeOnboarding';
 import config from '../../../../revealui.config';
 
 // Static route for /dashboard — wins over (frontend)/[slug] dynamic route.
@@ -30,7 +31,11 @@ export default async function Page() {
       >
         <IconSettings size="md" />
       </Link>
-      <AdminDashboard config={serializedConfig} siteName={siteName} />
+      <AdminDashboard
+        config={serializedConfig}
+        siteName={siteName}
+        overviewLead={<HomeOnboarding />}
+      />
     </div>
   );
 }

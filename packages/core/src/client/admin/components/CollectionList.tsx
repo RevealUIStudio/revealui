@@ -1,4 +1,5 @@
 'use client';
+import { Button, Checkbox, IconPlus } from '@revealui/presentation';
 import type React from 'react';
 import { useState } from 'react';
 import type {
@@ -130,25 +131,10 @@ export function CollectionList({
             {totalDocs} {totalDocs === 1 ? 'document' : 'documents'}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onCreate}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-ring"
-        >
-          <svg
-            className="-ml-1 mr-2 h-5 w-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            role="img"
-            focusable="false"
-          >
-            <title>Create New</title>
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
+        <Button type="button" variant="brand" appearance="solid" onClick={onCreate}>
+          <IconPlus size="sm" label="Create New" className="-ml-1 mr-2" />
           Create New
-        </button>
+        </Button>
       </div>
 
       {/* Bulk action toolbar */}
@@ -156,32 +142,39 @@ export function CollectionList({
         <div className="bg-primary/10 border-y border-primary/20 px-4 py-2 flex items-center gap-3">
           <span className="text-sm font-medium text-primary">{selectedIds.size} selected</span>
           {onBulkDelete && (
-            <button
+            <Button
               type="button"
+              variant="danger"
+              appearance="solid"
+              size="sm"
               onClick={() => void handleBulkAction('delete')}
               disabled={bulkLoading}
-              className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 disabled:opacity-50"
             >
               Delete
-            </button>
+            </Button>
           )}
           {onBulkPublish && (
-            <button
+            <Button
               type="button"
+              variant="success"
+              appearance="solid"
+              size="sm"
               onClick={() => void handleBulkAction('publish')}
               disabled={bulkLoading}
-              className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-md text-success bg-success/15 hover:bg-success/25 disabled:opacity-50"
             >
               Publish
-            </button>
+            </Button>
           )}
-          <button
+          <Button
             type="button"
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             onClick={() => setSelectedIds(new Set())}
-            className="ml-auto text-xs text-muted-foreground hover:text-foreground"
+            className="ml-auto"
           >
             Clear selection
-          </button>
+          </Button>
         </div>
       )}
 
@@ -191,14 +184,10 @@ export function CollectionList({
             <tr>
               {hasBulk && (
                 <th scope="col" className="w-10 px-3 py-3">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={allSelected}
-                    ref={(el) => {
-                      if (el) el.indeterminate = someSelected;
-                    }}
-                    onChange={toggleAll}
-                    className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
+                    indeterminate={someSelected}
+                    onChange={() => toggleAll()}
                     aria-label="Select all"
                   />
                 </th>
@@ -225,13 +214,16 @@ export function CollectionList({
                   className="px-6 py-4 text-center text-sm text-muted-foreground"
                 >
                   No documents found.{' '}
-                  <button
+                  <Button
                     type="button"
+                    variant="brand"
+                    appearance="link"
+                    size="clear"
                     onClick={onCreate}
-                    className="text-primary hover:text-primary/80"
+                    className="inline p-0 h-auto"
                   >
                     Create the first one
-                  </button>
+                  </Button>
                   .
                 </td>
               </tr>
@@ -245,11 +237,9 @@ export function CollectionList({
                   >
                     {hasBulk && (
                       <td className="w-10 px-3 py-4">
-                        <input
-                          type="checkbox"
+                        <Checkbox
                           checked={selectedIds.has(docId)}
                           onChange={() => toggleOne(docId)}
-                          className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
                           aria-label={`Select ${docId}`}
                         />
                       </td>
@@ -263,22 +253,26 @@ export function CollectionList({
                       </td>
                     ))}
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                      <button
+                      <Button
                         type="button"
+                        variant="brand"
+                        appearance="link"
+                        size="sm"
                         onClick={() => onEdit(doc)}
-                        className="text-primary hover:text-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={deleting !== null}
                       >
                         Edit
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
+                        variant="danger"
+                        appearance="link"
+                        size="sm"
                         onClick={() => onDelete(doc)}
-                        className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={deleting !== null}
                       >
                         {deleting === docId ? 'Deleting...' : 'Delete'}
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 );
@@ -292,22 +286,25 @@ export function CollectionList({
       {totalPages > 1 && (
         <div className="bg-card px-4 py-3 flex items-center justify-between border-t border-border sm:px-6">
           <div className="flex-1 flex justify-between sm:hidden">
-            <button
+            <Button
               type="button"
+              variant="neutral"
+              appearance="outline"
               onClick={() => onPageChange(page - 1)}
               disabled={page <= 1}
-              className="relative inline-flex items-center px-4 py-2 border border-input text-sm font-medium rounded-md text-foreground bg-card hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="neutral"
+              appearance="outline"
               onClick={() => onPageChange(page + 1)}
               disabled={page >= totalPages}
-              className="ml-3 relative inline-flex items-center px-4 py-2 border border-input text-sm font-medium rounded-md text-foreground bg-card hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+              className="ml-3"
             >
               Next
-            </button>
+            </Button>
           </div>
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
@@ -318,22 +315,28 @@ export function CollectionList({
             </div>
             <div>
               <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                <button
+                <Button
                   type="button"
+                  variant="neutral"
+                  appearance="outline"
+                  size="sm"
                   onClick={() => onPageChange(page - 1)}
                   disabled={page <= 1}
-                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-input bg-card text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-r-none"
                 >
                   Previous
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="neutral"
+                  appearance="outline"
+                  size="sm"
                   onClick={() => onPageChange(page + 1)}
                   disabled={page >= totalPages}
-                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-input bg-card text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-l-none"
                 >
                   Next
-                </button>
+                </Button>
               </nav>
             </div>
           </div>
