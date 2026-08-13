@@ -32,7 +32,7 @@ export function ProductsHero({
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-background to-blue-500/10"
+        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-background to-background"
       />
       <h1
         className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
