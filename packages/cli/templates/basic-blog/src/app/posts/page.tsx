@@ -1,3 +1,5 @@
+import { Heading, LinkButton, Text } from '@revealui/presentation';
+
 const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000';
 
 interface Post {
@@ -29,29 +31,35 @@ export default async function PostsPage() {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-16">
-      <h1 className="mb-8 text-3xl font-bold">Blog</h1>
+      <Heading className="mb-8">Blog</Heading>
 
       {posts.length === 0 ? (
-        <p className="text-gray-500">
+        <Text>
           No posts yet. Create your first post in the{' '}
-          <a href="/admin/collections/posts" className="text-accent underline">
+          <LinkButton href="/admin/collections/posts" appearance="link" size="sm">
             admin panel
-          </a>
+          </LinkButton>
           , or run <code className="rounded bg-gray-100 px-1">pnpm db:seed</code> to add sample
           data.
-        </p>
+        </Text>
       ) : (
         <ul className="space-y-6">
           {posts.map((post) => (
             <li key={post.id}>
-              <a href={`/posts/${post.slug}`} className="group block">
-                <h2 className="text-xl font-semibold group-hover:text-accent">{post.title}</h2>
+              <LinkButton
+                href={`/posts/${post.slug}`}
+                appearance="link"
+                className="h-auto flex-col items-start"
+              >
+                <Heading level={2} className="text-xl">
+                  {post.title}
+                </Heading>
                 {post.publishedAt && (
                   <time className="text-sm text-gray-500">
                     {new Date(post.publishedAt).toLocaleDateString()}
                   </time>
                 )}
-              </a>
+              </LinkButton>
             </li>
           ))}
         </ul>

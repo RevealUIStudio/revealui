@@ -1,8 +1,23 @@
-import { Router, RouterProvider, Routes } from '@revealui/router';
+import { Heading, LinkBehaviorProvider, LinkButton, Text } from '@revealui/presentation';
+import { Link, Router, RouterProvider, Routes } from '@revealui/router';
 import { RootLayout } from './layouts/RootLayout.js';
 import { HomePage } from './routes/HomePage.js';
 
 const router = new Router();
+
+function NotFoundPage(): React.ReactNode {
+  return (
+    <main className="mx-auto max-w-xl px-4 py-16">
+      <Heading>Page not found</Heading>
+      <Text className="mt-3">
+        The page you are looking for does not exist.{' '}
+        <LinkButton href="/" appearance="link" size="sm">
+          Return home
+        </LinkButton>
+      </Text>
+    </main>
+  );
+}
 
 router.registerRoutes([
   {
@@ -12,17 +27,7 @@ router.registerRoutes([
   },
   {
     path: '/*notfound',
-    component: () => (
-      <main className="mx-auto max-w-xl px-4 py-16">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">Page not found</h1>
-        <p className="mt-3 text-gray-600">
-          The page you are looking for does not exist.{' '}
-          <a href="/" className="font-medium text-emerald-600 hover:text-emerald-700">
-            Return home
-          </a>
-        </p>
-      </main>
-    ),
+    component: NotFoundPage,
     layout: RootLayout,
   },
 ]);
@@ -30,7 +35,9 @@ router.registerRoutes([
 export function App(): React.ReactNode {
   return (
     <RouterProvider router={router}>
-      <Routes />
+      <LinkBehaviorProvider component={Link} hrefProp="to">
+        <Routes />
+      </LinkBehaviorProvider>
     </RouterProvider>
   );
 }

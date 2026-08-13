@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@import '@revealui/presentation/tokens.css';
+@source '../../node_modules/@revealui/presentation/dist/**/*.js';
 
 /*
   Tailwind v4 ships with a sensible default theme. Customize via @theme directive

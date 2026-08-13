@@ -1,3 +1,4 @@
+import { Heading, LinkButton, Text } from '@revealui/presentation';
 import Image from 'next/image';
 
 const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000';
@@ -33,24 +34,25 @@ export default async function ProductsPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-16">
-      <h1 className="mb-8 text-3xl font-bold">Products</h1>
+      <Heading className="mb-8">Products</Heading>
 
       {products.length === 0 ? (
-        <p className="text-gray-500">
+        <Text>
           No products yet. Add products in the{' '}
-          <a href="/admin/collections/products" className="text-accent underline">
+          <LinkButton href="/admin/collections/products" appearance="link" size="sm">
             admin panel
-          </a>
+          </LinkButton>
           , or run <code className="rounded bg-gray-100 px-1">pnpm db:seed</code> to add sample
           data.
-        </p>
+        </Text>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => (
-            <a
+            <LinkButton
               key={product.id}
               href={`/products/${product.slug}`}
-              className="group rounded-lg border border-gray-200 p-4 transition-shadow hover:shadow-md"
+              appearance="link"
+              className="h-auto flex-col items-start rounded-lg border border-gray-200 p-4 transition-shadow hover:shadow-md"
             >
               {product.image?.url && (
                 <Image
@@ -61,9 +63,11 @@ export default async function ProductsPage() {
                   className="mb-4 aspect-square w-full rounded object-cover"
                 />
               )}
-              <h2 className="font-semibold group-hover:text-accent">{product.name}</h2>
-              <p className="mt-1 text-lg font-bold text-gray-900">{formatPrice(product.price)}</p>
-            </a>
+              <Heading level={2} className="text-base">
+                {product.name}
+              </Heading>
+              <Text className="mt-1 text-lg font-bold">{formatPrice(product.price)}</Text>
+            </LinkButton>
           ))}
         </div>
       )}
