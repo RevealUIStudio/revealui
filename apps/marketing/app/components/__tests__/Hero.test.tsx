@@ -48,14 +48,17 @@ describe('Hero (marketing craft hierarchy)', () => {
     );
   });
 
-  it('lists trust signals without brand-dot chrome', () => {
+  it('lists trust signals without brand-dot chrome (sm+; hidden on phone)', () => {
     renderHero();
-    expect(screen.getByText('Open source')).toBeInTheDocument();
+    // Present in DOM for a11y/desktop; `hidden sm:flex` demotes phone chrome.
+    const openSource = screen.getByText('Open source');
+    expect(openSource).toBeInTheDocument();
     expect(screen.getByText('Self-hostable')).toBeInTheDocument();
     expect(screen.getByText('Local-first AI')).toBeInTheDocument();
-    // No decorative primary dots in the trust strip (craft: separators only).
-    const list = screen.getByText('Open source').closest('ul');
+    const list = openSource.closest('ul');
     expect(list).toBeTruthy();
+    expect(list?.className).toMatch(/hidden/);
+    expect(list?.className).toMatch(/sm:flex/);
     expect(list?.querySelectorAll('.bg-primary').length ?? 0).toBe(0);
   });
 

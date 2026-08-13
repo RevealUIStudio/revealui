@@ -18,8 +18,8 @@ import { selectHomeHero } from '../../lib/hero-variant';
 import { AudienceToggle } from './AudienceToggle';
 
 // Shared trust strip (the signals the retired eyebrow pill used to carry).
-// Rendered for both audiences. Separators (not brand dots) keep chrome quiet —
-// Linear craft: limit decoration; hierarchy from type weight and spacing.
+// Separators (not brand dots). Hidden on small viewports so first screen is
+// H1 + CTA + receipt (GAP-480 residual viewport discipline).
 const TRUST_SIGNALS = ['Open source', 'Self-hostable', 'Local-first AI'] as const;
 
 /**
@@ -38,9 +38,7 @@ function HeroBackground() {
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
     >
-      {/* Edge-to-edge wash across the whole stage */}
       <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.07] via-background to-background" />
-      {/* Viewport-relative radial — soft top center, not a content-sized blob */}
       <div
         className={[
           'absolute left-1/2 top-0 -translate-x-1/2 -translate-y-[15%]',
@@ -54,10 +52,10 @@ function HeroBackground() {
   );
 }
 
-/** Trust strip: vertical rules between labels, no brand-dot decoration. */
+/** Trust strip: sm+ only so phone first viewport owns H1 → CTA → receipt. */
 function TrustStrip() {
   return (
-    <ul className="mt-8 flex list-none flex-wrap items-center justify-center gap-y-2 p-0 text-sm text-body">
+    <ul className="mt-5 hidden list-none flex-wrap items-center justify-center gap-y-2 p-0 text-sm text-body sm:mt-7 sm:flex">
       {TRUST_SIGNALS.map((signal, index) => (
         <li key={signal} className="flex items-center">
           {index > 0 ? (
@@ -80,15 +78,15 @@ function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
         - subtitle = text-body (rvui-text-1) for long reading, not muted
         - trust / captions = muted only when meta
       */}
-      <h1 className="text-balance font-display text-[2.75rem] font-extrabold leading-[1.05] tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
+      <h1 className="text-balance font-display text-[2.5rem] font-extrabold leading-[1.05] tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
         {hero.h1}
       </h1>
 
-      <p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-body sm:mt-8 sm:text-xl">
+      <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-body sm:mt-7 sm:text-xl sm:leading-8">
         {hero.subtitle.sentence1} {hero.subtitle.sentence2} {hero.subtitle.support}
       </p>
 
-      <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:mt-10 sm:flex-row sm:gap-4">
+      <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:mt-9 sm:flex-row sm:gap-4">
         <Button asChild size="lg" glow className="w-full gap-2 sm:w-auto">
           <a href={hero.cta.primary.href}>
             {hero.cta.primary.label}
@@ -123,7 +121,7 @@ function NonTechnicalHero() {
   const hero = FOR_OPERATORS_HERO;
   return (
     <>
-      <h1 className="text-balance font-display text-[2.75rem] font-extrabold leading-[1.05] tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
+      <h1 className="text-balance font-display text-[2.5rem] font-extrabold leading-[1.05] tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
         {hero.h1Lines.map((line) => (
           <span key={line} className="block">
             {line}
@@ -131,11 +129,11 @@ function NonTechnicalHero() {
         ))}
       </h1>
 
-      <p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-body sm:mt-8 sm:text-xl">
+      <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-body sm:mt-7 sm:text-xl sm:leading-8">
         {hero.subtitle}
       </p>
 
-      <div className="mt-9 flex justify-center sm:mt-10">
+      <div className="mt-6 flex justify-center sm:mt-9">
         <Button asChild size="lg" glow className="w-full gap-2 sm:w-auto">
           <a href={hero.primaryCta.href} target="_blank" rel="noopener noreferrer">
             {hero.primaryCta.label}
@@ -168,8 +166,7 @@ export function Hero() {
       ].join(' ')}
     >
       <div className="mx-auto max-w-3xl text-center">
-        {/* Audience switch: replaces the former eyebrow pill. */}
-        <div className="mb-7 flex justify-center sm:mb-8">
+        <div className="mb-4 flex justify-center sm:mb-7">
           <AudienceToggle current={audience} />
         </div>
 
@@ -178,14 +175,14 @@ export function Hero() {
 
       {/* Receipt-motif moment (frontend-excellence Phase 5): one orchestrated
           print entrance, shared verbatim by both audience variants. */}
-      <div className="mx-auto mt-12 w-full min-w-0 max-w-md text-left sm:mt-14 sm:max-w-lg">
+      <div className="mx-auto mt-8 w-full min-w-0 max-w-md text-left sm:mt-12 sm:max-w-lg">
         <ReceiptCard
           title={RECEIPT_HERO_TITLE}
           lines={[...RECEIPT_HERO_LINES]}
           integrity={RECEIPT_HERO_INTEGRITY}
           animate="print"
         />
-        <p className="mt-4 text-center text-sm text-body">
+        <p className="mt-3 text-center text-sm text-body sm:mt-4">
           {RECEIPT_HERO_CAPTION.text}{' '}
           <Link
             to={RECEIPT_HERO_CAPTION.link.href}
