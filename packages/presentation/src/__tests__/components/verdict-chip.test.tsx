@@ -19,10 +19,10 @@ describe('VerdictChip', () => {
 
   it('maps each verdict to its semantic --rvui-* token classes', () => {
     const cases: Array<[Parameters<typeof VerdictChip>[0]['verdict'], string]> = [
-      ['approve', 'text-[var(--rvui-success)]'],
-      ['request-changes', 'text-[var(--rvui-error)]'],
-      ['hold', 'text-[var(--rvui-warning)]'],
-      ['pending', 'text-[var(--rvui-text-2)]'],
+      ['approve', 'text-[var(--rvui-success-text)]'],
+      ['request-changes', 'text-[var(--rvui-error-text)]'],
+      ['hold', 'text-[var(--rvui-warning-text)]'],
+      ['pending', 'text-[var(--rvui-text-1)]'],
     ];
     for (const [verdict, token] of cases) {
       const { unmount } = render(<VerdictChip verdict={verdict} />);
