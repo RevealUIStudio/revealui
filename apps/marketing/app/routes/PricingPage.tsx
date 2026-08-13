@@ -200,7 +200,7 @@ export function PricingPage() {
                 className="rounded-full"
               >
                 Annually
-                <span className="ml-1.5 rounded-full bg-success/15 px-1.5 py-0.5 text-xs font-semibold text-success">
+                <span className="ml-1.5 rounded-full bg-success-strong px-1.5 py-0.5 text-xs font-semibold text-success-foreground">
                   Save 20%
                 </span>
               </Button>
