@@ -25,6 +25,12 @@ export interface MarketingSectionProps extends React.ComponentPropsWithoutRef<'s
    * Prefer false unless embedding full-bleed media.
    */
   bleed?: boolean;
+  /**
+   * Full-bleed layer painted on the outer section (not the max-width rail).
+   * Use for hero washes/glows so decoration is viewport-wide, not content-boxed.
+   * Caller should use absolute inset-0 (or similar) and aria-hidden as needed.
+   */
+  backdrop?: React.ReactNode;
   /** Classes for the inner max-width container. */
   innerClassName?: string;
 }
@@ -61,6 +67,7 @@ export function MarketingSection({
   width = 'default',
   density = 'default',
   bleed = false,
+  backdrop,
   className,
   innerClassName,
   children,
@@ -72,10 +79,19 @@ export function MarketingSection({
       data-tone={tone}
       data-density={density}
       data-width={width}
-      className={cn(toneClass[tone], densityClass[density], !bleed && 'px-6 lg:px-8', className)}
+      data-has-backdrop={backdrop != null ? 'true' : undefined}
+      className={cn(
+        toneClass[tone],
+        densityClass[density],
+        !bleed && 'px-6 lg:px-8',
+        // Backdrop is position:absolute relative to this outer section (full bleed).
+        backdrop != null && 'relative isolate',
+        className,
+      )}
       {...props}
     >
-      <div className={cn('relative mx-auto w-full', widthClass[width], innerClassName)}>
+      {backdrop}
+      <div className={cn('relative z-0 mx-auto w-full', widthClass[width], innerClassName)}>
         {children}
       </div>
     </section>

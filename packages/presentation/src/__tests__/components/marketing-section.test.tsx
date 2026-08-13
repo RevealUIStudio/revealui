@@ -57,6 +57,28 @@ describe('MarketingSection', () => {
     expect(section).toHaveClass('isolate');
     expect(section).toHaveClass('overflow-hidden');
   });
+
+  it('paints backdrop on the outer section, not the max-width rail', () => {
+    render(
+      <MarketingSection
+        width="narrow"
+        backdrop={
+          <div data-testid="full-bleed-backdrop" className="absolute inset-0" aria-hidden="true" />
+        }
+      >
+        <span>Content</span>
+      </MarketingSection>,
+    );
+    const section = screen.getByText('Content').closest('section');
+    expect(section).toHaveAttribute('data-has-backdrop', 'true');
+    expect(section).toHaveClass('relative');
+    const backdrop = screen.getByTestId('full-bleed-backdrop');
+    // Backdrop is a direct child of the section (full bleed), not inside max-w rail.
+    expect(backdrop.parentElement).toBe(section);
+    const rail = screen.getByText('Content').parentElement;
+    expect(rail).toHaveClass('max-w-3xl');
+    expect(rail?.contains(backdrop)).toBe(false);
+  });
 });
 
 describe('SectionHeader', () => {

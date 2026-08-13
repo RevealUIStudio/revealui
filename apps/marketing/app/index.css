@@ -35,6 +35,8 @@
   --rvui-font-sans: 'Inter Variable', 'Inter', system-ui, sans-serif;
   --rvui-font-display: 'Inter Tight Variable', 'Inter Tight', 'Inter', system-ui, sans-serif;
   --rvui-font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  /* Sticky marketing NavBar row height (h-16). Hero stage min-height uses this. */
+  --marketing-nav-h: 4rem;
 }
 
 /* Tailwind v4 does not scan node_modules by default. Without this, the utility

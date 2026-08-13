@@ -57,19 +57,14 @@ function FairSourceContract({ data, path, annotation }: ContractProps) {
           <div
             key={c.title}
             className={`rounded-2xl p-6 ring-1 transition sm:p-8 ${
-              c.kind === 'yes'
-                ? 'bg-primary/10 ring-primary/20'
-                : 'bg-amber-500/15 ring-amber-500/30'
+              c.kind === 'yes' ? 'bg-primary/10 ring-primary/20' : 'bg-muted ring-border'
             }`}
           >
             <div className="flex items-start gap-3">
               {c.kind === 'yes' ? (
                 <IconCheckCircle size="md" className="mt-0.5 flex-shrink-0 text-primary" />
               ) : (
-                <IconXCircle
-                  size="md"
-                  className="mt-0.5 flex-shrink-0 text-amber-800 dark:text-amber-200"
-                />
+                <IconXCircle size="md" className="mt-0.5 flex-shrink-0 text-muted-foreground" />
               )}
               <div>
                 <h3
@@ -129,7 +124,7 @@ function FairSourcePackagesIntro({ data, path, annotation }: PackagesIntroProps)
                 </td>
                 <td className="px-6 py-4 text-muted-foreground">{p.purpose}</td>
                 <td className="px-6 py-4">
-                  <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800 ring-1 ring-amber-200">
+                  <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary ring-1 ring-primary/20">
                     {p.license}
                   </span>
                 </td>
@@ -198,7 +193,7 @@ function FairSourceClock({ data, path, annotation }: ClockProps) {
             <li key={step.title} className="mb-7 last:mb-0 sm:mb-8">
               <span
                 className={`absolute -left-2.5 mt-1.5 flex h-5 w-5 items-center justify-center rounded-full ring-4 ring-background ${
-                  step.color === 'emerald' ? 'bg-primary' : 'bg-amber-600'
+                  step.color === 'emerald' ? 'bg-primary' : 'bg-muted-foreground'
                 }`}
               >
                 <span className="h-1.5 w-1.5 rounded-full bg-white" />

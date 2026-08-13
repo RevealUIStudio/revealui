@@ -273,7 +273,7 @@ export function PricingPage() {
             >
               {tier.comingSoon && (
                 <div className="absolute right-4 top-4">
-                  <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:text-amber-200">
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground ring-1 ring-border">
                     Coming soon
                   </span>
                 </div>
@@ -324,7 +324,7 @@ export function PricingPage() {
               description={PRICING_AGENTS_SECTION.subhead}
               align="center"
             />
-            <span className="mt-3 inline-block rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-800 dark:text-amber-200 ring-1 ring-amber-500/30">
+            <span className="mt-3 inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary ring-1 ring-primary/30">
               {PRICING_AGENTS_SECTION.badge}
             </span>
           </div>
@@ -352,8 +352,8 @@ export function PricingPage() {
             </div>
 
             <div className="rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 ring-1 ring-blue-500/20">
-                <IconCode size="md" className="text-blue-600" />
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
+                <IconCode size="md" className="text-primary" />
               </div>
               <h3 className="text-base font-semibold text-foreground">
                 {PRICING_AGENT_X402.heading}
@@ -362,8 +362,8 @@ export function PricingPage() {
             </div>
 
             <div className="rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-violet-500/10 ring-1 ring-violet-500/20">
-                <IconTerminal size="md" className="text-violet-600" />
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
+                <IconTerminal size="md" className="text-primary" />
               </div>
               <h3 className="text-base font-semibold text-foreground">
                 {PRICING_AGENT_MCP.heading}
@@ -371,7 +371,7 @@ export function PricingPage() {
               <p className="mt-2 text-sm text-body">{PRICING_AGENT_MCP.body}</p>
               <a
                 href={PRICING_AGENT_MCP.docsLink.href}
-                className="mt-3 inline-block text-xs font-semibold text-violet-600 hover:text-violet-700"
+                className="mt-3 inline-block text-xs font-semibold text-primary hover:text-primary/80"
               >
                 {PRICING_AGENT_MCP.docsLink.label}
               </a>
@@ -406,7 +406,7 @@ export function PricingPage() {
               {PRICING_STARTER_KIT.eyebrow}
             </span>
             {PRICING_STARTER_KIT.badge ? (
-              <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:text-amber-200">
+              <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground ring-1 ring-border">
                 {PRICING_STARTER_KIT.badge}
               </span>
             ) : null}

@@ -386,6 +386,18 @@ describe('Input', () => {
     });
   });
 
+  describe('Hidden Input', () => {
+    it('renders a native hidden input without chrome', () => {
+      const { container } = render(<Input type="hidden" name="sub" value="demo" />);
+
+      const input = container.querySelector('input[type="hidden"]');
+      expect(input).toBeInTheDocument();
+      expect(input).toHaveAttribute('name', 'sub');
+      expect(input).toHaveAttribute('value', 'demo');
+      expect(container.querySelector('[data-slot=control]')).not.toBeInTheDocument();
+    });
+  });
+
   describe('File Input', () => {
     it('should render file input', () => {
       render(<Input type="file" />);
