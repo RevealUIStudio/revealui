@@ -1,0 +1,9 @@
+{
+  "github": {
+    "enabled": false,
+    "silent": true
+  },
+  "framework": "vite",
+  "buildCommand": "pnpm turbo build --filter=marketing",
+  "outputDirectory": "apps/marketing/dist"
+}

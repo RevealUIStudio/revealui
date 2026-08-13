@@ -147,6 +147,14 @@ Non-production deploys need the `vercel alias` step. Check that:
 - `--scope` uses the correct org ID
 - The domain is configured in the Vercel project's domain settings
 
+### "No Output Directory named public"
+
+A Vercel Git Integration project is pointed at the **repo root** (dashboard Output Directory still `public`). Official apps live under `apps/*/vercel.json` and emit `dist` (or Next.js output). Production deploys are GitHub Actions only.
+
+The repo-root `vercel.json` sets `github.enabled: false` so that stray project does not deploy, and `outputDirectory` to `apps/marketing/dist` if it still builds.
+
+Also disconnect Git on the extra project: Vercel → Project → Settings → Git → Disconnect. The four production projects must keep Root Directory `apps/marketing`, `apps/docs`, `apps/admin`, or `apps/server`.
+
 ## Manual Deploy (emergency)
 
 ```bash
@@ -167,7 +175,8 @@ VERCEL_PROJECT_ID=prj_XXX vercel deploy --prebuilt --prod --token='TOKEN'
 
 - `.github/workflows/deploy.yml` — deploy workflow
 - `.github/workflows/ci.yml` — CI checks (must pass before deploy)
-- `apps/*/vercel.json` — per-app Vercel configuration (if any)
+- `apps/*/vercel.json` — per-app Vercel configuration
+- `vercel.json` — repo-root guard: disable Git Integration on a root-linked project; marketing `dist` if one still builds
 
 ## Rules
 
