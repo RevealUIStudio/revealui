@@ -1,4 +1,12 @@
+import { ReceiptCard } from '@revealui/presentation';
+import { Link } from '@revealui/router';
 import { useEffect } from 'react';
+import {
+  DOCS_RECEIPT_CAPTION,
+  DOCS_RECEIPT_INTEGRITY,
+  DOCS_RECEIPT_LINES,
+  DOCS_RECEIPT_TITLE,
+} from '../content/receipt';
 import { applyDocHead } from '../lib/head';
 import { renderMarkdown } from '../utils/markdown';
 
@@ -35,5 +43,29 @@ Open [http://localhost:4000/admin](http://localhost:4000/admin) to see the admin
 Everything else lives in the sidebar. Found a gap in these docs? See the [Contributing Guide](https://github.com/RevealUIStudio/revealui/blob/main/CONTRIBUTING.md).
 `;
 
-  return <div>{renderMarkdown(content)}</div>;
+  return (
+    <div>
+      {/*
+        Static receipt header artifact (frontend-excellence Phase 5 / GAP-480 Phase D).
+        No animate: docs stay the calmest surface. Links to audit-receipts docs.
+      */}
+      <div className="mb-10 w-full max-w-md min-w-0">
+        <ReceiptCard
+          title={DOCS_RECEIPT_TITLE}
+          lines={[...DOCS_RECEIPT_LINES]}
+          integrity={DOCS_RECEIPT_INTEGRITY}
+        />
+        <p className="mt-3 text-sm text-muted-foreground">
+          {DOCS_RECEIPT_CAPTION.text}{' '}
+          <Link
+            to={DOCS_RECEIPT_CAPTION.link.href}
+            className="font-semibold text-foreground underline-offset-4 hover:underline"
+          >
+            {DOCS_RECEIPT_CAPTION.link.label}
+          </Link>
+        </p>
+      </div>
+      {renderMarkdown(content)}
+    </div>
+  );
 }
