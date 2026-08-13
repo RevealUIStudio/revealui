@@ -7,6 +7,14 @@
 'use client';
 
 import { logger } from '@revealui/core/utils/logger';
+import {
+  CheckboxField,
+  Button as PresentationButton,
+  Checkbox as PresentationCheckbox,
+  Input as PresentationInput,
+  Select as PresentationSelect,
+  Textarea as PresentationTextarea,
+} from '@revealui/presentation';
 import React from 'react';
 
 // Form field types
@@ -38,7 +46,7 @@ export const TextInput: React.FC<TextInputProps> = ({
   disabled,
 }) => {
   return (
-    <input
+    <PresentationInput
       type="text"
       name={path}
       value={value}
@@ -170,15 +178,22 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   className,
 }) => {
+  const intent = variant === 'primary' ? 'brand' : variant === 'ghost' ? 'neutral' : 'neutral';
+  const appearance = variant === 'ghost' ? 'ghost' : variant === 'secondary' ? 'outline' : 'solid';
+  const mappedSize = size === 'sm' ? 'sm' : size === 'lg' ? 'lg' : 'default';
+
   return (
-    <button
+    <PresentationButton
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`btn btn-${variant} btn-${size} ${className || ''}`}
+      variant={intent}
+      appearance={appearance}
+      size={mappedSize}
+      className={className}
     >
       {children}
-    </button>
+    </PresentationButton>
   );
 };
 
@@ -208,7 +223,7 @@ export const SelectInput: React.FC<SelectInputProps> = ({
   disabled,
 }) => {
   return (
-    <select
+    <PresentationSelect
       name={path}
       value={value}
       onChange={(e) => onChange?.(e.target.value)}
@@ -225,7 +240,7 @@ export const SelectInput: React.FC<SelectInputProps> = ({
           {option.label}
         </option>
       ))}
-    </select>
+    </PresentationSelect>
   );
 };
 
@@ -250,7 +265,7 @@ export const Textarea: React.FC<TextareaProps> = ({
   disabled,
 }) => {
   return (
-    <textarea
+    <PresentationTextarea
       name={path}
       value={value}
       onChange={(e) => onChange?.(e.target.value)}
@@ -281,16 +296,15 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   disabled,
 }) => {
   return (
-    <label className={className}>
-      <input
-        type="checkbox"
+    <CheckboxField disabled={disabled} className={className}>
+      <PresentationCheckbox
         name={path}
         checked={checked}
-        onChange={(e) => onChange?.(e.target.checked)}
+        onChange={(next) => onChange?.(next)}
         disabled={disabled}
       />
-      {label && <span>{label}</span>}
-    </label>
+      {label ? <span>{label}</span> : null}
+    </CheckboxField>
   );
 };
 
@@ -388,9 +402,15 @@ export const FieldsDrawer: React.FC<FieldsDrawerProps> = ({
       <div className="fields-drawer">
         <div className="fields-drawer-header">
           <h3>{drawerTitle}</h3>
-          <button type="button" onClick={() => closeModal(drawerSlug)}>
+          <PresentationButton
+            type="button"
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
+            onClick={() => closeModal(drawerSlug)}
+          >
             &times;
-          </button>
+          </PresentationButton>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="fields-drawer-content">

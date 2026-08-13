@@ -8,6 +8,7 @@
 
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { logger } from '@revealui/core/utils/logger';
+import { Button, Input } from '@revealui/presentation';
 import type React from 'react';
 import { useCallback, useRef, useState } from 'react';
 import { INSERT_IMAGE_COMMAND } from '../nodes/ImageNode.js';
@@ -167,28 +168,28 @@ export const ImageUploadButton: React.FC<ImageUploadButtonProps> = ({
 
   return (
     <>
-      <input
+      <Input
         ref={fileInputRef}
         type="file"
         accept={acceptedFileTypes}
         onChange={(event) => void handleFileSelect(event)}
-        style={{ display: 'none' }}
+        className="hidden"
         aria-label="Upload image"
       />
-      <button
+      <Button
         type="button"
+        variant="neutral"
+        appearance="ghost"
+        size="sm"
         onClick={triggerFileSelect}
         disabled={isUploading}
         className="toolbar-btn"
         title={isUploading ? 'Uploading...' : 'Insert Image'}
         aria-label="Insert Image"
-        style={{
-          opacity: isUploading ? 0.6 : 1,
-          cursor: isUploading ? 'wait' : 'pointer',
-        }}
+        isLoading={isUploading}
       >
         {isUploading ? '⏳' : '🖼️'}
-      </button>
+      </Button>
     </>
   );
 };

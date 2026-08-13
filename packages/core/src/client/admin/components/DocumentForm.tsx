@@ -1,4 +1,15 @@
 'use client';
+import {
+  Button,
+  Checkbox,
+  FieldLabel,
+  Input,
+  Radio,
+  RadioField,
+  RadioGroup,
+  Select,
+  Textarea,
+} from '@revealui/presentation';
 import type React from 'react';
 import { lazy, Suspense, useCallback, useState } from 'react';
 import type { RichTextEditor as RichTextEditorConfig } from '../../../richtext/index.js';
@@ -114,7 +125,7 @@ export function DocumentForm({
                 <span className="text-red-500 ml-1">*</span>
               </label>
               <div className="mt-1">
-                <input
+                <Input
                   type="file"
                   id="__file"
                   required
@@ -144,20 +155,12 @@ export function DocumentForm({
           ))}
 
           <div className="flex justify-end space-x-3 pt-6">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="bg-card py-2 px-4 border border-input rounded-md shadow-sm text-sm font-medium text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-ring"
-            >
+            <Button type="button" variant="neutral" appearance="outline" onClick={onCancel}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            </Button>
+            <Button type="submit" variant="brand" appearance="solid" disabled={isLoading}>
               {isLoading ? 'Saving...' : 'Save'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -200,13 +203,16 @@ function ArrayFieldRenderer({
           key={`${field.name}-row-${idx.toString()}`}
           className="border border-border rounded-md p-3 space-y-2 relative"
         >
-          <button
+          <Button
             type="button"
+            variant="danger"
+            appearance="ghost"
+            size="sm"
             onClick={() => removeRow(idx)}
-            className="absolute top-2 right-2 text-red-400 hover:text-red-600 text-sm"
+            className="absolute top-2 right-2"
           >
             Remove
-          </button>
+          </Button>
           {subFields.map((sf) => (
             <div key={sf.name}>
               <label
@@ -224,13 +230,9 @@ function ArrayFieldRenderer({
           ))}
         </div>
       ))}
-      <button
-        type="button"
-        onClick={addRow}
-        className="text-sm text-primary hover:text-primary/80 font-medium"
-      >
+      <Button type="button" variant="brand" appearance="ghost" size="sm" onClick={addRow}>
         + Add item
-      </button>
+      </Button>
     </div>
   );
 }
@@ -318,13 +320,15 @@ function BlocksFieldRenderer({
               <span className="text-xs font-semibold text-muted-foreground uppercase">
                 {String(block.blockType)}
               </span>
-              <button
+              <Button
                 type="button"
+                variant="danger"
+                appearance="ghost"
+                size="sm"
                 onClick={() => removeBlock(idx)}
-                className="text-red-400 hover:text-red-600 text-sm"
               >
                 Remove
-              </button>
+              </Button>
             </div>
             {(blockDef?.fields ?? []).map((sf) => (
               <div key={sf.name}>
@@ -347,14 +351,16 @@ function BlocksFieldRenderer({
       {blockTypes.length > 0 && (
         <div className="flex gap-2 flex-wrap">
           {blockTypes.map((bt) => (
-            <button
+            <Button
               key={bt.slug}
               type="button"
+              variant="brand"
+              appearance="ghost"
+              size="sm"
               onClick={() => addBlock(bt.slug)}
-              className="text-sm text-primary hover:text-primary/80 font-medium"
             >
               + {bt.slug}
-            </button>
+            </Button>
           ))}
         </div>
       )}
@@ -387,14 +393,17 @@ function CollapsibleFieldRenderer({
 
   return (
     <div className="border border-border rounded-md">
-      <button
+      <Button
         type="button"
+        variant="neutral"
+        appearance="ghost"
+        size="clear"
         onClick={() => setOpen(!open)}
         className="w-full text-left px-3 py-2 text-sm font-medium text-foreground hover:bg-muted flex items-center justify-between"
       >
         {getFieldLabel(field)}
         <span className="text-muted-foreground">{open ? '\u25B2' : '\u25BC'}</span>
-      </button>
+      </Button>
       {open && (
         <div className="px-3 pb-3 space-y-3">
           {subFields.map((sf) => (
@@ -451,12 +460,12 @@ function JsonFieldRenderer({
 
   return (
     <div>
-      <textarea
+      <Textarea
         id={field.name}
         value={formatted}
         onChange={handleChange}
         rows={8}
-        className="mt-1 block w-full border-input rounded-md shadow-sm focus:ring-ring focus:border-primary sm:text-sm font-mono text-xs"
+        className="mt-1 font-mono text-xs"
         spellCheck={false}
       />
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
@@ -492,7 +501,7 @@ function PointFieldRenderer({
         >
           Latitude
         </label>
-        <input
+        <Input
           type="number"
           id={`${field.name}-lat`}
           value={point.lat}
@@ -510,7 +519,7 @@ function PointFieldRenderer({
         >
           Longitude
         </label>
-        <input
+        <Input
           type="number"
           id={`${field.name}-lng`}
           value={point.lng}
@@ -529,13 +538,12 @@ function PointFieldRenderer({
 // Main FieldInput  -  renders the appropriate control for each field type
 // ---------------------------------------------------------------------------
 function FieldInput({ field, value, onChange }: FieldInputProps) {
-  const baseClasses =
-    'mt-1 block w-full border-input rounded-md shadow-sm focus:ring-ring focus:border-primary sm:text-sm';
+  const baseClasses = 'mt-1';
 
   switch (field.type) {
     case 'text':
       return (
-        <input
+        <Input
           type="text"
           id={field.name}
           value={formatTextValue(value)}
@@ -547,7 +555,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
 
     case 'email':
       return (
-        <input
+        <Input
           type="email"
           id={field.name}
           value={formatTextValue(value)}
@@ -560,7 +568,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
 
     case 'password':
       return (
-        <input
+        <Input
           type="password"
           id={field.name}
           value={formatTextValue(value)}
@@ -573,7 +581,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
 
     case 'code':
       return (
-        <textarea
+        <Textarea
           id={field.name}
           value={formatTextValue(value)}
           onChange={(e) => onChange(e.target.value)}
@@ -586,7 +594,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
 
     case 'textarea':
       return (
-        <textarea
+        <Textarea
           id={field.name}
           value={formatTextValue(value)}
           onChange={(e) => onChange(e.target.value)}
@@ -598,7 +606,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
 
     case 'number':
       return (
-        <input
+        <Input
           type="number"
           id={field.name}
           value={typeof value === 'number' ? value : value ? Number(value) : ''}
@@ -612,18 +620,15 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
 
     case 'checkbox':
       return (
-        <input
-          type="checkbox"
-          id={field.name}
+        <Checkbox
           checked={Boolean(value)}
-          onChange={(e) => onChange(e.target.checked)}
-          className="h-4 w-4 text-primary focus:ring-ring border-input rounded"
+          onChange={(checked) => onChange(checked)}
+          name={field.name}
         />
       );
 
     case 'select': {
       const isMulti = (field as unknown as { hasMany?: boolean }).hasMany === true;
-      const selectClasses = `${baseClasses} text-foreground bg-card`;
       const optionNodes = field.options?.map((option) => {
         const optValue = typeof option === 'string' ? option : option.value;
         const optLabel = typeof option === 'string' ? option : option.label;
@@ -636,7 +641,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
       if (isMulti) {
         const selected = Array.isArray(value) ? (value as string[]) : value ? [String(value)] : [];
         return (
-          <select
+          <Select
             id={field.name}
             multiple
             value={selected}
@@ -644,57 +649,52 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
               const vals = Array.from(e.target.selectedOptions).map((o) => o.value);
               onChange(vals);
             }}
-            className={`${selectClasses} h-32`}
+            className={`${baseClasses} h-32`}
             required={field.required}
           >
             {optionNodes}
-          </select>
+          </Select>
         );
       }
       return (
-        <select
+        <Select
           id={field.name}
           value={formatTextValue(value)}
           onChange={(e) => onChange(e.target.value)}
-          className={selectClasses}
+          className={baseClasses}
           required={field.required}
         >
           <option value="">Select an option</option>
           {optionNodes}
-        </select>
+        </Select>
       );
     }
 
     case 'radio':
       return (
-        <div className="space-y-2 mt-1">
+        <RadioGroup
+          name={field.name}
+          value={formatTextValue(value)}
+          onChange={(next) => onChange(next)}
+          className="mt-1"
+        >
           {field.options?.map((option) => {
             const optValue = typeof option === 'string' ? option : option.value;
             const optLabel = typeof option === 'string' ? option : option.label;
             return (
-              <label
-                key={optValue}
-                className="flex items-center gap-2 text-sm text-foreground cursor-pointer"
-              >
-                <input
-                  type="radio"
-                  name={field.name}
-                  value={optValue}
-                  checked={formatTextValue(value) === optValue}
-                  onChange={() => onChange(optValue)}
-                  className="h-4 w-4 text-primary focus:ring-ring border-input"
-                />
-                {optLabel}
-              </label>
+              <RadioField key={optValue}>
+                <Radio value={optValue} />
+                <FieldLabel>{optLabel}</FieldLabel>
+              </RadioField>
             );
           })}
-        </div>
+        </RadioGroup>
       );
 
     case 'relationship':
       return (
         <div>
-          <input
+          <Input
             type="text"
             id={field.name}
             value={formatTextValue(value)}
@@ -712,7 +712,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
     case 'upload':
       return (
         <div>
-          <input
+          <Input
             type="file"
             id={field.name}
             onChange={(e) => {
@@ -729,7 +729,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
 
     case 'date':
       return (
-        <input
+        <Input
           type="datetime-local"
           id={field.name}
           value={formatDateInputValue(value)}
@@ -787,7 +787,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
 
     default:
       return (
-        <input
+        <Input
           type="text"
           id={field.name}
           value={formatTextValue(value)}

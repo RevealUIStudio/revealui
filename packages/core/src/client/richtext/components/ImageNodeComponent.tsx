@@ -7,6 +7,7 @@
  */
 
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { Button, Input } from '@revealui/presentation';
 import { $getNodeByKey } from 'lexical';
 import type React from 'react';
 import { useCallback, useState } from 'react';
@@ -97,44 +98,34 @@ export const ImageNodeComponent: React.FC<Props> = (props) => {
             pointerEvents: showControls ? 'auto' : 'none',
           }}
         >
-          <button
+          <Button
             type="button"
+            variant="neutral"
+            appearance="outline"
+            size="sm"
             onClick={handleEdit}
             className="editor-image-btn"
-            style={{
-              padding: '4px 8px',
-              background: 'white',
-              border: `1px solid var(--rvui-border, #e2e8f0)`,
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '12px',
-            }}
             title="Edit Image"
             aria-label="Edit Image"
           >
             ✎
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="neutral"
+            appearance="outline"
+            size="sm"
             onClick={removeImage}
             className="editor-image-btn"
-            style={{
-              padding: '4px 8px',
-              background: 'white',
-              border: `1px solid var(--rvui-border, #e2e8f0)`,
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '12px',
-            }}
             title="Remove Image"
             aria-label="Remove Image"
           >
             ×
-          </button>
+          </Button>
         </div>
       </div>
       {isEditing ? (
-        <input
+        <Input
           type="text"
           value={editAlt}
           onChange={(e) => setEditAlt(e.target.value)}
@@ -148,13 +139,7 @@ export const ImageNodeComponent: React.FC<Props> = (props) => {
             }
           }}
           placeholder="Image alt text"
-          style={{
-            width: '100%',
-            marginTop: '8px',
-            padding: '4px 8px',
-            border: `1px solid var(--rvui-border, #e2e8f0)`,
-            borderRadius: '4px',
-          }}
+          className="mt-2 w-full"
         />
       ) : (
         data.caption && (

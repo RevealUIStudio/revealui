@@ -1,6 +1,7 @@
 'use client';
 
 import { logger } from '@revealui/core/utils/logger';
+import { Button, IconPrimitiveContent, IconSettings } from '@revealui/presentation';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useReducer, useState } from 'react';
 import type {
@@ -128,13 +129,9 @@ function AdminHeader({ title, onBack }: { title: string; onBack: () => void }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           <div className="flex items-center space-x-4">
-            <button
-              type="button"
-              onClick={onBack}
-              className="text-muted-foreground hover:text-muted-foreground"
-            >
+            <Button type="button" variant="neutral" appearance="ghost" size="sm" onClick={onBack}>
               ← Back to Dashboard
-            </button>
+            </Button>
             <h1 className="text-2xl font-bold text-foreground capitalize">{title}</h1>
           </div>
           <SignOutButton />
@@ -192,14 +189,16 @@ function SignOutButton() {
   }, []);
 
   return (
-    <button
+    <Button
       type="button"
+      variant="neutral"
+      appearance="ghost"
+      size="sm"
       onClick={() => void handleSignOut()}
       disabled={loading}
-      className="text-sm text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-md hover:bg-muted transition-colors"
     >
       {loading ? 'Signing out...' : 'Sign Out'}
-    </button>
+    </Button>
   );
 }
 
@@ -266,39 +265,9 @@ const COLLECTION_LINK_OVERRIDES: Readonly<Record<string, string>> = {
 
 // Static icons: hoisted so the same element is reused across renders instead
 // of re-created (they take no props and never change).
-const collectionsIcon = (
-  <svg
-    className="h-5 w-5 text-muted-foreground"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    aria-hidden="true"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-    />
-  </svg>
-);
+const collectionsIcon = <IconPrimitiveContent size="sm" className="text-muted-foreground" />;
 
-const globalsIcon = (
-  <svg
-    className="h-5 w-5 text-muted-foreground"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    aria-hidden="true"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
-    />
-  </svg>
-);
+const globalsIcon = <IconSettings size="sm" className="text-muted-foreground" />;
 
 /**
  * Small local equivalents of `@revealui/presentation`'s `Badge` / `Stat` /
@@ -394,13 +363,16 @@ function CollectionGroupCard({
                   {slug}
                 </a>
               ) : (
-                <button
+                <Button
                   type="button"
+                  variant="neutral"
+                  appearance="ghost"
+                  size="clear"
                   onClick={() => onCollectionClick(collection)}
                   className={rowClassName}
                 >
                   {slug}
-                </button>
+                </Button>
               )}
             </li>
           );
@@ -435,13 +407,16 @@ function GlobalsCard({
         <ul className="divide-y divide-border">
           {globals.map((global) => (
             <li key={String(global.slug)}>
-              <button
+              <Button
                 type="button"
+                variant="neutral"
+                appearance="ghost"
+                size="clear"
                 onClick={() => onGlobalClick(global)}
                 className="flex w-full items-center px-5 py-2.5 text-left text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer"
               >
                 {global.label || String(global.slug)}
-              </button>
+              </Button>
             </li>
           ))}
         </ul>
