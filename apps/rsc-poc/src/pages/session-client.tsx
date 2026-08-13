@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@revealui/presentation';
 import { useState, useTransition } from 'react';
 import { secretPing, whoami } from './session.server.ts';
 
@@ -9,9 +10,11 @@ export function WhoamiButton(): React.ReactNode {
 
   return (
     <div>
-      <button
+      <Button
         type="button"
         disabled={pending}
+        isLoading={pending}
+        size="sm"
         onClick={() => {
           start(async () => {
             setText(await whoami());
@@ -19,7 +22,7 @@ export function WhoamiButton(): React.ReactNode {
         }}
       >
         {pending ? '…' : 'whoami()'}
-      </button>
+      </Button>
       {text !== null && (
         <pre data-whoami="" style={{ marginTop: 8 }}>
           {text}
@@ -36,9 +39,11 @@ export function SecretPingForm(): React.ReactNode {
 
   return (
     <div>
-      <button
+      <Button
         type="button"
         disabled={pending}
+        isLoading={pending}
+        size="sm"
         onClick={() => {
           start(async () => {
             setError(null);
@@ -52,7 +57,7 @@ export function SecretPingForm(): React.ReactNode {
         }}
       >
         {pending ? '…' : 'secretPing()'}
-      </button>
+      </Button>
       {text !== null && (
         <pre data-secret-ok="" style={{ marginTop: 8, color: '#166534' }}>
           {text}

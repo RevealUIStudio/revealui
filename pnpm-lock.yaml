@@ -692,6 +692,9 @@ importers:
       '@revealui/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@revealui/presentation':
+        specifier: workspace:*
+        version: link:../../packages/presentation
       '@revealui/router':
         specifier: workspace:*
         version: link:../../packages/router

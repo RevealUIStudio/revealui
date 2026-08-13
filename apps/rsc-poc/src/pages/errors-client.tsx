@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@revealui/presentation';
 import { useState } from 'react';
 
 function Bomb(): React.ReactNode {
@@ -12,9 +13,16 @@ export function ErrorsClient(): React.ReactNode {
   return (
     <section style={{ marginTop: 24 }}>
       <h2>Client render throw</h2>
-      <button type="button" onClick={() => setExplode(true)} data-errors-client-boom="">
+      <Button
+        type="button"
+        variant="danger"
+        appearance="outline"
+        size="sm"
+        onClick={() => setExplode(true)}
+        data-errors-client-boom=""
+      >
         Throw in client tree
-      </button>
+      </Button>
       {explode ? <Bomb /> : null}
     </section>
   );
