@@ -10,10 +10,10 @@ import { LIVE_METRICS as M } from '../../content/proof';
 export function LiveMetricsBadge() {
   return (
     <div className="mx-auto max-w-4xl">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
           <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-primary" />
+            <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
             {M.eyebrow}
           </p>
           <h3 className="mt-2 font-display text-lg font-semibold tracking-tight text-foreground sm:text-xl">
@@ -24,7 +24,7 @@ export function LiveMetricsBadge() {
           href={M.validatorHref}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
+          className="shrink-0 text-sm font-medium text-primary underline decoration-primary/40 underline-offset-4 transition-colors hover:text-primary/80"
         >
           {M.validatorLabel}
         </a>
@@ -33,10 +33,10 @@ export function LiveMetricsBadge() {
       <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-border ring-1 ring-border sm:grid-cols-3 lg:grid-cols-6">
         {M.metrics.map((m) => (
           <div key={m.label} className="bg-card px-3 py-5 text-center sm:px-4 sm:py-6">
-            <dd className="font-display text-2xl font-bold tracking-tight text-foreground tabular-nums sm:text-3xl">
+            <dd className="font-display text-2xl font-bold tabular-nums tracking-tight text-foreground sm:text-3xl">
               {m.value}
             </dd>
-            <dt className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
+            <dt className="mt-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
               {m.label}
             </dt>
           </div>

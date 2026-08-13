@@ -29,8 +29,8 @@ export function AudienceToggle({ current }: { current: Audience }) {
             aria-current={active ? 'true' : undefined}
             className={
               active
-                ? 'rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground'
-                : 'rounded-full px-4 py-1.5 text-sm font-medium text-muted-foreground transition hover:text-foreground'
+                ? 'inline-flex min-h-9 items-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground'
+                : 'inline-flex min-h-9 items-center rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground'
             }
           >
             {option.label}

@@ -105,7 +105,7 @@ export function ProductFrame({
                     <span
                       className={
                         item.active
-                          ? 'flex h-8 items-center gap-2 rounded-md bg-foreground/[0.06] px-2 text-xs font-medium text-foreground'
+                          ? 'flex h-8 items-center gap-2 rounded-md bg-muted px-2 text-xs font-medium text-foreground'
                           : 'flex h-8 items-center gap-2 rounded-md px-2 text-xs text-muted-foreground'
                       }
                     >
@@ -170,7 +170,7 @@ export function ProductFrame({
       </div>
 
       {caption && (
-        <figcaption className="mt-4 text-center text-sm text-muted-foreground">
+        <figcaption className="mt-4 text-center text-sm leading-6 text-body">
           {caption.prefix}{' '}
           <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px] text-foreground">
             {caption.code}
