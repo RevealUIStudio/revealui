@@ -80,7 +80,12 @@ export function BlogPostPage() {
   if (loading && !post) {
     return (
       <div className="min-h-screen bg-background">
-        <MarketingSection tone="background" density="spacious" width="narrow" className="text-center">
+        <MarketingSection
+          tone="background"
+          density="spacious"
+          width="narrow"
+          className="text-center"
+        >
           <p className="text-muted-foreground">Loading…</p>
         </MarketingSection>
         <Footer />
@@ -91,7 +96,12 @@ export function BlogPostPage() {
   if (!post) {
     return (
       <div className="min-h-screen bg-background">
-        <MarketingSection tone="background" density="spacious" width="narrow" className="text-center">
+        <MarketingSection
+          tone="background"
+          density="spacious"
+          width="narrow"
+          className="text-center"
+        >
           <p className="text-sm font-semibold uppercase tracking-widest text-primary">404</p>
           <h1 className="mt-2 font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             Post not found
