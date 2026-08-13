@@ -22,45 +22,55 @@ vi.mock('@/lib/components/LicenseGate', () => ({
   },
 }));
 
-vi.mock('@revealui/presentation', () => ({
-  Button: ({
-    children,
-    ...props
-  }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children?: ReactNode }) => (
-    <button type="button" {...props}>
-      {children}
-    </button>
-  ),
-  Input: (props: React.InputHTMLAttributes<HTMLInputElement>) => <input {...props} />,
-  Select: ({
-    children,
-    ...props
-  }: React.SelectHTMLAttributes<HTMLSelectElement> & { children?: ReactNode }) => (
-    <select {...props}>{children}</select>
-  ),
-}));
+// Partial mock: keep real presentation exports (icons, etc.) so GAP-479
+// consumers that touch the presentation barrel do not fail on missing names.
+vi.mock('@revealui/presentation', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@revealui/presentation')>();
+  return {
+    ...actual,
+    Button: ({
+      children,
+      ...props
+    }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children?: ReactNode }) => (
+      <button type="button" {...props}>
+        {children}
+      </button>
+    ),
+    Input: (props: React.InputHTMLAttributes<HTMLInputElement>) => <input {...props} />,
+    Select: ({
+      children,
+      ...props
+    }: React.SelectHTMLAttributes<HTMLSelectElement> & { children?: ReactNode }) => (
+      <select {...props}>{children}</select>
+    ),
+  };
+});
 
-vi.mock('@revealui/presentation/client', () => ({
-  Field: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
-  Label: ({ children, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
-    <span {...props}>{children}</span>
-  ),
-  Checkbox: ({
-    checked,
-    onChange,
-  }: {
-    checked?: boolean;
-    onChange?: (checked: boolean) => void;
-  }) => (
-    <input
-      type="checkbox"
-      checked={checked}
-      onChange={(e) => onChange?.(e.target.checked)}
-      aria-label="checkbox"
-    />
-  ),
-  Textarea: (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => <textarea {...props} />,
-}));
+vi.mock('@revealui/presentation/client', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@revealui/presentation/client')>();
+  return {
+    ...actual,
+    Field: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    Label: ({ children, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
+      <span {...props}>{children}</span>
+    ),
+    Checkbox: ({
+      checked,
+      onChange,
+    }: {
+      checked?: boolean;
+      onChange?: (checked: boolean) => void;
+    }) => (
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange?.(e.target.checked)}
+        aria-label="checkbox"
+      />
+    ),
+    Textarea: (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => <textarea {...props} />,
+  };
+});
 
 vi.mock('@/lib/utils/csrf', () => ({
   apiFetch: (...args: Parameters<typeof fetch>) => fetch(...args),
