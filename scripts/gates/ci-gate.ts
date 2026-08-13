@@ -501,6 +501,14 @@ async function gate(): Promise<void> {
         args: ['validate:tier1-presentation', '--', '--hard-fail'],
       },
       {
+        // GAP-335: MCP admin routes import Node-only oauth/client. Pin
+        // runtime=nodejs so local turbo build --filter=admin cannot Edge-trace
+        // them. Always run (CI --affected can skip the admin next build).
+        name: 'MCP admin Node runtime (hard fail)',
+        command: 'pnpm',
+        args: ['validate:mcp-admin-runtime'],
+      },
+      {
         name: 'Security audit',
         command: 'pnpm',
         args: ['gate:security'],

@@ -26,6 +26,8 @@ import { allCollections } from '@/lib/collections/registry';
 import { resolveCollectionMcpSummary } from '@/lib/mcp/collections';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
+export const runtime = 'nodejs';
+
 /** Constant-time compare for bearer-token auth. */
 function safeCompare(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
