@@ -1,4 +1,9 @@
-import { type BlockAnnotation, fieldAttrs } from '@revealui/presentation';
+import {
+  type BlockAnnotation,
+  fieldAttrs,
+  MarketingSection,
+  SectionHeader,
+} from '@revealui/presentation';
 import { FO_HIW_FEAR } from '../../content/for-operators-how-it-works';
 import type { FoHiwFearData } from '../../lib/page-blocks';
 
@@ -17,57 +22,46 @@ export function FearRemoval({ data = FO_HIW_FEAR, path, annotation }: FearRemova
   const closingIndex = optionStart + data.options.length;
 
   return (
-    <section className="bg-muted py-24 sm:py-32">
-      <div className="mx-auto max-w-3xl px-6 lg:px-8">
-        <p
-          className="text-sm font-semibold uppercase tracking-widest text-muted-foreground"
-          {...field('eyebrow')}
-        >
-          {data.eyebrow}
-        </p>
-        <h2
-          className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
-          {...field('heading')}
-        >
-          {data.heading}
-        </h2>
+    <MarketingSection tone="secondary" density="default" width="narrow">
+      <SectionHeader
+        eyebrow={<span {...field('eyebrow')}>{data.eyebrow}</span>}
+        eyebrowTone="muted"
+        title={<span {...field('heading')}>{data.heading}</span>}
+        align="start"
+      />
 
-        <p className="mt-8 text-base leading-7 text-muted-foreground" {...field('body')}>
-          {data.paragraph1}
-        </p>
-        <p className="mt-4 text-base leading-7 text-muted-foreground" {...field('items.0.body')}>
-          {data.paragraph2}
-        </p>
+      <p className="mt-8 text-base leading-7 text-body" {...field('body')}>
+        {data.paragraph1}
+      </p>
+      <p className="mt-4 text-base leading-7 text-body" {...field('items.0.body')}>
+        {data.paragraph2}
+      </p>
 
-        <ul className="mt-6 space-y-4 list-none p-0">
-          {data.options.map((option, index) => (
-            <li
-              key={option.title}
-              className="rounded-2xl border border-border bg-card p-5 shadow-sm"
+      <ul className="mt-6 list-none space-y-4 p-0">
+        {data.options.map((option, index) => (
+          <li key={option.title} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <h3
+              className="text-base font-semibold leading-7 text-foreground"
+              {...field(`items.${optionStart + index}.title`)}
             >
-              <h3
-                className="text-base font-semibold leading-7 text-foreground"
-                {...field(`items.${optionStart + index}.title`)}
-              >
-                {option.title}
-              </h3>
-              <p
-                className="mt-1 text-base leading-7 text-muted-foreground"
-                {...field(`items.${optionStart + index}.body`)}
-              >
-                {option.body}
-              </p>
-            </li>
-          ))}
-        </ul>
+              {option.title}
+            </h3>
+            <p
+              className="mt-1 text-base leading-7 text-muted-foreground"
+              {...field(`items.${optionStart + index}.body`)}
+            >
+              {option.body}
+            </p>
+          </li>
+        ))}
+      </ul>
 
-        <p
-          className="mt-8 text-base leading-7 text-foreground font-medium"
-          {...field(`items.${closingIndex}.body`)}
-        >
-          {data.closing}
-        </p>
-      </div>
-    </section>
+      <p
+        className="mt-8 text-base font-medium leading-7 text-foreground"
+        {...field(`items.${closingIndex}.body`)}
+      >
+        {data.closing}
+      </p>
+    </MarketingSection>
   );
 }

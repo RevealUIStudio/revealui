@@ -8,6 +8,8 @@ import {
   IconPrimitivePayments,
   IconPrimitivePeople,
   type IconProps,
+  MarketingSection,
+  SectionHeader,
 } from '@revealui/presentation';
 import type { ComponentType } from 'react';
 import { HOME_PRIMITIVES, HOME_PRIMITIVES_SECTION } from '../../content/primitives';
@@ -55,82 +57,67 @@ export function Primitives({
   annotation = {},
 }: PrimitivesProps) {
   return (
-    <section className="bg-background py-20 sm:py-28">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl text-center">
-          <p
-            className="text-xs font-semibold uppercase tracking-widest text-muted-foreground"
-            {...fieldAttrs(annotation, `${path}.eyebrow`)}
-          >
-            {data.eyebrow}
-          </p>
-          <h2
-            className="mt-3 font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
-            {...fieldAttrs(annotation, `${path}.heading`)}
-          >
-            {data.heading}
-          </h2>
-          <p
-            className="mt-5 text-lg leading-8 text-body"
-            {...fieldAttrs(annotation, `${path}.body`)}
-          >
-            {data.body}
-          </p>
-        </div>
+    <MarketingSection tone="background" density="default" width="default">
+      <SectionHeader
+        eyebrow={<span {...fieldAttrs(annotation, `${path}.eyebrow`)}>{data.eyebrow}</span>}
+        eyebrowTone="muted"
+        title={<span {...fieldAttrs(annotation, `${path}.heading`)}>{data.heading}</span>}
+        description={<span {...fieldAttrs(annotation, `${path}.body`)}>{data.body}</span>}
+        align="center"
+      />
 
-        {/* Quiet stacked rows (not a card grid). Linear craft: density + alignment
-            over decorative cards. Alternating icon side still gives rhythm. */}
-        <div className="mx-auto mt-14 max-w-3xl divide-y divide-border border-y border-border sm:mt-16">
-          {data.items.map((item, index) => {
-            const flipped = index % 2 === 1;
-            const style = primitiveStyles[index];
-            return (
+      {/* Quiet stacked rows (not a card grid). Linear craft: density + alignment
+          over decorative cards. Alternating icon side still gives rhythm. */}
+      <div className="mx-auto mt-14 max-w-3xl divide-y divide-border border-y border-border sm:mt-16">
+        {data.items.map((item, index) => {
+          const flipped = index % 2 === 1;
+          const style = primitiveStyles[index];
+          return (
+            <div
+              key={item.label}
+              className={`flex flex-col gap-4 py-8 sm:items-center sm:gap-8 sm:py-10 ${
+                flipped ? 'sm:flex-row-reverse' : 'sm:flex-row'
+              }`}
+            >
               <div
-                key={item.label}
-                className={`flex flex-col gap-4 py-8 sm:items-center sm:gap-8 sm:py-10 ${
-                  flipped ? 'sm:flex-row-reverse' : 'sm:flex-row'
-                }`}
+                className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl ring-1 ${style ? accentBg[style.color] : ''}`}
               >
-                <div
-                  className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl ring-1 ${style ? accentBg[style.color] : ''}`}
-                >
-                  {(() => {
-                    const Icon = PRIMITIVE_ICONS[index];
-                    return Icon ? <Icon className="h-7 w-7" size="lg" label={item.label} /> : null;
-                  })()}
-                </div>
-                <div className={`flex-1 min-w-0 ${flipped ? 'sm:text-right' : ''}`}>
-                  <h3
-                    className="font-display text-lg font-semibold tracking-tight text-foreground"
-                    {...fieldAttrs(annotation, `${path}.items.${index}.label`)}
-                  >
-                    {item.label}
-                  </h3>
-                  <p
-                    className="mt-1.5 text-base leading-7 text-muted-foreground"
-                    {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
-                  >
-                    {item.body}
-                  </p>
-                </div>
+                {(() => {
+                  const Icon = PRIMITIVE_ICONS[index];
+                  return Icon ? <Icon className="h-7 w-7" size="lg" label={item.label} /> : null;
+                })()}
               </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-10 text-center">
-          <Button
-            asChild
-            appearance="link"
-            size="default"
-            className="items-center justify-center text-sm font-medium"
-          >
-            <a href={HOME_PRIMITIVES_SECTION.docsLink.href}>
-              {HOME_PRIMITIVES_SECTION.docsLink.label}
-            </a>
-          </Button>
-        </div>
+              <div className={`flex-1 min-w-0 ${flipped ? 'sm:text-right' : ''}`}>
+                <h3
+                  className="font-display text-lg font-semibold tracking-tight text-foreground"
+                  {...fieldAttrs(annotation, `${path}.items.${index}.label`)}
+                >
+                  {item.label}
+                </h3>
+                <p
+                  className="mt-1.5 text-base leading-7 text-muted-foreground"
+                  {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
+                >
+                  {item.body}
+                </p>
+              </div>
+            </div>
+          );
+        })}
       </div>
-    </section>
+
+      <div className="mt-10 text-center">
+        <Button
+          asChild
+          appearance="link"
+          size="default"
+          className="items-center justify-center text-sm font-medium"
+        >
+          <a href={HOME_PRIMITIVES_SECTION.docsLink.href}>
+            {HOME_PRIMITIVES_SECTION.docsLink.label}
+          </a>
+        </Button>
+      </div>
+    </MarketingSection>
   );
 }

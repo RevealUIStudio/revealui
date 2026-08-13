@@ -90,6 +90,18 @@ export {
 export { Link } from './link.js';
 export { Listbox, ListboxDescription, ListboxLabel, ListboxOption } from './listbox.js';
 export {
+  MarketingSection,
+  type MarketingSectionDensity,
+  type MarketingSectionProps,
+  type MarketingSectionTone,
+  type MarketingSectionWidth,
+  SectionHeader,
+  type SectionHeaderAlign,
+  type SectionHeaderEyebrowTone,
+  type SectionHeaderProps,
+  type SectionHeaderTitleAs,
+} from './marketing-section.js';
+export {
   Navbar,
   NavbarDivider,
   NavbarItem,

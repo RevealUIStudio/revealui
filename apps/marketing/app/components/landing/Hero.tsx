@@ -1,4 +1,10 @@
-import { Button, GitHubIcon, IconArrowRight, ReceiptCard } from '@revealui/presentation';
+import {
+  Button,
+  GitHubIcon,
+  IconArrowRight,
+  MarketingSection,
+  ReceiptCard,
+} from '@revealui/presentation';
 import { Link, useLocation } from '@revealui/router';
 import { FOR_OPERATORS_HERO } from '../../content/for-operators';
 import {
@@ -135,39 +141,42 @@ export function Hero() {
   const hero = selectHomeHero(search);
 
   return (
-    <section className="relative isolate overflow-hidden bg-background px-6 pt-16 pb-16 sm:px-6 sm:pt-24 sm:pb-20 lg:px-8">
+    <MarketingSection
+      tone="background"
+      density="spacious"
+      width="default"
+      className="relative isolate overflow-hidden"
+    >
       <HeroBackground />
 
-      <div className="relative mx-auto max-w-7xl">
-        <div className="mx-auto max-w-3xl text-center">
-          {/* Audience switch: replaces the former eyebrow pill. */}
-          <div className="mb-7 flex justify-center sm:mb-8">
-            <AudienceToggle current={audience} />
-          </div>
-
-          {audience === 'technical' ? <TechnicalHero hero={hero} /> : <NonTechnicalHero />}
+      <div className="mx-auto max-w-3xl text-center">
+        {/* Audience switch: replaces the former eyebrow pill. */}
+        <div className="mb-7 flex justify-center sm:mb-8">
+          <AudienceToggle current={audience} />
         </div>
 
-        {/* Receipt-motif moment (frontend-excellence Phase 5): one orchestrated
-            print entrance, shared verbatim by both audience variants. */}
-        <div className="mt-12 w-full max-w-md min-w-0 mx-auto text-left sm:mt-14 sm:max-w-lg">
-          <ReceiptCard
-            title={RECEIPT_HERO_TITLE}
-            lines={[...RECEIPT_HERO_LINES]}
-            integrity={RECEIPT_HERO_INTEGRITY}
-            animate="print"
-          />
-          <p className="mt-4 text-center text-sm text-body">
-            {RECEIPT_HERO_CAPTION.text}{' '}
-            <Link
-              to={RECEIPT_HERO_CAPTION.link.href}
-              className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
-            >
-              {RECEIPT_HERO_CAPTION.link.label}
-            </Link>
-          </p>
-        </div>
+        {audience === 'technical' ? <TechnicalHero hero={hero} /> : <NonTechnicalHero />}
       </div>
-    </section>
+
+      {/* Receipt-motif moment (frontend-excellence Phase 5): one orchestrated
+          print entrance, shared verbatim by both audience variants. */}
+      <div className="mt-12 w-full max-w-md min-w-0 mx-auto text-left sm:mt-14 sm:max-w-lg">
+        <ReceiptCard
+          title={RECEIPT_HERO_TITLE}
+          lines={[...RECEIPT_HERO_LINES]}
+          integrity={RECEIPT_HERO_INTEGRITY}
+          animate="print"
+        />
+        <p className="mt-4 text-center text-sm text-body">
+          {RECEIPT_HERO_CAPTION.text}{' '}
+          <Link
+            to={RECEIPT_HERO_CAPTION.link.href}
+            className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
+          >
+            {RECEIPT_HERO_CAPTION.link.label}
+          </Link>
+        </p>
+      </div>
+    </MarketingSection>
   );
 }

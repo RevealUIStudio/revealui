@@ -10,6 +10,7 @@
  */
 
 import {
+  auditLoginSuccess,
   readUsersRole,
   rotateSession,
   verifyCookiePayload,
@@ -107,6 +108,10 @@ async function verifyHandler(request: NextRequest): Promise<NextResponse> {
       // Marks this session as MFA step-up complete for requireMfa (C11).
       metadata: { mfaVerified: true },
     });
+
+    // Password signIn returns requiresMfa before minting a session, so the
+    // login receipt is written here when the full session is established.
+    await auditLoginSuccess(payload.userId, ipAddress ?? 'unknown', userAgent ?? 'unknown');
 
     // Role for proxy gate after createSession shell repair (GAP-473).
     // sign-in skips setting the cookie when MFA is required.

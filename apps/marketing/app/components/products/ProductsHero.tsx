@@ -1,4 +1,4 @@
-import { type BlockAnnotation, fieldAttrs } from '@revealui/presentation';
+import { type BlockAnnotation, fieldAttrs, MarketingSection } from '@revealui/presentation';
 import { PRODUCTS_FLAGSHIP, PRODUCTS_PAGE_HERO, PRODUCTS_SISTERS } from '../../content/products';
 import type { ProductsHeroData } from '../../lib/page-blocks';
 
@@ -23,32 +23,40 @@ export function ProductsHero({
   annotation = {},
 }: ProductsHeroProps) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-blue-500/10 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
-      <div className="mx-auto max-w-4xl text-center">
-        <h1
-          className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
-          {...fieldAttrs(annotation, `${path}.title`)}
-        >
-          {data.h1}
-        </h1>
-        <p
-          className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-body sm:text-xl"
-          {...fieldAttrs(annotation, `${path}.subtitle`)}
-        >
-          {data.subtitle}
-        </p>
-        <div className="mt-10 flex flex-wrap justify-center gap-2 text-sm font-medium">
-          {ALL_PRODUCT_ANCHORS.map((anchor) => (
-            <a
-              key={anchor.slug}
-              href={`#${anchor.slug}`}
-              className="rounded-full bg-card px-4 py-1.5 text-muted-foreground ring-1 ring-border transition-colors hover:bg-primary/10 hover:text-primary hover:ring-primary/30"
-            >
-              {anchor.name}
-            </a>
-          ))}
-        </div>
+    <MarketingSection
+      tone="background"
+      density="spacious"
+      width="default"
+      className="relative overflow-hidden"
+      innerClassName="max-w-4xl text-center"
+    >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-background to-blue-500/10"
+      />
+      <h1
+        className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
+        {...fieldAttrs(annotation, `${path}.title`)}
+      >
+        {data.h1}
+      </h1>
+      <p
+        className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-body sm:text-xl"
+        {...fieldAttrs(annotation, `${path}.subtitle`)}
+      >
+        {data.subtitle}
+      </p>
+      <div className="mt-10 flex flex-wrap justify-center gap-2 text-sm font-medium">
+        {ALL_PRODUCT_ANCHORS.map((anchor) => (
+          <a
+            key={anchor.slug}
+            href={`#${anchor.slug}`}
+            className="rounded-full bg-card px-4 py-1.5 text-muted-foreground ring-1 ring-border transition-colors hover:bg-primary/10 hover:text-primary hover:ring-primary/30"
+          >
+            {anchor.name}
+          </a>
+        ))}
       </div>
-    </section>
+    </MarketingSection>
   );
 }

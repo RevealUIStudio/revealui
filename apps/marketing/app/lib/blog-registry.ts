@@ -89,9 +89,9 @@ export const BLOG_POST_METADATA: readonly BlogPostMeta[] = [
   },
   {
     slug: 'component-library',
-    title: '65 Components, One Dependency',
+    title: '66 Components, One Dependency',
     excerpt:
-      'A native React component library with 65 components and a single runtime dependency. No Radix, no MUI, no lock-in, just components you own.',
+      'A native React component library with 66 components and a single runtime dependency. No Radix, no MUI, no lock-in, just components you own.',
     publishedAt: '2026-06-08T12:00:00.000Z',
     author: 'RevealUI Team',
     file: '09-component-library.md',

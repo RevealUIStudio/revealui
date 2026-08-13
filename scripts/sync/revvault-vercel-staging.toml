@@ -164,6 +164,8 @@ git_branch = "staging"
 skip = [
   "NODE_ENV",
   "NEXT_TELEMETRY_DISABLED",
+  # GAP-260 P4-4: owner sets hosted on preview before dropping private (not vaulted).
+  "REVEALUI_DEPLOYMENT_MODE",
 ]
 
 [projects.revealui-admin-staging.vars]
@@ -197,7 +199,7 @@ POSTGRES_URL = { path = "revealui/staging/db/postgres-url", sensitive = true }
 
 # Encryption + signing (parity with api — same staging KEK/license/secret)
 REVEALUI_KEK                 = { path = "revealui/staging/kek", sensitive = true }
-REVEALUI_LICENSE_PRIVATE_KEY = { path = "revealui/staging/license/private-key", sensitive = true }
+# GAP-260 P4-4: admin-staging is verify-only (preview analog). Private stays on api-staging.
 REVEALUI_LICENSE_PUBLIC_KEY  = "revealui/staging/license/public-key"
 REVEALUI_SECRET              = { path = "revealui/staging/secret", sensitive = true }
 

@@ -1,4 +1,9 @@
-import { type BlockAnnotation, fieldAttrs } from '@revealui/presentation';
+import {
+  type BlockAnnotation,
+  fieldAttrs,
+  MarketingSection,
+  SectionHeader,
+} from '@revealui/presentation';
 import { FOR_OPERATORS_DISCOVERY } from '../../content/for-operators';
 import type { ServicesDiscoveryData } from '../../lib/page-blocks';
 
@@ -19,36 +24,37 @@ export function DiscoveryScopeShip({ data, path, annotation }: DiscoveryScopeShi
   const base = path ?? '';
 
   return (
-    <section className="bg-background py-24 sm:py-32">
-      <div className="mx-auto max-w-3xl px-6 text-center lg:px-8">
-        <p
-          className="text-sm font-semibold uppercase tracking-widest text-muted-foreground"
-          {...(base ? fieldAttrs(ann, `${base}.eyebrow`) : {})}
+    <MarketingSection tone="background" density="default" width="narrow">
+      <SectionHeader
+        eyebrow={
+          base ? (
+            <span {...fieldAttrs(ann, `${base}.eyebrow`)}>{content.eyebrow}</span>
+          ) : (
+            content.eyebrow
+          )
+        }
+        eyebrowTone="muted"
+        title={
+          base ? (
+            <span {...fieldAttrs(ann, `${base}.heading`)}>{content.heading}</span>
+          ) : (
+            content.heading
+          )
+        }
+        description={
+          base ? <span {...fieldAttrs(ann, `${base}.body`)}>{content.body}</span> : content.body
+        }
+        align="center"
+      />
+      <p className="mt-8 text-center">
+        <a
+          href={content.link.href}
+          className="font-medium text-primary underline-offset-4 hover:underline"
+          {...(base ? fieldAttrs(ann, `${base}.items.0.label`) : {})}
         >
-          {content.eyebrow}
-        </p>
-        <h2
-          className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
-          {...(base ? fieldAttrs(ann, `${base}.heading`) : {})}
-        >
-          {content.heading}
-        </h2>
-        <p
-          className="mt-6 text-base leading-7 text-muted-foreground"
-          {...(base ? fieldAttrs(ann, `${base}.body`) : {})}
-        >
-          {content.body}
-        </p>
-        <p className="mt-8">
-          <a
-            href={content.link.href}
-            className="font-medium text-primary hover:underline underline-offset-4"
-            {...(base ? fieldAttrs(ann, `${base}.items.0.label`) : {})}
-          >
-            {content.link.label}
-          </a>
-        </p>
-      </div>
-    </section>
+          {content.link.label}
+        </a>
+      </p>
+    </MarketingSection>
   );
 }

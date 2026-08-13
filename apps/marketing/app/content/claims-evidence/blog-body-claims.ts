@@ -2356,7 +2356,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/claim-drift',
     exportPath: 'body.0',
-    text: 'Marketing numbers rot. A landing page says "65 components," the team ships four more, and now the page is wrong and nobody notices, because the page and the code live in different worlds and no one is paid to keep them in sync.',
+    text: 'Marketing numbers rot. A landing page says "66 components," the team ships four more, and now the page is wrong and nobody notices, because the page and the code live in different worlds and no one is paid to keep them in sync.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/14-claim-drift.md', note: 'body source paragraph 0' },
       {
@@ -2447,7 +2447,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/claim-drift',
     exportPath: 'body.7',
-    text: 'A page that wants to say "65 UI components" imports `METRICS.uiComponents`. It never types `64`. Change the underlying number in one place and the copy follows automatically, on the marketing site, in the docs, and in the product roadmap, with no copy edit at all.',
+    text: 'A page that wants to say "66 UI components" imports `METRICS.uiComponents`. It never types `64`. Change the underlying number in one place and the copy follows automatically, on the marketing site, in the docs, and in the product roadmap, with no copy edit at all.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/14-claim-drift.md', note: 'body source paragraph 7' },
       {
@@ -2499,7 +2499,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/claim-drift',
     exportPath: 'body.11',
-    text: 'That hard failure is the whole point. The numbers you read here are not a snapshot someone updated when they remembered. They are a measurement of the code as it exists right now: 32 packages, 65 UI components, 13 first-party MCP servers, 104 database tables, 60 access-control enforcement tests, 5 starter templates. Each one is checked on the commit that publishes it.',
+    text: 'That hard failure is the whole point. The numbers you read here are not a snapshot someone updated when they remembered. They are a measurement of the code as it exists right now: 32 packages, 66 UI components, 13 first-party MCP servers, 104 database tables, 60 access-control enforcement tests, 5 starter templates. Each one is checked on the commit that publishes it.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/14-claim-drift.md', note: 'body source paragraph 11' },
       {
@@ -2603,7 +2603,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/component-library',
     exportPath: 'body.1',
-    text: "RevealUI's UI layer, `@revealui/presentation`, has exactly one third-party runtime dependency. Not one UI framework. One npm package: `tailwind-merge`. Its design tokens come from a sibling in-house package, `@revealui/tokens`. Everything else, the 65 components and the machinery that powers them, is in the box and MIT licensed.",
+    text: "RevealUI's UI layer, `@revealui/presentation`, has exactly one third-party runtime dependency. Not one UI framework. One npm package: `tailwind-merge`. Its design tokens come from a sibling in-house package, `@revealui/tokens`. Everything else, the 66 components and the machinery that powers them, is in the box and MIT licensed.",
     evidence: [
       { kind: 'code', ref: 'docs/blog/09-component-library.md', note: 'body source paragraph 1' },
       {
@@ -2681,7 +2681,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/component-library',
     exportPath: 'body.7',
-    text: '`@revealui/presentation` is 65 native React components. Not wrappers around another library. Components, built directly on Tailwind v4 and React.',
+    text: '`@revealui/presentation` is 66 native React components. Not wrappers around another library. Components, built directly on Tailwind v4 and React.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/09-component-library.md', note: 'body source paragraph 7' },
       {
@@ -2954,7 +2954,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/component-library',
     exportPath: 'body.28',
-    text: "Colors are not baked into the components. They resolve through a semantic design-token layer in `tokens.css`: `bg-background`, `text-foreground`, `border-border`, `text-primary`, and so on. The tokens carry RevealUI's cobalt palette and adapt to light and dark. Retheme the whole system by changing the token values in one place; you do not touch 65 component files to change your brand color.",
+    text: "Colors are not baked into the components. They resolve through a semantic design-token layer in `tokens.css`: `bg-background`, `text-foreground`, `border-border`, `text-primary`, and so on. The tokens carry RevealUI's cobalt palette and adapt to light and dark. Retheme the whole system by changing the token values in one place; you do not touch 66 component files to change your brand color.",
     evidence: [
       { kind: 'code', ref: 'docs/blog/09-component-library.md', note: 'body source paragraph 28' },
       {
@@ -10547,7 +10547,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/why-we-built-revealui',
     exportPath: 'body.52',
-    text: '**65 UI components** in `@revealui/presentation`, with one third-party runtime dependency (`tailwind-merge`), built directly on Tailwind v4 and React, with `cva` and `cn` vendored in-package',
+    text: '**66 UI components** in `@revealui/presentation`, with one third-party runtime dependency (`tailwind-merge`), built directly on Tailwind v4 and React, with `cva` and `cn` vendored in-package',
     evidence: [
       {
         kind: 'code',
