@@ -51,7 +51,7 @@ describe('skill invoke (GAP-293 Phase C)', () => {
     expect('error' in result).toBe(false);
     if ('error' in result) return;
     expect(result.model).toBe(PHASE_C_INFERENCE_SNAP);
-    expect(result.model).toBe('nemotron-3-nano');
+    expect(result.model).toBe('gemma3');
     expect(result.system).toContain('# revealui-doctor body');
     expect(result.user).toContain('cannot execute tools');
   });

@@ -7,7 +7,7 @@
  * Definition: open weights published by an organization whose ultimate parent
  * is incorporated in the United States. Packaging (Canonical snaps) is not origin.
  *
- * Allowlist today (Canonical catalog, 2026-07):
+ * Allowlist today (Canonical catalog, 2026-08):
  *   - nemotron-3-nano / nemotron-3-nano-omni — NVIDIA
  *   - gemma3 / gemma4 — Google (Alphabet)
  *
@@ -20,24 +20,26 @@
 /**
  * Product install/list catalog (snap name + operator-facing description).
  * SSOT for harnesses InferenceService + Studio install UIs.
- * Order: product default first (nemotron for capable hosts; gemma preferred on low-RAM via profile daily).
+ * Order: product default first. Canonical marks only gemma3 as WSL-supported
+ * (https://documentation.ubuntu.com/inference-snaps/reference/snaps/).
+ * Nemotron stays allowlisted for capable hosts.
  */
 export const PRODUCT_INFERENCE_SNAP_CATALOG = [
   {
-    id: 'nemotron-3-nano',
-    description: 'NVIDIA (US) — general + tools; product default on capable hosts',
-  },
-  {
-    id: 'nemotron-3-nano-omni',
-    description: 'NVIDIA (US) — multimodal (text/image/video/audio in)',
+    id: 'gemma3',
+    description: 'Google (US) — product default; 270m fits 4GB WSL',
   },
   {
     id: 'gemma4',
     description: 'Google (US) — general + vision + tools',
   },
   {
-    id: 'gemma3',
-    description: 'Google (US) — general + vision; prefer 270m on low-RAM hosts',
+    id: 'nemotron-3-nano',
+    description: 'NVIDIA (US) — heavy / capable hosts (set LLM_MODEL=nemotron-3-nano)',
+  },
+  {
+    id: 'nemotron-3-nano-omni',
+    description: 'NVIDIA (US) — multimodal (text/image/video/audio in)',
   },
 ] as const;
 
@@ -48,7 +50,7 @@ export const US_ORIGIN_INFERENCE_SNAP_IDS: readonly UsOriginInferenceSnapId[] =
   PRODUCT_INFERENCE_SNAP_CATALOG.map((entry) => entry.id);
 
 /** Default chat/embed model when none is specified (env factory / provider). */
-export const DEFAULT_US_ORIGIN_INFERENCE_SNAP: UsOriginInferenceSnapId = 'nemotron-3-nano';
+export const DEFAULT_US_ORIGIN_INFERENCE_SNAP: UsOriginInferenceSnapId = 'gemma3';
 
 /** Preferred snap on constrained hosts (profile `snaps` tier). */
 export const DEFAULT_LOW_RAM_INFERENCE_SNAP: UsOriginInferenceSnapId = 'gemma3';

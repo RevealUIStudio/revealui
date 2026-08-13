@@ -26,8 +26,8 @@ describe('PRODUCT_INFERENCE_SNAPS', () => {
     }
   });
 
-  it('defaults product id remains nemotron-3-nano first', () => {
-    expect(PRODUCT_INFERENCE_SNAPS[0]?.[0]).toBe('nemotron-3-nano');
+  it('defaults product id remains gemma3 first', () => {
+    expect(PRODUCT_INFERENCE_SNAPS[0]?.[0]).toBe('gemma3');
   });
 
   it('lockstep with @revealui/ai PRODUCT_INFERENCE_SNAP_CATALOG ids', () => {

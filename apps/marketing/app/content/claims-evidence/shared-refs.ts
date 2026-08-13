@@ -371,7 +371,7 @@ export const SERVICES_STRIPE: EvidenceRef = {
 export const LLM_CLIENT: EvidenceRef = {
   kind: 'code',
   ref: 'packages/ai/src/llm/client.ts',
-  note: 'createLLMClientFromEnv default provider inference-snaps, defaultModel nemotron-3-nano, port 9090; US-origin allowlist; LLMProviderType union groq/ollama/huggingface/inference-snaps',
+  note: 'createLLMClientFromEnv default provider inference-snaps, defaultModel gemma3, port 9090; US-origin allowlist; LLMProviderType union groq/ollama/huggingface/inference-snaps',
 };
 export const OLLAMA: EvidenceRef = {
   kind: 'code',
