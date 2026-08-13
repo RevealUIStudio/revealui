@@ -17,8 +17,9 @@ latency on shape queries via the worker's Hono app surface).
 
 | Fly app | Purpose | Status |
 |---------|---------|--------|
-| `revealui-worker` | apps/server long-running subset (alerting, Yjs collab WS, agent-collab WS, terminal-ws Forge-gated, RVMarket executor flag-gated) | Phase 3 — scaffolded, first deploy pending |
+| `revealui-worker` | apps/server long-running subset (alerting, Yjs collab WS, agent-collab WS, terminal-ws Forge-gated, RVMarket executor flag-gated) | Phase 3 — live |
 | `revealui-electric` | ElectricSQL sync service, replicates from Neon | Phase 5 — Electric cutover from the retired Railway host (ADR 2026-05-18) |
+| `revealui-license-signer` | Isolated license JWT mint (GAP-260 P4-2). Holds the signing private key. | P4-4 cutover |
 
 ## First deploy (one-time setup)
 
@@ -66,6 +67,36 @@ flyctl logs --app revealui-worker --tail
 #   - "Worker running on http://localhost:8080" → serve() bound
 #   - Every 60s: alerting evaluating rules
 ```
+
+## License-signer (GAP-260)
+
+Isolated mint process. Only this app (plus the offline stamper) should hold
+`REVEALUI_LICENSE_PRIVATE_KEY` after api/worker cut over.
+
+```bash
+cd ~/revfleet/revealui
+
+flyctl apps create revealui-license-signer --org personal
+
+# Stream-safe: values stay in the child env (never printed).
+revvault run \
+  --env REVEALUI_LICENSE_PRIVATE_KEY=revdev/license-signing-private-key \
+  --env REVEALUI_LICENSE_PUBLIC_KEY=revdev/license-signing-public-key \
+  --env REVEALUI_SIGNER_INVOKE_SECRET=revealui/prod/license/signer-invoke-secret \
+  -- sh -c 'flyctl secrets set --app revealui-license-signer \
+    REVEALUI_LICENSE_PRIVATE_KEY="$REVEALUI_LICENSE_PRIVATE_KEY" \
+    REVEALUI_LICENSE_PUBLIC_KEY="$REVEALUI_LICENSE_PUBLIC_KEY" \
+    REVEALUI_SIGNER_INVOKE_SECRET="$REVEALUI_SIGNER_INVOKE_SECRET"'
+
+flyctl deploy --config apps/license-signer/fly.toml \
+  --dockerfile apps/license-signer/Dockerfile --remote-only
+
+curl -fsS https://revealui-license-signer.fly.dev/health/live
+```
+
+Do not set `REVEALUI_LICENSE_SIGN_VIA_SIGNER=1` on api until `/health/live`
+is 200 and one HMAC mint succeeds. Do not drop the worker private key until
+then.
 
 ## Regular deploys (post-bootstrap)
 
