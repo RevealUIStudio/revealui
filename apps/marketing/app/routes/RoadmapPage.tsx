@@ -13,30 +13,19 @@ import {
   type RoadmapItem,
 } from '../content/roadmap';
 
-const categoryColors: Record<string, string> = {
-  payments: 'bg-amber-100 text-amber-700',
-  billing: 'bg-purple-100 text-purple-700',
-  ai: 'bg-violet-100 text-violet-700',
-  infrastructure: 'bg-blue-100 text-blue-700',
-  docs: 'bg-primary/10 text-primary',
-  product: 'bg-pink-100 text-pink-700',
-  enterprise: 'bg-muted text-muted-foreground',
-};
-
+/** Quiet token-only chips (no off-palette rainbow). Category is label meta. */
 function statusBadgeClass(status: string): string {
   if (status === 'Shipped' || status === 'Available') {
     return 'text-primary bg-primary/10 ring-primary/20';
   }
-  return 'text-amber-700 bg-amber-50 ring-amber-200';
+  return 'text-muted-foreground bg-muted ring-border';
 }
 
 function FeatureCard({ feature }: { feature: RoadmapItem }) {
   return (
-    <div className="rounded-2xl bg-card p-8 shadow-lg ring-1 ring-border">
-      <div className="mb-4 flex items-center gap-3">
-        <span
-          className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${categoryColors[feature.category.toLowerCase()] ?? 'bg-muted text-muted-foreground'}`}
-        >
+    <div className="rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-muted-foreground ring-1 ring-border">
           {feature.category}
         </span>
         <span
@@ -45,7 +34,9 @@ function FeatureCard({ feature }: { feature: RoadmapItem }) {
           {feature.status}
         </span>
       </div>
-      <h3 className="text-lg font-bold tracking-tight text-foreground">{feature.name}</h3>
+      <h3 className="font-display text-lg font-semibold tracking-tight text-foreground">
+        {feature.name}
+      </h3>
       <p className="mt-3 text-sm leading-6 text-body">{feature.description}</p>
     </div>
   );
@@ -63,13 +54,10 @@ export function RoadmapPage() {
       >
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-amber-500/10 via-background to-orange-500/10"
+          className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-primary/10 via-background to-primary/5"
         />
-        <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-          Product
-          <span className="block bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-            Roadmap
-          </span>
+        <h1 className="font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+          Product <span className="text-primary">Roadmap</span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-body sm:text-xl">
           {ROADMAP_HERO.subtitle} See our{' '}
@@ -77,7 +65,7 @@ export function RoadmapPage() {
             href={ROADMAP_HERO_LINK.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-amber-700 underline hover:text-amber-600"
+            className="font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
           >
             {ROADMAP_HERO_LINK.label}
           </a>{' '}

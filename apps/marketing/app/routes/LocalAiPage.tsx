@@ -53,7 +53,7 @@ function LocalAiHero({ data, path, annotation }: LocalAiHeroProps) {
         {data.eyebrow}
       </p>
       <h1
-        className="mt-4 text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
+        className="mt-4 font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
         {...fieldAttrs(annotation, `${path}.title`)}
       >
         {data.h1}
@@ -84,7 +84,7 @@ function LocalAiPillars({ data, path, annotation }: LocalAiPillarsProps) {
             className="rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8"
           >
             <h2
-              className="text-lg font-semibold text-foreground"
+              className="font-display text-lg font-semibold tracking-tight text-foreground"
               {...fieldAttrs(annotation, `${path}.items.${index}.label`)}
             >
               {pillar.title}
@@ -151,9 +151,9 @@ function LocalAiMarketProof({ data, path, annotation }: LocalAiMarketProofProps)
       <ul className="mt-12 list-none space-y-4 p-0 sm:mt-14">
         {data.adopters.map((adopter, index) => (
           <li key={`adopter-${index}`} className="rounded-2xl bg-card p-6 ring-1 ring-border">
-            <p className="text-base text-foreground">
+            <p className="text-base leading-7 text-body">
               <span
-                className="font-semibold"
+                className="font-semibold text-foreground"
                 {...fieldAttrs(annotation, `${path}.items.${index}.label`)}
               >
                 {adopter.name}

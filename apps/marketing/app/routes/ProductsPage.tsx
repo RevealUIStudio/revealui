@@ -177,7 +177,15 @@ export function ProductsPage() {
                 className="rounded-full"
               >
                 {f}
-                <span className="text-xs text-muted-foreground">{countFor(f)}</span>
+                <span
+                  className={
+                    selected
+                      ? 'text-xs text-primary-foreground/80'
+                      : 'text-xs text-muted-foreground'
+                  }
+                >
+                  {countFor(f)}
+                </span>
               </Button>
             );
           })}
@@ -207,7 +215,7 @@ export function ProductsPage() {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold tracking-tight text-foreground">
+                      <h3 className="font-display text-xl font-semibold tracking-tight text-foreground">
                         {product.name}
                       </h3>
                       <p className="mt-0.5 text-sm font-medium text-body">{product.tagline}</p>
@@ -270,7 +278,7 @@ export function ProductsPage() {
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-8">
           {PRODUCTS_STATS_SECTION.items.map((item) => (
             <div key={item.label} className="text-center">
-              <p className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+              <p className="font-display text-4xl font-bold tracking-tight text-foreground tabular-nums sm:text-5xl">
                 {item.stat}
               </p>
               <p className="mt-2 text-sm text-muted-foreground">{item.label}</p>
