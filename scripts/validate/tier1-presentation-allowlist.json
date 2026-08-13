@@ -27,41 +27,6 @@
       "reason": "content-driven product icon path data; no Icon* match (GAP-398 residual)"
     },
     {
-      "path": "apps/rsc-poc/src/pages/action-form.tsx",
-      "tag": "button",
-      "reason": "GAP-479 later slice: rsc-poc research harness; migrate hosts to presentation"
-    },
-    {
-      "path": "apps/rsc-poc/src/pages/action-form.tsx",
-      "tag": "input",
-      "reason": "GAP-479 later slice: rsc-poc research harness; migrate hosts to presentation"
-    },
-    {
-      "path": "apps/rsc-poc/src/pages/counter.tsx",
-      "tag": "button",
-      "reason": "GAP-479 later slice: rsc-poc research harness; migrate hosts to presentation"
-    },
-    {
-      "path": "apps/rsc-poc/src/pages/errors-client.tsx",
-      "tag": "button",
-      "reason": "GAP-479 later slice: rsc-poc research harness; migrate hosts to presentation"
-    },
-    {
-      "path": "apps/rsc-poc/src/pages/session-client.tsx",
-      "tag": "button",
-      "reason": "GAP-479 later slice: rsc-poc research harness; migrate hosts to presentation"
-    },
-    {
-      "path": "apps/rsc-poc/src/pages/session.tsx",
-      "tag": "button",
-      "reason": "GAP-479 later slice: rsc-poc research harness; migrate hosts to presentation"
-    },
-    {
-      "path": "apps/rsc-poc/src/pages/session.tsx",
-      "tag": "input",
-      "reason": "GAP-479 later slice: rsc-poc research harness; migrate hosts to presentation"
-    },
-    {
       "path": "packages/editor/src/canvas/EditSessionCanvas.tsx",
       "tag": "button",
       "reason": "GAP-479 later slice: visual-edit canvas chrome; use presentation Button/Input/Textarea"

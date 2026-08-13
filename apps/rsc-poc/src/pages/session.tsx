@@ -1,3 +1,4 @@
+import { Button, Input } from '@revealui/presentation';
 import { getSession } from '../auth/session-server.ts';
 import { SecretPingForm, WhoamiButton } from './session-client.tsx';
 
@@ -22,11 +23,15 @@ export async function SessionPage(): Promise<React.ReactNode> {
           action="/api/session/login"
           style={{ display: 'flex', gap: 8, marginBottom: 12 }}
         >
-          <input type="hidden" name="sub" value="demo" />
-          <button type="submit">Sign in as demo</button>
+          <Input type="hidden" name="sub" value="demo" />
+          <Button type="submit" size="sm">
+            Sign in as demo
+          </Button>
         </form>
         <form method="POST" action="/api/session/logout">
-          <button type="submit">Sign out</button>
+          <Button type="submit" variant="neutral" appearance="outline" size="sm">
+            Sign out
+          </Button>
         </form>
       </section>
 

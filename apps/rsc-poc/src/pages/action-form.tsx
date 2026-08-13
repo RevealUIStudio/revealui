@@ -1,5 +1,6 @@
 'use client';
 
+import { Button, Input } from '@revealui/presentation';
 import { useState } from 'react';
 
 interface ActionFormProps {
@@ -29,15 +30,10 @@ export function ActionForm({ action }: ActionFormProps): React.ReactNode {
   return (
     <div>
       <form action={formAction} style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-        <input
-          type="text"
-          name="message"
-          placeholder="Type a message"
-          style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: '4px' }}
-        />
-        <button type="submit" disabled={pending}>
+        <Input type="text" name="message" placeholder="Type a message" />
+        <Button type="submit" disabled={pending} isLoading={pending} size="sm">
           {pending ? 'Sending…' : 'Send to server'}
-        </button>
+        </Button>
       </form>
       {result !== null && (
         <div
