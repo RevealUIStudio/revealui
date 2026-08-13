@@ -36,6 +36,11 @@
       "id": "revealui-agent",
       "projectTree": null,
       "rank": "equal"
+    },
+    {
+      "id": "revdev",
+      "projectTree": null,
+      "rank": "equal"
     }
   ],
   "mcp": {
