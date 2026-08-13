@@ -62,10 +62,12 @@ export function GetStarted({
               // biome-ignore lint/suspicious/noArrayIndexKey: static, order-fixed command tokens
               key={index}
               className={
+                // Dark pill (bg-foreground): light text only. Never text-primary
+                // (paper brand blue fails AA on midnight at 14px).
                 index === 0
-                  ? 'text-emerald-400' // adherence-ignore: emerald-utility - apps/marketing/app/index.css:80-92 remaps emerald-* to cobalt oklch values (Cobalt v5 palette remap); renders cobalt today, zero visual change
+                  ? 'text-primary-foreground'
                   : index === data.cli.command.length - 1
-                    ? 'text-primary'
+                    ? 'text-background/80'
                     : 'text-background'
               }
             >
