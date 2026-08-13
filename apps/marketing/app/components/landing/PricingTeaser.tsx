@@ -1,6 +1,12 @@
 import type { PricingResponse } from '@revealui/contracts/pricing';
-import { Button, IconCheckCircle, MarketingSection, SectionHeader } from '@revealui/presentation';
-import { useEffect, useState } from 'react';
+import {
+  Button,
+  MarketingSection,
+  PricingTable,
+  type PricingTier,
+  SectionHeader,
+} from '@revealui/presentation';
+import { useEffect, useMemo, useState } from 'react';
 import {
   PRICING_TEASER_FOOTER,
   PRICING_TEASER_LINKS,
@@ -14,8 +20,8 @@ const API_URL =
   (import.meta.env.PROD ? 'https://api.revealui.com' : 'http://localhost:3004');
 
 /**
- * Craft pass: drop the inverted (black) Pro card. Highlight with primary ring
- * and a quiet badge so the section stays calm on both light and dark themes.
+ * Homepage pricing teaser: shared PricingTable for Free/Pro cards.
+ * Max/Enterprise stay as quiet text links into /pricing.
  */
 export function PricingTeaser() {
   const [prices, setPrices] = useState(SUBSCRIPTION_PRICE_FALLBACKS);
@@ -45,6 +51,25 @@ export function PricingTeaser() {
     };
   }, []);
 
+  const tiers: PricingTier[] = useMemo(
+    () =>
+      PRICING_TEASER_TIERS.map((t) => {
+        const { price, period } = prices[t.id];
+        return {
+          id: t.id,
+          name: t.name,
+          price,
+          period,
+          description: t.description,
+          features: [...t.features],
+          cta: t.cta,
+          ctaHref: t.href,
+          highlighted: t.highlight,
+        };
+      }),
+    [prices],
+  );
+
   return (
     <MarketingSection tone="secondary" density="default" width="default">
       <SectionHeader
@@ -55,59 +80,8 @@ export function PricingTeaser() {
         align="center"
       />
 
-      <div className="mx-auto mt-14 grid max-w-3xl grid-cols-1 gap-5 sm:mt-16 sm:grid-cols-2 sm:gap-6">
-        {PRICING_TEASER_TIERS.map((t) => {
-          const { price, period } = prices[t.id];
-          return (
-            <div
-              key={t.id}
-              className={`relative flex flex-col rounded-2xl bg-card p-7 ring-1 ring-border/80 transition sm:p-8 ${
-                t.highlight ? 'shadow-md shadow-foreground/5' : ''
-              }`}
-            >
-              {t.highlight && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-secondary px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-foreground ring-1 ring-border">
-                  Recommended
-                </div>
-              )}
-              <h3 className="font-display text-lg font-semibold text-foreground">{t.name}</h3>
-              <div className="mt-4 flex items-baseline gap-2">
-                <span className="font-display text-4xl font-bold tracking-tight text-foreground tabular-nums">
-                  {price}
-                </span>
-                {period && <span className="text-sm text-muted-foreground">{period}</span>}
-              </div>
-              <p className="mt-4 text-sm leading-6 text-body">{t.description}</p>
-
-              <ul className="mt-6 flex-1 space-y-3">
-                {t.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-sm text-foreground">
-                    <IconCheckCircle size="sm" className="mt-0.5 flex-shrink-0 text-primary" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-8">
-                {t.highlight ? (
-                  <Button asChild size="default" className="w-full">
-                    <a href={t.href}>{t.cta}</a>
-                  </Button>
-                ) : (
-                  <Button
-                    asChild
-                    size="default"
-                    appearance="outline"
-                    variant="neutral"
-                    className="w-full"
-                  >
-                    <a href={t.href}>{t.cta}</a>
-                  </Button>
-                )}
-              </div>
-            </div>
-          );
-        })}
+      <div className="mx-auto mt-14 max-w-3xl sm:mt-16">
+        <PricingTable tiers={tiers} highlightedLabel="Recommended" />
       </div>
 
       <div className="mx-auto mt-8 flex max-w-3xl flex-col items-center justify-center gap-2 text-sm sm:flex-row sm:gap-6">

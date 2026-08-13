@@ -9,6 +9,8 @@ export interface PricingTier {
   name: string;
   price?: string;
   period?: string;
+  /** Optional annual-savings line under the price (marketing). */
+  savings?: string;
   description: string;
   features: string[];
   cta: string;
@@ -24,6 +26,8 @@ export interface PricingTableProps {
   compact?: boolean;
   /** Callback when a tier is selected */
   onSelectTier?: (id: string) => void;
+  /** Badge copy for highlighted tiers. Default: Most Popular. */
+  highlightedLabel?: string;
   className?: string;
 }
 
@@ -57,6 +61,7 @@ export function PricingTable({
   currentTier,
   compact = false,
   onSelectTier,
+  highlightedLabel = 'Most Popular',
   className,
 }: PricingTableProps) {
   if (compact) {
@@ -89,6 +94,7 @@ export function PricingTable({
           tier={tier}
           isCurrent={tier.id === currentTier}
           onSelect={onSelectTier}
+          highlightedLabel={highlightedLabel}
         />
       ))}
     </div>
@@ -103,17 +109,19 @@ function PricingCardFull({
   tier,
   isCurrent,
   onSelect,
+  highlightedLabel,
 }: {
   tier: PricingTier;
   isCurrent: boolean;
   onSelect?: (id: string) => void;
+  highlightedLabel: string;
 }) {
   const isHighlighted = tier.highlighted && !isCurrent;
 
   return (
     <div
       className={cn(
-        'relative rounded-2xl bg-card p-8 shadow-lg',
+        'relative flex flex-col rounded-2xl bg-card p-8 shadow-lg',
         isHighlighted
           ? 'ring-2 ring-primary'
           : isCurrent
@@ -122,8 +130,8 @@ function PricingCardFull({
       )}
     >
       {isHighlighted && (
-        <div className="absolute -top-4 left-0 right-0 mx-auto w-32 rounded-full bg-primary px-3 py-1.5 text-center text-sm font-semibold text-primary-foreground shadow-lg">
-          Most Popular
+        <div className="absolute -top-4 left-0 right-0 mx-auto w-max max-w-[90%] rounded-full bg-primary px-3 py-1.5 text-center text-sm font-semibold text-primary-foreground shadow-lg">
+          {highlightedLabel}
         </div>
       )}
       {isCurrent && (
@@ -134,20 +142,23 @@ function PricingCardFull({
 
       <div className="mb-8">
         <h3 className="text-xl font-bold tracking-tight text-foreground">{tier.name}</h3>
-        <p className="mt-2 text-sm text-muted-foreground">{tier.description}</p>
+        <p className="mt-2 text-sm leading-6 text-body">{tier.description}</p>
         <p className="mt-6 flex items-baseline gap-x-1">
           <span className="text-4xl font-bold tracking-tight text-foreground">
             {tier.price ?? '-'}
           </span>
           {tier.period && <span className="text-sm text-muted-foreground">{tier.period}</span>}
         </p>
+        {tier.savings ? (
+          <p className="mt-1 text-xs font-medium text-success">{tier.savings}</p>
+        ) : null}
       </div>
 
-      <ul className="mb-8 space-y-3">
+      <ul className="mb-8 flex-1 space-y-3">
         {tier.features.map((feature) => (
           <li key={feature} className="flex items-start gap-x-3">
             <CheckIcon />
-            <span className="text-sm text-muted-foreground">{feature}</span>
+            <span className="text-sm text-body">{feature}</span>
           </li>
         ))}
       </ul>

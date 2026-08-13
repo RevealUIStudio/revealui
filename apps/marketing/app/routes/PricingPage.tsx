@@ -1,14 +1,17 @@
 import {
+  Accordion,
+  AccordionItem,
   Button,
   IconCheckCircle,
   IconCode,
   IconSearch,
   IconTerminal,
   MarketingSection,
+  PricingTable,
+  type PricingTier,
   SectionHeader,
 } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
-import { CenteredCardGrid } from '../components/CenteredCardGrid';
 import { Footer } from '../components/Footer';
 import { CostCalculator } from '../components/landing/CostCalculator';
 import { NewsletterSignup } from '../components/NewsletterSignup';
@@ -205,76 +208,23 @@ export function PricingPage() {
           </div>
         )}
 
-        <CenteredCardGrid>
-          {tiers.map((tier, index) => (
-            <div
-              key={tier.id}
-              className={`relative flex w-full flex-col rounded-2xl bg-card p-8 shadow-lg sm:w-[calc(50%-0.75rem)] ${
-                index === tiers.length - 1 && tiers.length % 3 === 1
-                  ? 'lg:w-2/3'
-                  : 'lg:w-[calc(33.333%-1rem)]'
-              } ${tier.highlighted ? 'ring-2 ring-primary' : 'ring-1 ring-border'}`}
-            >
-              {tier.highlighted && (
-                <div className="absolute -top-4 left-0 right-0 mx-auto w-32 rounded-full bg-primary px-3 py-1.5 text-center text-sm font-semibold text-primary-foreground shadow-lg">
-                  {PRICING_HIGHLIGHTED_BADGE}
-                </div>
-              )}
-              <div className="mb-8">
-                <h3 className="text-xl font-bold tracking-tight text-foreground">{tier.name}</h3>
-                <p className="mt-2 text-sm text-body">{tier.description}</p>
-                <p className="mt-6 flex items-baseline gap-x-1">
-                  <span className="text-4xl font-bold tracking-tight text-foreground">
-                    {tier.price ?? 'Contact us'}
-                  </span>
-                  {tier.period && (
-                    <span className="text-sm text-muted-foreground">{tier.period}</span>
-                  )}
-                </p>
-                {tier.savings && (
-                  <p className="mt-1 text-xs font-medium text-green-700 dark:text-green-400">
-                    {tier.savings}
-                  </p>
-                )}
-              </div>
-              <ul className="mb-8 flex-1 space-y-3">
-                {tier.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-x-3">
-                    <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
-                    <span className="text-sm text-body">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              {tier.highlighted ? (
-                <Button asChild size="default" className="w-full">
-                  <a
-                    href={tier.ctaHref}
-                    target={tier.id === 'free' ? '_blank' : undefined}
-                    rel={tier.id === 'free' ? 'noopener noreferrer' : undefined}
-                  >
-                    {tier.cta}
-                  </a>
-                </Button>
-              ) : (
-                <Button
-                  asChild
-                  appearance="outline"
-                  variant="neutral"
-                  size="default"
-                  className="w-full"
-                >
-                  <a
-                    href={tier.ctaHref}
-                    target={tier.id === 'free' ? '_blank' : undefined}
-                    rel={tier.id === 'free' ? 'noopener noreferrer' : undefined}
-                  >
-                    {tier.cta}
-                  </a>
-                </Button>
-              )}
-            </div>
-          ))}
-        </CenteredCardGrid>
+        <PricingTable
+          tiers={tiers.map(
+            (tier): PricingTier => ({
+              id: tier.id,
+              name: tier.name,
+              price: tier.price ?? 'Contact us',
+              period: tier.period,
+              savings: tier.savings || undefined,
+              description: tier.description,
+              features: [...tier.features],
+              cta: tier.cta,
+              ctaHref: tier.ctaHref,
+              highlighted: Boolean(tier.highlighted),
+            }),
+          )}
+          highlightedLabel={PRICING_HIGHLIGHTED_BADGE}
+        />
 
         <p className="mt-8 text-center text-sm text-muted-foreground">{PRICING_TRIAL_NOTE}</p>
       </MarketingSection>
@@ -616,14 +566,20 @@ export function PricingPage() {
       <MarketingSection tone="background" density="default" width="default">
         <div className="mx-auto max-w-4xl">
           <SectionHeader title={PRICING_FAQ_SECTION.heading} align="center" className="mb-12" />
-          <dl className="space-y-8">
+          <Accordion className="rounded-lg border border-border bg-card px-4 sm:px-6">
             {PRICING_FAQS.map((faq) => (
-              <div key={faq.question} className="rounded-lg bg-secondary p-6 ring-1 ring-border">
-                <dt className="mb-2 text-lg font-semibold text-foreground">{faq.question}</dt>
-                <dd className="text-base text-body">{faq.answer}</dd>
-              </div>
+              <AccordionItem
+                key={faq.question}
+                title={
+                  <span className="text-base font-semibold leading-7 text-foreground sm:text-lg">
+                    {faq.question}
+                  </span>
+                }
+              >
+                <p className="text-base leading-7 text-body">{faq.answer}</p>
+              </AccordionItem>
             ))}
-          </dl>
+          </Accordion>
         </div>
       </MarketingSection>
 
