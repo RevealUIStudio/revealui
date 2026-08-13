@@ -1,3 +1,4 @@
+import { Heading, LinkButton, Text } from '@revealui/presentation';
 import Image from 'next/image';
 
 const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000';
@@ -36,12 +37,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   if (!product) {
     return (
       <main className="mx-auto max-w-2xl px-4 py-16">
-        <h1 className="text-2xl font-bold">Product not found</h1>
-        <p className="mt-4">
-          <a href="/products" className="text-accent underline">
+        <Heading>Product not found</Heading>
+        <Text className="mt-4">
+          <LinkButton href="/products" appearance="link" size="sm">
             Back to products
-          </a>
-        </p>
+          </LinkButton>
+        </Text>
       </main>
     );
   }
@@ -49,9 +50,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   return (
     <main className="mx-auto max-w-2xl px-4 py-16">
       <nav className="mb-8">
-        <a href="/products" className="text-sm text-accent underline">
-          &larr; Back to products
-        </a>
+        <LinkButton href="/products" appearance="link" size="sm">
+          Back to products
+        </LinkButton>
       </nav>
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
         {product.image?.url && (
@@ -64,13 +65,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           />
         )}
         <div>
-          <h1 className="text-3xl font-bold">{product.name}</h1>
-          <p className="mt-2 text-2xl font-bold text-gray-900">{formatPrice(product.price)}</p>
+          <Heading>{product.name}</Heading>
+          <Text className="mt-2 text-2xl font-bold">{formatPrice(product.price)}</Text>
           <div className="prose mt-6">
             {typeof product.description === 'string' ? (
-              <p>{product.description}</p>
+              <Text>{product.description}</Text>
             ) : (
-              <p className="text-gray-500">Product description will render here.</p>
+              <Text className="text-gray-500">Product description will render here.</Text>
             )}
           </div>
         </div>

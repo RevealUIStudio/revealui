@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "@revealui/presentation/tokens.css";
+@source "../../node_modules/@revealui/presentation/dist/**/*.js";
 
 @theme {
   /* Cobalt brand accent — override via your own --color-accent. */

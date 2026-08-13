@@ -179,7 +179,7 @@ describe('package.json integrity after scaffolding', () => {
       expect(typeof pkg.scripts?.typecheck).toBe('string');
     });
 
-    it(`${template}: package.json has @revealui/core dependency`, async () => {
+    it(`${template}: package.json has @revealui/core and @revealui/presentation`, async () => {
       const projectPath = path.join(tmpDir, `${template}-deps`);
       await createProject(baseConfig(template, projectPath));
 
@@ -188,6 +188,8 @@ describe('package.json integrity after scaffolding', () => {
       ) as { dependencies?: Record<string, string> };
       expect(pkg.dependencies?.['@revealui/core']).toBeDefined();
       expect(pkg.dependencies?.['@revealui/core']).toMatch(/^(latest|\^?\d+\.\d+)/);
+      expect(pkg.dependencies?.['@revealui/presentation']).toBeDefined();
+      expect(pkg.dependencies?.['@revealui/presentation']).toMatch(/^(latest|\^?\d+\.\d+)/);
     });
 
     // Regression test: next.config.mjs sets reactCompiler: true, but next lists
@@ -397,6 +399,7 @@ describe('Template file structure  -  starter-native (Vite + @revealui/router)',
     expect(pkg.name).toBe('test-starter-native');
     expect(pkg.dependencies?.['@revealui/router']).toBeDefined();
     expect(pkg.dependencies?.['@revealui/core']).toBeDefined();
+    expect(pkg.dependencies?.['@revealui/presentation']).toBeDefined();
     expect(pkg.dependencies?.next).toBeUndefined();
   });
 
@@ -414,4 +417,53 @@ describe('Template file structure  -  starter-native (Vite + @revealui/router)',
     expect(typeof pkg.scripts?.typecheck).toBe('string');
     expect(typeof pkg.scripts?.test).toBe('string');
   });
+});
+
+// ---------------------------------------------------------------------------
+// GAP-479: templates must import presentation (not only declare the dep)
+// ---------------------------------------------------------------------------
+
+describe('Template presentation composition (GAP-479)', () => {
+  const templates = ['basic-blog', 'e-commerce', 'portfolio', 'starter', 'starter-native'] as const;
+
+  async function collectSourceFiles(dir: string): Promise<string[]> {
+    let results: string[] = [];
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        results = results.concat(await collectSourceFiles(full));
+      } else if (/\.(tsx|ts|css)$/.test(entry.name)) {
+        results.push(full);
+      }
+    }
+    return results;
+  }
+
+  for (const template of templates) {
+    it(`${template}: source imports @revealui/presentation`, async () => {
+      const roots =
+        template === 'starter-native'
+          ? [path.join(TEMPLATES_DIR, template, 'app')]
+          : [path.join(TEMPLATES_DIR, template, 'src')];
+      const files = (await Promise.all(roots.map(collectSourceFiles))).flat();
+      const hits = [];
+      for (const file of files) {
+        const source = await fs.readFile(file, 'utf-8');
+        if (source.includes('@revealui/presentation')) {
+          hits.push(file);
+        }
+      }
+      expect(hits.length, `${template} never imports @revealui/presentation`).toBeGreaterThan(0);
+    });
+
+    it(`${template}: stylesheet imports presentation tokens`, async () => {
+      const cssPath =
+        template === 'starter-native'
+          ? path.join(TEMPLATES_DIR, template, 'app', 'styles', 'globals.css')
+          : path.join(TEMPLATES_DIR, template, 'src', 'app', 'globals.css');
+      const css = await fs.readFile(cssPath, 'utf-8');
+      expect(css).toContain('@revealui/presentation/tokens.css');
+    });
+  }
 });

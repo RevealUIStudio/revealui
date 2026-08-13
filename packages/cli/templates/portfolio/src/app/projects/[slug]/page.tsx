@@ -1,3 +1,4 @@
+import { Heading, LinkButton, Text } from '@revealui/presentation';
 import Image from 'next/image';
 
 const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000';
@@ -32,12 +33,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   if (!project) {
     return (
       <main className="mx-auto max-w-2xl px-4 py-16">
-        <h1 className="text-2xl font-bold">Project not found</h1>
-        <p className="mt-4">
-          <a href="/projects" className="text-accent underline">
+        <Heading>Project not found</Heading>
+        <Text className="mt-4">
+          <LinkButton href="/projects" appearance="link" size="sm">
             Back to projects
-          </a>
-        </p>
+          </LinkButton>
+        </Text>
       </main>
     );
   }
@@ -45,9 +46,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   return (
     <main className="mx-auto max-w-2xl px-4 py-16">
       <nav className="mb-8">
-        <a href="/projects" className="text-sm text-accent underline">
-          &larr; Back to projects
-        </a>
+        <LinkButton href="/projects" appearance="link" size="sm">
+          Back to projects
+        </LinkButton>
       </nav>
       <article>
         {project.image?.url && (
@@ -59,7 +60,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             className="mb-8 aspect-video w-full rounded-lg object-cover"
           />
         )}
-        <h1 className="mb-2 text-3xl font-bold">{project.title}</h1>
+        <Heading className="mb-2">{project.title}</Heading>
         {project.tags && project.tags.length > 0 && (
           <div className="mb-6 flex flex-wrap gap-2">
             {project.tags.map((t) => (
@@ -74,20 +75,17 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         )}
         <div className="prose">
           {typeof project.description === 'string' ? (
-            <p>{project.description}</p>
+            <Text>{project.description}</Text>
           ) : (
-            <p className="text-gray-500">Project description will render here.</p>
+            <Text className="text-gray-500">Project description will render here.</Text>
           )}
         </div>
         {project.link && (
-          <a
-            href={project.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-8 inline-block rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700"
-          >
-            View project &rarr;
-          </a>
+          <div className="mt-8">
+            <LinkButton href={project.link} external variant="neutral">
+              View project
+            </LinkButton>
+          </div>
         )}
       </article>
     </main>
