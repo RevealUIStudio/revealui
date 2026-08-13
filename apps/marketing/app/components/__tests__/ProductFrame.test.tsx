@@ -3,23 +3,25 @@ import { describe, expect, it } from 'vitest';
 import { ProductFrame } from '../landing/ProductFrame';
 
 describe('ProductFrame', () => {
-  it('renders live presentation primitives inside admin chrome', () => {
+  it('renders agents-as-users chrome without replaying the hero refund receipt', () => {
     render(
       <ProductFrame
         caption={{
-          prefix: 'Local screenshot from a fresh',
-          code: 'npx create-revealui',
-          suffix: '. The three beats below describe the steps.',
+          prefix: 'Live admin chrome composed from',
+          code: '@revealui/presentation',
+          suffix: 'components. The three beats are the local install path.',
         }}
       />,
     );
 
-    // figure (not role=img): interactive descendants make role=img invalid for axe
     expect(screen.getByRole('figure', { name: /RevealUI admin shell/i })).toBeTruthy();
-    expect(screen.getByText(/support-agent · refund flow/i)).toBeTruthy();
-    expect(screen.getByLabelText(/Agent online/i)).toBeTruthy();
+    expect(screen.getByText(/Agents on the same roles and policies as people/i)).toBeTruthy();
+    expect(screen.getByText('support-agent')).toBeTruthy();
+    expect(screen.getByText('billing-agent')).toBeTruthy();
+    expect(screen.queryByText(/refund flow/i)).toBeNull();
+    expect(screen.queryByText(/Live audit trail/i)).toBeNull();
     expect(screen.getByLabelText(/Approved/i)).toBeTruthy();
-    expect(screen.getByText(/npx create-revealui/)).toBeTruthy();
+    expect(screen.getByText(/@revealui\/presentation/)).toBeTruthy();
     expect(screen.getByText(/Live presentation components/i)).toBeTruthy();
   });
 

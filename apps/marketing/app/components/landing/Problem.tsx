@@ -4,20 +4,12 @@ import { HOME_PROBLEM } from '../../content/home';
 /**
  * Capability stack (craft pass 2026-08, Linear redesign principles).
  *
- * Replaces:
- * - desktop spreadsheet table
- * - mobile per-capability cards that restated the matrix
- * - three marketing "path" cards (still too much chrome)
+ * One comparison device: capability rows with three aligned answers.
+ * Path one-liners were removed (GAP-480 de-dupe) — body + matrix already
+ * state the three paths; a second list restated them.
  *
- * One layout at every breakpoint: capability rows with three aligned answers.
- * Hierarchy comes from type weight and spacing, not rings, fills, or boxes.
+ * Hierarchy from type weight and spacing, not rings or cards.
  * Claims stay in HOME_PROBLEM.rows so claims-evidence export paths hold.
- *
- * Linear lessons applied:
- * - reduce visual noise
- * - maintain visual alignment (label column + answer column)
- * - increase hierarchy via density, not decoration
- * - limit brand chrome; neutral surfaces
  */
 
 interface Answer {
@@ -61,51 +53,6 @@ export function Problem() {
         description={HOME_PROBLEM.body}
         align="center"
       />
-
-      {/* Path blurbs: three quiet lines under the intro, not three cards. */}
-      <ul
-        className="mx-auto mt-12 flex max-w-3xl flex-col gap-3 text-left sm:mt-14"
-        aria-label="Three paths"
-      >
-        {(
-          [
-            ['sprawl', HOME_PROBLEM.columns.sprawl, HOME_PROBLEM.pathBlurbs.sprawl, false],
-            ['agentOnly', HOME_PROBLEM.columns.agentOnly, HOME_PROBLEM.pathBlurbs.agentOnly, false],
-            ['revealui', HOME_PROBLEM.columns.revealui, HOME_PROBLEM.pathBlurbs.revealui, true],
-          ] as const
-        ).map(([id, name, blurb, emphasis]) => (
-          <li
-            key={id}
-            className="grid grid-cols-1 gap-1 sm:grid-cols-[11rem_1fr] sm:gap-6 sm:items-baseline"
-          >
-            <span
-              className={
-                emphasis
-                  ? 'text-sm font-semibold text-foreground'
-                  : 'text-sm font-medium text-muted-foreground'
-              }
-            >
-              {emphasis ? (
-                <>
-                  <span className="mr-2 text-[11px] font-semibold uppercase tracking-widest text-primary">
-                    {HOME_PROBLEM.highlightedLabel}
-                  </span>
-                  <span className="block sm:inline">{name}</span>
-                </>
-              ) : (
-                name
-              )}
-            </span>
-            <span
-              className={
-                emphasis ? 'text-sm leading-6 text-foreground' : 'text-sm leading-6 text-body'
-              }
-            >
-              {blurb}
-            </span>
-          </li>
-        ))}
-      </ul>
 
       <ul
         className="mx-auto mt-12 max-w-3xl list-none border-t border-border p-0 sm:mt-14"

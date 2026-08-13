@@ -1,15 +1,17 @@
-import { type AuditEvent, AuditLine, StatusDot, VerdictChip } from '@revealui/presentation';
+import { StatusDot, VerdictChip } from '@revealui/presentation';
 
 /**
  * Live product-chrome frame for the homepage Demo section.
  *
- * Honest product-as-proof: composed from real `@revealui/presentation`
- * primitives (StatusDot, VerdictChip, AuditLine), not a stale screenshot.
- * Mirrors the receipt motif and the admin shell shape without claiming a
- * pixel-perfect capture of a specific build.
+ * Honest product-as-proof: real `@revealui/presentation` primitives
+ * (StatusDot, VerdictChip), not a screenshot. Admin shell shape only.
  *
- * Linear craft lesson (linear.app redesign): the product is the proof.
- * Hierarchy + density over decorative chrome.
+ * GAP-480 de-dupe: does NOT re-stage the hero refund receipt / AuditLine
+ * trail. Hero owns the receipt motif; this frame shows agents as governed
+ * users (roster + policy verdicts) so the page tells two complementary
+ * product stories once each.
+ *
+ * Linear craft: hierarchy + density over decorative chrome.
  */
 
 const SIDEBAR_NAV = [
@@ -20,32 +22,39 @@ const SIDEBAR_NAV = [
   { label: 'Agents', active: true },
 ] as const;
 
-const FRAME_EVENTS: readonly AuditEvent[] = [
+interface AgentRow {
+  readonly name: string;
+  readonly role: string;
+  readonly status: 'ok' | 'warn' | 'idle';
+  readonly statusLabel: string;
+  readonly verdict: 'approve' | 'request-changes' | 'hold' | 'pending';
+  readonly asOf: string;
+}
+
+const AGENT_ROWS: readonly AgentRow[] = [
   {
-    ts: '09:41:07',
-    actor: 'support-agent',
-    action: 'signed in as',
-    object: 'agents@demo.revealui.com',
+    name: 'support-agent',
+    role: 'Customer refunds · $100 cap',
+    status: 'ok',
+    statusLabel: 'Online',
+    verdict: 'approve',
+    asOf: '09:41',
   },
   {
-    ts: '09:41:09',
-    actor: 'support-agent',
-    action: 'refunded',
-    object: 'order #4189',
+    name: 'billing-agent',
+    role: 'Subscription changes',
+    status: 'ok',
+    statusLabel: 'Online',
+    verdict: 'hold',
+    asOf: '09:38',
   },
   {
-    ts: '09:41:09',
-    actor: 'policy',
-    action: 'allowed',
-    object: 'refunds under $100',
-  },
-  {
-    ts: '09:41:10',
-    actor: 'audit-log',
-    action: 'recorded',
-    // No refId: CopyRef is interactive; this frame is a static product demo
-    // (axe nested-interactive fails if buttons sit inside role=img chrome).
-    object: 'the receipt',
+    name: 'ops-agent',
+    role: 'Deploy gates',
+    status: 'idle',
+    statusLabel: 'Idle',
+    verdict: 'request-changes',
+    asOf: '09:12',
   },
 ] as const;
 
@@ -66,13 +75,10 @@ export function ProductFrame({
 }: ProductFrameProps) {
   return (
     <figure className="mx-auto w-full max-w-5xl" aria-label={label}>
-      {/* Product mat: dark outer frame (design system demo pattern), quiet chrome.
-          Linear: hierarchy via surface elevation, not brand-colored decoration.
-          Do NOT put role=img on this mat: it may contain focusable controls
-          (AuditLine CopyRef) and nested-interactive fails axe WCAG 4.1.2. */}
+      {/* Product mat: elevation over brand decoration.
+          No nested interactive controls (axe WCAG 4.1.2). */}
       <div className="overflow-hidden rounded-2xl bg-foreground p-1 shadow-lg shadow-foreground/10 sm:p-1.5">
         <div className="overflow-hidden rounded-xl bg-background">
-          {/* Window chrome — inverted-L: title bar only; density over ornament */}
           <div className="flex h-9 items-center gap-3 border-b border-border px-3 sm:h-10 sm:px-4">
             <div className="flex items-center gap-1.5" aria-hidden="true">
               <span className="size-2 rounded-full bg-muted-foreground/25" />
@@ -88,7 +94,6 @@ export function ProductFrame({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-[10.5rem_1fr]">
-            {/* Sidebar — fixed label column alignment (Linear sidebar lesson) */}
             <aside
               className="hidden border-r border-border bg-secondary/30 p-2 sm:block"
               aria-hidden="true"
@@ -123,46 +128,39 @@ export function ProductFrame({
               </ul>
             </aside>
 
-            {/* Main pane */}
             <div className="min-w-0 p-3 sm:p-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
-                    Agent activity
-                  </p>
-                  <h3 className="mt-0.5 font-display text-sm font-semibold tracking-tight text-foreground sm:text-base">
-                    support-agent · refund flow
-                  </h3>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex h-7 items-center gap-1.5 rounded-md bg-secondary px-2 text-xs text-muted-foreground">
-                    <StatusDot status="ok" label="Agent online" pulse />
-                    Online
-                  </span>
-                  <VerdictChip verdict="approve" actor="policy" asOf="09:41" />
-                </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+                  Governed users
+                </p>
+                <h3 className="mt-0.5 font-display text-sm font-semibold tracking-tight text-foreground sm:text-base">
+                  Agents on the same roles and policies as people
+                </h3>
               </div>
 
-              <div className="mt-4 overflow-hidden rounded-lg border border-border/80">
-                <div className="flex h-8 items-center border-b border-border/80 px-3">
-                  <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
-                    Live audit trail
-                  </p>
-                </div>
-                <ul className="divide-y divide-border/80">
-                  {FRAME_EVENTS.map((event) => (
-                    <li
-                      key={`${event.ts}-${event.action}-${event.object}`}
-                      className="px-3 py-2 sm:px-3.5"
-                    >
-                      <AuditLine event={event} dense />
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <ul className="mt-4 divide-y divide-border/80 overflow-hidden rounded-lg border border-border/80">
+                {AGENT_ROWS.map((agent) => (
+                  <li
+                    key={agent.name}
+                    className="flex flex-wrap items-center justify-between gap-3 px-3 py-2.5 sm:px-3.5"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-mono text-xs font-medium text-foreground">{agent.name}</p>
+                      <p className="mt-0.5 text-xs leading-5 text-body">{agent.role}</p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex h-7 items-center gap-1.5 rounded-md bg-secondary px-2 text-xs text-muted-foreground">
+                        <StatusDot status={agent.status} label={agent.statusLabel} />
+                        {agent.statusLabel}
+                      </span>
+                      <VerdictChip verdict={agent.verdict} actor="policy" asOf={agent.asOf} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
 
               <p className="mt-3 text-xs leading-5 text-muted-foreground">
-                Live presentation components. Same receipt story as the hero, inside an admin shell.
+                Live presentation components. Agents are users with policy, not a separate stack.
               </p>
             </div>
           </div>

@@ -49,8 +49,8 @@ export const PROOF_TRUST = {
 export const PROOF_DEPLOYERS = {
   eyebrow: 'For deployers',
   heading: 'Built for people who deploy, not only demo.',
-  body: 'Some buyers install RevealUI themselves. Some hire us, or their own forward-deployed engineer, to stamp and hand over a fleet. Either way the outcome is the same: a self-hosted runtime where the business and its agents live under one roof, on infrastructure the customer owns.',
-  foil: 'Cloud agent platforms rent you an outcome. A forward-deployed engagement leaves a runtime the customer runs.',
+  body: 'Install yourself, hire Studio, or bring your own forward-deployed engineer. The outcome is the same: a self-hosted runtime on infrastructure you own.',
+  foil: 'Cloud platforms rent you an outcome. A handoff leaves a runtime you run.',
   cta: {
     label: 'Work with Studio',
     href: SITE.urls.agency,
