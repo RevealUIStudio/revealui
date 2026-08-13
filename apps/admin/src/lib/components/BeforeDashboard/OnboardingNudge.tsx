@@ -30,10 +30,9 @@ async function fetchCurrentNudge(apiUrl: string): Promise<CurrentNudge | null> {
 }
 
 /**
- * One-at-a-time onboarding nudge (GAP-300 §7). Sits next to
- * OnboardingChecklist in the BeforeDashboard slot. Dismissal is a
- * server-tracked snooze, not a localStorage kill switch — see
- * `packages/db/src/schema/nudges.ts`.
+ * One-at-a-time onboarding nudge (GAP-300 §7). Mounted via HomeOnboarding as
+ * AdminDashboard overviewLead (not the legacy beforeNavLinks slot). Dismissal
+ * is a server-tracked snooze — see packages/db/src/schema/nudges.ts.
  */
 export default function OnboardingNudge() {
   const [nudge, setNudge] = useState<CurrentNudge | null>(null);
@@ -65,11 +64,11 @@ export default function OnboardingNudge() {
   };
 
   return (
-    <div className="mb-6 rounded-lg border border-primary/30 bg-primary/5 p-6">
+    <div className="rounded-lg border border-primary/30 bg-primary/5 p-6 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-white">{nudge.headline}</h2>
-          <p className="mt-1 text-sm text-zinc-300">{nudge.body}</p>
+          <h2 className="text-lg font-semibold text-foreground">{nudge.headline}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{nudge.body}</p>
           <Link
             href={nudge.ctaHref}
             className="mt-3 inline-block rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90"
@@ -83,7 +82,7 @@ export default function OnboardingNudge() {
           variant="neutral"
           size="sm"
           onClick={handleDismiss}
-          className="shrink-0 text-xs text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
+          className="shrink-0 text-xs text-muted-foreground"
         >
           Dismiss
         </Button>

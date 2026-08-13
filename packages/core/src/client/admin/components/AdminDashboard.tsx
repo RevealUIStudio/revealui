@@ -27,6 +27,12 @@ interface AdminDashboardProps {
    * files cannot read those env vars at runtime (build-time inlining).
    */
   siteName?: string;
+  /**
+   * Optional lead content above the Overview stats (GAP-300 onboarding
+   * checklist/nudge). Only shown on the home Overview view, not collection
+   * or document editors.
+   */
+  overviewLead?: ReactNode;
 }
 
 type ViewType = 'dashboard' | 'collection' | 'edit' | 'global';
@@ -460,6 +466,7 @@ function DashboardHome({
   degraded,
   onCollectionClick,
   onGlobalClick,
+  overviewLead,
 }: {
   siteName: string;
   collections: RevealCollectionConfig[];
@@ -467,6 +474,7 @@ function DashboardHome({
   degraded: boolean;
   onCollectionClick: (c: RevealCollectionConfig) => void;
   onGlobalClick: (g: RevealGlobalConfig) => void;
+  overviewLead?: ReactNode;
 }) {
   const grouped = groupCollectionsByTaxonomy(collections);
 
@@ -498,6 +506,8 @@ function DashboardHome({
             Collections, globals, and system status for {siteName}.
           </p>
         </div>
+
+        {overviewLead ? <div className="mb-6">{overviewLead}</div> : null}
 
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <StatTile label="Collections" value={collections.length} icon={collectionsIcon} />
@@ -556,7 +566,11 @@ function logApiError(err: unknown, context: string): void {
 // Main component
 // =============================================================================
 
-export function AdminDashboard({ config, siteName = 'RevealUI' }: AdminDashboardProps) {
+export function AdminDashboard({
+  config,
+  siteName = 'RevealUI',
+  overviewLead,
+}: AdminDashboardProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const collections = config.collections || [];
@@ -894,6 +908,7 @@ export function AdminDashboard({ config, siteName = 'RevealUI' }: AdminDashboard
       degraded={Boolean(state.error)}
       onCollectionClick={(c) => void handleCollectionClick(c)}
       onGlobalClick={(g) => void handleGlobalClick(g)}
+      overviewLead={overviewLead}
     />
   );
 }
