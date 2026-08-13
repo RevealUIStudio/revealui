@@ -3,6 +3,7 @@ import { serializeConfig } from '@revealui/core/admin/utils/serializeConfig';
 import type { RevealConfig } from '@revealui/core/types/core';
 import { IconSettings } from '@revealui/presentation/server';
 import Link from 'next/link';
+import HomeOnboarding from '@/lib/components/BeforeDashboard/HomeOnboarding';
 import config from '../../../../revealui.config';
 
 // Force dynamic rendering to prevent build-time initialization
@@ -37,7 +38,11 @@ export default async function Page({ params: _params, searchParams: _searchParam
       >
         <IconSettings className="h-5 w-5" aria-hidden="true" />
       </Link>
-      <AdminDashboard config={serializedConfig} siteName={siteName} />
+      <AdminDashboard
+        config={serializedConfig}
+        siteName={siteName}
+        overviewLead={<HomeOnboarding />}
+      />
     </div>
   );
 }
