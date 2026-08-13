@@ -79,6 +79,20 @@ describe('PricingTable  -  full layout', () => {
     expect(screen.getByText('Most Popular')).toBeInTheDocument();
   });
 
+  it('accepts a custom highlightedLabel', () => {
+    render(<PricingTable tiers={mockTiers} highlightedLabel="Recommended" />);
+    expect(screen.getByText('Recommended')).toBeInTheDocument();
+    expect(screen.queryByText('Most Popular')).not.toBeInTheDocument();
+  });
+
+  it('renders optional savings under the price', () => {
+    const withSavings = mockTiers.map((t) =>
+      t.id === 'pro' ? { ...t, savings: 'Save 20% annually' } : t,
+    );
+    render(<PricingTable tiers={withSavings} />);
+    expect(screen.getByText('Save 20% annually')).toBeInTheDocument();
+  });
+
   it('renders "Current Plan" badge when currentTier matches', () => {
     render(<PricingTable tiers={mockTiers} currentTier="pro" />);
     expect(screen.getByText('Current Plan')).toBeInTheDocument();

@@ -15,13 +15,15 @@ describe('Accordion', () => {
     expect(screen.getByText('Section 2')).toBeInTheDocument();
   });
 
-  it('is collapsed by default', () => {
+  it('keeps panel content mounted but hidden when collapsed', () => {
     render(
       <Accordion>
         <AccordionItem title="Closed">Hidden content</AccordionItem>
       </Accordion>,
     );
-    expect(screen.queryByText('Hidden content')).not.toBeInTheDocument();
+    const panel = screen.getByText('Hidden content');
+    expect(panel).toBeInTheDocument();
+    expect(panel.closest('section')).toHaveAttribute('hidden');
   });
 
   it('expands when defaultOpen is true', () => {
@@ -32,7 +34,8 @@ describe('Accordion', () => {
         </AccordionItem>
       </Accordion>,
     );
-    expect(screen.getByText('Visible content')).toBeInTheDocument();
+    const panel = screen.getByText('Visible content').closest('section');
+    expect(panel).not.toHaveAttribute('hidden');
   });
 
   it('toggles open and closed on click', async () => {
@@ -43,13 +46,14 @@ describe('Accordion', () => {
       </Accordion>,
     );
     const button = screen.getByRole('button', { name: /Toggle me/i });
-    expect(screen.queryByText('Inner content')).not.toBeInTheDocument();
+    const panel = screen.getByText('Inner content').closest('section');
+    expect(panel).toHaveAttribute('hidden');
 
     await user.click(button);
-    expect(screen.getByText('Inner content')).toBeInTheDocument();
+    expect(panel).not.toHaveAttribute('hidden');
 
     await user.click(button);
-    expect(screen.queryByText('Inner content')).not.toBeInTheDocument();
+    expect(panel).toHaveAttribute('hidden');
   });
 
   it('sets aria-expanded correctly', async () => {
@@ -76,7 +80,7 @@ describe('Accordion', () => {
     );
     const [first] = screen.getAllByRole('button');
     await user.click(first);
-    expect(screen.getByText('First content')).toBeInTheDocument();
-    expect(screen.queryByText('Second content')).not.toBeInTheDocument();
+    expect(screen.getByText('First content').closest('section')).not.toHaveAttribute('hidden');
+    expect(screen.getByText('Second content').closest('section')).toHaveAttribute('hidden');
   });
 });

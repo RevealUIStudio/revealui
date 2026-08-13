@@ -1,7 +1,8 @@
 import {
+  Accordion,
+  AccordionItem,
   type BlockAnnotation,
   fieldAttrs,
-  IconPlus,
   MarketingSection,
   SectionHeader,
 } from '@revealui/presentation';
@@ -27,30 +28,28 @@ export function Faq({ data = HOME_FAQ, path = 'blocks.1.data', annotation = {} }
         align="center"
       />
 
-      <div className="mx-auto mt-16 max-w-3xl divide-y divide-border">
+      <Accordion className="mx-auto mt-16 max-w-3xl border-t border-border">
         {data.items.map((item, index) => (
-          <details key={item.question} className="group py-6">
-            <summary className="flex cursor-pointer list-none items-start justify-between gap-6 text-left">
-              <h3
+          <AccordionItem
+            key={item.question}
+            title={
+              <span
                 className="text-lg font-semibold leading-7 text-foreground"
                 {...fieldAttrs(annotation, `${path}.items.${index}.label`)}
               >
                 {item.question}
-              </h3>
-
-              <span className="ml-2 mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground transition group-open:rotate-45 group-open:bg-primary/10 group-open:text-primary">
-                <IconPlus size="sm" label="Toggle" />
               </span>
-            </summary>
-            <div
-              className="mt-4 pr-9 text-base leading-7 text-muted-foreground"
+            }
+          >
+            <p
+              className="pr-2 text-base leading-7 text-body"
               {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
             >
               {item.answer}
-            </div>
-          </details>
+            </p>
+          </AccordionItem>
         ))}
-      </div>
+      </Accordion>
     </MarketingSection>
   );
 }

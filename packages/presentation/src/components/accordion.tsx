@@ -57,15 +57,15 @@ export function AccordionItem({
           />
         </svg>
       </button>
-      {open && (
-        <section
-          id={`${id}-content`}
-          aria-labelledby={`${id}-trigger`}
-          className="pb-4 text-sm text-body"
-        >
-          {children}
-        </section>
-      )}
+      {/* Keep panel mounted so consumers (CMS fieldAttrs, SSR text) stay in the DOM. */}
+      <section
+        id={`${id}-content`}
+        aria-labelledby={`${id}-trigger`}
+        hidden={!open}
+        className={cn('pb-4 text-sm text-body', !open && 'hidden')}
+      >
+        {children}
+      </section>
     </div>
   );
 }
