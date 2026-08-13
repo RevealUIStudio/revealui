@@ -223,6 +223,41 @@ Rebuild \`@revealui/harnesses\` so \`dist/cli.js session\` / \`hook grok\` are a
   return rel;
 }
 
+/**
+ * GAP-293 Phase A: RevDev consumes `.revealui/content` as SSOT.
+ * No second emit tree (would twin the claude-code generator).
+ */
+export function materializeRevDevPointer(projectRoot: string): string {
+  const rel = join(MANAGER_DIR, 'adapters', 'revdev.md');
+  const abs = join(projectRoot, rel);
+  mkdirSync(dirname(abs), { recursive: true });
+  writeFileSync(
+    abs,
+    `${STUB_HEADER}
+# RevealUI manager (RevDev adapter)
+
+RevDev Studio, Console, and the daemon are an **equal adapter**. They **read**
+the project manager and generated content. They do not own a second rules tree.
+
+When cwd is this project:
+
+1. Read **\`.revealui/manager.json\`**
+2. Read **\`.revealui/content/\`** for shared policy (SSOT after \`manager materialize\`)
+3. Open \`tracker.path\` from the manager (fleet TRACKER)
+4. Product I/O: RevealUI MCP (\`rfg\`) — not a vendor side channel
+5. Local inference stays on snaps / Ollama via the daemon. No Anthropic SDK.
+
+Do not create \`~/.revdev/rules/\` hardline copies. Do not emit a parallel
+generator that duplicates \`.revealui/content/\`. Skills index RPC and
+AgentRuntime cockpit loops are later GAP-293 phases.
+
+See \`.revealui/README.md\` and \`.jv/docs/gap-specs/GAP-293-revdev-harness-parity-design.md\`.
+`,
+    'utf-8',
+  );
+  return rel;
+}
+
 export interface MaterializeResult {
   managerPath: string;
   stubs: string[];
@@ -233,17 +268,18 @@ export function materializeManager(
   projectRoot: string,
   options?: {
     config?: ManagerConfig;
-    adapters?: Array<'claude-code' | 'cursor' | 'opencode' | 'grok'>;
+    adapters?: Array<'claude-code' | 'cursor' | 'opencode' | 'grok' | 'revdev'>;
   },
 ): MaterializeResult {
   const managerFile = writeManagerPreserving(projectRoot, options?.config);
-  const adapters = options?.adapters ?? ['claude-code', 'cursor', 'opencode', 'grok'];
+  const adapters = options?.adapters ?? ['claude-code', 'cursor', 'opencode', 'grok', 'revdev'];
   const stubs: string[] = [];
   for (const id of adapters) {
     if (id === 'claude-code') stubs.push(materializeClaudeStub(projectRoot));
     else if (id === 'cursor') stubs.push(materializeCursorStub(projectRoot));
     else if (id === 'opencode') stubs.push(materializeOpenCodeStub(projectRoot));
     else if (id === 'grok') stubs.push(materializeGrokPointer(projectRoot));
+    else if (id === 'revdev') stubs.push(materializeRevDevPointer(projectRoot));
   }
   return { managerPath: managerFile, stubs };
 }
@@ -348,6 +384,10 @@ export function checkManager(projectRoot: string): ManagerCheckResult {
   const opencodeStub = join(projectRoot, '.opencode', 'revealui-manager.md');
   if (readFileOrNull(opencodeStub) === null) {
     warnings.push('missing .opencode/revealui-manager.md stub (materialize opencode)');
+  }
+  const revdevStub = join(projectRoot, MANAGER_DIR, 'adapters', 'revdev.md');
+  if (readFileOrNull(revdevStub) === null) {
+    warnings.push('missing .revealui/adapters/revdev.md stub (materialize revdev)');
   }
   const readme = join(projectRoot, MANAGER_DIR, 'README.md');
   if (readFileOrNull(readme) === null) {

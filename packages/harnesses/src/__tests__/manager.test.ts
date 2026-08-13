@@ -32,6 +32,7 @@ describe('project manager (.revealui)', () => {
     expect(cfg.version).toBe(1);
     expect(cfg.contentRoot).toBe('content');
     expect(cfg.adapters.some((a) => a.id === 'claude-code' && a.rank === 'equal')).toBe(true);
+    expect(cfg.adapters.some((a) => a.id === 'revdev' && a.projectTree === null)).toBe(true);
     expect(cfg.adapters.every((a) => a.rank === 'equal')).toBe(true);
   });
 
@@ -51,6 +52,10 @@ describe('project manager (.revealui)', () => {
     const opencodeStub = readFileSync(join(root, '.opencode/revealui-manager.md'), 'utf-8');
     expect(opencodeStub).toContain('.revealui/manager.json');
     expect(opencodeStub).toContain('equal');
+    const revdevStub = readFileSync(join(root, '.revealui/adapters/revdev.md'), 'utf-8');
+    expect(revdevStub).toContain('.revealui/content/');
+    expect(revdevStub).toContain('Do not create');
+    expect(revdevStub).toContain('equal adapter');
   });
 
   it('materialize emits Grok peer SessionStart/SessionEnd control-layer hooks', () => {
@@ -160,6 +165,7 @@ describe('project manager (.revealui)', () => {
         { id: 'vscode', projectTree: null, rank: 'equal' },
         { id: 'grok', projectTree: null, rank: 'equal' },
         { id: 'revealui-agent', projectTree: null, rank: 'equal' },
+        { id: 'revdev', projectTree: null, rank: 'equal' },
       ],
       mcp: { configPath: 'mcp.json' },
       contentPackage: '@revealui/harnesses',
@@ -184,6 +190,17 @@ describe('project manager (.revealui)', () => {
     writeManagerAdapterContent(root);
     const after = checkManager(root);
     expect(after.ok).toBe(true);
+  });
+
+  it('checkManager warns when the RevDev consume-content stub is missing', () => {
+    const root = tempProject();
+    materializeManager(root, {
+      adapters: ['claude-code', 'cursor', 'opencode', 'grok'],
+    });
+    writeManagerAdapterContent(root);
+    const checked = checkManager(root);
+    expect(checked.ok).toBe(true);
+    expect(checked.warnings.some((w) => w.includes('revdev.md'))).toBe(true);
   });
 
   it('check fails when content tree is missing after manager.json exists', () => {
