@@ -25,25 +25,52 @@ function NavLink({
   className,
   onClick,
   children,
+  'aria-current': ariaCurrent,
 }: {
   href: string;
   className?: string;
   onClick?: () => void;
   children: ReactNode;
+  'aria-current'?: 'page' | undefined;
 }) {
   if (href.startsWith('/')) {
     return (
-      <Link to={href} className={className} onClick={onClick}>
+      <Link to={href} className={className} onClick={onClick} aria-current={ariaCurrent}>
         {children}
       </Link>
     );
   }
   return (
-    <a href={href} className={className} onClick={onClick}>
+    <a href={href} className={className} onClick={onClick} aria-current={ariaCurrent}>
       {children}
     </a>
   );
 }
+
+/** True when this chrome link is the current marketing route (internal paths only). */
+function isNavActive(pathname: string, href: string): boolean {
+  if (!href.startsWith('/')) {
+    return false;
+  }
+  if (href === '/') {
+    return pathname === '/';
+  }
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+const desktopLinkClass = (active: boolean): string =>
+  [
+    'text-sm font-medium transition-colors',
+    active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+  ].join(' ');
+
+const mobileLinkClass = (active: boolean): string =>
+  [
+    'rounded-md px-3 py-3 text-sm font-medium transition-colors',
+    active
+      ? 'bg-muted text-foreground'
+      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+  ].join(' ');
 
 export function NavBar() {
   const [open, setOpen] = useState(false);
@@ -74,28 +101,40 @@ export function NavBar() {
   }, [pathname]);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
-      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
+      <nav
+        className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-6 lg:px-8"
+        aria-label="Primary"
+      >
         <NavLink
           href="/"
-          className="flex items-center gap-2 font-display text-xl font-bold tracking-tight text-foreground"
+          className="flex shrink-0 items-center gap-2 font-display text-xl font-bold tracking-tight text-foreground"
+          aria-current={pathname === '/' ? 'page' : undefined}
         >
           <img src="/icon-mark.svg" alt="" aria-hidden="true" className="h-[22px] w-[22px]" />
           RevealUI
         </NavLink>
 
         {/* Desktop links */}
-        <div className="hidden items-center gap-8 text-sm font-medium text-muted-foreground lg:flex">
-          {NAV_LINKS.map(({ label, href }) => (
-            <NavLink key={label} href={href} className="transition-colors hover:text-foreground">
-              {label}
-            </NavLink>
-          ))}
+        <div className="hidden items-center gap-7 lg:flex">
+          {NAV_LINKS.map(({ label, href }) => {
+            const active = isNavActive(pathname, href);
+            return (
+              <NavLink
+                key={label}
+                href={href}
+                className={desktopLinkClass(active)}
+                aria-current={active ? 'page' : undefined}
+              >
+                {label}
+              </NavLink>
+            );
+          })}
           <a
             href="https://github.com/RevealUIStudio/revealui"
             target="_blank"
             rel="noopener noreferrer"
-            className="transition-colors hover:text-foreground"
+            className="text-muted-foreground transition-colors hover:text-foreground"
             aria-label="GitHub"
           >
             <span className="sr-only">GitHub</span>
@@ -103,7 +142,7 @@ export function NavBar() {
           </a>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <NavLink
             href={NAV_AUTH.login.href}
             className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground lg:inline-flex"
@@ -141,35 +180,35 @@ export function NavBar() {
         <div
           id={MOBILE_MENU_ID}
           ref={menuRef}
-          className="relative z-50 border-t border-border bg-background px-6 py-4 lg:hidden"
+          className="relative z-50 border-t border-border bg-background px-6 py-5 lg:hidden"
         >
-          <div className="flex flex-col gap-1">
-            {NAV_LINKS.map(({ label, href }) => (
-              <NavLink
-                key={label}
-                href={href}
-                className="rounded-md px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                onClick={close}
-              >
-                {label}
-              </NavLink>
-            ))}
+          <div className="flex flex-col gap-0.5">
+            {NAV_LINKS.map(({ label, href }) => {
+              const active = isNavActive(pathname, href);
+              return (
+                <NavLink
+                  key={label}
+                  href={href}
+                  className={mobileLinkClass(active)}
+                  aria-current={active ? 'page' : undefined}
+                  onClick={close}
+                >
+                  {label}
+                </NavLink>
+              );
+            })}
             <a
               href="https://github.com/RevealUIStudio/revealui"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-md px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className={mobileLinkClass(false)}
               onClick={close}
             >
               GitHub
             </a>
           </div>
-          <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
-            <NavLink
-              href={NAV_AUTH.login.href}
-              className="rounded-md px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              onClick={close}
-            >
+          <div className="mt-5 flex flex-col gap-2 border-t border-border pt-5">
+            <NavLink href={NAV_AUTH.login.href} className={mobileLinkClass(false)} onClick={close}>
               {NAV_AUTH.login.label}
             </NavLink>
             <LinkButton href={NAV_AUTH.signup.href} onClick={close} className="w-full">
