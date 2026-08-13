@@ -1,5 +1,5 @@
 {
-  "description": "Allowlisted Tier-1 JSX intrinsics in apps/* (GAP-398 residual floor). Hard-fail gate: pnpm validate:tier1-presentation -- --hard-fail. Each entry needs a non-empty reason. Intentional floor classes: data charts, Lexical letterform toolbar icons, CMS/content-driven path icons. ADR 2026-05-16 amendment 2026-07-21. Do not empty without new presentation primitives.",
+  "description": "Allowlisted Tier-1 JSX intrinsics until burned to @revealui/presentation (GAP-398 residual floor + GAP-479 extra roots). Each entry needs a non-empty reason. Hard-fail: pnpm validate:tier1-presentation -- --hard-fail.",
   "entries": [
     {
       "path": "apps/admin/src/components/revealui/sections/stats-with-graph.tsx",
@@ -22,14 +22,204 @@
       "reason": "Lexical toolbar letterform icon (custom Aa glyph); no Icon* match (GAP-398 residual)"
     },
     {
-      "path": "apps/marketing/app/components/landing/Primitives.tsx",
-      "tag": "svg",
-      "reason": "CMS/static content-driven icon path data per primitive; no Icon* match (GAP-398 residual)"
-    },
-    {
       "path": "apps/marketing/app/routes/ProductsPage.tsx",
       "tag": "svg",
       "reason": "content-driven product icon path data; no Icon* match (GAP-398 residual)"
+    },
+    {
+      "path": "apps/rsc-poc/src/pages/action-form.tsx",
+      "tag": "button",
+      "reason": "GAP-479 later slice: rsc-poc research harness; migrate hosts to presentation"
+    },
+    {
+      "path": "apps/rsc-poc/src/pages/action-form.tsx",
+      "tag": "input",
+      "reason": "GAP-479 later slice: rsc-poc research harness; migrate hosts to presentation"
+    },
+    {
+      "path": "apps/rsc-poc/src/pages/counter.tsx",
+      "tag": "button",
+      "reason": "GAP-479 later slice: rsc-poc research harness; migrate hosts to presentation"
+    },
+    {
+      "path": "apps/rsc-poc/src/pages/errors-client.tsx",
+      "tag": "button",
+      "reason": "GAP-479 later slice: rsc-poc research harness; migrate hosts to presentation"
+    },
+    {
+      "path": "apps/rsc-poc/src/pages/session-client.tsx",
+      "tag": "button",
+      "reason": "GAP-479 later slice: rsc-poc research harness; migrate hosts to presentation"
+    },
+    {
+      "path": "apps/rsc-poc/src/pages/session.tsx",
+      "tag": "button",
+      "reason": "GAP-479 later slice: rsc-poc research harness; migrate hosts to presentation"
+    },
+    {
+      "path": "apps/rsc-poc/src/pages/session.tsx",
+      "tag": "input",
+      "reason": "GAP-479 later slice: rsc-poc research harness; migrate hosts to presentation"
+    },
+    {
+      "path": "packages/core/src/client/admin/components/AdminDashboard.tsx",
+      "tag": "button",
+      "reason": "GAP-479 later slice: core admin forms; replace with presentation Button/Input/Select/Textarea"
+    },
+    {
+      "path": "packages/core/src/client/admin/components/AdminDashboard.tsx",
+      "tag": "svg",
+      "reason": "GAP-479 later slice: core admin forms; replace with presentation Button/Input/Select/Textarea"
+    },
+    {
+      "path": "packages/core/src/client/admin/components/CollectionList.tsx",
+      "tag": "button",
+      "reason": "GAP-479 later slice: core admin forms; replace with presentation Button/Input/Select/Textarea"
+    },
+    {
+      "path": "packages/core/src/client/admin/components/CollectionList.tsx",
+      "tag": "input",
+      "reason": "GAP-479 later slice: core admin forms; replace with presentation Button/Input/Select/Textarea"
+    },
+    {
+      "path": "packages/core/src/client/admin/components/CollectionList.tsx",
+      "tag": "svg",
+      "reason": "GAP-479 later slice: core admin forms; replace with presentation Button/Input/Select/Textarea"
+    },
+    {
+      "path": "packages/core/src/client/admin/components/DocumentForm.tsx",
+      "tag": "button",
+      "reason": "GAP-479 later slice: core admin forms; replace with presentation Button/Input/Select/Textarea"
+    },
+    {
+      "path": "packages/core/src/client/admin/components/DocumentForm.tsx",
+      "tag": "input",
+      "reason": "GAP-479 later slice: core admin forms; replace with presentation Button/Input/Select/Textarea"
+    },
+    {
+      "path": "packages/core/src/client/admin/components/DocumentForm.tsx",
+      "tag": "select",
+      "reason": "GAP-479 later slice: core admin forms; replace with presentation Button/Input/Select/Textarea"
+    },
+    {
+      "path": "packages/core/src/client/admin/components/DocumentForm.tsx",
+      "tag": "textarea",
+      "reason": "GAP-479 later slice: core admin forms; replace with presentation Button/Input/Select/Textarea"
+    },
+    {
+      "path": "packages/core/src/client/admin/components/GlobalForm.tsx",
+      "tag": "button",
+      "reason": "GAP-479 later slice: core admin forms; replace with presentation Button/Input/Select/Textarea"
+    },
+    {
+      "path": "packages/core/src/client/admin/components/GlobalForm.tsx",
+      "tag": "input",
+      "reason": "GAP-479 later slice: core admin forms; replace with presentation Button/Input/Select/Textarea"
+    },
+    {
+      "path": "packages/core/src/client/admin/components/GlobalForm.tsx",
+      "tag": "select",
+      "reason": "GAP-479 later slice: core admin forms; replace with presentation Button/Input/Select/Textarea"
+    },
+    {
+      "path": "packages/core/src/client/admin/components/GlobalForm.tsx",
+      "tag": "textarea",
+      "reason": "GAP-479 later slice: core admin forms; replace with presentation Button/Input/Select/Textarea"
+    },
+    {
+      "path": "packages/core/src/client/admin/page.tsx",
+      "tag": "svg",
+      "reason": "GAP-479 later slice: core admin forms; replace with presentation Button/Input/Select/Textarea"
+    },
+    {
+      "path": "packages/core/src/client/richtext/components/ImageNodeComponent.tsx",
+      "tag": "button",
+      "reason": "GAP-479 later slice: Lexical editor chrome in @revealui/core; compose presentation after toolbar rewrite"
+    },
+    {
+      "path": "packages/core/src/client/richtext/components/ImageNodeComponent.tsx",
+      "tag": "input",
+      "reason": "GAP-479 later slice: Lexical editor chrome in @revealui/core; compose presentation after toolbar rewrite"
+    },
+    {
+      "path": "packages/core/src/client/richtext/components/ImageUploadButton.tsx",
+      "tag": "button",
+      "reason": "GAP-479 later slice: Lexical editor chrome in @revealui/core; compose presentation after toolbar rewrite"
+    },
+    {
+      "path": "packages/core/src/client/richtext/components/ImageUploadButton.tsx",
+      "tag": "input",
+      "reason": "GAP-479 later slice: Lexical editor chrome in @revealui/core; compose presentation after toolbar rewrite"
+    },
+    {
+      "path": "packages/core/src/client/richtext/plugins/FloatingToolbarPlugin.tsx",
+      "tag": "button",
+      "reason": "GAP-479 later slice: Lexical editor chrome in @revealui/core; compose presentation after toolbar rewrite"
+    },
+    {
+      "path": "packages/core/src/client/richtext/plugins/FloatingToolbarPlugin.tsx",
+      "tag": "select",
+      "reason": "GAP-479 later slice: Lexical editor chrome in @revealui/core; compose presentation after toolbar rewrite"
+    },
+    {
+      "path": "packages/core/src/client/richtext/plugins/ToolbarPlugin.tsx",
+      "tag": "button",
+      "reason": "GAP-479 later slice: Lexical editor chrome in @revealui/core; compose presentation after toolbar rewrite"
+    },
+    {
+      "path": "packages/core/src/client/richtext/plugins/ToolbarPlugin.tsx",
+      "tag": "select",
+      "reason": "GAP-479 later slice: Lexical editor chrome in @revealui/core; compose presentation after toolbar rewrite"
+    },
+    {
+      "path": "packages/core/src/client/ui/index.tsx",
+      "tag": "button",
+      "reason": "GAP-479 later slice: core TextInput/select/textarea duplicate presentation; delete after callers migrate"
+    },
+    {
+      "path": "packages/core/src/client/ui/index.tsx",
+      "tag": "input",
+      "reason": "GAP-479 later slice: core TextInput/select/textarea duplicate presentation; delete after callers migrate"
+    },
+    {
+      "path": "packages/core/src/client/ui/index.tsx",
+      "tag": "select",
+      "reason": "GAP-479 later slice: core TextInput/select/textarea duplicate presentation; delete after callers migrate"
+    },
+    {
+      "path": "packages/core/src/client/ui/index.tsx",
+      "tag": "textarea",
+      "reason": "GAP-479 later slice: core TextInput/select/textarea duplicate presentation; delete after callers migrate"
+    },
+    {
+      "path": "packages/core/src/error-handling/error-boundary.tsx",
+      "tag": "button",
+      "reason": "GAP-479 later slice: core error fallback actions; use presentation Button"
+    },
+    {
+      "path": "packages/core/src/error-handling/fallback-components.tsx",
+      "tag": "button",
+      "reason": "GAP-479 later slice: core error fallback actions; use presentation Button"
+    },
+    {
+      "path": "packages/core/src/utils/block-conversion.tsx",
+      "tag": "input",
+      "reason": "GAP-479 later slice: CMS block conversion control; use presentation Input"
+    },
+    {
+      "path": "packages/editor/src/canvas/EditSessionCanvas.tsx",
+      "tag": "button",
+      "reason": "GAP-479 later slice: visual-edit canvas chrome; use presentation Button/Input/Textarea"
+    },
+    {
+      "path": "packages/editor/src/canvas/EditSessionCanvas.tsx",
+      "tag": "input",
+      "reason": "GAP-479 later slice: visual-edit canvas chrome; use presentation Button/Input/Textarea"
+    },
+    {
+      "path": "packages/editor/src/canvas/EditSessionCanvas.tsx",
+      "tag": "textarea",
+      "reason": "GAP-479 later slice: visual-edit canvas chrome; use presentation Button/Input/Textarea"
     }
   ]
 }

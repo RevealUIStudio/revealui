@@ -38,6 +38,7 @@ tsx scripts/validate/boundary.ts
 | `structure.ts`       | `pnpm validate:structure`| Enforce project structure                      |
 | `build-artifacts.ts` | `pnpm validate:artifacts`| Validate build artifacts                       |
 | `react-rsc-floor.ts` | `pnpm validate:react-floor` | Enforce the React Server Component floor    |
+| `tier1-presentation.ts` | `pnpm validate:tier1-presentation` | Tier-1 JSX hosts must come from `@revealui/presentation` (GAP-398 / GAP-479). `--repo-root` / `--root` for sibling repos. |
 | `validate-code.ts`   | run via `tsx`          | Validate code files against RevealUI standards   |
 | `validate-root-markdown.ts` | run via `tsx`   | Enforce which `.md` files may live in the repo root |
 
