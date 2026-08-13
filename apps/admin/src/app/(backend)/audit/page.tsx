@@ -1,6 +1,21 @@
 'use client';
 
-import Link from 'next/link';
+import {
+  Badge,
+  Callout,
+  CodeBlock,
+  EmptyState,
+  Heading,
+  LinkButton,
+  Skeleton,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Text,
+} from '@revealui/presentation';
 import { useEffect, useReducer } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
@@ -60,13 +75,21 @@ function reducer(state: State, action: Action): State {
 // Constants
 // =============================================================================
 
-const SEVERITY_STYLES: Record<string, string> = {
-  critical: 'bg-error/15 text-error',
-  warn: 'bg-warning/15 text-warning-foreground',
-  info: 'bg-muted text-muted-foreground',
-};
+/** Legacy placeholder actor — never show as a principal (server also excludes). */
+const LEGACY_ANONYMOUS_ACTOR_ID = 'anonymous';
 
 const SEVERITIES = ['info', 'warn', 'critical'] as const;
+
+type SeverityBadgeColor = 'muted' | 'warning' | 'danger';
+
+const SEVERITY_BADGE_COLOR: Record<string, SeverityBadgeColor> = {
+  info: 'muted',
+  low: 'muted',
+  warn: 'warning',
+  medium: 'warning',
+  critical: 'danger',
+  high: 'danger',
+};
 
 function formatTime(date: Date): string {
   return new Intl.DateTimeFormat('en-US', {
@@ -78,6 +101,25 @@ function formatTime(date: Date): string {
     hour12: false,
     timeZoneName: 'short',
   }).format(date);
+}
+
+function formatApiError(body: unknown, status: number): string {
+  if (body && typeof body === 'object') {
+    const err = (body as { error?: unknown }).error;
+    if (typeof err === 'string' && err.trim()) return err;
+    if (err && typeof err === 'object') {
+      try {
+        return JSON.stringify(err);
+      } catch {
+        // fall through
+      }
+    }
+    const code = (body as { code?: unknown }).code;
+    if (typeof code === 'string' && code.trim()) {
+      return `Request failed (${status}, ${code})`;
+    }
+  }
+  return `Failed to load audit log (${status})`;
 }
 
 // =============================================================================
@@ -107,32 +149,13 @@ function AuditDashboard() {
   )
     ? searchParams.get('severity')
     : undefined;
-  const filterAgent = searchParams.get('agent') || undefined;
+  const filterActor = searchParams.get('actor') || searchParams.get('agent') || undefined;
   // Must stay within PaginationQuery max (100) on /api/admin/audit — higher
   // values produce a validation error and a blank trail UI.
   const limit = Math.min(Math.max(Number(searchParams.get('limit')) || 100, 1), 100);
 
   useEffect(() => {
     let cancelled = false;
-
-    function formatApiError(body: unknown, status: number): string {
-      if (body && typeof body === 'object') {
-        const err = (body as { error?: unknown }).error;
-        if (typeof err === 'string' && err.trim()) return err;
-        if (err && typeof err === 'object') {
-          try {
-            return JSON.stringify(err);
-          } catch {
-            // fall through
-          }
-        }
-        const code = (body as { code?: unknown }).code;
-        if (typeof code === 'string' && code.trim()) {
-          return `Request failed (${status}, ${code})`;
-        }
-      }
-      return `Failed to load audit log (${status})`;
-    }
 
     async function fetchAudit() {
       dispatch({ type: 'FETCH_START' });
@@ -141,7 +164,7 @@ function AuditDashboard() {
         params.set('limit', String(limit));
         params.set('offset', '0');
         if (filterSeverity) params.set('severity', filterSeverity);
-        if (filterAgent) params.set('agentId', filterAgent);
+        if (filterActor) params.set('agentId', filterActor);
 
         const res = await fetch(`${apiUrl}/api/admin/audit?${params.toString()}`, {
           credentials: 'include',
@@ -152,7 +175,13 @@ function AuditDashboard() {
         }
         const data = (await res.json()) as PaginatedResponse;
         if (!cancelled) {
-          dispatch({ type: 'FETCH_SUCCESS', rows: data.data, total: data.total });
+          // Defense in depth: never render the legacy anonymous placeholder.
+          const principals = data.data.filter((row) => row.agentId !== LEGACY_ANONYMOUS_ACTOR_ID);
+          dispatch({
+            type: 'FETCH_SUCCESS',
+            rows: principals,
+            total: Math.max(0, data.total - (data.data.length - principals.length)),
+          });
         }
       } catch (e: unknown) {
         if (!cancelled) {
@@ -168,11 +197,11 @@ function AuditDashboard() {
     return () => {
       cancelled = true;
     };
-  }, [apiUrl, filterSeverity, filterAgent, limit]);
+  }, [apiUrl, filterSeverity, filterActor, limit]);
 
   function filterUrl(overrides: Record<string, string | undefined>): string {
     const p = new URLSearchParams();
-    const next = { severity: filterSeverity, agent: filterAgent, ...overrides };
+    const next = { severity: filterSeverity, actor: filterActor, ...overrides };
     for (const [k, v] of Object.entries(next)) {
       if (v) p.set(k, v);
     }
@@ -181,130 +210,156 @@ function AuditDashboard() {
   }
 
   return (
-    <div className="min-h-screen text-foreground">
-      {/* Header */}
-      <div className="flex flex-wrap items-center gap-4 border-b border-border bg-card p-4">
+    <div className="min-h-screen">
+      <div className="flex flex-wrap items-center gap-4 border-b border-border bg-card px-6 py-4">
         <div>
-          <h1 className="text-xl font-semibold text-foreground">Audit Trail</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            AI agent activity and security audit events
-          </p>
+          <Heading level={1} className="text-xl/8 sm:text-xl/8">
+            Audit Trail
+          </Heading>
+          <Text className="mt-0.5 text-sm text-muted-foreground">
+            Receipts for users, agents, and system principals
+          </Text>
         </div>
 
-        {/* Severity filter */}
-        <div className="ml-auto flex items-center gap-1 text-sm">
-          <Link
+        <nav className="ml-auto flex flex-wrap items-center gap-1" aria-label="Severity filter">
+          <LinkButton
             href={filterUrl({ severity: undefined })}
-            className={`rounded px-2 py-1 ${!filterSeverity ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            appearance={filterSeverity ? 'ghost' : 'solid'}
+            variant={filterSeverity ? 'neutral' : 'brand'}
+            size="sm"
           >
             All
-          </Link>
-          {SEVERITIES.map((s) => (
-            <Link
-              key={s}
-              href={filterUrl({ severity: s })}
-              className={`rounded px-2 py-1 text-xs font-semibold uppercase ${filterSeverity === s ? (SEVERITY_STYLES[s] ?? '') : 'text-muted-foreground hover:text-foreground'}`}
-            >
-              {s}
-            </Link>
-          ))}
-        </div>
+          </LinkButton>
+          {SEVERITIES.map((s) => {
+            const active = filterSeverity === s;
+            return (
+              <LinkButton
+                key={s}
+                href={filterUrl({ severity: s })}
+                appearance={active ? 'solid' : 'ghost'}
+                variant={active ? 'brand' : 'neutral'}
+                size="sm"
+                className="uppercase"
+              >
+                {s}
+              </LinkButton>
+            );
+          })}
+        </nav>
       </div>
 
-      {loading && (
-        <div className="m-4 p-8 text-center text-muted-foreground">Loading audit log...</div>
-      )}
-
-      {error && (
-        <div
-          role="alert"
-          className="m-4 rounded border border-error/30 bg-error/10 p-3 text-sm text-error"
-        >
-          Failed to load audit log: {error}
-        </div>
-      )}
-
-      {!(loading || error) && rows.length === 0 && (
-        <div className="m-4 p-8 text-center text-muted-foreground">
-          No audit entries recorded yet.
-          {filterSeverity || filterAgent ? (
-            <span>
-              {' '}
-              <Link href="/audit" className="text-primary hover:underline">
-                Clear filters
-              </Link>
-            </span>
-          ) : (
-            ' Audit entries will appear here as agents perform actions.'
-          )}
-        </div>
-      )}
-
-      {rows.length > 0 && (
-        <>
-          <div className="border-b border-border px-4 py-2 text-xs text-muted-foreground">
-            Showing {rows.length} of {total} entries
-            {filterSeverity ? ` · severity: ${filterSeverity}` : ''}
-            {filterAgent ? ` · agent: ${filterAgent}` : ''}
+      <div className="p-6">
+        {loading && (
+          <div className="flex flex-col gap-2" role="status" aria-label="Loading audit log">
+            {Array.from({ length: 6 }).map((_, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
+              <Skeleton key={i} className="h-12 w-full rounded-lg" />
+            ))}
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-card text-left text-muted-foreground">
-                  <th className="whitespace-nowrap px-4 py-2 font-medium">Time</th>
-                  <th className="px-4 py-2 font-medium">Severity</th>
-                  <th className="px-4 py-2 font-medium">Event</th>
-                  <th className="px-4 py-2 font-medium">Agent</th>
-                  <th className="w-1/3 px-4 py-2 font-medium">Payload</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {rows.map((row) => (
-                  <tr key={row.id} className="transition-colors hover:bg-muted">
-                    <td className="whitespace-nowrap px-4 py-2 text-xs text-muted-foreground">
-                      {formatTime(new Date(row.timestamp))}
-                    </td>
-                    <td className="px-4 py-2">
-                      <span
-                        className={`inline-block rounded px-2 py-0.5 font-mono text-xs font-semibold uppercase ${SEVERITY_STYLES[row.severity] ?? 'bg-muted text-muted-foreground'}`}
-                      >
-                        {row.severity}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 font-mono text-xs text-muted-foreground">
-                      {row.eventType}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 font-mono text-xs text-muted-foreground">
-                      <Link href={filterUrl({ agent: row.agentId })} className="hover:text-primary">
-                        {row.agentId}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-2 text-muted-foreground">
-                      {row.payload &&
-                      typeof row.payload === 'object' &&
-                      Object.keys(row.payload).length > 0 ? (
-                        <details>
-                          <summary className="cursor-pointer text-xs text-muted-foreground">
-                            Payload
-                          </summary>
-                          <pre className="mt-1 overflow-x-auto whitespace-pre-wrap rounded bg-card p-2 text-xs text-muted-foreground">
-                            {JSON.stringify(row.payload, null, 2)}
-                          </pre>
-                        </details>
-                      ) : null}
-                      {row.policyViolations.length > 0 && (
-                        <div className="mt-1 text-xs text-error">
-                          Violations: {row.policyViolations.join(', ')}
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        )}
+
+        {error && (
+          <Callout variant="error" title="Failed to load audit log" role="alert">
+            {error}
+          </Callout>
+        )}
+
+        {!(loading || error) && rows.length === 0 && (
+          <EmptyState
+            title="No receipts yet"
+            description={
+              filterSeverity || filterActor
+                ? 'No entries match the current filters.'
+                : 'Receipts appear here when users, agents, or system principals act.'
+            }
+            action={
+              filterSeverity || filterActor ? (
+                <LinkButton href="/audit" appearance="outline" variant="neutral" size="sm">
+                  Clear filters
+                </LinkButton>
+              ) : undefined
+            }
+          />
+        )}
+
+        {rows.length > 0 && (
+          <div className="flex flex-col gap-3">
+            <Text className="text-xs text-muted-foreground">
+              Showing {rows.length} of {total} entries
+              {filterSeverity ? ` · severity: ${filterSeverity}` : ''}
+              {filterActor ? ` · actor: ${filterActor}` : ''}
+            </Text>
+
+            <Table dense striped>
+              <TableHead>
+                <TableRow>
+                  <TableHeader>Time</TableHeader>
+                  <TableHeader>Severity</TableHeader>
+                  <TableHeader>Event</TableHeader>
+                  <TableHeader>Actor</TableHeader>
+                  <TableHeader>Payload</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {rows.map((row) => {
+                  const hasPayload =
+                    row.payload &&
+                    typeof row.payload === 'object' &&
+                    Object.keys(row.payload).length > 0;
+                  return (
+                    <TableRow key={row.id} className="align-top">
+                      <TableCell className="whitespace-nowrap font-mono text-xs text-muted-foreground">
+                        {formatTime(new Date(row.timestamp))}
+                      </TableCell>
+                      <TableCell>
+                        <Badge color={SEVERITY_BADGE_COLOR[row.severity] ?? 'muted'}>
+                          {row.severity}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap font-mono text-xs text-muted-foreground">
+                        {row.eventType}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap font-mono text-xs">
+                        <LinkButton
+                          href={filterUrl({ actor: row.agentId })}
+                          appearance="link"
+                          variant="neutral"
+                          size="sm"
+                          className="h-auto px-0 font-mono text-xs text-muted-foreground hover:text-primary"
+                        >
+                          {row.agentId}
+                        </LinkButton>
+                      </TableCell>
+                      <TableCell className="min-w-48 max-w-md whitespace-normal">
+                        {hasPayload ? (
+                          <details>
+                            <summary className="cursor-pointer text-xs text-muted-foreground">
+                              Payload
+                            </summary>
+                            <div className="mt-2">
+                              <CodeBlock
+                                code={JSON.stringify(row.payload, null, 2)}
+                                language="json"
+                                showCopy
+                                className="text-xs"
+                              />
+                            </div>
+                          </details>
+                        ) : null}
+                        {row.policyViolations.length > 0 && (
+                          <Text className="mt-1 text-xs text-error">
+                            Violations: {row.policyViolations.join(', ')}
+                          </Text>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           </div>
-        </>
-      )}
+        )}
+      </div>
     </div>
   );
 }

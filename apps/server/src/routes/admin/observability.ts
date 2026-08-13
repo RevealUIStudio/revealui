@@ -28,7 +28,7 @@ import {
   processedWebhookEvents,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { and, count, desc, eq, gte, lte, type SQL, sql } from 'drizzle-orm';
+import { and, count, desc, eq, gte, lte, ne, type SQL, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import { isAdminRole } from '../../lib/access.js';
 import { recordUsageMeter } from '../../lib/metering.js';
@@ -296,9 +296,16 @@ const AuditFilterFields = {
 const AuditQuery = PaginationQuery.extend(AuditFilterFields);
 
 /**
+ * Legacy placeholder written by older HTTP audit middleware when no user was
+ * on the request. Receipts require a real principal — never surface these rows
+ * on the admin trail (list + export). New writes no longer create them.
+ */
+const LEGACY_ANONYMOUS_ACTOR_ID = 'anonymous';
+
+/**
  * Translate the filter set into an AND-composed SQL where clause that
- * both the list + export handlers can reuse. Returns undefined when no
- * filter is set (then drizzle skips the WHERE entirely).
+ * both the list + export handlers can reuse. Always excludes the legacy
+ * `anonymous` actor id. Returns a single clause when only that exclusion applies.
  */
 function buildAuditWhereClause(filters: {
   severity?: string;
@@ -307,8 +314,8 @@ function buildAuditWhereClause(filters: {
   dateFrom?: string;
   dateTo?: string;
   policyViolationId?: string;
-}): SQL | undefined {
-  const clauses: SQL[] = [];
+}): SQL {
+  const clauses: SQL[] = [ne(auditLog.agentId, LEGACY_ANONYMOUS_ACTOR_ID)];
   if (filters.severity) clauses.push(eq(auditLog.severity, filters.severity));
   if (filters.agentId) clauses.push(eq(auditLog.agentId, filters.agentId));
   if (filters.eventType) clauses.push(eq(auditLog.eventType, filters.eventType));
@@ -321,9 +328,8 @@ function buildAuditWhereClause(filters: {
       sql`${auditLog.policyViolations} @> ${JSON.stringify([filters.policyViolationId])}::jsonb`,
     );
   }
-  if (clauses.length === 0) return undefined;
-  if (clauses.length === 1) return clauses[0];
-  return and(...clauses);
+  if (clauses.length === 1) return clauses[0] as SQL;
+  return and(...clauses) as SQL;
 }
 
 app.openapi(

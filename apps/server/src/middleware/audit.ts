@@ -5,10 +5,13 @@
  * Logs request/response data after the response is sent (non-blocking).
  *
  * The RECORD ships on every tier: this middleware is mounted unconditionally on
- * `/api/*` (apps/server/src/index.ts), so the append-only audit row is written
- * regardless of plan. The `auditLog` feature flag gates the RECEIPT surface
- * (audit export / verification), NOT the record — see
- * docs/decisions/2026-07-12-audit-receipt-architecture.md §2.
+ * `/api/*` (apps/server/src/index.ts). Rows are only written when a principal is
+ * on the request context after `next()` (session / device / API key auth set
+ * `c.get('user')` deeper in the chain). Unauthenticated traffic is not a
+ * receipt subject — inventing `actor.id = "anonymous"` would fake identity in
+ * the ledger. Ops signal for that traffic stays in request logs / rate limits.
+ * The `auditLog` feature flag gates the RECEIPT surface (export / verification),
+ * NOT the record — see docs/decisions/2026-07-12-audit-receipt-architecture.md §2.
  */
 
 import { logger } from '@revealui/core/observability/logger';
@@ -42,8 +45,9 @@ function extractResourceType(path: string): string {
 }
 
 /**
- * Audit middleware that logs all API requests to the AuditSystem.
- * Logging is fire-and-forget  -  errors never crash the request.
+ * Audit middleware that logs authenticated API requests to the AuditSystem.
+ * Logging is fire-and-forget — errors never crash the request.
+ * No principal on context after `next()` → no row (receipts require an actor).
  */
 export const auditMiddleware = (audit: AuditSystem): MiddlewareHandler => {
   return async (c, next) => {
@@ -51,11 +55,16 @@ export const auditMiddleware = (audit: AuditSystem): MiddlewareHandler => {
 
     await next();
 
+    // Principal resolved by auth middleware inside the chain (after next()).
+    const user = c.get('user') as { id: string } | undefined;
+    if (!user?.id) {
+      return;
+    }
+
     // Non-blocking audit log (fire and forget)
     const method = c.req.method;
     const path = c.req.path;
     const status = c.res.status;
-    const user = c.get('user') as { id: string } | undefined;
     const requestId = c.get('requestId') as string | undefined;
 
     audit
@@ -63,8 +72,8 @@ export const auditMiddleware = (audit: AuditSystem): MiddlewareHandler => {
         type: METHOD_EVENT_MAP[method] ?? ('data.read' as AuditEventType),
         severity: status >= 500 ? 'high' : status >= 400 ? 'medium' : 'low',
         actor: {
-          id: user?.id ?? 'anonymous',
-          type: user ? 'user' : 'api',
+          id: user.id,
+          type: 'user',
           ip:
             c.req.header('x-real-ip')?.trim() ||
             c.req.header('x-forwarded-for')?.split(',')[0]?.trim(),
