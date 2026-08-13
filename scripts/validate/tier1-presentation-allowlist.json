@@ -60,21 +60,6 @@
       "path": "apps/rsc-poc/src/pages/session.tsx",
       "tag": "input",
       "reason": "GAP-479 later slice: rsc-poc research harness; migrate hosts to presentation"
-    },
-    {
-      "path": "packages/editor/src/canvas/EditSessionCanvas.tsx",
-      "tag": "button",
-      "reason": "GAP-479 later slice: visual-edit canvas chrome; use presentation Button/Input/Textarea"
-    },
-    {
-      "path": "packages/editor/src/canvas/EditSessionCanvas.tsx",
-      "tag": "input",
-      "reason": "GAP-479 later slice: visual-edit canvas chrome; use presentation Button/Input/Textarea"
-    },
-    {
-      "path": "packages/editor/src/canvas/EditSessionCanvas.tsx",
-      "tag": "textarea",
-      "reason": "GAP-479 later slice: visual-edit canvas chrome; use presentation Button/Input/Textarea"
     }
   ]
 }
