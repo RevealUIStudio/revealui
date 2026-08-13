@@ -73,10 +73,14 @@ export { listSkillCatalog, skimSkillFrontmatter } from './skill-catalog.js';
 export type { NativeWorkflowSkillId, SkillInvokeRequest } from './skill-invoke.js';
 export {
   buildSkillInvokeRequest,
+  classifySkillInvokeFailure,
+  extractSkillInvokeText,
   isNativeWorkflowSkillId,
   NATIVE_WORKFLOW_SKILL_IDS,
   PHASE_C_INFERENCE_SNAP,
+  parseSkillInvokeTimeoutOverride,
   resolveNativeWorkflowSkillId,
+  skillInvokeTimeoutMs,
 } from './skill-invoke.js';
 export type {
   ContentSnapshot,
