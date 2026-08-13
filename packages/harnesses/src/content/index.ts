@@ -86,6 +86,8 @@ export {
   extractSkillInvokeToolCalls,
   isNativeWorkflowSkillId,
   isNativeWorkflowToolName,
+  mapNativeToolsToCodingInclude,
+  NATIVE_TO_CODING_TOOL,
   NATIVE_WORKFLOW_SKILL_IDS,
   NATIVE_WORKFLOW_TOOL_NAMES,
   nativeWorkflowToolDefinitions,

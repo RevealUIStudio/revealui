@@ -8,6 +8,7 @@ import {
   classifySkillInvokeFailure,
   extractSkillInvokeText,
   extractSkillInvokeToolCalls,
+  mapNativeToolsToCodingInclude,
   nativeWorkflowToolDefinitions,
   PHASE_C_INFERENCE_SNAP,
   parseNativeWorkflowTools,
@@ -96,6 +97,7 @@ allowed-tools: Bash, Read, Glob, Grep
   });
 
   it('extracts OpenAI tool_calls and drops unknown tool names from the allowlist parser', () => {
+    expect(mapNativeToolsToCodingInclude(['Read', 'Bash'])).toEqual(['file_read', 'shell_exec']);
     expect(parseNativeWorkflowTools(['Read', 'Write', 'Bash', 'Read'])).toEqual(['Read', 'Bash']);
     expect(nativeWorkflowToolDefinitions(['Read']).length).toBe(1);
     expect(

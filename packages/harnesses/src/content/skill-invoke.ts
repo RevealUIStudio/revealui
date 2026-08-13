@@ -69,6 +69,20 @@ export function parseNativeWorkflowTools(raw: readonly string[]): NativeWorkflow
   return out;
 }
 
+/** Map SKILL.md tool names onto createCodingTools `include` ids. */
+export const NATIVE_TO_CODING_TOOL = {
+  Read: 'file_read',
+  Grep: 'file_grep',
+  Glob: 'file_glob',
+  Bash: 'shell_exec',
+} as const;
+
+export function mapNativeToolsToCodingInclude(
+  allowed: readonly NativeWorkflowToolName[],
+): Array<(typeof NATIVE_TO_CODING_TOOL)[NativeWorkflowToolName]> {
+  return allowed.map((name) => NATIVE_TO_CODING_TOOL[name]);
+}
+
 export function buildSkillInvokeRequest(
   skillId: string,
   catalog: SkillCatalogEntry[],
