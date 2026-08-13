@@ -3,9 +3,13 @@ import { PROOF_DEPLOYERS, PROOF_SECTION, PROOF_TRUST } from '../../content/proof
 import { SITE } from '../../content/site';
 import { LiveMetricsBadge } from './LiveMetricsBadge';
 
+/**
+ * Homepage proof band (GAP-480 Phase C rhythm).
+ * Metrics first; deployers as a quiet sub-band (border only, no card chrome).
+ */
 export function Proof() {
   return (
-    <MarketingSection tone="background" density="default" width="default">
+    <MarketingSection tone="background" density="compact" width="default">
       <SectionHeader
         eyebrow={PROOF_SECTION.eyebrow}
         eyebrowTone="muted"
@@ -14,7 +18,7 @@ export function Proof() {
         align="center"
       />
 
-      <div className="mt-12 flex justify-center sm:mt-14">
+      <div className="mt-10 flex justify-center sm:mt-12">
         <a
           href={SITE.urls.repo}
           target="_blank"
@@ -26,11 +30,11 @@ export function Proof() {
         </a>
       </div>
 
-      <div className="mt-10 sm:mt-12">
+      <div className="mt-8 sm:mt-10">
         <LiveMetricsBadge />
       </div>
 
-      <div className="mx-auto mt-10 max-w-2xl text-center sm:mt-12">
+      <div className="mx-auto mt-8 max-w-2xl text-center sm:mt-10">
         <p className="text-base leading-7 text-body">
           {PROOF_TRUST.body}{' '}
           <a
@@ -42,31 +46,32 @@ export function Proof() {
             {PROOF_TRUST.linkLabel}
           </a>
         </p>
+        <div className="mt-5">
+          <Button
+            asChild
+            appearance="link"
+            size="default"
+            className="items-center justify-center text-sm font-medium"
+          >
+            <a href={PROOF_TRUST.changelogCta.href}>{PROOF_TRUST.changelogCta.label}</a>
+          </Button>
+        </div>
       </div>
 
-      <div className="mt-8 text-center">
-        <Button
-          asChild
-          appearance="link"
-          size="default"
-          className="items-center justify-center text-sm font-medium"
-        >
-          <a href={PROOF_TRUST.changelogCta.href}>{PROOF_TRUST.changelogCta.label}</a>
-        </Button>
-      </div>
-
-      {/* Secondary FDE layer — same homepage section (≤7 rule), not a new section */}
-      <div className="mx-auto mt-12 max-w-2xl border-t border-border pt-12 text-center sm:mt-14 sm:pt-14">
+      {/* FDE sub-band: border-only (≤7 sections rule). Demoted chrome. */}
+      <div className="mx-auto mt-10 max-w-2xl border-t border-border pt-8 text-center sm:mt-12 sm:pt-10">
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           {PROOF_DEPLOYERS.eyebrow}
         </p>
-        <h3 className="mt-3 font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+        <h3 className="mt-2 font-display text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
           {PROOF_DEPLOYERS.heading}
         </h3>
-        <p className="mt-4 text-base leading-7 text-body">{PROOF_DEPLOYERS.body}</p>
-        <p className="mt-4 text-sm leading-6 text-body">{PROOF_DEPLOYERS.foil}</p>
-        <div className="mt-8">
-          <Button asChild size="default" className="items-center justify-center">
+        <p className="mt-3 text-sm leading-6 text-body sm:text-base sm:leading-7">
+          {PROOF_DEPLOYERS.body}
+        </p>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">{PROOF_DEPLOYERS.foil}</p>
+        <div className="mt-6">
+          <Button asChild appearance="outline" variant="neutral" size="default">
             <a href={PROOF_DEPLOYERS.cta.href} target="_blank" rel="noopener noreferrer">
               {PROOF_DEPLOYERS.cta.label}
             </a>

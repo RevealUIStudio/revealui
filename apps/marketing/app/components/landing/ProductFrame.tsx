@@ -70,10 +70,10 @@ export function ProductFrame({
           Linear: hierarchy via surface elevation, not brand-colored decoration.
           Do NOT put role=img on this mat: it may contain focusable controls
           (AuditLine CopyRef) and nested-interactive fails axe WCAG 4.1.2. */}
-      <div className="overflow-hidden rounded-2xl bg-foreground p-1.5 shadow-2xl shadow-foreground/10 sm:p-2">
+      <div className="overflow-hidden rounded-2xl bg-foreground p-1 shadow-lg shadow-foreground/10 sm:p-1.5">
         <div className="overflow-hidden rounded-xl bg-background">
           {/* Window chrome — inverted-L: title bar only; density over ornament */}
-          <div className="flex h-10 items-center gap-3 border-b border-border px-3 sm:px-4">
+          <div className="flex h-9 items-center gap-3 border-b border-border px-3 sm:h-10 sm:px-4">
             <div className="flex items-center gap-1.5" aria-hidden="true">
               <span className="size-2 rounded-full bg-muted-foreground/25" />
               <span className="size-2 rounded-full bg-muted-foreground/25" />
@@ -124,13 +124,13 @@ export function ProductFrame({
             </aside>
 
             {/* Main pane */}
-            <div className="min-w-0 p-4 sm:p-5">
+            <div className="min-w-0 p-3 sm:p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
                     Agent activity
                   </p>
-                  <h3 className="mt-1 font-display text-base font-semibold tracking-tight text-foreground">
+                  <h3 className="mt-0.5 font-display text-sm font-semibold tracking-tight text-foreground sm:text-base">
                     support-agent · refund flow
                   </h3>
                 </div>
