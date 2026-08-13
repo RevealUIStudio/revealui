@@ -11,7 +11,7 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   outDir: 'dist',
-  // Bundle workspace packages so extensionless ESM imports resolve at build time.
-  noExternal: [/^@revealui\//],
+  // Bundle workspace + runtime deps so the Fly image needs only dist/.
+  noExternal: [/^@revealui\//, /^@hono\//, 'hono', 'zod'],
   external: [],
 });
