@@ -109,4 +109,24 @@ describe('NavBar (marketing)', () => {
     const docs = screen.getByRole('link', { name: 'Docs' });
     expect(docs).toHaveAttribute('href', 'https://docs.revealui.com');
   });
+
+  it('marks the home brand link as the current page on /', () => {
+    window.history.pushState({}, '', '/');
+    renderNavBar();
+    const home = screen.getByRole('link', { name: 'RevealUI' });
+    expect(home).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('marks the active desktop route with aria-current=page', () => {
+    window.history.pushState({}, '', '/pricing');
+    renderNavBar();
+    const pricing = screen.getByRole('link', { name: 'Pricing' });
+    expect(pricing).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Products' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('exposes primary navigation landmark', () => {
+    renderNavBar();
+    expect(screen.getByRole('navigation', { name: 'Primary' })).toBeInTheDocument();
+  });
 });
