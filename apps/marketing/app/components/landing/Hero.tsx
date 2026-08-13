@@ -23,18 +23,33 @@ import { AudienceToggle } from './AudienceToggle';
 const TRUST_SIGNALS = ['Open source', 'Self-hostable', 'Local-first AI'] as const;
 
 /**
- * Hero background: one quiet signature background (frontend-excellence Phase 1;
- * ADR 2026-07-10-frontend-design-direction hard rule "kill the 5-blob gradient
- * stack"). A top-down token wash plus a single subtle radial glow, both keyed
- * to `--color-primary` rather than a literal color. Lives inside an
- * overflow-hidden box so the off-canvas offset never creates a scrollbar.
- * Reads in both light and dark.
+ * Full-bleed hero stage paint (viewport-stage, not content-boxed).
+ *
+ * Frontend-excellence Phase 1 + ADR 2026-07-10: one quiet signature wash.
+ * Painted via MarketingSection `backdrop` so absolute inset-0 is relative to
+ * the outer section (full width), not the max-w-7xl content rail.
+ *
+ * Glow uses svh/vw so it scales phone → ultrawide (no fixed 900×520 halo).
  */
 function HeroBackground() {
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.04] via-background to-background" />
-      <div className="absolute -top-32 left-1/2 h-[520px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--color-primary),transparent_70%)] opacity-[0.12] blur-3xl" />
+    <div
+      data-slot="hero-background"
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+    >
+      {/* Edge-to-edge wash across the whole stage */}
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.07] via-background to-background" />
+      {/* Viewport-relative radial — soft top center, not a content-sized blob */}
+      <div
+        className={[
+          'absolute left-1/2 top-0 -translate-x-1/2 -translate-y-[15%]',
+          'h-[min(75svh,42rem)] w-[min(140vw,90rem)]',
+          'rounded-full',
+          'bg-[radial-gradient(closest-side,var(--color-primary),transparent_72%)]',
+          'opacity-[0.14] blur-3xl',
+        ].join(' ')}
+      />
     </div>
   );
 }
@@ -42,7 +57,7 @@ function HeroBackground() {
 /** Trust strip: vertical rules between labels, no brand-dot decoration. */
 function TrustStrip() {
   return (
-    <ul className="mt-8 flex flex-wrap items-center justify-center gap-y-2 text-sm text-body list-none p-0">
+    <ul className="mt-8 flex list-none flex-wrap items-center justify-center gap-y-2 p-0 text-sm text-body">
       {TRUST_SIGNALS.map((signal, index) => (
         <li key={signal} className="flex items-center">
           {index > 0 ? (
@@ -64,9 +79,8 @@ function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
         - H1 = text-foreground (ink, max contrast)
         - subtitle = text-body (rvui-text-1) for long reading, not muted
         - trust / captions = muted only when meta
-        SwipePages/SaaS LPs fail when body is grey-on-paper; text-body clears AA.
       */}
-      <h1 className="font-display text-[2.75rem] font-extrabold leading-[1.05] tracking-tighter text-foreground text-balance sm:text-6xl lg:text-7xl">
+      <h1 className="text-balance font-display text-[2.75rem] font-extrabold leading-[1.05] tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
         {hero.h1}
       </h1>
 
@@ -74,8 +88,8 @@ function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
         {hero.subtitle.sentence1} {hero.subtitle.sentence2} {hero.subtitle.support}
       </p>
 
-      <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3 sm:mt-10 sm:gap-4">
-        <Button asChild size="lg" glow className="w-full sm:w-auto gap-2">
+      <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:mt-10 sm:flex-row sm:gap-4">
+        <Button asChild size="lg" glow className="w-full gap-2 sm:w-auto">
           <a href={hero.cta.primary.href}>
             {hero.cta.primary.label}
             <IconArrowRight size="sm" />
@@ -86,7 +100,7 @@ function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
           appearance="outline"
           variant="neutral"
           size="lg"
-          className="w-full sm:w-auto gap-2"
+          className="w-full gap-2 sm:w-auto"
         >
           <a href={hero.cta.secondary.href} target="_blank" rel="noopener noreferrer">
             <GitHubIcon className="size-4" />
@@ -109,7 +123,7 @@ function NonTechnicalHero() {
   const hero = FOR_OPERATORS_HERO;
   return (
     <>
-      <h1 className="font-display text-[2.75rem] font-extrabold leading-[1.05] tracking-tighter text-foreground text-balance sm:text-6xl lg:text-7xl">
+      <h1 className="text-balance font-display text-[2.75rem] font-extrabold leading-[1.05] tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
         {hero.h1Lines.map((line) => (
           <span key={line} className="block">
             {line}
@@ -122,7 +136,7 @@ function NonTechnicalHero() {
       </p>
 
       <div className="mt-9 flex justify-center sm:mt-10">
-        <Button asChild size="lg" glow className="w-full sm:w-auto gap-2">
+        <Button asChild size="lg" glow className="w-full gap-2 sm:w-auto">
           <a href={hero.primaryCta.href} target="_blank" rel="noopener noreferrer">
             {hero.primaryCta.label}
             <IconArrowRight size="sm" />
@@ -145,10 +159,14 @@ export function Hero() {
       tone="background"
       density="spacious"
       width="default"
-      className="relative isolate overflow-hidden"
+      backdrop={<HeroBackground />}
+      className={[
+        // Viewport stage under sticky nav (see --marketing-nav-h on :root).
+        'min-h-[calc(100svh-var(--marketing-nav-h,4rem))]',
+        // Center the stack on tall screens; grows past min-h when content is taller.
+        'flex flex-col justify-center overflow-hidden',
+      ].join(' ')}
     >
-      <HeroBackground />
-
       <div className="mx-auto max-w-3xl text-center">
         {/* Audience switch: replaces the former eyebrow pill. */}
         <div className="mb-7 flex justify-center sm:mb-8">
@@ -160,7 +178,7 @@ export function Hero() {
 
       {/* Receipt-motif moment (frontend-excellence Phase 5): one orchestrated
           print entrance, shared verbatim by both audience variants. */}
-      <div className="mt-12 w-full max-w-md min-w-0 mx-auto text-left sm:mt-14 sm:max-w-lg">
+      <div className="mx-auto mt-12 w-full min-w-0 max-w-md text-left sm:mt-14 sm:max-w-lg">
         <ReceiptCard
           title={RECEIPT_HERO_TITLE}
           lines={[...RECEIPT_HERO_LINES]}

@@ -63,4 +63,17 @@ describe('Hero (marketing craft hierarchy)', () => {
     renderHero();
     expect(screen.getByRole('navigation', { name: 'Choose your view' })).toBeInTheDocument();
   });
+
+  it('uses a viewport-stage shell with full-bleed backdrop (not content-boxed paint)', () => {
+    const { container } = renderHero();
+    const section = container.querySelector('[data-slot="marketing-section"]');
+    expect(section).toBeTruthy();
+    expect(section).toHaveAttribute('data-has-backdrop', 'true');
+    // min-height fills remaining viewport under sticky nav.
+    expect(section?.className).toMatch(/min-h-\[calc\(100svh-var\(--marketing-nav-h/);
+    const backdrop = container.querySelector('[data-slot="hero-background"]');
+    expect(backdrop).toBeTruthy();
+    // Backdrop is a direct child of the outer section (full bleed), not the max-w rail.
+    expect(backdrop?.parentElement).toBe(section);
+  });
 });
