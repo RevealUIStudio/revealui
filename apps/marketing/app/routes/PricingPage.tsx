@@ -159,16 +159,16 @@ export function PricingPage() {
           title={PRICING_TRACK_A_SECTION.heading}
           description={PRICING_TRACK_A_SECTION.body}
           align="center"
-          className="mb-12"
+          className="mb-10 sm:mb-12"
         />
 
         {/* Value band: you own the runtime (no competitor prices) */}
-        <div className="mx-auto mb-16 max-w-4xl rounded-2xl bg-gradient-to-br from-primary/5 to-card p-8 ring-1 ring-primary/15">
+        <div className="mx-auto mb-10 max-w-4xl rounded-2xl bg-gradient-to-br from-primary/5 to-card p-6 ring-1 ring-primary/15 sm:mb-12 sm:p-8">
           <h3 className="text-2xl font-bold tracking-tight text-foreground">
             {PRICING_VALUE_BAND.heading}
           </h3>
           <p className="mt-3 text-sm leading-6 text-body">{PRICING_VALUE_BAND.body}</p>
-          <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <ul className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
             {PRICING_VALUE_BAND.points.map((point) => (
               <li key={point} className="flex items-start gap-2 text-sm text-body">
                 <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
@@ -200,7 +200,7 @@ export function PricingPage() {
                 className="rounded-full"
               >
                 Annually
-                <span className="ml-1.5 rounded-full bg-green-500/15 px-1.5 py-0.5 text-xs font-semibold text-green-800 dark:text-green-400">
+                <span className="ml-1.5 rounded-full bg-success/15 px-1.5 py-0.5 text-xs font-semibold text-success">
                   Save 20%
                 </span>
               </Button>
@@ -243,11 +243,11 @@ export function PricingPage() {
           title={PRICING_TRACK_C_SECTION.heading}
           description={PRICING_TRACK_C_SECTION.body}
           align="center"
-          className="mb-12"
+          className="mb-10 sm:mb-12"
         />
 
         {/* Studio / agency reseller value band: the multi-client P&L */}
-        <div className="mx-auto mb-16 max-w-4xl rounded-2xl bg-gradient-to-br from-primary/5 to-card p-8 ring-1 ring-primary/15">
+        <div className="mx-auto mb-10 max-w-4xl rounded-2xl bg-gradient-to-br from-primary/5 to-card p-6 ring-1 ring-primary/15 sm:mb-12 sm:p-8">
           <span className="text-sm font-semibold uppercase tracking-widest text-primary">
             {PRICING_AGENCY_VALUE_BAND.eyebrow}
           </span>
@@ -255,7 +255,7 @@ export function PricingPage() {
             {PRICING_AGENCY_VALUE_BAND.heading}
           </h3>
           <p className="mt-3 text-sm leading-6 text-body">{PRICING_AGENCY_VALUE_BAND.body}</p>
-          <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <ul className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
             {PRICING_AGENCY_VALUE_BAND.points.map((point) => (
               <li key={point} className="flex items-start gap-2 text-sm text-body">
                 <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
@@ -269,7 +269,7 @@ export function PricingPage() {
           {perpetualTiers.map((tier) => (
             <div
               key={tier.name}
-              className="relative flex flex-col rounded-2xl bg-card p-8 shadow-lg ring-1 ring-border"
+              className="relative flex flex-col rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8"
             >
               {tier.comingSoon && (
                 <div className="absolute right-4 top-4">
@@ -316,7 +316,7 @@ export function PricingPage() {
       {/* For AI Agents */}
       <MarketingSection id="for-agents" tone="secondary" density="default" width="default">
         <div className="mx-auto max-w-4xl">
-          <div className="mb-12 text-center">
+          <div className="mb-10 text-center sm:mb-12">
             <SectionHeader
               eyebrow={PRICING_AGENTS_SECTION.eyebrow}
               eyebrowTone="primary"
@@ -330,7 +330,7 @@ export function PricingPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-            <div className="rounded-2xl bg-card p-6 ring-1 ring-border">
+            <div className="rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
               <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
                 <IconSearch size="md" className="text-primary" />
               </div>
@@ -351,7 +351,7 @@ export function PricingPage() {
               </p>
             </div>
 
-            <div className="rounded-2xl bg-card p-6 ring-1 ring-border">
+            <div className="rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
               <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 ring-1 ring-blue-500/20">
                 <IconCode size="md" className="text-blue-600" />
               </div>
@@ -361,7 +361,7 @@ export function PricingPage() {
               <p className="mt-2 text-sm text-body">{PRICING_AGENT_X402.body}</p>
             </div>
 
-            <div className="rounded-2xl bg-card p-6 ring-1 ring-border">
+            <div className="rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
               <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-violet-500/10 ring-1 ring-violet-500/20">
                 <IconTerminal size="md" className="text-violet-600" />
               </div>
@@ -400,7 +400,7 @@ export function PricingPage() {
 
       {/* GAP-434 Starter Kit — one-time content product (Stripe Payment Link) */}
       <MarketingSection id="starter-kit" tone="background" density="default" width="default">
-        <div className="mx-auto max-w-3xl rounded-2xl bg-card p-8 shadow-lg ring-1 ring-border sm:p-10">
+        <div className="mx-auto max-w-3xl rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-sm font-semibold uppercase tracking-widest text-primary">
               {PRICING_STARTER_KIT.eyebrow}
@@ -458,7 +458,7 @@ export function PricingPage() {
 
       {/* GAP-448 Agency Founding Kit — Agency Perpetual self-serve path */}
       <MarketingSection id="agency-founding-kit" tone="secondary" density="default" width="default">
-        <div className="mx-auto max-w-3xl rounded-2xl bg-card p-8 shadow-lg ring-1 ring-border sm:p-10">
+        <div className="mx-auto max-w-3xl rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
           <span className="text-sm font-semibold uppercase tracking-widest text-primary">
             {PRICING_AGENCY_FOUNDING_KIT.eyebrow}
           </span>
@@ -521,12 +521,12 @@ export function PricingPage() {
           title={PRICING_DONE_FOR_YOU.heading}
           description={PRICING_DONE_FOR_YOU.body}
           align="center"
-          className="mb-12"
+          className="mb-10 sm:mb-12"
         />
 
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-3">
           {PRICING_DONE_FOR_YOU.rungs.map((rung) => (
-            <div key={rung.name} className="rounded-2xl bg-card p-6 ring-1 ring-border">
+            <div key={rung.name} className="rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
               <h3 className="text-base font-semibold text-foreground">{rung.name}</h3>
               <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">{rung.price}</p>
               <p className="mt-3 text-sm text-body">{rung.note}</p>
@@ -565,8 +565,12 @@ export function PricingPage() {
       {/* FAQ Section */}
       <MarketingSection tone="background" density="default" width="default">
         <div className="mx-auto max-w-4xl">
-          <SectionHeader title={PRICING_FAQ_SECTION.heading} align="center" className="mb-12" />
-          <Accordion className="rounded-lg border border-border bg-card px-4 sm:px-6">
+          <SectionHeader
+            title={PRICING_FAQ_SECTION.heading}
+            align="center"
+            className="mb-10 sm:mb-12"
+          />
+          <Accordion className="rounded-2xl bg-card px-4 ring-1 ring-border sm:px-6">
             {PRICING_FAQS.map((faq) => (
               <AccordionItem
                 key={faq.question}
@@ -589,8 +593,9 @@ export function PricingPage() {
           title={PRICING_FINAL_CTA.title}
           description={PRICING_FINAL_CTA.subtitle}
           align="center"
+          className="mb-10 sm:mb-12"
         />
-        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+        <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Button asChild size="lg" className="w-full sm:w-auto">
             <a
               href={
@@ -614,7 +619,7 @@ export function PricingPage() {
             </a>
           </Button>
         </div>
-        <div className="mt-16 border-t border-border pt-10 text-center">
+        <div className="mt-12 border-t border-border pt-10 text-center sm:mt-14">
           <p className="mb-4 text-sm font-medium text-muted-foreground">
             {PRICING_NEWSLETTER_LABEL}
           </p>

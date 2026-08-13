@@ -30,7 +30,7 @@ export function FearRemoval({ data = FO_HIW_FEAR, path, annotation }: FearRemova
         align="start"
       />
 
-      <p className="mt-8 text-base leading-7 text-body" {...field('body')}>
+      <p className="mt-12 text-base leading-7 text-body sm:mt-14" {...field('body')}>
         {data.paragraph1}
       </p>
       <p className="mt-4 text-base leading-7 text-body" {...field('items.0.body')}>
@@ -39,7 +39,7 @@ export function FearRemoval({ data = FO_HIW_FEAR, path, annotation }: FearRemova
 
       <ul className="mt-6 list-none space-y-4 p-0">
         {data.options.map((option, index) => (
-          <li key={option.title} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <li key={option.title} className="rounded-2xl bg-card p-6 ring-1 ring-border">
             <h3
               className="text-base font-semibold leading-7 text-foreground"
               {...field(`items.${optionStart + index}.title`)}

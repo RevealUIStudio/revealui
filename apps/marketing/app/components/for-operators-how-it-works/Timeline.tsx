@@ -26,7 +26,7 @@ export function Timeline({ data = FO_HIW_TIMELINE, path, annotation }: TimelineP
         align="start"
       />
 
-      <p className="mt-6 text-base leading-7 text-body" {...field('body')}>
+      <p className="mt-12 text-base leading-7 text-body sm:mt-14" {...field('body')}>
         {data.paragraph1}
       </p>
       <p className="mt-4 text-base leading-7 text-body" {...field('items.0.body')}>

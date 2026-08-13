@@ -38,7 +38,7 @@ export function GetStarted({
       />
 
       <div className="mx-auto max-w-2xl text-center">
-        <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:mt-10 sm:flex-row sm:gap-4">
+        <div className="mt-12 flex flex-col items-center justify-center gap-3 sm:mt-14 sm:flex-row sm:gap-4">
           <Button asChild size="lg" variant="brand" glow>
             <a href={data.cta.primary.href}>{data.cta.primary.label}</a>
           </Button>
@@ -80,7 +80,7 @@ export function GetStarted({
           {data.cli.caption}
         </p>
 
-        <div className="mt-14 border-t border-border pt-10">
+        <div className="mt-12 border-t border-border pt-10 sm:mt-14">
           <p className="mb-4 text-sm font-medium text-muted-foreground">{data.newsletter.label}</p>
           <NewsletterSignup variant="stacked" />
         </div>

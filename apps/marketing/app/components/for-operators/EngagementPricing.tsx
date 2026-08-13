@@ -52,11 +52,11 @@ export function EngagementPricing({ data, path, annotation }: EngagementPricingP
         align="center"
       />
 
-      <ul className="mx-auto mt-16 grid max-w-5xl list-none grid-cols-1 gap-6 p-0 lg:grid-cols-3">
+      <ul className="mx-auto mt-12 grid max-w-5xl list-none grid-cols-1 gap-6 p-0 sm:mt-14 lg:grid-cols-3">
         {rungs.map((rung) => (
           <li
             key={rung.title}
-            className="flex flex-col rounded-2xl border border-border bg-card p-8 shadow-sm"
+            className="flex flex-col rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8"
           >
             <h3 className="text-lg font-semibold leading-7 text-foreground">{rung.title}</h3>
             <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">{rung.price}</p>

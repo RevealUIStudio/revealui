@@ -15,7 +15,7 @@ export function Faq() {
         align="center"
       />
 
-      <Accordion className="mx-auto mt-16 max-w-3xl border-t border-border">
+      <Accordion className="mx-auto mt-12 max-w-3xl border-t border-border sm:mt-14">
         {FOR_OPERATORS_FAQ.items.map((item) => (
           <AccordionItem
             key={item.question}

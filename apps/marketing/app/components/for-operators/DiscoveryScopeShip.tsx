@@ -46,7 +46,7 @@ export function DiscoveryScopeShip({ data, path, annotation }: DiscoveryScopeShi
         }
         align="center"
       />
-      <p className="mt-8 text-center">
+      <p className="mt-12 text-center sm:mt-14">
         <a
           href={content.link.href}
           className="font-medium text-primary underline-offset-4 hover:underline"

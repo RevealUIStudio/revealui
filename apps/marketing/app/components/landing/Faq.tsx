@@ -28,7 +28,7 @@ export function Faq({ data = HOME_FAQ, path = 'blocks.1.data', annotation = {} }
         align="center"
       />
 
-      <Accordion className="mx-auto mt-16 max-w-3xl border-t border-border">
+      <Accordion className="mx-auto mt-12 max-w-3xl border-t border-border sm:mt-14">
         {data.items.map((item, index) => (
           <AccordionItem
             key={item.question}
