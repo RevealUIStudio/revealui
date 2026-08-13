@@ -52,98 +52,95 @@ export function ProductsPage() {
         density="default"
         width="default"
       >
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/70 p-10 shadow-2xl ring-1 ring-primary/20 sm:p-14">
-          <div className="absolute -right-16 -top-16 h-72 w-72 rounded-full bg-primary-foreground/10 blur-3xl" />
-          <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-primary-foreground/10 blur-3xl" />
-          <div className="relative">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-foreground/15 ring-1 ring-primary-foreground/30 backdrop-blur">
-                  <svg
-                    className="h-7 w-7 text-primary-foreground"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.75}
-                    stroke="currentColor"
-                  >
-                    <title>{PRODUCTS_FLAGSHIP.name}</title>
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d={PRODUCTS_FLAGSHIP.iconPath}
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary-foreground/90">
-                    {PRODUCTS_FLAGSHIP.eyebrow}
-                  </p>
-                  <h2 className="mt-1 text-3xl font-bold tracking-tight text-primary-foreground sm:text-4xl">
-                    {PRODUCTS_FLAGSHIP.name}
-                  </h2>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-xs font-semibold">
-                <span className="rounded-full bg-primary-foreground/15 px-3 py-1 text-primary-foreground ring-1 ring-primary-foreground/30 backdrop-blur">
-                  {PRODUCTS_FLAGSHIP.status}
-                </span>
-                <span className="rounded-full bg-primary-foreground/10 px-3 py-1 font-mono text-primary-foreground/90 ring-1 ring-primary-foreground/20">
-                  {PRODUCTS_FLAGSHIP.version}
-                </span>
-              </div>
-            </div>
-
-            <p className="mt-6 max-w-3xl text-xl font-medium leading-8 text-primary-foreground">
-              {PRODUCTS_FLAGSHIP.tagline}
-            </p>
-            <p className="mt-3 max-w-3xl text-base leading-7 text-primary-foreground/90">
-              {PRODUCTS_FLAGSHIP.body}
-            </p>
-
-            <dl className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-              {PRODUCTS_FLAGSHIP.facts.map((fact) => (
-                <div
-                  key={fact.label}
-                  className="rounded-xl bg-primary-foreground/10 px-4 py-3 ring-1 ring-primary-foreground/20 backdrop-blur"
+        {/* Quiet flagship panel: solid primary, no multi-blob chrome (GAP-480 residual). */}
+        <div className="relative overflow-hidden rounded-2xl bg-primary p-8 ring-1 ring-primary/20 sm:p-12">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-foreground/15 ring-1 ring-primary-foreground/25">
+                <svg
+                  className="h-6 w-6 text-primary-foreground"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.75}
+                  stroke="currentColor"
                 >
-                  <dt className="text-xs uppercase tracking-wide text-primary-foreground/80">
-                    {fact.label}
-                  </dt>
-                  <dd className="mt-1 text-2xl font-bold tracking-tight text-primary-foreground">
-                    {fact.stat}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-
-            <p className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-4 py-1.5 text-sm font-semibold text-primary-foreground ring-1 ring-primary-foreground/30 backdrop-blur">
-              <IconCheckCircle className="h-4 w-4" size="sm" label="Pricing" />
-              {PRODUCTS_FLAGSHIP.priceLabel}
-            </p>
-
-            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-              <a
-                href={PRODUCTS_FLAGSHIP.ctas.docs.href}
-                className="rounded-md bg-primary-foreground px-6 py-3 text-sm font-semibold text-primary shadow-sm transition-colors hover:bg-primary-foreground/90"
-              >
-                {PRODUCTS_FLAGSHIP.ctas.docs.label}
-              </a>
-              <a
-                href={PRODUCTS_FLAGSHIP.ctas.pricing.href}
-                className="rounded-md bg-primary-foreground/15 px-6 py-3 text-sm font-semibold text-primary-foreground ring-1 ring-primary-foreground/30 transition-colors hover:bg-primary-foreground/25"
-              >
-                {PRODUCTS_FLAGSHIP.ctas.pricing.label}
-              </a>
-              <a
-                href={PRODUCTS_FLAGSHIP.ctas.repo.href}
-                className="rounded-md px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-foreground/10"
-                {...(PRODUCTS_FLAGSHIP.ctas.repo.external
-                  ? { target: '_blank', rel: 'noreferrer' }
-                  : {})}
-              >
-                {PRODUCTS_FLAGSHIP.ctas.repo.label}
-              </a>
+                  <title>{PRODUCTS_FLAGSHIP.name}</title>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d={PRODUCTS_FLAGSHIP.iconPath}
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground/85">
+                  {PRODUCTS_FLAGSHIP.eyebrow}
+                </p>
+                <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-primary-foreground sm:text-3xl">
+                  {PRODUCTS_FLAGSHIP.name}
+                </h2>
+              </div>
             </div>
+            <div className="flex items-center gap-2 text-xs font-semibold">
+              <span className="rounded-full bg-primary-foreground/15 px-3 py-1 text-primary-foreground ring-1 ring-primary-foreground/25">
+                {PRODUCTS_FLAGSHIP.status}
+              </span>
+              <span className="rounded-full bg-primary-foreground/10 px-3 py-1 font-mono text-primary-foreground/90 ring-1 ring-primary-foreground/20">
+                {PRODUCTS_FLAGSHIP.version}
+              </span>
+            </div>
+          </div>
+
+          <p className="mt-6 max-w-3xl text-lg font-medium leading-8 text-primary-foreground sm:text-xl">
+            {PRODUCTS_FLAGSHIP.tagline}
+          </p>
+          <p className="mt-3 max-w-3xl text-base leading-7 text-primary-foreground/90">
+            {PRODUCTS_FLAGSHIP.body}
+          </p>
+
+          <dl className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+            {PRODUCTS_FLAGSHIP.facts.map((fact) => (
+              <div
+                key={fact.label}
+                className="rounded-xl bg-primary-foreground/10 px-4 py-3 ring-1 ring-primary-foreground/20"
+              >
+                <dt className="text-xs uppercase tracking-wide text-primary-foreground/80">
+                  {fact.label}
+                </dt>
+                <dd className="mt-1 text-xl font-bold tracking-tight text-primary-foreground sm:text-2xl">
+                  {fact.stat}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <p className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-4 py-1.5 text-sm font-semibold text-primary-foreground ring-1 ring-primary-foreground/25">
+            <IconCheckCircle className="h-4 w-4" size="sm" label="Pricing" />
+            {PRODUCTS_FLAGSHIP.priceLabel}
+          </p>
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <a
+              href={PRODUCTS_FLAGSHIP.ctas.docs.href}
+              className="rounded-md bg-primary-foreground px-6 py-3 text-sm font-semibold text-primary shadow-sm transition-colors hover:bg-primary-foreground/90"
+            >
+              {PRODUCTS_FLAGSHIP.ctas.docs.label}
+            </a>
+            <a
+              href={PRODUCTS_FLAGSHIP.ctas.pricing.href}
+              className="rounded-md bg-primary-foreground/15 px-6 py-3 text-sm font-semibold text-primary-foreground ring-1 ring-primary-foreground/25 transition-colors hover:bg-primary-foreground/25"
+            >
+              {PRODUCTS_FLAGSHIP.ctas.pricing.label}
+            </a>
+            <a
+              href={PRODUCTS_FLAGSHIP.ctas.repo.href}
+              className="rounded-md px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-foreground/10"
+              {...(PRODUCTS_FLAGSHIP.ctas.repo.external
+                ? { target: '_blank', rel: 'noreferrer' }
+                : {})}
+            >
+              {PRODUCTS_FLAGSHIP.ctas.repo.label}
+            </a>
           </div>
         </div>
       </MarketingSection>

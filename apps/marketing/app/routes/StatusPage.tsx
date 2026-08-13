@@ -54,8 +54,8 @@ function badgeFor(
 ) {
   if (state.kind === 'self') {
     return (
-      <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-green-200 dark:bg-green-950/30 dark:text-green-400 dark:ring-green-800">
-        <span aria-hidden="true" className="size-1.5 rounded-full bg-green-500" />
+      <span className="inline-flex items-center gap-2 rounded-full bg-success-subtle px-2.5 py-0.5 text-xs font-medium text-success-text ring-1 ring-success/30">
+        <span aria-hidden="true" className="size-1.5 rounded-full bg-success" />
         Operational (you are here)
       </span>
     );
@@ -82,15 +82,15 @@ function badgeFor(
   }
   if (r.status === 'up') {
     return (
-      <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-green-200 dark:bg-green-950/30 dark:text-green-400 dark:ring-green-800">
-        <span aria-hidden="true" className="size-1.5 rounded-full bg-green-500" />
+      <span className="inline-flex items-center gap-2 rounded-full bg-success-subtle px-2.5 py-0.5 text-xs font-medium text-success-text ring-1 ring-success/30">
+        <span aria-hidden="true" className="size-1.5 rounded-full bg-success" />
         Operational · {r.latencyMs}ms
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700 ring-1 ring-red-200 dark:bg-red-950/30 dark:text-red-400 dark:ring-red-800">
-      <span aria-hidden="true" className="size-1.5 rounded-full bg-red-500" />
+    <span className="inline-flex items-center gap-2 rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-medium text-destructive ring-1 ring-destructive/30">
+      <span aria-hidden="true" className="size-1.5 rounded-full bg-destructive" />
       Unreachable
     </span>
   );
