@@ -192,42 +192,11 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_PROBLEM.body',
     proofGrade: 'outcome',
-    text: 'Most teams stitch sign-in, content, billing, and agents from different vendors. Or they pick an agent framework and rebuild the rest underneath it. RevealUI is the third path: one self-hosted runtime for the business and the agents that run it.',
+    text: 'Teams either stitch a vendor for each slice, or start with agents and rebuild the rest. RevealUI is one self-hosted runtime for the business and the agents that run it.',
     evidence: [AUTH_SESSIONS, COLLECTIONS, BILLING, LICENSE_MIT],
   },
-  {
-    file: 'home.ts',
-    exportPath: 'HOME_PROBLEM.pathBlurbs.sprawl',
-    proofGrade: 'path',
-    text: 'Rent a product for each slice. Glue them together yourself.',
-    evidence: [
-      {
-        kind: 'url',
-        ref: 'https://revealui.com/pricing',
-        note: 'competitor-path framing; cost detail lives on the pricing page',
-      },
-    ],
-  },
-  {
-    file: 'home.ts',
-    exportPath: 'HOME_PROBLEM.pathBlurbs.agentOnly',
-    proofGrade: 'path',
-    text: 'Agents first. Rebuild sign-in, content, and billing underneath.',
-    evidence: [
-      {
-        kind: 'url',
-        ref: 'https://revealui.com/pricing',
-        note: 'competitor-path framing; cost detail lives on the pricing page',
-      },
-    ],
-  },
-  {
-    file: 'home.ts',
-    exportPath: 'HOME_PROBLEM.pathBlurbs.revealui',
-    proofGrade: 'outcome',
-    text: 'One self-hosted runtime for the business and the agents that run it.',
-    evidence: [AUTH_SESSIONS, COLLECTIONS, BILLING, LICENSE_MIT],
-  },
+  // pathBlurbs claims retired (GAP-480 landing de-dupe): blurbs removed from
+  // the Problem band; body + matrix remain the single comparison device.
   {
     file: 'home.ts',
     exportPath: 'HOME_PROBLEM.rows[0].sprawl',
@@ -286,7 +255,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_PROBLEM.footnote',
     proofGrade: 'behavior',
-    text: 'Capability comparison only; a monthly cost estimate lives on the pricing page. (interpolated: Pro price from pricing-fallbacks)',
+    text: 'Capability only. Pricing is on the pricing page (interpolated: Pro price from pricing-fallbacks). Vercel, Cloudflare, and Fly are deploy targets, not competitors.',
     match: 'path',
     evidence: [PRICING_FALLBACKS, DEPLOY_TARGETS],
   },
@@ -301,28 +270,34 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_DEMO.body',
     proofGrade: 'outcome',
-    text: 'Install on your machine. Take a test payment. Connect an agent to the same data your admin UI already uses.',
+    text: 'Install on your machine. Take a test payment. Connect an agent to the same data your admin already uses.',
     evidence: [CLI_CREATE, BILLING, MCP_CONTENT],
   },
   {
     file: 'home.ts',
     exportPath: 'HOME_DEMO.mockupCaption.prefix',
     proofGrade: 'path',
-    text: 'Local screenshot from a fresh',
-    evidence: [CLI_CREATE],
+    text: 'Live admin chrome composed from',
+    evidence: [
+      {
+        kind: 'code',
+        ref: 'apps/marketing/app/components/landing/ProductFrame.tsx',
+        note: 'composed from StatusDot/VerdictChip, not a screenshot',
+      },
+    ],
   },
   {
     file: 'home.ts',
     exportPath: 'HOME_DEMO.mockupCaption.suffix',
     proofGrade: 'path',
-    text: '. The three beats below describe the steps.',
+    text: 'components. The three beats are the local install path.',
     evidence: [CLI_CREATE],
   },
   {
     file: 'home.ts',
     exportPath: 'HOME_DEMO.beats[0].body',
     proofGrade: 'behavior',
-    text: 'One command. Sign-in, content, admin UI, billing hooks, and agent tooling run locally in about a minute.',
+    text: 'One command. Sign-in, content, admin, billing, and agent tooling run locally.',
     evidence: [CLI_CREATE, AUTH_SESSIONS, WEBHOOKS, MCP_CONTENT],
   },
   {
@@ -336,7 +311,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_DEMO.beats[1].body',
     proofGrade: 'behavior',
-    text: 'A user signs up, picks a plan, and test-mode checkout completes. The admin UI shows the new account. Switch to live mode when you are ready to take real money.',
+    text: 'A user signs up, picks a plan, and test-mode checkout completes. Switch to live mode when you take real money.',
     evidence: [
       AUTH_SESSIONS,
       BILLING,
@@ -351,7 +326,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_DEMO.beats[2].body',
     proofGrade: 'behavior',
-    text: 'Connect a model. Agents read and write the same content your team does, under the same sign-in and plan rules.',
+    text: 'Connect a model. Agents use the same content, sign-in, and plan rules as your team.',
     evidence: [PROVIDERS, MCP_CONTENT, TIER_GATES],
   },
   {
@@ -631,7 +606,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'proof.ts',
     exportPath: 'PROOF_DEPLOYERS.body',
     proofGrade: 'outcome',
-    text: 'Some buyers install RevealUI themselves. Some hire us, or their own forward-deployed engineer, to stamp and hand over a fleet. Either way the outcome is the same: a self-hosted runtime where the business and its agents live under one roof, on infrastructure the customer owns.',
+    text: 'Install yourself, hire Studio, or bring your own forward-deployed engineer. The outcome is the same: a self-hosted runtime on infrastructure you own.',
     evidence: [
       REPO,
       {
@@ -642,7 +617,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
       {
         kind: 'url',
         ref: 'https://revealui.com',
-        note: 'self-install product path; canonical ownership sentence',
+        note: 'self-install product path',
       },
     ],
   },
@@ -650,7 +625,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'proof.ts',
     exportPath: 'PROOF_DEPLOYERS.foil',
     proofGrade: 'outcome',
-    text: 'Cloud agent platforms rent you an outcome. A forward-deployed engagement leaves a runtime the customer runs.',
+    text: 'Cloud platforms rent you an outcome. A handoff leaves a runtime you run.',
     evidence: [
       REPO,
       {

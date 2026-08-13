@@ -19,12 +19,15 @@ describe('Problem capability stack', () => {
     }
   });
 
-  it('keeps path blurbs and every row claim', () => {
+  it('renders the matrix only (no path-blurb list above it)', () => {
     render(<Problem />);
-    expect(screen.getByText(HOME_PROBLEM.highlightedLabel)).toBeTruthy();
-    expect(screen.getByText(HOME_PROBLEM.pathBlurbs.sprawl)).toBeTruthy();
-    expect(screen.getByText(HOME_PROBLEM.pathBlurbs.agentOnly)).toBeTruthy();
-    expect(screen.getByText(HOME_PROBLEM.pathBlurbs.revealui)).toBeTruthy();
+    // Body already states the three paths; do not restate one-liners.
+    expect(
+      screen.queryByText('Rent a product for each slice. Glue them together yourself.'),
+    ).toBeNull();
+    expect(
+      screen.queryByText('Agents first. Rebuild sign-in, content, and billing underneath.'),
+    ).toBeNull();
 
     for (const row of HOME_PROBLEM.rows) {
       expect(screen.getByText(row.sprawl)).toBeTruthy();
