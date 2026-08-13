@@ -83,7 +83,7 @@ describe('auditMiddleware', () => {
     expect(call.type).toBe('data.create');
   });
 
-  it('logs anonymous requests with actor.id as anonymous', async () => {
+  it('skips the receipt ledger when no authenticated principal is on the request', async () => {
     const audit = createMockAuditSystem();
     const app = createApp(audit);
 
@@ -91,9 +91,9 @@ describe('auditMiddleware', () => {
 
     await new Promise((r) => setTimeout(r, 10));
 
-    const call = audit.log.mock.calls[0][0];
-    expect(call.actor.id).toBe('anonymous');
-    expect(call.actor.type).toBe('api');
+    // Unauthenticated traffic is not a governed actor — do not invent
+    // actor.id = "anonymous" or write a row at all.
+    expect(audit.log).not.toHaveBeenCalled();
   });
 
   it('does not crash the request if audit logging fails', async () => {

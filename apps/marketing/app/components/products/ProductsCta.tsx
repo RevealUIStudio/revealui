@@ -29,7 +29,7 @@ export function ProductsCta({
         align="center"
       />
       <div
-        className="mt-8 rounded-lg bg-foreground px-6 py-4 text-left font-mono text-sm text-background"
+        className="mt-12 rounded-2xl bg-foreground px-6 py-4 text-left font-mono text-sm text-background sm:mt-14"
         {...fieldAttrs(annotation, `${path}.snippet.lines`)}
       >
         <span className="text-background/50">$</span> {data.cliSnippet}
@@ -37,7 +37,7 @@ export function ProductsCta({
       <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
         <a
           href={data.cta.docs.href}
-          className="rounded-md bg-primary px-8 py-4 text-base font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+          className="rounded-md bg-primary px-8 py-4 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
         >
           {data.cta.docs.label}
         </a>

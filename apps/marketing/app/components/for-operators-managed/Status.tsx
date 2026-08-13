@@ -45,7 +45,7 @@ export function Status({ data, path, annotation }: FoManagedStatusProps = {}) {
         align="start"
       />
 
-      <div className="mt-8 space-y-6 text-base leading-7 text-body">
+      <div className="mt-12 space-y-6 text-base leading-7 text-body sm:mt-14">
         <p {...(base ? fieldAttrs(ann, `${base}.body`) : {})}>{content.paragraph1}</p>
         <p {...(base ? fieldAttrs(ann, `${base}.items.0.body`) : {})}>{content.paragraph2}</p>
         <p {...(base ? fieldAttrs(ann, `${base}.items.1.body`) : {})}>{content.paragraph3}</p>

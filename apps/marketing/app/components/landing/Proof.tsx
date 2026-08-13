@@ -14,7 +14,7 @@ export function Proof() {
         align="center"
       />
 
-      <div className="mt-6 flex justify-center">
+      <div className="mt-12 flex justify-center sm:mt-14">
         <a
           href={SITE.urls.repo}
           target="_blank"
@@ -26,12 +26,12 @@ export function Proof() {
         </a>
       </div>
 
-      <div className="mt-14 sm:mt-16">
+      <div className="mt-10 sm:mt-12">
         <LiveMetricsBadge />
       </div>
 
-      <div className="mx-auto mt-12 max-w-2xl text-center">
-        <p className="text-base leading-7 text-muted-foreground">
+      <div className="mx-auto mt-10 max-w-2xl text-center sm:mt-12">
+        <p className="text-base leading-7 text-body">
           {PROOF_TRUST.body}{' '}
           <a
             href={PROOF_TRUST.linkHref}
@@ -56,7 +56,7 @@ export function Proof() {
       </div>
 
       {/* Secondary FDE layer — same homepage section (≤7 rule), not a new section */}
-      <div className="mx-auto mt-16 max-w-2xl border-t border-border pt-14 text-center">
+      <div className="mx-auto mt-12 max-w-2xl border-t border-border pt-12 text-center sm:mt-14 sm:pt-14">
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           {PROOF_DEPLOYERS.eyebrow}
         </p>

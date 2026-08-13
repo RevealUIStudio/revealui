@@ -26,11 +26,11 @@ export function EngagementSteps({ data = FO_HIW_STEPS, path, annotation }: Engag
         align="center"
       />
 
-      <ol className="mx-auto mt-16 grid max-w-4xl list-none grid-cols-1 gap-6 p-0">
+      <ol className="mx-auto mt-12 grid max-w-4xl list-none grid-cols-1 gap-6 p-0 sm:mt-14">
         {data.steps.map((step, index) => (
           <li
             key={step.number}
-            className="grid grid-cols-[auto_1fr] gap-6 rounded-2xl border border-border bg-card p-6 shadow-sm"
+            className="grid grid-cols-[auto_1fr] gap-6 rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8"
           >
             <div
               className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 font-mono text-base font-semibold text-primary"
@@ -45,10 +45,7 @@ export function EngagementSteps({ data = FO_HIW_STEPS, path, annotation }: Engag
               >
                 {step.title}
               </h3>
-              <p
-                className="mt-2 text-base leading-7 text-muted-foreground"
-                {...field(`items.${index}.body`)}
-              >
+              <p className="mt-2 text-base leading-7 text-body" {...field(`items.${index}.body`)}>
                 {step.body}
               </p>
             </div>

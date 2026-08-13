@@ -55,4 +55,6 @@ section components and major routes onto `MarketingSection` / `SectionHeader`
 Still intentional non-shell pages: thin document shells (404, some legal),
 nested widgets (ProviderSwitch, FrontierPathway), NavBar/Footer.
 
-Next: type burn-down (body vs muted), PricingTable/FaqList, then route craft.
+Phase 3 type burn-down: marketing app reading prose moved to `text-body`;
+meta/chrome stays on `text-muted-foreground`. Next: PricingTable/FaqList, then
+route craft.

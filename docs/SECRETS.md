@@ -102,8 +102,8 @@ value is never UI/API-revealable after write (credentials + private signing keys
 
 | Path | Kind | Sensitive | Consumers | Notes |
 | --- | --- | --- | --- | --- |
-| `revdev/license-signing-private-key` | signing-private | yes | vercel:api, fly:worker, with-secrets:license-signing | → migrating to `revealui/prod/license/private-key` (since 2026-06-28); Ed25519 license-signing key - the fleet crown jewel; api (+ worker until Fly drop) mints. Admin dropped P4-4 (verify-only). |
-| `revdev/license-signing-public-key` | signing-public | no | vercel:api, vercel:admin, fly:worker, with-secrets:license | → migrating to `revealui/prod/license/public-key` (since 2026-06-28); Ed25519 verification key - rotating invalidates all issued customer licenses |
+| `revdev/license-signing-private-key` | signing-private | yes | vercel:api, fly:worker, fly:license-signer, with-secrets:license-signing | → migrating to `revealui/prod/license/private-key` (since 2026-06-28); Ed25519 license-signing key. Admin dropped P4-4. Online mint target is fly:license-signer; api/worker keep a copy until SIGN_VIA_SIGNER is sole path. |
+| `revdev/license-signing-public-key` | signing-public | no | vercel:api, vercel:admin, fly:worker, fly:license-signer, with-secrets:license | → migrating to `revealui/prod/license/public-key` (since 2026-06-28); Ed25519 verification key - rotating invalidates all issued customer licenses |
 | `revealui/prod/admin/api-key` | credential | yes | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/admin/email` | public-config | no | vercel:admin |  |
 | `revealui/prod/admin/password` | credential | yes | vercel:admin |  |

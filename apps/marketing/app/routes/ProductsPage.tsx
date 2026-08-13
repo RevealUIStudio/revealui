@@ -158,7 +158,7 @@ export function ProductsPage() {
 
         {/* Status filter chips (Phase D, interactive). */}
         <div
-          className="mt-10 flex flex-wrap items-center justify-center gap-2"
+          className="mt-12 flex flex-wrap items-center justify-center gap-2 sm:mt-14"
           role="tablist"
           aria-label="Filter products by status"
         >
@@ -183,14 +183,14 @@ export function ProductsPage() {
           })}
         </div>
 
-        <ul className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <ul className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 md:grid-cols-2">
           {visibleSisters.map((product) => {
             const status = PRODUCT_STATUS_STYLES[product.status];
             return (
               <li
                 key={product.slug}
                 id={product.slug}
-                className="group relative flex flex-col rounded-2xl bg-card p-8 shadow-sm ring-1 ring-border transition-shadow hover:shadow-lg"
+                className="group relative flex flex-col rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-4">
@@ -210,9 +210,7 @@ export function ProductsPage() {
                       <h3 className="text-xl font-bold tracking-tight text-foreground">
                         {product.name}
                       </h3>
-                      <p className="mt-0.5 text-sm font-medium text-muted-foreground">
-                        {product.tagline}
-                      </p>
+                      <p className="mt-0.5 text-sm font-medium text-body">{product.tagline}</p>
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1.5 text-xs font-semibold">
@@ -233,7 +231,7 @@ export function ProductsPage() {
                   {product.highlights.map((highlight) => (
                     <li
                       key={highlight}
-                      className="flex items-start gap-2.5 text-sm leading-6 text-muted-foreground"
+                      className="flex items-start gap-2.5 text-sm leading-6 text-body"
                     >
                       <IconCheckCircle size="sm" className="mt-1 flex-shrink-0 text-primary" />
                       {highlight}
@@ -267,9 +265,9 @@ export function ProductsPage() {
           title={PRODUCTS_STATS_SECTION.heading}
           description={PRODUCTS_STATS_SECTION.body}
           align="center"
-          className="mb-16"
+          className="mb-10 sm:mb-12"
         />
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-8">
           {PRODUCTS_STATS_SECTION.items.map((item) => (
             <div key={item.label} className="text-center">
               <p className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">

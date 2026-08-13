@@ -27,6 +27,18 @@
 # Never inline secret values here — revvault is the source of truth; this
 # manifest carries only vault *paths*.
 
+# ── revealui-license-signer ───────────────────────────────────────────────────
+# Isolated mint process. Only this Fly app plus the offline stamper should
+# hold the signing private key after P4-4 cutover. Invoke secret is set
+# Fly-direct (intentionallyUnsynced until the signer deploy is soaked).
+[fly-apps.revealui-license-signer]
+app = "revealui-license-signer"
+skip = ["REVEALUI_SIGNER_INVOKE_SECRET"]
+
+[fly-apps.revealui-license-signer.vars]
+REVEALUI_LICENSE_PRIVATE_KEY = "revdev/license-signing-private-key"
+REVEALUI_LICENSE_PUBLIC_KEY  = "revdev/license-signing-public-key"
+
 # ── revealui-worker ───────────────────────────────────────────────────────────
 # Long-running apps/server subset on Fly (alerting, Yjs + agent collab WS,
 # terminal-ws Forge-gated, RVMarket executor flag-gated). The worker imports the

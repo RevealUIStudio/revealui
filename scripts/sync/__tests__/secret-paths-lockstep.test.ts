@@ -73,6 +73,13 @@ describe('manifest ↔ spec lockstep', () => {
     expect(flyVars.length).toBeGreaterThan(20);
   });
 
+  it('license-signer Fly app only syncs the signing keypair (GAP-260 P4-4)', () => {
+    const signer = flyVars.filter((v) => v.source === 'fly:revealui-license-signer');
+    const names = signer.map((v) => v.name).sort();
+    expect(names).toEqual(['REVEALUI_LICENSE_PRIVATE_KEY', 'REVEALUI_LICENSE_PUBLIC_KEY']);
+    expect(signer.every((v) => v.path.startsWith('revdev/license-signing-'))).toBe(true);
+  });
+
   it('parses the staging manifest to a non-trivial var set (GAP-343)', () => {
     expect(stagingVars.length).toBeGreaterThan(40);
   });

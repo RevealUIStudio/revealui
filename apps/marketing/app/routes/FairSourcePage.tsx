@@ -52,11 +52,11 @@ function FairSourceContract({ data, path, annotation }: ContractProps) {
         align="center"
       />
 
-      <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-4 sm:mt-14 sm:grid-cols-2">
         {data.cards.map((c, index) => (
           <div
             key={c.title}
-            className={`rounded-2xl p-6 ring-1 transition ${
+            className={`rounded-2xl p-6 ring-1 transition sm:p-8 ${
               c.kind === 'yes'
                 ? 'bg-primary/10 ring-primary/20'
                 : 'bg-amber-500/15 ring-amber-500/30'
@@ -79,7 +79,7 @@ function FairSourceContract({ data, path, annotation }: ContractProps) {
                   {c.title}
                 </h3>
                 <p
-                  className="mt-2 text-sm leading-6 text-muted-foreground"
+                  className="mt-2 text-sm leading-6 text-body"
                   {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
                 >
                   {c.body}
@@ -111,7 +111,7 @@ function FairSourcePackagesIntro({ data, path, annotation }: PackagesIntroProps)
         align="center"
       />
 
-      <div className="mx-auto mt-12 max-w-4xl overflow-hidden rounded-2xl bg-card ring-1 ring-border">
+      <div className="mx-auto mt-12 max-w-4xl overflow-hidden rounded-2xl bg-card ring-1 ring-border sm:mt-14">
         <table className="w-full text-left text-sm">
           <thead className="bg-muted text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             <tr>
@@ -158,7 +158,7 @@ function FairSourcePackagesIntro({ data, path, annotation }: PackagesIntroProps)
         </table>
       </div>
       <p
-        className="mx-auto mt-6 max-w-2xl text-center text-sm text-muted-foreground"
+        className="mx-auto mt-6 max-w-2xl text-center text-sm text-body"
         {...fieldAttrs(annotation, `${path}.items.0.body`)}
       >
         {data.footer.includes(data.footerCommand) ? (
@@ -192,10 +192,10 @@ function FairSourceClock({ data, path, annotation }: ClockProps) {
         align="center"
       />
 
-      <div className="mx-auto mt-12 max-w-3xl">
+      <div className="mx-auto mt-12 max-w-3xl sm:mt-14">
         <ol className="relative border-l-2 border-primary/20 pl-8">
           {data.steps.map((step, index) => (
-            <li key={step.title} className="mb-8 last:mb-0">
+            <li key={step.title} className="mb-7 last:mb-0 sm:mb-8">
               <span
                 className={`absolute -left-2.5 mt-1.5 flex h-5 w-5 items-center justify-center rounded-full ring-4 ring-background ${
                   step.color === 'emerald' ? 'bg-primary' : 'bg-amber-600'
@@ -210,7 +210,7 @@ function FairSourceClock({ data, path, annotation }: ClockProps) {
                 {step.title}
               </h3>
               <p
-                className="mt-1 text-sm text-muted-foreground"
+                className="mt-1 text-sm text-body"
                 {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
               >
                 {step.body}
@@ -237,14 +237,14 @@ function FairSourcePeers({ data, path, annotation }: PeersProps) {
         align="center"
       />
 
-      <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-4 sm:mt-14 sm:grid-cols-3">
         {data.peers.map((p, index) => (
           <a
             key={p.name}
             href={p.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-2xl bg-card p-6 ring-1 ring-border no-underline transition hover:ring-border/60"
+            className="rounded-2xl bg-card p-6 ring-1 ring-border no-underline transition hover:ring-border/60 sm:p-8"
           >
             <h3
               className="text-lg font-semibold text-foreground"
@@ -253,7 +253,7 @@ function FairSourcePeers({ data, path, annotation }: PeersProps) {
               {p.name}
             </h3>
             <p
-              className="mt-2 text-sm leading-6 text-muted-foreground"
+              className="mt-2 text-sm leading-6 text-body"
               {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
             >
               {p.note}
@@ -280,9 +280,9 @@ function FairSourceFaq({ data, path, annotation }: FaqProps) {
         align="center"
       />
 
-      <div className="mx-auto mt-12 max-w-3xl divide-y divide-border">
+      <div className="mx-auto mt-12 max-w-3xl divide-y divide-border sm:mt-14">
         {data.items.map((f, index) => (
-          <details key={f.question} className="group py-6">
+          <details key={f.question} className="group py-5 sm:py-6">
             <summary className="flex cursor-pointer list-none items-start justify-between gap-6 text-left">
               <h3
                 className="text-lg font-semibold leading-7 text-foreground"
@@ -295,7 +295,7 @@ function FairSourceFaq({ data, path, annotation }: FaqProps) {
               </span>
             </summary>
             <div
-              className="mt-4 pr-9 text-base leading-7 text-muted-foreground"
+              className="mt-4 pr-9 text-base leading-7 text-body"
               {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
             >
               {f.answer}
@@ -319,7 +319,7 @@ function FairSourceCta({ data, path, annotation }: CtaProps) {
         description={<span {...fieldAttrs(annotation, `${path}.body`)}>{data.body}</span>}
         align="center"
       />
-      <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+      <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:mt-14 sm:flex-row">
         <Button asChild size="lg" variant="brand">
           <a href={data.primary.href} {...fieldAttrs(annotation, `${path}.links.0.label`)}>
             {data.primary.label}
@@ -390,7 +390,7 @@ export function FairSourcePage() {
           <p className="mx-auto mt-8 max-w-2xl text-xl leading-8 text-body sm:text-2xl">
             {FAIR_SOURCE_HERO.subhead}
           </p>
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-muted-foreground">
+          <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-body">
             {/* COUNT: packages-fsl = 5, packages-mit = 21 (of 26 total — see /packages/ in repo) */}
             {FAIR_SOURCE_HERO.body.prefix}{' '}
             <a

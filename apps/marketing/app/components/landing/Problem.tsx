@@ -59,7 +59,7 @@ export function Problem() {
 
       {/* Path blurbs: three quiet lines under the intro, not three cards. */}
       <ul
-        className="mx-auto mt-10 flex max-w-3xl flex-col gap-3 text-left sm:mt-12"
+        className="mx-auto mt-12 flex max-w-3xl flex-col gap-3 text-left sm:mt-14"
         aria-label="Three paths"
       >
         {(
@@ -93,9 +93,7 @@ export function Problem() {
             </span>
             <span
               className={
-                emphasis
-                  ? 'text-sm leading-6 text-foreground'
-                  : 'text-sm leading-6 text-muted-foreground'
+                emphasis ? 'text-sm leading-6 text-foreground' : 'text-sm leading-6 text-body'
               }
             >
               {blurb}
@@ -105,11 +103,14 @@ export function Problem() {
       </ul>
 
       <ul
-        className="mx-auto mt-14 max-w-3xl list-none border-t border-border p-0 sm:mt-16"
+        className="mx-auto mt-12 max-w-3xl list-none border-t border-border p-0 sm:mt-14"
         aria-label={HOME_PROBLEM.tableAriaLabel}
       >
         {HOME_PROBLEM.rows.map((row) => (
-          <li key={row.capability} className="border-b border-border py-8 first:pt-10 last:pb-2">
+          <li
+            key={row.capability}
+            className="border-b border-border py-6 first:pt-8 last:pb-2 sm:py-7 sm:first:pt-9"
+          >
             <h3 className="font-display text-base font-semibold tracking-tight text-foreground sm:text-lg">
               {row.capability}
             </h3>
@@ -132,7 +133,7 @@ export function Problem() {
                     className={
                       answer.emphasis
                         ? 'text-sm leading-6 font-medium text-foreground'
-                        : 'text-sm leading-6 text-muted-foreground'
+                        : 'text-sm leading-6 text-body'
                     }
                   >
                     {answer.value}

@@ -1,14 +1,17 @@
 import {
+  Accordion,
+  AccordionItem,
   Button,
   IconCheckCircle,
   IconCode,
   IconSearch,
   IconTerminal,
   MarketingSection,
+  PricingTable,
+  type PricingTier,
   SectionHeader,
 } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
-import { CenteredCardGrid } from '../components/CenteredCardGrid';
 import { Footer } from '../components/Footer';
 import { CostCalculator } from '../components/landing/CostCalculator';
 import { NewsletterSignup } from '../components/NewsletterSignup';
@@ -125,7 +128,7 @@ export function PricingPage() {
         <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-body sm:text-xl">
           {PRICING_HERO.subtitle}
         </p>
-        <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">
+        <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-body">
           {PRICING_HERO_SUBTEXT.prefix}{' '}
           <a
             href={PRICING_HERO_SUBTEXT.linkHref}
@@ -156,18 +159,18 @@ export function PricingPage() {
           title={PRICING_TRACK_A_SECTION.heading}
           description={PRICING_TRACK_A_SECTION.body}
           align="center"
-          className="mb-12"
+          className="mb-10 sm:mb-12"
         />
 
         {/* Value band: you own the runtime (no competitor prices) */}
-        <div className="mx-auto mb-16 max-w-4xl rounded-2xl bg-gradient-to-br from-primary/5 to-card p-8 ring-1 ring-primary/15">
+        <div className="mx-auto mb-10 max-w-4xl rounded-2xl bg-gradient-to-br from-primary/5 to-card p-6 ring-1 ring-primary/15 sm:mb-12 sm:p-8">
           <h3 className="text-2xl font-bold tracking-tight text-foreground">
             {PRICING_VALUE_BAND.heading}
           </h3>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">{PRICING_VALUE_BAND.body}</p>
-          <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <p className="mt-3 text-sm leading-6 text-body">{PRICING_VALUE_BAND.body}</p>
+          <ul className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
             {PRICING_VALUE_BAND.points.map((point) => (
-              <li key={point} className="flex items-start gap-2 text-sm text-muted-foreground">
+              <li key={point} className="flex items-start gap-2 text-sm text-body">
                 <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
                 <span>{point}</span>
               </li>
@@ -197,7 +200,7 @@ export function PricingPage() {
                 className="rounded-full"
               >
                 Annually
-                <span className="ml-1.5 rounded-full bg-green-500/15 px-1.5 py-0.5 text-xs font-semibold text-green-800 dark:text-green-400">
+                <span className="ml-1.5 rounded-full bg-success-strong px-1.5 py-0.5 text-xs font-semibold text-success-foreground">
                   Save 20%
                 </span>
               </Button>
@@ -205,76 +208,23 @@ export function PricingPage() {
           </div>
         )}
 
-        <CenteredCardGrid>
-          {tiers.map((tier, index) => (
-            <div
-              key={tier.id}
-              className={`relative flex w-full flex-col rounded-2xl bg-card p-8 shadow-lg sm:w-[calc(50%-0.75rem)] ${
-                index === tiers.length - 1 && tiers.length % 3 === 1
-                  ? 'lg:w-2/3'
-                  : 'lg:w-[calc(33.333%-1rem)]'
-              } ${tier.highlighted ? 'ring-2 ring-primary' : 'ring-1 ring-border'}`}
-            >
-              {tier.highlighted && (
-                <div className="absolute -top-4 left-0 right-0 mx-auto w-32 rounded-full bg-primary px-3 py-1.5 text-center text-sm font-semibold text-primary-foreground shadow-lg">
-                  {PRICING_HIGHLIGHTED_BADGE}
-                </div>
-              )}
-              <div className="mb-8">
-                <h3 className="text-xl font-bold tracking-tight text-foreground">{tier.name}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{tier.description}</p>
-                <p className="mt-6 flex items-baseline gap-x-1">
-                  <span className="text-4xl font-bold tracking-tight text-foreground">
-                    {tier.price ?? 'Contact us'}
-                  </span>
-                  {tier.period && (
-                    <span className="text-sm text-muted-foreground">{tier.period}</span>
-                  )}
-                </p>
-                {tier.savings && (
-                  <p className="mt-1 text-xs font-medium text-green-700 dark:text-green-400">
-                    {tier.savings}
-                  </p>
-                )}
-              </div>
-              <ul className="mb-8 flex-1 space-y-3">
-                {tier.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-x-3">
-                    <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
-                    <span className="text-sm text-muted-foreground">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              {tier.highlighted ? (
-                <Button asChild size="default" className="w-full">
-                  <a
-                    href={tier.ctaHref}
-                    target={tier.id === 'free' ? '_blank' : undefined}
-                    rel={tier.id === 'free' ? 'noopener noreferrer' : undefined}
-                  >
-                    {tier.cta}
-                  </a>
-                </Button>
-              ) : (
-                <Button
-                  asChild
-                  appearance="outline"
-                  variant="neutral"
-                  size="default"
-                  className="w-full"
-                >
-                  <a
-                    href={tier.ctaHref}
-                    target={tier.id === 'free' ? '_blank' : undefined}
-                    rel={tier.id === 'free' ? 'noopener noreferrer' : undefined}
-                  >
-                    {tier.cta}
-                  </a>
-                </Button>
-              )}
-            </div>
-          ))}
-        </CenteredCardGrid>
+        <PricingTable
+          tiers={tiers.map(
+            (tier): PricingTier => ({
+              id: tier.id,
+              name: tier.name,
+              price: tier.price ?? 'Contact us',
+              period: tier.period,
+              savings: tier.savings || undefined,
+              description: tier.description,
+              features: [...tier.features],
+              cta: tier.cta,
+              ctaHref: tier.ctaHref,
+              highlighted: Boolean(tier.highlighted),
+            }),
+          )}
+          highlightedLabel={PRICING_HIGHLIGHTED_BADGE}
+        />
 
         <p className="mt-8 text-center text-sm text-muted-foreground">{PRICING_TRIAL_NOTE}</p>
       </MarketingSection>
@@ -293,23 +243,21 @@ export function PricingPage() {
           title={PRICING_TRACK_C_SECTION.heading}
           description={PRICING_TRACK_C_SECTION.body}
           align="center"
-          className="mb-12"
+          className="mb-10 sm:mb-12"
         />
 
         {/* Studio / agency reseller value band: the multi-client P&L */}
-        <div className="mx-auto mb-16 max-w-4xl rounded-2xl bg-gradient-to-br from-primary/5 to-card p-8 ring-1 ring-primary/15">
+        <div className="mx-auto mb-10 max-w-4xl rounded-2xl bg-gradient-to-br from-primary/5 to-card p-6 ring-1 ring-primary/15 sm:mb-12 sm:p-8">
           <span className="text-sm font-semibold uppercase tracking-widest text-primary">
             {PRICING_AGENCY_VALUE_BAND.eyebrow}
           </span>
           <h3 className="mt-2 text-2xl font-bold tracking-tight text-foreground">
             {PRICING_AGENCY_VALUE_BAND.heading}
           </h3>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            {PRICING_AGENCY_VALUE_BAND.body}
-          </p>
-          <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <p className="mt-3 text-sm leading-6 text-body">{PRICING_AGENCY_VALUE_BAND.body}</p>
+          <ul className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
             {PRICING_AGENCY_VALUE_BAND.points.map((point) => (
-              <li key={point} className="flex items-start gap-2 text-sm text-muted-foreground">
+              <li key={point} className="flex items-start gap-2 text-sm text-body">
                 <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
                 <span>{point}</span>
               </li>
@@ -321,7 +269,7 @@ export function PricingPage() {
           {perpetualTiers.map((tier) => (
             <div
               key={tier.name}
-              className="relative flex flex-col rounded-2xl bg-card p-8 shadow-lg ring-1 ring-border"
+              className="relative flex flex-col rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8"
             >
               {tier.comingSoon && (
                 <div className="absolute right-4 top-4">
@@ -331,7 +279,7 @@ export function PricingPage() {
                 </div>
               )}
               <h3 className="text-lg font-bold text-foreground">{tier.name}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{tier.description}</p>
+              <p className="mt-1 text-sm text-body">{tier.description}</p>
               {tier.price ? (
                 <p className="mt-4 flex items-baseline gap-x-1">
                   <span className="text-4xl font-bold text-foreground">{tier.price}</span>
@@ -347,7 +295,7 @@ export function PricingPage() {
                 {tier.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-x-3">
                     <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
-                    <span className="text-sm text-muted-foreground">{feature}</span>
+                    <span className="text-sm text-body">{feature}</span>
                   </li>
                 ))}
               </ul>
@@ -368,7 +316,7 @@ export function PricingPage() {
       {/* For AI Agents */}
       <MarketingSection id="for-agents" tone="secondary" density="default" width="default">
         <div className="mx-auto max-w-4xl">
-          <div className="mb-12 text-center">
+          <div className="mb-10 text-center sm:mb-12">
             <SectionHeader
               eyebrow={PRICING_AGENTS_SECTION.eyebrow}
               eyebrowTone="primary"
@@ -382,14 +330,14 @@ export function PricingPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-            <div className="rounded-2xl bg-card p-6 ring-1 ring-border">
+            <div className="rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
               <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
                 <IconSearch size="md" className="text-primary" />
               </div>
               <h3 className="text-base font-semibold text-foreground">
                 {PRICING_AGENT_A2A.heading}
               </h3>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-2 text-sm text-body">
                 {PRICING_AGENT_A2A.body.prefix}{' '}
                 <a
                   href={PRICING_AGENT_A2A.body.linkHref}
@@ -403,24 +351,24 @@ export function PricingPage() {
               </p>
             </div>
 
-            <div className="rounded-2xl bg-card p-6 ring-1 ring-border">
+            <div className="rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
               <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 ring-1 ring-blue-500/20">
                 <IconCode size="md" className="text-blue-600" />
               </div>
               <h3 className="text-base font-semibold text-foreground">
                 {PRICING_AGENT_X402.heading}
               </h3>
-              <p className="mt-2 text-sm text-muted-foreground">{PRICING_AGENT_X402.body}</p>
+              <p className="mt-2 text-sm text-body">{PRICING_AGENT_X402.body}</p>
             </div>
 
-            <div className="rounded-2xl bg-card p-6 ring-1 ring-border">
+            <div className="rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
               <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-violet-500/10 ring-1 ring-violet-500/20">
                 <IconTerminal size="md" className="text-violet-600" />
               </div>
               <h3 className="text-base font-semibold text-foreground">
                 {PRICING_AGENT_MCP.heading}
               </h3>
-              <p className="mt-2 text-sm text-muted-foreground">{PRICING_AGENT_MCP.body}</p>
+              <p className="mt-2 text-sm text-body">{PRICING_AGENT_MCP.body}</p>
               <a
                 href={PRICING_AGENT_MCP.docsLink.href}
                 className="mt-3 inline-block text-xs font-semibold text-violet-600 hover:text-violet-700"
@@ -452,7 +400,7 @@ export function PricingPage() {
 
       {/* GAP-434 Starter Kit — one-time content product (Stripe Payment Link) */}
       <MarketingSection id="starter-kit" tone="background" density="default" width="default">
-        <div className="mx-auto max-w-3xl rounded-2xl bg-card p-8 shadow-lg ring-1 ring-border sm:p-10">
+        <div className="mx-auto max-w-3xl rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-sm font-semibold uppercase tracking-widest text-primary">
               {PRICING_STARTER_KIT.eyebrow}
@@ -470,12 +418,12 @@ export function PricingPage() {
             <span className="text-4xl font-bold text-foreground">{PRICING_STARTER_KIT.price}</span>
             <span className="text-sm text-muted-foreground">{PRICING_STARTER_KIT.priceNote}</span>
           </p>
-          <p className="mt-4 text-lg text-muted-foreground">{PRICING_STARTER_KIT.body}</p>
+          <p className="mt-4 text-lg text-body">{PRICING_STARTER_KIT.body}</p>
           <ul className="mt-6 space-y-3">
             {PRICING_STARTER_KIT.points.map((point) => (
               <li key={point} className="flex items-start gap-x-3">
                 <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
-                <span className="text-sm text-muted-foreground">{point}</span>
+                <span className="text-sm text-body">{point}</span>
               </li>
             ))}
           </ul>
@@ -510,7 +458,7 @@ export function PricingPage() {
 
       {/* GAP-448 Agency Founding Kit — Agency Perpetual self-serve path */}
       <MarketingSection id="agency-founding-kit" tone="secondary" density="default" width="default">
-        <div className="mx-auto max-w-3xl rounded-2xl bg-card p-8 shadow-lg ring-1 ring-border sm:p-10">
+        <div className="mx-auto max-w-3xl rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
           <span className="text-sm font-semibold uppercase tracking-widest text-primary">
             {PRICING_AGENCY_FOUNDING_KIT.eyebrow}
           </span>
@@ -525,12 +473,12 @@ export function PricingPage() {
               {PRICING_AGENCY_FOUNDING_KIT.priceNote}
             </span>
           </p>
-          <p className="mt-4 text-lg text-muted-foreground">{PRICING_AGENCY_FOUNDING_KIT.body}</p>
+          <p className="mt-4 text-lg text-body">{PRICING_AGENCY_FOUNDING_KIT.body}</p>
           <ul className="mt-6 space-y-3">
             {PRICING_AGENCY_FOUNDING_KIT.points.map((point) => (
               <li key={point} className="flex items-start gap-x-3">
                 <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
-                <span className="text-sm text-muted-foreground">{point}</span>
+                <span className="text-sm text-body">{point}</span>
               </li>
             ))}
           </ul>
@@ -573,15 +521,15 @@ export function PricingPage() {
           title={PRICING_DONE_FOR_YOU.heading}
           description={PRICING_DONE_FOR_YOU.body}
           align="center"
-          className="mb-12"
+          className="mb-10 sm:mb-12"
         />
 
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-3">
           {PRICING_DONE_FOR_YOU.rungs.map((rung) => (
-            <div key={rung.name} className="rounded-2xl bg-card p-6 ring-1 ring-border">
+            <div key={rung.name} className="rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
               <h3 className="text-base font-semibold text-foreground">{rung.name}</h3>
               <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">{rung.price}</p>
-              <p className="mt-3 text-sm text-muted-foreground">{rung.note}</p>
+              <p className="mt-3 text-sm text-body">{rung.note}</p>
             </div>
           ))}
         </div>
@@ -617,15 +565,25 @@ export function PricingPage() {
       {/* FAQ Section */}
       <MarketingSection tone="background" density="default" width="default">
         <div className="mx-auto max-w-4xl">
-          <SectionHeader title={PRICING_FAQ_SECTION.heading} align="center" className="mb-12" />
-          <dl className="space-y-8">
+          <SectionHeader
+            title={PRICING_FAQ_SECTION.heading}
+            align="center"
+            className="mb-10 sm:mb-12"
+          />
+          <Accordion className="rounded-2xl bg-card px-4 ring-1 ring-border sm:px-6">
             {PRICING_FAQS.map((faq) => (
-              <div key={faq.question} className="rounded-lg bg-secondary p-6 ring-1 ring-border">
-                <dt className="mb-2 text-lg font-semibold text-foreground">{faq.question}</dt>
-                <dd className="text-base text-muted-foreground">{faq.answer}</dd>
-              </div>
+              <AccordionItem
+                key={faq.question}
+                title={
+                  <span className="text-base font-semibold leading-7 text-foreground sm:text-lg">
+                    {faq.question}
+                  </span>
+                }
+              >
+                <p className="text-base leading-7 text-body">{faq.answer}</p>
+              </AccordionItem>
             ))}
-          </dl>
+          </Accordion>
         </div>
       </MarketingSection>
 
@@ -635,8 +593,9 @@ export function PricingPage() {
           title={PRICING_FINAL_CTA.title}
           description={PRICING_FINAL_CTA.subtitle}
           align="center"
+          className="mb-10 sm:mb-12"
         />
-        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+        <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Button asChild size="lg" className="w-full sm:w-auto">
             <a
               href={
@@ -660,7 +619,7 @@ export function PricingPage() {
             </a>
           </Button>
         </div>
-        <div className="mt-16 border-t border-border pt-10 text-center">
+        <div className="mt-12 border-t border-border pt-10 text-center sm:mt-14">
           <p className="mb-4 text-sm font-medium text-muted-foreground">
             {PRICING_NEWSLETTER_LABEL}
           </p>

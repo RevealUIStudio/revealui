@@ -1,0 +1,43 @@
+# apps/license-signer/fly.toml
+#
+# Isolated license JWT mint (GAP-260 P4-2 / P4-4).
+# The only online process that should hold REVEALUI_LICENSE_PRIVATE_KEY
+# after admin drop and after api/worker cut over to SIGN_VIA_SIGNER.
+#
+# Deploy from monorepo root:
+#   flyctl deploy --config apps/license-signer/fly.toml \
+#     --dockerfile apps/license-signer/Dockerfile --remote-only
+
+app = 'revealui-license-signer'
+primary_region = 'iad'
+
+[build]
+  dockerfile = 'Dockerfile'
+
+[env]
+  NODE_ENV = 'production'
+  PORT = '8080'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = 'off'
+  auto_start_machines = false
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = 'requests'
+    hard_limit = 50
+    soft_limit = 25
+
+  [[http_service.checks]]
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '10s'
+    method = 'GET'
+    path = '/health/live'
+
+[[vm]]
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 256

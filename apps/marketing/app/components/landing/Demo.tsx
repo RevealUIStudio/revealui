@@ -36,14 +36,14 @@ export function Demo({ data = HOME_DEMO, path = 'blocks.0.data', annotation = {}
 
       {/* Product-as-proof: live component frame (Linear craft pattern).
           Content mockupCaption was previously unwired; honesty line stays. */}
-      <div className="mt-14 sm:mt-16">
+      <div className="mt-12 sm:mt-14">
         <ProductFrame caption={HOME_DEMO.mockupCaption} />
       </div>
 
       {/* Beats as aligned stack, not three bordered cards (Linear: density over chrome). */}
-      <ol className="mx-auto mt-14 grid max-w-5xl list-none grid-cols-1 gap-0 divide-y divide-border border-y border-border p-0 sm:mt-16 lg:grid-cols-3 lg:gap-0 lg:divide-x lg:divide-y-0">
+      <ol className="mx-auto mt-12 grid max-w-5xl list-none grid-cols-1 gap-0 divide-y divide-border border-y border-border p-0 sm:mt-14 lg:grid-cols-3 lg:gap-0 lg:divide-x lg:divide-y-0">
         {data.beats.map((b, index) => (
-          <li key={b.n} className="relative px-0 py-7 lg:px-8 lg:py-8 first:lg:pl-0 last:lg:pr-0">
+          <li key={b.n} className="relative px-0 py-6 lg:px-8 lg:py-7 first:lg:pl-0 last:lg:pr-0">
             <div
               className="font-mono text-[11px] font-medium tabular-nums tracking-widest text-muted-foreground"
               {...fieldAttrs(annotation, `${path}.items.${index}.label`)}
@@ -57,7 +57,7 @@ export function Demo({ data = HOME_DEMO, path = 'blocks.0.data', annotation = {}
               {b.title}
             </h3>
             <p
-              className="mt-2 text-sm leading-6 text-muted-foreground"
+              className="mt-2 text-sm leading-6 text-body"
               {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
             >
               {b.body}

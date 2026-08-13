@@ -68,14 +68,14 @@ export function Primitives({
 
       {/* Quiet stacked rows (not a card grid). Linear craft: density + alignment
           over decorative cards. Alternating icon side still gives rhythm. */}
-      <div className="mx-auto mt-14 max-w-3xl divide-y divide-border border-y border-border sm:mt-16">
+      <div className="mx-auto mt-12 max-w-3xl divide-y divide-border border-y border-border sm:mt-14">
         {data.items.map((item, index) => {
           const flipped = index % 2 === 1;
           const style = primitiveStyles[index];
           return (
             <div
               key={item.label}
-              className={`flex flex-col gap-4 py-8 sm:items-center sm:gap-8 sm:py-10 ${
+              className={`flex flex-col gap-4 py-7 sm:items-center sm:gap-8 sm:py-8 ${
                 flipped ? 'sm:flex-row-reverse' : 'sm:flex-row'
               }`}
             >
@@ -95,7 +95,7 @@ export function Primitives({
                   {item.label}
                 </h3>
                 <p
-                  className="mt-1.5 text-base leading-7 text-muted-foreground"
+                  className="mt-1.5 text-base leading-7 text-body"
                   {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
                 >
                   {item.body}

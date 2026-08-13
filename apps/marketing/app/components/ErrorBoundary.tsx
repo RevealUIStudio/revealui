@@ -39,7 +39,7 @@ function DefaultErrorFallback() {
       <h1 className="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
         Something went wrong
       </h1>
-      <p className="mt-4 max-w-md text-sm text-muted-foreground">
+      <p className="mt-4 max-w-md text-sm text-body">
         An unexpected error occurred while rendering this page. Our team has been notified.
       </p>
       <Button asChild variant="brand" className="mt-6">

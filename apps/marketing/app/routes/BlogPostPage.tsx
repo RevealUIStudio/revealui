@@ -96,7 +96,7 @@ export function BlogPostPage() {
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             Post not found
           </h1>
-          <p className="mt-4 max-w-md text-base text-muted-foreground">
+          <p className="mt-4 max-w-md text-base text-body">
             That blog post does not exist or has been removed.
           </p>
           <Button asChild variant="brand" className="mt-8">
@@ -142,7 +142,7 @@ export function BlogPostPage() {
             ) : (
               // Content shape unrecognized (neither Lexical nor markdown string):
               // render the real excerpt instead of placeholder copy (GAP-423).
-              <p className="text-muted-foreground">{post.excerpt}</p>
+              <p className="text-body">{post.excerpt}</p>
             )}
           </div>
         </div>
@@ -153,7 +153,7 @@ export function BlogPostPage() {
           <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             Ready to build?
           </h2>
-          <p className="mt-4 text-base leading-7 text-muted-foreground">
+          <p className="mt-4 text-base leading-7 text-body">
             People, Content, Offers, Payments, and Agents, pre-wired. Start locally in minutes.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">

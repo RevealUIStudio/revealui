@@ -81,13 +81,16 @@ export function Waitlist({ data, path, annotation }: FoManagedWaitlistProps = {}
 
       {status === 'success' ? (
         <p
-          className="mt-10 animate-[fade-in_300ms_ease-out] text-center text-base font-medium text-primary"
+          className="mt-12 animate-[fade-in_300ms_ease-out] text-center text-base font-medium text-primary sm:mt-14"
           {...(base ? fieldAttrs(ann, `${base}.items.3.body`) : {})}
         >
           {message}
         </p>
       ) : (
-        <form onSubmit={handleSubmit} className="mx-auto mt-10 flex max-w-sm flex-col gap-3">
+        <form
+          onSubmit={handleSubmit}
+          className="mx-auto mt-12 flex max-w-sm flex-col gap-3 sm:mt-14"
+        >
           <label htmlFor="waitlist-email" className="sr-only">
             Email address
           </label>
