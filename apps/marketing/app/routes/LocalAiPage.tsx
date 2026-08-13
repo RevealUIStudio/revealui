@@ -1,4 +1,10 @@
-import { type BlockAnnotation, Button, fieldAttrs } from '@revealui/presentation';
+import {
+  type BlockAnnotation,
+  Button,
+  fieldAttrs,
+  MarketingSection,
+  SectionHeader,
+} from '@revealui/presentation';
 import { Footer } from '../components/Footer';
 import { FrontierPathway } from '../components/landing/FrontierPathway';
 import { ProviderSwitch } from '../components/landing/ProviderSwitch';
@@ -30,28 +36,35 @@ interface LocalAiHeroProps {
 
 function LocalAiHero({ data, path, annotation }: LocalAiHeroProps) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-violet-500/10 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
-      <div className="mx-auto max-w-3xl">
-        <p
-          className="text-sm font-semibold uppercase tracking-wide text-primary"
-          {...fieldAttrs(annotation, `${path}.eyebrow`)}
-        >
-          {data.eyebrow}
-        </p>
-        <h1
-          className="mt-4 text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
-          {...fieldAttrs(annotation, `${path}.title`)}
-        >
-          {data.h1}
-        </h1>
-        <p
-          className="mt-6 text-lg leading-8 text-body"
-          {...fieldAttrs(annotation, `${path}.subtitle`)}
-        >
-          {data.lead}
-        </p>
-      </div>
-    </section>
+    <MarketingSection
+      tone="background"
+      density="spacious"
+      width="narrow"
+      className="relative overflow-hidden"
+    >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-primary/10 via-background to-violet-500/10"
+      />
+      <p
+        className="text-sm font-semibold uppercase tracking-wide text-primary"
+        {...fieldAttrs(annotation, `${path}.eyebrow`)}
+      >
+        {data.eyebrow}
+      </p>
+      <h1
+        className="mt-4 text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
+        {...fieldAttrs(annotation, `${path}.title`)}
+      >
+        {data.h1}
+      </h1>
+      <p
+        className="mt-6 text-lg leading-8 text-body"
+        {...fieldAttrs(annotation, `${path}.subtitle`)}
+      >
+        {data.lead}
+      </p>
+    </MarketingSection>
   );
 }
 
@@ -63,7 +76,7 @@ interface LocalAiPillarsProps {
 
 function LocalAiPillars({ data, path, annotation }: LocalAiPillarsProps) {
   return (
-    <section className="px-6 py-16 sm:py-20 lg:px-8">
+    <MarketingSection tone="background" density="compact" width="default">
       <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-3">
         {data.pillars.map((pillar, index) => (
           <div key={`pillar-${index}`} className="rounded-2xl bg-card p-6 ring-1 ring-border">
@@ -82,7 +95,7 @@ function LocalAiPillars({ data, path, annotation }: LocalAiPillarsProps) {
           </div>
         ))}
       </div>
-    </section>
+    </MarketingSection>
   );
 }
 
@@ -94,26 +107,24 @@ interface LocalAiSnippetProps {
 
 function LocalAiSnippet({ caption, captionPath, annotation }: LocalAiSnippetProps) {
   return (
-    <section className="px-6 pb-8 lg:px-8">
-      <div className="mx-auto max-w-3xl">
-        <div className="rounded-2xl bg-foreground p-6 ring-1 ring-background/10">
-          <ul className="space-y-2 font-mono text-sm list-none p-0">
-            {LOCAL_AI_SECTION.snippet.lines.map((line) => (
-              <li
-                key={line.code}
-                className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3"
-              >
-                <code className={SNIPPET_CODE_CLASS_NAME}>{line.code}</code>
-                <span className="text-background/60"># {line.note}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <p className="mt-3 text-sm text-muted-foreground" {...fieldAttrs(annotation, captionPath)}>
-          {caption}
-        </p>
+    <MarketingSection tone="background" density="compact" width="narrow">
+      <div className="rounded-2xl bg-foreground p-6 ring-1 ring-background/10">
+        <ul className="list-none space-y-2 p-0 font-mono text-sm">
+          {LOCAL_AI_SECTION.snippet.lines.map((line) => (
+            <li
+              key={line.code}
+              className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3"
+            >
+              <code className={SNIPPET_CODE_CLASS_NAME}>{line.code}</code>
+              <span className="text-background/60"># {line.note}</span>
+            </li>
+          ))}
+        </ul>
       </div>
-    </section>
+      <p className="mt-3 text-sm text-muted-foreground" {...fieldAttrs(annotation, captionPath)}>
+        {caption}
+      </p>
+    </MarketingSection>
   );
 }
 
@@ -125,57 +136,45 @@ interface LocalAiMarketProofProps {
 
 function LocalAiMarketProof({ data, path, annotation }: LocalAiMarketProofProps) {
   return (
-    <section className="px-6 py-16 sm:py-20 lg:px-8">
-      <div className="mx-auto max-w-3xl">
-        <p
-          className="text-sm font-semibold uppercase tracking-widest text-primary"
-          {...fieldAttrs(annotation, `${path}.eyebrow`)}
-        >
-          {data.eyebrow}
-        </p>
-        <h2
-          className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
-          {...fieldAttrs(annotation, `${path}.heading`)}
-        >
-          {data.heading}
-        </h2>
-        <p
-          className="mt-4 text-base leading-7 text-muted-foreground"
-          {...fieldAttrs(annotation, `${path}.body`)}
-        >
-          {data.body}
-        </p>
-        <ul className="mt-8 space-y-4 list-none p-0">
-          {data.adopters.map((adopter, index) => (
-            <li key={`adopter-${index}`} className="rounded-xl bg-secondary p-5 ring-1 ring-border">
-              <p className="text-base text-foreground">
-                <span
-                  className="font-semibold"
-                  {...fieldAttrs(annotation, `${path}.items.${index}.label`)}
-                >
-                  {adopter.name}
-                </span>{' '}
-                <span {...fieldAttrs(annotation, `${path}.items.${index}.body`)}>
-                  {adopter.detail}
-                </span>
-              </p>
-              <p
-                className="mt-1 text-xs text-muted-foreground"
-                {...fieldAttrs(annotation, `${path}.items.${index}.title`)}
+    <MarketingSection tone="background" density="compact" width="narrow">
+      <SectionHeader
+        eyebrow={<span {...fieldAttrs(annotation, `${path}.eyebrow`)}>{data.eyebrow}</span>}
+        eyebrowTone="primary"
+        title={<span {...fieldAttrs(annotation, `${path}.heading`)}>{data.heading}</span>}
+        description={<span {...fieldAttrs(annotation, `${path}.body`)}>{data.body}</span>}
+        align="start"
+        titleClassName="text-2xl sm:text-3xl"
+      />
+      <ul className="mt-8 list-none space-y-4 p-0">
+        {data.adopters.map((adopter, index) => (
+          <li key={`adopter-${index}`} className="rounded-xl bg-secondary p-5 ring-1 ring-border">
+            <p className="text-base text-foreground">
+              <span
+                className="font-semibold"
+                {...fieldAttrs(annotation, `${path}.items.${index}.label`)}
               >
-                {adopter.source}
-              </p>
-            </li>
-          ))}
-        </ul>
-        <p
-          className="mt-6 text-sm italic leading-6 text-muted-foreground"
-          {...fieldAttrs(annotation, `${path}.items.${data.adopters.length}.body`)}
-        >
-          {data.disclaimer}
-        </p>
-      </div>
-    </section>
+                {adopter.name}
+              </span>{' '}
+              <span {...fieldAttrs(annotation, `${path}.items.${index}.body`)}>
+                {adopter.detail}
+              </span>
+            </p>
+            <p
+              className="mt-1 text-xs text-muted-foreground"
+              {...fieldAttrs(annotation, `${path}.items.${index}.title`)}
+            >
+              {adopter.source}
+            </p>
+          </li>
+        ))}
+      </ul>
+      <p
+        className="mt-6 text-sm italic leading-6 text-muted-foreground"
+        {...fieldAttrs(annotation, `${path}.items.${data.adopters.length}.body`)}
+      >
+        {data.disclaimer}
+      </p>
+    </MarketingSection>
   );
 }
 
@@ -188,10 +187,10 @@ interface LocalAiNotesProps {
 function LocalAiNotes({ data, path, annotation }: LocalAiNotesProps) {
   // Item indices match localAiNotesBlock order: dogfood, honesty, roadmap, snippet-caption.
   return (
-    <section className="px-6 pb-16 lg:px-8">
-      <div className="mx-auto max-w-3xl space-y-6">
+    <MarketingSection tone="background" density="compact" width="narrow">
+      <div className="space-y-6">
         <p
-          className="text-base leading-7 text-muted-foreground"
+          className="text-base leading-7 text-body"
           {...fieldAttrs(annotation, `${path}.items.0.body`)}
         >
           {data.dogfood}
@@ -218,7 +217,7 @@ function LocalAiNotes({ data, path, annotation }: LocalAiNotesProps) {
           {data.honesty}
         </p>
       </div>
-    </section>
+    </MarketingSection>
   );
 }
 
@@ -230,8 +229,8 @@ interface LocalAiCtaProps {
 
 function LocalAiCta({ data, path, annotation }: LocalAiCtaProps) {
   return (
-    <section className="px-6 pb-24 sm:pb-32 lg:px-8">
-      <div className="mx-auto flex max-w-3xl flex-col items-start gap-4 sm:flex-row">
+    <MarketingSection tone="background" density="default" width="narrow">
+      <div className="flex flex-col items-start gap-4 sm:flex-row">
         <Button asChild size="lg" variant="brand">
           <a href={data.primary.href} {...fieldAttrs(annotation, `${path}.links.0.label`)}>
             {data.primary.label}
@@ -248,7 +247,7 @@ function LocalAiCta({ data, path, annotation }: LocalAiCtaProps) {
           </a>
         </Button>
       </div>
-    </section>
+    </MarketingSection>
   );
 }
 
@@ -274,10 +273,10 @@ export function LocalAiPage() {
         captionPath={`${notes.path}.items.3.body`}
         annotation={annotation}
       />
-      <section className="px-6 pb-8 lg:px-8">
+      <MarketingSection tone="background" density="compact" width="default">
         <ProviderSwitch />
         <FrontierPathway />
-      </section>
+      </MarketingSection>
       <LocalAiMarketProof data={marketProof.data} path={marketProof.path} annotation={annotation} />
       <LocalAiNotes data={notes.data} path={notes.path} annotation={annotation} />
       <LocalAiCta data={cta.data} path={cta.path} annotation={annotation} />

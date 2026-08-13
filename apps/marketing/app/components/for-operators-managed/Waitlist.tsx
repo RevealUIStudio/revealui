@@ -1,4 +1,11 @@
-import { type BlockAnnotation, Button, fieldAttrs, Input } from '@revealui/presentation';
+import {
+  type BlockAnnotation,
+  Button,
+  fieldAttrs,
+  Input,
+  MarketingSection,
+  SectionHeader,
+} from '@revealui/presentation';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 import { FO_MANAGED_WAITLIST } from '../../content/for-operators-managed';
@@ -49,73 +56,73 @@ export function Waitlist({ data, path, annotation }: FoManagedWaitlistProps = {}
   }
 
   return (
-    <section className="bg-muted py-24 sm:py-32">
-      <div className="mx-auto max-w-2xl px-6 text-center lg:px-8">
-        <p
-          className="text-sm font-semibold uppercase tracking-widest text-muted-foreground"
-          {...(base ? fieldAttrs(ann, `${base}.eyebrow`) : {})}
-        >
-          {content.eyebrow}
-        </p>
-        <h2
-          className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
-          {...(base ? fieldAttrs(ann, `${base}.heading`) : {})}
-        >
-          {content.heading}
-        </h2>
+    <MarketingSection tone="secondary" density="default" width="narrow">
+      <SectionHeader
+        eyebrow={
+          base ? (
+            <span {...fieldAttrs(ann, `${base}.eyebrow`)}>{content.eyebrow}</span>
+          ) : (
+            content.eyebrow
+          )
+        }
+        eyebrowTone="muted"
+        title={
+          base ? (
+            <span {...fieldAttrs(ann, `${base}.heading`)}>{content.heading}</span>
+          ) : (
+            content.heading
+          )
+        }
+        description={
+          base ? <span {...fieldAttrs(ann, `${base}.body`)}>{content.body}</span> : content.body
+        }
+        align="center"
+      />
 
+      {status === 'success' ? (
         <p
-          className="mx-auto mt-6 max-w-xl text-base leading-7 text-muted-foreground"
-          {...(base ? fieldAttrs(ann, `${base}.body`) : {})}
+          className="mt-10 animate-[fade-in_300ms_ease-out] text-center text-base font-medium text-primary"
+          {...(base ? fieldAttrs(ann, `${base}.items.3.body`) : {})}
         >
-          {content.body}
+          {message}
         </p>
-
-        {status === 'success' ? (
-          <p
-            className="mt-10 animate-[fade-in_300ms_ease-out] text-base font-medium text-primary"
-            {...(base ? fieldAttrs(ann, `${base}.items.3.body`) : {})}
+      ) : (
+        <form onSubmit={handleSubmit} className="mx-auto mt-10 flex max-w-sm flex-col gap-3">
+          <label htmlFor="waitlist-email" className="sr-only">
+            Email address
+          </label>
+          <Input
+            id="waitlist-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={content.inputPlaceholder}
+            required
+          />
+          {/* Labels ride CMS for seed/fallback parity; form controls stay unannotated. */}
+          <span className="sr-only" {...(base ? fieldAttrs(ann, `${base}.items.0.body`) : {})}>
+            {content.inputPlaceholder}
+          </span>
+          <Button
+            type="submit"
+            variant="brand"
+            isLoading={status === 'loading'}
+            disabled={status === 'loading'}
           >
-            {message}
-          </p>
-        ) : (
-          <form onSubmit={handleSubmit} className="mx-auto mt-10 flex max-w-sm flex-col gap-3">
-            <label htmlFor="waitlist-email" className="sr-only">
-              Email address
-            </label>
-            <Input
-              id="waitlist-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={content.inputPlaceholder}
-              required
-            />
-            {/* Labels ride CMS for seed/fallback parity; form controls stay unannotated. */}
-            <span className="sr-only" {...(base ? fieldAttrs(ann, `${base}.items.0.body`) : {})}>
-              {content.inputPlaceholder}
-            </span>
-            <Button
-              type="submit"
-              variant="brand"
-              isLoading={status === 'loading'}
-              disabled={status === 'loading'}
+            <span
+              {...(base
+                ? fieldAttrs(
+                    ann,
+                    status === 'loading' ? `${base}.items.2.body` : `${base}.items.1.body`,
+                  )
+                : {})}
             >
-              <span
-                {...(base
-                  ? fieldAttrs(
-                      ann,
-                      status === 'loading' ? `${base}.items.2.body` : `${base}.items.1.body`,
-                    )
-                  : {})}
-              >
-                {status === 'loading' ? content.buttonLabelLoading : content.buttonLabel}
-              </span>
-            </Button>
-            {status === 'error' && <p className="text-xs text-destructive">{message}</p>}
-          </form>
-        )}
-      </div>
-    </section>
+              {status === 'loading' ? content.buttonLabelLoading : content.buttonLabel}
+            </span>
+          </Button>
+          {status === 'error' && <p className="text-xs text-destructive">{message}</p>}
+        </form>
+      )}
+    </MarketingSection>
   );
 }

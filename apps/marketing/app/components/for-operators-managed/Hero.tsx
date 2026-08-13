@@ -1,4 +1,4 @@
-import { type BlockAnnotation, fieldAttrs } from '@revealui/presentation';
+import { type BlockAnnotation, fieldAttrs, MarketingSection } from '@revealui/presentation';
 import { FO_MANAGED_HERO } from '../../content/for-operators-managed';
 import type { FoManagedHeroData } from '../../lib/page-blocks';
 
@@ -19,12 +19,17 @@ export function Hero({ data, path, annotation }: FoManagedHeroProps = {}) {
   const base = path ?? '';
 
   return (
-    <section className="relative isolate overflow-hidden bg-background px-6 pt-20 pb-20 sm:px-6 sm:pt-28 sm:pb-28 lg:px-8">
+    <MarketingSection
+      tone="background"
+      density="spacious"
+      width="narrow"
+      className="relative isolate overflow-hidden"
+    >
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background" />
 
-      <div className="relative mx-auto max-w-3xl text-center">
+      <div className="relative text-center">
         <p
-          className="text-sm font-semibold uppercase tracking-[0.2em] text-primary mb-6"
+          className="mb-6 text-sm font-semibold uppercase tracking-[0.2em] text-primary"
           {...(base ? fieldAttrs(ann, `${base}.eyebrow`) : {})}
         >
           {content.eyebrow}
@@ -51,13 +56,13 @@ export function Hero({ data, path, annotation }: FoManagedHeroProps = {}) {
         <p className="mt-10 text-sm text-muted-foreground">
           <a
             href={content.backLink.href}
-            className="hover:text-foreground transition-colors underline decoration-dotted underline-offset-4"
+            className="underline decoration-dotted underline-offset-4 transition-colors hover:text-foreground"
             {...(base ? fieldAttrs(ann, `${base}.links.0.label`) : {})}
           >
             {content.backLink.label}
           </a>
         </p>
       </div>
-    </section>
+    </MarketingSection>
   );
 }

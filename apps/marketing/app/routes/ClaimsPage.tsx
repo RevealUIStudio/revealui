@@ -1,4 +1,4 @@
-import { Badge, Callout, CodeBlock, Divider } from '@revealui/presentation';
+import { Badge, Callout, CodeBlock, Divider, MarketingSection } from '@revealui/presentation';
 import { Footer } from '../components/Footer';
 import {
   CLAIMS_COUNTS_LABELS,
@@ -200,8 +200,13 @@ export function ClaimsPage() {
         </div>
       </header>
 
-      <section className="border-b border-border px-6 py-8 lg:px-8">
-        <div className="mx-auto max-w-3xl space-y-4">
+      <MarketingSection
+        tone="background"
+        density="compact"
+        width="narrow"
+        className="border-b border-border"
+      >
+        <div className="space-y-4">
           <Callout variant="info" title={CLAIMS_SIGNED_LEDGER_NOTE.heading}>
             <p>{CLAIMS_SIGNED_LEDGER_NOTE.body}</p>
           </Callout>
@@ -209,22 +214,25 @@ export function ClaimsPage() {
             <p>{CLAIMS_RECEIPT_HOLD_NOTE.body}</p>
           </Callout>
         </div>
-      </section>
+      </MarketingSection>
 
-      <section className="border-b border-border bg-muted/40 px-6 py-8 lg:px-8">
-        <div className="mx-auto max-w-3xl">
-          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {CLAIMS_KIND_LEGEND.map((entry) => (
-              <div key={entry.kind} className="flex items-start gap-3">
-                <Badge color={KIND_BADGE_COLOR} className="mt-0.5 shrink-0">
-                  {entry.label}
-                </Badge>
-                <dd className="text-sm text-muted-foreground">{entry.description}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </section>
+      <MarketingSection
+        tone="secondary"
+        density="compact"
+        width="narrow"
+        className="border-b border-border"
+      >
+        <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {CLAIMS_KIND_LEGEND.map((entry) => (
+            <div key={entry.kind} className="flex items-start gap-3">
+              <Badge color={KIND_BADGE_COLOR} className="mt-0.5 shrink-0">
+                {entry.label}
+              </Badge>
+              <dd className="text-sm text-muted-foreground">{entry.description}</dd>
+            </div>
+          ))}
+        </dl>
+      </MarketingSection>
 
       <nav aria-label="Sections" className="border-b border-border px-6 py-6 lg:px-8">
         <div className="mx-auto max-w-3xl">
@@ -292,8 +300,13 @@ export function ClaimsPage() {
         </div>
       </div>
 
-      <section className="border-t border-border bg-muted/40 px-6 py-16 lg:px-8">
-        <div className="mx-auto max-w-3xl space-y-4">
+      <MarketingSection
+        tone="secondary"
+        density="compact"
+        width="narrow"
+        className="border-t border-border"
+      >
+        <div className="space-y-4">
           <Callout variant="info" title={CLAIMS_HONESTY_RAILS_SECTION.heading}>
             <p>{CLAIMS_HONESTY_RAILS_SECTION.intro}</p>
             <ul className="mt-2 list-disc space-y-1 pl-5">
@@ -313,7 +326,7 @@ export function ClaimsPage() {
             </div>
           </div>
         </div>
-      </section>
+      </MarketingSection>
 
       <Footer />
     </div>

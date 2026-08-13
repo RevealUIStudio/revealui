@@ -46,6 +46,13 @@ Eyebrow tones: `primary` (default brand signal) or `muted` (quiet sections).
 3. CMS `SectionBlock` body copy must use the body rung (aligned with this ladder).
 4. Route craft only after consumers adopt shells (frontend-excellence sequence).
 
-## Pilot
+## Pilot + Phase 2 rewire
 
-Home `Hero` + `Problem` rewired first. Expand route-by-route after type burn-down.
+Home `Hero` + `Problem` were the pilot. Phase 2 rewired remaining marketing
+section components and major routes onto `MarketingSection` / `SectionHeader`
+(landing, for-operators*, products, pricing, claims, blog index, etc.).
+
+Still intentional non-shell pages: thin document shells (404, some legal),
+nested widgets (ProviderSwitch, FrontierPathway), NavBar/Footer.
+
+Next: type burn-down (body vs muted), PricingTable/FaqList, then route craft.
