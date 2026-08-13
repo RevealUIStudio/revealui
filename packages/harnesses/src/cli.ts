@@ -14,6 +14,7 @@
  *   coordinate [--project <path>]    Print current workboard state
  *   hook <cursor|claude-code|vscode|grok> Normalize a hook payload from stdin, evaluate policy, spool the receipt
  *   acp                              Run RevealUI as an ACP agent on stdio (GAP-381 Phase D; Zed/JetBrains)
+ *   skills list [--json]             Read-only skill catalog (GAP-293 Phase B)
  *   session register|end|peers|reap  Soft-optional RevDev session boundary + peer panel + reaper (GAP-459)
  *
  * License: FSL-1.1-MIT
@@ -33,6 +34,7 @@ import {
   generateContent,
   listContent,
   listGenerators,
+  listSkillCatalog,
   loadContentSnapshot,
   MANAGER_CONTENT_OUTPUT,
   MANAGER_MATERIALIZE_GENERATORS,
@@ -568,6 +570,36 @@ async function main() {
     }
     process.stderr.write('Usage: revealui-harnesses inference <status|apply> [tier]\n');
     process.exit(1);
+  }
+
+  if (command === 'skills') {
+    const [subcommand] = args;
+    const projectIdx = args.indexOf('--project');
+    const revskillsIdx = args.indexOf('--revskills');
+    const asJson = args.includes('--json');
+    const projectRoot =
+      projectIdx >= 0 ? (args[projectIdx + 1] ?? DEFAULT_PROJECT) : DEFAULT_PROJECT;
+    const revskillsRoot = revskillsIdx >= 0 ? args[revskillsIdx + 1] : undefined;
+    if (subcommand !== 'list') {
+      process.stderr.write(
+        'Usage: revealui-harnesses skills list [--json] [--project <dir>] [--revskills <dir>]\n',
+      );
+      process.exit(1);
+    }
+    const catalog = listSkillCatalog({
+      projectRoot,
+      revskillsRoot,
+      includeDefinitions: true,
+    });
+    if (asJson) {
+      process.stdout.write(`${JSON.stringify(catalog, null, 2)}\n`);
+      return;
+    }
+    process.stdout.write(`${catalog.length} skills\n`);
+    for (const skill of catalog) {
+      process.stdout.write(`${skill.id}\t${skill.source}\t${skill.name}\t${skill.description}\n`);
+    }
+    return;
   }
 
   if (command === 'manager') {
