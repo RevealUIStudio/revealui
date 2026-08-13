@@ -101,6 +101,11 @@ export {
   skillInvokeTimeoutMs,
 } from './skill-invoke.js';
 export type {
+  RunNativeSkillInvokeOptions,
+  RunNativeSkillInvokeResult,
+} from './skill-invoke-runtime.js';
+export { runNativeSkillInvoke } from './skill-invoke-runtime.js';
+export type {
   ContentSnapshot,
   ContentSnapshotFile,
   SnapshotCheckResult,
