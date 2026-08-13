@@ -24,15 +24,13 @@ export async function register() {
     // Never throw. Node boot logs the failure from registerNode.
   }
 
-  // GAP-335: Turbopack statically traces this file for Edge compatibility.
-  // process.exit / process.stderr and Node-only imports MUST live in
-  // instrumentation-node.ts, loaded only behind NEXT_RUNTIME === 'nodejs'.
-  if (process.env.NEXT_RUNTIME !== 'nodejs') {
-    return;
+  // GAP-335: official Next.js pattern — wrap the Node-only module in
+  // NEXT_RUNTIME === 'nodejs' so Turbopack excludes it from Edge analysis.
+  // process.exit / process.stderr live only in instrumentation-node.ts.
+  if (process.env.NEXT_RUNTIME === 'nodejs') {
+    const { registerNode } = await import('./instrumentation-node');
+    await registerNode();
   }
-
-  const { registerNode } = await import('./instrumentation-node');
-  await registerNode();
 }
 
 // Auto-capture server-side request errors (server actions, RSC, route
