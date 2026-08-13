@@ -644,11 +644,11 @@ export class LLMClient {
  *
  * Canonical Inference Snaps is the reference local provider on Ubuntu — offline,
  * silicon-optimized, no API key required. Product usage is **US-origin snaps
- * only** (nemotron-3-nano default; gemma3/4 also allowlisted). See
+ * only** (gemma3 default; gemma4 and nemotron also allowlisted). See
  * `providers/us-origin-snaps.ts` and `providers/inference-snaps.ts`.
  *
  * Provider defaults:
- *   inference-snaps → nemotron-3-nano   (base URL defaults to http://localhost:9090/v1)
+ *   inference-snaps → gemma3   (base URL defaults to http://localhost:9090/v1)
  *   groq            → llama-3.3-70b-versatile
  *   ollama          → DEFAULT_DAILY_OLLAMA_MODEL (qwen2.5:3b; base URL http://localhost:11434)
  *   anthropic       → claude-sonnet-4-6 (base URL defaults to https://api.anthropic.com/v1)

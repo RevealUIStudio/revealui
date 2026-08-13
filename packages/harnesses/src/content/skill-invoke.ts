@@ -1,7 +1,7 @@
 /**
  * GAP-293 Phase C — bind native workflow skills to the product default snap.
  *
- * Snap is not invented: `nemotron-3-nano` is DEFAULT_US_ORIGIN_INFERENCE_SNAP
+ * Snap is not invented: `gemma3` is DEFAULT_US_ORIGIN_INFERENCE_SNAP
  * in `@revealui/ai` (`providers/us-origin-snaps.ts`). This module only
  * prepares the invoke; it does not run tools or commit.
  */
@@ -18,7 +18,7 @@ export const NATIVE_WORKFLOW_SKILL_IDS = [
 export type NativeWorkflowSkillId = (typeof NATIVE_WORKFLOW_SKILL_IDS)[number];
 
 /** Product default Inference Snap (US-origin catalog). */
-export const PHASE_C_INFERENCE_SNAP = 'nemotron-3-nano';
+export const PHASE_C_INFERENCE_SNAP = 'gemma3';
 
 const ALIASES: Record<string, NativeWorkflowSkillId> = {
   doctor: 'revealui-doctor',
@@ -86,7 +86,7 @@ export function buildSkillInvokeRequest(
 }
 
 /**
- * OpenAI-compat completion text. US-origin snaps (nemotron-3-nano) put
+ * OpenAI-compat completion text. Some snaps (e.g. nemotron-3-nano) put
  * tokens in `reasoning_content` and leave `content` empty.
  */
 export function extractSkillInvokeText(payload: unknown): string {

@@ -60,7 +60,8 @@ describe('isUsOriginInferenceSnap', () => {
 });
 
 describe('assertUsOriginInferenceSnap', () => {
-  it('defaults to nemotron-3-nano when model is omitted', () => {
+  it('defaults to gemma3 when model is omitted', () => {
+    expect(DEFAULT_US_ORIGIN_INFERENCE_SNAP).toBe('gemma3');
     expect(assertUsOriginInferenceSnap(undefined)).toBe(DEFAULT_US_ORIGIN_INFERENCE_SNAP);
     expect(assertUsOriginInferenceSnap('')).toBe(DEFAULT_US_ORIGIN_INFERENCE_SNAP);
   });

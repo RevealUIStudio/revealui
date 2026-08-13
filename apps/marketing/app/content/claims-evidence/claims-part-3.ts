@@ -493,7 +493,7 @@ export const claimsPart3: readonly ClaimEntry[] = [
     file: 'local-ai.ts',
     exportPath: 'LOCAL_AI_SECTION.snippet.lines[0].note',
     proofGrade: 'behavior',
-    text: 'nemotron-3-nano on your box, port 9090 (default runner)',
+    text: 'gemma3 on your box, port 9090 (default runner)',
     evidence: [LLM_CLIENT],
   },
   {
@@ -619,7 +619,7 @@ export const claimsPart3: readonly ClaimEntry[] = [
     file: 'local-ai.ts',
     exportPath: 'PROVIDER_SWITCH.modes.local.model',
     proofGrade: 'behavior',
-    text: 'nemotron-3-nano, open-weight (US-origin)',
+    text: 'gemma3, open-weight (US-origin)',
     evidence: [LLM_CLIENT, OPEN_WEIGHT],
   },
   {

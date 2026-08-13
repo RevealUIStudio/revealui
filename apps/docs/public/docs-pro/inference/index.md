@@ -12,13 +12,13 @@ RevealUI AI defaults to open-model inference (Snaps, Ollama). Groq, Anthropic, O
 
 ```bash
 # Install the default model (US-origin allowlist)
-sudo snap install nemotron-3-nano
+sudo snap install gemma3
 
 # Check status and endpoint
-nemotron-3-nano status
+gemma3 status
 
-# Optional: change the HTTP port (default 9090)
-nemotron-3-nano set http.port=9090
+# Product port (Canonical OpenAI-compat default)
+gemma3 set http.port=9090 --assume-yes
 ```
 
 The snap serves an OpenAI-compatible API at `http://localhost:<port>/v1`  -  the RevealUI AI provider uses this directly with zero additional configuration.
@@ -31,10 +31,10 @@ operator sets `REVEALUI_ALLOW_NON_US_MODELS=1` (never seed this).
 
 | Snap | Origin | Type | Use Case |
 |------|--------|------|----------|
-| `nemotron-3-nano` | NVIDIA (US) | General + tools | **Default** |
+| `gemma3` | Google (US) | General + vision | **Default** (270m fits 4GB WSL) |
+| `gemma4` | Google (US) | General + vision + tools | Larger Gemma |
+| `nemotron-3-nano` | NVIDIA (US) | General + tools | Heavy / capable hosts |
 | `nemotron-3-nano-omni` | NVIDIA (US) | Multimodal | Text/image/video/audio in |
-| `gemma4` | Google (US) | General + vision + tools | Strong general alternative |
-| `gemma3` | Google (US) | General + vision | Legacy allowlisted snap |
 
 ### Configuration
 

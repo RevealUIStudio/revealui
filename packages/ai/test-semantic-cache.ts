@@ -18,7 +18,7 @@ async function testSemanticCaching() {
   const client = new LLMClient({
     provider: 'inference-snaps',
     apiKey: 'inference-snaps',
-    model: process.env.LLM_MODEL || 'nemotron-3-nano',
+    model: process.env.LLM_MODEL || 'gemma3',
     baseURL: process.env.INFERENCE_SNAPS_BASE_URL,
     enableSemanticCache: true,
     semanticCacheOptions: {

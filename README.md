@@ -59,7 +59,7 @@ No assembly required. Define your data once. Humans manage it through the dashbo
 The Agents primitive ships with open-model defaults. No proprietary API keys required, no API bill that scales with usage.
 
 - **Ollama** — local model runner; the standard developer-machine path.
-- **Ubuntu Inference Snaps** — US-origin model runtimes for production. `sudo snap install nemotron-3-nano` (or `gemma4`, `gemma3`, `nemotron-3-nano-omni`). Non-US catalog snaps are rejected in product code.
+- **Ubuntu Inference Snaps** — US-origin model runtimes for production. `sudo snap install gemma3` (or `gemma4`, `nemotron-3-nano`, `nemotron-3-nano-omni`). Non-US catalog snaps are rejected in product code.
 - **Pluggable provider adapters** — Claude, OpenAI, and others available as opt-in adapters. The fleet runtime never imports any provider SDK by default; you wire whichever model you want.
 
 Verifiable: `git grep -l "@anthropic-ai/sdk" packages/` returns nothing inside `@revealui/*` packages. The runtime is provider-agnostic by contract.
@@ -127,7 +127,7 @@ The [Pro tier](https://revealui.com/pro) adds AI agents and automation that work
 
 - **AI agent system** _(beta — works in staging, production usage is early)_: build and deploy purpose-built agents for your workflows
 - **MCP framework:** hypervisor, adapter framework, and tool discovery for connecting agents to external services
-- **Open-model inference:** Ubuntu Inference Snaps (canonical default — Studio lifecycle pending), Ollama, and open source models via the RevealUI harness. `sudo snap install nemotron-3-nano` for US-origin local AI (or `gemma4` / `nemotron-3-nano-omni`). No proprietary APIs, no vendor lock-in, zero API bills
+- **Open-model inference:** Ubuntu Inference Snaps (canonical default — Studio lifecycle pending), Ollama, and open source models via the RevealUI harness. `sudo snap install gemma3` for US-origin local AI (or `gemma4` / `nemotron-3-nano`). No proprietary APIs, no vendor lock-in, zero API bills
 - **Task history:** every agent action logged, auditable, and visible in the dashboard
 - **Editor config sync:** generate and sync settings for Zed, VS Code, Cursor, and Antigravity
 

@@ -21,7 +21,7 @@
  *
  * const llm = new InferenceSnapsProvider({
  *   baseURL: 'http://localhost:9090/v1',
- *   model: 'nemotron-3-nano',
+ *   model: 'gemma3',
  * });
  *
  * const client = new McpClient({
@@ -29,8 +29,8 @@
  *   transport: { kind: 'streamable-http', url: 'https://example.com/mcp' },
  *   samplingHandler: createSamplingHandler({
  *     llm,
- *     defaultModel: 'nemotron-3-nano',
- *     allowedModels: ['nemotron-3-nano', 'gemma4', 'gemma3'],
+ *     defaultModel: 'gemma3',
+ *     allowedModels: ['gemma3', 'gemma4', 'nemotron-3-nano'],
  *   }),
  * });
  * await client.connect();

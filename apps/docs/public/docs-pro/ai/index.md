@@ -34,7 +34,7 @@ ollama pull qwen2.5:3b
 ollama pull nomic-embed-text
 
 # OR planned path (run + manage the snap yourself for now)
-sudo snap install nemotron-3-nano
+sudo snap install gemma3
 ```
 
 ```typescript
