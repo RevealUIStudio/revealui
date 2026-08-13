@@ -6,6 +6,7 @@ export default defineConfig({
   platform: 'node',
   target: 'node24',
   bundle: true,
+  splitting: false,
   dts: false,
   sourcemap: true,
   clean: true,

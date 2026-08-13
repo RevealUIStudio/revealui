@@ -25,11 +25,11 @@ RUN pnpm --filter "@revealui/license-signer..." build
 FROM node:24-alpine
 
 WORKDIR /app
-# tsup bundles @revealui/* into dist/index.js
-COPY --from=builder /repo/apps/license-signer/dist/index.js ./index.js
+# tsup emits index.js plus code-split chunks; copy the whole dist.
+COPY --from=builder /repo/apps/license-signer/dist ./dist
 
 ENV NODE_ENV=production
 ENV PORT=8080
 EXPOSE 8080
 
-CMD ["node", "index.js"]
+CMD ["node", "dist/index.js"]
