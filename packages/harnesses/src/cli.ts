@@ -580,9 +580,31 @@ async function main() {
     const projectRoot =
       projectIdx >= 0 ? (args[projectIdx + 1] ?? DEFAULT_PROJECT) : DEFAULT_PROJECT;
     const revskillsRoot = revskillsIdx >= 0 ? args[revskillsIdx + 1] : undefined;
+    if (subcommand === 'invoke') {
+      const skillId = args[1];
+      if (!skillId) {
+        process.stderr.write(
+          'Usage: revealui-harnesses skills invoke <doctor|recover|checkpoint> [--dry-run] [--project <dir>] [--revskills <dir>]\n',
+        );
+        process.exit(1);
+      }
+      const { buildSkillInvokeRequest } = await import('./content/skill-invoke.js');
+      const catalog = listSkillCatalog({
+        projectRoot,
+        revskillsRoot,
+        includeDefinitions: true,
+      });
+      const prepared = buildSkillInvokeRequest(skillId, catalog);
+      if ('error' in prepared) {
+        process.stderr.write(`${prepared.error}\n`);
+        process.exit(1);
+      }
+      process.stdout.write(`${JSON.stringify({ ...prepared, dryRun: true }, null, 2)}\n`);
+      return;
+    }
     if (subcommand !== 'list') {
       process.stderr.write(
-        'Usage: revealui-harnesses skills list [--json] [--project <dir>] [--revskills <dir>]\n',
+        'Usage: revealui-harnesses skills <list|invoke> [--json] [--project <dir>] [--revskills <dir>]\n',
       );
       process.exit(1);
     }
