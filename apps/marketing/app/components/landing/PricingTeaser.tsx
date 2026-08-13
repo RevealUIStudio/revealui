@@ -2,8 +2,8 @@ import type { PricingResponse } from '@revealui/contracts/pricing';
 import {
   Button,
   MarketingSection,
-  type PricingTier,
   PricingTable,
+  type PricingTier,
   SectionHeader,
 } from '@revealui/presentation';
 import { useEffect, useMemo, useState } from 'react';

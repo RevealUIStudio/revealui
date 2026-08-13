@@ -7,8 +7,8 @@ import {
   IconSearch,
   IconTerminal,
   MarketingSection,
-  type PricingTier,
   PricingTable,
+  type PricingTier,
   SectionHeader,
 } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
