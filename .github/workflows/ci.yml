@@ -151,6 +151,9 @@ jobs:
       - name: Boundary validation (hard fail)
         run: pnpm validate:boundary
 
+      - name: Vercel project settings lockstep (files)
+        run: pnpm validate:vercel-settings
+
       - name: Incubate posture (ADR-007, hard fail)
         run: pnpm validate:incubate-posture
 

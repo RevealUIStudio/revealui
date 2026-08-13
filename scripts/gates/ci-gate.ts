@@ -295,6 +295,11 @@ async function gate(): Promise<void> {
         args: ['validate:boundary'],
       },
       {
+        name: 'Vercel project settings lockstep (files)',
+        command: 'pnpm',
+        args: ['validate:vercel-settings'],
+      },
+      {
         name: 'Version policy',
         command: 'pnpm',
         args: ['validate:versions'],
