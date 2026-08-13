@@ -1192,6 +1192,9 @@ importers:
       '@revealui/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@revealui/presentation':
+        specifier: workspace:*
+        version: link:../presentation
       '@revealui/resilience':
         specifier: workspace:*
         version: link:../resilience

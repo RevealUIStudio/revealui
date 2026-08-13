@@ -23,7 +23,7 @@ import {
 } from '@lexical/rich-text';
 import { $setBlocksType } from '@lexical/selection';
 import { $findMatchingParent, $getNearestNodeOfType, mergeRegister } from '@lexical/utils';
-
+import { Button, Select } from '@revealui/presentation';
 import {
   $createParagraphNode,
   $getSelection,
@@ -297,7 +297,10 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
       {/* History */}
       {hasFeature('history') && (
         <div className="toolbar-group">
-          <button
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             disabled={!state.canUndo}
             onClick={undo}
@@ -306,8 +309,11 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
             aria-label="Undo"
           >
             ↶
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             disabled={!state.canRedo}
             onClick={redo}
@@ -316,14 +322,14 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
             aria-label="Redo"
           >
             ↷
-          </button>
+          </Button>
         </div>
       )}
 
       {/* Block formatting */}
       {hasFeature('heading') && (
         <div className="toolbar-group">
-          <select
+          <Select
             className="toolbar-select"
             value={state.blockType}
             onChange={(e) => {
@@ -338,14 +344,17 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
             <option value="h2">Heading 2</option>
             <option value="h3">Heading 3</option>
             <option value="h4">Heading 4</option>
-          </select>
+          </Select>
         </div>
       )}
 
       {/* Text formatting */}
       <div className="toolbar-group">
         {hasFeature('bold') && (
-          <button
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             onClick={formatBold}
             className={`toolbar-btn ${state.isBold ? 'active' : ''}`}
@@ -354,10 +363,13 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
             aria-pressed={state.isBold}
           >
             <strong>B</strong>
-          </button>
+          </Button>
         )}
         {hasFeature('italic') && (
-          <button
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             onClick={formatItalic}
             className={`toolbar-btn ${state.isItalic ? 'active' : ''}`}
@@ -366,10 +378,13 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
             aria-pressed={state.isItalic}
           >
             <em>I</em>
-          </button>
+          </Button>
         )}
         {hasFeature('underline') && (
-          <button
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             onClick={formatUnderline}
             className={`toolbar-btn ${state.isUnderline ? 'active' : ''}`}
@@ -378,10 +393,13 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
             aria-pressed={state.isUnderline}
           >
             <span style={{ textDecoration: 'underline' }}>U</span>
-          </button>
+          </Button>
         )}
         {hasFeature('strikethrough') && (
-          <button
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             onClick={formatStrikethrough}
             className={`toolbar-btn ${state.isStrikethrough ? 'active' : ''}`}
@@ -390,10 +408,13 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
             aria-pressed={state.isStrikethrough}
           >
             <span style={{ textDecoration: 'line-through' }}>S</span>
-          </button>
+          </Button>
         )}
         {hasFeature('code') && (
-          <button
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             onClick={formatCode}
             className={`toolbar-btn ${state.isCode ? 'active' : ''}`}
@@ -402,10 +423,13 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
             aria-pressed={state.isCode}
           >
             {'</>'}
-          </button>
+          </Button>
         )}
         {hasFeature('subscript') && (
-          <button
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             onClick={formatSubscript}
             className={`toolbar-btn ${state.isSubscript ? 'active' : ''}`}
@@ -414,10 +438,13 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
             aria-pressed={state.isSubscript}
           >
             X<sub>2</sub>
-          </button>
+          </Button>
         )}
         {hasFeature('superscript') && (
-          <button
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             onClick={formatSuperscript}
             className={`toolbar-btn ${state.isSuperscript ? 'active' : ''}`}
@@ -426,14 +453,17 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
             aria-pressed={state.isSuperscript}
           >
             X<sup>2</sup>
-          </button>
+          </Button>
         )}
       </div>
 
       {/* List formatting */}
       {(hasFeature('list') || hasFeature('orderedList') || hasFeature('unorderedList')) && (
         <div className="toolbar-group">
-          <button
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             onClick={formatBulletList}
             className={`toolbar-btn ${state.blockType === 'bullet' ? 'active' : ''}`}
@@ -441,8 +471,11 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
             aria-label="Bullet List"
           >
             •
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             onClick={formatNumberedList}
             className={`toolbar-btn ${state.blockType === 'number' ? 'active' : ''}`}
@@ -450,14 +483,17 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
             aria-label="Numbered List"
           >
             1.
-          </button>
+          </Button>
         </div>
       )}
 
       {/* Link */}
       {hasFeature('link') && (
         <div className="toolbar-group">
-          <button
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             onClick={insertLink}
             className={`toolbar-btn ${state.isLink ? 'active' : ''}`}
@@ -466,14 +502,17 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
             aria-pressed={state.isLink}
           >
             🔗
-          </button>
+          </Button>
         </div>
       )}
 
       {/* Quote */}
       {hasFeature('quote') && (
         <div className="toolbar-group">
-          <button
+          <Button
+            variant="neutral"
+            appearance="ghost"
+            size="sm"
             type="button"
             onClick={formatQuote}
             className={`toolbar-btn ${state.blockType === 'quote' ? 'active' : ''}`}
@@ -481,7 +520,7 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
             aria-label="Block Quote"
           >
             "
-          </button>
+          </Button>
         </div>
       )}
 
