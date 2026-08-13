@@ -79,7 +79,10 @@ function LocalAiPillars({ data, path, annotation }: LocalAiPillarsProps) {
     <MarketingSection tone="background" density="compact" width="default">
       <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-3">
         {data.pillars.map((pillar, index) => (
-          <div key={`pillar-${index}`} className="rounded-2xl bg-card p-6 ring-1 ring-border">
+          <div
+            key={`pillar-${index}`}
+            className="rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8"
+          >
             <h2
               className="text-lg font-semibold text-foreground"
               {...fieldAttrs(annotation, `${path}.items.${index}.label`)}
@@ -145,9 +148,9 @@ function LocalAiMarketProof({ data, path, annotation }: LocalAiMarketProofProps)
         align="start"
         titleClassName="text-2xl sm:text-3xl"
       />
-      <ul className="mt-8 list-none space-y-4 p-0">
+      <ul className="mt-12 list-none space-y-4 p-0 sm:mt-14">
         {data.adopters.map((adopter, index) => (
-          <li key={`adopter-${index}`} className="rounded-xl bg-secondary p-5 ring-1 ring-border">
+          <li key={`adopter-${index}`} className="rounded-2xl bg-card p-6 ring-1 ring-border">
             <p className="text-base text-foreground">
               <span
                 className="font-semibold"
@@ -195,7 +198,7 @@ function LocalAiNotes({ data, path, annotation }: LocalAiNotesProps) {
         >
           {data.dogfood}
         </p>
-        <div className="rounded-xl border border-border bg-card p-5">
+        <div className="rounded-2xl bg-card p-6 ring-1 ring-border">
           <p
             className="text-sm font-semibold uppercase tracking-widest text-muted-foreground"
             {...fieldAttrs(annotation, `${path}.items.2.title`)}

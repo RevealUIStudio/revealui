@@ -54,7 +54,7 @@ export function Proof({ data, path, annotation }: ProofProps = {}) {
       />
 
       <p
-        className="mt-6 text-base leading-7 text-body"
+        className="mt-12 text-base leading-7 text-body sm:mt-14"
         {...(base ? fieldAttrs(ann, `${base}.items.${introItemIndex}.body`) : {})}
       >
         {content.bulletIntro}

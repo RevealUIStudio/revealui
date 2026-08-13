@@ -48,11 +48,11 @@ export function WhatYouGet({ data, path, annotation }: WhatYouGetProps = {}) {
         align="center"
       />
 
-      <CenteredCardGrid className="mx-auto mt-16 max-w-5xl">
+      <CenteredCardGrid className="mx-auto mt-12 max-w-5xl sm:mt-14">
         {content.cards.map((card, index) => (
           <div
             key={card.title}
-            className="w-full rounded-2xl border border-border bg-card p-6 shadow-sm sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]"
+            className="w-full rounded-2xl bg-card p-6 ring-1 ring-border sm:w-[calc(50%-0.75rem)] sm:p-8 lg:w-[calc(33.333%-1rem)]"
           >
             <h3
               className="text-lg font-semibold leading-7 text-foreground"

@@ -49,7 +49,7 @@ export function Today({ data, path, annotation }: FoManagedTodayProps = {}) {
         align="center"
       />
 
-      <div className="mt-10 flex flex-col items-center gap-4">
+      <div className="mt-12 flex flex-col items-center gap-4 sm:mt-14">
         <Button asChild size="lg">
           <a
             href={content.primaryCta.href}

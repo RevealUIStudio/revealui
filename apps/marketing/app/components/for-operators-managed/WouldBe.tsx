@@ -48,12 +48,9 @@ export function WouldBe({ data, path, annotation }: FoManagedWouldBeProps = {}) 
         align="center"
       />
 
-      <ul className="mx-auto mt-16 grid max-w-4xl list-none grid-cols-1 gap-6 p-0">
+      <ul className="mx-auto mt-12 grid max-w-4xl list-none grid-cols-1 gap-6 p-0 sm:mt-14">
         {content.capabilities.map((capability, index) => (
-          <li
-            key={capability.title}
-            className="rounded-2xl border border-border bg-card p-6 shadow-sm"
-          >
+          <li key={capability.title} className="rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
             <h3
               className="text-lg font-semibold leading-7 text-foreground"
               {...(base ? fieldAttrs(ann, `${base}.items.${index}.label`) : {})}

@@ -35,7 +35,7 @@ export function ClosingCta({
         align="center"
       />
 
-      <div className="mt-10 flex justify-center">
+      <div className="mt-12 flex justify-center sm:mt-14">
         <Button asChild size="lg" glow>
           <a
             href={data.primaryCta.href}

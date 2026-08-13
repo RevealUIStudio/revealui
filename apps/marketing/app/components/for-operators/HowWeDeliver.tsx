@@ -34,7 +34,7 @@ export function HowWeDeliver({ data, path, annotation }: HowWeDeliverProps = {})
         align="start"
       />
 
-      <div className="mt-8 space-y-6 text-base leading-7 text-body">
+      <div className="mt-12 space-y-6 text-base leading-7 text-body sm:mt-14">
         <p {...(base ? fieldAttrs(ann, `${base}.body`) : {})}>{paragraph1}</p>
         <p>
           <span {...(base ? fieldAttrs(ann, `${base}.items.0.body`) : {})}>

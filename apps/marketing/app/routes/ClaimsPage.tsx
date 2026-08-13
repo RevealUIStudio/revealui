@@ -154,16 +154,16 @@ function ClaimRow({
   route: string;
 }) {
   return (
-    <li className="py-6" data-testid="claim-row">
+    <li className="py-5 sm:py-6" data-testid="claim-row">
       <p className="text-sm leading-6 text-foreground">{claim.text}</p>
-      <p className="mt-1 font-mono text-xs text-muted-foreground">
+      <p className="mt-1.5 font-mono text-xs text-muted-foreground">
         Proves{' '}
         <a href={route} className="text-primary hover:text-primary/80">
           {pageTitle}
         </a>{' '}
         &middot; {claim.exportPath}
       </p>
-      <ul className="mt-2">
+      <ul className="mt-2.5">
         {claim.evidence.map((ev, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: evidence refs carry no stable id of their own
           <EvidenceRow key={`${claim.exportPath}-${i}`} evidence={ev} />
@@ -176,7 +176,7 @@ function ClaimRow({
 export function ClaimsPage() {
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border px-6 pt-24 pb-12 lg:px-8">
+      <header className="border-b border-border px-6 pt-24 pb-10 sm:pb-12 lg:px-8">
         <div className="mx-auto max-w-3xl">
           <p className="text-sm font-semibold uppercase tracking-widest text-primary">
             {CLAIMS_HERO.eyebrow}
@@ -259,15 +259,15 @@ export function ClaimsPage() {
               key={section.file}
               id={anchorId(section.file)}
               aria-labelledby={`${anchorId(section.file)}-heading`}
-              className="py-8"
+              className="py-7 sm:py-8"
             >
               <h2
                 id={`${anchorId(section.file)}-heading`}
-                className="text-xl font-semibold text-foreground"
+                className="text-xl font-semibold tracking-tight text-foreground"
               >
                 {section.pageTitle}
               </h2>
-              <p className="mt-1 font-mono text-xs text-muted-foreground">
+              <p className="mt-1.5 font-mono text-xs text-muted-foreground">
                 <a href={section.route} className="text-primary hover:text-primary/80">
                   {section.route}
                 </a>{' '}
@@ -279,7 +279,7 @@ export function ClaimsPage() {
               {section.claims.length === 0 ? (
                 <p className="mt-4 text-sm text-body">No indexed claims yet for this file.</p>
               ) : (
-                <ol className="mt-4 divide-y divide-border">
+                <ol className="mt-5 divide-y divide-border">
                   {section.claims.map((claim) => (
                     <ClaimRow
                       key={claim.exportPath}
@@ -290,7 +290,7 @@ export function ClaimsPage() {
                   ))}
                 </ol>
               )}
-              {i < FILE_SECTIONS.length - 1 && <Divider soft className="mt-8" />}
+              {i < FILE_SECTIONS.length - 1 && <Divider soft className="mt-6 sm:mt-8" />}
             </section>
           ))}
         </div>
@@ -311,7 +311,7 @@ export function ClaimsPage() {
               ))}
             </ul>
           </Callout>
-          <div className="rounded-xl bg-muted p-4 ring-1 ring-border">
+          <div className="rounded-2xl bg-card p-6 ring-1 ring-border">
             <p className="text-sm font-semibold text-foreground">
               {CLAIMS_HONESTY_RAILS_SECTION.notCheckedHeading}
             </p>

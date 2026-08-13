@@ -80,7 +80,7 @@ export function PricingTeaser() {
         align="center"
       />
 
-      <div className="mx-auto mt-14 max-w-3xl sm:mt-16">
+      <div className="mx-auto mt-12 max-w-3xl sm:mt-14">
         <PricingTable tiers={tiers} highlightedLabel="Recommended" />
       </div>
 

@@ -52,9 +52,9 @@ export function Prerequisites({ data, path, annotation }: FoManagedPrereqsProps 
         align="start"
       />
 
-      <ul className="mt-6 list-none space-y-4 p-0">
+      <ul className="mt-12 list-none space-y-4 p-0 sm:mt-14">
         {content.prerequisites.map((prereq, index) => (
-          <li key={prereq.title} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <li key={prereq.title} className="rounded-2xl bg-card p-6 ring-1 ring-border">
             <h3
               className="text-base font-semibold leading-7 text-foreground"
               {...(base ? fieldAttrs(ann, `${base}.items.${index}.label`) : {})}
