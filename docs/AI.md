@@ -33,9 +33,9 @@ pnpm add @revealui/ai
 Install a model via Ubuntu Inference Snaps (canonical default — install + run yourself today; Studio lifecycle pending):
 
 ```bash
-sudo snap install nemotron-3-nano    # default — NVIDIA US-origin general + tools
+sudo snap install gemma3             # default — Google US-origin; 270m fits 4GB WSL
 # or: sudo snap install gemma4                 # Google US-origin general + vision + tools
-# or: sudo snap install gemma3                 # Google US-origin (allowlisted)
+# or: sudo snap install nemotron-3-nano        # NVIDIA US-origin heavy / capable hosts
 # or: sudo snap install nemotron-3-nano-omni   # NVIDIA multimodal
 ```
 
@@ -105,10 +105,10 @@ const memory = {
 
 | Snap | Type | Use Case |
 | ---- | ---- | -------- |
-| `nemotron-3-nano` | General + tools (NVIDIA, US) | **Default** product snap |
+| `gemma3` | General + vision (Google, US) | **Default** product snap (270m fits 4GB WSL) |
+| `gemma4` | General + vision + tools (Google, US) | Larger Gemma |
+| `nemotron-3-nano` | General + tools (NVIDIA, US) | Heavy / capable hosts |
 | `nemotron-3-nano-omni` | Multimodal (NVIDIA, US) | Text/image/video/audio in |
-| `gemma4` | General + vision + tools (Google, US) | Strong general alternative |
-| `gemma3` | General + vision (Google, US) | Allowlisted legacy snap |
 
 Non-US snaps in Canonical's catalog (DeepSeek, Qwen, GLM) are rejected in product code unless `REVEALUI_ALLOW_NON_US_MODELS=1`.
 
@@ -151,7 +151,7 @@ For the planned recommended path (when you're ready to install + run a Canonical
 
 ```bash
 # Install your first model (default)
-sudo snap install nemotron-3-nano
+sudo snap install gemma3
 
 # Check status
 gemma3 status

@@ -55,7 +55,9 @@ describe('instrumentation.ts register() — Forge boot license enforcement (GAP-
     }) as never);
     stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     vi.stubEnv('NODE_ENV', 'test');
-    vi.stubEnv('NEXT_RUNTIME', '');
+    // GAP-335: Node boot is behind NEXT_RUNTIME === 'nodejs' so Turbopack
+    // cannot Edge-trace process.exit. Tests must pin the Node path explicitly.
+    vi.stubEnv('NEXT_RUNTIME', 'nodejs');
     vi.stubEnv('SKIP_ENV_VALIDATION', '');
     vi.stubEnv('REVEALUI_LICENSE_KEY', '');
     vi.stubEnv('REVEALUI_LICENSE_PUBLIC_KEY', '');
@@ -116,5 +118,16 @@ describe('instrumentation.ts register() — Forge boot license enforcement (GAP-
 
     expect(exitSpy).not.toHaveBeenCalled();
     expect(loggerMock.info).not.toHaveBeenCalledWith('no license key — running Free (OSS) tier');
+  });
+
+  it('does not run the Node license gate on Edge (GAP-335)', async () => {
+    detectDeploymentMode.mockReturnValue('forge');
+    vi.stubEnv('NEXT_RUNTIME', 'edge');
+
+    const { register } = await import('../instrumentation');
+    await expect(register()).resolves.toBeUndefined();
+
+    expect(exitSpy).not.toHaveBeenCalled();
+    expect(detectDeploymentMode).not.toHaveBeenCalled();
   });
 });

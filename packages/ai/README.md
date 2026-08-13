@@ -54,9 +54,9 @@ rejected at provider construction. Operator escape (never seed):
 Quick setup:
 
 ```bash
-sudo snap install nemotron-3-nano      # default; or gemma4 / nemotron-3-nano-omni
-nemotron-3-nano set http.port=9090
-nemotron-3-nano status                 # confirms base URL
+sudo snap install gemma3               # default; or gemma4 / nemotron-3-nano
+gemma3 set http.port=9090 --assume-yes
+gemma3 status                          # confirms base URL
 ```
 
 ```typescript
@@ -66,7 +66,7 @@ const client = new LLMClient({
   provider: 'inference-snaps',
   apiKey: 'inference-snaps',
   baseURL: 'http://localhost:9090/v1',
-  model: 'nemotron-3-nano', // default when omitted
+  model: 'gemma3', // default when omitted
 })
 
 // Or the provider alone:
@@ -201,7 +201,7 @@ import { InferenceSnapsProvider, createSamplingHandler } from '@revealui/ai'
 
 const llm = new InferenceSnapsProvider({
   baseURL: 'http://localhost:9090/v1',
-  model: 'nemotron-3-nano',
+  model: 'gemma3',
 })
 
 const client = new McpClient({
@@ -209,9 +209,9 @@ const client = new McpClient({
   transport: { kind: 'streamable-http', url: 'https://example.com/mcp' },
   samplingHandler: createSamplingHandler({
     llm,
-    defaultModel: 'nemotron-3-nano',
+    defaultModel: 'gemma3',
     // Keep sampling hints on the US-origin allowlist (provider also enforces).
-    allowedModels: ['nemotron-3-nano', 'gemma4', 'gemma3'],
+    allowedModels: ['gemma3', 'gemma4', 'nemotron-3-nano'],
     onSamplingRequest: (info) => {
       // metering / audit trail
       metrics.incr('mcp.sampling', { model: info.model })

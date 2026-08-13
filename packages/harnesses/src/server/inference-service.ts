@@ -76,10 +76,10 @@ export interface LocalAiProfileView extends LocalAiProfile {
  * Lockstep with packages/ai PRODUCT_INFERENCE_SNAP_CATALOG.
  */
 export const PRODUCT_INFERENCE_SNAPS: ReadonlyArray<readonly [string, string]> = [
-  ['nemotron-3-nano', 'NVIDIA (US) — general + tools; product default on capable hosts'],
-  ['nemotron-3-nano-omni', 'NVIDIA (US) — multimodal (text/image/video/audio in)'],
+  ['gemma3', 'Google (US) — product default; 270m fits 4GB WSL'],
   ['gemma4', 'Google (US) — general + vision + tools'],
-  ['gemma3', 'Google (US) — general + vision; prefer 270m on low-RAM hosts'],
+  ['nemotron-3-nano', 'NVIDIA (US) — heavy / capable hosts (set LLM_MODEL=nemotron-3-nano)'],
+  ['nemotron-3-nano-omni', 'NVIDIA (US) — multimodal (text/image/video/audio in)'],
 ] as const;
 
 const KNOWN_SNAPS = PRODUCT_INFERENCE_SNAPS;

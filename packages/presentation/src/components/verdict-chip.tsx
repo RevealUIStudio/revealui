@@ -10,22 +10,24 @@ interface VerdictMeta {
   classes: string;
 }
 
+// Text tokens are AA-safe on the matching subtle fills (fill tokens alone
+// fail small-text contrast — see Button solid/outline warning path).
 const verdictMeta: Record<Verdict, VerdictMeta> = {
   approve: {
     word: 'Approved',
-    classes: 'bg-[var(--rvui-success-subtle)] text-[var(--rvui-success)]',
+    classes: 'bg-[var(--rvui-success-subtle)] text-[var(--rvui-success-text)]',
   },
   'request-changes': {
     word: 'Changes requested',
-    classes: 'bg-[var(--rvui-error-subtle)] text-[var(--rvui-error)]',
+    classes: 'bg-[var(--rvui-error-subtle)] text-[var(--rvui-error-text)]',
   },
   hold: {
     word: 'On hold',
-    classes: 'bg-[var(--rvui-warning-subtle)] text-[var(--rvui-warning)]',
+    classes: 'bg-[var(--rvui-warning-subtle)] text-[var(--rvui-warning-text)]',
   },
   pending: {
     word: 'Pending',
-    classes: 'bg-[var(--rvui-surface-2)] text-[var(--rvui-text-2)]',
+    classes: 'bg-[var(--rvui-surface-2)] text-[var(--rvui-text-1)]',
   },
 };
 

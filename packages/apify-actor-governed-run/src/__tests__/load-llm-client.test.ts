@@ -9,9 +9,17 @@ import { describe, expect, it, vi } from 'vitest';
 describe('loadLLMClient', () => {
   it('returns LLMClient when @revealui/ai resolves', async () => {
     vi.resetModules();
-    const { loadLLMClient } = await import('../agent/load-llm-client.js');
-    const LLMClient = await loadLLMClient();
-    expect(typeof LLMClient).toBe('function');
+    class FakeLLMClient {}
+    vi.doMock('@revealui/ai', () => ({ LLMClient: FakeLLMClient }));
+
+    try {
+      const { loadLLMClient } = await import('../agent/load-llm-client.js');
+      const LLMClient = await loadLLMClient();
+      expect(LLMClient).toBe(FakeLLMClient);
+    } finally {
+      vi.doUnmock('@revealui/ai');
+      vi.resetModules();
+    }
   });
 
   it('throws a clear, actionable error when @revealui/ai cannot be loaded', async () => {

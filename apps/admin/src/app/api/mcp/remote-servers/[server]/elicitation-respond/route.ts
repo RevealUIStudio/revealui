@@ -29,6 +29,8 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { getCallSession, resolveElicitation } from '@/lib/mcp/call-sessions';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
+export const runtime = 'nodejs';
+
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function POST(

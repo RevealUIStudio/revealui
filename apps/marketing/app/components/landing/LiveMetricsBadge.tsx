@@ -30,20 +30,20 @@ export function LiveMetricsBadge() {
         </a>
       </div>
 
-      <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-border ring-1 ring-border sm:grid-cols-3 lg:grid-cols-6">
+      <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-border ring-1 ring-border sm:grid-cols-3 lg:grid-cols-6">
         {M.metrics.map((m) => (
-          <div key={m.label} className="bg-card px-3 py-5 text-center sm:px-4 sm:py-6">
-            <dd className="font-display text-2xl font-bold tabular-nums tracking-tight text-foreground sm:text-3xl">
+          <div key={m.label} className="bg-card px-3 py-4 text-center sm:px-4 sm:py-5">
+            <dd className="font-display text-xl font-bold tabular-nums tracking-tight text-foreground sm:text-2xl">
               {m.value}
             </dd>
-            <dt className="mt-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
+            <dt className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
               {m.label}
             </dt>
           </div>
         ))}
       </dl>
 
-      <p className="mt-5 text-sm leading-6 text-body">{M.body}</p>
+      <p className="mt-4 text-sm leading-6 text-body">{M.body}</p>
     </div>
   );
 }

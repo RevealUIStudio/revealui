@@ -92,21 +92,16 @@ export interface ProblemRow {
 export const HOME_PROBLEM = {
   eyebrow: 'The problem',
   heading: 'Stop buying a separate product for each slice of the stack.',
-  body: 'Most teams stitch sign-in, content, billing, and agents from different vendors. Or they pick an agent framework and rebuild the rest underneath it. RevealUI is the third path: one self-hosted runtime for the business and the agents that run it.',
+  // Hybrid: body states the fork once; matrix carries capability detail.
+  // pathBlurbs removed (de-dupe) so we do not restate the three paths twice.
+  body: 'Teams either stitch a vendor for each slice, or start with agents and rebuild the rest. RevealUI is one self-hosted runtime for the business and the agents that run it.',
   /** Accessible name for the three-path comparison region. */
   tableAriaLabel: 'Vendor sprawl vs agent-framework vs RevealUI comparison',
-  /** Label on the winning path only. */
-  highlightedLabel: 'The third path',
   columns: {
     capability: 'Capability',
     sprawl: 'Vendor sprawl',
     agentOnly: 'Agent framework only',
     revealui: 'RevealUI',
-  },
-  pathBlurbs: {
-    sprawl: 'Rent a product for each slice. Glue them together yourself.',
-    agentOnly: 'Agents first. Rebuild sign-in, content, and billing underneath.',
-    revealui: 'One self-hosted runtime for the business and the agents that run it.',
   },
   rows: [
     {
@@ -134,7 +129,7 @@ export const HOME_PROBLEM = {
       revealui: 'Agents use the same data and gates as your team',
     },
   ] as readonly ProblemRow[],
-  footnote: `Capability comparison only; a monthly cost estimate lives on the pricing page. RevealUI Pro is ${SUBSCRIPTION_PRICE_FALLBACKS.pro.price}/mo + your own infrastructure. Vercel, Cloudflare, and Fly are deploy targets, not competitors. RevealUI runs on all three.`,
+  footnote: `Capability only. Pricing is on the pricing page (Pro ${SUBSCRIPTION_PRICE_FALLBACKS.pro.price}/mo + your infrastructure). Vercel, Cloudflare, and Fly are deploy targets, not competitors.`,
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -150,27 +145,30 @@ export interface DemoBeat {
 export const HOME_DEMO = {
   eyebrow: 'Watch it work',
   heading: 'From one command to a running stack in about a minute.',
-  body: 'Install on your machine. Take a test payment. Connect an agent to the same data your admin UI already uses.',
+  body: 'Install on your machine. Take a test payment. Connect an agent to the same data your admin already uses.',
+  // Honest: ProductFrame is live presentation components, not a screenshot.
+  // Install path stays in the three beats (create-revealui).
   mockupCaption: {
-    prefix: 'Local screenshot from a fresh',
-    code: 'npx create-revealui',
-    suffix: '. The three beats below describe the steps.',
+    // ≥26-char prose units so claims-evidence indexes them (floor in gate).
+    prefix: 'Live admin chrome composed from',
+    code: '@revealui/presentation',
+    suffix: 'components. The three beats are the local install path.',
   },
   beats: [
     {
       n: '01',
       title: 'Spin up a stack.',
-      body: 'One command. Sign-in, content, admin UI, billing hooks, and agent tooling run locally in about a minute.',
+      body: 'One command. Sign-in, content, admin, billing, and agent tooling run locally.',
     },
     {
       n: '02',
       title: 'Customer flow, end to end.',
-      body: 'A user signs up, picks a plan, and test-mode checkout completes. The admin UI shows the new account. Switch to live mode when you are ready to take real money.',
+      body: 'A user signs up, picks a plan, and test-mode checkout completes. Switch to live mode when you take real money.',
     },
     {
       n: '03',
       title: 'Agents on your data.',
-      body: 'Connect a model. Agents read and write the same content your team does, under the same sign-in and plan rules.',
+      body: 'Connect a model. Agents use the same content, sign-in, and plan rules as your team.',
     },
   ] as readonly DemoBeat[],
 } as const;

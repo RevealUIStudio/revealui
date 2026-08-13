@@ -27,7 +27,7 @@ export function GetStarted({
   return (
     <MarketingSection
       tone="background"
-      density="default"
+      density="compact"
       width="default"
       className="border-t border-border"
     >
@@ -38,7 +38,7 @@ export function GetStarted({
       />
 
       <div className="mx-auto max-w-2xl text-center">
-        <div className="mt-12 flex flex-col items-center justify-center gap-3 sm:mt-14 sm:flex-row sm:gap-4">
+        <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:mt-12 sm:flex-row sm:gap-4">
           <Button asChild size="lg" variant="brand" glow>
             <a href={data.cta.primary.href}>{data.cta.primary.label}</a>
           </Button>
@@ -51,7 +51,7 @@ export function GetStarted({
         </div>
 
         {/* CLI quick-start, moved here from the hero (frontend-excellence
-            Phase 1 hero declutter). */}
+            Phase 1 hero declutter). Primary close = CTA + command. */}
         <div
           className="mt-8 inline-flex items-center gap-3 rounded-xl bg-foreground px-5 py-3 font-mono text-sm shadow-lg ring-1 ring-background/10"
           {...fieldAttrs(annotation, `${path}.snippet.lines`)}
@@ -76,14 +76,15 @@ export function GetStarted({
           ))}
         </div>
         <p
-          className="mt-4 text-sm text-muted-foreground"
+          className="mt-3 text-sm text-muted-foreground"
           {...fieldAttrs(annotation, `${path}.snippet.caption`)}
         >
           {data.cli.caption}
         </p>
 
-        <div className="mt-12 border-t border-border pt-10 sm:mt-14">
-          <p className="mb-4 text-sm font-medium text-muted-foreground">{data.newsletter.label}</p>
+        {/* Newsletter demoted: optional, not a second close. */}
+        <div className="mt-8 max-w-md mx-auto sm:mt-10">
+          <p className="mb-3 text-xs font-medium text-muted-foreground">{data.newsletter.label}</p>
           <NewsletterSignup variant="stacked" />
         </div>
       </div>

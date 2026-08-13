@@ -13,6 +13,8 @@ import { type NextRequest, NextResponse } from 'next/server';
 import type { McpServerInfo } from '@/lib/components/agents/mcp-server-card';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
+export const runtime = 'nodejs';
+
 const MCP_SERVERS: McpServerInfo[] = [
   {
     id: 'vercel',

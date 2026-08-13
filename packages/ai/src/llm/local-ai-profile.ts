@@ -14,7 +14,6 @@ import { dirname, join } from 'node:path';
 import {
   DEFAULT_DAILY_OLLAMA_MODEL,
   DEFAULT_LOW_RAM_INFERENCE_SNAP,
-  DEFAULT_US_ORIGIN_INFERENCE_SNAP,
 } from './providers/us-origin-snaps.js';
 
 export type LocalAiTier = 'idle' | 'daily' | 'snaps' | 'heavy';
@@ -186,7 +185,7 @@ export function profileDefaultsForTier(
     case 'heavy':
       return {
         provider: 'inference-snaps',
-        model: DEFAULT_US_ORIGIN_INFERENCE_SNAP,
+        model: 'nemotron-3-nano',
         baseURL: null,
         keepAlive: null,
         note: 'Heavy snap — needs substantial RAM; avoid concurrent IDE load on 4GB WSL',

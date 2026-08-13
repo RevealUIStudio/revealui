@@ -43,14 +43,16 @@ export const PROOF_TRUST = {
   },
 } as const;
 
-// Secondary FDE / deployers band (ADR 2026-07-21 accepted). Nested under Proof
-// so the homepage stays within the ≤7 section hard rule (ADR 2026-07-10).
+// Secondary FDE / deployers line (ADR 2026-07-21 accepted). Nested under Proof
+// as a single footer sentence (GAP-480 residual: not a second H3 band).
 // Never a H1 or primary ICP. Copy pack §3 (scenario first, runtime noun).
+// eyebrow/heading/foil remain in the content module for claims-evidence; the
+// live UI renders body + CTA only.
 export const PROOF_DEPLOYERS = {
   eyebrow: 'For deployers',
   heading: 'Built for people who deploy, not only demo.',
-  body: 'Some buyers install RevealUI themselves. Some hire us, or their own forward-deployed engineer, to stamp and hand over a fleet. Either way the outcome is the same: a self-hosted runtime where the business and its agents live under one roof, on infrastructure the customer owns.',
-  foil: 'Cloud agent platforms rent you an outcome. A forward-deployed engagement leaves a runtime the customer runs.',
+  body: 'Install yourself, hire Studio, or bring your own forward-deployed engineer. The outcome is the same: a self-hosted runtime on infrastructure you own.',
+  foil: 'Cloud platforms rent you an outcome. A handoff leaves a runtime you run.',
   cta: {
     label: 'Work with Studio',
     href: SITE.urls.agency,

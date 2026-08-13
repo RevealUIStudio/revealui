@@ -25,6 +25,8 @@ import {
 } from '@/lib/mcp/remote-server-client';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
+export const runtime = 'nodejs';
+
 const IDENTIFIER_RE = /^[A-Za-z0-9_-]{1,64}$/;
 const ALLOWED_LEVELS: LoggingLevel[] = [
   'debug',

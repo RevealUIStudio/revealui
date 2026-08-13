@@ -6,17 +6,18 @@
  *
  * Product hardline: US-origin snap models only (see us-origin-snaps.ts).
  * Allowlisted snaps (install these):
- *   nemotron-3-nano        -  NVIDIA general + tools (default)
+ *   gemma3                 -  Google general + vision (default; WSL-supported)
+ *   gemma4                 -  Google general + vision + tools
+ *   nemotron-3-nano        -  NVIDIA general + tools (heavy / capable hosts)
  *   nemotron-3-nano-omni   -  NVIDIA multimodal
- *   gemma3 / gemma4        -  Google general + vision + tools
  *
  * Canonical also publishes non-US snaps (deepseek-r1, qwen-*, glm-*). Those
  * are rejected at construction unless REVEALUI_ALLOW_NON_US_MODELS=1.
  *
  * Install a model:
- *   sudo snap install nemotron-3-nano
- *   nemotron-3-nano set http.port=9090   # optional: change port
- *   nemotron-3-nano status              # shows base URL and available models
+ *   sudo snap install gemma3
+ *   gemma3 set http.port=9090 --assume-yes
+ *   gemma3 status              # shows base URL and available models
  *
  * Set env vars:
  *   INFERENCE_SNAPS_BASE_URL=http://localhost:9090/v1

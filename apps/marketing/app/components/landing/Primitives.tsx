@@ -12,23 +12,13 @@ import {
   SectionHeader,
 } from '@revealui/presentation';
 import type { ComponentType } from 'react';
-import { HOME_PRIMITIVES, HOME_PRIMITIVES_SECTION } from '../../content/primitives';
+import { HOME_PRIMITIVES_SECTION } from '../../content/primitives';
 import { PRIMITIVES_FALLBACK_DATA, type PrimitivesData } from '../../lib/page-blocks';
 
-// Accent chips must be surface-relative so they adapt under the token-based
-// theme (dark-first; light via system pref OR a manual [data-theme] override).
-// We deliberately do NOT use Tailwind `dark:` variants: those are media-based
-// and would desync from a manual [data-theme] toggle. brand rides the adaptive
-// primary token; the other four keep distinct accent hues at /10–/20 opacity.
-const accentBg: Record<string, string> = {
-  brand: 'bg-primary/10 text-primary ring-primary/20',
-  // legacy alias if CMS still has emerald
-  emerald: 'bg-primary/10 text-primary ring-primary/20',
-  blue: 'bg-blue-500/10 text-blue-500 ring-blue-500/20',
-  amber: 'bg-amber-500/10 text-amber-500 ring-amber-500/20',
-  cyan: 'bg-cyan-500/10 text-cyan-500 ring-cyan-500/20',
-  violet: 'bg-violet-500/10 text-violet-500 ring-violet-500/20',
-};
+// Cobalt-only chips (landing de-dupe / brand residual). Multi-hue rainbow chips
+// competed with the receipt identity and with Phase B Cobalt-only craft.
+// Adaptive primary token tracks dark/light; no media-only `dark:` variants.
+const PRIMITIVE_CHIP = 'bg-primary/10 text-primary ring-primary/20';
 
 // Icons ship from @revealui/presentation (Gate 5 move-and-import). Order matches
 // HOME_PRIMITIVES / block stream — keyed by index so CMS label renames keep icons.
@@ -39,8 +29,6 @@ const PRIMITIVE_ICONS: readonly ComponentType<IconProps>[] = [
   IconPrimitivePayments,
   IconPrimitiveAgents,
 ];
-
-const primitiveStyles = HOME_PRIMITIVES.map((p) => ({ color: p.color }));
 
 export interface PrimitivesProps {
   /** Rich section data; defaults to the static content modules (byte-identical). */
@@ -57,7 +45,7 @@ export function Primitives({
   annotation = {},
 }: PrimitivesProps) {
   return (
-    <MarketingSection tone="background" density="default" width="default">
+    <MarketingSection tone="secondary" density="compact" width="default">
       <SectionHeader
         eyebrow={<span {...fieldAttrs(annotation, `${path}.eyebrow`)}>{data.eyebrow}</span>}
         eyebrowTone="muted"
@@ -71,7 +59,6 @@ export function Primitives({
       <div className="mx-auto mt-12 max-w-3xl divide-y divide-border border-y border-border sm:mt-14">
         {data.items.map((item, index) => {
           const flipped = index % 2 === 1;
-          const style = primitiveStyles[index];
           return (
             <div
               key={item.label}
@@ -80,7 +67,7 @@ export function Primitives({
               }`}
             >
               <div
-                className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl ring-1 ${style ? accentBg[style.color] : ''}`}
+                className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl ring-1 ${PRIMITIVE_CHIP}`}
               >
                 {(() => {
                   const Icon = PRIMITIVE_ICONS[index];

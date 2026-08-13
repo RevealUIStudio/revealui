@@ -20,6 +20,8 @@ import {
 import { type NextRequest, NextResponse } from 'next/server';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
+export const runtime = 'nodejs';
+
 const IDENTIFIER_RE = /^[A-Za-z0-9_-]{1,64}$/;
 
 // Placeholder metadata — only needed to satisfy the provider constructor;

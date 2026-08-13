@@ -148,3 +148,139 @@ export async function initEngineAtBoot(): Promise<void> {
     );
   }
 }
+
+/**
+ * Node-only admin boot (GAP-335). Called from `instrumentation.ts` only when
+ * `NEXT_RUNTIME === 'nodejs'`, so Turbopack never traces process.exit or
+ * Node-only packages into the Edge analysis of the shared entrypoint.
+ */
+export async function registerNode(): Promise<void> {
+  try {
+    const { validateForgeLicenseAtStartup } = await import('@revealui/core/revforge-license-boot');
+    await validateForgeLicenseAtStartup(process.env);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    process.stderr.write(`${message}\n`);
+    process.exit(1);
+  }
+
+  try {
+    const [{ logger }, { validateRequiredEnvVars }, { configureClientIp }] = await Promise.all([
+      import('@revealui/core/observability/logger'),
+      import('@/lib/utils/env-validation'),
+      import('@revealui/security'),
+    ]);
+
+    configureClientIp({ trustedProxyCount: 1 });
+
+    const environment = process.env.NODE_ENV || 'development';
+
+    try {
+      const { initializeLicense } = await import('@revealui/core/license');
+      await initializeLicense();
+    } catch {
+      // Non-fatal — license defaults to free tier if initialization fails
+    }
+
+    try {
+      const result = validateRequiredEnvVars({
+        failOnMissing: false,
+        environment,
+      });
+
+      if (!result.valid) {
+        const message = `Missing required environment variables: ${result.missing.join(', ')}`;
+        logger.error('Environment validation failed', new Error(message));
+
+        if (environment === 'production' && process.env.SKIP_ENV_VALIDATION !== 'true') {
+          process.stderr.write(
+            `ENV VALIDATION FAILED in production:\n  - ${result.missing.join('\n  - ')}\n`,
+          );
+          process.exit(1);
+        }
+      }
+
+      if (result.warnings.length > 0) {
+        logger.warn('Environment validation warnings', { warnings: result.warnings });
+      }
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      logger.warn('Environment validation error (non-fatal)', { message: err.message });
+    }
+
+    if (process.env.NODE_ENV === 'production') {
+      logger.info('Application started', {
+        environment: process.env.NODE_ENV,
+        version: process.env.npm_package_version,
+      });
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com';
+      let telemetryFailures = 0;
+      const maxBackoffFailures = Number(process.env.TELEMETRY_MAX_FAILURES ?? 5);
+
+      logger.addLogHandler((entry) => {
+        if (entry.level !== 'warn' && entry.level !== 'error' && entry.level !== 'fatal') return;
+        if (telemetryFailures >= maxBackoffFailures) return;
+
+        const data: Record<string, unknown> = {};
+        if (entry.context && Object.keys(entry.context).length > 0) {
+          const BlockedKeys = new Set([
+            'password',
+            'secret',
+            'token',
+            'apiKey',
+            'api_key',
+            '__proto__',
+            'constructor',
+            'prototype',
+          ]);
+          for (const [k, v] of Object.entries(entry.context)) {
+            if (!BlockedKeys.has(k)) data[k] = v;
+          }
+        }
+        if (entry.error) data.error = entry.error;
+        fetch(`${apiUrl}/api/logs`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Internal-Token': process.env.REVEALUI_SECRET ?? '',
+          },
+          body: JSON.stringify({
+            level: entry.level,
+            message: entry.message,
+            app: 'admin',
+            environment: 'production',
+            requestId: entry.context?.requestId,
+            userId: entry.context?.userId,
+            data: Object.keys(data).length > 0 ? data : undefined,
+          }),
+        })
+          .then(() => {
+            telemetryFailures = 0;
+          })
+          .catch((err: unknown) => {
+            telemetryFailures++;
+            if (telemetryFailures === maxBackoffFailures) void err;
+          });
+      });
+
+      logger.info('admin telemetry transport initialized', {
+        apiUrl,
+        processCapture: 'disabled-in-instrumentation',
+      });
+    }
+  } catch {
+    // Never throw out of instrumentation.
+  }
+
+  try {
+    await installAdminAuditStorage();
+    await initEngineAtBoot();
+  } catch (err) {
+    process.stderr.write(
+      `Boot-time engine init dispatch failed (non-fatal): ${
+        err instanceof Error ? err.message : String(err)
+      }\n`,
+    );
+  }
+}
