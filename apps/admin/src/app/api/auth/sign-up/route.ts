@@ -6,10 +6,10 @@
  * Creates a new user account.
  */
 
+import { ensurePlatformOperatorEntitlement } from '@revealui/auth/platform-operator';
 import {
   admitFreeIntake,
   ensureFreeSignupEntitlement,
-  ensurePlatformOperatorEntitlement,
   isSignupAllowed,
   signUp,
 } from '@revealui/auth/server';

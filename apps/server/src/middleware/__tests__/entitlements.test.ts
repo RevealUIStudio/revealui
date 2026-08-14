@@ -14,7 +14,7 @@ const mockDb = {
   select: vi.fn(),
 };
 
-vi.mock('@revealui/auth/server', () => ({
+vi.mock('@revealui/auth/platform-operator', () => ({
   isPlatformOperatorUser: vi.fn(() => false),
   ensurePlatformOperatorEntitlement: vi.fn(),
 }));
@@ -54,7 +54,10 @@ vi.mock('drizzle-orm', () => ({
   or: vi.fn((...args: unknown[]) => `or(${args.join(',')})`),
 }));
 
-import { ensurePlatformOperatorEntitlement, isPlatformOperatorUser } from '@revealui/auth/server';
+import {
+  ensurePlatformOperatorEntitlement,
+  isPlatformOperatorUser,
+} from '@revealui/auth/platform-operator';
 import { entitlementMiddleware, getEntitlementsFromContext } from '../entitlements.js';
 import { errorHandler } from '../error.js';
 

@@ -143,7 +143,9 @@ async function main(): Promise<void> {
     }
     if (result.user.id) {
       try {
-        const { ensurePlatformOperatorEntitlement } = await import('@revealui/auth/server');
+        const { ensurePlatformOperatorEntitlement } = await import(
+          '@revealui/auth/platform-operator'
+        );
         await ensurePlatformOperatorEntitlement({ userId: result.user.id });
         console.log('[bootstrap] platform operator enterprise entitlement ensured');
       } catch (err) {

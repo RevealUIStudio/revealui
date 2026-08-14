@@ -10,7 +10,7 @@ import {
   ensurePlatformOperatorEntitlement,
   isPlatformOperatorUser,
   type PlatformOperatorUserView,
-} from '@revealui/auth/server';
+} from '@revealui/auth/platform-operator';
 import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import { getFeaturesForTier } from '@revealui/core/features';
 import { getClient } from '@revealui/db';

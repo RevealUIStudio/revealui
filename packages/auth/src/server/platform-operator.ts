@@ -6,6 +6,9 @@
  *
  * Operators receive a real Enterprise `account_entitlements` row (source=grant).
  * Gates stay fail-closed. This is not an identity bypass.
+ *
+ * Live on `@revealui/auth/platform-operator`, not the `/server` barrel.
+ * Route tests bare-mock that barrel for getSession (same reason as audit-storage).
  */
 
 import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
