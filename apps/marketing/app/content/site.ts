@@ -29,7 +29,7 @@ export const METRICS = {
   /** Test files across the monorepo. Source: claim-drift countTestFiles. */
   testFiles: 1263,
   /** UI components in `packages/presentation/`. Source: claim-drift countUIComponents. */
-  uiComponents: 66,
+  uiComponents: 67,
   /**
    * MCP servers in `packages/mcp/src/servers/*.ts` (excluding underscore-prefixed
    * utilities). Includes `adapter.ts` (BaseAdapter + Vercel/Stripe/Neon concrete
