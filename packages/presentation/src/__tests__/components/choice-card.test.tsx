@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { ChoiceCard } from '../../components/choice-card.js';
+import { ChoiceCard } from '../../components/Card.js';
 
 describe('ChoiceCard', () => {
   it('renders a wrapping button with title and description', () => {

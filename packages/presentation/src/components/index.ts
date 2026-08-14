@@ -52,6 +52,8 @@ export {
   CardFooter,
   CardHeader,
   CardTitle,
+  ChoiceCard,
+  type ChoiceCardProps,
 } from './Card.js';
 export {
   Checkbox as CheckboxCVA,
@@ -61,7 +63,6 @@ export {
 } from './Checkbox.js';
 export { Callout } from './callout.js';
 export { Checkbox, CheckboxField, CheckboxGroup } from './checkbox-headless.js';
-export { ChoiceCard, type ChoiceCardProps } from './choice-card.js';
 export { CodeBlock } from './code-block.js';
 export { Combobox, ComboboxDescription, ComboboxLabel, ComboboxOption } from './combobox.js';
 export { DescriptionDetails, DescriptionList, DescriptionTerm } from './description-list.js';
