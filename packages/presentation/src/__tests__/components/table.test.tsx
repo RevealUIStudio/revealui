@@ -153,4 +153,23 @@ describe('TableRow with href', () => {
     expect(links[0]).toHaveAttribute('href', '/users/1');
     expect(links[1]).toHaveAttribute('href', '/users/1');
   });
+
+  it('paints the row ring on descendant :focus-visible, not a data-focus hook attr', () => {
+    const { container } = render(
+      <Table>
+        <TableBody>
+          <TableRow href="/users/1" title="View Alice">
+            <TableCell>Alice</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>,
+    );
+
+    const row = container.querySelector('tr');
+    expect(row?.className).toContain('has-[:focus-visible]:outline-ring');
+    expect(row?.className).not.toContain('data-focus');
+    expect(screen.getByRole('link', { name: 'View Alice' }).className).toContain(
+      'focus:outline-hidden',
+    );
+  });
 });

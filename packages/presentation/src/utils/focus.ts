@@ -74,6 +74,15 @@ export const focusRingAfterVisible = 'focus-visible:after:ring-2 focus-visible:a
 export const focusRingAfterWithin = 'sm:focus-within:after:ring-2 sm:focus-within:after:ring-ring';
 
 /**
+ * Host-on-descendant variant: the focusable child is visually stretched
+ * (table row link) and hides its own outline. The row paints the `--ring`
+ * when any descendant is `:focus-visible`. Prefer this over
+ * `has-[[data-focus]]` so the ring does not depend on a hook attribute.
+ */
+export const focusRingHasVisible =
+  'has-[:focus-visible]:outline-2 has-[:focus-visible]:-outline-offset-2 has-[:focus-visible]:outline-ring';
+
+/**
  * Active-option highlight inside menus and listboxes. Not a focus *ring* — the
  * filled row that follows keyboard navigation in Dropdown, Listbox and
  * Combobox. Token fill + on-fill ink so a brand replacement stays AA.
