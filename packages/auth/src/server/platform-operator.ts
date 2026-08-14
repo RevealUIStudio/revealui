@@ -123,22 +123,27 @@ export async function ensurePlatformOperatorEntitlement(params: {
     return { skipped: true, reason: 'not_platform_operator' };
   }
 
-  let accountId = params.accountId;
-  if (!accountId) {
-    const [membership] = await db
-      .select({ accountId: accountMemberships.accountId })
-      .from(accountMemberships)
-      .where(
-        and(
-          eq(accountMemberships.userId, params.userId),
-          eq(accountMemberships.role, 'owner'),
-          eq(accountMemberships.status, 'active'),
-        ),
-      )
-      .limit(1);
-    accountId = membership?.accountId;
+  const ownerMemberships = await db
+    .select({ accountId: accountMemberships.accountId })
+    .from(accountMemberships)
+    .where(
+      and(
+        eq(accountMemberships.userId, params.userId),
+        eq(accountMemberships.role, 'owner'),
+        eq(accountMemberships.status, 'active'),
+      ),
+    );
+
+  const ownerIds = ownerMemberships.map((row) => row.accountId);
+  if (params.accountId && !ownerIds.includes(params.accountId)) {
+    logger.warn('[platform-operator-entitlement] refused non-owner workspace', {
+      userId: params.userId,
+      accountId: params.accountId,
+    });
+    return { skipped: true, reason: 'not_owner_workspace' };
   }
 
+  const accountId = params.accountId ?? ownerIds[0];
   if (!accountId) {
     logger.warn('[platform-operator-entitlement] no owner membership; skip', {
       userId: params.userId,

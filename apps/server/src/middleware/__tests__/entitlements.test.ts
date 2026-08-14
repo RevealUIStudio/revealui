@@ -180,9 +180,31 @@ describe('entitlementMiddleware', () => {
     expect(res.status).toBe(200);
     expect(ensurePlatformOperatorEntitlement).toHaveBeenCalledWith({
       userId: 'user-1',
-      accountId: 'acct_1',
     });
     expect(body.tier).toBe('enterprise');
     expect(body.features).toEqual({ ai: true });
+  });
+
+  it('does not fail the request when the operator grant throws', async () => {
+    vi.mocked(isPlatformOperatorUser).mockReturnValue(true);
+    vi.mocked(ensurePlatformOperatorEntitlement).mockRejectedValue(new Error('db down'));
+    selectResults = [
+      [{ accountId: 'acct_1', role: 'owner' }],
+      [
+        {
+          tier: 'free',
+          status: 'active',
+          features: { ai: false },
+          limits: {},
+        },
+      ],
+    ];
+
+    const app = createApp({ id: 'user-1' });
+    const res = await app.request('/test');
+    const body = (await res.json()) as Record<string, unknown>;
+
+    expect(res.status).toBe(200);
+    expect(body.tier).toBe('free');
   });
 });

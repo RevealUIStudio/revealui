@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const mockLimit = vi.fn();
 const mockWhere = vi.fn();
 const mockFrom = vi.fn();
 const mockSelect = vi.fn();
@@ -92,10 +91,21 @@ describe('PLATFORM_OPERATOR_LIMITS', () => {
 });
 
 describe('ensurePlatformOperatorEntitlement', () => {
+  let selectQueue: unknown[][] = [];
+
+  function enqueue(...batches: unknown[][]): void {
+    selectQueue.push(...batches);
+  }
+
   beforeEach(() => {
     vi.clearAllMocks();
+    selectQueue = [];
     mockFrom.mockReturnValue({ where: mockWhere });
-    mockWhere.mockReturnValue({ limit: mockLimit });
+    mockWhere.mockImplementation(() => {
+      const rows = selectQueue.shift() ?? [];
+      const pending = Promise.resolve(rows);
+      return Object.assign(pending, { limit: () => pending });
+    });
     mockSelect.mockReturnValue({ from: mockFrom });
     mockInsert.mockReturnValue({ values: mockValues });
     mockUpdate.mockReturnValue({ set: mockSet });
@@ -104,7 +114,7 @@ describe('ensurePlatformOperatorEntitlement', () => {
   });
 
   it('skips users who are not super-admin', async () => {
-    mockLimit.mockResolvedValueOnce([{ id: 'user-1', json: { roles: ['admin'] } }]);
+    enqueue([{ id: 'user-1', json: { roles: ['admin'] } }]);
 
     const result = await ensurePlatformOperatorEntitlement({ userId: 'user-1' });
 
@@ -114,9 +124,7 @@ describe('ensurePlatformOperatorEntitlement', () => {
   });
 
   it('skips when there is no owner membership', async () => {
-    mockLimit
-      .mockResolvedValueOnce([{ id: 'user-1', json: { roles: ['super-admin'] } }])
-      .mockResolvedValueOnce([]);
+    enqueue([{ id: 'user-1', json: { roles: ['super-admin'] } }], []);
 
     const result = await ensurePlatformOperatorEntitlement({ userId: 'user-1' });
 
@@ -124,11 +132,21 @@ describe('ensurePlatformOperatorEntitlement', () => {
     expect(mockInsert).not.toHaveBeenCalled();
   });
 
+  it('refuses a requested account the operator does not own', async () => {
+    enqueue([{ id: 'user-1', json: { roles: ['super-admin'] } }], [{ accountId: 'acct-1' }]);
+
+    const result = await ensurePlatformOperatorEntitlement({
+      userId: 'user-1',
+      accountId: 'customer-acct',
+    });
+
+    expect(result).toEqual({ skipped: true, reason: 'not_owner_workspace' });
+    expect(mockInsert).not.toHaveBeenCalled();
+    expect(mockUpdate).not.toHaveBeenCalled();
+  });
+
   it('inserts an enterprise grant for a first-time operator', async () => {
-    mockLimit
-      .mockResolvedValueOnce([{ id: 'user-1', json: { roles: ['super-admin'] } }])
-      .mockResolvedValueOnce([{ accountId: 'acct-1' }])
-      .mockResolvedValueOnce([]);
+    enqueue([{ id: 'user-1', json: { roles: ['super-admin'] } }], [{ accountId: 'acct-1' }], []);
 
     const result = await ensurePlatformOperatorEntitlement({
       userId: 'user-1',
@@ -148,17 +166,18 @@ describe('ensurePlatformOperatorEntitlement', () => {
   });
 
   it('upgrades a free signup row instead of leaving the operator on Free', async () => {
-    mockLimit
-      .mockResolvedValueOnce([{ id: 'user-1', json: { roles: ['super-admin'] } }])
-      .mockResolvedValueOnce([{ accountId: 'acct-1' }])
-      .mockResolvedValueOnce([
+    enqueue(
+      [{ id: 'user-1', json: { roles: ['super-admin'] } }],
+      [{ accountId: 'acct-1' }],
+      [
         {
           tier: 'free',
           status: 'active',
           features: { ai: false },
           lastEventAt: null,
         },
-      ]);
+      ],
+    );
 
     const result = await ensurePlatformOperatorEntitlement({ userId: 'user-1' });
 
@@ -171,18 +190,31 @@ describe('ensurePlatformOperatorEntitlement', () => {
     expect((updated.features as { ai?: boolean }).ai).toBe(true);
   });
 
+  it('grants when the requested accountId is an owner workspace', async () => {
+    enqueue([{ id: 'user-1', json: { roles: ['super-admin'] } }], [{ accountId: 'acct-1' }], []);
+
+    const result = await ensurePlatformOperatorEntitlement({
+      userId: 'user-1',
+      accountId: 'acct-1',
+    });
+
+    expect(result).toEqual({ accountId: 'acct-1', wrote: true });
+    expect(mockInsert).toHaveBeenCalled();
+  });
+
   it('is a no-op when enterprise with ai is already granted', async () => {
-    mockLimit
-      .mockResolvedValueOnce([{ id: 'user-1', json: { roles: ['super-admin'] } }])
-      .mockResolvedValueOnce([{ accountId: 'acct-1' }])
-      .mockResolvedValueOnce([
+    enqueue(
+      [{ id: 'user-1', json: { roles: ['super-admin'] } }],
+      [{ accountId: 'acct-1' }],
+      [
         {
           tier: 'enterprise',
           status: 'active',
           features: { ai: true },
           lastEventAt: new Date(),
         },
-      ]);
+      ],
+    );
 
     const result = await ensurePlatformOperatorEntitlement({ userId: 'user-1' });
 

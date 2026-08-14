@@ -13,6 +13,7 @@ import {
 } from '@revealui/auth/platform-operator';
 import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import { getFeaturesForTier } from '@revealui/core/features';
+import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { accountEntitlements } from '@revealui/db/schema';
 import { and, eq } from 'drizzle-orm';
@@ -105,10 +106,17 @@ export const entitlementMiddleware = (): MiddlewareHandler => {
     }
 
     if (isPlatformOperatorUser(user)) {
-      await ensurePlatformOperatorEntitlement({
-        userId,
-        accountId: membership.accountId,
-      });
+      // Resolve the operator's owner workspace inside the helper. Never pass
+      // the request tenant (X-Tenant-ID / member membership) — that would
+      // grant Enterprise onto a customer account.
+      try {
+        await ensurePlatformOperatorEntitlement({ userId });
+      } catch (err) {
+        logger.error('[entitlements] platform operator grant failed (non-fatal)', {
+          userId,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
     }
 
     const [entitlement] = await db
