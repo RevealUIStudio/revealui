@@ -36,6 +36,7 @@ export { Badge, type BadgeIntent, type BadgeProps } from './components/badge.js'
 // were absent from this barrel though their peers (Label, StatusDot) are here.
 export { RevealUIMark, type RevealUIMarkProps } from './components/brand-mark.js';
 export { Breadcrumb, type BreadcrumbItem } from './components/breadcrumb.js';
+export { ChoiceCard, type ChoiceCardProps } from './components/Card.js';
 // CVA Components that use hooks
 export {
   Checkbox as CheckboxCVA,

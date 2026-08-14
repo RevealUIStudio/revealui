@@ -14,11 +14,15 @@ import {
 describe('parseCliArgs', () => {
   it('defaults to the monorepo GAP-479 scan window', () => {
     const opts = parseCliArgs([], '/repo');
-    expect(opts.hardFail).toBe(false);
+    expect(opts.hardFail).toBe(true);
     expect(opts.scanRoots).toEqual([...DEFAULT_SCAN_ROOTS]);
     expect(opts.scanRoots).toContain('packages/core');
     expect(opts.scanRoots).toContain('packages/cli/templates');
     expect(opts.scanRoots).toContain('apps/rsc-poc');
+  });
+
+  it('accepts --warn to keep a warn-only run', () => {
+    expect(parseCliArgs(['--warn'], '/repo').hardFail).toBe(false);
   });
 
   it('accepts --repo-root, --root, --hard-fail, and --allowlist', () => {

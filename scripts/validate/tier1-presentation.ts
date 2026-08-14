@@ -8,8 +8,8 @@
  * No authored regex (fleet no-regex): TypeScript compiler API AST walk only.
  *
  * Modes:
- *   default / --warn   warn on non-allowlisted hits; exit 0
- *   --hard-fail        non-allowlisted hits exit 1 (burn-down complete)
+ *   default / --hard-fail   non-allowlisted hits exit 1
+ *   --warn                  warn only; exit 0 (legacy burn-down)
  *
  * Usage:
  *   pnpm validate:tier1-presentation
@@ -117,7 +117,7 @@ export function parseCliArgs(argv: string[], defaultRepoRoot = DEFAULT_REPO_ROOT
   }
 
   return {
-    hardFail: argv.includes('--hard-fail'),
+    hardFail: !argv.includes('--warn'),
     writeAllowlist: argv.includes('--write-allowlist'),
     repoRoot,
     allowlistPath,
@@ -257,9 +257,10 @@ export function runGate(argv: string[] = process.argv.slice(2)): number {
     }
     out('');
     out(
-      'Fix: replace with Button / Input / Slider / Switch / Tabs / Icon* from @revealui/presentation,',
+      'Fix: replace with Button / ChoiceCard / Input / Slider / Switch / Tabs / Icon* from @revealui/presentation.',
     );
-    out(`or add a reasoned entry to ${opts.allowlistPath}.`);
+    out('Do not write raw <button>/<input>/<select>/<textarea>/<svg> in apps. Extend the package.');
+    out(`Allowlist only with a written reason in ${opts.allowlistPath}.`);
   } else {
     out('✓ No non-allowlisted Tier-1 intrinsics.');
   }

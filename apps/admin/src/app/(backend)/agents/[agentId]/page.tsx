@@ -443,7 +443,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                 <Card className="p-5">
                   <div className="mb-4 flex items-center justify-between gap-2">
                     <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-                      Task Tester
+                      Send Task
                     </h2>
                     <LinkButton
                       href={`/agents/${encodeURIComponent(agentId)}/run`}

@@ -70,7 +70,7 @@ export function AgentCard({ card, agentId }: AgentCardProps) {
           size="sm"
           className="flex-1 justify-center"
         >
-          Test Agent
+          Send Task
         </LinkButton>
         <LinkButton
           href={card.url.replace('/a2a', `/.well-known/agents/${agentId}/agent.json`)}
