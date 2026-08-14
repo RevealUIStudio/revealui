@@ -1,8 +1,11 @@
 'use client';
 
+import {
+  type Theme as Preference,
+  useTheme as usePresentationTheme,
+} from '@revealui/presentation/hooks';
 import type React from 'react';
-import { createContext, use, useEffect, useState } from 'react';
-import { canUseDOM } from '@/lib/utils/canUseDOM';
+import { createContext, use } from 'react';
 import type { Theme, ThemeContextType } from './types';
 
 const initialContext: ThemeContextType = {
@@ -13,28 +16,15 @@ const initialContext: ThemeContextType = {
 const ThemeContext = createContext(initialContext);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }): React.ReactElement {
-  const [theme, setThemeState] = useState<Theme | undefined>(
-    canUseDOM ? (document.documentElement.getAttribute('data-theme') as Theme) : undefined,
-  );
+  const { resolvedTheme, setTheme: setPreference } = usePresentationTheme();
 
-  useEffect(() => {
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
-
-    const apply = (dark: boolean) => {
-      const next: Theme = dark ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', next);
-      setThemeState(next);
-    };
-
-    apply(mql.matches);
-
-    const handler = (e: MediaQueryListEvent) => apply(e.matches);
-    mql.addEventListener('change', handler);
-    return () => mql.removeEventListener('change', handler);
-  }, []);
+  const setTheme = (next: Theme | null): void => {
+    const preference: Preference = next === null ? 'system' : next;
+    setPreference(preference);
+  };
 
   return (
-    <ThemeContext.Provider value={{ setTheme: () => null, theme }}>
+    <ThemeContext.Provider value={{ setTheme, theme: resolvedTheme }}>
       {children}
     </ThemeContext.Provider>
   );

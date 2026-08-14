@@ -1,5 +1,15 @@
 # @revealui/presentation
 
+## 0.15.0
+
+### Minor Changes
+
+- Export a pre-hydration theme bootstrap (`THEME_BOOTSTRAP_SCRIPT`,
+  `THEME_STORAGE_KEY`, `THEME_DATA_ATTR`) that stamps `data-theme` from
+  `rvui-theme` or the OS scheme before first paint. Same key and
+  resolution as `useTheme`. Admin, marketing, and docs consume the same
+  payload so a stored light/dark preference no longer flashes.
+
 ## 0.14.2
 
 ### Patch Changes
