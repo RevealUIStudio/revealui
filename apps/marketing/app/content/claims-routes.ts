@@ -54,12 +54,12 @@ export const CONTENT_FILE_ROUTES: Readonly<Record<string, RouteEntry>> = {
   'local-ai.ts': { route: '/local-ai', pageTitle: 'Local-first AI' },
   'fair-source.ts': { route: '/fair-source', pageTitle: 'Fair Source' },
   'philosophy.ts': { route: '/philosophy', pageTitle: 'Why RevealUI exists' },
-  // The standalone /marketplace page is retired (308-redirects to /roadmap);
-  // this catalog is preserved seed data for a future revmarket repo (see the
-  // file's own header comment), not currently rendered anywhere.
-  'marketplace.ts': { route: '/roadmap', pageTitle: 'Roadmap' },
   'roadmap.ts': { route: '/roadmap', pageTitle: 'Roadmap' },
   'claims.ts': { route: '/claims', pageTitle: 'The claims ledger' },
+  'nav.ts': { route: '/', pageTitle: 'Home' },
+  'status.ts': { route: '/status', pageTitle: 'Status' },
+  'blog.ts': { route: '/blog', pageTitle: 'Blog' },
+  'not-found.ts': { route: '/404', pageTitle: 'Page not found' },
   'contact.ts': { route: '/contact', pageTitle: 'Contact' },
   'legal/privacy.ts': { route: '/privacy', pageTitle: 'Privacy' },
   'legal/cookies.ts': { route: '/cookies', pageTitle: 'Cookie policy' },

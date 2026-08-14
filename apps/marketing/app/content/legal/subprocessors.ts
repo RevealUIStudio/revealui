@@ -17,6 +17,11 @@ export const SUBPROCESSORS_META = {
   lastUpdated: 'July 11, 2026',
   intro:
     'A subprocessor is a third-party service we use to operate RevealUI on your behalf. Every entry below stores, processes, or transmits some category of customer data. The table is dated and we commit to updating it before adding a new subprocessor, not after. See the change-log at the bottom of this page.',
+  notice: {
+    variant: 'info' as const,
+    title: 'Dated subprocessor registry, updated before changes ship',
+    body: 'We commit to updating this page before adding a new subprocessor, not after. Every entry in the table below is accurate as of the date in the header. There is no subscribe-to-changes channel yet (queued for after we have customers); for now, watch this file in the repository or email support to be notified by email.',
+  },
 } as const;
 
 /**
@@ -108,4 +113,38 @@ export const SUBPROCESSORS_NOTES = {
     'There is no subscribe-to-changes channel for this page yet. Material customers can request notification by email and we will email them when an entry is added. Watch the RevealUI repository on GitHub to receive a notification when this file changes in source.',
   contactPrefix:
     'Questions about a specific subprocessor (including its DPA, regional data handling, or sub-processors of its own) should go to ',
+} as const;
+
+export const SUBPROCESSORS_CHANGELOG_INTRO = {
+  heading: 'Change log',
+  body: 'Append-only. Every change to the table above lands here in the same commit. Most recent first.',
+} as const;
+
+export const SUBPROCESSORS_QUESTIONS = {
+  heading: 'Questions about a specific subprocessor',
+  privacy:
+    'For privacy-specific questions (data rights, DSR requests, GDPR / CCPA), see the Privacy Policy.',
+} as const;
+
+export const SUBPROCESSORS_NOT = {
+  heading: 'What is not a subprocessor',
+  preamble: 'The following are NOT customer-data subprocessors and do not appear in the table:',
+  items: [
+    {
+      name: 'GitHub',
+      body: 'we use it for source code hosting only; customer data does not flow through GitHub.',
+    },
+    {
+      name: 'npm',
+      body: 'we publish our packages there; customer data does not flow through npm.',
+    },
+    {
+      name: 'Local AI inference',
+      body: "Ollama and Inference Snaps run on the customer's own infrastructure, not ours; data does not leave the customer boundary.",
+    },
+    {
+      name: 'Optional integrations',
+      body: "the customer configures themselves (a customer's own Sentry account, their own analytics, their own LLM provider): those are the customer's subprocessors, not ours.",
+    },
+  ],
 } as const;

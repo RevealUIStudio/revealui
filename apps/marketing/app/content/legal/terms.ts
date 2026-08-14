@@ -8,6 +8,11 @@ export const TERMS_META = {
   lastUpdated: 'May 28, 2026',
   intro:
     'These Terms of Service ("Terms") govern your use of the RevealUI platform provided by REVEALUI STUDIO L.L.C., a Tennessee limited liability company ("we", "us", "our"). By creating an account or using the Service, you agree to these Terms.',
+  notice: {
+    variant: 'info' as const,
+    title: 'Status: drafted in good faith, pending counsel review',
+    body: 'This page describes our actual practices and commitments today. The wording has not yet been reviewed by an attorney; we disclose this rather than hide it. The substance will not change after review. Only the wording may tighten. Questions in the meantime?',
+  },
 } as const;
 
 export const TERMS_SECTIONS: readonly LegalSection[] = [

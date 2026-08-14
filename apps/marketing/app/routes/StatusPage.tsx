@@ -1,48 +1,16 @@
-import { Button, Callout } from '@revealui/presentation';
+import { Button, Callout, MarketingSection, SectionHeader } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
 import { Footer } from '../components/Footer';
 import { SITE } from '../content/site';
-
-interface Surface {
-  readonly id: string;
-  readonly label: string;
-  readonly description: string;
-  readonly publicUrl: string;
-  readonly mode: 'self' | 'probe' | 'link';
-  readonly probeUrl?: string;
-}
-
-const SURFACES: readonly Surface[] = [
-  {
-    id: 'marketing',
-    label: 'Marketing site',
-    description: 'revealui.com',
-    publicUrl: 'https://revealui.com',
-    mode: 'self',
-  },
-  {
-    id: 'api',
-    label: 'API',
-    description: 'api.revealui.com',
-    publicUrl: SITE.urls.api,
-    mode: 'probe',
-    probeUrl: `${SITE.urls.api}/health`,
-  },
-  {
-    id: 'docs',
-    label: 'Documentation',
-    description: 'docs.revealui.com',
-    publicUrl: SITE.urls.docs,
-    mode: 'link',
-  },
-  {
-    id: 'admin',
-    label: 'Admin dashboard',
-    description: 'admin.revealui.com',
-    publicUrl: SITE.urls.admin,
-    mode: 'link',
-  },
-];
+import {
+  STATUS_BADGES,
+  STATUS_HERO,
+  STATUS_INCIDENTS,
+  STATUS_MONITOR,
+  STATUS_OUTAGE,
+  STATUS_SUMMARY,
+  STATUS_SURFACES,
+} from '../content/status';
 
 type ProbeResult =
   | { status: 'pending' }
@@ -56,7 +24,7 @@ function badgeFor(
     return (
       <span className="inline-flex items-center gap-2 rounded-full bg-success-subtle px-2.5 py-0.5 text-xs font-medium text-success-text ring-1 ring-success/30">
         <span aria-hidden="true" className="size-1.5 rounded-full bg-success" />
-        Operational (you are here)
+        {STATUS_BADGES.self}
       </span>
     );
   }
@@ -64,7 +32,7 @@ function badgeFor(
     return (
       <span className="inline-flex items-center gap-2 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground ring-1 ring-border">
         <span aria-hidden="true" className="size-1.5 rounded-full bg-muted-foreground" />
-        Visit to verify
+        {STATUS_BADGES.link}
       </span>
     );
   }
@@ -76,7 +44,7 @@ function badgeFor(
           aria-hidden="true"
           className="size-1.5 animate-pulse rounded-full bg-muted-foreground"
         />
-        Checking…
+        {STATUS_BADGES.pending}
       </span>
     );
   }
@@ -91,7 +59,7 @@ function badgeFor(
   return (
     <span className="inline-flex items-center gap-2 rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-medium text-destructive ring-1 ring-destructive/30">
       <span aria-hidden="true" className="size-1.5 rounded-full bg-destructive" />
-      Unreachable
+      {STATUS_BADGES.unreachable}
     </span>
   );
 }
@@ -106,7 +74,7 @@ function formatChecked(epochMs: number): string {
 }
 
 export function StatusPage() {
-  const probeIds = SURFACES.filter((s) => s.mode === 'probe').map((s) => s.id);
+  const probeIds = STATUS_SURFACES.filter((s) => s.mode === 'probe').map((s) => s.id);
   const [probes, setProbes] = useState<Record<string, ProbeResult>>(() => {
     const init: Record<string, ProbeResult> = {};
     for (const id of probeIds) init[id] = { status: 'pending' };
@@ -117,7 +85,7 @@ export function StatusPage() {
 
   useEffect(() => {
     let cancelled = false;
-    const probesToRun = SURFACES.filter((s) => s.mode === 'probe');
+    const probesToRun = STATUS_SURFACES.filter((s) => s.mode === 'probe');
     for (const surface of probesToRun) {
       if (!surface.probeUrl) continue;
       const startedAt = performance.now();
@@ -157,7 +125,6 @@ export function StatusPage() {
     };
   }, [refreshKey]);
 
-  // Tick every 30s to keep "Xs ago" copy fresh without spamming probes.
   useEffect(() => {
     const id = setInterval(() => setTick((n) => n + 1), 30_000);
     return () => clearInterval(id);
@@ -167,10 +134,10 @@ export function StatusPage() {
   const anyDown = probeResults.some((r) => r && r.status === 'down');
   const anyPending = probeResults.some((r) => r && r.status === 'pending');
   const overallTitle = anyPending
-    ? 'Checking current status…'
+    ? STATUS_SUMMARY.pending
     : anyDown
-      ? 'Some surfaces are not responding'
-      : 'All probed surfaces are operational';
+      ? STATUS_SUMMARY.down
+      : STATUS_SUMMARY.up;
   const overallVariant: 'info' | 'success' | 'warning' = anyPending
     ? 'info'
     : anyDown
@@ -179,11 +146,9 @@ export function StatusPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-3xl px-6 pt-24 lg:px-8">
+      <MarketingSection tone="background" density="compact" width="narrow">
         <Callout variant={overallVariant} title={overallTitle}>
-          This page probes the API health endpoint in your browser when you load it. It reflects
-          what your network sees right now, not a separate uptime service. Solo-operator company: we
-          do not run 24×7 manned monitoring you can subscribe to.{' '}
+          {STATUS_SUMMARY.body}{' '}
           <Button
             type="button"
             appearance="link"
@@ -199,21 +164,25 @@ export function StatusPage() {
               setRefreshKey((k) => k + 1);
             }}
           >
-            Re-check now
+            {STATUS_SUMMARY.recheck}
           </Button>
           .
         </Callout>
-      </div>
+      </MarketingSection>
 
-      <section className="mx-auto max-w-3xl px-6 pt-10 lg:px-8">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Status</h1>
+      <MarketingSection tone="background" density="default" width="narrow">
+        <SectionHeader
+          title={STATUS_HERO.title}
+          description={STATUS_HERO.subtitle}
+          titleAs="h1"
+          titleClassName="font-display text-4xl sm:text-5xl"
+        />
         <p className="mt-2 text-sm text-muted-foreground">
-          Live probe and link surface for the four RevealUI properties. Last loaded:{' '}
-          {new Date().toLocaleString()}.
+          Last loaded: {new Date().toLocaleString()}.
         </p>
 
         <ul className="mt-8 divide-y divide-border rounded-xl ring-1 ring-border">
-          {SURFACES.map((surface) => {
+          {STATUS_SURFACES.map((surface) => {
             const result = surface.mode === 'probe' ? probes[surface.id] : undefined;
             const state =
               surface.mode === 'self'
@@ -237,7 +206,7 @@ export function StatusPage() {
                     {surface.description}
                   </a>
                   {result && result.status === 'down' && (
-                    <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                    <p className="mt-1 text-xs text-destructive">
                       {result.reason} · checked {formatChecked(result.checkedAt)}
                     </p>
                   )}
@@ -252,53 +221,44 @@ export function StatusPage() {
             );
           })}
         </ul>
-      </section>
+      </MarketingSection>
 
-      <article className="mx-auto max-w-3xl px-6 pb-24 pt-12 lg:px-8 prose prose-gray">
-        <h2>How we monitor</h2>
-        <p>
-          RevealUI Studio is a solo-operator company. We run a single API health endpoint that this
-          page probes when you load it. We do not currently offer email or SMS subscriptions for
-          status changes. Honest answers about what we do and do not have:
-        </p>
-        <ul>
+      <MarketingSection tone="secondary" density="default" width="narrow">
+        <h2 className="font-display text-xl font-semibold text-foreground">
+          {STATUS_MONITOR.heading}
+        </h2>
+        <p className="mt-4 leading-7 text-body">{STATUS_MONITOR.intro}</p>
+        <ul className="mt-4 list-disc space-y-2 pl-5 text-body">
           <li>
-            <strong>What works today.</strong> The probe above reflects current API reachability
-            from your browser. Vercel runs its own platform health checks; we receive alerts when
-            their checks fail.
+            <strong>What works today.</strong> {STATUS_MONITOR.worksToday}
           </li>
           <li>
-            <strong>What we are watching but not publishing yet.</strong> A separate public uptime
-            history with subscribable incident channels (Instatus / BetterStack class) is queued for
-            after we have paying customers. Until then, this live-probe page is the honest interim.
+            <strong>What we are watching but not publishing yet.</strong> {STATUS_MONITOR.watching}
           </li>
           <li>
-            <strong>What does not exist yet.</strong> A 24×7 on-call rotation. Multi-region
-            failover. A separate paid status page domain. We will publish these on this page when
-            they ship, not before.
+            <strong>What does not exist yet.</strong> {STATUS_MONITOR.missing}
           </li>
         </ul>
 
-        <h2>Incident history</h2>
-        <p>
-          No incidents have been disclosed here yet. When one occurs, we will post a brief notice
-          with timestamps, impact, root cause (once known), and remediation. We commit to disclosing
-          real incidents rather than hiding them.
-        </p>
+        <h2 className="mt-10 font-display text-xl font-semibold text-foreground">
+          {STATUS_INCIDENTS.heading}
+        </h2>
+        <p className="mt-4 leading-7 text-body">{STATUS_INCIDENTS.body}</p>
 
-        <h2>Are you experiencing an outage?</h2>
-        <p>
-          If this page shows all surfaces operational but you are still seeing issues, the problem
-          is probably between your network and ours, or specific to a feature this page does not
-          probe yet. Email <a href={`mailto:${SITE.emails.support}`}>{SITE.emails.support}</a> with
-          the URL you hit, the time you first saw the issue, and any error message. We treat outage
-          reports as higher priority than standard support email.
+        <h2 className="mt-10 font-display text-xl font-semibold text-foreground">
+          {STATUS_OUTAGE.heading}
+        </h2>
+        <p className="mt-4 leading-7 text-body">
+          {STATUS_OUTAGE.body}{' '}
+          <a className="font-medium text-primary underline" href={`mailto:${SITE.emails.support}`}>
+            {SITE.emails.support}
+          </a>
+          .
         </p>
-        <p>
-          For confirmed security incidents, follow the <a href="/security">security policy</a>{' '}
-          instead. That channel has different SLAs.
+        <p className="mt-4 leading-7 text-body">
+          {STATUS_OUTAGE.security} <a href="/security">Security policy</a>.
         </p>
-      </article>
+      </MarketingSection>
       <Footer />
     </div>
   );

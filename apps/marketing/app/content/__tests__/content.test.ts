@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { COVERED_FILES } from '../claims-evidence';
 import { HOME_PRIMITIVES } from '../primitives';
 import { ROADMAP_SHIPPED, ROADMAP_UPCOMING } from '../roadmap';
 import { METRICS } from '../site';
@@ -13,6 +14,16 @@ import { METRICS } from '../site';
 const FIVE_PRIMITIVES = ['People', 'Content', 'Offers', 'Payments', 'Agents'];
 
 describe('marketing content contracts', () => {
+  describe('claims coverage', () => {
+    it('indexes leftover chrome modules on the claims-evidence gate', () => {
+      const files = COVERED_FILES.map((c) => c.file);
+      expect(files).toContain('nav.ts');
+      expect(files).toContain('status.ts');
+      expect(files).toContain('blog.ts');
+      expect(files).toContain('not-found.ts');
+    });
+  });
+
   describe('primitives', () => {
     it('home exposes exactly the five primitives', () => {
       expect(HOME_PRIMITIVES).toHaveLength(5);

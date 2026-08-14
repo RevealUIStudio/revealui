@@ -14,6 +14,11 @@ export const SLA_META = {
   lastUpdated: 'July 12, 2026',
   intro:
     'RevealUI Studio is a solo-operated company. We would rather commit to numbers we can hit on our worst week than promise something impressive and miss it. This page states exactly what we commit to today, for whom, and what those commitments do not cover.',
+  notice: {
+    variant: 'info' as const,
+    title: 'The short version',
+    body: 'We respond within 24 hours during U.S. business hours, and within 4 hours for anything critical. Our license and download infrastructure targets 99% monthly uptime. Live status is always at revealui.com/status.',
+  },
 } as const;
 
 export const SLA_SECTIONS: readonly LegalSection[] = [
