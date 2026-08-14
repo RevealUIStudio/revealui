@@ -6,6 +6,11 @@ export const HIPAA_META = {
   lastUpdated: 'August 13, 2026',
   intro:
     'This page states what RevealUI does, and does not do, for HIPAA. We do not claim that RevealUI Cloud or a default self-host is HIPAA certified. The HIPAA configuration turns on technical controls a covered entity can use. We will sign a Business Associate Agreement when counsel has one ready and the deployment is in that configuration.',
+  notice: {
+    variant: 'warning' as const,
+    title: 'Not a certification',
+    body: 'This page does not claim that RevealUI is HIPAA certified. It describes the technical controls in the product and the contract steps that are still required. Counsel questions:',
+  },
 } as const;
 
 export const HIPAA_SECTIONS: readonly LegalSection[] = [

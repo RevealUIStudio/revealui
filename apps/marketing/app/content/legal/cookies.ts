@@ -6,6 +6,11 @@ export const COOKIES_META = {
   lastUpdated: 'August 13, 2026',
   intro:
     'This Cookie Policy describes the cookies and similar technologies used on revealui.com, admin.revealui.com, api.revealui.com, and docs.revealui.com. It sits next to the Privacy Policy. Optional cookies stay off until you accept them. A HIPAA configuration never turns optional cookies on.',
+  notice: {
+    variant: 'info' as const,
+    title: 'Status: drafted in good faith, pending counsel review',
+    body: 'This page describes the cookies and similar technologies we actually use today. The wording has not yet been reviewed by an attorney. Questions:',
+  },
 } as const;
 
 export const COOKIES_SECTIONS: readonly LegalSection[] = [

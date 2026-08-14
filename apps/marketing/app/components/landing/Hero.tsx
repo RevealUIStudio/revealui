@@ -7,6 +7,7 @@ import {
 } from '@revealui/presentation';
 import { Link, useLocation } from '@revealui/router';
 import { FOR_OPERATORS_HERO } from '../../content/for-operators';
+import { HOME_TRUST_SIGNALS } from '../../content/home';
 import {
   RECEIPT_HERO_CAPTION,
   RECEIPT_HERO_INTEGRITY,
@@ -16,11 +17,6 @@ import {
 import { selectAudience } from '../../lib/audience';
 import { selectHomeHero } from '../../lib/hero-variant';
 import { AudienceToggle } from './AudienceToggle';
-
-// Shared trust strip (the signals the retired eyebrow pill used to carry).
-// Separators (not brand dots). Hidden on small viewports so first screen is
-// H1 + CTA + receipt (GAP-480 residual viewport discipline).
-const TRUST_SIGNALS = ['Open source', 'Self-hostable', 'Local-first AI'] as const;
 
 /**
  * Full-bleed hero stage paint (viewport-stage, not content-boxed).
@@ -56,7 +52,7 @@ function HeroBackground() {
 function TrustStrip() {
   return (
     <ul className="mt-5 hidden list-none flex-wrap items-center justify-center gap-y-2 p-0 text-sm text-body sm:mt-7 sm:flex">
-      {TRUST_SIGNALS.map((signal, index) => (
+      {HOME_TRUST_SIGNALS.map((signal, index) => (
         <li key={signal} className="flex items-center">
           {index > 0 ? (
             <span aria-hidden="true" className="mx-3 h-3 w-px bg-border-strong sm:mx-4" />

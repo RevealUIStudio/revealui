@@ -31,6 +31,11 @@ export const PRIVACY_META = {
   lastUpdated: 'August 13, 2026',
   intro:
     'The RevealUI platform (revealui.com, admin.revealui.com, api.revealui.com, and docs.revealui.com, the "Service") is operated by REVEALUI STUDIO L.L.C., a Tennessee limited liability company ("we", "us", "our"). This Privacy Policy describes how we collect, use, and protect your personal information.',
+  notice: {
+    variant: 'info' as const,
+    title: 'Status: drafted in good faith, pending counsel review',
+    body: 'This page describes our actual privacy practices today. The wording has not yet been reviewed by an attorney; we disclose this rather than hide it. The substance will not change after review. Only the wording may tighten. Privacy questions or data-rights requests in the meantime:',
+  },
 } as const;
 
 export const PRIVACY_SECTIONS: readonly LegalSection[] = [

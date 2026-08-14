@@ -2,6 +2,7 @@ import { MarketingSection, SectionHeader } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
 import { Footer } from '../components/Footer';
 import { NewsletterSignup } from '../components/NewsletterSignup';
+import { BLOG_INDEX } from '../content/blog';
 import { type BlogPost, fetchPosts } from '../lib/api';
 import { staticBlogPosts } from '../lib/blog-posts';
 
@@ -31,7 +32,7 @@ function getExcerpt(content: unknown): string {
       }
     }
   }
-  return 'Read more';
+  return BLOG_INDEX.readMore;
 }
 
 function staticToShared(post: (typeof staticBlogPosts)[number]): BlogPost {
@@ -93,8 +94,8 @@ export function BlogIndexPage() {
           className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background"
         />
         <SectionHeader
-          title="Blog"
-          description="Updates, guides, and insights from the RevealUI team."
+          title={BLOG_INDEX.title}
+          description={BLOG_INDEX.subtitle}
           titleAs="h1"
           align="center"
           titleClassName="font-display text-4xl sm:text-5xl lg:text-6xl"
@@ -105,9 +106,7 @@ export function BlogIndexPage() {
       <MarketingSection tone="secondary" density="default" width="default">
         {posts.length === 0 ? (
           <div className="mx-auto max-w-2xl text-center">
-            <p className="text-lg text-body">
-              No posts yet. Check back soon for updates from the RevealUI team.
-            </p>
+            <p className="text-lg text-body">{BLOG_INDEX.empty}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 sm:gap-8">
@@ -134,7 +133,7 @@ export function BlogIndexPage() {
                   href={`/blog/${post.slug}`}
                   className="mt-4 inline-block text-sm font-semibold text-primary transition-colors hover:text-primary/80"
                 >
-                  Read more &rarr;
+                  {BLOG_INDEX.readMore} →
                 </a>
               </article>
             ))}
@@ -142,10 +141,8 @@ export function BlogIndexPage() {
         )}
 
         <div className="mx-auto mt-16 max-w-2xl rounded-2xl bg-secondary p-8 text-center ring-1 ring-border">
-          <h3 className="text-lg font-semibold text-foreground">Get notified when we publish</h3>
-          <p className="mb-6 mt-2 text-sm text-body">
-            Engineering insights, product updates, and launch announcements. No spam.
-          </p>
+          <h3 className="text-lg font-semibold text-foreground">{BLOG_INDEX.notifyHeading}</h3>
+          <p className="mb-6 mt-2 text-sm text-body">{BLOG_INDEX.notifyBody}</p>
           <NewsletterSignup variant="stacked" />
         </div>
       </MarketingSection>

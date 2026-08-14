@@ -137,6 +137,10 @@ export const COVERED_FILES: readonly CoveredFile[] = [
   { file: 'roadmap.ts' },
   { file: 'claims.ts' },
   { file: 'receipt.ts' },
+  { file: 'nav.ts' },
+  { file: 'status.ts' },
+  { file: 'blog.ts' },
+  { file: 'not-found.ts' },
   // Legal / contact ratchet (claims-evidence audit 2026-07-22): live policy
   // pages were outside the index while product pages were gated.
   { file: 'contact.ts' },

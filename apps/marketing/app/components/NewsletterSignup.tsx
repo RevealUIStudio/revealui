@@ -1,6 +1,7 @@
 import { Button, Input } from '@revealui/presentation';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
+import { FOOTER_NEWSLETTER } from '../content/nav';
 import { COMMUNITY } from '../content/site';
 import { submitNewsletter } from '../lib/api';
 
@@ -66,7 +67,7 @@ export function NewsletterSignup({ variant = 'inline' }: { variant?: 'inline' | 
           </p>
         )}
         <p className="text-xs text-muted-foreground">
-          Product updates and engineering insights. No spam.
+          {FOOTER_NEWSLETTER.body}
           {COMMUNITY.substack.url ? (
             <>
               {' '}

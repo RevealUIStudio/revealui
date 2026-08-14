@@ -15,6 +15,11 @@ export const REFUND_POLICY_META = {
   lastUpdated: 'July 12, 2026',
   intro:
     'This page describes when you can get your money back from RevealUI Studio and how to ask for it. It applies to purchases made directly through revealui.com and admin.revealui.com.',
+  notice: {
+    variant: 'info' as const,
+    title: 'The short version',
+    body: 'Perpetual licenses get a full refund within 14 days of purchase, no questions asked. Subscriptions get a full refund on your first month if you cancel within 14 days of your first charge. Details below.',
+  },
 } as const;
 
 export const REFUND_POLICY_SECTIONS: readonly LegalSection[] = [
