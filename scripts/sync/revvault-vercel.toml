@@ -54,6 +54,12 @@ skip = [
   # never hardcoded or vault-mirrored — this is a public repo and the value
   # discloses the Fly worker's hostname.
   "REVEALUI_WORKER_HEALTH_URL",
+  # GAP-260 P4-4: plain hosted|forge flag. Owner must set MODE=hosted on api
+  # Production BEFORE applying a sync that drops the private key, or detectDeploymentMode
+  # falls back to forge and bricks hosted boot.
+  "REVEALUI_DEPLOYMENT_MODE",
+  # Mint-path toggle (not vaulted). Already live on api; skip so apply cannot orphan it.
+  "REVEALUI_LICENSE_SIGN_VIA_SIGNER",
 ]
 
 [projects.revealui-api.vars]
@@ -98,10 +104,12 @@ DATABASE_URL = { path = "revealui/prod/db/postgres-url", sensitive = true }
 REVEALUI_KEK                = { path = "revealui/prod/kek", sensitive = true }
 # REVEALUI_KEK_NEXT deferred — rotation slot, populated only during KEK
 # rotation. Re-add to manifest at that time.
-# Canonical license-signing keypair (Ed25519). The retired
-# revealui/prod/license/* path held the stale pre-cutover RSA pair.
-REVEALUI_LICENSE_PRIVATE_KEY = { path = "revdev/license-signing-private-key", sensitive = true }
+# GAP-260 P4-4: api mints via license-signer (SIGN_VIA_SIGNER already live).
+# Do not sync the signing private key here. Public key remains so api can
+# verify JWTs. Owner must set REVEALUI_DEPLOYMENT_MODE=hosted before apply.
 REVEALUI_LICENSE_PUBLIC_KEY  = "revdev/license-signing-public-key"
+REVEALUI_LICENSE_SIGNER_URL  = "revealui/prod/license/signer-url"
+REVEALUI_SIGNER_INVOKE_SECRET = { path = "revealui/prod/license/signer-invoke-secret", sensitive = true }
 REVEALUI_AUDIT_SIGNING_KEY   = { path = "revealui/prod/audit/signing-private-key", sensitive = true }
 REVEALUI_AUDIT_PUBLIC_KEY    = "revealui/prod/audit/signing-public-key"
 REVEALUI_SECRET              = { path = "revealui/prod/secret", sensitive = true }
@@ -220,8 +228,8 @@ NEON_API_KEY  = { path = "revealui/prod/db/neon-api-key", sensitive = true }
 # leaving it untracked here is what let it go missing when the prod env was rebuilt (regression #928).
 REVEALUI_KEK                 = { path = "revealui/prod/kek", sensitive = true }
 # GAP-260 P4-4: admin is verify-only. Do not sync the signing private key here.
-# Mint stays on api (local fallback) until SIGN_VIA_SIGNER is the sole path,
-# then apps/license-signer. Public key remains so admin can verify JWTs.
+# Online mint is apps/license-signer via api SIGN_VIA_SIGNER. Public key remains
+# so admin can verify JWTs.
 REVEALUI_LICENSE_PUBLIC_KEY  = "revdev/license-signing-public-key"
 REVEALUI_AUDIT_SIGNING_KEY   = { path = "revealui/prod/audit/signing-private-key", sensitive = true }
 REVEALUI_AUDIT_PUBLIC_KEY    = "revealui/prod/audit/signing-public-key"

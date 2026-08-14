@@ -258,10 +258,10 @@ export const SECRET_PATHS: SecretPathDef[] = [
     kind: 'signing-private',
     sensitive: true,
     tier: 'prod',
-    consumers: ['vercel:api', 'fly:worker', 'fly:license-signer', 'with-secrets:license-signing'],
+    consumers: ['fly:worker', 'fly:license-signer', 'with-secrets:license-signing'],
     migratingTo: 'revealui/prod/license/private-key',
     migratingSince: '2026-06-28',
-    note: 'Ed25519 license-signing key. Admin dropped P4-4. Online mint target is fly:license-signer; api/worker keep a copy until SIGN_VIA_SIGNER is sole path.',
+    note: 'Ed25519 license-signing key. Admin + api dropped P4-4 (signer is mint path). Fly worker last until executor-off digest. Offline stamper keeps with-secrets:license-signing.',
   },
   {
     path: 'revdev/license-signing-public-key',
@@ -875,24 +875,23 @@ export const SECRET_PATHS: SecretPathDef[] = [
     note: 'export-env signing bundle: REVEALUI_LICENSE_PRIVATE_KEY (+ public if needed for self-check). with-secrets license-signing requires REVVAULT_ALLOW_PRIVATE=1',
   },
   // GAP-260 P4-2/P4-3: dedicated HMAC for apps/license-signer mint API.
-  // NOT REVEALUI_SECRET. Not platform-synced until the signer deploy lands (P4-4).
+  // NOT REVEALUI_SECRET. Synced to api after signer soak (P4-4). Fly signer
+  // still sets it Fly-direct (skip list).
   {
     path: 'revealui/prod/license/signer-invoke-secret',
     kind: 'credential',
     sensitive: true,
     tier: 'prod',
-    consumers: ['app:license-signer', 'vercel:api', 'fly:worker'],
-    intentionallyUnsynced: true,
+    consumers: ['app:license-signer', 'vercel:api'],
     envVars: ['REVEALUI_SIGNER_INVOKE_SECRET'],
-    note: 'HMAC-SHA256 per-call auth for POST /internal/mint. Consumed by license-signer AND mint-client (api/worker) when REVEALUI_LICENSE_SIGN_VIA_SIGNER is on. No REVEALUI_SECRET fallback.',
+    note: 'HMAC-SHA256 per-call auth for POST /internal/mint. Consumed by license-signer AND mint-client when REVEALUI_LICENSE_SIGN_VIA_SIGNER is on. No REVEALUI_SECRET fallback. Fly signer sets this Fly-direct (skip).',
   },
   {
     path: 'revealui/prod/license/signer-url',
     kind: 'public-config',
     sensitive: false,
     tier: 'prod',
-    consumers: ['vercel:api', 'fly:worker'],
-    intentionallyUnsynced: true,
+    consumers: ['vercel:api'],
     envVars: ['REVEALUI_LICENSE_SIGNER_URL'],
     note: 'Base URL for apps/license-signer (GAP-260 P4-3 mint-client). Not a secret. Flag REVEALUI_LICENSE_SIGN_VIA_SIGNER is a plain env toggle (not vaulted).',
   },
