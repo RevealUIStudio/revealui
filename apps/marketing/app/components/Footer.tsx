@@ -1,4 +1,9 @@
-import { BuiltWithRevealUI, GitHubIcon, LinkedInIcon } from '@revealui/presentation';
+import {
+  BuiltWithRevealUI,
+  CookieSettingsButton,
+  GitHubIcon,
+  LinkedInIcon,
+} from '@revealui/presentation';
 import {
   FOOTER_CLAIMS_LEDGER_NOTE,
   FOOTER_COLUMNS,
@@ -139,6 +144,7 @@ export function Footer() {
                 {label}
               </a>
             ))}
+            <CookieSettingsButton className="transition-colors hover:text-foreground" />
           </div>
         </div>
       </div>

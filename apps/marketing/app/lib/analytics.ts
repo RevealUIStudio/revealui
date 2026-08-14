@@ -13,6 +13,8 @@
 //   - Payload format is Plausible-compatible so the endpoint can be Plausible Cloud,
 //     a self-hosted Plausible instance, or any compatible ingest server.
 //
+import { isHipaaComplianceProfile } from './compliance';
+
 // Required follow-up before production:
 //   - CSP: add the analytics endpoint host to `connect-src` in apps/marketing/vercel.json.
 //   - Privacy disclosure: adding any analytics provider as a subprocessor requires
@@ -34,6 +36,28 @@ function isDntEnabled(): boolean {
   );
 }
 
+function hasAnalyticsConsent(): boolean {
+  if (typeof document === 'undefined') {
+    return false;
+  }
+  const prefix = 'revealui-cookie-consent=';
+  for (const part of document.cookie.split(';')) {
+    const trimmed = part.trim();
+    if (!trimmed.startsWith(prefix)) {
+      continue;
+    }
+    try {
+      const parsed: unknown = JSON.parse(decodeURIComponent(trimmed.slice(prefix.length)));
+      if (typeof parsed === 'object' && parsed !== null && 'analytics' in parsed) {
+        return (parsed as { analytics: unknown }).analytics === true;
+      }
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
 interface AnalyticsPayload {
   name: string;
   domain: string;
@@ -46,7 +70,7 @@ export function track(event: string, props?: Record<string, string | number | bo
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     return;
   }
-  if (isDntEnabled()) {
+  if (isHipaaComplianceProfile() || isDntEnabled() || !hasAnalyticsConsent()) {
     return;
   }
   if (!domain) {
@@ -85,7 +109,7 @@ export function initAnalytics(): void {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     return;
   }
-  if (isDntEnabled()) {
+  if (isHipaaComplianceProfile() || isDntEnabled()) {
     return;
   }
   if (mounted) {

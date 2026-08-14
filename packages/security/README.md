@@ -97,12 +97,22 @@ Server-only (`@revealui/security/server`).
 | `createAuditMiddleware` | Function | Hono middleware for automatic request auditing |
 | `InMemoryAuditStorage` | Class | In-memory storage for testing |
 
+### Browser consent + compliance profile (client-safe — `@revealui/security` or `@revealui/security/cookie-consent`)
+
+| Export | Type | Purpose |
+|--------|------|---------|
+| `CookieConsentManager` | Class | First-party cookie + localStorage consent (opt-in optional categories, GPC/DNT) |
+| `resolveComplianceProfile` | Function | `standard` or `hipaa` from `REVEALUI_COMPLIANCE_PROFILE` |
+| `HIPAA_COMPLIANCE_PROFILE` | Const | Fail-closed: no third-party telemetry, no optional cookies, 15-minute idle timeout |
+| `HIPAA_SURFACES` | Const | Per-surface vendor map (email, files, db, host, …). Proton is not a blanket |
+
+`hipaa` is a technical control, not a certification. A covered entity still needs a signed BAA and subprocessors that will sign one.
+
 ### GDPR (server-only — import from `@revealui/security/server`) Compliance
 
 | Export | Type | Purpose |
 |--------|------|---------|
 | `ConsentManager` | Class | Record and query user consent |
-| `CookieConsentManager` | Class | Browser cookie consent banner state |
 | `DataDeletionSystem` | Class | Right-to-erasure request processing |
 | `DataExportSystem` | Class | Right-to-portability data export |
 | `DataAnonymization` | Class | Anonymize user data while preserving analytics |

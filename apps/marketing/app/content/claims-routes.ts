@@ -62,6 +62,8 @@ export const CONTENT_FILE_ROUTES: Readonly<Record<string, RouteEntry>> = {
   'claims.ts': { route: '/claims', pageTitle: 'The claims ledger' },
   'contact.ts': { route: '/contact', pageTitle: 'Contact' },
   'legal/privacy.ts': { route: '/privacy', pageTitle: 'Privacy' },
+  'legal/cookies.ts': { route: '/cookies', pageTitle: 'Cookie policy' },
+  'legal/hipaa.ts': { route: '/legal/hipaa', pageTitle: 'HIPAA' },
   'legal/refund-policy.ts': { route: '/refund-policy', pageTitle: 'Refund policy' },
   'legal/security.ts': { route: '/security', pageTitle: 'Security' },
   'legal/sla.ts': { route: '/sla', pageTitle: 'Service level commitments' },

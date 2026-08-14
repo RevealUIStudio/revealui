@@ -59,6 +59,8 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
       { label: 'SLA', href: '/sla' },
       { label: 'Security', href: '/security' },
       { label: 'Subprocessors', href: '/legal/subprocessors' },
+      { label: 'Cookies', href: '/cookies' },
+      { label: 'HIPAA', href: '/legal/hipaa' },
     ],
   },
 ] as const;
@@ -102,6 +104,8 @@ export const FOOTER_LEGAL = {
 
 export const FOOTER_LEGAL_LINKS: readonly NavLink[] = [
   { label: 'Privacy', href: '/privacy' },
+  { label: 'Cookies', href: '/cookies' },
+  { label: 'HIPAA', href: '/legal/hipaa' },
   { label: 'Terms', href: '/terms' },
   { label: 'Refund Policy', href: '/refund-policy' },
   { label: 'SLA', href: '/sla' },

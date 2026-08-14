@@ -4,6 +4,7 @@ function makeDocumentStub() {
   const listeners: Map<string, EventListenerOrEventListenerObject[]> = new Map();
   return {
     referrer: '',
+    cookie: `revealui-cookie-consent=${encodeURIComponent(JSON.stringify({ analytics: true }))}`,
     addEventListener(type: string, handler: EventListenerOrEventListenerObject) {
       const list = listeners.get(type) ?? [];
       list.push(handler);
@@ -77,6 +78,14 @@ describe('analytics sink', () => {
     expect(payload.name).toBe('Audience Selected');
     expect(payload.domain).toBe('revealui.com');
     expect(payload.props.audience).toBe('technical');
+  });
+
+  it('does not send without analytics consent', async () => {
+    vi.stubEnv('VITE_ANALYTICS_DOMAIN', 'revealui.com');
+    vi.stubGlobal('document', { ...document, cookie: '' });
+    const { track } = await import('../lib/analytics');
+    track('Audience Selected', { audience: 'technical' });
+    expect(navigator.sendBeacon).not.toHaveBeenCalled();
   });
 
   it('does not send when DNT is enabled', async () => {

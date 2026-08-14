@@ -534,97 +534,8 @@ export class PrivacyPolicyManager {
   }
 }
 
-/**
- * Cookie consent banner
- */
-export interface CookieConsentConfig {
-  necessary: boolean;
-  functional: boolean;
-  analytics: boolean;
-  marketing: boolean;
-}
-
-export class CookieConsentManager {
-  private config: CookieConsentConfig = {
-    necessary: true,
-    functional: false,
-    analytics: false,
-    marketing: false,
-  };
-
-  /**
-   * Set consent configuration
-   */
-  setConsent(config: Partial<CookieConsentConfig>): void {
-    this.config = { ...this.config, ...config };
-    this.saveToStorage();
-  }
-
-  /**
-   * Get consent configuration
-   */
-  getConsent(): CookieConsentConfig {
-    return { ...this.config };
-  }
-
-  /**
-   * Check if specific consent is granted
-   */
-  hasConsent(type: keyof CookieConsentConfig): boolean {
-    return this.config[type];
-  }
-
-  /**
-   * Save to storage
-   */
-  private saveToStorage(): void {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('cookie-consent', JSON.stringify(this.config));
-    }
-  }
-
-  /**
-   * Load from storage
-   */
-  loadFromStorage(): void {
-    if (typeof localStorage !== 'undefined') {
-      const stored = localStorage.getItem('cookie-consent');
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          // Validate shape before assigning  -  only accept known boolean fields
-          // to prevent malicious scripts from injecting arbitrary config.
-          if (typeof parsed === 'object' && parsed !== null) {
-            this.config = {
-              necessary: true, // always required
-              analytics: typeof parsed.analytics === 'boolean' ? parsed.analytics : false,
-              marketing: typeof parsed.marketing === 'boolean' ? parsed.marketing : false,
-              functional: typeof parsed.functional === 'boolean' ? parsed.functional : true,
-            };
-          }
-        } catch {
-          // Ignore parse errors
-        }
-      }
-    }
-  }
-
-  /**
-   * Clear consent
-   */
-  clearConsent(): void {
-    this.config = {
-      necessary: true,
-      functional: false,
-      analytics: false,
-      marketing: false,
-    };
-
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem('cookie-consent');
-    }
-  }
-}
+export type { CookieConsentConfig } from './cookie-consent.js';
+export { CookieConsentManager, cookieConsentManager } from './cookie-consent.js';
 
 /**
  * Data breach notification system
@@ -737,8 +648,9 @@ export class DataBreachManager {
  * `ConsentManager` and `DataDeletionSystem` require a `GDPRStorage` implementation.
  * Use `InMemoryGDPRStorage` only in tests  -  production MUST use a database-backed store.
  *
- * `DataExportSystem`, `PrivacyPolicyManager`, `CookieConsentManager`, and
- * `DataBreachManager` are stateless or client-side only, so singletons are safe.
+ * `DataExportSystem`, `PrivacyPolicyManager`, and `DataBreachManager` are
+ * stateless or client-side only, so singletons are safe. `CookieConsentManager`
+ * lives in `cookie-consent.ts` (client-safe) and is re-exported here.
  */
 export function createConsentManager(storage: GDPRStorage): ConsentManager {
   return new ConsentManager(storage);
@@ -750,7 +662,6 @@ export function createDataDeletionSystem(storage: GDPRStorage): DataDeletionSyst
 
 export const dataExportSystem = new DataExportSystem();
 export const privacyPolicyManager = new PrivacyPolicyManager();
-export const cookieConsentManager = new CookieConsentManager();
 export function createDataBreachManager(storage: BreachStorage): DataBreachManager {
   return new DataBreachManager(storage);
 }

@@ -22,6 +22,7 @@
  */
 
 import { normalizePem } from '@revealui/core/license';
+import { isHipaaProfile, resolveComplianceProfile } from '@revealui/security';
 import { logger as defaultLogger } from '@revealui/utils/logger';
 import { importPKCS8, SignJWT } from 'jose';
 
@@ -257,6 +258,19 @@ export class MockEmailProvider implements EmailProvider {
 
 export function getEmailProvider(opts: { logger?: EmailLogger } = {}): EmailProvider {
   const logger = opts.logger ?? defaultLogger;
+
+  if (isHipaaProfile(resolveComplianceProfile(process.env))) {
+    logger.warn(
+      'HIPAA profile: Gmail API is not an allowed email path. Use customer SMTP or Proton Bridge, or keep PHI out of email.',
+    );
+    return {
+      send: async () => ({
+        success: false,
+        error:
+          'HIPAA profile blocks Gmail API. Configure a BAA-backed SMTP hop (Proton Bridge or customer SMTP) or keep PHI out of email.',
+      }),
+    };
+  }
 
   // Gmail REST API (production  -  edge-compatible, free with Workspace)
   if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {

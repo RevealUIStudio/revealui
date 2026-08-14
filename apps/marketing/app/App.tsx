@@ -6,9 +6,11 @@ import { BlogIndexPage } from './routes/BlogIndexPage';
 import { BlogPostPage } from './routes/BlogPostPage';
 import { ClaimsPage } from './routes/ClaimsPage';
 import { ContactPage } from './routes/ContactPage';
+import { CookiesPage } from './routes/CookiesPage';
 import { FairSourcePage } from './routes/FairSourcePage';
 import { ForOperatorsHowItWorksPage } from './routes/ForOperatorsHowItWorksPage';
 import { ForOperatorsManagedPage } from './routes/ForOperatorsManagedPage';
+import { HipaaPage } from './routes/HipaaPage';
 import { HomePage } from './routes/HomePage';
 import { LocalAiPage } from './routes/LocalAiPage';
 import { NotFoundPage } from './routes/NotFoundPage';
@@ -78,6 +80,12 @@ export function App() {
         meta: { title: 'The claims ledger | RevealUI' },
       },
       { path: '/privacy', component: PrivacyPage, meta: { title: 'Privacy Policy | RevealUI' } },
+      { path: '/cookies', component: CookiesPage, meta: { title: 'Cookie Policy | RevealUI' } },
+      {
+        path: '/legal/hipaa',
+        component: HipaaPage,
+        meta: { title: 'HIPAA | RevealUI' },
+      },
       { path: '/terms', component: TermsPage, meta: { title: 'Terms of Service | RevealUI' } },
       { path: '/security', component: SecurityPage, meta: { title: 'Security | RevealUI' } },
       { path: '/support', component: SupportPage, meta: { title: 'Support | RevealUI' } },

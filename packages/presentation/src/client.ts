@@ -203,6 +203,15 @@ export { Tooltip } from './components/tooltip.js';
 export { type Verdict, VerdictChip, type VerdictChipProps } from './components/verdict-chip.js';
 export { RevealUIWordmark, type RevealUIWordmarkProps } from './components/wordmark.js';
 export {
+  CookieConsentBanner,
+  type CookieConsentBannerProps,
+  type CookieConsentContextValue,
+  CookieConsentProvider,
+  type CookieConsentProviderProps,
+  CookieSettingsButton,
+  useCookieConsent,
+} from './cookie-consent/index.js';
+export {
   type LinkBehavior,
   LinkBehaviorProvider,
   type LinkBehaviorProviderProps,

@@ -1,3 +1,4 @@
+export { useCookieConsent } from '../cookie-consent/provider.js';
 export { THEME_DATA_ATTR, THEME_STORAGE_KEY } from '../theme-init.js';
 export { useClickOutside } from './use-click-outside.js';
 export { CloseContext, useCloseContext } from './use-close-context.js';

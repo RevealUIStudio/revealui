@@ -63,6 +63,13 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_APP_VERSION: monorepoVersion,
     APP_VERSION: monorepoVersion,
+    // Client Sentry and other browser gates can only see NEXT_PUBLIC_*.
+    // Operators set REVEALUI_COMPLIANCE_PROFILE; copy it so the client
+    // bundle gets a static process.env.NEXT_PUBLIC_COMPLIANCE_PROFILE.
+    NEXT_PUBLIC_COMPLIANCE_PROFILE:
+      process.env.NEXT_PUBLIC_COMPLIANCE_PROFILE ||
+      process.env.REVEALUI_COMPLIANCE_PROFILE ||
+      '',
   },
   // Use standalone output for all environments including Vercel
   // Required for monorepo workspace packages to resolve correctly in serverless

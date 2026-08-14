@@ -6,7 +6,9 @@ import { BlogIndexPage } from '../routes/BlogIndexPage';
 import { BlogPostPage } from '../routes/BlogPostPage';
 import { ClaimsPage } from '../routes/ClaimsPage';
 import { ContactPage } from '../routes/ContactPage';
+import { CookiesPage } from '../routes/CookiesPage';
 import { FairSourcePage } from '../routes/FairSourcePage';
+import { HipaaPage } from '../routes/HipaaPage';
 import { HomePage } from '../routes/HomePage';
 import { NotFoundPage } from '../routes/NotFoundPage';
 import { PricingPage } from '../routes/PricingPage';
@@ -29,6 +31,8 @@ describe('marketing route registry', () => {
       { path: '/roadmap', component: RoadmapPage },
       { path: '/claims', component: ClaimsPage },
       { path: '/privacy', component: PrivacyPage },
+      { path: '/cookies', component: CookiesPage },
+      { path: '/legal/hipaa', component: HipaaPage },
       { path: '/terms', component: TermsPage },
       { path: '/*notfound', component: NotFoundPage },
     ]);
@@ -50,6 +54,8 @@ describe('marketing route registry', () => {
       '/roadmap',
       '/claims',
       '/privacy',
+      '/cookies',
+      '/legal/hipaa',
       '/terms',
     ];
 
