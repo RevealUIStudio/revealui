@@ -5,6 +5,7 @@ import {
   Breadcrumb,
   Button,
   Card,
+  ChoiceCard,
   IconCode,
   IconEdit,
   IconMonitor,
@@ -290,43 +291,32 @@ export default function NewAgentPage() {
           </p>
         </div>
 
-        <div className="mx-auto max-w-2xl p-6">
+        <div className="mx-auto min-w-0 max-w-2xl overflow-x-hidden p-6">
           <form onSubmit={handleSubmit} className="flex flex-col gap-8">
             {/* Step 1  -  Template */}
             <section>
               <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
                 1. Choose a template
               </h2>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid min-w-0 gap-3 overflow-hidden sm:grid-cols-2">
                 {TEMPLATES.map((t) => (
-                  <Button
+                  <ChoiceCard
                     key={t.key}
-                    type="button"
-                    appearance="outline"
-                    variant="neutral"
+                    selected={selectedTemplate === t.key}
                     onClick={() => applyTemplate(t.key)}
-                    className={`h-auto flex-col items-stretch rounded-xl border p-4 text-left transition-all ${
-                      selectedTemplate === t.key
-                        ? 'border-border bg-muted ring-1 ring-ring'
-                        : 'border-border bg-card hover:border-border'
-                    }`}
+                    icon={<TemplateIcon templateKey={t.key} />}
+                    title={t.label}
+                    description={t.description}
                   >
-                    <div className="mb-1 flex items-center gap-2">
-                      <TemplateIcon templateKey={t.key} />
-                      <span className="font-medium text-foreground text-sm">{t.label}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{t.description}</p>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {t.capabilities.slice(0, 2).map((cap) => (
-                        <Badge key={cap} intent="muted">
-                          {cap}
-                        </Badge>
-                      ))}
-                      {t.capabilities.length > 2 && (
-                        <Badge intent="muted">+{t.capabilities.length - 2}</Badge>
-                      )}
-                    </div>
-                  </Button>
+                    {t.capabilities.slice(0, 2).map((cap) => (
+                      <Badge key={cap} intent="muted">
+                        {cap}
+                      </Badge>
+                    ))}
+                    {t.capabilities.length > 2 ? (
+                      <Badge intent="muted">+{t.capabilities.length - 2}</Badge>
+                    ) : null}
+                  </ChoiceCard>
                 ))}
               </div>
             </section>

@@ -82,4 +82,51 @@ describe('ApiKeysPageClient', () => {
     });
     expect(screen.getByText(/Anthropic key configured \(sk-ant-...abcd\)/)).toBeInTheDocument();
   });
+
+  it('selects the saved provider instead of defaulting to Anthropic', async () => {
+    vi.stubGlobal('fetch', mockFetchOnce({ provider: 'groq', keyHint: '...3SOs' }));
+    render(<ApiKeysPageClient providers={ALL_PROVIDERS} isHosted={false} />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Provider')).toHaveValue('groq');
+    });
+    expect(screen.getByRole('option', { name: 'Groq' })).toBeInTheDocument();
+    expect(screen.queryByText(/LPU silicon/)).not.toBeInTheDocument();
+  });
+
+  it('clears a typed key when the provider changes', async () => {
+    vi.stubGlobal('fetch', mockFetchOnce(null));
+    render(<ApiKeysPageClient providers={ALL_PROVIDERS} isHosted={false} />);
+
+    const input = screen.getByPlaceholderText('sk-ant-...');
+    fireEvent.change(input, { target: { value: 'sk-ant-typed' } });
+    expect(input).toHaveValue('sk-ant-typed');
+
+    fireEvent.change(screen.getByLabelText('Provider'), { target: { value: 'openai' } });
+    expect(screen.getByPlaceholderText('sk-...')).toHaveValue('');
+  });
+
+  it('links MFA save errors to Security settings', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(null) })
+      .mockResolvedValueOnce({
+        ok: false,
+        json: () => Promise.resolve({ error: 'MFA required' }),
+      });
+    vi.stubGlobal('fetch', fetchMock);
+    render(<ApiKeysPageClient providers={ALL_PROVIDERS} isHosted={false} />);
+
+    fireEvent.change(screen.getByPlaceholderText('sk-ant-...'), {
+      target: { value: 'sk-ant-new' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Key' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: 'Turn on MFA in Security' })).toHaveAttribute(
+        'href',
+        '/settings/security',
+      );
+    });
+  });
 });

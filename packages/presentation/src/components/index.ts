@@ -53,6 +53,7 @@ export {
   CardHeader,
   CardTitle,
 } from './Card.js';
+export { ChoiceCard, type ChoiceCardProps } from './choice-card.js';
 export {
   Checkbox as CheckboxCVA,
   CheckboxIndicator,

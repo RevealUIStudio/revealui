@@ -2,7 +2,7 @@
 
 const SAVED_FEEDBACK_MS = 2_000;
 
-import { Button, IconCheck, Input, Select } from '@revealui/presentation';
+import { Button, IconCheck, Input, Select, TextLink } from '@revealui/presentation';
 import { Field, Label } from '@revealui/presentation/client';
 import { useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
@@ -33,12 +33,15 @@ export default function ApiKeysPageClient({ providers, isHosted }: ApiKeysPageCl
         if (data) {
           setCurrentProvider(data.provider);
           setCurrentKeyHint(data.keyHint);
+          if (providers.some((entry) => entry.id === data.provider)) {
+            setProvider(data.provider as Provider);
+          }
         }
       })
       .catch(() => {
         // Swallow fetch errors  -  API key metadata is non-critical
       });
-  }, []);
+  }, [providers]);
 
   async function handleSave() {
     if (!apiKey.trim()) return;
@@ -103,6 +106,12 @@ export default function ApiKeysPageClient({ providers, isHosted }: ApiKeysPageCl
               className="mb-6 rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error"
             >
               {saveError}
+              {saveError.toLowerCase().includes('mfa') ? (
+                <>
+                  {' '}
+                  <TextLink href="/settings/security">Turn on MFA in Security</TextLink>
+                </>
+              ) : null}
             </div>
           )}
 
@@ -125,7 +134,14 @@ export default function ApiKeysPageClient({ providers, isHosted }: ApiKeysPageCl
                 <Label className="block text-xs font-medium text-muted-foreground mb-1.5">
                   Provider
                 </Label>
-                <Select value={provider} onChange={(e) => setProvider(e.target.value as Provider)}>
+                <Select
+                  value={provider}
+                  onChange={(e) => {
+                    setProvider(e.target.value as Provider);
+                    setApiKey('');
+                    setShowKey(false);
+                  }}
+                >
                   {providers.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.label}

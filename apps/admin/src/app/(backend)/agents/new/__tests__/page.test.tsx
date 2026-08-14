@@ -41,4 +41,11 @@ describe('NewAgentPage', () => {
     const link = screen.getByRole('link', { name: 'Settings, API Keys' });
     expect(link).toHaveAttribute('href', '/settings/api-keys');
   });
+
+  it('lets template descriptions wrap instead of stretching the page', () => {
+    render(<NewAgentPage />);
+    const card = screen.getByRole('button', { name: /Content Writer/ });
+    expect(card.className.includes('whitespace-normal')).toBe(true);
+    expect(card.className.includes('whitespace-nowrap')).toBe(false);
+  });
 });
