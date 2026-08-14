@@ -1,5 +1,15 @@
 # @revealui/presentation
 
+## 0.15.1
+
+### Patch Changes
+
+- Data family (Table, DescriptionList) uses the shared focus recipes. Table
+  row-as-link rings on descendant `:focus-visible` (the previous
+  `has-[[data-focus]]` recipe depended on a hook attribute). DescriptionTerm
+  drops the first-row rule at `sm` instead of a truncated `sm:` class.
+  Anatomy spec: `docs/anatomy/data.md`.
+
 ## 0.15.0
 
 ### Minor Changes
