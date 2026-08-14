@@ -94,11 +94,11 @@ test.describe('Accessibility', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // Marketing Pages (apps/marketing  -  port 3002)
+  // Marketing Pages (apps/marketing  -  port 3000)
   // ---------------------------------------------------------------------------
 
   test.describe('Marketing pages', () => {
-    const MarketingBase = process.env.MARKETING_BASE_URL || 'http://localhost:3002';
+    const MarketingBase = process.env.MARKETING_BASE_URL || 'http://localhost:3000';
 
     test('homepage meets WCAG 2.1 AA standards', async ({ page }) => {
       await page.goto(MarketingBase, { waitUntil: 'domcontentloaded' });
