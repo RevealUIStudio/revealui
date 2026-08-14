@@ -1,19 +1,23 @@
 'use client';
 
 import { useSignOut } from '@revealui/auth/react';
-import { resolveComplianceProfile } from '@revealui/security';
 import { useEffect, useRef } from 'react';
 
 const ACTIVITY_EVENTS = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'] as const;
 
+export interface IdleSessionGuardProps {
+  /** Automatic logoff after this many idle seconds. 0 = disabled. */
+  sessionIdleTimeoutSeconds: number;
+}
+
 /**
- * HIPAA automatic logoff. No-op on the standard profile (timeout is 0).
+ * HIPAA automatic logoff. No-op when the server passes timeout 0.
+ * Timeout comes from the server layout, not from process.env in the browser.
  */
-export function IdleSessionGuard(): null {
-  const profile = resolveComplianceProfile(process.env);
+export function IdleSessionGuard({ sessionIdleTimeoutSeconds }: IdleSessionGuardProps): null {
   const { signOut } = useSignOut();
   const lastActivity = useRef(Date.now());
-  const timeoutMs = profile.sessionIdleTimeoutSeconds * 1000;
+  const timeoutMs = sessionIdleTimeoutSeconds * 1000;
 
   useEffect(() => {
     if (timeoutMs <= 0) {

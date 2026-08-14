@@ -92,15 +92,28 @@ describe('CookieConsentBanner', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
-  it('HIPAA mode does not offer analytics and keeps it off', async () => {
+  it('HIPAA mode records deny-optional immediately and does not offer analytics', async () => {
     const user = userEvent.setup();
     renderBanner({ allowOptionalCookies: false });
-    expect(screen.getByRole('dialog', { name: 'Necessary cookies only' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Accept all' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('switch', { name: 'Analytics' })).not.toBeInTheDocument();
-    expect(screen.getByTestId('analytics')).toHaveTextContent('false');
-    await user.click(screen.getByRole('button', { name: 'OK' }));
     expect(screen.getByTestId('decided')).toHaveTextContent('true');
     expect(screen.getByTestId('analytics')).toHaveTextContent('false');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Accept all' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Cookie settings' }));
+    expect(screen.getByRole('dialog', { name: 'Necessary cookies only' })).toBeInTheDocument();
+    expect(screen.queryByRole('switch', { name: 'Analytics' })).not.toBeInTheDocument();
+  });
+
+  it('wipes a prior accept-all before children read consent when optional cookies are forbidden', () => {
+    const manager = new CookieConsentManager();
+    manager.acceptAll();
+    expect(manager.getConsent().analytics).toBe(true);
+
+    renderBanner({ allowOptionalCookies: false, manager });
+
+    expect(screen.getByTestId('analytics')).toHaveTextContent('false');
+    expect(manager.getConsent().analytics).toBe(false);
+    expect(manager.getConsent().functional).toBe(false);
+    expect(manager.getConsent().marketing).toBe(false);
   });
 });

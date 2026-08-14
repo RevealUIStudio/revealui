@@ -53,9 +53,20 @@ export function CookieConsentProvider({
 }: CookieConsentProviderProps): ReactNode {
   const instanceRef = useRef(manager ?? new CookieConsentManager());
   const instance = instanceRef.current;
-  const [consent, setConsentState] = useState<CookieConsentConfig>(() => instance.getConsent());
+  const [consent, setConsentState] = useState<CookieConsentConfig>(() => {
+    if (!allowOptionalCookies) {
+      instance.rejectAll();
+    }
+    return instance.getConsent();
+  });
   const [decided, setDecided] = useState(() => instance.hasDecision());
   const [preferencesOpen, setPreferencesOpen] = useState(false);
+
+  useEffect(() => {
+    if (!allowOptionalCookies) {
+      instance.rejectAll();
+    }
+  }, [allowOptionalCookies, instance]);
 
   useEffect(() => {
     return instance.subscribe(() => {

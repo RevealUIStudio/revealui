@@ -8,21 +8,26 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { sentryConfig } from './src/lib/config/sentry';
+import { shouldInitClientSentry } from './src/lib/config/sentry-gate';
 
-Sentry.init({
-  ...sentryConfig,
+// Static member access so Next inlines the value. Do not use process.env[key]
+// or resolveComplianceProfile(process.env) in this client file.
+if (shouldInitClientSentry(process.env.NEXT_PUBLIC_COMPLIANCE_PROFILE)) {
+  Sentry.init({
+    ...sentryConfig,
 
-  // Additional client-specific configuration
-  integrations: [],
+    // Additional client-specific configuration
+    integrations: [],
 
-  // Capture breadcrumbs for better debugging context
-  beforeBreadcrumb(breadcrumb) {
-    // Filter out sensitive breadcrumbs
-    if (breadcrumb.category === 'console' && breadcrumb.level === 'log') {
-      // Don't send console-log breadcrumbs to reduce noise
-      return null;
-    }
+    // Capture breadcrumbs for better debugging context
+    beforeBreadcrumb(breadcrumb) {
+      // Filter out sensitive breadcrumbs
+      if (breadcrumb.category === 'console' && breadcrumb.level === 'log') {
+        // Don't send console-log breadcrumbs to reduce noise
+        return null;
+      }
 
-    return breadcrumb;
-  },
-});
+      return breadcrumb;
+    },
+  });
+}

@@ -1,5 +1,6 @@
 import { RootLayout } from '@revealui/core/admin';
 import { isHostedDeployment } from '@revealui/core/deployment-mode';
+import { resolveComplianceProfile } from '@revealui/security';
 import { cookies, headers } from 'next/headers';
 import Script from 'next/script';
 /* RevealUI Admin Layout - Local implementation */
@@ -44,6 +45,7 @@ export default async function Layout({ children }: Args) {
   const nonce = (await headers()).get('x-nonce') ?? undefined;
   const role = (await cookies()).get('revealui-role')?.value ?? '';
   const isAdmin = ADMIN_ROLES.has(role);
+  const compliance = resolveComplianceProfile(process.env);
   return (
     <RootLayout config={config} importMap={importMap}>
       <InitTheme nonce={nonce} />
@@ -57,9 +59,13 @@ export default async function Layout({ children }: Args) {
         />
       ) : null}
       <LicenseProvider isFleetMode={isFleetMode}>
-        <CookieConsentRoot isFleetMode={isFleetMode}>
+        <CookieConsentRoot
+          isFleetMode={isFleetMode}
+          allowOptionalCookies={compliance.allowOptionalCookies}
+          allowThirdPartyTelemetry={compliance.allowThirdPartyTelemetry}
+        >
           <AuthRequiredListener />
-          <IdleSessionGuard />
+          <IdleSessionGuard sessionIdleTimeoutSeconds={compliance.sessionIdleTimeoutSeconds} />
           <ErrorBoundary>
             <AdminSidebarLayout
               siteName={siteName}

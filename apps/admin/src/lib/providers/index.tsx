@@ -1,3 +1,4 @@
+import { resolveComplianceProfile } from '@revealui/security';
 import { ElectricProvider } from '@revealui/sync/provider';
 import type React from 'react';
 import { AuthRequiredListener } from '@/lib/auth/AuthRequiredListener';
@@ -14,6 +15,7 @@ interface ProvidersProps {
 }
 
 export const Providers = ({ children, isFleetMode = false }: ProvidersProps) => {
+  const compliance = resolveComplianceProfile(process.env);
   return (
     <ElectricProvider
       serviceUrl={process.env.NEXT_PUBLIC_ELECTRIC_SERVICE_URL}
@@ -22,9 +24,13 @@ export const Providers = ({ children, isFleetMode = false }: ProvidersProps) => 
       <ThemeProvider>
         <HeaderThemeProvider>
           <LicenseProvider isFleetMode={isFleetMode}>
-            <CookieConsentRoot isFleetMode={isFleetMode}>
+            <CookieConsentRoot
+              isFleetMode={isFleetMode}
+              allowOptionalCookies={compliance.allowOptionalCookies}
+              allowThirdPartyTelemetry={compliance.allowThirdPartyTelemetry}
+            >
               <AuthRequiredListener />
-              <IdleSessionGuard />
+              <IdleSessionGuard sessionIdleTimeoutSeconds={compliance.sessionIdleTimeoutSeconds} />
               {children}
               {isFleetMode ? null : <UpgradeDialog />}
             </CookieConsentRoot>

@@ -5,17 +5,23 @@ import {
   CookieConsentProvider,
   useCookieConsent,
 } from '@revealui/presentation';
-import { resolveComplianceProfile } from '@revealui/security';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { ReactNode } from 'react';
 
-const profile = resolveComplianceProfile(
-  typeof process !== 'undefined' ? process.env : ({} as Record<string, string | undefined>),
-);
+export interface CookieConsentRootProps {
+  children: ReactNode;
+  isFleetMode?: boolean;
+  allowOptionalCookies: boolean;
+  allowThirdPartyTelemetry: boolean;
+}
 
-function SpeedInsightsWhenAllowed() {
+function SpeedInsightsWhenAllowed({
+  allowThirdPartyTelemetry,
+}: {
+  allowThirdPartyTelemetry: boolean;
+}): ReactNode {
   const { consent, decided } = useCookieConsent();
-  if (!profile.allowThirdPartyTelemetry) {
+  if (!allowThirdPartyTelemetry) {
     return null;
   }
   if (!process.env.NEXT_PUBLIC_VERCEL_ENV) {
@@ -30,19 +36,20 @@ function SpeedInsightsWhenAllowed() {
 export function CookieConsentRoot({
   children,
   isFleetMode = false,
-}: {
-  children: ReactNode;
-  isFleetMode?: boolean;
-}): ReactNode {
+  allowOptionalCookies,
+  allowThirdPartyTelemetry,
+}: CookieConsentRootProps): ReactNode {
   return (
     <CookieConsentProvider
-      allowOptionalCookies={profile.allowOptionalCookies}
+      allowOptionalCookies={allowOptionalCookies}
       policyHref="https://revealui.com/cookies"
       privacyHref="https://revealui.com/privacy"
     >
       {children}
       {isFleetMode ? null : <CookieConsentBanner />}
-      {isFleetMode ? null : <SpeedInsightsWhenAllowed />}
+      {isFleetMode ? null : (
+        <SpeedInsightsWhenAllowed allowThirdPartyTelemetry={allowThirdPartyTelemetry} />
+      )}
     </CookieConsentProvider>
   );
 }
