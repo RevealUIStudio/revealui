@@ -1,3 +1,4 @@
+export { useCookieConsent } from '../cookie-consent/provider.js';
 export { useClickOutside } from './use-click-outside.js';
 export { CloseContext, useCloseContext } from './use-close-context.js';
 export { useControllableState } from './use-controllable-state.js';
