@@ -9,6 +9,7 @@
 import {
   admitFreeIntake,
   ensureFreeSignupEntitlement,
+  ensurePlatformOperatorEntitlement,
   isSignupAllowed,
   signUp,
 } from '@revealui/auth/server';
@@ -255,6 +256,14 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
         // `_json`, so the grant must be a typed update afterward. Canonical
         // owner shape per #1219 / GAP-244: DB role owner + _json.roles=['super-admin'].
         await grantSuperAdminRoleById(db, result.user.id);
+        try {
+          await ensurePlatformOperatorEntitlement({ userId: result.user.id });
+        } catch (entErr) {
+          logger.error('Failed enterprise grant after first-user promotion (non-fatal)', {
+            userId: result.user.id,
+            error: entErr instanceof Error ? entErr.message : String(entErr),
+          });
+        }
         if (updatedUser) {
           resolvedUser = {
             ...updatedUser,

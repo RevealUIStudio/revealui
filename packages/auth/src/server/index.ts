@@ -137,6 +137,12 @@ export {
   validatePasswordStrength,
 } from './password-validation.js';
 export {
+  ensurePlatformOperatorEntitlement,
+  isPlatformOperatorUser,
+  PLATFORM_OPERATOR_LIMITS,
+  rolesFromUserJson,
+} from './platform-operator.js';
+export {
   ensureAccountOwnerPlatformAdmin,
   ensureShellAdminIfAccountOwner,
   isPlatformShellAdminRole,

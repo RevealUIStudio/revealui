@@ -6,6 +6,7 @@
  * account, membership, and entitlement context to the request.
  */
 
+import { ensurePlatformOperatorEntitlement, isPlatformOperatorUser } from '@revealui/auth/server';
 import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import { getFeaturesForTier } from '@revealui/core/features';
 import { getClient } from '@revealui/db';
@@ -97,6 +98,13 @@ export const entitlementMiddleware = (): MiddlewareHandler => {
       c.set('entitlements', createFreeEntitlements(userId));
       await next();
       return;
+    }
+
+    if (isPlatformOperatorUser(user)) {
+      await ensurePlatformOperatorEntitlement({
+        userId,
+        accountId: membership.accountId,
+      });
     }
 
     const [entitlement] = await db
