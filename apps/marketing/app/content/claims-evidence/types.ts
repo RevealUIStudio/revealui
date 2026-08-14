@@ -141,6 +141,8 @@ export const COVERED_FILES: readonly CoveredFile[] = [
   // pages were outside the index while product pages were gated.
   { file: 'contact.ts' },
   { file: 'legal/privacy.ts' },
+  { file: 'legal/cookies.ts' },
+  { file: 'legal/hipaa.ts' },
   { file: 'legal/refund-policy.ts' },
   { file: 'legal/security.ts' },
   { file: 'legal/sla.ts' },

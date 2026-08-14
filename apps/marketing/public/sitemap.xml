@@ -71,6 +71,16 @@
     <priority>0.3</priority>
   </url>
   <url>
+    <loc>https://revealui.com/cookies</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://revealui.com/legal/hipaa</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
     <loc>https://revealui.com/terms</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>

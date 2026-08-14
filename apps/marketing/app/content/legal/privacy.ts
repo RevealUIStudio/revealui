@@ -28,7 +28,7 @@ export interface ThirdParty {
 
 export const PRIVACY_META = {
   title: 'Privacy Policy',
-  lastUpdated: 'May 28, 2026',
+  lastUpdated: 'August 13, 2026',
   intro:
     'The RevealUI platform (revealui.com, admin.revealui.com, api.revealui.com, and docs.revealui.com, the "Service") is operated by REVEALUI STUDIO L.L.C., a Tennessee limited liability company ("we", "us", "our"). This Privacy Policy describes how we collect, use, and protect your personal information.',
 } as const;
@@ -144,7 +144,7 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
       'Object to processing: contact us at the email below',
     ],
     paragraphs: [
-      'California residents: Under the CCPA, you have the right to know what personal information we collect and to request its deletion. We do not sell personal information.',
+      'California residents: Under the CCPA/CPRA you have the right to know what personal information we collect and to request its deletion. We do not sell or share personal information for cross-context advertising. We honor Global Privacy Control as a request to reject optional cookies.',
     ],
   },
   {
@@ -155,31 +155,30 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
   },
   {
     heading: '8. Cookies and trackers',
-    listPreamble:
-      'We use the following cookies and trackers across our public marketing site (revealui.com), the admin dashboard, and the API:',
-    listItems: [
-      'Session cookie (essential): set on sign-in to keep you authenticated. httpOnly, secure, sameSite=lax.',
-      'CSRF token cookie (essential): set on POST requests to prevent cross-site request forgery.',
-      'Vercel Speed Insights (performance telemetry, anonymous): loaded on the marketing site to measure Core Web Vitals (LCP, INP, CLS, etc.). Aggregated by Vercel; no personal identifiers; no cross-site tracking.',
-    ],
     paragraphs: [
-      'We do not use advertising cookies, third-party tracking cookies, or cross-site cookies. Vercel Speed Insights honors the `Do Not Track` browser signal and can be opted out at the browser level. We will surface any additional trackers (including Sentry, when wired) on this list in the same commit that adds them.',
+      'Necessary cookies (session, role, CSRF, collaborative node id, and the consent cookie itself) run to provide the service. Optional analytics, Speed Insights, and Sentry replay stay off until you accept. Reject all is offered with the same prominence as Accept all. Global Privacy Control and Do Not Track are treated as reject-optional. The full inventory lives on the Cookie Policy at https://revealui.com/cookies.',
     ],
   },
   {
-    heading: '9. Children',
+    heading: '9. HIPAA and regulated data',
+    paragraphs: [
+      'Hosted RevealUI is not a HIPAA-certified environment. Do not put protected health information on it without a signed Business Associate Agreement and the HIPAA configuration (REVEALUI_COMPLIANCE_PROFILE=hipaa). That profile turns optional telemetry off and signs idle admin sessions out after 15 minutes. Details: https://revealui.com/legal/hipaa.',
+    ],
+  },
+  {
+    heading: '10. Children',
     paragraphs: [
       'The Service is not intended for children under 13. We do not knowingly collect personal information from children under 13.',
     ],
   },
   {
-    heading: '10. Changes',
+    heading: '11. Changes',
     paragraphs: [
       'We may update this Privacy Policy from time to time. We will notify registered users of material changes via email.',
     ],
   },
   {
-    heading: '11. Contact',
+    heading: '12. Contact',
     paragraphs: [
       `For privacy-related questions or to exercise your data rights, contact us at ${SITE.emails.support}.`,
     ],

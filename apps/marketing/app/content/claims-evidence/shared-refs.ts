@@ -113,6 +113,16 @@ export const LEGAL_PRIVACY_CONTENT: EvidenceRef = {
   ref: 'apps/marketing/app/content/legal/privacy.ts',
   note: 'published Privacy Policy; rendered by PrivacyPage.tsx',
 };
+export const LEGAL_COOKIES_CONTENT: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/marketing/app/content/legal/cookies.ts',
+  note: 'published cookie policy; CookiesPage.tsx + CookieConsentBanner',
+};
+export const LEGAL_HIPAA_CONTENT: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/marketing/app/content/legal/hipaa.ts',
+  note: 'HIPAA honesty page; HipaaPage.tsx + REVEALUI_COMPLIANCE_PROFILE',
+};
 export const LEGAL_REFUND_CONTENT: EvidenceRef = {
   kind: 'code',
   ref: 'apps/marketing/app/content/legal/refund-policy.ts',

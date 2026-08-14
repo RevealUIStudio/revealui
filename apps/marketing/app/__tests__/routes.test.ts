@@ -10,6 +10,8 @@ import { FairSourcePage } from '../routes/FairSourcePage';
 import { HomePage } from '../routes/HomePage';
 import { NotFoundPage } from '../routes/NotFoundPage';
 import { PricingPage } from '../routes/PricingPage';
+import { CookiesPage } from '../routes/CookiesPage';
+import { HipaaPage } from '../routes/HipaaPage';
 import { PrivacyPage } from '../routes/PrivacyPage';
 import { ProductsPage } from '../routes/ProductsPage';
 import { RoadmapPage } from '../routes/RoadmapPage';
@@ -29,6 +31,8 @@ describe('marketing route registry', () => {
       { path: '/roadmap', component: RoadmapPage },
       { path: '/claims', component: ClaimsPage },
       { path: '/privacy', component: PrivacyPage },
+      { path: '/cookies', component: CookiesPage },
+      { path: '/legal/hipaa', component: HipaaPage },
       { path: '/terms', component: TermsPage },
       { path: '/*notfound', component: NotFoundPage },
     ]);
@@ -50,6 +54,8 @@ describe('marketing route registry', () => {
       '/roadmap',
       '/claims',
       '/privacy',
+      '/cookies',
+      '/legal/hipaa',
       '/terms',
     ];
 

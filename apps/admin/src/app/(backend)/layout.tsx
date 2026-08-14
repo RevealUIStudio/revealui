@@ -7,6 +7,8 @@ import type React from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AuthRequiredListener } from '@/lib/auth/AuthRequiredListener';
 import { AdminSidebarLayout } from '@/lib/components/AdminSidebarLayout';
+import { CookieConsentRoot } from '@/lib/compliance/CookieConsentRoot';
+import { IdleSessionGuard } from '@/lib/compliance/IdleSessionGuard';
 import { LicenseProvider } from '@/lib/providers/LicenseProvider';
 import config from '../../../revealui.config';
 
@@ -53,18 +55,21 @@ export default async function Layout({ children }: Args) {
         />
       ) : null}
       <LicenseProvider isFleetMode={isFleetMode}>
-        <AuthRequiredListener />
-        <ErrorBoundary>
-          <AdminSidebarLayout
-            siteName={siteName}
-            isFleetMode={isFleetMode}
-            isHosted={isHosted}
-            isAdmin={isAdmin}
-            appVersion={appVersion}
-          >
-            {children}
-          </AdminSidebarLayout>
-        </ErrorBoundary>
+        <CookieConsentRoot isFleetMode={isFleetMode}>
+          <AuthRequiredListener />
+          <IdleSessionGuard />
+          <ErrorBoundary>
+            <AdminSidebarLayout
+              siteName={siteName}
+              isFleetMode={isFleetMode}
+              isHosted={isHosted}
+              isAdmin={isAdmin}
+              appVersion={appVersion}
+            >
+              {children}
+            </AdminSidebarLayout>
+          </ErrorBoundary>
+        </CookieConsentRoot>
       </LicenseProvider>
     </RootLayout>
   );

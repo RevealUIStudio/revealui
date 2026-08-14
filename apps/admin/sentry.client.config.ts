@@ -13,14 +13,7 @@ Sentry.init({
   ...sentryConfig,
 
   // Additional client-specific configuration
-  integrations: [
-    // Sentry.replayIntegration() is automatically added by Next.js if replaysSessionSampleRate is set
-    Sentry.browserTracingIntegration(),
-    Sentry.replayIntegration({
-      maskAllText: true,
-      blockAllMedia: true,
-    }),
-  ],
+  integrations: [],
 
   // Capture breadcrumbs for better debugging context
   beforeBreadcrumb(breadcrumb) {

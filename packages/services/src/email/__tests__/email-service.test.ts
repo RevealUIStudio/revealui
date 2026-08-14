@@ -178,6 +178,18 @@ describe('getEmailProvider', () => {
     expect(silentLogger.warn).toHaveBeenCalled();
   });
 
+  it('refuses Gmail when the HIPAA profile is on, even if credentials exist', async () => {
+    vi.stubEnv('REVEALUI_COMPLIANCE_PROFILE', 'hipaa');
+    vi.stubEnv('GOOGLE_SERVICE_ACCOUNT_EMAIL', 'sa@p.iam.gserviceaccount.com');
+    vi.stubEnv('GOOGLE_PRIVATE_KEY', 'pk');
+    const provider = getEmailProvider({ logger: silentLogger });
+    expect(provider).not.toBeInstanceOf(GmailProvider);
+    await expect(provider.send(opts)).resolves.toMatchObject({
+      success: false,
+      error: expect.stringContaining('HIPAA profile blocks Gmail API'),
+    });
+  });
+
   it('returns a no-op provider in non-dev without credentials', async () => {
     vi.stubEnv('NODE_ENV', 'test');
     const provider = getEmailProvider({ logger: silentLogger });

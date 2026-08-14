@@ -620,7 +620,7 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'legal/privacy.ts',
     exportPath: 'PRIVACY_SECTIONS[5].paragraphs[0]',
-    text: 'California residents: Under the CCPA, you have the right to know what personal information we collect and to request its deletion. We do not sell personal information.',
+    text: 'California residents: Under the CCPA/CPRA you have the right to know what personal information we collect and to request its deletion. We do not sell or share personal information for cross-context advertising. We honor Global Privacy Control as a request to reject optional cookies.',
     evidence: [LEGAL_PRIVACY_CONTENT],
   },
   {
@@ -631,49 +631,31 @@ export const claimsPart4: readonly ClaimEntry[] = [
   },
   {
     file: 'legal/privacy.ts',
-    exportPath: 'PRIVACY_SECTIONS[7].listPreamble',
-    text: 'We use the following cookies and trackers across our public marketing site (revealui.com), the admin dashboard, and the API:',
-    evidence: [LEGAL_PRIVACY_CONTENT],
-  },
-  {
-    file: 'legal/privacy.ts',
-    exportPath: 'PRIVACY_SECTIONS[7].listItems[0]',
-    text: 'Session cookie (essential): set on sign-in to keep you authenticated. httpOnly, secure, sameSite=lax.',
-    evidence: [LEGAL_PRIVACY_CONTENT],
-  },
-  {
-    file: 'legal/privacy.ts',
-    exportPath: 'PRIVACY_SECTIONS[7].listItems[1]',
-    text: 'CSRF token cookie (essential): set on POST requests to prevent cross-site request forgery.',
-    evidence: [LEGAL_PRIVACY_CONTENT],
-  },
-  {
-    file: 'legal/privacy.ts',
-    exportPath: 'PRIVACY_SECTIONS[7].listItems[2]',
-    text: 'Vercel Speed Insights (performance telemetry, anonymous): loaded on the marketing site to measure Core Web Vitals (LCP, INP, CLS, etc.). Aggregated by Vercel; no personal identifiers; no cross-site tracking.',
-    evidence: [LEGAL_PRIVACY_CONTENT],
-  },
-  {
-    file: 'legal/privacy.ts',
     exportPath: 'PRIVACY_SECTIONS[7].paragraphs[0]',
-    text: 'We do not use advertising cookies, third-party tracking cookies, or cross-site cookies. Vercel Speed Insights honors the `Do Not Track` browser signal and can be opted out at the browser level. We will surface any additional trackers (including Sentry, when wired) on this list in the same commit that adds them.',
+    text: 'Necessary cookies (session, role, CSRF, collaborative node id, and the consent cookie itself) run to provide the service. Optional analytics, Speed Insights, and Sentry replay stay off until you accept. Reject all is offered with the same prominence as Accept all. Global Privacy Control and Do Not Track are treated as reject-optional. The full inventory lives on the Cookie Policy at https://revealui.com/cookies.',
     evidence: [LEGAL_PRIVACY_CONTENT],
   },
   {
     file: 'legal/privacy.ts',
     exportPath: 'PRIVACY_SECTIONS[8].paragraphs[0]',
-    text: 'The Service is not intended for children under 13. We do not knowingly collect personal information from children under 13.',
+    text: 'Hosted RevealUI is not a HIPAA-certified environment. Do not put protected health information on it without a signed Business Associate Agreement and the HIPAA configuration (REVEALUI_COMPLIANCE_PROFILE=hipaa). That profile turns optional telemetry off and signs idle admin sessions out after 15 minutes. Details: https://revealui.com/legal/hipaa.',
     evidence: [LEGAL_PRIVACY_CONTENT],
   },
   {
     file: 'legal/privacy.ts',
     exportPath: 'PRIVACY_SECTIONS[9].paragraphs[0]',
-    text: 'We may update this Privacy Policy from time to time. We will notify registered users of material changes via email.',
+    text: 'The Service is not intended for children under 13. We do not knowingly collect personal information from children under 13.',
     evidence: [LEGAL_PRIVACY_CONTENT],
   },
   {
     file: 'legal/privacy.ts',
     exportPath: 'PRIVACY_SECTIONS[10].paragraphs[0]',
+    text: 'We may update this Privacy Policy from time to time. We will notify registered users of material changes via email.',
+    evidence: [LEGAL_PRIVACY_CONTENT],
+  },
+  {
+    file: 'legal/privacy.ts',
+    exportPath: 'PRIVACY_SECTIONS[11].paragraphs[0]',
     text: '(interpolated: SITE email / domain embedded at runtime)',
     match: 'path',
     evidence: [LEGAL_PRIVACY_CONTENT],

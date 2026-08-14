@@ -1,6 +1,8 @@
 import { ElectricProvider } from '@revealui/sync/provider';
 import type React from 'react';
 import { AuthRequiredListener } from '@/lib/auth/AuthRequiredListener';
+import { CookieConsentRoot } from '@/lib/compliance/CookieConsentRoot';
+import { IdleSessionGuard } from '@/lib/compliance/IdleSessionGuard';
 import { UpgradeDialog } from '@/lib/components/UpgradeDialog';
 import { HeaderThemeProvider } from './HeaderTheme/index';
 import { LicenseProvider } from './LicenseProvider';
@@ -20,9 +22,12 @@ export const Providers = ({ children, isFleetMode = false }: ProvidersProps) => 
       <ThemeProvider>
         <HeaderThemeProvider>
           <LicenseProvider isFleetMode={isFleetMode}>
-            <AuthRequiredListener />
-            {children}
-            {isFleetMode ? null : <UpgradeDialog />}
+            <CookieConsentRoot isFleetMode={isFleetMode}>
+              <AuthRequiredListener />
+              <IdleSessionGuard />
+              {children}
+              {isFleetMode ? null : <UpgradeDialog />}
+            </CookieConsentRoot>
           </LicenseProvider>
         </HeaderThemeProvider>
       </ThemeProvider>

@@ -18,15 +18,16 @@ export function initSentry(): void {
     return;
   }
 
+  const analyticsConsent =
+    typeof document !== 'undefined' && document.cookie.includes('"analytics":true');
+
   Sentry.init({
     dsn,
     environment: import.meta.env.MODE,
-    // Match the admin Sentry sample rate so dashboards aggregate cleanly.
-    tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
-    // Privacy posture per docs/legal/privacy.ts: no proactive session recording.
+    // Tracing and replay are analytics-class. Stay at 0 until cookie consent.
+    tracesSampleRate: analyticsConsent && import.meta.env.PROD ? 0.1 : 0,
     replaysSessionSampleRate: 0,
-    // Capture replay only when an error fires, so the trigger and the disclosure match.
-    replaysOnErrorSampleRate: 1.0,
+    replaysOnErrorSampleRate: analyticsConsent ? 1.0 : 0,
     // Common low-value noise we never want to page on.
     ignoreErrors: [
       // String substring matches — Sentry treats strings as substring includes.
