@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, useId, useState } from 'react';
+import { type ReactNode, useId, useLayoutEffect, useRef, useState } from 'react';
 import { Button } from '../components/Button.js';
 import { Description, Label } from '../components/fieldset.js';
 import { Switch, SwitchField } from '../components/switch.js';
@@ -57,22 +57,50 @@ export function CookieConsentBanner({ className }: CookieConsentBannerProps): Re
     closePreferences,
   } = useCookieConsent();
   const titleId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
   const [draft, setDraft] = useState<CookieConsentConfig>(consent);
 
   const showBanner = !decided || preferencesOpen;
+  const showCustomize = allowOptionalCookies && (preferencesOpen || decided);
+
+  useLayoutEffect(() => {
+    if (!showBanner) {
+      return;
+    }
+    const root = document.documentElement;
+    const panel = panelRef.current;
+    if (!panel) {
+      return;
+    }
+    const applyPad = () => {
+      root.style.paddingBottom = `${panel.offsetHeight}px`;
+    };
+    applyPad();
+    if (typeof ResizeObserver === 'undefined') {
+      return () => {
+        root.style.paddingBottom = '';
+      };
+    }
+    const observer = new ResizeObserver(applyPad);
+    observer.observe(panel);
+    return () => {
+      observer.disconnect();
+      root.style.paddingBottom = '';
+    };
+  }, [showBanner]);
+
   if (!showBanner) {
     return null;
   }
 
-  const showCustomize = allowOptionalCookies && (preferencesOpen || decided);
-
   return (
     <div
+      ref={panelRef}
       role="dialog"
       aria-modal="false"
       aria-labelledby={titleId}
       className={cn(
-        'fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 p-4 shadow-lg backdrop-blur-sm sm:p-6',
+        'fixed inset-x-0 bottom-0 z-50 max-h-[min(42vh,22rem)] overflow-y-auto border-t border-border bg-background/95 p-3 shadow-lg backdrop-blur-sm sm:p-6',
         className,
       )}
     >

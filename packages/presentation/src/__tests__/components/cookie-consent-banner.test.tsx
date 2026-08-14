@@ -56,6 +56,15 @@ describe('CookieConsentBanner', () => {
     expect(screen.getByTestId('analytics')).toHaveTextContent('false');
   });
 
+  it('caps height so a phone login form stays reachable', () => {
+    renderBanner();
+    const dialog = screen.getByRole('dialog', { name: 'Cookies' });
+    expect(dialog.className).toContain('max-h-[min(42vh,22rem)]');
+    expect(dialog.className).toContain('overflow-y-auto');
+    expect(dialog.className).toContain('bottom-0');
+    expect(dialog.className).not.toContain('inset-0');
+  });
+
   it('accept all grants analytics and hides the banner', async () => {
     const user = userEvent.setup();
     renderBanner();
