@@ -83,7 +83,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) |
 | @revealui/db | Drizzle ORM schema (104 tables) on NeonDB (Postgres); Supabase was removed (ADR 2026-05-01) |
 | @revealui/auth | Session auth, password reset, rate limiting |
-| @revealui/presentation | Native UI components in `packages/presentation/src/components/` (Tailwind v4, zero external UI deps  -  only clsx + CVA) |
+| @revealui/presentation | Native UI components in `packages/presentation/src/components/` (Tailwind v4, zero external UI deps; `@revealui/tokens` + `tailwind-merge`, vendored `cn`/`cva`) |
 | @revealui/router | Lightweight file-based router with SSR |
 | @revealui/config | Type-safe env config (Zod + lazy Proxy) |
 | @revealui/utils | Logger, DB helpers, validation |

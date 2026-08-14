@@ -70,4 +70,9 @@ describe('Tabs', () => {
     render(<BasicTabs />);
     expect(screen.getByRole('tablist')).toBeInTheDocument();
   });
+
+  it('uses the shared --ring focus recipe', () => {
+    render(<BasicTabs />);
+    expect(screen.getByRole('tab', { name: 'Tab One' })).toHaveClass('focus-visible:outline-ring');
+  });
 });

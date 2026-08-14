@@ -48,6 +48,9 @@ describe('NavbarSection', () => {
 describe('NavbarItem', () => {
   it('should render as a button by default', () => {
     render(<NavbarItem>Dashboard</NavbarItem>);
+    expect(screen.getByRole('button', { name: 'Dashboard' })).toHaveClass(
+      'focus-visible:outline-ring',
+    );
     expect(screen.getByRole('button', { name: 'Dashboard' })).toBeInTheDocument();
   });
 

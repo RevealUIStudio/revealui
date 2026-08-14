@@ -94,7 +94,9 @@ describe('SidebarHeading', () => {
 describe('SidebarItem', () => {
   it('should render as a button when no href is provided', () => {
     render(<SidebarItem>Dashboard</SidebarItem>);
-    expect(screen.getByRole('button', { name: 'Dashboard' })).toBeInTheDocument();
+    const item = screen.getByRole('button', { name: 'Dashboard' });
+    expect(item).toBeInTheDocument();
+    expect(item).toHaveClass('focus-visible:outline-ring');
   });
 
   it('should render as a link when href is provided', () => {
