@@ -1,6 +1,7 @@
 import type React from 'react';
 import { useDataInteractive } from '../hooks/use-data-interactive.js';
 import { cn } from '../utils/cn.js';
+import { focusRingData } from '../utils/focus.js';
 import { TouchTarget } from './_button-shared.js';
 import { Link } from './link.js';
 
@@ -24,8 +25,7 @@ const triggerClasses = [
   'px-3.5 py-2.5 sm:px-3 sm:py-1.5',
   // Neutral token surface + interaction states via the data-* contract
   'bg-secondary text-secondary-foreground shadow-sm data-hover:bg-secondary/80 data-active:bg-secondary/70',
-  // Focus ring — the shared --ring token, replacing the old fixed blue outline
-  'focus:not-data-focus:outline-hidden data-focus:outline-2 data-focus:outline-offset-2 data-focus:outline-[var(--ring)]',
+  focusRingData,
   // Disabled
   'data-disabled:opacity-50',
   // Icon slot

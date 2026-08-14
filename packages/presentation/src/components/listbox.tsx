@@ -21,6 +21,7 @@ import { useEscapeKey } from '../hooks/use-escape-key.js';
 import { usePopover } from '../hooks/use-popover.js';
 import { useTransition } from '../hooks/use-transition.js';
 import { cn } from '../utils/cn.js';
+import { activeOption, activeOptionForced, focusRingAfterVisible } from '../utils/focus.js';
 
 // ---------------------------------------------------------------------------
 // Context
@@ -332,7 +333,8 @@ export function Listbox<T>({
           'before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)] before:bg-card before:shadow-sm',
 
           'focus:outline-hidden',
-          'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset data-focus:after:ring-2 data-focus:after:ring-ring',
+          'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset',
+          focusRingAfterVisible,
           'data-disabled:opacity-50 data-disabled:before:bg-border data-disabled:before:shadow-none',
         ])}
       >
@@ -473,8 +475,9 @@ export function ListboxOption<T>({
       className={cn(
         'group/option grid cursor-default grid-cols-[--spacing(5)_1fr] items-baseline gap-x-2 rounded-lg py-2.5 pr-3.5 pl-2 sm:grid-cols-[--spacing(4)_1fr] sm:py-1.5 sm:pr-3 sm:pl-1.5',
         'text-base/6 text-foreground sm:text-sm/6 forced-colors:text-[CanvasText]',
-        'outline-hidden data-focus:bg-primary data-focus:text-primary-foreground',
-        'forced-color-adjust-none forced-colors:data-focus:bg-[Highlight] forced-colors:data-focus:text-[HighlightText]',
+        'outline-hidden',
+        activeOption,
+        activeOptionForced,
         'data-disabled:opacity-50',
       )}
     >
