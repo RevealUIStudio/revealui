@@ -9,7 +9,7 @@ export function HipaaPage() {
       <div className="mx-auto max-w-3xl px-6 pt-24 lg:px-8">
         <Callout variant="warning" title="Not a certification">
           This page does not claim that RevealUI is HIPAA certified. It describes the technical
-          controls we ship and the contract steps that are still required. Counsel questions:{' '}
+          controls in the product and the contract steps that are still required. Counsel questions:{' '}
           <a className="underline" href={`mailto:${SITE.emails.support}`}>
             {SITE.emails.support}
           </a>

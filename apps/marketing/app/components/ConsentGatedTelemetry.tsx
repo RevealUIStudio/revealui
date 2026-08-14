@@ -12,7 +12,7 @@ function SpeedInsightsWhenAllowed() {
   if (isHipaaComplianceProfile()) {
     return null;
   }
-  if (!decided || !consent.analytics) {
+  if (!(decided && consent.analytics)) {
     return null;
   }
   return <SpeedInsights />;

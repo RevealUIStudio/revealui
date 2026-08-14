@@ -637,6 +637,12 @@ export const claimsPart4: readonly ClaimEntry[] = [
   },
   {
     file: 'legal/privacy.ts',
+    exportPath: 'PRIVACY_SECTIONS[8].heading',
+    text: '9. HIPAA and regulated data',
+    evidence: [LEGAL_PRIVACY_CONTENT],
+  },
+  {
+    file: 'legal/privacy.ts',
     exportPath: 'PRIVACY_SECTIONS[8].paragraphs[0]',
     text: 'Hosted RevealUI is not a HIPAA-certified environment. Do not put protected health information on it without a signed Business Associate Agreement and the HIPAA configuration (REVEALUI_COMPLIANCE_PROFILE=hipaa). That profile turns optional telemetry off and signs idle admin sessions out after 15 minutes. Details: https://revealui.com/legal/hipaa.',
     evidence: [LEGAL_PRIVACY_CONTENT],

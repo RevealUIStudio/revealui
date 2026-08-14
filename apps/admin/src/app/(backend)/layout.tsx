@@ -6,9 +6,9 @@ import Script from 'next/script';
 import type React from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AuthRequiredListener } from '@/lib/auth/AuthRequiredListener';
-import { AdminSidebarLayout } from '@/lib/components/AdminSidebarLayout';
 import { CookieConsentRoot } from '@/lib/compliance/CookieConsentRoot';
 import { IdleSessionGuard } from '@/lib/compliance/IdleSessionGuard';
+import { AdminSidebarLayout } from '@/lib/components/AdminSidebarLayout';
 import { LicenseProvider } from '@/lib/providers/LicenseProvider';
 import config from '../../../revealui.config';
 

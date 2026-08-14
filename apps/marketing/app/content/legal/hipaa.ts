@@ -5,7 +5,7 @@ export const HIPAA_META = {
   title: 'HIPAA',
   lastUpdated: 'August 13, 2026',
   intro:
-    'This page states what RevealUI does, and does not do, for HIPAA. We do not claim that RevealUI Cloud or a default self-host is HIPAA certified. We ship technical controls a covered entity can turn on, and we will sign a Business Associate Agreement when counsel has one ready and the deployment is in the HIPAA configuration.',
+    'This page states what RevealUI does, and does not do, for HIPAA. We do not claim that RevealUI Cloud or a default self-host is HIPAA certified. The HIPAA configuration turns on technical controls a covered entity can use. We will sign a Business Associate Agreement when counsel has one ready and the deployment is in that configuration.',
 } as const;
 
 export const HIPAA_SECTIONS: readonly LegalSection[] = [

@@ -58,6 +58,12 @@ export const claimsPart7: readonly ClaimEntry[] = [
   },
   {
     file: 'legal/cookies.ts',
+    exportPath: 'COOKIES_SECTIONS[2].heading',
+    text: '3. Optional tools (off until you accept)',
+    evidence: [LEGAL_COOKIES_CONTENT],
+  },
+  {
+    file: 'legal/cookies.ts',
     exportPath: 'COOKIES_SECTIONS[2].listItems[0]',
     text: 'Vercel Speed Insights: first-party performance timings (Core Web Vitals). Loaded only after analytics consent, and never in a HIPAA configuration.',
     evidence: [LEGAL_COOKIES_CONTENT],
@@ -96,7 +102,7 @@ export const claimsPart7: readonly ClaimEntry[] = [
   {
     file: 'legal/hipaa.ts',
     exportPath: 'HIPAA_META.intro',
-    text: 'This page states what RevealUI does, and does not do, for HIPAA. We do not claim that RevealUI Cloud or a default self-host is HIPAA certified. We ship technical controls a covered entity can turn on, and we will sign a Business Associate Agreement when counsel has one ready and the deployment is in the HIPAA configuration.',
+    text: 'This page states what RevealUI does, and does not do, for HIPAA. We do not claim that RevealUI Cloud or a default self-host is HIPAA certified. The HIPAA configuration turns on technical controls a covered entity can use. We will sign a Business Associate Agreement when counsel has one ready and the deployment is in that configuration.',
     evidence: [LEGAL_HIPAA_CONTENT],
   },
   {
@@ -109,6 +115,12 @@ export const claimsPart7: readonly ClaimEntry[] = [
     file: 'legal/hipaa.ts',
     exportPath: 'HIPAA_SECTIONS[0].paragraphs[1]',
     text: 'Do not send PHI to hosted RevealUI (admin.revealui.com, api.revealui.com) until a signed BAA is in place and the tenant is running the HIPAA configuration. The Studio MSA already says that, absent a HIPAA addendum, customers will not provide regulated data.',
+    evidence: [LEGAL_HIPAA_CONTENT],
+  },
+  {
+    file: 'legal/hipaa.ts',
+    exportPath: 'HIPAA_SECTIONS[1].heading',
+    text: '2. Technical controls in the HIPAA profile',
     evidence: [LEGAL_HIPAA_CONTENT],
   },
   {
@@ -143,6 +155,12 @@ export const claimsPart7: readonly ClaimEntry[] = [
   },
   {
     file: 'legal/hipaa.ts',
+    exportPath: 'HIPAA_SECTIONS[2].heading',
+    text: '3. Business Associate Agreements',
+    evidence: [LEGAL_HIPAA_CONTENT],
+  },
+  {
+    file: 'legal/hipaa.ts',
     exportPath: 'HIPAA_SECTIONS[2].paragraphs[0]',
     text: 'A BAA is a contract, not a product flag. RevealUI Studio will execute a customer BAA only through counsel, and only for a tenant that runs the HIPAA configuration.',
     evidence: [LEGAL_HIPAA_CONTENT],
@@ -151,6 +169,12 @@ export const claimsPart7: readonly ClaimEntry[] = [
     file: 'legal/hipaa.ts',
     exportPath: 'HIPAA_SECTIONS[2].paragraphs[1]',
     text: 'Self-host is the honest path for PHI today. You then sign BAAs with the vendors you actually use (your database, your host, your email). Our hosted subprocessors publish their own DPA pages; a HIPAA BAA with each of them is a separate commercial step and is not in place by default.',
+    evidence: [LEGAL_HIPAA_CONTENT],
+  },
+  {
+    file: 'legal/hipaa.ts',
+    exportPath: 'HIPAA_SECTIONS[3].heading',
+    text: '4. Proton and everything else',
     evidence: [LEGAL_HIPAA_CONTENT],
   },
   {
