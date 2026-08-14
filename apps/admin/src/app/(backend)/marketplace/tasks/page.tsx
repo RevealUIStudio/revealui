@@ -203,7 +203,7 @@ function TaskRow({
         onClick={onToggle}
         className="flex h-auto w-full items-center gap-4 rounded-none px-4 py-3 text-left hover:bg-muted"
       >
-        <Badge color={STATUS_BADGE_COLORS[task.status] ?? 'muted'}>{task.status}</Badge>
+        <Badge intent={STATUS_BADGE_COLORS[task.status] ?? 'muted'}>{task.status}</Badge>
         <span className="flex-1 truncate text-sm text-foreground">{task.skill_name}</span>
         <span className="text-xs text-muted-foreground">P{task.priority}</span>
         {task.cost_usdc && <span className="text-xs text-muted-foreground">${task.cost_usdc}</span>}

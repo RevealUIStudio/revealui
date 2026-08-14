@@ -1,80 +1,104 @@
 /**
  * Badge Component Tests
  *
- * Tests the Badge and BadgeButton components for rendering,
- * color variants, and interactive behavior.
+ * Semantic-intent API (Phase 3 PR-3). Palette `color` remains as a deprecated
+ * alias through 0.15 and is covered only as a mapping contract.
  */
 
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { Badge, BadgeButton } from '../../components/badge';
+import { Badge, BadgeButton } from '../../components/badge.js';
 
 describe('Badge', () => {
   describe('Rendering', () => {
-    it('should render with text content', () => {
+    it('renders a span with its text', () => {
       render(<Badge>Active</Badge>);
-      expect(screen.getByText('Active')).toBeInTheDocument();
-    });
-
-    it('should render as a span element', () => {
-      render(<Badge>Status</Badge>);
-      const badge = screen.getByText('Status');
+      const badge = screen.getByText('Active');
       expect(badge.tagName).toBe('SPAN');
     });
 
-    it('should apply custom className', () => {
+    it('applies a custom className after the intent classes', () => {
       render(<Badge className="custom-class">Test</Badge>);
       expect(screen.getByText('Test')).toHaveClass('custom-class');
     });
 
-    it('should apply base styles', () => {
+    it('applies the chip base styles', () => {
       render(<Badge>Base</Badge>);
       const badge = screen.getByText('Base');
       expect(badge).toHaveClass('inline-flex');
-      expect(badge).toHaveClass('rounded-md');
       expect(badge).toHaveClass('font-medium');
+      expect(badge).toHaveClass('rounded-[var(--rvui-radius-full,9999px)]');
     });
   });
 
-  describe('Color Variants', () => {
-    it('should default to zinc color', () => {
+  describe('Intents', () => {
+    it('defaults to the neutral (muted) fill', () => {
       render(<Badge>Default</Badge>);
-      const badge = screen.getByText('Default');
-      expect(badge.className).toContain('bg-zinc');
+      expect(screen.getByText('Default')).toHaveClass('bg-muted');
+      expect(screen.getByText('Default')).toHaveClass('text-muted-foreground');
     });
 
-    it('should apply red color variant', () => {
-      render(<Badge color="red">Error</Badge>);
-      const badge = screen.getByText('Error');
-      expect(badge.className).toContain('bg-red');
-      expect(badge.className).toContain('text-red');
+    it('applies brand', () => {
+      render(<Badge intent="brand">Info</Badge>);
+      expect(screen.getByText('Info')).toHaveClass('bg-primary/10');
+      expect(screen.getByText('Info')).toHaveClass('text-primary');
     });
 
-    it('should apply green color variant', () => {
-      render(<Badge color="green">Success</Badge>);
-      const badge = screen.getByText('Success');
-      expect(badge.className).toContain('bg-green');
-      expect(badge.className).toContain('text-green');
+    it('applies success', () => {
+      render(<Badge intent="success">Ok</Badge>);
+      expect(screen.getByText('Ok')).toHaveClass('bg-success/10');
+      expect(screen.getByText('Ok')).toHaveClass('text-success');
     });
 
-    it('should apply blue color variant', () => {
-      render(<Badge color="blue">Info</Badge>);
-      const badge = screen.getByText('Info');
-      expect(badge.className).toContain('bg-blue');
-      expect(badge.className).toContain('text-blue');
+    it('applies warning', () => {
+      render(<Badge intent="warning">Hold</Badge>);
+      expect(screen.getByText('Hold')).toHaveClass('bg-warning/10');
     });
 
-    it('should apply amber color variant', () => {
-      render(<Badge color="amber">Warning</Badge>);
-      const badge = screen.getByText('Warning');
-      expect(badge.className).toContain('bg-amber');
-      expect(badge.className).toContain('text-amber');
+    it('applies danger', () => {
+      render(<Badge intent="danger">Failed</Badge>);
+      expect(screen.getByText('Failed')).toHaveClass('bg-destructive/10');
+      expect(screen.getByText('Failed')).toHaveClass('text-destructive');
+    });
+
+    it('does not emit raw Tailwind palette steps', () => {
+      render(<Badge intent="danger">Failed</Badge>);
+      expect(screen.getByText('Failed').className).not.toMatch(
+        /\b(?:red|green|blue|amber|zinc|purple)-\d{2,3}\b/,
+      );
     });
   });
 
-  describe('Props Spreading', () => {
-    it('should pass through HTML span attributes', () => {
+  describe('Deprecated color alias', () => {
+    it('maps palette red to danger', () => {
+      render(<Badge color="red">Error</Badge>);
+      expect(screen.getByText('Error')).toHaveClass('bg-destructive/10');
+    });
+
+    it('maps palette green to success', () => {
+      render(<Badge color="green">Saved</Badge>);
+      expect(screen.getByText('Saved')).toHaveClass('bg-success/10');
+    });
+
+    it('maps palette blue to brand', () => {
+      render(<Badge color="blue">Info</Badge>);
+      expect(screen.getByText('Info')).toHaveClass('bg-primary/10');
+    });
+
+    it('accepts an already-semantic color name as a migration shim', () => {
+      render(<Badge color="muted">Tag</Badge>);
+      expect(screen.getByText('Tag')).toHaveClass('bg-muted');
+    });
+
+    it('does not leak the color prop onto the DOM', () => {
+      render(<Badge color="red">Error</Badge>);
+      expect(screen.getByText('Error')).not.toHaveAttribute('color');
+    });
+  });
+
+  describe('Props spreading', () => {
+    it('passes through HTML span attributes', () => {
       render(
         <Badge data-testid="my-badge" id="badge-1">
           Test
@@ -88,19 +112,25 @@ describe('Badge', () => {
 
 describe('BadgeButton', () => {
   describe('Rendering as button', () => {
-    it('should render as a button by default', () => {
+    it('renders a button by default', () => {
       render(<BadgeButton>Click</BadgeButton>);
       expect(screen.getByRole('button', { name: /click/i })).toBeInTheDocument();
     });
 
-    it('should render with badge styling inside', () => {
-      render(<BadgeButton color="red">Alert</BadgeButton>);
-      expect(screen.getByText('Alert')).toBeInTheDocument();
+    it('forwards intent to the inner Badge', () => {
+      render(<BadgeButton intent="danger">Alert</BadgeButton>);
+      expect(screen.getByText('Alert')).toHaveClass('bg-destructive/10');
+    });
+
+    it('uses the native focus-visible ring, not data-focus', () => {
+      render(<BadgeButton>Focus</BadgeButton>);
+      expect(screen.getByRole('button')).toHaveClass('focus-visible:outline-ring');
+      expect(screen.getByRole('button').className).not.toContain('data-focus:outline');
     });
   });
 
-  describe('User Interaction', () => {
-    it('should handle click events', async () => {
+  describe('User interaction', () => {
+    it('fires onClick', async () => {
       const user = userEvent.setup();
       const onClick = vi.fn();
 
@@ -110,7 +140,7 @@ describe('BadgeButton', () => {
       expect(onClick).toHaveBeenCalledTimes(1);
     });
 
-    it('should not fire click when disabled', async () => {
+    it('does not fire onClick when disabled', async () => {
       const user = userEvent.setup();
       const onClick = vi.fn();
 
@@ -122,14 +152,6 @@ describe('BadgeButton', () => {
       await user.click(screen.getByRole('button', { name: /disabled/i }));
 
       expect(onClick).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Color Variants', () => {
-    it('should pass color to inner Badge', () => {
-      render(<BadgeButton color="purple">Purple</BadgeButton>);
-      const badgeSpan = screen.getByText('Purple');
-      expect(badgeSpan.className).toContain('bg-purple');
     });
   });
 });

@@ -1,75 +1,56 @@
 import { Badge } from '@revealui/presentation/client';
 import type { ShowcaseStory } from '@/components/showcase/types.js';
 
-const badgeColors = [
-  'red',
-  'orange',
-  'amber',
-  'yellow',
-  'lime',
-  'green',
-  'emerald',
-  'teal',
-  'cyan',
-  'sky',
-  'blue',
-  'indigo',
-  'violet',
-  'purple',
-  'fuchsia',
-  'pink',
-  'rose',
-  'zinc',
-];
+const badgeIntents = ['brand', 'neutral', 'success', 'warning', 'danger', 'muted'] as const;
 
 const story: ShowcaseStory = {
   slug: 'badge',
   name: 'Badge',
-  description: 'Inline status indicator with 18 color variants. Uses pill-shaped radius token.',
+  description: 'Inline status chip. Semantic intents only; colour never encodes meaning alone.',
   category: 'component',
 
   controls: {
-    color: { type: 'select', options: badgeColors, default: 'zinc' },
+    intent: { type: 'select', options: [...badgeIntents], default: 'neutral' },
     children: { type: 'text', default: 'Badge' },
   },
 
   render: (props: Record<string, unknown>) => (
-    <Badge color={props.color as 'zinc'}>{props.children as string}</Badge>
+    <Badge intent={props.intent as (typeof badgeIntents)[number]}>{props.children as string}</Badge>
   ),
 
   variantGrid: {
-    color: badgeColors,
+    intent: [...badgeIntents],
   },
 
   examples: [
     {
-      name: 'Status Indicators',
+      name: 'Status',
       render: () => (
         <div className="flex flex-wrap gap-2">
-          <Badge color="green">Active</Badge>
-          <Badge color="amber">Pending</Badge>
-          <Badge color="red">Failed</Badge>
-          <Badge color="blue">Info</Badge>
-          <Badge color="zinc">Draft</Badge>
+          <Badge intent="success">Active</Badge>
+          <Badge intent="warning">Pending</Badge>
+          <Badge intent="danger">Failed</Badge>
+          <Badge intent="brand">Info</Badge>
+          <Badge intent="neutral">Draft</Badge>
         </div>
       ),
     },
     {
-      name: 'Feature Tags',
+      name: 'Tags',
       render: () => (
         <div className="flex flex-wrap gap-2">
-          <Badge color="violet">AI</Badge>
-          <Badge color="emerald">OSS</Badge>
-          <Badge color="sky">TypeScript</Badge>
-          <Badge color="fuchsia">Pro</Badge>
+          <Badge intent="brand">AI</Badge>
+          <Badge intent="success">OSS</Badge>
+          <Badge intent="muted">TypeScript</Badge>
+          <Badge intent="brand">Pro</Badge>
         </div>
       ),
     },
   ],
 
   code: (props: Record<string, unknown>) => {
-    const colorAttr = props.color !== 'zinc' ? ` color="${props.color}"` : '';
-    return `<Badge${colorAttr}>${props.children}</Badge>`;
+    const intentAttr = props.intent !== 'neutral' ? ` intent="${props.intent}"` : '';
+    return `<Badge${intentAttr}>${props.children}</Badge>`;
   },
 
   a11y: {

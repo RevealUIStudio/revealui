@@ -133,7 +133,7 @@ export default function EarningsDashboardPage() {
                               ★ {agent.rating.toFixed(1)} ({agent.reviewCount})
                             </span>
                             <span>{agent.taskCount} tasks</span>
-                            <Badge color={agent.status === 'published' ? 'success' : 'muted'}>
+                            <Badge intent={agent.status === 'published' ? 'success' : 'muted'}>
                               {agent.status}
                             </Badge>
                           </div>

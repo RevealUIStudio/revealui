@@ -253,7 +253,7 @@ function SessionRow({
         aria-expanded={expanded}
       >
         <div className="flex w-full items-center gap-3">
-          <Badge color={statusColor(session.status)}>{session.status}</Badge>
+          <Badge intent={statusColor(session.status)}>{session.status}</Badge>
           <span className="truncate font-mono text-sm text-muted-foreground">
             {session.agent_id}
           </span>
@@ -264,7 +264,10 @@ function SessionRow({
             {formatAge(age)}
           </span>
           {stale && (
-            <Badge color="warning" title="Session has not ended after 7+ days — likely a stale row">
+            <Badge
+              intent="warning"
+              title="Session has not ended after 7+ days — likely a stale row"
+            >
               stale
             </Badge>
           )}
@@ -292,7 +295,7 @@ function SessionRow({
                 <h4 className="mb-1 text-xs font-medium text-muted-foreground">Tool counters</h4>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(session.tools).map(([tool, n]) => (
-                    <Badge key={tool} color="muted">
+                    <Badge key={tool} intent="muted">
                       <span className="font-mono">
                         {tool}: {n}
                       </span>

@@ -270,7 +270,7 @@ export default function McpCatalogPage() {
                             {r.tenant}
                           </TableCell>
                           <TableCell>
-                            <Badge color="success">{r.connectionState}</Badge>
+                            <Badge intent="success">{r.connectionState}</Badge>
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-3">
@@ -340,9 +340,9 @@ export default function McpCatalogPage() {
                           </TableCell>
                           <TableCell>
                             {c.mcpResource ? (
-                              <Badge color="success">exposed</Badge>
+                              <Badge intent="success">exposed</Badge>
                             ) : (
-                              <Badge color="muted">hidden</Badge>
+                              <Badge intent="muted">hidden</Badge>
                             )}
                           </TableCell>
                         </TableRow>

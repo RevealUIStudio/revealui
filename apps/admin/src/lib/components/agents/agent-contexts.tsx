@@ -70,7 +70,7 @@ function AgentContextsInner({ agentId }: AgentContextsProps) {
       {agentContexts.map((ctx) => (
         <li key={ctx.id} className="rounded-lg border border-border p-3">
           <div className="mb-1.5 flex items-center gap-2">
-            <Badge color="muted">priority {ctx.priority}</Badge>
+            <Badge intent="muted">priority {ctx.priority}</Badge>
             <span className="text-xs text-muted-foreground">
               {formatRelativeTime(ctx.created_at)}
             </span>

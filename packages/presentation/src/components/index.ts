@@ -27,7 +27,13 @@ export {
   type ButtonProps,
   buttonVariants,
 } from './Button.js';
-export { Badge, BadgeButton } from './badge.js';
+export {
+  Badge,
+  BadgeButton,
+  type BadgeButtonProps,
+  type BadgeIntent,
+  type BadgeProps,
+} from './badge.js';
 export { RevealUIMark, type RevealUIMarkProps } from './brand-mark.js';
 export { Breadcrumb, type BreadcrumbItem } from './breadcrumb.js';
 export {

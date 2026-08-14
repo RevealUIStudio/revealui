@@ -31,7 +31,7 @@ export {
   type ButtonProps,
   buttonVariants,
 } from './components/Button.js';
-export { Badge } from './components/badge.js';
+export { Badge, type BadgeIntent, type BadgeProps } from './components/badge.js';
 // Brand marks + form-field composition — client-safe presentation components that
 // were absent from this barrel though their peers (Label, StatusDot) are here.
 export { RevealUIMark, type RevealUIMarkProps } from './components/brand-mark.js';
