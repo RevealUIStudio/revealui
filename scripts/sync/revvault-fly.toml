@@ -64,7 +64,16 @@ app = "revealui-worker"
 # diverged between the Vercel `api` project and this worker app. When you flip
 # it on one, flip it on the other in the SAME change — this manifest is the
 # checklist that makes that explicit instead of implicit.
-skip = ["STRIPE_LIVE_MODE", "STRIPE_SECRET_KEY", "STRIPE_TAX_ENABLED"]
+skip = [
+  "STRIPE_LIVE_MODE",
+  "STRIPE_SECRET_KEY",
+  "STRIPE_TAX_ENABLED",
+  # GAP-260 P4-4: owner-set posture / mint toggle. Do not orphan on apply.
+  # Worker still holds the private key (Fly last). Set MODE=hosted here before
+  # any later private-key drop.
+  "REVEALUI_DEPLOYMENT_MODE",
+  "REVEALUI_LICENSE_SIGN_VIA_SIGNER",
+]
 
 [fly-apps.revealui-worker.vars]
 # Database (Neon)

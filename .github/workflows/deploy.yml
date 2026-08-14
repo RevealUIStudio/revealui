@@ -100,6 +100,11 @@ jobs:
       - name: Install Vercel CLI
         run: pnpm add -g vercel@56.3.1
 
+      - name: Vercel project settings lockstep (live)
+        run: pnpm validate:vercel-settings -- --live
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
       - name: Resolve api project id from .github/vercel-projects.json
         run: echo "API_PROJECT_ID=$(jq -r '.api' .github/vercel-projects.json)" >> "$GITHUB_ENV"
 

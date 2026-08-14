@@ -225,9 +225,12 @@
   --input: var(--rvui-border);
   --ring: var(--rvui-brand);
   --success: var(--rvui-success);
+  --success-foreground: var(--rvui-text-on-success);
   --warning: var(--rvui-warning);
   --warning-foreground: var(--rvui-warning-text);
   --error: var(--rvui-error);
+  --info: var(--rvui-info);
+  --info-foreground: var(--rvui-text-on-brand);
   --radius: var(--rvui-radius-md);
 }
 

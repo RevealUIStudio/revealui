@@ -235,7 +235,7 @@ function KnowledgeGraphExplorer() {
                   >
                     <div className="flex w-full flex-col gap-0.5">
                       <div className="flex items-center gap-2">
-                        <Badge color="muted">{node.kind}</Badge>
+                        <Badge intent="muted">{node.kind}</Badge>
                         <span className="truncate text-sm text-foreground">{node.name}</span>
                       </div>
                       <div className="truncate font-mono text-xs text-muted-foreground">
@@ -368,9 +368,9 @@ function NodeDetailPane({
       <Card>
         <div className="p-4">
           <div className="flex items-center gap-2">
-            <Badge color="muted">{node.kind}</Badge>
+            <Badge intent="muted">{node.kind}</Badge>
             <h2 className="text-lg font-semibold text-foreground">{node.name}</h2>
-            {isPinned && <Badge color="warning">pinned</Badge>}
+            {isPinned && <Badge intent="warning">pinned</Badge>}
           </div>
           <div className="mt-1 font-mono text-xs text-muted-foreground">{node.natural_key}</div>
           {node.repo && <div className="mt-1 text-xs text-muted-foreground">repo: {node.repo}</div>}
@@ -407,7 +407,7 @@ function NodeDetailPane({
               {facts.map(({ edge, other, provenance }) => (
                 <li key={edge.id} className="rounded-lg border border-border p-2 text-sm">
                   <div>
-                    <Badge color="muted">{edge.relation}</Badge>{' '}
+                    <Badge intent="muted">{edge.relation}</Badge>{' '}
                     <span className="text-foreground">{edge.fact}</span>
                   </div>
                   <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">

@@ -100,11 +100,15 @@ describe('manifest ↔ spec lockstep', () => {
     expect(findSensitivityGaps(stagingVars)).toEqual([]);
   });
 
-  it('the license private key is sensitive and the public key is bare in the Vercel manifest', () => {
+  it('Vercel prod no longer syncs the license private key; public key stays bare', () => {
     const priv = vercelVars.find((v) => v.name === 'REVEALUI_LICENSE_PRIVATE_KEY');
     const pub = vercelVars.find((v) => v.name === 'REVEALUI_LICENSE_PUBLIC_KEY');
-    expect(priv?.sensitive).toBe(true);
+    expect(priv).toBeUndefined();
     expect(pub?.sensitive).toBe(false);
+    const workerPriv = flyVars.find(
+      (v) => v.name === 'REVEALUI_LICENSE_PRIVATE_KEY' && v.source === 'fly:revealui-worker',
+    );
+    expect(workerPriv?.path).toBe('revdev/license-signing-private-key');
   });
 
   it('admin (prod + staging) does not sync the license private key (GAP-260 P4-4)', () => {
@@ -122,7 +126,16 @@ describe('manifest ↔ spec lockstep', () => {
     const apiPriv = vercelVars.find(
       (v) => v.name === 'REVEALUI_LICENSE_PRIVATE_KEY' && v.source === 'vercel:revealui-api',
     );
-    expect(apiPriv?.path).toBe('revdev/license-signing-private-key');
+    expect(apiPriv).toBeUndefined();
+    const apiSignerUrl = vercelVars.find(
+      (v) => v.name === 'REVEALUI_LICENSE_SIGNER_URL' && v.source === 'vercel:revealui-api',
+    );
+    const apiInvoke = vercelVars.find(
+      (v) => v.name === 'REVEALUI_SIGNER_INVOKE_SECRET' && v.source === 'vercel:revealui-api',
+    );
+    expect(apiSignerUrl?.path).toBe('revealui/prod/license/signer-url');
+    expect(apiInvoke?.path).toBe('revealui/prod/license/signer-invoke-secret');
+    expect(apiInvoke?.sensitive).toBe(true);
   });
 
   it('the staging license private key is sensitive and the public key is bare', () => {

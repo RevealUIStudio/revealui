@@ -107,7 +107,7 @@ const LEDGER_SURFACE_COUNT = COVERED_FILES.length + BLOG_POST_METADATA.length;
 function EvidenceRow({ evidence }: { evidence: ClaimEntry['evidence'][number] }) {
   return (
     <li className="flex flex-wrap items-start gap-x-2 gap-y-1 border-t border-dashed border-border py-2 font-mono text-xs">
-      <Badge color={KIND_BADGE_COLOR}>{KIND_LABEL[evidence.kind] ?? evidence.kind}</Badge>
+      <Badge intent={KIND_BADGE_COLOR}>{KIND_LABEL[evidence.kind] ?? evidence.kind}</Badge>
       {evidence.kind === 'command' ? (
         <div className="w-full pt-1">
           <CodeBlock code={evidence.ref} language="bash" />
@@ -223,7 +223,7 @@ export function ClaimsPage() {
         <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {CLAIMS_KIND_LEGEND.map((entry) => (
             <div key={entry.kind} className="flex items-start gap-3">
-              <Badge color={KIND_BADGE_COLOR} className="mt-0.5 shrink-0">
+              <Badge intent={KIND_BADGE_COLOR} className="mt-0.5 shrink-0">
                 {entry.label}
               </Badge>
               <dd className="text-sm text-body">{entry.description}</dd>

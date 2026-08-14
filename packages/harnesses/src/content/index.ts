@@ -70,18 +70,41 @@ export {
 } from './schemas/index.js';
 export type { SkillCatalogEntry, SkillCatalogSource } from './skill-catalog.js';
 export { listSkillCatalog, skimSkillFrontmatter } from './skill-catalog.js';
-export type { NativeWorkflowSkillId, SkillInvokeRequest } from './skill-invoke.js';
+export type {
+  NativeWorkflowSkillId,
+  NativeWorkflowToolName,
+  SkillInvokeCompletionBody,
+  SkillInvokeMessage,
+  SkillInvokeRequest,
+  SkillInvokeToolCall,
+  SkillInvokeToolDefinition,
+} from './skill-invoke.js';
 export {
   buildSkillInvokeRequest,
   classifySkillInvokeFailure,
   extractSkillInvokeText,
+  extractSkillInvokeToolCalls,
   isNativeWorkflowSkillId,
+  isNativeWorkflowToolName,
+  mapNativeToolsToCodingInclude,
+  NATIVE_TO_CODING_TOOL,
   NATIVE_WORKFLOW_SKILL_IDS,
+  NATIVE_WORKFLOW_TOOL_NAMES,
+  nativeWorkflowToolDefinitions,
   PHASE_C_INFERENCE_SNAP,
+  parseNativeWorkflowTools,
   parseSkillInvokeTimeoutOverride,
   resolveNativeWorkflowSkillId,
+  SKILL_INVOKE_MAX_COMPLETION_TOKENS,
+  SKILL_INVOKE_MAX_TOOL_ROUNDS,
+  skillInvokeCompletionBody,
   skillInvokeTimeoutMs,
 } from './skill-invoke.js';
+export type {
+  RunNativeSkillInvokeOptions,
+  RunNativeSkillInvokeResult,
+} from './skill-invoke-runtime.js';
+export { runNativeSkillInvoke } from './skill-invoke-runtime.js';
 export type {
   ContentSnapshot,
   ContentSnapshotFile,

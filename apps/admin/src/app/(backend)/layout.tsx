@@ -8,6 +8,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AuthRequiredListener } from '@/lib/auth/AuthRequiredListener';
 import { AdminSidebarLayout } from '@/lib/components/AdminSidebarLayout';
 import { LicenseProvider } from '@/lib/providers/LicenseProvider';
+import { InitTheme } from '@/lib/providers/Theme/InitTheme';
 import config from '../../../revealui.config';
 
 import { importMap } from './importMap';
@@ -43,6 +44,7 @@ export default async function Layout({ children }: Args) {
   const isAdmin = ADMIN_ROLES.has(role);
   return (
     <RootLayout config={config} importMap={importMap}>
+      <InitTheme nonce={nonce} />
       {nonce ? (
         <Script
           id="revealui-admin-nonce"

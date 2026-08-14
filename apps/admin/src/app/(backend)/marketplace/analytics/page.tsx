@@ -161,7 +161,7 @@ export default function AnalyticsPage() {
                           </TableCell>
                           <TableCell>
                             <Badge
-                              color={
+                              intent={
                                 agent.status === 'published'
                                   ? 'success'
                                   : agent.status === 'draft'

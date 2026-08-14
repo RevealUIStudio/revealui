@@ -312,7 +312,7 @@ function AuditDashboard() {
                         {formatTime(new Date(row.timestamp))}
                       </TableCell>
                       <TableCell>
-                        <Badge color={SEVERITY_BADGE_COLOR[row.severity] ?? 'muted'}>
+                        <Badge intent={SEVERITY_BADGE_COLOR[row.severity] ?? 'muted'}>
                           {row.severity}
                         </Badge>
                       </TableCell>

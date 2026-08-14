@@ -1,5 +1,5 @@
 /**
- * Semantic intent — shared by Button, Switch, Radio, Checkbox, Progress.
+ * Semantic intent — shared by Button, Switch, Radio, Checkbox, Progress, Badge.
  *
  * Gate 0 collapses the Catalyst 11-colorway `color` prop onto these five
  * values so form controls theme with `--rvui-*` instead of Tailwind swatches.

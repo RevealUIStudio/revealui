@@ -421,7 +421,7 @@ function RefundsDashboard() {
                       {record.id}
                     </TableCell>
                     <TableCell>
-                      <Badge color={REFUND_STATUS_COLORS[record.status] ?? 'muted'}>
+                      <Badge intent={REFUND_STATUS_COLORS[record.status] ?? 'muted'}>
                         {record.status}
                       </Badge>
                     </TableCell>

@@ -60,6 +60,11 @@
       "import": "./dist/server/audit-storage.js",
       "default": "./dist/server/audit-storage.js"
     },
+    "./platform-operator": {
+      "types": "./dist/server/platform-operator.d.ts",
+      "import": "./dist/server/platform-operator.js",
+      "default": "./dist/server/platform-operator.js"
+    },
     "./react": {
       "types": "./dist/react/index.d.ts",
       "import": "./dist/react/index.js",

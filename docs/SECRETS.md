@@ -97,12 +97,12 @@ _Machine-generated from [`scripts/sync/secret-paths.ts`](../scripts/sync/secret-
 spec, the Vercel/Fly sync manifests, or their sensitivity markers. Change `secret-paths.ts`
 and re-run the renderer._
 
-Production runtime paths synced to Vercel + Fly (111 paths). `sensitive` = the
+Production runtime paths synced to Vercel + Fly (113 paths). `sensitive` = the
 value is never UI/API-revealable after write (credentials + private signing keys).
 
 | Path | Kind | Sensitive | Consumers | Notes |
 | --- | --- | --- | --- | --- |
-| `revdev/license-signing-private-key` | signing-private | yes | vercel:api, fly:worker, fly:license-signer, with-secrets:license-signing | → migrating to `revealui/prod/license/private-key` (since 2026-06-28); Ed25519 license-signing key. Admin dropped P4-4. Online mint target is fly:license-signer; api/worker keep a copy until SIGN_VIA_SIGNER is sole path. |
+| `revdev/license-signing-private-key` | signing-private | yes | fly:worker, fly:license-signer, with-secrets:license-signing | → migrating to `revealui/prod/license/private-key` (since 2026-06-28); Ed25519 license-signing key. Admin + api dropped P4-4 (signer is mint path). Fly worker last until executor-off digest. Offline stamper keeps with-secrets:license-signing. |
 | `revdev/license-signing-public-key` | signing-public | no | vercel:api, vercel:admin, fly:worker, fly:license-signer, with-secrets:license | → migrating to `revealui/prod/license/public-key` (since 2026-06-28); Ed25519 verification key - rotating invalidates all issued customer licenses |
 | `revealui/prod/admin/api-key` | credential | yes | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/admin/email` | public-config | no | vercel:admin |  |
@@ -124,6 +124,8 @@ value is never UI/API-revealable after write (credentials + private signing keys
 | `revealui/prod/google/private-key` | credential | yes | vercel:api, vercel:admin, fly:worker, vercel:api-staging, vercel:admin-staging | PKCS8 PEM - Gmail SA domain-wide delegation; also read by staging (GAP-343) |
 | `revealui/prod/google/service-account-email` | public-config | no | vercel:api, vercel:admin, fly:worker, vercel:api-staging, vercel:admin-staging |  |
 | `revealui/prod/kek` | credential | yes | vercel:api, vercel:admin, fly:worker | REVEALUI_KEK - AES-256-GCM envelope key; has a NEXT dual-slot rotation story |
+| `revealui/prod/license/signer-invoke-secret` | credential | yes | app:license-signer, vercel:api | HMAC-SHA256 per-call auth for POST /internal/mint. Consumed by license-signer AND mint-client when REVEALUI_LICENSE_SIGN_VIA_SIGNER is on. No REVEALUI_SECRET fallback. Fly signer sets this Fly-direct (skip). |
+| `revealui/prod/license/signer-url` | public-config | no | vercel:api | Base URL for apps/license-signer (GAP-260 P4-3 mint-client). Not a secret. Flag REVEALUI_LICENSE_SIGN_VIA_SIGNER is a plain env toggle (not vaulted). |
 | `revealui/prod/marketplace-connect-return-url` | public-config | no | vercel:api, fly:worker |  |
 | `revealui/prod/passkey/origin` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/passkey/rp-id` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
@@ -311,7 +313,7 @@ revealui/env/license-signing  # PRIVATE: REVEALUI_LICENSE_PRIVATE_KEY
 # It previously held a pre-cutover RSA/RS256 pair. The target is UNVERIFIED: a stale RSA-era value
 # may still occupy this path (RSA is incompatible with the Ed25519 runtime verifier), so the P3-4
 # value-move is gated on a computeKeyId readback. Adversarial verification of the target is in flight.
-# GAP-260 P4-2/P4-3 (apps/license-signer + mint-client), not platform-synced until deploy:
+# GAP-260 P4-4: api now syncs these (signer soak landed). Fly signer still Fly-direct.
 revealui/prod/license/signer-invoke-secret  # REVEALUI_SIGNER_INVOKE_SECRET
                                             # HMAC for POST /internal/mint; NEVER reuse REVEALUI_SECRET
 revealui/prod/license/signer-url            # REVEALUI_LICENSE_SIGNER_URL (public base URL)
@@ -338,16 +340,17 @@ back to "private key present → hosted". `MODE=forge` with a private key presen
 requires `REVEALUI_LICENSE_PRIVATE_KEY` + `REVEALUI_SIGNER_INVOKE_SECRET` at boot (fail-loud).
 
 **Mint cutover (GAP-260 P4-3):** online mint surfaces (`apps/server` webhooks +
-`POST /api/license/generate`) call `@revealui/core/license/mint-client`. Default remains
-local private-key mint. Set `REVEALUI_LICENSE_SIGN_VIA_SIGNER=1` plus
-`REVEALUI_LICENSE_SIGNER_URL` and `REVEALUI_SIGNER_INVOKE_SECRET` on api (and worker if
-it mints) to route mints to the signer.
+`POST /api/license/generate`) call `@revealui/core/license/mint-client`. Hosted
+api routes mints to the signer when `REVEALUI_LICENSE_SIGN_VIA_SIGNER=1` plus
+`REVEALUI_LICENSE_SIGNER_URL` and `REVEALUI_SIGNER_INVOKE_SECRET` are set.
 
-**P4-4 admin drop:** prod and staging admin manifests no longer sync
-`REVEALUI_LICENSE_PRIVATE_KEY`. Set `REVEALUI_DEPLOYMENT_MODE=hosted` on admin
-preview, prove boot GREEN, then owner-apply `revvault sync vercel` so the
-private key is not re-pushed. Fly worker still lists the private key until
-executor-off is proven live. Do not apply this train without that MODE set.
+**P4-4 api drop:** prod and staging admin, and now prod api, no longer sync
+`REVEALUI_LICENSE_PRIVATE_KEY`. Set `REVEALUI_DEPLOYMENT_MODE=hosted` on api
+Production BEFORE owner-apply `revvault sync vercel --project revealui-api`
+(or scoped `--key`). Without MODE, dropping the private key makes
+`detectDeploymentMode` fall back to forge and bricks hosted boot. Fly worker
+still lists the private key until executor-off is proven live. Do not unscoped
+`--apply`.
 
 ### LLM / AI providers
 

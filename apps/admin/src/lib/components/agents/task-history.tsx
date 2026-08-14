@@ -119,8 +119,11 @@ export function TaskHistory({ agentId, refreshKey }: TaskHistoryProps) {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const color = (STATUS_BADGE_COLOR as Record<string, string>)[status] ?? 'muted';
-  return <Badge color={color as 'success' | 'danger' | 'muted'}>{status}</Badge>;
+  const intent =
+    status in STATUS_BADGE_COLOR
+      ? STATUS_BADGE_COLOR[status as keyof typeof STATUS_BADGE_COLOR]
+      : 'muted';
+  return <Badge intent={intent}>{status}</Badge>;
 }
 
 /** Pull the user text from the tasks/send params */

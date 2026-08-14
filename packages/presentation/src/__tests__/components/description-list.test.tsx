@@ -51,6 +51,17 @@ describe('DescriptionTerm', () => {
     );
     expect(screen.getByText('Label')).toHaveClass('term-class');
   });
+
+  it('drops the first-term rule at sm instead of a truncated sm: class', () => {
+    render(
+      <DescriptionList>
+        <DescriptionTerm>Label</DescriptionTerm>
+      </DescriptionList>,
+    );
+    const term = screen.getByText('Label');
+    expect(term.className).toContain('sm:first:border-none');
+    expect(term.className.split(/\s+/)).not.toContain('sm:');
+  });
 });
 
 describe('DescriptionDetails', () => {

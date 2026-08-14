@@ -196,14 +196,14 @@ function MarketplaceAgentCard({ agent }: { agent: MarketplaceAgent }) {
           </h3>
           <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{agent.description}</p>
         </div>
-        <Badge color="muted">{agent.category}</Badge>
+        <Badge intent="muted">{agent.category}</Badge>
       </div>
 
       {/* Tags */}
       {agent.tags.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1">
           {agent.tags.slice(0, 4).map((tag) => (
-            <Badge key={tag} color="muted">
+            <Badge key={tag} intent="muted">
               {tag}
             </Badge>
           ))}

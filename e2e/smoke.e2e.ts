@@ -107,11 +107,11 @@ test.describe('Admin basic render', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Marketing Page (apps/marketing  -  port 3002)
+// Marketing Page (apps/marketing  -  port 3000)
 // ---------------------------------------------------------------------------
 
 test.describe('Marketing page', () => {
-  const MarketingBase = process.env.MARKETING_BASE_URL || 'http://localhost:3002';
+  const MarketingBase = process.env.MARKETING_BASE_URL || 'http://localhost:3000';
 
   test('Marketing root responds', async ({ page }) => {
     const response = await page.goto(MarketingBase, { waitUntil: 'domcontentloaded' });

@@ -2,12 +2,14 @@
  * GAP-293 Phase C — bind native workflow skills to the product default snap.
  *
  * Snap is not invented: `gemma3` is DEFAULT_US_ORIGIN_INFERENCE_SNAP
- * in `@revealui/ai` (`providers/us-origin-snaps.ts`). This module only
- * prepares the invoke; it does not run tools or commit.
+ * in `@revealui/ai` (`providers/us-origin-snaps.ts`). This module prepares
+ * the invoke and the OpenAI-compat tool contract. The daemon executes
+ * allowlisted tools through tool-guard + GAP-294. No git commits.
  */
 
 import { readFileSync } from 'node:fs';
 import type { SkillCatalogEntry } from './skill-catalog.js';
+import { skimSkillFrontmatter } from './skill-catalog.js';
 
 export const NATIVE_WORKFLOW_SKILL_IDS = [
   'revealui-doctor',
@@ -39,12 +41,46 @@ export function isNativeWorkflowSkillId(id: string): id is NativeWorkflowSkillId
   return resolveNativeWorkflowSkillId(id) !== null;
 }
 
+/** Tools a native workflow may request. Names match SKILL.md `allowed-tools`. */
+export const NATIVE_WORKFLOW_TOOL_NAMES = ['Read', 'Grep', 'Glob', 'Bash'] as const;
+export type NativeWorkflowToolName = (typeof NATIVE_WORKFLOW_TOOL_NAMES)[number];
+
+export const SKILL_INVOKE_MAX_COMPLETION_TOKENS = 2_048;
+export const SKILL_INVOKE_MAX_TOOL_ROUNDS = 6;
+
 export interface SkillInvokeRequest {
   skillId: NativeWorkflowSkillId;
   model: typeof PHASE_C_INFERENCE_SNAP;
   path: string;
   system: string;
   user: string;
+  allowedTools: NativeWorkflowToolName[];
+}
+
+export function isNativeWorkflowToolName(name: string): name is NativeWorkflowToolName {
+  return (NATIVE_WORKFLOW_TOOL_NAMES as readonly string[]).includes(name);
+}
+
+export function parseNativeWorkflowTools(raw: readonly string[]): NativeWorkflowToolName[] {
+  const out: NativeWorkflowToolName[] = [];
+  for (const name of raw) {
+    if (isNativeWorkflowToolName(name) && !out.includes(name)) out.push(name);
+  }
+  return out;
+}
+
+/** Map SKILL.md tool names onto createCodingTools `include` ids. */
+export const NATIVE_TO_CODING_TOOL = {
+  Read: 'file_read',
+  Grep: 'file_grep',
+  Glob: 'file_glob',
+  Bash: 'shell_exec',
+} as const;
+
+export function mapNativeToolsToCodingInclude(
+  allowed: readonly NativeWorkflowToolName[],
+): Array<(typeof NATIVE_TO_CODING_TOOL)[NativeWorkflowToolName]> {
+  return allowed.map((name) => NATIVE_TO_CODING_TOOL[name]);
 }
 
 export function buildSkillInvokeRequest(
@@ -70,6 +106,11 @@ export function buildSkillInvokeRequest(
     const msg = err instanceof Error ? err.message : String(err);
     return { error: `cannot read ${entry.path}: ${msg}` };
   }
+  const allowedTools = parseNativeWorkflowTools(skimSkillFrontmatter(body).allowedTools);
+  const toolClause =
+    allowedTools.length > 0
+      ? `Use the provided tools (${allowedTools.join(', ')}) to gather facts. Do not invent file contents or command output. Do not commit or push.`
+      : 'You cannot execute tools or git commits from this invoke. Name any command you would have run; do not claim you ran it.';
   return {
     skillId: resolved,
     model: PHASE_C_INFERENCE_SNAP,
@@ -78,10 +119,10 @@ export function buildSkillInvokeRequest(
     user: [
       `Run the ${resolved} workflow as a RevDev-native pass.`,
       `Local model is the product default Inference Snap: ${PHASE_C_INFERENCE_SNAP}.`,
-      'You cannot execute tools or git commits from this invoke.',
+      toolClause,
       'Produce the structured report the skill specifies (traffic-light / diagnostic / checkpoint report).',
-      'Name any command you would have run; do not claim you ran it.',
     ].join(' '),
+    allowedTools,
   };
 }
 
@@ -103,6 +144,146 @@ export function extractSkillInvokeText(payload: unknown): string {
   const reasoning = typeof rec.reasoning_content === 'string' ? rec.reasoning_content.trim() : '';
   if (reasoning.length > 0) return rec.reasoning_content as string;
   return '';
+}
+
+export interface SkillInvokeToolCall {
+  id: string;
+  name: string;
+  arguments: string;
+}
+
+export function extractSkillInvokeToolCalls(payload: unknown): SkillInvokeToolCall[] {
+  if (!payload || typeof payload !== 'object') return [];
+  const choices = (payload as { choices?: unknown }).choices;
+  if (!Array.isArray(choices) || choices.length === 0) return [];
+  const first = choices[0];
+  if (!first || typeof first !== 'object') return [];
+  const message = (first as { message?: unknown }).message;
+  if (!message || typeof message !== 'object') return [];
+  const raw = (message as { tool_calls?: unknown }).tool_calls;
+  if (!Array.isArray(raw)) return [];
+  const out: SkillInvokeToolCall[] = [];
+  for (const call of raw) {
+    if (!call || typeof call !== 'object') continue;
+    const rec = call as { id?: unknown; function?: unknown };
+    const fn = rec.function;
+    if (!fn || typeof fn !== 'object') continue;
+    const name = (fn as { name?: unknown }).name;
+    const args = (fn as { arguments?: unknown }).arguments;
+    if (typeof name !== 'string' || name.trim() === '') continue;
+    out.push({
+      id: typeof rec.id === 'string' && rec.id.length > 0 ? rec.id : `call_${String(out.length)}`,
+      name,
+      arguments: typeof args === 'string' ? args : '{}',
+    });
+  }
+  return out;
+}
+
+export interface SkillInvokeToolDefinition {
+  type: 'function';
+  function: {
+    name: NativeWorkflowToolName;
+    description: string;
+    parameters: Record<string, unknown>;
+  };
+}
+
+const TOOL_DEFS: Record<NativeWorkflowToolName, SkillInvokeToolDefinition> = {
+  Read: {
+    type: 'function',
+    function: {
+      name: 'Read',
+      description: 'Read a UTF-8 file. Path must be absolute or project-relative.',
+      parameters: {
+        type: 'object',
+        properties: { path: { type: 'string' } },
+        required: ['path'],
+      },
+    },
+  },
+  Grep: {
+    type: 'function',
+    function: {
+      name: 'Grep',
+      description: 'Search file contents with a fixed or regex pattern via ripgrep.',
+      parameters: {
+        type: 'object',
+        properties: {
+          pattern: { type: 'string' },
+          path: { type: 'string' },
+        },
+        required: ['pattern'],
+      },
+    },
+  },
+  Glob: {
+    type: 'function',
+    function: {
+      name: 'Glob',
+      description: 'List files matching a glob under a directory.',
+      parameters: {
+        type: 'object',
+        properties: {
+          pattern: { type: 'string' },
+          path: { type: 'string' },
+        },
+        required: ['pattern'],
+      },
+    },
+  },
+  Bash: {
+    type: 'function',
+    function: {
+      name: 'Bash',
+      description: 'Run a shell command. No commits, no pushes, no secret prints.',
+      parameters: {
+        type: 'object',
+        properties: { command: { type: 'string' } },
+        required: ['command'],
+      },
+    },
+  },
+};
+
+export function nativeWorkflowToolDefinitions(
+  allowed: readonly NativeWorkflowToolName[],
+): SkillInvokeToolDefinition[] {
+  return allowed.map((name) => TOOL_DEFS[name]);
+}
+
+export type SkillInvokeMessage = {
+  role: 'system' | 'user' | 'assistant' | 'tool';
+  content: string;
+  tool_call_id?: string;
+  tool_calls?: SkillInvokeToolCall[];
+};
+
+export interface SkillInvokeCompletionBody {
+  model: typeof PHASE_C_INFERENCE_SNAP;
+  messages: SkillInvokeMessage[];
+  max_tokens: typeof SKILL_INVOKE_MAX_COMPLETION_TOKENS;
+  stream: false;
+  tools?: SkillInvokeToolDefinition[];
+  tool_choice?: 'auto';
+}
+
+export function skillInvokeCompletionBody(
+  messages: SkillInvokeMessage[],
+  tools: readonly NativeWorkflowToolName[] = [],
+): SkillInvokeCompletionBody {
+  const defs = nativeWorkflowToolDefinitions([...tools]);
+  const body: SkillInvokeCompletionBody = {
+    model: PHASE_C_INFERENCE_SNAP,
+    messages,
+    max_tokens: SKILL_INVOKE_MAX_COMPLETION_TOKENS,
+    stream: false,
+  };
+  if (defs.length > 0) {
+    body.tools = defs;
+    body.tool_choice = 'auto';
+  }
+  return body;
 }
 
 /** Measured ~1058ms/token prompt on nemotron-3-nano 30B Q4 CPU. */

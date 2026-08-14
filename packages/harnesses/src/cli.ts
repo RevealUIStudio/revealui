@@ -588,6 +588,7 @@ async function main() {
         );
         process.exit(1);
       }
+      const dryRun = args.includes('--dry-run');
       const { buildSkillInvokeRequest } = await import('./content/skill-invoke.js');
       const catalog = listSkillCatalog({
         projectRoot,
@@ -599,7 +600,21 @@ async function main() {
         process.stderr.write(`${prepared.error}\n`);
         process.exit(1);
       }
-      process.stdout.write(`${JSON.stringify({ ...prepared, dryRun: true }, null, 2)}\n`);
+      if (dryRun) {
+        process.stdout.write(
+          `${JSON.stringify({ ...prepared, dryRun: true, ran: false }, null, 2)}\n`,
+        );
+        return;
+      }
+      const { runNativeSkillInvoke } = await import('./content/skill-invoke-runtime.js');
+      const result = await runNativeSkillInvoke({
+        skillId,
+        catalog,
+        projectRoot,
+        revskillsRoot,
+      });
+      process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+      if (result.error) process.exit(1);
       return;
     }
     if (subcommand !== 'list') {

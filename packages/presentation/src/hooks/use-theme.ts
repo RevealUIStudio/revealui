@@ -1,12 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useSyncExternalStore } from 'react';
+import { THEME_DATA_ATTR, THEME_STORAGE_KEY } from '../theme-init.js';
 
 export type Theme = 'light' | 'dark' | 'system';
 export type ResolvedTheme = 'light' | 'dark';
 
-const STORAGE_KEY = 'rvui-theme';
-const DATA_ATTR = 'data-theme';
+const STORAGE_KEY = THEME_STORAGE_KEY;
+const DATA_ATTR = THEME_DATA_ATTR;
 
 /** Listeners for theme changes across components */
 const listeners = new Set<() => void>();

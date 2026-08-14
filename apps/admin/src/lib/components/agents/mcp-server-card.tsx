@@ -46,7 +46,7 @@ export function McpServerCard({ server }: McpServerCardProps) {
             {server.packageName ?? server.remoteUrl ?? server.id}
           </p>
         </div>
-        <Badge color={STATUS_BADGE_COLOR[server.status]}>{server.status}</Badge>
+        <Badge intent={STATUS_BADGE_COLOR[server.status]}>{server.status}</Badge>
       </div>
 
       {/* Description */}
@@ -56,7 +56,7 @@ export function McpServerCard({ server }: McpServerCardProps) {
       {server.envRequired.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1">
           {server.envRequired.map((envVar) => (
-            <Badge key={envVar} color="muted" className="font-mono">
+            <Badge key={envVar} intent="muted" className="font-mono">
               {envVar}
             </Badge>
           ))}

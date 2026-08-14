@@ -147,7 +147,7 @@ export default function MarketplaceAgentDetailPage() {
                   {agent.rating.toFixed(1)} ({agent.reviewCount} reviews)
                 </span>
                 <span>{agent.taskCount} tasks completed</span>
-                <Badge color="muted">{agent.category}</Badge>
+                <Badge intent="muted">{agent.category}</Badge>
                 <span className="text-muted-foreground">v{agent.version}</span>
               </div>
             </div>
@@ -376,7 +376,7 @@ function ReviewsPanel({
                     </span>
                   ))}
                 </div>
-                {review.verified === 1 && <Badge color="success">Verified</Badge>}
+                {review.verified === 1 && <Badge intent="success">Verified</Badge>}
                 <span className="text-xs text-muted-foreground">
                   {new Date(review.createdAt).toLocaleDateString()}
                 </span>

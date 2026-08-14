@@ -9,6 +9,7 @@ import { useEscapeKey } from '../hooks/use-escape-key.js';
 import { usePopover } from '../hooks/use-popover.js';
 import { useTransition } from '../hooks/use-transition.js';
 import { cn } from '../utils/cn.js';
+import { activeOption, activeOptionForced, focusRingAfterWithin } from '../utils/focus.js';
 
 // ---------------------------------------------------------------------------
 // Context
@@ -237,7 +238,8 @@ export function Combobox<T>({
           'relative block w-full',
           'before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)] before:bg-card before:shadow-sm',
 
-          'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset sm:focus-within:after:ring-2 sm:focus-within:after:ring-ring',
+          'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset',
+          focusRingAfterWithin,
           'has-data-disabled:opacity-50 has-data-disabled:before:bg-border has-data-disabled:before:shadow-none',
           'has-data-invalid:before:shadow-destructive/10',
         ])}
@@ -431,8 +433,9 @@ export function ComboboxOption<T>({
       className={cn(
         'group/option grid w-full cursor-default grid-cols-[1fr_--spacing(5)] items-baseline gap-x-2 rounded-lg py-2.5 pr-2 pl-3.5 sm:grid-cols-[1fr_--spacing(4)] sm:py-1.5 sm:pr-2 sm:pl-3',
         'text-base/6 text-foreground sm:text-sm/6 forced-colors:text-[CanvasText]',
-        'outline-hidden data-focus:bg-primary data-focus:text-primary-foreground',
-        'forced-color-adjust-none forced-colors:data-focus:bg-[Highlight] forced-colors:data-focus:text-[HighlightText]',
+        'outline-hidden',
+        activeOption,
+        activeOptionForced,
         'data-disabled:opacity-50',
       )}
     >

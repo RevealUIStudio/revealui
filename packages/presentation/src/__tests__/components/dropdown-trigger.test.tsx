@@ -65,10 +65,10 @@ describe('DropdownTriggerButton', () => {
     expect(screen.getByRole('button')).toHaveClass('my-custom-class');
   });
 
-  it('styles the focus ring from the --ring token, not a fixed palette', () => {
+  it('styles the focus ring from the shared --ring token, not a fixed palette', () => {
     render(<DropdownTriggerButton>Focus</DropdownTriggerButton>);
     const button = screen.getByRole('button');
-    expect(button.className).toContain('data-focus:outline-[var(--ring)]');
+    expect(button).toHaveClass('data-focus:outline-ring');
     expect(button.className).not.toContain('outline-blue-500');
   });
 });

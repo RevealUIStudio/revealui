@@ -6,8 +6,14 @@
  * account, membership, and entitlement context to the request.
  */
 
+import {
+  ensurePlatformOperatorEntitlement,
+  isPlatformOperatorUser,
+  type PlatformOperatorUserView,
+} from '@revealui/auth/platform-operator';
 import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import { getFeaturesForTier } from '@revealui/core/features';
+import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { accountEntitlements } from '@revealui/db/schema';
 import { and, eq } from 'drizzle-orm';
@@ -72,7 +78,7 @@ function isHealthyStatus(status: string | null): boolean {
 
 export const entitlementMiddleware = (): MiddlewareHandler => {
   return async (c, next) => {
-    const user = c.get('user') as { id?: string } | undefined;
+    const user = c.get('user') as PlatformOperatorUserView | undefined;
     const userId = user?.id ?? null;
 
     if (!userId) {
@@ -97,6 +103,20 @@ export const entitlementMiddleware = (): MiddlewareHandler => {
       c.set('entitlements', createFreeEntitlements(userId));
       await next();
       return;
+    }
+
+    if (isPlatformOperatorUser(user)) {
+      // Resolve the operator's owner workspace inside the helper. Never pass
+      // the request tenant (X-Tenant-ID / member membership) — that would
+      // grant Enterprise onto a customer account.
+      try {
+        await ensurePlatformOperatorEntitlement({ userId });
+      } catch (err) {
+        logger.error('[entitlements] platform operator grant failed (non-fatal)', {
+          userId,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
     }
 
     const [entitlement] = await db

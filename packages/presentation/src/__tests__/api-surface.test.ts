@@ -115,7 +115,7 @@ describe('public API surface', () => {
     const current = await readSurface();
     const leaked = Object.entries(current).flatMap(([entry, names]) =>
       names
-        .filter((n) => n.startsWith('focusRing') || n === 'activeOption')
+        .filter((n) => n.startsWith('focusRing') || n.startsWith('activeOption'))
         .map((n) => `${entry} → ${n}`),
     );
 
@@ -131,7 +131,7 @@ describe('public API surface', () => {
   it('covers every entry point declared in package.json', () => {
     const pkg = JSON.parse(readFileSync(join(__dirname, '..', '..', 'package.json'), 'utf8'));
     const declared = Object.keys(pkg.exports).filter(
-      (k) => !k.endsWith('.css') && !k.includes('design-context'),
+      (k) => !(k.endsWith('.css') || k.includes('design-context')),
     );
     const tested = Object.keys(ENTRY_POINTS);
     const untested = declared.filter((e) => !tested.includes(e));

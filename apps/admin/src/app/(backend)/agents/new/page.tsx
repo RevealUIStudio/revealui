@@ -318,12 +318,12 @@ export default function NewAgentPage() {
                     <p className="text-xs text-muted-foreground leading-relaxed">{t.description}</p>
                     <div className="mt-2 flex flex-wrap gap-1">
                       {t.capabilities.slice(0, 2).map((cap) => (
-                        <Badge key={cap} color="muted">
+                        <Badge key={cap} intent="muted">
                           {cap}
                         </Badge>
                       ))}
                       {t.capabilities.length > 2 && (
-                        <Badge color="muted">+{t.capabilities.length - 2}</Badge>
+                        <Badge intent="muted">+{t.capabilities.length - 2}</Badge>
                       )}
                     </div>
                   </Button>
