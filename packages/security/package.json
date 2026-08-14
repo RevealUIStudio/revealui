@@ -34,6 +34,11 @@
       "types": "./dist/sanitize.d.ts",
       "import": "./dist/sanitize.js",
       "default": "./dist/sanitize.js"
+    },
+    "./cookie-consent": {
+      "types": "./dist/cookie-consent.d.ts",
+      "import": "./dist/cookie-consent.js",
+      "default": "./dist/cookie-consent.js"
     }
   },
   "files": [

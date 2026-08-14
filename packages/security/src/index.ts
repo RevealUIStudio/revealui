@@ -53,6 +53,36 @@ export {
   RequirePermission,
   RequireRole,
 } from './authorization.js';
+export type { ComplianceProfile, ComplianceProfileId } from './compliance-profile.js';
+export {
+  HIPAA_COMPLIANCE_PROFILE,
+  HIPAA_IDLE_TIMEOUT_SECONDS,
+  isHipaaProfile,
+  parseComplianceProfileId,
+  resolveComplianceProfile,
+  STANDARD_COMPLIANCE_PROFILE,
+} from './compliance-profile.js';
+// Browser cookie consent (client-safe; was previously trapped behind ./server)
+export type {
+  CookieConsentConfig,
+  CookieConsentRecord,
+  CookieConsentSource,
+} from './cookie-consent.js';
+export {
+  ACCEPTED_ALL_CONSENT,
+  COOKIE_CONSENT_COOKIE,
+  COOKIE_CONSENT_EVENT,
+  COOKIE_CONSENT_MAX_AGE_SECONDS,
+  COOKIE_CONSENT_STORAGE_KEY,
+  COOKIE_CONSENT_VERSION,
+  CookieConsentManager,
+  cookieConsentManager,
+  DENIED_OPTIONAL_CONSENT,
+  detectPrivacySignal,
+  hasAnalyticsConsent,
+  parseCookieConsent,
+  serializeCookieConsent,
+} from './cookie-consent.js';
 export type {
   EncryptedData,
   EncryptionConfig,
@@ -87,6 +117,19 @@ export {
   SecurityPresets,
   setRateLimitHeaders,
 } from './headers.js';
+export type {
+  HipaaBaaStatus,
+  HipaaSurface,
+  HipaaSurfaceId,
+  HipaaVendorOption,
+} from './hipaa-surfaces.js';
+export {
+  getHipaaSurface,
+  HIPAA_GMAIL_API_VENDOR_ID,
+  HIPAA_SURFACES,
+  isHipaaVendorAllowed,
+  listHipaaBlockedDefaultVendors,
+} from './hipaa-surfaces.js';
 // RFC 8785 JSON canonicalization (pure — no node: built-ins)
 export { canonicalizeJcs } from './jcs.js';
 // Logger configuration
