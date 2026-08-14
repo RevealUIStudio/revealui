@@ -1,5 +1,12 @@
 # @revealui/presentation
 
+## 0.14.2
+
+### Patch Changes
+
+- Nav family (Sidebar, Navbar, Tabs) uses the shared `focusRing` recipe.
+  Anatomy spec: `docs/anatomy/nav.md`.
+
 ## 0.14.1
 
 ### Patch Changes
