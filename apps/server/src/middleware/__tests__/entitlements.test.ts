@@ -14,6 +14,11 @@ const mockDb = {
   select: vi.fn(),
 };
 
+vi.mock('@revealui/auth/platform-operator', () => ({
+  isPlatformOperatorUser: vi.fn(() => false),
+  ensurePlatformOperatorEntitlement: vi.fn(),
+}));
+
 vi.mock('@revealui/db', () => ({
   getClient: vi.fn(() => mockDb),
 }));
@@ -49,6 +54,10 @@ vi.mock('drizzle-orm', () => ({
   or: vi.fn((...args: unknown[]) => `or(${args.join(',')})`),
 }));
 
+import {
+  ensurePlatformOperatorEntitlement,
+  isPlatformOperatorUser,
+} from '@revealui/auth/platform-operator';
 import { entitlementMiddleware, getEntitlementsFromContext } from '../entitlements.js';
 import { errorHandler } from '../error.js';
 
@@ -68,6 +77,7 @@ function createApp(user?: { id: string }) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(isPlatformOperatorUser).mockReturnValue(false);
   selectResults = [];
   mockDbSelectChain.from.mockReturnValue(mockDbSelectChain);
   mockDbSelectChain.innerJoin.mockReturnValue(mockDbSelectChain);
@@ -143,5 +153,58 @@ describe('entitlementMiddleware', () => {
     expect(body.tier).toBe('free');
     expect(body.membershipRole).toBe('member');
     expect(body.subscriptionStatus).toBeNull();
+  });
+
+  it('heals a platform operator onto an enterprise grant before attaching', async () => {
+    vi.mocked(isPlatformOperatorUser).mockReturnValue(true);
+    vi.mocked(ensurePlatformOperatorEntitlement).mockResolvedValue({
+      accountId: 'acct_1',
+      wrote: true,
+    });
+    selectResults = [
+      [{ accountId: 'acct_1', role: 'owner' }],
+      [
+        {
+          tier: 'enterprise',
+          status: 'active',
+          features: { ai: true },
+          limits: { maxAgentTasks: Number.MAX_SAFE_INTEGER },
+        },
+      ],
+    ];
+
+    const app = createApp({ id: 'user-1' });
+    const res = await app.request('/test');
+    const body = (await res.json()) as Record<string, unknown>;
+
+    expect(res.status).toBe(200);
+    expect(ensurePlatformOperatorEntitlement).toHaveBeenCalledWith({
+      userId: 'user-1',
+    });
+    expect(body.tier).toBe('enterprise');
+    expect(body.features).toEqual({ ai: true });
+  });
+
+  it('does not fail the request when the operator grant throws', async () => {
+    vi.mocked(isPlatformOperatorUser).mockReturnValue(true);
+    vi.mocked(ensurePlatformOperatorEntitlement).mockRejectedValue(new Error('db down'));
+    selectResults = [
+      [{ accountId: 'acct_1', role: 'owner' }],
+      [
+        {
+          tier: 'free',
+          status: 'active',
+          features: { ai: false },
+          limits: {},
+        },
+      ],
+    ];
+
+    const app = createApp({ id: 'user-1' });
+    const res = await app.request('/test');
+    const body = (await res.json()) as Record<string, unknown>;
+
+    expect(res.status).toBe(200);
+    expect(body.tier).toBe('free');
   });
 });

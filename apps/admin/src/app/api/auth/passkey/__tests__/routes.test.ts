@@ -48,6 +48,10 @@ vi.mock('@revealui/auth/server', () => ({
     flags: { enabled: true, shadow: true, staleHours: 48 },
   }),
   ensureFreeSignupEntitlement: vi.fn().mockResolvedValue({ accountId: 'acct-test' }),
+  ensurePlatformOperatorEntitlement: vi.fn().mockResolvedValue({
+    accountId: 'acct-test',
+    wrote: true,
+  }),
 }));
 
 // Mock the logger

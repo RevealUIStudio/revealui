@@ -141,6 +141,19 @@ async function main(): Promise<void> {
         `[bootstrap] failed to record TOS acceptance: ${err instanceof Error ? err.message : String(err)}`,
       );
     }
+    if (result.user.id) {
+      try {
+        const { ensurePlatformOperatorEntitlement } = await import(
+          '@revealui/auth/platform-operator'
+        );
+        await ensurePlatformOperatorEntitlement({ userId: result.user.id });
+        console.log('[bootstrap] platform operator enterprise entitlement ensured');
+      } catch (err) {
+        console.warn(
+          `[bootstrap] failed to grant operator enterprise entitlement: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+    }
   }
 
   // Set mustRotatePassword flag if requested
