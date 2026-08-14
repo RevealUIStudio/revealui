@@ -4,6 +4,8 @@ import type { A2ATask } from '@revealui/contracts';
 import { Badge, Button, Textarea } from '@revealui/presentation';
 import { Field, Label } from '@revealui/presentation/client';
 import { useState } from 'react';
+import { UpgradePrompt } from '@/components/UpgradePrompt';
+import { isAiLicenseDenial } from '@/lib/components/agents/ai-license-denial';
 import { apiFetch } from '@/lib/utils/csrf';
 
 interface TaskTesterProps {
@@ -43,12 +45,14 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
   const [state, setState] = useState<TesterState>('idle');
   const [task, setTask] = useState<A2ATask | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [needsUpgrade, setNeedsUpgrade] = useState(false);
 
   async function submit() {
     if (!instruction.trim()) return;
     setState('submitting');
     setTask(null);
     setErrorMsg(null);
+    setNeedsUpgrade(false);
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -80,6 +84,14 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
       };
 
       if (json.error) {
+        if (isAiLicenseDenial(json.error.message)) {
+          setErrorMsg(null);
+          setState('error');
+          setTask(null);
+          setNeedsUpgrade(true);
+          return;
+        }
+        setNeedsUpgrade(false);
         setErrorMsg(json.error.message);
         setState('error');
         return;
@@ -156,6 +168,13 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
           </p>
           <p className="whitespace-pre-wrap text-sm text-muted-foreground">{responseText}</p>
         </div>
+      )}
+
+      {needsUpgrade && (
+        <UpgradePrompt
+          feature="ai"
+          description="Sending a task runs the agent. This account is not entitled to AI yet. Upgrade or ask an operator to grant the plan on the account. There is no founder bypass."
+        />
       )}
 
       {/* Inline error — Alert primitive is a modal dialog, not applicable */}
