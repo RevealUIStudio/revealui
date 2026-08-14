@@ -6,7 +6,11 @@
  * account, membership, and entitlement context to the request.
  */
 
-import { ensurePlatformOperatorEntitlement, isPlatformOperatorUser } from '@revealui/auth/server';
+import {
+  ensurePlatformOperatorEntitlement,
+  isPlatformOperatorUser,
+  type PlatformOperatorUserView,
+} from '@revealui/auth/server';
 import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import { getFeaturesForTier } from '@revealui/core/features';
 import { getClient } from '@revealui/db';
@@ -73,7 +77,7 @@ function isHealthyStatus(status: string | null): boolean {
 
 export const entitlementMiddleware = (): MiddlewareHandler => {
   return async (c, next) => {
-    const user = c.get('user') as { id?: string } | undefined;
+    const user = c.get('user') as PlatformOperatorUserView | undefined;
     const userId = user?.id ?? null;
 
     if (!userId) {

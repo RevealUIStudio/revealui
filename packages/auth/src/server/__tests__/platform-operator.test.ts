@@ -75,6 +75,10 @@ describe('isPlatformOperatorUser', () => {
     expect(isPlatformOperatorUser({ role: 'owner' } as { role: string })).toBe(false);
   });
 
+  it('accepts a session user that only has id (middleware shape)', () => {
+    expect(isPlatformOperatorUser({ id: 'user-1' })).toBe(false);
+  });
+
   it('is false for null', () => {
     expect(isPlatformOperatorUser(null)).toBe(false);
     expect(isPlatformOperatorUser(undefined)).toBe(false);

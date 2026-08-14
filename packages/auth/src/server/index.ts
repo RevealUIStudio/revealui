@@ -140,6 +140,7 @@ export {
   ensurePlatformOperatorEntitlement,
   isPlatformOperatorUser,
   PLATFORM_OPERATOR_LIMITS,
+  type PlatformOperatorUserView,
   rolesFromUserJson,
 } from './platform-operator.js';
 export {

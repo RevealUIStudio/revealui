@@ -41,13 +41,18 @@ export function rolesFromUserJson(json: unknown): string[] {
   return roles.filter((role): role is string => typeof role === 'string');
 }
 
+/** Session/engine user fields this check reads. Extra keys (id, email) are fine. */
+export interface PlatformOperatorUserView {
+  id?: string;
+  _json?: unknown;
+  roles?: unknown;
+}
+
 /**
  * True when this user is the instance operator (engine super-admin).
  * Accepts session `_json.roles` and engine `roles`.
  */
-export function isPlatformOperatorUser(
-  user: { _json?: unknown; roles?: unknown } | null | undefined,
-): boolean {
+export function isPlatformOperatorUser(user: PlatformOperatorUserView | null | undefined): boolean {
   if (!user) {
     return false;
   }
