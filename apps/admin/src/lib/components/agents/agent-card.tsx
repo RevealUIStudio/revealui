@@ -22,7 +22,7 @@ export function AgentCard({ card, agentId }: AgentCardProps) {
           <h3 className="truncate font-semibold text-foreground">{card.name}</h3>
           <p className="mt-0.5 text-xs text-muted-foreground">v{card.version}</p>
         </div>
-        <Badge color="success">active</Badge>
+        <Badge intent="success">active</Badge>
       </div>
 
       {/* Description */}
@@ -30,10 +30,10 @@ export function AgentCard({ card, agentId }: AgentCardProps) {
 
       {/* Capabilities */}
       <div className="flex flex-wrap gap-1.5">
-        {card.capabilities.streaming && <Badge color="blue">streaming</Badge>}
-        {card.capabilities.pushNotifications && <Badge color="purple">push</Badge>}
+        {card.capabilities.streaming && <Badge intent="brand">streaming</Badge>}
+        {card.capabilities.pushNotifications && <Badge intent="brand">push</Badge>}
         {card.authentication.schemes.map((scheme) => (
-          <Badge key={scheme} color="zinc">
+          <Badge key={scheme} intent="neutral">
             {scheme}
           </Badge>
         ))}

@@ -1,56 +1,90 @@
 import type React from 'react';
-import { useDataInteractive } from '../hooks/use-data-interactive.js';
 import { cn } from '../utils/cn.js';
+import { focusRing } from '../utils/focus.js';
+import { type Intent, LEGACY_COLOR_TO_INTENT, type LegacyColorway } from '../utils/intent.js';
 import { TouchTarget } from './_button-shared.js';
 import { Link } from './link.js';
 
-const colors = {
-  red: 'bg-red-500/15 text-red-700 group-data-hover:bg-red-500/25',
-  orange: 'bg-orange-500/15 text-orange-700 group-data-hover:bg-orange-500/25',
-  amber: 'bg-amber-400/20 text-amber-700 group-data-hover:bg-amber-400/30',
-  yellow: 'bg-yellow-400/20 text-yellow-700 group-data-hover:bg-yellow-400/30',
-  lime: 'bg-lime-400/20 text-lime-700 group-data-hover:bg-lime-400/30',
-  green: 'bg-green-500/15 text-green-700 group-data-hover:bg-green-500/25',
-  emerald: 'bg-emerald-500/15 text-emerald-700 group-data-hover:bg-emerald-500/25',
-  teal: 'bg-teal-500/15 text-teal-700 group-data-hover:bg-teal-500/25',
-  cyan: 'bg-cyan-400/20 text-cyan-700 group-data-hover:bg-cyan-400/30',
-  sky: 'bg-sky-500/15 text-sky-700 group-data-hover:bg-sky-500/25',
-  blue: 'bg-blue-500/15 text-blue-700 group-data-hover:bg-blue-500/25',
-  indigo: 'bg-indigo-500/15 text-indigo-700 group-data-hover:bg-indigo-500/25',
-  violet: 'bg-violet-500/15 text-violet-700 group-data-hover:bg-violet-500/25',
-  purple: 'bg-purple-500/15 text-purple-700 group-data-hover:bg-purple-500/25',
-  fuchsia: 'bg-fuchsia-400/15 text-fuchsia-700 group-data-hover:bg-fuchsia-400/25',
-  pink: 'bg-pink-400/15 text-pink-700 group-data-hover:bg-pink-400/25',
-  rose: 'bg-rose-400/15 text-rose-700 group-data-hover:bg-rose-400/25',
-  zinc: 'bg-zinc-600/10 text-zinc-700 group-data-hover:bg-zinc-600/20',
-  // Cobalt semantic variants (token-driven; auto-adapt to light/dark via the --rvui-*
-  // bridge, so no `dark:` pair is needed). Added so admin/dashboard status badges can
-  // track the semantic token system instead of the raw-palette swatches above. The raw
-  // palette stays intact (it is the allowlisted product surface per ds-catalyst-reskin).
-  brand: 'bg-primary/10 text-primary group-data-hover:bg-primary/20',
-  success: 'bg-success/10 text-success group-data-hover:bg-success/20',
-  warning: 'bg-warning/10 text-warning-foreground group-data-hover:bg-warning/20',
-  danger: 'bg-destructive/10 text-destructive group-data-hover:bg-destructive/20',
-  muted: 'bg-muted text-muted-foreground group-data-hover:bg-muted/80',
+/**
+ * Badge — owned RevealUI status chip.
+ *
+ * `intent` is the semantic colour (brand, neutral, success, warning, danger,
+ * plus `muted` for metadata tags). Styles come from the `--rvui-*` / `@theme`
+ * bridge only. The Catalyst 20-swatch `color` palette is gone; `color` remains
+ * as a deprecated alias through 0.15.
+ */
+
+export type BadgeIntent = Intent | 'muted';
+
+const INTENT_STYLES: Record<BadgeIntent, string> = {
+  brand: 'bg-primary/10 text-primary group-hover:bg-primary/20',
+  danger: 'bg-destructive/10 text-destructive group-hover:bg-destructive/20',
+  muted: 'bg-muted text-muted-foreground group-hover:bg-muted/80',
+  neutral: 'bg-muted text-muted-foreground group-hover:bg-muted/80',
+  success: 'bg-success/10 text-success group-hover:bg-success/20',
+  warning: 'bg-warning/10 text-warning-foreground group-hover:bg-warning/20',
 };
 
-type BadgeProps = { color?: keyof typeof colors };
+const BADGE_INTENTS = new Set<string>(Object.keys(INTENT_STYLES));
 
-export function Badge({
-  color = 'zinc',
-  className,
-  ...props
-}: BadgeProps & React.ComponentPropsWithoutRef<'span'>) {
+const warned = new Set<string>();
+
+function isBadgeIntent(value: string): value is BadgeIntent {
+  return BADGE_INTENTS.has(value);
+}
+
+/**
+ * Resolve the chip intent. `intent` wins. Deprecated `color` maps either an
+ * already-semantic name or a Catalyst colorway, then warns once per pair.
+ */
+export function resolveBadgeIntent(opts: {
+  intent?: BadgeIntent;
+  color?: string;
+  component?: string;
+}): BadgeIntent {
+  if (opts.intent) return opts.intent;
+  if (!opts.color) return 'neutral';
+
+  const next = isBadgeIntent(opts.color)
+    ? opts.color
+    : (LEGACY_COLOR_TO_INTENT[opts.color as LegacyColorway] ?? 'neutral');
+
+  if (process.env.NODE_ENV !== 'production') {
+    const component = opts.component ?? 'Badge';
+    const key = `${component}:${opts.color}`;
+    if (!warned.has(key)) {
+      warned.add(key);
+      const msg =
+        `[RevealUI] ${component}: the \`color\` prop is deprecated and will be removed in 0.15. ` +
+        `Use \`intent\` instead: color="${opts.color}" → intent="${next}".`;
+      // biome-ignore lint/suspicious/noConsole: one-shot deprecation surface through 0.15
+      console.warn(msg); // console-allowed
+    }
+  }
+
+  return next;
+}
+
+export interface BadgeProps extends React.ComponentPropsWithoutRef<'span'> {
+  /** Semantic fill. Default `neutral` (was palette `zinc`). */
+  intent?: BadgeIntent;
+  /**
+   * @deprecated Use `intent`. Mapped for two minors (through 0.15).
+   */
+  color?: BadgeIntent | LegacyColorway;
+}
+
+export function Badge({ intent, color, className, ...props }: BadgeProps): React.ReactElement {
+  const resolved = resolveBadgeIntent({ intent, color, component: 'Badge' });
   return (
     <span
       {...props}
       className={cn(
+        'inline-flex items-center gap-x-1.5 rounded-[var(--rvui-radius-full,9999px)] px-1.5 py-0.5 text-sm/5 font-medium sm:text-xs/5 forced-colors:outline',
+        INTENT_STYLES[resolved],
         className,
-        'inline-flex items-center gap-x-1.5 rounded-md px-1.5 py-0.5 text-sm/5 font-medium sm:text-xs/5 forced-colors:outline',
-        colors[color],
       )}
       style={{
-        borderRadius: 'var(--rvui-radius-full, 9999px)',
         transition:
           'background-color var(--rvui-duration-fast, 120ms) var(--rvui-ease, cubic-bezier(0.22, 1, 0.36, 1))',
       }}
@@ -58,43 +92,46 @@ export function Badge({
   );
 }
 
+export type BadgeButtonProps = {
+  intent?: BadgeIntent;
+  /** @deprecated Use `intent`. Mapped through 0.15. */
+  color?: BadgeIntent | LegacyColorway;
+  className?: string;
+  children: React.ReactNode;
+  ref?: React.Ref<HTMLElement>;
+} & (
+  | ({
+      href?: never;
+      disabled?: boolean;
+    } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className' | 'color'>)
+  | ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className' | 'color'>)
+);
+
 export function BadgeButton({
-  color = 'zinc',
+  intent,
+  color,
   className,
   children,
   ref,
   ...props
-}: BadgeProps & { className?: string; children: React.ReactNode; ref?: React.Ref<HTMLElement> } & (
-    | ({
-        href?: never;
-        disabled?: boolean;
-      } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
-    | ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
-  )) {
-  const disabled = 'disabled' in props ? props.disabled : false;
-  const interactiveProps = useDataInteractive({ disabled: disabled ?? false });
-
+}: BadgeButtonProps): React.ReactElement {
+  const resolved = resolveBadgeIntent({ intent, color, component: 'BadgeButton' });
   const classes = cn(
+    'group relative inline-flex rounded-[var(--rvui-radius-full,9999px)]',
+    focusRing,
     className,
-    'group relative inline-flex rounded-md focus:not-data-focus:outline-hidden data-focus:outline-2 data-focus:outline-offset-2 data-focus:outline-ring',
   );
 
   return typeof props.href === 'string' ? (
     <Link {...props} className={classes} ref={ref as React.Ref<HTMLAnchorElement>}>
       <TouchTarget>
-        <Badge color={color}>{children}</Badge>
+        <Badge intent={resolved}>{children}</Badge>
       </TouchTarget>
     </Link>
   ) : (
-    <button
-      type="button"
-      {...props}
-      {...interactiveProps}
-      className={classes}
-      ref={ref as React.Ref<HTMLButtonElement>}
-    >
+    <button type="button" {...props} className={classes} ref={ref as React.Ref<HTMLButtonElement>}>
       <TouchTarget>
-        <Badge color={color}>{children}</Badge>
+        <Badge intent={resolved}>{children}</Badge>
       </TouchTarget>
     </button>
   );

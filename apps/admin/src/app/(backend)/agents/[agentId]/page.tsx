@@ -268,7 +268,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                       <div className="flex items-start justify-between gap-3">
                         <h1 className="text-xl font-semibold text-foreground">{card.name}</h1>
                         <div className="flex shrink-0 items-center gap-2">
-                          <Badge color="success">v{card.version}</Badge>
+                          <Badge intent="success">v{card.version}</Badge>
                           <Button
                             type="button"
                             onClick={handleEditStart}
@@ -350,7 +350,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                         {skill.tags && skill.tags.length > 0 && (
                           <div className="mt-1.5 flex flex-wrap gap-1">
                             {skill.tags.map((tag) => (
-                              <Badge key={tag} color="muted">
+                              <Badge key={tag} intent="muted">
                                 {tag}
                               </Badge>
                             ))}

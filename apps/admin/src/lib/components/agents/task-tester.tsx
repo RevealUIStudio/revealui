@@ -190,5 +190,5 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
 function TaskStateBadge({ state }: { state: string }) {
   const color = TASK_STATE_BADGE_COLOR[state as keyof typeof TASK_STATE_BADGE_COLOR] ?? 'muted';
   const label = TASK_STATE_LABEL[state] ?? state;
-  return <Badge color={color}>{label}</Badge>;
+  return <Badge intent={color}>{label}</Badge>;
 }

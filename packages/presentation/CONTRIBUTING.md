@@ -33,8 +33,8 @@ Every new component goes through five steps. Skipping any of these blocks merge.
 
 Components live under `src/components/`. Two patterns coexist:
 
-- **Headless** (`button-headless.tsx`) — bare functionality with no styling. Useful when consumers need to bring their own visual treatment.
-- **CVA** (`Button.tsx`) — opinionated styled variant powered by CVA (`class-variance-authority` clone in `utils/cn.ts`). Most consumers use this.
+- **Headless** (`checkbox-headless.tsx`, `input-headless.tsx`, …) — behavior and a11y with no visual opinion. Useful when consumers bring their own classes.
+- **Styled** (`Button.tsx`, `Badge.tsx`) — opinionated tokens via CVA (`utils/cn.ts`). Most consumers use this.
 
 The CVA component should accept the same props as the headless one plus a `variant` and `size` (or component-specific equivalents). Re-export both from `src/components/index.ts` and `src/server.ts` (server-safe subset) or `src/client.ts` (client-only).
 

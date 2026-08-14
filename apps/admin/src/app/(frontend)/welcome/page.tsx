@@ -76,7 +76,7 @@ export default function WelcomePage() {
       <div className="text-center mb-12">
         {isPostPurchase && isPaidTier && (
           <div className="mb-6 flex justify-center">
-            <Badge color="success">
+            <Badge intent="success">
               <span role="img" aria-label="Checkmark">
                 &#10003;
               </span>

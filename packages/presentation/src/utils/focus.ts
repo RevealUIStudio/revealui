@@ -32,8 +32,8 @@ export const focusRing =
  * than relying on `:focus-visible`. `focus:not-data-focus:outline-hidden`
  * suppresses the native ring so the two mechanisms don't double up.
  *
- * Use in: badge (BadgeButton), avatar (AvatarButton), switch, dropdown items,
- * listbox / combobox options.
+ * Use in: avatar (AvatarButton), switch, dropdown items,
+ * listbox / combobox options. BadgeButton uses {@link focusRing}.
  *
  * Replaces: `focus:not-data-focus:outline-hidden data-focus:outline-2
  * data-focus:outline-offset-2 data-focus:outline-blue-500`

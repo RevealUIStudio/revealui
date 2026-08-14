@@ -1,5 +1,26 @@
 # @revealui/presentation
 
+## 0.14.0
+
+### Minor Changes
+
+- Re-author Badge as an owned RevealUI chip (component sovereignty PR-3).
+
+  **Breaking (0.x minor):** `Badge` / `BadgeButton` drop the Catalyst 20-swatch
+  `color` palette for semantic `intent`:
+  `'brand' | 'neutral' | 'success' | 'warning' | 'danger' | 'muted'`.
+
+  **Default change:** an unstyled `<Badge>` was palette zinc and is now
+  `neutral` (muted surface + muted ink).
+
+  Migration: `color="blue"|"indigo"|"violet"|…` → `intent="brand"`;
+  `color="zinc"` → `intent="neutral"`; green family → `success`;
+  amber/yellow → `warning`; red family → `danger`. The legacy `color` prop
+  remains as a deprecated alias through 0.15 with a one-shot dev warning.
+
+  First-party admin, marketing, and docs showcase call sites already use
+  `intent`. `presentation-lint` no longer exempts `badge.tsx`.
+
 ## 0.13.1
 
 ### Patch Changes
