@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { type ReactNode, useId, useState } from 'react';
 import { Button } from '../components/Button.js';
 import { Description, Label } from '../components/fieldset.js';
 import { Switch, SwitchField } from '../components/switch.js';
@@ -42,7 +42,7 @@ export interface CookieConsentBannerProps {
   className?: string;
 }
 
-export function CookieConsentBanner({ className }: CookieConsentBannerProps): JSX.Element | null {
+export function CookieConsentBanner({ className }: CookieConsentBannerProps): ReactNode {
   const {
     consent,
     decided,
@@ -165,7 +165,7 @@ export function CookieSettingsButton({
 }: {
   className?: string;
   children?: string;
-}): JSX.Element | null {
+}): ReactNode {
   const ctx = useOptionalCookieConsent();
   if (!ctx) {
     return null;
