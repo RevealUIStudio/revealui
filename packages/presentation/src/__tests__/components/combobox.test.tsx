@@ -66,6 +66,12 @@ describe('Combobox', () => {
     expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
+  it('paints the control ring on :focus-within from the --ring token', () => {
+    render(<BasicCombobox />);
+    const shell = screen.getByRole('combobox').parentElement;
+    expect(shell?.className).toContain('focus-within:after:ring-ring');
+  });
+
   it('should display placeholder text', () => {
     render(<BasicCombobox />);
     expect(screen.getByPlaceholderText('Select a fruit')).toBeInTheDocument();

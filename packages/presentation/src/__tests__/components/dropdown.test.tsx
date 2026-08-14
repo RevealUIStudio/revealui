@@ -94,6 +94,19 @@ describe('Dropdown', () => {
     expect(items).toHaveLength(2);
   });
 
+  it('highlights the active menuitem from brand tokens, not a palette step', async () => {
+    const user = userEvent.setup();
+    render(<BasicDropdown />);
+
+    await user.click(screen.getByText('Actions'));
+    const items = screen.getAllByRole('menuitem');
+    for (const item of items) {
+      expect(item).toHaveClass('data-focus:bg-primary');
+      expect(item).toHaveClass('data-focus:text-primary-foreground');
+      expect(item.className).not.toMatch(/\b(?:blue|zinc|indigo)-\d{2,3}\b/);
+    }
+  });
+
   it('should call onClick handler and close menu when item is clicked', async () => {
     const user = userEvent.setup();
     const onItemClick = vi.fn();

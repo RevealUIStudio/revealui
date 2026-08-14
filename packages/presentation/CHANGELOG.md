@@ -1,5 +1,14 @@
 # @revealui/presentation
 
+## 0.14.1
+
+### Patch Changes
+
+- Overlay family (Dropdown, Listbox, Combobox) consumes the shared `focus.ts`
+  recipes for rings and active-option fill. Listbox trigger ring is native
+  `:focus-visible` (the previous `data-focus:` after-ring never fired). Anatomy
+  spec: `docs/anatomy/overlays.md`.
+
 ## 0.14.0
 
 ### Minor Changes
