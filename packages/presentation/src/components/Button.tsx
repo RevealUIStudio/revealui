@@ -98,7 +98,7 @@ const buttonVariants = cva(
         appearance: 'outline',
         variant: 'neutral',
         class:
-          'border border-[var(--border)] bg-background text-foreground shadow-sm hover:bg-card hover:text-accent-foreground',
+          'border border-[var(--border)] bg-background text-foreground shadow-sm hover:bg-muted hover:text-foreground',
       },
       {
         appearance: 'outline',
@@ -122,7 +122,9 @@ const buttonVariants = cva(
       {
         appearance: 'ghost',
         variant: 'neutral',
-        class: 'hover:bg-card hover:text-accent-foreground',
+        // Body ink on a muted fill. `accent-foreground` is ink-on-amber
+        // (`--rvui-text-on-accent`) and disappears on `--card` in dark theme.
+        class: 'text-foreground hover:bg-muted hover:text-foreground',
       },
       {
         appearance: 'ghost',
