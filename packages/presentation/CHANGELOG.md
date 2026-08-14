@@ -1,6 +1,6 @@
 # @revealui/presentation
 
-## 0.14.3
+## 0.15.1
 
 ### Patch Changes
 
@@ -9,6 +9,16 @@
   `has-[[data-focus]]` recipe depended on a hook attribute). DescriptionTerm
   drops the first-row rule at `sm` instead of a truncated `sm:` class.
   Anatomy spec: `docs/anatomy/data.md`.
+
+## 0.15.0
+
+### Minor Changes
+
+- Export a pre-hydration theme bootstrap (`THEME_BOOTSTRAP_SCRIPT`,
+  `THEME_STORAGE_KEY`, `THEME_DATA_ATTR`) that stamps `data-theme` from
+  `rvui-theme` or the OS scheme before first paint. Same key and
+  resolution as `useTheme`. Admin, marketing, and docs consume the same
+  payload so a stored light/dark preference no longer flashes.
 
 ## 0.14.2
 

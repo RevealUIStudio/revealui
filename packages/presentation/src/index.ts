@@ -14,4 +14,9 @@ export * from './components/index.js';
 export * from './hooks/index.js';
 export * from './icons/providers.js';
 export * from './primitives/index.js';
+export {
+  THEME_BOOTSTRAP_SCRIPT,
+  THEME_DATA_ATTR,
+  THEME_STORAGE_KEY,
+} from './theme-init.js';
 export * from './utils/index.js';

@@ -1,3 +1,4 @@
+export { THEME_DATA_ATTR, THEME_STORAGE_KEY } from '../theme-init.js';
 export { useClickOutside } from './use-click-outside.js';
 export { CloseContext, useCloseContext } from './use-close-context.js';
 export { useControllableState } from './use-controllable-state.js';
@@ -27,6 +28,7 @@ export { usePopover } from './use-popover.js';
 export { useRovingTabindex } from './use-roving-tabindex.js';
 export { useScrollLock } from './use-scroll-lock.js';
 export { type ResolvedTheme, type Theme, useTheme } from './use-theme.js';
+
 export { useToggle } from './use-toggle.js';
 export { useTransition } from './use-transition.js';
 export { useTypeAhead } from './use-type-ahead.js';

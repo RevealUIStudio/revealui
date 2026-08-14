@@ -167,6 +167,10 @@ export { Grid, type GridProps } from './primitives/Grid.js';
 export { Heading, type HeadingProps } from './primitives/Heading.js';
 export { Slot, type SlotProps } from './primitives/Slot.js';
 export { Text, type TextProps } from './primitives/Text.js';
-
+export {
+  THEME_BOOTSTRAP_SCRIPT,
+  THEME_DATA_ATTR,
+  THEME_STORAGE_KEY,
+} from './theme-init.js';
 // Utils
 export { cn } from './utils/cn.js';

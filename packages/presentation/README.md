@@ -143,7 +143,7 @@ import { useClickOutside, useFocusTrap } from '@revealui/presentation/hooks'
 | usePopover | Popover positioning |
 | useRovingTabindex | Keyboard navigation in groups |
 | useScrollLock | Prevent body scroll |
-| useTheme | Theme detection (light/dark/system) |
+| useTheme | Theme detection (light/dark/system). Pair with `THEME_BOOTSTRAP_SCRIPT` in `<head>` so the first paint already has `data-theme`. |
 | useToggle | Boolean toggle state |
 | useTransition | CSS transitions |
 | useTypeAhead | Type-ahead search in lists |
@@ -152,12 +152,12 @@ import { useClickOutside, useFocusTrap } from '@revealui/presentation/hooks'
 
 | Subpath | Contents |
 |---------|----------|
-| `@revealui/presentation` | All components, primitives, and hooks |
-| `@revealui/presentation/server` | Server components |
+| `@revealui/presentation` | All components, primitives, and hooks. Also `THEME_BOOTSTRAP_SCRIPT`, `THEME_STORAGE_KEY`, `THEME_DATA_ATTR`. |
+| `@revealui/presentation/server` | Server components plus the same theme-bootstrap constants (safe in RSC / `beforeInteractive`) |
 | `@revealui/presentation/client` | Client components |
 | `@revealui/presentation/components` | Components only |
 | `@revealui/presentation/primitives` | Primitives only |
-| `@revealui/presentation/hooks` | Hooks only |
+| `@revealui/presentation/hooks` | Hooks plus `THEME_STORAGE_KEY` / `THEME_DATA_ATTR` |
 | `@revealui/presentation/animations` | Animation utilities |
 | `@revealui/presentation/tokens.css` | Design token CSS file |
 
