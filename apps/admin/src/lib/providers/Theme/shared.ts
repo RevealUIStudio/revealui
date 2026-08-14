@@ -1,6 +1,6 @@
 import type { Theme } from './types';
 
-export const themeLocalStorageKey = 'revealui-theme';
+export { THEME_STORAGE_KEY as themeLocalStorageKey } from '@revealui/presentation/hooks';
 
 export const defaultTheme = 'light';
 

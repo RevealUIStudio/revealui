@@ -124,8 +124,9 @@
    * untouched since the cms->admin rename. The catalyst SidebarLayout shell covers the
    * body, but token-driving it keeps the (backend) surface cobalt-coherent with
    * (frontend) and prevents a hardcoded light-gray leaking at any uncovered edge.
-   * No FOUC `html { opacity: 0 }` guard here (unlike (frontend)/styles.css): (backend)
-   * has no InitTheme to set data-theme, so a guard would hide the page permanently. */
+   * No FOUC `html { opacity: 0 }` guard here (unlike (frontend)/styles.css): Payload's
+   * RootLayout owns <html>, and a hide-until-attr guard would brick the shell if the
+   * beforeInteractive script were blocked. InitTheme still stamps data-theme. */
   body {
     background-color: var(--rvui-surface-0);
     color: var(--rvui-text-0);

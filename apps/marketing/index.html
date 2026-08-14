@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <!--
-  System-adaptive: the marketing site follows the visitor's OS color scheme via
-  @revealui/presentation/tokens.css (dark-first :root + prefers-color-scheme:light
-  media query). Every section now uses adaptive semantic tokens (bg-background,
-  text-foreground, text-muted-foreground, …), so no data-theme lock is needed.
+  System-adaptive: tokens.css is dark-first with a prefers-color-scheme:light
+  fallback. The head script is THEME_BOOTSTRAP_SCRIPT from
+  @revealui/presentation: it stamps data-theme from rvui-theme (or the OS)
+  before first paint so a stored light/dark preference does not flash.
 -->
 <html lang="en">
   <head>
@@ -22,6 +22,9 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#060d1a" />
+    <script>
+      (function(){try{var k="rvui-theme";var s=localStorage.getItem(k);var t=(s==='light'||s==='dark'||s==='system')?s:'system';var r=t==='system'?(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):t;document.documentElement.setAttribute("data-theme",r);}catch(e){document.documentElement.setAttribute("data-theme",window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');}})();
+    </script>
     <!-- Fonts are self-hosted via @fontsource-variable/* (imported in
          app/entry.client.tsx). No third-party font host is referenced here:
          the CSP in vercel.json (font-src 'self' data:) blocks external font
