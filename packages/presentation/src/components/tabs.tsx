@@ -3,6 +3,7 @@
 import type React from 'react';
 import { createContext, use, useId, useRef, useState } from 'react';
 import { cn } from '../utils/cn.js';
+import { focusRing } from '../utils/focus.js';
 
 type TabsContextValue = {
   activeTab: string;
@@ -109,7 +110,8 @@ export function Tab({
       tabIndex={isActive ? 0 : -1}
       onClick={() => setActiveTab(id)}
       className={cn(
-        'relative -mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+        'relative -mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition-colors',
+        focusRing,
         isActive
           ? 'border-primary text-primary'
           : 'border-transparent text-muted-foreground hover:text-foreground',

@@ -5,6 +5,7 @@ import { useId } from 'react';
 import { useDataInteractive } from '../hooks/use-data-interactive.js';
 import { LayoutGroup, LayoutIndicator } from '../hooks/use-layout-animation.js';
 import { cn } from '../utils/cn.js';
+import { focusRing } from '../utils/focus.js';
 import { TouchTarget } from './_button-shared.js';
 import { Link } from './link.js';
 
@@ -64,6 +65,7 @@ export function NavbarItem({
     'data-hover:bg-foreground/5 data-hover:*:data-[slot=icon]:fill-foreground',
     // Active
     'data-active:bg-foreground/5 data-active:*:data-[slot=icon]:fill-foreground',
+    focusRing,
   );
 
   return (

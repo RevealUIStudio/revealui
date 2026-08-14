@@ -11,6 +11,7 @@ import { useRovingTabindex } from '../hooks/use-roving-tabindex.js';
 import { useTransition } from '../hooks/use-transition.js';
 import { useTypeAhead } from '../hooks/use-type-ahead.js';
 import { cn } from '../utils/cn.js';
+import { activeOption, activeOptionForced } from '../utils/focus.js';
 import { DropdownTriggerButton } from './dropdown-trigger.js';
 import { Link } from './link.js';
 
@@ -348,12 +349,10 @@ export function DropdownItem({
     'group cursor-default rounded-lg px-3.5 py-2.5 focus:outline-hidden sm:px-3 sm:py-1.5',
     // Text styles
     'text-left text-base/6 text-foreground sm:text-sm/6 forced-colors:text-[CanvasText]',
-    // Focus
-    'data-focus:bg-primary data-focus:text-primary-foreground',
-    // Disabled state
+    activeOption,
+    activeOptionForced,
     'data-disabled:opacity-50',
-    // Forced colors mode
-    'forced-color-adjust-none forced-colors:data-focus:bg-[Highlight] forced-colors:data-focus:text-[HighlightText] forced-colors:data-focus:*:data-[slot=icon]:text-[HighlightText]',
+    'forced-colors:data-focus:*:data-[slot=icon]:text-[HighlightText]',
     // Use subgrid when available but fallback to an explicit grid layout if not
     'col-span-full grid grid-cols-[auto_1fr_1.5rem_0.5rem_auto] items-center supports-[grid-template-columns:subgrid]:grid-cols-subgrid',
     // Icons

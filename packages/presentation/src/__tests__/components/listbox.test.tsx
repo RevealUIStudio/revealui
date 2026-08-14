@@ -53,6 +53,13 @@ describe('Listbox', () => {
     expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
+  it('paints the trigger ring on :focus-visible, not a dead data-focus recipe', () => {
+    render(<BasicListbox />);
+    const trigger = screen.getByRole('combobox');
+    expect(trigger.className).toContain('focus-visible:after:ring-ring');
+    expect(trigger.className).not.toContain('data-focus:after:ring-ring');
+  });
+
   it('should display placeholder when no value is selected', () => {
     render(<BasicListbox />);
     expect(screen.getByText('Select a color')).toBeInTheDocument();
@@ -78,6 +85,17 @@ describe('Listbox', () => {
     await user.click(screen.getByRole('combobox'));
     const options = screen.getAllByRole('option');
     expect(options).toHaveLength(3);
+  });
+
+  it('highlights options from brand tokens, not a palette step', async () => {
+    const user = userEvent.setup();
+    render(<BasicListbox />);
+
+    await user.click(screen.getByRole('combobox'));
+    for (const option of screen.getAllByRole('option')) {
+      expect(option).toHaveClass('data-focus:bg-primary');
+      expect(option.className).not.toMatch(/\b(?:blue|zinc|indigo)-\d{2,3}\b/);
+    }
   });
 
   it('should display selected value text in trigger', () => {

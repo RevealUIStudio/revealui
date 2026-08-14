@@ -3,6 +3,7 @@
 import type React from 'react';
 import { createContext, use, useState } from 'react';
 import { cn } from '../utils/cn.js';
+import { focusRingHasVisible } from '../utils/focus.js';
 import { Link } from './link.js';
 
 const TableContext = createContext<{
@@ -88,8 +89,7 @@ export function TableRow({
         {...props}
         className={cn(
           className,
-          href &&
-            'has-[[data-row-link][data-focus]]:outline-2 has-[[data-row-link][data-focus]]:-outline-offset-2 has-[[data-row-link][data-focus]]:outline-ring focus-within:bg-foreground/2.5',
+          href && cn(focusRingHasVisible, 'focus-within:bg-foreground/2.5'),
           striped && 'even:bg-foreground/2.5',
           href && striped && 'hover:bg-foreground/5',
           href && !striped && 'hover:bg-foreground/2.5',

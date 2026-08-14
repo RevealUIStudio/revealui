@@ -61,12 +61,40 @@ export const focusRingGroup =
 export const focusRingAfter = 'data-focus:after:ring-2 data-focus:after:ring-ring';
 
 /**
+ * Native-focusable overlay trigger (Listbox button). The ring paints on
+ * `::after` so the control can keep its own border. Use this when the host is
+ * a real `<button>` / `<input>` — a `data-focus:` after-ring that nothing sets
+ * is a dead recipe.
+ */
+export const focusRingAfterVisible = 'focus-visible:after:ring-2 focus-visible:after:ring-ring';
+
+/**
+ * Combobox control shell: ring when the inner input is focused.
+ */
+export const focusRingAfterWithin = 'sm:focus-within:after:ring-2 sm:focus-within:after:ring-ring';
+
+/**
+ * Host-on-descendant variant: the focusable child is visually stretched
+ * (table row link) and hides its own outline. The row paints the `--ring`
+ * when any descendant is `:focus-visible`. Prefer this over
+ * `has-[[data-focus]]` so the ring does not depend on a hook attribute.
+ */
+export const focusRingHasVisible =
+  'has-[:focus-visible]:outline-2 has-[:focus-visible]:-outline-offset-2 has-[:focus-visible]:outline-ring';
+
+/**
  * Active-option highlight inside menus and listboxes. Not a focus *ring* — the
  * filled row that follows keyboard navigation in Dropdown, Listbox and
- * Combobox. It was `data-focus:bg-primary data-focus:text-primary-foreground`, which is
- * both off-brand and unthemeable; the ink token guarantees AA on the fill.
+ * Combobox. Token fill + on-fill ink so a brand replacement stays AA.
  */
 export const activeOption = 'data-focus:bg-primary data-focus:text-primary-foreground';
+
+/**
+ * Forced-colors companion for {@link activeOption}. Highlight system colours,
+ * not a palette step.
+ */
+export const activeOptionForced =
+  'forced-color-adjust-none forced-colors:data-focus:bg-[Highlight] forced-colors:data-focus:text-[HighlightText]';
 
 /**
  * Range-input thumb ring (Slider). Vendor pseudo-elements can't inherit the
