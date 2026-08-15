@@ -11,6 +11,7 @@ import {
   useState,
 } from 'react';
 import {
+  COOKIE_CONSENT_READY_ATTR,
   type CookieConsentConfig,
   CookieConsentManager,
   DENIED_OPTIONAL_CONSENT,
@@ -75,12 +76,19 @@ export function CookieConsentProvider({
     });
   }, [instance]);
 
+  useEffect(() => {
+    document.documentElement.setAttribute(COOKIE_CONSENT_READY_ATTR, '1');
+    return () => {
+      document.documentElement.removeAttribute(COOKIE_CONSENT_READY_ATTR);
+    };
+  }, []);
+
   const acceptAll = useCallback(() => {
     if (!allowOptionalCookies) {
       instance.rejectAll();
-      return;
+    } else {
+      instance.acceptAll();
     }
-    instance.acceptAll();
     setPreferencesOpen(false);
   }, [allowOptionalCookies, instance]);
 

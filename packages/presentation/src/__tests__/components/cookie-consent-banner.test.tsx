@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
+  COOKIE_CONSENT_READY_ATTR,
   CookieConsentBanner,
   CookieConsentManager,
   CookieConsentProvider,
@@ -27,6 +28,7 @@ beforeEach(() => {
 afterEach(() => {
   document.cookie = 'revealui-cookie-consent=; Max-Age=0; Path=/';
   localStorage.removeItem('cookie-consent');
+  document.documentElement.removeAttribute(COOKIE_CONSENT_READY_ATTR);
 });
 
 function renderBanner(options?: {
@@ -111,6 +113,17 @@ describe('CookieConsentBanner', () => {
     await user.click(screen.getByRole('button', { name: 'Cookie settings' }));
     expect(screen.getByRole('dialog', { name: 'Necessary cookies only' })).toBeInTheDocument();
     expect(screen.queryByRole('switch', { name: 'Analytics' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'OK' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('does not paint the banner when a decision is already stored', () => {
+    const manager = new CookieConsentManager();
+    manager.rejectAll();
+    renderBanner({ manager });
+    expect(document.documentElement.getAttribute(COOKIE_CONSENT_READY_ATTR)).toBe('1');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByTestId('decided')).toHaveTextContent('true');
   });
 
   it('wipes a prior accept-all before children read consent when optional cookies are forbidden', () => {
