@@ -42,7 +42,7 @@ describe('ApiKeysPage (server shell)', () => {
 
     expect(screen.getByRole('option', { name: /Ollama/ })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: /Inference Snaps/ })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Anthropic' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'frontier · Anthropic' })).toBeInTheDocument();
   });
 
   it('hides localhost-only providers when REVEALUI_LICENSE_PRIVATE_KEY is set (hosted)', async () => {
@@ -53,7 +53,7 @@ describe('ApiKeysPage (server shell)', () => {
 
     expect(screen.queryByRole('option', { name: /Ollama/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('option', { name: /Inference Snaps/ })).not.toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Anthropic' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'OpenAI' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'frontier · Anthropic' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'frontier · OpenAI' })).toBeInTheDocument();
   });
 });

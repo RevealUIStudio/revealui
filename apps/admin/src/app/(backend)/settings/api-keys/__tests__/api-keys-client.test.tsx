@@ -32,10 +32,10 @@ describe('ApiKeysPageClient', () => {
     vi.stubGlobal('fetch', mockFetchOnce(null));
     render(<ApiKeysPageClient providers={ALL_PROVIDERS} isHosted={false} />);
 
-    expect(screen.getByRole('option', { name: 'Anthropic' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'OpenAI' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: /Ollama/ })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: /Inference Snaps/ })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'frontier · Anthropic' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'frontier · OpenAI' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /local · Ollama/ })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /local · Inference Snaps/ })).toBeInTheDocument();
     expect(screen.queryByText(/hosted deployment/)).not.toBeInTheDocument();
   });
 
@@ -52,8 +52,8 @@ describe('ApiKeysPageClient', () => {
     });
     render(<ApiKeysPageClient providers={hostedProviders} isHosted={true} />);
 
-    expect(screen.getByRole('option', { name: 'Anthropic' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'OpenAI' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'frontier · Anthropic' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'frontier · OpenAI' })).toBeInTheDocument();
     expect(screen.queryByRole('option', { name: /Ollama/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('option', { name: /Inference Snaps/ })).not.toBeInTheDocument();
     expect(screen.getByText(/hosted deployment/)).toBeInTheDocument();
@@ -66,7 +66,7 @@ describe('ApiKeysPageClient', () => {
     const link = screen.getByRole('link', { name: /Get key/ });
     expect(link).toHaveAttribute('href', 'https://console.anthropic.com/settings/keys');
 
-    fireEvent.change(screen.getByLabelText('Provider'), { target: { value: 'openai' } });
+    fireEvent.change(screen.getByLabelText('Adapter'), { target: { value: 'openai' } });
     expect(screen.getByRole('link', { name: /Get key/ })).toHaveAttribute(
       'href',
       'https://platform.openai.com/api-keys',
@@ -80,7 +80,9 @@ describe('ApiKeysPageClient', () => {
     await waitFor(() => {
       expect(screen.getByText(/Agent tasks will use it\./)).toBeInTheDocument();
     });
-    expect(screen.getByText(/Anthropic key configured \(sk-ant-...abcd\)/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/frontier · Anthropic key configured \(sk-ant-...abcd\)/),
+    ).toBeInTheDocument();
   });
 
   it('selects the saved provider instead of defaulting to Anthropic', async () => {
@@ -88,9 +90,9 @@ describe('ApiKeysPageClient', () => {
     render(<ApiKeysPageClient providers={ALL_PROVIDERS} isHosted={false} />);
 
     await waitFor(() => {
-      expect(screen.getByLabelText('Provider')).toHaveValue('groq');
+      expect(screen.getByLabelText('Adapter')).toHaveValue('groq');
     });
-    expect(screen.getByRole('option', { name: 'Groq' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'mechanical · Groq' })).toBeInTheDocument();
     expect(screen.queryByText(/LPU silicon/)).not.toBeInTheDocument();
   });
 
@@ -102,7 +104,7 @@ describe('ApiKeysPageClient', () => {
     fireEvent.change(input, { target: { value: 'sk-ant-typed' } });
     expect(input).toHaveValue('sk-ant-typed');
 
-    fireEvent.change(screen.getByLabelText('Provider'), { target: { value: 'openai' } });
+    fireEvent.change(screen.getByLabelText('Adapter'), { target: { value: 'openai' } });
     expect(screen.getByPlaceholderText('sk-...')).toHaveValue('');
   });
 

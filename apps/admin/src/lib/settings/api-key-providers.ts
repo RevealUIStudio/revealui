@@ -19,11 +19,23 @@ export type Provider =
   | 'inference-snaps'
   | 'xai';
 
+/** GAP-483 dated map. Remap here when a release moves the band. */
+export type CapabilityClass = 'local' | 'mechanical' | 'frontier' | 'reasoning';
+
+export const CAPABILITY_CLASS_ORDER: readonly CapabilityClass[] = [
+  'local',
+  'mechanical',
+  'frontier',
+  'reasoning',
+];
+
 export interface ProviderInfo {
   id: Provider;
   label: string;
   placeholder: string;
   docsUrl: string;
+  /** Capability class (2026-08-15 map). Not a vendor name. */
+  capability: CapabilityClass;
 }
 
 /** All seven providers, hosted-viable and localhost-only alike. */
@@ -33,44 +45,55 @@ export const ALL_PROVIDERS: ProviderInfo[] = [
     label: 'Anthropic',
     placeholder: 'sk-ant-...',
     docsUrl: 'https://console.anthropic.com/settings/keys',
+    capability: 'frontier',
   },
   {
     id: 'openai',
     label: 'OpenAI',
     placeholder: 'sk-...',
     docsUrl: 'https://platform.openai.com/api-keys',
+    capability: 'frontier',
   },
   {
     id: 'xai',
     label: 'xAI (Grok)',
     placeholder: 'xai-...',
     docsUrl: 'https://console.x.ai',
+    capability: 'frontier',
   },
   {
     id: 'groq',
     label: 'Groq',
     placeholder: 'gsk_...',
     docsUrl: 'https://console.groq.com/keys',
+    capability: 'mechanical',
   },
   {
     id: 'huggingface',
     label: 'Hugging Face',
     placeholder: 'hf_...',
     docsUrl: 'https://huggingface.co/settings/tokens',
+    capability: 'mechanical',
   },
   {
     id: 'inference-snaps',
     label: 'Inference Snaps',
-    placeholder: 'leave blank — runs locally',
+    placeholder: 'leave blank, runs locally',
     docsUrl: 'https://snapcraft.io/search?q=inference',
+    capability: 'local',
   },
   {
     id: 'ollama',
     label: 'Ollama',
-    placeholder: 'leave blank — runs locally',
+    placeholder: 'leave blank, runs locally',
     docsUrl: 'https://ollama.com/docs',
+    capability: 'local',
   },
 ];
+
+export function formatAdapterLabel(provider: ProviderInfo): string {
+  return `${provider.capability} · ${provider.label}`;
+}
 
 /**
  * Resolve which providers the Settings, API Keys page should offer.
