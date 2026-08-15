@@ -14,6 +14,10 @@
  * will contain an empty cookie list and the authenticated tests will redirect
  * to /login — run global-setup again with credentials to populate the state.
  *
+ * Every snapshot seeds a decided consent record before navigation so the
+ * first-visit cookie banner cannot cover the page under test. Banner chrome
+ * is locked by the presentation unit tests, not these goldens.
+ *
  * Usage:
  * - Run tests: pnpm test:e2e:visual
  * - Update snapshots: pnpm test:e2e:visual:update
@@ -37,19 +41,20 @@ const DECIDED_CONSENT = JSON.stringify({
 });
 
 async function seedDecidedConsent(page: Page): Promise<void> {
-  await page.context().addCookies([
-    {
-      name: 'revealui-cookie-consent',
-      value: encodeURIComponent(DECIDED_CONSENT),
-      url: 'http://localhost:4000/',
-    },
-  ]);
   await page.addInitScript((serialized) => {
+    // Same write as CookieConsentManager.writeConsentCookie: encoded value, Path=/.
+    // Origin-independent so PLAYWRIGHT_BASE_URL / storageState cannot drop it.
+    // biome-ignore lint/suspicious/noDocumentCookie: e2e seeds the first-party consent cookie the manager reads
+    document.cookie = `revealui-cookie-consent=${encodeURIComponent(serialized)}; Path=/; Max-Age=15552000; SameSite=Lax`;
     window.localStorage.setItem('cookie-consent', serialized);
   }, DECIDED_CONSENT);
 }
 
 test.describe('Visual Snapshots - Admin Application', () => {
+  test.beforeEach(async ({ page }) => {
+    await seedDecidedConsent(page);
+  });
+
   test.describe('Unauthenticated States', () => {
     test('login page should match snapshot', async ({ page }) => {
       await page.goto('/login');
@@ -76,10 +81,6 @@ test.describe('Visual Snapshots - Admin Application', () => {
   test.describe('Authenticated Admin Pages', () => {
     test.use({ storageState: AUTH_STATE });
 
-    test.beforeEach(async ({ page }) => {
-      await seedDecidedConsent(page);
-    });
-
     test('collections page should match snapshot', async ({ page }) => {
       await page.goto('/collections');
       await waitForNetworkIdle(page);
@@ -104,10 +105,6 @@ test.describe('Visual Snapshots - Admin Application', () => {
   test.describe('Responsive Snapshots', () => {
     test.use({ storageState: AUTH_STATE });
 
-    test.beforeEach(async ({ page }) => {
-      await seedDecidedConsent(page);
-    });
-
     test('collections page on mobile viewport should match snapshot', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
       await page.goto('/collections');
@@ -122,10 +119,6 @@ test.describe('Visual Snapshots - Admin Application', () => {
   test.describe('Theme Snapshots', () => {
     test.use({ storageState: AUTH_STATE });
 
-    test.beforeEach(async ({ page }) => {
-      await seedDecidedConsent(page);
-    });
-
     test('collections page with dark color scheme should match snapshot', async ({ page }) => {
       await page.emulateMedia({ colorScheme: 'dark' });
       await page.goto('/collections');
@@ -139,10 +132,6 @@ test.describe('Visual Snapshots - Admin Application', () => {
 
   test.describe('Cross-Browser Consistency', () => {
     test.use({ storageState: AUTH_STATE });
-
-    test.beforeEach(async ({ page }) => {
-      await seedDecidedConsent(page);
-    });
 
     test('collections page should be visually consistent across browsers', async ({ page }) => {
       await page.goto('/collections');
