@@ -156,6 +156,28 @@ describe('Button', () => {
       expect(btn).not.toHaveClass('bg-secondary');
     });
 
+    it('keeps ghost+neutral label readable on hover (body ink, not ink-on-accent)', () => {
+      render(
+        <Button appearance="ghost" variant="neutral">
+          Skip
+        </Button>,
+      );
+      const btn = screen.getByRole('button');
+      expect(btn.className).toContain('hover:text-foreground');
+      expect(btn.className).not.toContain('hover:text-accent-foreground');
+    });
+
+    it('keeps outline+neutral label readable on hover', () => {
+      render(
+        <Button appearance="outline" variant="neutral">
+          Cancel
+        </Button>,
+      );
+      const btn = screen.getByRole('button');
+      expect(btn.className).toContain('hover:text-foreground');
+      expect(btn.className).not.toContain('hover:text-accent-foreground');
+    });
+
     it('applies the link appearance', () => {
       render(<Button appearance="link">Link</Button>);
       expect(screen.getByRole('button')).toHaveClass('underline-offset-4');
