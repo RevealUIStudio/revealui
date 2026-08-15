@@ -20,9 +20,12 @@
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import type { FullConfig } from '@playwright/test';
+import { consentStorageState } from './utils/consent';
 import { createTestDb } from './utils/db-helpers';
 
-const EMPTY_AUTH_STATE = JSON.stringify({ cookies: [], origins: [] });
+function emptyAuthState(baseURL: string): string {
+  return JSON.stringify(consentStorageState(baseURL));
+}
 
 /**
  * Sign in via the admin API and build a Playwright storageState JSON.
@@ -107,7 +110,11 @@ async function signInViaAPI(baseURL: string, email: string, password: string): P
     throw new Error('Sign-in succeeded but no cookies could be parsed from Set-Cookie headers');
   }
 
-  return JSON.stringify({ cookies, origins: [] });
+  const consent = consentStorageState(baseURL);
+  return JSON.stringify({
+    cookies: [...cookies, ...consent.cookies],
+    origins: consent.origins,
+  });
 }
 
 async function globalSetup(config: FullConfig) {
@@ -185,24 +192,25 @@ async function globalSetup(config: FullConfig) {
         if (Array.isArray(existing?.cookies) && existing.cookies.length > 0) {
           console.log('   ℹ️  Preserving existing auth state (has valid cookies)');
         } else {
-          await writeFile('e2e/.auth/user.json', EMPTY_AUTH_STATE).catch(() => undefined);
+          await writeFile('e2e/.auth/user.json', emptyAuthState(baseURL)).catch(() => undefined);
         }
       } catch {
-        await writeFile('e2e/.auth/user.json', EMPTY_AUTH_STATE).catch(() => undefined);
+        await writeFile('e2e/.auth/user.json', emptyAuthState(baseURL)).catch(() => undefined);
       }
     }
   } else {
     console.log('ℹ️  ADMIN_EMAIL/ADMIN_PASSWORD not set  -  skipping auth state creation');
-    // Same preservation logic: keep existing cookies if present
+    const baseURL = config.projects[0].use.baseURL || 'http://localhost:4000';
+    // Same preservation logic: keep existing session cookies if present
     try {
       const existing = JSON.parse(
         await (await import('node:fs/promises')).readFile('e2e/.auth/user.json', 'utf8'),
       );
       if (!(Array.isArray(existing?.cookies) && existing.cookies.length > 0)) {
-        await writeFile('e2e/.auth/user.json', EMPTY_AUTH_STATE).catch(() => undefined);
+        await writeFile('e2e/.auth/user.json', emptyAuthState(baseURL)).catch(() => undefined);
       }
     } catch {
-      await writeFile('e2e/.auth/user.json', EMPTY_AUTH_STATE).catch(() => undefined);
+      await writeFile('e2e/.auth/user.json', emptyAuthState(baseURL)).catch(() => undefined);
     }
   }
 
