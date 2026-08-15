@@ -10,13 +10,11 @@
  * use the storageState written by global-setup.ts (e2e/.auth/user.json) so
  * each route renders its actual content rather than the /login redirect.
  *
- * If ADMIN_EMAIL/ADMIN_PASSWORD were not set during setup, e2e/.auth/user.json
- * will contain an empty cookie list and the authenticated tests will redirect
- * to /login — run global-setup again with credentials to populate the state.
- *
- * Every snapshot seeds a decided consent record before navigation so the
- * first-visit cookie banner cannot cover the page under test. Banner chrome
- * is locked by the presentation unit tests, not these goldens.
+ * If ADMIN_EMAIL/ADMIN_PASSWORD were not set during setup, authenticated tests
+ * redirect to /login. Global setup still writes a decided consent record into
+ * that storageState. After each goto we also dismiss the banner if it appears
+ * (storageState restore can wipe an init-script seed). Banner chrome is locked
+ * by presentation unit tests, not these goldens.
  *
  * Usage:
  * - Run tests: pnpm test:e2e:visual
@@ -25,29 +23,23 @@
  */
 
 import { expect, type Page, test } from '@playwright/test';
+import { decidedConsentSerialized, dismissCookieBannerIfPresent } from './utils/consent';
 import { waitForNetworkIdle } from './utils/test-helpers';
 
 const AUTH_STATE = 'e2e/.auth/user.json';
 
-/** Decided consent so page snapshots are not coupled to the first-visit banner. */
-const DECIDED_CONSENT = JSON.stringify({
-  necessary: true,
-  functional: false,
-  analytics: false,
-  marketing: false,
-  version: 1,
-  updatedAt: '2026-08-01T00:00:00.000Z',
-  source: 'explicit',
-});
-
 async function seedDecidedConsent(page: Page): Promise<void> {
   await page.addInitScript((serialized) => {
     // Same write as CookieConsentManager.writeConsentCookie: encoded value, Path=/.
-    // Origin-independent so PLAYWRIGHT_BASE_URL / storageState cannot drop it.
     // biome-ignore lint/suspicious/noDocumentCookie: e2e seeds the first-party consent cookie the manager reads
     document.cookie = `revealui-cookie-consent=${encodeURIComponent(serialized)}; Path=/; Max-Age=15552000; SameSite=Lax`;
     window.localStorage.setItem('cookie-consent', serialized);
-  }, DECIDED_CONSENT);
+  }, decidedConsentSerialized());
+}
+
+async function settleVisualPage(page: Page): Promise<void> {
+  await waitForNetworkIdle(page);
+  await dismissCookieBannerIfPresent(page);
 }
 
 test.describe('Visual Snapshots - Admin Application', () => {
@@ -58,8 +50,8 @@ test.describe('Visual Snapshots - Admin Application', () => {
   test.describe('Unauthenticated States', () => {
     test('login page should match snapshot', async ({ page }) => {
       await page.goto('/login');
-      await waitForNetworkIdle(page);
       await page.waitForLoadState('networkidle');
+      await settleVisualPage(page);
 
       await expect(page).toHaveScreenshot('admin-login-page.png', {
         fullPage: true,
@@ -70,7 +62,7 @@ test.describe('Visual Snapshots - Admin Application', () => {
   test.describe('Error States', () => {
     test('404 page should match snapshot', async ({ page }) => {
       await page.goto('/non-existent-page-that-should-404');
-      await waitForNetworkIdle(page);
+      await settleVisualPage(page);
 
       await expect(page).toHaveScreenshot('404-page.png', {
         fullPage: true,
@@ -83,8 +75,8 @@ test.describe('Visual Snapshots - Admin Application', () => {
 
     test('collections page should match snapshot', async ({ page }) => {
       await page.goto('/collections');
-      await waitForNetworkIdle(page);
       await page.waitForLoadState('networkidle');
+      await settleVisualPage(page);
 
       await expect(page).toHaveScreenshot('admin-collections.png', {
         fullPage: true,
@@ -93,8 +85,8 @@ test.describe('Visual Snapshots - Admin Application', () => {
 
     test('globals page should match snapshot', async ({ page }) => {
       await page.goto('/globals');
-      await waitForNetworkIdle(page);
       await page.waitForLoadState('networkidle');
+      await settleVisualPage(page);
 
       await expect(page).toHaveScreenshot('admin-globals.png', {
         fullPage: true,
@@ -108,7 +100,7 @@ test.describe('Visual Snapshots - Admin Application', () => {
     test('collections page on mobile viewport should match snapshot', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
       await page.goto('/collections');
-      await waitForNetworkIdle(page);
+      await settleVisualPage(page);
 
       await expect(page).toHaveScreenshot('admin-collections-mobile.png', {
         fullPage: true,
@@ -122,7 +114,7 @@ test.describe('Visual Snapshots - Admin Application', () => {
     test('collections page with dark color scheme should match snapshot', async ({ page }) => {
       await page.emulateMedia({ colorScheme: 'dark' });
       await page.goto('/collections');
-      await waitForNetworkIdle(page);
+      await settleVisualPage(page);
 
       await expect(page).toHaveScreenshot('admin-collections-dark-mode.png', {
         fullPage: true,
@@ -135,7 +127,7 @@ test.describe('Visual Snapshots - Admin Application', () => {
 
     test('collections page should be visually consistent across browsers', async ({ page }) => {
       await page.goto('/collections');
-      await waitForNetworkIdle(page);
+      await settleVisualPage(page);
 
       await expect(page).toHaveScreenshot('cross-browser-admin-collections.png', {
         fullPage: true,
