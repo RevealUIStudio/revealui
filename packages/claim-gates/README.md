@@ -71,6 +71,11 @@ IDs match the private planning registry (`.jv` `docs/marketing/copy-dependents.y
 When a feature ships: set hold `status: released` in the same PR as the product
 work, then cue private COPY-DEP work for any remaining copy package.
 
+GAP-484 honesty holds (stay `waiting`; they are bans, not roadmap cues):
+`COPY-DEP-C-SCRM-CERT`, `COPY-DEP-AML-HARDENED`, `COPY-DEP-TRUSTWORTHY-AI`,
+`COPY-DEP-MODEL-PROVENANCE` (weight *scan* claims; hash-plus-URL provenance is
+the allowed control language).
+
 ## Development
 
 ```bash

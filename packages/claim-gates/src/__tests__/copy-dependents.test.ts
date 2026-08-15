@@ -68,4 +68,53 @@ describe('copy-dependent holds', () => {
     const h = hits('Official Docker images are available on GHCR today.');
     expect(h.some((x) => x.holdId === 'COPY-DEP-FLEET-DOCKER-IMAGES')).toBe(true);
   });
+
+  it('flags C-SCRM and NIST 800-161 certification claims', () => {
+    expect(
+      hits('C-SCRM is certified for every tenant.').some(
+        (x) => x.holdId === 'COPY-DEP-C-SCRM-CERT',
+      ),
+    ).toBe(true);
+    expect(
+      hits('RevealUI is NIST 800-161 compliant today.').some(
+        (x) => x.holdId === 'COPY-DEP-C-SCRM-CERT',
+      ),
+    ).toBe(true);
+    expect(
+      hits('Supply chain risk is a buyer concern.').some(
+        (x) => x.holdId === 'COPY-DEP-C-SCRM-CERT',
+      ),
+    ).toBe(false);
+  });
+
+  it('flags trustworthy-AI badges but not a bare NIST attribute mention', () => {
+    expect(
+      hits('Our trustworthy AI is certified for operators.').some(
+        (x) => x.holdId === 'COPY-DEP-TRUSTWORTHY-AI',
+      ),
+    ).toBe(true);
+    expect(
+      hits('Fairness is one trustworthy AI attribute.').some(
+        (x) => x.holdId === 'COPY-DEP-TRUSTWORTHY-AI',
+      ),
+    ).toBe(false);
+  });
+
+  it('flags AML-hardened and weight-scan claims', () => {
+    expect(
+      hits('The runtime is adversarially robust.').some(
+        (x) => x.holdId === 'COPY-DEP-AML-HARDENED',
+      ),
+    ).toBe(true);
+    expect(
+      hits('We scan model weights before load.').some(
+        (x) => x.holdId === 'COPY-DEP-MODEL-PROVENANCE',
+      ),
+    ).toBe(true);
+    expect(
+      hits('Hash plus URL is provenance, not a scan.').some(
+        (x) => x.holdId === 'COPY-DEP-MODEL-PROVENANCE',
+      ),
+    ).toBe(false);
+  });
 });

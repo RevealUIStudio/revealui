@@ -451,7 +451,7 @@ export const claimsPart3: readonly ClaimEntry[] = [
     file: 'local-ai.ts',
     exportPath: 'LOCAL_AI_SECTION.heading',
     proofGrade: 'outcome',
-    text: 'Your agents run on models you own.',
+    text: 'Your agents run on models you host.',
     evidence: [OPEN_WEIGHT],
   },
   {
