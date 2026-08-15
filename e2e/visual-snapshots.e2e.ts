@@ -23,7 +23,11 @@
  */
 
 import { expect, type Page, test } from '@playwright/test';
-import { decidedConsentSerialized, dismissCookieBannerIfPresent } from './utils/consent';
+import {
+  COOKIE_CONSENT_READY_SELECTOR,
+  decidedConsentSerialized,
+  dismissCookieBannerIfPresent,
+} from './utils/consent';
 import { waitForNetworkIdle } from './utils/test-helpers';
 
 const AUTH_STATE = 'e2e/.auth/user.json';
@@ -39,6 +43,7 @@ async function seedDecidedConsent(page: Page): Promise<void> {
 
 async function settleVisualPage(page: Page): Promise<void> {
   await waitForNetworkIdle(page);
+  await page.locator(COOKIE_CONSENT_READY_SELECTOR).waitFor({ state: 'attached' });
   await dismissCookieBannerIfPresent(page);
 }
 

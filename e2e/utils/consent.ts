@@ -60,18 +60,26 @@ export function consentStorageState(origin: string): {
   };
 }
 
-/** If the first-visit banner is up, reject it so page goldens stay banner-free. */
+/**
+ * Lockstep with CookieConsentProvider: set on <html> after client hydrate.
+ * Visual snapshots wait for this so a client-only banner has either appeared
+ * or stayed absent once the stored decision is read.
+ */
+export const COOKIE_CONSENT_READY_SELECTOR = 'html[data-cookie-consent-ready]';
+
+/**
+ * If the first-visit banner is up, reject it so page goldens stay banner-free.
+ *
+ * Locators are scoped to the dialog and use exact names. Playwright's default
+ * name match is a substring, so `{ name: 'OK' }` also hits "Cookie settings"
+ * ("Cookie" contains "ok") and re-opens the banner instead of dismissing it.
+ */
 export async function dismissCookieBannerIfPresent(page: Page): Promise<void> {
-  const dialog = page.getByRole('dialog', { name: /Cookies|Necessary cookies only/ });
+  const dialog = page.getByRole('dialog', { name: /^(Cookies|Necessary cookies only)$/ });
   if (!(await dialog.isVisible().catch(() => false))) {
     return;
   }
-  const reject = page.getByRole('button', { name: 'Reject all' });
-  const ok = page.getByRole('button', { name: 'OK' });
-  if (await reject.isVisible().catch(() => false)) {
-    await reject.click();
-  } else if (await ok.isVisible().catch(() => false)) {
-    await ok.click();
-  }
+  const action = dialog.getByRole('button', { name: /^(Reject all|OK)$/ });
+  await action.click();
   await expect(dialog).toBeHidden();
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, useId, useLayoutEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { Button } from '../components/Button.js';
 import { Description, Label } from '../components/fieldset.js';
 import { Switch, SwitchField } from '../components/switch.js';
@@ -59,8 +59,13 @@ export function CookieConsentBanner({ className }: CookieConsentBannerProps): Re
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const [draft, setDraft] = useState<CookieConsentConfig>(consent);
+  const [mounted, setMounted] = useState(false);
 
-  const showBanner = !decided || preferencesOpen;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const showBanner = mounted && (!decided || preferencesOpen);
   const showCustomize = allowOptionalCookies && (preferencesOpen || decided);
 
   useLayoutEffect(() => {

@@ -10,6 +10,8 @@
 export const COOKIE_CONSENT_COOKIE = 'revealui-cookie-consent';
 export const COOKIE_CONSENT_STORAGE_KEY = 'cookie-consent';
 export const COOKIE_CONSENT_VERSION = 1;
+/** Set on <html> after the provider hydrates so e2e can wait before screenshots. */
+export const COOKIE_CONSENT_READY_ATTR = 'data-cookie-consent-ready';
 /** CNIL / ePrivacy common practice: remember a choice for six months. */
 export const COOKIE_CONSENT_MAX_AGE_SECONDS = 180 * 24 * 60 * 60;
 
