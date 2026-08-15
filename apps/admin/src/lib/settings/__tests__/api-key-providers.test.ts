@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Provider } from '../api-key-providers';
-import { ALL_PROVIDERS, visibleProviders } from '../api-key-providers';
+import { ALL_PROVIDERS, formatAdapterLabel, visibleProviders } from '../api-key-providers';
 
 /**
  * Loads the real `hostedViable` map from `@revealui/ai/llm/client` so this
@@ -30,6 +30,15 @@ describe('visibleProviders', () => {
     expect(ids).toEqual(['anthropic', 'openai', 'xai', 'groq', 'huggingface']);
     expect(ids).not.toContain('ollama');
     expect(ids).not.toContain('inference-snaps');
+  });
+
+  it('maps adapters onto capability classes (GAP-483 2026-08-15)', () => {
+    expect(ALL_PROVIDERS.find((p) => p.id === 'groq')?.capability).toBe('mechanical');
+    expect(ALL_PROVIDERS.find((p) => p.id === 'xai')?.capability).toBe('frontier');
+    expect(ALL_PROVIDERS.find((p) => p.id === 'ollama')?.capability).toBe('local');
+    expect(formatAdapterLabel(ALL_PROVIDERS.find((p) => p.id === 'groq')!)).toBe(
+      'mechanical · Groq',
+    );
   });
 
   it('fails open to the full list on hosted when the hosted map is unavailable', () => {

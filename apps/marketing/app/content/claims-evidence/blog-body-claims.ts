@@ -1134,7 +1134,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/ui-of-the-future',
     exportPath: 'body.23',
-    text: 'Today, RevealUI is the runtime layer of that thesis. Five primitives that every business needs: People, Content, Offers, Payments, Agents. One permission model that covers humans and agents alike. A tamper-evident audit log. Local-first AI that runs on models you own, with any provider you choose as an option rather than a dependency. It is open source, and you can read every line.',
+    text: 'Today, RevealUI is the runtime layer of that thesis. Five primitives that every business needs: People, Content, Offers, Payments, Agents. One permission model that covers humans and agents alike. A tamper-evident audit log. Local-first AI that runs on models you host, with any provider you choose as an option rather than a dependency. It is open source, and you can read every line.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/16-ui-of-the-future.md', note: 'body source paragraph 23' },
       {

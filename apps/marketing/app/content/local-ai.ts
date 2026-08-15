@@ -34,7 +34,7 @@ export interface LocalAiBeat {
 // Shared home-section content. Four beats per the corpus §4.12 lead.
 export const LOCAL_AI_SECTION = {
   eyebrow: 'Local-first AI',
-  heading: 'Your agents run on models you own.',
+  heading: 'Your agents run on models you host.',
   body: 'By default, agents run on open-weight models on infrastructure you control. Their work stays in your boundary. Your AI bill is your own inference cost.',
   beats: [
     {

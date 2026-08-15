@@ -6,7 +6,12 @@ import { Button, IconCheck, Input, Select, TextLink } from '@revealui/presentati
 import { Field, Label } from '@revealui/presentation/client';
 import { useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
-import type { Provider, ProviderInfo } from '@/lib/settings/api-key-providers';
+import {
+  CAPABILITY_CLASS_ORDER,
+  formatAdapterLabel,
+  type Provider,
+  type ProviderInfo,
+} from '@/lib/settings/api-key-providers';
 import { apiFetch } from '@/lib/utils/csrf';
 
 interface ApiKeysPageClientProps {
@@ -85,6 +90,7 @@ export default function ApiKeysPageClient({ providers, isHosted }: ApiKeysPageCl
   }
 
   const activeProviderInfo = providers.find((p) => p.id === provider);
+  const configuredProvider = providers.find((p) => p.id === currentProvider);
 
   return (
     <LicenseGate feature="ai">
@@ -94,7 +100,7 @@ export default function ApiKeysPageClient({ providers, isHosted }: ApiKeysPageCl
           {currentProvider && (
             <div className="mb-6 flex items-center gap-2 rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">
               <span className="h-2 w-2 rounded-full bg-success" />
-              {providers.find((p) => p.id === currentProvider)?.label ?? currentProvider} key
+              {configuredProvider ? formatAdapterLabel(configuredProvider) : currentProvider} key
               configured{currentKeyHint ? ` (${currentKeyHint})` : ''}. Agent tasks will use it.
             </div>
           )}
@@ -116,15 +122,15 @@ export default function ApiKeysPageClient({ providers, isHosted }: ApiKeysPageCl
           )}
 
           <div className="rounded-xl border border-border bg-card p-5">
-            <h1 className="text-base font-semibold text-foreground">AI Provider</h1>
+            <h1 className="text-base font-semibold text-foreground">Inference</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Connect the AI provider your agents run on. We store your key encrypted on RevealUI's
-              servers and only use it server-side when an agent task runs.
+              The class is the kind of model. The name is the adapter we use to reach it. We store
+              your key encrypted and only use it on the server when an agent task runs.
             </p>
             {isHosted && (
               <p className="mt-1 text-xs text-muted-foreground">
-                This is a hosted deployment, so local-only providers like Ollama and Inference Snaps
-                aren't listed below.
+                This is a hosted deployment, so local adapters (custom on-box setups) are not
+                listed.
               </p>
             )}
 
@@ -132,7 +138,7 @@ export default function ApiKeysPageClient({ providers, isHosted }: ApiKeysPageCl
               {/* Provider selector */}
               <Field>
                 <Label className="block text-xs font-medium text-muted-foreground mb-1.5">
-                  Provider
+                  Adapter
                 </Label>
                 <Select
                   value={provider}
@@ -142,11 +148,19 @@ export default function ApiKeysPageClient({ providers, isHosted }: ApiKeysPageCl
                     setShowKey(false);
                   }}
                 >
-                  {providers.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.label}
-                    </option>
-                  ))}
+                  {CAPABILITY_CLASS_ORDER.map((capability) => {
+                    const group = providers.filter((entry) => entry.capability === capability);
+                    if (group.length === 0) return null;
+                    return (
+                      <optgroup key={capability} label={capability}>
+                        {group.map((entry) => (
+                          <option key={entry.id} value={entry.id}>
+                            {formatAdapterLabel(entry)}
+                          </option>
+                        ))}
+                      </optgroup>
+                    );
+                  })}
                 </Select>
               </Field>
 

@@ -61,6 +61,7 @@ export * from './audit/index.js';
 export * from './embeddings/index.js';
 // Re-export ingestion pipeline (RAG document indexing + hybrid search)
 export * from './ingestion/index.js';
+export * from './llm/artifact-provenance.js';
 // Re-export LLM providers and client
 export * from './llm/client.js';
 export * from './llm/local-ai-profile.js';

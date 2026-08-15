@@ -15,6 +15,9 @@
  *   REVEALUI_ALLOW_NON_US_MODELS=1
  *
  * Companion ADR: .jv docs/decisions/2026-07-24-us-origin-inference-snaps.md
+ *
+ * Weight-file fetches (URL + sha256, pickle refuse) live in
+ * `../artifact-provenance.ts` (GAP-484). This module is snap-id origin only.
  */
 
 /**
