@@ -11,6 +11,11 @@ export const SECURITY_META = {
   lastUpdated: 'May 28, 2026',
   intro:
     'RevealUI Studio is a solo-operator company building production software. Security is not a marketing line for us. It is a discipline we apply every day, and it determines whether real customers can trust us with their data. This page describes how we accept vulnerability reports, what we commit to in return, and the security posture our customers inherit when they self-host.',
+  notice: {
+    variant: 'success' as const,
+    title: 'Safe-harbor commitment to good-faith researchers',
+    body: 'If you act in good faith and follow this policy, we will not pursue or support legal action against you for your security research. Email the security address to report a vulnerability. The machine-readable policy is at /.well-known/security.txt.',
+  },
 } as const;
 
 export const SECURITY_SECTIONS: readonly LegalSection[] = [

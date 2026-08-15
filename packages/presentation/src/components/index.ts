@@ -5,6 +5,15 @@
  * These components are framework-agnostic and follow design system principles.
  */
 
+export {
+  CookieConsentBanner,
+  type CookieConsentBannerProps,
+  type CookieConsentContextValue,
+  CookieConsentProvider,
+  type CookieConsentProviderProps,
+  CookieSettingsButton,
+  useCookieConsent,
+} from '../cookie-consent/index.js';
 // Shared touch hit-area primitive (was previously re-exported via the button).
 export { TouchTarget } from './_button-shared.js';
 // New components (v0.2)
@@ -43,6 +52,8 @@ export {
   CardFooter,
   CardHeader,
   CardTitle,
+  ChoiceCard,
+  type ChoiceCardProps,
 } from './Card.js';
 export {
   Checkbox as CheckboxCVA,

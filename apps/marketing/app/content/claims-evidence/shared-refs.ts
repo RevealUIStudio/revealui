@@ -113,6 +113,16 @@ export const LEGAL_PRIVACY_CONTENT: EvidenceRef = {
   ref: 'apps/marketing/app/content/legal/privacy.ts',
   note: 'published Privacy Policy; rendered by PrivacyPage.tsx',
 };
+export const LEGAL_COOKIES_CONTENT: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/marketing/app/content/legal/cookies.ts',
+  note: 'published cookie policy; CookiesPage.tsx + CookieConsentBanner',
+};
+export const LEGAL_HIPAA_CONTENT: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/marketing/app/content/legal/hipaa.ts',
+  note: 'HIPAA honesty page; HipaaPage.tsx + REVEALUI_COMPLIANCE_PROFILE',
+};
 export const LEGAL_REFUND_CONTENT: EvidenceRef = {
   kind: 'code',
   ref: 'apps/marketing/app/content/legal/refund-policy.ts',
@@ -212,6 +222,36 @@ export const THIS_SITE: EvidenceRef = {
   kind: 'url',
   ref: 'https://revealui.com',
   note: 'this site (apps/marketing) and revealuistudio.com run on RevealUI in production',
+};
+export const NAV_CONTENT: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/marketing/app/content/nav.ts',
+  note: 'footer and nav chrome rendered on every marketing page',
+};
+export const CLAIMS_LEDGER: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/marketing/app/content/claims-evidence.ts',
+  note: 'public claims index; rendered by ClaimsPage.tsx; gated by scripts/validate/claims-evidence.ts',
+};
+export const STATUS_CONTENT: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/marketing/app/content/status.ts',
+  note: 'status page copy; StatusPage.tsx probes SITE.urls.api/health in the browser',
+};
+export const API_HEALTH: EvidenceRef = {
+  kind: 'url',
+  ref: 'https://api.revealui.com/health',
+  note: 'public API health endpoint the status page probes',
+};
+export const BLOG_CHROME: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/marketing/app/content/blog.ts',
+  note: 'blog index chrome; post bodies stay on the GAP-467 blog claims path',
+};
+export const NOT_FOUND_CONTENT: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/marketing/app/content/not-found.ts',
+  note: '404 chrome; NotFoundPage.tsx',
 };
 export const PRICING_FALLBACKS: EvidenceRef = {
   kind: 'metric',

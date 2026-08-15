@@ -36,6 +36,7 @@ export { Badge, type BadgeIntent, type BadgeProps } from './components/badge.js'
 // were absent from this barrel though their peers (Label, StatusDot) are here.
 export { RevealUIMark, type RevealUIMarkProps } from './components/brand-mark.js';
 export { Breadcrumb, type BreadcrumbItem } from './components/breadcrumb.js';
+export { ChoiceCard, type ChoiceCardProps } from './components/Card.js';
 // CVA Components that use hooks
 export {
   Checkbox as CheckboxCVA,
@@ -202,6 +203,15 @@ export { ToastProvider, useToast } from './components/toast.js';
 export { Tooltip } from './components/tooltip.js';
 export { type Verdict, VerdictChip, type VerdictChipProps } from './components/verdict-chip.js';
 export { RevealUIWordmark, type RevealUIWordmarkProps } from './components/wordmark.js';
+export {
+  CookieConsentBanner,
+  type CookieConsentBannerProps,
+  type CookieConsentContextValue,
+  CookieConsentProvider,
+  type CookieConsentProviderProps,
+  CookieSettingsButton,
+  useCookieConsent,
+} from './cookie-consent/index.js';
 export {
   type LinkBehavior,
   LinkBehaviorProvider,

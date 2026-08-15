@@ -1,5 +1,4 @@
 import { logger } from '@revealui/utils/logger';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Metadata } from 'next';
 import { draftMode, headers } from 'next/headers';
 import type React from 'react';
@@ -104,8 +103,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               {isFleetMode ? null : <Footer />}
             </ErrorBoundary>
           </Providers>
-          {/* Vercel Speed Insights — SaaS deployments only, not fleet kits */}
-          {process.env.NEXT_PUBLIC_VERCEL_ENV && !isFleetMode ? <SpeedInsights /> : null}
+          {/* Speed Insights mounts inside CookieConsentRoot after analytics consent. */}
         </body>
       </html>
     );

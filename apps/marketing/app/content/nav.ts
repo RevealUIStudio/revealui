@@ -59,6 +59,8 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
       { label: 'SLA', href: '/sla' },
       { label: 'Security', href: '/security' },
       { label: 'Subprocessors', href: '/legal/subprocessors' },
+      { label: 'Cookies', href: '/cookies' },
+      { label: 'HIPAA', href: '/legal/hipaa' },
     ],
   },
 ] as const;
@@ -85,13 +87,17 @@ export const FOOTER_SERVICE_LINKS: readonly FooterServiceLink[] = [
 ] as const;
 
 // Every marketing page links to /claims, the public claims ledger (frontend-
-// excellence Phase 5, Fable ruling 2026-07-16). Uncovered by claims-evidence
-// on purpose: this line is global footer chrome on every page, not copy tied
-// to one page's claims. It still runs through the marketing-voice scan.
+// excellence Phase 5). This file is on COVERED_FILES so the ledger sentence
+// is itself indexed.
 export const FOOTER_CLAIMS_LEDGER_NOTE = {
   prefix: 'Every sentence on this site is indexed against the code.',
   linkLabel: 'See the claims ledger.',
   href: '/claims',
+} as const;
+
+export const FOOTER_NEWSLETTER = {
+  heading: 'Stay in the loop',
+  body: 'Product updates and engineering insights. No spam.',
 } as const;
 
 export const FOOTER_LEGAL = {
@@ -102,6 +108,8 @@ export const FOOTER_LEGAL = {
 
 export const FOOTER_LEGAL_LINKS: readonly NavLink[] = [
   { label: 'Privacy', href: '/privacy' },
+  { label: 'Cookies', href: '/cookies' },
+  { label: 'HIPAA', href: '/legal/hipaa' },
   { label: 'Terms', href: '/terms' },
   { label: 'Refund Policy', href: '/refund-policy' },
   { label: 'SLA', href: '/sla' },

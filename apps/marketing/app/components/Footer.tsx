@@ -1,9 +1,15 @@
-import { BuiltWithRevealUI, GitHubIcon, LinkedInIcon } from '@revealui/presentation';
+import {
+  BuiltWithRevealUI,
+  CookieSettingsButton,
+  GitHubIcon,
+  LinkedInIcon,
+} from '@revealui/presentation';
 import {
   FOOTER_CLAIMS_LEDGER_NOTE,
   FOOTER_COLUMNS,
   FOOTER_LEGAL,
   FOOTER_LEGAL_LINKS,
+  FOOTER_NEWSLETTER,
   FOOTER_SERVICE_LINKS,
   FOOTER_SOLO_OPERATOR_NOTE,
   FOOTER_TAGLINE,
@@ -56,12 +62,10 @@ export function Footer() {
 
             <div>
               <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Stay in the loop
+                {FOOTER_NEWSLETTER.heading}
               </p>
               <NewsletterSignup />
-              <p className="mt-2 text-xs text-muted-foreground">
-                Product updates and engineering insights. No spam.
-              </p>
+              <p className="mt-2 text-xs text-muted-foreground">{FOOTER_NEWSLETTER.body}</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-4">
@@ -139,6 +143,7 @@ export function Footer() {
                 {label}
               </a>
             ))}
+            <CookieSettingsButton className="transition-colors hover:text-foreground" />
           </div>
         </div>
       </div>

@@ -96,10 +96,38 @@ export {
 } from './audit-write-failures.js';
 // Authentication (TOTP only — OAuthClient/OAuthProviders removed P2-B; use @revealui/auth)
 export { TwoFactorAuth } from './auth.js';
+export type { ComplianceProfile, ComplianceProfileId } from './compliance-profile.js';
+export {
+  HIPAA_COMPLIANCE_PROFILE,
+  HIPAA_IDLE_TIMEOUT_SECONDS,
+  isHipaaProfile,
+  parseComplianceProfileId,
+  resolveComplianceProfile,
+  STANDARD_COMPLIANCE_PROFILE,
+} from './compliance-profile.js';
+export type {
+  CookieConsentConfig,
+  CookieConsentRecord,
+  CookieConsentSource,
+} from './cookie-consent.js';
+export {
+  ACCEPTED_ALL_CONSENT,
+  COOKIE_CONSENT_COOKIE,
+  COOKIE_CONSENT_EVENT,
+  COOKIE_CONSENT_MAX_AGE_SECONDS,
+  COOKIE_CONSENT_STORAGE_KEY,
+  COOKIE_CONSENT_VERSION,
+  CookieConsentManager,
+  cookieConsentManager,
+  DENIED_OPTIONAL_CONSENT,
+  detectPrivacySignal,
+  hasAnalyticsConsent,
+  parseCookieConsent,
+  serializeCookieConsent,
+} from './cookie-consent.js';
 export type {
   ConsentRecord,
   ConsentType,
-  CookieConsentConfig,
   DataBreach,
   DataCategory,
   DataDeletionRequest,
@@ -109,8 +137,6 @@ export type {
 // GDPR compliance
 export {
   ConsentManager,
-  CookieConsentManager,
-  cookieConsentManager,
   createConsentManager,
   createDataBreachManager,
   createDataDeletionSystem,
@@ -122,6 +148,19 @@ export {
   PrivacyPolicyManager,
   privacyPolicyManager,
 } from './gdpr.js';
+export type {
+  HipaaBaaStatus,
+  HipaaSurface,
+  HipaaSurfaceId,
+  HipaaVendorOption,
+} from './hipaa-surfaces.js';
+export {
+  getHipaaSurface,
+  HIPAA_GMAIL_API_VENDOR_ID,
+  HIPAA_SURFACES,
+  isHipaaVendorAllowed,
+  listHipaaBlockedDefaultVendors,
+} from './hipaa-surfaces.js';
 export type {
   PolicySignerEnv,
   PolicySnapshotSignerResolution,

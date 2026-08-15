@@ -48,6 +48,10 @@ export const HOME_HERO = {
   },
 } as const;
 
+// Trust strip under the hero (sm+). Short chrome; the matching claims live
+// on HOME_HERO.eyebrow and the proof cards.
+export const HOME_TRUST_SIGNALS = ['Open source', 'Self-hostable', 'Local-first AI'] as const;
+
 // ---------------------------------------------------------------------------
 // Hero: "Foundation" A/B variant (canonical lock).
 // Per docs/marketing/06-copy-corpus.md §4.1 (sanctioned A/B under ADR

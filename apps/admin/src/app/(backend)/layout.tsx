@@ -1,11 +1,14 @@
 import { RootLayout } from '@revealui/core/admin';
 import { isHostedDeployment } from '@revealui/core/deployment-mode';
+import { resolveComplianceProfile } from '@revealui/security';
 import { cookies, headers } from 'next/headers';
 import Script from 'next/script';
 /* RevealUI Admin Layout - Local implementation */
 import type React from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AuthRequiredListener } from '@/lib/auth/AuthRequiredListener';
+import { CookieConsentRoot } from '@/lib/compliance/CookieConsentRoot';
+import { IdleSessionGuard } from '@/lib/compliance/IdleSessionGuard';
 import { AdminSidebarLayout } from '@/lib/components/AdminSidebarLayout';
 import { LicenseProvider } from '@/lib/providers/LicenseProvider';
 import { InitTheme } from '@/lib/providers/Theme/InitTheme';
@@ -42,6 +45,7 @@ export default async function Layout({ children }: Args) {
   const nonce = (await headers()).get('x-nonce') ?? undefined;
   const role = (await cookies()).get('revealui-role')?.value ?? '';
   const isAdmin = ADMIN_ROLES.has(role);
+  const compliance = resolveComplianceProfile(process.env);
   return (
     <RootLayout config={config} importMap={importMap}>
       <InitTheme nonce={nonce} />
@@ -55,18 +59,25 @@ export default async function Layout({ children }: Args) {
         />
       ) : null}
       <LicenseProvider isFleetMode={isFleetMode}>
-        <AuthRequiredListener />
-        <ErrorBoundary>
-          <AdminSidebarLayout
-            siteName={siteName}
-            isFleetMode={isFleetMode}
-            isHosted={isHosted}
-            isAdmin={isAdmin}
-            appVersion={appVersion}
-          >
-            {children}
-          </AdminSidebarLayout>
-        </ErrorBoundary>
+        <CookieConsentRoot
+          isFleetMode={isFleetMode}
+          allowOptionalCookies={compliance.allowOptionalCookies}
+          allowThirdPartyTelemetry={compliance.allowThirdPartyTelemetry}
+        >
+          <AuthRequiredListener />
+          <IdleSessionGuard sessionIdleTimeoutSeconds={compliance.sessionIdleTimeoutSeconds} />
+          <ErrorBoundary>
+            <AdminSidebarLayout
+              siteName={siteName}
+              isFleetMode={isFleetMode}
+              isHosted={isHosted}
+              isAdmin={isAdmin}
+              appVersion={appVersion}
+            >
+              {children}
+            </AdminSidebarLayout>
+          </ErrorBoundary>
+        </CookieConsentRoot>
       </LicenseProvider>
     </RootLayout>
   );

@@ -131,9 +131,11 @@ function AgentCardsPanel() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{agents.length} agent(s) registered</p>
-        <LinkButton as={Link} href="/agents/new" variant="brand" size="sm">
-          + New Agent
-        </LinkButton>
+        {agents.length > 0 ? (
+          <LinkButton as={Link} href="/agents/new" variant="brand" size="sm">
+            New Agent
+          </LinkButton>
+        ) : null}
       </div>
 
       {agents.length === 0 ? (
@@ -143,7 +145,7 @@ function AgentCardsPanel() {
           description="Create your first AI agent to get started with automated tasks and workflows."
           action={
             <LinkButton as={Link} href="/agents/new" variant="brand" size="sm">
-              Create Agent
+              New Agent
             </LinkButton>
           }
         />

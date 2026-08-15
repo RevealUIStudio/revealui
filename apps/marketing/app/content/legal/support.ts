@@ -9,6 +9,11 @@ export const SUPPORT_META = {
   lastUpdated: 'August 11, 2026',
   intro:
     'RevealUI Studio is a solo-operator company. We want to help you succeed with RevealUI, and we want to be honest about what kind of help we can offer, on what timeline, and through which channels. This page covers all three.',
+  notice: {
+    variant: 'info' as const,
+    title: 'One channel for direct support, three for community + docs',
+    body: 'The fastest path is to check the documentation first. For account-specific issues, billing, or anything sensitive, email support. We reply within 24 hours during business hours (Mon-Fri, U.S. Central), and within 4 hours any day for a critical issue. Full detail is on our SLA page.',
+  },
 } as const;
 
 export const SUPPORT_SECTIONS: readonly LegalSection[] = [
