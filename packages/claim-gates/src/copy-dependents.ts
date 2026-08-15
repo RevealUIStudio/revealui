@@ -23,7 +23,11 @@ export type CopyDependentDetector =
   | 'sso-live'
   | 'visual-builder-live'
   | 'ghcr-fleet-images-live'
-  | 'saml-live';
+  | 'saml-live'
+  | 'cscrm-certified'
+  | 'trustworthy-ai-badge'
+  | 'aml-hardened'
+  | 'weight-scan';
 
 export interface CopyDependentHold {
   readonly id: string;
@@ -85,6 +89,34 @@ export const COPY_DEPENDENT_HOLDS: readonly CopyDependentHold[] = [
     title: 'Self-hosted Docker / GHCR Fleet kit copy',
     detector: 'ghcr-fleet-images-live',
     why: 'Official GHCR Docker images for Fleet are Planned; no "images published" live claim',
+  },
+  {
+    id: 'COPY-DEP-C-SCRM-CERT',
+    status: 'waiting',
+    title: 'C-SCRM / NIST SP 800-161 certification copy',
+    detector: 'cscrm-certified',
+    why: 'No C-SCRM or NIST SP 800-161 product badge. npm/CI hardening is a different class (GAP-484)',
+  },
+  {
+    id: 'COPY-DEP-AML-HARDENED',
+    status: 'waiting',
+    title: 'Adversarial-ML / poisoning-resistant copy',
+    detector: 'aml-hardened',
+    why: 'NIST AI 100-2: no information-theoretic AML guarantees; do not claim hardened or poisoning-resistant (GAP-484)',
+  },
+  {
+    id: 'COPY-DEP-TRUSTWORTHY-AI',
+    status: 'waiting',
+    title: 'Trustworthy AI product-badge copy',
+    detector: 'trustworthy-ai-badge',
+    why: 'NIST trustworthiness attributes are a framework with tradeoffs, not a RevealUI badge (GAP-484)',
+  },
+  {
+    id: 'COPY-DEP-MODEL-PROVENANCE',
+    status: 'waiting',
+    title: 'Model-weight scan copy',
+    detector: 'weight-scan',
+    why: 'Weights are not scanned for behavior. Provenance is hash plus URL, not a capability scan (GAP-484)',
   },
 ] as const;
 
@@ -226,6 +258,91 @@ function detectGhcrFleetImagesLive(words: string[]): boolean {
   return false;
 }
 
+const CERT_WORDS = new Set(['certified', 'compliant', 'aligned', 'assured', 'badge', 'standard']);
+
+const WEIGHT_WORDS = new Set(['weights', 'weight']);
+
+function hasNearby(words: string[], from: number, window: number, needles: Set<string>): boolean {
+  const lo = Math.max(0, from - window);
+  const hi = Math.min(words.length, from + window);
+  for (let j = lo; j < hi; j++) {
+    if (needles.has(words[j] ?? '')) return true;
+  }
+  return false;
+}
+
+/** "C-SCRM certified" / "NIST 800-161 compliant" — not a glossary mention. */
+function detectCscrmCertified(words: string[]): boolean {
+  for (let i = 0; i < words.length; i++) {
+    if (words[i] === 'c' && words[i + 1] === 'scrm') {
+      if (hasNearby(words, i, 8, CERT_WORDS)) return true;
+    }
+    if (words[i] === 'cscrm' && hasNearby(words, i, 8, CERT_WORDS)) return true;
+    if (
+      words[i] === 'nist' &&
+      words[i + 1] === '800' &&
+      words[i + 2] === '161' &&
+      hasNearby(words, i, 8, CERT_WORDS)
+    ) {
+      return true;
+    }
+    if (
+      words[i] === 'sp' &&
+      words[i + 1] === '800' &&
+      words[i + 2] === '161' &&
+      hasNearby(words, i, 8, CERT_WORDS)
+    ) {
+      return true;
+    }
+    if (
+      words[i] === 'supply' &&
+      words[i + 1] === 'chain' &&
+      (words[i + 2] === 'assured' || words[i + 2] === 'certified' || words[i + 2] === 'compliant')
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/** "trustworthy AI certified" / "our trustworthy AI" as a product badge. */
+function detectTrustworthyAiBadge(words: string[]): boolean {
+  for (let i = 0; i < words.length; i++) {
+    if (words[i] !== 'trustworthy' || words[i + 1] !== 'ai') continue;
+    if (hasNearby(words, i, 6, CERT_WORDS)) return true;
+    if (i > 0 && (words[i - 1] === 'our' || words[i - 1] === 'revealui')) return true;
+  }
+  return false;
+}
+
+function detectAmlHardened(words: string[]): boolean {
+  for (let i = 0; i < words.length; i++) {
+    if (words[i] === 'adversarially' && words[i + 1] === 'robust') return true;
+    if (words[i] === 'aml' && words[i + 1] === 'hardened') return true;
+    if (words[i] === 'poisoning' && words[i + 1] === 'resistant') return true;
+    if (
+      words[i] === 'prompt' &&
+      words[i + 1] === 'injection' &&
+      (words[i + 2] === 'proof' || words[i + 2] === 'proofed')
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/** "we scan model weights" / "scanned weights" as a capability claim. */
+function detectWeightScan(words: string[]): boolean {
+  for (let i = 0; i < words.length; i++) {
+    const w = words[i];
+    if (w !== 'scan' && w !== 'scans' && w !== 'scanned' && w !== 'sanitize' && w !== 'sanitized') {
+      continue;
+    }
+    if (hasNearby(words, i, 6, WEIGHT_WORDS)) return true;
+  }
+  return false;
+}
+
 function runDetector(detector: CopyDependentDetector, words: string[]): boolean {
   switch (detector) {
     case 'marketplace-live':
@@ -240,6 +357,14 @@ function runDetector(detector: CopyDependentDetector, words: string[]): boolean 
       return detectVisualBuilderLive(words);
     case 'ghcr-fleet-images-live':
       return detectGhcrFleetImagesLive(words);
+    case 'cscrm-certified':
+      return detectCscrmCertified(words);
+    case 'trustworthy-ai-badge':
+      return detectTrustworthyAiBadge(words);
+    case 'aml-hardened':
+      return detectAmlHardened(words);
+    case 'weight-scan':
+      return detectWeightScan(words);
     default:
       return false;
   }

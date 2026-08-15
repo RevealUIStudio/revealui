@@ -55,7 +55,7 @@ And because it all runs on infrastructure you own, it compounds. The memory your
 
 I want to be precise about the present tense, because this industry has a lying problem and I refuse to add to it.
 
-Today, RevealUI is the runtime layer of that thesis. Five primitives that every business needs: People, Content, Offers, Payments, Agents. One permission model that covers humans and agents alike. A tamper-evident audit log. Local-first AI that runs on models you own, with any provider you choose as an option rather than a dependency. It is open source, and you can read every line.
+Today, RevealUI is the runtime layer of that thesis. Five primitives that every business needs: People, Content, Offers, Payments, Agents. One permission model that covers humans and agents alike. A tamper-evident audit log. Local-first AI that runs on models you host, with any provider you choose as an option rather than a dependency. It is open source, and you can read every line.
 
 Today, you still need to be the kind of person who can run your own infrastructure. The owner-operators come first: the founders and small teams who run their business on their own AI and want the receipts to prove what it did. They are who this is built with, right now, in production, by the one engineer in Tennessee writing this.
 
