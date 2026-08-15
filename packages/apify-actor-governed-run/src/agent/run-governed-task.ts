@@ -1,5 +1,11 @@
-import type { LLMChatOptions, LLMResponse, Message, Tool, ToolDefinition } from '@revealui/ai';
-import { toJSONSchema } from 'zod/v4';
+import {
+  type LLMChatOptions,
+  type LLMResponse,
+  type Message,
+  type Tool,
+  type ToolDefinition,
+  toolParametersToJsonSchema,
+} from '@revealui/ai';
 import type { ActionLogEntry } from '../types.js';
 
 export const DEFAULT_MAX_STEPS = 10;
@@ -38,9 +44,8 @@ function toolToDefinition(tool: Tool): ToolDefinition {
       name: tool.name,
       description: tool.description,
       // Tool.parameters is a Zod schema; providers need JSON Schema-shaped
-      // params. zod/v4 ships a native converter (toJSONSchema) -- no second
-      // schema-conversion dependency needed.
-      parameters: toJSONSchema(tool.parameters) as Record<string, unknown>,
+      // params. Conversion strips lookaround email patterns Groq/OpenAI reject.
+      parameters: toolParametersToJsonSchema(tool.parameters),
     },
   };
 }

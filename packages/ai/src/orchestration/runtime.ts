@@ -5,8 +5,8 @@
  */
 
 import { registerCleanupHandler } from '@revealui/core/monitoring';
-import { z } from 'zod/v4';
 import type { LLMClient } from '../llm/client.js';
+import { toolParametersToJsonSchema } from '../llm/tool-json-schema.js';
 import type { Message, ReasoningEffort } from '../llm/providers/base.js';
 import { estimateCost } from '../llm/token-counter.js';
 import type { AgentSkillProvider } from '../skills/integration/agent-skill-provider.js';
@@ -272,7 +272,7 @@ export class AgentRuntime {
             function: {
               name: tool.name,
               description: tool.description,
-              parameters: z.toJSONSchema(tool.parameters) as Record<string, unknown>,
+              parameters: toolParametersToJsonSchema(tool.parameters),
             },
           })),
           cacheHint: this.config.enableCache,

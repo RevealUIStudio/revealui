@@ -1,4 +1,5 @@
 import type { ToolDefinition } from '../llm/providers/base.js';
+import { toolParametersToJsonSchema } from '../llm/tool-json-schema.js';
 import type { Tool, ToolResult } from './base.js';
 
 export class ToolRegistry {
@@ -33,7 +34,7 @@ export class ToolRegistry {
       function: {
         name: tool.name,
         description: tool.description,
-        parameters: tool.parameters.toJSONSchema(), // Native Zod v4 method
+        parameters: toolParametersToJsonSchema(tool.parameters),
       },
     }));
   }

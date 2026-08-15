@@ -8,8 +8,8 @@
  * EventSource is not used client-side because it doesn't support POST  -  use fetch + ReadableStream.
  */
 
-import { z } from 'zod/v4';
 import type { ModelTier } from '../inference/context-budget.js';
+import { toolParametersToJsonSchema } from '../llm/tool-json-schema.js';
 import { compressToolResult } from '../inference/tool-result-compressor.js';
 import type { LLMClient } from '../llm/client.js';
 import type { ToolResult } from '../tools/base.js';
@@ -158,7 +158,7 @@ export class StreamingAgentRuntime extends AgentRuntime {
                 function: {
                   name: tool.name,
                   description: tool.description,
-                  parameters: z.toJSONSchema(tool.parameters) as Record<string, unknown>,
+                  parameters: toolParametersToJsonSchema(tool.parameters),
                 },
               })),
             },

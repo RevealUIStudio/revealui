@@ -79,7 +79,7 @@ export const createUserTool: Tool = {
   name: 'create_user',
   description: 'Create a new user account. Typically requires admin permissions.',
   parameters: z.object({
-    email: z.string().email().describe('User email address'),
+    email: z.email().describe('User email address'),
     password: z.string().min(8).describe('User password (minimum 8 characters)'),
     name: z.string().optional().describe('User full name'),
     role: z
@@ -124,7 +124,7 @@ export const updateUserTool: Tool = {
   description: 'Update a user account. Users can update their own account, admins can update any.',
   parameters: z.object({
     id: z.string().describe('User ID to update'),
-    email: z.string().email().optional().describe('New email address'),
+    email: z.email().optional().describe('New email address'),
     name: z.string().optional().describe('New full name'),
     role: z.string().optional().describe('New role (admin only)'),
     password: z.string().min(8).optional().describe('New password'),

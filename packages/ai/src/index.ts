@@ -88,6 +88,7 @@ export * from './skills/index.js';
 // Re-export specification templates
 export * from './templates/index.js';
 // Re-export tools
+export { sanitizeProviderToolSchema, toolParametersToJsonSchema } from './llm/tool-json-schema.js';
 export * from './tools/base.js';
 export * from './tools/deduplicator.js';
 export * from './tools/document-summarizer.js';
