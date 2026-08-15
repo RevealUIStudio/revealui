@@ -763,11 +763,21 @@ const supportExpiryCheck = checkSupportExpiry(async (customerId) => {
 app.use('/api/*', supportExpiryCheck);
 app.use('/api/v1/*', supportExpiryCheck);
 
-// A2A routes live outside /api/* so they need their own entitlement + license status check.
-// Without this, a revoked license retains A2A task execution access until the
-// 5-minute in-memory feature-flag cache expires.
+// A2A lives outside /api/*. Auth must run before entitlements so
+// platform-operator / membership resolve sees the session. Mounting only
+// entitlements on `/a2a/*` (after the route's own auth) left Task Tester
+// with free features.ai. GAP-360 walk.
+app.use('/a2a', optionalAuth);
+app.use('/a2a/*', optionalAuth);
+app.use('/a2a', optionalTenant);
+app.use('/a2a/*', optionalTenant);
+app.use('/a2a', entitlementMiddleware());
 app.use('/a2a/*', entitlementMiddleware());
+app.use('/a2a', csrfMiddleware());
+app.use('/a2a/*', csrfMiddleware());
+app.use('/a2a', licenseStatusCheck);
 app.use('/a2a/*', licenseStatusCheck);
+app.use('/a2a', supportExpiryCheck);
 app.use('/a2a/*', supportExpiryCheck);
 
 // GAP-310: block writes for lapsed-perpetual (read-only) licenses. Runs after
@@ -776,6 +786,7 @@ app.use('/a2a/*', supportExpiryCheck);
 // (off default / shadow / enforce); inert unless a license is in read-only mode.
 app.use('/api/*', enforceReadOnlyWrites());
 app.use('/api/v1/*', enforceReadOnlyWrites());
+app.use('/a2a', enforceReadOnlyWrites());
 app.use('/a2a/*', enforceReadOnlyWrites());
 
 // License enforcement  -  gate premium routes by feature
