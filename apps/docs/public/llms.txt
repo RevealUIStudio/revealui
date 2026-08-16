@@ -52,6 +52,6 @@
 
 - 0 paying customers; A- (8.7/10) on internal honest grading
 - **Stripe** runs in TEST mode in production; live mode gated on billing-readiness audit (see `WHAT_WORKS_TODAY`)
-- **RevealUI Fleet** (formerly RevealUI Forge) Docker images not yet on GHCR (preview status — runs from source today)
+- **RevealUI Fleet** runtime images are on GHCR (`revealui-api`, `revealui-admin`, `revealui-migrate`) and pull anonymously. A license JWT is still required to run a stamped kit.
 - **Ubuntu Inference Snaps** integration in progress; **Ollama** is the shipped open-model path
 - **Supabase** being phased out in favor of NeonDB + ElectricSQL (vector store consolidation in flight)

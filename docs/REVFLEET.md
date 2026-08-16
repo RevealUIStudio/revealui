@@ -49,7 +49,7 @@ Status: pre-launch (0 paying customers). Enterprise tier at $1,499/mo hosted; Re
 
 RevForge is what an operator runs to produce a customer Fleet kit. It generates the per-customer Docker Compose stack with domain lock, branding, and license configuration. The operator is RevealUI Studio; the customer is the enterprise organization deploying the kit.
 
-Status: pre-launch (Docker images not yet on GHCR — stack runs from source today).
+Status: pre-launch. Runtime images are on GHCR and pull anonymously. A stamped kit still needs a license JWT.
 
 ### RevealUI Fleet (the self-hosted kit)
 
