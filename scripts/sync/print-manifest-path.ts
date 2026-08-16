@@ -4,7 +4,7 @@
  * Usage: node scripts/sync/print-manifest-path.ts vercel|fly|staging
  */
 
-import { requireManifestPath, type ManifestKind } from './resolve-manifest-dir.js';
+import { type ManifestKind, requireManifestPath } from './resolve-manifest-dir.js';
 
 const kind = process.argv[2];
 if (kind !== 'vercel' && kind !== 'fly' && kind !== 'staging') {

@@ -13,7 +13,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { collectVars } from '../parse-manifests.js';
-import { resolveManifestPath } from '../resolve-manifest-dir.js';
 import {
   extractGeneratedPaths,
   renderSecretPathsBlock,
@@ -21,6 +20,7 @@ import {
   spliceGenerated,
   syncedPathDefs,
 } from '../render-secrets-md.js';
+import { resolveManifestPath } from '../resolve-manifest-dir.js';
 import {
   DECLARED_PATHS,
   findDocDrift,
@@ -115,7 +115,8 @@ describe.skipIf(!hasManifests)('manifest ↔ spec lockstep', () => {
     );
     expect(workerPriv).toBeUndefined();
     const signerPriv = flyVars.find(
-      (v) => v.name === 'REVEALUI_LICENSE_PRIVATE_KEY' && v.source === 'fly:revealui-license-signer',
+      (v) =>
+        v.name === 'REVEALUI_LICENSE_PRIVATE_KEY' && v.source === 'fly:revealui-license-signer',
     );
     expect(signerPriv?.path).toBe('revdev/license-signing-private-key');
   });
