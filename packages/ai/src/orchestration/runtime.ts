@@ -6,9 +6,9 @@
 
 import { registerCleanupHandler } from '@revealui/core/monitoring';
 import type { LLMClient } from '../llm/client.js';
-import { toolParametersToJsonSchema } from '../llm/tool-json-schema.js';
 import type { Message, ReasoningEffort } from '../llm/providers/base.js';
 import { estimateCost } from '../llm/token-counter.js';
+import { toolParametersToJsonSchema } from '../llm/tool-json-schema.js';
 import type { AgentSkillProvider } from '../skills/integration/agent-skill-provider.js';
 import type { ApprovalCallback, Tool, ToolResult } from '../tools/base.js';
 import { ToolCallDeduplicator } from '../tools/deduplicator.js';

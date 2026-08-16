@@ -72,6 +72,7 @@ export * from './llm/providers/openai-compat.js';
 export * from './llm/providers/us-origin-snaps.js';
 export * from './llm/resolve.js';
 export * from './llm/token-counter.js';
+export { sanitizeProviderToolSchema, toolParametersToJsonSchema } from './llm/tool-json-schema.js';
 export * from './llm/workspace-provider-config.js';
 // Re-export memory system
 export * from './memory/index.js';
@@ -88,7 +89,6 @@ export * from './skills/index.js';
 // Re-export specification templates
 export * from './templates/index.js';
 // Re-export tools
-export { sanitizeProviderToolSchema, toolParametersToJsonSchema } from './llm/tool-json-schema.js';
 export * from './tools/base.js';
 export * from './tools/deduplicator.js';
 export * from './tools/document-summarizer.js';

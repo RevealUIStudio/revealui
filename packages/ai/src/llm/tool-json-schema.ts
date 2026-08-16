@@ -65,10 +65,13 @@ function sanitizeNode(value: unknown, parentKey: string | undefined): unknown {
       obj.format === 'email' ||
       parentKey === 'email' ||
       (typeof obj.description === 'string' && /email/i.test(obj.description));
-    delete obj.pattern;
+    const withoutPattern = Object.fromEntries(
+      Object.entries(obj).filter(([key]) => key !== 'pattern'),
+    );
     if (emailShaped) {
-      obj.format = 'email';
+      return { ...withoutPattern, format: 'email' };
     }
+    return withoutPattern;
   }
 
   return obj;
