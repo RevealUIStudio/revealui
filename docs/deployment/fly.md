@@ -37,14 +37,14 @@ flyctl apps create revealui-worker --org personal
 
 # 3. Mirror prod secrets from revvault → Fly via the sync target.
 #
-#    The manifest at scripts/sync/revvault-fly.toml defines the worker's full
+#    The private ops/sync/revvault-fly.toml manifest defines the worker's full
 #    secret set ([fly-apps.revealui-worker.vars]). The worker imports the full
 #    Hono app, so it needs API-PARITY env (same set as the Vercel revealui-api
 #    project) — a minimal subset fails startup validation. Auth via
 #    FLY_API_TOKEN (or --token). Dry-run first (prints the add/set/orphan
 #    diff, writes nothing), then apply:
-revvault sync fly --manifest scripts/sync/revvault-fly.toml
-revvault sync fly --manifest scripts/sync/revvault-fly.toml --apply
+revvault sync fly --manifest "$(tsx scripts/sync/print-manifest-path.ts fly)"
+revvault sync fly --manifest "$(tsx scripts/sync/print-manifest-path.ts fly)" --apply
 
 # 3b. STRIPE — set Fly-direct, NOT via the sync target. STRIPE_SECRET_KEY and
 #     STRIPE_LIVE_MODE are on the manifest's `skip` list: startup validation
@@ -117,13 +117,13 @@ Automated deploys via GitHub Actions land in a future phase
 All secrets live in revvault per [`docs/SECRETS.md`](../SECRETS.md).
 The worker's full secret set (API-PARITY with the Vercel `revealui-api`
 project) is defined in
-[`scripts/sync/revvault-fly.toml`](../../scripts/sync/revvault-fly.toml).
+the private coordination-repo `ops/sync/revvault-fly.toml`.
 
 Push it with the `revvault sync fly` target — dry-run by default, `--apply`
 to write (see §First deploy step 3):
 
 ```bash
-revvault sync fly --manifest scripts/sync/revvault-fly.toml [--apply]
+revvault sync fly --manifest "$(tsx scripts/sync/print-manifest-path.ts fly)" [--apply]
 ```
 
 The sync adds absent secrets and re-sets present ones; secrets that exist on

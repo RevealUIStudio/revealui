@@ -25,18 +25,9 @@
  */
 
 import { readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { collectVars, collectVercelProjects, type VercelProjectSpec } from './parse-manifests.js';
+import { requireManifestPath } from './resolve-manifest-dir.js';
 import { DECLARED_PATHS } from './secret-paths.js';
-
-const HERE = dirname(fileURLToPath(import.meta.url));
-const VERCEL_MANIFEST = resolve(HERE, 'revvault-vercel.toml');
-const FLY_MANIFEST = resolve(HERE, 'revvault-fly.toml');
-// Separate staging manifest (GAP-343 Phase 3) - project slugs already
-// disambiguate (e.g. "vercel:revealui-api-staging"), so it shares the same
-// 'vercel' sourceLabel as the prod manifest rather than inventing a new one.
-const STAGING_MANIFEST = resolve(HERE, 'revvault-vercel-staging.toml');
 
 export type DriftCategory = 'orphan' | 'missing' | 'shape-violation';
 
@@ -123,9 +114,9 @@ function manifestNamePathIndex(): Map<string, Map<string, string>> {
       index.get(v.source)?.set(v.name, v.path);
     }
   };
-  add(VERCEL_MANIFEST, 'projects', 'vercel');
-  add(FLY_MANIFEST, 'fly-apps', 'fly');
-  add(STAGING_MANIFEST, 'projects', 'vercel');
+  add(requireManifestPath('vercel'), 'projects', 'vercel');
+  add(requireManifestPath('fly'), 'fly-apps', 'fly');
+  add(requireManifestPath('staging'), 'projects', 'vercel');
   return index;
 }
 
@@ -373,7 +364,7 @@ async function runLiveVercel(): Promise<void> {
     process.stdout.write('VERCEL_TOKEN not set; skipping live Vercel name-diff (no-op pass).\n');
     process.exit(0);
   }
-  const projects = collectVercelProjects(readFileSync(VERCEL_MANIFEST, 'utf8'));
+  const projects = collectVercelProjects(readFileSync(requireManifestPath('vercel'), 'utf8'));
   if (projects.length === 0) {
     process.stderr.write('secret-path-drift: no projects with project_id in prod manifest\n');
     process.exit(2);
@@ -408,7 +399,7 @@ function main(): void {
 
   const namesJsonPath = argValue(argv, '--vercel-names-json');
   if (namesJsonPath) {
-    const projects = collectVercelProjects(readFileSync(VERCEL_MANIFEST, 'utf8'));
+    const projects = collectVercelProjects(readFileSync(requireManifestPath('vercel'), 'utf8'));
     const live = parseVercelNamesJson(readFileSync(namesJsonPath, 'utf8'));
     const findings = classifyVercelNameDrift(projects, live);
     reportAndExit(findings, projects.length, 'vercel-name-diff (fixture)');

@@ -830,7 +830,9 @@ async function main(): Promise<void> {
     if (syncRevvault) {
       log.header('Revvault Sync (source of truth)');
       const revvaultResult = syncToRevvault(envVars, {
-        manifestPath: resolve(import.meta.dirname, '../sync/revvault-vercel.toml'),
+        manifestPath: (await import('../sync/resolve-manifest-dir.js')).requireManifestPath(
+          'vercel',
+        ),
         dryRun,
         log,
       });
