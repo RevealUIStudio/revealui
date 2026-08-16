@@ -36,7 +36,7 @@ export default function AgentRunPage({ params }: PageProps) {
     e.preventDefault();
     const trimmed = instruction.trim();
     if (!trimmed) return;
-    void stream.start({ instruction: trimmed, mode });
+    void stream.start({ instruction: trimmed, mode, agentId });
   };
 
   return (

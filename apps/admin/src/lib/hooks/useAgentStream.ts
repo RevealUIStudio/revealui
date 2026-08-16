@@ -79,6 +79,8 @@ export interface AgentStreamRequest {
    * request schema.
    */
   mode?: 'admin' | 'coding';
+  /** Built-in agent id. Scopes admin tools on /api/agent-stream. */
+  agentId?: string;
 }
 
 export interface PendingElicitation {

@@ -599,6 +599,20 @@ describe('POST /a2a  -  JSON-RPC validation edge cases', () => {
     expect(body.id).toBeNull();
   });
 
+  it('does not license-deny tasks/send when entitlements.features.ai is true', async () => {
+    const app = makeA2AApp({ id: 'user-1' }, { features: { ai: true } });
+    const res = await app.request(
+      post('/', {
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tasks/send',
+        params: { id: 'test-agent', message: { role: 'user', parts: [{ text: 'hi' }] } },
+      }),
+    );
+    const body = (await res.json()) as { error?: { message?: string } };
+    expect(body.error?.message ?? '').not.toMatch(/Pro or Enterprise license/i);
+  });
+
   it('returns 403 for tasks/send when ai feature is disabled', async () => {
     mockIsFeatureEnabled.mockReturnValue(false);
 

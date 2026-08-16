@@ -116,6 +116,13 @@ export interface AdminToolsConfig {
    * successful results fail closed if the audit write throws.
    */
   onToolAudit?: ToolIntegrityAuditHandler;
+
+  /**
+   * When set, only these tool names are returned. Built-in agents (ticket,
+   * creator) pass a profile so Watch live does not ship create_user to Groq
+   * for a "list tickets" run.
+   */
+  include?: readonly string[];
 }
 
 /**
@@ -633,5 +640,10 @@ export function createAdminTools(config: AdminToolsConfig): Tool[] {
     },
   });
 
-  return maybeWrapToolsWithIntegrityAudit(tools, onToolAudit);
+  const wrapped = maybeWrapToolsWithIntegrityAudit(tools, onToolAudit);
+  if (!config.include) {
+    return wrapped;
+  }
+  const allowed = new Set(config.include);
+  return wrapped.filter((tool) => allowed.has(tool.name));
 }
