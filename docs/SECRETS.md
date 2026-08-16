@@ -84,10 +84,12 @@ CI secret mirrors. The table below is a DERIVED VIEW of the machine spec at
 `scripts/sync/secret-paths.ts` - do not hand-edit it (see the marker note).
 
 The `revealui/staging/*` rows below (GAP-343) are synced by a SEPARATE
-manifest, `scripts/sync/revvault-vercel-staging.toml`, deliberately never the
-prod one - see that file's header for the `git_branch` preview-scoping
+private-ops manifest (`ops/sync/revvault-vercel-staging.toml`, resolved by
+`tsx scripts/sync/print-manifest-path.ts staging`), deliberately never the
+prod one. See that file's header for the `git_branch` preview-scoping
 mechanics and `scripts/setup/gen-staging-secrets.ts` for the owner-run
-generator that fills the "fresh value" paths.
+generator that fills the "fresh value" paths. Sync with
+`pnpm vercel:sync:staging` / `pnpm vercel:sync:staging:apply`.
 
 <!-- BEGIN GENERATED:secret-paths -->
 
@@ -435,8 +437,8 @@ Env vars are populated from revvault at deploy time via a mirror step,
 not hand-typed in the Vercel UI:
 
 ```bash
-# Driven by the Vercel sync manifest (scripts/sync/revvault-vercel.toml):
-pnpm vercel:sync          # dry-run — review diffs
+# Driven by the private ops/sync Vercel manifest (print-manifest-path):
+pnpm vercel:sync          # dry-run; review diffs
 pnpm vercel:sync:apply    # apply to Vercel production
 ```
 

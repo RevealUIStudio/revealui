@@ -2,9 +2,9 @@
 /**
  * Owner-run generator for the staging environment's "generate fresh" secret
  * bucket (GAP-343 Phase 3, docs/lanes/staging-environment/plan.md). Writes
- * directly to revvault under revealui/staging/* - the manifest
- * (scripts/sync/revvault-vercel-staging.toml) then syncs these vault values
- * into Vercel via `pnpm vercel:sync:staging:apply`.
+ * directly to revvault under revealui/staging/* - the private ops/sync
+ * staging manifest (print-manifest-path.ts staging) then syncs these vault
+ * values into Vercel via `pnpm vercel:sync:staging:apply`.
  *
  * What this writes:
  *   - A fresh Ed25519 license-signing keypair, self-verified at generation

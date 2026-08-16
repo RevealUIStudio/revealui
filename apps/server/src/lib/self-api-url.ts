@@ -31,4 +31,4 @@ export function resolveSelfApiBaseUrl(
 export const MISSING_SELF_API_URL_MESSAGE =
   'governed MCP endpoint: REVEALUI_API_URL is not configured ' +
   '(set REVEALUI_API_URL to this API public origin; vault path ' +
-  'revealui/prod/public/api-url; sync via scripts/sync/revvault-vercel.toml → revealui-api)';
+  'revealui/prod/public/api-url; sync via pnpm vercel:sync → revealui-api)';

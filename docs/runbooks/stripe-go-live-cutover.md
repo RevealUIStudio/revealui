@@ -64,7 +64,8 @@ Use the canonical sync — this overwrites the Gate-5 Vercel-direct test values 
 
 ```bash
 cd ~/revfleet/revealui
-revvault sync vercel --manifest scripts/sync/revvault-vercel.toml   # or the pnpm wrapper
+pnpm vercel:sync          # dry-run via print-manifest-path (private ops/sync)
+pnpm vercel:sync:apply    # after reviewing diffs
 ```
 
 `STRIPE_LIVE_MODE` is in the manifest `skip` list, so the sync does **not** touch it — you flip it explicitly in step 4. Confirm the secret-key + webhook vars now resolve to live (the sync reports each var).

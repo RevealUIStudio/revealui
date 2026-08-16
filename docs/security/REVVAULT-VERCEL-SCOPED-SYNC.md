@@ -13,15 +13,21 @@ brick hosted license verification.
 ```bash
 cd ~/revfleet/revealui
 
+# Manifest resolves from private planning-repo ops/sync/ (or
+# REVEALUI_SYNC_MANIFEST_DIR / JV_REPO). Prefer stream-safe token inject.
+MANIFEST="$(tsx scripts/sync/print-manifest-path.ts vercel)"
+
 # Dry-run one project + one key (no writes)
-revvault sync vercel \
-  --manifest scripts/sync/revvault-vercel.toml \
+revvault run --env VERCEL_TOKEN=revealui/prod/api-keys/vercel-token -- \
+  revvault sync vercel \
+  --manifest "$MANIFEST" \
   --project revealui-admin \
   --key REVEALUI_SIGNUP_OPEN
 
 # Apply only that key after the vault value is verified correct
-revvault sync vercel \
-  --manifest scripts/sync/revvault-vercel.toml \
+revvault run --env VERCEL_TOKEN=revealui/prod/api-keys/vercel-token -- \
+  revvault sync vercel \
+  --manifest "$MANIFEST" \
   --project revealui-admin \
   --key REVEALUI_SIGNUP_OPEN \
   --apply
@@ -63,4 +69,7 @@ Then scoped sync as above. Agents do **not** run `--apply` without named owner a
 
 - GAP-260 P4-4 license private key drop (separate owner cutover)
 - GAP-230 / GAP-231 Electric corrupt rows
-- `scripts/sync/revvault-vercel.toml` — manifest SSOT
+- Manifest SSOT: private planning repo `ops/sync/revvault-vercel.toml`
+  (public resolver: [`scripts/sync/README.md`](../../scripts/sync/README.md),
+  `print-manifest-path.ts`)
+- Unscoped day-to-day: `pnpm vercel:sync` / `pnpm vercel:sync:apply`
