@@ -7,7 +7,7 @@ describe('Content Public API', () => {
       const manifest = buildManifest();
       expect(manifest.version).toBe(1);
       expect(manifest.generatedAt).toBeTruthy();
-      expect(manifest.rules.length).toBe(18);
+      expect(manifest.rules.length).toBe(19);
       expect(manifest.commands.length).toBe(4);
       expect(manifest.agents.length).toBe(6);
       expect(manifest.skills.length).toBe(10);

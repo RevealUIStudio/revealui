@@ -58,3 +58,11 @@ export {
   REQUIRED_SECURITY_AUDIT_CHECKS,
   SEC_REVIEW_APPROVED_LABEL,
 } from './sec-review-label-gate.js';
+export type { PublicCommentGateResult } from './public-security-comment-gate.js';
+export {
+  checkPublicSecurityComment,
+  extractCommentBody,
+  isGithubCommentCommand,
+  PUBLIC_VERDICT_MAX_CHARS,
+  renderPublicGuardrail2Comment,
+} from './public-security-comment-gate.js';
