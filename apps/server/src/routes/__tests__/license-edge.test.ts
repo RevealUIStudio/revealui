@@ -39,7 +39,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
 }));
 
 vi.mock('@revealui/core/license', () => {
-  // Mirror production normalizePem / readPemEnv (literal \n → real newline).
+  // Mirror production normalizePem / readPemEnv / getPublicKeys (literal \n → real newline).
   // After #2017 the license routes call readPemEnv; a passthrough mock made
   // the PEM-unescape tests fail while production was still correct.
   const normalizePem = (raw: string) => raw.split('\\n').join('\n');
@@ -50,9 +50,18 @@ vi.mock('@revealui/core/license', () => {
     if (trimmed.length === 0) return undefined;
     return normalizePem(trimmed);
   };
+  const getPublicKeys = () => {
+    const keys: string[] = [];
+    const current = process.env.REVEALUI_LICENSE_PUBLIC_KEY;
+    if (current) keys.push(normalizePem(current));
+    const next = process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT;
+    if (next) keys.push(normalizePem(next));
+    return keys;
+  };
   return {
     normalizePem,
     readPemEnv,
+    getPublicKeys,
     coversRenewalBound: vi.fn(() => false),
     DEFAULT_MANUAL_MINT_DAYS: 90,
     validateLicenseKey: vi.fn(),
@@ -328,8 +337,9 @@ describe('POST /verify  -  DB throws during invalid-JWT status check', () => {
 describe('POST /verify  -  public key \\n handling', () => {
   it('replaces literal \\\\n with newline in public key env var before calling validateLicenseKey', async () => {
     // Env vars from secrets managers often store newlines as the literal string '\\n'
-    // Route: process.env.REVEALUI_LICENSE_PUBLIC_KEY?.replace(/\\n/g, '\n')
+    // Route: getPublicKeys() normalizes current (+ optional NEXT) then passes the list.
     process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'BEGIN KEY\\nsome-key-data\\nEND KEY';
+    delete process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT;
     mockedValidate.mockResolvedValue({
       tier: 'pro',
       customerId: 'cus_123',
@@ -339,7 +349,7 @@ describe('POST /verify  -  public key \\n handling', () => {
     const app = createApp();
     await app.request('/verify', post({ licenseKey: 'tok' }));
 
-    // validateLicenseKey should have been called with newlines replaced
-    expect(mockedValidate).toHaveBeenCalledWith('tok', 'BEGIN KEY\nsome-key-data\nEND KEY');
+    // validateLicenseKey receives the ordered public-key list (current only here)
+    expect(mockedValidate).toHaveBeenCalledWith('tok', ['BEGIN KEY\nsome-key-data\nEND KEY']);
   });
 });

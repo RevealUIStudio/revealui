@@ -189,10 +189,11 @@ const verifyRoute = createRoute({
 
 app.openapi(verifyRoute, async (c) => {
   const { licenseKey } = c.req.valid('json');
-  // Restore real newlines in a single-line PEM via the core helper (GAP-396).
-  const publicKey = readPemEnv('REVEALUI_LICENSE_PUBLIC_KEY');
+  // Ordered current + optional NEXT (GAP-259 / GAP-261 soak). Same candidate
+  // list as refresh so a NEXT-signed token verifies GREEN during rotation.
+  const publicKeys = getPublicKeys();
 
-  if (!publicKey) {
+  if (publicKeys.length === 0) {
     logger.error('REVEALUI_LICENSE_PUBLIC_KEY not configured');
     return c.json(
       {
@@ -209,7 +210,7 @@ app.openapi(verifyRoute, async (c) => {
     );
   }
 
-  const payload = await validateLicenseKey(licenseKey, publicKey);
+  const payload = await validateLicenseKey(licenseKey, publicKeys);
 
   if (!payload) {
     // JWT is invalid or expired. Check DB to distinguish between revoked (explicit

@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Mock @revealui/core/features and @revealui/core/license
@@ -13,9 +13,10 @@ vi.mock('@revealui/core/features', () => ({
 }));
 
 vi.mock('@revealui/core/license', () => {
-  // Mirror production normalizePem / readPemEnv (literal \n → real newline).
+  // Mirror production normalizePem / readPemEnv / getPublicKeys (literal \n → real newline).
   // After #2017 the license routes call readPemEnv; a passthrough mock made
   // the PEM-unescape tests fail while production was still correct.
+  // getPublicKeys mirrors packages/core license rotation (current + NEXT).
   const normalizePem = (raw: string) => raw.split('\\n').join('\n');
   const readPemEnv = (name: string, env: NodeJS.ProcessEnv = process.env) => {
     const raw = env[name];
@@ -24,9 +25,18 @@ vi.mock('@revealui/core/license', () => {
     if (trimmed.length === 0) return undefined;
     return normalizePem(trimmed);
   };
+  const getPublicKeys = () => {
+    const keys: string[] = [];
+    const current = process.env.REVEALUI_LICENSE_PUBLIC_KEY;
+    if (current) keys.push(normalizePem(current));
+    const next = process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT;
+    if (next) keys.push(normalizePem(next));
+    return keys;
+  };
   return {
     normalizePem,
     readPemEnv,
+    getPublicKeys,
     coversRenewalBound: vi.fn(() => false),
     DEFAULT_MANUAL_MINT_DAYS: 90,
     validateLicenseKey: vi.fn(),
@@ -128,6 +138,7 @@ describe('POST /verify', () => {
 
   it('returns free tier when public key is not configured', async () => {
     delete process.env.REVEALUI_LICENSE_PUBLIC_KEY;
+    delete process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT;
 
     const app = createApp();
     const res = await app.request('/verify', post('/verify', { licenseKey: 'any.key' }));
@@ -189,6 +200,7 @@ describe('POST /verify', () => {
 
   it('returns reason:misconfigured when public key is not configured', async () => {
     delete process.env.REVEALUI_LICENSE_PUBLIC_KEY;
+    delete process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT;
 
     const app = createApp();
     const res = await app.request('/verify', post('/verify', { licenseKey: 'any.key' }));
@@ -227,6 +239,87 @@ describe('POST /verify', () => {
     const body = await parseBody(res);
     expect(body.maxSites).toBeNull();
     expect(body.maxUsers).toBeNull();
+  });
+});
+
+// GAP-261 soak: verify must accept current + NEXT during key rotation (same
+// ordered list refresh already uses via getPublicKeys).
+describe('POST /verify  -  multi-key rotation (current + NEXT)', () => {
+  afterEach(() => {
+    delete process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT;
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'pub-key';
+    mockedValidate.mockReset();
+  });
+
+  it('verifies a NEXT-signed token when PUBLIC and PUBLIC_NEXT are configured', async () => {
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'current-pub';
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT = 'next-pub';
+    // Core validateLicenseKey accepts either candidate; mock success as if the
+    // presented token was signed by NEXT and matched the second key.
+    mockedValidate.mockImplementation(async (_key, publicKeys) => {
+      const list = Array.isArray(publicKeys) ? publicKeys : [publicKeys];
+      if (list.includes('next-pub')) {
+        return {
+          tier: 'pro',
+          customerId: 'cus_rotate',
+          maxSites: 5,
+          maxUsers: 25,
+          exp: Math.floor(Date.now() / 1000) + 86400,
+        } as never;
+      }
+      return null as never;
+    });
+
+    const app = createApp();
+    const res = await app.request('/verify', post('/verify', { licenseKey: 'next.signed.token' }));
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.valid).toBe(true);
+    expect(body.tier).toBe('pro');
+    expect(body.customerId).toBe('cus_rotate');
+    expect(mockedValidate).toHaveBeenCalledWith('next.signed.token', ['current-pub', 'next-pub']);
+  });
+
+  it('rejects a NEXT-signed token when only the current public key is set', async () => {
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'current-pub';
+    delete process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT;
+    mockedValidate.mockImplementation(async (_key, publicKeys) => {
+      const list = Array.isArray(publicKeys) ? publicKeys : [publicKeys];
+      if (list.includes('next-pub')) {
+        return {
+          tier: 'pro',
+          customerId: 'cus_rotate',
+          exp: Math.floor(Date.now() / 1000) + 86400,
+        } as never;
+      }
+      return null as never;
+    });
+
+    const app = createApp();
+    const res = await app.request('/verify', post('/verify', { licenseKey: 'next.signed.token' }));
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.valid).toBe(false);
+    expect(body.reason).toBe('invalid');
+    expect(mockedValidate).toHaveBeenCalledWith('next.signed.token', ['current-pub']);
+  });
+
+  it('normalizes literal \\\\n in PUBLIC_NEXT before verify', async () => {
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'BEGIN CURRENT\\nKEY\\nEND';
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT = 'BEGIN NEXT\\nKEY\\nEND';
+    mockedValidate.mockResolvedValue({
+      tier: 'max',
+      customerId: 'cus_nl',
+      exp: Math.floor(Date.now() / 1000) + 86400,
+    } as never);
+
+    const app = createApp();
+    await app.request('/verify', post('/verify', { licenseKey: 'tok' }));
+
+    expect(mockedValidate).toHaveBeenCalledWith('tok', [
+      'BEGIN CURRENT\nKEY\nEND',
+      'BEGIN NEXT\nKEY\nEND',
+    ]);
   });
 });
 
