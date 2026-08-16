@@ -1,9 +1,4 @@
-import {
-  BuiltWithRevealUI,
-  Heading,
-  RevealUIMark,
-  SplitAuthLayout,
-} from '@revealui/presentation/server';
+import { BuiltWithRevealUI, Heading, SplitAuthLayout } from '@revealui/presentation/server';
 import type React from 'react';
 
 /**
@@ -20,13 +15,15 @@ import type React from 'react';
  *   the logo already contains the company wordmark, e.g. "acmeinc"); alt
  *   text on the logo stays for screen-reader accessibility regardless
  * - `REVEALUI_TENANT_TAGLINE` — optional subline; suppressed if unset
- * - `REVEALUI_BRAND_LOGO_URL` — optional tenant logo src; when unset, the inline
- *   RevealUI mark is rendered (inherits `--tenant-brand-on` for guaranteed contrast)
+ * - `REVEALUI_BRAND_LOGO_URL` — optional tenant logo src; when unset, the canonical
+ *   Cobalt circuit emblem (`/revealui-logo-dark.svg`, ≥96px) is rendered
  * - `REVEALUI_SHOW_POWERED_BY` — `'false'` hides the "Built with RevealUI" badge
  *   (kit-default false; revealui.com SaaS-default true)
  *
  * Tenant brand color is consumed via the `--tenant-brand` / `--tenant-brand-on` CSS
  * vars injected at the root in `apps/admin/src/app/(frontend)/layout.tsx`.
+ * When no tenant color is set, the brand column uses midnight (`surface-0`) so
+ * the circuit-dark master stays on its designed surface.
  */
 export function BrandedAuthLayout({ children }: { children: React.ReactNode }) {
   // `||` not `??`: Compose `${VAR:-}` interpolation delivers unset vars as
@@ -37,6 +34,9 @@ export function BrandedAuthLayout({ children }: { children: React.ReactNode }) {
   const tagline = process.env.REVEALUI_TENANT_TAGLINE;
   const logoUrl = process.env.REVEALUI_BRAND_LOGO_URL;
   const showPoweredBy = process.env.REVEALUI_SHOW_POWERED_BY !== 'false';
+  const hasTenantBrand = Boolean(
+    process.env.REVEALUI_BRAND_PRIMARY_COLOR || process.env.REVEALUI_TENANT_BRAND,
+  );
 
   const brand = (
     <>
@@ -45,18 +45,34 @@ export function BrandedAuthLayout({ children }: { children: React.ReactNode }) {
         <img
           src={logoUrl}
           alt={name}
-          className="max-h-24 w-auto max-w-xs object-contain lg:max-h-48 lg:max-w-sm"
+          className="max-h-24 w-auto max-w-xs object-contain lg:max-h-40 lg:max-w-sm"
         />
       ) : (
-        <RevealUIMark title={name} className="h-24 w-24 lg:h-32 lg:w-32" />
+        // biome-ignore lint/performance/noImgElement: canonical circuit master from gen-brand-assets; ≥96px
+        <img
+          src="/revealui-logo-dark.svg"
+          alt=""
+          width={160}
+          height={160}
+          className="h-28 w-28 lg:h-40 lg:w-40"
+        />
       )}
       {hideName ? null : (
-        <Heading as="h1" size="2xl" className="text-center tracking-tight lg:text-3xl">
+        <Heading
+          as="h1"
+          size="2xl"
+          className="text-center font-extrabold tracking-tight lg:text-3xl"
+          style={{
+            fontFamily: 'var(--rvui-font-display, "Inter Tight", "Inter", system-ui, sans-serif)',
+          }}
+        >
           {name}
         </Heading>
       )}
       {tagline ? (
-        <p className="max-w-[30ch] text-center text-sm opacity-80 lg:text-base">{tagline}</p>
+        <p className="max-w-[30ch] text-center text-sm text-[var(--rvui-text-1)] lg:text-base">
+          {tagline}
+        </p>
       ) : null}
     </>
   );
@@ -64,6 +80,7 @@ export function BrandedAuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <SplitAuthLayout
       brand={brand}
+      brandSurface={hasTenantBrand ? 'tenant' : 'surface-0'}
       brandFooter={
         showPoweredBy ? (
           <div className="hidden lg:block">

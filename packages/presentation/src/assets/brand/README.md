@@ -118,7 +118,7 @@ well as the rasters. Nothing here is copied by hand.
 |---|---|
 | marketing | `favicon.svg`, `icon-mark.svg`, `favicon.png` (64), `favicon.ico`, `apple-touch-icon.png`, `icon-192/512.png`, `icon-maskable-512.png` |
 | docs | `favicon.svg`, `favicon.png` (32), `favicon.ico`, `apple-touch-icon.png`, `icon-192/512.png`, `icon-maskable-512.png` |
-| admin | same as docs |
+| admin | same as docs, plus `revealui-logo-dark.svg` (auth brand panel, ≥96px) |
 
 The SVG sync is load-bearing: marketing's
 `<link rel="icon" type="image/svg+xml">` and `NavBar`/`Footer`'s
