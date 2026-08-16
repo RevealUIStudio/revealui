@@ -1,3 +1,6 @@
+import { mkdtemp, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   checkPublicSecurityComment,
@@ -57,13 +60,35 @@ describe('isGithubCommentCommand', () => {
 
 describe('extractCommentBody', () => {
   it('reads --body and heredoc', () => {
-    expect(extractCommentBody('gh pr comment 1 --body "hello there"')).toBe('hello there');
+    expect(extractCommentBody('gh pr comment 1 --body "hello there"').body).toBe('hello there');
     expect(
-      extractCommentBody('gh pr comment 1 --body "line one\\nAttack checklist\\nline two"'),
+      extractCommentBody('gh pr comment 1 --body "line one\\nAttack checklist\\nline two"').body,
     ).toContain('Attack checklist');
     const heredoc = `gh pr comment 1 -R o/r --body "$(cat <<'EOF'\nline one\nline two\nEOF\n)"`;
-    expect(extractCommentBody(heredoc)).toContain('line one');
-    expect(extractCommentBody(heredoc)).toContain('line two');
+    expect(extractCommentBody(heredoc).body).toContain('line one');
+    expect(extractCommentBody(heredoc).body).toContain('line two');
+  });
+
+  it('reads gh pr comment -F / --body-file', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'pub-sec-body-'));
+    const file = join(dir, 'body.md');
+    await writeFile(file, ESSAY, 'utf8');
+    const fromDashF = extractCommentBody(
+      `gh pr comment 2640 -R RevealUIStudio/revealui -F ${file}`,
+    );
+    expect(fromDashF.unread).toBe(false);
+    expect(fromDashF.body).toContain('Attack checklist');
+    const fromLong = extractCommentBody(
+      `gh pr comment 2640 -R RevealUIStudio/revealui --body-file ${file}`,
+    );
+    expect(fromLong.body).toContain('AuthN/AuthZ');
+  });
+
+  it('marks stdin / missing body-file unread', () => {
+    expect(extractCommentBody('gh pr comment 1 -R o/r -F -').unread).toBe(true);
+    expect(
+      extractCommentBody('gh pr comment 1 -R o/r --body-file /no/such/comment-body.md').unread,
+    ).toBe(true);
   });
 });
 
@@ -95,6 +120,22 @@ describe('checkPublicSecurityComment', () => {
     expect(checkPublicSecurityComment(`gh pr comment 1 --body ${JSON.stringify(ESSAY)}`).block).toBe(
       true,
     );
+  });
+
+  it('blocks a public essay posted with -F', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'pub-sec-essay-'));
+    const file = join(dir, 'essay.md');
+    await writeFile(file, ESSAY, 'utf8');
+    const r = checkPublicSecurityComment(
+      `gh pr comment 2640 -R RevealUIStudio/revealui -F ${file}`,
+    );
+    expect(r.block).toBe(true);
+  });
+
+  it('blocks unread public body-file so -F cannot bypass', () => {
+    const r = checkPublicSecurityComment('gh pr comment 1 -R RevealUIStudio/revealui -F -');
+    expect(r.block).toBe(true);
+    expect(r.rule).toBe('public-security-comment');
   });
 
   it('allows non-comment gh and short product comments', () => {

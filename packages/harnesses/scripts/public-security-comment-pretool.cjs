@@ -233,16 +233,50 @@ function extractFlagValue(command, flag) {
   return end > i ? command.slice(i, end) : null;
 }
 
+function isGhApiCommand(command) {
+  const parts = tokenize(command);
+  let sawGh = false;
+  for (const p of parts) {
+    if (p === 'gh') sawGh = true;
+    else if (sawGh && p === 'api') return true;
+  }
+  return false;
+}
+
+function readBodyFile(filePath) {
+  const file = unquote(filePath);
+  if (!file || file === '-') return { body: '', unread: true };
+  try {
+    return { body: fs.readFileSync(file, 'utf8'), unread: false };
+  } catch {
+    return { body: '', unread: true };
+  }
+}
+
+function resolveFieldBody(raw) {
+  const value = unquote(raw.startsWith('body=') ? raw.slice('body='.length) : raw);
+  if (value.startsWith('@')) return readBodyFile(value.slice(1));
+  return { body: value, unread: false };
+}
+
 function extractCommentBody(command) {
   const heredoc = extractHeredoc(command);
-  if (heredoc !== null) return heredoc;
+  if (heredoc !== null) return { body: heredoc, unread: false };
   for (const flag of ['--body', '-b', '--message', '-m']) {
     const value = extractFlagValue(command, flag);
-    if (value) return unquote(value);
+    if (value) return { body: unquote(value), unread: false };
   }
-  const rawField = extractFlagValue(command, '--raw-field') || extractFlagValue(command, '-f');
-  if (rawField && rawField.startsWith('body=')) return unquote(rawField.slice('body='.length));
-  return '';
+  const fileFlag = extractFlagValue(command, '--body-file');
+  if (fileFlag) return readBodyFile(fileFlag);
+  if (!isGhApiCommand(command)) {
+    const dashF = extractFlagValue(command, '-F');
+    if (dashF && !dashF.startsWith('body=')) return readBodyFile(dashF);
+  }
+  const rawField = extractFlagValue(command, '--raw-field') || extractFlagValue(command, '-F');
+  if (rawField && rawField.startsWith('body=')) return resolveFieldBody(rawField);
+  const shortField = extractFlagValue(command, '-f');
+  if (shortField && shortField.startsWith('body=')) return resolveFieldBody(shortField);
+  return { body: '', unread: false };
 }
 
 function countEssayMarkers(body) {
@@ -258,7 +292,17 @@ function fallbackCheck(command) {
   if (!isGithubCommentCommand(command)) return { block: false };
   const repo = extractRepo(command);
   if (repo && PRIVATE_REPOS.includes(repo)) return { block: false };
-  const body = extractCommentBody(command);
+  const extracted = extractCommentBody(command);
+  if (extracted.unread) {
+    return {
+      block: true,
+      reason:
+        'Blocked: public GitHub comment body could not be classified ' +
+        '(`--body-file` / `-F` unread or stdin). Post a short inline `--body` ' +
+        'or a readable body file.',
+    };
+  }
+  const body = extracted.body;
   const hasVerdict = body.includes('guardrail2-verdict');
   const markers = countEssayMarkers(body);
   if (

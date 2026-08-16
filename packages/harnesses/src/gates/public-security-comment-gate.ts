@@ -6,6 +6,8 @@
  * Zero authored regex: substring + token scans only.
  */
 
+import { readFileSync } from 'node:fs';
+
 export interface PublicCommentGateResult {
   block: boolean;
   rule?: string;
@@ -169,12 +171,10 @@ function extractHeredoc(command: string): string | null {
     const rest = command.slice(start);
     const closers = [`\n${endName}\n`, `\n${endName}"`, `\n${endName}'`, `\n${endName})`, `\n${endName}`];
     let best = -1;
-    let closerLen = 0;
     for (const closer of closers) {
       const at = rest.indexOf(closer);
       if (at >= 0 && (best < 0 || at < best)) {
         best = at;
-        closerLen = closer.length;
       }
     }
     if (best >= 0) return rest.slice(0, best);
@@ -239,19 +239,66 @@ function extractFlagValue(command: string, flag: string): string | null {
   return end > i ? command.slice(i, end) : null;
 }
 
-export function extractCommentBody(command: string): string {
+export interface ExtractedCommentBody {
+  body: string;
+  /** True when a body-file flag is present but the contents could not be read. */
+  unread: boolean;
+}
+
+function isGhApiCommand(command: string): boolean {
+  const parts = tokenize(command);
+  let sawGh = false;
+  for (const p of parts) {
+    if (p === 'gh') sawGh = true;
+    else if (sawGh && p === 'api') return true;
+  }
+  return false;
+}
+
+function readBodyFile(filePath: string): ExtractedCommentBody {
+  const file = unquote(filePath);
+  if (!file || file === '-') {
+    return { body: '', unread: true };
+  }
+  try {
+    return { body: readFileSync(file, 'utf8'), unread: false };
+  } catch {
+    return { body: '', unread: true };
+  }
+}
+
+function resolveFieldBody(raw: string): ExtractedCommentBody {
+  const value = unquote(raw.startsWith('body=') ? raw.slice('body='.length) : raw);
+  if (value.startsWith('@')) {
+    return readBodyFile(value.slice(1));
+  }
+  return { body: value, unread: false };
+}
+
+export function extractCommentBody(command: string): ExtractedCommentBody {
   const heredoc = extractHeredoc(command);
-  if (heredoc !== null) return heredoc;
+  if (heredoc !== null) return { body: heredoc, unread: false };
 
   for (const flag of ['--body', '-b', '--message', '-m'] as const) {
     const value = extractFlagValue(command, flag);
-    if (value) return unquote(value);
+    if (value) return { body: unquote(value), unread: false };
   }
 
-  const rawField = extractFlagValue(command, '--raw-field') ?? extractFlagValue(command, '-f');
-  if (rawField && rawField.startsWith('body=')) return unquote(rawField.slice('body='.length));
+  const fileFlag = extractFlagValue(command, '--body-file');
+  if (fileFlag) return readBodyFile(fileFlag);
 
-  return '';
+  if (!isGhApiCommand(command)) {
+    const dashF = extractFlagValue(command, '-F');
+    if (dashF && !dashF.startsWith('body=')) return readBodyFile(dashF);
+  }
+
+  const rawField = extractFlagValue(command, '--raw-field') ?? extractFlagValue(command, '-F');
+  if (rawField && rawField.startsWith('body=')) return resolveFieldBody(rawField);
+
+  const shortField = extractFlagValue(command, '-f');
+  if (shortField && shortField.startsWith('body=')) return resolveFieldBody(shortField);
+
+  return { body: '', unread: false };
 }
 
 function countEssayMarkers(body: string): number {
@@ -279,7 +326,18 @@ export function checkPublicSecurityComment(command: string): PublicCommentGateRe
     return { block: false };
   }
 
-  const body = extractCommentBody(command);
+  const extracted = extractCommentBody(command);
+  if (extracted.unread) {
+    return {
+      block: true,
+      rule: 'public-security-comment',
+      reason:
+        'Blocked: public GitHub comment body could not be classified ' +
+        '(`--body-file` / `-F` unread or stdin). Post a short inline `--body` ' +
+        'or a readable body file.',
+    };
+  }
+  const body = extracted.body;
   const hasVerdict = body.includes('guardrail2-verdict');
   const markers = countEssayMarkers(body);
   const tooLongForPublicVerdict = hasVerdict && body.length > PUBLIC_VERDICT_MAX_CHARS;
