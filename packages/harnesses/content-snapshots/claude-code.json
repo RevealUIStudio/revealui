@@ -72,7 +72,7 @@
     },
     {
       "relativePath": ".revealui/content/rules/disposition-actions.md",
-      "sha256": "fb1c2059ffd7f32e89f00938a3f743e405ff66e99b8f71e2bf09dc9ba091827c"
+      "sha256": "521e36946f1d899fdc66e9b2bc6f58a7807bd389ef36074bea7009ef5b9ba909"
     },
     {
       "relativePath": ".revealui/content/rules/durable-solutions.md",
@@ -85,6 +85,10 @@
     {
       "relativePath": ".revealui/content/rules/parameterization.md",
       "sha256": "bfe4e287ca33926d9ee04f9eec6490ddffb04058594a4a9e1a20a5eb9e82e9e1"
+    },
+    {
+      "relativePath": ".revealui/content/rules/public-issue-redaction.md",
+      "sha256": "23664f7279944b1c3b7069339089ff9d876247138cf3165a846bd89afb260e07"
     },
     {
       "relativePath": ".revealui/content/rules/quality-over-speed.md",
