@@ -59,6 +59,26 @@ describe('isSignViaSigner / canMintLicense', () => {
       }),
     ).toBe(true);
   });
+
+  it('canMintLicense hosted with private key only is false', () => {
+    expect(
+      canMintLicense({
+        REVEALUI_DEPLOYMENT_MODE: 'hosted',
+        REVEALUI_LICENSE_PRIVATE_KEY: privateKeyPem,
+      }),
+    ).toBe(false);
+  });
+
+  it('canMintLicense hosted with SIGN_VIA + url + secret is true', () => {
+    expect(
+      canMintLicense({
+        REVEALUI_DEPLOYMENT_MODE: 'hosted',
+        REVEALUI_LICENSE_SIGN_VIA_SIGNER: '1',
+        REVEALUI_LICENSE_SIGNER_URL: 'http://127.0.0.1:8791',
+        REVEALUI_SIGNER_INVOKE_SECRET: 'sec',
+      }),
+    ).toBe(true);
+  });
 });
 
 describe('mintLicenseKey local path', () => {
@@ -92,6 +112,76 @@ describe('mintLicenseKey local path', () => {
     const payload = await validateLicenseKey(jwt, publicKeyPem);
     expect(payload?.perpetual).toBe(true);
     expect(payload?.exp).toBeUndefined();
+  });
+});
+
+describe('mintLicenseKey hosted mode (GAP-260 residual)', () => {
+  it('MODE=hosted + private key + SIGN_VIA unset never mints local or remote', async () => {
+    const fetchMock = vi.fn(async () => new Response('should-not-call', { status: 500 }));
+    await expect(
+      mintLicenseKey(
+        { tier: 'pro', customerId: 'cus_hosted_local_forbidden' },
+        {
+          env: {
+            REVEALUI_DEPLOYMENT_MODE: 'hosted',
+            REVEALUI_LICENSE_PRIVATE_KEY: privateKeyPem,
+            REVEALUI_LICENSE_PUBLIC_KEY: publicKeyPem,
+          },
+          fetch: fetchMock as unknown as typeof fetch,
+        },
+      ),
+    ).rejects.toBeInstanceOf(LicenseMintConfigError);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(mintConfigMissingMessage({ REVEALUI_DEPLOYMENT_MODE: 'hosted' })).toMatch(
+      /SIGN_VIA|signer/i,
+    );
+  });
+
+  it('MODE=hosted + SIGN_VIA + missing URL/secret throws', async () => {
+    await expect(
+      mintLicenseKey(
+        { tier: 'pro', customerId: 'cus_hosted_incomplete' },
+        {
+          env: {
+            REVEALUI_DEPLOYMENT_MODE: 'hosted',
+            REVEALUI_LICENSE_SIGN_VIA_SIGNER: '1',
+            REVEALUI_LICENSE_PRIVATE_KEY: privateKeyPem,
+          },
+        },
+      ),
+    ).rejects.toBeInstanceOf(LicenseMintConfigError);
+  });
+
+  it('MODE=hosted + SIGN_VIA + url + secret uses remote path', async () => {
+    const secret = 'hosted-invoke-secret';
+    const expectedJwt = 'hosted.remote.jwt';
+    const fetchMock = vi.fn(async (url: string | URL, init?: RequestInit) => {
+      expect(String(url)).toBe('http://signer.example/internal/mint');
+      expect(init?.method).toBe('POST');
+      const headers = new Headers(init?.headers);
+      const ts = headers.get(SIGNER_TIMESTAMP_HEADER);
+      const sig = headers.get(SIGNER_SIGNATURE_HEADER);
+      const body = String(init?.body ?? '');
+      expect(sig).toBe(signMintRequest(secret, 'POST', SIGNER_MINT_PATH, body, Number(ts)));
+      return new Response(JSON.stringify({ licenseKey: expectedJwt }), { status: 200 });
+    });
+
+    const jwt = await mintLicenseKey(
+      { tier: 'pro', customerId: 'cus_hosted_remote', expiresInSeconds: 3600 },
+      {
+        env: {
+          REVEALUI_DEPLOYMENT_MODE: '  HOSTED  ',
+          REVEALUI_LICENSE_SIGN_VIA_SIGNER: 'true',
+          REVEALUI_LICENSE_SIGNER_URL: 'http://signer.example/',
+          REVEALUI_SIGNER_INVOKE_SECRET: secret,
+          // Present but must not divert to local mint.
+          REVEALUI_LICENSE_PRIVATE_KEY: privateKeyPem,
+        },
+        fetch: fetchMock as unknown as typeof fetch,
+      },
+    );
+    expect(jwt).toBe(expectedJwt);
+    expect(fetchMock).toHaveBeenCalledOnce();
   });
 });
 
