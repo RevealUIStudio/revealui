@@ -50,6 +50,17 @@ export {
   REQUEST_CHANGES,
   verdictForBody,
 } from './guardrail2-verdict.js';
+export type {
+  ExtractedCommentBody,
+  PublicCommentGateResult,
+} from './public-security-comment-gate.js';
+export {
+  checkPublicSecurityComment,
+  extractCommentBody,
+  isGithubCommentCommand,
+  PUBLIC_VERDICT_MAX_CHARS,
+  renderPublicGuardrail2Comment,
+} from './public-security-comment-gate.js';
 export type { LabelGateResult, StatusCheckLike } from './sec-review-label-gate.js';
 export {
   checkSecReviewLabelApply,
@@ -58,11 +69,3 @@ export {
   REQUIRED_SECURITY_AUDIT_CHECKS,
   SEC_REVIEW_APPROVED_LABEL,
 } from './sec-review-label-gate.js';
-export type { ExtractedCommentBody, PublicCommentGateResult } from './public-security-comment-gate.js';
-export {
-  checkPublicSecurityComment,
-  extractCommentBody,
-  isGithubCommentCommand,
-  PUBLIC_VERDICT_MAX_CHARS,
-  renderPublicGuardrail2Comment,
-} from './public-security-comment-gate.js';

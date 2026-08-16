@@ -228,7 +228,14 @@ Rebuild \`@revealui/harnesses\` so \`dist/cli.js session\` / \`hook grok\` are a
     'scripts',
     'public-security-comment-pretool.cjs',
   );
-  const pretoolDest = join(homedir(), '.local', 'share', 'revealui', 'hooks', 'public-security-comment-pretool.cjs');
+  const pretoolDest = join(
+    homedir(),
+    '.local',
+    'share',
+    'revealui',
+    'hooks',
+    'public-security-comment-pretool.cjs',
+  );
   try {
     mkdirSync(dirname(pretoolDest), { recursive: true });
     copyFileSync(pretoolSrc, pretoolDest);

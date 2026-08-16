@@ -169,7 +169,13 @@ function extractHeredoc(command: string): string | null {
     else if (command[start] === '\n') start += 1;
     const endName = marker.includes('BODY') ? 'BODY' : 'EOF';
     const rest = command.slice(start);
-    const closers = [`\n${endName}\n`, `\n${endName}"`, `\n${endName}'`, `\n${endName})`, `\n${endName}`];
+    const closers = [
+      `\n${endName}\n`,
+      `\n${endName}"`,
+      `\n${endName}'`,
+      `\n${endName})`,
+      `\n${endName}`,
+    ];
     let best = -1;
     for (const closer of closers) {
       const at = rest.indexOf(closer);
@@ -233,7 +239,12 @@ function extractFlagValue(command: string, flag: string): string | null {
   const quoted = readQuoted(command, i);
   if (quoted) return quoted.value;
   let end = i;
-  while (end < command.length && command[end] !== ' ' && command[end] !== '\t' && command[end] !== '\n') {
+  while (
+    end < command.length &&
+    command[end] !== ' ' &&
+    command[end] !== '\t' &&
+    command[end] !== '\n'
+  ) {
     end += 1;
   }
   return end > i ? command.slice(i, end) : null;
@@ -293,10 +304,10 @@ export function extractCommentBody(command: string): ExtractedCommentBody {
   }
 
   const rawField = extractFlagValue(command, '--raw-field') ?? extractFlagValue(command, '-F');
-  if (rawField && rawField.startsWith('body=')) return resolveFieldBody(rawField);
+  if (rawField?.startsWith('body=')) return resolveFieldBody(rawField);
 
   const shortField = extractFlagValue(command, '-f');
-  if (shortField && shortField.startsWith('body=')) return resolveFieldBody(shortField);
+  if (shortField?.startsWith('body=')) return resolveFieldBody(shortField);
 
   return { body: '', unread: false };
 }

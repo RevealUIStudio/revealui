@@ -9,12 +9,12 @@
 
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { checkPublicSecurityComment } from '../gates/public-security-comment-gate.js';
 import type {
   HarnessHookEvent,
   HarnessHookEventKind,
   HarnessHookSource,
 } from '../types/hook-event.js';
-import { checkPublicSecurityComment } from '../gates/public-security-comment-gate.js';
 import { emitMasterSpecCouplingWarnings } from './master-spec-coupling.js';
 import type { ImplementedHookSource } from './normalizers/index.js';
 import { isImplementedHookSource, normalizeHookEvent } from './normalizers/index.js';

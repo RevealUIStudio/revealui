@@ -94,9 +94,9 @@ describe('extractCommentBody', () => {
 
 describe('checkPublicSecurityComment', () => {
   it('allows a short public verdict', () => {
-    expect(checkPublicSecurityComment(commentCmd('RevealUIStudio/revealui', SHORT_APPROVE)).block).toBe(
-      false,
-    );
+    expect(
+      checkPublicSecurityComment(commentCmd('RevealUIStudio/revealui', SHORT_APPROVE)).block,
+    ).toBe(false);
   });
 
   it('blocks the 2640-shaped public attack writeup', () => {
@@ -107,7 +107,9 @@ describe('checkPublicSecurityComment', () => {
 
   it('blocks a long public verdict even without extra markers', () => {
     const long = `<!-- guardrail2-verdict: APPROVE -->\n${'x'.repeat(PUBLIC_VERDICT_MAX_CHARS)}`;
-    expect(checkPublicSecurityComment(commentCmd('RevealUIStudio/revealui', long)).block).toBe(true);
+    expect(checkPublicSecurityComment(commentCmd('RevealUIStudio/revealui', long)).block).toBe(
+      true,
+    );
   });
 
   it('allows the same essay on the private planning repo', () => {
@@ -117,9 +119,9 @@ describe('checkPublicSecurityComment', () => {
   });
 
   it('fail-closes when the repo is omitted and the body is an essay', () => {
-    expect(checkPublicSecurityComment(`gh pr comment 1 --body ${JSON.stringify(ESSAY)}`).block).toBe(
-      true,
-    );
+    expect(
+      checkPublicSecurityComment(`gh pr comment 1 --body ${JSON.stringify(ESSAY)}`).block,
+    ).toBe(true);
   });
 
   it('blocks a public essay posted with -F', async () => {
@@ -144,7 +146,10 @@ describe('checkPublicSecurityComment', () => {
     );
     expect(
       checkPublicSecurityComment(
-        commentCmd('RevealUIStudio/revealui', 'Thanks. The CSRF follow-up is in the private notes.'),
+        commentCmd(
+          'RevealUIStudio/revealui',
+          'Thanks. The CSRF follow-up is in the private notes.',
+        ),
       ).block,
     ).toBe(false);
   });
