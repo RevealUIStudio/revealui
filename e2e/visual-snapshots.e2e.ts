@@ -10,10 +10,10 @@
  * use the storageState written by global-setup.ts (e2e/.auth/user.json) so
  * each route renders its actual content rather than the /login redirect.
  *
- * If ADMIN_EMAIL/ADMIN_PASSWORD were not set during setup, authenticated tests
- * redirect to /login. Global setup still writes a decided consent record into
- * that storageState. After each goto we also dismiss the banner if it appears
- * (storageState restore can wipe an init-script seed). Banner chrome is locked
+ * If ADMIN_EMAIL/ADMIN_PASSWORD were not set during setup, authenticated
+ * describes skip (they used to screenshot /login and fail after auth-chrome
+ * changes). Global setup may still write a decided consent record. After
+ * each goto we dismiss the banner if it appears. Banner chrome is locked
  * by presentation unit tests, not these goldens.
  *
  * Usage:
@@ -22,6 +22,7 @@
  * - View report: pnpm test:e2e:report
  */
 
+import { readFileSync } from 'node:fs';
 import { expect, type Page, test } from '@playwright/test';
 import {
   COOKIE_CONSENT_READY_SELECTOR,
@@ -31,6 +32,17 @@ import {
 import { waitForNetworkIdle } from './utils/test-helpers';
 
 const AUTH_STATE = 'e2e/.auth/user.json';
+
+function storageHasSession(): boolean {
+  try {
+    const raw = JSON.parse(readFileSync(AUTH_STATE, 'utf8')) as {
+      cookies?: { name: string }[];
+    };
+    return (raw.cookies ?? []).some((cookie) => cookie.name === 'revealui-session');
+  } catch {
+    return false;
+  }
+}
 
 async function seedDecidedConsent(page: Page): Promise<void> {
   await page.addInitScript((serialized) => {
@@ -67,6 +79,9 @@ test.describe('Visual Snapshots - Admin Application', () => {
   test.describe('Error States', () => {
     test('404 page should match snapshot', async ({ page }) => {
       await page.goto('/non-existent-page-that-should-404');
+      if (new URL(page.url()).pathname === '/login') {
+        test.skip(true, 'unknown paths without a session redirect to /login');
+      }
       await settleVisualPage(page);
 
       await expect(page).toHaveScreenshot('404-page.png', {
@@ -76,6 +91,7 @@ test.describe('Visual Snapshots - Admin Application', () => {
   });
 
   test.describe('Authenticated Admin Pages', () => {
+    test.skip(!storageHasSession(), 'no e2e session in storageState');
     test.use({ storageState: AUTH_STATE });
 
     test('collections page should match snapshot', async ({ page }) => {
@@ -100,6 +116,7 @@ test.describe('Visual Snapshots - Admin Application', () => {
   });
 
   test.describe('Responsive Snapshots', () => {
+    test.skip(!storageHasSession(), 'no e2e session in storageState');
     test.use({ storageState: AUTH_STATE });
 
     test('collections page on mobile viewport should match snapshot', async ({ page }) => {
@@ -114,6 +131,7 @@ test.describe('Visual Snapshots - Admin Application', () => {
   });
 
   test.describe('Theme Snapshots', () => {
+    test.skip(!storageHasSession(), 'no e2e session in storageState');
     test.use({ storageState: AUTH_STATE });
 
     test('collections page with dark color scheme should match snapshot', async ({ page }) => {
@@ -128,6 +146,7 @@ test.describe('Visual Snapshots - Admin Application', () => {
   });
 
   test.describe('Cross-Browser Consistency', () => {
+    test.skip(!storageHasSession(), 'no e2e session in storageState');
     test.use({ storageState: AUTH_STATE });
 
     test('collections page should be visually consistent across browsers', async ({ page }) => {
