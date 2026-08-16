@@ -1,12 +1,13 @@
 /**
- * License mint client (GAP-260 P4-3).
+ * License mint client (GAP-260 P4-3 + residual hosted gate).
  *
  * Single entry for online mint surfaces (Stripe webhooks, admin generate).
  * Routes to either:
  *   - remote `apps/license-signer` POST /internal/mint when
- *     REVEALUI_LICENSE_SIGN_VIA_SIGNER is truthy, or
+ *     REVEALUI_LICENSE_SIGN_VIA_SIGNER is truthy, or when
+ *     REVEALUI_DEPLOYMENT_MODE=hosted (explicit; never local private-key mint), or
  *   - local {@link generateLicenseKey} with REVEALUI_LICENSE_PRIVATE_KEY
- *     (default / fallback until P4-4 drops the private key from api).
+ *     only when MODE is not hosted and SIGN_VIA is off (tests / dogfood).
  *
  * Offline stamper (revforge) keeps calling generateLicenseKey directly.
  *
@@ -14,6 +15,7 @@
  *   REVEALUI_LICENSE_SIGN_VIA_SIGNER=1|true|yes|on
  *   REVEALUI_LICENSE_SIGNER_URL      base URL (e.g. http://127.0.0.1:8791)
  *   REVEALUI_SIGNER_INVOKE_SECRET    HMAC secret (no REVEALUI_SECRET fallback)
+ *   REVEALUI_DEPLOYMENT_MODE=hosted  forces remote-only (SIGN_VIA required)
  *
  * Env (local path):
  *   REVEALUI_LICENSE_PRIVATE_KEY     PKCS#8 Ed25519 PEM (required)
@@ -73,22 +75,47 @@ export function isSignViaSigner(env: MintEnv = process.env): boolean {
 }
 
 /**
+ * Explicit hosted SaaS posture only. Does not use private-key inference
+ * (that belongs to detectDeploymentMode). Hosted online mint must never
+ * fall through to mintLocal.
+ */
+export function isExplicitHostedMintMode(env: MintEnv = process.env): boolean {
+  return (env.REVEALUI_DEPLOYMENT_MODE ?? '').trim().toLowerCase() === 'hosted';
+}
+
+function hasRemoteMintConfig(env: MintEnv): boolean {
+  const url = env.REVEALUI_LICENSE_SIGNER_URL?.trim() ?? '';
+  const secret = env.REVEALUI_SIGNER_INVOKE_SECRET?.trim() ?? '';
+  return url.length > 0 && secret.length > 0;
+}
+
+/**
  * Whether this process can mint a license key (local private key OR remote
  * signer fully configured). Used by call sites that used to gate only on
  * REVEALUI_LICENSE_PRIVATE_KEY presence.
+ *
+ * Explicit MODE=hosted never treats a local private key as sufficient.
  */
 export function canMintLicense(env: MintEnv = process.env): boolean {
+  if (isExplicitHostedMintMode(env)) {
+    return isSignViaSigner(env) && hasRemoteMintConfig(env);
+  }
   if (isSignViaSigner(env)) {
-    const url = env.REVEALUI_LICENSE_SIGNER_URL?.trim() ?? '';
-    const secret = env.REVEALUI_SIGNER_INVOKE_SECRET?.trim() ?? '';
-    return url.length > 0 && secret.length > 0;
+    return hasRemoteMintConfig(env);
   }
   return Boolean(env.REVEALUI_LICENSE_PRIVATE_KEY?.trim());
 }
 
 /** Human-readable reason mint is unavailable (for CRITICAL logs). */
 export function mintConfigMissingMessage(env: MintEnv = process.env): string {
-  if (isSignViaSigner(env)) {
+  if (isExplicitHostedMintMode(env) && !isSignViaSigner(env)) {
+    return (
+      'REVEALUI_DEPLOYMENT_MODE=hosted requires REVEALUI_LICENSE_SIGN_VIA_SIGNER ' +
+      'with REVEALUI_LICENSE_SIGNER_URL and REVEALUI_SIGNER_INVOKE_SECRET ' +
+      '(local private-key mint is disabled on hosted)'
+    );
+  }
+  if (isSignViaSigner(env) || isExplicitHostedMintMode(env)) {
     return (
       'REVEALUI_LICENSE_SIGN_VIA_SIGNER is set but REVEALUI_LICENSE_SIGNER_URL ' +
       'and/or REVEALUI_SIGNER_INVOKE_SECRET are missing'
@@ -235,7 +262,8 @@ export type MintLicenseKeyOptions = {
 };
 
 /**
- * Mint a signed license JWT — remote signer when flagged, else local private key.
+ * Mint a signed license JWT — remote signer when SIGN_VIA is on or MODE is
+ * explicitly hosted; else local private key (tests / dogfood only).
  */
 export async function mintLicenseKey(
   input: MintLicensePayload,
@@ -245,7 +273,12 @@ export async function mintLicenseKey(
   const fetchImpl = options.fetch ?? globalThis.fetch.bind(globalThis);
   const normalized = withPerpetualSiteCaps(input);
 
-  if (isSignViaSigner(env)) {
+  // Hosted online mint never uses the local private-key path, even when the
+  // key is still present in env during migration.
+  if (isExplicitHostedMintMode(env) && !isSignViaSigner(env)) {
+    throw new LicenseMintConfigError(mintConfigMissingMessage(env));
+  }
+  if (isSignViaSigner(env) || isExplicitHostedMintMode(env)) {
     return mintViaSigner(normalized, env, fetchImpl);
   }
   return mintLocal(normalized, env);
