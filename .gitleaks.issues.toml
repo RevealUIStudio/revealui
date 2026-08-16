@@ -106,6 +106,13 @@ keywords = ["Stefan Wilson", "Daniel B. Jones", "dbjones23"]
 tags = ["prospect", "boundary-config"]
 
 [[rules]]
+id = "revealui-public-security-review-essay"
+description = "Adversarial security-review writeup (attack checklist / AuthN-AuthZ essay) must not land on public issues or PR comments"
+regex = '''Attack checklist|AuthN/AuthZ|best attack attempts'''
+keywords = ["Attack checklist", "AuthN/AuthZ", "best attack attempts"]
+tags = ["security-review", "boundary-config"]
+
+[[rules]]
 id = "revealui-paused-ventures"
 description = "Biotix Wellness — paused internal venture not publicly associated with this org"
 regex = '''(?i)\bbiotix(?:[ -]?wellness)?\b'''

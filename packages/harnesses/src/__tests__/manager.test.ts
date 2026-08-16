@@ -87,7 +87,7 @@ describe('project manager (.revealui)', () => {
       readFileSync(join(root, '.revealui/adapters/grok/hooks/pre-tool.json'), 'utf-8'),
     ) as { hooks: { PreToolUse: Array<{ hooks: Array<{ command: string }> }> } };
     const preCmds = pre.hooks.PreToolUse.flatMap((g) => g.hooks.map((h) => h.command));
-    expect(preCmds.some((c) => c.includes('hook grok'))).toBe(true);
+    expect(preCmds.some((c) => c.includes('public-security-comment-pretool.cjs'))).toBe(true);
   });
 
   it('writeManagerAdapterContent emits manager content + cursor hooks + opencode surfaces', () => {
