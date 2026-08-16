@@ -170,14 +170,9 @@ VERCEL_ORG_ID=<org-id> VERCEL_PROJECT_ID=<project-id> \
   vercel rollback --token="$VERCEL_TOKEN"
 ```
 
-Project IDs for each app:
-
-| App | Project ID |
-|-----|-----------|
-| api | `prj_zk6EQijYXwd9L7BccuBssi436ktM` |
-| admin | `prj_7sEFDg4MH6C26nJPjrukK86QdwfG` |
-| marketing | `prj_frTIYlnONVPLNIjKnQpINiGb5lm0` |
-| docs | `prj_OPwr0FrgcK17AOBCyoj4JIilJ9S1` |
+Vercel project IDs live in the private operator sync manifests
+(`ops/sync/revvault-vercel.toml` in the coordination repo), not in this
+public tree.
 
 ### Manual Rollback via Git
 

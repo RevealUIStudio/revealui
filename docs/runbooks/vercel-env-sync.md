@@ -27,7 +27,8 @@ audience: maintainer
 
    Or pass `--token` per-command.
 
-3. **Manifest:** [`scripts/sync/revvault-vercel.toml`](../../scripts/sync/revvault-vercel.toml). Drives sync — see comments inside for the schema.
+3. **Manifest:** private coordination-repo `ops/sync/revvault-vercel.toml`
+   (resolved by `scripts/sync/resolve-manifest-dir.ts`). Drives sync.
 
 ## Common workflows
 

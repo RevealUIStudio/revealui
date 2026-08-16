@@ -11,7 +11,7 @@
  * the rendered SECRETS.md and fails CI on drift.
  *
  * SCOPE (Phase 0, P0-1): this declares the PRODUCTION-SYNCED runtime path set -
- * the union of scripts/sync/revvault-vercel.toml + revvault-fly.toml (the
+ * the union of the private ops/sync revvault-vercel.toml + revvault-fly.toml (the
  * drift-critical surface) - plus the license signing keypair and the one
  * security-relevant `with-secrets` env bundles it mirrors (revealui/env/license +
  * revealui/env/license-signing after GAP-260 P2-2,
@@ -258,10 +258,10 @@ export const SECRET_PATHS: SecretPathDef[] = [
     kind: 'signing-private',
     sensitive: true,
     tier: 'prod',
-    consumers: ['fly:worker', 'fly:license-signer', 'with-secrets:license-signing'],
+    consumers: ['fly:license-signer', 'with-secrets:license-signing'],
     migratingTo: 'revealui/prod/license/private-key',
     migratingSince: '2026-06-28',
-    note: 'Ed25519 license-signing key. Admin + api dropped P4-4 (signer is mint path). Fly worker last until executor-off digest. Offline stamper keeps with-secrets:license-signing.',
+    note: 'Ed25519 license-signing key. Admin + api + worker dropped P4-4 (signer is mint path). Offline stamper keeps with-secrets:license-signing. Owner must unset the live Fly worker secret after merge.',
   },
   {
     path: 'revdev/license-signing-public-key',

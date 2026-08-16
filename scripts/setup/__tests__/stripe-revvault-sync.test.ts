@@ -1,14 +1,12 @@
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { describe, expect, it, vi } from 'vitest';
+import { resolveManifestPath } from '../../sync/resolve-manifest-dir.js';
 import {
   loadManifestEnvKeyToVaultPath,
   parseManifestEnvKeyToVaultPath,
   syncToRevvault,
 } from '../stripe-revvault-sync.js';
 
-const here = dirname(fileURLToPath(import.meta.url));
-const MANIFEST_PATH = resolve(here, '..', '..', 'sync', 'revvault-vercel.toml');
+const MANIFEST_PATH = resolveManifestPath('vercel');
 
 const noop = (): void => undefined;
 const silentLog = { info: noop, success: noop, warn: noop, error: noop };
@@ -35,9 +33,11 @@ describe('parseManifestEnvKeyToVaultPath', () => {
   });
 });
 
-describe('drift guard: seeded price env keys must have a manifest vault path', () => {
+describe.skipIf(!MANIFEST_PATH)(
+  'drift guard: seeded price env keys must have a manifest vault path',
+  () => {
   it('maps every STRIPE_*_PRICE_ID the seeder emits to a revealui/prod/stripe/ path', () => {
-    const map = loadManifestEnvKeyToVaultPath(MANIFEST_PATH);
+    const map = loadManifestEnvKeyToVaultPath(MANIFEST_PATH as string);
     // Mirrors PRICE_SERVER_ENV_KEYS in seed-stripe.ts (the vaulted price keys).
     // Adding a new price env key without a manifest entry fails this test ->
     // add the revvault-vercel.toml mapping before merging.
@@ -55,11 +55,12 @@ describe('drift guard: seeded price env keys must have a manifest vault path', (
     ];
     for (const key of requiredKeys) {
       const vaultPath = map.get(key);
-      expect(vaultPath, `${key} is missing from scripts/sync/revvault-vercel.toml`).toBeDefined();
+      expect(vaultPath, `${key} is missing from the private vercel sync manifest`).toBeDefined();
       expect(vaultPath?.startsWith('revealui/prod/stripe/')).toBe(true);
     }
   });
-});
+},
+);
 
 describe('syncToRevvault', () => {
   it('writes mapped keys, skips unmapped keys, reports results', () => {

@@ -144,9 +144,11 @@ describe('applyAgentMeterEnv (GAP-212 step 2)', () => {
     expect(envVars[AGENT_OVERAGE_ENV_KEY]).toBe('price_overage_live');
   });
 
-  it('maps overage + meter env keys in revvault-vercel.toml', async () => {
-    const here = dirname(fileURLToPath(import.meta.url));
-    const manifest = await readFile(resolve(here, '../../sync/revvault-vercel.toml'), 'utf8');
+  it('maps overage + meter env keys in the private vercel sync manifest', async () => {
+    const { resolveManifestPath } = await import('../../sync/resolve-manifest-dir.js');
+    const manifestPath = resolveManifestPath('vercel');
+    if (!manifestPath) return;
+    const manifest = await readFile(manifestPath, 'utf8');
     expect(manifest.includes('STRIPE_AGENT_METER_EVENT_NAME')).toBe(true);
     expect(manifest.includes('STRIPE_AGENT_OVERAGE_PRICE_ID')).toBe(true);
   });
