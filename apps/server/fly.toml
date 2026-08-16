@@ -27,7 +27,7 @@ primary_region = 'iad'
   # GAP-355 Stage 4 / GAP-427: per-tenant Merkle anchor sweep. The worker
   # boot calls startAuditAnchorSweep(), which no-ops without this flag.
   # Inserting anchors also requires REVEALUI_AUDIT_SIGNING_KEY (synced from
-  # revvault via scripts/sync/revvault-fly.toml). The legacy floor (merged
+  # revvault via private ops/sync/revvault-fly.toml). The legacy floor (merged
   # 2026-07-26) makes the first prod sweep start above the pre-enforcement
   # unsigned era instead of gap-stalling.
   AUDIT_ANCHOR_SWEEP_ENABLED = 'true'

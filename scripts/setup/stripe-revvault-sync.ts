@@ -74,7 +74,7 @@ export function loadManifestEnvKeyToVaultPath(manifestPath: string): Map<string,
 }
 
 export interface SyncToRevvaultOptions {
-  /** Path to scripts/sync/revvault-vercel.toml */
+  /** Absolute path to private ops/sync revvault-vercel.toml (requireManifestPath). */
   manifestPath: string;
   dryRun?: boolean;
   /** Injectable for tests; defaults to a real `revvault set` over stdin. */

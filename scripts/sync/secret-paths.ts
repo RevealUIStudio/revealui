@@ -20,8 +20,9 @@
  * docs/SECRETS.md OUTSIDE the generated markers. The SecretTier union carries
  * them for forward-compatibility as later phases fold them in.
  *
- * NO SECRET VALUES live here - paths + structure only. Every path is already
- * public in the sync manifests in this same repo; this file adds no exposure.
+ * NO SECRET VALUES live here - paths + structure only. Path names are not
+ * secret; the private ops/sync TOML inventories (vault-path maps and platform
+ * IDs) live outside this public tree.
  *
  * The rendered derived view (docs/SECRETS.md §Production runtime, between the
  * BEGIN/END GENERATED:secret-paths markers) is produced by
@@ -564,8 +565,9 @@ export const SECRET_PATHS: SecretPathDef[] = [
     note: 'NEXT_PUBLIC_IS_LIVE - Stripe live-mode feature flag',
   },
   // ── STAGING (GAP-343 Phase 3) ──────────────────────────────────────────────
-  // The revealui/staging/* surface synced by scripts/sync/revvault-vercel-staging.toml
-  // (a SEPARATE manifest from the prod one - see its header). Same subsystem
+  // The revealui/staging/* surface synced by private ops/sync
+  // revvault-vercel-staging.toml (a SEPARATE manifest from the prod one -
+  // see its header). Same subsystem
   // grouping as the prod entries above; consumers use the *-staging tokens
   // (vercel:api-staging / vercel:admin-staging / vercel:marketing-staging) so
   // "which manifest reads this" stays visible without inventing a new field.

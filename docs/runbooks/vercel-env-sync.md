@@ -38,7 +38,8 @@ audience: maintainer
 # 1. Add the value to revvault at its canonical path
 revvault set revealui/prod/<subsystem>/<name-kebab>
 
-# 2. Map it in the manifest (scripts/sync/revvault-vercel.toml)
+# 2. Map it in the private ops/sync manifest (ops/sync/revvault-vercel.toml;
+#    resolve with: tsx scripts/sync/print-manifest-path.ts vercel)
 #    Add a [projects.<slug>.vars] entry: VERCEL_VAR_NAME = "revealui/prod/..."
 
 # 3. Dry-run first to see what'd change
