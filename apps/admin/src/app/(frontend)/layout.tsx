@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { draftMode, headers } from 'next/headers';
 import type React from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { isAuthPath } from '@/lib/auth/auth-paths';
 import { mergeOpenGraph } from '@/lib/cms/mergeOpenGraph';
 import { AdminBar } from '@/lib/components/AdminBar';
 import { LivePreviewListener } from '@/lib/components/LivePreviewListener';
@@ -53,6 +54,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // navigation/footer is out of scope for v1; future work can expose a tenant
   // header-block + footer-block via env or admin settings.
   const isFleetMode = process.env.REVEALUI_FLEET_MODE === 'true';
+  const pathname = (await headers()).get('x-revealui-pathname') ?? '';
+  const hideSiteChrome = isFleetMode || isAuthPath(pathname);
 
   // CSP nonce (set by the proxy in src/proxy.ts) — thread it to the inline theme
   // <Script> so it survives the nonce-based script-src (no 'unsafe-inline' in prod).
@@ -98,9 +101,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               />
               <LivePreviewListener />
 
-              {isFleetMode ? null : <Header />}
-              <main>{children}</main>
-              {isFleetMode ? null : <Footer />}
+              {hideSiteChrome ? null : <Header />}
+              {hideSiteChrome ? children : <main>{children}</main>}
+              {hideSiteChrome ? null : <Footer />}
             </ErrorBoundary>
           </Providers>
           {/* Speed Insights mounts inside CookieConsentRoot after analytics consent. */}
