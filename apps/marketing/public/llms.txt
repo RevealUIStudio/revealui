@@ -46,7 +46,7 @@ Five primitives make up the runtime: People, Content, Offers, Payments, Agents.
 
 - Zero paying customers. Used in production by the team that maintains it.
 - Stripe live mode is on for product billing; no paid customer base yet.
-- RevealUI Fleet Docker images are not yet published to GHCR; self-host from source today.
+- RevealUI Fleet runtime images (`revealui-api`, `revealui-admin`, `revealui-migrate`) are published on GHCR and pull anonymously. A license JWT is still required to run a stamped kit.
 - Default inference is open-weight on infrastructure you own (Inference Snaps or Ollama). Frontier providers are opt-in adapters.
 - NeonDB is the primary database. Supabase is not an internal datastore.
 - Professional services and fixed-bid delivery: [revealuistudio.com](https://revealuistudio.com)

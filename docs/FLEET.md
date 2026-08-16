@@ -17,6 +17,7 @@ RevealUI Fleet is a deployment-level commercial product, distinct from the hoste
 |---|---|---|
 | API (Hono) | `ghcr.io/revealuistudio/revealui-api` | 3004 |
 | Admin (Next.js) | `ghcr.io/revealuistudio/revealui-admin` | 4000 |
+| Migrate (one-shot) | `ghcr.io/revealuistudio/revealui-migrate` | (exits) |
 | PostgreSQL 16 | `postgres:16-alpine` | 5432 (internal) |
 
 All three services are wired together in `docker-compose.forge.yml` at the root of the repository.
@@ -46,16 +47,13 @@ Fleet sits beside, not underneath, the hosted pricing model:
 ### 1. Pull the stack
 
 ```bash
-# Preview — images publish post-launch; commands below will fail with `manifest unknown` until then.
+# Public today. No GHCR login. Verified 2026-08-16 (anonymous manifest HTTP 200).
 docker pull ghcr.io/revealuistudio/revealui-api:latest
 docker pull ghcr.io/revealuistudio/revealui-admin:latest
+docker pull ghcr.io/revealuistudio/revealui-migrate:latest
 ```
 
-> Once Fleet launches, GHCR access will be gated by your license key. You'll log in with the token provided in your Fleet welcome email:
->
-> ```bash
-> echo "$GHCR_TOKEN" | docker login ghcr.io -u revealuistudio --password-stdin
-> ```
+The images pull without a token. A Fleet license JWT is still required to *run* the kit.
 
 ### 2. Create your `.env.forge`
 

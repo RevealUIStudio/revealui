@@ -1319,10 +1319,10 @@ See **[FLEET.md](./FLEET.md)** for the complete deployment guide, including:
 ### Quick reference
 
 ```bash
-# Pull images (requires GHCR token from Fleet welcome email)
-echo "$GHCR_TOKEN" | docker login ghcr.io -u revealuistudio --password-stdin
+# Public images. No GHCR login. A Fleet license JWT is still required to run the kit.
 docker pull ghcr.io/revealuistudio/revealui-api:latest
 docker pull ghcr.io/revealuistudio/revealui-admin:latest
+docker pull ghcr.io/revealuistudio/revealui-migrate:latest
 
 # Start the stack
 docker compose -f docker-compose.forge.yml --env-file .env.forge up -d
