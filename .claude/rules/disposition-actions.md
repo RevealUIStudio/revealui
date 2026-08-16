@@ -7,7 +7,7 @@ need special authorization; dispositions always do.
 ## Always safe (proposal-shaped)
 
 - Reading, grepping, auditing; empirical tests in session scratch
-- Posting review or verdict comments on PRs
+- Posting a *short* public verdict marker on PRs (attack writeups stay private)
 - Creating worktrees, committing to fresh branches, pushing feature branches
 - Opening PRs, filing gaps, authoring specs and lane docs
 
