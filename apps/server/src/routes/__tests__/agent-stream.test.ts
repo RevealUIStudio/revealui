@@ -146,6 +146,18 @@ describe('agent-stream route  -  mode parameter', () => {
     expect(res.status).toBe(400);
   });
 
+  it('accepts agentId for built-in agents', async () => {
+    const app = createApp();
+
+    const res = await jsonPost(app, '/agent-stream', {
+      instruction: 'List all tickets',
+      mode: 'admin',
+      agentId: 'revealui-ticket-agent',
+    });
+
+    expect(res.status).toBe(503);
+  });
+
   it('accepts mode alongside all other optional fields', async () => {
     const app = createApp();
 

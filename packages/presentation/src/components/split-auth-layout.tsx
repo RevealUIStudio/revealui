@@ -14,8 +14,10 @@ export interface SplitAuthLayoutProps {
    * Background surface for the brand panel.
    * - `tenant` (default): uses `--tenant-brand` CSS var with `--rvui-surface-3` token fallback.
    * - `surface-3`: uses the neutral surface token unconditionally (no brand binding).
+   * - `surface-0`: midnight page token. The panel sets `data-theme="dark"` so
+   *   the token stays midnight even when the form column is in light mode.
    */
-  brandSurface?: 'tenant' | 'surface-3';
+  brandSurface?: 'tenant' | 'surface-3' | 'surface-0';
 }
 
 /**
@@ -52,15 +54,22 @@ export function SplitAuthLayout({
   const brandBgClass =
     brandSurface === 'tenant'
       ? 'bg-[var(--tenant-brand,var(--rvui-surface-3))]'
-      : 'bg-[var(--rvui-surface-3)]';
+      : brandSurface === 'surface-0'
+        ? 'bg-[var(--rvui-surface-0)]'
+        : 'bg-[var(--rvui-surface-3)]';
+  const brandTextClass =
+    brandSurface === 'surface-0'
+      ? 'text-[var(--rvui-text-0)]'
+      : 'text-[var(--tenant-brand-on,var(--foreground))]';
 
   return (
     <main className="flex min-h-dvh flex-col lg:flex-row">
       <aside
+        data-theme={brandSurface === 'surface-0' ? 'dark' : undefined}
         className={cn(
-          'flex flex-col items-center justify-center gap-6 px-6 py-12 lg:w-1/2 lg:gap-8 lg:py-16',
+          'flex min-h-[40vh] flex-col items-center justify-center gap-6 px-6 py-12 lg:min-h-dvh lg:w-1/2 lg:gap-8 lg:py-16',
           brandBgClass,
-          'text-[var(--tenant-brand-on,var(--foreground))]',
+          brandTextClass,
         )}
       >
         {brand}

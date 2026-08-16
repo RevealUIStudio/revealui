@@ -11,8 +11,6 @@
  */
 
 import { readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { collectVars } from '../parse-manifests.js';
 import {
@@ -22,6 +20,7 @@ import {
   spliceGenerated,
   syncedPathDefs,
 } from '../render-secrets-md.js';
+import { resolveManifestPath } from '../resolve-manifest-dir.js';
 import {
   DECLARED_PATHS,
   findDocDrift,
@@ -38,17 +37,23 @@ import {
   SYNCED_PATHS,
 } from '../secret-paths.js';
 
-const HERE = dirname(fileURLToPath(import.meta.url));
-const VERCEL_MANIFEST = resolve(HERE, '../revvault-vercel.toml');
-const FLY_MANIFEST = resolve(HERE, '../revvault-fly.toml');
-const STAGING_MANIFEST = resolve(HERE, '../revvault-vercel-staging.toml');
+const VERCEL_MANIFEST = resolveManifestPath('vercel');
+const FLY_MANIFEST = resolveManifestPath('fly');
+const STAGING_MANIFEST = resolveManifestPath('staging');
+const hasManifests = Boolean(VERCEL_MANIFEST && FLY_MANIFEST && STAGING_MANIFEST);
 
-const vercelVars = collectVars(readFileSync(VERCEL_MANIFEST, 'utf8'), 'projects', 'vercel');
-const flyVars = collectVars(readFileSync(FLY_MANIFEST, 'utf8'), 'fly-apps', 'fly');
+const vercelVars = VERCEL_MANIFEST
+  ? collectVars(readFileSync(VERCEL_MANIFEST, 'utf8'), 'projects', 'vercel')
+  : [];
+const flyVars = FLY_MANIFEST
+  ? collectVars(readFileSync(FLY_MANIFEST, 'utf8'), 'fly-apps', 'fly')
+  : [];
 // The staging manifest (GAP-343 Phase 3) is a SEPARATE file from the prod
 // Vercel manifest by design, but must get the same declared/synced/
 // sensitivity/kebab lockstep coverage - fed into the same predicates below.
-const stagingVars = collectVars(readFileSync(STAGING_MANIFEST, 'utf8'), 'projects', 'vercel');
+const stagingVars = STAGING_MANIFEST
+  ? collectVars(readFileSync(STAGING_MANIFEST, 'utf8'), 'projects', 'vercel')
+  : [];
 const allManifestPaths = [...vercelVars, ...flyVars, ...stagingVars].map((v) => v.path);
 const secretsMd = readFileSync(SECRETS_MD_PATH, 'utf8');
 const docPaths = extractGeneratedPaths(secretsMd);
@@ -67,7 +72,7 @@ describe('secret-paths spec self-consistency', () => {
   });
 });
 
-describe('manifest ↔ spec lockstep', () => {
+describe.skipIf(!hasManifests)('manifest ↔ spec lockstep', () => {
   it('parses both manifests to a non-trivial var set', () => {
     expect(vercelVars.length).toBeGreaterThan(40);
     expect(flyVars.length).toBeGreaterThan(20);
@@ -108,7 +113,12 @@ describe('manifest ↔ spec lockstep', () => {
     const workerPriv = flyVars.find(
       (v) => v.name === 'REVEALUI_LICENSE_PRIVATE_KEY' && v.source === 'fly:revealui-worker',
     );
-    expect(workerPriv?.path).toBe('revdev/license-signing-private-key');
+    expect(workerPriv).toBeUndefined();
+    const signerPriv = flyVars.find(
+      (v) =>
+        v.name === 'REVEALUI_LICENSE_PRIVATE_KEY' && v.source === 'fly:revealui-license-signer',
+    );
+    expect(signerPriv?.path).toBe('revdev/license-signing-private-key');
   });
 
   it('admin (prod + staging) does not sync the license private key (GAP-260 P4-4)', () => {

@@ -11,7 +11,7 @@ vi.mock('next/navigation', () => ({
 
 import { AdminBar } from '../index';
 
-// Mirrors AUTH_ROUTES in ../index — the bar must never render on these pages.
+// Keep in lockstep with AUTH_PATHS in lib/auth/auth-paths.ts
 const AUTH_ROUTES = [
   '/login',
   '/signup',

@@ -9,6 +9,7 @@ import {
   resolveStreamPrincipal,
 } from '../agent-principal.js';
 import {
+  adminToolIncludeForAgent,
   agentToolPermissionKey,
   authorizeAgentTool,
   getAgentToolMeta,
@@ -190,5 +191,20 @@ describe('authorizeAgentTool — dispatch principal', () => {
       allowed: false,
       reason: 'user_role_denied',
     });
+  });
+});
+
+describe('adminToolIncludeForAgent', () => {
+  it('scopes Ticket Agent away from user-PII tools', () => {
+    const include = adminToolIncludeForAgent('revealui-ticket-agent');
+    expect(include).toBeDefined();
+    expect(include).toContain('find_documents');
+    expect(include).not.toContain('create_user');
+    expect(include).not.toContain('list_users');
+  });
+
+  it('leaves generic admin streams unscoped', () => {
+    expect(adminToolIncludeForAgent(undefined)).toBeUndefined();
+    expect(adminToolIncludeForAgent('custom-agent')).toBeUndefined();
   });
 });

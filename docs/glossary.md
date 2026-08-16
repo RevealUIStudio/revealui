@@ -87,7 +87,7 @@ A RevealUI agent's permanent named identity, formatted as **`Rev [Surname]`** (e
 
 ## RevealUI Fleet
 
-The white-label self-hosted runtime kit — Docker Compose stack + domain lock + unlimited users. Customers on the [Enterprise](#enterprise-tier) tier typically deploy a RevealUI Fleet instance on their own infrastructure. Produced by the [RevForge](#revforge) stamping tool, which yields per-customer instances. Formerly *RevealUI Forge* per ADR [`2026-05-03-revfleet-rename.md`](./REVFLEET.md) Tier 4. **Status:** preview — Docker images not yet on GHCR; stack runs from source today. See [`./FORGE`](./FORGE.md) (page name preserved as redirect; content reflects "RevealUI Fleet" terminology).
+The white-label self-hosted runtime kit — Docker Compose stack + domain lock + unlimited users. Customers on the [Enterprise](#enterprise-tier) tier typically deploy a RevealUI Fleet instance on their own infrastructure. Produced by the [RevForge](#revforge) stamping tool, which yields per-customer instances. Formerly *RevealUI Forge* per ADR [`2026-05-03-revfleet-rename.md`](./REVFLEET.md) Tier 4. **Status:** preview. Runtime images are on GHCR and pull anonymously. A stamped kit still needs a license JWT. See [`./FORGE`](./FORGE.md) (page name preserved as redirect; content reflects "RevealUI Fleet" terminology).
 
 ## RevForge
 

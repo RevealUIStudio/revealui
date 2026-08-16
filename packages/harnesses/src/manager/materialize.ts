@@ -1,4 +1,5 @@
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { buildManifest } from '../content/definitions/index.js';
 import { claudeRulePathForDefinitionId } from '../content/write-manager-adapters.js';
@@ -204,7 +205,7 @@ What they run (warn-only, never blocks the session):
 | SessionStart / SessionEnd | \`tmpscript-check.js\` (lifecycle until GAP-295 control-layer cutover) |
 | SessionStart | \`revealui-harnesses session register --backend grok\` (soft if daemon down) |
 | SessionEnd | \`revealui-harnesses session end\` (signed when identity cached; soft if daemon down) |
-| PreToolUse | \`revealui-harnesses hook grok\` (policy + receipt spool) |
+| PreToolUse | public-comment gate (cannot be \`\\|\\| true\`) then \`hook grok\` |
 
 Do not copy hardlines into \`~/.grok/rules/\`. Do not invent a second hotfix registry.
 Rebuild \`@revealui/harnesses\` so \`dist/cli.js session\` / \`hook grok\` are available.
@@ -218,6 +219,28 @@ Rebuild \`@revealui/harnesses\` so \`dist/cli.js session\` / \`hook grok\` are a
     const hookAbs = join(projectRoot, hookRel);
     mkdirSync(dirname(hookAbs), { recursive: true });
     writeFileSync(hookAbs, body.endsWith('\n') ? body : `${body}\n`, 'utf-8');
+  }
+
+  const pretoolSrc = join(
+    projectRoot,
+    'packages',
+    'harnesses',
+    'scripts',
+    'public-security-comment-pretool.cjs',
+  );
+  const pretoolDest = join(
+    homedir(),
+    '.local',
+    'share',
+    'revealui',
+    'hooks',
+    'public-security-comment-pretool.cjs',
+  );
+  try {
+    mkdirSync(dirname(pretoolDest), { recursive: true });
+    copyFileSync(pretoolSrc, pretoolDest);
+  } catch {
+    // Project checkout may be a worktree without this script yet; skip.
   }
 
   return rel;

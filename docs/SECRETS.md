@@ -79,15 +79,17 @@ revealui/dev/stripe/webhook-secret         # whsec_* (test)
 #### Production runtime
 
 These paths are the canonical source for the Vercel + Fly sync manifests
-(`scripts/sync/revvault-vercel.toml`, `scripts/sync/revvault-fly.toml`) and the
+(private coordination-repo `ops/sync/` manifests) and the
 CI secret mirrors. The table below is a DERIVED VIEW of the machine spec at
 `scripts/sync/secret-paths.ts` - do not hand-edit it (see the marker note).
 
 The `revealui/staging/*` rows below (GAP-343) are synced by a SEPARATE
-manifest, `scripts/sync/revvault-vercel-staging.toml`, deliberately never the
-prod one - see that file's header for the `git_branch` preview-scoping
+private-ops manifest (`ops/sync/revvault-vercel-staging.toml`, resolved by
+`tsx scripts/sync/print-manifest-path.ts staging`), deliberately never the
+prod one. See that file's header for the `git_branch` preview-scoping
 mechanics and `scripts/setup/gen-staging-secrets.ts` for the owner-run
-generator that fills the "fresh value" paths.
+generator that fills the "fresh value" paths. Sync with
+`pnpm vercel:sync:staging` / `pnpm vercel:sync:staging:apply`.
 
 <!-- BEGIN GENERATED:secret-paths -->
 
@@ -102,7 +104,7 @@ value is never UI/API-revealable after write (credentials + private signing keys
 
 | Path | Kind | Sensitive | Consumers | Notes |
 | --- | --- | --- | --- | --- |
-| `revdev/license-signing-private-key` | signing-private | yes | fly:worker, fly:license-signer, with-secrets:license-signing | → migrating to `revealui/prod/license/private-key` (since 2026-06-28); Ed25519 license-signing key. Admin + api dropped P4-4 (signer is mint path). Fly worker last until executor-off digest. Offline stamper keeps with-secrets:license-signing. |
+| `revdev/license-signing-private-key` | signing-private | yes | fly:license-signer, with-secrets:license-signing | → migrating to `revealui/prod/license/private-key` (since 2026-06-28); Ed25519 license-signing key. Admin + api + worker dropped P4-4 (signer is mint path). Offline stamper keeps with-secrets:license-signing. Owner must unset the live Fly worker secret after merge. |
 | `revdev/license-signing-public-key` | signing-public | no | vercel:api, vercel:admin, fly:worker, fly:license-signer, with-secrets:license | → migrating to `revealui/prod/license/public-key` (since 2026-06-28); Ed25519 verification key - rotating invalidates all issued customer licenses |
 | `revealui/prod/admin/api-key` | credential | yes | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/admin/email` | public-config | no | vercel:admin |  |
@@ -435,8 +437,8 @@ Env vars are populated from revvault at deploy time via a mirror step,
 not hand-typed in the Vercel UI:
 
 ```bash
-# Driven by the Vercel sync manifest (scripts/sync/revvault-vercel.toml):
-pnpm vercel:sync          # dry-run — review diffs
+# Driven by the private ops/sync Vercel manifest (print-manifest-path):
+pnpm vercel:sync          # dry-run; review diffs
 pnpm vercel:sync:apply    # apply to Vercel production
 ```
 

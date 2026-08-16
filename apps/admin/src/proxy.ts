@@ -104,6 +104,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
   });
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
+  requestHeaders.set('x-revealui-pathname', pathname);
   requestHeaders.set('Content-Security-Policy', cspValue);
 
   // RevForge domain-lock: when REVFORGE_LICENSED_DOMAIN is set, reject requests from

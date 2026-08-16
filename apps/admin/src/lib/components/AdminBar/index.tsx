@@ -4,6 +4,7 @@ import { Button, cn } from '@revealui/presentation';
 
 import { usePathname, useRouter, useSelectedLayoutSegments } from 'next/navigation';
 import React, { useState } from 'react';
+import { isAuthPath } from '@/lib/auth/auth-paths';
 
 // Local type definitions for RevealUI admin
 export interface RevealUIAdminBarProps {
@@ -97,15 +98,6 @@ const collectionLabels = {
 // AdminBar is mounted in that group's layout. The bar is only meaningful to an admin
 // editing content (draft preview) — never on login/signup/setup screens, and never for
 // non-admin paying customers browsing /welcome or /account/billing.
-const AUTH_ROUTES = new Set([
-  '/login',
-  '/signup',
-  '/setup',
-  '/mfa',
-  '/rotate-password',
-  '/forgot-password',
-  '/reset-password',
-]);
 
 export const AdminBar = (props: { adminBarProps?: RevealUIAdminBarProps }) => {
   const { adminBarProps } = props || {};
@@ -127,7 +119,7 @@ export const AdminBar = (props: { adminBarProps?: RevealUIAdminBarProps }) => {
   // All hooks above run unconditionally (Rules of Hooks). On auth-flow pages the bar must
   // never render — bail out before mounting RevealUIAdminBar so its /api/auth/me probe is
   // skipped too.
-  if (AUTH_ROUTES.has(pathname)) {
+  if (isAuthPath(pathname)) {
     return null;
   }
 

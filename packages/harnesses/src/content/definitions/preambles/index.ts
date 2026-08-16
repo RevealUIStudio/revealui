@@ -13,6 +13,7 @@ export const preambles: PreambleTier[] = [
       'ai-mechanics',
       'durable-solutions',
       'disposition-actions',
+      'public-issue-redaction',
       'adapter-only',
       // HARDLINE every session: no underscore-silence of unused (owner 2026-07-29)
       'unused-declarations',

@@ -47,8 +47,9 @@ phase-out. Test-database utilities live in `scripts/dev-tools/`.
 | `credentials.ts`      | `pnpm tsx scripts/setup/credentials.ts` | Bootstrap machine credentials: read from revvault and write `~/.npmrc` etc. |
 | `gen-staging-secrets.ts` | `pnpm setup:staging-secrets`        | Owner-run generator for the staging secret bucket (writes to revvault) |
 
-The staging manifest at `scripts/sync/revvault-vercel-staging.toml` then syncs
-those vault values into Vercel via `pnpm vercel:sync:staging:apply`.
+The private staging manifest (`ops/sync/revvault-vercel-staging.toml`, via
+`print-manifest-path.ts staging`) then syncs those vault values into Vercel via
+`pnpm vercel:sync:staging:apply`.
 
 ## MCP Server Setup
 

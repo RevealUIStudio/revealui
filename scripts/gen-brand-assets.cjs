@@ -49,7 +49,7 @@ const APPS = [
 const SVG_SYNC = {
   marketing: ['favicon.svg', 'icon-mark.svg'],
   docs: ['favicon.svg'],
-  admin: ['favicon.svg'],
+  admin: ['favicon.svg', 'revealui-logo-dark.svg'],
 };
 
 const APPLE_TOUCH_ICON_SIZE = 180;

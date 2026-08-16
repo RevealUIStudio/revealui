@@ -317,7 +317,7 @@ export const ASPIRATIONAL_BLOCKLIST: AspirationalBlocklistEntry[] = [
       },
     ],
     label: 'on-prem',
-    why: 'forge docker images not yet published to GHCR',
+    why: 'on-prem is not a supported product claim; Fleet is a self-hosted Docker kit',
   },
   {
     rules: [

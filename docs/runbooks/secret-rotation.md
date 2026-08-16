@@ -13,8 +13,9 @@ rotates the **production runtime + CI** secret set end-to-end — e.g. after a s
 incident (npm token compromise, a dependency exfiltrating build env, a platform incident).
 For routine single-secret changes, use [`vercel-env-sync.md`](./vercel-env-sync.md) instead.
 
-> Scope: this rotates the **revealui prod runtime** secrets (the Vercel sync manifest,
-> `scripts/sync/revvault-vercel.toml`) plus the **CI** secrets that mirror them. The vault
+> Scope: this rotates the **revealui prod runtime** secrets (the private planning-repo
+> Vercel sync manifest at `ops/sync/revvault-vercel.toml`, resolved via
+> `scripts/sync/print-manifest-path.ts`) plus the **CI** secrets that mirror them. The vault
 > holds other entries (other projects, personal credentials) that are out of scope unless
 > they were independently exposed.
 
@@ -39,7 +40,8 @@ updating revvault **and** the GitHub secret, or CI and runtime drift apart.
 - **Unlock revvault first.** Confirm it's alive:
   ```bash
   revvault --version
-  revvault doctor --manifest scripts/sync/revvault-vercel.toml   # reads every manifest entry, validates shape
+  revvault doctor --manifest "$(tsx scripts/sync/print-manifest-path.ts vercel)"
+  # reads every private-ops manifest entry, validates shape
   ```
 
 ## Order matters — follow top to bottom
@@ -139,8 +141,8 @@ vercel redeploy <latest-prod-url> --token=$VERCEL_TOKEN
 ### Phase 7 — Verify E2E
 
 ```bash
-revvault doctor --manifest scripts/sync/revvault-vercel.toml   # vault shape OK
-pnpm vercel:drift-check                                        # every var Skip/Update-clean — no Orphan/Add surprises
+revvault doctor --manifest "$(tsx scripts/sync/print-manifest-path.ts vercel)"  # vault shape OK
+pnpm vercel:drift-check  # every var Skip/Update-clean; no Orphan/Add surprises
 ```
 Then smoke prod: log in (rotated session secret → fresh login works), exercise a Stripe-backed
 path, confirm DB connectivity (Neon rotated), check apps healthy post-redeploy, and watch the
@@ -158,6 +160,8 @@ all `NEXT_PUBLIC_*` + `public/server-url` + `public/api-url` + `public/is-live` 
 `VERCEL_ORG_ID`.
 
 ## See also
-- [`vercel-env-sync.md`](./vercel-env-sync.md) — day-to-day single-secret sync workflow
-- [`../SECRETS.md`](../SECRETS.md) — canonical secret index + paths
-- Manifest: [`../../scripts/sync/revvault-vercel.toml`](../../scripts/sync/revvault-vercel.toml)
+- [`vercel-env-sync.md`](./vercel-env-sync.md) day-to-day single-secret sync workflow
+- [`../SECRETS.md`](../SECRETS.md) canonical secret index + paths
+- Manifest location: private planning repo `ops/sync/` (resolve with
+  `tsx scripts/sync/print-manifest-path.ts vercel`; see
+  [`../../scripts/sync/README.md`](../../scripts/sync/README.md))

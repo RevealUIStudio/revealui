@@ -260,3 +260,38 @@ export function authorizeAgentTool(
 export function listExecToolNames(): readonly string[] {
   return CODING_EXEC;
 }
+
+/** Ticket Agent card skills: create / search / update tickets. No user PII. */
+export const TICKET_AGENT_ADMIN_TOOLS: readonly string[] = [
+  'list_collections',
+  'find_documents',
+  'get_document',
+  'create_document',
+  'update_document',
+];
+
+/** Creator scaffolds agents. No user-PII tools. */
+export const CREATOR_AGENT_ADMIN_TOOLS: readonly string[] = [
+  'list_collections',
+  'find_documents',
+  'get_document',
+  'create_document',
+  'update_document',
+  'get_current_user',
+];
+
+/**
+ * Allowlist for Watch live / agent-stream admin tools.
+ * `undefined` means the full admin catalog (generic admin mode).
+ */
+export function adminToolIncludeForAgent(
+  agentId: string | undefined,
+): readonly string[] | undefined {
+  if (agentId === 'revealui-ticket-agent') {
+    return TICKET_AGENT_ADMIN_TOOLS;
+  }
+  if (agentId === 'revealui-creator') {
+    return CREATOR_AGENT_ADMIN_TOOLS;
+  }
+  return undefined;
+}

@@ -28,6 +28,7 @@ import {
   createAgentRunSession,
   deleteAgentRunSession,
 } from '../lib/agent-run-sessions.js';
+import { adminToolIncludeForAgent } from '../lib/agent-tool-access.js';
 import { recordAgentMcpToolAudit } from '../lib/agent-tool-audit.js';
 import { applyAgentToolGovernance } from '../lib/agent-tool-governance.js';
 import {
@@ -70,6 +71,8 @@ const agentStreamRoute = createRoute({
             provider: z.string().optional(),
             model: z.string().optional(),
             mode: z.enum(['admin', 'coding']).default('admin').optional(),
+            /** Built-in agent id (e.g. revealui-ticket-agent). Scopes the admin tool catalog. */
+            agentId: z.string().min(1).max(128).optional(),
           }),
         },
       },
@@ -274,9 +277,11 @@ app.openapi(agentStreamRoute, async (c) => {
 
       // Integrity (S5) inside factory; governance (S6) wraps outside so deny
       // never executes the tool.
+      const include = adminToolIncludeForAgent(body.agentId);
       const rawAdmin = cmsToolsMod.createAdminTools({
         apiClient,
         onToolAudit: streamToolAudit('admin-cms'),
+        ...(include ? { include } : {}),
       });
       cmsTools = applyAgentToolGovernance(rawAdmin, governanceCtx('admin-cms'));
     }
@@ -361,7 +366,9 @@ app.openapi(agentStreamRoute, async (c) => {
       }
     : loggerSink;
 
-  if (tenant) {
+  const scopedBuiltin = adminToolIncludeForAgent(body.agentId) !== undefined;
+
+  if (tenant && !scopedBuiltin) {
     let serverIds: string[] = [];
     try {
       serverIds = await listConnectedMcpServers(createRevvaultVault(), tenant);
@@ -531,19 +538,42 @@ app.openapi(agentStreamRoute, async (c) => {
 Always confirm before making destructive changes. Explain what you're doing as you work.`
       : '';
 
-  const agent = {
-    id: mode === 'coding' ? 'coding-stream-agent' : 'admin-stream-agent',
-    name: mode === 'coding' ? 'Coding Agent' : 'Admin Stream Agent',
-    instructions: `You are an AI-powered ${mode === 'coding' ? 'coding and admin' : 'admin management'} assistant for RevealUI. You can help users manage their content, media, users, and settings through natural conversation.
+  const streamIdentity =
+    body.agentId === 'revealui-ticket-agent'
+      ? {
+          id: 'revealui-ticket-agent',
+          name: 'Ticket Agent',
+          instructions: `You are the RevealUI Ticket Agent. Help with support tickets: search, create, and update them using the ticket tools. Do not manage users or unrelated CMS records.
+
+Workspace: ${workspaceId}`,
+        }
+      : body.agentId === 'revealui-creator'
+        ? {
+            id: 'revealui-creator',
+            name: 'The Creator',
+            instructions: `You are the RevealUI platform agent. Scaffold agents, inspect collections, and orchestrate workflows. Do not create or delete user accounts.
+
+Workspace: ${workspaceId}`,
+          }
+        : {
+            id: mode === 'coding' ? 'coding-stream-agent' : 'admin-stream-agent',
+            name: mode === 'coding' ? 'Coding Agent' : 'Admin Stream Agent',
+            instructions: `You are an AI-powered ${mode === 'coding' ? 'coding and admin' : 'admin management'} assistant for RevealUI. You can help users manage their content, media, users, and settings through natural conversation.
 
 When asked to modify the admin, use the available tools. Be conversational and explain what you're doing. For destructive operations (delete), confirm the user's intent first.${codingInstructions}
 
 Workspace: ${workspaceId}`,
+          };
+
+  const agent = {
+    id: streamIdentity.id,
+    name: streamIdentity.name,
+    instructions: streamIdentity.instructions,
     tools: allTools as Parameters<
       typeof streamingRuntimeMod.StreamingAgentRuntime.prototype.streamTask
     >[0]['tools'],
     memory: undefined,
-    getContext: () => ({ agentId: 'admin-stream-agent' }),
+    getContext: () => ({ agentId: streamIdentity.id }),
   };
 
   const task = {

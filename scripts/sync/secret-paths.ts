@@ -11,7 +11,7 @@
  * the rendered SECRETS.md and fails CI on drift.
  *
  * SCOPE (Phase 0, P0-1): this declares the PRODUCTION-SYNCED runtime path set -
- * the union of scripts/sync/revvault-vercel.toml + revvault-fly.toml (the
+ * the union of the private ops/sync revvault-vercel.toml + revvault-fly.toml (the
  * drift-critical surface) - plus the license signing keypair and the one
  * security-relevant `with-secrets` env bundles it mirrors (revealui/env/license +
  * revealui/env/license-signing after GAP-260 P2-2,
@@ -20,8 +20,9 @@
  * docs/SECRETS.md OUTSIDE the generated markers. The SecretTier union carries
  * them for forward-compatibility as later phases fold them in.
  *
- * NO SECRET VALUES live here - paths + structure only. Every path is already
- * public in the sync manifests in this same repo; this file adds no exposure.
+ * NO SECRET VALUES live here - paths + structure only. Path names are not
+ * secret; the private ops/sync TOML inventories (vault-path maps and platform
+ * IDs) live outside this public tree.
  *
  * The rendered derived view (docs/SECRETS.md §Production runtime, between the
  * BEGIN/END GENERATED:secret-paths markers) is produced by
@@ -258,10 +259,10 @@ export const SECRET_PATHS: SecretPathDef[] = [
     kind: 'signing-private',
     sensitive: true,
     tier: 'prod',
-    consumers: ['fly:worker', 'fly:license-signer', 'with-secrets:license-signing'],
+    consumers: ['fly:license-signer', 'with-secrets:license-signing'],
     migratingTo: 'revealui/prod/license/private-key',
     migratingSince: '2026-06-28',
-    note: 'Ed25519 license-signing key. Admin + api dropped P4-4 (signer is mint path). Fly worker last until executor-off digest. Offline stamper keeps with-secrets:license-signing.',
+    note: 'Ed25519 license-signing key. Admin + api + worker dropped P4-4 (signer is mint path). Offline stamper keeps with-secrets:license-signing. Owner must unset the live Fly worker secret after merge.',
   },
   {
     path: 'revdev/license-signing-public-key',
@@ -564,8 +565,9 @@ export const SECRET_PATHS: SecretPathDef[] = [
     note: 'NEXT_PUBLIC_IS_LIVE - Stripe live-mode feature flag',
   },
   // ── STAGING (GAP-343 Phase 3) ──────────────────────────────────────────────
-  // The revealui/staging/* surface synced by scripts/sync/revvault-vercel-staging.toml
-  // (a SEPARATE manifest from the prod one - see its header). Same subsystem
+  // The revealui/staging/* surface synced by private ops/sync
+  // revvault-vercel-staging.toml (a SEPARATE manifest from the prod one -
+  // see its header). Same subsystem
   // grouping as the prod entries above; consumers use the *-staging tokens
   // (vercel:api-staging / vercel:admin-staging / vercel:marketing-staging) so
   // "which manifest reads this" stays visible without inventing a new field.

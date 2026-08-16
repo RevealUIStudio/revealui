@@ -79,7 +79,7 @@ export const REQUIRED_IN_PRODUCTION_HOSTED = [
 // opposite of the fail-open posture the flag needs. It is still registered
 // (so "where does this get set" has one answer, not zero): the documented
 // env matrix (docs/ENVIRONMENT-VARIABLES-GUIDE.md, Stripe Payments section),
-// the Fly sync manifest skip-list (scripts/sync/revvault-fly.toml — a plain
+// the Fly sync manifest skip-list (private ops/sync/revvault-fly.toml; a plain
 // boolean, not a secret, so it has no vault path), and validated for
 // live-mode drift by the daily billing-readiness cron
 // (apps/server/src/routes/cron/billing-readiness.ts) plus a secondary

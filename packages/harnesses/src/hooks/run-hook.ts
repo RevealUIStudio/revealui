@@ -9,6 +9,7 @@
 
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { checkPublicSecurityComment } from '../gates/public-security-comment-gate.js';
 import type {
   HarnessHookEvent,
   HarnessHookEventKind,
@@ -183,7 +184,19 @@ export async function runHookCommand(
       : ('advisory' as const);
 
   const event = normalizeHookEvent(source, rawInput, enforcementTier);
-  const decision = evaluatePolicy(snapshotResult, event);
+  let decision = evaluatePolicy(snapshotResult, event);
+
+  // Safety floor (not snapshot-optional): public GitHub must not receive
+  // adversarial security-review writeups. Tightens only.
+  if (decision.permission !== 'deny' && event.command) {
+    const commentGate = checkPublicSecurityComment(event.command);
+    if (commentGate.block) {
+      decision = {
+        permission: 'deny',
+        reason: commentGate.reason ?? 'Denied by public-security-comment gate',
+      };
+    }
+  }
 
   // GAP-199 native twin: warn-only when file-edit (or post-tool with paths)
   // touches contract/schema/app code without the product canon doc dirty.

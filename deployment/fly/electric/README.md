@@ -65,11 +65,10 @@ curl -sS "https://revealui-electric.fly.dev/v1/health"
 Prefer dry-run then apply, or single-key push after vault is clean. Full `vercel:sync:apply` can rewrite every sensitive var (GAP-339). After vault is good:
 
 ```bash
-revvault run --env VERCEL_TOKEN=revealui/prod/api-keys/vercel-token -- \
-  revvault sync vercel --manifest scripts/sync/revvault-vercel.toml
+# Prefer wrappers (resolve private ops/sync via print-manifest-path):
+pnpm vercel:sync
 # inspect electric rows only, then:
-revvault run --env VERCEL_TOKEN=revealui/prod/api-keys/vercel-token -- \
-  revvault sync vercel --manifest scripts/sync/revvault-vercel.toml --apply
+pnpm vercel:sync:apply
 ```
 
 Redeploy **revealui-admin** so runtime picks up env. Probe:

@@ -10,6 +10,7 @@ import { dispositionActionsRule } from './disposition-actions.js';
 import { durableSolutionsRule } from './durable-solutions.js';
 import { monorepoRule } from './monorepo.js';
 import { parameterizationRule } from './parameterization.js';
+import { publicIssueRedactionRule } from './public-issue-redaction.js';
 import { qualityOverSpeedRule } from './quality-over-speed.js';
 import { skillsUsageRule } from './skills-usage.js';
 import { streamSafeSecretsRule } from './stream-safe-secrets.js';
@@ -30,6 +31,7 @@ export const rules: Rule[] = [
   durableSolutionsRule,
   monorepoRule,
   parameterizationRule,
+  publicIssueRedactionRule,
   qualityOverSpeedRule,
   skillsUsageRule,
   streamSafeSecretsRule,

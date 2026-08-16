@@ -49,9 +49,14 @@ const SESSION_REGISTER_CMD =
 const SESSION_END_CMD =
   'node "$HOME/revfleet/revealui/packages/harnesses/dist/cli.js" session end 2>/dev/null || revealui-harnesses session end 2>/dev/null || true';
 
-/** Policy + receipt spool for tool events (stdin JSON from Grok → control layer). */
+/**
+ * PreToolUse must be able to DENY. The old
+ * `hook grok 2>/dev/null || true` wrapper swallowed exit 2 and posted
+ * public security-review essays. This entry runs the public-comment
+ * gate first (works without dist), then forwards to hook grok.
+ */
 const HOOK_GROK_CMD =
-  'node "$HOME/revfleet/revealui/packages/harnesses/dist/cli.js" hook grok 2>/dev/null || revealui-harnesses hook grok 2>/dev/null || true';
+  'node "$HOME/.local/share/revealui/hooks/public-security-comment-pretool.cjs"';
 
 export const GROK_SESSION_START_HOOKS_JSON = hookFile('SessionStart', [
   {
