@@ -101,7 +101,7 @@ export function loadEnvFiles(env: Environment): Record<string, string> {
   }
 
   if (env === 'test') {
-    // Test: Try .env.test.local, then .env.test
+    // Test: Try .env.test.local, then .env.test (both gitignored; optional)
     const testLocal = resolve(projectRoot, '.env.test.local');
     const testFile = resolve(projectRoot, '.env.test');
 

@@ -50,10 +50,11 @@ paths = [
   '''^packages/cli/src/prompts/.*''',
   '''^packages/cli/templates/.*''',
 
-  # Env templates anywhere in the tree — *.env.test, *.env.template,
-  # *.env.example, *.env.production.template, *.env.*.example, etc.
-  # Bare ".env" is deliberately NOT matched.
-  '''(^|.*/)\.env\.(test|template|example)$''',
+  # Env templates anywhere in the tree — *.env.template, *.env.example,
+  # *.env.production.template, *.env.test.example, *.env.*.example, etc.
+  # Bare ".env" and local/test files such as ".env.test" are deliberately
+  # NOT matched so a re-added local env file is still scanned.
+  '''(^|.*/)\.env\.(template|example)$''',
   '''(^|.*/)\.env\..+\.(template|example)$''',
 
   # CI workflow files — repo root AND templates shipped inside packages

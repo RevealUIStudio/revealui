@@ -61,19 +61,17 @@ categorized-errors.txt
 lint-output.txt
 
 # Local env files (secrets - never commit)
+# Ignore .env and .env.* (including .env.test). Keep committed templates/examples.
 .env
-.env*.local
-.env.vercel
-.env.development.local
-.env.production.local
-.env.test.local
+.env.*
+!.env.example
+!.env.*.example
+!.env.template
+!.env.*.template
 
 # Backup env files (archived old versions)
 .env.backups/
-.env.backup
-.env.clean
 
-# Template file is committed (.env.template)
 # .envrc is committed (direnv config, no secrets)
 # .envrc.local is gitignored (machine-specific overrides, e.g. CLAUDE_AGENT_ROLE)
 .envrc.local

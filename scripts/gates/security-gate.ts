@@ -232,7 +232,6 @@ async function checkSecretscan(projectRoot: string): Promise<CheckResult> {
       ':!*.test-d.*',
       ':!*.e2e.*',
       ':!.env.template',
-      ':!.env.test',
       ':!*/__tests__/**',
       ':!e2e/**',
       ':!*.sh',
@@ -277,7 +276,7 @@ async function checkSecretscan(projectRoot: string): Promise<CheckResult> {
 
 /**
  * Check 3: Committed .env files
- * Fails if any .env file (not .env.template/.env.test/.env.production.example) is tracked by git.
+ * Fails if any .env file (not .env.template/.env.production.example) is tracked by git.
  */
 async function checkEnvFiles(projectRoot: string): Promise<CheckResult> {
   const start = performance.now();
@@ -288,9 +287,9 @@ async function checkEnvFiles(projectRoot: string): Promise<CheckResult> {
 
   // Files that are intentionally committed and not secrets:
   // - .env.template: placeholder structure for onboarding, contains no real values
-  // - .env.test: test fixtures with fake values (sk_test_*, whsec_test*, etc.)
   // - .env.production.example: production deployment template (no real values)
-  const AllowedEnvFiles = new Set(['.env.template', '.env.test', '.env.production.example']);
+  // Local/test files such as .env.test stay untracked (.gitignore .env.*).
+  const AllowedEnvFiles = new Set(['.env.template', '.env.production.example']);
 
   const lines = (result.stdout ?? '').split('\n');
   const envFiles = lines.filter((f) => /^\.env(\.[^.]+)?$/.test(f) && !AllowedEnvFiles.has(f));
