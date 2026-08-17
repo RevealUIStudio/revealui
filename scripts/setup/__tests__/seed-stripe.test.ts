@@ -305,7 +305,45 @@ describe('seed-stripe.ts wiring (source lock)', () => {
     expect(content.includes('applyAgentMeterEnv(envVars, overagePriceId)')).toBe(true);
     expect(content.includes('ensureAgentOveragePrice')).toBe(true);
     expect(content.includes("from './stripe-billing-meter.js'")).toBe(true);
+    expect(content.includes("from './stripe-connection-probe.js'")).toBe(true);
     expect(content.includes('pathToFileURL')).toBe(true);
     expect(content.includes('isDirectRun')).toBe(true);
+    expect(content.includes('shouldPauseForLiveKeyAbort')).toBe(true);
+    expect(content.includes('probeStripeConnection')).toBe(true);
+    expect(content.includes('LIVE_KEY_ABORT_DELAY_MS')).toBe(true);
+  });
+});
+
+describe('probeStripeConnection (check-mode catalog probe)', () => {
+  it('uses products.list in --check mode and never calls balance.retrieve', async () => {
+    const { probeStripeConnection } = await import('../stripe-connection-probe.js');
+    const productsList = vi.fn(async () => ({ data: [] }));
+    const balanceRetrieve = vi.fn(async () => {
+      throw new Error('balance_read must not be required in check mode');
+    });
+    await probeStripeConnection(
+      {
+        products: { list: productsList },
+        balance: { retrieve: balanceRetrieve },
+      },
+      true,
+    );
+    expect(productsList).toHaveBeenCalledWith({ active: true, limit: 1 });
+    expect(balanceRetrieve).not.toHaveBeenCalled();
+  });
+
+  it('uses balance.retrieve for mutating seed runs', async () => {
+    const { probeStripeConnection } = await import('../stripe-connection-probe.js');
+    const productsList = vi.fn(async () => ({ data: [] }));
+    const balanceRetrieve = vi.fn(async () => ({ object: 'balance' }));
+    await probeStripeConnection(
+      {
+        products: { list: productsList },
+        balance: { retrieve: balanceRetrieve },
+      },
+      false,
+    );
+    expect(balanceRetrieve).toHaveBeenCalledOnce();
+    expect(productsList).not.toHaveBeenCalled();
   });
 });
