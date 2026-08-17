@@ -21,10 +21,13 @@ vi.mock('@revealui/core/observability/logger', () => ({
 
 import {
   createLLMClientFromEnv,
+  defaultBaseURLForProvider,
+  defaultModelForProvider,
   hostedViable,
   isHostedViable,
   LLMClient,
   type LLMProviderType,
+  resolveModelForProvider,
 } from '../client.js';
 
 const PROVIDER_ENV_KEYS = [
@@ -69,6 +72,15 @@ afterEach(() => {
 /** The provider a constructed client is wired to (via the circuit-breaker name). */
 function providerOf(client: LLMClient): string {
   return client.getCircuitBreakerStats().primary.name.replace('llm-', '');
+}
+
+function inspectRoute(client: LLMClient): {
+  provider: string;
+  model?: string;
+  baseURL?: string;
+} {
+  return (client as unknown as { config: { provider: string; model?: string; baseURL?: string } })
+    .config;
 }
 
 describe('createProvider — new factory branches', () => {
@@ -143,6 +155,15 @@ describe('createLLMClientFromEnv — auto-detect priority order (unchanged for e
     expect(providerOf(createLLMClientFromEnv())).toBe('groq');
   });
 
+  it('GROQ uses the Groq catalog model and Groq base URL', () => {
+    process.env.GROQ_API_KEY = 'gsk_test';
+    const client = createLLMClientFromEnv();
+    const route = inspectRoute(client);
+    expect(route.provider).toBe('groq');
+    expect(route.model).toBe('llama-3.3-70b-versatile');
+    expect(route.baseURL).toBe('https://api.groq.com/openai/v1');
+  });
+
   it('OLLAMA resolves when only OLLAMA_BASE_URL is set', () => {
     process.env.OLLAMA_BASE_URL = 'http://localhost:11434';
     expect(providerOf(createLLMClientFromEnv())).toBe('ollama');
@@ -164,6 +185,24 @@ describe('createLLMClientFromEnv — auto-detect for new providers (appended aft
   it('OPENAI_API_KEY alone resolves to openai', () => {
     process.env.OPENAI_API_KEY = 'sk-test';
     expect(providerOf(createLLMClientFromEnv())).toBe('openai');
+  });
+
+  it('does not send a Groq catalog LLM_MODEL to OpenAI', () => {
+    process.env.OPENAI_API_KEY = 'sk-test';
+    process.env.LLM_MODEL = 'llama-3.3-70b-versatile';
+    const route = inspectRoute(createLLMClientFromEnv());
+    expect(route.provider).toBe('openai');
+    expect(route.model).toBe('gpt-4o');
+    expect(route.baseURL).toBe('https://api.openai.com/v1');
+  });
+
+  it('keeps LLM_MODEL when it belongs to the selected Groq provider', () => {
+    process.env.GROQ_API_KEY = 'gsk_test';
+    process.env.LLM_MODEL = 'llama-3.1-8b-instant';
+    const route = inspectRoute(createLLMClientFromEnv());
+    expect(route.provider).toBe('groq');
+    expect(route.model).toBe('llama-3.1-8b-instant');
+    expect(route.baseURL).toBe('https://api.groq.com/openai/v1');
   });
 
   it('ANTHROPIC wins over OPENAI when both are set', () => {
@@ -197,6 +236,24 @@ describe('createLLMClientFromEnv — auto-detect for new providers (appended aft
     process.env.LLM_PROVIDER = 'inference-snaps';
     process.env.LLM_MODEL = 'gemma4';
     expect(providerOf(createLLMClientFromEnv())).toBe('inference-snaps');
+  });
+});
+
+describe('resolveModelForProvider — never send a Groq id to OpenAI', () => {
+  it('maps a Groq catalog id on OpenAI to the OpenAI default', () => {
+    expect(resolveModelForProvider('openai', 'llama-3.3-70b-versatile')).toBe(
+      defaultModelForProvider('openai'),
+    );
+  });
+
+  it('keeps a Groq catalog id on Groq', () => {
+    expect(resolveModelForProvider('groq', 'llama-3.3-70b-versatile')).toBe(
+      'llama-3.3-70b-versatile',
+    );
+  });
+
+  it('defaults Groq base URL to the Groq OpenAI-compatible host', () => {
+    expect(defaultBaseURLForProvider('groq')).toBe('https://api.groq.com/openai/v1');
   });
 });
 
