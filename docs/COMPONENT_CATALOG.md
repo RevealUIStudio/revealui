@@ -7,11 +7,11 @@ category: reference
 audience: developer
 ---
 
-**Last Updated:** 2026-07-22
+**Last Updated:** 2026-08-17
 **Packages:** `@revealui/presentation`, `@revealui/core`
 **Total Components:** **66 native components in `@revealui/presentation`** (this catalog also documents admin and rich-text UI in `@revealui/core`, listed separately below).
 
-> Counting rule (enforced in CI by `pnpm validate:claims`; canonical source `scripts/validate/claim-drift.ts` `countUIComponents()`, canonical value in `apps/marketing/app/content/site.ts` `METRICS`): the **66** figure counts `.tsx` files directly in `packages/presentation/src/components/`, excluding `_`-prefixed internal helpers. The package's `packages/presentation/src/primitives/` subpath (Box, Flex, Grid, Text, Heading, Slot; 6 files, listed under Primitives below) ships from the same package but is a separate directory the validator does not scan, so it is not part of the 65. `@revealui/core` admin/rich-text counts below are catalog-maintained, not CI-gated.
+> Counting rule (enforced in CI by `pnpm validate:claims`; canonical source `scripts/validate/claim-drift.ts` `countUIComponents()`, canonical value in `apps/marketing/app/content/site.ts` `METRICS`): the **66** figure counts `.tsx` files directly in `packages/presentation/src/components/`, excluding `_`-prefixed internal helpers. The package's `packages/presentation/src/primitives/` subpath (Box, Flex, Grid, Text, Heading, Slot; 6 files, listed under Primitives below) ships from the same package but is a separate directory the validator does not scan, so it is not part of the 66. `@revealui/core` admin/rich-text counts below are catalog-maintained, not CI-gated.
 
 ---
 
