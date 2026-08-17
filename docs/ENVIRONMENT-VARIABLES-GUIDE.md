@@ -443,7 +443,7 @@ STRIPE_WEBHOOK_SECRET=whsec_your_test_secret_here
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_test_key_here
 ```
 
-These values are committed in `.env.test` (safe placeholder credentials, no real services). For tests that hit live services, use `.env.test.local` (gitignored).
+Copy these placeholders from `.env.test.example` into a local `.env.test` (gitignored). Do not commit `.env.test`. For tests that hit live services, use `.env.test.local` (also gitignored).
 
 ### Staging (Vercel Preview)
 
@@ -492,7 +492,7 @@ Files are tried in this order. The first file found is loaded; the rest are skip
 ### Test (`NODE_ENV=test`)
 
 1. `.env.test.local` (gitignored, for live-service tests)
-2. `.env.test` (committed, safe placeholder values)
+2. `.env.test` (gitignored local file; copy from `.env.test.example`)
 
 ### Production (`NODE_ENV=production`)
 
@@ -627,9 +627,9 @@ NEW_VARIABLE_NAME: z.string().min(1, 'Description of validation').optional(),
 
 If the variable belongs to an existing config group, add it to the appropriate module in `packages/config/src/modules/`. If it's a new category, create a new module file and register it in `packages/config/src/index.ts`.
 
-### Step 4: Add to `.env.test`
+### Step 4: Add to `.env.test.example`
 
-If tests need this variable, add a safe placeholder value to `.env.test`:
+If tests need this variable, add a safe placeholder value to `.env.test.example` (committed) and to a local `.env.test` (gitignored):
 
 ```env
 NEW_VARIABLE_NAME=test-placeholder-value
@@ -660,7 +660,7 @@ Add the variable in the Vercel Dashboard for all applicable environments.
 - [ ] Added to `.env.template` with documentation comment
 - [ ] Added to Zod schema in `packages/config/src/schema.ts`
 - [ ] Added to config module in `packages/config/src/modules/`
-- [ ] Added test placeholder to `.env.test` (if needed)
+- [ ] Added test placeholder to `.env.test.example` (if needed)
 - [ ] Added build-time fallback in `index.ts` (if required variable)
 - [ ] Updated this guide
 - [ ] Set in Vercel Dashboard for production, preview, and development

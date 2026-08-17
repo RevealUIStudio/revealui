@@ -118,7 +118,7 @@ File loading is environment-specific (`packages/config/src/loader.ts`). **`proce
 | Environment | Files loaded |
 |-------------|--------------|
 | **production** | None (process.env only) |
-| **test** | First existing of `.env.test.local`, then `.env.test` |
+| **test** | First existing of `.env.test.local`, then `.env.test` (both gitignored; copy `.env.test.example`) |
 | **development** | First existing of `.env.development.local`, then `.env.local`, then `.env` |
 
 ## Validation

@@ -409,6 +409,7 @@ class StructureValidator {
       '.nvmrc',
       '.envrc',
       '.env.template',
+      '.env.test.example',
       '.env.test',
       '.lighthouserc.json',
       '.size-limit.json',
