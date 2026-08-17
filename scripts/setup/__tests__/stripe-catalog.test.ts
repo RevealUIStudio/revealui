@@ -5,7 +5,9 @@ import {
   findCatalogDrift,
   findOrphanProducts,
   isManagedProduct,
+  LIVE_KEY_ABORT_DELAY_MS,
   type ManagedProductView,
+  shouldPauseForLiveKeyAbort,
   validateStripeSecretKeyPrefix,
 } from '../stripe-catalog.js';
 
@@ -235,5 +237,16 @@ describe('validateStripeSecretKeyPrefix', () => {
   it('rejects a garbage prefix in either mode', () => {
     expect(validateStripeSecretKeyPrefix('pk_test_abc', true).ok).toBe(false);
     expect(validateStripeSecretKeyPrefix('pk_test_abc', false).ok).toBe(false);
+  });
+});
+
+describe('shouldPauseForLiveKeyAbort', () => {
+  it('does not pause in --check mode (CI catalog gate must not sleep 5s)', () => {
+    expect(shouldPauseForLiveKeyAbort(true)).toBe(false);
+  });
+
+  it('pauses for a live mutating seed so an operator can Ctrl+C', () => {
+    expect(shouldPauseForLiveKeyAbort(false)).toBe(true);
+    expect(LIVE_KEY_ABORT_DELAY_MS).toBe(5_000);
   });
 });

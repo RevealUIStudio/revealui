@@ -10,6 +10,7 @@ import {
   type DriftFinding,
   KNOWN_DRIFT,
   knownKey,
+  liveVercelSkipReason,
   parseSyncDiffJsonl,
   parseVercelNamesJson,
   partitionFindings,
@@ -161,5 +162,22 @@ POSTGRES_URL = "revealui/prod/db/postgres-url"
       }),
     );
     expect(map.get('demo')).toEqual(['A', 'B']);
+  });
+});
+
+describe('liveVercelSkipReason (public CI no-op)', () => {
+  it('skips when VERCEL_TOKEN is unset (same message as the workflow bash guard)', () => {
+    expect(liveVercelSkipReason(undefined, '/ops/sync')).toMatch(/VERCEL_TOKEN not set/);
+    expect(liveVercelSkipReason('', '/ops/sync')).toMatch(/VERCEL_TOKEN not set/);
+  });
+
+  it('skips when the private inventory is not on disk even if VERCEL_TOKEN is set', () => {
+    const reason = liveVercelSkipReason('vercel_token_present', null);
+    expect(reason).toMatch(/Private sync manifest not available/);
+    expect(reason).toMatch(/no-op pass/);
+  });
+
+  it('does not skip when both the token and the inventory directory are present', () => {
+    expect(liveVercelSkipReason('vercel_token_present', '/ops/sync')).toBeNull();
   });
 });

@@ -432,9 +432,10 @@ export interface StripeKeyPrefixValidation {
  * Validates STRIPE_SECRET_KEY's prefix against the operation mode.
  *
  * --check (the scheduled read-only drift gate, see
- * .github/workflows/stripe-catalog-check.yml) only ever reads the catalog, so
- * a least-privilege Stripe RESTRICTED key (rk_test_/rk_live_) is the correct
- * credential there and must be accepted.
+ * .github/workflows/stripe-catalog-check.yml) only ever reads the catalog via
+ * products.list, so a least-privilege Stripe RESTRICTED key (rk_test_/rk_live_)
+ * is the correct credential there and must be accepted. Do not require
+ * balance_read on that key.
  *
  * Seeding/mutating runs (the default `pnpm stripe:seed` -- no --check) can
  * create or archive products, so a restricted key must never be accepted for
@@ -459,4 +460,15 @@ export function validateStripeSecretKeyPrefix(
       ? 'STRIPE_SECRET_KEY must start with sk_test_, sk_live_, rk_test_, or rk_live_'
       : 'STRIPE_SECRET_KEY must start with sk_test_ or sk_live_ (restricted rk_ keys are not permitted for seeding/mutating runs)',
   };
+}
+
+/** Operator abort window before a live mutating seed continues. */
+export const LIVE_KEY_ABORT_DELAY_MS = 5_000;
+
+/**
+ * The live-key abort delay is for an operator running a mutating seed.
+ * `--check` (the scheduled catalog gate) is read-only and must not sleep.
+ */
+export function shouldPauseForLiveKeyAbort(checkMode: boolean): boolean {
+  return !checkMode;
 }

@@ -67,7 +67,7 @@ The private staging manifest (`ops/sync/revvault-vercel-staging.toml`, via
 
 Supporting Stripe helpers used by the scripts above (no direct alias):
 `stripe-catalog.ts`, `stripe-price-match.ts`, `stripe-env-cache-path.ts`,
-`stripe-revvault-sync.ts`.
+`stripe-revvault-sync.ts`, `stripe-connection-probe.ts`.
 
 ```bash
 # Seed Stripe products/prices and cache the resolved local price IDs
