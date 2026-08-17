@@ -149,7 +149,9 @@ export function defaultBaseURLForProvider(provider: LLMProviderType): string | u
 
 function isGroqCatalogModel(model: string): boolean {
   if (GROQ_CATALOG_MODELS.has(model)) return true;
-  return model.startsWith('llama-3.') || model.startsWith('mixtral-') || model.startsWith('gemma2-');
+  return (
+    model.startsWith('llama-3.') || model.startsWith('mixtral-') || model.startsWith('gemma2-')
+  );
 }
 
 /**
