@@ -42,6 +42,16 @@ describe('isCsrfTarget', () => {
     expect(isCsrfTarget('/account/billing')).toBe(false);
   });
 
+  it('matches relative /a2a and /a2a/* (Send Task + agent CRUD)', () => {
+    expect(isCsrfTarget('/a2a')).toBe(true);
+    expect(isCsrfTarget('/a2a/agents')).toBe(true);
+    expect(isCsrfTarget('/a2a/agents/ticket-agent')).toBe(true);
+  });
+
+  it('does not match a path that only shares the /a2a prefix string', () => {
+    expect(isCsrfTarget('/a2a-extra')).toBe(false);
+  });
+
   it('matches absolute URLs on the default api origin', () => {
     expect(isCsrfTarget(`${DEFAULT_API_ORIGIN}/api/billing/checkout`)).toBe(true);
   });
@@ -63,6 +73,12 @@ describe('isCsrfTarget', () => {
 
   it('does not match non-/api/ paths on the api origin', () => {
     expect(isCsrfTarget(`${DEFAULT_API_ORIGIN}/health`)).toBe(false);
+  });
+
+  it('matches absolute /a2a on the api origin and the page origin', () => {
+    expect(isCsrfTarget(`${DEFAULT_API_ORIGIN}/a2a`)).toBe(true);
+    expect(isCsrfTarget(`${DEFAULT_API_ORIGIN}/a2a/agents`)).toBe(true);
+    expect(isCsrfTarget(`${window.location.origin}/a2a`)).toBe(true);
   });
 
   it('rejects unparseable URLs', () => {
@@ -93,6 +109,18 @@ describe('apiFetch', () => {
   it('attaches X-CSRF-Token on POST to a relative /api/ path', async () => {
     setCsrfCookie(TOKEN);
     await apiFetch('/api/chat', { method: 'POST' });
+    expect(sentHeaders()['X-CSRF-Token']).toBe(TOKEN);
+  });
+
+  it('attaches X-CSRF-Token on POST to relative /a2a (Send Task)', async () => {
+    setCsrfCookie(TOKEN);
+    await apiFetch('/a2a', { method: 'POST', credentials: 'include' });
+    expect(sentHeaders()['X-CSRF-Token']).toBe(TOKEN);
+  });
+
+  it('attaches X-CSRF-Token on POST to relative /a2a/agents', async () => {
+    setCsrfCookie(TOKEN);
+    await apiFetch('/a2a/agents', { method: 'POST', credentials: 'include' });
     expect(sentHeaders()['X-CSRF-Token']).toBe(TOKEN);
   });
 

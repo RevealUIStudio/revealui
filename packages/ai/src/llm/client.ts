@@ -85,6 +85,89 @@ export function isHostedViable(provider: LLMProviderType): boolean {
 let warnedLocalhostDefault = false;
 const envFactoryLogger = createLogger({ component: 'createLLMClientFromEnv' });
 
+const GROQ_DEFAULT_MODEL = 'llama-3.3-70b-versatile';
+const GROQ_DEFAULT_BASE_URL = 'https://api.groq.com/openai/v1';
+
+/**
+ * Groq catalog ids that must never be sent to OpenAI (or any other host).
+ * Set lookup — no regex (M2).
+ */
+const GROQ_CATALOG_MODELS = new Set([
+  'llama-3.3-70b-versatile',
+  'llama-3.3-70b-specdec',
+  'llama-3.1-70b-versatile',
+  'llama-3.1-8b-instant',
+  'llama-3.2-90b-vision-preview',
+  'llama-3.2-11b-vision-preview',
+  'llama-3.2-3b-preview',
+  'llama-3.2-1b-preview',
+  'mixtral-8x7b-32768',
+  'gemma2-9b-it',
+  'gemma-7b-it',
+  'qwen/qwen3-32b',
+]);
+
+/** Default catalog model for a provider. */
+export function defaultModelForProvider(provider: LLMProviderType): string | undefined {
+  switch (provider) {
+    case 'anthropic':
+      return 'claude-sonnet-4-6';
+    case 'openai':
+      return 'gpt-4o';
+    case 'xai':
+      return 'grok-4.5';
+    case 'groq':
+      return GROQ_DEFAULT_MODEL;
+    case 'ollama':
+      return DEFAULT_DAILY_OLLAMA_MODEL;
+    case 'inference-snaps':
+      return DEFAULT_US_ORIGIN_INFERENCE_SNAP;
+    default:
+      return undefined;
+  }
+}
+
+/** Default OpenAI-compatible base URL for a provider. */
+export function defaultBaseURLForProvider(provider: LLMProviderType): string | undefined {
+  switch (provider) {
+    case 'anthropic':
+      return 'https://api.anthropic.com/v1';
+    case 'openai':
+      return 'https://api.openai.com/v1';
+    case 'xai':
+      return 'https://api.x.ai/v1';
+    case 'groq':
+      return GROQ_DEFAULT_BASE_URL;
+    case 'ollama':
+      return 'http://localhost:11434/v1';
+    case 'inference-snaps':
+      return 'http://localhost:9090/v1';
+    default:
+      return undefined;
+  }
+}
+
+function isGroqCatalogModel(model: string): boolean {
+  if (GROQ_CATALOG_MODELS.has(model)) return true;
+  return (
+    model.startsWith('llama-3.') || model.startsWith('mixtral-') || model.startsWith('gemma2-')
+  );
+}
+
+/**
+ * Pick a model that belongs to `provider`. A Groq catalog id is never
+ * forwarded to OpenAI (walk residual: `llama-3.3-70b-versatile` on api.openai.com).
+ */
+export function resolveModelForProvider(
+  provider: LLMProviderType,
+  requested: string | undefined,
+): string | undefined {
+  if (requested && !(isGroqCatalogModel(requested) && provider !== 'groq')) {
+    return requested;
+  }
+  return defaultModelForProvider(provider);
+}
+
 export interface LLMClientConfig {
   provider: LLMProviderType;
   apiKey: string;
@@ -699,36 +782,36 @@ export function createLLMClientFromEnv(): LLMClient {
 
   if (provider === 'anthropic') {
     apiKey = process.env.ANTHROPIC_API_KEY;
-    baseURL = process.env.ANTHROPIC_BASE_URL ?? 'https://api.anthropic.com/v1';
-    defaultModel = 'claude-sonnet-4-6';
+    baseURL = process.env.ANTHROPIC_BASE_URL ?? defaultBaseURLForProvider('anthropic');
+    defaultModel = defaultModelForProvider('anthropic');
   } else if (provider === 'openai') {
     apiKey = process.env.OPENAI_API_KEY;
-    baseURL = process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1';
-    defaultModel = 'gpt-4o';
+    baseURL = process.env.OPENAI_BASE_URL ?? defaultBaseURLForProvider('openai');
+    defaultModel = defaultModelForProvider('openai');
   } else if (provider === 'xai') {
     apiKey = process.env.XAI_API_KEY;
-    baseURL = process.env.XAI_BASE_URL ?? 'https://api.x.ai/v1';
-    defaultModel = 'grok-4.5';
+    baseURL = process.env.XAI_BASE_URL ?? defaultBaseURLForProvider('xai');
+    defaultModel = defaultModelForProvider('xai');
   } else if (provider === 'huggingface') {
     apiKey = process.env.HF_TOKEN;
     baseURL = process.env.HF_MODEL_URL;
   } else if (provider === 'groq') {
     apiKey = process.env.GROQ_API_KEY;
-    baseURL = process.env.GROQ_BASE_URL;
-    defaultModel = 'llama-3.3-70b-versatile';
+    baseURL = process.env.GROQ_BASE_URL ?? defaultBaseURLForProvider('groq');
+    defaultModel = defaultModelForProvider('groq');
   } else if (provider === 'ollama') {
     apiKey = 'ollama'; // Ollama ignores the API key
     // Ollama's OpenAI-compatible endpoint lives at /v1
     const ollamaBase = process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434';
     baseURL = ollamaBase.endsWith('/v1') ? ollamaBase : `${ollamaBase}/v1`;
-    defaultModel = DEFAULT_DAILY_OLLAMA_MODEL;
+    defaultModel = defaultModelForProvider('ollama');
   } else if (provider === 'inference-snaps') {
     apiKey = 'inference-snaps'; // inference-snaps ignores the API key
     // Defaults to Canonical's Inference Snap local service on port 9090; override
     // via INFERENCE_SNAPS_BASE_URL when the snap listens on a non-default port.
     // Model defaults to the US-origin allowlist default (asserted in provider ctor).
-    baseURL = process.env.INFERENCE_SNAPS_BASE_URL ?? 'http://localhost:9090/v1';
-    defaultModel = DEFAULT_US_ORIGIN_INFERENCE_SNAP;
+    baseURL = process.env.INFERENCE_SNAPS_BASE_URL ?? defaultBaseURLForProvider('inference-snaps');
+    defaultModel = defaultModelForProvider('inference-snaps');
   }
 
   if (!apiKey) {
@@ -743,7 +826,7 @@ export function createLLMClientFromEnv(): LLMClient {
     provider,
     apiKey,
     baseURL,
-    model: process.env.LLM_MODEL ?? defaultModel,
+    model: resolveModelForProvider(provider, process.env.LLM_MODEL) ?? defaultModel,
     temperature: process.env.LLM_TEMPERATURE ? parseFloat(process.env.LLM_TEMPERATURE) : undefined,
     maxTokens: process.env.LLM_MAX_TOKENS ? parseInt(process.env.LLM_MAX_TOKENS, 10) : undefined,
     enableCacheByDefault:
@@ -760,9 +843,12 @@ export function createLLMClientFromEnv(): LLMClient {
 /**
  * Create an LLM client using a user's stored BYOK API key.
  *
- * Looks up the user's preferred provider from `tenant_provider_configs`
- * (falling back to the first key in `user_api_keys`), decrypts the key
- * with AES-256-GCM, and returns a configured LLMClient.
+ * Looks up the user's preferred provider from `tenant_provider_configs`.
+ * If that provider has no saved key, uses another saved key (hosted-viable
+ * when `opts.hostedViableOnly` is set — e.g. a saved Groq key). Decrypts
+ * with AES-256-GCM and returns a configured LLMClient whose model and
+ * base URL match the **key's** provider, never a stale preferred-provider
+ * model (a Groq id must not be sent to OpenAI).
  *
  * Returns `null` if the user has no stored keys (callers should fall back
  * to `createLLMClientFromEnv()` or return a 402/feature-unavailable error).
@@ -791,18 +877,20 @@ export async function createLLMClientForUser(
     .where(and(eq(tenantProviderConfigs.userId, userId), eq(tenantProviderConfigs.isDefault, true)))
     .limit(1);
 
-  // Find the matching API key (preferred provider, or any available key)
-  const keyQuery = db
-    .select()
-    .from(userApiKeys)
-    .where(
-      preferredConfig
-        ? and(eq(userApiKeys.userId, userId), eq(userApiKeys.provider, preferredConfig.provider))
-        : eq(userApiKeys.userId, userId),
-    )
-    .limit(1);
+  // All of this user's keys. Preferred provider wins when it has a key;
+  // otherwise use another saved key (hosted-viable on hosted).
+  const keyRows = await db.select().from(userApiKeys).where(eq(userApiKeys.userId, userId));
 
-  const [keyRow] = await keyQuery;
+  const preferredKey = preferredConfig
+    ? keyRows.find((row) => row.provider === preferredConfig.provider)
+    : undefined;
+  const fallbackKey = keyRows.find((row) => {
+    if (opts?.hostedViableOnly && !isHostedViable(row.provider as LLMProviderType)) {
+      return false;
+    }
+    return true;
+  });
+  const keyRow = preferredKey ?? fallbackKey;
 
   if (!keyRow) return null;
 
@@ -813,7 +901,10 @@ export async function createLLMClientForUser(
   if (opts?.hostedViableOnly && !isHostedViable(provider)) return null;
 
   const plaintext = decryptApiKey(keyRow.encryptedKey);
-  const model = preferredConfig?.model ?? undefined;
+  const requestedModel =
+    preferredConfig?.provider === provider ? (preferredConfig.model ?? undefined) : undefined;
+  const model = resolveModelForProvider(provider, requestedModel);
+  const baseURL = defaultBaseURLForProvider(provider);
 
   // Fire-and-forget: record when this key was last used (best-effort, never blocks)
   db.update(userApiKeys)
@@ -836,5 +927,5 @@ export async function createLLMClientForUser(
       .catch(() => undefined);
   }
 
-  return new LLMClient({ provider, apiKey: plaintext, model });
+  return new LLMClient({ provider, apiKey: plaintext, model, baseURL });
 }

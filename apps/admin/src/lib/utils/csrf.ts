@@ -26,20 +26,35 @@ function configuredApiOrigin(): string | null {
 }
 
 /**
+ * Paths that enforce the signed double-submit CSRF check.
+ * `/a2a` is exact (the Task Tester POST); `/a2a/` is the prefix for
+ * agent CRUD. The API exemption is `/a2a/` only, so exact `POST /a2a`
+ * is still gated and must send `X-CSRF-Token`.
+ */
+function isCsrfProtectedPath(pathname: string): boolean {
+  return (
+    pathname === '/api' ||
+    pathname.startsWith('/api/') ||
+    pathname === '/a2a' ||
+    pathname.startsWith('/a2a/')
+  );
+}
+
+/**
  * True when `urlStr` targets a RevealUI surface that enforces the signed
- * double-submit CSRF check: the admin's own `/api/*` routes (relative or
- * same-origin absolute) or the api server's `/api/*` routes (absolute,
- * cross-origin). Both validate the same token  -  HMAC over the session
- * cookie value  -  so one attach predicate covers both.
+ * double-submit CSRF check: the admin's own `/api/*` and `/a2a` routes
+ * (relative or same-origin absolute) or the api server's matching routes
+ * (absolute, cross-origin). Both validate the same token  -  HMAC over
+ * the session cookie value  -  so one attach predicate covers both.
  *
  * Foreign origins never get the token: it would be useless to them, and
  * request headers are not something to hand out.
  */
 export function isCsrfTarget(urlStr: string): boolean {
-  if (urlStr.startsWith('/api/')) return true;
+  if (isCsrfProtectedPath(urlStr)) return true;
   if (!URL.canParse(urlStr)) return false;
   const target = new URL(urlStr);
-  if (!target.pathname.startsWith('/api/')) return false;
+  if (!isCsrfProtectedPath(target.pathname)) return false;
   if (target.origin === configuredApiOrigin()) return true;
   return typeof window !== 'undefined' && target.origin === window.location.origin;
 }
