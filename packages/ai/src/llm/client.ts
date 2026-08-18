@@ -752,13 +752,11 @@ export function createLLMClientFromEnv(): LLMClient {
 
   if (route.provider === 'groq' && provider !== 'groq') {
     apiKey = process.env.GROQ_API_KEY;
-    provider = 'groq';
-    baseURL = route.baseURL;
   }
 
   if (!apiKey) {
     throw new Error(
-      `API key not found for provider "${provider}". Set the corresponding env var ` +
+      `API key not found for provider "${route.provider}". Set the corresponding env var ` +
         `(INFERENCE_SNAPS_BASE_URL, GROQ_API_KEY, OLLAMA_BASE_URL, HF_TOKEN, ` +
         `ANTHROPIC_API_KEY, OPENAI_API_KEY, or XAI_API_KEY).`,
     );

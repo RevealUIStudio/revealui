@@ -154,8 +154,19 @@ export interface InferenceRoute {
   baseURL?: string;
 }
 
+const OPENAI_API_HOSTNAME = 'api.openai.com';
+
+/**
+ * True only when `url` is a parseable absolute URL whose hostname is exactly
+ * api.openai.com. Prefix/substring checks are not used — `api.openai.com.evil.com`
+ * must not count as OpenAI (CodeQL js/incomplete-url-substring-sanitization).
+ */
 function isOpenAiHost(url: string): boolean {
-  return url.startsWith('https://api.openai.com');
+  try {
+    return new URL(url).hostname === OPENAI_API_HOSTNAME;
+  } catch {
+    return false;
+  }
 }
 
 /**

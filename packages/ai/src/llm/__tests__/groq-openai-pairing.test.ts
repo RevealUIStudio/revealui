@@ -40,6 +40,7 @@ import {
   defaultBaseURLForProvider,
   defaultModelForProvider,
   LLMClient,
+  resolveInferenceRoute,
 } from '../client.js';
 
 const GROQ_RETIRED_ID = 'llama-3.3-70b-versatile';
@@ -269,6 +270,34 @@ describe('createLLMClientForUser — Groq catalog model selects the Groq host', 
     expect(posted.urls.some(isOpenAiHost)).toBe(false);
     expect(posted.urls.some(isGroqHost)).toBe(true);
     expect(posted.models).not.toContain(GROQ_RETIRED_ID);
+  });
+});
+
+describe('resolveInferenceRoute — OpenAI host by parsed hostname only', () => {
+  it('does not treat api.openai.com.evil.com as the OpenAI API host', () => {
+    const lookalike = 'https://api.openai.com.evil.com/v1';
+    const route = resolveInferenceRoute({
+      provider: 'groq',
+      model: 'openai/gpt-oss-120b',
+      baseURL: lookalike,
+      groqCredentialAvailable: true,
+    });
+
+    expect(route.provider).toBe('groq');
+    expect(route.baseURL).toBe(lookalike);
+  });
+
+  it('replaces an exact api.openai.com base URL when the route is Groq', () => {
+    const route = resolveInferenceRoute({
+      provider: 'groq',
+      model: GROQ_RETIRED_ID,
+      baseURL: `${OPENAI_HOST}/extra`,
+      groqCredentialAvailable: true,
+    });
+
+    expect(route.provider).toBe('groq');
+    expect(route.baseURL).toBe(GROQ_HOST);
+    expect(route.model).not.toBe(GROQ_RETIRED_ID);
   });
 });
 
