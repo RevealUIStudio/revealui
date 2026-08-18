@@ -50,6 +50,7 @@ import {
   LLMClient,
   type LLMProviderType,
 } from './client.js';
+import { resolveInferenceRoute } from './inference-route.js';
 
 const resolverLogger = createLogger({ component: 'resolveLLMClientForRequest' });
 /** Emitted once per process when the hosted BYOK rollback lever is pulled. */
@@ -256,12 +257,18 @@ async function resolveSiteInferenceClient(
     // and use the provider name as the placeholder key — matches the env
     // factory. Keyed providers decrypt server-side at dispatch time (§6.3).
     const apiKey = config.encryptedApiKey ? decryptApiKey(config.encryptedApiKey) : provider;
-
-    return new LLMClient({
+    const route = resolveInferenceRoute({
       provider,
-      apiKey,
       model: config.model ?? undefined,
       baseURL: config.baseURL ?? undefined,
+      groqCredentialAvailable: provider === 'groq',
+    });
+
+    return new LLMClient({
+      provider: route.provider,
+      apiKey,
+      model: route.model,
+      baseURL: route.baseURL,
       temperature: config.temperature ?? undefined,
       maxTokens: config.maxTokens ?? undefined,
     });

@@ -53,7 +53,9 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
   // OpenAI
   'gpt-4o': { input: 5.0, output: 15.0, cacheWrite: 0, cacheRead: 0 },
   'gpt-4o-mini': { input: 0.15, output: 0.6, cacheWrite: 0, cacheRead: 0 },
-  // Groq (Qwen  -  Apache 2.0)
+  // Groq (current catalog + retained retired-id pricing for historical estimates)
+  'openai/gpt-oss-120b': { input: 0.15, output: 0.6, cacheWrite: 0, cacheRead: 0 },
+  'openai/gpt-oss-20b': { input: 0.1, output: 0.5, cacheWrite: 0, cacheRead: 0 },
   'qwen/qwen3-32b': { input: 0.59, output: 0.79, cacheWrite: 0, cacheRead: 0 },
   // Ollama (self-hosted  -  no cost)
   'qwen2.5:3b': { input: 0, output: 0, cacheWrite: 0, cacheRead: 0 },

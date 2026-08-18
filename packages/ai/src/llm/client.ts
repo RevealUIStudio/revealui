@@ -18,6 +18,13 @@ import {
 } from '@revealui/resilience';
 import { and, eq } from 'drizzle-orm';
 import type { AuditStore } from '../audit/store.js';
+import {
+  defaultBaseURLForProvider,
+  defaultModelForProvider,
+  isGroqCatalogModel,
+  type LLMProviderType,
+  resolveInferenceRoute,
+} from './inference-route.js';
 import { applyLocalAiProfileToEnv } from './local-ai-profile.js';
 import type { ProviderHealthMonitor } from './provider-health.js';
 import { AnthropicProvider, type AnthropicProviderConfig } from './providers/anthropic.js';
@@ -39,10 +46,6 @@ import {
 import { OllamaProvider, type OllamaProviderConfig } from './providers/ollama.js';
 import { OpenAIProvider, type OpenAIProviderConfig } from './providers/openai.js';
 import { type OpenAICompatConfig, OpenAICompatProvider } from './providers/openai-compat.js';
-import {
-  DEFAULT_DAILY_OLLAMA_MODEL,
-  DEFAULT_US_ORIGIN_INFERENCE_SNAP,
-} from './providers/us-origin-snaps.js';
 import { XaiProvider, type XaiProviderConfig } from './providers/xai.js';
 import { type CacheStats, ResponseCache, type ResponseCacheOptions } from './response-cache.js';
 import {
@@ -52,14 +55,17 @@ import {
 } from './semantic-cache.js';
 import { estimateRequest as _estimateRequestTokens } from './token-counter.js';
 
-export type LLMProviderType =
-  | 'anthropic'
-  | 'openai'
-  | 'groq'
-  | 'huggingface'
-  | 'ollama'
-  | 'inference-snaps'
-  | 'xai';
+export type { InferenceRoute, InferenceRouteInput, LLMProviderType } from './inference-route.js';
+export {
+  defaultBaseURLForProvider,
+  defaultModelForProvider,
+  GROQ_DEFAULT_BASE_URL,
+  GROQ_DEFAULT_MODEL,
+  groqAcceptedModel,
+  isGroqCatalogModel,
+  resolveInferenceRoute,
+  resolveModelForProvider,
+} from './inference-route.js';
 
 /**
  * Providers reachable from a hosted (serverless) deployment. Localhost-only
@@ -84,89 +90,6 @@ export function isHostedViable(provider: LLMProviderType): boolean {
 /** Emitted once per process when the zero-config localhost default is selected. */
 let warnedLocalhostDefault = false;
 const envFactoryLogger = createLogger({ component: 'createLLMClientFromEnv' });
-
-const GROQ_DEFAULT_MODEL = 'llama-3.3-70b-versatile';
-const GROQ_DEFAULT_BASE_URL = 'https://api.groq.com/openai/v1';
-
-/**
- * Groq catalog ids that must never be sent to OpenAI (or any other host).
- * Set lookup — no regex (M2).
- */
-const GROQ_CATALOG_MODELS = new Set([
-  'llama-3.3-70b-versatile',
-  'llama-3.3-70b-specdec',
-  'llama-3.1-70b-versatile',
-  'llama-3.1-8b-instant',
-  'llama-3.2-90b-vision-preview',
-  'llama-3.2-11b-vision-preview',
-  'llama-3.2-3b-preview',
-  'llama-3.2-1b-preview',
-  'mixtral-8x7b-32768',
-  'gemma2-9b-it',
-  'gemma-7b-it',
-  'qwen/qwen3-32b',
-]);
-
-/** Default catalog model for a provider. */
-export function defaultModelForProvider(provider: LLMProviderType): string | undefined {
-  switch (provider) {
-    case 'anthropic':
-      return 'claude-sonnet-4-6';
-    case 'openai':
-      return 'gpt-4o';
-    case 'xai':
-      return 'grok-4.5';
-    case 'groq':
-      return GROQ_DEFAULT_MODEL;
-    case 'ollama':
-      return DEFAULT_DAILY_OLLAMA_MODEL;
-    case 'inference-snaps':
-      return DEFAULT_US_ORIGIN_INFERENCE_SNAP;
-    default:
-      return undefined;
-  }
-}
-
-/** Default OpenAI-compatible base URL for a provider. */
-export function defaultBaseURLForProvider(provider: LLMProviderType): string | undefined {
-  switch (provider) {
-    case 'anthropic':
-      return 'https://api.anthropic.com/v1';
-    case 'openai':
-      return 'https://api.openai.com/v1';
-    case 'xai':
-      return 'https://api.x.ai/v1';
-    case 'groq':
-      return GROQ_DEFAULT_BASE_URL;
-    case 'ollama':
-      return 'http://localhost:11434/v1';
-    case 'inference-snaps':
-      return 'http://localhost:9090/v1';
-    default:
-      return undefined;
-  }
-}
-
-function isGroqCatalogModel(model: string): boolean {
-  if (GROQ_CATALOG_MODELS.has(model)) return true;
-  return (
-    model.startsWith('llama-3.') || model.startsWith('mixtral-') || model.startsWith('gemma2-')
-  );
-}
-
-/**
- * Pick a model that belongs to `provider`. A Groq catalog id is never
- * forwarded to OpenAI (walk residual: `llama-3.3-70b-versatile` on api.openai.com).
- */
-export function resolveModelForProvider(
-  provider: LLMProviderType,
-  requested: string | undefined,
-): string | undefined {
-  if (requested && !(isGroqCatalogModel(requested) && provider !== 'groq')) {
-    return requested;
-  }
-  return defaultModelForProvider(provider);
-}
 
 export interface LLMClientConfig {
   provider: LLMProviderType;
@@ -231,7 +154,13 @@ export class LLMClient {
   private currentApiKey: string;
 
   constructor(config: LLMClientConfig) {
-    this.config = config;
+    const route = resolveInferenceRoute({
+      provider: config.provider,
+      model: config.model,
+      baseURL: config.baseURL,
+      groqCredentialAvailable: config.provider === 'groq',
+    });
+    this.config = { ...config, ...route };
     this.currentApiKey = config.apiKey;
     this.rateLimitState = {
       requests: [],
@@ -267,23 +196,23 @@ export class LLMClient {
     // Wire dedicated embed provider if supplied
     this.embedProviderOverride = config.embedProvider;
 
-    // Create primary provider
-    this.provider = this.createProvider(config.provider, {
-      apiKey: config.apiKey,
-      baseURL: config.baseURL,
-      model: config.model,
-      temperature: config.temperature,
-      maxTokens: config.maxTokens,
+    // Create primary provider from the resolved route (never a Groq id on OpenAI)
+    this.provider = this.createProvider(this.config.provider, {
+      apiKey: this.config.apiKey,
+      baseURL: this.config.baseURL,
+      model: this.config.model,
+      temperature: this.config.temperature,
+      maxTokens: this.config.maxTokens,
     });
 
     // Create fallback provider if specified
-    if (config.fallbackProvider) {
-      this.fallbackProvider = this.createProvider(config.fallbackProvider, {
-        apiKey: config.apiKey, // Note: In practice, you'd want separate API keys
-        baseURL: config.baseURL,
-        model: config.model,
-        temperature: config.temperature,
-        maxTokens: config.maxTokens,
+    if (this.config.fallbackProvider) {
+      this.fallbackProvider = this.createProvider(this.config.fallbackProvider, {
+        apiKey: this.config.apiKey, // Note: In practice, you'd want separate API keys
+        baseURL: this.config.baseURL,
+        model: this.config.model,
+        temperature: this.config.temperature,
+        maxTokens: this.config.maxTokens,
       });
     }
   }
@@ -732,7 +661,7 @@ export class LLMClient {
  *
  * Provider defaults:
  *   inference-snaps → gemma3   (base URL defaults to http://localhost:9090/v1)
- *   groq            → llama-3.3-70b-versatile
+ *   groq            → openai/gpt-oss-120b (Groq-accepted default; retired llama ids remap)
  *   ollama          → DEFAULT_DAILY_OLLAMA_MODEL (qwen2.5:3b; base URL http://localhost:11434)
  *   anthropic       → claude-sonnet-4-6 (base URL defaults to https://api.anthropic.com/v1)
  *   openai          → gpt-4o            (base URL defaults to https://api.openai.com/v1)
@@ -814,6 +743,19 @@ export function createLLMClientFromEnv(): LLMClient {
     defaultModel = defaultModelForProvider('inference-snaps');
   }
 
+  const route = resolveInferenceRoute({
+    provider,
+    model: process.env.LLM_MODEL ?? defaultModel,
+    baseURL,
+    groqCredentialAvailable: Boolean(process.env.GROQ_API_KEY),
+  });
+
+  if (route.provider === 'groq' && provider !== 'groq') {
+    apiKey = process.env.GROQ_API_KEY;
+    provider = 'groq';
+    baseURL = route.baseURL;
+  }
+
   if (!apiKey) {
     throw new Error(
       `API key not found for provider "${provider}". Set the corresponding env var ` +
@@ -823,10 +765,10 @@ export function createLLMClientFromEnv(): LLMClient {
   }
 
   return new LLMClient({
-    provider,
+    provider: route.provider,
     apiKey,
-    baseURL,
-    model: resolveModelForProvider(provider, process.env.LLM_MODEL) ?? defaultModel,
+    baseURL: route.baseURL,
+    model: route.model,
     temperature: process.env.LLM_TEMPERATURE ? parseFloat(process.env.LLM_TEMPERATURE) : undefined,
     maxTokens: process.env.LLM_MAX_TOKENS ? parseInt(process.env.LLM_MAX_TOKENS, 10) : undefined,
     enableCacheByDefault:
@@ -884,13 +826,16 @@ export async function createLLMClientForUser(
   const preferredKey = preferredConfig
     ? keyRows.find((row) => row.provider === preferredConfig.provider)
     : undefined;
+  const groqKey = keyRows.find((row) => row.provider === 'groq');
   const fallbackKey = keyRows.find((row) => {
     if (opts?.hostedViableOnly && !isHostedViable(row.provider as LLMProviderType)) {
       return false;
     }
     return true;
   });
-  const keyRow = preferredKey ?? fallbackKey;
+  const preferredModel = preferredConfig?.model ?? undefined;
+  const groqModelSelected = Boolean(preferredModel && isGroqCatalogModel(preferredModel));
+  const keyRow = groqModelSelected && groqKey ? groqKey : (preferredKey ?? fallbackKey);
 
   if (!keyRow) return null;
 
@@ -902,9 +847,12 @@ export async function createLLMClientForUser(
 
   const plaintext = decryptApiKey(keyRow.encryptedKey);
   const requestedModel =
-    preferredConfig?.provider === provider ? (preferredConfig.model ?? undefined) : undefined;
-  const model = resolveModelForProvider(provider, requestedModel);
-  const baseURL = defaultBaseURLForProvider(provider);
+    preferredConfig?.provider === provider || groqModelSelected ? preferredModel : undefined;
+  const route = resolveInferenceRoute({
+    provider,
+    model: requestedModel,
+    groqCredentialAvailable: provider === 'groq' || Boolean(groqKey),
+  });
 
   // Fire-and-forget: record when this key was last used (best-effort, never blocks)
   db.update(userApiKeys)
@@ -921,11 +869,16 @@ export async function createLLMClientForUser(
         eventType: 'byok:key:accessed',
         severity: 'info',
         agentId: 'system',
-        payload: { userId, provider, keyId: keyRow.id },
+        payload: { userId, provider: route.provider, keyId: keyRow.id },
         policyViolations: [],
       })
       .catch(() => undefined);
   }
 
-  return new LLMClient({ provider, apiKey: plaintext, model, baseURL });
+  return new LLMClient({
+    provider: route.provider,
+    apiKey: plaintext,
+    model: route.model,
+    baseURL: route.baseURL,
+  });
 }

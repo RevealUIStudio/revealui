@@ -258,6 +258,29 @@ describe('resolveLLMClientForRequest — site-config authorization (§6.1)', () 
     expect(mockCreateFromEnv).not.toHaveBeenCalled();
   });
 
+  it('does not keep a Groq catalog model on an OpenAI site config', async () => {
+    const db = makeAuthzDb({
+      authorized: true,
+      config: {
+        provider: 'openai',
+        encryptedApiKey: 'enc',
+        model: 'llama-3.3-70b-versatile',
+        baseURL: 'https://api.openai.com/v1',
+      },
+    });
+
+    const result = await resolveLLMClientForRequest('owner', db, {
+      isHosted: true,
+      workspaceId: 'my-site',
+    });
+
+    expect(result).toBeInstanceOf(FakeLLMClient);
+    const cfg = (result as FakeLLMClient).cfg;
+    expect(cfg.provider).toBe('openai');
+    expect(cfg.model).toBe('gpt-4o');
+    expect(cfg.baseURL).toBe('https://api.openai.com/v1');
+  });
+
   it('decrypts the site key when the caller is authorized on the site', async () => {
     const db = makeAuthzDb({ authorized: true, config: siteConfig });
 

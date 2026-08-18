@@ -105,7 +105,7 @@ describe('createLLMClientForUser — stale preferred provider', () => {
     const route = inspectRoute(client as LLMClient);
     expect(route.provider).toBe('groq');
     expect(route.apiKey).toBe('plain:enc-groq');
-    expect(route.model).toBe('llama-3.3-70b-versatile');
+    expect(route.model).toBe('openai/gpt-oss-120b');
     expect(route.baseURL).toBe('https://api.groq.com/openai/v1');
   });
 
@@ -138,7 +138,7 @@ describe('createLLMClientForUser — stale preferred provider', () => {
 
     const route = inspectRoute(client as LLMClient);
     expect(route.provider).toBe('groq');
-    expect(route.model).toBe('llama-3.3-70b-versatile');
+    expect(route.model).toBe('openai/gpt-oss-120b');
     expect(route.baseURL).toBe('https://api.groq.com/openai/v1');
   });
 
