@@ -11,7 +11,7 @@ import {
   type Token,
   tokenize,
 } from '@revealui/contracts/marketing-voice';
-import { nextNonWs, skipWs, wordAt } from './license.js';
+import { isMarkdownHeading, nextNonWs, skipWs, wordAt } from './license.js';
 import {
   ignoredPathPredicateFor,
   type Metric,
@@ -112,6 +112,148 @@ export function matchWordSeqFrom(tokens: Token[], from: number, seq: string[]): 
   return cursor;
 }
 
+/** True when `seq` appears as consecutive words anywhere in `tokens`. */
+export function tokensHaveSequence(tokens: Token[], seq: string[]): boolean {
+  for (let i = 0; i < tokens.length; i++) {
+    if (matchWordSeqFrom(tokens, i, seq) !== null) return true;
+  }
+  return false;
+}
+
+/**
+ * After a label, skip whitespace/symbols. A following `(` that starts with
+ * a number is the heading form `Apps (4)`. A `(` that starts with a word is
+ * a parenthetical (`(MIT)`) and is skipped so `OSS Packages (MIT) — 22` works.
+ * Bare words stop the walk so `components in 66` does not match.
+ */
+export function takeNumberAfterLabel(
+  tokens: Token[],
+  from: number,
+  allowCommas: boolean,
+): number | null {
+  let i = from;
+  while (i < tokens.length) {
+    const token = tokens[i];
+    if (token === undefined) return null;
+    if (token.kind === 'whitespace') {
+      i += 1;
+      continue;
+    }
+    if (token.kind === 'word') {
+      return parseCountToken(token, allowCommas);
+    }
+    if (token.kind === 'symbol' && token.text === '(') {
+      const inner = nextNonWs(tokens, i + 1);
+      if (inner !== null) {
+        const claimed = parseCountToken(tokens[inner]!, allowCommas);
+        if (claimed !== null) return claimed;
+      }
+      i += 1;
+      while (i < tokens.length && tokens[i]?.text !== ')') i += 1;
+      if (tokens[i]?.text === ')') i += 1;
+      continue;
+    }
+    if (token.kind === 'symbol') {
+      i += 1;
+      continue;
+    }
+    return null;
+  }
+  return null;
+}
+
+/**
+ * Markdown table cells from a leading-pipe row. Leading and trailing empty
+ * cells from the outer pipes are dropped. No authored regex.
+ */
+export function markdownTableCells(line: string): string[] {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith('|')) return [];
+  const raw = trimmed.split('|');
+  const cells: string[] = [];
+  for (let i = 0; i < raw.length; i++) {
+    const cell = raw[i]!.trim();
+    const isEdge = i === 0 || i === raw.length - 1;
+    if (isEdge && cell.length === 0) continue;
+    cells.push(cell);
+  }
+  return cells;
+}
+
+function firstCellInteger(cell: string, allowCommas: boolean): number | null {
+  const tokens = tokenize(cell);
+  const start = nextNonWs(tokens, 0);
+  if (start === null) return null;
+  return parseCountToken(tokens[start]!, allowCommas);
+}
+
+function stripParentheticals(text: string): string {
+  const tokens = tokenize(text);
+  let out = '';
+  let depth = 0;
+  for (const token of tokens) {
+    if (token.kind === 'symbol' && token.text === '(') {
+      depth += 1;
+      continue;
+    }
+    if (token.kind === 'symbol' && token.text === ')') {
+      if (depth > 0) depth -= 1;
+      continue;
+    }
+    if (depth === 0) out += token.text;
+  }
+  return out;
+}
+
+function labelHasForbiddenWord(label: string, forbidden: readonly string[] | undefined): boolean {
+  if (forbidden === undefined || forbidden.length === 0) return false;
+  const tokens = tokenize(label);
+  for (const token of tokens) {
+    if (token.kind !== 'word') continue;
+    const lower = token.text.toLowerCase();
+    if (forbidden.some((word) => word.toLowerCase() === lower)) return true;
+  }
+  return false;
+}
+
+function tableCellClaim(line: string, spec: NumericClaimSpec): number | null {
+  const seqs = spec.requiredSequences ?? [];
+  if (seqs.length === 0) return null;
+  const cells = markdownTableCells(line);
+  if (cells.length < 2) return null;
+  for (let i = 0; i < cells.length - 1; i++) {
+    const label = stripParentheticals(cells[i]!);
+    if (labelHasForbiddenWord(label, spec.forbidLabelWords)) continue;
+    const labelTokens = tokenize(label);
+    const matchesLabel = seqs.some((seq) => tokensHaveSequence(labelTokens, seq));
+    if (!matchesLabel) continue;
+    const claimed = firstCellInteger(cells[i + 1]!, spec.allowCommas === true);
+    if (claimed === null) continue;
+    if (spec.min !== undefined && claimed < spec.min) continue;
+    if (spec.max !== undefined && claimed > spec.max) continue;
+    return claimed;
+  }
+  return null;
+}
+
+function labelFirstClaim(line: string, spec: NumericClaimSpec): number | null {
+  const seqs = spec.requiredSequences ?? [];
+  if (seqs.length === 0) return null;
+  const tokens = tokenize(line);
+  for (let ti = 0; ti < tokens.length; ti++) {
+    for (const seq of seqs) {
+      const after = matchWordSeqFrom(tokens, ti, seq);
+      if (after === null) continue;
+      const claimed = takeNumberAfterLabel(tokens, after, spec.allowCommas === true);
+      if (claimed === null) continue;
+      if (spec.min !== undefined && claimed < spec.min) continue;
+      if (spec.max !== undefined && claimed > spec.max) continue;
+      return claimed;
+    }
+  }
+  return null;
+}
+
 /**
  * Scan a single line for numeric metric claims against typed specs.
  * Pure + exported for unit tests (GAP-192 PR4).
@@ -138,7 +280,8 @@ export function scanNumericClaimsOnLine(
       continue;
     }
 
-    for (let ti = 0; ti < tokens.length; ti++) {
+    const runNumberFirst = spec.numberFirst !== false;
+    for (let ti = 0; runNumberFirst && ti < tokens.length; ti++) {
       const claimed = parseCountToken(tokens[ti]!, spec.allowCommas === true);
       if (claimed === null) continue;
       if (spec.min !== undefined && claimed < spec.min) continue;
@@ -204,6 +347,21 @@ export function scanNumericClaimsOnLine(
       }
 
       hits.push({ metricName: spec.metricName, claimed });
+    }
+
+    // Markdown `| Label | N |` (honesty-ledger hole). Always on when the spec
+    // has requiredSequences. Heading form needs spec.labelFirst.
+    if ((spec.requiredSequences ?? []).length > 0) {
+      const fromTable = tableCellClaim(line, spec);
+      if (fromTable !== null) {
+        hits.push({ metricName: spec.metricName, claimed: fromTable });
+      }
+      if (spec.labelFirst === true && isMarkdownHeading(line)) {
+        const fromLabel = labelFirstClaim(line, spec);
+        if (fromLabel !== null) {
+          hits.push({ metricName: spec.metricName, claimed: fromLabel });
+        }
+      }
     }
   }
 

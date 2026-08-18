@@ -6,7 +6,7 @@ status: verified
 audience: user
 ---
 
-> Last verified: 2026-07-22
+> Last verified: 2026-08-17
 
 This page is an honest account of what RevealUI can and can't do right now.
 If you're evaluating RevealUI for a project, read this before the marketing page.
@@ -25,7 +25,7 @@ and a REST API. The heart of RevealUI and the most mature part of the codebase.
 **66 native React components in `@revealui/presentation`** (plus admin and rich-text UI in `@revealui/core`), built on Tailwind CSS v4. No external UI dependencies (no Radix, no Headless UI, no shadcn). Just React hooks, clsx, and CVA. Buttons, forms, modals, tables, toasts, navigation, data display, and layout primitives.
 
 ### Database schema
-**104 PostgreSQL tables** with Drizzle ORM, **81 CHECK constraints** enforced at the database level. NeonDB is the sole primary database (REST, agent memories, and RAG via pgvector on Neon). Supabase is not an internal datastore (ADR `2026-05-01-supabase-removal`); the customer-facing Supabase MCP adapter was removed (use Neon MCP). ElectricSQL is an optional sync layer (off by default).
+**104 PostgreSQL tables** with Drizzle ORM, **88 CHECK constraints** enforced at the database level. NeonDB is the sole primary database (REST, agent memories, and RAG via pgvector on Neon). Supabase is not an internal datastore (ADR `2026-05-01-supabase-removal`); the customer-facing Supabase MCP adapter was removed (use Neon MCP). ElectricSQL is an optional sync layer (off by default).
 
 ### Rich text editing
 Lexical-based rich text editor with custom nodes, serialization, and a plugin system.
@@ -36,7 +36,7 @@ ElectricSQL integration for real-time data synchronization. Proxy, auth, and sha
 have been verified working between Fly and NeonDB. Off by default — opt-in via env vars when you want it.
 
 ### CLI scaffolding
-**`create-revealui` published to npm at v0.5.15**. `@revealui/cli` is at v0.9.2. Bootstraps a new RevealUI project with working config, database setup, and development server.
+**`create-revealui` published to npm at v0.5.20**. `@revealui/cli` is at v0.9.7. Bootstraps a new RevealUI project with working config, database setup, and development server.
 
 ### CI and code quality
 3-phase CI gate (lint, typecheck, test, build) with an extensive test suite across
@@ -75,7 +75,7 @@ JWT-based licensing (EdDSA/Ed25519, server-side only — distinct from user-faci
 **License generation and enforcement work in tests. Not yet tested with paying customers.**
 
 ### Fleet runtime images (GHCR)
-`ghcr.io/revealuistudio/revealui-api:latest`, `revealui-admin:latest`, and `revealui-migrate:latest` are published and pull anonymously. Verified 2026-08-16: unauthenticated OCI manifest GET returned HTTP 200 for all three tags (multi-arch indexes). RevForge stamps those tags. A stamped kit still needs a license JWT and operator env. This is not a sold customer walk.
+`ghcr.io/revealuistudio/revealui-api:latest`, `revealui-admin:latest`, and `revealui-migrate:latest` are published. Re-verified 2026-08-17: the GHCR anonymous token endpoint plus an OCI index GET returns HTTP 200 for those tags. A bare curl of the manifest URL without that token is 401 (GHCR default). RevForge stamps those tags. A stamped kit still needs a license JWT and operator env. This is not a sold customer walk.
 
 ---
 
@@ -89,7 +89,7 @@ Honest list of things that are not done, not deployed, or not verified.
 - **No managed hosting service.** RevealUI Studio's own marketing site runs on Vercel; we do not (today) offer to host customer instances. Self-host (Vercel, Cloudflare, Fly, Hetzner, Docker, Fleet kit) is the path. Vercel and Cloudflare are friendly deploy targets, not competitors.
 - **Stripe live mode is ON in production** (flipped 2026-06-26 after the billing-readiness audit closed).
 - **REVEALUI_KEK rotation tooling ships** (`scripts/security/rotate-kek.ts`) — zero-downtime dual-key rotation; see the credential-rotation runbook.
-- **No status page publicly advertised.** Uptime monitoring is configured.
+- **No status page on the marketing site.** A public Upptime page exists at [RevealUIStudio.github.io/status](https://RevealUIStudio.github.io/status). It is not linked from revealui.com.
 - **No public support channel.** There is no public support email, chat, or ticketing system yet.
 - **Terms of Service and Privacy Policy are live, but not yet lawyer-reviewed.** Drafted in good faith by RevealUI Studio and published at [/terms](https://revealui.com/terms) and [/privacy](https://revealui.com/privacy). Each page carries an explicit "draft pending counsel review" banner — we disclose this rather than hide it. Counsel review is scheduled post-first-revenue. Subscription prices are referenced as "published at /pricing at the time of purchase" rather than hardcoded, so the pricing page is the single source of truth.
 - **No SOC2 or ISO 27001.** Security certifications are planned for Phase 6, not current.
@@ -107,21 +107,21 @@ Honest list of things that are not done, not deployed, or not verified.
 
 | Metric | Value | Verified |
 |--------|-------|----------|
-| Workspaces (apps + packages) | 33 | Yes |
-| Apps | 4 (`admin`, `server`, `docs`, `marketing`) | Yes |
-| OSS packages (MIT) | 23 | Yes |
+| Workspaces (apps + packages) | 38 | Yes |
+| Apps | 6 (`admin`, `server`, `docs`, `marketing`, `license-signer`, `rsc-poc`) | Yes |
+| OSS packages (MIT) | 25 | Yes |
 | Pro packages (FSL-1.1-MIT) | 5 (`ai`, `engines`, `harnesses`, `mcp`, `services`) | Yes |
-| Internal packages | 1 (`@revealui/scripts`, unlicensed build tooling) | Yes |
-| UI components | 65 in `@revealui/presentation` | Yes |
-| Database tables | 104 | Yes (run `grep -h 'pgTable(' packages/db/src/schema/*.ts \| wc -l`) |
-| CHECK constraints | 81 | Yes (run `grep -rh 'check(' packages/db/src/schema/*.ts \| wc -l`) |
+| Internal packages | 2 (`@revealui/scripts`, `@revealui/apify-actor-governed-run`) | Yes |
+| UI components | 66 in `@revealui/presentation` | Yes |
+| Database tables | 104 | Yes (`countDbTables` in `@revealui/claim-gates`) |
+| CHECK constraints | 88 | Yes (`countCheckConstraints` in `@revealui/claim-gates`) |
 | MCP servers | 13 | Yes (run `ls packages/mcp/src/servers/*.ts` and count non-`_` files) |
 | Test cases | run `pnpm test` for current count | Reproducible |
 | Test files | run `find . -name "*.test.ts*" -not -path "*/node_modules/*"` | Reproducible |
 | API route files | run `find apps/server/src/routes -name '*.ts' -not -name '*.test.ts' \| wc -l` | Reproducible |
 | Real production users | 0 | Yes |
 
-> Counting rules (enforced in CI by `pnpm validate:claims`, canonical values in `apps/marketing/app/content/site.ts` `METRICS`): **UI components** counts `.tsx` files in `packages/presentation/src/components/` excluding `_`-prefixed helpers. **MCP servers** counts `.ts` files in `packages/mcp/src/servers/` excluding `index*` and `_`-prefixed helpers, which includes the `adapter.ts` framework module (so the honest total is 14, not 13). **Workspaces** counts `packages/*` plus `apps/*` that carry a `package.json`. **Database tables** counts `pgTable(` declarations; the **license split** is read from each `packages/*/package.json` `license` field.
+> Counting rules (enforced in CI by `pnpm validate:claims`, canonical values in `apps/marketing/app/content/site.ts` `METRICS`): **UI components** counts `.tsx` files in `packages/presentation/src/components/` excluding `_`-prefixed helpers. **MCP servers** counts `.ts` files in `packages/mcp/src/servers/` excluding `index*` and `_`-prefixed helpers, and includes the `adapter.ts` framework module (13). **Workspaces** counts `packages/*` plus `apps/*` that carry a `package.json` (32 + 6 = 38). `license-signer` and `rsc-poc` are in-tree apps, not customer-facing products. **Database tables** counts `pgTable(` CallExpressions; **CHECK constraints** counts `check(` CallExpressions; the **license split** is read from each `packages/*/package.json` `license` field.
 
 ---
 

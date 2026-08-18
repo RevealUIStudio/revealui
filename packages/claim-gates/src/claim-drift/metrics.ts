@@ -193,6 +193,22 @@ export interface NumericClaimSpec {
   /** Number must sit inside `(...)` (previous non-ws token is `(`). */
   parenWrapped?: boolean;
   /**
+   * Also match label-then-number headings: `Apps (4)`, `OSS Packages (MIT) — 22`.
+   * Markdown `| Label | N |` rows are scanned for every spec with
+   * `requiredSequences` (that is the honesty-ledger hole).
+   */
+  labelFirst?: boolean;
+  /**
+   * Number-then-words walk (`21 packages`). Default true. Set false for
+   * short words like `apps` that appear in many non-total counts.
+   */
+  numberFirst?: boolean;
+  /**
+   * Table-label words that mean this row is not this metric
+   * (`OSS packages` is the MIT split, not the workspace total).
+   */
+  forbidLabelWords?: string[];
+  /**
    * Compound license-split shapes that need a dedicated walk beyond
    * requiredSequences.
    */
@@ -356,12 +372,11 @@ export function countWorkspaces(): number {
 }
 
 /**
- * Count CallExpression nodes whose callee is the identifier `pgTable`.
+ * Count CallExpression nodes whose callee is a given identifier.
  * Uses the TypeScript compiler API (no authored regex) so comments and
  * string literals never inflate the total. Path-injectable for tests.
- * GAP-192 PR1 plumbing.
  */
-export function countPgTableCalls(fileName: string, content: string): number {
+export function countCallIdentifier(fileName: string, content: string, identifier: string): number {
   const sourceFile = ts.createSourceFile(
     fileName,
     content,
@@ -374,7 +389,7 @@ export function countPgTableCalls(fileName: string, content: string): number {
     if (
       ts.isCallExpression(node) &&
       ts.isIdentifier(node.expression) &&
-      node.expression.text === 'pgTable'
+      node.expression.text === identifier
     ) {
       count++;
     }
@@ -385,11 +400,18 @@ export function countPgTableCalls(fileName: string, content: string): number {
 }
 
 /**
- * Count `pgTable(` declarations across `packages/db/src/schema/*.ts`.
- * The audit-first source of truth for "how many database tables ship".
- * Path-injectable + exported for tests (GAP-192 PR1).
+ * Count CallExpression nodes whose callee is the identifier `pgTable`.
+ * GAP-192 PR1 plumbing. Thin wrapper over `countCallIdentifier`.
  */
-export function countDbTables(schemaDir?: string): number {
+export function countPgTableCalls(fileName: string, content: string): number {
+  return countCallIdentifier(fileName, content, 'pgTable');
+}
+
+/**
+ * Walk `packages/db/src/schema` (or an injected dir) and count CallExpressions
+ * of `identifier`. Shared by table and CHECK collectors.
+ */
+export function countSchemaCallIdentifier(identifier: string, schemaDir?: string): number {
   const resolved = schemaDir ?? path.join(scanState.Root, 'packages/db/src/schema');
   if (!fs.existsSync(resolved)) return 0;
   const isIgnored = ignoredPathPredicateFor(resolved);
@@ -413,12 +435,29 @@ export function countDbTables(schemaDir?: string): number {
         } catch {
           continue;
         }
-        total += countPgTableCalls(full, content);
+        total += countCallIdentifier(full, content, identifier);
       }
     }
   }
   walk(resolved);
   return total;
+}
+
+/**
+ * Count `pgTable(` declarations across `packages/db/src/schema/*.ts`.
+ * The audit-first source of truth for "how many database tables ship".
+ * Path-injectable + exported for tests (GAP-192 PR1).
+ */
+export function countDbTables(schemaDir?: string): number {
+  return countSchemaCallIdentifier('pgTable', schemaDir);
+}
+
+/**
+ * Count drizzle `check(` declarations across `packages/db/src/schema`.
+ * Honesty-ledger CHECK rows were ungated; this is the owning collector.
+ */
+export function countCheckConstraints(schemaDir?: string): number {
+  return countSchemaCallIdentifier('check', schemaDir);
 }
 
 // ---------------------------------------------------------------------------

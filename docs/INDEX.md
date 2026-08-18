@@ -16,7 +16,7 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 - [Quick Start](./QUICK_START.md): get a local dev stack running
 - [Build Your Business](./BUILD_YOUR_BUSINESS.md): End-to-end tutorial: scaffold to deploy
 - [Examples](./EXAMPLES.md): Blog, subscription starter, storefront
-- Glossary: Canonical vocabulary across RevFleet — agent, runtime, tier, harness, license, MCP, Rev, Revfleet, x402. Single source of truth for cross-cutting terminology.
+- Glossary (maintainer-internal, not served on docs.revealui.com): canonical vocabulary for agent, runtime, tier, harness, license, MCP, Rev, Revfleet, x402.
 
 ## Core Guides
 
@@ -72,7 +72,7 @@ RevealUI is one product in a fleet of seven that compose into an agent-first SDL
 - [RevVault](./fleet/revvault.md) — age-encrypted secret vault, source of truth for every RevFleet secret
 - [RevCon](./fleet/revcon.md) — editor + agent-rule sync via symlinks (`link.sh`)
 - [RevealUI Fleet](./FLEET.md) — self-hosted enterprise deployment kit
-- [RevSkills](./fleet/revskills.md) — curated Agent Skills for Claude Code / Cursor
+- [RevSkills](./fleet/revskills.md) — curated Agent Skills for Claude, Grok, Cursor, OpenCode, and VS Code
 
 ## Security & trust
 

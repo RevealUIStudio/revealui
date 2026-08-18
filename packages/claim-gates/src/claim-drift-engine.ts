@@ -17,6 +17,7 @@ export {
 export type { IgnoredPathPredicate, NumericClaimSpec } from './claim-drift/metrics.js';
 export {
   CLI_TEMPLATE_CLAIM_SPECS,
+  countCheckConstraints,
   countCliTemplates,
   countDbTables,
   countDirs,

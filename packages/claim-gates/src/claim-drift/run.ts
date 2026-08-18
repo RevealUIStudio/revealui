@@ -7,6 +7,7 @@ import type { CapabilityGateSlice, ClaimGateResult, ClaimGateRunOptions } from '
 import {
   CLI_TEMPLATE_CLAIM_SPECS,
   countApps,
+  countCheckConstraints,
   countCliTemplates,
   countDbTables,
   countDirs,
@@ -79,6 +80,9 @@ export function runClaimDrift(options: ClaimGateRunOptions): ClaimGateResult {
   const uiComponents = scanState.ActiveProfile.collectMonorepoMetrics ? countUIComponents() : 0;
   const mcpServers = scanState.ActiveProfile.collectMonorepoMetrics ? countMCPServers() : 0;
   const dbTables = scanState.ActiveProfile.collectMonorepoMetrics ? countDbTables() : 0;
+  const checkConstraints = scanState.ActiveProfile.collectMonorepoMetrics
+    ? countCheckConstraints()
+    : 0;
   const cliTemplates = scanState.ActiveProfile.collectMonorepoMetrics ? countCliTemplates() : 0;
   const enforcementTests = scanState.ActiveProfile.collectMonorepoMetrics
     ? countEnforcementTests()
@@ -96,6 +100,7 @@ export function runClaimDrift(options: ClaimGateRunOptions): ClaimGateResult {
     console.log(`  UI components: ${uiComponents}`);
     console.log(`  MCP servers:   ${mcpServers}`);
     console.log(`  DB tables:     ${dbTables}`);
+    console.log(`  CHECKs:        ${checkConstraints}`);
     console.log(`  CLI templates: ${cliTemplates}`);
     console.log(`  Enforcement:   ${enforcementTests}`);
     console.log(
@@ -120,6 +125,33 @@ export function runClaimDrift(options: ClaimGateRunOptions): ClaimGateResult {
               optionalIntervening: ['npm'],
               requiredSequences: [['packages'], ['package']],
               forbidNextWords: ['patched'],
+              forbidLabelWords: [
+                'oss',
+                'mit',
+                'dist',
+                'workspace',
+                'workspaces',
+                'internal',
+                'pro',
+                'fsl',
+                'published',
+                'private',
+                'license',
+              ],
+            },
+          ],
+        },
+        {
+          name: 'apps',
+          actual: apps,
+          claimSpecs: [
+            {
+              metricName: 'apps',
+              min: 2,
+              max: 20,
+              requiredSequences: [['apps']],
+              labelFirst: true,
+              numberFirst: false,
             },
           ],
         },
@@ -130,6 +162,7 @@ export function runClaimDrift(options: ClaimGateRunOptions): ClaimGateResult {
             {
               metricName: 'workspaces',
               requiredSequences: [['workspaces'], ['workspace']],
+              labelFirst: true,
             },
           ],
         },
@@ -205,6 +238,23 @@ export function runClaimDrift(options: ClaimGateRunOptions): ClaimGateResult {
           ],
         },
         {
+          name: 'CHECK constraints',
+          actual: checkConstraints,
+          claimSpecs: [
+            {
+              metricName: 'CHECK constraints',
+              min: 10,
+              max: 999,
+              optionalIntervening: ['drizzle'],
+              requiredSequences: [
+                ['check', 'constraints'],
+                ['check', 'constraint'],
+              ],
+              labelFirst: true,
+            },
+          ],
+        },
+        {
           name: 'CLI templates',
           actual: cliTemplates,
           claimSpecs: CLI_TEMPLATE_CLAIM_SPECS,
@@ -227,17 +277,56 @@ export function runClaimDrift(options: ClaimGateRunOptions): ClaimGateResult {
         {
           name: 'MIT packages',
           actual: licenseSplit.mit,
-          claimSpecs: [{ metricName: 'MIT packages', shape: 'oss-mit' }],
+          claimSpecs: [
+            { metricName: 'MIT packages', shape: 'oss-mit' },
+            {
+              metricName: 'MIT packages',
+              min: 10,
+              max: 39,
+              requiredSequences: [
+                ['oss', 'packages'],
+                ['mit', 'packages'],
+              ],
+              labelFirst: true,
+              numberFirst: false,
+            },
+          ],
         },
         {
           name: 'FSL packages',
           actual: licenseSplit.fsl,
-          claimSpecs: [{ metricName: 'FSL packages', shape: 'pro-fsl' }],
+          claimSpecs: [
+            { metricName: 'FSL packages', shape: 'pro-fsl' },
+            {
+              metricName: 'FSL packages',
+              min: 1,
+              max: 20,
+              requiredSequences: [
+                ['pro', 'packages'],
+                ['fsl', 'packages'],
+              ],
+              labelFirst: true,
+              numberFirst: false,
+            },
+          ],
         },
         {
           name: 'internal packages',
           actual: licenseSplit.internal,
-          claimSpecs: [{ metricName: 'internal packages', shape: 'internal-paren' }],
+          claimSpecs: [
+            { metricName: 'internal packages', shape: 'internal-paren' },
+            {
+              metricName: 'internal packages',
+              min: 1,
+              max: 10,
+              requiredSequences: [
+                ['internal', 'packages'],
+                ['internal', 'package'],
+              ],
+              labelFirst: true,
+              numberFirst: false,
+            },
+          ],
         },
       ]
     : [];
