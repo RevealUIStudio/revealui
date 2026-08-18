@@ -69,7 +69,7 @@ Work that is real and unfinished. No gap IDs on this public page.
 |------|--------|-----------------|
 | Hosted agent walk | In flight | Code is on production. Closure is a live entitled-account walk (save a key, send a task, watch a run) |
 | Fleet pull-and-run kit | In flight | Images exist. The launched customer kit (docs + license-gated pull, no source build) does not |
-| Product-led channels | In flight | Starter Kit Payment Link, Railway template, and Apify actor code exist. Owner publish + first stranger purchase remain |
+| Product-led channels | In flight | Starter Kit Payment Link, Apify actor, and a customer self-host template (sales channel only; Railway is not Studio production, which stays on Vercel + Neon + Fly). Owner publish + first stranger purchase remain |
 | Onboarding (first 24h / first 7d) | In flight | Journey copy and checklists ship. Per-tier walkthrough sign-off does not |
 | Multi-editor connect | Shipped in code | Cursor, VS Code plugin surface, and ACP connect guides exist. VS Code Marketplace listing is owner ops |
 | Claim honesty | Continuous | `pnpm validate:claims` gates marketing copy. This file and What Works Today must stay in lockstep |
