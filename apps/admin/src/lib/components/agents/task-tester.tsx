@@ -16,6 +16,32 @@ interface TaskTesterProps {
 
 type TesterState = 'idle' | 'submitting' | 'polling' | 'done' | 'error';
 
+function readSendTaskError(json: unknown, status: number): string | null {
+  if (json && typeof json === 'object') {
+    const error = (json as { error?: unknown }).error;
+    if (typeof error === 'string' && error.length > 0) {
+      return status >= 400 ? `${error} (HTTP ${status})` : error;
+    }
+    if (error && typeof error === 'object') {
+      const message = (error as { message?: unknown }).message;
+      if (typeof message === 'string' && message.length > 0) {
+        return status >= 400 ? `${message} (HTTP ${status})` : message;
+      }
+    }
+  }
+  if (status >= 400) {
+    return `Unable to send task (HTTP ${status}).`;
+  }
+  return null;
+}
+
+function readSendTaskResult(json: unknown): A2ATask | null {
+  if (!json || typeof json !== 'object') return null;
+  const result = (json as { result?: unknown }).result;
+  if (!result || typeof result !== 'object') return null;
+  return result as A2ATask;
+}
+
 const TASK_STATE_BADGE_COLOR = {
   submitted: 'muted',
   working: 'brand',
@@ -78,13 +104,21 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
         }),
       });
 
-      const json = (await res.json()) as {
-        result?: A2ATask;
-        error?: { code: number; message: string };
-      };
+      let json: unknown;
+      try {
+        json = await res.json();
+      } catch {
+        setNeedsUpgrade(false);
+        setErrorMsg(
+          `Unable to send task (HTTP ${res.status}). The server returned a non-JSON response.`,
+        );
+        setState('error');
+        return;
+      }
 
-      if (json.error) {
-        if (isAiLicenseDenial(json.error.message)) {
+      const errorText = readSendTaskError(json, res.status);
+      if (errorText) {
+        if (isAiLicenseDenial(errorText)) {
           setErrorMsg(null);
           setState('error');
           setTask(null);
@@ -92,13 +126,14 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
           return;
         }
         setNeedsUpgrade(false);
-        setErrorMsg(json.error.message);
+        setErrorMsg(errorText);
         setState('error');
         return;
       }
 
-      if (json.result) {
-        setTask(json.result);
+      const result = readSendTaskResult(json);
+      if (result) {
+        setTask(result);
         setState('done');
         onComplete?.();
       }

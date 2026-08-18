@@ -40,11 +40,14 @@ import {
   CATALOG,
   findCatalogDrift,
   findOrphanProducts,
+  LIVE_KEY_ABORT_DELAY_MS,
   type ManagedProductView,
   PRICE_ENV_KEYS,
   PRICE_SERVER_ENV_KEYS,
+  shouldPauseForLiveKeyAbort,
   validateStripeSecretKeyPrefix,
 } from './stripe-catalog.js';
+import { probeStripeConnection } from './stripe-connection-probe.js';
 import { LOCAL_STRIPE_ENV_CACHE_PATH } from './stripe-env-cache-path.js';
 import { priceMatchesDefinition, priceSharesHandle } from './stripe-price-match.js';
 import { syncToRevvault } from './stripe-revvault-sync.js';
@@ -738,10 +741,12 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  if (keyValidation.isLive) {
+  if (keyValidation.isLive && shouldPauseForLiveKeyAbort(checkMode)) {
     log.warn('Using LIVE Stripe key  -  resources will be created in production!');
     log.info('Press Ctrl+C within 5 seconds to abort...');
-    await new Promise((r) => setTimeout(r, 5000));
+    await new Promise((r) => setTimeout(r, LIVE_KEY_ABORT_DELAY_MS));
+  } else if (keyValidation.isLive && checkMode) {
+    log.info('Using LIVE Stripe key (read-only catalog check; no writes)');
   }
 
   if (dryRun) {
@@ -751,7 +756,7 @@ async function main(): Promise<void> {
   const stripe = new StripeConstructor(secretKey, { apiVersion: StripeConstructor.API_VERSION });
 
   try {
-    await stripe.balance.retrieve();
+    await probeStripeConnection(stripe, checkMode);
     log.success('Connected to Stripe');
   } catch (err) {
     log.error(`Failed to connect to Stripe: ${err instanceof Error ? err.message : String(err)}`);

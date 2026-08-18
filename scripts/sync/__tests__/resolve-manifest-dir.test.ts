@@ -28,4 +28,10 @@ describe('resolveManifestDir', () => {
     process.env.JV_REPO = join(tmpdir(), 'rui-sync-missing-jv');
     expect(() => requireManifestPath('vercel')).toThrow(/Private sync manifest/);
   });
+
+  it('returns null when public CI has no coordination inventory on disk', () => {
+    process.env.REVEALUI_SYNC_MANIFEST_DIR = join(tmpdir(), 'rui-sync-missing-dir');
+    process.env.JV_REPO = join(tmpdir(), 'rui-sync-missing-jv');
+    expect(resolveManifestDir()).toBeNull();
+  });
 });

@@ -9,7 +9,7 @@ const story: ShowcaseStory = {
   category: 'component',
 
   controls: {
-    initials: { type: 'text', default: 'RU' },
+    initials: { type: 'text', default: 'JV' },
     square: { type: 'boolean', default: false },
     alt: { type: 'text', default: 'User avatar' },
   },
@@ -29,7 +29,7 @@ const story: ShowcaseStory = {
       render: () => (
         <div className="flex items-end gap-4">
           {['size-6', 'size-8', 'size-10', 'size-12', 'size-16'].map((size) => (
-            <Avatar key={size} initials="RU" alt="RevealUI" className={size} />
+            <Avatar key={size} initials="JV" alt="Joshua Vaughn" className={size} />
           ))}
         </div>
       ),
@@ -50,9 +50,9 @@ const story: ShowcaseStory = {
       name: 'Square Variant',
       render: () => (
         <div className="flex items-end gap-4">
-          <Avatar initials="RU" square alt="Square small" className="size-8" />
-          <Avatar initials="RU" square alt="Square medium" className="size-12" />
-          <Avatar initials="RU" square alt="Square large" className="size-16" />
+          <Avatar initials="JV" square alt="Square small" className="size-8" />
+          <Avatar initials="JV" square alt="Square medium" className="size-12" />
+          <Avatar initials="JV" square alt="Square large" className="size-16" />
         </div>
       ),
     },

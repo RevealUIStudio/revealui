@@ -23,7 +23,7 @@ if (process.env.RUN_INTEGRATION === 'true' && !hasTestKey) {
 }
 
 // Require an explicit opt-in, not merely the presence of an `sk_test_`-prefixed
-// value. A committed placeholder key (e.g. from .env.test) would otherwise
+// value. A local placeholder key (e.g. from .env.test) would otherwise
 // defeat this guard and make these live-API tests run and 401 in normal CI.
 const runStripeTests = hasTestKey && process.env.RUN_INTEGRATION === 'true';
 

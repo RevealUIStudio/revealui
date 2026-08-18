@@ -4,7 +4,8 @@ name: Stripe Catalog Check
 # PR-gate anti-pattern) -- runs on a schedule + manual dispatch. Reports orphan /
 # duplicate / missing / amount-mismatch drift between the LIVE Stripe catalog and
 # the declared scripts/setup/stripe-catalog.ts. Requires a READ-ONLY Stripe key
-# in the STRIPE_CATALOG_CHECK_KEY secret; the job no-ops (passes) when unset.
+# in the STRIPE_CATALOG_CHECK_KEY secret (products.list is enough; balance_read
+# is not required). The job no-ops (passes) when unset.
 
 on:
   schedule:

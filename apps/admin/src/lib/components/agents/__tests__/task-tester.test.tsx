@@ -34,6 +34,8 @@ describe('TaskTester', () => {
 
   it('replaces a license-gate 403 with the upgrade prompt instead of the raw API sentence', async () => {
     mockApiFetch.mockResolvedValue({
+      ok: false,
+      status: 403,
       json: async () => ({
         error: {
           code: -32003,
@@ -56,5 +58,66 @@ describe('TaskTester', () => {
     expect(
       screen.queryByText(/Feature 'ai' requires a Pro or Enterprise license/i),
     ).not.toBeInTheDocument();
+  });
+
+  it('surfaces a string CSRF body and HTTP status instead of a silent no-op', async () => {
+    mockApiFetch.mockResolvedValue({
+      ok: false,
+      status: 403,
+      json: async () => ({ error: 'CSRF token missing' }),
+    });
+
+    render(<TaskTester agentId="agent-1" agentName="Ticket Agent" />);
+
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: { value: 'List my open tickets.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send task/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('CSRF token missing');
+    });
+    expect(screen.getByRole('alert')).toHaveTextContent('HTTP 403');
+  });
+
+  it('surfaces HTTP status when the POST fails without a parseable error object', async () => {
+    mockApiFetch.mockResolvedValue({
+      ok: false,
+      status: 502,
+      json: async () => ({}),
+    });
+
+    render(<TaskTester agentId="agent-1" agentName="Ticket Agent" />);
+
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: { value: 'List my open tickets.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send task/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('HTTP 502');
+    });
+  });
+
+  it('surfaces unreadable JSON instead of a silent no-op', async () => {
+    mockApiFetch.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => {
+        throw new SyntaxError('Unexpected token < in JSON');
+      },
+    });
+
+    render(<TaskTester agentId="agent-1" agentName="Ticket Agent" />);
+
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: { value: 'List my open tickets.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send task/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('HTTP 500');
+    });
+    expect(screen.getByRole('alert')).toHaveTextContent('non-JSON');
   });
 });

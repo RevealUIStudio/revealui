@@ -21,12 +21,12 @@
  * the doc-currency-baseline pattern.
  *
  * Scheduled workflow: `.github/workflows/secret-path-drift.yml` (no-op if
- * `VERCEL_TOKEN` unset).
+ * `VERCEL_TOKEN` unset or the private sync inventory is not on disk).
  */
 
 import { readFileSync } from 'node:fs';
 import { collectVars, collectVercelProjects, type VercelProjectSpec } from './parse-manifests.js';
-import { requireManifestPath } from './resolve-manifest-dir.js';
+import { requireManifestPath, resolveManifestDir } from './resolve-manifest-dir.js';
 import { DECLARED_PATHS } from './secret-paths.js';
 
 export type DriftCategory = 'orphan' | 'missing' | 'shape-violation';
@@ -310,6 +310,24 @@ export function partitionFindings(findings: DriftFinding[]): {
   return { fresh, known };
 }
 
+/**
+ * Public CI has VERCEL_TOKEN (shared with deploy) but no private ops/sync
+ * inventory. Skip with the same no-op pass as an unset token — do not throw
+ * requireManifestPath, and do not vendor or print the private manifests.
+ */
+export function liveVercelSkipReason(
+  token: string | undefined,
+  manifestDir: string | null,
+): string | null {
+  if (!token || token.length === 0) {
+    return 'VERCEL_TOKEN not set; skipping live Vercel name-diff (no-op pass).';
+  }
+  if (!manifestDir) {
+    return 'Private sync manifest not available; skipping live Vercel name-diff (no-op pass).';
+  }
+  return null;
+}
+
 // ── CLI ──────────────────────────────────────────────────────────────────────
 
 function argValue(argv: string[], flag: string): string | undefined {
@@ -359,9 +377,10 @@ function reportAndExit(findings: DriftFinding[], projectsScanned: number, mode: 
 }
 
 async function runLiveVercel(): Promise<void> {
-  const token = process.env.VERCEL_TOKEN;
-  if (!token || token.length === 0) {
-    process.stdout.write('VERCEL_TOKEN not set; skipping live Vercel name-diff (no-op pass).\n');
+  const token = process.env.VERCEL_TOKEN ?? '';
+  const skip = liveVercelSkipReason(token, resolveManifestDir());
+  if (skip) {
+    process.stdout.write(`${skip}\n`);
     process.exit(0);
   }
   const projects = collectVercelProjects(readFileSync(requireManifestPath('vercel'), 'utf8'));
