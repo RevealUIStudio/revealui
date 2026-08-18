@@ -6,7 +6,7 @@ status: verified
 audience: user
 ---
 
-> Last verified: 2026-08-17
+> Last verified: 2026-08-18
 
 This page is an honest account of what RevealUI can and can't do right now.
 If you're evaluating RevealUI for a project, read this before the marketing page.
@@ -89,8 +89,8 @@ Honest list of things that are not done, not deployed, or not verified.
 - **No managed hosting service.** RevealUI Studio's own marketing site runs on Vercel; we do not (today) offer to host customer instances. Self-host (Vercel, Cloudflare, Fly, Hetzner, Docker, Fleet kit) is the path. Vercel and Cloudflare are friendly deploy targets, not competitors.
 - **Stripe live mode is ON in production** (flipped 2026-06-26 after the billing-readiness audit closed).
 - **REVEALUI_KEK rotation tooling ships** (`scripts/security/rotate-kek.ts`) — zero-downtime dual-key rotation; see the credential-rotation runbook.
-- **No status page on the marketing site.** A public Upptime page exists at [RevealUIStudio.github.io/status](https://RevealUIStudio.github.io/status). It is not linked from revealui.com.
-- **No public support channel.** There is no public support email, chat, or ticketing system yet.
+- **Support exists. A ticket desk does not.** Email [support@revealui.com](mailto:support@revealui.com), the [/support](https://revealui.com/support) page, and [GitHub Discussions](https://github.com/RevealUIStudio/revealui/discussions) are public. There is no customer ticketing product.
+- **Status is public.** Marketing footer links to [/status](https://revealui.com/status). The Upptime page is at [RevealUIStudio.github.io/status](https://RevealUIStudio.github.io/status).
 - **Terms of Service and Privacy Policy are live, but not yet lawyer-reviewed.** Drafted in good faith by RevealUI Studio and published at [/terms](https://revealui.com/terms) and [/privacy](https://revealui.com/privacy). Each page carries an explicit "draft pending counsel review" banner — we disclose this rather than hide it. Counsel review is scheduled post-first-revenue. Subscription prices are referenced as "published at /pricing at the time of purchase" rather than hardcoded, so the pricing page is the single source of truth.
 - **No SOC2 or ISO 27001.** Security certifications are planned for Phase 6, not current.
 - **MCP marketplace is preview, not live.** Publish/list/invoke/onboard endpoints are wired; third-party developer payouts are not fully shipped yet.
