@@ -6,6 +6,7 @@
  * Sign up: console.groq.com
  */
 
+import { GROQ_DEFAULT_BASE_URL, GROQ_DEFAULT_MODEL } from '../inference-route.js';
 import type {
   Embedding,
   LLMChatOptions,
@@ -24,7 +25,7 @@ export interface GroqProviderConfig extends Omit<LLMProviderConfig, 'apiKey'> {
   apiKey: string;
   /** Defaults to https://api.groq.com/openai/v1 */
   baseURL?: string;
-  /** Defaults to llama-3.3-70b-versatile (current Groq free-tier catalog) */
+  /** Defaults to openai/gpt-oss-120b (current Groq-accepted catalog) */
   model?: string;
 }
 
@@ -34,9 +35,10 @@ export class GroqProvider implements LLMProvider {
   constructor(config: GroqProviderConfig) {
     this.inner = new OpenAICompatProvider({
       ...config,
-      baseURL: config.baseURL ?? 'https://api.groq.com/openai/v1',
-      // Retired catalog id qwen/qwen3-32b (404). Prefer versatile Llama for tools.
-      model: config.model ?? 'llama-3.3-70b-versatile',
+      baseURL: config.baseURL ?? GROQ_DEFAULT_BASE_URL,
+      // Retired catalog ids (llama-3.3-70b-versatile, qwen/qwen3-32b) 404 on
+      // Groq's public API as of 2026-08-16. Prefer the current Groq default.
+      model: config.model ?? GROQ_DEFAULT_MODEL,
     });
   }
 

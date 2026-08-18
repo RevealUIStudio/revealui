@@ -2,16 +2,16 @@
 visibility: public
 status: verified
 title: "RevFleet — Architecture & Integration Guide"
-description: "The 7-tier product model: what each piece is, who it's for, and how they integrate."
+description: "Naming layers and the seven shipping products: what each piece is, who it's for, and how they integrate."
 category: index
 audience: developer
 ---
 
-> RevFleet is the umbrella for all RevealUI Studio software. This guide covers the 7-tier product model: what each piece is, who it's for, and how they integrate.
+> RevFleet is the umbrella for all RevealUI Studio software. This guide covers the naming layers and the seven shipping products: what each piece is, who it's for, and how they integrate.
 
 ---
 
-## The 7-tier model
+## Naming layers
 
 | Tier | Term | What it is | Who it's for |
 |---|---|---|---|
@@ -28,7 +28,7 @@ audience: developer
 
 ## Products in detail
 
-Each of the seven products in RevFleet ships in its own repo. The table below orients new contributors and customer engineers; per-product pages live under [`/docs/fleet/`](./fleet/).
+Seven shipping products in RevFleet have their own repos. The table below orients new contributors and customer engineers; per-product pages live under [`/docs/fleet/`](./fleet/).
 
 | Product | Repo | What it is | License |
 |---|---|---|---|
@@ -37,7 +37,8 @@ Each of the seven products in RevFleet ships in its own repo. The table below or
 | **RevDev** | [revdev](https://github.com/RevealUIStudio/revdev) | Native developer tools: Studio (Tauri 2 desktop AI editor + agent dashboard) and Console (Go SSH TUI). Both talk to a shared harness daemon that coordinates agents and routes tools to the RevealUI API. | per-product LICENSE |
 | **RevVault** | [revvault](https://github.com/RevealUIStudio/revvault) | Age-encrypted secret vault. CLI + Tauri 2 desktop app. 100% passage-compatible. Source of truth for every secret in RevFleet per the fleet-wide secrets rule. | per-product LICENSE |
 | **RevCon** | [revcon](https://github.com/RevealUIStudio/revcon) | Centralized editor configs (Zed, VS Code, Cursor) + agent-rule sync. Symlinked into target projects via `link.sh`; edits propagate instantly. Not gated by the RevealUI Pro license. | per-product LICENSE |
-| **RevSkills** | [revskills](https://github.com/RevealUIStudio/revskills) | Curated Agent Skills (`SKILL.md` format) for modern web development. Compatible with Claude Code, Cursor, and any tool supporting the Agent Skills standard. | per-product LICENSE |
+| **RevSkills** | [revskills](https://github.com/RevealUIStudio/revskills) | Curated Agent Skills (`SKILL.md` format) for modern web development. Compatible with Claude, Grok, Cursor, OpenCode, VS Code, and any tool supporting the Agent Skills standard. | per-product LICENSE |
+| **RevKit** | [revkit](https://github.com/RevealUIStudio/revkit) | Dev-environment bootstrap and launchers (`bootstrap.sh`, `rfg`, `rfc`). Operator machine kit, not customer runtime. | per-product LICENSE |
 
 ### RevealUI (the runtime)
 
@@ -67,7 +68,15 @@ The fleet-wide secrets rule is: every secret lives in RevVault, encrypted by an 
 
 ### RevCon (editor + agent-rule sync)
 
-RevCon is not gated by Pro. Any contributor can run `./link.sh --target ~/revfleet/revealui --profile revealui` and get the team's editing posture, agent rules, and convention files. No `@revealui/editors` package exists in the monorepo — the canonical product is RevCon.
+RevCon is not gated by Pro. Any contributor can run `./link.sh --target ~/revfleet/revealui --profile revealui` and get the team's editing posture, agent rules, and convention files. No `@revealui/editors` package exists in the monorepo. The canonical product is RevCon.
+
+### RevSkills (Agent Skills)
+
+RevSkills is the `SKILL.md` library. Compatible with Claude, Grok, Cursor, OpenCode, VS Code, and any harness that implements the Agent Skills standard.
+
+### RevKit (dev-environment bootstrap)
+
+RevKit is the operator machine kit: `bootstrap.sh`, `rfg` (Grok + RevealUI MCP), and `rfc` (Claude). It is not a customer runtime.
 
 ---
 

@@ -6,6 +6,7 @@
  */
 
 import { LLMClient, type LLMClientConfig, type LLMProviderType } from './client.js';
+import { resolveInferenceRoute } from './inference-route.js';
 
 export interface WorkspaceProviderConfig {
   workspaceId: string;
@@ -48,11 +49,17 @@ export class WorkspaceProviderRegistry {
     const config = this.configs.get(workspaceId);
     if (!config) return fallback;
 
-    const clientConfig: LLMClientConfig = {
+    const route = resolveInferenceRoute({
       provider: config.provider,
-      apiKey: config.apiKey,
       model: config.model,
       baseURL: config.baseURL,
+      groqCredentialAvailable: config.provider === 'groq',
+    });
+    const clientConfig: LLMClientConfig = {
+      provider: route.provider,
+      apiKey: config.apiKey,
+      model: route.model,
+      baseURL: route.baseURL,
       temperature: config.temperature,
       maxTokens: config.maxTokens,
     };

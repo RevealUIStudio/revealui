@@ -5,6 +5,7 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   CLI_TEMPLATE_CLAIM_SPECS,
+  countCheckConstraints,
   countCliTemplates,
   countDbTables,
   countDirs,
@@ -83,6 +84,30 @@ describe('countDbTables', () => {
 
   it('returns 0 for a missing schema directory', () => {
     expect(countDbTables(path.join(tmp, 'does-not-exist'))).toBe(0);
+  });
+});
+
+describe('countCheckConstraints', () => {
+  let tmp: string;
+
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'claim-drift-check-'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  it('counts check() CallExpressions and ignores comments', () => {
+    fs.writeFileSync(
+      path.join(tmp, 'users.ts'),
+      "import { check } from 'drizzle-orm/pg-core';\nexport const users = pgTable('users', {}, (t) => [check('users_status_check', sql`true`)]);\n",
+    );
+    fs.writeFileSync(
+      path.join(tmp, 'noise.ts'),
+      "// check('noise', sql`true`);\nexport const n = 1;\n",
+    );
+    expect(countCheckConstraints(tmp)).toBe(1);
   });
 });
 
@@ -769,6 +794,109 @@ describe('scanNumericClaimsOnLine (GAP-192 PR4)', () => {
         { metricName: 'internal packages', shape: 'internal-paren' },
       ]),
     ).toEqual([{ metricName: 'internal packages', claimed: 1 }]);
+  });
+
+  it('matches markdown table Label | N cells (honesty-ledger shape)', () => {
+    const ui = {
+      metricName: 'UI components',
+      min: 50,
+      max: 69,
+      requiredSequences: [['components'], ['component']],
+    };
+    expect(
+      scanNumericClaimsOnLine('| UI components | 65 in `@revealui/presentation` |', [ui]),
+    ).toEqual([{ metricName: 'UI components', claimed: 65 }]);
+    expect(
+      scanNumericClaimsOnLine('| Workspaces (apps + packages) | 33 | Yes |', [
+        {
+          metricName: 'workspaces',
+          requiredSequences: [['workspaces'], ['workspace']],
+        },
+      ]),
+    ).toEqual([{ metricName: 'workspaces', claimed: 33 }]);
+    expect(
+      scanNumericClaimsOnLine('| Apps | 4 (`admin`, `server`, `docs`, `marketing`) |', [
+        {
+          metricName: 'apps',
+          min: 2,
+          max: 20,
+          requiredSequences: [['apps']],
+          numberFirst: false,
+        },
+      ]),
+    ).toEqual([{ metricName: 'apps', claimed: 4 }]);
+    expect(
+      scanNumericClaimsOnLine('| CHECK constraints | 81 | Yes |', [
+        {
+          metricName: 'CHECK constraints',
+          min: 10,
+          max: 999,
+          requiredSequences: [
+            ['check', 'constraints'],
+            ['check', 'constraint'],
+          ],
+        },
+      ]),
+    ).toEqual([{ metricName: 'CHECK constraints', claimed: 81 }]);
+    expect(
+      scanNumericClaimsOnLine('| Workspaces (apps + packages) | 38 | Yes |', [
+        {
+          metricName: 'packages',
+          min: 10,
+          max: 39,
+          requiredSequences: [['packages'], ['package']],
+          forbidLabelWords: ['oss', 'workspace', 'workspaces'],
+        },
+      ]),
+    ).toEqual([]);
+    expect(
+      scanNumericClaimsOnLine('| OSS packages (MIT) | 25 | Yes |', [
+        {
+          metricName: 'packages',
+          min: 10,
+          max: 39,
+          requiredSequences: [['packages'], ['package']],
+          forbidLabelWords: ['oss', 'mit'],
+        },
+      ]),
+    ).toEqual([]);
+  });
+
+  it('matches label-first headings and ignores intervening words', () => {
+    expect(
+      scanNumericClaimsOnLine('### Apps (4)', [
+        {
+          metricName: 'apps',
+          min: 2,
+          max: 20,
+          requiredSequences: [['apps']],
+          labelFirst: true,
+          numberFirst: false,
+        },
+      ]),
+    ).toEqual([{ metricName: 'apps', claimed: 4 }]);
+    expect(
+      scanNumericClaimsOnLine('### OSS Packages (MIT) — 22', [
+        {
+          metricName: 'MIT packages',
+          min: 10,
+          max: 39,
+          requiredSequences: [['oss', 'packages']],
+          labelFirst: true,
+        },
+      ]),
+    ).toEqual([{ metricName: 'MIT packages', claimed: 22 }]);
+    expect(
+      scanNumericClaimsOnLine('components in 66', [
+        {
+          metricName: 'UI components',
+          min: 50,
+          max: 69,
+          requiredSequences: [['components']],
+          labelFirst: true,
+        },
+      ]),
+    ).toEqual([]);
   });
 });
 

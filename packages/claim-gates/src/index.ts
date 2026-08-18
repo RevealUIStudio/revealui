@@ -15,6 +15,7 @@ export {
   CLI_TEMPLATE_CLAIM_SPECS,
   checkRule,
   configureClaimGatesRoot,
+  countCheckConstraints,
   countCliTemplates,
   countDbTables,
   countDirs,

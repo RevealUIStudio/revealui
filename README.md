@@ -87,7 +87,7 @@ RevealUI is the runtime at the center of RevFleet — the RevealUI Studio produc
 | **RevVault**         | Age-encrypted secret vault (Rust CLI + desktop)          | MIT + Pro         |
 | **RevDev**           | AI engineering harness — multi-agent coordination        | MIT (early)       |
 | **RevCon**           | Editor config sync (Zed, VS Code, Cursor, Antigravity)   | MIT               |
-| **RevSkills**        | Claude Code skills library                               | MIT               |
+| **RevSkills**        | Agent Skills library (Claude, Grok, Cursor, OpenCode, VS Code) | MIT               |
 | **RevealUI Fleet**   | White-label / enterprise deployment kit for RevealUI     | Enterprise tier   |
 
 Each product stands alone. Together, they cover the full lifecycle of building, securing, coordinating, and monetizing software, for you and for your agents.
@@ -140,7 +140,7 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 | **Free**       | $0        | Full OSS core: people, content, offers, payments, admin              |
 | **Pro**        | $49/mo    | AI agents, MCP framework, open-model inference, advanced sync, RevVault desktop + rotation engine |
 | **Max**        | $299/mo   | Full AI memory, audit log, higher limits         |
-| **Enterprise** | $1,499/mo | RevealUI Fleet (branded white-label, managed setup via revforge), SSO (planned — [#449](https://github.com/RevealUIStudio/revealui/issues/449)), domain-locked                                       |
+| **Enterprise** | $1,499/mo | RevealUI Fleet (branded white-label, managed setup via revforge), SSO (OIDC + SAML in code, SCIM not built — [#449](https://github.com/RevealUIStudio/revealui/issues/449)), domain-locked                                       |
 
 ## Apps
 
@@ -150,18 +150,20 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 | `admin`      | Next.js 16       | Admin dashboard + content management         |
 | `docs`       | Vite + React     | Documentation site                           |
 | `marketing`  | Vite + React     | Marketing site (revealui.com)                |
+| `license-signer` | Hono         | Internal license-signing service             |
+| `rsc-poc`    | Next.js          | In-tree RSC experiment (not a customer app)  |
 
 The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/agency](https://github.com/RevealUIStudio/agency) — separate repo, consumes `@revealui/{router,presentation,core,contracts}` via npm.
 
 ## Packages
 
-### OSS Packages (MIT) — 22
+### OSS Packages (MIT) — 25
 
 | Package                                                 | Purpose                                           |
 | ------------------------------------------------------- | ------------------------------------------------- |
 | [`@revealui/core`](packages/core)                       | Runtime engine, REST API, auth, rich text, plugins |
 | [`@revealui/contracts`](packages/contracts)             | Zod schemas + TypeScript types (single source)    |
-| [`@revealui/db`](packages/db)                           | Drizzle ORM schema (104 tables), dual-DB client     |
+| [`@revealui/db`](packages/db)                           | Drizzle ORM schema (104 tables) on NeonDB (Postgres) |
 | [`@revealui/auth`](packages/auth)                       | Session auth, password reset, rate limiting       |
 | [`@revealui/presentation`](packages/presentation)       | 66 UI components (Tailwind v4, zero ext deps)     |
 | [`@revealui/openapi`](packages/openapi)                 | OpenAPI route helpers and Swagger generation       |
@@ -181,6 +183,9 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 | [`@revealui/knowledge-graph`](packages/knowledge-graph) | Fleet knowledge graph: bi-temporal, content-addressed graph over Neon + pgvector, `revkg` CLI |
 | [`create-revealui`](packages/create-revealui)           | `npm create revealui` initializer                 |
 | [`revealui`](packages/revealui)                         | Meta-installer (proxies to `create-revealui`; unpublished) |
+| [`@revealui/claim-gates`](packages/claim-gates)         | Fleet claim honesty engines (`validate:claims`)   |
+| [`@revealui/editor`](packages/editor)                   | Visual edit-session runtime and dashboard canvas  |
+| [`@revealui/ts-strada`](packages/ts-strada)             | TypeScript compiler API wrapper for AST tooling   |
 
 ### Pro (Commercial)
 
@@ -192,11 +197,12 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 | [`@revealui/mcp`](packages/mcp)                         | MCP hypervisor, adapter framework, tool discovery |
 | [`@revealui/services`](packages/services)               | Stripe (billing + circuit breaker), transactional email (Gmail API) |
 
-### Internal Package (no license, build tooling) — 1
+### Internal Packages (no public license, build tooling) — 2
 
 | Package                                                 | Purpose                                           |
 | ------------------------------------------------------- | ------------------------------------------------- |
-| [`@revealui/scripts`](packages/scripts)                 | Shared monorepo script utilities — build tooling, not for external consumption |
+| [`@revealui/scripts`](packages/scripts)                 | Shared monorepo script utilities. Build tooling, not for external consumption |
+| [`@revealui/apify-actor-governed-run`](packages/apify-actor-governed-run) | Private Apify actor that returns a signed receipt of an agent run |
 
 ## Tech stack
 
@@ -276,8 +282,10 @@ revealui/
 ├── apps/
 │   ├── server/     # Hono REST API (port 3004)
 │   ├── admin/      # Admin dashboard + content management (port 4000)
-│   ├── docs/       # Documentation site (port 3002)
-│   └── marketing/  # revealui.com marketing site (port 3000)
+│   ├── docs/            # Documentation site (port 3002)
+│   ├── marketing/       # revealui.com marketing site (port 3000)
+│   ├── license-signer/  # Internal license-signing service
+│   └── rsc-poc/         # In-tree RSC experiment
 ├── packages/       # 25 OSS + 5 Pro + 2 internal = 32 packages
 ├── docs/           # guides + reference
 └── scripts/        # CI gates, release tooling, dev tools

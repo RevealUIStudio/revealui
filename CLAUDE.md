@@ -63,20 +63,22 @@ feature/* ──PR──▶ test ──PR──▶ main
 
 ## Package Map
 
-### Apps (4)
+### Apps (6)
 | App | Port | Framework | Purpose |
 |-----|------|-----------|---------|
 | server | 3004 | Hono | REST API (OpenAPI + Swagger) |
 | admin | 4000 | Next.js 16 | Admin dashboard, content management + system monitoring |
 | docs | 3002 | Vite/React | Documentation site (docs.revealui.com) |
 | marketing | 3000 | Vite/React | Product marketing site (revealui.com) |
+| license-signer | n/a | Hono | Internal license-signing service |
+| rsc-poc | n/a | Next.js | In-tree RSC experiment (not a customer app) |
 
 > Note: the RevealUI Studio agency site (revealuistudio.com) lives in a
 > separate repo. It consumes `@revealui/{router,presentation,core,contracts}`
 > via npm rather than via workspace links — same brand surface, decoupled
 > repo + deploy cadence.
 
-### OSS Packages (MIT) — 22
+### OSS Packages (MIT) — 25
 | Package | Purpose |
 |---------|---------|
 | @revealui/core | admin engine, REST API, auth, rich text, admin UI, plugins |
@@ -101,6 +103,9 @@ feature/* ──PR──▶ test ──PR──▶ main
 | @revealui/paywall | Runtime license enforcement, feature gating, and upgrade UI (Stripe + x402) |
 | @revealui/knowledge-graph | Fleet knowledge graph: bi-temporal, content-addressed graph over Neon + pgvector, `revkg` CLI |
 | @revealui/tokens | Design tokens — canonical CSS variables, typed TS export, brand canon (zero internal deps) |
+| @revealui/claim-gates | Fleet claim honesty engines (`validate:claims`) |
+| @revealui/editor | Visual edit-session runtime and dashboard canvas |
+| @revealui/ts-strada | TypeScript compiler API wrapper for AST tooling |
 
 ### Pro Packages (Fair Source  -  FSL-1.1-MIT, converts to MIT after 2 years) — 5
 | Package | Purpose |
@@ -111,10 +116,11 @@ feature/* ──PR──▶ test ──PR──▶ main
 | @revealui/mcp | MCP servers + adapters; process hypervisor incubating (ADR-007) |
 | @revealui/services | Stripe (payment processing + circuit breaker), email (Gmail API delivery) |
 
-### Internal Package (no license, build tooling) — 1
+### Internal Packages (no public license, build tooling) — 2
 | Package | Purpose |
 |---------|---------|
 | @revealui/scripts | Shared monorepo script utilities — logging, paths, exec, workflow state, validation. `private: true`, no `license` field — outside the OSS/Pro split. |
+| @revealui/apify-actor-governed-run | Private Apify actor that returns a signed receipt of an agent run. |
 
 ## Common Commands
 
