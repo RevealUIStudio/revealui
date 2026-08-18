@@ -27,7 +27,7 @@ Honest labels for every product in the RevealUI ecosystem. Updated 2026-06-11.
 | **Studio** (desktop) | Alpha | Tauri 2 + React 19, agent coordination UI. No published binaries. |
 | **Terminal** (TUI) | Alpha | Go SSH server + Bubble Tea. Functional, not deployed. |
 | **RevCon** (configs) | Alpha | Editor config sync tooling. Functional, undocumented. |
-| **RevSkills** (skills) | Alpha | 6 Claude Code skills on GitHub. No tests. |
+| **RevSkills** (skills) | Beta | 24 Agent Skills on GitHub. Compatible with Claude, Grok, Cursor, OpenCode, and VS Code. |
 | **RevDev** (dev tools) | Planned — [#451](https://github.com/RevealUIStudio/revealui/issues/451) | Harness infrastructure exists. Not a standalone product yet. |
 | **RevMarket** (marketplace) | Planned — [#451](https://github.com/RevealUIStudio/revealui/issues/451) | Schema, API routes, payouts cron, and admin UI built. Launch-gated pre-users: x402 disabled by default, no live charging. |
 

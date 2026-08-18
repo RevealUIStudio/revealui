@@ -1497,7 +1497,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/revfleet-product-family',
     exportPath: 'body.16',
-    text: '**RevSkills** (Active, MIT) is a library of Claude Code skills: auth flows, schema patterns, test scaffolds, and more, ready to drop into any agent. Free, open, importable.',
+    text: '**RevSkills** (Active, MIT) is a library of Agent Skills: auth flows, schema patterns, test scaffolds, and more, ready to drop into any agent. Free, open, importable.',
     evidence: [
       {
         kind: 'code',
@@ -1565,7 +1565,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/revfleet-product-family',
     exportPath: 'body.20',
-    text: 'Each product is useful on its own. RevVault secures secrets for any project, RevealUI runtime or not. RevSkills drops into any Claude Code setup. Bundling them would have made each one worse, locked behind a runtime you may not want yet.',
+    text: 'Each product is useful on its own. RevVault secures secrets for any project, RevealUI runtime or not. RevSkills drops into any Agent Skills setup. Bundling them would have made each one worse, locked behind a runtime you may not want yet.',
     evidence: [
       {
         kind: 'code',

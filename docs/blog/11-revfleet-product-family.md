@@ -46,7 +46,7 @@ Each of these came out of operating RevealUI ourselves. We needed them, so we bu
 
 **RevCon** (Alpha) is editor config sync. One source of truth for Zed, VS Code, and Cursor settings, symlinked into every project, so you edit a config once and it propagates fleet-wide.
 
-**RevSkills** (Active, MIT) is a library of Claude Code skills: auth flows, schema patterns, test scaffolds, and more, ready to drop into any agent. Free, open, importable.
+**RevSkills** (Active, MIT) is a library of Agent Skills: auth flows, schema patterns, test scaffolds, and more, ready to drop into any agent. Free, open, importable.
 
 **RevMarket** (Planned, [#451](https://github.com/RevealUIStudio/revealui/issues/451)) is the agent tool marketplace. The runtime already ships a catalog of first-party integrations out of the box; RevMarket is the planned layer where third-party developers publish and discover MCP servers and agent capabilities. It is designed, not yet open to outside publishers, and we say so plainly on the roadmap.
 
@@ -54,7 +54,7 @@ Each of these came out of operating RevealUI ourselves. We needed them, so we bu
 
 The temptation, building this, was to fold everything into one monolith and call it a platform. We did the opposite on purpose.
 
-Each product is useful on its own. RevVault secures secrets for any project, RevealUI runtime or not. RevSkills drops into any Claude Code setup. Bundling them would have made each one worse, locked behind a runtime you may not want yet.
+Each product is useful on its own. RevVault secures secrets for any project, RevealUI runtime or not. RevSkills drops into any Agent Skills setup. Bundling them would have made each one worse, locked behind a runtime you may not want yet.
 
 So they compose instead of couple. You can take exactly the piece you need today, and the rest is there when you need it. One foundation, eight products, no all-or-nothing.
 

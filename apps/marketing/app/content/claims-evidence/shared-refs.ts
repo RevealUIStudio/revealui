@@ -389,7 +389,7 @@ export const REVCON_REPO: EvidenceRef = {
 export const REVSKILLS_REPO: EvidenceRef = {
   kind: 'url',
   ref: 'https://github.com/RevealUIStudio/revskills',
-  note: 'MIT Claude Code skills library (Drizzle schemas, Vitest patterns, security hardening)',
+  note: 'MIT Agent Skills library (Drizzle schemas, Vitest patterns, security hardening)',
 };
 export const ROADMAP: EvidenceRef = {
   kind: 'url',
