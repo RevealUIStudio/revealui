@@ -23,8 +23,8 @@ import {
   CLAIMS_PAGE_ROUTE,
   CLAIMS_ROUTE_MAP,
   CLAIMS_VALIDATOR,
-  DOCS_APP,
   DOCKER_GHCR_WORKFLOW,
+  DOCS_APP,
   ENGINES,
   FAIR_SOURCE_PAGE,
   FSL_PEERS_CITATION,
@@ -224,12 +224,6 @@ export const claimsPart4: readonly ClaimEntry[] = [
   },
   {
     file: 'roadmap.ts',
-    exportPath: 'ROADMAP_SHIPPED[3].name',
-    text: 'Enterprise SSO / SAML',
-    evidence: [SSO_AUTH_ROUTES, SSO_ADMIN_UI, SSO_SAML_PURE, SSO_SETUP_DOC],
-  },
-  {
-    file: 'roadmap.ts',
     exportPath: 'ROADMAP_SHIPPED[3].description',
     text: 'OIDC and SAML SP-initiated federation for Enterprise accounts (Admin IdP config, test-connection, SP metadata). SCIM, advanced RBAC editor, and multi-region remain later enterprise work.',
     evidence: [SSO_AUTH_ROUTES, SSO_ADMIN_UI, SSO_SAML_PURE, SSO_SETUP_DOC, RBAC_ABAC],
@@ -254,27 +248,9 @@ export const claimsPart4: readonly ClaimEntry[] = [
   },
   {
     file: 'roadmap.ts',
-    exportPath: 'ROADMAP_UPCOMING[1].status',
-    text: 'In flight',
-    evidence: [DOCKER_GHCR_WORKFLOW],
-  },
-  {
-    file: 'roadmap.ts',
-    exportPath: 'ROADMAP_UPCOMING[2].name',
-    text: 'Visual Editing',
-    evidence: [ROADMAP],
-  },
-  {
-    file: 'roadmap.ts',
     exportPath: 'ROADMAP_UPCOMING[2].description',
     text: 'Edit a site by clicking the real rendered page in admin. Live-preview sessions, drafts, and agent-proposed edits are the planned surface. This is not a no-code drag-and-drop site builder.',
     evidence: [ROADMAP],
-  },
-  {
-    file: 'roadmap.ts',
-    exportPath: 'ROADMAP_UPCOMING[3].name',
-    text: 'x402 agent payments',
-    evidence: [X402],
   },
   {
     file: 'roadmap.ts',
