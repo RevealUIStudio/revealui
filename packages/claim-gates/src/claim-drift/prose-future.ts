@@ -281,24 +281,6 @@ export const ASPIRATIONAL_BLOCKLIST: AspirationalBlocklistEntry[] = [
     rules: [
       {
         kind: 'banned-tokens',
-        ruleId: 'claim-drift.aspirational.sso',
-        tokens: ['SSO'],
-        caseInsensitive: true,
-      },
-      {
-        kind: 'banned-token-sequences',
-        ruleId: 'claim-drift.aspirational.single-sign-on',
-        sequences: [['single', 'sign', 'on']],
-        caseInsensitive: true,
-      },
-    ],
-    label: 'SSO',
-    why: 'SSO/SAML is roadmap-only (designed, not built) per apps/marketing/app/content/roadmap.ts',
-  },
-  {
-    rules: [
-      {
-        kind: 'banned-tokens',
         ruleId: 'claim-drift.aspirational.scim',
         tokens: ['SCIM'],
         caseInsensitive: true,
@@ -385,7 +367,7 @@ export function findAspirationalBlocklistHits(line: string): string[] {
  * the design/explainer posts read normally. A shipped claim still passes if it
  * carries a same-line qualifier (hasAspirationalQualifier), OR the whole file
  * declares itself a roadmap post in frontmatter (isRoadmapDeclaredFile). The
- * general ASPIRATIONAL_BLOCKLIST (SSO / SLA / ...) is unaffected.
+ * general ASPIRATIONAL_BLOCKLIST (SLA / managed hosting / ...) is unaffected.
  *
  * GAP-192 PR5 — proximity word walk (no authored regex).
  */

@@ -188,6 +188,11 @@ export const SSO_SETUP_DOC: EvidenceRef = {
   ref: 'docs/FORGE_SSO_SETUP.md',
   note: 'operator guide for Enterprise SSO setup',
 };
+export const DOCKER_GHCR_WORKFLOW: EvidenceRef = {
+  kind: 'code',
+  ref: '.github/workflows/docker.yml',
+  note: 'pushes revealui-api, revealui-admin, revealui-migrate to ghcr.io on non-PR runs',
+};
 export const MEMORY: EvidenceRef = {
   kind: 'code',
   ref: 'packages/ai/src/memory',
