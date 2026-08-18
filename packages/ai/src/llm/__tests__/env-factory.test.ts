@@ -160,7 +160,7 @@ describe('createLLMClientFromEnv — auto-detect priority order (unchanged for e
     const client = createLLMClientFromEnv();
     const route = inspectRoute(client);
     expect(route.provider).toBe('groq');
-    expect(route.model).toBe('llama-3.3-70b-versatile');
+    expect(route.model).toBe('openai/gpt-oss-120b');
     expect(route.baseURL).toBe('https://api.groq.com/openai/v1');
   });
 
@@ -198,10 +198,10 @@ describe('createLLMClientFromEnv — auto-detect for new providers (appended aft
 
   it('keeps LLM_MODEL when it belongs to the selected Groq provider', () => {
     process.env.GROQ_API_KEY = 'gsk_test';
-    process.env.LLM_MODEL = 'llama-3.1-8b-instant';
+    process.env.LLM_MODEL = 'openai/gpt-oss-20b';
     const route = inspectRoute(createLLMClientFromEnv());
     expect(route.provider).toBe('groq');
-    expect(route.model).toBe('llama-3.1-8b-instant');
+    expect(route.model).toBe('openai/gpt-oss-20b');
     expect(route.baseURL).toBe('https://api.groq.com/openai/v1');
   });
 
@@ -246,9 +246,9 @@ describe('resolveModelForProvider — never send a Groq id to OpenAI', () => {
     );
   });
 
-  it('keeps a Groq catalog id on Groq', () => {
+  it('maps a retired Groq catalog id on Groq to the current Groq default', () => {
     expect(resolveModelForProvider('groq', 'llama-3.3-70b-versatile')).toBe(
-      'llama-3.3-70b-versatile',
+      defaultModelForProvider('groq'),
     );
   });
 
