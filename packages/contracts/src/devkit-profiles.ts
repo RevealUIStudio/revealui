@@ -46,7 +46,7 @@ export const DEVKIT_PROFILE_METADATA: readonly DevkitProfileMeta[] = [
     id: 'agents',
     label: 'Agent Skills Bundle',
     description:
-      'RevealUI-authored Claude Code skills (next-best-practices, revealui-conventions, revealui-tdd, etc.) installable into any agent runtime that supports the Claude Code skills format.',
+      'RevealUI-authored Agent Skills (next-best-practices, revealui-conventions, revealui-tdd, etc.) installable into any runtime that implements the Agent Skills standard.',
     kind: 'agent-skills',
   },
   {
