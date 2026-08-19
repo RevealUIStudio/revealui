@@ -123,7 +123,7 @@ Marketing copy may say "cobalt" (or "Electric Verdigris") descriptively but the 
 | RevealUI | Shipped | Beta — no paying users yet | The core runtime |
 | RevDev | Shipped (Studio + Console + Daemon all shipping) | Alpha | Dev harness; dogfooded via studio-dogfood lane |
 | RevVault | Shipped | Beta (MIT CLI + Pro desktop app) | Secret management |
-| RevForge | Shipped | Beta (operator-only stamping tool) | Produces customer-stamped Fleet kits |
+| RevForge | In flight | Alpha (operator-only stamping tool, private preview) | Public GitHub not listed; produces customer-stamped Fleet kits |
 | RevCon | Shipped | Alpha (MIT) | Editor config sync |
 | RevSkills | Shipped | Active (MIT) | Agent Skills library (Claude, Grok, Cursor, OpenCode, VS Code) |
 | RevMarket | Planned | Code-complete, dormant | MCP marketplace; X402_ENABLED=false |

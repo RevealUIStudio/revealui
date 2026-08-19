@@ -38,7 +38,7 @@ export const PRICING_HERO: SectionHeading = {
 
 export const PRICING_HERO_SUBTEXT = {
   prefix:
-    'All plans run as self-hosted installations under your license. Managed deployment available as a service add-on. Want to deploy a branded version for your own customers? See',
+    'All plans run as self-hosted installations under your license. Pro and Enterprise on this page are a license plus studio support on admin.revealui.com; you self-host. Managed customer instances are RevealUI Cloud (waitlist). Want to deploy a branded version for your own customers? See',
   linkLabel: 'Agency Perpetual',
   linkHref: '#perpetual',
   suffix: 'for RevealUI Fleet licensing.',
@@ -54,7 +54,8 @@ export const PRICING_HERO_NAV_ANCHORS = [
 // ---------------------------------------------------------------------------
 // Starter Kit (GAP-434) — $299 one-time content-only product.
 // Merchant: Stripe Payment Link (owner re-rule 2026-08-02, path C).
-// Checkout URL: SITE.urls.starterKitCheckout (live buy.stripe.com link).
+// SITE.urls.starterKitCheckout is the live buy.stripe.com link for fulfillment.
+// Do not render it as a public Buy CTA until the GAP-434 first-sale walk is recorded.
 // ---------------------------------------------------------------------------
 
 export const PRICING_STARTER_KIT = {
@@ -68,13 +69,13 @@ export const PRICING_STARTER_KIT = {
     'npm create-revealui path plus Postgres-only bootstrap scripts',
     'Governed agent recipes that write a receipt you can verify offline',
     'Ships as content and scripts, not a Pro license key or runtime upgrade',
-    'Checkout on Stripe; private GitHub repo access and Skool buyer invite are manual at launch volume',
+    'Request access first; private GitHub repo access and Skool buyer invite are manual after a confirmed sale',
   ],
   badge: null,
   primaryCta: {
     // ≥26 chars for claims-evidence prose gate (MIN_PROSE_LENGTH).
-    label: 'Buy the RevealUI Starter Kit',
-    href: SITE.urls.starterKitCheckout,
+    label: 'Request the RevealUI Starter Kit',
+    href: `mailto:${SITE.emails.founder}?subject=RevealUI%20Starter%20Kit%20request`,
     external: true,
   } satisfies Cta,
   secondaryCta: {

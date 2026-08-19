@@ -131,11 +131,17 @@ describe('SUBSCRIPTION_TIERS', () => {
     expect(highlighted[0].id).toBe('pro');
   });
 
-  // GAP-302 Phase 1: Enterprise subscription is self-serve (not mailto).
-  it('enterprise subscription CTA is self-serve signup, not mailto', () => {
+  it('enterprise subscription CTA is contact sales, not a trial signup', () => {
     const enterprise = SUBSCRIPTION_TIERS.find((t) => t.id === 'enterprise')!;
-    expect(enterprise.ctaHref.startsWith('mailto:')).toBe(false);
-    expect(enterprise.ctaHref).toBe('/signup?plan=enterprise');
+    const pro = SUBSCRIPTION_TIERS.find((t) => t.id === 'pro')!;
+    const max = SUBSCRIPTION_TIERS.find((t) => t.id === 'max')!;
+    expect(enterprise.cta).toBe('Contact sales');
+    expect(enterprise.ctaHref).toBe('https://revealui.com/contact');
+    expect(enterprise.ctaHref.includes('signup')).toBe(false);
+    expect(pro.cta).toBe('Start your 7-day free trial');
+    expect(pro.ctaHref).toBe('/signup?plan=pro');
+    expect(max.cta).toBe('Start your 7-day free trial');
+    expect(max.ctaHref).toBe('/signup?plan=max');
     expect(enterprise.features.some((f) => f.includes('coming soon'))).toBe(true);
   });
 

@@ -9,7 +9,7 @@ audience: enterprise
 
 Customers buy the Enterprise tier of RevealUI; the Fleet kit (produced by RevForge) is what they deploy. Instead of running on `revealui.com`, you deploy the entire stack on your own infrastructure with full domain lock and unlimited users.
 
-RevealUI Fleet is a deployment-level commercial product, distinct from the hosted account-level subscription and metered usage model used for SaaS.
+RevealUI Fleet is a deployment-level commercial product. Pro/Enterprise on /pricing is a license plus studio support on admin.revealui.com; the customer self-hosts. Managed customer instances are RevealUI Cloud (waitlist). Fleet is not a Studio-operated VM.
 
 ## What's included
 
@@ -24,9 +24,9 @@ All three services are wired together in `docker-compose.forge.yml` at the root 
 
 ## Commercial model
 
-Fleet sits beside, not underneath, the hosted pricing model:
+Fleet sits beside the published license tiers, not underneath a hosted-VM SKU:
 
-- Hosted RevealUI uses account or workspace subscriptions plus metered usage.
+- Pro/Enterprise on /pricing is a license plus studio support on admin.revealui.com; you self-host.
 - Fleet is a deployment-scoped commercial product with domain lock.
 - Optional metered or transaction-linked features can exist inside Fleet deployments, but the primary entitlement is the deployment license.
 

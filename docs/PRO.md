@@ -1297,12 +1297,12 @@ GET /.well-known/marketplace.json
 
 # Enterprise tier
 
-Customers buy the Enterprise tier of RevealUI ($1,499/mo); the RevealUI Fleet kit (produced by RevForge) is what they deploy. Two paths:
+Customers buy the Enterprise tier of RevealUI ($1,499/mo) as a **license plus studio support** on admin.revealui.com. The customer self-hosts. Managed customer instances are RevealUI Cloud (waitlist at `/for-operators/managed`) — they are not a current SKU.
 
-- **Hosted Enterprise** — RevealUI Studio manages infrastructure. You get a dedicated instance on `revealui.com` infrastructure, domain-configured for your organization.
-- **Self-hosted Fleet** — You deploy the Docker Compose stack (API + admin + PostgreSQL) on your own infrastructure, domain-locked via `REVFORGE_LICENSED_DOMAIN`.
+- **License (this tier)** — EdDSA-signed JWT, support, and Enterprise entitlements. Studio does **not** operate a dedicated customer VM on `revealui.com` infrastructure.
+- **Self-hosted Fleet** — You deploy the Docker Compose stack (API + admin + PostgreSQL) on your own infrastructure, domain-locked via `REVFORGE_LICENSED_DOMAIN`. Produced by RevForge (operator tool).
 
-Both paths use the same Enterprise license tier and the same EdDSA-signed JWT format for `REVFORGE_LICENSE_KEY`. The difference is where the stack runs.
+Both use the same Enterprise license tier and the same EdDSA-signed JWT format for `REVFORGE_LICENSE_KEY`. The difference is how you run the stack, not whether Studio hosts it for you.
 
 ## RevealUI Fleet — Self-Hosted Deployment
 

@@ -34,7 +34,7 @@ export const PRICING_FAQS: readonly FaqItem[] = [
   {
     question: 'What is the RevealUI Starter Kit?',
     answer:
-      'The Starter Kit is a $299 one-time, content-only product. It packages create-revealui onboarding, Postgres bootstrap, and governed agent recipes that demonstrate signed receipts you can verify offline. It does not include a Pro subscription entitlement or a full RevealUI Fleet stamp. Checkout is on Stripe. After purchase we invite you to the private kit repo and Skool buyer community within one business day.',
+      'The Starter Kit is a $299 one-time, content-only product. It packages create-revealui onboarding, Postgres bootstrap, and governed agent recipes that demonstrate signed receipts you can verify offline. It does not include a Pro subscription entitlement or a full RevealUI Fleet stamp. Request access first; public Stripe checkout is paused until the first-sale walk is recorded. After a confirmed purchase we invite you to the private kit repo and Skool buyer community within one business day.',
   },
   {
     question: 'What is the RevealUI Agency Founding Kit?',
@@ -57,7 +57,7 @@ export const PRICING_FAQS: readonly FaqItem[] = [
   },
   {
     question: 'What is Fair Source (FSL-1.1-MIT)?',
-    answer: `Fair Source is a middle path between closed commercial and plain open-source. Our five Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) are source-visible on GitHub, installable from npm, and legally usable in commercial products, with one non-compete clause: you can't ship a substantially similar developer platform that competes with RevealUI on top of them. Two years after each release, that release automatically converts to MIT. Same license model used by Sentry, GitButler, and Keygen. Source-available under FSL: free for everyone except SaaS competitors. Pro plan = hosted infra + support, not npm-level enforcement. Full explainer at /fair-source.`,
+    answer: `Fair Source is a middle path between closed commercial and plain open-source. Our five Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) are source-visible on GitHub, installable from npm, and legally usable in commercial products, with one non-compete clause: you can't ship a substantially similar developer platform that competes with RevealUI on top of them. Two years after each release, that release automatically converts to MIT. Same license model used by Sentry, GitButler, and Keygen. Source-available under FSL: free for everyone except SaaS competitors. Pro and Enterprise on /pricing are a license plus studio support on admin.revealui.com; you self-host. Managed customer instances are RevealUI Cloud (waitlist). Enforcement is not baked into the npm packages. Full explainer at /fair-source.`,
   },
   {
     question: 'Do you offer custom pricing for large teams?',

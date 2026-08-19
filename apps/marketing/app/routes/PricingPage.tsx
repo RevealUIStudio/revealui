@@ -81,7 +81,8 @@ export function PricingPage() {
     const annualFallback = ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS[tier.id];
     const useAnnual = billingInterval === 'year' && tier.id !== 'free' && Boolean(tier.annualPrice);
     const baseHref = tier.ctaHref.startsWith('/') ? `${ADMIN_URL}${tier.ctaHref}` : tier.ctaHref;
-    const ctaHref = useAnnual ? `${baseHref}&interval=year` : baseHref;
+    const ctaHref =
+      useAnnual && baseHref.includes('/signup') ? `${baseHref}&interval=year` : baseHref;
     return {
       ...tier,
       price: useAnnual
