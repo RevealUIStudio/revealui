@@ -38,6 +38,7 @@ import {
   MEMORY,
   PERPETUAL,
   POSTGRES,
+  PROVIDERS,
   RBAC_ABAC,
   REFUND_ROUTE,
   REVFORGE_REF,
@@ -227,6 +228,12 @@ export const claimsPart4: readonly ClaimEntry[] = [
     exportPath: 'ROADMAP_SHIPPED[3].description',
     text: 'OIDC and SAML SP-initiated federation for Enterprise accounts (Admin IdP config, test-connection, SP metadata). SCIM, advanced RBAC editor, and multi-region remain later enterprise work.',
     evidence: [SSO_AUTH_ROUTES, SSO_ADMIN_UI, SSO_SAML_PURE, SSO_SETUP_DOC, RBAC_ABAC],
+  },
+  {
+    file: 'roadmap.ts',
+    exportPath: 'ROADMAP_SHIPPED[4].description',
+    text: 'An entitled Pro account can save a Groq or Grok key in hosted admin and run a task. That path was walked on production. Platform-billed inference and x402 agent payments are not this surface.',
+    evidence: [PROVIDERS, AGENT_ROUTES, ROADMAP],
   },
   {
     file: 'roadmap.ts',
