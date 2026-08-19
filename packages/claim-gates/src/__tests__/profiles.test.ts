@@ -50,6 +50,7 @@ describe('getProfile / existingRoots', () => {
     expect(product.softScanDirs).toBe(false);
     expect(product.copyDependentPaths.length).toBeGreaterThan(0);
     expect(product.copyDependentPaths).toContain('apps/marketing/app/content');
+    expect(product.copyDependentPaths).toContain('README.md');
 
     const marketing = getProfile('marketing-site');
     expect(marketing.collectMonorepoMetrics).toBe(false);
