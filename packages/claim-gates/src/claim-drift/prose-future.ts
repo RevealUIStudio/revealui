@@ -637,9 +637,14 @@ export function scanForCopyDependentHolds(): AspirationalMatch[] {
         if (line.trim().startsWith('//') || line.trim().startsWith('import ')) continue;
         if (line.trim().startsWith('{/*') && line.trim().endsWith('*/}')) continue;
       }
-      if (commerceExempt || hasAspirationalQualifier(line)) continue;
+      if (commerceExempt) continue;
       const tokens = tokenize(line);
+      const qualified = hasAspirationalQualifier(line);
       for (const hit of findCopyDependentHits(line, tokens)) {
+        // Tracker-only (#449) must not bless SSO/SAML buyer-facing live claims.
+        const ssoFamily =
+          hit.holdId === 'COPY-DEP-ENTERPRISE-SSO' || hit.holdId === 'COPY-DEP-ENTERPRISE-SAML';
+        if (qualified && !ssoFamily) continue;
         matches.push({
           file: rel,
           line: i + 1,

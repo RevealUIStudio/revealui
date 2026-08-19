@@ -63,17 +63,19 @@ export const COPY_DEPENDENT_HOLDS: readonly CopyDependentHold[] = [
   },
   {
     id: 'COPY-DEP-ENTERPRISE-SSO',
-    status: 'released',
+    status: 'waiting',
     title: 'Enterprise SSO / SAML customer copy',
     detector: 'sso-live',
-    why: 'GAP-464 code on test (OIDC+SAML SP-initiated + Admin); live copy allowed under Enterprise gate honesty',
+    why: 'OIDC+SAML schema, routes, and Admin exist on test, but customer-facing live claims stay forbidden until #449 closes (no customer IdP walk)',
+    publicTracker: '#449',
   },
   {
     id: 'COPY-DEP-ENTERPRISE-SAML',
-    status: 'released',
+    status: 'waiting',
     title: 'Enterprise SAML live claims',
     detector: 'saml-live',
-    why: 'GAP-464 SAML SP path + Admin metadata config on test; live copy allowed with SCIM still non-goal',
+    why: 'SAML SP path exists on test, but customer-facing live claims stay forbidden until #449 closes; SCIM is not built',
+    publicTracker: '#449',
   },
   {
     id: 'COPY-DEP-VISUAL-BUILDER',
@@ -195,26 +197,95 @@ function detectX402Live(words: string[]): boolean {
   return false;
 }
 
-/** "SSO is available/live" or "single sign on is live" — not bare "SSO" glossary. */
-function detectSsoLive(words: string[]): boolean {
-  for (let i = 0; i < words.length; i++) {
-    let len = 0;
-    if (words[i] === 'sso') len = 1;
-    else if (words[i] === 'single' && words[i + 1] === 'sign' && words[i + 2] === 'on') {
-      len = 3;
+function hasWordSequence(words: string[], seq: readonly string[]): boolean {
+  if (seq.length === 0) return false;
+  for (let i = 0; i <= words.length - seq.length; i++) {
+    let ok = true;
+    for (let k = 0; k < seq.length; k++) {
+      if (words[i + k] !== seq[k]) {
+        ok = false;
+        break;
+      }
     }
-    if (len === 0) continue;
-    if (hasLiveCopula(words, i + len, 12)) return true;
+    if (ok) return true;
   }
   return false;
 }
 
-function detectSamlLive(words: string[]): boolean {
+/**
+ * Same-line honesty qualifiers for SSO/SAML. A tracker alone (#449) does not
+ * bless buyer-facing "in code" / what-you-get claims while the issue is open.
+ */
+function hasSsoRoadmapQualifier(words: string[]): boolean {
+  if (words.includes('preview')) return true;
+  if (words.includes('planned')) return true;
+  if (words.includes('roadmap')) return true;
+  if (words.includes('forthcoming')) return true;
+  if (hasWordSequence(words, ['coming', 'soon'])) return true;
+  if (hasWordSequence(words, ['not', 'customer', 'walked'])) return true;
+  if (hasWordSequence(words, ['does', 'not', 'work'])) return true;
+  if (hasWordSequence(words, ['doesn', 't', 'work'])) return true;
+  return false;
+}
+
+/** Residual operator honesty: code exists, customer walk / SCIM do not. */
+function hasSsoResidualHonesty(words: string[]): boolean {
+  if (hasWordSequence(words, ['does', 'not', 'work'])) return true;
+  if (hasWordSequence(words, ['doesn', 't', 'work'])) return true;
   for (let i = 0; i < words.length; i++) {
-    if (words[i] !== 'saml') continue;
-    if (hasLiveCopula(words, i + 1, 12)) return true;
+    if (words[i] !== 'scim') continue;
+    if (hasNearby(words, i, 8, new Set(['not'])) && hasNearby(words, i, 8, new Set(['built']))) {
+      return true;
+    }
   }
   return false;
+}
+
+function hasInCodeClaim(words: string[], from: number, window: number): boolean {
+  const hi = Math.min(words.length, from + window);
+  for (let j = from; j < hi; j++) {
+    if (words[j] === 'in' && words[j + 1] === 'code') return true;
+  }
+  return false;
+}
+
+/** Pricing / "what you get" table row: leading pipe plus a `$` price cell. */
+function isPricingWhatYouGetRow(line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith('|')) return false;
+  return line.includes('$');
+}
+
+function ssoAnchorLen(words: string[], i: number): number {
+  if (words[i] === 'sso') return 1;
+  if (words[i] === 'single' && words[i + 1] === 'sign' && words[i + 2] === 'on') return 3;
+  return 0;
+}
+
+/** "SSO is available/live" or "SSO is in code" — not bare "SSO" glossary. */
+function detectSsoLive(words: string[], line: string): boolean {
+  if (hasSsoRoadmapQualifier(words) || hasSsoResidualHonesty(words)) return false;
+  let sawSso = false;
+  for (let i = 0; i < words.length; i++) {
+    const len = ssoAnchorLen(words, i);
+    if (len === 0) continue;
+    sawSso = true;
+    if (hasLiveCopula(words, i + len, 12)) return true;
+    if (hasInCodeClaim(words, i + len, 12)) return true;
+  }
+  return sawSso && isPricingWhatYouGetRow(line);
+}
+
+function detectSamlLive(words: string[], line: string): boolean {
+  if (hasSsoRoadmapQualifier(words) || hasSsoResidualHonesty(words)) return false;
+  let sawSaml = false;
+  for (let i = 0; i < words.length; i++) {
+    if (words[i] !== 'saml') continue;
+    sawSaml = true;
+    if (hasLiveCopula(words, i + 1, 12)) return true;
+    if (hasInCodeClaim(words, i + 1, 12)) return true;
+  }
+  return sawSaml && isPricingWhatYouGetRow(line);
 }
 
 /** Visual Builder is live / available / shipped as a product (not "builder pattern"). */
@@ -343,16 +414,16 @@ function detectWeightScan(words: string[]): boolean {
   return false;
 }
 
-function runDetector(detector: CopyDependentDetector, words: string[]): boolean {
+function runDetector(detector: CopyDependentDetector, words: string[], line: string): boolean {
   switch (detector) {
     case 'marketplace-live':
       return detectMarketplaceLive(words);
     case 'x402-live':
       return detectX402Live(words);
     case 'sso-live':
-      return detectSsoLive(words);
+      return detectSsoLive(words, line);
     case 'saml-live':
-      return detectSamlLive(words);
+      return detectSamlLive(words, line);
     case 'visual-builder-live':
       return detectVisualBuilderLive(words);
     case 'ghcr-fleet-images-live':
@@ -385,7 +456,7 @@ export function findCopyDependentHits(
   if (words.length === 0) return [];
   const hits: CopyDependentHit[] = [];
   for (const hold of activeCopyDependentHolds()) {
-    if (!runDetector(hold.detector, words)) continue;
+    if (!runDetector(hold.detector, words, line)) continue;
     hits.push({
       holdId: hold.id,
       title: hold.title,
