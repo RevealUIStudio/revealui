@@ -11,6 +11,10 @@ public-tracker: RevealUIStudio/revealui#449
 
 # Enterprise SSO setup
 
+**Status:** operator preview on `test`. Not customer-walked.
+[#449](https://github.com/RevealUIStudio/revealui/issues/449) is still open.
+SCIM is not built.
+
 Enterprise accounts with the `sso` feature gate can attach an OIDC or SAML
 identity provider (Okta, Azure AD / Entra ID, Google Workspace, Keycloak, and
 compatible IdPs). Session cookies stay RevealUI sessions; federation only

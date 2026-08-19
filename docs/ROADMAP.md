@@ -49,7 +49,6 @@ Labels match the `/products` page.
 - **CLI.** `npx create-revealui@latest my-app` plus 5 templates (basic-blog, e-commerce, portfolio, starter, starter-native)
 - **Agents.** A2A, CRDT memory, open-model default, streaming, tool execution. Hosted runs use the account's saved provider key (BYOK) or a local model. RevealUI does not host a shared frontier key as the product default. An entitled Pro account walked save-key plus Send Task plus Watch live on production (2026-08-18). That is one operator walk, not a paying-customer load test.
 - **MCP.** 13 first-party servers under `packages/mcp/src/servers/` (includes the adapter module)
-- **Enterprise SSO.** OIDC + SAML SP-initiated under the Enterprise `sso` gate. Operator guide: [FORGE_SSO_SETUP.md](./FORGE_SSO_SETUP.md). **SCIM is not built**
 - **Audit receipts.** Signed audit log. Max can download Merkle roots
 - **Docs + marketing.** docs.revealui.com and revealui.com, including `/support`, `/status`, `/claims`, and `/roadmap`
 
@@ -67,6 +66,7 @@ Work that is real and unfinished. No gap IDs on this public page.
 
 | Item | Status | Honest residual |
 |------|--------|-----------------|
+| Enterprise SSO / SAML | In flight | Operator preview on test (OIDC + SAML SP-initiated). Not customer-walked. [#449](https://github.com/RevealUIStudio/revealui/issues/449) still open. SCIM is not built. Guide: [FORGE_SSO_SETUP.md](./FORGE_SSO_SETUP.md) |
 | Fleet pull-and-run kit | In flight | Images exist. The launched customer kit (docs + license-gated pull, no source build) does not |
 | Product-led channels | In flight | Starter Kit Payment Link, Apify actor, and a customer self-host template (sales channel only; Railway is not Studio production, which stays on Vercel + Neon + Fly). Owner publish + first stranger purchase remain |
 | Onboarding (first 24h / first 7d) | In flight | Journey copy and checklists ship. Per-tier walkthrough sign-off does not |

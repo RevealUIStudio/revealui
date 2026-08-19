@@ -1063,10 +1063,11 @@ If you have not been running such a legacy fork, no migration is required — th
 - ✅ Input sanitization
 - ✅ CSRF protection
 - ✅ SQL injection prevention
-- ✅ **Enterprise SSO (OIDC + SAML SP-initiated)** under the `sso` feature gate
-  (schema, pure layers, server routes, Admin settings UI, test-connection).
+- **Enterprise SSO (OIDC + SAML SP-initiated)** — operator preview on `test`,
+  not customer-walked. Schema, pure layers, server routes, Admin settings UI,
+  and test-connection exist under the `sso` feature gate. SCIM is not built.
   Operator guide: [FORGE_SSO_SETUP.md](./FORGE_SSO_SETUP.md). Public tracker
-  [#449](https://github.com/RevealUIStudio/revealui/issues/449).
+  [#449](https://github.com/RevealUIStudio/revealui/issues/449) is still open.
 
 ### What's still ahead
 
@@ -1131,7 +1132,7 @@ Account admin API (owner/admin + `sso` entitlement): `/api/accounts/.../sso-prov
 
 ---
 
-**Last Updated:** 2026-08-05 (GAP-464 Enterprise SSO operator docs)
+**Last Updated:** 2026-08-19 (SSO status: operator preview, #449 open)
 
 ---
 

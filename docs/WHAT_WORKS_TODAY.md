@@ -94,10 +94,11 @@ Honest list of things that are not done, not deployed, or not verified.
 - **Terms of Service and Privacy Policy are live, but not yet lawyer-reviewed.** Drafted in good faith by RevealUI Studio and published at [/terms](https://revealui.com/terms) and [/privacy](https://revealui.com/privacy). Each page carries an explicit "draft pending counsel review" banner — we disclose this rather than hide it. Counsel review is scheduled post-first-revenue. Subscription prices are referenced as "published at /pricing at the time of purchase" rather than hardcoded, so the pricing page is the single source of truth.
 - **No SOC2 or ISO 27001.** Security certifications are planned for Phase 6, not current.
 - **MCP marketplace is preview, not live.** Publish/list/invoke/onboard endpoints are wired; third-party developer payouts are not fully shipped yet.
-- **Enterprise SSO (OIDC + SAML SP-initiated) is in code** under the Enterprise
-  `sso` feature gate (Admin settings, server routes, pure validation). Operator
-  guide: [FORGE_SSO_SETUP.md](./FORGE_SSO_SETUP.md). **SCIM is not built** (still
-  a non-goal of the SSO MVP; tracked with enterprise roadmap residual).
+- **Enterprise SSO (OIDC + SAML SP-initiated) is operator preview on test**,
+  not customer-walked. Code exists under the Enterprise `sso` feature gate
+  (Admin settings, server routes, pure validation). [#449](https://github.com/RevealUIStudio/revealui/issues/449)
+  is still open. Operator guide: [FORGE_SSO_SETUP.md](./FORGE_SSO_SETUP.md).
+  **SCIM is not built** (still a non-goal of the SSO MVP).
 - **No dunning logic.** Best-practice guidance only.
 - **No Prompts collection.** admin ships Pages, Posts, Products, Contents, Videos, Tenants — no Prompts.
 

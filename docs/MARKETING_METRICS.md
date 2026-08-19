@@ -5,7 +5,7 @@ title: "Marketing Metrics — Pinned Truth"
 description: "Single source of truth for every metric, count, and status claim used in the marketing app and public-facing copy. Updated when the code changes; validated by claim-drift CI gate."
 category: internal
 audience: maintainer
-last-verified: 2026-07-27
+last-verified: 2026-08-19
 verified-via: pnpm tsx scripts/validate/claim-drift.ts
 ---
 
@@ -89,7 +89,7 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 | Marketing site (every page) | `Shipped` / `In flight` / `Planned` |
 | Per-product READMEs | Maturity terms OK (`Alpha` / `Beta` / `GA`) — separate axis from shipping status |
 
-### Status of marketing-relevant systems (2026-08-18)
+### Status of marketing-relevant systems (2026-08-19)
 
 | Feature | Status | Notes |
 |---|---|---|
@@ -101,7 +101,7 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 | Perpetual Licenses (Track C) | **Shipped** | `comingSoon: false` in contracts. Marketing `/roadmap` lists Track C under Recently shipped. Live catalog rides the 2026-06-26 Stripe live flip. |
 | RevealUI Fleet pull-and-run kit | **In flight** | CI pushes `ghcr.io/revealuistudio/revealui-{api,admin,migrate}`. The launched customer pull-and-run kit is not a finished product. Do not say "designed, not built." |
 | Visual Editing | **Planned** | Live-preview / edit-session surface ([#1816](https://github.com/RevealUIStudio/revealui/issues/1816)). Not a no-code drag-and-drop builder. |
-| Enterprise SSO / SAML | **Shipped** | OIDC + SAML SP-initiated under Enterprise `sso` gate; Admin UI + routes. Guide: [FORGE_SSO_SETUP.md](./FORGE_SSO_SETUP.md). SCIM still not built. |
+| Enterprise SSO / SAML | **In flight** | Operator preview on test (OIDC + SAML SP-initiated, Admin UI + routes). Not customer-walked; [#449](https://github.com/RevealUIStudio/revealui/issues/449) still open. Guide: [FORGE_SSO_SETUP.md](./FORGE_SSO_SETUP.md). SCIM is not built. |
 | Support / status | **Shipped** | `/support`, `support@revealui.com`, Discussions, `/status`. No ticket desk. |
 | Cloudflare adoption | **Planned** | Deferred post-launch per memory. |
 
