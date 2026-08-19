@@ -3,9 +3,11 @@
 // claims-ratchet 2026-07-12: Perpetual Licenses moved from Coming next to Recently
 // shipped (status Available) because perpetual checkout is live in
 // apps/server/src/routes/billing.ts (perpetualCheckoutRoute); description made present tense.
-// 2026-08-18 honesty pass: SSO moved to shipped; Fleet images are In flight
-// (GHCR push exists, launched pull-and-run kit does not); Visual Builder
-// renamed to Visual Editing; x402 listed as Planned (flag off).
+// 2026-08-18 honesty pass: Fleet images are In flight (GHCR push exists,
+// launched pull-and-run kit does not); Visual Builder renamed to Visual
+// Editing; x402 listed as Planned (flag off).
+// 2026-08-19: Enterprise SSO / SAML moved off Recently shipped — operator
+// preview on test, not customer-walked, #449 open, SCIM not built.
 
 import { SITE } from './site';
 import type { Cta, SectionHeading } from './types';
@@ -54,13 +56,6 @@ export const ROADMAP_SHIPPED: readonly RoadmapItem[] = [
     category: 'Docs',
   },
   {
-    name: 'Enterprise SSO / SAML',
-    description:
-      'OIDC and SAML SP-initiated federation for Enterprise accounts (Admin IdP config, test-connection, SP metadata). SCIM, advanced RBAC editor, and multi-region remain later enterprise work.',
-    status: 'Shipped',
-    category: 'Enterprise',
-  },
-  {
     name: 'Hosted BYOK agents',
     description:
       'An entitled Pro account can save a Groq or Grok key in hosted admin and run a task. That path was walked on production. Platform-billed inference and x402 agent payments are not this surface.',
@@ -101,6 +96,13 @@ export const ROADMAP_UPCOMING: readonly RoadmapItem[] = [
       'HTTP 402 payment rails exist in the code and stay off by default. Agents do not charge each other in production until an operator turns the rail on.',
     status: 'Planned',
     category: 'Billing',
+  },
+  {
+    name: 'Enterprise SSO / SAML',
+    description:
+      'Operator preview on test: OIDC and SAML SP-initiated Admin config exists. Not customer-walked; #449 is open. SCIM is not built.',
+    status: 'In flight',
+    category: 'Enterprise',
   },
 ];
 
