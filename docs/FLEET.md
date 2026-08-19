@@ -252,7 +252,7 @@ A Fleet customer **does not generate** the license-signing keypair and **must no
 
 | Key | Who holds it | Role |
 |---|---|---|
-| `REVEALUI_LICENSE_PRIVATE_KEY` | RevealUI Studio only (revvault `revdev/license-signing-private-key`; declared move to `revealui/prod/license/*` is owner-gated and UNVERIFIED — see [SECRETS.md](./SECRETS.md)) | Mints customer license JWTs |
+| `REVEALUI_LICENSE_PRIVATE_KEY` | RevealUI Studio only (revvault `revdev/license-signing-private-key`; declared move to `revealui/prod/license/*` is owner-gated and UNVERIFIED) | Mints customer license JWTs |
 | `REVEALUI_LICENSE_PUBLIC_KEY` | Studio publishes; Fleet kit verifies | Verifies the studio-issued JWT |
 | `REVEALUI_LICENSE_KEY` | The Fleet customer | The studio-issued JWT for this deployment |
 | `REVEALUI_AUDIT_SIGNING_KEY` | The Fleet customer (per instance) | Signs audit rows on *this* deploy — unrelated to license minting |
