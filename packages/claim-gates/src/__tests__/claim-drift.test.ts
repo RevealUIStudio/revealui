@@ -130,19 +130,20 @@ describe('hasTrackerSignal', () => {
 });
 
 describe('hasAspirationalQualifier + aspirational blocklist (GAP-192 PR2)', () => {
-  it('flags SSO without a qualifier', () => {
-    expect(findAspirationalBlocklistHits('Enterprise SSO for every workspace')).toContain('SSO');
-    expect(hasAspirationalQualifier('Enterprise SSO for every workspace')).toBe(false);
+  it('does not treat shipped Enterprise SSO as aspirational', () => {
+    expect(findAspirationalBlocklistHits('Enterprise SSO for every workspace')).not.toContain(
+      'SSO',
+    );
+    expect(findAspirationalBlocklistHits('we ship single sign-on today')).not.toContain('SSO');
   });
 
-  it('passes SSO when the line says roadmap', () => {
-    expect(hasAspirationalQualifier('SSO is on the roadmap')).toBe(true);
-    expect(hasAspirationalQualifier('SSO (coming soon)')).toBe(true);
-    expect(hasAspirationalQualifier('SSO tracked in #93')).toBe(true);
+  it('recognizes roadmap qualifiers on still-planned terms', () => {
+    expect(hasAspirationalQualifier('managed hosting is on the roadmap')).toBe(true);
+    expect(hasAspirationalQualifier('managed hosting (coming soon)')).toBe(true);
+    expect(hasAspirationalQualifier('managed hosting tracked in #93')).toBe(true);
   });
 
-  it('flags single sign-on and hyphenated auto-scaling / on-prem sequences', () => {
-    expect(findAspirationalBlocklistHits('we ship single sign-on today')).toContain('SSO');
+  it('flags hyphenated auto-scaling / on-prem sequences', () => {
     expect(findAspirationalBlocklistHits('auto-scaling for your agents')).toContain('auto-scaling');
     expect(findAspirationalBlocklistHits('air-gapped and on-prem deploy')).toEqual(
       expect.arrayContaining(['air-gapped', 'on-prem']),

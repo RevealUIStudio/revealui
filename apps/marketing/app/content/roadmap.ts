@@ -3,6 +3,9 @@
 // claims-ratchet 2026-07-12: Perpetual Licenses moved from Coming next to Recently
 // shipped (status Available) because perpetual checkout is live in
 // apps/server/src/routes/billing.ts (perpetualCheckoutRoute); description made present tense.
+// 2026-08-18 honesty pass: SSO moved to shipped; Fleet images are In flight
+// (GHCR push exists, launched pull-and-run kit does not); Visual Builder
+// renamed to Visual Editing; x402 listed as Planned (flag off).
 
 import { SITE } from './site';
 import type { Cta, SectionHeading } from './types';
@@ -50,6 +53,20 @@ export const ROADMAP_SHIPPED: readonly RoadmapItem[] = [
     status: 'Shipped',
     category: 'Docs',
   },
+  {
+    name: 'Enterprise SSO / SAML',
+    description:
+      'OIDC and SAML SP-initiated federation for Enterprise accounts (Admin IdP config, test-connection, SP metadata). SCIM, advanced RBAC editor, and multi-region remain later enterprise work.',
+    status: 'Shipped',
+    category: 'Enterprise',
+  },
+  {
+    name: 'Hosted BYOK agents',
+    description:
+      'An entitled Pro account can save a Groq or Grok key in hosted admin and run a task. That path was walked on production. Platform-billed inference and x402 agent payments are not this surface.',
+    status: 'Shipped',
+    category: 'AI',
+  },
 ];
 
 export const ROADMAP_UPCOMING_SECTION: SectionHeading = {
@@ -60,30 +77,30 @@ export const ROADMAP_UPCOMING: readonly RoadmapItem[] = [
   {
     name: 'MCP Marketplace',
     description:
-      'A registry where developers publish and discover MCP servers and AI agent capabilities. Revenue share model for developers. Discoverable via Smithery, mcpt, and the RevealUI registry.',
-    status: 'Planned: in design',
+      'A registry where developers publish and discover MCP servers and AI agent capabilities. First-party MCP servers ship today. Third-party publishing and live marketplace charging are not open yet.',
+    status: 'Planned',
     category: 'AI',
   },
   {
-    name: 'Self-Hosted Docker Images (RevealUI Fleet)',
+    name: 'RevealUI Fleet pull-and-run kit',
     description:
-      'Official Docker images published to GitHub Container Registry for fully self-hosted deployment. Domain-locked licensing, air-gap capable.',
-    status: 'Planned: designed, not built',
+      'CI already builds and pushes api, admin, and migrate images to GitHub Container Registry. The launched product is a documented, license-gated pull-and-run kit that a customer can deploy without building from source.',
+    status: 'In flight',
     category: 'Infrastructure',
   },
   {
-    name: 'Visual Builder',
+    name: 'Visual Editing',
     description:
-      'A no-code visual builder for creating RevealUI sites. Drag-and-drop page building, component customization, and one-click deployment.',
-    status: 'Planned: backlog',
+      'Edit a site by clicking the real rendered page in admin. Live-preview sessions, drafts, and agent-proposed edits are the planned surface. This is not a no-code drag-and-drop site builder.',
+    status: 'Planned',
     category: 'Product',
   },
   {
-    name: 'Enterprise SSO / SAML',
+    name: 'x402 agent payments',
     description:
-      'OIDC and SAML SP-initiated federation for Enterprise accounts (Admin IdP config, test-connection, SP metadata). SCIM, advanced RBAC editor, and multi-region remain later enterprise work.',
-    status: 'Shipped: Enterprise feature gate (OIDC + SAML SP-initiated)',
-    category: 'Enterprise',
+      'HTTP 402 payment rails exist in the code and stay off by default. Agents do not charge each other in production until an operator turns the rail on.',
+    status: 'Planned',
+    category: 'Billing',
   },
 ];
 

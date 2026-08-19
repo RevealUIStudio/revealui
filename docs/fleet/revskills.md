@@ -2,7 +2,7 @@
 visibility: public
 status: verified
 title: "RevSkills"
-description: "Curated Agent Skills for modern web development. Compatible with Claude Code, Cursor, and any tool supporting the Agent Skills standard."
+description: "Curated Agent Skills for modern web development. Compatible with Claude, Grok, Cursor, OpenCode, VS Code, and any tool supporting the Agent Skills standard."
 category: fleet
 audience: developer
 ---
@@ -15,9 +15,11 @@ audience: developer
 
 A curated collection of **`SKILL.md`-format Agent Skills** packaged for distribution. Compatible with:
 
-- **Claude Code** — load skills via the agent-skills standard
-- **Cursor** — same SKILL.md format
-- **Any tool** supporting the Agent Skills standard at [agentskills.io](https://agentskills.io)
+- **Claude.** Load skills via the Agent Skills standard.
+- **Grok.** `[skills].paths` or `~/.grok/skills/`.
+- **Cursor.** Same SKILL.md format.
+- **OpenCode / VS Code.** Per-tool Agent Skills and agent-plugin docs.
+- **Any tool** that implements the Agent Skills standard at [agentskills.io](https://agentskills.io).
 
 Each skill is independently versioned (per the fleet-wide pre-1.0 SemVer rule) and reviewed before publication.
 

@@ -7,7 +7,7 @@
 - [Documentation home](https://docs.revealui.com): Architecture, primitives, deployment, agent integration
 - [What works today](https://docs.revealui.com/WHAT_WORKS_TODAY): Honest pre-launch status — what is tested, what is stub, what is not yet wired
 - [Architecture](https://docs.revealui.com/ARCHITECTURE): Five primitives, apps, packages, deploy topology
-- [Meet the Fleet](https://docs.revealui.com/SUITE): Products that compose RevFleet: RevealUI (runtime), RevDev, RevVault, RevCon, RevealUI Fleet (via RevForge), RevSkills
+- [Meet the Fleet](https://docs.revealui.com/REVFLEET): Products that compose RevFleet: RevealUI (runtime), RevDev, RevVault, RevCon, RevKit, RevealUI Fleet (via RevForge), RevSkills
 
 ## Getting started
 

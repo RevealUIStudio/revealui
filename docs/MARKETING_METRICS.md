@@ -89,7 +89,7 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 | Marketing site (every page) | `Shipped` / `In flight` / `Planned` |
 | Per-product READMEs | Maturity terms OK (`Alpha` / `Beta` / `GA`) — separate axis from shipping status |
 
-### Status of marketing-relevant systems (2026-05-18)
+### Status of marketing-relevant systems (2026-08-18)
 
 | Feature | Status | Notes |
 |---|---|---|
@@ -98,10 +98,11 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 | Documentation Site | **Shipped** | docs.revealui.com. |
 | x402 Agent Payments | **Planned** | `X402_ENABLED=false` default; code-complete but dormant, enabled only by owner directive. Tracked in [revealui#526](https://github.com/RevealUIStudio/revealui/issues/526) section D. |
 | MCP Marketplace (third-party publishing) | **Planned** | First-party catalog (13 servers) shipped; third-party publishing + revenue share not built. NO "80/20 revenue share" claims. |
-| Perpetual Licenses (Track C) | **In flight** | `comingSoon: false` in contracts (asserted by `apps/server/src/routes/__tests__/pricing-accuracy.test.ts`); Stripe products seeded. Renders as available; the Stripe live-mode flip landed 2026-06-26, so charging rides the live catalog. |
-| Self-Hosted Docker Images (RevealUI Fleet) | **Planned** | Designed, not built. |
-| Visual Builder | **Planned** | Backlog. |
-| Enterprise SSO / SAML | **Shipped (code)** | OIDC + SAML SP-initiated under Enterprise `sso` gate; Admin UI + routes on `test`. Guide: [FORGE_SSO_SETUP.md](./FORGE_SSO_SETUP.md). SCIM still not built. |
+| Perpetual Licenses (Track C) | **Shipped** | `comingSoon: false` in contracts. Marketing `/roadmap` lists Track C under Recently shipped. Live catalog rides the 2026-06-26 Stripe live flip. |
+| RevealUI Fleet pull-and-run kit | **In flight** | CI pushes `ghcr.io/revealuistudio/revealui-{api,admin,migrate}`. The launched customer pull-and-run kit is not a finished product. Do not say "designed, not built." |
+| Visual Editing | **Planned** | Live-preview / edit-session surface ([#1816](https://github.com/RevealUIStudio/revealui/issues/1816)). Not a no-code drag-and-drop builder. |
+| Enterprise SSO / SAML | **Shipped** | OIDC + SAML SP-initiated under Enterprise `sso` gate; Admin UI + routes. Guide: [FORGE_SSO_SETUP.md](./FORGE_SSO_SETUP.md). SCIM still not built. |
+| Support / status | **Shipped** | `/support`, `support@revealui.com`, Discussions, `/status`. No ticket desk. |
 | Cloudflare adoption | **Planned** | Deferred post-launch per memory. |
 
 ## 4. Brand
@@ -124,7 +125,7 @@ Marketing copy may say "cobalt" (or "Electric Verdigris") descriptively but the 
 | RevVault | Shipped | Beta (MIT CLI + Pro desktop app) | Secret management |
 | RevForge | Shipped | Beta (operator-only stamping tool) | Produces customer-stamped Fleet kits |
 | RevCon | Shipped | Alpha (MIT) | Editor config sync |
-| RevSkills | Shipped | Active (MIT) | Claude Code skills library |
+| RevSkills | Shipped | Active (MIT) | Agent Skills library (Claude, Grok, Cursor, OpenCode, VS Code) |
 | RevMarket | Planned | Code-complete, dormant | MCP marketplace; X402_ENABLED=false |
 
 Customer-stamped Fleet kits are NOT fleet products — they are per-customer brand instances produced via RevForge.

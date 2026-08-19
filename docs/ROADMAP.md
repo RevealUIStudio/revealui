@@ -2,165 +2,116 @@
 visibility: public
 status: verified
 title: "RevealUI Roadmap"
-description: "Product roadmap with planned features, timelines, and priorities"
+description: "Product roadmap with shipped surfaces, current work, and planned direction"
 category: planning
 audience: developer
 ---
 
 > Agentic business runtime. Build your business, not your boilerplate.
 
-This roadmap reflects our current priorities and planned direction. It is updated regularly and may shift based on community feedback and business needs.
+This roadmap is an honesty document. It names what ships today, what is in flight, and what is planned. It is not a sales forecast.
 
-**Last updated:** 2026-07-11
+**Last updated:** 2026-08-19
+
+The customer-facing board lives at [revealui.com/roadmap](https://revealui.com/roadmap). Capability status and counts: [What Works Today](./WHAT_WORKS_TODAY.md).
 
 ---
 
-## RevFleet Product Maturity
+## RevFleet product maturity
 
-Honest labels for every product in the RevealUI ecosystem. Updated 2026-06-11.
+Labels match the `/products` page.
 
 | Product | Maturity | Notes |
 |---------|----------|-------|
-| **RevealUI** (monorepo) | Beta | Deployed, 32 packages, extensive test suite. No paying users yet. |
-| **RevealUI Fleet** (self-hosted) | Beta | Docker stack complete, license enforcement built. No external customers. |
-| **RevVault** (secrets) | Beta | Rust CLI + desktop app, age-encrypted vault. Not published to crates.io. |
-| **Studio** (desktop) | Alpha | Tauri 2 + React 19, agent coordination UI. No published binaries. |
-| **Terminal** (TUI) | Alpha | Go SSH server + Bubble Tea. Functional, not deployed. |
-| **RevCon** (configs) | Alpha | Editor config sync tooling. Functional, undocumented. |
-| **RevSkills** (skills) | Alpha | 6 Claude Code skills on GitHub. No tests. |
-| **RevDev** (dev tools) | Planned — [#451](https://github.com/RevealUIStudio/revealui/issues/451) | Harness infrastructure exists. Not a standalone product yet. |
-| **RevMarket** (marketplace) | Planned — [#451](https://github.com/RevealUIStudio/revealui/issues/451) | Schema, API routes, payouts cron, and admin UI built. Launch-gated pre-users: x402 disabled by default, no live charging. |
+| **RevealUI** (monorepo) | Beta | Deployed (admin, API, marketing, docs). 32 packages. No external paying customers yet. |
+| **RevealUI Fleet** (self-hosted kit) | Alpha | Compose + license enforcement exist. GHCR images build and push. The launched pull-and-run customer kit is not a finished product. |
+| **RevVault** | Beta | Rust CLI + desktop app. Age-encrypted vault. Not published to crates.io. |
+| **RevDev** | Alpha | Studio (Tauri) + Console (Go TUI) + local daemon. Ships in [RevDev](https://github.com/RevealUIStudio/revdev). Public binaries are not a GA release. |
+| **RevCon** | Active (MIT) | Editor config sync. Released library, no SLA. |
+| **RevSkills** | Active (MIT) | Agent skills library on GitHub. |
+| **RevForge** | Alpha | Operator stamping tool. Private preview. |
+| **RevMarket** | Planned | First-party MCP catalog ships with the runtime. Third-party marketplace and live agent charging are not open. |
 
-**Labels:** Production = real users + stable API. Beta = feature-complete, deployed, pre-users.
-Alpha = functional, not deployed/published. Planned = design or schema only.
+**Labels:** Production = real external users + a stable contract. Beta = production-ready code, deployed and dogfooded, pre-revenue. Alpha = works and ships, may break. Active (MIT) = released library, no SLA. Planned = not shipped to users.
 
 ---
 
-## Completed
+## Shipped
 
-### Core Platform (v0.2  -  v0.3)
+### Runtime
 
-- **Auth system**  -  Session-based auth with bcrypt, RBAC/ABAC, rate limiting, brute-force protection, TOTP 2FA _(infrastructure built, not yet wired into sign-in flow)_, WebAuthn passkeys, magic link recovery, OAuth (GitHub, Google, Vercel) _(note: sessions are not currently bound to IP/UA)_
-- **Content engine**  -  Schema-first collections, Lexical rich text, media handling, draft/live lifecycle, REST API with OpenAPI spec
-- **Billing stack**  -  Stripe checkout, subscriptions, webhooks, license keys, billing portal, tier enforcement (free/pro/max/enterprise)
-- **UI components**  -  59 native React 19 components in `@revealui/presentation` (80 with `@revealui/core` admin/richtext); Tailwind v4, zero external UI deps
-- **Real-time sync**  -  ElectricSQL integration for editor/client/agent sync _(experimental  -  basic shape subscriptions, no offline-first)_
-- **Database**  -  104 tables via Drizzle ORM. Neon (primary) + ElectricSQL (sync). Supabase retired per ADR `2026-05-01-supabase-removal.md`.
-- **CLI**  -  `npx create-revealui my-app` scaffolds a full project from npm
-- **AI agents**  -  A2A protocol, CRDT memory, open-model inference, streaming, tool execution
-- **MCP servers**  -  first-party servers under `packages/mcp/src/servers/` (Stripe, Neon, Vercel, Playwright, Code Validator, Next.js DevTools, Docs, Contracts, RevealUI Content / Email / Memory / Stripe, plus the adapter base class; the customer Supabase MCP adapter was removed)
-- **Desktop app (RevDev)**  -  Tauri 2 + React 19 native AI experience (agent hub, local inference, vault, tunnel) — ships in the separate [RevDev](https://github.com/RevealUIStudio/revdev) repo, not in the RevealUI monorepo
-- **Security**  -  CSP, CORS, HSTS, AES-256-GCM encryption, timing-safe TOTP, GDPR framework, 187 security tests
-- **CI/CD**  -  3-phase gate (lint + typecheck + test + build), CodeQL, Gitleaks, OIDC npm publishing
-- **Accessibility**  -  WCAG 2.1 AA compliance on marketing site and admin login/admin pages
+- **Auth.** Session auth (bcrypt, RBAC/ABAC, rate limiting, brute-force protection), TOTP MFA wired into the admin sign-in challenge, WebAuthn passkeys, magic-link recovery, OAuth (GitHub, Google, Vercel)
+- **Content engine.** Schema-first collections, Lexical rich text, media, draft/live lifecycle, REST API with OpenAPI
+- **Billing.** Stripe checkout, subscriptions, webhooks, license keys, billing portal, free/pro/max/enterprise gates. **Stripe live mode is ON** (flipped 2026-06-26). That is a billing-rail fact, not a claim that strangers are buying.
+- **Perpetual licenses.** Track C checkout is available
+- **UI.** 66 native React components in `@revealui/presentation` (Tailwind v4, no Radix/Headless UI/shadcn)
+- **Database.** 104 Postgres tables via Drizzle on Neon. ElectricSQL is an optional sync layer (off by default)
+- **CLI.** `npx create-revealui@latest my-app` plus 5 templates (basic-blog, e-commerce, portfolio, starter, starter-native)
+- **Agents.** A2A, CRDT memory, open-model default, streaming, tool execution. Hosted runs use the account's saved provider key (BYOK) or a local model. RevealUI does not host a shared frontier key as the product default. An entitled Pro account walked save-key plus Send Task plus Watch live on production (2026-08-18). That is one operator walk, not a paying-customer load test.
+- **MCP.** 13 first-party servers under `packages/mcp/src/servers/` (includes the adapter module)
+- **Enterprise SSO.** OIDC + SAML SP-initiated under the Enterprise `sso` gate. Operator guide: [FORGE_SSO_SETUP.md](./FORGE_SSO_SETUP.md). **SCIM is not built**
+- **Audit receipts.** Signed audit log. Max can download Merkle roots
+- **Docs + marketing.** docs.revealui.com and revealui.com, including `/support`, `/status`, `/claims`, and `/roadmap`
 
-### Launch (v0.3.3  -  current)
+### Launch surfaces
 
-- **Public repo** on GitHub with MIT license (OSS packages)
-- **32 packages** in the monorepo
-- **5 CLI templates** (basic-blog, e-commerce, portfolio, starter, starter-native)  -  4 published as standalone template repos
-- **Production deploys**  -  admin, API, Marketing, Docs on Vercel
-- **Stripe live mode** on in production (flipped 2026-06-26); test-mode E2E path remains for CI and local smoke
+- Public GitHub repo (MIT for OSS packages, FSL-1.1-MIT for Pro)
+- Production deploys: admin, API, marketing, docs
+- GHCR images `ghcr.io/revealuistudio/revealui-{api,admin,migrate}` build and push from CI. A stamped kit still needs a license JWT and operator env
 
 ---
 
-## Ecosystem
+## Now
 
-RevealUI is the runtime at the center of a three-project ecosystem. Each project stands alone. Together, they form a complete stack for building, securing, coordinating, and monetizing agentic software.
+Work that is real and unfinished. No gap IDs on this public page.
 
-| Project | Purpose | License |
-|---------|---------|---------|
-| **RevealUI** | Agentic business runtime (this repo) | MIT (core) + Commercial (Pro) |
-| **[RevVault](https://github.com/RevealUIStudio/revvault)** | Age-encrypted secret vault  -  Rust CLI, rotation engine, Tauri desktop app | MIT (CLI) + Pro (desktop, rotation) |
-
-**Dependency direction:** RevVault depends on nothing. RevealUI consumes environment variables however they arrive.
-
----
-
-## In Progress
-
-### Post-Launch Polish (v0.4)
-
-| Task | Status | Description |
-|------|--------|-------------|
-| CORS hardening | Done | Manual CORS middleware replacing Hono's `cors()` for Vercel compatibility |
-| Accessibility audit | Done | WCAG 2.1 AA color contrast fixes across marketing site |
-| E2E test stability | Done | Playwright CI browser config, navigation race fixes |
-| Stripe live mode | Pending | Switch from test to live keys after full UX verification |
-| Skipped test audit | Done | 4 fixable skips unskipped (performance tests), 35 conditional infra skips verified correct |
-| Claim verification | Done | Audit all marketing and docs text against codebase reality |
-| Public roadmap | Done | This document |
+| Item | Status | Honest residual |
+|------|--------|-----------------|
+| Fleet pull-and-run kit | In flight | Images exist. The launched customer kit (docs + license-gated pull, no source build) does not |
+| Product-led channels | In flight | Starter Kit Payment Link, Apify actor, and a customer self-host template (sales channel only; Railway is not Studio production, which stays on Vercel + Neon + Fly). Owner publish + first stranger purchase remain |
+| Onboarding (first 24h / first 7d) | In flight | Journey copy and checklists ship. Per-tier walkthrough sign-off does not |
+| Multi-editor connect | Shipped in code | Cursor, VS Code plugin surface, and ACP connect guides exist. VS Code Marketplace listing is owner ops |
+| Claim honesty | Continuous | `pnpm validate:claims` gates marketing copy. This file and What Works Today must stay in lockstep |
 
 ---
 
-## Planned
+## Next
 
-### Near-Term (Q2 2026)
-
-#### Ecosystem Integration — [#528](https://github.com/RevealUIStudio/revealui/issues/528)
-- RevVault desktop app integration in Studio _(already built: `VaultPanel.tsx` connects via Tauri to RevVault)_
-- RevVault rotation engine as a Pro feature  -  automated credential lifecycle management. _Currently: the Rust rotation subsystem ships in the [RevVault repo](https://github.com/RevealUIStudio/revvault) at `crates/core/src/rotation/` (executor, provider framework, sync hooks) with a `revvault rotate <provider>` CLI supporting `--dry-run` (`crates/cli/src/commands/rotate.rs`); a small set of internal interactive rotation scripts covers providers not yet migrated._
-- Unified ecosystem messaging across marketing, docs, and pricing surfaces _(drift-control work, not a new feature)_
-
-#### Edge Cache + Encryption Helpers Integration
-- **`@revealui/cache`** edge/CDN helpers were **deleted** (C11 2026-07-23): `edge-cache.ts` / `cdn-config.ts` had zero app consumers (tests-only). Package retains store adapters + invalidation channel. App-layer revalidation stays on platform APIs (e.g. `next/cache`).
-- **`@revealui/security`** encryption + authorization helpers (`EncryptionSystem`, `FieldEncryption`, `KeyRotationManager`, `TokenGenerator`, `DataMasking`, `EnvelopeEncryption`, `PolicyBuilder`, `PermissionBuilder`) — implemented but not exported from the barrel. Production encryption today flows through KEK + revvault directly; these helpers are reserved for future consumer-facing surfaces.
-
-#### Developer Experience — [#535](https://github.com/RevealUIStudio/revealui/issues/535)
-- `create-revealui` template improvements (more starters, better defaults). _Currently: `@revealui/cli` ships 5 templates (`basic-blog`, `e-commerce`, `portfolio`, `starter`, `starter-native`) at `packages/cli/templates/`; bullet covers template audit + one new opinionated-SaaS starter + smoother prompts + post-init onboarding._
-- Hot module reload improvements for admin development. _Currently: admin runs Next.js 16 with Turbopack configured; bullet covers baseline measurement + collection-definition HMR + RichText plugin HMR + dev-startup optimization._
-- Better error messages and debugging output. _Currently: `packages/core/src/error-handling/` ships boundaries + reporter + fallbacks + Sentry wired per §CR-8 Phase 1; bullet covers user-facing error audit + opaque → actionable rewrites + structured `DEBUG=revealui:*` namespaces + API error-envelope consistency._
-- Plugin system documentation. _Currently: Plugin API lives at `packages/core/src/types/plugins.ts` with 3 first-party plugins (`form-builder`, `nested-docs`, `redirects`) but no dedicated `docs/PLUGINS.md`; bullet closes that documentation gap._
-
-### Mid-Term (Q3 2026)
-
-#### Agent Marketplace — [#526](https://github.com/RevealUIStudio/revealui/issues/526)
-A registry where developers can publish and discover MCP servers and AI agent capabilities. Revenue share model (80% developer / 20% platform). _Currently: MCP Server Marketplace (Phase 5.5) and RevMarket autonomous-agent layer (Phase 5.16) are both substantially built — schemas, API routes, admin UI, Stripe Connect payouts, x402 payment middleware, developer docs — but x402 is disabled by default and live charging is gated on §CR-8 A-grade achievement and Stripe live-mode switch._
-
-#### Multi-User Collaboration — [#514](https://github.com/RevealUIStudio/revealui/issues/514)
-Real-time multi-user editing powered by ElectricSQL. Currently basic shape subscriptions and Yjs CRDT foundation exist (experimental). Full conflict resolution, presence indicators, and collaborative workflows are planned.
-
-#### RevealUI Fleet Features — [#515](https://github.com/RevealUIStudio/revealui/issues/515)
-- SSO/SAML authentication — tracked separately in [#449](https://github.com/RevealUIStudio/revealui/issues/449)
-- Advanced audit logging
-- Custom RBAC policy editor
-- Multi-region deployment support
-- SLA guarantees
-
-#### Self-Hosted (RevealUI Fleet) — [#515](https://github.com/RevealUIStudio/revealui/issues/515)
-Docker images for fully self-hosted deployment. Domain-locked licensing, air-gap capable. _Currently: the Docker Compose stack (the RevealUI Fleet kit) exists as an infrastructure skeleton. SSO, white-label theming, and the deployment guide are not yet implemented._
-
-### Long-Term (Q4 2026+)
-
-#### Visual Editing — [#1816](https://github.com/RevealUIStudio/revealui/issues/1816)
-Edit a site's content by clicking on the real rendered page from the admin dashboard. A live-preview canvas supports block-level editing, starting with text and rich text and extending to images, links, and block insert and reorder. Edits publish atomically with instant cache invalidation, and every session keeps drafts, snapshots, and a full event record. New sites get a template-seeded guided setup, and agents can propose edits into a session for a person to review before publish.
-
-#### SOC2 Type II Compliance — [#516](https://github.com/RevealUIStudio/revealui/issues/516)
-RevealUI Fleet security certification for teams that require it.
+- **MCP Marketplace.** Third-party publish, discovery, and payouts. Do not read first-party MCP servers as a live marketplace. No 80/20 revenue-share claim until that rail exists
+- **x402 agent payments.** Designed and code-complete behind `X402_ENABLED=false`. Off until an operator turns the rail on
+- **Visual Editing.** Click the real page in admin ([#1816](https://github.com/RevealUIStudio/revealui/issues/1816)). Not a no-code drag-and-drop builder
+- **Onboarding polish.** First-day and first-week journeys for free / Pro / Max
+- **RevDev daily driver.** Permission modes, public binaries, and code signing
 
 ---
 
-## Pricing Tracks
+## Later
 
-RevealUI offers four ways to pay:
+- **SCIM**, custom RBAC editor, multi-region
+- **Managed RevealUI Cloud.** Per-operator provisioning, operator UI, and a productized support contract. Unbuilt. The agency engagement is the path that ships a hosted instance today
+- **SOC2 Type II** ([#516](https://github.com/RevealUIStudio/revealui/issues/516))
+- **Air-gapped container path** for fully disconnected environments
+- **Real-time multi-user collaboration** beyond current ElectricSQL shapes and Yjs text
+
+---
+
+## Pricing tracks
 
 | Track | Model | Description |
 |-------|-------|-------------|
-| **A  -  Subscriptions** | Monthly | Free / Pro $49/mo / Max $299/mo / Enterprise $1,499/mo |
-| **B  -  Agent Credits** | Pay-per-use | $0.001/task, first 1,000 tasks/month free (local inference) |
-| **C  -  Perpetual** | One-time | $1,499 / $8,499 / $42,999 (1 year support included, renewable) |
-| **D  -  Professional Services** | Per-engagement | Architecture review, migration assist, launch package, consulting hours |
+| **A. Subscriptions** | Monthly | Free / Pro $49/mo / Max $299/mo / Enterprise $1,499/mo |
+| **B. Agent credits** | Pay-per-use | $0.001/task, first 1,000 tasks/month free (local inference) |
+| **C. Perpetual** | One-time | $1,499 / $8,499 / $42,999 (1 year support included, renewable) |
+| **D. Professional services** | Per-engagement | Architecture review, migration assist, launch package, consulting hours |
 
-Ecosystem features by tier: RevVault desktop app + rotation engine (Pro).
-
-See [revealui.com/pricing](https://revealui.com/pricing) for details.
+See [revealui.com/pricing](https://revealui.com/pricing) for the live catalog.
 
 ---
 
-## How to Influence This Roadmap
+## How to influence this roadmap
 
-- **GitHub Issues**  -  [Request features or report bugs](https://github.com/RevealUIStudio/revealui/issues)
-- **Discussions**  -  [Join the conversation](https://github.com/RevealUIStudio/revealui/discussions)
-- **Email**  -  support@revealui.com
+- **GitHub Issues.** [Request features or report bugs](https://github.com/RevealUIStudio/revealui/issues)
+- **Discussions.** [Join the conversation](https://github.com/RevealUIStudio/revealui/discussions)
+- **Email.** support@revealui.com
 
-We prioritize based on: customer impact, charge readiness, and community demand.
+We prioritize based on customer impact, charge readiness, and community demand.

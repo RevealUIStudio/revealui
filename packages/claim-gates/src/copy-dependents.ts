@@ -80,7 +80,7 @@ export const COPY_DEPENDENT_HOLDS: readonly CopyDependentHold[] = [
     status: 'waiting',
     title: 'Visual Builder product copy',
     detector: 'visual-builder-live',
-    why: 'Visual Builder is Planned: backlog; no live drag-and-drop builder claim',
+    why: 'Visual Editing is Planned; no live drag-and-drop builder claim',
     publicTracker: '#1816',
   },
   {
@@ -88,7 +88,7 @@ export const COPY_DEPENDENT_HOLDS: readonly CopyDependentHold[] = [
     status: 'waiting',
     title: 'Self-hosted Docker / GHCR Fleet kit copy',
     detector: 'ghcr-fleet-images-live',
-    why: 'Official GHCR Docker images for Fleet are Planned; no "images published" live claim',
+    why: 'CI pushes GHCR tags; do not claim a launched customer pull-and-run Fleet kit is live',
   },
   {
     id: 'COPY-DEP-C-SCRM-CERT',
