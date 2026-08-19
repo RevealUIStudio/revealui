@@ -80,7 +80,7 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 | Migration Assist | $300/hr | hourly |
 | Consulting Hour | $300/hr | hourly |
 
-**Status:** sold through agency, not self-serve. Marketing copy on `/pricing` says "Talk to founder" / contact link, not "Buy now."
+**Status:** sold through agency, not self-serve. Live `/pricing` CTA is `Book a discovery call` → `https://cal.com/revealuistudio/discovery`. Do not write "Talk to founder" or "Buy now."
 
 ## 3. Status claims (per locked owner answer Q3 — 3-state vocabulary)
 
