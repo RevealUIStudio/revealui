@@ -52,11 +52,81 @@ describe('copy-dependent holds', () => {
     expect(h.some((x) => x.holdId === 'COPY-DEP-VISUAL-BUILDER')).toBe(true);
   });
 
+  it('keeps Enterprise SSO/SAML holds waiting until #449 closes', () => {
+    const sso = COPY_DEPENDENT_HOLDS.find((h) => h.id === 'COPY-DEP-ENTERPRISE-SSO');
+    const saml = COPY_DEPENDENT_HOLDS.find((h) => h.id === 'COPY-DEP-ENTERPRISE-SAML');
+    expect(sso?.status).toBe('waiting');
+    expect(saml?.status).toBe('waiting');
+    expect(sso?.publicTracker).toBe('#449');
+    expect(saml?.publicTracker).toBe('#449');
+  });
+
   it('flags SSO live claims without flagging bare SSO', () => {
     expect(hits('Configure SSO for your team.').length).toBe(0);
     const h = hits('SSO is available on Enterprise today.');
-    // Released when GAP-464 OIDC/SAML code landed (docs train 2026-08-05)
-    expect(h.some((x) => x.holdId === 'COPY-DEP-ENTERPRISE-SSO')).toBe(false);
+    expect(h.some((x) => x.holdId === 'COPY-DEP-ENTERPRISE-SSO')).toBe(true);
+  });
+
+  it('flags present-tense SSO/SAML in-code claims unless the line is qualified', () => {
+    expect(
+      hits('SSO is in code for every Enterprise account.').some(
+        (x) => x.holdId === 'COPY-DEP-ENTERPRISE-SSO',
+      ),
+    ).toBe(true);
+    expect(
+      hits('SAML is in code on the Enterprise tier.').some(
+        (x) => x.holdId === 'COPY-DEP-ENTERPRISE-SAML',
+      ),
+    ).toBe(true);
+    expect(
+      hits('SSO (OIDC + SAML in code) and domain-locked').some(
+        (x) => x.holdId === 'COPY-DEP-ENTERPRISE-SSO' || x.holdId === 'COPY-DEP-ENTERPRISE-SAML',
+      ),
+    ).toBe(true);
+    expect(hits('SSO is in code — #449').some((x) => x.holdId === 'COPY-DEP-ENTERPRISE-SSO')).toBe(
+      true,
+    );
+
+    expect(
+      hits('SSO (operator preview, not customer-walked — #449)').some(
+        (x) => x.holdId === 'COPY-DEP-ENTERPRISE-SSO',
+      ),
+    ).toBe(false);
+    expect(
+      hits('SAML (planned, operator preview — #449)').some(
+        (x) => x.holdId === 'COPY-DEP-ENTERPRISE-SAML',
+      ),
+    ).toBe(false);
+  });
+
+  it('flags unqualified pricing what-you-get SSO rows', () => {
+    const row = '| **Enterprise** | $1,499/mo | SSO, domain-locked |';
+    expect(hits(row).some((x) => x.holdId === 'COPY-DEP-ENTERPRISE-SSO')).toBe(true);
+    const qualified =
+      '| **Enterprise** | $1,499/mo | SSO (operator preview, not customer-walked — #449), domain-locked |';
+    expect(hits(qualified).some((x) => x.holdId === 'COPY-DEP-ENTERPRISE-SSO')).toBe(false);
+  });
+
+  it('does not flag honest residual or operator SSO/SAML lines', () => {
+    expect(
+      hits(
+        'Enterprise SSO (OIDC + SAML SP-initiated) is in code. SCIM is not built and this does not work yet.',
+      ).some(
+        (x) => x.holdId === 'COPY-DEP-ENTERPRISE-SSO' || x.holdId === 'COPY-DEP-ENTERPRISE-SAML',
+      ),
+    ).toBe(false);
+    expect(
+      hits(
+        'Enterprise accounts with the sso feature gate can attach an OIDC or SAML identity provider.',
+      ).some(
+        (x) => x.holdId === 'COPY-DEP-ENTERPRISE-SSO' || x.holdId === 'COPY-DEP-ENTERPRISE-SAML',
+      ),
+    ).toBe(false);
+    expect(
+      hits('| SAML pure | packages/auth/src/server/sso/saml.ts |').some(
+        (x) => x.holdId === 'COPY-DEP-ENTERPRISE-SAML',
+      ),
+    ).toBe(false);
   });
 
   it('flags GHCR fleet images live claims but not planned roadmap prose', () => {

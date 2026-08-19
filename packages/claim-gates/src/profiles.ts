@@ -91,6 +91,7 @@ const PRODUCT_RUNTIME: ClaimProfile = {
     'docs/FLEET.md',
     'docs/BUILD_YOUR_BUSINESS.md',
     'docs/QUICK_START.md',
+    'README.md',
   ],
   fleetAttributionFiles: [
     'docs/BUILD_YOUR_BUSINESS.md',
