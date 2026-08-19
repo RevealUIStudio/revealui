@@ -11,7 +11,7 @@ Commercial guide to RevealUI Pro: packaging, MCP integrations, open-model infere
 
 Commercially, RevealUI Pro should not be treated as a simple seat upgrade layered on top of the OSS stack. The intended model is account-level platform access, metered agent execution, explicit commerce fees where RevealUI is in the transaction path, and premium trust or governance controls for approval, audit, and compliance needs.
 
-Per-user or perpetual licenses can still exist for narrowly scoped products, but the primary hosted entitlement model should be account-level.
+Per-user or perpetual licenses can still exist for narrowly scoped products.
 
 ---
 
@@ -1261,7 +1261,7 @@ Enterprise licenses follow the same perpetual model but are scoped to self-hoste
 
 # MCP Marketplace
 
-The MCP Marketplace lets developers publish Model Context Protocol servers with per-call USDC pricing. RevealUI takes 20%; you earn 80%. Callers pay via x402  -  no subscriptions, no API keys.
+The MCP Marketplace is Planned. First-party MCP servers ship today. Third-party publishing and live marketplace charging are not open. There is no 80/20 revenue share.
 
 This is a full reference guide for both publishers and callers.
 

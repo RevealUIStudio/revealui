@@ -440,7 +440,7 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
   {
     name: 'Agency Perpetual',
     description:
-      'RevealUI Fleet license for agencies. Sell branded RevealUI to your clients without per-site subscriptions.',
+      'Perpetual Max-tier license for agencies: up to ten client deployments. License plus a thin kit, not an unattended RevForge Fleet stamp.',
     features: [
       'All Max tier features',
       'License key never expires',
@@ -456,18 +456,19 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
   },
   {
     name: 'Enterprise Perpetual',
-    description: 'Full self-hosted Enterprise tier with unlimited deployments.',
+    description:
+      'Enterprise license plus studio onboarding. Not an unattended Fleet pull-and-run kit.',
     features: [
       'All Enterprise tier features',
       'License key never expires',
-      'Unlimited self-hosted deployments',
+      'Unlimited deployments after studio onboarding',
       '1 year priority support included',
       'All Enterprise tier updates released during support period',
-      'Private GitHub repo + Docker image access',
+      'Private GitHub repo access after studio onboarding',
     ],
     renewal: '$3,999/yr for continued support',
-    cta: 'Buy Enterprise Perpetual',
-    ctaHref: '/account/license',
+    cta: 'Contact sales',
+    ctaHref: 'https://revealui.com/contact',
     comingSoon: false,
   },
 ];

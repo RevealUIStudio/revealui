@@ -120,7 +120,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_AGENCY_FOUNDING_KIT.body',
-    text: 'The middle rung for agencies: a perpetual Max-tier license for up to ten client deployments, bought self-serve. Not the twenty-five thousand dollar done-with-you Fleet engagement, and not the two hundred ninety-nine dollar content-only Starter Kit.',
+    text: 'The middle rung for agencies: a perpetual Max-tier license for up to ten client deployments, bought self-serve. License plus a thin kit, not an unattended RevForge Fleet stamp. Not the twenty-five thousand dollar done-with-you Fleet engagement, and not the two hundred ninety-nine dollar content-only Starter Kit.',
     evidence: [PERPETUAL, AGENCY_PERPETUAL_MAX_SITES, ADMIN_LICENSE_PAGE, STARTER_KIT],
   },
   {
@@ -144,7 +144,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_AGENCY_FOUNDING_KIT.points[3]',
-    text: 'After purchase you get the license key plus an automated thin kit package (stamp config and START-HERE) by email',
+    text: 'After purchase you get the license key plus an automated thin kit package (stamp config and START-HERE) by email. That is not an unattended RevForge or Fleet stamp',
     evidence: [REVFORGE_REF, PERPETUAL],
   },
   {
@@ -430,7 +430,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PERPETUAL_TIERS[1].description',
-    text: 'RevealUI Fleet license for agencies. Sell branded RevealUI to your clients without per-site subscriptions.',
+    text: 'Perpetual Max-tier license for agencies: up to ten client deployments. License plus a thin kit, not an unattended RevForge Fleet stamp.',
     evidence: [PERPETUAL, REVFORGE_REF],
   },
   {
@@ -466,7 +466,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PERPETUAL_TIERS[2].description',
-    text: 'Full self-hosted Enterprise tier with unlimited deployments.',
+    text: 'Enterprise license plus studio onboarding. Not an unattended Fleet pull-and-run kit.',
     evidence: [PERPETUAL, SELF_HOST],
   },
   {
@@ -484,7 +484,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PERPETUAL_TIERS[2].features[2]',
-    text: 'Unlimited self-hosted deployments',
+    text: 'Unlimited deployments after studio onboarding',
     evidence: [COMMERCIAL_POLICY],
   },
   {
@@ -502,7 +502,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PERPETUAL_TIERS[2].features[5]',
-    text: 'Private GitHub repo + Docker image access',
+    text: 'Private GitHub repo access after studio onboarding',
     evidence: [COMMERCIAL_POLICY],
   },
   {
@@ -576,7 +576,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing-faq.ts',
     exportPath: 'PRICING_FAQS[5].answer',
-    text: 'The Agency Founding Kit is the Agency Perpetual license productized for small agencies and MSPs: $8,499 one-time for Max-tier runtime entitlements with up to 10 client deployments, one year of support, and a license key that never expires. You check out through your signed-in account license page on Stripe. It is not the $299 content-only Starter Kit, and it is not the high-touch done-with-you Fleet engagement. A Max monthly subscription remains available if you prefer recurring billing.',
+    text: 'The Agency Founding Kit is the Agency Perpetual license productized for small agencies and MSPs: $8,499 one-time for Max-tier runtime entitlements with up to 10 client deployments, one year of support, and a license key that never expires. You check out through your signed-in account license page on Stripe. You get the license plus a thin kit (stamp config and START-HERE), not an unattended RevForge or Fleet stamp. It is not the $299 content-only Starter Kit, and it is not the high-touch done-with-you Fleet engagement. A Max monthly subscription remains available if you prefer recurring billing.',
     evidence: [
       AGENCY_PERPETUAL_MAX_SITES,
       AGENCY_PERPETUAL_MINT_WEBHOOK,

@@ -46,11 +46,13 @@ export function SignupForm({ apiUrl }: SignupFormProps) {
 function SignupContent({ apiUrl }: SignupFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // Paid-tier deep link from the marketing pricing cards (?plan=pro|max|enterprise).
-  // Unknown values are ignored rather than forwarded to the billing page.
+  // Paid-tier deep link from marketing (?plan=pro|max|enterprise).
+  // Unknown values are ignored. Enterprise is accepted but is not a
+  // self-serve trial; 2669 restricted the 7-day trial to Pro and Max.
   const planParam = searchParams.get('plan');
   const plan: 'pro' | 'max' | 'enterprise' | null =
     planParam === 'pro' || planParam === 'max' || planParam === 'enterprise' ? planParam : null;
+  const trialPlan: 'pro' | 'max' | null = plan === 'pro' || plan === 'max' ? plan : null;
   const {
     register: registerPasskey,
     isLoading: isPasskeyLoading,
@@ -81,7 +83,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
 
     setIsLoading(true);
     try {
-      const res = await apiFetch(`/api/auth/sign-up${plan ? `?plan=${plan}` : ''}`, {
+      const res = await apiFetch(`/api/auth/sign-up${trialPlan ? `?plan=${trialPlan}` : ''}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -104,8 +106,8 @@ function SignupContent({ apiUrl }: SignupFormProps) {
         // sign in — show a confirmation screen instead of pushing them to a
         // protected route that would only bounce back to /login.
         if (data.user?.emailVerified) {
-          if (plan) {
-            navigateAfterAuthChange(`/account/billing?upgrade=${plan}`);
+          if (trialPlan) {
+            navigateAfterAuthChange(`/account/billing?upgrade=${trialPlan}`);
           } else {
             navigateAfterAuthChange('/welcome');
           }
@@ -145,7 +147,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
       if (result.backupCodes?.length) {
         setBackupCodes(result.backupCodes);
       } else {
-        navigateAfterAuthChange(plan ? `/account/billing?upgrade=${plan}` : '/welcome');
+        navigateAfterAuthChange(trialPlan ? `/account/billing?upgrade=${trialPlan}` : '/welcome');
       }
     }
   };
@@ -224,7 +226,9 @@ function SignupContent({ apiUrl }: SignupFormProps) {
         </p>
         <Button
           onClick={() =>
-            navigateAfterAuthChange(plan ? `/account/billing?upgrade=${plan}` : '/welcome')
+            navigateAfterAuthChange(
+              trialPlan ? `/account/billing?upgrade=${trialPlan}` : '/welcome',
+            )
           }
           className="w-full"
         >
@@ -242,10 +246,13 @@ function SignupContent({ apiUrl }: SignupFormProps) {
         Create your account
       </Heading>
 
-      {plan ? (
+      {trialPlan ? (
         <p className="text-sm text-muted-foreground">
-          Sign up to start your free 7-day{' '}
-          {plan === 'pro' ? 'Pro' : plan === 'max' ? 'Max' : 'Enterprise'} trial.
+          Sign up to start your free 7-day {trialPlan === 'pro' ? 'Pro' : 'Max'} trial.
+        </p>
+      ) : plan === 'enterprise' ? (
+        <p className="text-sm text-muted-foreground">
+          Enterprise is sold through sales, not a 7-day trial.
         </p>
       ) : (
         <p className="text-sm text-muted-foreground">

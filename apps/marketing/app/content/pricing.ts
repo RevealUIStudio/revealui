@@ -98,12 +98,12 @@ export const PRICING_AGENCY_FOUNDING_KIT = {
   heading: 'Agency Founding Kit',
   price: '$8,499',
   priceNote: 'one-time perpetual',
-  body: 'The middle rung for agencies: a perpetual Max-tier license for up to ten client deployments, bought self-serve. Not the twenty-five thousand dollar done-with-you Fleet engagement, and not the two hundred ninety-nine dollar content-only Starter Kit.',
+  body: 'The middle rung for agencies: a perpetual Max-tier license for up to ten client deployments, bought self-serve. License plus a thin kit, not an unattended RevForge Fleet stamp. Not the twenty-five thousand dollar done-with-you Fleet engagement, and not the two hundred ninety-nine dollar content-only Starter Kit.',
   points: [
     'Agency Perpetual license: Max features, perpetual JWT with no subscription expiry, up to 10 client deployments',
     'One year of priority support included, then optional annual support renewal',
     'Checkout in the admin license page after you sign in (Stripe one-time payment)',
-    'After purchase you get the license key plus an automated thin kit package (stamp config and START-HERE) by email',
+    'After purchase you get the license key plus an automated thin kit package (stamp config and START-HERE) by email. That is not an unattended RevForge or Fleet stamp',
   ],
   primaryCta: {
     label: 'Buy Agency Perpetual in admin',

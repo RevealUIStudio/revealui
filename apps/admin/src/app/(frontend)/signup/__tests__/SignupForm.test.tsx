@@ -115,7 +115,7 @@ describe('SignupForm post-signup routing', () => {
     expect(screen.queryByText('Check your inbox')).not.toBeInTheDocument();
   });
 
-  it.each(['pro', 'max', 'enterprise'] as const)(
+  it.each(['pro', 'max'] as const)(
     'routes an auto-verified user with ?plan=%s into the billing upgrade flow',
     async (plan) => {
       mockPlanParam = plan;
@@ -131,6 +131,11 @@ describe('SignupForm post-signup routing', () => {
       );
 
       render(<SignupForm apiUrl="http://api.test" />);
+      expect(
+        screen.getByText(
+          `Sign up to start your free 7-day ${plan === 'pro' ? 'Pro' : 'Max'} trial.`,
+        ),
+      ).toBeInTheDocument();
       fillAndSubmit();
 
       await waitFor(() => {
@@ -139,6 +144,35 @@ describe('SignupForm post-signup routing', () => {
       expect(mockPush).not.toHaveBeenCalled();
     },
   );
+
+  it('accepts ?plan=enterprise without promising a trial or billing upgrade', async () => {
+    mockPlanParam = 'enterprise';
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ user: { emailVerified: true } }),
+        })
+        .mockResolvedValue({ ok: true, json: async () => ({}) }),
+    );
+
+    render(<SignupForm apiUrl="http://api.test" />);
+    expect(
+      screen.queryByText('Sign up to start your free 7-day Enterprise trial.'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText('Enterprise is sold through sales, not a 7-day trial.'),
+    ).toBeInTheDocument();
+    fillAndSubmit();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/welcome');
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith('/account/billing?upgrade=enterprise');
+    expect(mockPush).not.toHaveBeenCalled();
+  });
 
   it('ignores an unknown ?plan= value and routes to /welcome as a free-tier signup', async () => {
     mockPlanParam = 'enterprise-deluxe';

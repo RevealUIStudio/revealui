@@ -60,7 +60,7 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
       {
         heading: 'Content Data',
         paragraph:
-          'Any content you create through the admin (posts, pages, media) is stored in your database. For hosted plans, this data is stored in NeonDB (PostgreSQL).',
+          "Any content you create through the admin (posts, pages, media) is stored in that installation's database. Customer self-hosts store content in the customer's database. Studio-operated surfaces (admin.revealui.com and related Studio infrastructure) use NeonDB (PostgreSQL) for Studio's own data. RevealUI Studio does not sell a hosted customer plan.",
       },
     ],
   },
