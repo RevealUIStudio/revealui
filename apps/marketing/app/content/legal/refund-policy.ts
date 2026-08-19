@@ -40,7 +40,7 @@ export const REFUND_POLICY_SECTIONS: readonly LegalSection[] = [
   {
     heading: '3. Starter Kit (content-only product)',
     paragraphs: [
-      'The RevealUI Starter Kit is a content product, not a Pro license and not a hosted instance. Self-serve checkout is not public until the first-sale walk is recorded. If you purchased through a Studio-confirmed request or invoice, contact us for a refund — we treat it as a content product.',
+      'The RevealUI Starter Kit is a content product, not a Pro license and not a hosted instance. Self-serve checkout is not public until the first-sale walk is recorded. If you purchased through a Studio-confirmed request or invoice, contact us for a refund. We treat it as a content product.',
     ],
   },
   {

@@ -721,7 +721,7 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'legal/refund-policy.ts',
     exportPath: 'REFUND_POLICY_SECTIONS[2].paragraphs[0]',
-    text: 'The RevealUI Starter Kit is a content product, not a Pro license and not a hosted instance. Self-serve checkout is not public until the first-sale walk is recorded. If you purchased through a Studio-confirmed request or invoice, contact us for a refund — we treat it as a content product.',
+    text: 'The RevealUI Starter Kit is a content product, not a Pro license and not a hosted instance. Self-serve checkout is not public until the first-sale walk is recorded. If you purchased through a Studio-confirmed request or invoice, contact us for a refund. We treat it as a content product.',
     evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE, STARTER_KIT],
   },
   {
