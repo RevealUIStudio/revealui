@@ -139,6 +139,10 @@ cpSync(
   path.join(pkgDir, '.actor', 'input_schema.json'),
   path.join(outDir, '.actor', 'input_schema.json'),
 );
+cpSync(
+  path.join(pkgDir, '.actor', 'output_schema.json'),
+  path.join(outDir, '.actor', 'output_schema.json'),
+);
 
 // actor.json's "dockerfile": "../Dockerfile" / "readme": "../README.md" are
 // relative to .actor/, and the output layout preserves that (outDir/.actor/
