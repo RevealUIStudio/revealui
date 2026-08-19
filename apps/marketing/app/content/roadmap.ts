@@ -60,6 +60,13 @@ export const ROADMAP_SHIPPED: readonly RoadmapItem[] = [
     status: 'Shipped',
     category: 'Enterprise',
   },
+  {
+    name: 'Hosted BYOK agents',
+    description:
+      'An entitled Pro account can save a Groq or Grok key in hosted admin and run a task. That path was walked on production. Platform-billed inference and x402 agent payments are not this surface.',
+    status: 'Shipped',
+    category: 'AI',
+  },
 ];
 
 export const ROADMAP_UPCOMING_SECTION: SectionHeading = {

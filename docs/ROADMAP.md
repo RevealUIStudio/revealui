@@ -11,7 +11,7 @@ audience: developer
 
 This roadmap is an honesty document. It names what ships today, what is in flight, and what is planned. It is not a sales forecast.
 
-**Last updated:** 2026-08-18
+**Last updated:** 2026-08-19
 
 The customer-facing board lives at [revealui.com/roadmap](https://revealui.com/roadmap). Capability status and counts: [What Works Today](./WHAT_WORKS_TODAY.md).
 
@@ -47,7 +47,7 @@ Labels match the `/products` page.
 - **UI.** 66 native React components in `@revealui/presentation` (Tailwind v4, no Radix/Headless UI/shadcn)
 - **Database.** 104 Postgres tables via Drizzle on Neon. ElectricSQL is an optional sync layer (off by default)
 - **CLI.** `npx create-revealui@latest my-app` plus 5 templates (basic-blog, e-commerce, portfolio, starter, starter-native)
-- **Agents.** A2A, CRDT memory, open-model default, streaming, tool execution. Hosted runs use the account's saved provider key (BYOK) or a local model. RevealUI does not host a shared frontier key as the product default
+- **Agents.** A2A, CRDT memory, open-model default, streaming, tool execution. Hosted runs use the account's saved provider key (BYOK) or a local model. RevealUI does not host a shared frontier key as the product default. An entitled Pro account walked save-key plus Send Task plus Watch live on production (2026-08-18). That is one operator walk, not a paying-customer load test.
 - **MCP.** 13 first-party servers under `packages/mcp/src/servers/` (includes the adapter module)
 - **Enterprise SSO.** OIDC + SAML SP-initiated under the Enterprise `sso` gate. Operator guide: [FORGE_SSO_SETUP.md](./FORGE_SSO_SETUP.md). **SCIM is not built**
 - **Audit receipts.** Signed audit log. Max can download Merkle roots
@@ -67,7 +67,6 @@ Work that is real and unfinished. No gap IDs on this public page.
 
 | Item | Status | Honest residual |
 |------|--------|-----------------|
-| Hosted agent walk | In flight | Code is on production. Closure is a live entitled-account walk (save a key, send a task, watch a run) |
 | Fleet pull-and-run kit | In flight | Images exist. The launched customer kit (docs + license-gated pull, no source build) does not |
 | Product-led channels | In flight | Starter Kit Payment Link, Apify actor, and a customer self-host template (sales channel only; Railway is not Studio production, which stays on Vercel + Neon + Fly). Owner publish + first stranger purchase remain |
 | Onboarding (first 24h / first 7d) | In flight | Journey copy and checklists ship. Per-tier walkthrough sign-off does not |

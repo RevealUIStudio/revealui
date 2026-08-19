@@ -6,7 +6,7 @@ status: verified
 audience: user
 ---
 
-> Last verified: 2026-08-18
+> Last verified: 2026-08-19
 
 This page is an honest account of what RevealUI can and can't do right now.
 If you're evaluating RevealUI for a project, read this before the marketing page.
@@ -63,7 +63,7 @@ rate limiting, CSRF protection, and route handlers across `apps/server/src/route
 
 ### AI agent system
 LLM provider abstraction (default: Ollama; opt-in: Groq, HuggingFace, OpenAI-compatible), CRDT-based memory (`WorkingMemory`, `EpisodicMemory`, `SemanticMemory`, `ProceduralMemory`), tool registry, streaming runtime, and orchestration layer. Embeddings default to Ollama `nomic-embed-text` (768 dim). Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) are Fair Source / FSL-1.1-MIT.
-**Untested in production. The agent system works in development; not yet stress-tested with real workloads or paying users.**
+**Hosted BYOK was walked once on production** (2026-08-18, entitled Pro, Groq key, Send Task + Watch live returned a real model reply). That is a single operator walk, not a paying-customer load test. Local/open-weight remains the default. Platform-billed inference is not this surface.
 
 ### Security
 RBAC + ABAC policy engine (50+ enforcement tests), AES-256-GCM encryption,
