@@ -93,7 +93,7 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 
 | Feature | Status | Notes |
 |---|---|---|
-| Stripe live payments | **Live** | `STRIPE_LIVE_MODE` flipped ON 2026-06-26 (owner directive). Post-flip marketing PHRASING is still pending an owner ruling; until ruled, describe billing capability only. Do not use "accept payments today", and the retired "live keys in flight" line is now false. |
+| Stripe live payments | **Live** | `STRIPE_LIVE_MODE` flipped ON 2026-06-26 (owner directive). Owner ruled 2026-08-19: take money; leave Buy/trial CTAs (Pro/Max 7-day trial, Track C Buy buttons, `comingSoon: false`) as they are. Phrasing is no longer pending. Do not say "accept payments today." Zero paying customers is still true; do not claim strangers are buying. The retired "live keys in flight" line is false. |
 | Dashboard Agent Chat | **Shipped** | Live at admin.revealui.com. |
 | Documentation Site | **Shipped** | docs.revealui.com. |
 | x402 Agent Payments | **Planned** | `X402_ENABLED=false` default; code-complete but dormant, enabled only by owner directive. Tracked in [revealui#526](https://github.com/RevealUIStudio/revealui/issues/526) section D. |
