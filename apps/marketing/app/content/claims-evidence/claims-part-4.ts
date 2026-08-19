@@ -48,6 +48,7 @@ import {
   SSO_AUTH_ROUTES,
   SSO_SAML_PURE,
   SSO_SETUP_DOC,
+  STARTER_KIT,
   THIS_SITE,
   X402,
 } from './shared-refs.js';
@@ -142,7 +143,7 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'fair-source.ts',
     exportPath: 'FAIR_SOURCE_FAQS[4].answer',
-    text: 'License enforcement is at runtime in the hosted product, not baked into the npm packages. The hosted RevealUI API checks Ed25519-signed license JWTs and gates Pro API routes; the packages themselves ship ungated, so self-hosters run them freely. FSL is the legal protection: the source is visible and you can run it, but shipping a competing developer platform on top of it is exactly what the non-compete clause prohibits, with civil remedies available. Two years after each release, that release becomes plain MIT.',
+    text: 'License enforcement is at runtime on the studio control plane (admin.revealui.com and api.revealui.com), not baked into the npm packages. That is a license check on RevealUI Studio infrastructure, not a customer VM we operate. You self-host the runtime. Managed customer instances are RevealUI Cloud (waitlist). The hosted RevealUI API checks Ed25519-signed license JWTs and gates Pro API routes; the packages themselves ship ungated, so self-hosters run them freely. FSL is the legal protection: the source is visible and you can run it, but shipping a competing developer platform on top of it is exactly what the non-compete clause prohibits, with civil remedies available. Two years after each release, that release becomes plain MIT.',
     evidence: [LICENSE_ED25519, FAIR_SOURCE_PAGE],
   },
   {
@@ -713,38 +714,50 @@ export const claimsPart4: readonly ClaimEntry[] = [
   },
   {
     file: 'legal/refund-policy.ts',
+    exportPath: 'REFUND_POLICY_SECTIONS[2].heading',
+    text: '3. Starter Kit (content-only product)',
+    evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE, STARTER_KIT],
+  },
+  {
+    file: 'legal/refund-policy.ts',
     exportPath: 'REFUND_POLICY_SECTIONS[2].paragraphs[0]',
+    text: 'The RevealUI Starter Kit is a content product, not a Pro license and not a hosted instance. Self-serve checkout is not public until the first-sale walk is recorded. If you purchased through a Studio-confirmed request or invoice, contact us for a refund. We treat it as a content product.',
+    evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE, STARTER_KIT],
+  },
+  {
+    file: 'legal/refund-policy.ts',
+    exportPath: 'REFUND_POLICY_SECTIONS[3].paragraphs[0]',
     text: 'Architecture Review, Fleet deployment, Custom Build, and other services sold by invoice are governed by the Master Service Agreement and Statement of Work for that engagement, not by this policy.',
     evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE],
   },
   {
     file: 'legal/refund-policy.ts',
-    exportPath: 'REFUND_POLICY_SECTIONS[3].heading',
-    text: '4. How to request a refund',
+    exportPath: 'REFUND_POLICY_SECTIONS[4].heading',
+    text: '5. How to request a refund',
     evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE],
   },
   {
     file: 'legal/refund-policy.ts',
-    exportPath: 'REFUND_POLICY_SECTIONS[3].listItems[0]',
+    exportPath: 'REFUND_POLICY_SECTIONS[4].listItems[0]',
     text: '(interpolated: SITE email / domain embedded at runtime)',
     match: 'path',
     evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE],
   },
   {
     file: 'legal/refund-policy.ts',
-    exportPath: 'REFUND_POLICY_SECTIONS[3].listItems[1]',
+    exportPath: 'REFUND_POLICY_SECTIONS[4].listItems[1]',
     text: 'We process eligible refunds within 5 business days of your request.',
     evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE],
   },
   {
     file: 'legal/refund-policy.ts',
-    exportPath: 'REFUND_POLICY_SECTIONS[3].listItems[2]',
+    exportPath: 'REFUND_POLICY_SECTIONS[4].listItems[2]',
     text: 'For a perpetual license, your license key is revoked once the refund is issued.',
     evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE],
   },
   {
     file: 'legal/refund-policy.ts',
-    exportPath: 'REFUND_POLICY_SECTIONS[4].paragraphs[0]',
+    exportPath: 'REFUND_POLICY_SECTIONS[5].paragraphs[0]',
     text: '(interpolated: SITE email / domain embedded at runtime)',
     match: 'path',
     evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE],

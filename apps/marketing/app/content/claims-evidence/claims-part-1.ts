@@ -958,8 +958,8 @@ export const claimsPart1: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_HERO_SUBTEXT.prefix',
-    text: 'All plans run as self-hosted installations under your license. Managed deployment available as a service add-on. Want to deploy a branded version for your own customers? See',
-    evidence: [SELF_HOST, COMMERCIAL_POLICY, PERPETUAL],
+    text: 'All plans run as self-hosted installations under your license. Pro and Enterprise on this page are a license plus studio support on admin.revealui.com; you self-host. Managed customer instances are RevealUI Cloud (waitlist). Want to deploy a branded version for your own customers? See',
+    evidence: [SELF_HOST, COMMERCIAL_POLICY, PERPETUAL, ROADMAP],
   },
   {
     file: 'pricing.ts',

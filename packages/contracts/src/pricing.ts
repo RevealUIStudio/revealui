@@ -82,7 +82,7 @@ export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
   aiInference: 'Open-Model Inference (Snaps, Ollama, Harness)',
   auditLog: 'Audit receipts (signed log + downloadable Merkle roots)',
   multiTenant: 'Multi-site Content Management',
-  whiteLabel: 'White-label Branding (managed setup via revforge)',
+  whiteLabel: 'White-label Branding (RevForge operator stamp)',
   sso: 'Enterprise SSO (OIDC / SAML)',
   vaultDesktop: 'RevVault Desktop App',
   vaultRotation: 'RevVault Rotation Engine',
@@ -230,10 +230,10 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       // whiteLabel / SSO-as-enterprise-sold-feature: not advertised until shipped
       // (see packages/core features whiteLabel force-false + GAP-302 honesty bar).
     ],
-    // Self-serve subscription checkout (GAP-302 Phase 1). Server resolves
-    // enterprise price from billing catalog; signup deep-link carries plan.
-    cta: 'Start your 7-day free trial',
-    ctaHref: '/signup?plan=enterprise',
+    // ToS and /pricing trial footnote: 7-day trial is Pro and Max only.
+    // Absolute marketing URL so PricingPage does not prefix ADMIN_URL.
+    cta: 'Contact sales',
+    ctaHref: 'https://revealui.com/contact',
     highlighted: false,
   },
 ];

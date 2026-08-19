@@ -46,4 +46,35 @@ describe('PricingPage final CTA', () => {
     const cta = await screen.findByRole('link', { name: 'Buy Enterprise Perpetual' });
     expect(cta).toHaveAttribute('href', 'https://admin.revealui.com/account/license');
   });
+
+  it('points the Enterprise subscription CTA at contact sales, not a trial signup', async () => {
+    render(<PricingPage />);
+    const ctas = await screen.findAllByRole('link', { name: 'Contact sales' });
+    const hrefs = ctas.map((link) => link.getAttribute('href'));
+    expect(hrefs).toContain('https://revealui.com/contact');
+    expect(hrefs.some((href) => href?.includes('signup'))).toBe(false);
+    expect(hrefs.some((href) => href?.includes('plan=enterprise'))).toBe(false);
+  });
+
+  it('keeps Pro and Max trial CTAs on admin signup', async () => {
+    render(<PricingPage />);
+    const trialLinks = await screen.findAllByRole('link', {
+      name: 'Start your 7-day free trial',
+    });
+    const hrefs = trialLinks.map((link) => link.getAttribute('href'));
+    expect(hrefs).toContain('https://admin.revealui.com/signup?plan=pro');
+    expect(hrefs).toContain('https://admin.revealui.com/signup?plan=max');
+    expect(hrefs.some((href) => href?.includes('plan=enterprise'))).toBe(false);
+  });
+
+  it('does not render the live Starter Kit Payment Link as a public Buy CTA', async () => {
+    render(<PricingPage />);
+    const cta = await screen.findByRole('link', { name: 'Request the RevealUI Starter Kit' });
+    expect(cta).toHaveAttribute(
+      'href',
+      'mailto:founder@revealui.com?subject=RevealUI%20Starter%20Kit%20request',
+    );
+    expect(cta.getAttribute('href') ?? '').not.toContain('buy.stripe.com');
+    expect(screen.queryByRole('link', { name: 'Buy the RevealUI Starter Kit' })).toBeNull();
+  });
 });

@@ -102,13 +102,13 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_STARTER_KIT.points[3]',
-    text: 'Checkout on Stripe; private GitHub repo access and Skool buyer invite are manual at launch volume',
+    text: 'Request access first; private GitHub repo access and Skool buyer invite are manual after a confirmed sale',
     evidence: [STARTER_KIT],
   },
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_STARTER_KIT.primaryCta.label',
-    text: 'Buy the RevealUI Starter Kit',
+    text: 'Request the RevealUI Starter Kit',
     evidence: [STARTER_KIT],
   },
   {
@@ -564,7 +564,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing-faq.ts',
     exportPath: 'PRICING_FAQS[4].answer',
-    text: 'The Starter Kit is a $299 one-time, content-only product. It packages create-revealui onboarding, Postgres bootstrap, and governed agent recipes that demonstrate signed receipts you can verify offline. It does not include a Pro subscription entitlement or a full RevealUI Fleet stamp. Checkout is on Stripe. After purchase we invite you to the private kit repo and Skool buyer community within one business day.',
+    text: 'The Starter Kit is a $299 one-time, content-only product. It packages create-revealui onboarding, Postgres bootstrap, and governed agent recipes that demonstrate signed receipts you can verify offline. It does not include a Pro subscription entitlement or a full RevealUI Fleet stamp. Request access first; public Stripe checkout is paused until the first-sale walk is recorded. After a confirmed purchase we invite you to the private kit repo and Skool buyer community within one business day.',
     evidence: [STARTER_KIT, STARTER_KIT_GETTING_STARTED, CLI_CREATE, STARTER_KIT_RECEIPT_TEST],
   },
   {
@@ -633,8 +633,8 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing-faq.ts',
     exportPath: 'PRICING_FAQS[9].answer',
-    text: "Fair Source is a middle path between closed commercial and plain open-source. Our five Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) are source-visible on GitHub, installable from npm, and legally usable in commercial products, with one non-compete clause: you can't ship a substantially similar developer platform that competes with RevealUI on top of them. Two years after each release, that release automatically converts to MIT. Same license model used by Sentry, GitButler, and Keygen. Source-available under FSL: free for everyone except SaaS competitors. Pro plan = hosted infra + support, not npm-level enforcement. Full explainer at /fair-source.",
-    evidence: [LICENSE_SPLIT, FAIR_SOURCE_PAGE, REPO],
+    text: "Fair Source is a middle path between closed commercial and plain open-source. Our five Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) are source-visible on GitHub, installable from npm, and legally usable in commercial products, with one non-compete clause: you can't ship a substantially similar developer platform that competes with RevealUI on top of them. Two years after each release, that release automatically converts to MIT. Same license model used by Sentry, GitButler, and Keygen. Source-available under FSL: free for everyone except SaaS competitors. Pro and Enterprise on /pricing are a license plus studio support on admin.revealui.com; you self-host. Managed customer instances are RevealUI Cloud (waitlist). Enforcement is not baked into the npm packages. Full explainer at /fair-source.",
+    evidence: [LICENSE_SPLIT, FAIR_SOURCE_PAGE, REPO, SELF_HOST, COMMERCIAL_POLICY, ROADMAP],
   },
   {
     file: 'pricing-faq.ts',
