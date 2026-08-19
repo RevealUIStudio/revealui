@@ -50,6 +50,8 @@ describe('buildAgencyKitArtifact', () => {
     expect(art.manifest.perpetual).toBe(true);
     expect(art.manifest.licenseId).toBe('lic_test_1');
     expect(art.startHereMarkdown).toContain('Agency Founding Kit');
+    expect(art.startHereMarkdown.includes('github.com/RevealUIStudio/revforge')).toBe(false);
+    expect(art.startHereMarkdown).toContain('private RevForge stamper');
     expect(art.revforgeJson.licenseMaxSites).toBe(10);
     const blob = JSON.stringify(art);
     expect(blob).not.toMatch(/PRIVATE_KEY|BEGIN PRIVATE/i);

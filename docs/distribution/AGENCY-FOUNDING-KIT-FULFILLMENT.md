@@ -27,7 +27,7 @@ checkout (`POST /api/billing/checkout-perpetual` with `tier: max`).
 
 ### Full mode on a long worker (optional stamp.sh)
 
-On Fly/operator hosts with a revforge checkout (not Vercel serverless):
+On Fly/operator hosts with a **private** RevForge stamper checkout (not Vercel serverless; there is no public `RevealUIStudio/revforge` repo):
 
 ```bash
 export REVEALUI_KIT_STAMP_MODE=full

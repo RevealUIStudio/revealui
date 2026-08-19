@@ -123,7 +123,7 @@ Marketing copy may say "cobalt" (or "Electric Verdigris") descriptively but the 
 | RevealUI | Shipped | Beta — no paying users yet | The core runtime |
 | RevDev | Shipped (Studio + Console + Daemon all shipping) | Alpha | Dev harness; dogfooded via studio-dogfood lane |
 | RevVault | Shipped | Beta (MIT CLI + Pro desktop app) | Secret management |
-| RevForge | In flight | Alpha (operator-only stamping tool, private preview) | Public GitHub not listed; produces customer-stamped Fleet kits |
+| RevForge | In flight | Alpha (operator-only stamping tool, private preview) | No public GitHub — `https://github.com/RevealUIStudio/revforge` 404s (verified 2026-08-19). Customer runtime is in-tree `docker-compose.forge.yml` + GHCR. `COPY-DEP-FLEET-DOCKER-IMAGES` still `waiting`. |
 | RevCon | Shipped | Alpha (MIT) | Editor config sync |
 | RevSkills | Shipped | Active (MIT) | Agent Skills library (Claude, Grok, Cursor, OpenCode, VS Code) |
 | RevMarket | Planned | Code-complete, dormant | MCP marketplace; X402_ENABLED=false |
