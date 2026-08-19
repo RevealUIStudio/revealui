@@ -22,7 +22,12 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import { fetchIdpMetadata, fetchOidcDiscovery, parseIdpMetadataXml } from '@revealui/auth/server';
+import {
+  auditSsoConfigChanged,
+  fetchIdpMetadata,
+  fetchOidcDiscovery,
+  parseIdpMetadataXml,
+} from '@revealui/auth/server';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { accountMemberships, accountSsoProviders } from '@revealui/db/schema';
@@ -333,15 +338,16 @@ async function loadProviderForAccount(
   return toPublic(row);
 }
 
-function logConfigChange(
+async function logConfigChange(
   action: string,
   fields: {
     accountId: string;
     providerId?: string;
     userId: string;
     issuer?: string;
+    providerType?: string;
   },
-): void {
+): Promise<void> {
   logger.info('sso_config_changed', {
     event: 'sso_config_changed',
     action,
@@ -349,7 +355,16 @@ function logConfigChange(
     providerId: fields.providerId,
     userId: fields.userId,
     issuer: fields.issuer,
+    providerType: fields.providerType,
     // Never log clientSecretRef resolved values; ref path is ok if needed later
+  });
+  await auditSsoConfigChanged({
+    action,
+    accountId: fields.accountId,
+    providerId: fields.providerId,
+    userId: fields.userId,
+    issuer: fields.issuer,
+    providerType: fields.providerType,
   });
 }
 
@@ -689,11 +704,12 @@ app.post('/:accountId/sso-providers', async (c) => {
     throw new HTTPException(500, { message: 'Failed to load created provider' });
   }
 
-  logConfigChange('create', {
+  await logConfigChange('create', {
     accountId,
     providerId: id,
     userId: user.id,
     issuer,
+    providerType: created.providerType,
   });
 
   return c.json({ provider: created }, 201);
@@ -843,11 +859,12 @@ app.patch('/:accountId/sso-providers/:providerId', async (c) => {
     throw new HTTPException(404, { message: 'SSO provider not found' });
   }
 
-  logConfigChange('update', {
+  await logConfigChange('update', {
     accountId,
     providerId,
     userId: user.id,
     issuer: updated.issuer,
+    providerType: updated.providerType,
   });
 
   return c.json({ provider: updated }, 200);
@@ -880,11 +897,12 @@ app.delete('/:accountId/sso-providers/:providerId', async (c) => {
       ),
     );
 
-  logConfigChange('delete', {
+  await logConfigChange('delete', {
     accountId,
     providerId,
     userId: user.id,
     issuer: existing.issuer,
+    providerType: existing.providerType,
   });
 
   return c.json({ ok: true }, 200);
