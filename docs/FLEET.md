@@ -7,7 +7,9 @@ category: guide
 audience: enterprise
 ---
 
-Customers buy the Enterprise tier of RevealUI; the Fleet kit (produced by RevForge) is what they deploy. Instead of running on `revealui.com`, you deploy the entire stack on your own infrastructure with full domain lock and unlimited users.
+Customers buy the Enterprise tier of RevealUI; the Fleet kit is what they deploy. Instead of running on `revealui.com`, you deploy the entire stack on your own infrastructure with full domain lock and unlimited users.
+
+The customer-facing kit is this monorepo's `docker-compose.forge.yml` plus GHCR `ghcr.io/revealuistudio/revealui-{api,admin,migrate}`. RevForge is the **operator-only** stamper (private; not a public GitHub repo) that may brand a kit and issue the studio-signed license JWT. Claim hold `COPY-DEP-FLEET-DOCKER-IMAGES` is still `waiting` — images pull, but this is not a launched customer pull-and-run product.
 
 RevealUI Fleet is a deployment-level commercial product. Pro/Enterprise on /pricing is a license plus studio support on admin.revealui.com; the customer self-hosts. Managed customer instances are RevealUI Cloud (waitlist). Fleet is not a Studio-operated VM.
 
@@ -18,7 +20,7 @@ RevealUI Fleet is a deployment-level commercial product. Pro/Enterprise on /pric
 | API (Hono) | `ghcr.io/revealuistudio/revealui-api` | 3004 |
 | Admin (Next.js) | `ghcr.io/revealuistudio/revealui-admin` | 4000 |
 | Migrate (one-shot) | `ghcr.io/revealuistudio/revealui-migrate` | (exits) |
-| PostgreSQL 16 | `postgres:16-alpine` | 5432 (internal) |
+| PostgreSQL 16 + pgvector | `pgvector/pgvector:pg16` | 5432 (internal) |
 
 All three services are wired together in `docker-compose.forge.yml` at the root of the repository.
 
@@ -57,16 +59,24 @@ The images pull without a token. A Fleet license JWT is still required to *run* 
 
 ### 2. Create your `.env.forge`
 
-Copy `.env.template` and fill in the required values. The minimum viable Fleet config:
+Do **not** copy the hosted `.env.template` mint-key block into a Fleet kit. `REVEALUI_LICENSE_PRIVATE_KEY` is the **RevealUI Studio mint key**. A Fleet customer who holds it can issue licenses. `docker-compose.forge.yml` sets `REVEALUI_DEPLOYMENT_MODE=forge`, and forge mode refuses to boot if that private key is present.
+
+Write a Fleet-only `.env.forge`. Minimum viable config (names match `docker-compose.forge.yml`):
 
 ```bash
 # Core
 NODE_ENV=production
-POSTGRES_URL=postgresql://user:pass@db:5432/revealui
+POSTGRES_PASSWORD=<secure password>
 REVEALUI_SECRET=<32+ char random string>
+REVEALUI_KEK=<64 hex chars>
+REVEALUI_AUDIT_SIGNING_KEY=<Ed25519 PKCS#8 PEM — this instance's audit-row key, not the studio mint key>
+REVEALUI_PUBLIC_SERVER_URL=https://admin.acme.com
+NEXT_PUBLIC_SERVER_URL=https://admin.acme.com
 
-# Fleet license
-REVFORGE_LICENSE_KEY=eyJhbGciOiJFZERTQSIs...
+# Fleet license — studio-issued JWT + studio public verify key. Never the mint private key.
+REVEALUI_LICENSE_KEY=eyJhbGciOiJFZERTQSIs...
+REVEALUI_LICENSE_PUBLIC_KEY=<studio Ed25519 public key PEM>
+# Legacy alias accepted by compose: REVFORGE_LICENSE_KEY
 REVFORGE_LICENSED_DOMAIN=admin.acme.com
 
 # Admin URL (used by API for redirects)
@@ -75,11 +85,9 @@ ADMIN_URL=https://admin.acme.com
 # CORS (must include your domain)
 CORS_ORIGIN=https://admin.acme.com
 
-# Stripe (for billing features)
+# Stripe (optional — your Stripe account, not license minting)
 STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
-REVEALUI_LICENSE_PRIVATE_KEY=<Ed25519 private key PEM>
-REVEALUI_LICENSE_PUBLIC_KEY=<Ed25519 public key PEM>
 ```
 
 ### 3. Start the stack
@@ -111,16 +119,18 @@ All Fleet-specific variables. See [Environment Variables Guide](./ENVIRONMENT-VA
 
 | Variable | Required | Description |
 |---|---|---|
-| `REVFORGE_LICENSE_KEY` | Yes | Your Fleet license JWT (`eyJhbGciOiJFZERTQSIs...`) |
-| `REVFORGE_LICENSED_DOMAIN` | Yes | The domain this instance is locked to |
-| `POSTGRES_URL` | Yes | PostgreSQL 16 connection URL |
+| `REVEALUI_LICENSE_KEY` | Yes | Studio-issued Fleet license JWT (`eyJhbGciOiJFZERTQSIs...`). Compose also accepts legacy `REVFORGE_LICENSE_KEY`. |
+| `REVEALUI_LICENSE_PUBLIC_KEY` | Yes | Studio Ed25519 **public** key that verifies the JWT. Not a customer-generated key. |
+| `REVEALUI_LICENSE_PRIVATE_KEY` | **Never on Fleet** | Studio mint private key. Hosted signer / `pnpm revforge:issue-license` only. Setting it on a Fleet kit is a mint-key leak and fails `MODE=forge` boot. |
+| `REVFORGE_LICENSED_DOMAIN` | Recommended | Host domain-lock (admin proxy 403 on mismatch). Not a substitute for the JWT. |
+| `POSTGRES_PASSWORD` | Yes | Postgres password (compose builds `POSTGRES_URL`) |
 | `REVEALUI_SECRET` | Yes | 32+ char application secret (session signing, CSRF, HMAC operations) |
+| `REVEALUI_KEK` | Yes | 64-hex at-rest encryption key (stamp generates; not the license mint key) |
+| `REVEALUI_AUDIT_SIGNING_KEY` | Yes | This instance's Ed25519 PKCS#8 PEM for audit rows — not the studio license mint key |
 | `ADMIN_URL` | Yes | Full URL of your admin (e.g. `https://admin.acme.com`) |
 | `CORS_ORIGIN` | Yes | Comma-separated allowed origins |
-| `STRIPE_SECRET_KEY` | Billing | Stripe secret key |
-| `STRIPE_WEBHOOK_SECRET` | Billing | Stripe webhook signing secret |
-| `REVEALUI_LICENSE_PRIVATE_KEY` | Billing | Ed25519 private key PEM for license JWTs |
-| `REVEALUI_LICENSE_PUBLIC_KEY` | Billing | Ed25519 public key PEM |
+| `STRIPE_SECRET_KEY` | Billing | Your Stripe secret key (optional) |
+| `STRIPE_WEBHOOK_SECRET` | Billing | Your Stripe webhook signing secret (optional) |
 
 ---
 
@@ -236,19 +246,18 @@ server {
 
 ---
 
-## Generating Ed25519 keys
+## Whose license keys are these
 
-Required for license JWT signing:
+A Fleet customer **does not generate** the license-signing keypair and **must not** set `REVEALUI_LICENSE_PRIVATE_KEY`.
 
-```bash
-# Generate key pair
-openssl genpkey -algorithm Ed25519 -out private.pem
-openssl pkey -in private.pem -pubout -out public.pem
+| Key | Who holds it | Role |
+|---|---|---|
+| `REVEALUI_LICENSE_PRIVATE_KEY` | RevealUI Studio only (revvault `revdev/license-signing-private-key`; declared move to `revealui/prod/license/*` is owner-gated and UNVERIFIED) | Mints customer license JWTs |
+| `REVEALUI_LICENSE_PUBLIC_KEY` | Studio publishes; Fleet kit verifies | Verifies the studio-issued JWT |
+| `REVEALUI_LICENSE_KEY` | The Fleet customer | The studio-issued JWT for this deployment |
+| `REVEALUI_AUDIT_SIGNING_KEY` | The Fleet customer (per instance) | Signs audit rows on *this* deploy — unrelated to license minting |
 
-# Set as env vars (escape newlines)
-export REVEALUI_LICENSE_PRIVATE_KEY="$(cat private.pem)"
-export REVEALUI_LICENSE_PUBLIC_KEY="$(cat public.pem)"
-```
+If a domain change is needed, contact support to reissue the JWT. Do not mint your own.
 
 ---
 

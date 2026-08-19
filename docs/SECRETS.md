@@ -333,6 +333,14 @@ Operator migration (one-time, owner machine):
 #    revvault set revealui/prod/license/signer-invoke-secret
 ```
 
+**Fleet customers never hold the mint key.** `REVEALUI_LICENSE_PRIVATE_KEY` is the studio
+signing private key. A Fleet / forge kit verifies a studio-issued JWT with
+`REVEALUI_LICENSE_PUBLIC_KEY` only. Putting the mint private key in `.env.forge` is a
+license-issuance hole; `MODE=forge` with that key present fails boot. Do not complete the
+P3-4 path move here (owner-gated). Residual: the declared target
+`revealui/prod/license/{private,public}-key` remains UNVERIFIED and may still hold a stale
+RSA-era pair (see reserved-path note above).
+
 **Deployment mode (GAP-260 P4-1):** set `REVEALUI_DEPLOYMENT_MODE=hosted` or `forge` on each
 runtime (api + admin). Prefer explicit MODE over private-key sniffing so hosted admin can boot
 without the signing private key (signer isolation). When MODE is unset, runtimes still fall
