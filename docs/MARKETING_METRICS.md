@@ -69,7 +69,7 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 | Agency Perpetual | $8,499 | $799/yr |
 | Enterprise Perpetual | $42,999 | $3,999/yr |
 
-**Status:** `comingSoon: false` in `packages/contracts/src/pricing.ts` (all three Track C tiers; asserted by `apps/server/src/routes/__tests__/pricing-accuracy.test.ts`). Marketing must NOT label Track C "Coming soon" — the perpetual tiers render as available. Live charging is still gated on the Stripe live-mode flip (see §3).
+**Status:** `comingSoon: false` in `packages/contracts/src/pricing.ts` (all three Track C tiers; asserted by `apps/server/src/routes/__tests__/pricing-accuracy.test.ts`). Marketing must NOT label Track C "Coming soon" and must NOT blank the Track C row. Public doors (2026-08-19 charge gate): Pro Perpetual and Agency Perpetual keep Buy; Agency is license plus a thin kit, not an unattended RevForge/Fleet stamp; Enterprise Perpetual public CTA is Contact sales / discovery (same pattern as the Enterprise subscription), not an unattended Fleet boot. Zero sales is not a hide reason. Live catalog rides the 2026-06-26 Stripe live flip (see §3).
 
 ### Track D — Professional Services
 
@@ -93,12 +93,12 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 
 | Feature | Status | Notes |
 |---|---|---|
-| Stripe live payments | **Live** | `STRIPE_LIVE_MODE` flipped ON 2026-06-26 (owner directive). Owner ruled 2026-08-19: take money; leave Buy/trial CTAs (Pro/Max 7-day trial, Track C Buy buttons, `comingSoon: false`) as they are. Phrasing is no longer pending. Do not say "accept payments today." Zero paying customers is still true; do not claim strangers are buying. The retired "live keys in flight" line is false. |
+| Stripe live payments | **Live** | `STRIPE_LIVE_MODE` flipped ON 2026-06-26 (owner directive). Charge gate (owner, 2026-08-19): take orders when 24h+7d UX is real. Zero sales is not a hide reason. Leave Pro/Max 7-day trial and Pro/Agency Perpetual Buy. Enterprise Perpetual public Buy is Contact sales / discovery, not unattended Fleet boot. Starter Kit public Buy stays Request/mailto; `SITE.urls.starterKitCheckout` is fulfillment-only. Do not say "accept payments today" and do not claim strangers are buying. Zero paying customers is still true. The retired "live keys in flight" line is false. |
 | Dashboard Agent Chat | **Shipped** | Live at admin.revealui.com. |
 | Documentation Site | **Shipped** | docs.revealui.com. |
 | x402 Agent Payments | **Planned** | `X402_ENABLED=false` default; code-complete but dormant, enabled only by owner directive. Tracked in [revealui#526](https://github.com/RevealUIStudio/revealui/issues/526) section D. |
 | MCP Marketplace (third-party publishing) | **Planned** | First-party catalog (13 servers) shipped; third-party publishing + revenue share not built. NO "80/20 revenue share" claims. |
-| Perpetual Licenses (Track C) | **Shipped** | `comingSoon: false` in contracts. Marketing `/roadmap` lists Track C under Recently shipped. Live catalog rides the 2026-06-26 Stripe live flip. |
+| Perpetual Licenses (Track C) | **Shipped** | `comingSoon: false` in contracts. Marketing `/roadmap` lists Track C under Recently shipped. Live catalog rides the 2026-06-26 Stripe live flip. Public Enterprise Perpetual door is Contact sales; Pro/Agency Buy stay. |
 | RevealUI Fleet pull-and-run kit | **In flight** | CI pushes `ghcr.io/revealuistudio/revealui-{api,admin,migrate}`. The launched customer pull-and-run kit is not a finished product. Do not say "designed, not built." |
 | Visual Editing | **Planned** | Live-preview / edit-session surface ([#1816](https://github.com/RevealUIStudio/revealui/issues/1816)). Not a no-code drag-and-drop builder. |
 | Enterprise SSO / SAML | **In flight** | Operator preview on test (OIDC + SAML SP-initiated, Admin UI + routes). Not customer-walked; [#449](https://github.com/RevealUIStudio/revealui/issues/449) still open. Guide: [FORGE_SSO_SETUP.md](./FORGE_SSO_SETUP.md). SCIM is not built. |

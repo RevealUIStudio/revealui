@@ -39,7 +39,7 @@ export const PRICING_FAQS: readonly FaqItem[] = [
   {
     question: 'What is the RevealUI Agency Founding Kit?',
     answer:
-      'The Agency Founding Kit is the Agency Perpetual license productized for small agencies and MSPs: $8,499 one-time for Max-tier runtime entitlements with up to 10 client deployments, one year of support, and a license key that never expires. You check out through your signed-in account license page on Stripe. It is not the $299 content-only Starter Kit, and it is not the high-touch done-with-you Fleet engagement. A Max monthly subscription remains available if you prefer recurring billing.',
+      'The Agency Founding Kit is the Agency Perpetual license productized for small agencies and MSPs: $8,499 one-time for Max-tier runtime entitlements with up to 10 client deployments, one year of support, and a license key that never expires. You check out through your signed-in account license page on Stripe. You get the license plus a thin kit (stamp config and START-HERE), not an unattended RevForge or Fleet stamp. It is not the $299 content-only Starter Kit, and it is not the high-touch done-with-you Fleet engagement. A Max monthly subscription remains available if you prefer recurring billing.',
   },
   {
     question: 'Can I upgrade or downgrade my plan?',

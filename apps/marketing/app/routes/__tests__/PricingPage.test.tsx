@@ -41,10 +41,16 @@ describe('PricingPage final CTA', () => {
     expect(cta).toHaveAttribute('href', 'https://admin.revealui.com/account/license');
   });
 
-  it('points the Enterprise Perpetual CTA at the self-serve checkout, not a mailto link', async () => {
+  it('points the Enterprise Perpetual CTA at contact sales, not self-serve checkout', async () => {
     render(<PricingPage />);
-    const cta = await screen.findByRole('link', { name: 'Buy Enterprise Perpetual' });
-    expect(cta).toHaveAttribute('href', 'https://admin.revealui.com/account/license');
+    expect(screen.queryByRole('link', { name: 'Buy Enterprise Perpetual' })).toBeNull();
+    const perpetualHeading = await screen.findByRole('heading', { name: 'Enterprise Perpetual' });
+    const card = perpetualHeading.closest('div');
+    expect(card).not.toBeNull();
+    const cta = card!.querySelector('a');
+    expect(cta).toHaveTextContent('Contact sales');
+    expect(cta).toHaveAttribute('href', 'https://revealui.com/contact');
+    expect(cta?.getAttribute('href') ?? '').not.toContain('/account/license');
   });
 
   it('points the Enterprise subscription CTA at contact sales, not a trial signup', async () => {

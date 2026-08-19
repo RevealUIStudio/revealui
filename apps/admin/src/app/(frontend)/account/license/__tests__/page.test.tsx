@@ -137,5 +137,15 @@ describe('LicensePage perpetual purchase plans', () => {
     expect(screen.getByText('Agency Perpetual')).toBeDefined();
     expect(screen.getByText('Enterprise Perpetual')).toBeDefined();
     expect(screen.queryByText('Max Perpetual')).toBeNull();
+    expect(
+      screen.getByText(
+        'Enterprise license plus studio onboarding. Not an unattended Fleet pull-and-run kit. Includes 1 year of support.',
+      ),
+    ).toBeDefined();
+    expect(
+      screen.getByText(
+        'Max features forever, up to 10 client deployments. License plus a thin kit, not an unattended RevForge Fleet stamp. Includes 1 year of support.',
+      ),
+    ).toBeDefined();
   });
 });

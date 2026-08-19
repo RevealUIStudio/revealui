@@ -52,13 +52,15 @@ const PERPETUAL_PLANS = [
     tier: 'max' as const,
     priceIdEnv: process.env.NEXT_PUBLIC_STRIPE_MAX_PERPETUAL_PRICE_ID,
     // GAP-448: Agency Founding Kit / Fleet perpetual — canon 10 client sites on the JWT.
-    description: 'Max features forever, up to 10 client deployments. Includes 1 year of support.',
+    description:
+      'Max features forever, up to 10 client deployments. License plus a thin kit, not an unattended RevForge Fleet stamp. Includes 1 year of support.',
   },
   {
     label: 'Enterprise Perpetual',
     tier: 'enterprise' as const,
     priceIdEnv: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PERPETUAL_PRICE_ID,
-    description: 'Enterprise features forever. Includes 1 year of support.',
+    description:
+      'Enterprise license plus studio onboarding. Not an unattended Fleet pull-and-run kit. Includes 1 year of support.',
   },
 ] as const;
 

@@ -214,12 +214,21 @@ describe('PERPETUAL_TIERS', () => {
   });
 
   // GAP-306: a perpetual licensee must be able to purchase without email —
-  // no perpetual-tier CTA may route to a mailto: link.
+  // no perpetual-tier CTA may route to a mailto: link. Enterprise Perpetual
+  // is Contact sales (not unattended self-serve), same door as Enterprise subscription.
   it('no perpetual tier CTA is a mailto: link', () => {
     for (const tier of PERPETUAL_TIERS) {
       expect(tier.ctaHref.startsWith('mailto:')).toBe(false);
-      expect(tier.ctaHref).toBe('/account/license');
     }
+    expect(PERPETUAL_TIERS.find((t) => t.name === 'Pro Perpetual')?.ctaHref).toBe(
+      '/account/license',
+    );
+    expect(PERPETUAL_TIERS.find((t) => t.name === 'Agency Perpetual')?.ctaHref).toBe(
+      '/account/license',
+    );
+    expect(PERPETUAL_TIERS.find((t) => t.name === 'Enterprise Perpetual')?.ctaHref).toBe(
+      'https://revealui.com/contact',
+    );
   });
 });
 
@@ -409,5 +418,19 @@ describe('PERPETUAL_TIERS  -  comingSoon status', () => {
     const enterprise = PERPETUAL_TIERS.find((t) => t.name === 'Enterprise Perpetual');
     expect(enterprise).toBeDefined();
     expect(enterprise?.comingSoon).toBe(false);
+  });
+
+  it('Enterprise Perpetual CTA is contact sales, not an unattended Buy', () => {
+    const enterprise = PERPETUAL_TIERS.find((t) => t.name === 'Enterprise Perpetual')!;
+    const pro = PERPETUAL_TIERS.find((t) => t.name === 'Pro Perpetual')!;
+    const agency = PERPETUAL_TIERS.find((t) => t.name === 'Agency Perpetual')!;
+    expect(enterprise.cta).toBe('Contact sales');
+    expect(enterprise.ctaHref).toBe('https://revealui.com/contact');
+    expect(enterprise.ctaHref.includes('signup')).toBe(false);
+    expect(enterprise.ctaHref.includes('/account/license')).toBe(false);
+    expect(pro.cta).toBe('Buy Pro Perpetual');
+    expect(pro.ctaHref).toBe('/account/license');
+    expect(agency.cta).toBe('Buy Agency Perpetual');
+    expect(agency.ctaHref).toBe('/account/license');
   });
 });
