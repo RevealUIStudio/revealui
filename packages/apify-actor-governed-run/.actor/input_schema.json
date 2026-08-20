@@ -23,8 +23,8 @@
       "type": "string",
       "description": "Which model provider to call. Required when mode is \"run-task\".",
       "editor": "select",
-      "enum": ["anthropic", "openai"],
-      "enumTitles": ["Anthropic", "OpenAI"]
+      "enum": ["anthropic", "openai", "groq", "xai"],
+      "enumTitles": ["Anthropic", "OpenAI", "Groq", "xAI (Grok)"]
     },
     "llmApiKey": {
       "title": "LLM API key",
@@ -36,7 +36,7 @@
     "model": {
       "title": "Model (optional)",
       "type": "string",
-      "description": "Override the default model for the selected provider.",
+      "description": "Override the default model for the selected provider. Groq defaults to openai/gpt-oss-120b. Retired Groq ids (qwen/qwen3-32b, llama-3.3-70b-versatile) are remapped.",
       "editor": "textfield"
     },
     "toolAllowlist": {

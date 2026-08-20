@@ -61,7 +61,9 @@ const outDir = path.join(pkgDir, '.apify-build');
 // changes what gets shipped.
 const REVIEWED_VERSIONS = {
   '@revealui/security': '0.6.0',
-  '@revealui/ai': '0.9.0',
+  // 0.9.0 does not export toolParametersToJsonSchema; 0.1.5 Store smoke
+  // crashed on that named import (run b1elgyRYXyX8fqCbN).
+  '@revealui/ai': '0.10.1',
 };
 
 // Fallback pins for the two THIRD-PARTY deps (not on the guardrail-2
@@ -138,6 +140,10 @@ cpSync(path.join(pkgDir, '.actor', 'README.md'), path.join(outDir, '.actor', 'RE
 cpSync(
   path.join(pkgDir, '.actor', 'input_schema.json'),
   path.join(outDir, '.actor', 'input_schema.json'),
+);
+cpSync(
+  path.join(pkgDir, '.actor', 'output_schema.json'),
+  path.join(outDir, '.actor', 'output_schema.json'),
 );
 
 // actor.json's "dockerfile": "../Dockerfile" / "readme": "../README.md" are

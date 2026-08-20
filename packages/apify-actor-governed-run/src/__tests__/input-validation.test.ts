@@ -15,6 +15,30 @@ describe('parseActorInput', () => {
     }
   });
 
+  it('accepts groq as a run-task provider', () => {
+    const input = parseActorInput({
+      task: 'reply ok',
+      llmProvider: 'groq',
+      llmApiKey: 'gsk-test-key',
+    });
+    expect(input.mode).toBe('run-task');
+    if (input.mode === 'run-task') {
+      expect(input.llmProvider).toBe('groq');
+    }
+  });
+
+  it('accepts xai as a run-task provider', () => {
+    const input = parseActorInput({
+      task: 'reply ok',
+      llmProvider: 'xai',
+      llmApiKey: 'xai-test-key',
+    });
+    expect(input.mode).toBe('run-task');
+    if (input.mode === 'run-task') {
+      expect(input.llmProvider).toBe('xai');
+    }
+  });
+
   it('accepts an explicit run-task input with all optional fields', () => {
     const input = parseActorInput({
       mode: 'run-task',

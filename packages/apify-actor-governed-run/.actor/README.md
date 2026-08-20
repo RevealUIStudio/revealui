@@ -10,8 +10,8 @@ without ever talking to anyone.
 ## What you get
 
 - **A completed task.** Give the actor a task and your own LLM API key
-  (Anthropic or OpenAI), and it runs an agent loop until the task is done or
-  it hits a step limit.
+  (Anthropic, OpenAI, Groq, or xAI), and it runs an agent loop until the task
+  is done or it hits a step limit.
 - **A signed, tamper-evident receipt.** Every model call and tool call is
   recorded into an action log, and the whole log, together with the
   identifiers of the Apify run that produced it, is signed with a fresh
@@ -45,7 +45,7 @@ ISO, or other compliance claim either way.
 |---|---|---|
 | `mode` | No (default `run-task`) | `run-task` or `verify-receipt` |
 | `task` | Yes, for `run-task` | The task prompt for the agent |
-| `llmProvider` | Yes, for `run-task` | `anthropic` or `openai` |
+| `llmProvider` | Yes, for `run-task` | `anthropic`, `openai`, `groq`, or `xai` |
 | `llmApiKey` | Yes, for `run-task` | Your own API key (bring-your-own-key; never stored or logged) |
 | `model` | No | Override the provider's default model |
 | `toolAllowlist` | No | Restrict which built-in tools the agent may use; omit for all, `[]` for none |

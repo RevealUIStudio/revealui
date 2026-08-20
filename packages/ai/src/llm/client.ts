@@ -48,11 +48,7 @@ import { OpenAIProvider, type OpenAIProviderConfig } from './providers/openai.js
 import { type OpenAICompatConfig, OpenAICompatProvider } from './providers/openai-compat.js';
 import { XaiProvider, type XaiProviderConfig } from './providers/xai.js';
 import { type CacheStats, ResponseCache, type ResponseCacheOptions } from './response-cache.js';
-import {
-  SemanticCache,
-  type SemanticCacheOptions,
-  type SemanticCacheStats,
-} from './semantic-cache.js';
+import type { SemanticCache, SemanticCacheOptions, SemanticCacheStats } from './semantic-cache.js';
 import { estimateRequest as _estimateRequestTokens } from './token-counter.js';
 
 export type { InferenceRoute, InferenceRouteInput, LLMProviderType } from './inference-route.js';
@@ -147,6 +143,7 @@ export class LLMClient {
   private rateLimitState: RateLimitState;
   private responseCache?: ResponseCache;
   private semanticCache?: SemanticCache;
+  private semanticCacheLoading?: Promise<SemanticCache>;
   private healthMonitor?: ProviderHealthMonitor;
   private circuitBreaker: CircuitBreaker;
   private fallbackCircuitBreaker?: CircuitBreaker;
@@ -173,10 +170,10 @@ export class LLMClient {
       this.responseCache = new ResponseCache(config.responseCacheOptions);
     }
 
-    // Initialize semantic cache if enabled
-    if (config.enableSemanticCache) {
-      this.semanticCache = new SemanticCache(config.semanticCacheOptions);
-    }
+    // SemanticCache is loaded on first chat() when enableSemanticCache is
+    // set. A static import pulls VectorMemoryService → @revealui/db/client →
+    // @revealui/config, which throws REVEALUI_PUBLIC_SERVER_URL in production
+    // (Apify Store 0.1.8). BYOK construction must not evaluate that graph.
 
     // Wire health monitor if provided
     this.healthMonitor = config.healthMonitor;
@@ -317,13 +314,30 @@ export class LLMClient {
     this.rateLimitState.dailyRequests++;
   }
 
+  private async ensureSemanticCache(): Promise<SemanticCache | undefined> {
+    if (!this.config.enableSemanticCache) {
+      return undefined;
+    }
+    if (this.semanticCache) {
+      return this.semanticCache;
+    }
+    if (!this.semanticCacheLoading) {
+      this.semanticCacheLoading = import('./semantic-cache.js').then(({ SemanticCache }) => {
+        this.semanticCache = new SemanticCache(this.config.semanticCacheOptions);
+        return this.semanticCache;
+      });
+    }
+    return this.semanticCacheLoading;
+  }
+
   async chat(messages: Message[], options?: LLMChatOptions): Promise<LLMResponse> {
     await this.refreshProviderIfNeeded();
     // Check semantic cache first (if enabled)
     // Semantic cache is more powerful - matches similar queries, not just exact matches
-    if (this.semanticCache) {
-      const query = this.semanticCache.extractQuery(messages);
-      const cached = await this.semanticCache.get(query);
+    const semanticCache = await this.ensureSemanticCache();
+    if (semanticCache) {
+      const query = semanticCache.extractQuery(messages);
+      const cached = await semanticCache.get(query);
       if (cached) {
         // Semantic cache hit - return immediately without API call
         return {
@@ -381,9 +395,9 @@ export class LLMClient {
       this.healthMonitor?.recordCall(this.config.provider, Date.now() - callStart);
 
       // Store in semantic cache (if enabled)
-      if (this.semanticCache) {
-        const query = this.semanticCache.extractQuery(messages);
-        await this.semanticCache.set(query, response.content, response.usage);
+      if (semanticCache) {
+        const query = semanticCache.extractQuery(messages);
+        await semanticCache.set(query, response.content, response.usage);
       }
 
       // Store in response cache (if enabled)
