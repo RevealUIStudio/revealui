@@ -25,5 +25,5 @@ export default defineConfig({
   // (scripts/deploy/build-apify-actor-standalone.mjs) depends on this being
   // accurate: it declares @revealui/security, apify, and zod as real runtime
   // dependencies in the generated package.json.
-  external: ['apify', '@revealui/ai'],
+  external: ['apify', '@revealui/ai', '@revealui/ai/llm/client'],
 });

@@ -11,9 +11,13 @@
  * actionable error instead of a bare module-resolution crash, and
  * `verify-receipt` mode is entirely unaffected either way.
  */
-export async function loadLLMClient(): Promise<typeof import('@revealui/ai').LLMClient> {
+export async function loadLLMClient(): Promise<typeof import('@revealui/ai/llm/client').LLMClient> {
   try {
-    const mod = await import('@revealui/ai');
+    // Import the client subpath, not the package root. The root barrel pulls
+    // `@revealui/db/client` → `@revealui/config`, which throws
+    // REVEALUI_PUBLIC_SERVER_URL is required in production (Store run
+    // 7eex6cpPtpFNNSsHj successor on 0.1.8).
+    const mod = await import('@revealui/ai/llm/client');
     return mod.LLMClient;
   } catch (err) {
     const cause = err instanceof Error ? err.message : String(err);

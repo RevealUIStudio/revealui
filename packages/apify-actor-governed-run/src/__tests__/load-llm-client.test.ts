@@ -10,29 +10,29 @@ describe('loadLLMClient', () => {
   it('returns LLMClient when @revealui/ai resolves', async () => {
     vi.resetModules();
     class FakeLLMClient {}
-    vi.doMock('@revealui/ai', () => ({ LLMClient: FakeLLMClient }));
+    vi.doMock('@revealui/ai/llm/client', () => ({ LLMClient: FakeLLMClient }));
 
     try {
       const { loadLLMClient } = await import('../agent/load-llm-client.js');
       const LLMClient = await loadLLMClient();
       expect(LLMClient).toBe(FakeLLMClient);
     } finally {
-      vi.doUnmock('@revealui/ai');
+      vi.doUnmock('@revealui/ai/llm/client');
       vi.resetModules();
     }
   });
 
   it('throws a clear, actionable error when @revealui/ai cannot be loaded', async () => {
     vi.resetModules();
-    vi.doMock('@revealui/ai', () => {
-      throw new Error("Cannot find package '@revealui/ai'");
+    vi.doMock('@revealui/ai/llm/client', () => {
+      throw new Error("Cannot find package '@revealui/ai/llm/client'");
     });
 
     try {
       const { loadLLMClient } = await import('../agent/load-llm-client.js');
       await expect(loadLLMClient()).rejects.toThrow(/run-task mode requires @revealui\/ai/);
     } finally {
-      vi.doUnmock('@revealui/ai');
+      vi.doUnmock('@revealui/ai/llm/client');
       vi.resetModules();
     }
   });
