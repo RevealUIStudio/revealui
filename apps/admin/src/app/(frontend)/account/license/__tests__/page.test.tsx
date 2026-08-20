@@ -148,7 +148,7 @@ describe('LicensePage perpetual purchase plans', () => {
     ).toBeDefined();
     const sales = screen.getByRole('link', { name: 'Contact sales' });
     expect(sales).toHaveAttribute('href', 'https://revealui.com/contact');
-    expect(screen.queryByRole('button', { name: /Buy/ })).not.toBeNull();
+    expect(screen.getAllByRole('button', { name: /^Buy / })).toHaveLength(2);
     expect(screen.queryByRole('button', { name: /Buy \$42/ })).toBeNull();
   });
 });
