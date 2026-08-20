@@ -114,10 +114,21 @@ describe('PricingTable  -  full layout', () => {
     render(<PricingTable tiers={mockTiers} onSelectTier={handleSelect} />);
 
     const buttons = screen.getAllByRole('button');
-    expect(buttons.length).toBe(3);
+    expect(buttons.length).toBe(2);
 
     await user.click(buttons[1]);
     expect(handleSelect).toHaveBeenCalledWith('pro');
+  });
+
+  it('keeps Contact sales as a href, not a checkout callback', async () => {
+    const handleSelect = vi.fn();
+    const user = userEvent.setup();
+    render(<PricingTable tiers={mockTiers} onSelectTier={handleSelect} />);
+
+    const sales = screen.getByRole('link', { name: 'Contact Sales' });
+    expect(sales).toHaveAttribute('href', 'mailto:sales@example.com');
+    await user.click(sales);
+    expect(handleSelect).not.toHaveBeenCalled();
   });
 
   it('disables the current tier button', () => {
@@ -164,16 +175,14 @@ describe('PricingTable  -  compact layout', () => {
     render(<PricingTable tiers={mockTiers} compact onSelectTier={handleSelect} />);
 
     const buttons = screen.getAllByRole('button');
-    await user.click(buttons[2]);
-    expect(handleSelect).toHaveBeenCalledWith('enterprise');
+    await user.click(buttons[1]);
+    expect(handleSelect).toHaveBeenCalledWith('pro');
   });
 
   it('disables current tier button in compact mode', () => {
-    render(
-      <PricingTable tiers={mockTiers} compact currentTier="enterprise" onSelectTier={vi.fn()} />,
-    );
+    render(<PricingTable tiers={mockTiers} compact currentTier="free" onSelectTier={vi.fn()} />);
     const buttons = screen.getAllByRole('button');
-    expect(buttons[2]).toBeDisabled();
+    expect(buttons[0]).toBeDisabled();
   });
 
   it('renders CTA links in compact mode when no onSelectTier', () => {

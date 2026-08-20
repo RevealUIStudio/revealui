@@ -121,12 +121,11 @@ describe('LicensePage activation instructions', () => {
   });
 });
 
-// GAP-306: the perpetual-purchase buttons must match PERPETUAL_TIERS[*].name
-// in @revealui/contracts/pricing exactly (the price lookup keys off it), and
-// Enterprise must have a buy button just like Pro and Agency (no tier is
-// mailto-only in-app).
+// GAP-306: the perpetual-purchase labels must match PERPETUAL_TIERS[*].name
+// in @revealui/contracts/pricing exactly (the price lookup keys off it).
+// Enterprise is Contact sales — same door as public pricing — not a Buy.
 describe('LicensePage perpetual purchase plans', () => {
-  it('renders Pro, Agency, and Enterprise Perpetual buy options (no "Max Perpetual")', async () => {
+  it('renders Pro and Agency Buy, and parks Enterprise Perpetual at Contact sales', async () => {
     render(<LicensePage />);
 
     await waitFor(() => {
@@ -147,5 +146,9 @@ describe('LicensePage perpetual purchase plans', () => {
         'Max features forever, up to 10 client deployments. License plus a thin kit, not an unattended RevForge Fleet stamp. Includes 1 year of support.',
       ),
     ).toBeDefined();
+    const sales = screen.getByRole('link', { name: 'Contact sales' });
+    expect(sales).toHaveAttribute('href', 'https://revealui.com/contact');
+    expect(screen.getAllByRole('button', { name: /^Buy / })).toHaveLength(2);
+    expect(screen.queryByRole('button', { name: /Buy \$42/ })).toBeNull();
   });
 });

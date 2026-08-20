@@ -426,25 +426,36 @@ describe('POST /checkout', () => {
 
   it('includes tier and user ID in subscription_data metadata', async () => {
     queueSelectResults(
-      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_max_server' }],
       [{ stripeCustomerId: 'cus_existing' }],
     );
     mockCheckoutSessionsCreate.mockResolvedValue({
-      url: 'https://checkout.stripe.com/pay/sess_ent',
+      url: 'https://checkout.stripe.com/pay/sess_max',
     });
 
     const app = createApp();
-    await app.request(
-      post('/checkout', { priceId: 'price_enterprise_server', tier: 'enterprise' }),
-    );
+    await app.request(post('/checkout', { priceId: 'price_max_server', tier: 'max' }));
 
     const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
     const meta = (sessionArgs.subscription_data as Record<string, unknown>).metadata as Record<
       string,
       unknown
     >;
-    expect(meta.tier).toBe('enterprise');
+    expect(meta.tier).toBe('max');
     expect(meta.revealui_user_id).toBe(MOCK_USER.id);
+  });
+
+  it('rejects unattended Enterprise subscription checkout', async () => {
+    const app = createApp();
+    const res = await app.request(
+      post('/checkout', { priceId: 'price_enterprise_server', tier: 'enterprise' }),
+    );
+
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.error as string).toContain('sales');
+    expect(body.error as string).toContain('https://revealui.com/contact');
+    expect(mockCheckoutSessionsCreate).not.toHaveBeenCalled();
   });
 
   it('defaults to pro tier when tier is not specified', async () => {
@@ -787,16 +798,24 @@ describe('POST /upgrade', () => {
     expect(res.status).toBe(401);
   });
 
-  it('returns 400 when user has no Stripe customer', async () => {
-    queueSelectResults(
-      [{ stripePriceId: 'price_enterprise_server' }],
-      [],
-      [{ stripeCustomerId: null }],
-    );
-
+  it('rejects unattended Enterprise subscription upgrade', async () => {
     const app = createApp();
     const res = await app.request(
       post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
+    );
+
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.error as string).toContain('sales');
+    expect(mockSubscriptionsUpdate).not.toHaveBeenCalled();
+  });
+
+  it('returns 400 when user has no Stripe customer', async () => {
+    queueSelectResults([{ stripePriceId: 'price_max_server' }], [], [{ stripeCustomerId: null }]);
+
+    const app = createApp();
+    const res = await app.request(
+      post('/upgrade', { priceId: 'price_max_server', targetTier: 'max' }),
     );
 
     expect(res.status).toBe(400);
@@ -806,7 +825,7 @@ describe('POST /upgrade', () => {
 
   it('returns 400 when no active subscription exists', async () => {
     queueSelectResults(
-      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_max_server' }],
       [],
       [{ stripeCustomerId: 'cus_existing' }],
     );
@@ -814,7 +833,7 @@ describe('POST /upgrade', () => {
 
     const app = createApp();
     const res = await app.request(
-      post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
+      post('/upgrade', { priceId: 'price_max_server', targetTier: 'max' }),
     );
 
     expect(res.status).toBe(400);
@@ -824,7 +843,7 @@ describe('POST /upgrade', () => {
 
   it('returns 400 when subscription has no items', async () => {
     queueSelectResults(
-      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_max_server' }],
       [],
       [{ stripeCustomerId: 'cus_existing' }],
     );
@@ -834,7 +853,7 @@ describe('POST /upgrade', () => {
 
     const app = createApp();
     const res = await app.request(
-      post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
+      post('/upgrade', { priceId: 'price_max_server', targetTier: 'max' }),
     );
 
     expect(res.status).toBe(400);
@@ -844,17 +863,17 @@ describe('POST /upgrade', () => {
 
   it('returns success with subscriptionId on valid upgrade', async () => {
     queueSelectResults(
-      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_max_server' }],
       [],
       [{ stripeCustomerId: 'cus_existing' }],
-      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_max_server' }],
     );
     mockSubscriptionsList.mockResolvedValue({
       data: [
         {
           id: 'sub_pro',
           status: 'active',
-          items: { data: [{ id: 'si_pro', price: { id: 'price_enterprise_server' } }] },
+          items: { data: [{ id: 'si_pro', price: { id: 'price_max_server' } }] },
         },
       ],
     });
@@ -862,7 +881,7 @@ describe('POST /upgrade', () => {
 
     const app = createApp();
     const res = await app.request(
-      post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
+      post('/upgrade', { priceId: 'price_max_server', targetTier: 'max' }),
     );
 
     expect(res.status).toBe(200);
@@ -873,7 +892,7 @@ describe('POST /upgrade', () => {
 
   it('queries Stripe for the customer active subscription', async () => {
     queueSelectResults(
-      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_max_server' }],
       [],
       [{ stripeCustomerId: 'cus_existing' }],
     );
@@ -882,9 +901,7 @@ describe('POST /upgrade', () => {
     });
 
     const app = createApp();
-    await app.request(
-      post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
-    );
+    await app.request(post('/upgrade', { priceId: 'price_max_server', targetTier: 'max' }));
 
     expect(mockSubscriptionsList).toHaveBeenCalledWith({
       customer: 'cus_existing',
@@ -895,7 +912,7 @@ describe('POST /upgrade', () => {
 
   it('prefers the hosted account subscription customer for upgrades', async () => {
     queueSelectResults(
-      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_max_server' }],
       [{ accountId: 'acct_123' }],
       [{ stripeCustomerId: 'cus_account' }],
     );
@@ -904,9 +921,7 @@ describe('POST /upgrade', () => {
     });
 
     const app = createApp();
-    await app.request(
-      post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
-    );
+    await app.request(post('/upgrade', { priceId: 'price_max_server', targetTier: 'max' }));
 
     expect(mockSubscriptionsList).toHaveBeenCalledWith({
       customer: 'cus_account',
@@ -917,16 +932,16 @@ describe('POST /upgrade', () => {
 
   it('prefers request-scoped account entitlements for upgrades', async () => {
     queueSelectResults(
-      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_max_server' }],
       [{ stripeCustomerId: 'cus_account_ctx' }],
-      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_max_server' }],
     );
     mockSubscriptionsList.mockResolvedValue({
       data: [
         {
           id: 'sub_pro',
           status: 'active',
-          items: { data: [{ id: 'si_pro', price: { id: 'price_enterprise_server' } }] },
+          items: { data: [{ id: 'si_pro', price: { id: 'price_max_server' } }] },
         },
       ],
     });
@@ -936,7 +951,7 @@ describe('POST /upgrade', () => {
       tier: 'pro',
       subscriptionStatus: 'active',
     });
-    await app.request(post('/upgrade', { targetTier: 'enterprise' }));
+    await app.request(post('/upgrade', { targetTier: 'max' }));
 
     expect(mockSubscriptionsList).toHaveBeenCalledWith({
       customer: 'cus_account_ctx',
@@ -948,49 +963,45 @@ describe('POST /upgrade', () => {
 
   it('updates subscription with new price, tier metadata, and prorations', async () => {
     queueSelectResults(
-      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_max_server' }],
       [],
       [{ stripeCustomerId: 'cus_existing' }],
-      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_max_server' }],
     );
     mockSubscriptionsList.mockResolvedValue({
       data: [
         {
           id: 'sub_pro',
           status: 'active',
-          items: { data: [{ id: 'si_pro', price: { id: 'price_enterprise_server' } }] },
+          items: { data: [{ id: 'si_pro', price: { id: 'price_max_server' } }] },
         },
       ],
     });
 
     const app = createApp();
-    await app.request(
-      post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
-    );
+    await app.request(post('/upgrade', { priceId: 'price_max_server', targetTier: 'max' }));
 
     expect(mockSubscriptionsUpdate).toHaveBeenCalledWith(
       'sub_pro',
       {
-        items: [{ id: 'si_pro', price: 'price_enterprise_server' }],
+        items: [{ id: 'si_pro', price: 'price_max_server' }],
         metadata: {
-          tier: 'enterprise',
+          tier: 'max',
           revealui_user_id: MOCK_USER.id,
-          pending_change: 'upgrade:enterprise',
+          pending_change: 'upgrade:max',
           pending_change_at: expect.any(String),
         },
         proration_behavior: 'create_prorations',
       },
-      { idempotencyKey: `upgrade-sub_pro-enterprise-${MOCK_USER.id}` },
+      { idempotencyKey: `upgrade-sub_pro-max-${MOCK_USER.id}` },
     );
   });
 
   it('rejects upgrade when client priceId mismatches the server catalog', async () => {
-    queueSelectResults([{ stripePriceId: 'price_enterprise_server' }]);
+    queueSelectResults([{ stripePriceId: 'price_max_server' }]);
 
     const app = createApp();
-    const res = await app.request(
-      post('/upgrade', { priceId: 'price_wrong', targetTier: 'enterprise' }),
-    );
+    const res = await app.request(post('/upgrade', { priceId: 'price_wrong', targetTier: 'max' }));
 
     expect(res.status).toBe(400);
   });

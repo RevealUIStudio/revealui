@@ -302,14 +302,14 @@ describe('POST /upgrade  -  pending_change mutex (R5-H10)', () => {
 
   it('single plan-change request returns 200 success when no pending_change is set', async () => {
     queueSelectResults(
-      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_max_server' }],
       [],
       [{ stripeCustomerId: 'cus_solo' }],
-      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_max_server' }],
     );
     const subscription = makeStripeSubscription({
       id: 'sub_solo',
-      priceId: 'price_enterprise_server',
+      priceId: 'price_max_server',
     });
     mockSubscriptionsList.mockResolvedValue({ data: [subscription] });
     mockSubscriptionsUpdate.mockImplementation(
@@ -323,7 +323,7 @@ describe('POST /upgrade  -  pending_change mutex (R5-H10)', () => {
 
     const app = createApp();
     const res = await app.request(
-      post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
+      post('/upgrade', { priceId: 'price_max_server', targetTier: 'max' }),
     );
 
     expect(res.status).toBe(200);
@@ -335,15 +335,15 @@ describe('POST /upgrade  -  pending_change mutex (R5-H10)', () => {
   it('concurrent upgrade requests for the SAME customer  -  second returns 409 with pending_change reason', async () => {
     queueSelectResults(
       // First request select chain
-      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_max_server' }],
       [],
       [{ stripeCustomerId: 'cus_dual' }],
-      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_max_server' }],
       // Second request select chain
-      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_max_server' }],
       [],
       [{ stripeCustomerId: 'cus_dual' }],
-      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_max_server' }],
     );
 
     // Shared subscription state. After the first .update, the metadata
@@ -352,7 +352,7 @@ describe('POST /upgrade  -  pending_change mutex (R5-H10)', () => {
     // exhibits on a real second concurrent webhook delivery.
     const subscription = makeStripeSubscription({
       id: 'sub_dual',
-      priceId: 'price_enterprise_server',
+      priceId: 'price_max_server',
     });
     mockSubscriptionsList.mockResolvedValue({ data: [subscription] });
     mockSubscriptionsUpdate.mockImplementation(
@@ -368,15 +368,15 @@ describe('POST /upgrade  -  pending_change mutex (R5-H10)', () => {
 
     // Request 1  -  succeeds, writes pending_change into Stripe metadata
     const res1 = await app.request(
-      post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
+      post('/upgrade', { priceId: 'price_max_server', targetTier: 'max' }),
     );
     expect(res1.status).toBe(200);
-    expect(subscription.metadata.pending_change).toBe('upgrade:enterprise');
+    expect(subscription.metadata.pending_change).toBe('upgrade:max');
     expect(subscription.metadata.pending_change_at).toBeDefined();
 
     // Request 2  -  sees pending_change in metadata, returns 409
     const res2 = await app.request(
-      post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
+      post('/upgrade', { priceId: 'price_max_server', targetTier: 'max' }),
     );
 
     expect(res2.status).toBe(409);
@@ -389,21 +389,21 @@ describe('POST /upgrade  -  pending_change mutex (R5-H10)', () => {
   it('concurrent upgrade requests for DIFFERENT customers both succeed (mutex is per-customer)', async () => {
     // First select chain → customer A; second select chain → customer B
     queueSelectResults(
-      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_max_server' }],
       [],
       [{ stripeCustomerId: 'cus_alice' }],
-      [{ stripePriceId: 'price_enterprise_server' }],
-      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_max_server' }],
+      [{ stripePriceId: 'price_max_server' }],
       [],
       [{ stripeCustomerId: 'cus_bob' }],
-      [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_max_server' }],
     );
 
     const subAlice = makeStripeSubscription({
       id: 'sub_alice',
-      priceId: 'price_enterprise_server',
+      priceId: 'price_max_server',
     });
-    const subBob = makeStripeSubscription({ id: 'sub_bob', priceId: 'price_enterprise_server' });
+    const subBob = makeStripeSubscription({ id: 'sub_bob', priceId: 'price_max_server' });
 
     // Stripe.subscriptions.list returns the matching customer's subscription.
     // Each list call sees fresh metadata for that customer; mutex on Alice's
@@ -442,19 +442,19 @@ describe('POST /upgrade  -  pending_change mutex (R5-H10)', () => {
 
     // Alice upgrades  -  pending_change written on sub_alice
     const aliceRes = await aliceApp.request(
-      post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
+      post('/upgrade', { priceId: 'price_max_server', targetTier: 'max' }),
     );
     expect(aliceRes.status).toBe(200);
-    expect(subAlice.metadata.pending_change).toBe('upgrade:enterprise');
+    expect(subAlice.metadata.pending_change).toBe('upgrade:max');
     // Bob's subscription metadata remains untouched (mutex is per-customer)
     expect(subBob.metadata.pending_change).toBeUndefined();
 
     // Bob upgrades  -  succeeds because his subscription has no pending_change
     const bobRes = await bobApp.request(
-      post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
+      post('/upgrade', { priceId: 'price_max_server', targetTier: 'max' }),
     );
     expect(bobRes.status).toBe(200);
-    expect(subBob.metadata.pending_change).toBe('upgrade:enterprise');
+    expect(subBob.metadata.pending_change).toBe('upgrade:max');
 
     // Both .update calls reached Stripe (the mutex did NOT cross-block customers)
     expect(mockSubscriptionsUpdate).toHaveBeenCalledTimes(2);

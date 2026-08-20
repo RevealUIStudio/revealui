@@ -11,7 +11,7 @@ const reader = (params: Record<string, string | null>) => ({
 });
 
 describe('parseUpgrade', () => {
-  it('accepts the known checkout plans including enterprise (GAP-302 Phase 1)', () => {
+  it('accepts the known paid-plan deep links including enterprise', () => {
     expect(parseUpgrade('pro')).toBe('pro');
     expect(parseUpgrade('max')).toBe('max');
     expect(parseUpgrade('enterprise')).toBe('enterprise');
@@ -25,7 +25,7 @@ describe('parseUpgrade', () => {
 });
 
 describe('resolveAuthDest enterprise', () => {
-  it('routes enterprise upgrade to billing checkout intent', () => {
+  it('routes enterprise to the billing page (sales-assisted; no Stripe session)', () => {
     expect(resolveAuthDest({ upgrade: 'enterprise', redirect: null, fallback: '/welcome' })).toBe(
       '/account/billing?upgrade=enterprise',
     );

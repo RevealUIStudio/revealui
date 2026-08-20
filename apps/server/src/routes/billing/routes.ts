@@ -51,6 +51,7 @@ import { resetDbStatusCache, resetSupportExpiryCache } from '../../middleware/li
 
 import {
   assertLiveCatalogComplete,
+  assertUnattendedCheckoutAllowed,
   type BillingEnv,
   billingPortalConfigId,
   CheckoutRequestSchema,
@@ -125,6 +126,7 @@ app.openapi(checkoutRoute, async (c) => {
 
   const { priceId, tier, interval } = c.req.valid('json');
   const resolvedTier = tier ?? 'pro';
+  assertUnattendedCheckoutAllowed(resolvedTier);
   const resolvedInterval = interval ?? 'month';
   const resolvedPriceId = await resolveCatalogPriceId(
     resolvedTier,
@@ -571,6 +573,7 @@ app.openapi(upgradeRoute, async (c) => {
   assertAccountOwner(c);
 
   const { priceId, targetTier } = c.req.valid('json');
+  assertUnattendedCheckoutAllowed(targetTier);
   const resolvedPriceId = await resolveCatalogPriceId(targetTier, 'subscription', priceId);
   const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
 
@@ -1048,6 +1051,7 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
   }
 
   const { priceId, tier, githubUsername } = c.req.valid('json');
+  assertUnattendedCheckoutAllowed(tier);
 
   const db = getClient();
 

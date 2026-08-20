@@ -489,6 +489,21 @@ export function getTiersFromCurrent(currentTier: LicenseTierId): SubscriptionTie
   return SUBSCRIPTION_TIERS.filter((t) => TIER_RANK[t.id] > currentRank);
 }
 
+/**
+ * Public + in-app Enterprise door. Same href as Track A Enterprise and
+ * Track C Enterprise Perpetual CTAs — not a Stripe checkout session.
+ */
+export const ENTERPRISE_SALES_HREF = 'https://revealui.com/contact' as const;
+
+/**
+ * Unattended Stripe checkout is Pro and Max only (subscription trial +
+ * Pro / Agency perpetual). Enterprise subscription and Enterprise Perpetual
+ * are sales-assisted — UI and API must use {@link ENTERPRISE_SALES_HREF}.
+ */
+export function allowsUnattendedCheckout(tier: LicenseTierId): boolean {
+  return tier === 'pro' || tier === 'max';
+}
+
 export function getTierLabel(tier: LicenseTierId): string {
   return TIER_LABELS[tier];
 }

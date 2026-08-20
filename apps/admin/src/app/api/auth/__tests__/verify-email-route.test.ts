@@ -291,7 +291,7 @@ describe('GET /api/auth/verify-email', () => {
     expect((res as MockRes).cookies.get('revealui-role')?.value).toBe('admin');
   });
 
-  it('routes enterprise upgrade into billing checkout (GAP-302 Phase 1)', async () => {
+  it('routes enterprise upgrade into billing (sales-assisted, not Stripe)', async () => {
     mockGetUserByVerificationToken.mockResolvedValue({ id: 'u1', emailVerified: false });
     mockUpdateUser.mockResolvedValue({ id: 'u1', role: 'viewer', emailVerified: true });
     mockRotateSession.mockResolvedValue({

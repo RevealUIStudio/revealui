@@ -2,6 +2,7 @@
 
 import { useSession } from '@revealui/auth/react';
 import {
+  ENTERPRISE_SALES_HREF,
   type LicenseTierId,
   type PricingResponse,
   TIER_COLORS,
@@ -79,8 +80,7 @@ function BillingContent() {
   const credits = searchParams.get('credits');
   const renewal = searchParams.get('renewal');
   // ?upgrade=pro|max|enterprise deep link (marketing pricing cards via /signup?plan=).
-  // Unknown values are ignored. GAP-302 Phase 1: enterprise uses the same
-  // auto-checkout path as pro/max (server resolves catalog price).
+  // Unknown values are ignored. Enterprise is sales-assisted — never auto-checkout.
   const upgradeParam = searchParams.get('upgrade');
   const upgrade: 'pro' | 'max' | 'enterprise' | null =
     upgradeParam === 'pro' || upgradeParam === 'max' || upgradeParam === 'enterprise'
@@ -176,15 +176,17 @@ function BillingContent() {
 
   const handleCheckout = useCallback(
     async (target: 'pro' | 'max' | 'enterprise' = 'pro') => {
+      if (target === 'enterprise') {
+        window.location.assign(ENTERPRISE_SALES_HREF);
+        return;
+      }
       setActionLoading(true);
       setError(null);
       try {
         const priceId =
-          target === 'enterprise'
-            ? process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID
-            : target === 'max'
-              ? process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID
-              : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
+          target === 'max'
+            ? process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID
+            : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
         const res = await apiFetch(`${apiUrl}/api/billing/checkout`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -209,15 +211,15 @@ function BillingContent() {
     [apiUrl],
   );
 
-  // Auto-redirect to checkout on signup with ?upgrade=pro|max|enterprise, and for churned
+  // Auto-redirect to checkout on signup with ?upgrade=pro|max, and for churned
   // users (expired/canceled) arriving with explicit upgrade intent. Never fires
-  // for active or trialing subscribers.
+  // for active or trialing subscribers. Enterprise is Contact sales, not Stripe.
   useEffect(() => {
     const canAutoCheckout =
       subscription?.tier === 'free' ||
       subscription?.status === 'expired' ||
       subscription?.status === 'canceled';
-    if (upgrade && canAutoCheckout && !actionLoading) {
+    if (upgrade && upgrade !== 'enterprise' && canAutoCheckout && !actionLoading) {
       void handleCheckout(upgrade);
     }
   }, [upgrade, subscription, actionLoading, handleCheckout]);
@@ -416,7 +418,16 @@ function BillingContent() {
         </div>
       )}
 
-      {subscriptionLoadFailed && upgrade && (
+      {upgrade === 'enterprise' && (
+        <div className="rounded-md border border-border bg-card p-4 text-sm text-foreground">
+          Enterprise is sold through sales, not unattended checkout.{' '}
+          <Button asChild appearance="link" variant="neutral" size="sm" className="h-auto p-0">
+            <a href={ENTERPRISE_SALES_HREF}>Contact sales</a>
+          </Button>
+        </div>
+      )}
+
+      {subscriptionLoadFailed && upgrade && upgrade !== 'enterprise' && (
         <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
           We could not load your subscription, so checkout did not start automatically.
           <Button

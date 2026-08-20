@@ -2,8 +2,8 @@
  * Metered Overage Checkout Tests
  *
  * Verifies that STRIPE_AGENT_OVERAGE_PRICE_ID is conditionally appended to
- * /checkout line_items for Pro/Max tiers and omitted for Enterprise and when
- * the env var is unset.
+ * /checkout line_items for Pro/Max tiers, that Enterprise checkout is rejected
+ * (sales-assisted), and that the meter is omitted when the env var is unset.
  */
 
 import { Hono } from 'hono';
@@ -317,22 +317,13 @@ describe('POST /checkout — metered overage price attachment', () => {
     expect(meteredItem).not.toHaveProperty('quantity');
   });
 
-  it('omits metered item for enterprise tier (unlimited — no overage billing)', async () => {
-    queueSelectResults(
-      [{ stripePriceId: 'price_enterprise_test' }],
-      [{ stripeCustomerId: 'cus_ent' }],
-    );
-    mockCheckoutSessionsCreate.mockResolvedValue({ url: 'https://checkout.stripe.com/pay/ent' });
-
+  it('rejects unattended Enterprise subscription checkout (sales-assisted)', async () => {
     const app = createApp();
     const res = await app.request(post('/checkout', { tier: 'enterprise' }));
-    expect(res.status).toBe(200);
-
-    const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
-    const lineItems = sessionArgs.line_items as Array<Record<string, unknown>>;
-
-    expect(lineItems).toHaveLength(1);
-    expect(lineItems[0]).toEqual({ price: 'price_enterprise_test', quantity: 1 });
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error?: string };
+    expect(body.error).toContain('sales');
+    expect(mockCheckoutSessionsCreate).not.toHaveBeenCalled();
   });
 
   it('omits metered item when STRIPE_AGENT_OVERAGE_PRICE_ID is unset (graceful degradation)', async () => {
@@ -384,19 +375,16 @@ describe('POST /checkout — session metadata (license-issuance contract)', () =
   });
 
   it('top-level metadata.tier reflects the requested tier, not a hardcoded default', async () => {
-    queueSelectResults(
-      [{ stripePriceId: 'price_enterprise_test' }],
-      [{ stripeCustomerId: 'cus_ent' }],
-    );
-    mockCheckoutSessionsCreate.mockResolvedValue({ url: 'https://checkout.stripe.com/pay/ent' });
+    queueSelectResults([{ stripePriceId: 'price_max_test' }], [{ stripeCustomerId: 'cus_max' }]);
+    mockCheckoutSessionsCreate.mockResolvedValue({ url: 'https://checkout.stripe.com/pay/max' });
 
     const app = createApp();
-    const res = await app.request(post('/checkout', { tier: 'enterprise' }));
+    const res = await app.request(post('/checkout', { tier: 'max' }));
     expect(res.status).toBe(200);
 
     const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
     expect(sessionArgs.metadata).toEqual({
-      tier: 'enterprise',
+      tier: 'max',
       revealui_user_id: 'user-metered',
     });
   });
