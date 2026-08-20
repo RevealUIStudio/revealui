@@ -16,6 +16,44 @@ import type { LLMChatOptions, LLMResponse, Message } from '@revealui/ai/llm/prov
 
 export type ByokProvider = 'anthropic' | 'openai' | 'groq' | 'xai';
 
+/** Current Groq-accepted default. Published `@revealui/ai@0.10.1` still
+ *  defaults blank Groq to `qwen/qwen3-32b`, which Groq retired. */
+export const GROQ_STORE_DEFAULT_MODEL = 'openai/gpt-oss-120b';
+
+const GROQ_RETIRED_MODELS = new Set([
+  'llama-3.3-70b-versatile',
+  'llama-3.3-70b-specdec',
+  'llama-3.1-70b-versatile',
+  'llama-3.1-8b-instant',
+  'llama-3.2-90b-vision-preview',
+  'llama-3.2-11b-vision-preview',
+  'llama-3.2-3b-preview',
+  'llama-3.2-1b-preview',
+  'mixtral-8x7b-32768',
+  'gemma2-9b-it',
+  'gemma-7b-it',
+  'qwen/qwen3-32b',
+]);
+
+/**
+ * Resolve the model id the Store actor sends to a BYOK provider.
+ * Groq blank and retired catalog ids become `openai/gpt-oss-120b` so a
+ * blank Model field does not 404 against published `@revealui/ai@0.10.1`.
+ */
+export function resolveByokModel(
+  provider: ByokProvider,
+  model: string | undefined,
+): string | undefined {
+  if (provider !== 'groq') {
+    return model;
+  }
+  const trimmed = model?.trim() ?? '';
+  if (trimmed.length === 0 || GROQ_RETIRED_MODELS.has(trimmed)) {
+    return GROQ_STORE_DEFAULT_MODEL;
+  }
+  return trimmed;
+}
+
 export interface ByokChatClientConfig {
   provider: ByokProvider;
   apiKey: string;
@@ -77,7 +115,7 @@ export async function loadLLMClient(
         }
         this.inner = new ProviderClass({
           apiKey: config.apiKey,
-          model: config.model,
+          model: resolveByokModel(provider, config.model),
         });
       }
       chat(messages: Message[], options?: LLMChatOptions): Promise<LLMResponse> {

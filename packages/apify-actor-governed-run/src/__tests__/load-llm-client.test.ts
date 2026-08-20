@@ -39,6 +39,71 @@ describe('loadLLMClient', () => {
     expect(chat).toHaveBeenCalled();
   });
 
+  it('uses openai/gpt-oss-120b when Groq model is blank', async () => {
+    vi.resetModules();
+    const constructed: Array<{ apiKey: string; model?: string }> = [];
+    class FakeGroqProvider {
+      constructor(config: { apiKey: string; model?: string }) {
+        constructed.push(config);
+      }
+      chat = vi.fn();
+    }
+    const resolve = vi.fn(
+      () => 'file:///fake/node_modules/@revealui/ai/dist/llm/providers/base.js',
+    );
+    const load = vi.fn(async () => ({ GroqProvider: FakeGroqProvider }));
+    const { loadLLMClient } = await import('../agent/load-llm-client.js');
+    const LLMClient = await loadLLMClient('groq', { resolve, load });
+    new LLMClient({ provider: 'groq', apiKey: 'gsk_test' });
+    expect(constructed).toEqual([{ apiKey: 'gsk_test', model: 'openai/gpt-oss-120b' }]);
+  });
+
+  it('remaps retired Groq catalog ids instead of sending them', async () => {
+    vi.resetModules();
+    const constructed: Array<{ apiKey: string; model?: string }> = [];
+    class FakeGroqProvider {
+      constructor(config: { apiKey: string; model?: string }) {
+        constructed.push(config);
+      }
+      chat = vi.fn();
+    }
+    const resolve = vi.fn(
+      () => 'file:///fake/node_modules/@revealui/ai/dist/llm/providers/base.js',
+    );
+    const load = vi.fn(async () => ({ GroqProvider: FakeGroqProvider }));
+    const { loadLLMClient } = await import('../agent/load-llm-client.js');
+    const LLMClient = await loadLLMClient('groq', { resolve, load });
+    new LLMClient({
+      provider: 'groq',
+      apiKey: 'gsk_test',
+      model: 'qwen/qwen3-32b',
+    });
+    expect(constructed[0]?.model).toBe('openai/gpt-oss-120b');
+  });
+
+  it('leaves a current Groq catalog id alone', async () => {
+    vi.resetModules();
+    const constructed: Array<{ apiKey: string; model?: string }> = [];
+    class FakeGroqProvider {
+      constructor(config: { apiKey: string; model?: string }) {
+        constructed.push(config);
+      }
+      chat = vi.fn();
+    }
+    const resolve = vi.fn(
+      () => 'file:///fake/node_modules/@revealui/ai/dist/llm/providers/base.js',
+    );
+    const load = vi.fn(async () => ({ GroqProvider: FakeGroqProvider }));
+    const { loadLLMClient } = await import('../agent/load-llm-client.js');
+    const LLMClient = await loadLLMClient('groq', { resolve, load });
+    new LLMClient({
+      provider: 'groq',
+      apiKey: 'gsk_test',
+      model: 'openai/gpt-oss-20b',
+    });
+    expect(constructed[0]?.model).toBe('openai/gpt-oss-20b');
+  });
+
   it('throws a clear, actionable error when the provider module cannot be loaded', async () => {
     vi.resetModules();
     const resolve = vi.fn(() => {

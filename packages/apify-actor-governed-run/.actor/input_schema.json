@@ -36,7 +36,7 @@
     "model": {
       "title": "Model (optional)",
       "type": "string",
-      "description": "Override the default model for the selected provider.",
+      "description": "Override the default model for the selected provider. Groq defaults to openai/gpt-oss-120b. Retired Groq ids (qwen/qwen3-32b, llama-3.3-70b-versatile) are remapped.",
       "editor": "textfield"
     },
     "toolAllowlist": {
