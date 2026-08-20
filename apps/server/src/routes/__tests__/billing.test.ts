@@ -814,7 +814,9 @@ describe('POST /upgrade', () => {
     queueSelectResults([{ stripePriceId: 'price_max_server' }], [], [{ stripeCustomerId: null }]);
 
     const app = createApp();
-    const res = await app.request(post('/upgrade', { priceId: 'price_max_server', targetTier: 'max' }));
+    const res = await app.request(
+      post('/upgrade', { priceId: 'price_max_server', targetTier: 'max' }),
+    );
 
     expect(res.status).toBe(400);
     const body = (await res.json()) as Record<string, unknown>;
