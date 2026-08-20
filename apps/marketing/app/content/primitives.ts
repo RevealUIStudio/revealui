@@ -18,8 +18,6 @@ import { SITE } from './site';
 export interface HomePrimitive {
   readonly label: string;
   readonly body: string;
-  /** Accent key for landing chip styles. People uses brand (was emerald alias). */
-  readonly color: string;
 }
 
 export const HOME_PRIMITIVES_SECTION = {
@@ -33,27 +31,21 @@ export const HOME_PRIMITIVES: readonly HomePrimitive[] = [
   {
     label: 'People',
     body: 'Your team signs in once. Roles and policies decide who can do what.',
-    // Brand accent (not emerald — that name was a retired palette alias).
-    color: 'brand',
   },
   {
     label: 'Content',
     body: 'Define your content once. The admin UI and API come with it.',
-    color: 'blue',
   },
   {
     label: 'Offers',
     body: 'Plans and feature gates decide what each customer and agent can use.',
-    color: 'amber',
   },
   {
     label: 'Payments',
-    body: 'Checkout and subscriptions ship ready, including webhook handling.',
-    color: 'cyan',
+    body: 'Test-mode checkout and subscriptions ship ready, including webhooks. Go live when you take real money.',
   },
   {
     label: 'Agents',
     body: 'Agents run on models you host by default. Add a hosted provider when you choose.',
-    color: 'violet',
   },
 ] as const;

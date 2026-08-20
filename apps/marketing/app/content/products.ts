@@ -12,10 +12,11 @@
 //
 // Status re-verified 2026-06-23 (Phase D, against current per-product READMEs):
 // RevForge Beta → Alpha (README: stamped kits are reference/preview only, not
-// production-ready); RevCon Alpha → Active (MIT) (shipped MIT tool, no pre-1.0
-// marking). RevMarket STAYS Planned: MASTER_PLAN marks the infra complete, but
-// truth-source §5 binds the marketplace as not-yet-shipped to users and the hero
-// says it is "on the way" — the marketing guardrail wins over internal status.
+// production-ready); RevCon / RevSkills Alpha → GA (shipped, usable libraries;
+// MIT stays on priceLabel, not the lifecycle pill). RevMarket STAYS Planned:
+// MASTER_PLAN marks the infra complete, but truth-source §5 binds the
+// marketplace as not-yet-shipped to users and the hero says it is "on the way"
+// — the marketing guardrail wins over internal status.
 //
 // Conversion pass (2026-06-09): per the e-commerce-PDP optimization framework
 // (digitalapplied.com), two "test-first" wins applied to this product-family
@@ -46,11 +47,12 @@
 // coordination (vendor adapters are roadmap-only). Every sentence on this page
 // is indexed in content/claims-evidence.ts.
 //
-// Status semantics:
-//   Beta         — production-ready code, deployed and dogfooded in production, pre-revenue
-//   Alpha        — development-preview quality; works, ships, may break
-//   Active (MIT) — released, free-and-open library, no SLA
-//   Planned      — code-complete or scaffolded, not yet shipped to users
+// Status semantics (lifecycle only — never encode a license in the pill):
+//   Beta    — production-ready code, deployed and dogfooded in production, pre-revenue
+//   Alpha   — development-preview quality; works, ships, may break
+//   GA      — generally available; released and usable. License lives on priceLabel.
+//   Planned — code-complete or scaffolded, not yet shipped to users
+//   Preview — reserved lifecycle label; unused on this roster today
 
 import { METRICS, SITE } from './site';
 import type { Cta } from './types';
@@ -61,36 +63,7 @@ export const PRODUCTS_PAGE_HERO = {
     'Start with the runtime. Add tools as you grow. Seven products on one foundation, built and operated by RevealUI Studio. Five are ready to use today. RevForge is in private preview. The agent marketplace is on the way.',
 } as const;
 
-export type ProductStatus = 'Beta' | 'Alpha' | 'Active (MIT)' | 'Planned';
-
-export interface ProductStatusStyle {
-  readonly bg: string;
-  readonly text: string;
-  readonly ring: string;
-}
-
-export const PRODUCT_STATUS_STYLES: Readonly<Record<ProductStatus, ProductStatusStyle>> = {
-  Beta: {
-    bg: 'bg-primary/10',
-    text: 'text-primary',
-    ring: 'ring-primary/30',
-  },
-  Alpha: {
-    bg: 'bg-secondary',
-    text: 'text-foreground',
-    ring: 'ring-border',
-  },
-  'Active (MIT)': {
-    bg: 'bg-primary/10',
-    text: 'text-primary',
-    ring: 'ring-primary/30',
-  },
-  Planned: {
-    bg: 'bg-muted',
-    text: 'text-muted-foreground',
-    ring: 'ring-border',
-  },
-} as const;
+export type ProductStatus = 'Beta' | 'Alpha' | 'GA' | 'Planned';
 
 export interface FlagshipFact {
   readonly stat: string;
@@ -181,11 +154,11 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
   {
     slug: 'revforge',
     name: 'RevForge',
-    tagline: 'Stamp branded runtime kits for clients',
+    tagline: 'Studio-run operator preview, not a self-serve stamp',
     highlights: [
-      'Produces branded RevealUI trial kits',
-      'Domain-locked instances per client',
-      'Self-hosted runtimes your clients operate',
+      'Operator preview the studio runs with you',
+      'Not an unattended RevForge or Fleet pull-and-run kit',
+      'Agency Founding Kit on /pricing is a license plus a thin kit',
     ],
     status: 'Alpha',
     priceLabel: 'Operator tool · private preview',
@@ -193,7 +166,7 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
       'M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766m-2.704 3.796-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z',
     primaryCta: {
       label: 'Contact us',
-      href: 'mailto:founder@revealui.com',
+      href: '/contact',
     },
   },
   {
@@ -224,7 +197,7 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
       'Linked into each project you work on',
       'Edit once, keep the fleet consistent',
     ],
-    status: 'Active (MIT)',
+    status: 'GA',
     priceLabel: 'Free · MIT',
     iconPath:
       'M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5',
@@ -243,7 +216,7 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
       'Drop into your agent harness and go',
       'Free, open, and importable',
     ],
-    status: 'Active (MIT)',
+    status: 'GA',
     priceLabel: 'Free · MIT',
     iconPath:
       'M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5',
@@ -272,6 +245,12 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     },
   },
 ] as const;
+
+export const PRODUCTS_SISTERS_SECTION = {
+  title: 'And the rest of the fleet',
+  description:
+    'Sister products that extend the runtime: secrets, operator tools, skills, and the agent tool catalog.',
+} as const;
 
 export interface StatItem {
   readonly stat: string;

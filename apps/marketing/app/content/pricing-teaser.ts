@@ -76,7 +76,7 @@ export const PRICING_TEASER_LINKS: readonly TeaserLink[] = [
   {
     id: 'enterprise',
     name: 'Enterprise',
-    description: 'Enterprise adds scale.',
+    description: 'Enterprise is scoped with sales.',
     href: '/pricing',
   },
 ] as const;

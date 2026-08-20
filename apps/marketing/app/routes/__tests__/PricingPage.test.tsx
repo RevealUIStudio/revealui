@@ -83,4 +83,14 @@ describe('PricingPage final CTA', () => {
     expect(cta.getAttribute('href') ?? '').not.toContain('buy.stripe.com');
     expect(screen.queryByRole('link', { name: 'Buy the RevealUI Starter Kit' })).toBeNull();
   });
+
+  it('styles the agent OpenAPI and API docs pair with the presentation Button contract', async () => {
+    render(<PricingPage />);
+    const openapi = await screen.findByRole('link', { name: 'OpenAPI spec' });
+    const apiDocs = await screen.findByRole('link', { name: 'API docs' });
+    expect(openapi.className.includes('h-11')).toBe(true);
+    expect(apiDocs.className.includes('h-11')).toBe(true);
+    expect(openapi.className.includes('rounded-lg bg-card')).toBe(false);
+    expect(apiDocs.className.includes('rounded-lg bg-primary')).toBe(false);
+  });
 });

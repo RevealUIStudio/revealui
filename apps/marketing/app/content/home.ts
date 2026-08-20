@@ -124,7 +124,7 @@ export const HOME_PROBLEM = {
       capability: 'Billing',
       sprawl: 'Stripe + your glue',
       agentOnly: 'Bring your own',
-      revealui: 'Checkout, subscriptions, and webhook handling',
+      revealui: 'Test-mode checkout, subscriptions, and webhook handling',
     },
     {
       capability: 'Agents on your data',
