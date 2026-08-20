@@ -59,7 +59,10 @@ export function isEditModeActive(): boolean {
 /**
  * Copy the live-edit query params onto a same-site navigation target so the
  * iframe can move between home / products without dropping the preview token.
- * Hash-only, mailto, and non-http(s) targets are returned unchanged.
+ * Only http(s) targets are rewritten. Hash-only (`#…`) is left unchanged so
+ * the URL parser does not turn it into `/#…`. Other schemes (mailto,
+ * javascript, data, vbscript, …) fall through to the protocol allowlist and
+ * are returned unchanged.
  */
 export function preserveEditModeUrl(target: string, currentSearch: string): string {
   const current = new URLSearchParams(
@@ -68,9 +71,8 @@ export function preserveEditModeUrl(target: string, currentSearch: string): stri
   const token = current.get(EDIT_QUERY_PARAM);
   const sessionId = current.get(SESSION_QUERY_PARAM);
   if (!(token && sessionId)) return target;
-  if (target.startsWith('#') || target.startsWith('mailto:') || target.startsWith('javascript:')) {
-    return target;
-  }
+  // Hash-only is not a URL scheme. Keep it so `#main` does not become `/#main`.
+  if (target.startsWith('#')) return target;
 
   let url: URL;
   try {

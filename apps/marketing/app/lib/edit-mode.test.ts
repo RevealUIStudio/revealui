@@ -31,11 +31,18 @@ describe('preserveEditModeUrl', () => {
     );
   });
 
-  it('leaves hash-only and mailto targets alone', () => {
+  it('leaves hash-only targets unchanged', () => {
     expect(preserveEditModeUrl('#main', SEARCH)).toBe('#main');
+  });
+
+  it('leaves non-http(s) schemes unchanged (allowlist, not denylist)', () => {
     expect(preserveEditModeUrl('mailto:hello@example.com', SEARCH)).toBe(
       'mailto:hello@example.com',
     );
+    expect(preserveEditModeUrl('javascript:alert(1)', SEARCH)).toBe('javascript:alert(1)');
+    expect(preserveEditModeUrl('JavaScript:alert(1)', SEARCH)).toBe('JavaScript:alert(1)');
+    expect(preserveEditModeUrl('data:text/html,hi', SEARCH)).toBe('data:text/html,hi');
+    expect(preserveEditModeUrl('vbscript:MsgBox(1)', SEARCH)).toBe('vbscript:MsgBox(1)');
   });
 });
 
