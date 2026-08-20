@@ -147,6 +147,17 @@ body {
   }
 }
 
+/* Live-edit affordance: only when the preview iframe carries rvui-edit. */
+html[data-rvui-edit-mode] [data-rvui-field] {
+  outline: 2px dashed color-mix(in oklab, var(--color-primary) 65%, transparent);
+  outline-offset: 3px;
+  cursor: pointer;
+}
+
+html[data-rvui-edit-mode] [data-rvui-field]:hover {
+  outline-color: var(--color-primary);
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;

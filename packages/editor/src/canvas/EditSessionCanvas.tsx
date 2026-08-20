@@ -89,6 +89,19 @@ function blockMetaFromDocs(docs: SessionDoc[], pageId: string | null): BlockMeta
 interface PreviewPageCandidate {
   id: string;
   slug: string;
+  title?: string;
+}
+
+function previewPageLabel(page: PreviewPageCandidate): string {
+  const title = page.title?.trim();
+  return title && title.length > 0 ? title : page.slug;
+}
+
+interface SessionEventRow {
+  id: number;
+  actorKind: string;
+  type: string;
+  createdAt: string;
 }
 
 /**
@@ -324,6 +337,8 @@ export function EditSessionCanvas({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [marketingOrigin, setMarketingOrigin] = useState<string | null>(null);
   const [docs, setDocs] = useState<SessionDoc[]>([]);
+  const [previewPages, setPreviewPages] = useState<PreviewPageCandidate[]>([]);
+  const [events, setEvents] = useState<SessionEventRow[]>([]);
   const [previewPageId, setPreviewPageId] = useState<string | null>(null);
   const [breakpoint, setBreakpoint] = useState<Breakpoint>('desktop');
   const [activeField, setActiveField] = useState<ActiveField | null>(null);
@@ -360,12 +375,12 @@ export function EditSessionCanvas({
           data: {
             session: { siteId: string };
             docs: SessionDoc[];
+            events?: SessionEventRow[];
           };
         };
         const dirtyPage = detail.data.docs.find((d) => d.docType === 'page');
-        let pageId = dirtyPage?.docId;
-
-        if (!pageId && detail.data.session.siteId) {
+        let publishedPages: PreviewPageCandidate[] = [];
+        if (detail.data.session.siteId) {
           const pagesRes = await doFetch(
             `/api/content/sites/${detail.data.session.siteId}/pages?status=published`,
           );
@@ -373,9 +388,10 @@ export function EditSessionCanvas({
             const pagesBody = (await pagesRes.json()) as {
               data: PreviewPageCandidate[];
             };
-            pageId = pickDefaultPreviewPageId(pagesBody.data ?? []);
+            publishedPages = pagesBody.data ?? [];
           }
         }
+        const pageId = dirtyPage?.docId ?? pickDefaultPreviewPageId(publishedPages);
 
         const query = pageId ? `?pageId=${encodeURIComponent(pageId)}` : '';
         const mintRes = await doFetch(`/api/content/sessions/${sessionId}/preview-token${query}`, {
@@ -385,6 +401,8 @@ export function EditSessionCanvas({
         const mint = (await mintRes.json()) as { data: { previewUrl: string } };
         if (cancelled) return;
         setDocs(detail.data.docs);
+        setEvents(detail.data.events ?? []);
+        setPreviewPages(publishedPages);
         if (pageId) setPreviewPageId(pageId);
         setPreviewUrl(mint.data.previewUrl);
         setMarketingOrigin(new URL(mint.data.previewUrl).origin);
@@ -418,9 +436,31 @@ export function EditSessionCanvas({
   const refreshDocs = useCallback(async () => {
     const res = await doFetch(`/api/content/sessions/${sessionId}`);
     if (!res.ok) return;
-    const detail = (await res.json()) as { data: { docs: SessionDoc[] } };
+    const detail = (await res.json()) as {
+      data: { docs: SessionDoc[]; events?: SessionEventRow[] };
+    };
     setDocs(detail.data.docs);
+    setEvents(detail.data.events ?? []);
   }, [doFetch, sessionId]);
+
+  const remintPreview = useCallback(
+    async (pageId: string | null): Promise<void> => {
+      const query = pageId ? `?pageId=${encodeURIComponent(pageId)}` : '';
+      const mintRes = await doFetch(`/api/content/sessions/${sessionId}/preview-token${query}`, {
+        method: 'POST',
+      });
+      if (!mintRes.ok) {
+        setNotice(`Could not refresh preview (${mintRes.status}).`);
+        return;
+      }
+      const mint = (await mintRes.json()) as { data: { previewUrl: string } };
+      setPreviewPageId(pageId);
+      setPreviewUrl(mint.data.previewUrl);
+      setMarketingOrigin(new URL(mint.data.previewUrl).origin);
+      setActiveField(null);
+    },
+    [doFetch, sessionId],
+  );
 
   const refreshMedia = useCallback(async () => {
     setMediaLoading(true);
@@ -521,10 +561,11 @@ export function EditSessionCanvas({
         setNotice(`Block operation failed (${res.status}).`);
         return;
       }
-      setNotice('Blocks updated. Reload the preview to see structure changes.');
+      setNotice('Blocks updated.');
       await refreshDocs();
+      await remintPreview(targetDocId);
     },
-    [doFetch, refreshDocs, sessionId, targetDocId],
+    [doFetch, refreshDocs, remintPreview, sessionId, targetDocId],
   );
 
   const publish = useCallback(async () => {
@@ -560,6 +601,22 @@ export function EditSessionCanvas({
   return (
     <div className="flex h-full flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
+        {previewPages.length > 0 ? (
+          <fieldset className="m-0 flex flex-wrap gap-1 border-0 p-0">
+            <legend className="sr-only">Preview page</legend>
+            {previewPages.map((page) => (
+              <Button
+                key={page.id}
+                size="sm"
+                appearance={page.id === previewPageId ? 'solid' : 'outline'}
+                aria-pressed={page.id === previewPageId}
+                onClick={() => void remintPreview(page.id)}
+              >
+                {previewPageLabel(page)}
+              </Button>
+            ))}
+          </fieldset>
+        ) : null}
         <fieldset className="m-0 flex gap-1 border-0 p-0">
           <legend className="sr-only">Preview width</legend>
           {(Object.keys(BREAKPOINTS) as Breakpoint[]).map((key) => (
@@ -597,6 +654,10 @@ export function EditSessionCanvas({
 
       <div className="flex min-h-0 flex-1 gap-3">
         <aside className="w-64 shrink-0 overflow-auto rounded-md border border-neutral-800 p-2">
+          <p className="mb-3 text-[10px] leading-snug text-neutral-500">
+            Click outlined copy on the live preview. Home hero, proof, and pricing stay on the
+            claim-covered modules.
+          </p>
           <h2 className="mb-2 text-xs font-semibold uppercase text-neutral-400">Changed docs</h2>
           {docs.length === 0 ? (
             <p className="mb-3 text-sm text-neutral-500">No edits yet.</p>
@@ -702,6 +763,26 @@ export function EditSessionCanvas({
               Add image block
             </Button>
           </div>
+
+          <h2 className="mb-2 mt-3 text-xs font-semibold uppercase text-neutral-400">
+            Session activity
+          </h2>
+          {events.length === 0 ? (
+            <p className="mb-3 text-sm text-neutral-500">No events yet.</p>
+          ) : (
+            <ul className="mb-3 space-y-1">
+              {events.map((event) => (
+                <li key={event.id} className="text-xs text-neutral-300">
+                  {event.actorKind === 'agent' ? (
+                    <span className="font-medium text-amber-300">Agent proposal</span>
+                  ) : (
+                    <span className="text-neutral-400">Editor</span>
+                  )}{' '}
+                  <span>{event.type}</span>
+                </li>
+              ))}
+            </ul>
+          )}
 
           <ThemePanel
             tokens={themeTokens}

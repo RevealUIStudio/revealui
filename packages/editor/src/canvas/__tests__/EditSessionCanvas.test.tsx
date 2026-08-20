@@ -35,7 +35,16 @@ interface FetcherOptions {
 interface MakeFetcherOptions extends FetcherOptions {
   /** When true, session has zero dirty docs (fresh open). */
   emptyDocs?: boolean;
-  pages?: Array<{ id: string; slug: string }>;
+  pages?: Array<{ id: string; slug: string; title?: string }>;
+  events?: Array<{
+    id: number;
+    actorKind: string;
+    type: string;
+    createdAt: string;
+    payload?: unknown;
+  }>;
+  /** Preview URL returned for a given minted pageId (query string). */
+  previewUrlForPageId?: (pageId: string | null) => string;
 }
 
 function makeFetcher(opts: MakeFetcherOptions = {}): { fetcher: Fetcher; calls: Call[] } {
@@ -44,7 +53,11 @@ function makeFetcher(opts: MakeFetcherOptions = {}): { fetcher: Fetcher; calls: 
     calls.push({ url, init });
     const method = (init?.method ?? 'GET').toUpperCase();
     if (url.includes('/preview-token')) {
-      return jsonResponse(201, { data: { previewUrl: PREVIEW_URL } });
+      const pageIdParam = new URL(url, 'https://canvas.test').searchParams.get('pageId');
+      const previewUrl = opts.previewUrlForPageId
+        ? opts.previewUrlForPageId(pageIdParam)
+        : PREVIEW_URL;
+      return jsonResponse(201, { data: { previewUrl } });
     }
     if (url.includes('/publish')) {
       return jsonResponse(opts.publishStatus ?? 200, opts.publishBody ?? { data: {} });
@@ -76,6 +89,7 @@ function makeFetcher(opts: MakeFetcherOptions = {}): { fetcher: Fetcher; calls: 
                 },
               },
             ],
+        events: opts.events ?? [],
       },
     });
   };
@@ -234,5 +248,58 @@ describe('EditSessionCanvas', () => {
     const notice = await screen.findByRole('status');
     expect(notice.textContent).toContain('version conflict');
     expect(notice.textContent).toContain('page-1');
+  });
+
+  it('lists published pages and remints the preview token when the operator switches page', async () => {
+    const { fetcher, calls } = makeFetcher({
+      emptyDocs: true,
+      pages: [
+        { id: 'page-home', slug: 'home', title: 'Home' },
+        { id: 'page-products', slug: 'products', title: 'Products' },
+      ],
+      previewUrlForPageId: (pageId) =>
+        pageId === 'page-products'
+          ? 'https://www.market.test/products?rvui-edit=tok&rvui-session=sid'
+          : PREVIEW_URL,
+    });
+    render(<EditSessionCanvas sessionId={SESSION} apiBaseUrl={API_BASE} fetcher={fetcher} />);
+    const iframe = (await screen.findByTitle('Content preview')) as HTMLIFrameElement;
+    expect(iframe.getAttribute('src')).toBe(PREVIEW_URL);
+
+    const products = await screen.findByRole('button', { name: 'Products' });
+    fireEvent.click(products);
+
+    await waitFor(() => {
+      expect(iframe.getAttribute('src')).toBe(
+        'https://www.market.test/products?rvui-edit=tok&rvui-session=sid',
+      );
+    });
+    const mints = calls.filter((c) => c.url.includes('/preview-token'));
+    expect(mints.length).toBeGreaterThanOrEqual(2);
+    expect(mints.some((c) => c.url.includes('pageId=page-products'))).toBe(true);
+  });
+
+  it('surfaces agent proposals from the session event log', async () => {
+    const { fetcher } = makeFetcher({
+      events: [
+        {
+          id: 1,
+          actorKind: 'human',
+          type: 'opened',
+          createdAt: '2026-08-20T00:00:00.000Z',
+        },
+        {
+          id: 2,
+          actorKind: 'agent',
+          type: 'patched',
+          createdAt: '2026-08-20T00:01:00.000Z',
+          payload: { path: 'blocks.0.data.heading' },
+        },
+      ],
+    });
+    render(<EditSessionCanvas sessionId={SESSION} apiBaseUrl={API_BASE} fetcher={fetcher} />);
+    await screen.findByTitle('Content preview');
+    expect(await screen.findByText('Agent proposal')).toBeTruthy();
+    expect(screen.getByText(/patched/i)).toBeTruthy();
   });
 });
