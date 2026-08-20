@@ -10,6 +10,7 @@ import {
 } from '@revealui/contracts/pricing';
 import {
   Button,
+  Callout,
   Card,
   CardContent,
   CardDescription,
@@ -24,6 +25,15 @@ import { TestModeBanner } from '@/components/TestModeBanner';
 import { hasCommercialUpgradePath } from '@/lib/components/should-show-upgrade-nav';
 import { apiFetch } from '@/lib/utils/csrf';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
+import {
+  formatTrialEndDate,
+  perpetualActivatedMessage,
+  resubscribeTier,
+  subscriptionActivatedMessage,
+  subscriptionExpiredMessage,
+  trialEndsBody,
+  trialEndsTitle,
+} from './trial-copy';
 
 // Bounded retry for the subscription fetch that gates auto-checkout. A short
 // linear backoff spaces the attempts so a brief blip on the buyer's connection
@@ -273,32 +283,20 @@ function BillingContent() {
       <TestModeBanner />
 
       {subscription?.status === 'trialing' && subscription.expiresAt && (
-        <div className="rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
-          Your Pro trial ends on{' '}
-          <strong>
-            {new Date(subscription.expiresAt).toLocaleDateString('en-US', {
-              month: 'long',
-              day: 'numeric',
-              year: 'numeric',
-            })}
-          </strong>
-          . After that, you&apos;ll be charged {getPrice('pro')}. Cancel anytime before then.
-        </div>
+        <Callout variant="info" role="status" title={trialEndsTitle(tier, subscription.expiresAt)}>
+          {trialEndsBody(getPrice(tier))}
+        </Callout>
       )}
 
       {subscription?.status === 'active' &&
         subscription.expiresAt &&
         new Date(subscription.expiresAt) > new Date() && (
-          <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
-            Your subscription will end on{' '}
-            <strong>
-              {new Date(subscription.expiresAt).toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </strong>
-            . You&apos;ll retain access to {TIER_LABELS[tier]} features until then.
+          <Callout
+            variant="warning"
+            role="status"
+            title={`Your subscription will end on ${formatTrialEndDate(subscription.expiresAt)}`}
+          >
+            You&apos;ll retain access to {TIER_LABELS[tier]} features until then.{' '}
             <Button
               type="button"
               appearance="link"
@@ -306,32 +304,32 @@ function BillingContent() {
               size="sm"
               onClick={handleManageBilling}
               disabled={actionLoading}
-              className="ml-2 h-auto p-0 font-medium text-inherit underline"
+              className="h-auto p-0 font-medium text-inherit underline"
             >
               Resubscribe
             </Button>
-          </div>
+          </Callout>
         )}
 
       {subscription?.status === 'expired' && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
-          Your subscription has expired. Pro features are no longer available.
+        <Callout variant="error" role="alert" title="Subscription expired">
+          {subscriptionExpiredMessage(tier)}{' '}
           <Button
             type="button"
             appearance="link"
             variant="neutral"
             size="sm"
-            onClick={() => void handleCheckout()}
+            onClick={() => void handleCheckout(resubscribeTier(tier))}
             disabled={actionLoading}
-            className="ml-2 h-auto p-0 font-medium text-inherit underline"
+            className="h-auto p-0 font-medium text-inherit underline"
           >
             Resubscribe
           </Button>
-        </div>
+        </Callout>
       )}
 
       {subscription?.status === 'revoked' && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
+        <Callout variant="error" role="alert" title="Subscription revoked">
           Your subscription has been revoked due to a billing issue. Please contact{' '}
           <a
             href="mailto:support@revealui.com"
@@ -352,21 +350,17 @@ function BillingContent() {
             update your payment method
           </Button>
           .
-        </div>
+        </Callout>
       )}
 
       {subscription?.graceUntil &&
         (subscription.status === 'past_due' || subscription.status === 'grace_period') && (
-          <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
-            Your payment is past due. You have access until{' '}
-            <strong>
-              {new Date(subscription.graceUntil).toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </strong>
-            . Please update your payment method to avoid losing access.
+          <Callout
+            variant="warning"
+            role="status"
+            title={`Your payment is past due. You have access until ${formatTrialEndDate(subscription.graceUntil)}`}
+          >
+            Please update your payment method to avoid losing access.{' '}
             <Button
               type="button"
               appearance="link"
@@ -374,62 +368,61 @@ function BillingContent() {
               size="sm"
               onClick={handleManageBilling}
               disabled={actionLoading}
-              className="ml-2 h-auto p-0 font-medium text-inherit underline"
+              className="h-auto p-0 font-medium text-inherit underline"
             >
               Update payment
             </Button>
-          </div>
+          </Callout>
         )}
 
       {perpetual && (
-        <div className="rounded-md bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
-          Perpetual license activated! Your Pro features are permanently unlocked. Your license
-          includes 1 year of support and updates.{' '}
+        <Callout variant="success" role="status" title="Perpetual license activated">
+          {perpetualActivatedMessage(tier)}{' '}
           <Link href="/account/license" className="font-medium underline hover:no-underline">
             View your license key &rarr;
           </Link>
-        </div>
+        </Callout>
       )}
 
       {renewal && (
-        <div className="rounded-md bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
-          Support contract renewed! Your perpetual license support has been extended by 1 year.{' '}
+        <Callout variant="success" role="status" title="Support contract renewed">
+          Your perpetual license support has been extended by 1 year.{' '}
           <Link href="/account/license" className="font-medium underline hover:no-underline">
             View your license &rarr;
           </Link>
-        </div>
+        </Callout>
       )}
 
       {credits && (
-        <div className="rounded-md bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
-          Credit bundle purchased! Your agent task credits have been added to your balance.
-        </div>
+        <Callout variant="success" role="status" title="Credit bundle purchased">
+          Your agent task credits have been added to your balance.
+        </Callout>
       )}
 
       {success && !perpetual && !credits && (
-        <div className="rounded-md bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
-          Subscription activated! Your Pro features are now available.
-        </div>
+        <Callout variant="success" role="status" title="Subscription activated">
+          {subscriptionActivatedMessage(tier)}
+        </Callout>
       )}
 
       {error && (
-        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+        <Callout variant="error" role="alert">
           {error}
-        </div>
+        </Callout>
       )}
 
       {upgrade === 'enterprise' && (
-        <div className="rounded-md border border-border bg-card p-4 text-sm text-foreground">
-          Enterprise is sold through sales, not unattended checkout.{' '}
+        <Callout variant="info" role="status" title="Enterprise is sold through sales">
+          Not unattended checkout.{' '}
           <Button asChild appearance="link" variant="neutral" size="sm" className="h-auto p-0">
             <a href={ENTERPRISE_SALES_HREF}>Contact sales</a>
           </Button>
-        </div>
+        </Callout>
       )}
 
       {subscriptionLoadFailed && upgrade && upgrade !== 'enterprise' && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
-          We could not load your subscription, so checkout did not start automatically.
+        <Callout variant="error" role="alert" title="Could not load your subscription">
+          Checkout did not start automatically.{' '}
           <Button
             type="button"
             appearance="link"
@@ -437,11 +430,11 @@ function BillingContent() {
             size="sm"
             onClick={() => void handleCheckout(upgrade)}
             disabled={actionLoading}
-            className="ml-2 h-auto p-0 font-medium text-inherit underline"
+            className="h-auto p-0 font-medium text-inherit underline"
           >
             Continue to checkout
           </Button>
-        </div>
+        </Callout>
       )}
 
       <Card>

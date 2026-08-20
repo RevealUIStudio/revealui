@@ -53,6 +53,15 @@ describe('WelcomePage', () => {
     expect(screen.queryByText('Your license key')).not.toBeInTheDocument();
   });
 
+  it('labels a Max paid-success visit as Max, not Pro', () => {
+    mockUseLicense.mockReturnValue({ tier: 'max' });
+    setSearch('?success=true');
+    render(<WelcomePage />);
+
+    expect(screen.getByText(/Your Max subscription is active/)).toBeInTheDocument();
+    expect(screen.queryByText(/Your Pro subscription is active/)).not.toBeInTheDocument();
+  });
+
   it('appends the agent CTA on a first-time (no success param) visit', () => {
     mockUseLicense.mockReturnValue({ tier: 'free' });
     render(<WelcomePage />);
