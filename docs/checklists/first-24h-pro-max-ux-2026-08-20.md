@@ -39,8 +39,10 @@ Merkle roots or sealed root download. `merkleRootDelivered` on every row is
 
 **First-24h UX is not guaranteed.**
 
-The catalog includes an essential SKIP: cron day-0 / day-1 / day-7 stays
-disarmed behind `LIFECYCLE_EMAILS_ENABLED`. See
+The essential cron-lifecycle-production SKIP is gone (production stay-disarmed
+is now a PASS). The remaining essential SKIP is `real-mailbox-delivery`: the
+Gmail path is documented on hosted test/staging (GAP-343) but live inbox
+delivery was not exercised. See
 `first24hUxGuaranteed(FIRST_24H_UX_SURFACES_2026_08_20) === false`.
 
 ## Audit hypotheses (2026-08-19 charge-gate)
@@ -49,7 +51,7 @@ disarmed behind `LIFECYCLE_EMAILS_ENABLED`. See
 |---|---|---|
 | Max copy says Pro | **Verified, fixed** | Admin billing hardcoded “Your Pro trial…” / “Your Pro features…”. Signup, welcome, `tierLabel()`, and marketing CTAs were already plan-specific. |
 | `expiresAt` is weak | **Verified, fixed** | `GET /api/billing/subscription` returned `expiresAt: null` on hosted-entitlement and hosted-snapshot short-circuits even when `licenses.expiresAt` stored Stripe `trial_end`. |
-| Lifecycle emails disarmed | **Verified, hold kept** | Cron sequence is gated by `LIFECYCLE_EMAILS_ENABLED === 'true'`. Stripe webhook emails are already armed. |
+| Lifecycle emails disarmed | **Verified, hold was intentional** | Templates, dispatcher job, and Gmail provider already existed. Cron was gated by `LIFECYCLE_EMAILS_ENABLED` so production would not blast the sequence. Hosted test now arms when the mailbox path is present. Production (main) stays disarmed. |
 
 ## Commands actually run
 
@@ -73,17 +75,18 @@ The surface list, results, and evidence live on the receipt catalog
 (`FIRST_24H_UX_SURFACES_2026_08_20`), persisted through the audit door in the
 PGlite test. Do not treat the table below as the SoT.
 
-Essential SKIP: `cron-lifecycle-production` (`LIFECYCLE_EMAILS_ENABLED` hold).
-Non-essential SKIP: `live-stripe-e2e`, `real-mailbox-delivery`.
-No FAIL rows.
+Essential SKIP: `real-mailbox-delivery` (no live inbox proof in this work).
+Non-essential SKIP: `live-stripe-e2e`.
+No FAIL rows. `cron-lifecycle-production` is PASS (production remains disarmed).
 
 ## Leftovers
 
-1. **`LIFECYCLE_EMAILS_ENABLED` remains off.** Cron first-week sequence will dry-run only until the owner sets the flag after mailbox + delivery verification.
+1. **Owner inbox check on hosted test.** Confirm `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, and `EMAIL_FROM` are present on vercel:api-staging (GAP-343 already maps them). Then trigger `POST /api/cron/dispatch` (or wait for the daily 06:00 UTC cron on the staging project) against a known Pro/Max test account. Do not set `LIFECYCLE_EMAILS_ENABLED=true` on production/`main`.
 2. **No live Stripe walk.** First charge / trial start in Stripe Checkout was not executed here.
 3. **Welcome page does not show `expiresAt`.** It shows the plan label and links to billing. Expiry is on billing + license after the API fix.
-4. **Security Review Gate.** `apps/server/src/routes/billing/routes.ts` changed. Merge may need `sec-review:approved` applied by the owner from a raw terminal.
+4. **Security Review Gate.** Earlier billing-route work may still need `sec-review:approved` from a raw terminal. This arming PR does not change billing/auth routes.
 5. **No Merkle root delivery.** Checking a receipt is free; sealed range roots remain Max `auditLog` only and were not implemented here.
+6. **Vercel preview crons.** Vercel invokes crons on a project's production deployment. Persistent staging (`api.staging.revealui.com`, production branch `test`) is the hosted-test fire path. Preview-only URLs from `deploy-test.yml` need a manual dispatch.
 
 ## Doors not touched
 

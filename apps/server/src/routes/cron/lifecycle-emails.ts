@@ -6,14 +6,15 @@
  * each decision in the `lifecycle_emails_sent` ledger so a given (user,
  * email-type) is processed exactly once.
  *
- * DISARMED BY DEFAULT. The transport is only called when LIFECYCLE_EMAILS_ENABLED
- * is exactly 'true'. While disarmed, the job records would-send decisions
- * (dry-run ledger rows plus log lines) and never touches the mailer. Arming
- * waits on two owner-run preconditions that are out of scope for this code: a
- * dedicated no-reply sending mailbox, and an end-to-end verification that a
- * lifecycle email is actually delivered. The dry-run and real-send claims use
- * different idempotency keys, so disarmed runs never consume a real-send slot:
- * once armed, each user still receives their email exactly once.
+ * Hosted test/staging arms when the Gmail mailbox path is present (GAP-343
+ * syncs the same SA + EMAIL_FROM to vercel:api-staging). Production (main)
+ * stays disarmed unless LIFECYCLE_EMAILS_ENABLED is exactly 'true' after an
+ * owner delivery check. Missing mailbox credentials fail closed. CI
+ * (NODE_ENV=test) never arms. Only Pro and Max are eligible — no Enterprise
+ * trial sequence. While disarmed, the job records would-send decisions
+ * (dry-run ledger rows plus log lines) and never touches the mailer. The
+ * dry-run and real-send claims use different idempotency keys, so disarmed
+ * runs never consume a real-send slot.
  *
  * Piggybacks on the daily cron dispatcher (POST /api/cron/dispatch).
  * Protected by X-Cron-Secret header (defense-in-depth  -  also validated in
@@ -32,6 +33,11 @@ import {
 } from '@revealui/db/schema';
 import { and, eq, gte, isNotNull, isNull, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
+import {
+  isLifecycleEligibleTier,
+  readLifecycleArmingEnv,
+  resolveLifecycleEmailArming,
+} from '../../lib/lifecycle-email-arming.js';
 import {
   type LifecycleTier,
   sendDay0Welcome,
@@ -125,6 +131,11 @@ export async function runLifecycleEmails(deps: LifecycleDeps): Promise<Lifecycle
   };
 
   for (const candidate of candidates) {
+    if (!isLifecycleEligibleTier(candidate.tier)) {
+      result.skipped += 1;
+      continue;
+    }
+
     const type = dueEmailType(candidate, now);
     if (!type) continue;
 
@@ -321,11 +332,14 @@ app.post('/lifecycle-emails', async (c) => {
 
   try {
     const db = getClient();
-    // ARMING GATE. Absent or any value other than 'true' keeps sending disarmed.
-    const enabled = process.env.LIFECYCLE_EMAILS_ENABLED === 'true';
+    const arming = resolveLifecycleEmailArming(readLifecycleArmingEnv());
+    logger.info('[lifecycle-emails] arming decision', {
+      armed: arming.armed,
+      reason: arming.reason,
+    });
 
     const result = await runLifecycleEmails({
-      enabled,
+      enabled: arming.armed,
       now: new Date(),
       loadCandidates: (now) => loadCandidatesReal(db, now),
       claim: (input) => claimReal(db, input),

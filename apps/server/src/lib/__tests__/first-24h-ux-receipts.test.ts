@@ -36,15 +36,19 @@ describe('first-24h Pro/Max UX receipt catalog (2026-08-20)', () => {
     }
   });
 
-  it('does not guarantee first-24h UX while an essential SKIP remains', () => {
+  it('does not guarantee first-24h UX while mailbox delivery remains an essential SKIP', () => {
     expect(FIRST_24H_UX_REPORT_DATE).toBe('2026-08-20');
     expect(first24hUxGuaranteed(FIRST_24H_UX_SURFACES_2026_08_20)).toBe(false);
-    expect(
-      FIRST_24H_UX_SURFACES_2026_08_20.some(
-        (line) => line.result === 'SKIP' && line.essential === true,
-      ),
-    ).toBe(true);
+    const essentialSkips = FIRST_24H_UX_SURFACES_2026_08_20.filter(
+      (line) => line.result === 'SKIP' && line.essential === true,
+    );
+    expect(essentialSkips.some((line) => line.surface === 'real-mailbox-delivery')).toBe(true);
+    expect(essentialSkips.some((line) => line.surface === 'cron-lifecycle-production')).toBe(false);
     expect(FIRST_24H_UX_SURFACES_2026_08_20.some((line) => line.result === 'FAIL')).toBe(false);
+    const production = FIRST_24H_UX_SURFACES_2026_08_20.find(
+      (line) => line.surface === 'cron-lifecycle-production',
+    );
+    expect(production?.result).toBe('PASS');
   });
 
   it('maps stored receipt rows onto ReceiptCard lines without a Merkle seal', () => {

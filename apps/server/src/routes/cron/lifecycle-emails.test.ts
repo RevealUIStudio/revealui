@@ -121,6 +121,27 @@ describe('day-0 welcome tier variance', () => {
     expect(send).toHaveBeenCalledWith('day0_welcome', expect.objectContaining({ tier: 'pro' }));
   });
 
+  it('never sends an Enterprise trial sequence when armed', async () => {
+    const { deps, send } = makeDeps({
+      enabled: true,
+      candidates: [cand({ ageDays: 0, userId: 'ent-user', tier: 'enterprise' })],
+    });
+    const res = await runLifecycleEmails(deps);
+    expect(send).not.toHaveBeenCalled();
+    expect(res.sent).toBe(0);
+    expect(res.dryRun).toBe(0);
+  });
+
+  it('does not send the first-week sequence to Free when armed', async () => {
+    const { deps, send } = makeDeps({
+      enabled: true,
+      candidates: [cand({ ageDays: 0, userId: 'free-user', tier: 'free' })],
+    });
+    const res = await runLifecycleEmails(deps);
+    expect(send).not.toHaveBeenCalled();
+    expect(res.sent).toBe(0);
+  });
+
   it('the Free variant leads with the local agent reply and carries no license link', () => {
     const free = buildDay0Welcome('free');
     expect(free.html).not.toContain('/account/license');
@@ -183,7 +204,7 @@ describe('runLifecycleEmails day-1 skip', () => {
   it('does not send day-1 when the candidate already has an agent action', async () => {
     const { deps, send } = makeDeps({
       enabled: true,
-      candidates: [cand({ ageDays: 3, hasAgentAction: true })],
+      candidates: [cand({ ageDays: 3, tier: 'pro', hasAgentAction: true })],
     });
     const res = await runLifecycleEmails(deps);
     expect(send).not.toHaveBeenCalled();
@@ -193,7 +214,7 @@ describe('runLifecycleEmails day-1 skip', () => {
   it('sends day-1 when the candidate has no agent action', async () => {
     const { deps, send } = makeDeps({
       enabled: true,
-      candidates: [cand({ ageDays: 3, hasAgentAction: false })],
+      candidates: [cand({ ageDays: 3, tier: 'pro', hasAgentAction: false })],
     });
     const res = await runLifecycleEmails(deps);
     expect(send).toHaveBeenCalledTimes(1);
@@ -208,7 +229,7 @@ describe('runLifecycleEmails day-1 skip', () => {
 describe('runLifecycleEmails idempotency', () => {
   it('a second evaluation sends nothing', async () => {
     const store = claimStore();
-    const candidates = [cand({ ageDays: 0 })];
+    const candidates = [cand({ ageDays: 0, tier: 'pro' })];
     const { deps, send } = makeDeps({ enabled: true, candidates, store });
 
     const first = await runLifecycleEmails(deps);
@@ -229,7 +250,7 @@ describe('runLifecycleEmails disarmed', () => {
   it('records a dry-run and never calls the transport', async () => {
     const { deps, send, store } = makeDeps({
       enabled: false,
-      candidates: [cand({ ageDays: 0 })],
+      candidates: [cand({ ageDays: 0, tier: 'pro' })],
     });
 
     const res = await runLifecycleEmails(deps);
@@ -244,7 +265,7 @@ describe('runLifecycleEmails disarmed', () => {
 
   it('a disarmed dry-run does not consume the armed send slot (build now, arm later)', async () => {
     const store = claimStore();
-    const candidates = [cand({ ageDays: 0 })];
+    const candidates = [cand({ ageDays: 0, tier: 'max' })];
     const send = vi.fn(async () => undefined);
 
     const disarmed = await runLifecycleEmails(
@@ -271,7 +292,7 @@ describe('runLifecycleEmails transport failure', () => {
     });
     const { deps, store } = makeDeps({
       enabled: true,
-      candidates: [cand({ ageDays: 0 })],
+      candidates: [cand({ ageDays: 0, tier: 'pro' })],
       send,
     });
 
@@ -292,7 +313,10 @@ describe('runLifecycleEmails transport failure', () => {
     });
     const { deps } = makeDeps({
       enabled: true,
-      candidates: [cand({ ageDays: 0, userId: 'a' }), cand({ ageDays: 0, userId: 'b' })],
+      candidates: [
+        cand({ ageDays: 0, userId: 'a', tier: 'pro' }),
+        cand({ ageDays: 0, userId: 'b', tier: 'max' }),
+      ],
       send,
     });
 
