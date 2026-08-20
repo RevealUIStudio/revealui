@@ -314,6 +314,10 @@ export async function initEditRuntime(
     const doc = el.getAttribute('data-rvui-doc');
     const field = el.getAttribute('data-rvui-field');
     if (!(doc && field)) return;
+    // Stay on the previewed page: annotated CTAs would otherwise navigate
+    // away before the canvas can open the field editor.
+    event.preventDefault();
+    event.stopPropagation();
     // Prefer attribute values for link/image fields so the canvas gets href/src.
     const attrValue =
       el.getAttribute('href') ??

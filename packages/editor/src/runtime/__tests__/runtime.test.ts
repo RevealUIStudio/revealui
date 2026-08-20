@@ -118,6 +118,31 @@ describe('initEditRuntime', () => {
     );
   });
 
+  it('prevents default on an annotated link click so the preview stays on the page', async () => {
+    editUrl();
+    mockPreview(draftDocs());
+    handle = await initEditRuntime({ apiBaseUrl: API_BASE, onDraft: () => {} });
+
+    const el = document.createElement('a');
+    el.setAttribute('href', '/products');
+    el.setAttribute('data-rvui-doc', 'page-1');
+    el.setAttribute('data-rvui-field', 'blocks.0.data.links.0.href');
+    el.textContent = 'See products';
+    document.body.appendChild(el);
+
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+    el.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(postSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: RVUI_CLICK,
+        field: 'blocks.0.data.links.0.href',
+      }),
+      ADMIN_ORIGIN,
+    );
+  });
+
   it('does not post a click for an unannotated element', async () => {
     editUrl();
     mockPreview(draftDocs());
