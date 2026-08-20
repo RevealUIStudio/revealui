@@ -9,14 +9,14 @@ audience: developer
 
 Agentic business runtime. Five primitives for humans and agents: people, content, offers, payments, and agents.
 
-Six **[design principles](./JOSHUA.md)** govern every architectural decision: Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive.
+Canonical definition: **[What is RevealUI?](./WHAT_IS.md)**. Six **[design principles](./JOSHUA.md)** govern every architectural decision: Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive.
 
 ## Getting Started
 
+- [What is RevealUI?](./WHAT_IS.md): canonical paragraph, tier names, feature matrix, RevFleet list
 - [Quick Start](./QUICK_START.md): get a local dev stack running
 - [Build Your Business](./BUILD_YOUR_BUSINESS.md): End-to-end tutorial: scaffold to deploy
 - [Examples](./EXAMPLES.md): Blog, subscription starter, storefront
-- Glossary (maintainer-internal, not served on docs.revealui.com): canonical vocabulary for agent, runtime, tier, harness, license, MCP, Rev, Revfleet, x402.
 
 ## Core Guides
 
@@ -27,12 +27,15 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 - [Auth & Security](./AUTH.md): Authentication, sessions, RBAC, security policy
 - [Database](./DATABASE.md): Management scripts, optimization, Drizzle ORM
 - [Deployment](./guides/deployment.md): Deploy to Vercel + Fly, Docker Compose, customer Railway marketplace template, environment setup
+- [Plugins](./PLUGINS.md): Config-transform plugins (form builder, nested docs, redirects) and how to author one
+- [Admin development](./guides/admin-dev.md): HMR expectations when editing admin, collections, and Lexical plugins
+- [Errors and debugging](./guides/errors-and-debugging.md): API error envelope, request ids, how to file a bug
 - [Environment Variables](./ENVIRONMENT-VARIABLES-GUIDE.md): Configuration reference
 
 ## Pricing & Commerce
 
 - [Build Your Business](./BUILD_YOUR_BUSINESS.md): Product packaging, pricing direction, billing setup, and deployment path
-- [Marketplace](./MARKETPLACE.md): Agent-commerce monetization direction and marketplace economics
+- [Marketplace](./MARKETPLACE.md): First-party MCP catalog ships; third-party publish and payouts are Planned ([#526](https://github.com/RevealUIStudio/revealui/issues/526))
 - [HTTP 402 Payments](./blog/02-http-402-payments.md): Paid API and machine-to-machine payment model
 - [Pro](./PRO.md): Commercial packaging for AI, MCP, trust, and governance features
 
@@ -40,6 +43,8 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 
 - [Testing](./TESTING.md): Unit, integration, E2E, component testing
 - [Troubleshooting](./TROUBLESHOOTING.md): Common issues and solutions
+- [Admin development](./guides/admin-dev.md): Turbopack HMR notes for this monorepo
+- [Errors and debugging](./guides/errors-and-debugging.md): Error envelope and bug-report shape
 
 ## Reference
 
@@ -61,18 +66,22 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 
 ## Pro & Enterprise
 
-- [MCP Marketplace](./MARKETPLACE.md): Publish MCP servers with agent-commerce pricing and revenue-share options
-- [Enterprise](./FLEET.md): Self-hosted enterprise deployment (Docker Compose, domain lock, unlimited users)
+- [MCP Marketplace](./MARKETPLACE.md): Planned third-party catalog. No 80/20 revenue share until that rail exists
+- [Enterprise / Fleet](./FLEET.md): Self-hosted deployment (Docker Compose, domain lock). Not a Studio-operated VM
+- [Collaborative editing](./guides/collaborative-editing.md): Yjs + Lexical cursors for self-hosted operators. Comments and suggestions are not shipped
+- [SLA](./SLA.md): Published support and license-infra uptime commitments (restates revealui.com/sla)
 
 ## RevFleet
 
-RevealUI is one product in a fleet of seven that compose into an agent-first SDLC platform. See [RevFleet overview](./REVFLEET.md) for the full table and composition story.
+RevealUI is one product in RevFleet. See [RevFleet overview](./REVFLEET.md) and [What is RevealUI?](./WHAT_IS.md) for the named list and maturity labels.
 
 - [RevDev](./fleet/revdev.md) — Studio (Tauri 2 desktop) + Console (Go SSH TUI) + harness daemon
 - [RevVault](./fleet/revvault.md) — age-encrypted secret vault, source of truth for every RevFleet secret
 - [RevCon](./fleet/revcon.md) — editor + agent-rule sync via symlinks (`link.sh`)
 - [RevealUI Fleet](./FLEET.md) — self-hosted enterprise deployment kit
 - [RevSkills](./fleet/revskills.md) — curated Agent Skills for Claude, Grok, Cursor, OpenCode, and VS Code
+- RevForge — operator-only stamper (private; not a public repo). See [REVFLEET.md](./REVFLEET.md)
+- RevMarket — Planned ([#526](https://github.com/RevealUIStudio/revealui/issues/526)) third-party MCP catalog. First-party servers ship in this runtime
 
 ## Security & trust
 
@@ -80,4 +89,5 @@ RevealUI is one product in a fleet of seven that compose into an agent-first SDL
 
 ## Legal
 
+- [SLA](./SLA.md): Support response and license-infra uptime (canonical page: revealui.com/sla)
 - [Third Party Licenses](./THIRD_PARTY_LICENSES.md)

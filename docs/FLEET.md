@@ -213,6 +213,25 @@ docker compose -f docker-compose.forge.yml up -d --no-deps admin
 docker compose -f docker-compose.forge.yml exec api pnpm db:migrate
 ```
 
+## Rollback
+
+Images are tagged. Pin the last known-good digest or tag before you upgrade so you can put it back.
+
+```bash
+# Record what is running
+docker compose -f docker-compose.forge.yml images
+
+# Restore previous API + admin tags (example: replace TAG with the prior pin)
+# Edit docker-compose.forge.yml or override with:
+#   REVEALUI_API_IMAGE=ghcr.io/revealuistudio/revealui-api:<TAG>
+docker compose -f docker-compose.forge.yml pull
+docker compose -f docker-compose.forge.yml up -d --no-deps api admin
+```
+
+If a migration already applied and has no down path, restore the database from the backup you took before the upgrade (see [Backup and restore](#backup-and-restore)), then start the older images. Do not invent a migrate-down story that the tree does not ship.
+
+Published Studio uptime ([SLA](./SLA.md)) does not cover your kit. Your rollback is your availability story.
+
 ---
 
 ## Reverse proxy

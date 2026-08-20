@@ -6,7 +6,7 @@
  * Used by the markdown resolver to translate flat URLs
  * (docs.revealui.com/admin-guide) into file fetches
  * (/admin-guide.md served from public/).
- * Generated: 81 entries.
+ * Generated: 87 entries.
  */
 
 export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
@@ -69,14 +69,17 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'fleet/revvault': 'fleet/revvault.md',
   forge: 'FORGE.md',
   'forge-sso-setup': 'FORGE_SSO_SETUP.md',
+  'guides/admin-dev': 'guides/admin-dev.md',
   'guides/authentication': 'guides/authentication.md',
   'guides/billing': 'guides/billing.md',
+  'guides/collaborative-editing': 'guides/collaborative-editing.md',
   'guides/collections': 'guides/collections.md',
   'guides/connect-acp': 'guides/connect-acp.md',
   'guides/connect-cursor': 'guides/connect-cursor.md',
   'guides/connect-opencode': 'guides/connect-opencode.md',
   'guides/connect-vscode': 'guides/connect-vscode.md',
   'guides/deployment': 'guides/deployment.md',
+  'guides/errors-and-debugging': 'guides/errors-and-debugging.md',
   'guides/quick-start': 'guides/quick-start.md',
   'guides/readme': 'guides/README.md',
   'guides/technology-stack': 'guides/technology-stack.md',
@@ -86,15 +89,18 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'local-first': 'LOCAL_FIRST.md',
   logging: 'LOGGING.md',
   marketplace: 'MARKETPLACE.md',
+  plugins: 'PLUGINS.md',
   pro: 'PRO.md',
   'quick-start': 'QUICK_START.md',
   reference: 'REFERENCE.md',
   revfleet: 'REVFLEET.md',
   roadmap: 'ROADMAP.md',
   'security/audit-receipts': 'security/AUDIT_RECEIPTS.md',
+  sla: 'SLA.md',
   testing: 'TESTING.md',
   'third-party-licenses': 'THIRD_PARTY_LICENSES.md',
   troubleshooting: 'TROUBLESHOOTING.md',
+  'what-is': 'WHAT_IS.md',
   'what-works-today': 'WHAT_WORKS_TODAY.md',
 });
 
