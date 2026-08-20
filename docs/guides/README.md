@@ -20,6 +20,9 @@ Practical, step-by-step guides for building with RevealUI.
 - [Collections](./collections.md) -- Define collections, field types, access control, hooks
 - [Billing](./billing.md) -- Stripe checkout, subscriptions, webhooks, pricing tiers
 - [Deployment](./deployment.md) -- Vercel, Docker, self-hosted, environment variables
+- [Collaborative editing](./collaborative-editing.md) -- Yjs + Lexical cursors for self-hosted operators
+- [Admin development](./admin-dev.md) -- Turbopack HMR expectations
+- [Errors and debugging](./errors-and-debugging.md) -- API error envelope and bug reports
 
 ## Connect editors (governed agents)
 

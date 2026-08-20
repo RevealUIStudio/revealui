@@ -43,7 +43,15 @@ Then continue from [Step 2](#step-2-set-up-environment-variables) below.
 
 ## Step 2: Set Up Environment Variables
 
-Copy the template:
+**Canonical path: [RevVault](./fleet/revvault.md).** Every secret this repo needs lives in that vault (separate product). If the CLI is installed, export into the session instead of hand-copying an example file:
+
+```bash
+revvault export-env
+```
+
+See [RevVault](./fleet/revvault.md). Do not use `cp apps/admin/.env.example` — that file is not the on-ramp.
+
+Without [RevVault](./fleet/revvault.md) (separate product; first clone, no vault yet), copy the **repo-root** template:
 
 ```bash
 cp .env.template .env.development.local
@@ -174,6 +182,7 @@ For more → [Troubleshooting Guide](./TROUBLESHOOTING.md)
 
 ## Next Steps
 
+- [What is RevealUI?](./WHAT_IS.md)
 - [Full documentation](./INDEX.md)
 - [Component catalog](./COMPONENT_CATALOG.md)  -  66 native UI components in `@revealui/presentation` (80 total with `@revealui/core` admin/richtext)
 - [Example projects](./EXAMPLES.md)  -  blog, subscription starter, storefront

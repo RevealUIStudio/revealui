@@ -7,7 +7,7 @@ category: guide
 audience: developer
 ---
 
-**Last Updated**: 2026-02-01
+**Last Updated**: 2026-08-20
 
 Comprehensive troubleshooting guide for common RevealUI issues.
 
@@ -45,7 +45,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
    ```
 
 2. **Check SSL settings**
-   - NeonDB/Supabase require `?sslmode=require`
+   - NeonDB (Postgres) requires `?sslmode=require`
    - Verify SSL certificates are valid
    - Check firewall rules allow SSL connections
 
@@ -508,5 +508,5 @@ Comprehensive troubleshooting guide for common RevealUI issues.
 
 ---
 
-**Last Updated**: 2026-02-01
+**Last Updated**: 2026-08-20
 **Status**: Comprehensive troubleshooting reference (consolidated from multiple guides)

@@ -328,14 +328,17 @@ export const ASPIRATIONAL_BLOCKLIST: AspirationalBlocklistEntry[] = [
   {
     rules: [
       {
-        kind: 'banned-tokens',
+        kind: 'banned-token-sequences',
         ruleId: 'claim-drift.aspirational.sla',
-        tokens: ['SLA'],
+        sequences: [
+          ['SLA', 'guarantees'],
+          ['SLA', 'guarantee'],
+        ],
         caseInsensitive: false,
       },
     ],
     label: 'SLA',
-    why: 'no SLA documented in docs/',
+    why: 'do not invent an unpublished guarantee; published commitments are docs/SLA.md (99% license/download infra, 24h/4h email). Linking that page is fine.',
   },
 ];
 

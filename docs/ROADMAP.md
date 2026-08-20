@@ -11,7 +11,7 @@ audience: developer
 
 This roadmap is an honesty document. It names what ships today, what is in flight, and what is planned. It is not a sales forecast.
 
-**Last updated:** 2026-08-19
+**Last updated:** 2026-08-20
 
 The customer-facing board lives at [revealui.com/roadmap](https://revealui.com/roadmap). Capability status and counts: [What Works Today](./WHAT_WORKS_TODAY.md).
 

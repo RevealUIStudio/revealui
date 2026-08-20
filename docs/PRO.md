@@ -9,6 +9,8 @@ audience: developer
 
 Commercial guide to RevealUI Pro: packaging, MCP integrations, open-model inference, editors, harnesses, services, x402 payments, marketplace flows, and licensing.
 
+Canonical product definition: [What is RevealUI?](./WHAT_IS.md). Support and license-infra uptime: [SLA](./SLA.md).
+
 Commercially, RevealUI Pro should not be treated as a simple seat upgrade layered on top of the OSS stack. The intended model is account-level platform access, metered agent execution, explicit commerce fees where RevealUI is in the transaction path, and premium trust or governance controls for approval, audit, and compliance needs.
 
 Per-user or perpetual licenses can still exist for narrowly scoped products.
@@ -87,7 +89,7 @@ RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime —
 
 ## Ecosystem Features by Tier
 
-RevealUI is part of a four-project ecosystem. Each project has features distributed across tiers:
+The canonical Free / Pro / Max / Enterprise matrix (runtime flags + RevFleet companions) lives in [What is RevealUI?](./WHAT_IS.md#feature-matrix). Companion highlights:
 
 | Feature | Free | Pro | Max | Enterprise |
 |---------|------|-----|-----|-------|
@@ -96,6 +98,7 @@ RevealUI is part of a four-project ecosystem. Each project has features distribu
 | RevVault CLI + core crate | Yes | Yes | Yes | Yes |
 | RevVault desktop app | | Yes | Yes | Yes |
 | RevVault rotation engine | | Yes | Yes | Yes |
+
 The MIT-licensed component (RevVault CLI) is free forever. Commercial features (desktop app, rotation engine, provisioning) require the corresponding tier.
 
 ## Licensing (Fair Source + MIT)
