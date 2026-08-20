@@ -93,7 +93,32 @@ describe('day-0 welcome tier variance', () => {
   });
 
   it('the Max variant uses the Max label', () => {
-    expect(buildDay0Welcome('max').subject).toContain('Max license key');
+    const max = buildDay0Welcome('max');
+    expect(max.subject).toContain('Max license key');
+    expect(max.subject).not.toContain('Pro');
+    expect(max.html).toContain('RevealUI Max');
+    expect(max.html).not.toContain('RevealUI Pro');
+  });
+
+  it('sends day-0 for an armed Max candidate (transport invoked, no Pro label)', async () => {
+    const { deps, send } = makeDeps({
+      enabled: true,
+      candidates: [cand({ ageDays: 0, userId: 'max-user', tier: 'max' })],
+    });
+    const res = await runLifecycleEmails(deps);
+    expect(res.armed).toBe(true);
+    expect(res.sent).toBe(1);
+    expect(send).toHaveBeenCalledWith('day0_welcome', expect.objectContaining({ tier: 'max' }));
+  });
+
+  it('sends day-0 for an armed Pro candidate', async () => {
+    const { deps, send } = makeDeps({
+      enabled: true,
+      candidates: [cand({ ageDays: 0, userId: 'pro-user', tier: 'pro' })],
+    });
+    const res = await runLifecycleEmails(deps);
+    expect(res.sent).toBe(1);
+    expect(send).toHaveBeenCalledWith('day0_welcome', expect.objectContaining({ tier: 'pro' }));
   });
 
   it('the Free variant leads with the local agent reply and carries no license link', () => {

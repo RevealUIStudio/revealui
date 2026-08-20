@@ -765,6 +765,80 @@ describe('GET /subscription', () => {
     expect(mockSubscriptionsList).not.toHaveBeenCalled();
   });
 
+  it('surfaces license expiresAt on the entitlements short-circuit for a Max trial', async () => {
+    const expiresAt = new Date('2026-08-27T00:00:00.000Z');
+    _selectResult = [
+      { tier: 'max', status: 'active', expiresAt, licenseKey: 'rv-max-trial-key' },
+    ];
+    const app = createApp(MOCK_USER, {
+      accountId: 'acct_max',
+      tier: 'max',
+      subscriptionStatus: 'trialing',
+    });
+    const res = await app.request(get('/subscription'));
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.tier).toBe('max');
+    expect(body.status).toBe('trialing');
+    expect(body.expiresAt).toBe('2026-08-27T00:00:00.000Z');
+    expect(body.licenseKey).toBe('rv-max-trial-key');
+  });
+
+  it('surfaces license expiresAt on the entitlements short-circuit for a Pro trial', async () => {
+    const expiresAt = new Date('2026-08-27T00:00:00.000Z');
+    _selectResult = [
+      { tier: 'pro', status: 'active', expiresAt, licenseKey: 'rv-pro-trial-key' },
+    ];
+    const app = createApp(MOCK_USER, {
+      accountId: 'acct_pro',
+      tier: 'pro',
+      subscriptionStatus: 'trialing',
+    });
+    const res = await app.request(get('/subscription'));
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.tier).toBe('pro');
+    expect(body.status).toBe('trialing');
+    expect(body.expiresAt).toBe('2026-08-27T00:00:00.000Z');
+  });
+
+  it('uses hosted snapshot graceUntil as Max trial expiry when no license row exists', async () => {
+    const trialEnd = new Date('2026-08-27T00:00:00.000Z');
+    queueSelectResults(
+      [{ accountId: 'acct_max_hosted' }],
+      [{ tier: 'max', status: 'trialing', graceUntil: trialEnd }],
+      [],
+    );
+
+    const app = createApp();
+    const res = await app.request(get('/subscription'));
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.tier).toBe('max');
+    expect(body.status).toBe('trialing');
+    expect(body.expiresAt).toBe('2026-08-27T00:00:00.000Z');
+  });
+
+  it('reconciles a Max Stripe trial when no license row exists', async () => {
+    queueSelectResults([], [], [], [{ stripeCustomerId: 'cus_max_trial' }]);
+    const trialEnd = 1893456000;
+    mockSubscriptionsList.mockResolvedValue({
+      data: [{ status: 'trialing', metadata: { tier: 'max' }, trial_end: trialEnd }],
+    });
+
+    const app = createApp();
+    const res = await app.request(get('/subscription'));
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.tier).toBe('max');
+    expect(body.status).toBe('trialing');
+    expect(body.expiresAt).toBe(new Date(trialEnd * 1000).toISOString());
+  });
+
   it('stays free when a Stripe subscription has no resolvable tier metadata', async () => {
     queueSelectResults([], [], [], [{ stripeCustomerId: 'cus_unlabeled' }]);
     // No tier in metadata  -  never guess a paid tier.

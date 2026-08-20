@@ -37,6 +37,37 @@ vi.mock('@revealui/utils/logger', () => ({
 
 import BillingPage from '../page';
 
+const TRIAL_END = '2026-08-27T00:00:00.000Z';
+
+function mockBillingFetches(subscription: {
+  tier: string;
+  status: string;
+  expiresAt: string | null;
+}): void {
+  global.fetch = vi.fn((input: RequestInfo | URL) => {
+    const url = String(input);
+    if (url.includes('/api/billing/subscription')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(subscription),
+      } as Response);
+    }
+    if (url.includes('/api/pricing')) {
+      return Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            subscriptions: [
+              { id: 'pro', price: '$49', period: '/mo' },
+              { id: 'max', price: '$299', period: '/mo' },
+            ],
+          }),
+      } as Response);
+    }
+    return Promise.resolve({ ok: false, json: () => Promise.resolve({}) } as Response);
+  });
+}
+
 afterEach(() => {
   cleanup();
 });
@@ -71,7 +102,7 @@ describe('BillingPage checkout hardening', () => {
     await waitFor(() => {
       expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
     });
-    expect(screen.queryByText(/could not load your subscription/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/could not load your subscription/i)).not.toBeInTheDocument();
   });
 
   it('bounds the retry at three attempts and logs the persistent failure', async () => {
@@ -87,7 +118,7 @@ describe('BillingPage checkout hardening', () => {
     render(<BillingPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/could not load your subscription/)).toBeInTheDocument();
+      expect(screen.getByText(/could not load your subscription/i)).toBeInTheDocument();
     });
     expect(subscriptionCalls).toBe(3);
     expect(mockLoggerError).toHaveBeenCalledWith(
@@ -103,7 +134,7 @@ describe('BillingPage checkout hardening', () => {
     render(<BillingPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/could not load your subscription/)).toBeInTheDocument();
+      expect(screen.getByText(/could not load your subscription/i)).toBeInTheDocument();
     });
     expect(mockSafeStripeRedirect).not.toHaveBeenCalled();
   });
@@ -130,9 +161,7 @@ describe('BillingPage checkout hardening', () => {
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(mockSafeStripeRedirect).toHaveBeenCalledWith(
-        'https://checkout.stripe.com/session/abc',
-      );
+      expect(mockSafeStripeRedirect).toHaveBeenCalledWith('https://checkout.stripe.com/session/abc');
     });
   });
 
@@ -166,5 +195,52 @@ describe('BillingPage checkout hardening', () => {
       expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
     });
     expect(screen.queryByRole('button', { name: 'Continue to checkout' })).not.toBeInTheDocument();
+  });
+});
+
+describe('BillingPage first-week trial UX', () => {
+  it('shows Max trial expiry and Max plan, not Pro', async () => {
+    mockBillingFetches({
+      tier: 'max',
+      status: 'trialing',
+      expiresAt: TRIAL_END,
+    });
+
+    render(<BillingPage />);
+
+    expect(await screen.findByText(/Your Max trial ends on August 27, 2026/)).toBeInTheDocument();
+    expect(screen.getByText('Max')).toBeInTheDocument();
+    expect(screen.getByText('Expires')).toBeInTheDocument();
+    expect(screen.queryByText(/Your Pro trial ends/)).not.toBeInTheDocument();
+    expect(screen.getByText(/you'll be charged \$299\/mo/i)).toBeInTheDocument();
+  });
+
+  it('shows Pro trial expiry with the Pro price', async () => {
+    mockBillingFetches({
+      tier: 'pro',
+      status: 'trialing',
+      expiresAt: TRIAL_END,
+    });
+
+    render(<BillingPage />);
+
+    expect(await screen.findByText(/Your Pro trial ends on August 27, 2026/)).toBeInTheDocument();
+    expect(screen.getByText(/you'll be charged \$49\/mo/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Your Max trial ends/)).not.toBeInTheDocument();
+  });
+
+  it('hides the trial callout when expiresAt is missing', async () => {
+    mockBillingFetches({
+      tier: 'max',
+      status: 'trialing',
+      expiresAt: null,
+    });
+
+    render(<BillingPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Current Plan')).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/trial ends on/i)).not.toBeInTheDocument();
   });
 });
