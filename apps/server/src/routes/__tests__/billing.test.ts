@@ -767,9 +767,7 @@ describe('GET /subscription', () => {
 
   it('surfaces license expiresAt on the entitlements short-circuit for a Max trial', async () => {
     const expiresAt = new Date('2026-08-27T00:00:00.000Z');
-    _selectResult = [
-      { tier: 'max', status: 'active', expiresAt, licenseKey: 'rv-max-trial-key' },
-    ];
+    _selectResult = [{ tier: 'max', status: 'active', expiresAt, licenseKey: 'rv-max-trial-key' }];
     const app = createApp(MOCK_USER, {
       accountId: 'acct_max',
       tier: 'max',
@@ -787,9 +785,7 @@ describe('GET /subscription', () => {
 
   it('surfaces license expiresAt on the entitlements short-circuit for a Pro trial', async () => {
     const expiresAt = new Date('2026-08-27T00:00:00.000Z');
-    _selectResult = [
-      { tier: 'pro', status: 'active', expiresAt, licenseKey: 'rv-pro-trial-key' },
-    ];
+    _selectResult = [{ tier: 'pro', status: 'active', expiresAt, licenseKey: 'rv-pro-trial-key' }];
     const app = createApp(MOCK_USER, {
       accountId: 'acct_pro',
       tier: 'pro',

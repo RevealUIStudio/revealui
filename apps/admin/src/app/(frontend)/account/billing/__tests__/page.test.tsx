@@ -161,7 +161,9 @@ describe('BillingPage checkout hardening', () => {
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(mockSafeStripeRedirect).toHaveBeenCalledWith('https://checkout.stripe.com/session/abc');
+      expect(mockSafeStripeRedirect).toHaveBeenCalledWith(
+        'https://checkout.stripe.com/session/abc',
+      );
     });
   });
 
