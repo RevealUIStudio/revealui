@@ -52,7 +52,7 @@ Apify. This actor makes no SOC 2, ISO, or other compliance claim either way.
 |---|---|---|
 | `mode` | No (default `run-task`) | `run-task` or `verify-receipt` |
 | `task` | Yes, for `run-task` | The task prompt for the agent |
-| `llmProvider` | Yes, for `run-task` | `anthropic` or `openai` |
+| `llmProvider` | Yes, for `run-task` | `anthropic`, `openai`, `groq`, or `xai` |
 | `llmApiKey` | Yes, for `run-task` | Your own API key (bring-your-own-key; never stored or logged) |
 | `model` | No | Override the provider's default model |
 | `toolAllowlist` | No | Restrict which built-in tools the agent may use; omit for all, `[]` for none |

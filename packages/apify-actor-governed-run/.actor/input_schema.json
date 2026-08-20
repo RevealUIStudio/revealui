@@ -23,8 +23,8 @@
       "type": "string",
       "description": "Which model provider to call. Required when mode is \"run-task\".",
       "editor": "select",
-      "enum": ["anthropic", "openai"],
-      "enumTitles": ["Anthropic", "OpenAI"]
+      "enum": ["anthropic", "openai", "groq", "xai"],
+      "enumTitles": ["Anthropic", "OpenAI", "Groq", "xAI (Grok)"]
     },
     "llmApiKey": {
       "title": "LLM API key",
