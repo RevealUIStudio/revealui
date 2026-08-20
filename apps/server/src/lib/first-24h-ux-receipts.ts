@@ -309,7 +309,7 @@ export const FIRST_24H_UX_SURFACES_2026_08_20: readonly First24hUxReceiptLine[] 
     plan: 'pro',
     result: 'PASS',
     evidence:
-      'lifecycle-email-arming.test.ts — hosted test (staging.revealui.com / preview / test branch) arms Pro day-0/1/7 when Gmail SA + private key are present',
+      'lifecycle-email-arming.test.ts — hosted test (exact staging hostname / preview / test branch) arms Pro day-0/1/7 when Gmail SA + private key are present',
   }),
   surface({
     surface: 'cron-lifecycle-test-path',
@@ -326,6 +326,14 @@ export const FIRST_24H_UX_SURFACES_2026_08_20: readonly First24hUxReceiptLine[] 
     result: 'PASS',
     evidence:
       'lifecycle-email-arming.test.ts — missing GOOGLE_SERVICE_ACCOUNT_EMAIL or GOOGLE_PRIVATE_KEY never arms, even with the flag or preview',
+  }),
+  surface({
+    surface: 'cron-lifecycle-host-allowlist',
+    action: 'verify-cron-lifecycle-host-allowlist',
+    plan: 'none',
+    result: 'PASS',
+    evidence:
+      'lifecycle-email-arming.test.ts — URL hostname parsed via new URL(); exact allowlist only. Query-string, prefix, suffix, and unparseable values fail closed. No includes() on the raw URL.',
   }),
   surface({
     surface: 'cron-lifecycle-ci',

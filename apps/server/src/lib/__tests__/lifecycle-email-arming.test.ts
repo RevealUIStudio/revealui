@@ -3,6 +3,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import {
+  HOSTED_TEST_HOSTNAMES,
   HOSTED_TEST_ROOT_DOMAIN,
   isLifecycleEligibleTier,
   isLifecycleMailboxConfigured,
@@ -61,13 +62,58 @@ describe('resolveLifecycleEmailArming', () => {
   });
 
   it('arms the hosted test path when mailbox is present (staging host)', () => {
+    expect(HOSTED_TEST_HOSTNAMES).toContain(`api.${HOSTED_TEST_ROOT_DOMAIN}`);
+    for (const hostname of HOSTED_TEST_HOSTNAMES) {
+      const result = resolveLifecycleEmailArming({
+        ...MAILBOX,
+        NODE_ENV: 'production',
+        REVEALUI_API_URL: `https://${hostname}/v1`,
+      });
+      expect(result.armed).toBe(true);
+      expect(result.reason).toBe('hosted-test-mailbox');
+    }
+  });
+
+  it('does not treat a substring of staging.revealui.com as hosted test', () => {
+    const spoofedQuery = resolveLifecycleEmailArming({
+      ...MAILBOX,
+      NODE_ENV: 'production',
+      VERCEL_ENV: 'production',
+      VERCEL_GIT_COMMIT_REF: 'main',
+      REVEALUI_API_URL: `https://evil.example.com/?next=https://api.${HOSTED_TEST_ROOT_DOMAIN}`,
+    });
+    expect(spoofedQuery.armed).toBe(false);
+    expect(spoofedQuery.reason).toBe('production-hold');
+
+    const spoofedPrefix = resolveLifecycleEmailArming({
+      ...MAILBOX,
+      NODE_ENV: 'production',
+      VERCEL_ENV: 'production',
+      VERCEL_GIT_COMMIT_REF: 'main',
+      REVEALUI_API_URL: `https://not${HOSTED_TEST_ROOT_DOMAIN}`,
+    });
+    expect(spoofedPrefix.armed).toBe(false);
+
+    const spoofedSuffixHost = resolveLifecycleEmailArming({
+      ...MAILBOX,
+      NODE_ENV: 'production',
+      VERCEL_ENV: 'production',
+      VERCEL_GIT_COMMIT_REF: 'main',
+      REVEALUI_API_URL: `https://${HOSTED_TEST_ROOT_DOMAIN}.evil.example`,
+    });
+    expect(spoofedSuffixHost.armed).toBe(false);
+  });
+
+  it('fails closed on an unparseable URL instead of scanning the string', () => {
     const result = resolveLifecycleEmailArming({
       ...MAILBOX,
       NODE_ENV: 'production',
-      REVEALUI_API_URL: `https://api.${HOSTED_TEST_ROOT_DOMAIN}`,
+      VERCEL_ENV: 'production',
+      VERCEL_GIT_COMMIT_REF: 'main',
+      REVEALUI_API_URL: `not-a-url/${HOSTED_TEST_ROOT_DOMAIN}`,
     });
-    expect(result.armed).toBe(true);
-    expect(result.reason).toBe('hosted-test-mailbox');
+    expect(result.armed).toBe(false);
+    expect(result.reason).toBe('production-hold');
   });
 
   it('arms Vercel preview when mailbox is present', () => {

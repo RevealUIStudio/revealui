@@ -14,6 +14,15 @@
 /** Same root as scripts/setup/gen-staging-secrets.ts (GAP-343). */
 export const HOSTED_TEST_ROOT_DOMAIN = 'staging.revealui.com';
 
+/** Exact hostnames only. Substring / suffix checks are a CodeQL high (js/incomplete-url-substring-sanitization). */
+export const HOSTED_TEST_HOSTNAMES = [
+  HOSTED_TEST_ROOT_DOMAIN,
+  `admin.${HOSTED_TEST_ROOT_DOMAIN}`,
+  `api.${HOSTED_TEST_ROOT_DOMAIN}`,
+] as const;
+
+const HOSTED_TEST_HOSTNAME_SET: ReadonlySet<string> = new Set(HOSTED_TEST_HOSTNAMES);
+
 export type LifecycleArmingReason =
   | 'hosted-test-mailbox'
   | 'explicit-flag'
@@ -48,18 +57,29 @@ export function isLifecycleEligibleTier(tier: string): boolean {
   return tier === 'pro' || tier === 'max';
 }
 
-function looksLikeHostedTestUrl(value: string | undefined): boolean {
-  return typeof value === 'string' && value.includes(HOSTED_TEST_ROOT_DOMAIN);
+function hostnameFromAbsoluteUrl(value: string | undefined): string | null {
+  if (typeof value !== 'string' || value.length === 0) return null;
+  try {
+    const hostname = new URL(value).hostname;
+    return hostname.length > 0 ? hostname : null;
+  } catch {
+    return null;
+  }
+}
+
+function isHostedTestUrl(value: string | undefined): boolean {
+  const hostname = hostnameFromAbsoluteUrl(value);
+  return hostname !== null && HOSTED_TEST_HOSTNAME_SET.has(hostname);
 }
 
 export function isHostedTestEnvironment(env: LifecycleArmingEnv): boolean {
   if (env.VERCEL_ENV === 'preview') return true;
   if (env.VERCEL_GIT_COMMIT_REF === 'test') return true;
   return (
-    looksLikeHostedTestUrl(env.REVEALUI_API_URL) ||
-    looksLikeHostedTestUrl(env.REVEALUI_PUBLIC_SERVER_URL) ||
-    looksLikeHostedTestUrl(env.NEXT_PUBLIC_SERVER_URL) ||
-    looksLikeHostedTestUrl(env.ADMIN_URL)
+    isHostedTestUrl(env.REVEALUI_API_URL) ||
+    isHostedTestUrl(env.REVEALUI_PUBLIC_SERVER_URL) ||
+    isHostedTestUrl(env.NEXT_PUBLIC_SERVER_URL) ||
+    isHostedTestUrl(env.ADMIN_URL)
   );
 }
 
