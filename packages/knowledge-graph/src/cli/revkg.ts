@@ -2,7 +2,11 @@
 /**
  * revkg — fleet knowledge graph CLI.
  *
- *   revkg scan [--root <path>] [--repo <name>] [--fleet]   full/deterministic scan
+ *   revkg scan [--root <path>] [--repo <name>] [--fleet] [--dry-run] [--publish] [--json]
+ *       Deterministic Tier-1 scan. `--fleet` discovers sibling repo checkouts
+ *       and defaults to dry-run (no database, no writes). `--publish` is the
+ *       explicit owner write path and is refused when CI=true unless
+ *       REVKG_ALLOW_WRITE=1. Single-repo scan still writes unless --dry-run.
  *   revkg search <query> [--kind <k>] [--at <iso>] [--limit <n>]
  *   revkg node <naturalKey>
  *   revkg neighbors <naturalKey> [--depth <n>] [--at <iso>]
@@ -23,6 +27,13 @@
  *   revkg decommission <repo> [--at <iso>] [--dry-run] [--json]
  *       Invalidate current edges for a retired repo at the ice date (default
  *       now). Point-in-time history before the ice date is preserved (GAP-349).
+ *   revkg graph pull [--since <n>] [--limit <n>] [--site <id>] [--json]
+ *       P5 replica: read unpushed kg_outbox ops (no writes).
+ *   revkg graph apply [--file <path>] [--dry-run|--publish] [--json]
+ *       P5 replica: apply a remote op batch. Defaults to dry-run; --publish
+ *       writes. Refused in CI unless REVKG_ALLOW_WRITE=1.
+ *   revkg graph push --until <n>|--seqs <csv> [--dry-run|--publish] [--json]
+ *       P5 replica: ack local outbox rows (set pushed_at). Defaults to dry-run.
  *
  * Connects to Neon via its own pool (`@revealui/db`'s `createPool`, DATABASE_URL
  * / POSTGRES_URL resolved by `getConnectionIdentity`) rather than the shared
@@ -41,20 +52,30 @@
  */
 
 import { hostname } from 'node:os';
-import { basename, dirname, join } from 'node:path';
+import { basename, join } from 'node:path';
 import { makePoolExecutor } from '../db/executor.js';
 import {
-  additiveExtractors,
   CLAIMS_EVIDENCE_REL,
   claimsExtractor,
   missingEvidencePaths,
   parseClaimsEvidenceSource,
-  tier1Extractors,
 } from '../extractors/index.js';
-import { isDir, readJsonFile, readTextFile } from '../extractors/shared.js';
+import { readTextFile } from '../extractors/shared.js';
 import { applyScan, decommissionRepo, ingestEpisode } from '../ingest/index.js';
 import { resolveNaturalKey } from '../ingest/resolve.js';
 import type { NodeKind } from '../ontology/index.js';
+import { GRAPH_METHODS, graphApply, graphPull, graphPush, parseKgOps } from '../replica/index.js';
+import {
+  type CollectedRepoScan,
+  collectRepoProducts,
+  discoverFleetRepos,
+  isRepoRoot,
+  publishCollected,
+  resolveScanTargets,
+  resolveScanWritePolicy,
+  type ScanWritePolicy,
+  summarizeCollected,
+} from '../scan/index.js';
 import { type DriftCandidate, kgAtTime, kgDrift, kgNeighbors, kgSearch } from '../search/index.js';
 import type { Embedder, KgExecutor } from '../types.js';
 
@@ -160,62 +181,98 @@ async function loadEmbedder(): Promise<Embedder | undefined> {
   }
 }
 
-function isRepoRoot(path: string): boolean {
-  return (
-    isDir(join(path, '.git')) ||
-    readTextFile(join(path, 'pnpm-workspace.yaml')) !== null ||
-    readJsonFile(join(path, 'package.json')) !== null
-  );
+function envCi(): boolean {
+  return process.env.CI === 'true';
 }
 
-async function scanRepo(
-  exec: KgExecutor,
-  repoRoot: string,
-  repo: string,
-  embedder: Embedder | undefined,
-): Promise<void> {
-  const ctx = { repoRoot, repo, siteId: hostname(), now: new Date() };
-  let nodes = 0;
-  let edges = 0;
-  for (const extractor of tier1Extractors) {
-    const products = await extractor.extract(ctx);
-    for (const product of products) {
-      const result = await applyScan(exec, product, { embedder, recordOutbox: true });
-      nodes += result.nodeCount;
-      edges += result.edgeCount;
-    }
+function envAllowWrite(): boolean {
+  return process.env.REVKG_ALLOW_WRITE === '1';
+}
+
+/** Replica apply/push: dry-run unless --publish. Same CI refuse as fleet scan. */
+function resolveReplicaWrite(args: ParsedArgs, action: string): { dryRun: boolean } {
+  const publish = args.bools.has('publish');
+  const dryRunFlag = args.bools.has('dry-run');
+  if (publish && dryRunFlag) fail('--publish and --dry-run are mutually exclusive');
+  if (publish && envCi() && !envAllowWrite()) {
+    fail(
+      `refusing ${action} --publish in CI (would write the graph). Owner override: REVKG_ALLOW_WRITE=1`,
+    );
   }
-  for (const extractor of additiveExtractors) {
-    const products = await extractor.extract(ctx);
-    for (const product of products) {
-      const result = await ingestEpisode(exec, product, { embedder, recordOutbox: true });
-      nodes += result.nodeCount;
-      edges += result.edgeCount;
-    }
-  }
-  out(`  ${repo}: ${nodes} nodes, ${edges} edges`);
+  return { dryRun: !publish };
 }
 
 async function cmdScan(args: ParsedArgs): Promise<void> {
   const root = args.flags.get('root') ?? process.cwd();
+  const fleet = args.bools.has('fleet');
+  let policy: ScanWritePolicy;
+  try {
+    policy = resolveScanWritePolicy({
+      fleet,
+      publish: args.bools.has('publish'),
+      dryRun: args.bools.has('dry-run'),
+      ci: envCi(),
+      allowCiWrite: envAllowWrite(),
+    });
+  } catch (err) {
+    fail(err instanceof Error ? err.message : String(err));
+  }
+
+  if (!(fleet || isRepoRoot(root))) fail(`${root} does not look like a repo root`);
+
+  const targets = resolveScanTargets(root, { fleet, repo: args.flags.get('repo') });
+  if (targets.length === 0) fail('no fleet repos discovered (sibling checkouts of --root)');
+
+  const siteId = hostname();
+  const now = new Date();
+  const collected: CollectedRepoScan[] = [];
+  for (const target of targets) {
+    collected.push(
+      await collectRepoProducts({
+        repoRoot: target.path,
+        repo: target.name,
+        siteId,
+        now,
+      }),
+    );
+  }
+  const previews = collected.map(summarizeCollected);
+
+  if (args.bools.has('json')) {
+    out(
+      JSON.stringify(
+        {
+          mode: policy.dryRun ? 'dry-run' : 'publish',
+          fleet,
+          wrote: policy.write,
+          repos: previews,
+        },
+        null,
+        2,
+      ),
+    );
+  } else if (policy.dryRun) {
+    out(
+      `dry-run: ${fleet ? `fleet scan of ${previews.length} repo(s)` : previews[0]?.repo} (no writes)`,
+    );
+    for (const preview of previews) {
+      const parts = preview.extractors.map((e) => `${e.name}=${e.nodeCount}n/${e.edgeCount}e`);
+      out(
+        `  ${preview.repo}: ${preview.nodeCount} nodes, ${preview.edgeCount} edges (${parts.join(' ')})`,
+      );
+    }
+    if (fleet) out('publish with: revkg scan --fleet --publish');
+  }
+
+  if (policy.dryRun) return;
+
   const { exec, close } = await getExecutor();
   const embedder = await loadEmbedder();
   if (!embedder) out('  (no embedder available — embeddings deferred)');
   try {
-    if (args.bools.has('fleet')) {
-      const parent = dirname(root);
-      const { readdirSync } = await import('node:fs');
-      const entries = readdirSync(parent).filter((e) => !e.startsWith('.'));
-      for (const entry of entries) {
-        const path = join(parent, entry);
-        if (isDir(path) && isRepoRoot(path)) {
-          await scanRepo(exec, path, entry, embedder);
-        }
-      }
-    } else {
-      const repo = args.flags.get('repo') ?? basename(root);
-      if (!isRepoRoot(root)) fail(`${root} does not look like a repo root`);
-      await scanRepo(exec, root, repo, embedder);
+    for (const item of collected) {
+      const result = await publishCollected(exec, item, { embedder, recordOutbox: true });
+      out(`  ${result.repo}: ${result.nodeCount} nodes, ${result.edgeCount} edges`);
     }
   } finally {
     await close();
@@ -406,6 +463,11 @@ async function cmdClaimsCheck(args: ParsedArgs): Promise<void> {
   let close: (() => Promise<void>) | undefined;
   let embedder: Embedder | undefined;
   if (publish) {
+    if (envCi() && !envAllowWrite()) {
+      fail(
+        'refusing claims-check --publish in CI (would write the graph). Owner override: REVKG_ALLOW_WRITE=1',
+      );
+    }
     const pool = await getExecutor();
     exec = pool.exec;
     close = pool.close;
@@ -415,15 +477,10 @@ async function cmdClaimsCheck(args: ParsedArgs): Promise<void> {
 
   try {
     if (args.bools.has('fleet')) {
-      const parent = dirname(root);
-      const { readdirSync } = await import('node:fs');
-      const entries = readdirSync(parent).filter((e) => !e.startsWith('.'));
-      for (const entry of entries) {
-        const path = join(parent, entry);
-        if (!(isDir(path) && isRepoRoot(path))) continue;
-        const evidence = join(path, CLAIMS_EVIDENCE_REL);
+      for (const target of discoverFleetRepos(root)) {
+        const evidence = join(target.path, CLAIMS_EVIDENCE_REL);
         if (readTextFile(evidence) === null) continue;
-        summaries.push(await claimsCheckOne(path, entry, publish, embedder, exec));
+        summaries.push(await claimsCheckOne(target.path, target.name, publish, embedder, exec));
       }
     } else {
       const repo = args.flags.get('repo') ?? basename(root);
@@ -677,12 +734,135 @@ async function cmdDecommission(args: ParsedArgs): Promise<void> {
   }
 }
 
+async function readStdinText(): Promise<string> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk)));
+  }
+  return Buffer.concat(chunks).toString('utf8');
+}
+
+function parseSeqList(raw: string | undefined): number[] | undefined {
+  if (raw === undefined) return undefined;
+  const seqs = raw
+    .split(',')
+    .map((part) => Number.parseInt(part.trim(), 10))
+    .filter((n) => Number.isFinite(n));
+  return seqs;
+}
+
+async function cmdGraph(args: ParsedArgs): Promise<void> {
+  const sub = args.positionals[0];
+  const json = args.bools.has('json');
+
+  if (sub === 'pull') {
+    const sinceRaw = args.flags.get('since');
+    const limitRaw = args.flags.get('limit');
+    const { exec, close } = await getExecutor();
+    try {
+      const result = await graphPull(exec, {
+        sinceSeq: sinceRaw !== undefined ? Number(sinceRaw) : undefined,
+        limit: limitRaw !== undefined ? Number(limitRaw) : undefined,
+        siteId: args.flags.get('site'),
+      });
+      if (json) {
+        out(JSON.stringify(result, null, 2));
+        return;
+      }
+      out(`graph.pull entries=${result.entries.length} nextSeq=${result.nextSeq}`);
+      for (const entry of result.entries.slice(0, 20)) {
+        out(`  seq=${entry.seq} site=${entry.siteId} t=${entry.op.t}`);
+      }
+      if (result.entries.length > 20) out(`  … ${result.entries.length - 20} more`);
+    } finally {
+      await close();
+    }
+    return;
+  }
+
+  if (sub === 'apply') {
+    const { dryRun } = resolveReplicaWrite(args, GRAPH_METHODS.apply);
+    const file = args.flags.get('file');
+    let raw: string;
+    if (file) {
+      const body = readTextFile(file);
+      if (body === null) fail(`cannot read ${file}`);
+      raw = body;
+    } else {
+      raw = await readStdinText();
+    }
+    if (!raw.trim()) fail('graph apply requires JSON ops (--file or stdin)');
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      fail('graph apply input is not valid JSON');
+    }
+    const ops = Array.isArray(parsed) ? parsed : (parsed as { ops?: unknown }).ops;
+    const validated = parseKgOps(ops);
+
+    if (dryRun) {
+      if (json) {
+        out(
+          JSON.stringify(
+            { method: GRAPH_METHODS.apply, applied: validated.length, dryRun: true },
+            null,
+            2,
+          ),
+        );
+      } else {
+        out(`dry-run: graph.apply would apply ${validated.length} op(s)`);
+      }
+      return;
+    }
+
+    const { exec, close } = await getExecutor();
+    try {
+      const result = await graphApply(exec, { ops, dryRun: false });
+      if (json) {
+        out(JSON.stringify({ method: GRAPH_METHODS.apply, ...result }, null, 2));
+      } else {
+        out(`graph.apply applied=${result.applied}`);
+      }
+    } finally {
+      await close();
+    }
+    return;
+  }
+
+  if (sub === 'push') {
+    const { dryRun } = resolveReplicaWrite(args, GRAPH_METHODS.push);
+    const untilRaw = args.flags.get('until');
+    const seqs = parseSeqList(args.flags.get('seqs'));
+    const untilSeq = untilRaw !== undefined ? Number(untilRaw) : undefined;
+    const { exec, close } = await getExecutor();
+    try {
+      const result = await graphPush(exec, { untilSeq, seqs, dryRun });
+      if (json) {
+        out(JSON.stringify({ method: GRAPH_METHODS.push, ...result }, null, 2));
+      } else {
+        const verb = result.dryRun ? 'would mark' : 'marked';
+        out(`graph.push ${verb} ${result.marked} outbox row(s)`);
+      }
+    } finally {
+      await close();
+    }
+    return;
+  }
+
+  out('usage: revkg graph <pull|apply|push> [...]');
+  process.exit(sub ? 1 : 0);
+}
+
 async function main(): Promise<void> {
   const [command, ...rest] = process.argv.slice(2);
   const args = parseArgs(rest);
   switch (command) {
     case 'scan':
       await cmdScan(args);
+      break;
+    case 'graph':
+      await cmdGraph(args);
       break;
     case 'search':
       await cmdSearch(args);
@@ -713,7 +893,7 @@ async function main(): Promise<void> {
       break;
     default:
       out(
-        'usage: revkg <scan|search|node|neighbors|at|drift|claims-check|extract|ingest-handoffs|decommission> [...]',
+        'usage: revkg <scan|search|node|neighbors|at|drift|claims-check|extract|ingest-handoffs|decommission|graph> [...]',
       );
       process.exit(command ? 1 : 0);
   }
