@@ -39,7 +39,7 @@ Public and code names are the same four strings. Do not use retired aliases (`Fo
 
 Internal-only aliases: `enterprise` in feature flags and license JWTs is the same public Enterprise tier. `RevealUI Fleet` is the self-hosted kit, not a fifth billing tier. `RevForge` is the operator stamper that may brand a Fleet kit.
 
-Limits and prices are pinned in `packages/contracts/src/pricing.ts` and restated in [MARKETING_METRICS.md](./MARKETING_METRICS.md) §2.
+Limits and prices are pinned in `packages/contracts/src/pricing.ts` and restated on [revealui.com/pricing](https://revealui.com/pricing). Maintainer scorecards live off the public site.
 
 | Tier | Price | Sites | Users | Agent tasks/mo | API req/min |
 |------|-------|-------|-------|----------------|-------------|
@@ -80,7 +80,7 @@ Support response is not a feature flag. The published commitment is the same for
 
 ## RevFleet product list
 
-Names and maturity labels must match [ROADMAP.md](./ROADMAP.md), [REVFLEET.md](./REVFLEET.md), and [MARKETING_METRICS.md](./MARKETING_METRICS.md) §5. RevKit is an operator machine kit, not a customer product ([#1598](https://github.com/RevealUIStudio/revealui/issues/1598)). RevealCoin is cancelled.
+Names and maturity labels must match [ROADMAP.md](./ROADMAP.md) and [REVFLEET.md](./REVFLEET.md). RevKit is an operator machine kit, not a customer product ([#1598](https://github.com/RevealUIStudio/revealui/issues/1598)). RevealCoin is cancelled.
 
 | Product | Maturity | Role |
 |---------|----------|------|
