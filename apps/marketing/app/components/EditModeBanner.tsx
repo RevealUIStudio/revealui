@@ -12,7 +12,7 @@ export function EditModeBanner(): ReactElement | null {
       role="status"
       className="border-b border-primary/30 bg-primary/10 px-4 py-2 text-center text-sm text-foreground"
     >
-      Edit mode — click outlined copy to change it. Home hero, proof, and pricing stay on the
+      Edit mode: click outlined copy to change it. Home hero, proof, and pricing stay on the
       claim-covered modules.
     </div>
   );
