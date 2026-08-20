@@ -2,6 +2,7 @@
 
 import { useSession } from '@revealui/auth/react';
 import {
+  ENTERPRISE_SALES_HREF,
   FEATURE_LABELS,
   type LicenseTierId,
   type PricingResponse,
@@ -135,6 +136,10 @@ export default function LicensePage() {
   }
 
   const handlePerpetualCheckout = async (plan: (typeof PERPETUAL_PLANS)[number]) => {
+    if (plan.tier === 'enterprise') {
+      window.location.assign(ENTERPRISE_SALES_HREF);
+      return;
+    }
     setPerpetualLoading(plan.tier);
     setError(null);
     try {
@@ -253,14 +258,14 @@ export default function LicensePage() {
           {canUpgrade && (
             <div className="border-t pt-3 dark:border-zinc-800">
               <Link
-                href="/account/billing"
+                href={tier === 'max' ? ENTERPRISE_SALES_HREF : '/account/billing'}
                 className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
               >
                 {tier === 'free'
                   ? 'Upgrade to Pro →'
                   : tier === 'pro'
                     ? 'Upgrade to Max →'
-                    : 'Upgrade to Enterprise →'}
+                    : 'Contact sales →'}
               </Link>
             </div>
           )}
@@ -463,18 +468,29 @@ export default function LicensePage() {
                   <p className="text-sm font-medium">{plan.label}</p>
                   <p className="text-xs text-zinc-600">{plan.description}</p>
                 </div>
-                <Button
-                  type="button"
-                  variant="neutral"
-                  size="sm"
-                  disabled={perpetualLoading === plan.tier}
-                  onClick={() => void handlePerpetualCheckout(plan)}
-                  className="ml-4 shrink-0 bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-                >
-                  {perpetualLoading === plan.tier
-                    ? 'Redirecting…'
-                    : `Buy ${pricing?.perpetual.find((t) => t.name === plan.label)?.price ?? '—'}`}
-                </Button>
+                {plan.tier === 'enterprise' ? (
+                  <Button
+                    asChild
+                    variant="neutral"
+                    size="sm"
+                    className="ml-4 shrink-0 bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+                  >
+                    <a href={ENTERPRISE_SALES_HREF}>Contact sales</a>
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="neutral"
+                    size="sm"
+                    disabled={perpetualLoading === plan.tier}
+                    onClick={() => void handlePerpetualCheckout(plan)}
+                    className="ml-4 shrink-0 bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+                  >
+                    {perpetualLoading === plan.tier
+                      ? 'Redirecting…'
+                      : `Buy ${pricing?.perpetual.find((t) => t.name === plan.label)?.price ?? '—'}`}
+                  </Button>
+                )}
               </div>
             ))}
           </CardContent>

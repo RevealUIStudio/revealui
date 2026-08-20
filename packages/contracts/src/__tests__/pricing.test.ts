@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  allowsUnattendedCheckout,
   CREDIT_BUNDLES,
+  ENTERPRISE_SALES_HREF,
   FEATURE_LABELS,
   FOUNDER_SERVICE_OFFERINGS,
   getTierColor,
@@ -136,7 +138,7 @@ describe('SUBSCRIPTION_TIERS', () => {
     const pro = SUBSCRIPTION_TIERS.find((t) => t.id === 'pro')!;
     const max = SUBSCRIPTION_TIERS.find((t) => t.id === 'max')!;
     expect(enterprise.cta).toBe('Contact sales');
-    expect(enterprise.ctaHref).toBe('https://revealui.com/contact');
+    expect(enterprise.ctaHref).toBe(ENTERPRISE_SALES_HREF);
     expect(enterprise.ctaHref.includes('signup')).toBe(false);
     expect(pro.cta).toBe('Start your 7-day free trial');
     expect(pro.ctaHref).toBe('/signup?plan=pro');
@@ -425,12 +427,28 @@ describe('PERPETUAL_TIERS  -  comingSoon status', () => {
     const pro = PERPETUAL_TIERS.find((t) => t.name === 'Pro Perpetual')!;
     const agency = PERPETUAL_TIERS.find((t) => t.name === 'Agency Perpetual')!;
     expect(enterprise.cta).toBe('Contact sales');
-    expect(enterprise.ctaHref).toBe('https://revealui.com/contact');
+    expect(enterprise.ctaHref).toBe(ENTERPRISE_SALES_HREF);
     expect(enterprise.ctaHref.includes('signup')).toBe(false);
     expect(enterprise.ctaHref.includes('/account/license')).toBe(false);
     expect(pro.cta).toBe('Buy Pro Perpetual');
     expect(pro.ctaHref).toBe('/account/license');
     expect(agency.cta).toBe('Buy Agency Perpetual');
     expect(agency.ctaHref).toBe('/account/license');
+  });
+});
+
+describe('allowsUnattendedCheckout', () => {
+  it('allows Pro and Max self-serve checkout, not Enterprise or Free', () => {
+    expect(allowsUnattendedCheckout('pro')).toBe(true);
+    expect(allowsUnattendedCheckout('max')).toBe(true);
+    expect(allowsUnattendedCheckout('enterprise')).toBe(false);
+    expect(allowsUnattendedCheckout('free')).toBe(false);
+  });
+
+  it('locks the Enterprise sales href to the public contact door', () => {
+    expect(ENTERPRISE_SALES_HREF).toBe('https://revealui.com/contact');
+    expect(SUBSCRIPTION_TIERS.find((t) => t.id === 'enterprise')?.ctaHref).toBe(
+      ENTERPRISE_SALES_HREF,
+    );
   });
 });

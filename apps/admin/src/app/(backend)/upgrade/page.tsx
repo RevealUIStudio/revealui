@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  ENTERPRISE_SALES_HREF,
   FEATURE_LABELS,
   getTiersFromCurrent,
   type LicenseTierId,
@@ -25,6 +26,10 @@ export default function UpgradePage() {
   const selectableTiers = canUpgrade ? getTiersFromCurrent(tierId) : [];
 
   const handleSelectTier = async (nextTierId: string) => {
+    if (nextTierId === 'enterprise') {
+      window.location.assign(ENTERPRISE_SALES_HREF);
+      return;
+    }
     setError(null);
     try {
       const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
@@ -39,7 +44,6 @@ export default function UpgradePage() {
       const priceIdMap: Record<string, string | undefined> = {
         pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
         max: process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID,
-        enterprise: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
       };
       const priceId = priceIdMap[nextTierId];
       const res = await apiFetch(`${apiUrl}/api/billing/checkout`, {

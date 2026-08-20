@@ -56,6 +56,14 @@ function CheckIcon() {
 // PricingTable
 // =============================================================================
 
+function isSalesAssistedHref(href: string): boolean {
+  return href.startsWith('https://') || href.startsWith('http://') || href.startsWith('mailto:');
+}
+
+function usesCheckoutSelect(tier: PricingTier, onSelect?: (id: string) => void): boolean {
+  return Boolean(onSelect) && !isSalesAssistedHref(tier.ctaHref);
+}
+
 export function PricingTable({
   tiers,
   currentTier,
@@ -163,10 +171,10 @@ function PricingCardFull({
         ))}
       </ul>
 
-      {onSelect ? (
+      {usesCheckoutSelect(tier, onSelect) ? (
         <button
           type="button"
-          onClick={() => onSelect(tier.id)}
+          onClick={() => onSelect?.(tier.id)}
           disabled={isCurrent}
           className={cn(
             'block w-full rounded-md px-6 py-3 text-center text-sm font-semibold transition-colors',
@@ -234,10 +242,10 @@ function PricingCardCompact({
       </p>
       <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{tier.description}</p>
 
-      {onSelect ? (
+      {usesCheckoutSelect(tier, onSelect) ? (
         <button
           type="button"
-          onClick={() => onSelect(tier.id)}
+          onClick={() => onSelect?.(tier.id)}
           disabled={isCurrent}
           className={cn(
             'mt-3 block w-full rounded-md px-3 py-2 text-center text-xs font-semibold transition-colors',

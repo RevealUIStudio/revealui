@@ -136,6 +136,27 @@ describe('BillingPage checkout hardening', () => {
     });
   });
 
+  it('parks ?upgrade=enterprise at Contact sales instead of Stripe checkout', async () => {
+    searchParams = new URLSearchParams('upgrade=enterprise');
+    global.fetch = vi.fn((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes('/api/billing/subscription')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ tier: 'free', status: 'active', expiresAt: null }),
+        } as Response);
+      }
+      return Promise.resolve({ ok: false, json: () => Promise.resolve({}) } as Response);
+    });
+
+    render(<BillingPage />);
+
+    const sales = await screen.findByRole('link', { name: 'Contact sales' });
+    expect(sales).toHaveAttribute('href', 'https://revealui.com/contact');
+    expect(mockSafeStripeRedirect).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: 'Continue to checkout' })).not.toBeInTheDocument();
+  });
+
   it('does not render the fallback button without an upgrade param', async () => {
     global.fetch = vi.fn(() => Promise.reject(new Error('network down')));
 

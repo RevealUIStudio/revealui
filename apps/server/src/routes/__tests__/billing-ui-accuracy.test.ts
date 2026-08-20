@@ -113,13 +113,9 @@ describe('Billing UI Accuracy  -  admin Billing Page vs API + Contracts', () => 
       expect(upgradeBody).toHaveProperty('targetTier');
     });
 
-    it('upgrade sends priceId and targetTier for enterprise', () => {
-      const upgradeBody = {
-        priceId: BILLING_ENV_VARS.enterprise,
-        targetTier: 'enterprise' as const,
-      };
-      expect(upgradeBody).toHaveProperty('priceId');
-      expect(upgradeBody).toHaveProperty('targetTier');
+    it('enterprise is not an unattended upgrade body', () => {
+      const selfServeTargets = ['pro', 'max'] as const;
+      expect(selfServeTargets).not.toContain('enterprise');
     });
   });
 
@@ -243,9 +239,9 @@ describe('Billing UI Accuracy  -  admin Billing Page vs API + Contracts', () => 
       expect(proUpgradeTarget).toBe('max');
     });
 
-    it('max tier offers upgrade to enterprise', () => {
-      const maxUpgradeTarget = 'enterprise';
-      expect(maxUpgradeTarget).toBe('enterprise');
+    it('max tier offers Contact sales for Enterprise, not unattended upgrade', () => {
+      const maxUpgradeTarget = 'contact-sales';
+      expect(maxUpgradeTarget).toBe('contact-sales');
     });
 
     it('enterprise tier only shows manage billing (no upgrade option)', () => {
@@ -264,7 +260,7 @@ describe('Billing UI Accuracy  -  admin Billing Page vs API + Contracts', () => 
       expect(BILLING_ENV_VARS.max).toBe('NEXT_PUBLIC_STRIPE_MAX_PRICE_ID');
     });
 
-    it('enterprise upgrade uses NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID', () => {
+    it('enterprise Stripe price id remains catalog-only, not a self-serve checkout door', () => {
       expect(BILLING_ENV_VARS.enterprise).toBe('NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID');
     });
   });

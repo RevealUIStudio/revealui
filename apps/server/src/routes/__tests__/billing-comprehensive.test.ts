@@ -565,6 +565,21 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
       expect(piMeta.revealui_user_id).toBe(MOCK_USER.id);
     });
 
+    it('rejects unattended Enterprise Perpetual checkout', async () => {
+      const app = createApp();
+      const res = await app.request(
+        post('/checkout-perpetual', {
+          priceId: 'price_enterprise_perpetual_server',
+          tier: 'enterprise',
+        }),
+      );
+
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as { error?: string };
+      expect(body.error).toContain('sales');
+      expect(mockCheckoutSessionsCreate).not.toHaveBeenCalled();
+    });
+
     it('includes github_username in metadata when provided', async () => {
       queueSelectResults(
         [], // duplicate perpetual license check
@@ -1001,7 +1016,7 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
 
     it('propagates Stripe API errors from subscription update (upgrade)', async () => {
       queueSelectResults(
-        [{ stripePriceId: 'price_enterprise_server' }],
+        [{ stripePriceId: 'price_max_server' }],
         [],
         [{ stripeCustomerId: 'cus_existing' }],
       );
@@ -1012,7 +1027,7 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
 
       const app = createApp();
       const res = await app.request(
-        post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
+        post('/upgrade', { priceId: 'price_max_server', targetTier: 'max' }),
       );
 
       expect(res.status).toBe(500);
@@ -1152,7 +1167,7 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
 
     it('allows valid upgrade from lower to higher tier', async () => {
       queueSelectResults(
-        [{ stripePriceId: 'price_enterprise_server' }],
+        [{ stripePriceId: 'price_max_server' }],
         [{ stripeCustomerId: 'cus_existing' }],
         [{ stripePriceId: 'price_pro_server' }],
       );
@@ -1167,12 +1182,12 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
       });
       mockSubscriptionsUpdate.mockResolvedValue({
         id: 'sub_pro',
-        items: { data: [{ id: 'si_enterprise', price: { id: 'price_enterprise_server' } }] },
+        items: { data: [{ id: 'si_max', price: { id: 'price_max_server' } }] },
       });
 
       const app = createApp(MOCK_USER, { tier: 'pro', accountId: 'acc-1' });
       const res = await app.request(
-        post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
+        post('/upgrade', { priceId: 'price_max_server', targetTier: 'max' }),
       );
 
       expect(res.status).toBe(200);

@@ -16,6 +16,7 @@ const { mockGetTiersFromCurrent } = vi.hoisted(() => ({
 }));
 vi.mock('@revealui/contracts/pricing', () => ({
   getTiersFromCurrent: mockGetTiersFromCurrent,
+  ENTERPRISE_SALES_HREF: 'https://revealui.com/contact',
 }));
 
 // Mock presentation components

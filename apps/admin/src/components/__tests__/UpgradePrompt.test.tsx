@@ -10,6 +10,8 @@ vi.mock('@revealui/contracts/pricing', () => ({
   FEATURE_LABELS: { ai: 'AI' },
   TIER_LABELS: { pro: 'Pro', max: 'Max', enterprise: 'Enterprise' },
   getTiersFromCurrent: (tier: string) => (tier === 'enterprise' ? [] : [{ id: 'pro' }]),
+  ENTERPRISE_SALES_HREF: 'https://revealui.com/contact',
+  allowsUnattendedCheckout: (tier: string) => tier === 'pro' || tier === 'max',
 }));
 
 vi.mock('@revealui/core/features', () => ({
