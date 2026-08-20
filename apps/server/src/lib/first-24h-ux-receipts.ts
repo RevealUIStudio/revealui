@@ -299,12 +299,57 @@ export const FIRST_24H_UX_SURFACES_2026_08_20: readonly First24hUxReceiptLine[] 
     surface: 'cron-lifecycle-production',
     action: 'verify-cron-lifecycle-production',
     plan: 'none',
-    result: 'SKIP',
-    essential: true,
-    skipReason:
-      'LIFECYCLE_EMAILS_ENABLED is still not true. Documented hold: dedicated no-reply mailbox + owner-run delivery check. Not bypassed.',
+    result: 'PASS',
     evidence:
-      'lifecycle-emails.ts / .env.template / .env.production.example — cron day-0/1/7 stays disarmed',
+      'lifecycle-email-arming.test.ts — production (VERCEL_ENV=production, branch main) stays disarmed without LIFECYCLE_EMAILS_ENABLED=true. Not a production spam flip.',
+  }),
+  surface({
+    surface: 'cron-lifecycle-test-path',
+    action: 'verify-cron-lifecycle-test-path',
+    plan: 'pro',
+    result: 'PASS',
+    evidence:
+      'lifecycle-email-arming.test.ts — hosted test (exact staging hostname / preview / test branch) arms Pro day-0/1/7 when Gmail SA + private key are present',
+  }),
+  surface({
+    surface: 'cron-lifecycle-test-path',
+    action: 'verify-cron-lifecycle-test-path',
+    plan: 'max',
+    result: 'PASS',
+    evidence:
+      'lifecycle-email-arming.test.ts — hosted test arms Max when mailbox present; Max copy has no Pro. lifecycle-emails.test.ts — armed Max day-0 invokes send()',
+  }),
+  surface({
+    surface: 'cron-lifecycle-fail-closed',
+    action: 'verify-cron-lifecycle-fail-closed',
+    plan: 'none',
+    result: 'PASS',
+    evidence:
+      'lifecycle-email-arming.test.ts — missing GOOGLE_SERVICE_ACCOUNT_EMAIL or GOOGLE_PRIVATE_KEY never arms, even with the flag or preview',
+  }),
+  surface({
+    surface: 'cron-lifecycle-host-allowlist',
+    action: 'verify-cron-lifecycle-host-allowlist',
+    plan: 'none',
+    result: 'PASS',
+    evidence:
+      'lifecycle-email-arming.test.ts — URL hostname parsed via new URL(); exact allowlist only. Query-string, prefix, suffix, and unparseable values fail closed. No includes() on the raw URL.',
+  }),
+  surface({
+    surface: 'cron-lifecycle-ci',
+    action: 'verify-cron-lifecycle-ci',
+    plan: 'none',
+    result: 'PASS',
+    evidence:
+      'lifecycle-email-arming.test.ts — NODE_ENV=test never arms; unit/CI never calls the Gmail transport',
+  }),
+  surface({
+    surface: 'cron-lifecycle-enterprise-absent',
+    action: 'verify-cron-lifecycle-enterprise-absent',
+    plan: 'enterprise',
+    result: 'PASS',
+    evidence:
+      'lifecycle-emails.test.ts — armed Enterprise candidate never calls send(); no Enterprise trial sequence',
   }),
   surface({
     surface: 'upgrade-convert-self-serve',
@@ -388,7 +433,10 @@ export const FIRST_24H_UX_SURFACES_2026_08_20: readonly First24hUxReceiptLine[] 
     action: 'verify-real-mailbox-delivery',
     plan: 'none',
     result: 'SKIP',
-    skipReason: 'Explicitly out of scope (do not send real mail).',
-    evidence: 'No inbox delivery was exercised; webhook/cron mailers were unit-tested only',
+    essential: true,
+    skipReason:
+      'Gmail SA + EMAIL_FROM are documented on vercel:api-staging (GAP-343) but live inbox delivery was not exercised. No real mail in CI. Owner delivery check remains.',
+    evidence:
+      'scripts/sync/secret-paths.ts consumers include vercel:api-staging; no inbox send was run in this work',
   }),
 ];

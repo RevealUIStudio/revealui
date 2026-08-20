@@ -179,6 +179,7 @@ Cloudflare R2 (S3-compatible) is the object-storage backend (GAP-208). The five 
 | `GOOGLE_PRIVATE_KEY` | No | None | Google Workspace service-account private key (PEM). Paired with `GOOGLE_SERVICE_ACCOUNT_EMAIL`. | HIGH (server-only) | admin, api |
 | `EMAIL_FROM` | No | `noreply@revealui.com` | Sender address for transactional emails. Must match a domain the Gmail service account can send as. | LOW | admin, api |
 | `EMAIL_REPLY_TO` | No | None | Optional reply-to address for transactional emails. | LOW | admin, api |
+| `LIFECYCLE_EMAILS_ENABLED` | No | unset (hosted test arms when Gmail SA is present; production stays disarmed) | First-week lifecycle cron (day-0 / day-1 / day-7) for Pro and Max. `true` is the production opt-in after an owner inbox check. `false` forces dry-run even on hosted test. Missing `GOOGLE_SERVICE_ACCOUNT_EMAIL` / `GOOGLE_PRIVATE_KEY` fail closed. Never set `true` on `main`. | MEDIUM | api |
 | `REVEALUI_WAITLIST_NOTIFY_EMAIL` | No | None | Email address to notify on waitlist signups. Silently skipped if unset. | LOW | marketing |
 | `REVEALUI_SUPPORT_EMAIL` | No | `support@revealui.com` | Support contact shown in transactional emails sent to customers. | LOW | admin, api |
 

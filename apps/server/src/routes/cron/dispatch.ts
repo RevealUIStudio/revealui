@@ -105,9 +105,9 @@ const JOBS = [
   // (not a second vercel.json cron entry).
   { name: 'margin-snapshot', app: marginSnapshotApp, path: '/margin-snapshot' },
   { name: 'cogs-breaker', app: cogsBreakerApp, path: '/cogs-breaker' },
-  // lifecycle-emails evaluates onboarding day-0/day-1/day-7 sends. Disarmed by
-  // default (LIFECYCLE_EMAILS_ENABLED must be 'true' to call the transport);
-  // otherwise it only records would-send decisions.
+  // lifecycle-emails evaluates onboarding day-0/day-1/day-7 sends for Pro/Max.
+  // Hosted test arms when the Gmail mailbox path is present; production stays
+  // disarmed unless LIFECYCLE_EMAILS_ENABLED=true. Missing mailbox fails closed.
   { name: 'lifecycle-emails', app: lifecycleEmailsApp, path: '/lifecycle-emails' },
   { name: 'uptime-check', app: uptimeCheckApp, path: '/uptime-check' },
   { name: 'jobs-safety-net', app: jobsSafetyNetApp, path: '/jobs-safety-net' },

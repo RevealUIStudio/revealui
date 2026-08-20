@@ -17,9 +17,9 @@ describe('First24hUxReceiptCard', () => {
           {
             ts: '2026-08-20T16:00:00.000Z',
             actor: 'agent:first-24h-ux',
-            action: 'verify-cron-lifecycle-production',
-            object: 'n/a SKIP — cron-lifecycle-production',
-            refId: 'rcpt-cron-skip',
+            action: 'verify-real-mailbox-delivery',
+            object: 'n/a SKIP — real-mailbox-delivery',
+            refId: 'rcpt-mailbox-skip',
           },
         ]}
       />,

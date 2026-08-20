@@ -7,11 +7,12 @@
  * `ctaButton`, `supportFooter`, `tierLabel`, and `adminUrl` from
  * ./email-templates.ts (the same helpers the Stripe webhook emails use).
  *
- * SENDING IS ARMED SEPARATELY. The cron job that calls these senders is
- * disarmed by default and only invokes the transport when the operator sets
- * the arming flag. See routes/cron/lifecycle-emails.ts. The preconditions for
- * arming are a dedicated no-reply mailbox and an end-to-end email delivery
- * verification, both owner-run and out of scope for this module.
+ * SENDING IS ARMED SEPARATELY. The cron job that calls these senders uses
+ * resolveLifecycleEmailArming: hosted test/staging arms when the Gmail
+ * mailbox path is present; production stays disarmed unless the operator
+ * sets LIFECYCLE_EMAILS_ENABLED=true after a delivery check. See
+ * routes/cron/lifecycle-emails.ts. The cron never sends an Enterprise trial
+ * sequence.
  */
 
 import { sendEmail } from './email.js';
