@@ -43,7 +43,7 @@ Then continue from [Step 2](#step-2-set-up-environment-variables) below.
 
 ## Step 2: Set Up Environment Variables
 
-**Canonical path: RevVault.** Every secret this repo needs lives in RevVault. If the CLI is installed, export into the session instead of hand-copying an example file:
+**Canonical path: [RevVault](./fleet/revvault.md).** Every secret this repo needs lives in that vault (separate product). If the CLI is installed, export into the session instead of hand-copying an example file:
 
 ```bash
 revvault export-env
@@ -51,7 +51,7 @@ revvault export-env
 
 See [RevVault](./fleet/revvault.md). Do not use `cp apps/admin/.env.example` — that file is not the on-ramp.
 
-Without RevVault (first clone, no vault yet), copy the **repo-root** template:
+Without [RevVault](./fleet/revvault.md) (separate product; first clone, no vault yet), copy the **repo-root** template:
 
 ```bash
 cp .env.template .env.development.local
