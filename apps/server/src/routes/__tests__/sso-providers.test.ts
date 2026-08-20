@@ -10,6 +10,7 @@ const {
   mockFetchOidcDiscovery,
   mockParseIdpMetadataXml,
   mockFetchIdpMetadata,
+  mockAuditSsoConfigChanged,
   mockDb,
 } = vi.hoisted(() => {
   const mockMembershipLimit = vi.fn();
@@ -34,6 +35,7 @@ const {
     mockFetchOidcDiscovery: vi.fn(),
     mockParseIdpMetadataXml: vi.fn(),
     mockFetchIdpMetadata: vi.fn(),
+    mockAuditSsoConfigChanged: vi.fn().mockResolvedValue(undefined),
     mockDb,
   };
 });
@@ -102,6 +104,7 @@ vi.mock('@revealui/auth/server', () => ({
   fetchOidcDiscovery: (...args: unknown[]) => mockFetchOidcDiscovery(...args),
   parseIdpMetadataXml: (...args: unknown[]) => mockParseIdpMetadataXml(...args),
   fetchIdpMetadata: (...args: unknown[]) => mockFetchIdpMetadata(...args),
+  auditSsoConfigChanged: (...args: unknown[]) => mockAuditSsoConfigChanged(...args),
 }));
 
 vi.mock('drizzle-orm', () => ({
@@ -365,6 +368,15 @@ describe('SSO provider CRUD + entitlement', () => {
     expect(insertArg.enabled).toBe(false);
     expect(insertArg.clientSecretRef).toBe('REVEALUI_SSO_CLIENT_SECRET');
     expect(insertArg.providerType).toBe('oidc');
+    expect(mockAuditSsoConfigChanged).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'create',
+        accountId: 'acct-1',
+        userId: 'user-1',
+        issuer: 'https://idp.example.com',
+        providerType: 'oidc',
+      }),
+    );
   });
 
   it('rejects SAML create without metadata', async () => {
@@ -489,6 +501,50 @@ describe('SSO provider CRUD + entitlement', () => {
     const body = (await res.json()) as { ok: boolean; reason: string };
     expect(body.ok).toBe(false);
     expect(body.reason).toBe('fetch_failed');
+  });
+
+  it('updates an OIDC provider and audits sso_config_changed', async () => {
+    mockMembershipLimit.mockResolvedValue([{ accountId: 'acct-1', role: 'owner' }]);
+    mockProviderSelectLimit.mockResolvedValue([PROVIDER_ROW]);
+    const app = createApp();
+    const res = await app.request('/api/accounts/acct-1/sso-providers/sso_abc', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Okta renamed', groupRoleMap: { Eng: 'editor' } }),
+    });
+    expect(res.status).toBe(200);
+    expect(mockUpdateWhere).toHaveBeenCalled();
+    expect(mockAuditSsoConfigChanged).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'update',
+        accountId: 'acct-1',
+        providerId: 'sso_abc',
+        userId: 'user-1',
+        issuer: 'https://idp.example.com',
+        providerType: 'oidc',
+      }),
+    );
+  });
+
+  it('soft-deletes a provider and audits sso_config_changed', async () => {
+    mockMembershipLimit.mockResolvedValue([{ accountId: 'acct-1', role: 'owner' }]);
+    mockProviderSelectLimit.mockResolvedValue([PROVIDER_ROW]);
+    const app = createApp();
+    const res = await app.request('/api/accounts/acct-1/sso-providers/sso_abc', {
+      method: 'DELETE',
+    });
+    expect(res.status).toBe(200);
+    expect(mockUpdateWhere).toHaveBeenCalled();
+    expect(mockAuditSsoConfigChanged).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'delete',
+        accountId: 'acct-1',
+        providerId: 'sso_abc',
+        userId: 'user-1',
+        issuer: 'https://idp.example.com',
+        providerType: 'oidc',
+      }),
+    );
   });
 
   it('GET /current reports ssoFeature false when not entitled', async () => {

@@ -18,6 +18,8 @@
  */
 
 import {
+  auditSsoLoginFailure,
+  auditSsoLoginSuccess,
   buildOidcAuthorizationUrl,
   buildSamlAuthorizeUrl,
   buildSamlSpMetadata,
@@ -313,6 +315,45 @@ function clientIp(c: {
   );
 }
 
+interface SsoLoginAuditFields {
+  reason: string;
+  providerId?: string;
+  accountId?: string;
+  userId?: string;
+  issuer?: string;
+  providerType?: string;
+  ip?: string;
+  userAgent?: string;
+  message?: string;
+}
+
+/**
+ * Logger + audit door for an SSO login failure. Awaited so the audit_log
+ * row is attempted before the HTTP response returns (#449 Audit wiring).
+ */
+async function emitSsoLoginFailure(fields: SsoLoginAuditFields): Promise<void> {
+  logger.warn('sso_login_failure', {
+    event: 'sso_login_failure',
+    reason: fields.reason,
+    providerId: fields.providerId,
+    accountId: fields.accountId,
+    userId: fields.userId,
+    issuer: fields.issuer,
+    providerType: fields.providerType,
+    message: fields.message,
+  });
+  await auditSsoLoginFailure({
+    reason: fields.reason,
+    providerId: fields.providerId,
+    accountId: fields.accountId,
+    userId: fields.userId,
+    issuer: fields.issuer,
+    providerType: fields.providerType,
+    ip: fields.ip,
+    userAgent: fields.userAgent,
+  });
+}
+
 // ---------------------------------------------------------------------------
 // GET /sso/saml/metadata — SP metadata for customer IdP configuration
 // ---------------------------------------------------------------------------
@@ -368,18 +409,13 @@ app.get('/sso/:providerId/init', async (c) => {
   const redirectTo = safeSsoRedirectPath(c.req.query('redirectTo') ?? '/');
 
   if (!accountId || accountId.length === 0) {
-    logger.warn('sso_login_failure', {
-      event: 'sso_login_failure',
-      reason: 'missing_account_id',
-      providerId,
-    });
+    await emitSsoLoginFailure({ reason: 'missing_account_id', providerId });
     return c.json({ error: 'accountId query parameter is required' }, 400);
   }
 
   const provider = await loadEnabledSsoProvider(providerId, accountId);
   if (!provider) {
-    logger.warn('sso_login_failure', {
-      event: 'sso_login_failure',
+    await emitSsoLoginFailure({
       reason: 'provider_not_found',
       providerId,
       accountId,
@@ -390,11 +426,12 @@ app.get('/sso/:providerId/init', async (c) => {
   const db = getClient();
   const entitled = await accountHasSsoFeature(db, accountId);
   if (!entitled) {
-    logger.warn('sso_login_failure', {
-      event: 'sso_login_failure',
+    await emitSsoLoginFailure({
       reason: 'entitlement_denied',
       providerId,
       accountId,
+      issuer: provider.issuer,
+      providerType: provider.providerType,
     });
     return c.json({ error: 'SSO is not enabled for this account' }, 403);
   }
@@ -407,12 +444,20 @@ app.get('/sso/:providerId/init', async (c) => {
       redirectTo,
     });
   } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
     logger.error('sso_login_failure', {
       event: 'sso_login_failure',
       reason: 'state_generation_failed',
       providerId,
       accountId,
-      message: err instanceof Error ? err.message : String(err),
+      message,
+    });
+    await auditSsoLoginFailure({
+      reason: 'state_generation_failed',
+      providerId,
+      accountId,
+      issuer: provider.issuer,
+      providerType: provider.providerType,
     });
     return c.json({ error: 'SSO state generation failed' }, 500);
   }
@@ -423,11 +468,12 @@ app.get('/sso/:providerId/init', async (c) => {
   if (provider.providerType === 'saml') {
     const resolved = await resolveSamlSpConfig(provider, callbackUrl);
     if (!resolved.ok) {
-      logger.warn('sso_login_failure', {
-        event: 'sso_login_failure',
+      await emitSsoLoginFailure({
         reason: resolved.reason,
         providerId,
         accountId,
+        issuer: provider.issuer,
+        providerType: 'saml',
         message: resolved.message,
       });
       return c.json({ error: 'SSO provider is misconfigured' }, 500);
@@ -435,11 +481,12 @@ app.get('/sso/:providerId/init', async (c) => {
 
     const auth = await buildSamlAuthorizeUrl(resolved.config, stateResult.state);
     if (!auth.ok) {
-      logger.warn('sso_login_failure', {
-        event: 'sso_login_failure',
+      await emitSsoLoginFailure({
         reason: `saml_${auth.reason}`,
         providerId,
         accountId,
+        issuer: provider.issuer,
+        providerType: 'saml',
         message: auth.message,
       });
       return c.json({ error: 'SSO AuthnRequest failed' }, 502);
@@ -456,22 +503,24 @@ app.get('/sso/:providerId/init', async (c) => {
 
   // ---- OIDC ----
   if (!provider.clientId) {
-    logger.warn('sso_login_failure', {
-      event: 'sso_login_failure',
+    await emitSsoLoginFailure({
       reason: 'missing_client_id',
       providerId,
       accountId,
+      issuer: provider.issuer,
+      providerType: 'oidc',
     });
     return c.json({ error: 'SSO provider is misconfigured' }, 500);
   }
 
   const clientSecret = resolveSsoClientSecret(provider);
   if (!clientSecret) {
-    logger.warn('sso_login_failure', {
-      event: 'sso_login_failure',
+    await emitSsoLoginFailure({
       reason: 'missing_client_secret',
       providerId,
       accountId,
+      issuer: provider.issuer,
+      providerType: 'oidc',
     });
     return c.json({ error: 'SSO provider is misconfigured' }, 500);
   }
@@ -480,11 +529,12 @@ app.get('/sso/:providerId/init', async (c) => {
     expectedIssuer: provider.issuer,
   });
   if (!discovery.ok) {
-    logger.warn('sso_login_failure', {
-      event: 'sso_login_failure',
+    await emitSsoLoginFailure({
       reason: `discovery_${discovery.reason}`,
       providerId,
       accountId,
+      issuer: provider.issuer,
+      providerType: 'oidc',
       message: discovery.message,
     });
     return c.json({ error: 'SSO discovery failed' }, 502);
@@ -521,12 +571,30 @@ app.get('/sso/:providerId/callback', async (c) => {
   const ip = clientIp(c);
   const userAgent = c.req.header('user-agent') ?? undefined;
 
-  const fail = (reason: string, extra?: Record<string, unknown>): Response => {
-    logger.warn('sso_login_failure', {
-      event: 'sso_login_failure',
+  const auditCtx = {
+    providerId,
+    accountId: undefined as string | undefined,
+    userId: undefined as string | undefined,
+    issuer: undefined as string | undefined,
+    providerType: 'oidc',
+    ip,
+    userAgent,
+  };
+
+  const fail = async (reason: string, extra?: Record<string, unknown>): Promise<Response> => {
+    if (typeof extra?.accountId === 'string') auditCtx.accountId = extra.accountId;
+    if (typeof extra?.userId === 'string') auditCtx.userId = extra.userId;
+    if (typeof extra?.issuer === 'string') auditCtx.issuer = extra.issuer;
+    await emitSsoLoginFailure({
       reason,
       providerId,
-      ...extra,
+      accountId: auditCtx.accountId,
+      userId: auditCtx.userId,
+      issuer: auditCtx.issuer,
+      providerType: auditCtx.providerType,
+      ip,
+      userAgent,
+      message: typeof extra?.message === 'string' ? extra.message : undefined,
     });
     const headers = new Headers();
     appendSetCookie(headers, clearCookieHeader(SSO_STATE_COOKIE));
@@ -543,42 +611,46 @@ app.get('/sso/:providerId/callback', async (c) => {
 
   const verified = verifySsoState(state, stateCookie);
   if (!verified) {
-    return fail('invalid_state');
+    return await fail('invalid_state');
   }
 
   if (verified.providerId !== providerId) {
-    return fail('provider_mismatch', { stateProviderId: verified.providerId });
+    return await fail('provider_mismatch', { stateProviderId: verified.providerId });
   }
 
   if (!code) {
-    return fail('missing_code', { accountId: verified.accountId });
+    return await fail('missing_code', { accountId: verified.accountId });
   }
 
   const provider = await loadEnabledOidcProvider(providerId, verified.accountId);
   if (!provider) {
-    return fail('provider_not_found', { accountId: verified.accountId });
+    return await fail('provider_not_found', { accountId: verified.accountId });
   }
+
+  auditCtx.accountId = provider.accountId;
+  auditCtx.issuer = provider.issuer;
+  auditCtx.providerType = 'oidc';
 
   const db = getClient();
   const entitled = await accountHasSsoFeature(db, verified.accountId);
   if (!entitled) {
-    return fail('entitlement_denied', { accountId: verified.accountId });
+    return await fail('entitlement_denied', { accountId: verified.accountId });
   }
 
   if (!provider.clientId) {
-    return fail('missing_client_id', { accountId: verified.accountId });
+    return await fail('missing_client_id', { accountId: verified.accountId });
   }
 
   const clientSecret = resolveSsoClientSecret(provider);
   if (!clientSecret) {
-    return fail('missing_client_secret', { accountId: verified.accountId });
+    return await fail('missing_client_secret', { accountId: verified.accountId });
   }
 
   const discovery = await fetchOidcDiscovery(discoveryUrlFor(provider), {
     expectedIssuer: provider.issuer,
   });
   if (!discovery.ok) {
-    return fail(`discovery_${discovery.reason}`, {
+    return await fail(`discovery_${discovery.reason}`, {
       accountId: verified.accountId,
       message: discovery.message,
     });
@@ -595,7 +667,7 @@ app.get('/sso/:providerId/callback', async (c) => {
   });
 
   if (!exchange.ok) {
-    return fail(`token_${exchange.reason}`, {
+    return await fail(`token_${exchange.reason}`, {
       accountId: verified.accountId,
       message: exchange.message,
     });
@@ -605,7 +677,7 @@ app.get('/sso/:providerId/callback', async (c) => {
   try {
     jwks = createOidcRemoteJwkSet(discovery.document.jwks_uri);
   } catch {
-    return fail('invalid_jwks_uri', { accountId: verified.accountId });
+    return await fail('invalid_jwks_uri', { accountId: verified.accountId });
   }
 
   const idTokenResult = await validateOidcIdToken({
@@ -616,7 +688,7 @@ app.get('/sso/:providerId/callback', async (c) => {
   });
 
   if (!idTokenResult.ok) {
-    return fail(`id_token_${idTokenResult.reason}`, {
+    return await fail(`id_token_${idTokenResult.reason}`, {
       accountId: verified.accountId,
       message: idTokenResult.message,
     });
@@ -632,7 +704,7 @@ app.get('/sso/:providerId/callback', async (c) => {
   });
 
   if (!roleResult.ok) {
-    return fail(roleResult.reason, {
+    return await fail(roleResult.reason, {
       accountId: verified.accountId,
       groups: roleResult.groups,
       message: roleResult.message,
@@ -658,8 +730,10 @@ app.get('/sso/:providerId/callback', async (c) => {
       accountId: verified.accountId,
       message: err instanceof Error ? err.message : String(err),
     });
-    return fail('jit_failed', { accountId: verified.accountId });
+    return await fail('jit_failed', { accountId: verified.accountId });
   }
+
+  auditCtx.userId = user.id;
 
   let token: string;
   try {
@@ -684,7 +758,7 @@ app.get('/sso/:providerId/callback', async (c) => {
       userId: user.id,
       message: err instanceof Error ? err.message : String(err),
     });
-    return fail('session_failed', { accountId: verified.accountId });
+    return await fail('session_failed', { accountId: verified.accountId, userId: user.id });
   }
 
   const safePath = safeSsoRedirectPath(verified.redirectTo);
@@ -711,6 +785,16 @@ app.get('/sso/:providerId/callback', async (c) => {
     providerType: 'oidc',
   });
 
+  await auditSsoLoginSuccess({
+    providerType: 'oidc',
+    accountId: provider.accountId,
+    userId: user.id,
+    issuer: provider.issuer,
+    providerId: provider.id,
+    ip,
+    userAgent,
+  });
+
   return new Response(null, { status: 302, headers });
 });
 
@@ -723,13 +807,30 @@ app.post('/sso/:providerId/callback', async (c) => {
   const ip = clientIp(c);
   const userAgent = c.req.header('user-agent') ?? undefined;
 
-  const fail = (reason: string, extra?: Record<string, unknown>): Response => {
-    logger.warn('sso_login_failure', {
-      event: 'sso_login_failure',
+  const auditCtx = {
+    providerId,
+    accountId: undefined as string | undefined,
+    userId: undefined as string | undefined,
+    issuer: undefined as string | undefined,
+    providerType: 'saml',
+    ip,
+    userAgent,
+  };
+
+  const fail = async (reason: string, extra?: Record<string, unknown>): Promise<Response> => {
+    if (typeof extra?.accountId === 'string') auditCtx.accountId = extra.accountId;
+    if (typeof extra?.userId === 'string') auditCtx.userId = extra.userId;
+    if (typeof extra?.issuer === 'string') auditCtx.issuer = extra.issuer;
+    await emitSsoLoginFailure({
       reason,
       providerId,
-      providerType: 'saml',
-      ...extra,
+      accountId: auditCtx.accountId,
+      userId: auditCtx.userId,
+      issuer: auditCtx.issuer,
+      providerType: auditCtx.providerType,
+      ip,
+      userAgent,
+      message: typeof extra?.message === 'string' ? extra.message : undefined,
     });
     const headers = new Headers();
     appendSetCookie(headers, clearCookieHeader(SSO_STATE_COOKIE));
@@ -748,7 +849,7 @@ app.post('/sso/:providerId/callback', async (c) => {
   try {
     body = (await c.req.parseBody()) as Record<string, string>;
   } catch {
-    return fail('invalid_body');
+    return await fail('invalid_body');
   }
 
   const samlResponse =
@@ -767,30 +868,34 @@ app.post('/sso/:providerId/callback', async (c) => {
   const stateCookie = readCookie(c.req.header('cookie'), SSO_STATE_COOKIE);
   const verified = verifySsoState(relayState, stateCookie);
   if (!verified) {
-    return fail('invalid_state');
+    return await fail('invalid_state');
   }
   if (verified.providerId !== providerId) {
-    return fail('provider_mismatch', { stateProviderId: verified.providerId });
+    return await fail('provider_mismatch', { stateProviderId: verified.providerId });
   }
   if (!samlResponse) {
-    return fail('missing_saml_response', { accountId: verified.accountId });
+    return await fail('missing_saml_response', { accountId: verified.accountId });
   }
 
   const provider = await loadEnabledSsoProvider(providerId, verified.accountId, 'saml');
   if (!provider) {
-    return fail('provider_not_found', { accountId: verified.accountId });
+    return await fail('provider_not_found', { accountId: verified.accountId });
   }
+
+  auditCtx.accountId = provider.accountId;
+  auditCtx.issuer = provider.issuer;
+  auditCtx.providerType = 'saml';
 
   const db = getClient();
   const entitled = await accountHasSsoFeature(db, verified.accountId);
   if (!entitled) {
-    return fail('entitlement_denied', { accountId: verified.accountId });
+    return await fail('entitlement_denied', { accountId: verified.accountId });
   }
 
   const callbackUrl = `${apiBaseUrl()}/api/auth/sso/${providerId}/callback`;
   const resolved = await resolveSamlSpConfig(provider, callbackUrl);
   if (!resolved.ok) {
-    return fail(resolved.reason, {
+    return await fail(resolved.reason, {
       accountId: verified.accountId,
       message: resolved.message,
     });
@@ -798,7 +903,7 @@ app.post('/sso/:providerId/callback', async (c) => {
 
   const validated = await validateSamlPostResponse(resolved.config, samlResponse);
   if (!validated.ok) {
-    return fail(`saml_${validated.reason}`, {
+    return await fail(`saml_${validated.reason}`, {
       accountId: verified.accountId,
       message: validated.message,
     });
@@ -813,7 +918,7 @@ app.post('/sso/:providerId/callback', async (c) => {
   });
 
   if (!roleResult.ok) {
-    return fail(roleResult.reason, {
+    return await fail(roleResult.reason, {
       accountId: verified.accountId,
       groups: roleResult.groups,
       message: roleResult.message,
@@ -839,8 +944,10 @@ app.post('/sso/:providerId/callback', async (c) => {
       accountId: verified.accountId,
       message: err instanceof Error ? err.message : String(err),
     });
-    return fail('jit_failed', { accountId: verified.accountId });
+    return await fail('jit_failed', { accountId: verified.accountId });
   }
+
+  auditCtx.userId = user.id;
 
   let token: string;
   try {
@@ -866,7 +973,7 @@ app.post('/sso/:providerId/callback', async (c) => {
       userId: user.id,
       message: err instanceof Error ? err.message : String(err),
     });
-    return fail('session_failed', { accountId: verified.accountId });
+    return await fail('session_failed', { accountId: verified.accountId, userId: user.id });
   }
 
   const safePath = safeSsoRedirectPath(verified.redirectTo);
@@ -889,6 +996,16 @@ app.post('/sso/:providerId/callback', async (c) => {
     issuer: provider.issuer,
     role: roleResult.role,
     providerType: 'saml',
+  });
+
+  await auditSsoLoginSuccess({
+    providerType: 'saml',
+    accountId: provider.accountId,
+    userId: user.id,
+    issuer: provider.issuer,
+    providerId: provider.id,
+    ip,
+    userAgent,
   });
 
   return new Response(null, { status: 302, headers });
