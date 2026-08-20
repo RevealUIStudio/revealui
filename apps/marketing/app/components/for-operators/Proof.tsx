@@ -3,6 +3,7 @@ import {
   fieldAttrs,
   MarketingSection,
   SectionHeader,
+  TextLink,
 } from '@revealui/presentation';
 import { FOR_OPERATORS_PROOF } from '../../content/for-operators';
 import type { ServicesProofData } from '../../lib/page-blocks';
@@ -73,15 +74,15 @@ export function Proof({ data, path, annotation }: ProofProps = {}) {
 
       <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm">
         {content.links.map((link, index) => (
-          <a
+          <TextLink
             key={link.href}
             href={link.href}
             {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-            className="font-medium text-primary underline-offset-4 hover:underline"
+            className="font-medium text-primary"
             {...(base ? fieldAttrs(ann, `${base}.items.${firstLinkIndex + index}.label`) : {})}
           >
             {link.label}
-          </a>
+          </TextLink>
         ))}
       </div>
     </MarketingSection>

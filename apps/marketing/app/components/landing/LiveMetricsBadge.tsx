@@ -1,11 +1,10 @@
+import { Button, Stat, StatGroup } from '@revealui/presentation';
 import { LIVE_METRICS as M } from '../../content/proof';
 
 /**
  * Live-metrics snapshot. Renders the gate-pinned site.ts METRICS as a dense
  * "live from the repo" strip and links to the claim-drift validator that
  * enforces them. Static (the numbers are build-time constants pinned by CI).
- *
- * Craft pass: less card-in-card chrome; tabular density (Linear-like stats).
  */
 export function LiveMetricsBadge() {
   return (
@@ -20,28 +19,18 @@ export function LiveMetricsBadge() {
             {M.heading}
           </h3>
         </div>
-        <a
-          href={M.validatorHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="shrink-0 text-sm font-medium text-primary underline decoration-primary/40 underline-offset-4 transition-colors hover:text-primary/80"
-        >
-          {M.validatorLabel}
-        </a>
+        <Button asChild appearance="link" className="shrink-0 text-sm font-medium">
+          <a href={M.validatorHref} target="_blank" rel="noopener noreferrer">
+            {M.validatorLabel}
+          </a>
+        </Button>
       </div>
 
-      <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-border ring-1 ring-border sm:grid-cols-3 lg:grid-cols-6">
+      <StatGroup className="mt-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
         {M.metrics.map((m) => (
-          <div key={m.label} className="bg-card px-3 py-4 text-center sm:px-4 sm:py-5">
-            <dd className="font-display text-xl font-bold tabular-nums tracking-tight text-foreground sm:text-2xl">
-              {m.value}
-            </dd>
-            <dt className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-              {m.label}
-            </dt>
-          </div>
+          <Stat key={m.label} label={m.label} value={m.value} className="p-4 text-center" />
         ))}
-      </dl>
+      </StatGroup>
 
       <p className="mt-4 text-sm leading-6 text-body">{M.body}</p>
     </div>

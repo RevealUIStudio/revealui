@@ -241,7 +241,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_PROBLEM.rows[2].revealui',
     proofGrade: 'behavior',
-    text: 'Checkout, subscriptions, and webhook handling',
+    text: 'Test-mode checkout, subscriptions, and webhook handling',
     evidence: [BILLING, WEBHOOKS, RECONCILE],
   },
   {
@@ -535,7 +535,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'primitives.ts',
     exportPath: 'HOME_PRIMITIVES[3].body',
     proofGrade: 'behavior',
-    text: 'Checkout and subscriptions ship ready, including webhook handling.',
+    text: 'Test-mode checkout and subscriptions ship ready, including webhooks. Go live when you take real money.',
     evidence: [BILLING, WEBHOOKS, RECONCILE],
   },
   {
@@ -694,6 +694,13 @@ export const claimsPart1: readonly ClaimEntry[] = [
     proofGrade: 'behavior',
     text: 'Max adds durable agent memory and advanced inference.',
     evidence: [MEMORY, { kind: 'code', ref: 'packages/ai/src/inference', note: 'inference layer' }],
+  },
+  {
+    file: 'pricing-teaser.ts',
+    exportPath: 'PRICING_TEASER_LINKS[1].description',
+    proofGrade: 'behavior',
+    text: 'Enterprise is scoped with sales.',
+    evidence: [COMMERCIAL_POLICY],
   },
   {
     file: 'pricing-teaser.ts',
