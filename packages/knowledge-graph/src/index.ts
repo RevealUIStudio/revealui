@@ -5,7 +5,9 @@
  * single Neon + pgvector primary: deterministic id derivation, a convergent
  * (CRDT class-1/2) write API, deterministic Tier-1 extractors, and hybrid
  * retrieval (vector + FTS + traversal, RRF-fused, point-in-time). The `revkg`
- * bin exposes scan/search/node/neighbors/at.
+ * bin exposes scan/search/node/neighbors/at/drift/claims-check/extract/
+ * ingest-handoffs/decommission/graph. Fleet scan defaults to dry-run; the
+ * P5 `graph.*` replica is the in-repo pull/apply/push surface for a daemon.
  */
 
 export { KG_TABLES, type KgDdlOptions, kgDdlStatements } from './db/ddl.js';
@@ -50,6 +52,37 @@ export {
   type NodeKind,
   validateNodeAttributes,
 } from './ontology/index.js';
+export {
+  GRAPH_METHODS,
+  GRAPH_REPLICA_CONFIG,
+  type GraphApplyResult,
+  type GraphMethod,
+  type GraphOutboxEntry,
+  type GraphPullResult,
+  type GraphPushResult,
+  graphApply,
+  graphPull,
+  graphPush,
+  handleGraphMethod,
+  isGraphMethod,
+  parseKgOp,
+  parseKgOps,
+} from './replica/index.js';
+export {
+  assertCiWriteAllowed,
+  type CollectedRepoScan,
+  collectRepoProducts,
+  discoverFleetRepos,
+  type FleetRepo,
+  isRepoRoot,
+  previewRepoScan,
+  publishCollected,
+  publishRepoScan,
+  type RepoScanPreview,
+  resolveScanTargets,
+  resolveScanWritePolicy,
+  summarizeCollected,
+} from './scan/index.js';
 export {
   type DriftCandidate,
   type KgDriftOptions,
