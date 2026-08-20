@@ -379,22 +379,22 @@ export function PricingPage() {
             </div>
           </div>
 
-          <div className="mt-10 text-center">
-            <a
-              href={PRICING_AGENT_CTA_LINKS.openapi.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg bg-card px-4 py-2 text-sm font-medium text-muted-foreground ring-1 ring-border transition-colors hover:bg-muted"
-            >
-              <IconCode size="sm" />
-              {PRICING_AGENT_CTA_LINKS.openapi.label}
-            </a>
-            <a
-              href={PRICING_AGENT_CTA_LINKS.apiDocs.href}
-              className="ml-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              {PRICING_AGENT_CTA_LINKS.apiDocs.label}
-            </a>
+          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Button asChild appearance="outline" variant="neutral">
+              <a
+                href={PRICING_AGENT_CTA_LINKS.openapi.href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <IconCode size="sm" />
+                {PRICING_AGENT_CTA_LINKS.openapi.label}
+              </a>
+            </Button>
+            <Button asChild variant="brand">
+              <a href={PRICING_AGENT_CTA_LINKS.apiDocs.href}>
+                {PRICING_AGENT_CTA_LINKS.apiDocs.label}
+              </a>
+            </Button>
           </div>
         </div>
       </MarketingSection>

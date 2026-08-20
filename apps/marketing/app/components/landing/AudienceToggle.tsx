@@ -1,3 +1,4 @@
+import { Button } from '@revealui/presentation';
 import { Link, useLocation } from '@revealui/router';
 import { type Audience, audienceHref } from '../../lib/audience';
 
@@ -23,18 +24,21 @@ export function AudienceToggle({ current }: { current: Audience }) {
       {OPTIONS.map((option) => {
         const active = option.value === current;
         return (
-          <Link
+          <Button
             key={option.value}
-            to={audienceHref(search, option.value)}
-            aria-current={active ? 'true' : undefined}
-            className={
-              active
-                ? 'inline-flex min-h-9 items-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground'
-                : 'inline-flex min-h-9 items-center rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground'
-            }
+            asChild
+            size="sm"
+            variant={active ? 'brand' : 'neutral'}
+            appearance={active ? 'solid' : 'ghost'}
+            className="rounded-full"
           >
-            {option.label}
-          </Link>
+            <Link
+              to={audienceHref(search, option.value)}
+              aria-current={active ? 'true' : undefined}
+            >
+              {option.label}
+            </Link>
+          </Button>
         );
       })}
     </nav>

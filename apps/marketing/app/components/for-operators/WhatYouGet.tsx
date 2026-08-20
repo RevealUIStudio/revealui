@@ -1,5 +1,9 @@
 import {
   type BlockAnnotation,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
   fieldAttrs,
   MarketingSection,
   SectionHeader,
@@ -50,23 +54,27 @@ export function WhatYouGet({ data, path, annotation }: WhatYouGetProps = {}) {
 
       <CenteredCardGrid className="mx-auto mt-12 max-w-5xl sm:mt-14">
         {content.cards.map((card, index) => (
-          <div
+          <Card
             key={card.title}
-            className="w-full rounded-2xl bg-card p-6 ring-1 ring-border sm:w-[calc(50%-0.75rem)] sm:p-8 lg:w-[calc(33.333%-1rem)]"
+            className="w-full rounded-2xl sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]"
           >
-            <h3
-              className="text-lg font-semibold leading-7 text-foreground"
-              {...(base ? fieldAttrs(ann, `${base}.items.${index}.label`) : {})}
-            >
-              {card.title}
-            </h3>
-            <p
-              className="mt-3 text-base leading-7 text-body"
-              {...(base ? fieldAttrs(ann, `${base}.items.${index}.body`) : {})}
-            >
-              {card.body}
-            </p>
-          </div>
+            <CardHeader>
+              <CardTitle
+                className="text-lg font-semibold leading-7"
+                {...(base ? fieldAttrs(ann, `${base}.items.${index}.label`) : {})}
+              >
+                {card.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p
+                className="text-base leading-7 text-body"
+                {...(base ? fieldAttrs(ann, `${base}.items.${index}.body`) : {})}
+              >
+                {card.body}
+              </p>
+            </CardContent>
+          </Card>
         ))}
       </CenteredCardGrid>
     </MarketingSection>

@@ -1,6 +1,11 @@
 import {
   type BlockAnnotation,
   Button,
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
   fieldAttrs,
   MarketingSection,
   SectionHeader,
@@ -54,23 +59,28 @@ export function EngagementPricing({ data, path, annotation }: EngagementPricingP
 
       <ul className="mx-auto mt-12 grid max-w-5xl list-none grid-cols-1 gap-6 p-0 sm:mt-14 lg:grid-cols-3">
         {rungs.map((rung) => (
-          <li
-            key={rung.title}
-            className="flex flex-col rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8"
-          >
-            <h3 className="text-lg font-semibold leading-7 text-foreground">{rung.title}</h3>
-            <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">{rung.price}</p>
-            <p className="mt-4 flex-1 text-base leading-7 text-body">{rung.body}</p>
-            <div className="mt-8">
-              <Button asChild appearance="outline" variant="neutral" className="w-full">
-                <a
-                  href={rung.cta.href}
-                  {...(rung.cta.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                >
-                  {rung.cta.label}
-                </a>
-              </Button>
-            </div>
+          <li key={rung.title} className="h-full">
+            <Card className="flex h-full flex-col rounded-2xl">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold leading-7">{rung.title}</CardTitle>
+                <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">
+                  {rung.price}
+                </p>
+              </CardHeader>
+              <CardContent className="flex-1">
+                <p className="text-base leading-7 text-body">{rung.body}</p>
+              </CardContent>
+              <CardFooter>
+                <Button asChild appearance="outline" variant="neutral" className="w-full">
+                  <a
+                    href={rung.cta.href}
+                    {...(rung.cta.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                  >
+                    {rung.cta.label}
+                  </a>
+                </Button>
+              </CardFooter>
+            </Card>
           </li>
         ))}
       </ul>
