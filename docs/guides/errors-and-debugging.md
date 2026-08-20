@@ -39,7 +39,7 @@ The admin Next.js app has its own `/api/health` surface. Do not confuse it with 
 
 ## Structured logs
 
-Production code uses `@revealui/utils` (re-exported through `@revealui/core` observability). In production, logs go to stdout as JSON. There is no first-class `DEBUG=revealui:*` namespace switch in this repo. Use log level configuration on the logger and your process manager.
+Production logs use the shared logger (`packages/utils/src/logger/index.ts:215`). In production, entries go to stdout as JSON. There is no first-class `DEBUG=revealui:*` namespace switch in this repo. Use log level configuration on the logger and your process manager.
 
 Do not add `console.*` in packages. See the conventions skill / `docs/agent-rules/conventions.md`.
 

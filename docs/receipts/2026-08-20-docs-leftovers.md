@@ -15,7 +15,8 @@ Public-facing customer documentation work. Production `audit_log` / Merkle-root 
 |-------|-------|
 | Date | 2026-08-20 |
 | Agent | Cursor cloud agent (`bc-d71405a9-0bf6-4f93-9dc4-0045a2c4aaa6`) |
-| Branch | `cursor/docs-leftovers-aaa6` |
+| Branch | `docs/leftovers-aaa6` (repo forbids creating `cursor/**` refs) |
+| PR | https://github.com/RevealUIStudio/revealui/pull/2676 |
 | Base | `test` |
 | Scope | Docs / INDEX / honesty leftovers. No SSO, observability sink, visual editing, or main promote. |
 

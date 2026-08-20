@@ -20,9 +20,9 @@ People. Content. Offers. Payments. Agents. Five primitives for humans and agents
 
 ---
 
-RevealUI is an open-source agentic business runtime. It ships five primitives — people, content, offers, payments, and agents — pre-wired in one deployable system so humans and agents share the same permissions, API, and data model. OSS packages are MIT. Pro packages are Fair Source (FSL-1.1-MIT) and convert to MIT two years after each release. RevealUI is the runtime at the center of RevFleet.
+RevealUI is an open-source runtime that ships the business logic layer every software product needs: auth, content, products, billing, and AI agents. Pre-wired and development-hardened. You start on day one with a running business. Your agents start on day one with a runtime they can operate on. Same permissions, same API, and data model.
 
-Canonical copy: [docs/WHAT_IS.md](docs/WHAT_IS.md).
+Canonical definition: [docs/WHAT_IS.md](docs/WHAT_IS.md).
 
 ## What you get on day one
 
