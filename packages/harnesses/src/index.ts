@@ -168,6 +168,17 @@ export {
 } from './protocol/index.js';
 // Registry
 export { HarnessRegistry } from './registry/harness-registry.js';
+export {
+  BOOT_PERSIST_MIN_MEM_GIB,
+  chooseSnapForTier,
+  DEFAULT_HEAVY_SNAP,
+  DEFAULT_SNAPS_SNAP,
+  isSignedProductSnap,
+  PRODUCT_SNAP_RUN_POLICY,
+  persistSnapAtBoot,
+  SIGNED_PRODUCT_SNAP_IDS,
+  snapFitsHost,
+} from './server/inference-run-policy.js';
 // Server
 export type {
   LocalAiProfileView,
