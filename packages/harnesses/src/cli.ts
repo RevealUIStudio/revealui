@@ -818,6 +818,7 @@ Commands:
   tmpscript <subcommand>            Temp-artifact lifecycle (GAP-295 control layer)
   inference status                  Local AI profile (tier, mem, engines)
   inference apply <tier>            idle|daily|snaps|heavy (host control plane)
+  inference reconcile               Re-apply stored tier; start only signed snaps that fit RAM
 
 Content Subcommands:
   content list                      List all canonical content with metadata
