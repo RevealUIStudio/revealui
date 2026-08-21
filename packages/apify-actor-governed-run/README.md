@@ -32,9 +32,10 @@ ever talking to us again.
   the run really happened, not just that the receipt is internally
   consistent, can fetch that record from the Apify API for the `actorRunId`
   embedded in the receipt and confirm it matches.
-- **A free way to check any receipt.** Run this actor again in
+- **A way to check any receipt.** Run this actor again in
   "verify-receipt" mode with a receipt you already have, and it tells you
-  whether the signature is valid. This mode is free.
+  whether the signature is valid. That run is billed at $0.00001, the lowest
+  price Apify Console allows for an event ($0.00 is not an option).
 
 **What a receipt proves, and what it doesn't.** Standalone verification
 (`verifyReceipt`, or "verify-receipt" mode) proves the action log was not
@@ -84,7 +85,7 @@ actor is adopted/published):
 |---|---|---|
 | `governed-action` | $0.02 | Once per model call or tool call recorded into the action log |
 | `run-completed` | $0.08 | Once when a governed run finishes and a signed receipt is produced |
-| `receipt-verification` | $0.00 (free) | Once per `verify-receipt` invocation |
+| `receipt-verification` | $0.00001 | Once per `verify-receipt` invocation |
 
 To change a price, edit `src/pricing.config.ts` and re-apply it to Apify --
 the code that calls `Actor.charge({ eventName })` never has to change for a
@@ -100,7 +101,7 @@ price-only adjustment. Example `PUT` body shape (see
         "actorChargeEvents": {
           "governed-action": { "eventTitle": "Governed action", "eventPriceUsd": 0.02 },
           "run-completed": { "eventTitle": "Governed run completed", "eventPriceUsd": 0.08 },
-          "receipt-verification": { "eventTitle": "Receipt verification", "eventPriceUsd": 0.0 }
+          "receipt-verification": { "eventTitle": "Receipt verification", "eventPriceUsd": 0.00001 }
         }
       }
     }

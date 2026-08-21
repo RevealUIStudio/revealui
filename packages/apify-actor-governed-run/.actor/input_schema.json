@@ -6,7 +6,7 @@
     "mode": {
       "title": "Mode",
       "type": "string",
-      "description": "\"run-task\" executes an agent task and returns a signed receipt. \"verify-receipt\" checks a receipt you already have (free).",
+      "description": "\"run-task\" executes an agent task and returns a signed receipt. \"verify-receipt\" checks a receipt you already have ($0.00001 per run).",
       "editor": "select",
       "enum": ["run-task", "verify-receipt"],
       "enumTitles": ["Run a governed task", "Verify a receipt"],

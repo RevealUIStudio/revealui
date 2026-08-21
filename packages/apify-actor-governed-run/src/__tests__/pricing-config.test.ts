@@ -13,7 +13,7 @@ describe('CHARGEABLE_EVENTS', () => {
     expect(CHARGEABLE_EVENTS.runCompleted).toMatchObject({ name: 'run-completed', priceUsd: 0.08 });
     expect(CHARGEABLE_EVENTS.receiptVerification).toMatchObject({
       name: 'receipt-verification',
-      priceUsd: 0,
+      priceUsd: 0.00001,
     });
   });
 
