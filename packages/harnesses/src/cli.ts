@@ -568,7 +568,12 @@ async function main() {
       process.stdout.write(`${JSON.stringify(view, null, 2)}\n`);
       return;
     }
-    process.stderr.write('Usage: revealui-harnesses inference <status|apply> [tier]\n');
+    if (subcommand === 'reconcile') {
+      const view = await inference.profileReconcile();
+      process.stdout.write(`${JSON.stringify(view, null, 2)}\n`);
+      return;
+    }
+    process.stderr.write('Usage: revealui-harnesses inference <status|apply|reconcile> [tier]\n');
     process.exit(1);
   }
 
