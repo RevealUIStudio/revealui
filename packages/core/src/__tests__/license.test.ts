@@ -11,6 +11,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   computeKeyId,
   configureGracePeriods,
+  configureLicenseCache,
   DEFAULT_MANUAL_MINT_DAYS,
   generateLicenseKey,
   getCurrentTier,
@@ -25,6 +26,7 @@ import {
   MAX_LICENSE_CACHE_TTL_MS,
   parseLicenseCacheTtlEnv,
   REFRESH_ACCEPT_DAYS,
+  refreshLicenseIfStale,
   resetLicenseState,
   validateLicenseKey,
   validateLicenseKeyForRefresh,
@@ -1033,5 +1035,38 @@ describe('validateLicenseKeyForRefresh', () => {
   it('returns null when no candidate keys are supplied', async () => {
     const token = await mintToken({ privateKey: privateKeyPem, expSec: nowSec() + 86_400 });
     expect(await validateLicenseKeyForRefresh(token, [])).toBeNull();
+  });
+});
+
+// =============================================================================
+// Cache TTL  -  expiry must re-validate, not drop a live Pro key to free
+// =============================================================================
+
+describe('license cache TTL revalidation', () => {
+  afterEach(() => {
+    configureLicenseCache({ ttlMs: 15_000 });
+    vi.restoreAllMocks();
+  });
+
+  it('stays licensed after TTL expiry when the configured key is still valid', async () => {
+    configureLicenseCache({ ttlMs: 50 });
+    const jwt = await generateLicenseKey({ tier: 'pro', customerId: 'cus_ttl' }, privateKeyPem);
+    process.env.REVEALUI_LICENSE_KEY = jwt;
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = publicKeyPem;
+    await initializeLicense();
+    expect(getCurrentTier()).toBe('pro');
+    expect(isLicensed('pro')).toBe(true);
+
+    const issuedAt = Date.now();
+    vi.spyOn(Date, 'now').mockReturnValue(issuedAt + 200);
+
+    expect(getCurrentTier()).toBe('pro');
+    expect(isLicensed('pro')).toBe(true);
+    expect(getLicensePayload()?.customerId).toBe('cus_ttl');
+    expect(getLicenseStatus('pro').mode).not.toBe('missing');
+
+    await refreshLicenseIfStale();
+    expect(getCurrentTier()).toBe('pro');
+    expect(isLicensed('pro')).toBe(true);
   });
 });

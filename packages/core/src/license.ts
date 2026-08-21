@@ -168,6 +168,8 @@ const DEFAULT_CACHE_CONFIG: LicenseCacheConfig = {
 
 let cacheConfig: LicenseCacheConfig = { ...DEFAULT_CACHE_CONFIG };
 let cachedAt = 0;
+let refreshInFlight: Promise<LicenseTier> | null = null;
+let refreshEpoch = 0;
 
 /**
  * Configure the license cache TTL.
@@ -601,20 +603,60 @@ export async function initializeLicense(): Promise<LicenseTier> {
   return payload.tier;
 }
 
+function isCacheStale(): boolean {
+  return cachedAt > 0 && Date.now() - cachedAt > cacheConfig.ttlMs;
+}
+
 /**
- * Invalidates the cached license state if it has exceeded the configured TTL.
- * After invalidation, the license defaults to 'free' until re-initialized.
+ * Re-validate the configured key. Single-flight so concurrent readers share one
+ * verify. On failure, keep the last validated state (do not flap to free).
+ */
+function scheduleLicenseRefresh(): Promise<LicenseTier> {
+  if (refreshInFlight) return refreshInFlight;
+  const epoch = refreshEpoch;
+  refreshInFlight = initializeLicense()
+    .then((tier) => {
+      if (epoch !== refreshEpoch) return cachedState.tier;
+      return tier;
+    })
+    .catch((err: unknown) => {
+      logger.warn('License revalidation failed; keeping last validated state', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+      return cachedState.tier;
+    })
+    .finally(() => {
+      refreshInFlight = null;
+    });
+  return refreshInFlight;
+}
+
+/**
+ * When the cache TTL elapses, re-validate the current key instead of dropping
+ * to free. Request-path readers keep the last validated tier until refresh
+ * completes so a live Pro process cannot flap to free while a valid key is set.
  */
 function evictStaleCache(): void {
-  if (cachedAt > 0 && Date.now() - cachedAt > cacheConfig.ttlMs) {
-    cachedState = { tier: 'free', payload: null, validatedAt: null, keyPresentButInvalid: false };
-    cachedAt = 0;
+  if (isCacheStale()) {
+    void scheduleLicenseRefresh();
   }
 }
 
 /**
+ * Await an in-flight or due revalidation. Tests and async request gates use
+ * this so TTL expiry still proves licensed after the key is re-checked.
+ */
+export async function refreshLicenseIfStale(): Promise<LicenseTier> {
+  if (isCacheStale() || refreshInFlight) {
+    return scheduleLicenseRefresh();
+  }
+  return cachedState.tier;
+}
+
+/**
  * Returns the current license tier.
- * If the license hasn't been initialized or the cache has expired, returns 'free'.
+ * Uninitialized state is free. A stale cache keeps the last validated tier
+ * and triggers revalidation of the configured key.
  */
 export function getCurrentTier(): LicenseTier {
   evictStaleCache();
@@ -622,7 +664,8 @@ export function getCurrentTier(): LicenseTier {
 }
 
 /**
- * Returns the full license payload, or null if no valid license or cache expired.
+ * Returns the full license payload, or null if no valid license is cached.
+ * Stale TTL does not clear a still-valid payload.
  */
 export function getLicensePayload(): LicensePayload | null {
   evictStaleCache();
@@ -981,6 +1024,8 @@ export async function generateLicenseKey(
  * Reset license state. Primarily for testing.
  */
 export function resetLicenseState(): void {
+  refreshEpoch += 1;
+  refreshInFlight = null;
   cachedState = { tier: 'free', payload: null, validatedAt: null, keyPresentButInvalid: false };
   cachedAt = 0;
 }

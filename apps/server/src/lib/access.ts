@@ -19,10 +19,21 @@
  * Mirrors apps/admin/src/lib/access/roles/isAdminRole.ts on the admin side.
  */
 
+import { type ApiAuthUser, isPlatformSuperAdmin } from './api-roles.js';
+
 /** DB roles that grant admin-level access to admin/owner-gated server routes. */
 export const ADMIN_ROLES: ReadonlySet<string> = new Set(['owner', 'admin', 'super-admin']);
 
 /** True when the given DB role grants admin-level access. */
 export function isAdminRole(role: string | null | undefined): boolean {
   return role != null && ADMIN_ROLES.has(role);
+}
+
+/**
+ * Fleet-wide operator surfaces (logs, margin). Tenant owner/admin is not
+ * enough — membership owners are auto-promoted to shell admin and must not
+ * read other accounts.
+ */
+export function isFleetOperator(user: ApiAuthUser | null | undefined): boolean {
+  return isPlatformSuperAdmin(user);
 }

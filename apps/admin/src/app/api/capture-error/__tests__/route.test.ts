@@ -11,6 +11,16 @@ vi.mock('@/lib/middleware/rate-limit', () => ({
   withRateLimit: (handler: (...args: unknown[]) => unknown) => handler,
 }));
 
+const mockGetSession = vi.fn();
+
+vi.mock('@revealui/auth/server', () => ({
+  getSession: (...args: unknown[]) => mockGetSession(...args),
+}));
+
+vi.mock('@/lib/utils/request-context', () => ({
+  extractRequestContext: () => ({ userAgent: 'test', ipAddress: '127.0.0.1' }),
+}));
+
 vi.mock('@revealui/config', () => ({
   default: {
     reveal: {
@@ -39,11 +49,28 @@ vi.mock('next/server', () => {
 const originalEnv = { ...process.env };
 const originalFetch = globalThis.fetch;
 
+function makeReq(
+  body: string | Promise<never>,
+  headers: Record<string, string> = {},
+): { text: () => Promise<string>; headers: { get: (name: string) => string | null } } {
+  return {
+    text: () => (typeof body === 'string' ? Promise.resolve(body) : body),
+    headers: {
+      get: (name: string) => headers[name.toLowerCase()] ?? null,
+    },
+  };
+}
+
 describe('POST /api/capture-error', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.REVEALUI_SECRET = 'test-internal-secret';
     process.env.NEXT_PUBLIC_API_URL = 'https://api.test.com';
+    delete process.env.REVEALUI_ERROR_INGEST_TOKEN;
+    mockGetSession.mockResolvedValue({
+      user: { id: 'u1', role: 'editor' },
+      session: { id: 's1' },
+    });
   });
 
   afterEach(() => {
@@ -56,20 +83,46 @@ describe('POST /api/capture-error', () => {
     return mod.POST;
   }
 
-  it('returns 202 silently when REVEALUI_SECRET is not set', async () => {
+  it('returns 503 when REVEALUI_SECRET is not set', async () => {
     delete process.env.REVEALUI_SECRET;
     const POST = await loadRoute();
-    const req = { text: () => Promise.resolve('{}') } as never;
-    const res = await POST(req);
+    const res = await POST(makeReq('{}') as never);
 
-    expect((res as { status: number }).status).toBe(202);
-    expect((res as unknown as { body: { success: boolean } }).body.success).toBe(true);
+    expect((res as { status: number }).status).toBe(503);
+    expect((res as unknown as { body: { success: boolean } }).body.success).toBe(false);
+  });
+
+  it('returns 401 when the caller has no session and no ingest token', async () => {
+    mockGetSession.mockResolvedValue(null);
+    const POST = await loadRoute();
+    const res = await POST(makeReq('{}') as never);
+
+    expect((res as { status: number }).status).toBe(401);
+    expect(globalThis.fetch).toBe(originalFetch);
+  });
+
+  it('proxies when a dedicated ingest token matches', async () => {
+    mockGetSession.mockResolvedValue(null);
+    process.env.REVEALUI_ERROR_INGEST_TOKEN = 'ingest-token-for-tests';
+    const mockFetch = vi.fn().mockResolvedValue({
+      status: 200,
+      json: () => Promise.resolve({ received: true }),
+    });
+    globalThis.fetch = mockFetch;
+
+    const POST = await loadRoute();
+    const res = await POST(
+      makeReq('{"error":"test"}', { 'x-error-ingest-token': 'ingest-token-for-tests' }) as never,
+    );
+
+    expect((res as { status: number }).status).toBe(200);
+    expect(mockFetch).toHaveBeenCalled();
   });
 
   it('returns 400 when request body is unreadable', async () => {
     const POST = await loadRoute();
-    const req = { text: () => Promise.reject(new Error('stream error')) } as never;
-    const res = await POST(req);
+    const req = makeReq(Promise.reject(new Error('stream error')));
+    const res = await POST(req as never);
 
     expect((res as { status: number }).status).toBe(400);
   });
@@ -82,8 +135,7 @@ describe('POST /api/capture-error', () => {
     globalThis.fetch = mockFetch;
 
     const POST = await loadRoute();
-    const req = { text: () => Promise.resolve('{"error":"test"}') } as never;
-    const res = await POST(req);
+    const res = await POST(makeReq('{"error":"test"}') as never);
 
     expect((res as { status: number }).status).toBe(200);
     expect(mockFetch).toHaveBeenCalledWith(
@@ -103,10 +155,9 @@ describe('POST /api/capture-error', () => {
     globalThis.fetch = vi.fn().mockRejectedValue(new Error('ECONNREFUSED'));
 
     const POST = await loadRoute();
-    const req = { text: () => Promise.resolve('{}') } as never;
-    const res = await POST(req);
+    const res = await POST(makeReq('{}') as never);
 
-    // Should silently accept  -  never break the error UI
+    // Authenticated ingest still accepts locally when upstream is down
     expect((res as { status: number }).status).toBe(202);
     expect((res as unknown as { body: { success: boolean } }).body.success).toBe(true);
   });
@@ -118,8 +169,7 @@ describe('POST /api/capture-error', () => {
     });
 
     const POST = await loadRoute();
-    const req = { text: () => Promise.resolve('{}') } as never;
-    const res = await POST(req);
+    const res = await POST(makeReq('{}') as never);
 
     expect((res as { status: number }).status).toBe(429);
   });
