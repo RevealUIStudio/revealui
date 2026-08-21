@@ -1,0 +1,16 @@
+[Unit]
+Description=RevealUI inference reconcile (signed snaps, host-fit)
+Documentation=https://github.com/RevealUIStudio/revealui/pull/2682
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Contributor default: built dist in the fleet checkout. Override via drop-in
+# if revealui-harnesses is on PATH instead.
+ExecStart=%h/.local/bin/node %h/revfleet/revealui/packages/harnesses/dist/cli.js inference reconcile
+TimeoutStartSec=180
+Nice=10
+
+[Install]
+WantedBy=default.target
