@@ -51,7 +51,7 @@ export const CHARGEABLE_EVENTS = {
     name: 'receipt-verification',
     title: 'Receipt verification',
     description:
-      'A previously issued receipt was checked for validity. Free -- verification never costs the caller.',
-    priceUsd: 0.0,
+      'A previously issued receipt was checked for validity. $0.00001 per run (Apify Console minimum; $0.00 is not an option).',
+    priceUsd: 0.00001,
   },
 } as const satisfies Record<string, ChargeableEvent>;
