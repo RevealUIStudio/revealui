@@ -43,7 +43,7 @@ export function RevealUIHeader({ header }: RevealUIHeaderProps) {
       actions={
         <>
           {/* You can customize these action buttons or make them configurable via admin */}
-          <PlainButtonLink href="/login" size="md">
+          <PlainButtonLink href="/login" prefetch={false} size="md">
             Log in
           </PlainButtonLink>
           <ButtonLink href="/get-started" size="md">

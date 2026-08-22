@@ -19,10 +19,9 @@ import {
 } from '@revealui/presentation';
 import { logger } from '@revealui/utils/logger';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { TestModeBanner } from '@/components/TestModeBanner';
-import { shouldRedirectToLoginOnEmptySession } from '@/lib/auth/has-session-cookie';
 import { hasCommercialUpgradePath } from '@/lib/components/should-show-upgrade-nav';
 import { apiFetch } from '@/lib/utils/csrf';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
@@ -84,7 +83,6 @@ export default function BillingPage() {
 }
 
 function BillingContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const success = searchParams.get('success');
   const perpetual = searchParams.get('perpetual');
@@ -97,7 +95,7 @@ function BillingContent() {
     upgradeParam === 'pro' || upgradeParam === 'max' || upgradeParam === 'enterprise'
       ? upgradeParam
       : null;
-  const { data: session, isLoading: sessionLoading } = useSession();
+  const { isLoading: sessionLoading } = useSession();
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [usage, setUsage] = useState<UsageData | null>(null);
   const [seats, setSeats] = useState<SeatsData | null>(null);
@@ -179,12 +177,11 @@ function BillingContent() {
 
   useEffect(() => {
     if (sessionLoading) return;
-    if (shouldRedirectToLoginOnEmptySession(session, sessionLoading)) {
-      router.push('/login?redirect=/account/billing');
-      return;
-    }
+    // Same as /account/license: proxy already gated unauth visitors.
+    // A useSession 401 must not bounce to /login (httpOnly cookies +
+    // bare /login 307 to the dashboard).
     void fetchSubscription();
-  }, [session, sessionLoading, fetchSubscription, router]);
+  }, [sessionLoading, fetchSubscription]);
 
   const handleCheckout = useCallback(
     async (target: 'pro' | 'max' | 'enterprise' = 'pro') => {

@@ -23,9 +23,7 @@ import {
   Input,
 } from '@revealui/presentation';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { type ChangeEvent, useCallback, useEffect, useState } from 'react';
-import { shouldRedirectToLoginOnEmptySession } from '@/lib/auth/has-session-cookie';
 import { hasCommercialUpgradePath } from '@/lib/components/should-show-upgrade-nav';
 import { apiFetch } from '@/lib/utils/csrf';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
@@ -67,7 +65,6 @@ const PERPETUAL_PLANS = [
 ] as const;
 
 export default function LicensePage() {
-  const router = useRouter();
   const { data: session, isLoading: sessionLoading } = useSession();
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [features, setFeatures] = useState<Record<string, FeatureFlags> | null>(null);
@@ -124,17 +121,28 @@ export default function LicensePage() {
 
   useEffect(() => {
     if (sessionLoading) return;
-    if (shouldRedirectToLoginOnEmptySession(session, sessionLoading)) {
-      router.push('/login?redirect=/account/license');
-      return;
-    }
+    // Proxy already sent true-unauth visitors to /login?redirect=<path>.
+    // If this document rendered, a session cookie was present. A useSession
+    // 401 (or empty hook) must not bounce to /login — that path, hit with
+    // httpOnly cookies and no query, 307s to the dashboard.
     void fetchData();
-  }, [session, sessionLoading, fetchData, router]);
+  }, [sessionLoading, fetchData]);
 
   if (sessionLoading || isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <p className="text-zinc-600">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!subscription && (error || !session)) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-6 py-12">
+        <h1 className="text-2xl font-bold">License & Plan</h1>
+        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+          {error ?? 'Failed to load session'}
+        </div>
       </div>
     );
   }

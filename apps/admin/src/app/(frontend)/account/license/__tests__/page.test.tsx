@@ -72,7 +72,6 @@ beforeEach(() => {
   vi.clearAllMocks();
   sessionState.data = { user: { id: 'user-1', email: 'owner@example.com' } };
   sessionState.isLoading = false;
-  document.cookie = 'revealui-session=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
   vi.stubGlobal(
     'fetch',
     vi.fn((input: RequestInfo | URL) => {
@@ -164,10 +163,9 @@ describe('LicensePage perpetual purchase plans', () => {
   });
 });
 
-describe('LicensePage session-miss bounce', () => {
-  it('does not send a signed-in owner to /login when useSession is empty but the session cookie is present', async () => {
+describe('LicensePage session miss', () => {
+  it('does not router.push /login when useSession is empty', async () => {
     sessionState.data = null;
-    document.cookie = 'revealui-session=sess-abc';
 
     render(<LicensePage />);
 
@@ -175,17 +173,24 @@ describe('LicensePage session-miss bounce', () => {
       expect(screen.getByText('test-license-jwt')).toBeDefined();
     });
     expect(mockPush).not.toHaveBeenCalled();
+    expect(mockPush).not.toHaveBeenCalledWith('/login?redirect=/account/license');
+    expect(mockPush).not.toHaveBeenCalledWith('/');
   });
 
-  it('still sends a visitor with no session and no cookie to login with redirect=', async () => {
+  it('stays on the page with a failed-to-load state when useSession is empty and license fetch fails', async () => {
     sessionState.data = null;
-    document.cookie = 'revealui-session=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve({ ok: false, json: () => Promise.resolve({}) })),
+    );
 
     render(<LicensePage />);
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/login?redirect=/account/license');
+      expect(screen.getByText(/failed to load/i)).toBeDefined();
     });
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(screen.queryByText('test-license-jwt')).toBeNull();
   });
 
   it('shows an honest empty state when the subscription has no license key', async () => {

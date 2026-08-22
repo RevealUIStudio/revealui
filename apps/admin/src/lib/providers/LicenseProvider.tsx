@@ -4,8 +4,7 @@ import type { LicenseTierId } from '@revealui/contracts/pricing';
 import type { FeatureFlags } from '@revealui/core/features';
 import { createPaywall } from '@revealui/paywall';
 import { PaywallProvider, usePaywall } from '@revealui/paywall/client';
-import { hasSessionCookie } from '@/lib/auth/has-session-cookie';
-import { isPreAuthPublicPath, redirectToLogin } from '@/lib/auth/redirect-to-login';
+import { isPreAuthPublicPath } from '@/lib/auth/redirect-to-login';
 
 /** Shared paywall instance for the admin. */
 const paywall = createPaywall();
@@ -66,19 +65,11 @@ export async function resolveSaasTier(): Promise<string> {
   }
 
   if (res.status === 401) {
-    // Cross-origin 401 is "API session unavailable", not "admin signed out",
-    // when the browser still holds revealui-session. Bouncing to /login here
-    // plus the proxy's old search-strip dumped owners onto `/`.
-    if (hasSessionCookie()) {
-      throw new LicenseResolveFailure(
-        'unavailable',
-        'subscription returned 401 with session cookie',
-      );
-    }
-    // Dead session: send the operator to re-auth. Do not claim free.
-    // redirectToLogin itself no-ops on /mfa etc. as a second belt.
-    redirectToLogin();
-    throw new LicenseResolveFailure('auth-required', 'subscription returned 401');
+    // Cross-origin 401 is "API session unavailable", not "admin signed out".
+    // revealui-session is httpOnly, so document.cookie cannot prove presence
+    // and must not gate this path. True-unauth visitors never render this
+    // tree on protected routes (proxy sends them to /login?redirect=).
+    throw new LicenseResolveFailure('unavailable', 'subscription returned 401');
   }
 
   if (!res.ok) {
