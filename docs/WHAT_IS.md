@@ -74,7 +74,7 @@ Source of truth for gates: `packages/core/src/features.ts` (`featureTierMap`). `
 | White-label branding | | | | Planned ([#515](https://github.com/RevealUIStudio/revealui/issues/515)) |
 | Enterprise SSO | | | | Operator preview ([#449](https://github.com/RevealUIStudio/revealui/issues/449)) |
 
-Support response is not a feature flag. The published commitment is the same for every paid tier: 24 hours during U.S. business hours, 4 hours for a critical issue. See [SLA](./SLA.md) and [revealui.com/sla](https://revealui.com/sla). Some older pricing strings still say "48h" for Pro or "Slack (4h)" for Enterprise. Those strings are stale relative to the published SLA.
+Support response is not a feature flag. The published commitment is the same for every paid tier: 24 hours during U.S. business hours, 4 hours for a critical issue. See [SLA](./SLA.md). Some older pricing strings still say "48h" for Pro or "Slack (4h)" for Enterprise. Those strings are stale relative to the published SLA.
 
 ---
 

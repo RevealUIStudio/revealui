@@ -308,7 +308,7 @@ export const PRICING_DONE_FOR_YOU = {
   ) as readonly DoneForYouRung[],
   primaryCta: {
     label: 'Book a discovery call',
-    href: 'https://cal.com/revealuistudio/discovery',
+    href: SITE.urls.bookIntro,
     external: true,
   } satisfies Cta,
   secondaryCta: {

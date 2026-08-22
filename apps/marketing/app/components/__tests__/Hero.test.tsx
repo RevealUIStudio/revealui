@@ -2,14 +2,13 @@ import '@testing-library/jest-dom/vitest';
 import { Router, RouterProvider } from '@revealui/router';
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { HOME_HERO } from '../../content/home';
+import { HOME_GET_STARTED, HOME_HERO } from '../../content/home';
 import { Hero } from '../landing/Hero';
 
 afterEach(cleanup);
 
 function renderHero(search = '') {
   const router = new Router();
-  // Seed location so selectAudience / selectHomeHero see the same search string.
   if (search) {
     window.history.replaceState({}, '', `/${search.startsWith('?') ? search : `?${search}`}`);
   } else {
@@ -22,7 +21,7 @@ function renderHero(search = '') {
   );
 }
 
-describe('Hero (marketing craft hierarchy)', () => {
+describe('Hero (product homepage)', () => {
   it('renders the L1 H1 with ink (text-foreground), not muted', () => {
     renderHero();
     const h1 = screen.getByRole('heading', { level: 1, name: HOME_HERO.h1 });
@@ -30,7 +29,7 @@ describe('Hero (marketing craft hierarchy)', () => {
     expect(h1.className).not.toContain('text-muted-foreground');
   });
 
-  it('uses body text for the subtitle (readable ladder), not muted', () => {
+  it('uses body text for the continuity sentence, not muted', () => {
     renderHero();
     const subtitle = screen.getByText(HOME_HERO.subtitle.sentence1, { exact: false });
     expect(subtitle.className).toContain('text-body');
@@ -42,29 +41,27 @@ describe('Hero (marketing craft hierarchy)', () => {
     const primary = screen.getByRole('link', {
       name: new RegExp(HOME_HERO.cta.primary.label, 'i'),
     });
-    // glowClasses from presentation uses the brand glow token shadow.
     expect(primary.className).toMatch(
       /shadow-\[var\(--rvui-shadow-glow\)\]|shadow-\[var\(--rvui-shadow-glow/,
     );
   });
 
-  it('lists trust signals without brand-dot chrome (sm+; hidden on phone)', () => {
+  it('shows Start free, GitHub, and the create-revealui command', () => {
     renderHero();
-    // Present in DOM for a11y/desktop; `hidden sm:flex` demotes phone chrome.
-    const openSource = screen.getByText('Open source');
-    expect(openSource).toBeInTheDocument();
-    expect(screen.getByText('Self-hostable')).toBeInTheDocument();
-    expect(screen.getByText('Local-first AI')).toBeInTheDocument();
-    const list = openSource.closest('ul');
-    expect(list).toBeTruthy();
-    expect(list?.className).toMatch(/hidden/);
-    expect(list?.className).toMatch(/sm:flex/);
-    expect(list?.querySelectorAll('.bg-primary').length ?? 0).toBe(0);
+    expect(screen.getByRole('link', { name: /start free/i })).toHaveAttribute(
+      'href',
+      HOME_HERO.cta.primary.href,
+    );
+    expect(screen.getByRole('link', { name: /github/i })).toHaveAttribute(
+      'href',
+      HOME_HERO.cta.secondary.href,
+    );
+    expect(screen.getByText(HOME_GET_STARTED.cli.command[0] ?? 'npx')).toBeInTheDocument();
   });
 
-  it('exposes the audience toggle as navigation', () => {
+  it('does not expose an audience toggle', () => {
     renderHero();
-    expect(screen.getByRole('navigation', { name: 'Choose your view' })).toBeInTheDocument();
+    expect(screen.queryByRole('navigation', { name: 'Choose your view' })).toBeNull();
   });
 
   it('uses a viewport-stage shell with full-bleed backdrop (not content-boxed paint)', () => {
@@ -72,11 +69,9 @@ describe('Hero (marketing craft hierarchy)', () => {
     const section = container.querySelector('[data-slot="marketing-section"]');
     expect(section).toBeTruthy();
     expect(section).toHaveAttribute('data-has-backdrop', 'true');
-    // min-height fills remaining viewport under sticky nav.
     expect(section?.className).toMatch(/min-h-\[calc\(100svh-var\(--marketing-nav-h/);
     const backdrop = container.querySelector('[data-slot="hero-background"]');
     expect(backdrop).toBeTruthy();
-    // Backdrop is a direct child of the outer section (full bleed), not the max-w rail.
     expect(backdrop?.parentElement).toBe(section);
   });
 });

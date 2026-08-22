@@ -69,7 +69,7 @@ Canonical definition: **[What is RevealUI?](./WHAT_IS.md)**. Six **[design princ
 - [MCP Marketplace](./MARKETPLACE.md): Planned third-party catalog. No 80/20 revenue share until that rail exists
 - [Enterprise / Fleet](./FLEET.md): Self-hosted deployment (Docker Compose, domain lock). Not a Studio-operated VM
 - [Collaborative editing](./guides/collaborative-editing.md): Yjs + Lexical cursors for self-hosted operators. Comments and suggestions are not shipped
-- [SLA](./SLA.md): Published support and license-infra uptime commitments (restates revealui.com/sla)
+- [SLA](./SLA.md): Published support and license-infra uptime commitments
 
 ## RevFleet
 
@@ -89,5 +89,5 @@ RevealUI is one product in RevFleet. See [RevFleet overview](./REVFLEET.md) and 
 
 ## Legal
 
-- [SLA](./SLA.md): Support response and license-infra uptime (canonical page: revealui.com/sla)
+- [SLA](./SLA.md): Support response and license-infra uptime
 - [Third Party Licenses](./THIRD_PARTY_LICENSES.md)

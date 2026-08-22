@@ -1,32 +1,46 @@
 import { Routes, useRouter } from '@revealui/router';
 import { useRef } from 'react';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { SITE } from './content/site';
 import { RootLayout } from './layouts/RootLayout';
-import { BlogIndexPage } from './routes/BlogIndexPage';
-import { BlogPostPage } from './routes/BlogPostPage';
-import { ClaimsPage } from './routes/ClaimsPage';
 import { ContactPage } from './routes/ContactPage';
 import { CookiesPage } from './routes/CookiesPage';
-import { FairSourcePage } from './routes/FairSourcePage';
-import { ForOperatorsHowItWorksPage } from './routes/ForOperatorsHowItWorksPage';
-import { ForOperatorsManagedPage } from './routes/ForOperatorsManagedPage';
-import { HipaaPage } from './routes/HipaaPage';
 import { HomePage } from './routes/HomePage';
-import { LocalAiPage } from './routes/LocalAiPage';
+import { MovedPage } from './routes/MovedPage';
 import { NotFoundPage } from './routes/NotFoundPage';
-import { PhilosophyPage } from './routes/PhilosophyPage';
 import { PricingPage } from './routes/PricingPage';
 import { PrivacyPage } from './routes/PrivacyPage';
-import { ProductsPage } from './routes/ProductsPage';
 import { RefundPolicyPage } from './routes/RefundPolicyPage';
-import { RoadmapPage } from './routes/RoadmapPage';
-import { SecurityPage } from './routes/SecurityPage';
-import { ServicesPage } from './routes/ServicesPage';
-import { SlaPage } from './routes/SlaPage';
 import { StatusPage } from './routes/StatusPage';
-import { SubprocessorsPage } from './routes/SubprocessorsPage';
 import { SupportPage } from './routes/SupportPage';
 import { TermsPage } from './routes/TermsPage';
+
+const DOCS = SITE.urls.docs;
+
+function moved(to: string) {
+  return function MovedRoute() {
+    return <MovedPage to={to} />;
+  };
+}
+
+const MovedProducts = moved(`${DOCS}/revfleet`);
+const MovedPhilosophy = moved(`${DOCS}/blog/01-why-we-built-revealui`);
+const MovedLocalAi = moved(`${DOCS}/local-first`);
+const MovedServices = moved('/pricing');
+const MovedHowItWorks = moved(`${DOCS}/build-your-business`);
+const MovedManaged = moved(`${DOCS}/roadmap`);
+const MovedBlog = moved(`${DOCS}/blog/16-ui-of-the-future`);
+const MovedFairSource = moved(`${DOCS}/fair-source`);
+const MovedRoadmap = moved(`${DOCS}/roadmap`);
+const MovedClaims = moved(DOCS);
+const MovedSla = moved(`${DOCS}/sla`);
+const MovedHipaa = moved(DOCS);
+const MovedSecurity = moved(DOCS);
+const MovedSubprocessors = moved(DOCS);
+
+function MovedBlogPost() {
+  return <MovedPage to={`${DOCS}/blog/16-ui-of-the-future`} />;
+}
 
 export function App() {
   const router = useRouter();
@@ -38,58 +52,63 @@ export function App() {
   if (!registered.current && router.getRoutes().length === 0) {
     router.registerRoutes([
       { path: '/', component: HomePage, meta: { title: 'RevealUI' } },
-      { path: '/products', component: ProductsPage, meta: { title: 'Products | RevealUI' } },
+      { path: '/products', component: MovedProducts, meta: { title: 'Moved | RevealUI' } },
       {
         path: '/philosophy',
-        component: PhilosophyPage,
-        meta: { title: 'Why RevealUI exists | RevealUI' },
+        component: MovedPhilosophy,
+        meta: { title: 'Moved | RevealUI' },
       },
       {
         path: '/local-ai',
-        component: LocalAiPage,
-        meta: { title: 'Local-first AI | RevealUI' },
+        component: MovedLocalAi,
+        meta: { title: 'Moved | RevealUI' },
       },
       { path: '/pricing', component: PricingPage, meta: { title: 'Pricing | RevealUI' } },
       {
         path: '/services',
-        component: ServicesPage,
-        meta: { title: 'Services | RevealUI Studio' },
+        component: MovedServices,
+        meta: { title: 'Moved | RevealUI' },
       },
-      { path: '/blog', component: BlogIndexPage, meta: { title: 'Blog | RevealUI' } },
-      { path: '/blog/:slug', component: BlogPostPage, meta: { title: 'Blog | RevealUI' } },
+      {
+        path: '/for-operators',
+        component: MovedServices,
+        meta: { title: 'Moved | RevealUI' },
+      },
+      { path: '/blog', component: MovedBlog, meta: { title: 'Moved | RevealUI' } },
+      { path: '/blog/:slug', component: MovedBlogPost, meta: { title: 'Moved | RevealUI' } },
       { path: '/contact', component: ContactPage, meta: { title: 'Contact | RevealUI' } },
       {
         path: '/fair-source',
-        component: FairSourcePage,
-        meta: { title: 'Fair Source | RevealUI' },
+        component: MovedFairSource,
+        meta: { title: 'Moved | RevealUI' },
       },
       {
         path: '/for-operators/how-it-works',
-        component: ForOperatorsHowItWorksPage,
-        meta: { title: 'How it works | RevealUI Studio' },
+        component: MovedHowItWorks,
+        meta: { title: 'Moved | RevealUI' },
       },
       {
         path: '/for-operators/managed',
-        component: ForOperatorsManagedPage,
-        meta: { title: 'RevealUI Cloud (roadmap) | RevealUI Studio' },
+        component: MovedManaged,
+        meta: { title: 'Moved | RevealUI' },
       },
-      { path: '/roadmap', component: RoadmapPage, meta: { title: 'Roadmap | RevealUI' } },
+      { path: '/roadmap', component: MovedRoadmap, meta: { title: 'Moved | RevealUI' } },
       {
         path: '/claims',
-        component: ClaimsPage,
-        meta: { title: 'The claims ledger | RevealUI' },
+        component: MovedClaims,
+        meta: { title: 'Moved | RevealUI' },
       },
       { path: '/privacy', component: PrivacyPage, meta: { title: 'Privacy Policy | RevealUI' } },
       { path: '/cookies', component: CookiesPage, meta: { title: 'Cookie Policy | RevealUI' } },
       {
         path: '/legal/hipaa',
-        component: HipaaPage,
-        meta: { title: 'HIPAA | RevealUI' },
+        component: MovedHipaa,
+        meta: { title: 'Moved | RevealUI' },
       },
       { path: '/terms', component: TermsPage, meta: { title: 'Terms of Service | RevealUI' } },
-      { path: '/security', component: SecurityPage, meta: { title: 'Security | RevealUI' } },
+      { path: '/security', component: MovedSecurity, meta: { title: 'Moved | RevealUI' } },
       { path: '/support', component: SupportPage, meta: { title: 'Support | RevealUI' } },
-      { path: '/sla', component: SlaPage, meta: { title: 'Service Level Commitments | RevealUI' } },
+      { path: '/sla', component: MovedSla, meta: { title: 'Moved | RevealUI' } },
       {
         path: '/refund-policy',
         component: RefundPolicyPage,
@@ -98,8 +117,8 @@ export function App() {
       { path: '/status', component: StatusPage, meta: { title: 'Status | RevealUI' } },
       {
         path: '/legal/subprocessors',
-        component: SubprocessorsPage,
-        meta: { title: 'Subprocessors | RevealUI' },
+        component: MovedSubprocessors,
+        meta: { title: 'Moved | RevealUI' },
       },
       { path: '/*notfound', component: NotFoundPage, meta: { title: '404 | RevealUI' } },
     ]);

@@ -13,7 +13,7 @@ This roadmap is an honesty document. It names what ships today, what is in fligh
 
 **Last updated:** 2026-08-20
 
-The customer-facing board lives at [revealui.com/roadmap](https://revealui.com/roadmap). Capability status and counts: [What Works Today](./WHAT_WORKS_TODAY.md).
+This file is the customer-facing board. Capability status and counts: [What Works Today](./WHAT_WORKS_TODAY.md).
 
 ---
 

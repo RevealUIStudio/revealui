@@ -79,6 +79,7 @@ export const CRITICAL_PROOF_FILES: readonly string[] = [
   'for-operators.ts',
   'for-operators-how-it-works.ts',
   'for-operators-managed.ts',
+  'quote-calculator.ts',
 ] as const;
 
 /**
@@ -121,6 +122,7 @@ export interface CoveredFile {
 
 export const COVERED_FILES: readonly CoveredFile[] = [
   { file: 'home.ts' },
+  { file: 'quote-calculator.ts' },
   { file: 'primitives.ts' },
   { file: 'products.ts' },
   { file: 'proof.ts' },

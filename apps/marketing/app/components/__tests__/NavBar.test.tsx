@@ -122,7 +122,7 @@ describe('NavBar (marketing)', () => {
     renderNavBar();
     const pricing = screen.getByRole('link', { name: 'Pricing' });
     expect(pricing).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('link', { name: 'Products' })).not.toHaveAttribute('aria-current');
+    expect(screen.queryByRole('link', { name: 'Products' })).toBeNull();
   });
 
   it('exposes primary navigation landmark', () => {
