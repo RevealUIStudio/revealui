@@ -76,6 +76,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   searchParams = new URLSearchParams();
   mockUseSession.mockReturnValue({ data: { user: { id: 'u1' } }, isLoading: false });
+  document.cookie = 'revealui-session=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
 });
 
 describe('BillingPage checkout hardening', () => {
@@ -244,5 +245,31 @@ describe('BillingPage first-week trial UX', () => {
       expect(screen.getByText('Current Plan')).toBeInTheDocument();
     });
     expect(screen.queryByText(/trial ends on/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('BillingPage session-miss bounce', () => {
+  it('does not send a signed-in user to /login when useSession is empty but the session cookie is present', async () => {
+    mockUseSession.mockReturnValue({ data: null, isLoading: false });
+    document.cookie = 'revealui-session=sess-abc';
+    mockBillingFetches({ tier: 'pro', status: 'active', expiresAt: null });
+
+    render(<BillingPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Current Plan')).toBeInTheDocument();
+    });
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it('still sends a visitor with no session and no cookie to login with redirect=', async () => {
+    mockUseSession.mockReturnValue({ data: null, isLoading: false });
+    document.cookie = 'revealui-session=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+
+    render(<BillingPage />);
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/login?redirect=/account/billing');
+    });
   });
 });

@@ -25,6 +25,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type ChangeEvent, useCallback, useEffect, useState } from 'react';
+import { shouldRedirectToLoginOnEmptySession } from '@/lib/auth/has-session-cookie';
 import { hasCommercialUpgradePath } from '@/lib/components/should-show-upgrade-nav';
 import { apiFetch } from '@/lib/utils/csrf';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
@@ -96,6 +97,8 @@ export default function LicensePage() {
       if (subRes.ok) {
         const data = (await subRes.json()) as SubscriptionData;
         setSubscription(data);
+      } else {
+        setError('Failed to load license data');
       }
 
       if (pubKeyRes.ok) {
@@ -120,11 +123,12 @@ export default function LicensePage() {
   }, []);
 
   useEffect(() => {
-    if (!sessionLoading && session) {
-      void fetchData();
-    } else if (!(sessionLoading || session)) {
-      router.push('/login');
+    if (sessionLoading) return;
+    if (shouldRedirectToLoginOnEmptySession(session, sessionLoading)) {
+      router.push('/login?redirect=/account/license');
+      return;
     }
+    void fetchData();
   }, [session, sessionLoading, fetchData, router]);
 
   if (sessionLoading || isLoading) {
@@ -273,6 +277,14 @@ export default function LicensePage() {
       </Card>
 
       {/* License key */}
+      {subscription && !subscription.licenseKey && (
+        <Card>
+          <CardHeader>
+            <CardTitle>License Key</CardTitle>
+            <CardDescription>No license key is on this account yet.</CardDescription>
+          </CardHeader>
+        </Card>
+      )}
       {subscription?.licenseKey && (
         <Card>
           <CardHeader>

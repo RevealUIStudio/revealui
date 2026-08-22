@@ -88,4 +88,20 @@ describe('readAuthIntent', () => {
       redirect: '/upgrade?ref=email',
     });
   });
+
+  it('treats ?returnUrl= as the redirect dest when ?redirect= is absent', () => {
+    expect(readAuthIntent(reader({ returnUrl: '/account/license' }))).toEqual({
+      upgrade: null,
+      redirect: '/account/license',
+    });
+  });
+
+  it('prefers ?redirect= over ?returnUrl=', () => {
+    expect(readAuthIntent(reader({ redirect: '/account/license', returnUrl: '/welcome' }))).toEqual(
+      {
+        upgrade: null,
+        redirect: '/account/license',
+      },
+    );
+  });
 });

@@ -35,6 +35,8 @@ export function redirectToLogin(returnPath?: string): void {
   // Mid MFA / signup / password recovery: no full session yet; 401s from
   // license probes must not abort the challenge.
   if (isPreAuthPublicPath(window.location.pathname)) return;
-  const returnUrl = encodeURIComponent(path || '/');
-  window.location.assign(`/login?returnUrl=${returnUrl}`);
+  // Canonical query is `redirect=` — LoginForm / resolveAuthDest / the proxy
+  // all read that name. `returnUrl` is still accepted as a fallback.
+  const dest = encodeURIComponent(path || '/');
+  window.location.assign(`/login?redirect=${dest}`);
 }

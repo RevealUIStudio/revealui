@@ -13,17 +13,25 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+const sessionState = vi.hoisted(() => ({
+  data: { user: { id: 'user-1', email: 'owner@example.com' } } as {
+    user: { id: string; email: string };
+  } | null,
+  isLoading: false,
+}));
+
 const mockPush = vi.fn();
+const mockRouter = { push: mockPush };
 
 vi.mock('@revealui/auth/react', () => ({
   useSession: () => ({
-    data: { user: { id: 'user-1', email: 'owner@example.com' } },
-    isLoading: false,
+    data: sessionState.data,
+    isLoading: sessionState.isLoading,
   }),
 }));
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => mockRouter,
 }));
 
 vi.mock('next/link', () => ({
@@ -62,6 +70,9 @@ function jsonResponse(body: unknown): Pick<Response, 'ok' | 'json'> {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  sessionState.data = { user: { id: 'user-1', email: 'owner@example.com' } };
+  sessionState.isLoading = false;
+  document.cookie = 'revealui-session=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
   vi.stubGlobal(
     'fetch',
     vi.fn((input: RequestInfo | URL) => {
@@ -150,5 +161,60 @@ describe('LicensePage perpetual purchase plans', () => {
     expect(sales).toHaveAttribute('href', 'https://revealui.com/contact');
     expect(screen.getAllByRole('button', { name: /^Buy / })).toHaveLength(2);
     expect(screen.queryByRole('button', { name: /Buy \$42/ })).toBeNull();
+  });
+});
+
+describe('LicensePage session-miss bounce', () => {
+  it('does not send a signed-in owner to /login when useSession is empty but the session cookie is present', async () => {
+    sessionState.data = null;
+    document.cookie = 'revealui-session=sess-abc';
+
+    render(<LicensePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('test-license-jwt')).toBeDefined();
+    });
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it('still sends a visitor with no session and no cookie to login with redirect=', async () => {
+    sessionState.data = null;
+    document.cookie = 'revealui-session=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+
+    render(<LicensePage />);
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/login?redirect=/account/license');
+    });
+  });
+
+  it('shows an honest empty state when the subscription has no license key', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith('/api/billing/subscription')) {
+          return Promise.resolve(
+            jsonResponse({
+              tier: 'pro',
+              status: 'active',
+              expiresAt: null,
+              licenseKey: null,
+              perpetual: false,
+              supportExpiresAt: null,
+            }),
+          );
+        }
+        return Promise.resolve({ ok: false, json: () => Promise.resolve({}) });
+      }),
+    );
+
+    render(<LicensePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('No license key is on this account yet.')).toBeDefined();
+    });
+    expect(screen.queryByText('test-license-jwt')).toBeNull();
+    expect(mockPush).not.toHaveBeenCalled();
   });
 });
