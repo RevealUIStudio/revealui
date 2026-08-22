@@ -50,15 +50,24 @@ export function decodeJwtKid(jwt: string): string | undefined {
  *
  * - Hosted mode: no-op.
  * - Forge mode + no key + ALLOW_UNLICENSED_SELF_HOST: Free (OSS) tier log, return.
- * - Forge mode otherwise: require key + public key, verify JWT, optional
- *   customerId + domain binding.
+ * - Forge mode otherwise: require key + public key, verify JWT, customerId
+ *   (when configured) + domain binding. Empty domains or empty public URL
+ *   fail closed unless ALLOW_UNLICENSED_SELF_HOST.
  *
- * Honors `SKIP_ENV_VALIDATION=true` for Docker build / tests.
+ * `SKIP_ENV_VALIDATION=true` is honored only in a documented build/test
+ * context (`NODE_ENV=test` or Next `NEXT_PHASE` build). Forge/production
+ * runtime ignores the flag and still requires a key.
  */
+function isDocumentedLicenseSkipContext(env: EnvMap): boolean {
+  if (env.NODE_ENV === 'test') return true;
+  const phase = env.NEXT_PHASE;
+  return phase === 'phase-production-build' || phase === 'phase-development-build';
+}
+
 export async function validateForgeLicenseAtStartup(
   env: EnvMap = process.env as EnvMap,
 ): Promise<void> {
-  if (env.SKIP_ENV_VALIDATION === 'true') {
+  if (env.SKIP_ENV_VALIDATION === 'true' && isDocumentedLicenseSkipContext(env)) {
     return;
   }
 
@@ -115,23 +124,39 @@ export async function validateForgeLicenseAtStartup(
     );
   }
 
-  if (payload.domains && payload.domains.length > 0) {
-    const publicUrl = (env.REVEALUI_PUBLIC_SERVER_URL ?? env.NEXT_PUBLIC_SERVER_URL ?? '').trim();
-    if (publicUrl) {
-      let host = '';
-      try {
-        host = new URL(publicUrl).hostname;
-      } catch {
-        host = '';
-      }
-      if (!hostMatchesLicensedDomains(host, payload.domains)) {
-        throw new Error(
-          'LICENSE VALIDATION FAILED: this license is restricted to ' +
-            `[${payload.domains.join(', ')}], but REVEALUI_PUBLIC_SERVER_URL host ` +
-            `"${host || '(unparseable)'}" is not among them. Set REVEALUI_PUBLIC_SERVER_URL ` +
-            'to a licensed domain, or contact the operator who stamped this kit.',
-        );
-      }
+  const domains = payload.domains ?? [];
+  const allowUnlicensed = env[ALLOW_UNLICENSED_SELF_HOST_ENV] === 'true';
+  if (domains.length === 0) {
+    if (allowUnlicensed) {
+      return;
     }
+    throw new Error(
+      'LICENSE VALIDATION FAILED: this RevForge license has no domains claim. ' +
+        'A published kit must bind to licensed hosts. Re-issue the license with ' +
+        `domains, or set ${ALLOW_UNLICENSED_SELF_HOST_ENV}=true for an explicit Free (OSS) opt-out.`,
+    );
+  }
+
+  const publicUrl = (env.REVEALUI_PUBLIC_SERVER_URL ?? env.NEXT_PUBLIC_SERVER_URL ?? '').trim();
+  if (!publicUrl) {
+    throw new Error(
+      'LICENSE VALIDATION FAILED: REVEALUI_PUBLIC_SERVER_URL (or NEXT_PUBLIC_SERVER_URL) ' +
+        'is required when the license carries a domains claim. An empty public URL skips ' +
+        'domain lock and is not permitted on Forge.',
+    );
+  }
+  let host = '';
+  try {
+    host = new URL(publicUrl).hostname;
+  } catch {
+    host = '';
+  }
+  if (!hostMatchesLicensedDomains(host, domains)) {
+    throw new Error(
+      'LICENSE VALIDATION FAILED: this license is restricted to ' +
+        `[${domains.join(', ')}], but REVEALUI_PUBLIC_SERVER_URL host ` +
+        `"${host || '(unparseable)'}" is not among them. Set REVEALUI_PUBLIC_SERVER_URL ` +
+        'to a licensed domain, or contact the operator who stamped this kit.',
+    );
   }
 }

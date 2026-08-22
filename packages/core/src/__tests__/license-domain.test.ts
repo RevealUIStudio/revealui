@@ -31,13 +31,17 @@ describe('hostMatchesLicensedDomains', () => {
     expect(hostMatchesLicensedDomains('  example.com  ', ['  example.com  '])).toBe(true);
   });
 
-  it('always allows localhost (so trial kits boot on http://localhost)', () => {
-    expect(hostMatchesLicensedDomains('localhost', domains)).toBe(true);
-    expect(hostMatchesLicensedDomains('localhost:4000', domains)).toBe(true);
+  it('does not allow localhost when a domains claim is present (published default)', () => {
+    expect(hostMatchesLicensedDomains('localhost', domains)).toBe(false);
+    expect(hostMatchesLicensedDomains('localhost:4000', domains)).toBe(false);
+    expect(hostMatchesLicensedDomains('127.0.0.1:8080', domains)).toBe(false);
   });
 
-  it('always allows 127.0.0.1', () => {
-    expect(hostMatchesLicensedDomains('127.0.0.1:8080', domains)).toBe(true);
+  it('allows loopback only when allowLoopback is opted in', () => {
+    expect(hostMatchesLicensedDomains('localhost', domains, { allowLoopback: true })).toBe(true);
+    expect(hostMatchesLicensedDomains('127.0.0.1:8080', domains, { allowLoopback: true })).toBe(
+      true,
+    );
   });
 
   it('rejects an unlicensed domain', () => {

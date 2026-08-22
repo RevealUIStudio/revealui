@@ -15,6 +15,7 @@ import {
   DEFAULT_MANUAL_MINT_DAYS,
   generateLicenseKey,
   getCurrentTier,
+  getGraceConfig,
   getLicensePayload,
   getLicenseStatus,
   getMaxAgentTasks,
@@ -24,7 +25,9 @@ import {
   isLicensed,
   type LicenseTier,
   MAX_LICENSE_CACHE_TTL_MS,
+  MAX_LICENSE_GRACE_DAYS,
   parseLicenseCacheTtlEnv,
+  parseLicenseGraceDaysEnv,
   REFRESH_ACCEPT_DAYS,
   refreshLicenseIfStale,
   resetLicenseState,
@@ -968,7 +971,7 @@ describe('validateLicenseKeyForRefresh', () => {
 
   it('accepts a live (unexpired) key and returns its payload', async () => {
     const token = await mintToken({ privateKey: privateKeyPem, expSec: nowSec() + 86_400 });
-    const payload = await validateLicenseKeyForRefresh(token, publicKeyPem);
+    const payload = await validateLicenseKeyForRefresh(token, publicKeyPem, 'cus_123');
     expect(payload?.customerId).toBe('cus_123');
     expect(payload?.tier).toBe('pro');
   });
@@ -979,7 +982,7 @@ describe('validateLicenseKeyForRefresh', () => {
       privateKey: privateKeyPem,
       expSec: nowSec() - 20 * 86_400,
     });
-    const payload = await validateLicenseKeyForRefresh(token, publicKeyPem);
+    const payload = await validateLicenseKeyForRefresh(token, publicKeyPem, 'cus_123');
     expect(payload?.customerId).toBe('cus_123');
   });
 
@@ -989,7 +992,7 @@ describe('validateLicenseKeyForRefresh', () => {
       privateKey: privateKeyPem,
       expSec: nowSec() - 40 * 86_400,
     });
-    const payload = await validateLicenseKeyForRefresh(token, publicKeyPem);
+    const payload = await validateLicenseKeyForRefresh(token, publicKeyPem, 'cus_123');
     expect(payload).toBeNull();
   });
 
@@ -999,11 +1002,30 @@ describe('validateLicenseKeyForRefresh', () => {
       expSec: nowSec() - 10 * 86_400,
     });
     // A 5-day window rejects a token expired 10 days ago.
-    expect(await validateLicenseKeyForRefresh(token, publicKeyPem, 5)).toBeNull();
+    expect(await validateLicenseKeyForRefresh(token, publicKeyPem, 'cus_123', 5)).toBeNull();
     // A 15-day window accepts the same token.
-    expect((await validateLicenseKeyForRefresh(token, publicKeyPem, 15))?.customerId).toBe(
-      'cus_123',
-    );
+    expect(
+      (await validateLicenseKeyForRefresh(token, publicKeyPem, 'cus_123', 15))?.customerId,
+    ).toBe('cus_123');
+  });
+
+  it('rejects an unbound refresh (empty expectedCustomerId)', async () => {
+    const token = await mintToken({
+      privateKey: privateKeyPem,
+      customerId: 'cus_a',
+      expSec: nowSec() + 86_400,
+    });
+    expect(await validateLicenseKeyForRefresh(token, publicKeyPem, '')).toBeNull();
+    expect(await validateLicenseKeyForRefresh(token, publicKeyPem, '   ')).toBeNull();
+  });
+
+  it('rejects a JWT for customer A when the bind is customer B', async () => {
+    const token = await mintToken({
+      privateKey: privateKeyPem,
+      customerId: 'cus_a',
+      expSec: nowSec() + 86_400,
+    });
+    expect(await validateLicenseKeyForRefresh(token, publicKeyPem, 'cus_b')).toBeNull();
   });
 
   it('refreshes a token signed by the OUTGOING key during a dual-key rotation window', async () => {
@@ -1019,7 +1041,7 @@ describe('validateLicenseKeyForRefresh', () => {
       expSec: nowSec() - 5 * 86_400, // recently expired, within window
     });
     // Ordered set: current (the module keypair) first, outgoing (old) second.
-    const payload = await validateLicenseKeyForRefresh(token, [publicKeyPem, oldPub]);
+    const payload = await validateLicenseKeyForRefresh(token, [publicKeyPem, oldPub], 'cus_123');
     expect(payload?.customerId).toBe('cus_123');
   });
 
@@ -1029,12 +1051,35 @@ describe('validateLicenseKeyForRefresh', () => {
       privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
     });
     const token = await mintToken({ privateKey: strayPriv, expSec: nowSec() + 86_400 });
-    expect(await validateLicenseKeyForRefresh(token, publicKeyPem)).toBeNull();
+    expect(await validateLicenseKeyForRefresh(token, publicKeyPem, 'cus_123')).toBeNull();
   });
 
   it('returns null when no candidate keys are supplied', async () => {
     const token = await mintToken({ privateKey: privateKeyPem, expSec: nowSec() + 86_400 });
-    expect(await validateLicenseKeyForRefresh(token, [])).toBeNull();
+    expect(await validateLicenseKeyForRefresh(token, [], 'cus_123')).toBeNull();
+  });
+});
+
+// =============================================================================
+// LICENSE_GRACE_* cap  -  huge env must not keep expired JWTs valid
+// =============================================================================
+
+describe('LICENSE_GRACE_* cap', () => {
+  it('clamps a huge env value to MAX_LICENSE_GRACE_DAYS', () => {
+    expect(parseLicenseGraceDaysEnv('36500', 3)).toBe(MAX_LICENSE_GRACE_DAYS);
+    expect(MAX_LICENSE_GRACE_DAYS).toBe(30);
+  });
+
+  it('does not keep an expired subscription JWT valid under a huge grace override', async () => {
+    configureGracePeriods({ subscriptionDays: 36_500 });
+    expect(getGraceConfig().subscriptionDays).toBe(MAX_LICENSE_GRACE_DAYS);
+
+    const jwt = await generateLicenseKey(
+      { tier: 'pro', customerId: 'cus_grace_cap' },
+      privateKeyPem,
+      -40 * 86_400,
+    );
+    expect(await validateLicenseKey(jwt, publicKeyPem)).toBeNull();
   });
 });
 

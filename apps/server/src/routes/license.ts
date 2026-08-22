@@ -134,6 +134,11 @@ const LicenseRefreshRequestSchema = z.object({
     description: 'The current (possibly recently-expired) license key held by the instance',
     example: 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9...',
   }),
+  customerId: z.string().min(1).openapi({
+    description:
+      'Customer id this instance is bound to. Must match the presented key. Unbound refresh is denied.',
+    example: 'cus_abc123',
+  }),
 });
 
 const LicenseRefreshResponseSchema = z.object({
@@ -522,16 +527,17 @@ app.openapi(generateRoute, async (c) => {
 // recently-expired) key and receives the CURRENT stored key for its license.
 // It NEVER mints: it only returns what the webhook lifecycle already wrote, so
 // it cannot extend entitlement beyond what billing granted. Auth is possession
-// of a recently-valid signed key (within REFRESH_ACCEPT_DAYS of exp) plus an
-// ACTIVE license row for the token's customerId. Every failure returns the same
-// 403 with no reason, so nothing distinguishes revoked / missing / lapsed.
+// of a recently-valid signed key (within REFRESH_ACCEPT_DAYS of exp) bound to
+// the caller's customerId, plus an ACTIVE license row for that customer.
+// Unbound refresh and a JWT for customer A requesting customer B both fail
+// closed. Every failure returns the same 403 with no reason.
 const refreshRoute = createRoute({
   method: 'post',
   path: '/refresh',
   tags: ['license'],
   summary: 'Refresh a license key',
   description:
-    'Returns the current stored license key for the customer identified by the presented key. Accepts a key expired within the refresh window. Never mints a new key. Any failure returns 403 with no distinguishing reason.',
+    'Returns the current stored license key for the bound customerId. The presented JWT must match that customer. Accepts a key expired within the refresh window. Never mints. Unbound or mismatched refresh is denied.',
   request: {
     body: {
       content: {
@@ -562,12 +568,17 @@ const refreshRoute = createRoute({
 });
 
 app.openapi(refreshRoute, async (c) => {
-  const { licenseKey } = c.req.valid('json');
+  const { licenseKey, customerId } = c.req.valid('json');
+  const boundCustomerId = customerId.trim();
 
   // Every denial returns the identical body + status. The presented key's
   // signature validity, expiry position, revocation, and row state must not be
   // distinguishable to the caller (no refresh oracle).
   const deny = () => c.json({ error: 'refresh_denied' as const }, 403);
+
+  if (boundCustomerId.length === 0) {
+    return deny();
+  }
 
   // Verify against the ordered public-key set (current + rotation NEXT), so a
   // key minted under the outgoing private key still refreshes during a rotation
@@ -579,10 +590,9 @@ app.openapi(refreshRoute, async (c) => {
     return deny();
   }
 
-  // Signature valid AND exp past by at most REFRESH_ACCEPT_DAYS. Beyond that
-  // window the verifier returns null and re-delivery goes through the admin page.
-  const payload = await validateLicenseKeyForRefresh(licenseKey, publicKeys);
-  if (!payload) {
+  // Signature valid, customerId bound, AND exp past by at most REFRESH_ACCEPT_DAYS.
+  const payload = await validateLicenseKeyForRefresh(licenseKey, publicKeys, boundCustomerId);
+  if (!payload || payload.customerId !== boundCustomerId) {
     return deny();
   }
 
@@ -602,7 +612,7 @@ app.openapi(refreshRoute, async (c) => {
       .from(licenses)
       .where(
         and(
-          eq(licenses.customerId, payload.customerId),
+          eq(licenses.customerId, boundCustomerId),
           eq(licenses.status, 'active'),
           isNull(licenses.deletedAt),
           eq(licenses.mode, getConfiguredStripeMode()),

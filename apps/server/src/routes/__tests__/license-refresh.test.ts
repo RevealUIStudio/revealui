@@ -3,9 +3,11 @@
  *
  * The refresh endpoint returns the CURRENT stored license key for the customer
  * identified by a presented (possibly recently-expired) key. It never mints.
- * Auth is possession of a recently-valid signed key (validateLicenseKeyForRefresh)
- * plus an ACTIVE license row for the token's customerId. Every failure returns
- * the identical 403 body so nothing distinguishes revoked / missing / lapsed.
+ * Auth is a recently-valid signed key bound to an explicit customerId
+ * (validateLicenseKeyForRefresh) plus an ACTIVE license row for that bind.
+ * A JWT for customer A must not return customer B's stored key. Unbound
+ * refresh fails closed. Every cryptographic / row failure returns the
+ * identical 403 body so nothing distinguishes revoked / missing / lapsed.
  *
  * The bounded-expiry WINDOW logic (accept within REFRESH_ACCEPT_DAYS, reject
  * beyond) is unit-tested at the crypto layer in
@@ -91,6 +93,10 @@ function post(body: unknown) {
   };
 }
 
+function refreshBody(overrides: Record<string, unknown> = {}) {
+  return { licenseKey: 'presented.key', customerId: 'cus_123', ...overrides };
+}
+
 /** Mock the refresh DB chain: select().from().where().orderBy().limit() → rows. */
 function mockDbRows(rows: Array<{ licenseKey: string }>) {
   vi.mocked(getClient).mockReturnValue({
@@ -134,7 +140,7 @@ describe('POST /refresh', () => {
     mockDbRows([{ licenseKey: 'stored.current.key' }]);
 
     const app = createApp();
-    const res = await app.request('/refresh', post({ licenseKey: 'presented.key' }));
+    const res = await app.request('/refresh', post(refreshBody()));
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ licenseKey: 'stored.current.key' });
@@ -148,7 +154,10 @@ describe('POST /refresh', () => {
     mockDbRows([{ licenseKey: 'stored.renewed.key' }]);
 
     const app = createApp();
-    const res = await app.request('/refresh', post({ licenseKey: 'recently.expired.key' }));
+    const res = await app.request(
+      '/refresh',
+      post(refreshBody({ licenseKey: 'recently.expired.key' })),
+    );
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ licenseKey: 'stored.renewed.key' });
@@ -160,7 +169,7 @@ describe('POST /refresh', () => {
     mockDbRows([{ licenseKey: 'stored.key' }]);
 
     const app = createApp();
-    const res = await app.request('/refresh', post({ licenseKey: 'ancient.key' }));
+    const res = await app.request('/refresh', post(refreshBody({ licenseKey: 'ancient.key' })));
 
     expect(res.status).toBe(403);
     expect(await res.json()).toEqual(DENIED);
@@ -171,7 +180,7 @@ describe('POST /refresh', () => {
     mockDbRows([]); // active-status filter excludes revoked/expired/lapsed rows
 
     const app = createApp();
-    const res = await app.request('/refresh', post({ licenseKey: 'presented.key' }));
+    const res = await app.request('/refresh', post(refreshBody()));
 
     expect(res.status).toBe(403);
     expect(await res.json()).toEqual(DENIED);
@@ -184,7 +193,10 @@ describe('POST /refresh', () => {
     mockDbRows([]);
 
     const app = createApp();
-    const res = await app.request('/refresh', post({ licenseKey: 'revoked.customer.key' }));
+    const res = await app.request(
+      '/refresh',
+      post(refreshBody({ licenseKey: 'revoked.customer.key' })),
+    );
 
     expect(res.status).toBe(403);
     expect(await res.json()).toEqual(DENIED);
@@ -194,7 +206,7 @@ describe('POST /refresh', () => {
     mockedGetPublicKeys.mockReturnValue([]);
 
     const app = createApp();
-    const res = await app.request('/refresh', post({ licenseKey: 'presented.key' }));
+    const res = await app.request('/refresh', post(refreshBody()));
 
     expect(res.status).toBe(403);
     expect(await res.json()).toEqual(DENIED);
@@ -207,7 +219,7 @@ describe('POST /refresh', () => {
     mockDbThrow();
 
     const app = createApp();
-    const res = await app.request('/refresh', post({ licenseKey: 'presented.key' }));
+    const res = await app.request('/refresh', post(refreshBody()));
 
     expect(res.status).toBe(403);
     expect(await res.json()).toEqual(DENIED);
@@ -218,15 +230,58 @@ describe('POST /refresh', () => {
     mockDbRows([{ licenseKey: 'stored.current.key' }]);
 
     const app = createApp();
-    await app.request('/refresh', post({ licenseKey: 'presented.key' }));
+    await app.request('/refresh', post(refreshBody()));
 
     expect(mockedGenerate).not.toHaveBeenCalled();
   });
 
   it('returns 400 for a missing licenseKey', async () => {
     const app = createApp();
-    const res = await app.request('/refresh', post({}));
+    const res = await app.request('/refresh', post({ customerId: 'cus_123' }));
     expect(res.status).toBe(400);
+  });
+
+  it('returns 400 for a missing customerId (unbound refresh fails closed)', async () => {
+    const app = createApp();
+    const res = await app.request('/refresh', post({ licenseKey: 'presented.key' }));
+    expect(res.status).toBe(400);
+    expect(mockedRefreshValidate).not.toHaveBeenCalled();
+  });
+
+  it('denies with 403 for a whitespace-only customerId bind', async () => {
+    const app = createApp();
+    const res = await app.request(
+      '/refresh',
+      post({ licenseKey: 'presented.key', customerId: '   ' }),
+    );
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual(DENIED);
+    expect(mockedRefreshValidate).not.toHaveBeenCalled();
+  });
+
+  it("does not return customer B's key when the presented JWT is for customer A", async () => {
+    mockedRefreshValidate.mockResolvedValue({ ...VALID_PAYLOAD, customerId: 'cus_A' } as never);
+    mockDbRows([{ licenseKey: 'customer-b-secret-key' }]);
+
+    const app = createApp();
+    const res = await app.request(
+      '/refresh',
+      post({ licenseKey: 'customer-a.key', customerId: 'cus_B' }),
+    );
+
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual(DENIED);
+    expect(mockedRefreshValidate).toHaveBeenCalledWith('customer-a.key', ['pub-key'], 'cus_B');
+  });
+
+  it('passes the bound customerId into validateLicenseKeyForRefresh', async () => {
+    mockedRefreshValidate.mockResolvedValue(VALID_PAYLOAD as never);
+    mockDbRows([{ licenseKey: 'stored.current.key' }]);
+
+    const app = createApp();
+    await app.request('/refresh', post(refreshBody({ licenseKey: 'presented.key' })));
+
+    expect(mockedRefreshValidate).toHaveBeenCalledWith('presented.key', ['pub-key'], 'cus_123');
   });
 
   it('every denial is byte-identical (same status and body)', async () => {
@@ -235,22 +290,22 @@ describe('POST /refresh', () => {
     // Expired-beyond-window
     mockedRefreshValidate.mockResolvedValue(null as never);
     mockDbRows([{ licenseKey: 'stored.key' }]);
-    const beyond = await app.request('/refresh', post({ licenseKey: 'a' }));
+    const beyond = await app.request('/refresh', post(refreshBody({ licenseKey: 'a' })));
 
     // No active row
     mockedRefreshValidate.mockResolvedValue(VALID_PAYLOAD as never);
     mockDbRows([]);
-    const noRow = await app.request('/refresh', post({ licenseKey: 'b' }));
+    const noRow = await app.request('/refresh', post(refreshBody({ licenseKey: 'b' })));
 
     // No public key
     mockedGetPublicKeys.mockReturnValue([]);
-    const noKey = await app.request('/refresh', post({ licenseKey: 'c' }));
+    const noKey = await app.request('/refresh', post(refreshBody({ licenseKey: 'c' })));
     mockedGetPublicKeys.mockReturnValue(['pub-key']);
 
     // DB throw
     mockedRefreshValidate.mockResolvedValue(VALID_PAYLOAD as never);
     mockDbThrow();
-    const dbErr = await app.request('/refresh', post({ licenseKey: 'd' }));
+    const dbErr = await app.request('/refresh', post(refreshBody({ licenseKey: 'd' })));
 
     for (const res of [beyond, noRow, noKey, dbErr]) {
       expect(res.status).toBe(403);
@@ -266,7 +321,7 @@ describe('POST /refresh', () => {
     mockDbRows([{ licenseKey: 'stored.current.key' }]); // customer row is active
 
     const app = createApp();
-    const res = await app.request('/refresh', post({ licenseKey: 'leaked.old.key' }));
+    const res = await app.request('/refresh', post(refreshBody({ licenseKey: 'leaked.old.key' })));
 
     expect(res.status).toBe(403);
     expect(await res.json()).toEqual(DENIED);
