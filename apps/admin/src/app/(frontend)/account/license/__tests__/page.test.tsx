@@ -60,6 +60,7 @@ vi.mock('@/lib/utils/safe-stripe-redirect', () => ({
   safeStripeRedirect: vi.fn(),
 }));
 
+import { apiFetch } from '@/lib/utils/csrf';
 import LicensePage from '../page';
 
 const TEST_PUBLIC_KEY = '-----BEGIN PUBLIC KEY-----\ntest-pem\n-----END PUBLIC KEY-----';
@@ -99,6 +100,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
 });
 
 describe('LicensePage activation instructions', () => {
@@ -221,5 +223,51 @@ describe('LicensePage session miss', () => {
     });
     expect(screen.queryByText('test-license-jwt')).toBeNull();
     expect(mockPush).not.toHaveBeenCalled();
+  });
+});
+
+describe('LicensePage same-origin billing proxy', () => {
+  const stagingApi = 'https://api.staging.revealui.com';
+
+  it('fetches subscription on /api/billing/subscription, not the API host', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_URL', stagingApi);
+
+    render(<LicensePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('test-license-jwt')).toBeDefined();
+    });
+
+    const urls = vi.mocked(fetch).mock.calls.map(([input]) => String(input));
+    expect(urls).toContain('/api/billing/subscription');
+    expect(
+      urls.some(
+        (url) => url.startsWith(`${stagingApi}/`) && url.endsWith('/api/billing/subscription'),
+      ),
+    ).toBe(false);
+  });
+
+  it('posts perpetual checkout to same-origin /api/billing/checkout-perpetual', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_URL', stagingApi);
+    vi.mocked(apiFetch).mockResolvedValue({
+      json: () => Promise.resolve({ url: 'https://checkout.stripe.com/c/test' }),
+    } as Response);
+
+    render(<LicensePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('test-license-jwt')).toBeDefined();
+    });
+
+    screen.getAllByRole('button', { name: /^Buy / })[0]?.click();
+
+    await waitFor(() => {
+      expect(apiFetch).toHaveBeenCalledWith(
+        '/api/billing/checkout-perpetual',
+        expect.objectContaining({ method: 'POST', credentials: 'include' }),
+      );
+    });
+    const checkoutUrl = String(vi.mocked(apiFetch).mock.calls[0]?.[0]);
+    expect(checkoutUrl.startsWith(stagingApi)).toBe(false);
   });
 });
