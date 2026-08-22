@@ -146,6 +146,21 @@
       "source": "/legal/subprocessors",
       "destination": "https://docs.revealui.com",
       "permanent": true
+    },
+    {
+      "source": "/signup",
+      "destination": "https://admin.revealui.com/signup",
+      "permanent": true
+    },
+    {
+      "source": "/checkout",
+      "destination": "https://admin.revealui.com/signup",
+      "permanent": true
+    },
+    {
+      "source": "/login",
+      "destination": "https://admin.revealui.com/login",
+      "permanent": true
     }
   ],
   "rewrites": [
