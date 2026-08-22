@@ -82,7 +82,7 @@ export const QUOTE_CALCULATOR = {
     hour: {
       title: 'Hour',
       price: '$300',
-      body: 'Invoice before we start. No holdback.',
+      body: 'Invoice before the hour begins. No holdback.',
     },
     plan: {
       title: 'Written plan',
