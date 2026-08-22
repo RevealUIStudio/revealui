@@ -434,10 +434,25 @@ beforeAll(() => {
 });
 
 describe('validateLicenseAtStartup', () => {
-  it('is a no-op when SKIP_ENV_VALIDATION=true', async () => {
+  it('is a no-op when SKIP_ENV_VALIDATION=true in a documented test context', async () => {
     await expect(
-      validateLicenseAtStartup({ SKIP_ENV_VALIDATION: 'true' }),
+      validateLicenseAtStartup({ SKIP_ENV_VALIDATION: 'true', NODE_ENV: 'test' }),
     ).resolves.toBeUndefined();
+  });
+
+  it('is a no-op when SKIP_ENV_VALIDATION=true in development (CI tsx smoke)', async () => {
+    await expect(
+      validateLicenseAtStartup({ SKIP_ENV_VALIDATION: 'true', NODE_ENV: 'development' }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('runtime forge boot with SKIP_ENV_VALIDATION still requires a key', async () => {
+    await expect(
+      validateLicenseAtStartup({
+        SKIP_ENV_VALIDATION: 'true',
+        NODE_ENV: 'production',
+      }),
+    ).rejects.toThrow(/REVEALUI_LICENSE_KEY is required/);
   });
 
   it('is a no-op in hosted mode (REVEALUI_LICENSE_PRIVATE_KEY present)', async () => {
@@ -518,7 +533,7 @@ describe('validateLicenseAtStartup', () => {
 
   it('passes for a valid Forge license JWT', async () => {
     const jwt = await generateLicenseKey(
-      { tier: 'enterprise', customerId: 'acme' },
+      { tier: 'enterprise', customerId: 'acme', domains: ['acme.com'] },
       testPrivateKey,
       30 * 24 * 60 * 60,
       testPublicKey,
@@ -527,13 +542,14 @@ describe('validateLicenseAtStartup', () => {
       validateLicenseAtStartup({
         REVEALUI_LICENSE_KEY: jwt,
         REVEALUI_LICENSE_PUBLIC_KEY: testPublicKey,
+        REVEALUI_PUBLIC_SERVER_URL: 'https://admin.acme.com',
       }),
     ).resolves.toBeUndefined();
   });
 
   it('handles single-line PEM public key (with literal \\n separators)', async () => {
     const jwt = await generateLicenseKey(
-      { tier: 'pro', customerId: 'docker-co' },
+      { tier: 'pro', customerId: 'docker-co', domains: ['docker-co.test'] },
       testPrivateKey,
       30 * 24 * 60 * 60,
       testPublicKey,
@@ -544,6 +560,7 @@ describe('validateLicenseAtStartup', () => {
       validateLicenseAtStartup({
         REVEALUI_LICENSE_KEY: jwt,
         REVEALUI_LICENSE_PUBLIC_KEY: singleLinePublicKey,
+        REVEALUI_PUBLIC_SERVER_URL: 'https://api.docker-co.test',
       }),
     ).resolves.toBeUndefined();
   });
@@ -581,7 +598,7 @@ describe('validateLicenseAtStartup', () => {
     ).rejects.toThrow(/restricted to/);
   });
 
-  it('allows a localhost public URL under a domain-restricted license (trial-kit default)', async () => {
+  it('fails closed when public URL is localhost under a domain-restricted license', async () => {
     const jwt = await generateLicenseKey(
       { tier: 'enterprise', customerId: 'acme', domains: ['acme.com'] },
       testPrivateKey,
@@ -594,10 +611,10 @@ describe('validateLicenseAtStartup', () => {
         REVEALUI_LICENSE_PUBLIC_KEY: testPublicKey,
         REVEALUI_PUBLIC_SERVER_URL: 'http://localhost:4000',
       }),
-    ).resolves.toBeUndefined();
+    ).rejects.toThrow(/restricted to/);
   });
 
-  it('skips the domain check when no public URL is set (presence enforced by validateStartup)', async () => {
+  it('fails closed when no public URL is set and the license carries a domains claim', async () => {
     const jwt = await generateLicenseKey(
       { tier: 'enterprise', customerId: 'acme', domains: ['acme.com'] },
       testPrivateKey,
@@ -609,7 +626,7 @@ describe('validateLicenseAtStartup', () => {
         REVEALUI_LICENSE_KEY: jwt,
         REVEALUI_LICENSE_PUBLIC_KEY: testPublicKey,
       }),
-    ).resolves.toBeUndefined();
+    ).rejects.toThrow(/REVEALUI_PUBLIC_SERVER_URL/);
   });
 
   // ── GAP-436: plain self-host opt-in (owner-ruled 2026-07-26) ────────────

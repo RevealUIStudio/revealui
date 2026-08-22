@@ -18,7 +18,17 @@ function createSelectChain(resolved: unknown): Record<string, unknown> {
   return chain;
 }
 
-function createApp(user: { id: string; role: string } | null, selectResults: unknown[] = []) {
+const FLEET_OPERATOR = {
+  id: 'op-1',
+  role: 'admin',
+  emailVerified: true as const,
+  _json: { roles: ['super-admin'] },
+};
+
+function createApp(
+  user: { id: string; role: string; emailVerified?: boolean; _json?: unknown } | null,
+  selectResults: unknown[] = [],
+) {
   let callIdx = 0;
   const db = {
     select: vi.fn(() => {
@@ -57,8 +67,20 @@ describe('GET /admin/margin/summary', () => {
     expect(res.status).toBe(403);
   });
 
+  it('returns 403 when the user is a tenant owner', async () => {
+    const { app } = createApp({ id: 'owner-1', role: 'owner' });
+    const res = await app.fetch(new Request('http://localhost/summary'));
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 403 when the user is a tenant admin', async () => {
+    const { app } = createApp({ id: 'admin-1', role: 'admin' });
+    const res = await app.fetch(new Request('http://localhost/summary'));
+    expect(res.status).toBe(403);
+  });
+
   it('returns empty summary when no snapshots exist', async () => {
-    const { app } = createApp({ id: 'u1', role: 'admin' }, [[]]);
+    const { app } = createApp(FLEET_OPERATOR, [[]]);
     const res = await app.fetch(new Request('http://localhost/summary'));
     expect(res.status).toBe(200);
     const body = (await res.json()) as {
@@ -71,7 +93,7 @@ describe('GET /admin/margin/summary', () => {
     expect(body.data.topAccountsByCost).toEqual([]);
   });
 
-  it('returns latest snapshot and top accounts for owner role', async () => {
+  it('returns latest snapshot and top accounts for a fleet operator', async () => {
     const computedAt = new Date('2026-08-09T12:00:00.000Z');
     const snapshot = {
       id: 'snap-1',
@@ -101,7 +123,7 @@ describe('GET /admin/margin/summary', () => {
       tier: 'free',
       createdAt: computedAt,
     };
-    const { app } = createApp({ id: 'owner', role: 'owner' }, [[snapshot], [account]]);
+    const { app } = createApp(FLEET_OPERATOR, [[snapshot], [account]]);
     const res = await app.fetch(new Request('http://localhost/summary'));
     expect(res.status).toBe(200);
     const body = (await res.json()) as {

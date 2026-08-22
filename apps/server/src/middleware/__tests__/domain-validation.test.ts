@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Mock dependencies
@@ -18,6 +18,10 @@ vi.mock('@revealui/core/license', async () => {
   };
 });
 
+vi.mock('@revealui/core/deployment-mode', () => ({
+  detectDeploymentMode: vi.fn(() => 'hosted'),
+}));
+
 vi.mock('@revealui/core/features', () => ({
   isFeatureEnabled: vi.fn(() => true),
   getRequiredTier: vi.fn(() => 'enterprise'),
@@ -27,11 +31,18 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
+import { detectDeploymentMode } from '@revealui/core/deployment-mode';
 import { getLicensePayload } from '@revealui/core/license';
 import { errorHandler } from '../error.js';
 import { requireDomain } from '../license.js';
 
 const mockedGetLicensePayload = vi.mocked(getLicensePayload);
+const mockedDetectDeploymentMode = vi.mocked(detectDeploymentMode);
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  mockedDetectDeploymentMode.mockReturnValue('hosted');
+});
 
 // biome-ignore lint/suspicious/noExplicitAny: test helper  -  response shape varies per endpoint
 async function parseBody(res: Response): Promise<any> {
@@ -51,9 +62,9 @@ function createApp() {
 // Tests
 //
 // requireDomain is a Host-based deployment domain-lock sourced from the signed
-// JWT `domains` claim. localhost is always allowed by the shared matcher, so a
-// non-localhost Host header is used to exercise rejection. (Hono's app.request
-// defaults the Host to `localhost` from the request URL when none is given.)
+// JWT `domains` claim. Loopback is opt-in (NODE_ENV !== 'production'); a
+// published API with a domains claim rejects Host: localhost. Hono's
+// app.request defaults Host to `localhost` when none is given.
 // ---------------------------------------------------------------------------
 describe('requireDomain', () => {
   it('passes when no domain restrictions in license', async () => {
@@ -100,18 +111,44 @@ describe('requireDomain', () => {
     expect(res.status).toBe(200);
   });
 
-  it('always allows an explicit localhost Host even under a domain-restricted license', async () => {
+  it('allows an explicit localhost Host under a domain-restricted license outside production', async () => {
     mockedGetLicensePayload.mockReturnValue({
       tier: 'enterprise',
       customerId: 'cus_1',
       domains: ['example.com'],
     });
 
-    // An explicit localhost Host (e.g. the Docker healthcheck hitting
-    // http://localhost:PORT) is always allowed by the shared matcher.
+    // Trial / unpublished (NODE_ENV !== production) may still hit loopback.
     const res = await createApp().request('/resource', { headers: { host: 'localhost:4000' } });
 
     expect(res.status).toBe(200);
+  });
+
+  it('rejects localhost Host when a domains claim is present on a published API', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    mockedGetLicensePayload.mockReturnValue({
+      tier: 'enterprise',
+      customerId: 'cus_1',
+      domains: ['example.com'],
+    });
+
+    const res = await createApp().request('/resource', { headers: { host: 'localhost:4000' } });
+
+    expect(res.status).toBe(403);
+  });
+
+  it('fails closed on Forge production when the license has an empty domains claim', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    mockedDetectDeploymentMode.mockReturnValue('forge');
+    mockedGetLicensePayload.mockReturnValue({
+      tier: 'enterprise',
+      customerId: 'cus_1',
+      domains: [],
+    });
+
+    const res = await createApp().request('/resource', { headers: { host: 'evil.com' } });
+
+    expect(res.status).toBe(403);
   });
 
   it('returns 403 when no Host header is present under a domain-restricted license (fail closed)', async () => {
