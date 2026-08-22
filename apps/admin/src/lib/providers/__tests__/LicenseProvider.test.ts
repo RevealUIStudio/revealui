@@ -38,7 +38,7 @@ describe('resolveSaasTier — cross-origin subscription 401', () => {
     expect(mockRedirectToLogin).not.toHaveBeenCalled();
   });
 
-  it('probes subscription on the same-origin rewrite, not the API host', async () => {
+  it('probes subscription on the same-origin proxy, not the API host', async () => {
     vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://api.staging.revealui.com');
     const fetchMock = vi.fn(() =>
       Promise.resolve({
