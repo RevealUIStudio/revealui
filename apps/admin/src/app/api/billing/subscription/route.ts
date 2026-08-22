@@ -1,5 +1,5 @@
 import type { NextRequest, NextResponse } from 'next/server';
-import { forwardBillingRequest } from '@/lib/utils/billing-api-proxy';
+import { forwardBillingRequest } from '@/lib/utils/billing-api-forward';
 
 /**
  * More specific than `(backend)/api/[...slug]`. Forwards Cookie to

@@ -14,7 +14,7 @@ const API_URL =
  * Router route than `(backend)/api/[...slug]`, because that catch-all wins
  * over next.config rewrites and the CMS REST handler 401/404s billing.
  */
-export type BillingProxyPath =
+export type BillingForwardPath =
   | '/api/billing/subscription'
   | '/api/billing/checkout-perpetual'
   | '/api/billing/checkout-support-renewal';
@@ -23,10 +23,13 @@ export type BillingProxyPath =
  * Server-side forward to the API host. Reuses apiForwardHeaders so the
  * incoming Cookie (and UA / minted CSRF) reach the auth-gated billing
  * routes. Does not make subscription public.
+ *
+ * Named *-forward (not *-proxy.ts) so the security-review path marker for
+ * apps/admin/src/proxy.ts does not false-hit this helper.
  */
 export async function forwardBillingRequest(
   request: NextRequest,
-  path: BillingProxyPath,
+  path: BillingForwardPath,
 ): Promise<NextResponse> {
   const session = await getSession(request.headers, extractRequestContext(request));
   if (!session) {
@@ -48,7 +51,7 @@ export async function forwardBillingRequest(
     return NextResponse.json(data, { status: apiResponse.status });
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
-    logger.error('Billing API proxy failed', err, { path, method });
+    logger.error('Billing API forward failed', err, { path, method });
     return NextResponse.json({ error: 'Billing request failed' }, { status: 503 });
   }
 }

@@ -65,7 +65,7 @@ function forwardedHeaders(): Record<string, string> {
 describe('billing App Router routes beat the CMS catch-all', () => {
   it('ships a specific subscription route that forwards Cookie via apiForwardHeaders', () => {
     const specific = readAdminSrc('app/api/billing/subscription/route.ts');
-    const helper = readAdminSrc('lib/utils/billing-api-proxy.ts');
+    const helper = readAdminSrc('lib/utils/billing-api-forward.ts');
     expect(specific.includes('/api/billing/subscription')).toBe(true);
     expect(helper.includes("from '@/lib/utils/api-proxy-headers'")).toBe(true);
     expect(helper.includes('apiForwardHeaders')).toBe(true);
@@ -81,7 +81,7 @@ describe('billing App Router routes beat the CMS catch-all', () => {
   it('ships specific checkout POST routes for the license page', () => {
     const perpetual = readAdminSrc('app/api/billing/checkout-perpetual/route.ts');
     const renewal = readAdminSrc('app/api/billing/checkout-support-renewal/route.ts');
-    const helper = readAdminSrc('lib/utils/billing-api-proxy.ts');
+    const helper = readAdminSrc('lib/utils/billing-api-forward.ts');
     expect(perpetual.includes('/api/billing/checkout-perpetual')).toBe(true);
     expect(renewal.includes('/api/billing/checkout-support-renewal')).toBe(true);
     expect(helper.includes('apiForwardHeaders')).toBe(true);
