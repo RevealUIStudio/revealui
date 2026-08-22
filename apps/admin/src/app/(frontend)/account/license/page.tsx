@@ -85,8 +85,10 @@ export default function LicensePage() {
       const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
 
       const [subRes, featRes, pricingRes, pubKeyRes] = await Promise.all([
-        // Same-origin rewrite (next.config.mjs) so host-only revealui-session
-        // is forwarded to the API. Do not call the API host from the browser.
+        // Same-origin App Router proxy (app/api/billing/subscription) so
+        // host-only revealui-session is forwarded to the API. Do not call
+        // the API host from the browser. next.config rewrites never run
+        // for /api/* — the CMS catch-all wins over them.
         fetch('/api/billing/subscription', { credentials: 'include' }),
         fetch(`${apiUrl}/api/license/features`),
         fetch(`${apiUrl}/api/pricing`),

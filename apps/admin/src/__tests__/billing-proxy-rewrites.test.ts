@@ -1,6 +1,7 @@
 /**
  * Same-origin billing proxy: host-only revealui-session never reaches
- * api.staging. The admin rewrite forwards Cookie, matching /a2a.
+ * api.staging. next.config still lists billing rewrites, but App Router
+ * catch-all wins over them. The working forward is app/api/billing/*.
  */
 import { readFileSync } from 'node:fs';
 import path from 'node:path';

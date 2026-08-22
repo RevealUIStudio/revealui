@@ -57,7 +57,7 @@ export async function resolveSaasTier(): Promise<string> {
 
   let res: Response;
   try {
-    // Same-origin rewrite (next.config.mjs) forwards host-only revealui-session.
+    // Same-origin App Router proxy forwards host-only revealui-session.
     res = await fetch('/api/billing/subscription', {
       credentials: 'include',
     });
@@ -66,7 +66,7 @@ export async function resolveSaasTier(): Promise<string> {
   }
 
   if (res.status === 401) {
-    // Same-origin rewrite still 401s when the API session is missing. That is
+    // Same-origin proxy still 401s when the API session is missing. That is
     // "API session unavailable", not "admin signed out". revealui-session is
     // httpOnly, so document.cookie cannot prove presence and must not gate
     // this path. True-unauth visitors never render this tree on protected
