@@ -57,7 +57,8 @@ export async function resolveSaasTier(): Promise<string> {
 
   let res: Response;
   try {
-    res = await fetch(`${apiUrl}/api/billing/subscription`, {
+    // Same-origin rewrite (next.config.mjs) forwards host-only revealui-session.
+    res = await fetch('/api/billing/subscription', {
       credentials: 'include',
     });
   } catch {
@@ -65,10 +66,11 @@ export async function resolveSaasTier(): Promise<string> {
   }
 
   if (res.status === 401) {
-    // Cross-origin 401 is "API session unavailable", not "admin signed out".
-    // revealui-session is httpOnly, so document.cookie cannot prove presence
-    // and must not gate this path. True-unauth visitors never render this
-    // tree on protected routes (proxy sends them to /login?redirect=).
+    // Same-origin rewrite still 401s when the API session is missing. That is
+    // "API session unavailable", not "admin signed out". revealui-session is
+    // httpOnly, so document.cookie cannot prove presence and must not gate
+    // this path. True-unauth visitors never render this tree on protected
+    // routes (proxy sends them to /login?redirect=).
     throw new LicenseResolveFailure('unavailable', 'subscription returned 401');
   }
 

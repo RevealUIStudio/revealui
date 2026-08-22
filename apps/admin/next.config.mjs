@@ -223,6 +223,23 @@ const nextConfig = {
         source: '/a2a/:path*',
         destination: `${apiUrl}/a2a/:path*`,
       },
+      // Same-origin /api/billing proxy: /account/license used to GET
+      // ${apiUrl}/api/billing/subscription with credentials. Host-only
+      // revealui-session never reaches the API host, so the page 401s and
+      // shows "Failed to load license data". Browser → admin /api/billing/*
+      // → rewrite → API forwards Cookie. Same pattern as /a2a above.
+      {
+        source: '/api/billing/subscription',
+        destination: `${apiUrl}/api/billing/subscription`,
+      },
+      {
+        source: '/api/billing/checkout-perpetual',
+        destination: `${apiUrl}/api/billing/checkout-perpetual`,
+      },
+      {
+        source: '/api/billing/checkout-support-renewal',
+        destination: `${apiUrl}/api/billing/checkout-support-renewal`,
+      },
     ]
   },
   async headers() {

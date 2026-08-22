@@ -37,4 +37,21 @@ describe('resolveSaasTier — cross-origin subscription 401', () => {
     });
     expect(mockRedirectToLogin).not.toHaveBeenCalled();
   });
+
+  it('probes subscription on the same-origin rewrite, not the API host', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://api.staging.revealui.com');
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({
+        status: 200,
+        ok: true,
+        json: () => Promise.resolve({ tier: 'pro' }),
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(resolveSaasTier()).resolves.toBe('pro');
+    expect(fetchMock).toHaveBeenCalledWith('/api/billing/subscription', {
+      credentials: 'include',
+    });
+  });
 });

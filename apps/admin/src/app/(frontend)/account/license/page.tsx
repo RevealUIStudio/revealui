@@ -85,7 +85,9 @@ export default function LicensePage() {
       const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
 
       const [subRes, featRes, pricingRes, pubKeyRes] = await Promise.all([
-        fetch(`${apiUrl}/api/billing/subscription`, { credentials: 'include' }),
+        // Same-origin rewrite (next.config.mjs) so host-only revealui-session
+        // is forwarded to the API. Do not call the API host from the browser.
+        fetch('/api/billing/subscription', { credentials: 'include' }),
         fetch(`${apiUrl}/api/license/features`),
         fetch(`${apiUrl}/api/pricing`),
         fetch(`${apiUrl}/api/license/public-key`),
@@ -155,8 +157,7 @@ export default function LicensePage() {
     setPerpetualLoading(plan.tier);
     setError(null);
     try {
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
-      const res = await apiFetch(`${apiUrl}/api/billing/checkout-perpetual`, {
+      const res = await apiFetch('/api/billing/checkout-perpetual', {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
@@ -183,8 +184,7 @@ export default function LicensePage() {
     setRenewalLoading(true);
     setError(null);
     try {
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
-      const res = await apiFetch(`${apiUrl}/api/billing/checkout-support-renewal`, {
+      const res = await apiFetch('/api/billing/checkout-support-renewal', {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
