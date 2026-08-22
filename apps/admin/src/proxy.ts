@@ -1,3 +1,4 @@
+import { parsePerpetualLicenseSku } from '@revealui/contracts/pricing';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { buildAdminCsp, generateNonce } from './lib/security/csp';
@@ -211,6 +212,16 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
   if (!(isInternal || isPublic)) {
     const session = request.cookies.get('revealui-session')?.value;
     if (!session) {
+      if (pathname === '/account/license') {
+        const license = parsePerpetualLicenseSku(request.nextUrl.searchParams.get('license'));
+        if (license) {
+          const signupUrl = request.nextUrl.clone();
+          signupUrl.pathname = '/signup';
+          signupUrl.search = '';
+          signupUrl.searchParams.set('license', license);
+          return NextResponse.redirect(signupUrl);
+        }
+      }
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = '/login';
       loginUrl.searchParams.set('redirect', pathname);
