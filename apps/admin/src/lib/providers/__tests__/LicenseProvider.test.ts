@@ -13,21 +13,30 @@ vi.mock('@/lib/auth/redirect-to-login', () => ({
 
 import { resolveSaasTier } from '../LicenseProvider';
 
+function setSessionCookie(value: string): void {
+  document.cookie = `revealui-session=${value}; path=/`;
+}
+
+function clearSessionCookie(): void {
+  document.cookie = 'revealui-session=; max-age=0; path=/';
+}
+
 describe('resolveSaasTier — cross-origin subscription 401', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://api.revealui.com');
-    document.cookie = 'revealui-session=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+    clearSessionCookie();
     window.history.replaceState({}, '', '/account/license');
   });
 
   afterEach(() => {
+    clearSessionCookie();
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
   });
 
   it('does not redirectToLogin on 401 when revealui-session is present (treat unavailable)', async () => {
-    document.cookie = 'revealui-session=sess-abc';
+    setSessionCookie('sess-abc');
     vi.stubGlobal(
       'fetch',
       vi.fn(() => Promise.resolve({ status: 401, ok: false })),
