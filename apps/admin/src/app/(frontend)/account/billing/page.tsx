@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { TestModeBanner } from '@/components/TestModeBanner';
+import { shouldRedirectToLoginOnEmptySession } from '@/lib/auth/has-session-cookie';
 import { hasCommercialUpgradePath } from '@/lib/components/should-show-upgrade-nav';
 import { apiFetch } from '@/lib/utils/csrf';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
@@ -177,11 +178,12 @@ function BillingContent() {
   }, [attemptFetchSubscription, upgrade]);
 
   useEffect(() => {
-    if (!sessionLoading && session) {
-      void fetchSubscription();
-    } else if (!(sessionLoading || session)) {
-      router.push('/login');
+    if (sessionLoading) return;
+    if (shouldRedirectToLoginOnEmptySession(session, sessionLoading)) {
+      router.push('/login?redirect=/account/billing');
+      return;
     }
+    void fetchSubscription();
   }, [session, sessionLoading, fetchSubscription, router]);
 
   const handleCheckout = useCallback(

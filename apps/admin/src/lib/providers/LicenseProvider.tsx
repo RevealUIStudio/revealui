@@ -4,6 +4,7 @@ import type { LicenseTierId } from '@revealui/contracts/pricing';
 import type { FeatureFlags } from '@revealui/core/features';
 import { createPaywall } from '@revealui/paywall';
 import { PaywallProvider, usePaywall } from '@revealui/paywall/client';
+import { hasSessionCookie } from '@/lib/auth/has-session-cookie';
 import { isPreAuthPublicPath, redirectToLogin } from '@/lib/auth/redirect-to-login';
 
 /** Shared paywall instance for the admin. */
@@ -42,7 +43,7 @@ export class LicenseResolveFailure extends Error {
   }
 }
 
-async function resolveSaasTier(): Promise<string> {
+export async function resolveSaasTier(): Promise<string> {
   // Login / MFA / signup have no full session yet. Do not probe subscription
   // (401 would bounce /mfa → /login — owner GAP-360 walk).
   if (typeof window !== 'undefined' && isPreAuthPublicPath(window.location.pathname)) {
@@ -65,6 +66,15 @@ async function resolveSaasTier(): Promise<string> {
   }
 
   if (res.status === 401) {
+    // Cross-origin 401 is "API session unavailable", not "admin signed out",
+    // when the browser still holds revealui-session. Bouncing to /login here
+    // plus the proxy's old search-strip dumped owners onto `/`.
+    if (hasSessionCookie()) {
+      throw new LicenseResolveFailure(
+        'unavailable',
+        'subscription returned 401 with session cookie',
+      );
+    }
     // Dead session: send the operator to re-auth. Do not claim free.
     // redirectToLogin itself no-ops on /mfa etc. as a second belt.
     redirectToLogin();

@@ -1,6 +1,6 @@
 'use client';
 
-import { safeInternalRedirect } from '@/lib/utils/safe-internal-redirect';
+import { safePostAuthRedirect } from '@/lib/utils/safe-internal-redirect';
 
 /** Known paid-plan deep links. Pro/Max are self-serve checkout; Enterprise is sales-assisted. */
 export type UpgradePlan = 'pro' | 'max' | 'enterprise';
@@ -18,8 +18,8 @@ interface ParamReader {
 
 /**
  * Read the upgrade + validated same-origin redirect intent from a query reader.
- * `redirect` is passed through safeInternalRedirect, so the result is always a
- * safe internal path or null.
+ * Accepts both `redirect` (LoginForm / proxy) and `returnUrl` (legacy
+ * LicenseProvider) so a return path is not discarded for admin fallback `/`.
  */
 export function readAuthIntent(searchParams: ParamReader): {
   upgrade: UpgradePlan | null;
@@ -27,7 +27,9 @@ export function readAuthIntent(searchParams: ParamReader): {
 } {
   return {
     upgrade: parseUpgrade(searchParams.get('upgrade')),
-    redirect: safeInternalRedirect(searchParams.get('redirect')),
+    redirect:
+      safePostAuthRedirect(searchParams.get('redirect')) ??
+      safePostAuthRedirect(searchParams.get('returnUrl')),
   };
 }
 

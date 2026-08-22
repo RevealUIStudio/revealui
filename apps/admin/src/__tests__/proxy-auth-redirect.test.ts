@@ -90,6 +90,61 @@ describe('admin proxy — authenticated redirect off /login + /signup', () => {
     const res = await proxy(req('/rotate-password', ADMIN_COOKIES));
     expect(redirectPath(res)).not.toBe('/');
   });
+
+  it('honors a safe ?redirect= on /login instead of dumping an admin on /', async () => {
+    const res = await proxy(req('/login?redirect=/account/license', ADMIN_COOKIES));
+    expect(res.status).toBe(307);
+    expect(redirectPath(res)).toBe('/account/license');
+  });
+
+  it('honors a safe ?returnUrl= on /login (LicenseProvider query name)', async () => {
+    const res = await proxy(req('/login?returnUrl=%2Faccount%2Flicense', OWNER_COOKIES));
+    expect(res.status).toBe(307);
+    expect(redirectPath(res)).toBe('/account/license');
+  });
+
+  it('prefers ?redirect= over ?returnUrl= when both are present', async () => {
+    const res = await proxy(
+      req('/login?redirect=/account/license&returnUrl=/welcome', ADMIN_COOKIES),
+    );
+    expect(redirectPath(res)).toBe('/account/license');
+  });
+
+  it('still dumps an authenticated admin on / when no safe dest is present', async () => {
+    const res = await proxy(req('/login', ADMIN_COOKIES));
+    expect(redirectPath(res)).toBe('/');
+  });
+
+  it('rejects an off-origin redirect and falls back to admin home', async () => {
+    const res = await proxy(req('/login?redirect=https://evil.example/steal', ADMIN_COOKIES));
+    expect(redirectPath(res)).toBe('/');
+  });
+
+  it('rejects a protocol-relative returnUrl and falls back to admin home', async () => {
+    const res = await proxy(req('/login?returnUrl=//evil.example/steal', ADMIN_COOKIES));
+    expect(redirectPath(res)).toBe('/');
+  });
+
+  it('does not honor /login as a dest (no bounce loop)', async () => {
+    const res = await proxy(req('/login?redirect=/login', ADMIN_COOKIES));
+    expect(redirectPath(res)).toBe('/');
+  });
+
+  it('honors a safe ?redirect= on /signup for an authenticated admin', async () => {
+    const res = await proxy(req('/signup?redirect=/account/license', ADMIN_COOKIES));
+    expect(redirectPath(res)).toBe('/account/license');
+  });
+
+  it('lets an authenticated admin stay on /account/license (no dump to /)', async () => {
+    const res = await proxy(req('/account/license', OWNER_COOKIES));
+    expect(redirectPath(res)).toBeNull();
+  });
+
+  it('301s the /settings/account/license bookmark to /account/license', async () => {
+    const res = await proxy(req('/settings/account/license', OWNER_COOKIES));
+    expect(res.status).toBe(301);
+    expect(redirectPath(res)).toBe('/account/license');
+  });
 });
 
 describe('admin proxy — role-aware admin-only gate', () => {

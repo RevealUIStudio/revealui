@@ -83,6 +83,18 @@ describe('MFAForm post-verify navigation', () => {
     });
   });
 
+  it('honors ?redirect=/account/license carried through the MFA step', async () => {
+    mockSearchParams = { redirect: '/account/license' };
+    mockVerify.mockResolvedValue(true);
+
+    render(<MFAForm />);
+    submitCode('123456');
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/account/license');
+    });
+  });
+
   it('honors an upgrade intent carried through the MFA step (over redirect)', async () => {
     mockSearchParams = { upgrade: 'pro', redirect: '/somewhere' };
     mockVerify.mockResolvedValue(true);

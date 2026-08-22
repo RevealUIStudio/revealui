@@ -133,6 +133,47 @@ describe('LoginForm post-sign-in navigation', () => {
     });
   });
 
+  it('honors ?returnUrl=/account/license the same as ?redirect=', async () => {
+    mockSearchParams = { returnUrl: '/account/license' };
+    mockSignIn.mockResolvedValue({
+      success: true,
+      user: { id: '1', email: 'owner@example.com', role: 'admin' },
+    });
+
+    render(<LoginForm oauthProviders={[]} />);
+    fillAndSubmit();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/account/license');
+    });
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it('carries ?returnUrl=/account/license through the /mfa step as redirect=', async () => {
+    mockSearchParams = { returnUrl: '/account/license' };
+    mockSignIn.mockResolvedValue({ success: false, requiresMfa: true, mfaUserId: 'u-1' });
+
+    render(<LoginForm oauthProviders={[]} />);
+    fillAndSubmit();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/mfa?redirect=%2Faccount%2Flicense');
+    });
+  });
+
+  it('honors ?redirect=/account/license after a successful passkey sign-in', async () => {
+    mockPasskeySupported = true;
+    mockSearchParams = { redirect: '/account/license' };
+    mockPasskeySignIn.mockResolvedValue(true);
+
+    render(<LoginForm oauthProviders={[]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Passkey' }));
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/account/license');
+    });
+  });
+
   it('full-navigates to /rotate-password when the account requires rotation', async () => {
     mockSignIn.mockResolvedValue({
       success: true,
