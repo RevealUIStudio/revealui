@@ -23,6 +23,7 @@ import {
   type LifecycleCandidate,
   type LifecycleClaimInput,
   type LifecycleDeps,
+  lifecycleCandidatesSql,
   runLifecycleEmails,
 } from './lifecycle-emails.js';
 
@@ -284,6 +285,23 @@ describe('runLifecycleEmails disarmed', () => {
 // ---------------------------------------------------------------------------
 // Resilience: a transport failure must not break the loop
 // ---------------------------------------------------------------------------
+
+describe('lifecycleCandidatesSql qualification', () => {
+  it('emits table-qualified account_id so the JOIN cannot compile as account_id = account_id', () => {
+    const sqlText = lifecycleCandidatesSql(NOW);
+    expect(sqlText).toContain('"account_entitlements"."account_id"');
+    expect(sqlText).toContain('"account_memberships"."account_id"');
+    expect(sqlText.includes('on "account_id" = "account_id"')).toBe(false);
+  });
+
+  it('qualifies the usage-meter correlation so user_id = id cannot bind to account_memberships.id', () => {
+    const sqlText = lifecycleCandidatesSql(NOW);
+    expect(sqlText).toContain('"account_memberships"."user_id"');
+    expect(sqlText).toContain('"users"."id"');
+    expect(sqlText).toContain('"usage_meters"."account_id"');
+    expect(sqlText.includes('"user_id" = "id"')).toBe(false);
+  });
+});
 
 describe('runLifecycleEmails transport failure', () => {
   it('releases the claim, records a failure, and does not throw', async () => {

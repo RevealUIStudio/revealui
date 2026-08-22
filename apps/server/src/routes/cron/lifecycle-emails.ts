@@ -31,7 +31,18 @@ import {
   usageMeters,
   users,
 } from '@revealui/db/schema';
-import { and, eq, gte, isNotNull, isNull, sql } from 'drizzle-orm';
+import {
+  type AnyColumn,
+  and,
+  eq,
+  getTableName,
+  gte,
+  isNotNull,
+  isNull,
+  type SQL,
+  sql,
+} from 'drizzle-orm';
+import { QueryBuilder } from 'drizzle-orm/pg-core';
 import { Hono } from 'hono';
 import {
   isLifecycleEligibleTier,
@@ -210,58 +221,87 @@ export async function runLifecycleEmails(deps: LifecycleDeps): Promise<Lifecycle
 type DbClient = ReturnType<typeof getClient>;
 
 /**
+ * Table-qualify a column for raw `sql` fragments.
+ *
+ * Interpolating a Drizzle column ref emits unqualified `"account_id"`. On a
+ * JOIN between account_entitlements and account_memberships that becomes
+ * `ON "account_id" = "account_id"` and Postgres raises 42702. The same trap
+ * turns `user_id = id` into a comparison against account_memberships.id.
+ */
+function qualified(column: AnyColumn): SQL {
+  return sql`${sql.identifier(getTableName(column.table))}.${sql.identifier(column.name)}`;
+}
+
+function lifecycleCandidateFields() {
+  return {
+    userId: users.id,
+    email: users.email,
+    createdAt: users.createdAt,
+    tier: sql<string | null>`(
+        select ${qualified(accountEntitlements.tier)} from ${accountMemberships}
+        join ${accountEntitlements} on ${qualified(accountEntitlements.accountId)} = ${qualified(accountMemberships.accountId)}
+        where ${qualified(accountMemberships.userId)} = ${qualified(users.id)}
+          and ${qualified(accountMemberships.status)} = 'active'
+          and ${qualified(accountEntitlements.mode)} = 'live'
+        order by ${qualified(accountMemberships.createdAt)} asc
+        limit 1
+      )`,
+    hasAgentAction: sql<boolean>`exists(
+        select 1 from ${usageMeters}
+        where ${qualified(usageMeters.source)} = 'agent'
+          and ${qualified(usageMeters.accountId)} in (
+            select ${qualified(accountMemberships.accountId)} from ${accountMemberships}
+            where ${qualified(accountMemberships.userId)} = ${qualified(users.id)}
+              and ${qualified(accountMemberships.status)} = 'active'
+          )
+      )`,
+    weeklyAgentActions: sql<number>`coalesce((
+        select count(*) from ${usageMeters}
+        where ${qualified(usageMeters.source)} = 'agent'
+          and ${qualified(usageMeters.createdAt)} >= now() - interval '7 days'
+          and ${qualified(usageMeters.accountId)} in (
+            select ${qualified(accountMemberships.accountId)} from ${accountMemberships}
+            where ${qualified(accountMemberships.userId)} = ${qualified(users.id)}
+              and ${qualified(accountMemberships.status)} = 'active'
+          )
+      ), 0)::int`,
+  };
+}
+
+function lifecycleCandidatesWhere(now: Date) {
+  const oldestCreatedAt = new Date(now.getTime() - 10 * DAY_MS);
+  return and(
+    eq(users.type, 'human'),
+    isNull(users.deletedAt),
+    isNotNull(users.email),
+    eq(users.emailVerified, true),
+    gte(users.createdAt, oldestCreatedAt),
+  );
+}
+
+/**
+ * Candidate SELECT SQL. Used by tests to assert table-qualified join keys;
+ * loadCandidatesReal uses the same field/where builders.
+ */
+export function lifecycleCandidatesSql(now: Date): string {
+  return new QueryBuilder()
+    .select(lifecycleCandidateFields())
+    .from(users)
+    .where(lifecycleCandidatesWhere(now))
+    .toSQL().sql;
+}
+
+/**
  * Loads every recently-created human user (email-verified, not deleted) inside
  * the widest lifecycle window, resolving their account tier and agent-action
  * signals via correlated subqueries. Modeled on the proven activation query in
  * routes/analytics.ts. Not a hot path (a small daily aggregation).
  */
 async function loadCandidatesReal(db: DbClient, now: Date): Promise<LifecycleCandidate[]> {
-  const oldestCreatedAt = new Date(now.getTime() - 10 * DAY_MS);
-
   const rows = await db
-    .select({
-      userId: users.id,
-      email: users.email,
-      createdAt: users.createdAt,
-      tier: sql<string | null>`(
-        select ${accountEntitlements.tier} from ${accountMemberships}
-        join ${accountEntitlements} on ${accountEntitlements.accountId} = ${accountMemberships.accountId}
-        where ${accountMemberships.userId} = ${users.id}
-          and ${accountMemberships.status} = 'active'
-          and ${accountEntitlements.mode} = 'live'
-        order by ${accountMemberships.createdAt} asc
-        limit 1
-      )`,
-      hasAgentAction: sql<boolean>`exists(
-        select 1 from ${usageMeters}
-        where ${usageMeters.source} = 'agent'
-          and ${usageMeters.accountId} in (
-            select ${accountMemberships.accountId} from ${accountMemberships}
-            where ${accountMemberships.userId} = ${users.id}
-              and ${accountMemberships.status} = 'active'
-          )
-      )`,
-      weeklyAgentActions: sql<number>`coalesce((
-        select count(*) from ${usageMeters}
-        where ${usageMeters.source} = 'agent'
-          and ${usageMeters.createdAt} >= now() - interval '7 days'
-          and ${usageMeters.accountId} in (
-            select ${accountMemberships.accountId} from ${accountMemberships}
-            where ${accountMemberships.userId} = ${users.id}
-              and ${accountMemberships.status} = 'active'
-          )
-      ), 0)::int`,
-    })
+    .select(lifecycleCandidateFields())
     .from(users)
-    .where(
-      and(
-        eq(users.type, 'human'),
-        isNull(users.deletedAt),
-        isNotNull(users.email),
-        eq(users.emailVerified, true),
-        gte(users.createdAt, oldestCreatedAt),
-      ),
-    );
+    .where(lifecycleCandidatesWhere(now));
 
   const candidates: LifecycleCandidate[] = [];
   for (const row of rows) {
