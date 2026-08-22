@@ -16,7 +16,7 @@ vi.stubGlobal('fetch', mockFetch);
 import { getSession } from '@revealui/auth/server';
 
 vi.mock('@revealui/auth/server', () => ({
-  getSession: vi.fn().mockResolvedValue({ userId: 'test-user', token: 'tok' }),
+  getSession: vi.fn().mockResolvedValue({ user: { id: 'test-user' } }),
 }));
 
 const mockGetSession = vi.mocked(getSession);
@@ -94,7 +94,7 @@ describe('GET /api/billing/subscription', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetSession.mockResolvedValue({ userId: 'test-user', token: 'tok' });
+    mockGetSession.mockResolvedValue({ user: { id: 'test-user' } } as never);
     vi.stubEnv('REVEALUI_SECRET', SECRET);
   });
 
@@ -158,7 +158,7 @@ describe('POST /api/billing/checkout-perpetual', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetSession.mockResolvedValue({ userId: 'test-user', token: 'tok' });
+    mockGetSession.mockResolvedValue({ user: { id: 'test-user' } } as never);
     vi.stubEnv('REVEALUI_SECRET', SECRET);
   });
 
@@ -200,7 +200,7 @@ describe('POST /api/billing/checkout-perpetual', () => {
 describe('POST /api/billing/checkout-support-renewal', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetSession.mockResolvedValue({ userId: 'test-user', token: 'tok' });
+    mockGetSession.mockResolvedValue({ user: { id: 'test-user' } } as never);
   });
 
   it('forwards an empty-body POST and Cookie to the API host', async () => {
