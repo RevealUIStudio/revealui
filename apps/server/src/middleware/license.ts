@@ -311,7 +311,7 @@ export const requireDomain = (): MiddlewareHandler => {
   return async (c, next) => {
     const payload = getLicensePayload();
     const isProduction = process.env.NODE_ENV === 'production';
-    const isForge = detectDeploymentMode() === 'forge';
+    const isForge = detectDeploymentMode(process.env) === 'forge';
     const allowUnlicensed = process.env[ALLOW_UNLICENSED_SELF_HOST_ENV] === 'true';
 
     if (!payload) {
