@@ -54,12 +54,13 @@ export function decodeJwtKid(jwt: string): string | undefined {
  *   (when configured) + domain binding. Empty domains or empty public URL
  *   fail closed unless ALLOW_UNLICENSED_SELF_HOST.
  *
- * `SKIP_ENV_VALIDATION=true` is honored only in a documented build/test
- * context (`NODE_ENV=test` or Next `NEXT_PHASE` build). Forge/production
+ * `SKIP_ENV_VALIDATION=true` is honored only in a documented build/test/dev
+ * context (`NODE_ENV=test|development` or Next `NEXT_PHASE` build). That
+ * covers Vitest, `pnpm dev:api`, and the CI tsx boot smoke. Forge/production
  * runtime ignores the flag and still requires a key.
  */
 function isDocumentedLicenseSkipContext(env: EnvMap): boolean {
-  if (env.NODE_ENV === 'test') return true;
+  if (env.NODE_ENV === 'test' || env.NODE_ENV === 'development') return true;
   const phase = env.NEXT_PHASE;
   return phase === 'phase-production-build' || phase === 'phase-development-build';
 }

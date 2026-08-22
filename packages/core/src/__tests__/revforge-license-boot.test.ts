@@ -49,6 +49,16 @@ describe('validateForgeLicenseAtStartup', () => {
     expect(detectDeploymentMode).not.toHaveBeenCalled();
   });
 
+  it('no-ops when SKIP_ENV_VALIDATION=true in development (CI tsx smoke)', async () => {
+    await expect(
+      validateForgeLicenseAtStartup({
+        SKIP_ENV_VALIDATION: 'true',
+        NODE_ENV: 'development',
+      }),
+    ).resolves.toBeUndefined();
+    expect(detectDeploymentMode).not.toHaveBeenCalled();
+  });
+
   it('runtime forge boot with SKIP_ENV_VALIDATION still requires a key', async () => {
     detectDeploymentMode.mockReturnValue('forge');
     await expect(

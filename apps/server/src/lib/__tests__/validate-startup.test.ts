@@ -440,6 +440,12 @@ describe('validateLicenseAtStartup', () => {
     ).resolves.toBeUndefined();
   });
 
+  it('is a no-op when SKIP_ENV_VALIDATION=true in development (CI tsx smoke)', async () => {
+    await expect(
+      validateLicenseAtStartup({ SKIP_ENV_VALIDATION: 'true', NODE_ENV: 'development' }),
+    ).resolves.toBeUndefined();
+  });
+
   it('runtime forge boot with SKIP_ENV_VALIDATION still requires a key', async () => {
     await expect(
       validateLicenseAtStartup({
