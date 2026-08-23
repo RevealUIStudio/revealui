@@ -434,7 +434,7 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
     ],
     renewal: '$149/yr for continued support',
     cta: 'Buy Pro Perpetual',
-    ctaHref: '/account/license',
+    ctaHref: perpetualLicenseSignupPath('pro'),
     comingSoon: false,
   },
   {
@@ -451,7 +451,7 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
     ],
     renewal: '$799/yr for continued support',
     cta: 'Buy Agency Perpetual',
-    ctaHref: '/account/license',
+    ctaHref: perpetualLicenseSignupPath('agency'),
     comingSoon: false,
   },
   {
@@ -502,6 +502,40 @@ export const ENTERPRISE_SALES_HREF = 'https://revealui.com/contact' as const;
  */
 export function allowsUnattendedCheckout(tier: LicenseTierId): boolean {
   return tier === 'pro' || tier === 'max';
+}
+
+/**
+ * Public perpetual SKU on marketing → admin signup (`?license=`).
+ * Distinct from subscription `?plan=` so a Buy click cannot start a trial.
+ * Agency maps to checkout tier `max` (Agency Perpetual is Max-tier).
+ */
+export type PerpetualLicenseSku = 'pro' | 'agency' | 'enterprise';
+
+export function parsePerpetualLicenseSku(raw: string | null): PerpetualLicenseSku | null {
+  if (raw === 'pro' || raw === 'agency' || raw === 'enterprise') return raw;
+  if (raw === 'max') return 'agency';
+  return null;
+}
+
+export function perpetualLicenseLabel(sku: PerpetualLicenseSku): string {
+  if (sku === 'pro') return 'Pro Perpetual';
+  if (sku === 'agency') return 'Agency Perpetual';
+  return 'Enterprise Perpetual';
+}
+
+export function perpetualLicenseSignupPath(sku: PerpetualLicenseSku): string {
+  return `/signup?license=${sku}`;
+}
+
+export function perpetualLicenseCheckoutPath(sku: PerpetualLicenseSku): string {
+  return `/account/license?license=${sku}`;
+}
+
+export function perpetualLicenseCheckoutTier(
+  sku: PerpetualLicenseSku,
+): Exclude<LicenseTierId, 'free'> {
+  if (sku === 'agency') return 'max';
+  return sku;
 }
 
 export function getTierLabel(tier: LicenseTierId): string {

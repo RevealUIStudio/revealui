@@ -11,6 +11,11 @@ import {
   type LicenseTierId,
   PERPETUAL_TIERS,
   type PricingResponse,
+  parsePerpetualLicenseSku,
+  perpetualLicenseCheckoutPath,
+  perpetualLicenseCheckoutTier,
+  perpetualLicenseLabel,
+  perpetualLicenseSignupPath,
   perpetualMaxSitesForTier,
   type ServiceOffering,
   SUBSCRIPTION_TIERS,
@@ -223,10 +228,10 @@ describe('PERPETUAL_TIERS', () => {
       expect(tier.ctaHref.startsWith('mailto:')).toBe(false);
     }
     expect(PERPETUAL_TIERS.find((t) => t.name === 'Pro Perpetual')?.ctaHref).toBe(
-      '/account/license',
+      '/signup?license=pro',
     );
     expect(PERPETUAL_TIERS.find((t) => t.name === 'Agency Perpetual')?.ctaHref).toBe(
-      '/account/license',
+      '/signup?license=agency',
     );
     expect(PERPETUAL_TIERS.find((t) => t.name === 'Enterprise Perpetual')?.ctaHref).toBe(
       'https://revealui.com/contact',
@@ -431,9 +436,9 @@ describe('PERPETUAL_TIERS  -  comingSoon status', () => {
     expect(enterprise.ctaHref.includes('signup')).toBe(false);
     expect(enterprise.ctaHref.includes('/account/license')).toBe(false);
     expect(pro.cta).toBe('Buy Pro Perpetual');
-    expect(pro.ctaHref).toBe('/account/license');
+    expect(pro.ctaHref).toBe('/signup?license=pro');
     expect(agency.cta).toBe('Buy Agency Perpetual');
-    expect(agency.ctaHref).toBe('/account/license');
+    expect(agency.ctaHref).toBe('/signup?license=agency');
   });
 });
 
@@ -450,5 +455,28 @@ describe('allowsUnattendedCheckout', () => {
     expect(SUBSCRIPTION_TIERS.find((t) => t.id === 'enterprise')?.ctaHref).toBe(
       ENTERPRISE_SALES_HREF,
     );
+  });
+});
+
+describe('perpetual license SKU hop', () => {
+  it('parses public SKUs and aliases max → agency', () => {
+    expect(parsePerpetualLicenseSku('pro')).toBe('pro');
+    expect(parsePerpetualLicenseSku('agency')).toBe('agency');
+    expect(parsePerpetualLicenseSku('enterprise')).toBe('enterprise');
+    expect(parsePerpetualLicenseSku('max')).toBe('agency');
+    expect(parsePerpetualLicenseSku('bogus')).toBeNull();
+    expect(parsePerpetualLicenseSku(null)).toBeNull();
+  });
+
+  it('names the SKU and keeps signup distinct from subscription plan=', () => {
+    expect(perpetualLicenseLabel('pro')).toBe('Pro Perpetual');
+    expect(perpetualLicenseLabel('agency')).toBe('Agency Perpetual');
+    expect(perpetualLicenseLabel('enterprise')).toBe('Enterprise Perpetual');
+    expect(perpetualLicenseSignupPath('pro')).toBe('/signup?license=pro');
+    expect(perpetualLicenseSignupPath('agency')).toBe('/signup?license=agency');
+    expect(perpetualLicenseCheckoutPath('pro')).toBe('/account/license?license=pro');
+    expect(perpetualLicenseCheckoutTier('agency')).toBe('max');
+    expect(perpetualLicenseCheckoutTier('pro')).toBe('pro');
+    expect(perpetualLicenseSignupPath('pro').includes('plan=')).toBe(false);
   });
 });

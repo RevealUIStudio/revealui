@@ -22,6 +22,7 @@ const sessionState = vi.hoisted(() => ({
 
 const mockPush = vi.fn();
 const mockRouter = { push: mockPush };
+let mockLicenseParam: string | null = null;
 
 vi.mock('@revealui/auth/react', () => ({
   useSession: () => ({
@@ -32,6 +33,9 @@ vi.mock('@revealui/auth/react', () => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: () => mockRouter,
+  useSearchParams: () => ({
+    get: (key: string) => (key === 'license' ? mockLicenseParam : null),
+  }),
 }));
 
 vi.mock('next/link', () => ({
@@ -61,6 +65,7 @@ vi.mock('@/lib/utils/safe-stripe-redirect', () => ({
 }));
 
 import { apiFetch } from '@/lib/utils/csrf';
+import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 import LicensePage from '../page';
 
 const TEST_PUBLIC_KEY = '-----BEGIN PUBLIC KEY-----\ntest-pem\n-----END PUBLIC KEY-----';
@@ -71,6 +76,7 @@ function jsonResponse(body: unknown): Pick<Response, 'ok' | 'json'> {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockLicenseParam = null;
   sessionState.data = { user: { id: 'user-1', email: 'owner@example.com' } };
   sessionState.isLoading = false;
   vi.stubGlobal(
@@ -163,6 +169,25 @@ describe('LicensePage perpetual purchase plans', () => {
     expect(screen.getAllByRole('button', { name: /^Buy / })).toHaveLength(2);
     expect(screen.queryByRole('button', { name: /Buy \$42/ })).toBeNull();
   });
+
+  it('names the SKU and auto-starts Pro Perpetual checkout from ?license=pro', async () => {
+    mockLicenseParam = 'pro';
+    vi.mocked(apiFetch).mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ url: 'https://checkout.stripe.com/c/pay/cs_test_pro' }),
+    } as never);
+
+    render(<LicensePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Continuing Pro Perpetual checkout.')).toBeDefined();
+    });
+    await waitFor(() => {
+      expect(safeStripeRedirect).toHaveBeenCalledWith(
+        'https://checkout.stripe.com/c/pay/cs_test_pro',
+      );
+    });
+  });
 });
 
 describe('LicensePage session miss', () => {
@@ -193,6 +218,23 @@ describe('LicensePage session miss', () => {
     });
     expect(mockPush).not.toHaveBeenCalled();
     expect(screen.queryByText('test-license-jwt')).toBeNull();
+  });
+
+  it('names the perpetual SKU on a session-miss with ?license=pro and does not push /login', async () => {
+    mockLicenseParam = 'pro';
+    sessionState.data = null;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve({ ok: false, json: () => Promise.resolve({}) })),
+    );
+
+    render(<LicensePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Continuing Pro Perpetual checkout.')).toBeDefined();
+    });
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockPush).not.toHaveBeenCalledWith('/login?redirect=/account/license');
   });
 
   it('shows an honest empty state when the subscription has no license key', async () => {

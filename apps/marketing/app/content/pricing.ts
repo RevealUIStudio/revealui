@@ -107,7 +107,7 @@ export const PRICING_AGENCY_FOUNDING_KIT = {
   ],
   primaryCta: {
     label: 'Buy Agency Perpetual in admin',
-    href: `${SITE.urls.adminLogin.replace(/\/login\/?$/, '')}/account/license`,
+    href: `${SITE.urls.signup}?license=agency`,
     external: true,
   } satisfies Cta,
   secondaryCta: {

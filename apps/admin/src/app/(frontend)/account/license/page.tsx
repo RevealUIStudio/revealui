@@ -6,6 +6,9 @@ import {
   FEATURE_LABELS,
   type LicenseTierId,
   type PricingResponse,
+  parsePerpetualLicenseSku,
+  perpetualLicenseCheckoutTier,
+  perpetualLicenseLabel,
   TIER_COLORS,
   TIER_LABELS,
   TIER_LIMITS,
@@ -23,7 +26,8 @@ import {
   Input,
 } from '@revealui/presentation';
 import Link from 'next/link';
-import { type ChangeEvent, useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { type ChangeEvent, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { hasCommercialUpgradePath } from '@/lib/components/should-show-upgrade-nav';
 import { apiFetch } from '@/lib/utils/csrf';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
@@ -65,6 +69,22 @@ const PERPETUAL_PLANS = [
 ] as const;
 
 export default function LicensePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <p className="text-zinc-600">Loading...</p>
+        </div>
+      }
+    >
+      <LicenseContent />
+    </Suspense>
+  );
+}
+
+function LicenseContent() {
+  const searchParams = useSearchParams();
+  const licenseSku = parsePerpetualLicenseSku(searchParams.get('license'));
   const { data: session, isLoading: sessionLoading } = useSession();
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [features, setFeatures] = useState<Record<string, FeatureFlags> | null>(null);
@@ -125,12 +145,57 @@ export default function LicensePage() {
 
   useEffect(() => {
     if (sessionLoading) return;
-    // Proxy already sent true-unauth visitors to /login?redirect=<path>.
+    // Proxy already sent true-unauth visitors to /login or /signup?license=.
     // If this document rendered, a session cookie was present. A useSession
     // 401 (or empty hook) must not bounce to /login — that path, hit with
     // httpOnly cookies and no query, 307s to the dashboard.
     void fetchData();
   }, [sessionLoading, fetchData]);
+
+  const handlePerpetualCheckout = useCallback(
+    async (plan: (typeof PERPETUAL_PLANS)[number]) => {
+      if (plan.tier === 'enterprise') {
+        window.location.assign(ENTERPRISE_SALES_HREF);
+        return;
+      }
+      setPerpetualLoading(plan.tier);
+      setError(null);
+      try {
+        const res = await apiFetch('/api/billing/checkout-perpetual', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            ...(plan.priceIdEnv && { priceId: plan.priceIdEnv }),
+            tier: plan.tier,
+            ...(githubUsername.trim() && { githubUsername: githubUsername.trim() }),
+          }),
+        });
+        const data = (await res.json()) as { url?: string; error?: string };
+        if (data.url) {
+          safeStripeRedirect(data.url);
+        } else {
+          setError(data.error || 'Failed to start checkout. Please try again.');
+        }
+      } catch {
+        setError('Failed to start checkout. Please try again.');
+      } finally {
+        setPerpetualLoading(null);
+      }
+    },
+    [githubUsername],
+  );
+
+  const autoCheckoutStarted = useRef(false);
+  useEffect(() => {
+    if (sessionLoading || isLoading || !subscription || !licenseSku) return;
+    if (autoCheckoutStarted.current) return;
+    const targetTier = perpetualLicenseCheckoutTier(licenseSku);
+    const plan = PERPETUAL_PLANS.find((candidate) => candidate.tier === targetTier);
+    if (!plan) return;
+    autoCheckoutStarted.current = true;
+    void handlePerpetualCheckout(plan);
+  }, [sessionLoading, isLoading, subscription, licenseSku, handlePerpetualCheckout]);
 
   if (sessionLoading || isLoading) {
     return (
@@ -144,43 +209,18 @@ export default function LicensePage() {
     return (
       <div className="mx-auto max-w-2xl space-y-6 py-12">
         <h1 className="text-2xl font-bold">License & Plan</h1>
+        {licenseSku ? (
+          <p className="text-sm text-zinc-600">
+            Continuing {perpetualLicenseLabel(licenseSku)} checkout
+            {licenseSku === 'enterprise' ? ' — Enterprise is sold through sales.' : '.'}
+          </p>
+        ) : null}
         <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
           {error ?? 'Failed to load session'}
         </div>
       </div>
     );
   }
-
-  const handlePerpetualCheckout = async (plan: (typeof PERPETUAL_PLANS)[number]) => {
-    if (plan.tier === 'enterprise') {
-      window.location.assign(ENTERPRISE_SALES_HREF);
-      return;
-    }
-    setPerpetualLoading(plan.tier);
-    setError(null);
-    try {
-      const res = await apiFetch('/api/billing/checkout-perpetual', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          ...(plan.priceIdEnv && { priceId: plan.priceIdEnv }),
-          tier: plan.tier,
-          ...(githubUsername.trim() && { githubUsername: githubUsername.trim() }),
-        }),
-      });
-      const data = (await res.json()) as { url?: string; error?: string };
-      if (data.url) {
-        safeStripeRedirect(data.url);
-      } else {
-        setError(data.error || 'Failed to start checkout. Please try again.');
-      }
-    } catch {
-      setError('Failed to start checkout. Please try again.');
-    } finally {
-      setPerpetualLoading(null);
-    }
-  };
 
   const handleSupportRenewal = async () => {
     setRenewalLoading(true);
@@ -214,6 +254,12 @@ export default function LicensePage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6 py-12">
       <h1 className="text-2xl font-bold">License & Plan</h1>
+      {licenseSku ? (
+        <p className="text-sm text-zinc-600">
+          Continuing {perpetualLicenseLabel(licenseSku)} checkout
+          {licenseSku === 'enterprise' ? ' — Enterprise is sold through sales.' : '.'}
+        </p>
+      ) : null}
 
       {error && (
         <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">

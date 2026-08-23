@@ -14,8 +14,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const mockSignUp = vi.fn();
 const mockPush = vi.fn();
 const mockNavigate = vi.fn();
-// Set per-test to simulate the ?plan= deep link from the marketing pricing cards.
+// Set per-test to simulate the ?plan= / ?license= deep links from marketing.
 let mockPlanParam: string | null = null;
+let mockLicenseParam: string | null = null;
 
 vi.mock('@revealui/auth/react', () => ({
   useSignUp: () => ({ signUp: mockSignUp, isLoading: false }),
@@ -30,7 +31,11 @@ vi.mock('@revealui/auth/react', () => ({
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
   useSearchParams: () => ({
-    get: (key: string) => (key === 'plan' ? mockPlanParam : null),
+    get: (key: string) => {
+      if (key === 'plan') return mockPlanParam;
+      if (key === 'license') return mockLicenseParam;
+      return null;
+    },
   }),
 }));
 
@@ -64,6 +69,7 @@ afterEach(() => {
 beforeEach(() => {
   vi.clearAllMocks();
   mockPlanParam = null;
+  mockLicenseParam = null;
   // GDPR consent grant is fire-and-forget; stub fetch so jsdom doesn't throw.
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) }));
 });
@@ -172,6 +178,63 @@ describe('SignupForm post-signup routing', () => {
     });
     expect(mockNavigate).not.toHaveBeenCalledWith('/account/billing?upgrade=enterprise');
     expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it.each(['pro', 'agency'] as const)(
+    'routes an auto-verified user with ?license=%s into perpetual license checkout',
+    async (sku) => {
+      mockLicenseParam = sku;
+      vi.stubGlobal(
+        'fetch',
+        vi
+          .fn()
+          .mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ user: { emailVerified: true } }),
+          })
+          .mockResolvedValue({ ok: true, json: async () => ({}) }),
+      );
+
+      render(<SignupForm apiUrl="http://api.test" />);
+      const label = sku === 'pro' ? 'Pro Perpetual' : 'Agency Perpetual';
+      expect(screen.getByText(`Sign up to buy ${label}.`, { exact: false })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute(
+        'href',
+        `/login?license=${sku}`,
+      );
+      fillAndSubmit();
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(`/account/license?license=${sku}`);
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith('/account/billing?upgrade=pro');
+      expect(mockPush).not.toHaveBeenCalled();
+    },
+  );
+
+  it('names Enterprise Perpetual on signup without starting a trial', async () => {
+    mockLicenseParam = 'enterprise';
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ user: { emailVerified: true } }),
+        })
+        .mockResolvedValue({ ok: true, json: async () => ({}) }),
+    );
+
+    render(<SignupForm apiUrl="http://api.test" />);
+    expect(
+      screen.getByText('Sign up to buy Enterprise Perpetual.', { exact: false }),
+    ).toBeInTheDocument();
+    fillAndSubmit();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/account/license?license=enterprise');
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith('/account/billing?upgrade=enterprise');
   });
 
   it('ignores an unknown ?plan= value and routes to /welcome as a free-tier signup', async () => {

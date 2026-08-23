@@ -109,4 +109,33 @@ describe('marketing route registry', () => {
     expect(redirect?.destination).toBe('/roadmap');
     expect(redirect?.permanent).toBe(true);
   });
+
+  it('hops marketing /signup, /checkout, and /login to admin without dropping plan=', () => {
+    // These paths have no marketing page. The SPA rewrite used to serve the
+    // same empty shell, so a stranger who followed a relative /signup?plan=pro
+    // (API catalog, bookmark, or no-JS) never reached admin checkout.
+    // Destinations omit a query string so Vercel forwards ?plan=pro unchanged.
+    const vercelConfig = JSON.parse(
+      readFileSync(path.resolve(process.cwd(), 'vercel.json'), 'utf8'),
+    ) as { redirects?: Array<{ source: string; destination: string; permanent?: boolean }> };
+    const bySource = new Map((vercelConfig.redirects ?? []).map((entry) => [entry.source, entry]));
+
+    const signup = bySource.get('/signup');
+    expect(signup, 'the /signup → admin signup hop must be present').toBeDefined();
+    expect(signup?.destination).toBe('https://admin.revealui.com/signup');
+    expect(signup?.destination.includes('?')).toBe(false);
+    expect(signup?.permanent).toBe(true);
+
+    const checkout = bySource.get('/checkout');
+    expect(checkout, 'the /checkout → admin signup hop must be present').toBeDefined();
+    expect(checkout?.destination).toBe('https://admin.revealui.com/signup');
+    expect(checkout?.destination.includes('?')).toBe(false);
+    expect(checkout?.permanent).toBe(true);
+
+    const login = bySource.get('/login');
+    expect(login, 'the /login → admin login hop must be present').toBeDefined();
+    expect(login?.destination).toBe('https://admin.revealui.com/login');
+    expect(login?.destination.includes('?')).toBe(false);
+    expect(login?.permanent).toBe(true);
+  });
 });

@@ -161,6 +161,23 @@ describe('LoginForm post-sign-in navigation', () => {
     });
   });
 
+  it('names the perpetual SKU and continues to license checkout from ?license=pro', async () => {
+    mockSearchParams = { license: 'pro' };
+    mockSignIn.mockResolvedValue({
+      success: true,
+      user: { id: '1', email: 'buyer@example.com', role: 'viewer' },
+    });
+
+    render(<LoginForm oauthProviders={[]} />);
+    expect(screen.getByText('Sign in to continue buying Pro Perpetual.')).toBeInTheDocument();
+    fillAndSubmit();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/account/license?license=pro');
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith('/login?redirect=/account/license');
+  });
+
   it('honors ?redirect=/account/license after a successful passkey sign-in', async () => {
     mockPasskeySupported = true;
     mockSearchParams = { redirect: '/account/license' };

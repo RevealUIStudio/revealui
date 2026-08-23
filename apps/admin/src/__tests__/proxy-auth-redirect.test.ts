@@ -145,6 +145,33 @@ describe('admin proxy — authenticated redirect off /login + /signup', () => {
     expect(res.status).toBe(301);
     expect(redirectPath(res)).toBe('/account/license');
   });
+
+  it('sends a logged-out /account/license?license=pro visitor to signup, not bare login', async () => {
+    const res = await proxy(req('/account/license?license=pro'));
+    expect(res.status).toBe(307);
+    const location = res.headers.get('location');
+    const url = location ? new URL(location) : null;
+    expect(url?.pathname).toBe('/signup');
+    expect(url?.searchParams.get('license')).toBe('pro');
+    expect(url?.searchParams.get('redirect')).toBeNull();
+  });
+
+  it('sends a logged-out /account/license?license=agency visitor to signup naming agency', async () => {
+    const res = await proxy(req('/account/license?license=agency'));
+    const location = res.headers.get('location');
+    const url = location ? new URL(location) : null;
+    expect(url?.pathname).toBe('/signup');
+    expect(url?.searchParams.get('license')).toBe('agency');
+  });
+
+  it('still sends a logged-out /account/license visitor without a SKU to login', async () => {
+    const res = await proxy(req('/account/license'));
+    expect(res.status).toBe(307);
+    const location = res.headers.get('location');
+    const url = location ? new URL(location) : null;
+    expect(url?.pathname).toBe('/login');
+    expect(url?.searchParams.get('redirect')).toBe('/account/license');
+  });
 });
 
 describe('admin proxy — role-aware admin-only gate', () => {

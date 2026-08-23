@@ -82,10 +82,11 @@ type MockRes = {
   };
 };
 
-function makeRequest(token?: string, upgrade?: string) {
+function makeRequest(token?: string, upgrade?: string, license?: string) {
   const url = new URL('http://localhost:4000/api/auth/verify-email');
   if (token) url.searchParams.set('token', token);
   if (upgrade) url.searchParams.set('upgrade', upgrade);
+  if (license) url.searchParams.set('license', license);
   return {
     headers: {
       get: (key: string) => {
@@ -289,6 +290,21 @@ describe('GET /api/auth/verify-email', () => {
 
     expect((res as MockRes).url).toMatch(/\/$/);
     expect((res as MockRes).cookies.get('revealui-role')?.value).toBe('admin');
+  });
+
+  it('routes a perpetual license SKU into /account/license?license=pro', async () => {
+    mockGetUserByVerificationToken.mockResolvedValue({ id: 'u1', emailVerified: false });
+    mockUpdateUser.mockResolvedValue({ id: 'u1', role: 'viewer', emailVerified: true });
+    mockRotateSession.mockResolvedValue({
+      token: 'session-token-abc',
+      session: { id: 'sess1', userId: 'u1' },
+    });
+
+    const GET = await loadRoute();
+    const res = await GET(makeRequest('valid-token', undefined, 'pro'));
+
+    expect((res as MockRes).url).toContain('/account/license?license=pro');
+    expect((res as MockRes).url).not.toContain('/account/billing?upgrade=');
   });
 
   it('routes enterprise upgrade into billing (sales-assisted, not Stripe)', async () => {

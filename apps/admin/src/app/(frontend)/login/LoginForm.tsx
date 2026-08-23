@@ -1,6 +1,7 @@
 'use client';
 
 import { usePasskeySignIn, useSignIn } from '@revealui/auth/react';
+import { perpetualLicenseLabel } from '@revealui/contracts/pricing';
 import {
   Button,
   FormLabel,
@@ -101,7 +102,7 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
   const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const messageKey = searchParams.get('message');
   const successMessage = messageKey ? SUCCESS_MESSAGES[messageKey] : undefined;
-  const { upgrade, redirect } = readAuthIntent(searchParams);
+  const { upgrade, license, redirect } = readAuthIntent(searchParams);
 
   const anyLoading = isLoading || isPasskeyLoading;
   const hasAlternates = oauthProviders.length > 0 || passkeySupported;
@@ -115,17 +116,20 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
     const result = await signIn({ email, password });
     if (result.success && 'requiresPasswordRotation' in result && result.requiresPasswordRotation) {
       // Carry the intent through the rotation step so the destination survives it.
-      navigateAfterAuthChange(`/rotate-password${buildAuthIntentQuery({ upgrade, redirect })}`);
+      navigateAfterAuthChange(
+        `/rotate-password${buildAuthIntentQuery({ upgrade, license, redirect })}`,
+      );
     } else if (result.success) {
       const dest = resolveAuthDest({
         upgrade,
+        license,
         redirect,
         fallback: isAdminRole(result.user.role) ? '/' : '/welcome',
       });
       navigateAfterAuthChange(dest);
     } else if ('requiresMfa' in result && result.requiresMfa) {
       // Carry the intent through the MFA step so the destination survives it.
-      navigateAfterAuthChange(`/mfa${buildAuthIntentQuery({ upgrade, redirect })}`);
+      navigateAfterAuthChange(`/mfa${buildAuthIntentQuery({ upgrade, license, redirect })}`);
     } else {
       const errorMessage = 'error' in result ? result.error : 'Failed to sign in';
       setError(errorMessage || 'Failed to sign in');
@@ -163,7 +167,7 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
     const success = await passkeySignIn();
     if (success) {
       // Passkey sign-in returns no user object, so role-default falls back to '/'.
-      navigateAfterAuthChange(resolveAuthDest({ upgrade, redirect, fallback: '/' }));
+      navigateAfterAuthChange(resolveAuthDest({ upgrade, license, redirect, fallback: '/' }));
     }
   };
 
@@ -172,6 +176,12 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
       <Heading as="h2" size="lg" className="tracking-tight">
         Sign in
       </Heading>
+
+      {license ? (
+        <p className="text-sm text-muted-foreground">
+          Sign in to continue buying {perpetualLicenseLabel(license)}.
+        </p>
+      ) : null}
 
       {successMessage && !(error ?? passkeyError) && (
         <div role="status" className="rounded-md bg-success/10 p-3 text-sm text-success">

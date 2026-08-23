@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildAuthIntentQuery,
+  parseLicense,
   parseUpgrade,
   readAuthIntent,
   resolveAuthDest,
@@ -32,7 +33,28 @@ describe('resolveAuthDest enterprise', () => {
   });
 });
 
+describe('parseLicense', () => {
+  it('accepts perpetual SKUs and aliases max → agency', () => {
+    expect(parseLicense('pro')).toBe('pro');
+    expect(parseLicense('agency')).toBe('agency');
+    expect(parseLicense('enterprise')).toBe('enterprise');
+    expect(parseLicense('max')).toBe('agency');
+    expect(parseLicense('bogus')).toBeNull();
+  });
+});
+
 describe('resolveAuthDest', () => {
+  it('prefers a perpetual license SKU over subscription upgrade', () => {
+    expect(
+      resolveAuthDest({
+        upgrade: 'pro',
+        license: 'agency',
+        redirect: '/somewhere',
+        fallback: '/welcome',
+      }),
+    ).toBe('/account/license?license=agency');
+  });
+
   it('prefers upgrade over redirect and fallback', () => {
     expect(resolveAuthDest({ upgrade: 'pro', redirect: '/somewhere', fallback: '/welcome' })).toBe(
       '/account/billing?upgrade=pro',
@@ -63,19 +85,36 @@ describe('buildAuthIntentQuery', () => {
     expect(parsed.get('upgrade')).toBe('max');
     expect(parsed.get('redirect')).toBe('/upgrade?ref=email');
   });
+
+  it('encodes a perpetual license SKU', () => {
+    const qs = buildAuthIntentQuery({ upgrade: null, license: 'pro', redirect: null });
+    const parsed = new URLSearchParams(qs.slice(1));
+    expect(parsed.get('license')).toBe('pro');
+    expect(parsed.get('upgrade')).toBeNull();
+  });
 });
 
 describe('readAuthIntent', () => {
   it('parses the upgrade and validates a same-origin redirect', () => {
     expect(readAuthIntent(reader({ upgrade: 'pro', redirect: '/upgrade' }))).toEqual({
       upgrade: 'pro',
+      license: null,
       redirect: '/upgrade',
+    });
+  });
+
+  it('parses a perpetual license SKU', () => {
+    expect(readAuthIntent(reader({ license: 'agency' }))).toEqual({
+      upgrade: null,
+      license: 'agency',
+      redirect: null,
     });
   });
 
   it('drops an off-origin redirect and an invalid upgrade', () => {
     expect(readAuthIntent(reader({ upgrade: 'bogus', redirect: '//evil.com' }))).toEqual({
       upgrade: null,
+      license: null,
       redirect: null,
     });
   });
@@ -85,6 +124,7 @@ describe('readAuthIntent', () => {
     const qs = buildAuthIntentQuery({ upgrade: 'pro', redirect: '/upgrade?ref=email' });
     expect(readAuthIntent(new URLSearchParams(qs.slice(1)))).toEqual({
       upgrade: 'pro',
+      license: null,
       redirect: '/upgrade?ref=email',
     });
   });
@@ -92,6 +132,7 @@ describe('readAuthIntent', () => {
   it('treats ?returnUrl= as the redirect dest when ?redirect= is absent', () => {
     expect(readAuthIntent(reader({ returnUrl: '/account/license' }))).toEqual({
       upgrade: null,
+      license: null,
       redirect: '/account/license',
     });
   });
@@ -100,6 +141,7 @@ describe('readAuthIntent', () => {
     expect(readAuthIntent(reader({ redirect: '/account/license', returnUrl: '/welcome' }))).toEqual(
       {
         upgrade: null,
+        license: null,
         redirect: '/account/license',
       },
     );

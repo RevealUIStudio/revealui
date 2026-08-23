@@ -20,7 +20,7 @@ import { getUserByVerificationToken, updateUser } from '@revealui/db/queries/use
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { isAdminRole } from '@/lib/access/roles/isAdminRole';
-import { resolveAuthDest } from '@/lib/utils/auth-redirect';
+import { parseLicense, resolveAuthDest } from '@/lib/utils/auth-redirect';
 import { sessionCookieDomain } from '@/lib/utils/session-cookies';
 
 export const dynamic = 'force-dynamic';
@@ -33,6 +33,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   // into a redirect destination. GAP-302 Phase 1: enterprise self-serve.
   const upgrade: 'pro' | 'max' | 'enterprise' | null =
     rawUpgrade === 'pro' || rawUpgrade === 'max' || rawUpgrade === 'enterprise' ? rawUpgrade : null;
+  const license = parseLicense(request.nextUrl.searchParams.get('license'));
   const baseUrl = request.nextUrl.origin;
 
   if (!token) {
@@ -118,6 +119,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const dest = resolveAuthDest({
       upgrade,
+      license,
       redirect: null,
       fallback: isAdminRole(updatedUser.role) ? '/' : '/welcome',
     });
