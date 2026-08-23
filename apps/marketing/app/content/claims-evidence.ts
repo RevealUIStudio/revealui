@@ -27,6 +27,7 @@ import { claimsPart5 } from './claims-evidence/claims-part-5.js';
 import { claimsPart6 } from './claims-evidence/claims-part-6.js';
 import { claimsPart7 } from './claims-evidence/claims-part-7.js';
 import { claimsPart8 } from './claims-evidence/claims-part-8.js';
+import { claimsPart9 } from './claims-evidence/claims-part-9.js';
 import type { ClaimEntry } from './claims-evidence/types.js';
 
 export const CLAIMS: readonly ClaimEntry[] = [
@@ -38,6 +39,7 @@ export const CLAIMS: readonly ClaimEntry[] = [
   ...claimsPart6,
   ...claimsPart7,
   ...claimsPart8,
+  ...claimsPart9,
   ...blogMetaClaims,
   ...blogBodyClaims,
 ];

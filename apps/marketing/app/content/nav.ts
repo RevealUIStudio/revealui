@@ -5,11 +5,16 @@ import { COMMUNITY, SITE } from './site';
 import type { NavLink } from './types';
 
 export const NAV_LINKS: readonly NavLink[] = [
-  { label: 'Products', href: '/products' },
-  { label: 'Local AI', href: '/local-ai' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'Docs', href: SITE.urls.docs },
-  { label: 'Blog', href: '/blog' },
+] as const;
+
+/** Public product footer: Docs, Pricing, Support, Legal. */
+export const PRODUCT_FOOTER_LINKS: readonly NavLink[] = [
+  { label: 'Docs', href: SITE.urls.docs, external: true },
+  { label: 'Pricing', href: '/pricing' },
+  { label: 'Support', href: '/support' },
+  { label: 'Legal', href: '/privacy' },
 ] as const;
 
 export const NAV_AUTH = {
@@ -109,10 +114,6 @@ export const FOOTER_LEGAL = {
 export const FOOTER_LEGAL_LINKS: readonly NavLink[] = [
   { label: 'Privacy', href: '/privacy' },
   { label: 'Cookies', href: '/cookies' },
-  { label: 'HIPAA', href: '/legal/hipaa' },
   { label: 'Terms', href: '/terms' },
   { label: 'Refund Policy', href: '/refund-policy' },
-  { label: 'SLA', href: '/sla' },
-  { label: 'Security', href: '/security' },
-  { label: 'Subprocessors', href: '/legal/subprocessors' },
 ] as const;

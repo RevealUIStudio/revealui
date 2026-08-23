@@ -91,6 +91,11 @@ export const SITE = {
      * one is pinned; until then the org/repo projects index is the honest link.
      */
     repoProjects: 'https://github.com/RevealUIStudio/revealui/projects',
+    /**
+     * Founder intro booking. Google Calendar appointments only.
+     */
+    bookIntro:
+      'https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ21UZVcuYp7yO32rZmhyUvZFDJcvles81E9edGNFwSUP8SHEVzGvq0gKgNFo7q04YS5i-12ZE5P',
   },
   emails: {
     support: 'support@revealui.com',

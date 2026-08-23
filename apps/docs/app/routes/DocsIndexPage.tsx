@@ -1,6 +1,7 @@
-import { ReceiptCard } from '@revealui/presentation';
+import { Button, ReceiptCard } from '@revealui/presentation';
 import { Link } from '@revealui/router';
 import { useEffect } from 'react';
+import { DOCS_HOME_CTAS } from '../content/ctas';
 import {
   DOCS_RECEIPT_CAPTION,
   DOCS_RECEIPT_INTEGRITY,
@@ -45,6 +46,16 @@ Everything else lives in the sidebar. Found a gap in these docs? See the [Contri
 
   return (
     <div>
+      <div className="mb-8 flex flex-wrap gap-3">
+        <Button asChild>
+          <a href={DOCS_HOME_CTAS.startFree.href}>{DOCS_HOME_CTAS.startFree.label}</a>
+        </Button>
+        <Button asChild appearance="outline" variant="neutral">
+          <a href={DOCS_HOME_CTAS.bookIntro.href} target="_blank" rel="noopener noreferrer">
+            {DOCS_HOME_CTAS.bookIntro.label}
+          </a>
+        </Button>
+      </div>
       {/*
         Static receipt header artifact (frontend-excellence Phase 5 / GAP-480 Phase D).
         No animate: docs stay the calmest surface. Links to audit-receipts docs.

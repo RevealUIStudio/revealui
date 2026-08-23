@@ -22,6 +22,7 @@ export interface RouteEntry {
 
 export const CONTENT_FILE_ROUTES: Readonly<Record<string, RouteEntry>> = {
   'home.ts': { route: '/', pageTitle: 'Home' },
+  'quote-calculator.ts': { route: '/pricing', pageTitle: 'Pricing' },
   // HOME_PRIMITIVES_SECTION / HOME_PRIMITIVES render on "/" via
   // components/landing/Primitives.tsx.
   'primitives.ts': { route: '/', pageTitle: 'Home' },

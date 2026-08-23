@@ -2,12 +2,12 @@
 visibility: public
 status: verified
 title: "Service level commitments"
-description: "Docs restatement of the published RevealUI Studio support and uptime commitments. Canonical public page is revealui.com/sla."
+description: "Published RevealUI Studio support and uptime commitments."
 category: legal
 audience: user
 ---
 
-This page restates the commitments already published at [revealui.com/sla](https://revealui.com/sla). It does not invent a new number. If the two disagree, the marketing page plus `apps/marketing/app/content/legal/sla.ts` win until this file is updated.
+This page is the published support and license-infra commitment. It does not invent a new number.
 
 Owner source for the numbers: the SLA target decision recorded as Option B (2026-04-16). Public copy last updated on that page: 12 July 2026.
 
@@ -36,7 +36,7 @@ For the **license validation** endpoint and the **download and release** endpoin
 
 If you self-host RevealUI, this uptime commitment covers **our** infrastructure (license validation, downloads, and updates), not yours. Your Compose/Vercel/Fly deployment is your responsibility. See [FLEET.md](./FLEET.md) and [Deployment](./guides/deployment.md).
 
-A hosted RevealUI product beyond license and download infrastructure does **not** yet carry a published uptime commitment. When that changes, [revealui.com/sla](https://revealui.com/sla) will say so first.
+A hosted RevealUI product beyond license and download infrastructure does **not** yet carry a published uptime commitment. When that changes, this page will say so first.
 
 ---
 
@@ -63,7 +63,6 @@ If a self-hosted installation cannot reach the license validation service, a pre
 
 ## Related
 
-- [revealui.com/sla](https://revealui.com/sla)
-- [revealui.com/status](https://revealui.com/status)
+- [Status](https://revealui.com/status)
 - [Fleet self-host](./FLEET.md)
 - [Enterprise SSO status](./FORGE_SSO_SETUP.md) — operator preview; [#449](https://github.com/RevealUIStudio/revealui/issues/449)

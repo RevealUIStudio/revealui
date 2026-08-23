@@ -47,4 +47,16 @@ describe('DocsIndexPage receipt motif', () => {
     expect(container.querySelector('style')).toBeNull();
     expect(screen.getByTestId('markdown')).toBeInTheDocument();
   });
+
+  it('exposes Start free and Book an intro CTAs at the top', () => {
+    render(<DocsIndexPage />);
+    const start = screen.getByRole('link', { name: 'Start free' });
+    const intro = screen.getByRole('link', { name: 'Book an intro' });
+    expect(start).toHaveAttribute('href', 'https://admin.revealui.com/signup');
+    expect(intro).toHaveAttribute(
+      'href',
+      'https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ21UZVcuYp7yO32rZmhyUvZFDJcvles81E9edGNFwSUP8SHEVzGvq0gKgNFo7q04YS5i-12ZE5P',
+    );
+    expect(intro.getAttribute('href') ?? '').toContain('https://calendar.google.com/');
+  });
 });
