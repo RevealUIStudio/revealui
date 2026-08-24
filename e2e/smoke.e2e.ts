@@ -24,6 +24,7 @@
 
 import { expect, test } from '@playwright/test';
 import { checkAccessibilityCritical } from './utils/a11y-helper';
+import { assertHonestProductCatalog } from './utils/catalog-honesty';
 
 // ---------------------------------------------------------------------------
 // API Health Checks (apps/server  -  port 3004)
@@ -118,15 +119,9 @@ test.describe('Marketing page', () => {
     expect(response?.status()).toBeLessThan(500);
   });
 
-  test('Pricing page renders tier cards', async ({ page }) => {
+  test('Pricing page renders the honest license catalog', async ({ page }) => {
     await page.goto(`${MarketingBase}/pricing`, { waitUntil: 'networkidle' });
-    // Verify pricing tier headings (h3) are rendered in the DOM
-    // regex-ok: Playwright locator filter requires regex for multi-value matching
-    const tierHeadings = page.locator('h3').filter({ hasText: /^(Free|Pro|Max|Forge|Enterprise)/ });
-    await expect(tierHeadings.first()).toBeAttached({ timeout: 10_000 });
-    // At least 2 tiers should render (Free + at least one paid tier)
-    const count = await tierHeadings.count();
-    expect(count).toBeGreaterThanOrEqual(2);
+    await assertHonestProductCatalog(page);
   });
 
   // The pre-launch waitlist signup (POST /api/waitlist) was a Next.js API route

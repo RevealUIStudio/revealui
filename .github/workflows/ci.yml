@@ -808,6 +808,8 @@ jobs:
           REVEALUI_PUBLIC_SERVER_URL: "http://localhost:3004"
           REVEALUI_KEK: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 
+      # next start forces NODE_ENV=production, so SKIP_ENV_VALIDATION does not
+      # skip the Forge license gate. CI has no stamped key; opt into Free (OSS).
       - name: Start Admin server
         run: pnpm --filter admin start &
         env:
@@ -816,6 +818,7 @@ jobs:
           REVEALUI_SECRET: "e2e-smoke-secret-at-least-32-chars-long"
           REVEALUI_PUBLIC_SERVER_URL: "http://localhost:4000"
           REVEALUI_KEK: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          REVEALUI_ALLOW_UNLICENSED_SELF_HOST: "true"
 
       - name: Start marketing server
         run: pnpm --filter marketing start &
@@ -828,13 +831,12 @@ jobs:
             curl -sf http://localhost:3004/health/live > /dev/null 2>&1 && \
             curl -sf http://localhost:4000 > /dev/null 2>&1 && \
             curl -sf http://localhost:3000 > /dev/null 2>&1 && \
-            echo "All three servers ready" && break || \
-            echo "Waiting for servers... ($i/80)" && sleep 3
+            echo "All three servers ready" && exit 0
+            echo "Waiting for servers... ($i/80)"
+            sleep 3
           done
-          curl -sf http://localhost:3004/health/live > /dev/null 2>&1 && \
-          curl -sf http://localhost:4000 > /dev/null 2>&1 && \
-          curl -sf http://localhost:3000 > /dev/null 2>&1 || \
-          (echo "::error::Servers failed to start within 240s" && exit 1)
+          echo "::error::Servers failed to start within 240s"
+          exit 1
 
       - name: Run E2E smoke tests
         run: npx playwright test --project=chromium e2e/smoke.e2e.ts
@@ -927,6 +929,8 @@ jobs:
             echo "E2E_KEY_EOF"
           } >> "$GITHUB_ENV"
 
+      # next start forces NODE_ENV=production, so SKIP_ENV_VALIDATION does not
+      # skip the Forge license gate. CI has no stamped key; opt into Free (OSS).
       - name: Start Admin server
         run: pnpm --filter admin start &
         env:
@@ -935,6 +939,7 @@ jobs:
           REVEALUI_SECRET: "e2e-smoke-secret-at-least-32-chars-long"
           REVEALUI_PUBLIC_SERVER_URL: "http://localhost:4000"
           REVEALUI_KEK: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          REVEALUI_ALLOW_UNLICENSED_SELF_HOST: "true"
 
       - name: Start marketing server
         run: pnpm --filter marketing start &
@@ -946,9 +951,12 @@ jobs:
           for i in $(seq 1 40); do
             curl -sf http://localhost:4000 > /dev/null 2>&1 && \
             curl -sf http://localhost:3000 > /dev/null 2>&1 && \
-            echo "Both servers ready" && break || \
-            echo "Waiting for servers... ($i/40)" && sleep 3
+            echo "Both servers ready" && exit 0
+            echo "Waiting for servers... ($i/40)"
+            sleep 3
           done
+          echo "::error::Admin or marketing failed to start within 120s"
+          exit 1
 
       - name: Run accessibility tests (fail on critical violations)
         run: npx playwright test --project=chromium e2e/accessibility.e2e.ts
@@ -1039,6 +1047,8 @@ jobs:
             echo "E2E_KEY_EOF"
           } >> "$GITHUB_ENV"
 
+      # next start forces NODE_ENV=production, so SKIP_ENV_VALIDATION does not
+      # skip the Forge license gate. CI has no stamped key; opt into Free (OSS).
       - name: Start Admin server
         run: pnpm --filter admin start &
         env:
@@ -1047,13 +1057,17 @@ jobs:
           REVEALUI_SECRET: "e2e-smoke-secret-at-least-32-chars-long"
           REVEALUI_PUBLIC_SERVER_URL: "http://localhost:4000"
           REVEALUI_KEK: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          REVEALUI_ALLOW_UNLICENSED_SELF_HOST: "true"
 
       - name: Wait for Admin
         run: |
           for i in $(seq 1 40); do
-            curl -sf http://localhost:4000 > /dev/null 2>&1 && echo "Admin ready" && break || \
-            echo "Waiting for Admin... ($i/40)" && sleep 3
+            curl -sf http://localhost:4000 > /dev/null 2>&1 && echo "Admin ready" && exit 0
+            echo "Waiting for Admin... ($i/40)"
+            sleep 3
           done
+          echo "::error::Admin failed to start within 120s"
+          exit 1
 
       - name: Run visual regression tests
         run: npx playwright test --project=chromium e2e/visual-snapshots.e2e.ts

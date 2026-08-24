@@ -18,6 +18,7 @@ import {
   type FormattedViolation,
   getAccessibilityViolations,
 } from './utils/a11y-helper';
+import { assertHonestProductCatalog } from './utils/catalog-honesty';
 
 // ---------------------------------------------------------------------------
 // Admin Pages (apps/admin  -  port 4000)
@@ -107,6 +108,7 @@ test.describe('Accessibility', () => {
 
     test('pricing page meets WCAG 2.1 AA standards', async ({ page }) => {
       await page.goto(`${MarketingBase}/pricing`, { waitUntil: 'domcontentloaded' });
+      await assertHonestProductCatalog(page);
       await checkAccessibility(page);
     });
   });
