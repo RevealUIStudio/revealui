@@ -142,7 +142,7 @@
     },
     {
       "source": "/security",
-      "destination": "https://docs.revealui.com",
+      "destination": "https://github.com/RevealUIStudio/revealui/security/policy",
       "permanent": true
     },
     {

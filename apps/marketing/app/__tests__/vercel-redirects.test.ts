@@ -75,4 +75,20 @@ describe('marketing vercel.json redirects', () => {
       expect(rewrites.some((entry) => entry.source === source)).toBe(false);
     }
   });
+
+  it('308s /security to the GitHub SECURITY.md policy, not the docs homepage', () => {
+    // Live 2026-08-24: security.txt Policy + comment point at
+    // https://revealui.com/security, which 308'd to docs.revealui.com/
+    // (docs homepage). docs.revealui.com/security is a SPA shell, not the
+    // policy. The real policy is SECURITY.md on main.
+    const redirect = (readVercelConfig().redirects ?? []).find(
+      (entry) => entry.source === '/security',
+    );
+    expect(redirect, '/security must stay a Vercel redirect').toBeDefined();
+    expect(redirect?.destination).toBe(
+      'https://github.com/RevealUIStudio/revealui/security/policy',
+    );
+    expect(redirect?.destination.includes('docs.revealui.com')).toBe(false);
+    expect(redirect?.permanent).toBe(true);
+  });
 });
