@@ -24,6 +24,7 @@ import path from 'node:path';
 import { buildDocNavSections } from '../app/lib/nav';
 import { type DocSection, resolveDocPath } from '../app/utils/paths';
 import { collectPublicDocRels } from './docs-publish.mjs';
+import { docsPathnameFromUrl, isDocsSiteUrl } from './docs-url';
 
 const scriptDir = import.meta.dirname;
 const repoRoot = path.resolve(scriptDir, '..', '..', '..'); // monorepo root
@@ -264,7 +265,6 @@ function checkNavLinks(served: Set<string>, source: Set<string>): BrokenLink[] {
   return broken;
 }
 
-const DOCS_ORIGIN = 'https://docs.revealui.com';
 const publicDir = path.join(scriptDir, '..', 'public');
 
 function extractBetween(source: string, open: string, close: string): string[] {
@@ -284,25 +284,6 @@ function extractBetween(source: string, open: string, close: string): string[] {
     from = end + close.length;
   }
   return found;
-}
-
-function stripDocsOrigin(url: string): string {
-  let rest = url.startsWith(DOCS_ORIGIN) ? url.slice(DOCS_ORIGIN.length) : url;
-  const hash = rest.indexOf('#');
-  if (hash !== -1) {
-    rest = rest.slice(0, hash);
-  }
-  const query = rest.indexOf('?');
-  if (query !== -1) {
-    rest = rest.slice(0, query);
-  }
-  if (rest === '') {
-    return '/';
-  }
-  if (rest.length > 1 && rest.endsWith('/')) {
-    return rest.slice(0, -1);
-  }
-  return rest;
 }
 
 function isSpaPath(pathname: string): boolean {
@@ -346,7 +327,10 @@ function checkDiscoveryFile(
   const broken: BrokenLink[] = [];
   const seen = new Set<string>();
   for (const raw of rawUrls) {
-    const pathname = stripDocsOrigin(raw);
+    const pathname = docsPathnameFromUrl(raw);
+    if (pathname === null) {
+      continue;
+    }
     if (seen.has(pathname)) {
       continue;
     }
@@ -391,7 +375,7 @@ function checkLlmsTxt(served: Set<string>, sourceFiles: Set<string>): BrokenLink
   const text = readFileSync(path.join(publicDir, 'llms.txt'), 'utf8');
   const urls: string[] = [];
   for (const target of extractLinkTargets(text)) {
-    if (target.startsWith(DOCS_ORIGIN)) {
+    if (isDocsSiteUrl(target)) {
       urls.push(target);
     }
   }

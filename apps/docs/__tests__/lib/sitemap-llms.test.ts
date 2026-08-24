@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { SLUG_TO_PATH } from '../../app/lib/slug-manifest';
 import { type DocSection, resolveDocPath } from '../../app/utils/paths';
+import { docsPathnameFromUrl } from '../../scripts/docs-url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const publicDir = join(here, '../../public');
@@ -50,23 +51,7 @@ function extractBetween(source: string, open: string, close: string): string[] {
 }
 
 function stripOrigin(url: string): string {
-  const origin = 'https://docs.revealui.com';
-  let path = url.startsWith(origin) ? url.slice(origin.length) : url;
-  const hash = path.indexOf('#');
-  if (hash !== -1) {
-    path = path.slice(0, hash);
-  }
-  const query = path.indexOf('?');
-  if (query !== -1) {
-    path = path.slice(0, query);
-  }
-  if (path === '') {
-    return '/';
-  }
-  if (path.length > 1 && path.endsWith('/')) {
-    return path.slice(0, -1);
-  }
-  return path;
+  return docsPathnameFromUrl(url) ?? url;
 }
 
 function isSpaPath(pathname: string): boolean {
