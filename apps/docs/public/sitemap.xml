@@ -15,13 +15,11 @@
   <url><loc>https://docs.revealui.com/admin-guide</loc><priority>0.8</priority></url>
   <url><loc>https://docs.revealui.com/auth</loc><priority>0.8</priority></url>
   <url><loc>https://docs.revealui.com/database</loc><priority>0.7</priority></url>
-  <url><loc>https://docs.revealui.com/ci-cd-guide</loc><priority>0.7</priority></url>
   <url><loc>https://docs.revealui.com/environment-variables-guide</loc><priority>0.7</priority></url>
   <url><loc>https://docs.revealui.com/testing</loc><priority>0.7</priority></url>
   <url><loc>https://docs.revealui.com/troubleshooting</loc><priority>0.7</priority></url>
   <!-- Architecture -->
   <url><loc>https://docs.revealui.com/architecture</loc><priority>0.7</priority></url>
-  <url><loc>https://docs.revealui.com/performance</loc><priority>0.6</priority></url>
   <url><loc>https://docs.revealui.com/core-stability</loc><priority>0.6</priority></url>
   <url><loc>https://docs.revealui.com/joshua</loc><priority>0.7</priority></url>
   <!-- Reference -->
@@ -45,10 +43,8 @@
   <url><loc>https://docs.revealui.com/blog/08-getting-started</loc><priority>0.7</priority></url>
   <!-- Architecture Decision Records -->
   <url><loc>https://docs.revealui.com/architecture/adr-001-agent-first</loc><priority>0.5</priority></url>
-  <url><loc>https://docs.revealui.com/architecture/adr-002-dual-database</loc><priority>0.5</priority></url>
   <url><loc>https://docs.revealui.com/architecture/adr-003-fair-source-licensing</loc><priority>0.5</priority></url>
   <url><loc>https://docs.revealui.com/architecture/adr-004-session-only-auth</loc><priority>0.5</priority></url>
-  <url><loc>https://docs.revealui.com/architecture/adr-005-two-repo-model</loc><priority>0.5</priority></url>
   <!-- Showcase -->
   <url><loc>https://docs.revealui.com/showcase</loc><priority>0.7</priority></url>
   <url><loc>https://docs.revealui.com/showcase/tokens</loc><priority>0.5</priority></url>

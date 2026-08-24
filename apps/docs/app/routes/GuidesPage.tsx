@@ -3,6 +3,7 @@ import { Button } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { NotFoundPage } from '../components/NotFoundPage';
 import { useNoindex } from '../hooks/useNoindex';
 import { useWildcardPath } from '../hooks/useWildcardPath';
 import { loadMarkdownFile, renderMarkdown } from '../utils/markdown';
@@ -46,13 +47,7 @@ function GuideContent() {
               loadError instanceof Error ? loadError : new Error(String(loadError)),
             );
 
-            // Fallback to placeholder
-            setContent(`# Guide: ${resolved.displayPath || 'Index'}
-
-Guide not found at \`${resolved.markdownPath}\`.
-
-Available guides are loaded from the \`docs/guides/\` directory.
-`);
+            setContent('');
             setNotFound(true);
           }
         }
@@ -80,6 +75,12 @@ Available guides are loaded from the \`docs/guides/\` directory.
 
   if (loading) {
     return <LoadingSkeleton />;
+  }
+
+  if (notFound) {
+    return (
+      <NotFoundPage pathLabel={path || undefined} homeHref="/guides" homeLabel="Back to guides" />
+    );
   }
 
   if (error) {

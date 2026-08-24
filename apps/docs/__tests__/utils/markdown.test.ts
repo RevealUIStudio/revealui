@@ -78,6 +78,47 @@ describe('loadMarkdownFile', () => {
     await expect(loadMarkdownFile('/docs/test.md')).rejects.toThrow('404');
   });
 
+  it('rejects a 200 SPA fallback that returns index.html as the body', async () => {
+    const spaShell = `<!DOCTYPE html>
+<html lang="en">
+  <head><title>RevealUI Docs</title></head>
+  <body><div id="root"></div></body>
+</html>
+`;
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(spaShell, {
+        status: 200,
+        headers: { 'Content-Type': 'text/markdown; charset=utf-8' },
+      }),
+    );
+
+    await expect(loadMarkdownFile('/definitely-not-a-page.md')).rejects.toThrow('404');
+    expect(getMarkdownCacheStats().size).toBe(0);
+  });
+
+  it('rejects a 200 response advertised as text/html', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response('<html lang="en"><body>docs shell</body></html>', {
+        status: 200,
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      }),
+    );
+
+    await expect(loadMarkdownFile('/missing.md')).rejects.toThrow('404');
+  });
+
+  it('still loads markdown that mentions HTML later in the body', async () => {
+    const markdown = '# Title\n\nUse `<html lang="en">` in examples.\n';
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(markdown, {
+        status: 200,
+        headers: { 'Content-Type': 'text/markdown; charset=utf-8' },
+      }),
+    );
+
+    await expect(loadMarkdownFile('/real.md')).resolves.toBe(markdown);
+  });
+
   it('should bypass cache when useCache is false', async () => {
     const mockContent = '# Test Content';
 

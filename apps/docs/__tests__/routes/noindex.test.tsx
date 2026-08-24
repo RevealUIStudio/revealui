@@ -6,11 +6,15 @@
  */
 
 import { act, render, waitFor } from '@testing-library/react';
+import type React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ProPage } from '../../app/routes/ProPage';
 
 vi.mock('@revealui/router', () => ({
   useParams: vi.fn(),
+  Link: ({ to, children }: { to: string; children: React.ReactNode }) => (
+    <a href={to}>{children}</a>
+  ),
 }));
 
 vi.mock('../../app/utils/markdown', () => ({
