@@ -347,9 +347,10 @@ describe('FOUNDER_SERVICE_OFFERINGS', () => {
     }
   });
 
-  it('all CTAs point to Cal.com booking link', () => {
+  it('all CTAs point to the Google Calendar intro', () => {
     for (const service of FOUNDER_SERVICE_OFFERINGS) {
-      expect(service.ctaHref).toContain('cal.com/revealuistudio');
+      expect(service.ctaHref).toContain('https://calendar.google.com/');
+      expect(service.ctaHref.includes('cal.com/revealuistudio')).toBe(false);
     }
   });
 

@@ -93,6 +93,31 @@ describe('marketing route registry', () => {
     expect(redirect?.permanent).toBe(true);
   });
 
+  it('keeps the community.revealui.com host rule pointed at Discussions', () => {
+    const vercelConfig = JSON.parse(
+      readFileSync(path.resolve(process.cwd(), 'vercel.json'), 'utf8'),
+    ) as {
+      redirects?: Array<{
+        source: string;
+        destination: string;
+        permanent?: boolean;
+        has?: Array<{ type: string; value: string }>;
+      }>;
+    };
+    const community = (vercelConfig.redirects ?? []).find((entry) =>
+      (entry.has ?? []).some(
+        (rule) => rule.type === 'host' && rule.value === 'community.revealui.com',
+      ),
+    );
+    expect(
+      community,
+      'community.revealui.com host redirect must stay ahead of the SPA rewrite',
+    ).toBeDefined();
+    expect(community?.destination).toBe('https://github.com/RevealUIStudio/revealui/discussions');
+    expect(community?.permanent).toBe(true);
+    expect(community?.source).toBe('/:path*');
+  });
+
   it('redirects /services and /products off the leftover storefronts', () => {
     const redirects = readRedirects();
     const services = redirects.find((entry) => entry.source === '/services');

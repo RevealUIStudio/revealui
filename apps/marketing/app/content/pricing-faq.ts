@@ -29,17 +29,7 @@ export const PRICING_FAQS: readonly FaqItem[] = [
   {
     question: 'What are perpetual licenses?',
     answer:
-      'A perpetual license is a one-time purchase that gives you a license key for the corresponding tier, forever, with no monthly subscription required. Support and updates are included for 1 year; after that, renew your support contract or keep using the version you have.',
-  },
-  {
-    question: 'What is the RevealUI Starter Kit?',
-    answer:
-      'The Starter Kit is a $299 one-time, content-only product. It packages create-revealui onboarding, Postgres bootstrap, and governed agent recipes that demonstrate signed receipts you can verify offline. It does not include a Pro subscription entitlement or a full RevealUI Fleet stamp. Request access first; public Stripe checkout is paused until the first-sale walk is recorded. After a confirmed purchase we invite you to the private kit repo and Skool buyer community within one business day.',
-  },
-  {
-    question: 'What is the RevealUI Agency Founding Kit?',
-    answer:
-      'The Agency Founding Kit is the Agency Perpetual license productized for small agencies and MSPs: $8,499 one-time for Max-tier runtime entitlements with up to 10 client deployments, one year of support, and a license key that never expires. You check out through your signed-in account license page on Stripe. You get the license plus a thin kit (stamp config and START-HERE), not an unattended RevForge or Fleet stamp. It is not the $299 content-only Starter Kit, and it is not the high-touch done-with-you Fleet engagement. A Max monthly subscription remains available if you prefer recurring billing.',
+      'A perpetual license is a one-time purchase that gives you a license key for the corresponding tier, forever, with no monthly subscription required. Support and updates are included for 1 year; after that, renew your support contract or keep using the version you have. This page sells Perpetual Pro as a license. Studio SKUs live on revealuistudio.com.',
   },
   {
     question: 'Can I upgrade or downgrade my plan?',

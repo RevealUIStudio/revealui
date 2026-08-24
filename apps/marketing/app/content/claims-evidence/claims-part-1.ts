@@ -727,7 +727,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'products.ts',
     exportPath: 'PRODUCTS_PAGE_HERO.subtitle',
     proofGrade: 'outcome',
-    text: 'Start with the runtime. Add tools as you grow. Seven products on one foundation, built and operated by RevealUI Studio. Five are ready to use today. RevForge is in private preview. The agent marketplace is on the way.',
+    text: 'Start with the runtime. Add tools as you grow. Seven products on one foundation, built and operated by RevealUI Studio. Zero paying customers. This is not a launched pull-and-run Fleet. RevForge is in private preview. The agent marketplace is on the way.',
     evidence: [
       REPO,
       REVVAULT_REPO,
@@ -812,7 +812,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'products.ts',
     exportPath: 'PRODUCTS_SISTERS[1].highlights[2]',
     proofGrade: 'behavior',
-    text: 'Agency Founding Kit on /pricing is a license plus a thin kit',
+    text: 'Not sold as a customer Fleet stamp on this site',
     evidence: [REVFORGE_REF, PERPETUAL],
   },
   {
@@ -972,13 +972,13 @@ export const claimsPart1: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_HERO_SUBTEXT.prefix',
-    text: 'All plans run as self-hosted installations under your license. Pro and Enterprise on this page are a license plus studio support on admin.revealui.com; you self-host. Managed customer instances are RevealUI Cloud (waitlist). Want to deploy a branded version for your own customers? See',
+    text: 'All plans run as self-hosted installations under your license. Enterprise is a license, not a hosted VM. Managed customer instances are RevealUI Cloud (waitlist). Need a human?',
     evidence: [SELF_HOST, COMMERCIAL_POLICY, PERPETUAL, ROADMAP],
   },
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_HERO_SUBTEXT.suffix',
-    text: 'for RevealUI Fleet licensing.',
+    text: 'Studio SKUs live on that site, not on this catalog.',
     evidence: [PERPETUAL],
   },
   {
@@ -1025,54 +1025,6 @@ export const claimsPart1: readonly ClaimEntry[] = [
   },
   {
     file: 'pricing.ts',
-    exportPath: 'PRICING_COST_CALCULATOR.heading',
-    text: 'Add up what you would otherwise rent.',
-    evidence: [INFRA_COST_ESTIMATE],
-  },
-  {
-    file: 'pricing.ts',
-    exportPath: 'PRICING_COST_CALCULATOR.body',
-    text: 'A multi-product team rents auth, content, billing, observability, and background jobs from four to six vendors. Estimate the monthly bill for that rented stack, then compare it to one runtime you own.',
-    evidence: [INFRA_COST_ESTIMATE, SELF_HOST],
-  },
-  {
-    file: 'pricing.ts',
-    exportPath: 'PRICING_COST_CALCULATOR.inputs.vendors.label',
-    text: 'Vendor services you would replace',
-    evidence: [INFRA_COST_ESTIMATE],
-  },
-  {
-    file: 'pricing.ts',
-    exportPath: 'PRICING_COST_CALCULATOR.tiers[0].note',
-    text: 'Entry tiers across four or five vendors.',
-    evidence: [INFRA_COST_ESTIMATE],
-  },
-  {
-    file: 'pricing.ts',
-    exportPath: 'PRICING_COST_CALCULATOR.tiers[1].note',
-    text: 'More products and seats push you up the published tiers.',
-    evidence: [INFRA_COST_ESTIMATE],
-  },
-  {
-    file: 'pricing.ts',
-    exportPath: 'PRICING_COST_CALCULATOR.tiers[2].note',
-    text: 'Enterprise SSO, compliance tiers, or higher-tier auth enter.',
-    evidence: [INFRA_COST_ESTIMATE],
-  },
-  {
-    file: 'pricing.ts',
-    exportPath: 'PRICING_COST_CALCULATOR.revealui.sub',
-    text: '+ your own Postgres and compute',
-    evidence: [SELF_HOST],
-  },
-  {
-    file: 'pricing.ts',
-    exportPath: 'PRICING_COST_CALCULATOR.footnote',
-    text: 'A sourced estimate from current 2026 published pricing, time-sensitive. It excludes payment processing, and RevealUI is self-hosted, so you still pay for your own Postgres and compute. Figures are ranges, not a quote.',
-    evidence: [INFRA_COST_ESTIMATE, SELF_HOST],
-  },
-  {
-    file: 'pricing.ts',
     exportPath: 'PRICING_TRIAL_NOTE',
     text: 'Pro and Max include a 7-day free trial. Cancel during the trial and you pay nothing.',
     evidence: [TRIAL],
@@ -1082,23 +1034,5 @@ export const claimsPart1: readonly ClaimEntry[] = [
     exportPath: 'PRICING_TRACK_C_SECTION.body',
     text: 'A perpetual license costs about three years of the subscription. Pay once, own it forever, and renew support only if you want it.',
     evidence: [PERPETUAL, COMMERCIAL_POLICY],
-  },
-  {
-    file: 'pricing.ts',
-    exportPath: 'PRICING_AGENCY_VALUE_BAND.heading',
-    text: 'One runtime. Every client gets their own.',
-    evidence: [PERPETUAL],
-  },
-  {
-    file: 'pricing.ts',
-    exportPath: 'PRICING_AGENCY_VALUE_BAND.body',
-    text: 'Building or reselling software for more than one client means re-licensing auth, billing, content, and an admin for every account you take on. An Agency Perpetual license covers the runtime once, so you ship a branded, self-hosted instance per client instead.',
-    evidence: [PERPETUAL, REVFORGE_REF],
-  },
-  {
-    file: 'pricing.ts',
-    exportPath: 'PRICING_AGENCY_VALUE_BAND.points[0]',
-    text: 'One license, a branded instance per client. No per-client SaaS re-licensing.',
-    evidence: [PERPETUAL],
   },
 ];

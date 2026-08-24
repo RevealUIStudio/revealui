@@ -294,12 +294,12 @@ export interface PerpetualTier {
 //
 // Scope: small-to-mid project services delivered direct by the founder
 // (Architecture Review, Launch Package, Migration Assist, Consulting Hour).
-// These are NOT the agency-tier offerings — the Fleet deployment ($25K+) and
-// Custom Build ($50K+) tiers live in apps/marketing/app/content/pricing.ts
-// under PRICING_DONE_FOR_YOU.rungs (agency segment, different buyer). The
-// two surfaces also share the Architecture Review and Launch Package entry
-// points, whose canonical prices are owned here; marketing imports them
-// rather than re-authoring.
+// These are NOT the product-catalog offerings. The product /pricing page
+// sells licenses only (Free / Pro / Max / Enterprise + Perpetual Pro).
+// Studio SKUs and leftover agency rungs live on revealuistudio.com and in
+// apps/marketing/app/content/for-operators.ts (not rendered on /pricing).
+// Canonical Architecture Review and Launch Package prices are owned here;
+// leftover studio surfaces import them rather than re-authoring.
 // =============================================================================
 
 export interface ServiceOffering {
@@ -327,11 +327,16 @@ export const ARCHITECTURE_REVIEW_PRICE = '$3,500' as const;
  * Canonical price of the Launch Package. Owned here for the same reason as
  * `ARCHITECTURE_REVIEW_PRICE`: `AGENCY_ENGAGEMENT_LADDER` in
  * `apps/marketing/app/content/for-operators.ts` imports it rather than
- * re-authoring the literal, so the Launch Package rung on /pricing and
- * /for-operators cannot drift from this menu. Same cross-package guard in
- * `apps/marketing/app/__tests__/agency-engagement-ladder.test.ts`.
+ * re-authoring the literal, so leftover studio surfaces cannot drift from
+ * this menu. Same cross-package guard in
+ * `apps/marketing/app/__tests__/agency-engagement-ladder.test.ts`. The
+ * product /pricing catalog does not sell these rungs.
  */
 export const LAUNCH_PACKAGE_PRICE = '$7,500' as const;
+
+/** Founder intro booking. Google Calendar appointments only. */
+export const BOOK_INTRO_HREF =
+  'https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ21UZVcuYp7yO32rZmhyUvZFDJcvles81E9edGNFwSUP8SHEVzGvq0gKgNFo7q04YS5i-12ZE5P' as const;
 
 export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
   {
@@ -350,7 +355,7 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
     ],
     deliverable: 'Written report delivered within 5 business days',
     cta: 'Book a Discovery Call',
-    ctaHref: 'https://cal.com/revealuistudio/discovery',
+    ctaHref: BOOK_INTRO_HREF,
   },
   {
     id: 'launch-package',
@@ -368,7 +373,7 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
     ],
     deliverable: 'Production-ready deployment within 2-4 weeks',
     cta: 'Book a Discovery Call',
-    ctaHref: 'https://cal.com/revealuistudio/discovery',
+    ctaHref: BOOK_INTRO_HREF,
   },
   {
     id: 'migration-assist',
@@ -386,7 +391,7 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
     ],
     deliverable: 'Working migration with verified data integrity',
     cta: 'Get an Estimate',
-    ctaHref: 'https://cal.com/revealuistudio/discovery',
+    ctaHref: BOOK_INTRO_HREF,
   },
   {
     id: 'consulting-hour',
@@ -402,7 +407,7 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
     ],
     deliverable: 'Session recording and written follow-up notes',
     cta: 'Book a Session',
-    ctaHref: 'https://cal.com/revealuistudio/discovery',
+    ctaHref: BOOK_INTRO_HREF,
   },
 ];
 
