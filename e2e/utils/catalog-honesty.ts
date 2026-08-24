@@ -49,9 +49,7 @@ export async function assertHonestProductCatalog(page: Page): Promise<void> {
   for (const price of HONEST_TIER_PRICES) {
     expect(text.includes(price), `honest catalog must show ${price}`).toBe(true);
   }
-  expect(text.includes(ENTERPRISE_LICENSE_COPY), 'Enterprise must be sold as a license').toBe(
-    true,
-  );
+  expect(text.includes(ENTERPRISE_LICENSE_COPY), 'Enterprise must be sold as a license').toBe(true);
 
   const html = await page.content();
   for (const phrase of FORBIDDEN_CATALOG_PHRASES) {

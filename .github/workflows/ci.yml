@@ -722,7 +722,7 @@ jobs:
     needs: [quality, build, ensure-ci-images]
     # PRs into test as well as main: production `next start` + the Forge
     # license gate must not wait for a promote PR to fail (see #2695).
-    if: github.ref == 'refs/heads/main' || github.base_ref == 'main' || github.base_ref == 'test'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' || github.base_ref == 'main' || github.base_ref == 'test'
 
     services:
       postgres:
@@ -869,7 +869,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: [quality, build, ensure-ci-images]
-    if: github.ref == 'refs/heads/main' || github.base_ref == 'main' || github.base_ref == 'test'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' || github.base_ref == 'main' || github.base_ref == 'test'
 
     # The admin server's GAP-338/417 audit rails are fail-closed in production
     # (`next start`): a DB connection env + signing key are boot requirements.
@@ -988,7 +988,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: [quality, build, ensure-ci-images]
-    if: github.ref == 'refs/heads/main' || github.base_ref == 'main' || github.base_ref == 'test'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' || github.base_ref == 'main' || github.base_ref == 'test'
 
     # See e2e-accessibility: production admin's fail-closed audit rails
     # (GAP-338/417) require a DB env + signing key at boot.
