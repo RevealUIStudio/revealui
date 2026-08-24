@@ -328,14 +328,17 @@ export const ASPIRATIONAL_BLOCKLIST: AspirationalBlocklistEntry[] = [
   {
     rules: [
       {
-        kind: 'banned-tokens',
+        kind: 'banned-token-sequences',
         ruleId: 'claim-drift.aspirational.sla',
-        tokens: ['SLA'],
+        sequences: [
+          ['SLA', 'guarantees'],
+          ['SLA', 'guarantee'],
+        ],
         caseInsensitive: false,
       },
     ],
     label: 'SLA',
-    why: 'no SLA documented in docs/',
+    why: 'do not invent an unpublished guarantee; published commitments are docs/SLA.md (99% license/download infra, 24h/4h email). Linking that page is fine.',
   },
 ];
 
@@ -637,9 +640,14 @@ export function scanForCopyDependentHolds(): AspirationalMatch[] {
         if (line.trim().startsWith('//') || line.trim().startsWith('import ')) continue;
         if (line.trim().startsWith('{/*') && line.trim().endsWith('*/}')) continue;
       }
-      if (commerceExempt || hasAspirationalQualifier(line)) continue;
+      if (commerceExempt) continue;
       const tokens = tokenize(line);
+      const qualified = hasAspirationalQualifier(line);
       for (const hit of findCopyDependentHits(line, tokens)) {
+        // Tracker-only (#449) must not bless SSO/SAML buyer-facing live claims.
+        const ssoFamily =
+          hit.holdId === 'COPY-DEP-ENTERPRISE-SSO' || hit.holdId === 'COPY-DEP-ENTERPRISE-SAML';
+        if (qualified && !ssoFamily) continue;
         matches.push({
           file: rel,
           line: i + 1,

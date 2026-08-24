@@ -34,7 +34,7 @@ try {
     await Actor.setValue('OUTPUT', result);
   } else {
     const tools = selectTools(input.toolAllowlist);
-    const LLMClient = await loadLLMClient();
+    const LLMClient = await loadLLMClient(input.llmProvider);
     // Explicit BYOK key from actor input -- never a tenant-stored/DB-resolved
     // key, so constructing this client never touches a database.
     const llmClient = new LLMClient({

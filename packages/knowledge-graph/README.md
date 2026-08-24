@@ -28,7 +28,13 @@ on two sites is one row: the canonical graph is convergent by construction
   episode-mentions, with point-in-time predicates. `kgDrift` walks current
   `documents` edges for doc-currency candidates.
 - **`revkg` CLI**: `scan`, `search`, `node`, `neighbors`, `at`, `drift`,
-  `claims-check [--publish]`.
+  `claims-check [--publish]`, `graph pull|apply|push`.
+- **Fleet scan safety**: `revkg scan --fleet` is dry-run by default (no
+  database, no writes). Owner publish is `revkg scan --fleet --publish` and is
+  refused when `CI=true` unless `REVKG_ALLOW_WRITE=1`.
+- **P5 `graph.*` replica**: pull unpushed `kg_outbox` ops, apply a remote batch
+  without echoing to the peer outbox, and ack via `graph.push`. The RevDev
+  daemon wraps these handlers; this package does not open a replica socket.
 
 Embeddings are injected (`Embedder`) and best-effort — wired to `@revealui/ai`
 `generateEmbedding` (nomic-embed-text, 768) by the CLI, degrading to NULL
@@ -38,6 +44,15 @@ LLM SDK.
 ## Claims honesty (GAP-462)
 
 ```bash
+# Fleet scan preview (no database, no writes — safe in CI / PRs)
+pnpm exec revkg scan --fleet --root . --json
+
+# Owner-only write of sibling fleet checkouts (refused when CI=true)
+pnpm exec revkg scan --fleet --root . --publish
+
+# P5 replica: inspect unpushed outbox ops (read-only)
+pnpm exec revkg graph pull --json
+
 # Parse claims-evidence, verify path evidence exists (no DB)
 pnpm exec revkg claims-check --root . --repo revealui
 

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { EditModeBanner } from '../components/EditModeBanner';
 import { NavBar } from '../components/NavBar';
 
 export function RootLayout({ children }: { children: ReactNode }) {
@@ -10,6 +11,7 @@ export function RootLayout({ children }: { children: ReactNode }) {
       >
         Skip to content
       </a>
+      <EditModeBanner />
       <NavBar />
       <main id="main-content">{children}</main>
     </>

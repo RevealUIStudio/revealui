@@ -7,7 +7,7 @@ category: reference
 audience: developer
 ---
 
-The narrative version of this page lives at [revealui.com/fair-source](https://revealui.com/fair-source). This document is the engineer-targeted reference: license text, package status, runtime enforcement, and how to verify everything yourself.
+This document is the engineer-targeted Fair Source reference: license text, package status, runtime enforcement, and how to verify everything yourself.
 
 ## What's licensed how
 
@@ -106,7 +106,7 @@ You can build whatever you want without using FSL packages. The license only res
 
 ## See also
 
-- Public-facing explainer with examples: [revealui.com/fair-source](https://revealui.com/fair-source)
+- Public-facing explainer with examples: this page
 - FSL-1.1-MIT canonical text: [fsl.software/FSL-1.1-MIT.template.md](https://fsl.software/FSL-1.1-MIT.template.md)
 - FOSSA's announcement of the Functional Source License: [Sentry's blog post](https://blog.sentry.io/introducing-the-functional-source-license-freedom-without-free-riding/)
 - Pro tier features and pricing: [revealui.com/pricing](https://revealui.com/pricing)

@@ -187,7 +187,7 @@ services:
 ### Running
 
 ```bash
-# Create a .env file with your production values
+# Create a .env file with your production values (RevVault export-env is preferred)
 cp .env.template .env
 
 # Build and start all services
@@ -390,7 +390,15 @@ RevealUI uses a structured logger (`@revealui/utils`). In production, logs are w
 
 ---
 
+## Enterprise self-hosted operators
+
+The customer Fleet kit (Compose + GHCR, domain lock, license JWT) is documented in [FLEET.md](../FLEET.md): install, upgrade, rollback, backup, restore. Published Studio uptime covers license validation and downloads only — see [SLA](../SLA.md). Collaborative Lexical rooms need a long-running API process; see [Collaborative editing](./collaborative-editing.md).
+
+Secrets for a Fleet kit belong in RevVault (or your own secret store), not a copied `apps/admin/.env.example`. `docker-compose.forge.yml` reads `.env.forge`. Never put `REVEALUI_LICENSE_PRIVATE_KEY` on a customer kit.
+
 ## Related Documentation
 
+- [Fleet](../FLEET.md) -- Enterprise self-host kit
+- [SLA](../SLA.md) -- Published support and license-infra uptime
 - [Environment Variables](../ENVIRONMENT-VARIABLES-GUIDE.md) -- Full configuration reference
 - [Architecture](../ARCHITECTURE.md) -- System design and infrastructure

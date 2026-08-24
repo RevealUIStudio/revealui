@@ -132,10 +132,10 @@ const optionalSchema = z.object({
   EMAIL_FROM: z.string().email().optional(),
   EMAIL_REPLY_TO: z.string().email().optional(),
 
-  // Onboarding lifecycle email sequence arming gate. Absent or 'false' keeps
-  // the daily cron in dry-run: it records would-send decisions but never calls
-  // the mailer. Set to 'true' only after the no-reply mailbox and an
-  // end-to-end email delivery verification are both in place.
+  // Onboarding lifecycle email sequence. Hosted test/staging arms when the
+  // Gmail mailbox path is present. Production (main) stays disarmed unless
+  // this is exactly 'true' after an owner delivery check. 'false' disables
+  // even on hosted test. Absent mailbox credentials fail closed.
   LIFECYCLE_EMAILS_ENABLED: z.enum(['true', 'false']).optional(),
 
   // CORS

@@ -208,3 +208,100 @@ export async function auditAccountLocked(
     metadata: { email, failedAttempts },
   });
 }
+
+/**
+ * Structured fields required by GAP-464 / #449 Audit wiring.
+ * `userId` may be absent on pre-JIT login failures.
+ */
+export interface SsoAuditContext {
+  providerType?: string;
+  accountId?: string;
+  userId?: string;
+  issuer?: string;
+  providerId?: string;
+  ip?: string;
+  userAgent?: string;
+}
+
+function ssoMetadata(context: SsoAuditContext): Record<string, unknown> {
+  return {
+    providerType: context.providerType ?? null,
+    accountId: context.accountId ?? null,
+    userId: context.userId ?? null,
+    issuer: context.issuer ?? null,
+    providerId: context.providerId ?? null,
+  };
+}
+
+/**
+ * Record a successful Enterprise SSO login (OIDC or SAML ACS).
+ * Persists via the audit door before the HTTP response returns.
+ */
+export async function auditSsoLoginSuccess(context: SsoAuditContext): Promise<void> {
+  const actorId = context.userId ?? context.accountId ?? 'unknown';
+  await logAuditEvent({
+    type: 'sso_login_success',
+    severity: 'low',
+    actor: {
+      id: actorId,
+      type: 'user',
+      ip: context.ip,
+      userAgent: context.userAgent,
+    },
+    resource: context.providerId ? { type: 'sso_provider', id: context.providerId } : undefined,
+    action: 'sso_login',
+    result: 'success',
+    message: 'SSO login succeeded',
+    metadata: ssoMetadata(context),
+  });
+}
+
+/**
+ * Record a failed Enterprise SSO login attempt.
+ * Persists via the audit door before the HTTP response returns.
+ */
+export async function auditSsoLoginFailure(
+  context: SsoAuditContext & { reason: string },
+): Promise<void> {
+  const actorId = context.userId ?? context.accountId ?? 'unknown';
+  await logAuditEvent({
+    type: 'sso_login_failure',
+    severity: 'medium',
+    actor: {
+      id: actorId,
+      type: 'user',
+      ip: context.ip,
+      userAgent: context.userAgent,
+    },
+    resource: context.providerId ? { type: 'sso_provider', id: context.providerId } : undefined,
+    action: 'sso_login',
+    result: 'failure',
+    message: `SSO login failed: ${context.reason}`,
+    metadata: { ...ssoMetadata(context), reason: context.reason },
+  });
+}
+
+/**
+ * Record an SSO provider create / update / delete (or equivalent mapping change).
+ * Persists via the audit door before the HTTP response returns.
+ */
+export async function auditSsoConfigChanged(
+  context: SsoAuditContext & { action: string },
+): Promise<void> {
+  const actorId = context.userId ?? context.accountId ?? 'unknown';
+  await logAuditEvent({
+    type: 'sso_config_changed',
+    severity: 'medium',
+    actor: {
+      id: actorId,
+      type: 'user',
+      ip: context.ip,
+      userAgent: context.userAgent,
+    },
+    resource: context.providerId ? { type: 'sso_provider', id: context.providerId } : undefined,
+    action: context.action,
+    result: 'success',
+    message: `SSO provider ${context.action}`,
+    metadata: { ...ssoMetadata(context), action: context.action },
+  });
+}

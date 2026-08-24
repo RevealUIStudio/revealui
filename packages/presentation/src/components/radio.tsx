@@ -56,7 +56,7 @@ export function RadioGroup({
       if (radios.length === 0) return;
 
       const currentIndex = radios.indexOf(document.activeElement as HTMLElement);
-      let nextIndex = currentIndex;
+      let nextIndex: number;
 
       switch (e.key) {
         case 'ArrowDown':

@@ -68,8 +68,98 @@
       "permanent": true
     },
     {
+      "source": "/products",
+      "destination": "https://docs.revealui.com/revfleet",
+      "permanent": true
+    },
+    {
+      "source": "/philosophy",
+      "destination": "https://docs.revealui.com/blog/01-why-we-built-revealui",
+      "permanent": true
+    },
+    {
+      "source": "/local-ai",
+      "destination": "https://docs.revealui.com/local-first",
+      "permanent": true
+    },
+    {
+      "source": "/services",
+      "destination": "/pricing",
+      "permanent": true
+    },
+    {
       "source": "/for-operators",
-      "destination": "/services",
+      "destination": "/pricing",
+      "permanent": true
+    },
+    {
+      "source": "/for-operators/how-it-works",
+      "destination": "https://docs.revealui.com/build-your-business",
+      "permanent": true
+    },
+    {
+      "source": "/for-operators/managed",
+      "destination": "https://docs.revealui.com/roadmap",
+      "permanent": true
+    },
+    {
+      "source": "/blog",
+      "destination": "https://docs.revealui.com/blog/16-ui-of-the-future",
+      "permanent": true
+    },
+    {
+      "source": "/blog/:path*",
+      "destination": "https://docs.revealui.com/blog/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/fair-source",
+      "destination": "https://docs.revealui.com/fair-source",
+      "permanent": true
+    },
+    {
+      "source": "/roadmap",
+      "destination": "https://docs.revealui.com/roadmap",
+      "permanent": true
+    },
+    {
+      "source": "/claims",
+      "destination": "https://docs.revealui.com",
+      "permanent": true
+    },
+    {
+      "source": "/sla",
+      "destination": "https://docs.revealui.com/sla",
+      "permanent": true
+    },
+    {
+      "source": "/security",
+      "destination": "https://docs.revealui.com",
+      "permanent": true
+    },
+    {
+      "source": "/legal/hipaa",
+      "destination": "https://docs.revealui.com",
+      "permanent": true
+    },
+    {
+      "source": "/legal/subprocessors",
+      "destination": "https://docs.revealui.com",
+      "permanent": true
+    },
+    {
+      "source": "/signup",
+      "destination": "https://admin.revealui.com/signup",
+      "permanent": true
+    },
+    {
+      "source": "/checkout",
+      "destination": "https://admin.revealui.com/signup",
+      "permanent": true
+    },
+    {
+      "source": "/login",
+      "destination": "https://admin.revealui.com/login",
       "permanent": true
     }
   ],

@@ -9,9 +9,11 @@ audience: developer
 
 Commercial guide to RevealUI Pro: packaging, MCP integrations, open-model inference, editors, harnesses, services, x402 payments, marketplace flows, and licensing.
 
+Canonical product definition: [What is RevealUI?](./WHAT_IS.md). Support and license-infra uptime: [SLA](./SLA.md).
+
 Commercially, RevealUI Pro should not be treated as a simple seat upgrade layered on top of the OSS stack. The intended model is account-level platform access, metered agent execution, explicit commerce fees where RevealUI is in the transaction path, and premium trust or governance controls for approval, audit, and compliance needs.
 
-Per-user or perpetual licenses can still exist for narrowly scoped products, but the primary hosted entitlement model should be account-level.
+Per-user or perpetual licenses can still exist for narrowly scoped products.
 
 ---
 
@@ -87,7 +89,7 @@ RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime —
 
 ## Ecosystem Features by Tier
 
-RevealUI is part of a four-project ecosystem. Each project has features distributed across tiers:
+The canonical Free / Pro / Max / Enterprise matrix (runtime flags + RevFleet companions) lives in [What is RevealUI?](./WHAT_IS.md#feature-matrix). Companion highlights:
 
 | Feature | Free | Pro | Max | Enterprise |
 |---------|------|-----|-----|-------|
@@ -96,6 +98,7 @@ RevealUI is part of a four-project ecosystem. Each project has features distribu
 | RevVault CLI + core crate | Yes | Yes | Yes | Yes |
 | RevVault desktop app | | Yes | Yes | Yes |
 | RevVault rotation engine | | Yes | Yes | Yes |
+
 The MIT-licensed component (RevVault CLI) is free forever. Commercial features (desktop app, rotation engine, provisioning) require the corresponding tier.
 
 ## Licensing (Fair Source + MIT)
@@ -1261,7 +1264,7 @@ Enterprise licenses follow the same perpetual model but are scoped to self-hoste
 
 # MCP Marketplace
 
-The MCP Marketplace lets developers publish Model Context Protocol servers with per-call USDC pricing. RevealUI takes 20%; you earn 80%. Callers pay via x402  -  no subscriptions, no API keys.
+The MCP Marketplace is Planned. First-party MCP servers ship today. Third-party publishing and live marketplace charging are not open. There is no 80/20 revenue share.
 
 This is a full reference guide for both publishers and callers.
 
@@ -1297,12 +1300,12 @@ GET /.well-known/marketplace.json
 
 # Enterprise tier
 
-Customers buy the Enterprise tier of RevealUI ($1,499/mo); the RevealUI Fleet kit (produced by RevForge) is what they deploy. Two paths:
+Customers buy the Enterprise tier of RevealUI ($1,499/mo) as a **license plus studio support** on admin.revealui.com. The customer self-hosts. Managed customer instances are RevealUI Cloud (waitlist at `/for-operators/managed`) — they are not a current SKU.
 
-- **Hosted Enterprise** — RevealUI Studio manages infrastructure. You get a dedicated instance on `revealui.com` infrastructure, domain-configured for your organization.
-- **Self-hosted Fleet** — You deploy the Docker Compose stack (API + admin + PostgreSQL) on your own infrastructure, domain-locked via `REVFORGE_LICENSED_DOMAIN`.
+- **License (this tier)** — EdDSA-signed JWT, support, and Enterprise entitlements. Studio does **not** operate a dedicated customer VM on `revealui.com` infrastructure.
+- **Self-hosted Fleet** — You deploy the Docker Compose stack (API + admin + PostgreSQL) on your own infrastructure, domain-locked via `REVFORGE_LICENSED_DOMAIN`. Produced by RevForge (operator tool).
 
-Both paths use the same Enterprise license tier and the same EdDSA-signed JWT format for `REVFORGE_LICENSE_KEY`. The difference is where the stack runs.
+Both use the same Enterprise license tier and the same EdDSA-signed JWT format for `REVFORGE_LICENSE_KEY`. The difference is how you run the stack, not whether Studio hosts it for you.
 
 ## RevealUI Fleet — Self-Hosted Deployment
 

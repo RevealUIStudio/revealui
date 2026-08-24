@@ -13,18 +13,14 @@ import {
 } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
 import { Footer } from '../components/Footer';
-import { CostCalculator } from '../components/landing/CostCalculator';
 import { NewsletterSignup } from '../components/NewsletterSignup';
 import {
   PERPETUAL_TIERS,
-  PRICING_AGENCY_FOUNDING_KIT,
-  PRICING_AGENCY_VALUE_BAND,
   PRICING_AGENT_A2A,
   PRICING_AGENT_CTA_LINKS,
   PRICING_AGENT_MCP,
   PRICING_AGENT_X402,
   PRICING_AGENTS_SECTION,
-  PRICING_DONE_FOR_YOU,
   PRICING_FINAL_CTA,
   PRICING_FINAL_CTA_LINKS,
   PRICING_HERO,
@@ -32,12 +28,12 @@ import {
   PRICING_HERO_SUBTEXT,
   PRICING_HIGHLIGHTED_BADGE,
   PRICING_NEWSLETTER_LABEL,
-  PRICING_STARTER_KIT,
   PRICING_TRACK_A_SECTION,
   PRICING_TRACK_C_SECTION,
   PRICING_TRIAL_NOTE,
   PRICING_VALUE_BAND,
   type PricingResponse,
+  PUBLIC_PERPETUAL_NAMES,
   SUBSCRIPTION_TIERS,
 } from '../content/pricing';
 import { PRICING_FAQ_SECTION, PRICING_FAQS } from '../content/pricing-faq';
@@ -51,6 +47,8 @@ const ADMIN_URL = import.meta.env.VITE_ADMIN_URL ?? 'https://admin.revealui.com'
 const API_URL =
   import.meta.env.VITE_API_URL ??
   (import.meta.env.PROD ? 'https://api.revealui.com' : 'http://localhost:3004');
+
+const PUBLIC_PERPETUAL = new Set<string>(PUBLIC_PERPETUAL_NAMES);
 
 export function PricingPage() {
   const [pricing, setPricing] = useState<PricingResponse | null>(null);
@@ -71,9 +69,6 @@ export function PricingPage() {
     };
   }, []);
 
-  // Show the annual toggle only after the API confirms annual prices are available
-  // (i.e. the server has STRIPE_*_ANNUAL_PRICE_ID configured). This is the
-  // "no annual CTA without a resolvable annual price" lockstep guard.
   const showAnnualToggle = pricing?.subscriptions.some((t) => Boolean(t.annualPrice)) ?? false;
 
   const tiers = (pricing?.subscriptions ?? SUBSCRIPTION_TIERS).map((tier) => {
@@ -81,7 +76,8 @@ export function PricingPage() {
     const annualFallback = ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS[tier.id];
     const useAnnual = billingInterval === 'year' && tier.id !== 'free' && Boolean(tier.annualPrice);
     const baseHref = tier.ctaHref.startsWith('/') ? `${ADMIN_URL}${tier.ctaHref}` : tier.ctaHref;
-    const ctaHref = useAnnual ? `${baseHref}&interval=year` : baseHref;
+    const ctaHref =
+      useAnnual && baseHref.includes('/signup') ? `${baseHref}&interval=year` : baseHref;
     return {
       ...tier,
       price: useAnnual
@@ -94,20 +90,21 @@ export function PricingPage() {
       ctaHref,
     };
   });
-  const perpetualTiers = (pricing?.perpetual ?? PERPETUAL_TIERS).map((tier) => {
-    const fallback = PERPETUAL_PRICE_FALLBACKS[tier.name];
-    return {
-      ...tier,
-      price: tier.price ?? fallback?.price,
-      priceNote: tier.priceNote ?? fallback?.priceNote,
-      renewal: tier.renewal ?? fallback?.renewal,
-      ctaHref: tier.ctaHref.startsWith('/') ? `${ADMIN_URL}${tier.ctaHref}` : tier.ctaHref,
-    };
-  });
+  const perpetualTiers = (pricing?.perpetual ?? PERPETUAL_TIERS)
+    .filter((tier) => PUBLIC_PERPETUAL.has(tier.name))
+    .map((tier) => {
+      const fallback = PERPETUAL_PRICE_FALLBACKS[tier.name];
+      return {
+        ...tier,
+        price: tier.price ?? fallback?.price,
+        priceNote: tier.priceNote ?? fallback?.priceNote,
+        renewal: tier.renewal ?? fallback?.renewal,
+        ctaHref: tier.ctaHref.startsWith('/') ? `${ADMIN_URL}${tier.ctaHref}` : tier.ctaHref,
+      };
+    });
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero */}
       <MarketingSection
         tone="background"
         density="spacious"
@@ -151,7 +148,6 @@ export function PricingPage() {
         </div>
       </MarketingSection>
 
-      {/* Subscriptions */}
       <MarketingSection id="subscriptions" tone="background" density="default" width="default">
         <SectionHeader
           eyebrow={PRICING_TRACK_A_SECTION.eyebrow}
@@ -162,7 +158,6 @@ export function PricingPage() {
           className="mb-10 sm:mb-12"
         />
 
-        {/* Value band: you own the runtime (no competitor prices) */}
         <div className="mx-auto mb-10 max-w-4xl rounded-2xl bg-gradient-to-br from-primary/5 to-card p-6 ring-1 ring-primary/15 sm:mb-12 sm:p-8">
           <h3 className="text-2xl font-bold tracking-tight text-foreground">
             {PRICING_VALUE_BAND.heading}
@@ -185,7 +180,7 @@ export function PricingPage() {
                 type="button"
                 size="sm"
                 appearance={billingInterval === 'month' ? 'solid' : 'ghost'}
-                variant={billingInterval === 'month' ? 'neutral' : 'neutral'}
+                variant="neutral"
                 onClick={() => setBillingInterval('month')}
                 className="rounded-full"
               >
@@ -195,7 +190,7 @@ export function PricingPage() {
                 type="button"
                 size="sm"
                 appearance={billingInterval === 'year' ? 'solid' : 'ghost'}
-                variant={billingInterval === 'year' ? 'neutral' : 'neutral'}
+                variant="neutral"
                 onClick={() => setBillingInterval('year')}
                 className="rounded-full"
               >
@@ -229,13 +224,6 @@ export function PricingPage() {
         <p className="mt-8 text-center text-sm text-muted-foreground">{PRICING_TRIAL_NOTE}</p>
       </MarketingSection>
 
-      {/* Cost calculator: moved here from the homepage (internal marketing
-          funnel audit, 2026-07-09), right after the value band above so the
-          rented-stack ranges it produces are the one anchor number set for
-          this comparison. */}
-      <CostCalculator />
-
-      {/* Perpetual licenses */}
       <MarketingSection id="perpetual" tone="secondary" density="default" width="default">
         <SectionHeader
           eyebrow={PRICING_TRACK_C_SECTION.eyebrow}
@@ -246,38 +234,12 @@ export function PricingPage() {
           className="mb-10 sm:mb-12"
         />
 
-        {/* Studio / agency reseller value band: the multi-client P&L */}
-        <div className="mx-auto mb-10 max-w-4xl rounded-2xl bg-gradient-to-br from-primary/5 to-card p-6 ring-1 ring-primary/15 sm:mb-12 sm:p-8">
-          <span className="text-sm font-semibold uppercase tracking-widest text-primary">
-            {PRICING_AGENCY_VALUE_BAND.eyebrow}
-          </span>
-          <h3 className="mt-2 text-2xl font-bold tracking-tight text-foreground">
-            {PRICING_AGENCY_VALUE_BAND.heading}
-          </h3>
-          <p className="mt-3 text-sm leading-6 text-body">{PRICING_AGENCY_VALUE_BAND.body}</p>
-          <ul className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
-            {PRICING_AGENCY_VALUE_BAND.points.map((point) => (
-              <li key={point} className="flex items-start gap-2 text-sm text-body">
-                <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
-                <span>{point}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-3">
+        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-2">
           {perpetualTiers.map((tier) => (
             <div
               key={tier.name}
               className="relative flex flex-col rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8"
             >
-              {tier.comingSoon && (
-                <div className="absolute right-4 top-4">
-                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground ring-1 ring-border">
-                    Coming soon
-                  </span>
-                </div>
-              )}
               <h3 className="text-lg font-bold text-foreground">{tier.name}</h3>
               <p className="mt-1 text-sm text-body">{tier.description}</p>
               {tier.price ? (
@@ -313,7 +275,6 @@ export function PricingPage() {
         </div>
       </MarketingSection>
 
-      {/* For AI Agents */}
       <MarketingSection id="for-agents" tone="secondary" density="default" width="default">
         <div className="mx-auto max-w-4xl">
           <div className="mb-10 text-center sm:mb-12">
@@ -341,29 +302,25 @@ export function PricingPage() {
                 {PRICING_AGENT_A2A.body.prefix}{' '}
                 <a
                   href={PRICING_AGENT_A2A.body.linkHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="break-all text-primary underline hover:text-primary/80"
+                  className="font-medium text-primary hover:text-primary/80"
                 >
                   {PRICING_AGENT_A2A.body.linkLabel}
                 </a>
                 {PRICING_AGENT_A2A.body.suffix}
               </p>
             </div>
-
             <div className="rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
               <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
-                <IconCode size="md" className="text-primary" />
+                <IconTerminal size="md" className="text-primary" />
               </div>
               <h3 className="text-base font-semibold text-foreground">
                 {PRICING_AGENT_X402.heading}
               </h3>
               <p className="mt-2 text-sm text-body">{PRICING_AGENT_X402.body}</p>
             </div>
-
             <div className="rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
               <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
-                <IconTerminal size="md" className="text-primary" />
+                <IconCode size="md" className="text-primary" />
               </div>
               <h3 className="text-base font-semibold text-foreground">
                 {PRICING_AGENT_MCP.heading}
@@ -371,198 +328,33 @@ export function PricingPage() {
               <p className="mt-2 text-sm text-body">{PRICING_AGENT_MCP.body}</p>
               <a
                 href={PRICING_AGENT_MCP.docsLink.href}
-                className="mt-3 inline-block text-xs font-semibold text-primary hover:text-primary/80"
+                className="mt-3 inline-block text-sm font-medium text-primary hover:text-primary/80"
               >
                 {PRICING_AGENT_MCP.docsLink.label}
               </a>
             </div>
           </div>
 
-          <div className="mt-10 text-center">
-            <a
-              href={PRICING_AGENT_CTA_LINKS.openapi.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg bg-card px-4 py-2 text-sm font-medium text-muted-foreground ring-1 ring-border transition-colors hover:bg-muted"
-            >
-              <IconCode size="sm" />
-              {PRICING_AGENT_CTA_LINKS.openapi.label}
-            </a>
-            <a
-              href={PRICING_AGENT_CTA_LINKS.apiDocs.href}
-              className="ml-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              {PRICING_AGENT_CTA_LINKS.apiDocs.label}
-            </a>
-          </div>
-        </div>
-      </MarketingSection>
-
-      {/* GAP-434 Starter Kit — one-time content product (Stripe Payment Link) */}
-      <MarketingSection id="starter-kit" tone="background" density="default" width="default">
-        <div className="mx-auto max-w-3xl rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm font-semibold uppercase tracking-widest text-primary">
-              {PRICING_STARTER_KIT.eyebrow}
-            </span>
-            {PRICING_STARTER_KIT.badge ? (
-              <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground ring-1 ring-border">
-                {PRICING_STARTER_KIT.badge}
-              </span>
-            ) : null}
-          </div>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            {PRICING_STARTER_KIT.heading}
-          </h2>
-          <p className="mt-4 flex items-baseline gap-x-2">
-            <span className="text-4xl font-bold text-foreground">{PRICING_STARTER_KIT.price}</span>
-            <span className="text-sm text-muted-foreground">{PRICING_STARTER_KIT.priceNote}</span>
-          </p>
-          <p className="mt-4 text-lg text-body">{PRICING_STARTER_KIT.body}</p>
-          <ul className="mt-6 space-y-3">
-            {PRICING_STARTER_KIT.points.map((point) => (
-              <li key={point} className="flex items-start gap-x-3">
-                <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
-                <span className="text-sm text-body">{point}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button asChild size="lg" className="w-full sm:w-auto">
+          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Button asChild appearance="outline" variant="neutral">
               <a
-                href={PRICING_STARTER_KIT.primaryCta.href}
+                href={PRICING_AGENT_CTA_LINKS.openapi.href}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {PRICING_STARTER_KIT.primaryCta.label}
+                <IconCode size="sm" />
+                {PRICING_AGENT_CTA_LINKS.openapi.label}
               </a>
             </Button>
-            <Button
-              asChild
-              appearance="outline"
-              variant="neutral"
-              size="lg"
-              className="w-full sm:w-auto"
-            >
-              <a
-                href={PRICING_STARTER_KIT.secondaryCta.href}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {PRICING_STARTER_KIT.secondaryCta.label}
+            <Button asChild variant="brand">
+              <a href={PRICING_AGENT_CTA_LINKS.apiDocs.href}>
+                {PRICING_AGENT_CTA_LINKS.apiDocs.label}
               </a>
             </Button>
           </div>
         </div>
       </MarketingSection>
 
-      {/* GAP-448 Agency Founding Kit — Agency Perpetual self-serve path */}
-      <MarketingSection id="agency-founding-kit" tone="secondary" density="default" width="default">
-        <div className="mx-auto max-w-3xl rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
-          <span className="text-sm font-semibold uppercase tracking-widest text-primary">
-            {PRICING_AGENCY_FOUNDING_KIT.eyebrow}
-          </span>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            {PRICING_AGENCY_FOUNDING_KIT.heading}
-          </h2>
-          <p className="mt-4 flex items-baseline gap-x-2">
-            <span className="text-4xl font-bold text-foreground">
-              {PRICING_AGENCY_FOUNDING_KIT.price}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              {PRICING_AGENCY_FOUNDING_KIT.priceNote}
-            </span>
-          </p>
-          <p className="mt-4 text-lg text-body">{PRICING_AGENCY_FOUNDING_KIT.body}</p>
-          <ul className="mt-6 space-y-3">
-            {PRICING_AGENCY_FOUNDING_KIT.points.map((point) => (
-              <li key={point} className="flex items-start gap-x-3">
-                <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
-                <span className="text-sm text-body">{point}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button asChild size="lg" className="w-full sm:w-auto">
-              <a
-                href={PRICING_AGENCY_FOUNDING_KIT.primaryCta.href}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {PRICING_AGENCY_FOUNDING_KIT.primaryCta.label}
-              </a>
-            </Button>
-            <Button
-              asChild
-              appearance="outline"
-              variant="neutral"
-              size="lg"
-              className="w-full sm:w-auto"
-            >
-              <a href={PRICING_AGENCY_FOUNDING_KIT.secondaryCta.href}>
-                {PRICING_AGENCY_FOUNDING_KIT.secondaryCta.label}
-              </a>
-            </Button>
-          </div>
-        </div>
-      </MarketingSection>
-
-      {/* Done-for-you rung: services ladder + discovery-call capture */}
-      <MarketingSection
-        id="done-for-you"
-        tone="background"
-        density="default"
-        width="default"
-        className="bg-primary/5"
-      >
-        <SectionHeader
-          eyebrow={PRICING_DONE_FOR_YOU.eyebrow}
-          eyebrowTone="primary"
-          title={PRICING_DONE_FOR_YOU.heading}
-          description={PRICING_DONE_FOR_YOU.body}
-          align="center"
-          className="mb-10 sm:mb-12"
-        />
-
-        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-3">
-          {PRICING_DONE_FOR_YOU.rungs.map((rung) => (
-            <div key={rung.name} className="rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
-              <h3 className="text-base font-semibold text-foreground">{rung.name}</h3>
-              <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">{rung.price}</p>
-              <p className="mt-3 text-sm text-body">{rung.note}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Button asChild size="lg" className="w-full sm:w-auto">
-            <a
-              href={PRICING_DONE_FOR_YOU.primaryCta.href}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {PRICING_DONE_FOR_YOU.primaryCta.label}
-            </a>
-          </Button>
-          <Button
-            asChild
-            appearance="outline"
-            variant="neutral"
-            size="lg"
-            className="w-full sm:w-auto"
-          >
-            <a
-              href={PRICING_DONE_FOR_YOU.secondaryCta.href}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {PRICING_DONE_FOR_YOU.secondaryCta.label}
-            </a>
-          </Button>
-        </div>
-      </MarketingSection>
-
-      {/* FAQ Section */}
       <MarketingSection tone="background" density="default" width="default">
         <div className="mx-auto max-w-4xl">
           <SectionHeader
@@ -587,7 +379,6 @@ export function PricingPage() {
         </div>
       </MarketingSection>
 
-      {/* Final CTA */}
       <MarketingSection tone="secondary" density="default" width="narrow">
         <SectionHeader
           title={PRICING_FINAL_CTA.title}
@@ -597,13 +388,7 @@ export function PricingPage() {
         />
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Button asChild size="lg" className="w-full sm:w-auto">
-            <a
-              href={
-                PRICING_FINAL_CTA_LINKS.getStarted.href.startsWith('/')
-                  ? `${ADMIN_URL}${PRICING_FINAL_CTA_LINKS.getStarted.href}`
-                  : PRICING_FINAL_CTA_LINKS.getStarted.href
-              }
-            >
+            <a href={PRICING_FINAL_CTA_LINKS.getStarted.href}>
               {PRICING_FINAL_CTA_LINKS.getStarted.label}
             </a>
           </Button>

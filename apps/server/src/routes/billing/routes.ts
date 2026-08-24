@@ -51,6 +51,7 @@ import { resetDbStatusCache, resetSupportExpiryCache } from '../../middleware/li
 
 import {
   assertLiveCatalogComplete,
+  assertUnattendedCheckoutAllowed,
   type BillingEnv,
   billingPortalConfigId,
   CheckoutRequestSchema,
@@ -125,6 +126,7 @@ app.openapi(checkoutRoute, async (c) => {
 
   const { priceId, tier, interval } = c.req.valid('json');
   const resolvedTier = tier ?? 'pro';
+  assertUnattendedCheckoutAllowed(resolvedTier);
   const resolvedInterval = interval ?? 'month';
   const resolvedPriceId = await resolveCatalogPriceId(
     resolvedTier,
@@ -312,17 +314,34 @@ const subscriptionRoute = createRoute({
  * the checkout webhook had issued and stored a license (the webhook's
  * syncHostedSubscriptionState creates the hosted rows that trigger the
  * short-circuit), so a hosted subscriber could never see their key.
+ * Trial end is the same license row (`expiresAt` from Stripe `trial_end`).
  *
  * GAP-300 pro-license-wire (durable): when a non-null JWT is returned to the
  * authenticated user, record first-ever `license_key_fetched` on the account.
  * Server-side only — client-reported events are not trusted for this milestone.
  */
-async function getUserLicenseKey(
+interface UserLicenseSnapshot {
+  licenseKey: string | null;
+  expiresAt: string | null;
+}
+
+function serializeExpiresAt(value: Date | string | null | undefined): string | null {
+  if (!value) return null;
+  if (value instanceof Date) return value.toISOString();
+  return value;
+}
+
+/**
+ * Hosted entitlement / snapshot short-circuits used to return `expiresAt: null`
+ * even when the license row already stored Stripe `trial_end`. Trial UI (billing
+ * + account) reads this field; a null here hid the real expiry for Pro and Max.
+ */
+async function getUserLicenseSnapshot(
   userId: string,
   accountId?: string | null,
-): Promise<string | null> {
+): Promise<UserLicenseSnapshot> {
   const [row] = await getClient()
-    .select({ licenseKey: licenses.licenseKey })
+    .select({ licenseKey: licenses.licenseKey, expiresAt: licenses.expiresAt })
     .from(licenses)
     .where(
       and(
@@ -334,7 +353,8 @@ async function getUserLicenseKey(
     .orderBy(desc(licenses.createdAt))
     .limit(1);
   const licenseKey = row?.licenseKey ?? null;
-  if (!licenseKey) return null;
+  const expiresAt = serializeExpiresAt(row?.expiresAt);
+  if (!licenseKey) return { licenseKey: null, expiresAt };
 
   const { recordMilestoneMeterFirstSafe, LICENSE_KEY_FETCHED_METER_NAME } = await import(
     '../../lib/nudges/milestone-meters.js'
@@ -352,7 +372,7 @@ async function getUserLicenseKey(
     userId,
     path: 'billing/subscription',
   });
-  return licenseKey;
+  return { licenseKey, expiresAt };
 }
 
 app.openapi(subscriptionRoute, async (c) => {
@@ -363,12 +383,13 @@ app.openapi(subscriptionRoute, async (c) => {
 
   const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
   if (requestEntitlements?.accountId && requestEntitlements.tier) {
+    const snapshot = await getUserLicenseSnapshot(user.id, requestEntitlements.accountId);
     return c.json(
       {
         tier: requestEntitlements.tier,
         status: requestEntitlements.subscriptionStatus ?? 'active',
-        expiresAt: null,
-        licenseKey: await getUserLicenseKey(user.id, requestEntitlements.accountId),
+        expiresAt: snapshot.expiresAt,
+        licenseKey: snapshot.licenseKey,
       },
       200,
     );
@@ -376,12 +397,15 @@ app.openapi(subscriptionRoute, async (c) => {
 
   const hostedSubscription = await getHostedSubscriptionSnapshot(user.id);
   if (hostedSubscription) {
+    const snapshot = await getUserLicenseSnapshot(user.id, requestEntitlements?.accountId);
+    const trialingFallback =
+      hostedSubscription.status === 'trialing' ? hostedSubscription.graceUntil : null;
     return c.json(
       {
         tier: hostedSubscription.tier,
         status: hostedSubscription.status,
-        expiresAt: null,
-        licenseKey: await getUserLicenseKey(user.id, requestEntitlements?.accountId),
+        expiresAt: snapshot.expiresAt ?? trialingFallback,
+        licenseKey: snapshot.licenseKey,
         graceUntil: hostedSubscription.graceUntil,
       },
       200,
@@ -434,7 +458,7 @@ app.openapi(subscriptionRoute, async (c) => {
 
   // Durable fetch meter via the same helper path as entitlement short-circuits.
   const licenseKey = license.licenseKey
-    ? await getUserLicenseKey(user.id, requestEntitlements?.accountId)
+    ? (await getUserLicenseSnapshot(user.id, requestEntitlements?.accountId)).licenseKey
     : null;
 
   return c.json(
@@ -571,6 +595,7 @@ app.openapi(upgradeRoute, async (c) => {
   assertAccountOwner(c);
 
   const { priceId, targetTier } = c.req.valid('json');
+  assertUnattendedCheckoutAllowed(targetTier);
   const resolvedPriceId = await resolveCatalogPriceId(targetTier, 'subscription', priceId);
   const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
 
@@ -1048,6 +1073,7 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
   }
 
   const { priceId, tier, githubUsername } = c.req.valid('json');
+  assertUnattendedCheckoutAllowed(tier);
 
   const db = getClient();
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { usePasskeyRegister } from '@revealui/auth/react';
+import { perpetualLicenseCheckoutPath, perpetualLicenseLabel } from '@revealui/contracts/pricing';
 import { CheckboxCVA } from '@revealui/presentation/client';
 import {
   Button,
@@ -14,6 +15,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { type ChangeEvent, type FormEvent, Suspense, useState } from 'react';
 import { PasswordInput } from '@/lib/components/PasswordInput';
 import { navigateAfterAuthChange } from '@/lib/utils/auth-navigation';
+import { parseLicense } from '@/lib/utils/auth-redirect';
 import { apiFetch } from '@/lib/utils/csrf';
 
 interface SignupFormProps {
@@ -46,11 +48,21 @@ export function SignupForm({ apiUrl }: SignupFormProps) {
 function SignupContent({ apiUrl }: SignupFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // Paid-tier deep link from the marketing pricing cards (?plan=pro|max|enterprise).
-  // Unknown values are ignored rather than forwarded to the billing page.
+  // Paid-tier deep link from marketing (?plan=pro|max|enterprise).
+  // Unknown values are ignored. Enterprise is accepted but is not a
+  // self-serve trial; 2669 restricted the 7-day trial to Pro and Max.
+  // Perpetual Buy uses ?license= (not ?plan=) so it cannot start a trial.
   const planParam = searchParams.get('plan');
   const plan: 'pro' | 'max' | 'enterprise' | null =
     planParam === 'pro' || planParam === 'max' || planParam === 'enterprise' ? planParam : null;
+  const trialPlan: 'pro' | 'max' | null = plan === 'pro' || plan === 'max' ? plan : null;
+  const license = parseLicense(searchParams.get('license'));
+  const afterAuthDest = license
+    ? perpetualLicenseCheckoutPath(license)
+    : trialPlan
+      ? `/account/billing?upgrade=${trialPlan}`
+      : '/welcome';
+  const loginHref = license ? `/login?license=${license}` : '/login';
   const {
     register: registerPasskey,
     isLoading: isPasskeyLoading,
@@ -81,7 +93,8 @@ function SignupContent({ apiUrl }: SignupFormProps) {
 
     setIsLoading(true);
     try {
-      const res = await apiFetch(`/api/auth/sign-up${plan ? `?plan=${plan}` : ''}`, {
+      const signupQuery = license ? `?license=${license}` : trialPlan ? `?plan=${trialPlan}` : '';
+      const res = await apiFetch(`/api/auth/sign-up${signupQuery}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -104,11 +117,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
         // sign in — show a confirmation screen instead of pushing them to a
         // protected route that would only bounce back to /login.
         if (data.user?.emailVerified) {
-          if (plan) {
-            navigateAfterAuthChange(`/account/billing?upgrade=${plan}`);
-          } else {
-            navigateAfterAuthChange('/welcome');
-          }
+          navigateAfterAuthChange(afterAuthDest);
         } else {
           setAwaitingVerification(true);
         }
@@ -145,7 +154,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
       if (result.backupCodes?.length) {
         setBackupCodes(result.backupCodes);
       } else {
-        navigateAfterAuthChange(plan ? `/account/billing?upgrade=${plan}` : '/welcome');
+        navigateAfterAuthChange(afterAuthDest);
       }
     }
   };
@@ -195,7 +204,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
               ? 'Sending…'
               : 'Resend verification email'}
         </Button>
-        <Button onClick={() => router.push('/login')} className="w-full">
+        <Button onClick={() => router.push(loginHref)} className="w-full">
           Go to sign in
         </Button>
       </div>
@@ -222,12 +231,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
         <p className="text-xs text-zinc-600">
           Each code can only be used once. Keep them somewhere safe.
         </p>
-        <Button
-          onClick={() =>
-            navigateAfterAuthChange(plan ? `/account/billing?upgrade=${plan}` : '/welcome')
-          }
-          className="w-full"
-        >
+        <Button onClick={() => navigateAfterAuthChange(afterAuthDest)} className="w-full">
           I&apos;ve saved my codes
         </Button>
       </div>
@@ -242,10 +246,23 @@ function SignupContent({ apiUrl }: SignupFormProps) {
         Create your account
       </Heading>
 
-      {plan ? (
+      {license ? (
         <p className="text-sm text-muted-foreground">
-          Sign up to start your free 7-day{' '}
-          {plan === 'pro' ? 'Pro' : plan === 'max' ? 'Max' : 'Enterprise'} trial.
+          Sign up to buy {perpetualLicenseLabel(license)}. Already have an account?{' '}
+          <Link
+            href={loginHref}
+            className="text-[var(--tenant-brand,#2563eb)] underline hover:opacity-80"
+          >
+            Sign in
+          </Link>
+        </p>
+      ) : trialPlan ? (
+        <p className="text-sm text-muted-foreground">
+          Sign up to start your free 7-day {trialPlan === 'pro' ? 'Pro' : 'Max'} trial.
+        </p>
+      ) : plan === 'enterprise' ? (
+        <p className="text-sm text-muted-foreground">
+          Enterprise is sold through sales, not a 7-day trial.
         </p>
       ) : (
         <p className="text-sm text-muted-foreground">

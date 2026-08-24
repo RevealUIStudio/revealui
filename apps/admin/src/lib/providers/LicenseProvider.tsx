@@ -4,7 +4,7 @@ import type { LicenseTierId } from '@revealui/contracts/pricing';
 import type { FeatureFlags } from '@revealui/core/features';
 import { createPaywall } from '@revealui/paywall';
 import { PaywallProvider, usePaywall } from '@revealui/paywall/client';
-import { isPreAuthPublicPath, redirectToLogin } from '@/lib/auth/redirect-to-login';
+import { isPreAuthPublicPath } from '@/lib/auth/redirect-to-login';
 
 /** Shared paywall instance for the admin. */
 const paywall = createPaywall();
@@ -42,7 +42,7 @@ export class LicenseResolveFailure extends Error {
   }
 }
 
-async function resolveSaasTier(): Promise<string> {
+export async function resolveSaasTier(): Promise<string> {
   // Login / MFA / signup have no full session yet. Do not probe subscription
   // (401 would bounce /mfa → /login — owner GAP-360 walk).
   if (typeof window !== 'undefined' && isPreAuthPublicPath(window.location.pathname)) {
@@ -57,7 +57,8 @@ async function resolveSaasTier(): Promise<string> {
 
   let res: Response;
   try {
-    res = await fetch(`${apiUrl}/api/billing/subscription`, {
+    // Same-origin App Router proxy forwards host-only revealui-session.
+    res = await fetch('/api/billing/subscription', {
       credentials: 'include',
     });
   } catch {
@@ -65,10 +66,12 @@ async function resolveSaasTier(): Promise<string> {
   }
 
   if (res.status === 401) {
-    // Dead session: send the operator to re-auth. Do not claim free.
-    // redirectToLogin itself no-ops on /mfa etc. as a second belt.
-    redirectToLogin();
-    throw new LicenseResolveFailure('auth-required', 'subscription returned 401');
+    // Same-origin proxy still 401s when the API session is missing. That is
+    // "API session unavailable", not "admin signed out". revealui-session is
+    // httpOnly, so document.cookie cannot prove presence and must not gate
+    // this path. True-unauth visitors never render this tree on protected
+    // routes (proxy sends them to /login?redirect=).
+    throw new LicenseResolveFailure('unavailable', 'subscription returned 401');
   }
 
   if (!res.ok) {

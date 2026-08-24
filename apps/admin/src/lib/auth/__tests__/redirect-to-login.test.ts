@@ -49,10 +49,10 @@ describe('redirectToLogin', () => {
     expect(assign).not.toHaveBeenCalled();
   });
 
-  it('sends protected paths to login with returnUrl', () => {
-    window.location.pathname = '/settings/api-keys';
+  it('sends protected paths to login with redirect= (aligned with LoginForm)', () => {
+    window.location.pathname = '/account/license';
     window.location.search = '';
     redirectToLogin();
-    expect(assign).toHaveBeenCalledWith('/login?returnUrl=%2Fsettings%2Fapi-keys');
+    expect(assign).toHaveBeenCalledWith('/login?redirect=%2Faccount%2Flicense');
   });
 });

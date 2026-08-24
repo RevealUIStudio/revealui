@@ -111,6 +111,67 @@ describe('DrizzleBackedAuditStorage — real PGlite schema, not a vi.fn() mock',
     expect(mapSeverityToDb('high')).toBe('critical');
     expect(mapSeverityToDb('critical')).toBe('critical');
   });
+
+  it('GAP-464 SSO event types persist to audit_log with structured fields', async () => {
+    const { auditLog } = await import('@revealui/db/schema');
+    const cases = [
+      {
+        type: 'sso_login_success' as const,
+        userId: 'user-sso',
+        metadata: {
+          providerType: 'oidc',
+          accountId: 'acct-1',
+          userId: 'user-sso',
+          issuer: 'https://idp.example.com',
+        },
+      },
+      {
+        type: 'sso_login_failure' as const,
+        userId: 'acct-1',
+        metadata: {
+          providerType: 'saml',
+          accountId: 'acct-1',
+          userId: null,
+          issuer: 'https://idp.example.com',
+          reason: 'invalid_signature',
+        },
+      },
+      {
+        type: 'sso_config_changed' as const,
+        userId: 'admin-1',
+        metadata: {
+          providerType: 'oidc',
+          accountId: 'acct-1',
+          userId: 'admin-1',
+          issuer: 'https://idp.example.com',
+          action: 'create',
+        },
+      },
+    ];
+
+    for (const row of cases) {
+      await storage.write(
+        makeEvent({
+          type: row.type,
+          actor: { id: row.userId, type: 'user' },
+          metadata: row.metadata,
+        }),
+      );
+    }
+
+    const persisted = await testDb.drizzle.select().from(auditLog);
+    const byType = new Map(persisted.map((entry) => [entry.eventType, entry]));
+    expect(byType.has('sso_login_success')).toBe(true);
+    expect(byType.has('sso_login_failure')).toBe(true);
+    expect(byType.has('sso_config_changed')).toBe(true);
+
+    for (const row of cases) {
+      const stored = byType.get(row.type);
+      expect(stored?.agentId).toBe(row.userId);
+      const payload = stored?.payload as { metadata?: Record<string, unknown> };
+      expect(payload.metadata).toMatchObject(row.metadata);
+    }
+  });
 });
 
 describe('auditStorageSelfTest — boot-time round-trip gate', () => {

@@ -5,6 +5,7 @@
  * Uses the cached license state from @revealui/core  -  no DB call per request.
  */
 
+import { detectDeploymentMode } from '@revealui/core/deployment-mode';
 import {
   type FeatureFlags,
   getFeaturesForTier,
@@ -21,6 +22,7 @@ import {
 } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import { trackX402PaymentRequired } from '@revealui/core/observability/metrics';
+import { ALLOW_UNLICENSED_SELF_HOST_ENV } from '@revealui/core/revforge-license-boot';
 import type { MiddlewareHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import {
@@ -294,9 +296,10 @@ export const requireFeature = (
 
 /**
  * Reject any request whose Host is not covered by the license's `domains`
- * claim. No-op when the license carries no domain restrictions (free tier or
- * unrestricted kits). Subdomain matching + the localhost allowance live in the
- * shared `hostMatchesLicensedDomains` matcher in `@revealui/core`.
+ * claim. Empty `domains` fail closed on Forge production unless
+ * `REVEALUI_ALLOW_UNLICENSED_SELF_HOST`. Loopback (localhost / 127.0.0.1) is
+ * allowed only when `NODE_ENV` is not production. Subdomain matching lives in
+ * `hostMatchesLicensedDomains`.
  *
  * The allowed domains come from the verified JWT payload (`getLicensePayload`),
  * so the lock is cryptographically bound — it cannot be spoofed via an env var.
@@ -307,20 +310,33 @@ export const requireFeature = (
 export const requireDomain = (): MiddlewareHandler => {
   return async (c, next) => {
     const payload = getLicensePayload();
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isForge = detectDeploymentMode(process.env) === 'forge';
+    const allowUnlicensed = process.env[ALLOW_UNLICENSED_SELF_HOST_ENV] === 'true';
 
-    // No domain restrictions  -  pass through
-    if (!payload?.domains || payload.domains.length === 0) {
+    if (!payload) {
       await next();
       return;
     }
 
-    // Bind to the served Host (always present), not Origin/Referer — this is a
-    // deployment domain-lock, not a CORS check. localhost/127.0.0.1 are allowed
-    // by the shared matcher so trial kits on http://localhost still serve.
+    const domains = payload.domains ?? [];
+    if (domains.length === 0) {
+      if (isForge && isProduction && !allowUnlicensed) {
+        throw new HTTPException(403, {
+          message:
+            'This RevealUI instance has no licensed domains claim. Set REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true for Free (OSS), or install a license with domains.',
+        });
+      }
+      await next();
+      return;
+    }
+
+    // Published APIs (NODE_ENV=production) must not accept Host: localhost
+    // when a domains claim is present. Trial / unpublished still may.
     const host = c.req.header('host') ?? '';
-    if (!hostMatchesLicensedDomains(host, payload.domains)) {
+    if (!hostMatchesLicensedDomains(host, domains, { allowLoopback: !isProduction })) {
       throw new HTTPException(403, {
-        message: `This RevealUI instance is not licensed for host '${host || '(none)'}'. Licensed domains: ${payload.domains.join(', ')}`,
+        message: `This RevealUI instance is not licensed for host '${host || '(none)'}'. Licensed domains: ${domains.join(', ')}`,
       });
     }
 

@@ -29,6 +29,10 @@ export {
   auditPasswordChange,
   auditPasswordReset,
   auditSessionRevoked,
+  auditSsoConfigChanged,
+  auditSsoLoginFailure,
+  auditSsoLoginSuccess,
+  type SsoAuditContext,
 } from './audit-bridge.js';
 // NOTE (GAP-338): the audit storage boundary lives at the DEDICATED subpath
 // `@revealui/auth/audit-storage`, deliberately NOT re-exported from this

@@ -568,7 +568,12 @@ async function main() {
       process.stdout.write(`${JSON.stringify(view, null, 2)}\n`);
       return;
     }
-    process.stderr.write('Usage: revealui-harnesses inference <status|apply> [tier]\n');
+    if (subcommand === 'reconcile') {
+      const view = await inference.profileReconcile();
+      process.stdout.write(`${JSON.stringify(view, null, 2)}\n`);
+      return;
+    }
+    process.stderr.write('Usage: revealui-harnesses inference <status|apply|reconcile> [tier]\n');
     process.exit(1);
   }
 
@@ -813,6 +818,7 @@ Commands:
   tmpscript <subcommand>            Temp-artifact lifecycle (GAP-295 control layer)
   inference status                  Local AI profile (tier, mem, engines)
   inference apply <tier>            idle|daily|snaps|heavy (host control plane)
+  inference reconcile               Re-apply stored tier; start only signed snaps that fit RAM
 
 Content Subcommands:
   content list                      List all canonical content with metadata

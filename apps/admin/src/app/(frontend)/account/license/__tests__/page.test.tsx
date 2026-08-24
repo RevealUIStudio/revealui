@@ -13,17 +13,29 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+const sessionState = vi.hoisted(() => ({
+  data: { user: { id: 'user-1', email: 'owner@example.com' } } as {
+    user: { id: string; email: string };
+  } | null,
+  isLoading: false,
+}));
+
 const mockPush = vi.fn();
+const mockRouter = { push: mockPush };
+let mockLicenseParam: string | null = null;
 
 vi.mock('@revealui/auth/react', () => ({
   useSession: () => ({
-    data: { user: { id: 'user-1', email: 'owner@example.com' } },
-    isLoading: false,
+    data: sessionState.data,
+    isLoading: sessionState.isLoading,
   }),
 }));
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => mockRouter,
+  useSearchParams: () => ({
+    get: (key: string) => (key === 'license' ? mockLicenseParam : null),
+  }),
 }));
 
 vi.mock('next/link', () => ({
@@ -52,6 +64,8 @@ vi.mock('@/lib/utils/safe-stripe-redirect', () => ({
   safeStripeRedirect: vi.fn(),
 }));
 
+import { apiFetch } from '@/lib/utils/csrf';
+import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 import LicensePage from '../page';
 
 const TEST_PUBLIC_KEY = '-----BEGIN PUBLIC KEY-----\ntest-pem\n-----END PUBLIC KEY-----';
@@ -62,6 +76,9 @@ function jsonResponse(body: unknown): Pick<Response, 'ok' | 'json'> {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockLicenseParam = null;
+  sessionState.data = { user: { id: 'user-1', email: 'owner@example.com' } };
+  sessionState.isLoading = false;
   vi.stubGlobal(
     'fetch',
     vi.fn((input: RequestInfo | URL) => {
@@ -89,6 +106,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
 });
 
 describe('LicensePage activation instructions', () => {
@@ -121,12 +139,11 @@ describe('LicensePage activation instructions', () => {
   });
 });
 
-// GAP-306: the perpetual-purchase buttons must match PERPETUAL_TIERS[*].name
-// in @revealui/contracts/pricing exactly (the price lookup keys off it), and
-// Enterprise must have a buy button just like Pro and Agency (no tier is
-// mailto-only in-app).
+// GAP-306: the perpetual-purchase labels must match PERPETUAL_TIERS[*].name
+// in @revealui/contracts/pricing exactly (the price lookup keys off it).
+// Enterprise is Contact sales — same door as public pricing — not a Buy.
 describe('LicensePage perpetual purchase plans', () => {
-  it('renders Pro, Agency, and Enterprise Perpetual buy options (no "Max Perpetual")', async () => {
+  it('renders Pro and Agency Buy, and parks Enterprise Perpetual at Contact sales', async () => {
     render(<LicensePage />);
 
     await waitFor(() => {
@@ -137,5 +154,162 @@ describe('LicensePage perpetual purchase plans', () => {
     expect(screen.getByText('Agency Perpetual')).toBeDefined();
     expect(screen.getByText('Enterprise Perpetual')).toBeDefined();
     expect(screen.queryByText('Max Perpetual')).toBeNull();
+    expect(
+      screen.getByText(
+        'Enterprise license plus studio onboarding. Not an unattended Fleet pull-and-run kit. Includes 1 year of support.',
+      ),
+    ).toBeDefined();
+    expect(
+      screen.getByText(
+        'Max features forever, up to 10 client deployments. License plus a thin kit, not an unattended RevForge Fleet stamp. Includes 1 year of support.',
+      ),
+    ).toBeDefined();
+    const sales = screen.getByRole('link', { name: 'Contact sales' });
+    expect(sales).toHaveAttribute('href', 'https://revealui.com/contact');
+    expect(screen.getAllByRole('button', { name: /^Buy / })).toHaveLength(2);
+    expect(screen.queryByRole('button', { name: /Buy \$42/ })).toBeNull();
+  });
+
+  it('names the SKU and auto-starts Pro Perpetual checkout from ?license=pro', async () => {
+    mockLicenseParam = 'pro';
+    vi.mocked(apiFetch).mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ url: 'https://checkout.stripe.com/c/pay/cs_test_pro' }),
+    } as never);
+
+    render(<LicensePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Continuing Pro Perpetual checkout.')).toBeDefined();
+    });
+    await waitFor(() => {
+      expect(safeStripeRedirect).toHaveBeenCalledWith(
+        'https://checkout.stripe.com/c/pay/cs_test_pro',
+      );
+    });
+  });
+});
+
+describe('LicensePage session miss', () => {
+  it('does not router.push /login when useSession is empty', async () => {
+    sessionState.data = null;
+
+    render(<LicensePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('test-license-jwt')).toBeDefined();
+    });
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockPush).not.toHaveBeenCalledWith('/login?redirect=/account/license');
+    expect(mockPush).not.toHaveBeenCalledWith('/');
+  });
+
+  it('stays on the page with a failed-to-load state when useSession is empty and license fetch fails', async () => {
+    sessionState.data = null;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve({ ok: false, json: () => Promise.resolve({}) })),
+    );
+
+    render(<LicensePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/failed to load/i)).toBeDefined();
+    });
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(screen.queryByText('test-license-jwt')).toBeNull();
+  });
+
+  it('names the perpetual SKU on a session-miss with ?license=pro and does not push /login', async () => {
+    mockLicenseParam = 'pro';
+    sessionState.data = null;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve({ ok: false, json: () => Promise.resolve({}) })),
+    );
+
+    render(<LicensePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Continuing Pro Perpetual checkout.')).toBeDefined();
+    });
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockPush).not.toHaveBeenCalledWith('/login?redirect=/account/license');
+  });
+
+  it('shows an honest empty state when the subscription has no license key', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith('/api/billing/subscription')) {
+          return Promise.resolve(
+            jsonResponse({
+              tier: 'pro',
+              status: 'active',
+              expiresAt: null,
+              licenseKey: null,
+              perpetual: false,
+              supportExpiresAt: null,
+            }),
+          );
+        }
+        return Promise.resolve({ ok: false, json: () => Promise.resolve({}) });
+      }),
+    );
+
+    render(<LicensePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('No license key is on this account yet.')).toBeDefined();
+    });
+    expect(screen.queryByText('test-license-jwt')).toBeNull();
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+});
+
+describe('LicensePage same-origin billing proxy', () => {
+  const stagingApi = 'https://api.staging.revealui.com';
+
+  it('fetches subscription on /api/billing/subscription, not the API host', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_URL', stagingApi);
+
+    render(<LicensePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('test-license-jwt')).toBeDefined();
+    });
+
+    const urls = vi.mocked(fetch).mock.calls.map(([input]) => String(input));
+    expect(urls).toContain('/api/billing/subscription');
+    expect(
+      urls.some(
+        (url) => url.startsWith(`${stagingApi}/`) && url.endsWith('/api/billing/subscription'),
+      ),
+    ).toBe(false);
+  });
+
+  it('posts perpetual checkout to same-origin /api/billing/checkout-perpetual', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_URL', stagingApi);
+    vi.mocked(apiFetch).mockResolvedValue({
+      json: () => Promise.resolve({ url: 'https://checkout.stripe.com/c/test' }),
+    } as Response);
+
+    render(<LicensePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('test-license-jwt')).toBeDefined();
+    });
+
+    screen.getAllByRole('button', { name: /^Buy / })[0]?.click();
+
+    await waitFor(() => {
+      expect(apiFetch).toHaveBeenCalledWith(
+        '/api/billing/checkout-perpetual',
+        expect.objectContaining({ method: 'POST', credentials: 'include' }),
+      );
+    });
+    const checkoutUrl = String(vi.mocked(apiFetch).mock.calls[0]?.[0]);
+    expect(checkoutUrl.startsWith(stagingApi)).toBe(false);
   });
 });

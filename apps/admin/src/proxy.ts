@@ -1,7 +1,9 @@
+import { parsePerpetualLicenseSku } from '@revealui/contracts/pricing';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { buildAdminCsp, generateNonce } from './lib/security/csp';
 import { generateCsrfToken, validateCsrfToken } from './lib/utils/csrf-token';
+import { safePostAuthRedirect } from './lib/utils/safe-internal-redirect';
 
 const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
@@ -163,16 +165,40 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     }
   }
 
+  // Bookmark / stale email path: Payload's [[...segments]] catch-all rendered
+  // the dashboard at this URL. Send it to the real license page.
+  if (
+    pathname === '/settings/account/license' ||
+    pathname.startsWith('/settings/account/license/')
+  ) {
+    const licenseUrl = request.nextUrl.clone();
+    licenseUrl.pathname = '/account/license';
+    return NextResponse.redirect(licenseUrl, 301);
+  }
+
   // Already-authenticated users have no reason to see the login/signup screens.
-  // Admins go to /, non-admins go to /welcome.
+  // Honor a safe same-origin redirect/returnUrl so a license CTA is not dumped
+  // on admin home `/` (search used to be wiped unconditionally).
   if (pathname === '/login' || pathname === '/signup') {
     const session = request.cookies.get('revealui-session')?.value;
     const role = request.cookies.get('revealui-role')?.value;
     if (session && role) {
-      const homeUrl = request.nextUrl.clone();
-      homeUrl.pathname = ADMIN_ROLES.has(role) ? '/' : '/welcome';
-      homeUrl.search = '';
-      return NextResponse.redirect(homeUrl);
+      const destUrl = request.nextUrl.clone();
+      const requested = safePostAuthRedirect(
+        request.nextUrl.searchParams.get('redirect') ??
+          request.nextUrl.searchParams.get('returnUrl'),
+        request.nextUrl.origin,
+      );
+      if (requested) {
+        const parsed = new URL(requested, request.nextUrl.origin);
+        destUrl.pathname = parsed.pathname;
+        destUrl.search = parsed.search;
+        destUrl.hash = parsed.hash;
+      } else {
+        destUrl.pathname = ADMIN_ROLES.has(role) ? '/' : '/welcome';
+        destUrl.search = '';
+      }
+      return NextResponse.redirect(destUrl);
     }
   }
 
@@ -186,6 +212,16 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
   if (!(isInternal || isPublic)) {
     const session = request.cookies.get('revealui-session')?.value;
     if (!session) {
+      if (pathname === '/account/license') {
+        const license = parsePerpetualLicenseSku(request.nextUrl.searchParams.get('license'));
+        if (license) {
+          const signupUrl = request.nextUrl.clone();
+          signupUrl.pathname = '/signup';
+          signupUrl.search = '';
+          signupUrl.searchParams.set('license', license);
+          return NextResponse.redirect(signupUrl);
+        }
+      }
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = '/login';
       loginUrl.searchParams.set('redirect', pathname);

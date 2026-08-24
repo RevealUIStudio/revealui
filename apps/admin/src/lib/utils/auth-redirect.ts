@@ -1,14 +1,25 @@
 'use client';
 
-import { safeInternalRedirect } from '@/lib/utils/safe-internal-redirect';
+import {
+  type PerpetualLicenseSku,
+  parsePerpetualLicenseSku,
+  perpetualLicenseCheckoutPath,
+} from '@revealui/contracts/pricing';
+import { safePostAuthRedirect } from '@/lib/utils/safe-internal-redirect';
 
-/** Paid self-serve checkout plans (subscription). GAP-302 Phase 1 adds enterprise. */
+/** Known paid-plan deep links. Pro/Max are self-serve checkout; Enterprise is sales-assisted. */
 export type UpgradePlan = 'pro' | 'max' | 'enterprise';
 
-/** Narrow a raw ?upgrade= / ?plan= value to a known checkout plan, or null. */
+export type { PerpetualLicenseSku };
+
+/** Narrow a raw ?upgrade= / ?plan= value to a known plan, or null. */
 export function parseUpgrade(raw: string | null): UpgradePlan | null {
   if (raw === 'pro' || raw === 'max' || raw === 'enterprise') return raw;
   return null;
+}
+
+export function parseLicense(raw: string | null): PerpetualLicenseSku | null {
+  return parsePerpetualLicenseSku(raw);
 }
 
 /** A URLSearchParams-like reader (matches Next's useSearchParams() return). */
@@ -17,46 +28,59 @@ interface ParamReader {
 }
 
 /**
- * Read the upgrade + validated same-origin redirect intent from a query reader.
- * `redirect` is passed through safeInternalRedirect, so the result is always a
- * safe internal path or null.
+ * Read the upgrade + perpetual license + validated same-origin redirect intent
+ * from a query reader. Accepts both `redirect` (LoginForm / proxy) and
+ * `returnUrl` (legacy LicenseProvider) so a return path is not discarded
+ * for admin fallback `/`.
  */
 export function readAuthIntent(searchParams: ParamReader): {
   upgrade: UpgradePlan | null;
+  license: PerpetualLicenseSku | null;
   redirect: string | null;
 } {
   return {
     upgrade: parseUpgrade(searchParams.get('upgrade')),
-    redirect: safeInternalRedirect(searchParams.get('redirect')),
+    license: parseLicense(searchParams.get('license')),
+    redirect:
+      safePostAuthRedirect(searchParams.get('redirect')) ??
+      safePostAuthRedirect(searchParams.get('returnUrl')),
   };
 }
 
 /**
- * Resolve the post-auth destination with precedence upgrade > redirect > fallback.
- * `upgrade` routes to the billing checkout entry; `redirect` must already be a
- * validated same-origin path (see readAuthIntent / safeInternalRedirect).
+ * Resolve the post-auth destination with precedence
+ * license > upgrade > redirect > fallback.
+ * `license` is the perpetual Buy hop (`?license=pro|agency|enterprise`).
+ * `upgrade` routes to the billing entry (Pro/Max auto-checkout; Enterprise
+ * parks at Contact sales). `redirect` must already be a validated same-origin
+ * path (see readAuthIntent / safeInternalRedirect). Destinations stay
+ * same-origin because verify-email concatenates `${baseUrl}${dest}`.
  */
 export function resolveAuthDest(opts: {
   upgrade: UpgradePlan | null;
+  license?: PerpetualLicenseSku | null;
   redirect: string | null;
   fallback: string;
 }): string {
+  if (opts.license) return perpetualLicenseCheckoutPath(opts.license);
   if (opts.upgrade) return `/account/billing?upgrade=${opts.upgrade}`;
   if (opts.redirect) return opts.redirect;
   return opts.fallback;
 }
 
 /**
- * Build the query string ('' or '?...') that carries upgrade/redirect intent
- * through an intermediate auth step (e.g. /mfa, /rotate-password) so the final
- * destination survives the multi-step flow.
+ * Build the query string ('' or '?...') that carries upgrade/license/redirect
+ * intent through an intermediate auth step (e.g. /mfa, /rotate-password) so
+ * the final destination survives the multi-step flow.
  */
 export function buildAuthIntentQuery(opts: {
   upgrade: UpgradePlan | null;
+  license?: PerpetualLicenseSku | null;
   redirect: string | null;
 }): string {
   const params = new URLSearchParams();
   if (opts.upgrade) params.set('upgrade', opts.upgrade);
+  if (opts.license) params.set('license', opts.license);
   if (opts.redirect) params.set('redirect', opts.redirect);
   const qs = params.toString();
   return qs ? `?${qs}` : '';

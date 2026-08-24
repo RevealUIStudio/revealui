@@ -6,6 +6,11 @@
  */
 
 import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
+import {
+  allowsUnattendedCheckout,
+  ENTERPRISE_SALES_HREF,
+  type LicenseTierId,
+} from '@revealui/contracts/pricing';
 import { CircuitBreakerOpenError } from '@revealui/core/error-handling';
 import { getMaxAgentTasks } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
@@ -305,6 +310,20 @@ export const InvoicesResponseSchema = z.object({
   invoices: z.array(InvoiceItemSchema),
   hasMore: z.boolean().openapi({ description: 'Whether more invoices exist' }),
 });
+
+/**
+ * Enterprise subscription and Enterprise Perpetual are sales-assisted.
+ * A crafted POST with an Enterprise price id must not open Stripe Checkout
+ * or apply a mid-cycle upgrade. Agency Founding Kit fulfillment uses
+ * `tier: max` (see docs/distribution/AGENCY-FOUNDING-KIT-FULFILLMENT.md);
+ * RevForge license mint is operator CLI, not this route.
+ */
+export function assertUnattendedCheckoutAllowed(tier: string): void {
+  if (allowsUnattendedCheckout(tier as LicenseTierId)) return;
+  throw new HTTPException(400, {
+    message: `Enterprise plans require a sales conversation. Contact sales at ${ENTERPRISE_SALES_HREF}`,
+  });
+}
 
 export const UpgradeRequestSchema = z.object({
   priceId: z.string().min(1).optional().openapi({

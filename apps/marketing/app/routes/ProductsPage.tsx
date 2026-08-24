@@ -1,4 +1,16 @@
-import { Button, IconCheckCircle, MarketingSection, SectionHeader } from '@revealui/presentation';
+import {
+  Badge,
+  type BadgeIntent,
+  Button,
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  IconCheckCircle,
+  MarketingSection,
+  SectionHeader,
+} from '@revealui/presentation';
 import { useState } from 'react';
 import { Footer } from '../components/Footer';
 import { Faq } from '../components/landing/Faq';
@@ -6,9 +18,9 @@ import { Proof } from '../components/landing/Proof';
 import { ProductsCta } from '../components/products/ProductsCta';
 import { ProductsHero } from '../components/products/ProductsHero';
 import {
-  PRODUCT_STATUS_STYLES,
   PRODUCTS_FLAGSHIP,
   PRODUCTS_SISTERS,
+  PRODUCTS_SISTERS_SECTION,
   PRODUCTS_STATS_SECTION,
   type ProductStatus,
 } from '../content/products';
@@ -26,9 +38,16 @@ const STATUS_FILTERS: readonly (ProductStatus | 'All')[] = [
   'All',
   'Beta',
   'Alpha',
-  'Active (MIT)',
+  'GA',
   'Planned',
 ];
+
+const STATUS_BADGE_INTENT: Readonly<Record<ProductStatus, BadgeIntent>> = {
+  Beta: 'brand',
+  Alpha: 'neutral',
+  GA: 'success',
+  Planned: 'muted',
+};
 
 export function ProductsPage() {
   const [filter, setFilter] = useState<ProductStatus | 'All'>('All');
@@ -82,12 +101,12 @@ export function ProductsPage() {
               </div>
             </div>
             <div className="flex items-center gap-2 text-xs font-semibold">
-              <span className="rounded-full bg-primary-foreground/15 px-3 py-1 text-primary-foreground ring-1 ring-primary-foreground/25">
+              <Badge className="bg-primary-foreground/15 text-primary-foreground ring-1 ring-primary-foreground/25">
                 {PRODUCTS_FLAGSHIP.status}
-              </span>
-              <span className="rounded-full bg-primary-foreground/10 px-3 py-1 font-mono text-primary-foreground/90 ring-1 ring-primary-foreground/20">
+              </Badge>
+              <Badge className="bg-primary-foreground/10 font-mono text-primary-foreground/90 ring-1 ring-primary-foreground/20">
                 {PRODUCTS_FLAGSHIP.version}
-              </span>
+              </Badge>
             </div>
           </div>
 
@@ -120,27 +139,34 @@ export function ProductsPage() {
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <a
-              href={PRODUCTS_FLAGSHIP.ctas.docs.href}
-              className="rounded-md bg-primary-foreground px-6 py-3 text-sm font-semibold text-primary shadow-sm transition-colors hover:bg-primary-foreground/90"
+            <Button asChild variant="neutral" appearance="solid">
+              <a href={PRODUCTS_FLAGSHIP.ctas.docs.href}>{PRODUCTS_FLAGSHIP.ctas.docs.label}</a>
+            </Button>
+            <Button
+              asChild
+              appearance="outline"
+              variant="neutral"
+              className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/15"
             >
-              {PRODUCTS_FLAGSHIP.ctas.docs.label}
-            </a>
-            <a
-              href={PRODUCTS_FLAGSHIP.ctas.pricing.href}
-              className="rounded-md bg-primary-foreground/15 px-6 py-3 text-sm font-semibold text-primary-foreground ring-1 ring-primary-foreground/25 transition-colors hover:bg-primary-foreground/25"
+              <a href={PRODUCTS_FLAGSHIP.ctas.pricing.href}>
+                {PRODUCTS_FLAGSHIP.ctas.pricing.label}
+              </a>
+            </Button>
+            <Button
+              asChild
+              appearance="ghost"
+              variant="neutral"
+              className="text-primary-foreground hover:bg-primary-foreground/10"
             >
-              {PRODUCTS_FLAGSHIP.ctas.pricing.label}
-            </a>
-            <a
-              href={PRODUCTS_FLAGSHIP.ctas.repo.href}
-              className="rounded-md px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-foreground/10"
-              {...(PRODUCTS_FLAGSHIP.ctas.repo.external
-                ? { target: '_blank', rel: 'noreferrer' }
-                : {})}
-            >
-              {PRODUCTS_FLAGSHIP.ctas.repo.label}
-            </a>
+              <a
+                href={PRODUCTS_FLAGSHIP.ctas.repo.href}
+                {...(PRODUCTS_FLAGSHIP.ctas.repo.external
+                  ? { target: '_blank', rel: 'noreferrer' }
+                  : {})}
+              >
+                {PRODUCTS_FLAGSHIP.ctas.repo.label}
+              </a>
+            </Button>
           </div>
         </div>
       </MarketingSection>
@@ -148,8 +174,8 @@ export function ProductsPage() {
       {/* Sister products — uniform card grid */}
       <MarketingSection tone="secondary" density="default" width="default">
         <SectionHeader
-          title="And the rest of the fleet"
-          description="Sister products that extend the runtime: secrets, dev tooling, white-labeling, skills, and the agent tool catalog."
+          title={PRODUCTS_SISTERS_SECTION.title}
+          description={PRODUCTS_SISTERS_SECTION.description}
           align="center"
         />
 
@@ -190,74 +216,70 @@ export function ProductsPage() {
 
         <ul className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 md:grid-cols-2">
           {visibleSisters.map((product) => {
-            const status = PRODUCT_STATUS_STYLES[product.status];
             return (
-              <li
-                key={product.slug}
-                id={product.slug}
-                className="group relative flex flex-col rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary ring-1 ring-border">
-                      <svg
-                        className="h-6 w-6 text-muted-foreground"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                      >
-                        <title>{product.name}</title>
-                        <path strokeLinecap="round" strokeLinejoin="round" d={product.iconPath} />
-                      </svg>
+              <li key={product.slug} id={product.slug} className="h-full">
+                <Card className="group relative flex h-full flex-col rounded-2xl p-6 sm:p-8">
+                  <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0 p-0">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary ring-1 ring-border">
+                        <svg
+                          className="h-6 w-6 text-muted-foreground"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.5}
+                          stroke="currentColor"
+                        >
+                          <title>{product.name}</title>
+                          <path strokeLinecap="round" strokeLinejoin="round" d={product.iconPath} />
+                        </svg>
+                      </div>
+                      <div>
+                        <CardTitle className="font-display text-xl font-semibold tracking-tight text-foreground">
+                          {product.name}
+                        </CardTitle>
+                        <p className="mt-0.5 text-sm font-medium text-body">{product.tagline}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-display text-xl font-semibold tracking-tight text-foreground">
-                        {product.name}
-                      </h3>
-                      <p className="mt-0.5 text-sm font-medium text-body">{product.tagline}</p>
+                    <div className="flex flex-col items-end gap-1.5 text-xs font-semibold">
+                      <Badge intent={STATUS_BADGE_INTENT[product.status]}>{product.status}</Badge>
+                      {product.version ? (
+                        <Badge intent="muted" className="font-mono text-[0.7rem]">
+                          {product.version}
+                        </Badge>
+                      ) : null}
                     </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-1.5 text-xs font-semibold">
-                    <span
-                      className={`rounded-full px-2.5 py-1 ring-1 ${status.bg} ${status.text} ${status.ring}`}
-                    >
-                      {product.status}
+                  </CardHeader>
+
+                  <CardContent className="mt-5 grow space-y-2.5 p-0">
+                    <ul className="space-y-2.5">
+                      {product.highlights.map((highlight) => (
+                        <li
+                          key={highlight}
+                          className="flex items-start gap-2.5 text-sm leading-6 text-body"
+                        >
+                          <IconCheckCircle size="sm" className="mt-1 flex-shrink-0 text-primary" />
+                          {highlight}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+
+                  <CardFooter className="mt-6 justify-between gap-3 border-t border-border p-0 pt-4">
+                    <span className="text-xs font-semibold text-foreground/70">
+                      {product.priceLabel}
                     </span>
-                    {product.version ? (
-                      <span className="font-mono text-[0.7rem] text-muted-foreground">
-                        {product.version}
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-
-                <ul className="mt-5 grow space-y-2.5">
-                  {product.highlights.map((highlight) => (
-                    <li
-                      key={highlight}
-                      className="flex items-start gap-2.5 text-sm leading-6 text-body"
-                    >
-                      <IconCheckCircle size="sm" className="mt-1 flex-shrink-0 text-primary" />
-                      {highlight}
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-4">
-                  <span className="text-xs font-semibold text-foreground/70">
-                    {product.priceLabel}
-                  </span>
-                  <a
-                    href={product.primaryCta.href}
-                    className="inline-flex min-h-11 items-center text-sm font-semibold text-primary transition-colors hover:text-primary/80"
-                    {...(product.primaryCta.external
-                      ? { target: '_blank', rel: 'noreferrer' }
-                      : {})}
-                  >
-                    {product.primaryCta.label}
-                  </a>
-                </div>
+                    <Button asChild appearance="link" variant="brand">
+                      <a
+                        href={product.primaryCta.href}
+                        {...(product.primaryCta.external
+                          ? { target: '_blank', rel: 'noreferrer' }
+                          : {})}
+                      >
+                        {product.primaryCta.label}
+                      </a>
+                    </Button>
+                  </CardFooter>
+                </Card>
               </li>
             );
           })}

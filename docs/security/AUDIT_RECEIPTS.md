@@ -100,4 +100,4 @@ Public key source: `GET /api/audit/public-key` or revvault `revealui/prod/audit/
 
 - Stage design: private gap-spec GAP-355 Stage 4
 - Secrets: `docs/SECRETS.md` (audit signing key pair)
-- Claims ledger: https://revealui.com/claims
+- Claims ledger: moved to the docs site (this tree)

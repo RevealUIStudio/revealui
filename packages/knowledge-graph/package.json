@@ -44,6 +44,16 @@
       "types": "./dist/db/ddl.d.ts",
       "import": "./dist/db/ddl.js",
       "default": "./dist/db/ddl.js"
+    },
+    "./scan": {
+      "types": "./dist/scan/index.d.ts",
+      "import": "./dist/scan/index.js",
+      "default": "./dist/scan/index.js"
+    },
+    "./replica": {
+      "types": "./dist/replica/index.d.ts",
+      "import": "./dist/replica/index.js",
+      "default": "./dist/replica/index.js"
     }
   },
   "bin": {

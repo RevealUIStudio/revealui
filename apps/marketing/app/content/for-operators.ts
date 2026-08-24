@@ -103,12 +103,9 @@ export const FOR_OPERATORS_HOW_WE_DELIVER = {
 // `LAUNCH_PACKAGE_PRICE`) so the agency surface cannot drift from the
 // self-serve FOUNDER_SERVICE_OFFERINGS menu that also lists them.
 //
-// Two surfaces consume the ladder: this file's FOR_OPERATORS_PRICING (the
-// agency page at /for-operators) and content/pricing.ts's PRICING_DONE_FOR_YOU
-// (the done-for-you band at the bottom of /pricing). Body copy and CTA labels
-// are surface-specific (operator-voice on the agency page, dev-voice on the
-// pricing band); only `id`, `name`, and `price` are pinned here so a single
-// edit propagates to every render site, including the FAQ prose below.
+// Leftover studio ladder for the redirected /for-operators page. The product
+// /pricing catalog no longer consumes this. Studio SKUs belong on
+// revealuistudio.com.
 //
 // `price` is the bare numeric anchor ("$25,000") so it can drop into prose;
 // `startsFrom` decides whether the rendered ladder rung prefixes "from ".

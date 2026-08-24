@@ -39,7 +39,6 @@ import {
   PERPETUAL,
   POSTGRES,
   PROVIDERS,
-  RBAC_ABAC,
   REFUND_ROUTE,
   REVFORGE_REF,
   ROADMAP,
@@ -48,6 +47,7 @@ import {
   SSO_AUTH_ROUTES,
   SSO_SAML_PURE,
   SSO_SETUP_DOC,
+  STARTER_KIT,
   THIS_SITE,
   X402,
 } from './shared-refs.js';
@@ -142,7 +142,7 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'fair-source.ts',
     exportPath: 'FAIR_SOURCE_FAQS[4].answer',
-    text: 'License enforcement is at runtime in the hosted product, not baked into the npm packages. The hosted RevealUI API checks Ed25519-signed license JWTs and gates Pro API routes; the packages themselves ship ungated, so self-hosters run them freely. FSL is the legal protection: the source is visible and you can run it, but shipping a competing developer platform on top of it is exactly what the non-compete clause prohibits, with civil remedies available. Two years after each release, that release becomes plain MIT.',
+    text: 'License enforcement is at runtime on the studio control plane (admin.revealui.com and api.revealui.com), not baked into the npm packages. That is a license check on RevealUI Studio infrastructure, not a customer VM we operate. You self-host the runtime. Managed customer instances are RevealUI Cloud (waitlist). The hosted RevealUI API checks Ed25519-signed license JWTs and gates Pro API routes; the packages themselves ship ungated, so self-hosters run them freely. FSL is the legal protection: the source is visible and you can run it, but shipping a competing developer platform on top of it is exactly what the non-compete clause prohibits, with civil remedies available. Two years after each release, that release becomes plain MIT.',
     evidence: [LICENSE_ED25519, FAIR_SOURCE_PAGE],
   },
   {
@@ -226,12 +226,6 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'roadmap.ts',
     exportPath: 'ROADMAP_SHIPPED[3].description',
-    text: 'OIDC and SAML SP-initiated federation for Enterprise accounts (Admin IdP config, test-connection, SP metadata). SCIM, advanced RBAC editor, and multi-region remain later enterprise work.',
-    evidence: [SSO_AUTH_ROUTES, SSO_ADMIN_UI, SSO_SAML_PURE, SSO_SETUP_DOC, RBAC_ABAC],
-  },
-  {
-    file: 'roadmap.ts',
-    exportPath: 'ROADMAP_SHIPPED[4].description',
     text: 'An entitled Pro account can save a Groq or Grok key in hosted admin and run a task. That path was walked on production. Platform-billed inference and x402 agent payments are not this surface.',
     evidence: [PROVIDERS, AGENT_ROUTES, ROADMAP],
   },
@@ -264,6 +258,12 @@ export const claimsPart4: readonly ClaimEntry[] = [
     exportPath: 'ROADMAP_UPCOMING[3].description',
     text: 'HTTP 402 payment rails exist in the code and stay off by default. Agents do not charge each other in production until an operator turns the rail on.',
     evidence: [X402],
+  },
+  {
+    file: 'roadmap.ts',
+    exportPath: 'ROADMAP_UPCOMING[4].description',
+    text: 'Operator preview on test: OIDC and SAML SP-initiated Admin config exists. Not customer-walked; #449 is open. SCIM is not built.',
+    evidence: [SSO_AUTH_ROUTES, SSO_ADMIN_UI, SSO_SAML_PURE, SSO_SETUP_DOC, ROADMAP],
   },
   {
     file: 'roadmap.ts',
@@ -473,7 +473,7 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'legal/privacy.ts',
     exportPath: 'PRIVACY_SECTIONS[0].subsections[3].paragraph',
-    text: 'Any content you create through the admin (posts, pages, media) is stored in your database. For hosted plans, this data is stored in NeonDB (PostgreSQL).',
+    text: "Any content you create through the admin (posts, pages, media) is stored in that installation's database. Customer self-hosts store content in the customer's database. Studio-operated surfaces (admin.revealui.com and related Studio infrastructure) use NeonDB (PostgreSQL) for Studio's own data. RevealUI Studio does not sell a hosted customer plan.",
     evidence: [LEGAL_PRIVACY_CONTENT, POSTGRES],
   },
   {
@@ -713,38 +713,50 @@ export const claimsPart4: readonly ClaimEntry[] = [
   },
   {
     file: 'legal/refund-policy.ts',
+    exportPath: 'REFUND_POLICY_SECTIONS[2].heading',
+    text: '3. Starter Kit (content-only product)',
+    evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE, STARTER_KIT],
+  },
+  {
+    file: 'legal/refund-policy.ts',
     exportPath: 'REFUND_POLICY_SECTIONS[2].paragraphs[0]',
+    text: 'The RevealUI Starter Kit is a content product, not a Pro license and not a hosted instance. Self-serve checkout is not public until the first-sale walk is recorded. If you purchased through a Studio-confirmed request or invoice, contact us for a refund. We treat it as a content product.',
+    evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE, STARTER_KIT],
+  },
+  {
+    file: 'legal/refund-policy.ts',
+    exportPath: 'REFUND_POLICY_SECTIONS[3].paragraphs[0]',
     text: 'Architecture Review, Fleet deployment, Custom Build, and other services sold by invoice are governed by the Master Service Agreement and Statement of Work for that engagement, not by this policy.',
     evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE],
   },
   {
     file: 'legal/refund-policy.ts',
-    exportPath: 'REFUND_POLICY_SECTIONS[3].heading',
-    text: '4. How to request a refund',
+    exportPath: 'REFUND_POLICY_SECTIONS[4].heading',
+    text: '5. How to request a refund',
     evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE],
   },
   {
     file: 'legal/refund-policy.ts',
-    exportPath: 'REFUND_POLICY_SECTIONS[3].listItems[0]',
+    exportPath: 'REFUND_POLICY_SECTIONS[4].listItems[0]',
     text: '(interpolated: SITE email / domain embedded at runtime)',
     match: 'path',
     evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE],
   },
   {
     file: 'legal/refund-policy.ts',
-    exportPath: 'REFUND_POLICY_SECTIONS[3].listItems[1]',
+    exportPath: 'REFUND_POLICY_SECTIONS[4].listItems[1]',
     text: 'We process eligible refunds within 5 business days of your request.',
     evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE],
   },
   {
     file: 'legal/refund-policy.ts',
-    exportPath: 'REFUND_POLICY_SECTIONS[3].listItems[2]',
+    exportPath: 'REFUND_POLICY_SECTIONS[4].listItems[2]',
     text: 'For a perpetual license, your license key is revoked once the refund is issued.',
     evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE],
   },
   {
     file: 'legal/refund-policy.ts',
-    exportPath: 'REFUND_POLICY_SECTIONS[4].paragraphs[0]',
+    exportPath: 'REFUND_POLICY_SECTIONS[5].paragraphs[0]',
     text: '(interpolated: SITE email / domain embedded at runtime)',
     match: 'path',
     evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE],

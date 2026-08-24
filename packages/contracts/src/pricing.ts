@@ -82,7 +82,7 @@ export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
   aiInference: 'Open-Model Inference (Snaps, Ollama, Harness)',
   auditLog: 'Audit receipts (signed log + downloadable Merkle roots)',
   multiTenant: 'Multi-site Content Management',
-  whiteLabel: 'White-label Branding (managed setup via revforge)',
+  whiteLabel: 'White-label Branding (RevForge operator stamp)',
   sso: 'Enterprise SSO (OIDC / SAML)',
   vaultDesktop: 'RevVault Desktop App',
   vaultRotation: 'RevVault Rotation Engine',
@@ -230,10 +230,10 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       // whiteLabel / SSO-as-enterprise-sold-feature: not advertised until shipped
       // (see packages/core features whiteLabel force-false + GAP-302 honesty bar).
     ],
-    // Self-serve subscription checkout (GAP-302 Phase 1). Server resolves
-    // enterprise price from billing catalog; signup deep-link carries plan.
-    cta: 'Start your 7-day free trial',
-    ctaHref: '/signup?plan=enterprise',
+    // ToS and /pricing trial footnote: 7-day trial is Pro and Max only.
+    // Absolute marketing URL so PricingPage does not prefix ADMIN_URL.
+    cta: 'Contact sales',
+    ctaHref: 'https://revealui.com/contact',
     highlighted: false,
   },
 ];
@@ -294,12 +294,12 @@ export interface PerpetualTier {
 //
 // Scope: small-to-mid project services delivered direct by the founder
 // (Architecture Review, Launch Package, Migration Assist, Consulting Hour).
-// These are NOT the agency-tier offerings — the Fleet deployment ($25K+) and
-// Custom Build ($50K+) tiers live in apps/marketing/app/content/pricing.ts
-// under PRICING_DONE_FOR_YOU.rungs (agency segment, different buyer). The
-// two surfaces also share the Architecture Review and Launch Package entry
-// points, whose canonical prices are owned here; marketing imports them
-// rather than re-authoring.
+// These are NOT the product-catalog offerings. The product /pricing page
+// sells licenses only (Free / Pro / Max / Enterprise + Perpetual Pro).
+// Studio SKUs and leftover agency rungs live on revealuistudio.com and in
+// apps/marketing/app/content/for-operators.ts (not rendered on /pricing).
+// Canonical Architecture Review and Launch Package prices are owned here;
+// leftover studio surfaces import them rather than re-authoring.
 // =============================================================================
 
 export interface ServiceOffering {
@@ -327,11 +327,16 @@ export const ARCHITECTURE_REVIEW_PRICE = '$3,500' as const;
  * Canonical price of the Launch Package. Owned here for the same reason as
  * `ARCHITECTURE_REVIEW_PRICE`: `AGENCY_ENGAGEMENT_LADDER` in
  * `apps/marketing/app/content/for-operators.ts` imports it rather than
- * re-authoring the literal, so the Launch Package rung on /pricing and
- * /for-operators cannot drift from this menu. Same cross-package guard in
- * `apps/marketing/app/__tests__/agency-engagement-ladder.test.ts`.
+ * re-authoring the literal, so leftover studio surfaces cannot drift from
+ * this menu. Same cross-package guard in
+ * `apps/marketing/app/__tests__/agency-engagement-ladder.test.ts`. The
+ * product /pricing catalog does not sell these rungs.
  */
 export const LAUNCH_PACKAGE_PRICE = '$7,500' as const;
+
+/** Founder intro booking. Google Calendar appointments only. */
+export const BOOK_INTRO_HREF =
+  'https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ21UZVcuYp7yO32rZmhyUvZFDJcvles81E9edGNFwSUP8SHEVzGvq0gKgNFo7q04YS5i-12ZE5P' as const;
 
 export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
   {
@@ -350,7 +355,7 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
     ],
     deliverable: 'Written report delivered within 5 business days',
     cta: 'Book a Discovery Call',
-    ctaHref: 'https://cal.com/revealuistudio/discovery',
+    ctaHref: BOOK_INTRO_HREF,
   },
   {
     id: 'launch-package',
@@ -368,7 +373,7 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
     ],
     deliverable: 'Production-ready deployment within 2-4 weeks',
     cta: 'Book a Discovery Call',
-    ctaHref: 'https://cal.com/revealuistudio/discovery',
+    ctaHref: BOOK_INTRO_HREF,
   },
   {
     id: 'migration-assist',
@@ -386,7 +391,7 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
     ],
     deliverable: 'Working migration with verified data integrity',
     cta: 'Get an Estimate',
-    ctaHref: 'https://cal.com/revealuistudio/discovery',
+    ctaHref: BOOK_INTRO_HREF,
   },
   {
     id: 'consulting-hour',
@@ -402,7 +407,7 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
     ],
     deliverable: 'Session recording and written follow-up notes',
     cta: 'Book a Session',
-    ctaHref: 'https://cal.com/revealuistudio/discovery',
+    ctaHref: BOOK_INTRO_HREF,
   },
 ];
 
@@ -434,13 +439,13 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
     ],
     renewal: '$149/yr for continued support',
     cta: 'Buy Pro Perpetual',
-    ctaHref: '/account/license',
+    ctaHref: perpetualLicenseSignupPath('pro'),
     comingSoon: false,
   },
   {
     name: 'Agency Perpetual',
     description:
-      'RevealUI Fleet license for agencies. Sell branded RevealUI to your clients without per-site subscriptions.',
+      'Perpetual Max-tier license for agencies: up to ten client deployments. License plus a thin kit, not an unattended RevForge Fleet stamp.',
     features: [
       'All Max tier features',
       'License key never expires',
@@ -451,23 +456,24 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
     ],
     renewal: '$799/yr for continued support',
     cta: 'Buy Agency Perpetual',
-    ctaHref: '/account/license',
+    ctaHref: perpetualLicenseSignupPath('agency'),
     comingSoon: false,
   },
   {
     name: 'Enterprise Perpetual',
-    description: 'Full self-hosted Enterprise tier with unlimited deployments.',
+    description:
+      'Enterprise license plus studio onboarding. Not an unattended Fleet pull-and-run kit.',
     features: [
       'All Enterprise tier features',
       'License key never expires',
-      'Unlimited self-hosted deployments',
+      'Unlimited deployments after studio onboarding',
       '1 year priority support included',
       'All Enterprise tier updates released during support period',
-      'Private GitHub repo + Docker image access',
+      'Private GitHub repo access after studio onboarding',
     ],
     renewal: '$3,999/yr for continued support',
-    cta: 'Buy Enterprise Perpetual',
-    ctaHref: '/account/license',
+    cta: 'Contact sales',
+    ctaHref: 'https://revealui.com/contact',
     comingSoon: false,
   },
 ];
@@ -486,6 +492,55 @@ const TIER_RANK: Record<LicenseTierId, number> = {
 export function getTiersFromCurrent(currentTier: LicenseTierId): SubscriptionTier[] {
   const currentRank = TIER_RANK[currentTier];
   return SUBSCRIPTION_TIERS.filter((t) => TIER_RANK[t.id] > currentRank);
+}
+
+/**
+ * Public + in-app Enterprise door. Same href as Track A Enterprise and
+ * Track C Enterprise Perpetual CTAs — not a Stripe checkout session.
+ */
+export const ENTERPRISE_SALES_HREF = 'https://revealui.com/contact' as const;
+
+/**
+ * Unattended Stripe checkout is Pro and Max only (subscription trial +
+ * Pro / Agency perpetual). Enterprise subscription and Enterprise Perpetual
+ * are sales-assisted — UI and API must use {@link ENTERPRISE_SALES_HREF}.
+ */
+export function allowsUnattendedCheckout(tier: LicenseTierId): boolean {
+  return tier === 'pro' || tier === 'max';
+}
+
+/**
+ * Public perpetual SKU on marketing → admin signup (`?license=`).
+ * Distinct from subscription `?plan=` so a Buy click cannot start a trial.
+ * Agency maps to checkout tier `max` (Agency Perpetual is Max-tier).
+ */
+export type PerpetualLicenseSku = 'pro' | 'agency' | 'enterprise';
+
+export function parsePerpetualLicenseSku(raw: string | null): PerpetualLicenseSku | null {
+  if (raw === 'pro' || raw === 'agency' || raw === 'enterprise') return raw;
+  if (raw === 'max') return 'agency';
+  return null;
+}
+
+export function perpetualLicenseLabel(sku: PerpetualLicenseSku): string {
+  if (sku === 'pro') return 'Pro Perpetual';
+  if (sku === 'agency') return 'Agency Perpetual';
+  return 'Enterprise Perpetual';
+}
+
+export function perpetualLicenseSignupPath(sku: PerpetualLicenseSku): string {
+  return `/signup?license=${sku}`;
+}
+
+export function perpetualLicenseCheckoutPath(sku: PerpetualLicenseSku): string {
+  return `/account/license?license=${sku}`;
+}
+
+export function perpetualLicenseCheckoutTier(
+  sku: PerpetualLicenseSku,
+): Exclude<LicenseTierId, 'free'> {
+  if (sku === 'agency') return 'max';
+  return sku;
 }
 
 export function getTierLabel(tier: LicenseTierId): string {

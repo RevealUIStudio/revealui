@@ -68,28 +68,54 @@ export interface GracePeriodConfig {
   infraDays: number;
 }
 
-const DEFAULT_GRACE: GracePeriodConfig = {
-  subscriptionDays: parseEnvInt('LICENSE_GRACE_SUBSCRIPTION_DAYS', 3),
-  perpetualDays: parseEnvInt('LICENSE_GRACE_PERPETUAL_DAYS', 30),
-  infraDays: parseEnvInt('LICENSE_GRACE_INFRA_DAYS', 7),
-};
+/**
+ * Hard cap on LICENSE_GRACE_* days. Env values above this become jwtVerify
+ * clockTolerance and must not keep an expired subscription JWT valid forever.
+ * Same spirit as {@link MAX_LICENSE_CACHE_TTL_MS}.
+ */
+export const MAX_LICENSE_GRACE_DAYS = 30;
 
-function parseEnvInt(key: string, fallback: number): number {
-  const val = process.env[key];
-  if (val) {
-    const parsed = Number.parseInt(val, 10);
-    if (Number.isFinite(parsed) && parsed >= 0) return parsed;
+/**
+ * Parse a LICENSE_GRACE_* env value. Unset / non-numeric / negative → fallback.
+ * Values above {@link MAX_LICENSE_GRACE_DAYS} are clamped and warned.
+ */
+export function parseLicenseGraceDaysEnv(envValue: string | undefined, fallback: number): number {
+  if (!envValue) return fallback;
+  const parsed = Number.parseInt(envValue, 10);
+  if (!Number.isFinite(parsed) || parsed < 0) return fallback;
+  if (parsed > MAX_LICENSE_GRACE_DAYS) {
+    logger.warn(
+      `LICENSE_GRACE_* days=${parsed} exceeds the ${MAX_LICENSE_GRACE_DAYS}-day cap; using ${MAX_LICENSE_GRACE_DAYS}. Larger values extend jwtVerify clockTolerance so expired subscription JWTs stay valid and are not permitted.`,
+    );
+    return MAX_LICENSE_GRACE_DAYS;
   }
-  return fallback;
+  return parsed;
 }
+
+function clampGraceDays(days: number): number {
+  if (!Number.isFinite(days) || days < 0) return 0;
+  return Math.min(days, MAX_LICENSE_GRACE_DAYS);
+}
+
+const DEFAULT_GRACE: GracePeriodConfig = {
+  subscriptionDays: parseLicenseGraceDaysEnv(process.env.LICENSE_GRACE_SUBSCRIPTION_DAYS, 3),
+  perpetualDays: parseLicenseGraceDaysEnv(process.env.LICENSE_GRACE_PERPETUAL_DAYS, 30),
+  infraDays: parseLicenseGraceDaysEnv(process.env.LICENSE_GRACE_INFRA_DAYS, 7),
+};
 
 let graceConfig: GracePeriodConfig = { ...DEFAULT_GRACE };
 
 /**
  * Configure grace period durations. Useful for testing.
+ * Values are clamped to {@link MAX_LICENSE_GRACE_DAYS}.
  */
 export function configureGracePeriods(overrides: Partial<GracePeriodConfig>): void {
-  graceConfig = { ...DEFAULT_GRACE, ...overrides };
+  const merged = { ...DEFAULT_GRACE, ...overrides };
+  graceConfig = {
+    subscriptionDays: clampGraceDays(merged.subscriptionDays),
+    perpetualDays: clampGraceDays(merged.perpetualDays),
+    infraDays: clampGraceDays(merged.infraDays),
+  };
 }
 
 /** Decoded license payload schema */
@@ -168,6 +194,8 @@ const DEFAULT_CACHE_CONFIG: LicenseCacheConfig = {
 
 let cacheConfig: LicenseCacheConfig = { ...DEFAULT_CACHE_CONFIG };
 let cachedAt = 0;
+let refreshInFlight: Promise<LicenseTier> | null = null;
+let refreshEpoch = 0;
 
 /**
  * Configure the license cache TTL.
@@ -328,20 +356,24 @@ export const REFRESH_ACCEPT_DAYS = 30;
  * `POST /api/license/refresh`, accepting a token whose `exp` is past by at most
  * `refreshAcceptDays` (default {@link REFRESH_ACCEPT_DAYS}).
  *
+ * `expectedCustomerId` is required (fail closed). A token for customer A must
+ * not verify when the caller bound customer B. An empty / missing bind returns
+ * null so an unbound refresh cannot exfil another customer's current key.
+ *
  * It reuses the SAME ordered multi-key verification (GAP-259 rotation
- * composition) and payload schema as {@link validateLicenseKey}, so a token
- * minted under the outgoing private key during a dual-key rotation window still
- * verifies. It performs NO `customerId` binding: the refresh endpoint trusts
- * the token's `customerId` claim and then independently requires an ACTIVE
- * license row for it. This function only proves possession of a recently-valid
- * signed key. It never mints and never grants entitlement on its own.
+ * composition) and payload schema as {@link validateLicenseKey}. The 30-day
+ * window stays so a recently-expired key can still fetch its own renewal after
+ * the bind succeeds. It never mints and never grants entitlement on its own.
  */
 export async function validateLicenseKeyForRefresh(
   licenseKey: string,
   publicKey: string | readonly string[],
+  expectedCustomerId: string,
   refreshAcceptDays: number = REFRESH_ACCEPT_DAYS,
 ): Promise<LicensePayload | null> {
-  return verifyAndParseLicenseJwt(licenseKey, publicKey, refreshAcceptDays * 86_400);
+  const bound = expectedCustomerId.trim();
+  if (bound.length === 0) return null;
+  return verifyAndParseLicenseJwt(licenseKey, publicKey, refreshAcceptDays * 86_400, bound);
 }
 
 /**
@@ -601,20 +633,60 @@ export async function initializeLicense(): Promise<LicenseTier> {
   return payload.tier;
 }
 
+function isCacheStale(): boolean {
+  return cachedAt > 0 && Date.now() - cachedAt > cacheConfig.ttlMs;
+}
+
 /**
- * Invalidates the cached license state if it has exceeded the configured TTL.
- * After invalidation, the license defaults to 'free' until re-initialized.
+ * Re-validate the configured key. Single-flight so concurrent readers share one
+ * verify. On failure, keep the last validated state (do not flap to free).
+ */
+function scheduleLicenseRefresh(): Promise<LicenseTier> {
+  if (refreshInFlight) return refreshInFlight;
+  const epoch = refreshEpoch;
+  refreshInFlight = initializeLicense()
+    .then((tier) => {
+      if (epoch !== refreshEpoch) return cachedState.tier;
+      return tier;
+    })
+    .catch((err: unknown) => {
+      logger.warn('License revalidation failed; keeping last validated state', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+      return cachedState.tier;
+    })
+    .finally(() => {
+      refreshInFlight = null;
+    });
+  return refreshInFlight;
+}
+
+/**
+ * When the cache TTL elapses, re-validate the current key instead of dropping
+ * to free. Request-path readers keep the last validated tier until refresh
+ * completes so a live Pro process cannot flap to free while a valid key is set.
  */
 function evictStaleCache(): void {
-  if (cachedAt > 0 && Date.now() - cachedAt > cacheConfig.ttlMs) {
-    cachedState = { tier: 'free', payload: null, validatedAt: null, keyPresentButInvalid: false };
-    cachedAt = 0;
+  if (isCacheStale()) {
+    void scheduleLicenseRefresh();
   }
 }
 
 /**
+ * Await an in-flight or due revalidation. Tests and async request gates use
+ * this so TTL expiry still proves licensed after the key is re-checked.
+ */
+export async function refreshLicenseIfStale(): Promise<LicenseTier> {
+  if (isCacheStale() || refreshInFlight) {
+    return scheduleLicenseRefresh();
+  }
+  return cachedState.tier;
+}
+
+/**
  * Returns the current license tier.
- * If the license hasn't been initialized or the cache has expired, returns 'free'.
+ * Uninitialized state is free. A stale cache keeps the last validated tier
+ * and triggers revalidation of the configured key.
  */
 export function getCurrentTier(): LicenseTier {
   evictStaleCache();
@@ -622,7 +694,8 @@ export function getCurrentTier(): LicenseTier {
 }
 
 /**
- * Returns the full license payload, or null if no valid license or cache expired.
+ * Returns the full license payload, or null if no valid license is cached.
+ * Stale TTL does not clear a still-valid payload.
  */
 export function getLicensePayload(): LicensePayload | null {
   evictStaleCache();
@@ -640,18 +713,29 @@ export function getLicensePayload(): LicensePayload | null {
  *
  * Matching rules (no authored regex, per the fleet no-regex rule):
  * - `host` is lower-cased and stripped of any `:port` suffix
- * - `localhost` / `127.0.0.1` are always allowed, so a trial kit boots and
- *   serves on its default `http://localhost` regardless of the licensed domain
+ * - `localhost` / `127.0.0.1` match only when `allowLoopback` is true (trial /
+ *   unpublished). A published API with a `domains` claim must not accept a
+ *   spoofed Host: localhost bypass.
  * - otherwise `host` must equal a licensed domain OR be a subdomain of one
  *   (`app.example.com` matches `example.com`)
  *
  * @param host    raw Host header value or URL hostname (a `:port` suffix is tolerated)
  * @param domains the license payload's `domains` claim
+ * @param options.allowLoopback  opt-in loopback bypass (default false)
  */
-export function hostMatchesLicensedDomains(host: string, domains: readonly string[]): boolean {
+export function hostMatchesLicensedDomains(
+  host: string,
+  domains: readonly string[],
+  options: { allowLoopback?: boolean } = {},
+): boolean {
   const normalized = (host.trim().toLowerCase().split(':')[0] ?? '').trim();
   if (!normalized) return false;
-  if (normalized === 'localhost' || normalized === '127.0.0.1') return true;
+  if (
+    options.allowLoopback === true &&
+    (normalized === 'localhost' || normalized === '127.0.0.1')
+  ) {
+    return true;
+  }
   return domains.some((domain) => {
     const d = domain.trim().toLowerCase();
     return d.length > 0 && (normalized === d || normalized.endsWith(`.${d}`));
@@ -981,6 +1065,8 @@ export async function generateLicenseKey(
  * Reset license state. Primarily for testing.
  */
 export function resetLicenseState(): void {
+  refreshEpoch += 1;
+  refreshInFlight = null;
   cachedState = { tier: 'free', payload: null, validatedAt: null, keyPresentButInvalid: false };
   cachedAt = 0;
 }

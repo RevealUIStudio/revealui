@@ -2,8 +2,8 @@
  * A.1 — Upgrade flow explicit item resolution (P0 fix)
  *
  * Verifies that the upgrade route resolves flat-tier and meter items by price ID
- * (not by array index), correctly handles Pro→Max, Pro→Enterprise, and Max→Pro
- * upgrade scenarios with respect to the metered overage line item.
+ * (not by array index), correctly handles Pro→Max, and rejects unattended
+ * Pro→Enterprise (sales-assisted) with respect to the metered overage line item.
  */
 
 import { Hono } from 'hono';
@@ -301,79 +301,13 @@ describe('POST /upgrade — A.1 explicit item resolution', () => {
     expect(items.find((i) => i.deleted)).toBeUndefined();
   });
 
-  it('Pro→Enterprise: removes meter item (Enterprise has no metered overage)', async () => {
-    const proSubscription = buildSubscription({
-      items: [
-        { id: 'si_flat_pro', priceId: PRO_PRICE_ID },
-        { id: 'si_meter', priceId: OVERAGE_PRICE_ID },
-      ],
-    });
-    mockSubscriptionsList.mockResolvedValue({ data: [proSubscription] });
-
-    queueSelects(
-      [{ stripePriceId: ENTERPRISE_PRICE_ID }],
-      [{ stripeCustomerId: 'cus_pro' }],
-      [
-        { stripePriceId: PRO_PRICE_ID },
-        { stripePriceId: MAX_PRICE_ID },
-        { stripePriceId: ENTERPRISE_PRICE_ID },
-      ],
-    );
-
+  it('Pro→Enterprise: rejects unattended upgrade (sales-assisted)', async () => {
     const app = createApp();
     const res = await app.request(post('/upgrade', { targetTier: 'enterprise' }));
-    expect(res.status).toBe(200);
-
-    const [, updateParams] = mockSubscriptionsUpdate.mock.calls[0] as [
-      string,
-      { items: Array<{ id?: string; price?: string; deleted?: boolean }> },
-    ];
-    const items = updateParams.items;
-
-    const flatUpdate = items.find((i) => i.id === 'si_flat_pro');
-    expect(flatUpdate?.price).toBe(ENTERPRISE_PRICE_ID);
-
-    const meterDelete = items.find((i) => i.id === 'si_meter' && i.deleted === true);
-    expect(meterDelete).toBeDefined();
-  });
-
-  it('Max→Pro: keeps meter item (both Pro and Max have metered overage, same SKU)', async () => {
-    const maxSubscription = buildSubscription({
-      items: [
-        { id: 'si_flat_max', priceId: MAX_PRICE_ID },
-        { id: 'si_meter', priceId: OVERAGE_PRICE_ID },
-      ],
-    });
-    mockSubscriptionsList.mockResolvedValue({ data: [maxSubscription] });
-
-    queueSelects(
-      [{ stripePriceId: ENTERPRISE_PRICE_ID }],
-      [{ stripeCustomerId: 'cus_max' }],
-      [
-        { stripePriceId: PRO_PRICE_ID },
-        { stripePriceId: MAX_PRICE_ID },
-        { stripePriceId: ENTERPRISE_PRICE_ID },
-      ],
-    );
-
-    const app = createApp();
-    app.use('*', async (c, next) => {
-      c.set('entitlements', { tier: 'max', accountId: 'acct-1' });
-      await next();
-    });
-
-    const res = await app.request(post('/upgrade', { targetTier: 'enterprise' }));
-    expect(res.status).toBe(200);
-
-    const [, updateParams] = mockSubscriptionsUpdate.mock.calls[0] as [
-      string,
-      { items: Array<{ id?: string; price?: string; deleted?: boolean }> },
-    ];
-    const items = updateParams.items;
-
-    const meterDelete = items.find((i) => i.id === 'si_meter' && i.deleted === true);
-    expect(meterDelete).toBeDefined();
-    expect(items.find((i) => !(i.id || i.deleted))).toBeUndefined();
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error?: string };
+    expect(body.error).toContain('sales');
+    expect(mockSubscriptionsUpdate).not.toHaveBeenCalled();
   });
 
   it('rejects when flat-tier item cannot be found by catalog price ID', async () => {

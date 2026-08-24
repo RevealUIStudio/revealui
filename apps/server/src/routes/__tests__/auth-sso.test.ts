@@ -23,6 +23,8 @@ const {
   mockFetchIdpMetadata,
   mockParseIdpMetadataXml,
   mockValidateSamlPostResponse,
+  mockAuditSsoLoginSuccess,
+  mockAuditSsoLoginFailure,
 } = vi.hoisted(() => {
   const mockSelectLimit = vi.fn();
   const mockDb = {
@@ -53,6 +55,8 @@ const {
     mockFetchIdpMetadata: vi.fn(),
     mockParseIdpMetadataXml: vi.fn(),
     mockValidateSamlPostResponse: vi.fn(),
+    mockAuditSsoLoginSuccess: vi.fn().mockResolvedValue(undefined),
+    mockAuditSsoLoginFailure: vi.fn().mockResolvedValue(undefined),
   };
 });
 
@@ -110,6 +114,8 @@ vi.mock('@revealui/auth/server', () => ({
   fetchIdpMetadata: (...args: unknown[]) => mockFetchIdpMetadata(...args),
   parseIdpMetadataXml: (...args: unknown[]) => mockParseIdpMetadataXml(...args),
   validateSamlPostResponse: (...args: unknown[]) => mockValidateSamlPostResponse(...args),
+  auditSsoLoginSuccess: (...args: unknown[]) => mockAuditSsoLoginSuccess(...args),
+  auditSsoLoginFailure: (...args: unknown[]) => mockAuditSsoLoginFailure(...args),
 }));
 
 import { Hono } from 'hono';
@@ -229,6 +235,13 @@ describe('GET /api/auth/sso/:providerId/init', () => {
     const app = createApp();
     const res = await app.request('/api/auth/sso/prov-1/init');
     expect(res.status).toBe(400);
+    expect(mockAuditSsoLoginFailure).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reason: 'missing_account_id',
+        providerId: 'prov-1',
+      }),
+    );
+    expect(mockAuditSsoLoginSuccess).not.toHaveBeenCalled();
   });
 
   it('returns 404 when provider account mismatches (empty select)', async () => {
@@ -333,6 +346,14 @@ describe('GET /api/auth/sso/:providerId/callback', () => {
     });
     expect(res.status).toBe(302);
     expect(res.headers.get('Location')).toContain('error=invalid_state');
+    expect(mockAuditSsoLoginFailure).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reason: 'invalid_state',
+        providerId: 'prov-1',
+        providerType: 'oidc',
+      }),
+    );
+    expect(mockAuditSsoLoginSuccess).not.toHaveBeenCalled();
   });
 
   it('rejects when id_token signature validation fails', async () => {
@@ -398,6 +419,16 @@ describe('GET /api/auth/sso/:providerId/callback', () => {
         }),
       }),
     );
+    expect(mockAuditSsoLoginSuccess).toHaveBeenCalledWith(
+      expect.objectContaining({
+        providerType: 'oidc',
+        accountId: 'acct-1',
+        userId: 'user-1',
+        issuer: 'https://idp.example.com',
+        providerId: 'prov-1',
+      }),
+    );
+    expect(mockAuditSsoLoginFailure).not.toHaveBeenCalled();
   });
 
   it('returns provider_not_found when provider account mismatch on callback', async () => {
@@ -617,6 +648,16 @@ describe('POST /api/auth/sso/:providerId/callback (SAML ACS)', () => {
     expect(res.status).toBe(302);
     expect(res.headers.get('Location')).toContain('error=saml_invalid_signature');
     expect(mockCreateSession).not.toHaveBeenCalled();
+    expect(mockAuditSsoLoginFailure).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reason: 'saml_invalid_signature',
+        providerId: 'saml-prov-1',
+        providerType: 'saml',
+        accountId: 'acct-1',
+        issuer: 'https://idp.example.com',
+      }),
+    );
+    expect(mockAuditSsoLoginSuccess).not.toHaveBeenCalled();
   });
 
   it('issues session cookie and redirects on success', async () => {
@@ -649,6 +690,16 @@ describe('POST /api/auth/sso/:providerId/callback (SAML ACS)', () => {
       }),
     );
     expect(mockValidateSamlPostResponse).toHaveBeenCalled();
+    expect(mockAuditSsoLoginSuccess).toHaveBeenCalledWith(
+      expect.objectContaining({
+        providerType: 'saml',
+        accountId: 'acct-1',
+        userId: 'user-1',
+        issuer: 'https://idp.example.com',
+        providerId: 'saml-prov-1',
+      }),
+    );
+    expect(mockAuditSsoLoginFailure).not.toHaveBeenCalled();
   });
 });
 

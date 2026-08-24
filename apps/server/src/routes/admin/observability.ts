@@ -2,9 +2,9 @@
  * Admin Observability Routes
  *
  * Read-only endpoints for the admin dashboard dashboard observability pages.
- * All endpoints require admin role (admin, super-admin, admin, super-admin).
+ * Tenant admin/owner for account-scoped pages; GET /logs is fleet-operator only.
  *
- * GET /admin/logs            -  paginated app logs, filterable by app and level
+ * GET /admin/logs            -  fleet-wide app logs (studio/operator only)
  * GET /admin/errors          -  paginated error events
  * GET /admin/audit           -  paginated audit log, filterable by severity, agentId,
  *                               eventType, date range, and policy violation
@@ -30,7 +30,8 @@ import {
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, count, desc, eq, gte, lte, ne, type SQL, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
-import { isAdminRole } from '../../lib/access.js';
+import { isAdminRole, isFleetOperator } from '../../lib/access.js';
+import type { ApiAuthUser } from '../../lib/api-roles.js';
 import { recordUsageMeter } from '../../lib/metering.js';
 import {
   AUDIT_EXPORT_METER_NAME,
@@ -42,20 +43,28 @@ import { dateToString } from '../_helpers/serialize.js';
 
 type AdminVariables = {
   db: DatabaseClient;
-  user?: { id: string; role: string };
+  user?: ApiAuthUser;
 };
 
 // =============================================================================
 // Shared
 // =============================================================================
 
-function requireAdmin(user: { id: string; role: string } | undefined): void {
+function requireAdmin(user: ApiAuthUser | undefined): void {
   if (!user) throw new HTTPException(401, { message: 'Authentication required' });
   // Match CMS shell isAdminRole (owner | admin | super-admin) — the prior
   // local set omitted `owner`, so bootstrap/founder sessions could open
   // /audit but the API returned 403.
   if (!isAdminRole(user.role)) {
     throw new HTTPException(403, { message: 'Admin access required' });
+  }
+}
+
+/** Fleet-wide logs: studio/operator only. Tenant owner/admin is 403. */
+function requireFleetOperator(user: ApiAuthUser | undefined): void {
+  if (!user) throw new HTTPException(401, { message: 'Authentication required' });
+  if (!isFleetOperator(user)) {
+    throw new HTTPException(403, { message: 'Operator access required' });
   }
 }
 
@@ -103,7 +112,7 @@ app.openapi(
     method: 'get',
     path: '/logs',
     tags: ['admin', 'observability'],
-    summary: 'List application logs (admin-only)',
+    summary: 'List application logs (fleet operator only)',
     request: { query: LogsQuery },
     responses: {
       200: {
@@ -118,7 +127,7 @@ app.openapi(
     },
   }),
   async (c) => {
-    requireAdmin(c.get('user'));
+    requireFleetOperator(c.get('user'));
 
     const { limit, offset, app: filterApp, level: filterLevel } = c.req.valid('query');
     const db = c.get('db') ?? getClient();

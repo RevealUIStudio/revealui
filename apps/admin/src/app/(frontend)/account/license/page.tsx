@@ -2,9 +2,13 @@
 
 import { useSession } from '@revealui/auth/react';
 import {
+  ENTERPRISE_SALES_HREF,
   FEATURE_LABELS,
   type LicenseTierId,
   type PricingResponse,
+  parsePerpetualLicenseSku,
+  perpetualLicenseCheckoutTier,
+  perpetualLicenseLabel,
   TIER_COLORS,
   TIER_LABELS,
   TIER_LIMITS,
@@ -22,8 +26,8 @@ import {
   Input,
 } from '@revealui/presentation';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { type ChangeEvent, useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { type ChangeEvent, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { hasCommercialUpgradePath } from '@/lib/components/should-show-upgrade-nav';
 import { apiFetch } from '@/lib/utils/csrf';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
@@ -52,18 +56,35 @@ const PERPETUAL_PLANS = [
     tier: 'max' as const,
     priceIdEnv: process.env.NEXT_PUBLIC_STRIPE_MAX_PERPETUAL_PRICE_ID,
     // GAP-448: Agency Founding Kit / Fleet perpetual — canon 10 client sites on the JWT.
-    description: 'Max features forever, up to 10 client deployments. Includes 1 year of support.',
+    description:
+      'Max features forever, up to 10 client deployments. License plus a thin kit, not an unattended RevForge Fleet stamp. Includes 1 year of support.',
   },
   {
     label: 'Enterprise Perpetual',
     tier: 'enterprise' as const,
     priceIdEnv: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PERPETUAL_PRICE_ID,
-    description: 'Enterprise features forever. Includes 1 year of support.',
+    description:
+      'Enterprise license plus studio onboarding. Not an unattended Fleet pull-and-run kit. Includes 1 year of support.',
   },
 ] as const;
 
 export default function LicensePage() {
-  const router = useRouter();
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <p className="text-zinc-600">Loading...</p>
+        </div>
+      }
+    >
+      <LicenseContent />
+    </Suspense>
+  );
+}
+
+function LicenseContent() {
+  const searchParams = useSearchParams();
+  const licenseSku = parsePerpetualLicenseSku(searchParams.get('license'));
   const { data: session, isLoading: sessionLoading } = useSession();
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [features, setFeatures] = useState<Record<string, FeatureFlags> | null>(null);
@@ -84,7 +105,11 @@ export default function LicensePage() {
       const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
 
       const [subRes, featRes, pricingRes, pubKeyRes] = await Promise.all([
-        fetch(`${apiUrl}/api/billing/subscription`, { credentials: 'include' }),
+        // Same-origin App Router proxy (app/api/billing/subscription) so
+        // host-only revealui-session is forwarded to the API. Do not call
+        // the API host from the browser. next.config rewrites never run
+        // for /api/* — the CMS catch-all wins over them.
+        fetch('/api/billing/subscription', { credentials: 'include' }),
         fetch(`${apiUrl}/api/license/features`),
         fetch(`${apiUrl}/api/pricing`),
         fetch(`${apiUrl}/api/license/public-key`),
@@ -93,6 +118,8 @@ export default function LicensePage() {
       if (subRes.ok) {
         const data = (await subRes.json()) as SubscriptionData;
         setSubscription(data);
+      } else {
+        setError('Failed to load license data');
       }
 
       if (pubKeyRes.ok) {
@@ -117,12 +144,58 @@ export default function LicensePage() {
   }, []);
 
   useEffect(() => {
-    if (!sessionLoading && session) {
-      void fetchData();
-    } else if (!(sessionLoading || session)) {
-      router.push('/login');
-    }
-  }, [session, sessionLoading, fetchData, router]);
+    if (sessionLoading) return;
+    // Proxy already sent true-unauth visitors to /login or /signup?license=.
+    // If this document rendered, a session cookie was present. A useSession
+    // 401 (or empty hook) must not bounce to /login — that path, hit with
+    // httpOnly cookies and no query, 307s to the dashboard.
+    void fetchData();
+  }, [sessionLoading, fetchData]);
+
+  const handlePerpetualCheckout = useCallback(
+    async (plan: (typeof PERPETUAL_PLANS)[number]) => {
+      if (plan.tier === 'enterprise') {
+        window.location.assign(ENTERPRISE_SALES_HREF);
+        return;
+      }
+      setPerpetualLoading(plan.tier);
+      setError(null);
+      try {
+        const res = await apiFetch('/api/billing/checkout-perpetual', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            ...(plan.priceIdEnv && { priceId: plan.priceIdEnv }),
+            tier: plan.tier,
+            ...(githubUsername.trim() && { githubUsername: githubUsername.trim() }),
+          }),
+        });
+        const data = (await res.json()) as { url?: string; error?: string };
+        if (data.url) {
+          safeStripeRedirect(data.url);
+        } else {
+          setError(data.error || 'Failed to start checkout. Please try again.');
+        }
+      } catch {
+        setError('Failed to start checkout. Please try again.');
+      } finally {
+        setPerpetualLoading(null);
+      }
+    },
+    [githubUsername],
+  );
+
+  const autoCheckoutStarted = useRef(false);
+  useEffect(() => {
+    if (sessionLoading || isLoading || !subscription || !licenseSku) return;
+    if (autoCheckoutStarted.current) return;
+    const targetTier = perpetualLicenseCheckoutTier(licenseSku);
+    const plan = PERPETUAL_PLANS.find((candidate) => candidate.tier === targetTier);
+    if (!plan) return;
+    autoCheckoutStarted.current = true;
+    void handlePerpetualCheckout(plan);
+  }, [sessionLoading, isLoading, subscription, licenseSku, handlePerpetualCheckout]);
 
   if (sessionLoading || isLoading) {
     return (
@@ -132,40 +205,28 @@ export default function LicensePage() {
     );
   }
 
-  const handlePerpetualCheckout = async (plan: (typeof PERPETUAL_PLANS)[number]) => {
-    setPerpetualLoading(plan.tier);
-    setError(null);
-    try {
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
-      const res = await apiFetch(`${apiUrl}/api/billing/checkout-perpetual`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          ...(plan.priceIdEnv && { priceId: plan.priceIdEnv }),
-          tier: plan.tier,
-          ...(githubUsername.trim() && { githubUsername: githubUsername.trim() }),
-        }),
-      });
-      const data = (await res.json()) as { url?: string; error?: string };
-      if (data.url) {
-        safeStripeRedirect(data.url);
-      } else {
-        setError(data.error || 'Failed to start checkout. Please try again.');
-      }
-    } catch {
-      setError('Failed to start checkout. Please try again.');
-    } finally {
-      setPerpetualLoading(null);
-    }
-  };
+  if (!subscription && (error || !session)) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-6 py-12">
+        <h1 className="text-2xl font-bold">License & Plan</h1>
+        {licenseSku ? (
+          <p className="text-sm text-zinc-600">
+            Continuing {perpetualLicenseLabel(licenseSku)} checkout
+            {licenseSku === 'enterprise' ? ' — Enterprise is sold through sales.' : '.'}
+          </p>
+        ) : null}
+        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+          {error ?? 'Failed to load session'}
+        </div>
+      </div>
+    );
+  }
 
   const handleSupportRenewal = async () => {
     setRenewalLoading(true);
     setError(null);
     try {
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
-      const res = await apiFetch(`${apiUrl}/api/billing/checkout-support-renewal`, {
+      const res = await apiFetch('/api/billing/checkout-support-renewal', {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
@@ -193,6 +254,12 @@ export default function LicensePage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6 py-12">
       <h1 className="text-2xl font-bold">License & Plan</h1>
+      {licenseSku ? (
+        <p className="text-sm text-zinc-600">
+          Continuing {perpetualLicenseLabel(licenseSku)} checkout
+          {licenseSku === 'enterprise' ? ' — Enterprise is sold through sales.' : '.'}
+        </p>
+      ) : null}
 
       {error && (
         <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
@@ -251,14 +318,14 @@ export default function LicensePage() {
           {canUpgrade && (
             <div className="border-t pt-3 dark:border-zinc-800">
               <Link
-                href="/account/billing"
+                href={tier === 'max' ? ENTERPRISE_SALES_HREF : '/account/billing'}
                 className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
               >
                 {tier === 'free'
                   ? 'Upgrade to Pro →'
                   : tier === 'pro'
                     ? 'Upgrade to Max →'
-                    : 'Upgrade to Enterprise →'}
+                    : 'Contact sales →'}
               </Link>
             </div>
           )}
@@ -266,6 +333,14 @@ export default function LicensePage() {
       </Card>
 
       {/* License key */}
+      {subscription && !subscription.licenseKey && (
+        <Card>
+          <CardHeader>
+            <CardTitle>License Key</CardTitle>
+            <CardDescription>No license key is on this account yet.</CardDescription>
+          </CardHeader>
+        </Card>
+      )}
       {subscription?.licenseKey && (
         <Card>
           <CardHeader>
@@ -461,18 +536,29 @@ export default function LicensePage() {
                   <p className="text-sm font-medium">{plan.label}</p>
                   <p className="text-xs text-zinc-600">{plan.description}</p>
                 </div>
-                <Button
-                  type="button"
-                  variant="neutral"
-                  size="sm"
-                  disabled={perpetualLoading === plan.tier}
-                  onClick={() => void handlePerpetualCheckout(plan)}
-                  className="ml-4 shrink-0 bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-                >
-                  {perpetualLoading === plan.tier
-                    ? 'Redirecting…'
-                    : `Buy ${pricing?.perpetual.find((t) => t.name === plan.label)?.price ?? '—'}`}
-                </Button>
+                {plan.tier === 'enterprise' ? (
+                  <Button
+                    asChild
+                    variant="neutral"
+                    size="sm"
+                    className="ml-4 shrink-0 bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+                  >
+                    <a href={ENTERPRISE_SALES_HREF}>Contact sales</a>
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="neutral"
+                    size="sm"
+                    disabled={perpetualLoading === plan.tier}
+                    onClick={() => void handlePerpetualCheckout(plan)}
+                    className="ml-4 shrink-0 bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+                  >
+                    {perpetualLoading === plan.tier
+                      ? 'Redirecting…'
+                      : `Buy ${pricing?.perpetual.find((t) => t.name === plan.label)?.price ?? '—'}`}
+                  </Button>
+                )}
               </div>
             ))}
           </CardContent>

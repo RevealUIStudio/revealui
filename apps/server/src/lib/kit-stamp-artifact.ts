@@ -111,7 +111,7 @@ export function buildAgencyKitArtifact(input: BuildAgencyKitArtifactInput): KitF
     '',
     '## Stamp a branded kit (operator / advanced)',
     '',
-    'From a machine with [RevForge](https://github.com/RevealUIStudio/revforge) and revvault:',
+    'From an operator machine with the private RevForge stamper and revvault (operator-only; there is no public RevealUIStudio/revforge repo):',
     '',
     '```bash',
     './stamp.sh --config revforge.json',

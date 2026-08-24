@@ -23,6 +23,7 @@ import {
   type LifecycleCandidate,
   type LifecycleClaimInput,
   type LifecycleDeps,
+  lifecycleCandidatesSql,
   runLifecycleEmails,
 } from './lifecycle-emails.js';
 
@@ -93,7 +94,53 @@ describe('day-0 welcome tier variance', () => {
   });
 
   it('the Max variant uses the Max label', () => {
-    expect(buildDay0Welcome('max').subject).toContain('Max license key');
+    const max = buildDay0Welcome('max');
+    expect(max.subject).toContain('Max license key');
+    expect(max.subject).not.toContain('Pro');
+    expect(max.html).toContain('RevealUI Max');
+    expect(max.html).not.toContain('RevealUI Pro');
+  });
+
+  it('sends day-0 for an armed Max candidate (transport invoked, no Pro label)', async () => {
+    const { deps, send } = makeDeps({
+      enabled: true,
+      candidates: [cand({ ageDays: 0, userId: 'max-user', tier: 'max' })],
+    });
+    const res = await runLifecycleEmails(deps);
+    expect(res.armed).toBe(true);
+    expect(res.sent).toBe(1);
+    expect(send).toHaveBeenCalledWith('day0_welcome', expect.objectContaining({ tier: 'max' }));
+  });
+
+  it('sends day-0 for an armed Pro candidate', async () => {
+    const { deps, send } = makeDeps({
+      enabled: true,
+      candidates: [cand({ ageDays: 0, userId: 'pro-user', tier: 'pro' })],
+    });
+    const res = await runLifecycleEmails(deps);
+    expect(res.sent).toBe(1);
+    expect(send).toHaveBeenCalledWith('day0_welcome', expect.objectContaining({ tier: 'pro' }));
+  });
+
+  it('never sends an Enterprise trial sequence when armed', async () => {
+    const { deps, send } = makeDeps({
+      enabled: true,
+      candidates: [cand({ ageDays: 0, userId: 'ent-user', tier: 'enterprise' })],
+    });
+    const res = await runLifecycleEmails(deps);
+    expect(send).not.toHaveBeenCalled();
+    expect(res.sent).toBe(0);
+    expect(res.dryRun).toBe(0);
+  });
+
+  it('does not send the first-week sequence to Free when armed', async () => {
+    const { deps, send } = makeDeps({
+      enabled: true,
+      candidates: [cand({ ageDays: 0, userId: 'free-user', tier: 'free' })],
+    });
+    const res = await runLifecycleEmails(deps);
+    expect(send).not.toHaveBeenCalled();
+    expect(res.sent).toBe(0);
   });
 
   it('the Free variant leads with the local agent reply and carries no license link', () => {
@@ -158,7 +205,7 @@ describe('runLifecycleEmails day-1 skip', () => {
   it('does not send day-1 when the candidate already has an agent action', async () => {
     const { deps, send } = makeDeps({
       enabled: true,
-      candidates: [cand({ ageDays: 3, hasAgentAction: true })],
+      candidates: [cand({ ageDays: 3, tier: 'pro', hasAgentAction: true })],
     });
     const res = await runLifecycleEmails(deps);
     expect(send).not.toHaveBeenCalled();
@@ -168,7 +215,7 @@ describe('runLifecycleEmails day-1 skip', () => {
   it('sends day-1 when the candidate has no agent action', async () => {
     const { deps, send } = makeDeps({
       enabled: true,
-      candidates: [cand({ ageDays: 3, hasAgentAction: false })],
+      candidates: [cand({ ageDays: 3, tier: 'pro', hasAgentAction: false })],
     });
     const res = await runLifecycleEmails(deps);
     expect(send).toHaveBeenCalledTimes(1);
@@ -183,7 +230,7 @@ describe('runLifecycleEmails day-1 skip', () => {
 describe('runLifecycleEmails idempotency', () => {
   it('a second evaluation sends nothing', async () => {
     const store = claimStore();
-    const candidates = [cand({ ageDays: 0 })];
+    const candidates = [cand({ ageDays: 0, tier: 'pro' })];
     const { deps, send } = makeDeps({ enabled: true, candidates, store });
 
     const first = await runLifecycleEmails(deps);
@@ -204,7 +251,7 @@ describe('runLifecycleEmails disarmed', () => {
   it('records a dry-run and never calls the transport', async () => {
     const { deps, send, store } = makeDeps({
       enabled: false,
-      candidates: [cand({ ageDays: 0 })],
+      candidates: [cand({ ageDays: 0, tier: 'pro' })],
     });
 
     const res = await runLifecycleEmails(deps);
@@ -219,7 +266,7 @@ describe('runLifecycleEmails disarmed', () => {
 
   it('a disarmed dry-run does not consume the armed send slot (build now, arm later)', async () => {
     const store = claimStore();
-    const candidates = [cand({ ageDays: 0 })];
+    const candidates = [cand({ ageDays: 0, tier: 'max' })];
     const send = vi.fn(async () => undefined);
 
     const disarmed = await runLifecycleEmails(
@@ -239,6 +286,23 @@ describe('runLifecycleEmails disarmed', () => {
 // Resilience: a transport failure must not break the loop
 // ---------------------------------------------------------------------------
 
+describe('lifecycleCandidatesSql qualification', () => {
+  it('emits table-qualified account_id so the JOIN cannot compile as account_id = account_id', () => {
+    const sqlText = lifecycleCandidatesSql(NOW);
+    expect(sqlText).toContain('"account_entitlements"."account_id"');
+    expect(sqlText).toContain('"account_memberships"."account_id"');
+    expect(sqlText.includes('on "account_id" = "account_id"')).toBe(false);
+  });
+
+  it('qualifies the usage-meter correlation so user_id = id cannot bind to account_memberships.id', () => {
+    const sqlText = lifecycleCandidatesSql(NOW);
+    expect(sqlText).toContain('"account_memberships"."user_id"');
+    expect(sqlText).toContain('"users"."id"');
+    expect(sqlText).toContain('"usage_meters"."account_id"');
+    expect(sqlText.includes('"user_id" = "id"')).toBe(false);
+  });
+});
+
 describe('runLifecycleEmails transport failure', () => {
   it('releases the claim, records a failure, and does not throw', async () => {
     const send = vi.fn(async () => {
@@ -246,7 +310,7 @@ describe('runLifecycleEmails transport failure', () => {
     });
     const { deps, store } = makeDeps({
       enabled: true,
-      candidates: [cand({ ageDays: 0 })],
+      candidates: [cand({ ageDays: 0, tier: 'pro' })],
       send,
     });
 
@@ -267,7 +331,10 @@ describe('runLifecycleEmails transport failure', () => {
     });
     const { deps } = makeDeps({
       enabled: true,
-      candidates: [cand({ ageDays: 0, userId: 'a' }), cand({ ageDays: 0, userId: 'b' })],
+      candidates: [
+        cand({ ageDays: 0, userId: 'a', tier: 'pro' }),
+        cand({ ageDays: 0, userId: 'b', tier: 'max' }),
+      ],
       send,
     });
 

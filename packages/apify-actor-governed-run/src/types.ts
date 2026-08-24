@@ -59,7 +59,7 @@ export type Receipt = z.infer<typeof ReceiptSchema>;
 const RunTaskInputSchema = z.object({
   mode: z.literal('run-task').default('run-task'),
   task: z.string().min(1, 'task must not be empty'),
-  llmProvider: z.enum(['anthropic', 'openai']),
+  llmProvider: z.enum(['anthropic', 'openai', 'groq', 'xai']),
   llmApiKey: z.string().min(1, 'llmApiKey must not be empty'),
   model: z.string().min(1).optional(),
   toolAllowlist: z.array(z.string()).optional(),

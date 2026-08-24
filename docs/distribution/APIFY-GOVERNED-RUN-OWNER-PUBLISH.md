@@ -10,7 +10,7 @@ Prices (locked in `packages/apify-actor-governed-run/src/pricing.config.ts` and 
 |-------|------|-----|
 | Governed action | `governed-action` | $0.02 |
 | Completed run | `run-completed` | $0.08 |
-| Receipt verification | `receipt-verification` | $0.00 (free) |
+| Receipt verification | `receipt-verification` | $0.00001 (Console minimum; $0.00 is not an option) |
 
 Apify does **not** read prices from the repo. Console/API must match those
 event names or charges silently become $0.
@@ -60,7 +60,7 @@ Record the actor id (`username~governed-agent-run` or similar) on GAP-431 when l
 
 - `governed-action` → $0.02  
 - `run-completed` → $0.08  
-- `receipt-verification` → $0.00  
+- `receipt-verification` → $0.00001  
 
 **API** (shape from package README; auth = Apify token):
 

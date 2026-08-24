@@ -1,5 +1,6 @@
 import {
   type BlockAnnotation,
+  Button,
   fieldAttrs,
   MarketingSection,
   SectionHeader,
@@ -35,18 +36,12 @@ export function ProductsCta({
         <span className="text-background/50">$</span> {data.cliSnippet}
       </div>
       <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-        <a
-          href={data.cta.docs.href}
-          className="rounded-md bg-primary px-8 py-4 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-        >
-          {data.cta.docs.label}
-        </a>
-        <a
-          href={data.cta.pricing.href}
-          className="rounded-md bg-secondary px-8 py-4 text-base font-semibold text-foreground transition-colors hover:bg-muted"
-        >
-          {data.cta.pricing.label}
-        </a>
+        <Button asChild size="lg" variant="brand">
+          <a href={data.cta.docs.href}>{data.cta.docs.label}</a>
+        </Button>
+        <Button asChild appearance="outline" variant="neutral" size="lg">
+          <a href={data.cta.pricing.href}>{data.cta.pricing.label}</a>
+        </Button>
       </div>
     </MarketingSection>
   );

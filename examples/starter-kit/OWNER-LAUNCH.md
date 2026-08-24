@@ -14,7 +14,7 @@ the same Payment Link / Checkout surface.
 | **Stripe product** | **live** `prod_V01FoZi9YbgZw9` |
 | **Stripe price** | **live** `price_1U01D1Jz64n6uEibtamJHxkU` ($299 one-time) |
 | **Payment Link** | **live** `https://buy.stripe.com/dRmeVegcH1AM2mmdbsa3u03` (`plink_1U01D2Jz64n6uEibnSK45nuS`) |
-| `SITE.urls.starterKitCheckout` | **wired** on marketing (`SITE.urls.starterKitCheckout`) |
+| `SITE.urls.starterKitCheckout` | **fulfillment-only** constant (`SITE.urls.starterKitCheckout`). Do not render as a public Buy CTA until the first-sale walk is recorded. |
 | Fulfillment | **manual**: GitHub invite + Skool buyer invite (launch volume). Skool: https://www.skool.com/@joshua-vaughn-3634 (invite-only). Substack broadcast: https://substack.com/@revealuistudio (not support home). |
 | First-month Pro coupon | **seed script ready** (§4); run once on live key |
 | Stripe Tax | confirm `STRIPE_TAX_ENABLED=true` on prod api if selling broadly |
@@ -41,8 +41,10 @@ link:    https://buy.stripe.com/dRmeVegcH1AM2mmdbsa3u03
 
 Dashboard: Products → RevealUI Starter Kit → Payment links.
 
-After a monorepo deploy of `starterKitCheckout`, `/pricing#starter-kit`
-primary CTA is **Buy the Starter Kit**.
+Public `/pricing#starter-kit` CTA is **Request the RevealUI Starter Kit**
+(`mailto:founder@revealui.com`). `SITE.urls.starterKitCheckout` stays for
+fulfillment after a confirmed request. Do not restore a public Buy button
+until the GAP-434 first-sale walk is recorded.
 
 ## 4. Stripe first-month-of-Pro coupon (owner, one command)
 

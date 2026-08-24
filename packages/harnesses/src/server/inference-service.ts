@@ -14,6 +14,12 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
+import {
+  chooseSnapForTier,
+  DEFAULT_SNAPS_SNAP,
+  isSignedProductSnap,
+  persistSnapAtBoot,
+} from './inference-run-policy.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -87,8 +93,6 @@ const SNAP_IDS = PRODUCT_INFERENCE_SNAPS.map(([id]) => id);
 
 // Lockstep packages/ai DEFAULT_DAILY_OLLAMA_MODEL (cannot hard-require @revealui/ai).
 const DEFAULT_DAILY_OLLAMA = 'qwen2.5:3b';
-const DEFAULT_SNAPS_SNAP = 'gemma3';
-const DEFAULT_HEAVY_SNAP = 'nemotron-3-nano';
 
 function profilePath(): string {
   return (
@@ -372,6 +376,78 @@ export class InferenceService {
     }
   }
 
+  private async ensureSnapInstalled(snapName: string): Promise<void> {
+    try {
+      await run('snap', ['list', snapName]);
+    } catch {
+      throw new Error(`Snap ${snapName} is not installed. Install: sudo snap install ${snapName}`);
+    }
+  }
+
+  /**
+   * Start a catalog snap. `--enable` (boot persist) only when the host
+   * has enough available RAM. Unsigned names are refused.
+   */
+  private async startProductSnap(snapName: string, memAvailableGiB: number | null): Promise<void> {
+    if (!isSignedProductSnap(snapName)) {
+      throw new Error(`Refusing unsigned or unknown inference process: ${snapName}`);
+    }
+    const persist = persistSnapAtBoot(snapName, memAvailableGiB);
+    const args = persist ? ['snap', 'start', '--enable', snapName] : ['snap', 'start', snapName];
+    try {
+      await execFileAsync('sudo', args, { timeout: 60_000 });
+    } catch {
+      if (persist) {
+        await execFileAsync('sudo', ['snap', 'start', snapName], { timeout: 60_000 }).catch(
+          () => undefined,
+        );
+      }
+    }
+  }
+
+  private async waitForSnapEndpoint(snapName: string): Promise<string | null> {
+    for (let i = 0; i < 30; i++) {
+      const st = await this.snapStatus(snapName);
+      if (st.running && st.endpoint) return st.endpoint;
+      await new Promise((r) => setTimeout(r, 500));
+    }
+    return null;
+  }
+
+  private async applySnapTier(tier: 'snaps' | 'heavy'): Promise<LocalAiProfile> {
+    await this.ollamaStop();
+    await this.stopAllProductSnaps({ disableBoot: true });
+    const mem = readMemAvailableGiB();
+    const choice = chooseSnapForTier(tier, mem);
+    await this.ensureSnapInstalled(choice.snapName);
+    await this.startProductSnap(choice.snapName, mem);
+    if (choice.snapName === DEFAULT_SNAPS_SNAP) {
+      try {
+        await execFileAsync('bash', ['-c', 'yes | sudo timeout 45 gemma3 use-model 270m || true'], {
+          timeout: 60_000,
+        });
+      } catch {
+        // optional
+      }
+    }
+    const endpoint = await this.waitForSnapEndpoint(choice.snapName);
+    const note = choice.demoted
+      ? choice.reason
+      : tier === 'heavy'
+        ? 'Heavy snap. Needs substantial RAM'
+        : 'Inference Snap product path (US-origin allowlist)';
+    return {
+      ...emptyIdleProfile(),
+      tier,
+      provider: 'inference-snaps',
+      model: choice.snapName,
+      baseURL: endpoint,
+      keepAlive: null,
+      updatedAt: new Date().toISOString(),
+      note,
+    };
+  }
+
   async profileGet(): Promise<LocalAiProfileView> {
     const stored = loadProfile() ?? emptyIdleProfile();
     const ollama = await this.ollamaStatus();
@@ -417,102 +493,20 @@ export class InferenceService {
         keepAlive: '0',
         note: 'Ollama daily default (qwen2.5:3b); weights unload after each request',
       };
-    } else if (tier === 'snaps') {
-      await this.ollamaStop();
-      const snapName = DEFAULT_SNAPS_SNAP;
-      try {
-        await run('snap', ['list', snapName]);
-      } catch {
-        throw new Error(
-          `Snap ${snapName} is not installed. Install: sudo snap install ${snapName}`,
-        );
-      }
-      try {
-        await execFileAsync('sudo', ['snap', 'start', '--enable', snapName], { timeout: 60_000 });
-      } catch {
-        await execFileAsync('sudo', ['snap', 'start', snapName], { timeout: 60_000 }).catch(
-          () => undefined,
-        );
-      }
-      if (snapName === 'gemma3') {
-        try {
-          await execFileAsync(
-            'bash',
-            ['-c', 'yes | sudo timeout 45 gemma3 use-model 270m || true'],
-            { timeout: 60_000 },
-          );
-        } catch {
-          // optional
-        }
-      }
-      let endpoint: string | null = null;
-      for (let i = 0; i < 30; i++) {
-        const st = await this.snapStatus(snapName);
-        if (st.running && st.endpoint) {
-          endpoint = st.endpoint;
-          break;
-        }
-        await new Promise((r) => setTimeout(r, 500));
-      }
-      profile = {
-        ...profile,
-        tier: 'snaps',
-        provider: 'inference-snaps',
-        model: snapName,
-        baseURL: endpoint,
-        keepAlive: null,
-        note: 'Inference Snap product path (US-origin allowlist)',
-      };
-    } else if (tier === 'heavy') {
-      await this.ollamaStop();
-      for (const id of SNAP_IDS) {
-        if (id === DEFAULT_HEAVY_SNAP) continue;
-        try {
-          await execFileAsync('sudo', ['snap', 'stop', '--disable', id], { timeout: 60_000 });
-        } catch {
-          // ignore
-        }
-      }
-      const snapName = DEFAULT_HEAVY_SNAP;
-      try {
-        await run('snap', ['list', snapName]);
-      } catch {
-        throw new Error(
-          `Snap ${snapName} is not installed. Install: sudo snap install ${snapName}`,
-        );
-      }
-      try {
-        await execFileAsync('sudo', ['snap', 'start', '--enable', snapName], { timeout: 60_000 });
-      } catch {
-        await execFileAsync('sudo', ['snap', 'start', snapName], { timeout: 60_000 }).catch(
-          () => undefined,
-        );
-      }
-      let endpoint: string | null = null;
-      for (let i = 0; i < 30; i++) {
-        const st = await this.snapStatus(snapName);
-        if (st.running && st.endpoint) {
-          endpoint = st.endpoint;
-          break;
-        }
-        await new Promise((r) => setTimeout(r, 500));
-      }
-      const mem = readMemAvailableGiB();
-      profile = {
-        ...profile,
-        tier: 'heavy',
-        provider: 'inference-snaps',
-        model: snapName,
-        baseURL: endpoint,
-        keepAlive: null,
-        note:
-          mem != null && mem < 6
-            ? `Heavy snap on ~${mem}Gi available RAM — expect thrash; prefer daily/snaps for IDE work`
-            : 'Heavy snap — needs substantial RAM',
-      };
+    } else if (tier === 'snaps' || tier === 'heavy') {
+      profile = await this.applySnapTier(tier);
     }
 
     saveProfile(profile);
     return this.profileGet();
+  }
+
+  /**
+   * Re-apply the stored tier against current RAM + the signed catalog.
+   * Boot / session entry: stops unfit or unsigned snaps, starts only what fits.
+   */
+  async profileReconcile(): Promise<LocalAiProfileView> {
+    const stored = loadProfile() ?? emptyIdleProfile();
+    return this.profileApply(stored.tier);
   }
 }

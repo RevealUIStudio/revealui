@@ -8,6 +8,7 @@
   "dockerfile": "../Dockerfile",
   "readme": "./README.md",
   "input": "./input_schema.json",
+  "output": "./output_schema.json",
   "minMemoryMbytes": 256,
   "maxMemoryMbytes": 1024
 }

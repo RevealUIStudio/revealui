@@ -97,9 +97,10 @@ describe('FOUNDER_SERVICE_OFFERINGS  -  Track D', () => {
     });
   });
 
-  it('all CTAs link to Cal.com booking', () => {
+  it('all CTAs link to the Google Calendar intro', () => {
     for (const service of FOUNDER_SERVICE_OFFERINGS) {
-      expect(service.ctaHref).toContain('cal.com/revealuistudio');
+      expect(service.ctaHref).toContain('https://calendar.google.com/');
+      expect(service.ctaHref.includes('cal.com/revealuistudio')).toBe(false);
     }
   });
 
@@ -193,12 +194,12 @@ describe('Perpetual tiers  -  launch enabled', () => {
     expect(agency!.ctaHref).toBeTruthy();
   });
 
-  it('Enterprise Perpetual is purchasable', () => {
+  it('Enterprise Perpetual stays in the catalog as contact sales', () => {
     const enterprise = PERPETUAL_TIERS.find((t) => t.name === 'Enterprise Perpetual');
     expect(enterprise).toBeDefined();
     expect(enterprise!.comingSoon).toBe(false);
-    expect(enterprise!.cta).toBeTruthy();
-    expect(enterprise!.ctaHref).toBeTruthy();
+    expect(enterprise!.cta).toBe('Contact sales');
+    expect(enterprise!.ctaHref).toBe('https://revealui.com/contact');
   });
 });
 

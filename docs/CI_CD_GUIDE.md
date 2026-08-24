@@ -357,7 +357,7 @@ The validator mirrors [`apps/server/src/lib/validate-startup.ts`](../apps/server
 
 - A `sk_test_*` Stripe key with `STRIPE_LIVE_MODE=true`.
 - `REVEALUI_CRON_SECRET` shorter than 32 chars.
-- Missing `REVEALUI_LICENSE_PRIVATE_KEY` in Forge mode.
+- `REVEALUI_LICENSE_PRIVATE_KEY` set in Forge mode (`MODE=forge` refuses the studio mint key; Fleet kits verify a JWT with the public key only). Hosted mint/signer is the surface that holds the private key.
 - Sensitive var (`POSTGRES_URL`) returned empty by `vercel env pull` — fix at the Vercel project's env config.
 
 ### `migrate` job fails

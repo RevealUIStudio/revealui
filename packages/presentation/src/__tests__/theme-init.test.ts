@@ -1,7 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { THEME_BOOTSTRAP_SCRIPT, THEME_DATA_ATTR, THEME_STORAGE_KEY } from '../theme-init.js';
+import {
+  THEME_BOOTSTRAP_SCRIPT,
+  THEME_DATA_ATTR,
+  THEME_STORAGE_KEY,
+  toHtmlSafeJsString,
+} from '../theme-init.js';
 
 function runBootstrap(): void {
   // Trusted IIFE authored next to this test; Function avoids a direct eval.
@@ -34,6 +39,15 @@ describe('THEME_BOOTSTRAP_SCRIPT', () => {
     expect(THEME_BOOTSTRAP_SCRIPT).toContain(THEME_STORAGE_KEY);
     expect(THEME_BOOTSTRAP_SCRIPT).toContain(THEME_DATA_ATTR);
     expect(THEME_BOOTSTRAP_SCRIPT.startsWith('(function(){')).toBe(true);
+  });
+
+  it('escapes HTML metacharacters after JSON.stringify for script-tag embedding', () => {
+    expect(toHtmlSafeJsString('rvui-theme')).toBe('"rvui-theme"');
+    expect(toHtmlSafeJsString('data-theme')).toBe('"data-theme"');
+    expect(toHtmlSafeJsString('</script>')).toBe('"\\u003c/script\\u003e"');
+    expect(toHtmlSafeJsString('a&b')).toBe('"a\\u0026b"');
+    expect(THEME_BOOTSTRAP_SCRIPT).toContain(toHtmlSafeJsString(THEME_STORAGE_KEY));
+    expect(THEME_BOOTSTRAP_SCRIPT).toContain(toHtmlSafeJsString(THEME_DATA_ATTR));
   });
 
   it('applies OS preference when nothing is stored', () => {

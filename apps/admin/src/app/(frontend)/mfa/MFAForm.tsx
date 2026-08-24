@@ -34,7 +34,7 @@ export function MFAForm() {
 
 function MFAContent() {
   const searchParams = useSearchParams();
-  const { upgrade, redirect } = readAuthIntent(searchParams);
+  const { upgrade, license, redirect } = readAuthIntent(searchParams);
   const { verify, verifyBackupCode, isLoading, error } = useMFAVerify();
   const [code, setCode] = useState('');
   const [useBackupCode, setUseBackupCode] = useState(false);
@@ -58,7 +58,7 @@ function MFAContent() {
 
     if (success) {
       // No user object from MFA verify, so the role-default falls back to '/'.
-      navigateAfterAuthChange(resolveAuthDest({ upgrade, redirect, fallback: '/' }));
+      navigateAfterAuthChange(resolveAuthDest({ upgrade, license, redirect, fallback: '/' }));
     }
   };
 

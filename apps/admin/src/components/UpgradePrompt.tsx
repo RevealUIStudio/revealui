@@ -1,6 +1,8 @@
 'use client';
 
 import {
+  allowsUnattendedCheckout,
+  ENTERPRISE_SALES_HREF,
   FEATURE_LABELS,
   getTiersFromCurrent,
   type LicenseTierId,
@@ -33,7 +35,10 @@ export function UpgradePrompt({ feature, description, variant = 'default' }: Upg
   const label = FEATURE_LABELS[feature];
   const requiredTier = getRequiredTier(feature);
   const tierLabel = requiredTier === 'free' ? 'Pro' : TIER_LABELS[requiredTier as LicenseTierId];
-  const upgradeHref = `/account/billing?upgrade=${requiredTier === 'free' ? 'pro' : requiredTier}`;
+  const requiredPlan = (requiredTier === 'free' ? 'pro' : requiredTier) as LicenseTierId;
+  const upgradeHref = allowsUnattendedCheckout(requiredPlan)
+    ? `/account/billing?upgrade=${requiredPlan}`
+    : ENTERPRISE_SALES_HREF;
   const upgradeTiers = getTiersFromCurrent(currentTier);
   const canBuy = hasCommercialUpgradePath(currentTier);
 
@@ -85,7 +90,9 @@ export function UpgradePrompt({ feature, description, variant = 'default' }: Upg
               currentTier={currentTier ?? 'free'}
               compact
               onSelectTier={(id) => {
-                window.location.href = `/account/billing?upgrade=${id}`;
+                window.location.href = allowsUnattendedCheckout(id as LicenseTierId)
+                  ? `/account/billing?upgrade=${id}`
+                  : ENTERPRISE_SALES_HREF;
               }}
             />
           </div>

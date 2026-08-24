@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  allowsUnattendedCheckout,
   CREDIT_BUNDLES,
+  ENTERPRISE_SALES_HREF,
   FEATURE_LABELS,
   FOUNDER_SERVICE_OFFERINGS,
   getTierColor,
@@ -9,6 +11,11 @@ import {
   type LicenseTierId,
   PERPETUAL_TIERS,
   type PricingResponse,
+  parsePerpetualLicenseSku,
+  perpetualLicenseCheckoutPath,
+  perpetualLicenseCheckoutTier,
+  perpetualLicenseLabel,
+  perpetualLicenseSignupPath,
   perpetualMaxSitesForTier,
   type ServiceOffering,
   SUBSCRIPTION_TIERS,
@@ -131,11 +138,17 @@ describe('SUBSCRIPTION_TIERS', () => {
     expect(highlighted[0].id).toBe('pro');
   });
 
-  // GAP-302 Phase 1: Enterprise subscription is self-serve (not mailto).
-  it('enterprise subscription CTA is self-serve signup, not mailto', () => {
+  it('enterprise subscription CTA is contact sales, not a trial signup', () => {
     const enterprise = SUBSCRIPTION_TIERS.find((t) => t.id === 'enterprise')!;
-    expect(enterprise.ctaHref.startsWith('mailto:')).toBe(false);
-    expect(enterprise.ctaHref).toBe('/signup?plan=enterprise');
+    const pro = SUBSCRIPTION_TIERS.find((t) => t.id === 'pro')!;
+    const max = SUBSCRIPTION_TIERS.find((t) => t.id === 'max')!;
+    expect(enterprise.cta).toBe('Contact sales');
+    expect(enterprise.ctaHref).toBe(ENTERPRISE_SALES_HREF);
+    expect(enterprise.ctaHref.includes('signup')).toBe(false);
+    expect(pro.cta).toBe('Start your 7-day free trial');
+    expect(pro.ctaHref).toBe('/signup?plan=pro');
+    expect(max.cta).toBe('Start your 7-day free trial');
+    expect(max.ctaHref).toBe('/signup?plan=max');
     expect(enterprise.features.some((f) => f.includes('coming soon'))).toBe(true);
   });
 
@@ -208,12 +221,21 @@ describe('PERPETUAL_TIERS', () => {
   });
 
   // GAP-306: a perpetual licensee must be able to purchase without email —
-  // no perpetual-tier CTA may route to a mailto: link.
+  // no perpetual-tier CTA may route to a mailto: link. Enterprise Perpetual
+  // is Contact sales (not unattended self-serve), same door as Enterprise subscription.
   it('no perpetual tier CTA is a mailto: link', () => {
     for (const tier of PERPETUAL_TIERS) {
       expect(tier.ctaHref.startsWith('mailto:')).toBe(false);
-      expect(tier.ctaHref).toBe('/account/license');
     }
+    expect(PERPETUAL_TIERS.find((t) => t.name === 'Pro Perpetual')?.ctaHref).toBe(
+      '/signup?license=pro',
+    );
+    expect(PERPETUAL_TIERS.find((t) => t.name === 'Agency Perpetual')?.ctaHref).toBe(
+      '/signup?license=agency',
+    );
+    expect(PERPETUAL_TIERS.find((t) => t.name === 'Enterprise Perpetual')?.ctaHref).toBe(
+      'https://revealui.com/contact',
+    );
   });
 });
 
@@ -325,9 +347,10 @@ describe('FOUNDER_SERVICE_OFFERINGS', () => {
     }
   });
 
-  it('all CTAs point to Cal.com booking link', () => {
+  it('all CTAs point to the Google Calendar intro', () => {
     for (const service of FOUNDER_SERVICE_OFFERINGS) {
-      expect(service.ctaHref).toContain('cal.com/revealuistudio');
+      expect(service.ctaHref).toContain('https://calendar.google.com/');
+      expect(service.ctaHref.includes('cal.com/revealuistudio')).toBe(false);
     }
   });
 
@@ -403,5 +426,58 @@ describe('PERPETUAL_TIERS  -  comingSoon status', () => {
     const enterprise = PERPETUAL_TIERS.find((t) => t.name === 'Enterprise Perpetual');
     expect(enterprise).toBeDefined();
     expect(enterprise?.comingSoon).toBe(false);
+  });
+
+  it('Enterprise Perpetual CTA is contact sales, not an unattended Buy', () => {
+    const enterprise = PERPETUAL_TIERS.find((t) => t.name === 'Enterprise Perpetual')!;
+    const pro = PERPETUAL_TIERS.find((t) => t.name === 'Pro Perpetual')!;
+    const agency = PERPETUAL_TIERS.find((t) => t.name === 'Agency Perpetual')!;
+    expect(enterprise.cta).toBe('Contact sales');
+    expect(enterprise.ctaHref).toBe(ENTERPRISE_SALES_HREF);
+    expect(enterprise.ctaHref.includes('signup')).toBe(false);
+    expect(enterprise.ctaHref.includes('/account/license')).toBe(false);
+    expect(pro.cta).toBe('Buy Pro Perpetual');
+    expect(pro.ctaHref).toBe('/signup?license=pro');
+    expect(agency.cta).toBe('Buy Agency Perpetual');
+    expect(agency.ctaHref).toBe('/signup?license=agency');
+  });
+});
+
+describe('allowsUnattendedCheckout', () => {
+  it('allows Pro and Max self-serve checkout, not Enterprise or Free', () => {
+    expect(allowsUnattendedCheckout('pro')).toBe(true);
+    expect(allowsUnattendedCheckout('max')).toBe(true);
+    expect(allowsUnattendedCheckout('enterprise')).toBe(false);
+    expect(allowsUnattendedCheckout('free')).toBe(false);
+  });
+
+  it('locks the Enterprise sales href to the public contact door', () => {
+    expect(ENTERPRISE_SALES_HREF).toBe('https://revealui.com/contact');
+    expect(SUBSCRIPTION_TIERS.find((t) => t.id === 'enterprise')?.ctaHref).toBe(
+      ENTERPRISE_SALES_HREF,
+    );
+  });
+});
+
+describe('perpetual license SKU hop', () => {
+  it('parses public SKUs and aliases max → agency', () => {
+    expect(parsePerpetualLicenseSku('pro')).toBe('pro');
+    expect(parsePerpetualLicenseSku('agency')).toBe('agency');
+    expect(parsePerpetualLicenseSku('enterprise')).toBe('enterprise');
+    expect(parsePerpetualLicenseSku('max')).toBe('agency');
+    expect(parsePerpetualLicenseSku('bogus')).toBeNull();
+    expect(parsePerpetualLicenseSku(null)).toBeNull();
+  });
+
+  it('names the SKU and keeps signup distinct from subscription plan=', () => {
+    expect(perpetualLicenseLabel('pro')).toBe('Pro Perpetual');
+    expect(perpetualLicenseLabel('agency')).toBe('Agency Perpetual');
+    expect(perpetualLicenseLabel('enterprise')).toBe('Enterprise Perpetual');
+    expect(perpetualLicenseSignupPath('pro')).toBe('/signup?license=pro');
+    expect(perpetualLicenseSignupPath('agency')).toBe('/signup?license=agency');
+    expect(perpetualLicenseCheckoutPath('pro')).toBe('/account/license?license=pro');
+    expect(perpetualLicenseCheckoutTier('agency')).toBe('max');
+    expect(perpetualLicenseCheckoutTier('pro')).toBe('pro');
+    expect(perpetualLicenseSignupPath('pro').includes('plan=')).toBe(false);
   });
 });

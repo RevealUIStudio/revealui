@@ -135,6 +135,31 @@
       "import": "./dist/llm/providers/base.js",
       "default": "./dist/llm/providers/base.js"
     },
+    "./llm/providers/groq": {
+      "types": "./dist/llm/providers/groq.d.ts",
+      "import": "./dist/llm/providers/groq.js",
+      "default": "./dist/llm/providers/groq.js"
+    },
+    "./llm/providers/xai": {
+      "types": "./dist/llm/providers/xai.d.ts",
+      "import": "./dist/llm/providers/xai.js",
+      "default": "./dist/llm/providers/xai.js"
+    },
+    "./llm/providers/openai": {
+      "types": "./dist/llm/providers/openai.d.ts",
+      "import": "./dist/llm/providers/openai.js",
+      "default": "./dist/llm/providers/openai.js"
+    },
+    "./llm/providers/anthropic": {
+      "types": "./dist/llm/providers/anthropic.d.ts",
+      "import": "./dist/llm/providers/anthropic.js",
+      "default": "./dist/llm/providers/anthropic.js"
+    },
+    "./llm/providers/openai-compat": {
+      "types": "./dist/llm/providers/openai-compat.d.ts",
+      "import": "./dist/llm/providers/openai-compat.js",
+      "default": "./dist/llm/providers/openai-compat.js"
+    },
     "./llm/response-cache": {
       "types": "./dist/llm/response-cache.d.ts",
       "import": "./dist/llm/response-cache.js",

@@ -24,7 +24,7 @@ Part of the [RevealUI monorepo](https://github.com/RevealUIStudio/revealui)  -  
 - **Security**  -  CORS, CSP, HSTS, RBAC/ABAC policy engine, encryption (AES-256-GCM), audit logging
 - **GDPR Compliance**  -  Consent management, data export, deletion, anonymization, breach reporting
 - **Observability**  -  Structured logging, process health monitoring, alert system, graceful shutdown
-- **Plugins**  -  Extensible plugin system (form builder, nested docs, redirects)
+- **Plugins**  -  Extensible plugin system (form builder, nested docs, redirects). Guide: [docs/PLUGINS.md](../../docs/PLUGINS.md)
 - **Feature Gating**  -  Tier-based licensing (free, pro, max, enterprise) with JWT license keys
 - **Database**  -  PostgreSQL adapters (NeonDB + PGlite for testing), connection pooling, SSL/TLS
 - **Storage**  -  Pluggable storage interface (Cloudflare R2 sole non-mock backend; mock adapter for tests)
@@ -41,11 +41,12 @@ pnpm add @revealui/core
 
 ```typescript
 import { buildConfig } from '@revealui/core/config'
+import { formBuilderPlugin, nestedDocsPlugin } from '@revealui/core/plugins'
 
 const config = buildConfig({
   collections: [Posts, Categories, Users],
   globals: [Settings, Navigation],
-  plugins: [formBuilder(), nestedDocs()],
+  plugins: [formBuilderPlugin(), nestedDocsPlugin()],
 })
 ```
 

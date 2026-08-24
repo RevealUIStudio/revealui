@@ -223,6 +223,23 @@ const nextConfig = {
         source: '/a2a/:path*',
         destination: `${apiUrl}/a2a/:path*`,
       },
+      // Billing /api/* rewrites do not run: App Router
+      // (backend)/api/[...slug] wins over next.config rewrites. The
+      // working proxy is app/api/billing/*/route.ts (more specific than
+      // the catch-all) which forwards Cookie via apiForwardHeaders.
+      // Entries below stay as documentation of the intended API host.
+      {
+        source: '/api/billing/subscription',
+        destination: `${apiUrl}/api/billing/subscription`,
+      },
+      {
+        source: '/api/billing/checkout-perpetual',
+        destination: `${apiUrl}/api/billing/checkout-perpetual`,
+      },
+      {
+        source: '/api/billing/checkout-support-renewal',
+        destination: `${apiUrl}/api/billing/checkout-support-renewal`,
+      },
     ]
   },
   async headers() {

@@ -1,31 +1,11 @@
-import {
-  Button,
-  GitHubIcon,
-  IconArrowRight,
-  MarketingSection,
-  ReceiptCard,
-} from '@revealui/presentation';
-import { Link, useLocation } from '@revealui/router';
-import { FOR_OPERATORS_HERO } from '../../content/for-operators';
-import { HOME_TRUST_SIGNALS } from '../../content/home';
-import {
-  RECEIPT_HERO_CAPTION,
-  RECEIPT_HERO_INTEGRITY,
-  RECEIPT_HERO_LINES,
-  RECEIPT_HERO_TITLE,
-} from '../../content/receipt';
-import { selectAudience } from '../../lib/audience';
+import { Button, GitHubIcon, IconArrowRight, MarketingSection } from '@revealui/presentation';
+import { useLocation } from '@revealui/router';
+import { HOME_GET_STARTED } from '../../content/home';
 import { selectHomeHero } from '../../lib/hero-variant';
-import { AudienceToggle } from './AudienceToggle';
 
 /**
  * Full-bleed hero stage paint (viewport-stage, not content-boxed).
- *
- * Frontend-excellence Phase 1 + ADR 2026-07-10: one quiet signature wash.
- * Painted via MarketingSection `backdrop` so absolute inset-0 is relative to
- * the outer section (full width), not the max-w-7xl content rail.
- *
- * Glow uses svh/vw so it scales phone → ultrawide (no fixed 900×520 halo).
+ * Founder weekend spec: one headline, one continuity sentence, Start free, GitHub.
  */
 function HeroBackground() {
   return (
@@ -48,104 +28,8 @@ function HeroBackground() {
   );
 }
 
-/** Trust strip: sm+ only so phone first viewport owns H1 → CTA → receipt. */
-function TrustStrip() {
-  return (
-    <ul className="mt-5 hidden list-none flex-wrap items-center justify-center gap-y-2 p-0 text-sm text-body sm:mt-7 sm:flex">
-      {HOME_TRUST_SIGNALS.map((signal, index) => (
-        <li key={signal} className="flex items-center">
-          {index > 0 ? (
-            <span aria-hidden="true" className="mx-3 h-3 w-px bg-border-strong sm:mx-4" />
-          ) : null}
-          <span>{signal}</span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-/** Technical hero: the canonical developer-facing pitch (CLI, GitHub, positioning). */
-function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
-  return (
-    <>
-      {/*
-        Type ladder (P0 craft):
-        - H1 = text-foreground (ink, max contrast)
-        - subtitle = text-body (rvui-text-1) for long reading, not muted
-        - trust / captions = muted only when meta
-      */}
-      <h1 className="text-balance font-display text-[2.5rem] font-extrabold leading-[1.05] tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
-        {hero.h1}
-      </h1>
-
-      <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-body sm:mt-7 sm:text-xl sm:leading-8">
-        {hero.subtitle.sentence1} {hero.subtitle.sentence2} {hero.subtitle.support}
-      </p>
-
-      <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:mt-9 sm:flex-row sm:gap-4">
-        <Button asChild size="lg" glow className="w-full gap-2 sm:w-auto">
-          <a href={hero.cta.primary.href}>
-            {hero.cta.primary.label}
-            <IconArrowRight size="sm" />
-          </a>
-        </Button>
-        <Button
-          asChild
-          appearance="outline"
-          variant="neutral"
-          size="lg"
-          className="w-full gap-2 sm:w-auto"
-        >
-          <a href={hero.cta.secondary.href} target="_blank" rel="noopener noreferrer">
-            <GitHubIcon className="size-4" />
-            {hero.cta.secondary.label}
-          </a>
-        </Button>
-      </div>
-
-      <TrustStrip />
-    </>
-  );
-}
-
-/**
- * Non-technical hero: the operator-facing pitch. Reuses the /for-operators hero
- * copy and deliberately omits the developer-only surfaces (CLI block, GitHub
- * CTA, ships-today).
- */
-function NonTechnicalHero() {
-  const hero = FOR_OPERATORS_HERO;
-  return (
-    <>
-      <h1 className="text-balance font-display text-[2.5rem] font-extrabold leading-[1.05] tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
-        {hero.h1Lines.map((line) => (
-          <span key={line} className="block">
-            {line}
-          </span>
-        ))}
-      </h1>
-
-      <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-body sm:mt-7 sm:text-xl sm:leading-8">
-        {hero.subtitle}
-      </p>
-
-      <div className="mt-6 flex justify-center sm:mt-9">
-        <Button asChild size="lg" glow className="w-full gap-2 sm:w-auto">
-          <a href={hero.primaryCta.href} target="_blank" rel="noopener noreferrer">
-            {hero.primaryCta.label}
-            <IconArrowRight size="sm" />
-          </a>
-        </Button>
-      </div>
-
-      <TrustStrip />
-    </>
-  );
-}
-
 export function Hero() {
   const { search } = useLocation();
-  const audience = selectAudience(search);
   const hero = selectHomeHero(search);
 
   return (
@@ -155,38 +39,59 @@ export function Hero() {
       width="default"
       backdrop={<HeroBackground />}
       className={[
-        // Viewport stage under sticky nav (see --marketing-nav-h on :root).
         'min-h-[calc(100svh-var(--marketing-nav-h,4rem))]',
-        // Center the stack on tall screens; grows past min-h when content is taller.
         'flex flex-col justify-center overflow-hidden',
       ].join(' ')}
     >
       <div className="mx-auto max-w-3xl text-center">
-        <div className="mb-4 flex justify-center sm:mb-7">
-          <AudienceToggle current={audience} />
+        <h1 className="text-balance font-display text-[2.5rem] font-extrabold leading-[1.05] tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
+          {hero.h1}
+        </h1>
+
+        <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-body sm:mt-7 sm:text-xl sm:leading-8">
+          {hero.subtitle.sentence1}
+        </p>
+
+        <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:mt-9 sm:flex-row sm:gap-4">
+          <Button asChild size="lg" glow className="w-full gap-2 sm:w-auto">
+            <a href={hero.cta.primary.href}>
+              {hero.cta.primary.label}
+              <IconArrowRight size="sm" />
+            </a>
+          </Button>
+          <Button
+            asChild
+            appearance="outline"
+            variant="neutral"
+            size="lg"
+            className="w-full gap-2 sm:w-auto"
+          >
+            <a href={hero.cta.secondary.href} target="_blank" rel="noopener noreferrer">
+              <GitHubIcon className="size-4" />
+              {hero.cta.secondary.label}
+            </a>
+          </Button>
         </div>
 
-        {audience === 'technical' ? <TechnicalHero hero={hero} /> : <NonTechnicalHero />}
-      </div>
-
-      {/* Receipt-motif moment (frontend-excellence Phase 5): one orchestrated
-          print entrance, shared verbatim by both audience variants. */}
-      <div className="mx-auto mt-8 w-full min-w-0 max-w-md text-left sm:mt-12 sm:max-w-lg">
-        <ReceiptCard
-          title={RECEIPT_HERO_TITLE}
-          lines={[...RECEIPT_HERO_LINES]}
-          integrity={RECEIPT_HERO_INTEGRITY}
-          animate="print"
-        />
-        <p className="mt-3 text-center text-sm text-body sm:mt-4">
-          {RECEIPT_HERO_CAPTION.text}{' '}
-          <Link
-            to={RECEIPT_HERO_CAPTION.link.href}
-            className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
-          >
-            {RECEIPT_HERO_CAPTION.link.label}
-          </Link>
-        </p>
+        <div className="mt-8 inline-flex items-center gap-3 rounded-xl bg-foreground px-5 py-3 font-mono text-sm shadow-lg ring-1 ring-background/10">
+          <span className="select-none text-background/50">$</span>
+          {HOME_GET_STARTED.cli.command.map((token, index) => (
+            <span
+              // biome-ignore lint/suspicious/noArrayIndexKey: static, order-fixed command tokens
+              key={index}
+              className={
+                index === 0
+                  ? 'text-primary-foreground'
+                  : index === HOME_GET_STARTED.cli.command.length - 1
+                    ? 'text-background/80'
+                    : 'text-background'
+              }
+            >
+              {token}
+            </span>
+          ))}
+        </div>
+        <p className="mt-3 text-sm text-muted-foreground">{HOME_GET_STARTED.cli.caption}</p>
       </div>
     </MarketingSection>
   );

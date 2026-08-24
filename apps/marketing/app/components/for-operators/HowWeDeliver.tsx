@@ -3,6 +3,7 @@ import {
   fieldAttrs,
   MarketingSection,
   SectionHeader,
+  TextLink,
 } from '@revealui/presentation';
 import { FOR_OPERATORS_HOW_WE_DELIVER } from '../../content/for-operators';
 import type { ServicesHowWeDeliverData } from '../../lib/page-blocks';
@@ -40,13 +41,13 @@ export function HowWeDeliver({ data, path, annotation }: HowWeDeliverProps = {})
           <span {...(base ? fieldAttrs(ann, `${base}.items.0.body`) : {})}>
             {paragraph2.before}
           </span>
-          <a
+          <TextLink
             href={paragraph2.linkHref}
-            className="font-medium text-primary underline-offset-4 hover:underline"
+            className="font-medium text-primary"
             {...(base ? fieldAttrs(ann, `${base}.items.1.body`) : {})}
           >
             {paragraph2.linkLabel}
-          </a>
+          </TextLink>
           <span {...(base ? fieldAttrs(ann, `${base}.items.2.body`) : {})}>{paragraph2.after}</span>
         </p>
         <p {...(base ? fieldAttrs(ann, `${base}.items.3.body`) : {})}>{paragraph3}</p>

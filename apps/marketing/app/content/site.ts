@@ -82,6 +82,8 @@ export const SITE = {
      * GAP-434 Starter Kit Stripe Payment Link (live). Owner re-ruled 2026-08-02
      * to Stripe Payment Link (C) over Polar; Managed Payments (D) is a later upgrade.
      * Stripe product prod_V01FoZi9YbgZw9 / price_1U01D1Jz64n6uEibtamJHxkU.
+     * Fulfillment-only until the GAP-434 first-sale walk is recorded — do not
+     * render this URL as a public Buy CTA on marketing.
      */
     starterKitCheckout: 'https://buy.stripe.com/dRmeVegcH1AM2mmdbsa3u03',
     /**
@@ -89,6 +91,11 @@ export const SITE = {
      * one is pinned; until then the org/repo projects index is the honest link.
      */
     repoProjects: 'https://github.com/RevealUIStudio/revealui/projects',
+    /**
+     * Founder intro booking. Google Calendar appointments only.
+     */
+    bookIntro:
+      'https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ21UZVcuYp7yO32rZmhyUvZFDJcvles81E9edGNFwSUP8SHEVzGvq0gKgNFo7q04YS5i-12ZE5P',
   },
   emails: {
     support: 'support@revealui.com',

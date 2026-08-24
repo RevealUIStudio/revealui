@@ -1,14 +1,7 @@
 /**
- * Drift gate: asserts that the agency engagement ladder
- * (`AGENCY_ENGAGEMENT_LADDER` in `app/content/for-operators.ts`) is the
- * single source of truth for the four published engagement anchors —
- * Architecture Review, Launch Package, Fleet deployment, Custom Build —
- * and that every marketing surface that displays them derives from it
- * instead of authoring the literals inline.
- *
- * Failure mode the gate forbids: a future edit that re-introduces a
- * hand-typed "$25,000" or "$50,000" in any marketing content/* module
- * (the historical 2026-06-07 offerings-pin drift class).
+ * Drift gate for leftover agency anchors. The product /pricing catalog must
+ * not derive a done-for-you ladder from AGENCY_ENGAGEMENT_LADDER. Studio
+ * SKUs belong on revealuistudio.com.
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -20,14 +13,12 @@ import {
   FOR_OPERATORS_FAQ,
   FOR_OPERATORS_PRICING,
 } from '../content/for-operators';
-import { PRICING_DONE_FOR_YOU } from '../content/pricing';
+import * as pricing from '../content/pricing';
 
 const CONTENT_DIR = join(import.meta.dirname, '..', 'content');
 const FOR_OPERATORS_SRC = readFileSync(join(CONTENT_DIR, 'for-operators.ts'), 'utf8');
 const PRICING_SRC = readFileSync(join(CONTENT_DIR, 'pricing.ts'), 'utf8');
 
-// Counts literal occurrences of `needle` in code, skipping comment lines.
-// Module-scoped so multiple describes can pin single-ownership invariants.
 function countOccurrencesInCode(source: string, needle: string): number {
   let count = 0;
   for (const line of source.split('\n')) {
@@ -49,8 +40,8 @@ function countOccurrencesInCode(source: string, needle: string): number {
   return count;
 }
 
-describe('AGENCY_ENGAGEMENT_LADDER — canonical anchors', () => {
-  it('pins the four published anchors, Launch Package between Architecture Review and Fleet deployment', () => {
+describe('AGENCY_ENGAGEMENT_LADDER — leftover studio anchors', () => {
+  it('pins the four studio anchors off the product catalog', () => {
     expect(AGENCY_ENGAGEMENT_LADDER.map((e) => [e.id, e.name, e.price, e.startsFrom])).toEqual([
       ['architecture-review', 'Architecture Review', '$3,500', false],
       ['launch-package', 'Launch Package', '$7,500', false],
@@ -70,20 +61,21 @@ describe('AGENCY_ENGAGEMENT_LADDER — canonical anchors', () => {
   });
 });
 
-describe('marketing surfaces derive from the ladder', () => {
-  it('FOR_OPERATORS_PRICING rungs reuse ladder name + display price', () => {
+describe('product pricing.ts does not sell the studio ladder', () => {
+  it('does not export a done-for-you, starter-kit, founding-kit, or cost-calculator catalog', () => {
+    expect(Object.hasOwn(pricing, 'PRICING_DONE_FOR_YOU')).toBe(false);
+    expect(Object.hasOwn(pricing, 'PRICING_STARTER_KIT')).toBe(false);
+    expect(Object.hasOwn(pricing, 'PRICING_AGENCY_FOUNDING_KIT')).toBe(false);
+    expect(Object.hasOwn(pricing, 'PRICING_COST_CALCULATOR')).toBe(false);
+  });
+
+  it('FOR_OPERATORS_PRICING leftover rungs still reuse ladder name + display price', () => {
     expect(FOR_OPERATORS_PRICING.rungs.map((r) => [r.title, r.price])).toEqual(
       AGENCY_ENGAGEMENT_LADDER.map((e) => [e.name, agencyEngagementPriceDisplay(e)]),
     );
   });
 
-  it('PRICING_DONE_FOR_YOU rungs reuse ladder name + display price', () => {
-    expect(PRICING_DONE_FOR_YOU.rungs.map((r) => [r.name, r.price])).toEqual(
-      AGENCY_ENGAGEMENT_LADDER.map((e) => [e.name, agencyEngagementPriceDisplay(e)]),
-    );
-  });
-
-  it('FAQ "How much does it cost?" answer interpolates ladder anchors', () => {
+  it('FAQ "How much does it cost?" leftover answer interpolates ladder anchors', () => {
     const faq = FOR_OPERATORS_FAQ.items.find(
       (item) => item.question === 'How much does it cost?',
     )?.answer;
@@ -96,23 +88,14 @@ describe('marketing surfaces derive from the ladder', () => {
 });
 
 describe('single ownership of agency-only price anchors', () => {
-  // The marketing /content tree must contain each bare anchor exactly once,
-  // only inside AGENCY_ENGAGEMENT_LADDER. Other consumers either reuse the
-  // exported objects or interpolate via priceDisplay() / template literals
-  // that reference `engagement.price`. A future re-authoring of "$25,000"
-  // anywhere else in code trips this gate.
-  //
-  // Comments are stripped before counting — illustrative anchors in
-  // documentation prose (//, /* */, JSDoc) are not rendered surfaces and
-  // must not gate the test.
   const agencyOnly = ['$25,000', '$50,000'] as const;
 
   for (const anchor of agencyOnly) {
-    it(`${anchor} appears exactly once in content/for-operators.ts code (the ladder)`, () => {
+    it(`${anchor} appears exactly once in content/for-operators.ts code (the leftover ladder)`, () => {
       expect(countOccurrencesInCode(FOR_OPERATORS_SRC, anchor)).toBe(1);
     });
 
-    it(`${anchor} does not appear in content/pricing.ts code (band derives via import)`, () => {
+    it(`${anchor} does not appear in content/pricing.ts code`, () => {
       expect(countOccurrencesInCode(PRICING_SRC, anchor)).toBe(0);
     });
   }
@@ -125,29 +108,24 @@ describe('FOUNDER_SERVICE_OFFERINGS — founder-led services menu', () => {
     expect(names).not.toContain('Custom Build');
   });
 
-  it('agrees with the ladder on the shared Architecture Review price', () => {
+  it('agrees with the leftover ladder on the shared Architecture Review price', () => {
     const review = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'architecture-review');
     const ladderReview = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === 'architecture-review');
     expect(review?.price).toBe(ladderReview?.price);
   });
 
-  // Launch Package is the second rung shared between the founder-led menu
-  // and the agency ladder (same pattern as Architecture Review above): both
-  // surfaces import LAUNCH_PACKAGE_PRICE from @revealui/contracts/pricing
-  // rather than re-authoring "$7,500", so this checks the two stay equal
-  // instead of asserting the literal never appears anywhere else.
-  it('agrees with the ladder on the shared Launch Package price', () => {
+  it('agrees with the leftover ladder on the shared Launch Package price', () => {
     const launch = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'launch-package');
     const ladderLaunch = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === 'launch-package');
     expect(launch?.price).toBe('$7,500');
     expect(launch?.price).toBe(ladderLaunch?.price);
   });
 
-  it('$7,500 does not appear as a hand-typed literal in content/for-operators.ts code (imports LAUNCH_PACKAGE_PRICE instead)', () => {
+  it('$7,500 does not appear as a hand-typed literal in content/for-operators.ts code', () => {
     expect(countOccurrencesInCode(FOR_OPERATORS_SRC, '$7,500')).toBe(0);
   });
 
-  it('$7,500 does not appear as a hand-typed literal in content/pricing.ts code (band derives via import)', () => {
+  it('$7,500 does not appear as a hand-typed literal in content/pricing.ts code', () => {
     expect(countOccurrencesInCode(PRICING_SRC, '$7,500')).toBe(0);
   });
 });

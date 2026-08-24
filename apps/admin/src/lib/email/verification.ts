@@ -6,6 +6,7 @@
  */
 
 import config from '@revealui/config';
+import type { PerpetualLicenseSku } from '@revealui/contracts/pricing';
 import { sendEmail } from './index';
 
 /**
@@ -15,11 +16,13 @@ export async function sendVerificationEmail(
   email: string,
   token: string,
   plan?: 'pro' | 'max' | 'enterprise',
+  license?: PerpetualLicenseSku,
 ): Promise<{ success: boolean; error?: string }> {
   const baseUrl = config.reveal.serverURL;
 
-  const planSuffix = plan ? `&upgrade=${plan}` : '';
-  const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${encodeURIComponent(token)}${planSuffix}`;
+  const planSuffix = !license && plan ? `&upgrade=${plan}` : '';
+  const licenseSuffix = license ? `&license=${license}` : '';
+  const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${encodeURIComponent(token)}${planSuffix}${licenseSuffix}`;
 
   const html = `
     <!DOCTYPE html>

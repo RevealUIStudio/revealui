@@ -15,6 +15,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
+const mockGetSession = vi.fn();
+vi.mock('@revealui/auth/server', () => ({
+  getSession: (...args: unknown[]) => mockGetSession(...args),
+}));
+
+vi.mock('@/lib/utils/request-context', () => ({
+  extractRequestContext: () => ({ userAgent: 'test', ipAddress: '127.0.0.1' }),
+}));
+
 vi.mock('@/lib/middleware/rate-limit', () => ({
   withRateLimit: (handler: (...args: unknown[]) => unknown) => handler,
 }));
@@ -106,14 +115,26 @@ describe('POST /api/capture-error', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.REVEALUI_SECRET = SECRET;
+    delete process.env.REVEALUI_ERROR_INGEST_TOKEN;
+    mockGetSession.mockResolvedValue({
+      user: { id: 'u1', role: 'editor' },
+      session: { id: 's1' },
+    });
   });
 
-  it('returns 202 silently when REVEALUI_SECRET is not configured', async () => {
+  it('returns 503 when REVEALUI_SECRET is not configured', async () => {
     delete process.env.REVEALUI_SECRET;
     const res = await POST(makeRequest('{"message":"oops"}'));
-    expect(res.status).toBe(202);
+    expect(res.status).toBe(503);
     const body = await res.json();
-    expect(body.success).toBe(true);
+    expect(body.success).toBe(false);
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('returns 401 when unauthenticated and no ingest token is presented', async () => {
+    mockGetSession.mockResolvedValue(null);
+    const res = await POST(makeRequest('{"message":"oops"}'));
+    expect(res.status).toBe(401);
     expect(mockFetch).not.toHaveBeenCalled();
   });
 

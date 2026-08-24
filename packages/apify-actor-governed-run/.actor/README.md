@@ -10,8 +10,8 @@ without ever talking to anyone.
 ## What you get
 
 - **A completed task.** Give the actor a task and your own LLM API key
-  (Anthropic or OpenAI), and it runs an agent loop until the task is done or
-  it hits a step limit.
+  (Anthropic, OpenAI, Groq, or xAI), and it runs an agent loop until the task
+  is done or it hits a step limit.
 - **A signed, tamper-evident receipt.** Every model call and tool call is
   recorded into an action log, and the whole log, together with the
   identifiers of the Apify run that produced it, is signed with a fresh
@@ -25,9 +25,10 @@ without ever talking to anyone.
   happened, not just that the receipt is internally consistent, can fetch that
   record from the Apify API for the `actorRunId` embedded in the receipt and
   confirm it matches.
-- **A free way to check any receipt.** Run this actor again in "verify-receipt"
+- **A way to check any receipt.** Run this actor again in "verify-receipt"
   mode with a receipt you already have, and it tells you whether the signature
-  is valid. This mode is free.
+  is valid. That run is billed at $0.00001, the lowest price Apify Console
+  allows for an event ($0.00 is not an option).
 
 **What a receipt proves, and what it doesn't.** Standalone verification (the
 "verify-receipt" mode) proves the action log was not altered after signing. It
@@ -45,7 +46,7 @@ ISO, or other compliance claim either way.
 |---|---|---|
 | `mode` | No (default `run-task`) | `run-task` or `verify-receipt` |
 | `task` | Yes, for `run-task` | The task prompt for the agent |
-| `llmProvider` | Yes, for `run-task` | `anthropic` or `openai` |
+| `llmProvider` | Yes, for `run-task` | `anthropic`, `openai`, `groq`, or `xai` |
 | `llmApiKey` | Yes, for `run-task` | Your own API key (bring-your-own-key; never stored or logged) |
 | `model` | No | Override the provider's default model |
 | `toolAllowlist` | No | Restrict which built-in tools the agent may use; omit for all, `[]` for none |
@@ -65,7 +66,7 @@ spend.
 |---|---|---|
 | Governed action | $0.02 | Once per model call or tool call recorded into the action log |
 | Governed run completed | $0.08 | Once when a governed run finishes and a signed receipt is produced |
-| Receipt verification | Free | Once per "verify-receipt" run |
+| Receipt verification | $0.00001 | Once per "verify-receipt" run |
 
 ## How the receipt works
 

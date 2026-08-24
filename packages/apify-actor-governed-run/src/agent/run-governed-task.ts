@@ -1,12 +1,19 @@
-import {
-  type LLMChatOptions,
-  type LLMResponse,
-  type Message,
-  type Tool,
-  type ToolDefinition,
-  toolParametersToJsonSchema,
-} from '@revealui/ai';
+import type { LLMChatOptions, LLMResponse, Message, Tool, ToolDefinition } from '@revealui/ai';
+import { z } from 'zod/v4';
 import type { ActionLogEntry } from '../types.js';
+
+/**
+ * Zod → JSON Schema for tool params. Do not import toolParametersToJsonSchema
+ * from `@revealui/ai`: published 0.10.1 does not export it (Store run
+ * 7eex6cpPtpFNNSsHj crashed on that named import at module load).
+ */
+function toolParametersToJsonSchema(parameters: z.ZodType): Record<string, unknown> {
+  const schema = z.toJSONSchema(parameters);
+  if (typeof schema !== 'object' || schema === null || Array.isArray(schema)) {
+    return { type: 'object', properties: {} };
+  }
+  return schema as Record<string, unknown>;
+}
 
 export const DEFAULT_MAX_STEPS = 10;
 

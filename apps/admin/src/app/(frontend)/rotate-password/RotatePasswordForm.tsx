@@ -32,7 +32,7 @@ export function RotatePasswordForm() {
 
 function RotatePasswordContent() {
   const searchParams = useSearchParams();
-  const { upgrade, redirect } = readAuthIntent(searchParams);
+  const { upgrade, license, redirect } = readAuthIntent(searchParams);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -76,7 +76,7 @@ function RotatePasswordContent() {
       }
 
       // No user object from the rotation step, so the role-default falls back to '/'.
-      navigateAfterAuthChange(resolveAuthDest({ upgrade, redirect, fallback: '/' }));
+      navigateAfterAuthChange(resolveAuthDest({ upgrade, license, redirect, fallback: '/' }));
     } catch {
       setError('An unexpected error occurred.');
     } finally {

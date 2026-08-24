@@ -20,7 +20,9 @@ People. Content. Offers. Payments. Agents. Five primitives for humans and agents
 
 ---
 
-RevealUI is an open-source runtime that ships the business logic layer every software product needs: auth, content, products, billing, and AI agents. Pre-wired and development-hardened. You start on day one with a running business. Your agents start on day one with a runtime they can operate on. Same permissions, same API, same data model.
+RevealUI is an open-source runtime that ships the business logic layer every software product needs: auth, content, products, billing, and AI agents. Pre-wired and development-hardened. You start on day one with a running business. Your agents start on day one with a runtime they can operate on. Same permissions, same API, and data model.
+
+Canonical definition: [docs/WHAT_IS.md](docs/WHAT_IS.md).
 
 ## What you get on day one
 
@@ -83,12 +85,14 @@ RevealUI is the runtime at the center of RevFleet — the RevealUI Studio produc
 
 | Product              | Purpose                                                  | License           |
 | -------------------- | -------------------------------------------------------- | ----------------- |
-| **RevealUI**         | Agentic business runtime (this repo)                     | MIT + Fair Source |
-| **RevVault**         | Age-encrypted secret vault (Rust CLI + desktop)          | MIT + Pro         |
-| **RevDev**           | AI engineering harness — multi-agent coordination        | MIT (early)       |
+| **RevealUI**         | Agentic business runtime (this repo). Beta.              | MIT + Fair Source |
+| **RevVault**         | Age-encrypted secret vault (Rust CLI + desktop). Beta.   | MIT + Pro         |
+| **RevDev**           | Studio + Console + harness daemon. Alpha.                | MIT (early)       |
 | **RevCon**           | Editor config sync (Zed, VS Code, Cursor, Antigravity)   | MIT               |
 | **RevSkills**        | Agent Skills library (Claude, Grok, Cursor, OpenCode, VS Code) | MIT               |
-| **RevealUI Fleet**   | White-label / enterprise deployment kit for RevealUI     | Enterprise tier   |
+| **RevealUI Fleet**   | Self-hosted kit (Compose + GHCR). Alpha; not a launched pull-and-run product. | Enterprise tier |
+| **RevForge**         | Operator-only stamper (private; no public GitHub repo)   | Operator          |
+| **RevMarket**        | Third-party MCP catalog. Planned. First-party servers ship here. | Planned        |
 
 Each product stands alone. Together, they cover the full lifecycle of building, securing, coordinating, and monetizing software, for you and for your agents.
 
@@ -140,7 +144,7 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 | **Free**       | $0        | Full OSS core: people, content, offers, payments, admin              |
 | **Pro**        | $49/mo    | AI agents, MCP framework, open-model inference, advanced sync, RevVault desktop + rotation engine |
 | **Max**        | $299/mo   | Full AI memory, audit log, higher limits         |
-| **Enterprise** | $1,499/mo | RevealUI Fleet (branded white-label, managed setup via revforge), SSO (OIDC + SAML in code, SCIM not built — [#449](https://github.com/RevealUIStudio/revealui/issues/449)), domain-locked                                       |
+| **Enterprise** | $1,499/mo | License + studio support (you self-host). RevealUI Fleet kit via RevForge (operator preview, not a launched pull-and-run kit). SSO (operator preview, not customer-walked — [#449](https://github.com/RevealUIStudio/revealui/issues/449)). Domain-locked. Not a Studio-operated customer VM. |
 
 ## Apps
 
@@ -161,7 +165,7 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 
 | Package                                                 | Purpose                                           |
 | ------------------------------------------------------- | ------------------------------------------------- |
-| [`@revealui/core`](packages/core)                       | Runtime engine, REST API, auth, rich text, plugins |
+| [`@revealui/core`](packages/core)                       | Runtime engine, REST API, auth, rich text, [plugins](docs/PLUGINS.md) |
 | [`@revealui/contracts`](packages/contracts)             | Zod schemas + TypeScript types (single source)    |
 | [`@revealui/db`](packages/db)                           | Drizzle ORM schema (104 tables) on NeonDB (Postgres) |
 | [`@revealui/auth`](packages/auth)                       | Session auth, password reset, rate limiting       |
@@ -230,6 +234,13 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 
 ## Quick start
 
+Secrets live in **RevVault**. Do not treat `apps/admin/.env.example` as the happy path. See [docs/fleet/revvault.md](docs/fleet/revvault.md) and [docs/SECRETS.md](docs/SECRETS.md) (maintainer).
+
+```bash
+# If you have RevVault on this machine:
+revvault export-env   # materializes env from the vault; direnv loads it
+```
+
 ### Option A: Local development (recommended)
 
 ```bash
@@ -237,9 +248,9 @@ git clone https://github.com/RevealUIStudio/revealui.git
 cd revealui
 pnpm install
 
-# Set up environment
-cp apps/admin/.env.example apps/admin/.env.local
-# Edit .env.local: set POSTGRES_URL, REVEALUI_SECRET (min 32 chars),
+# Without RevVault: copy the repo-root template (not apps/admin/.env.example)
+cp .env.template .env.development.local
+# Set POSTGRES_URL, REVEALUI_SECRET (min 32 chars),
 # REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
 
 # Initialize database
@@ -294,7 +305,9 @@ revealui/
 ## Documentation
 
 - **[Build Your Business](docs/BUILD_YOUR_BUSINESS.md):** End-to-end tutorial: scaffold, collections, pricing, billing, deploy
+- **[What is RevealUI?](docs/WHAT_IS.md):** Canonical definition, tiers, feature matrix
 - **[Quick Start](docs/QUICK_START.md):** From zero to running app
+- **[Plugins](docs/PLUGINS.md):** Config-transform plugins in `@revealui/core`
 - **[Design Principles](docs/JOSHUA.md):** Six engineering principles  -  Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive  -  and the evidence behind each
 - **[Architecture](docs/ARCHITECTURE.md):** How the pieces fit together
 - **[Harness Protocol](docs/HARNESS_PROTOCOL.md):** Agent-tool coordination layer shipped in `@revealui/harnesses`

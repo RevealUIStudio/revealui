@@ -1,0 +1,17 @@
+{
+  "actorOutputSchemaVersion": 1,
+  "title": "Governed Agent Run output",
+  "description": "A signed receipt stored as OUTPUT in the default key-value store and as a dataset item.",
+  "properties": {
+    "receipt": {
+      "type": "string",
+      "title": "Signed receipt",
+      "template": "{{links.apiDefaultKeyValueStoreUrl}}/records/OUTPUT"
+    },
+    "records": {
+      "type": "string",
+      "title": "Run records",
+      "template": "{{links.apiDefaultDatasetUrl}}/items"
+    }
+  }
+}

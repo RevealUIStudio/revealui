@@ -15,6 +15,7 @@
 
 import { test } from '@playwright/test';
 import { checkAccessibility } from './utils/a11y-helper';
+import { assertHonestProductCatalog } from './utils/catalog-honesty';
 
 const MarketingBase = process.env.MARKETING_BASE_URL || 'http://localhost:3000';
 
@@ -29,6 +30,7 @@ test.describe('Marketing accessibility', () => {
 
   test('pricing page meets WCAG 2.2 AA', async ({ page }) => {
     await page.goto(`${MarketingBase}/pricing`, { waitUntil: 'domcontentloaded' });
+    await assertHonestProductCatalog(page);
     await checkAccessibility(page);
   });
 });

@@ -112,7 +112,7 @@ describe('marketing pages: edit-mode wiring', () => {
     expect(managed.container.querySelectorAll('[data-rvui-doc]')).toHaveLength(0);
   });
 
-  it('HomePage renders the draft heading annotated with the session docId when a matching overlay exists', () => {
+  it('HomePage no longer mounts CMS-annotated homepage blocks (quote calculator is static)', () => {
     const draftBlocks = homeBlocks();
     const section = draftBlocks[0];
     if (section?.type === 'section') {
@@ -123,9 +123,8 @@ describe('marketing pages: edit-mode wiring', () => {
     ]);
 
     const { container } = renderRouted(<HomePage />);
-    const heading = container.querySelector('[data-rvui-field="blocks.0.data.heading"]');
-    expect(heading?.getAttribute('data-rvui-doc')).toBe('page-home-id');
-    expect(heading?.textContent).toBe('Canvas-edited demo heading');
+    expect(container.querySelector('[data-rvui-field="blocks.0.data.heading"]')).toBeNull();
+    expect(container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
   });
 
   it('ProductsPage renders the draft hero annotated with the session docId when a matching overlay exists', () => {
@@ -248,7 +247,7 @@ describe('marketing pages: edit-mode wiring', () => {
     expect(title?.textContent).toBe('Canvas-edited managed title');
   });
 
-  it('re-renders HomePage with the patched value after an optimistic draft-store update', () => {
+  it('keeps HomePage free of CMS field annotations after an optimistic draft-store update', () => {
     const { container } = renderRouted(<HomePage />);
     expect(container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
 
@@ -263,26 +262,17 @@ describe('marketing pages: edit-mode wiring', () => {
       ]);
     });
 
-    const heading = container.querySelector('[data-rvui-field="blocks.0.data.heading"]');
-    expect(heading?.getAttribute('data-rvui-doc')).toBe('page-home-id');
-    expect(heading?.textContent).toBe('Optimistically re-rendered heading');
+    expect(container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
   });
 
-  it('HomePage bootstraps click-to-edit with the CMS page docId when edit mode is active and no draft exists yet', async () => {
-    // Fresh-session bootstrap: edit mode is active (the URL carries the edit
-    // token) and the CMS row for this page is known, but nothing has been
-    // patched yet, so `edit-mode`'s draft store is still empty. Without this
-    // path, `data-rvui-field` would never appear, so the FIRST click needed to
-    // create that first patch could never fire.
+  it('does not bootstrap click-to-edit on the slim HomePage', async () => {
     mockFetch.mockResolvedValue({ id: 'page-home-id', blocks: null });
     editDraftsStore.setEditActive(true);
 
     const { container } = renderRouted(<HomePage />);
     expect(container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
-
     await waitFor(() => {
-      const heading = container.querySelector('[data-rvui-field="blocks.0.data.heading"]');
-      expect(heading?.getAttribute('data-rvui-doc')).toBe('page-home-id');
+      expect(container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
     });
   });
 });

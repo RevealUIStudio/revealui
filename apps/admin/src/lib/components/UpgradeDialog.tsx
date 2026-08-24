@@ -1,6 +1,6 @@
 'use client';
 
-import { getTiersFromCurrent } from '@revealui/contracts/pricing';
+import { ENTERPRISE_SALES_HREF, getTiersFromCurrent } from '@revealui/contracts/pricing';
 import {
   Button,
   Dialog,
@@ -41,13 +41,16 @@ export function UpgradeDialog() {
   const [error, setError] = useState<string | null>(null);
 
   const handleSelectTier = useCallback(async (tierId: string) => {
+    if (tierId === 'enterprise') {
+      window.location.assign(ENTERPRISE_SALES_HREF);
+      return;
+    }
     setError(null);
     try {
       const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
       const priceIdMap: Record<string, string | undefined> = {
         pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
         max: process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID,
-        enterprise: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
       };
       const priceId = priceIdMap[tierId];
       const res = await apiFetch(`${apiUrl}/api/billing/checkout`, {

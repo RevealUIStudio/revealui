@@ -13,17 +13,18 @@ import { accountMarginDaily, marginSnapshots } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { desc, eq } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
-import { isAdminRole } from '../../lib/access.js';
+import { isFleetOperator } from '../../lib/access.js';
+import type { ApiAuthUser } from '../../lib/api-roles.js';
 
 type AdminVariables = {
   db: DatabaseClient;
-  user?: { id: string; role: string };
+  user?: ApiAuthUser;
 };
 
-function requireAdmin(user: { id: string; role: string } | undefined): void {
+function requireFleetOperator(user: ApiAuthUser | undefined): void {
   if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-  if (!isAdminRole(user.role)) {
-    throw new HTTPException(403, { message: 'Admin access required' });
+  if (!isFleetOperator(user)) {
+    throw new HTTPException(403, { message: 'Operator access required' });
   }
 }
 
@@ -96,11 +97,11 @@ app.openapi(
         description: 'Margin admission analytics summary',
       },
       401: { description: 'Authentication required' },
-      403: { description: 'Admin access required' },
+      403: { description: 'Operator access required' },
     },
   }),
   async (c) => {
-    requireAdmin(c.get('user'));
+    requireFleetOperator(c.get('user'));
     const db = c.get('db');
     if (!db) throw new HTTPException(500, { message: 'Database client missing' });
 
