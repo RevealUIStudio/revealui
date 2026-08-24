@@ -48,6 +48,12 @@ describe('DocsIndexPage receipt motif', () => {
     expect(screen.getByTestId('markdown')).toBeInTheDocument();
   });
 
+  it('does not sell Cloud as a hosted signup and keeps waitlist honesty', () => {
+    render(<DocsIndexPage />);
+    expect(screen.queryByText(/hosted product you can sign up for in minutes/i)).toBeNull();
+    expect(screen.getByText(/RevealUI Cloud is waitlist, not sold/i)).toBeInTheDocument();
+  });
+
   it('exposes Start free and Book an intro CTAs at the top', () => {
     render(<DocsIndexPage />);
     const start = screen.getByRole('link', { name: 'Start free' });

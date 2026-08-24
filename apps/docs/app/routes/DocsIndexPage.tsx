@@ -19,7 +19,7 @@ export function DocsIndexPage() {
 
   const content = `# RevealUI Documentation
 
-Agentic business runtime. People, Content, Offers, Payments, and Agents come pre-wired, open source, and ready to deploy.
+Agentic business runtime. People, Content, Offers, Payments, and Agents come pre-wired, open source, and ready to deploy. Self-host today. RevealUI Cloud is waitlist, not sold.
 
 ## Quick Start
 
@@ -56,6 +56,9 @@ Everything else lives in the sidebar. Found a gap in these docs? See the [Contri
           </a>
         </Button>
       </div>
+      <p className="mb-8 text-sm leading-6 text-muted-foreground">
+        Self-host today. RevealUI Cloud is waitlist, not sold.
+      </p>
       {/*
         Static receipt header artifact (frontend-excellence Phase 5 / GAP-480 Phase D).
         No animate: docs stay the calmest surface. Links to audit-receipts docs.

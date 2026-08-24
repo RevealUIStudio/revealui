@@ -1,8 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { Router, RouterProvider } from '@revealui/router';
 import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
-import { QUOTE_CALCULATOR } from '../../content/quote-calculator';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SITE } from '../../content/site';
 import { HomePage } from '../HomePage';
 import { PricingPage } from '../PricingPage';
@@ -21,39 +20,48 @@ function forbiddenOnPublicRoutes(root: HTMLElement): void {
   expect(text.includes('$8,499')).toBe(false);
   expect(text.includes('Starter Kit')).toBe(false);
   expect(text.includes('Agency Founding Kit')).toBe(false);
-  expect(html.includes('https://calendar.google.com/')).toBe(true);
+  expect(text.includes('Architecture Review')).toBe(false);
   expect(text.includes('Fleet from')).toBe(false);
   expect(text.includes('Custom from')).toBe(false);
+  expect(html.includes('cal.com/revealuistudio')).toBe(false);
+  expect(text.includes('Add up what you would otherwise rent')).toBe(false);
   expect(text.toLowerCase().includes('hipaa')).toBe(false);
   expect(text.toLowerCase().includes('soc 2')).toBe(false);
   expect(text.includes('24/7')).toBe(false);
+  expect(text.includes('No holdback')).toBe(false);
 }
 
-describe('public product routes (founder weekend spec)', () => {
-  it('home has one headline, the calculator defaulting to I will, Start free, GitHub, and a continuity sentence', () => {
+describe('public product catalog routes', () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: false, json: () => Promise.resolve(null) }),
+    );
+  });
+
+  it('home keeps the product hero and catalog teaser, not studio SKUs', () => {
     const { container } = renderRouted(<HomePage />);
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(
-      screen.getByRole('radio', { name: QUOTE_CALCULATOR.questions.who.options[0].label }),
-    ).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByRole('link', { name: /start free/i })).toHaveAttribute(
       'href',
       SITE.urls.signup,
     );
     expect(screen.getByRole('link', { name: 'See it on GitHub' })).toBeInTheDocument();
-    expect(container.textContent ?? '').toContain('npx');
+    expect(screen.queryByRole('radio', { name: /I will \(developer/i })).toBeNull();
+    expect(screen.queryByText('$300')).toBeNull();
+    expect(screen.queryByText('$3,500')).toBeNull();
+    expect(screen.queryByText('$7,500')).toBeNull();
     forbiddenOnPublicRoutes(container);
   });
 
-  it('pricing is the same calculator with both exits and no leftover storefront', () => {
+  it('pricing is the license catalog with one studio pointer', async () => {
     const { container } = renderRouted(<PricingPage />);
-    expect(screen.getByRole('heading', { level: 1, name: 'Pricing' })).toBeInTheDocument();
-    expect(screen.getByText(QUOTE_CALCULATOR.questions.who.label)).toBeInTheDocument();
-    expect(screen.getByText(QUOTE_CALCULATOR.questions.what.label)).toBeInTheDocument();
-    expect(screen.getByText(QUOTE_CALCULATOR.questions.places.label)).toBeInTheDocument();
-    expect(screen.getByText(QUOTE_CALCULATOR.selfHost.free)).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Get Started Free' })).toBeNull();
-    expect(screen.queryByRole('link', { name: 'Request the RevealUI Starter Kit' })).toBeNull();
+    expect(await screen.findByRole('heading', { name: 'Pro' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'revealuistudio.com' })).toHaveAttribute(
+      'href',
+      SITE.urls.agency,
+    );
+    expect(screen.queryByRole('radio', { name: /You will \(Studio\)/i })).toBeNull();
     forbiddenOnPublicRoutes(container);
   });
 

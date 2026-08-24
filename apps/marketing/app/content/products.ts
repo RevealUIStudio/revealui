@@ -60,7 +60,7 @@ import type { Cta } from './types';
 export const PRODUCTS_PAGE_HERO = {
   h1: 'The RevFleet product family',
   subtitle:
-    'Start with the runtime. Add tools as you grow. Seven products on one foundation, built and operated by RevealUI Studio. Five are ready to use today. RevForge is in private preview. The agent marketplace is on the way.',
+    'Start with the runtime. Add tools as you grow. Seven products on one foundation, built and operated by RevealUI Studio. Zero paying customers. This is not a launched pull-and-run Fleet. RevForge is in private preview. The agent marketplace is on the way.',
 } as const;
 
 export type ProductStatus = 'Beta' | 'Alpha' | 'GA' | 'Planned';
@@ -158,7 +158,7 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     highlights: [
       'Operator preview the studio runs with you',
       'Not an unattended RevForge or Fleet pull-and-run kit',
-      'Agency Founding Kit on /pricing is a license plus a thin kit',
+      'Not sold as a customer Fleet stamp on this site',
     ],
     status: 'Alpha',
     priceLabel: 'Operator tool · private preview',

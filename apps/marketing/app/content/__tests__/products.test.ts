@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   PRODUCTS_CTA_SECTION,
   PRODUCTS_FLAGSHIP,
+  PRODUCTS_PAGE_HERO,
   PRODUCTS_SISTERS,
   PRODUCTS_SISTERS_SECTION,
   type ProductStatus,
@@ -18,6 +19,14 @@ function revforge(): (typeof PRODUCTS_SISTERS)[number] {
 }
 
 describe('products roster honesty', () => {
+  it('does not claim five products are ready to use today', () => {
+    expect(PRODUCTS_PAGE_HERO.subtitle.toLowerCase().includes('five are ready to use today')).toBe(
+      false,
+    );
+    expect(PRODUCTS_PAGE_HERO.subtitle.toLowerCase().includes('zero paying')).toBe(true);
+    expect(PRODUCTS_PAGE_HERO.subtitle.toLowerCase().includes('not a launched')).toBe(true);
+  });
+
   it('keeps RevForge as Alpha operator preview with Contact, not Buy', () => {
     const product = revforge();
     expect(product.status).toBe('Alpha');
@@ -33,7 +42,7 @@ describe('products roster honesty', () => {
     expect(blob.includes('operator preview')).toBe(true);
     expect(blob.includes('studio-run') || blob.includes('studio runs')).toBe(true);
     expect(blob.includes('unattended')).toBe(true);
-    expect(blob.includes('thin kit')).toBe(true);
+    expect(blob.includes('private preview') || blob.includes('operator preview')).toBe(true);
     expect(blob.includes('trial kit')).toBe(false);
     expect(blob.includes('stamp branded')).toBe(false);
   });

@@ -248,7 +248,7 @@ export const claimsPart5: readonly ClaimEntry[] = [
       LEGAL_SLA_CONTENT,
       {
         kind: 'url',
-        ref: 'https://status.revealui.com',
+        ref: 'https://revealui.com/status',
         note: 'public status page for hosted surfaces',
       },
     ],
@@ -285,7 +285,7 @@ export const claimsPart5: readonly ClaimEntry[] = [
       LEGAL_SLA_CONTENT,
       {
         kind: 'url',
-        ref: 'https://status.revealui.com',
+        ref: 'https://revealui.com/status',
         note: 'public status page for hosted surfaces',
       },
     ],
@@ -298,7 +298,7 @@ export const claimsPart5: readonly ClaimEntry[] = [
       LEGAL_SLA_CONTENT,
       {
         kind: 'url',
-        ref: 'https://status.revealui.com',
+        ref: 'https://revealui.com/status',
         note: 'public status page for hosted surfaces',
       },
     ],
@@ -609,7 +609,7 @@ export const claimsPart5: readonly ClaimEntry[] = [
       LEGAL_SUPPORT_CONTENT,
       {
         kind: 'url',
-        ref: 'https://status.revealui.com',
+        ref: 'https://revealui.com/status',
         note: 'public status page for hosted surfaces',
       },
     ],
@@ -622,7 +622,7 @@ export const claimsPart5: readonly ClaimEntry[] = [
       LEGAL_SUPPORT_CONTENT,
       {
         kind: 'url',
-        ref: 'https://status.revealui.com',
+        ref: 'https://revealui.com/status',
         note: 'public status page for hosted surfaces',
       },
     ],
