@@ -2,6 +2,7 @@ import { logger } from '@revealui/core/observability/logger';
 import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { NotFoundPage } from '../components/NotFoundPage';
 import { useNoindex } from '../hooks/useNoindex';
 import { useWildcardPath } from '../hooks/useWildcardPath';
 import { loadMarkdownFile, renderMarkdown } from '../utils/markdown';
@@ -64,12 +65,7 @@ function ProContent() {
               `[ProPage] Failed to load: ${filePath}`,
               err instanceof Error ? err : new Error(String(err)),
             );
-            setContent(`# Not found
-
-Document not found at \`${filePath}\`.
-
-[Back to Pro docs](/pro)
-`);
+            setContent('');
             setNotFound(true);
           }
         }
@@ -87,6 +83,16 @@ Document not found at \`${filePath}\`.
 
   if (loading) {
     return <LoadingSkeleton />;
+  }
+
+  if (notFound) {
+    return (
+      <NotFoundPage
+        pathLabel={routePath || undefined}
+        homeHref="/pro"
+        homeLabel="Back to Pro docs"
+      />
+    );
   }
 
   return (

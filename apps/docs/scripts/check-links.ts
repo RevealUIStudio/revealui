@@ -264,16 +264,155 @@ function checkNavLinks(served: Set<string>, source: Set<string>): BrokenLink[] {
   return broken;
 }
 
+const DOCS_ORIGIN = 'https://docs.revealui.com';
+const publicDir = path.join(scriptDir, '..', 'public');
+
+function extractBetween(source: string, open: string, close: string): string[] {
+  const found: string[] = [];
+  let from = 0;
+  while (from < source.length) {
+    const start = source.indexOf(open, from);
+    if (start === -1) {
+      break;
+    }
+    const valueStart = start + open.length;
+    const end = source.indexOf(close, valueStart);
+    if (end === -1) {
+      break;
+    }
+    found.push(source.slice(valueStart, end).trim());
+    from = end + close.length;
+  }
+  return found;
+}
+
+function stripDocsOrigin(url: string): string {
+  let rest = url.startsWith(DOCS_ORIGIN) ? url.slice(DOCS_ORIGIN.length) : url;
+  const hash = rest.indexOf('#');
+  if (hash !== -1) {
+    rest = rest.slice(0, hash);
+  }
+  const query = rest.indexOf('?');
+  if (query !== -1) {
+    rest = rest.slice(0, query);
+  }
+  if (rest === '') {
+    return '/';
+  }
+  if (rest.length > 1 && rest.endsWith('/')) {
+    return rest.slice(0, -1);
+  }
+  return rest;
+}
+
+function isSpaPath(pathname: string): boolean {
+  if (pathname === '/') {
+    return true;
+  }
+  return (
+    pathname === '/showcase' ||
+    pathname.startsWith('/showcase/') ||
+    pathname === '/pro' ||
+    pathname.startsWith('/pro/')
+  );
+}
+
+function discoveryPathResolves(pathname: string, served: Set<string>): boolean {
+  if (isSpaPath(pathname)) {
+    return true;
+  }
+  const segments = pathname.split('/').filter(Boolean);
+  const first = segments[0] ?? '';
+  let section: DocSection = 'docs';
+  let routePath = segments.join('/');
+  if (first === 'guides' || first === 'api') {
+    section = first;
+    routePath = segments.slice(1).join('/');
+  }
+  const { markdownPath } = resolveDocPath({
+    section,
+    routePath: routePath === '' ? null : routePath,
+  });
+  const resolved = markdownPath.startsWith('/') ? markdownPath.slice(1) : markdownPath;
+  return served.has(resolved);
+}
+
+function checkDiscoveryFile(
+  source: string,
+  rawUrls: string[],
+  served: Set<string>,
+  sourceFiles: Set<string>,
+): BrokenLink[] {
+  const broken: BrokenLink[] = [];
+  const seen = new Set<string>();
+  for (const raw of rawUrls) {
+    const pathname = stripDocsOrigin(raw);
+    if (seen.has(pathname)) {
+      continue;
+    }
+    seen.add(pathname);
+    if (discoveryPathResolves(pathname, served)) {
+      continue;
+    }
+    const segments = pathname.split('/').filter(Boolean);
+    const first = segments[0] ?? '';
+    let section: DocSection = 'docs';
+    let routePath = segments.join('/');
+    if (first === 'guides' || first === 'api') {
+      section = first;
+      routePath = segments.slice(1).join('/');
+    }
+    const { markdownPath } = resolveDocPath({
+      section,
+      routePath: routePath === '' ? null : routePath,
+    });
+    const resolved = markdownPath.startsWith('/') ? markdownPath.slice(1) : markdownPath;
+    broken.push({
+      source,
+      raw: pathname,
+      resolved,
+      kind: sourceFiles.has(resolved) ? 'internal-excluded' : 'missing',
+    });
+  }
+  return broken;
+}
+
+function checkSitemap(served: Set<string>, sourceFiles: Set<string>): BrokenLink[] {
+  const xml = readFileSync(path.join(publicDir, 'sitemap.xml'), 'utf8');
+  return checkDiscoveryFile(
+    '(sitemap — apps/docs/public/sitemap.xml)',
+    extractBetween(xml, '<loc>', '</loc>'),
+    served,
+    sourceFiles,
+  );
+}
+
+function checkLlmsTxt(served: Set<string>, sourceFiles: Set<string>): BrokenLink[] {
+  const text = readFileSync(path.join(publicDir, 'llms.txt'), 'utf8');
+  const urls: string[] = [];
+  for (const target of extractLinkTargets(text)) {
+    if (target.startsWith(DOCS_ORIGIN)) {
+      urls.push(target);
+    }
+  }
+  return checkDiscoveryFile('(llms.txt — apps/docs/public/llms.txt)', urls, served, sourceFiles);
+}
+
 async function main(): Promise<void> {
   // Served set from the docs-publish plane (monorepo docs/ + visibility).
   const served = await collectPublicDocRels(sourceDocs);
   const source = collectMarkdownFiles(sourceDocs);
-  const broken = [...checkLinks(served, source), ...checkNavLinks(served, source)];
+  const broken = [
+    ...checkLinks(served, source),
+    ...checkNavLinks(served, source),
+    ...checkSitemap(served, source),
+    ...checkLlmsTxt(served, source),
+  ];
 
   if (broken.length === 0) {
     write(
       `✓ docs link check: ${served.size} served pages, 0 broken relative .md links, ` + // adherence-ignore: checkmark-glyph - CLI build-script console output, not UI copy
-        'sidebar nav links all resolve.',
+        'sidebar nav + sitemap + llms.txt all resolve.',
     );
     return;
   }
@@ -287,7 +426,7 @@ async function main(): Promise<void> {
 
   write('');
   write(
-    `✗ docs link check: ${broken.length} broken link(s) across ${bySource.size} source(s) (served pages + sidebar nav).`, // adherence-ignore: checkmark-glyph - CLI build-script console output, not UI copy
+    `✗ docs link check: ${broken.length} broken link(s) across ${bySource.size} source(s) (served pages + sidebar nav + sitemap + llms.txt).`, // adherence-ignore: checkmark-glyph - CLI build-script console output, not UI copy
   );
   write('');
   for (const src of [...bySource.keys()].sort()) {

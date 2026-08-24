@@ -3,6 +3,7 @@ import { Button } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { NotFoundPage } from '../components/NotFoundPage';
 import { useNoindex } from '../hooks/useNoindex';
 import { useWildcardPath } from '../hooks/useWildcardPath';
 import { loadMarkdownFile, renderMarkdown } from '../utils/markdown';
@@ -46,19 +47,7 @@ function ApiPackageContent() {
               loadError instanceof Error ? loadError : new Error(String(loadError)),
             );
 
-            // Fallback to helpful message
-            setContent(`# API Documentation: ${resolved.displayPath || 'Index'}
-
-API documentation not found at \`${resolved.markdownPath}\`.
-
-To generate API documentation, run:
-
-\`\`\`bash
-pnpm docs:generate:api
-\`\`\`
-
-This will create markdown files in \`docs/api/\` that are automatically copied to the public directory and loaded here.
-`);
+            setContent('');
             setNotFound(true);
           }
         }
@@ -86,6 +75,16 @@ This will create markdown files in \`docs/api/\` that are automatically copied t
 
   if (loading) {
     return <LoadingSkeleton />;
+  }
+
+  if (notFound) {
+    return (
+      <NotFoundPage
+        pathLabel={path || undefined}
+        homeHref="/api"
+        homeLabel="Back to API reference"
+      />
+    );
   }
 
   if (error) {

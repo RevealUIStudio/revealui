@@ -9,6 +9,7 @@ import { useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { parseFrontmatter } from './frontmatter';
+import { isHtmlDocumentContent } from './html-document';
 
 const JS_KEYWORDS = new Set([
   'as',
@@ -606,6 +607,12 @@ export async function loadMarkdownFile(
     }
 
     const content = await response.text();
+
+    // Static SPA hosts rewrite unknown `.md` paths to index.html with 200.
+    // Never treat that HTML string as a document.
+    if (isHtmlDocumentContent(content, response.headers.get('content-type'))) {
+      throw new Error(`Failed to load markdown file: ${normalizedPath} (404)`);
+    }
 
     // Store in cache
     if (useCache) {

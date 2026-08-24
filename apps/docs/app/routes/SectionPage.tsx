@@ -3,6 +3,7 @@ import { Button } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { NotFoundPage } from '../components/NotFoundPage';
 import { useWildcardPath } from '../hooks/useWildcardPath';
 import { applyDocHead, setRobotsNoindex } from '../lib/head';
 import { slugToPath } from '../lib/slug-manifest';
@@ -79,12 +80,7 @@ function SectionContent({ section, title }: SectionPageProps) {
               loadError instanceof Error ? loadError : new Error(String(loadError)),
             );
 
-            setContent(`# ${title}: ${resolved.displayPath || 'Index'}
-
-Document not found at \`${resolved.markdownPath}\`.
-
-[Back to ${title}](/${section})
-`);
+            setContent('');
             setNotFound(true);
           }
         }
@@ -128,6 +124,10 @@ Document not found at \`${resolved.markdownPath}\`.
 
   if (loading) {
     return <LoadingSkeleton />;
+  }
+
+  if (notFound) {
+    return <NotFoundPage pathLabel={path || undefined} />;
   }
 
   if (error) {
