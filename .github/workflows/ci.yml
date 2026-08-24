@@ -1,7 +1,7 @@
 name: CI
 
 # Two-tier CI gate:
-#   test branch: quality + typecheck + unit tests + build (~10 min)
+#   test branch: quality + typecheck + unit tests + build + E2E (~25 min)
 #   main branch: full gate + integration + E2E + coverage (~20 min)
 #
 # Pipeline: feature/* → PR → test → PR → main → deploy
@@ -9,7 +9,9 @@ name: CI
 # Optimizations:
 #   - Turbo remote cache: build artifacts shared across jobs
 #   - PR jobs use --affected: only build/typecheck changed packages
-#   - Heavy jobs (integration, E2E, coverage) only run for main
+#   - Coverage stays main/promote-only; E2E also runs on PRs into test so
+#     production admin boot (`next start` + Forge license gate) cannot land
+#     untested.
 
 on:
   push:
@@ -718,7 +720,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [quality, build, ensure-ci-images]
-    if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
+    # PRs into test as well as main: production `next start` + the Forge
+    # license gate must not wait for a promote PR to fail (see #2695).
+    if: github.ref == 'refs/heads/main' || github.base_ref == 'main' || github.base_ref == 'test'
 
     services:
       postgres:
@@ -865,7 +869,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: [quality, build, ensure-ci-images]
-    if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
+    if: github.ref == 'refs/heads/main' || github.base_ref == 'main' || github.base_ref == 'test'
 
     # The admin server's GAP-338/417 audit rails are fail-closed in production
     # (`next start`): a DB connection env + signing key are boot requirements.
@@ -984,7 +988,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: [quality, build, ensure-ci-images]
-    if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
+    if: github.ref == 'refs/heads/main' || github.base_ref == 'main' || github.base_ref == 'test'
 
     # See e2e-accessibility: production admin's fail-closed audit rails
     # (GAP-338/417) require a DB env + signing key at boot.
