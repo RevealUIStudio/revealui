@@ -42,10 +42,9 @@ describe('public product catalog routes', () => {
   it('home keeps the product hero and catalog teaser, not studio SKUs', () => {
     const { container } = renderRouted(<HomePage />);
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /start free/i })).toHaveAttribute(
-      'href',
-      SITE.urls.signup,
-    );
+    const startFree = screen.getAllByRole('link', { name: /start free/i });
+    expect(startFree.length).toBeGreaterThan(0);
+    expect(startFree.every((link) => link.getAttribute('href') === SITE.urls.signup)).toBe(true);
     expect(screen.getByRole('link', { name: 'See it on GitHub' })).toBeInTheDocument();
     expect(screen.queryByRole('radio', { name: /I will \(developer/i })).toBeNull();
     expect(screen.queryByText('$300')).toBeNull();

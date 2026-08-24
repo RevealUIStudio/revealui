@@ -16,7 +16,9 @@ describe('PricingPage product catalog', () => {
 
   it('renders the license catalog, not the studio quote calculator', async () => {
     render(<PricingPage />);
-    expect(await screen.findByRole('heading', { name: /RevealUI/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { level: 1, name: /Two ways to use/i }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('radio', { name: /I will \(developer/i })).toBeNull();
     expect(screen.queryByText('Three questions. One price. No fleet math.')).toBeNull();
   });
