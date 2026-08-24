@@ -2,11 +2,18 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
+interface VercelCondition {
+  type: string;
+  key?: string;
+  value?: string;
+}
+
 interface VercelRedirect {
   source: string;
   destination: string;
   permanent?: boolean;
-  has?: Array<{ type: string; value: string }>;
+  has?: VercelCondition[];
+  missing?: VercelCondition[];
 }
 
 interface VercelRewrite {
@@ -23,6 +30,54 @@ function readVercelConfig(): VercelConfig {
   return JSON.parse(
     readFileSync(path.resolve(process.cwd(), 'vercel.json'), 'utf8'),
   ) as VercelConfig;
+}
+
+function incomingSearchParams(search: string): URLSearchParams {
+  return new URLSearchParams(search.startsWith('?') ? search.slice(1) : search);
+}
+
+function matchesQueryCondition(condition: VercelCondition, incoming: URLSearchParams): boolean {
+  if (condition.type !== 'query' || condition.key === undefined) {
+    return false;
+  }
+  if (condition.value === undefined) {
+    return incoming.has(condition.key);
+  }
+  return incoming.get(condition.key) === condition.value;
+}
+
+function redirectMatchesPath(redirect: VercelRedirect, pathname: string, search: string): boolean {
+  if (redirect.source !== pathname) {
+    return false;
+  }
+  // Host-conditioned rules are for other apexes (www, community), not this hop.
+  if ((redirect.has ?? []).some((condition) => condition.type === 'host')) {
+    return false;
+  }
+  const incoming = incomingSearchParams(search);
+  const hasOk = (redirect.has ?? []).every((condition) =>
+    matchesQueryCondition(condition, incoming),
+  );
+  const missingOk = (redirect.missing ?? []).every(
+    (condition) => !matchesQueryCondition(condition, incoming),
+  );
+  return hasOk && missingOk;
+}
+
+/** Vercel first-match + query-append, the live 308 behavior on revealui.com. */
+function resolveMarketingHop(pathname: string, search = ''): string | undefined {
+  const match = (readVercelConfig().redirects ?? []).find((redirect) =>
+    redirectMatchesPath(redirect, pathname, search),
+  );
+  if (!match) {
+    return undefined;
+  }
+  const incoming = search.startsWith('?') ? search.slice(1) : search;
+  if (incoming.length === 0) {
+    return match.destination;
+  }
+  const separator = match.destination.includes('?') ? '&' : '?';
+  return `${match.destination}${separator}${incoming}`;
 }
 
 describe('marketing vercel.json redirects', () => {
@@ -90,5 +145,34 @@ describe('marketing vercel.json redirects', () => {
     );
     expect(redirect?.destination.includes('docs.revealui.com')).toBe(false);
     expect(redirect?.permanent).toBe(true);
+  });
+
+  it('308s bare /checkout onto admin signup with the Pro trial plan', () => {
+    // Live 2026-08-24: /checkout 308'd to admin /signup with no plan, so
+    // strangers landed on generic free signup. /checkout?plan=pro already
+    // forwarded. Default the empty hop to Pro; keep ?plan= / ?license=.
+    const dest = resolveMarketingHop('/checkout');
+    expect(dest).toBe('https://admin.revealui.com/signup?plan=pro');
+  });
+
+  it('forwards existing /checkout?plan= and /checkout?license= without injecting plan=pro', () => {
+    expect(resolveMarketingHop('/checkout', '?plan=pro')).toBe(
+      'https://admin.revealui.com/signup?plan=pro',
+    );
+    expect(resolveMarketingHop('/checkout', '?plan=max')).toBe(
+      'https://admin.revealui.com/signup?plan=max',
+    );
+    expect(resolveMarketingHop('/checkout', '?license=pro')).toBe(
+      'https://admin.revealui.com/signup?license=pro',
+    );
+    expect(resolveMarketingHop('/checkout', '?license=pro')).not.toContain('plan=');
+    expect(resolveMarketingHop('/checkout', '?plan=max')).not.toContain('plan=pro');
+  });
+
+  it('keeps /signup query-less so ?plan=pro still forwards, and bare /signup stays free', () => {
+    expect(resolveMarketingHop('/signup')).toBe('https://admin.revealui.com/signup');
+    expect(resolveMarketingHop('/signup', '?plan=pro')).toBe(
+      'https://admin.revealui.com/signup?plan=pro',
+    );
   });
 });
