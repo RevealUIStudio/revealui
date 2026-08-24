@@ -25,6 +25,8 @@ export const FORBIDDEN_CATALOG_PHRASES = [
   'Starter Kit',
   'Agency Founding Kit',
   '$8,499',
+  'Buy Agency Perpetual',
+  '$1,499/month',
   'Add up what you would otherwise rent',
   'The rented stack',
   '$300',
