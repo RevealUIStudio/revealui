@@ -47,7 +47,6 @@ import {
   SSO_AUTH_ROUTES,
   SSO_SAML_PURE,
   SSO_SETUP_DOC,
-  STARTER_KIT,
   THIS_SITE,
   X402,
 } from './shared-refs.js';
@@ -714,19 +713,19 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'legal/refund-policy.ts',
     exportPath: 'REFUND_POLICY_SECTIONS[2].heading',
-    text: '3. Starter Kit (content-only product)',
-    evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE, STARTER_KIT],
+    text: '3. Other one-off purchases',
+    evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE],
   },
   {
     file: 'legal/refund-policy.ts',
     exportPath: 'REFUND_POLICY_SECTIONS[2].paragraphs[0]',
-    text: 'The RevealUI Starter Kit is a content product, not a Pro license and not a hosted instance. Self-serve checkout is not public until the first-sale walk is recorded. If you purchased through a Studio-confirmed request or invoice, contact us for a refund. We treat it as a content product.',
-    evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE, STARTER_KIT],
+    text: 'If you bought something through a Studio-confirmed request or invoice that is not a subscription or perpetual license, contact us for a refund. Those orders are not self-serve catalog items.',
+    evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE],
   },
   {
     file: 'legal/refund-policy.ts',
     exportPath: 'REFUND_POLICY_SECTIONS[3].paragraphs[0]',
-    text: 'Architecture Review, Fleet deployment, Custom Build, and other services sold by invoice are governed by the Master Service Agreement and Statement of Work for that engagement, not by this policy.',
+    text: 'Invoice services and custom engagements are governed by the Master Service Agreement and Statement of Work for that engagement, not by this policy.',
     evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE],
   },
   {
