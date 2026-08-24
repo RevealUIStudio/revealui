@@ -93,7 +93,7 @@ describe('marketing route registry', () => {
     expect(redirect?.permanent).toBe(true);
   });
 
-  it('keeps the community.revealui.com host rule pointed at Discussions', () => {
+  it('redirects the community.revealui.com apex and every other path to Discussions', () => {
     const vercelConfig = JSON.parse(
       readFileSync(path.resolve(process.cwd(), 'vercel.json'), 'utf8'),
     ) as {
@@ -104,18 +104,34 @@ describe('marketing route registry', () => {
         has?: Array<{ type: string; value: string }>;
       }>;
     };
-    const community = (vercelConfig.redirects ?? []).find((entry) =>
+    const communityRules = (vercelConfig.redirects ?? []).filter((entry) =>
       (entry.has ?? []).some(
         (rule) => rule.type === 'host' && rule.value === 'community.revealui.com',
       ),
     );
     expect(
-      community,
-      'community.revealui.com host redirect must stay ahead of the SPA rewrite',
+      communityRules.length,
+      'community.revealui.com host redirects must stay ahead of the SPA rewrite',
+    ).toBeGreaterThanOrEqual(2);
+
+    const discussions = 'https://github.com/RevealUIStudio/revealui/discussions';
+    const apex = communityRules.find((entry) => entry.source === '/');
+    const wildcard = communityRules.find((entry) => entry.source === '/:path*');
+
+    // Vercel path-to-regexp does not match /:path* against the empty path /,
+    // so community.revealui.com/ falls through to the SPA rewrite without this
+    // explicit apex host rule. Live 2026-08-24: / was 200 marketing HTML;
+    // /login, /pricing, /signup, /discussions already 308'd to Discussions.
+    expect(
+      apex,
+      'community.revealui.com/ needs an explicit / host rule; /:path* misses the apex',
     ).toBeDefined();
-    expect(community?.destination).toBe('https://github.com/RevealUIStudio/revealui/discussions');
-    expect(community?.permanent).toBe(true);
-    expect(community?.source).toBe('/:path*');
+    expect(apex?.destination).toBe(discussions);
+    expect(apex?.permanent).toBe(true);
+
+    expect(wildcard, 'non-apex community paths still need the /:path* host rule').toBeDefined();
+    expect(wildcard?.destination).toBe(discussions);
+    expect(wildcard?.permanent).toBe(true);
   });
 
   it('redirects /services and /products off the leftover storefronts', () => {

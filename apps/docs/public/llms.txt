@@ -28,20 +28,17 @@
 ## Agents
 
 - [AI integration](https://docs.revealui.com/AI): How agents talk to a RevealUI runtime
-- [Agent rules](https://docs.revealui.com/agent-rules/): Conventions for agents working in a RevealUI codebase
 - [REST API](https://docs.revealui.com/api/): Hono + OpenAPI endpoints
 
 ## Operations
 
-- [Deployment runbook](https://docs.revealui.com/DEPLOYMENT-RUNBOOK): Production deploy procedures
+- [Deployment](https://docs.revealui.com/guides/deployment): Production deploy procedures
 - [Environment variables](https://docs.revealui.com/ENVIRONMENT-VARIABLES-GUIDE): Full env reference
-- [Credential rotation](https://docs.revealui.com/CREDENTIAL-ROTATION-RUNBOOK): Rotation runbook for every secret type
 
 ## Reference
 
-- [Reference index](https://docs.revealui.com/REFERENCE): Type-checked reference
-- [Architecture decisions](https://docs.revealui.com/decisions/): Internal ADRs
-- [Audit status](https://docs.revealui.com/AUDIT_STATUS): Pre-launch audit posture
+- [Reference index](https://docs.revealui.com/reference): Type-checked reference
+- [Architecture](https://docs.revealui.com/architecture): System architecture and public ADRs
 
 ## Source
 

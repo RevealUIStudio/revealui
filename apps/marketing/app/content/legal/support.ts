@@ -6,7 +6,7 @@ import type { LegalSection } from './privacy';
 
 export const SUPPORT_META = {
   title: 'Support',
-  lastUpdated: 'August 11, 2026',
+  lastUpdated: 'August 24, 2026',
   intro:
     'RevealUI Studio is a solo-operator company. We want to help you succeed with RevealUI, and we want to be honest about what kind of help we can offer, on what timeline, and through which channels. This page covers all three.',
   notice: {
@@ -25,7 +25,7 @@ export const SUPPORT_SECTIONS: readonly LegalSection[] = [
       `**GitHub Discussions** at https://github.com/RevealUIStudio/revealui/discussions: community-friendly format for design questions, "is there a better way to do X", and ideas. Other users and the maintainer both watch this. Best for questions where a public answer benefits more than just you.`,
       `**GitHub Issues** at https://github.com/RevealUIStudio/revealui/issues: for confirmed bugs and feature requests. Include reproduction steps. See §5 below for "bug vs support" guidance.`,
       `**Email** at ${SITE.emails.support}: for account-specific issues (billing, license keys, your data), security concerns, and questions you cannot ask in public.`,
-      '**Paid product buyers (Starter Kit, Pro, Max, and services):** after purchase we invite you to the private Skool buyer community for onboarding and product questions. That invite is manual at launch volume and is not a public join link. Billing and license issues still go to email.',
+      '**Paid license buyers:** after purchase we may send a private invite for onboarding questions. That invite is manual and is not a public join link. Billing and license issues still go to email.',
       '**Essays and product notes:** https://substack.com/@revealuistudio is the public broadcast list. It is not a support desk.',
     ],
   },

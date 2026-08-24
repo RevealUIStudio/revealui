@@ -16,6 +16,7 @@
 
 import FlexSearch from 'flexsearch';
 import { parseFrontmatter } from '../utils/frontmatter';
+import { isHtmlDocumentContent } from '../utils/html-document';
 import { SLUG_TO_PATH } from './slug-manifest';
 
 const { Document } = FlexSearch;
@@ -191,6 +192,9 @@ export async function buildSearchIndex(): Promise<void> {
             return null;
           }
           const content = await response.text();
+          if (isHtmlDocumentContent(content, response.headers.get('content-type'))) {
+            return null;
+          }
           return { slug, content };
         }),
       );

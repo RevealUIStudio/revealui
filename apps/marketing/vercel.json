@@ -53,6 +53,8 @@
       "permanent": true
     },
     { "source": "/pro", "destination": "/pricing", "permanent": false },
+    { "source": "/quote", "destination": "/pricing", "permanent": true },
+    { "source": "/calculator", "destination": "/pricing", "permanent": true },
     { "source": "/coming-soon", "destination": "/roadmap", "permanent": true },
     { "source": "/marketplace", "destination": "/roadmap", "permanent": true },
     { "source": "/sponsor", "destination": "/roadmap", "permanent": true },
@@ -60,6 +62,12 @@
       "source": "/community",
       "destination": "https://github.com/RevealUIStudio/revealui/discussions",
       "permanent": false
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "community.revealui.com" }],
+      "destination": "https://github.com/RevealUIStudio/revealui/discussions",
+      "permanent": true
     },
     {
       "source": "/:path*",
@@ -134,7 +142,7 @@
     },
     {
       "source": "/security",
-      "destination": "https://docs.revealui.com",
+      "destination": "https://github.com/RevealUIStudio/revealui/security/policy",
       "permanent": true
     },
     {

@@ -452,7 +452,7 @@ export const claimsPart5: readonly ClaimEntry[] = [
   {
     file: 'legal/support.ts',
     exportPath: 'SUPPORT_SECTIONS[0].listItems[4]',
-    text: '**Paid product buyers (Starter Kit, Pro, Max, and services):** after purchase we invite you to the private Skool buyer community for onboarding and product questions. That invite is manual at launch volume and is not a public join link. Billing and license issues still go to email.',
+    text: '**Paid license buyers:** after purchase we may send a private invite for onboarding questions. That invite is manual and is not a public join link. Billing and license issues still go to email.',
     evidence: [LEGAL_SUPPORT_CONTENT],
   },
   {

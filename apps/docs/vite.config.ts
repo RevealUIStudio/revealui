@@ -16,6 +16,48 @@ const debugTokens = new Set((process.env.DEBUG ?? '').split(',').map((token) => 
 const DEBUG =
   debugTokens.has('docs-publish') || debugTokens.has('*') || debugTokens.has('docs-copy');
 
+function createMarkdownMiddleware(docsSource: string) {
+  return async (
+    req: { url?: string },
+    res: {
+      statusCode: number;
+      setHeader: (name: string, value: string) => void;
+      end: (body?: string) => void;
+    },
+    next: () => void,
+  ): Promise<void> => {
+    try {
+      const url = req.url ?? '';
+      const pathOnly = url.split('?')[0] ?? '';
+      if (!(pathOnly.endsWith('.md') || pathOnly.endsWith('.mdx'))) {
+        next();
+        return;
+      }
+      // Hand-authored public/docs-pro/* stays on disk under public/.
+      if (pathOnly === '/docs-pro' || pathOnly.startsWith('/docs-pro/')) {
+        next();
+        return;
+      }
+      const resolved = await resolvePublicDoc(docsSource, pathOnly);
+      if (!resolved) {
+        res.statusCode = 404;
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        res.end('Not found');
+        return;
+      }
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.end(resolved.content);
+      if (DEBUG) console.log(`[docs-publish] serve ${resolved.rel}`);
+    } catch (err) {
+      console.error('[docs-publish] middleware error', err);
+      res.statusCode = 500;
+      res.end('docs-publish error');
+    }
+  };
+}
+
 /**
  * Docs publish plane (virtual serve).
  *
@@ -50,41 +92,16 @@ function docsPublishPlugin(): Plugin {
     configureServer(server) {
       // Run early so we own .md before any accidental public/ static hit.
       // (Leftover mirrors are cleaned in buildStart; middleware is the SoT path.)
-      server.middlewares.use(async (req, res, next) => {
-        try {
-          const url = req.url ?? '';
-          const pathOnly = url.split('?')[0] ?? '';
-          if (!(pathOnly.endsWith('.md') || pathOnly.endsWith('.mdx'))) {
-            next();
-            return;
-          }
-          // Hand-authored public/docs-pro/* stays on disk under public/.
-          if (pathOnly === '/docs-pro' || pathOnly.startsWith('/docs-pro/')) {
-            next();
-            return;
-          }
-          const resolved = await resolvePublicDoc(docsSource, pathOnly);
-          if (!resolved) {
-            res.statusCode = 404;
-            res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-            res.end('Not found');
-            return;
-          }
-          res.statusCode = 200;
-          res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
-          res.setHeader('Cache-Control', 'no-cache');
-          res.end(resolved.content);
-          if (DEBUG) console.log(`[docs-publish] serve ${resolved.rel}`);
-        } catch (err) {
-          console.error('[docs-publish] middleware error', err);
-          res.statusCode = 500;
-          res.end('docs-publish error');
-        }
-      });
+      server.middlewares.use(createMarkdownMiddleware(docsSource));
 
       // Watch monorepo docs/ so HMR-adjacent reloads pick up content changes.
       // (SPA caches markdown client-side; full reload still refetches.)
       server.watcher.add(path.join(docsSource, '**/*.{md,mdx}'));
+    },
+    configurePreviewServer(server) {
+      // Same 404-for-missing-.md behavior as configureServer so `vite preview`
+      // does not SPA-rewrite unknown markdown into index.html.
+      server.middlewares.use(createMarkdownMiddleware(docsSource));
     },
     async writeBundle(options) {
       // Production: write public docs into dist/ so fetch('/ADMIN_GUIDE.md') works
