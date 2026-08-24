@@ -12,7 +12,7 @@ import type { LegalSection } from './privacy';
 
 export const REFUND_POLICY_META = {
   title: 'Refund Policy',
-  lastUpdated: 'July 12, 2026',
+  lastUpdated: 'August 24, 2026',
   intro:
     'This page describes when you can get your money back from RevealUI Studio and how to ask for it. It applies to purchases made directly through revealui.com and admin.revealui.com.',
   notice: {
@@ -38,15 +38,15 @@ export const REFUND_POLICY_SECTIONS: readonly LegalSection[] = [
     ],
   },
   {
-    heading: '3. Starter Kit (content-only product)',
+    heading: '3. Other one-off purchases',
     paragraphs: [
-      'The RevealUI Starter Kit is a content product, not a Pro license and not a hosted instance. Self-serve checkout is not public until the first-sale walk is recorded. If you purchased through a Studio-confirmed request or invoice, contact us for a refund. We treat it as a content product.',
+      'If you bought something through a Studio-confirmed request or invoice that is not a subscription or perpetual license, contact us for a refund. Those orders are not self-serve catalog items.',
     ],
   },
   {
     heading: '4. Services engagements',
     paragraphs: [
-      'Architecture Review, Fleet deployment, Custom Build, and other services sold by invoice are governed by the Master Service Agreement and Statement of Work for that engagement, not by this policy.',
+      'Invoice services and custom engagements are governed by the Master Service Agreement and Statement of Work for that engagement, not by this policy.',
     ],
   },
   {
