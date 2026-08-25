@@ -158,11 +158,43 @@ describe('UpgradePage', () => {
     });
 
     const [, init] = mockApiFetch.mock.calls[0] as [string, RequestInit];
-    const body = JSON.parse(String(init.body)) as { tier?: string };
+    const body = JSON.parse(String(init.body)) as { tier?: string; priceId?: string };
     expect(body.tier).toBe('pro');
+    expect(body).not.toHaveProperty('priceId');
     expect(String(mockApiFetch.mock.calls[0]?.[0])).not.toContain('/api/checkout');
     expect(String(mockApiFetch.mock.calls[0]?.[0])).not.toContain('/api/billing/session');
     expect(mockSafeStripeRedirect).toHaveBeenCalledWith(STRIPE_CHECKOUT_URL);
     expect(new URL(STRIPE_CHECKOUT_URL).hostname).toBe('checkout.stripe.com');
+  });
+
+  it('omits a baked-in NEXT_PUBLIC price id so checkout uses the server catalog', async () => {
+    const previous = process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
+    process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID = 'price_wrong_client_bake';
+    mockUseLicense.mockReturnValue({ tier: 'free' });
+    render(<UpgradePage />);
+
+    const proCta = within(screen.getByTestId('tier-pro')).getByRole('button', {
+      name: 'Start your 7-day free trial',
+    });
+    await act(async () => {
+      fireEvent.click(proCta);
+    });
+
+    await waitFor(() => {
+      expect(mockApiFetch).toHaveBeenCalled();
+    });
+
+    const [, init] = mockApiFetch.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(String(init.body)) as { tier?: string; priceId?: string };
+    expect(body).toEqual({ tier: 'pro' });
+    expect(body.priceId).toBeUndefined();
+    expect(mockSafeStripeRedirect).toHaveBeenCalledWith(STRIPE_CHECKOUT_URL);
+    expect(new URL(STRIPE_CHECKOUT_URL).hostname).toBe('checkout.stripe.com');
+
+    if (previous === undefined) {
+      delete process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
+    } else {
+      process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID = previous;
+    }
   });
 });

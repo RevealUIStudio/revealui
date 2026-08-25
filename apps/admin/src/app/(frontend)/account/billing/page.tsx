@@ -25,6 +25,7 @@ import { TestModeBanner } from '@/components/TestModeBanner';
 import { hasCommercialUpgradePath } from '@/lib/components/should-show-upgrade-nav';
 import { apiFetch } from '@/lib/utils/csrf';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
+import { subscriptionCheckoutBody } from '@/lib/utils/subscription-checkout';
 import {
   formatTrialEndDate,
   perpetualActivatedMessage,
@@ -192,18 +193,11 @@ function BillingContent() {
       setActionLoading(true);
       setError(null);
       try {
-        const priceId =
-          target === 'max'
-            ? process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID
-            : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
         const res = await apiFetch(`${apiUrl}/api/billing/checkout`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({
-            ...(priceId && { priceId }),
-            tier: target,
-          }),
+          body: JSON.stringify(subscriptionCheckoutBody(target)),
         });
         const data = (await res.json()) as { url?: string; error?: string };
         if (data.url) {

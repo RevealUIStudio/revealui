@@ -167,9 +167,9 @@ export function validateRequiredEnvVars(
         missing.push('SESSION_COOKIE_DOMAIN');
       }
 
-      // Stripe price IDs are required in production  -  without them, billing buttons
-      // silently send priceId:'' which the API rejects with a 400, showing
-      // "Failed to start checkout" to paying customers with no actionable error.
+      // Hosted SaaS still seeds these client price IDs for catalog lockstep
+      // (stripe-catalog / billing_catalog). Self-serve checkout posts only
+      // `{ tier }` — the API resolves the Stripe price from billing_catalog.
       const stripePriceVars = [
         'NEXT_PUBLIC_STRIPE_PRO_PRICE_ID',
         'NEXT_PUBLIC_STRIPE_MAX_PRICE_ID',

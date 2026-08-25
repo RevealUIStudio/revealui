@@ -165,6 +165,18 @@ describe('BillingPage checkout hardening', () => {
         'https://checkout.stripe.com/session/abc',
       );
     });
+    const checkoutCall = (global.fetch as ReturnType<typeof vi.fn>).mock.calls.find((call) =>
+      String(call[0]).includes('/api/billing/checkout'),
+    );
+    expect(checkoutCall).toBeDefined();
+    if (!checkoutCall) throw new Error('expected checkout POST');
+    const body = JSON.parse(String((checkoutCall[1] as RequestInit).body)) as {
+      tier?: string;
+      priceId?: string;
+    };
+    expect(body).toEqual({ tier: 'max' });
+    expect(body.priceId).toBeUndefined();
+    expect(new URL('https://checkout.stripe.com/session/abc').hostname).toBe('checkout.stripe.com');
   });
 
   it('parks ?upgrade=enterprise at Contact sales instead of Stripe checkout', async () => {
