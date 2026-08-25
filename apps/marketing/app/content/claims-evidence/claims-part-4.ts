@@ -34,6 +34,7 @@ import {
   LEGAL_SECURITY_CONTENT,
   LICENSE_ED25519,
   LICENSE_MIT,
+  LICENSE_RUNTIME_GATE_TEST,
   LICENSE_SPLIT,
   MEMORY,
   PERPETUAL,
@@ -142,7 +143,7 @@ export const claimsPart4: readonly ClaimEntry[] = [
     file: 'fair-source.ts',
     exportPath: 'FAIR_SOURCE_FAQS[4].answer',
     text: 'License enforcement is at runtime on the studio control plane (admin.revealui.com and api.revealui.com), not baked into the npm packages. That is a license check on RevealUI Studio infrastructure, not a customer VM we operate. You self-host the runtime. The hosted RevealUI API checks Ed25519-signed license JWTs and gates Pro API routes; the packages themselves ship ungated, so self-hosters run them freely. FSL is the legal protection: the source is visible and you can run it, but shipping a competing developer platform on top of it is exactly what the non-compete clause prohibits, with civil remedies available. Two years after each release, that release becomes plain MIT.',
-    evidence: [LICENSE_ED25519, FAIR_SOURCE_PAGE],
+    evidence: [LICENSE_ED25519, FAIR_SOURCE_PAGE, LICENSE_RUNTIME_GATE_TEST],
   },
   {
     file: 'fair-source.ts',
