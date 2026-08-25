@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "generatorId": "grok",
+  "files": [
+    {
+      "relativePath": ".grok/agents/builder.md",
+      "sha256": "064618cc0f00ce61d6ad870c30806da0b29db63246dc32d73579bf8739ae11e8"
+    },
+    {
+      "relativePath": ".grok/agents/docs-sync.md",
+      "sha256": "d642d8e5daa277bfdad72d507a8b8e9b484d772b99e7953caa53b928e05b731f"
+    },
+    {
+      "relativePath": ".grok/agents/gate-runner.md",
+      "sha256": "64146810df48f71d114272d0b42ad764853c1b9b8f1b285e3aa19146b38d5614"
+    },
+    {
+      "relativePath": ".grok/agents/linter.md",
+      "sha256": "329fbab5b45bb8e9ffa1d9d112f4d9ed2a1417ad74664f5f1a1bcdf684de3a8a"
+    },
+    {
+      "relativePath": ".grok/agents/security-reviewer.md",
+      "sha256": "33a2ebfaeb1740286522e5b542830b7d95dde26270f886d6d356a2169334b075"
+    },
+    {
+      "relativePath": ".grok/agents/tester.md",
+      "sha256": "b98c5a58cf584e87b1da69cfaec0938f4df4b3d0a3fc9ef864adc984cf9f92d7"
+    },
+    {
+      "relativePath": ".grok/rules/00-spawn-map.md",
+      "sha256": "4ce3374a4ad5224b4c57f86bdefb7e1c055204b0a36a1dc740c236324b933fd5"
+    },
+    {
+      "relativePath": ".grok/rules/adapter-only.md",
+      "sha256": "dcd894a7516ad394e15a6485a77aea302db87c4a9c4b1910507edd05a97078b8"
+    },
+    {
+      "relativePath": ".grok/rules/ai-mechanics.md",
+      "sha256": "42a11ea5998ccd720fe9ef2ff9bd161aa46b922f2a79d17a779e99c2a9354313"
+    },
+    {
+      "relativePath": ".grok/rules/code-over-docs.md",
+      "sha256": "092c970e6638e76ca6a14f8fb0f25ca70eb76fa3da95e34fcdb0f6cd18c59561"
+    },
+    {
+      "relativePath": ".grok/rules/disposition-actions.md",
+      "sha256": "521e36946f1d899fdc66e9b2bc6f58a7807bd389ef36074bea7009ef5b9ba909"
+    },
+    {
+      "relativePath": ".grok/rules/durable-solutions.md",
+      "sha256": "0783d2fcef8b5573d25bdc6389db686068b8ba99024b8223a3a0511948754d2b"
+    },
+    {
+      "relativePath": ".grok/rules/monorepo.md",
+      "sha256": "1fa60d068a0f0b6429cf13bd2821b9a92503187770e2b3ffe2065d4406c0e4f7"
+    },
+    {
+      "relativePath": ".grok/rules/public-issue-redaction.md",
+      "sha256": "23664f7279944b1c3b7069339089ff9d876247138cf3165a846bd89afb260e07"
+    },
+    {
+      "relativePath": ".grok/rules/quality-over-speed.md",
+      "sha256": "8bfcbe93c5b73d738859656926478798a8bed2d55ca5be5dca50b6c997e9b009"
+    },
+    {
+      "relativePath": ".grok/rules/stream-safe-secrets.md",
+      "sha256": "a8dd8ee4f106df0590c05f7e68a21c056a8338fd035af290e20a04d161326f0c"
+    },
+    {
+      "relativePath": ".grok/rules/token-economy.md",
+      "sha256": "7ed4fc56740046530b5188de5810d77cc1fe86d2de238739e60de5ef04e4d851"
+    },
+    {
+      "relativePath": ".grok/rules/tracker-first.md",
+      "sha256": "a31d4380657565bcb45e65c34458de01e77d0f547b9304e627f6764d90f55f1c"
+    },
+    {
+      "relativePath": ".grok/rules/unused-declarations.md",
+      "sha256": "3b1ff6f14af5f8dbdb896b3da4412b482b0f2db9eca3f16011ae4be65543c086"
+    },
+    {
+      "relativePath": ".grok/skills/rule-agent-dispatch/SKILL.md",
+      "sha256": "ea8dbaed3f3f1099758a26ebdab3b71a6cc2d1c6e7548e1adae41967bc23e37f"
+    },
+    {
+      "relativePath": ".grok/skills/rule-biome/SKILL.md",
+      "sha256": "aed69630cdb6d31d7c7c34ea9b7b00e877c710175cc0e93d86d1cbd9dacc9524"
+    },
+    {
+      "relativePath": ".grok/skills/rule-code-analysis-policy/SKILL.md",
+      "sha256": "6c0185249056413d7f4c5872a6d2945ab124b4633b073c2cf16f3359d746cb73"
+    },
+    {
+      "relativePath": ".grok/skills/rule-database/SKILL.md",
+      "sha256": "602dbe8e3f44c074dd67bc967f03d44a962790fbe1b439154f075e4b8e0bda9a"
+    },
+    {
+      "relativePath": ".grok/skills/rule-parameterization/SKILL.md",
+      "sha256": "d609c31268000b33a6fca3211f30adea68c20d21f8ac051fa09e5413c3918c22"
+    },
+    {
+      "relativePath": ".grok/skills/rule-skills-usage/SKILL.md",
+      "sha256": "98d2f3e5fc0b2c03338677e5583dd81f3e7fbc25dd85dc70ab21832c8920796f"
+    },
+    {
+      "relativePath": ".grok/skills/rule-tailwind/SKILL.md",
+      "sha256": "a1acc5fec46f84d78dfe7d342da03e54920b0c5686d159837c640a0ce33411a4"
+    }
+  ]
+}

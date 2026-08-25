@@ -29,7 +29,7 @@
     },
     {
       "id": "grok",
-      "projectTree": null,
+      "projectTree": ".grok",
       "rank": "equal"
     },
     {

@@ -11,8 +11,10 @@
  * - `opencode` — agents + commands under `.opencode/`
  * - `cursor` — hooks.json only (vendor-native surface; policy still in manager)
  * - `vscode` — plugin.json hooks contribution only
+ * - `grok` — preamble tier 1 under `.grok/rules/`, remaining rules as on-demand
+ *   skills, content agents, spawn map (Grok does not scan `.revealui/content`)
  *
- * `manager materialize` runs `writeManagerAdapterContent` so Cursor/OpenCode
+ * `manager materialize` runs `writeManagerAdapterContent` so Cursor/OpenCode/Grok
  * vendor surfaces are emitted on the **same path** as manager content (equal
  * adapters), not only as orphaned hooks-tree tooling.
  *
@@ -48,7 +50,12 @@ export {
   ClaudeCodeGenerator,
   CursorGenerator,
   DEFAULT_CONTENT_GENERATOR_ID,
+  GROK_OUTPUT_DIR,
+  GROK_SPAWN_MAP,
+  GROK_SPAWN_MAP_PATH,
+  GrokGenerator,
   getGenerator,
+  grokRulePathForDefinitionId,
   listGenerators,
   MANAGER_CONTENT_OUTPUT,
   OpenCodeGenerator,
@@ -56,6 +63,7 @@ export {
   VSCodeGenerator,
 } from './generators/index.js';
 export type { ContentGenerator, DiffEntry, GeneratedFile } from './generators/types.js';
+export { alwaysOnRuleIds } from './preamble-ids.js';
 export { listResolvers, registerResolver, resolveTemplate } from './resolvers/index.js';
 export type { ResolverContext, ResolverFn } from './resolvers/types.js';
 // Re-export everything consumers need

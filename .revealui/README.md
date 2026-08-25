@@ -48,7 +48,7 @@ pnpm exec revealui-harnesses content sync --generator claude-code
 ## What adapters must do
 
 1. Open **`manager.json`** when entering the project.
-2. Treat **`content/`** as the generated, committed shared-policy tree (from `@revealui/harnesses`). Until control-layer phase 2, Claude Code and peers still load their vendor trees (for example `.claude/rules/`); those bodies should match definitions via materialize + freshness CI, not by hand-forking.
+2. Treat **`content/`** as the generated, committed shared-policy tree (from `@revealui/harnesses`). Claude Code loads definition bodies from `.claude/rules/` (GAP-421 mirrors). Grok loads preamble tier 1 from `.grok/rules/` (Grok generator); remaining definition rules are on-demand skills under `.grok/skills/rule-*/`. Do not turn `[compat.claude] rules` on to ingest the Claude dump.
 3. Use **tracker.path** for day-to-day free surfaces (fleet: `docs/TRACKER.md`).
 4. Product I/O via **RevealUI MCP** (token from revvault / `rfg`) — not vendor side channels.
 5. **Do not** full-copy hardlines into `~/.claude` or `~/.grok`.
