@@ -19,7 +19,7 @@ audience: developer
 | 2 | **RevFleet** | The umbrella for all RevealUI Studio software | Internal coordination |
 | 3 | **RevForge** | Operator-only stamping tool (private; not a public GitHub repo). Produces branded RevealUI Fleet kits per customer. | RevealUI Studio operators |
 | 4 | **RevealUI Fleet** | Customer-facing self-hosted runtime kit — white-label, multi-tenant, domain-locked, produced by RevForge. | Enterprise customers self-hosting |
-| 5 | **Enterprise** | SaaS billing tier label ($1,499/mo). License + studio support on admin.revealui.com; the customer self-hosts. Not a Studio-operated customer VM. Managed instances are RevealUI Cloud (waitlist). | Customers on the Enterprise license tier |
+| 5 | **Enterprise** | License plus studio support on admin.revealui.com (Contact sales / inquire — not a public monthly SKU). The customer self-hosts. Not a Studio-operated customer VM. Managed instances are RevealUI Cloud (waitlist). | Customers on the Enterprise license tier |
 | 6 | (customer stamps) | Customer-stamped Fleet instances per the Tier 4 model. | Enterprise customers |
 
 **Naming drift to avoid:** "Suite", "RevealUI Studio Fleet", bare "Fleet" → use **RevFleet**. Bare "Forge" is ambiguous — use RevForge (the tool), RevealUI Fleet (the kit), or Enterprise (the tier) per context.
@@ -44,7 +44,7 @@ Most RevFleet products have public repos. RevForge does not — the stamper is p
 
 RevealUI is the agentic business runtime. Five primitives — people, content, offers, payments, agents — are pre-wired in the monorepo. OSS packages ship MIT; Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) are Fair Source FSL-1.1-MIT (source-visible, non-compete, auto-converts to MIT after 2 years).
 
-Status: pre-launch (0 paying customers). Enterprise tier at $1,499/mo is a license plus studio support; you self-host. RevealUI Fleet is the self-host kit via RevForge. Managed customer instances are RevealUI Cloud (waitlist).
+Status: pre-launch (0 paying customers). Enterprise is a license plus studio support (Contact sales / inquire — not a public monthly SKU); you self-host. RevealUI Fleet is the self-host kit via RevForge. Managed customer instances are RevealUI Cloud (waitlist).
 
 ### RevForge (the stamping tool)
 
