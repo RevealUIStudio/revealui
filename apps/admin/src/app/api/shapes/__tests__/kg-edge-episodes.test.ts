@@ -49,7 +49,7 @@ const mockSession = {
     password: null,
     role: 'admin',
     status: 'active',
-    emailVerified: false,
+    emailVerified: true,
     emailVerificationToken: null,
     emailVerifiedAt: null,
     mfaEnabled: false,
@@ -61,6 +61,16 @@ const mockSession = {
     createdAt: new Date(),
     updatedAt: new Date(),
     lastActiveAt: null,
+    _json: {},
+  },
+};
+
+const fleetOperatorSession = {
+  ...mockSession,
+  user: {
+    ...mockSession.user,
+    emailVerified: true,
+    _json: { roles: ['super-admin'] },
   },
 };
 
@@ -80,8 +90,17 @@ describe('GET /api/shapes/kg-edge-episodes', () => {
     expect(response.status).toBe(401);
   });
 
-  it('proxies the full join table with no where clause', async () => {
+  it('returns 403 for a hosted CMS admin (not fleet operator)', async () => {
     mockGetSession.mockResolvedValue(mockSession);
+
+    const request = new NextRequest('http://localhost:3000/api/shapes/kg-edge-episodes');
+    const response = await GET(request);
+
+    expect(response.status).toBe(403);
+  });
+
+  it('proxies the full join table with no where clause', async () => {
+    mockGetSession.mockResolvedValue(fleetOperatorSession);
     const { prepareElectricUrl, proxyElectricRequest } = await import('@/lib/api/electric-proxy');
 
     const request = new NextRequest('http://localhost:3000/api/shapes/kg-edge-episodes');

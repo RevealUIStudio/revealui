@@ -4,7 +4,7 @@
  * GET /api/shapes/yjs-document-patches?document_id=<document_id>
  *
  * Authenticated proxy for ElectricSQL yjs_document_patches shape.
- * GAP-477: same document ACL as yjs-documents (owner or platform admin).
+ * GAP-477: same document ACL as yjs-documents (owner or fleet operator).
  */
 
 import { getSession } from '@revealui/auth/server';
@@ -54,12 +54,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     const db = getClient();
-    const allowed = await userCanAccessYjsDocument(
-      db,
-      session.user.id,
-      documentId,
-      session.user.role,
-    );
+    const allowed = await userCanAccessYjsDocument(db, session.user.id, documentId, session.user);
     if (!allowed) {
       return createApplicationErrorResponse('Forbidden', 'FORBIDDEN', 403);
     }

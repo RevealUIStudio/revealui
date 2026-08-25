@@ -3,14 +3,14 @@
  *
  * GET /api/shapes/kg-edges[?repo=<repo>]
  *
- * Same AuthZ as kg-nodes (GAP-477 Phase C): admin_platform + AI gate.
+ * Same AuthZ as kg-nodes: fleet-operator + AI gate. Hosted CMS admin/owner is 403.
  */
 
 import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/utils/logger';
 import type { NextRequest, NextResponse } from 'next/server';
 import { prepareElectricUrl, proxyElectricRequest } from '@/lib/api/electric-proxy';
-import { requireAdminRole } from '@/lib/api/shape-authz';
+import { isFleetOperator } from '@/lib/api/shape-authz';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
   createApplicationErrorResponse,
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const aiGate = await checkAIFeatureGate(session.user.id);
     if (aiGate) return aiGate;
 
-    if (!requireAdminRole(session.user.role)) {
+    if (!isFleetOperator(session.user)) {
       return createApplicationErrorResponse('Forbidden', 'FORBIDDEN', 403);
     }
 

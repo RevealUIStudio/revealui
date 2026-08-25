@@ -34,7 +34,7 @@ vi.mock('@/lib/api/electric-proxy', () => ({
   }),
 }));
 
-function makeSession(role: string) {
+function makeSession(role: string, extras: { emailVerified?: boolean; _json?: unknown } = {}) {
   return {
     session: {
       id: '123e4567-e89b-12d3-a456-426614174000',
@@ -59,7 +59,7 @@ function makeSession(role: string) {
       password: null,
       role,
       status: 'active',
-      emailVerified: false,
+      emailVerified: extras.emailVerified ?? false,
       emailVerificationToken: null,
       emailVerifiedAt: null,
       mfaEnabled: false,
@@ -71,6 +71,7 @@ function makeSession(role: string) {
       createdAt: new Date(),
       updatedAt: new Date(),
       lastActiveAt: null,
+      _json: extras._json,
     },
   };
 }
@@ -153,8 +154,27 @@ describe('GET /api/shapes/yjs-documents', () => {
     expect(data.error).toBe('VALIDATION_ERROR');
   });
 
-  it('should proxy request when admin with valid UUID', async () => {
-    mockGetSession.mockResolvedValue(makeSession('admin') as never);
+  it('should return 403 when hosted CMS admin does not own the document', async () => {
+    mockGetSession.mockResolvedValue(makeSession('admin', { emailVerified: true }) as never);
+    mockLimit.mockResolvedValue([{ ownerId: 'other-user' }]);
+
+    const request = new NextRequest(
+      `http://localhost:3000/api/shapes/yjs-documents?document_id=${VALID_DOC_ID}`,
+    );
+    const response = await GET(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(data.error).toBe('FORBIDDEN');
+  });
+
+  it('should proxy request when fleet operator with valid UUID', async () => {
+    mockGetSession.mockResolvedValue(
+      makeSession('admin', {
+        emailVerified: true,
+        _json: { roles: ['super-admin'] },
+      }) as never,
+    );
     mockLimit.mockResolvedValue([]);
 
     const { prepareElectricUrl, proxyElectricRequest } = await import('@/lib/api/electric-proxy');
@@ -167,6 +187,8 @@ describe('GET /api/shapes/yjs-documents', () => {
     expect(response.status).toBe(200);
     expect(prepareElectricUrl).toHaveBeenCalled();
     expect(proxyElectricRequest).toHaveBeenCalled();
+    const originUrl = vi.mocked(proxyElectricRequest).mock.calls[0]?.[0] as URL;
+    expect(originUrl.searchParams.get('where')).toBe(`id = '${VALID_DOC_ID}'`);
   });
 
   it('should handle errors gracefully', async () => {

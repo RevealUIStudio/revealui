@@ -4,9 +4,9 @@
  * GET /api/shapes/agent-memories?agent_id=<agent_id>[&site_id=<site_id>]
  *
  * Authenticated proxy for ElectricSQL agent_memories shape (GAP-476).
- * - Admins: agent_id filter only (ops full-agent view)
- * - Non-admins: require site_id and prove owner/collaborator access;
- *   Electric where: agent_id AND site_id
+ * - Fleet operators: agent_id filter only (ops full-agent view)
+ * - Everyone else (including hosted CMS admin/owner): require site_id and
+ *   prove owner/collaborator access; Electric where: agent_id AND site_id
  */
 
 import { getSession } from '@revealui/auth/server';
@@ -14,7 +14,7 @@ import { getClient } from '@revealui/db/client';
 import { logger } from '@revealui/utils/logger';
 import type { NextRequest, NextResponse } from 'next/server';
 import { prepareElectricUrl, proxyElectricRequest } from '@/lib/api/electric-proxy';
-import { isSafeSiteId, requireAdminRole, userCanAccessSite } from '@/lib/api/shape-authz';
+import { isFleetOperator, isSafeSiteId, userCanAccessSite } from '@/lib/api/shape-authz';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
   createApplicationErrorResponse,
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const originUrl = prepareElectricUrl(request.url);
     originUrl.searchParams.set('table', 'agent_memories');
 
-    if (requireAdminRole(session.user.role)) {
+    if (isFleetOperator(session.user)) {
       originUrl.searchParams.set('where', `agent_id = '${agentId}'`);
       return proxyElectricRequest(originUrl);
     }
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const siteId = url.searchParams.get('site_id');
     if (!siteId || siteId.trim().length === 0) {
       return createApplicationErrorResponse(
-        'site_id query parameter is required for non-admin access',
+        'site_id query parameter is required for non-operator access',
         'FORBIDDEN',
         403,
       );
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     const db = getClient();
-    const allowed = await userCanAccessSite(db, session.user.id, siteId, session.user.role);
+    const allowed = await userCanAccessSite(db, session.user.id, siteId, session.user);
     if (!allowed) {
       return createApplicationErrorResponse(
         'Access denied: you do not own or collaborate on this site',
