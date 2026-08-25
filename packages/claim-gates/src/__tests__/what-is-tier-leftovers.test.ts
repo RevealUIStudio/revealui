@@ -18,6 +18,8 @@ function readRepo(rel: string): string {
 const PUBLIC_COPY_SURFACES = [
   'docs/WHAT_IS.md',
   'docs/PRO.md',
+  'docs/FLEET.md',
+  'docs/ENTERPRISE.md',
   'docs/MARKETING_METRICS.md',
   'docs/blog/06-open-source-and-pro.md',
   'docs/blog/05-five-primitives.md',
@@ -25,6 +27,9 @@ const PUBLIC_COPY_SURFACES = [
   'docs/ROADMAP.md',
   'README.md',
   'AGENTS.md',
+  'apps/marketing/app/content/site.ts',
+  'apps/marketing/app/content/for-operators-managed.ts',
+  'apps/marketing/app/components/for-operators-managed/Waitlist.tsx',
 ] as const;
 
 describe('WHAT_IS leftover public-copy pins (#528 claim-drift)', () => {
@@ -50,5 +55,23 @@ describe('WHAT_IS leftover public-copy pins (#528 claim-drift)', () => {
       expect(text.includes('$1,499/month'), rel).toBe(false);
       expect(text.includes('$8,499'), rel).toBe(false);
     }
+  });
+
+  it('does not leave Cloud waitlist, Starter Kit checkout, or Fleet-as-SKU catalog copy', () => {
+    for (const rel of PUBLIC_COPY_SURFACES) {
+      const text = readRepo(rel);
+      expect(text.includes('Join the waitlist'), rel).toBe(false);
+      expect(text.includes('RevealUI Cloud waitlist'), rel).toBe(false);
+      expect(text.includes('Cloud (waitlist)'), rel).toBe(false);
+      expect(text.includes('starterKitCheckout'), rel).toBe(false);
+      expect(text.includes('buy.stripe.com/dRmeVegcH'), rel).toBe(false);
+      expect(text.includes('deployment-level commercial product'), rel).toBe(false);
+    }
+  });
+
+  it('does not pin Free to a public 1,000 agent-task quota in contracts', () => {
+    const pricing = readRepo('packages/contracts/src/pricing.ts');
+    expect(pricing.includes('free: { sites: 1, users: 3, agentTasks: 1_000')).toBe(false);
+    expect(pricing.includes('free: { sites: 1, users: 3, agentTasks: 0')).toBe(true);
   });
 });

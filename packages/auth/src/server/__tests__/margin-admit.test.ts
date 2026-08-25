@@ -11,15 +11,15 @@ import { describe, expect, it } from 'vitest';
 const OPEN_FREE_LIMITS = {
   maxSites: 1,
   maxUsers: 3,
-  maxAgentTasks: 1_000,
+  maxAgentTasks: 0,
 } as const;
 
 describe('OPEN_FREE_LIMITS lockstep', () => {
-  it('matches hosted free tier (1 site / 3 users / 1k tasks)', () => {
+  it('matches hosted free tier (1 site / 3 users / no public agent quota)', () => {
     expect(OPEN_FREE_LIMITS).toEqual({
       maxSites: 1,
       maxUsers: 3,
-      maxAgentTasks: 1_000,
+      maxAgentTasks: 0,
     });
   });
 });

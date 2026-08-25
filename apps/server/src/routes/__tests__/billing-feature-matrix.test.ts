@@ -127,7 +127,7 @@ const FEATURE_TIER_MAP: Record<Feature, Tier> = {
 
 /** Documented resource limits per tier */
 const TIER_LIMITS: Record<Tier, { maxSites: number; maxUsers: number; maxAgentTasks: number }> = {
-  free: { maxSites: 1, maxUsers: 3, maxAgentTasks: 1_000 },
+  free: { maxSites: 1, maxUsers: 3, maxAgentTasks: 0 },
   pro: { maxSites: 5, maxUsers: 25, maxAgentTasks: 10_000 },
   max: { maxSites: 15, maxUsers: 100, maxAgentTasks: 50_000 },
   enterprise: {
@@ -331,7 +331,7 @@ describe('Resource Limits Match Tier Definitions', () => {
   it('documented resource limits match hosted tier definitions', () => {
     // These must match the hosted limits in apps/server/src/lib/tier-limits.ts getHostedLimitsForTier()
     // and the license module getMaxSites/getMaxUsers/getMaxAgentTasks defaults
-    expect(TIER_LIMITS.free).toEqual({ maxSites: 1, maxUsers: 3, maxAgentTasks: 1_000 });
+    expect(TIER_LIMITS.free).toEqual({ maxSites: 1, maxUsers: 3, maxAgentTasks: 0 });
     expect(TIER_LIMITS.pro).toEqual({ maxSites: 5, maxUsers: 25, maxAgentTasks: 10_000 });
     expect(TIER_LIMITS.max).toEqual({ maxSites: 15, maxUsers: 100, maxAgentTasks: 50_000 });
 

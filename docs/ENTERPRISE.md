@@ -17,8 +17,8 @@ Canonical tier language lives in [What is RevealUI?](./WHAT_IS.md). This page is
 
 - **License** — EdDSA-signed JWT, support, and Enterprise entitlements on admin.revealui.com.
 - **You self-host** — Studio does not operate a dedicated customer VM on `revealui.com` infrastructure.
-- **RevealUI Fleet** — the self-host kit (Docker Compose, domain lock). Operator preview; not a launched pull-and-run product. See [Fleet](./FLEET.md).
-- **RevForge** — the private operator stamper that may brand a Fleet kit. It is not this page and not a billing tier.
+- **Self-host how-to** — [Fleet](./FLEET.md) is operator documentation, not a catalog SKU.
+- **RevForge** — the private operator stamper. It is not this page and not a billing tier.
 
 ## Limits
 

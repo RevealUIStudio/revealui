@@ -1,17 +1,15 @@
 ---
 visibility: public
 status: verified
-title: "RevealUI Fleet — Self-Hosted Deployment"
-description: "Enterprise self-hosted runtime kit. Domain-locked, multi-tenant, unlimited users. Produced by RevForge per customer."
+title: "RevealUI Fleet — Self-Host How-To"
+description: "Operator how-to for self-hosting RevealUI. Not a catalog SKU. Enterprise is inquire / Contact sales."
 category: guide
 audience: enterprise
 ---
 
-Customers buy the Enterprise tier of RevealUI; the Fleet kit is what they deploy. Instead of running on `revealui.com`, you deploy the entire stack on your own infrastructure with full domain lock and unlimited users.
+This page is a **self-host how-to**, not a commercial product page. Enterprise is a license (inquire / Contact sales). See [Enterprise](./ENTERPRISE.md). You deploy the stack on your own infrastructure. Studio does not operate a customer VM.
 
-The customer-facing kit is this monorepo's `docker-compose.forge.yml` plus GHCR `ghcr.io/revealuistudio/revealui-{api,admin,migrate}`. RevForge is the **operator-only** stamper (private; not a public GitHub repo) that may brand a kit and issue the studio-signed license JWT. Claim hold `COPY-DEP-FLEET-DOCKER-IMAGES` is still `waiting` — images pull, but this is not a launched customer pull-and-run product.
-
-RevealUI Fleet is a deployment-level commercial product. Pro/Enterprise on /pricing is a license plus studio support on admin.revealui.com; the customer self-hosts. Managed customer instances are RevealUI Cloud (waitlist). Fleet is not a Studio-operated VM.
+The compose file is this monorepo's `docker-compose.forge.yml` plus GHCR `ghcr.io/revealuistudio/revealui-{api,admin,migrate}`. RevForge is the **operator-only** stamper (private; not a public GitHub repo) that may brand a kit and issue the studio-signed license JWT. Claim hold `COPY-DEP-FLEET-DOCKER-IMAGES` is still `waiting` — images pull, but this is not a launched customer pull-and-run product.
 
 ## What's included
 
@@ -24,20 +22,16 @@ RevealUI Fleet is a deployment-level commercial product. Pro/Enterprise on /pric
 
 All three services are wired together in `docker-compose.forge.yml` at the root of the repository.
 
-## Commercial model
+## License
 
-Fleet sits beside the published license tiers, not underneath a hosted-VM SKU:
-
-- Pro/Enterprise on /pricing is a license plus studio support on admin.revealui.com; you self-host.
-- Fleet is a deployment-scoped commercial product with domain lock.
-- Optional metered or transaction-linked features can exist inside Fleet deployments, but the primary entitlement is the deployment license.
+Enterprise is inquire / Contact sales. This how-to is not a Fleet price, not a hosted-VM SKU, and not a catalog page. You self-host under an Enterprise license.
 
 ---
 
 ## Prerequisites
 
 - Docker Engine 24+ and Docker Compose v2
-- A Fleet license key, an EdDSA-signed JWT issued at checkout once live billing is enabled
+- An Enterprise license key (inquire / Contact sales) — an EdDSA-signed JWT
 - A domain you control (e.g. `admin.acme.com`)
 - Stripe keys for billing (if you want to use the billing stack)
 - A NeonDB or PostgreSQL 16 database URL

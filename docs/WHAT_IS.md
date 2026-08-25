@@ -22,7 +22,7 @@ That paragraph is the product definition. Supporting facts:
 - You start from `npx create-revealui` or this monorepo, not from a hosted black box.
 - The five primitives are the product surface. They are not a slogan layered on an empty framework.
 - There are no paying external customers yet. Stripe live mode is on. That is a billing-rail fact, not a sales claim.
-- Studio does not operate a dedicated customer VM on `revealui.com` infrastructure. Customers self-host. Managed instances are RevealUI Cloud (waitlist).
+- Studio does not operate a dedicated customer VM on `revealui.com` infrastructure. Customers self-host.
 
 ---
 
