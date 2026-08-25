@@ -69,7 +69,7 @@ Pro packages are published to npm as compiled distributions. You can install the
 | **Price** | Free forever | $49/month | $299/month | Contact sales / inquire |
 | **Sites** | 1 | 5 | 15 | Unlimited |
 | **Users/editors** | 3 | 25 | 100 | Unlimited |
-| **Agent tasks/mo** | 1,000 | 10,000 | 50,000 | Unlimited |
+| **Agent tasks/mo** | Local AI | 10,000 | 50,000 | Unlimited |
 | **API rate limit** | 200 req/min | 300 req/min | 600 req/min | 1,000 req/min |
 | **Auth** | Session + OAuth (GitHub / Google / Vercel) | Same | Same | Session + OAuth + Enterprise SSO (OIDC/SAML SP-initiated, [#449](https://github.com/RevealUIStudio/revealui/issues/449)) |
 | **admin collections** | Unlimited | Unlimited | Unlimited | Unlimited |
@@ -83,7 +83,7 @@ Pro packages are published to npm as compiled distributions. You can install the
 | **Custom domains** | -- | Yes | Yes | Yes |
 | **Multi-tenant** | -- | -- | -- | Yes |
 | **White-label** | -- | -- | -- | Yes (planned, [#515](https://github.com/RevealUIStudio/revealui/issues/515)) |
-| **Support** | Community | Email (48h) | Email (24h) | Slack (not yet available) |
+| **Support** | Community | 24h U.S. business hours (4h critical) | 24h U.S. business hours (4h critical) | 24h U.S. business hours (4h critical) |
 | **Source code** | Full | Full | Full | Full |
 
 A few things worth noting about this table.

@@ -88,7 +88,7 @@ export function buildDocNavSections(showcaseItems: NavItem[]): NavSection[] {
       title: 'Pro & Enterprise',
       items: [
         { label: 'Pro (AI, MCP, Inference)', path: '/pro' },
-        { label: 'Enterprise', path: '/forge' },
+        { label: 'Enterprise', path: '/enterprise' },
         { label: 'Local-First Setup', path: '/local-first' },
       ],
     },

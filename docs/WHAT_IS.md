@@ -105,6 +105,7 @@ Names and maturity labels must match [ROADMAP.md](./ROADMAP.md) and [REVFLEET.md
 
 - [Quick Start](./QUICK_START.md)
 - [Pro](./PRO.md)
+- [Enterprise](./ENTERPRISE.md)
 - [RevFleet](./REVFLEET.md)
 - [What Works Today](./WHAT_WORKS_TODAY.md)
 - [SLA](./SLA.md)

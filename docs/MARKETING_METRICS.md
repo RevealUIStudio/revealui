@@ -48,7 +48,7 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 
 | Tier | Price | Sites | Users | Agent tasks/mo | API rate (req/min) |
 |---|---|---|---|---|---|
-| Free | $0 | 1 | 3 | 1,000 | 200 |
+| Free | $0 | 1 | 3 | Local AI | 200 |
 | Pro | $49 | 5 | 25 | 10,000 | 300 |
 | Max | $299 | 15 | 100 | 50,000 | 600 |
 | Enterprise | Contact sales / inquire | unlimited | unlimited | unlimited | 1,000 |
@@ -75,12 +75,12 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 
 | Service | Price | Notes |
 |---|---|---|
-| Architecture Review | $3,500 | one-engagement |
-| Launch Package | $7,500 | one-engagement |
-| Migration Assist | $300/hr | hourly |
-| Consulting Hour | $300/hr | hourly |
+| Architecture Review | $3,500 | revealuistudio.com only |
+| Launch Package | $7,500 | revealuistudio.com only |
+| Migration Assist | $300/hr | revealuistudio.com only |
+| Consulting Hour | $300/hr | revealuistudio.com only |
 
-**Status:** sold through agency, not self-serve. Live `/pricing` CTA is `Book an intro` → Google Calendar appointments. Do not write "Talk to founder" or "Buy now."
+**Status:** Studio SKUs stay on revealuistudio.com only. Do not copy them onto revealui.com. Live `/pricing` CTA is `Book an intro` → Google Calendar appointments. Do not write "Talk to founder" or "Buy now."
 
 ## 3. Status claims (per locked owner answer Q3 — 3-state vocabulary)
 
@@ -93,7 +93,7 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 
 | Feature | Status | Notes |
 |---|---|---|
-| Stripe live payments | **Live** | `STRIPE_LIVE_MODE` flipped ON 2026-06-26 (owner directive). Charge gate (owner, 2026-08-19): take orders when 24h+7d UX is real. Zero sales is not a hide reason. Leave Pro/Max 7-day trial and Pro Perpetual Buy. Agency Perpetual is not a public catalog SKU. Enterprise subscription and Enterprise Perpetual public doors are Contact sales / inquire, not unattended Fleet boot. Starter Kit public Buy stays Request/mailto; `SITE.urls.starterKitCheckout` is fulfillment-only. Do not say "accept payments today" and do not claim strangers are buying. Zero paying customers is still true. The retired "live keys in flight" line is false. |
+| Stripe live payments | **Live** | `STRIPE_LIVE_MODE` flipped ON 2026-06-26 (owner directive). Charge gate (owner, 2026-08-19): take orders when 24h+7d UX is real. Zero sales is not a hide reason. Leave Pro/Max 7-day trial and Pro Perpetual Buy. Agency Perpetual is not a public catalog SKU (studio SKU on revealuistudio.com). Enterprise subscription and Enterprise Perpetual public doors are Contact sales / inquire, not unattended Fleet boot. Do not list Starter Kit, Fleet-as-SKU, or Agency perpetual on the public catalog. Do not say "accept payments today" and do not claim strangers are buying. Zero paying customers is still true. The retired "live keys in flight" line is false. |
 | Dashboard Agent Chat | **Shipped** | Live at admin.revealui.com. |
 | Documentation Site | **Shipped** | docs.revealui.com. |
 | x402 Agent Payments | **Planned** | `X402_ENABLED=false` default; code-complete but dormant, enabled only by owner directive. Tracked in [revealui#526](https://github.com/RevealUIStudio/revealui/issues/526) section D. |

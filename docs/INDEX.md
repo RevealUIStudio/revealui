@@ -67,7 +67,8 @@ Canonical definition: **[What is RevealUI?](./WHAT_IS.md)**. Six **[design princ
 ## Pro & Enterprise
 
 - [MCP Marketplace](./MARKETPLACE.md): Planned third-party catalog. No 80/20 revenue share until that rail exists
-- [Enterprise / Fleet](./FLEET.md): Self-hosted deployment (Docker Compose, domain lock). Not a Studio-operated VM
+- [Enterprise](./ENTERPRISE.md): License plus studio support (inquire / Contact sales). Not a hosted VM
+- [RevealUI Fleet](./FLEET.md): Self-hosted deployment kit (Docker Compose, domain lock)
 - [Collaborative editing](./guides/collaborative-editing.md): Yjs + Lexical cursors for self-hosted operators. Comments and suggestions are not shipped
 - [SLA](./SLA.md): Published support and license-infra uptime commitments
 
