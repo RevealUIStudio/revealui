@@ -72,21 +72,28 @@ export function PricingPage() {
   const showAnnualToggle = pricing?.subscriptions.some((t) => Boolean(t.annualPrice)) ?? false;
 
   const tiers = (pricing?.subscriptions ?? SUBSCRIPTION_TIERS).map((tier) => {
-    const fallback = SUBSCRIPTION_PRICE_FALLBACKS[tier.id];
-    const annualFallback = ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS[tier.id];
-    const useAnnual = billingInterval === 'year' && tier.id !== 'free' && Boolean(tier.annualPrice);
+    // Public catalog: Enterprise is a license inquiry, not a $1,499/mo hosted buy.
+    const inquireOnly = tier.id === 'enterprise';
+    const fallback = inquireOnly ? undefined : SUBSCRIPTION_PRICE_FALLBACKS[tier.id];
+    const annualFallback = inquireOnly ? undefined : ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS[tier.id];
+    const useAnnual =
+      !inquireOnly && billingInterval === 'year' && tier.id !== 'free' && Boolean(tier.annualPrice);
     const baseHref = tier.ctaHref.startsWith('/') ? `${ADMIN_URL}${tier.ctaHref}` : tier.ctaHref;
     const ctaHref =
       useAnnual && baseHref.includes('/signup') ? `${baseHref}&interval=year` : baseHref;
     return {
       ...tier,
-      price: useAnnual
-        ? (tier.annualPrice ?? annualFallback?.price)
-        : (tier.price ?? fallback?.price),
-      period: useAnnual
-        ? (tier.annualPeriod ?? annualFallback?.period)
-        : (tier.period ?? fallback?.period),
-      savings: useAnnual ? (annualFallback?.savings ?? '') : '',
+      price: inquireOnly
+        ? undefined
+        : useAnnual
+          ? (tier.annualPrice ?? annualFallback?.price)
+          : (tier.price ?? fallback?.price),
+      period: inquireOnly
+        ? undefined
+        : useAnnual
+          ? (tier.annualPeriod ?? annualFallback?.period)
+          : (tier.period ?? fallback?.period),
+      savings: inquireOnly ? '' : useAnnual ? (annualFallback?.savings ?? '') : '',
       ctaHref,
     };
   });
