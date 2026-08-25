@@ -34,14 +34,18 @@ describe('DocLayout', () => {
     expect(screen.getByText('Test content')).toBeInTheDocument();
   });
 
-  it('should render the sidebar with RevealUI branding', () => {
+  it('uses a logo-only home link with an accessible name', () => {
     render(
       <DocLayout>
         <div>Content</div>
       </DocLayout>,
     );
 
-    expect(screen.getAllByText('RevealUI').length).toBeGreaterThanOrEqual(1);
+    const homeLinks = screen.getAllByRole('link', { name: 'RevealUI' });
+    expect(homeLinks.length).toBeGreaterThanOrEqual(1);
+    expect(homeLinks.every((link) => link.getAttribute('href') === '/')).toBe(true);
+    expect(screen.queryByText('RevealUI')).toBeNull();
+    expect(screen.queryByText('RevealUI Studio')).toBeNull();
   });
 
   it('should render navigation sections', () => {
@@ -70,7 +74,7 @@ describe('DocLayout', () => {
     expect(screen.getAllByText('Home').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('should render footer links to GitHub and website', () => {
+  it('should render quiet GitHub and website links in the sidebar', () => {
     render(
       <DocLayout>
         <div>Content</div>
@@ -79,6 +83,44 @@ describe('DocLayout', () => {
 
     expect(screen.getAllByText('GitHub').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('revealui.com')).toBeInTheDocument();
+  });
+
+  it('renders a one-line legal footer without a product wordmark', () => {
+    render(
+      <DocLayout>
+        <div>Content</div>
+      </DocLayout>,
+    );
+
+    const footer = screen.getByRole('contentinfo');
+    expect(footer).toHaveTextContent('Privacy');
+    expect(footer).toHaveTextContent('Terms');
+    expect(footer).toHaveTextContent('Cookies');
+    expect(footer).toHaveTextContent('REVEALUI STUDIO L.L.C.');
+    expect(footer).not.toHaveTextContent('RevealUI Studio');
+    expect(screen.getByRole('link', { name: 'Privacy' })).toHaveAttribute(
+      'href',
+      'https://revealui.com/privacy',
+    );
+    expect(screen.getByRole('link', { name: 'Terms' })).toHaveAttribute(
+      'href',
+      'https://revealui.com/terms',
+    );
+    expect(screen.getByRole('link', { name: 'Cookies' })).toHaveAttribute(
+      'href',
+      'https://revealui.com/cookies',
+    );
+  });
+
+  it('does not render marketing CTAs in the docs chrome', () => {
+    render(
+      <DocLayout>
+        <div>Content</div>
+      </DocLayout>,
+    );
+
+    expect(screen.queryByRole('link', { name: 'Start free' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Book an intro' })).toBeNull();
   });
 
   it('should highlight the active nav link based on current path', () => {

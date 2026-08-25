@@ -1,13 +1,4 @@
-import { Button, ReceiptCard } from '@revealui/presentation';
-import { Link } from '@revealui/router';
 import { useEffect } from 'react';
-import { DOCS_HOME_CTAS } from '../content/ctas';
-import {
-  DOCS_RECEIPT_CAPTION,
-  DOCS_RECEIPT_INTEGRITY,
-  DOCS_RECEIPT_LINES,
-  DOCS_RECEIPT_TITLE,
-} from '../content/receipt';
 import { applyDocHead } from '../lib/head';
 import { renderMarkdown } from '../utils/markdown';
 
@@ -44,42 +35,5 @@ Open [http://localhost:4000/admin](http://localhost:4000/admin) to see the admin
 Everything else lives in the sidebar. Found a gap in these docs? See the [Contributing Guide](https://github.com/RevealUIStudio/revealui/blob/main/CONTRIBUTING.md).
 `;
 
-  return (
-    <div>
-      <div className="mb-8 flex flex-wrap gap-3">
-        <Button asChild>
-          <a href={DOCS_HOME_CTAS.startFree.href}>{DOCS_HOME_CTAS.startFree.label}</a>
-        </Button>
-        <Button asChild appearance="outline" variant="neutral">
-          <a href={DOCS_HOME_CTAS.bookIntro.href} target="_blank" rel="noopener noreferrer">
-            {DOCS_HOME_CTAS.bookIntro.label}
-          </a>
-        </Button>
-      </div>
-      <p className="mb-8 text-sm leading-6 text-muted-foreground">
-        Self-host today. RevealUI Cloud is waitlist, not sold.
-      </p>
-      {/*
-        Static receipt header artifact (frontend-excellence Phase 5 / GAP-480 Phase D).
-        No animate: docs stay the calmest surface. Links to audit-receipts docs.
-      */}
-      <div className="mb-10 w-full max-w-md min-w-0">
-        <ReceiptCard
-          title={DOCS_RECEIPT_TITLE}
-          lines={[...DOCS_RECEIPT_LINES]}
-          integrity={DOCS_RECEIPT_INTEGRITY}
-        />
-        <p className="mt-3 text-sm text-muted-foreground">
-          {DOCS_RECEIPT_CAPTION.text}{' '}
-          <Link
-            to={DOCS_RECEIPT_CAPTION.link.href}
-            className="font-semibold text-foreground underline-offset-4 hover:underline"
-          >
-            {DOCS_RECEIPT_CAPTION.link.label}
-          </Link>
-        </p>
-      </div>
-      {renderMarkdown(content)}
-    </div>
-  );
+  return <div>{renderMarkdown(content)}</div>;
 }

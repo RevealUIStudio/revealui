@@ -207,7 +207,7 @@ describe('GET /api/pricing', () => {
 
     expect(data.subscriptions).toHaveLength(4);
     expect(data.credits).toHaveLength(3);
-    expect(data.perpetual).toHaveLength(3);
+    expect(data.perpetual).toHaveLength(2);
 
     // Fallback prices should be populated
     const pro = data.subscriptions.find((t: { id: string }) => t.id === 'pro');
@@ -226,17 +226,18 @@ describe('GET /api/pricing', () => {
     expect(free.cta).toBe('Start free');
   });
 
-  it('includes the enterprise annual price once the annual price-ID guard is set, matching the marketing fallback', async () => {
+  it('keeps Enterprise inquire-only even when the annual price-ID guard is set', async () => {
     vi.stubEnv('STRIPE_SECRET_KEY', '');
     vi.stubEnv('STRIPE_ENTERPRISE_ANNUAL_PRICE_ID', 'price_test_enterprise_annual');
     const res = await app.request('/');
     const data = await res.json();
 
-    // Must match apps/marketing/app/lib/pricing-fallbacks.ts
-    // ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS.enterprise ($14,390 / Save $3,598/yr).
     const enterprise = data.subscriptions.find((t: { id: string }) => t.id === 'enterprise');
-    expect(enterprise.annualPrice).toBe('$14,390');
-    expect(enterprise.annualPeriod).toBe('/year');
+    expect(enterprise.price).toBeUndefined();
+    expect(enterprise.period).toBeUndefined();
+    expect(enterprise.annualPrice).toBeUndefined();
+    expect(enterprise.annualPeriod).toBeUndefined();
+    expect(enterprise.cta).toBe('Contact sales');
   });
 
   it('omits the enterprise annual price when the annual price-ID guard is unset', async () => {
@@ -549,8 +550,9 @@ describe('GET /api/pricing  -  Stripe integration', () => {
     const data = await res.json();
 
     const enterprise = data.subscriptions.find((t: { id: string }) => t.id === 'enterprise');
-    expect(enterprise.price).toBe('$14390');
-    expect(enterprise.period).toBe('/year');
+    expect(enterprise.price).toBeUndefined();
+    expect(enterprise.period).toBeUndefined();
+    expect(enterprise.cta).toBe('Contact sales');
   });
 
   it('always sets Cache-Control header even when Stripe fails', async () => {
@@ -771,7 +773,8 @@ describe('GET /api/pricing  -  metadata defaults and edge cases', () => {
     const max = data.subscriptions.find((t: { id: string }) => t.id === 'max');
     expect(max.price).toBe('$299');
     const enterprise = data.subscriptions.find((t: { id: string }) => t.id === 'enterprise');
-    expect(enterprise.price).toBe('$1499');
+    expect(enterprise.price).toBeUndefined();
+    expect(enterprise.period).toBeUndefined();
   });
 
   it('enriches all three credit bundles simultaneously from Stripe', async () => {
@@ -832,11 +835,13 @@ describe('GET /api/pricing  -  metadata defaults and edge cases', () => {
     const res = await app.request('/');
     const data = await res.json();
 
-    expect(data.perpetual).toHaveLength(3);
+    expect(data.perpetual).toHaveLength(2);
     const pro = data.perpetual.find((t: { name: string }) => t.name === 'Pro Perpetual');
     expect(pro.price).toBe('$1499');
     const agency = data.perpetual.find((t: { name: string }) => t.name === 'Agency Perpetual');
-    expect(agency.price).toBe('$8499');
+    expect(agency).toBeUndefined();
+    const serialized = JSON.stringify(data);
+    expect(serialized.includes('$8499') || serialized.includes('$8,499')).toBe(false);
     const enterprise = data.perpetual.find(
       (t: { name: string }) => t.name === 'Enterprise Perpetual',
     );

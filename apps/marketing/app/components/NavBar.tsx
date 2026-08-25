@@ -26,22 +26,36 @@ function NavLink({
   onClick,
   children,
   'aria-current': ariaCurrent,
+  'aria-label': ariaLabel,
 }: {
   href: string;
   className?: string;
   onClick?: () => void;
   children: ReactNode;
   'aria-current'?: 'page' | undefined;
+  'aria-label'?: string;
 }) {
   if (href.startsWith('/')) {
     return (
-      <Link to={href} className={className} onClick={onClick} aria-current={ariaCurrent}>
+      <Link
+        to={href}
+        className={className}
+        onClick={onClick}
+        aria-current={ariaCurrent}
+        aria-label={ariaLabel}
+      >
         {children}
       </Link>
     );
   }
   return (
-    <a href={href} className={className} onClick={onClick} aria-current={ariaCurrent}>
+    <a
+      href={href}
+      className={className}
+      onClick={onClick}
+      aria-current={ariaCurrent}
+      aria-label={ariaLabel}
+    >
       {children}
     </a>
   );
@@ -108,11 +122,11 @@ export function NavBar() {
       >
         <NavLink
           href="/"
-          className="flex shrink-0 items-center gap-2 font-display text-xl font-bold tracking-tight text-foreground"
+          className="flex shrink-0 items-center"
           aria-current={pathname === '/' ? 'page' : undefined}
+          aria-label="RevealUI"
         >
           <img src="/icon-mark.svg" alt="" aria-hidden="true" className="h-[22px] w-[22px]" />
-          RevealUI
         </NavLink>
 
         {/* Desktop links */}
