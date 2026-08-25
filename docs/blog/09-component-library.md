@@ -79,7 +79,7 @@ You get the ergonomics. You do not get the dependency.
 
 ## Headless when you want behavior, not styling
 
-Some form controls still ship in two forms. Alongside the styled `Checkbox` there is `checkbox-headless`: the behavior, state, and accessibility wiring with none of the visual opinion. `Button` is not on that track — it is a single owned component with `variant` and `appearance`, and there is no `button-headless`. When the default styling is not what you want, you drop down a level and bring your own classes, without giving up focus management, ARIA attributes, and keyboard handling.
+Some form controls still ship in two forms. Alongside the styled `Checkbox` there is `checkbox-headless`: the behavior, state, and accessibility wiring with none of the visual opinion. `Button` is not on that track: it is a single owned component with `variant` and `appearance`, and there is no `button-headless`. When the default styling is not what you want, you drop down a level and bring your own classes, without giving up focus management, ARIA attributes, and keyboard handling.
 
 That split matters for a framework. The styled components get you to a working product fast. The headless ones mean you never hit a wall where the only way forward is to rip the library out.
 
