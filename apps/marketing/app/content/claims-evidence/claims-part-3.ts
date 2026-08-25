@@ -436,7 +436,7 @@ export const claimsPart3: readonly ClaimEntry[] = [
     file: 'for-operators-managed.ts',
     exportPath: 'FO_MANAGED_WAITLIST.body',
     proofGrade: 'outcome',
-    text: 'You self-host. Studio does not operate a customer VM. Inquire — Enterprise is not a public monthly SKU.',
+    text: 'You self-host. Studio does not operate a customer VM. Inquire: Enterprise is not a public monthly SKU.',
     evidence: [COMMERCIAL_POLICY],
   },
   {

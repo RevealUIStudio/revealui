@@ -126,7 +126,7 @@ export const FO_MANAGED_TODAY = {
 export const FO_MANAGED_WAITLIST = {
   eyebrow: 'Enterprise',
   heading: 'Enterprise is a license. Contact sales.',
-  body: 'You self-host. Studio does not operate a customer VM. Inquire — Enterprise is not a public monthly SKU.',
+  body: 'You self-host. Studio does not operate a customer VM. Inquire: Enterprise is not a public monthly SKU.',
   product: 'enterprise-inquire',
   inputPlaceholder: 'Contact sales',
   buttonLabel: 'Contact sales',
