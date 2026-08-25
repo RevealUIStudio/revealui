@@ -52,8 +52,10 @@ const SESSION_END_CMD =
 /**
  * PreToolUse must be able to DENY. The old
  * `hook grok 2>/dev/null || true` wrapper swallowed exit 2 and posted
- * public security-review essays. This entry runs the public-comment
- * gate first (works without dist), then forwards to hook grok.
+ * public security-review essays. This entry runs
+ * `public-security-comment-pretool.cjs`, which classifies first (works
+ * without dist) then forwards stdin to `hook grok` and propagates exit 2.
+ * Never wrap that forward in `|| true`.
  */
 const HOOK_GROK_CMD =
   'node "$HOME/.local/share/revealui/hooks/public-security-comment-pretool.cjs"';

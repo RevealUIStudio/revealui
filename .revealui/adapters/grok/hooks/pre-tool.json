@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/revfleet/revealui/packages/harnesses/dist/cli.js\" hook grok 2>/dev/null || revealui-harnesses hook grok 2>/dev/null || true",
+            "command": "node \"$HOME/.local/share/revealui/hooks/public-security-comment-pretool.cjs\"",
             "timeout": 15
           }
         ]

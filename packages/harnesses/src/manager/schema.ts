@@ -43,7 +43,7 @@ export const ManagerSchema = z.object({
       { id: 'cursor', projectTree: '.cursor', rank: 'equal' },
       { id: 'opencode', projectTree: '.opencode', rank: 'equal' },
       { id: 'vscode', projectTree: null, rank: 'equal' },
-      { id: 'grok', projectTree: null, rank: 'equal' },
+      { id: 'grok', projectTree: '.grok', rank: 'equal' },
       { id: 'revealui-agent', projectTree: null, rank: 'equal' },
       { id: 'revdev', projectTree: null, rank: 'equal' },
     ]),

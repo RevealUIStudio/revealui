@@ -33,6 +33,7 @@ describe('project manager (.revealui)', () => {
     expect(cfg.contentRoot).toBe('content');
     expect(cfg.adapters.some((a) => a.id === 'claude-code' && a.rank === 'equal')).toBe(true);
     expect(cfg.adapters.some((a) => a.id === 'revdev' && a.projectTree === null)).toBe(true);
+    expect(cfg.adapters.some((a) => a.id === 'grok' && a.projectTree === '.grok')).toBe(true);
     expect(cfg.adapters.every((a) => a.rank === 'equal')).toBe(true);
   });
 
@@ -88,20 +89,23 @@ describe('project manager (.revealui)', () => {
     ) as { hooks: { PreToolUse: Array<{ hooks: Array<{ command: string }> }> } };
     const preCmds = pre.hooks.PreToolUse.flatMap((g) => g.hooks.map((h) => h.command));
     expect(preCmds.some((c) => c.includes('public-security-comment-pretool.cjs'))).toBe(true);
+    expect(preCmds.some((c) => c.includes('|| true'))).toBe(false);
   });
 
   it('writeManagerAdapterContent emits manager content + cursor hooks + opencode surfaces', () => {
     const root = tempProject();
     materializeManager(root);
     const written = writeManagerAdapterContent(root);
-    expect(MANAGER_MATERIALIZE_GENERATORS).toEqual(['claude-code', 'cursor', 'opencode']);
+    expect(MANAGER_MATERIALIZE_GENERATORS).toEqual(['claude-code', 'cursor', 'opencode', 'grok']);
     expect(written.byGenerator['claude-code']).toBeGreaterThan(0);
     expect(written.byGenerator.cursor).toBe(1);
     expect(written.byGenerator.opencode).toBeGreaterThan(0);
+    expect(written.byGenerator.grok).toBeGreaterThan(0);
     const generatorTotal =
       written.byGenerator['claude-code'] +
       written.byGenerator.cursor +
-      written.byGenerator.opencode;
+      written.byGenerator.opencode +
+      written.byGenerator.grok;
     // GAP-421 phase 2: definition rules also mirrored under .claude/rules/
     expect(written.claudeRuleMirrors.length).toBeGreaterThan(0);
     expect(written.total).toBe(generatorTotal + written.claudeRuleMirrors.length);
@@ -128,6 +132,10 @@ describe('project manager (.revealui)', () => {
     const opencodePaths = written.paths.filter((p) => p.startsWith('.opencode/'));
     expect(opencodePaths.length).toBeGreaterThan(0);
 
+    const grokRule = readFileSync(join(root, '.grok/rules/code-over-docs.md'), 'utf-8');
+    expect(grokRule).toBe(contentRule);
+    expect(written.paths.some((p) => p === '.grok/rules/00-spawn-map.md')).toBe(true);
+
     const check = checkManager(root);
     expect(check.ok).toBe(true);
     expect(check.warnings.filter((w) => w.includes('cursor') || w.includes('opencode'))).toEqual(
@@ -146,6 +154,19 @@ describe('project manager (.revealui)', () => {
     const drifted = checkManager(root);
     expect(drifted.ok).toBe(false);
     expect(drifted.errors.some((e) => e.includes('dual drift'))).toBe(true);
+  });
+
+  it('checkManager fails when .grok/rules dual drifts from content (Grok load path)', () => {
+    const root = tempProject();
+    materializeManager(root);
+    writeManagerAdapterContent(root);
+    expect(checkManager(root).ok).toBe(true);
+
+    const dual = join(root, '.grok/rules/code-over-docs.md');
+    writeFileSync(dual, `${readFileSync(dual, 'utf-8')}\n// grok dual drift\n`, 'utf-8');
+    const drifted = checkManager(root);
+    expect(drifted.ok).toBe(false);
+    expect(drifted.errors.some((e) => e.includes('.grok/rules/code-over-docs.md'))).toBe(true);
   });
 
   it('materialize preserves existing monorepo manager fields', () => {

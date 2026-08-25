@@ -1,11 +1,21 @@
 import { ClaudeCodeGenerator } from './claude-code.js';
 import { CursorGenerator } from './cursor.js';
+import { GrokGenerator } from './grok.js';
 import { OpenCodeGenerator } from './opencode.js';
 import type { ContentGenerator } from './types.js';
 import { VSCodeGenerator } from './vscode.js';
 
 export { ClaudeCodeGenerator } from './claude-code.js';
 export { CursorGenerator } from './cursor.js';
+export {
+  GROK_OUTPUT_DIR,
+  GROK_SPAWN_MAP,
+  GROK_SPAWN_MAP_PATH,
+  GrokGenerator,
+  grokAgentPath,
+  grokOnDemandSkillPath,
+  grokRulePathForDefinitionId,
+} from './grok.js';
 export { OpenCodeGenerator } from './opencode.js';
 export type { ContentGenerator, DiffEntry, GeneratedFile } from './types.js';
 export { DEFAULT_CONTENT_GENERATOR_ID, MANAGER_CONTENT_OUTPUT } from './types.js';
@@ -35,3 +45,4 @@ registerGenerator(new OpenCodeGenerator());
 registerGenerator(new CursorGenerator());
 registerGenerator(new VSCodeGenerator());
 registerGenerator(new ClaudeCodeGenerator());
+registerGenerator(new GrokGenerator());
