@@ -3,9 +3,9 @@ import {
   GitHubIcon,
   IconChevronRight,
   IconClose,
-  IconCode,
   IconGlobe,
   IconMenu,
+  RevealUIMark,
 } from '@revealui/presentation';
 import { Link, useLocation } from '@revealui/router';
 import { lazy, Suspense, useEffect, useState } from 'react';
@@ -32,6 +32,9 @@ interface DocLayoutProps {
 }
 
 const sections: NavSection[] = buildDocNavSections(showcaseComponentItems);
+
+/** Untiled Circuit-R in docs chrome. Same band as marketing nav. */
+const CIRCUIT_R_NAV_CLASS = 'h-[36px] w-auto text-ink';
 
 function NavLink({
   item,
@@ -82,7 +85,7 @@ function SidebarContent({ isHome, onNavigate }: { isHome: boolean; onNavigate?: 
           className="inline-flex items-center no-underline"
           aria-label="RevealUI"
         >
-          <IconCode size="md" />
+          <RevealUIMark className={CIRCUIT_R_NAV_CLASS} />
         </Link>
       </h2>
 
@@ -275,7 +278,7 @@ export function DocLayout({ children }: DocLayoutProps) {
           className="inline-flex items-center text-base font-bold tracking-tight text-ink no-underline"
           aria-label="RevealUI"
         >
-          <IconCode size="sm" />
+          <RevealUIMark className={CIRCUIT_R_NAV_CLASS} />
         </Link>
         <Button
           type="button"

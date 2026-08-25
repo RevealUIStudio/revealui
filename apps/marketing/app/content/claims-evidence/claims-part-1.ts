@@ -718,25 +718,10 @@ export const claimsPart1: readonly ClaimEntry[] = [
   },
   {
     file: 'products.ts',
-    exportPath: 'PRODUCTS_PAGE_HERO.h1',
-    proofGrade: 'outcome',
-    text: 'The RevFleet product family',
-    evidence: [REVVAULT_REPO, REVDEV_REPO, REVCON_REPO, REVSKILLS_REPO],
-  },
-  {
-    file: 'products.ts',
     exportPath: 'PRODUCTS_PAGE_HERO.subtitle',
     proofGrade: 'outcome',
-    text: 'Start with the runtime. Add tools as you grow. Seven products on one foundation, built and operated by RevealUI Studio. Zero paying customers. This is not a launched pull-and-run Fleet. RevForge is in private preview. The agent marketplace is on the way.',
-    evidence: [
-      REPO,
-      REVVAULT_REPO,
-      REVDEV_REPO,
-      REVCON_REPO,
-      REVSKILLS_REPO,
-      REVFORGE_REF,
-      ROADMAP,
-    ],
+    text: 'License the self-hosted runtime. Free, Pro, Max, or Enterprise (Contact sales). Studio SKUs live on revealuistudio.com. Zero paying customers. This is not a launched pull-and-run Fleet.',
+    evidence: [REPO, SELF_HOST, TIER_GATES],
   },
   {
     file: 'products.ts',
@@ -756,7 +741,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'products.ts',
     exportPath: 'PRODUCTS_FLAGSHIP.body',
     proofGrade: 'outcome',
-    text: 'People, content, offers, payments, and agents in one runtime your team and your agents share. The foundation the rest of RevFleet builds on.',
+    text: 'People, content, offers, payments, and agents in one runtime your team and your agents share. Licensed as Free, Pro, Max, or Enterprise.',
     evidence: [AUTH_SESSIONS, COLLECTIONS, BILLING, AGENT_ROUTES, MCP_CONTENT],
   },
   {
@@ -953,7 +938,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'products.ts',
     exportPath: 'PRODUCTS_CTA_SECTION.body',
     proofGrade: 'outcome',
-    text: 'The rest of RevFleet builds on RevealUI. One command, full source, ready for your first deploy.',
+    text: 'Start with the runtime. One command, full source, ready for your first deploy.',
     evidence: [REPO, CLI_CREATE],
   },
   {

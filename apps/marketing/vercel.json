@@ -76,11 +76,6 @@
       "permanent": true
     },
     {
-      "source": "/products",
-      "destination": "https://docs.revealui.com/revfleet",
-      "permanent": true
-    },
-    {
       "source": "/philosophy",
       "destination": "https://docs.revealui.com/blog/01-why-we-built-revealui",
       "permanent": true

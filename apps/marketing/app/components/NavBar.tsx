@@ -4,6 +4,7 @@ import {
   IconClose,
   IconMenu,
   LinkButton,
+  RevealUIMark,
   useClickOutside,
   useEscapeKey,
   useFocusTrap,
@@ -14,6 +15,9 @@ import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { NAV_AUTH, NAV_LINKS } from '../content/nav';
 
 const MOBILE_MENU_ID = 'marketing-mobile-menu';
+
+/** Untiled Circuit-R in public chrome. Tiled icon-mark is not for this band. */
+const CIRCUIT_R_NAV_CLASS = 'h-[36px] w-auto text-foreground';
 
 /**
  * Internal (relative) paths navigate client-side through @revealui/router so
@@ -126,7 +130,7 @@ export function NavBar() {
           aria-current={pathname === '/' ? 'page' : undefined}
           aria-label="RevealUI"
         >
-          <img src="/icon-mark.svg" alt="" aria-hidden="true" className="h-[22px] w-[22px]" />
+          <RevealUIMark className={CIRCUIT_R_NAV_CLASS} />
         </NavLink>
 
         {/* Desktop links */}

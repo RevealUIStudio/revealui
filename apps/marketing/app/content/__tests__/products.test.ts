@@ -27,6 +27,15 @@ describe('products roster honesty', () => {
     expect(PRODUCTS_PAGE_HERO.subtitle.toLowerCase().includes('not a launched')).toBe(true);
   });
 
+  it('presents licenses, not a RevFleet product family', () => {
+    expect(PRODUCTS_PAGE_HERO.h1.toLowerCase().includes('revfleet')).toBe(false);
+    expect(PRODUCTS_PAGE_HERO.h1.toLowerCase().includes('product family')).toBe(false);
+    expect(PRODUCTS_PAGE_HERO.h1.toLowerCase().includes('license')).toBe(true);
+    expect(PRODUCTS_PAGE_HERO.subtitle.toLowerCase().includes('revealuistudio.com')).toBe(true);
+    expect(PRODUCTS_FLAGSHIP.body.toLowerCase().includes('revfleet')).toBe(false);
+    expect(PRODUCTS_CTA_SECTION.body.toLowerCase().includes('revfleet')).toBe(false);
+  });
+
   it('keeps RevForge as Alpha operator preview with Contact, not Buy', () => {
     const product = revforge();
     expect(product.status).toBe('Alpha');

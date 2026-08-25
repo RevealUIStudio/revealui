@@ -48,6 +48,24 @@ describe('DocLayout', () => {
     expect(screen.queryByText('RevealUI Studio')).toBeNull();
   });
 
+  it('renders an untiled Circuit-R at about 36px instead of IconCode', () => {
+    render(
+      <DocLayout>
+        <div>Content</div>
+      </DocLayout>,
+    );
+
+    const homeLinks = screen.getAllByRole('link', { name: 'RevealUI' });
+    expect(homeLinks.length).toBeGreaterThanOrEqual(1);
+    for (const link of homeLinks) {
+      const mark = link.querySelector('svg');
+      expect(mark).toBeTruthy();
+      expect(mark).toHaveAttribute('viewBox', '0 0 82 100');
+      expect(mark?.className.baseVal ?? mark?.getAttribute('class') ?? '').toContain('h-[36px]');
+      expect(link.querySelector('svg[viewBox="0 0 24 24"]')).toBeNull();
+    }
+  });
+
   it('should render navigation sections', () => {
     render(
       <DocLayout>
