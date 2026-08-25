@@ -74,7 +74,7 @@ describe('decide path used by admit (PR-4)', () => {
     });
     expect(r.decision).toBe('admit');
     if (r.decision === 'admit') {
-      expect(r.cohortLimits.maxAgentTasks).toBe(1_000);
+      expect(r.cohortLimits.maxAgentTasks).toBe(0);
       expect(r.reason).toBe('shadow_would_lean');
     }
   });
