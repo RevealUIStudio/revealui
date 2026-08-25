@@ -18,7 +18,7 @@ export const SUBSCRIPTION_PRICE_FALLBACKS: Record<
   free: { price: '$0' },
   pro: { price: '$49', period: '/month' },
   max: { price: '$299', period: '/month' },
-  enterprise: { price: '$1,499', period: '/month' },
+  enterprise: { price: 'Contact sales' },
 };
 
 export const ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS: Record<
@@ -28,7 +28,7 @@ export const ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS: Record<
   free: { price: '$0', period: '/year', savings: '' },
   pro: { price: '$470', period: '/year', savings: 'Save $118/yr' },
   max: { price: '$2,870', period: '/year', savings: 'Save $718/yr' },
-  enterprise: { price: '$14,390', period: '/year', savings: 'Save $3,598/yr' },
+  enterprise: { price: 'Contact sales', period: '/year', savings: '' },
 };
 
 export const PERPETUAL_PRICE_FALLBACKS: Record<
@@ -39,11 +39,6 @@ export const PERPETUAL_PRICE_FALLBACKS: Record<
     price: '$1,499',
     priceNote: 'one-time',
     renewal: '$149/yr for continued support',
-  },
-  'Agency Perpetual': {
-    price: '$8,499',
-    priceNote: 'one-time',
-    renewal: '$799/yr for continued support',
   },
   'Enterprise Perpetual': {
     price: '$42,999',

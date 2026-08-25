@@ -52,7 +52,7 @@ const SUB_KEY: Record<string, string> = {
 };
 for (const [tier, key] of Object.entries(SUB_KEY)) {
   const fb = SUBSCRIPTION_PRICE_FALLBACKS[tier as keyof typeof SUBSCRIPTION_PRICE_FALLBACKS];
-  if (!fb) continue;
+  if (!fb?.price.startsWith('$')) continue;
   const fallbackCents = dollarsToCents(fb.price);
   const declared = catalogCents(key);
   if (declared !== fallbackCents) {
@@ -75,7 +75,7 @@ const ANNUAL_SUB_KEY: Record<string, string> = {
 for (const [tier, key] of Object.entries(ANNUAL_SUB_KEY)) {
   const fb =
     ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS[tier as keyof typeof ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS];
-  if (!fb?.price || fb.price === '$0') continue;
+  if (!fb?.price || fb.price === '$0' || !fb.price.startsWith('$')) continue;
   const fallbackCents = dollarsToCents(fb.price);
   const declared = catalogCents(key);
   if (declared !== fallbackCents) {

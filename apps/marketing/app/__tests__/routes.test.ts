@@ -134,14 +134,16 @@ describe('marketing route registry', () => {
     expect(wildcard?.permanent).toBe(true);
   });
 
-  it('redirects /services and /products off the leftover storefronts', () => {
+  it('redirects /services off leftover storefronts and keeps /products as licenses', () => {
     const redirects = readRedirects();
     const services = redirects.find((entry) => entry.source === '/services');
     const products = redirects.find((entry) => entry.source === '/products');
     expect(services?.destination).toBe('/pricing');
     expect(services?.permanent).toBe(true);
-    expect(products?.destination).toBe('https://docs.revealui.com/revfleet');
-    expect(products?.permanent).toBe(true);
+    expect(
+      products,
+      '/products must stay on the product site as licenses, not RevFleet docs',
+    ).toBeUndefined();
   });
 
   it('redirects the removed /sponsor path to /roadmap', () => {

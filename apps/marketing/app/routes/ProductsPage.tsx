@@ -1,29 +1,16 @@
 import {
   Badge,
-  type BadgeIntent,
   Button,
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
   IconCheckCircle,
   MarketingSection,
   SectionHeader,
 } from '@revealui/presentation';
-import { useState } from 'react';
 import { Footer } from '../components/Footer';
 import { Faq } from '../components/landing/Faq';
 import { Proof } from '../components/landing/Proof';
 import { ProductsCta } from '../components/products/ProductsCta';
 import { ProductsHero } from '../components/products/ProductsHero';
-import {
-  PRODUCTS_FLAGSHIP,
-  PRODUCTS_SISTERS,
-  PRODUCTS_SISTERS_SECTION,
-  PRODUCTS_STATS_SECTION,
-  type ProductStatus,
-} from '../content/products';
+import { PRODUCTS_FLAGSHIP, PRODUCTS_STATS_SECTION } from '../content/products';
 import {
   PRODUCTS_FALLBACK_BLOCKS,
   productsCtaSlot,
@@ -32,29 +19,7 @@ import {
 } from '../lib/page-blocks';
 import { useMarketingPageBlocks } from '../lib/use-page-blocks';
 
-// Filter chips for the fleet-products table. "All" plus each status, ordered
-// stability-descending to match the grid.
-const STATUS_FILTERS: readonly (ProductStatus | 'All')[] = [
-  'All',
-  'Beta',
-  'Alpha',
-  'GA',
-  'Planned',
-];
-
-const STATUS_BADGE_INTENT: Readonly<Record<ProductStatus, BadgeIntent>> = {
-  Beta: 'brand',
-  Alpha: 'neutral',
-  GA: 'success',
-  Planned: 'muted',
-};
-
 export function ProductsPage() {
-  const [filter, setFilter] = useState<ProductStatus | 'All'>('All');
-  const visibleSisters =
-    filter === 'All' ? PRODUCTS_SISTERS : PRODUCTS_SISTERS.filter((p) => p.status === filter);
-  const countFor = (f: ProductStatus | 'All') =>
-    f === 'All' ? PRODUCTS_SISTERS.length : PRODUCTS_SISTERS.filter((p) => p.status === f).length;
   const { blocks, annotation } = useMarketingPageBlocks('products', PRODUCTS_FALLBACK_BLOCKS);
   const hero = productsHeroSlot(blocks);
   const faq = productsFaqSlot(blocks);
@@ -169,121 +134,6 @@ export function ProductsPage() {
             </Button>
           </div>
         </div>
-      </MarketingSection>
-
-      {/* Sister products — uniform card grid */}
-      <MarketingSection tone="secondary" density="default" width="default">
-        <SectionHeader
-          title={PRODUCTS_SISTERS_SECTION.title}
-          description={PRODUCTS_SISTERS_SECTION.description}
-          align="center"
-        />
-
-        {/* Status filter chips (Phase D, interactive). */}
-        <div
-          className="mt-12 flex flex-wrap items-center justify-center gap-2 sm:mt-14"
-          role="tablist"
-          aria-label="Filter products by status"
-        >
-          {STATUS_FILTERS.map((f) => {
-            const selected = filter === f;
-            return (
-              <Button
-                key={f}
-                type="button"
-                role="tab"
-                aria-selected={selected}
-                size="sm"
-                appearance={selected ? 'solid' : 'outline'}
-                variant={selected ? 'brand' : 'neutral'}
-                onClick={() => setFilter(f)}
-                className="rounded-full"
-              >
-                {f}
-                <span
-                  className={
-                    selected
-                      ? 'text-xs text-primary-foreground/80'
-                      : 'text-xs text-muted-foreground'
-                  }
-                >
-                  {countFor(f)}
-                </span>
-              </Button>
-            );
-          })}
-        </div>
-
-        <ul className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 md:grid-cols-2">
-          {visibleSisters.map((product) => {
-            return (
-              <li key={product.slug} id={product.slug} className="h-full">
-                <Card className="group relative flex h-full flex-col rounded-2xl p-6 sm:p-8">
-                  <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0 p-0">
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary ring-1 ring-border">
-                        <svg
-                          className="h-6 w-6 text-muted-foreground"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                        >
-                          <title>{product.name}</title>
-                          <path strokeLinecap="round" strokeLinejoin="round" d={product.iconPath} />
-                        </svg>
-                      </div>
-                      <div>
-                        <CardTitle className="font-display text-xl font-semibold tracking-tight text-foreground">
-                          {product.name}
-                        </CardTitle>
-                        <p className="mt-0.5 text-sm font-medium text-body">{product.tagline}</p>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-1.5 text-xs font-semibold">
-                      <Badge intent={STATUS_BADGE_INTENT[product.status]}>{product.status}</Badge>
-                      {product.version ? (
-                        <Badge intent="muted" className="font-mono text-[0.7rem]">
-                          {product.version}
-                        </Badge>
-                      ) : null}
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="mt-5 grow space-y-2.5 p-0">
-                    <ul className="space-y-2.5">
-                      {product.highlights.map((highlight) => (
-                        <li
-                          key={highlight}
-                          className="flex items-start gap-2.5 text-sm leading-6 text-body"
-                        >
-                          <IconCheckCircle size="sm" className="mt-1 flex-shrink-0 text-primary" />
-                          {highlight}
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-
-                  <CardFooter className="mt-6 justify-between gap-3 border-t border-border p-0 pt-4">
-                    <span className="text-xs font-semibold text-foreground/70">
-                      {product.priceLabel}
-                    </span>
-                    <Button asChild appearance="link" variant="brand">
-                      <a
-                        href={product.primaryCta.href}
-                        {...(product.primaryCta.external
-                          ? { target: '_blank', rel: 'noreferrer' }
-                          : {})}
-                      >
-                        {product.primaryCta.label}
-                      </a>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </li>
-            );
-          })}
-        </ul>
       </MarketingSection>
 
       {/* Stats — production credibility */}

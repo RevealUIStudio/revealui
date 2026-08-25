@@ -124,7 +124,7 @@ export const productsPageSeed: FleetMarketingPageSeed = {
   title: 'Products',
   blocks: productsBlocks(),
   seo: {
-    title: 'The RevFleet product family',
-    description: 'Seven products on one foundation, all built and operated by RevealUI Studio.',
+    title: 'RevealUI licenses',
+    description: 'License the self-hosted runtime. Studio SKUs live on revealuistudio.com.',
   },
 };
