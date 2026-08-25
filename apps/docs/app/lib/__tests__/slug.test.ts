@@ -217,4 +217,11 @@ describe('LEGACY_SLUG_ALIASES', () => {
     expect(slugToPath('vaughn')).toBe('HARNESS_PROTOCOL.md');
     expect(SLUG_TO_PATH['harness-protocol']).toBe('HARNESS_PROTOCOL.md');
   });
+
+  it('forge -> ENTERPRISE.md so a stranger sees Enterprise, not Forge', () => {
+    expect(LEGACY_SLUG_ALIASES.forge).toBe('ENTERPRISE.md');
+    expect(slugToPath('forge')).toBe('ENTERPRISE.md');
+    expect(SLUG_TO_PATH.enterprise).toBe('ENTERPRISE.md');
+    expect(Object.hasOwn(SLUG_TO_PATH, 'forge')).toBe(false);
+  });
 });

@@ -51,7 +51,7 @@ export type AdmitFreeIntakeResult = PureAdmitResult & {
 export const OPEN_FREE_LIMITS: CohortLimits = {
   maxSites: 1,
   maxUsers: 3,
-  maxAgentTasks: 1_000,
+  maxAgentTasks: 0,
 };
 
 function detectDeploymentMode(env: NodeJS.ProcessEnv): 'hosted' | 'forge' | 'unknown' {

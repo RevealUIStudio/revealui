@@ -2,14 +2,10 @@ import {
   type BlockAnnotation,
   Button,
   fieldAttrs,
-  Input,
   MarketingSection,
   SectionHeader,
 } from '@revealui/presentation';
-import type { FormEvent } from 'react';
-import { useState } from 'react';
 import { FO_MANAGED_WAITLIST } from '../../content/for-operators-managed';
-import { submitWaitlist } from '../../lib/api';
 import type { FoManagedWaitlistData } from '../../lib/page-blocks';
 
 export interface FoManagedWaitlistProps {
@@ -18,6 +14,10 @@ export interface FoManagedWaitlistProps {
   readonly annotation?: BlockAnnotation;
 }
 
+/**
+ * De-cataloged leftover. Not a Cloud waitlist form. Public door is
+ * Enterprise inquire / Contact sales.
+ */
 export function Waitlist({ data, path, annotation }: FoManagedWaitlistProps = {}) {
   const content = data ?? {
     eyebrow: FO_MANAGED_WAITLIST.eyebrow,
@@ -28,32 +28,8 @@ export function Waitlist({ data, path, annotation }: FoManagedWaitlistProps = {}
     buttonLabelLoading: FO_MANAGED_WAITLIST.buttonLabelLoading,
     successMessage: FO_MANAGED_WAITLIST.successMessage,
   };
-  // product source is API contract — never CMS-editable.
-  const product = FO_MANAGED_WAITLIST.product;
   const ann = annotation ?? {};
   const base = path ?? '';
-
-  const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [message, setMessage] = useState('');
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (!email || status === 'loading') return;
-
-    setStatus('loading');
-    // Source-tagged so RevealUI Cloud interest is queryable separately from
-    // newsletter signups (apps/server POST /api/waitlist → waitlist table).
-    const error = await submitWaitlist({ email, source: product });
-    if (error === null) {
-      setStatus('success');
-      setMessage(content.successMessage);
-      setEmail('');
-    } else {
-      setStatus('error');
-      setMessage(error);
-    }
-  }
 
   return (
     <MarketingSection tone="secondary" density="default" width="narrow">
@@ -78,54 +54,15 @@ export function Waitlist({ data, path, annotation }: FoManagedWaitlistProps = {}
         }
         align="center"
       />
-
-      {status === 'success' ? (
-        <p
-          className="mt-12 animate-[fade-in_300ms_ease-out] text-center text-base font-medium text-primary sm:mt-14"
-          {...(base ? fieldAttrs(ann, `${base}.items.3.body`) : {})}
-        >
-          {message}
-        </p>
-      ) : (
-        <form
-          onSubmit={handleSubmit}
-          className="mx-auto mt-12 flex max-w-sm flex-col gap-3 sm:mt-14"
-        >
-          <label htmlFor="waitlist-email" className="sr-only">
-            Email address
-          </label>
-          <Input
-            id="waitlist-email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder={content.inputPlaceholder}
-            required
-          />
-          {/* Labels ride CMS for seed/fallback parity; form controls stay unannotated. */}
-          <span className="sr-only" {...(base ? fieldAttrs(ann, `${base}.items.0.body`) : {})}>
-            {content.inputPlaceholder}
-          </span>
-          <Button
-            type="submit"
-            variant="brand"
-            isLoading={status === 'loading'}
-            disabled={status === 'loading'}
-          >
-            <span
-              {...(base
-                ? fieldAttrs(
-                    ann,
-                    status === 'loading' ? `${base}.items.2.body` : `${base}.items.1.body`,
-                  )
-                : {})}
-            >
-              {status === 'loading' ? content.buttonLabelLoading : content.buttonLabel}
+      <div className="mx-auto mt-12 flex max-w-sm justify-center sm:mt-14">
+        <Button asChild variant="brand">
+          <a href={FO_MANAGED_WAITLIST.href}>
+            <span {...(base ? fieldAttrs(ann, `${base}.items.1.body`) : {})}>
+              {content.buttonLabel}
             </span>
-          </Button>
-          {status === 'error' && <p className="text-xs text-destructive">{message}</p>}
-        </form>
-      )}
+          </a>
+        </Button>
+      </div>
     </MarketingSection>
   );
 }

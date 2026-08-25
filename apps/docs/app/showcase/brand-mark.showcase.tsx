@@ -5,7 +5,7 @@ const story: ShowcaseStory = {
   slug: 'brand-mark',
   name: 'Brand Mark',
   description:
-    'The RevealUI logomark: a faceted "R" that inherits currentColor with an optional Solar Amber reveal stroke tracking --rvui-accent. Decorative by default; pass a title to expose it as an image.',
+    'The RevealUI logomark: Circuit-R family that inherits currentColor with an optional Solar Amber reveal stroke tracking --rvui-accent. Decorative by default; pass a title to expose it as an image.',
   category: 'component',
   sourceUrl: 'src/components/brand-mark.tsx',
 

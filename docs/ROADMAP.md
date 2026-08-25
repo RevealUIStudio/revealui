@@ -68,7 +68,7 @@ Work that is real and unfinished. No gap IDs on this public page.
 |------|--------|-----------------|
 | Enterprise SSO / SAML | In flight | Operator preview on test (OIDC + SAML SP-initiated). Not customer-walked. [#449](https://github.com/RevealUIStudio/revealui/issues/449) still open. SCIM is not built. Guide: [FORGE_SSO_SETUP.md](./FORGE_SSO_SETUP.md) |
 | Fleet pull-and-run kit | In flight | Images exist. The launched customer kit (docs + license-gated pull, no source build) does not |
-| Product-led channels | In flight | Starter Kit request path (public Buy paused), Apify actor, and a customer self-host template (sales channel only; Railway is not Studio production, which stays on Vercel + Neon + Fly). Owner publish + first stranger purchase remain |
+| Product-led channels | In flight | Apify actor and a customer self-host template (sales channel only; Railway is not Studio production, which stays on Vercel + Neon + Fly). Owner publish + first stranger purchase remain |
 | Onboarding (first 24h / first 7d) | In flight | Journey copy and checklists ship. Per-tier walkthrough sign-off does not |
 | Multi-editor connect | Shipped in code | Cursor, VS Code plugin surface, and ACP connect guides exist. VS Code Marketplace listing is owner ops |
 | Claim honesty | Continuous | `pnpm validate:claims` gates marketing copy. This file and What Works Today must stay in lockstep |
@@ -99,9 +99,9 @@ Work that is real and unfinished. No gap IDs on this public page.
 
 | Track | Model | Description |
 |-------|-------|-------------|
-| **A. Subscriptions** | Monthly | Free / Pro $49/mo / Max $299/mo / Enterprise $1,499/mo |
-| **B. Agent credits** | Pay-per-use | $0.001/task, first 1,000 tasks/month free (local inference) |
-| **C. Perpetual** | One-time | $1,499 / $8,499 / $42,999 (1 year support included, renewable) |
+| **A. Subscriptions** | Monthly | Free $0 / Pro $49/mo / Max $299/mo / Enterprise inquire |
+| **B. Agent credits** | Pay-per-use | $0.001/task (local inference) |
+| **C. Perpetual** | One-time | Pro Perpetual $1,499 public; Agency and Enterprise perpetual are not public catalog SKUs |
 | **D. Professional services** | Per-engagement | Architecture review, migration assist, launch package, consulting hours |
 
 See [revealui.com/pricing](https://revealui.com/pricing) for the live catalog.

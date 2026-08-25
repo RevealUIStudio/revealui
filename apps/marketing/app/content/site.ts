@@ -79,14 +79,6 @@ export const SITE = {
     repoChangelog: 'https://github.com/RevealUIStudio/revealui/blob/main/CHANGELOG.md',
     repoLicense: 'https://github.com/RevealUIStudio/revealui/blob/main/LICENSE',
     /**
-     * GAP-434 Starter Kit Stripe Payment Link (live). Owner re-ruled 2026-08-02
-     * to Stripe Payment Link (C) over Polar; Managed Payments (D) is a later upgrade.
-     * Stripe product prod_V01FoZi9YbgZw9 / price_1U01D1Jz64n6uEibtamJHxkU.
-     * Fulfillment-only until the GAP-434 first-sale walk is recorded — do not
-     * render this URL as a public Buy CTA on marketing.
-     */
-    starterKitCheckout: 'https://buy.stripe.com/dRmeVegcH1AM2mmdbsa3u03',
-    /**
      * Public shipping board (Projects tab). Prefer a concrete Projects v2 URL when
      * one is pinned; until then the org/repo projects index is the honest link.
      */

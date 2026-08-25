@@ -67,6 +67,10 @@ describe('TIER_LIMITS', () => {
     expect(TIER_LIMITS.free.apiRequestsPerMinute).toBe(200);
   });
 
+  it('free has no public agent-task quota (Local AI, not 1,000)', () => {
+    expect(TIER_LIMITS.free.agentTasks).toBe(0);
+  });
+
   it('enterprise tier has unlimited sites/users (null)', () => {
     expect(TIER_LIMITS.enterprise.sites).toBeNull();
     expect(TIER_LIMITS.enterprise.users).toBeNull();

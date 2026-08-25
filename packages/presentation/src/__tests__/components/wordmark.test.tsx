@@ -10,6 +10,14 @@ describe('RevealUIWordmark', () => {
     expect(svg).toHaveAttribute('aria-hidden', 'true');
   });
 
+  it('uses Circuit-R paths, not the retired geometric R', () => {
+    const { container } = render(<RevealUIWordmark />);
+    const svg = container.querySelector('svg');
+    expect(svg).toHaveAttribute('viewBox', '0 0 512 512');
+    expect(container.innerHTML.includes('M26 50')).toBe(false);
+    expect(container.innerHTML.includes('M242,150')).toBe(true);
+  });
+
   it('renders "Reveal" and "UI" as separate, readable HTML text nodes', () => {
     const { container, getByText } = render(<RevealUIWordmark />);
     expect(getByText('Reveal')).toBeInTheDocument();

@@ -42,7 +42,8 @@
     { "source": "/contact", "destination": "https://revealui.com/contact", "permanent": true },
     { "source": "/reference/ai", "destination": "/ai", "permanent": true },
     { "source": "/reference/auth", "destination": "/auth", "permanent": true },
-    { "source": "/reference/db", "destination": "/database", "permanent": true }
+    { "source": "/reference/db", "destination": "/database", "permanent": true },
+    { "source": "/forge", "destination": "/enterprise", "permanent": true }
   ],
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/sitemap.xml" },

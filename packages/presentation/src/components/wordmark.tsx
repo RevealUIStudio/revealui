@@ -10,7 +10,7 @@ export interface RevealUIWordmarkProps {
 }
 
 /**
- * The RevealUI wordmark — the faceted "R" monogram plus "RevealUI" set in the
+ * The RevealUI wordmark — the Circuit-R monogram plus "RevealUI" set in the
  * brand display face.
  *
  * The "RevealUI" text is real HTML, not SVG `<text>`: SVG text does not

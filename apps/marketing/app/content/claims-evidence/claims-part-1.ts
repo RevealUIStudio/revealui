@@ -957,7 +957,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_HERO_SUBTEXT.prefix',
-    text: 'All plans run as self-hosted installations under your license. Enterprise is a license, not a hosted VM. Managed customer instances are RevealUI Cloud (waitlist). Need a human?',
+    text: 'All plans run as self-hosted installations under your license. Enterprise is a license, not a hosted VM. Need a human?',
     evidence: [SELF_HOST, COMMERCIAL_POLICY, PERPETUAL, ROADMAP],
   },
   {

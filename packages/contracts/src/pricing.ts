@@ -101,7 +101,7 @@ export interface TierLimits {
 }
 
 export const TIER_LIMITS: Record<LicenseTierId, TierLimits> = {
-  free: { sites: 1, users: 3, agentTasks: 1_000, apiRequestsPerMinute: 200 },
+  free: { sites: 1, users: 3, agentTasks: 0, apiRequestsPerMinute: 200 },
   pro: { sites: 5, users: 25, agentTasks: 10_000, apiRequestsPerMinute: 300 },
   max: { sites: 15, users: 100, agentTasks: 50_000, apiRequestsPerMinute: 600 },
   enterprise: { sites: null, users: null, agentTasks: null, apiRequestsPerMinute: 1_000 },
