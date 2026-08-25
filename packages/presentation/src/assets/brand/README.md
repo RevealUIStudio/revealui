@@ -44,7 +44,8 @@ large renders only.
   byte-identical; `favicon.svg` is the deployment alias.
 - `icon-mark.svg` — the same glyph on a `#060d1a` rounded tile (`rx=112`),
   mark at ~70% tile coverage. Source for apple-touch / social / app-icon
-  rasters, and the 22px nav mark in marketing.
+  rasters. Public chrome (marketing nav, docs header) uses the untiled
+  Circuit-R (`RevealUIMark` / `revealui-mark.svg`) at ~36px, not this tile.
 - `icon-maskable.svg` — the same tile at `rx=0` for full-bleed PWA masking.
   Updated to the current emblem as of 2026-07-27. Rasterized to
   `icon-maskable-512.png` per app; the mark sits at ~70% coverage, inside
@@ -121,8 +122,9 @@ well as the rasters. Nothing here is copied by hand.
 | admin | same as docs, plus `revealui-logo-dark.svg` (auth brand panel, ≥96px) |
 
 The SVG sync is load-bearing: marketing's
-`<link rel="icon" type="image/svg+xml">` and `NavBar`/`Footer`'s
-`<img src="/icon-mark.svg">` read the app-local copies, not the masters.
+`<link rel="icon" type="image/svg+xml">` and favicon/PWA copies read the
+app-local files, not the masters. Public chrome uses `RevealUIMark`
+(same paths as `revealui-mark.svg`), not the tiled `icon-mark.svg`.
 Before the generator synced them, a master edit shipped the old mark
 alongside new rasters. **Do not reintroduce hand-copying.**
 

@@ -32,7 +32,6 @@ const communityLinks: readonly NavLink[] = [
   ...(COMMUNITY.substack.url
     ? ([{ label: 'Substack', href: COMMUNITY.substack.url, external: true }] as const)
     : []),
-  { label: 'RevealUI Studio (agency) →', href: SITE.urls.agency, external: true },
   { label: 'Contact', href: '/contact' },
 ];
 
@@ -81,13 +80,11 @@ export interface FooterServiceLink {
   readonly href: string;
 }
 
-// Two quiet pathway lines, moved out of the hero (frontend-excellence Phase 1
-// hero declutter): done-for-you services and agency licensing. Neither
-// competes with the hero's primary/secondary CTAs; the footer is where a
-// secondary path belongs.
+// Quiet pathway line, moved out of the hero (frontend-excellence Phase 1
+// hero declutter). Studio SKUs stay on revealuistudio.com; this product
+// footer does not publish an agency-licensing path.
 export const FOOTER_SERVICE_LINKS: readonly FooterServiceLink[] = [
   { prefix: 'Want it built for you?', label: 'See services.', href: '/services' },
-  { prefix: 'Building for clients?', label: 'See agency licensing.', href: '/pricing#perpetual' },
 ] as const;
 
 // Every marketing page links to /claims, the public claims ledger (frontend-

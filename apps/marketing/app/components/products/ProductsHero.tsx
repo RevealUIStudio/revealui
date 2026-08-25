@@ -1,12 +1,9 @@
 import { type BlockAnnotation, fieldAttrs, MarketingSection } from '@revealui/presentation';
-import { PRODUCTS_FLAGSHIP, PRODUCTS_PAGE_HERO, PRODUCTS_SISTERS } from '../../content/products';
+import { PRODUCTS_FLAGSHIP, PRODUCTS_PAGE_HERO } from '../../content/products';
 import type { ProductsHeroData } from '../../lib/page-blocks';
 
-// Anchor chips are derived from the product roster, not block-driven prose.
-const ALL_PRODUCT_ANCHORS = [
-  { slug: PRODUCTS_FLAGSHIP.slug, name: PRODUCTS_FLAGSHIP.name },
-  ...PRODUCTS_SISTERS.map((p) => ({ slug: p.slug, name: p.name })),
-] as const;
+// Product site is licenses. Studio / fleet SKUs stay off this page.
+const LICENSE_PRODUCT_ANCHORS = [{ slug: PRODUCTS_FLAGSHIP.slug, name: PRODUCTS_FLAGSHIP.name }];
 
 export interface ProductsHeroProps {
   /** Rich hero data; defaults to the static content module (byte-identical). */
@@ -47,7 +44,7 @@ export function ProductsHero({
         {data.subtitle}
       </p>
       <div className="mt-10 flex flex-wrap justify-center gap-2 text-sm font-medium">
-        {ALL_PRODUCT_ANCHORS.map((anchor) => (
+        {LICENSE_PRODUCT_ANCHORS.map((anchor) => (
           <a
             key={anchor.slug}
             href={`#${anchor.slug}`}

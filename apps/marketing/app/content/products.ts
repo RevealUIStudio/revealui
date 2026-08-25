@@ -58,9 +58,9 @@ import { METRICS, SITE } from './site';
 import type { Cta } from './types';
 
 export const PRODUCTS_PAGE_HERO = {
-  h1: 'The RevFleet product family',
+  h1: 'RevealUI licenses',
   subtitle:
-    'Start with the runtime. Add tools as you grow. Seven products on one foundation, built and operated by RevealUI Studio. Zero paying customers. This is not a launched pull-and-run Fleet. RevForge is in private preview. The agent marketplace is on the way.',
+    'License the self-hosted runtime. Free, Pro, Max, or Enterprise (Contact sales). Studio SKUs live on revealuistudio.com. Zero paying customers. This is not a launched pull-and-run Fleet.',
 } as const;
 
 export type ProductStatus = 'Beta' | 'Alpha' | 'GA' | 'Planned';
@@ -98,7 +98,7 @@ export const PRODUCTS_FLAGSHIP: FlagshipProduct = {
   version: 'v0.4.0',
   priceLabel: 'Free to self-host · Pro tier optional',
   tagline: 'The self-hosted business runtime',
-  body: 'People, content, offers, payments, and agents in one runtime your team and your agents share. The foundation the rest of RevFleet builds on.',
+  body: 'People, content, offers, payments, and agents in one runtime your team and your agents share. Licensed as Free, Pro, Max, or Enterprise.',
   iconPath: 'M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5',
   facts: [
     { stat: String(METRICS.packages), label: 'packages' },
@@ -270,7 +270,7 @@ export const PRODUCTS_STATS_SECTION = {
 
 export const PRODUCTS_CTA_SECTION = {
   heading: 'Start with the runtime',
-  body: 'The rest of RevFleet builds on RevealUI. One command, full source, ready for your first deploy.',
+  body: 'Start with the runtime. One command, full source, ready for your first deploy.',
   cliSnippet: 'npx create-revealui my-app',
   cta: {
     docs: { label: 'Read the Docs', href: SITE.urls.docs } satisfies Cta,

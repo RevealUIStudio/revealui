@@ -60,12 +60,6 @@ export const claimsPart8: readonly ClaimEntry[] = [
     evidence: [NAV_CONTENT],
   },
   {
-    file: 'nav.ts',
-    exportPath: 'FOOTER_COLUMNS[1].links.label',
-    text: 'RevealUI Studio (agency) →',
-    evidence: [NAV_CONTENT],
-  },
-  {
     file: 'status.ts',
     exportPath: 'STATUS_HERO.subtitle',
     text: 'Live probe and link surface for the four RevealUI properties.',

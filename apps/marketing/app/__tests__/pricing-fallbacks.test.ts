@@ -7,7 +7,11 @@
  * and keep this test in lockstep.
  */
 import { describe, expect, it } from 'vitest';
-import { PERPETUAL_PRICE_FALLBACKS, SUBSCRIPTION_PRICE_FALLBACKS } from '../lib/pricing-fallbacks';
+import {
+  ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS,
+  PERPETUAL_PRICE_FALLBACKS,
+  SUBSCRIPTION_PRICE_FALLBACKS,
+} from '../lib/pricing-fallbacks';
 
 describe('pricing-fallbacks — canonical value assertions', () => {
   it('subscription fallbacks match canonical prices', () => {
@@ -16,16 +20,27 @@ describe('pricing-fallbacks — canonical value assertions', () => {
     expect(SUBSCRIPTION_PRICE_FALLBACKS.pro.period).toBe('/month');
     expect(SUBSCRIPTION_PRICE_FALLBACKS.max.price).toBe('$299');
     expect(SUBSCRIPTION_PRICE_FALLBACKS.max.period).toBe('/month');
-    expect(SUBSCRIPTION_PRICE_FALLBACKS.enterprise.price).toBe('$1,499');
-    expect(SUBSCRIPTION_PRICE_FALLBACKS.enterprise.period).toBe('/month');
+    expect(SUBSCRIPTION_PRICE_FALLBACKS.enterprise.price).toBe('Contact sales');
+    expect(SUBSCRIPTION_PRICE_FALLBACKS.enterprise.period).toBeUndefined();
   });
 
-  it('perpetual fallbacks match canonical prices', () => {
+  it('perpetual fallbacks match public catalog prices', () => {
     expect(PERPETUAL_PRICE_FALLBACKS).toMatchObject({
       'Pro Perpetual': { price: '$1,499', renewal: '$149/yr for continued support' },
-      'Agency Perpetual': { price: '$8,499', renewal: '$799/yr for continued support' },
       'Enterprise Perpetual': { price: '$42,999', renewal: '$3,999/yr for continued support' },
     });
+    expect(PERPETUAL_PRICE_FALLBACKS['Agency Perpetual']).toBeUndefined();
+  });
+
+  it('does not publish leftover Enterprise monthly $1,499 or Agency $8,499', () => {
+    const blob = JSON.stringify({
+      ...SUBSCRIPTION_PRICE_FALLBACKS,
+      ...ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS,
+      ...PERPETUAL_PRICE_FALLBACKS,
+    });
+    expect(blob.includes('$1,499/month') || blob.includes('$1499/month')).toBe(false);
+    expect(blob.includes('$8,499') || blob.includes('$8499')).toBe(false);
+    expect(SUBSCRIPTION_PRICE_FALLBACKS.enterprise.period).not.toBe('/month');
   });
 
   it('covers all four subscription tiers', () => {
@@ -34,11 +49,10 @@ describe('pricing-fallbacks — canonical value assertions', () => {
     expect(ids).toHaveLength(4);
   });
 
-  it('covers all three perpetual tiers', () => {
+  it('covers the public perpetual catalog only', () => {
     const names = Object.keys(PERPETUAL_PRICE_FALLBACKS);
-    expect(names).toEqual(
-      expect.arrayContaining(['Pro Perpetual', 'Agency Perpetual', 'Enterprise Perpetual']),
-    );
-    expect(names).toHaveLength(3);
+    expect(names).toEqual(expect.arrayContaining(['Pro Perpetual', 'Enterprise Perpetual']));
+    expect(names).toHaveLength(2);
+    expect(names.includes('Agency Perpetual')).toBe(false);
   });
 });

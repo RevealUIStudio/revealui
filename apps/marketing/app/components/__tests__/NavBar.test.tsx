@@ -125,6 +125,17 @@ describe('NavBar (marketing)', () => {
     expect(screen.getByRole('link', { name: 'RevealUI' })).toBeInTheDocument();
   });
 
+  it('renders an untiled Circuit-R at about 36px, not the tiled 22px icon-mark', () => {
+    const { container } = renderNavBar();
+    const home = screen.getByRole('link', { name: 'RevealUI' });
+    const mark = home.querySelector('svg');
+    expect(mark).toBeTruthy();
+    expect(mark).toHaveAttribute('viewBox', '0 0 82 100');
+    expect(mark?.className.baseVal ?? mark?.getAttribute('class') ?? '').toContain('h-[36px]');
+    expect(container.querySelector('img[src="/icon-mark.svg"]')).toBeNull();
+    expect(container.querySelector('[class*="h-[22px]"]')).toBeNull();
+  });
+
   it('marks the active desktop route with aria-current=page', () => {
     window.history.pushState({}, '', '/pricing');
     renderNavBar();

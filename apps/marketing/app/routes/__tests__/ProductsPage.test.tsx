@@ -1,8 +1,8 @@
 import '@testing-library/jest-dom/vitest';
 import { Router, RouterProvider } from '@revealui/router';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { PRODUCTS_FLAGSHIP, PRODUCTS_SISTERS_SECTION } from '../../content/products';
+import { PRODUCTS_FLAGSHIP } from '../../content/products';
 import { ProductsPage } from '../ProductsPage';
 
 vi.mock('../../lib/api', () => ({ fetchPageBlocks: vi.fn().mockResolvedValue(null) }));
@@ -25,27 +25,16 @@ describe('ProductsPage honesty and presentation', () => {
     );
   });
 
-  it('renders lifecycle GA pills and no license-in-status strings', () => {
+  it('presents RevealUI licenses, not a RevFleet sister roster', () => {
     renderPage();
-    expect(screen.getAllByText('GA').length).toBeGreaterThan(0);
+    expect(screen.queryByRole('heading', { name: 'The RevFleet product family' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'RevCon' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'RevSkills' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'RevForge' })).toBeNull();
+    expect(screen.queryByRole('tablist', { name: 'Filter products by status' })).toBeNull();
     expect(screen.queryByText('Active (MIT)')).toBeNull();
     expect(screen.queryByText('Beta (MIT)')).toBeNull();
-  });
-
-  it('filters sister cards by GA, not Active (MIT)', () => {
-    renderPage();
-    fireEvent.click(screen.getByRole('tab', { name: /GA/ }));
-    expect(screen.getByRole('heading', { name: 'RevCon' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'RevSkills' })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'RevForge' })).toBeNull();
-    expect(screen.queryByRole('tab', { name: /Active \(MIT\)/ })).toBeNull();
-  });
-
-  it('keeps RevForge on Contact and drops white-labeling as a shipped sister capability', () => {
-    renderPage();
-    expect(screen.getByRole('link', { name: 'Contact us' })).toHaveAttribute('href', '/contact');
-    expect(screen.getByText(PRODUCTS_SISTERS_SECTION.description)).toBeInTheDocument();
-    expect(screen.queryByText(/white-labeling/i)).toBeNull();
+    expect(screen.getByRole('heading', { name: 'RevealUI' })).toBeInTheDocument();
   });
 
   it('styles flagship public CTAs with the presentation Button contract', () => {
