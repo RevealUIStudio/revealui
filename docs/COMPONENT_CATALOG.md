@@ -7,7 +7,7 @@ category: reference
 audience: developer
 ---
 
-**Last Updated:** 2026-08-17
+**Last Updated:** 2026-08-25
 **Packages:** `@revealui/presentation`, `@revealui/core`
 **Total Components:** **66 native components in `@revealui/presentation`** (this catalog also documents admin and rich-text UI in `@revealui/core`, listed separately below).
 
@@ -254,7 +254,8 @@ interface LinkButtonOwnProps {
   href?: string
   /** External link — adds `target="_blank" rel="noopener noreferrer"` and renders a native <a> regardless of provider. */
   external?: boolean
-  variant?: 'default' | 'destructive' | 'ghost' | 'link' | 'outline' | 'primary' | 'secondary'
+  variant?: 'brand' | 'neutral' | 'success' | 'warning' | 'danger'
+  appearance?: 'solid' | 'outline' | 'ghost' | 'link'
   size?: 'default' | 'sm' | 'lg' | 'icon' | 'clear'
   /** Show a loading spinner and disable interaction. Sets aria-busy="true". */
   isLoading?: boolean
@@ -286,12 +287,12 @@ import { Link } from '@revealui/router'
 <LinkButton href="/contact">Book a call</LinkButton>
 
 // 3. External link — opts out of provider, always native <a target="_blank">
-<LinkButton href="https://docs.revealui.com" external variant="outline">
+<LinkButton href="https://docs.revealui.com" external appearance="outline" variant="neutral">
   Read the docs ↗
 </LinkButton>
 
 // 4. Per-instance polymorphic override (escape hatch)
-<LinkButton as="a" href="#anchor" variant="ghost">Jump to section</LinkButton>
+<LinkButton as="a" href="#anchor" appearance="ghost" variant="neutral">Jump to section</LinkButton>
 ```
 
 **Behavior matrix:**
@@ -970,10 +971,10 @@ import {
     <p>Additional information or form fields</p>
   </DialogBody>
   <DialogActions>
-    <Button variant="outline" onClick={() => setIsOpen(false)}>
+    <Button appearance="outline" variant="neutral" onClick={() => setIsOpen(false)}>
       Cancel
     </Button>
-    <Button variant="destructive" onClick={handleDelete}>
+    <Button variant="danger" onClick={handleDelete}>
       Delete
     </Button>
   </DialogActions>
