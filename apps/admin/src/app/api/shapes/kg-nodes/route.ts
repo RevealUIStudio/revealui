@@ -3,9 +3,9 @@
  *
  * GET /api/shapes/kg-nodes[?repo=<repo>]
  *
- * Fleet knowledge graph (GAP-349). GAP-477 Phase C: admin_platform only —
- * any authenticated user previously could sync the whole graph. Optional
- * `repo` still scopes the Electric where for admins who pass it.
+ * Fleet knowledge graph (GAP-349). Fleet-operator only — hosted CMS
+ * admin/owner must not sync the full graph. Optional `repo` still scopes
+ * the Electric where for operators who pass it.
  *
  * Electric sync is read-only. Writes go through POST /api/sync/kg-episodes.
  */
@@ -14,7 +14,7 @@ import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/utils/logger';
 import type { NextRequest, NextResponse } from 'next/server';
 import { prepareElectricUrl, proxyElectricRequest } from '@/lib/api/electric-proxy';
-import { requireAdminRole } from '@/lib/api/shape-authz';
+import { isFleetOperator } from '@/lib/api/shape-authz';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
   createApplicationErrorResponse,
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const aiGate = await checkAIFeatureGate(session.user.id);
     if (aiGate) return aiGate;
 
-    if (!requireAdminRole(session.user.role)) {
+    if (!isFleetOperator(session.user)) {
       return createApplicationErrorResponse('Forbidden', 'FORBIDDEN', 403);
     }
 

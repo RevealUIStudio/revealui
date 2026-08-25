@@ -1,11 +1,11 @@
 /**
- * Coordination Sessions Shape Proxy Route Tests (GAP-476)
+ * Coordination Work Items Shape Proxy Route Tests
  */
 
 import * as authServer from '@revealui/auth/server';
 import { NextRequest } from 'next/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { GET } from '../coordination-sessions/route';
+import { GET } from '../coordination-work-items/route';
 
 vi.mock('@revealui/auth/server', () => ({
   getSession: vi.fn(),
@@ -14,7 +14,7 @@ vi.mock('@revealui/auth/server', () => ({
 vi.mock('@/lib/api/electric-proxy', () => ({
   prepareElectricUrl: vi.fn((_url: string) => {
     const electricUrl = new URL('http://localhost:5133/v1/shape');
-    electricUrl.searchParams.set('table', 'coordination_sessions');
+    electricUrl.searchParams.set('table', 'coordination_work_items');
     return electricUrl;
   }),
   proxyElectricRequest: vi.fn(async () => {
@@ -74,17 +74,17 @@ function makeOperatorSession() {
   });
 }
 
-describe('GET /api/shapes/coordination-sessions', () => {
+describe('GET /api/shapes/coordination-work-items', () => {
   const mockGetSession = vi.mocked(authServer.getSession);
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should return 401 when session is missing', async () => {
+  it('returns 401 when session is missing', async () => {
     mockGetSession.mockResolvedValue(null);
 
-    const request = new NextRequest('http://localhost:3000/api/shapes/coordination-sessions');
+    const request = new NextRequest('http://localhost:3000/api/shapes/coordination-work-items');
     const response = await GET(request);
     const data = await response.json();
 
@@ -92,71 +92,35 @@ describe('GET /api/shapes/coordination-sessions', () => {
     expect(data.error).toBe('UNAUTHORIZED');
   });
 
-  it('should return 403 for viewer role', async () => {
-    mockGetSession.mockResolvedValue(makeSession('viewer') as never);
-
-    const request = new NextRequest('http://localhost:3000/api/shapes/coordination-sessions');
-    const response = await GET(request);
-    const data = await response.json();
-
-    expect(response.status).toBe(403);
-    expect(data.error).toBe('FORBIDDEN');
-  });
-
-  it('should return 403 for hosted CMS admin', async () => {
+  it('returns 403 for hosted CMS admin', async () => {
     mockGetSession.mockResolvedValue(makeSession('admin', { emailVerified: true }) as never);
 
-    const request = new NextRequest('http://localhost:3000/api/shapes/coordination-sessions');
+    const request = new NextRequest('http://localhost:3000/api/shapes/coordination-work-items');
     const response = await GET(request);
-    const data = await response.json();
 
     expect(response.status).toBe(403);
-    expect(data.error).toBe('FORBIDDEN');
   });
 
-  it('should return 403 for hosted owner', async () => {
+  it('returns 403 for hosted owner', async () => {
     mockGetSession.mockResolvedValue(makeSession('owner', { emailVerified: true }) as never);
 
-    const request = new NextRequest('http://localhost:3000/api/shapes/coordination-sessions');
+    const request = new NextRequest('http://localhost:3000/api/shapes/coordination-work-items');
     const response = await GET(request);
 
     expect(response.status).toBe(403);
   });
 
-  it('should proxy for fleet operator', async () => {
+  it('proxies the full table for a fleet operator', async () => {
     mockGetSession.mockResolvedValue(makeOperatorSession() as never);
-
     const { prepareElectricUrl, proxyElectricRequest } = await import('@/lib/api/electric-proxy');
 
-    const request = new NextRequest('http://localhost:3000/api/shapes/coordination-sessions');
+    const request = new NextRequest('http://localhost:3000/api/shapes/coordination-work-items');
     const response = await GET(request);
 
     expect(response.status).toBe(200);
-    expect(prepareElectricUrl).toHaveBeenCalled();
+    const originUrl = vi.mocked(prepareElectricUrl).mock.results[0]?.value as URL;
+    expect(originUrl.searchParams.get('table')).toBe('coordination_work_items');
+    expect(originUrl.searchParams.has('where')).toBe(false);
     expect(proxyElectricRequest).toHaveBeenCalled();
-  });
-
-  it('should set table param to coordination_sessions', async () => {
-    mockGetSession.mockResolvedValue(makeOperatorSession() as never);
-
-    const { prepareElectricUrl } = await import('@/lib/api/electric-proxy');
-    const mockUrl = new URL('http://localhost:5133/v1/shape');
-    vi.mocked(prepareElectricUrl).mockReturnValue(mockUrl);
-
-    const request = new NextRequest('http://localhost:3000/api/shapes/coordination-sessions');
-    await GET(request);
-
-    expect(mockUrl.searchParams.get('table')).toBe('coordination_sessions');
-  });
-
-  it('should handle errors gracefully', async () => {
-    mockGetSession.mockRejectedValue(new Error('Database error'));
-
-    const request = new NextRequest('http://localhost:3000/api/shapes/coordination-sessions');
-    const response = await GET(request);
-    const data = await response.json();
-
-    expect(response.status).toBe(500);
-    expect(data.error).toBe('INTERNAL_ERROR');
   });
 });

@@ -43,7 +43,7 @@ describe('LicenseGate', () => {
   describe('when feature is enabled', () => {
     beforeEach(() => {
       mockUseLicense.mockReturnValue({
-        features: { ai: true, mcp: false },
+        features: { ai: true, mcp: false, aiLocal: true },
         isLoading: false,
       });
     });
@@ -56,6 +56,35 @@ describe('LicenseGate', () => {
       );
       expect(screen.getByText(childContent)).toBeInTheDocument();
       expect(screen.queryByTestId('upgrade-prompt')).not.toBeInTheDocument();
+    });
+
+    it('allows dashboard Local AI (aiLocal) on Free without a Pro paywall', () => {
+      mockUseLicense.mockReturnValue({
+        features: { ai: false, aiLocal: true, mcp: false },
+        isLoading: false,
+      });
+      render(
+        <LicenseGate feature="aiLocal">
+          <p>{childContent}</p>
+        </LicenseGate>,
+      );
+      expect(screen.getByText(childContent)).toBeInTheDocument();
+      expect(screen.queryByTestId('upgrade-prompt')).not.toBeInTheDocument();
+    });
+
+    it('keeps /agents (ai) Pro-gated on Free even when aiLocal is on', () => {
+      mockUseLicense.mockReturnValue({
+        features: { ai: false, aiLocal: true, mcp: false },
+        isLoading: false,
+      });
+      render(
+        <LicenseGate feature="ai">
+          <p>{childContent}</p>
+        </LicenseGate>,
+      );
+      expect(screen.queryByText(childContent)).not.toBeInTheDocument();
+      expect(screen.getByTestId('upgrade-prompt')).toBeInTheDocument();
+      expect(screen.getByText('Upgrade required for ai')).toBeInTheDocument();
     });
   });
 

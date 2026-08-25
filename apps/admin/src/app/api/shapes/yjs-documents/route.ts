@@ -4,8 +4,9 @@
  * GET /api/shapes/yjs-documents?document_id=<uuid>
  *
  * Authenticated proxy for ElectricSQL yjs_documents shape.
- * GAP-477: acl_resource — platform admin may read any UUID doc; non-admin
- * only when owner_id matches session user (legacy null owner = admin-only).
+ * GAP-477: acl_resource — fleet operator may read any UUID doc; everyone
+ * else (including hosted CMS admin/owner) only when owner_id matches
+ * session user (legacy null owner = operator-only).
  */
 
 import { getSession } from '@revealui/auth/server';
@@ -13,7 +14,7 @@ import { getClient } from '@revealui/db';
 import { logger } from '@revealui/utils/logger';
 import type { NextRequest, NextResponse } from 'next/server';
 import { prepareElectricUrl, proxyElectricRequest } from '@/lib/api/electric-proxy';
-import { isUuid, requireAdminRole, userCanAccessYjsDocument } from '@/lib/api/shape-authz';
+import { isFleetOperator, isUuid, userCanAccessYjsDocument } from '@/lib/api/shape-authz';
 import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
 import { isSyncIdentifier } from '@/lib/utils/identifier-validation';
 import { extractRequestContext } from '@/lib/utils/request-context';
@@ -41,12 +42,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     const db = getClient();
-    const allowed = await userCanAccessYjsDocument(
-      db,
-      session.user.id,
-      documentId,
-      session.user.role,
-    );
+    const allowed = await userCanAccessYjsDocument(db, session.user.id, documentId, session.user);
     if (!allowed) {
       return createApplicationErrorResponse('Forbidden', 'FORBIDDEN', 403);
     }
@@ -54,8 +50,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const originUrl = prepareElectricUrl(request.url);
     originUrl.searchParams.set('table', 'yjs_documents');
 
-    // Admin: document id only. Owner: id + owner_id match (defense in depth with the gate above).
-    if (requireAdminRole(session.user.role)) {
+    // Operator: document id only. Owner: id + owner_id match (defense in depth with the gate above).
+    if (isFleetOperator(session.user)) {
       originUrl.searchParams.set('where', `id = '${documentId}'`);
     } else {
       if (!isSyncIdentifier(session.user.id)) {

@@ -22,6 +22,18 @@ beforeEach(() => {
 });
 
 describe('NewAgentPage', () => {
+  it('keeps /agents/new Pro-gated on Free even when aiLocal is enabled', () => {
+    mockUseLicense.mockReturnValue({
+      features: { ai: false, aiLocal: true },
+      isLoading: false,
+      tier: 'free',
+    });
+    render(<NewAgentPage />);
+    expect(screen.getByText('AI Agents')).toBeInTheDocument();
+    expect(screen.getByText(/requires a Pro license/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Content Writer/ })).not.toBeInTheDocument();
+  });
+
   it('never defaults a template to a hardcoded Claude model id', () => {
     render(<NewAgentPage />);
 

@@ -70,6 +70,13 @@ describe('FreeTierBanner', () => {
     expect(screen.queryByText(/Unlock Pro with a license/)).not.toBeInTheDocument();
   });
 
+  it('does not promise leftover Free agent-task quotas', () => {
+    render(<FreeTierBanner isHosted={true} />);
+    expect(screen.getByText(/Free plan/)).toBeInTheDocument();
+    expect(screen.queryByText(/1,000/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/agent task/i)).not.toBeInTheDocument();
+  });
+
   it('self-host deploy: links the license CTA at the Agency Founding Kit pricing anchor', () => {
     render(<FreeTierBanner isHosted={false} />);
     const link = screen.getByText(/Unlock with a license or Agency Kit/);

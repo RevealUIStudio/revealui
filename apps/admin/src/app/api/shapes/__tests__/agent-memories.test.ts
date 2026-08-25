@@ -49,7 +49,11 @@ vi.mock('@/lib/api/electric-proxy', () => ({
 
 import { GET } from '../agent-memories/route';
 
-function makeSession(role: string, userId = '123e4567-e89b-12d3-a456-426614174000') {
+function makeSession(
+  role: string,
+  userId = '123e4567-e89b-12d3-a456-426614174000',
+  extras: { emailVerified?: boolean; _json?: unknown } = {},
+) {
   return {
     session: {
       id: 'session-abc-123',
@@ -74,7 +78,7 @@ function makeSession(role: string, userId = '123e4567-e89b-12d3-a456-42661417400
       password: null,
       role,
       status: 'active',
-      emailVerified: false,
+      emailVerified: extras.emailVerified ?? false,
       emailVerificationToken: null,
       emailVerifiedAt: null,
       mfaEnabled: false,
@@ -86,6 +90,7 @@ function makeSession(role: string, userId = '123e4567-e89b-12d3-a456-42661417400
       createdAt: new Date(),
       updatedAt: new Date(),
       lastActiveAt: null,
+      _json: extras._json,
     },
   };
 }
@@ -173,8 +178,29 @@ describe('GET /api/shapes/agent-memories', () => {
     );
   });
 
-  it('should proxy agent_id only for admin without site_id', async () => {
-    mockGetSession.mockResolvedValue(makeSession('admin') as never);
+  it('should return 403 for hosted CMS admin without site_id', async () => {
+    mockGetSession.mockResolvedValue(
+      makeSession('admin', undefined, { emailVerified: true }) as never,
+    );
+
+    const request = new NextRequest(
+      'http://localhost:3000/api/shapes/agent-memories?agent_id=assistant',
+    );
+    const response = await GET(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(data.error).toBe('FORBIDDEN');
+    expect(mockUserCanAccessSite).not.toHaveBeenCalled();
+  });
+
+  it('should proxy agent_id only for fleet operator without site_id', async () => {
+    mockGetSession.mockResolvedValue(
+      makeSession('admin', undefined, {
+        emailVerified: true,
+        _json: { roles: ['super-admin'] },
+      }) as never,
+    );
 
     const { proxyElectricRequest } = await import('@/lib/api/electric-proxy');
 
@@ -187,6 +213,27 @@ describe('GET /api/shapes/agent-memories', () => {
     const originUrl = vi.mocked(proxyElectricRequest).mock.calls[0]?.[0] as URL;
     expect(originUrl.searchParams.get('where')).toBe(`agent_id = 'assistant'`);
     expect(mockUserCanAccessSite).not.toHaveBeenCalled();
+  });
+
+  it('should keep hosted admin on the site-scoped path', async () => {
+    mockGetSession.mockResolvedValue(
+      makeSession('admin', undefined, { emailVerified: true }) as never,
+    );
+    mockUserCanAccessSite.mockResolvedValue(true);
+
+    const { proxyElectricRequest } = await import('@/lib/api/electric-proxy');
+
+    const request = new NextRequest(
+      `http://localhost:3000/api/shapes/agent-memories?agent_id=assistant&site_id=${SITE_ID}`,
+    );
+    const response = await GET(request);
+
+    expect(response.status).toBe(200);
+    expect(mockUserCanAccessSite).toHaveBeenCalled();
+    const originUrl = vi.mocked(proxyElectricRequest).mock.calls[0]?.[0] as URL;
+    expect(originUrl.searchParams.get('where')).toBe(
+      `agent_id = 'assistant' AND site_id = '${SITE_ID}'`,
+    );
   });
 
   it('should handle errors gracefully', async () => {

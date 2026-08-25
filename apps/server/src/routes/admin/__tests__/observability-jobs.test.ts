@@ -28,7 +28,17 @@ function createSelectChain(resolved: unknown): Record<string, unknown> {
   return chain;
 }
 
-function createApp(user: { id: string; role: string } | null, selectResults: unknown[] = []) {
+const FLEET_OPERATOR = {
+  id: 'op-1',
+  role: 'admin',
+  emailVerified: true as const,
+  _json: { roles: ['super-admin'] },
+};
+
+function createApp(
+  user: { id: string; role: string; emailVerified?: boolean; _json?: unknown } | null,
+  selectResults: unknown[] = [],
+) {
   let callIdx = 0;
   const db = {
     select: vi.fn(() => {
@@ -39,7 +49,10 @@ function createApp(user: { id: string; role: string } | null, selectResults: unk
   } as unknown as DatabaseClient;
 
   const app = new Hono<{
-    Variables: { db: DatabaseClient; user?: { id: string; role: string } };
+    Variables: {
+      db: DatabaseClient;
+      user?: { id: string; role: string; emailVerified?: boolean; _json?: unknown };
+    };
   }>();
   app.use('*', async (c, next) => {
     c.set('db', db);
@@ -61,13 +74,19 @@ describe('GET /admin/jobs', () => {
     expect(res.status).toBe(401);
   });
 
-  it('returns 403 when the user is not an admin', async () => {
+  it('returns 403 when the user is not a fleet operator', async () => {
     const { app } = createApp({ id: 'u1', role: 'editor' });
     const res = await app.fetch(new Request('http://localhost/jobs'));
     expect(res.status).toBe(403);
   });
 
-  it('returns 200 with paginated jobs for an admin user', async () => {
+  it('returns 403 for a hosted tenant owner', async () => {
+    const { app } = createApp({ id: 'u1', role: 'owner' });
+    const res = await app.fetch(new Request('http://localhost/jobs'));
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 200 with paginated jobs for a fleet operator', async () => {
     const jobRow = {
       id: 'agent.dispatch:t1',
       name: 'agent.dispatch',
@@ -86,7 +105,7 @@ describe('GET /admin/jobs', () => {
       startedAt: new Date('2026-04-22T00:00:01Z'),
       completedAt: new Date('2026-04-22T00:00:03Z'),
     };
-    const { app } = createApp({ id: 'u1', role: 'admin' }, [[jobRow], [{ total: 1 }]]);
+    const { app } = createApp(FLEET_OPERATOR, [[jobRow], [{ total: 1 }]]);
     const res = await app.fetch(new Request('http://localhost/jobs?limit=10&offset=0'));
     expect(res.status).toBe(200);
     const body = (await res.json()) as {
@@ -106,7 +125,7 @@ describe('GET /admin/jobs', () => {
   });
 
   it('rejects invalid state filter values at the OpenAPI layer', async () => {
-    const { app } = createApp({ id: 'u1', role: 'admin' });
+    const { app } = createApp(FLEET_OPERATOR);
     const res = await app.fetch(new Request('http://localhost/jobs?state=not-a-state'));
     // OpenAPI validation rejects with 400.
     expect(res.status).toBe(400);
@@ -124,29 +143,14 @@ describe('GET /admin/audit', () => {
     expect(res.status).toBe(403);
   });
 
-  it('grants access to the canonical owner role (bootstrap / founder)', async () => {
-    const row = {
-      id: 'a1',
-      timestamp: new Date('2026-08-12T00:00:00Z'),
-      eventType: 'auth.login',
-      severity: 'low',
-      agentId: 'user-1',
-      taskId: null,
-      sessionId: null,
-      payload: {},
-      policyViolations: [],
-    };
-    const { app } = createApp({ id: 'u1', role: 'owner' }, [[row], [{ total: 1 }]]);
+  it('returns 403 for the hosted owner role (not fleet operator)', async () => {
+    const { app } = createApp({ id: 'u1', role: 'owner' });
     const res = await app.fetch(new Request('http://localhost/audit?limit=20&offset=0'));
-    expect(res.status).toBe(200);
-    const body = (await res.json()) as { success: boolean; total: number; data: unknown[] };
-    expect(body.success).toBe(true);
-    expect(body.total).toBe(1);
-    expect(body.data).toHaveLength(1);
+    expect(res.status).toBe(403);
   });
 
   it('rejects limit above PaginationQuery max (100)', async () => {
-    const { app } = createApp({ id: 'u1', role: 'admin' });
+    const { app } = createApp(FLEET_OPERATOR);
     // Admin UI previously sent limit=200 and showed a broken [object Object] error.
     const res = await app.fetch(new Request('http://localhost/audit?limit=200&offset=0'));
     expect(res.status).toBe(400);
@@ -164,8 +168,14 @@ describe('GET /admin/jobs/summary', () => {
     expect(res.status).toBe(401);
   });
 
-  it('returns 403 when the user is not an admin', async () => {
+  it('returns 403 when the user is not a fleet operator', async () => {
     const { app } = createApp({ id: 'u1', role: 'editor' });
+    const res = await app.fetch(new Request('http://localhost/jobs/summary'));
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 403 for a hosted CMS admin', async () => {
+    const { app } = createApp({ id: 'u1', role: 'admin' });
     const res = await app.fetch(new Request('http://localhost/jobs/summary'));
     expect(res.status).toBe(403);
   });
@@ -203,7 +213,7 @@ describe('GET /admin/jobs/summary', () => {
         startedAt: new Date('2026-04-22T00:00:01Z'),
       },
     ];
-    const { app } = createApp({ id: 'u1', role: 'admin' }, [stateRows, handlerRows, failureRows]);
+    const { app } = createApp(FLEET_OPERATOR, [stateRows, handlerRows, failureRows]);
     const res = await app.fetch(new Request('http://localhost/jobs/summary'));
     expect(res.status).toBe(200);
     const body = (await res.json()) as {
