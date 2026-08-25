@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { useLicense } from '@/lib/providers/LicenseProvider';
 import { apiFetch } from '@/lib/utils/csrf';
+import { mergeLicenseSubscriptionPrices } from '@/lib/utils/license-subscription-prices';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 
 /**
@@ -74,7 +75,7 @@ export function UpgradeDialog() {
     }
   }, []);
 
-  const upgradeTiers = getTiersFromCurrent(tier);
+  const upgradeTiers = mergeLicenseSubscriptionPrices(getTiersFromCurrent(tier), null);
   // Enterprise / top grant: no higher commercial plan — do not upsell empty tables.
   const atTopTier = upgradeTiers.length === 0;
 

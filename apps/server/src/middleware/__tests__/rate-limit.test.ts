@@ -18,7 +18,13 @@ vi.mock('@revealui/core/license', () => ({
 import { checkRateLimit } from '@revealui/auth/server';
 import { getCurrentTier } from '@revealui/core/license';
 import { configureClientIp, resetClientIpConfig } from '@revealui/security';
-import { rateLimitMiddleware, tieredRateLimitMiddleware } from '../rate-limit.js';
+import {
+  BILLING_CHECKOUT_RATE_LIMIT,
+  rateLimitMiddleware,
+  resolveBillingActorKey,
+  resolveBillingActorKeyFromContext,
+  tieredRateLimitMiddleware,
+} from '../rate-limit.js';
 
 const mockedCheckRateLimit = vi.mocked(checkRateLimit);
 const mockedGetCurrentTier = vi.mocked(getCurrentTier);
@@ -246,6 +252,97 @@ describe('rateLimitMiddleware', () => {
       maxAttempts: 200,
       windowMs: 120_000,
     });
+  });
+
+  it('uses resolveKey when provided', async () => {
+    mockedCheckRateLimit.mockResolvedValue(allowedResult());
+
+    const app = new Hono();
+    app.use(
+      '*',
+      rateLimitMiddleware({
+        maxRequests: 10,
+        windowMs: 60_000,
+        keyPrefix: 'billing-checkout',
+        resolveKey: resolveBillingActorKeyFromContext,
+      }),
+    );
+    app.post('/checkout', (c) => c.json({ ok: true }));
+
+    await app.request('/checkout', {
+      method: 'POST',
+      headers: {
+        cookie: 'revealui-session=stranger-session',
+        'x-real-ip': '8.8.8.8',
+      },
+    });
+
+    const key = mockedCheckRateLimit.mock.calls[0]![0];
+    expect(key.startsWith('billing-checkout:session:')).toBe(true);
+    expect(key).not.toContain('8.8.8.8');
+    expect(key).not.toContain('unknown');
+  });
+});
+
+describe('resolveBillingActorKey', () => {
+  it('isolates a session cookie from a poisoned IP / unknown bucket', () => {
+    const poisoned = resolveBillingActorKey(
+      new Request('https://api.revealui.com/api/billing/checkout'),
+    );
+    const firstClick = resolveBillingActorKey(
+      new Request('https://api.revealui.com/api/billing/checkout', {
+        headers: { cookie: 'revealui-session=buyer-one' },
+      }),
+    );
+    expect(poisoned).toBe('ip:unknown');
+    expect(firstClick.startsWith('session:')).toBe(true);
+    expect(firstClick).not.toBe(poisoned);
+  });
+
+  it('gives different sessions different keys', () => {
+    const a = resolveBillingActorKey(
+      new Request('https://api.example/x', { headers: { cookie: 'revealui-session=aaa' } }),
+    );
+    const b = resolveBillingActorKey(
+      new Request('https://api.example/x', { headers: { cookie: 'revealui-session=bbb' } }),
+    );
+    expect(a).not.toBe(b);
+  });
+});
+
+describe('billing-checkout first-click budget', () => {
+  it('allows a first authenticated checkout after anonymous probes exhaust the IP bucket', async () => {
+    mockedCheckRateLimit.mockImplementation(async (key: string) => {
+      if (String(key).includes(':ip:')) return blockedResult();
+      return allowedResult(BILLING_CHECKOUT_RATE_LIMIT.maxRequests - 1);
+    });
+
+    const app = new Hono();
+    app.use(
+      '*',
+      rateLimitMiddleware({
+        ...BILLING_CHECKOUT_RATE_LIMIT,
+        keyPrefix: 'billing-checkout',
+        resolveKey: resolveBillingActorKeyFromContext,
+      }),
+    );
+    app.post('/checkout', (c) => c.json({ url: 'https://checkout.stripe.com/c/pay/cs_test' }));
+
+    const poisoned = await app.request('/checkout', { method: 'POST' });
+    expect(poisoned.status).toBe(429);
+
+    const firstClick = await app.request('/checkout', {
+      method: 'POST',
+      headers: { cookie: 'revealui-session=fresh-buyer' },
+    });
+    expect(firstClick.status).toBe(200);
+    const body = (await firstClick.json()) as { url?: string };
+    expect(body.url).toBeDefined();
+    expect(new URL(body.url ?? '').hostname).toBe('checkout.stripe.com');
+  });
+
+  it('keeps a first-request budget of at least one checkout per window', () => {
+    expect(BILLING_CHECKOUT_RATE_LIMIT.maxRequests).toBeGreaterThanOrEqual(1);
   });
 });
 

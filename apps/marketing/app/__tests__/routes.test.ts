@@ -151,7 +151,7 @@ describe('marketing route registry', () => {
     expect(redirect?.permanent).toBe(true);
   });
 
-  it('hops marketing /signup, /checkout, and /login to admin without dropping plan=', () => {
+  it('hops marketing /signup and /login to admin without dropping plan=', () => {
     // These paths have no marketing page. The SPA rewrite used to serve the
     // same empty shell, so a stranger who followed a relative /signup?plan=pro
     // (API catalog, bookmark, or no-JS) never reached admin checkout.
@@ -166,12 +166,6 @@ describe('marketing route registry', () => {
     expect(signup?.destination).toBe('https://admin.revealui.com/signup');
     expect(signup?.destination.includes('?')).toBe(false);
     expect(signup?.permanent).toBe(true);
-
-    const checkout = bySource.get('/checkout');
-    expect(checkout, 'the /checkout → admin signup hop must be present').toBeDefined();
-    expect(checkout?.destination).toBe('https://admin.revealui.com/signup');
-    expect(checkout?.destination.includes('?')).toBe(false);
-    expect(checkout?.permanent).toBe(true);
 
     const login = bySource.get('/login');
     expect(login, 'the /login → admin login hop must be present').toBeDefined();

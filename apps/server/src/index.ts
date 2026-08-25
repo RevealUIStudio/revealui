@@ -82,7 +82,12 @@ import {
   requireDomain,
   requireFeature,
 } from './middleware/license.js';
-import { rateLimitMiddleware, tieredRateLimitMiddleware } from './middleware/rate-limit.js';
+import {
+  BILLING_CHECKOUT_RATE_LIMIT,
+  rateLimitMiddleware,
+  resolveBillingActorKeyFromContext,
+  tieredRateLimitMiddleware,
+} from './middleware/rate-limit.js';
 import { requestIdMiddleware } from './middleware/request-id.js';
 import { enforceSiteLimit, enforceUserLimit } from './middleware/resource-limits.js';
 import { requireTaskQuota } from './middleware/task-quota.js';
@@ -509,7 +514,7 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'auth-sso': { maxRequests: 20, windowMs: FIFTEEN_MINUTES },
     /** Enterprise SSO provider admin CRUD + test-connection (GAP-464) */
     'sso-providers': { maxRequests: 30, windowMs: ONE_MINUTE },
-    'billing-checkout': { maxRequests: 10, windowMs: FIFTEEN_MINUTES },
+    'billing-checkout': { ...BILLING_CHECKOUT_RATE_LIMIT },
     'billing-upgrade': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
     'billing-downgrade': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
     'billing-checkout-perpetual': { maxRequests: 5, windowMs: ONE_MINUTE },
@@ -567,7 +572,10 @@ export function configureRateLimits(overrides: Partial<RateLimitsConfig>): void 
   };
 }
 
-function routeLimit(key: string, opts?: { failOpen?: boolean }) {
+function routeLimit(
+  key: string,
+  opts?: { failOpen?: boolean; resolveKey?: typeof resolveBillingActorKeyFromContext },
+) {
   const cfg = rateLimitsConfig.routes[key] ?? DEFAULT_RATE_LIMITS.routes[key];
   return rateLimitMiddleware({ ...cfg, keyPrefix: key, ...opts });
 }
@@ -610,8 +618,14 @@ app.use('/api/api-keys/*', routeLimit('api-keys'));
 app.use('/api/v1/api-keys/*', routeLimit('api-keys'));
 
 // Billing endpoints create Stripe objects  -  tighter limits to prevent abuse
-app.use('/api/billing/checkout', routeLimit('billing-checkout'));
-app.use('/api/v1/billing/checkout', routeLimit('billing-checkout'));
+app.use(
+  '/api/billing/checkout',
+  routeLimit('billing-checkout', { resolveKey: resolveBillingActorKeyFromContext }),
+);
+app.use(
+  '/api/v1/billing/checkout',
+  routeLimit('billing-checkout', { resolveKey: resolveBillingActorKeyFromContext }),
+);
 app.use('/api/billing/upgrade', routeLimit('billing-upgrade'));
 app.use('/api/v1/billing/upgrade', routeLimit('billing-upgrade'));
 app.use('/api/billing/downgrade', routeLimit('billing-downgrade'));
