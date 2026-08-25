@@ -31,8 +31,11 @@ describe('mergeLicenseSubscriptionPrices', () => {
   });
 
   it('prefers live licenses-catalog prices over fallbacks', () => {
+    const proTier = SUBSCRIPTION_TIERS.find((tier) => tier.id === 'pro');
+    expect(proTier).toBeDefined();
+    if (!proTier) return;
     const merged = mergeLicenseSubscriptionPrices(SUBSCRIPTION_TIERS, {
-      subscriptions: [{ ...SUBSCRIPTION_TIERS[1], id: 'pro', price: '$49', period: '/month' }],
+      subscriptions: [{ ...proTier, price: '$49', period: '/month' }],
     });
     const pro = merged.find((tier) => tier.id === 'pro');
     expect(pro?.price).toBe('$49');
