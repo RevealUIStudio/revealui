@@ -9,7 +9,7 @@ audience: developer
 
 This page is the canonical external wording for RevealUI. Other surfaces should link here or embed the paragraph below verbatim. Do not invent a second definition.
 
-**Last updated:** 2026-08-20
+**Last updated:** 2026-08-25
 
 ---
 
@@ -43,7 +43,7 @@ Limits and prices are pinned in `packages/contracts/src/pricing.ts` and restated
 
 | Tier | Price | Sites | Users | Agent tasks/mo | API req/min |
 |------|-------|-------|-------|----------------|-------------|
-| Free | $0 | 1 | 3 | 1,000 | 200 |
+| Free | $0 | 1 | 3 | Local AI | 200 |
 | Pro | $49/mo | 5 | 25 | 10,000 | 300 |
 | Max | $299/mo | 15 | 100 | 50,000 | 600 |
 | Enterprise | inquire / Contact sales | unlimited | unlimited | unlimited | 1,000 |
