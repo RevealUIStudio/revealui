@@ -10,6 +10,7 @@ import { MovedPage } from './routes/MovedPage';
 import { NotFoundPage } from './routes/NotFoundPage';
 import { PricingPage } from './routes/PricingPage';
 import { PrivacyPage } from './routes/PrivacyPage';
+import { ProductsPage } from './routes/ProductsPage';
 import { RefundPolicyPage } from './routes/RefundPolicyPage';
 import { StatusPage } from './routes/StatusPage';
 import { SupportPage } from './routes/SupportPage';
@@ -23,7 +24,6 @@ function moved(to: string) {
   };
 }
 
-const MovedProducts = moved(`${DOCS}/revfleet`);
 const MovedPhilosophy = moved(`${DOCS}/blog/01-why-we-built-revealui`);
 const MovedLocalAi = moved(`${DOCS}/local-first`);
 const MovedServices = moved('/pricing');
@@ -52,7 +52,7 @@ export function App() {
   if (!registered.current && router.getRoutes().length === 0) {
     router.registerRoutes([
       { path: '/', component: HomePage, meta: { title: 'RevealUI' } },
-      { path: '/products', component: MovedProducts, meta: { title: 'Moved | RevealUI' } },
+      { path: '/products', component: ProductsPage, meta: { title: 'Products | RevealUI' } },
       {
         path: '/philosophy',
         component: MovedPhilosophy,
