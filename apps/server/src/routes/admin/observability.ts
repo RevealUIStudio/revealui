@@ -2,17 +2,20 @@
  * Admin Observability Routes
  *
  * Read-only endpoints for the admin dashboard dashboard observability pages.
- * Tenant admin/owner for account-scoped pages; GET /logs is fleet-operator only.
+ * Fleet-wide tables (logs, errors, audit, webhooks, jobs) are operator-only.
+ * Hosted CMS admin/owner is not enough — those roles are auto-promoted on
+ * account provision and must not read other tenants. `audit_log.tenant` is
+ * nullable with no backfill, so audit list/export fail closed to operator
+ * rather than a partial tenant filter.
  *
  * GET /admin/logs            -  fleet-wide app logs (studio/operator only)
- * GET /admin/errors          -  paginated error events
+ * GET /admin/errors          -  paginated error events (operator only)
  * GET /admin/audit           -  paginated audit log, filterable by severity, agentId,
- *                               eventType, date range, and policy violation
- * GET /admin/audit/export    -  CSV/JSON export of audit log (Max+ tier feature)
- * GET /admin/webhooks        -  paginated processed webhook events, filterable by eventType
- * GET /admin/jobs            -  paginated queue jobs, filterable by state and name (CR8-P2-01 phase D)
- * GET /admin/jobs/summary    -  aggregate queue stats (state counts + per-handler 24h counts +
- *                               recent failures) (CR8-P2-01 phase D)
+ *                               eventType, date range, and policy violation (operator only)
+ * GET /admin/audit/export    -  CSV/JSON export of audit log (Max+ tier; operator only)
+ * GET /admin/webhooks        -  paginated processed webhook events (operator only)
+ * GET /admin/jobs            -  paginated queue jobs (operator only)
+ * GET /admin/jobs/summary    -  aggregate queue stats (operator only)
  */
 
 import { randomUUID } from 'node:crypto';
@@ -30,7 +33,7 @@ import {
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, count, desc, eq, gte, lte, ne, type SQL, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
-import { isAdminRole, isFleetOperator } from '../../lib/access.js';
+import { isFleetOperator } from '../../lib/access.js';
 import type { ApiAuthUser } from '../../lib/api-roles.js';
 import { recordUsageMeter } from '../../lib/metering.js';
 import {
@@ -50,17 +53,7 @@ type AdminVariables = {
 // Shared
 // =============================================================================
 
-function requireAdmin(user: ApiAuthUser | undefined): void {
-  if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-  // Match CMS shell isAdminRole (owner | admin | super-admin) — the prior
-  // local set omitted `owner`, so bootstrap/founder sessions could open
-  // /audit but the API returned 403.
-  if (!isAdminRole(user.role)) {
-    throw new HTTPException(403, { message: 'Admin access required' });
-  }
-}
-
-/** Fleet-wide logs: studio/operator only. Tenant owner/admin is 403. */
+/** Fleet-wide observability: studio/operator only. Tenant owner/admin is 403. */
 function requireFleetOperator(user: ApiAuthUser | undefined): void {
   if (!user) throw new HTTPException(401, { message: 'Authentication required' });
   if (!isFleetOperator(user)) {
@@ -198,7 +191,7 @@ app.openapi(
     method: 'get',
     path: '/errors',
     tags: ['admin', 'observability'],
-    summary: 'List error events (admin-only)',
+    summary: 'List error events (fleet operator only)',
     request: { query: PaginationQuery },
     responses: {
       200: {
@@ -213,7 +206,7 @@ app.openapi(
     },
   }),
   async (c) => {
-    requireAdmin(c.get('user'));
+    requireFleetOperator(c.get('user'));
 
     const { limit, offset } = c.req.valid('query');
     const db = c.get('db') ?? getClient();
@@ -346,7 +339,7 @@ app.openapi(
     method: 'get',
     path: '/audit',
     tags: ['admin', 'observability'],
-    summary: 'List audit log entries (admin-only)',
+    summary: 'List audit log entries (fleet operator only)',
     request: { query: AuditQuery },
     responses: {
       200: {
@@ -362,7 +355,7 @@ app.openapi(
   }),
   async (c) => {
     const user = c.get('user');
-    requireAdmin(user);
+    requireFleetOperator(user);
 
     const { limit, offset, severity, agentId, eventType, dateFrom, dateTo, policyViolationId } =
       c.req.valid('query');
@@ -467,7 +460,7 @@ function csvEscape(value: unknown): string {
 
 app.get('/audit/export', async (c) => {
   const user = c.get('user');
-  requireAdmin(user);
+  requireFleetOperator(user);
 
   const parsed = AuditExportQuery.safeParse(Object.fromEntries(new URL(c.req.url).searchParams));
   if (!parsed.success) {
@@ -619,7 +612,7 @@ app.openapi(
     method: 'get',
     path: '/webhooks',
     tags: ['admin', 'observability'],
-    summary: 'List processed webhook events (admin-only)',
+    summary: 'List processed webhook events (fleet operator only)',
     request: { query: WebhooksQuery },
     responses: {
       200: {
@@ -634,7 +627,7 @@ app.openapi(
     },
   }),
   async (c) => {
-    requireAdmin(c.get('user'));
+    requireFleetOperator(c.get('user'));
 
     const { limit, offset, eventType } = c.req.valid('query');
     const db = c.get('db') ?? getClient();
@@ -705,7 +698,7 @@ app.openapi(
     method: 'get',
     path: '/jobs',
     tags: ['admin', 'observability'],
-    summary: 'List durable-queue jobs (admin-only)',
+    summary: 'List durable-queue jobs (fleet operator only)',
     description:
       'Paginated view of the `jobs` table. Filterable by state (created/active/completed/failed/retry) and by handler name. Ordered newest-created first.',
     request: { query: JobsQuery },
@@ -722,7 +715,7 @@ app.openapi(
     },
   }),
   async (c) => {
-    requireAdmin(c.get('user'));
+    requireFleetOperator(c.get('user'));
 
     const { limit, offset, state, name } = c.req.valid('query');
     const db = c.get('db') ?? getClient();
@@ -808,7 +801,7 @@ app.openapi(
     method: 'get',
     path: '/jobs/summary',
     tags: ['admin', 'observability'],
-    summary: 'Durable-queue aggregate stats (admin-only)',
+    summary: 'Durable-queue aggregate stats (fleet operator only)',
     description:
       'Returns: current depth by state, per-handler counts over the last 24 hours (completed / failed / running), and the 10 most-recent failures. Intended for the admin jobs dashboard header.',
     responses: {
@@ -824,7 +817,7 @@ app.openapi(
     },
   }),
   async (c) => {
-    requireAdmin(c.get('user'));
+    requireFleetOperator(c.get('user'));
     const db = c.get('db') ?? getClient();
 
     const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);

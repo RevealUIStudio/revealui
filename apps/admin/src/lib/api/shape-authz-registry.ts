@@ -40,17 +40,17 @@ export const SHAPE_AUTHZ_REGISTRY: Readonly<Record<string, ShapeAuthzEntry>> = {
   'agent-memories': {
     table: 'agent_memories',
     scope: 'site_member',
-    enforcement: 'admin: agent_id; non-admin: site access + agent_id AND site_id',
+    enforcement: 'operator: agent_id; others: site access + agent_id AND site_id',
   },
   'coordination-sessions': {
     table: 'coordination_sessions',
     scope: 'admin_platform',
-    enforcement: 'isAdminRole full-table',
+    enforcement: 'isFleetOperator full-table',
   },
   'coordination-work-items': {
     table: 'coordination_work_items',
     scope: 'admin_platform',
-    enforcement: 'isAdminRole full-table',
+    enforcement: 'isFleetOperator full-table',
   },
   'shared-facts': {
     table: 'shared_facts',
@@ -65,7 +65,8 @@ export const SHAPE_AUTHZ_REGISTRY: Readonly<Record<string, ShapeAuthzEntry>> = {
   'yjs-documents': {
     table: 'yjs_documents',
     scope: 'acl_resource',
-    enforcement: 'admin: id where; owner: id AND owner_id = session user; null owner = admin-only',
+    enforcement:
+      'operator: id where; others: id AND owner_id = session user; null owner = operator-only',
   },
   'yjs-document-patches': {
     table: 'yjs_document_patches',
@@ -75,17 +76,17 @@ export const SHAPE_AUTHZ_REGISTRY: Readonly<Record<string, ShapeAuthzEntry>> = {
   'kg-nodes': {
     table: 'kg_nodes',
     scope: 'admin_platform',
-    enforcement: 'isAdminRole + optional repo where (fleet graph)',
+    enforcement: 'isFleetOperator + optional repo where (fleet graph)',
   },
   'kg-edges': {
     table: 'kg_edges',
     scope: 'admin_platform',
-    enforcement: 'isAdminRole + optional repo where (fleet graph)',
+    enforcement: 'isFleetOperator + optional repo where (fleet graph)',
   },
   'kg-edge-episodes': {
     table: 'kg_edge_episodes',
     scope: 'admin_platform',
-    enforcement: 'isAdminRole (join table; no ownership column)',
+    enforcement: 'isFleetOperator (join table; no ownership column)',
   },
   'kg-views': {
     table: 'yjs_documents',

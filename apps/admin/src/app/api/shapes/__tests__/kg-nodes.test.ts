@@ -52,7 +52,7 @@ const mockSession = {
     password: null,
     role: 'admin',
     status: 'active',
-    emailVerified: false,
+    emailVerified: true,
     emailVerificationToken: null,
     emailVerifiedAt: null,
     mfaEnabled: false,
@@ -64,6 +64,16 @@ const mockSession = {
     createdAt: new Date(),
     updatedAt: new Date(),
     lastActiveAt: null,
+    _json: {},
+  },
+};
+
+const fleetOperatorSession = {
+  ...mockSession,
+  user: {
+    ...mockSession.user,
+    emailVerified: true,
+    _json: { roles: ['super-admin'] },
   },
 };
 
@@ -96,8 +106,27 @@ describe('GET /api/shapes/kg-nodes', () => {
     expect(response.status).toBe(403);
   });
 
-  it('proxies with no where clause when repo is omitted', async () => {
+  it('returns 403 for a hosted CMS admin (not fleet operator)', async () => {
     mockGetSession.mockResolvedValue(mockSession);
+
+    const request = new NextRequest('http://localhost:3000/api/shapes/kg-nodes');
+    const response = await GET(request);
+    expect(response.status).toBe(403);
+  });
+
+  it('returns 403 for a hosted account owner', async () => {
+    mockGetSession.mockResolvedValue({
+      ...mockSession,
+      user: { ...mockSession.user, role: 'owner', _json: {} },
+    });
+
+    const request = new NextRequest('http://localhost:3000/api/shapes/kg-nodes');
+    const response = await GET(request);
+    expect(response.status).toBe(403);
+  });
+
+  it('proxies with no where clause when repo is omitted', async () => {
+    mockGetSession.mockResolvedValue(fleetOperatorSession);
     const { prepareElectricUrl, proxyElectricRequest } = await import('@/lib/api/electric-proxy');
 
     const request = new NextRequest('http://localhost:3000/api/shapes/kg-nodes');
@@ -112,7 +141,7 @@ describe('GET /api/shapes/kg-nodes', () => {
   });
 
   it('proxies filtered by repo when a valid repo is supplied', async () => {
-    mockGetSession.mockResolvedValue(mockSession);
+    mockGetSession.mockResolvedValue(fleetOperatorSession);
     const { prepareElectricUrl } = await import('@/lib/api/electric-proxy');
 
     const request = new NextRequest('http://localhost:3000/api/shapes/kg-nodes?repo=revealui');
@@ -124,7 +153,7 @@ describe('GET /api/shapes/kg-nodes', () => {
   });
 
   it('accepts dotted repo names like .jv', async () => {
-    mockGetSession.mockResolvedValue(mockSession);
+    mockGetSession.mockResolvedValue(fleetOperatorSession);
     const { prepareElectricUrl } = await import('@/lib/api/electric-proxy');
 
     const request = new NextRequest('http://localhost:3000/api/shapes/kg-nodes?repo=.jv');
@@ -136,7 +165,7 @@ describe('GET /api/shapes/kg-nodes', () => {
   });
 
   it('rejects a repo value carrying a quote (injection attempt)', async () => {
-    mockGetSession.mockResolvedValue(mockSession);
+    mockGetSession.mockResolvedValue(fleetOperatorSession);
 
     const request = new NextRequest(
       "http://localhost:3000/api/shapes/kg-nodes?repo=revealui' OR '1'='1",
@@ -149,7 +178,7 @@ describe('GET /api/shapes/kg-nodes', () => {
   });
 
   it('rejects a repo value with whitespace or slashes', async () => {
-    mockGetSession.mockResolvedValue(mockSession);
+    mockGetSession.mockResolvedValue(fleetOperatorSession);
 
     const request = new NextRequest(
       `http://localhost:3000/api/shapes/kg-nodes?repo=${encodeURIComponent('reveal/ui')}`,
