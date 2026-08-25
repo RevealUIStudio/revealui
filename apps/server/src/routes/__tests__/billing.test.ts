@@ -316,6 +316,7 @@ describe('POST /checkout', () => {
     expect(res.status).toBe(200);
     const body = (await res.json()) as Record<string, unknown>;
     expect(body.url).toBe('https://checkout.stripe.com/pay/sess_abc');
+    expect(new URL(String(body.url)).hostname).toBe('checkout.stripe.com');
 
     // Should have created a new Stripe customer
     expect(mockCustomersCreate).toHaveBeenCalledOnce();
