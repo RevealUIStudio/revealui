@@ -1,4 +1,4 @@
-import { BuiltWithRevealUI, CookieSettingsButton, GitHubIcon } from '@revealui/presentation';
+import { CookieSettingsButton, GitHubIcon } from '@revealui/presentation';
 import {
   FOOTER_LEGAL,
   FOOTER_LEGAL_LINKS,
@@ -14,10 +14,6 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-3">
-            <div className="flex items-center gap-2.5 font-display text-2xl font-bold tracking-tight text-foreground">
-              <img src="/icon-mark.svg" alt="" aria-hidden="true" className="h-7 w-7" />
-              {SITE.brand}
-            </div>
             <p className="max-w-sm text-sm leading-6 text-body">{FOOTER_TAGLINE}</p>
             <a
               href={SITE.urls.repo}
@@ -43,30 +39,27 @@ export function Footer() {
           </ul>
         </div>
 
-        <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-sm text-muted-foreground sm:flex-row">
-          <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-start">
-            <p>
-              &copy; {currentYear} RevealUI is operated by{' '}
-              <a
-                href={FOOTER_LEGAL.operatorHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline-offset-4 transition-colors hover:text-foreground hover:underline"
-              >
-                {FOOTER_LEGAL.operator}
-              </a>{' '}
-              ({FOOTER_LEGAL.jurisdiction}). All rights reserved.
-            </p>
-            <BuiltWithRevealUI size="sm" />
-          </div>
-          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+        <div className="mt-14 flex flex-col gap-3 border-t border-border pt-8 text-sm text-muted-foreground">
+          <p>
+            &copy; {currentYear}{' '}
+            <a
+              href={FOOTER_LEGAL.operatorHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline-offset-4 transition-colors hover:text-foreground hover:underline"
+            >
+              {FOOTER_LEGAL.operator}
+            </a>{' '}
+            ({FOOTER_LEGAL.jurisdiction}).
+          </p>
+          <p className="flex flex-wrap items-center gap-x-4 gap-y-2">
             {FOOTER_LEGAL_LINKS.map(({ label, href }) => (
               <a key={label} href={href} className="transition-colors hover:text-foreground">
                 {label}
               </a>
             ))}
             <CookieSettingsButton className="transition-colors hover:text-foreground" />
-          </div>
+          </p>
         </div>
       </div>
     </footer>

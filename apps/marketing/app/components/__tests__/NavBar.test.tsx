@@ -117,6 +117,14 @@ describe('NavBar (marketing)', () => {
     expect(home).toHaveAttribute('aria-current', 'page');
   });
 
+  it('keeps the nav logo-only with no visible product wordmark', () => {
+    renderNavBar();
+    const nav = screen.getByRole('navigation', { name: 'Primary' });
+    expect(nav).not.toHaveTextContent('RevealUI');
+    expect(nav).not.toHaveTextContent('RevealUI Studio');
+    expect(screen.getByRole('link', { name: 'RevealUI' })).toBeInTheDocument();
+  });
+
   it('marks the active desktop route with aria-current=page', () => {
     window.history.pushState({}, '', '/pricing');
     renderNavBar();

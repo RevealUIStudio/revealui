@@ -64,13 +64,19 @@ describe('public product catalog routes', () => {
     forbiddenOnPublicRoutes(container);
   });
 
-  it('footer is Docs, Pricing, Support, Legal', () => {
+  it('footer is Docs, Pricing, Support plus a one-line legal strip', () => {
     renderRouted(<HomePage />);
     const footer = screen.getByRole('contentinfo');
     expect(footer.textContent ?? '').toContain('Docs');
     expect(footer.textContent ?? '').toContain('Pricing');
     expect(footer.textContent ?? '').toContain('Support');
-    expect(footer.textContent ?? '').toContain('Legal');
+    expect(footer.textContent ?? '').not.toContain('Legal');
+    expect(footer.textContent ?? '').toContain('Privacy');
+    expect(footer.textContent ?? '').toContain('Cookies');
+    expect(footer.textContent ?? '').toContain('Terms');
+    expect(footer.textContent ?? '').toContain('Refund');
+    expect(footer.textContent ?? '').toContain('REVEALUI STUDIO L.L.C.');
+    expect(footer.textContent ?? '').not.toContain('Built with RevealUI');
     expect(footer.textContent ?? '').not.toContain('HIPAA');
     expect(footer.textContent ?? '').not.toContain('Products');
     expect(footer.textContent ?? '').not.toContain('Services');
