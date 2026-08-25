@@ -99,6 +99,15 @@ describe('UpgradePage', () => {
     expect(screen.getByText(/Upgrade to unlock more features/)).toBeInTheDocument();
   });
 
+  it('does not advertise leftover Free agent-task quotas', () => {
+    mockUseLicense.mockReturnValue({ tier: 'free' });
+    render(<UpgradePage />);
+    const agentTasksRow = screen.getByText('Agent Tasks/mo').closest('tr');
+    expect(agentTasksRow).toBeTruthy();
+    expect(agentTasksRow?.textContent).not.toMatch(/1,000/);
+    expect(agentTasksRow?.textContent).toMatch(/Not included/);
+  });
+
   it('renders the honest Pro license price ($49/mo) from the licenses catalog', async () => {
     mockUseLicense.mockReturnValue({ tier: 'free' });
     render(<UpgradePage />);

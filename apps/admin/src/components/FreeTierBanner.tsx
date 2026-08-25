@@ -40,8 +40,8 @@ export function FreeTierBanner({ isHosted }: FreeTierBannerProps) {
   return (
     <div className="mb-4 flex items-center justify-between gap-x-6 rounded-lg bg-primary px-5 py-2.5 text-sm text-primary-foreground">
       <p>
-        You&apos;re on the <span className="font-semibold">Free plan</span>. 3 users and 1,000 agent
-        tasks/month.{' '}
+        You&apos;re on the <span className="font-semibold">Free plan</span>. 3 users. Local AI
+        (Ollama) is included.{' '}
         {isHosted ? (
           <Link
             href="/account/billing?upgrade=pro"
