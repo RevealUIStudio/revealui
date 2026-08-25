@@ -81,6 +81,17 @@ describe('DocLayout', () => {
     expect(screen.getByText('revealui.com')).toBeInTheDocument();
   });
 
+  it('does not render marketing CTAs in the docs chrome', () => {
+    render(
+      <DocLayout>
+        <div>Content</div>
+      </DocLayout>,
+    );
+
+    expect(screen.queryByRole('link', { name: 'Start free' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Book an intro' })).toBeNull();
+  });
+
   it('should highlight the active nav link based on current path', () => {
     render(
       <DocLayout>
