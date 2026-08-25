@@ -8,9 +8,11 @@ import {
   getTierColor,
   getTierLabel,
   getTiersFromCurrent,
+  isPublicPerpetualCatalogName,
   type LicenseTierId,
   PERPETUAL_TIERS,
   type PricingResponse,
+  PUBLIC_PERPETUAL_NAMES,
   parsePerpetualLicenseSku,
   perpetualLicenseCheckoutPath,
   perpetualLicenseCheckoutTier,
@@ -191,6 +193,15 @@ describe('CREDIT_BUNDLES', () => {
 // =============================================================================
 // PERPETUAL_TIERS
 // =============================================================================
+
+describe('PUBLIC_PERPETUAL_NAMES', () => {
+  it('exposes Pro and Enterprise on the public catalog, not Agency', () => {
+    expect(PUBLIC_PERPETUAL_NAMES).toEqual(['Pro Perpetual', 'Enterprise Perpetual']);
+    expect(isPublicPerpetualCatalogName('Pro Perpetual')).toBe(true);
+    expect(isPublicPerpetualCatalogName('Enterprise Perpetual')).toBe(true);
+    expect(isPublicPerpetualCatalogName('Agency Perpetual')).toBe(false);
+  });
+});
 
 describe('PERPETUAL_TIERS', () => {
   it('has 3 perpetual tiers', () => {

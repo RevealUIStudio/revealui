@@ -6,7 +6,10 @@
  */
 
 import {
+  allowsUnattendedCheckout,
   CREDIT_BUNDLES,
+  isPublicPerpetualCatalogName,
+  type LicenseTierId,
   PERPETUAL_TIERS,
   type PricingResponse,
   type ServiceOffering,
@@ -51,7 +54,7 @@ const HARDCODED_SUBSCRIPTION_PRICES: Record<string, { price: string; period?: st
   free: { price: '$0' },
   pro: { price: '$49', period: '/month' },
   max: { price: '$299', period: '/month' },
-  enterprise: { price: '$1,499', period: '/month' },
+  // Enterprise is inquire-only on the public catalog — no monthly unit amount.
 };
 
 // Annual prices are the cents-of-record from the Stripe CATALOG. Included in
@@ -63,13 +66,11 @@ const HARDCODED_ANNUAL_SUBSCRIPTION_PRICES: Record<
 > = {
   pro: { annualPrice: '$470', annualPeriod: '/year' },
   max: { annualPrice: '$2,870', annualPeriod: '/year' },
-  enterprise: { annualPrice: '$14,390', annualPeriod: '/year' },
 };
 
 const ANNUAL_PRICE_ENV_GUARDS: Record<string, string> = {
   pro: 'STRIPE_PRO_ANNUAL_PRICE_ID',
   max: 'STRIPE_MAX_ANNUAL_PRICE_ID',
-  enterprise: 'STRIPE_ENTERPRISE_ANNUAL_PRICE_ID',
 };
 
 const HARDCODED_CREDIT_PRICES: [string, { price: string; priceNote: string; costPer: string }][] = [
@@ -87,11 +88,7 @@ const HARDCODED_PERPETUAL_PRICES: Record<
     priceNote: 'one-time',
     renewal: '$149/yr for continued support',
   },
-  'Agency Perpetual': {
-    price: '$8,499',
-    priceNote: 'one-time',
-    renewal: '$799/yr for continued support',
-  },
+  // Agency Perpetual ($8,499) is not a public catalog SKU.
   // 'Enterprise Perpetual' is the post-rename canonical name per
   // brand-naming ADR (2026-05-03-revfleet-rename.md). The contracts file
   // ships this name; the server fallback now matches. marketing-overhaul
@@ -237,8 +234,17 @@ async function fetchStripePrices(): Promise<StripeProductMap | null> {
   }
 }
 
+function isInquireOnlySubscription(tierId: string): boolean {
+  return tierId !== 'free' && !allowsUnattendedCheckout(tierId as LicenseTierId);
+}
+
 function buildPricingResponse(stripePrices: StripeProductMap | null): PricingResponse {
   const subscriptions = SUBSCRIPTION_TIERS.map((tier) => {
+    // Enterprise stays in the catalog as contact-sales / inquire — no monthly
+    // unit amount, even if Stripe or FALLBACK_PRICING_JSON still list $1,499.
+    if (isInquireOnlySubscription(tier.id)) {
+      return { ...tier };
+    }
     const stripePrice = stripePrices?.subscriptions.get(tier.id);
     const fallback = FALLBACK_SUBSCRIPTION_PRICES[tier.id];
     const annualGuardEnv = ANNUAL_PRICE_ENV_GUARDS[tier.id];
@@ -255,11 +261,13 @@ function buildPricingResponse(stripePrices: StripeProductMap | null): PricingRes
     return { ...bundle, ...(stripePrice ?? fallback) };
   });
 
-  const perpetual = PERPETUAL_TIERS.map((tier) => {
-    const stripePrice = stripePrices?.perpetual.get(tier.name);
-    const fallback = FALLBACK_PERPETUAL_PRICES[tier.name];
-    return { ...tier, ...(stripePrice ?? fallback) };
-  });
+  const perpetual = PERPETUAL_TIERS.filter((tier) => isPublicPerpetualCatalogName(tier.name)).map(
+    (tier) => {
+      const stripePrice = stripePrices?.perpetual.get(tier.name);
+      const fallback = FALLBACK_PERPETUAL_PRICES[tier.name];
+      return { ...tier, ...(stripePrice ?? fallback) };
+    },
+  );
 
   // Services intentionally returned as empty array pending fulfillment infrastructure.
   // FOUNDER_SERVICE_OFFERINGS still exports 4 offerings from @revealui/contracts, but they are NOT

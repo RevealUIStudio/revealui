@@ -285,9 +285,10 @@ describe('GET /api/pricing  -  missing metadata fields', () => {
     const res = await freshApp.request('/');
     const data = await res.json();
 
-    // Enterprise should be enriched; Widget (unknown track) silently ignored
+    // Enterprise stays inquire-only; Widget (unknown track) silently ignored
     const enterprise = data.subscriptions.find((t: { id: string }) => t.id === 'enterprise');
-    expect(enterprise.price).toBe('$1499');
+    expect(enterprise.price).toBeUndefined();
+    expect(enterprise.cta).toBe('Contact sales');
     // Subscriptions should still return 4 tiers
     expect(data.subscriptions).toHaveLength(4);
   });
@@ -336,9 +337,9 @@ describe('GET /api/pricing  -  formatPrice edge values', () => {
     mockProductsList.mockResolvedValue({
       data: [
         {
-          name: 'Enterprise',
-          metadata: { revealui_track: 'subscription', revealui_tier: 'enterprise' },
-          default_price: { unit_amount: 149900, recurring: { interval: 'month' } },
+          name: 'Pro Perpetual',
+          metadata: { revealui_track: 'perpetual', revealui_tier: 'pro_perpetual' },
+          default_price: { unit_amount: 149900 },
         },
       ],
     });
@@ -346,9 +347,8 @@ describe('GET /api/pricing  -  formatPrice edge values', () => {
     const res = await freshApp.request('/');
     const data = await res.json();
 
-    const enterprise = data.subscriptions.find((t: { id: string }) => t.id === 'enterprise');
-    expect(enterprise.price).toBe('$1499');
-    expect(enterprise.period).toBe('/month');
+    const proPerpetual = data.perpetual.find((t: { name: string }) => t.name === 'Pro Perpetual');
+    expect(proPerpetual.price).toBe('$1499');
   });
 
   it('formats period as /year for annually-billed subscriptions', async () => {

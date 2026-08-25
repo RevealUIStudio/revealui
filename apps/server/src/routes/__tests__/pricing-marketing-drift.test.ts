@@ -59,7 +59,7 @@ const CANONICAL_SUBSCRIPTION_PRICES = {
   free: { price: '$0', period: undefined },
   pro: { price: '$49', period: '/month' },
   max: { price: '$299', period: '/month' },
-  enterprise: { price: '$1,499', period: '/month' },
+  enterprise: { price: undefined, period: undefined },
 } as const;
 
 const CANONICAL_CREDIT_PRICES = {
@@ -73,11 +73,6 @@ const CANONICAL_PERPETUAL_PRICES = {
     price: '$1,499',
     priceNote: 'one-time',
     renewal: '$149/yr for continued support',
-  },
-  'Agency Perpetual': {
-    price: '$8,499',
-    priceNote: 'one-time',
-    renewal: '$799/yr for continued support',
   },
   'Enterprise Perpetual': {
     price: '$42,999',
@@ -179,10 +174,14 @@ describe('Pricing Marketing Drift — fallback prices match docs/MARKETING_METRI
       const ANNUAL_PRICES: Record<string, { annualPrice: string; annualPeriod: string }> = {
         pro: { annualPrice: '$470', annualPeriod: '/year' },
         max: { annualPrice: '$2,870', annualPeriod: '/year' },
-        enterprise: { annualPrice: '$14,390', annualPeriod: '/year' },
       };
 
       for (const tier of body.subscriptions) {
+        if (tier.id === 'enterprise') {
+          expect(tier.annualPrice, 'Enterprise stays inquire-only').toBeUndefined();
+          expect(tier.annualPeriod, 'Enterprise stays inquire-only').toBeUndefined();
+          continue;
+        }
         const expected = ANNUAL_PRICES[tier.id];
         if (!expected) continue; // free tier — no annual price
         expect(tier.annualPrice, `Tier ${tier.id} annualPrice`).toBe(expected.annualPrice);

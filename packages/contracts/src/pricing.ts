@@ -510,6 +510,16 @@ export function allowsUnattendedCheckout(tier: LicenseTierId): boolean {
 }
 
 /**
+ * Public catalog perpetual names for GET /api/pricing and /pricing.
+ * Agency Perpetual remains a checkout SKU but is not a public catalog SKU.
+ */
+export const PUBLIC_PERPETUAL_NAMES = ['Pro Perpetual', 'Enterprise Perpetual'] as const;
+
+export function isPublicPerpetualCatalogName(name: string): boolean {
+  return (PUBLIC_PERPETUAL_NAMES as readonly string[]).includes(name);
+}
+
+/**
  * Public perpetual SKU on marketing → admin signup (`?license=`).
  * Distinct from subscription `?plan=` so a Buy click cannot start a trial.
  * Agency maps to checkout tier `max` (Agency Perpetual is Max-tier).

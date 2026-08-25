@@ -6,6 +6,7 @@
 export {
   PERPETUAL_TIERS,
   type PricingResponse,
+  PUBLIC_PERPETUAL_NAMES,
   SUBSCRIPTION_TIERS,
 } from '@revealui/contracts/pricing';
 
@@ -62,9 +63,6 @@ export const PRICING_TRACK_C_SECTION = {
   heading: 'Perpetual Licenses',
   body: 'A perpetual license costs about three years of the subscription. Pay once, own it forever, and renew support only if you want it.',
 } as const;
-
-/** Public perpetual cards: Pro is self-serve; Enterprise is a license inquiry. Agency Perpetual is not sold here. */
-export const PUBLIC_PERPETUAL_NAMES = ['Pro Perpetual', 'Enterprise Perpetual'] as const;
 
 export const PRICING_AGENTS_SECTION = {
   eyebrow: 'Agent-Native',
