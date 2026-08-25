@@ -1,85 +1,27 @@
 /**
  * MCP Tool Adapter
  *
- * Bridges MCP (Model Context Protocol) servers to the tool system.
+ * Bridges MCP (Model Context Protocol) servers to the agent tool system.
  *
- * Two paths:
+ * Consumers construct an `McpClient` from `@revealui/mcp/client` against stdio
+ * or Streamable HTTP, and pass it to `createToolsFromMcpClient()` (or to
+ * `AgentRuntime` via `mcpClients`). That is the only agent-side mount: tools,
+ * resources, prompts, sampling, elicitation.
  *
- *   1. **Standard MCP client** (Stage 5.1a, preferred) — consumers construct an
- *      `McpClient` from `@revealui/mcp/client` against stdio or Streamable HTTP,
- *      and pass it to `createToolsFromMcpClient()` (or to `AgentRuntime` via
- *      `mcpClients`). This is the full-protocol path: future stages will extend
- *      this to resources, prompts, sampling, elicitation, etc.
+ * Structurally typed — `@revealui/ai` has no runtime dependency on
+ * `@revealui/mcp`. Consumers satisfy `McpClientLike`.
  *
- *   2. **Hypervisor** (legacy, pre-5.1a) — consumers pass an `MCPHypervisor` (or
- *      any `MCPToolSource`) to `discoverMCPTools()`. Kept for backwards compat;
- *      deprecated in favor of path (1). The hypervisor still owns server-side
- *      subprocess + tenant-scoping concerns and isn't going away.
- *
- * Both paths are deliberately **structurally typed** — `@revealui/ai` has no
- * runtime dependency on `@revealui/mcp`. Consumers satisfy the shapes
- * `McpClientLike` / `MCPToolSource` with whichever client they construct.
+ * Process-local MCP server spawn and tenant scoping live on `MCPHypervisor`
+ * in `@revealui/mcp`. That is not an agent tool adapter: connect those
+ * processes with a real `McpClient` and call `createToolsFromMcpClient`.
  */
 
 import { z } from 'zod/v4';
 import type { Tool, ToolResult } from './base.js';
 import { emitMcpEvent, type McpEventSink, type McpToolCallEvent } from './mcp-events.js';
 
-/** One-time process warning for the hypervisor MCP tool path (REMOVE-BY ai@1.0.0). */
-let hypervisorPathWarned = false;
-
-export function warnHypervisorMcpPathDeprecated(site: string): void {
-  if (hypervisorPathWarned) return;
-  hypervisorPathWarned = true;
-  process.emitWarning(
-    `@revealui/ai: ${site} is deprecated. Prefer mcpClients / createToolsFromMcpClient (Stage 5.1a). ` +
-      'REMOVE-BY: @revealui/ai 1.0.0. See packages/ai/src/tools/mcp-adapter.ts.',
-    'DeprecationWarning',
-    'REVEALUI_AI_MCP_HYPERVISOR_DEPRECATED',
-  );
-}
-
-/** Test-only: reset the one-time deprecation warn latch. */
-export function resetHypervisorMcpPathWarningForTests(): void {
-  hypervisorPathWarned = false;
-}
-
-export interface MCPTool {
-  name: string;
-  description: string;
-  inputSchema: {
-    type: 'object';
-    properties: Record<string, unknown>;
-    required?: string[];
-  };
-}
-
-export interface MCPClient {
-  listTools(): Promise<MCPTool[]>;
-  callTool(name: string, args: unknown): Promise<unknown>;
-}
-
-/**
- * Interface for an MCP tool source (e.g. MCPHypervisor from @revealui/mcp).
- * Using an interface here keeps @revealui/ai decoupled from @revealui/mcp.
- *
- * @deprecated Prefer `McpClientLike` + `createToolsFromMcpClient()` (Stage 5.1a).
- *   The hypervisor path doesn't expose the full MCP protocol surface (resources,
- *   prompts, sampling, elicitation). The typed-client path does.
- *
- * **Removal owner:** product AI runtime (agent-stream already uses `mcpClients`).
- * **REMOVE-BY:** `@revealui/ai` 1.0.0 — delete `MCPToolSource`, `discoverMCPTools`,
- * and `AgentRuntime` `mcpToolSource` once no external kit still calls them
- * (grep product + published examples in the same PR). Until then this path is
- * retained for external SDK compatibility only.
- */
-export interface MCPToolSource {
-  getAllTools(): Array<{ namespacedName: string; serverName: string; tool: MCPTool }>;
-  callTool(serverName: string, toolName: string, args: unknown): Promise<unknown>;
-}
-
 // ---------------------------------------------------------------------------
-// Stage 5.1a — standard MCP client path
+// Standard MCP client path
 // ---------------------------------------------------------------------------
 
 /**
@@ -728,49 +670,6 @@ function extractErrorText(result: McpCallToolResultLike): string {
 }
 
 /**
- * Create a Tool from an MCP tool definition
- */
-export function createToolFromMCP(mcpTool: MCPTool, mcpClient: MCPClient): Tool {
-  // Convert JSON Schema to Zod schema (simplified)
-  const zodSchema = jsonSchemaToZod(mcpTool.inputSchema);
-
-  return {
-    name: mcpTool.name,
-    description: mcpTool.description,
-    parameters: zodSchema,
-    execute: async (params: unknown): Promise<ToolResult> => {
-      try {
-        const result = await mcpClient.callTool(mcpTool.name, params);
-        return {
-          success: true,
-          data: result,
-        };
-      } catch (error) {
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : String(error),
-        };
-      }
-    },
-  };
-}
-
-/**
- * Register all MCP tools in the registry
- */
-export async function registerMCPTools(
-  mcpClient: MCPClient,
-  registry: { register(tool: Tool): void },
-): Promise<void> {
-  const tools = await mcpClient.listTools();
-
-  for (const mcpTool of tools) {
-    const tool = createToolFromMCP(mcpTool, mcpClient);
-    registry.register(tool);
-  }
-}
-
-/**
  * Serialize an MCP tool result safely:
  * - bigint values → string (JSON.stringify fails on bigint)
  * - Circular references → replaced with "[Circular]"
@@ -788,104 +687,6 @@ export function serializeMCPResult(value: unknown): unknown {
   }
 
   return JSON.parse(JSON.stringify(value, replacer));
-}
-
-/** Options for the legacy hypervisor discovery path (GAP-355 integrity). */
-export interface DiscoverMCPToolsOptions {
-  /**
-   * Integrity audit hook (awaited, fail-closed on success). Same contract as
-   * `createToolsFromMcpClient({ onToolAudit })`. `namespace` on the event is
-   * the MCP server name from the hypervisor source.
-   */
-  onToolAudit?: (event: McpToolCallEvent) => void | Promise<void>;
-}
-
-/**
- * Discover all tools from a running MCPHypervisor (or any MCPToolSource)
- * and return them as RevealUI Tool instances.
- *
- * Tool names use the hypervisor's namespacing (@@mcp_{server}_{tool}) so
- * collisions across servers are impossible.
- *
- * @deprecated Prefer `createToolsFromMcpClient` (Stage 5.1a). Kept for
- *   AgentRuntime `mcpToolSource` compatibility.
- *   **REMOVE-BY:** `@revealui/ai` 1.0.0 (same train as `MCPToolSource`).
- *
- * @example
- * ```typescript
- * import { MCPHypervisor } from '@revealui/mcp'
- * import { discoverMCPTools } from '@revealui/ai'
- *
- * const hypervisor = MCPHypervisor.getInstance()
- * const tools = discoverMCPTools(hypervisor, { onToolAudit })
- * agent.tools.push(...tools)
- * ```
- */
-export function discoverMCPTools(source: MCPToolSource, options?: DiscoverMCPToolsOptions): Tool[] {
-  warnHypervisorMcpPathDeprecated('discoverMCPTools() / MCPToolSource');
-  return source.getAllTools().map(({ namespacedName, serverName, tool }) => {
-    const zodSchema = jsonSchemaToZod(tool.inputSchema);
-
-    const agentTool: Tool = {
-      name: namespacedName,
-      description: tool.description,
-      parameters: zodSchema,
-
-      async execute(params: unknown): Promise<ToolResult> {
-        // Validate params against the schema
-        const validated = zodSchema.parse(params);
-        const started = Date.now();
-        let toolSucceeded = false;
-        let payload: unknown;
-        let errorText: string | undefined;
-
-        try {
-          payload = await source.callTool(serverName, tool.name, validated);
-          toolSucceeded = true;
-        } catch (error) {
-          errorText = error instanceof Error ? error.message : String(error);
-        }
-
-        const event: McpToolCallEvent = {
-          kind: 'mcp.tool.call',
-          namespace: serverName,
-          toolName: tool.name,
-          duration_ms: Date.now() - started,
-          success: toolSucceeded,
-          ...(errorText !== undefined ? { error: errorText } : {}),
-        };
-
-        if (toolSucceeded) {
-          // Integrity outside the RPC try so audit throws fail closed.
-          if (options?.onToolAudit) {
-            await options.onToolAudit(event);
-          }
-          return {
-            success: true,
-            data: serializeMCPResult(payload),
-          };
-        }
-
-        if (options?.onToolAudit) {
-          try {
-            await options.onToolAudit(event);
-          } catch {
-            // Prefer the tool failure over a secondary audit failure.
-          }
-        }
-        return {
-          success: false,
-          error: errorText ?? 'Tool failed',
-        };
-      },
-
-      getMetadata() {
-        return { category: 'mcp', version: '1.0.0' };
-      },
-    };
-
-    return agentTool;
-  });
 }
 
 /**
