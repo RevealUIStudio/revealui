@@ -240,6 +240,8 @@ describe('UpgradeDialog', () => {
         }),
       );
     });
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(String(init.body))).toEqual({ tier: 'pro' });
 
     vi.unstubAllGlobals();
   });

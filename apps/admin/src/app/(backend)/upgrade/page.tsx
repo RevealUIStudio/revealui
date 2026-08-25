@@ -19,6 +19,7 @@ import { useLicense } from '@/lib/providers/LicenseProvider';
 import { apiFetch } from '@/lib/utils/csrf';
 import { mergeLicenseSubscriptionPrices } from '@/lib/utils/license-subscription-prices';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
+import { subscriptionCheckoutBody } from '@/lib/utils/subscription-checkout';
 
 function adminApiOrigin(): string {
   return (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
@@ -68,19 +69,15 @@ export default function UpgradePage() {
         return;
       }
 
-      const priceIdMap: Record<string, string | undefined> = {
-        pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
-        max: process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID,
-      };
-      const priceId = priceIdMap[nextTierId];
+      if (nextTierId !== 'pro' && nextTierId !== 'max') {
+        window.location.href = `/account/billing?upgrade=${nextTierId}`;
+        return;
+      }
       const res = await apiFetch(`${apiUrl}/api/billing/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          ...(priceId && { priceId }),
-          tier: nextTierId,
-        }),
+        body: JSON.stringify(subscriptionCheckoutBody(nextTierId)),
       });
 
       if (res.status === 401) {

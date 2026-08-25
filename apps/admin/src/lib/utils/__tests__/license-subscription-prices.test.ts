@@ -6,7 +6,8 @@ import {
 } from '../license-subscription-prices';
 
 describe('LICENSE_SUBSCRIPTION_PRICE_FALLBACKS', () => {
-  it('keeps the Pro license price at $49/mo', () => {
+  it('keeps Pro at the server catalog amount (4900 cents → $49/mo)', () => {
+    // scripts/setup/stripe-catalog.ts revealui_pro_monthly.unitAmount = 4900
     expect(LICENSE_SUBSCRIPTION_PRICE_FALLBACKS.pro.price).toBe('$49');
     expect(LICENSE_SUBSCRIPTION_PRICE_FALLBACKS.pro.period).toBe('/mo');
   });
