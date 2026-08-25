@@ -1,51 +1,54 @@
-# RevealUI monorepo (Grok project rules)
+# Monorepo Conventions
 
-Public agent entrypoint remains root `AGENTS.md` / `CLAUDE.md`. This file is Grok-native add-on only.
+## Structure
+- Apps live in `apps/`  -  deployable services (Next.js, Hono, Vite)
+- Packages live in `packages/`  -  shared libraries consumed by apps
+- Scripts live in `scripts/`  -  CLI tools, automation, CI gates
 
-## Layout
+## Package Manager
+- pnpm 10 with workspace protocol
+- Internal deps use `workspace:*` (never hardcoded versions)
+- Run `pnpm install:clean` (suppresses Node deprecation warnings)
+- `preinstall` script enforces pnpm-only (`npx only-allow pnpm`)
 
-- `apps/server` — Hono API `:3004`
-- `apps/admin` — Next.js 16 `:4000`
-- `apps/docs` — Vite docs
-- `apps/marketing` — Vite marketing
-- `packages/*` — OSS MIT + Pro FSL packages
+## Turborepo
+- `turbo run build --parallel` for parallel builds
+- `turbo run test --concurrency=15` for parallel tests
+- Package-level `turbo.json` for task overrides (rare)
+- Cache stored in `.turbo/` (gitignored)
 
-## Load-bearing packages
+## Package Conventions
+- Every package has: `build`, `dev`, `lint`, `test`, `typecheck` scripts
+- Build output goes to `dist/` via tsup
+- Source in `src/`, tests in `src/__tests__/` or `__tests__/`
+- Entry point: `src/index.ts` → `dist/index.js`
+- Use `exports` field in package.json for subpath exports
+- Include `files: ["dist", "README.md"]` for publishing
 
-| Concern | Package |
-|---------|---------|
-| CMS engine | `@revealui/core` |
-| Schemas | `@revealui/contracts` + `@revealui/db` |
-| UI | `@revealui/presentation` + tokens |
-| Hosted gates | server middleware entitlements + `@revealui/core/license` + `@revealui/paywall` |
-| Agents | `@revealui/ai`, `mcp`, `harnesses`, `engines` |
+## Dependency Rules
+- Use `syncpack` for version alignment (`pnpm deps:check`, `pnpm deps:fix`)
+- Use `catalog:` for shared devDependencies (e.g., `"zod": "catalog:"`)
+- pnpm overrides in root package.json for security patches
+- `onlyBuiltDependencies` whitelist for native modules
 
-## Commands
+## CI Gate
+- `pnpm gate` runs the full CI pipeline locally: lint → typecheck → test → build
+- `pnpm gate:quick` runs phase 1 only (fast feedback)
+- Must pass before pushing (enforced by Husky pre-push hook)
 
-```bash
-pnpm dev:app
-pnpm gate
-pnpm test
-pnpm validate:claims
-```
+## Adding a New Package
+1. Create `packages/<name>/` with package.json, tsconfig.json, tsup.config.ts
+2. Name: `@revealui/<name>`
+3. Add `workspace:*` references from consuming packages
+4. Register in turbo pipeline (automatic via conventions)
+5. Add to CI if needed
 
-## Skills already in-repo
+## Publishing
+- OSS packages: `publishConfig.access: "public"`, MIT license
+- Pro packages: `publishConfig.access: "public"`, commercial license (source-available on npm)
+- Use changesets for versioning: `pnpm changeset` → `pnpm changeset:version` → `pnpm changeset:publish`
 
-`.agents/skills/` and `.claude/skills/` (conventions, db, testing, safety, tdd). Prefer those over inventing new procedure.
-
-## Branch
-
-Feature PRs → `test`. Never PR direct to `main`.
-
-Shared branch policy is **not** authored here (Plane A). Canon:
-`~/.claude/rules/git.md` + revcon `profiles/revfleet/claude/rules/git.md`.
-Launch: `rfg` (Plane C). Architecture ADR:
-`2026-07-21-harness-policy-runtime-launch-planes`.
-
-## Worktree isolation (HARDLINE)
-
-Multi-step edits: `git worktree add ~/revfleet/.wt/<name> -b <branch> origin/test`.  
-Do not use the shared `~/revfleet/revealui` checkout for concurrent claims.  
-Dirty branch switches are blocked by `dirty-checkout-guard.js`.  
-Full rule: `~/.grok/rules/06-worktree-isolation.md`.  
-Preferred launch: `rfg revealui --worktree=<label>` (injects `--ref test` when omitted).
+## Import Conventions
+- Use package names (`@revealui/core`) not relative paths between packages
+- Use `~/` alias within apps (maps to `src/*`)
+- Use ES Modules (`import`/`export`) everywhere

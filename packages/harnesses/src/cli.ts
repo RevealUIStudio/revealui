@@ -666,7 +666,9 @@ async function main() {
               ? ' → .cursor/'
               : genId === 'opencode'
                 ? ' → .opencode/'
-                : '';
+                : genId === 'grok'
+                  ? ' → .grok/'
+                  : '';
         process.stdout.write(`  ${genId}: ${count}${dest}\n`);
       }
       process.stdout.write(`✓ Adapter stubs:\n`);
