@@ -21,7 +21,7 @@
 
 - [RevFleet](https://docs.revealui.com/REVFLEET): The seven shipping Studio products, what each does, how they compose
 - [Pro packages](https://docs.revealui.com/PRO): `@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services` (FSL-1.1-MIT — source-visible, auto-MIT after 2 years)
-- [RevealUI Fleet runtime](https://docs.revealui.com/FORGE): Self-hosted Enterprise-tier deployment kit (formerly RevealUI Forge — renamed per ADR `2026-05-03-revfleet-rename`; deployed via the RevForge stamping tool; preview status)
+- [Enterprise](https://docs.revealui.com/ENTERPRISE): License plus studio support. You self-host. Inquire / Contact sales. Not a hosted VM.
 - [Component catalog](https://docs.revealui.com/COMPONENT_CATALOG): UI components shipped in `@revealui/presentation`
 - [Examples](https://docs.revealui.com/EXAMPLES): Code examples
 
