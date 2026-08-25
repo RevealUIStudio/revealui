@@ -33,9 +33,9 @@ export const CONTENT_FILE_ROUTES: Readonly<Record<string, RouteEntry>> = {
   'pricing-teaser.ts': { route: '/', pageTitle: 'Home' },
   // The receipt-motif hero moment renders on "/" via components/landing/Hero.tsx.
   'receipt.ts': { route: '/', pageTitle: 'Home' },
-  // SITE.brandTagline renders on "/" in the Footer, under SITE.brand. SITE's
-  // other exports (urls, METRICS) are used throughout the site but carry no
-  // prose claims of their own.
+  // SITE.brandTagline is unused in chrome; FOOTER_TAGLINE renders on "/" in
+  // the Footer. SITE's other exports (urls, METRICS) are used throughout the
+  // site but carry no prose claims of their own.
   'site.ts': { route: '/', pageTitle: 'Home' },
   'products.ts': { route: '/products', pageTitle: 'Products' },
   'pricing.ts': { route: '/pricing', pageTitle: 'Pricing' },

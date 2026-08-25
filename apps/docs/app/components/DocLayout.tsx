@@ -72,14 +72,17 @@ function NavLink({
 }
 
 function SidebarContent({ isHome, onNavigate }: { isHome: boolean; onNavigate?: () => void }) {
-  const currentYear = new Date().getFullYear();
   return (
     <>
       {/* Logo */}
       <h2 className="mb-4 text-lg font-bold tracking-tight text-ink">
-        <Link to="/" onClick={onNavigate} className="flex items-center gap-2 no-underline">
-          <IconCode size="md" label="RevealUI" />
-          RevealUI
+        <Link
+          to="/"
+          onClick={onNavigate}
+          className="inline-flex items-center no-underline"
+          aria-label="RevealUI"
+        >
+          <IconCode size="md" />
         </Link>
       </h2>
 
@@ -128,7 +131,6 @@ function SidebarContent({ isHome, onNavigate }: { isHome: boolean; onNavigate?: 
         </div>
       ))}
 
-      {/* Footer */}
       <div className="mt-auto border-t border-border pt-4">
         <a
           href="https://github.com/RevealUIStudio/revealui"
@@ -144,25 +146,6 @@ function SidebarContent({ isHome, onNavigate }: { isHome: boolean; onNavigate?: 
           <IconGlobe size="sm" />
           revealui.com
         </a>
-        <div className="mt-3 border-t border-border pt-3 px-3">
-          <div className="flex gap-3 text-[0.75rem] text-text-muted">
-            <a
-              href="https://revealui.com/privacy"
-              className="no-underline transition-colors hover:text-text-secondary"
-            >
-              Privacy
-            </a>
-            <a
-              href="https://revealui.com/terms"
-              className="no-underline transition-colors hover:text-text-secondary"
-            >
-              Terms
-            </a>
-          </div>
-          <p className="mt-1.5 text-[0.75rem] text-text-muted">
-            &copy; {currentYear} RevealUI · Operated by REVEALUI STUDIO L.L.C.
-          </p>
-        </div>
       </div>
     </>
   );
@@ -289,10 +272,10 @@ export function DocLayout({ children }: DocLayoutProps) {
       <div className="fixed top-0 right-0 left-0 z-40 flex items-center justify-between border-b border-border bg-sidebar px-4 py-3 md:hidden">
         <Link
           to="/"
-          className="flex items-center gap-2 text-base font-bold tracking-tight text-ink no-underline"
+          className="inline-flex items-center text-base font-bold tracking-tight text-ink no-underline"
+          aria-label="RevealUI"
         >
           <IconCode size="sm" />
-          RevealUI
         </Link>
         <Button
           type="button"
@@ -327,9 +310,35 @@ export function DocLayout({ children }: DocLayoutProps) {
       </nav>
 
       {/* Main content */}
-      <main className="min-w-0 flex-1 bg-surface pt-14 md:pt-0">
+      <main className="flex min-w-0 flex-1 flex-col bg-surface pt-14 md:pt-0">
         <Breadcrumbs sections={sections} />
-        {children}
+        <div className="flex-1">{children}</div>
+        <footer className="mt-auto border-t border-border px-8 py-3 text-[0.75rem] text-text-muted max-md:px-4">
+          <p>
+            <a
+              href="https://revealui.com/privacy"
+              className="no-underline transition-colors hover:text-text-secondary"
+            >
+              Privacy
+            </a>
+            {' · '}
+            <a
+              href="https://revealui.com/terms"
+              className="no-underline transition-colors hover:text-text-secondary"
+            >
+              Terms
+            </a>
+            {' · '}
+            <a
+              href="https://revealui.com/cookies"
+              className="no-underline transition-colors hover:text-text-secondary"
+            >
+              Cookies
+            </a>
+            {' · '}
+            &copy; {new Date().getFullYear()} REVEALUI STUDIO L.L.C.
+          </p>
+        </footer>
       </main>
     </div>
   );
