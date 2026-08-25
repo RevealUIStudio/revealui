@@ -5,25 +5,52 @@ import {
   FEATURE_LABELS,
   getTiersFromCurrent,
   type LicenseTierId,
+  type PricingResponse,
   SUBSCRIPTION_TIERS,
   TIER_LABELS,
   TIER_LIMITS,
 } from '@revealui/contracts/pricing';
 import { type FeatureFlags, getFeaturesForTier } from '@revealui/core/features';
 import { PricingTable } from '@revealui/presentation/client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { TestModeBanner } from '@/components/TestModeBanner';
 import { hasCommercialUpgradePath } from '@/lib/components/should-show-upgrade-nav';
 import { useLicense } from '@/lib/providers/LicenseProvider';
 import { apiFetch } from '@/lib/utils/csrf';
+import { mergeLicenseSubscriptionPrices } from '@/lib/utils/license-subscription-prices';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
+
+function adminApiOrigin(): string {
+  return (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
+}
 
 export default function UpgradePage() {
   const { tier: currentTier } = useLicense();
   const [error, setError] = useState<string | null>(null);
+  const [catalog, setCatalog] = useState<PricingResponse | null>(null);
   const tierId = (currentTier ?? 'free') as LicenseTierId;
   const canUpgrade = hasCommercialUpgradePath(tierId);
   const selectableTiers = canUpgrade ? getTiersFromCurrent(tierId) : [];
+  const pricedTiers = mergeLicenseSubscriptionPrices(
+    selectableTiers.length > 0 ? selectableTiers : SUBSCRIPTION_TIERS,
+    catalog,
+  );
+
+  useEffect(() => {
+    const apiUrl = adminApiOrigin();
+    let cancelled = false;
+    fetch(`${apiUrl}/api/pricing`)
+      .then((res) => (res.ok ? (res.json() as Promise<PricingResponse>) : null))
+      .then((data) => {
+        if (!cancelled && data) setCatalog(data);
+      })
+      .catch(() => {
+        // Fallbacks already render the licenses catalog prices.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleSelectTier = async (nextTierId: string) => {
     if (nextTierId === 'enterprise') {
@@ -32,7 +59,7 @@ export default function UpgradePage() {
     }
     setError(null);
     try {
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
+      const apiUrl = adminApiOrigin();
 
       // Verify session before initiating checkout  -  redirect to login if expired
       const meRes = await fetch('/api/auth/me', { credentials: 'include' });
@@ -97,7 +124,7 @@ export default function UpgradePage() {
 
       {canUpgrade ? (
         <PricingTable
-          tiers={selectableTiers.length > 0 ? selectableTiers : SUBSCRIPTION_TIERS}
+          tiers={pricedTiers}
           currentTier={currentTier}
           onSelectTier={(id: string) => void handleSelectTier(id)}
         />

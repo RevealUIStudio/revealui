@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockUseLicense = vi.fn();
@@ -11,27 +11,83 @@ vi.mock('@/components/TestModeBanner', () => ({
 }));
 
 vi.mock('@revealui/presentation/client', () => ({
-  PricingTable: ({ currentTier }: { currentTier?: string | null }) => (
-    <div data-testid="pricing-table" data-current={currentTier ?? ''} />
+  PricingTable: ({
+    tiers,
+    onSelectTier,
+  }: {
+    tiers: Array<{ id: string; name: string; price?: string; period?: string; cta: string }>;
+    currentTier?: string | null;
+    onSelectTier?: (id: string) => void;
+  }) => (
+    <div data-testid="pricing-table">
+      {tiers.map((tier) => (
+        <article key={tier.id} data-testid={`tier-${tier.id}`}>
+          <h3>{tier.name}</h3>
+          <p>
+            {tier.price ?? '-'}
+            {tier.period ?? ''}
+          </p>
+          <button type="button" onClick={() => onSelectTier?.(tier.id)}>
+            {tier.cta}
+          </button>
+        </article>
+      ))}
+    </div>
   ),
 }));
 
+const mockApiFetch = vi.fn();
 vi.mock('@/lib/utils/csrf', () => ({
-  apiFetch: vi.fn(),
+  apiFetch: (...args: unknown[]) => mockApiFetch(...args),
 }));
 
+const mockSafeStripeRedirect = vi.fn();
 vi.mock('@/lib/utils/safe-stripe-redirect', () => ({
-  safeStripeRedirect: vi.fn(),
+  safeStripeRedirect: (url: string) => mockSafeStripeRedirect(url),
 }));
 
 import UpgradePage from '../page';
 
+const STRIPE_CHECKOUT_URL = 'https://checkout.stripe.com/c/pay/cs_test_pro_trial';
+
+function mockPublicFetches(): void {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes('/api/auth/me')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ id: 'user-1' }) });
+      }
+      if (url.includes('/api/pricing')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              subscriptions: [
+                { id: 'pro', price: '$49', period: '/mo' },
+                { id: 'max', price: '$299', period: '/mo' },
+                { id: 'enterprise', price: '$1,499', period: '/mo' },
+              ],
+            }),
+        });
+      }
+      return Promise.resolve({ ok: false, json: () => Promise.resolve({}) });
+    }),
+  );
+}
+
 afterEach(() => {
   cleanup();
+  vi.unstubAllGlobals();
 });
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockPublicFetches();
+  mockApiFetch.mockResolvedValue({
+    status: 200,
+    json: () => Promise.resolve({ url: STRIPE_CHECKOUT_URL }),
+  });
 });
 
 describe('UpgradePage', () => {
@@ -41,6 +97,29 @@ describe('UpgradePage', () => {
     expect(screen.getByRole('heading', { name: 'Choose Your Plan' })).toBeInTheDocument();
     expect(screen.getByTestId('pricing-table')).toBeInTheDocument();
     expect(screen.getByText(/Upgrade to unlock more features/)).toBeInTheDocument();
+  });
+
+  it('renders the honest Pro license price ($49/mo) from the licenses catalog', async () => {
+    mockUseLicense.mockReturnValue({ tier: 'free' });
+    render(<UpgradePage />);
+    const proCard = screen.getByTestId('tier-pro');
+    expect(proCard).toHaveTextContent('$49');
+    expect(proCard).toHaveTextContent('/mo');
+    expect(proCard).not.toHaveTextContent(/^-$/);
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/pricing'));
+    });
+    expect(proCard).toHaveTextContent('$49/mo');
+  });
+
+  it('still shows Pro $49/mo when the licenses catalog fetch fails', () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.reject(new Error('catalog offline'))),
+    );
+    mockUseLicense.mockReturnValue({ tier: 'free' });
+    render(<UpgradePage />);
+    expect(screen.getByTestId('tier-pro')).toHaveTextContent('$49/mo');
   });
 
   it('does not upsell when the account is already on enterprise', () => {
@@ -55,5 +134,35 @@ describe('UpgradePage', () => {
       'href',
       '/account/billing',
     );
+  });
+
+  it('first-click Pro trial CTA creates a Stripe Checkout session URL', async () => {
+    mockUseLicense.mockReturnValue({ tier: 'free' });
+    render(<UpgradePage />);
+
+    const proCta = within(screen.getByTestId('tier-pro')).getByRole('button', {
+      name: 'Start your 7-day free trial',
+    });
+    await act(async () => {
+      fireEvent.click(proCta);
+    });
+
+    await waitFor(() => {
+      expect(mockApiFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/billing/checkout'),
+        expect.objectContaining({
+          method: 'POST',
+          credentials: 'include',
+        }),
+      );
+    });
+
+    const [, init] = mockApiFetch.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(String(init.body)) as { tier?: string };
+    expect(body.tier).toBe('pro');
+    expect(String(mockApiFetch.mock.calls[0]?.[0])).not.toContain('/api/checkout');
+    expect(String(mockApiFetch.mock.calls[0]?.[0])).not.toContain('/api/billing/session');
+    expect(mockSafeStripeRedirect).toHaveBeenCalledWith(STRIPE_CHECKOUT_URL);
+    expect(new URL(STRIPE_CHECKOUT_URL).hostname).toBe('checkout.stripe.com');
   });
 });
