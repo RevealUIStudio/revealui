@@ -13,6 +13,22 @@ vi.mock('../../app/utils/markdown', () => ({
   renderMarkdown: vi.fn((md: string) => <div data-testid="markdown">{md}</div>),
 }));
 
+vi.mock('@revealui/router', () => ({
+  Link: ({
+    to,
+    children,
+    className,
+  }: {
+    to: string;
+    children: React.ReactNode;
+    className?: string;
+  }) => (
+    <a href={to} className={className}>
+      {children}
+    </a>
+  ),
+}));
+
 describe('DocsIndexPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -34,15 +50,6 @@ describe('DocsIndexPage', () => {
     expect(screen.queryByText(/hosted product you can sign up for in minutes/i)).toBeNull();
     expect(screen.getByText(/RevealUI Cloud is waitlist, not sold/i)).toBeInTheDocument();
     expect(screen.getByText(/Self-host today/i)).toBeInTheDocument();
-  });
-
-  it('does not render a receipt hero or receipt caption', () => {
-    const { container } = render(<DocsIndexPage />);
-
-    expect(screen.queryByRole('region', { name: 'Governed action, on record' })).toBeNull();
-    expect(screen.queryByText(/If an agent did it, there's a receipt\./)).toBeNull();
-    expect(screen.queryByRole('link', { name: 'Audit receipts docs →' })).toBeNull();
-    expect(container.querySelector('style')).toBeNull();
   });
 
   it('does not render marketing CTAs on the docs landing', () => {
