@@ -46,7 +46,7 @@ Limits and prices are pinned in `packages/contracts/src/pricing.ts` and restated
 | Free | $0 | 1 | 3 | 1,000 | 200 |
 | Pro | $49/mo | 5 | 25 | 10,000 | 300 |
 | Max | $299/mo | 15 | 100 | 50,000 | 600 |
-| Enterprise | $1,499/mo | unlimited | unlimited | unlimited | 1,000 |
+| Enterprise | inquire / Contact sales | unlimited | unlimited | unlimited | 1,000 |
 
 ---
 
