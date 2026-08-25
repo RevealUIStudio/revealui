@@ -78,6 +78,18 @@ beforeEach(() => {
 // requireFeature
 // ---------------------------------------------------------------------------
 describe('requireFeature', () => {
+  it('denies Free callers for ai (agent-tasks /agents stay Pro-gated)', async () => {
+    const app = createApp(requireFeature('ai', { mode: 'entitlements' }), {
+      tier: 'free',
+      features: { ai: false, aiLocal: true },
+    });
+    const res = await app.request('/protected/resource');
+    expect(res.status).toBe(403);
+    const body = await parseBody(res);
+    expect(body.error).toContain('ai');
+    expect(body.error).toContain('pro');
+  });
+
   it('returns 403 when feature is disabled', async () => {
     mockedIsFeatureEnabled.mockReturnValue(false);
     mockedGetCurrentTier.mockReturnValue('free');

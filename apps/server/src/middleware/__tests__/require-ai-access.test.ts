@@ -1,8 +1,9 @@
 /**
  * requireAIAccess middleware tests
  *
- * Verifies free-tier local inference access, Pro+ passthrough,
- * and blocked state when neither license nor local inference exists.
+ * Verifies free-tier local AI (aiLocal / Ollama) access without a Pro gate,
+ * Pro+ passthrough, and blocked state when aiLocal is explicitly denied
+ * and no local inference env is set.
  */
 
 import { Hono } from 'hono';
@@ -23,6 +24,10 @@ vi.mock('@revealui/core/license', () => ({
 vi.mock('@revealui/core/features', () => ({
   isFeatureEnabled: vi.fn(),
   getRequiredTier: vi.fn(() => 'pro'),
+  getFeaturesForTier: vi.fn((tier: string) => ({
+    aiLocal: true,
+    ai: tier !== 'free',
+  })),
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({
@@ -94,6 +99,26 @@ describe('requireAIAccess middleware', () => {
     expect(body.mode).toBe('full');
   });
 
+  it('allows free tier with aiLocal even when no local inference env is set', async () => {
+    const app = createApp({ tier: 'free', features: { ai: false, aiLocal: true } });
+    const res = await app.request('/api/agent-stream');
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.mode).toBe('local');
+  });
+
+  it('allows free tier when stored features omit aiLocal (tier map fallback)', async () => {
+    const app = createApp({ tier: 'free', features: { ai: false } });
+    const res = await app.request('/api/agent-stream');
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.mode).toBe('local');
+  });
+
   it('allows free tier with OLLAMA_BASE_URL set and tags as local', async () => {
     process.env.OLLAMA_BASE_URL = 'http://localhost:11434';
     const app = createApp({ tier: 'free', features: { ai: false } });
@@ -116,13 +141,13 @@ describe('requireAIAccess middleware', () => {
     expect(body.mode).toBe('local');
   });
 
-  it('blocks free tier without local inference (403)', async () => {
-    const app = createApp({ tier: 'free', features: { ai: false } });
+  it('blocks when aiLocal is explicitly denied and no local inference env is set', async () => {
+    const app = createApp({ tier: 'free', features: { ai: false, aiLocal: false } });
     const res = await app.request('/api/agent-stream');
 
     expect(res.status).toBe(403);
     const body = await res.json();
-    expect(body.error).toContain('OLLAMA_BASE_URL');
+    expect(body.error).toContain('local inference');
     expect(body.code).toBe('HTTP_403');
   });
 

@@ -804,9 +804,10 @@ app.use('/a2a', enforceReadOnlyWrites());
 app.use('/a2a/*', enforceReadOnlyWrites());
 
 // License enforcement  -  gate premium routes by feature
-// Agent stream + tasks: free tier allowed with local inference, Pro+ for cloud providers
-app.use('/api/agent-tasks/*', requireAIAccess({ mode: 'entitlements' }));
-app.use('/api/v1/agent-tasks/*', requireAIAccess({ mode: 'entitlements' }));
+// Dashboard chat / agent-stream: Free + aiLocal (Ollama) allowed as local-only.
+// Agent tasks stay Pro — AI agents are not on Free (WHAT_IS / GAP-300).
+app.use('/api/agent-tasks/*', requireFeature('ai', { mode: 'entitlements' }));
+app.use('/api/v1/agent-tasks/*', requireFeature('ai', { mode: 'entitlements' }));
 app.use('/api/agent-stream', requireAIAccess({ mode: 'entitlements' }));
 app.use('/api/v1/agent-stream', requireAIAccess({ mode: 'entitlements' }));
 // RAG and collab/agent remain Pro+ only (cloud infrastructure required)

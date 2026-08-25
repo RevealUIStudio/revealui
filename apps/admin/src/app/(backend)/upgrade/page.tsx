@@ -201,9 +201,11 @@ export default function UpgradePage() {
                       key={t.id}
                       className="py-3 px-4 text-center text-zinc-600 dark:text-zinc-400"
                     >
-                      {limits.agentTasks === null
-                        ? 'Unlimited'
-                        : limits.agentTasks.toLocaleString()}
+                      {t.id === 'free'
+                        ? 'Not included'
+                        : limits.agentTasks === null
+                          ? 'Unlimited'
+                          : limits.agentTasks.toLocaleString()}
                     </td>
                   );
                 })}

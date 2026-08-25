@@ -471,12 +471,38 @@ export const checkLicenseStatus = (
 };
 
 /**
+ * Local AI (Ollama / Inference Snaps / aiLocal) is a Free feature (WHAT_IS).
+ * Stored entitlement blobs may omit the key; fall back to the tier map.
+ * An explicit `aiLocal: false` (paid-pending) stays denied.
+ */
+function isLocalAiEntitled(
+  requestEntitlements: RequestEntitlements | null,
+  currentTier: LicenseTier,
+  mode: FeatureGateMode,
+): boolean {
+  const stored = requestEntitlements?.features?.aiLocal;
+  if (stored === true) return true;
+  if (stored === false) return false;
+
+  if (requestEntitlements) {
+    return getFeaturesForTier(currentTier).aiLocal;
+  }
+
+  if (mode !== 'entitlements') {
+    return isFeatureEnabled('aiLocal');
+  }
+
+  return false;
+}
+
+/**
  * Require AI access  -  local inference (Ollama/Snaps) on free tier, full harness on Pro+.
  *
- * When OLLAMA_BASE_URL or INFERENCE_SNAPS_BASE_URL is set, free-tier users can use local inference.
- * Cloud-hosted open models via the RevealUI harness require a Pro+ license.
- * The route handler is responsible for enforcing local-only when the caller
- * is on the free tier (see agent-stream.ts).
+ * `aiLocal` is entitled on Free (dashboard chat + Ollama). Server env
+ * (`OLLAMA_BASE_URL` / `INFERENCE_SNAPS_BASE_URL`) remains a self-host
+ * fallback. Cloud-hosted open models via the RevealUI harness stay Pro+.
+ * Downstream handlers enforce local-only when `aiAccessMode === 'local'`
+ * (see agent-stream.ts).
  */
 export const requireAIAccess = (options: FeatureGateOptions = {}): MiddlewareHandler => {
   return async (c, next) => {
@@ -496,10 +522,9 @@ export const requireAIAccess = (options: FeatureGateOptions = {}): MiddlewareHan
       return;
     }
 
-    // Free tier: allow if local inference is configured (Ollama or Snaps)
     const hasLocalInference =
       !!process.env.OLLAMA_BASE_URL || !!process.env.INFERENCE_SNAPS_BASE_URL;
-    if (hasLocalInference) {
+    if (isLocalAiEntitled(requestEntitlements, currentTier, mode) || hasLocalInference) {
       // Tag the request so downstream handlers know this is local-only access
       c.set('aiAccessMode', 'local');
       await next();
