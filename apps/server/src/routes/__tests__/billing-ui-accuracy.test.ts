@@ -31,7 +31,7 @@ const BILLING_API_ENDPOINTS = {
   portal: '/api/billing/portal',
 } as const;
 
-/** Env vars the billing page reads for price IDs */
+/** Catalog-only env names (not posted by self-serve checkout). */
 const BILLING_ENV_VARS = {
   pro: 'NEXT_PUBLIC_STRIPE_PRO_PRICE_ID',
   max: 'NEXT_PUBLIC_STRIPE_MAX_PRICE_ID',
@@ -93,24 +93,17 @@ describe('Billing UI Accuracy  -  admin Billing Page vs API + Contracts', () => 
   });
 
   describe('Checkout request body matches API expectation', () => {
-    it('checkout sends priceId and tier', () => {
-      // The billing page sends: { priceId: env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID, tier: 'pro' }
-      const checkoutBody = {
-        priceId: BILLING_ENV_VARS.pro,
-        tier: 'pro' as const,
-      };
-      expect(checkoutBody).toHaveProperty('priceId');
-      expect(checkoutBody).toHaveProperty('tier');
-      expect(['pro', 'max', 'enterprise']).toContain(checkoutBody.tier);
+    it('checkout sends only the catalog tier (server billing_catalog owns the price)', () => {
+      const checkoutBody = { tier: 'pro' as const };
+      expect(checkoutBody).toEqual({ tier: 'pro' });
+      expect(checkoutBody).not.toHaveProperty('priceId');
+      expect(['pro', 'max']).toContain(checkoutBody.tier);
     });
 
-    it('upgrade sends priceId and targetTier for max', () => {
-      const upgradeBody = {
-        priceId: BILLING_ENV_VARS.max,
-        targetTier: 'max' as const,
-      };
-      expect(upgradeBody).toHaveProperty('priceId');
-      expect(upgradeBody).toHaveProperty('targetTier');
+    it('upgrade sends only targetTier for max (no client price id)', () => {
+      const upgradeBody = { targetTier: 'max' as const };
+      expect(upgradeBody).toEqual({ targetTier: 'max' });
+      expect(upgradeBody).not.toHaveProperty('priceId');
     });
 
     it('enterprise is not an unattended upgrade body', () => {
@@ -252,11 +245,8 @@ describe('Billing UI Accuracy  -  admin Billing Page vs API + Contracts', () => 
   });
 
   describe('Env var consistency for price IDs', () => {
-    it('checkout uses NEXT_PUBLIC_STRIPE_PRO_PRICE_ID', () => {
+    it('client Stripe price ids are catalog seed names, not a checkout body field', () => {
       expect(BILLING_ENV_VARS.pro).toBe('NEXT_PUBLIC_STRIPE_PRO_PRICE_ID');
-    });
-
-    it('max upgrade uses NEXT_PUBLIC_STRIPE_MAX_PRICE_ID', () => {
       expect(BILLING_ENV_VARS.max).toBe('NEXT_PUBLIC_STRIPE_MAX_PRICE_ID');
     });
 

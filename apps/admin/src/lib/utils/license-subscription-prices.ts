@@ -2,12 +2,16 @@ import type { LicenseTierId, PricingResponse, SubscriptionTier } from '@revealui
 
 /**
  * Display fallbacks for license subscriptions when GET /api/pricing is
- * unreachable. Lockstep with:
+ * unreachable. These are the server catalog cents-of-record, not invented
+ * UI prices (scripts/setup/stripe-catalog.ts):
+ *   Pro 4900 / Max 29900 / Enterprise 149900
+ * Lockstep with:
  *   - apps/server/src/routes/pricing.ts HARDCODED_SUBSCRIPTION_PRICES
  *   - apps/marketing/app/lib/pricing-fallbacks.ts SUBSCRIPTION_PRICE_FALLBACKS
- *   - offerings-canonical license SKUs (Pro $49 / Max $299 / Enterprise $1,499)
  *
- * Never used for agency / services / Fleet SKUs.
+ * Never used for agency / services / Fleet SKUs. Checkout never reads these
+ * — POST /api/billing/checkout sends only `{ tier }` and the handler catalog
+ * is the price source of truth.
  */
 export const LICENSE_SUBSCRIPTION_PRICE_FALLBACKS: Record<
   LicenseTierId,
