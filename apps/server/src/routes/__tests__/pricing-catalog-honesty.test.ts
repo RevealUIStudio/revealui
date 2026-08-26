@@ -53,6 +53,7 @@ interface PricingBody {
     cta: string;
     ctaHref: string;
   }>;
+  credits?: unknown[];
 }
 
 function jsonHasAgency8499(body: unknown): boolean {
@@ -88,6 +89,9 @@ function assertPublicCatalogHonesty(body: PricingBody): void {
 
   const agency = body.perpetual.find((tier) => tier.name === 'Agency Perpetual');
   expect(agency, 'Agency must not appear as a public catalog SKU').toBeUndefined();
+  const enterprisePerpetual = body.perpetual.find((tier) => tier.name === 'Enterprise Perpetual');
+  expect(enterprisePerpetual, 'Enterprise Perpetual stays off the public catalog').toBeUndefined();
+  expect(body.credits ?? []).toEqual([]);
 }
 
 describe('GET /api/pricing — public catalog honesty', () => {

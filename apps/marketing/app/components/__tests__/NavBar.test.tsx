@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import '@testing-library/jest-dom/vitest';
 import { Router, RouterProvider } from '@revealui/router';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
@@ -125,15 +127,19 @@ describe('NavBar (marketing)', () => {
     expect(screen.getByRole('link', { name: 'RevealUI' })).toBeInTheDocument();
   });
 
-  it('renders an untiled Circuit-R at about 36px, not the tiled 22px icon-mark', () => {
+  it('renders the circuit master at about 36px, not the faceted or tiled mark', () => {
     const { container } = renderNavBar();
     const home = screen.getByRole('link', { name: 'RevealUI' });
-    const mark = home.querySelector('svg');
+    const mark = home.querySelector('img');
     expect(mark).toBeTruthy();
-    expect(mark).toHaveAttribute('viewBox', '0 0 512 512');
-    expect(mark?.className.baseVal ?? mark?.getAttribute('class') ?? '').toContain('h-[36px]');
+    expect(mark).toHaveAttribute('src', '/revealui-logo.svg');
+    expect(mark?.getAttribute('class') ?? '').toContain('h-[36px]');
     expect(container.querySelector('img[src="/icon-mark.svg"]')).toBeNull();
+    expect(container.querySelector('img[src="/favicon.svg"]')).toBeNull();
+    expect(container.querySelector('img[src="/revealui-mark.svg"]')).toBeNull();
     expect(container.querySelector('[class*="h-[22px]"]')).toBeNull();
+    expect(container.innerHTML.includes('M26 50')).toBe(false);
+    expect(container.innerHTML.includes('M34 11')).toBe(false);
   });
 
   it('marks the active desktop route with aria-current=page', () => {
@@ -142,6 +148,22 @@ describe('NavBar (marketing)', () => {
     const pricing = screen.getByRole('link', { name: 'Pricing' });
     expect(pricing).toHaveAttribute('aria-current', 'page');
     expect(screen.queryByRole('link', { name: 'Products' })).toBeNull();
+  });
+
+  it('ships the circuit master as the nav mark, not a faceted sibling', () => {
+    const publicLogo = readFileSync(
+      path.resolve(process.cwd(), 'public/revealui-logo.svg'),
+      'utf8',
+    );
+    const master = readFileSync(
+      path.resolve(process.cwd(), '../../packages/presentation/src/assets/brand/revealui-logo.svg'),
+      'utf8',
+    );
+    expect(publicLogo).toBe(master);
+    expect(publicLogo.includes('Q207,159')).toBe(true);
+    expect(publicLogo.includes('<circle')).toBe(true);
+    expect(publicLogo.includes('M26 50')).toBe(false);
+    expect(publicLogo.includes('M34 11')).toBe(false);
   });
 
   it('exposes primary navigation landmark', () => {

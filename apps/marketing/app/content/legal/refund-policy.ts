@@ -24,7 +24,7 @@ export const REFUND_POLICY_META = {
 
 export const REFUND_POLICY_SECTIONS: readonly LegalSection[] = [
   {
-    heading: '1. Perpetual licenses (Pro, Agency, and Enterprise Perpetual)',
+    heading: '1. Perpetual licenses (Pro Perpetual)',
     paragraphs: [
       'You may request a full refund within 14 days of purchase, for any reason, no questions asked. Refunds are processed within 5 business days. Your license key is revoked once the refund is issued.',
       'After the 14-day window, refunds are available only for documented product defects, at our discretion.',

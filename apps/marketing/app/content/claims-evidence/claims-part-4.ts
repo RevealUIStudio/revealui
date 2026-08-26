@@ -440,7 +440,7 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'contact.ts',
     exportPath: 'CONTACT_HERO.subtitle',
-    text: 'Questions about RevealUI? Interested in Enterprise or custom pricing? We would love to hear from you.',
+    text: 'Questions about RevealUI? Interested in Enterprise? We would love to hear from you.',
     evidence: [
       LEGAL_CONTACT_CONTENT,
       { kind: 'url', ref: 'https://revealui.com/contact', note: 'public contact page' },
@@ -678,7 +678,7 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'legal/refund-policy.ts',
     exportPath: 'REFUND_POLICY_SECTIONS[0].heading',
-    text: '1. Perpetual licenses (Pro, Agency, and Enterprise Perpetual)',
+    text: '1. Perpetual licenses (Pro Perpetual)',
     evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE],
   },
   {

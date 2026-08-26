@@ -17,7 +17,7 @@ describe('PricingPage product catalog', () => {
   it('renders the license catalog, not the studio quote calculator', async () => {
     render(<PricingPage />);
     expect(
-      await screen.findByRole('heading', { level: 1, name: /Two ways to use/i }),
+      await screen.findByRole('heading', { level: 1, name: 'RevealUI pricing' }),
     ).toBeInTheDocument();
     expect(screen.queryByRole('radio', { name: /I will \(developer/i })).toBeNull();
     expect(screen.queryByText('Three questions. One price. No fleet math.')).toBeNull();
@@ -159,5 +159,25 @@ describe('PricingPage product catalog', () => {
     render(<PricingPage />);
     const cta = await screen.findByRole('link', { name: 'Get Started Free' });
     expect(cta).toHaveAttribute('href', SITE.urls.signup);
+  });
+
+  it('does not sell leftover catalog lies on the cards', async () => {
+    const { container } = render(<PricingPage />);
+    await screen.findByRole('heading', { level: 1, name: 'RevealUI pricing' });
+    const text = container.textContent ?? '';
+    expect(text.includes('Slack support')).toBe(false);
+    expect(text.includes('4h SLA')).toBe(false);
+    expect(text.includes('$118/yr')).toBe(false);
+    expect(text.includes('$718/yr')).toBe(false);
+    expect(text.includes('$42,999')).toBe(false);
+    expect(text.includes('Agency Perpetual')).toBe(false);
+    expect(text.includes('Two ways to use RevealUI')).toBe(false);
+    expect(screen.queryByRole('heading', { name: 'Enterprise Perpetual' })).toBeNull();
+    expect(text.includes('Advanced inference configuration (coming soon)')).toBe(false);
+    expect(text.includes('RevKit environment provisioning (coming soon)')).toBe(false);
+    expect(text.includes('x402 agent payments (USDC, coming soon)')).toBe(false);
+    expect(text.includes('Email support (24h weekday / 4h if unusable)')).toBe(true);
+    expect(text.includes('$1,499')).toBe(true);
+    expect(text.includes('Not included today: advanced inference configuration')).toBe(true);
   });
 });

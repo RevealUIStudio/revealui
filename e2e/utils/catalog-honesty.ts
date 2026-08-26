@@ -26,6 +26,12 @@ export const FORBIDDEN_CATALOG_PHRASES = [
   'Agency Founding Kit',
   '$8,499',
   'Buy Agency Perpetual',
+  'Agency Perpetual',
+  'Slack support',
+  '$118/yr',
+  '$718/yr',
+  '$42,999',
+  'Two ways to use RevealUI',
   '$1,499/month',
   'Add up what you would otherwise rent',
   'The rented stack',
@@ -39,7 +45,7 @@ export const FORBIDDEN_CATALOG_PHRASES = [
 ] as const;
 
 export async function assertHonestProductCatalog(page: Page): Promise<void> {
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Two ways to use RevealUI', {
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('RevealUI pricing', {
     timeout: 10_000,
   });
 

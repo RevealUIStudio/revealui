@@ -27,9 +27,9 @@ describe('pricing-fallbacks — canonical value assertions', () => {
   it('perpetual fallbacks match public catalog prices', () => {
     expect(PERPETUAL_PRICE_FALLBACKS).toMatchObject({
       'Pro Perpetual': { price: '$1,499', renewal: '$149/yr for continued support' },
-      'Enterprise Perpetual': { price: '$42,999', renewal: '$3,999/yr for continued support' },
     });
     expect(PERPETUAL_PRICE_FALLBACKS['Agency Perpetual']).toBeUndefined();
+    expect(PERPETUAL_PRICE_FALLBACKS['Enterprise Perpetual']).toBeUndefined();
   });
 
   it('does not publish leftover Enterprise monthly $1,499 or Agency $8,499', () => {
@@ -51,8 +51,15 @@ describe('pricing-fallbacks — canonical value assertions', () => {
 
   it('covers the public perpetual catalog only', () => {
     const names = Object.keys(PERPETUAL_PRICE_FALLBACKS);
-    expect(names).toEqual(expect.arrayContaining(['Pro Perpetual', 'Enterprise Perpetual']));
-    expect(names).toHaveLength(2);
+    expect(names).toEqual(['Pro Perpetual']);
     expect(names.includes('Agency Perpetual')).toBe(false);
+    expect(names.includes('Enterprise Perpetual')).toBe(false);
+  });
+
+  it('keeps annual prices and does not invent leftover savings sublines', () => {
+    expect(ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS.pro.price).toBe('$470');
+    expect(ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS.max.price).toBe('$2,870');
+    expect(JSON.stringify(ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS).includes('$118')).toBe(false);
+    expect(JSON.stringify(ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS).includes('$718')).toBe(false);
   });
 });

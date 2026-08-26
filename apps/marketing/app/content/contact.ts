@@ -13,8 +13,7 @@ export interface ContactMethod {
 
 export const CONTACT_HERO = {
   title: 'Get in touch',
-  subtitle:
-    'Questions about RevealUI? Interested in Enterprise or custom pricing? We would love to hear from you.',
+  subtitle: 'Questions about RevealUI? Interested in Enterprise? We would love to hear from you.',
 } as const;
 
 export const CONTACT_METHODS: readonly ContactMethod[] = [

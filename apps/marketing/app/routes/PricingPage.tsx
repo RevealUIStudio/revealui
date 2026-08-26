@@ -21,6 +21,7 @@ import {
   PRICING_AGENT_MCP,
   PRICING_AGENT_X402,
   PRICING_AGENTS_SECTION,
+  PRICING_COMING_SOON_NOTE,
   PRICING_FINAL_CTA,
   PRICING_FINAL_CTA_LINKS,
   PRICING_HERO,
@@ -93,7 +94,6 @@ export function PricingPage() {
         : useAnnual
           ? (tier.annualPeriod ?? annualFallback?.period)
           : (tier.period ?? fallback?.period),
-      savings: inquireOnly ? '' : useAnnual ? (annualFallback?.savings ?? '') : '',
       ctaHref,
     };
   });
@@ -124,9 +124,8 @@ export function PricingPage() {
           className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background"
         />
         <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-          Two ways to use{' '}
-          <span className="block bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            RevealUI
+          <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+            {PRICING_HERO.title}
           </span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-body sm:text-xl">
@@ -217,7 +216,6 @@ export function PricingPage() {
               name: tier.name,
               price: tier.price ?? 'Contact us',
               period: tier.period,
-              savings: tier.savings || undefined,
               description: tier.description,
               features: [...tier.features],
               cta: tier.cta,
@@ -229,6 +227,7 @@ export function PricingPage() {
         />
 
         <p className="mt-8 text-center text-sm text-muted-foreground">{PRICING_TRIAL_NOTE}</p>
+        <p className="mt-3 text-center text-sm text-muted-foreground">{PRICING_COMING_SOON_NOTE}</p>
       </MarketingSection>
 
       <MarketingSection id="perpetual" tone="secondary" density="default" width="default">

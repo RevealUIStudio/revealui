@@ -62,22 +62,11 @@ const CANONICAL_SUBSCRIPTION_PRICES = {
   enterprise: { price: undefined, period: undefined },
 } as const;
 
-const CANONICAL_CREDIT_PRICES = {
-  Starter: { price: '$10', priceNote: 'one-time', costPer: '$0.001/task' },
-  Standard: { price: '$50', priceNote: 'one-time', costPer: '$0.00083/task' },
-  Scale: { price: '$250', priceNote: 'one-time', costPer: '$0.00071/task' },
-} as const;
-
 const CANONICAL_PERPETUAL_PRICES = {
   'Pro Perpetual': {
     price: '$1,499',
     priceNote: 'one-time',
     renewal: '$149/yr for continued support',
-  },
-  'Enterprise Perpetual': {
-    price: '$42,999',
-    priceNote: 'one-time',
-    renewal: '$3,999/yr for continued support',
   },
 } as const;
 
@@ -117,28 +106,16 @@ describe('Pricing Marketing Drift — fallback prices match docs/MARKETING_METRI
     }
   });
 
-  it('credit-bundle fallback prices match canonical map exactly', async () => {
+  it('does not publish credit packs on the public catalog', async () => {
     const res = await app.request('/');
     expect(res.status).toBe(200);
     const body = await res.json();
 
-    expect(body.credits).toBeDefined();
-    expect(Array.isArray(body.credits)).toBe(true);
-    expect(body.credits.length).toBe(Object.keys(CANONICAL_CREDIT_PRICES).length);
-
-    for (const credit of body.credits) {
-      const canonical =
-        CANONICAL_CREDIT_PRICES[credit.name as keyof typeof CANONICAL_CREDIT_PRICES];
-      expect(
-        canonical,
-        `Credit bundle ${credit.name} not present in canonical map; add or remove the bundle and update docs/MARKETING_METRICS.md §2`,
-      ).toBeDefined();
-      expect(credit.price, `Credit bundle ${credit.name} price drift`).toBe(canonical.price);
-      expect(credit.priceNote, `Credit bundle ${credit.name} priceNote drift`).toBe(
-        canonical.priceNote,
-      );
-      expect(credit.costPer, `Credit bundle ${credit.name} costPer drift`).toBe(canonical.costPer);
-    }
+    expect(body.credits).toEqual([]);
+    const json = JSON.stringify(body);
+    expect(json.includes('$10')).toBe(false);
+    expect(json.includes('$50')).toBe(false);
+    expect(json.includes('$250')).toBe(false);
   });
 
   it('MRR_TIER_PRICE_FALLBACK_USD matches canonical subscription prices', () => {

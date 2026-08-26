@@ -142,6 +142,9 @@ export interface SubscriptionTier {
   highlighted: boolean;
 }
 
+/** Same email SLA for every paid tier. Matches /sla: no Slack, no per-tier hours. */
+export const PAID_TIER_SUPPORT = 'Email support (24h weekday / 4h if unusable)' as const;
+
 export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
     id: 'free',
@@ -178,7 +181,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       '10,000 agent tasks/month included',
       'RevVault desktop app (encrypted secret management)',
       'RevVault rotation engine (automated credential lifecycle)',
-      'Email support (48h response)',
+      PAID_TIER_SUPPORT,
       'Full source code access',
     ],
     // Deep-links into the existing checkout path: /signup?plan=pro ->
@@ -194,17 +197,15 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
     id: 'max',
     name: 'Max',
-    description: 'For teams that need AI memory, advanced inference, and compliance tooling.',
+    description: 'For teams that need AI memory and compliance tooling.',
     features: [
       'Everything in Pro',
       'Up to 15 sites',
       'Up to 100 users/editors',
       'Full AI memory (working + episodic + vector)',
-      'Advanced inference configuration (coming soon)',
       'Signed audit log plus downloadable Merkle roots you verify offline',
       '50,000 agent tasks/month included',
-      'RevKit environment provisioning (coming soon)',
-      'Email support (24h response)',
+      PAID_TIER_SUPPORT,
       'Full source code access',
     ],
     cta: 'Start your 7-day free trial',
@@ -214,17 +215,15 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
     id: 'enterprise',
     name: 'Enterprise',
-    description: 'Full ecosystem access with scale, compliance, and agent payments.',
+    description: 'Full ecosystem access with scale and compliance.',
     features: [
       'Everything in Max',
       'Unlimited sites',
       'Unlimited users/editors',
       'Session-based auth + OAuth',
       'Full inference suite (all open models)',
-      // Honesty (GAP-302): x402 remains off by default (X402_ENABLED); label it.
-      'x402 agent payments (USDC, coming soon)',
       'Unlimited agent tasks',
-      'Slack support (4h SLA)',
+      PAID_TIER_SUPPORT,
       'Annual pricing available',
       'Full source code access',
       // whiteLabel / SSO-as-enterprise-sold-feature: not advertised until shipped
@@ -511,9 +510,10 @@ export function allowsUnattendedCheckout(tier: LicenseTierId): boolean {
 
 /**
  * Public catalog perpetual names for GET /api/pricing and /pricing.
- * Agency Perpetual remains a checkout SKU but is not a public catalog SKU.
+ * Pro Perpetual is the only public license buy. Agency is a dead SKU.
+ * Enterprise Perpetual stays off the public catalog (old $42,999 ladder).
  */
-export const PUBLIC_PERPETUAL_NAMES = ['Pro Perpetual', 'Enterprise Perpetual'] as const;
+export const PUBLIC_PERPETUAL_NAMES = ['Pro Perpetual'] as const;
 
 export function isPublicPerpetualCatalogName(name: string): boolean {
   return (PUBLIC_PERPETUAL_NAMES as readonly string[]).includes(name);

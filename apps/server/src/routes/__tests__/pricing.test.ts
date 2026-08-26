@@ -158,7 +158,7 @@ describe('GET /api/pricing  -  Stripe active path', () => {
     expect(pro.price).toBe('$49'); // fallback
   });
 
-  it('formats credit bundle prices from Stripe with metadata', async () => {
+  it('does not publish credit packs even when Stripe returns them', async () => {
     mockProductsList.mockResolvedValue({
       data: [
         makeStripeProduct('Standard', 'credit', 'standard', 3900, undefined, {
@@ -171,9 +171,7 @@ describe('GET /api/pricing  -  Stripe active path', () => {
     const res = await app.request('/');
     const data = await res.json();
 
-    const standard = data.credits.find((b: { name: string }) => b.name === 'Standard');
-    expect(standard.price).toBe('$39');
-    expect(standard.costPer).toBe('$0.00065/task');
+    expect(data.credits).toEqual([]);
   });
 
   it('formats unit_amount in cents correctly ($29900 → $299)', async () => {
@@ -206,8 +204,8 @@ describe('GET /api/pricing', () => {
     const data = await res.json();
 
     expect(data.subscriptions).toHaveLength(4);
-    expect(data.credits).toHaveLength(3);
-    expect(data.perpetual).toHaveLength(2);
+    expect(data.credits).toHaveLength(0);
+    expect(data.perpetual).toHaveLength(1);
 
     // Fallback prices should be populated
     const pro = data.subscriptions.find((t: { id: string }) => t.id === 'pro');
@@ -258,15 +256,12 @@ describe('GET /api/pricing', () => {
     );
   });
 
-  it('returns all credit bundles with fallback prices', async () => {
+  it('does not publish credit packs on the public catalog', async () => {
     vi.stubEnv('STRIPE_SECRET_KEY', '');
     const res = await app.request('/');
     const data = await res.json();
 
-    const standard = data.credits.find((b: { name: string }) => b.name === 'Standard');
-    expect(standard.price).toBe('$50');
-    expect(standard.costPer).toBe('$0.00083/task');
-    expect(standard.tasks).toBe('60,000');
+    expect(data.credits).toEqual([]);
   });
 
   it('returns all perpetual tiers with fallback prices', async () => {
@@ -424,13 +419,7 @@ describe('GET /api/pricing  -  Stripe integration', () => {
     expect(res.status).toBe(200);
     const data = await res.json();
 
-    const standard = data.credits.find((b: { name: string }) => b.name === 'Standard');
-    expect(standard.price).toBe('$50');
-    expect(standard.costPer).toBe('$0.00083/task');
-
-    const scale = data.credits.find((b: { name: string }) => b.name === 'Scale');
-    expect(scale.price).toBe('$250');
-    expect(scale.costPer).toBe('$0.00071/task');
+    expect(data.credits).toEqual([]);
   });
 
   it('uses Stripe prices for perpetual track products', async () => {
@@ -454,7 +443,7 @@ describe('GET /api/pricing  -  Stripe integration', () => {
     const data = await res.json();
 
     const proPerpetual = data.perpetual.find((t: { name: string }) => t.name === 'Pro Perpetual');
-    expect(proPerpetual.price).toBe('$1499');
+    expect(proPerpetual.price).toBe('$1,499');
     expect(proPerpetual.priceNote).toBe('one-time');
     expect(proPerpetual.renewal).toBe('$149/yr for continued support');
   });
@@ -648,7 +637,7 @@ describe('GET /api/pricing  -  metadata defaults and edge cases', () => {
     vi.stubEnv('STRIPE_SECRET_KEY', 'sk_test_dummy');
   });
 
-  it('defaults credit priceNote to "one-time" and costPer to empty string when metadata is absent', async () => {
+  it('does not publish credit packs even when Stripe metadata is absent', async () => {
     mockProductsList.mockResolvedValue({
       data: [makeStripeProduct('Starter', 'credit', 'starter', 1000)],
     });
@@ -656,10 +645,7 @@ describe('GET /api/pricing  -  metadata defaults and edge cases', () => {
     const res = await app.request('/');
     const data = await res.json();
 
-    const starter = data.credits.find((b: { name: string }) => b.name === 'Starter');
-    expect(starter.price).toBe('$10');
-    expect(starter.priceNote).toBe('one-time');
-    expect(starter.costPer).toBe('');
+    expect(data.credits).toEqual([]);
   });
 
   it('defaults perpetual priceNote to "one-time" and renewal to empty string when metadata is absent', async () => {
@@ -671,7 +657,7 @@ describe('GET /api/pricing  -  metadata defaults and edge cases', () => {
     const data = await res.json();
 
     const proPerpetual = data.perpetual.find((t: { name: string }) => t.name === 'Pro Perpetual');
-    expect(proPerpetual.price).toBe('$1499');
+    expect(proPerpetual.price).toBe('$1,499');
     expect(proPerpetual.priceNote).toBe('one-time');
     expect(proPerpetual.renewal).toBe('');
   });
@@ -798,13 +784,7 @@ describe('GET /api/pricing  -  metadata defaults and edge cases', () => {
     const res = await app.request('/');
     const data = await res.json();
 
-    expect(data.credits).toHaveLength(3);
-    const starter = data.credits.find((b: { name: string }) => b.name === 'Starter');
-    expect(starter.price).toBe('$10');
-    const standard = data.credits.find((b: { name: string }) => b.name === 'Standard');
-    expect(standard.price).toBe('$50');
-    const scale = data.credits.find((b: { name: string }) => b.name === 'Scale');
-    expect(scale.price).toBe('$250');
+    expect(data.credits).toEqual([]);
   });
 
   it('enriches all three perpetual tiers simultaneously from Stripe', async () => {
@@ -835,9 +815,9 @@ describe('GET /api/pricing  -  metadata defaults and edge cases', () => {
     const res = await app.request('/');
     const data = await res.json();
 
-    expect(data.perpetual).toHaveLength(2);
+    expect(data.perpetual).toHaveLength(1);
     const pro = data.perpetual.find((t: { name: string }) => t.name === 'Pro Perpetual');
-    expect(pro.price).toBe('$1499');
+    expect(pro.price).toBe('$1,499');
     const agency = data.perpetual.find((t: { name: string }) => t.name === 'Agency Perpetual');
     expect(agency).toBeUndefined();
     const serialized = JSON.stringify(data);
@@ -845,7 +825,8 @@ describe('GET /api/pricing  -  metadata defaults and edge cases', () => {
     const enterprise = data.perpetual.find(
       (t: { name: string }) => t.name === 'Enterprise Perpetual',
     );
-    expect(enterprise.price).toBe('$42999');
+    expect(enterprise).toBeUndefined();
+    expect(serialized.includes('$42,999') || serialized.includes('$42999')).toBe(false);
   });
 
   it('mixes Stripe enrichment with fallback across tracks', async () => {
@@ -860,9 +841,7 @@ describe('GET /api/pricing  -  metadata defaults and edge cases', () => {
     // Subscription: Stripe price
     const pro = data.subscriptions.find((t: { id: string }) => t.id === 'pro');
     expect(pro.price).toBe('$39');
-    // Credit: fallback
-    const standard = data.credits.find((b: { name: string }) => b.name === 'Standard');
-    expect(standard.price).toBe('$50');
+    expect(data.credits).toEqual([]);
     // Perpetual: fallback
     const proPerpetual = data.perpetual.find((t: { name: string }) => t.name === 'Pro Perpetual');
     expect(proPerpetual.price).toBe('$1,499');

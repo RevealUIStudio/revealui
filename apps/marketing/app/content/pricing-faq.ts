@@ -50,8 +50,8 @@ export const PRICING_FAQS: readonly FaqItem[] = [
     answer: `Fair Source is a middle path between closed commercial and plain open-source. Our five Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) are source-visible on GitHub, installable from npm, and legally usable in commercial products, with one non-compete clause: you can't ship a substantially similar developer platform that competes with RevealUI on top of them. Two years after each release, that release automatically converts to MIT. Same license model used by Sentry, GitButler, and Keygen. Source-available under FSL: free for everyone except SaaS competitors. Pro and Enterprise on /pricing are a license plus studio support on admin.revealui.com; you self-host. Enforcement is not baked into the npm packages. Full explainer at /fair-source.`,
   },
   {
-    question: 'Do you offer custom pricing for large teams?',
-    answer: `Yes. If you need more than what the Enterprise tier offers, contact us at ${SITE.emails.support} to discuss custom pricing. See /sla for our standard support and uptime commitments.`,
+    question: 'How do I buy Enterprise?',
+    answer: `Enterprise is a license. Contact ${SITE.emails.support} to inquire. See /sla for support and uptime commitments.`,
   },
   {
     question: 'What is RevFleet?',
