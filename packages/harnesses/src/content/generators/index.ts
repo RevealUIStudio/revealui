@@ -8,6 +8,7 @@ import { VSCodeGenerator } from './vscode.js';
 export { ClaudeCodeGenerator } from './claude-code.js';
 export { CursorGenerator } from './cursor.js';
 export {
+  GROK_MANAGER_RULE_PATH,
   GROK_OUTPUT_DIR,
   GROK_SPAWN_MAP,
   GROK_SPAWN_MAP_PATH,

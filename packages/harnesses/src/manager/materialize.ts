@@ -415,6 +415,10 @@ export function checkManager(projectRoot: string): ManagerCheckResult {
   if (readFileOrNull(grokSpawnMap) === null) {
     warnings.push('missing .grok/rules/00-spawn-map.md (materialize grok generator)');
   }
+  const grokManagerRule = join(projectRoot, '.grok', 'rules', '00-revealui-manager.md');
+  if (readFileOrNull(grokManagerRule) === null) {
+    warnings.push('missing .grok/rules/00-revealui-manager.md (materialize grok generator)');
+  }
   const grokPreTool = join(projectRoot, GROK_HOOK_TEMPLATE_DIR, 'pre-tool.json');
   if (readFileOrNull(grokPreTool) === null) {
     warnings.push('missing Grok PreToolUse template (materialize grok hooks)');

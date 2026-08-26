@@ -144,6 +144,10 @@ describe('project manager (.revealui)', () => {
     const grokRule = readFileSync(join(root, '.grok/rules/code-over-docs.md'), 'utf-8');
     expect(grokRule).toBe(contentRule);
     expect(written.paths.some((p) => p === '.grok/rules/00-spawn-map.md')).toBe(true);
+    expect(written.paths.some((p) => p === '.grok/rules/00-revealui-manager.md')).toBe(true);
+    const grokManager = readFileSync(join(root, '.grok/rules/00-revealui-manager.md'), 'utf-8');
+    expect(grokManager).toContain('Do not author policy there');
+    expect(grokManager).not.toContain('revfleet/.jv');
 
     const check = checkManager(root);
     expect(check.ok).toBe(true);
