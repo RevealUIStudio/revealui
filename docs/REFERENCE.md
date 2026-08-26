@@ -2160,19 +2160,19 @@ import {
 
 #### `Button`
 
-Primary interactive element. Supports variants, sizes, and loading state.
+Owned action button. Two orthogonal axes: `variant` is colour intent, `appearance` is visual weight.
 
 ```tsx
 import { Button } from '@revealui/presentation'
 
-<Button variant="primary" size="md" disabled={loading}>
+<Button variant="brand" disabled={loading}>
   Save changes
 </Button>
-<Button variant="secondary" href="/docs">View docs</Button>
-<Button variant="destructive" onClick={handleDelete}>Delete</Button>
+<Button variant="neutral" appearance="outline">View docs</Button>
+<Button variant="danger" onClick={handleDelete}>Delete</Button>
 ```
 
-**Props:** `variant` (`primary | secondary | outline | ghost | destructive`), `size` (`sm | md | lg`), `href`, `disabled`, `loading`
+**Props:** `variant` (`brand | neutral | success | warning | danger`), `appearance` (`solid | outline | ghost | link`), `size` (`sm | default | lg | icon | clear`), `asChild`, `isLoading`, `disabled`
 
 #### `Input`
 
@@ -2407,10 +2407,10 @@ import { Dialog } from "@revealui/presentation";
 <Dialog open={isOpen} onClose={() => setIsOpen(false)} title="Delete post">
   <p>Are you sure? This cannot be undone.</p>
   <div className="mt-4 flex gap-2">
-    <Button variant="destructive" onClick={handleDelete}>
+    <Button variant="danger" onClick={handleDelete}>
       Delete
     </Button>
-    <Button variant="ghost" onClick={() => setIsOpen(false)}>
+    <Button appearance="ghost" variant="neutral" onClick={() => setIsOpen(false)}>
       Cancel
     </Button>
   </div>

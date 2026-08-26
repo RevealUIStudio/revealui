@@ -2915,7 +2915,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/component-library',
     exportPath: 'body.25',
-    text: 'Some components ship in two forms. Alongside `Button` and `Checkbox` there is `button-headless` and `checkbox-headless`: the behavior, state, and accessibility wiring with none of the visual opinion. When the default styling is not what you want, you drop down a level and bring your own classes, without giving up focus management, ARIA attributes, and keyboard handling.',
+    text: 'Some form controls still ship in two forms. Alongside the styled `Checkbox` there is `checkbox-headless`: the behavior, state, and accessibility wiring with none of the visual opinion. `Button` is not on that track: it is a single owned component with `variant` and `appearance`, and there is no `button-headless`. When the default styling is not what you want, you drop down a level and bring your own classes, without giving up focus management, ARIA attributes, and keyboard handling.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/09-component-library.md', note: 'body source paragraph 25' },
       {
