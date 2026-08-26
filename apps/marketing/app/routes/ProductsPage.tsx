@@ -16,7 +16,7 @@ import {
   productsCtaSlot,
   productsFaqSlot,
   productsHeroSlot,
-} from '../lib/page-blocks';
+} from '../lib/page-blocks/pages/products';
 import { useMarketingPageBlocks } from '../lib/use-page-blocks';
 
 export function ProductsPage() {

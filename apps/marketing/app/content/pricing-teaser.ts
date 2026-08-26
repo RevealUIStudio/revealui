@@ -4,7 +4,7 @@
 // 2026-08-09: outcome-first Free/Pro teaser; package-count license math stays
 // on Fair Source / pricing pages, not the homepage pitch.
 
-import type { LicenseTierId } from '@revealui/contracts/pricing';
+import type { LicenseTierId } from '@revealui/contracts/public-catalog';
 import { SITE } from './site';
 
 export interface TeaserTier {

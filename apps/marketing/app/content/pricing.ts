@@ -4,11 +4,11 @@
 // calculator are not part of this catalog.
 
 export {
-  PERPETUAL_TIERS,
   type PricingResponse,
   PUBLIC_PERPETUAL_NAMES,
+  PUBLIC_PERPETUAL_TIERS,
   SUBSCRIPTION_TIERS,
-} from '@revealui/contracts/pricing';
+} from '@revealui/contracts/public-catalog';
 
 import { METRICS, SITE } from './site';
 import type { Cta, SectionHeading } from './types';
