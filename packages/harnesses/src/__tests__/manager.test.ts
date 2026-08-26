@@ -81,6 +81,8 @@ describe('project manager (.revealui)', () => {
     ) as { hooks: { SessionStart: Array<{ hooks: Array<{ command: string }> }> } };
     const startCmds = start.hooks.SessionStart.flatMap((g) => g.hooks.map((h) => h.command));
     expect(startCmds.some((c) => c.includes('tracker-session-check.js'))).toBe(true);
+    expect(startCmds.some((c) => c.includes('CURRENT-HANDOFF'))).toBe(true);
+    expect(startCmds.some((c) => c.includes('/pickup'))).toBe(true);
     expect(startCmds.some((c) => c.includes('hotfix-check.js'))).toBe(true);
     expect(startCmds.some((c) => c.includes('tmpscript-check.js'))).toBe(true);
     expect(startCmds.some((c) => c.includes('session register'))).toBe(true);
