@@ -1,5 +1,11 @@
 # @revealui/tokens
 
+## 0.3.3
+
+### Patch Changes
+
+- 592982a: Nav family uses the shared focus ring. Add success/info shadcn bridge aliases.
+
 ## 0.3.0
 
 ### Minor Changes

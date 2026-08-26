@@ -2,7 +2,7 @@
   "name": "@revealui/scripts",
   "version": "0.1.2",
   "private": true,
-  "description": "Shared utilities for monorepo scripts \u2014 file glob, JSON parsing, conventional logging. Internal to RevealUI.",
+  "description": "Shared utilities for monorepo scripts — file glob, JSON parsing, conventional logging. Internal to RevealUI.",
   "dependencies": {
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
@@ -32,8 +32,8 @@
     "typescript": "catalog:"
   },
   "scripts": {
-    "build": "echo 'Source-only package \u2014 consumed via tsconfig paths, no build needed'",
-    "dev": "echo 'Source-only package \u2014 no watch mode needed'",
+    "build": "echo 'Source-only package — consumed via tsconfig paths, no build needed'",
+    "dev": "echo 'Source-only package — no watch mode needed'",
     "lint": "biome check .",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"

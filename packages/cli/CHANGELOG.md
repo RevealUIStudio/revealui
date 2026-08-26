@@ -1,5 +1,12 @@
 # @revealui/cli
 
+## 0.9.8
+
+### Patch Changes
+
+- 8cb3037: Stamp create-revealui templates with @revealui/presentation hosts (Heading, Text, LinkButton) and tokens.css so new apps import the design system instead of declaring it unused.
+  - @revealui/setup@0.7.5
+
 ## 0.9.7
 
 ### Patch Changes
