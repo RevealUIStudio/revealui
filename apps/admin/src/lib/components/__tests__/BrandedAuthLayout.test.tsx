@@ -20,7 +20,7 @@ describe('BrandedAuthLayout', () => {
         <p>form</p>
       </BrandedAuthLayout>,
     );
-    const mark = document.querySelector('img[src="/revealui-logo-dark.svg"]');
+    const mark = document.querySelector('img[src="/revealui-logo.svg"]');
     expect(mark).not.toBeNull();
     expect(screen.getByRole('heading', { name: 'RevealUI' })).toBeTruthy();
   });

@@ -5,7 +5,6 @@ import {
   IconClose,
   IconGlobe,
   IconMenu,
-  RevealUIMark,
 } from '@revealui/presentation';
 import { Link, useLocation } from '@revealui/router';
 import { lazy, Suspense, useEffect, useState } from 'react';
@@ -33,8 +32,10 @@ interface DocLayoutProps {
 
 const sections: NavSection[] = buildDocNavSections(showcaseComponentItems);
 
-/** Untiled Circuit-R in docs chrome. Same band as marketing nav. */
-const CIRCUIT_R_NAV_CLASS = 'h-[36px] w-auto text-ink';
+/** Untiled Circuit-R master in docs chrome. Never render this file below 96px. */
+const CIRCUIT_R_NAV_SRC = '/revealui-logo.svg';
+const CIRCUIT_R_NAV_PX = 96;
+const CIRCUIT_R_NAV_CLASS = 'h-[96px] w-auto';
 
 function NavLink({
   item,
@@ -85,7 +86,14 @@ function SidebarContent({ isHome, onNavigate }: { isHome: boolean; onNavigate?: 
           className="inline-flex items-center no-underline"
           aria-label="RevealUI"
         >
-          <RevealUIMark className={CIRCUIT_R_NAV_CLASS} />
+          {/* biome-ignore lint/performance/noImgElement: Vite docs chrome has no next/image; this is the Circuit-R master. */}
+          <img
+            src={CIRCUIT_R_NAV_SRC}
+            alt=""
+            width={CIRCUIT_R_NAV_PX}
+            height={CIRCUIT_R_NAV_PX}
+            className={CIRCUIT_R_NAV_CLASS}
+          />
         </Link>
       </h2>
 
@@ -278,7 +286,14 @@ export function DocLayout({ children }: DocLayoutProps) {
           className="inline-flex items-center text-base font-bold tracking-tight text-ink no-underline"
           aria-label="RevealUI"
         >
-          <RevealUIMark className={CIRCUIT_R_NAV_CLASS} />
+          {/* biome-ignore lint/performance/noImgElement: Vite docs chrome has no next/image; this is the Circuit-R master. */}
+          <img
+            src={CIRCUIT_R_NAV_SRC}
+            alt=""
+            width={CIRCUIT_R_NAV_PX}
+            height={CIRCUIT_R_NAV_PX}
+            className={CIRCUIT_R_NAV_CLASS}
+          />
         </Link>
         <Button
           type="button"

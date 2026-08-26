@@ -262,7 +262,7 @@ Enterprise tier feature. Controls the look and feel of admin UI and transactiona
 | Variable | Required | Default | Description | Security | Used By |
 |----------|----------|---------|-------------|----------|---------|
 | `REVEALUI_BRAND_NAME` | No | `RevealUI` | Display name shown in admin UI and emails. | LOW | admin |
-| `REVEALUI_BRAND_LOGO_URL` | No | None (canonical `/revealui-logo-dark.svg` circuit emblem) | URL to a custom logo image. | LOW | admin |
+| `REVEALUI_BRAND_LOGO_URL` | No | None (canonical `/revealui-logo.svg` Circuit-R master) | URL to a custom logo image. | LOW | admin |
 | `REVEALUI_BRAND_PRIMARY_COLOR` | No | None (RevealUI palette) | Primary brand color as hex (e.g., `#6366f1`). Validated: must match `#[0-9a-fA-F]{3,8}`. | LOW | admin |
 | `REVEALUI_SHOW_POWERED_BY` | No | `true` | Show "Built with RevealUI" footer badge. Set to `false` to hide (requires Pro license). | LOW | admin |
 

@@ -127,13 +127,15 @@ describe('NavBar (marketing)', () => {
     expect(screen.getByRole('link', { name: 'RevealUI' })).toBeInTheDocument();
   });
 
-  it('renders the circuit master at about 36px, not the faceted or tiled mark', () => {
+  it('renders the circuit master at 96px, not the faceted or tiled mark', () => {
     const { container } = renderNavBar();
     const home = screen.getByRole('link', { name: 'RevealUI' });
     const mark = home.querySelector('img');
     expect(mark).toBeTruthy();
     expect(mark).toHaveAttribute('src', '/revealui-logo.svg');
-    expect(mark?.getAttribute('class') ?? '').toContain('h-[36px]');
+    expect(mark?.getAttribute('class') ?? '').toContain('h-[96px]');
+    expect(mark).toHaveAttribute('width', '96');
+    expect(mark).toHaveAttribute('height', '96');
     expect(container.querySelector('img[src="/icon-mark.svg"]')).toBeNull();
     expect(container.querySelector('img[src="/favicon.svg"]')).toBeNull();
     expect(container.querySelector('img[src="/revealui-mark.svg"]')).toBeNull();
