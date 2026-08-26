@@ -1,7 +1,7 @@
 {
   "name": "@revealui/openapi",
   "version": "0.3.0",
-  "description": "Type-safe OpenAPI 3.x integration for Hono \u2014 route definitions, Zod validation middleware, automatic spec generation with Swagger UI support, and contracts-mirror codegen pipeline (F8 Phase 3)",
+  "description": "Type-safe OpenAPI 3.x integration for Hono — route definitions, Zod validation middleware, automatic spec generation with Swagger UI support, and contracts-mirror codegen pipeline (F8 Phase 3)",
   "keywords": [
     "api",
     "hono",

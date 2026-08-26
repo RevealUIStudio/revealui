@@ -1,5 +1,25 @@
 # @revealui/ai
 
+## 1.0.0
+
+### Major Changes
+
+- 963f61c: Remove deprecated `ANTHROPIC_PRICING` from `@revealui/ai/llm/cache-utils`. Use `MODEL_PRICING` from token-counter (package root re-export).
+- 476a667: Remove the legacy hypervisor MCP agent adapter. Mount MCP tools with `createToolsFromMcpClient` / `mcpClients` only. Deleted public surface: `discoverMCPTools`, `MCPToolSource`, `AgentRuntime.mcpToolSource`, `createToolFromMCP`, `registerMCPTools`. `MCPHypervisor` in `@revealui/mcp` is unchanged — connect spawned servers with a real `McpClient`.
+
+### Minor Changes
+
+- 45133b2: Add the model-artifact C-SCRM door (URL plus sha256, refuse pickle-class formats) and claim-gates holds that block C-SCRM, trustworthy-AI, AML-hardened, and weight-scan product claims.
+
+### Patch Changes
+
+- ad27ca4: Export Groq, xAI, OpenAI, and Anthropic provider subpaths so the Apify Store actor can load BYOK chat without importing the `@revealui/ai` package root (db/config).
+- Updated dependencies [a5b8022]
+- Updated dependencies [700413b]
+- Updated dependencies [5a0fbe7]
+  - @revealui/core@0.14.0
+  - @revealui/contracts@0.8.3
+
 ## 0.10.1
 
 ### Patch Changes

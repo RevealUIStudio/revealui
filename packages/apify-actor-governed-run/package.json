@@ -1,6 +1,6 @@
 {
   "name": "@revealui/apify-actor-governed-run",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": true,
   "description": "Apify pay-per-event actor: runs an AI agent task and returns a cryptographically signed, offline-verifiable receipt of every action (GAP-431).",
   "type": "module",

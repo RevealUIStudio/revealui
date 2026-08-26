@@ -1,5 +1,11 @@
 # @revealui/contracts
 
+## 0.8.3
+
+### Patch Changes
+
+- 700413b: Call the agents profile Agent Skills, not Claude Code skills.
+
 ## 0.8.2
 
 ### Patch Changes

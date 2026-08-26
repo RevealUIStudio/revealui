@@ -1,5 +1,28 @@
 # @revealui/presentation
 
+## 0.14.0
+
+### Minor Changes
+
+- 0b46867: Add ChoiceCard for wrapping selectable cards and fail the Tier-1 presentation gate by default so apps cannot ship raw button or input hosts.
+- ff1137f: Ship a first-party cookie consent banner (opt-in optional categories, GPC/DNT) and a fail-closed HIPAA compliance profile that disables third-party telemetry and enforces a 15-minute idle sign-out.
+- caf837f: Re-author Badge onto semantic `intent` and retire the Catalyst 20-swatch `color` palette.
+- 5e0ff45: Export a pre-hydration `data-theme` bootstrap script shared by `useTheme` and the app shells.
+
+### Patch Changes
+
+- ebbb625: Escape HTML metacharacters after `JSON.stringify` in the pre-hydration theme bootstrap so the IIFE is safe to inline in a `<script>` tag.
+- 5a0fbe7: Compose @revealui/core admin field wrappers and forms on presentation primitives. Allow file inputs on presentation Input.
+- f917cc9: Allow presentation Input type="hidden" so form posts do not hand-roll a host tag.
+- b1d0915: Keep ghost and outline neutral button labels readable on hover. Hover now uses body ink on a muted fill instead of ink-on-amber (`accent-foreground`) over a dark card.
+- 77fbaa1: Route Table row-as-link focus through the shared recipes and fix DescriptionTerm's truncated `sm:` class.
+- 592982a: Nav family uses the shared focus ring. Add success/info shadcn bridge aliases.
+- 40b52b3: Route Dropdown, Listbox, and Combobox focus/active-option styles through the shared focus recipes.
+- Updated dependencies [700413b]
+- Updated dependencies [592982a]
+  - @revealui/contracts@0.8.3
+  - @revealui/tokens@0.3.3
+
 ## 0.15.1
 
 ### Patch Changes
