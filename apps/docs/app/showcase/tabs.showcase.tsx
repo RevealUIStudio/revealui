@@ -37,7 +37,7 @@ const story: ShowcaseStory = {
         </TabList>
         {tabs.map((t) => (
           <TabPanel key={t.id} id={t.id}>
-            <div className="p-4 text-sm text-zinc-600 dark:text-zinc-400">{t.content}</div>
+            <div className="p-4 text-sm text-muted-foreground">{t.content}</div>
           </TabPanel>
         ))}
       </Tabs>
@@ -55,17 +55,17 @@ const story: ShowcaseStory = {
             <Tab id="billing">Billing</Tab>
           </TabList>
           <TabPanel id="general">
-            <div className="p-4 text-sm text-zinc-600 dark:text-zinc-400">
+            <div className="p-4 text-sm text-muted-foreground">
               General account settings like name, email, and preferences.
             </div>
           </TabPanel>
           <TabPanel id="security">
-            <div className="p-4 text-sm text-zinc-600 dark:text-zinc-400">
+            <div className="p-4 text-sm text-muted-foreground">
               Password, 2FA, passkeys, and session management.
             </div>
           </TabPanel>
           <TabPanel id="billing">
-            <div className="p-4 text-sm text-zinc-600 dark:text-zinc-400">
+            <div className="p-4 text-sm text-muted-foreground">
               Subscription plan, payment methods, and invoices.
             </div>
           </TabPanel>
@@ -81,12 +81,12 @@ const story: ShowcaseStory = {
             <Tab id="bash">Bash</Tab>
           </TabList>
           <TabPanel id="ts">
-            <pre className="p-4 text-sm font-mono text-zinc-600 dark:text-zinc-400">
+            <pre className="p-4 text-sm font-mono text-muted-foreground">
               {`import { Button } from '@revealui/presentation/client'`}
             </pre>
           </TabPanel>
           <TabPanel id="bash">
-            <pre className="p-4 text-sm font-mono text-zinc-600 dark:text-zinc-400">
+            <pre className="p-4 text-sm font-mono text-muted-foreground">
               {`npx create-revealui my-app`}
             </pre>
           </TabPanel>

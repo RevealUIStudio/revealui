@@ -63,6 +63,13 @@ describe('Textarea', () => {
     expect(wrapper?.querySelector('textarea')).toBeInTheDocument();
   });
 
+  it('paints the shell ring on :focus-within via the shared recipe', () => {
+    const { container } = render(<Textarea />);
+    const wrapper = container.querySelector('span[data-slot="control"]');
+    expect(wrapper?.className).toContain('sm:focus-within:after:ring-ring');
+    expect(wrapper?.className).not.toContain('dark:');
+  });
+
   it('should render placeholder text', () => {
     render(<Textarea placeholder="Write something..." />);
 

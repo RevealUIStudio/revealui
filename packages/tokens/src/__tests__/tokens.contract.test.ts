@@ -105,6 +105,27 @@ describe('tokens contract', () => {
     expect(CSS.includes(BRAND_LIGHT)).toBe(true);
   });
 
+  it('does not keep a leftover .dark class selector', () => {
+    const selectorLines = CSS.split('\n').filter((line) => line.trim() === '.dark {');
+    expect(selectorLines).toEqual([]);
+    expect(CSS.includes(':root:not(.dark)')).toBe(false);
+  });
+
+  it('aligns shadcn status-foreground bridges to on-fill ink', () => {
+    expect(CSS_COLLAPSED.includes('--success-foreground: var(--rvui-text-on-success)')).toBe(true);
+    expect(CSS_COLLAPSED.includes('--warning-foreground: var(--rvui-text-on-warning)')).toBe(true);
+    expect(CSS_COLLAPSED.includes('--info: var(--rvui-info)')).toBe(true);
+    expect(CSS_COLLAPSED.includes('--info-foreground: var(--rvui-text-on-brand)')).toBe(true);
+  });
+
+  it('theme.css names the leftover status-foreground utilities', () => {
+    const theme = readFileSync(join(PKG_ROOT, 'src', 'theme.css'), 'utf8');
+    expect(theme.includes('--color-success-foreground: var(--rvui-text-on-success)')).toBe(true);
+    expect(theme.includes('--color-warning-foreground: var(--rvui-text-on-warning)')).toBe(true);
+    expect(theme.includes('--color-info: var(--rvui-info)')).toBe(true);
+    expect(theme.includes('--color-info-foreground: var(--rvui-text-on-brand)')).toBe(true);
+  });
+
   it('src/tokens.css contains the cobalt dark brand value', () => {
     expect(CSS.includes(BRAND_DARK)).toBe(true);
   });

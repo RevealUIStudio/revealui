@@ -92,6 +92,7 @@
   --color-error-text: var(--rvui-error-text);
   --color-info: var(--rvui-info);
   --color-info-subtle: var(--rvui-info-subtle);
+  --color-info-foreground: var(--rvui-text-on-brand);
 
   /* ── Lines ── */
   --color-border: var(--rvui-border);

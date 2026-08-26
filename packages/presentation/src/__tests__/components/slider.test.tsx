@@ -55,4 +55,11 @@ describe('Slider', () => {
     expect(screen.getByRole('slider', { name: 'MRR' })).toBeInTheDocument();
     expect(screen.getByText('$10k')).toBeInTheDocument();
   });
+
+  it('uses the shared thumb focus recipe for WebKit and Mozilla', () => {
+    render(<Slider />);
+    const slider = screen.getByRole('slider');
+    expect(slider.className).toContain('focus-visible:[&::-webkit-slider-thumb]:outline-ring');
+    expect(slider.className).toContain('focus-visible:[&::-moz-range-thumb]:outline-ring');
+  });
 });

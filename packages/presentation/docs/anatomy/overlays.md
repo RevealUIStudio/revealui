@@ -1,9 +1,10 @@
 # Overlay family anatomy (Phase 3 PR-4)
 
-Dropdown (menu), Listbox, Combobox. Grounded in product usage (admin pickers,
-docs showcase), WAI-ARIA APG Menu / Listbox / Combobox, and `@revealui/tokens`.
-Catalyst source was not open while writing this. Existing package tests define
-behavioral compatibility.
+Dropdown (menu), Listbox, Combobox, plus modal overlays (Dialog, Drawer,
+Alert). Grounded in product usage (admin pickers, docs showcase), WAI-ARIA APG
+Menu / Listbox / Combobox / Dialog, and `@revealui/tokens`. Catalyst source
+was not open while writing this. Existing package tests define behavioral
+compatibility.
 
 ## Shared contract
 
@@ -59,7 +60,24 @@ Keyboard: typing filters. ArrowDown/Up move. Enter selects. Escape closes.
 Trigger/input ring: `focusRingAfterWithin` (`:focus-within` on the control
 shell). Option highlight: same as Listbox.
 
+## Modal overlays (APG Dialog)
+
+| Part | Token |
+|---|---|
+| Backdrop | `bg-scrim` (`--rvui-scrim`). Never a hardcoded oklch overlay. |
+| Panel | `bg-card` + `ring-border` / `ring-border-strong` + `shadow-lg`. |
+| Title | `text-foreground`. |
+
+Dialog, Drawer, and Alert already share `useFocusTrap` / `useScrollLock` /
+`useEscapeKey` / `useTransition`. Drawer and Alert were already on the scrim
+token. Dialog follows the same recipes so a light `[data-theme]` does not keep
+a dark-only fallback.
+
+Tooltip and Toast stay on their existing token surfaces (`bg-card`, status
+fills). They do not use a page scrim.
+
 ## Do-not-redo
 
-Layout grid (icon / label / shortcut columns) stays. This pass authors the
-focus and active-option recipes. It does not redesign the menus.
+Layout grid (icon / label / shortcut columns) stays. The picker pass authors
+the focus and active-option recipes. The modal pass authors the scrim /
+surface tokens. Neither redesigns the menus or the dialog chrome.
