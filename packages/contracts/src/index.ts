@@ -533,6 +533,7 @@ export {
   type PerpetualTier,
   type PricingResponse,
   PUBLIC_PERPETUAL_NAMES,
+  PUBLIC_PERPETUAL_TIERS,
   perpetualMaxSitesForTier,
   SUBSCRIPTION_TIERS,
   type SubscriptionTier,

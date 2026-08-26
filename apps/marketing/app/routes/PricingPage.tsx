@@ -15,7 +15,6 @@ import { useEffect, useState } from 'react';
 import { Footer } from '../components/Footer';
 import { NewsletterSignup } from '../components/NewsletterSignup';
 import {
-  PERPETUAL_TIERS,
   PRICING_AGENT_A2A,
   PRICING_AGENT_CTA_LINKS,
   PRICING_AGENT_MCP,
@@ -34,7 +33,7 @@ import {
   PRICING_TRIAL_NOTE,
   PRICING_VALUE_BAND,
   type PricingResponse,
-  PUBLIC_PERPETUAL_NAMES,
+  PUBLIC_PERPETUAL_TIERS,
   SUBSCRIPTION_TIERS,
 } from '../content/pricing';
 import { PRICING_FAQ_SECTION, PRICING_FAQS } from '../content/pricing-faq';
@@ -48,8 +47,6 @@ const ADMIN_URL = import.meta.env.VITE_ADMIN_URL ?? 'https://admin.revealui.com'
 const API_URL =
   import.meta.env.VITE_API_URL ??
   (import.meta.env.PROD ? 'https://api.revealui.com' : 'http://localhost:3004');
-
-const PUBLIC_PERPETUAL = new Set<string>(PUBLIC_PERPETUAL_NAMES);
 
 export function PricingPage() {
   const [pricing, setPricing] = useState<PricingResponse | null>(null);
@@ -104,19 +101,17 @@ export function PricingPage() {
       ctaHref,
     };
   });
-  const perpetualTiers = PERPETUAL_TIERS.filter((tier) => PUBLIC_PERPETUAL.has(tier.name)).map(
-    (tier) => {
-      const fromApi = pricing?.perpetual.find((item) => item.name === tier.name);
-      const fallback = PERPETUAL_PRICE_FALLBACKS[tier.name];
-      return {
-        ...tier,
-        price: fromApi?.price ?? fallback?.price,
-        priceNote: fromApi?.priceNote ?? fallback?.priceNote,
-        renewal: fromApi?.renewal ?? fallback?.renewal,
-        ctaHref: tier.ctaHref.startsWith('/') ? `${ADMIN_URL}${tier.ctaHref}` : tier.ctaHref,
-      };
-    },
-  );
+  const perpetualTiers = PUBLIC_PERPETUAL_TIERS.map((tier) => {
+    const fromApi = pricing?.perpetual.find((item) => item.name === tier.name);
+    const fallback = PERPETUAL_PRICE_FALLBACKS[tier.name];
+    return {
+      ...tier,
+      price: fromApi?.price ?? fallback?.price,
+      priceNote: fromApi?.priceNote ?? fallback?.priceNote,
+      renewal: fromApi?.renewal ?? fallback?.renewal,
+      ctaHref: tier.ctaHref.startsWith('/') ? `${ADMIN_URL}${tier.ctaHref}` : tier.ctaHref,
+    };
+  });
 
   return (
     <div className="min-h-screen bg-background">

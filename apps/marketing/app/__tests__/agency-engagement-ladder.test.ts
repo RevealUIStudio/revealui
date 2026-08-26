@@ -1,7 +1,8 @@
 /**
- * Drift gate for leftover agency anchors. The product /pricing catalog must
+ * Drift gate for leftover studio anchors. The product /pricing catalog must
  * not derive a done-for-you ladder from AGENCY_ENGAGEMENT_LADDER. Studio
- * SKUs belong on revealuistudio.com.
+ * SKUs belong on revealuistudio.com: Hour $300 / Written plan $3,500 /
+ * Launch $7,500. Dead Fleet and Custom Build objects must not exist.
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -40,24 +41,28 @@ function countOccurrencesInCode(source: string, needle: string): number {
   return count;
 }
 
-describe('AGENCY_ENGAGEMENT_LADDER — leftover studio anchors', () => {
-  it('pins the four studio anchors off the product catalog', () => {
+describe('AGENCY_ENGAGEMENT_LADDER — locked studio anchors', () => {
+  it('pins Hour, Written plan, and Launch only', () => {
     expect(AGENCY_ENGAGEMENT_LADDER.map((e) => [e.id, e.name, e.price, e.startsFrom])).toEqual([
-      ['architecture-review', 'Architecture Review', '$3,500', false],
-      ['launch-package', 'Launch Package', '$7,500', false],
-      ['fleet-deployment', 'Fleet deployment', '$25,000', true],
-      ['custom-build', 'Custom Build', '$50,000', true],
+      ['consulting-hour', 'Hour', '$300', false],
+      ['architecture-review', 'Written plan', '$3,500', false],
+      ['launch-package', 'Launch', '$7,500', false],
     ]);
   });
 
-  it('renders Architecture Review and Launch Package as flat prices, and the rest with a "from" prefix', () => {
+  it('does not include Fleet deployment or Custom Build', () => {
+    const names = AGENCY_ENGAGEMENT_LADDER.map((e) => e.name);
+    expect(names).not.toContain('Fleet deployment');
+    expect(names).not.toContain('Custom Build');
+  });
+
+  it('renders studio rungs as flat prices', () => {
     const display = Object.fromEntries(
       AGENCY_ENGAGEMENT_LADDER.map((e) => [e.id, agencyEngagementPriceDisplay(e)]),
     );
+    expect(display['consulting-hour']).toBe('$300');
     expect(display['architecture-review']).toBe('$3,500');
     expect(display['launch-package']).toBe('$7,500');
-    expect(display['fleet-deployment']).toBe('from $25,000');
-    expect(display['custom-build']).toBe('from $50,000');
   });
 });
 
@@ -69,13 +74,13 @@ describe('product pricing.ts does not sell the studio ladder', () => {
     expect(Object.hasOwn(pricing, 'PRICING_COST_CALCULATOR')).toBe(false);
   });
 
-  it('FOR_OPERATORS_PRICING leftover rungs still reuse ladder name + display price', () => {
+  it('FOR_OPERATORS_PRICING rungs reuse ladder name + display price', () => {
     expect(FOR_OPERATORS_PRICING.rungs.map((r) => [r.title, r.price])).toEqual(
       AGENCY_ENGAGEMENT_LADDER.map((e) => [e.name, agencyEngagementPriceDisplay(e)]),
     );
   });
 
-  it('FAQ "How much does it cost?" leftover answer interpolates ladder anchors', () => {
+  it('FAQ "How much does it cost?" interpolates locked studio anchors', () => {
     const faq = FOR_OPERATORS_FAQ.items.find(
       (item) => item.question === 'How much does it cost?',
     )?.answer;
@@ -84,15 +89,17 @@ describe('product pricing.ts does not sell the studio ladder', () => {
       expect(faq, `FAQ must mention ${engagement.name}`).toContain(engagement.name);
       expect(faq, `FAQ must reference ${engagement.price}`).toContain(engagement.price);
     }
+    expect(faq?.includes('Fleet deployment')).toBe(false);
+    expect(faq?.includes('Custom Build')).toBe(false);
   });
 });
 
-describe('single ownership of agency-only price anchors', () => {
-  const agencyOnly = ['$25,000', '$50,000'] as const;
+describe('dead SKU anchors stay out of marketing content', () => {
+  const deadAnchors = ['$25,000', '$50,000', 'Fleet deployment', 'Custom Build'] as const;
 
-  for (const anchor of agencyOnly) {
-    it(`${anchor} appears exactly once in content/for-operators.ts code (the leftover ladder)`, () => {
-      expect(countOccurrencesInCode(FOR_OPERATORS_SRC, anchor)).toBe(1);
+  for (const anchor of deadAnchors) {
+    it(`${anchor} does not appear in content/for-operators.ts code`, () => {
+      expect(countOccurrencesInCode(FOR_OPERATORS_SRC, anchor)).toBe(0);
     });
 
     it(`${anchor} does not appear in content/pricing.ts code`, () => {
@@ -108,13 +115,13 @@ describe('FOUNDER_SERVICE_OFFERINGS — founder-led services menu', () => {
     expect(names).not.toContain('Custom Build');
   });
 
-  it('agrees with the leftover ladder on the shared Architecture Review price', () => {
+  it('agrees with the studio ladder on the shared Written plan price', () => {
     const review = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'architecture-review');
     const ladderReview = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === 'architecture-review');
     expect(review?.price).toBe(ladderReview?.price);
   });
 
-  it('agrees with the leftover ladder on the shared Launch Package price', () => {
+  it('agrees with the studio ladder on the shared Launch price', () => {
     const launch = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'launch-package');
     const ladderLaunch = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === 'launch-package');
     expect(launch?.price).toBe('$7,500');

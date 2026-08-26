@@ -11,7 +11,11 @@
 // because an email-agent template ships (packages/ai/src/templates) but no
 // order-processing template exists.
 
-import { ARCHITECTURE_REVIEW_PRICE, LAUNCH_PACKAGE_PRICE } from '@revealui/contracts/pricing';
+import {
+  ARCHITECTURE_REVIEW_PRICE,
+  CONSULTING_HOUR_PRICE,
+  LAUNCH_PACKAGE_PRICE,
+} from '@revealui/contracts/public-catalog';
 import { SITE } from './site';
 import type { Cta, FaqItem } from './types';
 
@@ -95,29 +99,13 @@ export const FOR_OPERATORS_HOW_WE_DELIVER = {
 } as const;
 
 // ---------------------------------------------------------------------------
-// Agency engagement ladder — single source of truth for the agency-only "from"
-// anchors RevealUI Studio offers (Fleet deployment, Custom Build), plus the two
-// fixed-price entry rungs it shares with the self-serve founder-led menu
-// (Architecture Review, Launch Package). The shared rungs import their price
-// from @revealui/contracts/pricing (`ARCHITECTURE_REVIEW_PRICE`,
-// `LAUNCH_PACKAGE_PRICE`) so the agency surface cannot drift from the
-// self-serve FOUNDER_SERVICE_OFFERINGS menu that also lists them.
-//
-// Leftover studio ladder for the redirected /for-operators page. The product
-// /pricing catalog no longer consumes this. Studio SKUs belong on
-// revealuistudio.com.
-//
-// `price` is the bare numeric anchor ("$25,000") so it can drop into prose;
-// `startsFrom` decides whether the rendered ladder rung prefixes "from ".
-// Single ownership of the bare anchors is asserted by
-// __tests__/agency-engagement-ladder.test.ts.
+// Studio engagement ladder — Hour / Written plan / Launch on
+// revealuistudio.com only. Dead leftover rungs must not exist in this
+// module. Prices import from @revealui/contracts/public-catalog so leftover
+// admin catalogs cannot ship in the public marketing bundle.
 // ---------------------------------------------------------------------------
 
-export type AgencyEngagementId =
-  | 'architecture-review'
-  | 'launch-package'
-  | 'fleet-deployment'
-  | 'custom-build';
+export type AgencyEngagementId = 'consulting-hour' | 'architecture-review' | 'launch-package';
 
 export interface AgencyEngagement {
   readonly id: AgencyEngagementId;
@@ -128,22 +116,26 @@ export interface AgencyEngagement {
 
 export const AGENCY_ENGAGEMENT_LADDER: readonly AgencyEngagement[] = [
   {
+    id: 'consulting-hour',
+    name: 'Hour',
+    price: CONSULTING_HOUR_PRICE,
+    startsFrom: false,
+  },
+  {
     id: 'architecture-review',
-    name: 'Architecture Review',
+    name: 'Written plan',
     price: ARCHITECTURE_REVIEW_PRICE,
     startsFrom: false,
   },
   {
     id: 'launch-package',
-    name: 'Launch Package',
+    name: 'Launch',
     price: LAUNCH_PACKAGE_PRICE,
     startsFrom: false,
   },
-  { id: 'fleet-deployment', name: 'Fleet deployment', price: '$25,000', startsFrom: true },
-  { id: 'custom-build', name: 'Custom Build', price: '$50,000', startsFrom: true },
 ] as const;
 
-/** Rendered display form for a ladder rung ("$3,500" or "from $25,000"). */
+/** Rendered display form for a ladder rung ("$3,500"). */
 export function agencyEngagementPriceDisplay(engagement: AgencyEngagement): string {
   return engagement.startsFrom ? `from ${engagement.price}` : engagement.price;
 }
@@ -154,10 +146,9 @@ function findEngagement(id: AgencyEngagementId): AgencyEngagement {
   return found;
 }
 
+const CONSULTING_HOUR = findEngagement('consulting-hour');
 const ARCHITECTURE_REVIEW = findEngagement('architecture-review');
 const LAUNCH_PACKAGE = findEngagement('launch-package');
-const FLEET_DEPLOYMENT = findEngagement('fleet-deployment');
-const CUSTOM_BUILD = findEngagement('custom-build');
 
 // ---------------------------------------------------------------------------
 // Engagement pricing — rendered by components/for-operators/EngagementPricing.tsx,
@@ -179,27 +170,21 @@ export const FOR_OPERATORS_PRICING = {
   body: 'Engagements are fixed-bid and start with a discovery call that scopes the work. The numbers below are starting points, not final quotes.',
   rungs: [
     {
+      title: CONSULTING_HOUR.name,
+      price: agencyEngagementPriceDisplay(CONSULTING_HOUR),
+      body: 'One hour with the founder. Architecture advice, migration planning, or implementation guidance. Booked on Google Calendar. This SKU lives on revealuistudio.com, not on the product catalog.',
+      cta: { label: 'Book a session', href: AGENCY_CONTACT, external: true },
+    },
+    {
       title: ARCHITECTURE_REVIEW.name,
       price: agencyEngagementPriceDisplay(ARCHITECTURE_REVIEW),
-      body: 'A two-week, fixed-bid plan for a self-hosted product your clients own: architecture, data and audit map, model plan, and a priced path to launch. Credited toward a Fleet deployment if you start one within 30 days.',
-      cta: { label: 'Book the scoping call', href: AGENCY_CONTACT, external: true },
+      body: 'A written architecture review of your current stack with a priced path to launch. This SKU lives on revealuistudio.com, not on the product catalog.',
+      cta: { label: 'Request a written plan', href: AGENCY_CONTACT, external: true },
     },
     {
       title: LAUNCH_PACKAGE.name,
       price: agencyEngagementPriceDisplay(LAUNCH_PACKAGE),
-      body: 'A fixed-bid setup, live in two to four weeks: we configure your RevealUI instance, deploy it, and hand you the keys with a full handoff. The fastest path from an agreed engagement to a live product you operate yourself.',
-      cta: { label: 'Book a build call', href: AGENCY_CONTACT, external: true },
-    },
-    {
-      title: FLEET_DEPLOYMENT.name,
-      price: agencyEngagementPriceDisplay(FLEET_DEPLOYMENT),
-      body: 'A branded, self-hosted runtime your clients use under your name, on your cloud, white-labeled per client. Fixed-scope, scoped in the Architecture Review. Ongoing support is a separate monthly plan.',
-      cta: { label: 'Book a build call', href: AGENCY_CONTACT, external: true },
-    },
-    {
-      title: CUSTOM_BUILD.name,
-      price: agencyEngagementPriceDisplay(CUSTOM_BUILD),
-      body: 'A custom product on the same runtime, scoped to what you need beyond a standard Fleet deployment. Four to twelve weeks, fixed-bid, scoped in discovery.',
+      body: 'We stand up your RevealUI instance, migrate your content, and get you to first deploy. This SKU lives on revealuistudio.com, not on the product catalog.',
       cta: { label: 'Book a build call', href: AGENCY_CONTACT, external: true },
     },
   ] as readonly PricingRung[],
@@ -255,7 +240,7 @@ export const FOR_OPERATORS_FAQ = {
     },
     {
       question: 'How much does it cost?',
-      answer: `The discovery call scopes the engagement. A ${ARCHITECTURE_REVIEW.price} fixed-bid ${ARCHITECTURE_REVIEW.name} is the written-assessment starting point, and it credits toward what you build next. A ${LAUNCH_PACKAGE.price} ${LAUNCH_PACKAGE.name} takes you from that plan to a live product in two to four weeks. From there, ${FLEET_DEPLOYMENT.name}s start at ${FLEET_DEPLOYMENT.price} and ${CUSTOM_BUILD.name}s at ${CUSTOM_BUILD.price}; the discovery call scopes the final number.`,
+      answer: `Studio SKUs live on revealuistudio.com, not on this catalog. ${CONSULTING_HOUR.name} is ${CONSULTING_HOUR.price}, ${ARCHITECTURE_REVIEW.name} is ${ARCHITECTURE_REVIEW.price}, and ${LAUNCH_PACKAGE.name} is ${LAUNCH_PACKAGE.price}. Book on Google Calendar from that site.`,
     },
     {
       question: 'How long does it take?',

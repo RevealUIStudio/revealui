@@ -33,7 +33,7 @@ import type { BlockAnnotation } from '@revealui/presentation';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { fetchPageBlocks } from './api';
 import { getEditDrafts, isEditModeActive, subscribeEditDrafts } from './edit-mode';
-import { blocksMatchFallback } from './page-blocks';
+import { blocksMatchFallback } from './page-blocks/shared';
 
 function devWarn(message: string): void {
   if (import.meta.env.DEV) {

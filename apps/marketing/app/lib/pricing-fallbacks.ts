@@ -1,4 +1,4 @@
-import type { LicenseTierId } from '@revealui/contracts/pricing';
+import type { LicenseTierId } from '@revealui/contracts/public-catalog';
 
 /**
  * Client-side display fallback prices — used by PricingPage and PricingTeaser
