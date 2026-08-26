@@ -1,5 +1,13 @@
 # @revealui/license-signer
 
+## 0.1.6
+
+### Patch Changes
+
+- Updated dependencies [a5b8022]
+- Updated dependencies [5a0fbe7]
+  - @revealui/core@0.14.0
+
 ## 0.1.5
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@revealui/mcp",
-  "version": "0.8.7",
+  "version": "0.8.8",
   "description": "Model Context Protocol framework — first-party server launchers, adapter pattern, tool discovery, and an incubating multi-server hypervisor (not app-mounted by default; ADR-007).",
   "repository": {
     "type": "git",

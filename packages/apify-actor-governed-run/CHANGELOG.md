@@ -1,5 +1,12 @@
 # @revealui/apify-actor-governed-run
 
+## 0.1.4
+
+### Patch Changes
+
+- Updated dependencies [ff1137f]
+  - @revealui/security@0.8.0
+
 ## 0.1.3
 
 ### Patch Changes

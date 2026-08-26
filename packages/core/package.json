@@ -1,6 +1,6 @@
 {
   "name": "@revealui/core",
-  "version": "0.13.1",
+  "version": "0.14.0",
   "description": "RevealUI's runtime engine — admin UI, REST API, auth, rich text, plugin system, and access control. The heart of the open-source platform.",
   "license": "MIT",
   "dependencies": {

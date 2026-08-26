@@ -2,19 +2,19 @@ name: Regenerate Visual Snapshots
 
 # Manual workflow to regenerate Playwright visual snapshots.
 #
-# When admin UI changes intentionally (chip URL flattens, theme tweaks,
-# component refactors), the stored PNGs at e2e/__snapshots__/visual-snapshots.e2e.ts/
-# go stale and Visual Regression (E2E) starts failing on the test → main release
-# CI. Re-running them locally risks subtle environment mismatches (font hinting,
-# headless GPU compositing, OS rendering). This workflow runs the regen on the
-# same Ubuntu + Playwright/Chromium pinned versions that ci.yml's e2e-visual
-# uses, so the new baseline matches the environment that gates the release.
+# When admin UI or docs showcase chrome changes intentionally, the stored PNGs
+# under e2e/__snapshots__/ go stale and the matching CI job starts failing (or
+# cancelling at timeout). Re-running locally risks font hinting / headless GPU
+# compositing mismatches. This workflow runs the regen on the same Ubuntu +
+# Playwright/Chromium pinned versions that ci.yml e2e-visual and ds.yml
+# showcase visual-regression use.
 #
 # Usage:
 #   1. Open Actions → "Regenerate Visual Snapshots" → "Run workflow"
-#   2. Pick a base branch (defaults to `test`).
-#   3. Workflow checks out, builds, starts admin, runs Playwright with
-#      --update-snapshots, and pushes any changed PNGs to a fresh branch
+#   2. Pick a base branch (defaults to `test`) and a suite (`all`, `admin`,
+#      or `showcase`).
+#   3. Workflow checks out, builds the apps that suite needs, runs Playwright
+#      with --update-snapshots, and pushes any changed PNGs to a fresh branch
 #      `chore/snapshot-regen-<run_id>`.
 #   4. The workflow output prints the branch name and a `gh pr create` URL.
 #      Open the PR, eyeball the snapshot diffs, merge it into the base branch.
@@ -29,6 +29,14 @@ on:
         description: 'Branch to regenerate snapshots from (and PR back to)'
         required: true
         default: 'test'
+      suite:
+        description: 'Which goldens to regenerate'
+        type: choice
+        options:
+          - all
+          - admin
+          - showcase
+        default: all
 
 permissions:
   contents: write
@@ -42,7 +50,7 @@ jobs:
   regen:
     name: Regenerate
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -65,17 +73,26 @@ jobs:
       - name: Install Playwright (chromium only)
         run: npx playwright install --with-deps chromium
 
-      - name: Build apps
-        run: pnpm build
+      - name: Build apps for suite
         env:
           SKIP_ENV_VALIDATION: "true"
+          SUITE: ${{ inputs.suite }}
+        run: |
+          set -euo pipefail
+          case "$SUITE" in
+            admin) pnpm --filter admin... build ;;
+            showcase) pnpm --filter docs... build ;;
+            *) pnpm build ;;
+          esac
 
       - name: Start Admin server
+        if: inputs.suite != 'showcase'
         run: pnpm --filter admin start &
         env:
           SKIP_ENV_VALIDATION: "true"
 
       - name: Wait for Admin
+        if: inputs.suite != 'showcase'
         run: |
           for i in $(seq 1 40); do
             curl -sf http://localhost:4000 > /dev/null 2>&1 && echo "Admin ready" && break || \
@@ -84,11 +101,34 @@ jobs:
           curl -sf http://localhost:4000 > /dev/null 2>&1 || \
             (echo "::error::Admin failed to start within 120s" && exit 1)
 
-      - name: Regenerate visual snapshots
+      - name: Regenerate admin visual snapshots
+        if: inputs.suite != 'showcase'
         run: npx playwright test --project=chromium e2e/visual-snapshots.e2e.ts --update-snapshots
         env:
           CI: "true"
           SKIP_ENV_VALIDATION: "true"
+        continue-on-error: true
+
+      - name: Start docs preview server
+        if: inputs.suite != 'admin'
+        run: pnpm --filter docs preview --port 3002 &
+
+      - name: Wait for docs
+        if: inputs.suite != 'admin'
+        run: |
+          for i in $(seq 1 40); do
+            curl -sf http://localhost:3002 > /dev/null 2>&1 && echo "Docs ready" && break || \
+            echo "Waiting for docs... ($i/40)" && sleep 3
+          done
+          curl -sf http://localhost:3002 > /dev/null 2>&1 || \
+            (echo "::error::Docs app failed to start within 120s" && exit 1)
+
+      - name: Regenerate showcase visual snapshots
+        if: inputs.suite != 'admin'
+        run: npx playwright test --project=chromium e2e/showcase-visual.e2e.ts --update-snapshots
+        env:
+          CI: "true"
+          DOCS_BASE_URL: "http://localhost:3002"
         continue-on-error: true
 
       - name: Push regenerated snapshots to a new branch
@@ -105,7 +145,8 @@ jobs:
           git checkout -b "$BRANCH"
           git add e2e/__snapshots__/
           git -c core.fileMode=false commit -m "test(e2e): regenerate visual snapshots from ${{ inputs.base_branch }}"
-          git push origin "$BRANCH"
+          # Actions bot push must not run local husky pre-push (pnpm gate:quick).
+          HUSKY=0 git push origin "$BRANCH"
           echo "::notice::Regenerated snapshots pushed to $BRANCH"
           echo "::notice::Open a PR: gh pr create --base ${{ inputs.base_branch }} --head $BRANCH --title 'test(e2e): regenerate visual snapshots'"
 

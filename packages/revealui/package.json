@@ -1,6 +1,6 @@
 {
   "name": "revealui",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "private": true,
   "description": "RevealUI — open-source agentic business runtime. Meta-installer that proxies to create-revealui. NOT published: npm rejects bare 'revealui' as too similar to 'reveal-ui'; use 'create-revealui' (npm create revealui) or '@revealui/core' instead.",
   "keywords": [

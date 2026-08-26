@@ -1,5 +1,11 @@
 # @revealui/knowledge-graph
 
+## 0.1.10
+
+### Patch Changes
+
+- 64d9048: Safe fleet scan (dry-run default, CI refuse --publish) and graph.\* replica pull/apply/push.
+
 ## 0.1.9
 
 ### Patch Changes

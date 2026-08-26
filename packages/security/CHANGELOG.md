@@ -1,5 +1,16 @@
 # @revealui/security
 
+## 0.8.0
+
+### Minor Changes
+
+- ff1137f: Ship a first-party cookie consent banner (opt-in optional categories, GPC/DNT) and a fail-closed HIPAA compliance profile that disables third-party telemetry and enforces a 15-minute idle sign-out.
+
+### Patch Changes
+
+- Updated dependencies [700413b]
+  - @revealui/contracts@0.8.3
+
 ## 0.7.0
 
 ### Minor Changes

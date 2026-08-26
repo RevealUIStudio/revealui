@@ -53,7 +53,7 @@ All workflows live in [`.github/workflows/`](../.github/workflows/).
 | [`db-backup.yml`](../.github/workflows/db-backup.yml) | scheduled | NeonDB-side backup hooks (PITR coordination) |
 | [`reconciliation-crons.yml`](../.github/workflows/reconciliation-crons.yml) | scheduled | Stripe reconciliation jobs (RVC retired 2026-05-29) |
 | [`webhook-reconciliation.yml`](../.github/workflows/webhook-reconciliation.yml) | scheduled | Stripe webhook event-replay safety net |
-| [`regen-visual-snapshots.yml`](../.github/workflows/regen-visual-snapshots.yml) | workflow_dispatch | Regenerate Playwright visual-regression snapshots |
+| [`regen-visual-snapshots.yml`](../.github/workflows/regen-visual-snapshots.yml) | workflow_dispatch | Regenerate Playwright goldens (admin `e2e-visual` and/or docs showcase) |
 | [`system-tune-snapshot.yml`](../.github/workflows/system-tune-snapshot.yml) | scheduled | Performance-baseline snapshot |
 | [`no-submodules.yml`](../.github/workflows/no-submodules.yml) | push/PR | Hard-fail if a `.gitmodules` is added |
 

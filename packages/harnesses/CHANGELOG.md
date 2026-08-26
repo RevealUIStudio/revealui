@@ -1,5 +1,23 @@
 # @revealui/harnesses
 
+## 0.16.0
+
+### Minor Changes
+
+- 992a042: Grok content generator: preamble tier 1 under `.grok/rules/`, remaining definition rules as on-demand skills, spawn map, and PreToolUse that can deny through `hook grok`.
+
+### Patch Changes
+
+- 539e216: Grok SessionStart prints the CURRENT-HANDOFF menu pointer (session deltas; continue = /pickup), matching Claude orientation.
+- d55c50e: Grok generator emits in-repo `.grok/rules/00-revealui-manager.md` (public-safe adapter orientation). `$HOME/.grok` stays a vendor cache, not constitution.
+- b1ff307: Grok adapter: `manager materialize` emits hook JSON in the project tree only. RevKit `rfg`/bootstrap deploys those templates (and the PreToolUse helper) to the vendor attach point. Drop the home `cp` recipe.
+- 04cc011: Add a user systemd oneshot that runs `inference reconcile` at WSL boot so unsigned or unfit snaps cannot persist via `snap start --enable`.
+- Updated dependencies [ff1137f]
+- Updated dependencies [a5b8022]
+- Updated dependencies [5a0fbe7]
+  - @revealui/security@0.8.0
+  - @revealui/core@0.14.0
+
 ## 0.15.1
 
 ### Patch Changes

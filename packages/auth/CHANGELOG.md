@@ -1,5 +1,18 @@
 # @revealui/auth
 
+## 0.5.4
+
+### Patch Changes
+
+- 07648be: Grant a real Enterprise entitlement row for the instance super-admin instead of leaving the operator on free signup limits.
+- Updated dependencies [ff1137f]
+- Updated dependencies [a5b8022]
+- Updated dependencies [700413b]
+- Updated dependencies [5a0fbe7]
+  - @revealui/security@0.8.0
+  - @revealui/core@0.14.0
+  - @revealui/contracts@0.8.3
+
 ## 0.5.3
 
 ### Patch Changes
