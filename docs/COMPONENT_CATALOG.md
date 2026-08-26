@@ -741,14 +741,12 @@ import { Avatar, AvatarButton } from '@revealui/presentation'
 
 ### Badge
 
-Badge component for status indicators. Also exports `BadgeButton` (same color palette, renders as a clickable button or, with `href`, an anchor).
+Badge component for status indicators. Also exports `BadgeButton` (same intent tokens, renders as a clickable button or, with `href`, an anchor).
 
 **Props:**
 ```typescript
 type BadgeProps = {
-  color?: 'red' | 'orange' | 'amber' | 'yellow' | 'lime' | 'green' | 'emerald' | 'teal' | 'cyan'
-    | 'sky' | 'blue' | 'indigo' | 'violet' | 'purple' | 'fuchsia' | 'pink' | 'rose' | 'zinc'
-    | 'brand' | 'success' | 'warning' | 'danger' | 'muted'  // default 'zinc'
+  intent?: 'brand' | 'neutral' | 'success' | 'warning' | 'danger' | 'muted'  // default 'neutral'
 } & React.ComponentPropsWithoutRef<'span'>
 ```
 
@@ -757,9 +755,9 @@ type BadgeProps = {
 import { Badge, BadgeButton } from '@revealui/presentation'
 
 <Badge>New</Badge>
-<Badge color="lime">Active</Badge>
-<Badge color="danger">Failed</Badge>
-<BadgeButton color="brand" href="/billing">Upgrade</BadgeButton>
+<Badge intent="success">Active</Badge>
+<Badge intent="danger">Failed</Badge>
+<BadgeButton intent="brand" href="/billing">Upgrade</BadgeButton>
 ```
 
 ---
