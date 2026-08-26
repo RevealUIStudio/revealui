@@ -12,12 +12,7 @@ import { toolParametersToJsonSchema } from '../llm/tool-json-schema.js';
 import type { AgentSkillProvider } from '../skills/integration/agent-skill-provider.js';
 import type { ApprovalCallback, Tool, ToolResult } from '../tools/base.js';
 import { ToolCallDeduplicator } from '../tools/deduplicator.js';
-import type { MCPToolSource, McpClientLike } from '../tools/mcp-adapter.js';
-import {
-  createToolsFromMcpClient,
-  discoverMCPTools,
-  warnHypervisorMcpPathDeprecated,
-} from '../tools/mcp-adapter.js';
+import { createToolsFromMcpClient, type McpClientLike } from '../tools/mcp-adapter.js';
 import type { McpToolCallEvent } from '../tools/mcp-events.js';
 import { createWebSearchTool } from '../tools/web/duck-duck-go.js';
 import type { Agent, AgentResult, Task } from './agent.js';
@@ -44,20 +39,6 @@ export interface RuntimeConfig {
    */
   thinkingLevel?: ThinkingLevel;
   /**
-   * Optional MCP Hypervisor (or any MCPToolSource). When provided, tools from
-   * all healthy MCP servers are merged into the agent's tool set before each
-   * task execution. Pass an MCPHypervisor from @revealui/mcp.
-   *
-   * @deprecated Prefer `mcpClients` (Stage 5.1a). The hypervisor path doesn't
-   *   expose the full MCP protocol surface (resources, prompts, sampling,
-   *   elicitation). Standard `McpClient` instances do.
-   *
-   * **Removal owner:** product AI runtime. **REMOVE-BY:** `@revealui/ai` 1.0.0
-   * (with `MCPToolSource` / `discoverMCPTools`). Product agent-stream already
-   * mounts via `createToolsFromMcpClient` only; this field is external-compat.
-   */
-  mcpToolSource?: MCPToolSource;
-  /**
    * Optional set of standard MCP clients (Stage 5.1a). When provided, each
    * client's tools are listed and merged into the agent's tool set before
    * each task. Tool names are namespaced as `mcp_<name>__<toolName>` so
@@ -80,8 +61,8 @@ export interface RuntimeConfig {
   mcpClients?: ReadonlyArray<{ name: string; client: McpClientLike }>;
   /**
    * GAP-355 integrity audit for MCP tools discovered at run time.
-   * Passed into `createToolsFromMcpClient` and `discoverMCPTools` so library
-   * consumers (not only agent-stream) fail closed when a receipt cannot land.
+   * Passed into `createToolsFromMcpClient` so library consumers (not only
+   * agent-stream) fail closed when a receipt cannot land.
    */
   onToolAudit?: (event: McpToolCallEvent) => void | Promise<void>;
   /**
@@ -122,16 +103,12 @@ export class AgentRuntime {
   private isShuttingDown = false;
 
   constructor(config: RuntimeConfig = {}) {
-    if (config.mcpToolSource) {
-      warnHypervisorMcpPathDeprecated('AgentRuntime mcpToolSource');
-    }
     this.config = {
       maxIterations: config.maxIterations ?? 10,
       timeout: config.timeout ?? 60000, // 60 seconds
       retryOnError: config.retryOnError ?? true,
       maxRetries: config.maxRetries ?? 3,
       enableCache: config.enableCache ?? true, // Enable by default for cost savings
-      mcpToolSource: config.mcpToolSource,
       mcpClients: config.mcpClients,
       onToolAudit: config.onToolAudit,
       skillProvider: config.skillProvider,
@@ -187,18 +164,9 @@ export class AgentRuntime {
     let totalTokens = 0;
     let totalCostUsd = 0;
 
-    // Merge MCP-discovered tools into the agent's tool set. Two paths:
-    //   - Standard `McpClient` instances (Stage 5.1a, preferred)
-    //   - `MCPToolSource` / hypervisor (legacy, deprecated but supported)
+    // Merge MCP-discovered tools into the agent's tool set via `McpClient`.
     const mcpTools: Tool[] = [];
     const onToolAudit = this.config.onToolAudit;
-    if (this.config.mcpToolSource) {
-      mcpTools.push(
-        ...discoverMCPTools(this.config.mcpToolSource, {
-          ...(onToolAudit !== undefined ? { onToolAudit } : {}),
-        }),
-      );
-    }
     if (this.config.mcpClients && this.config.mcpClients.length > 0) {
       for (const { name, client } of this.config.mcpClients) {
         try {

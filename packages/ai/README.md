@@ -231,9 +231,9 @@ parts extension. `stopSequences` aren't forwarded to the LLM yet (the
 current `LLMChatOptions` doesn't expose that field); this is advisory per
 spec, so omission is compliant.
 
-The legacy `mcpToolSource` path (hypervisor-backed) still works and is
-kept for backwards compatibility, but new integrations should prefer the
-`mcpClients` path.
+Mount MCP tools with `createToolsFromMcpClient` / `AgentRuntime.mcpClients`.
+Process-local spawn and tenant scoping stay on `MCPHypervisor` in
+`@revealui/mcp` — connect those processes with a real `McpClient`.
 
 ## Installation
 

@@ -15,7 +15,7 @@ vi.mock('@revealui/core/monitoring', () => ({
 }));
 
 vi.mock('../../tools/mcp-adapter.js', () => ({
-  discoverMCPTools: vi.fn().mockReturnValue([]),
+  createToolsFromMcpClient: vi.fn().mockResolvedValue([]),
 }));
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────

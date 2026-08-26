@@ -9,8 +9,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   createToolsFromMcpClient,
-  discoverMCPTools,
-  type MCPToolSource,
   type McpCallToolResultLike,
   type McpClientLike,
   type McpGetPromptResultLike,
@@ -988,62 +986,5 @@ describe('createToolsFromMcpClient — onToolAudit', () => {
     const tools = await createToolsFromMcpClient(client, { namespace: 'srv' });
     const result = await tools[0]?.execute({});
     expect(result?.success).toBe(true);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// discoverMCPTools — legacy hypervisor path integrity (S5-4b)
-// ---------------------------------------------------------------------------
-
-describe('discoverMCPTools — onToolAudit', () => {
-  function makeSource(
-    callHandler: (server: string, tool: string, args: unknown) => Promise<unknown>,
-  ): MCPToolSource {
-    return {
-      getAllTools: () => [
-        {
-          namespacedName: '@@mcp_srv_ping',
-          serverName: 'srv',
-          tool: {
-            name: 'ping',
-            description: 'ping',
-            inputSchema: { type: 'object', properties: {} },
-          },
-        },
-      ],
-      callTool: callHandler,
-    };
-  }
-
-  it('awaits onToolAudit after a successful legacy tool call', async () => {
-    const order: string[] = [];
-    const source = makeSource(async () => {
-      order.push('rpc');
-      return { ok: true };
-    });
-    const tools = discoverMCPTools(source, {
-      onToolAudit: async (e) => {
-        order.push('audit');
-        expect(e).toMatchObject({
-          kind: 'mcp.tool.call',
-          namespace: 'srv',
-          toolName: 'ping',
-          success: true,
-        });
-      },
-    });
-    const result = await tools[0]?.execute({});
-    expect(result?.success).toBe(true);
-    expect(order).toEqual(['rpc', 'audit']);
-  });
-
-  it('fails closed when audit throws after success', async () => {
-    const source = makeSource(async () => ({ ok: true }));
-    const tools = discoverMCPTools(source, {
-      onToolAudit: async () => {
-        throw new Error('audit write failed');
-      },
-    });
-    await expect(tools[0]?.execute({})).rejects.toThrow(/audit write failed/);
   });
 });

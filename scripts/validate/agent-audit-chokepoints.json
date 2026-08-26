@@ -13,13 +13,13 @@
         "onToolAudit",
         "awaitToolAudit",
         "finishToolIntegrity",
-        "DiscoverMCPToolsOptions"
+        "createToolsFromMcpClient"
       ]
     },
     {
       "id": "agent-runtime-onToolAudit",
       "file": "packages/ai/src/orchestration/runtime.ts",
-      "mustContain": ["onToolAudit", "createToolsFromMcpClient", "discoverMCPTools"]
+      "mustContain": ["onToolAudit", "createToolsFromMcpClient"]
     },
     {
       "id": "tool-integrity-wrapper",
