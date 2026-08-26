@@ -8,8 +8,9 @@
  * under `~/.grok`.
  *
  * Design:
- * - SessionStart / SessionEnd: TRACKER + hotfix + temp-scripts + RevDev
- *   session.register / session.end (soft-optional when daemon socket down).
+ * - SessionStart / SessionEnd: TRACKER + CURRENT-HANDOFF menu pointer +
+ *   hotfix + temp-scripts + RevDev session.register / session.end
+ *   (soft-optional when daemon socket down).
  * - SessionStart register also prints GAP-459 peer-context (WARN if down).
  * - Hotfix/temp adapters under `~/.claude` call the same control registries.
  * - Daemon boundary via `revealui-harnesses session register|end|peers`.
@@ -67,7 +68,13 @@ export const GROK_SESSION_START_HOOKS_JSON = hookFile('SessionStart', [
       {
         type: 'command',
         command:
-          'printf \'%s\\n\' "[grok] adapter SessionStart → control layer (TRACKER + hotfix + temp-scripts + daemon session + peer-context)"',
+          'printf \'%s\\n\' "[grok] adapter SessionStart → control layer (TRACKER + CURRENT-HANDOFF pointer + hotfix + temp-scripts + daemon session + peer-context)"',
+        timeout: 5,
+      },
+      {
+        type: 'command',
+        command:
+          'printf \'%s\\n\' "[menu] CURRENT-HANDOFF = session deltas; free surfaces = TRACKER.md; continue = /pickup"',
         timeout: 5,
       },
       { type: 'command', command: TRACKER_CMD, timeout: 12 },

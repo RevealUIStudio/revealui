@@ -5,7 +5,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "printf '%s\\n' \"[grok] adapter SessionStart → control layer (TRACKER + hotfix + temp-scripts + daemon session + peer-context)\"",
+            "command": "printf '%s\\n' \"[grok] adapter SessionStart → control layer (TRACKER + CURRENT-HANDOFF pointer + hotfix + temp-scripts + daemon session + peer-context)\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "printf '%s\\n' \"[menu] CURRENT-HANDOFF = session deltas; free surfaces = TRACKER.md; continue = /pickup\"",
             "timeout": 5
           },
           {
