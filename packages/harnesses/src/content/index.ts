@@ -50,6 +50,7 @@ export {
   ClaudeCodeGenerator,
   CursorGenerator,
   DEFAULT_CONTENT_GENERATOR_ID,
+  GROK_MANAGER_RULE_PATH,
   GROK_OUTPUT_DIR,
   GROK_SPAWN_MAP,
   GROK_SPAWN_MAP_PATH,
