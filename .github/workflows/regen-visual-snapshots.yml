@@ -145,7 +145,8 @@ jobs:
           git checkout -b "$BRANCH"
           git add e2e/__snapshots__/
           git -c core.fileMode=false commit -m "test(e2e): regenerate visual snapshots from ${{ inputs.base_branch }}"
-          git push origin "$BRANCH"
+          # Actions bot push must not run local husky pre-push (pnpm gate:quick).
+          HUSKY=0 git push origin "$BRANCH"
           echo "::notice::Regenerated snapshots pushed to $BRANCH"
           echo "::notice::Open a PR: gh pr create --base ${{ inputs.base_branch }} --head $BRANCH --title 'test(e2e): regenerate visual snapshots'"
 
