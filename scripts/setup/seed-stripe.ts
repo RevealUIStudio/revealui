@@ -18,8 +18,7 @@
  *   pnpm stripe:seed -- --skip-catalog-sync  # skip local billing_catalog sync
  *   pnpm stripe:seed -- --check            # read-only drift gate (exit 1 on drift)
  *   pnpm stripe:seed -- --webhook-url URL    # override webhook URL
- *   pnpm stripe:seed -- --sync-revvault      # write IDs to revvault (source of truth), then `revvault sync vercel`
- *   pnpm stripe:seed -- --sync-vercel        # DEPRECATED: writes Vercel directly; prefer --sync-revvault
+ *   pnpm stripe:seed -- --sync-revvault      # write IDs to revvault, then `revvault sync vercel --apply`
  */
 
 import { execFileSync } from 'node:child_process';
@@ -505,61 +504,6 @@ async function setupBillingPortal(
   );
 }
 
-// ─── Vercel Sync ─────────────────────────────────────────────────────────────
-
-async function syncToVercel(envVars: Record<string, string>): Promise<void> {
-  const token = process.env.VERCEL_TOKEN;
-  if (!token) {
-    log.error('STRIPE_SYNC_VERCEL requires VERCEL_TOKEN in env');
-    return;
-  }
-
-  const projectId = process.env.VERCEL_PROJECT_ID;
-  if (!projectId) {
-    log.warn('VERCEL_PROJECT_ID not set  -  run `vercel link` first or set it manually');
-    log.warn('Skipping Vercel sync');
-    return;
-  }
-
-  log.info('');
-  log.info('Syncing env vars to Vercel...');
-
-  // Get existing env vars to skip unchanged ones
-  let existingEnv: Record<string, string> = {};
-  try {
-    const result = execFileSync('vercel', ['env', 'ls', '--json'], {
-      env: { ...process.env, VERCEL_TOKEN: token },
-      encoding: 'utf-8',
-    });
-    const parsed = JSON.parse(result) as Array<{ key: string; value?: string }>;
-    for (const entry of parsed) {
-      if (entry.key && entry.value) {
-        existingEnv[entry.key] = entry.value;
-      }
-    }
-  } catch {
-    log.warn('Could not fetch existing Vercel env vars  -  will attempt to set all');
-    existingEnv = {};
-  }
-
-  for (const [key, value] of Object.entries(envVars)) {
-    if (existingEnv[key] === value) {
-      log.success(`  ${key} already up to date`);
-      continue;
-    }
-    try {
-      execFileSync('vercel', ['env', 'add', key, 'production'], {
-        input: value,
-        env: { ...process.env, VERCEL_TOKEN: token },
-        encoding: 'utf-8',
-      });
-      log.success(`  Set ${key} in Vercel production`);
-    } catch (err) {
-      log.error(`  Failed to set ${key}: ${err instanceof Error ? err.message : String(err)}`);
-    }
-  }
-}
-
 async function syncBillingCatalog(envVars: Record<string, string>, dryRun: boolean): Promise<void> {
   if (dryRun) {
     log.info('Would sync billing_catalog from the resolved Stripe price IDs');
@@ -712,12 +656,18 @@ async function main(): Promise<void> {
   const skipPortal = args.includes('--skip-portal');
   const skipCatalogSync = args.includes('--skip-catalog-sync');
   const checkMode = args.includes('--check');
-  const syncVercel = args.includes('--sync-vercel');
   const syncRevvault = args.includes('--sync-revvault');
   const webhookUrlFlag = (() => {
     const idx = args.indexOf('--webhook-url');
     return idx !== -1 ? args[idx + 1] : undefined;
   })();
+
+  if (args.includes('--sync-vercel')) {
+    log.error(
+      '--sync-vercel is removed. It wrote Vercel env behind revvault. Use --sync-revvault, then `revvault sync vercel --apply`.',
+    );
+    process.exit(1);
+  }
 
   log.header('RevealUI Stripe IaC Seed');
 
@@ -849,14 +799,6 @@ async function main(): Promise<void> {
       } else if (!dryRun) {
         log.info('Next: review + commit the passage-store, then `revvault sync vercel --apply`');
       }
-    }
-
-    if (syncVercel) {
-      log.header('Vercel Sync');
-      log.warn(
-        '--sync-vercel is DEPRECATED (writes Vercel behind revvault). Prefer --sync-revvault, then `revvault sync vercel --apply`.',
-      );
-      await syncToVercel(envVars);
     }
   }
 
