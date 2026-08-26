@@ -2,6 +2,7 @@ import type React from 'react';
 import { useDataInteractive } from '../hooks/use-data-interactive.js';
 import { useFieldControlProps } from '../hooks/use-field-context.js';
 import { cn } from '../utils/cn.js';
+import { focusRingAfterWithin } from '../utils/focus.js';
 
 type TextareaProps = {
   className?: string;
@@ -29,12 +30,11 @@ export function Textarea({
         className,
         // Basic layout
         'relative block w-full',
-        // Background color + shadow applied to inset pseudo element, so shadow blends with border in light mode
+        // Surface on ::before so the token card fill blends with the border
         'before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)] before:bg-card before:shadow-sm',
-        // Background color is moved to control and shadow is removed in dark mode so hide `before` pseudo
-
         // Focus ring
-        'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset sm:focus-within:after:ring-2 sm:focus-within:after:ring-ring',
+        'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset',
+        focusRingAfterWithin,
         // Disabled state
         'has-data-disabled:opacity-50 has-data-disabled:before:bg-muted has-data-disabled:before:shadow-none',
       ])}

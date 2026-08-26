@@ -3,6 +3,7 @@
 import type React from 'react';
 import { useCallback, useId, useState } from 'react';
 import { cn } from '../utils/cn.js';
+import { focusRingThumb } from '../utils/focus.js';
 
 export function Slider({
   value: controlledValue,
@@ -83,7 +84,7 @@ export function Slider({
           '[&::-webkit-slider-thumb]:ring-2 [&::-webkit-slider-thumb]:ring-card',
           '[&::-moz-range-thumb]:size-4 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:appearance-none',
           '[&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:bg-primary',
-          'focus-visible:[&::-webkit-slider-thumb]:outline-2 focus-visible:[&::-webkit-slider-thumb]:outline-offset-2 focus-visible:[&::-webkit-slider-thumb]:outline-ring',
+          focusRingThumb,
           disabled && 'cursor-not-allowed opacity-50',
         )}
       />

@@ -48,6 +48,13 @@ describe('Input', () => {
     expect(wrapper?.querySelector('input')).toBeInTheDocument();
   });
 
+  it('paints the shell ring on :focus-within via the shared recipe', () => {
+    const { container } = render(<Input />);
+    const wrapper = container.querySelector('span[data-slot="control"]');
+    expect(wrapper?.className).toContain('sm:focus-within:after:ring-ring');
+    expect(wrapper?.className).not.toContain('dark:');
+  });
+
   it('should pass type prop through', () => {
     render(<Input type="email" data-testid="email-input" />);
 

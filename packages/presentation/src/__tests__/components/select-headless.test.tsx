@@ -103,4 +103,15 @@ describe('Select', () => {
     expect(wrapper).toBeInTheDocument();
     expect(wrapper?.querySelector('select')).toBeInTheDocument();
   });
+
+  it('paints the shell ring from child data-focus via the shared recipe', () => {
+    const { container } = render(
+      <Select>
+        <option value="a">Option A</option>
+      </Select>,
+    );
+    const wrapper = container.querySelector('span[data-slot="control"]');
+    expect(wrapper?.className).toContain('has-data-focus:after:ring-ring');
+    expect(wrapper?.className).not.toContain('dark:');
+  });
 });
