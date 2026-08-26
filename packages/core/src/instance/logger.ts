@@ -19,11 +19,12 @@ import {
   logger as utilsLogger,
 } from '@revealui/utils/logger';
 
+/** Instance-shaped logger. SSOT also re-exported from `types/runtime`. */
 export interface RevealUILogger {
   info: (...args: unknown[]) => void;
   warn: (...args: unknown[]) => void;
   error: (...args: unknown[]) => void;
-  debug: (...args: unknown[]) => void;
+  debug?: (...args: unknown[]) => void;
 }
 
 function toMessageAndContext(args: unknown[]): {
