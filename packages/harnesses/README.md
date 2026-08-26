@@ -54,7 +54,8 @@ adapters**. Shared policy is not owned by any vendor home.
 |-------|------|
 | Package definitions (`src/content/definitions`) | Build-time SSOT |
 | **`.revealui/`** (`manager.json` + `content/`) | On-disk project manager |
-| `.claude` / `.cursor` / `.opencode` / `~/.grok` | Thin stubs or machine prefs only |
+| `.claude` / `.cursor` / `.opencode` | Thin vendor adapter stubs |
+| `~/.grok` | Grok vendor cache (auth/sessions/UI). Hooks are deployed by RevKit `rfg`, not hand-copied. |
 
 ```bash
 # Write manager.json + equal adapter content (manager tree + Cursor/OpenCode surfaces)

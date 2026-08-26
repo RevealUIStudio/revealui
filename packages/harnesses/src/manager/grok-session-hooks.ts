@@ -1,10 +1,11 @@
 /**
  * Grok peer session-boundary hooks (control layer).
  *
- * Machine home `~/.grok/hooks/*.json` is the runtime attach point (Grok always
- * loads global hooks). Project materialize emits the same JSON under
- * `.revealui/adapters/grok/hooks/` as the SSOT template so operators do not
- * invent a second hardline body under `~/.grok`.
+ * Machine home `~/.grok/hooks/*.json` is Grok CLI's vendor attach point
+ * (it always loads global hooks). Project materialize emits the JSON under
+ * `.revealui/adapters/grok/hooks/` as the git SSOT. RevKit `rfg` / bootstrap
+ * copies allowlisted files to the attach point. Do not author hardlines
+ * under `~/.grok`.
  *
  * Design:
  * - SessionStart / SessionEnd: TRACKER + hotfix + temp-scripts + RevDev
@@ -101,7 +102,7 @@ export const GROK_PRE_TOOL_HOOKS_JSON = hookFile('PreToolUse', [
   },
 ]);
 
-/** Install filenames under `~/.grok/hooks/` (and under GROK_HOOK_TEMPLATE_DIR). */
+/** Filenames under GROK_HOOK_TEMPLATE_DIR. RevKit copies the allowlist to `$GROK_HOME/hooks`. */
 export const GROK_HOOK_FILES = {
   'session-start.json': GROK_SESSION_START_HOOKS_JSON,
   'session-end.json': GROK_SESSION_END_HOOKS_JSON,
