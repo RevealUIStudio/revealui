@@ -123,7 +123,10 @@ async function runCheck(check: CheckDef): Promise<CheckResult> {
 
   const start = performance.now();
   const result = await execCommand(check.command, check.args, {
-    timeout: check.timeout,
+    // execCommand defaults to 120s. Phase-1 runs ~40 checks in parallel; on a
+    // cold worktree they routinely take 110–130s and get SIGTERM while still
+    // passing. Explicit 5m unless the check sets its own timeout.
+    timeout: check.timeout ?? 300000,
   });
   const durationMs = performance.now() - start;
 
