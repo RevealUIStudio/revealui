@@ -36,7 +36,9 @@
  * Run against a local dev/preview docs server:
  *   pnpm test:e2e:showcase-visual
  *
- * Update goldens after an intentional visual change:
+ * Update goldens after an intentional visual change. Prefer CI so the PNGs
+ * match Ubuntu + pinned Chromium (Actions → "Regenerate Visual Snapshots",
+ * suite `showcase`). Local-only:
  *   pnpm test:e2e:showcase-visual:update
  *
  * See e2e/README-VISUAL-SNAPSHOTS.md for the full contribution guide.
@@ -105,6 +107,9 @@ async function setPreviewTheme(page: Page, theme: Theme): Promise<void> {
 
 test.describe('Showcase visual regression', () => {
   test.use({ baseURL: DOCS_BASE_URL });
+  // Pixel mismatches do not pass on retry. CI retries:2 * 127 pages previously
+  // burned the 20-minute job budget and reported "cancelled" instead of failed.
+  test.describe.configure({ retries: 0 });
 
   test.beforeEach(({ browserName }) => {
     test.skip(
