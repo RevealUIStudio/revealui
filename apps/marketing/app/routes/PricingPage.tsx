@@ -72,43 +72,51 @@ export function PricingPage() {
 
   const showAnnualToggle = pricing?.subscriptions.some((t) => Boolean(t.annualPrice)) ?? false;
 
-  const tiers = (pricing?.subscriptions ?? SUBSCRIPTION_TIERS).map((tier) => {
-    // Public catalog: Enterprise is a license inquiry, not a $1,499/mo hosted buy.
+  // Contract copy is the public catalog. /api/pricing may still be a stale
+  // production deploy (CI and split marketing/API rollouts), so only overlay
+  // price fields — never leftover features like Slack support or coming-soon.
+  const tiers = SUBSCRIPTION_TIERS.map((tier) => {
+    const fromApi = pricing?.subscriptions.find((item) => item.id === tier.id);
     const inquireOnly = tier.id === 'enterprise';
     const fallback = inquireOnly ? undefined : SUBSCRIPTION_PRICE_FALLBACKS[tier.id];
     const annualFallback = inquireOnly ? undefined : ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS[tier.id];
+    const annualPrice = fromApi?.annualPrice ?? tier.annualPrice;
+    const annualPeriod = fromApi?.annualPeriod ?? tier.annualPeriod;
     const useAnnual =
-      !inquireOnly && billingInterval === 'year' && tier.id !== 'free' && Boolean(tier.annualPrice);
+      !inquireOnly && billingInterval === 'year' && tier.id !== 'free' && Boolean(annualPrice);
     const baseHref = tier.ctaHref.startsWith('/') ? `${ADMIN_URL}${tier.ctaHref}` : tier.ctaHref;
     const ctaHref =
       useAnnual && baseHref.includes('/signup') ? `${baseHref}&interval=year` : baseHref;
     return {
       ...tier,
+      annualPrice,
+      annualPeriod,
       price: inquireOnly
         ? undefined
         : useAnnual
-          ? (tier.annualPrice ?? annualFallback?.price)
-          : (tier.price ?? fallback?.price),
+          ? (annualPrice ?? annualFallback?.price)
+          : (fromApi?.price ?? fallback?.price),
       period: inquireOnly
         ? undefined
         : useAnnual
-          ? (tier.annualPeriod ?? annualFallback?.period)
-          : (tier.period ?? fallback?.period),
+          ? (annualPeriod ?? annualFallback?.period)
+          : (fromApi?.period ?? fallback?.period),
       ctaHref,
     };
   });
-  const perpetualTiers = (pricing?.perpetual ?? PERPETUAL_TIERS)
-    .filter((tier) => PUBLIC_PERPETUAL.has(tier.name))
-    .map((tier) => {
+  const perpetualTiers = PERPETUAL_TIERS.filter((tier) => PUBLIC_PERPETUAL.has(tier.name)).map(
+    (tier) => {
+      const fromApi = pricing?.perpetual.find((item) => item.name === tier.name);
       const fallback = PERPETUAL_PRICE_FALLBACKS[tier.name];
       return {
         ...tier,
-        price: tier.price ?? fallback?.price,
-        priceNote: tier.priceNote ?? fallback?.priceNote,
-        renewal: tier.renewal ?? fallback?.renewal,
+        price: fromApi?.price ?? fallback?.price,
+        priceNote: fromApi?.priceNote ?? fallback?.priceNote,
+        renewal: fromApi?.renewal ?? fallback?.renewal,
         ctaHref: tier.ctaHref.startsWith('/') ? `${ADMIN_URL}${tier.ctaHref}` : tier.ctaHref,
       };
-    });
+    },
+  );
 
   return (
     <div className="min-h-screen bg-background">

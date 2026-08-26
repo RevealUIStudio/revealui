@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SITE } from '../../content/site';
 import { PricingPage } from '../PricingPage';
@@ -110,9 +110,7 @@ describe('PricingPage product catalog', () => {
     );
 
     const { container } = render(<PricingPage />);
-    await waitFor(() => {
-      expect(screen.queryByRole('heading', { name: 'Free (OSS)' })).toBeNull();
-    });
+    await screen.findByRole('heading', { name: 'Free (OSS)' });
     await screen.findByRole('link', { name: 'Buy Pro Perpetual' });
     expect(screen.queryByRole('heading', { name: 'Agency Perpetual' })).toBeNull();
     expect(screen.queryByRole('link', { name: 'Buy Agency Perpetual' })).toBeNull();
@@ -123,6 +121,80 @@ describe('PricingPage product catalog', () => {
     const text = card?.textContent ?? '';
     expect(text.includes('$1,499')).toBe(false);
     expect(text.includes('/month')).toBe(false);
+  });
+
+  it('does not render leftover Slack or coming-soon features from a stale /api/pricing', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            subscriptions: [
+              {
+                id: 'pro',
+                name: 'Pro',
+                description: 'stale',
+                features: ['Slack support (4h SLA)', '$118/yr for continued support'],
+                cta: 'Start your 7-day free trial',
+                ctaHref: '/signup?plan=pro',
+                highlighted: true,
+                price: '$49',
+                period: '/month',
+              },
+              {
+                id: 'max',
+                name: 'Max',
+                description: 'stale',
+                features: [
+                  'Advanced inference configuration (coming soon)',
+                  'RevKit environment provisioning (coming soon)',
+                ],
+                cta: 'Start your 7-day free trial',
+                ctaHref: '/signup?plan=max',
+                highlighted: false,
+                price: '$299',
+                period: '/month',
+              },
+              {
+                id: 'enterprise',
+                name: 'Enterprise',
+                description: 'stale',
+                features: ['x402 agent payments (USDC, coming soon)', 'Slack support (4h SLA)'],
+                cta: 'Contact sales',
+                ctaHref: 'https://revealui.com/contact',
+                highlighted: false,
+                price: '$1,499',
+                period: '/month',
+              },
+            ],
+            credits: [],
+            perpetual: [
+              {
+                name: 'Enterprise Perpetual',
+                description: 'stale',
+                features: ['Slack support'],
+                cta: 'Contact sales',
+                ctaHref: 'https://revealui.com/contact',
+                comingSoon: false,
+                price: '$42,999',
+              },
+            ],
+            services: [],
+          }),
+      }),
+    );
+
+    const { container } = render(<PricingPage />);
+    await screen.findByRole('heading', { name: 'Pro' });
+    const text = container.textContent ?? '';
+    expect(text.includes('Slack support')).toBe(false);
+    expect(text.includes('$118/yr')).toBe(false);
+    expect(text.includes('$42,999')).toBe(false);
+    expect(text.includes('Advanced inference configuration (coming soon)')).toBe(false);
+    expect(text.includes('RevKit environment provisioning (coming soon)')).toBe(false);
+    expect(text.includes('x402 agent payments (USDC, coming soon)')).toBe(false);
+    expect(text.includes('Email support (24h weekday / 4h if unusable)')).toBe(true);
   });
 
   it('does not sell studio or leftover storefront rungs', async () => {
