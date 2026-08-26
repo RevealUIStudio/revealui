@@ -20,6 +20,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   backflow-merge-method:
@@ -46,6 +47,8 @@ jobs:
           PR_HEAD_REF: ${{ github.head_ref }}
           PR_BASE_REF: ${{ github.base_ref }}
           PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node scripts/validate/backflow-merge-method-guard.cjs --mode=pr
 
       - name: Ancestry mode — test must contain main
