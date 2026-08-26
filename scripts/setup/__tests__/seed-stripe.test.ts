@@ -311,6 +311,10 @@ describe('seed-stripe.ts wiring (source lock)', () => {
     expect(content.includes('shouldPauseForLiveKeyAbort')).toBe(true);
     expect(content.includes('probeStripeConnection')).toBe(true);
     expect(content.includes('LIVE_KEY_ABORT_DELAY_MS')).toBe(true);
+    expect(content.includes('syncToVercel')).toBe(false);
+    expect(content.includes("execFileSync('vercel'")).toBe(false);
+    expect(content.includes('--sync-vercel is removed')).toBe(true);
+    expect(content.includes('--sync-revvault')).toBe(true);
   });
 });
 
