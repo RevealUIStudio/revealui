@@ -1,6 +1,7 @@
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { MANAGER_MATERIALIZE_GENERATORS, writeManagerAdapterContent } from '../content/index.js';
 import {
@@ -66,6 +67,14 @@ describe('project manager (.revealui)', () => {
     expect(grokMd).toContain('session-start.json');
     expect(grokMd).toContain('hotfix-check');
     expect(grokMd).toContain('Do not invent a second hotfix registry');
+    expect(grokMd).toContain('rfg');
+    expect(grokMd).toContain('RevKit deploys');
+    expect(grokMd).not.toContain('mkdir -p ~/.grok/hooks');
+    const materializeSrc = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), '../manager/materialize.ts'),
+      'utf-8',
+    );
+    expect(materializeSrc).not.toContain("homedir(), '.grok'");
 
     const start = JSON.parse(
       readFileSync(join(root, '.revealui/adapters/grok/hooks/session-start.json'), 'utf-8'),
