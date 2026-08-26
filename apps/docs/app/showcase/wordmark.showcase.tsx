@@ -5,7 +5,7 @@ const story: ShowcaseStory = {
   slug: 'wordmark',
   name: 'Wordmark',
   description:
-    'The RevealUI wordmark: the faceted "R" monogram plus "RevealUI" set in the brand display face. "Reveal" tracks --rvui-brand-text and "UI" tracks --rvui-accent, both flipping automatically across the light and dark token ladders.',
+    'The RevealUI wordmark: the Circuit-R monogram plus "RevealUI" set in the brand display face. "Reveal" tracks --rvui-brand-text and "UI" tracks --rvui-accent, both flipping automatically across the light and dark token ladders.',
   category: 'component',
   sourceUrl: 'src/components/wordmark.tsx',
 

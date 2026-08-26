@@ -15,9 +15,10 @@ import { NAV_AUTH, NAV_LINKS } from '../content/nav';
 
 const MOBILE_MENU_ID = 'marketing-mobile-menu';
 
-/** Untiled circuit master in public chrome. Faceted / flat 3-path marks stay off this band. */
+/** Untiled circuit master in public chrome. Never render this file below 96px. */
 const CIRCUIT_R_NAV_SRC = '/revealui-logo.svg';
-const CIRCUIT_R_NAV_CLASS = 'h-[36px] w-auto';
+const CIRCUIT_R_NAV_PX = 96;
+const CIRCUIT_R_NAV_CLASS = 'h-[96px] w-auto';
 
 /**
  * Internal (relative) paths navigate client-side through @revealui/router so
@@ -121,7 +122,7 @@ export function NavBar() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
       <nav
-        className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-6 lg:px-8"
+        className="mx-auto flex h-28 max-w-7xl items-center justify-between gap-4 px-6 lg:px-8"
         aria-label="Primary"
       >
         <NavLink
@@ -134,8 +135,8 @@ export function NavBar() {
           <img
             src={CIRCUIT_R_NAV_SRC}
             alt=""
-            width={36}
-            height={36}
+            width={CIRCUIT_R_NAV_PX}
+            height={CIRCUIT_R_NAV_PX}
             className={CIRCUIT_R_NAV_CLASS}
           />
         </NavLink>
