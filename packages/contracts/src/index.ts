@@ -528,6 +528,7 @@ export {
   getTiersFromCurrent,
   isPublicPerpetualCatalogName,
   type LicenseTierId,
+  PAID_TIER_SUPPORT,
   PERPETUAL_TIERS,
   type PerpetualTier,
   type PricingResponse,

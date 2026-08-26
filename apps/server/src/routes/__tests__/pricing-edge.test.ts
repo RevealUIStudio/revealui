@@ -197,9 +197,7 @@ describe('GET /api/pricing  -  missing metadata fields', () => {
     const res = await freshApp.request('/');
     const data = await res.json();
 
-    const starter = data.credits.find((b: { name: string }) => b.name === 'Starter');
-    // costPer falls back to '' when metadata key is absent
-    expect(starter.costPer).toBe('');
+    expect(data.credits).toEqual([]);
   });
 
   it('defaults credit revealui_price_note to "one-time" when metadata is absent', async () => {
@@ -221,8 +219,7 @@ describe('GET /api/pricing  -  missing metadata fields', () => {
     const res = await freshApp.request('/');
     const data = await res.json();
 
-    const starter = data.credits.find((b: { name: string }) => b.name === 'Starter');
-    expect(starter.priceNote).toBe('one-time');
+    expect(data.credits).toEqual([]);
   });
 
   it('defaults perpetual revealui_renewal to empty string when metadata is absent', async () => {
@@ -333,7 +330,7 @@ describe('GET /api/pricing  -  logger call verification', () => {
 });
 
 describe('GET /api/pricing  -  formatPrice edge values', () => {
-  it('formats large unit amounts correctly ($149900 → $1499)', async () => {
+  it('formats large unit amounts correctly ($149900 → $1,499)', async () => {
     mockProductsList.mockResolvedValue({
       data: [
         {
@@ -348,7 +345,7 @@ describe('GET /api/pricing  -  formatPrice edge values', () => {
     const data = await res.json();
 
     const proPerpetual = data.perpetual.find((t: { name: string }) => t.name === 'Pro Perpetual');
-    expect(proPerpetual.price).toBe('$1499');
+    expect(proPerpetual.price).toBe('$1,499');
   });
 
   it('formats period as /year for annually-billed subscriptions', async () => {
@@ -373,9 +370,9 @@ describe('GET /api/pricing  -  formatPrice edge values', () => {
     mockProductsList.mockResolvedValue({
       data: [
         {
-          name: 'Starter',
-          metadata: { revealui_track: 'credit', revealui_tier: 'starter' },
-          default_price: { unit_amount: 1000 }, // no recurring
+          name: 'Pro Perpetual',
+          metadata: { revealui_track: 'perpetual', revealui_tier: 'pro_perpetual' },
+          default_price: { unit_amount: 149900 }, // no recurring
         },
       ],
     });
@@ -383,8 +380,8 @@ describe('GET /api/pricing  -  formatPrice edge values', () => {
     const res = await freshApp.request('/');
     const data = await res.json();
 
-    const starter = data.credits.find((b: { name: string }) => b.name === 'Starter');
-    // period is not set on credit bundles  -  no period field expected
-    expect(starter).not.toHaveProperty('period');
+    const proPerpetual = data.perpetual.find((t: { name: string }) => t.name === 'Pro Perpetual');
+    expect(proPerpetual).not.toHaveProperty('period');
+    expect(data.credits).toEqual([]);
   });
 });

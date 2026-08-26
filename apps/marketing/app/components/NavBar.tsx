@@ -4,7 +4,6 @@ import {
   IconClose,
   IconMenu,
   LinkButton,
-  RevealUIMark,
   useClickOutside,
   useEscapeKey,
   useFocusTrap,
@@ -16,8 +15,9 @@ import { NAV_AUTH, NAV_LINKS } from '../content/nav';
 
 const MOBILE_MENU_ID = 'marketing-mobile-menu';
 
-/** Untiled Circuit-R in public chrome. Tiled icon-mark is not for this band. */
-const CIRCUIT_R_NAV_CLASS = 'h-[36px] w-auto text-foreground';
+/** Untiled circuit master in public chrome. Faceted / flat 3-path marks stay off this band. */
+const CIRCUIT_R_NAV_SRC = '/revealui-logo.svg';
+const CIRCUIT_R_NAV_CLASS = 'h-[36px] w-auto';
 
 /**
  * Internal (relative) paths navigate client-side through @revealui/router so
@@ -130,7 +130,14 @@ export function NavBar() {
           aria-current={pathname === '/' ? 'page' : undefined}
           aria-label="RevealUI"
         >
-          <RevealUIMark className={CIRCUIT_R_NAV_CLASS} />
+          {/* biome-ignore lint/performance/noImgElement: Vite marketing chrome has no next/image; this is the Circuit-R master, not a raster. */}
+          <img
+            src={CIRCUIT_R_NAV_SRC}
+            alt=""
+            width={36}
+            height={36}
+            className={CIRCUIT_R_NAV_CLASS}
+          />
         </NavLink>
 
         {/* Desktop links */}

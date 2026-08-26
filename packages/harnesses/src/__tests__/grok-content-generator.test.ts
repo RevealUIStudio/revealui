@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildManifest } from '../content/definitions/index.js';
 import {
+  GROK_MANAGER_RULE_PATH,
   GROK_OUTPUT_DIR,
   GROK_SPAWN_MAP_PATH,
   GrokGenerator,
@@ -59,12 +60,18 @@ describe('GrokGenerator', () => {
     );
     const skillFiles = files.filter((f) => f.relativePath.includes('/skills/rule-'));
     expect(files.some((f) => f.relativePath === GROK_SPAWN_MAP_PATH)).toBe(true);
-    expect(ruleFiles.length).toBe(alwaysOn.size + 1);
+    expect(files.some((f) => f.relativePath === GROK_MANAGER_RULE_PATH)).toBe(true);
+    expect(ruleFiles.length).toBe(alwaysOn.size + 2);
     expect(skillFiles.length).toBe(manifest.rules.length - alwaysOn.size);
     expect(files.some((f) => f.relativePath === '.grok/agents/builder.md')).toBe(true);
     const spawn = files.find((f) => f.relativePath === GROK_SPAWN_MAP_PATH);
     expect(spawn?.content).toContain('implementer');
     expect(spawn?.content).toContain('builder');
+    const orientation = files.find((f) => f.relativePath === GROK_MANAGER_RULE_PATH);
+    expect(orientation?.content).toContain('rfg');
+    expect(orientation?.content).toContain('Do not author policy there');
+    expect(orientation?.content).not.toContain('joshua');
+    expect(orientation?.content).not.toContain('revfleet/.jv');
   });
 
   it('does not re-emit content skills (avoids catalog collisions)', () => {

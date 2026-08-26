@@ -12,6 +12,8 @@
  * - remaining definition rules → `.grok/skills/rule-<id>/SKILL.md` (on demand)
  * - content agents → `.grok/agents/<id>.md`
  * - spawn map (Grok TUI types → content agents) → `.grok/rules/00-spawn-map.md`
+ * - adapter orientation → `.grok/rules/00-revealui-manager.md` (public-safe;
+ *   `$HOME/.grok` is a vendor cache, not constitution)
  *
  * Hand-authored Grok-only files (e.g. `.grok/rules/project-layout.md`) are
  * not definition ids and are left alone. Do not name a Grok-only file after
@@ -25,6 +27,8 @@ import type { ContentGenerator, GeneratedFile } from './types.js';
 
 export const GROK_OUTPUT_DIR = '.grok';
 export const GROK_SPAWN_MAP_PATH = '.grok/rules/00-spawn-map.md';
+/** Always-on adapter orientation (not a definition id; public-safe). */
+export const GROK_MANAGER_RULE_PATH = '.grok/rules/00-revealui-manager.md';
 
 const YAML_QUOTING_CHARS = new Set([
   ':',
@@ -122,6 +126,24 @@ Do not invent a second taxonomy under \`~/.grok/agents/\`.
 `;
 }
 
+function managerOrientationMarkdown(): string {
+  return `# RevealUI manager (Grok load path)
+
+Grok loads this tree because cwd is the product. \`$HOME/.grok\` is a vendor
+cache (auth, sessions, UI, hooks). Do not author policy there.
+
+1. \`.revealui/manager.json\` then \`.revealui/content/\` (SSOT)
+2. TRACKER from \`tracker.path\` on the manager
+3. Product I/O via RevealUI MCP (\`rfg\`). Secrets via revvault
+4. Keep \`[compat.claude] rules = false\`. Do not ingest the Claude vendor dump
+
+Mechanical deny is PreToolUse (RevKit deploys hook JSON from this repo).
+Git identity is \`git config user.email\` (RevKit identity.gitconfig), not this file.
+
+Do not invent parallel queues under \`$HOME/.grok\`.
+`;
+}
+
 export class GrokGenerator implements ContentGenerator {
   readonly id = 'grok';
   readonly outputDir = GROK_OUTPUT_DIR;
@@ -169,6 +191,7 @@ export class GrokGenerator implements ContentGenerator {
     const alwaysOn = alwaysOnRuleIds(manifest);
     const files: GeneratedFile[] = [
       { relativePath: GROK_SPAWN_MAP_PATH, content: ensureNl(spawnMapMarkdown()) },
+      { relativePath: GROK_MANAGER_RULE_PATH, content: ensureNl(managerOrientationMarkdown()) },
     ];
     for (const rule of manifest.rules) {
       if (alwaysOn.has(rule.id)) {

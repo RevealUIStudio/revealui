@@ -175,4 +175,15 @@ describe('marketing route registry', () => {
     expect(login?.destination.includes('?')).toBe(false);
     expect(login?.permanent).toBe(true);
   });
+
+  it('hops the soft-404 /upgrade path to admin Pro signup', () => {
+    const redirect = readRedirects().find((entry) => entry.source === '/upgrade');
+    expect(redirect, 'the /upgrade → admin signup hop must be present').toBeDefined();
+    expect(redirect?.destination).toBe('https://admin.revealui.com/signup?plan=pro');
+    expect(redirect?.permanent).toBe(true);
+
+    const appSource = readFileSync(path.resolve(process.cwd(), 'app/App.tsx'), 'utf8');
+    expect(appSource.includes("path: '/upgrade'")).toBe(true);
+    expect(appSource.includes('https://admin.revealui.com/signup?plan=pro')).toBe(true);
+  });
 });

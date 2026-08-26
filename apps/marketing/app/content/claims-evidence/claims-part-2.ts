@@ -80,6 +80,12 @@ export const claimsPart2: readonly ClaimEntry[] = [
   },
   {
     file: 'pricing.ts',
+    exportPath: 'PRICING_COMING_SOON_NOTE',
+    text: 'Not included today: advanced inference configuration, RevKit environment provisioning, and x402 agent payments. Status lives in the agents section below.',
+    evidence: [ROADMAP, X402, PROVIDERS],
+  },
+  {
+    file: 'pricing.ts',
     exportPath: 'PRICING_FINAL_CTA.title',
     text: 'Start free with full source access.',
     evidence: [LICENSE_MIT, TIER_LIMITS],
@@ -153,8 +159,8 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'SUBSCRIPTION_TIERS[1].features[12]',
-    text: 'Email support (48h response)',
-    evidence: [COMMERCIAL_POLICY],
+    text: 'Email support (24h weekday / 4h if unusable)',
+    evidence: [COMMERCIAL_POLICY, SLA_PAGE],
   },
   {
     file: 'pricing.ts',
@@ -165,8 +171,8 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'SUBSCRIPTION_TIERS[2].description',
-    text: 'For teams that need AI memory, advanced inference, and compliance tooling.',
-    evidence: [MEMORY, PROVIDERS, RBAC_ABAC],
+    text: 'For teams that need AI memory and compliance tooling.',
+    evidence: [MEMORY, RBAC_ABAC],
   },
   {
     file: 'pricing.ts',
@@ -177,12 +183,6 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'SUBSCRIPTION_TIERS[2].features[4]',
-    text: 'Advanced inference configuration (coming soon)',
-    evidence: [PROVIDERS],
-  },
-  {
-    file: 'pricing.ts',
-    exportPath: 'SUBSCRIPTION_TIERS[2].features[5]',
     text: 'Signed audit log plus downloadable Merkle roots you verify offline',
     evidence: [
       AUDIT_ROW_SIGNER,
@@ -197,21 +197,15 @@ export const claimsPart2: readonly ClaimEntry[] = [
   },
   {
     file: 'pricing.ts',
-    exportPath: 'SUBSCRIPTION_TIERS[2].features[6]',
+    exportPath: 'SUBSCRIPTION_TIERS[2].features[5]',
     text: '50,000 agent tasks/month included',
     evidence: [TIER_LIMITS],
   },
   {
     file: 'pricing.ts',
-    exportPath: 'SUBSCRIPTION_TIERS[2].features[7]',
-    text: 'RevKit environment provisioning (coming soon)',
-    evidence: [ROADMAP],
-  },
-  {
-    file: 'pricing.ts',
-    exportPath: 'SUBSCRIPTION_TIERS[2].features[8]',
-    text: 'Email support (24h response)',
-    evidence: [COMMERCIAL_POLICY],
+    exportPath: 'SUBSCRIPTION_TIERS[2].features[6]',
+    text: 'Email support (24h weekday / 4h if unusable)',
+    evidence: [COMMERCIAL_POLICY, SLA_PAGE],
   },
   {
     file: 'pricing.ts',
@@ -222,8 +216,8 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'SUBSCRIPTION_TIERS[3].description',
-    text: 'Full ecosystem access with scale, compliance, and agent payments.',
-    evidence: [TIER_LIMITS, RBAC_ABAC, X402],
+    text: 'Full ecosystem access with scale and compliance.',
+    evidence: [TIER_LIMITS, RBAC_ABAC],
   },
   {
     file: 'pricing.ts',
@@ -239,9 +233,9 @@ export const claimsPart2: readonly ClaimEntry[] = [
   },
   {
     file: 'pricing.ts',
-    exportPath: 'SUBSCRIPTION_TIERS[3].features[5]',
-    text: 'x402 agent payments (USDC, coming soon)',
-    evidence: [X402, X402_FACILITATOR],
+    exportPath: 'SUBSCRIPTION_TIERS[3].features[6]',
+    text: 'Email support (24h weekday / 4h if unusable)',
+    evidence: [COMMERCIAL_POLICY, SLA_PAGE],
   },
   {
     file: 'pricing.ts',
@@ -460,14 +454,8 @@ export const claimsPart2: readonly ClaimEntry[] = [
   },
   {
     file: 'pricing-faq.ts',
-    exportPath: 'PRICING_FAQS[8].question',
-    text: 'Do you offer custom pricing for large teams?',
-    evidence: [COMMERCIAL_POLICY],
-  },
-  {
-    file: 'pricing-faq.ts',
     exportPath: 'PRICING_FAQS[8].answer',
-    text: 'Yes. If you need more than what the Enterprise tier offers, contact us to discuss custom pricing. See /sla for our standard support and uptime commitments. (interpolated: SITE.emails.support)',
+    text: 'Enterprise is a license. Contact us to inquire. See /sla for support and uptime commitments. (interpolated: SITE.emails.support)',
     match: 'path',
     evidence: [COMMERCIAL_POLICY, SLA_PAGE],
   },

@@ -1,6 +1,7 @@
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { MANAGER_MATERIALIZE_GENERATORS, writeManagerAdapterContent } from '../content/index.js';
 import {
@@ -66,6 +67,14 @@ describe('project manager (.revealui)', () => {
     expect(grokMd).toContain('session-start.json');
     expect(grokMd).toContain('hotfix-check');
     expect(grokMd).toContain('Do not invent a second hotfix registry');
+    expect(grokMd).toContain('rfg');
+    expect(grokMd).toContain('RevKit deploys');
+    expect(grokMd).not.toContain('mkdir -p ~/.grok/hooks');
+    const materializeSrc = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), '../manager/materialize.ts'),
+      'utf-8',
+    );
+    expect(materializeSrc).not.toContain("homedir(), '.grok'");
 
     const start = JSON.parse(
       readFileSync(join(root, '.revealui/adapters/grok/hooks/session-start.json'), 'utf-8'),
@@ -135,6 +144,10 @@ describe('project manager (.revealui)', () => {
     const grokRule = readFileSync(join(root, '.grok/rules/code-over-docs.md'), 'utf-8');
     expect(grokRule).toBe(contentRule);
     expect(written.paths.some((p) => p === '.grok/rules/00-spawn-map.md')).toBe(true);
+    expect(written.paths.some((p) => p === '.grok/rules/00-revealui-manager.md')).toBe(true);
+    const grokManager = readFileSync(join(root, '.grok/rules/00-revealui-manager.md'), 'utf-8');
+    expect(grokManager).toContain('Do not author policy there');
+    expect(grokManager).not.toContain('revfleet/.jv');
 
     const check = checkManager(root);
     expect(check.ok).toBe(true);

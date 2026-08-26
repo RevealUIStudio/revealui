@@ -27,6 +27,7 @@ function moved(to: string) {
 const MovedPhilosophy = moved(`${DOCS}/blog/01-why-we-built-revealui`);
 const MovedLocalAi = moved(`${DOCS}/local-first`);
 const MovedServices = moved('/pricing');
+const MovedUpgrade = moved('https://admin.revealui.com/signup?plan=pro');
 const MovedHowItWorks = moved(`${DOCS}/build-your-business`);
 const MovedManaged = moved(`${DOCS}/roadmap`);
 const MovedBlog = moved(`${DOCS}/blog/16-ui-of-the-future`);
@@ -64,6 +65,11 @@ export function App() {
         meta: { title: 'Moved | RevealUI' },
       },
       { path: '/pricing', component: PricingPage, meta: { title: 'Pricing | RevealUI' } },
+      {
+        path: '/upgrade',
+        component: MovedUpgrade,
+        meta: { title: 'Upgrade | RevealUI' },
+      },
       {
         path: '/services',
         component: MovedServices,

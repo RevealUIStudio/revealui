@@ -180,25 +180,6 @@ export function createCachedConversation(config: {
   return result;
 }
 
-/** Look up a model's pricing, asserting presence (used only for known-present keys). */
-function requirePricing(model: string) {
-  const pricing = MODEL_PRICING[model];
-  if (!pricing) {
-    throw new Error(`No pricing entry for model: ${model}`);
-  }
-  return pricing;
-}
-
-/**
- * @deprecated Use `MODEL_PRICING` from `./token-counter.js`. Retained as a thin derived
- * view (the Anthropic-with-cache subset) so existing importers keep one source of truth.
- */
-export const ANTHROPIC_PRICING = {
-  'claude-3-5-sonnet-20241022': requirePricing('claude-3-5-sonnet-20241022'),
-  'claude-3-5-haiku-20241022': requirePricing('claude-3-5-haiku-20241022'),
-  'claude-3-opus-20240229': requirePricing('claude-3-opus-20240229'),
-} as const;
-
 /**
  * Calculate actual cost of a request with caching, using the unified MODEL_PRICING table.
  * Unknown models price at zero (matching `estimateCost`).

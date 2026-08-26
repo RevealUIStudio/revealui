@@ -7,6 +7,7 @@
  * @module @revealui/core/types/runtime
  */
 
+import type { RevealUILogger } from '../instance/logger.js';
 import type { RevealCollectionConfig, RevealConfig, RevealGlobalConfig } from './config.js';
 import type {
   PopulateType,
@@ -23,12 +24,8 @@ import type { RevealRequest } from './request.js';
 // LOGGER
 // =============================================================================
 
-/** Logger interface */
-export interface RevealUILogger {
-  info(message: string): void;
-  warn(message: string): void;
-  error(message: string): void;
-}
+/** Instance-shaped logger (varargs adapter). SSOT: `instance/logger`. */
+export type { RevealUILogger };
 
 // =============================================================================
 // OPERATION OPTIONS

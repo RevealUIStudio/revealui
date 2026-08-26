@@ -27,6 +27,10 @@
       "sha256": "b98c5a58cf584e87b1da69cfaec0938f4df4b3d0a3fc9ef864adc984cf9f92d7"
     },
     {
+      "relativePath": ".grok/rules/00-revealui-manager.md",
+      "sha256": "b69b2785a621a9333961963167e0f4ad1aa7b7e99baf3e4f49a6d20c2932d8bf"
+    },
+    {
       "relativePath": ".grok/rules/00-spawn-map.md",
       "sha256": "4ce3374a4ad5224b4c57f86bdefb7e1c055204b0a36a1dc740c236324b933fd5"
     },
