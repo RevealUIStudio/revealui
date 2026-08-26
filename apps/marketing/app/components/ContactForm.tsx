@@ -5,10 +5,10 @@ import { z } from 'zod';
 import { submitContact } from '../lib/api';
 
 const topics = [
-  { value: 'enterprise', label: 'Enterprise / Custom Pricing' },
-  { value: 'partnership', label: 'Partnership' },
-  { value: 'support', label: 'Technical Support' },
   { value: 'general', label: 'General Question' },
+  { value: 'enterprise', label: 'Enterprise' },
+  { value: 'support', label: 'Technical Support' },
+  { value: 'partnership', label: 'Partnership' },
 ];
 
 interface FieldErrors {

@@ -155,7 +155,16 @@ describe('SUBSCRIPTION_TIERS', () => {
     expect(pro.ctaHref).toBe('/signup?plan=pro');
     expect(max.cta).toBe('Start your 7-day free trial');
     expect(max.ctaHref).toBe('/signup?plan=max');
-    expect(enterprise.features.some((f) => f.includes('coming soon'))).toBe(true);
+    expect(enterprise.features.some((f) => f.includes('coming soon'))).toBe(false);
+    expect(enterprise.features.some((f) => f.includes('Slack'))).toBe(false);
+  });
+
+  it('sells the same email SLA on every paid tier and keeps coming-soon off the cards', () => {
+    const paid = SUBSCRIPTION_TIERS.filter((tier) => tier.id !== 'free');
+    for (const tier of paid) {
+      expect(tier.features).toContain('Email support (24h weekday / 4h if unusable)');
+      expect(tier.features.some((feature) => feature.includes('coming soon'))).toBe(false);
+    }
   });
 
   it('free tier has no period', () => {
@@ -199,10 +208,10 @@ describe('CREDIT_BUNDLES', () => {
 // =============================================================================
 
 describe('PUBLIC_PERPETUAL_NAMES', () => {
-  it('exposes Pro and Enterprise on the public catalog, not Agency', () => {
-    expect(PUBLIC_PERPETUAL_NAMES).toEqual(['Pro Perpetual', 'Enterprise Perpetual']);
+  it('exposes Pro on the public catalog, not Agency or Enterprise Perpetual', () => {
+    expect(PUBLIC_PERPETUAL_NAMES).toEqual(['Pro Perpetual']);
     expect(isPublicPerpetualCatalogName('Pro Perpetual')).toBe(true);
-    expect(isPublicPerpetualCatalogName('Enterprise Perpetual')).toBe(true);
+    expect(isPublicPerpetualCatalogName('Enterprise Perpetual')).toBe(false);
     expect(isPublicPerpetualCatalogName('Agency Perpetual')).toBe(false);
   });
 });

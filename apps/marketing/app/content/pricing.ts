@@ -19,9 +19,13 @@ export interface AgentFeatureCard {
 }
 
 export const PRICING_HERO: SectionHeading = {
-  title: 'Two ways to use RevealUI',
+  title: 'RevealUI pricing',
   subtitle: 'Subscribe, or buy a perpetual license. Start free. Upgrade when you need to.',
 };
+
+/** Coming-soon work stays off the cards. Do not sell it as included. */
+export const PRICING_COMING_SOON_NOTE =
+  'Not included today: advanced inference configuration, RevKit environment provisioning, and x402 agent payments. Status lives in the agents section below.';
 
 export const PRICING_HERO_SUBTEXT = {
   prefix:

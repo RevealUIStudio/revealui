@@ -156,6 +156,11 @@
       "permanent": true
     },
     {
+      "source": "/upgrade",
+      "destination": "https://admin.revealui.com/signup?plan=pro",
+      "permanent": true
+    },
+    {
       "source": "/checkout",
       "missing": [{ "type": "query", "key": "plan" }, { "type": "query", "key": "license" }],
       "destination": "https://admin.revealui.com/signup?plan=pro",

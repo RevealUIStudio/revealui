@@ -21,6 +21,7 @@ import {
   PRICING_AGENT_MCP,
   PRICING_AGENT_X402,
   PRICING_AGENTS_SECTION,
+  PRICING_COMING_SOON_NOTE,
   PRICING_FINAL_CTA,
   PRICING_FINAL_CTA_LINKS,
   PRICING_HERO,
@@ -71,44 +72,51 @@ export function PricingPage() {
 
   const showAnnualToggle = pricing?.subscriptions.some((t) => Boolean(t.annualPrice)) ?? false;
 
-  const tiers = (pricing?.subscriptions ?? SUBSCRIPTION_TIERS).map((tier) => {
-    // Public catalog: Enterprise is a license inquiry, not a $1,499/mo hosted buy.
+  // Contract copy is the public catalog. /api/pricing may still be a stale
+  // production deploy (CI and split marketing/API rollouts), so only overlay
+  // price fields — never leftover features like Slack support or coming-soon.
+  const tiers = SUBSCRIPTION_TIERS.map((tier) => {
+    const fromApi = pricing?.subscriptions.find((item) => item.id === tier.id);
     const inquireOnly = tier.id === 'enterprise';
     const fallback = inquireOnly ? undefined : SUBSCRIPTION_PRICE_FALLBACKS[tier.id];
     const annualFallback = inquireOnly ? undefined : ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS[tier.id];
+    const annualPrice = fromApi?.annualPrice ?? tier.annualPrice;
+    const annualPeriod = fromApi?.annualPeriod ?? tier.annualPeriod;
     const useAnnual =
-      !inquireOnly && billingInterval === 'year' && tier.id !== 'free' && Boolean(tier.annualPrice);
+      !inquireOnly && billingInterval === 'year' && tier.id !== 'free' && Boolean(annualPrice);
     const baseHref = tier.ctaHref.startsWith('/') ? `${ADMIN_URL}${tier.ctaHref}` : tier.ctaHref;
     const ctaHref =
       useAnnual && baseHref.includes('/signup') ? `${baseHref}&interval=year` : baseHref;
     return {
       ...tier,
+      annualPrice,
+      annualPeriod,
       price: inquireOnly
         ? undefined
         : useAnnual
-          ? (tier.annualPrice ?? annualFallback?.price)
-          : (tier.price ?? fallback?.price),
+          ? (annualPrice ?? annualFallback?.price)
+          : (fromApi?.price ?? fallback?.price),
       period: inquireOnly
         ? undefined
         : useAnnual
-          ? (tier.annualPeriod ?? annualFallback?.period)
-          : (tier.period ?? fallback?.period),
-      savings: inquireOnly ? '' : useAnnual ? (annualFallback?.savings ?? '') : '',
+          ? (annualPeriod ?? annualFallback?.period)
+          : (fromApi?.period ?? fallback?.period),
       ctaHref,
     };
   });
-  const perpetualTiers = (pricing?.perpetual ?? PERPETUAL_TIERS)
-    .filter((tier) => PUBLIC_PERPETUAL.has(tier.name))
-    .map((tier) => {
+  const perpetualTiers = PERPETUAL_TIERS.filter((tier) => PUBLIC_PERPETUAL.has(tier.name)).map(
+    (tier) => {
+      const fromApi = pricing?.perpetual.find((item) => item.name === tier.name);
       const fallback = PERPETUAL_PRICE_FALLBACKS[tier.name];
       return {
         ...tier,
-        price: tier.price ?? fallback?.price,
-        priceNote: tier.priceNote ?? fallback?.priceNote,
-        renewal: tier.renewal ?? fallback?.renewal,
+        price: fromApi?.price ?? fallback?.price,
+        priceNote: fromApi?.priceNote ?? fallback?.priceNote,
+        renewal: fromApi?.renewal ?? fallback?.renewal,
         ctaHref: tier.ctaHref.startsWith('/') ? `${ADMIN_URL}${tier.ctaHref}` : tier.ctaHref,
       };
-    });
+    },
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -124,9 +132,8 @@ export function PricingPage() {
           className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background"
         />
         <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-          Two ways to use{' '}
-          <span className="block bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            RevealUI
+          <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+            {PRICING_HERO.title}
           </span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-body sm:text-xl">
@@ -217,7 +224,6 @@ export function PricingPage() {
               name: tier.name,
               price: tier.price ?? 'Contact us',
               period: tier.period,
-              savings: tier.savings || undefined,
               description: tier.description,
               features: [...tier.features],
               cta: tier.cta,
@@ -229,6 +235,7 @@ export function PricingPage() {
         />
 
         <p className="mt-8 text-center text-sm text-muted-foreground">{PRICING_TRIAL_NOTE}</p>
+        <p className="mt-3 text-center text-sm text-muted-foreground">{PRICING_COMING_SOON_NOTE}</p>
       </MarketingSection>
 
       <MarketingSection id="perpetual" tone="secondary" density="default" width="default">

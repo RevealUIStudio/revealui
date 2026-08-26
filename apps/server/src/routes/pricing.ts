@@ -7,7 +7,6 @@
 
 import {
   allowsUnattendedCheckout,
-  CREDIT_BUNDLES,
   isPublicPerpetualCatalogName,
   type LicenseTierId,
   PERPETUAL_TIERS,
@@ -73,12 +72,6 @@ const ANNUAL_PRICE_ENV_GUARDS: Record<string, string> = {
   max: 'STRIPE_MAX_ANNUAL_PRICE_ID',
 };
 
-const HARDCODED_CREDIT_PRICES: [string, { price: string; priceNote: string; costPer: string }][] = [
-  ['Starter', { price: '$10', priceNote: 'one-time', costPer: '$0.001/task' }],
-  ['Standard', { price: '$50', priceNote: 'one-time', costPer: '$0.00083/task' }],
-  ['Scale', { price: '$250', priceNote: 'one-time', costPer: '$0.00071/task' }],
-];
-
 const HARDCODED_PERPETUAL_PRICES: Record<
   string,
   { price: string; priceNote: string; renewal: string }
@@ -88,22 +81,10 @@ const HARDCODED_PERPETUAL_PRICES: Record<
     priceNote: 'one-time',
     renewal: '$149/yr for continued support',
   },
-  // Agency Perpetual ($8,499) is not a public catalog SKU.
-  // 'Enterprise Perpetual' is the post-rename canonical name per
-  // brand-naming ADR (2026-05-03-revfleet-rename.md). The contracts file
-  // ships this name; the server fallback now matches. marketing-overhaul
-  // Phase 2.6 (2026-05-18) closed the pre-rename "Forge Perpetual" drift
-  // surfaced by pricing-marketing-drift.test.ts.
-  'Enterprise Perpetual': {
-    price: '$42,999',
-    priceNote: 'one-time',
-    renewal: '$3,999/yr for continued support',
-  },
 };
 
 function loadFallbackPrices(): {
   subscriptions: Record<string, { price: string; period?: string }>;
-  credits: Map<string, { price: string; priceNote: string; costPer: string }>;
   perpetual: Record<string, { price: string; priceNote: string; renewal: string }>;
 } {
   const envJson = process.env.FALLBACK_PRICING_JSON;
@@ -112,10 +93,6 @@ function loadFallbackPrices(): {
       const parsed = JSON.parse(envJson);
       return {
         subscriptions: parsed.subscriptions ?? HARDCODED_SUBSCRIPTION_PRICES,
-        credits: new Map(Object.entries(parsed.credits ?? {})) as Map<
-          string,
-          { price: string; priceNote: string; costPer: string }
-        >,
         perpetual: parsed.perpetual ?? HARDCODED_PERPETUAL_PRICES,
       };
     } catch {
@@ -129,23 +106,25 @@ function loadFallbackPrices(): {
   }
   return {
     subscriptions: HARDCODED_SUBSCRIPTION_PRICES,
-    credits: new Map(HARDCODED_CREDIT_PRICES),
     perpetual: HARDCODED_PERPETUAL_PRICES,
   };
 }
 
-const {
-  subscriptions: FALLBACK_SUBSCRIPTION_PRICES,
-  credits: FALLBACK_CREDIT_PRICES,
-  perpetual: FALLBACK_PERPETUAL_PRICES,
-} = loadFallbackPrices();
+const { subscriptions: FALLBACK_SUBSCRIPTION_PRICES, perpetual: FALLBACK_PERPETUAL_PRICES } =
+  loadFallbackPrices();
 
 // ---------------------------------------------------------------------------
 // Stripe → pricing merge logic
 // ---------------------------------------------------------------------------
 
+const USD_WHOLE_DOLLARS = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  maximumFractionDigits: 0,
+});
+
 function formatPrice(unitAmount: number): string {
-  return `$${(unitAmount / 100).toFixed(0)}`;
+  return USD_WHOLE_DOLLARS.format(unitAmount / 100);
 }
 
 function formatPeriod(interval: string | undefined): string | undefined {
@@ -255,11 +234,9 @@ function buildPricingResponse(stripePrices: StripeProductMap | null): PricingRes
     return { ...tier, ...(stripePrice ?? fallback), ...annualPrices };
   });
 
-  const credits = CREDIT_BUNDLES.map((bundle) => {
-    const stripePrice = stripePrices?.credits.get(bundle.name);
-    const fallback = FALLBACK_CREDIT_PRICES.get(bundle.name);
-    return { ...bundle, ...(stripePrice ?? fallback) };
-  });
+  // Credit packs ($10 / $50 / $250) are not sold on the public catalog.
+  // FAQ already says overage is not charged. Keep the credits key empty.
+  const credits: PricingResponse['credits'] = [];
 
   const perpetual = PERPETUAL_TIERS.filter((tier) => isPublicPerpetualCatalogName(tier.name)).map(
     (tier) => {
