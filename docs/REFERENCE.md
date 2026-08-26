@@ -2345,9 +2345,9 @@ Inline status chip.
 ```tsx
 import { Badge } from '@revealui/presentation'
 
-<Badge color="green">Active</Badge>
-<Badge color="red">Failed</Badge>
-<Badge color="yellow">Pending</Badge>
+<Badge intent="success">Active</Badge>
+<Badge intent="danger">Failed</Badge>
+<Badge intent="warning">Pending</Badge>
 ```
 
 #### `Progress`
