@@ -4,7 +4,6 @@
 
 import { describe, expect, it } from 'vitest';
 import {
-  ANTHROPIC_PRICING,
   cacheableSystemPrompt,
   calculateCacheCost,
   createCachedConversation,
@@ -13,6 +12,7 @@ import {
   shouldCache,
   withCache,
 } from '../cache-utils.js';
+import { MODEL_PRICING } from '../token-counter.js';
 
 describe('cache-utils', () => {
   describe('withCache', () => {
@@ -204,7 +204,7 @@ describe('cache-utils', () => {
         cacheCreationTokens: 7000,
       });
 
-      const pricing = ANTHROPIC_PRICING['claude-3-5-sonnet-20241022'];
+      const pricing = MODEL_PRICING['claude-3-5-sonnet-20241022'];
       const expectedCacheWrite = (7000 / 1_000_000) * pricing.cacheWrite;
       const expectedInput = (3000 / 1_000_000) * pricing.input;
       const expectedOutput = (500 / 1_000_000) * pricing.output;
@@ -222,7 +222,7 @@ describe('cache-utils', () => {
         cacheReadTokens: 7000,
       });
 
-      const pricing = ANTHROPIC_PRICING['claude-3-5-sonnet-20241022'];
+      const pricing = MODEL_PRICING['claude-3-5-sonnet-20241022'];
       const expectedCacheRead = (7000 / 1_000_000) * pricing.cacheRead;
       const expectedInput = (3000 / 1_000_000) * pricing.input;
 
@@ -275,32 +275,35 @@ describe('cache-utils', () => {
     });
   });
 
-  describe('ANTHROPIC_PRICING', () => {
-    it('should have pricing for all models', () => {
-      const models = [
-        'claude-3-5-sonnet-20241022',
-        'claude-3-5-haiku-20241022',
-        'claude-3-opus-20240229',
-      ] as const;
+  describe('MODEL_PRICING Anthropic cache rates', () => {
+    const anthropicCacheModels = [
+      'claude-3-5-sonnet-20241022',
+      'claude-3-5-haiku-20241022',
+      'claude-3-opus-20240229',
+    ] as const;
 
-      models.forEach((model) => {
-        expect(ANTHROPIC_PRICING[model]).toBeDefined();
-        expect(ANTHROPIC_PRICING[model].input).toBeGreaterThan(0);
-        expect(ANTHROPIC_PRICING[model].output).toBeGreaterThan(0);
-        expect(ANTHROPIC_PRICING[model].cacheWrite).toBeGreaterThan(0);
-        expect(ANTHROPIC_PRICING[model].cacheRead).toBeGreaterThan(0);
+    it('should have pricing for retained Anthropic cache-cost keys', () => {
+      anthropicCacheModels.forEach((model) => {
+        const pricing = MODEL_PRICING[model];
+        expect(pricing).toBeDefined();
+        expect(pricing?.input).toBeGreaterThan(0);
+        expect(pricing?.output).toBeGreaterThan(0);
+        expect(pricing?.cacheWrite).toBeGreaterThan(0);
+        expect(pricing?.cacheRead).toBeGreaterThan(0);
       });
     });
 
     it('should have cache read at 10% of input', () => {
-      Object.values(ANTHROPIC_PRICING).forEach((pricing) => {
-        expect(pricing.cacheRead).toBeCloseTo(pricing.input * 0.1, 2);
+      anthropicCacheModels.forEach((model) => {
+        const pricing = MODEL_PRICING[model];
+        expect(pricing?.cacheRead).toBeCloseTo((pricing?.input ?? 0) * 0.1, 2);
       });
     });
 
     it('should have cache write at 125% of input', () => {
-      Object.values(ANTHROPIC_PRICING).forEach((pricing) => {
-        expect(pricing.cacheWrite).toBeCloseTo(pricing.input * 1.25, 2);
+      anthropicCacheModels.forEach((model) => {
+        const pricing = MODEL_PRICING[model];
+        expect(pricing?.cacheWrite).toBeCloseTo((pricing?.input ?? 0) * 1.25, 2);
       });
     });
   });
