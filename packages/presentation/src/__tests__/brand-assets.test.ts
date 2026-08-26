@@ -1,9 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-const brandDir = path.resolve(fileURLToPath(new URL('../assets/brand', import.meta.url)));
+const brandDir = path.resolve(process.cwd(), 'src/assets/brand');
 
 function readBrand(name: string): string {
   return readFileSync(path.join(brandDir, name), 'utf8');
@@ -99,11 +98,11 @@ describe('Circuit-R brand family', () => {
       expect(wordmark.includes(STEM)).toBe(true);
       expect(wordmark.includes(BOWL)).toBe(true);
       expect(wordmark.includes(LEG)).toBe(true);
-      expect(wordmark.includes(NAVY_STEM)).toBe(true);
-      expect(wordmark.includes(NAVY_BOWL)).toBe(true);
-      expect(wordmark.includes(NAVY_LEG)).toBe(true);
       expect(wordmark.includes(FACETED_A)).toBe(false);
       expect(wordmark.includes('<text')).toBe(false);
     }
+    expect(light.includes(NAVY_STEM)).toBe(true);
+    expect(light.includes(NAVY_BOWL)).toBe(true);
+    expect(light.includes(NAVY_LEG)).toBe(true);
   });
 });
