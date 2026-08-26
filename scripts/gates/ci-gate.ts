@@ -36,6 +36,9 @@ import { createLogger, getProjectRoot } from '../utils/base.js';
 
 const logger = createLogger();
 
+/** Phase-1 checks without an explicit timeout inherit this (not execCommand's 120s). */
+const PHASE_CHECK_TIMEOUT_MS = 300_000;
+
 // =============================================================================
 // Types
 // =============================================================================
@@ -123,7 +126,7 @@ async function runCheck(check: CheckDef): Promise<CheckResult> {
 
   const start = performance.now();
   const result = await execCommand(check.command, check.args, {
-    timeout: check.timeout,
+    timeout: check.timeout ?? PHASE_CHECK_TIMEOUT_MS,
   });
   const durationMs = performance.now() - start;
 
