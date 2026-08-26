@@ -482,7 +482,7 @@ AI is not free. RevealUI tracks task usage per billing cycle:
 
 | Tier | Monthly quota |
 |------|---------------|
-| Free | 1,000 tasks |
+| Free | Local AI |
 | Pro | 10,000 tasks |
 | Max | 50,000 tasks |
 | Enterprise | Unlimited |

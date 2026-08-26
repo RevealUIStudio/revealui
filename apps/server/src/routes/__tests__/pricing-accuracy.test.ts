@@ -54,7 +54,7 @@ const EXPECTED_HOSTED_LIMITS: Record<
   LicenseTierId,
   { maxSites: number; maxUsers: number; maxAgentTasks: number }
 > = {
-  free: { maxSites: 1, maxUsers: 3, maxAgentTasks: 1_000 },
+  free: { maxSites: 1, maxUsers: 3, maxAgentTasks: 0 },
   pro: { maxSites: 5, maxUsers: 25, maxAgentTasks: 10_000 },
   max: { maxSites: 15, maxUsers: 100, maxAgentTasks: 50_000 },
   enterprise: {
@@ -143,7 +143,7 @@ describe('Pricing Accuracy  -  Contracts vs Code Enforcement', () => {
       const free = TIER_LIMITS.free;
       expect(free.sites).toBe(1);
       expect(free.users).toBe(3);
-      expect(free.agentTasks).toBe(1_000);
+      expect(free.agentTasks).toBe(0);
     });
   });
 

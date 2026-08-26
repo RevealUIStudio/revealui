@@ -25,7 +25,7 @@ export const PRICING_HERO: SectionHeading = {
 
 export const PRICING_HERO_SUBTEXT = {
   prefix:
-    'All plans run as self-hosted installations under your license. Enterprise is a license, not a hosted VM. Managed customer instances are RevealUI Cloud (waitlist). Need a human?',
+    'All plans run as self-hosted installations under your license. Enterprise is a license, not a hosted VM. Need a human?',
   linkLabel: 'revealuistudio.com',
   linkHref: SITE.urls.agency,
   suffix: 'Studio SKUs live on that site, not on this catalog.',

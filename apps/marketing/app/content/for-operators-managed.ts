@@ -9,12 +9,9 @@
 // - OQ-6: agency-site coupling.
 //
 // Honesty doctrine (the page's load-bearing constraint):
-// - Names that RevealUI Cloud does NOT ship today at H2 weight.
-// - No prices, no dates, no signup buttons that imply the product exists,
-//   no present-tense feature claims as if the product ships.
-// - The waitlist is the ONLY conversion action, explicitly labeled as a waitlist.
-// - Impatient operators are routed to /services (product surface) and
-//   revealuistudio.com (agency conversion).
+// - Not a public catalog SKU. No Cloud waitlist CTA. No Starter Kit checkout.
+// - Enterprise is inquire / Contact sales. You self-host.
+// - Impatient operators are routed to /contact and revealuistudio.com.
 //
 // Voice rules: all 5 apply unchanged + operator-lane register per spec §7
 // (codified in voice-and-headline-rules.md §2.1).
@@ -127,13 +124,13 @@ export const FO_MANAGED_TODAY = {
 } as const;
 
 export const FO_MANAGED_WAITLIST = {
-  eyebrow: 'Waitlist',
-  heading: 'Want it when it ships? Join the waitlist.',
-  body: 'Tell us your email and we will record your interest in RevealUI Cloud specifically. We will reach out when there is something to demo, not before.',
-  product: 'managed-cloud',
-  inputPlaceholder: 'you@company.com',
-  buttonLabel: 'Join the waitlist',
-  buttonLabelLoading: 'Joining…',
-  successMessage:
-    'You are on the RevealUI Cloud waitlist. We will email when there is something to demo.',
+  eyebrow: 'Enterprise',
+  heading: 'Enterprise is a license. Contact sales.',
+  body: 'You self-host. Studio does not operate a customer VM. Inquire: Enterprise is not a public monthly SKU.',
+  product: 'enterprise-inquire',
+  inputPlaceholder: 'Contact sales',
+  buttonLabel: 'Contact sales',
+  buttonLabelLoading: 'Contact sales',
+  successMessage: 'Enterprise is inquire / Contact sales.',
+  href: 'https://revealui.com/contact',
 } as const;

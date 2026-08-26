@@ -197,7 +197,7 @@ export const FAIR_SOURCE_FAQS: readonly FaqItem[] = [
   {
     question: 'How is the Pro tier enforced if the source is visible?',
     answer:
-      'License enforcement is at runtime on the studio control plane (admin.revealui.com and api.revealui.com), not baked into the npm packages. That is a license check on RevealUI Studio infrastructure, not a customer VM we operate. You self-host the runtime. Managed customer instances are RevealUI Cloud (waitlist). The hosted RevealUI API checks Ed25519-signed license JWTs and gates Pro API routes; the packages themselves ship ungated, so self-hosters run them freely. FSL is the legal protection: the source is visible and you can run it, but shipping a competing developer platform on top of it is exactly what the non-compete clause prohibits, with civil remedies available. Two years after each release, that release becomes plain MIT.',
+      'License enforcement is at runtime on the studio control plane (admin.revealui.com and api.revealui.com), not baked into the npm packages. That is a license check on RevealUI Studio infrastructure, not a customer VM we operate. You self-host the runtime. The hosted RevealUI API checks Ed25519-signed license JWTs and gates Pro API routes; the packages themselves ship ungated, so self-hosters run them freely. FSL is the legal protection: the source is visible and you can run it, but shipping a competing developer platform on top of it is exactly what the non-compete clause prohibits, with civil remedies available. Two years after each release, that release becomes plain MIT.',
   },
   {
     question: 'What about the rest of the RevealUI packages?',

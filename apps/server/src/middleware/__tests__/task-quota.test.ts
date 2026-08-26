@@ -373,26 +373,16 @@ describe('requireTaskQuota', () => {
   // =========================================================================
 
   describe('tier-specific quotas', () => {
-    it('uses free tier quota (1,000)', async () => {
-      mockedGetMaxAgentTasks.mockReturnValue(1_000);
-      setupSelectMock(999);
-
-      const app = createApp(TEST_USER);
-      const res = await app.request('/test');
-
-      expect(res.status).toBe(200);
-    });
-
-    it('blocks free tier at 1,000', async () => {
-      mockedGetMaxAgentTasks.mockReturnValue(1_000);
-      setupSelectMock(1_000);
+    it('blocks free tier at 0 (Local AI, no public agent quota)', async () => {
+      mockedGetMaxAgentTasks.mockReturnValue(0);
+      setupSelectMock(0);
 
       const app = createApp(TEST_USER);
       const res = await app.request('/test');
 
       expect(res.status).toBe(429);
       const body = await res.json();
-      expect(body.quota).toBe(1_000);
+      expect(body.quota).toBe(0);
     });
 
     it('uses pro tier quota (10,000)', async () => {

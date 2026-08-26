@@ -108,7 +108,7 @@ const ENTERPRISE_FEATURES = ['multiTenant', 'whiteLabel'] as const;
 
 /** Hosted tier limits (must match getHostedLimitsForTier in apps/server/src/lib/tier-limits.ts) */
 const HOSTED_LIMITS: Record<Tier, { maxSites: number; maxUsers: number; maxAgentTasks: number }> = {
-  free: { maxSites: 1, maxUsers: 3, maxAgentTasks: 1_000 },
+  free: { maxSites: 1, maxUsers: 3, maxAgentTasks: 0 },
   pro: { maxSites: 5, maxUsers: 25, maxAgentTasks: 10_000 },
   max: { maxSites: 15, maxUsers: 100, maxAgentTasks: 50_000 },
   enterprise: {

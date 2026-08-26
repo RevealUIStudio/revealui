@@ -60,7 +60,7 @@ describe('DocLayout', () => {
     for (const link of homeLinks) {
       const mark = link.querySelector('svg');
       expect(mark).toBeTruthy();
-      expect(mark).toHaveAttribute('viewBox', '0 0 82 100');
+      expect(mark).toHaveAttribute('viewBox', '0 0 512 512');
       expect(mark?.className.baseVal ?? mark?.getAttribute('class') ?? '').toContain('h-[36px]');
       expect(link.querySelector('svg[viewBox="0 0 24 24"]')).toBeNull();
     }

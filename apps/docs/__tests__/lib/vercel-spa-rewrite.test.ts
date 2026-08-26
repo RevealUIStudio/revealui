@@ -36,5 +36,6 @@ describe('docs vercel.json SPA rewrite', () => {
     expect(bySource.get('/reference/ai')).toBe('/ai');
     expect(bySource.get('/reference/auth')).toBe('/auth');
     expect(bySource.get('/reference/db')).toBe('/database');
+    expect(bySource.get('/forge')).toBe('/enterprise');
   });
 });

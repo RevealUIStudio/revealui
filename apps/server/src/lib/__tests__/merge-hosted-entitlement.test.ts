@@ -16,7 +16,7 @@ vi.mock('../tier-limits.js', () => ({
   getHostedLimitsForTier: vi.fn(() => ({
     maxSites: 1,
     maxUsers: 3,
-    maxAgentTasks: 1_000,
+    maxAgentTasks: 0,
   })),
 }));
 
@@ -137,7 +137,7 @@ describe('reconcileHealMergeReason (PR-5 / HC11 / HC12)', () => {
       lastEventAt: null,
       now,
       source: 'reconciler',
-      limits: { maxSites: 1, maxUsers: 3, maxAgentTasks: 1_000 },
+      limits: { maxSites: 1, maxUsers: 3, maxAgentTasks: 0 },
     });
     const merged = mergeHostedEntitlementUpdate({
       existing: {

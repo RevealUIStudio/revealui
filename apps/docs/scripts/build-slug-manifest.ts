@@ -44,6 +44,8 @@ const IGNORED_DIRS = new Set(['node_modules', '.next', 'dist', 'archive']);
 const LEGACY_SLUG_ALIASES: Record<string, string> = {
   // VAUGHN.md renamed to HARNESS_PROTOCOL.md; alias preserves /vaughn URL.
   vaughn: 'HARNESS_PROTOCOL.md',
+  // Public Enterprise page is /enterprise. /forge was the leftover public path.
+  forge: 'ENTERPRISE.md',
 };
 
 interface Entry {

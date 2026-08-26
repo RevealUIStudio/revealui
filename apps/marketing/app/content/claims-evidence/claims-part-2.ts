@@ -16,6 +16,7 @@ import {
   EMAIL_AGENT,
   FAIR_SOURCE_PAGE,
   LICENSE_MIT,
+  LICENSE_RUNTIME_GATE_TEST,
   LICENSE_SPLIT,
   LIVE_AGENT_CARD,
   MCP_SERVERS,
@@ -446,8 +447,16 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing-faq.ts',
     exportPath: 'PRICING_FAQS[7].answer',
-    text: "Fair Source is a middle path between closed commercial and plain open-source. Our five Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) are source-visible on GitHub, installable from npm, and legally usable in commercial products, with one non-compete clause: you can't ship a substantially similar developer platform that competes with RevealUI on top of them. Two years after each release, that release automatically converts to MIT. Same license model used by Sentry, GitButler, and Keygen. Source-available under FSL: free for everyone except SaaS competitors. Pro and Enterprise on /pricing are a license plus studio support on admin.revealui.com; you self-host. Managed customer instances are RevealUI Cloud (waitlist). Enforcement is not baked into the npm packages. Full explainer at /fair-source.",
-    evidence: [LICENSE_SPLIT, FAIR_SOURCE_PAGE, REPO, SELF_HOST, COMMERCIAL_POLICY, ROADMAP],
+    text: "Fair Source is a middle path between closed commercial and plain open-source. Our five Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) are source-visible on GitHub, installable from npm, and legally usable in commercial products, with one non-compete clause: you can't ship a substantially similar developer platform that competes with RevealUI on top of them. Two years after each release, that release automatically converts to MIT. Same license model used by Sentry, GitButler, and Keygen. Source-available under FSL: free for everyone except SaaS competitors. Pro and Enterprise on /pricing are a license plus studio support on admin.revealui.com; you self-host. Enforcement is not baked into the npm packages. Full explainer at /fair-source.",
+    evidence: [
+      LICENSE_SPLIT,
+      FAIR_SOURCE_PAGE,
+      REPO,
+      SELF_HOST,
+      COMMERCIAL_POLICY,
+      ROADMAP,
+      LICENSE_RUNTIME_GATE_TEST,
+    ],
   },
   {
     file: 'pricing-faq.ts',

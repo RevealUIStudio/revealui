@@ -1,13 +1,16 @@
 ---
-visibility: public
+visibility: internal
 status: verified
-audience: user
-title: "FORGE — Page moved"
-description: "This page has been split. See FLEET.md for the runtime kit; see PRO.md §Enterprise tier for billing."
+audience: maintainer
+title: "Forge naming (internal)"
+description: "Internal pointer. Public Enterprise is ENTERPRISE.md. Fleet kit is FLEET.md. RevForge is the private operator stamper."
 category: redirect
 ---
 
-This page has been split into two distinct guides per the 7-tier rename (internal ADR 2026-05-03, RevFleet rename):
+Public Enterprise is [`docs/ENTERPRISE.md`](./ENTERPRISE.md). Do not market Forge as the Enterprise page.
 
-- **[`docs/FLEET.md`](./FLEET.md)** — RevealUI Fleet self-hosted runtime kit (Tier 4): Docker Compose stack, domain lock, license keys, upgrades, HA, backup/restore.
-- **[`docs/PRO.md`](./PRO.md#enterprise-tier)** — Enterprise tier (Tier 5): SaaS billing posture, hosted vs self-hosted, Contact sales / inquire (not a public monthly SKU).
+- **[`docs/ENTERPRISE.md`](./ENTERPRISE.md)** — Enterprise license (inquire / Contact sales). Not a hosted VM.
+- **[`docs/FLEET.md`](./FLEET.md)** — RevealUI Fleet self-hosted runtime kit.
+- **RevForge** — private operator stamper. Not a public GitHub repo and not a billing tier.
+
+Inbound `/forge` URLs resolve to the Enterprise page.

@@ -130,7 +130,7 @@ describe('NavBar (marketing)', () => {
     const home = screen.getByRole('link', { name: 'RevealUI' });
     const mark = home.querySelector('svg');
     expect(mark).toBeTruthy();
-    expect(mark).toHaveAttribute('viewBox', '0 0 82 100');
+    expect(mark).toHaveAttribute('viewBox', '0 0 512 512');
     expect(mark?.className.baseVal ?? mark?.getAttribute('class') ?? '').toContain('h-[36px]');
     expect(container.querySelector('img[src="/icon-mark.svg"]')).toBeNull();
     expect(container.querySelector('[class*="h-[22px]"]')).toBeNull();

@@ -770,6 +770,7 @@ Check the file loading order:
 - [Database Guide](./DATABASE.md): Database setup and management
 - [Auth Guide](./AUTH.md): Authentication system
 - [Troubleshooting](./TROUBLESHOOTING.md): General troubleshooting
-- [Forge Guide](./FORGE.md): Self-hosted Forge configuration
+- [Enterprise](./ENTERPRISE.md): Enterprise license (inquire / Contact sales)
+- [Fleet](./FLEET.md): Self-hosted Fleet kit configuration
 - [Pro Guide](./PRO.md): Pro tier features and configuration
 - [`@revealui/config` source](../packages/config/src/): Zod schemas and validation logic

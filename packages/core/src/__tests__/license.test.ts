@@ -483,8 +483,8 @@ describe('getMaxAgentTasks', () => {
     { tier: 'enterprise', expected: Infinity },
   ];
 
-  it('returns 1000 for free tier', () => {
-    expect(getMaxAgentTasks()).toBe(1_000);
+  it('returns 0 for free tier (Local AI, no public agent quota)', () => {
+    expect(getMaxAgentTasks()).toBe(0);
   });
 
   for (const { tier, expected } of tiers) {

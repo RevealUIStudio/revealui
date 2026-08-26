@@ -576,3 +576,8 @@ export const PERPETUAL_NEVER_EXPIRES_TEST: EvidenceRef = {
   ref: 'packages/core/src/__tests__/license.test.ts#perpetual licenses never expire',
   note: 'perpetual JWT has no exp claim',
 };
+export const LICENSE_RUNTIME_GATE_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'apps/server/src/middleware/__tests__/license.test.ts#denies Free callers for ai (agent-tasks /agents stay Pro-gated)',
+  note: 'hosted requireFeature denies Free on Pro-gated routes; packages stay ungated',
+};

@@ -1300,7 +1300,7 @@ GET /.well-known/marketplace.json
 
 # Enterprise tier
 
-Customers buy the Enterprise tier of RevealUI as a **license plus studio support** on admin.revealui.com (Contact sales / inquire — not a public monthly SKU). The customer self-hosts. Managed customer instances are RevealUI Cloud (waitlist at `/for-operators/managed`) — they are not a current SKU.
+Customers buy the Enterprise tier of RevealUI as a **license plus studio support** on admin.revealui.com (Contact sales / inquire — not a public monthly SKU). The customer self-hosts. See [Enterprise](./ENTERPRISE.md).
 
 - **License (this tier)** — EdDSA-signed JWT, support, and Enterprise entitlements. Studio does **not** operate a dedicated customer VM on `revealui.com` infrastructure.
 - **Self-hosted Fleet** — You deploy the Docker Compose stack (API + admin + PostgreSQL) on your own infrastructure, domain-locked via `REVFORGE_LICENSED_DOMAIN`. Produced by RevForge (operator tool).

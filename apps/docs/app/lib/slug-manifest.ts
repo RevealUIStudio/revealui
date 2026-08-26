@@ -59,6 +59,7 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'decisions/2026-07-29-docs-publish-plane-virtual-serve':
     'decisions/2026-07-29-docs-publish-plane-virtual-serve.md',
   'decisions/2026-08-07-core-alert-planes': 'decisions/2026-08-07-core-alert-planes.md',
+  enterprise: 'ENTERPRISE.md',
   'environment-variables-guide': 'ENVIRONMENT-VARIABLES-GUIDE.md',
   examples: 'EXAMPLES.md',
   'fair-source': 'FAIR_SOURCE.md',
@@ -67,7 +68,6 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'fleet/revdev': 'fleet/revdev.md',
   'fleet/revskills': 'fleet/revskills.md',
   'fleet/revvault': 'fleet/revvault.md',
-  forge: 'FORGE.md',
   'forge-sso-setup': 'FORGE_SSO_SETUP.md',
   'guides/admin-dev': 'guides/admin-dev.md',
   'guides/authentication': 'guides/authentication.md',
@@ -115,6 +115,7 @@ export const PATH_TO_SLUG: Readonly<Record<string, string>> = Object.freeze(
  */
 export const LEGACY_SLUG_ALIASES: Readonly<Record<string, string>> = Object.freeze({
   vaughn: 'HARNESS_PROTOCOL.md',
+  forge: 'ENTERPRISE.md',
 });
 
 /** Resolve a slug to its docs/ file path, or null if unknown. Falls back to LEGACY_SLUG_ALIASES. */

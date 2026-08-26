@@ -87,7 +87,7 @@ A RevealUI agent's permanent named identity, formatted as **`Rev [Surname]`** (e
 
 ## RevealUI Fleet
 
-The white-label self-hosted runtime kit — Docker Compose stack + domain lock + unlimited users. Customers on the [Enterprise](#enterprise-tier) tier typically deploy a RevealUI Fleet instance on their own infrastructure. Produced by the [RevForge](#revforge) stamping tool, which yields per-customer instances. Formerly *RevealUI Forge* per ADR [`2026-05-03-revfleet-rename.md`](./REVFLEET.md) Tier 4. **Status:** preview. Runtime images are on GHCR and pull anonymously. A stamped kit still needs a license JWT. See [`./FORGE`](./FORGE.md) (page name preserved as redirect; content reflects "RevealUI Fleet" terminology).
+The white-label self-hosted runtime kit — Docker Compose stack + domain lock + unlimited users. Customers on the [Enterprise](#enterprise-tier) tier typically deploy a RevealUI Fleet instance on their own infrastructure. Produced by the [RevForge](#revforge) stamping tool, which yields per-customer instances. Formerly *RevealUI Forge* per ADR [`2026-05-03-revfleet-rename.md`](./REVFLEET.md) Tier 4. **Status:** preview. Runtime images are on GHCR and pull anonymously. A stamped kit still needs a license JWT. See [`./FLEET`](./FLEET.md) for the kit and [`./ENTERPRISE`](./ENTERPRISE.md) for the license.
 
 ## RevForge
 
@@ -126,7 +126,7 @@ When writing docs, lead with the qualifier (*"the RevDev Studio app"* or *"the R
 
 ## Tenant
 
-A multi-tenant boundary inside a [RevealUI Fleet](#revealui-fleet) runtime — typically corresponds to one organization within an Enterprise-tier deployment. Each tenant has its own [sites](#site), users, content, and (optionally) its own subdomain. See `packages/db/src/schema/tenants.ts` and the multi-tenancy section of [`./FORGE`](./FORGE.md).
+A multi-tenant boundary inside a [RevealUI Fleet](#revealui-fleet) runtime — typically corresponds to one organization within an Enterprise-tier deployment. Each tenant has its own [sites](#site), users, content, and (optionally) its own subdomain. See `packages/db/src/schema/tenants.ts` and the multi-tenancy section of [`./FLEET`](./FLEET.md).
 
 ## Tier
 

@@ -26,7 +26,6 @@ import {
   ROADMAP,
   SELF_HOST,
   SERVICES_STRIPE,
-  WAITLIST,
 } from './shared-refs.js';
 import type { ClaimEntry } from './types.js';
 
@@ -430,22 +429,22 @@ export const claimsPart3: readonly ClaimEntry[] = [
     file: 'for-operators-managed.ts',
     exportPath: 'FO_MANAGED_WAITLIST.heading',
     proofGrade: 'outcome',
-    text: 'Want it when it ships? Join the waitlist.',
-    evidence: [WAITLIST],
+    text: 'Enterprise is a license. Contact sales.',
+    evidence: [COMMERCIAL_POLICY],
   },
   {
     file: 'for-operators-managed.ts',
     exportPath: 'FO_MANAGED_WAITLIST.body',
     proofGrade: 'outcome',
-    text: 'Tell us your email and we will record your interest in RevealUI Cloud specifically. We will reach out when there is something to demo, not before.',
-    evidence: [WAITLIST],
+    text: 'You self-host. Studio does not operate a customer VM. Inquire: Enterprise is not a public monthly SKU.',
+    evidence: [COMMERCIAL_POLICY],
   },
   {
     file: 'for-operators-managed.ts',
     exportPath: 'FO_MANAGED_WAITLIST.successMessage',
     proofGrade: 'path',
-    text: 'You are on the RevealUI Cloud waitlist. We will email when there is something to demo.',
-    evidence: [WAITLIST],
+    text: 'Enterprise is inquire / Contact sales.',
+    evidence: [COMMERCIAL_POLICY],
   },
   {
     file: 'local-ai.ts',

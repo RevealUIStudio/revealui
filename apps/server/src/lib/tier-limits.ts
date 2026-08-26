@@ -23,7 +23,7 @@ export function getHostedLimitsForTier(tier: HostedTierId): HostedTierLimits {
   if (tier === 'enterprise') return { maxAgentTasks: Number.MAX_SAFE_INTEGER };
   if (tier === 'max') return { maxSites: 15, maxUsers: 100, maxAgentTasks: 50_000 };
   if (tier === 'pro') return { maxSites: 5, maxUsers: 25, maxAgentTasks: 10_000 };
-  return { maxSites: 1, maxUsers: 3, maxAgentTasks: 1_000 };
+  return { maxSites: 1, maxUsers: 3, maxAgentTasks: 0 };
 }
 
 /**

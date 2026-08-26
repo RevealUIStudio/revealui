@@ -53,10 +53,11 @@ import { Slot } from '../primitives/Slot.js';
 
 const buttonVariants = cva('inline-flex items-center justify-center …', {
   variants: {
-    variant: { primary: '…', outline: '…', ghost: '…' },
-    size: { sm: '…', md: '…', lg: '…' },
+    variant: { brand: '…', neutral: '…', success: '…', warning: '…', danger: '…' },
+    appearance: { solid: '…', outline: '…', ghost: '…', link: '…' },
+    size: { sm: '…', default: '…', lg: '…', icon: '…', clear: '…' },
   },
-  defaultVariants: { variant: 'primary', size: 'md' },
+  defaultVariants: { variant: 'brand', appearance: 'solid', size: 'default' },
 });
 ```
 
@@ -69,7 +70,7 @@ The API will feel familiar if you have used `class-variance-authority`, because 
 The `asChild` pattern works the same way it does in the libraries that popularized it. Pass `asChild` and the component renders its child instead of its own element, forwarding props and merging classes through the in-house `Slot`. A `Button` becomes a link without losing its styling or its keyboard behavior:
 
 ```tsx
-<Button asChild variant="primary">
+<Button asChild variant="brand">
   <a href="/signup">Start free</a>
 </Button>
 ```
@@ -78,7 +79,7 @@ You get the ergonomics. You do not get the dependency.
 
 ## Headless when you want behavior, not styling
 
-Some components ship in two forms. Alongside `Button` and `Checkbox` there is `button-headless` and `checkbox-headless`: the behavior, state, and accessibility wiring with none of the visual opinion. When the default styling is not what you want, you drop down a level and bring your own classes, without giving up focus management, ARIA attributes, and keyboard handling.
+Some form controls still ship in two forms. Alongside the styled `Checkbox` there is `checkbox-headless`: the behavior, state, and accessibility wiring with none of the visual opinion. `Button` is not on that track: it is a single owned component with `variant` and `appearance`, and there is no `button-headless`. When the default styling is not what you want, you drop down a level and bring your own classes, without giving up focus management, ARIA attributes, and keyboard handling.
 
 That split matters for a framework. The styled components get you to a working product fast. The headless ones mean you never hit a wall where the only way forward is to rip the library out.
 
