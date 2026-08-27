@@ -109,14 +109,14 @@
 /* ═══════════════════════════════════════════════════════════════
  * DARK MODE — :root default (dark-first design)
  *
- * Also apply on [data-theme="dark"] / .dark so nested previews (showcase
- * Dark toggle, TokensPage) re-assert the dark palette even when :root is
+ * Also apply on [data-theme="dark"] so nested previews (showcase Dark
+ * toggle, TokensPage) re-assert the dark palette even when :root is
  * light via prefers-color-scheme. Without this, data-theme="dark" was a
  * no-op for CSS vars and forced-dark backgrounds painted light ink.
+ * Theme flips on [data-theme] only — the leftover `.dark` class is gone.
  * ═══════════════════════════════════════════════════════════════ */
 :root,
-[data-theme="dark"],
-.dark {
+[data-theme="dark"] {
   /* ── Brand · Cobalt (Electric Verdigris) ──
    * Dark-mode brand lifted to cobalt-300 (L=0.58) for WCAG AA on midnight.
    * Prior dark brand at L=0.46 tested at 2.80:1 (FAIL); lifted value tests at 4.73:1.
@@ -227,7 +227,7 @@
   --success: var(--rvui-success);
   --success-foreground: var(--rvui-text-on-success);
   --warning: var(--rvui-warning);
-  --warning-foreground: var(--rvui-warning-text);
+  --warning-foreground: var(--rvui-text-on-warning);
   --error: var(--rvui-error);
   --info: var(--rvui-info);
   --info-foreground: var(--rvui-text-on-brand);
@@ -241,7 +241,7 @@
  * Selector precedence:
  *   [data-theme="light"]       — explicit toggle (highest priority)
  *   @media + :not([data-theme]) — system preference (auto)
- *   .dark / [data-theme="dark"] — explicit dark override
+ *   [data-theme="dark"]        — explicit dark override
  * ═══════════════════════════════════════════════════════════════ */
 [data-theme="light"] {
   /* ── Brand · Cobalt (light-mode lift for AA contrast on paper) ── */
@@ -305,7 +305,7 @@
 
 /* System-preference auto-detection (no explicit theme attr) */
 @media (prefers-color-scheme: light) {
-  :root:not(.dark):not([data-theme="dark"]):not([data-theme="light"]) {
+  :root:not([data-theme="dark"]):not([data-theme="light"]) {
     --rvui-brand:        oklch(0.36 0.190 240);
     --rvui-brand-hover:  oklch(0.43 0.180 240);
     --rvui-brand-strong: oklch(0.20 0.130 263);

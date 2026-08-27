@@ -13,7 +13,7 @@ function DrawerDemo(props: Record<string, unknown>) {
       <Drawer open={open} onClose={() => setOpen(false)} side={side}>
         <DrawerHeader onClose={() => setOpen(false)}>Drawer Title</DrawerHeader>
         <DrawerBody>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="text-sm text-muted-foreground">
             This drawer slides in from the <strong>{side}</strong> side. It supports focus trapping,
             scroll lock, and escape key dismissal.
           </p>
@@ -69,7 +69,7 @@ const story: ShowcaseStory = {
                       appearance="ghost"
                       variant="neutral"
                       onClick={() => setOpen(false)}
-                      className="justify-start rounded-lg px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                      className="justify-start rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-muted"
                     >
                       {item}
                     </Button>

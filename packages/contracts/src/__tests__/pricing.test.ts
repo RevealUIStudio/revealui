@@ -13,6 +13,7 @@ import {
   PERPETUAL_TIERS,
   type PricingResponse,
   PUBLIC_PERPETUAL_NAMES,
+  PUBLIC_PERPETUAL_TIERS,
   parsePerpetualLicenseSku,
   perpetualLicenseCheckoutPath,
   perpetualLicenseCheckoutTier,
@@ -213,6 +214,13 @@ describe('PUBLIC_PERPETUAL_NAMES', () => {
     expect(isPublicPerpetualCatalogName('Pro Perpetual')).toBe(true);
     expect(isPublicPerpetualCatalogName('Enterprise Perpetual')).toBe(false);
     expect(isPublicPerpetualCatalogName('Agency Perpetual')).toBe(false);
+  });
+});
+
+describe('PUBLIC_PERPETUAL_TIERS', () => {
+  it('is a standalone Pro-only catalog, not a filter over leftover SKUs', () => {
+    expect(PUBLIC_PERPETUAL_TIERS.map((tier) => tier.name)).toEqual(['Pro Perpetual']);
+    expect(PUBLIC_PERPETUAL_TIERS).toHaveLength(1);
   });
 });
 

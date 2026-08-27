@@ -1,27 +1,49 @@
 /**
  * @revealui/contracts/pricing
  *
- * Single source of truth for the self-serve product surface:
- * subscriptions (Track A), credit bundles (Track B), perpetual licenses
- * (Track C), and founder-led professional services (Track D / FOUNDER_SERVICE_OFFERINGS).
- * Eliminates duplication across marketing, admin billing, license, and
- * upgrade pages for those surfaces.
- *
- * NOT the source of truth for the **agency-only** anchors (Fleet deployment ·
- * Custom Build). Those live in `apps/marketing/app/content/for-operators.ts`
- * as `AGENCY_ENGAGEMENT_LADDER`. The two ladders deliberately overlap on the
- * Architecture Review entry point (it doubles as a self-serve service); its
- * canonical price is `ARCHITECTURE_REVIEW_PRICE` below, and marketing imports
- * it so the agency-side rung cannot drift from the self-serve menu.
+ * Admin/server catalog: public subscriptions + leftover perpetual SKUs
+ * (Agency / Enterprise perpetual) used by checkout and mint. Marketing must
+ * import `@revealui/contracts/public-catalog` instead so leftover SKUs cannot
+ * ship in the public JS bundle.
  *
  * @packageDocumentation
  */
 
+export {
+  ARCHITECTURE_REVIEW_PRICE,
+  BOOK_INTRO_HREF,
+  CONSULTING_HOUR_PRICE,
+  ENTERPRISE_SALES_HREF,
+  isPublicPerpetualCatalogName,
+  LAUNCH_PACKAGE_PRICE,
+  type LicenseTierId,
+  PAID_TIER_SUPPORT,
+  type PerpetualTier,
+  type PricingResponse,
+  PUBLIC_PERPETUAL_NAMES,
+  PUBLIC_PERPETUAL_TIERS,
+  perpetualLicenseSignupPath as publicPerpetualLicenseSignupPath,
+  type ServiceOffering,
+  SUBSCRIPTION_TIERS,
+  type SubscriptionTier,
+} from './public-catalog.js';
+
+import {
+  ARCHITECTURE_REVIEW_PRICE,
+  BOOK_INTRO_HREF,
+  CONSULTING_HOUR_PRICE,
+  LAUNCH_PACKAGE_PRICE,
+  type LicenseTierId,
+  type PerpetualTier,
+  PUBLIC_PERPETUAL_TIERS,
+  type ServiceOffering,
+  SUBSCRIPTION_TIERS,
+  type SubscriptionTier,
+} from './public-catalog.js';
+
 // =============================================================================
 // License Tier Type
 // =============================================================================
-
-export type LicenseTierId = 'free' | 'pro' | 'max' | 'enterprise';
 
 // =============================================================================
 // Feature Flag Key (mirrors @revealui/core/features, defined here to avoid
@@ -125,120 +147,7 @@ export function perpetualMaxSitesForTier(tier: 'pro' | 'max' | 'enterprise'): nu
 }
 
 // =============================================================================
-// Subscription Tiers (Track A)
-// =============================================================================
-
-export interface SubscriptionTier {
-  id: LicenseTierId;
-  name: string;
-  price?: string;
-  period?: string;
-  annualPrice?: string;
-  annualPeriod?: string;
-  description: string;
-  features: string[];
-  cta: string;
-  ctaHref: string;
-  highlighted: boolean;
-}
-
-/** Same email SLA for every paid tier. Matches /sla: no Slack, no per-tier hours. */
-export const PAID_TIER_SUPPORT = 'Email support (24h weekday / 4h if unusable)' as const;
-
-export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
-  {
-    id: 'free',
-    name: 'Free (OSS)',
-    description: 'Perfect for trying out RevealUI and small projects.',
-    features: [
-      'Unlimited admin collections',
-      '1 site',
-      'Up to 3 users/editors',
-      'Session-based auth',
-      'Basic real-time sync',
-      'Local AI inference (Inference Snaps / Ollama)',
-      'Community support',
-      'Full source code access',
-    ],
-    cta: 'Start free',
-    ctaHref: '/signup',
-    highlighted: false,
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    description: 'For software companies building production products.',
-    features: [
-      'Unlimited admin collections',
-      'Up to 5 sites',
-      'Up to 25 users/editors',
-      'Session-based auth',
-      'AI agents (local + cloud via RevealUI harness)',
-      'Built-in Stripe payments',
-      'Full real-time sync',
-      'Monitoring dashboard',
-      'Custom domain mapping',
-      '10,000 agent tasks/month included',
-      'RevVault desktop app (encrypted secret management)',
-      'RevVault rotation engine (automated credential lifecycle)',
-      PAID_TIER_SUPPORT,
-      'Full source code access',
-    ],
-    // Deep-links into the existing checkout path: /signup?plan=pro ->
-    // /account/billing?upgrade=pro -> auto-checkout (7-day trial via
-    // REVEALUI_TRIAL_DAYS). Marketing prefixes the admin origin onto
-    // '/'-relative hrefs. Signup is gated server-side by REVEALUI_SIGNUP_OPEN /
-    // REVEALUI_SIGNUP_WHITELIST (default closed, so white-label kits ship
-    // sealed), the same gate the marketing hero CTA already fronts.
-    cta: 'Start your 7-day free trial',
-    ctaHref: '/signup?plan=pro',
-    highlighted: true,
-  },
-  {
-    id: 'max',
-    name: 'Max',
-    description: 'For teams that need AI memory and compliance tooling.',
-    features: [
-      'Everything in Pro',
-      'Up to 15 sites',
-      'Up to 100 users/editors',
-      'Full AI memory (working + episodic + vector)',
-      'Signed audit log plus downloadable Merkle roots you verify offline',
-      '50,000 agent tasks/month included',
-      PAID_TIER_SUPPORT,
-      'Full source code access',
-    ],
-    cta: 'Start your 7-day free trial',
-    ctaHref: '/signup?plan=max',
-    highlighted: false,
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    description: 'Full ecosystem access with scale and compliance.',
-    features: [
-      'Everything in Max',
-      'Unlimited sites',
-      'Unlimited users/editors',
-      'Session-based auth + OAuth',
-      'Full inference suite (all open models)',
-      'Unlimited agent tasks',
-      PAID_TIER_SUPPORT,
-      'Annual pricing available',
-      'Full source code access',
-      // whiteLabel / SSO-as-enterprise-sold-feature: not advertised until shipped
-      // (see packages/core features whiteLabel force-false + GAP-302 honesty bar).
-    ],
-    // ToS and /pricing trial footnote: 7-day trial is Pro and Max only.
-    // Absolute marketing URL so PricingPage does not prefix ADMIN_URL.
-    cta: 'Contact sales',
-    ctaHref: 'https://revealui.com/contact',
-    highlighted: false,
-  },
-];
-
-// =============================================================================
-// Credit Bundles (Track B)
+// Credit Bundles (Track B) — not a public catalog. Admin/server leftover.
 // =============================================================================
 
 export interface CreditBundle {
@@ -273,22 +182,6 @@ export const CREDIT_BUNDLES: CreditBundle[] = [
 ];
 
 // =============================================================================
-// Perpetual Licenses (Track C)
-// =============================================================================
-
-export interface PerpetualTier {
-  name: string;
-  price?: string;
-  priceNote?: string;
-  renewal?: string;
-  description: string;
-  features: string[];
-  cta: string;
-  ctaHref: string;
-  comingSoon: boolean;
-}
-
-// =============================================================================
 // Founder-led Professional Services (Track D)
 //
 // Scope: small-to-mid project services delivered direct by the founder
@@ -300,42 +193,6 @@ export interface PerpetualTier {
 // Canonical Architecture Review and Launch Package prices are owned here;
 // leftover studio surfaces import them rather than re-authoring.
 // =============================================================================
-
-export interface ServiceOffering {
-  id: string;
-  name: string;
-  price?: string;
-  priceNote?: string;
-  description: string;
-  includes: string[];
-  deliverable: string;
-  cta: string;
-  ctaHref: string;
-}
-
-/**
- * Canonical price of the Architecture Review entry point. Owned here (the
- * lower-level package) so the agency engagement ladder in
- * `apps/marketing/app/content/for-operators.ts` can import it rather than
- * re-author the literal. A cross-package equality guard lives in
- * `apps/marketing/app/__tests__/agency-engagement-ladder.test.ts`.
- */
-export const ARCHITECTURE_REVIEW_PRICE = '$3,500' as const;
-
-/**
- * Canonical price of the Launch Package. Owned here for the same reason as
- * `ARCHITECTURE_REVIEW_PRICE`: `AGENCY_ENGAGEMENT_LADDER` in
- * `apps/marketing/app/content/for-operators.ts` imports it rather than
- * re-authoring the literal, so leftover studio surfaces cannot drift from
- * this menu. Same cross-package guard in
- * `apps/marketing/app/__tests__/agency-engagement-ladder.test.ts`. The
- * product /pricing catalog does not sell these rungs.
- */
-export const LAUNCH_PACKAGE_PRICE = '$7,500' as const;
-
-/** Founder intro booking. Google Calendar appointments only. */
-export const BOOK_INTRO_HREF =
-  'https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ21UZVcuYp7yO32rZmhyUvZFDJcvles81E9edGNFwSUP8SHEVzGvq0gKgNFo7q04YS5i-12ZE5P' as const;
 
 export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
   {
@@ -377,7 +234,7 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
   {
     id: 'migration-assist',
     name: 'Migration Assist',
-    price: '$300',
+    price: CONSULTING_HOUR_PRICE,
     priceNote: '/hr',
     description:
       'I migrate your existing CMS, database, or platform to RevealUI. Includes data mapping, automated migration scripts, validation testing, and go-live cutover support.',
@@ -395,7 +252,7 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
   {
     id: 'consulting-hour',
     name: 'Consulting Hour',
-    price: '$300',
+    price: CONSULTING_HOUR_PRICE,
     priceNote: '/hr',
     description:
       'One-on-one time with the founder who built RevealUI. Pair programming, architecture advice, debugging, or anything else you need help with.',
@@ -410,37 +267,10 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
   },
 ];
 
-// =============================================================================
-// Pricing API Response
-// =============================================================================
-
-export interface PricingResponse {
-  subscriptions: SubscriptionTier[];
-  credits: CreditBundle[];
-  perpetual: PerpetualTier[];
-  services: ServiceOffering[];
-}
-
-// Renewal display strings are literal cents-of-record from
-// scripts/setup/stripe-catalog.ts CATALOG (revealui_renewal_{pro,max,enterprise}
-// prices: 14900/79900/399900 cents), not the marketing fallback file. Kept in
-// lockstep by scripts/validate/pricing-lockstep.ts (GAP-306).
+// Leftover Track C SKUs for admin/server checkout only. Marketing must not
+// import this array — use PUBLIC_PERPETUAL_TIERS.
 export const PERPETUAL_TIERS: PerpetualTier[] = [
-  {
-    name: 'Pro Perpetual',
-    description: 'Pro features, forever. No subscription required.',
-    features: [
-      'All Pro tier features',
-      'License key never expires',
-      '1 year priority support included',
-      'All Pro updates released during support period',
-      'Private GitHub repo access',
-    ],
-    renewal: '$149/yr for continued support',
-    cta: 'Buy Pro Perpetual',
-    ctaHref: perpetualLicenseSignupPath('pro'),
-    comingSoon: false,
-  },
+  ...PUBLIC_PERPETUAL_TIERS,
   {
     name: 'Agency Perpetual',
     description:
@@ -494,29 +324,12 @@ export function getTiersFromCurrent(currentTier: LicenseTierId): SubscriptionTie
 }
 
 /**
- * Public + in-app Enterprise door. Same href as Track A Enterprise and
- * Track C Enterprise Perpetual CTAs — not a Stripe checkout session.
- */
-export const ENTERPRISE_SALES_HREF = 'https://revealui.com/contact' as const;
-
-/**
  * Unattended Stripe checkout is Pro and Max only (subscription trial +
  * Pro / Agency perpetual). Enterprise subscription and Enterprise Perpetual
  * are sales-assisted — UI and API must use {@link ENTERPRISE_SALES_HREF}.
  */
 export function allowsUnattendedCheckout(tier: LicenseTierId): boolean {
   return tier === 'pro' || tier === 'max';
-}
-
-/**
- * Public catalog perpetual names for GET /api/pricing and /pricing.
- * Pro Perpetual is the only public license buy. Agency is a dead SKU.
- * Enterprise Perpetual stays off the public catalog (old $42,999 ladder).
- */
-export const PUBLIC_PERPETUAL_NAMES = ['Pro Perpetual'] as const;
-
-export function isPublicPerpetualCatalogName(name: string): boolean {
-  return (PUBLIC_PERPETUAL_NAMES as readonly string[]).includes(name);
 }
 
 /**

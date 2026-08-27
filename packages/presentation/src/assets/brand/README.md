@@ -8,13 +8,13 @@ audience: maintainer
 
 # RevealUI brand assets
 
-Canonical SVG masters for the RevealUI identity (Cobalt v4 design language).
-Every colour derives from the OKLCH design tokens in
+One Circuit-R family. Every colour derives from the OKLCH design tokens in
 [`packages/tokens/src/tokens.css`](../../../../tokens/src/tokens.css), re-exported as
 `@revealui/presentation/tokens.css`.
 
-**Ratified 2026-07-27** — Circuit-R emblem family, v2 trace spec. Supersedes the
-2026-07-10 / 07-11 gradient-emblem canon.
+**Locked 2026-08-26** — `revealui-logo.svg` is the only RevealUI mark. Variants
+are that same letterform. There is no second R, no white plate, and no inverted
+frost-fill twin.
 
 ## Tokens (sRGB)
 
@@ -26,79 +26,58 @@ Every colour derives from the OKLCH design tokens in
 | Surface 0 (dark page)           | `#060d1a` | `oklch(0.16 0.030 260)` |
 | Paper (light page)              | `#f8fafd` | `oklch(0.985 0.005 250)` |
 
-Emblem region fills (light variants): stem `#0a2c5a`, bowl `#002247`,
-leg `#0e3468`. Dark variants invert the relationship — frost fills
-(`#e8f1ff` / `#f8fafd`) carry navy trace ink (`#0b2a5e`) with `#082448`
-via cores. Rule: **bright fill → dark ink**, never the reverse.
+Emblem region fills: stem `#0a2c5a`, bowl `#002247`, leg `#0e3468`. Frost traces
+`#9fc9ff`. Amber vias `#f0b519`.
 
-## Masters
+## Master
 
-The identity is a two-mark system. The **flat mark** is the primary,
-canonical form. The **circuit master** is the expressive form, scoped to
-large renders only.
+- `revealui-logo.svg` — the Circuit-R. Navy region fills, frost traces, amber
+  vias. Transparent (no plate). 512×512, locked `scale(1.06)`.
 
-### Flat marks (3 paths, no traces)
+Public chrome (marketing nav, docs headers, admin auth when no tenant logo is
+set) renders this file at **≥96px**. Never redraw the letter. Never steepen the
+leg.
 
-- `revealui-mark.svg` / `favicon.svg` — bare emblem, no background tile.
-  Browser-tab favicon and general-purpose logomark. The two files are
+## Variants (same letterform only)
+
+Derived from the master. Do not invent a second R.
+
+- `revealui-mark.svg` / `favicon.svg` — the same 3 region paths, no traces.
+  Browser-tab favicon and any render **≤96px**. The two files are
   byte-identical; `favicon.svg` is the deployment alias.
-- `icon-mark.svg` — the same glyph on a `#060d1a` rounded tile (`rx=112`),
-  mark at ~70% tile coverage. Source for apple-touch / social / app-icon
-  rasters. Public chrome (marketing nav, docs header) uses the untiled
-  Circuit-R (`RevealUIMark` / `revealui-mark.svg`) at ~36px, not this tile.
-- `icon-maskable.svg` — the same tile at `rx=0` for full-bleed PWA masking.
-  Updated to the current emblem as of 2026-07-27. Rasterized to
-  `icon-maskable-512.png` per app; the mark sits at ~70% coverage, inside
-  the maskable spec's central 80% safe zone.
-- `revealui-mark-mono.svg` — single-colour mark (`currentColor`, no stroke).
-  In app code prefer the `RevealUIMark` React component from
-  `@revealui/presentation`, which renders these same paths.
+- `icon-mark.svg` — the same Circuit-R on a `#060d1a` rounded plate (`rx=112`),
+  inset at `scale(0.742)` (70% of the overshooting 1.06 master) so a circular
+  crop does not clip the stem or the leg tip. Source for GitHub, apple-touch,
+  and PWA `any` rasters. Never put this mark on white.
+- `icon-maskable.svg` — the same navy plate at `rx=0` for full-bleed PWA
+  masking. The letter stays inside the maskable spec's central 80% safe zone.
+- `revealui-mark-mono.svg` — the same 3 paths, `currentColor`, no stroke. In
+  app code prefer `RevealUIMark` from `@revealui/presentation`.
+- `wordmark-light.svg` / `wordmark-dark.svg` — this R plus outlined "RevealUI"
+  type (Inter Tight 800). No live `<text>`. In app UI prefer
+  `RevealUIWordmark`, which renders live HTML text.
 
-### Circuit masters (77 paths, PCB routing)
-
-- `revealui-logo.svg` / `revealui-logo-dark.svg` — the emblem with full
-  circuit routing: orthogonal buses, 45° elbows, via-pads, region-aware
-  trace behaviour. 512×512.
-
-**Never render a circuit master below 96px.** The traces are ~2px in 512
-space and alias to mush.
-
-### Wordmark lockups
-
-- `wordmark-light.svg` / `wordmark-dark.svg` — flat mark + "RevealUI",
-  560×148. Cap height locked to the emblem's bowl band.
-
-  The text is **outlined to vector paths** (Inter Tight 800, real font
-  metrics, kerned, −0.02em tracking) as of 2026-07-27. There is no runtime
-  font dependency and no platform fallback — the previous live-`<text>`
-  defect is resolved. Static files are now safe for README badges, email
-  templates, and unfurls.
-
-  In app UI still prefer the `RevealUIWordmark` React component, which
-  renders live HTML text (selectable, translatable, responsive to page
-  font-size).
+There is no `revealui-logo-dark.svg`. A dark surface uses the master (or the
+navy-plate variant). An inverted frost-fill R is a different identity.
 
 ## Size floor
 
 | Render size | Use |
 |---|---|
-| ≥96px    | Circuit masters — `revealui-logo.svg` / `-dark.svg` |
-| 24–96px  | Flat mark — `favicon.svg` / `revealui-mark.svg` |
-| ≤24px    | Flat mark, untiled — tiling below 24px reads as a smudge |
+| ≥96px    | Circuit master — `revealui-logo.svg` |
+| ≤96px    | Flat mark — `favicon.svg` / `revealui-mark.svg` |
 
-Verified 2026-07-27 against Chrome's light (`#dee1e6`) and dark (`#202124`)
-tab strips: the untiled flat mark stays legible at 16px on both; the tiled
-`icon-mark.svg` does not.
+**Circuit never below 96px.** The traces are ~2px in 512 space and alias to mush.
 
 ## Stroke weights
 
-Optical, not drift — each master is tuned for its own render band:
+Optical, not drift — each file is tuned for its own render band:
 
 | File | `stroke-width` |
 |---|---|
-| `revealui-mark.svg` / `favicon.svg` / `icon-mark.svg` / `icon-maskable.svg` | `1.6` |
+| `revealui-mark.svg` / `favicon.svg` | `1.6` |
 | `wordmark-*.svg` | `2.4` |
-| `revealui-logo*.svg` | `1.3` / `1.6` / `2` per trace class |
+| `revealui-logo.svg` and navy-plate variants | `1.3` / `1.6` / `2` per trace class |
 
 Do not normalise these to a single value.
 
@@ -113,20 +92,18 @@ Do not normalise these to a single value.
 ## Per-app deployables
 
 `gen-brand-assets.cjs` writes everything each app serves — the SVG copies as
-well as the rasters. Nothing here is copied by hand.
+well as the rasters. Nothing here is copied by hand. Navy-plate SVGs are
+derived from `revealui-logo.svg` on each run.
 
 | App | Serves |
 |---|---|
-| marketing | `favicon.svg`, `icon-mark.svg`, `favicon.png` (64), `favicon.ico`, `apple-touch-icon.png`, `icon-192/512.png`, `icon-maskable-512.png` |
-| docs | `favicon.svg`, `favicon.png` (32), `favicon.ico`, `apple-touch-icon.png`, `icon-192/512.png`, `icon-maskable-512.png` |
-| admin | same as docs, plus `revealui-logo-dark.svg` (auth brand panel, ≥96px) |
+| marketing | `revealui-logo.svg`, `favicon.svg`, `icon-mark.svg`, `favicon.png` (64), `favicon.ico`, `apple-touch-icon.png`, `icon-192/512.png`, `icon-maskable-512.png` |
+| docs | `revealui-logo.svg`, `favicon.svg`, `favicon.png` (32), `favicon.ico`, `apple-touch-icon.png`, `icon-192/512.png`, `icon-maskable-512.png` |
+| admin | same as docs |
 
-The SVG sync is load-bearing: marketing's
-`<link rel="icon" type="image/svg+xml">` and favicon/PWA copies read the
-app-local files, not the masters. Public chrome uses `RevealUIMark`
-(same paths as `revealui-mark.svg`), not the tiled `icon-mark.svg`.
-Before the generator synced them, a master edit shipped the old mark
-alongside new rasters. **Do not reintroduce hand-copying.**
+The SVG sync is load-bearing: marketing and docs chrome read
+`/revealui-logo.svg` from the app-local copy, and favicon/PWA copies read the
+app-local files, not the masters. **Do not reintroduce hand-copying.**
 
 ## PWA manifests
 
@@ -150,10 +127,11 @@ All three point at the same four icon entries — `favicon.svg` (`any`),
 
 ## Regenerating
 
-Rasters and the `.ico` are produced from `favicon.svg` and `icon-mark.svg` by
+Rasters and the `.ico` are produced from `favicon.svg` and the derived navy
+plates by
 [`scripts/gen-brand-assets.cjs`](../../../../../scripts/gen-brand-assets.cjs) at
 the repo root, using `sharp` (resolved from `apps/admin`'s dependency, no new
-package added). Edit a master, then run:
+package added). Edit the master, then run:
 
 ```bash
 node scripts/gen-brand-assets.cjs
@@ -163,14 +141,14 @@ Expected output — four lines:
 
 ```
 brand: icon-192.png, icon-512.png
-marketing: favicon.svg, icon-mark.svg, favicon.png (64), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
-docs: favicon.svg, favicon.png (32), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
-admin: favicon.svg, favicon.png (32), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
+marketing: favicon.svg, icon-mark.svg, revealui-logo.svg, favicon.png (64), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
+docs: favicon.svg, revealui-logo.svg, favicon.png (32), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
+admin: favicon.svg, revealui-logo.svg, favicon.png (32), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
 ```
 
 That is the whole pipeline — there is no follow-up copy step.
 
-The masters themselves are authored in the RevealUI Design System project and
-land here via its `repo-drop/` folder. Type outlining uses
-`@shuding/opentype.js` against Inter Tight 800; the outlining step lives in
-the design-system project, not this repo.
+The master is authored in the RevealUI Design System project and lands here
+via its `repo-drop/` folder. Type outlining uses `@shuding/opentype.js`
+against Inter Tight 800; the outlining step lives in the design-system
+project, not this repo.

@@ -3,10 +3,15 @@
  * canonical SVG masters in packages/presentation/src/assets/brand/.
  * ──────────────────────────────────────────────────────────────────────────
  * Masters read:
- *   favicon.svg        — bare emblem, no background tile (browser-tab favicon)
- *   icon-mark.svg      — emblem on a #060d1a rounded tile (rx=112).
- *                        Source for apple-touch, PWA "any" icons, nav mark.
- *   icon-maskable.svg  — the same tile full-bleed (rx=0) for PWA masking.
+ *   revealui-logo.svg  — the only Circuit-R master (navy fills, frost traces,
+ *                        amber vias). Public chrome copies this file.
+ *   favicon.svg        — flat 3-path extract, no traces (browser-tab favicon)
+ *
+ * Derived in this script (same letterform, never a second R):
+ *   icon-mark.svg      — master on a #060d1a rounded plate (rx=112), scale
+ *                        0.742 (70% of the overshooting 1.06 master) so a
+ *                        circular crop does not clip the stem or leg tip.
+ *   icon-maskable.svg  — the same plate full-bleed (rx=0) for PWA masking.
  *
  * Outputs, per app public/:
  *   favicon.svg, icon-mark.svg  — verbatim SVG copies (see SVG_SYNC)
@@ -20,7 +25,7 @@
  * which are tracked there as the canonical rasters.
  *
  * The SVG sync matters: marketing's <link rel="icon" type="image/svg+xml">
- * and NavBar/Footer's <img src="/icon-mark.svg"> read the app-local copies,
+ * and NavBar's <img src="/revealui-logo.svg"> read the app-local copies,
  * so before this script synced them a master edit shipped the old mark
  * alongside new rasters. Do not go back to copying these by hand.
  *
@@ -35,9 +40,15 @@ const fs = require('node:fs');
 
 const ROOT = path.resolve(__dirname, '..');
 const BRAND_DIR = path.join(ROOT, 'packages/presentation/src/assets/brand');
+const MASTER_SVG = path.join(BRAND_DIR, 'revealui-logo.svg');
 const FAVICON_SVG = path.join(BRAND_DIR, 'favicon.svg');
 const ICON_MARK_SVG = path.join(BRAND_DIR, 'icon-mark.svg');
 const ICON_MASKABLE_SVG = path.join(BRAND_DIR, 'icon-maskable.svg');
+
+/** Locked transform on revealui-logo.svg. Do not steepen the letter. */
+const MASTER_SCALE = 'scale(1.06)';
+/** 70% of the overshooting master so a circular crop keeps stem + leg tip. */
+const TILE_SCALE = 'scale(0.742)';
 
 const APPS = [
   { name: 'marketing', publicDir: path.join(ROOT, 'apps/marketing/public'), faviconPngSize: 64 },
@@ -47,9 +58,9 @@ const APPS = [
 
 /** SVG masters each app serves directly from its public/ root. */
 const SVG_SYNC = {
-  marketing: ['favicon.svg', 'icon-mark.svg'],
-  docs: ['favicon.svg'],
-  admin: ['favicon.svg', 'revealui-logo-dark.svg'],
+  marketing: ['favicon.svg', 'icon-mark.svg', 'revealui-logo.svg'],
+  docs: ['favicon.svg', 'revealui-logo.svg'],
+  admin: ['favicon.svg', 'revealui-logo.svg'],
 };
 
 const APPLE_TOUCH_ICON_SIZE = 180;
@@ -57,6 +68,26 @@ const ICO_SIZES = [16, 32, 48];
 const PWA_SIZES = [192, 512];
 const MASKABLE_SIZE = 512;
 const TILE_BG = '#060d1a';
+
+/**
+ * Wrap the circuit master on a navy plate and shrink it so GitHub / apple-touch
+ * / PWA circular crops do not clip the stem or the leg tip.
+ * Literal scale swap — not a redraw, not a second letter.
+ */
+function deriveNavyPlate(masterSvg, rx) {
+  const scaleAt = masterSvg.indexOf(MASTER_SCALE);
+  if (scaleAt === -1) {
+    throw new Error('revealui-logo.svg is missing the locked scale(1.06) transform');
+  }
+  const inset =
+    masterSvg.slice(0, scaleAt) + TILE_SCALE + masterSvg.slice(scaleAt + MASTER_SCALE.length);
+  const svgGt = inset.indexOf('>');
+  if (svgGt === -1) {
+    throw new Error('revealui-logo.svg is missing the root <svg> tag');
+  }
+  const plate = `<rect width="512" height="512" rx="${rx}" fill="${TILE_BG}"></rect>`;
+  return inset.slice(0, svgGt + 1) + plate + inset.slice(svgGt + 1);
+}
 
 function resolveSharp() {
   const searchRoots = [path.join(ROOT, 'apps/admin'), ROOT];
@@ -101,12 +132,16 @@ async function rasterize(sharp, src, size, { flatten = false } = {}) {
 async function main() {
   const sharp = resolveSharp();
 
-  for (const master of [FAVICON_SVG, ICON_MARK_SVG, ICON_MASKABLE_SVG]) {
+  for (const master of [MASTER_SVG, FAVICON_SVG]) {
     if (!fs.existsSync(master)) {
       console.error(`missing master: ${master}`);
       process.exit(1);
     }
   }
+
+  const circuitMaster = fs.readFileSync(MASTER_SVG, 'utf8');
+  fs.writeFileSync(ICON_MARK_SVG, deriveNavyPlate(circuitMaster, 112));
+  fs.writeFileSync(ICON_MASKABLE_SVG, deriveNavyPlate(circuitMaster, 0));
 
   // Canonical PWA rasters, kept beside the masters.
   for (const size of PWA_SIZES) {
@@ -123,6 +158,13 @@ async function main() {
 
     for (const svg of SVG_SYNC[app.name] ?? []) {
       fs.copyFileSync(path.join(BRAND_DIR, svg), path.join(app.publicDir, svg));
+    }
+
+    for (const retired of ['revealui-logo-dark.svg']) {
+      const retiredPath = path.join(app.publicDir, retired);
+      if (fs.existsSync(retiredPath)) {
+        fs.unlinkSync(retiredPath);
+      }
     }
 
     const faviconPng = await rasterize(sharp, FAVICON_SVG, app.faviconPngSize);

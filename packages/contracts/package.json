@@ -96,6 +96,11 @@
       "import": "./dist/pricing.js",
       "default": "./dist/pricing.js"
     },
+    "./public-catalog": {
+      "types": "./dist/public-catalog.d.ts",
+      "import": "./dist/public-catalog.js",
+      "default": "./dist/public-catalog.js"
+    },
     "./generated": {
       "types": "./dist/generated/database.d.ts",
       "import": "./dist/generated/database.js",

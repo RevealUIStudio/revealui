@@ -1,4 +1,4 @@
-import type { PricingResponse } from '@revealui/contracts/pricing';
+import type { PricingResponse } from '@revealui/contracts/public-catalog';
 import {
   Button,
   MarketingSection,

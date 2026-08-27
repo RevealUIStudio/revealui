@@ -69,9 +69,16 @@ export const focusRingAfter = 'data-focus:after:ring-2 data-focus:after:ring-rin
 export const focusRingAfterVisible = 'focus-visible:after:ring-2 focus-visible:after:ring-ring';
 
 /**
- * Combobox control shell: ring when the inner input is focused.
+ * Combobox / Input / Textarea control shell: ring when the inner field is
+ * focused. The shell owns `::after`; the real control is a descendant.
  */
 export const focusRingAfterWithin = 'sm:focus-within:after:ring-2 sm:focus-within:after:ring-ring';
+
+/**
+ * Native `<select>` shell: `useDataInteractive` sets `data-focus` on the
+ * child, not the wrapper. `has-data-focus` paints the same `::after` ring.
+ */
+export const focusRingHasData = 'has-data-focus:after:ring-2 has-data-focus:after:ring-ring';
 
 /**
  * Host-on-descendant variant: the focusable child is visually stretched

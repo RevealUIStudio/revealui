@@ -16,14 +16,14 @@ import type React from 'react';
  *   text on the logo stays for screen-reader accessibility regardless
  * - `REVEALUI_TENANT_TAGLINE` — optional subline; suppressed if unset
  * - `REVEALUI_BRAND_LOGO_URL` — optional tenant logo src; when unset, the canonical
- *   Cobalt circuit emblem (`/revealui-logo-dark.svg`, ≥96px) is rendered
+ *   Circuit-R master (`/revealui-logo.svg`, ≥96px) is rendered
  * - `REVEALUI_SHOW_POWERED_BY` — `'false'` hides the "Built with RevealUI" badge
  *   (kit-default false; revealui.com SaaS-default true)
  *
  * Tenant brand color is consumed via the `--tenant-brand` / `--tenant-brand-on` CSS
  * vars injected at the root in `apps/admin/src/app/(frontend)/layout.tsx`.
  * When no tenant color is set, the brand column uses midnight (`surface-0`) so
- * the circuit-dark master stays on its designed surface.
+ * the Circuit-R master stays on its designed navy surface.
  */
 export function BrandedAuthLayout({ children }: { children: React.ReactNode }) {
   // `||` not `??`: Compose `${VAR:-}` interpolation delivers unset vars as
@@ -50,7 +50,7 @@ export function BrandedAuthLayout({ children }: { children: React.ReactNode }) {
       ) : (
         // biome-ignore lint/performance/noImgElement: canonical circuit master from gen-brand-assets; ≥96px
         <img
-          src="/revealui-logo-dark.svg"
+          src="/revealui-logo.svg"
           alt=""
           width={160}
           height={160}

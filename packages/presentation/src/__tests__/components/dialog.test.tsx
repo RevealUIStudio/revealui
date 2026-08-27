@@ -63,6 +63,26 @@ describe('Dialog', () => {
       expect(screen.getByText('Test Title')).toBeInTheDocument();
       expect(screen.getByText('Test description content')).toBeInTheDocument();
     });
+
+    it('uses the scrim token for the backdrop and card tokens for the panel', () => {
+      const onClose = vi.fn();
+      render(
+        <Dialog open={true} onClose={onClose}>
+          <DialogTitle>Themed</DialogTitle>
+        </Dialog>,
+      );
+
+      const backdrop = screen.getByRole('button', { name: 'Close dialog' });
+      expect(backdrop.className).toContain('bg-scrim');
+      expect(backdrop.getAttribute('style') ?? '').not.toContain('oklch');
+
+      const panel = screen.getByRole('dialog').querySelector('.bg-card');
+      expect(panel).toBeTruthy();
+
+      const title = screen.getByText('Themed');
+      expect(title).toHaveClass('text-foreground');
+      expect(title.getAttribute('style') ?? '').not.toContain('oklch');
+    });
   });
 
   describe('Close behavior', () => {

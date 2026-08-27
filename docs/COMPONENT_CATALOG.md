@@ -1108,7 +1108,7 @@ Low-level display helpers and brand assets that ship from `packages/presentation
 |-----------|--------|---------|
 | `IconChevronDown`, `IconCheck`, `IconAlertCircle`, etc. | `icon.tsx` | Icon set of 40+ stroke icons sharing a common 24x24 base wrapper. |
 | `Kbd` / `KbdShortcut` | `kbd.tsx` | Styled keyboard-key label for documenting shortcuts. |
-| `RevealUIMark` | `brand-mark.tsx` | The RevealUI logomark (faceted "R"); inherits `currentColor`. |
+| `RevealUIMark` | `brand-mark.tsx` | The RevealUI logomark (Circuit-R); inherits `currentColor`. |
 | `RevealUIWordmark` | `wordmark.tsx` | Logomark plus "RevealUI" wordmark lockup; the text is real HTML, not SVG, so it inherits page fonts. |
 | `BuiltWithRevealUI` | `BuiltWithRevealUI.tsx` | "Built with RevealUI" attribution badge; positionable inline or fixed to a corner, with a light/dark color scheme. |
 
