@@ -18,6 +18,8 @@
 // Usage:
 //   node scripts/validate/backflow-merge-method-guard.cjs --mode=pr
 //     env: PR_TITLE, PR_HEAD_REF, PR_BASE_REF, PR_LABELS (comma-separated)
+//          PR_NUMBER, GITHUB_REPOSITORY, GITHUB_TOKEN (live-fetch labels;
+//          event snapshot is empty on `opened` before the bot labels)
 //   node scripts/validate/backflow-merge-method-guard.cjs --mode=ancestry
 //     cwd = git repo; fetches not performed (caller must fetch main)
 
@@ -78,15 +80,52 @@ function parseLabels(raw) {
     .filter(Boolean);
 }
 
+/**
+ * Event payload labels are snapshotted at `opened`. The backflow bot applies
+ * `backflow:merge-commit` immediately after create, so the first required check
+ * often sees an empty PR_LABELS and fails closed until a later `labeled` rerun.
+ * Prefer the event list when it already has the ack; otherwise use live labels.
+ */
+function resolveLabels(eventLabels, liveLabels) {
+  if (eventLabels.includes(ACK_LABEL)) return eventLabels;
+  if (Array.isArray(liveLabels) && liveLabels.includes(ACK_LABEL)) return liveLabels;
+  return eventLabels;
+}
+
+async function fetchLiveLabels(opts = {}) {
+  const repository = opts.repository ?? process.env.GITHUB_REPOSITORY ?? '';
+  const number = String(opts.number ?? process.env.PR_NUMBER ?? '');
+  const token = opts.token ?? process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN ?? '';
+  const fetchImpl = opts.fetchImpl ?? globalThis.fetch;
+  if (!repository || !number || !token || typeof fetchImpl !== 'function') return null;
+  const url = `https://api.github.com/repos/${repository}/issues/${number}/labels`;
+  try {
+    const res = await fetchImpl(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'User-Agent': 'revealui-backflow-merge-method-guard',
+      },
+    });
+    if (!res || !res.ok) return null;
+    const data = await res.json();
+    if (!Array.isArray(data)) return null;
+    return data.map((row) => String(row && row.name ? row.name : '')).filter(Boolean);
+  } catch {
+    return null;
+  }
+}
+
 function git(args) {
   return execFileSync('git', args, { encoding: 'utf8' }).trim();
 }
 
-function runPrMode() {
+async function runPrMode() {
   const title = process.env.PR_TITLE || '';
   const headRef = process.env.PR_HEAD_REF || '';
   const baseRef = process.env.PR_BASE_REF || '';
-  const labels = parseLabels(process.env.PR_LABELS || '');
+  const eventLabels = parseLabels(process.env.PR_LABELS || '');
 
   if (!isBackflowPr(title, headRef, baseRef)) {
     console.log(
@@ -108,8 +147,14 @@ function runPrMode() {
   console.log(`  gh pr edit <N> --repo RevealUIStudio/revealui --add-label "${ACK_LABEL}"`);
   console.log('');
 
+  const liveLabels = eventLabels.includes(ACK_LABEL) ? null : await fetchLiveLabels();
+  const labels = resolveLabels(eventLabels, liveLabels);
+
   if (labels.includes(ACK_LABEL)) {
-    console.log(`Label "${ACK_LABEL}" present — clear (still use merge-commit in the UI).`);
+    const source = eventLabels.includes(ACK_LABEL) ? 'event' : 'live';
+    console.log(
+      `Label "${ACK_LABEL}" present (${source}) — clear (still use merge-commit in the UI).`,
+    );
     process.exit(0);
   }
 
@@ -167,8 +212,7 @@ function runAncestryMode() {
 function main() {
   const { mode } = parseArgs(process.argv.slice(2));
   if (mode === 'pr') {
-    runPrMode();
-    return;
+    return runPrMode();
   }
   if (mode === 'ancestry') {
     runAncestryMode();
@@ -178,4 +222,17 @@ function main() {
   process.exit(2);
 }
 
-main();
+module.exports = {
+  ACK_LABEL,
+  isBackflowPr,
+  parseLabels,
+  resolveLabels,
+  fetchLiveLabels,
+};
+
+if (require.main === module) {
+  Promise.resolve(main()).catch((err) => {
+    console.error(err && err.message ? err.message : err);
+    process.exit(2);
+  });
+}
