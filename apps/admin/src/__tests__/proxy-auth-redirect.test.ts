@@ -156,12 +156,14 @@ describe('admin proxy — authenticated redirect off /login + /signup', () => {
     expect(url?.searchParams.get('redirect')).toBeNull();
   });
 
-  it('sends a logged-out /account/license?license=agency visitor to signup naming agency', async () => {
+  it('does not send a leftover Agency perpetual query to signup-as-buy', async () => {
     const res = await proxy(req('/account/license?license=agency'));
+    expect(res.status).toBe(307);
     const location = res.headers.get('location');
     const url = location ? new URL(location) : null;
-    expect(url?.pathname).toBe('/signup');
-    expect(url?.searchParams.get('license')).toBe('agency');
+    expect(url?.pathname).toBe('/login');
+    expect(url?.searchParams.get('license')).toBeNull();
+    expect(url?.searchParams.get('redirect')).toBe('/account/license');
   });
 
   it('still sends a logged-out /account/license visitor without a SKU to login', async () => {

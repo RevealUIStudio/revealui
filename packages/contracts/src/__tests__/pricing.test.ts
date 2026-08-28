@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   allowsUnattendedCheckout,
+  allowsUnattendedPerpetualCheckout,
   CREDIT_BUNDLES,
   ENTERPRISE_SALES_HREF,
   FEATURE_LABELS,
@@ -8,6 +9,7 @@ import {
   getTierColor,
   getTierLabel,
   getTiersFromCurrent,
+  isBuyablePerpetualLicenseSku,
   isPublicPerpetualCatalogName,
   type LicenseTierId,
   PERPETUAL_TIERS,
@@ -262,11 +264,12 @@ describe('PERPETUAL_TIERS', () => {
     expect(PERPETUAL_TIERS.find((t) => t.name === 'Pro Perpetual')?.ctaHref).toBe(
       '/signup?license=pro',
     );
+    expect(PERPETUAL_TIERS.find((t) => t.name === 'Agency Perpetual')?.cta).toBe('Contact sales');
     expect(PERPETUAL_TIERS.find((t) => t.name === 'Agency Perpetual')?.ctaHref).toBe(
-      '/signup?license=agency',
+      ENTERPRISE_SALES_HREF,
     );
     expect(PERPETUAL_TIERS.find((t) => t.name === 'Enterprise Perpetual')?.ctaHref).toBe(
-      'https://revealui.com/contact',
+      ENTERPRISE_SALES_HREF,
     );
   });
 });
@@ -460,7 +463,7 @@ describe('PERPETUAL_TIERS  -  comingSoon status', () => {
     expect(enterprise?.comingSoon).toBe(false);
   });
 
-  it('Enterprise Perpetual CTA is contact sales, not an unattended Buy', () => {
+  it('leftover Agency and Enterprise Perpetual CTAs are not self-serve buy doors', () => {
     const enterprise = PERPETUAL_TIERS.find((t) => t.name === 'Enterprise Perpetual')!;
     const pro = PERPETUAL_TIERS.find((t) => t.name === 'Pro Perpetual')!;
     const agency = PERPETUAL_TIERS.find((t) => t.name === 'Agency Perpetual')!;
@@ -470,8 +473,10 @@ describe('PERPETUAL_TIERS  -  comingSoon status', () => {
     expect(enterprise.ctaHref.includes('/account/license')).toBe(false);
     expect(pro.cta).toBe('Buy Pro Perpetual');
     expect(pro.ctaHref).toBe('/signup?license=pro');
-    expect(agency.cta).toBe('Buy Agency Perpetual');
-    expect(agency.ctaHref).toBe('/signup?license=agency');
+    expect(agency.cta).toBe('Contact sales');
+    expect(agency.ctaHref).toBe(ENTERPRISE_SALES_HREF);
+    expect(agency.ctaHref.includes('signup')).toBe(false);
+    expect(agency.ctaHref.includes('/account/license')).toBe(false);
   });
 });
 
@@ -481,6 +486,19 @@ describe('allowsUnattendedCheckout', () => {
     expect(allowsUnattendedCheckout('max')).toBe(true);
     expect(allowsUnattendedCheckout('enterprise')).toBe(false);
     expect(allowsUnattendedCheckout('free')).toBe(false);
+  });
+
+  it('allows unattended perpetual checkout for Pro only', () => {
+    expect(allowsUnattendedPerpetualCheckout('pro')).toBe(true);
+    expect(allowsUnattendedPerpetualCheckout('max')).toBe(false);
+    expect(allowsUnattendedPerpetualCheckout('enterprise')).toBe(false);
+    expect(allowsUnattendedPerpetualCheckout('free')).toBe(false);
+  });
+
+  it('treats only Pro as a buyable perpetual license SKU', () => {
+    expect(isBuyablePerpetualLicenseSku('pro')).toBe(true);
+    expect(isBuyablePerpetualLicenseSku('agency')).toBe(false);
+    expect(isBuyablePerpetualLicenseSku('enterprise')).toBe(false);
   });
 
   it('locks the Enterprise sales href to the public contact door', () => {

@@ -2,8 +2,9 @@
  * @revealui/contracts/pricing
  *
  * Admin/server catalog: public subscriptions + leftover perpetual SKUs
- * (Agency / Enterprise perpetual) used by checkout and mint. Marketing must
- * import `@revealui/contracts/public-catalog` instead so leftover SKUs cannot
+ * (Agency / Enterprise perpetual) kept for mint/display of already-issued
+ * keys. Those leftovers are not buyable. Marketing must import
+ * `@revealui/contracts/public-catalog` instead so leftover SKUs cannot
  * ship in the public JS bundle.
  *
  * @packageDocumentation
@@ -32,6 +33,7 @@ import {
   ARCHITECTURE_REVIEW_PRICE,
   BOOK_INTRO_HREF,
   CONSULTING_HOUR_PRICE,
+  ENTERPRISE_SALES_HREF,
   LAUNCH_PACKAGE_PRICE,
   type LicenseTierId,
   type PerpetualTier,
@@ -284,8 +286,8 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
       'Private GitHub repo access',
     ],
     renewal: '$799/yr for continued support',
-    cta: 'Buy Agency Perpetual',
-    ctaHref: perpetualLicenseSignupPath('agency'),
+    cta: 'Contact sales',
+    ctaHref: ENTERPRISE_SALES_HREF,
     comingSoon: false,
   },
   {
@@ -324,12 +326,33 @@ export function getTiersFromCurrent(currentTier: LicenseTierId): SubscriptionTie
 }
 
 /**
- * Unattended Stripe checkout is Pro and Max only (subscription trial +
- * Pro / Agency perpetual). Enterprise subscription and Enterprise Perpetual
- * are sales-assisted — UI and API must use {@link ENTERPRISE_SALES_HREF}.
+ * Unattended Stripe *subscription* checkout is Pro and Max only.
+ * Enterprise subscription is sales-assisted — UI and API must use
+ * {@link ENTERPRISE_SALES_HREF}. Perpetual buy uses
+ * {@link allowsUnattendedPerpetualCheckout} (Pro only).
  */
 export function allowsUnattendedCheckout(tier: LicenseTierId): boolean {
   return tier === 'pro' || tier === 'max';
+}
+
+/**
+ * Unattended perpetual checkout keep-list. Pro Perpetual ($1,499) is the
+ * only self-serve perpetual SKU. Leftover Agency (`max`) and Enterprise
+ * perpetual stay in {@link PERPETUAL_TIERS} for issued-key display/mint.
+ */
+export function allowsUnattendedPerpetualCheckout(tier: LicenseTierId): boolean {
+  return tier === 'pro';
+}
+
+/** Buy hop keep-list. Leftover agency/enterprise SKUs are display-only. */
+export function isBuyablePerpetualLicenseSku(sku: PerpetualLicenseSku): boolean {
+  return sku === 'pro';
+}
+
+/** Parse leftover URLs for existing-license labels. Buy hops must filter. */
+export function parseBuyablePerpetualLicenseSku(raw: string | null): 'pro' | null {
+  const sku = parsePerpetualLicenseSku(raw);
+  return sku !== null && isBuyablePerpetualLicenseSku(sku) ? sku : null;
 }
 
 /**

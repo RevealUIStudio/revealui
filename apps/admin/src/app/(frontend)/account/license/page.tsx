@@ -6,7 +6,7 @@ import {
   FEATURE_LABELS,
   type LicenseTierId,
   type PricingResponse,
-  parsePerpetualLicenseSku,
+  parseBuyablePerpetualLicenseSku,
   perpetualLicenseCheckoutTier,
   perpetualLicenseLabel,
   TIER_COLORS,
@@ -41,30 +41,14 @@ interface SubscriptionData {
   supportExpiresAt: string | null;
 }
 
-// Labels must match PERPETUAL_TIERS[*].name in @revealui/contracts/pricing —
-// the price lookup below (`pricing?.perpetual.find((t) => t.name === plan.label)`)
-// keys off that exact name.
+// Keep-list matches PUBLIC_PERPETUAL_TIERS. Leftover Agency / Enterprise
+// perpetual stay mint/display leftovers for already-issued keys.
 const PERPETUAL_PLANS = [
   {
     label: 'Pro Perpetual',
     tier: 'pro' as const,
     priceIdEnv: process.env.NEXT_PUBLIC_STRIPE_PRO_PERPETUAL_PRICE_ID,
     description: 'Pro features forever. Includes 1 year of support.',
-  },
-  {
-    label: 'Agency Perpetual',
-    tier: 'max' as const,
-    priceIdEnv: process.env.NEXT_PUBLIC_STRIPE_MAX_PERPETUAL_PRICE_ID,
-    // GAP-448: Agency Founding Kit / Fleet perpetual — canon 10 client sites on the JWT.
-    description:
-      'Max features forever, up to 10 client deployments. License plus a thin kit, not an unattended RevForge Fleet stamp. Includes 1 year of support.',
-  },
-  {
-    label: 'Enterprise Perpetual',
-    tier: 'enterprise' as const,
-    priceIdEnv: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PERPETUAL_PRICE_ID,
-    description:
-      'Enterprise license plus studio onboarding. Not an unattended Fleet pull-and-run kit. Includes 1 year of support.',
   },
 ] as const;
 
@@ -84,7 +68,7 @@ export default function LicensePage() {
 
 function LicenseContent() {
   const searchParams = useSearchParams();
-  const licenseSku = parsePerpetualLicenseSku(searchParams.get('license'));
+  const licenseSku = parseBuyablePerpetualLicenseSku(searchParams.get('license'));
   const { data: session, isLoading: sessionLoading } = useSession();
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [features, setFeatures] = useState<Record<string, FeatureFlags> | null>(null);
@@ -154,10 +138,6 @@ function LicenseContent() {
 
   const handlePerpetualCheckout = useCallback(
     async (plan: (typeof PERPETUAL_PLANS)[number]) => {
-      if (plan.tier === 'enterprise') {
-        window.location.assign(ENTERPRISE_SALES_HREF);
-        return;
-      }
       setPerpetualLoading(plan.tier);
       setError(null);
       try {
@@ -211,8 +191,7 @@ function LicenseContent() {
         <h1 className="text-2xl font-bold">License & Plan</h1>
         {licenseSku ? (
           <p className="text-sm text-zinc-600">
-            Continuing {perpetualLicenseLabel(licenseSku)} checkout
-            {licenseSku === 'enterprise' ? ' — Enterprise is sold through sales.' : '.'}
+            Continuing {perpetualLicenseLabel(licenseSku)} checkout.
           </p>
         ) : null}
         <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
@@ -256,8 +235,7 @@ function LicenseContent() {
       <h1 className="text-2xl font-bold">License & Plan</h1>
       {licenseSku ? (
         <p className="text-sm text-zinc-600">
-          Continuing {perpetualLicenseLabel(licenseSku)} checkout
-          {licenseSku === 'enterprise' ? ' — Enterprise is sold through sales.' : '.'}
+          Continuing {perpetualLicenseLabel(licenseSku)} checkout.
         </p>
       ) : null}
 
@@ -536,29 +514,18 @@ function LicenseContent() {
                   <p className="text-sm font-medium">{plan.label}</p>
                   <p className="text-xs text-zinc-600">{plan.description}</p>
                 </div>
-                {plan.tier === 'enterprise' ? (
-                  <Button
-                    asChild
-                    variant="neutral"
-                    size="sm"
-                    className="ml-4 shrink-0 bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-                  >
-                    <a href={ENTERPRISE_SALES_HREF}>Contact sales</a>
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="neutral"
-                    size="sm"
-                    disabled={perpetualLoading === plan.tier}
-                    onClick={() => void handlePerpetualCheckout(plan)}
-                    className="ml-4 shrink-0 bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-                  >
-                    {perpetualLoading === plan.tier
-                      ? 'Redirecting…'
-                      : `Buy ${pricing?.perpetual.find((t) => t.name === plan.label)?.price ?? '—'}`}
-                  </Button>
-                )}
+                <Button
+                  type="button"
+                  variant="neutral"
+                  size="sm"
+                  disabled={perpetualLoading === plan.tier}
+                  onClick={() => void handlePerpetualCheckout(plan)}
+                  className="ml-4 shrink-0 bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+                >
+                  {perpetualLoading === plan.tier
+                    ? 'Redirecting…'
+                    : `Buy ${pricing?.perpetual.find((t) => t.name === plan.label)?.price ?? '—'}`}
+                </Button>
               </div>
             ))}
           </CardContent>

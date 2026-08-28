@@ -542,27 +542,16 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
       expect(mockLogger.warn).not.toHaveBeenCalled();
     });
 
-    it('includes perpetual and tier metadata in payment_intent_data', async () => {
-      queueSelectResults(
-        [], // duplicate perpetual license check
-        [{ stripePriceId: 'price_max_perpetual_server' }],
-        [{ stripeCustomerId: 'cus_existing' }],
-      );
-      mockCheckoutSessionsCreate.mockResolvedValue({
-        url: 'https://checkout.stripe.com/pay/sess_meta',
-      });
-
+    it('rejects leftover Agency Perpetual checkout (tier: max)', async () => {
       const app = createApp();
-      await app.request(
+      const res = await app.request(
         post('/checkout-perpetual', { priceId: 'price_max_perpetual_server', tier: 'max' }),
       );
 
-      const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
-      const piMeta = (sessionArgs.payment_intent_data as Record<string, unknown>)
-        .metadata as Record<string, unknown>;
-      expect(piMeta.tier).toBe('max');
-      expect(piMeta.perpetual).toBe('true');
-      expect(piMeta.revealui_user_id).toBe(MOCK_USER.id);
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as { error?: string };
+      expect(body.error).toContain('not sold');
+      expect(mockCheckoutSessionsCreate).not.toHaveBeenCalled();
     });
 
     it('rejects unattended Enterprise Perpetual checkout', async () => {
@@ -576,8 +565,31 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
 
       expect(res.status).toBe(400);
       const body = (await res.json()) as { error?: string };
-      expect(body.error).toContain('sales');
+      expect(body.error).toMatch(/not sold|sales/i);
       expect(mockCheckoutSessionsCreate).not.toHaveBeenCalled();
+    });
+
+    it('includes perpetual and tier metadata in payment_intent_data for Pro', async () => {
+      queueSelectResults(
+        [], // duplicate perpetual license check
+        [{ stripePriceId: 'price_pro_perpetual_server' }],
+        [{ stripeCustomerId: 'cus_existing' }],
+      );
+      mockCheckoutSessionsCreate.mockResolvedValue({
+        url: 'https://checkout.stripe.com/pay/sess_meta',
+      });
+
+      const app = createApp();
+      await app.request(
+        post('/checkout-perpetual', { priceId: 'price_pro_perpetual_server', tier: 'pro' }),
+      );
+
+      const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
+      const piMeta = (sessionArgs.payment_intent_data as Record<string, unknown>)
+        .metadata as Record<string, unknown>;
+      expect(piMeta.tier).toBe('pro');
+      expect(piMeta.perpetual).toBe('true');
+      expect(piMeta.revealui_user_id).toBe(MOCK_USER.id);
     });
 
     it('includes github_username in metadata when provided', async () => {
@@ -679,6 +691,31 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
       );
 
       expect(res.status).toBe(500);
+    });
+  });
+
+  describe('POST /checkout-credits', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      resetChains();
+      process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
+      process.env.ADMIN_URL = 'https://app.example.com';
+    });
+
+    it('returns 401 when not authenticated', async () => {
+      const res = await billingApp.request(post('/checkout-credits', { bundle: 'starter' }));
+      expect(res.status).toBe(401);
+      expect(mockCheckoutSessionsCreate).not.toHaveBeenCalled();
+    });
+
+    it('rejects leftover credit-bundle checkout without opening Stripe', async () => {
+      const app = createApp();
+      const res = await app.request(post('/checkout-credits', { bundle: 'starter' }));
+
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as { error?: string };
+      expect(body.error).toMatch(/not sold|not available/i);
+      expect(mockCheckoutSessionsCreate).not.toHaveBeenCalled();
     });
   });
 

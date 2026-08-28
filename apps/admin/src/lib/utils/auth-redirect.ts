@@ -2,7 +2,7 @@
 
 import {
   type PerpetualLicenseSku,
-  parsePerpetualLicenseSku,
+  parseBuyablePerpetualLicenseSku,
   perpetualLicenseCheckoutPath,
 } from '@revealui/contracts/pricing';
 import { safePostAuthRedirect } from '@/lib/utils/safe-internal-redirect';
@@ -19,7 +19,7 @@ export function parseUpgrade(raw: string | null): UpgradePlan | null {
 }
 
 export function parseLicense(raw: string | null): PerpetualLicenseSku | null {
-  return parsePerpetualLicenseSku(raw);
+  return parseBuyablePerpetualLicenseSku(raw);
 }
 
 /** A URLSearchParams-like reader (matches Next's useSearchParams() return). */
@@ -50,7 +50,7 @@ export function readAuthIntent(searchParams: ParamReader): {
 /**
  * Resolve the post-auth destination with precedence
  * license > upgrade > redirect > fallback.
- * `license` is the perpetual Buy hop (`?license=pro|agency|enterprise`).
+ * `license` is the perpetual Buy hop (`?license=pro` only).
  * `upgrade` routes to the billing entry (Pro/Max auto-checkout; Enterprise
  * parks at Contact sales). `redirect` must already be a validated same-origin
  * path (see readAuthIntent / safeInternalRedirect). Destinations stay
