@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { resolveManifestPath } from '../../sync/resolve-manifest-dir.js';
+import { PRICE_SERVER_ENV_KEYS } from '../stripe-catalog.js';
 import {
   loadManifestEnvKeyToVaultPath,
   parseManifestEnvKeyToVaultPath,
@@ -38,21 +39,9 @@ describe.skipIf(!MANIFEST_PATH)(
   () => {
     it('maps every STRIPE_*_PRICE_ID the seeder emits to a revealui/prod/stripe/ path', () => {
       const map = loadManifestEnvKeyToVaultPath(MANIFEST_PATH as string);
-      // Mirrors PRICE_SERVER_ENV_KEYS in seed-stripe.ts (the vaulted price keys).
-      // Adding a new price env key without a manifest entry fails this test ->
-      // add the revvault-vercel.toml mapping before merging.
-      const requiredKeys = [
-        'STRIPE_PRO_PRICE_ID',
-        'STRIPE_MAX_PRICE_ID',
-        'STRIPE_MAX_ANNUAL_PRICE_ID',
-        'STRIPE_ENTERPRISE_PRICE_ID',
-        'STRIPE_PERPETUAL_PRO_PRICE_ID',
-        'STRIPE_PERPETUAL_MAX_PRICE_ID',
-        'STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID',
-        'STRIPE_CREDITS_STARTER_PRICE_ID',
-        'STRIPE_CREDITS_STANDARD_PRICE_ID',
-        'STRIPE_CREDITS_SCALE_PRICE_ID',
-      ];
+      // Every server price key the seeder still emits must have a vault path.
+      // Adding a new PRICE_SERVER_ENV_KEYS entry without a manifest mapping fails.
+      const requiredKeys = [...new Set(Object.values(PRICE_SERVER_ENV_KEYS))];
       for (const key of requiredKeys) {
         const vaultPath = map.get(key);
         expect(vaultPath, `${key} is missing from the private vercel sync manifest`).toBeDefined();
