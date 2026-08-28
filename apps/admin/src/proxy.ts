@@ -226,6 +226,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
       }
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = '/login';
+      loginUrl.searchParams.delete('license');
       loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
     }
