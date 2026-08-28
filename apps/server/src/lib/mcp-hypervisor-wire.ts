@@ -57,7 +57,12 @@ const SAFE_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
 /** Servers safe to auto-spawn without product tenant credentials. */
 export const DEFAULT_SPAWN_SERVERS = ['contracts', 'docs'] as const;
 
-/** Full first-party allowlist for REVEALUI_MCP_HYPERVISOR_SERVERS. */
+/**
+ * Full first-party allowlist for REVEALUI_MCP_HYPERVISOR_SERVERS.
+ * Must stay lockstep with `packages/mcp/src/cli.ts` SERVERS keys: hypervisor
+ * spawn is `node dist/cli.js <name>`. `code-validator` is repo-only tsx
+ * (excluded from the compiled CLI) and is intentionally not listed.
+ */
 export const SPAWN_ALLOWLIST = new Set([
   'contracts',
   'docs',
