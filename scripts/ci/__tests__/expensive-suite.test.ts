@@ -84,7 +84,7 @@ describe('workflow wiring', () => {
   it('keeps Quality + Typecheck unconditional and gates expensive CI jobs on full_suite', () => {
     expect(ci).toContain('name: Quality');
     expect(ci).toContain('name: Typecheck');
-    expect(ci).toContain('needs.changes.outputs.full_suite == \'true\'');
+    expect(ci).toContain("needs.changes.outputs.full_suite == 'true'");
     expect(ci).toContain('pnpm validate:secret-paths');
     const qualityIdx = ci.indexOf('\n  quality:');
     const unitIdx = ci.indexOf('\n  test-unit:');
@@ -113,13 +113,13 @@ describe('workflow wiring', () => {
   it('skips a second full suite on promote PRs and on push-to-test when a PR already covers the SHA', () => {
     expect(ci).toContain('reason=promote-pr');
     expect(ci).toContain('reason=sha-covered-by-pr');
-    expect(ci).toContain('commits/${SHA}/pulls');
+    expect(ci).toContain(['commits/', '$', '{SHA}/pulls'].join(''));
   });
 
   it('keeps docker PR image builds behind the existing changes job + Docker images summary', () => {
     expect(docker).toContain('name: Docker images');
     expect(docker).toContain('Detect image-relevant changes');
-    expect(docker).toContain('needs.changes.outputs.docker == \'true\'');
+    expect(docker).toContain("needs.changes.outputs.docker == 'true'");
   });
 
   it('narrows design-system paths off apps/** and cancels leftover Showcase visual', () => {
