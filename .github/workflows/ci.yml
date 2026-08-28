@@ -1,10 +1,23 @@
 name: CI
 
 # Two-tier CI gate:
-#   test branch: quality + typecheck + unit tests + build + E2E (~25 min)
-#   main branch: full gate + integration + E2E + coverage (~20 min)
+#   test branch: quality + typecheck + unit tests + build + E2E
+#   main branch: full gate + integration + E2E + coverage
 #
 # Pipeline: feature/* → PR → test → PR → main → deploy
+#
+# Wave 2 path + double-fire filters (keep Quality + Typecheck always):
+#   - Docs / markdown / marketing-copy-only diffs skip unit, integration,
+#     build, drizzle-apply, server-tsx-boot, and in-CI E2E. Required check
+#     names stay green via *-result jobs (docker.yml Docker images pattern).
+#   - Admin / server / packages / lockfile / workflows / Dockerfiles / e2e
+#     still run the full suite.
+#   - PR-to-main (promote) skips the expensive suite; promotion-gate is the
+#     thin policy check. Push-to-main still runs the production suite.
+#   - Push-to-test on a SHA that is already a test-targeting PR head skips
+#     the expensive suite (kills PR + push double-fire). Concurrency stays
+#     ref-keyed so we do not cancel a required check on the same SHA
+#     (see #2757).
 #
 # Optimizations:
 #   - Turbo remote cache: build artifacts shared across jobs
@@ -22,6 +35,7 @@ on:
 permissions:
   contents: read
   packages: read
+  pull-requests: read
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -36,11 +50,79 @@ env:
 
 jobs:
   # ---------------------------------------------------------------------------
+  # Wave 2: classify the diff before starting billed suites.
+  # ---------------------------------------------------------------------------
+  changes:
+    name: Detect expensive-suite paths
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      full_suite: ${{ steps.detect.outputs.full_suite }}
+      reason: ${{ steps.detect.outputs.reason }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Classify diff
+        id: detect
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          REF: ${{ github.ref }}
+          SHA: ${{ github.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          full_suite=true
+          reason=default
+
+          if [ "$EVENT_NAME" = "pull_request" ] && [ "${BASE_REF:-}" = "main" ]; then
+            full_suite=false
+            reason=promote-pr
+          elif [ "$EVENT_NAME" = "push" ] && [ "$REF" = "refs/heads/test" ]; then
+            covered_count="$(gh api "repos/${REPO}/commits/${SHA}/pulls" \
+              -H "Accept: application/vnd.github.groot-preview+json" \
+              --jq "[.[] | select(.base.ref == \"test\" and .head.sha == \"${SHA}\")] | length")"
+            if [ "${covered_count:-0}" != "0" ]; then
+              full_suite=false
+              reason=sha-covered-by-pr
+            fi
+          fi
+
+          if [ "$full_suite" = "true" ]; then
+            files=""
+            if [ "$EVENT_NAME" = "pull_request" ] && [ -n "${PR_NUMBER:-}" ]; then
+              files="$(gh api --paginate "repos/${REPO}/pulls/${PR_NUMBER}/files" --jq '.[].filename')"
+            elif [ "$EVENT_NAME" = "push" ] && [ -n "${BEFORE_SHA:-}" ] && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+              files="$(gh api "repos/${REPO}/compare/${BEFORE_SHA}...${SHA}" --jq '.files[]?.filename // empty')"
+            fi
+            if [ -n "$files" ]; then
+              suite_line="$(printf '%s\n' "$files" | node scripts/ci/expensive-suite.mjs | tr -d '\r')"
+              full_suite="${suite_line#full_suite=}"
+              if [ "${full_suite}" != "true" ]; then
+                reason=docs-copy-only
+              fi
+            fi
+          fi
+
+          {
+            echo "full_suite=${full_suite}"
+            echo "reason=${reason}"
+          } >> "$GITHUB_OUTPUT"
+          echo "full_suite=${full_suite} reason=${reason}"
+
+  # ---------------------------------------------------------------------------
   # GAP-428: seed GHCR mirrors before any job that uses service containers.
   # Docker Hub anonymous pulls from runner IPs flake; GHCR + GITHUB_TOKEN does not.
   # ---------------------------------------------------------------------------
   ensure-ci-images:
     name: Ensure CI service images (GHCR)
+    needs: changes
+    if: needs.changes.outputs.full_suite == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -304,6 +386,21 @@ jobs:
         # in scripts/gates/ci-gate.ts. See CONTRIBUTING.md "Source citations".
         run: pnpm validate:citations --coverage-strict
 
+      # Moved out of Unit Tests so docs/copy PRs that skip the expensive suite
+      # still run the in-CI secret-path lockstep (Vercel/Fly manifests vs
+      # SECRET_PATHS vs docs/SECRETS.md). Not the weekly live drift job.
+      - name: Secret-path lockstep drift gate (hard fail)
+        run: pnpm validate:secret-paths
+        env:
+          CI: "true"
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: CI path-filter lockstep (hard fail)
+        run: pnpm validate:ci-path-filters
+        env:
+          CI: "true"
+          SKIP_ENV_VALIDATION: "true"
+
   # ---------------------------------------------------------------------------
   # Phase 1.5: Drizzle migration apply (all branches)
   #
@@ -314,10 +411,11 @@ jobs:
   # prod schema without going through drizzle-kit.
   # ---------------------------------------------------------------------------
   db-migrations:
-    name: Drizzle Migrations
+    name: Drizzle Migrations (suite)
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [quality, ensure-ci-images]
+    needs: [quality, ensure-ci-images, changes]
+    if: needs.changes.outputs.full_suite == 'true'
 
     services:
       postgres:
@@ -433,10 +531,11 @@ jobs:
   # Phase 3a: Unit tests (all branches)
   # ---------------------------------------------------------------------------
   test-unit:
-    name: Unit Tests
+    name: Unit Tests (suite)
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: quality
+    needs: [quality, changes]
+    if: needs.changes.outputs.full_suite == 'true'
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -466,24 +565,15 @@ jobs:
           CI: "true"
           SKIP_ENV_VALIDATION: "true"
 
-      # Root scripts/ is not a turbo workspace, so `pnpm test` does not discover
-      # it. Wire the secret-path lockstep gate explicitly (no live API): asserts
-      # the Vercel/Fly manifests, SECRET_PATHS, and docs/SECRETS.md all agree.
-      - name: Secret-path lockstep drift gate (hard fail)
-        run: pnpm validate:secret-paths
-        env:
-          CI: "true"
-          SKIP_ENV_VALIDATION: "true"
-
   # ---------------------------------------------------------------------------
   # Phase 3a.1: Integration tests (all PRs + push to main — requires DB)
   # ---------------------------------------------------------------------------
   test-integration:
-    name: Integration Tests
+    name: Integration Tests (suite)
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [quality, ensure-ci-images]
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    needs: [quality, ensure-ci-images, changes]
+    if: needs.changes.outputs.full_suite == 'true' && (github.event_name == 'pull_request' || github.ref == 'refs/heads/main')
 
     services:
       postgres:
@@ -536,11 +626,11 @@ jobs:
   # Phase 3a.5: Coverage gate (main only)
   # ---------------------------------------------------------------------------
   coverage:
-    name: Coverage
+    name: Coverage (suite)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: quality
-    if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
+    needs: [quality, changes]
+    if: needs.changes.outputs.full_suite == 'true' && (github.ref == 'refs/heads/main' || github.base_ref == 'main')
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -587,10 +677,11 @@ jobs:
   # Phase 3b: Build (all branches)
   # ---------------------------------------------------------------------------
   build:
-    name: Build
+    name: Build (suite)
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: quality
+    needs: [quality, changes]
+    if: needs.changes.outputs.full_suite == 'true'
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -655,7 +746,8 @@ jobs:
     name: Server tsx boot
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [quality, ensure-ci-images]
+    needs: [quality, ensure-ci-images, changes]
+    if: needs.changes.outputs.full_suite == 'true'
 
     services:
       postgres:
@@ -716,13 +808,13 @@ jobs:
   # Phase 4: E2E smoke tests (main only)
   # ---------------------------------------------------------------------------
   e2e-smoke:
-    name: E2E Smoke
+    name: E2E Smoke (suite)
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [quality, build, ensure-ci-images]
+    needs: [quality, build, ensure-ci-images, changes]
     # PRs into test as well as main: production `next start` + the Forge
     # license gate must not wait for a promote PR to fail (see #2695).
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' || github.base_ref == 'main' || github.base_ref == 'test'
+    if: needs.changes.outputs.full_suite == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' || github.base_ref == 'main' || github.base_ref == 'test')
 
     services:
       postgres:
@@ -865,11 +957,11 @@ jobs:
   # Phase 5: Accessibility E2E (main only)
   # ---------------------------------------------------------------------------
   e2e-accessibility:
-    name: Accessibility (E2E)
+    name: Accessibility (E2E) (suite)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [quality, build, ensure-ci-images]
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' || github.base_ref == 'main' || github.base_ref == 'test'
+    needs: [quality, build, ensure-ci-images, changes]
+    if: needs.changes.outputs.full_suite == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' || github.base_ref == 'main' || github.base_ref == 'test')
 
     # The admin server's GAP-338/417 audit rails are fail-closed in production
     # (`next start`): a DB connection env + signing key are boot requirements.
@@ -984,11 +1076,11 @@ jobs:
   # Phase 6: Visual regression (main only)
   # ---------------------------------------------------------------------------
   e2e-visual:
-    name: Visual Regression (E2E)
+    name: Visual Regression (E2E) (suite)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [quality, build, ensure-ci-images]
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' || github.base_ref == 'main' || github.base_ref == 'test'
+    needs: [quality, build, ensure-ci-images, changes]
+    if: needs.changes.outputs.full_suite == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' || github.base_ref == 'main' || github.base_ref == 'test')
 
     # See e2e-accessibility: production admin's fail-closed audit rails
     # (GAP-338/417) require a DB env + signing key at boot.
@@ -1112,8 +1204,8 @@ jobs:
     name: Integration Tests (extended)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [quality, ensure-ci-images]
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    needs: [quality, ensure-ci-images, changes]
+    if: needs.changes.outputs.full_suite == 'true' && (github.event_name == 'pull_request' || github.ref == 'refs/heads/main')
 
     services:
       postgres:
@@ -1176,6 +1268,255 @@ jobs:
           # Billing integration self-activates only when the test-mode key secret is set.
           RUN_INTEGRATION: ${{ secrets.STRIPE_SECRET_KEY != '' && 'true' || 'false' }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+
+  # ---------------------------------------------------------------------------
+  # Required-check reporters — always run so skip does not leave Expected.
+  # Same pattern as docker.yml `docker-images`. Suite jobs use "(suite)" names;
+  # these jobs keep the ruleset contexts (protect-main-test).
+  # ---------------------------------------------------------------------------
+  test-unit-result:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [changes, test-unit]
+    if: always()
+    steps:
+      - name: Report Unit Tests
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          FULL_SUITE: ${{ needs.changes.outputs.full_suite }}
+          RESULT: ${{ needs.test-unit.result }}
+        run: |
+          set -euo pipefail
+          if [ "$CHANGES" != "success" ]; then
+            echo "changes job result: $CHANGES"
+            exit 1
+          fi
+          if [ "$RESULT" = "success" ]; then
+            echo "Unit Tests green"
+            exit 0
+          fi
+          if [ "$RESULT" = "skipped" ] && [ "$FULL_SUITE" != "true" ]; then
+            echo "Unit Tests skipped (docs/copy, promote, or SHA already covered)"
+            exit 0
+          fi
+          echo "Unit Tests result: $RESULT full_suite=$FULL_SUITE"
+          exit 1
+
+  build-result:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [changes, build]
+    if: always()
+    steps:
+      - name: Report Build
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          FULL_SUITE: ${{ needs.changes.outputs.full_suite }}
+          RESULT: ${{ needs.build.result }}
+        run: |
+          set -euo pipefail
+          if [ "$CHANGES" != "success" ]; then
+            echo "changes job result: $CHANGES"
+            exit 1
+          fi
+          if [ "$RESULT" = "success" ]; then
+            echo "Build green"
+            exit 0
+          fi
+          if [ "$RESULT" = "skipped" ] && [ "$FULL_SUITE" != "true" ]; then
+            echo "Build skipped (docs/copy, promote, or SHA already covered)"
+            exit 0
+          fi
+          echo "Build result: $RESULT full_suite=$FULL_SUITE"
+          exit 1
+
+  db-migrations-result:
+    name: Drizzle Migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [changes, db-migrations]
+    if: always()
+    steps:
+      - name: Report Drizzle Migrations
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          FULL_SUITE: ${{ needs.changes.outputs.full_suite }}
+          RESULT: ${{ needs.db-migrations.result }}
+        run: |
+          set -euo pipefail
+          if [ "$CHANGES" != "success" ]; then
+            echo "changes job result: $CHANGES"
+            exit 1
+          fi
+          if [ "$RESULT" = "success" ]; then
+            echo "Drizzle Migrations green"
+            exit 0
+          fi
+          if [ "$RESULT" = "skipped" ] && [ "$FULL_SUITE" != "true" ]; then
+            echo "Drizzle Migrations skipped (docs/copy, promote, or SHA already covered)"
+            exit 0
+          fi
+          echo "Drizzle Migrations result: $RESULT full_suite=$FULL_SUITE"
+          exit 1
+
+  test-integration-result:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [changes, test-integration]
+    if: always()
+    steps:
+      - name: Report Integration Tests
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          FULL_SUITE: ${{ needs.changes.outputs.full_suite }}
+          RESULT: ${{ needs.test-integration.result }}
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          if [ "$CHANGES" != "success" ]; then
+            echo "changes job result: $CHANGES"
+            exit 1
+          fi
+          if [ "$RESULT" = "success" ]; then
+            echo "Integration Tests green"
+            exit 0
+          fi
+          scheduled=false
+          if [ "$FULL_SUITE" = "true" ] && { [ "$EVENT_NAME" = "pull_request" ] || [ "$REF" = "refs/heads/main" ]; }; then
+            scheduled=true
+          fi
+          if [ "$RESULT" = "skipped" ] && [ "$scheduled" != "true" ]; then
+            echo "Integration Tests skipped (docs/copy, promote, push-to-test, or SHA already covered)"
+            exit 0
+          fi
+          echo "Integration Tests result: $RESULT full_suite=$FULL_SUITE scheduled=$scheduled"
+          exit 1
+
+  e2e-smoke-result:
+    name: E2E Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [changes, e2e-smoke]
+    if: always()
+    steps:
+      - name: Report E2E Smoke
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          FULL_SUITE: ${{ needs.changes.outputs.full_suite }}
+          RESULT: ${{ needs.e2e-smoke.result }}
+        run: |
+          set -euo pipefail
+          if [ "$CHANGES" != "success" ]; then
+            echo "changes job result: $CHANGES"
+            exit 1
+          fi
+          if [ "$RESULT" = "success" ]; then
+            echo "E2E Smoke green"
+            exit 0
+          fi
+          if [ "$RESULT" = "skipped" ] && [ "$FULL_SUITE" != "true" ]; then
+            echo "E2E Smoke skipped (docs/copy, promote, or SHA already covered)"
+            exit 0
+          fi
+          echo "E2E Smoke result: $RESULT full_suite=$FULL_SUITE"
+          exit 1
+
+  e2e-accessibility-result:
+    name: Accessibility (E2E)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [changes, e2e-accessibility]
+    if: always()
+    steps:
+      - name: Report Accessibility (E2E)
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          FULL_SUITE: ${{ needs.changes.outputs.full_suite }}
+          RESULT: ${{ needs.e2e-accessibility.result }}
+        run: |
+          set -euo pipefail
+          if [ "$CHANGES" != "success" ]; then
+            echo "changes job result: $CHANGES"
+            exit 1
+          fi
+          if [ "$RESULT" = "success" ]; then
+            echo "Accessibility (E2E) green"
+            exit 0
+          fi
+          if [ "$RESULT" = "skipped" ] && [ "$FULL_SUITE" != "true" ]; then
+            echo "Accessibility (E2E) skipped (docs/copy, promote, or SHA already covered)"
+            exit 0
+          fi
+          echo "Accessibility (E2E) result: $RESULT full_suite=$FULL_SUITE"
+          exit 1
+
+  e2e-visual-result:
+    name: Visual Regression (E2E)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [changes, e2e-visual]
+    if: always()
+    steps:
+      - name: Report Visual Regression (E2E)
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          FULL_SUITE: ${{ needs.changes.outputs.full_suite }}
+          RESULT: ${{ needs.e2e-visual.result }}
+        run: |
+          set -euo pipefail
+          if [ "$CHANGES" != "success" ]; then
+            echo "changes job result: $CHANGES"
+            exit 1
+          fi
+          if [ "$RESULT" = "success" ]; then
+            echo "Visual Regression (E2E) green"
+            exit 0
+          fi
+          if [ "$RESULT" = "skipped" ] && [ "$FULL_SUITE" != "true" ]; then
+            echo "Visual Regression (E2E) skipped (docs/copy, promote, or SHA already covered)"
+            exit 0
+          fi
+          echo "Visual Regression (E2E) result: $RESULT full_suite=$FULL_SUITE"
+          exit 1
+
+  coverage-result:
+    name: Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [changes, coverage]
+    if: always()
+    steps:
+      - name: Report Coverage
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          FULL_SUITE: ${{ needs.changes.outputs.full_suite }}
+          RESULT: ${{ needs.coverage.result }}
+          REF: ${{ github.ref }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+          if [ "$CHANGES" != "success" ]; then
+            echo "changes job result: $CHANGES"
+            exit 1
+          fi
+          if [ "$RESULT" = "success" ]; then
+            echo "Coverage green"
+            exit 0
+          fi
+          scheduled=false
+          if [ "$FULL_SUITE" = "true" ] && { [ "$REF" = "refs/heads/main" ] || [ "$BASE_REF" = "main" ]; }; then
+            scheduled=true
+          fi
+          if [ "$RESULT" = "skipped" ] && [ "$scheduled" != "true" ]; then
+            echo "Coverage skipped (not a main/promote full suite, or docs/copy)"
+            exit 0
+          fi
+          echo "Coverage result: $RESULT full_suite=$FULL_SUITE scheduled=$scheduled"
+          exit 1
 
   # ---------------------------------------------------------------------------
   # CI Feedback — notify harness daemon of CI results

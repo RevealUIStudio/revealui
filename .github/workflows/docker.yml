@@ -12,10 +12,12 @@ name: Build & Push Forge Docker Images
 # (supply-chain parity with the npm --provenance release flow).
 #
 # PR runs (GAP-328 work item 2): pull_request builds are verification-only —
-# no GHCR login, no push, no provenance/SBOM. The pull_request trigger carries
-# no path filter on purpose: the `Docker images` summary context is a REQUIRED
-# check, and a workflow-level path filter would leave unrelated PRs stuck on
-# "Expected". Path scoping happens in the `changes` job instead.
+# no GHCR login, no push, no provenance/SBOM. The pull_request trigger still
+# has no workflow-level `paths` (Wave 2): `Docker images` is a REQUIRED check,
+# and a workflow-level path filter would leave copy/docs PRs stuck on
+# "Expected". The `changes` job is the equivalent filter — it lists PR files
+# via the GitHub API (no fetch-depth: 0) and skips the 3-image matrix when
+# the diff is image-irrelevant. The summary job always reports.
 #
 # The required context is the non-matrix `docker-images` summary job, NOT the
 # per-app Build jobs: a matrix job skipped at the job level never expands its
@@ -66,6 +68,7 @@ on:
 permissions:
   contents: read
   packages: write
+  pull-requests: read
 
 concurrency:
   # Per-ref groups so PR verification builds don't queue behind branch pushes.
@@ -90,18 +93,13 @@ jobs:
     outputs:
       docker: ${{ steps.diff.outputs.docker }}
     steps:
-      - name: Checkout
-        if: github.event_name == 'pull_request'
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-
       - name: Diff against the PR base
         id: diff
         env:
           EVENT_NAME: ${{ github.event_name }}
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           if [ "$EVENT_NAME" != "pull_request" ]; then
             echo "docker=true" >> "$GITHUB_OUTPUT"
@@ -116,7 +114,7 @@ jobs:
                 break
                 ;;
             esac
-          done < <(git diff --name-only "$BASE_SHA"...HEAD)
+          done < <(gh api --paginate "repos/${REPO}/pulls/${PR_NUMBER}/files" --jq '.[].filename')
           echo "docker=$docker" >> "$GITHUB_OUTPUT"
 
   build-and-push:

@@ -279,6 +279,7 @@
     "validate:pricing-lockstep": "tsx scripts/validate/pricing-lockstep.ts",
     "validate:dockerfile-deps": "tsx scripts/validate/dockerfile-deps-lockstep.ts",
     "validate:secret-paths": "vitest run scripts/sync/__tests__/secret-paths-lockstep.test.ts",
+    "validate:ci-path-filters": "vitest run scripts/ci/__tests__/expensive-suite.test.ts",
     "validate:doc-currency": "tsx scripts/validate/doc-currency.ts",
     "validate:rules-lockstep": "tsx scripts/validate/rules-lockstep.ts",
     "kek:rotate": "tsx scripts/security/rotate-kek.ts",
