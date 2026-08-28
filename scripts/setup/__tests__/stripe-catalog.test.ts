@@ -12,26 +12,17 @@ import {
 } from '../stripe-catalog.js';
 
 /**
- * Cents-of-record. MUST equal .jv/business/offerings-canonical.md (pinned
- * 2026-06-07). This is the seed side of the pricing lockstep; the marketing
- * display side is cross-checked by scripts/validate/pricing-lockstep.ts.
+ * Cents-of-record for SKUs the seeder may create. Public keep-list lives in
+ * `@revealui/contracts/public-catalog`. Marketing display is cross-checked by
+ * scripts/validate/pricing-lockstep.ts.
  */
 const CENTS_OF_RECORD: Record<string, number> = {
   revealui_pro_monthly: 4900,
   revealui_pro_yearly: 47000,
   revealui_max_monthly: 29900,
   revealui_max_yearly: 287000,
-  revealui_enterprise_monthly: 149900,
-  revealui_enterprise_yearly: 1439000,
   revealui_pro_perpetual: 149900,
-  revealui_max_perpetual: 849900,
-  revealui_enterprise_perpetual: 4299900,
   revealui_renewal_pro: 14900,
-  revealui_renewal_max: 79900,
-  revealui_renewal_enterprise: 399900,
-  revealui_credits_starter: 1000,
-  revealui_credits_standard: 5000,
-  revealui_credits_scale: 25000,
 };
 
 function priceCents(): Record<string, number> {
@@ -60,22 +51,9 @@ describe('stripe-catalog cents-of-record', () => {
     expect(priceCents()).toEqual(CENTS_OF_RECORD);
   });
 
-  it('declares exactly the 12 known product handles', () => {
+  it('declares exactly the public keep-list product handles', () => {
     expect([...DECLARED_PRODUCT_KEYS].sort()).toEqual(
-      [
-        'revealui_credits_scale',
-        'revealui_credits_standard',
-        'revealui_credits_starter',
-        'revealui_enterprise',
-        'revealui_enterprise_perpetual',
-        'revealui_max',
-        'revealui_max_perpetual',
-        'revealui_pro',
-        'revealui_pro_perpetual',
-        'revealui_renewal_enterprise',
-        'revealui_renewal_max',
-        'revealui_renewal_pro',
-      ].sort(),
+      ['revealui_max', 'revealui_pro', 'revealui_pro_perpetual', 'revealui_renewal_pro'].sort(),
     );
   });
 
@@ -113,10 +91,10 @@ describe('findOrphanProducts', () => {
     expect(
       findOrphanProducts([
         view({
-          id: 'ent',
+          id: 'pro',
           track: 'subscription',
-          tier: 'enterprise',
-          productKey: 'revealui_enterprise',
+          tier: 'pro',
+          productKey: 'revealui_pro',
         }),
       ]),
     ).toHaveLength(0);
@@ -139,34 +117,34 @@ describe('findCatalogDrift', () => {
       view({
         id: 'a',
         track: 'subscription',
-        tier: 'enterprise',
-        productKey: 'revealui_enterprise',
-        defaultPriceAmount: 149900,
+        tier: 'pro',
+        productKey: 'revealui_pro',
+        defaultPriceAmount: 4900,
       }),
       view({
         id: 'b',
         track: 'subscription',
-        tier: 'enterprise',
-        productKey: 'revealui_enterprise',
-        defaultPriceAmount: 149900,
+        tier: 'pro',
+        productKey: 'revealui_pro',
+        defaultPriceAmount: 4900,
       }),
     ]);
-    expect(
-      issues.some((i) => i.kind === 'duplicate' && i.productKey === 'revealui_enterprise'),
-    ).toBe(true);
+    expect(issues.some((i) => i.kind === 'duplicate' && i.productKey === 'revealui_pro')).toBe(
+      true,
+    );
   });
   it('reports an amount mismatch against the declared cents', () => {
     const issues = findCatalogDrift([
       view({
         id: 'a',
         track: 'subscription',
-        tier: 'enterprise',
-        productKey: 'revealui_enterprise',
+        tier: 'pro',
+        productKey: 'revealui_pro',
         defaultPriceAmount: 29900,
       }),
     ]);
     expect(
-      issues.some((i) => i.kind === 'amount-mismatch' && i.productKey === 'revealui_enterprise'),
+      issues.some((i) => i.kind === 'amount-mismatch' && i.productKey === 'revealui_pro'),
     ).toBe(true);
   });
   it('reports an orphan for an undeclared managed product', () => {
@@ -183,9 +161,7 @@ describe('findCatalogDrift', () => {
   });
   it('reports missing for a declared product with no active product', () => {
     expect(
-      findCatalogDrift([]).some(
-        (i) => i.kind === 'missing' && i.productKey === 'revealui_enterprise',
-      ),
+      findCatalogDrift([]).some((i) => i.kind === 'missing' && i.productKey === 'revealui_pro'),
     ).toBe(true);
   });
 });

@@ -1,15 +1,15 @@
 #!/usr/bin/env tsx
 /**
  * Pricing lockstep gate -- cross-checks the Stripe seed CATALOG (cents-of-record)
- * against the marketing client-display fallbacks so the two cannot silently
- * drift. The server-side fallback is gated by apps/server's own pricing tests;
- * the human source of truth is .jv/business/offerings-canonical.md.
+ * against the public marketing display fallbacks so the two cannot silently
+ * drift. Follows `@revealui/contracts/public-catalog`, not leftover admin SKUs
+ * in `packages/contracts/src/pricing.ts`.
  *
  * Usage:
  *   tsx scripts/validate/pricing-lockstep.ts          # exit 1 on drift
  *   tsx scripts/validate/pricing-lockstep.ts --warn   # warn-only (exit 0)
  */
-import { PERPETUAL_TIERS } from '@revealui/contracts/pricing';
+import { PUBLIC_PERPETUAL_TIERS } from '@revealui/contracts/public-catalog';
 import {
   ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS,
   PERPETUAL_PRICE_FALLBACKS,
@@ -48,7 +48,6 @@ const mismatches: Mismatch[] = [];
 const SUB_KEY: Record<string, string> = {
   pro: 'revealui_pro_monthly',
   max: 'revealui_max_monthly',
-  enterprise: 'revealui_enterprise_monthly',
 };
 for (const [tier, key] of Object.entries(SUB_KEY)) {
   const fb = SUBSCRIPTION_PRICE_FALLBACKS[tier as keyof typeof SUBSCRIPTION_PRICE_FALLBACKS];
@@ -70,7 +69,6 @@ for (const [tier, key] of Object.entries(SUB_KEY)) {
 const ANNUAL_SUB_KEY: Record<string, string> = {
   pro: 'revealui_pro_yearly',
   max: 'revealui_max_yearly',
-  enterprise: 'revealui_enterprise_yearly',
 };
 for (const [tier, key] of Object.entries(ANNUAL_SUB_KEY)) {
   const fb =
@@ -92,8 +90,6 @@ for (const [tier, key] of Object.entries(ANNUAL_SUB_KEY)) {
 
 const PERP_KEY: Record<string, string> = {
   'Pro Perpetual': 'revealui_pro_perpetual',
-  'Agency Perpetual': 'revealui_max_perpetual',
-  'Enterprise Perpetual': 'revealui_enterprise_perpetual',
 };
 for (const [name, key] of Object.entries(PERP_KEY)) {
   const fb = PERPETUAL_PRICE_FALLBACKS[name];
@@ -112,14 +108,11 @@ for (const [name, key] of Object.entries(PERP_KEY)) {
   }
 }
 
-// Renewal cents-of-record: PERPETUAL_TIERS (contracts, the source display
-// consumers merge from) and PERPETUAL_PRICE_FALLBACKS (marketing fallback)
-// must both match the CATALOG's revealui_renewal_{pro,max,enterprise} prices
-// (GAP-306: renewal display must derive from the catalog, not drift alone).
+// Renewal cents-of-record: PUBLIC_PERPETUAL_TIERS (public catalog) and
+// PERPETUAL_PRICE_FALLBACKS (marketing fallback) must match CATALOG's
+// revealui_renewal_pro price. Leftover admin SKUs stay in pricing.ts.
 const RENEWAL_KEY: Record<string, string> = {
   'Pro Perpetual': 'revealui_renewal_pro',
-  'Agency Perpetual': 'revealui_renewal_max',
-  'Enterprise Perpetual': 'revealui_renewal_enterprise',
 };
 
 function checkRenewalSurface(surface: string, renewals: Record<string, string | undefined>): void {
@@ -143,7 +136,7 @@ function checkRenewalSurface(surface: string, renewals: Record<string, string | 
 
 checkRenewalSurface(
   'perpetual-renewal',
-  Object.fromEntries(PERPETUAL_TIERS.map((tier) => [tier.name, tier.renewal])),
+  Object.fromEntries(PUBLIC_PERPETUAL_TIERS.map((tier) => [tier.name, tier.renewal])),
 );
 checkRenewalSurface(
   'perpetual-renewal-fallback',
@@ -165,7 +158,5 @@ for (const m of mismatches) {
     `    [${m.surface}] ${m.tier}: fallback ${m.fallback} (${m.fallbackCents}) != CATALOG ${m.catalogKey} (${m.catalogCents ?? 'MISSING'})`,
   );
 }
-console.log(
-  '  Update offerings-canonical.md + ALL surfaces in lockstep (see pricing-fallbacks.ts header).',
-);
+console.log('  Update the seeder CATALOG + public-catalog / pricing-fallbacks together.');
 process.exit(warnOnly ? 0 : 1);

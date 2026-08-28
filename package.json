@@ -277,6 +277,7 @@
     "validate:seed-wiring": "tsx scripts/validate/seed-script-wiring.ts",
     "validate:stripe-client": "tsx scripts/validate/stripe-client.ts",
     "validate:pricing-lockstep": "tsx scripts/validate/pricing-lockstep.ts",
+    "validate:stripe-catalog": "vitest run scripts/setup/__tests__/stripe-catalog.test.ts scripts/setup/__tests__/stripe-catalog-lockstep.test.ts",
     "validate:dockerfile-deps": "tsx scripts/validate/dockerfile-deps-lockstep.ts",
     "validate:secret-paths": "vitest run scripts/sync/__tests__/secret-paths-lockstep.test.ts",
     "validate:ci-path-filters": "vitest run scripts/ci/__tests__/expensive-suite.test.ts",
