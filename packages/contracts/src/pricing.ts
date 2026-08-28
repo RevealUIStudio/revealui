@@ -345,7 +345,7 @@ export function allowsUnattendedPerpetualCheckout(tier: LicenseTierId): boolean 
 }
 
 /** Buy hop keep-list. Leftover agency/enterprise SKUs are display-only. */
-export function isBuyablePerpetualLicenseSku(sku: PerpetualLicenseSku): boolean {
+export function isBuyablePerpetualLicenseSku(sku: PerpetualLicenseSku): sku is 'pro' {
   return sku === 'pro';
 }
 
