@@ -3,7 +3,6 @@ import { join } from 'node:path';
 
 /**
  * Config path mappings for AI harnesses.
- * Mirrors editor-config-paths.ts from packages/editors.
  *
  * Local paths: harness config on this machine.
  * Root paths: backup/sync target on the DevPod (ext4 USB) or LTS (NTFS).
