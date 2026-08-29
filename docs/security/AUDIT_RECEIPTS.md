@@ -83,6 +83,26 @@ row and anchors from `floor + 1` forward. Rows at or below that floor are
 pre-enforcement legacy rows and are never retro-signed, for the same reason
 as the per-tenant floor above.
 
+## Pre-customer genesis (ADR-009)
+
+Before the first paying customer, the operator may start a **receipts epoch**
+instead of carrying an unsigned floor forever:
+
+- Do not retro-sign unsigned rows.
+- Do not open a second live `audit_log` table.
+- Optional cold dump of `audit_log` + `audit_anchors` (archive file, not a
+  live query path).
+- `TRUNCATE audit_log, audit_anchors RESTART IDENTITY` (both tables; leftover
+  roots over vanished seqs are worse than unsigned rows).
+- GAP-417 signed-only rails stay. Next append is seq 1 and signed.
+
+Operator: `pnpm genesis:audit-receipts` (dry-run). Apply requires
+`AUDIT_RECEIPTS_GENESIS_CONFIRM` and `--attest-no-paying-customers`. After
+the first paying customer, genesis needs a new ADR.
+
+Fleet-wide other stores (Stripe, other Neon tables, RevDev, RevForge, Agency)
+are GAP-486, not this truncate.
+
 ## Offline verify
 
 ```bash
