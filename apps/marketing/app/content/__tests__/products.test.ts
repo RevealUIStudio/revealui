@@ -26,7 +26,6 @@ describe('products roster honesty', () => {
     expect(PRODUCTS_PAGE_HERO.subtitle.includes('RevealFleet')).toBe(true);
     expect(PRODUCTS_PAGE_HERO.subtitle.includes('pull-and-run Fleet')).toBe(false);
     expect(PRODUCTS_PAGE_HERO.subtitle.includes('Pro Perpetual')).toBe(true);
-    expect(PRODUCTS_PAGE_HERO.subtitle.includes('$1,499')).toBe(true);
     expect(PRODUCTS_PAGE_HERO.subtitle.toLowerCase().includes('inquire')).toBe(true);
     expect(PRODUCTS_PAGE_HERO.subtitle.includes('Contact sales')).toBe(false);
   });

@@ -714,7 +714,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'products.ts',
     exportPath: 'PRODUCTS_PAGE_HERO.subtitle',
     proofGrade: 'outcome',
-    text: 'License the self-hosted runtime. Free, Pro $49, Max $299, Enterprise inquire, and Pro Perpetual $1,499. Studio SKUs live on revealuistudio.com. Zero paying customers. This is not a launched pull-and-run RevealFleet.',
+    text: 'License the self-hosted runtime. Free, Pro, Max, Enterprise inquire, and Pro Perpetual. Studio SKUs live on revealuistudio.com. Zero paying customers. This is not a launched pull-and-run RevealFleet.',
     evidence: [REPO, SELF_HOST, TIER_GATES],
   },
   {
