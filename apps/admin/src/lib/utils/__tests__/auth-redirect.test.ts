@@ -34,25 +34,25 @@ describe('resolveAuthDest enterprise', () => {
 });
 
 describe('parseLicense', () => {
-  it('accepts perpetual SKUs and aliases max → agency', () => {
+  it('accepts only the buyable Pro Perpetual SKU', () => {
     expect(parseLicense('pro')).toBe('pro');
-    expect(parseLicense('agency')).toBe('agency');
-    expect(parseLicense('enterprise')).toBe('enterprise');
-    expect(parseLicense('max')).toBe('agency');
+    expect(parseLicense('agency')).toBeNull();
+    expect(parseLicense('enterprise')).toBeNull();
+    expect(parseLicense('max')).toBeNull();
     expect(parseLicense('bogus')).toBeNull();
   });
 });
 
 describe('resolveAuthDest', () => {
-  it('prefers a perpetual license SKU over subscription upgrade', () => {
+  it('prefers a buyable perpetual license SKU over subscription upgrade', () => {
     expect(
       resolveAuthDest({
-        upgrade: 'pro',
-        license: 'agency',
+        upgrade: 'max',
+        license: 'pro',
         redirect: '/somewhere',
         fallback: '/welcome',
       }),
-    ).toBe('/account/license?license=agency');
+    ).toBe('/account/license?license=pro');
   });
 
   it('prefers upgrade over redirect and fallback', () => {
@@ -103,10 +103,23 @@ describe('readAuthIntent', () => {
     });
   });
 
-  it('parses a perpetual license SKU', () => {
+  it('parses a buyable perpetual license SKU', () => {
+    expect(readAuthIntent(reader({ license: 'pro' }))).toEqual({
+      upgrade: null,
+      license: 'pro',
+      redirect: null,
+    });
+  });
+
+  it('drops leftover Agency and Enterprise perpetual buy hops', () => {
     expect(readAuthIntent(reader({ license: 'agency' }))).toEqual({
       upgrade: null,
-      license: 'agency',
+      license: null,
+      redirect: null,
+    });
+    expect(readAuthIntent(reader({ license: 'enterprise' }))).toEqual({
+      upgrade: null,
+      license: null,
       redirect: null,
     });
   });

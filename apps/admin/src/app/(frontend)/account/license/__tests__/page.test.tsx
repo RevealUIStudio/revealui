@@ -143,7 +143,7 @@ describe('LicensePage activation instructions', () => {
 // in @revealui/contracts/pricing exactly (the price lookup keys off it).
 // Enterprise is Contact sales — same door as public pricing — not a Buy.
 describe('LicensePage perpetual purchase plans', () => {
-  it('renders Pro and Agency Buy, and parks Enterprise Perpetual at Contact sales', async () => {
+  it('renders Pro Perpetual as the only buyable leftover-admin SKU', async () => {
     render(<LicensePage />);
 
     await waitFor(() => {
@@ -151,22 +151,10 @@ describe('LicensePage perpetual purchase plans', () => {
     });
 
     expect(screen.getByText('Pro Perpetual')).toBeDefined();
-    expect(screen.getByText('Agency Perpetual')).toBeDefined();
-    expect(screen.getByText('Enterprise Perpetual')).toBeDefined();
+    expect(screen.queryByText('Agency Perpetual')).toBeNull();
+    expect(screen.queryByText('Enterprise Perpetual')).toBeNull();
     expect(screen.queryByText('Max Perpetual')).toBeNull();
-    expect(
-      screen.getByText(
-        'Enterprise license plus studio onboarding. Not an unattended Fleet pull-and-run kit. Includes 1 year of support.',
-      ),
-    ).toBeDefined();
-    expect(
-      screen.getByText(
-        'Max features forever, up to 10 client deployments. License plus a thin kit, not an unattended RevForge Fleet stamp. Includes 1 year of support.',
-      ),
-    ).toBeDefined();
-    const sales = screen.getByRole('link', { name: 'Contact sales' });
-    expect(sales).toHaveAttribute('href', 'https://revealui.com/contact');
-    expect(screen.getAllByRole('button', { name: /^Buy / })).toHaveLength(2);
+    expect(screen.getAllByRole('button', { name: /^Buy / })).toHaveLength(1);
     expect(screen.queryByRole('button', { name: /Buy \$42/ })).toBeNull();
   });
 

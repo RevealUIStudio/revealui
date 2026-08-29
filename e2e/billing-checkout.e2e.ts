@@ -260,7 +260,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
     }
   });
 
-  test('Credits checkout is healthy', async ({ page }) => {
+  test('Credits checkout is rejected', async ({ page }) => {
     test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
     const session = await ensureSession(page);
     test.skip(!session, 'No valid session  -  authentication failed');
@@ -275,7 +275,31 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
       },
     });
 
-    await expectHealthyCheckout(response);
+    expect(response.status()).toBe(400);
+    const body = (await response.json()) as { url?: string; error?: string };
+    expect(body.url).toBeUndefined();
+    expect(body.error).toMatch(/not sold|not available/i);
+  });
+
+  test('Agency Perpetual leftover checkout is rejected', async ({ page }) => {
+    test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
+    const session = await ensureSession(page);
+    test.skip(!session, 'No valid session  -  authentication failed');
+    if (!session) return;
+
+    const response = await page.request.post(`${ApiBase}/api/billing/checkout-perpetual`, {
+      data: { tier: 'max' },
+      headers: {
+        'Content-Type': 'application/json',
+        cookie: session.cookieHeader,
+        'X-CSRF-Token': session.csrfToken,
+      },
+    });
+
+    expect(response.status()).toBe(400);
+    const body = (await response.json()) as { url?: string; error?: string };
+    expect(body.url).toBeUndefined();
+    expect(body.error).toMatch(/not sold|sales/i);
   });
 
   test('Billing portal returns Stripe URL', async ({ page }) => {

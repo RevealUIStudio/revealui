@@ -14,7 +14,7 @@ import {
   signUp,
 } from '@revealui/auth/server';
 import { SignUpRequestContract } from '@revealui/contracts';
-import { parsePerpetualLicenseSku } from '@revealui/contracts/pricing';
+import { parseBuyablePerpetualLicenseSku } from '@revealui/contracts/pricing';
 import { getMaxUsers, initializeLicense } from '@revealui/core/license';
 import { getClient } from '@revealui/db';
 import { countActiveUsers, updateUser } from '@revealui/db/queries/users';
@@ -72,7 +72,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
     const rawPlan = request.nextUrl.searchParams.get('plan');
     const plan: 'pro' | 'max' | 'enterprise' | null =
       rawPlan === 'pro' || rawPlan === 'max' || rawPlan === 'enterprise' ? rawPlan : null;
-    const license = parsePerpetualLicenseSku(request.nextUrl.searchParams.get('license'));
+    const license = parseBuyablePerpetualLicenseSku(request.nextUrl.searchParams.get('license'));
 
     let body: unknown;
     try {

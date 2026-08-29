@@ -8,6 +8,7 @@
 import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import {
   allowsUnattendedCheckout,
+  allowsUnattendedPerpetualCheckout,
   ENTERPRISE_SALES_HREF,
   type LicenseTierId,
 } from '@revealui/contracts/pricing';
@@ -312,16 +313,25 @@ export const InvoicesResponseSchema = z.object({
 });
 
 /**
- * Enterprise subscription and Enterprise Perpetual are sales-assisted.
- * A crafted POST with an Enterprise price id must not open Stripe Checkout
- * or apply a mid-cycle upgrade. Agency Founding Kit fulfillment uses
- * `tier: max` (see docs/distribution/AGENCY-FOUNDING-KIT-FULFILLMENT.md);
- * RevForge license mint is operator CLI, not this route.
+ * Enterprise subscription is sales-assisted. A crafted POST with an
+ * Enterprise price id must not open Stripe Checkout or apply a mid-cycle
+ * upgrade. Max subscription remains self-serve.
  */
 export function assertUnattendedCheckoutAllowed(tier: string): void {
   if (allowsUnattendedCheckout(tier as LicenseTierId)) return;
   throw new HTTPException(400, {
     message: `Enterprise plans require a sales conversation. Contact sales at ${ENTERPRISE_SALES_HREF}`,
+  });
+}
+
+/**
+ * Perpetual keep-list is Pro only. Leftover Agency (`tier: max`) and
+ * Enterprise perpetual stay mint/display leftovers for already-issued keys.
+ */
+export function assertUnattendedPerpetualCheckoutAllowed(tier: string): void {
+  if (allowsUnattendedPerpetualCheckout(tier as LicenseTierId)) return;
+  throw new HTTPException(400, {
+    message: `This perpetual license is not sold. Contact sales at ${ENTERPRISE_SALES_HREF}`,
   });
 }
 
