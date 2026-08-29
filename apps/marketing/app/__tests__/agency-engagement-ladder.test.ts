@@ -1,8 +1,9 @@
 /**
  * Drift gate for leftover studio anchors. The product /pricing catalog must
  * not derive a done-for-you ladder from AGENCY_ENGAGEMENT_LADDER. Studio
- * SKUs belong on revealuistudio.com: Hour $300 / Written plan $3,500 /
- * Launch $7,500. Dead Fleet and Custom Build objects must not exist.
+ * SKUs belong on revealuistudio.com: Hour $300 / Architecture artifact
+ * bundle and review $3,500 / Launch $7,500. Dead Fleet and Custom Build
+ * objects must not exist.
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -11,8 +12,11 @@ import { describe, expect, it } from 'vitest';
 import {
   AGENCY_ENGAGEMENT_LADDER,
   agencyEngagementPriceDisplay,
+  FOR_OPERATORS_CLOSING,
   FOR_OPERATORS_FAQ,
+  FOR_OPERATORS_HERO,
   FOR_OPERATORS_PRICING,
+  FOR_OPERATORS_PROOF,
 } from '../content/for-operators';
 import * as pricing from '../content/pricing';
 
@@ -42,10 +46,10 @@ function countOccurrencesInCode(source: string, needle: string): number {
 }
 
 describe('AGENCY_ENGAGEMENT_LADDER — locked studio anchors', () => {
-  it('pins Hour, Written plan, and Launch only', () => {
+  it('pins Hour, Architecture artifact bundle and review, and Launch only', () => {
     expect(AGENCY_ENGAGEMENT_LADDER.map((e) => [e.id, e.name, e.price, e.startsFrom])).toEqual([
       ['consulting-hour', 'Hour', '$300', false],
-      ['architecture-review', 'Written plan', '$3,500', false],
+      ['architecture-review', 'Architecture artifact bundle and review', '$3,500', false],
       ['launch-package', 'Launch', '$7,500', false],
     ]);
   });
@@ -94,6 +98,25 @@ describe('product pricing.ts does not sell the studio ladder', () => {
   });
 });
 
+describe('for-operators retired public copy stays gone', () => {
+  it('does not republish Written plan, ten years, or Book a build call', () => {
+    expect(countOccurrencesInCode(FOR_OPERATORS_SRC, 'Written plan')).toBe(0);
+    expect(countOccurrencesInCode(FOR_OPERATORS_SRC, 'Ten years')).toBe(0);
+    expect(countOccurrencesInCode(FOR_OPERATORS_SRC, 'Book a build call')).toBe(0);
+  });
+
+  it('uses Hour, Architecture artifact bundle and review, Launch, 5+ years, and a 30-minute intro', () => {
+    expect(AGENCY_ENGAGEMENT_LADDER.map((e) => e.name)).toEqual([
+      'Hour',
+      'Architecture artifact bundle and review',
+      'Launch',
+    ]);
+    expect(FOR_OPERATORS_PROOF.body.includes('5+ years')).toBe(true);
+    expect(FOR_OPERATORS_HERO.primaryCta.label).toBe('Book a 30-minute intro');
+    expect(FOR_OPERATORS_CLOSING.primaryCta.label).toBe('Book a 30-minute intro');
+  });
+});
+
 describe('dead SKU anchors stay out of marketing content', () => {
   const deadAnchors = ['$25,000', '$50,000', 'Fleet deployment', 'Custom Build'] as const;
 
@@ -115,7 +138,7 @@ describe('FOUNDER_SERVICE_OFFERINGS — founder-led services menu', () => {
     expect(names).not.toContain('Custom Build');
   });
 
-  it('agrees with the studio ladder on the shared Written plan price', () => {
+  it('agrees with the studio ladder on the shared architecture-review price', () => {
     const review = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'architecture-review');
     const ladderReview = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === 'architecture-review');
     expect(review?.price).toBe(ladderReview?.price);

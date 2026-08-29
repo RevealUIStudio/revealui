@@ -29,7 +29,7 @@ export const PRICING_FAQS: readonly FaqItem[] = [
   {
     question: 'What are perpetual licenses?',
     answer:
-      'A perpetual license is a one-time purchase that gives you a license key for the corresponding tier, forever, with no monthly subscription required. Support and updates are included for 1 year; after that, renew your support contract or keep using the version you have. This page sells Perpetual Pro as a license. Studio SKUs live on revealuistudio.com.',
+      'A perpetual license is a one-time purchase that gives you a license key for the corresponding tier, forever, with no monthly subscription required. Support and updates are included for 1 year; after that, renew your support contract or keep using the version you have. This page sells Pro Perpetual as a license. Studio SKUs live on revealuistudio.com.',
   },
   {
     question: 'Can I upgrade or downgrade my plan?',
@@ -56,6 +56,6 @@ export const PRICING_FAQS: readonly FaqItem[] = [
   {
     question: 'What is RevealFleet?',
     answer:
-      'RevealUI Studio ships RevealFleet. RevealUI is the lead product and the buyable runtime on this site. The catalog is Free, Pro at $49, Max at $299, and Enterprise by inquiry. RevVault is encrypted secret management inside Pro. It is not a separate paid SKU.',
+      'RevealUI Studio ships RevealFleet. RevealUI is the lead product and the buyable runtime on this site. The catalog is Free, Pro at $49, Max at $299, Enterprise by inquiry, and Pro Perpetual at $1,499. RevVault is encrypted secret management inside Pro. It is not a separate paid SKU.',
   },
 ];

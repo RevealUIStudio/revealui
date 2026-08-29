@@ -1,5 +1,5 @@
 // Public product catalog: Free / Pro / Max subscription + Enterprise as a
-// license + Perpetual Pro as a license. Studio SKUs live on revealuistudio.com.
+// license + Pro Perpetual as a license. Studio SKUs live on revealuistudio.com.
 // Done-for-you, Starter Kit, Agency Founding Kit, and the rented-stack
 // calculator are not part of this catalog.
 
@@ -25,7 +25,7 @@ export const PRICING_HERO: SectionHeading = {
 
 /** Coming-soon work stays off the cards. Do not sell it as included. */
 export const PRICING_COMING_SOON_NOTE =
-  'Not included today: advanced inference configuration, RevKit environment provisioning, and x402 agent payments. Status lives in the agents section below.';
+  'Not included today: advanced inference configuration, environment provisioning, and x402 agent payments. Status lives in the agents section below.';
 
 export const PRICING_HERO_SUBTEXT = {
   prefix:
