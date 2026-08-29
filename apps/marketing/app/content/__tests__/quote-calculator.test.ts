@@ -57,9 +57,9 @@ describe('quote calculator (product-site lockstep)', () => {
     expect(QUOTE_CALCULATOR.selfHost.free).toContain(SUBSCRIPTION_PRICE_FALLBACKS.free.price);
     expect(QUOTE_CALCULATOR.selfHost.agents).toContain(SUBSCRIPTION_PRICE_FALLBACKS.pro.price);
     expect(QUOTE_CALCULATOR.selfHost.agents).toContain(SUBSCRIPTION_PRICE_FALLBACKS.max.price);
-    expect(QUOTE_CALCULATOR.selfHost.perpetual).toContain(
-      PERPETUAL_PRICE_FALLBACKS['Pro Perpetual'].price,
-    );
+    const perpetual = PERPETUAL_PRICE_FALLBACKS['Pro Perpetual'];
+    expect(perpetual).toBeDefined();
+    expect(QUOTE_CALCULATOR.selfHost.perpetual).toContain(perpetual?.price);
     expect(QUOTE_CALCULATOR.studio.hour.price).toBe('$300');
     expect(QUOTE_CALCULATOR.studio.plan.price).toBe('$3,500');
     expect(QUOTE_CALCULATOR.studio.launch.price).toBe('$7,500');

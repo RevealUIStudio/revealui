@@ -53,7 +53,16 @@ export interface QuoteOption<Id extends string> {
 const FREE_PRICE = SUBSCRIPTION_PRICE_FALLBACKS.free.price;
 const PRO_PRICE = SUBSCRIPTION_PRICE_FALLBACKS.pro.price;
 const MAX_PRICE = SUBSCRIPTION_PRICE_FALLBACKS.max.price;
-const PERPETUAL_PRICE = PERPETUAL_PRICE_FALLBACKS['Pro Perpetual'].price;
+
+function publicPerpetualPrice(): string {
+  const fallback = PERPETUAL_PRICE_FALLBACKS['Pro Perpetual'];
+  if (fallback === undefined) {
+    throw new Error('Pro Perpetual is missing from PERPETUAL_PRICE_FALLBACKS');
+  }
+  return fallback.price;
+}
+
+const PERPETUAL_PRICE = publicPerpetualPrice();
 
 export const DEFAULT_QUOTE_ANSWERS: QuoteAnswers = {
   who: 'self',
@@ -100,7 +109,7 @@ export const QUOTE_CALCULATOR = {
     hour: {
       title: 'Hour',
       price: CONSULTING_HOUR_PRICE,
-      body: 'Invoice before we start. No holdback.',
+      body: 'Invoice before start. No holdback.',
     },
     plan: {
       title: 'Architecture artifact bundle and review',

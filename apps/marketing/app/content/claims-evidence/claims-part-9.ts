@@ -146,7 +146,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.studio.hour.body',
     proofGrade: 'outcome',
-    text: 'Invoice before we start. No holdback.',
+    text: 'Invoice before start. No holdback.',
     evidence: [
       {
         kind: 'test',
