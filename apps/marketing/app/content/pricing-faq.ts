@@ -54,8 +54,8 @@ export const PRICING_FAQS: readonly FaqItem[] = [
     answer: `Enterprise is a license. Contact ${SITE.emails.support} to inquire. See /sla for support and uptime commitments.`,
   },
   {
-    question: 'What is RevFleet?',
+    question: 'What is RevealFleet?',
     answer:
-      'RevFleet is the RevealUI Studio product family: seven products that compose around the RevealUI runtime. RevealUI is the agentic business runtime. RevVault encrypts secrets (CLI MIT, desktop Pro). RevDev is the engineering harness for multi-agent coordination across Claude, Cursor, and Copilot (Studio + Console MIT, Daemon Fair Source). RevCon syncs editor configs (MIT). RevSkills is the Agent Skills library (MIT). RevForge is the operator-side stamping tool that produces white-label trial kits (operator-only). RevMarket is the agent tool marketplace (bundled with the runtime, on the way). Use RevealUI standalone, or compose what you need.',
+      'RevealUI Studio ships RevealFleet. RevealUI is the lead product and the buyable runtime on this site. The catalog is Free, Pro at $49, Max at $299, and Enterprise by inquiry. RevVault is encrypted secret management inside Pro. It is not a separate paid SKU.',
   },
 ];

@@ -228,6 +228,22 @@ describe('PricingPage product catalog', () => {
     expect(screen.queryByRole('link', { name: 'Request the RevealUI Starter Kit' })).toBeNull();
   });
 
+  it('asks What is RevealFleet and does not sell parked fleet SKUs', async () => {
+    render(<PricingPage />);
+    expect(await screen.findByText('What is RevealFleet?')).toBeInTheDocument();
+    expect(screen.queryByText('What is RevFleet?')).toBeNull();
+    const answer = screen.getByText('RevealUI Studio ships RevealFleet', { exact: false });
+    const text = answer.textContent ?? '';
+    expect(text.includes('seven products')).toBe(false);
+    expect(text.includes('RevForge')).toBe(false);
+    expect(text.includes('RevKit')).toBe(false);
+    expect(text.includes('RevDev')).toBe(false);
+    expect(text.includes('RevCon')).toBe(false);
+    expect(text.includes('RevSkills')).toBe(false);
+    expect(text.includes('RevMarket')).toBe(false);
+    expect(text.includes('RevVault is encrypted secret management inside Pro')).toBe(true);
+  });
+
   it('links the final Get Started Free CTA to admin signup', async () => {
     render(<PricingPage />);
     const cta = await screen.findByRole('link', { name: 'Get Started Free' });
