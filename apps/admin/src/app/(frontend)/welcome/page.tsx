@@ -4,6 +4,7 @@ import { TIER_LABELS } from '@revealui/contracts/pricing';
 import { Badge, Button } from '@revealui/presentation/client';
 import { useEffect, useState } from 'react';
 import { useLicense } from '@/lib/providers/LicenseProvider';
+import { isLicenseTierId, welcomeExpiryCopy } from './welcome-expiry';
 
 const DOCS_URL = process.env.NEXT_PUBLIC_DOCS_URL || 'https://docs.revealui.com';
 const STARTER_REPO_URL = 'https://github.com/RevealUIStudio/revealui';
@@ -37,12 +38,44 @@ export default function WelcomePage() {
   const [isPostPurchase, setIsPostPurchase] = useState(false);
   const [deniedAdmin, setDeniedAdmin] = useState(false);
   const [cliCopied, setCliCopied] = useState(false);
+  const [expiryCopy, setExpiryCopy] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setIsPostPurchase(params.get('success') === 'true');
     setDeniedAdmin(params.get('denied') === 'admin');
   }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void (async () => {
+      try {
+        const res = await fetch('/api/billing/subscription', {
+          credentials: 'include',
+          signal: controller.signal,
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as {
+          tier?: unknown;
+          status?: unknown;
+          expiresAt?: unknown;
+          perpetual?: unknown;
+        };
+        if (controller.signal.aborted) return;
+        setExpiryCopy(
+          welcomeExpiryCopy({
+            tier: isLicenseTierId(data.tier) ? data.tier : tier,
+            expiresAt: data.expiresAt,
+            status: data.status,
+            perpetual: data.perpetual,
+          }),
+        );
+      } catch {
+        // Network / abort — do not invent a date.
+      }
+    })();
+    return () => controller.abort();
+  }, [tier]);
 
   const tierLabel = TIER_LABELS[tier] ?? 'Free';
   const isPaidTier = tier !== 'free';
@@ -92,6 +125,9 @@ export default function WelcomePage() {
             ? 'Concrete first actions to put your subscription to work.'
             : 'New here? Start with one of these tracks.'}
         </p>
+        {expiryCopy && (
+          <p className="mx-auto mt-2 max-w-2xl text-lg text-muted-foreground">{expiryCopy}</p>
+        )}
       </div>
 
       {/* CTAs */}
