@@ -83,6 +83,7 @@ async function main(): Promise<void> {
     return;
   }
 
+  // drizzle-raw: ADR-009 owner DDL. Append-only trigger forbids UPDATE/DELETE; TRUNCATE is the genesis path.
   await db.execute(sql`TRUNCATE TABLE audit_log, audit_anchors RESTART IDENTITY`);
   const after = await readGenesisCounts(db);
   process.stdout.write(`${JSON.stringify({ mode: 'apply', after })}\n`);
