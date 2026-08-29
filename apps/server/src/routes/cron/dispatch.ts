@@ -5,12 +5,13 @@
  * (limited to 1 cron per day). Runs each handler sequentially and
  * aggregates results.
  *
- * Vercel calls: POST /api/cron/dispatch (daily at 06:00 UTC)
+ * Vercel platform crons GET /api/cron/dispatch (daily at 06:00 UTC) and send
+ * Authorization: Bearer CRON_SECRET. Manual / WSL invocation remains
+ * POST /api/cron/dispatch with X-Cron-Secret: REVEALUI_CRON_SECRET.
  *
- * Each sub-handler is called internally via its Hono app instance,
- * so the CRON_SECRET is validated once here and forwarded.
- *
- * Protected by X-Cron-Secret header.
+ * Dispatch accepts either token (timing-safe, fail-closed). Sub-jobs are
+ * always invoked with X-Cron-Secret: REVEALUI_CRON_SECRET. They compare
+ * against that env, not Vercel's Bearer CRON_SECRET.
  */
 
 import { timingSafeEqual } from 'node:crypto';
@@ -35,11 +36,46 @@ import uptimeCheckApp from './uptime-check.js';
 
 const app = new Hono();
 
+const BEARER_PREFIX = 'Bearer ';
+
 interface JobResult {
   name: string;
   status: number;
   body: unknown;
   durationMs: number;
+}
+
+function timingSafeMatch(provided: string, secret: string | undefined): boolean {
+  if (!secret) return false;
+  try {
+    const a = Buffer.from(provided);
+    const b = Buffer.from(secret);
+    return a.length === b.length && timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
+}
+
+function extractCronToken(c: {
+  req: { header: (name: string) => string | undefined };
+}): string | undefined {
+  const headerSecret = c.req.header('X-Cron-Secret') || c.req.header('x-cron-secret');
+  if (headerSecret) return headerSecret;
+
+  const authorization = c.req.header('Authorization') || c.req.header('authorization');
+  if (!authorization?.startsWith(BEARER_PREFIX)) return undefined;
+  const token = authorization.slice(BEARER_PREFIX.length);
+  return token.length > 0 ? token : undefined;
+}
+
+function authorizeCronDispatch(c: {
+  req: { header: (name: string) => string | undefined };
+}): boolean {
+  const provided = extractCronToken(c);
+  if (!provided) return false;
+  const revealuiOk = timingSafeMatch(provided, process.env.REVEALUI_CRON_SECRET);
+  const vercelOk = timingSafeMatch(provided, process.env.CRON_SECRET);
+  return revealuiOk || vercelOk;
 }
 
 const JOBS = [
@@ -119,34 +155,25 @@ const JOBS = [
   { name: 'report-agent-overage', app: billingApp, path: '/report-agent-overage' },
 ];
 
-app.post('/dispatch', async (c) => {
-  const cronSecret = process.env.REVEALUI_CRON_SECRET;
-  const provided = c.req.header('X-Cron-Secret') || c.req.header('x-cron-secret');
-
-  if (!(cronSecret && provided)) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-
-  try {
-    const a = Buffer.from(provided);
-    const b = Buffer.from(cronSecret);
-    if (a.length !== b.length || !timingSafeEqual(a, b)) {
-      return c.json({ error: 'Unauthorized' }, 401);
-    }
-  } catch {
+app.on(['GET', 'POST'], '/dispatch', async (c) => {
+  if (!authorizeCronDispatch(c)) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
   logger.info('[cron-dispatch] Starting consolidated cron run');
 
   const results: JobResult[] = [];
+  const fanoutSecret = process.env.REVEALUI_CRON_SECRET;
+  const fanoutHeaders: Record<string, string> = fanoutSecret
+    ? { 'X-Cron-Secret': fanoutSecret }
+    : {};
 
   for (const job of JOBS) {
     const start = Date.now();
     try {
       const req = new Request(`http://localhost${job.path}`, {
         method: 'POST',
-        headers: { 'X-Cron-Secret': provided },
+        headers: fanoutHeaders,
       });
       const res = await job.app.fetch(req);
       const body = await res.json();

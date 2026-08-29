@@ -66,6 +66,12 @@
       "path": "scripts/security/rotate-kek.ts",
       "rules": ["direct-import"],
       "reason": "KEK rotation operational tool (GAP-126 Phase 2). One-off script that performs simple SELECT/UPDATE on the two KEK-encrypted columns (user_api_keys.encrypted_key + users.mfa_secret). Uses raw pg.Pool instead of @revealui/db/client to keep the rotation tool isolated from production DB-client lifecycle (singleton pools, retry policies, observability hooks). Operator-invoked; 2 surfaces, ~3 SQL ops total. Permanent."
+    },
+    {
+      "path": "scripts/security/audit-receipts-genesis.ts",
+      "rules": ["execute-sql-literal"],
+      "reason": "ADR-009 pre-customer receipts genesis. TRUNCATE audit_log + audit_anchors RESTART IDENTITY is owner DDL; Drizzle has no query-builder for TRUNCATE. Append-only trigger blocks UPDATE/DELETE only. Fail-closed behind confirm env + attest flag. Permanent.",
+      "migrationPhase": null
     }
   ]
 }
