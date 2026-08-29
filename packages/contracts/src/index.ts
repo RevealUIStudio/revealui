@@ -519,6 +519,8 @@ export {
 // =============================================================================
 
 export {
+  allowsUnattendedCheckout,
+  allowsUnattendedPerpetualCheckout,
   CREDIT_BUNDLES,
   type CreditBundle,
   FEATURE_LABELS,
@@ -526,6 +528,7 @@ export {
   getTierColor,
   getTierLabel,
   getTiersFromCurrent,
+  isBuyablePerpetualLicenseSku,
   isPublicPerpetualCatalogName,
   type LicenseTierId,
   PAID_TIER_SUPPORT,
@@ -534,6 +537,7 @@ export {
   type PricingResponse,
   PUBLIC_PERPETUAL_NAMES,
   PUBLIC_PERPETUAL_TIERS,
+  parseBuyablePerpetualLicenseSku,
   perpetualMaxSitesForTier,
   SUBSCRIPTION_TIERS,
   type SubscriptionTier,

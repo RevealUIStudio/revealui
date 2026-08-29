@@ -1,6 +1,6 @@
 /**
  * Core types for the AI harness integration system.
- * Mirrors packages/editors/src/types/core.ts for the harness domain.
+ * This package owns the harness-domain types (there is no packages/editors).
  */
 
 export interface HarnessCapabilities {

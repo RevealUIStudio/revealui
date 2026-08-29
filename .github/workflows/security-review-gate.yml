@@ -26,8 +26,10 @@ on:
     types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
 
 concurrency:
+  # Required check. Labeling retriggers the same PR group; cancelling the
+  # in-flight run leaves CANCELLED on the SHA and blocks merge (#2755).
   group: security-review-gate-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read

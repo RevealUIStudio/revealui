@@ -7,7 +7,9 @@ import { ErrorBoundary } from '@/lib/components/ErrorBoundary/index';
 import { RenderHero } from '@/lib/heros/RenderHero';
 import { asNormalizedProps } from '@/lib/utils/type-guards';
 import { ArchiveBlock } from './ArchiveBlock/Component';
+import { BannerBlock } from './Banner/Component';
 import { CallToActionBlock } from './CallToAction/Component';
+import { CodeBlock } from './Code/Component';
 import { ContentBlock } from './Content/Component';
 import { FormBlock } from './Form/Component';
 import { MediaBlock } from './MediaBlock/Component';
@@ -20,6 +22,8 @@ type ContentBlockProps = Extract<Page['blocks'][0], { blockType: 'content' }>;
 type FormBlockProps = Extract<Page['blocks'][0], { blockType: 'formBlock' }>;
 type ArchiveBlockProps = Extract<Page['blocks'][0], { blockType: 'archive' }>;
 type MediaBlockProps = Extract<Page['blocks'][0], { blockType: 'mediaBlock' }>;
+type CodePageBlock = Extract<Page['blocks'][0], { blockType: 'code' }>;
+type BannerPageBlock = Extract<Page['blocks'][0], { blockType: 'banner' }>;
 
 // Combine all block props into a single union type
 export type BlockProps =
@@ -28,7 +32,9 @@ export type BlockProps =
   | ContentBlockProps
   | FormBlockProps
   | ArchiveBlockProps
-  | MediaBlockProps;
+  | MediaBlockProps
+  | CodePageBlock
+  | BannerPageBlock;
 
 // Type guard to narrow block type for safe prop passing
 function isBlockType<T extends BlockProps>(block: BlockProps, blockType: string): block is T {
@@ -229,6 +235,29 @@ export const RenderBlocks = ({
                 if (!isBlockType<MediaBlockProps>(block, 'mediaBlock')) return null;
                 const normalizedMedia = normalizeMediaBlockProps(block);
                 return <MediaBlock {...normalizedMedia} />;
+              }
+              case 'code': {
+                if (!isBlockType<CodePageBlock>(block, 'code')) return null;
+                return (
+                  <CodeBlock
+                    blockType="code"
+                    code={block.code}
+                    language={block.language ?? undefined}
+                  />
+                );
+              }
+              case 'banner': {
+                if (!isBlockType<BannerPageBlock>(block, 'banner')) return null;
+                return (
+                  <BannerBlock
+                    blockType="banner"
+                    className=""
+                    content={block.content}
+                    id={block.id}
+                    blockName={block.blockName}
+                    style={block.style}
+                  />
+                );
               }
               default: {
                 logger.warn('No component found for block type', {

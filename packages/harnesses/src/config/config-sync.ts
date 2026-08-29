@@ -9,7 +9,6 @@ import {
 
 /**
  * Syncs harness config between local filesystem and root backup.
- * Mirrors config-sync.ts from packages/editors.
  */
 export function syncConfig(
   harnessId: string,

@@ -1,7 +1,7 @@
 {
-  "_comment": "MCP server configuration. This config is synchronized with .cursor/mcp-config.json (source of truth). Adapter launchers included for consistency.",
-  "_source_of_truth": ".cursor/mcp-config.json",
-  "_last_synced": "2025-01",
+  "_comment": "External MCP adapter launchers (neon/stripe/vercel/playwright/next-devtools). Native first-party servers launch via `revealui-mcp <name>` (packages/mcp/src/cli.ts). This file is the in-repo launcher map; it is not a Cursor-home copy.",
+  "_source_of_truth": "packages/mcp/src/config/config.json",
+  "_last_synced": "2026-08-28",
   "mcpServers": {
     "vercel": {
       "command": "pnpm",

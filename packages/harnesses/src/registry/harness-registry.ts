@@ -2,7 +2,7 @@ import type { HarnessAdapter } from '../types/adapter.js';
 
 /**
  * Manages the lifecycle of HarnessAdapter instances.
- * Mirrors EditorRegistry from packages/editors.
+ * This package owns HarnessRegistry (there is no packages/editors).
  */
 export class HarnessRegistry {
   private readonly adapters = new Map<string, HarnessAdapter>();

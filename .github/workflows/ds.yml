@@ -33,26 +33,92 @@ on:
   pull_request:
     branches: [main, test]
     paths:
-      - 'apps/**'
       - 'packages/tokens/**'
       - 'packages/presentation/**'
+      - 'apps/docs/**'
+      - 'apps/marketing/**'
+      - 'design-system/**'
       - 'e2e/showcase-visual.e2e.ts'
       - 'e2e/showcase-a11y.e2e.ts'
+      - 'e2e/showcase-matrix.e2e.ts'
       - 'e2e/marketing-a11y.e2e.ts'
       - '.github/workflows/ds.yml'
   push:
     branches: [main]
+    paths:
+      - 'packages/tokens/**'
+      - 'packages/presentation/**'
+      - 'apps/docs/**'
+      - 'apps/marketing/**'
+      - 'design-system/**'
+      - 'e2e/showcase-visual.e2e.ts'
+      - 'e2e/showcase-a11y.e2e.ts'
+      - 'e2e/showcase-matrix.e2e.ts'
+      - 'e2e/marketing-a11y.e2e.ts'
+      - '.github/workflows/ds.yml'
 
 permissions:
   contents: read
+  pull-requests: read
+
+concurrency:
+  group: ds-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   NODE_VERSION: "24"
   PNPM_VERSION: "10.28.2"
 
 jobs:
+  changes:
+    name: Detect design-system paths
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      showcase: ${{ steps.detect.outputs.showcase }}
+      marketing: ${{ steps.detect.outputs.marketing }}
+      tokens: ${{ steps.detect.outputs.tokens }}
+      presentation: ${{ steps.detect.outputs.presentation }}
+      adherence: ${{ steps.detect.outputs.adherence }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Classify diff
+        id: detect
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          files=""
+          if [ "$EVENT_NAME" = "pull_request" ] && [ -n "${PR_NUMBER:-}" ]; then
+            files="$(gh api --paginate "repos/${REPO}/pulls/${PR_NUMBER}/files" --jq '.[].filename')"
+          elif [ "$EVENT_NAME" = "push" ] && [ -n "${BEFORE_SHA:-}" ] && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            files="$(gh api "repos/${REPO}/compare/${BEFORE_SHA}...${SHA}" --jq '.files[]?.filename // empty')"
+          fi
+          if [ -z "$files" ]; then
+            {
+              echo "showcase=true"
+              echo "marketing=true"
+              echo "tokens=true"
+              echo "presentation=true"
+              echo "adherence=true"
+            } >> "$GITHUB_OUTPUT"
+            echo "empty or unknown diff — run all ds jobs"
+            exit 0
+          fi
+          printf '%s\n' "$files" | node scripts/ci/expensive-suite.mjs --ds >> "$GITHUB_OUTPUT"
+          echo "classified ds paths"
+
   adherence:
     name: DS adherence lint
+    needs: changes
+    if: needs.changes.outputs.adherence == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -99,6 +165,8 @@ jobs:
 
   package-adherence:
     name: DS package stays on-system
+    needs: changes
+    if: needs.changes.outputs.presentation == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -146,6 +214,8 @@ jobs:
 
   tokens-contract:
     name: tokens pack in sync
+    needs: changes
+    if: needs.changes.outputs.tokens == 'true' || needs.changes.outputs.presentation == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -194,6 +264,8 @@ jobs:
 
   visual-regression:
     name: Showcase visual regression
+    needs: changes
+    if: needs.changes.outputs.showcase == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -273,6 +345,8 @@ jobs:
 
   a11y:
     name: Showcase accessibility
+    needs: changes
+    if: needs.changes.outputs.showcase == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -345,6 +419,8 @@ jobs:
 
   marketing-a11y:
     name: Marketing accessibility
+    needs: changes
+    if: needs.changes.outputs.marketing == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

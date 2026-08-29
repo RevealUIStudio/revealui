@@ -1,0 +1,23 @@
+name: duplicate-open-pr
+
+# Thin caller — logic lives in the org-shared composite action:
+#   RevealUIStudio/.github/.github/actions/duplicate-open-pr
+# Composite (not workflow_call) so the check context stays exactly
+# "duplicate-open-pr". Pin is an immutable commit SHA.
+# pull_request_target + no head checkout: Cursor snowflake branches still hit it.
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  duplicate-open-pr:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: RevealUIStudio/.github/.github/actions/duplicate-open-pr@34a52a69e62234279f39b352fbefcadb92455b9e # .github#16 Jaccard duplicate lock

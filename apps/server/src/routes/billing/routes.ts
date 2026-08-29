@@ -52,6 +52,7 @@ import { resetDbStatusCache, resetSupportExpiryCache } from '../../middleware/li
 import {
   assertLiveCatalogComplete,
   assertUnattendedCheckoutAllowed,
+  assertUnattendedPerpetualCheckoutAllowed,
   type BillingEnv,
   billingPortalConfigId,
   CheckoutRequestSchema,
@@ -1073,7 +1074,7 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
   }
 
   const { priceId, tier, githubUsername } = c.req.valid('json');
-  assertUnattendedCheckoutAllowed(tier);
+  assertUnattendedPerpetualCheckoutAllowed(tier);
 
   const db = getClient();
 
@@ -1281,7 +1282,7 @@ app.openapi(supportRenewalCheckoutRoute, async (c) => {
   return c.json({ url: session.url }, 200);
 });
 
-// POST /api/billing/checkout-credits  -  One-time credit bundle purchase
+// POST /api/billing/checkout-credits — leftover door, fail closed.
 const CreditCheckoutRequestSchema = z.object({
   priceId: z.string().min(1).optional().openapi({
     description: 'Stripe price ID for the credit bundle product',
@@ -1293,19 +1294,13 @@ const CreditCheckoutRequestSchema = z.object({
   }),
 });
 
-const BUNDLE_TASKS: Record<string, number> = {
-  starter: 10_000,
-  standard: 60_000,
-  scale: 350_000,
-};
-
 const creditCheckoutRoute = createRoute({
   method: 'post',
   path: '/checkout-credits',
   tags: ['billing'],
-  summary: 'Create a credit bundle checkout session',
+  summary: 'Reject leftover credit-bundle checkout',
   description:
-    'Creates a one-time Stripe payment session for an agent task credit bundle. Credits never expire and stack with the monthly tier allowance. Requires authentication.',
+    'Credit bundles are not sold. The route stays registered so leftover clients receive a closed rejection instead of an unattended Stripe session.',
   request: {
     body: {
       content: {
@@ -1314,9 +1309,9 @@ const creditCheckoutRoute = createRoute({
     },
   },
   responses: {
-    200: {
-      content: { 'application/json': { schema: CheckoutResponseSchema } },
-      description: 'Checkout session created',
+    400: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Credit bundles are not sold',
     },
     401: {
       content: { 'application/json': { schema: ErrorSchema } },
@@ -1331,85 +1326,10 @@ app.openapi(creditCheckoutRoute, async (c) => {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
   assertAccountOwner(c);
-
-  if (!user.email) {
-    throw new HTTPException(400, { message: 'An email address is required for billing' });
-  }
-
-  const { priceId, bundle } = c.req.valid('json');
-  const tasks = BUNDLE_TASKS[bundle];
-  if (!tasks) {
-    throw new HTTPException(400, { message: `Unknown credit bundle: ${bundle}` });
-  }
-
-  // Resolve price from catalog (planId = "credits:starter", etc.)
-  const db = getClient();
-  const planId = `credits:${bundle}`;
-  const [catalogEntry] = await db
-    .select({ stripePriceId: billingCatalog.stripePriceId })
-    .from(billingCatalog)
-    .where(
-      and(
-        eq(billingCatalog.planId, planId),
-        eq(billingCatalog.billingModel, 'credits'),
-        eq(billingCatalog.mode, getConfiguredStripeMode()),
-        eq(billingCatalog.active, true),
-      ),
-    )
-    .limit(1);
-
-  const resolvedPriceId = catalogEntry?.stripePriceId;
-  if (!resolvedPriceId) {
-    throw new HTTPException(500, {
-      message: `Billing catalog is not configured for credits ${bundle}`,
-    });
-  }
-
-  if (priceId?.trim() && priceId.trim() !== resolvedPriceId) {
-    throw new HTTPException(400, {
-      message: 'Requested price does not match the server billing catalog.',
-    });
-  }
-
-  const customerId = await ensureStripeCustomer(user.id, user.email);
-
-  const adminUrl = process.env.ADMIN_URL || process.env.NEXT_PUBLIC_SERVER_URL;
-  if (!adminUrl) throw new HTTPException(500, { message: 'ADMIN_URL is not configured' });
-
-  const creditIdempotencyWindow = Math.floor(Date.now() / (10 * 60 * 1000));
-  const session = await withStripe((stripe) =>
-    stripe.checkout.sessions.create(
-      {
-        customer: customerId,
-        mode: 'payment',
-        payment_method_types: ['card'],
-        automatic_tax: { enabled: isStripeTaxEnabled },
-        allow_promotion_codes: true,
-        line_items: [{ price: resolvedPriceId, quantity: 1 }],
-        payment_intent_data: {
-          metadata: {
-            credits_bundle: bundle,
-            credits_tasks: String(tasks),
-            revealui_user_id: user.id,
-          },
-        },
-        metadata: {
-          credits_bundle: bundle,
-          credits_tasks: String(tasks),
-          revealui_user_id: user.id,
-        },
-        success_url: `${adminUrl}/account/billing?credits=${bundle}`,
-        cancel_url: `${adminUrl}/account/billing`,
-      },
-      { idempotencyKey: `checkout-credits-${user.id}-${bundle}-${creditIdempotencyWindow}` },
-    ),
-  );
-
-  if (!session.url) {
-    throw new HTTPException(500, { message: 'Failed to create checkout session' });
-  }
-
-  return c.json({ url: session.url }, 200);
+  c.req.valid('json');
+  throw new HTTPException(400, {
+    message: 'Credit bundles are not sold. Agent tasks are included in your plan.',
+  });
 });
 
 // GET /api/billing/credits  -  Current credit balance

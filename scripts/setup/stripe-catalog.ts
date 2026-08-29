@@ -1,18 +1,24 @@
 /**
- * Stripe catalog declaration — machine-readable single source of truth for the
- * products & prices the seeder syncs to Stripe and the validators check.
+ * Stripe catalog declaration — products & prices the seeder may create and
+ * the catalog-check treats as required.
  *
  * Extracted from seed-stripe.ts (which runs main() + loads the Stripe SDK on
  * import) so this pure data + the reconciliation predicates are importable by
  * tests and the drift validator without side effects — same rationale as
  * stripe-price-match.ts.
  *
- * Dollar amounts are the cents-of-record. They MUST equal:
- *   - .jv/business/offerings-canonical.md (human source of truth, pinned)
- *   - apps/server/src/routes/pricing.ts HARDCODED_*_PRICES (server display fallback)
- *   - apps/marketing/app/lib/pricing-fallbacks.ts (client display fallback)
- * The lockstep test (scripts/setup/__tests__/stripe-catalog-lockstep.test.ts)
- * fails CI if these drift. Change all surfaces together.
+ * This follows `@revealui/contracts/public-catalog`, not leftover admin SKUs
+ * in `packages/contracts/src/pricing.ts`. Free is not a Stripe product.
+ * Enterprise is inquire / Contact sales — not a self-serve SKU.
+ *
+ * Dollar amounts are the cents-of-record for the public keep-list:
+ *   - RevealUI Pro $49 / $470, 7-day trial
+ *   - RevealUI Max $299 / $2,870, 7-day trial
+ *   - Pro Perpetual $1,499 + Pro Support Renewal $149/yr
+ *
+ * Marketing display: apps/marketing/app/lib/pricing-fallbacks.ts
+ * Lockstep: scripts/setup/__tests__/stripe-catalog-lockstep.test.ts
+ * and scripts/validate/pricing-lockstep.ts
  */
 
 import type { PriceDefinition } from './stripe-price-match.js';
@@ -86,31 +92,6 @@ export const CATALOG: ProductDefinition[] = [
     ],
   },
   {
-    key: 'revealui_enterprise',
-    name: 'RevealUI Enterprise',
-    description:
-      'Audit logging, white-label, self-hosted deployment, and priority support. For agencies and enterprise teams.',
-    tier: 'enterprise',
-    billingModel: 'subscription',
-    defaultPriceKey: 'revealui_enterprise_monthly',
-    prices: [
-      {
-        key: 'revealui_enterprise_monthly',
-        unitAmount: 149900,
-        currency: 'usd',
-        mode: 'subscription',
-        interval: 'month',
-      },
-      {
-        key: 'revealui_enterprise_yearly',
-        unitAmount: 1439000,
-        currency: 'usd',
-        mode: 'subscription',
-        interval: 'year',
-      },
-    ],
-  },
-  {
     key: 'revealui_pro_perpetual',
     name: 'Pro Perpetual',
     description: 'Pro features, forever. No subscription required.',
@@ -129,43 +110,6 @@ export const CATALOG: ProductDefinition[] = [
     ],
   },
   {
-    key: 'revealui_max_perpetual',
-    name: 'Agency Perpetual',
-    description: 'Deploy for multiple clients without per-site subscriptions.',
-    tier: 'max',
-    billingModel: 'perpetual',
-    priceNote: 'one-time',
-    renewal: '$799/yr for continued support',
-    defaultPriceKey: 'revealui_max_perpetual',
-    prices: [
-      {
-        key: 'revealui_max_perpetual',
-        unitAmount: 849900,
-        currency: 'usd',
-        mode: 'payment',
-      },
-    ],
-  },
-  {
-    key: 'revealui_enterprise_perpetual',
-    name: 'Enterprise Perpetual',
-    description: 'Full self-hosted Enterprise with unlimited deployments.',
-    tier: 'enterprise',
-    billingModel: 'perpetual',
-    priceNote: 'one-time',
-    renewal: '$3,999/yr for continued support',
-    defaultPriceKey: 'revealui_enterprise_perpetual',
-    prices: [
-      {
-        key: 'revealui_enterprise_perpetual',
-        unitAmount: 4299900,
-        currency: 'usd',
-        mode: 'payment',
-      },
-    ],
-  },
-  // ── Support Renewal (Track C  -  annual renewal for perpetual licenses) ─────
-  {
     key: 'revealui_renewal_pro',
     name: 'Pro Support Renewal',
     description: 'Renew your Pro perpetual license support contract for 1 year.',
@@ -182,95 +126,6 @@ export const CATALOG: ProductDefinition[] = [
       },
     ],
   },
-  {
-    key: 'revealui_renewal_max',
-    name: 'Max Support Renewal',
-    description: 'Renew your Max/Agency perpetual license support contract for 1 year.',
-    tier: 'max',
-    billingModel: 'renewal',
-    priceNote: 'annual',
-    defaultPriceKey: 'revealui_renewal_max',
-    prices: [
-      {
-        key: 'revealui_renewal_max',
-        unitAmount: 79900,
-        currency: 'usd',
-        mode: 'payment',
-      },
-    ],
-  },
-  {
-    key: 'revealui_renewal_enterprise',
-    name: 'Enterprise Support Renewal',
-    description: 'Renew your Enterprise perpetual license support contract for 1 year.',
-    tier: 'enterprise',
-    billingModel: 'renewal',
-    priceNote: 'annual',
-    defaultPriceKey: 'revealui_renewal_enterprise',
-    prices: [
-      {
-        key: 'revealui_renewal_enterprise',
-        unitAmount: 399900,
-        currency: 'usd',
-        mode: 'payment',
-      },
-    ],
-  },
-  // ── Credit Bundles (Track B) ──────────────────────────────────────────────
-  {
-    key: 'revealui_credits_starter',
-    name: 'Credits: Starter',
-    description: '10,000 AI agent tasks. Top up any plan. Never expires.',
-    tier: 'pro',
-    billingModel: 'credits',
-    creditBundleName: 'starter',
-    priceNote: 'one-time',
-    defaultPriceKey: 'revealui_credits_starter',
-    prices: [
-      {
-        key: 'revealui_credits_starter',
-        unitAmount: 1000,
-        currency: 'usd',
-        mode: 'payment',
-      },
-    ],
-  },
-  {
-    key: 'revealui_credits_standard',
-    name: 'Credits: Standard',
-    description: '60,000 AI agent tasks. 17% cheaper per task vs Starter.',
-    tier: 'pro',
-    billingModel: 'credits',
-    creditBundleName: 'standard',
-    priceNote: 'one-time',
-    defaultPriceKey: 'revealui_credits_standard',
-    prices: [
-      {
-        key: 'revealui_credits_standard',
-        unitAmount: 5000,
-        currency: 'usd',
-        mode: 'payment',
-      },
-    ],
-  },
-  {
-    key: 'revealui_credits_scale',
-    name: 'Credits: Scale',
-    description: '350,000 AI agent tasks. 29% cheaper per task vs Starter.',
-    tier: 'pro',
-    billingModel: 'credits',
-    creditBundleName: 'scale',
-    priceNote: 'one-time',
-    defaultPriceKey: 'revealui_credits_scale',
-    prices: [
-      {
-        key: 'revealui_credits_scale',
-        unitAmount: 25000,
-        currency: 'usd',
-        mode: 'payment',
-      },
-    ],
-  },
 ];
 
 export const PRICE_ENV_KEYS: Record<string, string> = {
@@ -278,28 +133,15 @@ export const PRICE_ENV_KEYS: Record<string, string> = {
   revealui_pro_yearly: 'NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID',
   revealui_max_monthly: 'NEXT_PUBLIC_STRIPE_MAX_PRICE_ID',
   revealui_max_yearly: 'NEXT_PUBLIC_STRIPE_MAX_ANNUAL_PRICE_ID',
-  revealui_enterprise_monthly: 'NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID',
-  revealui_enterprise_yearly: 'NEXT_PUBLIC_STRIPE_ENTERPRISE_ANNUAL_PRICE_ID',
   revealui_pro_perpetual: 'NEXT_PUBLIC_STRIPE_PRO_PERPETUAL_PRICE_ID',
-  revealui_max_perpetual: 'NEXT_PUBLIC_STRIPE_MAX_PERPETUAL_PRICE_ID',
-  revealui_enterprise_perpetual: 'NEXT_PUBLIC_STRIPE_ENTERPRISE_PERPETUAL_PRICE_ID',
 };
 export const PRICE_SERVER_ENV_KEYS: Record<string, string> = {
   revealui_pro_monthly: 'STRIPE_PRO_PRICE_ID',
   revealui_pro_yearly: 'STRIPE_PRO_ANNUAL_PRICE_ID',
   revealui_max_monthly: 'STRIPE_MAX_PRICE_ID',
   revealui_max_yearly: 'STRIPE_MAX_ANNUAL_PRICE_ID',
-  revealui_enterprise_monthly: 'STRIPE_ENTERPRISE_PRICE_ID',
-  revealui_enterprise_yearly: 'STRIPE_ENTERPRISE_ANNUAL_PRICE_ID',
   revealui_pro_perpetual: 'STRIPE_PERPETUAL_PRO_PRICE_ID',
-  revealui_max_perpetual: 'STRIPE_PERPETUAL_MAX_PRICE_ID',
-  revealui_enterprise_perpetual: 'STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID',
   revealui_renewal_pro: 'STRIPE_RENEWAL_PRO_PRICE_ID',
-  revealui_renewal_max: 'STRIPE_RENEWAL_MAX_PRICE_ID',
-  revealui_renewal_enterprise: 'STRIPE_RENEWAL_ENTERPRISE_PRICE_ID',
-  revealui_credits_starter: 'STRIPE_CREDITS_STARTER_PRICE_ID',
-  revealui_credits_standard: 'STRIPE_CREDITS_STANDARD_PRICE_ID',
-  revealui_credits_scale: 'STRIPE_CREDITS_SCALE_PRICE_ID',
 };
 
 // ─── Derived sets + pure reconciliation predicates ───────────────────────────

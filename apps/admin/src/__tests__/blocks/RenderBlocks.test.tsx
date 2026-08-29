@@ -39,6 +39,22 @@ vi.mock('@/lib/blocks/MediaBlock/Component', () => ({
   MediaBlock: () => <div data-testid="media-block">Media</div>,
 }));
 
+vi.mock('@/lib/blocks/Code/Component', () => ({
+  CodeBlock: ({ code, language }: { code: string; language?: string | null }) => (
+    <pre data-testid="code-block" data-language={language ?? ''}>
+      {code}
+    </pre>
+  ),
+}));
+
+vi.mock('@/lib/blocks/Banner/Component', () => ({
+  BannerBlock: ({ style }: { style: string }) => (
+    <div data-testid="banner-block" data-style={style}>
+      Banner
+    </div>
+  ),
+}));
+
 vi.mock('@/lib/components/ErrorBoundary', () => ({
   ErrorBoundary: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
@@ -104,6 +120,42 @@ describe('RenderBlocks', () => {
 
     render(<RenderBlocks blocks={blocks} />);
     expect(screen.getByTestId('content-block')).toBeInTheDocument();
+  });
+
+  it('renders a code block offered by Pages.blocks', () => {
+    const blocks: Page['blocks'] = [
+      {
+        blockType: 'code',
+        code: 'const n = 1;',
+        language: 'typescript',
+      },
+    ];
+
+    render(<RenderBlocks blocks={blocks} />);
+    expect(screen.getByTestId('code-block')).toBeInTheDocument();
+    expect(screen.getByText('const n = 1;')).toBeInTheDocument();
+  });
+
+  it('renders a banner block offered by Pages.blocks', () => {
+    const blocks: Page['blocks'] = [
+      {
+        blockType: 'banner',
+        style: 'info',
+        content: {
+          root: {
+            type: 'root',
+            children: [],
+            direction: 'ltr',
+            format: '',
+            indent: 0,
+            version: 1,
+          },
+        },
+      },
+    ];
+
+    render(<RenderBlocks blocks={blocks} />);
+    expect(screen.getByTestId('banner-block')).toBeInTheDocument();
   });
 
   it('handles unknown block types gracefully', () => {

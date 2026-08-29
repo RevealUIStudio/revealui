@@ -8,7 +8,7 @@ import type {
 
 /**
  * Contract every AI harness adapter must satisfy.
- * Mirrors EditorAdapter from packages/editors.
+ * This package owns HarnessAdapter (there is no packages/editors).
  *
  * AI tools are external executables  -  never linked libraries.
  * Communication is data-only: commands in, results out.

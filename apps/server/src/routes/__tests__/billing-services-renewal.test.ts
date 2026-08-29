@@ -186,12 +186,12 @@ describe('Perpetual tiers  -  launch enabled', () => {
     expect(pro!.ctaHref).toBeTruthy();
   });
 
-  it('Agency Perpetual is purchasable', () => {
+  it('Agency Perpetual leftover is not a self-serve buy door', () => {
     const agency = PERPETUAL_TIERS.find((t) => t.name === 'Agency Perpetual');
     expect(agency).toBeDefined();
-    expect(agency!.comingSoon).toBe(false);
-    expect(agency!.cta).toBeTruthy();
-    expect(agency!.ctaHref).toBeTruthy();
+    expect(agency!.cta).toBe('Contact sales');
+    expect(agency!.ctaHref).toBe('https://revealui.com/contact');
+    expect(agency!.ctaHref.includes('signup')).toBe(false);
   });
 
   it('Enterprise Perpetual stays in the catalog as contact sales', () => {

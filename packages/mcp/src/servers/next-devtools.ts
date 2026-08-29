@@ -99,7 +99,7 @@ async function startNextDevToolsMCP() {
         logger.info('   (This server communicates via JSON-RPC protocol on stdin/stdout)');
         logger.info('');
         logger.info('   To use this with Cursor IDE:');
-        logger.info("   • Ensure it's configured in .cursor/mcp-config.json");
+        logger.info('   • Add the next-devtools launcher from packages/mcp/src/config/config.json');
         logger.info('   • Cursor will automatically start it when needed');
         logger.info('');
         logger.info('');
@@ -162,7 +162,7 @@ async function startNextDevToolsMCP() {
 
         logger.info('🔗 Integration with Your Setup');
         logger.success('Next.js DevTools MCP is configured in:');
-        logger.info('   - .cursor/mcp-config.json');
+        logger.info('   - packages/mcp/src/config/config.json');
         logger.info('   - package.json scripts (mcp:next-devtools)');
         logger.info('   - Included in mcp:all command');
         logger.info('');

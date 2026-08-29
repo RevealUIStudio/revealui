@@ -134,6 +134,30 @@ describe('mcp-hypervisor-wire', () => {
     expect(
       parseSpawnServerList({ REVEALUI_MCP_HYPERVISOR_SERVERS: 'contracts,nope,docs' }),
     ).toEqual(['contracts', 'docs']);
+    // Repo-only tsx server: not in compiled revealui-mcp CLI (cli.ts header).
+    expect(
+      parseSpawnServerList({ REVEALUI_MCP_HYPERVISOR_SERVERS: 'code-validator,contracts' }),
+    ).toEqual(['contracts']);
+  });
+
+  it('SPAWN_ALLOWLIST matches compiled revealui-mcp CLI server names', async () => {
+    const { SPAWN_ALLOWLIST } = await import('../mcp-hypervisor-wire.js');
+    expect([...SPAWN_ALLOWLIST].sort()).toEqual(
+      [
+        'contracts',
+        'docs',
+        'neon',
+        'next-devtools',
+        'playwright',
+        'revealui-content',
+        'revealui-email',
+        'revealui-memory',
+        'revealui-stripe',
+        'stripe',
+        'vercel',
+      ].sort(),
+    );
+    expect(SPAWN_ALLOWLIST.has('code-validator')).toBe(false);
   });
 
   it('spawn path registers and starts allowlisted servers', async () => {
