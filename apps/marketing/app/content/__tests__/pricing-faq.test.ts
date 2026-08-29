@@ -27,8 +27,16 @@ describe('pricing FAQ RevealFleet honesty', () => {
     expect(answer.includes('$299')).toBe(true);
     expect(answer.includes('Enterprise')).toBe(true);
     expect(answer.toLowerCase().includes('inquir')).toBe(true);
+    expect(answer.includes('Pro Perpetual')).toBe(true);
+    expect(answer.includes('$1,499')).toBe(true);
     expect(answer.includes('RevVault is encrypted secret management inside Pro')).toBe(true);
     expect(answer.includes('not a separate paid SKU')).toBe(true);
+  });
+
+  it('names the perpetual SKU Pro Perpetual, not Perpetual Pro', () => {
+    const faq = PRICING_FAQS.find((item) => item.question === 'What are perpetual licenses?');
+    expect(faq?.answer.includes('Pro Perpetual')).toBe(true);
+    expect(faq?.answer.includes('Perpetual Pro')).toBe(false);
   });
 
   it('does not sell parked or internal fleet members', () => {

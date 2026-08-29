@@ -1,9 +1,12 @@
 // Sourced from the internal for-operators page-1 copy spec (2026-05-28)
 // (the COMMIT-phase copy artifact for spec-2026-05-14-non-technical-lane.md Phase 1).
 // Voice §5 self-check 12/12 documented in that spec.
-// Locked decisions from spec §9.4: CTA "Book a build call" (OQ-3); nav label
-// "For Operators" (OQ-4); fork Branch A stays on / (OQ-5); coupled ship with
-// agency-site receiving surface (OQ-6).
+// Locked decisions from spec §9.4: CTA "Book a 30-minute intro" (OQ-3);
+// nav label "For Operators" (OQ-4); fork Branch A stays on / (OQ-5);
+// coupled ship with agency-site receiving surface (OQ-6).
+// Live /for-operators and /services are Moved stubs. This module is leftover
+// CMS/page-block copy only — do not republish Written plan / ten years /
+// Book a build call.
 // The future managed offering is named "RevealUI Cloud" (OQ-1) — referenced
 // only via the inline link to /for-operators/managed (Page 3, not this PR).
 //
@@ -38,7 +41,7 @@ export const FOR_OPERATORS_HERO = {
   subtitle:
     'Running a business is hard enough without racing AI stack churn. We build and deliver software with agents built in, on infrastructure you own, and keep it current as the world moves. You stay ahead and keep doing the work you love.',
   primaryCta: {
-    label: 'Book a build call',
+    label: 'Book a 30-minute intro',
     href: AGENCY_CONTACT,
     external: true,
   } satisfies Cta,
@@ -92,17 +95,17 @@ export const FOR_OPERATORS_HOW_WE_DELIVER = {
     linkLabel: 'managed roadmap',
     linkHref: MANAGED_ROADMAP_HREF,
     after:
-      ' for what that means and when it might be ready. It does not ship today. If you want a working product now, the path is a build call.',
+      ' for what that means and when it might be ready. It does not ship today. If you want a working product now, the path is a 30-minute intro.',
   },
   paragraph3:
     'If "I want it automatic and instant" is the requirement, this is not yet the right time to engage. If "I want it built, scoped, and delivered by people who maintain the runtime it runs on" is the requirement, that is what we ship.',
 } as const;
 
 // ---------------------------------------------------------------------------
-// Studio engagement ladder — Hour / Written plan / Launch on
-// revealuistudio.com only. Dead leftover rungs must not exist in this
-// module. Prices import from @revealui/contracts/public-catalog so leftover
-// admin catalogs cannot ship in the public marketing bundle.
+// Studio engagement ladder — Hour / Architecture artifact bundle and
+// review / Launch on revealuistudio.com only. Dead leftover rungs must
+// not exist in this module. Prices import from @revealui/contracts/public-catalog
+// so leftover admin catalogs cannot ship in the public marketing bundle.
 // ---------------------------------------------------------------------------
 
 export type AgencyEngagementId = 'consulting-hour' | 'architecture-review' | 'launch-package';
@@ -123,7 +126,7 @@ export const AGENCY_ENGAGEMENT_LADDER: readonly AgencyEngagement[] = [
   },
   {
     id: 'architecture-review',
-    name: 'Written plan',
+    name: 'Architecture artifact bundle and review',
     price: ARCHITECTURE_REVIEW_PRICE,
     startsFrom: false,
   },
@@ -179,13 +182,13 @@ export const FOR_OPERATORS_PRICING = {
       title: ARCHITECTURE_REVIEW.name,
       price: agencyEngagementPriceDisplay(ARCHITECTURE_REVIEW),
       body: 'A written architecture review of your current stack with a priced path to launch. This SKU lives on revealuistudio.com, not on the product catalog.',
-      cta: { label: 'Request a written plan', href: AGENCY_CONTACT, external: true },
+      cta: { label: 'Request an architecture review', href: AGENCY_CONTACT, external: true },
     },
     {
       title: LAUNCH_PACKAGE.name,
       price: agencyEngagementPriceDisplay(LAUNCH_PACKAGE),
       body: 'We stand up your RevealUI instance, migrate your content, and get you to first deploy. This SKU lives on revealuistudio.com, not on the product catalog.',
-      cta: { label: 'Book a build call', href: AGENCY_CONTACT, external: true },
+      cta: { label: 'Book a 30-minute intro', href: AGENCY_CONTACT, external: true },
     },
   ] as readonly PricingRung[],
 } as const;
@@ -203,7 +206,7 @@ export const FOR_OPERATORS_DISCOVERY = {
 export const FOR_OPERATORS_PROOF = {
   eyebrow: 'Who delivers it',
   heading: 'Built by the engineer who built the runtime.',
-  body: 'RevealUI Studio is one engineer, Joshua Vaughn, and the runtime he maintains. Ten years managing teams in telecommunications before this. The engagement is delivered by the same person who reviews commits on the open-source codebase you will run.',
+  body: 'RevealUI Studio is one engineer, Joshua Vaughn, and the runtime he maintains. 5+ years managing teams in telecommunications before this. The engagement is delivered by the same person who reviews commits on the open-source codebase you will run.',
   bulletIntro: 'That means three concrete things:',
   bullets: [
     'The software we build for you runs the same code we run on revealui.com.',
@@ -264,7 +267,7 @@ export const FOR_OPERATORS_CLOSING = {
   heading: 'Get on a call.',
   body: "A free 30-minute discovery call. We walk through what you're building, whether we're the right team for it, and what a scoped engagement would look like.",
   primaryCta: {
-    label: 'Book a build call',
+    label: 'Book a 30-minute intro',
     href: AGENCY_CONTACT,
     external: true,
   } satisfies Cta,

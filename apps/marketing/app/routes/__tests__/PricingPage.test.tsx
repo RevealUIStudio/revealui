@@ -44,7 +44,7 @@ describe('PricingPage product catalog', () => {
     );
   });
 
-  it('keeps Perpetual Pro as a license and hides Agency Perpetual', async () => {
+  it('keeps Pro Perpetual as a license and hides Agency Perpetual', async () => {
     const { container } = render(<PricingPage />);
     const pro = await screen.findByRole('link', { name: 'Buy Pro Perpetual' });
     expect(pro.getAttribute('href') ?? '').toContain('license=pro');
