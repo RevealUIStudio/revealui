@@ -1,7 +1,5 @@
 import {
-  BILLING,
   CLI_CREATE,
-  LEGAL_REFUND_CONTENT,
   LICENSE_MIT,
   PRICING_FALLBACKS,
   SELF_HOST,
@@ -28,6 +26,12 @@ const QUOTE_UI: ClaimEntry['evidence'][number] = {
   note: 'rendered calculator defaults the Who radio to I will',
 };
 
+const QUOTE_LOCKSTEP: ClaimEntry['evidence'][number] = {
+  kind: 'test',
+  ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#locksteps printed numbers to public-catalog and the locked SKU trio',
+  note: 'printed Free / Pro / Max / Perpetual and Hour / bundle / Launch prices cannot drift from public-catalog',
+};
+
 const QUOTE_INTRO: ClaimEntry['evidence'][number] = {
   kind: 'test',
   ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#always carries ownership lines and the Google Calendar intro',
@@ -43,17 +47,17 @@ const BOOK_INTRO: ClaimEntry['evidence'][number] = {
 export const claimsPart9: readonly ClaimEntry[] = [
   {
     file: 'quote-calculator.ts',
-    exportPath: 'QUOTE_CALCULATOR.body',
+    exportPath: 'QUOTE_CALCULATOR.heading',
     proofGrade: 'outcome',
-    text: 'Three questions. One price. No fleet math.',
+    text: 'Three questions. A price you can read.',
     evidence: [QUOTE_RESOLVER, QUOTE_DEFAULT, QUOTE_UI],
   },
   {
     file: 'quote-calculator.ts',
-    exportPath: 'QUOTE_CALCULATOR.pricingHero.subtitle',
+    exportPath: 'QUOTE_CALCULATOR.body',
     proofGrade: 'outcome',
-    text: 'Three questions. Two exits. The number that prints is the number we charge.',
-    evidence: [QUOTE_RESOLVER, QUOTE_UI],
+    text: 'This calculator defaults to product licenses. Studio work is quoted here too and booked on revealuistudio.com.',
+    evidence: [QUOTE_DEFAULT, QUOTE_UI, THIS_SITE],
   },
   {
     file: 'quote-calculator.ts',
@@ -68,22 +72,33 @@ export const claimsPart9: readonly ClaimEntry[] = [
     evidence: [
       {
         kind: 'test',
-        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio hour quote',
-        note: 'hour answer prints the $300 Studio hour quote',
+        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio hour, bundle, and launch quotes',
+        note: 'hour answer is one of the three Studio SKUs that print together',
+      },
+    ],
+  },
+  {
+    file: 'quote-calculator.ts',
+    exportPath: 'QUOTE_CALCULATOR.questions.what.options[1].label',
+    text: 'Architecture artifact bundle and review',
+    evidence: [
+      {
+        kind: 'test',
+        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio architecture-bundle quote',
+        note: 'bundle answer prints the $3,500 architecture artifact bundle and review',
       },
     ],
   },
   {
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.questions.what.options[2].label',
-    text: 'One live flow on my accounts (site or booking + Stripe)',
+    text: 'One live flow on my accounts',
     evidence: [
       {
         kind: 'test',
         ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio launch quote',
         note: 'live-flow answer prints the $7,500 launch quote',
       },
-      BILLING,
     ],
   },
   {
@@ -103,33 +118,54 @@ export const claimsPart9: readonly ClaimEntry[] = [
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.selfHost.free',
     proofGrade: 'outcome',
-    text: 'Free: run the open stack. $0 + your infra.',
+    text: 'Free: $0 + your infra. Start free, or run `npx create-revealui`.',
     evidence: [LICENSE_MIT, SELF_HOST, CLI_CREATE, QUOTE_RESOLVER],
   },
   {
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.selfHost.agents',
     proofGrade: 'outcome',
-    text: 'If you want agents/memory: Pro $49/mo or Max $299/mo. 7-day trial. 14-day first-month refund.',
-    evidence: [PRICING_FALLBACKS, TRIAL, LEGAL_REFUND_CONTENT, QUOTE_RESOLVER],
+    text: 'Pro $49/mo or Max $299/mo. 7-day trial.',
+    evidence: [PRICING_FALLBACKS, TRIAL, QUOTE_LOCKSTEP, QUOTE_RESOLVER],
+  },
+  {
+    file: 'quote-calculator.ts',
+    exportPath: 'QUOTE_CALCULATOR.selfHost.perpetual',
+    proofGrade: 'outcome',
+    text: 'Optional one-time: Pro Perpetual $1,499.',
+    evidence: [PRICING_FALLBACKS, QUOTE_LOCKSTEP, QUOTE_RESOLVER],
   },
   {
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.selfHost.enterprise',
     proofGrade: 'behavior',
-    text: 'Enterprise: not in the calculator. Book an intro.',
+    text: 'Enterprise: not in the calculator. Contact sales or book an intro.',
     evidence: [QUOTE_RESOLVER, BOOK_INTRO],
   },
   {
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.studio.hour.body',
     proofGrade: 'outcome',
-    text: 'Invoice before the hour begins. No holdback.',
+    text: 'Invoice before start. No holdback.',
     evidence: [
       {
         kind: 'test',
-        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio hour quote',
-        note: 'Studio + hour prints $300 and the invoice/no-holdback line',
+        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio hour, bundle, and launch quotes',
+        note: 'Studio + one place prints $300 and the invoice/no-holdback line',
+      },
+      QUOTE_LOCKSTEP,
+    ],
+  },
+  {
+    file: 'quote-calculator.ts',
+    exportPath: 'QUOTE_CALCULATOR.studio.plan.title',
+    proofGrade: 'outcome',
+    text: 'Architecture artifact bundle and review',
+    evidence: [
+      {
+        kind: 'test',
+        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio architecture-bundle quote',
+        note: 'Studio bundle title is the locked architecture name, not a written plan',
       },
     ],
   },
@@ -137,12 +173,12 @@ export const claimsPart9: readonly ClaimEntry[] = [
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.studio.plan.body',
     proofGrade: 'outcome',
-    text: 'Half now, half on delivery. Credits to a launch in 30 days.',
+    text: 'The prototype is inside the bundle. Half now, half on delivery. Credits to a launch in 30 days.',
     evidence: [
       {
         kind: 'test',
-        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio written-plan quote',
-        note: 'Studio + plan prints $3,500 and the half/half credit line',
+        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio architecture-bundle quote',
+        note: 'Studio + bundle prints $3,500, prototype-inside, and the 30-day architecture credit',
       },
     ],
   },
@@ -150,14 +186,13 @@ export const claimsPart9: readonly ClaimEntry[] = [
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.studio.launch.body',
     proofGrade: 'outcome',
-    text: 'Half now, half when the four tests pass (your infra, your Stripe checkout, signup-to-paid, one receipted agent action). If we miss, we keep working or you get the first half back and keep the stack.',
+    text: 'Half now, half on delivery.',
     evidence: [
       {
         kind: 'test',
         ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio launch quote',
-        note: 'Studio + launch prints $7,500 and the four-test holdback line',
+        note: 'Studio + launch prints $7,500 and half/half on delivery. No four-tests holdback.',
       },
-      BILLING,
     ],
   },
   {
@@ -192,7 +227,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.introCta.note',
     proofGrade: 'behavior',
-    text: 'Google Calendar intro if they want a human. Meet or sit down.',
+    text: 'Google Calendar / Meet or sit down.',
     evidence: [BOOK_INTRO, QUOTE_INTRO, THIS_SITE],
   },
 ];

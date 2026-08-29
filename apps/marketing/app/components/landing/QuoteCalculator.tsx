@@ -56,7 +56,13 @@ export function QuoteCalculator() {
   const quote = useMemo(() => resolveQuote({ who, what, places }), [who, what, places]);
 
   return (
-    <MarketingSection tone="background" density="default" width="default">
+    <MarketingSection
+      id="quote"
+      tone="background"
+      density="default"
+      width="default"
+      className="scroll-mt-24"
+    >
       <SectionHeader
         eyebrow="Quote"
         eyebrowTone="primary"
@@ -102,11 +108,32 @@ export function QuoteCalculator() {
             {quote.price ? (
               <p className="mt-1 text-3xl font-bold tracking-tight text-primary">{quote.price}</p>
             ) : null}
-            <ul className="mt-4 space-y-2 text-sm leading-6 text-body">
-              {quote.lines.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ul>
+            {quote.skus ? (
+              <ul className="mt-4 space-y-4">
+                {quote.skus.map((sku) => (
+                  <li
+                    key={sku.id}
+                    className={
+                      sku.highlighted
+                        ? 'rounded-xl bg-card p-4 ring-1 ring-primary/30'
+                        : 'rounded-xl p-4 ring-1 ring-border/60'
+                    }
+                  >
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <p className="text-sm font-semibold text-foreground">{sku.title}</p>
+                      <p className="text-lg font-bold tracking-tight text-primary">{sku.price}</p>
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-body">{sku.body}</p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <ul className="mt-4 space-y-2 text-sm leading-6 text-body">
+                {quote.lines.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div className="border-t border-border pt-6">
@@ -116,8 +143,13 @@ export function QuoteCalculator() {
               ))}
             </ul>
             <p className="mt-4 text-sm leading-6 text-body">{quote.introCta.note}</p>
-            <div className="mt-4">
-              <Button asChild>
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+              {quote.startFreeCta ? (
+                <Button asChild>
+                  <a href={quote.startFreeCta.href}>{quote.startFreeCta.label}</a>
+                </Button>
+              ) : null}
+              <Button asChild appearance={quote.startFreeCta ? 'outline' : 'solid'}>
                 <a href={quote.introCta.href} target="_blank" rel="noopener noreferrer">
                   {quote.introCta.label}
                 </a>

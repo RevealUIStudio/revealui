@@ -1,6 +1,12 @@
-// Founder/CEO weekend quote tool: one calculator, two exits, three questions.
-// No fleet math. No leftover kit / Fleet / Custom prices on this surface.
+// Product-site quote tool: one calculator, two exits, three questions.
+// Same numbers as revealuistudio.com. This site defaults Who to I will.
 
+import {
+  ARCHITECTURE_REVIEW_PRICE,
+  CONSULTING_HOUR_PRICE,
+  LAUNCH_PACKAGE_PRICE,
+} from '@revealui/contracts/public-catalog';
+import { PERPETUAL_PRICE_FALLBACKS, SUBSCRIPTION_PRICE_FALLBACKS } from '../lib/pricing-fallbacks';
 import { SITE } from './site';
 
 export type WhoLive = 'self' | 'studio';
@@ -13,25 +19,50 @@ export interface QuoteAnswers {
   readonly places: PlaceCount;
 }
 
-export type QuoteKind = 'self-host' | 'studio-hour' | 'studio-plan' | 'studio-launch' | 'intro';
+export type QuoteKind = 'self-host' | 'studio' | 'intro';
+
+export interface QuoteSkuLine {
+  readonly id: WhatWork;
+  readonly title: string;
+  readonly price: string;
+  readonly body: string;
+  readonly highlighted: boolean;
+}
+
+export interface QuoteCta {
+  readonly label: string;
+  readonly href: string;
+}
 
 export interface QuoteResult {
   readonly kind: QuoteKind;
   readonly title: string;
   readonly price?: string;
   readonly lines: readonly string[];
+  readonly skus?: readonly QuoteSkuLine[];
   readonly ownership: readonly string[];
-  readonly introCta: {
-    readonly label: string;
-    readonly note: string;
-    readonly href: string;
-  };
+  readonly startFreeCta?: QuoteCta;
+  readonly introCta: QuoteCta & { readonly note: string };
 }
 
 export interface QuoteOption<Id extends string> {
   readonly id: Id;
   readonly label: string;
 }
+
+const FREE_PRICE = SUBSCRIPTION_PRICE_FALLBACKS.free.price;
+const PRO_PRICE = SUBSCRIPTION_PRICE_FALLBACKS.pro.price;
+const MAX_PRICE = SUBSCRIPTION_PRICE_FALLBACKS.max.price;
+
+function publicPerpetualPrice(): string {
+  const fallback = PERPETUAL_PRICE_FALLBACKS['Pro Perpetual'];
+  if (fallback === undefined) {
+    throw new Error('Pro Perpetual is missing from PERPETUAL_PRICE_FALLBACKS');
+  }
+  return fallback.price;
+}
+
+const PERPETUAL_PRICE = publicPerpetualPrice();
 
 export const DEFAULT_QUOTE_ANSWERS: QuoteAnswers = {
   who: 'self',
@@ -40,12 +71,8 @@ export const DEFAULT_QUOTE_ANSWERS: QuoteAnswers = {
 };
 
 export const QUOTE_CALCULATOR = {
-  heading: 'Get a quote.',
-  body: 'Three questions. One price. No fleet math.',
-  pricingHero: {
-    title: 'Pricing',
-    subtitle: 'Three questions. Two exits. The number that prints is the number we charge.',
-  },
+  heading: 'Three questions. A price you can read.',
+  body: 'This calculator defaults to product licenses. Studio work is quoted here too and booked on revealuistudio.com.',
   questions: {
     who: {
       label: 'Who puts it live?',
@@ -58,41 +85,41 @@ export const QUOTE_CALCULATOR = {
       label: 'What has to work?',
       options: [
         { id: 'hour', label: 'One hour with Joshua (debug / pair)' },
-        { id: 'plan', label: 'A written plan' },
-        { id: 'launch', label: 'One live flow on my accounts (site or booking + Stripe)' },
+        { id: 'plan', label: 'Architecture artifact bundle and review' },
+        { id: 'launch', label: 'One live flow on my accounts' },
       ] as const satisfies readonly QuoteOption<WhatWork>[],
     },
     places: {
       label: 'How many places?',
       options: [
-        { id: 'one', label: 'One business, one site' },
+        { id: 'one', label: 'One business, one place' },
         { id: 'many', label: 'More than one (stop quoting; book an intro)' },
       ] as const satisfies readonly QuoteOption<PlaceCount>[],
     },
   },
   selfHost: {
     title: 'Self-host',
-    free: 'Free: run the open stack. $0 + your infra.',
-    agents:
-      'If you want agents/memory: Pro $49/mo or Max $299/mo. 7-day trial. 14-day first-month refund.',
-    enterprise: 'Enterprise: not in the calculator. Book an intro.',
+    free: `Free: ${FREE_PRICE} + your infra. Start free, or run \`npx create-revealui\`.`,
+    agents: `Pro ${PRO_PRICE}/mo or Max ${MAX_PRICE}/mo. 7-day trial.`,
+    perpetual: `Optional one-time: Pro Perpetual ${PERPETUAL_PRICE}.`,
+    enterprise: 'Enterprise: not in the calculator. Contact sales or book an intro.',
   },
   studio: {
     title: 'Studio',
     hour: {
       title: 'Hour',
-      price: '$300',
-      body: 'Invoice before the hour begins. No holdback.',
+      price: CONSULTING_HOUR_PRICE,
+      body: 'Invoice before start. No holdback.',
     },
     plan: {
-      title: 'Written plan',
-      price: '$3,500',
-      body: 'Half now, half on delivery. Credits to a launch in 30 days.',
+      title: 'Architecture artifact bundle and review',
+      price: ARCHITECTURE_REVIEW_PRICE,
+      body: 'The prototype is inside the bundle. Half now, half on delivery. Credits to a launch in 30 days.',
     },
     launch: {
       title: 'Launch',
-      price: '$7,500',
-      body: 'Half now, half when the four tests pass (your infra, your Stripe checkout, signup-to-paid, one receipted agent action). If we miss, we keep working or you get the first half back and keep the stack.',
+      price: LAUNCH_PACKAGE_PRICE,
+      body: 'Half now, half on delivery.',
     },
   },
   intro: {
@@ -103,12 +130,42 @@ export const QUOTE_CALCULATOR = {
     'You own the accounts and the data.',
     'If we disappear, you still have the company.',
   ] as const,
+  startFreeCta: {
+    label: 'Start free',
+    href: SITE.urls.signup,
+  },
   introCta: {
-    label: 'Book an intro',
-    note: 'Google Calendar intro if they want a human. Meet or sit down.',
+    label: 'Book a 30-minute intro',
+    note: 'Google Calendar / Meet or sit down.',
     href: SITE.urls.bookIntro,
   },
 } as const;
+
+function studioSkus(highlighted: WhatWork): readonly QuoteSkuLine[] {
+  return [
+    {
+      id: 'hour',
+      title: QUOTE_CALCULATOR.studio.hour.title,
+      price: QUOTE_CALCULATOR.studio.hour.price,
+      body: QUOTE_CALCULATOR.studio.hour.body,
+      highlighted: highlighted === 'hour',
+    },
+    {
+      id: 'plan',
+      title: QUOTE_CALCULATOR.studio.plan.title,
+      price: QUOTE_CALCULATOR.studio.plan.price,
+      body: QUOTE_CALCULATOR.studio.plan.body,
+      highlighted: highlighted === 'plan',
+    },
+    {
+      id: 'launch',
+      title: QUOTE_CALCULATOR.studio.launch.title,
+      price: QUOTE_CALCULATOR.studio.launch.price,
+      body: QUOTE_CALCULATOR.studio.launch.body,
+      highlighted: highlighted === 'launch',
+    },
+  ];
+}
 
 export function resolveQuote(answers: QuoteAnswers): QuoteResult {
   const introCta = {
@@ -135,40 +192,23 @@ export function resolveQuote(answers: QuoteAnswers): QuoteResult {
       lines: [
         QUOTE_CALCULATOR.selfHost.free,
         QUOTE_CALCULATOR.selfHost.agents,
+        QUOTE_CALCULATOR.selfHost.perpetual,
         QUOTE_CALCULATOR.selfHost.enterprise,
       ],
       ownership,
-      introCta,
-    };
-  }
-
-  if (answers.what === 'hour') {
-    return {
-      kind: 'studio-hour',
-      title: QUOTE_CALCULATOR.studio.hour.title,
-      price: QUOTE_CALCULATOR.studio.hour.price,
-      lines: [QUOTE_CALCULATOR.studio.hour.body],
-      ownership,
-      introCta,
-    };
-  }
-
-  if (answers.what === 'plan') {
-    return {
-      kind: 'studio-plan',
-      title: QUOTE_CALCULATOR.studio.plan.title,
-      price: QUOTE_CALCULATOR.studio.plan.price,
-      lines: [QUOTE_CALCULATOR.studio.plan.body],
-      ownership,
+      startFreeCta: {
+        label: QUOTE_CALCULATOR.startFreeCta.label,
+        href: QUOTE_CALCULATOR.startFreeCta.href,
+      },
       introCta,
     };
   }
 
   return {
-    kind: 'studio-launch',
-    title: QUOTE_CALCULATOR.studio.launch.title,
-    price: QUOTE_CALCULATOR.studio.launch.price,
-    lines: [QUOTE_CALCULATOR.studio.launch.body],
+    kind: 'studio',
+    title: QUOTE_CALCULATOR.studio.title,
+    lines: studioSkus(answers.what).flatMap((sku) => [`${sku.title} ${sku.price}`, sku.body]),
+    skus: studioSkus(answers.what),
     ownership,
     introCta,
   };

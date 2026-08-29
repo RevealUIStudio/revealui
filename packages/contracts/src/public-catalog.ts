@@ -156,7 +156,7 @@ export const BOOK_INTRO_HREF =
 /** Studio Hour on revealuistudio.com. Not a revealui.com catalog SKU. */
 export const CONSULTING_HOUR_PRICE = '$300' as const;
 
-/** Studio written plan on revealuistudio.com. Not a revealui.com catalog SKU. */
+/** Studio architecture artifact bundle and review on revealuistudio.com. Not a revealui.com catalog SKU. */
 export const ARCHITECTURE_REVIEW_PRICE = '$3,500' as const;
 
 /** Studio Launch on revealuistudio.com. Not a revealui.com catalog SKU. */

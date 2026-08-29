@@ -13,6 +13,7 @@ import {
 } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
 import { Footer } from '../components/Footer';
+import { QuoteCalculator } from '../components/landing/QuoteCalculator';
 import { NewsletterSignup } from '../components/NewsletterSignup';
 import {
   PRICING_AGENT_A2A,
@@ -156,6 +157,8 @@ export function PricingPage() {
           ))}
         </div>
       </MarketingSection>
+
+      <QuoteCalculator />
 
       <MarketingSection id="subscriptions" tone="background" density="default" width="default">
         <SectionHeader
