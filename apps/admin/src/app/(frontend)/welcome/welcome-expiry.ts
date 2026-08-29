@@ -18,5 +18,5 @@ export function welcomeExpiryCopy(input: {
   if (input.status === 'trialing') {
     return trialEndsTitle(tier, input.expiresAt);
   }
-  return `Your ${planLabel(tier)} subscription ends on ${formatTrialEndDate(input.expiresAt)}.`;
+  return `Your ${planLabel(tier)} subscription ends on ${formatTrialEndDate(input.expiresAt)}`;
 }

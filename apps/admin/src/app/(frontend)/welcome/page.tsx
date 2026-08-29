@@ -32,6 +32,9 @@ const CLI_INSTALL_COMMAND = 'pnpm create revealui my-app';
  * authenticated non-admin here from an admin-only route. It explains why they
  * are not in the admin area instead of silently bouncing them to the login
  * form they just used (see apps/admin/src/proxy.ts).
+ *
+ * When GET /api/billing/subscription already has `expiresAt`, the hero shows
+ * that date in plain language. The page never invents a trial end.
  */
 export default function WelcomePage() {
   const { tier } = useLicense();
