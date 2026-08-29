@@ -49,7 +49,7 @@
  * - External: npm - Package publishing
  */
 
-import type { ParsedArgs } from '@revealui/scripts/args.js';
+import { flagBoolean, type ParsedArgs } from '@revealui/scripts/args.js';
 import { ErrorCode } from '@revealui/scripts/errors.js';
 import { execCommand } from '@revealui/scripts/index.js';
 import { fail, ok } from '@revealui/scripts/output.js';
@@ -178,7 +178,7 @@ class ReleaseCLI extends ExecutingCLI {
    * Use --dry-run to skip steps 4–6.
    */
   private async releaseOss(args: ParsedArgs) {
-    const isDryRun = Boolean(args['dry-run']);
+    const isDryRun = flagBoolean(args, 'dry-run');
 
     if (isDryRun) {
       console.log('\n[dry-run] OSS release  -  steps 4–6 will be skipped\n');
@@ -261,7 +261,7 @@ class ReleaseCLI extends ExecutingCLI {
     }
 
     // Step 6: Push tags
-    if (!args.noPush) {
+    if (!flagBoolean(args, 'no-push')) {
       console.log('\nStep 6: Pushing tags to remote...');
       await execCommand('git', ['push', '--follow-tags'], { cwd: this.projectRoot });
     }
@@ -285,7 +285,7 @@ class ReleaseCLI extends ExecutingCLI {
    * Use --dry-run to preview without publishing.
    */
   private async releasePro(args: ParsedArgs) {
-    const isDryRun = Boolean(args['dry-run']);
+    const isDryRun = flagBoolean(args, 'dry-run');
     const ProPackages = ['ai', 'harnesses'];
     const { readFile } = await import('node:fs/promises');
     const { join } = await import('node:path');
@@ -397,7 +397,7 @@ class ReleaseCLI extends ExecutingCLI {
    * Publish packages to npm
    */
   private async publishPackages(args: ParsedArgs) {
-    const tag = args.tag ? String(args.tag) : 'latest';
+    const tag = typeof args.flags.tag === 'string' ? args.flags.tag : 'latest';
 
     // Use changesets to publish
     const cmdArgs = ['changeset', 'publish'];
@@ -414,7 +414,7 @@ class ReleaseCLI extends ExecutingCLI {
     }
 
     // Push tags unless --no-push specified
-    if (!args.noPush) {
+    if (!flagBoolean(args, 'no-push')) {
       await execCommand('git', ['push', '--follow-tags'], {
         cwd: this.projectRoot,
       });
@@ -430,7 +430,7 @@ class ReleaseCLI extends ExecutingCLI {
    * Create git release tag
    */
   private async createTag(args: ParsedArgs) {
-    const version = args.version as string;
+    const version = typeof args.flags.version === 'string' ? args.flags.version : '';
 
     if (!version) {
       return fail('Version tag required', ErrorCode.VALIDATION_ERROR);
@@ -453,7 +453,7 @@ class ReleaseCLI extends ExecutingCLI {
     }
 
     // Push tag unless --no-push specified
-    if (!args.noPush) {
+    if (!flagBoolean(args, 'no-push')) {
       await execCommand('git', ['push', 'origin', tagName], {
         cwd: this.projectRoot,
       });
