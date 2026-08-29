@@ -28,7 +28,6 @@ function forbiddenOnPublicRoutes(root: HTMLElement): void {
   expect(text.toLowerCase().includes('hipaa')).toBe(false);
   expect(text.toLowerCase().includes('soc 2')).toBe(false);
   expect(text.includes('24/7')).toBe(false);
-  expect(text.includes('No holdback')).toBe(false);
 }
 
 describe('public product catalog routes', () => {
@@ -39,28 +38,33 @@ describe('public product catalog routes', () => {
     );
   });
 
-  it('home keeps the product hero and catalog teaser, not studio SKUs', () => {
+  it('home keeps the product hero, quote calculator, and catalog teaser', () => {
     const { container } = renderRouted(<HomePage />);
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
     const startFree = screen.getAllByRole('link', { name: /start free/i });
     expect(startFree.length).toBeGreaterThan(0);
     expect(startFree.every((link) => link.getAttribute('href') === SITE.urls.signup)).toBe(true);
     expect(screen.getByRole('link', { name: 'See it on GitHub' })).toBeInTheDocument();
-    expect(screen.queryByRole('radio', { name: /I will \(developer/i })).toBeNull();
+    const selfHost = screen.getByRole('radio', { name: /I will \(developer/i });
+    expect(selfHost).toHaveAttribute('aria-checked', 'true');
     expect(screen.queryByText('$300')).toBeNull();
     expect(screen.queryByText('$3,500')).toBeNull();
     expect(screen.queryByText('$7,500')).toBeNull();
     forbiddenOnPublicRoutes(container);
   });
 
-  it('pricing is the license catalog with one studio pointer', async () => {
+  it('pricing is the license catalog plus the quote calculator', async () => {
     const { container } = renderRouted(<PricingPage />);
     expect(await screen.findByRole('heading', { name: 'Pro' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'revealuistudio.com' })).toHaveAttribute(
       'href',
       SITE.urls.agency,
     );
-    expect(screen.queryByRole('radio', { name: /You will \(Studio\)/i })).toBeNull();
+    expect(screen.getByRole('radio', { name: /You will \(Studio\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /I will \(developer/i })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
     forbiddenOnPublicRoutes(container);
   });
 

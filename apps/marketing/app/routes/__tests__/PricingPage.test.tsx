@@ -14,13 +14,18 @@ describe('PricingPage product catalog', () => {
     );
   });
 
-  it('renders the license catalog, not the studio quote calculator', async () => {
+  it('renders the license catalog and the product-site quote calculator', async () => {
     render(<PricingPage />);
     expect(
       await screen.findByRole('heading', { level: 1, name: 'RevealUI pricing' }),
     ).toBeInTheDocument();
-    expect(screen.queryByRole('radio', { name: /I will \(developer/i })).toBeNull();
-    expect(screen.queryByText('Three questions. One price. No fleet math.')).toBeNull();
+    expect(
+      screen.getByRole('heading', { name: 'Three questions. A price you can read.' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /I will \(developer/i })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
   });
 
   it('keeps subscription Free, Pro, Max, and Enterprise as a license', async () => {
@@ -212,10 +217,6 @@ describe('PricingPage product catalog', () => {
     expect(text.includes('Starter Kit $299')).toBe(false);
     expect(text.includes('Add up what you would otherwise rent')).toBe(false);
     expect(text.includes('The rented stack')).toBe(false);
-    expect(text.includes('$300')).toBe(false);
-    expect(text.includes('$3,500')).toBe(false);
-    expect(text.includes('$7,500')).toBe(false);
-    expect(text.includes('No holdback')).toBe(false);
     expect(container.innerHTML.includes('cal.com/revealuistudio')).toBe(false);
   });
 
