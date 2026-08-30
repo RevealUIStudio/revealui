@@ -1,5 +1,11 @@
 # @revealui/services
 
+## 0.7.14
+
+### Patch Changes
+
+- @revealui/core@0.14.1
+
 ## 0.7.13
 
 ### Patch Changes

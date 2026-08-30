@@ -1,5 +1,11 @@
 # @revealui/tokens
 
+## 0.3.4
+
+### Patch Changes
+
+- 4a2569b: Finish the leftover component-library families after Button and Badge: shared focus recipes on fields, Dialog on the scrim/card tokens, and the light-theme status-foreground / data-theme leftover.
+
 ## 0.3.3
 
 ### Patch Changes
