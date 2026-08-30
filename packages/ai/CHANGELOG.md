@@ -1,5 +1,11 @@
 # @revealui/ai
 
+## 1.0.1
+
+### Patch Changes
+
+- @revealui/core@0.14.1
+
 ## 1.0.0
 
 ### Major Changes

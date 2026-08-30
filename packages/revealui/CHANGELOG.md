@@ -1,5 +1,11 @@
 # revealui
 
+## 0.1.17
+
+### Patch Changes
+
+- create-revealui@0.5.22
+
 ## 0.1.16
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @revealui/auth
 
+## 0.5.5
+
+### Patch Changes
+
+- @revealui/core@0.14.1
+
 ## 0.5.4
 
 ### Patch Changes
