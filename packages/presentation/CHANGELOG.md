@@ -1,5 +1,14 @@
 # @revealui/presentation
 
+## 0.14.1
+
+### Patch Changes
+
+- 016a1a6: Lock the Circuit-R as the only RevealUI mark. Public chrome uses the circuit master at ≥96px; small marks and navy-plate tiles derive from the same letterform.
+- 4a2569b: Finish the leftover component-library families after Button and Badge: shared focus recipes on fields, Dialog on the scrim/card tokens, and the light-theme status-foreground / data-theme leftover.
+- Updated dependencies [4a2569b]
+  - @revealui/tokens@0.3.4
+
 ## 0.14.0
 
 ### Minor Changes
