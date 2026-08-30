@@ -247,6 +247,14 @@ export function parseArgs(argv: string[], config: ParserConfig): ParsedArgs {
 }
 
 /**
+ * Read a boolean CLI flag from ParsedArgs.flags (never the object root).
+ * Release handlers that used `Boolean(args['dry-run'])` always saw false.
+ */
+export function flagBoolean(args: ParsedArgs, name: string): boolean {
+  return args.flags[name] === true;
+}
+
+/**
  * Parse a value based on argument type
  */
 function parseValue(

@@ -77,7 +77,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_COMING_SOON_NOTE',
-    text: 'Not included today: advanced inference configuration, RevKit environment provisioning, and x402 agent payments. Status lives in the agents section below.',
+    text: 'Not included today: advanced inference configuration, environment provisioning, and x402 agent payments. Status lives in the agents section below.',
     evidence: [ROADMAP, X402, PROVIDERS],
   },
   {
@@ -310,7 +310,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing-faq.ts',
     exportPath: 'PRICING_FAQS[3].answer',
-    text: 'A perpetual license is a one-time purchase that gives you a license key for the corresponding tier, forever, with no monthly subscription required. Support and updates are included for 1 year; after that, renew your support contract or keep using the version you have. This page sells Perpetual Pro as a license. Studio SKUs live on revealuistudio.com.',
+    text: 'A perpetual license is a one-time purchase that gives you a license key for the corresponding tier, forever, with no monthly subscription required. Support and updates are included for 1 year; after that, renew your support contract or keep using the version you have. This page sells Pro Perpetual as a license. Studio SKUs live on revealuistudio.com.',
     evidence: [PERPETUAL, COMMERCIAL_POLICY],
   },
   {
@@ -380,7 +380,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing-faq.ts',
     exportPath: 'PRICING_FAQS[9].answer',
-    text: 'RevealUI Studio ships RevealFleet. RevealUI is the lead product and the buyable runtime on this site. The catalog is Free, Pro at $49, Max at $299, and Enterprise by inquiry. RevVault is encrypted secret management inside Pro. It is not a separate paid SKU.',
+    text: 'RevealUI Studio ships RevealFleet. RevealUI is the lead product and the buyable runtime on this site. The catalog is Free, Pro at $49, Max at $299, Enterprise by inquiry, and Pro Perpetual at $1,499. RevVault is encrypted secret management inside Pro. It is not a separate paid SKU.',
     evidence: [REPO, COMMERCIAL_POLICY, PRICING_FALLBACKS, REVVAULT_REPO],
   },
   {
@@ -500,7 +500,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
     file: 'for-operators.ts',
     exportPath: 'FOR_OPERATORS_HOW_WE_DELIVER.paragraph2.after',
     proofGrade: 'behavior',
-    text: ' for what that means and when it might be ready. It does not ship today. If you want a working product now, the path is a build call.',
+    text: ' for what that means and when it might be ready. It does not ship today. If you want a working product now, the path is a 30-minute intro.',
     evidence: [COMMERCIAL_POLICY],
   },
   {
@@ -509,6 +509,20 @@ export const claimsPart2: readonly ClaimEntry[] = [
     proofGrade: 'behavior',
     text: '(operator-lane studio-voice copy; path-pinned so the phrasing stays out of the fleet-voice register scan)',
     match: 'path',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'for-operators.ts',
+    exportPath: 'AGENCY_ENGAGEMENT_LADDER[1].name',
+    proofGrade: 'outcome',
+    text: 'Architecture artifact bundle and review',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'for-operators.ts',
+    exportPath: 'FOR_OPERATORS_PRICING.rungs[1].cta.label',
+    proofGrade: 'path',
+    text: 'Request an architecture review',
     evidence: [COMMERCIAL_POLICY],
   },
   {
@@ -550,7 +564,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
     file: 'for-operators.ts',
     exportPath: 'FOR_OPERATORS_PROOF.body',
     proofGrade: 'outcome',
-    text: 'RevealUI Studio is one engineer, Joshua Vaughn, and the runtime he maintains. Ten years managing teams in telecommunications before this. The engagement is delivered by the same person who reviews commits on the open-source codebase you will run.',
+    text: 'RevealUI Studio is one engineer, Joshua Vaughn, and the runtime he maintains. 5+ years managing teams in telecommunications before this. The engagement is delivered by the same person who reviews commits on the open-source codebase you will run.',
     evidence: [BIO, REPO],
   },
   {

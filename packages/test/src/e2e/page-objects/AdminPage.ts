@@ -8,10 +8,14 @@ import { BasePage } from './BasePage.js';
 
 export class AdminPage extends BasePage {
   /**
-   * Navigate to admin panel
+   * Navigate to the admin origin. Does not shadow BasePage.navigateTo(url)
+   * (GAP-478). Admin lives at `/` after the /admin → / flatten.
    */
-  async navigateTo(baseUrl = 'http://localhost:3000'): Promise<void> {
-    await this.navigateTo(`${baseUrl}/admin`);
+  async navigateTo(
+    baseUrl = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:4000',
+  ): Promise<void> {
+    const origin = baseUrl.replace(/\/$/, '');
+    await super.navigateTo(`${origin}/`);
     await this.waitForNavigation();
   }
 

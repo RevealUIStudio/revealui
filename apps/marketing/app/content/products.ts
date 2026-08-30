@@ -1,58 +1,8 @@
-// RevFleet product family roster — the actual products RevealUI Studio ships.
-//
-// Sourced from per-product README audit (2026-05-18) cross-referenced against
-// the internal marketing-overhaul plan §2.1 (canonical status table). Owner
-// directive 2026-05-18 redirected /products from "5 primitives deep-dive" to
-// "RevFleet product family lineup". RevealCoin permanently excluded per
-// the 2026-05-29 cancellation ADR (internal;
-// supersedes the prior shelved-state memory). The legacy PRODUCTS_PRIMITIVES
-// deep-dive data was retired (GAP-383, 2026-07-17): it was never imported by
-// this page or any other route, and the five primitives already render on
-// "/" via HOME_PRIMITIVES in content/primitives.ts.
-//
-// Status re-verified 2026-06-23 (Phase D, against current per-product READMEs):
-// RevForge Beta → Alpha (README: stamped kits are reference/preview only, not
-// production-ready); RevCon / RevSkills Alpha → GA (shipped, usable libraries;
-// MIT stays on priceLabel, not the lifecycle pill). RevMarket STAYS Planned:
-// MASTER_PLAN marks the infra complete, but truth-source §5 binds the
-// marketplace as not-yet-shipped to users and the hero says it is "on the way"
-// — the marketing guardrail wins over internal status.
-//
-// Conversion pass (2026-06-09): per the e-commerce-PDP optimization framework
-// (digitalapplied.com), two "test-first" wins applied to this product-family
-// page — (1) price/license transparency surfaced on every card via priceLabel
-// instead of buried behind /pricing; (2) scannable bulleted highlights replace
-// prose card bodies (Nielsen Norman scan-not-read). priceLabel values are
-// derived from the authoritative license catalog in content/{home,pricing-faq}.ts,
-// not from repo SPDX (RevVault CLI MIT / RevDev Studio+Console MIT / RevCon MIT /
-// RevSkills MIT / RevForge operator-only / RevMarket integrations bundled with
-// the runtime).
-//
-// 2026-07-11 (homepage-truth): the flagship's real-screenshot showcase
-// (PRODUCTS_FLAGSHIP_SHOWCASE, ex-ProductMockup) removed. The screenshots it
-// rendered were byte-identical dev-scaffold captures from 2026-04-27, not the
-// current product; no honest replacement imagery exists yet.
-//
-// 2026-07-17 (version re-pin): flagship v0.3.0 → v0.4.0 (root package.json is
-// the version anchor; the 0.3.0 pinned on 2026-07-12 was RevVault's number and
-// the flagship was never bumped) and RevDev v0.1.1 → v0.2.0 (v0.2.0 tagged in
-// the revdev repo 2026-07-17). Beta semantics reworded below: the fleet is
-// pre-revenue (docs/ROADMAP.md maturity table: "No paying users yet"), so the
-// old "limited paying users" gloss overstated reality.
-//
-// 2026-07-12 (claims-ratchet): product versions re-pinned (RevVault 0.3.0,
-// RevDev 0.1.1), RevForge switched to a Contact-us CTA with a private-preview
-// price label (the repo is private, the old GitHub link 404s for the public),
-// and the RevDev adapter claim corrected to the real daemon JSON-RPC
-// coordination (vendor adapters are roadmap-only). Every sentence on this page
-// is indexed in content/claims-evidence.ts.
-//
-// Status semantics (lifecycle only — never encode a license in the pill):
-//   Beta    — production-ready code, deployed and dogfooded in production, pre-revenue
-//   Alpha   — development-preview quality; works, ships, may break
-//   GA      — generally available; released and usable. License lives on priceLabel.
-//   Planned — code-complete or scaffolded, not yet shipped to users
-//   Preview — reserved lifecycle label; unused on this roster today
+// Public products page: RevealUI licenses only.
+// Honest live catalog: Free / Pro $49 / Max $299 / Enterprise inquire +
+// Pro Perpetual $1,499. RevVault is encrypted secret management inside Pro,
+// not a separate SKU. RevForge, RevKit, and RevDev are not for sale on
+// this site.
 
 import { METRICS, SITE } from './site';
 import type { Cta } from './types';
@@ -60,7 +10,7 @@ import type { Cta } from './types';
 export const PRODUCTS_PAGE_HERO = {
   h1: 'RevealUI licenses',
   subtitle:
-    'License the self-hosted runtime. Free, Pro, Max, or Enterprise (Contact sales). Studio SKUs live on revealuistudio.com. Zero paying customers. This is not a launched pull-and-run Fleet.',
+    'License the self-hosted runtime. Free, Pro, Max, Enterprise inquire, and Pro Perpetual. Studio SKUs live on revealuistudio.com. Zero paying customers. This is not a launched pull-and-run RevealFleet.',
 } as const;
 
 export type ProductStatus = 'Beta' | 'Alpha' | 'GA' | 'Planned';
@@ -98,7 +48,7 @@ export const PRODUCTS_FLAGSHIP: FlagshipProduct = {
   version: 'v0.4.0',
   priceLabel: 'Free to self-host · Pro tier optional',
   tagline: 'The self-hosted business runtime',
-  body: 'People, content, offers, payments, and agents in one runtime your team and your agents share. Licensed as Free, Pro, Max, or Enterprise.',
+  body: 'People, content, offers, payments, and agents in one runtime your team and your agents share. Licensed as Free, Pro, Max, Enterprise inquire, or Pro Perpetual.',
   iconPath: 'M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5',
   facts: [
     { stat: String(METRICS.packages), label: 'packages' },
@@ -111,145 +61,6 @@ export const PRODUCTS_FLAGSHIP: FlagshipProduct = {
     pricing: { label: 'View pricing', href: '/pricing' },
     repo: { label: 'GitHub →', href: SITE.urls.repo, external: true },
   },
-} as const;
-
-export interface SisterProduct {
-  readonly slug: string;
-  readonly name: string;
-  readonly tagline: string;
-  /** Scannable highlights — lead the card, replacing prose (PDP-framework "quick win"). */
-  readonly highlights: readonly string[];
-  readonly status: ProductStatus;
-  readonly version?: string;
-  /** Price/availability transparency surfaced on the card. */
-  readonly priceLabel: string;
-  readonly iconPath: string;
-  readonly primaryCta: Cta;
-}
-
-// Sister products — uniform card grid. Order is roughly stability-descending
-// (Beta first, then Alpha, then Active-library, then Planned) so the most
-// adoption-ready surfaces lead.
-export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
-  {
-    slug: 'revvault',
-    name: 'RevVault',
-    tagline: 'Secret vault for the whole fleet',
-    highlights: [
-      'CLI and desktop app for day-to-day secret work',
-      'Age-locked store, no plaintext .env as source of truth',
-      'One vault the rest of the fleet is built to read',
-    ],
-    status: 'Beta',
-    version: 'v0.3.0',
-    priceLabel: 'Free · MIT CLI',
-    iconPath:
-      'M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z',
-    primaryCta: {
-      label: 'GitHub →',
-      href: 'https://github.com/RevealUIStudio/revvault',
-      external: true,
-    },
-  },
-  {
-    slug: 'revforge',
-    name: 'RevForge',
-    tagline: 'Studio-run operator preview, not a self-serve stamp',
-    highlights: [
-      'Operator preview the studio runs with you',
-      'Not an unattended RevForge or Fleet pull-and-run kit',
-      'Not sold as a customer Fleet stamp on this site',
-    ],
-    status: 'Alpha',
-    priceLabel: 'Operator tool · private preview',
-    iconPath:
-      'M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766m-2.704 3.796-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z',
-    primaryCta: {
-      label: 'Contact us',
-      href: '/contact',
-    },
-  },
-  {
-    slug: 'revdev',
-    name: 'RevDev',
-    tagline: 'Multi-agent engineering harness',
-    highlights: [
-      'Desktop Studio, Console, and local daemon',
-      'Coordinates agents across a multi-repo workspace',
-      'One place to run and watch agent work on your code',
-    ],
-    status: 'Alpha',
-    version: 'v0.2.0',
-    priceLabel: 'Free · MIT core',
-    iconPath: 'M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5',
-    primaryCta: {
-      label: 'GitHub →',
-      href: 'https://github.com/RevealUIStudio/revdev',
-      external: true,
-    },
-  },
-  {
-    slug: 'revcon',
-    name: 'RevCon',
-    tagline: 'Editor config sync across projects',
-    highlights: [
-      'Zed and Cursor configs in one place',
-      'Linked into each project you work on',
-      'Edit once, keep the fleet consistent',
-    ],
-    status: 'GA',
-    priceLabel: 'Free · MIT',
-    iconPath:
-      'M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5',
-    primaryCta: {
-      label: 'GitHub →',
-      href: 'https://github.com/RevealUIStudio/revcon',
-      external: true,
-    },
-  },
-  {
-    slug: 'revskills',
-    name: 'RevSkills',
-    tagline: 'Agent skills library for real engineering work',
-    highlights: [
-      'Database, test, and security patterns ready to use',
-      'Drop into your agent harness and go',
-      'Free, open, and importable',
-    ],
-    status: 'GA',
-    priceLabel: 'Free · MIT',
-    iconPath:
-      'M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5',
-    primaryCta: {
-      label: 'GitHub →',
-      href: 'https://github.com/RevealUIStudio/revskills',
-      external: true,
-    },
-  },
-  {
-    slug: 'revmarket',
-    name: 'RevMarket',
-    tagline: 'Agent tool marketplace',
-    highlights: [
-      `${METRICS.mcpServers} first-party integrations ship with the runtime`,
-      'Stripe, Neon, Vercel, Next.js, and more',
-      'Third-party publishing is planned, not shipped',
-    ],
-    status: 'Planned',
-    priceLabel: 'Bundled with the runtime',
-    iconPath:
-      'M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72L4.318 3.44A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72m-13.5 8.65h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .415.336.75.75.75Z',
-    primaryCta: {
-      label: 'On the roadmap',
-      href: '/roadmap',
-    },
-  },
-] as const;
-
-export const PRODUCTS_SISTERS_SECTION = {
-  title: 'And the rest of the fleet',
-  description:
-    'Sister products that extend the runtime: secrets, operator tools, skills, and the agent tool catalog.',
 } as const;
 
 export interface StatItem {
