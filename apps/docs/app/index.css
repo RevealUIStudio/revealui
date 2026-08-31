@@ -392,3 +392,30 @@
     transform: rotate(360deg);
   }
 }
+
+/* Circuit-R public chrome: one locked box (default 96px), two plates, no scrollbar. */
+[data-circuit-r-chrome] {
+  width: var(--circuit-r-chrome-px, 96px);
+  height: var(--circuit-r-chrome-px, 96px);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+[data-circuit-r-chrome] img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  image-rendering: auto;
+}
+
+[data-circuit-r-chrome] [data-circuit-r-plate="dark"] {
+  display: none;
+}
+
+[data-theme="dark"] [data-circuit-r-chrome] [data-circuit-r-plate="light"] {
+  display: none;
+}
+
+[data-theme="dark"] [data-circuit-r-chrome] [data-circuit-r-plate="dark"] {
+  display: block;
+}
