@@ -3,6 +3,7 @@
 // Apify pay-per-event prices. starter-native has no GitHub twin.
 
 import { SITE } from './site';
+import { buildVercelDeployHref, VERCEL_ONE_CLICK } from './vercel-one-click';
 
 export const CREATE_REVEALUI_NPM_VERSION = '0.5.22' as const;
 
@@ -66,6 +67,15 @@ export const TEMPLATES_CLI_ITEMS: readonly TemplateCatalogItem[] = [
 export const TEMPLATES_GITHUB = {
   heading: 'GitHub Use this template',
   body: 'Four Next.js templates have a public GitHub twin. starter-native does not.',
+} as const;
+
+export const TEMPLATES_VERCEL = {
+  heading: 'Deploy to Vercel',
+  body: VERCEL_ONE_CLICK.description,
+  href: buildVercelDeployHref(),
+  cta: 'Deploy to Vercel',
+  sourceLabel: 'Open the starter GitHub twin',
+  sourceHref: VERCEL_ONE_CLICK.repositoryUrl,
 } as const;
 
 export const TEMPLATES_APIFY = {
