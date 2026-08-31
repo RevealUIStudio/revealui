@@ -59,6 +59,7 @@ export const CONTENT_FILE_ROUTES: Readonly<Record<string, RouteEntry>> = {
   'claims.ts': { route: '/claims', pageTitle: 'The claims ledger' },
   'nav.ts': { route: '/', pageTitle: 'Home' },
   'status.ts': { route: '/status', pageTitle: 'Status' },
+  'templates.ts': { route: '/templates', pageTitle: 'Templates' },
   'blog.ts': { route: '/blog', pageTitle: 'Blog' },
   'not-found.ts': { route: '/404', pageTitle: 'Page not found' },
   'contact.ts': { route: '/contact', pageTitle: 'Contact' },

@@ -19,6 +19,7 @@ describe('marketing content contracts', () => {
       const files = COVERED_FILES.map((c) => c.file);
       expect(files).toContain('nav.ts');
       expect(files).toContain('status.ts');
+      expect(files).toContain('templates.ts');
       expect(files).toContain('blog.ts');
       expect(files).toContain('not-found.ts');
     });

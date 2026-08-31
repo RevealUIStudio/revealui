@@ -11,6 +11,7 @@ import { PrivacyPage } from '../routes/PrivacyPage';
 import { RefundPolicyPage } from '../routes/RefundPolicyPage';
 import { StatusPage } from '../routes/StatusPage';
 import { SupportPage } from '../routes/SupportPage';
+import { TemplatesPage } from '../routes/TemplatesPage';
 import { TermsPage } from '../routes/TermsPage';
 
 interface VercelRedirect {
@@ -39,6 +40,7 @@ describe('marketing route registry', () => {
       { path: '/support', component: SupportPage },
       { path: '/refund-policy', component: RefundPolicyPage },
       { path: '/status', component: StatusPage },
+      { path: '/templates', component: TemplatesPage },
       { path: '/*notfound', component: NotFoundPage },
     ]);
 
@@ -52,6 +54,7 @@ describe('marketing route registry', () => {
       '/support',
       '/refund-policy',
       '/status',
+      '/templates',
     ];
 
     for (const advertised of advertisedPaths) {
@@ -132,6 +135,14 @@ describe('marketing route registry', () => {
     expect(wildcard, 'non-apex community paths still need the /:path* host rule').toBeDefined();
     expect(wildcard?.destination).toBe(discussions);
     expect(wildcard?.permanent).toBe(true);
+  });
+
+  it('does not redirect /templates away from the marketing SPA', () => {
+    const redirect = readRedirects().find((entry) => entry.source === '/templates');
+    expect(redirect, '/templates must render on this site, not hop away').toBeUndefined();
+    const appSource = readFileSync(path.resolve(process.cwd(), 'app/App.tsx'), 'utf8');
+    expect(appSource.includes("path: '/templates'")).toBe(true);
+    expect(appSource.includes('TemplatesPage')).toBe(true);
   });
 
   it('redirects /services off leftover storefronts and keeps /products as licenses', () => {

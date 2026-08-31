@@ -13,6 +13,7 @@ export const NAV_LINKS: readonly NavLink[] = [
 export const PRODUCT_FOOTER_LINKS: readonly NavLink[] = [
   { label: 'Docs', href: SITE.urls.docs, external: true },
   { label: 'Pricing', href: '/pricing' },
+  { label: 'Templates', href: '/templates' },
   { label: 'Support', href: '/support' },
 ] as const;
 
