@@ -19,8 +19,8 @@
  *
  * Outputs, per app public/:
  *   favicon.svg, icon-mark.svg  — verbatim SVG copies (see SVG_SYNC)
- *   favicon.png                 — from favicon.svg, per-app size
- *   favicon.ico                 — from favicon.svg, 16/32/48 multi-res
+ *   favicon.png                 — 32 from favicon.svg (flat); 64 from icon-mark
+ *   favicon.ico                 — 16/32 flat + 48 circuit, multi-res
  *   apple-touch-icon.png        — from icon-mark.svg, 180
  *   icon-192.png, icon-512.png  — from icon-mark.svg, PWA purpose "any"
  *   icon-maskable-512.png       — from icon-maskable.svg, purpose "maskable"
@@ -73,11 +73,12 @@ const SVG_SYNC = {
 };
 
 const APPLE_TOUCH_ICON_SIZE = 180;
-const ICO_SIZES = [16, 32, 48];
-/** Flat mark only — traces mud below 96px. */
-const FLAT_PNG_SIZES = [32, 48, 64];
-/** Circuit master on Surface 0 plate. Never below 96px. */
-const CIRCUIT_PNG_SIZES = [96, 128, 192, 256, 512];
+const ICO_FLAT_SIZES = [16, 32];
+const ICO_CIRCUIT_SIZE = 48;
+/** Flat mark only for 16/32, where traces mud. */
+const FLAT_PNG_SIZES = [32];
+/** Circuit master on Surface 0 plate. 48+ is this letter, not a flat twin. */
+const CIRCUIT_PNG_SIZES = [48, 64, 96, 128, 192, 256, 512];
 const PWA_SIZES = [192, 512];
 const MASKABLE_SIZE = 512;
 const TILE_BG = '#060d1a';
@@ -197,18 +198,26 @@ async function main() {
     fs.writeFileSync(path.join(BRAND_DIR, `icon-${size}.png`), png);
   }
   const brandIco = [];
-  for (const size of ICO_SIZES) {
+  for (const size of ICO_FLAT_SIZES) {
     brandIco.push({ size, png: await rasterize(sharp, FAVICON_SVG, size) });
   }
+  brandIco.push({
+    size: ICO_CIRCUIT_SIZE,
+    png: await rasterize(sharp, ICON_MARK_SVG, ICO_CIRCUIT_SIZE, { flatten: true }),
+  });
   fs.writeFileSync(path.join(BRAND_DIR, 'favicon.ico'), packIco(brandIco));
   fs.writeFileSync(
     path.join(BRAND_DIR, 'apple-touch-icon.png'),
     await rasterize(sharp, ICON_MARK_SVG, APPLE_TOUCH_ICON_SIZE, { flatten: true }),
   );
+  for (const stale of ['favicon-48.png', 'favicon-64.png']) {
+    const stalePath = path.join(BRAND_DIR, stale);
+    if (fs.existsSync(stalePath)) fs.unlinkSync(stalePath);
+  }
   console.log(
     `brand: revealui-logo-dark.svg (navy letter on ${TILE_BG}), ` +
-      `favicon.ico (16/32/48), favicon-32/48/64.png, apple-touch-icon.png (180), ` +
-      `icon-96/128/192/256/512.png`,
+      `favicon.ico (16/32 flat + 48 circuit), favicon-32.png, apple-touch-icon.png (180), ` +
+      `icon-48/64/96/128/192/256/512.png`,
   );
 
   for (const app of APPS) {
@@ -221,7 +230,13 @@ async function main() {
       fs.copyFileSync(path.join(BRAND_DIR, svg), path.join(app.publicDir, svg));
     }
 
-    const faviconPng = await rasterize(sharp, FAVICON_SVG, app.faviconPngSize);
+    const faviconFromCircuit = app.faviconPngSize > 32;
+    const faviconPng = await rasterize(
+      sharp,
+      faviconFromCircuit ? ICON_MARK_SVG : FAVICON_SVG,
+      app.faviconPngSize,
+      { flatten: faviconFromCircuit },
+    );
     fs.writeFileSync(path.join(app.publicDir, 'favicon.png'), faviconPng);
     for (const size of FLAT_PNG_SIZES) {
       fs.copyFileSync(path.join(BRAND_DIR, `favicon-${size}.png`), path.join(app.publicDir, `favicon-${size}.png`));
@@ -231,11 +246,18 @@ async function main() {
     }
 
     const icoEntries = [];
-    for (const size of ICO_SIZES) {
-      const png = await rasterize(sharp, FAVICON_SVG, size);
-      icoEntries.push({ size, png });
+    for (const size of ICO_FLAT_SIZES) {
+      icoEntries.push({ size, png: await rasterize(sharp, FAVICON_SVG, size) });
     }
+    icoEntries.push({
+      size: ICO_CIRCUIT_SIZE,
+      png: await rasterize(sharp, ICON_MARK_SVG, ICO_CIRCUIT_SIZE, { flatten: true }),
+    });
     fs.writeFileSync(path.join(app.publicDir, 'favicon.ico'), packIco(icoEntries));
+    for (const stale of ['favicon-48.png', 'favicon-64.png']) {
+      const stalePath = path.join(app.publicDir, stale);
+      if (fs.existsSync(stalePath)) fs.unlinkSync(stalePath);
+    }
 
     const appleTouchPng = await rasterize(sharp, ICON_MARK_SVG, APPLE_TOUCH_ICON_SIZE, {
       flatten: true,

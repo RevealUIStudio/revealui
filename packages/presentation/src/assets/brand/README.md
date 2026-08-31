@@ -70,8 +70,8 @@ steepen the leg. Never put a white plate behind the mark.
 Derived from the master. Do not invent a second R.
 
 - `revealui-mark.svg` / `favicon.svg` — the same 3 region paths, no traces.
-  Browser-tab favicon and any render **≤96px**. The two files are
-  byte-identical; `favicon.svg` is the deployment alias.
+  Browser-tab favicon at **16/32 only**. The two files are byte-identical;
+  `favicon.svg` is the deployment alias.
 - `icon-mark.svg` — the same Circuit-R on a `#060d1a` rounded plate (`rx=112`),
   inset at `scale(0.742)` (70% of the overshooting 1.06 master) so a circular
   crop does not clip the stem or the leg tip. Source for GitHub, apple-touch,
@@ -92,10 +92,10 @@ identity and is banned.
 
 | Render size | Use |
 |---|---|
-| ≥96px    | Circuit master — `revealui-logo.svg` (light page) or `revealui-logo-dark.svg` (dark page) |
-| ≤96px    | Flat mark — `favicon.svg` / `revealui-mark.svg` |
+| 16 / 32 | Flat mark only — `favicon.svg` / `revealui-mark.svg`. Traces mud at this size. |
+| ≥48     | Circuit master — `revealui-logo.svg` (light page), `revealui-logo-dark.svg` (dark page), or the `#060d1a` icon-mark tile |
 
-**Circuit never below 96px.** The traces are ~2px in 512 space and alias to mush.
+The flat no-circuit mark is **only** for 16/32. Do not ship a flat twin at 48 or 64.
 
 ## Stroke weights
 
@@ -170,7 +170,7 @@ node scripts/gen-brand-assets.cjs
 Expected output — four lines:
 
 ```
-brand: revealui-logo-dark.svg (navy letter on #060d1a), favicon.ico (16/32/48), favicon-32/48/64.png, apple-touch-icon.png (180), icon-96/128/192/256/512.png
+brand: revealui-logo-dark.svg (navy letter on #060d1a), favicon.ico (16/32 flat + 48 circuit), favicon-32.png, apple-touch-icon.png (180), icon-48/64/96/128/192/256/512.png
 marketing: favicon.svg, icon-mark.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (64), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
 docs: favicon.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (32), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
 admin: favicon.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (32), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png

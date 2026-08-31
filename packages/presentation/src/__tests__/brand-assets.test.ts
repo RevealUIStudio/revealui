@@ -148,6 +148,15 @@ describe('Circuit-R brand family', () => {
     expect(mono.includes(FACETED_A)).toBe(false);
   });
 
+  it('keeps the flat no-circuit mark only for 16/32 favicon rasters', () => {
+    expect(existsSync(path.join(brandDir, 'favicon-32.png'))).toBe(true);
+    expect(existsSync(path.join(brandDir, 'favicon-48.png'))).toBe(false);
+    expect(existsSync(path.join(brandDir, 'favicon-64.png'))).toBe(false);
+    expect(existsSync(path.join(brandDir, 'icon-48.png'))).toBe(true);
+    expect(existsSync(path.join(brandDir, 'icon-64.png'))).toBe(true);
+    expect(existsSync(path.join(brandDir, 'icon-96.png'))).toBe(true);
+  });
+
   it('keeps wordmarks on this R with outlined RevealUI type', () => {
     const light = readBrand('wordmark-light.svg');
     const dark = readBrand('wordmark-dark.svg');
