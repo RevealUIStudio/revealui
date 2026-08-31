@@ -12,15 +12,27 @@ One Circuit-R family. Every colour derives from the OKLCH design tokens in
 [`packages/tokens/src/tokens.css`](../../../../tokens/src/tokens.css), re-exported as
 `@revealui/presentation/tokens.css`.
 
-**Locked 2026-08-26** — `revealui-logo.svg` is the only RevealUI mark. Variants
-are that same letterform. There is no second R, no white plate, and no inverted
-frost-fill twin.
+**Locked 2026-08-26** — this scythe Circuit-R is the only RevealUI letter.
+Variants are that same letterform. There is no second R, no white plate, and
+no inverted frost-fill twin. Never steepen the leg.
 
 **Locked 2026-08-31** — optical-center **placement** of that same v2 curved-leg
 Circuit-R. The group is `translate(256,256) scale(1.06) translate(-290,-320)`
-so letter mass sits on canvas x=256. The stem, bowl, curved scythe-leg, frost
-traces, amber vias, and clipPaths `cs` / `cb` / `cl` are the v2 drawing. Do not
-steepen or shorten the leg. The 2026-08-26 "Never steepen the leg" lock stays.
+so letter mass sits on canvas x=256. Do not put the stem on 256 if it crops
+the scythe tip. The stem, bowl, curved scythe-leg, frost traces, amber vias,
+and clipPaths `cs` / `cb` / `cl` are the v2 drawing.
+
+**Locked 2026-08-31 (light + dark)** — the same scythe, two surfaces. Light
+and dark are first-class colorways of one letter (Linear: same system, not an
+afterthought). Dark is not a remade R and not a frost-fill invert. Traces on
+dark are lighter (`#e8f1ff`) so they hold like Linear dark-theme icons. Do
+not add chrome or extra circuit noise. Never a white plate behind the mark.
+
+**Locked 2026-08-31 (bowl counter)** — the eye of the R is a true hole. Inner
+path `M238,192 C300,190 345,196 360,222 C368,242 366,260 352,278 C334,300
+290,300 238,300 Z` is punched with a `userSpaceOnUse` mask (white letter,
+black hole) on the letter group. Do not rely on `clip-rule="evenodd"` alone.
+No traces, pale fill, or horizontal lines in the counter.
 
 ## Tokens (sRGB)
 
@@ -32,18 +44,25 @@ steepen or shorten the leg. The 2026-08-26 "Never steepen the leg" lock stays.
 | Surface 0 (dark page)           | `#060d1a` | `oklch(0.16 0.030 260)` |
 | Paper (light page)              | `#f8fafd` | `oklch(0.985 0.005 250)` |
 
-Emblem region fills: stem `#0a2c5a`, bowl `#002247`, leg `#0e3468`. Frost traces
+Light emblem fills: stem `#0a2c5a`, bowl `#002247`, leg `#0e3468`. Frost traces
 `#9fc9ff`. Amber vias `#f0b519`.
 
-## Master
+Dark emblem fills (same paths): stem `#164687`, bowl `#0d3169`, leg `#1e57a8`.
+Frost traces `#e8f1ff` (lifted for contrast on dark). Via cores `#dfeeff`.
+Hairline `#082448`. Amber vias `#f0b519`.
 
-- `revealui-logo.svg` — the Circuit-R. Navy region fills, frost traces, amber
+## Masters (one letter, two surfaces)
+
+- `revealui-logo.svg` — light Circuit-R. Navy region fills, frost traces, amber
   vias. Transparent (no plate). 512×512, locked `scale(1.06)` and inner origin
-  `translate(-290,-320)` (optical-center placement of the v2 scythe-leg).
+  `translate(-290,-320)`. This is the letter on a light page — not a white tile.
+- `revealui-logo-dark.svg` — the same scythe, origin, and clip `cl`
+  (`M219.6,335.1` / tip `488.0,484.0`), recolored for dark surfaces. Not a
+  second R.
 
 Public chrome (marketing nav, docs headers, admin auth when no tenant logo is
-set) renders this file at **≥96px**. Never redraw the letter. Never steepen the
-leg.
+set) renders the light master at **≥96px**. Never redraw the letter. Never
+steepen the leg. Never put a white plate behind the mark.
 
 ## Variants (same letterform only)
 
@@ -64,14 +83,14 @@ Derived from the master. Do not invent a second R.
   type (Inter Tight 800). No live `<text>`. In app UI prefer
   `RevealUIWordmark`, which renders live HTML text.
 
-There is no `revealui-logo-dark.svg`. A dark surface uses the master (or the
-navy-plate variant). An inverted frost-fill R is a different identity.
+A dark page uses `revealui-logo-dark.svg` (or the navy-plate icon-mark). An
+inverted frost-fill R is a different identity — do not bring it back.
 
 ## Size floor
 
 | Render size | Use |
 |---|---|
-| ≥96px    | Circuit master — `revealui-logo.svg` |
+| ≥96px    | Circuit master — `revealui-logo.svg` (light page) or `revealui-logo-dark.svg` (dark page) |
 | ≤96px    | Flat mark — `favicon.svg` / `revealui-mark.svg` |
 
 **Circuit never below 96px.** The traces are ~2px in 512 space and alias to mush.
@@ -84,7 +103,7 @@ Optical, not drift — each file is tuned for its own render band:
 |---|---|
 | `revealui-mark.svg` / `favicon.svg` | `1.6` |
 | `wordmark-*.svg` | `2.4` |
-| `revealui-logo.svg` and navy-plate variants | `1.3` / `1.6` / `2` per trace class |
+| `revealui-logo.svg` / `revealui-logo-dark.svg` and navy-plate variants | `1.3` / `1.6` / `2` per trace class |
 
 Do not normalise these to a single value.
 
@@ -99,13 +118,14 @@ Do not normalise these to a single value.
 ## Per-app deployables
 
 `gen-brand-assets.cjs` writes everything each app serves — the SVG copies as
-well as the rasters. Nothing here is copied by hand. Navy-plate SVGs are
-derived from `revealui-logo.svg` on each run.
+well as the rasters. Nothing here is copied by hand. Navy-plate SVGs and
+favicon/PWA rasters are derived from the **light** master on each run. The
+dark master is copied as itself.
 
 | App | Serves |
 |---|---|
-| marketing | `revealui-logo.svg`, `favicon.svg`, `icon-mark.svg`, `favicon.png` (64), `favicon.ico`, `apple-touch-icon.png`, `icon-192/512.png`, `icon-maskable-512.png` |
-| docs | `revealui-logo.svg`, `favicon.svg`, `favicon.png` (32), `favicon.ico`, `apple-touch-icon.png`, `icon-192/512.png`, `icon-maskable-512.png` |
+| marketing | `revealui-logo.svg`, `revealui-logo-dark.svg`, `favicon.svg`, `icon-mark.svg`, `favicon.png` (64), `favicon.ico`, `apple-touch-icon.png`, `icon-192/512.png`, `icon-maskable-512.png` |
+| docs | `revealui-logo.svg`, `revealui-logo-dark.svg`, `favicon.svg`, `favicon.png` (32), `favicon.ico`, `apple-touch-icon.png`, `icon-192/512.png`, `icon-maskable-512.png` |
 | admin | same as docs |
 
 The SVG sync is load-bearing: marketing and docs chrome read
@@ -148,9 +168,9 @@ Expected output — four lines:
 
 ```
 brand: icon-192.png, icon-512.png
-marketing: favicon.svg, icon-mark.svg, revealui-logo.svg, favicon.png (64), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
-docs: favicon.svg, revealui-logo.svg, favicon.png (32), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
-admin: favicon.svg, revealui-logo.svg, favicon.png (32), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
+marketing: favicon.svg, icon-mark.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (64), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
+docs: favicon.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (32), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
+admin: favicon.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (32), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
 ```
 
 That is the whole pipeline — there is no follow-up copy step.

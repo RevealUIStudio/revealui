@@ -3,9 +3,10 @@
  * canonical SVG masters in packages/presentation/src/assets/brand/.
  * ──────────────────────────────────────────────────────────────────────────
  * Masters read:
- *   revealui-logo.svg  — the only Circuit-R master (navy fills, frost traces,
- *                        amber vias). Public chrome copies this file.
- *   favicon.svg        — flat 3-path extract, no traces (browser-tab favicon)
+ *   revealui-logo.svg      — light Circuit-R master (navy fills, frost traces,
+ *                            amber vias). Public chrome copies this file.
+ *   revealui-logo-dark.svg — same letter + origin, dark-surface colors.
+ *   favicon.svg            — flat 3-path extract, no traces (browser-tab favicon)
  *
  * Derived in this script (same letterform, never a second R):
  *   icon-mark.svg      — master on a #060d1a rounded plate (rx=112), scale
@@ -41,11 +42,13 @@ const fs = require('node:fs');
 const ROOT = path.resolve(__dirname, '..');
 const BRAND_DIR = path.join(ROOT, 'packages/presentation/src/assets/brand');
 const MASTER_SVG = path.join(BRAND_DIR, 'revealui-logo.svg');
+const MASTER_DARK_SVG = path.join(BRAND_DIR, 'revealui-logo-dark.svg');
 const FAVICON_SVG = path.join(BRAND_DIR, 'favicon.svg');
 const ICON_MARK_SVG = path.join(BRAND_DIR, 'icon-mark.svg');
 const ICON_MASKABLE_SVG = path.join(BRAND_DIR, 'icon-maskable.svg');
 
 /** Locked transform on revealui-logo.svg. Do not steepen the letter. */
+/** Bowl counter uses mask#cm (userSpaceOnUse). Do not drop it. */
 const MASTER_SCALE = 'scale(1.06)';
 /** 70% of the overshooting master so a circular crop keeps stem + leg tip. */
 const TILE_SCALE = 'scale(0.742)';
@@ -58,9 +61,9 @@ const APPS = [
 
 /** SVG masters each app serves directly from its public/ root. */
 const SVG_SYNC = {
-  marketing: ['favicon.svg', 'icon-mark.svg', 'revealui-logo.svg'],
-  docs: ['favicon.svg', 'revealui-logo.svg'],
-  admin: ['favicon.svg', 'revealui-logo.svg'],
+  marketing: ['favicon.svg', 'icon-mark.svg', 'revealui-logo.svg', 'revealui-logo-dark.svg'],
+  docs: ['favicon.svg', 'revealui-logo.svg', 'revealui-logo-dark.svg'],
+  admin: ['favicon.svg', 'revealui-logo.svg', 'revealui-logo-dark.svg'],
 };
 
 const APPLE_TOUCH_ICON_SIZE = 180;
@@ -132,7 +135,7 @@ async function rasterize(sharp, src, size, { flatten = false } = {}) {
 async function main() {
   const sharp = resolveSharp();
 
-  for (const master of [MASTER_SVG, FAVICON_SVG]) {
+  for (const master of [MASTER_SVG, MASTER_DARK_SVG, FAVICON_SVG]) {
     if (!fs.existsSync(master)) {
       console.error(`missing master: ${master}`);
       process.exit(1);
@@ -158,13 +161,6 @@ async function main() {
 
     for (const svg of SVG_SYNC[app.name] ?? []) {
       fs.copyFileSync(path.join(BRAND_DIR, svg), path.join(app.publicDir, svg));
-    }
-
-    for (const retired of ['revealui-logo-dark.svg']) {
-      const retiredPath = path.join(app.publicDir, retired);
-      if (fs.existsSync(retiredPath)) {
-        fs.unlinkSync(retiredPath);
-      }
     }
 
     const faviconPng = await rasterize(sharp, FAVICON_SVG, app.faviconPngSize);
