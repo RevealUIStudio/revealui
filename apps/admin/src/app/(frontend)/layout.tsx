@@ -68,6 +68,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <InitTheme nonce={nonce} />
           <link href="/favicon.ico" rel="icon" sizes="32x32" />
           <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
+          <link href="/favicon.png" rel="icon" type="image/png" />
+          <link href="/favicon-32.png" rel="icon" type="image/png" sizes="32x32" />
+          <link href="/apple-touch-icon.png" rel="apple-touch-icon" />
           {/* RevealUI Theme Fonts are self-hosted via @fontsource-variable/*
               (imported at the top of this layout); no third-party font hosts. GAP-324. */}
           {primaryColor || tenantFont ? (

@@ -21,15 +21,29 @@ const AMBER_VIA = '#f0b519';
 const NAVY_PLATE = '#060d1a';
 const TILE_SCALE = 'scale(0.742)';
 const MASTER_SCALE = 'scale(1.06)';
+const MASTER_TRANSFORM = 'translate(256,256) scale(1.06) translate(-300,-320)';
+const SCYTHE_CLIP = 'M219.6,335.1';
+const SCYTHE_TIP = '488.0,484.0';
+
+const INVERT_STEM = '#164687';
+const INVERT_BOWL = '#0d3169';
+const INVERT_LEG = '#1e57a8';
+const INVERT_TRACE = '#e8f1ff';
+const INVERT_HAIRLINE = '#082448';
+const SURFACE_0_PLATE = '<rect width="512" height="512" fill="#060d1a"';
 
 describe('Circuit-R brand family', () => {
-  it('keeps revealui-logo.svg as the only circuit master', () => {
+  it('keeps the light Circuit-R master as the v2 scythe, optically placed', () => {
     const master = readBrand('revealui-logo.svg');
-    expect(existsSync(path.join(brandDir, 'revealui-logo-dark.svg'))).toBe(false);
     expect(master.includes(MASTER_SCALE)).toBe(true);
+    expect(master.includes(MASTER_TRANSFORM)).toBe(true);
     expect(master.includes(STEM)).toBe(true);
     expect(master.includes(BOWL)).toBe(true);
     expect(master.includes(LEG)).toBe(true);
+    expect(master.includes(SCYTHE_CLIP)).toBe(true);
+    expect(master.includes(SCYTHE_TIP)).toBe(true);
+    expect(master.includes('translate(-330,-320)')).toBe(false);
+    expect(master.includes('translate(-290,-320)')).toBe(false);
     expect(master.includes(NAVY_STEM)).toBe(true);
     expect(master.includes(NAVY_BOWL)).toBe(true);
     expect(master.includes(NAVY_LEG)).toBe(true);
@@ -39,6 +53,48 @@ describe('Circuit-R brand family', () => {
     expect(master.includes(FACETED_A)).toBe(false);
     expect(master.includes(FACETED_B)).toBe(false);
     expect(master.includes('fill="#dfeeff" fill-rule="evenodd"')).toBe(false);
+    expect(master.includes('maskUnits="userSpaceOnUse"')).toBe(true);
+    expect(master.includes('maskContentUnits="userSpaceOnUse"')).toBe(true);
+    expect(master.includes('mask="url(#cm)"')).toBe(true);
+    expect(master.includes('M238,192 C300,190 345,196 360,222')).toBe(true);
+    expect(master.includes(SURFACE_0_PLATE)).toBe(false);
+    expect(master.includes(INVERT_STEM)).toBe(false);
+    expect(master.includes(INVERT_TRACE)).toBe(false);
+  });
+
+  it('keeps dark as the same navy Circuit-R on Surface 0, not a frost invert', () => {
+    expect(existsSync(path.join(brandDir, 'revealui-logo-dark.svg'))).toBe(true);
+    const light = readBrand('revealui-logo.svg');
+    const dark = readBrand('revealui-logo-dark.svg');
+    expect(dark.includes(MASTER_TRANSFORM)).toBe(true);
+    expect(dark.includes(MASTER_SCALE)).toBe(true);
+    expect(dark.includes(TILE_SCALE)).toBe(false);
+    expect(dark.includes(STEM)).toBe(true);
+    expect(dark.includes(BOWL)).toBe(true);
+    expect(dark.includes(LEG)).toBe(true);
+    expect(dark.includes(SCYTHE_CLIP)).toBe(true);
+    expect(dark.includes(SCYTHE_TIP)).toBe(true);
+    expect(dark.includes('translate(-330,-320)')).toBe(false);
+    expect(dark.includes('translate(-290,-320)')).toBe(false);
+    expect(dark.includes(NAVY_STEM)).toBe(true);
+    expect(dark.includes(NAVY_BOWL)).toBe(true);
+    expect(dark.includes(NAVY_LEG)).toBe(true);
+    expect(dark.includes(FROST_TRACE)).toBe(true);
+    expect(dark.includes(AMBER_VIA)).toBe(true);
+    expect(dark.includes(NAVY_PLATE)).toBe(true);
+    expect(dark.includes(SURFACE_0_PLATE)).toBe(true);
+    expect(dark.includes('<circle')).toBe(true);
+    expect(dark.includes(INVERT_STEM)).toBe(false);
+    expect(dark.includes(INVERT_BOWL)).toBe(false);
+    expect(dark.includes(INVERT_LEG)).toBe(false);
+    expect(dark.includes(INVERT_TRACE)).toBe(false);
+    expect(dark.includes(INVERT_HAIRLINE)).toBe(false);
+    expect(dark.includes(FACETED_A)).toBe(false);
+    expect(dark.includes('fill="#dfeeff" fill-rule="evenodd"')).toBe(false);
+    expect(light.includes(MASTER_TRANSFORM)).toBe(true);
+    expect(dark.includes('maskUnits="userSpaceOnUse"')).toBe(true);
+    expect(dark.includes('mask="url(#cm)"')).toBe(true);
+    expect(dark.includes('M238,192 C300,190 345,196 360,222')).toBe(true);
   });
 
   it('uses the same 3 region paths, with no traces, on the flat small marks', () => {
@@ -74,6 +130,7 @@ describe('Circuit-R brand family', () => {
       expect(tiled.includes('<circle')).toBe(true);
       expect(tiled.includes('#1e57a8')).toBe(false);
       expect(tiled.includes(FACETED_A)).toBe(false);
+      expect(tiled.includes('mask="url(#cm)"')).toBe(true);
     }
 
     expect(iconMark.includes('rx="112"')).toBe(true);
@@ -91,6 +148,15 @@ describe('Circuit-R brand family', () => {
     expect(mono.includes(FACETED_A)).toBe(false);
   });
 
+  it('keeps the flat no-circuit mark only for 16/32 favicon rasters', () => {
+    expect(existsSync(path.join(brandDir, 'favicon-32.png'))).toBe(true);
+    expect(existsSync(path.join(brandDir, 'favicon-48.png'))).toBe(false);
+    expect(existsSync(path.join(brandDir, 'favicon-64.png'))).toBe(false);
+    expect(existsSync(path.join(brandDir, 'icon-48.png'))).toBe(true);
+    expect(existsSync(path.join(brandDir, 'icon-64.png'))).toBe(true);
+    expect(existsSync(path.join(brandDir, 'icon-96.png'))).toBe(true);
+  });
+
   it('keeps wordmarks on this R with outlined RevealUI type', () => {
     const light = readBrand('wordmark-light.svg');
     const dark = readBrand('wordmark-dark.svg');
@@ -104,5 +170,10 @@ describe('Circuit-R brand family', () => {
     expect(light.includes(NAVY_STEM)).toBe(true);
     expect(light.includes(NAVY_BOWL)).toBe(true);
     expect(light.includes(NAVY_LEG)).toBe(true);
+    expect(dark.includes(NAVY_STEM)).toBe(true);
+    expect(dark.includes(NAVY_BOWL)).toBe(true);
+    expect(dark.includes(NAVY_LEG)).toBe(true);
+    expect(dark.includes(INVERT_STEM)).toBe(false);
+    expect(dark.includes(INVERT_TRACE)).toBe(false);
   });
 });

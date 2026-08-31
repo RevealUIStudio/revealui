@@ -3,11 +3,15 @@
  * canonical SVG masters in packages/presentation/src/assets/brand/.
  * ──────────────────────────────────────────────────────────────────────────
  * Masters read:
- *   revealui-logo.svg  — the only Circuit-R master (navy fills, frost traces,
- *                        amber vias). Public chrome copies this file.
- *   favicon.svg        — flat 3-path extract, no traces (browser-tab favicon)
+ *   revealui-logo.svg      — navy Circuit-R master (fills #0a2c5a / #002247 /
+ *                            #0e3468, frost #9fc9ff, amber #f0b519, mask #cm,
+ *                            origin translate(-300,-320) scale 1.06). Public
+ *                            chrome copies this file. No plate.
+ *   favicon.svg            — flat 3-path extract, no traces (browser-tab favicon)
  *
- * Derived in this script (same letterform, never a second R):
+ * Derived in this script (same letterform, never a second R, never a frost invert):
+ *   revealui-logo-dark.svg — the same navy letter at scale(1.06), composited
+ *                            on Surface 0 #060d1a. One letter, two plates.
  *   icon-mark.svg      — master on a #060d1a rounded plate (rx=112), scale
  *                        0.742 (70% of the overshooting 1.06 master) so a
  *                        circular crop does not clip the stem or leg tip.
@@ -15,8 +19,8 @@
  *
  * Outputs, per app public/:
  *   favicon.svg, icon-mark.svg  — verbatim SVG copies (see SVG_SYNC)
- *   favicon.png                 — from favicon.svg, per-app size
- *   favicon.ico                 — from favicon.svg, 16/32/48 multi-res
+ *   favicon.png                 — 32 from favicon.svg (flat); 64 from icon-mark
+ *   favicon.ico                 — 16/32 flat + 48 circuit, multi-res
  *   apple-touch-icon.png        — from icon-mark.svg, 180
  *   icon-192.png, icon-512.png  — from icon-mark.svg, PWA purpose "any"
  *   icon-maskable-512.png       — from icon-maskable.svg, purpose "maskable"
@@ -41,11 +45,16 @@ const fs = require('node:fs');
 const ROOT = path.resolve(__dirname, '..');
 const BRAND_DIR = path.join(ROOT, 'packages/presentation/src/assets/brand');
 const MASTER_SVG = path.join(BRAND_DIR, 'revealui-logo.svg');
+const MASTER_DARK_SVG = path.join(BRAND_DIR, 'revealui-logo-dark.svg');
 const FAVICON_SVG = path.join(BRAND_DIR, 'favicon.svg');
+const MASTER_TRANSFORM = 'translate(256,256) scale(1.06) translate(-300,-320)';
+const NAVY_FILLS = ['#0a2c5a', '#002247', '#0e3468', '#9fc9ff', '#f0b519'];
+const INVERT_FILLS = ['#164687', '#0d3169', '#1e57a8', '#e8f1ff', '#082448'];
 const ICON_MARK_SVG = path.join(BRAND_DIR, 'icon-mark.svg');
 const ICON_MASKABLE_SVG = path.join(BRAND_DIR, 'icon-maskable.svg');
 
 /** Locked transform on revealui-logo.svg. Do not steepen the letter. */
+/** Bowl counter uses mask#cm (userSpaceOnUse). Do not drop it. */
 const MASTER_SCALE = 'scale(1.06)';
 /** 70% of the overshooting master so a circular crop keeps stem + leg tip. */
 const TILE_SCALE = 'scale(0.742)';
@@ -58,35 +67,70 @@ const APPS = [
 
 /** SVG masters each app serves directly from its public/ root. */
 const SVG_SYNC = {
-  marketing: ['favicon.svg', 'icon-mark.svg', 'revealui-logo.svg'],
-  docs: ['favicon.svg', 'revealui-logo.svg'],
-  admin: ['favicon.svg', 'revealui-logo.svg'],
+  marketing: ['favicon.svg', 'icon-mark.svg', 'revealui-logo.svg', 'revealui-logo-dark.svg'],
+  docs: ['favicon.svg', 'revealui-logo.svg', 'revealui-logo-dark.svg'],
+  admin: ['favicon.svg', 'revealui-logo.svg', 'revealui-logo-dark.svg'],
 };
 
 const APPLE_TOUCH_ICON_SIZE = 180;
-const ICO_SIZES = [16, 32, 48];
+const ICO_FLAT_SIZES = [16, 32];
+const ICO_CIRCUIT_SIZE = 48;
+/** Flat mark only for 16/32, where traces mud. */
+const FLAT_PNG_SIZES = [32];
+/** Circuit master on Surface 0 plate. 48+ is this letter, not a flat twin. */
+const CIRCUIT_PNG_SIZES = [48, 64, 96, 128, 192, 256, 512];
 const PWA_SIZES = [192, 512];
 const MASKABLE_SIZE = 512;
 const TILE_BG = '#060d1a';
 
-/**
- * Wrap the circuit master on a navy plate and shrink it so GitHub / apple-touch
- * / PWA circular crops do not clip the stem or the leg tip.
- * Literal scale swap — not a redraw, not a second letter.
- */
-function deriveNavyPlate(masterSvg, rx) {
-  const scaleAt = masterSvg.indexOf(MASTER_SCALE);
-  if (scaleAt === -1) {
-    throw new Error('revealui-logo.svg is missing the locked scale(1.06) transform');
+function assertNavyCircuitRMaster(masterSvg) {
+  if (!masterSvg.includes(MASTER_TRANSFORM)) {
+    throw new Error('revealui-logo.svg is missing the locked origin translate(-300,-320) at scale(1.06)');
   }
-  const inset =
-    masterSvg.slice(0, scaleAt) + TILE_SCALE + masterSvg.slice(scaleAt + MASTER_SCALE.length);
-  const svgGt = inset.indexOf('>');
+  if (!masterSvg.includes('mask="url(#cm)"') || !masterSvg.includes('maskUnits="userSpaceOnUse"')) {
+    throw new Error('revealui-logo.svg is missing empty-bowl mask #cm');
+  }
+  for (const fill of NAVY_FILLS) {
+    if (!masterSvg.includes(fill)) {
+      throw new Error(`revealui-logo.svg is missing navy Circuit-R fill ${fill}`);
+    }
+  }
+  for (const fill of INVERT_FILLS) {
+    if (masterSvg.includes(fill)) {
+      throw new Error(
+        `revealui-logo.svg contains frost-invert fill ${fill}. Dark must copy the navy letter.`,
+      );
+    }
+  }
+}
+
+function insertSurface0Plate(svg, { rx = null, scale = MASTER_SCALE } = {}) {
+  let out = svg;
+  if (scale !== MASTER_SCALE) {
+    const scaleAt = out.indexOf(MASTER_SCALE);
+    if (scaleAt === -1) {
+      throw new Error('revealui-logo.svg is missing the locked scale(1.06) transform');
+    }
+    out = out.slice(0, scaleAt) + scale + out.slice(scaleAt + MASTER_SCALE.length);
+  }
+  const svgGt = out.indexOf('>');
   if (svgGt === -1) {
     throw new Error('revealui-logo.svg is missing the root <svg> tag');
   }
-  const plate = `<rect width="512" height="512" rx="${rx}" fill="${TILE_BG}"></rect>`;
-  return inset.slice(0, svgGt + 1) + plate + inset.slice(svgGt + 1);
+  const rxAttr = rx === null ? '' : ` rx="${rx}"`;
+  const plate = `<rect width="512" height="512"${rxAttr} fill="${TILE_BG}"></rect>`;
+  return out.slice(0, svgGt + 1) + plate + out.slice(svgGt + 1);
+}
+
+/** Tiled icon: same navy letter, scale 0.742, Surface 0 plate. Not a second R. */
+function deriveNavyPlate(masterSvg, rx) {
+  assertNavyCircuitRMaster(masterSvg);
+  return insertSurface0Plate(masterSvg, { rx, scale: TILE_SCALE });
+}
+
+function deriveDarkFromLight(masterSvg) {
+  assertNavyCircuitRMaster(masterSvg);
+  return insertSurface0Plate(masterSvg);
 }
 
 function resolveSharp() {
@@ -140,15 +184,41 @@ async function main() {
   }
 
   const circuitMaster = fs.readFileSync(MASTER_SVG, 'utf8');
+  assertNavyCircuitRMaster(circuitMaster);
+  fs.writeFileSync(MASTER_DARK_SVG, deriveDarkFromLight(circuitMaster));
   fs.writeFileSync(ICON_MARK_SVG, deriveNavyPlate(circuitMaster, 112));
   fs.writeFileSync(ICON_MASKABLE_SVG, deriveNavyPlate(circuitMaster, 0));
 
-  // Canonical PWA rasters, kept beside the masters.
-  for (const size of PWA_SIZES) {
+  for (const size of FLAT_PNG_SIZES) {
+    const png = await rasterize(sharp, FAVICON_SVG, size);
+    fs.writeFileSync(path.join(BRAND_DIR, `favicon-${size}.png`), png);
+  }
+  for (const size of CIRCUIT_PNG_SIZES) {
     const png = await rasterize(sharp, ICON_MARK_SVG, size, { flatten: true });
     fs.writeFileSync(path.join(BRAND_DIR, `icon-${size}.png`), png);
   }
-  console.log(`brand: icon-192.png, icon-512.png`);
+  const brandIco = [];
+  for (const size of ICO_FLAT_SIZES) {
+    brandIco.push({ size, png: await rasterize(sharp, FAVICON_SVG, size) });
+  }
+  brandIco.push({
+    size: ICO_CIRCUIT_SIZE,
+    png: await rasterize(sharp, ICON_MARK_SVG, ICO_CIRCUIT_SIZE, { flatten: true }),
+  });
+  fs.writeFileSync(path.join(BRAND_DIR, 'favicon.ico'), packIco(brandIco));
+  fs.writeFileSync(
+    path.join(BRAND_DIR, 'apple-touch-icon.png'),
+    await rasterize(sharp, ICON_MARK_SVG, APPLE_TOUCH_ICON_SIZE, { flatten: true }),
+  );
+  for (const stale of ['favicon-48.png', 'favicon-64.png']) {
+    const stalePath = path.join(BRAND_DIR, stale);
+    if (fs.existsSync(stalePath)) fs.unlinkSync(stalePath);
+  }
+  console.log(
+    `brand: revealui-logo-dark.svg (navy letter on ${TILE_BG}), ` +
+      `favicon.ico (16/32 flat + 48 circuit), favicon-32.png, apple-touch-icon.png (180), ` +
+      `icon-48/64/96/128/192/256/512.png`,
+  );
 
   for (const app of APPS) {
     if (!fs.existsSync(app.publicDir)) {
@@ -160,22 +230,34 @@ async function main() {
       fs.copyFileSync(path.join(BRAND_DIR, svg), path.join(app.publicDir, svg));
     }
 
-    for (const retired of ['revealui-logo-dark.svg']) {
-      const retiredPath = path.join(app.publicDir, retired);
-      if (fs.existsSync(retiredPath)) {
-        fs.unlinkSync(retiredPath);
-      }
-    }
-
-    const faviconPng = await rasterize(sharp, FAVICON_SVG, app.faviconPngSize);
+    const faviconFromCircuit = app.faviconPngSize > 32;
+    const faviconPng = await rasterize(
+      sharp,
+      faviconFromCircuit ? ICON_MARK_SVG : FAVICON_SVG,
+      app.faviconPngSize,
+      { flatten: faviconFromCircuit },
+    );
     fs.writeFileSync(path.join(app.publicDir, 'favicon.png'), faviconPng);
+    for (const size of FLAT_PNG_SIZES) {
+      fs.copyFileSync(path.join(BRAND_DIR, `favicon-${size}.png`), path.join(app.publicDir, `favicon-${size}.png`));
+    }
+    for (const size of CIRCUIT_PNG_SIZES) {
+      fs.copyFileSync(path.join(BRAND_DIR, `icon-${size}.png`), path.join(app.publicDir, `icon-${size}.png`));
+    }
 
     const icoEntries = [];
-    for (const size of ICO_SIZES) {
-      const png = await rasterize(sharp, FAVICON_SVG, size);
-      icoEntries.push({ size, png });
+    for (const size of ICO_FLAT_SIZES) {
+      icoEntries.push({ size, png: await rasterize(sharp, FAVICON_SVG, size) });
     }
+    icoEntries.push({
+      size: ICO_CIRCUIT_SIZE,
+      png: await rasterize(sharp, ICON_MARK_SVG, ICO_CIRCUIT_SIZE, { flatten: true }),
+    });
     fs.writeFileSync(path.join(app.publicDir, 'favicon.ico'), packIco(icoEntries));
+    for (const stale of ['favicon-48.png', 'favicon-64.png']) {
+      const stalePath = path.join(app.publicDir, stale);
+      if (fs.existsSync(stalePath)) fs.unlinkSync(stalePath);
+    }
 
     const appleTouchPng = await rasterize(sharp, ICON_MARK_SVG, APPLE_TOUCH_ICON_SIZE, {
       flatten: true,
