@@ -19,7 +19,7 @@ Catalog stays RevealUI Free / Pro $49 / Max $99 plus Studio Hour / Architecture
 Closure is **owner dashboard + twin sync**. Do not invent a
 `vercel.com/templates` listing URL.
 
-Full visitor/env detail: [`deployment/vercel/README.md`](../../deployment/vercel/README.md).
+Full visitor/env detail: [`deployment/vercel/README.md`](https://github.com/RevealUIStudio/revealui/blob/test/deployment/vercel/README.md).
 
 ## 0. What is already live without a marketplace listing
 
@@ -41,7 +41,7 @@ The twins are separate repos. From a fresh checkout of each twin:
 
 1. Copy `packages/cli/templates/<id>/vercel.json` from this monorepo onto the twin root.
 2. Refresh the twin from the current CLI template when you next do a twin release (the twins are older snapshots and should match the monorepo CLI templates, including R2-only object storage).
-3. Paste the Deploy block from [`deployment/vercel/deploy-button.md`](../../deployment/vercel/deploy-button.md) into that twin's README.
+3. Paste the Deploy block from [`deployment/vercel/deploy-button.md`](https://github.com/RevealUIStudio/revealui/blob/test/deployment/vercel/deploy-button.md) into that twin's README.
 4. Do not add Neon or Blob `stores` to the Deploy URL. Visitors paste their own `POSTGRES_URL`.
 5. Do not add a `vercel.com/templates/…` link until step 3 records a real listing.
 
@@ -51,7 +51,7 @@ Vercel does not publish a listing from repo files. An org owner must submit.
 
 1. Sign in as the RevealUIStudio Vercel team owner (not this agent).
 2. Open **https://vercel.com/templates/submit**.
-3. Submit **one** twin first (`revealui-template-starter` is the blank-canvas default). Use the row in [`deployment/vercel/templates.json`](../../deployment/vercel/templates.json).
+3. Submit **one** twin first (`revealui-template-starter` is the blank-canvas default). Use the row in [`deployment/vercel/templates.json`](https://github.com/RevealUIStudio/revealui/blob/test/deployment/vercel/templates.json).
 4. Framework: Next.js. CSS: Tailwind. Use the Circuit-R mark already in the brand kit (navy letter, scythe, empty bowl). Do not upload a white plate, faceted R, or frost invert.
 5. Demo URL: only a URL you have actually deployed from that twin. If none exists, skip demo rather than fake one.
 6. Deploy URL: the `vercel.com/new/clone` href already on `/templates` for that twin.
