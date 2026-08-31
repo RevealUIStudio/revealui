@@ -40,7 +40,7 @@ Vercel auto-detects Next.js even before the twins gain `vercel.json`.
 The twins are separate repos. From a fresh checkout of each twin:
 
 1. Copy `packages/cli/templates/<id>/vercel.json` from this monorepo onto the twin root.
-2. Refresh the twin from the current CLI template when you next do a twin release (the twins are older snapshots: some still mention Vercel Blob).
+2. Refresh the twin from the current CLI template when you next do a twin release (the twins are older snapshots and should match the monorepo CLI templates, including R2-only object storage).
 3. Paste the Deploy block from [`deployment/vercel/deploy-button.md`](../../deployment/vercel/deploy-button.md) into that twin's README.
 4. Do not add Neon or Blob `stores` to the Deploy URL. Visitors paste their own `POSTGRES_URL`.
 5. Do not add a `vercel.com/templates/…` link until step 3 records a real listing.
