@@ -100,7 +100,11 @@ function SignupContent({ apiUrl }: SignupFormProps) {
         credentials: 'include',
         body: JSON.stringify({ email, password, name, tosAccepted: true }),
       });
-      const data = (await res.json()) as { user?: { emailVerified?: boolean }; error?: string };
+      const data = (await res.json()) as {
+        user?: { emailVerified?: boolean };
+        error?: string;
+        message?: string;
+      };
       if (res.ok) {
         for (const type of ['necessary', 'functional'] as const) {
           apiFetch(`${apiUrl}/api/gdpr/consent/grant`, {
@@ -122,7 +126,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
           setAwaitingVerification(true);
         }
       } else {
-        setError(data.error || 'Failed to create account');
+        setError(data.message || data.error || 'Failed to create account');
       }
     } catch {
       setError('Failed to create account');
@@ -335,7 +339,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
             />
           </PasswordInput>
           <p className="text-xs text-zinc-600">
-            Min 8 characters, uppercase, lowercase, and a number
+            Min 12 characters, uppercase, lowercase, and a number
           </p>
         </div>
 
