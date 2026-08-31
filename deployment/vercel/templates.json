@@ -1,0 +1,59 @@
+{
+  "listingStatus": "not-published",
+  "listingUrl": null,
+  "submitUrl": "https://vercel.com/templates/submit",
+  "ownerGuide": "docs/distribution/VERCEL-TEMPLATE-OWNER-PUBLISH.md",
+  "requiredEnv": [
+    "POSTGRES_URL",
+    "REVEALUI_SECRET",
+    "REVEALUI_PUBLIC_SERVER_URL",
+    "NEXT_PUBLIC_SERVER_URL"
+  ],
+  "note": "Official vercel.com/templates publish is owner-only. Do not invent a listing URL. This is the runtime deploy path for existing create-revealui Next.js twins, not a Studio SKU and not a Starter Kit.",
+  "templates": [
+    {
+      "id": "basic-blog",
+      "name": "RevealUI basic-blog",
+      "slug": "revealui-basic-blog",
+      "description": "Blogs and content sites. Next.js 16 + @revealui/*. Clone onto the visitor Vercel account with their Neon or Postgres.",
+      "framework": "Next.js",
+      "css": "Tailwind",
+      "githubUrl": "https://github.com/RevealUIStudio/revealui-template-basic-blog",
+      "projectName": "revealui-basic-blog",
+      "cliTemplate": "basic-blog"
+    },
+    {
+      "id": "e-commerce",
+      "name": "RevealUI e-commerce",
+      "slug": "revealui-e-commerce",
+      "description": "Product catalog with checkout. Next.js 16 + @revealui/* + Stripe. Clone onto the visitor Vercel account with their Neon or Postgres.",
+      "framework": "Next.js",
+      "css": "Tailwind",
+      "githubUrl": "https://github.com/RevealUIStudio/revealui-template-e-commerce",
+      "projectName": "revealui-e-commerce",
+      "cliTemplate": "e-commerce"
+    },
+    {
+      "id": "portfolio",
+      "name": "RevealUI portfolio",
+      "slug": "revealui-portfolio",
+      "description": "Personal portfolio site. Next.js 16 + @revealui/*. Clone onto the visitor Vercel account with their Neon or Postgres.",
+      "framework": "Next.js",
+      "css": "Tailwind",
+      "githubUrl": "https://github.com/RevealUIStudio/revealui-template-portfolio",
+      "projectName": "revealui-portfolio",
+      "cliTemplate": "portfolio"
+    },
+    {
+      "id": "starter",
+      "name": "RevealUI starter",
+      "slug": "revealui-starter",
+      "description": "Blank-canvas Next.js app, no sample collections. Clone onto the visitor Vercel account with their Neon or Postgres.",
+      "framework": "Next.js",
+      "css": "Tailwind",
+      "githubUrl": "https://github.com/RevealUIStudio/revealui-template-starter",
+      "projectName": "revealui-starter",
+      "cliTemplate": "starter"
+    }
+  ]
+}

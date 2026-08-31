@@ -18,12 +18,11 @@ Live public paths only:
 - `npx create-revealui@latest`
 - GitHub templates: [starter](https://github.com/RevealUIStudio/revealui-template-starter), [basic-blog](https://github.com/RevealUIStudio/revealui-template-basic-blog), [portfolio](https://github.com/RevealUIStudio/revealui-template-portfolio), [e-commerce](https://github.com/RevealUIStudio/revealui-template-e-commerce)
 - Apify [governed-agent-run](https://apify.com/revealuistudio/governed-agent-run) — pay-per-event. Receipt verification is $0.00001, not free
+- [Templates](https://revealui.com/templates): visitor Deploy-to-Vercel on the four Next.js GitHub twins
 - [Quick Start](./QUICK_START.md): local stack walkthrough
 - [What is RevealUI?](./WHAT_IS.md): canonical paragraph, tier names, feature matrix
 - [Build Your Business](./BUILD_YOUR_BUSINESS.md): End-to-end tutorial: scaffold to deploy
 - [Examples](./EXAMPLES.md): Blog, subscription starter, storefront
-
-There is no `revealui.com/templates` page.
 
 ## Core Guides
 
@@ -33,7 +32,7 @@ There is no `revealui.com/templates` page.
 - [Admin Guide](./ADMIN_GUIDE.md): Collections, content management, admin dashboard
 - [Auth & Security](./AUTH.md): Authentication, sessions, RBAC, security policy
 - [Database](./DATABASE.md): Management scripts, optimization, Drizzle ORM
-- [Deployment](./guides/deployment.md): Deploy to Vercel + Fly, buyer Vercel one-click starter, Docker Compose, environment setup
+- [Deployment](./guides/deployment.md): Deploy to Vercel + Fly, visitor Deploy-to-Vercel on the four Next.js GitHub twins, Docker Compose, environment setup
 - [Plugins](./PLUGINS.md): Config-transform plugins (form builder, nested docs, redirects) and how to author one
 - [Admin development](./guides/admin-dev.md): HMR expectations when editing admin, collections, and Lexical plugins
 - [Errors and debugging](./guides/errors-and-debugging.md): API error envelope, request ids, how to file a bug

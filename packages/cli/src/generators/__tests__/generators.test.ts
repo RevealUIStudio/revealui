@@ -97,19 +97,34 @@ describe('generateReadme', () => {
     expect(content).toContain('**portfolio** template');
   });
 
-  it('documents the buyer Vercel one-click only for the starter template', async () => {
-    await generateReadme('/tmp/my-app', { ...baseConfig, template: 'starter' });
-    const starter = mockWriteFile.mock.calls[0][1] as string;
-    expect(starter.includes('Deploy to Vercel')).toBe(true);
-    expect(starter.includes('your Vercel account')).toBe(true);
-    expect(starter.includes('Neon you control')).toBe(true);
-    expect(starter.includes('https://revealui.com/templates')).toBe(true);
-    expect(starter.includes('Not managed hosting')).toBe(true);
+  it('adds a Deploy to Vercel clone URL for Next.js GitHub twins', async () => {
+    await generateReadme('/tmp/my-app', baseConfig);
+    const content = mockWriteFile.mock.calls[0][1] as string;
+    const marker = 'https://vercel.com/new/clone?';
+    const start = content.indexOf(marker);
+    expect(start).toBeGreaterThan(-1);
+    const end = content.indexOf(')', start);
+    const href = content.slice(start, end === -1 ? undefined : end);
+    const deploy = new URL(href);
+    expect(deploy.searchParams.get('repository-url')).toBe(
+      'https://github.com/RevealUIStudio/revealui-template-basic-blog',
+    );
+    expect(deploy.searchParams.get('env')?.includes('POSTGRES_URL')).toBe(true);
+    expect(deploy.searchParams.has('stores')).toBe(false);
+  });
 
-    mockWriteFile.mockClear();
-    await generateReadme('/tmp/my-app', { ...baseConfig, template: 'basic-blog' });
-    const blog = mockWriteFile.mock.calls[0][1] as string;
-    expect(blog.includes('Deploy to Vercel')).toBe(false);
+  it('does not invent a vercel.com/templates listing URL', async () => {
+    await generateReadme('/tmp/my-app', baseConfig);
+    const content = mockWriteFile.mock.calls[0][1] as string;
+    expect(content.includes('vercel.com/templates/')).toBe(false);
+  });
+
+  it('does not add a Deploy to Vercel clone URL for starter-native', async () => {
+    const config: ProjectConfig = { ...baseConfig, template: 'starter-native' };
+    await generateReadme('/tmp/my-app', config);
+    const content = mockWriteFile.mock.calls[0][1] as string;
+    expect(content.includes('vercel.com/new/clone')).toBe(false);
+    expect(content).toContain('No GitHub Use this template twin');
   });
 });
 

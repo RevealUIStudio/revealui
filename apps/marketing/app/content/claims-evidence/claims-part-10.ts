@@ -7,8 +7,6 @@ import {
   TEMPLATES_APIFY_TEST,
   TEMPLATES_GITHUB_TEST,
   TEMPLATES_PAGE_TEST,
-  VERCEL_ONE_CLICK_TEMPLATE,
-  VERCEL_ONE_CLICK_TEST,
 } from './shared-refs.js';
 import type { ClaimEntry } from './types.js';
 
@@ -17,8 +15,17 @@ export const claimsPart10: readonly ClaimEntry[] = [
     file: 'templates.ts',
     exportPath: 'TEMPLATES_HERO.subtitle',
     proofGrade: 'outcome',
-    text: 'Scaffold a RevealUI app from the published CLI, or start from a GitHub template.',
-    evidence: [CLI_CREATE, CLI_TEMPLATE_DIRS, TEMPLATES_PAGE_TEST],
+    text: 'Scaffold a RevealUI app from the published CLI, start from a GitHub template, or deploy a Next.js twin to your Vercel account.',
+    evidence: [
+      CLI_CREATE,
+      CLI_TEMPLATE_DIRS,
+      TEMPLATES_PAGE_TEST,
+      {
+        kind: 'test',
+        ref: 'apps/marketing/app/content/__tests__/templates.test.ts#gives Deploy to Vercel clone URLs to the four Next.js GitHub twins only',
+        note: 'hero now includes the Vercel twin deploy path; buttons lock to the four GitHub twins',
+      },
+    ],
   },
   {
     file: 'templates.ts',
@@ -74,21 +81,24 @@ export const claimsPart10: readonly ClaimEntry[] = [
     file: 'templates.ts',
     exportPath: 'TEMPLATES_VERCEL.body',
     proofGrade: 'outcome',
-    text: 'Clone the starter onto your Vercel account. RevealUI runtime on Vercel and Neon you control. Not managed hosting. Not the Starter Kit. Not a studio invoice.',
-    evidence: [VERCEL_ONE_CLICK_TEMPLATE, VERCEL_ONE_CLICK_TEST],
-  },
-  {
-    file: 'templates.ts',
-    exportPath: 'TEMPLATES_VERCEL.sourceLabel',
-    proofGrade: 'outcome',
-    text: 'Open the starter GitHub twin',
+    text: 'The four Next.js GitHub twins can be cloned onto your Vercel account. You bring your own Neon or Postgres. This is the runtime deploy path, not a Studio SKU and not a Starter Kit. There is no live vercel.com/templates listing URL yet; owner submit is a dashboard step.',
     evidence: [
+      TEMPLATES_GITHUB_TEST,
       {
-        kind: 'url',
-        ref: 'https://github.com/RevealUIStudio/revealui-template-starter',
-        note: 'existing create-revealui starter twin',
+        kind: 'test',
+        ref: 'apps/marketing/app/content/__tests__/templates.test.ts#gives Deploy to Vercel clone URLs to the four Next.js GitHub twins only',
+        note: 'Deploy buttons lock to vercel.com/new/clone plus the four GitHub twins; starter-native has none',
       },
-      VERCEL_ONE_CLICK_TEST,
+      {
+        kind: 'test',
+        ref: 'apps/marketing/app/content/__tests__/templates.test.ts#does not invent a live vercel.com/templates listing URL',
+        note: 'listing URL stays null; owner submit is the leftover dashboard step',
+      },
+      {
+        kind: 'code',
+        ref: 'deployment/vercel/templates.json',
+        note: 'official submit metadata; listingStatus not-published',
+      },
     ],
   },
   {
