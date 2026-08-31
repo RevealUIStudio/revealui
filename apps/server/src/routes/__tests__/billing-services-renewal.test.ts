@@ -72,7 +72,7 @@ describe('FOUNDER_SERVICE_OFFERINGS  -  Track D', () => {
       const archReview = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'architecture-review');
       expect(archReview).toBeDefined();
       expect(archReview!.includes.length).toBeGreaterThanOrEqual(5);
-      expect(archReview!.name).toBe('Architecture Review');
+      expect(archReview!.name).toBe('Architecture artifact bundle and review');
     });
 
     it('migration-assist has at least 5 includes', () => {

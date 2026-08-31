@@ -47,7 +47,7 @@ Who this is not for: six-month enterprise POCs that need a certification stamp b
 
 ## What Studio ships into the field
 
-RevealUI Studio productizes the motion on the runtime: Architecture Review, Fleet deployment, Custom Build, and related fixed-bid work. The product noun stays **runtime**. The homepage is for owner-operators who run their own business on it. Forward-deployed delivery is how field work enters, not a rename of the product.
+RevealUI Studio productizes the motion on the runtime: Hour, Architecture artifact bundle and review, and Launch. The product noun stays **runtime**. The homepage is for owner-operators who run their own business on it. Forward-deployed delivery is how field work enters, not a rename of the product.
 
 You can read the runtime, run it, and check the claims against code. Used in production by the team that maintains it. That is the only production claim this post makes.
 
