@@ -520,13 +520,6 @@ export const claimsPart2: readonly ClaimEntry[] = [
   },
   {
     file: 'for-operators.ts',
-    exportPath: 'FOR_OPERATORS_PRICING.rungs[1].cta.label',
-    proofGrade: 'path',
-    text: 'Book a 30-minute intro',
-    evidence: [COMMERCIAL_POLICY],
-  },
-  {
-    file: 'for-operators.ts',
     exportPath: 'FOR_OPERATORS_PRICING.body',
     proofGrade: 'outcome',
     text: 'Engagements are fixed-bid and start with a discovery call that scopes the work. The numbers below are starting points, not final quotes.',
