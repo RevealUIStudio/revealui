@@ -62,8 +62,11 @@ frost-body invert (`#164687` / `#1e57a8` / `#e8f1ff` are banned).
   not a pale frost invert.
 
 Public chrome (marketing nav, docs headers, admin auth when no tenant logo is
-set) renders the light master at **≥96px**. Never redraw the letter. Never
-steepen the leg. Never put a white plate behind the mark.
+set) renders the circuit masters at a **locked 96×96 CSS box** — light
+`revealui-logo.svg`, dark `revealui-logo-dark.svg` — with overflow clipped.
+Never render either file below 96px. Never redraw the letter. Never steepen
+the leg. Never put a white plate behind the mark. Never swap in apple-touch
+or favicon rasters for the header.
 
 ## Variants (same letterform only)
 

@@ -58,13 +58,21 @@ describe('DocLayout', () => {
     const homeLinks = screen.getAllByRole('link', { name: 'RevealUI' });
     expect(homeLinks.length).toBeGreaterThanOrEqual(1);
     for (const link of homeLinks) {
-      const mark = link.querySelector('img');
-      expect(mark).toBeTruthy();
-      expect(mark).toHaveAttribute('src', '/revealui-logo.svg');
-      expect(mark?.getAttribute('class') ?? '').toContain('h-[96px]');
-      expect(mark).toHaveAttribute('width', '96');
-      expect(mark).toHaveAttribute('height', '96');
+      const light = link.querySelector('img[src="/revealui-logo.svg"]');
+      const dark = link.querySelector('img[src="/revealui-logo-dark.svg"]');
+      expect(light).toBeTruthy();
+      expect(dark).toBeTruthy();
+      expect(light).toHaveAttribute('width', '96');
+      expect(light).toHaveAttribute('height', '96');
+      expect(dark).toHaveAttribute('width', '96');
+      expect(dark).toHaveAttribute('height', '96');
+      expect(light?.getAttribute('class') ?? '').not.toContain('w-auto');
+      expect(dark?.getAttribute('class') ?? '').not.toContain('w-auto');
+      const chrome = link.querySelector('[data-circuit-r-chrome]');
+      expect(chrome).toBeTruthy();
+      expect(chrome?.getAttribute('class') ?? '').toContain('overflow-hidden');
       expect(link.querySelector('svg[viewBox="0 0 24 24"]')).toBeNull();
+      expect(link.querySelector('img[src="/apple-touch-icon.png"]')).toBeNull();
     }
   });
 

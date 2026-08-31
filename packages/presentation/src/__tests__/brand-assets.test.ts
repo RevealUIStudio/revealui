@@ -60,6 +60,8 @@ describe('Circuit-R brand family', () => {
     expect(master.includes(SURFACE_0_PLATE)).toBe(false);
     expect(master.includes(INVERT_STEM)).toBe(false);
     expect(master.includes(INVERT_TRACE)).toBe(false);
+    expect(master.includes('overflow="hidden"')).toBe(true);
+    expect(master.includes('style="overflow:hidden"')).toBe(true);
   });
 
   it('keeps dark as the same navy Circuit-R on Surface 0, not a frost invert', () => {
@@ -95,6 +97,8 @@ describe('Circuit-R brand family', () => {
     expect(dark.includes('maskUnits="userSpaceOnUse"')).toBe(true);
     expect(dark.includes('mask="url(#cm)"')).toBe(true);
     expect(dark.includes('M238,192 C300,190 345,196 360,222')).toBe(true);
+    expect(dark.includes('overflow="hidden"')).toBe(true);
+    expect(dark.includes('style="overflow:hidden"')).toBe(true);
   });
 
   it('uses the same 3 region paths, with no traces, on the flat small marks', () => {

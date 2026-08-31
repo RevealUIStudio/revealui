@@ -127,21 +127,38 @@ describe('NavBar (marketing)', () => {
     expect(screen.getByRole('link', { name: 'RevealUI' })).toBeInTheDocument();
   });
 
-  it('renders the circuit master at 96px, not the faceted or tiled mark', () => {
+  it('renders the circuit master, not the faceted or tiled mark', () => {
     const { container } = renderNavBar();
     const home = screen.getByRole('link', { name: 'RevealUI' });
-    const mark = home.querySelector('img');
-    expect(mark).toBeTruthy();
-    expect(mark).toHaveAttribute('src', '/revealui-logo.svg');
-    expect(mark?.getAttribute('class') ?? '').toContain('h-[96px]');
-    expect(mark).toHaveAttribute('width', '96');
-    expect(mark).toHaveAttribute('height', '96');
+    expect(home.querySelector('img[src="/revealui-logo.svg"]')).toBeTruthy();
     expect(container.querySelector('img[src="/icon-mark.svg"]')).toBeNull();
     expect(container.querySelector('img[src="/favicon.svg"]')).toBeNull();
     expect(container.querySelector('img[src="/revealui-mark.svg"]')).toBeNull();
     expect(container.querySelector('[class*="h-[22px]"]')).toBeNull();
     expect(container.innerHTML.includes('M26 50')).toBe(false);
     expect(container.innerHTML.includes('M34 11')).toBe(false);
+  });
+
+  it('locks light and dark Circuit-R plates to the same clipped 96px box', () => {
+    const { container } = renderNavBar();
+    const home = screen.getByRole('link', { name: 'RevealUI' });
+    const light = home.querySelector('img[src="/revealui-logo.svg"]');
+    const dark = home.querySelector('img[src="/revealui-logo-dark.svg"]');
+    expect(light).toBeTruthy();
+    expect(dark).toBeTruthy();
+    expect(light).toHaveAttribute('width', '96');
+    expect(light).toHaveAttribute('height', '96');
+    expect(dark).toHaveAttribute('width', '96');
+    expect(dark).toHaveAttribute('height', '96');
+    expect(light?.getAttribute('class') ?? '').not.toContain('w-auto');
+    expect(dark?.getAttribute('class') ?? '').not.toContain('w-auto');
+    const chrome = home.querySelector('[data-circuit-r-chrome]');
+    expect(chrome).toBeTruthy();
+    expect(chrome?.getAttribute('class') ?? '').toContain('overflow-hidden');
+    expect(chrome).toHaveStyle({ width: '96px', height: '96px' });
+    expect(container.querySelector('img[src="/apple-touch-icon.png"]')).toBeNull();
+    expect(container.querySelector('img[src="/favicon.png"]')).toBeNull();
+    expect(container.querySelector('img[src="/icon-mark.svg"]')).toBeNull();
   });
 
   it('marks the active desktop route with aria-current=page', () => {
@@ -164,6 +181,7 @@ describe('NavBar (marketing)', () => {
     expect(publicLogo).toBe(master);
     expect(publicLogo.includes('Q207,159')).toBe(true);
     expect(publicLogo.includes('<circle')).toBe(true);
+    expect(publicLogo.includes('overflow="hidden"')).toBe(true);
     expect(publicLogo.includes('M26 50')).toBe(false);
     expect(publicLogo.includes('M34 11')).toBe(false);
   });
