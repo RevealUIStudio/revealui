@@ -5,7 +5,7 @@ The buyer clones the existing starter onto **their** Vercel account and a Neon
 database **they** control.
 
 This is not Studio production hosting. Studio production stays Vercel + Neon +
-Fly on RevealUI's own projects. This is not the $299 Starter Kit. This is not a
+Fly on RevealUI's own projects. This is not the Starter Kit. This is not a
 fourth studio invoice. Studio SKUs stay Hour $300 / Architecture artifact
 bundle and review $3,500 / Launch $7,500.
 
@@ -44,7 +44,7 @@ fallback. After the first deploy, set `REVEALUI_PUBLIC_SERVER_URL` and
 `NEXT_PUBLIC_SERVER_URL` to the project's Vercel URL.
 
 This is the RevealUI runtime on Vercel and Neon you control. Not managed
-hosting. Not SSO shipped. Not a claim of paying customers.
+hosting.
 
 ## Official button (README of the twin)
 

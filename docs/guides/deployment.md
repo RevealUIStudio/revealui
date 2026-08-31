@@ -223,7 +223,7 @@ Use this in your Docker health check or load balancer configuration.
 
 ## Vercel one-click (buyer account)
 
-The chosen one-click is the existing starter on **the buyer's** Vercel account and a Neon database they control. It is not managed hosting, not the $299 Starter Kit, and not a fourth studio invoice.
+The chosen one-click is the existing starter on **the buyer's** Vercel account and a Neon database they control. It is not managed hosting, not the Starter Kit, and not a fourth studio invoice.
 
 | Piece | Location |
 |-------|----------|

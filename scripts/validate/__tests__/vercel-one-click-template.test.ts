@@ -81,21 +81,22 @@ describe('Vercel one-click template listing', () => {
     const meta = loadMeta();
     const readme = readFileSync(README, 'utf8');
     const leftover = readFileSync(OWNER_PUBLISH, 'utf8');
-    const blob = `${meta.description}\n${meta.envDescription}\n${readme}\n${leftover}`;
+    const listing = `${meta.description}\n${meta.envDescription}\n${readme}`;
     expect(meta.description.includes('your Vercel')).toBe(true);
     expect(meta.description.includes('Neon you control')).toBe(true);
     expect(meta.description.includes('Not managed hosting')).toBe(true);
     expect(meta.description.includes('Not the Starter Kit')).toBe(true);
     expect(meta.description.includes('Not a studio invoice')).toBe(true);
-    expect(blob.includes('$299')).toBe(false);
-    expect(blob.toLowerCase().includes('paying customers')).toBe(false);
-    expect(blob.includes('SSO shipped')).toBe(false);
-    expect(blob.includes('RevDev')).toBe(false);
-    expect(blob.includes('RevForge')).toBe(false);
-    expect(blob.includes('RevKit')).toBe(false);
-    expect(blob.includes('vercel.com/templates/revealui')).toBe(false);
+    expect(listing.includes('$299')).toBe(false);
+    expect(listing.toLowerCase().includes('paying customers')).toBe(false);
+    expect(listing.includes('SSO shipped')).toBe(false);
+    expect(listing.includes('RevDev')).toBe(false);
+    expect(listing.includes('RevForge')).toBe(false);
+    expect(listing.includes('RevKit')).toBe(false);
+    expect(listing.includes('vercel.com/templates/revealui')).toBe(false);
+    expect(leftover.includes('vercel.com/templates/revealui')).toBe(false);
     expect(leftover.includes('owner dashboard')).toBe(true);
-    expect(leftover.includes('do not invent a live listing URL')).toBe(true);
+    expect(leftover.includes('Do not invent a live listing URL')).toBe(true);
   });
 
   it('provisions Neon on the buyer account and prompts required runtime env', () => {
