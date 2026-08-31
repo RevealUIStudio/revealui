@@ -17,9 +17,9 @@ Variants are that same letterform. There is no second R, no white plate, and
 no inverted frost-fill twin. Never steepen the leg.
 
 **Locked 2026-08-31** — optical-center **placement** of that same v2 curved-leg
-Circuit-R. The group is `translate(256,256) scale(1.06) translate(-290,-320)`
-so letter mass sits on canvas x=256. Do not put the stem on 256 if it crops
-the scythe tip. The stem, bowl, curved scythe-leg, frost traces, amber vias,
+Circuit-R. The group is `translate(256,256) scale(1.06) translate(-300,-320)`
+(nudged left from -290; do not go back to -330). Do not put the stem on 256
+if it crops the scythe tip. The stem, bowl, curved scythe-leg, frost traces, amber vias,
 and clipPaths `cs` / `cb` / `cl` are the v2 drawing.
 
 **Locked 2026-08-31 (light + dark)** — the same scythe, two surfaces. Light
@@ -55,7 +55,7 @@ Hairline `#082448`. Amber vias `#f0b519`.
 
 - `revealui-logo.svg` — light Circuit-R. Navy region fills, frost traces, amber
   vias. Transparent (no plate). 512×512, locked `scale(1.06)` and inner origin
-  `translate(-290,-320)`. This is the letter on a light page — not a white tile.
+  `translate(-300,-320)`. This is the letter on a light page — not a white tile.
 - `revealui-logo-dark.svg` — the same scythe, origin, and clip `cl`
   (`M219.6,335.1` / tip `488.0,484.0`), recolored for dark surfaces. Not a
   second R.
