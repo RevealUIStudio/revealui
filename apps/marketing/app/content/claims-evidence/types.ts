@@ -141,6 +141,7 @@ export const COVERED_FILES: readonly CoveredFile[] = [
   { file: 'receipt.ts' },
   { file: 'nav.ts' },
   { file: 'status.ts' },
+  { file: 'templates.ts' },
   { file: 'blog.ts' },
   { file: 'not-found.ts' },
   // Legal / contact ratchet (claims-evidence audit 2026-07-22): live policy

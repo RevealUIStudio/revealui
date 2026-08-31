@@ -1204,7 +1204,7 @@ RevealUI offers four professional service engagements for teams that need hands-
 
 | Service | Description | Deliverable |
 |---------|-------------|-------------|
-| **Architecture Review** | Codebase, schema, deployment, and security review (up to 50K LOC) | Written report within 5 business days |
+| **Architecture artifact bundle and review** | Codebase, schema, deployment, and security review (up to 50K LOC) | Artifact bundle including the prototype; review within 5 business days |
 | **Migration Assist** | Migrate existing admin, database, or billing to RevealUI | Working migration with verified data integrity |
 | **Launch Package** | Zero to production in one week (setup, billing, deploy, onboarding) | Production-ready deployment within 5 business days |
 | **Consulting Hour** | One-on-one video call  -  pair programming, architecture, debugging | Session recording and written follow-up notes |

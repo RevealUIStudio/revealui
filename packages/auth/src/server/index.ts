@@ -12,12 +12,14 @@ export {
   type EnqueueAdmissionWaitlistResult,
   enqueueAdmissionWaitlist,
   estimateAdmissionWaitlistPosition,
+  expireStaleAdmissionWaitlist,
   generateAdmissionToken,
   getAdmissionWaitlistByToken,
   getAdmissionWaitlistByTokenAnyStatus,
   hashAdmissionToken,
   markAdmissionWaitlistConverted,
   maskAdmissionEmail,
+  shouldExpireWaitlistRow,
 } from './admission-waitlist.js';
 // Audit bridge
 export {

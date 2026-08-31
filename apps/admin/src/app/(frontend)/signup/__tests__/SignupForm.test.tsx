@@ -81,7 +81,7 @@ function fillAndSubmit(): void {
   };
   set('#name', 'Ada Lovelace');
   set('#email', 'ada@example.com');
-  set('#password', 'Password123');
+  set('#password', 'Password1234');
   const tos = document.querySelector('#tos');
   if (tos) fireEvent.click(tos);
   fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
@@ -252,5 +252,57 @@ describe('SignupForm post-signup routing', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/welcome');
     });
     expect(mockPush).not.toHaveBeenCalled();
+  });
+});
+
+describe('SignupForm error surface', () => {
+  it('shows the human API message, not the SIGNUP_FAILED code', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({
+          error: 'SIGNUP_FAILED',
+          message: 'Unable to create account',
+          code: 'SIGNUP_FAILED',
+        }),
+      }),
+    );
+
+    render(<SignupForm apiUrl="http://api.test" />);
+    fillAndSubmit();
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Unable to create account');
+    expect(alert).not.toHaveTextContent('SIGNUP_FAILED');
+  });
+
+  it('falls back to a generic message when the API omits both message and error', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({}),
+      }),
+    );
+
+    render(<SignupForm apiUrl="http://api.test" />);
+    fillAndSubmit();
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Failed to create account');
+  });
+});
+
+describe('SignupForm password requirements', () => {
+  it('states the 12-character minimum the sign-up contract enforces', () => {
+    render(<SignupForm apiUrl="http://api.test" />);
+
+    expect(
+      screen.getByText('Min 12 characters, uppercase, lowercase, and a number'),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('Min 8 characters, uppercase, lowercase, and a number'),
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Password')).toHaveAttribute('minLength', '12');
   });
 });

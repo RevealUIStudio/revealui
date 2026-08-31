@@ -187,19 +187,19 @@ export const CREDIT_BUNDLES: CreditBundle[] = [
 // Founder-led Professional Services (Track D)
 //
 // Scope: small-to-mid project services delivered direct by the founder
-// (Architecture Review, Launch Package, Migration Assist, Consulting Hour).
+// (Architecture artifact bundle and review, Launch Package, Migration Assist, Consulting Hour).
 // These are NOT the product-catalog offerings. The product /pricing page
 // sells licenses only (Free / Pro / Max / Enterprise + Perpetual Pro).
 // Studio SKUs and leftover agency rungs live on revealuistudio.com and in
 // apps/marketing/app/content/for-operators.ts (not rendered on /pricing).
-// Canonical Architecture Review and Launch Package prices are owned here;
+// Canonical Architecture artifact bundle and review and Launch Package prices are owned here;
 // leftover studio surfaces import them rather than re-authoring.
 // =============================================================================
 
 export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
   {
     id: 'architecture-review',
-    name: 'Architecture Review',
+    name: 'Architecture artifact bundle and review',
     price: ARCHITECTURE_REVIEW_PRICE,
     description:
       'I review your project structure, database schema, deployment pipeline, and security posture. You receive a written report with prioritized, actionable recommendations.',

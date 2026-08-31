@@ -18,6 +18,8 @@ import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { Hono } from 'hono';
 import billingApp from '../billing.js';
+import admissionPaidPendingExpireApp from './admission-paid-pending-expire.js';
+import admissionWaitlistDrainApp from './admission-waitlist-drain.js';
 import billingReadinessApp from './billing-readiness.js';
 import cleanupApp from './cleanup.js';
 import cogsBreakerApp from './cogs-breaker.js';
@@ -141,6 +143,19 @@ const JOBS = [
   // (not a second vercel.json cron entry).
   { name: 'margin-snapshot', app: marginSnapshotApp, path: '/margin-snapshot' },
   { name: 'cogs-breaker', app: cogsBreakerApp, path: '/cogs-breaker' },
+  // GAP-256 PR-8: waitlist drain + unpaid paid-pending reclaim. No-op unless
+  // ADMISSION_WAITLIST_DRAIN_ENABLED / ADMISSION_PAID_PENDING_EXPIRE_ENABLED.
+  // Same Hobby dispatcher as snapshot (not extra vercel.json crons).
+  {
+    name: 'admission-waitlist-drain',
+    app: admissionWaitlistDrainApp,
+    path: '/admission-waitlist-drain',
+  },
+  {
+    name: 'admission-paid-pending-expire',
+    app: admissionPaidPendingExpireApp,
+    path: '/admission-paid-pending-expire',
+  },
   // lifecycle-emails evaluates onboarding day-0/day-1/day-7 sends for Pro/Max.
   // Hosted test arms when the Gmail mailbox path is present; production stays
   // disarmed unless LIFECYCLE_EMAILS_ENABLED=true. Missing mailbox fails closed.

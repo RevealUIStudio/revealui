@@ -386,7 +386,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/open-runtime-for-fde-work',
     exportPath: 'body.22',
-    text: 'RevealUI Studio productizes the motion on the runtime: Architecture Review, Fleet deployment, Custom Build, and related fixed-bid work. The product noun stays **runtime**. The homepage is for owner-operators who run their own business on it. Forward-deployed delivery is how field work enters, not a rename of the product.',
+    text: 'RevealUI Studio productizes the motion on the runtime: Hour, Architecture artifact bundle and review, and Launch. The product noun stays **runtime**. The homepage is for owner-operators who run their own business on it. Forward-deployed delivery is how field work enters, not a rename of the product.',
     evidence: [
       {
         kind: 'code',

@@ -132,7 +132,7 @@ test.describe('Signup Page @auth @signup', () => {
     await page.goto(`${CMS_URL}/signup`);
     await page.waitForLoadState('networkidle');
 
-    const hint = page.locator('text=Min 8 characters');
+    const hint = page.locator('text=Min 12 characters');
     await expect(hint).toBeVisible({ timeout: 10000 });
   });
 
