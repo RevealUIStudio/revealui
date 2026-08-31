@@ -161,5 +161,10 @@ describe('Circuit-R brand family', () => {
     expect(light.includes(NAVY_STEM)).toBe(true);
     expect(light.includes(NAVY_BOWL)).toBe(true);
     expect(light.includes(NAVY_LEG)).toBe(true);
+    expect(dark.includes(NAVY_STEM)).toBe(true);
+    expect(dark.includes(NAVY_BOWL)).toBe(true);
+    expect(dark.includes(NAVY_LEG)).toBe(true);
+    expect(dark.includes(INVERT_STEM)).toBe(false);
+    expect(dark.includes(INVERT_TRACE)).toBe(false);
   });
 });

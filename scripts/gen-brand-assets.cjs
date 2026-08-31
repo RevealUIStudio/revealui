@@ -74,6 +74,10 @@ const SVG_SYNC = {
 
 const APPLE_TOUCH_ICON_SIZE = 180;
 const ICO_SIZES = [16, 32, 48];
+/** Flat mark only — traces mud below 96px. */
+const FLAT_PNG_SIZES = [32, 48, 64];
+/** Circuit master on Surface 0 plate. Never below 96px. */
+const CIRCUIT_PNG_SIZES = [96, 128, 192, 256, 512];
 const PWA_SIZES = [192, 512];
 const MASKABLE_SIZE = 512;
 const TILE_BG = '#060d1a';
@@ -184,12 +188,28 @@ async function main() {
   fs.writeFileSync(ICON_MARK_SVG, deriveNavyPlate(circuitMaster, 112));
   fs.writeFileSync(ICON_MASKABLE_SVG, deriveNavyPlate(circuitMaster, 0));
 
-  // Canonical PWA rasters, kept beside the masters.
-  for (const size of PWA_SIZES) {
+  for (const size of FLAT_PNG_SIZES) {
+    const png = await rasterize(sharp, FAVICON_SVG, size);
+    fs.writeFileSync(path.join(BRAND_DIR, `favicon-${size}.png`), png);
+  }
+  for (const size of CIRCUIT_PNG_SIZES) {
     const png = await rasterize(sharp, ICON_MARK_SVG, size, { flatten: true });
     fs.writeFileSync(path.join(BRAND_DIR, `icon-${size}.png`), png);
   }
-  console.log(`brand: revealui-logo-dark.svg (navy letter on ${TILE_BG}), icon-192.png, icon-512.png`);
+  const brandIco = [];
+  for (const size of ICO_SIZES) {
+    brandIco.push({ size, png: await rasterize(sharp, FAVICON_SVG, size) });
+  }
+  fs.writeFileSync(path.join(BRAND_DIR, 'favicon.ico'), packIco(brandIco));
+  fs.writeFileSync(
+    path.join(BRAND_DIR, 'apple-touch-icon.png'),
+    await rasterize(sharp, ICON_MARK_SVG, APPLE_TOUCH_ICON_SIZE, { flatten: true }),
+  );
+  console.log(
+    `brand: revealui-logo-dark.svg (navy letter on ${TILE_BG}), ` +
+      `favicon.ico (16/32/48), favicon-32/48/64.png, apple-touch-icon.png (180), ` +
+      `icon-96/128/192/256/512.png`,
+  );
 
   for (const app of APPS) {
     if (!fs.existsSync(app.publicDir)) {
@@ -203,6 +223,12 @@ async function main() {
 
     const faviconPng = await rasterize(sharp, FAVICON_SVG, app.faviconPngSize);
     fs.writeFileSync(path.join(app.publicDir, 'favicon.png'), faviconPng);
+    for (const size of FLAT_PNG_SIZES) {
+      fs.copyFileSync(path.join(BRAND_DIR, `favicon-${size}.png`), path.join(app.publicDir, `favicon-${size}.png`));
+    }
+    for (const size of CIRCUIT_PNG_SIZES) {
+      fs.copyFileSync(path.join(BRAND_DIR, `icon-${size}.png`), path.join(app.publicDir, `icon-${size}.png`));
+    }
 
     const icoEntries = [];
     for (const size of ICO_SIZES) {

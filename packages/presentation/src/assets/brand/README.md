@@ -170,7 +170,7 @@ node scripts/gen-brand-assets.cjs
 Expected output — four lines:
 
 ```
-brand: revealui-logo-dark.svg (navy letter on #060d1a), icon-192.png, icon-512.png
+brand: revealui-logo-dark.svg (navy letter on #060d1a), favicon.ico (16/32/48), favicon-32/48/64.png, apple-touch-icon.png (180), icon-96/128/192/256/512.png
 marketing: favicon.svg, icon-mark.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (64), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
 docs: favicon.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (32), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
 admin: favicon.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (32), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
