@@ -7,6 +7,7 @@ import {
   generateAdmissionToken,
   hashAdmissionToken,
   maskAdmissionEmail,
+  shouldExpireWaitlistRow,
 } from '../admission-waitlist.js';
 
 describe('hashAdmissionToken', () => {
@@ -30,6 +31,30 @@ describe('generateAdmissionToken', () => {
 
   it('is unique across calls', () => {
     expect(generateAdmissionToken()).not.toBe(generateAdmissionToken());
+  });
+});
+
+describe('shouldExpireWaitlistRow', () => {
+  it('expires pending past expiresAt', () => {
+    const now = new Date('2026-08-31T00:00:00Z');
+    expect(
+      shouldExpireWaitlistRow(
+        { status: 'pending', expiresAt: new Date('2026-08-30T00:00:00Z') },
+        now,
+      ),
+    ).toBe(true);
+  });
+
+  it('keeps unexpired, converted, and null expiresAt', () => {
+    const now = new Date('2026-08-31T00:00:00Z');
+    expect(
+      shouldExpireWaitlistRow(
+        { status: 'pending', expiresAt: new Date('2026-09-01T00:00:00Z') },
+        now,
+      ),
+    ).toBe(false);
+    expect(shouldExpireWaitlistRow({ status: 'converted', expiresAt: now }, now)).toBe(false);
+    expect(shouldExpireWaitlistRow({ status: 'pending', expiresAt: null }, now)).toBe(false);
   });
 });
 

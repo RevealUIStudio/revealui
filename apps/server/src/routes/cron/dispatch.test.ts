@@ -30,6 +30,8 @@ vi.mock('@revealui/core/observability/logger', () => ({
 vi.mock('../billing.js', () => ({ default: hoisted.stubApp() }));
 vi.mock('./billing-readiness.js', () => ({ default: hoisted.stubApp() }));
 vi.mock('./cleanup.js', () => ({ default: hoisted.stubApp() }));
+vi.mock('./admission-paid-pending-expire.js', () => ({ default: hoisted.stubApp() }));
+vi.mock('./admission-waitlist-drain.js', () => ({ default: hoisted.stubApp() }));
 vi.mock('./cogs-breaker.js', () => ({ default: hoisted.stubApp() }));
 vi.mock('./drain-unreconciled.js', () => ({ default: hoisted.stubApp() }));
 vi.mock('./jobs-safety-net.js', () => ({ default: hoisted.stubApp() }));
@@ -111,6 +113,18 @@ describe('GET /dispatch (Vercel platform cron)', () => {
     expect(hoisted.forwarded.length).toBeGreaterThan(0);
     expect(hoisted.forwarded.every((job) => job.cronSecret === REVEALUI_CRON_SECRET)).toBe(true);
     expect(hoisted.forwarded.some((job) => job.cronSecret === CRON_SECRET)).toBe(false);
+  });
+
+  it('fans out GAP-256 drain and paid-pending expire jobs', async () => {
+    const res = await invokeDispatch({
+      method: 'GET',
+      headers: { Authorization: `Bearer ${CRON_SECRET}` },
+    });
+    expect(res.status).toBe(200);
+    const urls = hoisted.forwarded.map((job) => job.url);
+    expect(urls.some((u) => u.endsWith('/admission-waitlist-drain'))).toBe(true);
+    expect(urls.some((u) => u.endsWith('/admission-paid-pending-expire'))).toBe(true);
+    expect(urls.some((u) => u.endsWith('/margin-snapshot'))).toBe(true);
   });
 });
 
