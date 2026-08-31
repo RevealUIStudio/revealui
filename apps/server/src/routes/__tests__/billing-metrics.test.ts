@@ -224,6 +224,7 @@ vi.mock('@revealui/core/error-handling', async () => {
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────
 
+import { MRR_TIER_PRICE_FALLBACK_CENTS } from '../../lib/tier-pricing.js';
 import billingApp from '../billing.js';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -570,7 +571,6 @@ describe('Billing Metrics', { timeout: 60_000 }, () => {
     });
 
     it('uses fallback tier prices when catalog is empty', async () => {
-      // Fallback: pro=4900, max=29900, enterprise=149900
       queueMetricsResults({
         tierRows: [
           { tier: 'pro', tierCount: 3 },
@@ -585,8 +585,11 @@ describe('Billing Metrics', { timeout: 60_000 }, () => {
 
       expect(res.status).toBe(200);
       const body = await res.json();
-      // MRR = (3 * 4900) + (1 * 29900) + (1 * 149900) = 14700 + 29900 + 149900 = 194500
-      expect(body.mrr).toBe(194_500);
+      const expectedMrr =
+        3 * MRR_TIER_PRICE_FALLBACK_CENTS.pro +
+        1 * MRR_TIER_PRICE_FALLBACK_CENTS.max +
+        1 * MRR_TIER_PRICE_FALLBACK_CENTS.enterprise;
+      expect(body.mrr).toBe(expectedMrr);
     });
 
     it('returns recent events with type mapping', async () => {
