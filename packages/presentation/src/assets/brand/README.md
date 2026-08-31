@@ -14,7 +14,16 @@ One Circuit-R family. Every colour derives from the OKLCH design tokens in
 
 **Locked 2026-08-26** — `revealui-logo.svg` is the only RevealUI mark. Variants
 are that same letterform. There is no second R, no white plate, and no inverted
-frost-fill twin.
+frost-fill twin. **Never steepen the leg.** Reaffirmed 2026-08-31: keep the
+curved v2 scythe-leg (`clipPath` `cl` starts `M219.6,335.1`, tip `488.0,484.0`).
+Do not remake the letter. Do not replace the scythe with a straight or short
+diagonal.
+
+**Placement 2026-08-31** — the same v2 Circuit-R, optically centered. The locked
+origin is `translate(256,256) scale(1.06) translate(-288.8,-320)` so letter mass
+sits on the 512-square optical center (canvas 256). The previous origin
+`translate(-330,-320)` parked mass left (stem left ~88). Only that inner
+translate changed. Scale stays `1.06`. The scythe tip still clears the 512.
 
 ## Tokens (sRGB)
 
@@ -32,7 +41,8 @@ Emblem region fills: stem `#0a2c5a`, bowl `#002247`, leg `#0e3468`. Frost traces
 ## Master
 
 - `revealui-logo.svg` — the Circuit-R. Navy region fills, frost traces, amber
-  vias. Transparent (no plate). 512×512, locked `scale(1.06)`.
+  vias. Transparent (no plate). 512×512, locked `scale(1.06)`, optically
+  centered via `translate(-288.8,-320)`.
 
 Public chrome (marketing nav, docs headers, admin auth when no tenant logo is
 set) renders this file at **≥96px**. Never redraw the letter. Never steepen the

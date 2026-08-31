@@ -21,15 +21,23 @@ const AMBER_VIA = '#f0b519';
 const NAVY_PLATE = '#060d1a';
 const TILE_SCALE = 'scale(0.742)';
 const MASTER_SCALE = 'scale(1.06)';
+const MASTER_ORIGIN = 'translate(-288.8,-320)';
+const MASTER_TRANSFORM = `translate(256,256) ${MASTER_SCALE} ${MASTER_ORIGIN}`;
+const SCYTHE_TIP = '488.0,484.0';
+const REJECTED_SHORT_LEG = '392,482';
 
 describe('Circuit-R brand family', () => {
   it('keeps revealui-logo.svg as the only circuit master', () => {
     const master = readBrand('revealui-logo.svg');
     expect(existsSync(path.join(brandDir, 'revealui-logo-dark.svg'))).toBe(false);
     expect(master.includes(MASTER_SCALE)).toBe(true);
+    expect(master.includes(MASTER_TRANSFORM)).toBe(true);
     expect(master.includes(STEM)).toBe(true);
     expect(master.includes(BOWL)).toBe(true);
     expect(master.includes(LEG)).toBe(true);
+    expect(master.includes(SCYTHE_TIP)).toBe(true);
+    expect(master.includes(REJECTED_SHORT_LEG)).toBe(false);
+    expect(master.includes('translate(-330,-320)')).toBe(false);
     expect(master.includes(NAVY_STEM)).toBe(true);
     expect(master.includes(NAVY_BOWL)).toBe(true);
     expect(master.includes(NAVY_LEG)).toBe(true);
@@ -41,10 +49,24 @@ describe('Circuit-R brand family', () => {
     expect(master.includes('fill="#dfeeff" fill-rule="evenodd"')).toBe(false);
   });
 
+  it('keeps the v2 scythe-leg and optically centers it via the locked origin', () => {
+    const master = readBrand('revealui-logo.svg');
+    const clAt = master.indexOf('id="cl"');
+    expect(clAt).toBeGreaterThan(-1);
+    const clSlice = master.slice(clAt, clAt + 80);
+    expect(clSlice.includes(LEG)).toBe(true);
+    expect(master.includes(SCYTHE_TIP)).toBe(true);
+    expect(master.includes(MASTER_ORIGIN)).toBe(true);
+    expect(master.includes(MASTER_SCALE)).toBe(true);
+    expect(master.includes('translate(-330,-320)')).toBe(false);
+    expect(master.includes(REJECTED_SHORT_LEG)).toBe(false);
+  });
+
   it('uses the same 3 region paths, with no traces, on the flat small marks', () => {
     const mark = readBrand('revealui-mark.svg');
     const favicon = readBrand('favicon.svg');
     expect(mark).toBe(favicon);
+    expect(mark.includes(MASTER_ORIGIN)).toBe(true);
     expect(mark.includes(STEM)).toBe(true);
     expect(mark.includes(BOWL)).toBe(true);
     expect(mark.includes(LEG)).toBe(true);
@@ -64,6 +86,7 @@ describe('Circuit-R brand family', () => {
     for (const tiled of [iconMark, maskable]) {
       expect(tiled.includes(NAVY_PLATE)).toBe(true);
       expect(tiled.includes(TILE_SCALE)).toBe(true);
+      expect(tiled.includes(MASTER_ORIGIN)).toBe(true);
       expect(tiled.includes(MASTER_SCALE)).toBe(false);
       expect(tiled.includes(STEM)).toBe(true);
       expect(tiled.includes(BOWL)).toBe(true);
@@ -86,6 +109,7 @@ describe('Circuit-R brand family', () => {
     expect(mono.includes(STEM)).toBe(true);
     expect(mono.includes(BOWL)).toBe(true);
     expect(mono.includes(LEG)).toBe(true);
+    expect(mono.includes(MASTER_ORIGIN)).toBe(true);
     expect(mono.includes('currentColor')).toBe(true);
     expect(mono.includes('#003d94')).toBe(false);
     expect(mono.includes(FACETED_A)).toBe(false);

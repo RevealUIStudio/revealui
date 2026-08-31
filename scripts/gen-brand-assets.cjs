@@ -47,6 +47,8 @@ const ICON_MASKABLE_SVG = path.join(BRAND_DIR, 'icon-maskable.svg');
 
 /** Locked transform on revealui-logo.svg. Do not steepen the letter. */
 const MASTER_SCALE = 'scale(1.06)';
+/** Optical-center origin for the same v2 scythe-leg. Do not remake the R. */
+const MASTER_ORIGIN = 'translate(-288.8,-320)';
 /** 70% of the overshooting master so a circular crop keeps stem + leg tip. */
 const TILE_SCALE = 'scale(0.742)';
 
@@ -140,6 +142,9 @@ async function main() {
   }
 
   const circuitMaster = fs.readFileSync(MASTER_SVG, 'utf8');
+  if (!circuitMaster.includes(MASTER_ORIGIN)) {
+    throw new Error(`revealui-logo.svg is missing the locked optical-center origin ${MASTER_ORIGIN}`);
+  }
   fs.writeFileSync(ICON_MARK_SVG, deriveNavyPlate(circuitMaster, 112));
   fs.writeFileSync(ICON_MASKABLE_SVG, deriveNavyPlate(circuitMaster, 0));
 
