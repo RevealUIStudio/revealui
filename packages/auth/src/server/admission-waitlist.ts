@@ -8,7 +8,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { type AdmissionWaitlistRow, admissionWaitlist } from '@revealui/db/schema';
-import { and, count, eq, gt, inArray, isNull, or, sql } from 'drizzle-orm';
+import { and, count, eq, gt, inArray, isNotNull, isNull, lt, or, sql } from 'drizzle-orm';
 
 const TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -225,6 +225,40 @@ export function maskAdmissionEmail(email: string): string {
   const domain = normalized.slice(at + 1);
   const visible = local.slice(0, 1);
   return `${visible}***@${domain}`;
+}
+
+/** True when a waitlist row is claim-dead and should drain to `expired`. */
+export function shouldExpireWaitlistRow(
+  row: {
+    status: string;
+    expiresAt: Date | null;
+  },
+  now: Date,
+): boolean {
+  if (row.status !== 'pending' && row.status !== 'invited') return false;
+  if (row.expiresAt == null) return false;
+  return row.expiresAt.getTime() < now.getTime();
+}
+
+/**
+ * GAP-256 PR-8 — mark stale pending/invited rows expired.
+ * Flag gating lives in the cron runner (ADMISSION_WAITLIST_DRAIN_ENABLED).
+ */
+export async function expireStaleAdmissionWaitlist(now?: Date): Promise<number> {
+  const db = getClient();
+  const cutoff = now ?? new Date();
+  const rows = await db
+    .update(admissionWaitlist)
+    .set({ status: 'expired' })
+    .where(
+      and(
+        inArray(admissionWaitlist.status, ['pending', 'invited']),
+        isNotNull(admissionWaitlist.expiresAt),
+        lt(admissionWaitlist.expiresAt, cutoff),
+      ),
+    )
+    .returning();
+  return rows.length;
 }
 
 /** Position estimate among pending (best-effort; null on failure). */
