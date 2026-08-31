@@ -50,7 +50,7 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 |---|---|---|---|---|---|
 | Free | $0 | 1 | 3 | Local AI | 200 |
 | Pro | $49 | 5 | 25 | 10,000 | 300 |
-| Max | $299 | 15 | 100 | 50,000 | 600 |
+| Max | $99 | 15 | 100 | 50,000 | 600 |
 | Enterprise | Contact sales / inquire | unlimited | unlimited | unlimited | 1,000 |
 
 ### Track B — Agent task credits (one-time)
@@ -75,10 +75,9 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 
 | Service | Price | Notes |
 |---|---|---|
-| Architecture artifact bundle and review | $3,500 | revealuistudio.com only |
-| Launch Package | $7,500 | revealuistudio.com only |
-| Migration Assist | $300/hr | revealuistudio.com only |
-| Consulting Hour | $300/hr | revealuistudio.com only |
+| Consultation | $300 | revealuistudio.com only |
+| Pilot | $1,500 | One site on their domain, one agent they run; credits 100% to Launch within 30 days |
+| Launch | $7,500 | Architecture work happens inside Launch |
 
 **Status:** Studio SKUs stay on revealuistudio.com only. Do not copy them onto revealui.com. Live `/pricing` CTA is `Book an intro` → Google Calendar appointments. Do not write "Talk to founder" or "Buy now."
 

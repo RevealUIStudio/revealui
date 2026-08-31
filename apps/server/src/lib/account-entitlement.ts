@@ -87,7 +87,7 @@ export async function accountHasAiFeature(
 }
 
 /**
- * Whether `accountId` (audit_log.tenant) currently has the Max+ `auditLog`
+ * Whether `accountId` (audit_log.tenant) currently has the Pro+ `auditLog`
  * feature — the gate for GAP-355 Stage 4 anchor job + receipt API.
  *
  * Fail-closed: missing/grace-expired entitlement → false.

@@ -26,12 +26,12 @@ export const CLAIMS_SIGNED_LEDGER_NOTE = {
   body: 'Every action in the audit log is signed with a key you can check yourself. Verifying a record does not require our secret.',
 } as const;
 
-// GAP-355 Stage 4 S4-6: lift the "receipt you hold" embargo only for Max+
-// root delivery. Free/Pro keep row signing; Max downloads Merkle roots and
+// GAP-355 Stage 4 S4-6: lift the "receipt you hold" embargo for Pro+
+// root delivery. Free keeps row signing; Pro downloads Merkle roots and
 // verifies them offline. Verification itself is never a paid product.
 export const CLAIMS_RECEIPT_HOLD_NOTE = {
-  heading: 'Hold a root on Max',
-  body: 'On Max, the worker seals ranges of your signed audit log into Merkle roots you can download. You verify those roots offline with the published public key, without calling us. Free and Pro still get a signed log. Root delivery is Max. Checking a receipt is free either way.',
+  heading: 'Hold a root on Pro',
+  body: 'On Pro, the worker seals ranges of your signed audit log into Merkle roots you can download. You verify those roots offline with the published public key, without calling us. Free still gets a signed log. Root delivery is Pro. Checking a receipt is free either way.',
 } as const;
 
 export const CLAIMS_LEDGER_INTRO =

@@ -148,7 +148,7 @@ Complete the Stripe checkout checklist at `docs/checklists/stripe-checkout-verif
 
 ### Track A: SaaS Subscriptions
 
-- [ ] Pro ($49/mo), Max ($299/mo), Enterprise ($1,499/mo) price IDs created in Stripe **(blocking)**
+- [ ] Pro ($49/mo), Max ($99/mo), Enterprise inquire / Contact sales **(blocking)**
 - [ ] Trial period configured if applicable (`REVEALUI_TRIAL_DAYS`) **(advisory)**
 - [ ] Subscription lifecycle tested: create, upgrade, downgrade, cancel **(blocking)**
 - [ ] License records created in DB on `checkout.session.completed` **(blocking)**

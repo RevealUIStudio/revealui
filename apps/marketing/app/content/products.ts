@@ -1,5 +1,5 @@
 // Public products page: RevealUI licenses only.
-// Honest live catalog: Free / Pro $49 / Max $299 / Enterprise inquire +
+// Honest live catalog: Free / Pro $49 / Max $99 / Enterprise inquire +
 // Pro Perpetual $1,499. RevVault is encrypted secret management inside Pro,
 // not a separate SKU. RevForge, RevKit, and RevDev are not for sale on
 // this site.

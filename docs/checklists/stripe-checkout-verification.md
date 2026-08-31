@@ -34,9 +34,9 @@ Use Stripe test card: `4242 4242 4242 4242` (any future expiry, any CVC).
 - [ ] Verify: license created in DB (`SELECT * FROM licenses WHERE user_id = ...`)
 - [ ] Verify: user tier shows "pro" in admin dashboard
 
-### 1b. Max subscription ($299/mo)
+### 1b. Max subscription ($99/mo)
 - [ ] Same flow as 1a but for Max tier
-- [ ] Verify correct amount ($299/mo)
+- [ ] Verify correct amount ($99/mo)
 - [ ] Verify license tier = "max"
 
 ### 1c. Enterprise subscription ($1,499/mo)

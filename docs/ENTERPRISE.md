@@ -24,7 +24,7 @@ Canonical tier language lives in [What is RevealUI?](./WHAT_IS.md). This page is
 
 | | Free (OSS) | Pro | Max | Enterprise |
 |---|---|---|---|---|
-| Price | $0 | $49/mo | $299/mo | inquire / Contact sales |
+| Price | $0 | $49/mo | $99/mo | inquire / Contact sales |
 | Sites | 1 | 5 | 15 | unlimited |
 | Users | 3 | 25 | 100 | unlimited |
 | Agent tasks/mo | Local AI | 10,000 | 50,000 | unlimited |

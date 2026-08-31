@@ -4,7 +4,7 @@ import type { LicenseTierId, PricingResponse, SubscriptionTier } from '@revealui
  * Display fallbacks for license subscriptions when GET /api/pricing is
  * unreachable. These are the server catalog cents-of-record, not invented
  * UI prices (scripts/setup/stripe-catalog.ts):
- *   Pro 4900 / Max 29900 / Enterprise 149900
+ *   Pro 4900 / Max 9900 / Enterprise 149900
  * Lockstep with:
  *   - apps/server/src/routes/pricing.ts HARDCODED_SUBSCRIPTION_PRICES
  *   - apps/marketing/app/lib/pricing-fallbacks.ts SUBSCRIPTION_PRICE_FALLBACKS
@@ -19,7 +19,7 @@ export const LICENSE_SUBSCRIPTION_PRICE_FALLBACKS: Record<
 > = {
   free: { price: '$0' },
   pro: { price: '$49', period: '/mo' },
-  max: { price: '$299', period: '/mo' },
+  max: { price: '$99', period: '/mo' },
   enterprise: { price: '$1,499', period: '/mo' },
 };
 

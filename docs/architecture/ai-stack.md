@@ -107,7 +107,7 @@ CRDT-based distributed memory with four stores:
 - **PNCounter**: Distributed increment/decrement counter
 - **VectorClock**: Causal ordering across nodes
 
-Memory integration is optional  -  agents degrade gracefully without it. Requires Max tier (`aiMemory` feature flag).
+Memory integration is optional  -  agents degrade gracefully without it. Requires Pro tier (`aiMemory` feature flag).
 
 ## RAG Pipeline
 
@@ -158,7 +158,7 @@ Both are opt-in via `LLMClientConfig.enableResponseCache` and `enableSemanticCac
 aiLocal:         free     Local inference (snaps / Ollama)
 ai:              pro      AI agents (local + cloud via RevealUI harness)
 mcp:             pro      MCP framework integration
-aiMemory:        max      Working + episodic memory
+aiMemory:        pro      Working + episodic memory
 aiInference:     max      Open-model inference configuration (snaps, harness)
 ```
 

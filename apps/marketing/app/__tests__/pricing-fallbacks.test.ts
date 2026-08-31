@@ -18,7 +18,7 @@ describe('pricing-fallbacks — canonical value assertions', () => {
     expect(SUBSCRIPTION_PRICE_FALLBACKS.free.price).toBe('$0');
     expect(SUBSCRIPTION_PRICE_FALLBACKS.pro.price).toBe('$49');
     expect(SUBSCRIPTION_PRICE_FALLBACKS.pro.period).toBe('/month');
-    expect(SUBSCRIPTION_PRICE_FALLBACKS.max.price).toBe('$299');
+    expect(SUBSCRIPTION_PRICE_FALLBACKS.max.price).toBe('$99');
     expect(SUBSCRIPTION_PRICE_FALLBACKS.max.period).toBe('/month');
     expect(SUBSCRIPTION_PRICE_FALLBACKS.enterprise.price).toBe('Contact sales');
     expect(SUBSCRIPTION_PRICE_FALLBACKS.enterprise.period).toBeUndefined();
@@ -57,8 +57,8 @@ describe('pricing-fallbacks — canonical value assertions', () => {
   });
 
   it('keeps annual prices and does not invent leftover savings sublines', () => {
-    expect(ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS.pro.price).toBe('$470');
-    expect(ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS.max.price).toBe('$2,870');
+    expect(ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS.pro.price).toBe('$399');
+    expect(ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS.max.price).toBe('$799');
     expect(JSON.stringify(ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS).includes('$118')).toBe(false);
     expect(JSON.stringify(ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS).includes('$718')).toBe(false);
   });

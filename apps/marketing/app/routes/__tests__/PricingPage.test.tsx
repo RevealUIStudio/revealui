@@ -267,6 +267,7 @@ describe('PricingPage product catalog', () => {
     expect(text.includes('x402 agent payments (USDC, coming soon)')).toBe(false);
     expect(text.includes('Email support (24h weekday / 4h if unusable)')).toBe(true);
     expect(text.includes('$1,499')).toBe(true);
-    expect(text.includes('Not included today: advanced inference configuration')).toBe(true);
+    expect(text.includes('Not included today: x402 agent payments')).toBe(true);
+    expect(text.includes('Not included today: advanced inference configuration')).toBe(false);
   });
 });

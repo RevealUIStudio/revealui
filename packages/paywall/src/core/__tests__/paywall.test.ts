@@ -48,12 +48,14 @@ describe('createPaywall  -  zero-config (defaults)', () => {
       expect(paywall.isFeatureEnabled('pro', 'payments')).toBe(true);
     });
 
-    it('max tier gets aiMemory', () => {
-      expect(paywall.isFeatureEnabled('max', 'aiMemory')).toBe(true);
+    it('pro tier gets aiMemory and auditLog', () => {
+      expect(paywall.isFeatureEnabled('pro', 'aiMemory')).toBe(true);
+      expect(paywall.isFeatureEnabled('pro', 'auditLog')).toBe(true);
     });
 
-    it('pro tier does not get aiMemory', () => {
-      expect(paywall.isFeatureEnabled('pro', 'aiMemory')).toBe(false);
+    it('pro tier does not get unattended inference or RevKit provisioning', () => {
+      expect(paywall.isFeatureEnabled('pro', 'aiInference')).toBe(false);
+      expect(paywall.isFeatureEnabled('pro', 'devkitProfiles')).toBe(false);
     });
 
     it('enterprise gets everything except planned', () => {
@@ -83,7 +85,9 @@ describe('createPaywall  -  zero-config (defaults)', () => {
       expect(flags.advancedSync).toBe(true);
       expect(flags.vaultDesktop).toBe(true);
       expect(flags.vaultRotation).toBe(true);
-      expect(flags.aiMemory).toBe(false);
+      expect(flags.aiMemory).toBe(true);
+      expect(flags.auditLog).toBe(true);
+      expect(flags.aiInference).toBe(false);
       expect(flags.devkitProfiles).toBe(false);
     });
   });
@@ -91,7 +95,10 @@ describe('createPaywall  -  zero-config (defaults)', () => {
   describe('getRequiredTier', () => {
     it('returns the tier for known features', () => {
       expect(paywall.getRequiredTier('ai')).toBe('pro');
-      expect(paywall.getRequiredTier('aiMemory')).toBe('max');
+      expect(paywall.getRequiredTier('aiMemory')).toBe('pro');
+      expect(paywall.getRequiredTier('auditLog')).toBe('pro');
+      expect(paywall.getRequiredTier('aiInference')).toBe('max');
+      expect(paywall.getRequiredTier('devkitProfiles')).toBe('max');
       expect(paywall.getRequiredTier('multiTenant')).toBe('enterprise');
     });
 

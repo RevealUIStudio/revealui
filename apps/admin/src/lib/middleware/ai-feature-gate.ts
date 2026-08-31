@@ -3,7 +3,7 @@
  *
  * Provides gate functions for AI-related API routes.
  * - `checkAIFeatureGate(userId)` checks the `ai` feature (Pro tier, $49/mo)
- * - `checkAIMemoryFeatureGate(userId)` checks the `aiMemory` feature (Max tier, $299/mo)
+ * - `checkAIMemoryFeatureGate(userId)` checks the `aiMemory` feature (Pro tier, $49/mo)
  *
  * Resolution (GAP-477):
  * 1. Fail closed if no userId
@@ -65,7 +65,7 @@ export async function checkAIFeatureGate(
 
 /**
  * Returns a 403 NextResponse if AI Memory features are not enabled for this user.
- * AI Memory routes (episodic, working, context, vector search) require Max ($299/mo).
+ * AI Memory routes (episodic, working, context, vector search) require Pro ($49/mo).
  * Call only after AuthN with session.user.id.
  */
 export async function checkAIMemoryFeatureGate(
@@ -75,5 +75,5 @@ export async function checkAIMemoryFeatureGate(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   if (await userHasFeature(userId, 'aiMemory')) return null;
-  return NextResponse.json({ error: 'AI Memory features require a Max license' }, { status: 403 });
+  return NextResponse.json({ error: 'AI Memory features require a Pro license' }, { status: 403 });
 }

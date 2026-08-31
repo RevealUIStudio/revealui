@@ -49,7 +49,7 @@ Labels match the `/products` page.
 - **CLI.** `npx create-revealui@latest my-app` plus 5 templates (basic-blog, e-commerce, portfolio, starter, starter-native)
 - **Agents.** A2A, CRDT memory, open-model default, streaming, tool execution. Hosted runs use the account's saved provider key (BYOK) or a local model. RevealUI does not host a shared frontier key as the product default. An entitled Pro account walked save-key plus Send Task plus Watch live on production (2026-08-18). That is one operator walk, not a paying-customer load test.
 - **MCP.** 13 first-party servers under `packages/mcp/src/servers/` (includes the adapter module)
-- **Audit receipts.** Signed audit log. Max can download Merkle roots
+- **Audit receipts.** Signed audit log. Pro can download Merkle roots
 - **Docs + marketing.** docs.revealui.com and revealui.com, including `/support`, `/status`, `/claims`, and `/roadmap`
 
 ### Launch surfaces
@@ -99,10 +99,10 @@ Work that is real and unfinished. No gap IDs on this public page.
 
 | Track | Model | Description |
 |-------|-------|-------------|
-| **A. Subscriptions** | Monthly | Free $0 / Pro $49/mo / Max $299/mo / Enterprise inquire |
+| **A. Subscriptions** | Monthly | Free $0 / Pro $49/mo / Max $99/mo / Enterprise inquire |
 | **B. Agent credits** | Pay-per-use | $0.001/task (local inference) |
 | **C. Perpetual** | One-time | Pro Perpetual $1,499 public; Agency and Enterprise perpetual are not public catalog SKUs |
-| **D. Professional services** | Per-engagement | Architecture review, migration assist, launch package, consulting hours |
+| **D. Professional services** | Per-engagement | Consultation $300 / Pilot $1,500 / Launch $7,500 (revealuistudio.com) |
 
 See [revealui.com/pricing](https://revealui.com/pricing) for the live catalog.
 

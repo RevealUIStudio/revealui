@@ -173,7 +173,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_PROBLEM.heading',
     proofGrade: 'outcome',
-    text: 'Stop buying a separate product for each slice of the stack.',
+    text: 'Tired of tools that don’t talk — and agents you can’t audit?',
     evidence: [
       {
         kind: 'code',
@@ -686,7 +686,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'pricing-teaser.ts',
     exportPath: 'PRICING_TEASER_LINKS[0].description',
     proofGrade: 'behavior',
-    text: 'Max adds durable agent memory and advanced inference.',
+    text: 'Max adds unattended inference and RevKit environment provisioning.',
     evidence: [MEMORY, { kind: 'code', ref: 'packages/ai/src/inference', note: 'inference layer' }],
   },
   {
@@ -769,7 +769,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_HERO.subtitle',
-    text: 'Subscribe, or buy a perpetual license. Start free. Upgrade when you need to.',
+    text: 'Tired of tools that don’t talk — and agents you can’t audit?',
     evidence: [PERPETUAL, TIER_LIMITS],
   },
   {
@@ -829,7 +829,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_TRIAL_NOTE',
-    text: 'Pro and Max include a 7-day free trial. Cancel during the trial and you pay nothing.',
+    text: 'Pro and Max include a 7-day free trial. Cancel during the trial and you pay nothing. First purchase, including annual, has a 14-day refund. No prorate after 14 days.',
     evidence: [TRIAL],
   },
   {

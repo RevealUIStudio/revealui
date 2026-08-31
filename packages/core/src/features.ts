@@ -17,7 +17,7 @@ export interface FeatureFlags {
   aiLocal: boolean;
   /** AI agent system  -  local + cloud via RevealUI harness (Pro+) */
   ai: boolean;
-  /** AI memory system  -  working + episodic + vector (Max: basic, Enterprise: full) */
+  /** AI memory system  -  working + episodic + vector (Pro+) */
   aiMemory: boolean;
   /** MCP server integration */
   mcp: boolean;
@@ -59,9 +59,9 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
   dashboard: 'pro',
   customDomain: 'pro',
   analytics: 'pro',
-  aiMemory: 'max',
+  aiMemory: 'pro',
   aiInference: 'max',
-  auditLog: 'max',
+  auditLog: 'pro',
   multiTenant: 'enterprise',
   // NOTE: whiteLabel is planned but not yet implemented.
   // Forced to false below in getFeatures/getFeaturesForTier/isFeatureEnabled

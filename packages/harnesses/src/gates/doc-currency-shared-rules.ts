@@ -194,8 +194,8 @@ export const SHARED_DETECTION_RULES: readonly DetectionRule[] = [
     unlessLineHas: [...COMMON_EXON, 'renamed', 'now enterprise'],
   },
   {
-    // Pricing-truth guard. RevealUI Max is $299/mo; the retired $149/mo Max
-    // figure presented as current is stale drift. Enumerated tier+price
+    // Pricing-truth guard. RevealUI Max is $99/mo; retired $149 and $299
+    // figures presented as current are stale drift. Enumerated tier+price
     // phrasings (like stripe-not-live-claim) rather than a bare '$149',
     // because $149 is a legitimate current figure elsewhere (the Pro
     // Perpetual support renewal is $149/yr) — anchoring the Max name beside
@@ -218,8 +218,24 @@ export const SHARED_DETECTION_RULES: readonly DetectionRule[] = [
       '$149 for max',
       '$149/mo for max',
       '$149/month for max',
+      'max $299',
+      'max: $299',
+      'max - $299',
+      'max — $299',
+      'max plan $299',
+      'max tier $299',
+      'max is $299',
+      'max at $299',
+      'max ($299',
+      'revealui max $299',
+      '| max | $299',
+      '$299/mo max',
+      '$299/month max',
+      '$299 for max',
+      '$299/mo for max',
+      '$299/month for max',
     ],
-    unlessLineHas: [...COMMON_EXON, '$299', '299/mo', 'perpetual', 'renewal'],
+    unlessLineHas: [...COMMON_EXON, '$99', '99/mo', 'perpetual', 'renewal'],
   },
   {
     // Username-free form only — see the file header's privacy carve-out.

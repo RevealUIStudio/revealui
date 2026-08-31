@@ -95,7 +95,7 @@ export interface ProblemRow {
 
 export const HOME_PROBLEM = {
   eyebrow: 'The problem',
-  heading: 'Stop buying a separate product for each slice of the stack.',
+  heading: 'Tired of tools that don’t talk — and agents you can’t audit?',
   // Hybrid: body states the fork once; matrix carries capability detail.
   // pathBlurbs removed (de-dupe) so we do not restate the three paths twice.
   body: 'Teams either stitch a vendor for each slice, or start with agents and rebuild the rest. RevealUI is one self-hosted runtime for the business and the agents that run it.',

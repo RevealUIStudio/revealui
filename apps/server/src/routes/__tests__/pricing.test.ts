@@ -371,7 +371,7 @@ describe('GET /api/pricing  -  Stripe integration', () => {
         {
           name: 'Max',
           metadata: { revealui_track: 'subscription', revealui_tier: 'max' },
-          default_price: { unit_amount: 29900, recurring: { interval: 'month' } },
+          default_price: { unit_amount: 9900, recurring: { interval: 'month' } },
         },
       ],
     });
@@ -385,7 +385,7 @@ describe('GET /api/pricing  -  Stripe integration', () => {
     expect(pro.period).toBe('/month');
 
     const max = data.subscriptions.find((t: { id: string }) => t.id === 'max');
-    expect(max.price).toBe('$299');
+    expect(max.price).toBe('$99');
     expect(max.period).toBe('/month');
   });
 
@@ -520,7 +520,7 @@ describe('GET /api/pricing  -  Stripe integration', () => {
     expect(pro.price).toBe('$49');
 
     const max = data.subscriptions.find((t: { id: string }) => t.id === 'max');
-    expect(max.price).toBe('$299');
+    expect(max.price).toBe('$99');
   });
 
   it('formats yearly subscription interval as /year', async () => {
@@ -742,7 +742,7 @@ describe('GET /api/pricing  -  metadata defaults and edge cases', () => {
       data: [
         makeStripeProduct('Free', 'subscription', 'free', 0),
         makeStripeProduct('Pro', 'subscription', 'pro', 4900, 'month'),
-        makeStripeProduct('Max', 'subscription', 'max', 29900, 'month'),
+        makeStripeProduct('Max', 'subscription', 'max', 9900, 'month'),
         makeStripeProduct('Enterprise', 'subscription', 'enterprise', 149900, 'month'),
       ],
     });
@@ -757,7 +757,7 @@ describe('GET /api/pricing  -  metadata defaults and edge cases', () => {
     const pro = data.subscriptions.find((t: { id: string }) => t.id === 'pro');
     expect(pro.price).toBe('$49');
     const max = data.subscriptions.find((t: { id: string }) => t.id === 'max');
-    expect(max.price).toBe('$299');
+    expect(max.price).toBe('$99');
     const enterprise = data.subscriptions.find((t: { id: string }) => t.id === 'enterprise');
     expect(enterprise.price).toBeUndefined();
     expect(enterprise.period).toBeUndefined();

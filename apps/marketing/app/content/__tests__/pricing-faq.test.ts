@@ -24,7 +24,7 @@ describe('pricing FAQ RevealFleet honesty', () => {
     expect(answer.includes('buyable runtime')).toBe(true);
     expect(answer.includes('Free')).toBe(true);
     expect(answer.includes('$49')).toBe(true);
-    expect(answer.includes('$299')).toBe(true);
+    expect(answer.includes('$99')).toBe(true);
     expect(answer.includes('Enterprise')).toBe(true);
     expect(answer.toLowerCase().includes('inquir')).toBe(true);
     expect(answer.includes('Pro Perpetual')).toBe(true);

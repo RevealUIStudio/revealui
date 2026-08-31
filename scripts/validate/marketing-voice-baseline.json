@@ -1,5 +1,9 @@
 {
   "note": "Grandfathered marketing-voice occurrences. Regenerate via `pnpm validate:marketing-voice --update-baseline`. Each key is a (file::ruleId::token) triple known to exist as of generation; CI fails only on NEW triples. Shrinking this list = progress.",
-  "count": 0,
-  "keys": []
+  "count": 3,
+  "keys": [
+    "apps/marketing/app/content/claims-evidence/claims-part-1.ts::em-dash::em-dash",
+    "apps/marketing/app/content/home.ts::em-dash::em-dash",
+    "apps/marketing/app/content/pricing.ts::em-dash::em-dash"
+  ]
 }

@@ -141,8 +141,16 @@ describe('max-price-stale', () => {
     expect(ruleMatches('| max | $149/mo | advanced inference | 70% |', maxRule)).toBe(true);
   });
 
-  it('does not flag the current Max price ($299) even when $149 appears alongside', () => {
-    expect(ruleMatches('max is $299/mo (was $149 during the preview)', maxRule)).toBe(false);
+  it('does not flag the current Max price ($99) even when $149 appears alongside', () => {
+    expect(ruleMatches('max is $99/mo (was $149 during the preview)', maxRule)).toBe(false);
+  });
+
+  it('flags Max presented at the retired $299/mo price', () => {
+    expect(ruleMatches('revealui max $299/mo — unattended inference', maxRule)).toBe(true);
+  });
+
+  it('does not flag the current Max price ($99) even when $299 appears alongside', () => {
+    expect(ruleMatches('max is $99/mo (was $299)', maxRule)).toBe(false);
   });
 
   it('does not flag the legitimate Pro Perpetual $149/yr support renewal', () => {

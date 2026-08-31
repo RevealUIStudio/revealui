@@ -196,7 +196,7 @@ const SHARED_RULE_MESSAGES: Readonly<Record<string, string>> = {
   'forge-tier-name':
     'The billing tier "Forge" was renamed to "Enterprise". Use "Enterprise" going forward.',
   'max-price-stale':
-    'RevealUI Max is $299/mo (cents-of-record: scripts/setup/stripe-catalog.ts). Do not present $149 as the current Max price.',
+    'RevealUI Max is $99/mo (cents-of-record: scripts/setup/stripe-catalog.ts). Do not present $149 or $299 as the current Max price.',
   'retired-suite-path':
     'The ~/suite/ path was retired 2026-05-08 (now ~/revfleet/). Update the path.',
 };

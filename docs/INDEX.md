@@ -86,7 +86,7 @@ RevealUI is one product in RevFleet. See [RevFleet overview](./REVFLEET.md) and 
 
 ## Security & trust
 
-- [Audit receipts](./security/AUDIT_RECEIPTS.md): signed log vs Max Merkle roots, offline CLI, honesty by tier
+- [Audit receipts](./security/AUDIT_RECEIPTS.md): signed log vs Pro Merkle roots, offline CLI, honesty by tier
 
 ## Legal
 
