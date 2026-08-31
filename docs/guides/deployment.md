@@ -397,13 +397,14 @@ RevealUI uses a structured logger (`@revealui/utils`). In production, logs are w
 
 ## Enterprise self-hosted operators
 
-The customer Fleet kit (Compose + GHCR, domain lock, license JWT) is documented in [FLEET.md](../FLEET.md): install, upgrade, rollback, backup, restore. Published Studio uptime covers license validation and downloads only — see [SLA](../SLA.md). Collaborative Lexical rooms need a long-running API process; see [Collaborative editing](./collaborative-editing.md).
+Enterprise is a license plus studio support. You deploy on your own infrastructure. See [Enterprise](../ENTERPRISE.md). Published Studio uptime covers license validation and downloads only — see [SLA](../SLA.md). Collaborative Lexical rooms need a long-running API process; see [Collaborative editing](./collaborative-editing.md).
 
-Secrets for a Fleet kit belong in RevVault (or your own secret store), not a copied `apps/admin/.env.example`. `docker-compose.forge.yml` reads `.env.forge`. Never put `REVEALUI_LICENSE_PRIVATE_KEY` on a customer kit.
+Secrets belong in RevVault (separate product) or your own secret store, not a copied `apps/admin/.env.example`. Never put `REVEALUI_LICENSE_PRIVATE_KEY` on a customer deploy.
 
 ## Related Documentation
 
-- [Fleet](../FLEET.md) -- Enterprise self-host kit
+- [Enterprise](../ENTERPRISE.md) -- License plus studio support
+- [Quick Start](../QUICK_START.md) -- Public get-started
 - [SLA](../SLA.md) -- Published support and license-infra uptime
 - [Environment Variables](../ENVIRONMENT-VARIABLES-GUIDE.md) -- Full configuration reference
 - [Architecture](../ARCHITECTURE.md) -- System design and infrastructure

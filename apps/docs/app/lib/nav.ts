@@ -93,10 +93,6 @@ export function buildDocNavSections(showcaseItems: NavItem[]): NavSection[] {
       ],
     },
     {
-      title: 'RevFleet (companion products)',
-      items: [{ label: 'Other RevealUI Studio products →', path: '/revfleet' }],
-    },
-    {
       title: 'Blog',
       items: [
         {

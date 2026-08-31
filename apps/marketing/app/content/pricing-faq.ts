@@ -53,4 +53,9 @@ export const PRICING_FAQS: readonly FaqItem[] = [
     question: 'How do I buy Enterprise?',
     answer: `Enterprise is a license. Contact ${SITE.emails.support} to inquire. See /sla for support and uptime commitments.`,
   },
+  {
+    question: 'What is RevealFleet?',
+    answer:
+      'RevealUI Studio ships RevealFleet. RevealUI is the lead product and the buyable runtime on this site. The catalog is Free, Pro at $49, Max at $299, Enterprise by inquiry, and Pro Perpetual at $1,499. RevVault is encrypted secret management inside Pro. It is not a separate paid SKU.',
+  },
 ];

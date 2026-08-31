@@ -331,11 +331,11 @@ Phase 5.3 Track C. Required for perpetual license GitHub team provisioning and s
 
 ---
 
-### Fleet Self-Hosted
+### Self-hosted license
 
-Phase 5.4, enterprise tier. Only required when running RevealUI Fleet (the self-hosted runtime kit) on your own infrastructure. The stamper (RevForge) is operator-only and not a public repo; the kit is `docker-compose.forge.yml` plus GHCR images.
+Phase 5.4, enterprise tier. Optional when you self-host under an Enterprise license. See [Enterprise](./ENTERPRISE.md).
 
-A Fleet customer holds a **studio-issued JWT** and the **studio public verify key**. They never hold `REVEALUI_LICENSE_PRIVATE_KEY` (the studio mint key). See [FLEET.md](./FLEET.md#whose-license-keys-are-these).
+A self-hosted operator holds a **studio-issued JWT** and the **studio public verify key**. They never hold `REVEALUI_LICENSE_PRIVATE_KEY` (the studio mint key).
 
 | Variable | Required | Default | Description | Security | Used By |
 |----------|----------|---------|-------------|----------|---------|
@@ -771,6 +771,5 @@ Check the file loading order:
 - [Auth Guide](./AUTH.md): Authentication system
 - [Troubleshooting](./TROUBLESHOOTING.md): General troubleshooting
 - [Enterprise](./ENTERPRISE.md): Enterprise license (inquire / Contact sales)
-- [Fleet](./FLEET.md): Self-hosted Fleet kit configuration
 - [Pro Guide](./PRO.md): Pro tier features and configuration
 - [`@revealui/config` source](../packages/config/src/): Zod schemas and validation logic

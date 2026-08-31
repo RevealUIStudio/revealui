@@ -34,7 +34,7 @@ These targets apply to email sent to support@revealui.com. They are the same for
 
 For the **license validation** endpoint and the **download and release** endpoint, we target 99% uptime, measured monthly. That is as much as 7.3 hours of downtime in a month before we would consider ourselves out of this commitment.
 
-If you self-host RevealUI, this uptime commitment covers **our** infrastructure (license validation, downloads, and updates), not yours. Your Compose/Vercel/Fly deployment is your responsibility. See [FLEET.md](./FLEET.md) and [Deployment](./guides/deployment.md).
+If you self-host RevealUI, this uptime commitment covers **our** infrastructure (license validation, downloads, and updates), not yours. Your Compose/Vercel/Fly deployment is your responsibility. See [Deployment](./guides/deployment.md).
 
 A hosted RevealUI product beyond license and download infrastructure does **not** yet carry a published uptime commitment. When that changes, this page will say so first.
 
@@ -64,5 +64,6 @@ If a self-hosted installation cannot reach the license validation service, a pre
 ## Related
 
 - [Status](https://revealui.com/status)
-- [Fleet self-host](./FLEET.md)
+- [Deployment](./guides/deployment.md)
+- [Enterprise](./ENTERPRISE.md)
 - [Enterprise SSO status](./FORGE_SSO_SETUP.md) — operator preview; [#449](https://github.com/RevealUIStudio/revealui/issues/449)
