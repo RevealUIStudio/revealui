@@ -12,7 +12,9 @@ import {
   TEMPLATES_CLI_ITEMS,
   TEMPLATES_GITHUB,
   TEMPLATES_HERO,
+  TEMPLATES_VERCEL,
 } from '../templates';
+import { VERCEL_ONE_CLICK } from '../vercel-one-click';
 
 const CREATE_REVEALUI_PKG = JSON.parse(
   readFileSync(join(process.cwd(), '../../packages/create-revealui/package.json'), 'utf8'),
@@ -45,6 +47,7 @@ function blob(): string {
     items: TEMPLATES_CLI_ITEMS,
     github: TEMPLATES_GITHUB,
     apify: TEMPLATES_APIFY,
+    vercel: TEMPLATES_VERCEL,
   });
 }
 
@@ -126,5 +129,52 @@ describe('templates catalog honesty', () => {
     expect(text.includes('Fleet $')).toBe(false);
     expect(text.includes('$25,000')).toBe(false);
     expect(text.includes('$8,499')).toBe(false);
+    expect(text.includes('$299')).toBe(false);
+    expect(text.includes('SSO')).toBe(false);
+    expect(text.includes('paying customers')).toBe(false);
+    expect(text.includes('RevDev')).toBe(false);
+    expect(text.includes('RevForge')).toBe(false);
+    expect(text.includes('RevKit')).toBe(false);
+  });
+
+  it('locks marketing one-click fields to deployment/vercel/template.json', () => {
+    const meta = JSON.parse(
+      readFileSync(join(process.cwd(), '../../deployment/vercel/template.json'), 'utf8'),
+    ) as {
+      description: string;
+      repositoryUrl: string;
+      envDescription: string;
+      envLink: string;
+      env: readonly { key: string }[];
+      stores: readonly { integrationSlug: string; productSlug: string }[];
+    };
+    expect(VERCEL_ONE_CLICK.description).toBe(meta.description);
+    expect(VERCEL_ONE_CLICK.repositoryUrl).toBe(meta.repositoryUrl);
+    expect(VERCEL_ONE_CLICK.envDescription).toBe(meta.envDescription);
+    expect(VERCEL_ONE_CLICK.envLink).toBe(meta.envLink);
+    expect(VERCEL_ONE_CLICK.env.map((item) => item.key)).toEqual(meta.env.map((item) => item.key));
+    expect(VERCEL_ONE_CLICK.stores[0]?.integrationSlug).toBe(meta.stores[0]?.integrationSlug);
+    expect(VERCEL_ONE_CLICK.stores[0]?.productSlug).toBe(meta.stores[0]?.productSlug);
+  });
+
+  it('documents the buyer Vercel one-click on the existing starter twin', () => {
+    expect(TEMPLATES_VERCEL.heading).toBe('Deploy to Vercel');
+    expect(TEMPLATES_VERCEL.cta).toBe('Deploy to Vercel');
+    expect(TEMPLATES_VERCEL.sourceHref).toBe(
+      'https://github.com/RevealUIStudio/revealui-template-starter',
+    );
+    expect(TEMPLATES_VERCEL.href.startsWith('https://vercel.com/new/clone?')).toBe(true);
+    expect(TEMPLATES_VERCEL.href.includes('repository-url=')).toBe(true);
+    expect(TEMPLATES_VERCEL.href.includes('RevealUIStudio')).toBe(true);
+    expect(TEMPLATES_VERCEL.href.includes('revealui-template-starter')).toBe(true);
+    expect(TEMPLATES_VERCEL.href.includes('neon')).toBe(true);
+    expect(TEMPLATES_VERCEL.body.includes('your Vercel')).toBe(true);
+    expect(TEMPLATES_VERCEL.body.includes('Neon you control')).toBe(true);
+    expect(TEMPLATES_VERCEL.body.includes('Not managed hosting')).toBe(true);
+    expect(TEMPLATES_VERCEL.body.includes('Not the Starter Kit')).toBe(true);
+    expect(TEMPLATES_VERCEL.body.includes('Not a studio invoice')).toBe(true);
+    expect(VERCEL_ONE_CLICK.repositoryUrl).toBe(TEMPLATES_VERCEL.sourceHref);
+    expect(VERCEL_ONE_CLICK.stores[0]?.integrationSlug).toBe('neon');
+    expect(VERCEL_ONE_CLICK.stores[0]?.productSlug).toBe('neon');
   });
 });

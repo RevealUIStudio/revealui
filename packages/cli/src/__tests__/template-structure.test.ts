@@ -135,6 +135,31 @@ describe('Template file structure  -  variant-specific content', () => {
     const files = await fs.readdir(collectionsDir);
     expect(files).toContain('Projects.ts');
   });
+
+  it('starter: copies vercel.json for the buyer Vercel one-click', async () => {
+    const projectPath = path.join(tmpDir, 'starter-vercel');
+    await createProject(baseConfig('starter', projectPath));
+
+    const files = await fs.readdir(projectPath);
+    expect(files).toContain('vercel.json');
+    const vercel = JSON.parse(
+      await fs.readFile(path.join(projectPath, 'vercel.json'), 'utf-8'),
+    ) as {
+      framework?: string;
+      installCommand?: string;
+      buildCommand?: string;
+    };
+    expect(vercel.framework).toBe('nextjs');
+    expect(vercel.installCommand).toBe('pnpm install');
+    expect(vercel.buildCommand).toBe('pnpm build');
+  });
+
+  it('basic-blog: does not ship a Vercel one-click vercel.json', async () => {
+    const projectPath = path.join(tmpDir, 'blog-no-vercel');
+    await createProject(baseConfig('basic-blog', projectPath));
+    const files = await fs.readdir(projectPath);
+    expect(files).not.toContain('vercel.json');
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -7,6 +7,8 @@ import {
   TEMPLATES_APIFY_TEST,
   TEMPLATES_GITHUB_TEST,
   TEMPLATES_PAGE_TEST,
+  VERCEL_ONE_CLICK_TEMPLATE,
+  VERCEL_ONE_CLICK_TEST,
 } from './shared-refs.js';
 import type { ClaimEntry } from './types.js';
 
@@ -67,6 +69,27 @@ export const claimsPart10: readonly ClaimEntry[] = [
     proofGrade: 'outcome',
     text: 'Four Next.js templates have a public GitHub twin. starter-native does not.',
     evidence: [TEMPLATES_GITHUB_TEST, CLI_TEMPLATE_DIRS],
+  },
+  {
+    file: 'templates.ts',
+    exportPath: 'TEMPLATES_VERCEL.body',
+    proofGrade: 'outcome',
+    text: 'Clone the starter onto your Vercel account. RevealUI runtime on Vercel and Neon you control. Not managed hosting. Not the Starter Kit. Not a studio invoice.',
+    evidence: [VERCEL_ONE_CLICK_TEMPLATE, VERCEL_ONE_CLICK_TEST],
+  },
+  {
+    file: 'templates.ts',
+    exportPath: 'TEMPLATES_VERCEL.sourceLabel',
+    proofGrade: 'outcome',
+    text: 'Open the starter GitHub twin',
+    evidence: [
+      {
+        kind: 'url',
+        ref: 'https://github.com/RevealUIStudio/revealui-template-starter',
+        note: 'existing create-revealui starter twin',
+      },
+      VERCEL_ONE_CLICK_TEST,
+    ],
   },
   {
     file: 'templates.ts',

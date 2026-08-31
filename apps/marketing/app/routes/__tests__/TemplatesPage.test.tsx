@@ -6,6 +6,7 @@ import {
   TEMPLATES_CLI,
   TEMPLATES_CLI_ITEMS,
   TEMPLATES_HERO,
+  TEMPLATES_VERCEL,
 } from '../../content/templates';
 import { TemplatesPage } from '../TemplatesPage';
 
@@ -39,6 +40,15 @@ describe('TemplatesPage', () => {
     expect(container.textContent ?? '').toContain('$0.00001');
     expect(container.textContent ?? '').toContain('not free');
     expect((container.textContent ?? '').toLowerCase().includes('verify is free')).toBe(false);
+  });
+
+  it('offers Deploy to Vercel on the buyer clone URL', () => {
+    render(<TemplatesPage />);
+    const deploy = screen.getByRole('link', { name: TEMPLATES_VERCEL.cta });
+    expect(deploy).toHaveAttribute('href', TEMPLATES_VERCEL.href);
+    expect(deploy.getAttribute('href')?.startsWith('https://vercel.com/new/clone?')).toBe(true);
+    const twin = screen.getByRole('link', { name: TEMPLATES_VERCEL.sourceLabel });
+    expect(twin).toHaveAttribute('href', TEMPLATES_VERCEL.sourceHref);
   });
 
   it('does not link dead hosts or leftover kits', () => {

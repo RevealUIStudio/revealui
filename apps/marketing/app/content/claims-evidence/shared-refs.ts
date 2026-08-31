@@ -606,6 +606,16 @@ export const TEMPLATES_GITHUB_TEST: EvidenceRef = {
   ref: 'apps/marketing/app/content/__tests__/templates.test.ts#gives GitHub Use this template twins to the four Next.js templates only',
   note: 'starter-native has no GitHub twin; four Next.js templates do',
 };
+export const VERCEL_ONE_CLICK_TEMPLATE: EvidenceRef = {
+  kind: 'code',
+  ref: 'deployment/vercel/template.json',
+  note: 'buyer Deploy Button metadata: starter twin, Neon store, required env',
+};
+export const VERCEL_ONE_CLICK_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'apps/marketing/app/content/__tests__/templates.test.ts#documents the buyer Vercel one-click on the existing starter twin',
+  note: 'pins clone URL to revealui-template-starter and honest buyer-account copy',
+};
 export const TEMPLATES_APIFY_TEST: EvidenceRef = {
   kind: 'test',
   ref: 'apps/marketing/app/content/__tests__/templates.test.ts#prints Apify pay-per-event prices and does not call verify free',

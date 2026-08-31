@@ -26,7 +26,7 @@ Canonical definition: **[What is RevealUI?](./WHAT_IS.md)**. Six **[design princ
 - [Admin Guide](./ADMIN_GUIDE.md): Collections, content management, admin dashboard
 - [Auth & Security](./AUTH.md): Authentication, sessions, RBAC, security policy
 - [Database](./DATABASE.md): Management scripts, optimization, Drizzle ORM
-- [Deployment](./guides/deployment.md): Deploy to Vercel + Fly, Docker Compose, customer Railway marketplace template, environment setup
+- [Deployment](./guides/deployment.md): Deploy to Vercel + Fly, buyer Vercel one-click starter, Docker Compose, leftover customer Railway marketplace template, environment setup
 - [Plugins](./PLUGINS.md): Config-transform plugins (form builder, nested docs, redirects) and how to author one
 - [Admin development](./guides/admin-dev.md): HMR expectations when editing admin, collections, and Lexical plugins
 - [Errors and debugging](./guides/errors-and-debugging.md): API error envelope, request ids, how to file a bug

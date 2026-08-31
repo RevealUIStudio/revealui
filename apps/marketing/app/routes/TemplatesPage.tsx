@@ -7,6 +7,7 @@ import {
   TEMPLATES_GITHUB,
   TEMPLATES_HERO,
   TEMPLATES_LICENSES,
+  TEMPLATES_VERCEL,
 } from '../content/templates';
 
 export function TemplatesPage() {
@@ -57,6 +58,25 @@ export function TemplatesPage() {
             </li>
           ))}
         </ul>
+      </MarketingSection>
+
+      <MarketingSection tone="background" density="default" width="narrow">
+        <h2 className="font-display text-xl font-semibold text-foreground">
+          {TEMPLATES_VERCEL.heading}
+        </h2>
+        <p className="mt-4 leading-7 text-body">{TEMPLATES_VERCEL.body}</p>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <Button asChild variant="brand">
+            <a href={TEMPLATES_VERCEL.href} target="_blank" rel="noopener noreferrer">
+              {TEMPLATES_VERCEL.cta}
+            </a>
+          </Button>
+          <Button asChild appearance="outline" variant="neutral">
+            <a href={TEMPLATES_VERCEL.sourceHref} target="_blank" rel="noopener noreferrer">
+              {TEMPLATES_VERCEL.sourceLabel}
+            </a>
+          </Button>
+        </div>
       </MarketingSection>
 
       <MarketingSection tone="background" density="default" width="narrow">

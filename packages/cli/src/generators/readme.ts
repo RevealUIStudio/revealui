@@ -75,7 +75,15 @@ ${projectConfig.projectName}/
 ## Template
 
 This project was created using the **${projectConfig.template}** template.
+${
+  projectConfig.template === 'starter'
+    ? `
+## Deploy to Vercel
 
+The starter is the buyer one-click source. Deploy uses your Vercel account and Neon you control. See [revealui.com/templates](https://revealui.com/templates). Not managed hosting.
+`
+    : ''
+}
 ## License
 
 MIT

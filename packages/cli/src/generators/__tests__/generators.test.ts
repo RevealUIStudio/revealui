@@ -96,6 +96,21 @@ describe('generateReadme', () => {
     const content = mockWriteFile.mock.calls[0][1] as string;
     expect(content).toContain('**portfolio** template');
   });
+
+  it('documents the buyer Vercel one-click only for the starter template', async () => {
+    await generateReadme('/tmp/my-app', { ...baseConfig, template: 'starter' });
+    const starter = mockWriteFile.mock.calls[0][1] as string;
+    expect(starter.includes('Deploy to Vercel')).toBe(true);
+    expect(starter.includes('your Vercel account')).toBe(true);
+    expect(starter.includes('Neon you control')).toBe(true);
+    expect(starter.includes('https://revealui.com/templates')).toBe(true);
+    expect(starter.includes('Not managed hosting')).toBe(true);
+
+    mockWriteFile.mockClear();
+    await generateReadme('/tmp/my-app', { ...baseConfig, template: 'basic-blog' });
+    const blog = mockWriteFile.mock.calls[0][1] as string;
+    expect(blog.includes('Deploy to Vercel')).toBe(false);
+  });
 });
 
 describe('generateDevbox', () => {
