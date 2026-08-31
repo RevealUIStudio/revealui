@@ -11,8 +11,8 @@ Owner strategy: `business/strategy-product-led-online-revenue-2026-07-26.md`
 | Vercel one-click (chosen) | buyer listing | Done (`deployment/vercel/*` + `/templates` Deploy Button) | Owner dashboard Marketplace / `vercel.com/templates` publish — [VERCEL-TEMPLATE-OWNER-PUBLISH.md](./VERCEL-TEMPLATE-OWNER-PUBLISH.md). Do not invent a live listing URL. |
 
 Vercel is the chosen one-click (buyer deploys the existing starter on **their**
-Vercel + Neon). Railway GAP-430 stays a leftover. This is not the Starter Kit
-and not a fourth studio invoice.
+Vercel + Neon). Railway GAP-430 stays a leftover customer marketplace path
+(`deployment/railway`). This is not the Starter Kit and not a fourth studio invoice.
 
 Pick **one** channel to push to first stranger money; do not fan out all three
 before Stage 1 graduation.

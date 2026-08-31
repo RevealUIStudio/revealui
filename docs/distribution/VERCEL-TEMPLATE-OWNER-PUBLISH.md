@@ -47,7 +47,8 @@ If Vercel reopens submissions or Studio enrolls as a partner:
 - Present this as the Starter Kit.
 - Add a fourth studio invoice. Studio SKUs stay Hour $300 / Architecture
   artifact bundle and review $3,500 / Launch $7,500.
-- Finish Railway GAP-430 in the same change. Vercel is the chosen one-click.
+- Finish Railway GAP-430 (customer marketplace leftover under `deployment/railway`)
+  in the same change. Vercel is the chosen one-click.
 
 ## 4. Acceptance for this leftover
 
