@@ -520,13 +520,6 @@ export const claimsPart2: readonly ClaimEntry[] = [
   },
   {
     file: 'for-operators.ts',
-    exportPath: 'FOR_OPERATORS_PRICING.rungs[1].cta.label',
-    proofGrade: 'path',
-    text: 'Request an architecture review',
-    evidence: [COMMERCIAL_POLICY],
-  },
-  {
-    file: 'for-operators.ts',
     exportPath: 'FOR_OPERATORS_PRICING.body',
     proofGrade: 'outcome',
     text: 'Engagements are fixed-bid and start with a discovery call that scopes the work. The numbers below are starting points, not final quotes.',
@@ -543,7 +536,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
     file: 'for-operators.ts',
     exportPath: 'FOR_OPERATORS_PRICING.rungs[1].body',
     proofGrade: 'outcome',
-    text: 'A written architecture review of your current stack with a priced path to launch. This SKU lives on revealuistudio.com, not on the product catalog.',
+    text: 'An architecture artifact bundle and review of your current stack. The prototype is inside the bundle, not a second deliverable. This SKU lives on revealuistudio.com, not on the product catalog.',
     evidence: [COMMERCIAL_POLICY, SELF_HOST],
   },
   {

@@ -181,8 +181,8 @@ export const FOR_OPERATORS_PRICING = {
     {
       title: ARCHITECTURE_REVIEW.name,
       price: agencyEngagementPriceDisplay(ARCHITECTURE_REVIEW),
-      body: 'A written architecture review of your current stack with a priced path to launch. This SKU lives on revealuistudio.com, not on the product catalog.',
-      cta: { label: 'Request an architecture review', href: AGENCY_CONTACT, external: true },
+      body: 'An architecture artifact bundle and review of your current stack. The prototype is inside the bundle, not a second deliverable. This SKU lives on revealuistudio.com, not on the product catalog.',
+      cta: { label: 'Book a 30-minute intro', href: AGENCY_CONTACT, external: true },
     },
     {
       title: LAUNCH_PACKAGE.name,

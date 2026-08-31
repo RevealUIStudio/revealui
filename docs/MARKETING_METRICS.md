@@ -75,7 +75,7 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 
 | Service | Price | Notes |
 |---|---|---|
-| Architecture Review | $3,500 | revealuistudio.com only |
+| Architecture artifact bundle and review | $3,500 | revealuistudio.com only |
 | Launch Package | $7,500 | revealuistudio.com only |
 | Migration Assist | $300/hr | revealuistudio.com only |
 | Consulting Hour | $300/hr | revealuistudio.com only |
