@@ -38,7 +38,7 @@ Public get-started paths that are live today:
 2. GitHub templates (Use this template): [starter](https://github.com/RevealUIStudio/revealui-template-starter), [basic-blog](https://github.com/RevealUIStudio/revealui-template-basic-blog), [portfolio](https://github.com/RevealUIStudio/revealui-template-portfolio), [e-commerce](https://github.com/RevealUIStudio/revealui-template-e-commerce)
 3. Apify [governed-agent-run](https://apify.com/revealuistudio/governed-agent-run) — pay-per-event. Receipt verification is $0.00001, not free.
 
-There is no `revealui.com/templates` page. Railway and the private starter-kit are not public get-started paths.
+There is no `revealui.com/templates` page.
 
 Open [http://localhost:4000/admin](http://localhost:4000/admin).
 

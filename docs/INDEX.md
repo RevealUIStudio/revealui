@@ -23,7 +23,7 @@ Live public paths only:
 - [Build Your Business](./BUILD_YOUR_BUSINESS.md): End-to-end tutorial: scaffold to deploy
 - [Examples](./EXAMPLES.md): Blog, subscription starter, storefront
 
-There is no `revealui.com/templates` page. Railway and the private starter-kit are not public get-started paths.
+There is no `revealui.com/templates` page.
 
 ## Core Guides
 

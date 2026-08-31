@@ -18,7 +18,7 @@ Live public paths only:
 - [Quick start](https://docs.revealui.com/QUICK_START): local stack walkthrough
 - [Local-first](https://docs.revealui.com/LOCAL_FIRST): Run the stack on your machine
 
-There is no `revealui.com/templates` page. Railway and the private starter-kit are not public get-started paths.
+There is no `revealui.com/templates` page.
 
 ## Source code
 
