@@ -53,9 +53,4 @@ export const PRICING_FAQS: readonly FaqItem[] = [
     question: 'How do I buy Enterprise?',
     answer: `Enterprise is a license. Contact ${SITE.emails.support} to inquire. See /sla for support and uptime commitments.`,
   },
-  {
-    question: 'What is RevealFleet?',
-    answer:
-      'RevealUI Studio ships RevealFleet. RevealUI is the lead product and the buyable runtime on this site. RevealFleet sits with the tools you already use: Stripe, Neon, Vercel, GitHub, Google Calendar, Gmail, and a BYO model. The catalog is Free, Pro at $49, Max at $99, Enterprise by inquiry, and Pro Perpetual at $1,499. RevVault is encrypted secret management inside Pro. It is not a separate paid SKU.',
-  },
 ];

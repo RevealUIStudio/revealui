@@ -392,12 +392,6 @@ export const claimsPart2: readonly ClaimEntry[] = [
   },
   {
     file: 'pricing-faq.ts',
-    exportPath: 'PRICING_FAQS[9].answer',
-    text: 'RevealUI Studio ships RevealFleet. RevealUI is the lead product and the buyable runtime on this site. RevealFleet sits with the tools you already use: Stripe, Neon, Vercel, GitHub, Google Calendar, Gmail, and a BYO model. The catalog is Free, Pro at $49, Max at $99, Enterprise by inquiry, and Pro Perpetual at $1,499. RevVault is encrypted secret management inside Pro. It is not a separate paid SKU.',
-    evidence: [REPO, COMMERCIAL_POLICY, PRICING_FALLBACKS, REVVAULT_REPO],
-  },
-  {
-    file: 'pricing-faq.ts',
     exportPath: 'PRICING_FAQ_SECTION.heading',
     text: 'Frequently Asked Questions',
     evidence: [

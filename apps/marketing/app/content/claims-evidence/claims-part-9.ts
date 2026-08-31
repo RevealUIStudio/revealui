@@ -106,7 +106,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.selfHost.free',
     proofGrade: 'outcome',
-    text: 'Free: $0 + your infra. Start free, or run `npx create-revealui`.',
+    text: 'Free: $0 + your infra. Start free, or run `npx create-revealui@latest`.',
     evidence: [LICENSE_MIT, SELF_HOST, CLI_CREATE, QUOTE_RESOLVER],
   },
   {

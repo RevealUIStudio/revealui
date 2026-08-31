@@ -13,10 +13,17 @@ Canonical definition: **[What is RevealUI?](./WHAT_IS.md)**. Six **[design princ
 
 ## Getting Started
 
-- [What is RevealUI?](./WHAT_IS.md): canonical paragraph, tier names, feature matrix, RevFleet list
-- [Quick Start](./QUICK_START.md): get a local dev stack running
+Live public paths only:
+
+- `npx create-revealui@latest`
+- GitHub templates: [starter](https://github.com/RevealUIStudio/revealui-template-starter), [basic-blog](https://github.com/RevealUIStudio/revealui-template-basic-blog), [portfolio](https://github.com/RevealUIStudio/revealui-template-portfolio), [e-commerce](https://github.com/RevealUIStudio/revealui-template-e-commerce)
+- Apify [governed-agent-run](https://apify.com/revealuistudio/governed-agent-run) — pay-per-event. Receipt verification is $0.00001, not free
+- [Quick Start](./QUICK_START.md): local stack walkthrough
+- [What is RevealUI?](./WHAT_IS.md): canonical paragraph, tier names, feature matrix
 - [Build Your Business](./BUILD_YOUR_BUSINESS.md): End-to-end tutorial: scaffold to deploy
 - [Examples](./EXAMPLES.md): Blog, subscription starter, storefront
+
+There is no `revealui.com/templates` page. Railway and the private starter-kit are not public get-started paths.
 
 ## Core Guides
 
@@ -26,7 +33,7 @@ Canonical definition: **[What is RevealUI?](./WHAT_IS.md)**. Six **[design princ
 - [Admin Guide](./ADMIN_GUIDE.md): Collections, content management, admin dashboard
 - [Auth & Security](./AUTH.md): Authentication, sessions, RBAC, security policy
 - [Database](./DATABASE.md): Management scripts, optimization, Drizzle ORM
-- [Deployment](./guides/deployment.md): Deploy to Vercel + Fly, buyer Vercel one-click starter, Docker Compose, leftover customer Railway marketplace template, environment setup
+- [Deployment](./guides/deployment.md): Deploy to Vercel + Fly, buyer Vercel one-click starter, Docker Compose, environment setup
 - [Plugins](./PLUGINS.md): Config-transform plugins (form builder, nested docs, redirects) and how to author one
 - [Admin development](./guides/admin-dev.md): HMR expectations when editing admin, collections, and Lexical plugins
 - [Errors and debugging](./guides/errors-and-debugging.md): API error envelope, request ids, how to file a bug

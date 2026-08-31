@@ -234,7 +234,7 @@ export const HOME_FAQ = {
 
 export const HOME_GET_STARTED = {
   heading: 'Start on your machine today.',
-  body: 'Install free. Open the admin UI. Go live when you are ready to charge customers.',
+  body: 'Install with npx create-revealui@latest, a public GitHub template (starter, basic-blog, portfolio, or e-commerce), or the live Apify actor (pay-per-event; receipt verification is $0.00001, not free).',
   cta: {
     primary: { label: 'Start free', href: SITE.urls.signup } satisfies Cta,
     secondary: { label: 'Read the docs', href: SITE.urls.docs } satisfies Cta,

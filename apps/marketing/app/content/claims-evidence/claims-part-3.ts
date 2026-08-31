@@ -22,7 +22,6 @@ import {
   PROVIDERS,
   RBAC_ABAC,
   REPO,
-  REVDEV_STUDIO_INFERENCE,
   ROADMAP,
   SELF_HOST,
   SERVICES_STRIPE,
@@ -506,8 +505,8 @@ export const claimsPart3: readonly ClaimEntry[] = [
     file: 'local-ai.ts',
     exportPath: 'LOCAL_AI_SECTION.dogfood',
     proofGrade: 'behavior',
-    text: 'RevDev Studio, the harness this team uses to build RevealUI, includes a local-inference cockpit for Inference Snaps and Ollama. The maintainers run local inference themselves.',
-    evidence: [REVDEV_STUDIO_INFERENCE],
+    text: 'The maintainers run local inference themselves on Inference Snaps and Ollama.',
+    evidence: [OPEN_WEIGHT, OLLAMA],
   },
   {
     file: 'local-ai.ts',

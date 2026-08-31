@@ -419,7 +419,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_GET_STARTED.body',
     proofGrade: 'outcome',
-    text: 'Install free. Open the admin UI. Go live when you are ready to charge customers.',
+    text: 'Install with npx create-revealui@latest, a public GitHub template (starter, basic-blog, portfolio, or e-commerce), or the live Apify actor (pay-per-event; receipt verification is $0.00001, not free).',
     evidence: [
       CLI_CREATE,
       {
@@ -714,7 +714,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'products.ts',
     exportPath: 'PRODUCTS_PAGE_HERO.subtitle',
     proofGrade: 'outcome',
-    text: 'License the self-hosted runtime. Free, Pro, Max, Enterprise inquire, and Pro Perpetual. Studio SKUs live on revealuistudio.com. Zero paying customers. This is not a launched pull-and-run RevealFleet.',
+    text: 'License the self-hosted runtime. Free, Pro, Max, Enterprise inquire, and Pro Perpetual. Studio SKUs live on revealuistudio.com. Zero paying customers.',
     evidence: [REPO, SELF_HOST, TIER_GATES],
   },
   {
@@ -763,7 +763,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'products.ts',
     exportPath: 'PRODUCTS_CTA_SECTION.cliSnippet',
     proofGrade: 'behavior',
-    text: 'npx create-revealui my-app',
+    text: 'npx create-revealui@latest my-app',
     evidence: [CLI_CREATE],
   },
   {

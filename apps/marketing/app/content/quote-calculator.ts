@@ -99,7 +99,7 @@ export const QUOTE_CALCULATOR = {
   },
   selfHost: {
     title: 'Self-host',
-    free: `Free: ${FREE_PRICE} + your infra. Start free, or run \`npx create-revealui\`.`,
+    free: `Free: ${FREE_PRICE} + your infra. Start free, or run \`npx create-revealui@latest\`.`,
     agents: `Pro ${PRO_PRICE}/mo or Max ${MAX_PRICE}/mo. 7-day trial.`,
     perpetual: `Optional one-time: Pro Perpetual ${PERPETUAL_PRICE}.`,
     enterprise: 'Enterprise: not in the calculator. Contact sales or book an intro.',

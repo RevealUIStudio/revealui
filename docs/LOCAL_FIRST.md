@@ -165,8 +165,6 @@ Once set up, the full local-first stack starts with:
 pnpm dev:app
 ```
 
-Or use [Studio](https://github.com/RevealUIStudio/revdev) — a separate [RevDev](https://github.com/RevealUIStudio/revdev) product (Tauri desktop app) that gives you a native interface for managing services, agents, and local inference against your RevealUI install.
-
 ## Verifying local inference
 
 In the admin dashboard, navigate to **AI → Agent Tasks** and run a test task. You should see the inference request handled locally with no outbound network traffic to any AI provider.

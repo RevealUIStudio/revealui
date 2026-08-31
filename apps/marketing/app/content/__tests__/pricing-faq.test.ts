@@ -10,27 +10,17 @@ function lastFaq(): (typeof PRICING_FAQS)[number] {
 }
 
 describe('pricing FAQ RevealFleet honesty', () => {
-  it('asks What is RevealFleet, not the RevFleet nickname', () => {
-    const faq = lastFaq();
-    expect(faq.question).toBe('What is RevealFleet?');
+  it('does not ask What is RevealFleet or What is RevFleet', () => {
+    expect(PRICING_FAQS.some((item) => item.question === 'What is RevealFleet?')).toBe(false);
     expect(PRICING_FAQS.some((item) => item.question === 'What is RevFleet?')).toBe(false);
+    const last = lastFaq();
+    expect(last.question).toBe('How do I buy Enterprise?');
   });
 
-  it('matches studio honesty: family name, buyable RevealUI catalog, RevVault inside Pro', () => {
-    const faq = lastFaq();
-    const answer = faq.answer;
-    expect(answer.includes('RevealUI Studio ships RevealFleet')).toBe(true);
-    expect(answer.includes('RevealUI is the lead product')).toBe(true);
-    expect(answer.includes('buyable runtime')).toBe(true);
-    expect(answer.includes('Free')).toBe(true);
-    expect(answer.includes('$49')).toBe(true);
-    expect(answer.includes('$99')).toBe(true);
-    expect(answer.includes('Enterprise')).toBe(true);
-    expect(answer.toLowerCase().includes('inquir')).toBe(true);
-    expect(answer.includes('Pro Perpetual')).toBe(true);
-    expect(answer.includes('$1,499')).toBe(true);
-    expect(answer.includes('RevVault is encrypted secret management inside Pro')).toBe(true);
-    expect(answer.includes('not a separate paid SKU')).toBe(true);
+  it('keeps the buyable RevealUI catalog in the perpetual-license answer', () => {
+    const faq = PRICING_FAQS.find((item) => item.question === 'What are perpetual licenses?');
+    expect(faq?.answer.includes('Pro Perpetual')).toBe(true);
+    expect(faq?.answer.includes('Studio SKUs live on revealuistudio.com')).toBe(true);
   });
 
   it('names the perpetual SKU Pro Perpetual, not Perpetual Pro', () => {
