@@ -232,7 +232,7 @@ The chosen one-click is the existing starter on **the buyer's** Vercel account a
 | Scaffold copy in `create-revealui` | [packages/cli/templates/starter/vercel.json](https://github.com/RevealUIStudio/revealui/blob/test/packages/cli/templates/starter/vercel.json) |
 | GitHub twin | https://github.com/RevealUIStudio/revealui-template-starter |
 | Public Deploy button | https://revealui.com/templates |
-| Owner leftover | [VERCEL-TEMPLATE-OWNER-PUBLISH.md](../distribution/VERCEL-TEMPLATE-OWNER-PUBLISH.md) |
+| Owner leftover | `docs/distribution/VERCEL-TEMPLATE-OWNER-PUBLISH.md` (internal; not a public docs page) |
 
 1. Open [/templates](https://revealui.com/templates) and click **Deploy to Vercel**.
 2. Sign in to **your** Vercel account. The flow clones `revealui-template-starter` into a repo you own.
