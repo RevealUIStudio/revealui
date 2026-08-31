@@ -21,15 +21,22 @@ const AMBER_VIA = '#f0b519';
 const NAVY_PLATE = '#060d1a';
 const TILE_SCALE = 'scale(0.742)';
 const MASTER_SCALE = 'scale(1.06)';
+const MASTER_TRANSFORM = 'translate(256,256) scale(1.06) translate(-290,-320)';
+const SCYTHE_CLIP = 'M219.6,335.1';
+const SCYTHE_TIP = '488.0,484.0';
 
 describe('Circuit-R brand family', () => {
   it('keeps revealui-logo.svg as the only circuit master', () => {
     const master = readBrand('revealui-logo.svg');
     expect(existsSync(path.join(brandDir, 'revealui-logo-dark.svg'))).toBe(false);
     expect(master.includes(MASTER_SCALE)).toBe(true);
+    expect(master.includes(MASTER_TRANSFORM)).toBe(true);
     expect(master.includes(STEM)).toBe(true);
     expect(master.includes(BOWL)).toBe(true);
     expect(master.includes(LEG)).toBe(true);
+    expect(master.includes(SCYTHE_CLIP)).toBe(true);
+    expect(master.includes(SCYTHE_TIP)).toBe(true);
+    expect(master.includes('translate(-330,-320)')).toBe(false);
     expect(master.includes(NAVY_STEM)).toBe(true);
     expect(master.includes(NAVY_BOWL)).toBe(true);
     expect(master.includes(NAVY_LEG)).toBe(true);

@@ -16,6 +16,12 @@ One Circuit-R family. Every colour derives from the OKLCH design tokens in
 are that same letterform. There is no second R, no white plate, and no inverted
 frost-fill twin.
 
+**Locked 2026-08-31** — optical-center **placement** of that same v2 curved-leg
+Circuit-R. The group is `translate(256,256) scale(1.06) translate(-290,-320)`
+so letter mass sits on canvas x=256. The stem, bowl, curved scythe-leg, frost
+traces, amber vias, and clipPaths `cs` / `cb` / `cl` are the v2 drawing. Do not
+steepen or shorten the leg. The 2026-08-26 "Never steepen the leg" lock stays.
+
 ## Tokens (sRGB)
 
 | Role | Hex | OKLCH |
@@ -32,7 +38,8 @@ Emblem region fills: stem `#0a2c5a`, bowl `#002247`, leg `#0e3468`. Frost traces
 ## Master
 
 - `revealui-logo.svg` — the Circuit-R. Navy region fills, frost traces, amber
-  vias. Transparent (no plate). 512×512, locked `scale(1.06)`.
+  vias. Transparent (no plate). 512×512, locked `scale(1.06)` and inner origin
+  `translate(-290,-320)` (optical-center placement of the v2 scythe-leg).
 
 Public chrome (marketing nav, docs headers, admin auth when no tenant logo is
 set) renders this file at **≥96px**. Never redraw the letter. Never steepen the

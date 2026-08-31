@@ -12,6 +12,10 @@ describe('RevealUIMark', () => {
     expect(container.innerHTML.includes('M34 11')).toBe(false);
     expect(container.innerHTML.includes('M242,150')).toBe(true);
     expect(container.innerHTML.includes('M172,150')).toBe(true);
+    expect(container.innerHTML.includes('M219.6,335.1')).toBe(true);
+    expect(container.innerHTML.includes('488.0,484.0')).toBe(true);
+    expect(container.innerHTML.includes('translate(-290,-320)')).toBe(true);
+    expect(container.innerHTML.includes('translate(-330,-320)')).toBe(false);
   });
 
   it('keeps the Solar Amber reveal stroke by default', () => {
