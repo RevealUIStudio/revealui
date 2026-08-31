@@ -25,11 +25,12 @@ const MASTER_TRANSFORM = 'translate(256,256) scale(1.06) translate(-300,-320)';
 const SCYTHE_CLIP = 'M219.6,335.1';
 const SCYTHE_TIP = '488.0,484.0';
 
-const DARK_STEM = '#164687';
-const DARK_BOWL = '#0d3169';
-const DARK_LEG = '#1e57a8';
-const DARK_TRACE = '#e8f1ff';
-const DARK_HAIRLINE = '#082448';
+const INVERT_STEM = '#164687';
+const INVERT_BOWL = '#0d3169';
+const INVERT_LEG = '#1e57a8';
+const INVERT_TRACE = '#e8f1ff';
+const INVERT_HAIRLINE = '#082448';
+const SURFACE_0_PLATE = '<rect width="512" height="512" fill="#060d1a"';
 
 describe('Circuit-R brand family', () => {
   it('keeps the light Circuit-R master as the v2 scythe, optically placed', () => {
@@ -56,13 +57,18 @@ describe('Circuit-R brand family', () => {
     expect(master.includes('maskContentUnits="userSpaceOnUse"')).toBe(true);
     expect(master.includes('mask="url(#cm)"')).toBe(true);
     expect(master.includes('M238,192 C300,190 345,196 360,222')).toBe(true);
+    expect(master.includes(SURFACE_0_PLATE)).toBe(false);
+    expect(master.includes(INVERT_STEM)).toBe(false);
+    expect(master.includes(INVERT_TRACE)).toBe(false);
   });
 
-  it('keeps a dark master as the same scythe letter, not a second R', () => {
+  it('keeps dark as the same navy Circuit-R on Surface 0, not a frost invert', () => {
     expect(existsSync(path.join(brandDir, 'revealui-logo-dark.svg'))).toBe(true);
     const light = readBrand('revealui-logo.svg');
     const dark = readBrand('revealui-logo-dark.svg');
     expect(dark.includes(MASTER_TRANSFORM)).toBe(true);
+    expect(dark.includes(MASTER_SCALE)).toBe(true);
+    expect(dark.includes(TILE_SCALE)).toBe(false);
     expect(dark.includes(STEM)).toBe(true);
     expect(dark.includes(BOWL)).toBe(true);
     expect(dark.includes(LEG)).toBe(true);
@@ -70,15 +76,19 @@ describe('Circuit-R brand family', () => {
     expect(dark.includes(SCYTHE_TIP)).toBe(true);
     expect(dark.includes('translate(-330,-320)')).toBe(false);
     expect(dark.includes('translate(-290,-320)')).toBe(false);
-    expect(dark.includes(DARK_STEM)).toBe(true);
-    expect(dark.includes(DARK_BOWL)).toBe(true);
-    expect(dark.includes(DARK_LEG)).toBe(true);
-    expect(dark.includes(DARK_TRACE)).toBe(true);
-    expect(dark.includes(DARK_HAIRLINE)).toBe(true);
+    expect(dark.includes(NAVY_STEM)).toBe(true);
+    expect(dark.includes(NAVY_BOWL)).toBe(true);
+    expect(dark.includes(NAVY_LEG)).toBe(true);
+    expect(dark.includes(FROST_TRACE)).toBe(true);
     expect(dark.includes(AMBER_VIA)).toBe(true);
+    expect(dark.includes(NAVY_PLATE)).toBe(true);
+    expect(dark.includes(SURFACE_0_PLATE)).toBe(true);
     expect(dark.includes('<circle')).toBe(true);
-    expect(dark.includes(NAVY_STEM)).toBe(false);
-    expect(dark.includes(FROST_TRACE)).toBe(false);
+    expect(dark.includes(INVERT_STEM)).toBe(false);
+    expect(dark.includes(INVERT_BOWL)).toBe(false);
+    expect(dark.includes(INVERT_LEG)).toBe(false);
+    expect(dark.includes(INVERT_TRACE)).toBe(false);
+    expect(dark.includes(INVERT_HAIRLINE)).toBe(false);
     expect(dark.includes(FACETED_A)).toBe(false);
     expect(dark.includes('fill="#dfeeff" fill-rule="evenodd"')).toBe(false);
     expect(light.includes(MASTER_TRANSFORM)).toBe(true);
