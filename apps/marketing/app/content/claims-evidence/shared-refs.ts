@@ -576,6 +576,41 @@ export const PERPETUAL_NEVER_EXPIRES_TEST: EvidenceRef = {
   ref: 'packages/core/src/__tests__/license.test.ts#perpetual licenses never expire',
   note: 'perpetual JWT has no exp claim',
 };
+export const CREATE_REVEALUI_PKG: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/create-revealui/package.json',
+  note: 'published npm wrapper version 0.5.22',
+};
+export const CLI_TEMPLATE_REGISTRY: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/cli/src/prompts/project.ts',
+  note: 'VALID_TEMPLATES: basic-blog, e-commerce, portfolio, starter, starter-native',
+};
+export const CLI_TEMPLATE_DIRS: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/cli/templates',
+  note: 'shipped template directories in the CLI tarball',
+};
+export const APIFY_PPE_PRICES: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/apify-actor-governed-run/src/pricing.config.ts',
+  note: 'pay-per-event $0.02 action / $0.08 run / $0.00001 verify; verify is not $0',
+};
+export const TEMPLATES_PAGE_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'apps/marketing/app/content/__tests__/templates.test.ts#lists the five shipped CLI templates in registry order',
+  note: 'marketing catalog ids lock to the five shipped CLI template directories',
+};
+export const TEMPLATES_GITHUB_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'apps/marketing/app/content/__tests__/templates.test.ts#gives GitHub Use this template twins to the four Next.js templates only',
+  note: 'starter-native has no GitHub twin; four Next.js templates do',
+};
+export const TEMPLATES_APIFY_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'apps/marketing/app/content/__tests__/templates.test.ts#prints Apify pay-per-event prices and does not call verify free',
+  note: 'page copy prints $0.02 / $0.08 / $0.00001 and forbids verify is free',
+};
 export const LICENSE_RUNTIME_GATE_TEST: EvidenceRef = {
   kind: 'test',
   ref: 'apps/server/src/middleware/__tests__/license.test.ts#denies Free callers for ai (agent-tasks /agents stay Pro-gated)',

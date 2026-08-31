@@ -14,6 +14,7 @@ import { ProductsPage } from './routes/ProductsPage';
 import { RefundPolicyPage } from './routes/RefundPolicyPage';
 import { StatusPage } from './routes/StatusPage';
 import { SupportPage } from './routes/SupportPage';
+import { TemplatesPage } from './routes/TemplatesPage';
 import { TermsPage } from './routes/TermsPage';
 
 const DOCS = SITE.urls.docs;
@@ -121,6 +122,7 @@ export function App() {
         meta: { title: 'Refund Policy | RevealUI' },
       },
       { path: '/status', component: StatusPage, meta: { title: 'Status | RevealUI' } },
+      { path: '/templates', component: TemplatesPage, meta: { title: 'Templates | RevealUI' } },
       {
         path: '/legal/subprocessors',
         component: MovedSubprocessors,
