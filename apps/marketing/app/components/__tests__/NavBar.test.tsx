@@ -152,6 +152,7 @@ describe('NavBar (marketing)', () => {
     expect(dark).toHaveAttribute('height', '96');
     expect(light?.getAttribute('class') ?? '').not.toContain('w-auto');
     expect(dark?.getAttribute('class') ?? '').not.toContain('w-auto');
+    expect(dark?.getAttribute('class') ?? '').toContain('hidden');
     const chrome = home.querySelector('[data-circuit-r-chrome]');
     expect(chrome).toBeTruthy();
     expect(chrome?.getAttribute('class') ?? '').toContain('overflow-hidden');
