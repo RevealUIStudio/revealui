@@ -20,9 +20,9 @@ const SEED_PRODUCT_KEYS = [
 
 const SEED_CENTS_OF_RECORD: Record<string, number> = {
   revealui_pro_monthly: 4900,
-  revealui_pro_yearly: 47000,
-  revealui_max_monthly: 29900,
-  revealui_max_yearly: 287000,
+  revealui_pro_yearly: 39900,
+  revealui_max_monthly: 9900,
+  revealui_max_yearly: 79900,
   revealui_pro_perpetual: 149900,
   revealui_renewal_pro: 14900,
 };

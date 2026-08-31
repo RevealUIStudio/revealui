@@ -246,9 +246,9 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
   analytics: 'pro',
   vaultDesktop: 'pro',
   vaultRotation: 'pro',
-  aiMemory: 'max',
+  aiMemory: 'pro',
   aiInference: 'max',
-  auditLog: 'max',
+  auditLog: 'pro',
   devkitProfiles: 'max',
   multiTenant: 'enterprise',
   whiteLabel: 'enterprise', // managed setup via RevForge

@@ -28,9 +28,9 @@ describe('QuoteCalculator', () => {
     const card = screen.getByTestId('quote-card');
     expect(card.textContent ?? '').toContain('Free');
     expect(card.textContent ?? '').toContain('$49');
-    expect(card.textContent ?? '').toContain('$299');
+    expect(card.textContent ?? '').toContain('$99');
     expect(card.textContent ?? '').not.toContain('$300');
-    expect(card.textContent ?? '').not.toContain('$3,500');
+    expect(card.textContent ?? '').not.toContain('$1,500');
     expect(card.textContent ?? '').not.toContain('$7,500');
   });
 
@@ -40,14 +40,14 @@ describe('QuoteCalculator', () => {
       screen.getByRole('radio', { name: QUOTE_CALCULATOR.questions.who.options[1].label }),
     );
     const card = screen.getByTestId('quote-card');
-    expect(within(card).getByText(QUOTE_CALCULATOR.studio.hour.title)).toBeInTheDocument();
-    expect(within(card).getByText(QUOTE_CALCULATOR.studio.hour.price)).toBeInTheDocument();
-    expect(within(card).getByText(QUOTE_CALCULATOR.studio.plan.title)).toBeInTheDocument();
-    expect(within(card).getByText(QUOTE_CALCULATOR.studio.plan.price)).toBeInTheDocument();
+    expect(within(card).getByText(QUOTE_CALCULATOR.studio.consultation.title)).toBeInTheDocument();
+    expect(within(card).getByText(QUOTE_CALCULATOR.studio.consultation.price)).toBeInTheDocument();
+    expect(within(card).getByText(QUOTE_CALCULATOR.studio.pilot.title)).toBeInTheDocument();
+    expect(within(card).getByText(QUOTE_CALCULATOR.studio.pilot.price)).toBeInTheDocument();
     expect(within(card).getByText(QUOTE_CALCULATOR.studio.launch.title)).toBeInTheDocument();
     expect(within(card).getByText(QUOTE_CALCULATOR.studio.launch.price)).toBeInTheDocument();
-    expect(within(card).getByText(QUOTE_CALCULATOR.studio.hour.body)).toBeInTheDocument();
-    expect(within(card).getByText(QUOTE_CALCULATOR.studio.plan.body)).toBeInTheDocument();
+    expect(within(card).getByText(QUOTE_CALCULATOR.studio.consultation.body)).toBeInTheDocument();
+    expect(within(card).getByText(QUOTE_CALCULATOR.studio.pilot.body)).toBeInTheDocument();
     expect(
       within(card).getByText(QUOTE_CALCULATOR.studio.launch.body, { exact: true }),
     ).toBeInTheDocument();

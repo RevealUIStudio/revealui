@@ -1200,14 +1200,13 @@ The SDK handles the full 402 → payment → retry cycle automatically.
 
 # Professional Services (Track D)
 
-RevealUI offers four professional service engagements for teams that need hands-on help:
+RevealUI Studio’s public menu is Consultation, Pilot, and Launch. Architecture work happens inside Launch.
 
 | Service | Description | Deliverable |
 |---------|-------------|-------------|
-| **Architecture artifact bundle and review** | Codebase, schema, deployment, and security review (up to 50K LOC) | Artifact bundle including the prototype; review within 5 business days |
-| **Migration Assist** | Migrate existing admin, database, or billing to RevealUI | Working migration with verified data integrity |
-| **Launch Package** | Zero to production in one week (setup, billing, deploy, onboarding) | Production-ready deployment within 5 business days |
-| **Consulting Hour** | One-on-one video call  -  pair programming, architecture, debugging | Session recording and written follow-up notes |
+| **Consultation** | Scoped session with the founder | Follow-up notes |
+| **Pilot** | One site on your domain, one agent you run, you keep it | Working site and agent; credits 100% to Launch within 30 days |
+| **Launch** | Zero to production, including architecture work inside Launch | Production-ready deployment |
 
 Contact: [services@revealui.com](mailto:services@revealui.com)
 

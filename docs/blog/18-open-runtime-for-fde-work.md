@@ -32,7 +32,7 @@ Five things, not a slogan:
 1. **Customer-owned deploy.** The product runs on infrastructure they control, not only on a hosted demo tenant.
 2. **Business primitives already in the runtime.** Auth, content, offers, payments, and agents are not a greenfield rewrite per engagement.
 3. **Agents as governed users.** Same identity and policy surface as people, not shadow scripts with a private side channel.
-4. **A receipt path the customer can inspect.** If an agent did it, there's a receipt. Soft foil only: no certification claims; Merkle root *delivery* is Max+; verification is never paid.
+4. **A receipt path the customer can inspect.** If an agent did it, there's a receipt. Soft foil only: no certification claims; Merkle root *delivery* is Pro+; verification is never paid.
 5. **Provider choice.** The model is not the lock-in. Closed APIs stay opt-in adapters.
 
 If any of those are missing, the handoff is a laptop dependency with a nicer name.
@@ -47,7 +47,7 @@ Who this is not for: six-month enterprise POCs that need a certification stamp b
 
 ## What Studio ships into the field
 
-RevealUI Studio productizes the motion on the runtime: Hour, Architecture artifact bundle and review, and Launch. The product noun stays **runtime**. The homepage is for owner-operators who run their own business on it. Forward-deployed delivery is how field work enters, not a rename of the product.
+RevealUI Studio productizes the motion on the runtime: Consultation, Pilot, and Launch. The product noun stays **runtime**. The homepage is for owner-operators who run their own business on it. Forward-deployed delivery is how field work enters, not a rename of the product.
 
 You can read the runtime, run it, and check the claims against code. Used in production by the team that maintains it. That is the only production claim this post makes.
 

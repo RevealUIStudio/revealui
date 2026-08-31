@@ -1,9 +1,8 @@
 /**
  * Drift gate for leftover studio anchors. The product /pricing catalog must
  * not derive a done-for-you ladder from AGENCY_ENGAGEMENT_LADDER. Studio
- * SKUs belong on revealuistudio.com: Hour $300 / Architecture artifact
- * bundle and review $3,500 / Launch $7,500. Dead Fleet and Custom Build
- * objects must not exist.
+ * SKUs belong on revealuistudio.com: Consultation $300 / Pilot $1,500 /
+ * Launch $7,500. Dead Fleet and Custom Build objects must not exist.
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -46,10 +45,10 @@ function countOccurrencesInCode(source: string, needle: string): number {
 }
 
 describe('AGENCY_ENGAGEMENT_LADDER — locked studio anchors', () => {
-  it('pins Hour, Architecture artifact bundle and review, and Launch only', () => {
+  it('pins Consultation, Pilot, and Launch only', () => {
     expect(AGENCY_ENGAGEMENT_LADDER.map((e) => [e.id, e.name, e.price, e.startsFrom])).toEqual([
-      ['consulting-hour', 'Hour', '$300', false],
-      ['architecture-review', 'Architecture artifact bundle and review', '$3,500', false],
+      ['consultation', 'Consultation', '$300', false],
+      ['pilot', 'Pilot', '$1,500', false],
       ['launch-package', 'Launch', '$7,500', false],
     ]);
   });
@@ -64,8 +63,8 @@ describe('AGENCY_ENGAGEMENT_LADDER — locked studio anchors', () => {
     const display = Object.fromEntries(
       AGENCY_ENGAGEMENT_LADDER.map((e) => [e.id, agencyEngagementPriceDisplay(e)]),
     );
-    expect(display['consulting-hour']).toBe('$300');
-    expect(display['architecture-review']).toBe('$3,500');
+    expect(display.consultation).toBe('$300');
+    expect(display.pilot).toBe('$1,500');
     expect(display['launch-package']).toBe('$7,500');
   });
 });
@@ -105,10 +104,10 @@ describe('for-operators retired public copy stays gone', () => {
     expect(countOccurrencesInCode(FOR_OPERATORS_SRC, 'Book a build call')).toBe(0);
   });
 
-  it('uses Hour, Architecture artifact bundle and review, Launch, 5+ years, and a 30-minute intro', () => {
+  it('uses Consultation, Pilot, Launch, 5+ years, and a 30-minute intro', () => {
     expect(AGENCY_ENGAGEMENT_LADDER.map((e) => e.name)).toEqual([
-      'Hour',
-      'Architecture artifact bundle and review',
+      'Consultation',
+      'Pilot',
       'Launch',
     ]);
     expect(FOR_OPERATORS_PROOF.body.includes('5+ years')).toBe(true);
@@ -138,10 +137,10 @@ describe('FOUNDER_SERVICE_OFFERINGS — founder-led services menu', () => {
     expect(names).not.toContain('Custom Build');
   });
 
-  it('agrees with the studio ladder on the shared architecture-review price', () => {
-    const review = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'architecture-review');
-    const ladderReview = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === 'architecture-review');
-    expect(review?.price).toBe(ladderReview?.price);
+  it('agrees with the studio ladder on the shared pilot price', () => {
+    const pilot = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'pilot');
+    const ladderPilot = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === 'pilot');
+    expect(pilot?.price).toBe(ladderPilot?.price);
   });
 
   it('agrees with the studio ladder on the shared Launch price', () => {

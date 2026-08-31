@@ -250,7 +250,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/open-runtime-for-fde-work',
     exportPath: 'body.14',
-    text: "**A receipt path the customer can inspect.** If an agent did it, there's a receipt. Soft foil only: no certification claims; Merkle root *delivery* is Max+; verification is never paid.",
+    text: "**A receipt path the customer can inspect.** If an agent did it, there's a receipt. Soft foil only: no certification claims; Merkle root *delivery* is Pro+; verification is never paid.",
     evidence: [
       {
         kind: 'code',
@@ -386,7 +386,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/open-runtime-for-fde-work',
     exportPath: 'body.22',
-    text: 'RevealUI Studio productizes the motion on the runtime: Hour, Architecture artifact bundle and review, and Launch. The product noun stays **runtime**. The homepage is for owner-operators who run their own business on it. Forward-deployed delivery is how field work enters, not a rename of the product.',
+    text: 'RevealUI Studio productizes the motion on the runtime: Consultation, Pilot, and Launch. The product noun stays **runtime**. The homepage is for owner-operators who run their own business on it. Forward-deployed delivery is how field work enters, not a rename of the product.',
     evidence: [
       {
         kind: 'code',
@@ -5892,7 +5892,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/open-source-and-pro',
     exportPath: 'body.23',
-    text: '| | Free (OSS) | Pro | Max | Enterprise | |---|---|---|---|---| | **Price** | Free forever | $49/month | $299/month | Contact sales / inquire | | **Sites** | 1 | 5 | 15 | Unlimited | | **Users/editors** | 3 | 25 | 100 | Unlimited | | **Agent tasks/mo** | Local AI | 10,000 | 50,000 | Unlimited | | **API rate limit** | 200 req/min | 300 req/min | 600 req/min | 1,000 req/min | | **Auth** | Session + OAuth (GitHub / Google / Vercel) | Same | Same | Session + OAuth + Enterprise SSO (OIDC/SAML SP-initiated, [#449](https://github.com/RevealUIStudio/revealui/issues/449)) | | **admin collections** | Unlimited | Unlimited | Unlimited | Unlimited | | **Real-time sync** | Basic | Full | Full | Full | | **Local AI inference (Snaps / Ollama)** | Yes | Yes | Yes | Yes | | **AI agents (orchestration)** | -- | Yes | Yes | Yes | | **AI memory** | -- | -- | Full (working + episodic + vector) | Full | | **Advanced inference config** | -- | -- | Yes | Yes | | **Stripe payments** | -- | Built-in | Built-in | Built-in | | **Monitoring dashboard** | -- | Yes | Yes | Yes | | **Custom domains** | -- | Yes | Yes | Yes | | **Multi-tenant** | -- | -- | -- | Yes | | **White-label** | -- | -- | -- | Yes (planned, [#515](https://github.com/RevealUIStudio/revealui/issues/515)) | | **Support** | Community | 24h U.S. business hours (4h critical) | 24h U.S. business hours (4h critical) | 24h U.S. business hours (4h critical) | | **Source code** | Full | Full | Full | Full |',
+    text: '| | Free (OSS) | Pro | Max | Enterprise | |---|---|---|---|---| | **Price** | Free forever | $49/month | $99/month | Contact sales / inquire | | **Sites** | 1 | 5 | 15 | Unlimited | | **Users/editors** | 3 | 25 | 100 | Unlimited | | **Agent tasks/mo** | Local AI | 10,000 | 50,000 | Unlimited | | **API rate limit** | 200 req/min | 300 req/min | 600 req/min | 1,000 req/min | | **Auth** | Session + OAuth (GitHub / Google / Vercel) | Same | Same | Session + OAuth + Enterprise SSO (OIDC/SAML SP-initiated, [#449](https://github.com/RevealUIStudio/revealui/issues/449)) | | **admin collections** | Unlimited | Unlimited | Unlimited | Unlimited | | **Real-time sync** | Basic | Full | Full | Full | | **Local AI inference (Snaps / Ollama)** | Yes | Yes | Yes | Yes | | **AI agents (orchestration)** | -- | Yes | Yes | Yes | | **AI memory** | -- | Full (working + episodic + vector) | Full | Full | | **Advanced inference config** | -- | -- | Yes | Yes | | **Stripe payments** | -- | Built-in | Built-in | Built-in | | **Monitoring dashboard** | -- | Yes | Yes | Yes | | **Custom domains** | -- | Yes | Yes | Yes | | **Multi-tenant** | -- | -- | -- | Yes | | **White-label** | -- | -- | -- | Yes (planned, [#515](https://github.com/RevealUIStudio/revealui/issues/515)) | | **Support** | Community | 24h U.S. business hours (4h critical) | 24h U.S. business hours (4h critical) | 24h U.S. business hours (4h critical) | | **Source code** | Full | Full | Full | Full |',
     evidence: [
       {
         kind: 'code',
@@ -10190,7 +10190,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/why-we-built-revealui',
     exportPath: 'body.31',
-    text: 'Free tier gets the full runtime engine, auth, the REST API, and local AI inference (Inference Snaps or Ollama, no API key, no cloud bill). Pro unlocks AI agents, payments, sync, MCP, and the monitoring dashboard. Max adds AI memory and advanced inference configuration. Enterprise adds multi-tenant management, RevealUI Fleet (branded white-label via RevForge), and Enterprise SSO (OIDC + SAML SP-initiated; operator guide [FORGE_SSO_SETUP](../FORGE_SSO_SETUP.md); tracker [#449](https://github.com/RevealUIStudio/revealui/issues/449)).',
+    text: 'Free tier gets the full runtime engine, auth, the REST API, and local AI inference (Inference Snaps or Ollama, no API key, no cloud bill). Pro unlocks AI agents, AI memory, signed audit receipts, payments, sync, MCP, and the monitoring dashboard. Max adds unattended inference and RevKit environment provisioning. Enterprise adds multi-tenant management, RevealUI Fleet (branded white-label via RevForge), and Enterprise SSO (OIDC + SAML SP-initiated; operator guide [FORGE_SSO_SETUP](../FORGE_SSO_SETUP.md); tracker [#449](https://github.com/RevealUIStudio/revealui/issues/449)).',
     evidence: [
       {
         kind: 'code',

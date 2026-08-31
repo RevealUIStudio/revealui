@@ -93,6 +93,8 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Up to 25 users/editors',
       'Session-based auth',
       'AI agents (local + cloud via RevealUI harness)',
+      'Full AI memory (working + episodic + vector)',
+      'Signed audit log plus downloadable Merkle roots you verify offline',
       'Built-in Stripe payments',
       'Full real-time sync',
       'Monitoring dashboard',
@@ -110,13 +112,13 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
     id: 'max',
     name: 'Max',
-    description: 'For teams that need AI memory and compliance tooling.',
+    description: 'Unattended inference and RevKit environment provisioning.',
     features: [
       'Everything in Pro',
       'Up to 15 sites',
       'Up to 100 users/editors',
-      'Full AI memory (working + episodic + vector)',
-      'Signed audit log plus downloadable Merkle roots you verify offline',
+      'Unattended inference (open-model inference configuration)',
+      'RevKit environment provisioning (devkitProfiles)',
       '50,000 agent tasks/month included',
       PAID_TIER_SUPPORT,
       'Full source code access',
@@ -153,14 +155,21 @@ export const ENTERPRISE_SALES_HREF = 'https://revealui.com/contact' as const;
 export const BOOK_INTRO_HREF =
   'https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ21UZVcuYp7yO32rZmhyUvZFDJcvles81E9edGNFwSUP8SHEVzGvq0gKgNFo7q04YS5i-12ZE5P' as const;
 
-/** Studio Hour on revealuistudio.com. Not a revealui.com catalog SKU. */
-export const CONSULTING_HOUR_PRICE = '$300' as const;
+/** Studio Consultation on revealuistudio.com. Not a revealui.com catalog SKU. */
+export const CONSULTATION_PRICE = '$300' as const;
 
-/** Studio architecture artifact bundle and review on revealuistudio.com. Not a revealui.com catalog SKU. */
-export const ARCHITECTURE_REVIEW_PRICE = '$3,500' as const;
+/** Studio Pilot on revealuistudio.com. Not a revealui.com catalog SKU. */
+export const PILOT_PRICE = '$1,500' as const;
 
 /** Studio Launch on revealuistudio.com. Not a revealui.com catalog SKU. */
 export const LAUNCH_PACKAGE_PRICE = '$7,500' as const;
+
+/**
+ * Pro Perpetual stays $1,499 one-time (2026-08-31 lock). Yearly Pro is now
+ * $399/yr (~3.75 years to match). Leave the perpetual price; do not invent
+ * a new one to close the gap.
+ */
+export const PRO_PERPETUAL_PRICE = '$1,499' as const;
 
 export function perpetualLicenseSignupPath(sku: 'pro'): string {
   return `/signup?license=${sku}`;

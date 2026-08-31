@@ -286,7 +286,7 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'claims.ts',
     exportPath: 'CLAIMS_RECEIPT_HOLD_NOTE.body',
-    text: 'On Max, the worker seals ranges of your signed audit log into Merkle roots you can download. You verify those roots offline with the published public key, without calling us. Free and Pro still get a signed log. Root delivery is Max. Checking a receipt is free either way.',
+    text: 'On Pro, the worker seals ranges of your signed audit log into Merkle roots you can download. You verify those roots offline with the published public key, without calling us. Free still gets a signed log. Root delivery is Pro. Checking a receipt is free either way.',
     evidence: [
       AUDIT_MERKLE,
       AUDIT_ANCHOR_SCHEMA,
@@ -432,7 +432,7 @@ export const claimsPart4: readonly ClaimEntry[] = [
       REFUND_ROUTE,
       {
         ...AUDIT_RECEIPTS_DOC,
-        note: 'Stage 4 S4-6: soft foil; sealed root download is Max (auditLog); verification never paid',
+        note: 'Stage 4 S4-6: soft foil; sealed root download is Pro (auditLog); verification never paid',
       },
       AUDIT_LOG_FEATURE_MAX,
     ],
@@ -702,13 +702,13 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'legal/refund-policy.ts',
     exportPath: 'REFUND_POLICY_SECTIONS[1].paragraphs[0]',
-    text: 'You can cancel a subscription at any time. Cancellation takes effect at the end of your current billing period, and there is no pro-rated refund for the unused portion of a billing cycle.',
+    text: 'You can cancel a subscription at any time. Cancellation takes effect at the end of your current billing period, and there is no pro-rated refund for the unused portion of a billing cycle after the 14-day first-purchase window.',
     evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE],
   },
   {
     file: 'legal/refund-policy.ts',
     exportPath: 'REFUND_POLICY_SECTIONS[1].paragraphs[1]',
-    text: 'Your first month is refundable in full if you request it within 14 days of your initial paid charge.',
+    text: 'Your first purchase, monthly or annual, is refundable in full if you request it within 14 days of your initial paid charge. After 14 days there is no prorate.',
     evidence: [LEGAL_REFUND_CONTENT, REFUND_ROUTE],
   },
   {

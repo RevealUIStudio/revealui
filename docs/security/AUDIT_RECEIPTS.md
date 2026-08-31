@@ -9,12 +9,12 @@ audience: developer
 
 # Audit receipts
 
-How RevealUI proves agent and admin actions, what Free vs Max get, and how to check a root without calling us.
+How RevealUI proves agent and admin actions, what Free vs Pro get, and how to check a root without calling us.
 
 ## Honesty table (Stage 4)
 
-| Surface | Free / Pro | Max+ |
-|---------|------------|------|
+| Surface | Free | Pro+ |
+|---------|------|------|
 | Append-only signed `audit_log` rows | Yes (when signing is configured) | Yes |
 | Published public key (`GET /api/audit/public-key`) | Yes | Yes |
 | Per-row offline verify (signature + public key) | Yes | Yes |
@@ -23,9 +23,9 @@ How RevealUI proves agent and admin actions, what Free vs Max get, and how to ch
 | Offline CLI (`pnpm verify:audit-anchor`) | Yes (if you hold a root from somewhere) | Yes |
 | **Verification as a paid product** | Never | Never |
 
-Checking a receipt is free. **Root delivery** (the customer holds a sealed Merkle root for a `seq` range) is Max via the `auditLog` feature flag.
+Checking a receipt is free. **Root delivery** (the customer holds a sealed Merkle root for a `seq` range) is Pro via the `auditLog` feature flag.
 
-Positioning foil: "If an agent did it, there's a receipt." That is true for Max customers with delivered roots and for row-level signatures everywhere signing is on. It is **not** a free-tier claim that every plan already downloads sealed range roots.
+Positioning foil: "If an agent did it, there's a receipt." That is true for Pro customers with delivered roots and for row-level signatures everywhere signing is on. It is **not** a free-tier claim that every plan already downloads sealed range roots.
 
 ## Building blocks (code)
 
@@ -73,7 +73,7 @@ reserved `__system__` scope. `audit_anchors.tenant` carries the
 column is `NOT NULL`); `audit_log.tenant` itself is untouched and stays null
 on the underlying rows.
 
-The system pass is not entitlement-gated (`auditLog`/Max+ is a per-account
+The system pass is not entitlement-gated (`auditLog`/Pro+ is a per-account
 check; system events are the operator's own audit trail, not a customer's)
 and never writes a usage meter (no account FK backs a null tenant).
 

@@ -534,17 +534,17 @@ export const AUDIT_ANCHOR_VERIFY_TEST: EvidenceRef = {
 export const AUDIT_ANCHOR_API: EvidenceRef = {
   kind: 'code',
   ref: 'apps/server/src/routes/audit.ts',
-  note: 'GET /api/audit/anchors and /proof (S4-4); Max+ auditLog gate + tenant lag in list response',
+  note: 'GET /api/audit/anchors and /proof (S4-4); Pro+ auditLog gate + tenant lag in list response',
 };
 export const AUDIT_LOG_FEATURE_MAX: EvidenceRef = {
   kind: 'code',
   ref: 'packages/core/src/features.ts',
-  note: 'auditLog feature requires Max tier; Free/Pro cannot download roots (403)',
+  note: 'auditLog feature requires Pro tier; Free cannot download roots (403)',
 };
 export const AUDIT_RECEIPTS_DOC: EvidenceRef = {
   kind: 'code',
   ref: 'docs/security/AUDIT_RECEIPTS.md',
-  note: 'Stage 4 honesty: what Free/Pro get vs Max root delivery; offline CLI; verification never paid',
+  note: 'Stage 4 honesty: what Free gets vs Pro root delivery; offline CLI; verification never paid',
 };
 export const STARTER_KIT: EvidenceRef = {
   kind: 'code',

@@ -59,7 +59,7 @@ function mockBillingFetches(subscription: {
           Promise.resolve({
             subscriptions: [
               { id: 'pro', price: '$49', period: '/mo' },
-              { id: 'max', price: '$299', period: '/mo' },
+              { id: 'max', price: '$99', period: '/mo' },
             ],
           }),
       } as Response);
@@ -226,7 +226,7 @@ describe('BillingPage first-week trial UX', () => {
     expect(screen.getByText('Max')).toBeInTheDocument();
     expect(screen.getByText('Expires')).toBeInTheDocument();
     expect(screen.queryByText(/Your Pro trial ends/)).not.toBeInTheDocument();
-    expect(screen.getByText(/you'll be charged \$299\/mo/i)).toBeInTheDocument();
+    expect(screen.getByText(/you'll be charged \$99\/mo/i)).toBeInTheDocument();
   });
 
   it('shows Pro trial expiry with the Pro price', async () => {

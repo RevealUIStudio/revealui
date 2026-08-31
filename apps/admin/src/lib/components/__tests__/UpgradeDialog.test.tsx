@@ -11,7 +11,7 @@ vi.mock('@/lib/providers/LicenseProvider', () => ({
 const { mockGetTiersFromCurrent } = vi.hoisted(() => ({
   mockGetTiersFromCurrent: vi.fn(() => [
     { id: 'pro', name: 'Pro', price: '$49/mo' },
-    { id: 'max', name: 'Max', price: '$299/mo' },
+    { id: 'max', name: 'Max', price: '$99/mo' },
   ]),
 }));
 vi.mock('@revealui/contracts/pricing', () => ({
@@ -116,7 +116,7 @@ beforeEach(() => {
   mockUseLicense.mockReturnValue({ tier: 'free' });
   mockGetTiersFromCurrent.mockReturnValue([
     { id: 'pro', name: 'Pro', price: '$49/mo' },
-    { id: 'max', name: 'Max', price: '$299/mo' },
+    { id: 'max', name: 'Max', price: '$99/mo' },
   ]);
 });
 

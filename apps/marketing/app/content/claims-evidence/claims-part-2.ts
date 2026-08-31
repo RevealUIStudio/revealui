@@ -15,6 +15,7 @@ import {
   COMMERCIAL_POLICY,
   EMAIL_AGENT,
   FAIR_SOURCE_PAGE,
+  FEATURES_MATRIX,
   LICENSE_MIT,
   LICENSE_RUNTIME_GATE_TEST,
   LICENSE_SPLIT,
@@ -70,14 +71,14 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_AGENT_MCP.body',
-    text: 'N production MCP servers including Stripe, Neon, Vercel, Playwright, Next.js DevTools, content management, and email. Marketplace discovery coming soon. (interpolated: N from METRICS.mcpServers)',
+    text: 'N production MCP servers for any MCP-capable IDE (Cursor, Claude Code, Copilot, Zed, and others), including Stripe, Neon, Vercel, Playwright, Next.js DevTools, content management, and email. Marketplace discovery coming soon. (interpolated: N from METRICS.mcpServers)',
     match: 'path',
     evidence: [MCP_SERVERS],
   },
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_COMING_SOON_NOTE',
-    text: 'Not included today: advanced inference configuration, environment provisioning, and x402 agent payments. Status lives in the agents section below.',
+    text: 'Not included today: x402 agent payments. Status lives in the agents section below.',
     evidence: [ROADMAP, X402, PROVIDERS],
   },
   {
@@ -167,18 +168,30 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'SUBSCRIPTION_TIERS[2].description',
-    text: 'For teams that need AI memory and compliance tooling.',
-    evidence: [MEMORY, RBAC_ABAC],
+    text: 'Unattended inference and RevKit environment provisioning.',
+    evidence: [PROVIDERS, OPEN_WEIGHT],
   },
   {
     file: 'pricing.ts',
     exportPath: 'SUBSCRIPTION_TIERS[2].features[3]',
+    text: 'Unattended inference (open-model inference configuration)',
+    evidence: [PROVIDERS, OPEN_WEIGHT],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[2].features[4]',
+    text: 'RevKit environment provisioning (devkitProfiles)',
+    evidence: [FEATURES_MATRIX],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[1].features[5]',
     text: 'Full AI memory (working + episodic + vector)',
     evidence: [MEMORY],
   },
   {
     file: 'pricing.ts',
-    exportPath: 'SUBSCRIPTION_TIERS[2].features[4]',
+    exportPath: 'SUBSCRIPTION_TIERS[1].features[6]',
     text: 'Signed audit log plus downloadable Merkle roots you verify offline',
     evidence: [
       AUDIT_ROW_SIGNER,
@@ -380,7 +393,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing-faq.ts',
     exportPath: 'PRICING_FAQS[9].answer',
-    text: 'RevealUI Studio ships RevealFleet. RevealUI is the lead product and the buyable runtime on this site. The catalog is Free, Pro at $49, Max at $299, Enterprise by inquiry, and Pro Perpetual at $1,499. RevVault is encrypted secret management inside Pro. It is not a separate paid SKU.',
+    text: 'RevealUI Studio ships RevealFleet. RevealUI is the lead product and the buyable runtime on this site. RevealFleet sits with the tools you already use: Stripe, Neon, Vercel, GitHub, Google Calendar, Gmail, and a BYO model. The catalog is Free, Pro at $49, Max at $99, Enterprise by inquiry, and Pro Perpetual at $1,499. RevVault is encrypted secret management inside Pro. It is not a separate paid SKU.',
     evidence: [REPO, COMMERCIAL_POLICY, PRICING_FALLBACKS, REVVAULT_REPO],
   },
   {
@@ -513,13 +526,6 @@ export const claimsPart2: readonly ClaimEntry[] = [
   },
   {
     file: 'for-operators.ts',
-    exportPath: 'AGENCY_ENGAGEMENT_LADDER[1].name',
-    proofGrade: 'outcome',
-    text: 'Architecture artifact bundle and review',
-    evidence: [COMMERCIAL_POLICY],
-  },
-  {
-    file: 'for-operators.ts',
     exportPath: 'FOR_OPERATORS_PRICING.body',
     proofGrade: 'outcome',
     text: 'Engagements are fixed-bid and start with a discovery call that scopes the work. The numbers below are starting points, not final quotes.',
@@ -529,21 +535,21 @@ export const claimsPart2: readonly ClaimEntry[] = [
     file: 'for-operators.ts',
     exportPath: 'FOR_OPERATORS_PRICING.rungs[0].body',
     proofGrade: 'outcome',
-    text: 'One hour with the founder. Architecture advice, migration planning, or implementation guidance. Booked on Google Calendar. This SKU lives on revealuistudio.com, not on the product catalog.',
+    text: 'A scoped session with the founder. Booked on Google Calendar. This SKU lives on revealuistudio.com, not on the product catalog.',
     evidence: [COMMERCIAL_POLICY],
   },
   {
     file: 'for-operators.ts',
     exportPath: 'FOR_OPERATORS_PRICING.rungs[1].body',
     proofGrade: 'outcome',
-    text: 'An architecture artifact bundle and review of your current stack. The prototype is inside the bundle, not a second deliverable. This SKU lives on revealuistudio.com, not on the product catalog.',
+    text: 'One site on your domain and one agent you run. You keep it. Credits 100% to Launch if you start Launch within 30 days. This SKU lives on revealuistudio.com, not on the product catalog.',
     evidence: [COMMERCIAL_POLICY, SELF_HOST],
   },
   {
     file: 'for-operators.ts',
     exportPath: 'FOR_OPERATORS_PRICING.rungs[2].body',
     proofGrade: 'outcome',
-    text: 'We stand up your RevealUI instance, migrate your content, and get you to first deploy. This SKU lives on revealuistudio.com, not on the product catalog.',
+    text: 'We stand up your RevealUI instance, including architecture work inside Launch, and get you to first deploy. This SKU lives on revealuistudio.com, not on the product catalog.',
     evidence: [COMMERCIAL_POLICY],
   },
   {

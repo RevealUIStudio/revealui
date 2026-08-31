@@ -11,15 +11,16 @@
  */
 
 export {
-  ARCHITECTURE_REVIEW_PRICE,
   BOOK_INTRO_HREF,
-  CONSULTING_HOUR_PRICE,
+  CONSULTATION_PRICE,
   ENTERPRISE_SALES_HREF,
   isPublicPerpetualCatalogName,
   LAUNCH_PACKAGE_PRICE,
   type LicenseTierId,
   PAID_TIER_SUPPORT,
   type PerpetualTier,
+  PILOT_PRICE,
+  PRO_PERPETUAL_PRICE,
   type PricingResponse,
   PUBLIC_PERPETUAL_NAMES,
   PUBLIC_PERPETUAL_TIERS,
@@ -30,13 +31,13 @@ export {
 } from './public-catalog.js';
 
 import {
-  ARCHITECTURE_REVIEW_PRICE,
   BOOK_INTRO_HREF,
-  CONSULTING_HOUR_PRICE,
+  CONSULTATION_PRICE,
   ENTERPRISE_SALES_HREF,
   LAUNCH_PACKAGE_PRICE,
   type LicenseTierId,
   type PerpetualTier,
+  PILOT_PRICE,
   PUBLIC_PERPETUAL_TIERS,
   type ServiceOffering,
   SUBSCRIPTION_TIERS,
@@ -186,85 +187,64 @@ export const CREDIT_BUNDLES: CreditBundle[] = [
 // =============================================================================
 // Founder-led Professional Services (Track D)
 //
-// Scope: small-to-mid project services delivered direct by the founder
-// (Architecture artifact bundle and review, Launch Package, Migration Assist, Consulting Hour).
+// Scope: public studio menu on revealuistudio.com — Consultation, Pilot,
+// Launch. Architecture work happens inside Launch; it is not a public SKU.
 // These are NOT the product-catalog offerings. The product /pricing page
 // sells licenses only (Free / Pro / Max / Enterprise + Perpetual Pro).
-// Studio SKUs and leftover agency rungs live on revealuistudio.com and in
+// Studio SKUs live on revealuistudio.com and in
 // apps/marketing/app/content/for-operators.ts (not rendered on /pricing).
-// Canonical Architecture artifact bundle and review and Launch Package prices are owned here;
+// Canonical Consultation / Pilot / Launch prices are owned here;
 // leftover studio surfaces import them rather than re-authoring.
 // =============================================================================
 
 export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
   {
-    id: 'architecture-review',
-    name: 'Architecture artifact bundle and review',
-    price: ARCHITECTURE_REVIEW_PRICE,
+    id: 'consultation',
+    name: 'Consultation',
+    price: CONSULTATION_PRICE,
     description:
-      'I review your project structure, database schema, deployment pipeline, and security posture. You receive a written report with prioritized, actionable recommendations.',
+      'One-on-one time with the founder who built RevealUI. Scope a Pilot or Launch, debug a live site, or pair on a specific problem.',
     includes: [
-      'Full codebase review',
-      'Database schema and query analysis',
-      'Deployment and CI/CD assessment',
-      'Security posture review',
-      'Written report with prioritized recommendations',
-      '1-hour follow-up call to discuss findings',
-    ],
-    deliverable: 'Written report delivered within 5 business days',
-    cta: 'Book a Discovery Call',
-    ctaHref: BOOK_INTRO_HREF,
-  },
-  {
-    id: 'launch-package',
-    name: 'Launch Package',
-    price: LAUNCH_PACKAGE_PRICE,
-    description:
-      'Go from zero to production. I set up your RevealUI instance, configure your content model, deploy to Vercel, and hand you the keys with a full handoff session.',
-    includes: [
-      'RevealUI project setup and configuration',
-      'Content schema design for your use case',
-      'Authentication and access control',
-      'Vercel deployment with custom domain',
-      'Operational handoff documentation',
-      '2-hour handoff session with your team',
-    ],
-    deliverable: 'Production-ready deployment within 2-4 weeks',
-    cta: 'Book a Discovery Call',
-    ctaHref: BOOK_INTRO_HREF,
-  },
-  {
-    id: 'migration-assist',
-    name: 'Migration Assist',
-    price: CONSULTING_HOUR_PRICE,
-    priceNote: '/hr',
-    description:
-      'I migrate your existing CMS, database, or platform to RevealUI. Includes data mapping, automated migration scripts, validation testing, and go-live cutover support.',
-    includes: [
-      'Data audit and mapping plan',
-      'Automated migration scripts (repeatable)',
-      'Content and user migration',
-      'Validation testing and rollback plan',
-      'Go-live cutover support (up to 4 hours)',
-    ],
-    deliverable: 'Working migration with verified data integrity',
-    cta: 'Get an Estimate',
-    ctaHref: BOOK_INTRO_HREF,
-  },
-  {
-    id: 'consulting-hour',
-    name: 'Consulting Hour',
-    price: CONSULTING_HOUR_PRICE,
-    priceNote: '/hr',
-    description:
-      'One-on-one time with the founder who built RevealUI. Pair programming, architecture advice, debugging, or anything else you need help with.',
-    includes: [
-      '1 hour video call with screen sharing',
+      'Scheduled video call with screen sharing',
       'Follow-up notes and action items',
       'Priority scheduling (within 48 hours)',
     ],
     deliverable: 'Session recording and written follow-up notes',
-    cta: 'Book a Session',
+    cta: 'Book a Consultation',
+    ctaHref: BOOK_INTRO_HREF,
+  },
+  {
+    id: 'pilot',
+    name: 'Pilot',
+    price: PILOT_PRICE,
+    description:
+      'One site on your domain and one agent you run. You keep it. Credits 100% to Launch if you start Launch within 30 days.',
+    includes: [
+      'One site live on your domain',
+      'One agent you operate (you keep it)',
+      'Handoff so you can run it without us',
+      'Full credit toward Launch if you start Launch within 30 days',
+    ],
+    deliverable: 'A working site and agent on your accounts',
+    cta: 'Book a Consultation',
+    ctaHref: BOOK_INTRO_HREF,
+  },
+  {
+    id: 'launch-package',
+    name: 'Launch',
+    price: LAUNCH_PACKAGE_PRICE,
+    description:
+      'Go from zero to production, including architecture work inside this engagement. I set up your RevealUI instance, configure your content model, deploy, and hand you the keys.',
+    includes: [
+      'Architecture, schema, and security work inside Launch (not a separate SKU)',
+      'RevealUI project setup and configuration',
+      'Content schema design for your use case',
+      'Authentication and access control',
+      'Deployment with custom domain',
+      'Operational handoff documentation',
+    ],
+    deliverable: 'Production-ready deployment within 2-4 weeks',
+    cta: 'Book a Consultation',
     ctaHref: BOOK_INTRO_HREF,
   },
 ];

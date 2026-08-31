@@ -260,7 +260,7 @@ describe('GET /api/pricing  -  missing metadata fields', () => {
     const data = await res.json();
 
     const max = data.subscriptions.find((t: { id: string }) => t.id === 'max');
-    expect(max.price).toBe('$299'); // static fallback
+    expect(max.price).toBe('$99'); // static fallback
   });
 
   it('ignores products with an unknown revealui_track value', async () => {

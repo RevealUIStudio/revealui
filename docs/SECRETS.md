@@ -113,7 +113,7 @@ value is never UI/API-revealable after write (credentials + private signing keys
 | `revealui/prod/alert-email` | public-config | no | vercel:api, fly:worker | required@boot; required at prod boot - apps/server refuses to start without it |
 | `revealui/prod/api/bundle-pro` | public-config | no | vercel:api | Pro bundle flag for hosted API |
 | `revealui/prod/audit/signing-private-key` | signing-private | yes | vercel:api, vercel:admin, fly:worker | required@boot; Ed25519 PKCS#8 PEM - signs every audit row; only signing surfaces read it, no fallback |
-| `revealui/prod/audit/signing-public-key` | signing-public | no | vercel:api, vercel:admin, fly:worker | Ed25519 SPKI PEM - published for offline receipt verification; derivable from the private key. See docs/security/AUDIT_RECEIPTS.md (Stage 4: row verify free; root download Max) |
+| `revealui/prod/audit/signing-public-key` | signing-public | no | vercel:api, vercel:admin, fly:worker | Ed25519 SPKI PEM - published for offline receipt verification; derivable from the private key. See docs/security/AUDIT_RECEIPTS.md (Stage 4: row verify free; root download Pro) |
 | `revealui/prod/billing/portal-config-id` | public-config | no | fly:worker | → migrating to `revealui/prod/stripe/billing-portal-config-id` (since 2026-07-01); R18 - Fly-side duplicate of the stripe/ canonical; converge in P3-3 |
 | `revealui/prod/cors-origin` | public-config | no | vercel:api, fly:worker |  |
 | `revealui/prod/cron-secret` | credential | yes | vercel:api, vercel:admin, fly:worker |  |

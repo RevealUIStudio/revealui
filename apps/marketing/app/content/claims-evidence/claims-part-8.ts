@@ -242,7 +242,7 @@ export const claimsPart8: readonly ClaimEntry[] = [
   {
     file: 'legal/refund-policy.ts',
     exportPath: 'REFUND_POLICY_META.notice.body',
-    text: 'Perpetual licenses get a full refund within 14 days of purchase, no questions asked. Subscriptions get a full refund on your first month if you cancel within 14 days of your first charge. Details below.',
+    text: 'First purchase, monthly or annual, and Pro Perpetual, gets a full refund within 14 days of the first paid charge, no questions asked. After 14 days there is no prorate. Details below.',
     evidence: [LEGAL_REFUND_CONTENT],
   },
   {

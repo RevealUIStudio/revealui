@@ -26,9 +26,9 @@ vi.mock('@revealui/core/features', () => ({
       dashboard: 'pro',
       customDomain: 'pro',
       analytics: 'pro',
-      aiMemory: 'max',
+      aiMemory: 'pro',
       aiInference: 'max',
-      auditLog: 'max',
+      auditLog: 'pro',
       multiTenant: 'enterprise',
       whiteLabel: 'enterprise',
     };
@@ -46,9 +46,9 @@ vi.mock('@revealui/core/features', () => ({
       dashboard: 'pro',
       customDomain: 'pro',
       analytics: 'pro',
-      aiMemory: 'max',
+      aiMemory: 'pro',
       aiInference: 'max',
-      auditLog: 'max',
+      auditLog: 'pro',
       multiTenant: 'enterprise',
       whiteLabel: 'enterprise',
     };
@@ -118,9 +118,9 @@ const FEATURE_TIER_MAP: Record<Feature, Tier> = {
   dashboard: 'pro',
   customDomain: 'pro',
   analytics: 'pro',
-  aiMemory: 'max',
+  aiMemory: 'pro',
   aiInference: 'max',
-  auditLog: 'max',
+  auditLog: 'pro',
   multiTenant: 'enterprise',
   whiteLabel: 'enterprise',
 };
@@ -232,8 +232,8 @@ describe('Feature Gate Error Response Format', () => {
   // Test a representative feature from each tier requirement
   const blockedCases: [Feature, Tier, Tier][] = [
     ['ai', 'free', 'pro'],
-    ['aiMemory', 'free', 'max'],
-    ['aiMemory', 'pro', 'max'],
+    ['aiMemory', 'free', 'pro'],
+    ['auditLog', 'free', 'pro'],
     ['multiTenant', 'free', 'enterprise'],
     ['multiTenant', 'pro', 'enterprise'],
     ['multiTenant', 'max', 'enterprise'],
@@ -288,13 +288,13 @@ describe('Resource Limits Match Tier Definitions', () => {
     expect(enabledFeatures).toEqual(['aiLocal']);
   });
 
-  it('pro tier gets all free + pro features (8 total)', () => {
+  it('pro tier gets all free + pro features (10 total)', () => {
     const features = getFeaturesForTier('pro') as Record<string, boolean>;
     const enabledFeatures = Object.entries(features)
       .filter(([, v]) => v)
       .map(([k]) => k);
 
-    expect(enabledFeatures).toHaveLength(8);
+    expect(enabledFeatures).toHaveLength(10);
     expect(enabledFeatures).toContain('aiLocal');
     expect(enabledFeatures).toContain('ai');
     expect(enabledFeatures).toContain('mcp');
@@ -303,6 +303,8 @@ describe('Resource Limits Match Tier Definitions', () => {
     expect(enabledFeatures).toContain('dashboard');
     expect(enabledFeatures).toContain('customDomain');
     expect(enabledFeatures).toContain('analytics');
+    expect(enabledFeatures).toContain('aiMemory');
+    expect(enabledFeatures).toContain('auditLog');
   });
 
   it('max tier gets all pro + max features (11 total)', () => {
@@ -369,7 +371,7 @@ describe('Feature Tier Boundary Precision', () => {
   });
 
   it('max features are blocked on pro but allowed on max', async () => {
-    const maxFeatures: Feature[] = ['aiMemory', 'aiInference', 'auditLog'];
+    const maxFeatures: Feature[] = ['aiInference'];
 
     for (const feature of maxFeatures) {
       const blocked = await makeFeatureRequest(createFeatureGatedApp(feature).app, feature, 'pro');
