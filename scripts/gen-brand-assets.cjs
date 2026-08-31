@@ -45,7 +45,7 @@ const FAVICON_SVG = path.join(BRAND_DIR, 'favicon.svg');
 const ICON_MARK_SVG = path.join(BRAND_DIR, 'icon-mark.svg');
 const ICON_MASKABLE_SVG = path.join(BRAND_DIR, 'icon-maskable.svg');
 
-/** Locked transform on revealui-logo.svg. Do not steepen the letter. */
+/** Locked transform on revealui-logo.svg. Optical-center Circuit-R only. */
 const MASTER_SCALE = 'scale(1.06)';
 /** 70% of the overshooting master so a circular crop keeps stem + leg tip. */
 const TILE_SCALE = 'scale(0.742)';

@@ -12,9 +12,17 @@ One Circuit-R family. Every colour derives from the OKLCH design tokens in
 [`packages/tokens/src/tokens.css`](../../../../tokens/src/tokens.css), re-exported as
 `@revealui/presentation/tokens.css`.
 
-**Locked 2026-08-26** — `revealui-logo.svg` is the only RevealUI mark. Variants
-are that same letterform. There is no second R, no white plate, and no inverted
-frost-fill twin.
+**Locked 2026-08-30** — the optical-center Circuit-R is the only RevealUI mark.
+Variants are that same letterform. There is no second R, no white plate, no
+inverted frost-fill twin, and no return to the scythe-leg.
+
+The 2026-08-26 line “Never steepen the leg” is superseded. The landed v2
+scythe (leg start `M219.6,335.1`, tip `488.0,484.0`) is retired. The remade
+letter keeps the Circuit-R identity — navy region fills, frost traces, amber
+vias, transparent (no plate) — with a shorter, steeper leg that stops under
+the bowl, and the stem sitting on the optical center of the 512 square. Do
+not fake that placement by sliding a plate, adding a translate on a wrapper,
+or shrinking the letter onto a navy tile.
 
 ## Tokens (sRGB)
 
@@ -31,12 +39,14 @@ Emblem region fills: stem `#0a2c5a`, bowl `#002247`, leg `#0e3468`. Frost traces
 
 ## Master
 
-- `revealui-logo.svg` — the Circuit-R. Navy region fills, frost traces, amber
-  vias. Transparent (no plate). 512×512, locked `scale(1.06)`.
+- `revealui-logo.svg` — the optical-center Circuit-R. Navy region fills, frost
+  traces, amber vias. Transparent (no plate). 512×512, locked `scale(1.06)`
+  with origin `translate(-282,-320)` so the stem sits on the 512 optical
+  center. That origin is part of the remade letter, not a wrapper slide.
 
 Public chrome (marketing nav, docs headers, admin auth when no tenant logo is
-set) renders this file at **≥96px**. Never redraw the letter. Never steepen the
-leg.
+set) renders this file at **≥96px**. Never redraw the letter. Never go back to
+the scythe-leg.
 
 ## Variants (same letterform only)
 
