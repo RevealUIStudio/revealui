@@ -206,8 +206,8 @@ What SessionStart/SessionEnd run (warn-only, never blocks the session):
 |----------|-----------------|
 | SessionStart | \`tracker-session-check.js\` (manager + TRACKER) |
 | SessionStart | \`[menu] CURRENT-HANDOFF\` pointer (session deltas; continue = \`/pickup\`) |
-| SessionStart / SessionEnd | \`hotfix-check.js\` → \`revealui-harnesses hotfix\` (GAP-405) |
-| SessionStart / SessionEnd | \`tmpscript-check.js\` (lifecycle until GAP-295 control-layer cutover) |
+| SessionStart / SessionEnd | \`revealui-harnesses hotfix check\` (GAP-405 control layer) |
+| SessionStart / SessionEnd | \`revealui-harnesses tmpscript check\` (GAP-295 control layer) |
 | SessionStart | \`revealui-harnesses session register --backend grok\` (soft if daemon down) |
 | SessionEnd | \`revealui-harnesses session end\` (signed when identity cached; soft if daemon down) |
 | PreToolUse | public-comment gate, then \`hook grok\` (deny is exit 2) |
