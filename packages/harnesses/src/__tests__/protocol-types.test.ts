@@ -35,8 +35,13 @@ describe('protocol capabilities', () => {
 });
 
 describe('TOOL_PROFILES (shipped adapters)', () => {
-  it('contains cursor, opencode, and revealui-agent', () => {
-    expect(Object.keys(TOOL_PROFILES).sort()).toEqual(['cursor', 'opencode', 'revealui-agent']);
+  it('contains cursor, grok, opencode, and revealui-agent', () => {
+    expect(Object.keys(TOOL_PROFILES).sort()).toEqual([
+      'cursor',
+      'grok',
+      'opencode',
+      'revealui-agent',
+    ]);
   });
 
   it('revealui-agent has full dispatch capabilities', () => {
@@ -92,6 +97,19 @@ describe('TOOL_PROFILES (shipped adapters)', () => {
     expect(caps.maxContextTokens).toBe(128_000);
   });
 
+  it('grok is headless with hooks and worktrees; maxContextTokens is BYO', () => {
+    const caps = TOOL_PROFILES.grok;
+    expect(caps).toBeDefined();
+    expect(caps.dispatch.generateCode).toBe(true);
+    expect(caps.dispatch.applyEdit).toBe(false);
+    expect(caps.headless).toBe(true);
+    expect(caps.hooks.supported).toBe(true);
+    expect(caps.hooks.canBlock).toBe(true);
+    expect(caps.supportsWorktrees).toBe(true);
+    expect(caps.supportsMcp).toBe(true);
+    expect(caps.maxContextTokens).toBe(0);
+  });
+
   it('does not contain entries for tools without adapters', () => {
     expect(TOOL_PROFILES['claude-code']).toBeUndefined();
     expect(TOOL_PROFILES.codex).toBeUndefined();
@@ -134,11 +152,12 @@ describe('ROADMAP_PROFILES (declared, no adapter)', () => {
 });
 
 describe('ALL_KNOWN_PROFILES (merged view)', () => {
-  it('contains all seven declared tools', () => {
+  it('contains all eight declared tools', () => {
     expect(Object.keys(ALL_KNOWN_PROFILES).sort()).toEqual([
       'claude-code',
       'codex',
       'cursor',
+      'grok',
       'opencode',
       'revealui-agent',
       'vscode',
@@ -154,6 +173,7 @@ describe('ALL_KNOWN_PROFILES (merged view)', () => {
     expect(ALL_KNOWN_PROFILES['revealui-agent']).toEqual(TOOL_PROFILES['revealui-agent']);
     expect(ALL_KNOWN_PROFILES.opencode).toEqual(TOOL_PROFILES.opencode);
     expect(ALL_KNOWN_PROFILES.cursor).toEqual(TOOL_PROFILES.cursor);
+    expect(ALL_KNOWN_PROFILES.grok).toEqual(TOOL_PROFILES.grok);
   });
 });
 
