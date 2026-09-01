@@ -13,8 +13,10 @@ import {
   TEMPLATES_GITHUB,
   TEMPLATES_HERO,
   TEMPLATES_VERCEL,
+  VERCEL_DEPLOY_REQUIRED_ENV,
+  VERCEL_TEMPLATES_LISTING_URL,
+  vercelDeployHref,
 } from '../templates';
-import { VERCEL_ONE_CLICK } from '../vercel-one-click';
 
 const CREATE_REVEALUI_PKG = JSON.parse(
   readFileSync(join(process.cwd(), '../../packages/create-revealui/package.json'), 'utf8'),
@@ -38,6 +40,7 @@ const FORBIDDEN = [
   'cal.com',
   'verify is free',
   'verify is Free',
+  'Starter Kit $299',
 ] as const;
 
 function blob(): string {
@@ -46,8 +49,8 @@ function blob(): string {
     cli: TEMPLATES_CLI,
     items: TEMPLATES_CLI_ITEMS,
     github: TEMPLATES_GITHUB,
-    apify: TEMPLATES_APIFY,
     vercel: TEMPLATES_VERCEL,
+    apify: TEMPLATES_APIFY,
   });
 }
 
@@ -98,6 +101,51 @@ describe('templates catalog honesty', () => {
     expect(TEMPLATES_GITHUB.body.includes('does not')).toBe(true);
   });
 
+  it('gives Deploy to Vercel clone URLs to the four Next.js GitHub twins only', () => {
+    const withDeploy = TEMPLATES_CLI_ITEMS.filter((item) => item.deployHref !== null);
+    const withoutDeploy = TEMPLATES_CLI_ITEMS.filter((item) => item.deployHref === null);
+    expect(withDeploy.map((item) => item.id)).toEqual([
+      'basic-blog',
+      'e-commerce',
+      'portfolio',
+      'starter',
+    ]);
+    expect(withoutDeploy.map((item) => item.id)).toEqual(['starter-native']);
+    for (const item of withDeploy) {
+      expect(item.githubHref).toBeTruthy();
+      expect(item.deployHref).toBe(
+        vercelDeployHref(item.githubHref as string, `revealui-${item.id}`),
+      );
+      const deploy = new URL(item.deployHref as string);
+      expect(`${deploy.origin}${deploy.pathname}`).toBe('https://vercel.com/new/clone');
+      expect(deploy.searchParams.get('repository-url')).toBe(item.githubHref);
+      expect(deploy.searchParams.get('env')?.includes('POSTGRES_URL')).toBe(true);
+      expect(deploy.searchParams.has('stores')).toBe(false);
+    }
+    expect(VERCEL_DEPLOY_REQUIRED_ENV).toEqual([
+      'POSTGRES_URL',
+      'REVEALUI_SECRET',
+      'REVEALUI_PUBLIC_SERVER_URL',
+      'NEXT_PUBLIC_SERVER_URL',
+    ]);
+  });
+
+  it('does not invent a live vercel.com/templates listing URL', () => {
+    expect(VERCEL_TEMPLATES_LISTING_URL).toBeNull();
+    expect(TEMPLATES_VERCEL.body.includes('no live')).toBe(true);
+    expect(TEMPLATES_VERCEL.body.includes('owner submit')).toBe(true);
+    expect(blob().includes('vercel.com/templates/revealui')).toBe(false);
+    expect(blob().includes('vercel.com/templates/template/')).toBe(false);
+  });
+
+  it('names the Vercel path as the runtime deploy, not a Studio SKU', () => {
+    expect(TEMPLATES_VERCEL.body.includes('runtime deploy path')).toBe(true);
+    expect(TEMPLATES_VERCEL.body.includes('not a Studio SKU')).toBe(true);
+    expect(TEMPLATES_VERCEL.body.includes('not a Starter Kit')).toBe(true);
+    expect(TEMPLATES_VERCEL.body.includes('your own Neon or Postgres')).toBe(true);
+    expect(TEMPLATES_HERO.subtitle.includes('Vercel')).toBe(true);
+  });
+
   it('names starter-native as Vite without Next.js', () => {
     const native = TEMPLATES_CLI_ITEMS.find((item) => item.id === 'starter-native');
     expect(native).toBeDefined();
@@ -137,44 +185,32 @@ describe('templates catalog honesty', () => {
     expect(text.includes('RevKit')).toBe(false);
   });
 
-  it('locks marketing one-click fields to deployment/vercel/template.json', () => {
-    const meta = JSON.parse(
-      readFileSync(join(process.cwd(), '../../deployment/vercel/template.json'), 'utf8'),
+  it('locksteps the owner-submit manifest to the four GitHub twins', () => {
+    const manifest = JSON.parse(
+      readFileSync(join(process.cwd(), '../../deployment/vercel/templates.json'), 'utf8'),
     ) as {
-      description: string;
-      repositoryUrl: string;
-      envDescription: string;
-      envLink: string;
-      env: readonly { key: string }[];
-      stores: readonly { integrationSlug: string; productSlug: string }[];
+      listingStatus: string;
+      listingUrl: string | null;
+      submitUrl: string;
+      ownerGuide: string;
+      requiredEnv: readonly string[];
+      templates: readonly { id: string; githubUrl: string; cliTemplate: string }[];
     };
-    expect(VERCEL_ONE_CLICK.description).toBe(meta.description);
-    expect(VERCEL_ONE_CLICK.repositoryUrl).toBe(meta.repositoryUrl);
-    expect(VERCEL_ONE_CLICK.envDescription).toBe(meta.envDescription);
-    expect(VERCEL_ONE_CLICK.envLink).toBe(meta.envLink);
-    expect(VERCEL_ONE_CLICK.env.map((item) => item.key)).toEqual(meta.env.map((item) => item.key));
-    expect(VERCEL_ONE_CLICK.stores[0]?.integrationSlug).toBe(meta.stores[0]?.integrationSlug);
-    expect(VERCEL_ONE_CLICK.stores[0]?.productSlug).toBe(meta.stores[0]?.productSlug);
-  });
-
-  it('documents the buyer Vercel one-click on the existing starter twin', () => {
-    expect(TEMPLATES_VERCEL.heading).toBe('Deploy to Vercel');
-    expect(TEMPLATES_VERCEL.cta).toBe('Deploy to Vercel');
-    expect(TEMPLATES_VERCEL.sourceHref).toBe(
-      'https://github.com/RevealUIStudio/revealui-template-starter',
+    expect(manifest.listingStatus).toBe('not-published');
+    expect(manifest.listingUrl).toBeNull();
+    expect(manifest.submitUrl).toBe('https://vercel.com/templates/submit');
+    expect(manifest.ownerGuide).toBe('docs/distribution/VERCEL-TEMPLATE-OWNER-PUBLISH.md');
+    expect(manifest.requiredEnv).toEqual([...VERCEL_DEPLOY_REQUIRED_ENV]);
+    expect(manifest.templates.map((item) => item.id)).toEqual([
+      'basic-blog',
+      'e-commerce',
+      'portfolio',
+      'starter',
+    ]);
+    const withGithub = TEMPLATES_CLI_ITEMS.filter((item) => item.githubHref !== null);
+    expect(manifest.templates.map((item) => item.githubUrl)).toEqual(
+      withGithub.map((item) => item.githubHref),
     );
-    expect(TEMPLATES_VERCEL.href.startsWith('https://vercel.com/new/clone?')).toBe(true);
-    expect(TEMPLATES_VERCEL.href.includes('repository-url=')).toBe(true);
-    expect(TEMPLATES_VERCEL.href.includes('RevealUIStudio')).toBe(true);
-    expect(TEMPLATES_VERCEL.href.includes('revealui-template-starter')).toBe(true);
-    expect(TEMPLATES_VERCEL.href.includes('neon')).toBe(true);
-    expect(TEMPLATES_VERCEL.body.includes('your Vercel')).toBe(true);
-    expect(TEMPLATES_VERCEL.body.includes('Neon you control')).toBe(true);
-    expect(TEMPLATES_VERCEL.body.includes('Not managed hosting')).toBe(true);
-    expect(TEMPLATES_VERCEL.body.includes('Not the Starter Kit')).toBe(true);
-    expect(TEMPLATES_VERCEL.body.includes('Not a studio invoice')).toBe(true);
-    expect(VERCEL_ONE_CLICK.repositoryUrl).toBe(TEMPLATES_VERCEL.sourceHref);
-    expect(VERCEL_ONE_CLICK.stores[0]?.integrationSlug).toBe('neon');
-    expect(VERCEL_ONE_CLICK.stores[0]?.productSlug).toBe('neon');
+    expect(manifest.templates.every((item) => item.cliTemplate === item.id)).toBe(true);
   });
 });

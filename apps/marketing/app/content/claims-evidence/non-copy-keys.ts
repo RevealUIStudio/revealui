@@ -8,6 +8,8 @@ export const NON_COPY_KEYS: readonly string[] = [
   'moreHref',
   'linkHref',
   'validatorHref',
+  'githubHref',
+  'deployHref',
   'code',
   'command',
   'id',

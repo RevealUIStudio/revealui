@@ -31,6 +31,17 @@ describe('TemplatesPage', () => {
     expect(screen.getByText('No GitHub twin', { exact: false })).toBeInTheDocument();
   });
 
+  it('renders Deploy to Vercel for the four Next.js twins only', () => {
+    render(<TemplatesPage />);
+    expect(screen.getByRole('heading', { name: TEMPLATES_VERCEL.heading })).toBeInTheDocument();
+    expect(screen.getByText(TEMPLATES_VERCEL.body)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Deploy to Vercel: basic-blog' })).toHaveAttribute(
+      'href',
+      TEMPLATES_CLI_ITEMS[0]?.deployHref ?? '',
+    );
+    expect(screen.queryByRole('link', { name: 'Deploy to Vercel: starter-native' })).toBeNull();
+  });
+
   it('links the Apify actor and prints billed verify', () => {
     const { container } = render(<TemplatesPage />);
     const apify = screen.getByRole('link', { name: TEMPLATES_APIFY.cta });
@@ -40,15 +51,6 @@ describe('TemplatesPage', () => {
     expect(container.textContent ?? '').toContain('$0.00001');
     expect(container.textContent ?? '').toContain('not free');
     expect((container.textContent ?? '').toLowerCase().includes('verify is free')).toBe(false);
-  });
-
-  it('offers Deploy to Vercel on the buyer clone URL', () => {
-    render(<TemplatesPage />);
-    const deploy = screen.getByRole('link', { name: TEMPLATES_VERCEL.cta });
-    expect(deploy).toHaveAttribute('href', TEMPLATES_VERCEL.href);
-    expect(deploy.getAttribute('href')?.startsWith('https://vercel.com/new/clone?')).toBe(true);
-    const twin = screen.getByRole('link', { name: TEMPLATES_VERCEL.sourceLabel });
-    expect(twin).toHaveAttribute('href', TEMPLATES_VERCEL.sourceHref);
   });
 
   it('does not link dead hosts or leftover kits', () => {

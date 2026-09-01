@@ -1,58 +1,82 @@
-# Owner publish leftover — Vercel one-click listing
+---
+title: "Owner publish checklist — Vercel one-click template"
+description: "Owner-only steps to sync GitHub twins and submit vercel.com/templates. Listing URL is not live."
+visibility: public
+status: verified
+audience: maintainer
+---
 
-Agent work in this repository is the buyer Deploy to Vercel path:
+# Owner publish checklist — Vercel customer runtime template
 
-- Listing metadata: [`deployment/vercel/template.json`](../../deployment/vercel/template.json)
-- Project config: [`deployment/vercel/vercel.json`](../../deployment/vercel/vercel.json)
-- Scaffold copy: [`packages/cli/templates/starter/vercel.json`](../../packages/cli/templates/starter/vercel.json)
-- Public copy: `/templates` on revealui.com
-- Clone source: existing GitHub twin `RevealUIStudio/revealui-template-starter`
+Agent work in this monorepo is **done**: CLI templates ship `vercel.json`,
+`/templates` has Deploy to Vercel buttons on the four Next.js GitHub twins,
+and official submit metadata lives in `deployment/vercel/templates.json`.
 
-This leftover is **owner dashboard** work. Do not invent a live listing URL.
+This is the **runtime deploy path**, not a Studio SKU and not a Starter Kit.
+Catalog stays RevealUI Free / Pro $49 / Max $99 plus Studio Hour / Architecture
+/ Launch. Do not list RevDev, RevForge, RevKit, or Fleet as for sale.
 
-## 1. Sync the GitHub twin
+Closure is **owner dashboard + twin sync**. Do not invent a
+`vercel.com/templates` listing URL.
 
-`revealui-template-starter` is a separate repo. After this PR lands on `test`:
+Full visitor/env detail: [`deployment/vercel/README.md`](https://github.com/RevealUIStudio/revealui/blob/test/deployment/vercel/README.md).
 
-1. Copy `packages/cli/templates/starter/vercel.json` into the twin root.
-2. Add the official Deploy with Vercel button to the twin README, pointing at
-   the clone URL built from `deployment/vercel/template.json`.
-3. Keep the twin a blank-canvas starter. Do not turn it into the Starter
-   Kit or a studio invoice.
+## 0. What is already live without a marketplace listing
 
-## 2. Vercel Marketplace / templates catalog
+A stranger can click **Deploy to Vercel** on
+[revealui.com/templates](https://revealui.com/templates) today. That URL is
+`https://vercel.com/new/clone?repository-url=…` pointed at:
 
-As of 2026-07-21 Vercel is not accepting new community template submissions
-([Deploy Button docs](https://vercel.com/docs/deploy-button); community
-guidance: add the Deploy Button, do not claim a catalog slot).
+- https://github.com/RevealUIStudio/revealui-template-basic-blog
+- https://github.com/RevealUIStudio/revealui-template-e-commerce
+- https://github.com/RevealUIStudio/revealui-template-portfolio
+- https://github.com/RevealUIStudio/revealui-template-starter
 
-If Vercel reopens submissions or Studio enrolls as a partner:
+Vercel auto-detects Next.js even before the twins gain `vercel.json`.
+`starter-native` has no twin and no Deploy button.
 
-1. Sign in on the Vercel team dashboard as owner.
-2. Submit the starter twin with the metadata in `template.json`.
-3. Icon: use
-   [`packages/presentation/src/assets/brand/revealui-logo.svg`](../../packages/presentation/src/assets/brand/revealui-logo.svg)
-   — navy Circuit-R, empty bowl, origin
-   `translate(256,256) scale(1.06) translate(-300,-320)`. No white plate. No redraw.
-   Do not upload `icon-mark.svg` (rounded plate) as the listing mark.
-4. Record the public listing URL only after Vercel publishes it.
-5. Until then, the honest path is the Deploy Button on `/templates` and the
-   twin README.
+## 1. Sync the four GitHub twins (owner git push)
 
-## 3. Do not
+The twins are separate repos. From a fresh checkout of each twin:
 
-- Publish a fake `vercel.com/templates/...` URL.
-- Call this managed hosting, SSO shipped, or a live-or-holdback catalog.
-- Sell RevDev, RevForge, RevKit, or Fleet as this template.
-- Present this as the Starter Kit.
-- Add a fourth studio invoice. Studio SKUs stay Hour $300 / Architecture
-  artifact bundle and review $3,500 / Launch $7,500.
-- Finish Railway GAP-430 (customer marketplace leftover under `deployment/railway`)
-  in the same change. Vercel is the chosen one-click.
+1. Copy `packages/cli/templates/<id>/vercel.json` from this monorepo onto the twin root.
+2. Refresh the twin from the current CLI template when you next do a twin release (the twins are older snapshots and should match the monorepo CLI templates, including R2-only object storage).
+3. Paste the Deploy block from [`deployment/vercel/deploy-button.md`](https://github.com/RevealUIStudio/revealui/blob/test/deployment/vercel/deploy-button.md) into that twin's README.
+4. Do not add Neon or Blob `stores` to the Deploy URL. Visitors paste their own `POSTGRES_URL`.
+5. Do not add a `vercel.com/templates/…` link until step 3 records a real listing.
 
-## 4. Acceptance for this leftover
+## 2. Official marketplace submit (owner-only)
 
-1. Twin has `vercel.json` and a working Deploy Button.
-2. Owner dashboard publish completed **or** explicitly deferred with the
-   current Vercel "not accepting submissions" note.
-3. No invented listing URL on marketing or docs.
+Vercel does not publish a listing from repo files. An org owner must submit.
+
+1. Sign in as the RevealUIStudio Vercel team owner (not this agent).
+2. Open **https://vercel.com/templates/submit**.
+3. Submit **one** twin first (`revealui-template-starter` is the blank-canvas default). Use the row in [`deployment/vercel/templates.json`](https://github.com/RevealUIStudio/revealui/blob/test/deployment/vercel/templates.json).
+4. Framework: Next.js. CSS: Tailwind. Use the Circuit-R mark already in the brand kit (navy letter, scythe, empty bowl). Do not upload a white plate, faceted R, or frost invert.
+5. Demo URL: only a URL you have actually deployed from that twin. If none exists, skip demo rather than fake one.
+6. Deploy URL: the `vercel.com/new/clone` href already on `/templates` for that twin.
+7. If the form is closed or Vercel is not accepting community templates, record that on the gap and **stop**. Do not invent `https://vercel.com/templates/revealui` or any other listing URL.
+
+## 3. After Vercel accepts a listing
+
+1. Copy the **real** listing URL Vercel shows (example shape historically: `https://vercel.com/templates/next.js/<slug>`).
+2. Set `listingUrl` and `listingStatus: "published"` in `deployment/vercel/templates.json`.
+3. Only then add that URL to `/templates` copy. Until that commit, `listingUrl` stays `null`.
+
+## 4. Acceptance walk (owner)
+
+1. Clean Vercel account (not Studio prod).
+2. Click Deploy to Vercel on `/templates` for `starter`.
+3. Create or paste a Neon (or other Postgres) connection string into `POSTGRES_URL`.
+4. Set `REVEALUI_SECRET` (32+ chars) and the two public URL vars.
+5. First deploy succeeds. Set public URLs to the `*.vercel.app` host and redeploy.
+6. Open the app. This is a visitor project on their Vercel + their database.
+
+## Do not
+
+- Buy Vercel marketplace add-ons (Neon via `stores`, Blob, or paid integrations) from this agent or as a required clone step.
+- Claim a `vercel.com/templates` listing URL before Vercel publishes one.
+- Restore Starter Kit $299 on `/pricing`.
+- List RevDev, RevForge, RevKit, or Fleet as for sale.
+- Call verify free.
+- Point the Deploy button at the monorepo root (that is Studio production, Git auto-deploy off).

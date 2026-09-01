@@ -14,8 +14,7 @@ Live public get-started paths:
 - `npx create-revealui@latest`
 - GitHub templates (Use this template): [starter](https://github.com/RevealUIStudio/revealui-template-starter), [basic-blog](https://github.com/RevealUIStudio/revealui-template-basic-blog), [portfolio](https://github.com/RevealUIStudio/revealui-template-portfolio), [e-commerce](https://github.com/RevealUIStudio/revealui-template-e-commerce)
 - Apify [governed-agent-run](https://apify.com/revealuistudio/governed-agent-run) — pay-per-event. Receipt verification is $0.00001, not free.
-
-There is no `revealui.com/templates` page.
+- [Templates](https://revealui.com/templates): visitor Deploy-to-Vercel on the four Next.js GitHub twins
 
 ---
 
@@ -194,7 +193,7 @@ For more → [Troubleshooting Guide](./TROUBLESHOOTING.md)
 - [Full documentation](./INDEX.md)
 - [Component catalog](./COMPONENT_CATALOG.md)  -  66 native UI components in `@revealui/presentation` (80 total with `@revealui/core` admin/richtext)
 - [Example projects](./EXAMPLES.md)  -  blog, subscription starter, storefront
-- [Deployment guide](./guides/deployment.md)  -  Vercel + Fly + Docker Compose, environment variables, production checklist
+- [Deployment guide](./guides/deployment.md)  -  Vercel + Fly + visitor Deploy-to-Vercel (four Next.js GitHub twins) + Docker Compose, environment variables, production checklist
 - [AI agents](./AI.md)  -  agent orchestration, open-model inference, MCP framework (Pro)
 
 ---
