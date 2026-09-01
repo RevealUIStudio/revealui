@@ -59,7 +59,7 @@ Do not add `console.*` in packages. See the conventions skill / `docs/agent-rule
 |---------|--------|
 | `ConfigValidationError: REVEALUI_SECRET` | Secret missing or shorter than 32 characters. See [Quick Start](../QUICK_START.md) and [RevVault](../fleet/revvault.md) |
 | `relation "…" does not exist` | Run `pnpm db:migrate` |
-| `HTTP_403` on a Fleet kit | Host header vs `REVFORGE_LICENSED_DOMAIN`. See [FLEET.md](../FLEET.md) |
+| `HTTP_403` on a domain-locked self-host | Host header vs `REVFORGE_LICENSED_DOMAIN`. See [Enterprise](../ENTERPRISE.md) |
 | `INTERNAL_ERROR` | Look up `requestId` in API logs / `error_events` |
 | Blank admin after deploy | `NEXT_PUBLIC_SERVER_URL` / `REVEALUI_PUBLIC_SERVER_URL` mismatch |
 

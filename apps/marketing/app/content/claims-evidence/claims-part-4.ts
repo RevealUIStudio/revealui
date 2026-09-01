@@ -41,7 +41,6 @@ import {
   POSTGRES,
   PROVIDERS,
   REFUND_ROUTE,
-  REVFORGE_REF,
   ROADMAP,
   SELF_HOST,
   SSO_ADMIN_UI,
@@ -178,8 +177,8 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'philosophy.ts',
     exportPath: 'PHILOSOPHY.sections[2].body',
-    text: 'RevealUI is built for compounding. Five primitives, People, Content, Offers, Payments, and Agents, are a contract you implement once and reuse in every product you ship. A deployment that works can be stamped into a branded, domain-locked RevealUI Fleet kit through RevForge, today in private preview. An agent that works in your business keeps its memory in a store you own, so the record of your work is an asset, not an afterthought.',
-    evidence: [ENGINES, REVFORGE_REF, MEMORY],
+    text: 'RevealUI is built for compounding. Five primitives, People, Content, Offers, Payments, and Agents, are a contract you implement once and reuse across products you ship. A deployment that works stays yours to run again. An agent that works in your business keeps its memory in a store you own, so the record of your work is an asset, not an afterthought.',
+    evidence: [ENGINES, MEMORY],
   },
   {
     file: 'philosophy.ts',

@@ -7,12 +7,18 @@
 - [Documentation home](https://docs.revealui.com): Architecture, primitives, deployment, agent integration
 - [What works today](https://docs.revealui.com/WHAT_WORKS_TODAY): Honest pre-launch status — what is tested, what is stub, what is not yet wired
 - [Architecture](https://docs.revealui.com/ARCHITECTURE): Five primitives, apps, packages, deploy topology
-- [Meet the Fleet](https://docs.revealui.com/REVFLEET): Products that compose RevFleet: RevealUI (runtime), RevDev, RevVault, RevCon, RevKit, RevealUI Fleet (via RevForge), RevSkills
 
 ## Getting started
 
-- [Quick start](https://docs.revealui.com/QUICK_START): `npx create-revealui@latest my-app` — local stack path
+Live public paths only:
+
+- `npx create-revealui@latest`
+- GitHub templates (Use this template): [starter](https://github.com/RevealUIStudio/revealui-template-starter), [basic-blog](https://github.com/RevealUIStudio/revealui-template-basic-blog), [portfolio](https://github.com/RevealUIStudio/revealui-template-portfolio), [e-commerce](https://github.com/RevealUIStudio/revealui-template-e-commerce)
+- Apify [governed-agent-run](https://apify.com/revealuistudio/governed-agent-run) — pay-per-event. Receipt verification is $0.00001, not free
+- [Quick start](https://docs.revealui.com/QUICK_START): local stack walkthrough
 - [Local-first](https://docs.revealui.com/LOCAL_FIRST): Run the stack on your machine
+
+There is no `revealui.com/templates` page.
 
 ## Source code
 
@@ -33,7 +39,7 @@ Five primitives make up the runtime: People, Content, Offers, Payments, Agents.
 
 ## Pricing
 
-- [Pricing page](https://revealui.com/pricing): Free, Pro, Max, Enterprise tiers; perpetual licenses; professional services
+- [Pricing page](https://revealui.com/pricing): Free $0, Pro $49, Max $99, Enterprise inquire; Pro Perpetual $1,499
 - Billing rails are live end to end. Zero paying customers yet.
 
 ## For agents
@@ -46,7 +52,6 @@ Five primitives make up the runtime: People, Content, Offers, Payments, Agents.
 
 - Zero paying customers. Used in production by the team that maintains it.
 - Stripe live mode is on for product billing; no paid customer base yet.
-- RevealUI Fleet runtime images (`revealui-api`, `revealui-admin`, `revealui-migrate`) are published on GHCR and pull anonymously. A license JWT is still required to run a stamped kit.
 - Default inference is open-weight on infrastructure you own (Inference Snaps or Ollama). Frontier providers are opt-in adapters.
 - NeonDB is the primary database. Supabase is not an internal datastore.
 - Professional services and fixed-bid delivery: [revealuistudio.com](https://revealuistudio.com)

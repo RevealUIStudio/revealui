@@ -13,10 +13,17 @@ Canonical definition: **[What is RevealUI?](./WHAT_IS.md)**. Six **[design princ
 
 ## Getting Started
 
-- [What is RevealUI?](./WHAT_IS.md): canonical paragraph, tier names, feature matrix, RevFleet list
-- [Quick Start](./QUICK_START.md): get a local dev stack running
+Live public paths only:
+
+- `npx create-revealui@latest`
+- GitHub templates: [starter](https://github.com/RevealUIStudio/revealui-template-starter), [basic-blog](https://github.com/RevealUIStudio/revealui-template-basic-blog), [portfolio](https://github.com/RevealUIStudio/revealui-template-portfolio), [e-commerce](https://github.com/RevealUIStudio/revealui-template-e-commerce)
+- Apify [governed-agent-run](https://apify.com/revealuistudio/governed-agent-run) — pay-per-event. Receipt verification is $0.00001, not free
+- [Quick Start](./QUICK_START.md): local stack walkthrough
+- [What is RevealUI?](./WHAT_IS.md): canonical paragraph, tier names, feature matrix
 - [Build Your Business](./BUILD_YOUR_BUSINESS.md): End-to-end tutorial: scaffold to deploy
 - [Examples](./EXAMPLES.md): Blog, subscription starter, storefront
+
+There is no `revealui.com/templates` page.
 
 ## Core Guides
 
@@ -26,7 +33,7 @@ Canonical definition: **[What is RevealUI?](./WHAT_IS.md)**. Six **[design princ
 - [Admin Guide](./ADMIN_GUIDE.md): Collections, content management, admin dashboard
 - [Auth & Security](./AUTH.md): Authentication, sessions, RBAC, security policy
 - [Database](./DATABASE.md): Management scripts, optimization, Drizzle ORM
-- [Deployment](./guides/deployment.md): Deploy to Vercel + Fly, buyer Vercel one-click starter, Docker Compose, leftover customer Railway marketplace template, environment setup
+- [Deployment](./guides/deployment.md): Deploy to Vercel + Fly, buyer Vercel one-click starter, Docker Compose, environment setup
 - [Plugins](./PLUGINS.md): Config-transform plugins (form builder, nested docs, redirects) and how to author one
 - [Admin development](./guides/admin-dev.md): HMR expectations when editing admin, collections, and Lexical plugins
 - [Errors and debugging](./guides/errors-and-debugging.md): API error envelope, request ids, how to file a bug
@@ -53,7 +60,7 @@ Canonical definition: **[What is RevealUI?](./WHAT_IS.md)**. Six **[design princ
 - [Component Catalog](./COMPONENT_CATALOG.md): 66 native UI components in `@revealui/presentation` (plus admin and rich-text UI in `@revealui/core`)
 - [AI](./AI.md): AI package overview, prompt/response/semantic caching
 - [Pro](./PRO.md): Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`), MCP integration, open-model inference, x402, marketplace
-- [RevFleet](./REVFLEET.md): Companion products (RevDev, RevVault, RevCon, RevForge, RevSkills) — what each does and how they compose
+- [RevealFleet](./REVFLEET.md): Family name for RevealUI Studio software. Not a catalog SKU
 
 ## Agent Coordination
 
@@ -68,21 +75,17 @@ Canonical definition: **[What is RevealUI?](./WHAT_IS.md)**. Six **[design princ
 
 - [MCP Marketplace](./MARKETPLACE.md): Planned third-party catalog. No 80/20 revenue share until that rail exists
 - [Enterprise](./ENTERPRISE.md): License plus studio support (inquire / Contact sales). Not a hosted VM
-- [RevealUI Fleet](./FLEET.md): Self-hosted deployment kit (Docker Compose, domain lock)
+- [RevealFleet](./FLEET.md): Family name only — not a catalog SKU or get-started path
 - [Collaborative editing](./guides/collaborative-editing.md): Yjs + Lexical cursors for self-hosted operators. Comments and suggestions are not shipped
 - [SLA](./SLA.md): Published support and license-infra uptime commitments
 
-## RevFleet
+## RevealFleet
 
-RevealUI is one product in RevFleet. See [RevFleet overview](./REVFLEET.md) and [What is RevealUI?](./WHAT_IS.md) for the named list and maturity labels.
+RevealFleet (`/docs/REVFLEET`) is the family name for RevealUI Studio software. It is not a catalog SKU and not a public get-started path. **RevealUI** is the lead product and the buyable runtime.
 
-- [RevDev](./fleet/revdev.md) — Studio (Tauri 2 desktop) + Console (Go SSH TUI) + harness daemon
-- [RevVault](./fleet/revvault.md) — age-encrypted secret vault, source of truth for every RevFleet secret
-- [RevCon](./fleet/revcon.md) — editor + agent-rule sync via symlinks (`link.sh`)
-- [RevealUI Fleet](./FLEET.md) — self-hosted enterprise deployment kit
-- [RevSkills](./fleet/revskills.md) — curated Agent Skills for Claude, Grok, Cursor, OpenCode, and VS Code
-- RevForge — operator-only stamper (private; not a public repo). See [REVFLEET.md](./REVFLEET.md)
-- RevMarket — Planned ([#526](https://github.com/RevealUIStudio/revealui/issues/526)) third-party MCP catalog. First-party servers ship in this runtime
+- [RevealFleet](./REVFLEET.md): family name only
+- [What is RevealUI?](./WHAT_IS.md): canonical paragraph and catalog
+- [Quick Start](./QUICK_START.md): public get-started
 
 ## Security & trust
 

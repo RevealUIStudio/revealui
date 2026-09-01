@@ -284,7 +284,7 @@ Enterprise tier feature. Controls the look and feel of admin UI and transactiona
 | `REVEALUI_LICENSE_KEY` | No | None | RevealUI Pro/Enterprise license key. Unlocks commercial features. Format: an EdDSA-signed JWT (`eyJhbGciOiJFZERTQSIs...`). | MEDIUM | admin, api |
 | `REVEALUI_LICENSE_ENCRYPTION_KEY` | No | None | AES-256-GCM encryption key for license keys at rest. 32-byte hex (64 chars). Generate with `pnpm secrets:generate --hex --length=32`. | HIGH (server-only) | api |
 | `LICENSE_CACHE_TTL_MS` | No | `15000` | License cache TTL in milliseconds. Lower values detect revocations faster; higher values reduce DB pressure. | LOW | api |
-| `REVEALUI_ALLOW_UNLICENSED_SELF_HOST` | No | `false` | GAP-436: on a self-hosted boot (no `REVEALUI_LICENSE_PRIVATE_KEY`) with no `REVEALUI_LICENSE_KEY` set, set to `true` to boot at Free (OSS) tier instead of refusing to start. Only relaxes a **completely absent** license key — a present-but-invalid/expired key is still rejected regardless of this flag. RevForge-stamped Fleet kits (which always ship a signed license key) are unaffected; this is for the plain OSS self-host path (`docker-compose.yml`, the Railway marketplace template). Must be set on BOTH the api and admin processes — the admin app runs its own copy of the license gate. | LOW | api, admin |
+| `REVEALUI_ALLOW_UNLICENSED_SELF_HOST` | No | `false` | GAP-436: on a self-hosted boot (no `REVEALUI_LICENSE_PRIVATE_KEY`) with no `REVEALUI_LICENSE_KEY` set, set to `true` to boot at Free (OSS) tier instead of refusing to start. Only relaxes a **completely absent** license key — a present-but-invalid/expired key is still rejected regardless of this flag. RevForge-stamped Fleet kits (which always ship a signed license key) are unaffected; this is for the plain OSS self-host path (`docker-compose.yml`). Must be set on BOTH the api and admin processes — the admin app runs its own copy of the license gate. | LOW | api, admin |
 
 ---
 
@@ -331,11 +331,11 @@ Phase 5.3 Track C. Required for perpetual license GitHub team provisioning and s
 
 ---
 
-### Fleet Self-Hosted
+### Self-hosted license
 
-Phase 5.4, enterprise tier. Only required when running RevealUI Fleet (the self-hosted runtime kit) on your own infrastructure. The stamper (RevForge) is operator-only and not a public repo; the kit is `docker-compose.forge.yml` plus GHCR images.
+Phase 5.4, enterprise tier. Optional when you self-host under an Enterprise license. See [Enterprise](./ENTERPRISE.md).
 
-A Fleet customer holds a **studio-issued JWT** and the **studio public verify key**. They never hold `REVEALUI_LICENSE_PRIVATE_KEY` (the studio mint key). See [FLEET.md](./FLEET.md#whose-license-keys-are-these).
+A self-hosted operator holds a **studio-issued JWT** and the **studio public verify key**. They never hold `REVEALUI_LICENSE_PRIVATE_KEY` (the studio mint key).
 
 | Variable | Required | Default | Description | Security | Used By |
 |----------|----------|---------|-------------|----------|---------|
@@ -771,6 +771,5 @@ Check the file loading order:
 - [Auth Guide](./AUTH.md): Authentication system
 - [Troubleshooting](./TROUBLESHOOTING.md): General troubleshooting
 - [Enterprise](./ENTERPRISE.md): Enterprise license (inquire / Contact sales)
-- [Fleet](./FLEET.md): Self-hosted Fleet kit configuration
 - [Pro Guide](./PRO.md): Pro tier features and configuration
 - [`@revealui/config` source](../packages/config/src/): Zod schemas and validation logic

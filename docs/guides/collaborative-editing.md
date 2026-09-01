@@ -85,7 +85,7 @@ Keep both paths in mind:
 
 ## Related
 
-- [Fleet self-host](../FLEET.md)
+- [Enterprise](../ENTERPRISE.md)
 - [Deployment](./deployment.md)
 - [SLA](../SLA.md) — published uptime covers Studio license/download infra, not your collab WebSocket
 - [ADR: collab snapshot durability](../decisions/2026-06-13-collab-snapshot-durability.md)

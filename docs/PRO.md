@@ -1257,7 +1257,7 @@ Content-Type: application/json
 
 ## Enterprise (perpetual)
 
-Enterprise licenses follow the same perpetual model but are scoped to self-hosted Fleet deployments with domain lock. See [RevealUI Fleet](./FLEET.md) for the full self-hosted deployment guide.
+Enterprise licenses follow the same perpetual model but are scoped to self-hosted deployments with domain lock. See [Enterprise](./ENTERPRISE.md) and [Deployment](./guides/deployment.md).
 
 ---
 
@@ -1302,37 +1302,6 @@ GET /.well-known/marketplace.json
 Customers buy the Enterprise tier of RevealUI as a **license plus studio support** on admin.revealui.com (Contact sales / inquire — not a public monthly SKU). The customer self-hosts. See [Enterprise](./ENTERPRISE.md).
 
 - **License (this tier)** — EdDSA-signed JWT, support, and Enterprise entitlements. Studio does **not** operate a dedicated customer VM on `revealui.com` infrastructure.
-- **Self-hosted Fleet** — You deploy the Docker Compose stack (API + admin + PostgreSQL) on your own infrastructure, domain-locked via `REVFORGE_LICENSED_DOMAIN`. Produced by RevForge (operator tool).
+- **Self-host** — You deploy on your own infrastructure. See [Enterprise](./ENTERPRISE.md) and [Deployment](./guides/deployment.md).
 
-Both use the same Enterprise license tier and the same EdDSA-signed JWT format for `REVFORGE_LICENSE_KEY`. The difference is how you run the stack, not whether Studio hosts it for you.
-
-## RevealUI Fleet — Self-Hosted Deployment
-
-See **[FLEET.md](./FLEET.md)** for the complete deployment guide, including:
-
-- Docker Compose stack (API + admin + PostgreSQL)
-- Environment variables (`REVFORGE_LICENSE_KEY`, `REVFORGE_LICENSED_DOMAIN`, etc.)
-- Domain lock enforcement
-- Reverse proxy configuration (Caddy + Nginx examples)
-- Database migrations and upgrade procedure
-- Ed25519 key generation for license JWT signing
-- Troubleshooting
-
-### Quick reference
-
-```bash
-# Public images. No GHCR login. A Fleet license JWT is still required to run the kit.
-docker pull ghcr.io/revealuistudio/revealui-api:latest
-docker pull ghcr.io/revealuistudio/revealui-admin:latest
-docker pull ghcr.io/revealuistudio/revealui-migrate:latest
-
-# Start the stack
-docker compose -f docker-compose.forge.yml --env-file .env.forge up -d
-
-# Apply migrations
-docker compose -f docker-compose.forge.yml exec api pnpm db:migrate
-
-# Verify
-curl https://your-domain.com/health
-# {"status":"ok","db":"connected","license":"forge"}
-```
+Both use the same Enterprise license tier and the same EdDSA-signed JWT format. The difference is how you run the stack, not whether Studio hosts it for you.

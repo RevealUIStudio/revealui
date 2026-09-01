@@ -33,6 +33,12 @@ describe('pricing FAQ RevealFleet honesty', () => {
     expect(answer.includes('not a separate paid SKU')).toBe(true);
   });
 
+  it('keeps the buyable RevealUI catalog in the perpetual-license answer', () => {
+    const faq = PRICING_FAQS.find((item) => item.question === 'What are perpetual licenses?');
+    expect(faq?.answer.includes('Pro Perpetual')).toBe(true);
+    expect(faq?.answer.includes('Studio SKUs live on revealuistudio.com')).toBe(true);
+  });
+
   it('names the perpetual SKU Pro Perpetual, not Perpetual Pro', () => {
     const faq = PRICING_FAQS.find((item) => item.question === 'What are perpetual licenses?');
     expect(faq?.answer.includes('Pro Perpetual')).toBe(true);

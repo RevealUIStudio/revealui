@@ -1,14 +1,14 @@
 ---
 title: "Deployment"
-description: "RevealUI supports several deployment targets: Vercel (recommended for the HTTP apps, including the buyer one-click starter), Fly (for long-running services like the ElectricSQL sync layer), Docker Compose, Railway marketplace leftover, and self-hosted Node.js."
+description: "RevealUI supports several deployment targets: Vercel (recommended for the HTTP apps, including the buyer one-click starter), Fly (for long-running services like the ElectricSQL sync layer), Docker Compose, and self-hosted Node.js."
 visibility: public
 status: verified
 audience: user
 ---
 
-RevealUI supports several deployment targets: Vercel (recommended for the HTTP apps), Fly (for long-running services like the ElectricSQL sync layer), Docker Compose, Railway (customer marketplace leftover), and self-hosted Node.js. This guide covers each option and the environment configuration required for production.
+RevealUI supports several deployment targets: Vercel (recommended for the HTTP apps), Fly (for long-running services like the ElectricSQL sync layer), Docker Compose, and self-hosted Node.js. This guide covers each option and the environment configuration required for production.
 
-> RevealUI Studio's own production runs on **Vercel (HTTP) + Fly (long-running `apps/server` subset + ElectricSQL) + Neon (Postgres)**. Kubernetes is not a target. A `fly.toml` ships at `apps/server/fly.toml`. The **buyer** one-click is the existing starter on **their** Vercel + Neon (see [Vercel one-click](#vercel-one-click-buyer-account) below). Railway is a leftover **customer marketplace** path only (see [Railway](#railway-marketplace-template) below); do not finish Railway here. Neither path is Studio's production host.
+> RevealUI Studio's own production runs on **Vercel (HTTP) + Fly (long-running `apps/server` subset + ElectricSQL) + Neon (Postgres)**. Kubernetes is not a target. A `fly.toml` ships at `apps/server/fly.toml`. The **buyer** one-click is the existing starter on **their** Vercel + Neon (see [Vercel one-click](#vercel-one-click-buyer-account) below).
 
 ---
 
@@ -20,7 +20,6 @@ RevealUI supports several deployment targets: Vercel (recommended for the HTTP a
 | Vercel one-click (buyer) | Existing starter on the buyer's Vercel | `create-revealui` / `revealui-template-starter` + Neon they control |
 | Fly | Long-running services | Persistent `apps/server` subset + ElectricSQL sync |
 | Docker Compose | Self-hosted, on-prem | All apps in containers |
-| Railway | Leftover customer marketplace one-click | API + admin + migrate + pgvector Postgres |
 | Node.js | Custom infrastructure | Manual process management |
 
 ---
@@ -223,7 +222,7 @@ Use this in your Docker health check or load balancer configuration.
 
 ## Vercel one-click (buyer account)
 
-The chosen one-click is the existing starter on **the buyer's** Vercel account and a Neon database they control. It is not managed hosting, not the Starter Kit, and not a fourth studio invoice.
+The chosen one-click is the existing starter on **the buyer's** Vercel account and a Neon database they control. It is not managed hosting, not the Starter Kit, and not a fourth studio invoice. There is no `revealui.com/templates` page.
 
 | Piece | Location |
 |-------|----------|
@@ -231,33 +230,15 @@ The chosen one-click is the existing starter on **the buyer's** Vercel account a
 | `vercel.json` (framework / install / build) | [deployment/vercel/vercel.json](https://github.com/RevealUIStudio/revealui/blob/test/deployment/vercel/vercel.json) |
 | Scaffold copy in `create-revealui` | [packages/cli/templates/starter/vercel.json](https://github.com/RevealUIStudio/revealui/blob/test/packages/cli/templates/starter/vercel.json) |
 | GitHub twin | https://github.com/RevealUIStudio/revealui-template-starter |
-| Public Deploy button | https://revealui.com/templates |
 | Owner leftover | `docs/distribution/VERCEL-TEMPLATE-OWNER-PUBLISH.md` (internal; not a public docs page) |
 
-1. Open [/templates](https://revealui.com/templates) and click **Deploy to Vercel**.
-2. Sign in to **your** Vercel account. The flow clones `revealui-template-starter` into a repo you own.
+1. Open the [starter GitHub template](https://github.com/RevealUIStudio/revealui-template-starter) and use **Use this template**, or run `npx create-revealui@latest`.
+2. Sign in to **your** Vercel account and import that repo. The flow deploys `revealui-template-starter` into a project you own.
 3. Accept Neon from the Vercel Marketplace when prompted (`DATABASE_URL` is accepted as a `POSTGRES_URL` fallback).
 4. Set `REVEALUI_SECRET` (32+ characters), the public URL of this project, and first-admin email/password.
 5. After the first deploy, point `REVEALUI_PUBLIC_SERVER_URL` and `NEXT_PUBLIC_SERVER_URL` at the Vercel URL.
 
 Vercel Marketplace / `vercel.com/templates` catalog publish is an owner dashboard step. Do not invent a live listing URL.
-
----
-
-## Railway marketplace template
-
-For a leftover one-click deploy of the self-hosted runtime **on the buyer's Railway account**, use the config-as-code under `deployment/railway/` in this repository (operator guide on GitHub:
-[deployment/railway/README.md](https://github.com/RevealUIStudio/revealui/blob/test/deployment/railway/README.md)). That path is a sales channel (marketplace template), not a change to Studio's own production stack.
-
-| Piece | Location (repo root) |
-|-------|----------|
-| Operator guide (license, first boot, Free-tier unlicensed flag) | [deployment/railway/README.md](https://github.com/RevealUIStudio/revealui/blob/test/deployment/railway/README.md) |
-| API service config | [deployment/railway/api.json](https://github.com/RevealUIStudio/revealui/blob/test/deployment/railway/api.json) |
-| Admin service config | [deployment/railway/admin.json](https://github.com/RevealUIStudio/revealui/blob/test/deployment/railway/admin.json) |
-
-Architecture (four services): `postgres` (`pgvector/pgvector:pg16`), one-shot `migrate`, `api` (`apps/server/Dockerfile`), `admin` (`apps/admin/Dockerfile`). Read the marketplace operator guide before publishing or deploying. Free (OSS) boots can set `REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true` on **both** `api` and `admin` and omit license keys. Fleet (licensed) boots set `REVEALUI_LICENSE_KEY` and `REVEALUI_LICENSE_PUBLIC_KEY` instead.
-
-Marketplace listing publish and payout wiring remain an operator step once the template is ready to list.
 
 ---
 
@@ -416,13 +397,14 @@ RevealUI uses a structured logger (`@revealui/utils`). In production, logs are w
 
 ## Enterprise self-hosted operators
 
-The customer Fleet kit (Compose + GHCR, domain lock, license JWT) is documented in [FLEET.md](../FLEET.md): install, upgrade, rollback, backup, restore. Published Studio uptime covers license validation and downloads only — see [SLA](../SLA.md). Collaborative Lexical rooms need a long-running API process; see [Collaborative editing](./collaborative-editing.md).
+Enterprise is a license plus studio support. You deploy on your own infrastructure. See [Enterprise](../ENTERPRISE.md). Published Studio uptime covers license validation and downloads only — see [SLA](../SLA.md). Collaborative Lexical rooms need a long-running API process; see [Collaborative editing](./collaborative-editing.md).
 
-Secrets for a Fleet kit belong in RevVault (or your own secret store), not a copied `apps/admin/.env.example`. `docker-compose.forge.yml` reads `.env.forge`. Never put `REVEALUI_LICENSE_PRIVATE_KEY` on a customer kit.
+Secrets belong in RevVault (separate product) or your own secret store, not a copied `apps/admin/.env.example`. Never put `REVEALUI_LICENSE_PRIVATE_KEY` on a customer deploy.
 
 ## Related Documentation
 
-- [Fleet](../FLEET.md) -- Enterprise self-host kit
+- [Enterprise](../ENTERPRISE.md) -- License plus studio support
+- [Quick Start](../QUICK_START.md) -- Public get-started
 - [SLA](../SLA.md) -- Published support and license-infra uptime
 - [Environment Variables](../ENVIRONMENT-VARIABLES-GUIDE.md) -- Full configuration reference
 - [Architecture](../ARCHITECTURE.md) -- System design and infrastructure
