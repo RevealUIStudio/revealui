@@ -11,7 +11,7 @@ audience: public
 
 RevealFleet (`/docs/FLEET`) is the family name for RevealUI Studio software. It is **not** a catalog SKU, **not** a buyable runtime, and **not** a public get-started path.
 
-**RevealUI** is the lead product and the buyable runtime. The public catalog is Free, Pro ($49/mo), Max ($299/mo), Enterprise (inquire / Contact sales), and Pro Perpetual ($1,499).
+**RevealUI** is the lead product and the buyable runtime. The public catalog is Free, Pro ($49/mo), Max ($99/mo), Enterprise (inquire / Contact sales), and Pro Perpetual ($1,499).
 
 Public get-started:
 

@@ -39,7 +39,7 @@ Five primitives make up the runtime: People, Content, Offers, Payments, Agents.
 
 ## Pricing
 
-- [Pricing page](https://revealui.com/pricing): Free $0, Pro $49, Max $299, Enterprise inquire; Pro Perpetual $1,499
+- [Pricing page](https://revealui.com/pricing): Free $0, Pro $49, Max $99, Enterprise inquire; Pro Perpetual $1,499
 - Billing rails are live end to end. Zero paying customers yet.
 
 ## For agents
