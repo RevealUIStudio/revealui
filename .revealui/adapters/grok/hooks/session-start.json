@@ -20,12 +20,12 @@
           },
           {
             "type": "command",
-            "command": "node \"$HOME/.claude/hooks/hotfix-check.js\" 2>/dev/null || true",
+            "command": "node \"$HOME/revfleet/revealui/packages/harnesses/dist/cli.js\" hotfix check 2>/dev/null || revealui-harnesses hotfix check 2>/dev/null || true",
             "timeout": 15
           },
           {
             "type": "command",
-            "command": "node \"$HOME/.claude/hooks/tmpscript-check.js\" 2>/dev/null || true",
+            "command": "node \"$HOME/revfleet/revealui/packages/harnesses/dist/cli.js\" tmpscript check 2>/dev/null || revealui-harnesses tmpscript check 2>/dev/null || true",
             "timeout": 12
           },
           {
