@@ -155,11 +155,21 @@ describe('Template file structure  -  variant-specific content', () => {
     expect(vercel.buildCommand).toBe('pnpm build');
   });
 
-  it('basic-blog: does not ship a Vercel one-click vercel.json', async () => {
-    const projectPath = path.join(tmpDir, 'blog-no-vercel');
+  it('basic-blog: copies vercel.json for the buyer Vercel one-click', async () => {
+    const projectPath = path.join(tmpDir, 'blog-vercel');
     await createProject(baseConfig('basic-blog', projectPath));
     const files = await fs.readdir(projectPath);
-    expect(files).not.toContain('vercel.json');
+    expect(files).toContain('vercel.json');
+    const vercel = JSON.parse(
+      await fs.readFile(path.join(projectPath, 'vercel.json'), 'utf-8'),
+    ) as {
+      framework?: string;
+      installCommand?: string;
+      buildCommand?: string;
+    };
+    expect(vercel.framework).toBe('nextjs');
+    expect(vercel.installCommand).toBe('pnpm install');
+    expect(vercel.buildCommand).toBe('pnpm build');
   });
 });
 
@@ -508,10 +518,14 @@ describe('Template vercel.json (customer runtime deploy)', () => {
       const config = JSON.parse(raw) as {
         $schema?: string;
         framework?: string;
+        installCommand?: string;
+        buildCommand?: string;
         stores?: unknown;
       };
       expect(config.$schema).toBe('https://openapi.vercel.sh/vercel.json');
       expect(config.framework).toBe('nextjs');
+      expect(config.installCommand).toBe('pnpm install');
+      expect(config.buildCommand).toBe('pnpm build');
       expect(config.stores).toBeUndefined();
       expect(raw.includes('neon')).toBe(false);
       expect(raw.includes('blob')).toBe(false);
