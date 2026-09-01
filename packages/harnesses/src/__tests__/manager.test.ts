@@ -68,6 +68,7 @@ describe('project manager (.revealui)', () => {
     expect(grokMd).toContain('hotfix-check');
     expect(grokMd).toContain('Do not invent a second hotfix registry');
     expect(grokMd).toContain('rfg');
+    expect(grokMd).toContain('.grok/commands/');
     expect(grokMd).toContain('RevKit deploys');
     expect(grokMd).not.toContain('mkdir -p ~/.grok/hooks');
     const materializeSrc = readFileSync(
@@ -147,6 +148,10 @@ describe('project manager (.revealui)', () => {
     expect(grokRule).toBe(contentRule);
     expect(written.paths.some((p) => p === '.grok/rules/00-spawn-map.md')).toBe(true);
     expect(written.paths.some((p) => p === '.grok/rules/00-revealui-manager.md')).toBe(true);
+    expect(written.paths.some((p) => p === '.grok/commands/gate.md')).toBe(true);
+    const grokGate = readFileSync(join(root, '.grok/commands/gate.md'), 'utf-8');
+    expect(grokGate).toContain('disable-model-invocation: true');
+    expect(grokGate).toContain('pnpm gate');
     const grokManager = readFileSync(join(root, '.grok/rules/00-revealui-manager.md'), 'utf-8');
     expect(grokManager).toContain('Do not author policy there');
     expect(grokManager).not.toContain('revfleet/.jv');
