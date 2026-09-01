@@ -46,7 +46,9 @@ const ContactInquirySchema = z.object({
   company: z.string().max(120).trim().optional(),
   message: z.string().min(20).max(5000).trim(),
   // Honeypot — hidden via CSS in the form. Bots fill it; humans don't.
-  website: z.string().max(0).optional(),
+  // Left unconstrained so a filled value reaches the handler and is silently
+  // 200'd (a max(0) reject would 400, handing bots a signal).
+  website: z.string().optional(),
 });
 
 type ContactInquiry = z.infer<typeof ContactInquirySchema>;
