@@ -1445,6 +1445,32 @@ export const KitFulfillmentsInsertContract = createContract({
 })
 
 // =============================================================================
+// Leads Contracts
+// =============================================================================
+
+/**
+ * Contract for leads row (Select)
+ * Database table: leads
+ */
+export const LeadsRowContract = createContract({
+  name: 'LeadsRow',
+  version: '1',
+  description: 'Database row contract for leads table',
+  schema: Schemas.LeadsSelectSchema,
+})
+
+/**
+ * Contract for leads insert
+ * Database table: leads
+ */
+export const LeadsInsertContract = createContract({
+  name: 'LeadsInsert',
+  version: '1',
+  description: 'Database insert contract for leads table',
+  schema: Schemas.LeadsInsertSchema,
+})
+
+// =============================================================================
 // LicenseJtiRevocations Contracts
 // =============================================================================
 

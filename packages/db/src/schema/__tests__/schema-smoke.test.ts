@@ -54,6 +54,7 @@ import { idempotencyKeys } from '../idempotency.js';
 import * as schema from '../index.js';
 import { workspaceInferenceConfigs } from '../inference-configs.js';
 import { jobs } from '../jobs.js';
+import { leads } from '../leads.js';
 import { licenses } from '../licenses.js';
 import { magicLinks } from '../magic-links.js';
 import { marketplaceServers, marketplaceTransactions } from '../marketplace.js';
@@ -144,6 +145,8 @@ const allTables = [
   { table: workspaceInferenceConfigs, name: 'workspace_inference_configs' },
   // jobs.ts
   { table: jobs, name: 'jobs' },
+  // leads.ts
+  { table: leads, name: 'leads' },
   // licenses.ts
   { table: licenses, name: 'licenses' },
   // magic-links.ts
@@ -321,6 +324,7 @@ describe('schema smoke tests', () => {
       expect(schema.agentMemories).toBe(agentMemories);
       expect(schema.tickets).toBe(tickets);
       expect(schema.waitlist).toBe(waitlist);
+      expect(schema.leads).toBe(leads);
     });
 
     it('index.ts re-exports drizzle operators', () => {

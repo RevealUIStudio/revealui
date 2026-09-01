@@ -25,7 +25,7 @@ and a REST API. The heart of RevealUI and the most mature part of the codebase.
 **66 native React components in `@revealui/presentation`** (plus admin and rich-text UI in `@revealui/core`), built on Tailwind CSS v4. No external UI dependencies (no Radix, no Headless UI, no shadcn). Just React hooks, clsx, and CVA. Buttons, forms, modals, tables, toasts, navigation, data display, and layout primitives.
 
 ### Database schema
-**104 PostgreSQL tables** with Drizzle ORM, **88 CHECK constraints** enforced at the database level. NeonDB is the sole primary database (REST, agent memories, and RAG via pgvector on Neon). Supabase is not an internal datastore (ADR `2026-05-01-supabase-removal`); the customer-facing Supabase MCP adapter was removed (use Neon MCP). ElectricSQL is an optional sync layer (off by default).
+**105 PostgreSQL tables** with Drizzle ORM, **90 CHECK constraints** enforced at the database level. NeonDB is the sole primary database (REST, agent memories, and RAG via pgvector on Neon). Supabase is not an internal datastore (ADR `2026-05-01-supabase-removal`); the customer-facing Supabase MCP adapter was removed (use Neon MCP). ElectricSQL is an optional sync layer (off by default).
 
 ### Rich text editing
 Lexical-based rich text editor with custom nodes, serialization, and a plugin system.
@@ -114,8 +114,8 @@ Honest list of things that are not done, not deployed, or not verified.
 | Pro packages (FSL-1.1-MIT) | 5 (`ai`, `engines`, `harnesses`, `mcp`, `services`) | Yes |
 | Internal packages | 2 (`@revealui/scripts`, `@revealui/apify-actor-governed-run`) | Yes |
 | UI components | 66 in `@revealui/presentation` | Yes |
-| Database tables | 104 | Yes (`countDbTables` in `@revealui/claim-gates`) |
-| CHECK constraints | 88 | Yes (`countCheckConstraints` in `@revealui/claim-gates`) |
+| Database tables | 105 | Yes (`countDbTables` in `@revealui/claim-gates`) |
+| CHECK constraints | 90 | Yes (`countCheckConstraints` in `@revealui/claim-gates`) |
 | MCP servers | 13 | Yes (run `ls packages/mcp/src/servers/*.ts` and count non-`_` files) |
 | Test cases | run `pnpm test` for current count | Reproducible |
 | Test files | run `find . -name "*.test.ts*" -not -path "*/node_modules/*"` | Reproducible |

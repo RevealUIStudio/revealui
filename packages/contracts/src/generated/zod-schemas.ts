@@ -1444,6 +1444,32 @@ export type KitFulfillmentsRow = z.infer<typeof KitFulfillmentsSelectSchema>
 export type KitFulfillmentsInsert = z.infer<typeof KitFulfillmentsInsertSchema>
 
 // =============================================================================
+// Leads Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting leads rows from database
+ * Generated from Drizzle table definition: tables.leads
+ */
+export const LeadsSelectSchema = createSelectSchema(tables.leads)
+
+/**
+ * Zod schema for inserting leads rows to database
+ * Generated from Drizzle table definition: tables.leads
+ */
+export const LeadsInsertSchema = createInsertSchema(tables.leads)
+
+/**
+ * TypeScript type for leads row (Select)
+ */
+export type LeadsRow = z.infer<typeof LeadsSelectSchema>
+
+/**
+ * TypeScript type for leads insert
+ */
+export type LeadsInsert = z.infer<typeof LeadsInsertSchema>
+
+// =============================================================================
 // LicenseJtiRevocations Schemas
 // =============================================================================
 

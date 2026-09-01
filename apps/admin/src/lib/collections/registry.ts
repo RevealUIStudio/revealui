@@ -14,6 +14,7 @@
 
 import type { CollectionConfig } from '@revealui/contracts/admin';
 import { Conversations } from './Conversations';
+import { Leads } from './Leads';
 import { Media } from './Media';
 import { Orders } from './Orders';
 import { Pages } from './Pages/index';
@@ -52,5 +53,6 @@ export const allCollections = [
   Orders,
   Posts,
   Conversations,
+  Leads,
   // biome-ignore lint/suspicious/noExplicitAny: heterogeneous collection array requires invariant generic
 ] as CollectionConfig<any>[];

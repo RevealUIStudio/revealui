@@ -152,6 +152,12 @@
       "rationale": "GAP-477 residual: ADD COLUMN yjs_documents.owner_id (nullable text) + btree index for Electric shape ACL (creator stamp). Hand-written ADD COLUMN IF NOT EXISTS + CREATE INDEX IF NOT EXISTS for idempotency, following the 0011/0031/0036 column-addition precedent. Companion Drizzle schema at packages/db/src/schema/yjs-documents.ts models ownerId; write paths stamp session user on insert and never clear owner on update.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Same regen path as peer hand-written migrations; Drizzle schema is the type contract."
+    },
+    {
+      "tag": "0041_studio_leads",
+      "rationale": "Studio-owned leads table for the admin pipeline (not a vendor CRM). Hand-written CREATE TABLE IF NOT EXISTS + CREATE INDEX IF NOT EXISTS + DO $$ ADD CONSTRAINT ... EXCEPTION WHEN duplicate_object because drizzle-kit generate against current meta snapshots re-emits unrelated 0021+ drift. Companion Drizzle schema at packages/db/src/schema/leads.ts; contact-form success inserts a row, status updates stay in admin.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as peer hand-written migrations; Drizzle schema is the type contract."
     }
   ]
 }

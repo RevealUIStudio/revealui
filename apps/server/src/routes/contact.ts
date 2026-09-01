@@ -18,9 +18,15 @@
  * delegation via service account). When env vars are missing in
  * non-prod, sendEmail logs and returns; in production it throws,
  * which we map to a 500 with a helpful message.
+ *
+ * On email success, also inserts a studio `leads` row (source from the
+ * submitting site). Lead insert is best-effort: a DB failure is logged
+ * and does not turn a delivered inquiry into a 500.
  */
 
 import { logger } from '@revealui/core/observability/logger';
+import { getClient } from '@revealui/db';
+import { leads } from '@revealui/db/schema';
 import { zValidator } from '@revealui/openapi';
 import { Hono } from 'hono';
 import { z } from 'zod';
@@ -105,6 +111,23 @@ app.post('/', zValidator('json', ContactInquirySchema), async (c) => {
       from: body.email,
       ip,
     });
+
+    try {
+      const db = getClient();
+      await db.insert(leads).values({
+        name: body.name,
+        email: body.email,
+        company: body.company && body.company.length > 0 ? body.company : null,
+        source: body.source,
+        status: 'lead',
+        notes: `Topic: ${body.topic}\n\n${body.message}`,
+      });
+    } catch (leadErr) {
+      logger.warn('Contact form lead insert failed', {
+        err: leadErr instanceof Error ? leadErr.message : String(leadErr),
+        source: body.source,
+      });
+    }
 
     return c.json({ success: true }, 200);
   } catch (err) {
