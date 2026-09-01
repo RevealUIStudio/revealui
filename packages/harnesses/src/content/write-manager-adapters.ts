@@ -4,7 +4,7 @@
  * - `claude-code` (default) → `.revealui/content/` (policy SSOT on disk)
  * - `cursor` → `.cursor/hooks.json` (vendor-native hooks only)
  * - `opencode` → `.opencode/{agents,commands}/`
- * - `grok` → `.grok/rules/` (preamble tier 1) + on-demand rule skills + agents
+ * - `grok` → `.grok/rules/` (preamble tier 1) + on-demand rule skills + commands + agents
  * - GAP-421 phase 2: definition rules also mirrored to `.claude/rules/<id>.md`
  *   so Claude Code loads the same body as content (no hand duals). Grok does
  *   not scan `.revealui/content/`; the grok generator is its load path.

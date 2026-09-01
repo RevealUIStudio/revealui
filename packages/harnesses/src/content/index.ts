@@ -12,7 +12,8 @@
  * - `cursor` — hooks.json only (vendor-native surface; policy still in manager)
  * - `vscode` — plugin.json hooks contribution only
  * - `grok` — preamble tier 1 under `.grok/rules/`, remaining rules as on-demand
- *   skills, content agents, spawn map (Grok does not scan `.revealui/content`)
+ *   skills, content commands under `.grok/commands/`, content agents, spawn map
+ *   (Grok does not scan `.revealui/content`)
  *
  * `manager materialize` runs `writeManagerAdapterContent` so Cursor/OpenCode/Grok
  * vendor surfaces are emitted on the **same path** as manager content (equal
@@ -56,6 +57,7 @@ export {
   GROK_SPAWN_MAP_PATH,
   GrokGenerator,
   getGenerator,
+  grokCommandPath,
   grokRulePathForDefinitionId,
   listGenerators,
   MANAGER_CONTENT_OUTPUT,

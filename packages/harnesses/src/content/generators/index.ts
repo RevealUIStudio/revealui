@@ -14,6 +14,7 @@ export {
   GROK_SPAWN_MAP_PATH,
   GrokGenerator,
   grokAgentPath,
+  grokCommandPath,
   grokOnDemandSkillPath,
   grokRulePathForDefinitionId,
 } from './grok.js';
