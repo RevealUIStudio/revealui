@@ -15,7 +15,7 @@ This page is the canonical external wording for RevealUI. Other surfaces should 
 
 ## What is RevealUI?
 
-RevealUI is an open-source agentic business runtime. It ships five primitives — people, content, offers, payments, and agents — pre-wired in one deployable system so humans and agents share the same permissions, API, and data model. OSS packages are MIT. Pro packages are Fair Source (FSL-1.1-MIT) and convert to MIT two years after each release. RevealUI is the runtime at the center of RevFleet.
+RevealUI is an open-source agentic business runtime. It ships five primitives — people, content, offers, payments, and agents — pre-wired in one deployable system so humans and agents share the same permissions, API, and data model. OSS packages are MIT. Pro packages are Fair Source (FSL-1.1-MIT) and convert to MIT two years after each release. RevealUI is the runtime at the center of RevealFleet.
 
 That paragraph is the product definition. Supporting facts:
 

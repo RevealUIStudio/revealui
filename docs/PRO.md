@@ -70,7 +70,7 @@ This is the model the product and billing architecture should converge on from 2
 
 ## What Pro Includes
 
-RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime — Pro packages, Pro APIs, Pro feature gates. It also unlocks features in *companion products* across RevFleet.
+RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime — Pro packages, Pro APIs, Pro feature gates. It also unlocks features in *companion products* across RevealFleet.
 
 **In the RevealUI runtime (this monorepo):**
 
@@ -81,7 +81,7 @@ RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime —
 - x402 micropayments and paid API support
 - Marketplace and self-hosted commercial deployment options
 
-**Unlocked in companion products (separate repos in [RevFleet](https://github.com/RevealUIStudio)):**
+**Unlocked in companion products (separate repos in [RevealFleet](https://github.com/RevealUIStudio)):**
 
 - **Studio** desktop app (lives in [RevDev](https://github.com/RevealUIStudio/revdev), Tauri) — agent coordination hub, local inference management, visual agent dashboard. Studio talks to your RevealUI runtime; the Pro tier unlocks Studio's commercial features.
 - **RevVault** desktop app (lives in [RevVault](https://github.com/RevealUIStudio/revvault), Tauri) — age-encrypted secret management
@@ -89,7 +89,7 @@ RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime —
 
 ## Ecosystem Features by Tier
 
-The canonical Free / Pro / Max / Enterprise matrix (runtime flags + RevFleet companions) lives in [What is RevealUI?](./WHAT_IS.md#feature-matrix). Companion highlights:
+The canonical Free / Pro / Max / Enterprise matrix (runtime flags + RevealFleet companions) lives in [What is RevealUI?](./WHAT_IS.md#feature-matrix). Companion highlights:
 
 | Feature | Free | Pro | Max | Enterprise |
 |---------|------|-----|-----|-------|
