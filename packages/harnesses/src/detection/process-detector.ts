@@ -40,6 +40,7 @@ const HARNESS_PROCESS_PATTERNS: Record<string, string[]> = {
   cursor: ['cursor', 'Cursor'],
   copilot: ['copilot'],
   opencode: ['opencode'],
+  grok: ['grok'],
 };
 
 /** Finds running process instances for a specific harness. */
