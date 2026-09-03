@@ -34,6 +34,7 @@ import { FreeTierBanner } from '@/components/FreeTierBanner';
 import { useLicense } from '@/lib/providers/LicenseProvider';
 import { shouldShowUpgradeNavItem } from './should-show-upgrade-nav';
 import { UpgradeDialog } from './UpgradeDialog';
+import { WeeklyUsageChrome } from './WeeklyUsageChrome';
 
 export { shouldShowUpgradeNavItem } from './should-show-upgrade-nav';
 
@@ -186,6 +187,7 @@ function AdminSidebarContent({
           <SidebarItem href="/" current={isCurrent('/')}>
             <span className="text-lg font-bold text-foreground">{siteName}</span>
           </SidebarItem>
+          <WeeklyUsageChrome />
         </SidebarSection>
       </SidebarHeader>
       <SidebarBody>
@@ -260,7 +262,7 @@ export function AdminSidebarLayout({
 }) {
   return (
     <SidebarLayout
-      navbar={<span />}
+      navbar={<WeeklyUsageChrome compact />}
       sidebar={
         <AdminSidebarContent
           siteName={siteName}
