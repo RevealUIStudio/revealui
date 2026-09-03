@@ -1,6 +1,6 @@
 'use client';
 
-import { EmptyState, Skeleton } from '@revealui/presentation';
+import { Button, EmptyState, Skeleton } from '@revealui/presentation';
 import type { KgEdgeRecord, KgNodeRecord } from '@revealui/sync';
 import { type PointerEvent, useCallback, useMemo, useRef, useState } from 'react';
 import { isEdgeLiveAt } from './knowledge-graph/is-edge-live';
@@ -254,12 +254,15 @@ export function KnowledgeGraphCanvas({
                   width={NODE_RADIUS * 2}
                   height={NODE_RADIUS * 2}
                 >
-                  <button
+                  <Button
                     type="button"
+                    size="clear"
+                    appearance="ghost"
+                    variant="neutral"
                     data-node-id={node.id}
                     aria-pressed={selected}
                     aria-label={`${node.kind} ${node.name}`}
-                    className="size-full cursor-grab rounded-full bg-transparent"
+                    className="size-full cursor-grab rounded-full bg-transparent p-0"
                     onPointerDown={(event) => handlePointerDown(event, node.id)}
                     onPointerMove={handlePointerMove}
                     onPointerUp={handlePointerUp}
