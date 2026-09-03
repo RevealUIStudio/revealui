@@ -12,9 +12,11 @@ import {
   Skeleton,
   Textarea,
 } from '@revealui/presentation';
-import type { KgEdgeRecord, KgNodeRecord } from '@revealui/sync';
+import type { KgEdgeRecord, KgNodeRecord, UseKgViewDocumentResult } from '@revealui/sync';
 import { ClientOnly, useKgViewDocument, useKnowledgeGraph } from '@revealui/sync';
 import { useEffect, useMemo, useState } from 'react';
+import { KnowledgeGraphCanvas } from '@/lib/components/KnowledgeGraphCanvas';
+import { isEdgeLiveAt } from '@/lib/components/knowledge-graph/is-edge-live';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
 // =============================================================================
@@ -34,14 +36,6 @@ function toViewSlug(repo: string | undefined): string {
     .filter((part) => part.length > 0)
     .join('-');
   return trimmed.length > 0 ? trimmed.slice(0, 64) : 'fleet';
-}
-
-function isEdgeLiveAt(edge: KgEdgeRecord, at: Date | null): boolean {
-  if (!at) return edge.invalid_at === null;
-  const validAt = new Date(edge.valid_at);
-  if (validAt > at) return false;
-  if (edge.invalid_at && new Date(edge.invalid_at) <= at) return false;
-  return true;
 }
 
 function formatTimestamp(iso: string | null): string {
@@ -112,6 +106,8 @@ function KnowledgeGraphExplorer() {
 
   const nodeById = useMemo(() => new Map(nodes.map((n) => [n.id, n])), [nodes]);
   const selectedNode = selectedNodeId ? (nodeById.get(selectedNodeId) ?? null) : null;
+  const viewSlug = toViewSlug(selectedRepo || undefined);
+  const overlay = useKgViewDocument(viewSlug);
 
   return (
     <div className="min-h-screen">
@@ -192,6 +188,19 @@ function KnowledgeGraphExplorer() {
         </span>
       </div>
 
+      <KnowledgeGraphCanvas
+        nodes={filteredNodes}
+        edges={edges}
+        selectedNodeId={selectedNodeId}
+        onSelectNode={setSelectedNodeId}
+        layout={overlay.state.layout}
+        pins={overlay.state.pins}
+        onSetLayout={overlay.setLayout}
+        at={at}
+        isLoading={isLoading}
+        error={error}
+      />
+
       <div className="grid grid-cols-1 gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
         <div className="border-r border-border p-4">
           {isLoading && nodes.length === 0 ? (
@@ -257,7 +266,8 @@ function KnowledgeGraphExplorer() {
               edgeEpisodes={edgeEpisodes}
               nodeById={nodeById}
               at={at}
-              viewSlug={toViewSlug(selectedRepo || undefined)}
+              viewSlug={viewSlug}
+              overlay={overlay}
             />
           ) : (
             <EmptyState
@@ -282,6 +292,7 @@ interface NodeDetailPaneProps {
   nodeById: Map<string, KgNodeRecord>;
   at: Date | null;
   viewSlug: string;
+  overlay: UseKgViewDocumentResult;
 }
 
 function NodeDetailPane({
@@ -291,8 +302,8 @@ function NodeDetailPane({
   nodeById,
   at,
   viewSlug,
+  overlay,
 }: NodeDetailPaneProps) {
-  const overlay = useKgViewDocument(viewSlug);
   const [annotationDraft, setAnnotationDraft] = useState('');
   const [flushStatus, setFlushStatus] = useState<'idle' | 'flushing' | 'flushed' | 'error'>('idle');
 
