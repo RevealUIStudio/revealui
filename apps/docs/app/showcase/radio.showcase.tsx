@@ -57,7 +57,7 @@ const story: ShowcaseStory = {
           {[
             { value: 'free', label: 'Free', desc: 'Basic features' },
             { value: 'pro', label: 'Pro', desc: '$49/mo' },
-            { value: 'max', label: 'Max', desc: '$299/mo' },
+            { value: 'max', label: 'Max', desc: '$99/mo' },
           ].map((plan) => (
             <RadioField key={plan.value}>
               <Radio intent="brand" value={plan.value} aria-label={plan.label} />

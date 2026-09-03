@@ -16,6 +16,7 @@ const LOCAL_CONFIG_PATHS: Record<string, string> = {
   cursor: join(HOME, '.cursor', 'settings.json'),
   copilot: join(HOME, '.config', 'github-copilot', 'hosts.json'),
   opencode: join(HOME, '.config', 'opencode', 'opencode.json'),
+  grok: join(HOME, '.grok', 'config.toml'),
   // VS Code's Linux user settings path (stable convention, unrelated to the
   // agent-plugin Preview surface this build ships). Distinct from `copilot`
   // above -- that id is the GitHub Copilot CLI/host config; this is the
@@ -29,6 +30,7 @@ const ROOT_CONFIG_FILES: Record<string, string> = {
   cursor: 'settings.json',
   copilot: 'hosts.json',
   opencode: 'opencode.json',
+  grok: 'config.toml',
   vscode: 'settings.json',
 };
 

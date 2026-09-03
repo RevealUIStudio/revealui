@@ -66,7 +66,7 @@ Pro packages are published to npm as compiled distributions. You can install the
 
 | | Free (OSS) | Pro | Max | Enterprise |
 |---|---|---|---|---|
-| **Price** | Free forever | $49/month | $299/month | Contact sales / inquire |
+| **Price** | Free forever | $49/month | $99/month | Contact sales / inquire |
 | **Sites** | 1 | 5 | 15 | Unlimited |
 | **Users/editors** | 3 | 25 | 100 | Unlimited |
 | **Agent tasks/mo** | Local AI | 10,000 | 50,000 | Unlimited |
@@ -76,7 +76,7 @@ Pro packages are published to npm as compiled distributions. You can install the
 | **Real-time sync** | Basic | Full | Full | Full |
 | **Local AI inference (Snaps / Ollama)** | Yes | Yes | Yes | Yes |
 | **AI agents (orchestration)** | -- | Yes | Yes | Yes |
-| **AI memory** | -- | -- | Full (working + episodic + vector) | Full |
+| **AI memory** | -- | Full (working + episodic + vector) | Full | Full |
 | **Advanced inference config** | -- | -- | Yes | Yes |
 | **Stripe payments** | -- | Built-in | Built-in | Built-in |
 | **Monitoring dashboard** | -- | Yes | Yes | Yes |

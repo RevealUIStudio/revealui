@@ -6,6 +6,7 @@ import {
   TEMPLATES_CLI,
   TEMPLATES_CLI_ITEMS,
   TEMPLATES_HERO,
+  TEMPLATES_VERCEL,
 } from '../../content/templates';
 import { TemplatesPage } from '../TemplatesPage';
 
@@ -28,6 +29,17 @@ describe('TemplatesPage', () => {
     );
     expect(screen.queryByRole('link', { name: 'Use this template: starter-native' })).toBeNull();
     expect(screen.getByText('No GitHub twin', { exact: false })).toBeInTheDocument();
+  });
+
+  it('renders Deploy to Vercel for the four Next.js twins only', () => {
+    render(<TemplatesPage />);
+    expect(screen.getByRole('heading', { name: TEMPLATES_VERCEL.heading })).toBeInTheDocument();
+    expect(screen.getByText(TEMPLATES_VERCEL.body)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Deploy to Vercel: basic-blog' })).toHaveAttribute(
+      'href',
+      TEMPLATES_CLI_ITEMS[0]?.deployHref ?? '',
+    );
+    expect(screen.queryByRole('link', { name: 'Deploy to Vercel: starter-native' })).toBeNull();
   });
 
   it('links the Apify actor and prints billed verify', () => {

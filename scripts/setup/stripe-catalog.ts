@@ -12,9 +12,10 @@
  * Enterprise is inquire / Contact sales — not a self-serve SKU.
  *
  * Dollar amounts are the cents-of-record for the public keep-list:
- *   - RevealUI Pro $49 / $470, 7-day trial
- *   - RevealUI Max $299 / $2,870, 7-day trial
+ *   - RevealUI Pro $49 / $399, 7-day trial
+ *   - RevealUI Max $99 / $799, 7-day trial
  *   - Pro Perpetual $1,499 + Pro Support Renewal $149/yr
+ *     ($1,499 stays vs $399/yr; ~3.75 years to match — do not invent a new perpetual price)
  *
  * Marketing display: apps/marketing/app/lib/pricing-fallbacks.ts
  * Lockstep: scripts/setup/__tests__/stripe-catalog-lockstep.test.ts
@@ -41,7 +42,7 @@ export const CATALOG: ProductDefinition[] = [
     key: 'revealui_pro',
     name: 'RevealUI Pro',
     description:
-      'AI agents, MCP servers, editor integrations, and advanced sync. For professional developers and small teams.',
+      'AI agents, AI memory, signed audit receipts, MCP servers, and advanced sync. For professional developers and small teams.',
     tier: 'pro',
     billingModel: 'subscription',
     defaultPriceKey: 'revealui_pro_monthly',
@@ -56,7 +57,7 @@ export const CATALOG: ProductDefinition[] = [
       },
       {
         key: 'revealui_pro_yearly',
-        unitAmount: 47000,
+        unitAmount: 39900,
         currency: 'usd',
         mode: 'subscription',
         interval: 'year',
@@ -68,14 +69,14 @@ export const CATALOG: ProductDefinition[] = [
     key: 'revealui_max',
     name: 'RevealUI Max',
     description:
-      'AI memory, advanced inference configuration, audit log, and higher limits (15 projects, 100 users).',
+      'Unattended inference and RevKit environment provisioning, plus higher limits (15 projects, 100 users).',
     tier: 'max',
     billingModel: 'subscription',
     defaultPriceKey: 'revealui_max_monthly',
     prices: [
       {
         key: 'revealui_max_monthly',
-        unitAmount: 29900,
+        unitAmount: 9900,
         currency: 'usd',
         mode: 'subscription',
         interval: 'month',
@@ -83,7 +84,7 @@ export const CATALOG: ProductDefinition[] = [
       },
       {
         key: 'revealui_max_yearly',
-        unitAmount: 287000,
+        unitAmount: 79900,
         currency: 'usd',
         mode: 'subscription',
         interval: 'year',

@@ -62,8 +62,7 @@ export const LOCAL_AI_SECTION = {
       { code: 'LLM_PROVIDER=ollama', note: 'qwen2.5:3b on your box, port 11434' },
     ],
   },
-  dogfood:
-    'RevDev Studio, the harness this team uses to build RevealUI, includes a local-inference cockpit for Inference Snaps and Ollama. The maintainers run local inference themselves.',
+  dogfood: 'The maintainers run local inference themselves on Inference Snaps and Ollama.',
   honesty:
     'Local inference needs an open-weight model runner (Ollama or Ubuntu Inference Snaps) and enough hardware. Frontier models still lead the hardest work, which is why they stay one config line away.',
   cta: { label: 'See local-first AI', href: '/local-ai' },

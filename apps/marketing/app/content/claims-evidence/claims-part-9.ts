@@ -29,7 +29,7 @@ const QUOTE_UI: ClaimEntry['evidence'][number] = {
 const QUOTE_LOCKSTEP: ClaimEntry['evidence'][number] = {
   kind: 'test',
   ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#locksteps printed numbers to public-catalog and the locked SKU trio',
-  note: 'printed Free / Pro / Max / Perpetual and Hour / bundle / Launch prices cannot drift from public-catalog',
+  note: 'printed Free / Pro / Max / Perpetual and Consultation / Pilot / Launch prices cannot drift from public-catalog',
 };
 
 const QUOTE_INTRO: ClaimEntry['evidence'][number] = {
@@ -67,32 +67,20 @@ export const claimsPart9: readonly ClaimEntry[] = [
   },
   {
     file: 'quote-calculator.ts',
-    exportPath: 'QUOTE_CALCULATOR.questions.what.options[0].label',
-    text: 'One hour with Joshua (debug / pair)',
-    evidence: [
-      {
-        kind: 'test',
-        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio hour, bundle, and launch quotes',
-        note: 'hour answer is one of the three Studio SKUs that print together',
-      },
-    ],
-  },
-  {
-    file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.questions.what.options[1].label',
-    text: 'Architecture artifact bundle and review',
+    text: 'Pilot: one site, one agent you run',
     evidence: [
       {
         kind: 'test',
-        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio architecture-bundle quote',
-        note: 'bundle answer prints the $3,500 architecture artifact bundle and review',
+        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio pilot quote',
+        note: 'pilot answer prints the $1,500 Pilot',
       },
     ],
   },
   {
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.questions.what.options[2].label',
-    text: 'One live flow on my accounts',
+    text: 'Launch: one live flow on my accounts',
     evidence: [
       {
         kind: 'test',
@@ -118,14 +106,14 @@ export const claimsPart9: readonly ClaimEntry[] = [
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.selfHost.free',
     proofGrade: 'outcome',
-    text: 'Free: $0 + your infra. Start free, or run `npx create-revealui`.',
+    text: 'Free: $0 + your infra. Start free, or run `npx create-revealui@latest`.',
     evidence: [LICENSE_MIT, SELF_HOST, CLI_CREATE, QUOTE_RESOLVER],
   },
   {
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.selfHost.agents',
     proofGrade: 'outcome',
-    text: 'Pro $49/mo or Max $299/mo. 7-day trial.',
+    text: 'Pro $49/mo or Max $99/mo. 7-day trial.',
     evidence: [PRICING_FALLBACKS, TRIAL, QUOTE_LOCKSTEP, QUOTE_RESOLVER],
   },
   {
@@ -144,41 +132,14 @@ export const claimsPart9: readonly ClaimEntry[] = [
   },
   {
     file: 'quote-calculator.ts',
-    exportPath: 'QUOTE_CALCULATOR.studio.hour.body',
+    exportPath: 'QUOTE_CALCULATOR.studio.pilot.body',
     proofGrade: 'outcome',
-    text: 'Invoice before start. No holdback.',
+    text: 'One site on your domain, one agent you run, you keep it. Credits 100% to Launch if you start Launch within 30 days.',
     evidence: [
       {
         kind: 'test',
-        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio hour, bundle, and launch quotes',
-        note: 'Studio + one place prints $300 and the invoice/no-holdback line',
-      },
-      QUOTE_LOCKSTEP,
-    ],
-  },
-  {
-    file: 'quote-calculator.ts',
-    exportPath: 'QUOTE_CALCULATOR.studio.plan.title',
-    proofGrade: 'outcome',
-    text: 'Architecture artifact bundle and review',
-    evidence: [
-      {
-        kind: 'test',
-        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio architecture-bundle quote',
-        note: 'Studio bundle title is the locked architecture name, not a written plan',
-      },
-    ],
-  },
-  {
-    file: 'quote-calculator.ts',
-    exportPath: 'QUOTE_CALCULATOR.studio.plan.body',
-    proofGrade: 'outcome',
-    text: 'The prototype is inside the bundle. Half now, half on delivery. Credits to a launch in 30 days.',
-    evidence: [
-      {
-        kind: 'test',
-        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio architecture-bundle quote',
-        note: 'Studio + bundle prints $3,500, prototype-inside, and the 30-day architecture credit',
+        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio pilot quote',
+        note: 'Studio + pilot prints $1,500 and the 30-day Launch credit',
       },
     ],
   },
@@ -186,7 +147,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.studio.launch.body',
     proofGrade: 'outcome',
-    text: 'Half now, half on delivery.',
+    text: 'Architecture work happens inside Launch. Half now, half on delivery.',
     evidence: [
       {
         kind: 'test',

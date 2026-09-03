@@ -9,6 +9,13 @@ audience: developer
 
 Get RevealUI up and running locally. Budget 15–30 minutes if you're creating accounts for the first time.
 
+Live public get-started paths:
+
+- `npx create-revealui@latest`
+- GitHub templates (Use this template): [starter](https://github.com/RevealUIStudio/revealui-template-starter), [basic-blog](https://github.com/RevealUIStudio/revealui-template-basic-blog), [portfolio](https://github.com/RevealUIStudio/revealui-template-portfolio), [e-commerce](https://github.com/RevealUIStudio/revealui-template-e-commerce)
+- Apify [governed-agent-run](https://apify.com/revealuistudio/governed-agent-run) — pay-per-event. Receipt verification is $0.00001, not free.
+- [Templates](https://revealui.com/templates): visitor Deploy-to-Vercel on the four Next.js GitHub twins
+
 ---
 
 ## Which path are you on?
@@ -16,7 +23,7 @@ Get RevealUI up and running locally. Budget 15–30 minutes if you're creating a
 **Building a new project with RevealUI:**
 
 ```bash
-npx create-revealui my-app
+npx create-revealui@latest my-app
 cd my-app
 ```
 
@@ -186,7 +193,7 @@ For more → [Troubleshooting Guide](./TROUBLESHOOTING.md)
 - [Full documentation](./INDEX.md)
 - [Component catalog](./COMPONENT_CATALOG.md)  -  66 native UI components in `@revealui/presentation` (80 total with `@revealui/core` admin/richtext)
 - [Example projects](./EXAMPLES.md)  -  blog, subscription starter, storefront
-- [Deployment guide](./guides/deployment.md)  -  Vercel + Fly + customer Railway marketplace template, environment variables, production checklist
+- [Deployment guide](./guides/deployment.md)  -  Vercel + Fly + visitor Deploy-to-Vercel (four Next.js GitHub twins) + Docker Compose, environment variables, production checklist
 - [AI agents](./AI.md)  -  agent orchestration, open-model inference, MCP framework (Pro)
 
 ---

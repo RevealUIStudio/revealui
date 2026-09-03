@@ -69,15 +69,12 @@ const PRO_FEATURES: (keyof FeatureFlags)[] = [
   'analytics',
   'vaultDesktop',
   'vaultRotation',
+  'aiMemory',
+  'auditLog',
 ];
 
 /** Features that require at least Max tier */
-const MAX_FEATURES: (keyof FeatureFlags)[] = [
-  'aiMemory',
-  'aiInference',
-  'auditLog',
-  'devkitProfiles',
-];
+const MAX_FEATURES: (keyof FeatureFlags)[] = ['aiInference', 'devkitProfiles'];
 
 /** Features that require Enterprise tier */
 const ENTERPRISE_FEATURES: (keyof FeatureFlags)[] = ['multiTenant', 'whiteLabel', 'sso'];
@@ -275,7 +272,7 @@ describe('isFeatureEnabled', () => {
 
     mockIsLicensed.mockClear();
     isFeatureEnabled('aiMemory');
-    expect(mockIsLicensed).toHaveBeenCalledWith('max');
+    expect(mockIsLicensed).toHaveBeenCalledWith('pro');
 
     // B-02: whiteLabel is hardcoded off, so isFeatureEnabled short-circuits before
     // calling isLicensed. Use multiTenant to verify enterprise tier delegation.
@@ -398,16 +395,16 @@ describe('getRequiredTier', () => {
     expect(getRequiredTier('analytics')).toBe('pro');
   });
 
-  it('returns max for aiMemory feature', () => {
-    expect(getRequiredTier('aiMemory')).toBe('max');
+  it('returns pro for aiMemory feature', () => {
+    expect(getRequiredTier('aiMemory')).toBe('pro');
   });
 
   it('returns max for aiInference feature', () => {
     expect(getRequiredTier('aiInference')).toBe('max');
   });
 
-  it('returns max for auditLog feature', () => {
-    expect(getRequiredTier('auditLog')).toBe('max');
+  it('returns pro for auditLog feature', () => {
+    expect(getRequiredTier('auditLog')).toBe('pro');
   });
 
   it('returns enterprise for multiTenant feature', () => {
@@ -443,8 +440,8 @@ describe('tier progression', () => {
   const tiers: LicenseTier[] = ['free', 'pro', 'max', 'enterprise'];
   const expectedEnabledCounts: Record<LicenseTier, number> = {
     free: 1, // aiLocal
-    pro: 10, // 1 free + 9 pro features (incl. vaultDesktop, vaultRotation)
-    max: 14, // 1 free + 9 pro + 4 max features (incl. devkitProfiles)
+    pro: 12, // 1 free + 11 pro features (incl. aiMemory, auditLog)
+    max: 14, // 1 free + 11 pro + 2 max features (aiInference, devkitProfiles)
     enterprise: 16, // 17 total minus 1 hardcoded-off (whiteLabel); sso enableable
   };
 

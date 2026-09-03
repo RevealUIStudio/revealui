@@ -5,12 +5,13 @@ import {
   GROK_OUTPUT_DIR,
   GROK_SPAWN_MAP_PATH,
   GrokGenerator,
+  grokCommandPath,
   grokOnDemandSkillPath,
   grokRulePathForDefinitionId,
 } from '../content/generators/grok.js';
 import { getGenerator, listGenerators } from '../content/index.js';
 import { alwaysOnRuleIds } from '../content/preamble-ids.js';
-import type { Rule } from '../content/schemas/index.js';
+import type { Command, Rule } from '../content/schemas/index.js';
 
 const ctx = { projectRoot: '/test' };
 
@@ -51,6 +52,37 @@ describe('GrokGenerator', () => {
     expect(files[0]?.content).toContain('Body for database');
   });
 
+  it('writes slash-command markdown under .grok/commands/', () => {
+    const cmd: Command = {
+      id: 'gate',
+      name: 'Gate',
+      description: 'Run the quality gate',
+      tier: 'oss',
+      disableModelInvocation: false,
+      content: 'Run lint, typecheck, and tests.',
+    };
+    const files = new GrokGenerator().generateCommand(cmd, ctx);
+    expect(files).toHaveLength(1);
+    expect(files[0]?.relativePath).toBe(grokCommandPath('gate'));
+    expect(files[0]?.content).toContain('description: Run the quality gate');
+    expect(files[0]?.content).toContain('Run lint, typecheck, and tests.');
+  });
+
+  it('includes argument-hint and disable-model-invocation when set', () => {
+    const cmd: Command = {
+      id: 'deploy',
+      name: 'Deploy',
+      description: 'Deploy the app',
+      tier: 'oss',
+      disableModelInvocation: true,
+      argumentHint: '[environment]',
+      content: 'Deploy steps.',
+    };
+    const [file] = new GrokGenerator().generateCommand(cmd, ctx);
+    expect(file?.content).toContain('argument-hint: "[environment]"');
+    expect(file?.content).toContain('disable-model-invocation: true');
+  });
+
   it('generateAll writes constitution + spawn map + agents, not the full dump', () => {
     const manifest = buildManifest();
     const alwaysOn = alwaysOnRuleIds(manifest);
@@ -64,6 +96,9 @@ describe('GrokGenerator', () => {
     expect(ruleFiles.length).toBe(alwaysOn.size + 2);
     expect(skillFiles.length).toBe(manifest.rules.length - alwaysOn.size);
     expect(files.some((f) => f.relativePath === '.grok/agents/builder.md')).toBe(true);
+    const commandFiles = files.filter((f) => f.relativePath.startsWith('.grok/commands/'));
+    expect(commandFiles.length).toBe(manifest.commands.length);
+    expect(files.some((f) => f.relativePath === grokCommandPath('gate'))).toBe(true);
     const spawn = files.find((f) => f.relativePath === GROK_SPAWN_MAP_PATH);
     expect(spawn?.content).toContain('implementer');
     expect(spawn?.content).toContain('builder');

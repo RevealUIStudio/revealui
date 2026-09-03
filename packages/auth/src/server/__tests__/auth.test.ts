@@ -138,6 +138,7 @@ describe('auth', () => {
     mockWhere.mockReturnValue({ limit: mockLimit });
     mockFrom.mockReturnValue({ where: mockWhere });
     mockSelect.mockReturnValue({ from: mockFrom });
+    mockIsHostedDeployment.mockReturnValue(false);
 
     // Default mocks: rate limit allowed, account not locked
     mockCheckRateLimit.mockResolvedValue({
@@ -180,13 +181,11 @@ describe('auth', () => {
       expect(result.sessionToken).toBe('session-token-abc');
     });
 
-    it('signs in when createdAt is a string, not a Date (Postgres storage path)', async () => {
-      // Regression (GAP-446): the Postgres storage path returns createdAt as an
-      // ISO string, not a Date object. With emailVerified:false the sign-in reads
-      // createdAt to compute account age; calling .getTime() on a string threw a
-      // TypeError that fell through to the outer catch and turned a valid login
-      // into "unexpected_error" on real deploys. The account is within the 24h
-      // grace window, so login must succeed.
+    it('rejects unverified hosted sign-in even when createdAt is a string (Postgres storage path)', async () => {
+      // GAP-446: Postgres returns createdAt as an ISO string. The old grace
+      // window called .getTime() on it and threw. Hosted verification is now
+      // required immediately; string createdAt must still not become unexpected_error.
+      mockIsHostedDeployment.mockReturnValue(true);
       const oneHourAgoIso = new Date(Date.now() - 60 * 60 * 1000).toISOString();
       const user = makeUser({
         emailVerified: false,
@@ -196,9 +195,10 @@ describe('auth', () => {
       mockBcryptCompare.mockResolvedValueOnce(true);
 
       const result = await signIn('test@example.com', 'Password123');
-      expect(result.reason).not.toBe('unexpected_error');
-      expect(result.success).toBe(true);
-      expect(result.sessionToken).toBe('session-token-abc');
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.reason).toBe('email_not_verified');
+      }
     });
 
     it('returns error for nonexistent user', async () => {
@@ -417,11 +417,9 @@ describe('auth', () => {
       );
     });
 
-    it('returns email_not_verified for unverified account past grace period', async () => {
-      const twentyFiveHoursAgo = new Date(Date.now() - 25 * 60 * 60 * 1000);
-      mockLimit.mockResolvedValueOnce([
-        makeUser({ emailVerified: false, createdAt: twentyFiveHoursAgo }),
-      ]);
+    it('returns email_not_verified for an unverified hosted account', async () => {
+      mockIsHostedDeployment.mockReturnValue(true);
+      mockLimit.mockResolvedValueOnce([makeUser({ emailVerified: false, createdAt: new Date() })]);
       mockBcryptCompare.mockResolvedValueOnce(true);
 
       const result = await signIn('test@example.com', 'Password123');
@@ -432,9 +430,22 @@ describe('auth', () => {
       }
     });
 
-    it('allows sign-in for unverified account within grace period', async () => {
+    it('rejects hosted sign-in for a brand-new unverified account (no grace window)', async () => {
+      mockIsHostedDeployment.mockReturnValue(true);
       const oneHourAgo = new Date(Date.now() - 1 * 60 * 60 * 1000);
       mockLimit.mockResolvedValueOnce([makeUser({ emailVerified: false, createdAt: oneHourAgo })]);
+      mockBcryptCompare.mockResolvedValueOnce(true);
+
+      const result = await signIn('test@example.com', 'Password123');
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.reason).toBe('email_not_verified');
+      }
+    });
+
+    it('allows unverified sign-in on Forge / self-host (onInit bootstrap admin)', async () => {
+      mockIsHostedDeployment.mockReturnValue(false);
+      mockLimit.mockResolvedValueOnce([makeUser({ emailVerified: false, createdAt: new Date() })]);
       mockBcryptCompare.mockResolvedValueOnce(true);
 
       const result = await signIn('test@example.com', 'Password123');

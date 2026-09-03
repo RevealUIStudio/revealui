@@ -7,7 +7,8 @@ import {
   IconMenu,
 } from '@revealui/presentation';
 import { Link, useLocation } from '@revealui/router';
-import { lazy, Suspense, useEffect, useState } from 'react';
+import type React from 'react';
+import { type CSSProperties, lazy, Suspense, useEffect, useState } from 'react';
 import { buildDocNavSections, type NavItem, type NavSection } from '../lib/nav';
 import { showcaseEntries } from './showcase/registry.js';
 
@@ -33,9 +34,43 @@ interface DocLayoutProps {
 const sections: NavSection[] = buildDocNavSections(showcaseComponentItems);
 
 /** Untiled Circuit-R master in docs chrome. Never render this file below 96px. */
-const CIRCUIT_R_NAV_SRC = '/revealui-logo.svg';
+const CIRCUIT_R_NAV_LIGHT_SRC = '/revealui-logo.svg';
+const CIRCUIT_R_NAV_DARK_SRC = '/revealui-logo-dark.svg';
 const CIRCUIT_R_NAV_PX = 96;
-const CIRCUIT_R_NAV_CLASS = 'h-[96px] w-auto';
+
+interface CircuitRChromeStyle extends CSSProperties {
+  '--circuit-r-chrome-px': string;
+}
+
+function CircuitRNavMark(): React.JSX.Element {
+  const box: CircuitRChromeStyle = {
+    width: CIRCUIT_R_NAV_PX,
+    height: CIRCUIT_R_NAV_PX,
+    '--circuit-r-chrome-px': `${CIRCUIT_R_NAV_PX}px`,
+  };
+  return (
+    <span data-circuit-r-chrome className="relative block shrink-0 overflow-hidden" style={box}>
+      {/* biome-ignore lint/performance/noImgElement: Vite docs chrome has no next/image; this is the Circuit-R master. */}
+      <img
+        src={CIRCUIT_R_NAV_LIGHT_SRC}
+        alt=""
+        width={CIRCUIT_R_NAV_PX}
+        height={CIRCUIT_R_NAV_PX}
+        data-circuit-r-plate="light"
+        className="block size-full max-w-none"
+      />
+      {/* biome-ignore lint/performance/noImgElement: Vite docs chrome has no next/image; dark plate is the same letter on #060d1a. */}
+      <img
+        src={CIRCUIT_R_NAV_DARK_SRC}
+        alt=""
+        width={CIRCUIT_R_NAV_PX}
+        height={CIRCUIT_R_NAV_PX}
+        data-circuit-r-plate="dark"
+        className="absolute inset-0 hidden size-full max-w-none"
+      />
+    </span>
+  );
+}
 
 function NavLink({
   item,
@@ -86,14 +121,7 @@ function SidebarContent({ isHome, onNavigate }: { isHome: boolean; onNavigate?: 
           className="inline-flex items-center no-underline"
           aria-label="RevealUI"
         >
-          {/* biome-ignore lint/performance/noImgElement: Vite docs chrome has no next/image; this is the Circuit-R master. */}
-          <img
-            src={CIRCUIT_R_NAV_SRC}
-            alt=""
-            width={CIRCUIT_R_NAV_PX}
-            height={CIRCUIT_R_NAV_PX}
-            className={CIRCUIT_R_NAV_CLASS}
-          />
+          <CircuitRNavMark />
         </Link>
       </h2>
 
@@ -286,14 +314,7 @@ export function DocLayout({ children }: DocLayoutProps) {
           className="inline-flex items-center text-base font-bold tracking-tight text-ink no-underline"
           aria-label="RevealUI"
         >
-          {/* biome-ignore lint/performance/noImgElement: Vite docs chrome has no next/image; this is the Circuit-R master. */}
-          <img
-            src={CIRCUIT_R_NAV_SRC}
-            alt=""
-            width={CIRCUIT_R_NAV_PX}
-            height={CIRCUIT_R_NAV_PX}
-            className={CIRCUIT_R_NAV_CLASS}
-          />
+          <CircuitRNavMark />
         </Link>
         <Button
           type="button"

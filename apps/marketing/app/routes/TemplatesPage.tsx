@@ -7,6 +7,7 @@ import {
   TEMPLATES_GITHUB,
   TEMPLATES_HERO,
   TEMPLATES_LICENSES,
+  TEMPLATES_VERCEL,
 } from '../content/templates';
 
 export function TemplatesPage() {
@@ -31,6 +32,13 @@ export function TemplatesPage() {
         </pre>
       </MarketingSection>
 
+      <MarketingSection tone="background" density="compact" width="narrow">
+        <h2 className="font-display text-xl font-semibold text-foreground">
+          {TEMPLATES_VERCEL.heading}
+        </h2>
+        <p className="mt-4 leading-7 text-body">{TEMPLATES_VERCEL.body}</p>
+      </MarketingSection>
+
       <MarketingSection tone="card" density="default" width="narrow">
         <h2 className="font-display text-xl font-semibold text-foreground">
           {TEMPLATES_GITHUB.heading}
@@ -43,14 +51,26 @@ export function TemplatesPage() {
               <p className="mt-1 text-sm text-muted-foreground">{item.stack}</p>
               <p className="mt-3 text-sm leading-6 text-body">{item.body}</p>
               {item.githubHref ? (
-                <a
-                  className="mt-4 inline-block text-sm font-medium text-primary hover:underline"
-                  href={item.githubHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Use this template: {item.name}
-                </a>
+                <div className="mt-4 flex flex-col gap-2">
+                  <a
+                    className="inline-block text-sm font-medium text-primary hover:underline"
+                    href={item.githubHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Use this template: {item.name}
+                  </a>
+                  {item.deployHref ? (
+                    <a
+                      className="inline-block text-sm font-medium text-primary hover:underline"
+                      href={item.deployHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Deploy to Vercel: {item.name}
+                    </a>
+                  ) : null}
+                </div>
               ) : (
                 <p className="mt-4 text-sm text-muted-foreground">No GitHub twin.</p>
               )}

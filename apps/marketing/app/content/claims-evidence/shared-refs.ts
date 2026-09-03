@@ -534,17 +534,17 @@ export const AUDIT_ANCHOR_VERIFY_TEST: EvidenceRef = {
 export const AUDIT_ANCHOR_API: EvidenceRef = {
   kind: 'code',
   ref: 'apps/server/src/routes/audit.ts',
-  note: 'GET /api/audit/anchors and /proof (S4-4); Max+ auditLog gate + tenant lag in list response',
+  note: 'GET /api/audit/anchors and /proof (S4-4); Pro+ auditLog gate + tenant lag in list response',
 };
 export const AUDIT_LOG_FEATURE_MAX: EvidenceRef = {
   kind: 'code',
   ref: 'packages/core/src/features.ts',
-  note: 'auditLog feature requires Max tier; Free/Pro cannot download roots (403)',
+  note: 'auditLog feature requires Pro tier; Free cannot download roots (403)',
 };
 export const AUDIT_RECEIPTS_DOC: EvidenceRef = {
   kind: 'code',
   ref: 'docs/security/AUDIT_RECEIPTS.md',
-  note: 'Stage 4 honesty: what Free/Pro get vs Max root delivery; offline CLI; verification never paid',
+  note: 'Stage 4 honesty: what Free gets vs Pro root delivery; offline CLI; verification never paid',
 };
 export const STARTER_KIT: EvidenceRef = {
   kind: 'code',
@@ -605,6 +605,16 @@ export const TEMPLATES_GITHUB_TEST: EvidenceRef = {
   kind: 'test',
   ref: 'apps/marketing/app/content/__tests__/templates.test.ts#gives GitHub Use this template twins to the four Next.js templates only',
   note: 'starter-native has no GitHub twin; four Next.js templates do',
+};
+export const VERCEL_ONE_CLICK_TEMPLATE: EvidenceRef = {
+  kind: 'code',
+  ref: 'deployment/vercel/template.json',
+  note: 'buyer Deploy Button metadata: starter twin, Neon store, required env',
+};
+export const VERCEL_ONE_CLICK_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'apps/marketing/app/content/__tests__/templates.test.ts#documents the buyer Vercel one-click on the existing starter twin',
+  note: 'pins clone URL to revealui-template-starter and honest buyer-account copy',
 };
 export const TEMPLATES_APIFY_TEST: EvidenceRef = {
   kind: 'test',

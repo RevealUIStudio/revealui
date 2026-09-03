@@ -10,6 +10,7 @@
  * Emit:
  * - preamble tier 1 (always-on constitution) → `.grok/rules/<id>.md`
  * - remaining definition rules → `.grok/skills/rule-<id>/SKILL.md` (on demand)
+ * - content commands → `.grok/commands/<id>.md` (Grok slash menu; Claude-legacy layout)
  * - content agents → `.grok/agents/<id>.md`
  * - spawn map (Grok TUI types → content agents) → `.grok/rules/00-spawn-map.md`
  * - adapter orientation → `.grok/rules/00-revealui-manager.md` (public-safe;
@@ -102,6 +103,10 @@ export function grokAgentPath(agentId: string): string {
   return `${GROK_OUTPUT_DIR}/agents/${agentId}.md`;
 }
 
+export function grokCommandPath(commandId: string): string {
+  return `${GROK_OUTPUT_DIR}/commands/${commandId}.md`;
+}
+
 function spawnMapMarkdown(): string {
   const rows = GROK_SPAWN_MAP.map((row) => {
     const content = row.contentAgent ? `\`${row.contentAgent}\`` : '(builtin / home)';
@@ -160,8 +165,17 @@ export class GrokGenerator implements ContentGenerator {
     return [this.onDemandSkillFile(rule)];
   }
 
-  generateCommand(_cmd: Command, _ctx: ResolverContext): GeneratedFile[] {
-    return [];
+  generateCommand(cmd: Command, _ctx: ResolverContext): GeneratedFile[] {
+    const frontmatter = ['---', `description: ${yamlEscape(cmd.description)}`];
+    if (cmd.argumentHint) frontmatter.push(`argument-hint: ${yamlEscape(cmd.argumentHint)}`);
+    if (cmd.disableModelInvocation) frontmatter.push('disable-model-invocation: true');
+    frontmatter.push('---');
+    return [
+      {
+        relativePath: grokCommandPath(cmd.id),
+        content: `${frontmatter.join('\n')}\n\n${ensureNl(cmd.content)}`,
+      },
+    ];
   }
 
   generateAgent(agent: Agent, _ctx: ResolverContext): GeneratedFile[] {
@@ -202,6 +216,9 @@ export class GrokGenerator implements ContentGenerator {
       } else {
         files.push(this.onDemandSkillFile(rule));
       }
+    }
+    for (const cmd of manifest.commands) {
+      files.push(...this.generateCommand(cmd, ctx));
     }
     for (const agent of manifest.agents) {
       files.push(...this.generateAgent(agent, ctx));

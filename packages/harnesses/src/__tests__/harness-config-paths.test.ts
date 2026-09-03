@@ -13,6 +13,7 @@ describe('harness-config-paths', () => {
     expect(ids).toContain('cursor');
     expect(ids).toContain('copilot');
     expect(ids).toContain('opencode');
+    expect(ids).toContain('grok');
   });
 
   it('returns local config path for claude-code', () => {

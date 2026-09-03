@@ -68,6 +68,7 @@ describe('Template file structure  -  shared (all templates)', () => {
       expect(files).toContain('package.json');
       expect(files).toContain('tsconfig.json');
       expect(files).toContain('next.config.mjs');
+      expect(files).toContain('vercel.json');
       expect(files).toContain('.env.development.local');
       expect(files).toContain('README.md');
       expect(files).toContain('src');
@@ -134,6 +135,41 @@ describe('Template file structure  -  variant-specific content', () => {
     const collectionsDir = path.join(projectPath, 'src', 'collections');
     const files = await fs.readdir(collectionsDir);
     expect(files).toContain('Projects.ts');
+  });
+
+  it('starter: copies vercel.json for the buyer Vercel one-click', async () => {
+    const projectPath = path.join(tmpDir, 'starter-vercel');
+    await createProject(baseConfig('starter', projectPath));
+
+    const files = await fs.readdir(projectPath);
+    expect(files).toContain('vercel.json');
+    const vercel = JSON.parse(
+      await fs.readFile(path.join(projectPath, 'vercel.json'), 'utf-8'),
+    ) as {
+      framework?: string;
+      installCommand?: string;
+      buildCommand?: string;
+    };
+    expect(vercel.framework).toBe('nextjs');
+    expect(vercel.installCommand).toBe('pnpm install');
+    expect(vercel.buildCommand).toBe('pnpm build');
+  });
+
+  it('basic-blog: copies vercel.json for the buyer Vercel one-click', async () => {
+    const projectPath = path.join(tmpDir, 'blog-vercel');
+    await createProject(baseConfig('basic-blog', projectPath));
+    const files = await fs.readdir(projectPath);
+    expect(files).toContain('vercel.json');
+    const vercel = JSON.parse(
+      await fs.readFile(path.join(projectPath, 'vercel.json'), 'utf-8'),
+    ) as {
+      framework?: string;
+      installCommand?: string;
+      buildCommand?: string;
+    };
+    expect(vercel.framework).toBe('nextjs');
+    expect(vercel.installCommand).toBe('pnpm install');
+    expect(vercel.buildCommand).toBe('pnpm build');
   });
 });
 
@@ -359,6 +395,7 @@ describe('Template file structure  -  starter-native (Vite + @revealui/router)',
     expect(files).toContain('vite.config.ts');
     expect(files).toContain('vitest.config.ts');
     expect(files).toContain('index.html');
+    expect(files).toContain('vercel.json');
     expect(files).toContain('.env.development.local'); // CLI-generated
     expect(files).toContain('README.md'); // CLI-generated
     expect(files).toContain('app');
@@ -466,4 +503,47 @@ describe('Template presentation composition (GAP-479)', () => {
       expect(css).toContain('@revealui/presentation/tokens.css');
     });
   }
+});
+
+// ---------------------------------------------------------------------------
+// Vercel one-click: each shipped template carries a customer vercel.json
+// ---------------------------------------------------------------------------
+
+describe('Template vercel.json (customer runtime deploy)', () => {
+  const nextTemplates = ['basic-blog', 'e-commerce', 'portfolio', 'starter'] as const;
+
+  for (const template of nextTemplates) {
+    it(`${template}: vercel.json names Next.js and does not buy add-ons`, async () => {
+      const raw = await fs.readFile(path.join(TEMPLATES_DIR, template, 'vercel.json'), 'utf-8');
+      const config = JSON.parse(raw) as {
+        $schema?: string;
+        framework?: string;
+        installCommand?: string;
+        buildCommand?: string;
+        stores?: unknown;
+      };
+      expect(config.$schema).toBe('https://openapi.vercel.sh/vercel.json');
+      expect(config.framework).toBe('nextjs');
+      expect(config.installCommand).toBe('pnpm install');
+      expect(config.buildCommand).toBe('pnpm build');
+      expect(config.stores).toBeUndefined();
+      expect(raw.includes('neon')).toBe(false);
+      expect(raw.includes('blob')).toBe(false);
+    });
+  }
+
+  it('starter-native: vercel.json names Vite with an SPA rewrite', async () => {
+    const raw = await fs.readFile(
+      path.join(TEMPLATES_DIR, 'starter-native', 'vercel.json'),
+      'utf-8',
+    );
+    const config = JSON.parse(raw) as {
+      $schema?: string;
+      framework?: string;
+      rewrites?: Array<{ source: string; destination: string }>;
+    };
+    expect(config.$schema).toBe('https://openapi.vercel.sh/vercel.json');
+    expect(config.framework).toBe('vite');
+    expect(config.rewrites?.some((rule) => rule.destination === '/index.html')).toBe(true);
+  });
 });

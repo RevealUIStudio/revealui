@@ -2,7 +2,7 @@
  * Public product catalog honesty (RevealUIStudio/revealui only).
  *
  * After #2696 the marketing catalog is licenses only: Free $0 / Pro $49 /
- * Max $299 / Enterprise as a license. Studio SKUs, Done-for-you, kits,
+ * Max $99 / Enterprise as a license. Studio SKUs, Done-for-you, kits,
  * Fleet $25k, the rented-stack calculator, and cal.com booking are not sold
  * here. Shared by smoke + accessibility so those jobs cannot drift apart.
  */
@@ -11,7 +11,7 @@ import { expect, type Page } from '@playwright/test';
 
 export const HONEST_TIER_HEADINGS = ['Free (OSS)', 'Pro', 'Max', 'Enterprise'] as const;
 
-export const HONEST_TIER_PRICES = ['$0', '$49', '$299'] as const;
+export const HONEST_TIER_PRICES = ['$0', '$49', '$99'] as const;
 
 export const ENTERPRISE_LICENSE_COPY = 'Enterprise is a license, not a hosted VM.';
 
@@ -36,6 +36,7 @@ export const FORBIDDEN_CATALOG_PHRASES = [
   'Add up what you would otherwise rent',
   'The rented stack',
   '$300',
+  '$1,500',
   '$3,500',
   '$7,500',
   'No holdback',

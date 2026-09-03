@@ -95,7 +95,7 @@ export interface ProblemRow {
 
 export const HOME_PROBLEM = {
   eyebrow: 'The problem',
-  heading: 'Stop buying a separate product for each slice of the stack.',
+  heading: 'Tired of tools that don’t talk — and agents you can’t audit?',
   // Hybrid: body states the fork once; matrix carries capability detail.
   // pathBlurbs removed (de-dupe) so we do not restate the three paths twice.
   body: 'Teams either stitch a vendor for each slice, or start with agents and rebuild the rest. RevealUI is one self-hosted runtime for the business and the agents that run it.',
@@ -234,7 +234,7 @@ export const HOME_FAQ = {
 
 export const HOME_GET_STARTED = {
   heading: 'Start on your machine today.',
-  body: 'Install free. Open the admin UI. Go live when you are ready to charge customers.',
+  body: 'Install with npx create-revealui@latest, a public GitHub template (starter, basic-blog, portfolio, or e-commerce), or the live Apify actor (pay-per-event; receipt verification is $0.00001, not free).',
   cta: {
     primary: { label: 'Start free', href: SITE.urls.signup } satisfies Cta,
     secondary: { label: 'Read the docs', href: SITE.urls.docs } satisfies Cta,

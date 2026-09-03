@@ -5,9 +5,19 @@
  * Email verification is required before a user can sign in.
  */
 
-import config from '@revealui/config';
 import type { PerpetualLicenseSku } from '@revealui/contracts/pricing';
 import { sendEmail } from './index';
+
+/**
+ * Admin origin for verify links. Hosted `NEXT_PUBLIC_SERVER_URL` is the API
+ * (`https://api.revealui.com`); GET /api/auth/verify-email lives on admin.
+ * Never fall back to the API URL — that path 500s.
+ */
+function adminPublicOrigin(): string | null {
+  const raw = (process.env.NEXT_PUBLIC_APP_URL ?? '').trim();
+  if (raw.length === 0) return null;
+  return raw.replace(/\/$/, '');
+}
 
 /**
  * Send email verification link to a new user.
@@ -18,7 +28,13 @@ export async function sendVerificationEmail(
   plan?: 'pro' | 'max' | 'enterprise',
   license?: PerpetualLicenseSku,
 ): Promise<{ success: boolean; error?: string }> {
-  const baseUrl = config.reveal.serverURL;
+  const baseUrl = adminPublicOrigin();
+  if (!baseUrl) {
+    return {
+      success: false,
+      error: 'NEXT_PUBLIC_APP_URL is not set',
+    };
+  }
 
   const planSuffix = !license && plan ? `&upgrade=${plan}` : '';
   const licenseSuffix = license ? `&license=${license}` : '';

@@ -15,9 +15,9 @@
 // order-processing template exists.
 
 import {
-  ARCHITECTURE_REVIEW_PRICE,
-  CONSULTING_HOUR_PRICE,
+  CONSULTATION_PRICE,
   LAUNCH_PACKAGE_PRICE,
+  PILOT_PRICE,
 } from '@revealui/contracts/public-catalog';
 import { SITE } from './site';
 import type { Cta, FaqItem } from './types';
@@ -102,13 +102,14 @@ export const FOR_OPERATORS_HOW_WE_DELIVER = {
 } as const;
 
 // ---------------------------------------------------------------------------
-// Studio engagement ladder — Hour / Architecture artifact bundle and
-// review / Launch on revealuistudio.com only. Dead leftover rungs must
-// not exist in this module. Prices import from @revealui/contracts/public-catalog
-// so leftover admin catalogs cannot ship in the public marketing bundle.
+// Studio engagement ladder — Consultation / Pilot / Launch on
+// revealuistudio.com only. Architecture work happens inside Launch.
+// Dead leftover rungs must not exist in this module. Prices import from
+// @revealui/contracts/public-catalog so leftover admin catalogs cannot
+// ship in the public marketing bundle.
 // ---------------------------------------------------------------------------
 
-export type AgencyEngagementId = 'consulting-hour' | 'architecture-review' | 'launch-package';
+export type AgencyEngagementId = 'consultation' | 'pilot' | 'launch-package';
 
 export interface AgencyEngagement {
   readonly id: AgencyEngagementId;
@@ -119,15 +120,15 @@ export interface AgencyEngagement {
 
 export const AGENCY_ENGAGEMENT_LADDER: readonly AgencyEngagement[] = [
   {
-    id: 'consulting-hour',
-    name: 'Hour',
-    price: CONSULTING_HOUR_PRICE,
+    id: 'consultation',
+    name: 'Consultation',
+    price: CONSULTATION_PRICE,
     startsFrom: false,
   },
   {
-    id: 'architecture-review',
-    name: 'Architecture artifact bundle and review',
-    price: ARCHITECTURE_REVIEW_PRICE,
+    id: 'pilot',
+    name: 'Pilot',
+    price: PILOT_PRICE,
     startsFrom: false,
   },
   {
@@ -149,8 +150,8 @@ function findEngagement(id: AgencyEngagementId): AgencyEngagement {
   return found;
 }
 
-const CONSULTING_HOUR = findEngagement('consulting-hour');
-const ARCHITECTURE_REVIEW = findEngagement('architecture-review');
+const CONSULTATION = findEngagement('consultation');
+const PILOT = findEngagement('pilot');
 const LAUNCH_PACKAGE = findEngagement('launch-package');
 
 // ---------------------------------------------------------------------------
@@ -173,22 +174,22 @@ export const FOR_OPERATORS_PRICING = {
   body: 'Engagements are fixed-bid and start with a discovery call that scopes the work. The numbers below are starting points, not final quotes.',
   rungs: [
     {
-      title: CONSULTING_HOUR.name,
-      price: agencyEngagementPriceDisplay(CONSULTING_HOUR),
-      body: 'One hour with the founder. Architecture advice, migration planning, or implementation guidance. Booked on Google Calendar. This SKU lives on revealuistudio.com, not on the product catalog.',
-      cta: { label: 'Book a session', href: AGENCY_CONTACT, external: true },
+      title: CONSULTATION.name,
+      price: agencyEngagementPriceDisplay(CONSULTATION),
+      body: 'A scoped session with the founder. Booked on Google Calendar. This SKU lives on revealuistudio.com, not on the product catalog.',
+      cta: { label: 'Book a Consultation', href: AGENCY_CONTACT, external: true },
     },
     {
-      title: ARCHITECTURE_REVIEW.name,
-      price: agencyEngagementPriceDisplay(ARCHITECTURE_REVIEW),
-      body: 'An architecture artifact bundle and review of your current stack. The prototype is inside the bundle, not a second deliverable. This SKU lives on revealuistudio.com, not on the product catalog.',
-      cta: { label: 'Book a 30-minute intro', href: AGENCY_CONTACT, external: true },
+      title: PILOT.name,
+      price: agencyEngagementPriceDisplay(PILOT),
+      body: 'One site on your domain and one agent you run. You keep it. Credits 100% to Launch if you start Launch within 30 days. This SKU lives on revealuistudio.com, not on the product catalog.',
+      cta: { label: 'Book a Consultation', href: AGENCY_CONTACT, external: true },
     },
     {
       title: LAUNCH_PACKAGE.name,
       price: agencyEngagementPriceDisplay(LAUNCH_PACKAGE),
-      body: 'We stand up your RevealUI instance, migrate your content, and get you to first deploy. This SKU lives on revealuistudio.com, not on the product catalog.',
-      cta: { label: 'Book a 30-minute intro', href: AGENCY_CONTACT, external: true },
+      body: 'We stand up your RevealUI instance, including architecture work inside Launch, and get you to first deploy. This SKU lives on revealuistudio.com, not on the product catalog.',
+      cta: { label: 'Book a Consultation', href: AGENCY_CONTACT, external: true },
     },
   ] as readonly PricingRung[],
 } as const;
@@ -243,7 +244,7 @@ export const FOR_OPERATORS_FAQ = {
     },
     {
       question: 'How much does it cost?',
-      answer: `Studio SKUs live on revealuistudio.com, not on this catalog. ${CONSULTING_HOUR.name} is ${CONSULTING_HOUR.price}, ${ARCHITECTURE_REVIEW.name} is ${ARCHITECTURE_REVIEW.price}, and ${LAUNCH_PACKAGE.name} is ${LAUNCH_PACKAGE.price}. Book on Google Calendar from that site.`,
+      answer: `Studio SKUs live on revealuistudio.com, not on this catalog. ${CONSULTATION.name} is ${CONSULTATION.price}, ${PILOT.name} is ${PILOT.price}, and ${LAUNCH_PACKAGE.name} is ${LAUNCH_PACKAGE.price}. Book on Google Calendar from that site.`,
     },
     {
       question: 'How long does it take?',

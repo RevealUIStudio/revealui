@@ -24,7 +24,7 @@ export type SubscriptionTierId = 'pro' | 'max' | 'enterprise';
  */
 export const MRR_TIER_PRICE_FALLBACK_USD: Record<SubscriptionTierId, number> = {
   pro: 49,
-  max: 299,
+  max: 99,
   enterprise: 1499,
 };
 

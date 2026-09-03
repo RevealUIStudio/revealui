@@ -1,5 +1,5 @@
 // Public products page: RevealUI licenses only.
-// Honest live catalog: Free / Pro $49 / Max $299 / Enterprise inquire +
+// Honest live catalog: Free / Pro $49 / Max $99 / Enterprise inquire +
 // Pro Perpetual $1,499. RevVault is encrypted secret management inside Pro,
 // not a separate SKU. RevForge, RevKit, and RevDev are not for sale on
 // this site.
@@ -10,7 +10,7 @@ import type { Cta } from './types';
 export const PRODUCTS_PAGE_HERO = {
   h1: 'RevealUI licenses',
   subtitle:
-    'License the self-hosted runtime. Free, Pro, Max, Enterprise inquire, and Pro Perpetual. Studio SKUs live on revealuistudio.com. Zero paying customers. This is not a launched pull-and-run RevealFleet.',
+    'License the self-hosted runtime. Free, Pro, Max, Enterprise inquire, and Pro Perpetual. Studio SKUs live on revealuistudio.com. Zero paying customers.',
 } as const;
 
 export type ProductStatus = 'Beta' | 'Alpha' | 'GA' | 'Planned';
@@ -82,7 +82,7 @@ export const PRODUCTS_STATS_SECTION = {
 export const PRODUCTS_CTA_SECTION = {
   heading: 'Start with the runtime',
   body: 'Start with the runtime. One command, full source, ready for your first deploy.',
-  cliSnippet: 'npx create-revealui my-app',
+  cliSnippet: 'npx create-revealui@latest my-app',
   cta: {
     docs: { label: 'Read the Docs', href: SITE.urls.docs } satisfies Cta,
     pricing: { label: 'View Pricing', href: '/pricing' } satisfies Cta,

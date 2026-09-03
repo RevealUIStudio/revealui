@@ -17,7 +17,7 @@ export const SUBSCRIPTION_PRICE_FALLBACKS: Record<
 > = {
   free: { price: '$0' },
   pro: { price: '$49', period: '/month' },
-  max: { price: '$299', period: '/month' },
+  max: { price: '$99', period: '/month' },
   enterprise: { price: 'Contact sales' },
 };
 
@@ -26,8 +26,8 @@ export const ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS: Record<
   { price: string; period: string }
 > = {
   free: { price: '$0', period: '/year' },
-  pro: { price: '$470', period: '/year' },
-  max: { price: '$2,870', period: '/year' },
+  pro: { price: '$399', period: '/year' },
+  max: { price: '$799', period: '/year' },
   enterprise: { price: 'Contact sales', period: '/year' },
 };
 

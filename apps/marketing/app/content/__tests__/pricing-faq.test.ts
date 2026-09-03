@@ -24,13 +24,19 @@ describe('pricing FAQ RevealFleet honesty', () => {
     expect(answer.includes('buyable runtime')).toBe(true);
     expect(answer.includes('Free')).toBe(true);
     expect(answer.includes('$49')).toBe(true);
-    expect(answer.includes('$299')).toBe(true);
+    expect(answer.includes('$99')).toBe(true);
     expect(answer.includes('Enterprise')).toBe(true);
     expect(answer.toLowerCase().includes('inquir')).toBe(true);
     expect(answer.includes('Pro Perpetual')).toBe(true);
     expect(answer.includes('$1,499')).toBe(true);
     expect(answer.includes('RevVault is encrypted secret management inside Pro')).toBe(true);
     expect(answer.includes('not a separate paid SKU')).toBe(true);
+  });
+
+  it('keeps the buyable RevealUI catalog in the perpetual-license answer', () => {
+    const faq = PRICING_FAQS.find((item) => item.question === 'What are perpetual licenses?');
+    expect(faq?.answer.includes('Pro Perpetual')).toBe(true);
+    expect(faq?.answer.includes('Studio SKUs live on revealuistudio.com')).toBe(true);
   });
 
   it('names the perpetual SKU Pro Perpetual, not Perpetual Pro', () => {

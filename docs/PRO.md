@@ -70,7 +70,7 @@ This is the model the product and billing architecture should converge on from 2
 
 ## What Pro Includes
 
-RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime — Pro packages, Pro APIs, Pro feature gates. It also unlocks features in *companion products* across RevFleet.
+RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime — Pro packages, Pro APIs, Pro feature gates. It also unlocks features in *companion products* across RevealFleet.
 
 **In the RevealUI runtime (this monorepo):**
 
@@ -81,7 +81,7 @@ RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime —
 - x402 micropayments and paid API support
 - Marketplace and self-hosted commercial deployment options
 
-**Unlocked in companion products (separate repos in [RevFleet](https://github.com/RevealUIStudio)):**
+**Unlocked in companion products (separate repos in [RevealFleet](https://github.com/RevealUIStudio)):**
 
 - **Studio** desktop app (lives in [RevDev](https://github.com/RevealUIStudio/revdev), Tauri) — agent coordination hub, local inference management, visual agent dashboard. Studio talks to your RevealUI runtime; the Pro tier unlocks Studio's commercial features.
 - **RevVault** desktop app (lives in [RevVault](https://github.com/RevealUIStudio/revvault), Tauri) — age-encrypted secret management
@@ -89,7 +89,7 @@ RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime —
 
 ## Ecosystem Features by Tier
 
-The canonical Free / Pro / Max / Enterprise matrix (runtime flags + RevFleet companions) lives in [What is RevealUI?](./WHAT_IS.md#feature-matrix). Companion highlights:
+The canonical Free / Pro / Max / Enterprise matrix (runtime flags + RevealFleet companions) lives in [What is RevealUI?](./WHAT_IS.md#feature-matrix). Companion highlights:
 
 | Feature | Free | Pro | Max | Enterprise |
 |---------|------|-----|-----|-------|
@@ -1200,14 +1200,13 @@ The SDK handles the full 402 → payment → retry cycle automatically.
 
 # Professional Services (Track D)
 
-RevealUI offers four professional service engagements for teams that need hands-on help:
+RevealUI Studio’s public menu is Consultation, Pilot, and Launch. Architecture work happens inside Launch.
 
 | Service | Description | Deliverable |
 |---------|-------------|-------------|
-| **Architecture artifact bundle and review** | Codebase, schema, deployment, and security review (up to 50K LOC) | Artifact bundle including the prototype; review within 5 business days |
-| **Migration Assist** | Migrate existing admin, database, or billing to RevealUI | Working migration with verified data integrity |
-| **Launch Package** | Zero to production in one week (setup, billing, deploy, onboarding) | Production-ready deployment within 5 business days |
-| **Consulting Hour** | One-on-one video call  -  pair programming, architecture, debugging | Session recording and written follow-up notes |
+| **Consultation** | Scoped session with the founder | Follow-up notes |
+| **Pilot** | One site on your domain, one agent you run, you keep it | Working site and agent; credits 100% to Launch within 30 days |
+| **Launch** | Zero to production, including architecture work inside Launch | Production-ready deployment |
 
 Contact: [services@revealui.com](mailto:services@revealui.com)
 
@@ -1258,7 +1257,7 @@ Content-Type: application/json
 
 ## Enterprise (perpetual)
 
-Enterprise licenses follow the same perpetual model but are scoped to self-hosted Fleet deployments with domain lock. See [RevealUI Fleet](./FLEET.md) for the full self-hosted deployment guide.
+Enterprise licenses follow the same perpetual model but are scoped to self-hosted deployments with domain lock. See [Enterprise](./ENTERPRISE.md) and [Deployment](./guides/deployment.md).
 
 ---
 
@@ -1303,37 +1302,6 @@ GET /.well-known/marketplace.json
 Customers buy the Enterprise tier of RevealUI as a **license plus studio support** on admin.revealui.com (Contact sales / inquire — not a public monthly SKU). The customer self-hosts. See [Enterprise](./ENTERPRISE.md).
 
 - **License (this tier)** — EdDSA-signed JWT, support, and Enterprise entitlements. Studio does **not** operate a dedicated customer VM on `revealui.com` infrastructure.
-- **Self-hosted Fleet** — You deploy the Docker Compose stack (API + admin + PostgreSQL) on your own infrastructure, domain-locked via `REVFORGE_LICENSED_DOMAIN`. Produced by RevForge (operator tool).
+- **Self-host** — You deploy on your own infrastructure. See [Enterprise](./ENTERPRISE.md) and [Deployment](./guides/deployment.md).
 
-Both use the same Enterprise license tier and the same EdDSA-signed JWT format for `REVFORGE_LICENSE_KEY`. The difference is how you run the stack, not whether Studio hosts it for you.
-
-## RevealUI Fleet — Self-Hosted Deployment
-
-See **[FLEET.md](./FLEET.md)** for the complete deployment guide, including:
-
-- Docker Compose stack (API + admin + PostgreSQL)
-- Environment variables (`REVFORGE_LICENSE_KEY`, `REVFORGE_LICENSED_DOMAIN`, etc.)
-- Domain lock enforcement
-- Reverse proxy configuration (Caddy + Nginx examples)
-- Database migrations and upgrade procedure
-- Ed25519 key generation for license JWT signing
-- Troubleshooting
-
-### Quick reference
-
-```bash
-# Public images. No GHCR login. A Fleet license JWT is still required to run the kit.
-docker pull ghcr.io/revealuistudio/revealui-api:latest
-docker pull ghcr.io/revealuistudio/revealui-admin:latest
-docker pull ghcr.io/revealuistudio/revealui-migrate:latest
-
-# Start the stack
-docker compose -f docker-compose.forge.yml --env-file .env.forge up -d
-
-# Apply migrations
-docker compose -f docker-compose.forge.yml exec api pnpm db:migrate
-
-# Verify
-curl https://your-domain.com/health
-# {"status":"ok","db":"connected","license":"forge"}
-```
+Both use the same Enterprise license tier and the same EdDSA-signed JWT format. The difference is how you run the stack, not whether Studio hosts it for you.

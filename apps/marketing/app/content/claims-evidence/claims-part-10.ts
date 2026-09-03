@@ -15,8 +15,17 @@ export const claimsPart10: readonly ClaimEntry[] = [
     file: 'templates.ts',
     exportPath: 'TEMPLATES_HERO.subtitle',
     proofGrade: 'outcome',
-    text: 'Scaffold a RevealUI app from the published CLI, or start from a GitHub template.',
-    evidence: [CLI_CREATE, CLI_TEMPLATE_DIRS, TEMPLATES_PAGE_TEST],
+    text: 'Scaffold a RevealUI app from the published CLI, start from a GitHub template, or deploy a Next.js twin to your Vercel account.',
+    evidence: [
+      CLI_CREATE,
+      CLI_TEMPLATE_DIRS,
+      TEMPLATES_PAGE_TEST,
+      {
+        kind: 'test',
+        ref: 'apps/marketing/app/content/__tests__/templates.test.ts#gives Deploy to Vercel clone URLs to the four Next.js GitHub twins only',
+        note: 'hero now includes the Vercel twin deploy path; buttons lock to the four GitHub twins',
+      },
+    ],
   },
   {
     file: 'templates.ts',
@@ -67,6 +76,30 @@ export const claimsPart10: readonly ClaimEntry[] = [
     proofGrade: 'outcome',
     text: 'Four Next.js templates have a public GitHub twin. starter-native does not.',
     evidence: [TEMPLATES_GITHUB_TEST, CLI_TEMPLATE_DIRS],
+  },
+  {
+    file: 'templates.ts',
+    exportPath: 'TEMPLATES_VERCEL.body',
+    proofGrade: 'outcome',
+    text: 'The four Next.js GitHub twins can be cloned onto your Vercel account. You bring your own Neon or Postgres. This is the runtime deploy path, not a Studio SKU and not a Starter Kit. There is no live vercel.com/templates listing URL yet; owner submit is a dashboard step.',
+    evidence: [
+      TEMPLATES_GITHUB_TEST,
+      {
+        kind: 'test',
+        ref: 'apps/marketing/app/content/__tests__/templates.test.ts#gives Deploy to Vercel clone URLs to the four Next.js GitHub twins only',
+        note: 'Deploy buttons lock to vercel.com/new/clone plus the four GitHub twins; starter-native has none',
+      },
+      {
+        kind: 'test',
+        ref: 'apps/marketing/app/content/__tests__/templates.test.ts#does not invent a live vercel.com/templates listing URL',
+        note: 'listing URL stays null; owner submit is the leftover dashboard step',
+      },
+      {
+        kind: 'code',
+        ref: 'deployment/vercel/templates.json',
+        note: 'official submit metadata; listingStatus not-published',
+      },
+    ],
   },
   {
     file: 'templates.ts',

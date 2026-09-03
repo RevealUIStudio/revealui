@@ -27,6 +27,22 @@
       "sha256": "b98c5a58cf584e87b1da69cfaec0938f4df4b3d0a3fc9ef864adc984cf9f92d7"
     },
     {
+      "relativePath": ".grok/commands/audit.md",
+      "sha256": "599f5e84841b49adc751fea3deaa193477b7c8670afa2b28aaf35b11d8733771"
+    },
+    {
+      "relativePath": ".grok/commands/gate.md",
+      "sha256": "70a9f25da6147d06cd9108db6e1e86c27e42791cbddf290989696ff367791a2f"
+    },
+    {
+      "relativePath": ".grok/commands/new-package.md",
+      "sha256": "f7a9cec2fe1eafbb13ce7c0c96f98bedab85a864085d7facd20a9b8ed17b8c2c"
+    },
+    {
+      "relativePath": ".grok/commands/stripe-best-practices.md",
+      "sha256": "60508313d8412871180cd9897dd49eebc178277cb877aa0e35ef02d621ef7b1f"
+    },
+    {
       "relativePath": ".grok/rules/00-revealui-manager.md",
       "sha256": "b69b2785a621a9333961963167e0f4ad1aa7b7e99baf3e4f49a6d20c2932d8bf"
     },

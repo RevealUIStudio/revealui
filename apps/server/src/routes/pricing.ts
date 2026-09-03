@@ -52,7 +52,7 @@ function isStripeConfigured(): boolean {
 const HARDCODED_SUBSCRIPTION_PRICES: Record<string, { price: string; period?: string }> = {
   free: { price: '$0' },
   pro: { price: '$49', period: '/month' },
-  max: { price: '$299', period: '/month' },
+  max: { price: '$99', period: '/month' },
   // Enterprise is inquire-only on the public catalog — no monthly unit amount.
 };
 
@@ -63,8 +63,8 @@ const HARDCODED_ANNUAL_SUBSCRIPTION_PRICES: Record<
   string,
   { annualPrice: string; annualPeriod: string }
 > = {
-  pro: { annualPrice: '$470', annualPeriod: '/year' },
-  max: { annualPrice: '$2,870', annualPeriod: '/year' },
+  pro: { annualPrice: '$399', annualPeriod: '/year' },
+  max: { annualPrice: '$799', annualPeriod: '/year' },
 };
 
 const ANNUAL_PRICE_ENV_GUARDS: Record<string, string> = {
@@ -247,7 +247,7 @@ function buildPricingResponse(stripePrices: StripeProductMap | null): PricingRes
   );
 
   // Services intentionally returned as empty array pending fulfillment infrastructure.
-  // FOUNDER_SERVICE_OFFERINGS still exports 4 offerings from @revealui/contracts, but they are NOT
+  // FOUNDER_SERVICE_OFFERINGS still exports 3 offerings from @revealui/contracts, but they are NOT
   // exposed on the public pricing API because (a) no Stripe products exist for them,
   // (b) no `service` track exists in `billing_model` CHECK constraint, (c) no booking
   // automation fires when a customer hits the cal.com link. Services are available via

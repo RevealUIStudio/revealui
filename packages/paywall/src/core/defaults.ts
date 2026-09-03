@@ -26,11 +26,11 @@ export const DEFAULT_FEATURES: Record<string, FeatureDefinition<DefaultTier>> = 
   advancedSync: { tier: 'pro', label: 'Real-Time Sync' },
   vaultDesktop: { tier: 'pro', label: 'RevVault Desktop' },
   vaultRotation: { tier: 'pro', label: 'Credential Rotation' },
+  aiMemory: { tier: 'pro', label: 'AI Memory System' },
+  auditLog: { tier: 'pro', label: 'Audit Logging' },
 
   // --- Max tier ---
-  aiMemory: { tier: 'max', label: 'AI Memory System' },
   aiInference: { tier: 'max', label: 'Inference Configuration' },
-  auditLog: { tier: 'max', label: 'Audit Logging' },
   devkitProfiles: { tier: 'max', label: 'DevKit Profiles' },
 
   // --- Enterprise tier ---

@@ -27,10 +27,18 @@ Canonical definition: [docs/WHAT_IS.md](docs/WHAT_IS.md).
 ## What you get on day one
 
 ```bash
-npx create-revealui my-business
+npx create-revealui@latest my-business
 cd my-business
 pnpm dev
 ```
+
+Public get-started paths that are live today:
+
+1. `npx create-revealui@latest`
+2. GitHub templates (Use this template): [starter](https://github.com/RevealUIStudio/revealui-template-starter), [basic-blog](https://github.com/RevealUIStudio/revealui-template-basic-blog), [portfolio](https://github.com/RevealUIStudio/revealui-template-portfolio), [e-commerce](https://github.com/RevealUIStudio/revealui-template-e-commerce)
+3. Apify [governed-agent-run](https://apify.com/revealuistudio/governed-agent-run) — pay-per-event. Receipt verification is $0.00001, not free.
+
+There is no `revealui.com/templates` page.
 
 Open [http://localhost:4000/admin](http://localhost:4000/admin).
 
@@ -79,23 +87,6 @@ Six principles that give you a tested starting point for every architectural dec
 | **Unified** | One Zod schema defines the truth. Types, validation, and API flow from database to server to UI with zero drift. |
 | **Adaptive** | AI agents, MCP servers, and workflows are built into the foundation. Open-model inference, sovereign by design, evolving with your business. |
 
-## RevFleet
-
-RevealUI is the runtime at the center of RevFleet — the RevealUI Studio product family. Companion products extend specific parts of the lifecycle:
-
-| Product              | Purpose                                                  | License           |
-| -------------------- | -------------------------------------------------------- | ----------------- |
-| **RevealUI**         | Agentic business runtime (this repo). Beta.              | MIT + Fair Source |
-| **RevVault**         | Age-encrypted secret vault (Rust CLI + desktop). Beta.   | MIT + Pro         |
-| **RevDev**           | Studio + Console + harness daemon. Alpha.                | MIT (early)       |
-| **RevCon**           | Editor config sync (Zed, VS Code, Cursor, Antigravity)   | MIT               |
-| **RevSkills**        | Agent Skills library (Claude, Grok, Cursor, OpenCode, VS Code) | MIT               |
-| **RevealUI Fleet**   | Self-hosted kit (Compose + GHCR). Alpha; not a launched pull-and-run product. | Enterprise tier |
-| **RevForge**         | Operator-only stamper (private; no public GitHub repo)   | Operator          |
-| **RevMarket**        | Third-party MCP catalog. Planned. First-party servers ship here. | Planned        |
-
-Each product stands alone. Together, they cover the full lifecycle of building, securing, coordinating, and monetizing software, for you and for your agents.
-
 ## Define your business data
 
 Add a collection. Get an API, admin UI, MCP tool, and TypeScript types, automatically.
@@ -142,8 +133,8 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 | Tier           | Price     | What you get                                                       |
 | -------------- | --------- | ------------------------------------------------------------------ |
 | **Free**       | $0        | Full OSS core: people, content, offers, payments, admin              |
-| **Pro**        | $49/mo    | AI agents, MCP framework, open-model inference, advanced sync, RevVault desktop + rotation engine |
-| **Max**        | $299/mo   | Full AI memory, audit log, higher limits         |
+| **Pro**        | $49/mo    | AI agents, AI memory, signed audit receipts, MCP framework, advanced sync, RevVault desktop + rotation engine |
+| **Max**        | $99/mo    | Unattended inference, RevKit environment provisioning, higher limits         |
 | **Enterprise** | inquire / Contact sales | License + studio support (you self-host). RevealUI Fleet kit via RevForge (operator preview, not a launched pull-and-run kit). SSO (operator preview, not customer-walked — [#449](https://github.com/RevealUIStudio/revealui/issues/449)). Domain-locked. Not a Studio-operated customer VM. |
 
 ## Apps
@@ -316,8 +307,7 @@ revealui/
 - **[Auth Guide](docs/AUTH.md):** Authentication, sessions, RBAC
 - **[Admin Guide](docs/ADMIN_GUIDE.md):** Collections, fields, access control
 - **[Testing](docs/TESTING.md):** Vitest, Playwright, coverage
-- **[Deployment](docs/guides/deployment.md):** Vercel, Fly, Docker Compose, customer Railway marketplace template, or self-host Node
-- **[Railway marketplace template](deployment/railway/README.md):** One-click self-host on the buyer's Railway account (sales channel, not Studio production)
+- **[Deployment](docs/guides/deployment.md):** Vercel, Fly, Docker Compose, or self-host Node
 - **[All docs](docs/INDEX.md):** Full documentation index
 
 ## Contributing

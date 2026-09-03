@@ -58,7 +58,7 @@ import app from '../pricing.js';
 const CANONICAL_SUBSCRIPTION_PRICES = {
   free: { price: '$0', period: undefined },
   pro: { price: '$49', period: '/month' },
-  max: { price: '$299', period: '/month' },
+  max: { price: '$99', period: '/month' },
   enterprise: { price: undefined, period: undefined },
 } as const;
 
@@ -120,7 +120,7 @@ describe('Pricing Marketing Drift — fallback prices match docs/MARKETING_METRI
 
   it('MRR_TIER_PRICE_FALLBACK_USD matches canonical subscription prices', () => {
     expect(MRR_TIER_PRICE_FALLBACK_USD.pro, 'MRR pro price drift').toBe(49);
-    expect(MRR_TIER_PRICE_FALLBACK_USD.max, 'MRR max price drift').toBe(299);
+    expect(MRR_TIER_PRICE_FALLBACK_USD.max, 'MRR max price drift').toBe(99);
     expect(MRR_TIER_PRICE_FALLBACK_USD.enterprise, 'MRR enterprise price drift').toBe(1499);
   });
 
@@ -149,8 +149,8 @@ describe('Pricing Marketing Drift — fallback prices match docs/MARKETING_METRI
       const body = await res.json();
 
       const ANNUAL_PRICES: Record<string, { annualPrice: string; annualPeriod: string }> = {
-        pro: { annualPrice: '$470', annualPeriod: '/year' },
-        max: { annualPrice: '$2,870', annualPeriod: '/year' },
+        pro: { annualPrice: '$399', annualPeriod: '/year' },
+        max: { annualPrice: '$799', annualPeriod: '/year' },
       };
 
       for (const tier of body.subscriptions) {

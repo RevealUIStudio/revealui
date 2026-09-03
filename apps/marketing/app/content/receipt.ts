@@ -5,7 +5,7 @@
 // See claims-evidence.ts for the evidence trail on every sentence here.
 //
 // GAP-355 Stage 4 S4-6: the foil remains canonical positioning copy. The
-// customer-held Merkle root + offline CLI are Max+ (auditLog); Free/Pro get
+// customer-held Merkle root + offline CLI are Pro+ (auditLog); Free gets
 // row signing without root delivery. Verification is never for sale.
 
 import type { AuditEvent } from '@revealui/presentation';
@@ -49,7 +49,7 @@ export const RECEIPT_HERO_INTEGRITY = {
 } as const;
 
 // Soft foil (GAP-355 S6-6 owner ruling option b, 2026-07-29). Row signatures
-// ship when audit signing is configured; Merkle root *delivery* is Max+
+// ship when audit signing is configured; Merkle root *delivery* is Pro+
 // (auditLog). Verification is never paid. See docs/security/AUDIT_RECEIPTS.md
 // and CLAIMS_RECEIPT_HOLD_NOTE.
 export const RECEIPT_HERO_CAPTION = {

@@ -339,18 +339,13 @@ describe('getTierColor', () => {
 // =============================================================================
 
 describe('FOUNDER_SERVICE_OFFERINGS', () => {
-  it('has exactly 4 service offerings', () => {
-    expect(FOUNDER_SERVICE_OFFERINGS).toHaveLength(4);
+  it('has exactly 3 service offerings', () => {
+    expect(FOUNDER_SERVICE_OFFERINGS).toHaveLength(3);
   });
 
   it('has the correct IDs in order', () => {
     const ids = FOUNDER_SERVICE_OFFERINGS.map((s) => s.id);
-    expect(ids).toEqual([
-      'architecture-review',
-      'launch-package',
-      'migration-assist',
-      'consulting-hour',
-    ]);
+    expect(ids).toEqual(['consultation', 'pilot', 'launch-package']);
   });
 
   it('service IDs are unique', () => {
@@ -416,7 +411,7 @@ describe('PricingResponse', () => {
     };
 
     expect(response.services).toBeDefined();
-    expect(response.services).toHaveLength(4);
+    expect(response.services).toHaveLength(3);
   });
 
   it('all four tracks are present in a complete PricingResponse', () => {

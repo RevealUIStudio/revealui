@@ -10,7 +10,6 @@ describe('products roster honesty', () => {
       false,
     );
     expect(PRODUCTS_PAGE_HERO.subtitle.toLowerCase().includes('zero paying')).toBe(true);
-    expect(PRODUCTS_PAGE_HERO.subtitle.toLowerCase().includes('not a launched')).toBe(true);
   });
 
   it('presents licenses, not a RevFleet product family', () => {
@@ -22,9 +21,8 @@ describe('products roster honesty', () => {
     expect(PRODUCTS_CTA_SECTION.body.toLowerCase().includes('revfleet')).toBe(false);
   });
 
-  it('names RevealFleet and lists the honest public catalog', () => {
-    expect(PRODUCTS_PAGE_HERO.subtitle.includes('RevealFleet')).toBe(true);
-    expect(PRODUCTS_PAGE_HERO.subtitle.includes('pull-and-run Fleet')).toBe(false);
+  it('lists the honest public catalog without Fleet get-started copy', () => {
+    expect(PRODUCTS_PAGE_HERO.subtitle.includes('RevealFleet')).toBe(false);
     expect(PRODUCTS_PAGE_HERO.subtitle.includes('Pro Perpetual')).toBe(true);
     expect(PRODUCTS_PAGE_HERO.subtitle.toLowerCase().includes('inquire')).toBe(true);
     expect(PRODUCTS_PAGE_HERO.subtitle.includes('Contact sales')).toBe(false);

@@ -90,6 +90,11 @@ function assertNavyCircuitRMaster(masterSvg) {
   if (!masterSvg.includes('mask="url(#cm)"') || !masterSvg.includes('maskUnits="userSpaceOnUse"')) {
     throw new Error('revealui-logo.svg is missing empty-bowl mask #cm');
   }
+  if (!masterSvg.includes('overflow="hidden"') || !masterSvg.includes('style="overflow:hidden"')) {
+    throw new Error(
+      'revealui-logo.svg must clip the 1.06 scale group (overflow hidden) so the mark does not paint a scrollbar',
+    );
+  }
   for (const fill of NAVY_FILLS) {
     if (!masterSvg.includes(fill)) {
       throw new Error(`revealui-logo.svg is missing navy Circuit-R fill ${fill}`);

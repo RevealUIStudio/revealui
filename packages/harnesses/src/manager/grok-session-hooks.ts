@@ -12,7 +12,8 @@
  *   hotfix + temp-scripts + RevDev session.register / session.end
  *   (soft-optional when daemon socket down).
  * - SessionStart register also prints GAP-459 peer-context (WARN if down).
- * - Hotfix/temp adapters under `~/.claude` call the same control registries.
+ * - Hotfix + tmpscript checks call `revealui-harnesses` (or monorepo dist)
+ *   directly. Claude-home wrappers stay Claude-adapter only.
  * - Daemon boundary via `revealui-harnesses session register|end|peers`.
  * - No full hardline prose; no OpenClaw; subscription OAuth never appears here.
  *
@@ -39,17 +40,20 @@ function hookFile(event: string, groups: GrokHookGroup[]): string {
 
 const TRACKER_CMD =
   'node "$HOME/revfleet/.jv/scripts/tracker-session-check.js" 2>/dev/null || true';
-const HOTFIX_CMD = 'node "$HOME/.claude/hooks/hotfix-check.js" 2>/dev/null || true';
-const TMPSCRIPT_CMD = 'node "$HOME/.claude/hooks/tmpscript-check.js" 2>/dev/null || true';
 
 /**
- * Soft-optional daemon session boundary. Tries monorepo dist CLI first, then
- * PATH binary. Always `|| true` so hooks never block when daemon is down.
+ * Soft-optional control-layer CLI. Tries monorepo dist first, then PATH.
+ * Always `|| true` so session hooks never block (missing dist, stale binary,
+ * daemon down). Pending hotfix/tmpscript lines print on stdout.
  */
-const SESSION_REGISTER_CMD =
-  'node "$HOME/revfleet/revealui/packages/harnesses/dist/cli.js" session register --backend grok 2>/dev/null || revealui-harnesses session register --backend grok 2>/dev/null || true';
-const SESSION_END_CMD =
-  'node "$HOME/revfleet/revealui/packages/harnesses/dist/cli.js" session end 2>/dev/null || revealui-harnesses session end 2>/dev/null || true';
+function controlLayerCmd(subcommand: string): string {
+  return `node "$HOME/revfleet/revealui/packages/harnesses/dist/cli.js" ${subcommand} 2>/dev/null || revealui-harnesses ${subcommand} 2>/dev/null || true`;
+}
+
+const HOTFIX_CMD = controlLayerCmd('hotfix check');
+const TMPSCRIPT_CMD = controlLayerCmd('tmpscript check');
+const SESSION_REGISTER_CMD = controlLayerCmd('session register --backend grok');
+const SESSION_END_CMD = controlLayerCmd('session end');
 
 /**
  * PreToolUse must be able to DENY. The old

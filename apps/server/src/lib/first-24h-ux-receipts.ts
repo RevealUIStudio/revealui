@@ -6,7 +6,7 @@
  * `appendBatch` — same door as MCP tool receipts and harness-receipt-audit).
  * A PR body or markdown checklist is not the receipt.
  *
- * Checking a receipt is free. This writer never claims Max `auditLog`
+ * Checking a receipt is free. This writer never claims Pro `auditLog`
  * Merkle-root delivery (`merkleRootDelivered` is always false).
  */
 
@@ -261,7 +261,7 @@ export const FIRST_24H_UX_SURFACES_2026_08_20: readonly First24hUxReceiptLine[] 
     plan: 'max',
     result: 'PASS',
     evidence:
-      'billing/__tests__/page.test.tsx — shows Max trial expiry and Max plan, not Pro; $299/mo; no “Your Pro trial”',
+      'billing/__tests__/page.test.tsx — shows Max trial expiry and Max plan, not Pro; $99/mo; no “Your Pro trial”',
   }),
   surface({
     surface: 'account-license-expiry',

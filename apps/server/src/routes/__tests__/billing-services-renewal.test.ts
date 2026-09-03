@@ -24,18 +24,13 @@ import { describe, expect, it } from 'vitest';
 // =============================================================================
 
 describe('FOUNDER_SERVICE_OFFERINGS  -  Track D', () => {
-  it('exports exactly 4 service offerings', () => {
-    expect(FOUNDER_SERVICE_OFFERINGS).toHaveLength(4);
+  it('exports exactly 3 service offerings', () => {
+    expect(FOUNDER_SERVICE_OFFERINGS).toHaveLength(3);
   });
 
-  it('has IDs: architecture-review, launch-package, migration-assist, consulting-hour', () => {
+  it('has IDs: consultation, pilot, launch-package', () => {
     const ids = FOUNDER_SERVICE_OFFERINGS.map((s) => s.id);
-    expect(ids).toEqual([
-      'architecture-review',
-      'launch-package',
-      'migration-assist',
-      'consulting-hour',
-    ]);
+    expect(ids).toEqual(['consultation', 'pilot', 'launch-package']);
   });
 
   it('every offering satisfies the ServiceOffering interface', () => {
@@ -68,32 +63,25 @@ describe('FOUNDER_SERVICE_OFFERINGS  -  Track D', () => {
   });
 
   describe('individual offerings', () => {
-    it('architecture-review has at least 5 includes', () => {
-      const archReview = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'architecture-review');
-      expect(archReview).toBeDefined();
-      expect(archReview!.includes.length).toBeGreaterThanOrEqual(5);
-      expect(archReview!.name).toBe('Architecture artifact bundle and review');
+    it('consultation has at least 3 includes', () => {
+      const consultation = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'consultation');
+      expect(consultation).toBeDefined();
+      expect(consultation!.includes.length).toBeGreaterThanOrEqual(3);
+      expect(consultation!.name).toBe('Consultation');
     });
 
-    it('migration-assist has at least 5 includes', () => {
-      const migration = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'migration-assist');
-      expect(migration).toBeDefined();
-      expect(migration!.includes.length).toBeGreaterThanOrEqual(5);
-      expect(migration!.name).toBe('Migration Assist');
+    it('pilot has at least 3 includes', () => {
+      const pilot = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'pilot');
+      expect(pilot).toBeDefined();
+      expect(pilot!.includes.length).toBeGreaterThanOrEqual(3);
+      expect(pilot!.name).toBe('Pilot');
     });
 
     it('launch-package has at least 5 includes', () => {
       const launch = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'launch-package');
       expect(launch).toBeDefined();
       expect(launch!.includes.length).toBeGreaterThanOrEqual(5);
-      expect(launch!.name).toBe('Launch Package');
-    });
-
-    it('consulting-hour has at least 3 includes', () => {
-      const consulting = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'consulting-hour');
-      expect(consulting).toBeDefined();
-      expect(consulting!.includes.length).toBeGreaterThanOrEqual(3);
-      expect(consulting!.name).toBe('Consulting Hour');
+      expect(launch!.name).toBe('Launch');
     });
   });
 
@@ -125,7 +113,7 @@ describe('PricingResponse includes services', () => {
     };
 
     expect(response.services).toBeDefined();
-    expect(response.services).toHaveLength(4);
+    expect(response.services).toHaveLength(3);
   });
 
   it('services field contains ServiceOffering objects', () => {
@@ -157,8 +145,8 @@ describe('PricingResponse includes services', () => {
     expect(response.credits).toHaveLength(3);
     // Track C  -  Perpetual
     expect(response.perpetual).toHaveLength(3);
-    // Track D  -  Services
-    expect(response.services).toHaveLength(4);
+    // Track D  -  Services (Consultation, Pilot, Launch)
+    expect(response.services).toHaveLength(3);
   });
 });
 

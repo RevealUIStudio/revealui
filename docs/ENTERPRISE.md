@@ -16,15 +16,13 @@ Canonical tier language lives in [What is RevealUI?](./WHAT_IS.md). This page is
 ## What you buy
 
 - **License** — EdDSA-signed JWT, support, and Enterprise entitlements on admin.revealui.com.
-- **You self-host** — Studio does not operate a dedicated customer VM on `revealui.com` infrastructure.
-- **Self-host how-to** — [Fleet](./FLEET.md) is operator documentation, not a catalog SKU.
-- **RevForge** — the private operator stamper. It is not this page and not a billing tier.
+- **You self-host** — Studio does not operate a dedicated customer VM on `revealui.com` infrastructure. See [Deployment](./guides/deployment.md) and [Quick Start](./QUICK_START.md).
 
 ## Limits
 
 | | Free (OSS) | Pro | Max | Enterprise |
 |---|---|---|---|---|
-| Price | $0 | $49/mo | $299/mo | inquire / Contact sales |
+| Price | $0 | $49/mo | $99/mo | inquire / Contact sales |
 | Sites | 1 | 5 | 15 | unlimited |
 | Users | 3 | 25 | 100 | unlimited |
 | Agent tasks/mo | Local AI | 10,000 | 50,000 | unlimited |
@@ -36,6 +34,6 @@ SSO is an operator preview ([#449](https://github.com/RevealUIStudio/revealui/is
 
 - [What is RevealUI?](./WHAT_IS.md)
 - [Pro](./PRO.md#enterprise-tier)
-- [RevealUI Fleet](./FLEET.md)
+- [Deployment](./guides/deployment.md)
 - [Enterprise SSO setup](./FORGE_SSO_SETUP.md) (operator guide)
 - [SLA](./SLA.md)

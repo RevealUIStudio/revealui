@@ -91,7 +91,7 @@ const mGaps = metrics.counter(
 );
 const mEntitlementSkip = metrics.counter(
   'revealui_audit_anchor_entitlement_skip_total',
-  'Tenants skipped because auditLog (Max+) was not enabled',
+  'Tenants skipped because auditLog (Pro+) was not enabled',
 );
 const mErrors = metrics.counter(
   'revealui_audit_anchor_errors_total',

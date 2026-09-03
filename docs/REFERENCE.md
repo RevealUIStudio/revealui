@@ -4004,7 +4004,7 @@ import type {
 ```bash
 npm install -g @revealui/cli
 # or use directly with npx:
-npx create-revealui my-project
+npx create-revealui@latest my-project
 ```
 
 ---
@@ -4016,7 +4016,7 @@ npx create-revealui my-project
 Interactive wizard that creates a new RevealUI project.
 
 ```bash
-npx create-revealui my-saas-app
+npx create-revealui@latest my-saas-app
 ```
 
 If `project-name` is omitted, it is prompted interactively.

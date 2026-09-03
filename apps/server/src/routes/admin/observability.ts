@@ -12,7 +12,7 @@
  * GET /admin/errors          -  paginated error events (operator only)
  * GET /admin/audit           -  paginated audit log, filterable by severity, agentId,
  *                               eventType, date range, and policy violation (operator only)
- * GET /admin/audit/export    -  CSV/JSON export of audit log (Max+ tier; operator only)
+ * GET /admin/audit/export    -  CSV/JSON export of audit log (Pro+ tier; operator only)
  * GET /admin/webhooks        -  paginated processed webhook events (operator only)
  * GET /admin/jobs            -  paginated queue jobs (operator only)
  * GET /admin/jobs/summary    -  aggregate queue stats (operator only)
@@ -426,7 +426,7 @@ app.openapi(
 );
 
 // =============================================================================
-// GET /admin/audit/export — Max+ tier feature (gated via requireFeature in index.ts)
+// GET /admin/audit/export — Pro+ tier feature (gated via requireFeature in index.ts)
 // =============================================================================
 
 /**

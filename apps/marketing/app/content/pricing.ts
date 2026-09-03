@@ -20,12 +20,12 @@ export interface AgentFeatureCard {
 
 export const PRICING_HERO: SectionHeading = {
   title: 'RevealUI pricing',
-  subtitle: 'Subscribe, or buy a perpetual license. Start free. Upgrade when you need to.',
+  subtitle: 'Tired of tools that don’t talk — and agents you can’t audit?',
 };
 
 /** Coming-soon work stays off the cards. Do not sell it as included. */
 export const PRICING_COMING_SOON_NOTE =
-  'Not included today: advanced inference configuration, environment provisioning, and x402 agent payments. Status lives in the agents section below.';
+  'Not included today: x402 agent payments. Status lives in the agents section below.';
 
 export const PRICING_HERO_SUBTEXT = {
   prefix:
@@ -61,7 +61,7 @@ export const PRICING_VALUE_BAND = {
 export const PRICING_HIGHLIGHTED_BADGE = 'Recommended' as const;
 
 export const PRICING_TRIAL_NOTE =
-  'Pro and Max include a 7-day free trial. Cancel during the trial and you pay nothing.' as const;
+  'Pro and Max include a 7-day free trial. Cancel during the trial and you pay nothing. First purchase, including annual, has a 14-day refund. No prorate after 14 days.' as const;
 
 export const PRICING_TRACK_C_SECTION = {
   eyebrow: 'Perpetual',
@@ -93,7 +93,7 @@ export const PRICING_AGENT_X402 = {
 
 export const PRICING_AGENT_MCP = {
   heading: 'MCP Servers',
-  body: `${METRICS.mcpServers} production MCP servers including Stripe, Neon, Vercel, Playwright, Next.js DevTools, content management, and email. Marketplace discovery coming soon.`,
+  body: `${METRICS.mcpServers} production MCP servers for any MCP-capable IDE (Cursor, Claude Code, Copilot, Zed, and others), including Stripe, Neon, Vercel, Playwright, Next.js DevTools, content management, and email. Marketplace discovery coming soon.`,
   docsLink: {
     label: 'MCP docs →',
     href: SITE.urls.docsMcp,

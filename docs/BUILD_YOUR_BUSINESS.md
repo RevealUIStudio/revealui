@@ -25,7 +25,7 @@ This tutorial walks you from zero to a deployed product in under an hour. You'll
 ## 1. Scaffold your project
 
 ```bash
-npx create-revealui my-business
+npx create-revealui@latest my-business
 cd my-business
 pnpm install
 ```

@@ -65,9 +65,13 @@ describe('project manager (.revealui)', () => {
     materializeManager(root);
     const grokMd = readFileSync(join(root, '.revealui/adapters/grok.md'), 'utf-8');
     expect(grokMd).toContain('session-start.json');
-    expect(grokMd).toContain('hotfix-check');
+    expect(grokMd).toContain('revealui-harnesses hotfix check');
+    expect(grokMd).toContain('revealui-harnesses tmpscript check');
+    expect(grokMd).not.toContain('hotfix-check.js');
+    expect(grokMd).not.toContain('tmpscript-check.js');
     expect(grokMd).toContain('Do not invent a second hotfix registry');
     expect(grokMd).toContain('rfg');
+    expect(grokMd).toContain('.grok/commands/');
     expect(grokMd).toContain('RevKit deploys');
     expect(grokMd).not.toContain('mkdir -p ~/.grok/hooks');
     const materializeSrc = readFileSync(
@@ -83,16 +87,18 @@ describe('project manager (.revealui)', () => {
     expect(startCmds.some((c) => c.includes('tracker-session-check.js'))).toBe(true);
     expect(startCmds.some((c) => c.includes('CURRENT-HANDOFF'))).toBe(true);
     expect(startCmds.some((c) => c.includes('/pickup'))).toBe(true);
-    expect(startCmds.some((c) => c.includes('hotfix-check.js'))).toBe(true);
-    expect(startCmds.some((c) => c.includes('tmpscript-check.js'))).toBe(true);
+    expect(startCmds.some((c) => c.includes('hotfix check'))).toBe(true);
+    expect(startCmds.some((c) => c.includes('tmpscript check'))).toBe(true);
+    expect(startCmds.every((c) => !c.includes('.claude/hooks'))).toBe(true);
     expect(startCmds.some((c) => c.includes('session register'))).toBe(true);
 
     const end = JSON.parse(
       readFileSync(join(root, '.revealui/adapters/grok/hooks/session-end.json'), 'utf-8'),
     ) as { hooks: { SessionEnd: Array<{ hooks: Array<{ command: string }> }> } };
     const endCmds = end.hooks.SessionEnd.flatMap((g) => g.hooks.map((h) => h.command));
-    expect(endCmds.some((c) => c.includes('hotfix-check.js'))).toBe(true);
-    expect(endCmds.some((c) => c.includes('tmpscript-check.js'))).toBe(true);
+    expect(endCmds.some((c) => c.includes('hotfix check'))).toBe(true);
+    expect(endCmds.some((c) => c.includes('tmpscript check'))).toBe(true);
+    expect(endCmds.every((c) => !c.includes('.claude/hooks'))).toBe(true);
     expect(endCmds.some((c) => c.includes('session end'))).toBe(true);
 
     const pre = JSON.parse(
@@ -147,6 +153,10 @@ describe('project manager (.revealui)', () => {
     expect(grokRule).toBe(contentRule);
     expect(written.paths.some((p) => p === '.grok/rules/00-spawn-map.md')).toBe(true);
     expect(written.paths.some((p) => p === '.grok/rules/00-revealui-manager.md')).toBe(true);
+    expect(written.paths.some((p) => p === '.grok/commands/gate.md')).toBe(true);
+    const grokGate = readFileSync(join(root, '.grok/commands/gate.md'), 'utf-8');
+    expect(grokGate).toContain('disable-model-invocation: true');
+    expect(grokGate).toContain('pnpm gate');
     const grokManager = readFileSync(join(root, '.grok/rules/00-revealui-manager.md'), 'utf-8');
     expect(grokManager).toContain('Do not author policy there');
     expect(grokManager).not.toContain('revfleet/.jv');

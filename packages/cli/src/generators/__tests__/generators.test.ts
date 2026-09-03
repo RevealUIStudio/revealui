@@ -96,6 +96,36 @@ describe('generateReadme', () => {
     const content = mockWriteFile.mock.calls[0][1] as string;
     expect(content).toContain('**portfolio** template');
   });
+
+  it('adds a Deploy to Vercel clone URL for Next.js GitHub twins', async () => {
+    await generateReadme('/tmp/my-app', baseConfig);
+    const content = mockWriteFile.mock.calls[0][1] as string;
+    const marker = 'https://vercel.com/new/clone?';
+    const start = content.indexOf(marker);
+    expect(start).toBeGreaterThan(-1);
+    const end = content.indexOf(')', start);
+    const href = content.slice(start, end === -1 ? undefined : end);
+    const deploy = new URL(href);
+    expect(deploy.searchParams.get('repository-url')).toBe(
+      'https://github.com/RevealUIStudio/revealui-template-basic-blog',
+    );
+    expect(deploy.searchParams.get('env')?.includes('POSTGRES_URL')).toBe(true);
+    expect(deploy.searchParams.has('stores')).toBe(false);
+  });
+
+  it('does not invent a vercel.com/templates listing URL', async () => {
+    await generateReadme('/tmp/my-app', baseConfig);
+    const content = mockWriteFile.mock.calls[0][1] as string;
+    expect(content.includes('vercel.com/templates/')).toBe(false);
+  });
+
+  it('does not add a Deploy to Vercel clone URL for starter-native', async () => {
+    const config: ProjectConfig = { ...baseConfig, template: 'starter-native' };
+    await generateReadme('/tmp/my-app', config);
+    const content = mockWriteFile.mock.calls[0][1] as string;
+    expect(content.includes('vercel.com/new/clone')).toBe(false);
+    expect(content).toContain('No GitHub Use this template twin');
+  });
 });
 
 describe('generateDevbox', () => {

@@ -38,9 +38,9 @@ const EXPECTED_FEATURE_TIER_MAP: Record<FeatureFlagKey, LicenseTierId> = {
   dashboard: 'pro',
   customDomain: 'pro',
   analytics: 'pro',
-  aiMemory: 'max',
+  aiMemory: 'pro',
   aiInference: 'max',
-  auditLog: 'max',
+  auditLog: 'pro',
   multiTenant: 'enterprise',
   whiteLabel: 'enterprise',
   sso: 'enterprise',
@@ -162,27 +162,28 @@ describe('Pricing Accuracy  -  Contracts vs Code Enforcement', () => {
       expect(freeFeatures).toEqual(['aiLocal']);
     });
 
-    it('pro-tier has 9 features', () => {
+    it('pro-tier has 11 features', () => {
       const proFeatures = Object.entries(EXPECTED_FEATURE_TIER_MAP)
         .filter(([, tier]) => tier === 'pro')
         .map(([feature]) => feature);
 
-      expect(proFeatures).toHaveLength(9);
+      expect(proFeatures).toHaveLength(11);
       expect(proFeatures).toContain('ai');
       expect(proFeatures).toContain('mcp');
       expect(proFeatures).toContain('payments');
       expect(proFeatures).toContain('vaultDesktop');
       expect(proFeatures).toContain('vaultRotation');
+      expect(proFeatures).toContain('aiMemory');
+      expect(proFeatures).toContain('auditLog');
     });
 
-    it('max-tier has 4 features', () => {
+    it('max-tier has 2 features', () => {
       const maxFeatures = Object.entries(EXPECTED_FEATURE_TIER_MAP)
         .filter(([, tier]) => tier === 'max')
         .map(([feature]) => feature);
 
-      expect(maxFeatures).toHaveLength(4);
-      expect(maxFeatures).toContain('aiMemory');
-      expect(maxFeatures).toContain('auditLog');
+      expect(maxFeatures).toHaveLength(2);
+      expect(maxFeatures).toContain('aiInference');
       expect(maxFeatures).toContain('devkitProfiles');
     });
 
@@ -379,18 +380,13 @@ describe('Pricing Accuracy  -  Contracts vs Code Enforcement', () => {
   });
 
   describe('Professional services (Track D)', () => {
-    it('has exactly 4 service offerings', () => {
-      expect(FOUNDER_SERVICE_OFFERINGS).toHaveLength(4);
+    it('has exactly 3 service offerings', () => {
+      expect(FOUNDER_SERVICE_OFFERINGS).toHaveLength(3);
     });
 
-    it('service IDs are architecture-review, launch-package, migration-assist, consulting-hour', () => {
+    it('service IDs are consultation, pilot, launch-package', () => {
       const ids = FOUNDER_SERVICE_OFFERINGS.map((s) => s.id);
-      expect(ids).toEqual([
-        'architecture-review',
-        'launch-package',
-        'migration-assist',
-        'consulting-hour',
-      ]);
+      expect(ids).toEqual(['consultation', 'pilot', 'launch-package']);
     });
 
     it('every service has a non-empty includes list', () => {
@@ -436,7 +432,7 @@ describe('Pricing Accuracy  -  Contracts vs Code Enforcement', () => {
       expect(response.subscriptions).toHaveLength(4);
       expect(response.credits).toHaveLength(3);
       expect(response.perpetual).toHaveLength(3);
-      expect(response.services).toHaveLength(4);
+      expect(response.services).toHaveLength(3);
     });
   });
 });

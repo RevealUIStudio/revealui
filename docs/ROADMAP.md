@@ -46,10 +46,10 @@ Labels match the `/products` page.
 - **Perpetual licenses.** Track C checkout is available
 - **UI.** 66 native React components in `@revealui/presentation` (Tailwind v4, no Radix/Headless UI/shadcn)
 - **Database.** 104 Postgres tables via Drizzle on Neon. ElectricSQL is an optional sync layer (off by default)
-- **CLI.** `npx create-revealui@latest my-app` plus 5 templates (basic-blog, e-commerce, portfolio, starter, starter-native)
+- **CLI.** `npx create-revealui@latest my-app` plus public GitHub templates (starter, basic-blog, portfolio, e-commerce)
 - **Agents.** A2A, CRDT memory, open-model default, streaming, tool execution. Hosted runs use the account's saved provider key (BYOK) or a local model. RevealUI does not host a shared frontier key as the product default. An entitled Pro account walked save-key plus Send Task plus Watch live on production (2026-08-18). That is one operator walk, not a paying-customer load test.
 - **MCP.** 13 first-party servers under `packages/mcp/src/servers/` (includes the adapter module)
-- **Audit receipts.** Signed audit log. Max can download Merkle roots
+- **Audit receipts.** Signed audit log. Pro can download Merkle roots
 - **Docs + marketing.** docs.revealui.com and revealui.com, including `/support`, `/status`, `/claims`, and `/roadmap`
 
 ### Launch surfaces
@@ -68,7 +68,7 @@ Work that is real and unfinished. No gap IDs on this public page.
 |------|--------|-----------------|
 | Enterprise SSO / SAML | In flight | Operator preview on test (OIDC + SAML SP-initiated). Not customer-walked. [#449](https://github.com/RevealUIStudio/revealui/issues/449) still open. SCIM is not built. Guide: [FORGE_SSO_SETUP.md](./FORGE_SSO_SETUP.md) |
 | Fleet pull-and-run kit | In flight | Images exist. The launched customer kit (docs + license-gated pull, no source build) does not |
-| Product-led channels | In flight | Apify actor and a customer self-host template (sales channel only; Railway is not Studio production, which stays on Vercel + Neon + Fly). Owner publish + first stranger purchase remain |
+| Product-led channels | In flight | Apify [governed-agent-run](https://apify.com/revealuistudio/governed-agent-run) is live (pay-per-event; receipt verification is $0.00001, not free). Owner publish + first stranger purchase remain |
 | Onboarding (first 24h / first 7d) | In flight | Journey copy and checklists ship. Per-tier walkthrough sign-off does not |
 | Multi-editor connect | Shipped in code | Cursor, VS Code plugin surface, and ACP connect guides exist. VS Code Marketplace listing is owner ops |
 | Claim honesty | Continuous | `pnpm validate:claims` gates marketing copy. This file and What Works Today must stay in lockstep |
@@ -99,10 +99,10 @@ Work that is real and unfinished. No gap IDs on this public page.
 
 | Track | Model | Description |
 |-------|-------|-------------|
-| **A. Subscriptions** | Monthly | Free $0 / Pro $49/mo / Max $299/mo / Enterprise inquire |
+| **A. Subscriptions** | Monthly | Free $0 / Pro $49/mo / Max $99/mo / Enterprise inquire |
 | **B. Agent credits** | Pay-per-use | $0.001/task (local inference) |
 | **C. Perpetual** | One-time | Pro Perpetual $1,499 public; Agency and Enterprise perpetual are not public catalog SKUs |
-| **D. Professional services** | Per-engagement | Architecture review, migration assist, launch package, consulting hours |
+| **D. Professional services** | Per-engagement | Consultation $300 / Pilot $1,500 / Launch $7,500 (revealuistudio.com) |
 
 See [revealui.com/pricing](https://revealui.com/pricing) for the live catalog.
 

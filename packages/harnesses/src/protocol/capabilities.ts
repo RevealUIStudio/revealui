@@ -114,8 +114,8 @@ export function createDefaultCapabilities(): ProtocolCapabilities {
 /**
  * Capability profiles for tools that have working adapters in this package.
  *
- * `revealui-agent`, `opencode`, and `cursor` ship adapters today
- * (`OpenCodeAdapter` / `CursorAdapter`, `src/adapters/*.ts`). Profile data
+ * `revealui-agent`, `opencode`, `cursor`, and `grok` ship adapters today
+ * (`OpenCodeAdapter` / `CursorAdapter` / `GrokAdapter`, `src/adapters/*.ts`). Profile data
  * for tools that are spec'd but have no adapter implementation lives in
  * `./roadmap-profiles.ts` to make the spec-vs-shipped gap structurally
  * visible.
@@ -190,6 +190,38 @@ export const TOOL_PROFILES: Record<string, ProtocolCapabilities> = {
     supportsMcp: true,
     memory: { supported: false, backend: 'none' },
     maxContextTokens: 128_000,
+    lifecycleEvents: [
+      'session.start',
+      'session.stop',
+      'prompt.submit',
+      'tool.before',
+      'tool.after',
+      'tool.blocked',
+    ],
+  },
+
+  grok: {
+    dispatch: {
+      generateCode: true,
+      analyzeCode: true,
+      applyEdit: false,
+      executeCommand: true,
+    },
+    readWorkboard: false,
+    writeWorkboard: false,
+    claimTasks: false,
+    reportConflicts: false,
+    headless: true,
+    resumable: true,
+    forkable: true,
+    backgroundable: true,
+    hooks: { supported: true, granularity: 'all-tools', canBlock: true },
+    sandbox: { supported: false, modes: [] },
+    supportsWorktrees: true,
+    supportsSkills: true,
+    supportsMcp: true,
+    memory: { supported: false, backend: 'none' },
+    maxContextTokens: 0,
     lifecycleEvents: [
       'session.start',
       'session.stop',

@@ -2,15 +2,15 @@
 // Same numbers as revealuistudio.com. This site defaults Who to I will.
 
 import {
-  ARCHITECTURE_REVIEW_PRICE,
-  CONSULTING_HOUR_PRICE,
+  CONSULTATION_PRICE,
   LAUNCH_PACKAGE_PRICE,
+  PILOT_PRICE,
 } from '@revealui/contracts/public-catalog';
 import { PERPETUAL_PRICE_FALLBACKS, SUBSCRIPTION_PRICE_FALLBACKS } from '../lib/pricing-fallbacks';
 import { SITE } from './site';
 
 export type WhoLive = 'self' | 'studio';
-export type WhatWork = 'hour' | 'plan' | 'launch';
+export type WhatWork = 'consultation' | 'pilot' | 'launch';
 export type PlaceCount = 'one' | 'many';
 
 export interface QuoteAnswers {
@@ -66,7 +66,7 @@ const PERPETUAL_PRICE = publicPerpetualPrice();
 
 export const DEFAULT_QUOTE_ANSWERS: QuoteAnswers = {
   who: 'self',
-  what: 'hour',
+  what: 'consultation',
   places: 'one',
 };
 
@@ -84,9 +84,9 @@ export const QUOTE_CALCULATOR = {
     what: {
       label: 'What has to work?',
       options: [
-        { id: 'hour', label: 'One hour with Joshua (debug / pair)' },
-        { id: 'plan', label: 'Architecture artifact bundle and review' },
-        { id: 'launch', label: 'One live flow on my accounts' },
+        { id: 'consultation', label: 'Consultation with Joshua' },
+        { id: 'pilot', label: 'Pilot: one site, one agent you run' },
+        { id: 'launch', label: 'Launch: one live flow on my accounts' },
       ] as const satisfies readonly QuoteOption<WhatWork>[],
     },
     places: {
@@ -99,27 +99,27 @@ export const QUOTE_CALCULATOR = {
   },
   selfHost: {
     title: 'Self-host',
-    free: `Free: ${FREE_PRICE} + your infra. Start free, or run \`npx create-revealui\`.`,
+    free: `Free: ${FREE_PRICE} + your infra. Start free, or run \`npx create-revealui@latest\`.`,
     agents: `Pro ${PRO_PRICE}/mo or Max ${MAX_PRICE}/mo. 7-day trial.`,
     perpetual: `Optional one-time: Pro Perpetual ${PERPETUAL_PRICE}.`,
     enterprise: 'Enterprise: not in the calculator. Contact sales or book an intro.',
   },
   studio: {
     title: 'Studio',
-    hour: {
-      title: 'Hour',
-      price: CONSULTING_HOUR_PRICE,
-      body: 'Invoice before start. No holdback.',
+    consultation: {
+      title: 'Consultation',
+      price: CONSULTATION_PRICE,
+      body: 'Invoice before start.',
     },
-    plan: {
-      title: 'Architecture artifact bundle and review',
-      price: ARCHITECTURE_REVIEW_PRICE,
-      body: 'The prototype is inside the bundle. Half now, half on delivery. Credits to a launch in 30 days.',
+    pilot: {
+      title: 'Pilot',
+      price: PILOT_PRICE,
+      body: 'One site on your domain, one agent you run, you keep it. Credits 100% to Launch if you start Launch within 30 days.',
     },
     launch: {
       title: 'Launch',
       price: LAUNCH_PACKAGE_PRICE,
-      body: 'Half now, half on delivery.',
+      body: 'Architecture work happens inside Launch. Half now, half on delivery.',
     },
   },
   intro: {
@@ -144,18 +144,18 @@ export const QUOTE_CALCULATOR = {
 function studioSkus(highlighted: WhatWork): readonly QuoteSkuLine[] {
   return [
     {
-      id: 'hour',
-      title: QUOTE_CALCULATOR.studio.hour.title,
-      price: QUOTE_CALCULATOR.studio.hour.price,
-      body: QUOTE_CALCULATOR.studio.hour.body,
-      highlighted: highlighted === 'hour',
+      id: 'consultation',
+      title: QUOTE_CALCULATOR.studio.consultation.title,
+      price: QUOTE_CALCULATOR.studio.consultation.price,
+      body: QUOTE_CALCULATOR.studio.consultation.body,
+      highlighted: highlighted === 'consultation',
     },
     {
-      id: 'plan',
-      title: QUOTE_CALCULATOR.studio.plan.title,
-      price: QUOTE_CALCULATOR.studio.plan.price,
-      body: QUOTE_CALCULATOR.studio.plan.body,
-      highlighted: highlighted === 'plan',
+      id: 'pilot',
+      title: QUOTE_CALCULATOR.studio.pilot.title,
+      price: QUOTE_CALCULATOR.studio.pilot.price,
+      body: QUOTE_CALCULATOR.studio.pilot.body,
+      highlighted: highlighted === 'pilot',
     },
     {
       id: 'launch',

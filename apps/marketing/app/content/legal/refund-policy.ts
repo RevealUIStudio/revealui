@@ -12,13 +12,13 @@ import type { LegalSection } from './privacy';
 
 export const REFUND_POLICY_META = {
   title: 'Refund Policy',
-  lastUpdated: 'August 24, 2026',
+  lastUpdated: 'August 31, 2026',
   intro:
     'This page describes when you can get your money back from RevealUI Studio and how to ask for it. It applies to purchases made directly through revealui.com and admin.revealui.com.',
   notice: {
     variant: 'info' as const,
     title: 'The short version',
-    body: 'Perpetual licenses get a full refund within 14 days of purchase, no questions asked. Subscriptions get a full refund on your first month if you cancel within 14 days of your first charge. Details below.',
+    body: 'First purchase, monthly or annual, and Pro Perpetual, gets a full refund within 14 days of the first paid charge, no questions asked. After 14 days there is no prorate. Details below.',
   },
 } as const;
 
@@ -33,8 +33,8 @@ export const REFUND_POLICY_SECTIONS: readonly LegalSection[] = [
   {
     heading: '2. Subscriptions (Pro, Max, and Enterprise plans)',
     paragraphs: [
-      'You can cancel a subscription at any time. Cancellation takes effect at the end of your current billing period, and there is no pro-rated refund for the unused portion of a billing cycle.',
-      'Your first month is refundable in full if you request it within 14 days of your initial paid charge.',
+      'You can cancel a subscription at any time. Cancellation takes effect at the end of your current billing period, and there is no pro-rated refund for the unused portion of a billing cycle after the 14-day first-purchase window.',
+      'Your first purchase, monthly or annual, is refundable in full if you request it within 14 days of your initial paid charge. After 14 days there is no prorate.',
     ],
   },
   {

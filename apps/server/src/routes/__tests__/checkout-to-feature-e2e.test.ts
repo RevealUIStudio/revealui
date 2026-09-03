@@ -29,9 +29,9 @@ vi.mock('@revealui/core/features', () => ({
       dashboard: 'pro',
       customDomain: 'pro',
       analytics: 'pro',
-      aiMemory: 'max',
+      aiMemory: 'pro',
       aiInference: 'max',
-      auditLog: 'max',
+      auditLog: 'pro',
       multiTenant: 'enterprise',
       whiteLabel: 'enterprise',
     };
@@ -49,9 +49,9 @@ vi.mock('@revealui/core/features', () => ({
       dashboard: 'pro',
       customDomain: 'pro',
       analytics: 'pro',
-      aiMemory: 'max',
+      aiMemory: 'pro',
       aiInference: 'max',
-      auditLog: 'max',
+      auditLog: 'pro',
       multiTenant: 'enterprise',
       whiteLabel: 'enterprise',
     };
@@ -102,8 +102,10 @@ const PRO_FEATURES = [
   'dashboard',
   'customDomain',
   'analytics',
+  'aiMemory',
+  'auditLog',
 ] as const;
-const MAX_FEATURES = ['aiMemory', 'aiInference', 'auditLog'] as const;
+const MAX_FEATURES = ['aiInference'] as const;
 const ENTERPRISE_FEATURES = ['multiTenant', 'whiteLabel'] as const;
 
 /** Hosted tier limits (must match getHostedLimitsForTier in apps/server/src/lib/tier-limits.ts) */
@@ -266,13 +268,15 @@ describe('Checkout-to-Feature E2E Flow', () => {
       expect(await testFeatureAccess('free', 'ai')).toBe(403);
       expect(await testFeatureAccess('free', 'aiMemory')).toBe(403);
 
-      // At pro: ai unlocked, aiMemory still blocked
+      // At pro: ai and aiMemory unlocked, unattended inference still blocked
       expect(await testFeatureAccess('pro', 'ai')).toBe(200);
-      expect(await testFeatureAccess('pro', 'aiMemory')).toBe(403);
+      expect(await testFeatureAccess('pro', 'aiMemory')).toBe(200);
+      expect(await testFeatureAccess('pro', 'aiInference')).toBe(403);
 
-      // At max: aiMemory unlocked
+      // At max: unattended inference unlocked
       expect(await testFeatureAccess('max', 'ai')).toBe(200);
       expect(await testFeatureAccess('max', 'aiMemory')).toBe(200);
+      expect(await testFeatureAccess('max', 'aiInference')).toBe(200);
 
       // At enterprise: everything unlocked
       expect(await testFeatureAccess('enterprise', 'ai')).toBe(200);
