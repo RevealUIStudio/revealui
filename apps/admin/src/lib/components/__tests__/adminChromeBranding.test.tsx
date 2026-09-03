@@ -20,6 +20,10 @@ vi.mock('@/lib/providers/LicenseProvider', () => ({
   useLicense: () => licenseMock,
 }));
 
+vi.mock('../WeeklyUsageChrome', () => ({
+  WeeklyUsageChrome: () => <div data-testid="weekly-usage-chrome" />,
+}));
+
 // The admin chrome must show the kit's brand, never the framework name,
 // when tenant identity is configured (canonical default otherwise).
 
@@ -52,6 +56,11 @@ describe('admin chrome white-label branding', () => {
       expect(screen.getByText('Acme')).toBeDefined();
       expect(screen.getByText('Acme Admin')).toBeDefined();
       expect(screen.queryByText(/RevealUI/)).toBeNull();
+    });
+
+    it('mounts weekly usage chrome in the sidebar', () => {
+      render(<AdminSidebarLayout>content</AdminSidebarLayout>);
+      expect(screen.getAllByTestId('weekly-usage-chrome').length).toBeGreaterThan(0);
     });
 
     it('keeps the canonical wordmark by default', () => {

@@ -93,6 +93,12 @@ vi.mock('@revealui/db/schema', () => ({
     count: 'agentTaskUsage.count',
     cycleStart: 'agentTaskUsage.cycleStart',
   },
+  usageMeters: {
+    accountId: 'usageMeters.accountId',
+    source: 'usageMeters.source',
+    quantity: 'usageMeters.quantity',
+    createdAt: 'usageMeters.createdAt',
+  },
 }));
 
 vi.mock('drizzle-orm', () => ({
@@ -865,6 +871,46 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
       const cycleStart = new Date(body.cycleStart as string);
       expect(resetAt.getUTCMonth()).toBe((cycleStart.getUTCMonth() + 1) % 12);
       expect(resetAt.getUTCDate()).toBe(1);
+    });
+
+    it('returns ISO-week bounds and 0% when the account has no agent meters this week', async () => {
+      _selectResult = [];
+
+      const app = createApp();
+      const res = await app.request(get('/usage'));
+      const body = (await res.json()) as Record<string, unknown>;
+
+      expect(body.weekUsed).toBe(0);
+      expect(body.percent).toBe(0);
+      const weekStart = new Date(body.weekStart as string);
+      const weekResetAt = new Date(body.weekResetAt as string);
+      expect(weekStart.getUTCDay()).toBe(1);
+      expect(weekStart.getUTCHours()).toBe(0);
+      expect(weekResetAt.getTime() - weekStart.getTime()).toBe(7 * 24 * 60 * 60 * 1000);
+    });
+
+    it('returns weekUsed/percent from agent usage_meters without changing monthly used', async () => {
+      queueSelectResults([{ count: 150, overage: 5 }], [{ value: 400 }]);
+
+      const app = createApp(MOCK_USER, { accountId: 'acct_1' });
+      const res = await app.request(get('/usage'));
+      const body = (await res.json()) as Record<string, unknown>;
+
+      expect(body.used).toBe(150);
+      expect(body.overage).toBe(5);
+      expect(body.weekUsed).toBe(400);
+      expect(body.percent).toBe(4);
+    });
+
+    it('returns percent null when quota is unlimited', async () => {
+      vi.mocked(getMaxAgentTasks).mockReturnValue(Infinity);
+      _selectResult = [];
+
+      const app = createApp();
+      const res = await app.request(get('/usage'));
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body.quota).toBe(-1);
+      expect(body.percent).toBeNull();
     });
   });
 
