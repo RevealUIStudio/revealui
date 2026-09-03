@@ -5,6 +5,7 @@
  */
 
 import { createHash, randomBytes } from 'node:crypto';
+import { isHostedDeployment } from '@revealui/core/deployment-mode';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
 import { accountMemberships, accounts, oauthAccounts, users } from '@revealui/db/schema';
@@ -17,9 +18,6 @@ import { validatePasswordStrength } from './password-validation.js';
 import { ensureAccountOwnerPlatformAdmin } from './platform-roles.js';
 import { checkRateLimit } from './rate-limit.js';
 import { createSession, rotateSession } from './session.js';
-
-/** Grace period after signup during which unverified users can still sign in (24 hours) */
-const EMAIL_VERIFICATION_GRACE_PERIOD_MS = 24 * 60 * 60 * 1000;
 
 /**
  * Sign in with email and password
@@ -206,20 +204,16 @@ export async function signIn(
       );
     }
 
-    // Check email verification (with grace period for new accounts).
-    // Coerce createdAt: the Postgres storage path returns timestamps as strings
-    // (not Date objects), so calling .getTime() directly threw a TypeError that
-    // fell through to the outer catch and turned a valid login into a generic
-    // "unexpected error" on real deploys. new Date() accepts a Date or a string.
-    if (!user.emailVerified) {
-      const accountAge = Date.now() - new Date(user.createdAt).getTime();
-      if (accountAge > EMAIL_VERIFICATION_GRACE_PERIOD_MS) {
-        return {
-          success: false,
-          reason: 'email_not_verified',
-          error: 'Please verify your email address before signing in.',
-        };
-      }
+    // Hosted SaaS requires a verified email before password sign-in.
+    // Self-host / Forge keeps sign-in for unverified bootstrap admins
+    // (onInit first owner often has no mailer). A 24h hosted grace window
+    // let brand-new studio accounts skip verification (smoke 2026-09-02).
+    if (!user.emailVerified && isHostedDeployment(process.env)) {
+      return {
+        success: false,
+        reason: 'email_not_verified',
+        error: 'Please verify your email address before signing in.',
+      };
     }
 
     // Check if MFA is enabled  -  if so, return early and require TOTP verification
@@ -539,7 +533,6 @@ export async function signUp(
     // this if it fails here, so a transient error never blocks signup. Skipped on
     // self-hosted (Forge) deployments — single-tenant, no per-user accounts
     // (GAP-260 P4-1: REVEALUI_DEPLOYMENT_MODE, fallback private-key presence).
-    const { isHostedDeployment } = await import('@revealui/core/deployment-mode');
     if (isHostedDeployment(process.env)) {
       try {
         const accountId = crypto.randomUUID();
