@@ -118,7 +118,7 @@ type McpHandle = { url: string; close: () => Promise<void> };
 
 async function startMcpHttp(exec: KgExecutor): Promise<McpHandle> {
   const handler = createNodeStreamableHttpHandler({
-    createServer: () => createKnowledgeGraphServer({ executor: exec }),
+    createServer: () => createKnowledgeGraphServer({ executor: exec, timeoutMs: 0 }),
     enableJsonResponse: true,
   });
   const httpServer: NodeHttpServer = createHttpServer((req, res) => {

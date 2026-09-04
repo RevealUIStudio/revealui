@@ -69,6 +69,8 @@ import {
 } from '@revealui/knowledge-graph';
 import { resolveNaturalKey } from '@revealui/knowledge-graph/ingest';
 import {
+  countDeniedMemoryHits,
+  inspectNodeVisibility,
   MEMORY_MAX_CONTENT_CHARS,
   MEMORY_MAX_EDGES,
   MEMORY_MAX_NODES,
@@ -607,9 +609,13 @@ export interface AssembledContext {
 async function assembleContext(
   exec: KgExecutor,
   anchorId: string,
-  opts: { charBudget: number; depth: number; at?: Date },
+  opts: { charBudget: number; depth: number; at?: Date; principal?: MemoryPrincipal },
 ): Promise<AssembledContext> {
-  const neighbors = await kgNeighbors(exec, anchorId, { depth: opts.depth, at: opts.at });
+  const neighbors = await kgNeighbors(exec, anchorId, {
+    depth: opts.depth,
+    at: opts.at,
+    principal: opts.principal,
+  });
 
   const nodeIds = neighbors.nodes.map((n): string => n.id);
   const summaryRows = nodeIds.length
@@ -821,16 +827,31 @@ function wrapOk(
   mode: 'compat' | 'product',
   data: unknown,
   principal: MemoryPrincipal | null,
+  deniedCount = 0,
 ): CallToolResult {
   if (mode === 'compat') return textResult(data);
-  const enforcement =
-    principal?.trustBoundary === 'hosted' && !principal.isFleetOperator ? 'enforced' : 'deferred';
+  const enforcement = principal?.trustBoundary === 'hosted' ? 'enforced' : 'deferred';
   return textResult({
     status: 'ok',
     available: true,
     enforcement,
-    deniedCount: 0,
+    deniedCount,
     data,
+  });
+}
+
+function wrapDenied(principal: MemoryPrincipal, deniedCount: number): CallToolResult {
+  return textResult({
+    status: 'denied',
+    available: true,
+    reason: 'scope-denied',
+    deniedCount,
+    scope: {
+      tenantId: principal.tenantId,
+      workspaceId: principal.workspaceId,
+      classification: 'workspace',
+    },
+    message: 'memory-schema hits existed but none were in scope',
   });
 }
 
@@ -1028,15 +1049,6 @@ export function createKnowledgeGraphToolset(
       }
     }
 
-    if (mode === 'product' && trustBoundary === 'hosted' && !mutating) {
-      const result = productUnavailable(
-        'scope-enforcement-unwired',
-        'hosted product memory reads require scope SQL (not wired in this package version)',
-      );
-      await writeReceipt('failed', { reason: 'scope-enforcement-unwired' });
-      return result;
-    }
-
     if (mutating) {
       const recorded = await writeReceipt('invoked');
       if (!recorded) {
@@ -1085,6 +1097,7 @@ export function createKnowledgeGraphToolset(
           }
         }
         const queryEmbedding = await tryEmbed(query);
+        const scoped = mode === 'product' ? (principal ?? undefined) : undefined;
         const result = await kgSearch(exec, {
           query,
           anchor: anchorId,
@@ -1094,8 +1107,19 @@ export function createKnowledgeGraphToolset(
           limit,
           bfsDepth,
           queryEmbedding,
+          principal: scoped,
         });
-        return wrapOk(mode, result, principal);
+        const deniedCount = scoped ? await countDeniedMemoryHits(exec, query, scoped) : 0;
+        if (
+          mode === 'product' &&
+          principal &&
+          result.nodes.length === 0 &&
+          result.facts.length === 0 &&
+          deniedCount > 0
+        ) {
+          return wrapDenied(principal, deniedCount);
+        }
+        return wrapOk(mode, result, principal, deniedCount);
       }
 
       case 'kg_get_node': {
@@ -1104,6 +1128,37 @@ export function createKnowledgeGraphToolset(
         const naturalKey = inboundKey(principal, parsed.value.naturalKey);
         const id = await resolveNaturalKey(exec, naturalKey);
         if (!id) return errorResult(`no node with natural key: ${naturalKey}`);
+        const scoped = mode === 'product' ? (principal ?? undefined) : undefined;
+        if (scoped) {
+          const visibility = await inspectNodeVisibility(exec, id, scoped);
+          if (visibility === 'missing') {
+            return errorResult(`no node with natural key: ${naturalKey}`);
+          }
+          const rows = await exec.query<NodeDetailRow>(
+            `SELECT id, kind, name, natural_key, repo, summary, attributes, first_seen_at, last_confirmed_at
+             FROM kg_nodes WHERE id = $1`,
+            [id],
+          );
+          const node = rows[0];
+          if (!node) return errorResult(`node ${id} vanished`);
+          const facts = await kgAtTime(exec, id, new Date(), { principal: scoped });
+          if (visibility === 'shell') {
+            return wrapOk(
+              mode,
+              {
+                node: {
+                  id: node.id,
+                  kind: node.kind,
+                  name: node.name,
+                  natural_key: node.natural_key,
+                },
+                facts,
+              },
+              principal,
+            );
+          }
+          return wrapOk(mode, { node, facts }, principal);
+        }
         const rows = await exec.query<NodeDetailRow>(
           `SELECT id, kind, name, natural_key, repo, summary, attributes, first_seen_at, last_confirmed_at
            FROM kg_nodes WHERE id = $1`,
@@ -1122,10 +1177,15 @@ export function createKnowledgeGraphToolset(
         const naturalKey = inboundKey(principal, parsed.value.naturalKey);
         const id = await resolveNaturalKey(exec, naturalKey);
         if (!id) return errorResult(`no node with natural key: ${naturalKey}`);
+        const scoped = mode === 'product' ? (principal ?? undefined) : undefined;
+        if (scoped && (await inspectNodeVisibility(exec, id, scoped)) === 'missing') {
+          return errorResult(`no node with natural key: ${naturalKey}`);
+        }
         const result = await kgNeighbors(exec, id, {
           depth,
           relations: relations as EdgeRelation[] | undefined,
           at: at ? new Date(at) : undefined,
+          principal: scoped,
         });
         return wrapOk(mode, result, principal);
       }
@@ -1254,9 +1314,19 @@ export function createKnowledgeGraphToolset(
         if (!fromId) return errorResult(`no node with natural key: ${fromNaturalKey}`);
         const toId = await resolveNaturalKey(exec, toNaturalKey);
         if (!toId) return errorResult(`no node with natural key: ${toNaturalKey}`);
+        const scoped = mode === 'product' ? (principal ?? undefined) : undefined;
+        if (scoped) {
+          if ((await inspectNodeVisibility(exec, fromId, scoped)) === 'missing') {
+            return errorResult(`no node with natural key: ${fromNaturalKey}`);
+          }
+          if ((await inspectNodeVisibility(exec, toId, scoped)) === 'missing') {
+            return errorResult(`no node with natural key: ${toNaturalKey}`);
+          }
+        }
         const path = await kgPath(exec, fromId, toId, {
           at: at ? new Date(at) : undefined,
           maxDepth,
+          principal: scoped,
         });
         if (!path) return wrapOk(mode, { path: null }, principal);
         const detail = await hydratePath(exec, path);
@@ -1270,7 +1340,11 @@ export function createKnowledgeGraphToolset(
         const naturalKey = inboundKey(principal, parsed.value.naturalKey);
         const id = await resolveNaturalKey(exec, naturalKey);
         if (!id) return errorResult(`no node with natural key: ${naturalKey}`);
-        const facts = await kgAtTime(exec, id, new Date(at));
+        const scoped = mode === 'product' ? (principal ?? undefined) : undefined;
+        if (scoped && (await inspectNodeVisibility(exec, id, scoped)) === 'missing') {
+          return errorResult(`no node with natural key: ${naturalKey}`);
+        }
+        const facts = await kgAtTime(exec, id, new Date(at), { principal: scoped });
         return wrapOk(mode, { facts }, principal);
       }
 
@@ -1281,10 +1355,15 @@ export function createKnowledgeGraphToolset(
         const naturalKey = inboundKey(principal, parsed.value.naturalKey);
         const id = await resolveNaturalKey(exec, naturalKey);
         if (!id) return errorResult(`no node with natural key: ${naturalKey}`);
+        const scoped = mode === 'product' ? (principal ?? undefined) : undefined;
+        if (scoped && (await inspectNodeVisibility(exec, id, scoped)) === 'missing') {
+          return errorResult(`no node with natural key: ${naturalKey}`);
+        }
         const assembled = await assembleContext(exec, id, {
           charBudget: charBudget ?? DEFAULT_CONTEXT_CHAR_BUDGET,
           depth: depth ?? 3,
           at: at ? new Date(at) : undefined,
+          principal: scoped,
         });
         return wrapOk(mode, assembled, principal);
       }
