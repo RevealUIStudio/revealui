@@ -11,12 +11,15 @@ import { sendEmail } from './index';
 /**
  * Admin origin for verify links. Hosted `NEXT_PUBLIC_SERVER_URL` is the API
  * (`https://api.revealui.com`); GET /api/auth/verify-email lives on admin.
+ * Prefer the incoming request origin (admin host). Env is a fallback.
  * Never fall back to the API URL — that path 500s.
  */
-function adminPublicOrigin(): string | null {
-  const raw = (process.env.NEXT_PUBLIC_APP_URL ?? '').trim();
-  if (raw.length === 0) return null;
-  return raw.replace(/\/$/, '');
+function adminPublicOrigin(explicitOrigin?: string): string | null {
+  const fromRequest = (explicitOrigin ?? '').trim().replace(/\/$/, '');
+  if (fromRequest.length > 0) return fromRequest;
+  const fromEnv = (process.env.NEXT_PUBLIC_APP_URL ?? '').trim().replace(/\/$/, '');
+  if (fromEnv.length > 0) return fromEnv;
+  return null;
 }
 
 /**
@@ -27,12 +30,13 @@ export async function sendVerificationEmail(
   token: string,
   plan?: 'pro' | 'max' | 'enterprise',
   license?: PerpetualLicenseSku,
+  origin?: string,
 ): Promise<{ success: boolean; error?: string }> {
-  const baseUrl = adminPublicOrigin();
+  const baseUrl = adminPublicOrigin(origin);
   if (!baseUrl) {
     return {
       success: false,
-      error: 'NEXT_PUBLIC_APP_URL is not set',
+      error: 'verify origin missing (pass request origin or set NEXT_PUBLIC_APP_URL)',
     };
   }
 

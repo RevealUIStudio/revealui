@@ -59,7 +59,26 @@ describe('sendVerificationEmail', () => {
     const result = await sendVerificationEmail('ada@example.com', 'raw-token-hex');
 
     expect(result.success).toBe(false);
-    expect(result.error).toMatch(/NEXT_PUBLIC_APP_URL/);
+    expect(result.error).toMatch(/verify origin missing/);
     expect(mockSendEmail).not.toHaveBeenCalled();
+  });
+
+  it('uses the request origin when NEXT_PUBLIC_APP_URL is unset', async () => {
+    delete process.env.NEXT_PUBLIC_APP_URL;
+
+    const result = await sendVerificationEmail(
+      'ada@example.com',
+      'raw-token-hex',
+      undefined,
+      undefined,
+      'https://admin.revealui.com',
+    );
+
+    expect(result).toEqual({ success: true });
+    const opts = mockSendEmail.mock.calls[0]?.[0] as { html: string };
+    expect(opts.html).toContain(
+      'https://admin.revealui.com/api/auth/verify-email?token=raw-token-hex',
+    );
+    expect(opts.html).not.toContain('https://api.revealui.com');
   });
 });

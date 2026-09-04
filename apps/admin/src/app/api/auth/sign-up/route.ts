@@ -293,9 +293,10 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
         resolvedUser.emailVerificationToken,
         license ? undefined : (plan ?? undefined),
         license ?? undefined,
+        request.nextUrl.origin,
       );
       if (!emailResult.success) {
-        logger.warn('Failed to send verification email', {
+        logger.error('Failed to send verification email', {
           userId: resolvedUser.id,
           error: emailResult.error,
         });
