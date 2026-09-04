@@ -19,6 +19,8 @@
 const SERVERS: Record<string, () => Promise<unknown>> = {
   contracts: () => import('./servers/contracts.js'),
   docs: () => import('./servers/docs.js'),
+  'knowledge-graph': () =>
+    import('./servers/knowledge-graph.js').then((m) => m.launchKnowledgeGraphMcp()),
   neon: () => import('./servers/neon.js').then((m) => m.launchNeonMcp()),
   'next-devtools': () =>
     import('./servers/next-devtools.js').then((m) => m.launchNextDevtoolsMcp()),
