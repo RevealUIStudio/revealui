@@ -32,7 +32,8 @@ Full cross-fleet rule: see `~/.claude/rules/secrets.md`.
 |---|---|
 | Database credentials | `POSTGRES_URL` (Neon) |
 | Auth | `REVEALUI_SECRET` (JWT / session), OAuth client secrets, session-cookie signing keys |
-| Third-party API keys | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY` |
+| Third-party API keys | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` |
+| Transactional email (Google Workspace) | `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, `EMAIL_FROM` |
 | Sync infrastructure | `ELECTRIC_SERVICE_URL`, `ELECTRIC_SECRET` |
 | Deployment | Vercel token |
 | Licenses | `REVEALUI_LICENSE_KEY`, RVUI-format keys |
@@ -252,7 +253,6 @@ revealui/api-keys/mcp
 revealui/api-keys/openai-codex
 revealui/api-keys/openai-reveal-framework
 revealui/api-keys/openai-test
-revealui/api-keys/resend
 revealui/api-keys/vultr
 revealui/api-keys/vultr-new
 revealui/api-keys/vultr-revealui-infer

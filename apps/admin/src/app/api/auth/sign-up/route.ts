@@ -284,19 +284,22 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
       }
     }
 
-    // Send verification email (fire-and-forget  -  don't block signup)
+    // Await Workspace Gmail so "check your inbox" is not shown before
+    // Gmail API has accepted the message. Fire-and-forget raced the UI
+    // and dropped sends on serverless freeze.
     if (!isFirstUser && resolvedUser?.email && resolvedUser?.emailVerificationToken) {
-      sendVerificationEmail(
+      const emailResult = await sendVerificationEmail(
         resolvedUser.email,
         resolvedUser.emailVerificationToken,
         license ? undefined : (plan ?? undefined),
         license ?? undefined,
-      ).catch((emailError) => {
+      );
+      if (!emailResult.success) {
         logger.warn('Failed to send verification email', {
-          userId: resolvedUser?.id,
-          error: emailError,
+          userId: resolvedUser.id,
+          error: emailResult.error,
         });
-      });
+      }
     }
 
     // Create response with user data

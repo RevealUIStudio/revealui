@@ -280,7 +280,7 @@ Required `.env.forge` vars (from [`docker-compose.forge.yml`](../docker-compose.
 - `REVEALUI_SECRET` — 32+ chars
 - `JWT_SECRET` — 32+ chars
 - `REVEALUI_PUBLIC_KEY` / `REVEALUI_PRIVATE_KEY` — RSA key pair for license verify/issue
-- `RESEND_API_KEY` — optional (transactional email)
+- Workspace Gmail (optional transactional email): `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, `EMAIL_FROM`
 
 The dev compose file (root `docker-compose.yml`) is for local self-hosting demos; the Forge compose adds resource limits, real secrets management, and license enforcement.
 
