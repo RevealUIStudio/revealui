@@ -2499,7 +2499,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/claim-drift',
     exportPath: 'body.11',
-    text: 'That hard failure is the whole point. The numbers you read here are not a snapshot someone updated when they remembered. They are a measurement of the code as it exists right now: 32 packages, 66 UI components, 13 first-party MCP servers, 104 database tables, 60 access-control enforcement tests, 5 starter templates. Each one is checked on the commit that publishes it.',
+    text: 'That hard failure is the whole point. The numbers you read here are not a snapshot someone updated when they remembered. They are a measurement of the code as it exists right now: 32 packages, 66 UI components, 14 first-party MCP servers, 104 database tables, 60 access-control enforcement tests, 5 starter templates. Each one is checked on the commit that publishes it.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/14-claim-drift.md', note: 'body source paragraph 11' },
       {
@@ -4410,7 +4410,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/getting-started',
     exportPath: 'body.80',
-    text: 'RevealUI ships with 13 first-party MCP (Model Context Protocol) servers (including Stripe, Neon, Vercel, Playwright, Code Validator, and Next.js DevTools). See the full list in [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers). Let your AI agents interact directly with your business infrastructure.',
+    text: 'RevealUI ships with 14 first-party MCP (Model Context Protocol) servers (including Stripe, Neon, Vercel, Playwright, Code Validator, and Next.js DevTools). See the full list in [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers). Let your AI agents interact directly with your business infrastructure.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/08-getting-started.md', note: 'body source paragraph 80' },
       {
@@ -4501,7 +4501,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.1',
-    text: '**Status note (updated 2026-05-18):** This post discusses the **agent-first future** RevealUI is building toward. Specifically: x402 micropayments (USDC on Base) (coming soon, [#93](https://github.com/RevealUIStudio/revealui/issues/93)) and the per-call MCP server marketplace (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526)) are **designed but not transactable today**. The x402 endpoints are code-complete behind `X402_ENABLED=false`; the marketplace ships its first-party catalog (13 MCP servers) but third-party publishing, payment proxying, and per-call billing are unbuilt. The Agent Card endpoint (`/.well-known/agent.json`) ships today; `payment-methods.json` ships with an `X402_ENABLED=false` empty-payments shape. See [What Works Today](../WHAT_WORKS_TODAY.md) for current shipping status of every system mentioned below.',
+    text: '**Status note (updated 2026-05-18):** This post discusses the **agent-first future** RevealUI is building toward. Specifically: x402 micropayments (USDC on Base) (coming soon, [#93](https://github.com/RevealUIStudio/revealui/issues/93)) and the per-call MCP server marketplace (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526)) are **designed but not transactable today**. The x402 endpoints are code-complete behind `X402_ENABLED=false`; the marketplace ships its first-party catalog (14 MCP servers) but third-party publishing, payment proxying, and per-call billing are unbuilt. The Agent Card endpoint (`/.well-known/agent.json`) ships today; `payment-methods.json` ships with an `X402_ENABLED=false` empty-payments shape. See [What Works Today](../WHAT_WORKS_TODAY.md) for current shipping status of every system mentioned below.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 1' },
       {
@@ -4761,7 +4761,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.21',
-    text: '| Protocol | Created by | Governed by | Purpose | RevealUI implementation | |---|---|---|---|---| | **A2A** (Agent-to-Agent) | Google | Linux Foundation (Agentic AI Foundation) | Agents discover and delegate work to other agents | Full A2A 1.0: Agent Cards, JSON-RPC task lifecycle (`tasks/send`, `tasks/get`, `tasks/cancel`), SSE streaming | | **MCP** (Model Context Protocol) | Anthropic | Open standard | Agents use tools exposed by MCP servers | 13 first-party MCP servers: Stripe, Neon, Vercel, Code Validator, Playwright, Next.js DevTools, plus the RevealUI-internal Content / Email / Memory / Stripe / Docs servers, the contracts introspection server, and the adapter base class | | **x402** (HTTP 402 Payment Required) | Coinbase | Open standard | Internet-native micropayments for machine-to-machine commerce | Per-call USDC payments on Base, Coinbase facilitator verification, marketplace payment proxy | | **OpenAPI** | OpenAPI Initiative | Linux Foundation | Machine-readable API descriptions | Auto-generated from Hono route definitions with Zod schemas |',
+    text: '| Protocol | Created by | Governed by | Purpose | RevealUI implementation | |---|---|---|---|---| | **A2A** (Agent-to-Agent) | Google | Linux Foundation (Agentic AI Foundation) | Agents discover and delegate work to other agents | Full A2A 1.0: Agent Cards, JSON-RPC task lifecycle (`tasks/send`, `tasks/get`, `tasks/cancel`), SSE streaming | | **MCP** (Model Context Protocol) | Anthropic | Open standard | Agents use tools exposed by MCP servers | 14 first-party MCP servers: Stripe, Neon, Vercel, Code Validator, Playwright, Next.js DevTools, plus the RevealUI-internal Content / Email / Memory / Stripe / Docs servers, the contracts introspection server, and the adapter base class | | **x402** (HTTP 402 Payment Required) | Coinbase | Open standard | Internet-native micropayments for machine-to-machine commerce | Per-call USDC payments on Base, Coinbase facilitator verification, marketplace payment proxy | | **OpenAPI** | OpenAPI Initiative | Linux Foundation | Machine-readable API descriptions | Auto-generated from Hono route definitions with Zod schemas |',
     evidence: [
       { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 21' },
       {
@@ -4917,7 +4917,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.33',
-    text: 'RevealUI ships with 13 first-party MCP servers (full list in [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers)). The seven that cover the core infrastructure stack:',
+    text: 'RevealUI ships with 14 first-party MCP servers (full list in [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers)). The seven that cover the core infrastructure stack:',
     evidence: [
       { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 33' },
       {
@@ -5645,7 +5645,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/open-source-and-pro',
     exportPath: 'body.8',
-    text: "The MCP framework is the one piece worth naming carefully: `@revealui/mcp` (the hypervisor, the 13 first-party servers, and the adapter base class) is one of the five Pro packages, Fair Source under FSL-1.1-MIT, not MIT. It's source-visible and converts to MIT two years after each release, but MCP integration is a paid capability today. I'd rather state that plainly than imply the AI tooling is free when it isn't.",
+    text: "The MCP framework is the one piece worth naming carefully: `@revealui/mcp` (the hypervisor, the 14 first-party servers, and the adapter base class) is one of the five Pro packages, Fair Source under FSL-1.1-MIT, not MIT. It's source-visible and converts to MIT two years after each release, but MCP integration is a paid capability today. I'd rather state that plainly than imply the AI tooling is free when it isn't.",
     evidence: [
       { kind: 'code', ref: 'docs/blog/06-open-source-and-pro.md', note: 'body source paragraph 8' },
       {
@@ -5773,7 +5773,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/open-source-and-pro',
     exportPath: 'body.16',
-    text: '**MCP framework** -- the hypervisor, 13 first-party servers, and the adapter base class that connect agents to tools',
+    text: '**MCP framework** -- the hypervisor, 14 first-party servers, and the adapter base class that connect agents to tools',
     evidence: [
       {
         kind: 'code',
@@ -7564,7 +7564,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/five-primitives',
     exportPath: 'body.75',
-    text: 'RevealUI ships **13 first-party MCP (Model Context Protocol) servers** in `@revealui/mcp` (Fair Source, FSL-1.1-MIT, source-visible, converts to MIT two years after release). The most commonly used:',
+    text: 'RevealUI ships **14 first-party MCP (Model Context Protocol) servers** in `@revealui/mcp` (Fair Source, FSL-1.1-MIT, source-visible, converts to MIT two years after release). The most commonly used:',
     evidence: [
       { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 75' },
       {
@@ -8351,7 +8351,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/local-first-ai-stack',
     exportPath: 'body.31',
-    text: '**MCP integrations**  -  13 first-party MCP servers (Stripe, Neon, Vercel, Playwright, Code Validator, Next.js DevTools, plus RevealUI-internal Content / Email / Memory / Stripe / Docs servers, the contracts introspection server, and the adapter base class)',
+    text: '**MCP integrations**  -  14 first-party MCP servers (Stripe, Neon, Vercel, Playwright, Code Validator, Next.js DevTools, plus RevealUI-internal Content / Email / Memory / Stripe / Docs servers, the contracts introspection server, and the adapter base class)',
     evidence: [
       {
         kind: 'code',
@@ -10564,7 +10564,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/why-we-built-revealui',
     exportPath: 'body.53',
-    text: '**13 first-party MCP servers** in `@revealui/mcp`',
+    text: '**14 first-party MCP servers** in `@revealui/mcp`',
     evidence: [
       {
         kind: 'code',

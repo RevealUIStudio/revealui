@@ -9,7 +9,7 @@
  * affordances") at the discovery layer; complement to the /llms.txt prose
  * layer (revealui#720) and the existing /.well-known/agent.json A2A layer.
  *
- * Source of truth: `packages/mcp/README.md` ("13 MCP Servers" — enforced
+ * Source of truth: `packages/mcp/README.md` ("14 MCP Servers" — enforced
  * by `pnpm validate:claims`). This manifest mirrors that list 1:1 and
  * MUST be updated alongside any addition or removal in
  * `packages/mcp/src/servers/`.
@@ -152,6 +152,18 @@ export const MCP_SERVERS: readonly McpServerEntry[] = [
     category: 'platform',
     transport: 'stdio',
     modulePath: '@revealui/mcp/dist/servers/revealui-memory.js',
+    license: 'FSL-1.1-MIT',
+    proGated: true,
+    requiresCredentials: false,
+  },
+  {
+    id: 'knowledge-graph',
+    name: 'Knowledge Graph',
+    description:
+      'Fleet knowledge graph — hybrid search, neighbors, paths, point-in-time facts, and additive episode ingest. Studio-local stdio stamps the session hook identity.',
+    category: 'platform',
+    transport: 'stdio',
+    modulePath: '@revealui/mcp/dist/servers/knowledge-graph.js',
     license: 'FSL-1.1-MIT',
     proGated: true,
     requiresCredentials: false,

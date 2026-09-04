@@ -48,7 +48,7 @@ Labels match the `/products` page.
 - **Database.** 104 Postgres tables via Drizzle on Neon. ElectricSQL is an optional sync layer (off by default)
 - **CLI.** `npx create-revealui@latest my-app` plus public GitHub templates (starter, basic-blog, portfolio, e-commerce)
 - **Agents.** A2A, CRDT memory, open-model default, streaming, tool execution. Hosted runs use the account's saved provider key (BYOK) or a local model. RevealUI does not host a shared frontier key as the product default. An entitled Pro account walked save-key plus Send Task plus Watch live on production (2026-08-18). That is one operator walk, not a paying-customer load test.
-- **MCP.** 13 first-party servers under `packages/mcp/src/servers/` (includes the adapter module)
+- **MCP.** 14 first-party servers under `packages/mcp/src/servers/` (includes the adapter module)
 - **Audit receipts.** Signed audit log. Pro can download Merkle roots
 - **Docs + marketing.** docs.revealui.com and revealui.com, including `/support`, `/status`, `/claims`, and `/roadmap`
 

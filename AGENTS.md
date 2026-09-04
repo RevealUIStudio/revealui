@@ -51,11 +51,11 @@ Edit monorepo **`docs/`** only. Do **not** author under `apps/docs/public/*.md`
 
 ## MCP Servers
 
-13 MCP servers ship with RevealUI — ground-truth count from `packages/mcp/src/servers/`, enforced by `pnpm validate:claims`:
+14 MCP servers ship with RevealUI — ground-truth count from `packages/mcp/src/servers/`, enforced by `pnpm validate:claims`:
 
 **External integrations:** Stripe, Neon, Vercel, Playwright (the Supabase MCP adapter was removed; agent database tooling uses Neon MCP — see `docs/ARCHITECTURE.md`)
 **Developer tools:** Code Validator, Contracts Introspection, RevealUI Docs, Next.js DevTools
-**RevealUI-native:** Content, Email, Memory, Stripe-RevealUI
+**RevealUI-native:** Content, Email, Memory, Knowledge Graph, Stripe-RevealUI
 **Adapter framework:** (shared across the above)
 
 Full details in `docs/PRO.md`.

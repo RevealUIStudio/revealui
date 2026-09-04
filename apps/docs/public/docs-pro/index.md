@@ -12,7 +12,7 @@ RevealUI Pro adds AI agents, MCP integrations, and inference orchestration on to
 |---------|---------|-------------|
 | [`@revealui/ai`](/pro/ai) | Fair Source (FSL-1.1-MIT, MIT after 2 years) | AI agents, open-model inference, CRDT memory, A2A protocol |
 | [`@revealui/harnesses`](https://github.com/RevealUIStudio/revealui/tree/main/packages/harnesses) | Fair Source (FSL-1.1-MIT, MIT after 2 years) | Harness adapters, workboard coordination |
-| [`@revealui/mcp`](/pro/mcp) | Fair Source (FSL-1.1-MIT, MIT after 2 years) | MCP hypervisor, adapter framework, 13 first-party server launchers |
+| [`@revealui/mcp`](/pro/mcp) | Fair Source (FSL-1.1-MIT, MIT after 2 years) | MCP hypervisor, adapter framework, 14 first-party server launchers |
 | [`@revealui/services`](https://github.com/RevealUIStudio/revealui/tree/main/packages/services) | Fair Source (FSL-1.1-MIT, MIT after 2 years) | Stripe, Solana (RVC), and Vercel integrations |
 | [Open-Model Inference](/pro/inference) | — | Default Ollama; Inference Snaps planned; Groq / HuggingFace / OpenAI-compatible opt-in |
 | [Editor Config Sync](/pro/editors) | — | Ships in the separate **RevCon** repo (not in this monorepo); not gated by Pro |

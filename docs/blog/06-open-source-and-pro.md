@@ -27,7 +27,7 @@ I understand that risk. I accept it. Here's why.
 
 RevealUI is an open runtime for businesses that run their own AI. The open-core business primitives, People, Content, Offers, and Payments, are MIT licensed and will stay MIT forever. These are table stakes. Every business needs auth, a content system, a product catalog, and payment processing. Making these proprietary would limit adoption without meaningfully protecting revenue. The value isn't in the code; it's in the integration, the maintenance, and the roadmap.
 
-The MCP framework is the one piece worth naming carefully: `@revealui/mcp` (the hypervisor, the 13 first-party servers, and the adapter base class) is one of the five Pro packages, Fair Source under FSL-1.1-MIT, not MIT. It's source-visible and converts to MIT two years after each release, but MCP integration is a paid capability today. I'd rather state that plainly than imply the AI tooling is free when it isn't.
+The MCP framework is the one piece worth naming carefully: `@revealui/mcp` (the hypervisor, the 14 first-party servers, and the adapter base class) is one of the five Pro packages, Fair Source under FSL-1.1-MIT, not MIT. It's source-visible and converts to MIT two years after each release, but MCP integration is a paid capability today. I'd rather state that plainly than imply the AI tooling is free when it isn't.
 
 What MIT means practically: you can take RevealUI, strip the branding, deploy it on your own infrastructure, and run your entire business on it without ever creating an account with us. You don't owe us attribution, revenue share, or even a thank-you. The code is yours.
 
@@ -46,7 +46,7 @@ RevealUI Pro includes:
 - **LLM orchestration** -- open-model inference via Ubuntu Inference Snaps and Ollama
 - **Editor integrations** -- config sync for Zed and VS Code
 - **Harness coordination** -- workboard-based agent orchestration, JSON-RPC communication, daemon management
-- **MCP framework** -- the hypervisor, 13 first-party servers, and the adapter base class that connect agents to tools
+- **MCP framework** -- the hypervisor, 14 first-party servers, and the adapter base class that connect agents to tools
 
 These features are commercially licensed. The source code is available (you can read the compiled output on npm), but the license restricts redistribution and commercial use without a key.
 
