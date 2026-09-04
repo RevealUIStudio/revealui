@@ -4,6 +4,11 @@ import { buildManifest } from '../content/definitions/index.js';
 import { grokCommandPath, grokRulePathForDefinitionId } from '../content/generators/grok.js';
 import { alwaysOnRuleIds } from '../content/preamble-ids.js';
 import { claudeRulePathForDefinitionId } from '../content/write-manager-adapters.js';
+import {
+  claudeSettingsHasStudioLocalKg,
+  grokTomlHasStudioLocalKg,
+  materializeStudioLocalKgMcp,
+} from '../session/studio-local-kg-mcp.js';
 import { GROK_HOOK_FILES, GROK_HOOK_TEMPLATE_DIR } from './grok-session-hooks.js';
 import {
   MANAGER_CONTENT_DIR,
@@ -291,6 +296,12 @@ export function materializeManager(
     else if (id === 'grok') stubs.push(materializeGrokPointer(projectRoot));
     else if (id === 'revdev') stubs.push(materializeRevDevPointer(projectRoot));
   }
+  const kgMcp = materializeStudioLocalKgMcp(projectRoot, {
+    claude: adapters.includes('claude-code'),
+    grok: adapters.includes('grok'),
+  });
+  if (kgMcp.claudeSettings) stubs.push(kgMcp.claudeSettings);
+  if (kgMcp.grokToml) stubs.push(kgMcp.grokToml);
   return { managerPath: managerFile, stubs };
 }
 
@@ -440,6 +451,16 @@ export function checkManager(projectRoot: string): ManagerCheckResult {
   const readme = join(projectRoot, MANAGER_DIR, 'README.md');
   if (readFileOrNull(readme) === null) {
     warnings.push('missing .revealui/README.md manager contract');
+  }
+  const claudeSettings = readFileOrNull(join(projectRoot, '.claude', 'settings.json'));
+  if (claudeSettings === null || !claudeSettingsHasStudioLocalKg(claudeSettings)) {
+    warnings.push(
+      'missing knowledge-graph stdio MCP in .claude/settings.json (materialize claude-code)',
+    );
+  }
+  const grokToml = readFileOrNull(join(projectRoot, '.grok', 'config.toml'));
+  if (grokToml === null || !grokTomlHasStudioLocalKg(grokToml)) {
+    warnings.push('missing knowledge-graph stdio MCP in .grok/config.toml (materialize grok)');
   }
   return { ok: errors.length === 0, errors, warnings };
 }

@@ -10,3 +10,10 @@ tool_timeout_sec = 120
 
 [mcp_servers.revealui.headers]
 Authorization = "Bearer ${REVEALUI_MCP_TOKEN}"
+
+# BEGIN GENERATED:studio-local-kg-mcp
+[mcp_servers.knowledge-graph]
+command = "revealui-mcp"
+args = ["knowledge-graph"]
+enabled = true
+# END GENERATED:studio-local-kg-mcp
