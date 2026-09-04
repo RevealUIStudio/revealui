@@ -13,12 +13,12 @@
  */
 
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { loadStudioPrincipal, warnMissingPrincipal } from './_kg-principal.js';
 import { createLauncherLogger, ExitCode, isDirectEntry } from './_launcher-utils.js';
 import {
   createKnowledgeGraphServer,
   DEFAULT_KG_TOOL_TIMEOUT_MS,
 } from './factories/knowledge-graph.js';
-import { loadStudioPrincipal, warnMissingPrincipal } from './_kg-principal.js';
 
 const logger = createLauncherLogger();
 
