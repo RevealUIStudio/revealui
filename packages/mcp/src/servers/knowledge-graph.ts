@@ -18,7 +18,7 @@ import {
   createKnowledgeGraphServer,
   DEFAULT_KG_TOOL_TIMEOUT_MS,
 } from './factories/knowledge-graph.js';
-import { loadStudioPrincipal, warnMissingPrincipal } from './kg-principal.js';
+import { loadStudioPrincipal, warnMissingPrincipal } from './_kg-principal.js';
 
 const logger = createLauncherLogger();
 

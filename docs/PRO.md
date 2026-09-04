@@ -120,7 +120,7 @@ For full decision context: [ADR-003: Fair Source Licensing](./architecture/ADR-0
 
 ## MCP Setup
 
-RevealUI ships **13 MCP servers** under `packages/mcp/src/servers/` for enhanced AI capabilities. Highlights:
+RevealUI ships **14 MCP servers** under `packages/mcp/src/servers/` for enhanced AI capabilities. Highlights:
 
 - **Code Validator MCP** - Static analysis and code quality checks
 - **Vercel MCP** - Deploy and manage Vercel projects

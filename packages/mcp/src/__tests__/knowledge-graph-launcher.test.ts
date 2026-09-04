@@ -13,7 +13,7 @@ import {
   resetMissingPrincipalWarnings,
   resolveStudioAgentId,
   warnMissingPrincipal,
-} from '../servers/kg-principal.js';
+} from '../servers/_kg-principal.js';
 
 const envKeys = [
   'REVDEV_AGENT_ID',
