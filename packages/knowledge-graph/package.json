@@ -54,6 +54,11 @@
       "types": "./dist/replica/index.d.ts",
       "import": "./dist/replica/index.js",
       "default": "./dist/replica/index.js"
+    },
+    "./memory": {
+      "types": "./dist/memory/index.d.ts",
+      "import": "./dist/memory/index.js",
+      "default": "./dist/memory/index.js"
     }
   },
   "bin": {

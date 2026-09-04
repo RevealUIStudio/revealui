@@ -21,14 +21,14 @@ If a number appears in marketing copy, it MUST match the value below. If a value
 
 ## 1. Codebase metrics (validated by claim-drift CI gate)
 
-Source: `pnpm tsx scripts/validate/claim-drift.ts` on `origin/test` 2026-08-13 (testFiles 1263; GAP-335 added the MCP runtime validator).
+Source: `pnpm tsx scripts/validate/claim-drift.ts` on `origin/test` 2026-09-03 (testFiles 1364).
 
 | Metric | Canonical value | Source of truth (script ref) | Notes |
 |---|---|---|---|
 | Packages in `packages/` | **32** | `countPackages()` — `.ts`-bearing dir | Stale memory `reference_npm_account_topology` ("36") superseded by this. |
 | Apps in `apps/` | **6** | `countApps()` | admin / server / docs / marketing / license-signer / rsc-poc (GAP-194 T0 harness). |
 | Workspaces (monorepo total) | **38** | `countWorkspaces()` (= 32 packages + 6 apps) | |
-| Test files | **1263** | `countTestFiles()` — `*.test.ts` / `*.spec.ts` walking | Marketing copy should say "900+ tests" or quote the exact ground-truth number, never "20,000+" (the stale claim). claim-drift allows site.ts METRICS.testFiles within tolerance 100. |
+| Test files | **1364** | `countTestFiles()` — `*.test.ts` / `*.spec.ts` walking | Marketing copy should say "900+ tests" or quote the exact ground-truth number, never "20,000+" (the stale claim). claim-drift allows site.ts METRICS.testFiles within tolerance 100. |
 | UI components in `packages/presentation/` | **66** | `countUIComponents()` | Marketing copy says "66 native React components" or similar. |
 | **MCP servers** | **13** | `countMCPServers()` — `.ts` files in `packages/mcp/src/servers/` excluding `_`-prefixed | Includes `adapter.ts` (BaseAdapter + Vercel/Stripe/Neon subclasses); Supabase launcher removed (13 count). |
 | DB tables (Drizzle pgTable) | **104** | `countDbTables()` — `pgTable(` declarations across `packages/db/src/schema/*.ts` | Was 86 (2026-06-22); 93 after GAP-300; 96 on 2026-07-22; 97 after GAP-355 S4-1 `audit_anchors` (2026-07-23); 98 after GAP-260 P4-5 `license_jti_revocations` (2026-07-31); 101 after GAP-448 `kit_fulfillments` (2026-08-02; was 100 after GAP-464 SSO tables); **104** after GAP-256 PR-1 `margin_snapshots` + `account_margin_daily` + `admission_waitlist` (2026-08-09). `site.ts` METRICS.dbTables is gate-enforced by claim-drift. |
