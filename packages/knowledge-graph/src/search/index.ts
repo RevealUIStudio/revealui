@@ -13,6 +13,8 @@
  * the current graph (`invalid_at IS NULL AND expired_at IS NULL`).
  */
 
+import { bindVisibility, SqlParams } from '../memory/scope-sql.js';
+import type { MemoryPrincipal } from '../memory/types.js';
 import type { EdgeRelation, NodeKind } from '../ontology/index.js';
 import type { KgExecutor } from '../types.js';
 import { applyEpisodeMentions, applyNodeDistance, rankByScore, rrfFuse } from './rrf.js';
@@ -33,6 +35,11 @@ export interface KgSearchQuery {
   queryEmbedding?: number[];
   /** Max BFS depth for the traversal channel (default 3). */
   bfsDepth?: number;
+  /**
+   * Product-memory principal. When hosted, node and fact channels restrict to
+   * visible rows in SQL before LIMIT. Studio-local / omitted = unrestricted.
+   */
+  principal?: MemoryPrincipal;
 }
 
 export interface RankedNode {
@@ -86,15 +93,22 @@ async function nodeFtsChannel(
   query: string,
   kinds: NodeKind[] | undefined,
   limit: number,
+  principal: MemoryPrincipal | undefined,
 ): Promise<string[]> {
-  const params: unknown[] = [query, kinds ?? null, limit];
+  const p = new SqlParams();
+  const vis = bindVisibility(principal, p);
+  const q = p.add(query);
+  const kindsP = p.add(kinds ?? null);
+  const limitP = p.add(limit);
+  const visSql = vis ? `AND ${vis.nodeVisible('n')}` : '';
   const rows = await exec.query<NodeChannelRow>(
-    `SELECT id FROM kg_nodes
-     WHERE search @@ websearch_to_tsquery('english', $1)
-       AND ($2::text[] IS NULL OR kind = ANY($2::text[]))
-     ORDER BY ts_rank(search, websearch_to_tsquery('english', $1)) DESC, id
-     LIMIT $3`,
-    params,
+    `SELECT n.id FROM kg_nodes n
+     WHERE n.search @@ websearch_to_tsquery('english', ${q})
+       AND (${kindsP}::text[] IS NULL OR n.kind = ANY(${kindsP}::text[]))
+       ${visSql}
+     ORDER BY ts_rank(n.search, websearch_to_tsquery('english', ${q})) DESC, n.id
+     LIMIT ${limitP}`,
+    p.values,
   );
   return rows.map((r) => r.id);
 }
@@ -104,16 +118,24 @@ async function nodeVectorChannel(
   queryEmbedding: number[] | undefined,
   kinds: NodeKind[] | undefined,
   limit: number,
+  principal: MemoryPrincipal | undefined,
 ): Promise<string[]> {
   if (!queryEmbedding || queryEmbedding.length === 0) return [];
+  const p = new SqlParams();
+  const vis = bindVisibility(principal, p);
+  const embeddingP = p.add(formatVector(queryEmbedding));
+  const kindsP = p.add(kinds ?? null);
+  const limitP = p.add(limit);
+  const visSql = vis ? `AND ${vis.nodeVisible('n')}` : '';
   try {
     const rows = await exec.query<NodeChannelRow>(
-      `SELECT id FROM kg_nodes
-       WHERE embedding IS NOT NULL
-         AND ($2::text[] IS NULL OR kind = ANY($2::text[]))
-       ORDER BY embedding <=> $1::vector
-       LIMIT $3`,
-      [formatVector(queryEmbedding), kinds ?? null, limit],
+      `SELECT n.id FROM kg_nodes n
+       WHERE n.embedding IS NOT NULL
+         AND (${kindsP}::text[] IS NULL OR n.kind = ANY(${kindsP}::text[]))
+         ${visSql}
+       ORDER BY n.embedding <=> ${embeddingP}::vector
+       LIMIT ${limitP}`,
+      p.values,
     );
     return rows.map((r) => r.id);
   } catch {
@@ -128,24 +150,30 @@ async function bfsChannel(
   relations: EdgeRelation[] | undefined,
   at: Date | undefined,
   depth: number,
+  principal: MemoryPrincipal | undefined,
 ): Promise<Map<string, number>> {
   const distances = new Map<string, number>();
   if (!anchor) return distances;
-  const atParam = at ? '$3' : null;
-  const params: unknown[] = [anchor, relations ?? null, ...(at ? [at.toISOString()] : [])];
+  const p = new SqlParams();
+  const vis = bindVisibility(principal, p);
+  const anchorP = p.add(anchor);
+  const relationsP = p.add(relations ?? null);
+  const atP = at ? p.add(at.toISOString()) : null;
+  const visSql = vis ? `AND ${vis.edgeVisible('e')}` : '';
   const rows = await exec.query<{ node_id: string; depth: number }>(
     `WITH RECURSIVE bfs(node_id, depth) AS (
-       SELECT $1::text, 0
+       SELECT ${anchorP}::text, 0
        UNION
        SELECT CASE WHEN e.source_id = b.node_id THEN e.target_id ELSE e.source_id END, b.depth + 1
        FROM bfs b
        JOIN kg_edges e ON (e.source_id = b.node_id OR e.target_id = b.node_id)
        WHERE b.depth < ${depth}
-         AND (${edgeTemporalClause('e', atParam)})
-         AND ($2::text[] IS NULL OR e.relation = ANY($2::text[]))
+         AND (${edgeTemporalClause('e', atP)})
+         AND (${relationsP}::text[] IS NULL OR e.relation = ANY(${relationsP}::text[]))
+         ${visSql}
      )
      SELECT node_id, MIN(depth) AS depth FROM bfs GROUP BY node_id`,
-    params,
+    p.values,
   );
   for (const row of rows) distances.set(row.node_id, Number(row.depth));
   return distances;
@@ -169,22 +197,29 @@ async function factChannel(
   relations: EdgeRelation[] | undefined,
   at: Date | undefined,
   limit: number,
+  principal: MemoryPrincipal | undefined,
 ): Promise<FactRow[]> {
-  const atParam = at ? '$4' : null;
-  const params: unknown[] = [query, relations ?? null, limit, ...(at ? [at.toISOString()] : [])];
+  const p = new SqlParams();
+  const vis = bindVisibility(principal, p);
+  const q = p.add(query);
+  const relationsP = p.add(relations ?? null);
+  const limitP = p.add(limit);
+  const atP = at ? p.add(at.toISOString()) : null;
+  const visSql = vis ? `AND ${vis.edgeVisible('e')}` : '';
   return exec.query<FactRow>(
     `SELECT e.id, e.source_id, e.target_id, e.relation, e.fact, e.valid_at, e.invalid_at,
             count(ee.episode_id)::int AS mentions,
             coalesce(array_agg(ee.episode_id) FILTER (WHERE ee.episode_id IS NOT NULL), '{}') AS episode_ids
      FROM kg_edges e
      LEFT JOIN kg_edge_episodes ee ON ee.edge_id = e.id
-     WHERE e.search @@ websearch_to_tsquery('english', $1)
-       AND (${edgeTemporalClause('e', atParam)})
-       AND ($2::text[] IS NULL OR e.relation = ANY($2::text[]))
+     WHERE e.search @@ websearch_to_tsquery('english', ${q})
+       AND (${edgeTemporalClause('e', atP)})
+       AND (${relationsP}::text[] IS NULL OR e.relation = ANY(${relationsP}::text[]))
+       ${visSql}
      GROUP BY e.id
-     ORDER BY ts_rank(e.search, websearch_to_tsquery('english', $1)) DESC, e.id
-     LIMIT $3`,
-    params,
+     ORDER BY ts_rank(e.search, websearch_to_tsquery('english', ${q})) DESC, e.id
+     LIMIT ${limitP}`,
+    p.values,
   );
 }
 
@@ -214,10 +249,10 @@ export async function kgSearch(exec: KgExecutor, q: KgSearchQuery): Promise<KgSe
   const depth = q.bfsDepth ?? 3;
 
   const [ftsNodes, vectorNodes, bfsDistances, facts] = await Promise.all([
-    nodeFtsChannel(exec, q.query, q.kinds, channelLimit),
-    nodeVectorChannel(exec, q.queryEmbedding, q.kinds, channelLimit),
-    bfsChannel(exec, q.anchor, q.relations, q.at, depth),
-    factChannel(exec, q.query, q.relations, q.at, channelLimit),
+    nodeFtsChannel(exec, q.query, q.kinds, channelLimit, q.principal),
+    nodeVectorChannel(exec, q.queryEmbedding, q.kinds, channelLimit, q.principal),
+    bfsChannel(exec, q.anchor, q.relations, q.at, depth, q.principal),
+    factChannel(exec, q.query, q.relations, q.at, channelLimit, q.principal),
   ]);
 
   // RRF over node channels + traversal reach.
@@ -291,20 +326,36 @@ export interface NeighborsResult {
 export async function kgNeighbors(
   exec: KgExecutor,
   nodeId: string,
-  options: { depth?: number; relations?: EdgeRelation[]; at?: Date } = {},
+  options: {
+    depth?: number;
+    relations?: EdgeRelation[];
+    at?: Date;
+    principal?: MemoryPrincipal;
+  } = {},
 ): Promise<NeighborsResult> {
   const depth = options.depth ?? 1;
-  const distances = await bfsChannel(exec, nodeId, options.relations, options.at, depth);
+  const distances = await bfsChannel(
+    exec,
+    nodeId,
+    options.relations,
+    options.at,
+    depth,
+    options.principal,
+  );
   const ids = [...distances.keys()];
   const detail = await hydrateNodes(exec, ids);
-  const atParam = options.at ? '$2' : null;
-  const edgeParams: unknown[] = [ids, ...(options.at ? [options.at.toISOString()] : [])];
+  const p = new SqlParams();
+  const vis = bindVisibility(options.principal, p);
+  const idsP = p.add(ids);
+  const atP = options.at ? p.add(options.at.toISOString()) : null;
+  const visSql = vis ? `AND ${vis.edgeVisible('e')}` : '';
   const edges = await exec.query<FactRow>(
-    `SELECT id, source_id, target_id, relation, fact, valid_at, invalid_at
+    `SELECT e.id, e.source_id, e.target_id, e.relation, e.fact, e.valid_at, e.invalid_at
      FROM kg_edges e
-     WHERE (e.source_id = ANY($1::text[]) AND e.target_id = ANY($1::text[]))
-       AND (${edgeTemporalClause('e', atParam)})`,
-    edgeParams,
+     WHERE (e.source_id = ANY(${idsP}::text[]) AND e.target_id = ANY(${idsP}::text[]))
+       AND (${edgeTemporalClause('e', atP)})
+       ${visSql}`,
+    p.values,
   );
   return {
     nodes: ids.flatMap((id) => {
@@ -331,18 +382,29 @@ export async function kgNeighbors(
 }
 
 /** The current (or as-of `at`) edges incident to a node — its facts at time t. */
-export async function kgAtTime(exec: KgExecutor, nodeId: string, at: Date): Promise<RankedFact[]> {
+export async function kgAtTime(
+  exec: KgExecutor,
+  nodeId: string,
+  at: Date,
+  options: { principal?: MemoryPrincipal } = {},
+): Promise<RankedFact[]> {
+  const p = new SqlParams();
+  const vis = bindVisibility(options.principal, p);
+  const nodeP = p.add(nodeId);
+  const atP = p.add(at.toISOString());
+  const visSql = vis ? `AND ${vis.edgeVisible('e')}` : '';
   const rows = await exec.query<FactRow>(
     `SELECT e.id, e.source_id, e.target_id, e.relation, e.fact, e.valid_at, e.invalid_at,
             count(ee.episode_id)::int AS mentions,
             coalesce(array_agg(ee.episode_id) FILTER (WHERE ee.episode_id IS NOT NULL), '{}') AS episode_ids
      FROM kg_edges e
      LEFT JOIN kg_edge_episodes ee ON ee.edge_id = e.id
-     WHERE (e.source_id = $1 OR e.target_id = $1)
-       AND (${edgeTemporalClause('e', '$2')})
+     WHERE (e.source_id = ${nodeP} OR e.target_id = ${nodeP})
+       AND (${edgeTemporalClause('e', atP)})
+       ${visSql}
      GROUP BY e.id
      ORDER BY e.valid_at DESC, e.id`,
-    [nodeId, at.toISOString()],
+    p.values,
   );
   return rows.map((f) => ({
     id: f.id,
@@ -363,14 +425,18 @@ export async function kgPath(
   exec: KgExecutor,
   from: string,
   to: string,
-  options: { at?: Date; maxDepth?: number } = {},
+  options: { at?: Date; maxDepth?: number; principal?: MemoryPrincipal } = {},
 ): Promise<string[] | null> {
   const maxDepth = options.maxDepth ?? 6;
-  const atParam = options.at ? '$3' : null;
-  const params: unknown[] = [from, to, ...(options.at ? [options.at.toISOString()] : [])];
+  const p = new SqlParams();
+  const vis = bindVisibility(options.principal, p);
+  const fromP = p.add(from);
+  const toP = p.add(to);
+  const atP = options.at ? p.add(options.at.toISOString()) : null;
+  const visSql = vis ? `AND ${vis.edgeVisible('e')}` : '';
   const rows = await exec.query<{ path: string[] }>(
     `WITH RECURSIVE walk(node_id, path, depth) AS (
-       SELECT $1::text, ARRAY[$1::text], 0
+       SELECT ${fromP}::text, ARRAY[${fromP}::text], 0
        UNION ALL
        SELECT nxt, w.path || nxt, w.depth + 1
        FROM walk w
@@ -378,12 +444,13 @@ export async function kgPath(
          SELECT CASE WHEN e.source_id = w.node_id THEN e.target_id ELSE e.source_id END AS nxt
          FROM kg_edges e
          WHERE (e.source_id = w.node_id OR e.target_id = w.node_id)
-           AND (${edgeTemporalClause('e', atParam)})
+           AND (${edgeTemporalClause('e', atP)})
+           ${visSql}
        ) step ON true
-       WHERE w.depth < ${maxDepth} AND NOT (nxt = ANY(w.path)) AND w.node_id <> $2::text
+       WHERE w.depth < ${maxDepth} AND NOT (nxt = ANY(w.path)) AND w.node_id <> ${toP}::text
      )
-     SELECT path FROM walk WHERE node_id = $2::text ORDER BY depth LIMIT 1`,
-    params,
+     SELECT path FROM walk WHERE node_id = ${toP}::text ORDER BY depth LIMIT 1`,
+    p.values,
   );
   return rows[0]?.path ?? null;
 }
