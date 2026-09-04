@@ -12,6 +12,11 @@
       "reason": "data-driven stacked bar SVG (dynamic rect widths); no Icon* match (GAP-398 residual)"
     },
     {
+      "path": "apps/admin/src/lib/components/KnowledgeGraphCanvas.tsx",
+      "tag": "svg",
+      "reason": "data-driven knowledge-graph node/edge geometry; no Icon* match (GAP-398 residual)"
+    },
+    {
       "path": "apps/admin/src/lib/features/label/icons/LabelIcon.tsx",
       "tag": "svg",
       "reason": "Lexical toolbar letterform icon (custom AA glyph); no Icon* match (GAP-398 residual)"

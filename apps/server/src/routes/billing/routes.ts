@@ -17,6 +17,7 @@ import {
   billingCatalog,
   licenses,
   processedWebhookEvents,
+  usageMeters,
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
@@ -44,6 +45,7 @@ import {
   sendDowngradeConfirmationEmail,
   sendUpgradeConfirmationEmail,
 } from '../../lib/webhook-emails.js';
+import { utcIsoWeekBounds, weeklyUsagePercent } from '../../lib/weekly-agent-usage.js';
 import { assertAccountOwner } from '../../middleware/account-owner.js';
 import { resetDbStatusCache, resetSupportExpiryCache } from '../../middleware/license.js';
 
@@ -1384,6 +1386,12 @@ const UsageResponseSchema = z.object({
   resetAt: z
     .string()
     .openapi({ description: 'When the cycle resets (start of next month, ISO 8601)' }),
+  weekUsed: z.number().openapi({ description: 'Agent-sourced meter events this ISO week (UTC)' }),
+  weekStart: z.string().openapi({ description: 'UTC Monday 00:00 of the current ISO week' }),
+  weekResetAt: z.string().openapi({ description: 'UTC Monday 00:00 of the next ISO week' }),
+  percent: z.number().nullable().openapi({
+    description: 'weekUsed / quota as a whole-number percent; null when unlimited or no allotment',
+  }),
 });
 
 const usageRoute = createRoute({
@@ -1391,7 +1399,8 @@ const usageRoute = createRoute({
   path: '/usage',
   tags: ['billing'],
   summary: 'Agent task usage',
-  description: 'Returns agent task usage for the current billing cycle.',
+  description:
+    'Returns agent task usage for the current monthly billing cycle plus this ISO week (UTC). Monthly fields are unchanged.',
   responses: {
     200: {
       content: { 'application/json': { schema: UsageResponseSchema } },
@@ -1421,15 +1430,41 @@ app.openapi(usageRoute, async (c) => {
     .where(and(eq(agentTaskUsage.userId, user.id), eq(agentTaskUsage.cycleStart, cycle)))
     .limit(1);
 
-  const quota = resolveUsageQuota(c);
+  const quotaRaw = resolveUsageQuota(c);
+  const quota = quotaRaw === Infinity || quotaRaw >= Number.MAX_SAFE_INTEGER ? -1 : quotaRaw;
+  const { weekStart, weekResetAt } = utcIsoWeekBounds(now);
+
+  const entitlements = c.get('entitlements');
+  const accountId = entitlements?.accountId;
+  let weekUsed = 0;
+  if (accountId) {
+    const [weekRow] = await db
+      .select({
+        value: sql<number>`coalesce(sum(${usageMeters.quantity}), 0)`,
+      })
+      .from(usageMeters)
+      .where(
+        and(
+          eq(usageMeters.accountId, accountId),
+          eq(usageMeters.source, 'agent'),
+          gte(usageMeters.createdAt, weekStart),
+          lt(usageMeters.createdAt, weekResetAt),
+        ),
+      );
+    weekUsed = Number(weekRow?.value ?? 0);
+  }
 
   return c.json(
     {
       used: row?.count ?? 0,
-      quota: quota === Infinity || quota >= Number.MAX_SAFE_INTEGER ? -1 : quota,
+      quota,
       overage: row?.overage ?? 0,
       cycleStart: cycle.toISOString(),
       resetAt: resetAt.toISOString(),
+      weekUsed,
+      weekStart: weekStart.toISOString(),
+      weekResetAt: weekResetAt.toISOString(),
+      percent: weeklyUsagePercent(weekUsed, quota),
     },
     200,
   );

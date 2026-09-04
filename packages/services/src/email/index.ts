@@ -106,6 +106,14 @@ export function encodeHeaderValue(value: string): string {
 // Gmail REST API provider (edge-compatible)
 // ---------------------------------------------------------------------------
 
+/** Workspace Gmail OAuth token cache. JWT exchange on every send added seconds. */
+let gmailAccessToken: { token: string; exp: number } | null = null;
+
+/** Test-only: drop the cached Workspace token so each case hits OAuth again. */
+export function clearGmailAccessTokenCache(): void {
+  gmailAccessToken = null;
+}
+
 export class GmailProvider implements EmailProvider {
   private serviceAccountEmail: string;
   private privateKey: string;
@@ -120,9 +128,13 @@ export class GmailProvider implements EmailProvider {
   }
 
   private async getAccessToken(): Promise<string> {
+    const now = Math.floor(Date.now() / 1000);
+    if (gmailAccessToken && gmailAccessToken.exp - 60 > now) {
+      return gmailAccessToken.token;
+    }
+
     const key = await importPKCS8(normalizePem(this.privateKey), 'RS256');
 
-    const now = Math.floor(Date.now() / 1000);
     const jwt = await new SignJWT({
       scope: 'https://www.googleapis.com/auth/gmail.send',
       sub: this.delegateEmail,
@@ -148,7 +160,12 @@ export class GmailProvider implements EmailProvider {
       throw new Error(`Google OAuth2 token exchange failed (${tokenRes.status}): ${body}`);
     }
 
-    const { access_token } = (await tokenRes.json()) as { access_token: string };
+    const { access_token, expires_in } = (await tokenRes.json()) as {
+      access_token: string;
+      expires_in?: number;
+    };
+    const ttl = typeof expires_in === 'number' && expires_in > 0 ? expires_in : 3600;
+    gmailAccessToken = { token: access_token, exp: now + ttl };
     return access_token;
   }
 

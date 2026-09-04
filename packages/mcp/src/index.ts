@@ -186,6 +186,9 @@ export {
   type AssembledContext,
   type CreateKnowledgeGraphServerOptions,
   createKnowledgeGraphServer,
+  createKnowledgeGraphToolset,
+  DEFAULT_KG_TOOL_TIMEOUT_MS,
+  type KnowledgeGraphToolset,
 } from './servers/factories/knowledge-graph.js';
 // First-party server factories (Stage 1 PR-1.2 — dual-mode template)
 export {

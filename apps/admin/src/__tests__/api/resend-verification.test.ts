@@ -39,21 +39,6 @@ vi.mock('@/lib/email/verification', () => ({
   sendVerificationEmail: (...args: unknown[]) => mockSendVerificationEmail(...args),
 }));
 
-// Run after() callbacks inline so the deferred lookup/rotate/send is
-// observable synchronously in assertions.
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>();
-  return {
-    ...actual,
-    after: (task: unknown) => {
-      if (typeof task === 'function') {
-        return (task as () => unknown)();
-      }
-      return undefined;
-    },
-  };
-});
-
 // Import NextRequest + the route after mocks.
 import { NextRequest } from 'next/server';
 import { POST } from '../../app/api/auth/resend-verification/route';

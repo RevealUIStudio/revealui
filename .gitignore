@@ -210,6 +210,11 @@ CLAUDE.md
 
 :memory:/
 
+# Global excludesFile ignores **/memory/ (Claude dumps). Track the
+# knowledge-graph product memory helpers anyway.
+!/packages/knowledge-graph/src/memory/
+!/packages/knowledge-graph/src/memory/**
+
 # Nix build results (if building packages)
 result
 result-*

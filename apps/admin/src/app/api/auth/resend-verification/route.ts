@@ -7,9 +7,8 @@
  * - Authenticated session: resends to the session user (original behavior).
  * - No session: accepts { email }. The response is the same generic 200 for
  *   existing, nonexistent, already-verified, and per-email-rate-limited
- *   addresses, and the actual token rotation + send run after the response
- *   is sent — so neither the body nor the latency reveals whether an
- *   account exists.
+ *   addresses. Token rotation + Workspace Gmail send run before the
+ *   response so the inbox is not racing a deferred `after()` callback.
  *
  * Rate-limited per IP (wrapper) and, in the no-session mode, per email.
  */
@@ -19,7 +18,7 @@ import { checkRateLimit, getSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
 import { getUserByEmail, updateUser } from '@revealui/db/queries/users';
 import { logger } from '@revealui/utils/logger';
-import { after, type NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { sendVerificationEmail } from '@/lib/email/verification';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
@@ -65,9 +64,9 @@ function genericAcceptedResponse(): NextResponse {
 }
 
 /**
- * No-session mode. The constant response and the deferred lookup/send are
- * load-bearing: changing either lets this endpoint be used to probe which
- * emails have accounts.
+ * No-session mode. The constant 200 body is load-bearing (anti-enumeration).
+ * The send is awaited so Workspace Gmail has accepted the message before we
+ * tell the browser it is on its way.
  */
 async function resendWithoutSession(request: NextRequest): Promise<NextResponse> {
   const body = await request.json().catch(() => null);
@@ -91,26 +90,23 @@ async function resendWithoutSession(request: NextRequest): Promise<NextResponse>
   });
 
   if (allowed) {
-    after(async () => {
-      try {
-        const db = getClient();
-        // Exact-match lookup — the same semantics signIn uses, so any address
-        // that can sign in can also request a resend.
-        const user = await getUserByEmail(db, email);
-        if (!user || user.emailVerified || !user.email) {
-          return;
-        }
+    try {
+      const db = getClient();
+      // Exact-match lookup — the same semantics signIn uses, so any address
+      // that can sign in can also request a send.
+      const user = await getUserByEmail(db, email);
+      if (user && !user.emailVerified && user.email) {
         const result = await rotateTokenAndSend(user.id, user.email);
         if (!result.success) {
-          logger.warn('Failed to resend verification email (no-session mode)', {
+          logger.warn('Failed to send verification email (no-session mode)', {
             userId: user.id,
             error: result.error,
           });
         }
-      } catch (error) {
-        logger.error('Error in deferred verification resend', { error });
       }
-    });
+    } catch (error) {
+      logger.error('Error sending verification email', { error });
+    }
   }
 
   return genericAcceptedResponse();

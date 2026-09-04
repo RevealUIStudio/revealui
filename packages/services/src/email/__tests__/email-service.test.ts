@@ -35,7 +35,13 @@ vi.mock('jose', () => ({
   },
 }));
 
-import { GmailProvider, getEmailProvider, MockEmailProvider, sendEmail } from '../index.js';
+import {
+  clearGmailAccessTokenCache,
+  GmailProvider,
+  getEmailProvider,
+  MockEmailProvider,
+  sendEmail,
+} from '../index.js';
 
 const realFetch = global.fetch;
 const silentLogger = { warn: vi.fn(), error: vi.fn(), debug: vi.fn() };
@@ -65,6 +71,7 @@ const opts = { to: 'user@example.com', subject: 'Hi', html: '<p>hi</p>', text: '
 
 beforeEach(() => {
   vi.clearAllMocks();
+  clearGmailAccessTokenCache();
   vi.stubEnv('NODE_ENV', 'test');
   vi.stubEnv('GOOGLE_SERVICE_ACCOUNT_EMAIL', '');
   vi.stubEnv('GOOGLE_PRIVATE_KEY', '');
@@ -100,6 +107,23 @@ describe('GmailProvider', () => {
     expect(fetchFn).toHaveBeenCalledTimes(2);
     expect(String(fetchFn.mock.calls[0]?.[0])).toContain('oauth2.googleapis.com');
     expect(String(fetchFn.mock.calls[1]?.[0])).toContain('gmail.googleapis.com');
+  });
+
+  it('reuses the Workspace access token on a second send (no second OAuth hop)', async () => {
+    vi.stubEnv('GOOGLE_SERVICE_ACCOUNT_EMAIL', 'sa@p.iam.gserviceaccount.com');
+    vi.stubEnv('GOOGLE_PRIVATE_KEY', 'pk');
+    const fetchFn = mockFetch(
+      { ok: true, json: { access_token: 'tok', expires_in: 3600 } },
+      { ok: true },
+      { ok: true },
+    );
+    const provider = new GmailProvider({ logger: silentLogger });
+    await provider.send(opts);
+    await provider.send(opts);
+    expect(fetchFn).toHaveBeenCalledTimes(3);
+    expect(String(fetchFn.mock.calls[0]?.[0])).toContain('oauth2.googleapis.com');
+    expect(String(fetchFn.mock.calls[1]?.[0])).toContain('gmail.googleapis.com');
+    expect(String(fetchFn.mock.calls[2]?.[0])).toContain('gmail.googleapis.com');
   });
 
   it('builds a message without optional text/replyTo', async () => {
@@ -212,11 +236,10 @@ describe('sendEmail', () => {
   it('retries a transient failure and then succeeds', async () => {
     vi.stubEnv('GOOGLE_SERVICE_ACCOUNT_EMAIL', 'sa@p.iam.gserviceaccount.com');
     vi.stubEnv('GOOGLE_PRIVATE_KEY', 'pk');
-    // attempt 1: token ok, gmail 500 → failure; attempt 2: token ok, gmail ok → success
+    // attempt 1: token ok, gmail 500 → failure; attempt 2: cached token, gmail ok
     mockFetch(
-      { ok: true, json: { access_token: 't' } },
+      { ok: true, json: { access_token: 't', expires_in: 3600 } },
       { ok: false, status: 500, text: 'temp' },
-      { ok: true, json: { access_token: 't' } },
       { ok: true },
     );
     const res = await sendEmail(opts, { maxRetries: 2, logger: silentLogger });

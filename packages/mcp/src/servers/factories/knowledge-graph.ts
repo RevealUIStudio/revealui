@@ -32,8 +32,15 @@
  * reserved for `revkg scan`), Zod-validates `episodeType` plus every node kind
  * and edge relation against the ontology enums, and accepts no raw SQL or
  * table-name input of any kind.
+ *
+ * Product mode (`mode: 'product'`) extracts `createKnowledgeGraphToolset` so
+ * stdio and a later hosted composite share one dispatcher. CallTool threads
+ * `extra.authInfo` / `extra.sessionId`. Writes stamp actor + scope from
+ * `principalProvider` (client `source` / `contentRef.actorDid` are ignored).
+ * Compat mode (default) keeps today's unwrapped JSON for in-repo tests.
  */
 
+import { createHash } from 'node:crypto';
 import { hostname } from 'node:os';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import {
@@ -61,8 +68,24 @@ import {
   type NodeKind,
 } from '@revealui/knowledge-graph';
 import { resolveNaturalKey } from '@revealui/knowledge-graph/ingest';
+import {
+  MEMORY_MAX_CONTENT_CHARS,
+  MEMORY_MAX_EDGES,
+  MEMORY_MAX_NODES,
+  MEMORY_SCHEMA,
+  type MemoryClassification,
+  type MemoryPrincipal,
+  shouldNamespaceKeys,
+  tenantNaturalKey,
+  validatePrincipal,
+} from '@revealui/knowledge-graph/memory';
 import { z } from 'zod/v4';
 import { validateToolArgs } from '../../validate-tool-args.js';
+import type {
+  McpToolAuditRecord,
+  McpToolAuditSink,
+  McpToolCallContext,
+} from './revealui-content.js';
 
 const SERVER_NAME = 'knowledge-graph';
 const SERVER_VERSION = '0.1.0';
@@ -73,6 +96,14 @@ const DEFAULT_CONTEXT_CHAR_BUDGET = 16_000;
 /** Hard caps for kg_add_episode payloads (prevents unbounded Neon writes). */
 const MAX_EPISODE_CONTENT_CHARS = 64_000;
 const MAX_EPISODE_ATTRIBUTES_JSON_CHARS = 16_000;
+
+/** Product-mode write types. Compat still accepts the full ontology enum. */
+const PRODUCT_EPISODE_TYPES = ['agent-fact', 'memory', 'manual'] as const;
+
+/** Dispatch Promise.race budget. Hung writes must not block the agent. */
+export const DEFAULT_KG_TOOL_TIMEOUT_MS = 4_000;
+
+const DEFAULT_MUTATING_TOOLS: ReadonlySet<string> = new Set(['kg_add_episode']);
 
 // ---------------------------------------------------------------------------
 // Tool argument schemas (Zod 4)
@@ -136,6 +167,50 @@ const EdgeInputArgsSchema = z
   })
   .strict();
 
+function refineEpisodeJsonCaps(
+  val: {
+    contentRef?: Record<string, unknown>;
+    nodes: Array<{ attributes?: Record<string, unknown> }>;
+    edges: Array<{ attributes?: Record<string, unknown> }>;
+  },
+  ctx: z.RefinementCtx,
+): void {
+  if (val.contentRef) {
+    const size = JSON.stringify(val.contentRef).length;
+    if (size > MAX_EPISODE_ATTRIBUTES_JSON_CHARS) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `contentRef JSON max ${MAX_EPISODE_ATTRIBUTES_JSON_CHARS} chars (got ${size})`,
+        path: ['contentRef'],
+      });
+    }
+  }
+  for (let i = 0; i < val.nodes.length; i++) {
+    const attrs = val.nodes[i]?.attributes;
+    if (!attrs) continue;
+    const size = JSON.stringify(attrs).length;
+    if (size > MAX_EPISODE_ATTRIBUTES_JSON_CHARS) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `nodes[${i}].attributes JSON max ${MAX_EPISODE_ATTRIBUTES_JSON_CHARS} chars (got ${size})`,
+        path: ['nodes', i, 'attributes'],
+      });
+    }
+  }
+  for (let i = 0; i < val.edges.length; i++) {
+    const attrs = val.edges[i]?.attributes;
+    if (!attrs) continue;
+    const size = JSON.stringify(attrs).length;
+    if (size > MAX_EPISODE_ATTRIBUTES_JSON_CHARS) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `edges[${i}].attributes JSON max ${MAX_EPISODE_ATTRIBUTES_JSON_CHARS} chars (got ${size})`,
+        path: ['edges', i, 'attributes'],
+      });
+    }
+  }
+}
+
 export const KgAddEpisodeArgsSchema = z
   .object({
     episodeType: z.enum(EPISODE_TYPES),
@@ -151,42 +226,26 @@ export const KgAddEpisodeArgsSchema = z
     edges: z.array(EdgeInputArgsSchema).default([]),
   })
   .strict()
-  .superRefine((val, ctx) => {
-    if (val.contentRef) {
-      const size = JSON.stringify(val.contentRef).length;
-      if (size > MAX_EPISODE_ATTRIBUTES_JSON_CHARS) {
-        ctx.addIssue({
-          code: 'custom',
-          message: `contentRef JSON max ${MAX_EPISODE_ATTRIBUTES_JSON_CHARS} chars (got ${size})`,
-          path: ['contentRef'],
-        });
-      }
-    }
-    for (let i = 0; i < val.nodes.length; i++) {
-      const attrs = val.nodes[i]?.attributes;
-      if (!attrs) continue;
-      const size = JSON.stringify(attrs).length;
-      if (size > MAX_EPISODE_ATTRIBUTES_JSON_CHARS) {
-        ctx.addIssue({
-          code: 'custom',
-          message: `nodes[${i}].attributes JSON max ${MAX_EPISODE_ATTRIBUTES_JSON_CHARS} chars (got ${size})`,
-          path: ['nodes', i, 'attributes'],
-        });
-      }
-    }
-    for (let i = 0; i < val.edges.length; i++) {
-      const attrs = val.edges[i]?.attributes;
-      if (!attrs) continue;
-      const size = JSON.stringify(attrs).length;
-      if (size > MAX_EPISODE_ATTRIBUTES_JSON_CHARS) {
-        ctx.addIssue({
-          code: 'custom',
-          message: `edges[${i}].attributes JSON max ${MAX_EPISODE_ATTRIBUTES_JSON_CHARS} chars (got ${size})`,
-          path: ['edges', i, 'attributes'],
-        });
-      }
-    }
-  });
+  .superRefine(refineEpisodeJsonCaps);
+
+export const KgProductAddEpisodeArgsSchema = z
+  .object({
+    episodeType: z.enum(PRODUCT_EPISODE_TYPES),
+    /** Ignored; stamped from `principalProvider`. */
+    source: z.string().min(1).optional(),
+    content: z
+      .string()
+      .max(MEMORY_MAX_CONTENT_CHARS, `content max ${MEMORY_MAX_CONTENT_CHARS} chars`)
+      .optional(),
+    contentRef: z.record(z.string(), z.unknown()).optional(),
+    classification: z.enum(['private', 'workspace']).optional(),
+    referenceTime: z.string().datetime().optional(),
+    siteId: z.string().min(1).optional(),
+    nodes: z.array(NodeInputArgsSchema).max(MEMORY_MAX_NODES).default([]),
+    edges: z.array(EdgeInputArgsSchema).max(MEMORY_MAX_EDGES).default([]),
+  })
+  .strict()
+  .superRefine(refineEpisodeJsonCaps);
 
 export const KgPathArgsSchema = z
   .object({
@@ -413,6 +472,88 @@ const TOOLS: Tool[] = [
   },
 ];
 
+function productAddEpisodeTool(): Tool {
+  return {
+    name: 'kg_add_episode',
+    description:
+      'Publish an episode (provenance unit) plus candidate nodes/edges into the ' +
+      'graph. The ONLY write tool. Always additive (never a rescan). Product ' +
+      'mode stamps actor and scope from the session principal — client `source` ' +
+      'and `contentRef.actorDid` are ignored. episodeType is agent-fact, memory, ' +
+      'or manual.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        episodeType: { type: 'string', enum: [...PRODUCT_EPISODE_TYPES] },
+        source: {
+          type: 'string',
+          description: 'Ignored in product mode; stamped from the session principal.',
+        },
+        content: {
+          type: 'string',
+          description: `Raw payload or pointer summary (max ${MEMORY_MAX_CONTENT_CHARS} chars).`,
+        },
+        contentRef: {
+          type: 'object',
+          description: 'e.g. { repo, path, sha }. actorDid is ignored.',
+        },
+        classification: {
+          type: 'string',
+          enum: ['private', 'workspace'],
+          description: 'Memory classification. Default workspace. public is not allowed.',
+        },
+        referenceTime: {
+          type: 'string',
+          description: 'ISO-8601; when the described state was true. Defaults to now.',
+        },
+        siteId: {
+          type: 'string',
+          description: 'Origin machine/replica id. Defaults to hostname().',
+        },
+        nodes: {
+          type: 'array',
+          description: `Candidate nodes to upsert (max ${MEMORY_MAX_NODES}).`,
+          items: {
+            type: 'object',
+            properties: {
+              kind: { type: 'string', enum: NODE_KIND_ENUM },
+              name: { type: 'string' },
+              naturalKey: { type: 'string' },
+              repo: { type: 'string' },
+              summary: { type: 'string' },
+              attributes: { type: 'object' },
+            },
+            required: ['kind', 'name', 'naturalKey'],
+          },
+        },
+        edges: {
+          type: 'array',
+          description: `Candidate facts between nodes (max ${MEMORY_MAX_EDGES}).`,
+          items: {
+            type: 'object',
+            properties: {
+              source: NODE_REF_SCHEMA,
+              target: NODE_REF_SCHEMA,
+              relation: { type: 'string', enum: EDGE_RELATION_ENUM },
+              fact: { type: 'string' },
+              repo: { type: 'string' },
+              validAt: { type: 'string', description: 'ISO-8601; defaults to referenceTime.' },
+              attributes: { type: 'object' },
+            },
+            required: ['source', 'target', 'relation', 'fact'],
+          },
+        },
+      },
+      required: ['episodeType'],
+    },
+  };
+}
+
+function toolsForMode(mode: 'compat' | 'product'): Tool[] {
+  if (mode === 'compat') return TOOLS;
+  return TOOLS.map((tool) => (tool.name === 'kg_add_episode' ? productAddEpisodeTool() : tool));
+}
+
 // ---------------------------------------------------------------------------
 // Result helpers
 // ---------------------------------------------------------------------------
@@ -586,6 +727,131 @@ async function assembleContext(
 }
 
 // ---------------------------------------------------------------------------
+// Product-mode helpers
+// ---------------------------------------------------------------------------
+
+const AUDIT_SCALAR_ALLOWLIST = [
+  'naturalKey',
+  'fromNaturalKey',
+  'toNaturalKey',
+  'episodeType',
+  'classification',
+  'query',
+] as const;
+
+function extraToContext(extra: unknown): McpToolCallContext {
+  const record = extra as { authInfo?: unknown; sessionId?: string } | undefined;
+  return { authInfo: record?.authInfo, sessionId: record?.sessionId };
+}
+
+function canonicalJson(value: unknown): string {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value) ?? 'null';
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+  const entries = Object.entries(value as Record<string, unknown>).sort((a, b) =>
+    a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0,
+  );
+  return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${canonicalJson(v)}`).join(',')}}`;
+}
+
+function digestArgs(args: unknown): string {
+  return createHash('sha256').update(canonicalJson(args)).digest('hex');
+}
+
+function pickAuditScalars(args: unknown): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!args || typeof args !== 'object') return out;
+  const record = args as Record<string, unknown>;
+  for (const key of AUDIT_SCALAR_ALLOWLIST) {
+    const raw = record[key];
+    if (typeof raw === 'string' && raw.length > 0) out[key] = raw;
+  }
+  return out;
+}
+
+function namespaceKey(principal: MemoryPrincipal, kind: string, key: string): string {
+  if (kind === 'agent') return key;
+  if (!shouldNamespaceKeys(principal)) return key;
+  return tenantNaturalKey(principal.tenantId, key);
+}
+
+function inboundKey(principal: MemoryPrincipal | null, key: string): string {
+  if (!(principal && shouldNamespaceKeys(principal))) return key;
+  return tenantNaturalKey(principal.tenantId, key);
+}
+
+function stampContentRef(
+  principal: MemoryPrincipal,
+  clientRef: Record<string, unknown> | undefined,
+  classification: MemoryClassification,
+): Record<string, unknown> {
+  const rest = { ...(clientRef ?? {}) };
+  const repo = typeof rest.repo === 'string' ? rest.repo : undefined;
+  return {
+    ...rest,
+    schema: MEMORY_SCHEMA,
+    actorDid: principal.did,
+    harness: principal.harness,
+    scope: {
+      tenantId: principal.tenantId,
+      workspaceId: principal.workspaceId,
+      repo,
+      classification,
+    },
+  };
+}
+
+function productUnavailable(reason: string, message: string): CallToolResult {
+  return {
+    content: [
+      {
+        type: 'text',
+        text: JSON.stringify({
+          status: 'unavailable',
+          available: false,
+          reason,
+          message,
+        }),
+      },
+    ],
+    isError: true,
+  } as CallToolResult;
+}
+
+function wrapOk(
+  mode: 'compat' | 'product',
+  data: unknown,
+  principal: MemoryPrincipal | null,
+): CallToolResult {
+  if (mode === 'compat') return textResult(data);
+  const enforcement =
+    principal?.trustBoundary === 'hosted' && !principal.isFleetOperator ? 'enforced' : 'deferred';
+  return textResult({
+    status: 'ok',
+    available: true,
+    enforcement,
+    deniedCount: 0,
+    data,
+  });
+}
+
+async function raceTimeout(
+  work: Promise<CallToolResult>,
+  timeoutMs: number,
+  onTimeout: () => CallToolResult,
+): Promise<CallToolResult> {
+  if (timeoutMs <= 0) return work;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<CallToolResult>((resolve) => {
+    timer = setTimeout(() => resolve(onTimeout()), timeoutMs);
+  });
+  try {
+    return await Promise.race([work, timeout]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Factory
 // ---------------------------------------------------------------------------
 
@@ -596,19 +862,41 @@ export interface CreateKnowledgeGraphServerOptions {
   embedder?: Embedder;
   /** siteId stamped on episodes ingested via `kg_add_episode`. Defaults to `os.hostname()`. */
   siteId?: string;
+  /** Per-call identity. Required in product mode; ignored in compat. */
+  principalProvider?: (
+    ctx: McpToolCallContext,
+  ) => Promise<MemoryPrincipal | null> | MemoryPrincipal | null;
+  /** Optional receipts. Mutating tools fail closed; reads log-and-continue. */
+  auditSink?: McpToolAuditSink;
+  /** Default `{ kg_add_episode }`. */
+  mutatingTools?: ReadonlySet<string>;
+  /** `compat` (default) keeps unwrapped JSON. `product` stamps + envelopes. */
+  mode?: 'compat' | 'product';
+  /** Mount trust boundary. Product default is `studio-local`. */
+  trustBoundary?: 'studio-local' | 'hosted';
+  /** Dispatch Promise.race budget in ms. Default 4000. */
+  timeoutMs?: number;
+}
+
+export interface KnowledgeGraphToolset {
+  tools: Tool[];
+  names: ReadonlySet<string>;
+  dispatch(request: CallToolRequest, extra?: unknown): Promise<CallToolResult>;
 }
 
 /**
- * Create a fresh `knowledge-graph` MCP Server instance. Safe to call multiple
- * times — each call returns an independent Server with its own request
- * handlers and its own lazily-resolved executor/embedder cache.
+ * Shared dispatcher for stdio and a later hosted composite. CallTool must pass
+ * `extra` so `principalProvider` can read `authInfo` / `sessionId`.
  */
-export function createKnowledgeGraphServer(options?: CreateKnowledgeGraphServerOptions): Server {
-  const server = new Server(
-    { name: SERVER_NAME, version: SERVER_VERSION },
-    { capabilities: { tools: {} } },
-  );
-
+export function createKnowledgeGraphToolset(
+  options?: CreateKnowledgeGraphServerOptions,
+): KnowledgeGraphToolset {
+  const mode = options?.mode ?? 'compat';
+  const trustBoundary = options?.trustBoundary ?? 'studio-local';
+  const timeoutMs = options?.timeoutMs ?? DEFAULT_KG_TOOL_TIMEOUT_MS;
+  const mutatingTools = options?.mutatingTools ?? DEFAULT_MUTATING_TOOLS;
+  const tools = toolsForMode(mode);
+  const names = new Set(tools.map((tool) => tool.name));
   const defaultSiteId = options?.siteId ?? hostname();
 
   let cachedExecutor: KgExecutor | undefined = options?.executor;
@@ -677,103 +965,202 @@ export function createKnowledgeGraphServer(options?: CreateKnowledgeGraphServerO
     });
   }
 
-  server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
+  function dbUnavailable(err: unknown): CallToolResult {
+    const detail = err instanceof Error ? err.message : String(err);
+    const message = `knowledge graph database unavailable: ${detail}`;
+    return mode === 'product'
+      ? productUnavailable('kg-database-unavailable', message)
+      : errorResult(message);
+  }
 
-  server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
+  async function handleTool(request: CallToolRequest, extra: unknown): Promise<CallToolResult> {
+    const startTime = Date.now();
     const toolName = request.params.name;
+    const rawArgs = request.params.arguments;
+    const ctx = extraToContext(extra);
+    const mutating = mutatingTools.has(toolName);
+
+    async function writeReceipt(
+      outcome: McpToolAuditRecord['outcome'],
+      opts?: { reason?: string },
+    ): Promise<boolean> {
+      if (!options?.auditSink) return true;
+      const record: McpToolAuditRecord = {
+        outcome,
+        tool: toolName,
+        argsDigest: digestArgs(rawArgs ?? null),
+        scalars: pickAuditScalars(rawArgs),
+        durationMs: Date.now() - startTime,
+        reason: opts?.reason,
+        context: ctx,
+      };
+      try {
+        await options.auditSink(record);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    if (!names.has(toolName)) {
+      await writeReceipt('denied');
+      return errorResult(`Unknown tool: ${toolName}`);
+    }
+
+    let principal: MemoryPrincipal | null = null;
+    if (mode === 'product') {
+      try {
+        principal = (await options?.principalProvider?.(ctx)) ?? null;
+      } catch {
+        principal = null;
+      }
+      const missing = validatePrincipal(principal);
+      if (missing || !principal) {
+        await writeReceipt('denied', { reason: 'principal-missing' });
+        return productUnavailable('principal-missing', missing ?? 'principal is required');
+      }
+      if (principal.trustBoundary !== trustBoundary) {
+        await writeReceipt('denied', { reason: 'principal-missing' });
+        return productUnavailable(
+          'principal-missing',
+          'principal trustBoundary does not match the server',
+        );
+      }
+    }
+
+    if (mode === 'product' && trustBoundary === 'hosted' && !mutating) {
+      const result = productUnavailable(
+        'scope-enforcement-unwired',
+        'hosted product memory reads require scope SQL (not wired in this package version)',
+      );
+      await writeReceipt('failed', { reason: 'scope-enforcement-unwired' });
+      return result;
+    }
+
+    if (mutating) {
+      const recorded = await writeReceipt('invoked');
+      if (!recorded) {
+        return errorResult('audit log unavailable; mutating tool refused');
+      }
+    }
 
     let exec: KgExecutor;
     try {
       exec = await resolveExecutor();
     } catch (err) {
-      return errorResult(
-        `knowledge graph database unavailable: ${err instanceof Error ? err.message : String(err)}`,
-      );
+      if (!mutating) await writeReceipt('failed');
+      return dbUnavailable(err);
     }
 
     try {
-      switch (toolName) {
-        case 'kg_search': {
-          const parsed = validateToolArgs(KgSearchArgsSchema, request.params.arguments, toolName);
-          if (!parsed.ok) return parsed.error as unknown as CallToolResult;
-          const { query, anchor, kinds, relations, at, limit, bfsDepth } = parsed.value;
-          let anchorId = anchor;
-          if (anchor) {
-            // Accept natural key or node id: try resolveNaturalKey first; fall back to raw id.
-            const resolved = await resolveNaturalKey(exec, anchor);
-            if (resolved) {
-              anchorId = resolved;
-            }
+      const result = await dispatchNamedTool(exec, toolName, request, principal);
+      if (!mutating) {
+        await writeReceipt(result.isError ? 'failed' : 'invoked');
+      }
+      return result;
+    } catch (err) {
+      if (!mutating) await writeReceipt('failed');
+      return mode === 'product'
+        ? dbUnavailable(err)
+        : errorResult(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  async function dispatchNamedTool(
+    exec: KgExecutor,
+    toolName: string,
+    request: CallToolRequest,
+    principal: MemoryPrincipal | null,
+  ): Promise<CallToolResult> {
+    switch (toolName) {
+      case 'kg_search': {
+        const parsed = validateToolArgs(KgSearchArgsSchema, request.params.arguments, toolName);
+        if (!parsed.ok) return parsed.error as unknown as CallToolResult;
+        const { query, anchor, kinds, relations, at, limit, bfsDepth } = parsed.value;
+        let anchorId = anchor ? inboundKey(principal, anchor) : anchor;
+        if (anchorId) {
+          const resolved = await resolveNaturalKey(exec, anchorId);
+          if (resolved) {
+            anchorId = resolved;
           }
-          const queryEmbedding = await tryEmbed(query);
-          const result = await kgSearch(exec, {
-            query,
-            anchor: anchorId,
-            kinds: kinds as NodeKind[] | undefined,
-            relations: relations as EdgeRelation[] | undefined,
-            at: at ? new Date(at) : undefined,
-            limit,
-            bfsDepth,
-            queryEmbedding,
-          });
-          return textResult(result);
         }
+        const queryEmbedding = await tryEmbed(query);
+        const result = await kgSearch(exec, {
+          query,
+          anchor: anchorId,
+          kinds: kinds as NodeKind[] | undefined,
+          relations: relations as EdgeRelation[] | undefined,
+          at: at ? new Date(at) : undefined,
+          limit,
+          bfsDepth,
+          queryEmbedding,
+        });
+        return wrapOk(mode, result, principal);
+      }
 
-        case 'kg_get_node': {
-          const parsed = validateToolArgs(KgGetNodeArgsSchema, request.params.arguments, toolName);
-          if (!parsed.ok) return parsed.error as unknown as CallToolResult;
-          const { naturalKey } = parsed.value;
-          const id = await resolveNaturalKey(exec, naturalKey);
-          if (!id) return errorResult(`no node with natural key: ${naturalKey}`);
-          const rows = await exec.query<NodeDetailRow>(
-            `SELECT id, kind, name, natural_key, repo, summary, attributes, first_seen_at, last_confirmed_at
-             FROM kg_nodes WHERE id = $1`,
-            [id],
-          );
-          const node = rows[0];
-          if (!node) return errorResult(`node ${id} vanished`);
-          const facts = await kgAtTime(exec, id, new Date());
-          return textResult({ node, facts });
-        }
+      case 'kg_get_node': {
+        const parsed = validateToolArgs(KgGetNodeArgsSchema, request.params.arguments, toolName);
+        if (!parsed.ok) return parsed.error as unknown as CallToolResult;
+        const naturalKey = inboundKey(principal, parsed.value.naturalKey);
+        const id = await resolveNaturalKey(exec, naturalKey);
+        if (!id) return errorResult(`no node with natural key: ${naturalKey}`);
+        const rows = await exec.query<NodeDetailRow>(
+          `SELECT id, kind, name, natural_key, repo, summary, attributes, first_seen_at, last_confirmed_at
+           FROM kg_nodes WHERE id = $1`,
+          [id],
+        );
+        const node = rows[0];
+        if (!node) return errorResult(`node ${id} vanished`);
+        const facts = await kgAtTime(exec, id, new Date());
+        return wrapOk(mode, { node, facts }, principal);
+      }
 
-        case 'kg_neighbors': {
+      case 'kg_neighbors': {
+        const parsed = validateToolArgs(KgNeighborsArgsSchema, request.params.arguments, toolName);
+        if (!parsed.ok) return parsed.error as unknown as CallToolResult;
+        const { depth, relations, at } = parsed.value;
+        const naturalKey = inboundKey(principal, parsed.value.naturalKey);
+        const id = await resolveNaturalKey(exec, naturalKey);
+        if (!id) return errorResult(`no node with natural key: ${naturalKey}`);
+        const result = await kgNeighbors(exec, id, {
+          depth,
+          relations: relations as EdgeRelation[] | undefined,
+          at: at ? new Date(at) : undefined,
+        });
+        return wrapOk(mode, result, principal);
+      }
+
+      case 'kg_add_episode': {
+        if (mode === 'product') {
+          if (!principal) {
+            return productUnavailable('principal-missing', 'principal is required');
+          }
           const parsed = validateToolArgs(
-            KgNeighborsArgsSchema,
-            request.params.arguments,
-            toolName,
-          );
-          if (!parsed.ok) return parsed.error as unknown as CallToolResult;
-          const { naturalKey, depth, relations, at } = parsed.value;
-          const id = await resolveNaturalKey(exec, naturalKey);
-          if (!id) return errorResult(`no node with natural key: ${naturalKey}`);
-          const result = await kgNeighbors(exec, id, {
-            depth,
-            relations: relations as EdgeRelation[] | undefined,
-            at: at ? new Date(at) : undefined,
-          });
-          return textResult(result);
-        }
-
-        case 'kg_add_episode': {
-          const parsed = validateToolArgs(
-            KgAddEpisodeArgsSchema,
+            KgProductAddEpisodeArgsSchema,
             request.params.arguments,
             toolName,
           );
           if (!parsed.ok) return parsed.error as unknown as CallToolResult;
           const v = parsed.value;
+          const classification: MemoryClassification = v.classification ?? 'workspace';
           const referenceTime = v.referenceTime ? new Date(v.referenceTime) : new Date();
           const nodes: NodeInput[] = v.nodes.map((n) => ({
             kind: n.kind,
             name: n.name,
-            naturalKey: n.naturalKey,
+            naturalKey: namespaceKey(principal, n.kind, n.naturalKey),
             repo: n.repo,
             summary: n.summary,
             attributes: n.attributes,
           }));
           const edges: EdgeInput[] = v.edges.map((e) => ({
-            source: e.source,
-            target: e.target,
+            source: {
+              kind: e.source.kind,
+              naturalKey: namespaceKey(principal, e.source.kind, e.source.naturalKey),
+            },
+            target: {
+              kind: e.target.kind,
+              naturalKey: namespaceKey(principal, e.target.kind, e.target.naturalKey),
+            },
             relation: e.relation,
             fact: e.fact,
             repo: e.repo,
@@ -786,72 +1173,156 @@ export function createKnowledgeGraphServer(options?: CreateKnowledgeGraphServerO
             {
               episode: {
                 episodeType: v.episodeType,
-                source: v.source,
+                source: `agent:${principal.did}`,
                 siteId: v.siteId ?? defaultSiteId,
                 content: v.content,
-                contentRef: v.contentRef,
+                contentRef: stampContentRef(principal, v.contentRef, classification),
                 referenceTime,
               },
               nodes,
               edges,
             },
-            { embedder, recordOutbox: true },
+            { embedder, recordOutbox: true, invalidateContradictions: false },
           );
-          return textResult({
+          return wrapOk(
+            mode,
+            {
+              episodeId: result.episodeId,
+              nodeCount: result.nodeCount,
+              edgeCount: result.edgeCount,
+            },
+            principal,
+          );
+        }
+
+        const parsed = validateToolArgs(KgAddEpisodeArgsSchema, request.params.arguments, toolName);
+        if (!parsed.ok) return parsed.error as unknown as CallToolResult;
+        const v = parsed.value;
+        const referenceTime = v.referenceTime ? new Date(v.referenceTime) : new Date();
+        const nodes: NodeInput[] = v.nodes.map((n) => ({
+          kind: n.kind,
+          name: n.name,
+          naturalKey: n.naturalKey,
+          repo: n.repo,
+          summary: n.summary,
+          attributes: n.attributes,
+        }));
+        const edges: EdgeInput[] = v.edges.map((e) => ({
+          source: e.source,
+          target: e.target,
+          relation: e.relation,
+          fact: e.fact,
+          repo: e.repo,
+          validAt: e.validAt ? new Date(e.validAt) : undefined,
+          attributes: e.attributes,
+        }));
+        const embedder = await resolveEmbedder();
+        const result = await ingestEpisode(
+          exec,
+          {
+            episode: {
+              episodeType: v.episodeType,
+              source: v.source,
+              siteId: v.siteId ?? defaultSiteId,
+              content: v.content,
+              contentRef: v.contentRef,
+              referenceTime,
+            },
+            nodes,
+            edges,
+          },
+          { embedder, recordOutbox: true },
+        );
+        return wrapOk(
+          mode,
+          {
             episodeId: result.episodeId,
             nodeCount: result.nodeCount,
             edgeCount: result.edgeCount,
-          });
-        }
-
-        case 'kg_path': {
-          const parsed = validateToolArgs(KgPathArgsSchema, request.params.arguments, toolName);
-          if (!parsed.ok) return parsed.error as unknown as CallToolResult;
-          const { fromNaturalKey, toNaturalKey, at, maxDepth } = parsed.value;
-          const fromId = await resolveNaturalKey(exec, fromNaturalKey);
-          if (!fromId) return errorResult(`no node with natural key: ${fromNaturalKey}`);
-          const toId = await resolveNaturalKey(exec, toNaturalKey);
-          if (!toId) return errorResult(`no node with natural key: ${toNaturalKey}`);
-          const path = await kgPath(exec, fromId, toId, {
-            at: at ? new Date(at) : undefined,
-            maxDepth,
-          });
-          if (!path) return textResult({ path: null });
-          const detail = await hydratePath(exec, path);
-          return textResult({ path: detail });
-        }
-
-        case 'kg_at_time': {
-          const parsed = validateToolArgs(KgAtTimeArgsSchema, request.params.arguments, toolName);
-          if (!parsed.ok) return parsed.error as unknown as CallToolResult;
-          const { naturalKey, at } = parsed.value;
-          const id = await resolveNaturalKey(exec, naturalKey);
-          if (!id) return errorResult(`no node with natural key: ${naturalKey}`);
-          const facts = await kgAtTime(exec, id, new Date(at));
-          return textResult({ facts });
-        }
-
-        case 'kg_context': {
-          const parsed = validateToolArgs(KgContextArgsSchema, request.params.arguments, toolName);
-          if (!parsed.ok) return parsed.error as unknown as CallToolResult;
-          const { naturalKey, charBudget, depth, at } = parsed.value;
-          const id = await resolveNaturalKey(exec, naturalKey);
-          if (!id) return errorResult(`no node with natural key: ${naturalKey}`);
-          const assembled = await assembleContext(exec, id, {
-            charBudget: charBudget ?? DEFAULT_CONTEXT_CHAR_BUDGET,
-            depth: depth ?? 3,
-            at: at ? new Date(at) : undefined,
-          });
-          return textResult(assembled);
-        }
-
-        default:
-          return errorResult(`Unknown tool: ${toolName}`);
+          },
+          principal,
+        );
       }
-    } catch (err) {
-      return errorResult(err instanceof Error ? err.message : String(err));
+
+      case 'kg_path': {
+        const parsed = validateToolArgs(KgPathArgsSchema, request.params.arguments, toolName);
+        if (!parsed.ok) return parsed.error as unknown as CallToolResult;
+        const { at, maxDepth } = parsed.value;
+        const fromNaturalKey = inboundKey(principal, parsed.value.fromNaturalKey);
+        const toNaturalKey = inboundKey(principal, parsed.value.toNaturalKey);
+        const fromId = await resolveNaturalKey(exec, fromNaturalKey);
+        if (!fromId) return errorResult(`no node with natural key: ${fromNaturalKey}`);
+        const toId = await resolveNaturalKey(exec, toNaturalKey);
+        if (!toId) return errorResult(`no node with natural key: ${toNaturalKey}`);
+        const path = await kgPath(exec, fromId, toId, {
+          at: at ? new Date(at) : undefined,
+          maxDepth,
+        });
+        if (!path) return wrapOk(mode, { path: null }, principal);
+        const detail = await hydratePath(exec, path);
+        return wrapOk(mode, { path: detail }, principal);
+      }
+
+      case 'kg_at_time': {
+        const parsed = validateToolArgs(KgAtTimeArgsSchema, request.params.arguments, toolName);
+        if (!parsed.ok) return parsed.error as unknown as CallToolResult;
+        const { at } = parsed.value;
+        const naturalKey = inboundKey(principal, parsed.value.naturalKey);
+        const id = await resolveNaturalKey(exec, naturalKey);
+        if (!id) return errorResult(`no node with natural key: ${naturalKey}`);
+        const facts = await kgAtTime(exec, id, new Date(at));
+        return wrapOk(mode, { facts }, principal);
+      }
+
+      case 'kg_context': {
+        const parsed = validateToolArgs(KgContextArgsSchema, request.params.arguments, toolName);
+        if (!parsed.ok) return parsed.error as unknown as CallToolResult;
+        const { charBudget, depth, at } = parsed.value;
+        const naturalKey = inboundKey(principal, parsed.value.naturalKey);
+        const id = await resolveNaturalKey(exec, naturalKey);
+        if (!id) return errorResult(`no node with natural key: ${naturalKey}`);
+        const assembled = await assembleContext(exec, id, {
+          charBudget: charBudget ?? DEFAULT_CONTEXT_CHAR_BUDGET,
+          depth: depth ?? 3,
+          at: at ? new Date(at) : undefined,
+        });
+        return wrapOk(mode, assembled, principal);
+      }
+
+      default:
+        return errorResult(`Unknown tool: ${toolName}`);
     }
-  });
+  }
+
+  return {
+    tools,
+    names,
+    async dispatch(request: CallToolRequest, extra?: unknown): Promise<CallToolResult> {
+      return raceTimeout(handleTool(request, extra), timeoutMs, () =>
+        mode === 'product'
+          ? productUnavailable('timeout', 'knowledge graph tool timed out')
+          : errorResult('knowledge graph tool timed out'),
+      );
+    },
+  };
+}
+
+/**
+ * Create a fresh `knowledge-graph` MCP Server instance. Safe to call multiple
+ * times — each call returns an independent Server with its own request
+ * handlers and its own lazily-resolved executor/embedder cache.
+ */
+export function createKnowledgeGraphServer(options?: CreateKnowledgeGraphServerOptions): Server {
+  const toolset = createKnowledgeGraphToolset(options);
+  const server = new Server(
+    { name: SERVER_NAME, version: SERVER_VERSION },
+    { capabilities: { tools: {} } },
+  );
+
+  server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: toolset.tools }));
+  server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest, extra) =>
+    toolset.dispatch(request, extra),
+  );
 
   return server;
 }
