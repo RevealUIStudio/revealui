@@ -84,6 +84,9 @@ export {
   summarizeCollected,
 } from './scan/index.js';
 export {
+  type AssembleContextOptions,
+  type AssembledContext,
+  assembleContext,
   type DriftCandidate,
   type KgDriftOptions,
   type KgSearchQuery,
