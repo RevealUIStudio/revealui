@@ -109,4 +109,29 @@ describe('GET /api/mcp/servers', () => {
     const playwright = servers.find((s: { id: string }) => s.id === 'playwright');
     expect(playwright.status).toBe('configured');
   });
+
+  it('lists knowledge-graph kg_* tools separately from session memory_publish_fact', async () => {
+    mockGetSession.mockResolvedValueOnce(makeSession('admin'));
+    const res = await GET(makeRequest());
+    const { servers } = await res.json();
+    const kg = servers.find((s: { id: string }) => s.id === 'knowledge-graph');
+    const memory = servers.find((s: { id: string }) => s.id === 'memory');
+    expect(kg).toBeTruthy();
+    expect(memory).toBeTruthy();
+    const kgNames = kg.tools.map((t: { name: string }) => t.name);
+    const memoryNames = memory.tools.map((t: { name: string }) => t.name);
+    expect(kgNames).toEqual([
+      'kg_search',
+      'kg_get_node',
+      'kg_neighbors',
+      'kg_path',
+      'kg_at_time',
+      'kg_context',
+      'kg_add_episode',
+    ]);
+    expect(memoryNames).toContain('memory_publish_fact');
+    expect(kgNames).not.toContain('memory_publish_fact');
+    expect(memoryNames).not.toContain('kg_add_episode');
+    expect(kg.status).toBe('configured');
+  });
 });
