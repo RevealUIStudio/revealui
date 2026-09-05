@@ -90,7 +90,7 @@ Follow these conventions for ALL code in the RevealUI monorepo.
 ### Publishing
 - OSS packages: \`publishConfig.access: "public"\`, MIT license
 - Pro packages: \`"private": true\` (not published to npm)
-- Use changesets for versioning: \`pnpm changeset\` → \`pnpm changeset:version\` → \`pnpm changeset:publish\`
+- Version with changesets (\`pnpm changeset\`). Publish only via GitHub Actions \`release.yml\` on \`main\` (OIDC). Never \`npm login\`, never a GAT/\`_authToken\`, never local \`npm publish\` / \`pnpm publish\`.
 
 ### Import Conventions
 - Use package names (\`@revealui/core\`) not relative paths between packages

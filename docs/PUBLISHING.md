@@ -71,17 +71,12 @@ Packages that need this configured:
 `@revealui/config`, `@revealui/contracts`, `@revealui/core`, `@revealui/db`,
 `@revealui/harnesses`, `@revealui/mcp`, `@revealui/openapi`, `@revealui/paywall`,
 `@revealui/presentation`, `@revealui/resilience`, `@revealui/router`, `@revealui/security`,
-`@revealui/services`, `@revealui/setup`, `@revealui/sync`, `@revealui/utils`, `create-revealui`
+`@revealui/services`, `@revealui/setup`, `@revealui/sync`, `@revealui/utils`,
+`@revealui/knowledge-graph`, `create-revealui`
 
 ### Local
 
-No npm auth is needed locally. `pnpm changeset` and `pnpm changeset version` don't touch the registry. Publishing is CI-only.
-
-If you ever need emergency local publishing (avoid if possible):
-
-```bash
-npm login    # Interactive, writes to ~/.npmrc
-```
+No npm auth is needed locally. `pnpm changeset` and `pnpm changeset version` don't touch the registry. Publishing is CI-only (OIDC on `main`). **Never** `npm login`, never a granular access token, never local `npm publish` / `pnpm publish`. npm 2FA-bypass GATs are deprecated for publish (changelog 2026-07-08).
 
 ---
 
