@@ -33,6 +33,9 @@ import { RESPONSE_ALREADY_SENT } from '@hono/node-server/utils/response';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { usageMeters } from '@revealui/db/schema';
+import type { KgExecutor } from '@revealui/knowledge-graph';
+import { httpFallbackDid, type MemoryPrincipal } from '@revealui/knowledge-graph/memory';
+import { createKnowledgeGraphToolset, DEFAULT_KG_TOOL_TIMEOUT_MS } from '@revealui/mcp/kg-server';
 import {
   DEFAULT_TIER_LIMITS,
   McpRateLimiter,
@@ -52,6 +55,8 @@ import {
 } from '@revealui/mcp/streamable-http';
 import type { Handler, MiddlewareHandler } from 'hono';
 import { Hono } from 'hono';
+import { isFleetOperator } from '../lib/access.js';
+import type { ApiAuthUser } from '../lib/api-roles.js';
 import { recordMcpToolAudit } from '../lib/mcp-audit.js';
 import { authorizeMcpTool, type McpTier } from '../lib/mcp-tool-access.js';
 import { MISSING_SELF_API_URL_MESSAGE, resolveSelfApiBaseUrl } from '../lib/self-api-url.js';
@@ -83,6 +88,8 @@ interface McpAuthExtra extends Record<string, unknown> {
   role: string;
   /** The account's server-derived tier, re-resolved per request (I-9). */
   tier: McpTier;
+  /** Platform super-admin only. Not CMS owner/admin. */
+  isFleetOperator: boolean;
 }
 
 export interface McpEndpointConfig {
@@ -107,6 +114,10 @@ export interface McpEndpointConfig {
   idleSessionTtlMs?: number;
   /** Clock for session activity/TTL. Defaults to `Date.now`; injectable for tests. */
   now?: () => number;
+  /** Injected kg executor (tests). Production omits this and uses the Neon pool. */
+  kgExecutor?: KgExecutor;
+  /** Wrapper dispatch race for kg tools. Default 4000. `0` disables. */
+  kgTimeoutMs?: number;
 }
 
 const DEFAULT_MAX_SESSIONS_PER_USER = 8;
@@ -145,6 +156,19 @@ function extraFromContext(ctx: McpToolCallContext): McpAuthExtra | undefined {
     accountId: extra.accountId ?? null,
     role: typeof extra.role === 'string' ? extra.role : 'viewer',
     tier: (extra.tier as McpTier | undefined) ?? 'free',
+    isFleetOperator: extra.isFleetOperator === true,
+  };
+}
+
+function hostedMemoryPrincipal(extra: McpAuthExtra | undefined): MemoryPrincipal | null {
+  if (!(extra?.userId && extra.accountId)) return null;
+  const did = httpFallbackDid(extra.userId, extra.accountId);
+  return {
+    ...did,
+    harness: 'other',
+    tenantId: extra.accountId,
+    trustBoundary: 'hosted',
+    isFleetOperator: extra.isFleetOperator,
   };
 }
 
@@ -270,6 +294,16 @@ export function buildMcpEndpoint(config: McpEndpointConfig = {}): McpEndpointPar
       });
   };
 
+  const kgTimeoutMs = config.kgTimeoutMs ?? DEFAULT_KG_TOOL_TIMEOUT_MS;
+  const kgToolset = createKnowledgeGraphToolset({
+    mode: 'product',
+    trustBoundary: 'hosted',
+    timeoutMs: 0,
+    auditSink: undefined,
+    executor: config.kgExecutor,
+    principalProvider: (ctx) => hostedMemoryPrincipal(extraFromContext(ctx)),
+  });
+
   const handler = createNodeStreamableHttpHandler({
     createServer: () =>
       createRevealuiContentServer({
@@ -278,9 +312,9 @@ export function buildMcpEndpoint(config: McpEndpointConfig = {}): McpEndpointPar
         toolAuthorizer,
         rateLimiter: rateLimit,
         meterSink,
-        // Phase 1 exposes read tools only. The set is empty in production; the
-        // fail-closed branch it feeds is exercised by the invariant tests.
-        mutatingTools: new Set<string>(),
+        additionalToolsets: [kgToolset],
+        additionalToolsetTimeoutMs: kgTimeoutMs,
+        mutatingTools: new Set<string>(['kg_add_episode']),
       }),
     enableJsonResponse: true,
     allowedHosts,
@@ -334,7 +368,7 @@ export function buildMcpEndpoint(config: McpEndpointConfig = {}): McpEndpointPar
       );
     }
 
-    const user = c.get('user') as { id: string; role?: string } | undefined;
+    const user = c.get('user') as ApiAuthUser | undefined;
     const token = bearerFromHeader(c.req.header('Authorization'));
     if (!(user && token)) {
       // authMiddleware(required) should have 401'd already; belt-and-braces.
@@ -351,6 +385,7 @@ export function buildMcpEndpoint(config: McpEndpointConfig = {}): McpEndpointPar
       accountId: entitlements.accountId,
       role: user.role ?? 'viewer',
       tier: entitlements.tier,
+      isFleetOperator: isFleetOperator(user),
     };
 
     const sessionId = c.req.header('Mcp-Session-Id');
