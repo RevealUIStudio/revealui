@@ -1,7 +1,7 @@
 /**
  * MCP Servers Registry  -  GET /api/mcp/servers
  *
- * Returns static metadata for the 6 built-in MCP servers.
+ * Returns static metadata for the 7 built-in MCP servers.
  * This is the data source for the MCP UI tab in /admin/agents.
  *
  * Tool lists are static (no process spawning)  -  they reflect the
@@ -191,6 +191,54 @@ const MCP_SERVERS: McpServerInfo[] = [
         name: 'memory_reconcile',
         description: 'Trigger LLM reconciliation of shared facts',
         parameterCount: 2,
+      },
+    ],
+  },
+  {
+    id: 'knowledge-graph',
+    name: 'Knowledge Graph',
+    description:
+      'Durable fleet knowledge graph. Hybrid search, neighbors, paths, point-in-time facts, ' +
+      'and additive episode ingest. Distinct from session shared_facts (memory_publish_fact). ' +
+      'Tools also appear on governed /api/mcp; stdio launcher is revealui-mcp knowledge-graph.',
+    status: 'configured',
+    packageName: '@revealui/mcp',
+    envRequired: [],
+    tools: [
+      {
+        name: 'kg_search',
+        description: 'Hybrid search over nodes and facts with provenance episode ids',
+        parameterCount: 7,
+      },
+      {
+        name: 'kg_get_node',
+        description: 'Fetch a node and its current facts by natural key',
+        parameterCount: 1,
+      },
+      {
+        name: 'kg_neighbors',
+        description: 'BFS neighbors of a node, current or as of a timestamp',
+        parameterCount: 4,
+      },
+      {
+        name: 'kg_path',
+        description: 'Shortest path between two nodes',
+        parameterCount: 4,
+      },
+      {
+        name: 'kg_at_time',
+        description: "A node's facts as of a point-in-time timestamp",
+        parameterCount: 2,
+      },
+      {
+        name: 'kg_context',
+        description: 'Budgeted context assembly from an anchor node',
+        parameterCount: 4,
+      },
+      {
+        name: 'kg_add_episode',
+        description: 'The only write tool: publish an additive episode plus candidate nodes/edges',
+        parameterCount: 9,
       },
     ],
   },

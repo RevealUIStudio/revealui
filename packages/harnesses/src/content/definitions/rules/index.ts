@@ -9,6 +9,7 @@ import { databaseRule } from './database.js';
 import { dispositionActionsRule } from './disposition-actions.js';
 import { durableSolutionsRule } from './durable-solutions.js';
 import { monorepoRule } from './monorepo.js';
+import { npmOidcPublishRule } from './npm-oidc-publish.js';
 import { parameterizationRule } from './parameterization.js';
 import { publicIssueRedactionRule } from './public-issue-redaction.js';
 import { qualityOverSpeedRule } from './quality-over-speed.js';
@@ -30,6 +31,7 @@ export const rules: Rule[] = [
   dispositionActionsRule,
   durableSolutionsRule,
   monorepoRule,
+  npmOidcPublishRule,
   parameterizationRule,
   publicIssueRedactionRule,
   qualityOverSpeedRule,

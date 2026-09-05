@@ -52,7 +52,7 @@ audience: agent
 ## Publishing
 - OSS packages: `publishConfig.access: "public"`, MIT license
 - Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`): `publishConfig.access: "public"`, Fair Source (FSL-1.1-MIT) — published to npm, source in-repo, converts to MIT two years after each release (see `docs/architecture/ADR-003-fair-source-licensing.md`)
-- Use changesets for versioning: `pnpm changeset` → `pnpm changeset:version` → `pnpm changeset:publish`
+- Version with changesets (`pnpm changeset`). **Publish only via GitHub Actions `release.yml` on `main` (OIDC).** Never `npm login`, never a GAT/`_authToken`, never local `npm publish` / `pnpm publish`. See rule `npm-oidc-publish`.
 
 ## Import Conventions
 - Use package names (`@revealui/core`) not relative paths between packages

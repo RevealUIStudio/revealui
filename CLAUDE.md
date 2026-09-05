@@ -175,9 +175,9 @@ pnpm db:reset               # Reset database
 ### Publishing
 ```bash
 pnpm changeset              # Create changeset
-pnpm changeset:version      # Apply versions
-pnpm changeset:publish      # Publish to npm
+pnpm changeset:version      # Apply versions (catalog release; commit on main)
 pnpm changeset:status       # Check changeset status
+# Publish: GitHub Actions release.yml on main (OIDC). Never npm login / GAT / local publish.
 ```
 
 ### Dependencies

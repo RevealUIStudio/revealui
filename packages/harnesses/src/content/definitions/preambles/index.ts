@@ -19,6 +19,8 @@ export const preambles: PreambleTier[] = [
       'unused-declarations',
       // HARDLINE: stream-safe revvault (GAP-468 / ADR 2026-08-05)
       'stream-safe-secrets',
+      // HARDLINE: npm publish is OIDC on main only (owner 2026-09-05)
+      'npm-oidc-publish',
       'token-economy',
     ],
   },

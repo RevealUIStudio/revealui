@@ -229,8 +229,8 @@ All packages follow semantic versioning (SemVer):
 Version bumps use the changeset workflow:
 
 1. `pnpm changeset`: Create a changeset describing the change.
-2. `pnpm changeset:version`: Apply version bumps across affected packages.
-3. `pnpm changeset:publish`: Publish to npm with OIDC provenance attestation.
+2. `pnpm changeset:version`: Apply version bumps across affected packages (catalog release; commit on `main`).
+3. GitHub Actions `release.yml` on `main` (OIDC trusted publishing with provenance). Never local `npm publish` / `pnpm changeset:publish` / `npm login` / GAT.
 
 ### 9.3 Package Version Protection
 

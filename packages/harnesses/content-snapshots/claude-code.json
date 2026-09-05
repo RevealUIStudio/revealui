@@ -80,7 +80,11 @@
     },
     {
       "relativePath": ".revealui/content/rules/monorepo.md",
-      "sha256": "1fa60d068a0f0b6429cf13bd2821b9a92503187770e2b3ffe2065d4406c0e4f7"
+      "sha256": "b0864ce8e71e80b23b87a740c0b22d18b583b71c4150713c973a8225bad9c494"
+    },
+    {
+      "relativePath": ".revealui/content/rules/npm-oidc-publish.md",
+      "sha256": "b416ac53a23387a37f54fd3f0ce7c3465fccc09c3d427b5a3abbf4795821be18"
     },
     {
       "relativePath": ".revealui/content/rules/parameterization.md",
@@ -128,7 +132,7 @@
     },
     {
       "relativePath": ".revealui/content/skills/revealui-conventions/SKILL.md",
-      "sha256": "4311d2513110a5bb6ceda0f31c6d03ccc9f346ef4cfb1d26bda881dfbd718caa"
+      "sha256": "81017b01d8c5bda00a1df1d710da249295318aa8887a1a03faa80087cd97f603"
     },
     {
       "relativePath": ".revealui/content/skills/revealui-db/SKILL.md",
