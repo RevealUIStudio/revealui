@@ -1,5 +1,11 @@
 # @revealui/sync
 
+## 0.4.4
+
+### Patch Changes
+
+- @revealui/core@0.14.2
+
 ## 0.4.3
 
 ### Patch Changes
