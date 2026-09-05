@@ -1,5 +1,13 @@
 # @revealui/engines
 
+## 0.4.16
+
+### Patch Changes
+
+- @revealui/core@0.14.2
+- @revealui/auth@0.5.6
+- @revealui/services@0.7.15
+
 ## 0.4.15
 
 ### Patch Changes

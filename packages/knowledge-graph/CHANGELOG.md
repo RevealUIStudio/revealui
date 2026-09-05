@@ -1,5 +1,13 @@
 # @revealui/knowledge-graph
 
+## 0.1.12
+
+### Patch Changes
+
+- ee58150: Extract `assembleContext` into `@revealui/knowledge-graph` so product `kg_context` and the RevDev bridge share the MIT helper. `/memory` remains part of this package for the next publish.
+- 8486734: Add `@revealui/knowledge-graph/memory`: product memory helpers and a result envelope. Durable findings compose existing episode ingest; daemon working memory is unchanged.
+- 975d3c7: Scope product memory reads in SQL before LIMIT. Hosted non-operators see the memory subgraph only; deny is distinct from empty; graph walks do not hop invisible edges.
+
 ## 0.1.11
 
 ## 0.1.10

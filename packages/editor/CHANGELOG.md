@@ -1,5 +1,12 @@
 # @revealui/editor
 
+## 0.2.5
+
+### Patch Changes
+
+- Updated dependencies [35da689]
+  - @revealui/presentation@0.14.2
+
 ## 0.2.4
 
 ### Patch Changes

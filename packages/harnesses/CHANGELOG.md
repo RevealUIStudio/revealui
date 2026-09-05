@@ -1,5 +1,24 @@
 # @revealui/harnesses
 
+## 0.17.0
+
+### Minor Changes
+
+- 110e0a4: Add GrokAdapter (Level 2): programmatic `grok -p` dispatch. Interactive sessions stay on RevKit `rfg`.
+
+### Patch Changes
+
+- 40248b1: Grok SessionStart/SessionEnd call `revealui-harnesses hotfix check` and `tmpscript check` (or the monorepo dist CLI) instead of Claude-home wrapper scripts.
+- 3bbda78: Grok adapter: `manager materialize` emits control-layer slash commands under `.grok/commands/` (same Claude-legacy markdown layout OpenCode already gets).
+- e8448f7: Add a soft-optional durable memory helper and materialize the studio-local knowledge-graph stdio MCP server for Claude Code and Grok.
+- fff5084: Prove Claude and Grok stdio clients share studio-local knowledge-graph memory; a down graph WARNs without blocking the other harness.
+- 5bcbddd: Always-on rule: npm publish is OIDC on main only. Never local tokens, GAT, or npm login.
+- Updated dependencies [ee58150]
+- Updated dependencies [8486734]
+- Updated dependencies [975d3c7]
+  - @revealui/knowledge-graph@0.1.12
+  - @revealui/core@0.14.2
+
 ## 0.16.1
 
 ### Patch Changes

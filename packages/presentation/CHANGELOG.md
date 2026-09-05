@@ -1,5 +1,11 @@
 # @revealui/presentation
 
+## 0.14.2
+
+### Patch Changes
+
+- 35da689: Clip Circuit-R master overflow so the 1.06 scale group cannot paint a scrollbar, and keep light/dark public chrome on the same locked 96px plates.
+
 ## 0.14.1
 
 ### Patch Changes

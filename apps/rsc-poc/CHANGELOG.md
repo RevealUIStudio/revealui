@@ -1,5 +1,13 @@
 # @rsc-poc/app
 
+## 0.1.6
+
+### Patch Changes
+
+- Updated dependencies [35da689]
+  - @revealui/presentation@0.14.2
+  - @revealui/core@0.14.2
+
 ## 0.1.5
 
 ### Patch Changes
