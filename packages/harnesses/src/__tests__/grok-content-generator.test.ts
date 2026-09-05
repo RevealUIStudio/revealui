@@ -86,6 +86,7 @@ describe('GrokGenerator', () => {
   it('generateAll writes constitution + spawn map + agents, not the full dump', () => {
     const manifest = buildManifest();
     const alwaysOn = alwaysOnRuleIds(manifest);
+    expect(alwaysOn.has('npm-oidc-publish')).toBe(true);
     const files = new GrokGenerator().generateAll(manifest, ctx);
     const ruleFiles = files.filter(
       (f) => f.relativePath.startsWith('.grok/rules/') && f.relativePath.endsWith('.md'),
@@ -93,6 +94,7 @@ describe('GrokGenerator', () => {
     const skillFiles = files.filter((f) => f.relativePath.includes('/skills/rule-'));
     expect(files.some((f) => f.relativePath === GROK_SPAWN_MAP_PATH)).toBe(true);
     expect(files.some((f) => f.relativePath === GROK_MANAGER_RULE_PATH)).toBe(true);
+    expect(files.some((f) => f.relativePath === '.grok/rules/npm-oidc-publish.md')).toBe(true);
     expect(ruleFiles.length).toBe(alwaysOn.size + 2);
     expect(skillFiles.length).toBe(manifest.rules.length - alwaysOn.size);
     expect(files.some((f) => f.relativePath === '.grok/agents/builder.md')).toBe(true);

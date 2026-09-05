@@ -6,14 +6,12 @@
  * Unified CLI for version management and package publishing.
  * Handles versioning and npm publishing for the monorepo.
  *
- * CANONICAL PATH NOTE (GAP-380, 2026-07-17): the canonical publish path is
- * the GitHub Actions release.yml workflow (OIDC trusted publishing with
- * provenance, dispatched on main). This CLI is the documented owner-run
- * FALLBACK for cases the workflow cannot handle (e.g. a first publish of a
- * new package before its npm trusted publisher exists). It publishes with a
- * local npm login instead of OIDC provenance. An earlier version of this
- * header claimed the CLI "replaces" release.yml; that claim was wrong and
- * is retired.
+ * CANONICAL PATH (owner 2026-09-05): GitHub Actions release.yml on main
+ * (OIDC trusted publishing with provenance). Agents never recommend
+ * npm login, GAT, _authToken, or local npm/pnpm publish. npm 2FA-bypass
+ * GATs are deprecated for publish (changelog 2026-07-08). First publish of
+ * a new package: add the npm trusted publisher (interactive 2FA in the npm
+ * UI), then OIDC — do not mint a publish token.
  *
  * Commands:
  *   status            Show changeset status (pending versions)
