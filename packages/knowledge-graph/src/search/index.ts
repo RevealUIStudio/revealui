@@ -19,6 +19,8 @@ import type { EdgeRelation, NodeKind } from '../ontology/index.js';
 import type { KgExecutor } from '../types.js';
 import { applyEpisodeMentions, applyNodeDistance, rankByScore, rrfFuse } from './rrf.js';
 
+export type { AssembleContextOptions, AssembledContext } from './assemble-context.js';
+export { assembleContext } from './assemble-context.js';
 export type { DriftCandidate, KgDriftOptions } from './drift.js';
 export { kgDrift } from './drift.js';
 
