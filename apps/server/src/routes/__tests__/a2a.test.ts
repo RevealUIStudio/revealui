@@ -327,11 +327,11 @@ describe('GET /.well-known/mcp.json', () => {
     expect(Array.isArray(body.servers)).toBe(true);
   });
 
-  it('lists exactly 13 MCP servers (matches packages/mcp/README.md ground truth)', async () => {
+  it('lists exactly 14 MCP servers (matches packages/mcp/README.md ground truth)', async () => {
     const app = makeWellKnownApp();
     const res = await app.request(get('/mcp.json'));
     const body = (await res.json()) as { servers: unknown[] };
-    expect(body.servers).toHaveLength(13);
+    expect(body.servers).toHaveLength(14);
   });
 
   it('serves the manifest as public — no auth, no Pro license required', async () => {

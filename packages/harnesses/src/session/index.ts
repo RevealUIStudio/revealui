@@ -13,6 +13,15 @@ export {
 } from './boundary.js';
 export { runSessionCli } from './cli.js';
 export {
+  DEFAULT_DURABLE_MEMORY_TIMEOUT_MS,
+  type DurableMemoryCallTool,
+  type DurableMemoryExecutor,
+  type DurableMemoryOptions,
+  formatDurableMemoryWarn,
+  publishDurableFinding,
+  queryDurableMemory,
+} from './durable-memory.js';
+export {
   clearDaemonSessionCache,
   clearHookIdentity,
   daemonSessionCachePath,
@@ -46,3 +55,14 @@ export {
 } from './reap.js';
 export { defaultSocketPath, isDaemonSocketPresent, rpcCall } from './rpc.js';
 export { hashParams, signRpc } from './sign.js';
+export {
+  CLAUDE_SETTINGS_REL,
+  GROK_MCP_TOML_REL,
+  type MaterializeStudioLocalKgMcpOptions,
+  type MaterializeStudioLocalKgMcpResult,
+  materializeStudioLocalKgMcp,
+  STUDIO_LOCAL_KG_MCP_ARGS,
+  STUDIO_LOCAL_KG_MCP_COMMAND,
+  STUDIO_LOCAL_KG_MCP_SERVER_NAME,
+  studioLocalKnowledgeGraphMcpServer,
+} from './studio-local-kg-mcp.js';

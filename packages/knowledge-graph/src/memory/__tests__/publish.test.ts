@@ -191,11 +191,11 @@ describe('queryClaims', () => {
     expect(result.data.claims[0]?.claimKind).toBe('file');
   });
 
-  it('does not serve hosted reads until scope SQL ships', async () => {
+  it('serves hosted claims under the scope filter', async () => {
     const result = await queryClaims(db.exec, { principal: hostedPrincipal() });
-    expect(result.status).toBe('unavailable');
-    if (result.status === 'unavailable') {
-      expect(result.reason).toBe('scope-enforcement-unwired');
-    }
+    expect(result.status).toBe('ok');
+    if (result.status !== 'ok') return;
+    expect(result.enforcement).toBe('enforced');
+    expect(result.data.claims).toEqual([]);
   });
 });

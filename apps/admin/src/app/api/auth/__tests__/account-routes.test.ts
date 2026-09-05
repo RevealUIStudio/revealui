@@ -76,6 +76,7 @@ function makeRequest(body?: unknown) {
     headers: { get: () => null },
     json:
       body !== undefined ? () => Promise.resolve(body) : () => Promise.reject(new Error('no body')),
+    nextUrl: { origin: 'http://localhost:4000' },
   } as never;
 }
 
@@ -269,6 +270,9 @@ describe('POST /api/auth/resend-verification', () => {
     expect(mockSendVerificationEmail).toHaveBeenCalledWith(
       'test@example.com',
       expect.any(String), // raw token (UUID)
+      undefined,
+      undefined,
+      'http://localhost:4000',
     );
   });
 

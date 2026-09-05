@@ -116,13 +116,13 @@ Honest list of things that are not done, not deployed, or not verified.
 | UI components | 66 in `@revealui/presentation` | Yes |
 | Database tables | 104 | Yes (`countDbTables` in `@revealui/claim-gates`) |
 | CHECK constraints | 88 | Yes (`countCheckConstraints` in `@revealui/claim-gates`) |
-| MCP servers | 13 | Yes (run `ls packages/mcp/src/servers/*.ts` and count non-`_` files) |
+| MCP servers | 14 | Yes (run `ls packages/mcp/src/servers/*.ts` and count non-`_` files) |
 | Test cases | run `pnpm test` for current count | Reproducible |
 | Test files | run `find . -name "*.test.ts*" -not -path "*/node_modules/*"` | Reproducible |
 | API route files | run `find apps/server/src/routes -name '*.ts' -not -name '*.test.ts' \| wc -l` | Reproducible |
 | Real production users | 0 | Yes |
 
-> Counting rules (enforced in CI by `pnpm validate:claims`, canonical values in `apps/marketing/app/content/site.ts` `METRICS`): **UI components** counts `.tsx` files in `packages/presentation/src/components/` excluding `_`-prefixed helpers. **MCP servers** counts `.ts` files in `packages/mcp/src/servers/` excluding `index*` and `_`-prefixed helpers, and includes the `adapter.ts` framework module (13). **Workspaces** counts `packages/*` plus `apps/*` that carry a `package.json` (32 + 6 = 38). `license-signer` and `rsc-poc` are in-tree apps, not customer-facing products. **Database tables** counts `pgTable(` CallExpressions; **CHECK constraints** counts `check(` CallExpressions; the **license split** is read from each `packages/*/package.json` `license` field.
+> Counting rules (enforced in CI by `pnpm validate:claims`, canonical values in `apps/marketing/app/content/site.ts` `METRICS`): **UI components** counts `.tsx` files in `packages/presentation/src/components/` excluding `_`-prefixed helpers. **MCP servers** counts `.ts` files in `packages/mcp/src/servers/` excluding `index*` and `_`-prefixed helpers, and includes the `adapter.ts` framework module (14). **Workspaces** counts `packages/*` plus `apps/*` that carry a `package.json` (32 + 6 = 38). `license-signer` and `rsc-poc` are in-tree apps, not customer-facing products. **Database tables** counts `pgTable(` CallExpressions; **CHECK constraints** counts `check(` CallExpressions; the **license split** is read from each `packages/*/package.json` `license` field.
 
 ---
 

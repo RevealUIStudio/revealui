@@ -1,17 +1,16 @@
 import { type KgSearchResult, kgSearch } from '../search/index.js';
 import type { KgExecutor } from '../types.js';
 import { principalMissing, validatePrincipal } from './principal.js';
+import { countDeniedMemoryHits } from './scope-read.js';
+import { bindVisibility, SqlParams } from './scope-sql.js';
 import { shouldNamespaceKeys, tenantNaturalKey } from './tenant-key.js';
-import type { AdvisoryClaim, MemoryPrincipal, MemoryQuery, MemoryResult } from './types.js';
-
-function hostedUnwired<T>(): MemoryResult<T> {
-  return {
-    status: 'unavailable',
-    available: false,
-    reason: 'scope-enforcement-unwired',
-    message: 'hosted product memory reads require scope SQL (not wired in this package version)',
-  };
-}
+import type {
+  AdvisoryClaim,
+  MemoryPrincipal,
+  MemoryQuery,
+  MemoryResult,
+  MemoryScope,
+} from './types.js';
 
 function unavailable<T>(message: string): MemoryResult<T> {
   return {
@@ -20,6 +19,18 @@ function unavailable<T>(message: string): MemoryResult<T> {
     reason: 'kg-database-unavailable',
     message,
   };
+}
+
+function readerScope(principal: MemoryPrincipal): MemoryScope {
+  return {
+    tenantId: principal.tenantId,
+    workspaceId: principal.workspaceId,
+    classification: 'workspace',
+  };
+}
+
+function enforcementOf(principal: MemoryPrincipal): 'enforced' | 'deferred' {
+  return principal.trustBoundary === 'hosted' ? 'enforced' : 'deferred';
 }
 
 function namespaceInbound(principal: MemoryPrincipal, key: string): string {
@@ -33,7 +44,6 @@ export async function queryMemory(
 ): Promise<MemoryResult<KgSearchResult>> {
   const missing = validatePrincipal(input.principal);
   if (missing) return principalMissing(missing);
-  if (input.principal.trustBoundary === 'hosted') return hostedUnwired();
 
   try {
     const data = await kgSearch(exec, {
@@ -42,12 +52,24 @@ export async function queryMemory(
       relations: input.relations,
       limit: input.limit ?? 20,
       at: input.at,
+      principal: input.principal,
     });
+    const deniedCount = await countDeniedMemoryHits(exec, input.query, input.principal);
+    if (data.nodes.length === 0 && data.facts.length === 0 && deniedCount > 0) {
+      return {
+        status: 'denied',
+        available: true,
+        reason: 'scope-denied',
+        scope: readerScope(input.principal),
+        message: 'memory-schema hits existed but none were in scope',
+        deniedCount,
+      };
+    }
     return {
       status: 'ok',
       available: true,
-      enforcement: 'deferred',
-      deniedCount: 0,
+      enforcement: enforcementOf(input.principal),
+      deniedCount,
       data,
     };
   } catch (error) {
@@ -83,11 +105,15 @@ export async function queryClaims(
 ): Promise<MemoryResult<{ claims: AdvisoryClaim[] }>> {
   const missing = validatePrincipal(input.principal);
   if (missing) return principalMissing(missing);
-  if (input.principal.trustBoundary === 'hosted') return hostedUnwired();
 
   const subject = input.subjectNaturalKey
     ? namespaceInbound(input.principal, input.subjectNaturalKey)
     : null;
+
+  const params = new SqlParams();
+  const vis = bindVisibility(input.principal, params);
+  const subjectP = params.add(subject);
+  const visSql = vis ? `AND ${vis.edgeVisible('e')}` : '';
 
   try {
     const rows = await exec.query<ClaimRow>(
@@ -100,9 +126,10 @@ export async function queryClaims(
          AND e.expired_at IS NULL
          AND e.attributes->>'advisory' = 'true'
          AND e.attributes->>'status' = 'open'
-         AND ($1::text IS NULL OR t.natural_key = $1)
+         AND (${subjectP}::text IS NULL OR t.natural_key = ${subjectP})
+         ${visSql}
        ORDER BY e.valid_at DESC, e.id`,
-      [subject],
+      params.values,
     );
     const claims: AdvisoryClaim[] = rows.map((row) => {
       const attrs = asAttributes(row.attributes);
@@ -123,7 +150,7 @@ export async function queryClaims(
     return {
       status: 'ok',
       available: true,
-      enforcement: 'deferred',
+      enforcement: enforcementOf(input.principal),
       deniedCount: 0,
       data: { claims },
     };

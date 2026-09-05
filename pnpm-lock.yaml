@@ -780,6 +780,9 @@ importers:
       '@revealui/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@revealui/knowledge-graph':
+        specifier: workspace:*
+        version: link:../../packages/knowledge-graph
       '@revealui/mcp':
         specifier: workspace:*
         version: link:../../packages/mcp
@@ -1459,6 +1462,9 @@ importers:
       '@revealui/core':
         specifier: workspace:*
         version: link:../core
+      '@revealui/knowledge-graph':
+        specifier: workspace:*
+        version: link:../knowledge-graph
       '@revealui/security':
         specifier: workspace:*
         version: link:../security

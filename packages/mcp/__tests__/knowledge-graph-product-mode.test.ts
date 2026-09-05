@@ -1,6 +1,6 @@
 /**
  * Product-mode coverage for the knowledge-graph MCP toolset: extra threading,
- * actor stamp, envelope, timeout, hosted read refuse, audit fail-closed.
+ * actor stamp, envelope, timeout, hosted scoped reads, audit fail-closed.
  * Compat-mode unwrapped JSON lives in knowledge-graph-factory.test.ts.
  */
 
@@ -161,7 +161,7 @@ describe('KgProductAddEpisodeArgsSchema', () => {
 
 describe('createKnowledgeGraphToolset product mode', () => {
   it('lists the seven kg_* tools and does not add publish/subscribe/claim', () => {
-    const toolset = createKnowledgeGraphToolset({ mode: 'product' });
+    const toolset = createKnowledgeGraphToolset({ mode: 'product', timeoutMs: 0 });
     expect([...toolset.names].sort()).toEqual(
       [
         'kg_add_episode',
@@ -189,6 +189,7 @@ describe('createKnowledgeGraphToolset product mode', () => {
     const toolset = createKnowledgeGraphToolset({
       executor: db.exec,
       mode: 'product',
+      timeoutMs: 0,
       trustBoundary: 'studio-local',
       principalProvider: (ctx) => {
         seen.push({ authInfo: ctx.authInfo, sessionId: ctx.sessionId });
@@ -210,6 +211,7 @@ describe('createKnowledgeGraphToolset product mode', () => {
     const toolset = createKnowledgeGraphToolset({
       executor: db.exec,
       mode: 'product',
+      timeoutMs: 0,
       principalProvider: () => studioPrincipal(),
     });
     const search = await toolset.dispatch(call('kg_search', { query: 'client' }));
@@ -234,6 +236,7 @@ describe('createKnowledgeGraphToolset product mode', () => {
   it('returns principal-missing when the provider yields nothing', async () => {
     const toolset = createKnowledgeGraphToolset({
       mode: 'product',
+      timeoutMs: 0,
       principalProvider: () => null,
     });
     const result = await toolset.dispatch(call('kg_search', { query: 'x' }));
@@ -249,6 +252,7 @@ describe('createKnowledgeGraphToolset product mode', () => {
     const toolset = createKnowledgeGraphToolset({
       executor: db.exec,
       mode: 'product',
+      timeoutMs: 0,
       principalProvider: () => studioPrincipal(),
     });
     const result = await toolset.dispatch(
@@ -287,6 +291,7 @@ describe('createKnowledgeGraphToolset product mode', () => {
     const toolset = createKnowledgeGraphToolset({
       executor: db.exec,
       mode: 'product',
+      timeoutMs: 0,
       trustBoundary: 'hosted',
       principalProvider: () => hostedPrincipal(),
     });
@@ -311,27 +316,70 @@ describe('createKnowledgeGraphToolset product mode', () => {
     expect(memory[0]?.natural_key).toBe(prefixed);
   });
 
-  it('refuses hosted reads with scope-enforcement-unwired and never hits the executor', async () => {
-    let queried = false;
-    const hanging: KgExecutor = {
-      query: async () => {
-        queried = true;
-        return [];
-      },
-      transaction: async (fn) => fn(hanging),
-    };
-    const toolset = createKnowledgeGraphToolset({
-      executor: hanging,
+  it('scopes hosted reads: another tenant is denied, scan keys look missing', async () => {
+    const db = await createTestDb();
+    teardowns.push(db.close);
+    await seed(db.exec);
+    const writer = createKnowledgeGraphToolset({
+      executor: db.exec,
       mode: 'product',
+      timeoutMs: 0,
       trustBoundary: 'hosted',
       principalProvider: () => hostedPrincipal(),
     });
-    const result = await toolset.dispatch(call('kg_search', { query: 'secret' }));
-    expect(result.isError).toBe(true);
-    expect(queried).toBe(false);
-    const body = parseJson<{ status: string; reason: string }>(result);
-    expect(body.status).toBe('unavailable');
-    expect(body.reason).toBe('scope-enforcement-unwired');
+    const actor = hostedPrincipal();
+    const written = await writer.dispatch(
+      call('kg_add_episode', {
+        episodeType: 'agent-fact',
+        content: 'lantern customer finding',
+        nodes: [
+          { kind: 'agent', name: actor.agentId, naturalKey: actor.did },
+          { kind: 'concept', name: 'lantern', naturalKey: 'concept:lantern' },
+        ],
+        edges: [
+          {
+            source: { kind: 'agent', naturalKey: actor.did },
+            target: { kind: 'concept', naturalKey: 'concept:lantern' },
+            relation: 'discovered',
+            fact: 'user_abc discovered lantern customer finding',
+          },
+        ],
+      }),
+    );
+    expect(written.isError).not.toBe(true);
+
+    const other = createKnowledgeGraphToolset({
+      executor: db.exec,
+      mode: 'product',
+      timeoutMs: 0,
+      trustBoundary: 'hosted',
+      principalProvider: () =>
+        hostedPrincipal({
+          did: 'did:revfleet:user_other:fpoth',
+          agentId: 'user_other',
+          fingerprint: 'fpoth',
+          tenantId: 'acct_other',
+        }),
+    });
+    const denied = await other.dispatch(call('kg_search', { query: 'lantern' }));
+    expect(denied.isError).not.toBe(true);
+    const deniedBody = parseJson<{ status: string; deniedCount: number }>(denied);
+    expect(deniedBody.status).toBe('denied');
+    expect(deniedBody.deniedCount).toBeGreaterThan(0);
+
+    const scan = await writer.dispatch(call('kg_get_node', { naturalKey: FILE_KEY }));
+    expect(scan.isError).toBe(true);
+
+    const prefixed = tenantNaturalKey('acct_1', 'concept:lantern');
+    const own = await writer.dispatch(call('kg_search', { query: 'lantern' }));
+    const ownBody = parseJson<{
+      status: string;
+      enforcement: string;
+      data: { nodes: Array<{ naturalKey: string }> };
+    }>(own);
+    expect(ownBody.status).toBe('ok');
+    expect(ownBody.enforcement).toBe('enforced');
+    expect(ownBody.data.nodes.some((n) => n.naturalKey === prefixed)).toBe(true);
   });
 
   it('times out a hung dispatch as unavailable/timeout', async () => {
@@ -358,6 +406,7 @@ describe('createKnowledgeGraphToolset product mode', () => {
     const toolset = createKnowledgeGraphToolset({
       executor: db.exec,
       mode: 'product',
+      timeoutMs: 0,
       principalProvider: () => studioPrincipal(),
       auditSink: async () => {
         throw new Error('audit down');
@@ -384,6 +433,7 @@ describe('createKnowledgeGraphToolset product mode', () => {
     const toolset = createKnowledgeGraphToolset({
       executor: db.exec,
       mode: 'product',
+      timeoutMs: 0,
       principalProvider: () => studioPrincipal(),
       auditSink: async () => {
         throw new Error('audit down');
@@ -399,6 +449,7 @@ describe('createKnowledgeGraphToolset product mode', () => {
     const audits: McpToolAuditRecord[] = [];
     const toolset = createKnowledgeGraphToolset({
       mode: 'product',
+      timeoutMs: 0,
       principalProvider: () => null,
       auditSink: async (record) => {
         audits.push(record);
@@ -421,6 +472,7 @@ describe('createKnowledgeGraphServer product mode over HTTP', () => {
         createKnowledgeGraphServer({
           executor: db.exec,
           mode: 'product',
+          timeoutMs: 0,
           principalProvider: () => studioPrincipal(),
         }),
       enableJsonResponse: true,

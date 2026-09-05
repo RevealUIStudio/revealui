@@ -43,6 +43,7 @@ const unauthenticatedBody = z.object({
 async function rotateTokenAndSend(
   userId: string,
   email: string,
+  origin?: string,
 ): Promise<{ success: boolean; error?: string }> {
   const rawToken = randomBytes(32).toString('hex');
   const tokenHash = createHash('sha256').update(rawToken).digest('hex');
@@ -53,7 +54,7 @@ async function rotateTokenAndSend(
     emailVerificationTokenExpiresAt: new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS),
   });
 
-  return sendVerificationEmail(email, rawToken);
+  return sendVerificationEmail(email, rawToken, undefined, undefined, origin);
 }
 
 function genericAcceptedResponse(): NextResponse {
@@ -85,7 +86,7 @@ async function resendWithoutSession(request: NextRequest): Promise<NextResponse>
   // hashed so raw addresses never become rate-limit storage keys.
   const emailKey = `resend-verification:email:${createHash('sha256').update(email.toLowerCase()).digest('hex')}`;
   const { allowed } = await checkRateLimit(emailKey, {
-    maxAttempts: 3,
+    maxAttempts: 10,
     windowMs: 15 * 60 * 1000,
   });
 
@@ -96,9 +97,9 @@ async function resendWithoutSession(request: NextRequest): Promise<NextResponse>
       // that can sign in can also request a send.
       const user = await getUserByEmail(db, email);
       if (user && !user.emailVerified && user.email) {
-        const result = await rotateTokenAndSend(user.id, user.email);
+        const result = await rotateTokenAndSend(user.id, user.email, request.nextUrl.origin);
         if (!result.success) {
-          logger.warn('Failed to send verification email (no-session mode)', {
+          logger.error('Failed to send verification email (no-session mode)', {
             userId: user.id,
             error: result.error,
           });
@@ -127,7 +128,11 @@ async function resendHandler(request: NextRequest): Promise<NextResponse> {
       return createApplicationErrorResponse('No email address on account', 'NO_EMAIL', 400);
     }
 
-    const result = await rotateTokenAndSend(session.user.id, session.user.email);
+    const result = await rotateTokenAndSend(
+      session.user.id,
+      session.user.email,
+      request.nextUrl.origin,
+    );
 
     if (!result.success) {
       logger.warn('Failed to resend verification email', {
@@ -152,7 +157,7 @@ async function resendHandler(request: NextRequest): Promise<NextResponse> {
 }
 
 export const POST = withRateLimit(resendHandler, {
-  maxAttempts: 3,
+  maxAttempts: 10,
   windowMs: 15 * 60 * 1000, // 15 minutes
   keyPrefix: 'resend-verification',
   failClosed: true,

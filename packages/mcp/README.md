@@ -19,7 +19,7 @@ Centralized MCP server infrastructure, configuration, and documentation for Reve
 
 This package contains everything MCP-related:
 
-- **13 MCP Servers** - Code Validator, Contracts Introspection, RevealUI Docs, Neon, Next.js DevTools, Playwright, RevealUI Content, RevealUI Email, RevealUI Memory, RevealUI Stripe, Stripe, Vercel, and the Adapter base (BaseAdapter with retry and idempotency, plus the Vercel/Stripe/Neon adapter subclasses). This roster matches the CI counter in `scripts/validate/claim-drift.ts` (adapter counted, the underscore-prefixed email-provider utility not); the count is enforced by `pnpm validate:claims`. Of the 13, eight are RevealUI-authored and five are first-party launchers that start vendor MCP server packages.
+- **14 MCP Servers** - Code Validator, Contracts Introspection, RevealUI Docs, Knowledge Graph, Neon, Next.js DevTools, Playwright, RevealUI Content, RevealUI Email, RevealUI Memory, RevealUI Stripe, Stripe, Vercel, and the Adapter base (BaseAdapter with retry and idempotency, plus the Vercel/Stripe/Neon adapter subclasses). This roster matches the CI counter in `scripts/validate/claim-drift.ts` (adapter counted, the underscore-prefixed email-provider and kg-principal utilities not); the count is enforced by `pnpm validate:claims`. Of the 14, nine are RevealUI-authored and five are first-party launchers that start vendor MCP server packages.
 - **MCPHypervisor (incubating)** - Multi-server process manager in source (`src/hypervisor.ts`). Not started by apps at boot today (ADR-007). Use `revealui-mcp` / per-server launchers for day-to-day attach.
 - **Configuration Templates** - For Claude Code / Claude Desktop
 - **Utilities** - Config management, database adapters
