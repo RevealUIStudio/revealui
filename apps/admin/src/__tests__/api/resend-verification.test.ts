@@ -158,6 +158,9 @@ describe('POST /api/auth/resend-verification — no-session mode', () => {
     expect(mockSendVerificationEmail).toHaveBeenCalledWith(
       'pending@example.com',
       expect.any(String),
+      undefined,
+      undefined,
+      'http://localhost:4000',
     );
   });
 
