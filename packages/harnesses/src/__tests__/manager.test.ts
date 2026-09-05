@@ -48,6 +48,18 @@ describe('project manager (.revealui)', () => {
     expect(stub).toContain('.revealui/manager.json');
     expect(stub).toContain('equal');
     expect(result.stubs.length).toBeGreaterThanOrEqual(3);
+    expect(result.stubs).toContain('.claude/settings.json');
+    expect(result.stubs).toContain('.grok/config.toml');
+    const claudeMcp = JSON.parse(readFileSync(join(root, '.claude/settings.json'), 'utf-8')) as {
+      mcpServers: Record<string, { command: string; args: string[] }>;
+    };
+    expect(claudeMcp.mcpServers['knowledge-graph']).toEqual({
+      command: 'revealui-mcp',
+      args: ['knowledge-graph'],
+    });
+    const grokToml = readFileSync(join(root, '.grok/config.toml'), 'utf-8');
+    expect(grokToml).toContain('[mcp_servers.knowledge-graph]');
+    expect(grokToml).toContain('command = "revealui-mcp"');
     const cursorStub = readFileSync(join(root, '.cursor/revealui-manager.md'), 'utf-8');
     expect(cursorStub).toContain('.revealui/content/');
     expect(cursorStub).toContain('Equal');
