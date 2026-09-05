@@ -293,17 +293,23 @@ describe('I-7 role gate: viewer cannot see or execute list_users', () => {
     const adminTools = (await admin.listTools()).map((t) => t.name);
     await admin.close();
     expect(adminTools).toContain('revealui_list_users');
+    expect(adminTools).toContain('kg_add_episode');
+    expect(adminTools).toContain('kg_search');
 
     const viewer = client(TOKEN_VIEWER_PRO, url);
     await viewer.connect();
     const viewerTools = (await viewer.listTools()).map((t) => t.name);
     expect(viewerTools).toContain('revealui_list_sites');
+    expect(viewerTools).toContain('kg_search');
     expect(viewerTools).not.toContain('revealui_list_users');
+    expect(viewerTools).not.toContain('kg_add_episode');
 
     // A tool absent from the list is STILL independently denied on a direct call.
     const denied = await viewer.callTool('revealui_list_users', {});
+    const kgWriteDenied = await viewer.callTool('kg_add_episode', { episodeType: 'agent-fact' });
     await viewer.close();
     expect(denied.isError).toBe(true);
+    expect(kgWriteDenied.isError).toBe(true);
 
     const rows = await deniedRows();
     expect(

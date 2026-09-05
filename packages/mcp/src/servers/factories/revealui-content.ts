@@ -37,6 +37,7 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import {
   type CallToolRequest,
   CallToolRequestSchema,
+  type CallToolResult,
   ListResourcesRequestSchema,
   ListToolsRequestSchema,
   type ReadResourceRequest,
@@ -593,6 +594,112 @@ export interface CreateRevealuiContentServerOptions {
    * executed tool call (source `agent` downstream). Unset → no metering.
    */
   meterSink?: McpToolMeterSink;
+
+  /**
+   * Extra toolsets composited onto this Server (hosted knowledge-graph).
+   * CallTool intercepts these names BEFORE credentialsProvider so kg tools
+   * never demand REST keys. ListTools concatenates their tools.
+   */
+  additionalToolsets?: readonly AdditionalMcpToolset[];
+
+  /**
+   * Wrapper Promise.race budget for additional-toolset dispatch (ms).
+   * Default 4000. `0` disables the race (tests).
+   */
+  additionalToolsetTimeoutMs?: number;
+}
+
+/** Extra MCP tools mounted beside content (e.g. product-mode kg_*). */
+export interface AdditionalMcpToolset {
+  tools: Tool[];
+  names: ReadonlySet<string>;
+  dispatch(request: CallToolRequest, extra?: unknown): Promise<CallToolResult>;
+}
+
+type AdditionalCallResult = {
+  content: CallToolResult['content'];
+  isError?: boolean;
+};
+
+export const DEFAULT_ADDITIONAL_TOOLSET_TIMEOUT_MS = 4_000;
+
+async function raceTimeout(
+  work: Promise<AdditionalCallResult>,
+  timeoutMs: number,
+  onTimeout: () => AdditionalCallResult,
+): Promise<AdditionalCallResult> {
+  if (timeoutMs <= 0) return work;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<CallToolResult>((resolve) => {
+    timer = setTimeout(() => resolve(onTimeout()), timeoutMs);
+  });
+  try {
+    return await Promise.race([work, timeout]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+function additionalTimeoutResult(timeoutMs: number): AdditionalCallResult {
+  return {
+    content: [
+      {
+        type: 'text',
+        text: JSON.stringify({
+          status: 'unavailable',
+          available: false,
+          reason: 'timeout',
+          message: `knowledge graph dispatch timed out after ${timeoutMs}ms`,
+        }),
+      },
+    ],
+    isError: true,
+  };
+}
+
+function additionalUnavailableResult(message: string): AdditionalCallResult {
+  return {
+    content: [
+      {
+        type: 'text',
+        text: JSON.stringify({
+          status: 'unavailable',
+          available: false,
+          reason: 'kg-database-unavailable',
+          message,
+        }),
+      },
+    ],
+    isError: true,
+  };
+}
+
+function additionalResultText(result: AdditionalCallResult): string {
+  const first = result.content[0];
+  if (first && first.type === 'text' && 'text' in first && typeof first.text === 'string') {
+    return first.text;
+  }
+  return JSON.stringify({
+    status: 'unavailable',
+    available: false,
+    reason: 'kg-database-unavailable',
+    message: 'empty tool result',
+  });
+}
+
+function additionalReadOutcome(result: AdditionalCallResult): McpToolAuditOutcome {
+  const first = result.content[0];
+  if (first && first.type === 'text' && 'text' in first && typeof first.text === 'string') {
+    try {
+      const body = JSON.parse(first.text) as { status?: string };
+      if (body.status === 'ok') return 'invoked';
+      if (body.status === 'denied') return 'denied';
+      if (body.status === 'unavailable') return 'failed';
+    } catch {
+      // envelope missing — fall through
+    }
+  }
+  return result.isError ? 'failed' : 'invoked';
 }
 
 /** Error carrying the upstream HTTP status, for audit `httpStatus`. */
@@ -792,8 +899,10 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
   }
 
   server.setRequestHandler(ListToolsRequestSchema, async (_request, extra) => {
+    const extraTools = (options?.additionalToolsets ?? []).flatMap((set) => set.tools);
+    const listed = extraTools.length > 0 ? [...TOOLS, ...extraTools] : TOOLS;
     const authorizer = options?.toolAuthorizer;
-    if (!authorizer) return { tools: TOOLS };
+    if (!authorizer) return { tools: listed };
     // Filtered discovery (I-7): advertise only tools this caller may execute.
     // This is UX; execution authz below is the security control — a tool hidden
     // here is still independently denied on a direct `tools/call`.
@@ -801,7 +910,7 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
       authInfo: (extra as { authInfo?: unknown } | undefined)?.authInfo,
       sessionId: (extra as { sessionId?: string } | undefined)?.sessionId,
     };
-    return { tools: TOOLS.filter((tool) => authorizer(ctx, tool.name)) };
+    return { tools: listed.filter((tool) => authorizer(ctx, tool.name)) };
   });
 
   // -------------------------------------------------------------------------
@@ -983,6 +1092,44 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
           'rate-limit',
         );
       }
+    }
+
+    const additional = (options?.additionalToolsets ?? []).find((set) => set.names.has(toolName));
+    if (additional) {
+      if (mutating) {
+        const recorded = await writeReceipt('invoked');
+        if (!recorded) {
+          return {
+            content: [
+              { type: 'text', text: 'Error: audit log unavailable; mutating tool refused' },
+            ],
+            isError: true,
+          };
+        }
+      }
+      const timeoutMs =
+        options?.additionalToolsetTimeoutMs ?? DEFAULT_ADDITIONAL_TOOLSET_TIMEOUT_MS;
+      let result: AdditionalCallResult;
+      try {
+        result = await raceTimeout(additional.dispatch(request, extra), timeoutMs, () =>
+          additionalTimeoutResult(timeoutMs),
+        );
+      } catch (err) {
+        result = additionalUnavailableResult(err instanceof Error ? err.message : String(err));
+      }
+      if (!mutating) {
+        await writeReceipt(additionalReadOutcome(result));
+      }
+      await fireMeter(result.isError === true);
+      if (result.isError) {
+        return {
+          content: [{ type: 'text', text: additionalResultText(result) }],
+          isError: true,
+        };
+      }
+      return {
+        content: [{ type: 'text', text: additionalResultText(result) }],
+      };
     }
 
     // Resolve credentials. Governed path: the injected provider is the sole
