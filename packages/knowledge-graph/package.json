@@ -71,11 +71,11 @@
     "@revealui/db": "workspace:*",
     "typescript": "catalog:",
     "yaml": "catalog:",
-    "zod": "catalog:",
-    "@revealui/ts-strada": "workspace:*"
+    "zod": "catalog:"
   },
   "optionalDependencies": {
-    "@revealui/ai": "workspace:*"
+    "@revealui/ai": "workspace:*",
+    "@revealui/ts-strada": "workspace:*"
   },
   "devDependencies": {
     "@electric-sql/pglite": "catalog:",
