@@ -2,6 +2,7 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
+  CREATE_REVEALUI_NPM_VERSION,
   TEMPLATES_APIFY,
   TEMPLATES_CLI,
   TEMPLATES_CLI_ITEMS,
@@ -19,7 +20,7 @@ describe('TemplatesPage', () => {
       screen.getByRole('heading', { level: 1, name: TEMPLATES_HERO.title }),
     ).toBeInTheDocument();
     expect(screen.getByText(TEMPLATES_CLI.command)).toBeInTheDocument();
-    expect(screen.getByText('0.5.22', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText(CREATE_REVEALUI_NPM_VERSION, { exact: false })).toBeInTheDocument();
     for (const item of TEMPLATES_CLI_ITEMS) {
       expect(screen.getByRole('heading', { name: item.name })).toBeInTheDocument();
     }

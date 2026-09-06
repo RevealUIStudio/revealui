@@ -579,7 +579,7 @@ export const PERPETUAL_NEVER_EXPIRES_TEST: EvidenceRef = {
 export const CREATE_REVEALUI_PKG: EvidenceRef = {
   kind: 'code',
   ref: 'packages/create-revealui/package.json',
-  note: 'published npm wrapper version 0.5.22',
+  note: 'published npm wrapper version 0.5.23',
 };
 export const CLI_TEMPLATE_REGISTRY: EvidenceRef = {
   kind: 'code',
