@@ -1,5 +1,12 @@
 # @revealui/core
 
+## 0.14.2
+
+### Patch Changes
+
+- Updated dependencies [35da689]
+  - @revealui/presentation@0.14.2
+
 ## 0.14.1
 
 ### Patch Changes

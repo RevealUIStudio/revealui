@@ -55,11 +55,9 @@ function blob(): string {
 }
 
 describe('templates catalog honesty', () => {
-  it('pins create-revealui npm 0.5.22 and the published CLI command', () => {
-    expect(CREATE_REVEALUI_PKG.version).toBe('0.5.22');
+  it('pins create-revealui npm version to packages/create-revealui and the published CLI command', () => {
     expect(CREATE_REVEALUI_NPM_VERSION).toBe(CREATE_REVEALUI_PKG.version);
     expect(TEMPLATES_CLI.command).toBe('npx create-revealui@latest');
-    expect(TEMPLATES_CLI.body.includes('0.5.22')).toBe(true);
     expect(TEMPLATES_CLI.body.includes(CREATE_REVEALUI_NPM_VERSION)).toBe(true);
   });
 

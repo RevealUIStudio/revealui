@@ -1,5 +1,22 @@
 # @revealui/mcp
 
+## 0.8.10
+
+### Patch Changes
+
+- ee58150: Extract `assembleContext` into `@revealui/knowledge-graph` so product `kg_context` and the RevDev bridge share the MIT helper. `/memory` remains part of this package for the next publish.
+- c78e2ca: Composite knowledge-graph tools onto the governed `/api/mcp` server: kg\_\* skip REST credentials, write receipts fail-closed before `kg_add_episode`, and hosted principals stamp account-scoped identity.
+- 14758e8: Prove Cursor HTTP and OpenCode HTTP clients on `/api/mcp` share durable knowledge-graph memory for one accountId; a different account is denied.
+- 929a22b: Add a knowledge-graph MCP toolset with an opt-in product mode: CallTool threads request extras, writes stamp actor and scope from the session principal, and results use a status envelope. Compat mode stays unwrapped for existing callers.
+- 62f47cb: Add `revealui-mcp knowledge-graph`: a stdio launcher that stamps studio-local product memory from the session hook identity.
+- 975d3c7: Scope product memory reads in SQL before LIMIT. Hosted non-operators see the memory subgraph only; deny is distinct from empty; graph walks do not hop invisible edges.
+- fff5084: Prove Claude and Grok stdio clients share studio-local knowledge-graph memory; a down graph WARNs without blocking the other harness.
+- Updated dependencies [ee58150]
+- Updated dependencies [8486734]
+- Updated dependencies [975d3c7]
+  - @revealui/knowledge-graph@0.1.12
+  - @revealui/core@0.14.2
+
 ## 0.8.9
 
 ### Patch Changes

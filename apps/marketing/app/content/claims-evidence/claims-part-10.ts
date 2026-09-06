@@ -32,7 +32,7 @@ export const claimsPart10: readonly ClaimEntry[] = [
     exportPath: 'TEMPLATES_CLI.body',
     proofGrade: 'outcome',
     match: 'path',
-    text: 'Run npx create-revealui@latest. The published npm package is create-revealui 0.5.22.',
+    text: 'Run npx create-revealui@latest. The published npm package is create-revealui 0.5.23.',
     evidence: [CLI_CREATE, CREATE_REVEALUI_PKG, TEMPLATES_PAGE_TEST],
   },
   {
