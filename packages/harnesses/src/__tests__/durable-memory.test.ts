@@ -19,6 +19,7 @@ import {
 } from '../session/durable-memory.js';
 import {
   CLAUDE_SETTINGS_REL,
+  GROK_ADAPTER_MCP_REL,
   GROK_MCP_TOML_REL,
   materializeStudioLocalKgMcp,
   mergeClaudeSettingsKgMcp,
@@ -330,7 +331,11 @@ Authorization = "Bearer \${REVEALUI_MCP_TOKEN}"
     dirs.push(root);
     const written = materializeStudioLocalKgMcp(root);
     expect(written.claudeSettings).toBe(CLAUDE_SETTINGS_REL);
+    expect(written.grokAdapter).toBe(GROK_ADAPTER_MCP_REL);
     expect(written.grokToml).toBe(GROK_MCP_TOML_REL);
+    const adapter = readFileSync(join(root, GROK_ADAPTER_MCP_REL), 'utf-8');
+    expect(adapter).toContain('[mcp_servers.knowledge-graph]');
+    expect(adapter).toContain('command = "revealui-mcp"');
 
     const claude = JSON.parse(readFileSync(join(root, CLAUDE_SETTINGS_REL), 'utf-8')) as {
       mcpServers: Record<string, { command: string; args: string[] }>;
@@ -365,6 +370,7 @@ Authorization = "Bearer \${REVEALUI_MCP_TOKEN}"
     );
     expect(src).not.toContain("homedir(), '.grok'");
     expect(src).not.toContain('~/.grok');
+    expect(src).toContain('.revealui');
   });
 });
 

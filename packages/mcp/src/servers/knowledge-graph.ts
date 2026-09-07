@@ -22,7 +22,28 @@ import {
 
 const logger = createLauncherLogger();
 
+/**
+ * Best-effort pool warm so the first kg_* call is not charged the Neon
+ * connect budget against DEFAULT_KG_TOOL_TIMEOUT_MS (4s). Failure is a
+ * WARN; tools still return unavailable and the session continues.
+ */
+export async function warmKnowledgeGraphPool(
+  log: { warning(msg: string): void } = logger,
+): Promise<boolean> {
+  try {
+    const poolModule = await import('@revealui/db/pool');
+    const pool = poolModule.getPool();
+    await pool.query('SELECT 1');
+    return true;
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    log.warning(`knowledge graph pool not ready (tools will return unavailable): ${detail}`);
+    return false;
+  }
+}
+
 export async function launchKnowledgeGraphMcp(): Promise<void> {
+  await warmKnowledgeGraphPool(logger);
   const server = createKnowledgeGraphServer({
     mode: 'product',
     trustBoundary: 'studio-local',

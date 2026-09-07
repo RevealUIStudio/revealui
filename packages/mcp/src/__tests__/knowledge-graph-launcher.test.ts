@@ -113,6 +113,13 @@ describe('warnMissingPrincipal', () => {
 });
 
 describe('knowledge-graph launcher import', () => {
+  it('warms the pool before serving stdio (first connect is not a 4s tool timeout)', () => {
+    const src = readFileSync(new URL('../servers/knowledge-graph.ts', import.meta.url), 'utf8');
+    expect(src).toContain('warmKnowledgeGraphPool');
+    expect(src).toContain('SELECT 1');
+    expect(src).toMatch(/await warmKnowledgeGraphPool/);
+  });
+
   it('does not process.exit on import', async () => {
     const exitSpy = vi.spyOn(process, 'exit').mockImplementation(((code?: number) => {
       throw new Error(`process.exit unexpectedly called with ${code}`);
