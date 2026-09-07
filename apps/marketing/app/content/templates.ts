@@ -1,12 +1,12 @@
 // Copy for /templates (TemplatesPage.tsx). Indexed in claims-evidence.
-// Live facts only: create-revealui 0.5.22 CLI list, four GitHub twins,
+// Live facts only: create-revealui npm version (lockstep with packages/create-revealui), four GitHub twins,
 // Deploy-to-Vercel clone URLs for those twins, Apify pay-per-event prices.
 // starter-native has no GitHub twin and no Deploy button.
 // vercel.com/templates listing is not live (owner submit only).
 
 import { SITE } from './site';
 
-export const CREATE_REVEALUI_NPM_VERSION = '0.5.22' as const;
+export const CREATE_REVEALUI_NPM_VERSION = '0.5.23' as const;
 
 export const VERCEL_CLONE_ORIGIN = 'https://vercel.com/new/clone' as const;
 
