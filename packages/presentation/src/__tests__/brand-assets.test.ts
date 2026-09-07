@@ -152,6 +152,14 @@ describe('Circuit-R brand family', () => {
     expect(mono.includes(FACETED_A)).toBe(false);
   });
 
+  it('locks public chrome to the ≥48 floor, not a 96px nav box', () => {
+    const readme = readFileSync(path.join(brandDir, 'README.md'), 'utf8');
+    expect(readme.includes('locked 48×48 CSS box')).toBe(true);
+    expect(readme.includes('Do not restore 96px in the header')).toBe(true);
+    expect(readme.includes('locked 96×96 CSS box')).toBe(false);
+    expect(readme.includes('Never render either file below 96px')).toBe(false);
+  });
+
   it('keeps the flat no-circuit mark only for 16/32 favicon rasters', () => {
     expect(existsSync(path.join(brandDir, 'favicon-32.png'))).toBe(true);
     expect(existsSync(path.join(brandDir, 'favicon-48.png'))).toBe(false);
