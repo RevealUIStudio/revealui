@@ -301,6 +301,7 @@ export function materializeManager(
     grok: adapters.includes('grok'),
   });
   if (kgMcp.claudeSettings) stubs.push(kgMcp.claudeSettings);
+  if (kgMcp.grokAdapter) stubs.push(kgMcp.grokAdapter);
   if (kgMcp.grokToml) stubs.push(kgMcp.grokToml);
   return { managerPath: managerFile, stubs };
 }

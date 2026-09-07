@@ -112,7 +112,7 @@ describe('onPoolConnect setup query', () => {
     vi.resetModules();
   });
 
-  it('issues one multi-statement SET query with the timeout interpolated as a literal, never a $1 placeholder', async () => {
+  it('issues a required SET query with the timeout interpolated as a literal, never a $1 placeholder', async () => {
     const { getPool } = await import('../pool.js');
     void getPool().totalCount;
 
@@ -128,11 +128,32 @@ describe('onPoolConnect setup query', () => {
     // synchronous 'connect' event handler; flush microtasks so it lands.
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(fakeClient.query).toHaveBeenCalledTimes(1);
-    const [sql] = fakeClient.query.mock.calls[0] as [string];
-    expect(sql).not.toContain('$1');
-    expect(sql).toContain("SET timezone TO 'UTC'");
-    expect(sql).toContain('SET statement_timeout TO 10000');
-    expect(sql).toContain('SET track_io_timing = on');
+    expect(fakeClient.query).toHaveBeenCalledTimes(2);
+    const [requiredSql] = fakeClient.query.mock.calls[0] as [string];
+    expect(requiredSql).not.toContain('$1');
+    expect(requiredSql).toContain("SET timezone TO 'UTC'");
+    expect(requiredSql).toContain('SET statement_timeout TO 10000');
+    expect(requiredSql).not.toContain('track_io_timing');
+    const [optionalSql] = fakeClient.query.mock.calls[1] as [string];
+    expect(optionalSql).toContain('SET track_io_timing = on');
+  });
+
+  it('keeps the connection when track_io_timing is denied', async () => {
+    const { getPool } = await import('../pool.js');
+    void getPool().totalCount;
+    const connectCall = mockPoolInstance.on.mock.calls.find(
+      (call: [string, unknown]) => call[0] === 'connect',
+    );
+    const onConnect = connectCall?.[1] as (client: unknown) => void;
+    const fakeClient = {
+      query: vi
+        .fn()
+        .mockResolvedValueOnce({ rows: [] })
+        .mockRejectedValueOnce(new Error('permission denied to set parameter "track_io_timing"')),
+      processID: 1,
+    };
+    onConnect(fakeClient);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(fakeClient.query).toHaveBeenCalledTimes(2);
   });
 });

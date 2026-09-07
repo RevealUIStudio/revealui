@@ -4,6 +4,9 @@
  * Both harnesses spawn `revealui-mcp knowledge-graph` (product mode,
  * trustBoundary studio-local). Cursor/OpenCode stay on the hosted HTTP
  * composite and are not written here. Never writes `$HOME/.grok`.
+ *
+ * Grok MCP attach SSOT is `.revealui/adapters/grok/mcp.toml`. Project
+ * `.grok/config.toml` is a generated load path (BEGIN/END markers).
  */
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -15,7 +18,10 @@ export const STUDIO_LOCAL_KG_MCP_COMMAND = 'revealui-mcp';
 export const STUDIO_LOCAL_KG_MCP_ARGS: readonly string[] = ['knowledge-graph'];
 
 export const CLAUDE_SETTINGS_REL = join('.claude', 'settings.json');
+/** Generated Grok load path. Do not author MCP servers here. */
 export const GROK_MCP_TOML_REL = join('.grok', 'config.toml');
+/** Control-layer SSOT for the Grok stdio kg attach. */
+export const GROK_ADAPTER_MCP_REL = join('.revealui', 'adapters', 'grok', 'mcp.toml');
 
 const GENERATED_BEGIN = '# BEGIN GENERATED:studio-local-kg-mcp';
 const GENERATED_END = '# END GENERATED:studio-local-kg-mcp';
@@ -162,7 +168,10 @@ export function mergeGrokTomlKgMcp(existing: string | null): string {
 
 export interface MaterializeStudioLocalKgMcpResult {
   readonly claudeSettings?: string;
+  /** Generated Grok load path (`.grok/config.toml`). */
   readonly grokToml?: string;
+  /** Control-layer SSOT (`.revealui/adapters/grok/mcp.toml`). */
+  readonly grokAdapter?: string;
 }
 
 export interface MaterializeStudioLocalKgMcpOptions {
@@ -172,7 +181,10 @@ export interface MaterializeStudioLocalKgMcpOptions {
 
 /**
  * Merge the studio-local knowledge-graph stdio server into Claude settings
- * and Grok project config. Idempotent. Does not touch Cursor/OpenCode.
+ * and Grok attach. Idempotent. Does not touch Cursor/OpenCode.
+ *
+ * Grok: write `.revealui/adapters/grok/mcp.toml` (SSOT), then emit the
+ * generated block into project `.grok/config.toml` (load path).
  */
 export function materializeStudioLocalKgMcp(
   projectRoot: string,
@@ -180,7 +192,11 @@ export function materializeStudioLocalKgMcp(
 ): MaterializeStudioLocalKgMcpResult {
   const writeClaude = options.claude !== false;
   const writeGrok = options.grok !== false;
-  const result: { claudeSettings?: string; grokToml?: string } = {};
+  const result: {
+    claudeSettings?: string;
+    grokToml?: string;
+    grokAdapter?: string;
+  } = {};
 
   if (writeClaude) {
     const rel = CLAUDE_SETTINGS_REL;
@@ -194,12 +210,18 @@ export function materializeStudioLocalKgMcp(
   }
 
   if (writeGrok) {
-    const rel = GROK_MCP_TOML_REL;
-    const abs = join(projectRoot, rel);
-    const next = mergeGrokTomlKgMcp(readFileOrNull(abs));
-    mkdirSync(dirname(abs), { recursive: true });
-    writeFileSync(abs, next, 'utf-8');
-    result.grokToml = rel;
+    const ssotRel = GROK_ADAPTER_MCP_REL;
+    const ssotAbs = join(projectRoot, ssotRel);
+    mkdirSync(dirname(ssotAbs), { recursive: true });
+    writeFileSync(ssotAbs, `${studioLocalKgGrokTomlBlock()}\n`, 'utf-8');
+    result.grokAdapter = ssotRel;
+
+    const loadRel = GROK_MCP_TOML_REL;
+    const loadAbs = join(projectRoot, loadRel);
+    const next = mergeGrokTomlKgMcp(readFileOrNull(loadAbs));
+    mkdirSync(dirname(loadAbs), { recursive: true });
+    writeFileSync(loadAbs, next, 'utf-8');
+    result.grokToml = loadRel;
   }
 
   return result;

@@ -205,13 +205,15 @@ export function formatValidatedStatementTimeoutMs(value: unknown): string {
 
 async function initializeConnection(client: PoolClient): Promise<void> {
   const timeoutMs = formatValidatedStatementTimeoutMs(poolConfig.statement_timeout || 10000);
-  // One multi-statement round trip (simple query protocol) so the three
-  // setup statements execute as a single sequential flow on this client
-  // instead of three separate awaited `client.query()` calls racing for
-  // the connection.
-  await client.query(
-    `SET timezone TO 'UTC'; SET statement_timeout TO ${timeoutMs}; SET track_io_timing = on`,
-  );
+  // Timezone + statement_timeout must succeed. `track_io_timing` is optional:
+  // Neon roles often cannot set it, and failing the combined SET leaves the
+  // session aborted so the first app query looks like a down database.
+  await client.query(`SET timezone TO 'UTC'; SET statement_timeout TO ${timeoutMs}`);
+  try {
+    await client.query('SET track_io_timing = on');
+  } catch {
+    // optional
+  }
 }
 
 function onPoolConnect(client: PoolClient) {

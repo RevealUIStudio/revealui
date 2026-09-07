@@ -99,6 +99,8 @@ describe('studio-local pair attaches to one knowledge-graph MCP', () => {
       args: ['knowledge-graph'],
     });
 
+    const grokAdapter = readFileSync(join(root, '.revealui/adapters/grok/mcp.toml'), 'utf-8');
+    expect(grokAdapter).toContain('[mcp_servers.knowledge-graph]');
     const grokToml = readFileSync(join(root, '.grok/config.toml'), 'utf-8');
     const twice = mergeGrokTomlKgMcp(grokToml);
     expect(twice.split('[mcp_servers.knowledge-graph]').length - 1).toBe(1);
