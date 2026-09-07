@@ -15,22 +15,22 @@
           },
           {
             "type": "command",
-            "command": "FLEET=\"${REVFLEET_ROOT:-$HOME/revealfleet}\"; if [ ! -f \"$FLEET/.jv/scripts/session-start-fleet.js\" ]; then FLEET=\"$HOME/revfleet\"; fi; node \"$FLEET/.jv/scripts/session-start-fleet.js\" || true",
+            "command": "FLEET=\"${REVEALFLEET_ROOT:-${REVFLEET_ROOT:-$HOME/revealfleet}}\"; if [ ! -f \"$FLEET/.jv/scripts/session-start-fleet.js\" ]; then FLEET=\"$HOME/revfleet\"; fi; node \"$FLEET/.jv/scripts/session-start-fleet.js\" || true",
             "timeout": 90
           },
           {
             "type": "command",
-            "command": "FLEET=\"${REVFLEET_ROOT:-$HOME/revealfleet}\"; if [ ! -d \"$FLEET/revealui\" ]; then FLEET=\"$HOME/revfleet\"; fi; node \"$FLEET/revealui/packages/harnesses/dist/cli.js\" hotfix check 2>/dev/null || revealui-harnesses hotfix check 2>/dev/null || true",
+            "command": "FLEET=\"${REVEALFLEET_ROOT:-${REVFLEET_ROOT:-$HOME/revealfleet}}\"; if [ ! -d \"$FLEET/revealui\" ]; then FLEET=\"$HOME/revfleet\"; fi; node \"$FLEET/revealui/packages/harnesses/dist/cli.js\" hotfix check 2>/dev/null || revealui-harnesses hotfix check 2>/dev/null || true",
             "timeout": 15
           },
           {
             "type": "command",
-            "command": "FLEET=\"${REVFLEET_ROOT:-$HOME/revealfleet}\"; if [ ! -d \"$FLEET/revealui\" ]; then FLEET=\"$HOME/revfleet\"; fi; node \"$FLEET/revealui/packages/harnesses/dist/cli.js\" tmpscript check 2>/dev/null || revealui-harnesses tmpscript check 2>/dev/null || true",
+            "command": "FLEET=\"${REVEALFLEET_ROOT:-${REVFLEET_ROOT:-$HOME/revealfleet}}\"; if [ ! -d \"$FLEET/revealui\" ]; then FLEET=\"$HOME/revfleet\"; fi; node \"$FLEET/revealui/packages/harnesses/dist/cli.js\" tmpscript check 2>/dev/null || revealui-harnesses tmpscript check 2>/dev/null || true",
             "timeout": 12
           },
           {
             "type": "command",
-            "command": "FLEET=\"${REVFLEET_ROOT:-$HOME/revealfleet}\"; if [ ! -d \"$FLEET/revealui\" ]; then FLEET=\"$HOME/revfleet\"; fi; node \"$FLEET/revealui/packages/harnesses/dist/cli.js\" session register --backend grok 2>/dev/null || revealui-harnesses session register --backend grok 2>/dev/null || true",
+            "command": "FLEET=\"${REVEALFLEET_ROOT:-${REVFLEET_ROOT:-$HOME/revealfleet}}\"; if [ ! -d \"$FLEET/revealui\" ]; then FLEET=\"$HOME/revfleet\"; fi; node \"$FLEET/revealui/packages/harnesses/dist/cli.js\" session register --backend grok 2>/dev/null || revealui-harnesses session register --backend grok 2>/dev/null || true",
             "timeout": 25
           }
         ]
