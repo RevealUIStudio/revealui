@@ -138,6 +138,12 @@ describe('mcp-hypervisor-wire', () => {
     expect(
       parseSpawnServerList({ REVEALUI_MCP_HYPERVISOR_SERVERS: 'code-validator,contracts' }),
     ).toEqual(['contracts']);
+    expect(
+      parseSpawnServerList({
+        REVEALUI_MCP_HYPERVISOR_SERVERS: 'knowledge-graph,contracts',
+      }),
+    ).toEqual(['knowledge-graph', 'contracts']);
+    expect(DEFAULT_SPAWN_SERVERS).not.toContain('knowledge-graph');
   });
 
   it('SPAWN_ALLOWLIST matches compiled revealui-mcp CLI server names', async () => {
@@ -146,6 +152,7 @@ describe('mcp-hypervisor-wire', () => {
       [
         'contracts',
         'docs',
+        'knowledge-graph',
         'neon',
         'next-devtools',
         'playwright',
@@ -158,6 +165,7 @@ describe('mcp-hypervisor-wire', () => {
       ].sort(),
     );
     expect(SPAWN_ALLOWLIST.has('code-validator')).toBe(false);
+    expect(SPAWN_ALLOWLIST.has('knowledge-graph')).toBe(true);
   });
 
   it('spawn path registers and starts allowlisted servers', async () => {
