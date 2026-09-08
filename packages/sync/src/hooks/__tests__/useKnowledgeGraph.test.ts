@@ -15,6 +15,17 @@ import { useShape } from '@electric-sql/react';
 
 const mockUseShape = useShape as ReturnType<typeof vi.fn>;
 
+function kgShapeUrl(pathname: string): string {
+  return `${window.location.origin}${pathname}`;
+}
+
+function expectAbsoluteShapeUrl(url: string, pathname: string): void {
+  expect(() => new URL(url)).not.toThrow();
+  const parsed = new URL(url);
+  expect(parsed.origin).toBe(window.location.origin);
+  expect(parsed.pathname).toBe(pathname);
+}
+
 describe('useKgNodes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -30,13 +41,15 @@ describe('useKgNodes', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('calls useShape with no repo param when repo is omitted', () => {
+  it('calls useShape with an absolute same-origin URL when proxyBaseUrl is blank', () => {
     mockUseShape.mockReturnValue({ data: [], isLoading: false, error: null });
 
     renderHook(() => useKgNodes());
 
+    const options = mockUseShape.mock.calls[0]?.[0] as { url: string };
+    expectAbsoluteShapeUrl(options.url, '/api/shapes/kg-nodes');
     expect(mockUseShape).toHaveBeenCalledWith({
-      url: '/api/shapes/kg-nodes',
+      url: kgShapeUrl('/api/shapes/kg-nodes'),
       params: {},
       fetchClient: expect.any(Function),
     });
@@ -48,7 +61,7 @@ describe('useKgNodes', () => {
     renderHook(() => useKgNodes('revealui'));
 
     expect(mockUseShape).toHaveBeenCalledWith({
-      url: '/api/shapes/kg-nodes',
+      url: kgShapeUrl('/api/shapes/kg-nodes'),
       params: { repo: 'revealui' },
       fetchClient: expect.any(Function),
     });
@@ -90,7 +103,7 @@ describe('useKgEdges', () => {
 
     expect(result.current.edges).toEqual(mockData);
     expect(mockUseShape).toHaveBeenCalledWith({
-      url: '/api/shapes/kg-edges',
+      url: kgShapeUrl('/api/shapes/kg-edges'),
       params: { repo: 'revdev' },
       fetchClient: expect.any(Function),
     });
@@ -107,8 +120,10 @@ describe('useKgEdgeEpisodes', () => {
 
     renderHook(() => useKgEdgeEpisodes());
 
+    const options = mockUseShape.mock.calls[0]?.[0] as { url: string };
+    expectAbsoluteShapeUrl(options.url, '/api/shapes/kg-edge-episodes');
     expect(mockUseShape).toHaveBeenCalledWith({
-      url: '/api/shapes/kg-edge-episodes',
+      url: kgShapeUrl('/api/shapes/kg-edge-episodes'),
       fetchClient: expect.any(Function),
     });
   });

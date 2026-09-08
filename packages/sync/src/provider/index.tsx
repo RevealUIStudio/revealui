@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, type ReactNode, use, useMemo } from 'react';
+import { createContext, type ReactNode, use, useMemo, useSyncExternalStore } from 'react';
 
 interface ElectricContextValue {
   /**
@@ -28,11 +28,29 @@ const ElectricContext = createContext<ElectricContextValue>({
   debug: false,
 });
 
+const noop = (): void => {
+  // Page origin never changes after subscribe in a normal document.
+};
+const emptySubscribe = (): (() => void) => noop;
+const getClientOrigin = (): string => window.location.origin;
+const getServerOrigin = (): string => '';
+
+function resolveProxyBaseUrl(explicit: string | undefined, origin: string): string {
+  const trimmed = explicit?.trim() ?? '';
+  return trimmed.length > 0 ? trimmed : origin;
+}
+
 /**
  * Provides ElectricSQL configuration to child hooks (`useConversations`, `useCollabDocument`).
  *
  * Provides proxyBaseUrl (and optional serviceUrl/debug) to child hooks via context.
  * All hooks use the admin proxy pattern  -  no direct Electric connection is established here.
+ *
+ * `proxyBaseUrl` must be absolute at fetch time. A `useMemo` over `typeof window`
+ * freezes the SSR empty string after hydration (ClientOnly then mounts shape
+ * hooks against `/api/shapes/...`, and Electric throws Invalid URL). Read the
+ * page origin through `useSyncExternalStore` so the client snapshot replaces
+ * the empty server snapshot. Treat blank explicit props as unset.
  */
 export function ElectricProvider(props: {
   children: ReactNode;
@@ -40,14 +58,14 @@ export function ElectricProvider(props: {
   proxyBaseUrl?: string;
   debug?: boolean;
 }): ReactNode {
+  const pageOrigin = useSyncExternalStore(emptySubscribe, getClientOrigin, getServerOrigin);
   const value = useMemo(
     () => ({
       serviceUrl: props.serviceUrl ?? null,
-      proxyBaseUrl:
-        props.proxyBaseUrl ?? (typeof window !== 'undefined' ? window.location.origin : ''),
+      proxyBaseUrl: resolveProxyBaseUrl(props.proxyBaseUrl, pageOrigin),
       debug: props.debug ?? false,
     }),
-    [props.serviceUrl, props.proxyBaseUrl, props.debug],
+    [props.serviceUrl, props.proxyBaseUrl, props.debug, pageOrigin],
   );
 
   return <ElectricContext value={value}>{props.children}</ElectricContext>;

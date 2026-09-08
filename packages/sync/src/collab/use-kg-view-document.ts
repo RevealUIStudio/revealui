@@ -3,7 +3,7 @@
 import { useShape } from '@electric-sql/react';
 import { useCallback, useMemo, useRef } from 'react';
 import { csrfHeaders } from '../csrf.js';
-import { fetchWithTimeout } from '../fetch-with-timeout.js';
+import { fetchPageOriginShape, resolvePageOriginShapeUrl } from '../page-origin-shape-client.js';
 import { useElectricConfig } from '../provider/index.js';
 import {
   buildAnnotationPatch,
@@ -65,9 +65,9 @@ export function useKgViewDocument(slug: string): UseKgViewDocumentResult {
   // Hook must always be called (Rules of Hooks). Pass an impossible id when
   // the slug is invalid so the shape returns no rows but the hook still runs.
   const { data, isLoading, error } = useShape({
-    url: `${proxyBaseUrl}/api/shapes/kg-views`,
+    url: resolvePageOriginShapeUrl(proxyBaseUrl, '/api/shapes/kg-views'),
     params: { document_id: documentId ?? '__invalid__' },
-    fetchClient: fetchWithTimeout,
+    fetchClient: fetchPageOriginShape,
   });
 
   const patchUrlRef = useRef<string>('');

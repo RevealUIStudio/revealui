@@ -1,7 +1,7 @@
 'use client';
 
 import { useShape } from '@electric-sql/react';
-import { fetchWithTimeout } from '../fetch-with-timeout.js';
+import { fetchPageOriginShape, resolvePageOriginShapeUrl } from '../page-origin-shape-client.js';
 import { useElectricConfig } from '../provider/index.js';
 import { toRecords } from '../shape-utils.js';
 
@@ -82,9 +82,9 @@ export interface UseKnowledgeGraphResult {
 export function useKgNodes(repo?: string): UseKgNodesResult {
   const { proxyBaseUrl } = useElectricConfig();
   const { data, isLoading, error } = useShape({
-    url: `${proxyBaseUrl}/api/shapes/kg-nodes`,
+    url: resolvePageOriginShapeUrl(proxyBaseUrl, '/api/shapes/kg-nodes'),
     params: repo ? { repo } : {},
-    fetchClient: fetchWithTimeout,
+    fetchClient: fetchPageOriginShape,
   });
 
   return {
@@ -98,9 +98,9 @@ export function useKgNodes(repo?: string): UseKgNodesResult {
 export function useKgEdges(repo?: string): UseKgEdgesResult {
   const { proxyBaseUrl } = useElectricConfig();
   const { data, isLoading, error } = useShape({
-    url: `${proxyBaseUrl}/api/shapes/kg-edges`,
+    url: resolvePageOriginShapeUrl(proxyBaseUrl, '/api/shapes/kg-edges'),
     params: repo ? { repo } : {},
-    fetchClient: fetchWithTimeout,
+    fetchClient: fetchPageOriginShape,
   });
 
   return {
@@ -118,8 +118,8 @@ export function useKgEdges(repo?: string): UseKgEdgesResult {
 export function useKgEdgeEpisodes(): UseKgEdgeEpisodesResult {
   const { proxyBaseUrl } = useElectricConfig();
   const { data, isLoading, error } = useShape({
-    url: `${proxyBaseUrl}/api/shapes/kg-edge-episodes`,
-    fetchClient: fetchWithTimeout,
+    url: resolvePageOriginShapeUrl(proxyBaseUrl, '/api/shapes/kg-edge-episodes'),
+    fetchClient: fetchPageOriginShape,
   });
 
   return {
