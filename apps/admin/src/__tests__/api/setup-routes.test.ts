@@ -309,6 +309,28 @@ describe('GET /api/setup', () => {
     expect(body.needed).toBe(false);
   });
 
+  it('counts users with overrideAccess so an anonymous setup check sees existing admins', async () => {
+    mockFind.mockImplementation(async (opts: { overrideAccess?: boolean }) => {
+      if (opts.overrideAccess === true) {
+        return { totalDocs: 2, docs: [{ id: '1' }, { id: '2' }] };
+      }
+      return { totalDocs: 0, docs: [] };
+    });
+
+    const res = await GET();
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ needed: false });
+    expect(mockFind).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collection: 'users',
+        limit: 1,
+        depth: 0,
+        overrideAccess: true,
+      }),
+    );
+  });
+
   it('returns 503 on database error', async () => {
     mockFind.mockRejectedValue(new Error('Connection refused'));
 
