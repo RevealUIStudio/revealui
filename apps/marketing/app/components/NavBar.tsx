@@ -16,10 +16,10 @@ import { NAV_AUTH, NAV_LINKS } from '../content/nav';
 
 const MOBILE_MENU_ID = 'marketing-mobile-menu';
 
-/** Untiled circuit master in public chrome. Never render this file below 96px. */
+/** Untiled circuit master in public chrome. Locked 48px box — the ≥48 size floor, not a hero size. */
 const CIRCUIT_R_NAV_LIGHT_SRC = '/revealui-logo.svg';
 const CIRCUIT_R_NAV_DARK_SRC = '/revealui-logo-dark.svg';
-const CIRCUIT_R_NAV_PX = 96;
+const CIRCUIT_R_NAV_PX = 48;
 
 interface CircuitRChromeStyle extends CSSProperties {
   '--circuit-r-chrome-px': string;
@@ -157,7 +157,7 @@ export function NavBar() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
       <nav
-        className="mx-auto flex h-28 max-w-7xl items-center justify-between gap-4 px-6 lg:px-8"
+        className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-6 lg:px-8"
         aria-label="Primary"
       >
         <NavLink

@@ -33,10 +33,10 @@ interface DocLayoutProps {
 
 const sections: NavSection[] = buildDocNavSections(showcaseComponentItems);
 
-/** Untiled Circuit-R master in docs chrome. Never render this file below 96px. */
+/** Untiled Circuit-R master in docs chrome. Locked 48px box — the ≥48 size floor, not a hero size. */
 const CIRCUIT_R_NAV_LIGHT_SRC = '/revealui-logo.svg';
 const CIRCUIT_R_NAV_DARK_SRC = '/revealui-logo-dark.svg';
-const CIRCUIT_R_NAV_PX = 96;
+const CIRCUIT_R_NAV_PX = 48;
 
 interface CircuitRChromeStyle extends CSSProperties {
   '--circuit-r-chrome-px': string;
