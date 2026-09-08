@@ -63,4 +63,14 @@ describe('ElectricProvider proxyBaseUrl default', () => {
 
     expect(result.current.proxyBaseUrl).toBe('https://admin.example.com');
   });
+
+  it('does not freeze a blank proxyBaseUrl after the page origin is available', () => {
+    const blank = ({ children }: { children: ReactNode }) => (
+      <ElectricProvider proxyBaseUrl="">{children}</ElectricProvider>
+    );
+    const { result } = renderHook(() => useElectricConfig(), { wrapper: blank });
+
+    expect(result.current.proxyBaseUrl).toBe(window.location.origin);
+    expect(result.current.proxyBaseUrl.length).toBeGreaterThan(0);
+  });
 });

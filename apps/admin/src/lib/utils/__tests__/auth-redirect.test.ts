@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
   buildAuthIntentQuery,
@@ -6,6 +9,18 @@ import {
   readAuthIntent,
   resolveAuthDest,
 } from '../auth-redirect';
+
+describe('auth-redirect module boundary', () => {
+  it('is a shared module so the verify-email Route Handler can import it', () => {
+    const src = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), '../auth-redirect.ts'),
+      'utf8',
+    );
+    const afterHeader = src.replace(/^\uFEFF?\/\*[\s\S]*?\*\//, '').trimStart();
+    expect(afterHeader.startsWith("'use client'")).toBe(false);
+    expect(afterHeader.startsWith('"use client"')).toBe(false);
+  });
+});
 
 const reader = (params: Record<string, string | null>) => ({
   get: (k: string) => params[k] ?? null,

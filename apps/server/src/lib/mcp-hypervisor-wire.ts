@@ -62,10 +62,14 @@ export const DEFAULT_SPAWN_SERVERS = ['contracts', 'docs'] as const;
  * Must stay lockstep with `packages/mcp/src/cli.ts` SERVERS keys: hypervisor
  * spawn is `node dist/cli.js <name>`. `code-validator` is repo-only tsx
  * (excluded from the compiled CLI) and is intentionally not listed.
+ * `knowledge-graph` is on the compiled CLI (studio-local stdio launcher) but
+ * is not a default spawn — it needs Neon and is opt-in via
+ * REVEALUI_MCP_HYPERVISOR_SERVERS.
  */
 export const SPAWN_ALLOWLIST = new Set([
   'contracts',
   'docs',
+  'knowledge-graph',
   'revealui-content',
   'revealui-email',
   'revealui-memory',

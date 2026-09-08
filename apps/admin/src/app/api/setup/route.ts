@@ -251,6 +251,10 @@ export async function GET(): Promise<NextResponse> {
       collection: 'users',
       limit: 1,
       depth: 0,
+      // Trusted boot probe: Users.read denies anonymous callers, which would
+      // make every unauthenticated GET look like a fresh kit and 307 /login
+      // to /setup forever. Same override as onInit first-admin seed.
+      overrideAccess: true,
     });
 
     return NextResponse.json({ needed: existing.totalDocs === 0 });

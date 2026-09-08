@@ -20,6 +20,7 @@ import { getUserByVerificationToken, updateUser } from '@revealui/db/queries/use
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { isAdminRole } from '@/lib/access/roles/isAdminRole';
+// Shared module — not a Client Reference (see auth-redirect.ts header).
 import { parseLicense, resolveAuthDest } from '@/lib/utils/auth-redirect';
 import { sessionCookieDomain } from '@/lib/utils/session-cookies';
 
