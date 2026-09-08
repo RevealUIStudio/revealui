@@ -57,6 +57,7 @@ export { defaultSocketPath, isDaemonSocketPresent, rpcCall } from './rpc.js';
 export { hashParams, signRpc } from './sign.js';
 export {
   CLAUDE_SETTINGS_REL,
+  GROK_ADAPTER_MCP_REL,
   GROK_MCP_TOML_REL,
   type MaterializeStudioLocalKgMcpOptions,
   type MaterializeStudioLocalKgMcpResult,

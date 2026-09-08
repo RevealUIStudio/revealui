@@ -61,12 +61,15 @@ frost-body invert (`#164687` / `#1e57a8` / `#e8f1ff` are banned).
   Surface 0 `#060d1a`. Derived from the light master. Not a remade R and
   not a pale frost invert.
 
-Public chrome (marketing nav, docs headers, admin auth when no tenant logo is
-set) renders the circuit masters at a **locked 96×96 CSS box** — light
-`revealui-logo.svg`, dark `revealui-logo-dark.svg` — with overflow clipped.
-Never render either file below 96px. Never redraw the letter. Never steepen
-the leg. Never put a white plate behind the mark. Never swap in apple-touch
-or favicon rasters for the header.
+Public chrome (marketing nav, docs headers) renders the circuit masters at a
+**locked 48×48 CSS box** — light `revealui-logo.svg`, dark
+`revealui-logo-dark.svg` — with overflow clipped so the `scale(1.06)` group
+cannot paint a scrollbar. 48px is the size-floor minimum, not a hero size.
+Do not restore 96px in the header. Admin auth (when no tenant logo is set)
+is a brand panel at 112/160, not nav chrome.
+
+Never redraw the letter. Never steepen the leg. Never put a white plate
+behind the mark. Never swap in apple-touch or favicon rasters for the header.
 
 ## Variants (same letterform only)
 

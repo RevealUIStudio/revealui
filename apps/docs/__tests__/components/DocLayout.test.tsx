@@ -48,7 +48,7 @@ describe('DocLayout', () => {
     expect(screen.queryByText('RevealUI Studio')).toBeNull();
   });
 
-  it('renders the untiled Circuit-R master at 96px instead of IconCode', () => {
+  it('renders the untiled Circuit-R master at 48px instead of IconCode', () => {
     render(
       <DocLayout>
         <div>Content</div>
@@ -62,15 +62,16 @@ describe('DocLayout', () => {
       const dark = link.querySelector('img[src="/revealui-logo-dark.svg"]');
       expect(light).toBeTruthy();
       expect(dark).toBeTruthy();
-      expect(light).toHaveAttribute('width', '96');
-      expect(light).toHaveAttribute('height', '96');
-      expect(dark).toHaveAttribute('width', '96');
-      expect(dark).toHaveAttribute('height', '96');
+      expect(light).toHaveAttribute('width', '48');
+      expect(light).toHaveAttribute('height', '48');
+      expect(dark).toHaveAttribute('width', '48');
+      expect(dark).toHaveAttribute('height', '48');
       expect(light?.getAttribute('class') ?? '').not.toContain('w-auto');
       expect(dark?.getAttribute('class') ?? '').not.toContain('w-auto');
       const chrome = link.querySelector('[data-circuit-r-chrome]');
       expect(chrome).toBeTruthy();
       expect(chrome?.getAttribute('class') ?? '').toContain('overflow-hidden');
+      expect(chrome).toHaveStyle({ width: '48px', height: '48px' });
       expect(link.querySelector('svg[viewBox="0 0 24 24"]')).toBeNull();
       expect(link.querySelector('img[src="/apple-touch-icon.png"]')).toBeNull();
     }

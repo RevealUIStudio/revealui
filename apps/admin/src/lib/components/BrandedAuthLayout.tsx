@@ -16,7 +16,7 @@ import type React from 'react';
  *   text on the logo stays for screen-reader accessibility regardless
  * - `REVEALUI_TENANT_TAGLINE` — optional subline; suppressed if unset
  * - `REVEALUI_BRAND_LOGO_URL` — optional tenant logo src; when unset, the canonical
- *   Circuit-R master (`/revealui-logo.svg`, ≥96px) is rendered
+ *   Circuit-R master (`/revealui-logo.svg`, brand-panel 112/160) is rendered
  * - `REVEALUI_SHOW_POWERED_BY` — `'false'` hides the "Built with RevealUI" badge
  *   (kit-default false; revealui.com SaaS-default true)
  *
@@ -48,7 +48,7 @@ export function BrandedAuthLayout({ children }: { children: React.ReactNode }) {
           className="max-h-24 w-auto max-w-xs object-contain lg:max-h-40 lg:max-w-sm"
         />
       ) : (
-        // biome-ignore lint/performance/noImgElement: canonical circuit master from gen-brand-assets; ≥96px
+        // biome-ignore lint/performance/noImgElement: canonical circuit master from gen-brand-assets; brand panel, not nav chrome
         <img
           src="/revealui-logo.svg"
           alt=""

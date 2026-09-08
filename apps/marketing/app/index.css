@@ -158,10 +158,10 @@ html[data-rvui-edit-mode] [data-rvui-field]:hover {
   outline-color: var(--color-primary);
 }
 
-/* Circuit-R public chrome: one locked box (default 96px), two plates, no scrollbar. */
+/* Circuit-R public chrome: one locked box (default 48px), two plates, no scrollbar. */
 [data-circuit-r-chrome] {
-  width: var(--circuit-r-chrome-px, 96px);
-  height: var(--circuit-r-chrome-px, 96px);
+  width: var(--circuit-r-chrome-px, 48px);
+  height: var(--circuit-r-chrome-px, 48px);
   overflow: hidden;
   flex-shrink: 0;
 }
