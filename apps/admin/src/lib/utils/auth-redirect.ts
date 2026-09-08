@@ -1,5 +1,10 @@
-'use client';
-
+/**
+ * Shared post-auth redirect helpers.
+ *
+ * Imported by client forms AND GET /api/auth/verify-email. Do not add
+ * `'use client'` — a Client Reference imported from that Route Handler
+ * 500s every GET in production, including the missing-token path.
+ */
 import {
   type PerpetualLicenseSku,
   parseBuyablePerpetualLicenseSku,
