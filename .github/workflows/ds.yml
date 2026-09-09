@@ -305,7 +305,7 @@ jobs:
       # Chromium only — goldens are pinned to one renderer (see
       # e2e/showcase-visual.e2e.ts header comment for the rationale).
       - name: Install Playwright (chromium only)
-        run: npx playwright install --with-deps chromium
+        run: bash scripts/ci/playwright-install-chromium.sh
       # docs depends on @revealui/tokens + @revealui/presentation being built
       # first (tokens.css / component dist output) — the `...` filter suffix
       # builds docs and its workspace dependencies in the correct order.
@@ -384,7 +384,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Install Playwright (chromium only)
-        run: npx playwright install --with-deps chromium
+        run: bash scripts/ci/playwright-install-chromium.sh
       - name: Build docs app
         run: pnpm --filter docs... build
       - name: Start docs preview server
@@ -454,7 +454,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Install Playwright (chromium only)
-        run: npx playwright install --with-deps chromium
+        run: bash scripts/ci/playwright-install-chromium.sh
       - name: Build marketing app
         run: pnpm --filter marketing... build
       - name: Start marketing preview
