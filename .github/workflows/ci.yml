@@ -855,7 +855,7 @@ jobs:
         run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Install Playwright (chromium only)
-        run: npx playwright install --with-deps chromium
+        run: bash scripts/ci/playwright-install-chromium.sh
 
       - name: Build for E2E
         run: pnpm build
@@ -1002,7 +1002,7 @@ jobs:
         run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Install Playwright (chromium only)
-        run: npx playwright install --with-deps chromium
+        run: bash scripts/ci/playwright-install-chromium.sh
 
       - name: Build apps
         run: pnpm build
@@ -1120,7 +1120,7 @@ jobs:
         run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Install Playwright (chromium only)
-        run: npx playwright install --with-deps chromium
+        run: bash scripts/ci/playwright-install-chromium.sh
 
       - name: Build apps
         run: pnpm build
