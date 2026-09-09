@@ -125,4 +125,22 @@ describe('KnowledgeGraphPage canvas', () => {
     expect(alerts[0]).toHaveTextContent('shape failed');
     expect(screen.queryByRole('img', { name: /knowledge graph/i })).toBeNull();
   });
+
+  it('shows the Electric error alert while shapes are still loading', async () => {
+    mockUseKnowledgeGraph.mockReturnValue({
+      nodes: [],
+      edges: [],
+      edgeEpisodes: [],
+      isLoading: true,
+      error: new Error('HTTP Error 403'),
+    });
+
+    render(<KnowledgeGraphPage />);
+
+    const alerts = await screen.findAllByRole('alert');
+    expect(alerts.length).toBeGreaterThan(0);
+    expect(alerts[0]).toHaveTextContent('HTTP Error 403');
+    expect(screen.queryByRole('status', { name: /loading nodes/i })).toBeNull();
+    expect(screen.queryByText('Loading the graph.')).toBeNull();
+  });
 });

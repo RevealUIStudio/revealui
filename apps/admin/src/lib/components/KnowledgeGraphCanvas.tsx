@@ -147,17 +147,6 @@ export function KnowledgeGraphCanvas({
     }
   }
 
-  if (isLoading && nodes.length === 0) {
-    return (
-      <section className="border-b border-border px-6 py-4" aria-label="Knowledge graph canvas">
-        <div className="flex flex-col gap-2" role="status">
-          <span className="text-xs text-muted-foreground">Loading the graph.</span>
-          <Skeleton className="h-64 w-full rounded-lg" />
-        </div>
-      </section>
-    );
-  }
-
   if (error) {
     return (
       <section className="border-b border-border px-6 py-4" aria-label="Knowledge graph canvas">
@@ -166,6 +155,17 @@ export function KnowledgeGraphCanvas({
           className="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error"
         >
           {error.message}
+        </div>
+      </section>
+    );
+  }
+
+  if (isLoading && nodes.length === 0) {
+    return (
+      <section className="border-b border-border px-6 py-4" aria-label="Knowledge graph canvas">
+        <div className="flex flex-col gap-2" role="status">
+          <span className="text-xs text-muted-foreground">Loading the graph.</span>
+          <Skeleton className="h-64 w-full rounded-lg" />
         </div>
       </section>
     );

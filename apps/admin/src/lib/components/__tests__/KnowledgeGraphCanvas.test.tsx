@@ -143,6 +143,26 @@ describe('KnowledgeGraphCanvas', () => {
     expect(screen.queryByRole('img')).toBeNull();
   });
 
+  it('shows the Electric error instead of loading when both are set', () => {
+    render(
+      <KnowledgeGraphCanvas
+        nodes={[]}
+        edges={[]}
+        selectedNodeId={null}
+        onSelectNode={vi.fn()}
+        layout={new Map()}
+        pins={new Set()}
+        onSetLayout={vi.fn()}
+        at={null}
+        isLoading={true}
+        error={new Error('HTTP Error 403')}
+      />,
+    );
+    expect(screen.getByRole('alert')).toHaveTextContent('HTTP Error 403');
+    expect(screen.queryByRole('status')).toBeNull();
+    expect(screen.queryByText('Loading the graph.')).toBeNull();
+  });
+
   it('shows a loading status with visible text', () => {
     render(
       <KnowledgeGraphCanvas
