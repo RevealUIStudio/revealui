@@ -147,6 +147,7 @@ export function KnowledgeGraphCanvas({
     }
   }
 
+  // Prefer error over loading when both are set is #2842 — do not change order here.
   if (isLoading && nodes.length === 0) {
     return (
       <section className="border-b border-border px-6 py-4" aria-label="Knowledge graph canvas">

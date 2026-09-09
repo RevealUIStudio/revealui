@@ -110,6 +110,10 @@ describe('GET /api/shapes/kg-edges', () => {
     const originUrl = vi.mocked(prepareElectricUrl).mock.results[0]?.value as URL;
     expect(originUrl.searchParams.get('table')).toBe('kg_edges');
     expect(originUrl.searchParams.has('where')).toBe(false);
+    const columns = originUrl.searchParams.get('columns')?.split(',') ?? [];
+    expect(columns).toContain('id');
+    expect(columns).not.toContain('search');
+    expect(columns).not.toContain('embedding');
   });
 
   it('proxies filtered by repo when a valid repo is supplied', async () => {
