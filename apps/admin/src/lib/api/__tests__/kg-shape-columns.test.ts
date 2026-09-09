@@ -50,9 +50,12 @@ describe('KG Electric shape columns', () => {
         'target_id',
         'relation',
         'fact',
+        'repo',
+        'attributes',
         'valid_at',
         'invalid_at',
         'expired_at',
+        'created_at',
       ]),
     );
   });

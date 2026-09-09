@@ -18,8 +18,14 @@
  * Column names match the real tables in `packages/db/src/schema/knowledge-graph.ts`
  * plus the custom SQL migrations. Primary keys must be included.
  *
- * Canvas 400s currently lose to the loading state when both `isLoading` and
- * `error` are set — prefer error over loading is #2842.
+ * Canvas / list / detail actually read:
+ *   nodes — id, kind, name, natural_key, repo, summary, attributes,
+ *           first_seen_at, last_confirmed_at
+ *   edges — id, source_id, target_id, relation, fact, valid_at, invalid_at
+ * Extra sync-safe columns (search_text, clocks, deleted_at, created_at,
+ * expired_at, repo/attributes on edges) stay in the list so a later UI
+ * read cannot 400 for a missing field. Missing a needed column is a
+ * production bug; extra non-generated columns are not.
  */
 
 /** Generated tsvector + class-3 vector — never include in Electric shapes. */

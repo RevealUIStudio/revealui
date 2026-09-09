@@ -147,18 +147,8 @@ export function KnowledgeGraphCanvas({
     }
   }
 
-  // Prefer error over loading when both are set is #2842 — do not change order here.
-  if (isLoading && nodes.length === 0) {
-    return (
-      <section className="border-b border-border px-6 py-4" aria-label="Knowledge graph canvas">
-        <div className="flex flex-col gap-2" role="status">
-          <span className="text-xs text-muted-foreground">Loading the graph.</span>
-          <Skeleton className="h-64 w-full rounded-lg" />
-        </div>
-      </section>
-    );
-  }
-
+  // Shape 400/403/network: Electric often keeps isLoading true with zero nodes.
+  // Prefer the real error so the canvas does not hang on "Loading the graph."
   if (error) {
     return (
       <section className="border-b border-border px-6 py-4" aria-label="Knowledge graph canvas">
@@ -167,6 +157,17 @@ export function KnowledgeGraphCanvas({
           className="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error"
         >
           {error.message}
+        </div>
+      </section>
+    );
+  }
+
+  if (isLoading && nodes.length === 0) {
+    return (
+      <section className="border-b border-border px-6 py-4" aria-label="Knowledge graph canvas">
+        <div className="flex flex-col gap-2" role="status">
+          <span className="text-xs text-muted-foreground">Loading the graph.</span>
+          <Skeleton className="h-64 w-full rounded-lg" />
         </div>
       </section>
     );

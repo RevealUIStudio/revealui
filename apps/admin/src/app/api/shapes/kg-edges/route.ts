@@ -49,7 +49,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const originUrl = prepareElectricUrl(request.url);
     originUrl.searchParams.set('table', 'kg_edges');
-    // Omit generated `search` (and `embedding`) — Electric 400 otherwise. See #2842 for UX.
+    // Omit generated `search` (and `embedding`) — Electric 400 otherwise.
     setElectricShapeColumns(originUrl, KG_EDGE_SHAPE_COLUMNS);
     if (repo !== null) {
       originUrl.searchParams.set('where', `repo = '${repo}'`);
