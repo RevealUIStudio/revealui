@@ -1,11 +1,12 @@
 'use client';
 
-import { Button, Select, Textarea } from '@revealui/presentation';
+import { Button, Select, Switch, Textarea } from '@revealui/presentation';
 import { Field, Label } from '@revealui/presentation/client';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useSpeakBack } from '@/lib/speak-back';
 import { apiFetch } from '@/lib/utils/csrf';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -358,6 +359,22 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+function SpeakButton({ onSpeak }: { onSpeak: () => void }) {
+  return (
+    <Button
+      type="button"
+      appearance="ghost"
+      variant="neutral"
+      size="sm"
+      onClick={onSpeak}
+      className="mt-1 h-auto self-start rounded px-1.5 py-0.5 text-xs text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground group-hover:opacity-100"
+      aria-label="Speak reply"
+    >
+      Speak
+    </Button>
+  );
+}
+
 function MessageSkeleton() {
   return (
     <div className="flex animate-pulse gap-3">
@@ -370,7 +387,13 @@ function MessageSkeleton() {
   );
 }
 
-function MessageBubble({ message }: { message: ChatMessage }) {
+function MessageBubble({
+  message,
+  onSpeak,
+}: {
+  message: ChatMessage;
+  onSpeak?: (text: string) => void;
+}) {
   const isUser = message.role === 'user';
 
   return (
@@ -401,7 +424,12 @@ function MessageBubble({ message }: { message: ChatMessage }) {
             </div>
           )}
         </div>
-        {!isUser && <CopyButton text={message.content} />}
+        {!isUser && (
+          <div className="flex items-center gap-1">
+            <CopyButton text={message.content} />
+            {onSpeak ? <SpeakButton onSpeak={() => onSpeak(message.content)} /> : null}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -477,6 +505,11 @@ interface AgentChatProps {
 }
 
 export default function AgentChat({ conversationId, onConversationCreated }: AgentChatProps = {}) {
+  const {
+    enabled: speakRepliesEnabled,
+    setEnabled: setSpeakRepliesEnabled,
+    speakReply,
+  } = useSpeakBack();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [pendingConfirmation, setPendingConfirmation] = useState<PendingConfirmation | null>(null);
@@ -618,20 +651,22 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
   // When stream finishes, commit the assistant message + persist
   useEffect(() => {
     if (!stream.isStreaming && stream.text) {
+      const reply = stream.text;
       setMessages((prev) => [
         ...prev,
         {
           id: nextId(),
           role: 'assistant',
-          content: stream.text,
+          content: reply,
           toolCalls: activeToolCalls.current.length > 0 ? [...activeToolCalls.current] : undefined,
         },
       ]);
-      persistMessage('assistant', stream.text);
+      persistMessage('assistant', reply);
+      speakReply(reply);
       activeToolCalls.current = [];
       stream.reset();
     }
-  }, [stream.isStreaming, stream.text, stream.reset, persistMessage]);
+  }, [stream.isStreaming, stream.text, stream.reset, persistMessage, speakReply]);
 
   /** Send message via /api/chat (admin tools, confirmation support) */
   const sendChatMessage = useCallback(
@@ -669,10 +704,9 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
         }
 
         // Normal response
-        setMessages((prev) => [
-          ...prev,
-          { id: nextId(), role: 'assistant', content: data.content ?? '' },
-        ]);
+        const reply = typeof data.content === 'string' ? data.content : '';
+        setMessages((prev) => [...prev, { id: nextId(), role: 'assistant', content: reply }]);
+        speakReply(reply);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         setMessages((prev) => [
@@ -685,7 +719,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
         ]);
       }
     },
-    [stream],
+    [stream, speakReply],
   );
 
   const handleSubmit = useCallback(
@@ -820,7 +854,11 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
         )}
 
         {messages.map((msg) => (
-          <MessageBubble key={msg.id} message={msg} />
+          <MessageBubble
+            key={msg.id}
+            message={msg}
+            onSpeak={(text) => speakReply(text, { force: true })}
+          />
         ))}
 
         {/* Streaming assistant message (in progress) */}
@@ -929,6 +967,15 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
               {MODEL_OPTIONS.find((m) => m.id === selectedModel)?.model || 'default'}
             </span>
           )}
+          <Field className="ml-auto flex items-center gap-2">
+            <Label className="text-xs text-muted-foreground">Speak replies</Label>
+            <Switch
+              checked={speakRepliesEnabled}
+              onChange={setSpeakRepliesEnabled}
+              intent="brand"
+              aria-label="Speak replies"
+            />
+          </Field>
         </div>
         <form onSubmit={handleSubmit} className="mx-auto flex max-w-3xl items-end gap-2 sm:gap-3">
           <Textarea
