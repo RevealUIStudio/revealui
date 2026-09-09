@@ -3,9 +3,11 @@ import {
   configureSpeakBack,
   createLocalTtsAdapter,
   createWebSpeechAdapter,
+  readSpeakBackEnabled,
   requestSpeakBack,
   resetSpeakBackConfig,
   resolveSpeechAdapter,
+  writeSpeakBackEnabled,
 } from '../index';
 
 function recordingAdapter(): {
@@ -152,5 +154,20 @@ describe('speech adapters', () => {
     // Policy still requires the caller to pass enabled — config does not auto-enable.
     const result = requestSpeakBack({ text: 'Hi', enabled: false }, adapter);
     expect(result.reason).toBe('disabled');
+  });
+});
+
+describe('speak-back preference', () => {
+  afterEach(() => {
+    localStorage.clear();
+    resetSpeakBackConfig();
+  });
+
+  it('is off until the owner stores on', () => {
+    expect(readSpeakBackEnabled()).toBe(false);
+    writeSpeakBackEnabled(true);
+    expect(readSpeakBackEnabled()).toBe(true);
+    writeSpeakBackEnabled(false);
+    expect(readSpeakBackEnabled()).toBe(false);
   });
 });

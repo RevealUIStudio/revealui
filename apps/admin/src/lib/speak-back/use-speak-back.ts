@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { resolveSpeechAdapter, type SpeechAdapter } from './adapter';
 import { requestSpeakBack, type SpeakBackResult } from './policy';
 import { readSpeakBackEnabled, writeSpeakBackEnabled } from './preference';
@@ -12,12 +12,11 @@ export interface UseSpeakBackResult {
 }
 
 export function useSpeakBack(adapterOverride?: SpeechAdapter): UseSpeakBackResult {
-  const [enabled, setEnabledState] = useState(false);
+  const [enabled, setEnabledState] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return readSpeakBackEnabled();
+  });
   const adapter = useMemo(() => resolveSpeechAdapter(adapterOverride), [adapterOverride]);
-
-  useEffect(() => {
-    setEnabledState(readSpeakBackEnabled());
-  }, []);
 
   const setEnabled = useCallback(
     (next: boolean) => {
