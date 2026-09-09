@@ -61,12 +61,10 @@ describe('KG Electric shape columns', () => {
     const url = new URL('http://localhost:5133/v1/shape');
     setElectricShapeColumns(url, KG_NODE_SHAPE_COLUMNS);
 
-    const columns = url.searchParams.get('columns');
-    expect(columns).toBeTruthy();
-    expect(columns?.split(',')).toContain('id');
-    expect(columns?.split(',')).not.toContain('search');
-    expect(columns?.split(',')).not.toContain('embedding');
+    const columns = url.searchParams.get('columns')?.split(',') ?? [];
+    expect(columns).toContain('id');
     expect(columns).not.toContain('search');
+    expect(columns).not.toContain('embedding');
   });
 
   it('writes edge columns the same way', () => {
