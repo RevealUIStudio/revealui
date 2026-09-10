@@ -686,7 +686,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'pricing-teaser.ts',
     exportPath: 'PRICING_TEASER_LINKS[0].description',
     proofGrade: 'behavior',
-    text: 'Max adds unattended inference and RevKit environment provisioning.',
+    text: 'Max adds unattended inference and higher limits.',
     evidence: [MEMORY, { kind: 'code', ref: 'packages/ai/src/inference', note: 'inference layer' }],
   },
   {

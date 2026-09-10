@@ -15,7 +15,6 @@ import {
   COMMERCIAL_POLICY,
   EMAIL_AGENT,
   FAIR_SOURCE_PAGE,
-  FEATURES_MATRIX,
   LICENSE_MIT,
   LICENSE_RUNTIME_GATE_TEST,
   LICENSE_SPLIT,
@@ -168,7 +167,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'SUBSCRIPTION_TIERS[2].description',
-    text: 'Unattended inference and RevKit environment provisioning.',
+    text: 'Unattended inference and higher limits.',
     evidence: [PROVIDERS, OPEN_WEIGHT],
   },
   {
@@ -176,12 +175,6 @@ export const claimsPart2: readonly ClaimEntry[] = [
     exportPath: 'SUBSCRIPTION_TIERS[2].features[3]',
     text: 'Unattended inference (open-model inference configuration)',
     evidence: [PROVIDERS, OPEN_WEIGHT],
-  },
-  {
-    file: 'pricing.ts',
-    exportPath: 'SUBSCRIPTION_TIERS[2].features[4]',
-    text: 'RevKit environment provisioning (devkitProfiles)',
-    evidence: [FEATURES_MATRIX],
   },
   {
     file: 'pricing.ts',
@@ -206,13 +199,13 @@ export const claimsPart2: readonly ClaimEntry[] = [
   },
   {
     file: 'pricing.ts',
-    exportPath: 'SUBSCRIPTION_TIERS[2].features[5]',
+    exportPath: 'SUBSCRIPTION_TIERS[2].features[4]',
     text: '50,000 agent tasks/month included',
     evidence: [TIER_LIMITS],
   },
   {
     file: 'pricing.ts',
-    exportPath: 'SUBSCRIPTION_TIERS[2].features[6]',
+    exportPath: 'SUBSCRIPTION_TIERS[2].features[5]',
     text: 'Email support (24h weekday / 4h if unusable)',
     evidence: [COMMERCIAL_POLICY, SLA_PAGE],
   },

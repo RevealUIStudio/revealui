@@ -70,7 +70,7 @@ export const PRICING_TEASER_LINKS: readonly TeaserLink[] = [
   {
     id: 'max',
     name: 'Max',
-    description: 'Max adds unattended inference and RevKit environment provisioning.',
+    description: 'Max adds unattended inference and higher limits.',
     href: '/pricing',
   },
   {

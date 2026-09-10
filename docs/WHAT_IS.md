@@ -34,7 +34,7 @@ Public and code names are the same four strings. Do not use retired aliases (`Fo
 |-------------|-------------|------------|
 | **Free (OSS)** | `free` | MIT core. Local AI inference. Community support. |
 | **Pro** | `pro` | Account-level commercial layer: AI agents, AI memory, signed audit receipts with downloadable Merkle roots, MCP, Stripe, RevVault desktop + rotation. |
-| **Max** | `max` | Pro plus unattended inference, RevKit environment provisioning, higher limits. |
+| **Max** | `max` | Pro plus unattended inference, higher limits. |
 | **Enterprise** | `enterprise` | License + studio support. Customer self-hosts. Domain lock. SSO is an operator preview ([#449](https://github.com/RevealUIStudio/revealui/issues/449)), not a customer-walked feature. |
 
 Internal-only aliases: `enterprise` in feature flags and license JWTs is the same public Enterprise tier. RevealFleet (`/docs/REVFLEET`) is the family name, not a fifth billing tier.
@@ -69,7 +69,6 @@ Source of truth for gates: `packages/core/src/features.ts` (`featureTierMap`). `
 | AI memory | | Yes | Yes | Yes |
 | Open-model inference config | | | Yes | Yes |
 | Audit receipts (signed log + Merkle roots) | | Yes | Yes | Yes |
-| RevKit env provisioning | | | Yes | Yes |
 | Multi-site content | | | | Yes |
 | White-label branding | | | | Planned ([#515](https://github.com/RevealUIStudio/revealui/issues/515)) |
 | Enterprise SSO | | | | Operator preview ([#449](https://github.com/RevealUIStudio/revealui/issues/449)) |

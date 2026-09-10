@@ -264,6 +264,7 @@ describe('PricingPage product catalog', () => {
     expect(screen.queryByRole('heading', { name: 'Enterprise Perpetual' })).toBeNull();
     expect(text.includes('Advanced inference configuration (coming soon)')).toBe(false);
     expect(text.includes('RevKit environment provisioning (coming soon)')).toBe(false);
+    expect(text.includes('RevKit')).toBe(false);
     expect(text.includes('x402 agent payments (USDC, coming soon)')).toBe(false);
     expect(text.includes('Email support (24h weekday / 4h if unusable)')).toBe(true);
     expect(text.includes('$1,499')).toBe(true);
