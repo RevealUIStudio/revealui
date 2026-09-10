@@ -112,13 +112,12 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
     id: 'max',
     name: 'Max',
-    description: 'Unattended inference and RevKit environment provisioning.',
+    description: 'Unattended inference and higher limits.',
     features: [
       'Everything in Pro',
       'Up to 15 sites',
       'Up to 100 users/editors',
       'Unattended inference (open-model inference configuration)',
-      'RevKit environment provisioning (devkitProfiles)',
       '50,000 agent tasks/month included',
       PAID_TIER_SUPPORT,
       'Full source code access',

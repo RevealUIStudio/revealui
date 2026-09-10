@@ -134,8 +134,8 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 | -------------- | --------- | ------------------------------------------------------------------ |
 | **Free**       | $0        | Full OSS core: people, content, offers, payments, admin              |
 | **Pro**        | $49/mo    | AI agents, AI memory, signed audit receipts, MCP framework, advanced sync, RevVault desktop + rotation engine |
-| **Max**        | $99/mo    | Unattended inference, RevKit environment provisioning, higher limits         |
-| **Enterprise** | inquire / Contact sales | License + studio support (you self-host). RevealUI Fleet kit via RevForge (operator preview, not a launched pull-and-run kit). SSO (operator preview, not customer-walked — [#449](https://github.com/RevealUIStudio/revealui/issues/449)). Domain-locked. Not a Studio-operated customer VM. |
+| **Max**        | $99/mo    | Unattended inference, higher limits         |
+| **Enterprise** | inquire / Contact sales | License + studio support (you self-host). SSO (operator preview, not customer-walked — [#449](https://github.com/RevealUIStudio/revealui/issues/449)). Domain-locked. Not a Studio-operated customer VM. |
 
 ## Apps
 

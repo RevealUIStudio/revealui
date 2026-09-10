@@ -30,6 +30,18 @@ describe('landing payment and Enterprise honesty', () => {
     expect(enterprise?.description.toLowerCase().includes('trial')).toBe(false);
   });
 
+  it('does not sell RevKit, RevForge, or Fleet as a Max or catalog path', () => {
+    const blob = [...PRICING_TEASER_TIERS, ...PRICING_TEASER_LINKS]
+      .map((item) => `${item.name} ${item.description}`)
+      .join(' ');
+    expect(blob.includes('RevKit')).toBe(false);
+    expect(blob.includes('RevForge')).toBe(false);
+    expect(blob.includes('RevDev')).toBe(false);
+    expect(blob.includes('Fleet kit')).toBe(false);
+    const max = PRICING_TEASER_LINKS.find((link) => link.id === 'max');
+    expect(max?.description).toBe('Max adds unattended inference and higher limits.');
+  });
+
   it('keeps Start free and Pro checkout doors on the homepage teaser', () => {
     expect(HOME_HERO.cta.primary.label).toBe('Start free');
     expect(PRICING_TEASER_TIERS.find((tier) => tier.id === 'free')?.cta).toBe('Start free');
