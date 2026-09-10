@@ -10,6 +10,7 @@ import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/utils/logger';
 import type { NextRequest, NextResponse } from 'next/server';
 import { prepareElectricUrl, proxyElectricRequest } from '@/lib/api/electric-proxy';
+import { KG_EDGE_SHAPE_COLUMNS, setElectricShapeColumns } from '@/lib/api/kg-shape-columns';
 import { isFleetOperator } from '@/lib/api/shape-authz';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
@@ -48,6 +49,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const originUrl = prepareElectricUrl(request.url);
     originUrl.searchParams.set('table', 'kg_edges');
+    // Omit generated `search` (and `embedding`) — Electric 400 otherwise.
+    setElectricShapeColumns(originUrl, KG_EDGE_SHAPE_COLUMNS);
     if (repo !== null) {
       originUrl.searchParams.set('where', `repo = '${repo}'`);
     }

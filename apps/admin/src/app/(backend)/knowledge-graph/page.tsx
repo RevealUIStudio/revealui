@@ -203,19 +203,19 @@ function KnowledgeGraphExplorer() {
 
       <div className="grid grid-cols-1 gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
         <div className="border-r border-border p-4">
-          {isLoading && nodes.length === 0 ? (
-            <div className="flex flex-col gap-2" role="status" aria-label="Loading nodes">
-              {Array.from({ length: 4 }).map((_, i) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
-                <Skeleton key={i} className="h-10 w-full rounded-lg" />
-              ))}
-            </div>
-          ) : error ? (
+          {error ? (
             <div
               role="alert"
               className="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error"
             >
               {error.message}
+            </div>
+          ) : isLoading && nodes.length === 0 ? (
+            <div className="flex flex-col gap-2" role="status" aria-label="Loading nodes">
+              {Array.from({ length: 4 }).map((_, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
+                <Skeleton key={i} className="h-10 w-full rounded-lg" />
+              ))}
             </div>
           ) : filteredNodes.length === 0 ? (
             <EmptyState

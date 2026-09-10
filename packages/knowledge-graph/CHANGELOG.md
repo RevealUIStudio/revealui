@@ -1,5 +1,13 @@
 # @revealui/knowledge-graph
 
+## 0.1.13
+
+### Patch Changes
+
+- d7b30af: Make `@revealui/ts-strada` optional so published `@revealui/knowledge-graph` installs without that private workspace package. Scan extractors still use it when present; search, ingest, and `assembleContext` do not.
+- Updated dependencies [53a6282]
+  - @revealui/db@0.10.1
+
 ## 0.1.12
 
 ### Patch Changes

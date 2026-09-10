@@ -1,5 +1,15 @@
 # @revealui/sync
 
+## 0.4.5
+
+### Patch Changes
+
+- 569fd76: Knowledge-graph shape hooks now build an absolute same-origin Electric URL and never send a blank `offset`, so hosted admin `/knowledge-graph` can issue `GET /api/shapes/kg-nodes` instead of throwing `Invalid URL` and staying on Loading.
+- Updated dependencies [53a6282]
+  - @revealui/db@0.10.1
+  - @revealui/contracts@0.8.3
+  - @revealui/core@0.14.3
+
 ## 0.4.4
 
 ### Patch Changes

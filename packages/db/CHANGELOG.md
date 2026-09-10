@@ -1,5 +1,11 @@
 # @revealui/db
 
+## 0.10.1
+
+### Patch Changes
+
+- 53a6282: Studio-local knowledge-graph attach is authored under `.revealui/adapters/grok/mcp.toml` and generated into project `.grok/config.toml` (load path). Never `$HOME/.grok`. The stdio launcher warms the Postgres pool before serving tools so the first kg\_\* call is not charged connect time against the 4s budget. `track_io_timing` is optional on connect so Neon permission denials do not abort the session.
+
 ## 0.10.0
 
 ### Minor Changes
