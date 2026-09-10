@@ -6,7 +6,7 @@
 
 import { SITE } from './site';
 
-export const CREATE_REVEALUI_NPM_VERSION = '0.5.23' as const;
+export const CREATE_REVEALUI_NPM_VERSION = '0.5.24' as const;
 
 export const VERCEL_CLONE_ORIGIN = 'https://vercel.com/new/clone' as const;
 
