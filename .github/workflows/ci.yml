@@ -822,7 +822,7 @@ jobs:
     needs: [quality, changes]
     if: needs.changes.outputs.full_suite == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' || github.base_ref == 'main' || github.base_ref == 'test')
     env:
-      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.playwright-browsers
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/playwright-browsers
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -867,7 +867,10 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: e2e-playwright-browsers
-          path: .playwright-browsers
+          # Must not use a leading-dot path: upload-artifact v4+ skips hidden
+          # paths unless include-hidden-files is set, and a miss fails this job.
+          path: playwright-browsers
+          include-hidden-files: true
           retention-days: 1
           if-no-files-found: error
 

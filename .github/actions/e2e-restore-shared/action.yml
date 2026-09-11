@@ -15,13 +15,13 @@ runs:
       uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
       with:
         name: e2e-playwright-browsers
-        path: .playwright-browsers
+        path: playwright-browsers
 
     - name: Point Playwright at the shared browser cache
       shell: bash
       run: |
         set -euo pipefail
-        echo "PLAYWRIGHT_BROWSERS_PATH=${GITHUB_WORKSPACE}/.playwright-browsers" >> "$GITHUB_ENV"
+        echo "PLAYWRIGHT_BROWSERS_PATH=${GITHUB_WORKSPACE}/playwright-browsers" >> "$GITHUB_ENV"
 
     - name: Confirm shared E2E artifacts
       shell: bash
@@ -31,5 +31,5 @@ runs:
         test -f apps/admin/.next/BUILD_ID
         test -d apps/server/dist
         test -d apps/marketing/dist
-        test -d .playwright-browsers
+        test -d playwright-browsers
         echo "Shared E2E build + Playwright Chromium restored"

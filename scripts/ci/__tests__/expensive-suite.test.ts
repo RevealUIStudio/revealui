@@ -132,6 +132,9 @@ describe('workflow wiring', () => {
     expect(prepareBlock).toContain(installScript);
     expect(prepareBlock).toContain('name: e2e-workspace-build');
     expect(prepareBlock).toContain('name: e2e-playwright-browsers');
+    // upload-artifact skips leading-dot paths unless include-hidden-files is set.
+    expect(prepareBlock).toContain('path: playwright-browsers');
+    expect(prepareBlock).not.toContain('path: .playwright-browsers');
     expect(prepareBlock).toContain('--filter admin...');
     expect(prepareBlock).toContain('--filter server...');
     expect(prepareBlock).toContain('--filter marketing...');
