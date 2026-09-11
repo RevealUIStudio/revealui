@@ -146,6 +146,12 @@ describe('workflow wiring', () => {
     expect(a11yBlock).toContain('e2e-restore-shared');
     expect(visualBlock).toContain('e2e-restore-shared');
     expect(ci).toContain('name: e2e-results');
+
+    const restore = readFileSync(
+      path.join(repoRoot, '.github/actions/e2e-restore-shared/action.yml'),
+      'utf8',
+    );
+    expect(restore).toContain('chmod -R a+x playwright-browsers');
   });
 
   it('skips a second full suite on promote PRs and on push-to-test when a PR already covers the SHA', () => {

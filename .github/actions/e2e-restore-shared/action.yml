@@ -23,6 +23,14 @@ runs:
         set -euo pipefail
         echo "PLAYWRIGHT_BROWSERS_PATH=${GITHUB_WORKSPACE}/playwright-browsers" >> "$GITHUB_ENV"
 
+    - name: Restore execute bits on Playwright browsers
+      shell: bash
+      run: |
+        set -euo pipefail
+        # upload-artifact does not preserve Unix mode bits; chrome-headless-shell
+        # then fails with EACCES on spawn.
+        chmod -R a+x playwright-browsers
+
     - name: Confirm shared E2E artifacts
       shell: bash
       run: |
