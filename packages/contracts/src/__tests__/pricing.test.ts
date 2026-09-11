@@ -170,6 +170,17 @@ describe('SUBSCRIPTION_TIERS', () => {
     }
   });
 
+  it('does not sell RevKit, RevForge, or a Fleet kit on the public catalog', () => {
+    const blob = SUBSCRIPTION_TIERS.flatMap((tier) => [tier.description, ...tier.features]).join(
+      ' ',
+    );
+    expect(blob.includes('RevKit')).toBe(false);
+    expect(blob.includes('RevForge')).toBe(false);
+    expect(blob.includes('Fleet kit')).toBe(false);
+    const max = SUBSCRIPTION_TIERS.find((tier) => tier.id === 'max')!;
+    expect(max.description).toBe('Unattended inference and higher limits.');
+  });
+
   it('free tier has no period', () => {
     const free = SUBSCRIPTION_TIERS.find((t) => t.id === 'free')!;
     expect(free.period).toBeUndefined();

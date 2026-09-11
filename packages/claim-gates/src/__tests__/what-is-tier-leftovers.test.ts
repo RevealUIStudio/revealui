@@ -74,4 +74,12 @@ describe('WHAT_IS leftover public-copy pins (#528 claim-drift)', () => {
     expect(pricing.includes('free: { sites: 1, users: 3, agentTasks: 1_000')).toBe(false);
     expect(pricing.includes('free: { sites: 1, users: 3, agentTasks: 0')).toBe(true);
   });
+
+  it('does not sell RevKit or a Fleet kit on the public README catalog table', () => {
+    const readme = readRepo('README.md');
+    expect(readme.includes('| **Max**        | $99/mo    |')).toBe(true);
+    expect(readme.includes('RevKit environment provisioning')).toBe(false);
+    expect(readme.includes('Fleet kit via RevForge')).toBe(false);
+    expect(readme.includes('RevealUI Fleet kit')).toBe(false);
+  });
 });

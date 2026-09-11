@@ -115,4 +115,11 @@ describe('docs discovery files', () => {
     const unresolved = llmsPaths.filter((path) => !discoveryPathResolves(path));
     expect(unresolved).toEqual([]);
   });
+
+  it('names RevealFleet as the family, not a RevFleet catalog or seven-product sell', () => {
+    expect(llms.includes('[RevealFleet](https://docs.revealui.com/REVFLEET)')).toBe(true);
+    expect(llms.includes('Not a catalog SKU and not for sale.')).toBe(true);
+    expect(llms.includes('[RevFleet](')).toBe(false);
+    expect(llms.includes('The seven shipping Studio products')).toBe(false);
+  });
 });
