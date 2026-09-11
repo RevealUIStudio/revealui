@@ -1,0 +1,43 @@
+name: Restore shared E2E prepare
+description: >
+  Download the admin/server/marketing build and Playwright Chromium produced
+  by the e2e-prepare job. Consumer jobs must not reinstall Chromium or rebuild.
+
+runs:
+  using: composite
+  steps:
+    - name: Download E2E workspace build
+      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      with:
+        name: e2e-workspace-build
+
+    - name: Download Playwright Chromium
+      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      with:
+        name: e2e-playwright-browsers
+        path: playwright-browsers
+
+    - name: Point Playwright at the shared browser cache
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "PLAYWRIGHT_BROWSERS_PATH=${GITHUB_WORKSPACE}/playwright-browsers" >> "$GITHUB_ENV"
+
+    - name: Restore execute bits on Playwright browsers
+      shell: bash
+      run: |
+        set -euo pipefail
+        # upload-artifact does not preserve Unix mode bits; chrome-headless-shell
+        # then fails with EACCES on spawn.
+        chmod -R a+x playwright-browsers
+
+    - name: Confirm shared E2E artifacts
+      shell: bash
+      run: |
+        set -euo pipefail
+        test -d apps/admin/.next
+        test -f apps/admin/.next/BUILD_ID
+        test -d apps/server/dist
+        test -d apps/marketing/dist
+        test -d playwright-browsers
+        echo "Shared E2E build + Playwright Chromium restored"

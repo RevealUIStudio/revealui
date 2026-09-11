@@ -110,6 +110,50 @@ describe('workflow wiring', () => {
     }
   });
 
+  it('installs Playwright chromium and builds E2E apps once, then reuses artifacts', () => {
+    const installScript = 'scripts/ci/playwright-install-chromium.sh';
+    const prepareIdx = ci.indexOf('\n  e2e-prepare:');
+    const smokeIdx = ci.indexOf('\n  e2e-smoke:');
+    const a11yIdx = ci.indexOf('\n  e2e-accessibility:');
+    const visualIdx = ci.indexOf('\n  e2e-visual:');
+    const extendedIdx = ci.indexOf('\n  test-integration-extended:');
+    expect(prepareIdx).toBeGreaterThan(0);
+    expect(smokeIdx).toBeGreaterThan(prepareIdx);
+    expect(a11yIdx).toBeGreaterThan(smokeIdx);
+    expect(visualIdx).toBeGreaterThan(a11yIdx);
+    expect(extendedIdx).toBeGreaterThan(visualIdx);
+
+    const prepareBlock = ci.slice(prepareIdx, smokeIdx);
+    const smokeBlock = ci.slice(smokeIdx, a11yIdx);
+    const a11yBlock = ci.slice(a11yIdx, visualIdx);
+    const visualBlock = ci.slice(visualIdx, extendedIdx);
+
+    expect(prepareBlock).toContain('name: E2E Prepare (suite)');
+    expect(prepareBlock).toContain(installScript);
+    expect(prepareBlock).toContain('name: e2e-workspace-build');
+    expect(prepareBlock).toContain('name: e2e-playwright-browsers');
+    // upload-artifact skips leading-dot paths unless include-hidden-files is set.
+    expect(prepareBlock).toContain('path: playwright-browsers');
+    expect(prepareBlock).not.toContain('path: .playwright-browsers');
+    expect(prepareBlock).toContain('--filter admin...');
+    expect(prepareBlock).toContain('--filter server...');
+    expect(prepareBlock).toContain('--filter marketing...');
+
+    expect(smokeBlock).not.toContain(installScript);
+    expect(a11yBlock).not.toContain(installScript);
+    expect(visualBlock).not.toContain(installScript);
+    expect(smokeBlock).toContain('e2e-restore-shared');
+    expect(a11yBlock).toContain('e2e-restore-shared');
+    expect(visualBlock).toContain('e2e-restore-shared');
+    expect(ci).toContain('name: e2e-results');
+
+    const restore = readFileSync(
+      path.join(repoRoot, '.github/actions/e2e-restore-shared/action.yml'),
+      'utf8',
+    );
+    expect(restore).toContain('chmod -R a+x playwright-browsers');
+  });
+
   it('skips a second full suite on promote PRs and on push-to-test when a PR already covers the SHA', () => {
     expect(ci).toContain('reason=promote-pr');
     expect(ci).toContain('reason=sha-covered-by-pr');

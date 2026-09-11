@@ -37,7 +37,8 @@ Mirrors the local `pnpm gate` — same hard-fail/warn policy:
 - **Turbo remote cache**: build artifacts shared across jobs via `TURBO_TOKEN`
 - **PR `--affected` mode**: only build/typecheck packages changed in the PR
 - **Parallel execution**: build runs alongside typecheck (turbo cache deduplicates)
-- **E2E jobs** wait for build completion, then get near-instant cache hits
+- **Shared E2E prepare**: one Playwright Chromium install + admin/server/marketing build, uploaded as artifacts; smoke / a11y / visual restore and run tests only. Combined `e2e-results` report per run.
+- Required check names stay on the `*-result` jobs (`E2E Smoke`, `Accessibility (E2E)`, `Visual Regression (E2E)`).
 
 ### `release.yml` — Release OSS Packages
 
