@@ -25,6 +25,9 @@ name: CI
 #   - Coverage stays main/promote-only; E2E also runs on PRs into test so
 #     production admin boot (`next start` + Forge license gate) cannot land
 #     untested.
+#   - e2e-prepare installs Playwright Chromium and builds admin/server/marketing
+#     once; smoke / a11y / visual download those artifacts and only run tests.
+#     One combined playwright-report artifact (`e2e-results`) per workflow run.
 
 on:
   push:
@@ -805,13 +808,77 @@ jobs:
           DATABASE_URL: "postgresql://test:test@localhost:5432/smoke"
 
   # ---------------------------------------------------------------------------
-  # Phase 4: E2E smoke tests (main only)
+  # Phase 4: Shared E2E prepare (Playwright Chromium + app build, once)
+  #
+  # Smoke / a11y / visual used to each `playwright install --with-deps chromium`
+  # and `pnpm build`. That tripled billed minutes without adding coverage.
+  # This job produces two artifacts; the suite jobs only restore + test.
+  # Required check names stay on the *-result jobs (E2E Smoke, …).
+  # ---------------------------------------------------------------------------
+  e2e-prepare:
+    name: E2E Prepare (suite)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [quality, changes]
+    if: needs.changes.outputs.full_suite == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' || github.base_ref == 'main' || github.base_ref == 'test')
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.playwright-browsers
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
+
+      - name: Install Playwright (chromium only)
+        run: bash scripts/ci/playwright-install-chromium.sh
+
+      - name: Build admin, server, and marketing for E2E
+        run: pnpm --filter admin... --filter server... --filter marketing... build
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Upload E2E workspace build
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: e2e-workspace-build
+          include-hidden-files: true
+          retention-days: 1
+          if-no-files-found: error
+          path: |
+            apps/admin/.next
+            !apps/admin/.next/cache
+            apps/server/dist
+            apps/marketing/dist
+            packages/*/dist
+
+      - name: Upload Playwright Chromium
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: e2e-playwright-browsers
+          path: .playwright-browsers
+          retention-days: 1
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # Phase 4b: E2E smoke tests (required quality gate)
   # ---------------------------------------------------------------------------
   e2e-smoke:
     name: E2E Smoke (suite)
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [quality, build, ensure-ci-images, changes]
+    needs: [e2e-prepare, ensure-ci-images, changes]
     # PRs into test as well as main: production `next start` + the Forge
     # license gate must not wait for a promote PR to fail (see #2695).
     if: needs.changes.outputs.full_suite == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' || github.base_ref == 'main' || github.base_ref == 'test')
@@ -854,13 +921,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
-      - name: Install Playwright (chromium only)
-        run: bash scripts/ci/playwright-install-chromium.sh
-
-      - name: Build for E2E
-        run: pnpm build
-        env:
-          SKIP_ENV_VALIDATION: "true"
+      - name: Restore shared E2E build + Playwright Chromium
+        uses: ./.github/actions/e2e-restore-shared
 
       # The API server refuses to boot if it cannot write the audit_log table
       # (GAP-355 audit-integrity: no serving without a working audit path).
@@ -943,24 +1005,25 @@ jobs:
           PLAYWRIGHT_BASE_URL: "http://localhost:4000"
           MARKETING_BASE_URL: "http://localhost:3000"
 
-      - name: Upload test results
+      - name: Stash smoke report for the combined artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
-          name: e2e-results
+          name: e2e-partial-smoke
           path: |
             playwright-report/
             test-results/
-          retention-days: 7
+          if-no-files-found: warn
+          retention-days: 1
 
   # ---------------------------------------------------------------------------
-  # Phase 5: Accessibility E2E (main only)
+  # Phase 5: Accessibility E2E (advisory / non-required)
   # ---------------------------------------------------------------------------
   e2e-accessibility:
     name: Accessibility (E2E) (suite)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [quality, build, ensure-ci-images, changes]
+    needs: [e2e-prepare, ensure-ci-images, changes]
     if: needs.changes.outputs.full_suite == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' || github.base_ref == 'main' || github.base_ref == 'test')
 
     # The admin server's GAP-338/417 audit rails are fail-closed in production
@@ -1001,13 +1064,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
-      - name: Install Playwright (chromium only)
-        run: bash scripts/ci/playwright-install-chromium.sh
-
-      - name: Build apps
-        run: pnpm build
-        env:
-          SKIP_ENV_VALIDATION: "true"
+      - name: Restore shared E2E build + Playwright Chromium
+        uses: ./.github/actions/e2e-restore-shared
 
       - name: Apply migrations to the smoke database
         run: pnpm --filter @revealui/db db:migrate
@@ -1062,24 +1120,25 @@ jobs:
           PLAYWRIGHT_BASE_URL: "http://localhost:4000"
           MARKETING_BASE_URL: "http://localhost:3000"
 
-      - name: Upload accessibility results
+      - name: Stash accessibility report for the combined artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
-          name: accessibility-results
+          name: e2e-partial-accessibility
           path: |
             playwright-report/
             test-results/
-          retention-days: 7
+          if-no-files-found: warn
+          retention-days: 1
 
   # ---------------------------------------------------------------------------
-  # Phase 6: Visual regression (main only)
+  # Phase 6: Visual regression (advisory / non-required)
   # ---------------------------------------------------------------------------
   e2e-visual:
     name: Visual Regression (E2E) (suite)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [quality, build, ensure-ci-images, changes]
+    needs: [e2e-prepare, ensure-ci-images, changes]
     if: needs.changes.outputs.full_suite == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' || github.base_ref == 'main' || github.base_ref == 'test')
 
     # See e2e-accessibility: production admin's fail-closed audit rails
@@ -1119,13 +1178,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
-      - name: Install Playwright (chromium only)
-        run: bash scripts/ci/playwright-install-chromium.sh
-
-      - name: Build apps
-        run: pnpm build
-        env:
-          SKIP_ENV_VALIDATION: "true"
+      - name: Restore shared E2E build + Playwright Chromium
+        uses: ./.github/actions/e2e-restore-shared
 
       - name: Apply migrations to the smoke database
         run: pnpm --filter @revealui/db db:migrate
@@ -1171,14 +1225,42 @@ jobs:
           CI: "true"
           SKIP_ENV_VALIDATION: "true"
 
-      - name: Upload visual results
+      - name: Stash visual report for the combined artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
-          name: visual-results
+          name: e2e-partial-visual
           path: |
             playwright-report/
             test-results/
+          if-no-files-found: warn
+          retention-days: 1
+
+  # ---------------------------------------------------------------------------
+  # Combined Playwright report — one e2e-results artifact per workflow run.
+  # Not a required check. Suite jobs keep their own pass/fail.
+  # ---------------------------------------------------------------------------
+  e2e-report:
+    name: E2E Report
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [changes, e2e-smoke, e2e-accessibility, e2e-visual]
+    if: always() && needs.changes.result == 'success' && needs.changes.outputs.full_suite == 'true'
+    steps:
+      - name: Download suite reports
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          pattern: e2e-partial-*
+          path: e2e-combined
+          merge-multiple: false
+
+      - name: Upload combined Playwright report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: e2e-results
+          path: e2e-combined
+          if-no-files-found: warn
           retention-days: 7
 
   # ---------------------------------------------------------------------------
