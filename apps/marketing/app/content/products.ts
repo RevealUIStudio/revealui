@@ -10,7 +10,7 @@ import type { Cta } from './types';
 export const PRODUCTS_PAGE_HERO = {
   h1: 'RevealUI licenses',
   subtitle:
-    'License the self-hosted runtime. Free, Pro, Max, Enterprise inquire, and Pro Perpetual. Studio SKUs live on revealuistudio.com. Zero paying customers.',
+    'License one self-hosted runtime. Free, Pro, Max, Enterprise inquire, and Pro Perpetual. Studio SKUs live on revealuistudio.com. Zero paying customers.',
 } as const;
 
 export type ProductStatus = 'Beta' | 'Alpha' | 'GA' | 'Planned';

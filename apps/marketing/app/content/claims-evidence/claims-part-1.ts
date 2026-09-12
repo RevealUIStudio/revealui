@@ -56,7 +56,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_HERO.h1',
     proofGrade: 'outcome',
-    text: 'Build it once. Every product after starts ahead.',
+    text: 'One self-hosted runtime for your business and the agents that run it.',
     evidence: [
       {
         kind: 'code',
@@ -96,7 +96,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_HERO.subtitle.sentence1',
     proofGrade: 'outcome',
-    text: 'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof.',
+    text: 'Your business and the agents that run it share the same data, sign-in, and plan rules on infrastructure you own.',
     evidence: [SELF_HOST, AGENT_ROUTES, TIER_GATES],
   },
   {
@@ -140,12 +140,15 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_HERO_FOUNDATION.h1',
     proofGrade: 'outcome',
-    text: 'The foundation your business runs on.',
+    text: 'Plan rules and a receipt still apply when an agent acts.',
     evidence: [
+      TIER_GATES,
+      AUDIT_SIGNING,
+      AUDIT_SIGNING_TEST,
       {
         kind: 'code',
         ref: 'packages',
-        note: 'sanctioned A/B variant of HOME_HERO.h1; same grounding',
+        note: 'sanctioned A/B variant of HOME_HERO.h1; entitlement + receipt grounding',
       },
     ],
   },
@@ -257,14 +260,14 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_DEMO.heading',
     proofGrade: 'outcome',
-    text: 'From one command to a running stack in about a minute.',
+    text: 'Install locally. Test checkout. Point an agent at the same data.',
     evidence: [CLI_CREATE],
   },
   {
     file: 'home.ts',
     exportPath: 'HOME_DEMO.body',
     proofGrade: 'outcome',
-    text: 'Install on your machine. Take a test payment. Connect an agent to the same data your admin already uses.',
+    text: 'A local install takes about a minute. Test-mode checkout. Then point an agent at the same data your admin already uses.',
     evidence: [CLI_CREATE, BILLING, MCP_CONTENT],
   },
   {
@@ -296,13 +299,6 @@ export const claimsPart1: readonly ClaimEntry[] = [
   },
   {
     file: 'home.ts',
-    exportPath: 'HOME_DEMO.beats[1].title',
-    proofGrade: 'behavior',
-    text: 'Customer flow, end to end.',
-    evidence: [BILLING],
-  },
-  {
-    file: 'home.ts',
     exportPath: 'HOME_DEMO.beats[1].body',
     proofGrade: 'behavior',
     text: 'A user signs up, picks a plan, and test-mode checkout completes. Switch to live mode when you take real money.',
@@ -318,6 +314,13 @@ export const claimsPart1: readonly ClaimEntry[] = [
   },
   {
     file: 'home.ts',
+    exportPath: 'HOME_DEMO.beats[2].title',
+    proofGrade: 'behavior',
+    text: 'Point an agent at the same data.',
+    evidence: [MCP_CONTENT, TIER_GATES],
+  },
+  {
+    file: 'home.ts',
     exportPath: 'HOME_DEMO.beats[2].body',
     proofGrade: 'behavior',
     text: 'Connect a model. Agents use the same content, sign-in, and plan rules as your team.',
@@ -327,7 +330,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_FAQ.items[0].answer',
     proofGrade: 'behavior',
-    text: 'No. You keep your data in plain Postgres, your code in your repo, and your deploy on infrastructure you choose. Open standards throughout. RevealUI is the runtime, not the prison. Details live in the docs.',
+    text: 'Your data stays in Postgres you control. Your deploy stays on infra you choose. Your code stays in your repo. Details live in the docs.',
     evidence: [OPEN_STANDARDS, POSTGRES, SELF_HOST],
   },
   {
@@ -633,8 +636,8 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'pricing-teaser.ts',
     exportPath: 'PRICING_TEASER_SECTION.heading',
     proofGrade: 'outcome',
-    text: 'Start free. Pay when you scale.',
-    evidence: [LICENSE_MIT, TIER_LIMITS],
+    text: 'Start free. Pro adds agents, MCP, and receipts.',
+    evidence: [LICENSE_MIT, TIER_GATES, MCP_CONTENT, AUDIT_SIGNING],
   },
   {
     file: 'pricing-teaser.ts',
@@ -714,7 +717,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'products.ts',
     exportPath: 'PRODUCTS_PAGE_HERO.subtitle',
     proofGrade: 'outcome',
-    text: 'License the self-hosted runtime. Free, Pro, Max, Enterprise inquire, and Pro Perpetual. Studio SKUs live on revealuistudio.com. Zero paying customers.',
+    text: 'License one self-hosted runtime. Free, Pro, Max, Enterprise inquire, and Pro Perpetual. Studio SKUs live on revealuistudio.com. Zero paying customers.',
     evidence: [REPO, SELF_HOST, TIER_GATES],
   },
   {
