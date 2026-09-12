@@ -19,7 +19,7 @@ export interface TeaserTier {
 
 export const PRICING_TEASER_SECTION = {
   eyebrow: 'Pricing',
-  heading: 'Start free. Pay when you scale.',
+  heading: 'Start free. Pro adds agents, MCP, and receipts. Max is $99/mo.',
   body: 'Self-host the open stack at no cost. Pro, Max, and Enterprise add agent capacity and support. Pro and Max include a 7-day free trial.',
 } as const;
 

@@ -36,10 +36,10 @@ const AGENCY_CONTACT = `${SITE.urls.agency}/contact` as const;
 const MANAGED_ROADMAP_HREF = '/for-operators/managed' as const;
 
 export const FOR_OPERATORS_HERO = {
-  eyebrow: 'Built. Delivered. Yours.',
-  h1Lines: ['Your business grows with you,', 'and stays at the frontier.'] as const,
+  eyebrow: 'Studio work',
+  h1Lines: ['Consultation, Pilot, or Launch', 'on infrastructure you own.'] as const,
   subtitle:
-    'Running a business is hard enough without racing AI stack churn. We build and deliver software with agents built in, on infrastructure you own, and keep it current as the world moves. You stay ahead and keep doing the work you love.',
+    'Studio books Consultation, Pilot, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com, not on the product catalog.',
   primaryCta: {
     label: 'Book a 30-minute intro',
     href: AGENCY_CONTACT,

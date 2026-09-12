@@ -52,7 +52,7 @@ export const PROOF_DEPLOYERS = {
   eyebrow: 'For deployers',
   heading: 'Built for people who deploy, not only demo.',
   body: 'Install yourself, hire Studio, or bring your own forward-deployed engineer. The outcome is the same: a self-hosted runtime on infrastructure you own.',
-  foil: 'Cloud platforms rent you an outcome. A handoff leaves a runtime you run.',
+  foil: 'Studio hands you a runtime on infra you run. You keep the repo and the database.',
   cta: {
     label: 'Work with Studio',
     href: SITE.urls.agency,

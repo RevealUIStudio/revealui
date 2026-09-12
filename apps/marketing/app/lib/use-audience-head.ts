@@ -14,35 +14,36 @@ interface AudienceSeo {
 
 const SEO: Record<Audience, AudienceSeo> = {
   'non-technical': {
-    title: 'RevealUI | Your business grows with you, and stays at the frontier.',
+    title: 'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
     description:
-      'Running a business is hard enough without racing to keep up with AI. We build your software with AI built in, yours to own, and keep it current as the world moves.',
-    ogTitle: 'RevealUI | Your business grows with you, and stays at the frontier.',
+      'Studio books Consultation, Pilot, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com.',
+    ogTitle: 'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
     ogDescription:
-      'Running a business is hard enough without racing to keep up with AI. We build your software with AI built in, yours to own, and keep it current as the world moves.',
+      'Studio books Consultation, Pilot, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com.',
     ogImage:
       'https://api.revealui.com/api/og?title=RevealUI&description=Your%20business%2C%20delivered%20and%20yours%20to%20own.',
-    twitterTitle: 'RevealUI | Your business grows with you, and stays at the frontier.',
+    twitterTitle: 'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
     twitterDescription:
-      'Running a business is hard enough without racing to keep up with AI. We build your software with AI built in, yours to own, and keep it current as the world moves.',
+      'Studio books Consultation, Pilot, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com.',
     twitterImage:
       'https://api.revealui.com/api/og?title=RevealUI&description=Your%20business%2C%20delivered%20and%20yours%20to%20own.',
   },
   technical: {
-    title: 'RevealUI | Build it once. Every product after starts ahead.',
-    // Title mirrors HOME_HERO.h1 (L1 default). Description mirrors locked subtitle.
+    title: 'RevealUI | One self-hosted runtime for your business and the agents that run it.',
+    // Title mirrors HOME_HERO.h1. Description mirrors the Auditor subtitle.
     description:
-      'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure. It runs on any AI provider you choose.',
-    ogTitle: 'RevealUI | Build it once. Every product after starts ahead.',
+      'Your business and the agents that run it share the same data, sign-in, and plan rules on infrastructure you own. Every agent is a governed and audited user that lives on your infrastructure. It runs on any AI provider you choose.',
+    ogTitle: 'RevealUI | One self-hosted runtime for your business and the agents that run it.',
     ogDescription:
-      'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure.',
+      'Your business and the agents that run it share the same data, sign-in, and plan rules on infrastructure you own. Every agent is a governed and audited user that lives on your infrastructure.',
     ogImage:
-      'https://api.revealui.com/api/og?title=RevealUI&description=Build%20it%20once.%20Every%20product%20after%20starts%20ahead.',
-    twitterTitle: 'RevealUI | Build it once. Every product after starts ahead.',
+      'https://api.revealui.com/api/og?title=RevealUI&description=One%20self-hosted%20runtime%20for%20your%20business%20and%20the%20agents%20that%20run%20it.',
+    twitterTitle:
+      'RevealUI | One self-hosted runtime for your business and the agents that run it.',
     twitterDescription:
-      'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure.',
+      'Your business and the agents that run it share the same data, sign-in, and plan rules on infrastructure you own. Every agent is a governed and audited user that lives on your infrastructure.',
     twitterImage:
-      'https://api.revealui.com/api/og?title=RevealUI&description=Build%20it%20once.%20Every%20product%20after%20starts%20ahead.',
+      'https://api.revealui.com/api/og?title=RevealUI&description=One%20self-hosted%20runtime%20for%20your%20business%20and%20the%20agents%20that%20run%20it.',
   },
 };
 
