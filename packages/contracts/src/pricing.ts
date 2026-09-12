@@ -111,7 +111,7 @@ export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
   sso: 'Enterprise SSO (OIDC / SAML)',
   vaultDesktop: 'RevVault Desktop App',
   vaultRotation: 'RevVault Rotation Engine',
-  devkitProfiles: 'RevKit Environment Provisioning',
+  devkitProfiles: 'Dev environment profiles',
 };
 
 // =============================================================================

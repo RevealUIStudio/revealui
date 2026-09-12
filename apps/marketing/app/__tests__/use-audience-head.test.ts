@@ -42,7 +42,7 @@ describe('useAudienceHead — non-technical audience', () => {
   it('sets document.title to the non-technical headline', () => {
     renderHook(() => useAudienceHead('non-technical'));
     expect(document.title).toBe(
-      'RevealUI | Your business grows with you, and stays at the frontier.',
+      'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
     );
   });
 
@@ -55,7 +55,7 @@ describe('useAudienceHead — non-technical audience', () => {
   it('sets og:title to the non-technical title', () => {
     renderHook(() => useAudienceHead('non-technical'));
     expect(document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.content).toBe(
-      'RevealUI | Your business grows with you, and stays at the frontier.',
+      'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
     );
   });
 
@@ -79,7 +79,9 @@ describe('useAudienceHead — non-technical audience', () => {
 describe('useAudienceHead — technical audience', () => {
   it('sets document.title to the technical headline', () => {
     renderHook(() => useAudienceHead('technical'));
-    expect(document.title).toBe('RevealUI | Build it once. Every product after starts ahead.');
+    expect(document.title).toBe(
+      'RevealUI | One self-hosted runtime for your business and the agents that run it.',
+    );
   });
 
   it('does not mutate link[rel=canonical]', () => {
@@ -93,7 +95,7 @@ describe('useAudienceHead — technical audience', () => {
     expect(
       document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.content,
     ).toBe(
-      'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure.',
+      'Your business and the agents that run it share the same data, sign-in, and plan rules on infrastructure you own. Every agent is a governed and audited user that lives on your infrastructure.',
     );
   });
 
@@ -122,14 +124,16 @@ describe('useAudienceHead — audience switch', () => {
     );
 
     expect(document.title).toBe(
-      'RevealUI | Your business grows with you, and stays at the frontier.',
+      'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
     );
 
     act(() => {
       rerender({ audience: 'technical' });
     });
 
-    expect(document.title).toBe('RevealUI | Build it once. Every product after starts ahead.');
+    expect(document.title).toBe(
+      'RevealUI | One self-hosted runtime for your business and the agents that run it.',
+    );
     expect(document.documentElement.dataset.audience).toBe('technical');
   });
 

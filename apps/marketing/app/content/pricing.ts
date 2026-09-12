@@ -72,7 +72,8 @@ export const PRICING_TRACK_C_SECTION = {
 export const PRICING_AGENTS_SECTION = {
   eyebrow: 'Agent-Native',
   heading: 'RevealUI for AI Agents',
-  subhead: 'Agents discover, authenticate, and pay without human intervention.',
+  subhead:
+    'Agents can discover and authenticate today. Agent payment rails are still in development.',
   badge: 'Coming soon',
 } as const;
 

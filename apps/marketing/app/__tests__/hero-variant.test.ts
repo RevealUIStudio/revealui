@@ -18,7 +18,9 @@ describe('selectHomeHero', () => {
 
   it('serves the L1 default hero by default (no query)', () => {
     expect(selectHomeHero('')).toBe(HOME_HERO);
-    expect(HOME_HERO.h1).toBe('Build it once. Every product after starts ahead.');
+    expect(HOME_HERO.h1).toBe(
+      'One self-hosted runtime for your business and the agents that run it.',
+    );
   });
 
   it('serves the L1 default for unknown hero values', () => {
@@ -36,11 +38,15 @@ describe('selectHomeHero', () => {
   });
 
   it('matches the Foundation A/B H1 lock verbatim', () => {
-    expect(HOME_HERO_FOUNDATION.h1).toBe('The foundation your business runs on.');
+    expect(HOME_HERO_FOUNDATION.h1).toBe(
+      'Plan rules and a receipt still apply when an agent acts.',
+    );
   });
 
   it('keeps the full locked positioning form on all hero variants', () => {
-    expect(HOME_HERO.subtitle.sentence1).toContain('under one roof');
+    expect(HOME_HERO.subtitle.sentence1).toContain(
+      'share the same data, sign-in, and plan rules on infrastructure you own',
+    );
     expect(HOME_HERO.subtitle.sentence2).toBe(
       'Every agent is a governed and audited user that lives on your infrastructure.',
     );
@@ -51,7 +57,9 @@ describe('selectHomeHero', () => {
 
   it('serves the L2 leverage-frame for ?hero=l2', () => {
     expect(selectHomeHero('?hero=l2')).toBe(HOME_HERO_L2);
-    expect(HOME_HERO_L2.h1).toBe('Ship your next product on the work your last one finished.');
+    expect(HOME_HERO_L2.h1).toBe(
+      'Your secrets stay on infra you own. Agents use the same plan rules.',
+    );
     expect(HOME_HERO_L2.subtitle).toEqual(HOME_HERO.subtitle);
   });
 });

@@ -68,8 +68,7 @@ export const CATALOG: ProductDefinition[] = [
   {
     key: 'revealui_max',
     name: 'RevealUI Max',
-    description:
-      'Unattended inference and RevKit environment provisioning, plus higher limits (15 projects, 100 users).',
+    description: 'Unattended inference and higher limits (15 sites, 100 users).',
     tier: 'max',
     billingModel: 'subscription',
     defaultPriceKey: 'revealui_max_monthly',

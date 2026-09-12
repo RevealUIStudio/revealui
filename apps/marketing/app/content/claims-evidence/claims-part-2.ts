@@ -46,7 +46,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_AGENTS_SECTION.subhead',
-    text: 'Agents discover, authenticate, and pay without human intervention.',
+    text: 'Agents can discover and authenticate today. Agent payment rails are still in development.',
     evidence: [LIVE_AGENT_CARD, AUTH_SESSIONS, X402],
   },
   {
@@ -405,21 +405,21 @@ export const claimsPart2: readonly ClaimEntry[] = [
     file: 'for-operators.ts',
     exportPath: 'FOR_OPERATORS_HERO.h1Lines[0]',
     proofGrade: 'outcome',
-    text: 'Your business grows with you,',
+    text: 'Consultation, Pilot, or Launch',
     evidence: [COMMERCIAL_POLICY],
   },
   {
     file: 'for-operators.ts',
     exportPath: 'FOR_OPERATORS_HERO.h1Lines[1]',
     proofGrade: 'outcome',
-    text: 'and stays at the frontier.',
+    text: 'on infrastructure you own.',
     evidence: [COMMERCIAL_POLICY],
   },
   {
     file: 'for-operators.ts',
     exportPath: 'FOR_OPERATORS_HERO.subtitle',
     proofGrade: 'outcome',
-    text: '(operator-lane studio-voice copy; path-pinned so the phrasing stays out of the fleet-voice register scan)',
+    text: 'Studio books Consultation, Pilot, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com, not on the product catalog.',
     match: 'path',
     evidence: [COMMERCIAL_POLICY, SELF_HOST],
   },

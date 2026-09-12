@@ -82,4 +82,19 @@ describe('WHAT_IS leftover public-copy pins (#528 claim-drift)', () => {
     expect(readme.includes('Fleet kit via RevForge')).toBe(false);
     expect(readme.includes('RevealUI Fleet kit')).toBe(false);
   });
+
+  it('does not sell RevKit environment provisioning on leftover Max copy after #2848', () => {
+    const surfaces = [
+      'docs/blog/01-why-we-built-revealui.md',
+      'apps/marketing/app/content/claims-evidence/blog-body-claims.ts',
+      'scripts/setup/stripe-catalog.ts',
+      'packages/contracts/src/pricing.ts',
+    ] as const;
+    for (const rel of surfaces) {
+      const text = readRepo(rel);
+      expect(text.includes('RevKit environment provisioning'), rel).toBe(false);
+      expect(text.includes('RevKit Environment Provisioning'), rel).toBe(false);
+      expect(text.includes('unattended inference and RevKit'), rel).toBe(false);
+    }
+  });
 });
