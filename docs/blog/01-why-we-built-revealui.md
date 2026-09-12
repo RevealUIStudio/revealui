@@ -150,7 +150,7 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
 };
 ```
 
-Free tier gets the full runtime engine, auth, the REST API, and local AI inference (Inference Snaps or Ollama, no API key, no cloud bill). Pro unlocks AI agents, AI memory, signed audit receipts, payments, sync, MCP, and the monitoring dashboard. Max adds unattended inference and RevKit environment provisioning. Enterprise adds multi-tenant management, RevealUI Fleet (branded white-label via RevForge), and Enterprise SSO (OIDC + SAML SP-initiated; operator guide [FORGE_SSO_SETUP](../FORGE_SSO_SETUP.md); tracker [#449](https://github.com/RevealUIStudio/revealui/issues/449)).
+Free tier gets the full runtime engine, auth, the REST API, and local AI inference (Inference Snaps or Ollama, no API key, no cloud bill). Pro unlocks AI agents, AI memory, signed audit receipts, payments, sync, MCP, and the monitoring dashboard. Max adds unattended inference and higher limits. Enterprise is scoped with sales: unlimited sites and users, plus Enterprise SSO (OIDC + SAML SP-initiated; operator guide [FORGE_SSO_SETUP](../FORGE_SSO_SETUP.md); tracker [#449](https://github.com/RevealUIStudio/revealui/issues/449)).
 
 ### Pricing served from a single source, not hardcoded
 

@@ -43,7 +43,7 @@ export interface FeatureFlags {
   vaultDesktop: boolean;
   /** RevVault rotation engine  -  automated credential lifecycle (Pro+) */
   vaultRotation: boolean;
-  /** RevKit environment provisioning  -  tiered dev profiles (Max+) */
+  /** Dev environment profiles  -  editor / agent runtime choice (Max+) */
   devkitProfiles: boolean;
   /** Enterprise SSO (OIDC/SAML)  -  account IdP federation (Enterprise) */
   sso: boolean;
