@@ -57,7 +57,9 @@ describe('selectHomeHero', () => {
 
   it('serves the L2 leverage-frame for ?hero=l2', () => {
     expect(selectHomeHero('?hero=l2')).toBe(HOME_HERO_L2);
-    expect(HOME_HERO_L2.h1).toBe('Ship your next product on the work your last one finished.');
+    expect(HOME_HERO_L2.h1).toBe(
+      'Your secrets stay on infra you own. Agents use the same plan rules.',
+    );
     expect(HOME_HERO_L2.subtitle).toEqual(HOME_HERO.subtitle);
   });
 });

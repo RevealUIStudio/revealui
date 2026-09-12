@@ -14,17 +14,17 @@ interface AudienceSeo {
 
 const SEO: Record<Audience, AudienceSeo> = {
   'non-technical': {
-    title: 'RevealUI | Your business grows with you, and stays at the frontier.',
+    title: 'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
     description:
-      'Running a business is hard enough without racing to keep up with AI. We build your software with AI built in, yours to own, and keep it current as the world moves.',
-    ogTitle: 'RevealUI | Your business grows with you, and stays at the frontier.',
+      'Studio books Consultation, Pilot, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com.',
+    ogTitle: 'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
     ogDescription:
-      'Running a business is hard enough without racing to keep up with AI. We build your software with AI built in, yours to own, and keep it current as the world moves.',
+      'Studio books Consultation, Pilot, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com.',
     ogImage:
       'https://api.revealui.com/api/og?title=RevealUI&description=Your%20business%2C%20delivered%20and%20yours%20to%20own.',
-    twitterTitle: 'RevealUI | Your business grows with you, and stays at the frontier.',
+    twitterTitle: 'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
     twitterDescription:
-      'Running a business is hard enough without racing to keep up with AI. We build your software with AI built in, yours to own, and keep it current as the world moves.',
+      'Studio books Consultation, Pilot, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com.',
     twitterImage:
       'https://api.revealui.com/api/og?title=RevealUI&description=Your%20business%2C%20delivered%20and%20yours%20to%20own.',
   },

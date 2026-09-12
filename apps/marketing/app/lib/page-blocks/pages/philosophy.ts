@@ -143,6 +143,6 @@ export const philosophyPageSeed: FleetMarketingPageSeed = {
   blocks: philosophyBlocks(),
   seo: {
     title: 'Philosophy | RevealUI',
-    description: 'Software that compounds. Why RevealUI exists.',
+    description: 'Self-host one runtime. Reuse it on the next product.',
   },
 };

@@ -75,7 +75,7 @@ export const HOME_HERO_OWNERSHIP = {
 // analytics sink (same note as foundation/ownership).
 export const HOME_HERO_L2 = {
   ...HOME_HERO,
-  h1: 'Ship your next product on the work your last one finished.',
+  h1: 'Your secrets stay on infra you own. Agents use the same plan rules.',
 } as const;
 
 // ---------------------------------------------------------------------------

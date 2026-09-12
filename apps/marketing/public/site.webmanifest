@@ -1,7 +1,7 @@
 {
   "name": "RevealUI",
   "short_name": "RevealUI",
-  "description": "Your business grows with you, and stays at the frontier.",
+  "description": "One self-hosted runtime for your business and the agents that run it.",
   "id": "/",
   "start_url": "/",
   "scope": "/",

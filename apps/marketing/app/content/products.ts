@@ -69,7 +69,7 @@ export interface StatItem {
 }
 
 export const PRODUCTS_STATS_SECTION = {
-  heading: 'Built to production standards',
+  heading: 'Tested in a public repo you can self-host.',
   body: 'Not a starter template. A complete runtime with tested code you can inspect in the public repo.',
   items: [
     { stat: String(METRICS.packages), label: 'workspace packages' },

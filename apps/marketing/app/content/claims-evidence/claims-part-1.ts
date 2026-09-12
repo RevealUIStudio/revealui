@@ -156,7 +156,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_HERO_L2.h1',
     proofGrade: 'outcome',
-    text: 'Ship your next product on the work your last one finished.',
+    text: 'Your secrets stay on infra you own. Agents use the same plan rules.',
     evidence: [
       {
         kind: 'code',
@@ -622,7 +622,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'proof.ts',
     exportPath: 'PROOF_DEPLOYERS.foil',
     proofGrade: 'outcome',
-    text: 'Cloud platforms rent you an outcome. A handoff leaves a runtime you run.',
+    text: 'Studio hands you a runtime on infra you run. You keep the repo and the database.',
     evidence: [
       REPO,
       {
@@ -636,7 +636,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'pricing-teaser.ts',
     exportPath: 'PRICING_TEASER_SECTION.heading',
     proofGrade: 'outcome',
-    text: 'Start free. Pro adds agents, MCP, and receipts.',
+    text: 'Start free. Pro adds agents, MCP, and receipts. Max is $99/mo.',
     evidence: [LICENSE_MIT, TIER_GATES, MCP_CONTENT, AUDIT_SIGNING],
   },
   {
@@ -745,7 +745,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'products.ts',
     exportPath: 'PRODUCTS_STATS_SECTION.heading',
     proofGrade: 'outcome',
-    text: 'Built to production standards',
+    text: 'Tested in a public repo you can self-host.',
     evidence: [CI_GATE],
   },
   {

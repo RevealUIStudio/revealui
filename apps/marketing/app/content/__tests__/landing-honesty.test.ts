@@ -134,7 +134,9 @@ describe('Auditor voice and live-hero honesty', () => {
   });
 
   it('names Pro extras instead of Pay when you scale', () => {
-    expect(PRICING_TEASER_SECTION.heading).toBe('Start free. Pro adds agents, MCP, and receipts.');
+    expect(PRICING_TEASER_SECTION.heading).toBe(
+      'Start free. Pro adds agents, MCP, and receipts. Max is $99/mo.',
+    );
   });
 
   it('keeps the products hero as licenses, not invented SKUs', () => {
