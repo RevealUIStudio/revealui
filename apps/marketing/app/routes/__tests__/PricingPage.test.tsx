@@ -26,9 +26,9 @@ describe('PricingPage product catalog', () => {
       await screen.findByRole('heading', { level: 1, name: 'RevealUI pricing' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'Three questions. A price you can read.' }),
+      screen.getByRole('heading', { name: 'Who runs it. What you need. One price.' }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: /I will \(developer/i })).toHaveAttribute(
+    expect(screen.getByRole('radio', { name: /I self-host/i })).toHaveAttribute(
       'aria-checked',
       'true',
     );

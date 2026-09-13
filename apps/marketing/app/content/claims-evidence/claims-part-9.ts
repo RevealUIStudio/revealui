@@ -49,26 +49,20 @@ export const claimsPart9: readonly ClaimEntry[] = [
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.heading',
     proofGrade: 'outcome',
-    text: 'Three questions. A price you can read.',
+    text: 'Who runs it. What you need. One price.',
     evidence: [QUOTE_RESOLVER, QUOTE_DEFAULT, QUOTE_UI],
   },
   {
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.body',
     proofGrade: 'outcome',
-    text: 'This calculator defaults to product licenses. Studio work is quoted here too and booked on revealuistudio.com.',
+    text: 'Defaults to self-host licenses. Studio work is on the same form and books at revealuistudio.com.',
     evidence: [QUOTE_DEFAULT, QUOTE_UI, THIS_SITE],
   },
   {
     file: 'quote-calculator.ts',
-    exportPath: 'QUOTE_CALCULATOR.questions.who.options[0].label',
-    text: 'I will (developer / self-host)',
-    evidence: [QUOTE_DEFAULT, QUOTE_UI, SELF_HOST],
-  },
-  {
-    file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.questions.what.options[1].label',
-    text: 'Pilot: one site, one agent you run',
+    text: 'Pilot — one site, one agent I run',
     evidence: [
       {
         kind: 'test',
@@ -80,7 +74,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
   {
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.questions.what.options[2].label',
-    text: 'Launch: one live flow on my accounts',
+    text: 'Launch — live on my accounts',
     evidence: [
       {
         kind: 'test',
@@ -92,7 +86,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
   {
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.questions.places.options[1].label',
-    text: 'More than one (stop quoting; book an intro)',
+    text: 'More than one — book an intro',
     evidence: [
       {
         kind: 'test',
@@ -160,7 +154,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.intro.body',
     proofGrade: 'outcome',
-    text: 'Stop quoting. Book an intro.',
+    text: 'The calculator stops here. Book a 30-minute intro and we scope it.',
     evidence: [
       {
         kind: 'test',
@@ -183,12 +177,5 @@ export const claimsPart9: readonly ClaimEntry[] = [
     proofGrade: 'outcome',
     text: 'If we disappear, you still have the company.',
     evidence: [SELF_HOST, LICENSE_MIT, QUOTE_INTRO],
-  },
-  {
-    file: 'quote-calculator.ts',
-    exportPath: 'QUOTE_CALCULATOR.introCta.note',
-    proofGrade: 'behavior',
-    text: 'Google Calendar / Meet or sit down.',
-    evidence: [BOOK_INTRO, QUOTE_INTRO, THIS_SITE],
   },
 ];
