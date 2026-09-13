@@ -16,6 +16,7 @@ import type { Cta, SectionHeading } from './types';
 export interface AgentFeatureCard {
   readonly heading: string;
   readonly body: string;
+  readonly badge?: string;
 }
 
 export const PRICING_HERO: SectionHeading = {
@@ -74,7 +75,6 @@ export const PRICING_AGENTS_SECTION = {
   heading: 'RevealUI for AI Agents',
   subhead:
     'Agents can discover and authenticate today. Agent payment rails are still in development.',
-  badge: 'Coming soon',
 } as const;
 
 export const PRICING_AGENT_A2A = {
@@ -89,6 +89,7 @@ export const PRICING_AGENT_A2A = {
 
 export const PRICING_AGENT_X402 = {
   heading: 'x402-Native Payments',
+  badge: 'Coming soon',
   body: 'RevealUI implements the HTTP 402 payment protocol. Built on the open x402 standard, with a Coinbase-compatible facilitator implemented. Agents pay agents over standard HTTP. No accounts, no subscriptions. The rail ships in the code and activates when the operator configures a receiving wallet; it is not switched on today.',
 } as const;
 

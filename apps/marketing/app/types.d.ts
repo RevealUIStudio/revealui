@@ -13,6 +13,16 @@ interface ImportMetaEnv {
    * missing so the build stays clean.
    */
   readonly VITE_SENTRY_DSN?: string;
+  /**
+   * Studio-hosted Umami origin (no trailing path). Absent in dev and in prod
+   * until set on the Vercel project; the tracker stays dormant without it.
+   */
+  readonly VITE_UMAMI_URL?: string;
+  /**
+   * Public Umami website id for revealui.com. Not a secret — client-visible
+   * by design. The sink stays dormant when this or `VITE_UMAMI_URL` is absent.
+   */
+  readonly VITE_UMAMI_WEBSITE_ID?: string;
 }
 
 interface ImportMeta {
