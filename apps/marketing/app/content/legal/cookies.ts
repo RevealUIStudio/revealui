@@ -37,7 +37,7 @@ export const COOKIES_SECTIONS: readonly LegalSection[] = [
     heading: '3. Optional tools (off until you accept)',
     listItems: [
       'Vercel Speed Insights: first-party performance timings (Core Web Vitals). Loaded only after analytics consent, and never in a HIPAA configuration.',
-      'Product analytics: a Plausible-compatible beacon with the event name, page URL, and referrer. No advertising cookies and no user id. Sent only after analytics consent, and never when Do Not Track is set.',
+      'Product analytics: Studio-hosted Umami pageviews and UTM parameters (page URL, referrer, campaign tags). No advertising cookies and no user id. Sent only after analytics consent, and never when Do Not Track is set.',
       'Sentry error tracking: crash diagnostics. Session replay and performance tracing load only after analytics consent. A HIPAA configuration keeps Sentry replay and tracing off.',
     ],
     paragraphs: [

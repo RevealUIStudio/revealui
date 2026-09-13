@@ -17,8 +17,9 @@ import { initSentry } from './lib/sentry';
 if (!isHipaaComplianceProfile()) {
   initSentry();
 }
-// Initialise analytics sink. No-op if VITE_ANALYTICS_DOMAIN is absent, DNT is
-// enabled, HIPAA profile is on, or the visitor has not accepted analytics.
+// Initialise analytics sinks. Umami pageviews stay dormant without
+// VITE_UMAMI_URL + VITE_UMAMI_WEBSITE_ID. The Plausible-compatible path stays
+// dormant without VITE_ANALYTICS_DOMAIN. Both skip DNT, HIPAA, and no-consent.
 initAnalytics();
 // Enter visual edit mode only when the URL carries an edit token. No-op otherwise.
 initEditMode();
