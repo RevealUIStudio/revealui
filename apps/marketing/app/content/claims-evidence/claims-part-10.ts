@@ -7,6 +7,8 @@ import {
   TEMPLATES_APIFY_TEST,
   TEMPLATES_GITHUB_TEST,
   TEMPLATES_PAGE_TEST,
+  VERCEL_ONE_CLICK_TEMPLATE,
+  VERCEL_ONE_CLICK_TEST,
 } from './shared-refs.js';
 import type { ClaimEntry } from './types.js';
 
@@ -84,21 +86,13 @@ export const claimsPart10: readonly ClaimEntry[] = [
     text: 'The four Next.js GitHub twins can be cloned onto your Vercel account. You bring your own Neon or Postgres. This is the runtime deploy path, not a Studio SKU and not a Starter Kit. There is no live vercel.com/templates listing URL yet; owner submit is a dashboard step.',
     evidence: [
       TEMPLATES_GITHUB_TEST,
-      {
-        kind: 'test',
-        ref: 'apps/marketing/app/content/__tests__/templates.test.ts#gives Deploy to Vercel clone URLs to the four Next.js GitHub twins only',
-        note: 'Deploy buttons lock to vercel.com/new/clone plus the four GitHub twins; starter-native has none',
-      },
+      VERCEL_ONE_CLICK_TEST,
       {
         kind: 'test',
         ref: 'apps/marketing/app/content/__tests__/templates.test.ts#does not invent a live vercel.com/templates listing URL',
         note: 'listing URL stays null; owner submit is the leftover dashboard step',
       },
-      {
-        kind: 'code',
-        ref: 'deployment/vercel/templates.json',
-        note: 'official submit metadata; listingStatus not-published',
-      },
+      VERCEL_ONE_CLICK_TEMPLATE,
     ],
   },
   {

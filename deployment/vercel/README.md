@@ -50,7 +50,7 @@ Marketplace publish is owner-only. Exact steps:
 | Official submit metadata | [templates.json](./templates.json) |
 | README Deploy-button snippet for GitHub twins | [deploy-button.md](./deploy-button.md) |
 | In-monorepo CLI `vercel.json` | `packages/cli/templates/{starter,basic-blog,e-commerce,portfolio,starter-native}/vercel.json` |
-| Public Deploy buttons | `apps/marketing/app/content/templates.ts` |
+| Public Deploy buttons | `apps/marketing/app/content/templates.ts` (`vercelDeployHref`; env `POSTGRES_URL`, `REVEALUI_SECRET`, `REVEALUI_PUBLIC_SERVER_URL`, `NEXT_PUBLIC_SERVER_URL`; no `stores`) |
 
 ## Residual (owner)
 
