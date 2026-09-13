@@ -55,6 +55,15 @@ describe('REV Guardrail template/plugin blurb', () => {
     expect(REV_GUARDRAIL.doesNotInclude.includes('a separate public price SKU')).toBe(true);
   });
 
+  it('points at the runtime skeleton path, not a checkout SKU', () => {
+    expect(REV_GUARDRAIL.sourcePath).toBe('templates/rev-guardrail');
+    expect(REV_GUARDRAIL.sourceLabel).toBe('Source: templates/rev-guardrail/');
+    expect(Object.hasOwn(REV_GUARDRAIL, 'docsHref')).toBe(false);
+    expect(Object.hasOwn(REV_GUARDRAIL, 'checkoutHref')).toBe(false);
+    expect(REV_GUARDRAIL.sourcePath.startsWith('http')).toBe(false);
+    expect(REV_GUARDRAIL.sourceLabel.includes('$')).toBe(false);
+  });
+
   it('does not sell RevDev, RevForge, RevKit, Fleet, or a $3500 SKU', () => {
     const text = blob();
     for (const phrase of FORBIDDEN) {

@@ -1,6 +1,7 @@
 // Brand-approved REV Guardrail blurb. Agent template / fleet plugin, not a SKU.
 // FDE can wire this module onto other surfaces. /templates renders it as a
 // labeled card so it is not mistaken for a CLI scaffold or a live paid SKU.
+// Runtime skeleton source: templates/rev-guardrail/ (revealui#2858, test target).
 // Not indexed in claims-evidence until the enforcer agent has behavior proofs.
 // Brand longer line used an em dash; house voice requires a period there.
 
@@ -14,6 +15,9 @@ export interface RevGuardrailBlurb {
   readonly includes: readonly string[];
   readonly doesNotInclude: readonly string[];
   readonly sku: null;
+  /** Repo-relative template source. Not a checkout SKU. */
+  readonly sourcePath: 'templates/rev-guardrail';
+  readonly sourceLabel: string;
 }
 
 export const REV_GUARDRAIL: RevGuardrailBlurb = {
@@ -38,4 +42,6 @@ export const REV_GUARDRAIL: RevGuardrailBlurb = {
     'a separate public price SKU',
   ],
   sku: null,
+  sourcePath: 'templates/rev-guardrail',
+  sourceLabel: 'Source: templates/rev-guardrail/',
 } as const;

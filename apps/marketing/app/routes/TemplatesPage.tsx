@@ -109,6 +109,7 @@ export function TemplatesPage() {
             </ul>
           </div>
         </div>
+        <p className="mt-8 font-mono text-sm text-muted-foreground">{REV_GUARDRAIL.sourceLabel}</p>
       </MarketingSection>
 
       <MarketingSection tone="background" density="default" width="narrow">

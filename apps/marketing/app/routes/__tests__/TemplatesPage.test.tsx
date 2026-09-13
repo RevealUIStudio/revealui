@@ -74,8 +74,10 @@ describe('TemplatesPage', () => {
     for (const item of REV_GUARDRAIL.doesNotInclude) {
       expect(screen.getByText(item)).toBeInTheDocument();
     }
+    expect(screen.getByText(REV_GUARDRAIL.sourceLabel)).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: REV_GUARDRAIL.title, level: 1 })).toBeNull();
     expect(screen.queryByRole('link', { name: 'Use this template: REV Guardrail' })).toBeNull();
+    expect(screen.queryByRole('link', { name: REV_GUARDRAIL.sourceLabel })).toBeNull();
   });
 
   it('does not link dead hosts or leftover kits', () => {
