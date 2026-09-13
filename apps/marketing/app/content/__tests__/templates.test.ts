@@ -2,7 +2,7 @@
  * Honesty gate for /templates. Pins the live CLI list, GitHub twins,
  * Apify pay-per-event prices, and the dead-link denylist.
  */
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
@@ -126,6 +126,7 @@ describe('templates catalog honesty', () => {
       'REVEALUI_PUBLIC_SERVER_URL',
       'NEXT_PUBLIC_SERVER_URL',
     ]);
+    expect(existsSync(join(process.cwd(), 'app/content/vercel-one-click.ts'))).toBe(false);
   });
 
   it('does not invent a live vercel.com/templates listing URL', () => {
