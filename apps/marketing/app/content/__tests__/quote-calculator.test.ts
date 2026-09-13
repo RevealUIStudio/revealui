@@ -26,12 +26,20 @@ describe('quote calculator (product-site lockstep)', () => {
   });
 
   it('asks exactly three questions with the two exits', () => {
-    expect(QUOTE_CALCULATOR.questions.who.label).toBe('Who puts it live?');
-    expect(QUOTE_CALCULATOR.questions.what.label).toBe('What has to work?');
-    expect(QUOTE_CALCULATOR.questions.places.label).toBe('How many places?');
+    expect(QUOTE_CALCULATOR.heading).toBe('Who runs it. What you need. One price.');
+    expect(QUOTE_CALCULATOR.body).toBe(
+      'Defaults to self-host licenses. Studio work is on the same form and books at revealuistudio.com.',
+    );
+    expect(QUOTE_CALCULATOR.questions.who.label).toBe('Who runs it?');
+    expect(QUOTE_CALCULATOR.questions.what.label).toBe('What do you need?');
+    expect(QUOTE_CALCULATOR.questions.places.label).toBe('How many sites?');
     expect(QUOTE_CALCULATOR.questions.who.options.map((option) => option.id)).toEqual([
       'self',
       'studio',
+    ]);
+    expect(QUOTE_CALCULATOR.questions.who.options.map((option) => option.label)).toEqual([
+      'I self-host',
+      'Studio implements with me',
     ]);
     expect(QUOTE_CALCULATOR.questions.what.options.map((option) => option.id)).toEqual([
       'consultation',
@@ -39,15 +47,24 @@ describe('quote calculator (product-site lockstep)', () => {
       'launch',
     ]);
     expect(QUOTE_CALCULATOR.questions.what.options.map((option) => option.label)).toEqual([
-      'Consultation with Joshua',
-      'Pilot: one site, one agent you run',
-      'Launch: one live flow on my accounts',
+      'Consultation',
+      'Pilot: one site, one agent I run',
+      'Launch: live on my accounts',
     ]);
     expect(QUOTE_CALCULATOR.questions.places.options.map((option) => option.id)).toEqual([
       'one',
       'many',
     ]);
-    expect(QUOTE_CALCULATOR.questions.places.options[0]?.label).toBe('One business, one place');
+    expect(QUOTE_CALCULATOR.questions.places.options[0]?.label).toBe('One business, one site');
+    expect(QUOTE_CALCULATOR.questions.places.options[1]?.label).toBe(
+      'More than one: book an intro',
+    );
+    expect(QUOTE_CALCULATOR.selfHost.title).toBe('Self-host licenses');
+    expect(QUOTE_CALCULATOR.intro.title).toBe('More than one site');
+    expect(QUOTE_CALCULATOR.intro.body).toBe(
+      'The calculator stops here. Book a 30-minute intro to scope it.',
+    );
+    expect(QUOTE_CALCULATOR.introCta.note).toBe('Google Calendar / Meet.');
   });
 
   it('locksteps printed numbers to public-catalog and the locked SKU trio', () => {
@@ -68,7 +85,7 @@ describe('quote calculator (product-site lockstep)', () => {
   it('prints the self-host quote when Who is I will', () => {
     const quote = resolveQuote({ who: 'self', what: 'consultation', places: 'one' });
     expect(quote.kind).toBe('self-host');
-    expect(quote.title).toBe('Self-host');
+    expect(quote.title).toBe('Self-host licenses');
     expect(quote.lines).toEqual([
       QUOTE_CALCULATOR.selfHost.free,
       QUOTE_CALCULATOR.selfHost.agents,
@@ -157,5 +174,7 @@ describe('quote calculator (product-site lockstep)', () => {
     expect(blob.includes('Maryville')).toBe(false);
     expect(blob.includes('cal.com')).toBe(false);
     expect(blob.includes('14-day')).toBe(false);
+    expect(blob.includes('sit down')).toBe(false);
+    expect(blob.includes('Three questions. A price you can read.')).toBe(false);
   });
 });
