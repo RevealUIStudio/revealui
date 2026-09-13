@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
+import { REV_GUARDRAIL } from '../../content/rev-guardrail';
 import {
   CREATE_REVEALUI_NPM_VERSION,
   TEMPLATES_APIFY,
@@ -52,6 +53,31 @@ describe('TemplatesPage', () => {
     expect(container.textContent ?? '').toContain('$0.00001');
     expect(container.textContent ?? '').toContain('not free');
     expect((container.textContent ?? '').toLowerCase().includes('verify is free')).toBe(false);
+  });
+
+  it('renders REV Guardrail as a template/plugin blurb, not a CLI scaffold or SKU', () => {
+    render(<TemplatesPage />);
+    expect(
+      screen.getByRole('heading', { level: 1, name: TEMPLATES_HERO.title }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 2, name: REV_GUARDRAIL.title }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(REV_GUARDRAIL.eyebrow)).toBeInTheDocument();
+    expect(screen.getByText(REV_GUARDRAIL.shortBlurb)).toBeInTheDocument();
+    expect(screen.getByText(REV_GUARDRAIL.longer)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Includes' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Does not include' })).toBeInTheDocument();
+    for (const item of REV_GUARDRAIL.includes) {
+      expect(screen.getByText(item)).toBeInTheDocument();
+    }
+    for (const item of REV_GUARDRAIL.doesNotInclude) {
+      expect(screen.getByText(item)).toBeInTheDocument();
+    }
+    expect(screen.getByText(REV_GUARDRAIL.sourceLabel)).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: REV_GUARDRAIL.title, level: 1 })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Use this template: REV Guardrail' })).toBeNull();
+    expect(screen.queryByRole('link', { name: REV_GUARDRAIL.sourceLabel })).toBeNull();
   });
 
   it('does not link dead hosts or leftover kits', () => {

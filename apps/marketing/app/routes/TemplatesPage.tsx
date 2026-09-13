@@ -1,5 +1,6 @@
 import { Button, MarketingSection, SectionHeader } from '@revealui/presentation';
 import { Footer } from '../components/Footer';
+import { REV_GUARDRAIL } from '../content/rev-guardrail';
 import {
   TEMPLATES_APIFY,
   TEMPLATES_CLI,
@@ -77,6 +78,38 @@ export function TemplatesPage() {
             </li>
           ))}
         </ul>
+      </MarketingSection>
+
+      <MarketingSection tone="card" density="default" width="narrow">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          {REV_GUARDRAIL.eyebrow}
+        </p>
+        <h2 className="mt-3 font-display text-xl font-semibold text-foreground">
+          {REV_GUARDRAIL.title}
+        </h2>
+        <p className="mt-4 leading-7 text-body">{REV_GUARDRAIL.shortBlurb}</p>
+        <p className="mt-4 leading-7 text-body">{REV_GUARDRAIL.longer}</p>
+        <div className="mt-8 grid gap-8 sm:grid-cols-2">
+          <div>
+            <h3 className="font-display text-base font-semibold text-foreground">Includes</h3>
+            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-body">
+              {REV_GUARDRAIL.includes.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-display text-base font-semibold text-foreground">
+              Does not include
+            </h3>
+            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-body">
+              {REV_GUARDRAIL.doesNotInclude.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <p className="mt-8 font-mono text-sm text-muted-foreground">{REV_GUARDRAIL.sourceLabel}</p>
       </MarketingSection>
 
       <MarketingSection tone="background" density="default" width="narrow">
