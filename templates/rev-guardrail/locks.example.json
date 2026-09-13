@@ -1,0 +1,28 @@
+{
+  "version": "1.0.0",
+  "note": "Policy is this file, not chat. An empty overclaim deny-list warns and does not silent-pass. This public template has no admin-bypass or force-publish flag.",
+  "lanes": {
+    "one_owner_per_ship": true,
+    "ships": [
+      { "id": "runtime", "owner": "platform" },
+      { "id": "offers", "owner": "commercial" },
+      { "id": "honesty", "owner": "guardrail" }
+    ]
+  },
+  "cash_ladder": {
+    "consultation": { "label": "Consultation", "price_usd": 300 },
+    "pilot": { "label": "Pilot", "price_usd": 1500 },
+    "launch": { "label": "Launch", "price_usd": 7500 }
+  },
+  "snapshot_before_checkpoint": "required",
+  "overclaim": {
+    "deny_patterns": ["SOC 2 certified", "we are SOC 2", "is SOC 2 certified"],
+    "vendor_soc2_allow_patterns": ["Neon's SOC 2", "Neon SOC 2", "Stripe's SOC 2", "Stripe SOC 2"],
+    "empty_deny_list": "warn"
+  },
+  "banned_icp_phrases": {
+    "mode": "optional",
+    "soft_list": ["Fortune 500 theater", "Maryville shop"]
+  },
+  "enforcement_verbs": ["block_publish", "require_snapshot", "refuse_overclaim", "needs_human"]
+}
