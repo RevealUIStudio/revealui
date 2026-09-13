@@ -267,9 +267,11 @@ describe('PricingPage product catalog', () => {
 
     const comingSoonBadges = screen.getAllByText('Coming soon', { exact: true });
     expect(comingSoonBadges).toHaveLength(1);
-    expect(x402Card?.contains(comingSoonBadges[0])).toBe(true);
-    expect(a2aCard?.contains(comingSoonBadges[0])).toBe(false);
-    expect(mcpCard?.contains(comingSoonBadges[0])).toBe(false);
+    const comingSoonBadge = comingSoonBadges[0] ?? null;
+    expect(comingSoonBadge).not.toBeNull();
+    expect(x402Card?.contains(comingSoonBadge)).toBe(true);
+    expect(a2aCard?.contains(comingSoonBadge)).toBe(false);
+    expect(mcpCard?.contains(comingSoonBadge)).toBe(false);
     expect(a2aCard?.textContent?.includes('Coming soon')).toBe(false);
     expect(mcpCard?.textContent?.includes('Marketplace discovery coming soon.')).toBe(true);
     expect(PRICING_AGENT_X402.badge).toBe('Coming soon');
