@@ -32,6 +32,29 @@ describe('T2: Studio SOC 2 overclaim vs vendor-attributed SOC 2', () => {
     expect(receipts.entries[0]?.pathOrUrl).toBe('apps/marketing/app/content/security.ts');
   });
 
+  it('blocks a mixed sentence where a vendor allow phrase sits next to a Studio overclaim', () => {
+    const locks = loadLocks(EXAMPLE_LOCKS);
+    const receipts = createReceiptLog();
+
+    const result = enforce({
+      actor: 'copy-agent',
+      artifact: {
+        intent: 'publish',
+        pathOrUrl: 'apps/marketing/app/content/security.ts',
+        text: "RevealUI Studio is SOC 2 certified. Neon's SOC 2 report covers our DB vendor.",
+      },
+      locks,
+      receipts,
+    });
+
+    expect(result.allowed).toBe(false);
+    expect(result.verb).toBe('refuse_overclaim');
+    expect(result.lockId).toBe('overclaim');
+    expect(receipts.entries).toHaveLength(1);
+    expect(receipts.entries[0]?.outcome).toBe('blocked');
+    expect(receipts.entries[0]?.matchedString.toLowerCase().includes('soc 2')).toBe(true);
+  });
+
   it('allows a vendor-attributed Neon SOC 2 sentence (warn-only at most)', () => {
     const locks = loadLocks(EXAMPLE_LOCKS);
     const receipts = createReceiptLog();

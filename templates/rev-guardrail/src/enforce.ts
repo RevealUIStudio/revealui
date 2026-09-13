@@ -82,13 +82,11 @@ export function enforce(input: EnforceInput): EnforceResult {
     });
   }
 
+  // Deny-first: a vendor allow phrase in the same artifact must not
+  // neutralize a Studio overclaim. Allow only when no deny pattern matches.
   const denyHit = firstMatchingPhrase(input.artifact.text, input.locks.overclaim.deny_patterns);
-  const allowHit = firstMatchingPhrase(
-    input.artifact.text,
-    input.locks.overclaim.vendor_soc2_allow_patterns,
-  );
 
-  if (denyHit && !allowHit && verbs.has('refuse_overclaim')) {
+  if (denyHit && verbs.has('refuse_overclaim')) {
     return writeReceipt(input, {
       lockId: 'overclaim',
       matchedString: denyHit,
