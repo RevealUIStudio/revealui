@@ -71,7 +71,7 @@ export const claimsPart7: readonly ClaimEntry[] = [
   {
     file: 'legal/cookies.ts',
     exportPath: 'COOKIES_SECTIONS[2].listItems[1]',
-    text: 'Product analytics: a Plausible-compatible beacon with the event name, page URL, and referrer. No advertising cookies and no user id. Sent only after analytics consent, and never when Do Not Track is set.',
+    text: 'Product analytics: Studio-hosted Umami pageviews and UTM parameters (page URL, referrer, campaign tags). No advertising cookies and no user id. Sent only after analytics consent, and never when Do Not Track is set.',
     evidence: [LEGAL_COOKIES_CONTENT],
   },
   {

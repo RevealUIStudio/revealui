@@ -1,10 +1,14 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-function makeDocumentStub() {
+const UMAMI_URL = 'https://revealui-umami.fly.dev';
+const UMAMI_WEBSITE_ID = 'ae84350d-1ea1-4515-b921-a6b14854d457';
+const UMAMI_SEND_ENDPOINT = `${UMAMI_URL}/api/send`;
+
+function makeListenerHub() {
   const listeners: Map<string, EventListenerOrEventListenerObject[]> = new Map();
   return {
-    referrer: '',
-    cookie: `revealui-cookie-consent=${encodeURIComponent(JSON.stringify({ analytics: true }))}`,
     addEventListener(type: string, handler: EventListenerOrEventListenerObject) {
       const list = listeners.get(type) ?? [];
       list.push(handler);
@@ -22,6 +26,72 @@ function makeDocumentStub() {
       return true;
     },
   };
+}
+
+function makeDocumentStub(
+  cookie = `revealui-cookie-consent=${encodeURIComponent(JSON.stringify({ analytics: true }))}`,
+) {
+  return {
+    ...makeListenerHub(),
+    referrer: 'https://news.example/article',
+    title: 'Pricing | RevealUI',
+    cookie,
+  };
+}
+
+function makeWindowStub(overrides?: {
+  href?: string;
+  pathname?: string;
+  search?: string;
+  hostname?: string;
+}) {
+  const href =
+    overrides?.href ??
+    'https://revealui.com/pricing?utm_source=newsletter&utm_medium=email&utm_campaign=launch';
+  const url = new URL(href);
+  const hub = makeListenerHub();
+  const location = {
+    href,
+    pathname: overrides?.pathname ?? url.pathname,
+    search: overrides?.search ?? url.search,
+    hostname: overrides?.hostname ?? url.hostname,
+  };
+  const historyState = {
+    pushState(_data: unknown, _unused: string, nextUrl?: string | URL | null) {
+      if (typeof nextUrl === 'string') {
+        const resolved = new URL(nextUrl, url.origin);
+        location.href = resolved.href;
+        location.pathname = resolved.pathname;
+        location.search = resolved.search;
+        location.hostname = resolved.hostname;
+      }
+    },
+    replaceState(_data: unknown, _unused: string, nextUrl?: string | URL | null) {
+      historyState.pushState(_data, _unused, nextUrl);
+    },
+  };
+  return {
+    ...hub,
+    location,
+    history: historyState,
+    screen: { width: 1440, height: 900 },
+    doNotTrack: undefined as string | undefined,
+  };
+}
+
+async function readBeaconPayload(
+  callIndex = 0,
+): Promise<{ url: string; body: Record<string, unknown> }> {
+  const [endpoint, blob] = (navigator.sendBeacon as ReturnType<typeof vi.fn>).mock.calls[
+    callIndex
+  ] as [string, Blob];
+  const text = await blob.text();
+  return { url: endpoint, body: JSON.parse(text) as Record<string, unknown> };
+}
+
+function stubUmamiEnv(): void {
+  vi.stubEnv('VITE_UMAMI_URL', UMAMI_URL);
+  vi.stubEnv('VITE_UMAMI_WEBSITE_ID', UMAMI_WEBSITE_ID);
 }
 
 beforeEach(() => {
@@ -131,5 +201,158 @@ describe('analytics sink', () => {
     );
 
     expect(navigator.sendBeacon).toHaveBeenCalledOnce();
+  });
+});
+
+describe('Umami traffic sink', () => {
+  function installUmamiStubs(options?: { cookie?: string; href?: string }): void {
+    vi.stubGlobal('document', makeDocumentStub(options?.cookie));
+    vi.stubGlobal('navigator', {
+      sendBeacon: vi.fn(() => true),
+      doNotTrack: null,
+      language: 'en-US',
+    });
+    vi.stubGlobal('window', makeWindowStub(options?.href ? { href: options.href } : undefined));
+  }
+
+  it('is dormant when Umami env is unset', async () => {
+    installUmamiStubs();
+    const { initAnalytics } = await import('../lib/analytics');
+    initAnalytics();
+    expect(navigator.sendBeacon).not.toHaveBeenCalled();
+  });
+
+  it('sends a consent-gated pageview to Studio Umami /api/send with UTM query', async () => {
+    stubUmamiEnv();
+    installUmamiStubs();
+    const { initAnalytics } = await import('../lib/analytics');
+    initAnalytics();
+
+    expect(navigator.sendBeacon).toHaveBeenCalledOnce();
+    const { url, body } = await readBeaconPayload();
+    expect(url).toBe(UMAMI_SEND_ENDPOINT);
+    expect(body.type).toBe('event');
+    const payload = body.payload as Record<string, unknown>;
+    expect(payload.website).toBe(UMAMI_WEBSITE_ID);
+    expect(payload.hostname).toBe('revealui.com');
+    expect(payload.url).toBe('/pricing?utm_source=newsletter&utm_medium=email&utm_campaign=launch');
+    expect(payload.name).toBeUndefined();
+    expect(payload.referrer).toBe('https://news.example/article');
+    expect(payload.title).toBe('Pricing | RevealUI');
+    expect(payload.language).toBe('en-US');
+    expect(payload.screen).toBe('1440x900');
+  });
+
+  it('does not send a Umami pageview without analytics consent', async () => {
+    stubUmamiEnv();
+    installUmamiStubs({ cookie: '' });
+    const { initAnalytics, track } = await import('../lib/analytics');
+    initAnalytics();
+    track('Audience Selected', { audience: 'technical' });
+    expect(navigator.sendBeacon).not.toHaveBeenCalled();
+  });
+
+  it('does not send a Umami pageview when DNT is enabled', async () => {
+    stubUmamiEnv();
+    installUmamiStubs();
+    vi.stubGlobal('navigator', {
+      sendBeacon: vi.fn(() => true),
+      doNotTrack: '1',
+      language: 'en-US',
+    });
+    const { initAnalytics } = await import('../lib/analytics');
+    initAnalytics();
+    expect(navigator.sendBeacon).not.toHaveBeenCalled();
+  });
+
+  it('does not send a Umami pageview in the HIPAA profile', async () => {
+    stubUmamiEnv();
+    vi.stubEnv('VITE_COMPLIANCE_PROFILE', 'hipaa');
+    installUmamiStubs();
+    const { initAnalytics, track } = await import('../lib/analytics');
+    initAnalytics();
+    track('Audience Selected', { audience: 'technical' });
+    expect(navigator.sendBeacon).not.toHaveBeenCalled();
+  });
+
+  it('forwards custom track() events to Umami /api/send', async () => {
+    stubUmamiEnv();
+    installUmamiStubs();
+    const { track } = await import('../lib/analytics');
+    track('Audience Selected', { audience: 'technical' });
+
+    expect(navigator.sendBeacon).toHaveBeenCalledOnce();
+    const { url, body } = await readBeaconPayload();
+    expect(url).toBe(UMAMI_SEND_ENDPOINT);
+    const payload = body.payload as Record<string, unknown>;
+    expect(payload.name).toBe('Audience Selected');
+    expect(payload.website).toBe(UMAMI_WEBSITE_ID);
+    expect(payload.data).toEqual({ audience: 'technical' });
+  });
+
+  it('sends a pageview after analytics consent is granted', async () => {
+    stubUmamiEnv();
+    installUmamiStubs({ cookie: '' });
+    const { initAnalytics } = await import('../lib/analytics');
+    initAnalytics();
+    expect(navigator.sendBeacon).not.toHaveBeenCalled();
+
+    vi.stubGlobal(
+      'document',
+      makeDocumentStub(
+        `revealui-cookie-consent=${encodeURIComponent(JSON.stringify({ analytics: true }))}`,
+      ),
+    );
+    window.dispatchEvent(
+      new CustomEvent('revealui:cookie-consent', { detail: { analytics: true } }),
+    );
+
+    expect(navigator.sendBeacon).toHaveBeenCalledOnce();
+    const { url, body } = await readBeaconPayload();
+    expect(url).toBe(UMAMI_SEND_ENDPOINT);
+    expect((body.payload as Record<string, unknown>).name).toBeUndefined();
+  });
+
+  it('sends a second pageview on SPA history.pushState', async () => {
+    stubUmamiEnv();
+    installUmamiStubs({ href: 'https://revealui.com/' });
+    const { initAnalytics } = await import('../lib/analytics');
+    initAnalytics();
+    expect(navigator.sendBeacon).toHaveBeenCalledOnce();
+
+    window.history.pushState(null, '', '/products');
+
+    expect(navigator.sendBeacon).toHaveBeenCalledTimes(2);
+    const second = await readBeaconPayload(1);
+    expect(second.url).toBe(UMAMI_SEND_ENDPOINT);
+    expect((second.body.payload as Record<string, unknown>).url).toBe('/products');
+  });
+
+  it('does not load Vercel Web Analytics', async () => {
+    const entry = readFileSync(path.resolve(process.cwd(), 'app/entry.client.tsx'), 'utf8');
+    const pkg = readFileSync(path.resolve(process.cwd(), 'package.json'), 'utf8');
+    expect(entry.includes('@vercel/analytics')).toBe(false);
+    expect(pkg.includes('@vercel/analytics')).toBe(false);
+  });
+});
+
+describe('marketing CSP allowlist for Studio Umami', () => {
+  it('allows revealui-umami.fly.dev on script-src and connect-src and keeps Sentry ingest', () => {
+    const vercel = JSON.parse(readFileSync(path.resolve(process.cwd(), 'vercel.json'), 'utf8')) as {
+      headers?: Array<{ headers?: Array<{ key: string; value: string }> }>;
+    };
+    const csp = vercel.headers
+      ?.flatMap((entry) => entry.headers ?? [])
+      .find((header) => header.key === 'Content-Security-Policy')?.value;
+
+    expect(csp).toBeDefined();
+    const directives = (csp ?? '').split('; ');
+    const scriptSrc = directives.find((directive) => directive.startsWith('script-src '));
+    const connectSrc = directives.find((directive) => directive.startsWith('connect-src '));
+
+    expect(scriptSrc?.includes(UMAMI_URL)).toBe(true);
+    expect(connectSrc?.includes(UMAMI_URL)).toBe(true);
+    expect(connectSrc?.includes('https://*.ingest.sentry.io')).toBe(true);
+    expect(connectSrc?.includes('https://*.ingest.us.sentry.io')).toBe(true);
   });
 });
