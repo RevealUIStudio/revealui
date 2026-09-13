@@ -297,9 +297,6 @@ export function PricingPage() {
               description={PRICING_AGENTS_SECTION.subhead}
               align="center"
             />
-            <span className="mt-3 inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary ring-1 ring-primary/30">
-              {PRICING_AGENTS_SECTION.badge}
-            </span>
           </div>
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
@@ -325,9 +322,14 @@ export function PricingPage() {
               <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
                 <IconTerminal size="md" className="text-primary" />
               </div>
-              <h3 className="text-base font-semibold text-foreground">
-                {PRICING_AGENT_X402.heading}
-              </h3>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-base font-semibold text-foreground">
+                  {PRICING_AGENT_X402.heading}
+                </h3>
+                <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary ring-1 ring-primary/30">
+                  {PRICING_AGENT_X402.badge}
+                </span>
+              </div>
               <p className="mt-2 text-sm text-body">{PRICING_AGENT_X402.body}</p>
             </div>
             <div className="rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">

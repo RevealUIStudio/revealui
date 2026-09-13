@@ -1,6 +1,12 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  PRICING_AGENT_A2A,
+  PRICING_AGENT_MCP,
+  PRICING_AGENT_X402,
+  PRICING_AGENTS_SECTION,
+} from '../../content/pricing';
 import { SITE } from '../../content/site';
 import { PricingPage } from '../PricingPage';
 
@@ -242,6 +248,32 @@ describe('PricingPage product catalog', () => {
     expect(text.includes('RevSkills')).toBe(false);
     expect(text.includes('RevMarket')).toBe(false);
     expect(text.includes('RevVault is encrypted secret management inside Pro')).toBe(true);
+  });
+
+  it('keeps Coming soon on the x402 card only, not the Agents band', async () => {
+    render(<PricingPage />);
+    const sectionHeading = await screen.findByRole('heading', {
+      name: PRICING_AGENTS_SECTION.heading,
+    });
+    const header = sectionHeading.closest('.text-center') ?? sectionHeading.parentElement;
+    expect(header?.textContent?.includes('Coming soon')).toBe(false);
+
+    const a2a = screen.getByRole('heading', { name: PRICING_AGENT_A2A.heading });
+    const x402 = screen.getByRole('heading', { name: PRICING_AGENT_X402.heading });
+    const mcp = screen.getByRole('heading', { name: PRICING_AGENT_MCP.heading });
+    const a2aCard = a2a.closest('div.rounded-2xl') ?? a2a.parentElement;
+    const x402Card = x402.closest('div.rounded-2xl') ?? x402.parentElement;
+    const mcpCard = mcp.closest('div.rounded-2xl') ?? mcp.parentElement;
+
+    const comingSoonBadges = screen.getAllByText('Coming soon', { exact: true });
+    expect(comingSoonBadges).toHaveLength(1);
+    expect(x402Card?.contains(comingSoonBadges[0])).toBe(true);
+    expect(a2aCard?.contains(comingSoonBadges[0])).toBe(false);
+    expect(mcpCard?.contains(comingSoonBadges[0])).toBe(false);
+    expect(a2aCard?.textContent?.includes('Coming soon')).toBe(false);
+    expect(mcpCard?.textContent?.includes('Marketplace discovery coming soon.')).toBe(true);
+    expect(PRICING_AGENT_X402.badge).toBe('Coming soon');
+    expect('badge' in PRICING_AGENTS_SECTION).toBe(false);
   });
 
   it('links the final Get Started Free CTA to admin signup', async () => {
