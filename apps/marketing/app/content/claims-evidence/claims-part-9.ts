@@ -62,7 +62,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
   {
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.questions.what.options[1].label',
-    text: 'Pilot — one site, one agent I run',
+    text: 'Pilot: one site, one agent I run',
     evidence: [
       {
         kind: 'test',
@@ -74,7 +74,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
   {
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.questions.what.options[2].label',
-    text: 'Launch — live on my accounts',
+    text: 'Launch: live on my accounts',
     evidence: [
       {
         kind: 'test',
@@ -86,7 +86,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
   {
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.questions.places.options[1].label',
-    text: 'More than one — book an intro',
+    text: 'More than one: book an intro',
     evidence: [
       {
         kind: 'test',
@@ -154,7 +154,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.intro.body',
     proofGrade: 'outcome',
-    text: 'The calculator stops here. Book a 30-minute intro and we scope it.',
+    text: 'The calculator stops here. Book a 30-minute intro to scope it.',
     evidence: [
       {
         kind: 'test',

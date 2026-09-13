@@ -84,16 +84,16 @@ export const QUOTE_CALCULATOR = {
     what: {
       label: 'What do you need?',
       options: [
-        { id: 'consultation', label: 'Consultation — $300' },
-        { id: 'pilot', label: 'Pilot — one site, one agent I run' },
-        { id: 'launch', label: 'Launch — live on my accounts' },
+        { id: 'consultation', label: 'Consultation' },
+        { id: 'pilot', label: 'Pilot: one site, one agent I run' },
+        { id: 'launch', label: 'Launch: live on my accounts' },
       ] as const satisfies readonly QuoteOption<WhatWork>[],
     },
     places: {
       label: 'How many sites?',
       options: [
         { id: 'one', label: 'One business, one site' },
-        { id: 'many', label: 'More than one — book an intro' },
+        { id: 'many', label: 'More than one: book an intro' },
       ] as const satisfies readonly QuoteOption<PlaceCount>[],
     },
   },
@@ -124,7 +124,7 @@ export const QUOTE_CALCULATOR = {
   },
   intro: {
     title: 'More than one site',
-    body: 'The calculator stops here. Book a 30-minute intro and we scope it.',
+    body: 'The calculator stops here. Book a 30-minute intro to scope it.',
   },
   ownership: [
     'You own the accounts and the data.',

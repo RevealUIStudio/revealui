@@ -47,9 +47,9 @@ describe('quote calculator (product-site lockstep)', () => {
       'launch',
     ]);
     expect(QUOTE_CALCULATOR.questions.what.options.map((option) => option.label)).toEqual([
-      'Consultation — $300',
-      'Pilot — one site, one agent I run',
-      'Launch — live on my accounts',
+      'Consultation',
+      'Pilot: one site, one agent I run',
+      'Launch: live on my accounts',
     ]);
     expect(QUOTE_CALCULATOR.questions.places.options.map((option) => option.id)).toEqual([
       'one',
@@ -57,12 +57,12 @@ describe('quote calculator (product-site lockstep)', () => {
     ]);
     expect(QUOTE_CALCULATOR.questions.places.options[0]?.label).toBe('One business, one site');
     expect(QUOTE_CALCULATOR.questions.places.options[1]?.label).toBe(
-      'More than one — book an intro',
+      'More than one: book an intro',
     );
     expect(QUOTE_CALCULATOR.selfHost.title).toBe('Self-host licenses');
     expect(QUOTE_CALCULATOR.intro.title).toBe('More than one site');
     expect(QUOTE_CALCULATOR.intro.body).toBe(
-      'The calculator stops here. Book a 30-minute intro and we scope it.',
+      'The calculator stops here. Book a 30-minute intro to scope it.',
     );
     expect(QUOTE_CALCULATOR.introCta.note).toBe('Google Calendar / Meet.');
   });
