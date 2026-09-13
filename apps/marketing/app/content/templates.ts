@@ -3,6 +3,7 @@
 // Deploy-to-Vercel clone URLs for those twins, Apify pay-per-event prices.
 // starter-native has no GitHub twin and no Deploy button.
 // vercel.com/templates listing is not live (owner submit only).
+// Agent-template blurbs (not CLI scaffolds, not a SKU): see rev-guardrail.ts.
 
 import { SITE } from './site';
 
