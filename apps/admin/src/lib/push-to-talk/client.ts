@@ -1,17 +1,9 @@
-import { getPushToTalkConfig } from './config';
+import { getPushToTalkConfig, resolveWhisperEngine } from './config';
 import { isAllowedWhisperEndpoint } from './policy';
+import type { TranscribeFailureReason, TranscribeResult } from './types';
+import { transcribeWithWasm } from './wasm';
 
-export type TranscribeFailureReason =
-  | 'sidecar-unavailable'
-  | 'forbidden-endpoint'
-  | 'empty-audio'
-  | 'invalid-response'
-  | 'timeout'
-  | 'too-large';
-
-export type TranscribeResult =
-  | { ok: true; text: string }
-  | { ok: false; reason: TranscribeFailureReason; message: string };
+export type { TranscribeFailureReason, TranscribeResult };
 
 export interface TranscribeLocalWhisperOptions {
   fetch?: typeof fetch;
@@ -21,11 +13,15 @@ export interface TranscribeLocalWhisperOptions {
   maxAudioBytes?: number;
 }
 
+export interface TranscribeVoiceOptions extends TranscribeLocalWhisperOptions {
+  wasm?: typeof transcribeWithWasm;
+}
+
 const SIDECAR_MISSING_MESSAGE =
-  'Local Whisper sidecar is not running. Start whisper small on loopback (WHISPER_URL, default http://127.0.0.1:8178) — see docs/runbooks/admin-chat-local-whisper.md.';
+  'Local Whisper sidecar is not reachable. On a laptop, start whisper small at http://127.0.0.1:8178. On a phone, leave WHISPER_URL unset to use on-device Whisper, or point it at a Cloudflare Tunnel to the laptop sidecar — see docs/runbooks/admin-chat-local-whisper.md.';
 
 const FORBIDDEN_MESSAGE =
-  'Voice input only talks to a local Whisper sidecar. Cloud speech-to-text is disabled.';
+  'Voice input only talks to on-device Whisper or an operator-pinned local/tunnel sidecar. Cloud speech-to-text is disabled.';
 
 function readTranscriptPayload(payload: unknown): string | null {
   if (!payload || typeof payload !== 'object') return null;
@@ -41,21 +37,24 @@ function fail(reason: TranscribeFailureReason, message: string): TranscribeResul
 }
 
 /**
- * POST audio to a local OpenAI-compatible Whisper endpoint.
- * Fail closed when the sidecar is missing or the URL is not loopback.
+ * POST audio to an operator-pinned OpenAI-compatible Whisper sidecar.
+ * Fail closed when the sidecar is missing or the URL is a cloud STT host.
  */
 export async function transcribeLocalWhisper(
   audio: Blob,
   options: TranscribeLocalWhisperOptions = {},
 ): Promise<TranscribeResult> {
   const cfg = getPushToTalkConfig();
-  const url = options.url ?? cfg.whisperUrl;
+  const resolvedUrl = options.url ?? (cfg.whisperUrl.length > 0 ? cfg.whisperUrl : '');
   const timeoutMs = options.timeoutMs ?? cfg.timeoutMs;
   const model = options.model ?? cfg.model;
   const maxAudioBytes = options.maxAudioBytes ?? cfg.maxAudioBytes;
   const fetchImpl = options.fetch ?? globalThis.fetch;
 
-  if (!isAllowedWhisperEndpoint(url)) {
+  if (!resolvedUrl) {
+    return fail('sidecar-unavailable', SIDECAR_MISSING_MESSAGE);
+  }
+  if (!isAllowedWhisperEndpoint(resolvedUrl)) {
     return fail('forbidden-endpoint', FORBIDDEN_MESSAGE);
   }
 
@@ -72,7 +71,11 @@ export async function transcribeLocalWhisper(
   }
 
   const form = new FormData();
-  const filename = audio.type.includes('wav') ? 'speech.wav' : 'speech.webm';
+  const filename = audio.type.includes('wav')
+    ? 'speech.wav'
+    : audio.type.includes('mp4')
+      ? 'speech.m4a'
+      : 'speech.webm';
   form.append('file', audio, filename);
   form.append('model', model);
   form.append('response_format', 'json');
@@ -81,7 +84,7 @@ export async function transcribeLocalWhisper(
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetchImpl(url, {
+    const response = await fetchImpl(resolvedUrl, {
       method: 'POST',
       body: form,
       signal: controller.signal,
@@ -113,6 +116,19 @@ export async function transcribeLocalWhisper(
   } finally {
     clearTimeout(timer);
   }
+}
+
+/** Phone default: on-device WASM. Laptop / tunnel: sidecar when WHISPER_URL is set. */
+export async function transcribeVoice(
+  audio: Blob,
+  options: TranscribeVoiceOptions = {},
+): Promise<TranscribeResult> {
+  const engine = resolveWhisperEngine();
+  if (engine === 'wasm') {
+    const wasm = options.wasm ?? transcribeWithWasm;
+    return wasm(audio);
+  }
+  return transcribeLocalWhisper(audio, options);
 }
 
 export const LOCAL_WHISPER_FAIL_CLOSED_MESSAGE = SIDECAR_MISSING_MESSAGE;

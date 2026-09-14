@@ -37,7 +37,7 @@
  * to a SaaS host.
  */
 
-import { DEFAULT_WHISPER_ORIGIN } from '../push-to-talk/config';
+import { DEFAULT_WHISPER_ORIGIN, WHISPER_WASM_MODEL_CONNECT_ORIGINS } from '../push-to-talk/config';
 import { whisperConnectSrcOrigin } from '../push-to-talk/policy';
 
 export interface AdminCspOptions {
@@ -130,6 +130,8 @@ export function buildAdminCsp(options: AdminCspOptions): string {
     "'self'",
     `'nonce-${nonce}'`,
     ...(isDev ? ["'unsafe-eval'"] : []),
+    // On-device Whisper (phone seat) compiles WASM in-page.
+    "'wasm-unsafe-eval'",
     ...(isFleetMode
       ? []
       : [
@@ -165,6 +167,7 @@ export function buildAdminCsp(options: AdminCspOptions): string {
       : []),
     ...(isVercel ? [] : ['http://localhost:3000', 'http://localhost:4000']),
     ...localWhisperConnectSrc(whisperUrl),
+    ...WHISPER_WASM_MODEL_CONNECT_ORIGINS,
   ];
 
   const r2Origin = originOf(r2PublicBaseUrl);
@@ -188,6 +191,7 @@ export function buildAdminCsp(options: AdminCspOptions): string {
     "font-src 'self' data:",
     `frame-src ${frameSrc.join(' ')}`,
     `connect-src ${connectSrc.join(' ')}`,
+    "worker-src 'self' blob:",
     // No <object>/<embed> anywhere in admin; the old hosted-mode Cloudinary
     // object-src was dead config (Cloudinary is not a storage backend — R2 is
     // canonical and sole, GAP-208).

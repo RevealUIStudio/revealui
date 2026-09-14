@@ -13,7 +13,7 @@ export interface PushToTalkButtonProps {
 function statusLabel(status: string, disabled: boolean): string {
   if (disabled) return 'Hold to talk';
   if (status === 'recording') return 'Listening… release to insert';
-  if (status === 'transcribing') return 'Transcribing…';
+  if (status === 'transcribing') return 'Transcribing on-device…';
   return 'Hold to talk';
 }
 
@@ -45,7 +45,7 @@ export function PushToTalkButton({
   const label = statusLabel(ptt.status, disabled);
 
   return (
-    <div className="flex min-w-0 flex-col items-stretch gap-1">
+    <div className="flex w-full min-w-0 flex-col items-stretch gap-1">
       <Button
         type="button"
         appearance={ptt.isRecording ? 'solid' : 'outline'}
@@ -53,7 +53,7 @@ export function PushToTalkButton({
         disabled={disabled || ptt.status === 'transcribing'}
         aria-label={label}
         aria-pressed={ptt.isRecording}
-        className="h-auto shrink-0 select-none rounded-xl px-3 py-2.5 text-sm font-medium touch-none sm:px-4 sm:py-3"
+        className="h-14 w-full min-h-14 shrink-0 select-none rounded-xl px-4 text-base font-medium touch-manipulation touch-none sm:h-12 sm:min-h-12 sm:text-sm"
         onPointerDown={(event) => {
           if (event.button !== 0) return;
           event.preventDefault();
@@ -80,7 +80,7 @@ export function PushToTalkButton({
         {label}
       </Button>
       {ptt.errorMessage ? (
-        <p role="alert" className="max-w-56 text-xs text-error">
+        <p role="alert" className="text-xs text-error">
           {ptt.errorMessage}
         </p>
       ) : null}

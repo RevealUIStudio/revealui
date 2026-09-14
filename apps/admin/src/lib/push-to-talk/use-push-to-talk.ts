@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { type TranscribeResult, transcribeLocalWhisper } from './client';
+import { pickRecorderMimeType } from './audio';
+import { type TranscribeResult, transcribeVoice } from './client';
 import { getPushToTalkConfig } from './config';
 
 export type PushToTalkStatus = 'idle' | 'recording' | 'transcribing' | 'error';
@@ -57,7 +58,10 @@ function defaultCreateRecorder(stream: MediaStream, mimeType: string): MediaReco
   if (!Ctor) {
     throw new Error(MIC_UNSUPPORTED_MESSAGE);
   }
-  const options = Ctor.isTypeSupported?.(mimeType) ? { mimeType } : undefined;
+  const supported =
+    pickRecorderMimeType(Ctor.isTypeSupported?.bind(Ctor)) ||
+    (Ctor.isTypeSupported?.(mimeType) ? mimeType : '');
+  const options = supported ? { mimeType: supported } : undefined;
   return new Ctor(stream, options);
 }
 
@@ -76,7 +80,7 @@ export function usePushToTalk(deps: PushToTalkDependencies = {}): UsePushToTalkR
   const chunksRef = useRef<Blob[]>([]);
   const holdGenerationRef = useRef(0);
 
-  const transcribe = deps.transcribe ?? transcribeLocalWhisper;
+  const transcribe = deps.transcribe ?? transcribeVoice;
   const getUserMedia = deps.getUserMedia ?? defaultGetUserMedia;
   const createRecorder = deps.createRecorder ?? defaultCreateRecorder;
 

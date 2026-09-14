@@ -126,7 +126,7 @@ Found 8 images from January 2026:
 
 ## Voice Input
 
-Studio dogfood: hold-to-talk on Agent `/chat` uses a **local Whisper `small` sidecar** (see `docs/runbooks/admin-chat-local-whisper.md`). Mic stays off until you press and hold. Release inserts the transcript into the composer; you still click Send.
+Studio dogfood: hold-to-talk on Agent `/chat` uses **on-device Whisper** on a phone and a **localhost sidecar** on a laptop (see `docs/runbooks/admin-chat-local-whisper.md`). Mic stays off until you press and hold. Release inserts the transcript into the composer; you still click Send.
 
 ## Input Modes
 

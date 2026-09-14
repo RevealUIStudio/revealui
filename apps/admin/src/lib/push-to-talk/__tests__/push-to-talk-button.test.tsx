@@ -37,6 +37,8 @@ describe('PushToTalkButton', () => {
 
     const button = screen.getByRole('button', { name: 'Hold to talk' });
     expect(button).toHaveAttribute('aria-pressed', 'false');
+    expect(button.className).toContain('min-h-14');
+    expect(button.className).toContain('w-full');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 

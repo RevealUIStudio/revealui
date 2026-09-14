@@ -990,44 +990,46 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
             />
           </Field>
         </div>
-        <form onSubmit={handleSubmit} className="mx-auto flex max-w-3xl items-end gap-2 sm:gap-3">
-          <Textarea
-            ref={textareaRef}
-            className="flex-1 resize-none rounded-xl border border-border bg-muted px-3 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20 sm:px-4 sm:py-3"
-            value={input}
-            onChange={handleTextareaChange}
-            onKeyDown={handleKeyDown}
-            rows={1}
-            placeholder={
-              agentMode === 'coding'
-                ? 'Ask about code, run commands, make changes...'
-                : 'Ask the assistant...'
-            }
-            disabled={stream.isStreaming || !!pendingConfirmation}
-          />
+        <form onSubmit={handleSubmit} className="mx-auto flex max-w-3xl flex-col gap-2">
+          <div className="flex items-end gap-2 sm:gap-3">
+            <Textarea
+              ref={textareaRef}
+              className="flex-1 resize-none rounded-xl border border-border bg-muted px-3 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20 sm:px-4 sm:py-3"
+              value={input}
+              onChange={handleTextareaChange}
+              onKeyDown={handleKeyDown}
+              rows={1}
+              placeholder={
+                agentMode === 'coding'
+                  ? 'Ask about code, run commands, make changes...'
+                  : 'Ask the assistant...'
+              }
+              disabled={stream.isStreaming || !!pendingConfirmation}
+            />
+            {stream.isStreaming ? (
+              <Button
+                type="button"
+                variant="danger"
+                onClick={stream.abort}
+                className="h-auto shrink-0 rounded-xl px-4 py-2.5 text-sm font-medium sm:px-5 sm:py-3"
+              >
+                Stop
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                variant="brand"
+                disabled={!input.trim()}
+                className="h-auto shrink-0 rounded-xl px-4 py-2.5 text-sm font-medium sm:px-5 sm:py-3"
+              >
+                Send
+              </Button>
+            )}
+          </div>
           <PushToTalkButton
             disabled={stream.isStreaming || !!pendingConfirmation}
             onTranscript={handleVoiceTranscript}
           />
-          {stream.isStreaming ? (
-            <Button
-              type="button"
-              variant="danger"
-              onClick={stream.abort}
-              className="h-auto shrink-0 rounded-xl px-4 py-2.5 text-sm font-medium sm:px-5 sm:py-3"
-            >
-              Stop
-            </Button>
-          ) : (
-            <Button
-              type="submit"
-              variant="brand"
-              disabled={!input.trim()}
-              className="h-auto shrink-0 rounded-xl px-4 py-2.5 text-sm font-medium sm:px-5 sm:py-3"
-            >
-              Send
-            </Button>
-          )}
         </form>
         <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-muted-foreground">
           Hold to talk inserts into the composer &middot; Enter to send &middot; Shift+Enter for new
