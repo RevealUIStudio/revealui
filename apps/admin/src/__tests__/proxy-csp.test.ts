@@ -187,6 +187,61 @@ describe('admin proxy — CSP fleet mode (GAP-290)', () => {
   });
 });
 
+describe('admin proxy — /chat local Whisper CSP + microphone', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ needed: false }),
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('allows the loopback Whisper sidecar on connect-src and never a cloud STT host', async () => {
+    const res = await proxy(new NextRequest('https://admin.example.com/login'));
+    const connectSrc = directive(res.headers.get('content-security-policy') ?? '', 'connect-src');
+    expect(connectSrc).toContain('http://127.0.0.1:8178');
+    expect(connectSrc).not.toContain('api.openai.com');
+    expect(connectSrc).not.toContain('assemblyai.com');
+    expect(connectSrc).not.toContain('deepgram.com');
+  });
+
+  it('adds an extra loopback Whisper origin when WHISPER_URL is a local sidecar', async () => {
+    vi.stubEnv('WHISPER_URL', 'http://127.0.0.1:9000/v1/audio/transcriptions');
+    const res = await proxy(new NextRequest('https://admin.example.com/login'));
+    const connectSrc = directive(res.headers.get('content-security-policy') ?? '', 'connect-src');
+    expect(connectSrc).toContain('http://127.0.0.1:9000');
+    expect(connectSrc).not.toContain('api.openai.com');
+  });
+
+  it('ignores a cloud STT WHISPER_URL for connect-src', async () => {
+    vi.stubEnv('WHISPER_URL', 'https://api.openai.com/v1/audio/transcriptions');
+    const res = await proxy(new NextRequest('https://admin.example.com/login'));
+    const connectSrc = directive(res.headers.get('content-security-policy') ?? '', 'connect-src');
+    expect(connectSrc).not.toContain('api.openai.com');
+    expect(connectSrc).toContain('http://127.0.0.1:8178');
+  });
+
+  it('allows microphone=(self) on /chat only', async () => {
+    const chat = await proxy(
+      new NextRequest('https://admin.example.com/chat', {
+        headers: { cookie: 'revealui-session=tok; revealui-role=admin' },
+      }),
+    );
+    expect(chat.headers.get('permissions-policy')).toBe(
+      'geolocation=(), camera=(), microphone=(self)',
+    );
+
+    const login = await proxy(new NextRequest('https://admin.example.com/login'));
+    expect(login.headers.get('permissions-policy')).toBe(
+      'geolocation=(), camera=(), microphone=()',
+    );
+  });
+});
+
 describe('admin proxy — /welcome auth gate (post-checkout subscriber)', () => {
   beforeEach(() => {
     vi.clearAllMocks();

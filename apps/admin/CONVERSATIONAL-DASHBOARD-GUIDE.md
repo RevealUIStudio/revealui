@@ -126,13 +126,7 @@ Found 8 images from January 2026:
 
 ## Voice Input
 
-Use the voice button in the chat interface:
-
-1. Click "Start Voice"
-2. Speak your command: *"Add a contact page to the site"*
-3. Click "Stop Voice"
-4. The transcribed text appears in the input
-5. Click Send to execute
+Studio dogfood: hold-to-talk on Agent `/chat` uses a **local Whisper `small` sidecar** (see `docs/runbooks/admin-chat-local-whisper.md`). Mic stays off until you press and hold. Release inserts the transcript into the composer; you still click Send.
 
 ## Input Modes
 
@@ -140,7 +134,7 @@ Use the voice button in the chat interface:
 Type commands naturally - no special syntax required.
 
 ### Voice Input
-Speak commands - they'll be transcribed automatically.
+Hold to talk (local Whisper). Cloud speech-to-text is not used.
 
 ### Image Input (Coming Soon)
 Upload screenshots or designs:

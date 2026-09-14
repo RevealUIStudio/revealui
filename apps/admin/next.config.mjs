@@ -265,7 +265,9 @@ const nextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: 'geolocation=(), microphone=(), camera=()',
+            // Microphone (self) so admin `/chat` push-to-talk can call getUserMedia.
+            // The proxy narrows this to `/chat` only; camera/geo stay off.
+            value: 'geolocation=(), microphone=(self), camera=()',
           },
           {
             key: 'Strict-Transport-Security',

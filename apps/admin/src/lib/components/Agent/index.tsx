@@ -6,6 +6,7 @@ import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { insertTranscript, PushToTalkButton } from '@/lib/push-to-talk';
 import { useSpeakBack } from '@/lib/speak-back';
 import { apiFetch } from '@/lib/utils/csrf';
 
@@ -810,6 +811,18 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
     textareaRef.current?.focus();
   }, []);
 
+  /** Local Whisper transcript → same composer as typed text. User still sends. */
+  const handleVoiceTranscript = useCallback((transcript: string) => {
+    setInput((prev) => insertTranscript(prev, transcript));
+    requestAnimationFrame(() => {
+      const el = textareaRef.current;
+      if (!el) return;
+      el.style.height = 'auto';
+      el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+      el.focus();
+    });
+  }, []);
+
   return (
     <div className="flex h-full flex-col">
       {/* Messages area */}
@@ -992,6 +1005,10 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
             }
             disabled={stream.isStreaming || !!pendingConfirmation}
           />
+          <PushToTalkButton
+            disabled={stream.isStreaming || !!pendingConfirmation}
+            onTranscript={handleVoiceTranscript}
+          />
           {stream.isStreaming ? (
             <Button
               type="button"
@@ -1013,8 +1030,8 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
           )}
         </form>
         <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-muted-foreground">
-          Enter to send &middot; Shift+Enter for new line &middot; Esc to stop &middot; AI may make
-          mistakes
+          Hold to talk inserts into the composer &middot; Enter to send &middot; Shift+Enter for new
+          line &middot; Esc to stop &middot; AI may make mistakes
         </p>
       </div>
     </div>
