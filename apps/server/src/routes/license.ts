@@ -15,10 +15,18 @@ import {
 } from '@revealui/core/license/mint-client';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient, isJtiRevoked } from '@revealui/db';
-import { licenses } from '@revealui/db/schema';
+import { accountMemberships, licenses } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
+import {
+  getOwnerLicenseCurrent,
+  isLicenseAutoProvisionEnabled,
+} from '../lib/license-current.js';
+import {
+  LICENSE_KEY_FETCHED_METER_NAME,
+  recordMilestoneMeterFirstSafe,
+} from '../lib/nudges/milestone-meters.js';
 
 const app = new OpenAPIHono();
 
@@ -701,6 +709,95 @@ app.openapi(publicKeyRoute, async (c) => {
   // for new code); mirrors the generate route's normalize at :372.
   const publicKey = readPemEnv('REVEALUI_LICENSE_PUBLIC_KEY') ?? null;
   return c.json({ publicKey }, 200);
+});
+
+const LicenseCurrentResponseSchema = z.object({
+  licenseKey: z.string().nullable().openapi({
+    description: 'Signed JWT for the owner, or null when none/revoked',
+  }),
+  status: z.enum(['active', 'none', 'revoked', 'support_expired']).openapi({
+    description: 'Latest license row status for this owner',
+  }),
+  tier: z.enum(['pro', 'max', 'enterprise']).nullable().openapi({
+    description: 'Paid tier, or null when none',
+  }),
+  expiresAt: z.string().nullable().openapi({
+    description: 'License expiration (ISO 8601), or null',
+  }),
+});
+
+const currentRoute = createRoute({
+  method: 'get',
+  path: '/current',
+  tags: ['license'],
+  summary: 'Get the signed-in owner license',
+  description:
+    'Returns the latest license row for the authenticated user. Never mints. Disabled unless REVEALUI_LICENSE_AUTO_PROVISION=true.',
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: LicenseCurrentResponseSchema,
+        },
+      },
+      description: 'Owner license snapshot',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema,
+        },
+      },
+      description: 'Authentication required',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema,
+        },
+      },
+      description: 'Auto-provision is not enabled',
+    },
+  },
+});
+
+app.openapi(currentRoute, async (c) => {
+  if (!isLicenseAutoProvisionEnabled()) {
+    throw new HTTPException(404, { message: 'Not found' });
+  }
+
+  const user = c.get('user');
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
+
+  const result = await getOwnerLicenseCurrent(user.id);
+
+  if (result.licenseKey) {
+    const entitlements = c.get('entitlements') as { accountId?: string } | undefined;
+    let resolvedAccountId = entitlements?.accountId ?? null;
+    if (!resolvedAccountId) {
+      const [membership] = await getClient()
+        .select({ accountId: accountMemberships.accountId })
+        .from(accountMemberships)
+        .where(and(eq(accountMemberships.userId, user.id), eq(accountMemberships.status, 'active')))
+        .limit(1);
+      resolvedAccountId = membership?.accountId ?? null;
+    }
+    recordMilestoneMeterFirstSafe(resolvedAccountId, LICENSE_KEY_FETCHED_METER_NAME, {
+      userId: user.id,
+      path: 'license/current',
+    });
+  }
+
+  logger.info('Owner license current fetched', {
+    userId: user.id,
+    status: result.status,
+    tier: result.tier,
+    hasKey: Boolean(result.licenseKey),
+  });
+
+  return c.json(result, 200);
 });
 
 export default app;

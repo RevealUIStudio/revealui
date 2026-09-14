@@ -502,6 +502,7 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
   },
   routes: {
     'license-gen': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
+    'license-current': { maxRequests: 10, windowMs: ONE_MINUTE },
     'a2a-discovery': { maxRequests: 60, windowMs: ONE_MINUTE },
     agent: { maxRequests: 10, windowMs: ONE_MINUTE },
     'agent-stream': { maxRequests: 10, windowMs: ONE_MINUTE },
@@ -914,6 +915,21 @@ app.use('/api/v1/rotation/*', requireFeature('vaultRotation', { mode: 'entitleme
 
 // Write-protect mutation endpoints  -  these require authentication
 const writeProtected = authMiddleware({ required: true });
+
+app.get('/api/license/current', writeProtected);
+app.get('/api/v1/license/current', writeProtected);
+app.get(
+  '/api/license/current',
+  routeLimit('license-current', {
+    resolveKey: (c) => `user:${c.get('user')?.id ?? 'anon'}`,
+  }),
+);
+app.get(
+  '/api/v1/license/current',
+  routeLimit('license-current', {
+    resolveKey: (c) => `user:${c.get('user')?.id ?? 'anon'}`,
+  }),
+);
 
 // GAP-355 Stage 4 S4-4: Merkle anchor download + inclusion proof (Pro+ auditLog).
 // Public-key stays unauthenticated under /api/audit/public-key.
