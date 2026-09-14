@@ -19,10 +19,7 @@ import { accountMemberships, licenses } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
-import {
-  getOwnerLicenseCurrent,
-  isLicenseAutoProvisionEnabled,
-} from '../lib/license-current.js';
+import { getOwnerLicenseCurrent, isLicenseAutoProvisionEnabled } from '../lib/license-current.js';
 import {
   LICENSE_KEY_FETCHED_METER_NAME,
   recordMilestoneMeterFirstSafe,

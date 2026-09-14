@@ -106,10 +106,7 @@ function createAuthedApp() {
   const app = new Hono();
   app.onError((err, c) => {
     if (err instanceof HTTPException) {
-      return c.json(
-        { success: false, error: err.message, code: `HTTP_${err.status}` },
-        err.status,
-      );
+      return c.json({ success: false, error: err.message, code: `HTTP_${err.status}` }, err.status);
     }
     return c.json({ success: false, error: 'Internal error' }, 500);
   });
