@@ -41,6 +41,7 @@ vi.mock('@revealui/core/license', () => {
     DEFAULT_MANUAL_MINT_DAYS: 90,
     validateLicenseKey: vi.fn(),
     generateLicenseKey: vi.fn(),
+    readLicenseJti: vi.fn(async () => null),
   };
 });
 
@@ -66,6 +67,7 @@ vi.mock('@revealui/db', () => ({
       })),
     })),
   })),
+  isJtiRevoked: vi.fn(async () => false),
 }));
 
 vi.mock('@revealui/db/schema', () => ({
@@ -73,6 +75,16 @@ vi.mock('@revealui/db/schema', () => ({
     status: 'status',
     licenseKey: 'license_key',
   },
+  accountMemberships: {
+    accountId: 'account_id',
+    userId: 'user_id',
+    status: 'status',
+  },
+}));
+
+vi.mock('../../lib/nudges/milestone-meters.js', () => ({
+  recordMilestoneMeterFirstSafe: vi.fn(),
+  LICENSE_KEY_FETCHED_METER_NAME: 'license_key_fetched',
 }));
 
 import { validateLicenseKey } from '@revealui/core/license';

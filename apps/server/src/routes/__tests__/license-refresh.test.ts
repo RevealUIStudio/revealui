@@ -34,6 +34,7 @@ vi.mock('@revealui/core/license', () => ({
   validateLicenseKeyForRefresh: vi.fn(),
   generateLicenseKey: vi.fn(),
   getPublicKeys: vi.fn(() => ['pub-key']),
+  readLicenseJti: vi.fn(async () => null),
 }));
 
 vi.mock('@revealui/core/license/mint-client', () => ({
@@ -60,6 +61,16 @@ vi.mock('@revealui/db/schema', () => ({
     mode: 'mode',
     createdAt: 'created_at',
   },
+  accountMemberships: {
+    accountId: 'account_id',
+    userId: 'user_id',
+    status: 'status',
+  },
+}));
+
+vi.mock('../../lib/nudges/milestone-meters.js', () => ({
+  recordMilestoneMeterFirstSafe: vi.fn(),
+  LICENSE_KEY_FETCHED_METER_NAME: 'license_key_fetched',
 }));
 
 import { getPublicKeys, validateLicenseKeyForRefresh } from '@revealui/core/license';
