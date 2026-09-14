@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@revealui/presentation';
+import { Button, InputCVA } from '@revealui/presentation';
 import { type ChangeEvent, type JSX, useCallback, useRef, useState } from 'react';
 import { type SidecarFileRef, type SidecarUploadResult, uploadSidecarFile } from './files';
 
@@ -42,7 +42,7 @@ export function AttachViaSidecarButton({
 
   return (
     <div className="flex w-full min-w-0 flex-col items-stretch gap-1">
-      <input
+      <InputCVA
         ref={inputRef}
         type="file"
         className="hidden"
