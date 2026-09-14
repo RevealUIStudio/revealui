@@ -1,6 +1,6 @@
 ---
 title: "Admin /chat push-to-talk — local Whisper sidecar"
-description: "Studio dogfood: laptop localhost sidecar for STT + local files. Future Tauri shell owns the same ports. Phone is a later seat. Not a public SKU."
+description: "Studio dogfood: laptop localhost sidecar for STT + local files. Phone is a separate on-device follow-on seat and does not call the laptop. Not a public SKU."
 visibility: internal
 status: verified
 audience: operator
@@ -20,11 +20,10 @@ Mic stays **off** until you press and hold **Hold to talk**. Release inserts the
 
 | Seat | This PR | Notes |
 |------|---------|--------|
-| **Laptop + localhost sidecar (primary)** | `http://127.0.0.1:8178/transcribe` and `/files` | Hold-to-talk + **Attach via sidecar** on the same machine. |
-| **Tauri shell** | Out of scope | Same localhost ports / permissions. **SOW is a separate ticket.** |
-| **Phone** | Follow-on | Optional later: on-device STT / share-sheet. Same-WiFi only if it adds **no new paid dependency**. Do not block this PR on phone↔laptop remote access. |
+| **Laptop (primary)** | Localhost sidecar + local file pick | `http://127.0.0.1:8178/transcribe` and `/files`. Intended future home: **Tauri shell** on the same ports (SOW separate). |
+| **Phone** | Follow-on — document only | **Separate on-device** STT (WASM / OS speech) + share-sheet / photo picker. Does **not** call the laptop. Do not block merge on a phone app. |
 
-Do **not** promise arbitrary filesystem access from hosted `.com`. Do not treat a paid mesh VPN or LAN mesh as a required or recommended path.
+Do **not** promise arbitrary filesystem access from hosted `.com`. Do not add a paid mesh VPN. The phone seat does not use the laptop sidecar.
 
 ## Documented sidecar contract
 
@@ -86,17 +85,17 @@ NEXT_PUBLIC_WHISPER_ENGINE=sidecar
 
 Attach will fail closed until `/files` is served on that origin.
 
-## Phone (follow-on, not required to merge)
+## Phone (follow-on seat — not this PR)
 
-This PR is the **laptop** dogfood path. Do not block merge on phone↔laptop remote access or a phone app.
+Phone is a **yes**, as a later seat. It is **not** a laptop remote and it is **not** a merge blocker.
 
-A later phone seat can be:
+| Phone capability | Later seat | This PR |
+|------------------|------------|---------|
+| STT | On-device WASM (`NEXT_PUBLIC_WHISPER_ENGINE=wasm`) or OS speech | Not shipped as default; laptop uses the sidecar |
+| Local photos / files | Share-sheet / photo picker on the phone | Not shipped; laptop uses **Attach via sidecar** |
+| Call the laptop sidecar | No | — |
 
-- On-device STT (`NEXT_PUBLIC_WHISPER_ENGINE=wasm`) or OS speech
-- Share-sheet / photo picker on the phone
-- Same-WiFi only if it adds **no new paid dependency**
-
-Hosted `.com` still cannot read phone disk. On-device WASM cannot give the hosted tab local files.
+Do not block merge on a phone app. Hosted `.com` still cannot read phone disk.
 
 ## CSP / Permissions-Policy
 
@@ -112,4 +111,5 @@ Hosted `.com` still cannot read phone disk. On-device WASM cannot give the hoste
 - A second speech rewriter
 - Promising hosted `.com` can read the phone or laptop disk
 - Shipping a Tauri shell in this PR (separate SOW)
-- Blocking merge on a phone app, phone filesystem, or phone↔laptop remote access
+- Blocking merge on a phone app
+- Phone calling the laptop sidecar

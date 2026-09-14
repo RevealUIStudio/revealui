@@ -12,7 +12,7 @@ export type ResolvedWhisperEngine = 'wasm' | 'sidecar';
 export interface PushToTalkConfig {
   /**
    * Default is sidecar. `auto` also resolves to sidecar.
-   * `wasm` is explicit opt-in only (phone follow-on / offline experiments).
+   * `wasm` is explicit opt-in for the later on-device phone seat (does not call the laptop).
    */
   engine: WhisperEngine;
   /** Documented sidecar transcribe URL. Empty falls back to loopback `/transcribe`. */
