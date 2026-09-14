@@ -10,6 +10,8 @@
  * 3. POST /api/studio-auth/refresh   -  rotate bearer token (requires valid token)
  * 4. DELETE /api/studio-auth/revoke  -  revoke device token (requires valid token)
  * 5. GET /api/studio-auth/status     -  check current auth status (requires valid token)
+ * 6. GET /api/studio-auth/devices   -  list this user's devices (cookie or Bearer)
+ * 7. DELETE /api/studio-auth/devices/:deviceId - revoke a device (cookie or Bearer)
  *
  * Token format: rvui_dev_<64-hex-chars> (SHA-256 hash stored in DB)
  * Token lifetime: 30 days (configurable)
@@ -441,6 +443,100 @@ app.get('/status', async (c) => {
     },
     tokenExpiresAt: device.tokenExpiresAt?.toISOString() ?? null,
   });
+});
+
+interface StudioAuthSession {
+  deviceAuth?: boolean;
+  deviceId?: string;
+}
+
+interface StudioDeviceListItem {
+  id: string;
+  name: string | null;
+  type: string | null;
+  lastSeen: string | null;
+  current: boolean;
+}
+
+/**
+ * GET /api/studio-auth/devices
+ *
+ * Lists the authenticated user's Studio devices. Auth via cookie or Bearer
+ * (mounted with authMiddleware in index.ts). Never returns token hashes.
+ * `current` is true only for a Bearer session whose stashed deviceId matches.
+ */
+app.get('/devices', async (c) => {
+  const user = c.get('user') as { id: string } | undefined;
+  if (!user) {
+    return c.json({ error: 'Authentication required' }, 401);
+  }
+
+  const session = c.get('session') as StudioAuthSession | undefined;
+  const currentDeviceId =
+    session?.deviceAuth === true && typeof session.deviceId === 'string'
+      ? session.deviceId
+      : undefined;
+
+  const db = getClient();
+  const rows = await db
+    .select({
+      deviceId: userDevices.deviceId,
+      deviceName: userDevices.deviceName,
+      deviceType: userDevices.deviceType,
+      lastSeen: userDevices.lastSeen,
+    })
+    .from(userDevices)
+    .where(and(eq(userDevices.userId, user.id), eq(userDevices.isActive, true)));
+
+  const devices: StudioDeviceListItem[] = rows.map((row) => ({
+    id: row.deviceId,
+    name: row.deviceName,
+    type: row.deviceType,
+    lastSeen: row.lastSeen?.toISOString() ?? null,
+    current: currentDeviceId !== undefined && row.deviceId === currentDeviceId,
+  }));
+
+  return c.json({ devices });
+});
+
+/**
+ * DELETE /api/studio-auth/devices/:deviceId
+ *
+ * Deactivates a device owned by the authenticated user. Stops that bearer
+ * from refreshing / re-fetching; does not denylist an on-disk license JWT.
+ * Scoped by userId so a globally unique deviceId cannot cross users.
+ */
+app.delete('/devices/:deviceId', async (c) => {
+  const user = c.get('user') as { id: string } | undefined;
+  if (!user) {
+    return c.json({ error: 'Authentication required' }, 401);
+  }
+
+  const deviceId = c.req.param('deviceId');
+  if (!deviceId) {
+    return c.json({ error: 'Device not found' }, 404);
+  }
+
+  const db = getClient();
+  const now = new Date();
+
+  const updated = await db
+    .update(userDevices)
+    .set({
+      isActive: false,
+      tokenHash: null,
+      tokenExpiresAt: null,
+      tokenIssuedAt: null,
+      updatedAt: now,
+    })
+    .where(and(eq(userDevices.userId, user.id), eq(userDevices.deviceId, deviceId)))
+    .returning({ id: userDevices.id });
+
+  if (updated.length === 0) {
+    return c.json({ error: 'Device not found' }, 404);
+  }
+
+  return c.json({ success: true });
 });
 
 export default app;

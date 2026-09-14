@@ -98,6 +98,9 @@ beforeEach(() => {
       if (url.endsWith('/api/license/public-key')) {
         return Promise.resolve(jsonResponse({ publicKey: TEST_PUBLIC_KEY }));
       }
+      if (url.endsWith('/api/studio-auth/devices')) {
+        return Promise.resolve(jsonResponse({ devices: [] }));
+      }
       return Promise.resolve({ ok: false, json: () => Promise.resolve({}) });
     }),
   );
