@@ -1,6 +1,6 @@
 /**
- * Voice-in and attach-via-sidecar talk to a loopback/LAN sidecar (or an
- * operator-pinned Cloudflare Tunnel hostname). Cloud STT SaaS is refused.
+ * Voice-in and attach-via-sidecar talk to a localhost sidecar (or an
+ * operator-pinned HTTPS sidecar URL). Cloud STT SaaS is refused.
  * WASM is explicit opt-in and is not a hosted-disk path.
  */
 
@@ -50,7 +50,7 @@ export function isLoopbackHostname(hostname: string): boolean {
   return ip !== null && ip[0] === 127;
 }
 
-/** RFC1918 IPv4 — same-WiFi laptop sidecar without a paid mesh VPN. */
+/** RFC1918 IPv4 — allowed if an operator pins that URL; not a recommended path. */
 export function isPrivateIpv4Hostname(hostname: string): boolean {
   const ip = parseIpv4(hostname.toLowerCase());
   if (!ip) return false;
@@ -60,7 +60,7 @@ export function isPrivateIpv4Hostname(hostname: string): boolean {
   return a === 172 && b >= 16 && b <= 31;
 }
 
-/** Cloudflare quick-tunnel host used for Access-protected phone → laptop sidecar. */
+/** Cloudflare quick-tunnel host — optional later Access-protected sidecar URL. */
 export function isCloudflareTunnelHostname(hostname: string): boolean {
   return hostHasSuffix(hostname.toLowerCase(), 'trycloudflare.com');
 }

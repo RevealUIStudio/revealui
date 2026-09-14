@@ -1,5 +1,5 @@
-export { mixToMono, pickRecorderMimeType, resampleLinear } from './audio';
 export { AttachViaSidecarButton } from './AttachViaSidecarButton';
+export { mixToMono, pickRecorderMimeType, resampleLinear } from './audio';
 export {
   LOCAL_WHISPER_FAIL_CLOSED_MESSAGE,
   type TranscribeFailureReason,

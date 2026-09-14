@@ -1,6 +1,6 @@
 ---
 title: "Admin /chat push-to-talk — local Whisper sidecar"
-description: "Studio dogfood: laptop localhost sidecar for STT + local files. Optional Cloudflare Tunnel + Access for a later phone seat. Tauri shell SOW is separate. Not a public SKU."
+description: "Studio dogfood: laptop localhost sidecar for STT + local files. Future Tauri shell owns the same ports. Phone is a later seat. Not a public SKU."
 visibility: internal
 status: verified
 audience: operator
@@ -8,23 +8,23 @@ audience: operator
 
 # Admin `/chat` push-to-talk (local Whisper sidecar)
 
-Studio dogfood only. Not a public SKU. No CapCut. No cloud STT vendor. No Tailscale.
+Studio dogfood only. Not a public SKU. No CapCut. No cloud STT vendor.
 
 Voice-in is **local Whisper** (`small` family) through a **localhost sidecar**. Voice-out is the existing **Speak replies** speak-back. Secrets stay unspoken.
 
 Mic stays **off** until you press and hold **Hold to talk**. Release inserts the transcript into the same composer as typed text. You still press **Send**.
 
-**Hosted `admin.revealui.com` cannot read your laptop disk.** STT and local images/files go through `127.0.0.1` (or a future Tauri shell on the same ports). If the sidecar is down, `/chat` **fail-closes** with a clear alert — it will not call OpenAI / AssemblyAI / Deepgram and it will not pretend the hosted PWA can see your files.
+**Hosted `admin.revealui.com` cannot read your laptop disk.** STT and local images/files go through `127.0.0.1`. A future **Tauri shell** is the intended primary seat and should own these same localhost ports — **Tauri SOW is a separate ticket**. If the sidecar is down, `/chat` **fail-closes** with a clear alert — it will not call OpenAI / AssemblyAI / Deepgram and it will not pretend the hosted PWA can see your files.
 
 ## Seats
 
 | Seat | This PR | Notes |
 |------|---------|--------|
-| **Laptop (primary)** | `http://127.0.0.1:8178/transcribe` and `/files` | Hold-to-talk + **Attach via sidecar**. Same ports a future Tauri shell can own. |
-| **Phone** | Follow-on | Do not block this PR on phone filesystem. Optional later: Cloudflare Tunnel (Free) + Access to the **laptop** sidecar. On-device WASM is explicit opt-in only (`NEXT_PUBLIC_WHISPER_ENGINE=wasm`). |
-| **Tauri shell** | Out of scope | Same localhost ports / permissions. **SOW is a separate ticket** — this PR does not ship a shell. |
+| **Laptop + localhost sidecar (primary)** | `http://127.0.0.1:8178/transcribe` and `/files` | Hold-to-talk + **Attach via sidecar** on the same machine. |
+| **Tauri shell** | Out of scope | Same localhost ports / permissions. **SOW is a separate ticket.** |
+| **Phone** | Follow-on | Optional later: on-device STT / share-sheet. Same-WiFi only if it adds **no new paid dependency**. Do not block this PR on phone↔laptop remote access. |
 
-Do **not** promise arbitrary filesystem access from hosted `.com`.
+Do **not** promise arbitrary filesystem access from hosted `.com`. Do not treat a paid mesh VPN or LAN mesh as a required or recommended path.
 
 ## Documented sidecar contract
 
@@ -88,32 +88,28 @@ Attach will fail closed until `/files` is served on that origin.
 
 ## Phone (follow-on, not required to merge)
 
-Near-term phone seat talks to the **laptop-hosted sidecar**, not the phone disk and not a hosted `.com` filesystem.
+This PR is the **laptop** dogfood path. Do not block merge on phone↔laptop remote access or a phone app.
 
-Optional: expose `127.0.0.1:8178` with **Cloudflare Tunnel (Free)** and put **Cloudflare Access** in front:
+A later phone seat can be:
 
-```text
-NEXT_PUBLIC_WHISPER_URL=https://<access-protected-host>/transcribe
-```
+- On-device STT (`NEXT_PUBLIC_WHISPER_ENGINE=wasm`) or OS speech
+- Share-sheet / photo picker on the phone
+- Same-WiFi only if it adds **no new paid dependency**
 
-Complete the Access login on the phone, then hold-to-talk. Laptop must be online.
-
-Do **not** introduce Tailscale or any paid mesh VPN. Same-WiFi private IPv4 is allowed if you pin that URL yourself; it is not the recommended path.
-
-On-device WASM (`NEXT_PUBLIC_WHISPER_ENGINE=wasm`) is a leftover opt-in for experiments. It is **not** the product default and cannot give hosted `.com` local files.
+Hosted `.com` still cannot read phone disk. On-device WASM cannot give the hosted tab local files.
 
 ## CSP / Permissions-Policy
 
-- `connect-src` always includes loopback `8178`, plus any allowed `WHISPER_URL` origin (LAN or `*.trycloudflare.com`). Hugging Face weight hosts remain only for explicit WASM opt-in.
+- `connect-src` always includes loopback `8178`. An operator may pin an extra sidecar origin; cloud STT hosts are refused.
+- Hugging Face weight hosts remain only for explicit WASM opt-in.
 - `microphone=(self)` on `/chat` only. Camera/geo stay off.
-- Cloud STT hostnames are refused even if set in env.
 
 ## Not in scope
 
 - Public marketing / pricing copy
 - Cloud STT SaaS
-- Tailscale
+- A paid mesh VPN or LAN-mesh requirement
 - A second speech rewriter
 - Promising hosted `.com` can read the phone or laptop disk
 - Shipping a Tauri shell in this PR (separate SOW)
-- Blocking merge on a phone app or phone filesystem
+- Blocking merge on a phone app, phone filesystem, or phone↔laptop remote access
