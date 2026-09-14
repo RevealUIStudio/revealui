@@ -397,6 +397,10 @@ function LicenseContent() {
               </p>
               <div className="space-y-1.5 text-sm text-zinc-600 dark:text-zinc-400">
                 <p>
+                  RevDev Studio signs in and activates this license automatically. Copy the key
+                  below for headless daemons and self-hosted framework instances.
+                </p>
+                <p>
                   Add to your project&apos;s{' '}
                   <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs dark:bg-zinc-900">
                     .env

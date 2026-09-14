@@ -23,7 +23,9 @@ export type LicenseCurrentResult = {
 };
 
 export function isLicenseAutoProvisionEnabled(): boolean {
-  return process.env.REVEALUI_LICENSE_AUTO_PROVISION === 'true';
+  const raw = process.env.REVEALUI_LICENSE_AUTO_PROVISION;
+  if (raw === undefined || raw.trim() === '') return true;
+  return raw === 'true';
 }
 
 function serializeExpiresAt(value: Date | string | null | undefined): string | null {

@@ -65,8 +65,8 @@ beforeEach(() => {
 });
 
 describe('isLicenseAutoProvisionEnabled', () => {
-  it('is false when unset', () => {
-    expect(isLicenseAutoProvisionEnabled()).toBe(false);
+  it('is true when unset', () => {
+    expect(isLicenseAutoProvisionEnabled()).toBe(true);
   });
 
   it('is false for any value other than true', () => {
@@ -74,7 +74,7 @@ describe('isLicenseAutoProvisionEnabled', () => {
     expect(isLicenseAutoProvisionEnabled()).toBe(false);
   });
 
-  it('is true only for the string true', () => {
+  it('is true for the string true', () => {
     process.env.REVEALUI_LICENSE_AUTO_PROVISION = 'true';
     expect(isLicenseAutoProvisionEnabled()).toBe(true);
   });
