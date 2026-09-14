@@ -25,7 +25,12 @@ import {
   recordMilestoneMeterFirstSafe,
 } from '../lib/nudges/milestone-meters.js';
 
-const app = new OpenAPIHono();
+type LicenseRouteVariables = {
+  user?: { id: string };
+  entitlements?: { accountId?: string };
+};
+
+const app = new OpenAPIHono<{ Variables: LicenseRouteVariables }>();
 
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 
