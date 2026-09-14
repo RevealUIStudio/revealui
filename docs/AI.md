@@ -114,6 +114,16 @@ Non-US snaps in Canonical's catalog (DeepSeek, Qwen, GLM) are rejected in produc
 
 Install: `sudo snap install <name>`. Each snap serves an OpenAI-compatible API at `http://localhost:<port>/v1`.
 
+### Muse Glimmer (optional local endpoint)
+
+**Muse Glimmer** is an Ollama- / OpenAI-compatible local inference endpoint.
+It is **not** a Meta model SKU and **not** a RevealUI product SKU.
+The product US-origin Inference Snap allowlist remains Canonical Ubuntu snaps only
+(`gemma3`, `gemma4`, `nemotron-3-nano`, `nemotron-3-nano-omni`) —
+SSOT: `packages/ai/src/llm/providers/us-origin-snaps.ts`.
+Point RevealUI at Glimmer the same way as any OpenAI-compatible / Ollama base URL;
+do not add it to the Ubuntu snap catalog.
+
 ## A2A protocol
 
 RevealUI implements the Google A2A (Agent-to-Agent) protocol for multi-agent coordination. The transport is plain JSON-RPC 2.0 over HTTP — register an agent card, mount `handleA2AJsonRpc` at your `/a2a` route, and let any A2A-compatible client POST to it:
