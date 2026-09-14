@@ -46,7 +46,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_AGENTS_SECTION.subhead',
-    text: 'Agents can discover and authenticate today. Agent payment rails are still in development.',
+    text: 'Agents can discover and authenticate today. Agent payment rails ship in the code and are not switched on (X402_ENABLED off).',
     evidence: [LIVE_AGENT_CARD, AUTH_SESSIONS, X402],
   },
   {
@@ -70,7 +70,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_AGENT_MCP.body',
-    text: 'N production MCP servers for any MCP-capable IDE (Cursor, Claude Code, Copilot, Zed, and others), including Stripe, Neon, Vercel, Playwright, Next.js DevTools, content management, and email. Marketplace discovery coming soon. (interpolated: N from METRICS.mcpServers)',
+    text: 'N production MCP servers for any MCP-capable IDE (Cursor, Claude Code, Copilot, Zed, and others), including Stripe, Neon, Vercel, Playwright, Next.js DevTools, content management, and email. First-party servers ship today. Discovery via marketplace.json and the servers list is a preview; the third-party catalog, charging, and payouts are not open. (interpolated: N from METRICS.mcpServers)',
     match: 'path',
     evidence: [MCP_SERVERS],
   },
