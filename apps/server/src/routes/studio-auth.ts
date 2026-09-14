@@ -115,7 +115,12 @@ async function deleteOtp(deviceId: string): Promise<void> {
 // Routes
 // =============================================================================
 
-const app = new Hono();
+const app = new Hono<{
+  Variables: {
+    user?: { id: string };
+    session?: StudioAuthSession;
+  };
+}>();
 
 const linkSchema = z.object({
   email: z.email(),
@@ -520,7 +525,18 @@ app.delete('/devices/:deviceId', async (c) => {
   const db = getClient();
   const now = new Date();
 
-  const updated = await db
+  // Neon HTTP driver does not support columnar .returning() on UPDATE.
+  const [existing] = await db
+    .select({ id: userDevices.id })
+    .from(userDevices)
+    .where(and(eq(userDevices.userId, user.id), eq(userDevices.deviceId, deviceId)))
+    .limit(1);
+
+  if (!existing) {
+    return c.json({ error: 'Device not found' }, 404);
+  }
+
+  await db
     .update(userDevices)
     .set({
       isActive: false,
@@ -529,12 +545,7 @@ app.delete('/devices/:deviceId', async (c) => {
       tokenIssuedAt: null,
       updatedAt: now,
     })
-    .where(and(eq(userDevices.userId, user.id), eq(userDevices.deviceId, deviceId)))
-    .returning({ id: userDevices.id });
-
-  if (updated.length === 0) {
-    return c.json({ error: 'Device not found' }, 404);
-  }
+    .where(and(eq(userDevices.userId, user.id), eq(userDevices.deviceId, deviceId)));
 
   return c.json({ success: true });
 });

@@ -39,12 +39,7 @@ function createMockDb() {
     return {
       where: updateWhereSpy.mockImplementation((...args: unknown[]) => {
         lastUpdateWhereArgs = args;
-        return {
-          returning: vi.fn().mockImplementation(() => {
-            const rows = selectResults.shift() ?? [];
-            return Promise.resolve(rows);
-          }),
-        };
+        return Promise.resolve(undefined);
       }),
     };
   });
@@ -249,7 +244,7 @@ describe('HC16 / HC19 DELETE /studio-auth/devices/:deviceId', () => {
   });
 
   it('returns 404 when no matching row for this user (cannot deactivate another user UUID)', async () => {
-    selectResults.push([]); // returning() empty → not owned / missing
+    selectResults.push([]); // select+limit empty → not owned / missing
 
     const app = mountDevices({
       user: OWNER,
@@ -277,7 +272,7 @@ describe('HC16 / HC19 DELETE /studio-auth/devices/:deviceId', () => {
   });
 
   it('other user context cannot clear owner device even when UUID is known', async () => {
-    // Empty returning simulates AND userId=other AND deviceId=owner's → 0 rows
+    // Empty select simulates AND userId=other AND deviceId=owner's → 0 rows
     selectResults.push([]);
 
     const app = mountDevices({
