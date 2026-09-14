@@ -41,6 +41,14 @@ interface SubscriptionData {
   supportExpiresAt: string | null;
 }
 
+interface StudioDevice {
+  id: string;
+  name: string | null;
+  type: string | null;
+  lastSeen: string | null;
+  current: boolean;
+}
+
 // Keep-list matches PUBLIC_PERPETUAL_TIERS. Leftover Agency / Enterprise
 // perpetual stay mint/display leftovers for already-issued keys.
 const PERPETUAL_PLANS = [
@@ -83,12 +91,15 @@ function LicenseContent() {
   // Vendor Ed25519 public key (PEM). The daemon needs it to verify a license;
   // without it a valid Pro license silently runs Free. Public material.
   const [publicKey, setPublicKey] = useState<string | null>(null);
+  const [devices, setDevices] = useState<StudioDevice[]>([]);
+  const [devicesError, setDevicesError] = useState<string | null>(null);
+  const [revokingDeviceId, setRevokingDeviceId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
       const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
 
-      const [subRes, featRes, pricingRes, pubKeyRes] = await Promise.all([
+      const [subRes, featRes, pricingRes, pubKeyRes, devicesRes] = await Promise.all([
         // Same-origin App Router proxy (app/api/billing/subscription) so
         // host-only revealui-session is forwarded to the API. Do not call
         // the API host from the browser. next.config rewrites never run
@@ -97,6 +108,8 @@ function LicenseContent() {
         fetch(`${apiUrl}/api/license/features`),
         fetch(`${apiUrl}/api/pricing`),
         fetch(`${apiUrl}/api/license/public-key`),
+        // Same-origin proxy — never call api.revealui.com for devices.
+        fetch('/api/studio-auth/devices', { credentials: 'include' }),
       ]);
 
       if (subRes.ok) {
@@ -119,6 +132,15 @@ function LicenseContent() {
       if (pricingRes.ok) {
         const data = (await pricingRes.json()) as PricingResponse;
         setPricing(data);
+      }
+
+      if (devicesRes.ok) {
+        const data = (await devicesRes.json()) as { devices: StudioDevice[] };
+        setDevices(data.devices);
+        setDevicesError(null);
+      } else {
+        setDevices([]);
+        setDevicesError('Failed to load Studio devices');
       }
     } catch {
       setError('Failed to load license data');
@@ -220,6 +242,28 @@ function LicenseContent() {
       setError('Failed to start renewal checkout. Please try again.');
     } finally {
       setRenewalLoading(false);
+    }
+  };
+
+  const handleRevokeDevice = async (deviceId: string) => {
+    setRevokingDeviceId(deviceId);
+    setDevicesError(null);
+    try {
+      const res = await apiFetch(`/api/studio-auth/devices/${encodeURIComponent(deviceId)}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        // empty-catch-ok: non-JSON error body — generic revoke message surfaces below
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        setDevicesError(data.error || 'Failed to revoke device');
+        return;
+      }
+      setDevices((prev) => prev.filter((device) => device.id !== deviceId));
+    } catch {
+      setDevicesError('Failed to revoke device');
+    } finally {
+      setRevokingDeviceId(null);
     }
   };
 
@@ -447,6 +491,65 @@ function LicenseContent() {
           </CardContent>
         </Card>
       )}
+
+      {/* Studio devices */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Studio Devices</CardTitle>
+          <CardDescription>
+            Revoking a device signs it out of Studio and stops it from downloading a new license
+            key. A license file already on that machine keeps working until it expires. If the
+            device is stolen, also rotate the license key.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {devicesError && (
+            <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+              {devicesError}
+            </div>
+          )}
+          {devices.length === 0 && !devicesError ? (
+            <p className="text-sm text-zinc-600">No active Studio devices.</p>
+          ) : (
+            <ul className="divide-y dark:divide-zinc-800">
+              {devices.map((device) => (
+                <li
+                  key={device.id}
+                  className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">
+                      {device.name?.trim() || 'Unnamed device'}
+                      {device.current ? (
+                        <span className="ml-2 text-xs font-normal text-zinc-500">
+                          (this device)
+                        </span>
+                      ) : null}
+                    </p>
+                    <p className="text-xs text-zinc-600">
+                      {device.type ?? 'unknown'}
+                      {device.lastSeen
+                        ? ` · last seen ${new Date(device.lastSeen).toLocaleString()}`
+                        : ''}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="neutral"
+                    appearance="outline"
+                    disabled={revokingDeviceId === device.id}
+                    onClick={() => void handleRevokeDevice(device.id)}
+                    className="shrink-0"
+                  >
+                    {revokingDeviceId === device.id ? 'Revoking…' : 'Revoke'}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Resource limits */}
       <Card>
