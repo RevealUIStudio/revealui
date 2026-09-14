@@ -109,6 +109,8 @@ const nextConfig = {
     '@libsql/client-wasm',
     '@revealui/ai',
     '@revealui/services',
+    '@huggingface/transformers',
+    'onnxruntime-web',
     // @simplewebauthn/server (+ its @peculiar/asn1-* / cbor deps) is ESM- and
     // crypto-heavy and breaks at runtime when bundled into the standalone server
     // output — fine in `next dev`, throws in the prod build. It reaches the bundle
@@ -265,7 +267,9 @@ const nextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: 'geolocation=(), microphone=(), camera=()',
+            // Microphone (self) so admin `/chat` push-to-talk can call getUserMedia.
+            // The proxy narrows this to `/chat` only; camera/geo stay off.
+            value: 'geolocation=(), microphone=(self), camera=()',
           },
           {
             key: 'Strict-Transport-Security',
