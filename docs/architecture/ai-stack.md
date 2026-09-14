@@ -19,6 +19,8 @@ All LLM access flows through `LLMClient`, a factory that wraps inference backend
 | **Ubuntu Inference Snaps** | yes | depends on model | `INFERENCE_SNAPS_BASE_URL` | Canonical snap runtime  -  US-origin allowlist only: Nemotron 3 Nano/Omni, Gemma 3/4 |
 | **Ollama** | yes | yes | `OLLAMA_BASE_URL` | Any open source GGUF model. Chat: `qwen2.5:3b`, Embed: `nomic-embed-text` |
 
+**Muse Glimmer (optional local endpoint).** Muse Glimmer is an Ollama- / OpenAI-compatible local inference endpoint. It is **not** a Meta model SKU and **not** a RevealUI product SKU. The product US-origin Inference Snap allowlist remains Canonical Ubuntu snaps only (`gemma3`, `gemma4`, `nemotron-3-nano`, `nemotron-3-nano-omni`) — SSOT: `packages/ai/src/llm/providers/us-origin-snaps.ts`. Point RevealUI at Glimmer the same way as any OpenAI-compatible / Ollama base URL; do not add it to the Ubuntu snap catalog.
+
 ### Auto-Detection Priority
 
 `createLLMClientFromEnv()` selects the inference path by checking env vars in order:

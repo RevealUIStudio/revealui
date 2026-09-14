@@ -50,7 +50,7 @@ A coordination layer that lets multiple AI coding tools (Claude Code, Cursor, Ai
 
 ## Inference Snaps
 
-Canonical's silicon-optimized snap-packaged LLMs running on Ubuntu. The **canonical default** open-model inference path for RevealUI per memory `project_canonical_inference_snap_stack`. Today the snap *provider* in `@revealui/ai` works (point `INFERENCE_SNAPS_BASE_URL` at a running snap and route LLM calls); Studio lifecycle management (auto-install, start/stop, health, model discovery) is **not yet shipped** — install + run snaps yourself. Product US-origin allowlist (2026-08): `gemma3` (default), `gemma4`, `nemotron-3-nano`, `nemotron-3-nano-omni`. Non-US catalog snaps are fail-closed. See [`./AI`](./AI.md).
+Canonical's silicon-optimized snap-packaged LLMs running on Ubuntu. The **canonical default** open-model inference path for RevealUI per memory `project_canonical_inference_snap_stack`. Today the snap *provider* in `@revealui/ai` works (point `INFERENCE_SNAPS_BASE_URL` at a running snap and route LLM calls); Studio lifecycle management (auto-install, start/stop, health, model discovery) is **not yet shipped** — install + run snaps yourself. Product US-origin allowlist (2026-08): `gemma3` (default), `gemma4`, `nemotron-3-nano`, `nemotron-3-nano-omni`. Non-US catalog snaps are fail-closed. See [`./AI`](./AI.md). **Muse Glimmer** is an optional Ollama- / OpenAI-compatible local endpoint — not a Meta model SKU and not a RevealUI product SKU. Point RevealUI at it like any other OpenAI-compatible / Ollama base URL; do not add it to the Ubuntu snap catalog. Product allowlist SSOT: `packages/ai/src/llm/providers/us-origin-snaps.ts`.
 
 ## JWT
 

@@ -73,6 +73,8 @@ gemma3 status
 
 Each snap serves an OpenAI-compatible API at `http://localhost:<port>/v1`.
 
+**Muse Glimmer (optional local endpoint).** Muse Glimmer is an Ollama- / OpenAI-compatible local inference endpoint. It is **not** a Meta model SKU and **not** a RevealUI product SKU. The product US-origin Inference Snap allowlist remains Canonical Ubuntu snaps only (`gemma3`, `gemma4`, `nemotron-3-nano`, `nemotron-3-nano-omni`) — SSOT: `packages/ai/src/llm/providers/us-origin-snaps.ts`. Point RevealUI at Glimmer the same way as any OpenAI-compatible / Ollama base URL; do not add it to the Ubuntu snap catalog.
+
 **Option B: Ollama (fallback)**
 
 Install Ollama, then pull a model:
