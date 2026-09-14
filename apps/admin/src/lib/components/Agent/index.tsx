@@ -6,7 +6,12 @@ import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { insertTranscript, PushToTalkButton } from '@/lib/push-to-talk';
+import {
+  AttachViaSidecarButton,
+  insertLocalFileRef,
+  insertTranscript,
+  PushToTalkButton,
+} from '@/lib/push-to-talk';
 import { useSpeakBack } from '@/lib/speak-back';
 import { apiFetch } from '@/lib/utils/csrf';
 
@@ -811,9 +816,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
     textareaRef.current?.focus();
   }, []);
 
-  /** Local Whisper transcript → same composer as typed text. User still sends. */
-  const handleVoiceTranscript = useCallback((transcript: string) => {
-    setInput((prev) => insertTranscript(prev, transcript));
+  const resizeComposer = useCallback(() => {
     requestAnimationFrame(() => {
       const el = textareaRef.current;
       if (!el) return;
@@ -822,6 +825,24 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
       el.focus();
     });
   }, []);
+
+  /** Local Whisper transcript → same composer as typed text. User still sends. */
+  const handleVoiceTranscript = useCallback(
+    (transcript: string) => {
+      setInput((prev) => insertTranscript(prev, transcript));
+      resizeComposer();
+    },
+    [resizeComposer],
+  );
+
+  /** Sidecar file ref only — hosted .com never reads OS paths. */
+  const handleSidecarFile = useCallback(
+    (file: { name: string }) => {
+      setInput((prev) => insertLocalFileRef(prev, file.name));
+      resizeComposer();
+    },
+    [resizeComposer],
+  );
 
   return (
     <div className="flex h-full flex-col">
@@ -1030,10 +1051,14 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
             disabled={stream.isStreaming || !!pendingConfirmation}
             onTranscript={handleVoiceTranscript}
           />
+          <AttachViaSidecarButton
+            disabled={stream.isStreaming || !!pendingConfirmation}
+            onAttached={handleSidecarFile}
+          />
         </form>
         <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-muted-foreground">
-          Hold to talk inserts into the composer &middot; Enter to send &middot; Shift+Enter for new
-          line &middot; Esc to stop &middot; AI may make mistakes
+          Hold to talk and attach use the local sidecar &middot; Enter to send &middot; Shift+Enter
+          for new line &middot; Esc to stop &middot; AI may make mistakes
         </p>
       </div>
     </div>

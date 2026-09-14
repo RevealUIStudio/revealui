@@ -1,27 +1,35 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   configurePushToTalk,
+  DEFAULT_WHISPER_FILES_PATH,
+  DEFAULT_WHISPER_FILES_URL,
   DEFAULT_WHISPER_ORIGIN,
+  DEFAULT_WHISPER_TRANSCRIBE_PATH,
   DEFAULT_WHISPER_URL,
   DEFAULT_WHISPER_WASM_MODEL,
+  insertLocalFileRef,
   insertTranscript,
   isAllowedWhisperEndpoint,
   isCloudflareTunnelHostname,
   isLoopbackHostname,
   isPrivateIpv4Hostname,
   isSaasSttHostname,
+  LOCAL_SIDECAR_FILES_FAIL_CLOSED_MESSAGE,
   LOCAL_WHISPER_FAIL_CLOSED_MESSAGE,
+  listSidecarFiles,
   mixToMono,
   pickRecorderMimeType,
   readWhisperUrlFromEnv,
   resampleLinear,
   resetPushToTalkConfig,
   resetWasmWhisperCache,
+  resolveSidecarFilesUrl,
   resolveWhisperEngine,
   resolveWhisperUrl,
   transcribeLocalWhisper,
   transcribeVoice,
   transcribeWithWasm,
+  uploadSidecarFile,
   WASM_UNAVAILABLE_MESSAGE,
   whisperConnectSrcOrigin,
 } from '../index';
@@ -69,8 +77,10 @@ describe('LAN + Cloudflare tunnel hosts', () => {
 });
 
 describe('isAllowedWhisperEndpoint', () => {
-  it('allows the loopback OpenAI-compatible path and same-origin', () => {
+  it('allows the documented loopback /transcribe contract and same-origin', () => {
+    expect(DEFAULT_WHISPER_TRANSCRIBE_PATH).toBe('/transcribe');
     expect(isAllowedWhisperEndpoint(DEFAULT_WHISPER_URL)).toBe(true);
+    expect(isAllowedWhisperEndpoint('http://localhost:8178/transcribe')).toBe(true);
     expect(isAllowedWhisperEndpoint('http://localhost:8178/v1/audio/transcriptions')).toBe(true);
     expect(isAllowedWhisperEndpoint('/api/stt')).toBe(true);
   });
@@ -96,15 +106,16 @@ describe('whisperConnectSrcOrigin', () => {
 });
 
 describe('resolveWhisperEngine', () => {
-  it("defaults to wasm so a phone does not call the phone's own 127.0.0.1", () => {
-    expect(resolveWhisperUrl(undefined)).toBe('');
-    expect(resolveWhisperUrl('')).toBe('');
-    expect(readWhisperUrlFromEnv({})).toBe('');
-    expect(resolveWhisperEngine()).toBe('wasm');
+  it('defaults to the laptop localhost sidecar, not hosted WASM', () => {
+    expect(resolveWhisperUrl(undefined)).toBe(DEFAULT_WHISPER_URL);
+    expect(resolveWhisperUrl('')).toBe(DEFAULT_WHISPER_URL);
+    expect(readWhisperUrlFromEnv({})).toBe(DEFAULT_WHISPER_URL);
+    expect(resolveWhisperEngine()).toBe('sidecar');
+    expect(DEFAULT_WHISPER_URL).toBe('http://127.0.0.1:8178/transcribe');
     expect(DEFAULT_WHISPER_WASM_MODEL).toBe('Xenova/whisper-tiny.en');
   });
 
-  it('selects sidecar when WHISPER_URL is set', () => {
+  it('keeps sidecar when WHISPER_URL is an operator override', () => {
     expect(
       readWhisperUrlFromEnv({
         NEXT_PUBLIC_WHISPER_URL: 'http://127.0.0.1:9000/v1/audio/transcriptions',
@@ -112,6 +123,24 @@ describe('resolveWhisperEngine', () => {
     ).toBe('http://127.0.0.1:9000/v1/audio/transcriptions');
     configurePushToTalk({ whisperUrl: 'http://127.0.0.1:8178/v1/audio/transcriptions' });
     expect(resolveWhisperEngine()).toBe('sidecar');
+  });
+
+  it('uses WASM only when the engine is forced', () => {
+    configurePushToTalk({ engine: 'wasm' });
+    expect(resolveWhisperEngine()).toBe('wasm');
+  });
+});
+
+describe('resolveSidecarFilesUrl', () => {
+  it('defaults to loopback /files on the same Tauri-stable origin', () => {
+    expect(DEFAULT_WHISPER_FILES_PATH).toBe('/files');
+    expect(resolveSidecarFilesUrl(DEFAULT_WHISPER_URL)).toBe(DEFAULT_WHISPER_FILES_URL);
+    expect(resolveSidecarFilesUrl('http://127.0.0.1:8178/v1/audio/transcriptions')).toBe(
+      'http://127.0.0.1:8178/files',
+    );
+    expect(resolveSidecarFilesUrl('https://abc.trycloudflare.com/transcribe')).toBe(
+      'https://abc.trycloudflare.com/files',
+    );
   });
 });
 
@@ -127,6 +156,13 @@ describe('insertTranscript', () => {
 
   it('does not change the composer when Whisper returns blank audio', () => {
     expect(insertTranscript('Keep me', '   ')).toBe('Keep me');
+  });
+
+  it('inserts a sidecar file ref without claiming hosted disk access', () => {
+    expect(insertLocalFileRef('', 'hero.png')).toBe('[local file: hero.png]');
+    expect(insertLocalFileRef('Look at', 'C:\\\\Users\\\\rev\\\\shot.jpg')).toBe(
+      'Look at [local file: shot.jpg]',
+    );
   });
 });
 
@@ -219,22 +255,79 @@ describe('transcribeLocalWhisper', () => {
 });
 
 describe('transcribeVoice', () => {
-  it('uses on-device WASM when no sidecar URL is configured', async () => {
+  it('uses the localhost sidecar by default', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ text: 'From the laptop sidecar' }),
+    });
+    const wasm = vi.fn(async () => ({ ok: true, text: 'From WASM' }));
+    const result = await transcribeVoice(new Blob(['x']), { fetch: fetchImpl, wasm });
+    expect(result).toEqual({ ok: true, text: 'From the laptop sidecar' });
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    const [url] = fetchImpl.mock.calls[0] as [string];
+    expect(url).toBe(DEFAULT_WHISPER_URL);
+    expect(wasm).not.toHaveBeenCalled();
+  });
+
+  it('uses WASM only when the engine is forced', async () => {
+    configurePushToTalk({ engine: 'wasm' });
     const result = await transcribeVoice(new Blob(['x']), {
       wasm: async () => ({ ok: true, text: 'From the phone' }),
     });
     expect(result).toEqual({ ok: true, text: 'From the phone' });
   });
+});
 
-  it('uses the sidecar when WHISPER_URL is set', async () => {
-    configurePushToTalk({ whisperUrl: DEFAULT_WHISPER_URL });
+describe('sidecar files', () => {
+  it('lists files from GET /files', async () => {
     const fetchImpl = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ text: 'From the laptop sidecar' }),
+      json: async () => ({
+        files: [{ id: '1', name: 'hero.png', mime: 'image/png', href: '/files/1' }],
+      }),
     });
-    const result = await transcribeVoice(new Blob(['x']), { fetch: fetchImpl });
-    expect(result).toEqual({ ok: true, text: 'From the laptop sidecar' });
-    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    const result = await listSidecarFiles({ fetch: fetchImpl, url: DEFAULT_WHISPER_FILES_URL });
+    expect(result).toEqual({
+      ok: true,
+      files: [{ id: '1', name: 'hero.png', mime: 'image/png', href: '/files/1' }],
+    });
+    expect(fetchImpl).toHaveBeenCalledWith(DEFAULT_WHISPER_FILES_URL, expect.anything());
+  });
+
+  it('POSTs a blob to /files and returns the sidecar ref', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        id: 'abc',
+        name: 'shot.jpg',
+        mime: 'image/jpeg',
+        href: '/files/abc',
+      }),
+    });
+    const result = await uploadSidecarFile(new File(['img'], 'shot.jpg', { type: 'image/jpeg' }), {
+      fetch: fetchImpl,
+      url: DEFAULT_WHISPER_FILES_URL,
+    });
+    expect(result).toEqual({
+      ok: true,
+      file: { id: 'abc', name: 'shot.jpg', mime: 'image/jpeg', href: '/files/abc' },
+    });
+    const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(DEFAULT_WHISPER_FILES_URL);
+    expect(init.method).toBe('POST');
+    expect(init.body).toBeInstanceOf(FormData);
+  });
+
+  it('fail-closes when the sidecar files endpoint is down', async () => {
+    const fetchImpl = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+    const result = await uploadSidecarFile(new File(['x'], 'a.png'), {
+      fetch: fetchImpl,
+      url: DEFAULT_WHISPER_FILES_URL,
+    });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.reason).toBe('sidecar-unavailable');
+    expect(result.message).toBe(LOCAL_SIDECAR_FILES_FAIL_CLOSED_MESSAGE);
   });
 });
 

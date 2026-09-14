@@ -1,37 +1,46 @@
 /**
- * Studio dogfood push-to-talk — on-device WASM (phone) + localhost sidecar (laptop).
+ * Studio dogfood push-to-talk — localhost / native sidecar (laptop + future Tauri).
+ * Hosted .com cannot read disk. WASM is explicit opt-in, not the default.
  * Not a public SKU.
  */
+
+import { isSameOriginWhisperPath } from './policy';
 
 export type WhisperEngine = 'auto' | 'wasm' | 'sidecar';
 export type ResolvedWhisperEngine = 'wasm' | 'sidecar';
 
 export interface PushToTalkConfig {
   /**
-   * `auto` uses WASM when no sidecar URL is set (phone seat).
-   * An explicit WHISPER_URL selects the laptop sidecar (or CF tunnel).
+   * Default is sidecar. `auto` also resolves to sidecar.
+   * `wasm` is explicit opt-in only (phone follow-on / offline experiments).
    */
   engine: WhisperEngine;
-  /** OpenAI-compatible sidecar URL. Empty means "no sidecar — use WASM". */
+  /** Documented sidecar transcribe URL. Empty falls back to loopback `/transcribe`. */
   whisperUrl: string;
+  /** Documented sidecar files URL. Empty is derived from the transcribe origin. */
+  filesUrl: string;
   /** How long to wait for sidecar / first WASM load. */
   timeoutMs: number;
   /** Reject oversized MediaRecorder blobs. */
   maxAudioBytes: number;
+  /** Reject oversized attach-via-sidecar uploads. */
+  maxFileBytes: number;
   /** Sidecar model class (YouTube pipeline family: `small`). */
   model: string;
-  /** transformers.js / Xenova checkpoint for on-device WASM. */
+  /** transformers.js / Xenova checkpoint for optional on-device WASM. */
   wasmModel: string;
   /** Preferred MediaRecorder MIME type before Safari fallbacks. */
   mimeType: string;
 }
 
 export const DEFAULT_WHISPER_ORIGIN = 'http://127.0.0.1:8178';
-export const DEFAULT_WHISPER_TRANSCRIBE_PATH = '/v1/audio/transcriptions';
+export const DEFAULT_WHISPER_TRANSCRIBE_PATH = '/transcribe';
+export const DEFAULT_WHISPER_FILES_PATH = '/files';
 export const DEFAULT_WHISPER_URL = `${DEFAULT_WHISPER_ORIGIN}${DEFAULT_WHISPER_TRANSCRIBE_PATH}`;
+export const DEFAULT_WHISPER_FILES_URL = `${DEFAULT_WHISPER_ORIGIN}${DEFAULT_WHISPER_FILES_PATH}`;
 export const DEFAULT_WHISPER_WASM_MODEL = 'Xenova/whisper-tiny.en';
 
-/** Hugging Face weight hosts — model download only. Audio never leaves the device. */
+/** Hugging Face weight hosts — opt-in WASM model download only. Audio never leaves the device. */
 export const WHISPER_WASM_MODEL_CONNECT_ORIGINS = [
   'https://huggingface.co',
   'https://cdn-lfs.huggingface.co',
@@ -40,10 +49,12 @@ export const WHISPER_WASM_MODEL_CONNECT_ORIGINS = [
 ] as const;
 
 const DEFAULT_CONFIG: PushToTalkConfig = {
-  engine: 'auto',
-  whisperUrl: '',
+  engine: 'sidecar',
+  whisperUrl: DEFAULT_WHISPER_URL,
+  filesUrl: DEFAULT_WHISPER_FILES_URL,
   timeoutMs: 90_000,
   maxAudioBytes: 10 * 1024 * 1024,
+  maxFileBytes: 25 * 1024 * 1024,
   model: 'small',
   wasmModel: DEFAULT_WHISPER_WASM_MODEL,
   mimeType: 'audio/webm',
@@ -51,16 +62,21 @@ const DEFAULT_CONFIG: PushToTalkConfig = {
 
 function readEngine(value: string | undefined): WhisperEngine {
   if (value === 'wasm' || value === 'sidecar' || value === 'auto') return value;
-  return 'auto';
+  return 'sidecar';
 }
 
 function configFromEnv(
   env: Record<string, string | undefined> = typeof process !== 'undefined' ? process.env : {},
 ): PushToTalkConfig {
+  const whisperUrl = resolveWhisperUrl(env.NEXT_PUBLIC_WHISPER_URL ?? env.WHISPER_URL);
   return {
     ...DEFAULT_CONFIG,
     engine: readEngine(env.NEXT_PUBLIC_WHISPER_ENGINE),
-    whisperUrl: resolveWhisperUrl(env.NEXT_PUBLIC_WHISPER_URL ?? env.WHISPER_URL),
+    whisperUrl,
+    filesUrl: resolveSidecarFilesUrl(
+      whisperUrl,
+      env.NEXT_PUBLIC_WHISPER_FILES_URL ?? env.WHISPER_FILES_URL,
+    ),
     wasmModel: env.NEXT_PUBLIC_WHISPER_WASM_MODEL?.trim() || DEFAULT_WHISPER_WASM_MODEL,
   };
 }
@@ -72,16 +88,21 @@ export function getPushToTalkConfig(): PushToTalkConfig {
 }
 
 export function configurePushToTalk(overrides: Partial<PushToTalkConfig>): void {
-  config = { ...configFromEnv(), ...overrides };
+  const next = { ...configFromEnv(), ...overrides };
+  if (!overrides.filesUrl) {
+    next.filesUrl = resolveSidecarFilesUrl(next.whisperUrl);
+  }
+  config = next;
 }
 
 export function resetPushToTalkConfig(): void {
   config = configFromEnv();
 }
 
-/** Empty / unset → no sidecar (WASM). Do not default to 127.0.0.1 on phones. */
+/** Unset / blank → documented loopback `/transcribe`. Never a cloud STT host. */
 export function resolveWhisperUrl(envValue?: string | null): string {
-  return envValue?.trim() ?? '';
+  const trimmed = envValue?.trim();
+  return trimmed && trimmed.length > 0 ? trimmed : DEFAULT_WHISPER_URL;
 }
 
 export function readWhisperUrlFromEnv(
@@ -90,9 +111,29 @@ export function readWhisperUrlFromEnv(
   return resolveWhisperUrl(env.NEXT_PUBLIC_WHISPER_URL ?? env.WHISPER_URL);
 }
 
+/**
+ * Files live on the same sidecar origin a future Tauri shell will own.
+ * Hosted `.com` never reads OS paths.
+ */
+export function resolveSidecarFilesUrl(
+  whisperUrl: string,
+  filesUrlOverride?: string | null,
+): string {
+  const override = filesUrlOverride?.trim();
+  if (override && override.length > 0) return override;
+  const trimmed = whisperUrl.trim();
+  if (trimmed.length === 0) return DEFAULT_WHISPER_FILES_URL;
+  if (isSameOriginWhisperPath(trimmed)) return DEFAULT_WHISPER_FILES_PATH;
+  try {
+    return `${new URL(trimmed).origin}${DEFAULT_WHISPER_FILES_PATH}`;
+  } catch {
+    return DEFAULT_WHISPER_FILES_URL;
+  }
+}
+
 export function resolveWhisperEngine(
   cfg: Pick<PushToTalkConfig, 'engine' | 'whisperUrl'> = getPushToTalkConfig(),
 ): ResolvedWhisperEngine {
-  if (cfg.engine === 'wasm' || cfg.engine === 'sidecar') return cfg.engine;
-  return cfg.whisperUrl.length > 0 ? 'sidecar' : 'wasm';
+  if (cfg.engine === 'wasm') return 'wasm';
+  return 'sidecar';
 }

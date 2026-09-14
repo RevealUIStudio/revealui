@@ -13,7 +13,7 @@ export interface PushToTalkButtonProps {
 function statusLabel(status: string, disabled: boolean): string {
   if (disabled) return 'Hold to talk';
   if (status === 'recording') return 'Listening… release to insert';
-  if (status === 'transcribing') return 'Transcribing on-device…';
+  if (status === 'transcribing') return 'Transcribing locally…';
   return 'Hold to talk';
 }
 

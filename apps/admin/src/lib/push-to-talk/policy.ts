@@ -1,6 +1,7 @@
 /**
- * Voice-in may talk to on-device WASM, a loopback/LAN sidecar, or an
- * operator-pinned Cloudflare Tunnel hostname. Cloud STT SaaS is refused.
+ * Voice-in and attach-via-sidecar talk to a loopback/LAN sidecar (or an
+ * operator-pinned Cloudflare Tunnel hostname). Cloud STT SaaS is refused.
+ * WASM is explicit opt-in and is not a hosted-disk path.
  */
 
 const LOOPBACK_HOSTS = new Set(['localhost', '::1']);

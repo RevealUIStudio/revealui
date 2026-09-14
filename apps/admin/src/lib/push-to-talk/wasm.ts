@@ -10,7 +10,7 @@ export type WasmAsrPipeline = (
 export type WasmWhisperLoader = () => Promise<WasmAsrPipeline>;
 
 export const WASM_UNAVAILABLE_MESSAGE =
-  'On-device Whisper could not start in this browser. Use HTTPS admin, allow the microphone, or set WHISPER_URL to a laptop sidecar / Cloudflare Tunnel — see docs/runbooks/admin-chat-local-whisper.md.';
+  'On-device Whisper could not start. The default path is the laptop sidecar at http://127.0.0.1:8178 — see docs/runbooks/admin-chat-local-whisper.md.';
 
 function fail(message: string): TranscribeResult {
   return { ok: false, reason: 'sidecar-unavailable', message };

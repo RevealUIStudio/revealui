@@ -33,8 +33,8 @@
  * unchanged in the Edge proxy runtime.
  *
  * Studio dogfood PTT (admin `/chat`): `connect-src` allows the loopback Whisper
- * sidecar only. Cloud STT origins are never added, even if WHISPER_URL is set
- * to a SaaS host.
+ * sidecar (`/transcribe` + `/files`) only. Cloud STT origins are never added,
+ * even if WHISPER_URL is set to a SaaS host. Hosted `.com` cannot read disk.
  */
 
 import { DEFAULT_WHISPER_ORIGIN, WHISPER_WASM_MODEL_CONNECT_ORIGINS } from '../push-to-talk/config';
