@@ -1,5 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { insertTranscript } from '../insert';
 import { PushToTalkButton } from '../PushToTalkButton';
@@ -42,7 +41,6 @@ describe('PushToTalkButton', () => {
   });
 
   it('inserts the local Whisper transcript into the composer callback and does not auto-send', async () => {
-    const user = userEvent.setup();
     const onTranscript = vi.fn();
     let composer = '';
 
@@ -61,20 +59,21 @@ describe('PushToTalkButton', () => {
     );
 
     const button = screen.getByRole('button', { name: 'Hold to talk' });
-    await user.pointer({ keys: '[MouseLeft>]', target: button });
+    fireEvent.pointerDown(button, { button: 0, pointerId: 1 });
     expect(await screen.findByRole('button', { name: /Listening/ })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
-    await user.pointer({ keys: '[/MouseLeft]', target: button });
+    fireEvent.pointerUp(button, { button: 0, pointerId: 1 });
 
-    expect(onTranscript).toHaveBeenCalledWith('List all users');
+    await waitFor(() => {
+      expect(onTranscript).toHaveBeenCalledWith('List all users');
+    });
     expect(composer).toBe('List all users');
     expect(onTranscript).toHaveBeenCalledTimes(1);
   });
 
   it('fail-closes with a sidecar-missing alert when Whisper is down', async () => {
-    const user = userEvent.setup();
     const onTranscript = vi.fn();
 
     render(
@@ -93,12 +92,13 @@ describe('PushToTalkButton', () => {
     );
 
     const button = screen.getByRole('button', { name: 'Hold to talk' });
-    await user.pointer({ keys: '[MouseLeft>]', target: button });
-    await user.pointer({ keys: '[/MouseLeft]', target: button });
+    fireEvent.pointerDown(button, { button: 0, pointerId: 1 });
+    await screen.findByRole('button', { name: /Listening/ });
+    fireEvent.pointerUp(button, { button: 0, pointerId: 1 });
 
-    expect(onTranscript).not.toHaveBeenCalled();
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Local Whisper sidecar is not running.',
     );
+    expect(onTranscript).not.toHaveBeenCalled();
   });
 });

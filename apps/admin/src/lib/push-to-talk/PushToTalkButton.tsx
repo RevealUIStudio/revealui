@@ -57,7 +57,7 @@ export function PushToTalkButton({
         onPointerDown={(event) => {
           if (event.button !== 0) return;
           event.preventDefault();
-          event.currentTarget.setPointerCapture(event.pointerId);
+          event.currentTarget.setPointerCapture?.(event.pointerId);
           begin();
         }}
         onPointerUp={() => {
