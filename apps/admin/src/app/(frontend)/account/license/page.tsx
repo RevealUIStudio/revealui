@@ -254,6 +254,7 @@ function LicenseContent() {
         credentials: 'include',
       });
       if (!res.ok) {
+        // empty-catch-ok: non-JSON error body — generic revoke message surfaces below
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         setDevicesError(data.error || 'Failed to revoke device');
         return;
