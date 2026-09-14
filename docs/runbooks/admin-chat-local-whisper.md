@@ -1,6 +1,6 @@
 ---
 title: "Admin /chat push-to-talk — local Whisper sidecar"
-description: "Studio dogfood: laptop localhost sidecar for STT + local files. Phone is a separate on-device follow-on seat and does not call the laptop. Not a public SKU."
+description: "Studio dogfood: laptop localhost sidecar for STT + local files. Optional Cloudflare Tunnel (Free) + Access for phone→laptop sidecar. Not a public SKU."
 visibility: internal
 status: verified
 audience: operator
@@ -21,9 +21,9 @@ Mic stays **off** until you press and hold **Hold to talk**. Release inserts the
 | Seat | This PR | Notes |
 |------|---------|--------|
 | **Laptop (primary)** | Localhost sidecar + local file pick | `http://127.0.0.1:8178/transcribe` and `/files`. Intended future home: **Tauri shell** on the same ports (SOW separate). |
-| **Phone** | Follow-on — document only | **Separate on-device** STT (WASM / OS speech) + share-sheet / photo picker. Does **not** call the laptop. Do not block merge on a phone app. |
+| **Phone** | Follow-on — document only | On-device STT / share-sheet, **or** optional **Cloudflare Tunnel (Free) + Access** to the **same laptop sidecar** when the laptop is online. Do not block merge on a phone app. |
 
-Do **not** promise arbitrary filesystem access from hosted `.com`. Do not add a paid mesh VPN. The phone seat does not use the laptop sidecar.
+Do **not** promise arbitrary filesystem access from hosted `.com`. Do not add a paid mesh VPN.
 
 ## Documented sidecar contract
 
@@ -85,21 +85,33 @@ NEXT_PUBLIC_WHISPER_ENGINE=sidecar
 
 Attach will fail closed until `/files` is served on that origin.
 
-## Phone (follow-on seat — not this PR)
+## Phone (follow-on seat — not a merge blocker)
 
-Phone is a **yes**, as a later seat. It is **not** a laptop remote and it is **not** a merge blocker.
+Phone is a **yes**. Laptop `127.0.0.1` stays the primary dogfood path. Do not block merge on a phone app.
 
-| Phone capability | Later seat | This PR |
-|------------------|------------|---------|
-| STT | On-device WASM (`NEXT_PUBLIC_WHISPER_ENGINE=wasm`) or OS speech | Not shipped as default; laptop uses the sidecar |
-| Local photos / files | Share-sheet / photo picker on the phone | Not shipped; laptop uses **Attach via sidecar** |
-| Call the laptop sidecar | No | — |
+Two later phone paths (pick one; do not add a paid mesh VPN):
 
-Do not block merge on a phone app. Hosted `.com` still cannot read phone disk.
+1. **On-device** — WASM (`NEXT_PUBLIC_WHISPER_ENGINE=wasm`) or OS speech, plus share-sheet / photo picker. Audio and photos stay on the phone.
+2. **Optional phone → laptop sidecar** — Cloudflare Tunnel (**Free**) + **Access** to the same sidecar, only while the laptop is online.
+
+### Optional Cloudflare Tunnel (Free) + Access
+
+1. Keep `pnpm whisper:sidecar` running on the laptop (`127.0.0.1:8178`).
+2. Expose that port with **Cloudflare Tunnel (Free)**.
+3. Put **Cloudflare Access** in front of the tunnel hostname.
+4. Pin the admin env to the Access-protected origin:
+
+```text
+NEXT_PUBLIC_WHISPER_URL=https://<access-protected-host>/transcribe
+```
+
+5. On the phone, complete the Access login, then use `/chat` hold-to-talk. The browser talks to the tunnel hostname, not to the phone's own `127.0.0.1`.
+
+If the laptop or tunnel is down, the control **fail-closes**. Hosted `.com` still cannot read phone or laptop disk by itself.
 
 ## CSP / Permissions-Policy
 
-- `connect-src` always includes loopback `8178`. An operator may pin an extra sidecar origin; cloud STT hosts are refused.
+- `connect-src` always includes loopback `8178`. An operator-pinned Access tunnel origin (`*.trycloudflare.com` or a custom Access host) is added when `WHISPER_URL` / `NEXT_PUBLIC_WHISPER_URL` is set. Cloud STT hosts are refused.
 - Hugging Face weight hosts remain only for explicit WASM opt-in.
 - `microphone=(self)` on `/chat` only. Camera/geo stay off.
 
@@ -107,9 +119,9 @@ Do not block merge on a phone app. Hosted `.com` still cannot read phone disk.
 
 - Public marketing / pricing copy
 - Cloud STT SaaS
-- A paid mesh VPN or LAN-mesh requirement
+- A paid mesh VPN
 - A second speech rewriter
 - Promising hosted `.com` can read the phone or laptop disk
 - Shipping a Tauri shell in this PR (separate SOW)
 - Blocking merge on a phone app
-- Phone calling the laptop sidecar
+

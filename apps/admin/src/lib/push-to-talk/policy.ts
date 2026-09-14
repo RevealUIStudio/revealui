@@ -60,7 +60,7 @@ export function isPrivateIpv4Hostname(hostname: string): boolean {
   return a === 172 && b >= 16 && b <= 31;
 }
 
-/** Cloudflare quick-tunnel host — optional later Access-protected sidecar URL. */
+/** Cloudflare quick-tunnel host — optional Access-protected phone → laptop sidecar. */
 export function isCloudflareTunnelHostname(hostname: string): boolean {
   return hostHasSuffix(hostname.toLowerCase(), 'trycloudflare.com');
 }
