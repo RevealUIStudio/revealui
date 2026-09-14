@@ -45,7 +45,7 @@ describe('public product catalog routes', () => {
     expect(startFree.length).toBeGreaterThan(0);
     expect(startFree.every((link) => link.getAttribute('href') === SITE.urls.signup)).toBe(true);
     expect(screen.getByRole('link', { name: 'See it on GitHub' })).toBeInTheDocument();
-    const selfHost = screen.getByRole('radio', { name: /I will \(developer/i });
+    const selfHost = screen.getByRole('radio', { name: /I self-host/i });
     expect(selfHost).toHaveAttribute('aria-checked', 'true');
     expect(screen.queryByText('$300')).toBeNull();
     expect(screen.queryByText('$3,500')).toBeNull();
@@ -60,8 +60,8 @@ describe('public product catalog routes', () => {
       'href',
       SITE.urls.agency,
     );
-    expect(screen.getByRole('radio', { name: /You will \(Studio\)/i })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: /I will \(developer/i })).toHaveAttribute(
+    expect(screen.getByRole('radio', { name: /Studio implements with me/i })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /I self-host/i })).toHaveAttribute(
       'aria-checked',
       'true',
     );

@@ -71,34 +71,34 @@ export const DEFAULT_QUOTE_ANSWERS: QuoteAnswers = {
 };
 
 export const QUOTE_CALCULATOR = {
-  heading: 'Three questions. A price you can read.',
-  body: 'This calculator defaults to product licenses. Studio work is quoted here too and booked on revealuistudio.com.',
+  heading: 'Who runs it. What you need. One price.',
+  body: 'Defaults to self-host licenses. Studio work is on the same form and books at revealuistudio.com.',
   questions: {
     who: {
-      label: 'Who puts it live?',
+      label: 'Who runs it?',
       options: [
-        { id: 'self', label: 'I will (developer / self-host)' },
-        { id: 'studio', label: 'You will (Studio)' },
+        { id: 'self', label: 'I self-host' },
+        { id: 'studio', label: 'Studio implements with me' },
       ] as const satisfies readonly QuoteOption<WhoLive>[],
     },
     what: {
-      label: 'What has to work?',
+      label: 'What do you need?',
       options: [
-        { id: 'consultation', label: 'Consultation with Joshua' },
-        { id: 'pilot', label: 'Pilot: one site, one agent you run' },
-        { id: 'launch', label: 'Launch: one live flow on my accounts' },
+        { id: 'consultation', label: 'Consultation' },
+        { id: 'pilot', label: 'Pilot: one site, one agent I run' },
+        { id: 'launch', label: 'Launch: live on my accounts' },
       ] as const satisfies readonly QuoteOption<WhatWork>[],
     },
     places: {
-      label: 'How many places?',
+      label: 'How many sites?',
       options: [
-        { id: 'one', label: 'One business, one place' },
-        { id: 'many', label: 'More than one (stop quoting; book an intro)' },
+        { id: 'one', label: 'One business, one site' },
+        { id: 'many', label: 'More than one: book an intro' },
       ] as const satisfies readonly QuoteOption<PlaceCount>[],
     },
   },
   selfHost: {
-    title: 'Self-host',
+    title: 'Self-host licenses',
     free: `Free: ${FREE_PRICE} + your infra. Start free, or run \`npx create-revealui@latest\`.`,
     agents: `Pro ${PRO_PRICE}/mo or Max ${MAX_PRICE}/mo. 7-day trial.`,
     perpetual: `Optional one-time: Pro Perpetual ${PERPETUAL_PRICE}.`,
@@ -123,8 +123,8 @@ export const QUOTE_CALCULATOR = {
     },
   },
   intro: {
-    title: 'More than one place.',
-    body: 'Stop quoting. Book an intro.',
+    title: 'More than one site',
+    body: 'The calculator stops here. Book a 30-minute intro to scope it.',
   },
   ownership: [
     'You own the accounts and the data.',
@@ -136,7 +136,7 @@ export const QUOTE_CALCULATOR = {
   },
   introCta: {
     label: 'Book a 30-minute intro',
-    note: 'Google Calendar / Meet or sit down.',
+    note: 'Google Calendar / Meet.',
     href: SITE.urls.bookIntro,
   },
 } as const;

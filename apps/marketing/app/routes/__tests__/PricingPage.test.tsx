@@ -26,9 +26,9 @@ describe('PricingPage product catalog', () => {
       await screen.findByRole('heading', { level: 1, name: 'RevealUI pricing' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'Three questions. A price you can read.' }),
+      screen.getByRole('heading', { name: 'Who runs it. What you need. One price.' }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: /I will \(developer/i })).toHaveAttribute(
+    expect(screen.getByRole('radio', { name: /I self-host/i })).toHaveAttribute(
       'aria-checked',
       'true',
     );
@@ -257,6 +257,8 @@ describe('PricingPage product catalog', () => {
     });
     const header = sectionHeading.closest('.text-center') ?? sectionHeading.parentElement;
     expect(header?.textContent?.includes('Coming soon')).toBe(false);
+    expect(header?.textContent?.includes('in development')).toBe(false);
+    expect(header?.textContent?.includes('X402_ENABLED off')).toBe(true);
 
     const a2a = screen.getByRole('heading', { name: PRICING_AGENT_A2A.heading });
     const x402 = screen.getByRole('heading', { name: PRICING_AGENT_X402.heading });
@@ -273,7 +275,9 @@ describe('PricingPage product catalog', () => {
     expect(a2aCard?.contains(comingSoonBadge)).toBe(false);
     expect(mcpCard?.contains(comingSoonBadge)).toBe(false);
     expect(a2aCard?.textContent?.includes('Coming soon')).toBe(false);
-    expect(mcpCard?.textContent?.includes('Marketplace discovery coming soon.')).toBe(true);
+    expect(mcpCard?.textContent?.includes('Coming soon')).toBe(false);
+    expect(mcpCard?.textContent?.includes('Discovery via marketplace.json')).toBe(true);
+    expect(mcpCard?.textContent?.includes('third-party catalog')).toBe(true);
     expect(PRICING_AGENT_X402.badge).toBe('Coming soon');
     expect('badge' in PRICING_AGENTS_SECTION).toBe(false);
   });

@@ -168,4 +168,12 @@ describe('Auditor voice and live-hero honesty', () => {
     expect(SUBSCRIPTION_PRICE_FALLBACKS.max.price).toBe('$99');
     expect(LIVE_PRODUCT_BLOB.includes('$299')).toBe(false);
   });
+
+  it('describes agent payment rails as code-present and flag-off, not unfinished', () => {
+    const payments = HOME_FAQ.items.find((item) => item.question === 'How do agent payments work?');
+    expect(payments?.answer.includes('X402_ENABLED')).toBe(true);
+    expect(payments?.answer.includes('in development')).toBe(false);
+    expect(payments?.answer.includes('unfinished')).toBe(false);
+    expect(payments?.answer.includes('pricing page')).toBe(true);
+  });
 });

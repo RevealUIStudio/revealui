@@ -38,6 +38,7 @@ import { sites, users } from '@revealui/db/schema';
 import { OpenAPIHono } from '@revealui/openapi';
 import { configureClientIp } from '@revealui/security';
 import { sql } from 'drizzle-orm';
+import type { Context } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { logger as honoLogger } from 'hono/logger';
 // Side-effect import: registers durable-queue handlers at module top
@@ -502,6 +503,7 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
   },
   routes: {
     'license-gen': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
+    'license-current': { maxRequests: 10, windowMs: ONE_MINUTE },
     'a2a-discovery': { maxRequests: 60, windowMs: ONE_MINUTE },
     agent: { maxRequests: 10, windowMs: ONE_MINUTE },
     'agent-stream': { maxRequests: 10, windowMs: ONE_MINUTE },
@@ -541,6 +543,7 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'revmarket-reviews': { maxRequests: 10, windowMs: ONE_MINUTE },
     pricing: { maxRequests: 10, windowMs: ONE_MINUTE },
     'studio-auth': { maxRequests: 5, windowMs: ONE_MINUTE },
+    'studio-auth-devices': { maxRequests: 30, windowMs: ONE_MINUTE },
     'terminal-auth': { maxRequests: 5, windowMs: ONE_MINUTE },
     'terminal-sessions': { maxRequests: 10, windowMs: ONE_MINUTE },
     maintenance: { maxRequests: 1, windowMs: ONE_MINUTE },
@@ -576,7 +579,7 @@ export function configureRateLimits(overrides: Partial<RateLimitsConfig>): void 
 
 function routeLimit(
   key: string,
-  opts?: { failOpen?: boolean; resolveKey?: typeof resolveBillingActorKeyFromContext },
+  opts?: { failOpen?: boolean; resolveKey?: (c: Context) => string },
 ) {
   const cfg = rateLimitsConfig.routes[key] ?? DEFAULT_RATE_LIMITS.routes[key];
   return rateLimitMiddleware({ ...cfg, keyPrefix: key, ...opts });
@@ -914,6 +917,52 @@ app.use('/api/v1/rotation/*', requireFeature('vaultRotation', { mode: 'entitleme
 
 // Write-protect mutation endpoints  -  these require authentication
 const writeProtected = authMiddleware({ required: true });
+
+app.get('/api/license/current', writeProtected);
+app.get('/api/v1/license/current', writeProtected);
+app.get(
+  '/api/license/current',
+  routeLimit('license-current', {
+    resolveKey: (c) => `user:${c.get('user')?.id ?? 'anon'}`,
+  }),
+);
+app.get(
+  '/api/v1/license/current',
+  routeLimit('license-current', {
+    resolveKey: (c) => `user:${c.get('user')?.id ?? 'anon'}`,
+  }),
+);
+
+// Studio device list/revoke: cookie or Bearer. Auth must run before the
+// after-auth user: key on studio-auth-devices (not the pre-auth OTP cluster).
+app.use('/api/studio-auth/devices', writeProtected);
+app.use('/api/studio-auth/devices/*', writeProtected);
+app.use('/api/v1/studio-auth/devices', writeProtected);
+app.use('/api/v1/studio-auth/devices/*', writeProtected);
+app.use(
+  '/api/studio-auth/devices',
+  routeLimit('studio-auth-devices', {
+    resolveKey: (c) => `user:${(c.get('user') as { id: string }).id}`,
+  }),
+);
+app.use(
+  '/api/studio-auth/devices/*',
+  routeLimit('studio-auth-devices', {
+    resolveKey: (c) => `user:${(c.get('user') as { id: string }).id}`,
+  }),
+);
+app.use(
+  '/api/v1/studio-auth/devices',
+  routeLimit('studio-auth-devices', {
+    resolveKey: (c) => `user:${(c.get('user') as { id: string }).id}`,
+  }),
+);
+app.use(
+  '/api/v1/studio-auth/devices/*',
+  routeLimit('studio-auth-devices', {
+    resolveKey: (c) => `user:${(c.get('user') as { id: string }).id}`,
+  }),
+);
 
 // GAP-355 Stage 4 S4-4: Merkle anchor download + inclusion proof (Pro+ auditLog).
 // Public-key stays unauthenticated under /api/audit/public-key.
@@ -1362,8 +1411,12 @@ app.route(
 app.route('/api/pricing', pricingRoute);
 app.route('/api/audit', auditRoute);
 app.route('/api/revmarket', revmarketRoute);
-app.use('/api/studio-auth/*', routeLimit('studio-auth'));
-app.use('/api/v1/studio-auth/*', routeLimit('studio-auth'));
+// OTP / bearer device pairing only — do not include /devices (separate
+// after-auth studio-auth-devices bucket; Hono would apply both matchers).
+for (const otpPath of ['link', 'verify', 'refresh', 'revoke', 'status'] as const) {
+  app.use(`/api/studio-auth/${otpPath}`, routeLimit('studio-auth'));
+  app.use(`/api/v1/studio-auth/${otpPath}`, routeLimit('studio-auth'));
+}
 app.route('/api/studio-auth', studioAuthRoute);
 app.use('/api/terminal-auth/*', routeLimit('terminal-auth'));
 app.use('/api/v1/terminal-auth/*', routeLimit('terminal-auth'));

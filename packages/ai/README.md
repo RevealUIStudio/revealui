@@ -51,6 +51,15 @@ Non-US snaps in Canonical's catalog (`deepseek-r1`, `qwen-*`, `glm-*`) are
 rejected at provider construction. Operator escape (never seed):
 `REVEALUI_ALLOW_NON_US_MODELS=1`.
 
+**Muse Glimmer (optional local endpoint).** Muse Glimmer is an
+Ollama- / OpenAI-compatible local inference endpoint. It is **not** a
+Meta model SKU and **not** a RevealUI product SKU. The product US-origin
+Inference Snap allowlist remains Canonical Ubuntu snaps only
+(`nemotron-3-nano`, `nemotron-3-nano-omni`, `gemma3`, `gemma4`) —
+SSOT: `packages/ai/src/llm/providers/us-origin-snaps.ts`. Point RevealUI
+at Glimmer the same way as any OpenAI-compatible / Ollama base URL; do
+not add it to the Ubuntu snap catalog.
+
 Quick setup:
 
 ```bash

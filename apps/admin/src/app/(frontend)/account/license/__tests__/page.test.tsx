@@ -98,6 +98,9 @@ beforeEach(() => {
       if (url.endsWith('/api/license/public-key')) {
         return Promise.resolve(jsonResponse({ publicKey: TEST_PUBLIC_KEY }));
       }
+      if (url.endsWith('/api/studio-auth/devices')) {
+        return Promise.resolve(jsonResponse({ devices: [] }));
+      }
       return Promise.resolve({ ok: false, json: () => Promise.resolve({}) });
     }),
   );
@@ -119,6 +122,9 @@ describe('LicensePage activation instructions', () => {
 
     // Daemon block is present and names the var the daemon actually reads —
     // one snippet for the framework .env, one for the daemon.
+    expect(document.body.textContent ?? '').toContain(
+      'RevDev Studio signs in and activates this license automatically',
+    );
     expect(document.body.textContent ?? '').toContain('The same key activates the RevDev daemon');
     expect(screen.getAllByText('REVEALUI_LICENSE_KEY')).toHaveLength(1);
     expect(screen.getAllByText('REVEALUI_LICENSE_KEY=your-key-here')).toHaveLength(2);

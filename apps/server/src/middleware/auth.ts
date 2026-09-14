@@ -46,11 +46,16 @@ function noteSuperAdminElevation(user: ApiAuthUser): void {
   });
 }
 
+interface ResolvedDeviceAuth {
+  user: ApiAuthUser;
+  deviceId: string;
+}
+
 /**
  * Resolve user from a Bearer token. Returns null if token is invalid or expired.
  * Updates lastSeen on the device row (fire-and-forget).
  */
-async function resolveDeviceToken(token: string): Promise<ApiAuthUser | null> {
+async function resolveDeviceToken(token: string): Promise<ResolvedDeviceAuth | null> {
   const db = getClient();
   const hash = hashToken(token);
   const now = new Date();
@@ -92,7 +97,7 @@ async function resolveDeviceToken(token: string): Promise<ApiAuthUser | null> {
       /* best-effort lastSeen update */
     });
 
-  return user;
+  return { user, deviceId: device.deviceId };
 }
 
 /**
@@ -107,11 +112,16 @@ export const authMiddleware = (options: AuthOptions = {}): MiddlewareHandler => 
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.slice(7);
       if (token.startsWith('rvui_dev_')) {
-        const user = await resolveDeviceToken(token);
-        if (user) {
-          c.set('user', user);
-          // No session object for device auth  -  set a synthetic marker
-          c.set('session', { id: 'device-token', deviceAuth: true });
+        const resolved = await resolveDeviceToken(token);
+        if (resolved) {
+          c.set('user', resolved.user);
+          // Synthetic session: deviceAuth + deviceId so /studio-auth/devices
+          // can mark the calling device as current.
+          c.set('session', {
+            id: 'device-token',
+            deviceAuth: true,
+            deviceId: resolved.deviceId,
+          });
           await next();
           return;
         }

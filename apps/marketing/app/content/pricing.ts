@@ -74,7 +74,7 @@ export const PRICING_AGENTS_SECTION = {
   eyebrow: 'Agent-Native',
   heading: 'RevealUI for AI Agents',
   subhead:
-    'Agents can discover and authenticate today. Agent payment rails are still in development.',
+    'Agents can discover and authenticate today. Agent payment rails ship in the code and are not switched on (X402_ENABLED off).',
 } as const;
 
 export const PRICING_AGENT_A2A = {
@@ -95,7 +95,7 @@ export const PRICING_AGENT_X402 = {
 
 export const PRICING_AGENT_MCP = {
   heading: 'MCP Servers',
-  body: `${METRICS.mcpServers} production MCP servers for any MCP-capable IDE (Cursor, Claude Code, Copilot, Zed, and others), including Stripe, Neon, Vercel, Playwright, Next.js DevTools, content management, and email. Marketplace discovery coming soon.`,
+  body: `${METRICS.mcpServers} production MCP servers for any MCP-capable IDE (Cursor, Claude Code, Copilot, Zed, and others), including Stripe, Neon, Vercel, Playwright, Next.js DevTools, content management, and email. First-party servers ship today. Discovery via marketplace.json and the servers list is a preview; the third-party catalog, charging, and payouts are not open.`,
   docsLink: {
     label: 'MCP docs →',
     href: SITE.urls.docsMcp,

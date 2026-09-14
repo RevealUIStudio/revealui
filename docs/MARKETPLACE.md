@@ -299,7 +299,7 @@ The moral rule is simple: do not bill for failed, duplicated, reversed, or repla
 
 - Platform fee: `0.001` USDC
 
-All transactions are recorded in `marketplace_transactions`. You can query your transaction history via the API (developer dashboard coming soon).
+All transactions are recorded in `marketplace_transactions`. You can query transaction history via the API, and the login-gated admin `/marketplace` surface already covers earnings, analytics, and publish.
 
 ---
 

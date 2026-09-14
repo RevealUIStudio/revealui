@@ -608,13 +608,13 @@ export const TEMPLATES_GITHUB_TEST: EvidenceRef = {
 };
 export const VERCEL_ONE_CLICK_TEMPLATE: EvidenceRef = {
   kind: 'code',
-  ref: 'deployment/vercel/template.json',
-  note: 'buyer Deploy Button metadata: starter twin, Neon store, required env',
+  ref: 'deployment/vercel/templates.json',
+  note: 'official submit metadata: listingStatus not-published, paste-own POSTGRES_URL, no Neon/Blob stores',
 };
 export const VERCEL_ONE_CLICK_TEST: EvidenceRef = {
   kind: 'test',
-  ref: 'apps/marketing/app/content/__tests__/templates.test.ts#documents the buyer Vercel one-click on the existing starter twin',
-  note: 'pins clone URL to revealui-template-starter and honest buyer-account copy',
+  ref: 'apps/marketing/app/content/__tests__/templates.test.ts#gives Deploy to Vercel clone URLs to the four Next.js GitHub twins only',
+  note: 'pins clone URLs to the four GitHub twins with POSTGRES_URL and no stores',
 };
 export const TEMPLATES_APIFY_TEST: EvidenceRef = {
   kind: 'test',
