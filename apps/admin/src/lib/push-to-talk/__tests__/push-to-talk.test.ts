@@ -28,6 +28,7 @@ import {
   resolveSidecarFilesUrl,
   resolveWhisperEngine,
   resolveWhisperUrl,
+  type TranscribeResult,
   transcribeLocalWhisper,
   transcribeVoice,
   transcribeWithWasm,
@@ -276,7 +277,7 @@ describe('transcribeVoice', () => {
       ok: true,
       json: async () => ({ text: 'From the laptop sidecar' }),
     });
-    const wasm = vi.fn(async () => ({ ok: true, text: 'From WASM' }));
+    const wasm = vi.fn(async (): Promise<TranscribeResult> => ({ ok: true, text: 'From WASM' }));
     const result = await transcribeVoice(new Blob(['x']), { fetch: fetchImpl, wasm });
     expect(result).toEqual({ ok: true, text: 'From the laptop sidecar' });
     expect(fetchImpl).toHaveBeenCalledTimes(1);
@@ -355,7 +356,7 @@ describe('transcribeWithWasm', () => {
           numberOfChannels: 1,
           sampleRate: 16_000,
           getChannelData: () => new Float32Array([0.1, 0.2]),
-        }) as AudioBuffer,
+        }) as unknown as AudioBuffer,
       loadPipeline: async () => async () => ({ text: 'On device transcript' }),
     });
     expect(result).toEqual({ ok: true, text: 'On device transcript' });
@@ -368,7 +369,7 @@ describe('transcribeWithWasm', () => {
           numberOfChannels: 1,
           sampleRate: 16_000,
           getChannelData: () => new Float32Array([0.1]),
-        }) as AudioBuffer,
+        }) as unknown as AudioBuffer,
       loadPipeline: async () => {
         throw new Error('missing wasm');
       },

@@ -62,7 +62,9 @@ function defaultCreateRecorder(stream: MediaStream, mimeType: string): MediaReco
     pickRecorderMimeType(Ctor.isTypeSupported?.bind(Ctor)) ||
     (Ctor.isTypeSupported?.(mimeType) ? mimeType : '');
   const options = supported ? { mimeType: supported } : undefined;
-  return new Ctor(stream, options);
+  // DOM MediaRecorder event handlers are bivariant at runtime; the like-type
+  // is for tests. BlobEvent.data is a Blob.
+  return new Ctor(stream, options) as unknown as MediaRecorderLike;
 }
 
 function stopTracks(stream: MediaStream | null): void {
