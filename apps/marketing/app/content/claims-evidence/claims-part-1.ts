@@ -408,7 +408,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_FAQ.items[6].answer',
     proofGrade: 'behavior',
-    text: 'RevealUI speaks the HTTP 402 payment protocol so agents can pay over standard HTTP. Payment rails are still in development. See the agents section on the pricing page for current status.',
+    text: 'RevealUI speaks the HTTP 402 payment protocol so agents can pay over standard HTTP. The rail ships in the code and stays off while X402_ENABLED is off. See the agents section on the pricing page for current status.',
     evidence: [X402],
   },
   {

@@ -221,7 +221,7 @@ export const HOME_FAQ = {
     {
       question: 'How do agent payments work?',
       answer:
-        'RevealUI speaks the HTTP 402 payment protocol so agents can pay over standard HTTP. Payment rails are still in development. See the agents section on the pricing page for current status.',
+        'RevealUI speaks the HTTP 402 payment protocol so agents can pay over standard HTTP. The rail ships in the code and stays off while X402_ENABLED is off. See the agents section on the pricing page for current status.',
     },
   ] as readonly FaqItem[],
 } as const;
