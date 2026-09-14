@@ -41,8 +41,10 @@ export {
 export { fileDisplayName, insertLocalFileRef, insertTranscript } from './insert';
 export { PushToTalkButton } from './PushToTalkButton';
 export {
+  DOGFOOD_WHISPER_TUNNEL_HOST,
+  DOGFOOD_WHISPER_TUNNEL_ORIGIN,
   isAllowedWhisperEndpoint,
-  isCloudflareTunnelHostname,
+  isDogfoodWhisperTunnelHostname,
   isLoopbackHostname,
   isPrivateIpv4Hostname,
   isSaasSttHostname,

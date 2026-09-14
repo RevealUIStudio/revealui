@@ -74,7 +74,7 @@ WHISPER_SIDECAR_FILES_DIR=~/.revealui/whisper-sidecar/files
 5. **Attach via sidecar** picks a file in the browser and **POSTs the blob to localhost `/files`**. The composer gets `[local file: name]`. Hosted admin never sees an OS path.
 6. Optional: enable **Speak replies**. Secrets stay unspoken.
 
-If the sidecar is down, the controls show a fail-closed alert. Start `pnpm whisper:sidecar` and retry. CORS must allow the admin origin (the reference sidecar sends `Access-Control-Allow-Origin: *` for dogfood). Chrome allows `http://127.0.0.1` from an HTTPS admin page.
+If the sidecar is down, the controls show a fail-closed alert. Start `pnpm whisper:sidecar` and retry. The sidecar reflects CORS only for `https://admin.revealui.com` and local admin (`http://localhost:4000`, `http://127.0.0.1:4000`). Chrome allows `http://127.0.0.1` from an HTTPS admin page.
 
 ### STT-only (whisper.cpp on 8178, no attach)
 
@@ -99,19 +99,21 @@ Two later phone paths (pick one; do not add a paid mesh VPN):
 1. Keep `pnpm whisper:sidecar` running on the laptop (`127.0.0.1:8178`).
 2. Expose that port with **Cloudflare Tunnel (Free)**.
 3. Put **Cloudflare Access** in front of the tunnel hostname.
-4. Pin the admin env to the Access-protected origin:
+4. The only allow-listed public host is the documented dogfood Access hostname:
 
 ```text
-NEXT_PUBLIC_WHISPER_URL=https://<access-protected-host>/transcribe
+NEXT_PUBLIC_WHISPER_URL=https://chat.revbot.revealui.com/transcribe
 ```
 
-5. On the phone, complete the Access login, then use `/chat` hold-to-talk. The browser talks to the tunnel hostname, not to the phone's own `127.0.0.1`.
+Arbitrary hosts (`evil.example`, `*.trycloudflare.com`) are refused and never enter CSP `connect-src`.
+
+5. On the phone, complete the Access login, then use `/chat` hold-to-talk. The browser talks to `chat.revbot.revealui.com`, not to the phone's own `127.0.0.1`.
 
 If the laptop or tunnel is down, the control **fail-closes**. Hosted `.com` still cannot read phone or laptop disk by itself.
 
 ## CSP / Permissions-Policy
 
-- `connect-src` always includes loopback `8178`. An operator-pinned Access tunnel origin (`*.trycloudflare.com` or a custom Access host) is added when `WHISPER_URL` / `NEXT_PUBLIC_WHISPER_URL` is set. Cloud STT hosts are refused.
+- `connect-src` always includes loopback `8178`. The only extra public origin allowed is `https://chat.revbot.revealui.com` when `WHISPER_URL` is pinned there. Arbitrary hosts are refused.
 - Hugging Face weight hosts remain only for explicit WASM opt-in.
 - `microphone=(self)` on `/chat` only. Camera/geo stay off.
 

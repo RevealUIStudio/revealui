@@ -17,11 +17,18 @@ const DEFAULT_PORT = 8178;
 const DEFAULT_UPSTREAM = 'http://127.0.0.1:8179/v1/audio/transcriptions';
 const DEFAULT_FILES_DIR = join(homedir(), '.revealui', 'whisper-sidecar', 'files');
 
+const DEFAULT_CORS_ORIGINS = [
+  'https://admin.revealui.com',
+  'http://localhost:4000',
+  'http://127.0.0.1:4000',
+] as const;
+
 interface SidecarConfig {
   host: string;
   port: number;
   upstream: string;
   filesDir: string;
+  corsOrigins: readonly string[];
 }
 
 interface StoredFile {
@@ -39,7 +46,19 @@ function readConfig(env: NodeJS.ProcessEnv = process.env): SidecarConfig {
     port: Number.isFinite(port) && port > 0 ? port : DEFAULT_PORT,
     upstream: env.WHISPER_UPSTREAM?.trim() || DEFAULT_UPSTREAM,
     filesDir: expandHome(env.WHISPER_SIDECAR_FILES_DIR?.trim() || DEFAULT_FILES_DIR),
+    corsOrigins: readCorsOrigins(env.WHISPER_SIDECAR_CORS_ORIGINS),
   };
+}
+
+function readCorsOrigins(raw: string | undefined): readonly string[] {
+  const trimmed = raw?.trim();
+  if (!trimmed) return DEFAULT_CORS_ORIGINS;
+  const origins: string[] = [];
+  for (const part of trimmed.split(',')) {
+    const origin = part.trim();
+    if (origin.length > 0) origins.push(origin);
+  }
+  return origins.length > 0 ? origins : DEFAULT_CORS_ORIGINS;
 }
 
 function expandHome(value: string): string {
@@ -47,14 +66,37 @@ function expandHome(value: string): string {
   return value;
 }
 
-function cors(res: ServerResponse): void {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+function isAllowedCorsOrigin(origin: string, allowed: readonly string[]): boolean {
+  for (const candidate of allowed) {
+    if (candidate === origin) return true;
+  }
+  return false;
 }
 
-function sendJson(res: ServerResponse, status: number, body: unknown): void {
-  cors(res);
+/** Reflect allow-listed browser Origins only. No `*`. Non-browser (no Origin) is allowed. */
+function applyCors(req: IncomingMessage, res: ServerResponse, allowed: readonly string[]): boolean {
+  const origin = req.headers.origin;
+  if (typeof origin !== 'string' || origin.length === 0) return true;
+  if (!isAllowedCorsOrigin(origin, allowed)) {
+    res.writeHead(403, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Origin not allowed' }));
+    return false;
+  }
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Vary', 'Origin');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  return true;
+}
+
+function sendJson(
+  req: IncomingMessage,
+  res: ServerResponse,
+  status: number,
+  body: unknown,
+  allowed: readonly string[],
+): void {
+  if (!applyCors(req, res, allowed)) return;
   const json = JSON.stringify(body);
   res.writeHead(status, { 'Content-Type': 'application/json' });
   res.end(json);
@@ -151,14 +193,20 @@ async function handleTranscribe(
   try {
     upstream = await fetch(cfg.upstream, { method: 'POST', headers, body });
   } catch {
-    sendJson(res, 503, {
-      error:
-        'Whisper upstream is not reachable. Start whisper-server on 8179 or set WHISPER_UPSTREAM.',
-    });
+    sendJson(
+      req,
+      res,
+      503,
+      {
+        error:
+          'Whisper upstream is not reachable. Start whisper-server on 8179 or set WHISPER_UPSTREAM.',
+      },
+      cfg.corsOrigins,
+    );
     return;
   }
   const text = await upstream.text();
-  cors(res);
+  if (!applyCors(req, res, cfg.corsOrigins)) return;
   res.writeHead(upstream.status, { 'Content-Type': 'application/json' });
   res.end(text);
 }
@@ -173,14 +221,20 @@ async function handle(
   const pathname = url.pathname;
 
   if (method === 'OPTIONS') {
-    cors(res);
+    if (!applyCors(req, res, cfg.corsOrigins)) return;
     res.writeHead(204);
     res.end();
     return;
   }
 
   if (method === 'GET' && pathname === '/health') {
-    sendJson(res, 200, { ok: true, transcribe: '/transcribe', files: '/files' });
+    sendJson(
+      req,
+      res,
+      200,
+      { ok: true, transcribe: '/transcribe', files: '/files' },
+      cfg.corsOrigins,
+    );
     return;
   }
 
@@ -190,7 +244,7 @@ async function handle(
   }
 
   if (method === 'GET' && pathname === '/files') {
-    sendJson(res, 200, { files: await listFiles(cfg.filesDir) });
+    sendJson(req, res, 200, { files: await listFiles(cfg.filesDir) }, cfg.corsOrigins);
     return;
   }
 
@@ -198,21 +252,27 @@ async function handle(
     const form = await requestFormData(req, pathname);
     const value = form.get('file');
     if (!(value instanceof File)) {
-      sendJson(res, 400, { error: 'Expected multipart field "file".' });
+      sendJson(req, res, 400, { error: 'Expected multipart field "file".' }, cfg.corsOrigins);
       return;
     }
-    sendJson(res, 200, await storeFile(cfg.filesDir, value));
+    sendJson(req, res, 200, await storeFile(cfg.filesDir, value), cfg.corsOrigins);
     return;
   }
 
-  sendJson(res, 404, { error: 'Not found. Use POST /transcribe or GET|POST /files.' });
+  sendJson(
+    req,
+    res,
+    404,
+    { error: 'Not found. Use POST /transcribe or GET|POST /files.' },
+    cfg.corsOrigins,
+  );
 }
 
 const cfg = readConfig();
 const server = createServer((req, res) => {
   void handle(req, res, cfg).catch((error: unknown) => {
     const message = error instanceof Error ? error.message : 'sidecar error';
-    if (!res.headersSent) sendJson(res, 500, { error: message });
+    if (!res.headersSent) sendJson(req, res, 500, { error: message }, cfg.corsOrigins);
     else res.end();
   });
 });

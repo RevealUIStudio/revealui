@@ -229,12 +229,20 @@ describe('admin proxy — /chat local Whisper CSP + microphone', () => {
     expect(connectSrc).toContain('http://127.0.0.1:8178');
   });
 
-  it('allows an Access-protected Cloudflare Tunnel origin when WHISPER_URL is set', async () => {
-    vi.stubEnv('WHISPER_URL', 'https://whisper-dogfood.trycloudflare.com/v1/audio/transcriptions');
+  it('allows the documented dogfood Access origin when WHISPER_URL is set', async () => {
+    vi.stubEnv('WHISPER_URL', 'https://chat.revbot.revealui.com/transcribe');
     const res = await proxy(new NextRequest('https://admin.example.com/login'));
     const connectSrc = directive(res.headers.get('content-security-policy') ?? '', 'connect-src');
-    expect(connectSrc).toContain('https://whisper-dogfood.trycloudflare.com');
+    expect(connectSrc).toContain('https://chat.revbot.revealui.com');
     expect(connectSrc).not.toContain('api.openai.com');
+  });
+
+  it('does not add evil.example to connect-src when WHISPER_URL is an arbitrary host', async () => {
+    vi.stubEnv('WHISPER_URL', 'https://evil.example/stt');
+    const res = await proxy(new NextRequest('https://admin.example.com/login'));
+    const connectSrc = directive(res.headers.get('content-security-policy') ?? '', 'connect-src');
+    expect(connectSrc).not.toContain('evil.example');
+    expect(connectSrc).toContain('http://127.0.0.1:8178');
   });
 
   it('allows microphone=(self) on /chat only', async () => {

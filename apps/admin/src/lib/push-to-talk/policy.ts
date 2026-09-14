@@ -1,10 +1,13 @@
 /**
- * Voice-in and attach-via-sidecar talk to a localhost sidecar (or an
- * operator-pinned HTTPS sidecar URL). Cloud STT SaaS is refused.
- * WASM is explicit opt-in and is not a hosted-disk path.
+ * Voice-in and attach-via-sidecar talk only to an allow-listed sidecar.
+ * Deny-lists are not enough — arbitrary hosts must not enter CSP connect-src.
  */
 
 const LOOPBACK_HOSTS = new Set(['localhost', '::1']);
+
+/** Documented Cloudflare Access / tunnel hostname for phone → laptop sidecar. */
+export const DOGFOOD_WHISPER_TUNNEL_HOST = 'chat.revbot.revealui.com';
+export const DOGFOOD_WHISPER_TUNNEL_ORIGIN = `https://${DOGFOOD_WHISPER_TUNNEL_HOST}`;
 
 const STT_SAAS_HOST_SUFFIXES = [
   'openai.com',
@@ -50,7 +53,7 @@ export function isLoopbackHostname(hostname: string): boolean {
   return ip !== null && ip[0] === 127;
 }
 
-/** RFC1918 IPv4 — allowed if an operator pins that URL; not a recommended path. */
+/** RFC1918 IPv4 — recognized, not allow-listed for Whisper (no LAN mesh path). */
 export function isPrivateIpv4Hostname(hostname: string): boolean {
   const ip = parseIpv4(hostname.toLowerCase());
   if (!ip) return false;
@@ -60,9 +63,8 @@ export function isPrivateIpv4Hostname(hostname: string): boolean {
   return a === 172 && b >= 16 && b <= 31;
 }
 
-/** Cloudflare quick-tunnel host — optional Access-protected phone → laptop sidecar. */
-export function isCloudflareTunnelHostname(hostname: string): boolean {
-  return hostHasSuffix(hostname.toLowerCase(), 'trycloudflare.com');
+export function isDogfoodWhisperTunnelHostname(hostname: string): boolean {
+  return hostname.toLowerCase() === DOGFOOD_WHISPER_TUNNEL_HOST;
 }
 
 export function isSaasSttHostname(hostname: string): boolean {
@@ -70,24 +72,32 @@ export function isSaasSttHostname(hostname: string): boolean {
   return STT_SAAS_HOST_SUFFIXES.some((suffix) => hostHasSuffix(host, suffix));
 }
 
-/** Same-origin relative path — not protocol-relative. */
+/** Same-origin relative path — not protocol-relative. Not an allow-listed sidecar. */
 export function isSameOriginWhisperPath(value: string): boolean {
   return value.startsWith('/') && !value.startsWith('//');
 }
 
+function isHttpOrHttps(protocol: string): boolean {
+  return protocol === 'http:' || protocol === 'https:';
+}
+
 /**
- * True for WASM-adjacent same-origin paths, loopback, private LAN, a
- * Cloudflare quick tunnel, or any other operator-pinned http(s) URL that is
- * not a cloud STT SaaS host.
+ * Allow-list only:
+ * - loopback (`127.0.0.0/8`, `localhost`, `::1`) over http(s)
+ * - documented dogfood Access host `https://chat.revbot.revealui.com`
+ *
+ * Everything else is refused, including `evil.example` and `*.trycloudflare.com`.
  */
 export function isAllowedWhisperEndpoint(value: string): boolean {
   const trimmed = value.trim();
   if (trimmed.length === 0) return false;
-  if (isSameOriginWhisperPath(trimmed)) return true;
+  if (isSameOriginWhisperPath(trimmed)) return false;
   try {
     const url = new URL(trimmed);
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
-    return !isSaasSttHostname(url.hostname);
+    if (!isHttpOrHttps(url.protocol)) return false;
+    if (url.username.length > 0 || url.password.length > 0) return false;
+    if (isLoopbackHostname(url.hostname)) return true;
+    return url.protocol === 'https:' && isDogfoodWhisperTunnelHostname(url.hostname);
   } catch {
     return false;
   }

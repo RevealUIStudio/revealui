@@ -7,10 +7,12 @@ import {
   DEFAULT_WHISPER_TRANSCRIBE_PATH,
   DEFAULT_WHISPER_URL,
   DEFAULT_WHISPER_WASM_MODEL,
+  DOGFOOD_WHISPER_TUNNEL_HOST,
+  DOGFOOD_WHISPER_TUNNEL_ORIGIN,
   insertLocalFileRef,
   insertTranscript,
   isAllowedWhisperEndpoint,
-  isCloudflareTunnelHostname,
+  isDogfoodWhisperTunnelHostname,
   isLoopbackHostname,
   isPrivateIpv4Hostname,
   isSaasSttHostname,
@@ -55,21 +57,24 @@ describe('isLoopbackHostname', () => {
   });
 });
 
-describe('LAN + Cloudflare tunnel hosts', () => {
-  it('recognizes RFC1918 laptop addresses', () => {
+describe('LAN + dogfood tunnel hosts', () => {
+  it('recognizes RFC1918 addresses but does not allow them as Whisper endpoints', () => {
     expect(isPrivateIpv4Hostname('192.168.1.10')).toBe(true);
     expect(isPrivateIpv4Hostname('10.0.0.2')).toBe(true);
     expect(isPrivateIpv4Hostname('172.16.0.1')).toBe(true);
     expect(isPrivateIpv4Hostname('8.8.8.8')).toBe(false);
+    expect(isAllowedWhisperEndpoint('http://192.168.1.10:8178/transcribe')).toBe(false);
   });
 
-  it('recognizes Cloudflare quick tunnels and refuses STT SaaS', () => {
-    expect(isCloudflareTunnelHostname('random-name.trycloudflare.com')).toBe(true);
+  it('allows only the documented dogfood Access host, not wildcard tunnels or STT SaaS', () => {
+    expect(DOGFOOD_WHISPER_TUNNEL_HOST).toBe('chat.revbot.revealui.com');
+    expect(isDogfoodWhisperTunnelHostname(DOGFOOD_WHISPER_TUNNEL_HOST)).toBe(true);
+    expect(isDogfoodWhisperTunnelHostname('random-name.trycloudflare.com')).toBe(false);
     expect(isSaasSttHostname('api.openai.com')).toBe(true);
+    expect(isAllowedWhisperEndpoint(`${DOGFOOD_WHISPER_TUNNEL_ORIGIN}/transcribe`)).toBe(true);
     expect(
       isAllowedWhisperEndpoint('https://random-name.trycloudflare.com/v1/audio/transcriptions'),
-    ).toBe(true);
-    expect(isAllowedWhisperEndpoint('http://192.168.1.10:8178/v1/audio/transcriptions')).toBe(true);
+    ).toBe(false);
     expect(isAllowedWhisperEndpoint('https://api.openai.com/v1/audio/transcriptions')).toBe(false);
     expect(isAllowedWhisperEndpoint('https://api.assemblyai.com/v2/transcript')).toBe(false);
     expect(isAllowedWhisperEndpoint('https://api.deepgram.com/v1/listen')).toBe(false);
@@ -77,12 +82,23 @@ describe('LAN + Cloudflare tunnel hosts', () => {
 });
 
 describe('isAllowedWhisperEndpoint', () => {
-  it('allows the documented loopback /transcribe contract and same-origin', () => {
+  it('allows the documented loopback /transcribe contract', () => {
     expect(DEFAULT_WHISPER_TRANSCRIBE_PATH).toBe('/transcribe');
     expect(isAllowedWhisperEndpoint(DEFAULT_WHISPER_URL)).toBe(true);
     expect(isAllowedWhisperEndpoint('http://localhost:8178/transcribe')).toBe(true);
     expect(isAllowedWhisperEndpoint('http://localhost:8178/v1/audio/transcriptions')).toBe(true);
-    expect(isAllowedWhisperEndpoint('/api/stt')).toBe(true);
+    expect(isAllowedWhisperEndpoint('http://[::1]:8178/transcribe')).toBe(true);
+    expect(isAllowedWhisperEndpoint('/api/stt')).toBe(false);
+  });
+
+  it('allow-list rejects evil.example so it cannot enter CSP connect-src', () => {
+    const evil = 'https://evil.example/stt';
+    expect(isAllowedWhisperEndpoint(evil)).toBe(false);
+    expect(whisperConnectSrcOrigin(evil)).toBe('');
+    expect(isAllowedWhisperEndpoint('http://evil.example/transcribe')).toBe(false);
+    expect(isAllowedWhisperEndpoint('https://chat.revbot.revealui.com.evil.example/stt')).toBe(
+      false,
+    );
   });
 
   it('refuses protocol-relative and empty values', () => {
@@ -93,14 +109,14 @@ describe('isAllowedWhisperEndpoint', () => {
 });
 
 describe('whisperConnectSrcOrigin', () => {
-  it('returns loopback, LAN, and tunnel origins and never a cloud STT origin', () => {
+  it('returns loopback and the dogfood Access origin and never an arbitrary host', () => {
     expect(whisperConnectSrcOrigin(DEFAULT_WHISPER_URL)).toBe(DEFAULT_WHISPER_ORIGIN);
-    expect(whisperConnectSrcOrigin('http://192.168.1.10:8178/v1/audio/transcriptions')).toBe(
-      'http://192.168.1.10:8178',
+    expect(whisperConnectSrcOrigin(`${DOGFOOD_WHISPER_TUNNEL_ORIGIN}/transcribe`)).toBe(
+      DOGFOOD_WHISPER_TUNNEL_ORIGIN,
     );
-    expect(whisperConnectSrcOrigin('https://abc.trycloudflare.com/v1/audio/transcriptions')).toBe(
-      'https://abc.trycloudflare.com',
-    );
+    expect(whisperConnectSrcOrigin('http://192.168.1.10:8178/transcribe')).toBe('');
+    expect(whisperConnectSrcOrigin('https://abc.trycloudflare.com/transcribe')).toBe('');
+    expect(whisperConnectSrcOrigin('https://evil.example/stt')).toBe('');
     expect(whisperConnectSrcOrigin('https://api.openai.com/v1/audio/transcriptions')).toBe('');
   });
 });
@@ -138,8 +154,8 @@ describe('resolveSidecarFilesUrl', () => {
     expect(resolveSidecarFilesUrl('http://127.0.0.1:8178/v1/audio/transcriptions')).toBe(
       'http://127.0.0.1:8178/files',
     );
-    expect(resolveSidecarFilesUrl('https://abc.trycloudflare.com/transcribe')).toBe(
-      'https://abc.trycloudflare.com/files',
+    expect(resolveSidecarFilesUrl(`${DOGFOOD_WHISPER_TUNNEL_ORIGIN}/transcribe`)).toBe(
+      `${DOGFOOD_WHISPER_TUNNEL_ORIGIN}/files`,
     );
   });
 });
