@@ -134,7 +134,8 @@ afterEach(() => {
 });
 
 describe('GET /current', () => {
-  it('returns 404 APIErrorResponse when the flag is unset (HC7)', async () => {
+  it('returns 404 APIErrorResponse when the flag is explicit false (HC7)', async () => {
+    process.env.REVEALUI_LICENSE_AUTO_PROVISION = 'false';
     const res = await createAuthedApp().request('/current');
     expect(res.status).toBe(404);
     const body = await res.json();
@@ -142,7 +143,7 @@ describe('GET /current', () => {
     expect(JSON.stringify(body)).not.toContain('eyJ');
   });
 
-  it('returns 404 when the flag is not the string true', async () => {
+  it('returns 404 when the flag is set and is not the string true', async () => {
     process.env.REVEALUI_LICENSE_AUTO_PROVISION = 'yes';
     const res = await createAuthedApp().request('/current');
     expect(res.status).toBe(404);
@@ -208,7 +209,8 @@ describe('GET /current', () => {
     expect(dumped).not.toContain(JWT);
   });
 
-  it('does not mint and does not require auth on the sub-app when flag is off', async () => {
+  it('does not mint and returns 404 on the sub-app when flag is off', async () => {
+    process.env.REVEALUI_LICENSE_AUTO_PROVISION = 'false';
     const res = await createAnonApp().request('/current');
     expect(res.status).toBe(404);
   });
