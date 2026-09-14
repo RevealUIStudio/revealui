@@ -1,5 +1,11 @@
 # @revealui/cli
 
+## 0.9.12
+
+### Patch Changes
+
+- @revealui/setup@0.7.6
+
 ## 0.9.11
 
 ## 0.9.10

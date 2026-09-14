@@ -1,5 +1,11 @@
 # @revealui/setup
 
+## 0.7.6
+
+### Patch Changes
+
+- @revealui/security@0.8.1
+
 ## 0.7.5
 
 ### Patch Changes

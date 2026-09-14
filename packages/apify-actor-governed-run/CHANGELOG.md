@@ -1,5 +1,11 @@
 # @revealui/apify-actor-governed-run
 
+## 0.1.5
+
+### Patch Changes
+
+- @revealui/security@0.8.1
+
 ## 0.1.4
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @rsc-poc/app
 
+## 0.1.8
+
+### Patch Changes
+
+- @revealui/core@0.14.4
+- @revealui/presentation@0.14.4
+- @revealui/security@0.8.1
+
 ## 0.1.7
 
 ### Patch Changes
