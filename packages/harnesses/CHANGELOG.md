@@ -1,5 +1,13 @@
 # @revealui/harnesses
 
+## 0.17.2
+
+### Patch Changes
+
+- @revealui/core@0.14.4
+- @revealui/security@0.8.1
+- @revealui/knowledge-graph@0.1.14
+
 ## 0.17.1
 
 ### Patch Changes

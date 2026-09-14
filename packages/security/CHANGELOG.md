@@ -1,5 +1,13 @@
 # @revealui/security
 
+## 0.8.1
+
+### Patch Changes
+
+- Updated dependencies [0511ad8]
+- Updated dependencies [cfe5f9c]
+  - @revealui/contracts@0.8.4
+
 ## 0.8.0
 
 ### Minor Changes
