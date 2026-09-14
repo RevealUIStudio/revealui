@@ -1,5 +1,12 @@
 # @revealui/contracts
 
+## 0.8.4
+
+### Patch Changes
+
+- 0511ad8: Stop selling RevKit as a Max catalog path. FEATURE_LABELS.devkitProfiles is now Dev environment profiles.
+- cfe5f9c: Strip RevKit from the public Max catalog copy. Max remains unattended inference and higher limits; RevKit is not a buyable SKU.
+
 ## 0.8.3
 
 ### Patch Changes
