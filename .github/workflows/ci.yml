@@ -279,6 +279,13 @@ jobs:
         # Mirrors the local gate step in scripts/gates/ci-gate.ts.
         run: pnpm validate:dockerfile-deps
 
+      - name: Railway marketplace Dockerfile wiring (hard fail)
+        # GAP-430: committed marketplace-template.json must keep api/admin on
+        # Dockerfile (RAILWAY_DOCKERFILE_PATH) so Deploy Now cannot Railpack
+        # "No start command". Owner still republishes the live listing.
+        # Mirrors the local gate step in scripts/gates/ci-gate.ts.
+        run: pnpm validate:railway-marketplace
+
       - name: Project manager check (path-gated hard fail)
         # GAP-406: when a PR (or push) touches .revealui or packages/harnesses,
         # hard-fail if manager.json is missing/invalid. Extends validate:structure
