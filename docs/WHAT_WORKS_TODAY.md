@@ -36,7 +36,7 @@ ElectricSQL integration for real-time data synchronization. Proxy, auth, and sha
 have been verified working between Fly and NeonDB. Off by default — opt-in via env vars when you want it.
 
 ### CLI scaffolding
-**`create-revealui` published to npm at v0.5.20**. `@revealui/cli` is at v0.9.7. Bootstraps a new RevealUI project with working config, database setup, and development server.
+**`create-revealui` published to npm at v0.5.25**. `@revealui/cli` is at v0.9.12. Bootstraps a new RevealUI project with working config, database setup, and development server.
 
 ### CI and code quality
 3-phase CI gate (lint, typecheck, test, build) with an extensive test suite across
