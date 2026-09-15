@@ -143,6 +143,7 @@ describe('marketing route registry', () => {
     const appSource = readFileSync(path.resolve(process.cwd(), 'app/App.tsx'), 'utf8');
     expect(appSource.includes("path: '/templates'")).toBe(true);
     expect(appSource.includes('TemplatesPage')).toBe(true);
+    expect(appSource.includes("title: 'Templates | RevealUI'")).toBe(true);
   });
 
   it('redirects /services off leftover storefronts and keeps /products as licenses', () => {

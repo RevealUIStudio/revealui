@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { SITE } from './content/site';
 import { RootLayout } from './layouts/RootLayout';
+import { useRouteMetaTitle } from './lib/use-route-meta-title';
 import { ContactPage } from './routes/ContactPage';
 import { CookiesPage } from './routes/CookiesPage';
 import { HomePage } from './routes/HomePage';
@@ -132,6 +133,9 @@ export function App() {
     ]);
     registered.current = true;
   }
+
+  // After registerRoutes so the first match sees /templates (and other paths).
+  useRouteMetaTitle();
 
   return (
     <ErrorBoundary>
