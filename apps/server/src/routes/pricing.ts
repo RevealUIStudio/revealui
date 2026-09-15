@@ -217,6 +217,24 @@ function isInquireOnlySubscription(tierId: string): boolean {
   return tierId !== 'free' && !allowsUnattendedCheckout(tierId as LicenseTierId);
 }
 
+function resolveSubscriptionAmount(
+  tierId: string,
+  stripePrice: { price: string; period?: string } | undefined,
+  fallback: { price: string; period?: string } | undefined,
+): { price: string; period?: string } | undefined {
+  const hardcoded = HARDCODED_SUBSCRIPTION_PRICES[tierId];
+  // Live Stripe still has the retired Max monthly. Public catalog is $99.
+  if (tierId === 'max' && stripePrice && hardcoded && stripePrice.price !== hardcoded.price) {
+    logger.warn('Pricing: Stripe monthly amount disagrees with locked catalog, using hardcoded', {
+      tierId,
+      stripePrice: stripePrice.price,
+      hardcodedPrice: hardcoded.price,
+    });
+    return hardcoded;
+  }
+  return stripePrice ?? fallback;
+}
+
 function buildPricingResponse(stripePrices: StripeProductMap | null): PricingResponse {
   const subscriptions = SUBSCRIPTION_TIERS.map((tier) => {
     // Enterprise stays in the catalog as contact-sales / inquire — no monthly
@@ -226,12 +244,13 @@ function buildPricingResponse(stripePrices: StripeProductMap | null): PricingRes
     }
     const stripePrice = stripePrices?.subscriptions.get(tier.id);
     const fallback = FALLBACK_SUBSCRIPTION_PRICES[tier.id];
+    const resolvedPrice = resolveSubscriptionAmount(tier.id, stripePrice, fallback);
     const annualGuardEnv = ANNUAL_PRICE_ENV_GUARDS[tier.id];
     const annualPrices =
       annualGuardEnv && process.env[annualGuardEnv]
         ? HARDCODED_ANNUAL_SUBSCRIPTION_PRICES[tier.id]
         : undefined;
-    return { ...tier, ...(stripePrice ?? fallback), ...annualPrices };
+    return { ...tier, ...resolvedPrice, ...annualPrices };
   });
 
   // Credit packs ($10 / $50 / $250) are not sold on the public catalog.

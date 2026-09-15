@@ -39,9 +39,8 @@ import {
 } from '../content/pricing';
 import { PRICING_FAQ_SECTION, PRICING_FAQS } from '../content/pricing-faq';
 import {
-  ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS,
   PERPETUAL_PRICE_FALLBACKS,
-  SUBSCRIPTION_PRICE_FALLBACKS,
+  resolvePublicCatalogDisplayAmount,
 } from '../lib/pricing-fallbacks';
 
 const ADMIN_URL = import.meta.env.VITE_ADMIN_URL ?? 'https://admin.revealui.com';
@@ -72,14 +71,19 @@ export function PricingPage() {
 
   // Contract copy is the public catalog. /api/pricing may still be a stale
   // production deploy (CI and split marketing/API rollouts), so only overlay
-  // price fields — never leftover features like Slack support or coming-soon.
+  // non-amount fields — never leftover features like Slack support or coming-soon.
+  // Free/Pro/Max display amounts stay locked to marketing fallbacks so a stale
+  // Stripe Max monthly cannot paint $299 over the $99 catalog.
   const tiers = SUBSCRIPTION_TIERS.map((tier) => {
     const fromApi = pricing?.subscriptions.find((item) => item.id === tier.id);
     const inquireOnly = tier.id === 'enterprise';
-    const fallback = inquireOnly ? undefined : SUBSCRIPTION_PRICE_FALLBACKS[tier.id];
-    const annualFallback = inquireOnly ? undefined : ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS[tier.id];
-    const annualPrice = fromApi?.annualPrice ?? tier.annualPrice;
-    const annualPeriod = fromApi?.annualPeriod ?? tier.annualPeriod;
+    const catalogDisplay = resolvePublicCatalogDisplayAmount(tier.id, fromApi);
+    const annualPrice = inquireOnly
+      ? undefined
+      : (catalogDisplay.annualPrice ?? fromApi?.annualPrice ?? tier.annualPrice);
+    const annualPeriod = inquireOnly
+      ? undefined
+      : (catalogDisplay.annualPeriod ?? fromApi?.annualPeriod ?? tier.annualPeriod);
     const useAnnual =
       !inquireOnly && billingInterval === 'year' && tier.id !== 'free' && Boolean(annualPrice);
     const baseHref = tier.ctaHref.startsWith('/') ? `${ADMIN_URL}${tier.ctaHref}` : tier.ctaHref;
@@ -89,16 +93,8 @@ export function PricingPage() {
       ...tier,
       annualPrice,
       annualPeriod,
-      price: inquireOnly
-        ? undefined
-        : useAnnual
-          ? (annualPrice ?? annualFallback?.price)
-          : (fromApi?.price ?? fallback?.price),
-      period: inquireOnly
-        ? undefined
-        : useAnnual
-          ? (annualPeriod ?? annualFallback?.period)
-          : (fromApi?.period ?? fallback?.period),
+      price: inquireOnly ? undefined : useAnnual ? annualPrice : catalogDisplay.price,
+      period: inquireOnly ? undefined : useAnnual ? annualPeriod : catalogDisplay.period,
       ctaHref,
     };
   });

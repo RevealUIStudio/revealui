@@ -174,7 +174,7 @@ describe('GET /api/pricing  -  Stripe active path', () => {
     expect(data.credits).toEqual([]);
   });
 
-  it('formats unit_amount in cents correctly ($29900 → $299)', async () => {
+  it('clamps stale Stripe Max monthly $299 to the locked catalog $99', async () => {
     mockProductsList.mockResolvedValue({
       data: [makeStripeProduct('Max', 'subscription', 'max', 29900, 'month')],
     });
@@ -183,7 +183,20 @@ describe('GET /api/pricing  -  Stripe active path', () => {
     const data = await res.json();
 
     const max = data.subscriptions.find((t: { id: string }) => t.id === 'max');
-    expect(max.price).toBe('$299');
+    expect(max.price).toBe('$99');
+    expect(max.period).toBe('/month');
+  });
+
+  it('formats unit_amount in cents correctly ($4900 → $49)', async () => {
+    mockProductsList.mockResolvedValue({
+      data: [makeStripeProduct('Pro', 'subscription', 'pro', 4900, 'month')],
+    });
+
+    const res = await app.request('/');
+    const data = await res.json();
+
+    const pro = data.subscriptions.find((t: { id: string }) => t.id === 'pro');
+    expect(pro.price).toBe('$49');
   });
 });
 

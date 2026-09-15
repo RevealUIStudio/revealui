@@ -1,6 +1,7 @@
 // Sourced from: app/components/landing/PricingTeaser.tsx (Phase 1c, no copy changes).
 // Per the internal marketing-overhaul plan §4.4.
-// Tier copy lives here; runtime pricing (prices/periods) fetched from /api/pricing in the component.
+// Tier copy lives here. Display amounts stay locked to marketing fallbacks so
+// a stale /api/pricing cannot overwrite Free/Pro/Max.
 // 2026-08-09: outcome-first Free/Pro teaser; package-count license math stays
 // on Fair Source / pricing pages, not the homepage pitch.
 

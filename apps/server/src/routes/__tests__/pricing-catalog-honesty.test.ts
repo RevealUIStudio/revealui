@@ -145,6 +145,29 @@ describe('GET /api/pricing — public catalog honesty', () => {
     expect(pro?.period).toBe('/month');
   });
 
+  it('clamps stale Stripe Max monthly $299 to locked catalog $99', async () => {
+    vi.stubEnv('STRIPE_SECRET_KEY', 'sk_test_dummy');
+    mockProductsList.mockResolvedValue({
+      data: [
+        {
+          name: 'Max',
+          metadata: { revealui_track: 'subscription', revealui_tier: 'max' },
+          default_price: { unit_amount: 29900, recurring: { interval: 'month' } },
+        },
+      ],
+    });
+
+    const res = await app.request('/');
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as PricingBody;
+    assertPublicCatalogHonesty(body);
+
+    const max = body.subscriptions.find((tier) => tier.id === 'max');
+    expect(max?.price).toBe('$99');
+    expect(max?.period).toBe('/month');
+    expect(JSON.stringify(body).includes('$299')).toBe(false);
+  });
+
   it('keeps Enterprise inquire-only when the annual price-ID guard is set', async () => {
     vi.stubEnv('STRIPE_SECRET_KEY', '');
     vi.stubEnv('STRIPE_ENTERPRISE_ANNUAL_PRICE_ID', 'price_test_enterprise_annual');

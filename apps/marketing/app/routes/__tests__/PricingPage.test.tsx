@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   PRICING_AGENT_A2A,
@@ -206,6 +206,90 @@ describe('PricingPage product catalog', () => {
     expect(text.includes('RevKit environment provisioning (coming soon)')).toBe(false);
     expect(text.includes('x402 agent payments (USDC, coming soon)')).toBe(false);
     expect(text.includes('Email support (24h weekday / 4h if unusable)')).toBe(true);
+  });
+
+  it('keeps Max monthly display at $99 when /api/pricing returns stale $299', async () => {
+    let resolveJson: ((value: unknown) => void) | undefined;
+    const jsonPromise = new Promise((resolve) => {
+      resolveJson = resolve;
+    });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => jsonPromise,
+      }),
+    );
+
+    render(<PricingPage />);
+    const heading = await screen.findByRole('heading', { name: 'Max' });
+    expect(resolveJson).toBeDefined();
+
+    await act(async () => {
+      resolveJson?.({
+        subscriptions: [
+          {
+            id: 'free',
+            name: 'Free',
+            description: 'stale',
+            features: [],
+            cta: 'Get Started Free',
+            ctaHref: '/signup',
+            highlighted: false,
+            price: '$0',
+          },
+          {
+            id: 'pro',
+            name: 'Pro',
+            description: 'stale',
+            features: [],
+            cta: 'Start your 7-day free trial',
+            ctaHref: '/signup?plan=pro',
+            highlighted: true,
+            price: '$49',
+            period: '/month',
+            annualPrice: '$399',
+            annualPeriod: '/year',
+          },
+          {
+            id: 'max',
+            name: 'Max',
+            description: 'stale',
+            features: [],
+            cta: 'Start your 7-day free trial',
+            ctaHref: '/signup?plan=max',
+            highlighted: false,
+            price: '$299',
+            period: '/month',
+            annualPrice: '$799',
+            annualPeriod: '/year',
+          },
+          {
+            id: 'enterprise',
+            name: 'Enterprise',
+            description: 'stale',
+            features: [],
+            cta: 'Contact sales',
+            ctaHref: 'https://revealui.com/contact',
+            highlighted: false,
+            price: '$1,499',
+            period: '/month',
+          },
+        ],
+        credits: [],
+        perpetual: [],
+        services: [],
+      });
+    });
+
+    const card = heading.closest('div.relative') ?? heading.parentElement?.parentElement;
+    const text = card?.textContent ?? '';
+    expect(text.includes('$99')).toBe(true);
+    expect(text.includes('$299')).toBe(false);
+    const trial = screen
+      .getAllByRole('link', { name: 'Start your 7-day free trial' })
+      .find((link) => card?.contains(link));
+    expect(trial?.getAttribute('href')).toBe('https://admin.revealui.com/signup?plan=max');
   });
 
   it('does not sell studio or leftover storefront rungs', async () => {

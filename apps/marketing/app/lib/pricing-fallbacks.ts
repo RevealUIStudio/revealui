@@ -1,8 +1,9 @@
 import type { LicenseTierId } from '@revealui/contracts/public-catalog';
 
 /**
- * Client-side display fallback prices — used by PricingPage and PricingTeaser
- * when /api/pricing is unreachable. Must stay in lockstep with:
+ * Client-side display catalog prices — used by PricingPage and PricingTeaser.
+ * Free/Pro/Max amounts win over /api/pricing when both exist so a stale Stripe
+ * deploy cannot paint a different public price. Must stay in lockstep with:
  *   - apps/server/src/routes/pricing.ts HARDCODED_*_PRICES (server fallback)
  *   - apps/server/src/lib/tier-pricing.ts MRR_TIER_PRICE_FALLBACK_USD
  *   - offerings-canonical.md (canonical source, pinned 2026-06-07)
@@ -41,3 +42,52 @@ export const PERPETUAL_PRICE_FALLBACKS: Record<
     renewal: '$149/yr for continued support',
   },
 };
+
+export interface PublicCatalogApiAmount {
+  price?: string;
+  period?: string;
+  annualPrice?: string;
+  annualPeriod?: string;
+}
+
+export interface PublicCatalogDisplayAmount {
+  price?: string;
+  period?: string;
+  annualPrice?: string;
+  annualPeriod?: string;
+}
+
+const LOCKED_PUBLIC_CATALOG_TIER_IDS = new Set<LicenseTierId>(['free', 'pro', 'max']);
+
+/**
+ * Public Free/Pro/Max amounts are locked in marketing fallbacks. A stale
+ * /api/pricing or Stripe deploy must not paint a different catalog price.
+ * Enterprise stays inquire-only (no unit amount).
+ */
+export function resolvePublicCatalogDisplayAmount(
+  tierId: LicenseTierId,
+  fromApi?: PublicCatalogApiAmount,
+): PublicCatalogDisplayAmount {
+  if (tierId === 'enterprise') {
+    return {};
+  }
+
+  const monthlyFallback = SUBSCRIPTION_PRICE_FALLBACKS[tierId];
+  const annualFallback = ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS[tierId];
+
+  if (LOCKED_PUBLIC_CATALOG_TIER_IDS.has(tierId)) {
+    return {
+      price: monthlyFallback.price,
+      period: monthlyFallback.period,
+      annualPrice: annualFallback.price,
+      annualPeriod: annualFallback.period,
+    };
+  }
+
+  return {
+    price: fromApi?.price ?? monthlyFallback.price,
+    period: fromApi?.period ?? monthlyFallback.period,
+    annualPrice: fromApi?.annualPrice ?? annualFallback.price,
+    annualPeriod: fromApi?.annualPeriod ?? annualFallback.period,
+  };
+}
