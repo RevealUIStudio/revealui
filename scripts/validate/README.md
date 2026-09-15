@@ -84,6 +84,7 @@ Documentation link checking runs separately via `pnpm --filter docs check:links`
 | `changelog-format.ts`    | `pnpm validate:changelogs`     | Enforce changelog format                   |
 | `pricing-lockstep.ts`    | `pnpm validate:pricing-lockstep` | Keep pricing sources in lockstep         |
 | `dockerfile-deps-lockstep.ts` | `pnpm validate:dockerfile-deps` | Keep Dockerfile package.json COPY lists in lockstep with the app workspace closure (GAP-379) |
+| `railway-marketplace-template.ts` | `pnpm validate:railway-marketplace` | Keep the customer Railway marketplace template on Dockerfile paths so Deploy Now cannot Railpack-fail (GAP-430) |
 | `prod-env.ts`            | `pnpm validate:prod-env`       | Validate production env configuration      |
 | `gitignore-pro.ts`       | `pnpm validate:gitignore`      | Enforce Pro-package gitignore policy       |
 | `seed-script-wiring.ts`  | `pnpm validate:seed-wiring`    | Verify seed scripts are wired correctly    |

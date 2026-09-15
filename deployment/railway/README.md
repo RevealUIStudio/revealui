@@ -122,15 +122,50 @@ fixed in this PR. It's filed as a gap in the internal tracker for the next
 Design/Verify pass; this template's env var table below uses the current,
 code-verified names so it does not repeat the same drift.
 
-## Deploying the template
+## Marketplace Deploy Now vs config-as-code (read this)
 
-Railway resolves each service's config-as-code file from an **absolute
-path you set on that service** (Settings, Config as Code, Config File
-Path). There is no automatic per-service naming convention, and the path
-does not follow that service's Root Directory setting. Leave every
-source-built service's Root Directory at the repo root (the Dockerfiles use
-`context: .` for pnpm workspace access) and point the config path at the
-files below:
+https://railway.com/deploy/revealui is a **customer marketplace** listing
+(template id `5a37bb0e-83bf-4ff7-b327-42c8ae3be350`, slug `revealui`). It
+does **not** automatically apply `deployment/railway/api.json` or
+`admin.json`. Those files are Config as Code. Railway has deprecated that
+path: **new services cannot opt into Config as Code**, and a fresh Deploy
+Now therefore builds `api` and `admin` from the monorepo root with Railpack.
+
+The 2026-09-15 smoke (project `039c1462-3338-460e-bb1d-74dad5151fac`)
+reproduced this: postgres Online, migrate Completed, then both git services
+failed with Railpack **No start command detected.** `/health` and
+`/api/health` returned HTTP 404. The published
+[manifest.json](https://railway.com/deploy/revealui/manifest.json) had
+`startCommand: null`, `rootDirectory: null`, and no Dockerfile path.
+
+**Fix that survives Deploy Now:** set the Railway-provided variable
+`RAILWAY_DOCKERFILE_PATH` on each git service (and/or Builder = Dockerfile
+with the same path). Committed SoT:
+
+| Service | `RAILWAY_DOCKERFILE_PATH` / `build.dockerfilePath` | Image `CMD` |
+|---|---|---|
+| `api` | `apps/server/Dockerfile` | `node dist/worker.js` |
+| `admin` | `apps/admin/Dockerfile` | `node apps/admin/server.js` (`RUNTIME_INIT=1`) |
+
+See [`marketplace-template.json`](./marketplace-template.json). Owner
+**republish** of the existing listing is required before a stranger click
+picks this up — copy those variables into the template editor, save, then
+confirm `manifest.json` lists `RAILWAY_DOCKERFILE_PATH` on `api` and
+`admin`. Exact dashboard clicks:
+[RAILWAY-MARKETPLACE-OWNER-PUBLISH.md](../../docs/distribution/RAILWAY-MARKETPLACE-OWNER-PUBLISH.md)
+section 4b.
+
+Leave Root Directory at the repo root. The Dockerfiles need the pnpm
+workspace (`context: .`). Do not set a Railpack start command as the
+primary fix; an explicit start without the Dockerfile would skip
+forge-style `CMD` / `RUNTIME_INIT`.
+
+## Deploying a project by hand (not the marketplace button)
+
+Railway still lets you point a **legacy** service at a Config as Code file
+(Settings, Config File Path). That is optional reference wiring for a
+project you already own. It is **not** what Deploy Now applies. If you use
+it anyway, leave Root Directory at the repo root and use the paths below:
 
 1. **Create the project**, add a service per row, in this order:
    - `postgres`: deploy from Docker Image `pgvector/pgvector:pg16`. Set
@@ -147,12 +182,16 @@ files below:
      restart policy of `ON_FAILURE`/`ALWAYS` would treat that as a crash
      loop. Trigger a deploy once after `postgres` is healthy. It's idempotent,
      so re-running it (e.g. after a later template update) is safe.
-   - `api`: deploy from this GitHub repo. Set the service's Config File
-     Path to `/deployment/railway/api.json`. Enable a public domain if the
-     admin app or outside clients need to reach it directly.
-   - `admin`: deploy from this GitHub repo. Set the service's Config File
-     Path to `/deployment/railway/admin.json`. Enable a public domain;
-     this is the URL you'll log into.
+   - `api`: deploy from this GitHub repo. Set `RAILWAY_DOCKERFILE_PATH` to
+     `apps/server/Dockerfile` (required so Railpack never runs). On a
+     legacy service you may also set Config File Path to
+     `/deployment/railway/api.json`; new services ignore that. Enable a
+     public domain if the admin app or outside clients need to reach it
+     directly.
+   - `admin`: deploy from this GitHub repo. Set `RAILWAY_DOCKERFILE_PATH`
+     to `apps/admin/Dockerfile`. Optional legacy Config File Path:
+     `/deployment/railway/admin.json`. Enable a public domain; this is
+     the URL you'll log into.
 2. **Set environment variables** per the table below on each service.
 3. **Deploy `postgres`**, wait for it healthy, then deploy `migrate`, then
    `api`, then `admin`. (The `/health` and `/api/health` endpoints only
@@ -193,6 +232,7 @@ and `apps/server/src/lib/required-env.ts` actually check today, not the
 
 | Variable | Required | Value |
 |---|---|---|
+| `RAILWAY_DOCKERFILE_PATH` | required for Deploy Now | `apps/server/Dockerfile`. Railway reads this when Config as Code is not applied (marketplace template). Without it Railpack fails with **No start command**. |
 | `POSTGRES_URL` | required | Same reference as the `migrate` service, above |
 | `NODE_ENV` | required | `production` |
 | `REVEALUI_SECRET` | required, secret | `openssl rand -hex 32` (32-char minimum; this produces 64) |
@@ -212,6 +252,7 @@ and `apps/server/src/lib/required-env.ts` actually check today, not the
 
 | Variable | Required | Value |
 |---|---|---|
+| `RAILWAY_DOCKERFILE_PATH` | required for Deploy Now | `apps/admin/Dockerfile`. Same Railpack caveat as `api`. |
 | `POSTGRES_URL` | required | Same reference as `api` |
 | `NODE_ENV` | required | `production` |
 | `REVEALUI_SECRET` | required, secret | Same value as `api`'s |
@@ -267,13 +308,16 @@ generates for a listed template
 
 ## Owner action before publishing
 
-Before this template goes live on the public marketplace, decide how a
-marketplace visitor obtains a `REVEALUI_LICENSE_KEY` without talking to a
-human first (a self-service trial-issuing flow), or accept that this
-listing targets already-licensed customers only and say so explicitly in
-the listing description. Either is a legitimate product decision. Shipping
-the listing without deciding produces a deploy button that dead-ends at a
-license prompt for most visitors who click it.
+The listing already uses the Free (OSS) try path
+(`REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true` on both `api` and `admin`).
+Keep that. After any template edit, **republish** the existing slug and
+check [manifest.json](https://railway.com/deploy/revealui/manifest.json)
+for `RAILWAY_DOCKERFILE_PATH` on both git services — otherwise Deploy Now
+hits Railpack **No start command** again.
+
+Dashboard steps:
+[RAILWAY-MARKETPLACE-OWNER-PUBLISH.md](../../docs/distribution/RAILWAY-MARKETPLACE-OWNER-PUBLISH.md)
+section 4b.
 
 ## What was not verified
 

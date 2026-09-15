@@ -394,6 +394,13 @@ async function gate(): Promise<void> {
         args: ['validate:dockerfile-deps'],
       },
       {
+        // GAP-430: marketplace Deploy Now must not Railpack-fail api/admin.
+        // Mirrored in CI by the Quality job step in .github/workflows/ci.yml.
+        name: 'Railway marketplace Dockerfile wiring (hard fail)',
+        command: 'pnpm',
+        args: ['validate:railway-marketplace'],
+      },
+      {
         // Every prose sentence in covered marketing content files must carry
         // a claims-evidence entry citing the code that proves it; cited paths
         // must exist. Sibling of claim-drift: that gate pins the numbers,
