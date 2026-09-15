@@ -17,9 +17,9 @@
 // Every prose sentence in this file is indexed in ./claims-evidence.ts with
 // the code that proves it (owner directive); the collections-over-MCP claims
 // reflect default-on resources (mcpResource !== false; opt out with false).
-// 2026-09-11: Auditor voice pass on test. H1 + subtitle name one self-hosted
-// runtime with shared data, sign-in, and plan rules. Demo/FAQ drop stock
-// metaphors. Technical depth still points at docs / local-ai / pricing.
+// 2026-09-15: Brand LOCK — known-for is the agentic business runtime
+// startups operate on their own domain (H1 drafts #2 + #5). Receipts,
+// catalog honesty, and powerful + safe stay in the subtitle, not the H1.
 
 import { SUBSCRIPTION_PRICE_FALLBACKS } from '../lib/pricing-fallbacks';
 import { SITE } from './site';
@@ -31,14 +31,15 @@ import type { Cta, FaqItem } from './types';
 
 export const HOME_HERO = {
   eyebrow: 'Open source. Self-hostable.',
-  // Owner ruling 2026-09-11: Auditor H1. Subtitle is the concrete positioning
-  // form (shared data, sign-in, plan rules on infra you own). Receipt foil is
-  // NOT in the subtitle; it is RECEIPT_HERO_CAPTION.
-  h1: 'One self-hosted runtime for your business and the agents that run it.',
+  // Brand LOCK 2026-09-15: known-for H1 (#2 operate on their domain).
+  // Proof stays in the subtitle: tools report in / keep the stack (#5),
+  // receipts when it matters, catalog matches checkout, powerful + safe.
+  h1: 'The agentic business runtime startups operate on their own domain.',
   subtitle: {
     sentence1:
-      'Your business and the agents that run it share the same data, sign-in, and plan rules on infrastructure you own.',
-    sentence2: 'Every agent is a governed and audited user that lives on your infrastructure.',
+      'Technical founders and small agencies who already run agents — existing tools report in, you keep the stack.',
+    sentence2:
+      'Powerful and safe: agents leave receipts when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99).',
     support: 'It runs on any AI provider you choose.',
   },
   cta: {
@@ -52,15 +53,14 @@ export const HOME_HERO = {
 export const HOME_TRUST_SIGNALS = ['Open source', 'Self-hostable', 'Local-first AI'] as const;
 
 // ---------------------------------------------------------------------------
-// Hero: entitlement/receipt A/B variant (query still ?hero=foundation).
-// Sanctioned A/B under ADR 2026-06-07 decision 6, hero only. H1 is a distinct
-// concrete line (plan rules + receipt), not a foundation metaphor. Subtitle
-// inherits the default unchanged. Served via selectHomeHero().
+// Hero: known-for #5 A/B (query still ?hero=foundation). Distinct H1 so the
+// experiment is not receipts-only; subtitle inherits HOME_HERO (receipts +
+// catalog honesty live there). Served via selectHomeHero().
 // ---------------------------------------------------------------------------
 
 export const HOME_HERO_FOUNDATION = {
   ...HOME_HERO,
-  h1: 'Plan rules and a receipt still apply when an agent acts.',
+  h1: 'Existing tools report in. You keep the stack.',
 } as const;
 
 // Prior default H1, retained for rollback preview via ?hero=ownership

@@ -19,7 +19,7 @@ describe('selectHomeHero', () => {
   it('serves the L1 default hero by default (no query)', () => {
     expect(selectHomeHero('')).toBe(HOME_HERO);
     expect(HOME_HERO.h1).toBe(
-      'One self-hosted runtime for your business and the agents that run it.',
+      'The agentic business runtime startups operate on their own domain.',
     );
   });
 
@@ -38,17 +38,15 @@ describe('selectHomeHero', () => {
   });
 
   it('matches the Foundation A/B H1 lock verbatim', () => {
-    expect(HOME_HERO_FOUNDATION.h1).toBe(
-      'Plan rules and a receipt still apply when an agent acts.',
-    );
+    expect(HOME_HERO_FOUNDATION.h1).toBe('Existing tools report in. You keep the stack.');
   });
 
   it('keeps the full locked positioning form on all hero variants', () => {
     expect(HOME_HERO.subtitle.sentence1).toContain(
-      'share the same data, sign-in, and plan rules on infrastructure you own',
+      'existing tools report in, you keep the stack',
     );
     expect(HOME_HERO.subtitle.sentence2).toBe(
-      'Every agent is a governed and audited user that lives on your infrastructure.',
+      'Powerful and safe: agents leave receipts when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99).',
     );
     expect(HOME_HERO.subtitle.support).toBe('It runs on any AI provider you choose.');
     expect(HOME_HERO_FOUNDATION.subtitle.sentence2).toBe(HOME_HERO.subtitle.sentence2);
