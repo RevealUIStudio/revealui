@@ -18,8 +18,7 @@ Public get-started:
 - `npx create-revealui@latest`
 - GitHub templates: [starter](https://github.com/RevealUIStudio/revealui-template-starter), [basic-blog](https://github.com/RevealUIStudio/revealui-template-basic-blog), [portfolio](https://github.com/RevealUIStudio/revealui-template-portfolio), [e-commerce](https://github.com/RevealUIStudio/revealui-template-e-commerce)
 - Apify [governed-agent-run](https://apify.com/revealuistudio/governed-agent-run) — pay-per-event. Receipt verification is $0.00001, not free
-
-There is no `revealui.com/templates` page.
+- Marketing templates: [revealui.com/templates](https://revealui.com/templates) — Deploy to Vercel for the four Next.js GitHub twins. There is no live `vercel.com/templates` listing.
 
 Self-host and operator docs live on [Enterprise](./ENTERPRISE.md), [Deployment](./guides/deployment.md), and [Quick Start](./QUICK_START.md).
 
