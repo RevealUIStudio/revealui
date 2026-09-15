@@ -40,7 +40,7 @@ Create a **new** project (not Studio prod). Order:
 | 1 | `postgres` | Docker `pgvector/pgvector:pg16` | **Not** plain Postgres; set `POSTGRES_*` |
 | 2 | `migrate` | `ghcr.io/revealuistudio/revealui-migrate` (`latest` from `main`, or `sha-…`) | Restart policy **NEVER**; run once after postgres healthy |
 | 3 | `api` | This GitHub repo, root context | Variable `RAILWAY_DOCKERFILE_PATH=apps/server/Dockerfile` (and/or Builder = Dockerfile with that path). Public domain. **Do not** rely on Config File Path — new Railway services cannot opt into Config as Code, so `/deployment/railway/api.json` is never applied on a fresh Deploy Now. |
-| 4 | `admin` | This GitHub repo, root context | Variable `RAILWAY_DOCKERFILE_PATH=apps/admin/Dockerfile` (and/or Builder = Dockerfile with that path). Public domain. Same Config File Path caveat as `api`. |
+| 4 | `admin` | This GitHub repo, root context | Variable `RAILWAY_DOCKERFILE_PATH=apps/admin/Dockerfile` (and/or Builder = Dockerfile with that path). Public domain. Same Config File Path caveat as `api` (`deployment/railway/admin.json` is not applied on Deploy Now). |
 
 Generate secrets with `openssl` (see README env tables). Set Free flag **or** real license keys on **api and admin**.
 
@@ -62,7 +62,7 @@ Generate secrets with `openssl` (see README env tables). Set Free flag **or** re
 
 ## 4b. Republish after Railpack smoke FAIL (required)
 
-2026-09-15 Deploy Now from https://railway.com/deploy/revealui (template
+2026-09-15 customer marketplace Deploy Now from https://railway.com/deploy/revealui (template
 `5a37bb0e-83bf-4ff7-b327-42c8ae3be350`) built `api` and `admin` with Railpack
 and empty `startCommand`. Both failed with **No start command detected.**
 `/health` and `/api/health` returned HTTP 404. Postgres and migrate were fine.
@@ -86,11 +86,11 @@ create a second RevealUI template:**
    settings if the UI has them. Leave start command empty (`CMD` is
    `node apps/admin/server.js` with `RUNTIME_INIT=1`).
 4. Save / publish the template update (republish the existing slug `revealui`).
-5. Open https://railway.com/deploy/revealui/manifest.json and confirm both
-   `api` and `admin` list `RAILWAY_DOCKERFILE_PATH` (or a non-null Dockerfile
+5. Open the customer marketplace https://railway.com/deploy/revealui/manifest.json and confirm both
+   `api` and `admin` list `RAILWAY_DOCKERFILE_PATH` on that marketplace listing (or a non-null Dockerfile
    builder path). If they still look Railpack-shaped, the republish did not
    stick.
-6. Fresh Deploy Now. Build logs must say Railway is using a Dockerfile, not
+6. Fresh customer marketplace Deploy Now. Build logs must say Railway is using a Dockerfile, not
    Railpack **No start command**. Then TemplateCI can validate.
 
 Copy values from
@@ -110,5 +110,5 @@ if the dashboard fields are unclear.
 - Present the customer marketplace host as Studio production (Studio = Vercel + Neon + Fly).
 - Use vanilla `postgres` image (vector extension fails).
 - Leave migrate Restart Policy on ALWAYS/ON_FAILURE (crash loop).
-- Republish without `RAILWAY_DOCKERFILE_PATH` on api and admin (Railpack **No start command** returns).
+- Republish the customer marketplace listing without `RAILWAY_DOCKERFILE_PATH` on api and admin (Railpack **No start command** returns).
 - Treat Config File Path as enough for Deploy Now (new services cannot opt into Config as Code).
