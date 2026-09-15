@@ -38,8 +38,7 @@ const SEO: Record<Audience, AudienceSeo> = {
       'Technical founders and small agencies who already run agents — existing tools report in, you keep the stack. Powerful and safe: agents leave receipts when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99).',
     ogImage:
       'https://api.revealui.com/api/og?title=RevealUI&description=The%20agentic%20business%20runtime%20startups%20operate%20on%20their%20own%20domain.',
-    twitterTitle:
-      'RevealUI | The agentic business runtime startups operate on their own domain.',
+    twitterTitle: 'RevealUI | The agentic business runtime startups operate on their own domain.',
     twitterDescription:
       'Technical founders and small agencies who already run agents — existing tools report in, you keep the stack. Powerful and safe: agents leave receipts when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99).',
     twitterImage:

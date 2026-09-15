@@ -85,9 +85,7 @@ describe('landing payment and Enterprise honesty', () => {
 
 describe('Auditor voice and live-hero honesty', () => {
   it('uses the locked known-for H1 and concrete subtitle', () => {
-    expect(HOME_HERO.h1).toBe(
-      'The agentic business runtime startups operate on their own domain.',
-    );
+    expect(HOME_HERO.h1).toBe('The agentic business runtime startups operate on their own domain.');
     expect(HOME_HERO.subtitle.sentence1).toBe(
       'Technical founders and small agencies who already run agents — existing tools report in, you keep the stack.',
     );

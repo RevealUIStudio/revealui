@@ -18,9 +18,7 @@ describe('selectHomeHero', () => {
 
   it('serves the L1 default hero by default (no query)', () => {
     expect(selectHomeHero('')).toBe(HOME_HERO);
-    expect(HOME_HERO.h1).toBe(
-      'The agentic business runtime startups operate on their own domain.',
-    );
+    expect(HOME_HERO.h1).toBe('The agentic business runtime startups operate on their own domain.');
   });
 
   it('serves the L1 default for unknown hero values', () => {
@@ -42,9 +40,7 @@ describe('selectHomeHero', () => {
   });
 
   it('keeps the full locked positioning form on all hero variants', () => {
-    expect(HOME_HERO.subtitle.sentence1).toContain(
-      'existing tools report in, you keep the stack',
-    );
+    expect(HOME_HERO.subtitle.sentence1).toContain('existing tools report in, you keep the stack');
     expect(HOME_HERO.subtitle.sentence2).toBe(
       'Powerful and safe: agents leave receipts when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99).',
     );
