@@ -13,7 +13,10 @@ import {
   PRICING_TEASER_SECTION,
   PRICING_TEASER_TIERS,
 } from '../../content/pricing-teaser';
-import { SUBSCRIPTION_PRICE_FALLBACKS } from '../../lib/pricing-fallbacks';
+import {
+  resolvePublicCatalogDisplayAmount,
+  SUBSCRIPTION_PRICE_FALLBACKS,
+} from '../../lib/pricing-fallbacks';
 
 const API_URL =
   import.meta.env.VITE_API_URL ??
@@ -36,8 +39,9 @@ export function PricingTeaser() {
         if (cancelled) return;
         const next = { ...SUBSCRIPTION_PRICE_FALLBACKS };
         for (const tier of data.subscriptions) {
-          if (tier.price) {
-            next[tier.id] = { price: tier.price, period: tier.period };
+          const resolved = resolvePublicCatalogDisplayAmount(tier.id, tier);
+          if (resolved.price) {
+            next[tier.id] = { price: resolved.price, period: resolved.period };
           }
         }
         setPrices(next);

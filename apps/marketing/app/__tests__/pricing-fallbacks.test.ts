@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS,
   PERPETUAL_PRICE_FALLBACKS,
+  resolvePublicCatalogDisplayAmount,
   SUBSCRIPTION_PRICE_FALLBACKS,
 } from '../lib/pricing-fallbacks';
 
@@ -61,5 +62,29 @@ describe('pricing-fallbacks — canonical value assertions', () => {
     expect(ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS.max.price).toBe('$799');
     expect(JSON.stringify(ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS).includes('$118')).toBe(false);
     expect(JSON.stringify(ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS).includes('$718')).toBe(false);
+  });
+
+  it('prefers locked Max monthly $99 over a stale /api/pricing $299', () => {
+    const display = resolvePublicCatalogDisplayAmount('max', {
+      price: '$299',
+      period: '/month',
+      annualPrice: '$799',
+      annualPeriod: '/year',
+    });
+    expect(display.price).toBe('$99');
+    expect(display.period).toBe('/month');
+    expect(display.annualPrice).toBe('$799');
+    expect(display.annualPeriod).toBe('/year');
+  });
+
+  it('keeps Enterprise inquire-only even when /api/pricing returns a monthly amount', () => {
+    const display = resolvePublicCatalogDisplayAmount('enterprise', {
+      price: '$1,499',
+      period: '/month',
+    });
+    expect(display.price).toBeUndefined();
+    expect(display.period).toBeUndefined();
+    expect(display.annualPrice).toBeUndefined();
+    expect(display.annualPeriod).toBeUndefined();
   });
 });
