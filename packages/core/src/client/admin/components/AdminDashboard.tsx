@@ -3,14 +3,14 @@
 import { logger } from '@revealui/core/utils/logger';
 import { Button, IconPrimitiveContent, IconSettings } from '@revealui/presentation';
 import type { ReactNode } from 'react';
-import { useCallback, useEffect, useReducer, useState } from 'react';
+import { useEffect, useReducer } from 'react';
 import type {
   RevealCollectionConfig,
   RevealConfig,
   RevealDocument,
   RevealGlobalConfig,
 } from '../../../types/index.js';
-import { APIError, APIErrorType, apiClient, postSignOut } from '../utils/index.js';
+import { APIError, APIErrorType, apiClient } from '../utils/index.js';
 import { CollectionList } from './CollectionList.js';
 import { DocumentForm } from './DocumentForm.js';
 import { GlobalForm } from './GlobalForm.js';
@@ -131,16 +131,13 @@ function reducer(state: DashboardState, action: DashboardAction): DashboardState
 
 function AdminHeader({ title, onBack }: { title: string; onBack: () => void }) {
   return (
-    <header className="bg-card shadow-sm border-b">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-4">
-          <div className="flex items-center space-x-4">
-            <Button type="button" variant="neutral" appearance="ghost" size="sm" onClick={onBack}>
-              ← Back to Dashboard
-            </Button>
-            <h1 className="text-2xl font-bold text-foreground capitalize">{title}</h1>
-          </div>
-          <SignOutButton />
+    <header className="border-b border-border bg-card">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-4 py-4">
+          <Button type="button" variant="neutral" appearance="ghost" size="sm" onClick={onBack}>
+            ← Back to Dashboard
+          </Button>
+          <h1 className="text-xl font-semibold capitalize text-foreground">{title}</h1>
         </div>
       </div>
     </header>
@@ -178,33 +175,6 @@ function LoadingSpinner() {
       <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       <p className="mt-2 text-sm text-muted-foreground">Loading...</p>
     </div>
-  );
-}
-
-function SignOutButton() {
-  const [loading, setLoading] = useState(false);
-
-  const handleSignOut = useCallback(async () => {
-    setLoading(true);
-    try {
-      await postSignOut();
-    } catch {
-      // Sign out even if the API call fails  -  clear client state regardless
-    }
-    window.location.href = '/login';
-  }, []);
-
-  return (
-    <Button
-      type="button"
-      variant="neutral"
-      appearance="ghost"
-      size="sm"
-      onClick={() => void handleSignOut()}
-      disabled={loading}
-    >
-      {loading ? 'Signing out...' : 'Sign Out'}
-    </Button>
   );
 }
 
@@ -480,43 +450,19 @@ function DashboardHome({
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="bg-card shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-foreground">{`${siteName} Admin`}</h1>
-            </div>
-            <div className="flex shrink-0 items-center gap-3">
-              <span
-                className="shrink-0 text-sm tabular-nums text-muted-foreground"
-                title="Application version"
-              >
-                v{process.env.NEXT_PUBLIC_APP_VERSION ?? process.env.APP_VERSION ?? '0.0.0'}
-              </span>
-              <SignOutButton />
-            </div>
-          </div>
-        </div>
-      </header>
+      <div className="border-b border-border bg-card px-6 py-4">
+        <h1 className="text-xl font-semibold text-foreground">Overview</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          Collections, globals, and system status for {siteName}.
+        </p>
+      </div>
 
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold tracking-tight text-foreground">Overview</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Collections, globals, and system status for {siteName}.
-          </p>
-        </div>
-
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {overviewLead ? <div className="mb-6">{overviewLead}</div> : null}
 
-        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <StatTile label="Collections" value={collections.length} icon={collectionsIcon} />
           <StatTile label="Globals" value={globals.length} icon={globalsIcon} />
-          <StatTile
-            label="Status"
-            value={degraded ? 'Degraded' : 'Healthy'}
-            icon={<StatusIndicator degraded={degraded} label={degraded ? 'Degraded' : 'Healthy'} />}
-          />
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

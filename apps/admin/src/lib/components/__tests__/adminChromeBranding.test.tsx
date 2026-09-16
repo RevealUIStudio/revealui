@@ -20,6 +20,14 @@ vi.mock('@/lib/providers/LicenseProvider', () => ({
   useLicense: () => licenseMock,
 }));
 
+vi.mock('@revealui/auth/react', () => ({
+  useSignOut: () => ({
+    signOut: vi.fn(async () => {}),
+    isLoading: false,
+    error: null,
+  }),
+}));
+
 vi.mock('../WeeklyUsageChrome', () => ({
   WeeklyUsageChrome: () => <div data-testid="weekly-usage-chrome" />,
 }));
@@ -69,16 +77,16 @@ describe('admin chrome white-label branding', () => {
       expect(screen.getByText('RevealUI Admin')).toBeDefined();
     });
 
-    it('shows app version in the footer, not over nav icons', () => {
-      render(
-        <AdminSidebarLayout siteName="Acme" appVersion="0.4.0">
-          content
-        </AdminSidebarLayout>,
-      );
-      expect(screen.getByText('v0.4.0')).toBeDefined();
-      // Settings gear row is a separate nav item; version is footer-only.
+    it('does not show app version in the footer or over nav icons', () => {
+      render(<AdminSidebarLayout siteName="Acme">content</AdminSidebarLayout>);
+      expect(screen.getByText('Acme Admin')).toBeDefined();
       expect(screen.getByText('Settings')).toBeDefined();
-      expect(screen.queryByText('v0.1.0')).toBeNull();
+      expect(screen.queryByText(/^v\d/)).toBeNull();
+    });
+
+    it('puts Sign out in the sidebar footer', () => {
+      render(<AdminSidebarLayout siteName="Acme">content</AdminSidebarLayout>);
+      expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
     });
 
     it('shows Upgrade for free/pro when a higher tier exists', () => {
@@ -109,15 +117,20 @@ describe('admin chrome white-label branding', () => {
   });
 
   describe('AdminDashboard', () => {
-    it('brands the top-bar heading from the siteName prop', () => {
+    it('uses Overview as the page title and brands the subtitle from siteName', () => {
       render(<AdminDashboard config={{ collections: [], globals: [] } as never} siteName="Acme" />);
-      expect(screen.getByRole('heading', { name: 'Acme Admin' })).toBeDefined();
-      expect(screen.queryByText(/RevealUI/)).toBeNull();
+      expect(screen.getByRole('heading', { name: 'Overview' })).toBeDefined();
+      expect(screen.getByText('Collections, globals, and system status for Acme.')).toBeDefined();
+      expect(screen.queryByRole('heading', { name: 'Acme Admin' })).toBeNull();
+      expect(screen.queryByRole('button', { name: /sign out/i })).toBeNull();
     });
 
-    it('defaults to the canonical heading', () => {
+    it('defaults the overview subtitle to the canonical site name', () => {
       render(<AdminDashboard config={{ collections: [], globals: [] } as never} />);
-      expect(screen.getByRole('heading', { name: 'RevealUI Admin' })).toBeDefined();
+      expect(screen.getByRole('heading', { name: 'Overview' })).toBeDefined();
+      expect(
+        screen.getByText('Collections, globals, and system status for RevealUI.'),
+      ).toBeDefined();
     });
 
     it('groups collections into the Operate / Build / Configure taxonomy', () => {
