@@ -43,7 +43,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
   {
     file: 'site.ts',
     exportPath: 'SITE.brandTagline',
-    text: 'The open runtime for businesses that run their own AI.',
+    text: 'The agentic business runtime startups operate on their own domain.',
     evidence: [LICENSE_MIT, OPEN_WEIGHT, SELF_HOST],
   },
   {
@@ -104,7 +104,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_HERO.subtitle.sentence2',
     proofGrade: 'outcome',
-    text: 'Powerful and safe: agents leave receipts when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99).',
+    text: 'Powerful and safe: agents leave receipts when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99/mo · $799/yr).',
     evidence: [
       AUDIT_SIGNING,
       AUDIT_SIGNING_TEST,
@@ -342,7 +342,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_FAQ.items[2].answer',
     proofGrade: 'outcome',
-    text: 'Each vendor covers one slice. RevealUI is the whole runtime: people, content, billing, admin, and agents, self-hosted at all tiers. Deploy targets such as Vercel, Cloudflare, and Fly are places it runs, not competitors.',
+    text: 'Each vendor covers one slice. RevealUI is the whole runtime: people, offers and pages you ship, billing, admin, and agents, self-hosted at all tiers. Deploy targets such as Vercel, Cloudflare, and Fly are places it runs, not competitors.',
     evidence: [AUTH_SESSIONS, COLLECTIONS, BILLING, AGENT_ROUTES, DEPLOY_TARGETS],
   },
   {
@@ -397,7 +397,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_FAQ.items[6].answer',
     proofGrade: 'behavior',
-    text: 'RevealUI speaks the HTTP 402 payment protocol so agents can pay over standard HTTP. The rail ships in the code and stays off while X402_ENABLED is off. See the agents section on the pricing page for current status.',
+    text: 'RevealUI includes an HTTP 402 (x402) payment rail so agents can pay over standard HTTP when an operator turns it on. The rail ships in the code and stays off by default (X402_ENABLED off). It is not a live payments product today. See the agents section on the pricing page for current status.',
     evidence: [X402],
   },
   {

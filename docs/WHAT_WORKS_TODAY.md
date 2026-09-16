@@ -6,7 +6,7 @@ status: verified
 audience: user
 ---
 
-> Last verified: 2026-08-19
+> Last verified: 2026-09-16
 
 This page is an honest account of what RevealUI can and can't do right now.
 If you're evaluating RevealUI for a project, read this before the marketing page.
@@ -74,6 +74,9 @@ Content Security Policy headers, CORS, HSTS, rate limiting, webhook rate limitin
 JWT-based licensing (EdDSA/Ed25519, server-side only — distinct from user-facing auth which is session-only) with tier checks (free / pro / max / enterprise), feature gating, grace periods (3-day subscription, 30-day perpetual, 7-day infrastructure), and revocation via DB status checks. Perpetual and subscription models supported.
 **License generation and enforcement work in tests. Not yet tested with paying customers.**
 
+### Knowledge Graph
+`@revealui/knowledge-graph` is a first-class Electric+CRDT contract surface (`revkg` CLI). Honest naming is correct in runtime, docs, and admin. It is **not** a Studio cash SKU and is not sold as Fleet KG on public pricing (Consultation / Pilot / Launch stay the Studio ladder).
+
 ### Fleet runtime images (GHCR)
 `ghcr.io/revealuistudio/revealui-api:latest`, `revealui-admin:latest`, and `revealui-migrate:latest` are published. Re-verified 2026-08-17: the GHCR anonymous token endpoint plus an OCI index GET returns HTTP 200 for those tags. A bare curl of the manifest URL without that token is 401 (GHCR default). RevForge stamps those tags. A stamped kit still needs a license JWT and operator env. This is not a sold customer walk.
 
@@ -100,7 +103,8 @@ Honest list of things that are not done, not deployed, or not verified.
   is still open. Operator guide: [FORGE_SSO_SETUP.md](./FORGE_SSO_SETUP.md).
   **SCIM is not built** (still a non-goal of the SSO MVP).
 - **No dunning logic.** Best-practice guidance only.
-- **No Prompts collection.** admin ships Pages, Posts, Products, Contents, Videos, Tenants — no Prompts.
+- **No Prompts collection.** Live admin collections today: Pages, Posts, Products, Tenants. **Contents and Videos are not shipped live CMS collections** (cms Contents = WIRE-UP-PENDING). Do not treat them as included.
+- **Do not claim as live until walked:** Contents, Videos CMS, PTY, hypervisor spawn, RevMarket-exec, x402 payments. x402 remains off by default (`X402_ENABLED`).
 
 ---
 

@@ -181,7 +181,7 @@ export const claimsPart5: readonly ClaimEntry[] = [
   {
     file: 'legal/security.ts',
     exportPath: 'SECURITY_SECTIONS[7].paragraphs[0]',
-    text: 'This policy is also published as an RFC 9116 security.txt file at https://revealui.com/.well-known/security.txt. Automated security tooling should read that file for contact and policy URLs.',
+    text: 'This policy is also published as an RFC 9116 security.txt file at https://revealui.com/.well-known/security.txt. Automated security tooling should read that file for contact and policy URLs. GitHub Security Advisories (same reporting channel): https://github.com/RevealUIStudio/revealui/security/policy.',
     evidence: [LEGAL_SECURITY_CONTENT],
   },
   {

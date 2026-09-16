@@ -13,6 +13,7 @@ import { PricingPage } from './routes/PricingPage';
 import { PrivacyPage } from './routes/PrivacyPage';
 import { ProductsPage } from './routes/ProductsPage';
 import { RefundPolicyPage } from './routes/RefundPolicyPage';
+import { SecurityPage } from './routes/SecurityPage';
 import { StatusPage } from './routes/StatusPage';
 import { SupportPage } from './routes/SupportPage';
 import { TemplatesPage } from './routes/TemplatesPage';
@@ -38,7 +39,6 @@ const MovedRoadmap = moved(`${DOCS}/roadmap`);
 const MovedClaims = moved(DOCS);
 const MovedSla = moved(`${DOCS}/sla`);
 const MovedHipaa = moved(DOCS);
-const MovedSecurity = moved(DOCS);
 const MovedSubprocessors = moved(DOCS);
 
 function MovedBlogPost() {
@@ -114,7 +114,7 @@ export function App() {
         meta: { title: 'Moved | RevealUI' },
       },
       { path: '/terms', component: TermsPage, meta: { title: 'Terms of Service | RevealUI' } },
-      { path: '/security', component: MovedSecurity, meta: { title: 'Moved | RevealUI' } },
+      { path: '/security', component: SecurityPage, meta: { title: 'Security | RevealUI' } },
       { path: '/support', component: SupportPage, meta: { title: 'Support | RevealUI' } },
       { path: '/sla', component: MovedSla, meta: { title: 'Moved | RevealUI' } },
       {

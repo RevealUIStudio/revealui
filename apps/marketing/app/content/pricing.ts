@@ -81,7 +81,7 @@ export const PRICING_AGENT_A2A = {
   heading: 'A2A Discovery',
   body: {
     prefix: 'Agents find RevealUI via a standard Agent Card at',
-    linkLabel: '/.well-known/agent.json',
+    linkLabel: SITE.urls.apiAgent,
     linkHref: SITE.urls.apiAgent,
     suffix: '. Capabilities, skills, and pricing all machine-readable.',
   },
@@ -89,13 +89,13 @@ export const PRICING_AGENT_A2A = {
 
 export const PRICING_AGENT_X402 = {
   heading: 'x402-Native Payments',
-  badge: 'Coming soon',
-  body: 'RevealUI implements the HTTP 402 payment protocol. Built on the open x402 standard, with a Coinbase-compatible facilitator implemented. Agents pay agents over standard HTTP. No accounts, no subscriptions. The rail ships in the code and activates when the operator configures a receiving wallet; it is not switched on today.',
+  badge: 'Off by default',
+  body: 'The HTTP 402 (x402) payment rail ships in the code and stays off by default. Built on the open x402 standard, with a Coinbase-compatible facilitator implemented. It is not included today: X402_ENABLED is off, and this is not a live payments product until an operator turns the flag on.',
 } as const;
 
 export const PRICING_AGENT_MCP = {
   heading: 'MCP Servers',
-  body: `${METRICS.mcpServers} production MCP servers for any MCP-capable IDE (Cursor, Claude Code, Copilot, Zed, and others), including Stripe, Neon, Vercel, Playwright, Next.js DevTools, content management, and email. First-party servers ship today. Discovery via marketplace.json and the servers list is a preview; the third-party catalog, charging, and payouts are not open.`,
+  body: `${METRICS.mcpServers} production MCP servers for any MCP-capable IDE (Cursor, Claude Code, Copilot, Zed, and others), including Stripe, Neon, Vercel, Playwright, Next.js DevTools, pages and offers, and email. First-party servers ship today. Discovery via marketplace.json and the servers list is a preview; the third-party catalog, charging, and payouts are not open.`,
   docsLink: {
     label: 'MCP docs →',
     href: SITE.urls.docsMcp,

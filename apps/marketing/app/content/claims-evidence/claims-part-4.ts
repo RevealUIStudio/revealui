@@ -770,7 +770,7 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'legal/security.ts',
     exportPath: 'SECURITY_META.intro',
-    text: 'RevealUI Studio is a solo-operator company building production software. Security is not a marketing line for us. It is a discipline we apply every day, and it determines whether real customers can trust us with their data. This page describes how we accept vulnerability reports, what we commit to in return, and the security posture our customers inherit when they self-host.',
+    text: 'RevealUI Studio is a solo-operator company building production software. Security is not a marketing line for us. It is a discipline we apply every day, and it determines whether real customers can trust us with their data. This page is the on-site policy summary: how we accept vulnerability reports, what we commit to in return, and the security posture our customers inherit when they self-host. Formal GitHub reporting lives at the Security Advisories policy.',
     evidence: [LEGAL_SECURITY_CONTENT],
   },
   {

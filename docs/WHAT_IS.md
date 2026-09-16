@@ -9,13 +9,13 @@ audience: developer
 
 This page is the canonical external wording for RevealUI. Other surfaces should link here or embed the paragraph below verbatim. Do not invent a second definition.
 
-**Last updated:** 2026-08-31
+**Last updated:** 2026-09-16
 
 ---
 
 ## What is RevealUI?
 
-RevealUI is an open-source agentic business runtime. It ships five primitives — people, content, offers, payments, and agents — pre-wired in one deployable system so humans and agents share the same permissions, API, and data model. OSS packages are MIT. Pro packages are Fair Source (FSL-1.1-MIT) and convert to MIT two years after each release. RevealUI is the runtime at the center of RevealFleet.
+RevealUI is the agentic business runtime startups operate on their own domain. Existing tools report in; you keep the stack. It ships five primitives — people, content, offers, payments, and agents — pre-wired in one deployable system so humans and agents share the same permissions, API, and data model. “Content” here means offers and pages you already ship, **not** a live Contents/Videos CMS SKU. OSS packages are MIT. Pro packages are Fair Source (FSL-1.1-MIT) and convert to MIT two years after each release. RevealUI is the runtime at the center of RevealFleet. The Knowledge Graph (`@revealui/knowledge-graph`) is a first-class Electric+CRDT contract surface in the runtime — not a fourth Studio SKU.
 
 That paragraph is the product definition. Supporting facts:
 
@@ -45,7 +45,7 @@ Limits and prices are pinned in `packages/contracts/src/pricing.ts` and restated
 |------|-------|-------|-------|----------------|-------------|
 | Free | $0 | 1 | 3 | Local AI | 200 |
 | Pro | $49/mo | 5 | 25 | 10,000 | 300 |
-| Max | $99/mo | 15 | 100 | 50,000 | 600 |
+| Max | $99/mo · $799/yr | 15 | 100 | 50,000 | 600 |
 | Enterprise | inquire / Contact sales | unlimited | unlimited | unlimited | 1,000 |
 
 ---
@@ -81,7 +81,7 @@ Support response is not a feature flag. The published commitment is the same for
 
 RevealFleet (`/docs/REVFLEET`) is the family name for RevealUI Studio software. It is **not** a catalog SKU. **RevealUI** is the lead product and the buyable runtime.
 
-The public catalog is Free, Pro ($49/mo), Max ($99/mo), Enterprise (inquire / Contact sales), and Pro Perpetual ($1,499). RevVault (separate product) is encrypted secret management inside Pro, not a separate paid SKU.
+The public catalog is Free, Pro ($49/mo), Max ($99/mo · $799/yr), Enterprise (inquire / Contact sales), and Pro Perpetual ($1,499). RevVault (separate product) is encrypted secret management inside Pro, not a separate paid SKU. Studio cash ladder (Consultation / Pilot / Launch) is not sold on this catalog. Knowledge Graph is runtime surface, not a fourth Studio SKU.
 
 Get started on [Quick Start](./QUICK_START.md). Maturity labels for this runtime live in [ROADMAP.md](./ROADMAP.md).
 

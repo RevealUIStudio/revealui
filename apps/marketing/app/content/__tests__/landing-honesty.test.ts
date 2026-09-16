@@ -90,7 +90,7 @@ describe('Auditor voice and live-hero honesty', () => {
       'Technical founders and small agencies who already run agents — existing tools report in, you keep the stack.',
     );
     expect(HOME_HERO.subtitle.sentence2).toBe(
-      'Powerful and safe: agents leave receipts when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99).',
+      'Powerful and safe: agents leave receipts when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99/mo · $799/yr).',
     );
     expect(HOME_HERO.subtitle.support).toBe('It runs on any AI provider you choose.');
   });

@@ -155,9 +155,9 @@ describe('SUBSCRIPTION_TIERS', () => {
     expect(enterprise.ctaHref).toBe(ENTERPRISE_SALES_HREF);
     expect(enterprise.ctaHref.includes('signup')).toBe(false);
     expect(pro.cta).toBe('Start your 7-day free trial');
-    expect(pro.ctaHref).toBe('/signup?plan=pro');
+    expect(pro.ctaHref).toBe('https://admin.revealui.com/signup?plan=pro');
     expect(max.cta).toBe('Start your 7-day free trial');
-    expect(max.ctaHref).toBe('/signup?plan=max');
+    expect(max.ctaHref).toBe('https://admin.revealui.com/signup?plan=max');
     expect(enterprise.features.some((f) => f.includes('coming soon'))).toBe(false);
     expect(enterprise.features.some((f) => f.includes('Slack'))).toBe(false);
   });
@@ -273,7 +273,7 @@ describe('PERPETUAL_TIERS', () => {
       expect(tier.ctaHref.startsWith('mailto:')).toBe(false);
     }
     expect(PERPETUAL_TIERS.find((t) => t.name === 'Pro Perpetual')?.ctaHref).toBe(
-      '/signup?license=pro',
+      'https://admin.revealui.com/signup?license=pro',
     );
     expect(PERPETUAL_TIERS.find((t) => t.name === 'Agency Perpetual')?.cta).toBe('Contact sales');
     expect(PERPETUAL_TIERS.find((t) => t.name === 'Agency Perpetual')?.ctaHref).toBe(
@@ -478,7 +478,7 @@ describe('PERPETUAL_TIERS  -  comingSoon status', () => {
     expect(enterprise.ctaHref.includes('signup')).toBe(false);
     expect(enterprise.ctaHref.includes('/account/license')).toBe(false);
     expect(pro.cta).toBe('Buy Pro Perpetual');
-    expect(pro.ctaHref).toBe('/signup?license=pro');
+    expect(pro.ctaHref).toBe('https://admin.revealui.com/signup?license=pro');
     expect(agency.cta).toBe('Contact sales');
     expect(agency.ctaHref).toBe(ENTERPRISE_SALES_HREF);
     expect(agency.ctaHref.includes('signup')).toBe(false);
@@ -529,8 +529,10 @@ describe('perpetual license SKU hop', () => {
     expect(perpetualLicenseLabel('pro')).toBe('Pro Perpetual');
     expect(perpetualLicenseLabel('agency')).toBe('Agency Perpetual');
     expect(perpetualLicenseLabel('enterprise')).toBe('Enterprise Perpetual');
-    expect(perpetualLicenseSignupPath('pro')).toBe('/signup?license=pro');
-    expect(perpetualLicenseSignupPath('agency')).toBe('/signup?license=agency');
+    expect(perpetualLicenseSignupPath('pro')).toBe('https://admin.revealui.com/signup?license=pro');
+    expect(perpetualLicenseSignupPath('agency')).toBe(
+      'https://admin.revealui.com/signup?license=agency',
+    );
     expect(perpetualLicenseCheckoutPath('pro')).toBe('/account/license?license=pro');
     expect(perpetualLicenseCheckoutTier('agency')).toBe('max');
     expect(perpetualLicenseCheckoutTier('pro')).toBe('pro');

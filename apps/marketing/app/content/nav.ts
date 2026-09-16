@@ -70,7 +70,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
 ] as const;
 
 export const FOOTER_TAGLINE =
-  'Agentic business runtime. People, content, offers, payments, and agents, pre-wired, open source, and ready to deploy.' as const;
+  'The agentic business runtime startups operate on their own domain. Existing tools report in, you keep the stack.' as const;
 
 export const FOOTER_SOLO_OPERATOR_NOTE =
   'Built by one engineer in Tennessee. See our SLA for response times.' as const;

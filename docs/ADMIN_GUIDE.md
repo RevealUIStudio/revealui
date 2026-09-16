@@ -50,9 +50,11 @@ Your RevealUI project consists of:
 
 The admin provides a REST API for content delivery and includes collections for:
 
-- **Pages**, **Posts** (blog), **Media**, **Heros**, **Cards**, **Contents**, **Events**, **Banners**
+- **Pages**, **Posts** (blog), **Media**, **Heros**, **Cards**, **Events**, **Banners**
 - **Products**, **Prices**, **Categories**, **Tags**, **Orders**, **Subscriptions**
-- **Users**, **Tenants**, **Layouts**, **Videos**
+- **Users**, **Tenants**, **Layouts**
+
+**Honesty (2026-09-16):** **Contents** and **Videos** are not live shipped CMS collections (cms Contents = WIRE-UP-PENDING). Do not treat them as included. They may appear in older schema notes later in this guide; those notes are historical, not a sellable SKU.
 
 ### Commercial framing
 
