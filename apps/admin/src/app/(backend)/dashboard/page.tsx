@@ -1,8 +1,6 @@
 import { AdminDashboard } from '@revealui/core/admin';
 import { serializeConfig } from '@revealui/core/admin/utils/serializeConfig';
 import type { RevealConfig } from '@revealui/core/types/core';
-import { IconSettings } from '@revealui/presentation';
-import Link from 'next/link';
 import HomeOnboarding from '@/lib/components/BeforeDashboard/HomeOnboarding';
 import config from '../../../../revealui.config';
 
@@ -23,19 +21,10 @@ export default async function Page() {
     process.env.REVEALUI_BRAND_NAME || process.env.REVEALUI_TENANT_NAME || 'RevealUI';
 
   return (
-    <div className="relative">
-      <Link
-        href="/settings"
-        className="absolute right-28 top-5 z-10 rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        title="Settings"
-      >
-        <IconSettings size="md" />
-      </Link>
-      <AdminDashboard
-        config={serializedConfig}
-        siteName={siteName}
-        overviewLead={<HomeOnboarding />}
-      />
-    </div>
+    <AdminDashboard
+      config={serializedConfig}
+      siteName={siteName}
+      overviewLead={<HomeOnboarding />}
+    />
   );
 }

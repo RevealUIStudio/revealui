@@ -20,6 +20,14 @@ vi.mock('@/lib/providers/LicenseProvider', () => ({
   useLicense: () => licenseMock,
 }));
 
+vi.mock('@revealui/auth/react', () => ({
+  useSignOut: () => ({
+    signOut: vi.fn(async () => {}),
+    isLoading: false,
+    error: null,
+  }),
+}));
+
 vi.mock('../WeeklyUsageChrome', () => ({
   WeeklyUsageChrome: () => <div data-testid="weekly-usage-chrome" />,
 }));
@@ -76,6 +84,11 @@ describe('admin chrome white-label branding', () => {
       expect(screen.queryByText(/^v\d/)).toBeNull();
     });
 
+    it('puts Sign out in the sidebar footer', () => {
+      render(<AdminSidebarLayout siteName="Acme">content</AdminSidebarLayout>);
+      expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
+    });
+
     it('shows Upgrade for free/pro when a higher tier exists', () => {
       licenseMock.tier = 'free';
       licenseMock.isLoading = false;
@@ -104,15 +117,20 @@ describe('admin chrome white-label branding', () => {
   });
 
   describe('AdminDashboard', () => {
-    it('brands the top-bar heading from the siteName prop', () => {
+    it('uses Overview as the page title and brands the subtitle from siteName', () => {
       render(<AdminDashboard config={{ collections: [], globals: [] } as never} siteName="Acme" />);
-      expect(screen.getByRole('heading', { name: 'Acme Admin' })).toBeDefined();
-      expect(screen.queryByText(/RevealUI/)).toBeNull();
+      expect(screen.getByRole('heading', { name: 'Overview' })).toBeDefined();
+      expect(screen.getByText('Collections, globals, and system status for Acme.')).toBeDefined();
+      expect(screen.queryByRole('heading', { name: 'Acme Admin' })).toBeNull();
+      expect(screen.queryByRole('button', { name: /sign out/i })).toBeNull();
     });
 
-    it('defaults to the canonical heading', () => {
+    it('defaults the overview subtitle to the canonical site name', () => {
       render(<AdminDashboard config={{ collections: [], globals: [] } as never} />);
-      expect(screen.getByRole('heading', { name: 'RevealUI Admin' })).toBeDefined();
+      expect(screen.getByRole('heading', { name: 'Overview' })).toBeDefined();
+      expect(
+        screen.getByText('Collections, globals, and system status for RevealUI.'),
+      ).toBeDefined();
     });
 
     it('groups collections into the Operate / Build / Configure taxonomy', () => {

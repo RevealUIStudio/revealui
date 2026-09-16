@@ -1,6 +1,8 @@
 'use client';
 
+import { useSignOut } from '@revealui/auth/react';
 import {
+  Button,
   IconAlertCircle,
   IconCheckCircle,
   IconCode,
@@ -149,6 +151,31 @@ const bottomItems: NavItem[] = [
   },
 ];
 
+function SidebarSignOut({ siteName }: { siteName: string }) {
+  const { signOut, isLoading } = useSignOut();
+
+  return (
+    <div className="flex min-w-0 items-center justify-between gap-2">
+      <p className="min-w-0 truncate text-xs text-muted-foreground">{siteName} Admin</p>
+      <Button
+        type="button"
+        variant="neutral"
+        appearance="ghost"
+        size="sm"
+        className="shrink-0"
+        disabled={isLoading}
+        onClick={() => {
+          void signOut().catch(() => {
+            window.location.href = '/login';
+          });
+        }}
+      >
+        {isLoading ? 'Signing out...' : 'Sign out'}
+      </Button>
+    </div>
+  );
+}
+
 function AdminSidebarContent({
   siteName,
   isAdmin,
@@ -227,9 +254,7 @@ function AdminSidebarContent({
         </SidebarSection>
       </SidebarBody>
       <SidebarFooter>
-        <div className="flex min-w-0 items-center justify-between gap-2">
-          <p className="min-w-0 truncate text-xs text-muted-foreground">{siteName} Admin</p>
-        </div>
+        <SidebarSignOut siteName={siteName} />
       </SidebarFooter>
     </Sidebar>
   );
