@@ -50,6 +50,8 @@ function formatTimestamp(iso: string | null): string {
 export default function KnowledgeGraphPage() {
   return (
     <LicenseGate feature="ai">
+      {/* UI is Pro+ (`ai`). Shape APIs use canAccessKgShapes: hosted default
+          is fleet-operator only; Launch/self-host sets REVEALUI_KG_LICENSED_OPERATOR=1. */}
       {/* Shape hooks need a browser origin (Electric requires an absolute URL). */}
       <ClientOnly>
         <KnowledgeGraphExplorer />
@@ -114,9 +116,9 @@ function KnowledgeGraphExplorer() {
       <div className="border-b border-border bg-card px-6 py-4">
         <h1 className="text-xl font-semibold text-foreground">Knowledge Graph</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
-          Read-only, canonical-state view of the fleet knowledge graph (GAP-349). Curation
-          annotations and pins are ephemeral until flushed to an episode; the graph itself is never
-          written from this screen.
+          Read-only knowledge graph. Hosted access is fleet-operator only so Pro tenants do not sync
+          the shared fleet graph. Launch and self-host can unlock verified Pro+ admin access, scoped
+          to a repo. Curation annotations are ephemeral; this screen never writes the graph.
         </p>
       </div>
 

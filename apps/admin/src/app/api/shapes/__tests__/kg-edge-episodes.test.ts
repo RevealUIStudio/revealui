@@ -4,7 +4,7 @@
 
 import * as authServer from '@revealui/auth/server';
 import { NextRequest } from 'next/server';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GET } from '../kg-edge-episodes/route';
 
 vi.mock('@revealui/auth/server', () => ({
@@ -81,6 +81,10 @@ describe('GET /api/shapes/kg-edge-episodes', () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it('returns 401 when session is missing', async () => {
     mockGetSession.mockResolvedValue(null);
 
@@ -111,6 +115,17 @@ describe('GET /api/shapes/kg-edge-episodes', () => {
     expect(originUrl.searchParams.get('table')).toBe('kg_edge_episodes');
     expect(originUrl.searchParams.has('where')).toBe(false);
     expect(proxyElectricRequest).toHaveBeenCalled();
+  });
+
+  it('denies a licensed-operator because the join table cannot be repo-scoped', async () => {
+    vi.stubEnv('REVEALUI_KG_LICENSED_OPERATOR', '1');
+    mockGetSession.mockResolvedValue(mockSession);
+
+    const response = await GET(
+      new NextRequest('http://localhost:3000/api/shapes/kg-edge-episodes?repo=revealui'),
+    );
+    expect(response.status).toBe(403);
+    vi.unstubAllEnvs();
   });
 
   it('handles errors gracefully', async () => {

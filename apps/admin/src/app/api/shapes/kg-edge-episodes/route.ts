@@ -11,7 +11,9 @@
  * no `repo` column (see `packages/db/src/schema/knowledge-graph.ts`) and
  * Electric shape `where` clauses are single-table (design spec §8.2), so a
  * join-based repo filter is not available here without a schema change. This
- * route syncs the full provenance join table. Flagged for the Fable review:
+ * route syncs the full provenance join table and therefore stays
+ * fleet-operator only — licensed-operator mode cannot apply a `repo=` where
+ * without leaking the join (fail closed). Flagged for the Fable review:
  * if this needs partitioning as the graph grows, it requires either
  * denormalizing `repo` onto `kg_edge_episodes` or dropping this shape in
  * favor of REST-fetched provenance (e.g. via the existing `kgAtTime` /
@@ -22,7 +24,7 @@ import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/utils/logger';
 import type { NextRequest, NextResponse } from 'next/server';
 import { prepareElectricUrl, proxyElectricRequest } from '@/lib/api/electric-proxy';
-import { isFleetOperator } from '@/lib/api/shape-authz';
+import { canAccessKgShapes, isFleetOperator } from '@/lib/api/shape-authz';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
 import { extractRequestContext } from '@/lib/utils/request-context';
@@ -40,7 +42,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const aiGate = await checkAIFeatureGate(session.user.id);
     if (aiGate) return aiGate;
 
-    // Full provenance join is fleet-operator data only — CMS admin is not enough.
+    if (!canAccessKgShapes(session.user)) {
+      return createApplicationErrorResponse('Forbidden', 'FORBIDDEN', 403);
+    }
+    // Join table has no `repo` column — licensed-operator cannot be scoped.
     if (!isFleetOperator(session.user)) {
       return createApplicationErrorResponse('Forbidden', 'FORBIDDEN', 403);
     }
