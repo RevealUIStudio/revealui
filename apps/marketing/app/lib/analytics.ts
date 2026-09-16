@@ -9,9 +9,9 @@
 // set. Both sinks stay dormant without their env keys.
 //
 // Privacy posture:
-//   - Respects Do-Not-Track (DNT). All tracking is silently skipped for any
-//     visitor whose browser sends DNT=1 / DNT=yes.
 //   - Cookie consent: analytics category must be true on `revealui-cookie-consent`.
+//     GPC/DNT are reject-optional defaults (CookieConsentManager writes
+//     analytics:false until explicit Accept All). An explicit accept is honored.
 //   - HIPAA profile (`VITE_COMPLIANCE_PROFILE=hipaa`) disables all sinks.
 //   - No PII is collected. Payloads contain the event name (custom events only),
 //     page URL (including UTM query), referring URL, and named props — no user
@@ -60,17 +60,6 @@ function isBrowser(): boolean {
   return typeof window !== 'undefined' && typeof document !== 'undefined';
 }
 
-function isDntEnabled(): boolean {
-  if (typeof navigator === 'undefined' || typeof window === 'undefined') {
-    return false;
-  }
-  return (
-    navigator.doNotTrack === '1' ||
-    navigator.doNotTrack === 'yes' ||
-    (window as Window & { doNotTrack?: string }).doNotTrack === '1'
-  );
-}
-
 function hasAnalyticsConsent(): boolean {
   if (typeof document === 'undefined') {
     return false;
@@ -95,7 +84,11 @@ function hasAnalyticsConsent(): boolean {
 }
 
 function canSend(): boolean {
-  return isBrowser() && !isHipaaComplianceProfile() && !isDntEnabled() && hasAnalyticsConsent();
+  // GPC/DNT are reject-optional defaults in CookieConsentManager (analytics:
+  // false until explicit Accept). Do not hard-kill after Accept All — that
+  // is why revealui.com stayed at 0 while revealuistudio.com (official
+  // script.js, no DNT abort) recorded visits.
+  return isBrowser() && !isHipaaComplianceProfile() && hasAnalyticsConsent();
 }
 
 interface AnalyticsPayload {
@@ -177,10 +170,30 @@ function sendJson(endpoint: string, body: unknown): void {
 function sendUmami(name?: string, data?: Record<string, string | number | boolean>): void {
   const endpoint = umamiSendUrl();
   const payload = buildUmamiPayload(name, data);
-  if (!(endpoint && payload)) {
+  const websiteId = umamiWebsiteId;
+  if (!(endpoint && payload && websiteId)) {
     return;
   }
-  sendJson(endpoint, { type: 'event', payload });
+  // Official script.js uses fetch + these headers. sendBeacon cannot set
+  // them; a headerless POST from a non-browser UA is answered {"beep":"boop"}
+  // and is not stored. Match the tracker the studio site already ships.
+  try {
+    void fetch(endpoint, {
+      method: 'POST',
+      keepalive: true,
+      credentials: 'omit',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-umami-website-id': websiteId,
+        'x-umami-hostname': window.location.hostname,
+      },
+      body: JSON.stringify({ type: 'event', payload }),
+    }).catch(() => {
+      // empty-catch-ok: analytics fetch errors are intentionally silenced
+    });
+  } catch {
+    // Never propagate analytics errors to the caller.
+  }
 }
 
 function sendPlausible(event: string, props?: Record<string, string | number | boolean>): void {
@@ -258,7 +271,7 @@ export function initAnalytics(): void {
   if (!isBrowser()) {
     return;
   }
-  if (isHipaaComplianceProfile() || isDntEnabled()) {
+  if (isHipaaComplianceProfile()) {
     return;
   }
   if (mounted) {

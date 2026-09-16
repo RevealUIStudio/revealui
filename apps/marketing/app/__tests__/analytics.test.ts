@@ -79,14 +79,19 @@ function makeWindowStub(overrides?: {
   };
 }
 
-async function readBeaconPayload(
+function mockUmamiFetch(): ReturnType<typeof vi.fn> {
+  const fetchMock = vi.fn(() => Promise.resolve(new Response(JSON.stringify({ cache: 'ok' }))));
+  vi.stubGlobal('fetch', fetchMock);
+  return fetchMock;
+}
+
+async function readFetchPayload(
+  fetchMock: ReturnType<typeof vi.fn>,
   callIndex = 0,
-): Promise<{ url: string; body: Record<string, unknown> }> {
-  const [endpoint, blob] = (navigator.sendBeacon as ReturnType<typeof vi.fn>).mock.calls[
-    callIndex
-  ] as [string, Blob];
-  const text = await blob.text();
-  return { url: endpoint, body: JSON.parse(text) as Record<string, unknown> };
+): Promise<{ url: string; body: Record<string, unknown>; headers: HeadersInit }> {
+  const [url, init] = fetchMock.mock.calls[callIndex] as [string, RequestInit];
+  const body = JSON.parse(String(init.body)) as Record<string, unknown>;
+  return { url, body, headers: init.headers ?? {} };
 }
 
 function stubUmamiEnv(): void {
@@ -158,7 +163,7 @@ describe('analytics sink', () => {
     expect(navigator.sendBeacon).not.toHaveBeenCalled();
   });
 
-  it('does not send when DNT is enabled', async () => {
+  it('honors explicit analytics consent even when DNT is set', async () => {
     vi.stubEnv('VITE_ANALYTICS_DOMAIN', 'revealui.com');
     vi.stubGlobal('navigator', {
       sendBeacon: vi.fn(() => true),
@@ -172,7 +177,7 @@ describe('analytics sink', () => {
       new CustomEvent('revealui:audience', { detail: { audience: 'technical' } }),
     );
 
-    expect(navigator.sendBeacon).not.toHaveBeenCalled();
+    expect(navigator.sendBeacon).toHaveBeenCalledOnce();
   });
 
   it('track() never throws even when sendBeacon throws', async () => {
@@ -205,7 +210,10 @@ describe('analytics sink', () => {
 });
 
 describe('Umami traffic sink', () => {
-  function installUmamiStubs(options?: { cookie?: string; href?: string }): void {
+  function installUmamiStubs(options?: {
+    cookie?: string;
+    href?: string;
+  }): ReturnType<typeof vi.fn> {
     vi.stubGlobal('document', makeDocumentStub(options?.cookie));
     vi.stubGlobal('navigator', {
       sendBeacon: vi.fn(() => true),
@@ -213,23 +221,24 @@ describe('Umami traffic sink', () => {
       language: 'en-US',
     });
     vi.stubGlobal('window', makeWindowStub(options?.href ? { href: options.href } : undefined));
+    return mockUmamiFetch();
   }
 
   it('is dormant when Umami env is unset', async () => {
-    installUmamiStubs();
+    const fetchMock = installUmamiStubs();
     const { initAnalytics } = await import('../lib/analytics');
     initAnalytics();
-    expect(navigator.sendBeacon).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('sends a consent-gated pageview to Studio Umami /api/send with UTM query', async () => {
     stubUmamiEnv();
-    installUmamiStubs();
+    const fetchMock = installUmamiStubs();
     const { initAnalytics } = await import('../lib/analytics');
     initAnalytics();
 
-    expect(navigator.sendBeacon).toHaveBeenCalledOnce();
-    const { url, body } = await readBeaconPayload();
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const { url, body, headers } = await readFetchPayload(fetchMock);
     expect(url).toBe(UMAMI_SEND_ENDPOINT);
     expect(body.type).toBe('event');
     const payload = body.payload as Record<string, unknown>;
@@ -241,20 +250,23 @@ describe('Umami traffic sink', () => {
     expect(payload.title).toBe('Pricing | RevealUI');
     expect(payload.language).toBe('en-US');
     expect(payload.screen).toBe('1440x900');
+    const headerRecord = headers as Record<string, string>;
+    expect(headerRecord['x-umami-website-id']).toBe(UMAMI_WEBSITE_ID);
+    expect(headerRecord['x-umami-hostname']).toBe('revealui.com');
   });
 
   it('does not send a Umami pageview without analytics consent', async () => {
     stubUmamiEnv();
-    installUmamiStubs({ cookie: '' });
+    const fetchMock = installUmamiStubs({ cookie: '' });
     const { initAnalytics, track } = await import('../lib/analytics');
     initAnalytics();
     track('Audience Selected', { audience: 'technical' });
-    expect(navigator.sendBeacon).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('does not send a Umami pageview when DNT is enabled', async () => {
+  it('honors explicit analytics consent for Umami even when DNT is set', async () => {
     stubUmamiEnv();
-    installUmamiStubs();
+    const fetchMock = installUmamiStubs();
     vi.stubGlobal('navigator', {
       sendBeacon: vi.fn(() => true),
       doNotTrack: '1',
@@ -262,27 +274,27 @@ describe('Umami traffic sink', () => {
     });
     const { initAnalytics } = await import('../lib/analytics');
     initAnalytics();
-    expect(navigator.sendBeacon).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledOnce();
   });
 
   it('does not send a Umami pageview in the HIPAA profile', async () => {
     stubUmamiEnv();
     vi.stubEnv('VITE_COMPLIANCE_PROFILE', 'hipaa');
-    installUmamiStubs();
+    const fetchMock = installUmamiStubs();
     const { initAnalytics, track } = await import('../lib/analytics');
     initAnalytics();
     track('Audience Selected', { audience: 'technical' });
-    expect(navigator.sendBeacon).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('forwards custom track() events to Umami /api/send', async () => {
     stubUmamiEnv();
-    installUmamiStubs();
+    const fetchMock = installUmamiStubs();
     const { track } = await import('../lib/analytics');
     track('Audience Selected', { audience: 'technical' });
 
-    expect(navigator.sendBeacon).toHaveBeenCalledOnce();
-    const { url, body } = await readBeaconPayload();
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const { url, body } = await readFetchPayload(fetchMock);
     expect(url).toBe(UMAMI_SEND_ENDPOINT);
     const payload = body.payload as Record<string, unknown>;
     expect(payload.name).toBe('Audience Selected');
@@ -292,10 +304,10 @@ describe('Umami traffic sink', () => {
 
   it('sends a pageview after analytics consent is granted', async () => {
     stubUmamiEnv();
-    installUmamiStubs({ cookie: '' });
+    const fetchMock = installUmamiStubs({ cookie: '' });
     const { initAnalytics } = await import('../lib/analytics');
     initAnalytics();
-    expect(navigator.sendBeacon).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
 
     vi.stubGlobal(
       'document',
@@ -307,23 +319,23 @@ describe('Umami traffic sink', () => {
       new CustomEvent('revealui:cookie-consent', { detail: { analytics: true } }),
     );
 
-    expect(navigator.sendBeacon).toHaveBeenCalledOnce();
-    const { url, body } = await readBeaconPayload();
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const { url, body } = await readFetchPayload(fetchMock);
     expect(url).toBe(UMAMI_SEND_ENDPOINT);
     expect((body.payload as Record<string, unknown>).name).toBeUndefined();
   });
 
   it('sends a second pageview on SPA history.pushState', async () => {
     stubUmamiEnv();
-    installUmamiStubs({ href: 'https://revealui.com/' });
+    const fetchMock = installUmamiStubs({ href: 'https://revealui.com/' });
     const { initAnalytics } = await import('../lib/analytics');
     initAnalytics();
-    expect(navigator.sendBeacon).toHaveBeenCalledOnce();
+    expect(fetchMock).toHaveBeenCalledOnce();
 
     window.history.pushState(null, '', '/products');
 
-    expect(navigator.sendBeacon).toHaveBeenCalledTimes(2);
-    const second = await readBeaconPayload(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const second = await readFetchPayload(fetchMock, 1);
     expect(second.url).toBe(UMAMI_SEND_ENDPOINT);
     expect((second.body.payload as Record<string, unknown>).url).toBe('/products');
   });
