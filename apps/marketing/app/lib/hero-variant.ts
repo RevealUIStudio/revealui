@@ -8,8 +8,8 @@ import {
 /**
  * Homepage-hero A/B variant selector.
  *
- * Default: Auditor H1 (`HOME_HERO`, owner ruling 2026-09-11).
- * `?hero=foundation` — entitlement/receipt A/B (ADR 2026-06-07 decision 6).
+ * Default: known-for H1 (`HOME_HERO`, Brand LOCK 2026-09-15).
+ * `?hero=foundation` — #5 keep-the-stack A/B (not receipts-only).
  * `?hero=ownership` — prior default H1, rollback/preview only.
  * `?hero=l2` — corpus L2 leverage-frame (owner go 2026-07-31; not default).
  *

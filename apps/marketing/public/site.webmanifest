@@ -1,7 +1,7 @@
 {
   "name": "RevealUI",
   "short_name": "RevealUI",
-  "description": "One self-hosted runtime for your business and the agents that run it.",
+  "description": "The agentic business runtime startups operate on their own domain.",
   "id": "/",
   "start_url": "/",
   "scope": "/",

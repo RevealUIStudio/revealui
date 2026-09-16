@@ -1,0 +1,129 @@
+{
+  "templateId": "5a37bb0e-83bf-4ff7-b327-42c8ae3be350",
+  "slug": "revealui",
+  "listingUrl": "https://railway.com/deploy/revealui",
+  "manifestUrl": "https://railway.com/deploy/revealui/manifest.json",
+  "upstreamRepo": "https://github.com/RevealUIStudio/revealui",
+  "role": "customer-marketplace-self-host",
+  "studioProduction": false,
+  "freeOssUnlicensed": true,
+  "ownerRepublishRequired": true,
+  "notes": [
+    "Customer marketplace sales channel (GAP-430). Not Studio production (Vercel + Neon + Fly).",
+    "New Railway services cannot opt into Config as Code. Do not rely on Config File Path / deployment/railway/api.json for Deploy Now.",
+    "After editing the live listing, verify manifest.json carries RAILWAY_DOCKERFILE_PATH on api and admin. Then TemplateCI can validate a fresh Deploy Now."
+  ],
+  "services": {
+    "postgres": {
+      "name": "postgres",
+      "source": {
+        "image": "pgvector/pgvector:pg16"
+      },
+      "deploy": {
+        "startCommand": null,
+        "healthcheckPath": null,
+        "restartPolicyType": "ON_FAILURE"
+      },
+      "variables": {
+        "POSTGRES_DB": {
+          "defaultValue": "revealui"
+        },
+        "POSTGRES_USER": {
+          "defaultValue": "revealui"
+        }
+      }
+    },
+    "migrate": {
+      "name": "migrate",
+      "source": {
+        "image": "ghcr.io/revealuistudio/revealui-migrate:latest"
+      },
+      "deploy": {
+        "startCommand": null,
+        "healthcheckPath": null,
+        "restartPolicyType": "NEVER"
+      }
+    },
+    "api": {
+      "name": "api",
+      "source": {
+        "repo": "https://github.com/RevealUIStudio/revealui",
+        "rootDirectory": null
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "apps/server/Dockerfile"
+      },
+      "deploy": {
+        "startCommand": null,
+        "healthcheckPath": "/health",
+        "restartPolicyType": "ON_FAILURE"
+      },
+      "variables": {
+        "RAILWAY_DOCKERFILE_PATH": {
+          "defaultValue": "apps/server/Dockerfile"
+        },
+        "NODE_ENV": {
+          "defaultValue": "production"
+        },
+        "REVEALUI_ALLOW_UNLICENSED_SELF_HOST": {
+          "defaultValue": "true"
+        },
+        "POSTGRES_URL": {
+          "defaultValue": "postgresql://${{postgres.POSTGRES_USER}}:${{postgres.POSTGRES_PASSWORD}}@${{postgres.RAILWAY_PRIVATE_DOMAIN}}:5432/${{postgres.POSTGRES_DB}}?sslmode=disable"
+        },
+        "REVEALUI_PUBLIC_SERVER_URL": {
+          "defaultValue": "https://${{api.RAILWAY_PUBLIC_DOMAIN}}"
+        },
+        "NEXT_PUBLIC_SERVER_URL": {
+          "defaultValue": "https://${{api.RAILWAY_PUBLIC_DOMAIN}}"
+        },
+        "CORS_ORIGIN": {
+          "defaultValue": "https://${{admin.RAILWAY_PUBLIC_DOMAIN}}"
+        }
+      }
+    },
+    "admin": {
+      "name": "admin",
+      "source": {
+        "repo": "https://github.com/RevealUIStudio/revealui",
+        "rootDirectory": null
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "apps/admin/Dockerfile"
+      },
+      "deploy": {
+        "startCommand": null,
+        "healthcheckPath": "/api/health",
+        "restartPolicyType": "ON_FAILURE"
+      },
+      "variables": {
+        "RAILWAY_DOCKERFILE_PATH": {
+          "defaultValue": "apps/admin/Dockerfile"
+        },
+        "NODE_ENV": {
+          "defaultValue": "production"
+        },
+        "REVEALUI_ALLOW_UNLICENSED_SELF_HOST": {
+          "defaultValue": "true"
+        },
+        "POSTGRES_URL": {
+          "defaultValue": "${{api.POSTGRES_URL}}"
+        },
+        "NEXT_PUBLIC_API_URL": {
+          "defaultValue": "https://${{api.RAILWAY_PUBLIC_DOMAIN}}"
+        },
+        "API_URL": {
+          "defaultValue": "https://${{api.RAILWAY_PUBLIC_DOMAIN}}"
+        },
+        "REVEALUI_PUBLIC_SERVER_URL": {
+          "defaultValue": "https://${{admin.RAILWAY_PUBLIC_DOMAIN}}"
+        },
+        "NEXT_PUBLIC_SERVER_URL": {
+          "defaultValue": "https://${{admin.RAILWAY_PUBLIC_DOMAIN}}"
+        }
+      }
+    }
+  }
+}

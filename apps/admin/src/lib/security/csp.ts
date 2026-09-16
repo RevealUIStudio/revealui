@@ -31,7 +31,14 @@
  *
  * Edge-safe: pure string building + Web Crypto only (no Node APIs), so it runs
  * unchanged in the Edge proxy runtime.
+ *
+ * Studio dogfood PTT (admin `/chat`): `connect-src` allows the loopback Whisper
+ * sidecar (`/transcribe` + `/files`) only. Cloud STT origins are never added,
+ * even if WHISPER_URL is set to a SaaS host. Hosted `.com` cannot read disk.
  */
+
+import { DEFAULT_WHISPER_ORIGIN, WHISPER_WASM_MODEL_CONNECT_ORIGINS } from '../push-to-talk/config';
+import { whisperConnectSrcOrigin } from '../push-to-talk/policy';
 
 export interface AdminCspOptions {
   /** Per-request nonce (base64); generate with {@link generateNonce}. */
@@ -67,6 +74,12 @@ export interface AdminCspOptions {
    * next/image same-origin path still works via `'self'`).
    */
   r2PublicBaseUrl?: string;
+  /**
+   * `NEXT_PUBLIC_WHISPER_URL` / `WHISPER_URL` — local Whisper sidecar.
+   * Only the loopback origin is added to connect-src. `''` uses the default
+   * dogfood origin (`http://127.0.0.1:8178`).
+   */
+  whisperUrl?: string;
 }
 
 /** Origin of a base URL, or `''` when unset/malformed (no-regex: URL parser). */
@@ -109,6 +122,7 @@ export function buildAdminCsp(options: AdminCspOptions): string {
     marketingUrl,
     isFleetMode = false,
     r2PublicBaseUrl = '',
+    whisperUrl = '',
   } = options;
   const vercelPreview = isVercel && !isVercelProd;
 
@@ -116,6 +130,8 @@ export function buildAdminCsp(options: AdminCspOptions): string {
     "'self'",
     `'nonce-${nonce}'`,
     ...(isDev ? ["'unsafe-eval'"] : []),
+    // On-device Whisper (phone seat) compiles WASM in-page.
+    "'wasm-unsafe-eval'",
     ...(isFleetMode
       ? []
       : [
@@ -150,6 +166,8 @@ export function buildAdminCsp(options: AdminCspOptions): string {
       ? ['https://*.vercel.app', 'https://vercel.live', 'https://*.vercel.live']
       : []),
     ...(isVercel ? [] : ['http://localhost:3000', 'http://localhost:4000']),
+    ...localWhisperConnectSrc(whisperUrl),
+    ...WHISPER_WASM_MODEL_CONNECT_ORIGINS,
   ];
 
   const r2Origin = originOf(r2PublicBaseUrl);
@@ -173,6 +191,7 @@ export function buildAdminCsp(options: AdminCspOptions): string {
     "font-src 'self' data:",
     `frame-src ${frameSrc.join(' ')}`,
     `connect-src ${connectSrc.join(' ')}`,
+    "worker-src 'self' blob:",
     // No <object>/<embed> anywhere in admin; the old hosted-mode Cloudinary
     // object-src was dead config (Cloudinary is not a storage backend — R2 is
     // canonical and sole, GAP-208).
@@ -183,4 +202,29 @@ export function buildAdminCsp(options: AdminCspOptions): string {
   ];
 
   return directives.join('; ');
+}
+
+const DEFAULT_WHISPER_CONNECT_ORIGINS = [
+  DEFAULT_WHISPER_ORIGIN,
+  'http://localhost:8178',
+  'http://[::1]:8178',
+] as const;
+
+/** Loopback Whisper origins for admin `/chat` push-to-talk. Never SaaS STT. */
+export function localWhisperConnectSrc(whisperUrl = ''): string[] {
+  const origins = new Set<string>(DEFAULT_WHISPER_CONNECT_ORIGINS);
+  const extra = whisperConnectSrcOrigin(whisperUrl);
+  if (extra) origins.add(extra);
+  return [...origins];
+}
+
+/**
+ * Path-aware Permissions-Policy. Microphone is (self) only on admin `/chat`
+ * so push-to-talk can call getUserMedia. All other admin routes keep mic off.
+ */
+export function buildAdminPermissionsPolicy(pathname: string): string {
+  const allowMic = pathname === '/chat' || pathname.startsWith('/chat/');
+  return allowMic
+    ? 'geolocation=(), camera=(), microphone=(self)'
+    : 'geolocation=(), camera=(), microphone=()';
 }

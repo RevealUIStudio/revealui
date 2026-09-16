@@ -126,13 +126,7 @@ Found 8 images from January 2026:
 
 ## Voice Input
 
-Use the voice button in the chat interface:
-
-1. Click "Start Voice"
-2. Speak your command: *"Add a contact page to the site"*
-3. Click "Stop Voice"
-4. The transcribed text appears in the input
-5. Click Send to execute
+Studio dogfood: hold-to-talk on Agent `/chat` calls a **localhost sidecar** (`http://127.0.0.1:8178/transcribe`). **Attach via sidecar** POSTs the picked file to `/files` and inserts `[local file: name]` — hosted `.com` cannot read disk. Mic stays off until you press and hold. Release inserts the transcript; you still click Send. See `docs/runbooks/admin-chat-local-whisper.md`. Tauri shell SOW is separate.
 
 ## Input Modes
 
@@ -140,12 +134,10 @@ Use the voice button in the chat interface:
 Type commands naturally - no special syntax required.
 
 ### Voice Input
-Speak commands - they'll be transcribed automatically.
+Hold to talk (local Whisper sidecar). Cloud speech-to-text is not used. Fail-closes if the sidecar is down.
 
-### Image Input (Coming Soon)
-Upload screenshots or designs:
-- "Make the homepage look like this [image]"
-- "Use these colors in the header [image]"
+### Local files (sidecar)
+Attach via sidecar on `/chat` — the browser POSTs the blob to `http://127.0.0.1:8178/files`. The composer gets `[local file: name]`. Hosted admin never reads an OS path. A future Tauri shell can own the same ports.
 
 ## Available Operations
 

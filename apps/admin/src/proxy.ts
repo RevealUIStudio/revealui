@@ -1,7 +1,7 @@
 import { parseBuyablePerpetualLicenseSku } from '@revealui/contracts/pricing';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { buildAdminCsp, generateNonce } from './lib/security/csp';
+import { buildAdminCsp, buildAdminPermissionsPolicy, generateNonce } from './lib/security/csp';
 import { generateCsrfToken, validateCsrfToken } from './lib/utils/csrf-token';
 import { safePostAuthRedirect } from './lib/utils/safe-internal-redirect';
 
@@ -103,6 +103,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     ).trim(),
     isFleetMode: process.env.REVEALUI_FLEET_MODE === 'true',
     r2PublicBaseUrl: (process.env.R2_PUBLIC_BASE_URL || '').trim(),
+    whisperUrl: (process.env.NEXT_PUBLIC_WHISPER_URL || process.env.WHISPER_URL || '').trim(),
   });
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
@@ -296,7 +297,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     response.headers.set('X-Frame-Options', 'DENY');
     response.headers.set('X-Content-Type-Options', 'nosniff');
     response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-    response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    response.headers.set('Permissions-Policy', buildAdminPermissionsPolicy(pathname));
 
     // HSTS — enforce HTTPS in production
     if (process.env.NODE_ENV !== 'development') {
@@ -344,6 +345,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
   // its inline bootstrap scripts, and set the matching CSP on the response.
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set('Content-Security-Policy', cspValue);
+  response.headers.set('Permissions-Policy', buildAdminPermissionsPolicy(pathname));
   // Mint/refresh the CSRF token cookie on page loads too. The billing,
   // marketplace, and agents pages call the api server (cross-origin) directly
   // from the browser  -  those fetches never traverse this proxy, so issuing
