@@ -152,12 +152,10 @@ const bottomItems: NavItem[] = [
 function AdminSidebarContent({
   siteName,
   isAdmin,
-  appVersion,
   isFleetMode,
 }: {
   siteName: string;
   isAdmin: boolean;
-  appVersion: string;
   isFleetMode: boolean;
 }) {
   const pathname = usePathname();
@@ -229,15 +227,8 @@ function AdminSidebarContent({
         </SidebarSection>
       </SidebarBody>
       <SidebarFooter>
-        {/* Version sits in the footer row — never on/over nav icons (settings gear). */}
         <div className="flex min-w-0 items-center justify-between gap-2">
           <p className="min-w-0 truncate text-xs text-muted-foreground">{siteName} Admin</p>
-          <span
-            className="shrink-0 text-xs tabular-nums text-muted-foreground"
-            title="Application version"
-          >
-            v{appVersion}
-          </span>
         </div>
       </SidebarFooter>
     </Sidebar>
@@ -250,26 +241,18 @@ export function AdminSidebarLayout({
   isFleetMode = false,
   isHosted = false,
   isAdmin = true,
-  appVersion = process.env.NEXT_PUBLIC_APP_VERSION ?? '0.0.0',
 }: {
   children: React.ReactNode;
   siteName?: string;
   isFleetMode?: boolean;
   isHosted?: boolean;
   isAdmin?: boolean;
-  /** Product version from monorepo package.json (build-time NEXT_PUBLIC_APP_VERSION). */
-  appVersion?: string;
 }) {
   return (
     <SidebarLayout
       navbar={<WeeklyUsageChrome compact />}
       sidebar={
-        <AdminSidebarContent
-          siteName={siteName}
-          isAdmin={isAdmin}
-          appVersion={appVersion}
-          isFleetMode={isFleetMode}
-        />
+        <AdminSidebarContent siteName={siteName} isAdmin={isAdmin} isFleetMode={isFleetMode} />
       }
     >
       {isFleetMode ? null : <FreeTierBanner isHosted={isHosted} />}

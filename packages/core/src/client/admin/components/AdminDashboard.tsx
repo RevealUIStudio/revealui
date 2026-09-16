@@ -487,12 +487,6 @@ function DashboardHome({
               <h1 className="text-2xl font-bold text-foreground">{`${siteName} Admin`}</h1>
             </div>
             <div className="flex shrink-0 items-center gap-3">
-              <span
-                className="shrink-0 text-sm tabular-nums text-muted-foreground"
-                title="Application version"
-              >
-                v{process.env.NEXT_PUBLIC_APP_VERSION ?? process.env.APP_VERSION ?? '0.0.0'}
-              </span>
               <SignOutButton />
             </div>
           </div>
@@ -509,14 +503,9 @@ function DashboardHome({
 
         {overviewLead ? <div className="mb-6">{overviewLead}</div> : null}
 
-        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <StatTile label="Collections" value={collections.length} icon={collectionsIcon} />
           <StatTile label="Globals" value={globals.length} icon={globalsIcon} />
-          <StatTile
-            label="Status"
-            value={degraded ? 'Degraded' : 'Healthy'}
-            icon={<StatusIndicator degraded={degraded} label={degraded ? 'Degraded' : 'Healthy'} />}
-          />
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

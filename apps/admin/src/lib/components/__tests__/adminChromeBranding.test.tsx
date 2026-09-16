@@ -69,16 +69,11 @@ describe('admin chrome white-label branding', () => {
       expect(screen.getByText('RevealUI Admin')).toBeDefined();
     });
 
-    it('shows app version in the footer, not over nav icons', () => {
-      render(
-        <AdminSidebarLayout siteName="Acme" appVersion="0.4.0">
-          content
-        </AdminSidebarLayout>,
-      );
-      expect(screen.getByText('v0.4.0')).toBeDefined();
-      // Settings gear row is a separate nav item; version is footer-only.
+    it('does not show app version in the footer or over nav icons', () => {
+      render(<AdminSidebarLayout siteName="Acme">content</AdminSidebarLayout>);
+      expect(screen.getByText('Acme Admin')).toBeDefined();
       expect(screen.getByText('Settings')).toBeDefined();
-      expect(screen.queryByText('v0.1.0')).toBeNull();
+      expect(screen.queryByText(/^v\d/)).toBeNull();
     });
 
     it('shows Upgrade for free/pro when a higher tier exists', () => {
