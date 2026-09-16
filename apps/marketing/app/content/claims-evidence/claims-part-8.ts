@@ -25,7 +25,7 @@ export const claimsPart8: readonly ClaimEntry[] = [
   {
     file: 'nav.ts',
     exportPath: 'FOOTER_TAGLINE',
-    text: 'Agentic business runtime. People, content, offers, payments, and agents, pre-wired, open source, and ready to deploy.',
+    text: 'The agentic business runtime startups operate on their own domain. Existing tools report in, you keep the stack.',
     evidence: [NAV_CONTENT, LICENSE_MIT, THIS_SITE],
   },
   {
@@ -224,7 +224,7 @@ export const claimsPart8: readonly ClaimEntry[] = [
   {
     file: 'legal/security.ts',
     exportPath: 'SECURITY_META.notice.body',
-    text: 'If you act in good faith and follow this policy, we will not pursue or support legal action against you for your security research. Email the security address to report a vulnerability. The machine-readable policy is at /.well-known/security.txt.',
+    text: 'If you act in good faith and follow this policy, we will not pursue or support legal action against you for your security research. Email the security address to report a vulnerability. The machine-readable policy is at /.well-known/security.txt. GitHub Security Advisories: https://github.com/RevealUIStudio/revealui/security/policy',
     evidence: [LEGAL_SECURITY_CONTENT],
   },
   {

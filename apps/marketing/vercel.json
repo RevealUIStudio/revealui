@@ -136,11 +136,6 @@
       "permanent": true
     },
     {
-      "source": "/security",
-      "destination": "https://github.com/RevealUIStudio/revealui/security/policy",
-      "permanent": true
-    },
-    {
       "source": "/legal/hipaa",
       "destination": "https://docs.revealui.com",
       "permanent": true
