@@ -84,15 +84,13 @@ describe('landing payment and Enterprise honesty', () => {
 });
 
 describe('Auditor voice and live-hero honesty', () => {
-  it('uses the locked self-hosted runtime H1 and concrete subtitle', () => {
-    expect(HOME_HERO.h1).toBe(
-      'One self-hosted runtime for your business and the agents that run it.',
-    );
+  it('uses the locked known-for H1 and concrete subtitle', () => {
+    expect(HOME_HERO.h1).toBe('The agentic business runtime startups operate on their own domain.');
     expect(HOME_HERO.subtitle.sentence1).toBe(
-      'Your business and the agents that run it share the same data, sign-in, and plan rules on infrastructure you own.',
+      'Technical founders and small agencies who already run agents — existing tools report in, you keep the stack.',
     );
     expect(HOME_HERO.subtitle.sentence2).toBe(
-      'Every agent is a governed and audited user that lives on your infrastructure.',
+      'Powerful and safe: agents leave receipts when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99).',
     );
     expect(HOME_HERO.subtitle.support).toBe('It runs on any AI provider you choose.');
   });
@@ -107,10 +105,8 @@ describe('Auditor voice and live-hero honesty', () => {
     expect(RECEIPT_HERO_CAPTION.text).toBe("If an agent did it, there's a receipt.");
   });
 
-  it('replaces the foundation A/B with a distinct entitlement/receipt line', () => {
-    expect(HOME_HERO_FOUNDATION.h1).toBe(
-      'Plan rules and a receipt still apply when an agent acts.',
-    );
+  it('replaces the foundation A/B with a distinct keep-the-stack line', () => {
+    expect(HOME_HERO_FOUNDATION.h1).toBe('Existing tools report in. You keep the stack.');
     expect(HOME_HERO_FOUNDATION.h1).not.toBe(HOME_HERO.h1);
     expect(HOME_HERO_FOUNDATION.h1.toLowerCase().includes('foundation')).toBe(false);
   });

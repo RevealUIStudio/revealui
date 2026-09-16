@@ -80,7 +80,7 @@ describe('useAudienceHead — technical audience', () => {
   it('sets document.title to the technical headline', () => {
     renderHook(() => useAudienceHead('technical'));
     expect(document.title).toBe(
-      'RevealUI | One self-hosted runtime for your business and the agents that run it.',
+      'RevealUI | The agentic business runtime startups operate on their own domain.',
     );
   });
 
@@ -95,7 +95,7 @@ describe('useAudienceHead — technical audience', () => {
     expect(
       document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.content,
     ).toBe(
-      'Your business and the agents that run it share the same data, sign-in, and plan rules on infrastructure you own. Every agent is a governed and audited user that lives on your infrastructure.',
+      'Technical founders and small agencies who already run agents — existing tools report in, you keep the stack. Powerful and safe: agents leave receipts when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99).',
     );
   });
 
@@ -132,7 +132,7 @@ describe('useAudienceHead — audience switch', () => {
     });
 
     expect(document.title).toBe(
-      'RevealUI | One self-hosted runtime for your business and the agents that run it.',
+      'RevealUI | The agentic business runtime startups operate on their own domain.',
     );
     expect(document.documentElement.dataset.audience).toBe('technical');
   });

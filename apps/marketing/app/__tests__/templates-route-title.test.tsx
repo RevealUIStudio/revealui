@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { App } from '../App';
 
 const HOME_SHELL_TITLE =
-  'RevealUI | One self-hosted runtime for your business and the agents that run it.';
+  'RevealUI | The agentic business runtime startups operate on their own domain.';
 const TEMPLATES_TITLE = 'Templates | RevealUI';
 
 function addMeta(attr: 'name' | 'property', key: string, value: string): void {
