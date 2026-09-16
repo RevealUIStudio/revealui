@@ -6,6 +6,11 @@
  * Authenticated, read-only list of distinct `repo` values present in
  * `kg_nodes`. Backs the explorer's repo picker (GAP-349 P4 deliverable B).
  *
+ * Same dual gate as KG Electric shapes (`canAccessKgShapes`): AI feature
+ * plus fleet-operator, or Launch/self-host licensed-operator. Hosted
+ * default (env unset) stays fleet-operator only so the distinct-repo list
+ * does not leak to hosted Pro tenants.
+ *
  * Deliberately NOT an Electric shape: the design spec (§8.2) has the
  * explorer subscribe only to the repos actually in view, never the whole
  * fleet graph unfiltered (50-150k nodes per §12). This tiny, fixed,
@@ -19,6 +24,7 @@ import { kgNodes } from '@revealui/db/schema';
 import { logger } from '@revealui/utils/logger';
 import { isNotNull } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
+import { canAccessKgShapes } from '@/lib/api/shape-authz';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
 import { extractRequestContext } from '@/lib/utils/request-context';
@@ -35,6 +41,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const aiGate = await checkAIFeatureGate(session.user.id);
     if (aiGate) return aiGate;
+
+    if (!canAccessKgShapes(session.user)) {
+      return createApplicationErrorResponse('Forbidden', 'FORBIDDEN', 403);
+    }
 
     const db = getClient();
     const rows = await db

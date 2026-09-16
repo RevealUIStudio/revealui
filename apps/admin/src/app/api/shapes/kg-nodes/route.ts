@@ -3,9 +3,11 @@
  *
  * GET /api/shapes/kg-nodes[?repo=<repo>]
  *
- * Fleet knowledge graph (GAP-349). Fleet-operator only — hosted CMS
- * admin/owner must not sync the full graph. Optional `repo` still scopes
- * the Electric where for operators who pass it.
+ * Fleet knowledge graph (GAP-349). Dual gate: fleet-operator, or Launch /
+ * self-host licensed-operator (`REVEALUI_KG_LICENSED_OPERATOR=1` + verified
+ * shell admin). Hosted default (env unset) stays fleet-operator only so
+ * Pro tenants cannot sync the shared graph. Licensed-operator callers must
+ * pass `repo=`; fleet operators keep optional `repo`.
  *
  * Electric sync is read-only. Writes go through POST /api/sync/kg-episodes.
  */
@@ -15,14 +17,13 @@ import { logger } from '@revealui/utils/logger';
 import type { NextRequest, NextResponse } from 'next/server';
 import { prepareElectricUrl, proxyElectricRequest } from '@/lib/api/electric-proxy';
 import { KG_NODE_SHAPE_COLUMNS, setElectricShapeColumns } from '@/lib/api/kg-shape-columns';
-import { isFleetOperator } from '@/lib/api/shape-authz';
+import { canAccessKgShapes, resolveKgShapeRepoWhere } from '@/lib/api/shape-authz';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
   createApplicationErrorResponse,
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
-import { isRepoIdentifier } from '@/lib/utils/identifier-validation';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
@@ -38,12 +39,20 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const aiGate = await checkAIFeatureGate(session.user.id);
     if (aiGate) return aiGate;
 
-    if (!isFleetOperator(session.user)) {
+    if (!canAccessKgShapes(session.user)) {
       return createApplicationErrorResponse('Forbidden', 'FORBIDDEN', 403);
     }
 
     const repo = new URL(request.url).searchParams.get('repo');
-    if (repo !== null && !isRepoIdentifier(repo)) {
+    const scoped = resolveKgShapeRepoWhere(session.user, repo);
+    if (!scoped.ok) {
+      if (scoped.reason === 'missing') {
+        return createValidationErrorResponse(
+          'repo query param is required for licensed-operator knowledge-graph shapes',
+          'repo',
+          repo,
+        );
+      }
       return createValidationErrorResponse(
         'repo must be a non-empty string of alphanumeric characters, hyphens, underscores, or dots (max 128 chars)',
         'repo',
@@ -55,8 +64,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     originUrl.searchParams.set('table', 'kg_nodes');
     // Omit generated `search` (and `embedding`) — Electric 400 otherwise.
     setElectricShapeColumns(originUrl, KG_NODE_SHAPE_COLUMNS);
-    if (repo !== null) {
-      originUrl.searchParams.set('where', `repo = '${repo}'`);
+    if (scoped.repo !== null) {
+      originUrl.searchParams.set('where', `repo = '${scoped.repo}'`);
     }
 
     return proxyElectricRequest(originUrl);
