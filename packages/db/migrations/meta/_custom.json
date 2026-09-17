@@ -152,6 +152,12 @@
       "rationale": "GAP-477 residual: ADD COLUMN yjs_documents.owner_id (nullable text) + btree index for Electric shape ACL (creator stamp). Hand-written ADD COLUMN IF NOT EXISTS + CREATE INDEX IF NOT EXISTS for idempotency, following the 0011/0031/0036 column-addition precedent. Companion Drizzle schema at packages/db/src/schema/yjs-documents.ts models ownerId; write paths stamp session user on insert and never clear owner on update.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Same regen path as peer hand-written migrations; Drizzle schema is the type contract."
+    },
+    {
+      "tag": "0041_cms_collection_tables",
+      "rationale": "CMS collection tables (categories, tags, contents, events, info, videos, prices, subscriptions) for configs that were WIRE-UP-PENDING. Hand-written CREATE TABLE IF NOT EXISTS + CREATE INDEX IF NOT EXISTS so it is idempotent against fresh and re-applied DBs. db:generate against the current meta/ state would re-emit unrelated kg_*/CHECK drift from the stale snapshot chain (same 0025/0034/0040 pattern). Companion Drizzle schema at packages/db/src/schema/cms-collections.ts is the type contract; admin typed storage writes via Drizzle, not raw SQL.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Blocked on the pre-existing 0021-0040 snapshot-debt backfill. Same regen path as peer hand-written migrations: pnpm --filter @revealui/db db:generate against a clean DB once that backfill happens."
     }
   ]
 }
