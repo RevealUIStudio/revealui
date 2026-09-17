@@ -185,6 +185,15 @@ CLAUDE.md
 # RevealUI cache files (PGlite database)
 .revealui/cache/
 
+# Runtime dumps (never commit)
+execution-logs.db
+**/execution-logs.db
+**/.pglite/
+**/.test-*.db
+**/.test-*.db-shm
+**/.test-*.db-wal
+.claude/settings.local.json
+
 # RevealUI local configuration (but allow manager contract + skills)
 .revealui/*
 !.revealui/skills/
