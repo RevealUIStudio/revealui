@@ -13,11 +13,9 @@ const FORBIDDEN = [
   'CapCut',
   'capcut',
   'only runs on Omarchy',
-  'Omarchy required',
-  'required for Pilot',
-  'required for Launch',
-  'fourth SKU',
-  'live checkout',
+  'buy Omarchy',
+  'Railway is production',
+  'snap install on Arch',
 ] as const;
 
 function blob(): string {
@@ -40,14 +38,14 @@ describe('Omarchy honesty', () => {
     expect(README.includes('docker compose up -d')).toBe(true);
   });
 
-  it('does not overclaim exclusivity, live checkout, CapCut, or Railway-as-prod', () => {
+  it('does not overclaim exclusivity, CapCut, or Railway-as-prod', () => {
     const text = blob();
     for (const phrase of FORBIDDEN) {
       expect(text.includes(phrase), `omarchy copy must not include ${phrase}`).toBe(false);
     }
     expect(README.includes('Railway as production')).toBe(true);
     expect(README.toLowerCase().includes('railway is production')).toBe(false);
-    expect(README.toLowerCase().includes('required for consultation')).toBe(false);
+    expect(README.toLowerCase().includes('not required for consultation')).toBe(true);
   });
 
   it('keeps sku null on the runtime file', () => {

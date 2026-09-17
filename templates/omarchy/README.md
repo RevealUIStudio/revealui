@@ -74,7 +74,6 @@ When screen-sharing (OBS, YouTube, Cursor share), set `STREAM_SAFE=1` or use str
 - Omarchy as a required host
 - Moving Ubuntu inference snaps onto Arch as SSOT
 - A fourth public ladder SKU
-- CapCut
 - Railway as production
 
 ## Layout
