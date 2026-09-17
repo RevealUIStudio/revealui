@@ -23,7 +23,7 @@ const ENV_KEYS = [
   'NEXT_PUBLIC_STRIPE_MAX_PRICE_ID',
   'NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID',
   'GOOGLE_SERVICE_ACCOUNT_EMAIL',
-  'GOOGLE_PRIVATE_KEY',
+  'GOOGLE_WIF_PROVIDER',
 ] as const;
 
 const saved: Record<string, string | undefined> = {};
@@ -109,7 +109,7 @@ describe('validateRequiredEnvVars', () => {
           'NEXT_PUBLIC_STRIPE_MAX_PRICE_ID',
           'NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID',
           'GOOGLE_SERVICE_ACCOUNT_EMAIL',
-          'GOOGLE_PRIVATE_KEY',
+          'GOOGLE_WIF_PROVIDER',
         ]),
       );
     });
@@ -122,7 +122,8 @@ describe('validateRequiredEnvVars', () => {
       process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID = 'price_max';
       process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID = 'price_ent';
       process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL = 'svc@example.iam.gserviceaccount.com';
-      process.env.GOOGLE_PRIVATE_KEY = 'a-private-key';
+      process.env.GOOGLE_WIF_PROVIDER =
+        'projects/p/locations/global/workloadIdentityPools/pool/providers/vercel';
 
       const result = validateRequiredEnvVars({ environment: 'production' });
 

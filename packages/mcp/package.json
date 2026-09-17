@@ -20,6 +20,7 @@
     "@revealui/db": "workspace:*",
     "@revealui/knowledge-graph": "workspace:*",
     "@revealui/security": "workspace:*",
+    "@revealui/services": "workspace:*",
     "@revealui/setup": "workspace:*",
     "dotenv": "catalog:",
     "jose": "catalog:"

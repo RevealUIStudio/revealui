@@ -4,15 +4,12 @@
  * Uses Gmail REST API with domain-wide delegation.
  * Edge-compatible (fetch + jose, no Node.js-only dependencies).
  *
- * Required env vars:
- *   GOOGLE_SERVICE_ACCOUNT_EMAIL  -  GCP service account email
- *   GOOGLE_PRIVATE_KEY            -  RSA private key (PKCS8 PEM)
- *   EMAIL_FROM                    -  sender address (e.g. noreply@revealui.com)
- *   EMAIL_REPLY_TO                -  default reply-to (e.g. support@revealui.com)
+ * Required env vars (GAP-211 keyless WIF):
+ *   GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_WIF_PROVIDER, VERCEL_OIDC_TOKEN
+ *   EMAIL_FROM, EMAIL_REPLY_TO
  */
 
-import { normalizePem } from '@revealui/core/license';
-import { importPKCS8, SignJWT } from 'jose';
+import { gmailWifConfigured, mintGmailAccessToken } from '@revealui/services/email';
 
 export interface EmailPayload {
   from: string;
@@ -35,52 +32,19 @@ export interface EmailResult {
 // ---------------------------------------------------------------------------
 
 interface GmailConfig {
-  serviceAccountEmail: string;
-  privateKey: string;
   delegateEmail: string;
 }
 
 function getGmailConfig(overrides: Record<string, string>): GmailConfig | null {
-  const serviceAccountEmail =
-    overrides.GOOGLE_SERVICE_ACCOUNT_EMAIL ?? process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const privateKey = overrides.GOOGLE_PRIVATE_KEY ?? process.env.GOOGLE_PRIVATE_KEY;
+  const env: NodeJS.ProcessEnv = { ...process.env, ...overrides };
+  if (!gmailWifConfigured(env)) return null;
   const delegateEmail = overrides.EMAIL_FROM ?? process.env.EMAIL_FROM ?? 'noreply@revealui.com';
-
-  if (!(serviceAccountEmail && privateKey)) return null;
-  return { serviceAccountEmail, privateKey, delegateEmail };
+  return { delegateEmail };
 }
 
-async function getGmailAccessToken(config: GmailConfig): Promise<string> {
-  const key = await importPKCS8(normalizePem(config.privateKey), 'RS256');
-
-  const now = Math.floor(Date.now() / 1000);
-  const jwt = await new SignJWT({
-    scope: 'https://www.googleapis.com/auth/gmail.send',
-    sub: config.delegateEmail,
-  })
-    .setProtectedHeader({ alg: 'RS256', typ: 'JWT' })
-    .setIssuer(config.serviceAccountEmail)
-    .setAudience('https://oauth2.googleapis.com/token')
-    .setIssuedAt(now)
-    .setExpirationTime(now + 3600)
-    .sign(key);
-
-  const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion: jwt,
-    }),
-  });
-
-  if (!tokenRes.ok) {
-    const body = await tokenRes.text();
-    throw new Error(`Google OAuth2 token exchange failed (${tokenRes.status}): ${body}`);
-  }
-
-  const { access_token } = (await tokenRes.json()) as { access_token: string };
-  return access_token;
+async function getGmailAccessToken(): Promise<string> {
+  const minted = await mintGmailAccessToken();
+  return minted.accessToken;
 }
 
 function buildRawMessage(payload: EmailPayload): string {
@@ -122,7 +86,7 @@ function buildRawMessage(payload: EmailPayload): string {
 }
 
 async function sendViaGmail(config: GmailConfig, payload: EmailPayload): Promise<EmailResult> {
-  const accessToken = await getGmailAccessToken(config);
+  const accessToken = await getGmailAccessToken();
   const raw = buildRawMessage({ ...payload, from: config.delegateEmail });
 
   const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
@@ -160,7 +124,7 @@ export async function sendEmail(
   }
 
   throw new Error(
-    'No email provider configured. Set GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY.',
+    'No email provider configured. Set GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_WIF_PROVIDER.',
   );
 }
 

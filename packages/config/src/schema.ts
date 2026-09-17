@@ -128,7 +128,9 @@ const optionalSchema = z.object({
 
   // Email provider  -  Gmail REST API (preferred, edge-compatible)
   GOOGLE_SERVICE_ACCOUNT_EMAIL: z.string().email().optional(),
-  GOOGLE_PRIVATE_KEY: z.string().optional(),
+  GOOGLE_WIF_PROVIDER: z.string().min(1).optional(),
+  GOOGLE_WIF_AUDIENCE: z.string().min(1).optional(),
+  GOOGLE_WIF_ID_TOKEN: z.string().min(1).optional(),
   EMAIL_FROM: z.string().email().optional(),
   EMAIL_REPLY_TO: z.string().email().optional(),
 
