@@ -173,11 +173,7 @@ const pages = [
   }),
 ];
 
-/**
- * Legacy sample rows for collections that are intentionally unregistered
- * (no Postgres table yet). Kept for reference when wire-up lands; not seeded.
- * See apps/admin/src/lib/collections/registry.ts WIRE-UP-PENDING.
- */
+/** Sample Contents / Events rows seeded by seedContentsAndEvents. */
 const sampleContent = {
   contents: [
     {

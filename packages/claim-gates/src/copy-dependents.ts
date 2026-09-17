@@ -127,17 +127,19 @@ export const COPY_DEPENDENT_HOLDS: readonly CopyDependentHold[] = [
   },
   {
     id: 'COPY-DEP-CONTENTS-CMS',
-    status: 'waiting',
+    status: 'released',
     title: 'Contents CMS live claims',
     detector: 'contents-cms-live',
-    why: 'Contents is an unregistered admin collection with no backing table (WIRE-UP-PENDING). Not a live CMS SKU until walked',
+    why: 'Contents is registered with a backing `contents` table (#2895)',
+    publicTracker: 'https://github.com/RevealUIStudio/revealui/pull/2895',
   },
   {
     id: 'COPY-DEP-VIDEOS-CMS',
-    status: 'waiting',
+    status: 'released',
     title: 'Videos CMS live claims',
     detector: 'videos-cms-live',
-    why: 'Videos is an unregistered admin collection with no backing table (WIRE-UP-PENDING). Not a live CMS SKU until walked',
+    why: 'Videos is registered with a backing `videos` table (#2895)',
+    publicTracker: 'https://github.com/RevealUIStudio/revealui/pull/2895',
   },
   {
     id: 'COPY-DEP-SKILL-INJECTION',
