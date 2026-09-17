@@ -42,6 +42,7 @@ import {
 } from '@revealui/paywall/stripe';
 import { and, eq } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import Stripe from 'stripe';
 import { getServices, type ProtectedStripe } from '../../lib/services-loader.js';
 import {
@@ -358,9 +359,16 @@ export async function stripePriceIsUsable(
   }
 }
 
+function paywallHttpStatus(status: number): ContentfulStatusCode {
+  if (status >= 400 && status <= 599) {
+    return status as ContentfulStatusCode;
+  }
+  return 500;
+}
+
 function rethrowPaywall(err: unknown): never {
   if (err instanceof PaywallBillingError) {
-    throw new HTTPException(err.status, { message: err.message });
+    throw new HTTPException(paywallHttpStatus(err.status), { message: err.message });
   }
   throw err;
 }

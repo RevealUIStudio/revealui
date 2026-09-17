@@ -3,6 +3,20 @@ import { describe, expect, it, vi } from 'vitest';
 import { issueRefund, reportAgentOverage } from '../stripe-calls.js';
 import type { ProtectedStripe } from '../types.js';
 
+/** Stripe live Customer.deleted is `void`; must stay assignable to ProtectedStripe. */
+interface StripeLiveCustomer {
+  id?: string;
+  // biome-ignore lint/suspicious/noConfusingVoidType: mirrors Stripe Customer.deleted
+  deleted?: void;
+}
+type StripeLikeRetrieve = (
+  id: string,
+) => Promise<StripeLiveCustomer | { id: string; deleted: true }>;
+type HostRetrieveAssignable = StripeLikeRetrieve extends ProtectedStripe['customers']['retrieve']
+  ? true
+  : false;
+const hostRetrieveAssignable: HostRetrieveAssignable = true;
+
 function mockStripe(overrides: Partial<ProtectedStripe> = {}): ProtectedStripe {
   return {
     customers: { retrieve: vi.fn(), create: vi.fn() },
@@ -22,6 +36,10 @@ function mockStripe(overrides: Partial<ProtectedStripe> = {}): ProtectedStripe {
 }
 
 describe('issueRefund', () => {
+  it('keeps Stripe Customer.deleted: void assignable to ProtectedStripe', () => {
+    expect(hostRetrieveAssignable).toBe(true);
+  });
+
   it('creates a refund with idempotency key', async () => {
     const stripe = mockStripe();
     const result = await issueRefund(stripe, { paymentIntentId: 'pi_1', amount: 500 });

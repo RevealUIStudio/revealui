@@ -28,6 +28,8 @@ export interface CheckoutMetadata {
   payment_intent_data: { metadata: Record<string, string> };
 }
 
+export type StripeRefundReason = 'duplicate' | 'fraudulent' | 'requested_by_customer';
+
 export interface RefundResult {
   refundId: string;
   status: string;
@@ -47,10 +49,17 @@ export interface SubscriptionSnapshot {
   graceUntil: string | null;
 }
 
-/** Minimal Stripe surface used by extracted helpers. */
+/**
+ * Minimal Stripe surface used by extracted helpers.
+ *
+ * Method signatures are a lower bound the host `protectedStripe` wrapper
+ * satisfies. Live Stripe `Customer.deleted` is `void`; deleted customers use
+ * `deleted: true`. Type `deleted` as `unknown` (not `boolean`) so the real
+ * Stripe client is assignable (GAP-177 CI typecheck).
+ */
 export interface ProtectedStripe {
   customers: {
-    retrieve: (id: string) => Promise<{ id?: string; deleted?: boolean }>;
+    retrieve: (id: string) => Promise<{ id?: string; deleted?: unknown }>;
     create: (
       params: { email: string; metadata: Record<string, string> },
       opts?: { idempotencyKey?: string },
@@ -62,7 +71,7 @@ export interface ProtectedStripe {
         payment_intent?: string;
         charge?: string;
         amount?: number;
-        reason?: string;
+        reason?: StripeRefundReason;
       },
       opts?: { idempotencyKey?: string },
     ) => Promise<{

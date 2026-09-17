@@ -35,5 +35,6 @@ export {
   type ProtectedStripe,
   type RefundResult,
   type RequestEntitlements,
+  type StripeRefundReason,
   type SubscriptionSnapshot,
 } from './types.js';

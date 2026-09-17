@@ -1,5 +1,5 @@
 import { getMeterEventTimestamp } from './pure.js';
-import type { OverageRow, ProtectedStripe, RefundResult } from './types.js';
+import type { OverageRow, ProtectedStripe, RefundResult, StripeRefundReason } from './types.js';
 
 /**
  * Issue a Stripe refund. Caller supplies the circuit-broken client.
@@ -16,7 +16,7 @@ export async function issueRefund(
     paymentIntentId?: string;
     chargeId?: string;
     amount?: number;
-    reason?: string;
+    reason?: StripeRefundReason;
   },
 ): Promise<RefundResult> {
   const { paymentIntentId, chargeId, amount, reason } = params;
