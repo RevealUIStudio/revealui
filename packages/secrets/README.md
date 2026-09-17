@@ -35,7 +35,8 @@ await secrets.get('REVEALUI_LICENSE_KEY');
 
 ## Customer fleet
 
-- **Vercel / Cloudflare / Railway / Docker:** inject env; `EnvProvider` is enough.
+- **Vercel / Cloudflare / Fly / Docker:** inject env; `EnvProvider` is enough.
+  (Customer Railway marketplace is a sales channel, not Studio production hosting.)
 - **Kubernetes:** mount secrets at `/var/run/secrets/revealui/`.
 - **Local studio:** install `revvault`; `resolveSecret` shells out instead of persisting into the parent shell env.
 
