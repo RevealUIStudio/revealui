@@ -151,7 +151,7 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 
 ## Packages
 
-### OSS Packages (MIT) — 25
+### OSS Packages (MIT) — 26
 
 | Package                                                 | Purpose                                           |
 | ------------------------------------------------------- | ------------------------------------------------- |
