@@ -442,7 +442,7 @@ The AI memory system uses four memory types, modeled on cognitive science:
 
 - **Episodic** -- Records of past interactions and their outcomes. "What happened the last time we ran this task?"
 - **Working** -- Short-term context for the current task. Cleared between sessions.
-- **Semantic** -- Long-term knowledge stored as vector embeddings in Postgres (Neon pgvector). Enables retrieval-augmented generation without external vector databases.
+- **Semantic** -- Long-term knowledge stored as vector embeddings in Postgres (Neon pgvector), without a separate vector vendor. Hosted retrieval uses VectorMemory.
 - **Procedural** -- Learned procedures and workflows. "How do we deploy to production?"
 
 Memory operations use CRDTs (Conflict-free Replicated Data Types) for conflict resolution, so multiple agents can write to the same memory space without coordination locks.
@@ -454,27 +454,27 @@ RevealUI ships **14 first-party MCP (Model Context Protocol) servers** in `@reve
 | Server | Purpose |
 |--------|---------|
 | Stripe | Query customers, invoices, subscriptions from AI agents |
-| Supabase | Execute vector searches and auth operations |
-| Neon | Run SQL queries and manage database branches (remote endpoint at `mcp.neon.tech`) |
+| Neon | Run SQL queries, manage database branches (remote endpoint at `mcp.neon.tech`), and store embeddings on pgvector |
+| Knowledge graph | Opt-in MCP for fleet graph queries (`knowledge-graph`; not a default spawn) |
 | Vercel | Deploy, inspect deployments, manage environment variables |
 | Code Validator | Static analysis and lint checking within agent workflows |
 | Playwright | Browser automation for testing and scraping |
 | Next.js DevTools | Next.js 16+ runtime diagnostics and automation |
 
-In addition to those seven, RevealUI ships first-party servers (`revealui-content`, `revealui-email`, `revealui-memory`, `revealui-stripe`) and the shared `adapter` base class, all under [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers).
+In addition to those seven, RevealUI ships first-party servers (`revealui-content`, `revealui-email`, `revealui-memory`, `revealui-stripe`) and the shared `adapter` base class, all under [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers). The knowledge-graph server is allowlisted for hypervisor spawn and is not a default spawn.
 
 These servers are tools that agents can invoke during task execution. An agent can query your Stripe dashboard, check your deployment status, and run your test suite without you writing integration code.
 
 ### A2A protocol
 
-RevealUI implements the Google A2A (Agent-to-Agent) specification over JSON-RPC 2.0. Agents expose discovery cards at `/.well-known/agent.json` and accept tasks via `POST /a2a`. The protocol supports:
+RevealUI exposes Google A2A discovery cards at `/.well-known/agent.json` and accepts JSON-RPC at `POST /a2a`. The card advertises:
 
-- **`tasks/send`** -- Submit a task and get a result
-- **`tasks/sendSubscribe`** -- Submit a task and subscribe to streaming updates
-- **`tasks/get`** -- Poll task status
-- **`tasks/cancel`** -- Cancel a running task
+- **`tasks/send`** -- Advertised; the handler currently chats or stubs rather than a durable task runner
+- **`tasks/sendSubscribe`** -- Advertised subscribe method
+- **`tasks/get`** -- Poll task status where implemented
+- **`tasks/cancel`** -- Cancel where implemented
 
-Task execution is gated behind the `ai` feature flag and metered against the user's quota. Every task execution is persisted to the `agentActions` table with timing data for billing and debugging.
+Hosted agent execution is gated behind the `ai` feature flag and metered against quota. Do not read the advertised methods as a complete A2A 1.0 lifecycle.
 
 ### Agent task metering
 

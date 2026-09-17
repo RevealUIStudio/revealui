@@ -4490,7 +4490,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.0',
     text: '*The web was built for browsers. The next web is being built for agents.*',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 0' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 0',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4503,7 +4507,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.1',
     text: '**Status note (updated 2026-05-18):** This post discusses the **agent-first future** RevealUI is building toward. Specifically: x402 micropayments (USDC on Base) (coming soon, [#93](https://github.com/RevealUIStudio/revealui/issues/93)) and the per-call MCP server marketplace (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526)) are **designed but not transactable today**. The x402 endpoints are code-complete behind `X402_ENABLED=false`; the marketplace ships its first-party catalog (14 MCP servers) but third-party publishing, payment proxying, and per-call billing are unbuilt. The Agent Card endpoint (`/.well-known/agent.json`) ships today; `payment-methods.json` ships with an `X402_ENABLED=false` empty-payments shape. See [What Works Today](../WHAT_WORKS_TODAY.md) for current shipping status of every system mentioned below.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 1' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 1',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4516,7 +4524,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.2',
     text: 'I have been building RevealUI for the past year as the open runtime for businesses that run their own AI -- the kind of thing where you get People, Content, Offers, Payments, and Agents pre-wired, open source, and ready to deploy. The whole point is that you should not have to re-implement billing or auth or an admin every time you start a new software business.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 2' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 2',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4529,7 +4541,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.3',
     text: 'But somewhere around the third month of building, I realized something that changed the architecture fundamentally: **the next wave of customers for software platforms are not human.**',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 3' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 3',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4542,7 +4558,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.4',
     text: 'They are AI agents. And agents do not browse websites.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 4' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 4',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4555,7 +4575,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.5',
     text: 'The shift from human-first to agent-first',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 5' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 5',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4568,7 +4592,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.6',
     text: 'When you build a SaaS product today, the acquisition funnel looks something like this: a developer searches Google, lands on your marketing page, reads the hero section, clicks "Get Started," creates an account, enters a credit card, and starts building. Every pixel on your landing page is optimized for that flow.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 6' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 6',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4581,7 +4609,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.7',
     text: 'Now consider what happens when a developer asks Claude, "What platform has billing built in and supports MCP?" The agent does not open a browser. It does not read your hero banner. It does not care about your gradient backgrounds or testimonial carousel. It searches structured data sources -- package registries, OpenAPI specs, Agent Cards, tool definitions -- and evaluates them programmatically.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 7' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 7',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4594,7 +4626,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.8',
     text: 'This is not a hypothetical future. Industry coverage and analyst forecasts in 2025–2026 have consistently put autonomous AI agents on the path to becoming primary consumers of web APIs and structured data, with adoption projections in the tens of percent of enterprise applications and the agent-economy total addressable market growing at high double-digit rates year-over-year. (Specific figures cycle quickly; treat the directional signal as the durable claim, not the exact percentages.)',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 8' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 8',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4607,7 +4643,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.9',
     text: 'The traditional marketing funnel is not going away. But it is being supplemented by a parallel funnel:',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 9' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 9',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4620,7 +4660,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.10',
     text: '| Human funnel | Agent funnel | |---|---| | Landing page | `/.well-known/agent.json` | | Feature comparison table | OpenAPI spec (`/openapi.json`) | | Pricing page | `/.well-known/payment-methods.json` | | App store listing | MCP registry (`/.well-known/marketplace.json`) | | Sign up + credit card | x402 micropayment (USDC on Base) | | Onboarding wizard | Tool invocation via JSON-RPC |',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 10' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 10',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4633,7 +4677,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.11',
     text: 'Both funnels serve the same product. The difference is the interface.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 11' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 11',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4646,7 +4694,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.12',
     text: "RevealUI's agent storefront",
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 12' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 12',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4659,7 +4711,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.13',
     text: 'Every RevealUI instance ships with four machine-readable discovery endpoints. These are not optional add-ons or plugins. They are part of the platform, deployed automatically when you deploy your API.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 13' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 13',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4672,7 +4728,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.14',
     text: '**`/.well-known/agent.json`** -- The A2A Agent Card. This is the equivalent of a business card for your AI agent. It tells other agents what your instance can do, what protocols it supports, and where to send tasks.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 14' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 14',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4685,7 +4745,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.15',
     text: "**`/openapi.json`** -- The machine-readable API specification, auto-generated from route definitions. Every endpoint in RevealUI's Hono API is defined with Zod schemas that produce OpenAPI 3.0 output. When an agent evaluates whether RevealUI can handle a task, it reads this spec -- not your docs site.",
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 15' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 15',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4698,7 +4762,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.16',
     text: '**`/.well-known/marketplace.json`** -- The MCP marketplace discovery document. Lists every published MCP server, its category, pricing, and invocation URL:',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 16' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 16',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4711,7 +4779,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.17',
     text: '**`/.well-known/payment-methods.json`** -- The x402 payment terms. Tells agents exactly how to pay for API calls: which network, which token, which address, what price.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 17' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 17',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4724,7 +4796,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.18',
     text: 'These four endpoints *are* your marketing site for agent customers. When an agent evaluates RevealUI, it does not read hero banners. It reads structured data, compares it against its task requirements, and makes a programmatic decision.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 18' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 18',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4737,7 +4813,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.19',
     text: 'The protocols that make this possible',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 19' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 19',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4750,7 +4830,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.20',
     text: 'Four protocols converge to create the agent-first web. Each solves a different piece of the puzzle, and RevealUI implements all four.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 20' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 20',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4761,9 +4845,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.21',
-    text: '| Protocol | Created by | Governed by | Purpose | RevealUI implementation | |---|---|---|---|---| | **A2A** (Agent-to-Agent) | Google | Linux Foundation (Agentic AI Foundation) | Agents discover and delegate work to other agents | Full A2A 1.0: Agent Cards, JSON-RPC task lifecycle (`tasks/send`, `tasks/get`, `tasks/cancel`), SSE streaming | | **MCP** (Model Context Protocol) | Anthropic | Open standard | Agents use tools exposed by MCP servers | 14 first-party MCP servers: Stripe, Neon, Vercel, Code Validator, Playwright, Next.js DevTools, plus the RevealUI-internal Content / Email / Memory / Stripe / Docs servers, the contracts introspection server, and the adapter base class | | **x402** (HTTP 402 Payment Required) | Coinbase | Open standard | Internet-native micropayments for machine-to-machine commerce | Per-call USDC payments on Base, Coinbase facilitator verification, marketplace payment proxy | | **OpenAPI** | OpenAPI Initiative | Linux Foundation | Machine-readable API descriptions | Auto-generated from Hono route definitions with Zod schemas |',
+    text: '| Protocol | Created by | Governed by | Purpose | RevealUI implementation | |---|---|---|---|---| | **A2A** (Agent-to-Agent) | Google | Linux Foundation (Agentic AI Foundation) | Agents discover and delegate work to other agents | Agent Cards at `/.well-known/agent.json`. `POST /a2a` advertises `tasks/send`; the handler currently chats or stubs rather than a full task lifecycle | | **MCP** (Model Context Protocol) | Anthropic | Open standard | Agents use tools exposed by MCP servers | 14 first-party MCP servers: Stripe, Neon, Vercel, Code Validator, Playwright, Next.js DevTools, plus the RevealUI-internal Content / Email / Memory / Stripe / Docs servers, the contracts introspection server, and the adapter base class | | **x402** (HTTP 402 Payment Required) | Coinbase | Open standard | Internet-native micropayments for machine-to-machine commerce | Per-call USDC payments on Base, Coinbase facilitator verification, marketplace payment proxy | | **OpenAPI** | OpenAPI Initiative | Linux Foundation | Machine-readable API descriptions | Auto-generated from Hono route definitions with Zod schemas |',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 21' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 21',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4776,7 +4864,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.22',
     text: 'A2A: How agents find and talk to each other',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 22' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 22',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4789,7 +4881,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.23',
     text: "Google's Agent-to-Agent protocol, now stewarded by the Linux Foundation's Agentic AI Foundation, defines how agents discover each other and delegate tasks. The core primitive is the **Agent Card** -- a JSON document at a well-known URL that describes what an agent can do.",
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 23' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 23',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4800,9 +4896,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.24',
-    text: 'RevealUI implements the full A2A 1.0 task lifecycle. An external agent can:',
+    text: 'RevealUI advertises an Agent Card and accepts JSON-RPC at `POST /a2a`. Discovery is public. `tasks/send` is advertised; the handler currently chats or stubs rather than running a full A2A 1.0 lifecycle. An external agent can:',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 24' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 24',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4815,7 +4915,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.25',
     text: '**Discover** the platform agent via `GET /.well-known/agent.json`',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 25' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 25',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4826,9 +4930,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.26',
-    text: '**Send a task** via `POST /a2a` with a JSON-RPC `tasks/send` request',
+    text: '**POST** JSON-RPC `tasks/send` to `/a2a` (chat-or-stub today, not a durable task runner)',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 26' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 26',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4839,9 +4947,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.27',
-    text: '**Subscribe to updates** via SSE at `/a2a/stream/:taskId`',
+    text: '**Subscribe to updates** via SSE at `/a2a/stream/:taskId` where streaming is wired',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 27' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 27',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4852,9 +4964,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.28',
-    text: '**Check status** via `tasks/get`',
+    text: '**Check status** via `tasks/get` where implemented',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 28' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 28',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4865,9 +4981,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.29',
-    text: '**Cancel** a running task via `tasks/cancel`',
+    text: '**Cancel** via `tasks/cancel` where implemented',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 29' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 29',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4878,9 +4998,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.30',
-    text: 'Task execution is gated behind the `ai` feature flag -- you need a Pro or Enterprise license for agents to actually run tasks. But discovery is always public. Any agent on the internet can find your RevealUI instance and understand what it offers.',
+    text: 'Hosted agent execution is gated behind the `ai` feature flag. Discovery stays public. Any agent can read your Agent Card. Do not treat the advertised `tasks/send` methods as a complete A2A runner.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 30' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 30',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4893,7 +5017,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.31',
     text: "Agents use the host's configured inference path. The `createLLMClientFromEnv()` factory auto-detects the available backend (Ubuntu Inference Snaps or Ollama) - no API keys required, no vendor lock-in.",
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 31' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 31',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4906,7 +5034,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.32',
     text: 'The Model Context Protocol (MCP) defines how agents invoke tools. Where A2A is about agent-to-agent communication, MCP is about agent-to-tool communication. An MCP server exposes a set of tools -- functions that an agent can call with structured inputs and get structured outputs.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 32' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 32',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4917,9 +5049,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.33',
-    text: 'RevealUI ships with 14 first-party MCP servers (full list in [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers)). The seven that cover the core infrastructure stack:',
+    text: 'RevealUI ships with 14 first-party MCP servers (full list in [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers)). The six that cover the core infrastructure stack:',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 33' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 33',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4932,7 +5068,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.34',
     text: '**Stripe** -- Create checkout sessions, manage subscriptions, query payment history',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 34' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 34',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4943,9 +5083,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.35',
-    text: '**Supabase** -- Vector storage, real-time auth, embedding operations',
+    text: '**Neon / pgvector** -- Database management, connection pooling, branch operations, and vector embeddings on the primary store',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 35' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 35',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4956,9 +5100,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.36',
-    text: '**Neon** -- Database management, connection pooling, branch operations',
+    text: '**Vercel** -- Deployment management, environment variables, domain configuration',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 36' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 36',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4969,9 +5117,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.37',
-    text: '**Vercel** -- Deployment management, environment variables, domain configuration',
+    text: '**Code Validator** -- Static analysis, security scanning, TypeScript type checking',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 37' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 37',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4982,9 +5134,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.38',
-    text: '**Code Validator** -- Static analysis, security scanning, TypeScript type checking',
+    text: '**Playwright** -- Browser automation, E2E testing, screenshot capture',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 38' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 38',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -4995,9 +5151,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.39',
-    text: '**Playwright** -- Browser automation, E2E testing, screenshot capture',
+    text: '**Next.js DevTools** -- Route inspection, build analysis, performance profiling',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 39' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 39',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5008,9 +5168,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.40',
-    text: '**Next.js DevTools** -- Route inspection, build analysis, performance profiling',
+    text: 'These servers are open source (MIT licensed). Anyone can run them, fork them, or publish improved versions to the marketplace.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 40' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 40',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5021,9 +5185,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.41',
-    text: 'These servers are open source (MIT licensed). Anyone can run them, fork them, or publish improved versions to the marketplace.',
+    text: 'This is the piece most people have not seen yet, and it is the one that makes the economics work.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 41' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 41',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5034,9 +5202,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.42',
-    text: 'This is the piece most people have not seen yet, and it is the one that makes the economics work.',
+    text: "HTTP status code 402 -- Payment Required -- has been reserved since 1997 but never had a standard implementation. Coinbase's x402 protocol fills that gap. When an agent makes a request and the server requires payment, it returns HTTP 402 with an `X-PAYMENT-REQUIRED` header containing the price and payment details. The agent pays in USDC on Base (an Ethereum L2), then retries with a signed payment proof in the `X-PAYMENT-PAYLOAD` header.",
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 42' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 42',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5047,9 +5219,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.43',
-    text: "HTTP status code 402 -- Payment Required -- has been reserved since 1997 but never had a standard implementation. Coinbase's x402 protocol fills that gap. When an agent makes a request and the server requires payment, it returns HTTP 402 with an `X-PAYMENT-REQUIRED` header containing the price and payment details. The agent pays in USDC on Base (an Ethereum L2), then retries with a signed payment proof in the `X-PAYMENT-PAYLOAD` header.",
+    text: 'Here is what the flow looks like in practice when an agent invokes a marketplace MCP server:',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 43' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 43',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5060,9 +5236,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.44',
-    text: 'Here is what the flow looks like in practice when an agent invokes a marketplace MCP server:',
+    text: "The payment is verified by Coinbase's public facilitator at `x402.org/facilitator`. No API key required for verification. The entire flow is stateless from the agent's perspective -- pay, prove, get access.",
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 44' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 44',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5073,9 +5253,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.45',
-    text: "The payment is verified by Coinbase's public facilitator at `x402.org/facilitator`. No API key required for verification. The entire flow is stateless from the agent's perspective -- pay, prove, get access.",
+    text: "RevealUI's marketplace will use x402 as the payment rail for all per-call MCP server invocations (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526)). The default price will be $0.001 USDC per call, but each server sets its own price.",
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 45' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 45',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5086,9 +5270,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.46',
-    text: "RevealUI's marketplace will use x402 as the payment rail for all per-call MCP server invocations (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526)). The default price will be $0.001 USDC per call, but each server sets its own price.",
+    text: 'OpenAPI: The foundation layer',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 46' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 46',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5099,9 +5287,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.47',
-    text: 'OpenAPI: The foundation layer',
+    text: "Every route in RevealUI's API is defined using `@revealui/openapi` -- a thin wrapper around Hono's OpenAPI integration with Zod schema validation. This means the `/openapi.json` endpoint is always accurate, always complete, and always in sync with the actual API.",
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 47' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 47',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5112,9 +5304,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.48',
-    text: "Every route in RevealUI's API is defined using `@revealui/openapi` -- a thin wrapper around Hono's OpenAPI integration with Zod schema validation. This means the `/openapi.json` endpoint is always accurate, always complete, and always in sync with the actual API.",
+    text: 'Agents that support OpenAPI (which is most of them) can consume your entire API without any custom integration. The spec includes request schemas, response schemas, authentication requirements, and rate limit documentation.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 48' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 48',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5125,9 +5321,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.49',
-    text: 'Agents that support OpenAPI (which is most of them) can consume your entire API without any custom integration. The spec includes request schemas, response schemas, authentication requirements, and rate limit documentation.',
+    text: 'The marketplace as an agent ecosystem',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 49' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 49',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5138,9 +5338,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.50',
-    text: 'The marketplace as an agent ecosystem',
+    text: 'The MCP marketplace is where the agent-first architecture becomes an economy.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 50' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 50',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5151,9 +5355,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.51',
-    text: 'The MCP marketplace is where the agent-first architecture becomes an economy.',
+    text: "**For developers:** You build an MCP server that does something useful -- code analysis, data transformation, document processing, whatever. You publish it to RevealUI's marketplace with a per-call price. The marketplace handles discovery, payment, and proxying.",
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 51' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 51',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5164,9 +5372,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.52',
-    text: "**For developers:** You build an MCP server that does something useful -- code analysis, data transformation, document processing, whatever. You publish it to RevealUI's marketplace with a per-call price. The marketplace handles discovery, payment, and proxying.",
+    text: '**For agents:** Other agents discover your server via the marketplace registry or A2A protocol, evaluate its capabilities from the structured metadata, and invoke it with x402 payment.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 52' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 52',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5177,9 +5389,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.53',
-    text: '**For agents:** Other agents discover your server via the marketplace registry or A2A protocol, evaluate its capabilities from the structured metadata, and invoke it with x402 payment.',
+    text: "**The economics:** Developers earn 80% of each call's revenue. RevealUI takes 20%. Payouts happen via Stripe Connect -- developers onboard once, and transfers are batched automatically. At $0.001 per call, a server handling 100,000 calls per month generates $80 for the developer and $20 for the platform. At $0.005 per call, those numbers are $400 and $100.",
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 53' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 53',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5190,9 +5406,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.54',
-    text: "**The economics:** Developers earn 80% of each call's revenue. RevealUI takes 20%. Payouts happen via Stripe Connect -- developers onboard once, and transfers are batched automatically. At $0.001 per call, a server handling 100,000 calls per month generates $80 for the developer and $20 for the platform. At $0.005 per call, those numbers are $400 and $100.",
+    text: "This will be the first combined MCP + A2A registry (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526)). Smithery, mcpt, OpenTools, and Glama.ai list MCP servers. The a2a-registry.org lists A2A agents. RevealUI's marketplace is the first to combine both -- agents that are discoverable via A2A *and* tools that are invocable via MCP, with a payment layer that lets the economics work without manual billing integration. Registration on external registries (a2a-registry.org, Smithery, mcpt, OpenTools, Glama.ai) is planned for hard launch.",
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 54' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 54',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5203,9 +5423,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.55',
-    text: "This will be the first combined MCP + A2A registry (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526)). Smithery, mcpt, OpenTools, and Glama.ai list MCP servers. The a2a-registry.org lists A2A agents. RevealUI's marketplace is the first to combine both -- agents that are discoverable via A2A *and* tools that are invocable via MCP, with a payment layer that lets the economics work without manual billing integration. Registration on external registries (a2a-registry.org, Smithery, mcpt, OpenTools, Glama.ai) is planned for hard launch.",
+    text: 'The marketplace is secured against common attack vectors. Developer-supplied MCP server URLs are validated against an SSRF guard that blocks loopback, link-local, and private RFC-1918 ranges. Proxied requests have a 30-second timeout. Rate limiting prevents probe abuse (30 invocations per minute per caller). And the x402 payment itself acts as an economic rate limiter -- every call costs real money, which naturally deters spam.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 55' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 55',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5216,9 +5440,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.56',
-    text: 'The marketplace is secured against common attack vectors. Developer-supplied MCP server URLs are validated against an SSRF guard that blocks loopback, link-local, and private RFC-1918 ranges. Proxied requests have a 30-second timeout. Rate limiting prevents probe abuse (30 invocations per minute per caller). And the x402 payment itself acts as an economic rate limiter -- every call costs real money, which naturally deters spam.',
+    text: 'What this means for developers using RevealUI',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 56' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 56',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5229,9 +5457,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.57',
-    text: 'What this means for developers using RevealUI',
+    text: 'If you deploy a RevealUI instance today, you get agent-native infrastructure without any extra configuration. Here is what that means in practice:',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 57' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 57',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5242,9 +5474,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.58',
-    text: 'If you deploy a RevealUI instance today, you get agent-native infrastructure without any extra configuration. Here is what that means in practice:',
+    text: '**Your API is already agent-readable.** The OpenAPI spec at `/openapi.json` is auto-generated from your route definitions. Any agent that supports OpenAPI can consume your API today. You do not need to write a separate "agent integration."',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 58' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 58',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5255,9 +5491,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.59',
-    text: '**Your API is already agent-readable.** The OpenAPI spec at `/openapi.json` is auto-generated from your route definitions. Any agent that supports OpenAPI can consume your API today. You do not need to write a separate "agent integration."',
+    text: "**Your instance is already discoverable.** The Agent Card at `/.well-known/agent.json` advertises your instance's capabilities to the A2A network. Other agents can find you and evaluate whether you can handle their tasks.",
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 59' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 59',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5268,9 +5508,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.60',
-    text: "**Your instance is already discoverable.** The Agent Card at `/.well-known/agent.json` advertises your instance's capabilities to the A2A network. Other agents can find you and evaluate whether you can handle their tasks.",
+    text: '**Feature gating works for both audiences.** When a human user hits a Pro feature, they see the billing page and can upgrade. When an agent hits a Pro feature without a license, it gets a structured JSON error with the pricing URL. When the x402 flag is set (`X402_ENABLED`, default off; planned, [#93](https://github.com/RevealUIStudio/revealui/issues/93)), agents can pay per-call instead of subscribing -- the same feature, two access patterns.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 60' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 60',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5281,9 +5525,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.61',
-    text: '**Feature gating works for both audiences.** When a human user hits a Pro feature, they see the billing page and can upgrade. When an agent hits a Pro feature without a license, it gets a structured JSON error with the pricing URL. When the x402 flag is set (`X402_ENABLED`, default off; planned, [#93](https://github.com/RevealUIStudio/revealui/issues/93)), agents can pay per-call instead of subscribing -- the same feature, two access patterns.',
+    text: '**You will be able to earn money from MCP servers while you sleep (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526)).** Publish an MCP server to the marketplace, set a per-call price, onboard with Stripe Connect, and agent calls generate passive revenue. The marketplace handles discovery, payment verification, proxying, transaction recording, and developer payouts.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 61' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 61',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5294,9 +5542,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.62',
-    text: '**You will be able to earn money from MCP servers while you sleep (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526)).** Publish an MCP server to the marketplace, set a per-call price, onboard with Stripe Connect, and agent calls generate passive revenue. The marketplace handles discovery, payment verification, proxying, transaction recording, and developer payouts.',
+    text: '**The same code serves both audiences.** This is the key architectural insight. You do not build a "human API" and an "agent API." You build one API with Zod schemas and OpenAPI definitions. Humans consume it via the admin dashboard. Agents consume it via the OpenAPI spec and A2A protocol. The code is identical.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 62' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 62',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5307,9 +5559,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.63',
-    text: '**The same code serves both audiences.** This is the key architectural insight. You do not build a "human API" and an "agent API." You build one API with Zod schemas and OpenAPI definitions. Humans consume it via the admin dashboard. Agents consume it via the OpenAPI spec and A2A protocol. The code is identical.',
+    text: 'How to make your RevealUI instance agent-discoverable',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 63' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 63',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5320,9 +5576,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.64',
-    text: 'How to make your RevealUI instance agent-discoverable',
+    text: 'Here is the concrete, four-step process.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 64' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 64',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5333,9 +5593,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.65',
-    text: 'Here is the concrete, four-step process.',
+    text: 'That is it for the basics. The Agent Card (`/.well-known/agent.json`) and OpenAPI spec (`/openapi.json`) are generated automatically from your route definitions. The marketplace discovery document (`/.well-known/marketplace.json`) is always available with your published servers. The payment methods document (`/.well-known/payment-methods.json`) activates when you set `X402_ENABLED=true` and configure a receiving wallet.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 65' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 65',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5346,9 +5610,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.66',
-    text: 'That is it for the basics. The Agent Card (`/.well-known/agent.json`) and OpenAPI spec (`/openapi.json`) are generated automatically from your route definitions. The marketplace discovery document (`/.well-known/marketplace.json`) is always available with your published servers. The payment methods document (`/.well-known/payment-methods.json`) activates when you set `X402_ENABLED=true` and configure a receiving wallet.',
+    text: '**Step 2: Verify your Agent Card.**',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 66' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 66',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5359,9 +5627,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.67',
-    text: '**Step 2: Verify your Agent Card.**',
+    text: "The response describes your instance's capabilities and supported protocols. The card can list skills even when hosted `streamTask` does not inject the skill catalog (`REVEALUI_AI_SKILLS` loads the library; injection is still pending). Read the card against what the instance actually runs.",
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 67' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 67',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5372,9 +5644,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.68',
-    text: "The response describes your instance's capabilities, supported protocols, and available skills. This is what other agents read when they evaluate your platform. Make sure the skills list matches what your instance actually offers.",
+    text: '**Step 3: Publish MCP servers to the marketplace.**',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 68' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 68',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5385,9 +5661,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.69',
-    text: '**Step 3: Publish MCP servers to the marketplace.**',
+    text: 'If you have built custom MCP servers, publish them to the marketplace for other agents to discover and use. Each server needs a name, description, category, HTTPS URL, and per-call price.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 69' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 69',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5398,9 +5678,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.70',
-    text: 'If you have built custom MCP servers, publish them to the marketplace for other agents to discover and use. Each server needs a name, description, category, HTTPS URL, and per-call price.',
+    text: 'After publishing, verify your server appears in the marketplace registry:',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 70' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 70',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5411,9 +5695,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.71',
-    text: 'After publishing, verify your server appears in the marketplace registry:',
+    text: '**Step 4: Add `AGENTS.md` to your repository.**',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 71' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 71',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5424,9 +5712,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.72',
-    text: '**Step 4: Add `AGENTS.md` to your repository.**',
+    text: 'The Agentic AI Foundation (the same organization governing A2A) has standardized the `AGENTS.md` file as the equivalent of `README.md` for AI coding agents. It tells agents like Claude Code, Cursor, and Copilot how to work with your codebase -- what the project does, how to build and test it, what conventions to follow.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 72' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 72',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5437,9 +5729,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.73',
-    text: 'The Agentic AI Foundation (the same organization governing A2A) has standardized the `AGENTS.md` file as the equivalent of `README.md` for AI coding agents. It tells agents like Claude Code, Cursor, and Copilot how to work with your codebase -- what the project does, how to build and test it, what conventions to follow.',
+    text: 'RevealUI already has a `CLAUDE.md` that serves this purpose. An `AGENTS.md` in your repository root makes the same information available to all coding agents, not just Claude.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 73' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 73',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5450,9 +5746,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.74',
-    text: 'RevealUI already has a `CLAUDE.md` that serves this purpose. An `AGENTS.md` in your repository root makes the same information available to all coding agents, not just Claude.',
+    text: 'We are in the early innings of the agent-first internet. Most platforms today are built exclusively for human users. The ones that will win the next decade are the ones building for both audiences simultaneously.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 74' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 74',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5463,9 +5763,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.75',
-    text: 'We are in the early innings of the agent-first internet. Most platforms today are built exclusively for human users. The ones that will win the next decade are the ones building for both audiences simultaneously.',
+    text: 'This does not require exotic technology. It requires structured data at well-known URLs. It requires machine-readable API specifications. It requires payment flows that do not assume a human is clicking buttons. And it requires the discipline to treat agents as first-class customers, not afterthoughts.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 75' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 75',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5476,9 +5780,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.76',
-    text: 'This does not require exotic technology. It requires structured data at well-known URLs. It requires machine-readable API specifications. It requires payment flows that do not assume a human is clicking buttons. And it requires the discipline to treat agents as first-class customers, not afterthoughts.',
+    text: 'RevealUI is built on this thesis. Every endpoint is defined with schemas that produce both human-readable documentation and machine-readable specifications. Every feature is gated with logic that works for both session-authenticated humans and x402-paying agents. Every MCP server is discoverable via both the marketplace registry and the A2A protocol.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 76' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 76',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5489,9 +5797,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.77',
-    text: 'RevealUI is built on this thesis. Every endpoint is defined with schemas that produce both human-readable documentation and machine-readable specifications. Every feature is gated with logic that works for both session-authenticated humans and x402-paying agents. Every MCP server is discoverable via both the marketplace registry and the A2A protocol.',
+    text: 'The user interface for the future has yet to reveal itself. But we know one thing: it will not be a browser for every user. Some users will be agents. And the platforms that serve them well will be the ones that thought about it from the start.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 77' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 77',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5502,9 +5814,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.78',
-    text: 'The user interface for the future has yet to reveal itself. But we know one thing: it will not be a browser for every user. Some users will be agents. And the platforms that serve them well will be the ones that thought about it from the start.',
+    text: '*RevealUI is the open runtime for businesses that run their own AI. People, Content, Offers, Payments, and Agents, pre-wired and ready to deploy. Learn more at [revealui.com](https://revealui.com).*',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 78' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 78',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5515,22 +5831,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/agent-first-future',
     exportPath: 'body.79',
-    text: '*RevealUI is the open runtime for businesses that run their own AI. People, Content, Offers, Payments, and Agents, pre-wired and ready to deploy. Learn more at [revealui.com](https://revealui.com).*',
-    evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 79' },
-      {
-        kind: 'test',
-        ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
-        note: 'extractor lockstep for blog body corpus',
-      },
-    ],
-  },
-  {
-    file: 'blog/agent-first-future',
-    exportPath: 'body.80',
     text: '*Follow the project on [GitHub](https://github.com/RevealUIStudio/revealui).*',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/07-agent-first-future.md', note: 'body source paragraph 80' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/07-agent-first-future.md',
+        note: 'body source paragraph 79',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -5538,6 +5845,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
       },
     ],
   },
+
   {
     file: 'blog/open-source-and-pro',
     exportPath: 'body.0',
@@ -6591,7 +6899,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.0',
     text: '**Status note (updated 2026-05-26):** One forward-looking system mentioned in this post is not transactable in production today: **x402 agent-to-agent payments** (designed and code-complete behind `X402_ENABLED=false`). Everything else described (auth, content, Stripe billing, MCP wiring, agent primitives) runs today. See [What Works Today](../WHAT_WORKS_TODAY.md) for the current per-feature shipping status.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 0' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 0',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6604,7 +6916,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.1',
     text: 'Every software company ships the same five things: a way to manage people, a way to manage content, a way to sell offers (catalogs, tiers, licenses), a way to collect payments, and increasingly, agents that run AI. These are not features. They are primitives. And yet every engineering team builds them from scratch, bolting together auth libraries, content engines, payment wrappers, and AI SDKs, spending months on plumbing before writing a single line of differentiated code.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 1' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 1',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6617,7 +6933,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.2',
     text: 'RevealUI is the open runtime for businesses that run their own AI. Its thesis is simple: these five primitives should be pre-wired, open source, and ready to deploy. You bring your business logic. We bring the infrastructure.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 2' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 2',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6630,7 +6950,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.3',
     text: 'This post is a deep technical walkthrough of all five. Not marketing copy. Real code, real architecture decisions, real trade-offs.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 3' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 3',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6643,7 +6967,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.4',
     text: "Authentication is the foundation. Get it wrong and nothing else matters. RevealUI's auth system is session-based, not JWT-based, and that is a deliberate choice.",
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 4' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 4',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6656,7 +6984,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.5',
     text: 'JWTs are popular because they are stateless. The server does not need to look up a session on every request. But that statelessness comes at a cost: you cannot revoke a JWT before it expires. If a user changes their password, gets compromised, or you need to force a logout, you are stuck waiting for the token to expire. You can work around this with a token blocklist, but now you have a stateful system with the complexity of JWTs and none of the benefits.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 5' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 5',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6669,7 +7001,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.6',
     text: 'RevealUI uses database-backed sessions. Each session is a row in PostgreSQL. Validation is a single indexed query. Session revocation is instant: delete the row, the user is logged out. The session token is a 32-byte cryptographically random value, hashed with SHA-256 before storage. The raw token lives only in an `httpOnly`, `secure`, `sameSite=lax` cookie.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 6' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 6',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6682,7 +7018,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.7',
     text: 'Sessions are also bound to context. When a request comes in, RevealUI validates the session token and optionally checks that the user-agent matches the one recorded at login. If the user-agent changes, the session is invalidated and the row is deleted. IP changes are logged as warnings by default and can be promoted to hard enforcement for high-security deployments.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 7' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 7',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6695,7 +7035,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.8',
     text: 'Passwords are hashed with bcrypt at 12 rounds. Not 10, not 8. Twelve rounds puts the hash computation at roughly 250ms on modern hardware, making brute force attacks on leaked hashes impractical without significant GPU resources.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 8' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 8',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6708,7 +7052,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.9',
     text: 'Every login attempt flows through two layers of protection. First, IP-based rate limiting: 5 attempts per 15-minute window with a 30-minute block after the threshold. Second, per-email brute force tracking: 5 failed attempts trigger a 30-minute account lockout. Both use atomic storage operations to prevent race conditions under concurrent requests.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 9' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 9',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6721,7 +7069,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.10',
     text: 'The sign-in flow always returns the same error message regardless of whether the email exists or the password is wrong. This prevents user enumeration attacks.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 10' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 10',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6734,7 +7086,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.11',
     text: 'OAuth without auto-linking',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 11' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 11',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6747,7 +7103,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.12',
     text: 'RevealUI supports OAuth with GitHub, Google, and Vercel. The critical design decision here is that OAuth identities are **never** auto-linked to existing accounts by email.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 12' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 12',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6760,7 +7120,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.13',
     text: 'Why? Auto-linking is an account takeover vector. If an attacker controls a Google account with your email address, they sign in via OAuth and instantly gain access to your existing account. RevealUI requires explicit linking: you must be authenticated with your existing session and then manually connect a provider.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 13' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 13',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6773,7 +7137,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.14',
     text: 'Users can link and unlink providers from their account settings. The system prevents unlinking the last authentication method, so you cannot accidentally lock yourself out.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 14' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 14',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6786,7 +7154,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.15',
     text: 'Multi-factor authentication',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 15' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 15',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6799,7 +7171,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.16',
     text: 'MFA is TOTP-based (RFC 6238) using timing-safe verification. When a user enables 2FA, RevealUI generates a TOTP secret and 8 bcrypt-hashed backup codes. The setup is two-step: generate the secret, then verify a code from the authenticator app before activating MFA. Backup codes are single-use and consumed on verification.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 16' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 16',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6812,7 +7188,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.17',
     text: 'For passwordless authentication, RevealUI implements WebAuthn passkeys using `@simplewebauthn/server`. Users can register up to 10 passkeys (biometrics, security keys, platform authenticators) and use them for primary authentication or as MFA verification for sensitive operations like disabling 2FA.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 17' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 17',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6825,7 +7205,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.18',
     text: 'Magic links provide a recovery path: HMAC-SHA256 hashed, single-use, 15-minute expiry.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 18' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 18',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6838,7 +7222,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.19',
     text: 'Access control is enforced through composable functions that check the request context:',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 19' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 19',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6851,7 +7239,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.20',
     text: 'These functions return booleans or `WhereClause` objects, enabling row-level security. A `WhereClause` return lets you say "authenticated users can read, but only their own records." The access control system has 60 enforcement tests proving role isolation.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 20' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 20',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6864,7 +7256,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.21',
     text: 'How People connects to everything else',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 21' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 21',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6877,7 +7273,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.22',
     text: 'The user ID is the foreign key for everything. Content has an `authorId`. Offers have licenses keyed to `customerId`. Payments are tied via `stripeCustomerId`. Agent tasks are metered per `userId`. One identity, five primitives.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 22' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 22',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6890,7 +7290,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.23',
     text: 'Content is the second primitive. Not because it is more important than people, but because it is what people interact with first.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 23' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 23',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6903,7 +7307,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.24',
     text: 'Content in RevealUI is organized into collections. A collection is a typed schema with field definitions, access control rules, and lifecycle hooks. Posts, pages, media, sites -- each is a collection with its own REST API, automatically generated from the schema.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 24' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 24',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6916,7 +7324,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.25',
     text: 'Access control is enforced at the query level. Public requests only see published content. Non-admin users can only read and edit their own posts. Admin users see everything. The `overrideAccess` parameter is stripped from external requests at the proxy layer, so clients cannot bypass access rules.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 25' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 25',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6929,7 +7341,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.26',
     text: 'Rich text with XSS prevention',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 26' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 26',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6942,7 +7358,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.27',
     text: 'RevealUI uses Lexical for rich text editing. The editor state is stored as JSON, which means it can be rendered on the server without a browser. But rich text is also an XSS vector. Users can paste links with `javascript:` protocols, embed images with `data:text/html` URIs, or craft URLs that execute scripts.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 27' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 27',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6955,7 +7375,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.28',
     text: "RevealUI's server-side renderer sanitizes every URL before rendering:",
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 28' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 28',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6968,7 +7392,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.29',
     text: "Posts support a status lifecycle: `draft`, `published`, `archived`, `scheduled`. The API enforces this at the route level. Creating a post defaults to draft. Publishing sets the `publishedAt` timestamp. Public API access always filters to `status = 'published'`.",
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 29' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 29',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6981,7 +7409,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.30',
     text: "Every route is defined using Hono's OpenAPI integration with Zod schemas. This means the API documentation is auto-generated from the actual route handlers -- not a separate spec file that drifts out of sync. The Swagger UI is available at `/docs` on the API server.",
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 30' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 30',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -6994,7 +7426,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.31',
     text: 'How Content connects to everything else',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 31' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 31',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7007,7 +7443,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.32',
     text: 'Content is authored by People (the `authorId` foreign key). Premium content can be gated behind Offers (license tier checks). Content creation by AI agents feeds back through the Agents layer. Media uploads integrate with CDN delivery via the cache package.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 32' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 32',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7020,7 +7460,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.33',
     text: "Offers are what turns your software from a project into a business. RevealUI's offers primitive covers the catalog, license generation, and runtime feature gating.",
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 33' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 33',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7033,7 +7477,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.34',
     text: 'License keys: JWTs signed with Ed25519',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 34' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 34',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7046,7 +7494,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.35',
     text: 'License keys are JWT tokens signed with EdDSA (Ed25519). The payload contains the tier, customer ID, domain restrictions, site and user limits, and an optional perpetual flag. The private key signs; the public key verifies. This means license verification can happen offline, without calling home to a license server.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 35' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 35',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7059,7 +7511,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.36',
     text: 'Perpetual licenses omit the `exp` claim entirely. They are valid forever unless explicitly revoked in the database.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 36' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 36',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7072,7 +7528,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.37',
     text: 'The feature gate is a simple function: given a feature name, check if the current license tier meets the minimum requirement.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 37' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 37',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7085,7 +7545,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.38',
     text: "This is used as middleware in the API. AI routes check `requireFeature('ai')`. Multi-tenant routes check `requireFeature('multiTenant')`. The check is a tier comparison, not a boolean flag, so upgrading your license automatically unlocks all features at or below your tier.",
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 38' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 38',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7098,7 +7562,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.39',
     text: 'RevealUI supports three billing models simultaneously:',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 39' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 39',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7111,7 +7579,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.40',
     text: '**Subscriptions** -- Monthly recurring charges via Stripe. Standard for SaaS.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 40' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 40',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7124,7 +7596,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.41',
     text: '**Agent credits** -- Usage-based metering for AI tasks. Pro tier gets 10,000 tasks/month, Max gets 50,000, Enterprise is unlimited. Reporting overage to Stripe Billing Meters is in development. During early access, usage is tracked but not billed.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 41' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 41',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7137,7 +7613,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.42',
     text: '**Perpetual licenses** -- One-time purchase, own forever, with an optional annual support renewal. The license JWT has no expiration, and the system tracks `supportExpiresAt` separately from the license validity.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 42' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 42',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7150,7 +7630,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.43',
     text: 'Verification checks both the JWT signature and the database. A structurally valid JWT can still be revoked in the database (chargeback, refund, manual revoke), so the verify endpoint checks both. The license cache TTL is 15 minutes, meaning a revoked license loses access within 15 minutes at most.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 43' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 43',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7163,7 +7647,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.44',
     text: 'How Offers connects to everything else',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 44' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 44',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7176,7 +7664,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.45',
     text: 'Offers are purchased by People. License keys are generated from the Payments webhook. Feature gates control access to Content (premium collections) and Agents (AI agent execution). The tier hierarchy flows through the entire stack.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 45' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 45',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7189,7 +7681,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.46',
     text: 'Payments are where business software earns its name. RevealUI integrates Stripe end-to-end: checkout, portal, subscription lifecycle, refunds, chargebacks, and usage reporting.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 46' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 46',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7202,7 +7698,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.47',
     text: 'Circuit breaker protection',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 47' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 47',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7215,7 +7715,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.48',
     text: 'Every Stripe API call goes through a circuit breaker. If Stripe returns 5 consecutive failures, the breaker opens and requests fail fast with a 503 for 30 seconds instead of piling up timeouts. After the cooldown, 2 successful requests close the breaker.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 48' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 48',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7228,7 +7732,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.49',
     text: 'DB-backed webhook idempotency',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 49' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 49',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7241,7 +7749,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.50',
     text: 'Stripe delivers webhooks at least once. In a multi-region deployment (Vercel edge), the same webhook can arrive at different instances simultaneously. RevealUI uses a `processed_webhook_events` table with an atomic INSERT to deduplicate:',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 50' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 50',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7254,7 +7766,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.51',
     text: 'If the INSERT succeeds, this is the first time we have seen this event. If it hits a unique constraint violation, another instance already processed it. Any other database error returns 500 to Stripe, which will retry the webhook -- safe because our deduplication is idempotent.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 51' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 51',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7267,7 +7783,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.52',
     text: 'The webhook handler covers the full subscription lifecycle:',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 52' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 52',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7280,7 +7800,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.53',
     text: '**`checkout.session.completed`** -- Creates the Stripe customer record, generates an Ed25519-signed license key, inserts it into the licenses table, and sends the activation email.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 53' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 53',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7293,7 +7817,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.54',
     text: '**`customer.subscription.updated`** -- Handles tier upgrades (new license key at the higher tier) and reactivation (payment recovered after a failed charge). On successful payment recovery, the license is re-activated and the user gets a recovery notification.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 54' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 54',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7306,7 +7834,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.55',
     text: '**`customer.subscription.deleted`** -- Revokes the license and downgrades to free.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 55' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 55',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7319,7 +7851,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.56',
     text: '**`invoice.payment_failed`** -- Sends a payment failure notification with a link to update billing details.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 56' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 56',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7332,7 +7868,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.57',
     text: '**`charge.dispute.closed`** -- On dispute loss, automatically revokes the license. The customer is notified and directed to re-purchase.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 57' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 57',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7345,7 +7885,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.58',
     text: '**`customer.subscription.trial_will_end`** -- Sends a 3-day trial ending reminder.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 58' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 58',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7358,7 +7902,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.59',
     text: 'x402 for agent-to-agent commerce',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 59' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 59',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7371,7 +7919,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.60',
     text: 'RevealUI implements the x402 payment protocol for machine-to-machine payments (designed and code-complete, behind the `X402_ENABLED=false` flag). See the status note above. Agents discover payment methods via `/.well-known/payment-methods.json` and pay per-task in USDC on Base. This enables an economy where AI agents can purchase compute, data, and services from other agents without human intervention.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 60' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 60',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7384,7 +7936,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.61',
     text: 'How Payments connects to everything else',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 61' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 61',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7397,7 +7953,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.62',
     text: 'Payments are initiated by People (checkout requires a session). Successful payments generate Offers (license keys). Payment status controls feature access across Content and Agents. Webhook events update the `users` table (`stripeCustomerId`) and the licenses table (Offers). Chargebacks revoke licenses instantly.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 62' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 62',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7410,7 +7970,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.63',
     text: 'The fifth primitive is Agents. Not a chatbot bolted onto a sidebar, but an agent orchestration system with memory, streaming, and inter-agent communication.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 63' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 63',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7423,7 +7987,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.64',
     text: 'AI agent execution streams results in real-time using Server-Sent Events. The client posts an instruction, and the server streams execution events as they happen:',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 64' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 64',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7436,7 +8004,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.65',
     text: 'The `@revealui/ai` package is loaded dynamically. If the license is free, the import returns null and the route returns 403. No AI code is ever loaded into memory for free-tier deployments.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 65' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 65',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7449,7 +8021,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.66',
     text: 'RevealUI defaults to open-weight models (no API key, no cloud bill, no vendor lock-in). Cloud providers (Groq, HuggingFace, and OpenAI-compatible endpoints) are opt-in via environment variables. The inference path is auto-detected:',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 66' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 66',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7462,7 +8038,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.67',
     text: '**Ubuntu Inference Snaps** (recommended)  -  Canonical snap runtime (US-origin allowlist: Nemotron-3-nano, Gemma 3/4, Nemotron Omni)',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 67' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 67',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7475,7 +8055,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.68',
     text: '**Ollama** (fallback)  -  Any open source GGUF model (chat: `qwen2.5:3b`, embeddings: `nomic-embed-text`)',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 68' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 68',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7488,7 +8072,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.69',
     text: 'The AI memory system uses four memory types, modeled on cognitive science:',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 69' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 69',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7501,7 +8089,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.70',
     text: '**Episodic** -- Records of past interactions and their outcomes. "What happened the last time we ran this task?"',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 70' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 70',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7514,7 +8106,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.71',
     text: '**Working** -- Short-term context for the current task. Cleared between sessions.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 71' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 71',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7525,9 +8121,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/five-primitives',
     exportPath: 'body.72',
-    text: '**Semantic** -- Long-term knowledge stored as vector embeddings in Postgres (Neon pgvector). Enables retrieval-augmented generation without external vector databases.',
+    text: '**Semantic** -- Long-term knowledge stored as vector embeddings in Postgres (Neon pgvector), without a separate vector vendor. Hosted retrieval uses VectorMemory.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 72' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 72',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7540,7 +8140,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.73',
     text: '**Procedural** -- Learned procedures and workflows. "How do we deploy to production?"',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 73' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 73',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7553,7 +8157,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.74',
     text: 'Memory operations use CRDTs (Conflict-free Replicated Data Types) for conflict resolution, so multiple agents can write to the same memory space without coordination locks.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 74' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 74',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7566,7 +8174,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.75',
     text: 'RevealUI ships **14 first-party MCP (Model Context Protocol) servers** in `@revealui/mcp` (Fair Source, FSL-1.1-MIT, source-visible, converts to MIT two years after release). The most commonly used:',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 75' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 75',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7577,9 +8189,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/five-primitives',
     exportPath: 'body.76',
-    text: '| Server | Purpose | |--------|---------| | Stripe | Query customers, invoices, subscriptions from AI agents | | Supabase | Execute vector searches and auth operations | | Neon | Run SQL queries and manage database branches (remote endpoint at `mcp.neon.tech`) | | Vercel | Deploy, inspect deployments, manage environment variables | | Code Validator | Static analysis and lint checking within agent workflows | | Playwright | Browser automation for testing and scraping | | Next.js DevTools | Next.js 16+ runtime diagnostics and automation |',
+    text: '| Server | Purpose | |--------|---------| | Stripe | Query customers, invoices, subscriptions from AI agents | | Neon | Run SQL queries, manage database branches (remote endpoint at `mcp.neon.tech`), and store embeddings on pgvector | | Knowledge graph | Opt-in MCP for fleet graph queries (`knowledge-graph`; not a default spawn) | | Vercel | Deploy, inspect deployments, manage environment variables | | Code Validator | Static analysis and lint checking within agent workflows | | Playwright | Browser automation for testing and scraping | | Next.js DevTools | Next.js 16+ runtime diagnostics and automation |',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 76' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 76',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7590,9 +8206,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/five-primitives',
     exportPath: 'body.77',
-    text: 'In addition to those seven, RevealUI ships first-party servers (`revealui-content`, `revealui-email`, `revealui-memory`, `revealui-stripe`) and the shared `adapter` base class, all under [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers).',
+    text: 'In addition to those seven, RevealUI ships first-party servers (`revealui-content`, `revealui-email`, `revealui-memory`, `revealui-stripe`) and the shared `adapter` base class, all under [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers). The knowledge-graph server is allowlisted for hypervisor spawn and is not a default spawn.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 77' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 77',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7605,7 +8225,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.78',
     text: 'These servers are tools that agents can invoke during task execution. An agent can query your Stripe dashboard, check your deployment status, and run your test suite without you writing integration code.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 78' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 78',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7616,9 +8240,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/five-primitives',
     exportPath: 'body.79',
-    text: 'RevealUI implements the Google A2A (Agent-to-Agent) specification over JSON-RPC 2.0. Agents expose discovery cards at `/.well-known/agent.json` and accept tasks via `POST /a2a`. The protocol supports:',
+    text: 'RevealUI exposes Google A2A discovery cards at `/.well-known/agent.json` and accepts JSON-RPC at `POST /a2a`. The card advertises:',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 79' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 79',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7629,9 +8257,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/five-primitives',
     exportPath: 'body.80',
-    text: '**`tasks/send`** -- Submit a task and get a result',
+    text: '**`tasks/send`** -- Advertised; the handler currently chats or stubs rather than a durable task runner',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 80' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 80',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7642,9 +8274,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/five-primitives',
     exportPath: 'body.81',
-    text: '**`tasks/sendSubscribe`** -- Submit a task and subscribe to streaming updates',
+    text: '**`tasks/sendSubscribe`** -- Advertised subscribe method',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 81' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 81',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7655,9 +8291,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/five-primitives',
     exportPath: 'body.82',
-    text: '**`tasks/get`** -- Poll task status',
+    text: '**`tasks/get`** -- Poll task status where implemented',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 82' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 82',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7668,9 +8308,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/five-primitives',
     exportPath: 'body.83',
-    text: '**`tasks/cancel`** -- Cancel a running task',
+    text: '**`tasks/cancel`** -- Cancel where implemented',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 83' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 83',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7681,9 +8325,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/five-primitives',
     exportPath: 'body.84',
-    text: "Task execution is gated behind the `ai` feature flag and metered against the user's quota. Every task execution is persisted to the `agentActions` table with timing data for billing and debugging.",
+    text: 'Hosted agent execution is gated behind the `ai` feature flag and metered against quota. Do not read the advertised methods as a complete A2A 1.0 lifecycle.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 84' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 84',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7696,7 +8344,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.85',
     text: 'AI is not free. RevealUI tracks task usage per billing cycle:',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 85' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 85',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7709,7 +8361,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.86',
     text: '| Tier | Monthly quota | |------|---------------| | Free | Local AI | | Pro | 10,000 tasks | | Max | 50,000 tasks | | Enterprise | Unlimited |',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 86' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 86',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7722,7 +8378,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.87',
     text: 'Usage beyond the quota is tracked in the `agent_task_usage` table. Reporting that overage to Stripe Billing Meters is in development. During early access, usage is recorded but not billed, so execution is never blocked on a meter.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 87' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 87',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7735,7 +8395,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.88',
     text: 'How Agents connects to everything else',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 88' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 88',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7748,7 +8412,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.89',
     text: 'AI agents authenticate through the People system (session cookies or API keys). Agents create and modify Content (posts, pages, media). Agent execution is metered through Offers (task quotas per tier). Overage billing feeds through Payments (Stripe Billing Meters). The A2A protocol enables agents to purchase services from other agents via x402, closing the loop.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 89' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 89',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7761,7 +8429,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.90',
     text: 'Any one of these primitives can be built in a weekend with the right libraries. But the compound effect of all five, pre-integrated and tested together, is what turns months of boilerplate into a single `npx create-revealui`.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 90' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 90',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7774,7 +8446,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.91',
     text: 'The five primitives are not independent features. They are a directed graph:',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 91' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 91',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7787,7 +8463,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.92',
     text: 'Every edge in that graph is a piece of integration code you do not have to write. Every node is a piece of infrastructure you do not have to maintain. And because RevealUI is open source (MIT for the core, source-available for Pro), you can read every line, fork every module, and extend every API.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 92' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 92',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7800,7 +8480,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.93',
     text: 'Build your business, not your boilerplate.',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 93' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 93',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7813,7 +8497,11 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     exportPath: 'body.94',
     text: '*RevealUI is the open runtime for businesses that run their own AI. The core, People, Content, Offers, and Payments, is MIT licensed and free forever. The Agents primitive (AI agents, memory, the MCP framework) is Fair Source (FSL-1.1-MIT), available with a Pro license. Learn more at [revealui.com](https://revealui.com).*',
     evidence: [
-      { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 94' },
+      {
+        kind: 'code',
+        ref: 'docs/blog/05-five-primitives.md',
+        note: 'body source paragraph 94',
+      },
       {
         kind: 'test',
         ref: 'apps/marketing/app/lib/__tests__/blog-body.test.ts#body prose units match extractor',
@@ -7821,6 +8509,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
       },
     ],
   },
+
   {
     file: 'blog/local-first-ai-stack',
     exportPath: 'body.0',
