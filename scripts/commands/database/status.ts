@@ -12,8 +12,7 @@
  * - pg - PostgreSQL client for database queries
  *
  * @requires
- * - Environment: POSTGRES_URL or DATABASE_URL - REST database connection
- * - Environment: SUPABASE_DATABASE_URI (optional) - Vector database connection
+ * - Environment: POSTGRES_URL or DATABASE_URL — Neon (pgvector lives on the same DB)
  */
 
 import { getSSLConfig } from '@revealui/scripts/database/ssl-config.js';
@@ -30,19 +29,11 @@ const logger = createLogger({ prefix: 'DB Status' });
 async function main() {
   logger.header('Database Status');
 
-  // Check REST database
-  const restUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;
-  if (restUrl) {
-    await showDatabaseStatus('REST', restUrl);
+  const url = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+  if (url) {
+    await showDatabaseStatus('Neon', url);
   } else {
-    logger.warn('REST database: Not configured (POSTGRES_URL not set)');
-  }
-
-  // Check Vector database (if different)
-  const vectorUrl = process.env.DATABASE_URL || process.env.SUPABASE_DATABASE_URI;
-  if (vectorUrl && vectorUrl !== restUrl) {
-    logger.divider();
-    await showDatabaseStatus('Vector', vectorUrl);
+    logger.warn('Database: Not configured (POSTGRES_URL not set)');
   }
 }
 
