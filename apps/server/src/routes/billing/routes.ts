@@ -223,7 +223,7 @@ app.openapi(checkoutRoute, async (c) => {
         },
         ...(embedded
           ? {
-              ui_mode: 'embedded' as const,
+              ui_mode: 'embedded_page' as const,
               return_url: `${adminUrl}/welcome?success=true&tier=${resolvedTier}`,
             }
           : {

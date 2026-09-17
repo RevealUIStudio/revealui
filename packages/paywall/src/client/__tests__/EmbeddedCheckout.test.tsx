@@ -9,7 +9,7 @@ describe('HostedCheckoutFallback', () => {
       hostedCheckoutUrl: 'https://checkout.example/hosted',
       message: 'Continue with Stripe Checkout',
     });
-    expect(el.props.href).toBe('https://checkout.example/hosted');
-    expect(el.props.children).toBe('Continue with Stripe Checkout');
+    expect(el.props.hostedCheckoutUrl).toBe('https://checkout.example/hosted');
+    expect(el.props.message).toBe('Continue with Stripe Checkout');
   });
 });
