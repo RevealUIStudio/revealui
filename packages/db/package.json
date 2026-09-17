@@ -206,6 +206,11 @@
       "import": "./dist/queries/posts.js",
       "default": "./dist/queries/posts.js"
     },
+    "./queries/cms-collections": {
+      "types": "./dist/queries/cms-collections.d.ts",
+      "import": "./dist/queries/cms-collections.js",
+      "default": "./dist/queries/cms-collections.js"
+    },
     "./queries/globals": {
       "types": "./dist/queries/globals.d.ts",
       "import": "./dist/queries/globals.js",

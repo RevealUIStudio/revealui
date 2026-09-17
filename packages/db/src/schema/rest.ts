@@ -49,6 +49,7 @@ export * from './app-logs.js';
 export * from './audit-anchors.js';
 export * from './audit-log.js';
 export * from './circuit-breaker.js';
+export * from './cms-collections.js';
 export * from './code-provenance.js';
 export * from './collab-edits.js';
 export * from './coordination.js';

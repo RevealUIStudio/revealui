@@ -19,9 +19,7 @@
  * Collection choice:
  *   Pages/Posts have required `blocks`/`richText` fields that DocumentForm
  *   cannot render (it only handles text/number/checkbox/select/date).
- *   `categories` is title-only but unregistered (WIRE-UP-PENDING). The
- *   categories CRUD describe is skipped (F-062-0001). Media upload via API
- *   remains — Media is a live collection.
+ *   Categories is title-only and now registered with a `categories` table.
  *
  * Run with:
  *   CI=1 PLAYWRIGHT_BASE_URL=https://admin.revealui.com \

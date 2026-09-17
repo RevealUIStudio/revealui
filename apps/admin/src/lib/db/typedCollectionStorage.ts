@@ -14,6 +14,7 @@ import { pages } from '@revealui/db/schema/pages';
 import { type Tenant as DbTenant, tenants } from '@revealui/db/schema/tenants';
 import { type User as DbUser, users } from '@revealui/db/schema/users';
 import { and, asc, count, desc, eq, isNull, or, type SQL, sql } from 'drizzle-orm';
+import { cmsCollectionHandlers } from './cmsCollectionStorage';
 import { DEFAULT_CMS_SITE_ID } from './defaultSite';
 
 type UserWhereCondition = NonNullable<RevealFindOptions['where']>;
@@ -1096,6 +1097,7 @@ const typedCollectionHandlers: Record<string, TypedCollectionHandler> = {
     findByID: findTypedUserByID,
     find: findTypedUsers,
   },
+  ...cmsCollectionHandlers,
 };
 
 export function createTypedCollectionStorage(): LocalCollectionStorageAdapter | undefined {
