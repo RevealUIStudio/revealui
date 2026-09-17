@@ -1,5 +1,6 @@
 import { Button, MarketingSection, SectionHeader } from '@revealui/presentation';
 import { Footer } from '../components/Footer';
+import { OMARCHY } from '../content/omarchy';
 import { REV_GUARDRAIL } from '../content/rev-guardrail';
 import {
   TEMPLATES_APIFY,
@@ -10,6 +11,48 @@ import {
   TEMPLATES_LICENSES,
   TEMPLATES_VERCEL,
 } from '../content/templates';
+
+interface TemplatePluginCardModel {
+  readonly title: string;
+  readonly eyebrow: string;
+  readonly shortBlurb: string;
+  readonly longer: string;
+  readonly includes: readonly string[];
+  readonly doesNotInclude: readonly string[];
+  readonly sourceLabel: string;
+}
+
+function TemplatePluginCard({ plugin }: { plugin: TemplatePluginCardModel }) {
+  return (
+    <MarketingSection tone="card" density="default" width="narrow">
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+        {plugin.eyebrow}
+      </p>
+      <h2 className="mt-3 font-display text-xl font-semibold text-foreground">{plugin.title}</h2>
+      <p className="mt-4 leading-7 text-body">{plugin.shortBlurb}</p>
+      <p className="mt-4 leading-7 text-body">{plugin.longer}</p>
+      <div className="mt-8 grid gap-8 sm:grid-cols-2">
+        <div>
+          <h3 className="font-display text-base font-semibold text-foreground">Includes</h3>
+          <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-body">
+            {plugin.includes.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-display text-base font-semibold text-foreground">Does not include</h3>
+          <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-body">
+            {plugin.doesNotInclude.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <p className="mt-8 font-mono text-sm text-muted-foreground">{plugin.sourceLabel}</p>
+    </MarketingSection>
+  );
+}
 
 export function TemplatesPage() {
   return (
@@ -80,37 +123,9 @@ export function TemplatesPage() {
         </ul>
       </MarketingSection>
 
-      <MarketingSection tone="card" density="default" width="narrow">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-          {REV_GUARDRAIL.eyebrow}
-        </p>
-        <h2 className="mt-3 font-display text-xl font-semibold text-foreground">
-          {REV_GUARDRAIL.title}
-        </h2>
-        <p className="mt-4 leading-7 text-body">{REV_GUARDRAIL.shortBlurb}</p>
-        <p className="mt-4 leading-7 text-body">{REV_GUARDRAIL.longer}</p>
-        <div className="mt-8 grid gap-8 sm:grid-cols-2">
-          <div>
-            <h3 className="font-display text-base font-semibold text-foreground">Includes</h3>
-            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-body">
-              {REV_GUARDRAIL.includes.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-display text-base font-semibold text-foreground">
-              Does not include
-            </h3>
-            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-body">
-              {REV_GUARDRAIL.doesNotInclude.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-        <p className="mt-8 font-mono text-sm text-muted-foreground">{REV_GUARDRAIL.sourceLabel}</p>
-      </MarketingSection>
+      <TemplatePluginCard plugin={REV_GUARDRAIL} />
+
+      <TemplatePluginCard plugin={OMARCHY} />
 
       <MarketingSection tone="background" density="default" width="narrow">
         <h2 className="font-display text-xl font-semibold text-foreground">
