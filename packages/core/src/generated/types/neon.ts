@@ -1,9 +1,10 @@
 /* tslint:disable */
 /**
- * Generated Database Types for NeonDB
+ * Generated Database Types for Neon
  *
- * This file re-exports database types from @revealui/contracts/generated
- * to maintain backward compatibility while breaking circular dependencies.
+ * Re-exports from `@revealui/contracts/generated` to break circular
+ * dependencies. The `Database` symbol still has a leftover `public.Tables`
+ * index (Supabase-compat). Neon is the SSOT.
  *
  * Last updated: 2026-01-25T00:00:00.000Z
  */

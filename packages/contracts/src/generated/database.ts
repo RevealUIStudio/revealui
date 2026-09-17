@@ -99,7 +99,11 @@ export type SyncMetadataUpdate = Partial<import('./zod-schemas.js').SyncMetadata
 export type UserDevicesUpdate = Partial<import('./zod-schemas.js').UserDevicesInsert>
 export type UsersUpdate = Partial<import('./zod-schemas.js').UsersInsert>
 
-// Legacy Database type structure (for backward compatibility with old code)
+/**
+ * Legacy table index. `public` is a leftover Supabase Database<> key.
+ * Neon is the SSOT; prefer UsersRow / SitesRow / generated zod-schemas.
+ * @deprecated Do not add new `Database['public']['Tables']` call sites.
+ */
 export interface Database {
   public: {
     Tables: Record<string, unknown>
