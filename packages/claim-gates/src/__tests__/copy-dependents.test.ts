@@ -170,6 +170,78 @@ describe('copy-dependent holds', () => {
     ).toBe(false);
   });
 
+  it('flags Contents/Videos CMS live claims unless honesty-qualified', () => {
+    expect(
+      hits('The Contents CMS is live for every operator.').some(
+        (x) => x.holdId === 'COPY-DEP-CONTENTS-CMS',
+      ),
+    ).toBe(true);
+    expect(
+      hits('Videos collection is available on every plan.').some(
+        (x) => x.holdId === 'COPY-DEP-VIDEOS-CMS',
+      ),
+    ).toBe(true);
+    expect(
+      hits('Contents and Videos are not shipped live CMS collections.').some(
+        (x) => x.holdId === 'COPY-DEP-CONTENTS-CMS' || x.holdId === 'COPY-DEP-VIDEOS-CMS',
+      ),
+    ).toBe(false);
+    expect(
+      hits('Admin collections for offers and pages you ship (not a Contents/Videos CMS SKU)').some(
+        (x) => x.holdId === 'COPY-DEP-CONTENTS-CMS' || x.holdId === 'COPY-DEP-VIDEOS-CMS',
+      ),
+    ).toBe(false);
+  });
+
+  it('flags skill-injection live claims; flag alone is not inject', () => {
+    expect(
+      hits('Skill injection is live when the flag is on.').some(
+        (x) => x.holdId === 'COPY-DEP-SKILL-INJECTION',
+      ),
+    ).toBe(true);
+    expect(
+      hits('REVEALUI_AI_SKILLS injects skills into every agent run.').some(
+        (x) => x.holdId === 'COPY-DEP-SKILL-INJECTION',
+      ),
+    ).toBe(true);
+    expect(
+      hits('REVEALUI_AI_SKILLS loads a catalog; the flag alone does not inject skills.').some(
+        (x) => x.holdId === 'COPY-DEP-SKILL-INJECTION',
+      ),
+    ).toBe(false);
+    expect(
+      hits('Supports MCP tool discovery and skill injection in the runtime.').some(
+        (x) => x.holdId === 'COPY-DEP-SKILL-INJECTION',
+      ),
+    ).toBe(false);
+  });
+
+  it('flags PTY output and hypervisor-spawn live claims', () => {
+    expect(
+      hits('PTY output is live on the remote terminal bridge.').some(
+        (x) => x.holdId === 'COPY-DEP-PTY-OUTPUT',
+      ),
+    ).toBe(true);
+    expect(
+      hits('Hypervisor spawn is available for every tenant.').some(
+        (x) => x.holdId === 'COPY-DEP-HYPERVISOR-SPAWN',
+      ),
+    ).toBe(true);
+    expect(
+      hits('Do not claim as live until walked: Contents, Videos CMS, PTY, hypervisor spawn.').some(
+        (x) =>
+          x.holdId === 'COPY-DEP-PTY-OUTPUT' ||
+          x.holdId === 'COPY-DEP-HYPERVISOR-SPAWN' ||
+          x.holdId === 'COPY-DEP-CONTENTS-CMS',
+      ),
+    ).toBe(false);
+    expect(
+      hits('MCP framework: server hypervisor, adapter pattern, tool discovery').some(
+        (x) => x.holdId === 'COPY-DEP-HYPERVISOR-SPAWN',
+      ),
+    ).toBe(false);
+  });
+
   it('flags AML-hardened and weight-scan claims', () => {
     expect(
       hits('The runtime is adversarially robust.').some(

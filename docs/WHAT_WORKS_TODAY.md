@@ -103,8 +103,8 @@ Honest list of things that are not done, not deployed, or not verified.
   is still open. Operator guide: [FORGE_SSO_SETUP.md](./FORGE_SSO_SETUP.md).
   **SCIM is not built** (still a non-goal of the SSO MVP).
 - **No dunning logic.** Best-practice guidance only.
-- **No Prompts collection.** Live admin collections today: Pages, Posts, Products, Tenants. **Contents and Videos are not shipped live CMS collections** (cms Contents = WIRE-UP-PENDING). Do not treat them as included.
-- **Do not claim as live until walked:** Contents, Videos CMS, PTY, hypervisor spawn, RevMarket-exec, x402 payments. x402 remains off by default (`X402_ENABLED`).
+- **No Prompts collection.** Live admin collections today: Pages, Posts, Products, Tenants, Media, Orders, Conversations. **Contents and Videos are not shipped live CMS collections** (cms Contents = WIRE-UP-PENDING; not registered, no backing table). Do not treat them as included.
+- **Do not claim as live until walked:** Contents, Videos CMS, PTY output, hypervisor spawn, RevMarket-exec, x402 payments, skill injection from the `REVEALUI_AI_SKILLS` flag alone. x402 remains off by default (`X402_ENABLED`). Terminal WS forwards input/resize only; PTY output is not implemented. RevMarket sandbox stubs fail closed (preview) and do not fake a successful skill run. `REVEALUI_AI_SKILLS=1` loads a catalog + provider; the flag alone does not inject skills.
 
 ---
 

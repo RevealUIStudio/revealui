@@ -16,7 +16,12 @@
  * "no-sandbox" tag in logs makes the unsafe choice visible at audit time.
  */
 
-import type { SandboxProvider, SandboxResult, SandboxRunOptions } from './types.js';
+import {
+  REVMARKET_PREVIEW_STUB_ERROR,
+  type SandboxProvider,
+  type SandboxResult,
+  type SandboxRunOptions,
+} from './types.js';
 
 export interface NoSandboxProviderOptions {
   /**
@@ -51,17 +56,18 @@ export function noSandboxProvider(options: NoSandboxProviderOptions = {}): Sandb
 }
 
 async function defaultStub(opts: SandboxRunOptions): Promise<SandboxResult> {
-  // Mirror revmarket-task-runner.mjs's stub. When real agent dispatch lands,
-  // both providers should call the shared dispatcher.
+  // Honesty: agent skill runtime is not wired. Fail closed — do not fake success.
+  // Keep lockstep with revmarket-task-runner.mjs `runStub`.
   return {
-    success: true,
+    success: false,
     output: {
       taskId: opts.taskId,
       skillName: opts.skillName,
-      status: 'executed',
-      message: 'Task processed by RevMarket sandbox runner',
+      status: 'preview-not-executed',
+      message: REVMARKET_PREVIEW_STUB_ERROR,
     },
     artifacts: [],
     tokensUsed: 0,
+    error: REVMARKET_PREVIEW_STUB_ERROR,
   };
 }

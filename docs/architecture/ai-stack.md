@@ -70,7 +70,7 @@ Task quota middleware (`apps/server/src/middleware/task-quota.ts`) runs on every
 4. Append tool results to message history
 5. Iterate until `done` or max iterations (default: 10, timeout: 60s)
 
-Supports: MCP tool discovery, skill injection, extended thinking, prompt caching, tool result compression per model tier.
+Supports: MCP tool discovery, skill catalog wire (opt-in `REVEALUI_AI_SKILLS`; the flag alone does not inject skills), extended thinking, prompt caching, tool result compression per model tier.
 
 ### Streaming
 

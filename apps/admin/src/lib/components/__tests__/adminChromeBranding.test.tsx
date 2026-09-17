@@ -84,6 +84,12 @@ describe('admin chrome white-label branding', () => {
       expect(screen.queryByText(/^v\d/)).toBeNull();
     });
 
+    it('labels Marketplace as preview so nav does not imply live execution', () => {
+      render(<AdminSidebarLayout siteName="Acme">content</AdminSidebarLayout>);
+      expect(screen.getByText('Marketplace (preview)')).toBeDefined();
+      expect(screen.queryByText(/^Marketplace$/)).toBeNull();
+    });
+
     it('puts Sign out in the sidebar footer', () => {
       render(<AdminSidebarLayout siteName="Acme">content</AdminSidebarLayout>);
       expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();

@@ -56,7 +56,7 @@ Marketing and package copy still describe the MCP hypervisor as the live agent t
 | `setAuditSink` → `recordMcpToolAudit` | Shipped |
 | Process-local spawn | Phase 2: `REVEALUI_MCP_HYPERVISOR_SPAWN=1`; default servers `contracts,docs`; override via `REVEALUI_MCP_HYPERVISOR_SERVERS` |
 | Credential resolver | Phase 3: vault path `mcp/<tenant>/<server>/env` (JSON env map); missing → null |
-| `@revealui/ai/skills` | Phase 4: `REVEALUI_AI_SKILLS=1` → `AgentSkillProvider` on agent-stream runtime |
+| `@revealui/ai/skills` | Phase 4: `REVEALUI_AI_SKILLS=1` → catalog + `AgentSkillProvider` on agent-stream runtime (flag alone does not inject skills) |
 | `@revealui/ai/observability` | Phase 4: `REVEALUI_AI_OBSERVABILITY=1` → `AgentEventLogger` on agent-stream start |
 
 `validate:incubate-posture` allowlists wire modules under `apps/server/src/lib/*-wire.ts` (and agent-stream consumer for skills/observability).

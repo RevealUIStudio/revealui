@@ -64,7 +64,7 @@ const contentItems: NavItem[] = [
   },
   {
     href: '/marketplace',
-    label: 'Marketplace',
+    label: 'Marketplace (preview)',
     icon: <IconStar data-slot="icon" className={iconClass} aria-hidden="true" />,
   },
   {

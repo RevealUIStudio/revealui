@@ -1,3 +1,7 @@
+// WIRE-UP-PENDING — this `contents` collection config is NOT registered in
+// `apps/admin/src/lib/collections/registry.ts` (`allCollections`) and is not
+// consumed anywhere. It has no backing Postgres table. Kept on disk pending a
+// per-item register-vs-delete decision. Do not claim Contents as a live CMS SKU.
 import type { CollectionConfig } from '@revealui/core';
 import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config';
 import { Banner } from '@/lib/blocks/Banner/config';
