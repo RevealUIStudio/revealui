@@ -83,6 +83,7 @@
     "test:integration:pro:watch": "vitest watch --config vitest.integration-pro.config.ts",
     "test:integration:watch": "vitest watch --config vitest.integration.config.ts src/integration",
     "test:memory:all": "pnpm test:integration:pro",
+    "test:memory:neon": "vitest run --config vitest.integration.config.ts src/integration/memory/dual-database.integration.test.ts",
     "test:memory:dual": "vitest run --config vitest.integration.config.ts src/integration/memory/dual-database.integration.test.ts",
     "test:memory:episodic": "vitest run --config vitest.integration-pro.config.ts src/integration-pro/memory/episodic-memory.integration.test.ts",
     "test:memory:vector": "vitest run --config vitest.integration-pro.config.ts src/integration-pro/memory/vector-memory.integration.test.ts",
