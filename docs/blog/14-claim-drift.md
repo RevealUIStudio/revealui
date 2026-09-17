@@ -28,7 +28,7 @@ export const METRICS = {
   packages: 29,        // workspace packages
   uiComponents: 65,    // components in @revealui/presentation
   mcpServers: 14,      // first-party MCP servers
-  dbTables: 104,       // Drizzle table declarations
+  dbTables: 112,       // Drizzle table declarations
   // ...
 } as const;
 ```

@@ -3084,7 +3084,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/own-your-data',
     exportPath: 'body.3',
-    text: 'RevealUI runs on Postgres. Specifically NeonDB, which is Postgres, the real thing, with the standard wire protocol and `pg_dump` that does exactly what you expect. The schema is 104 tables defined with Drizzle ORM, typed end to end, and it is not hiding any vendor-only behavior in the hot path.',
+    text: 'RevealUI runs on Postgres. Specifically NeonDB, which is Postgres, the real thing, with the standard wire protocol and `pg_dump` that does exactly what you expect. The schema is 112 tables defined with Drizzle ORM, typed end to end, and it is not hiding any vendor-only behavior in the hot path.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/10-own-your-data.md', note: 'body source paragraph 3' },
       {
