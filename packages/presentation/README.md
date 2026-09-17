@@ -220,7 +220,7 @@ pnpm dev
 - You need accessible, styled UI components (buttons, forms, cards, dialogs) for a RevealUI app
 - You want token-driven components, with headless + `*CVA` duals on selected form controls
 - You need React hooks for common UI patterns (focus trap, click outside, popover positioning)
-- **Not** for CMS admin UI  -  `@revealui/core/admin` provides the admin dashboard
+- Hosted admin **does** import this kit (Button, Card, Input, Sidebar, Table, and more). `@revealui/core/admin` is the CMS shell, not a second UI kit. Some admin forms still hand-roll; `SelectCVA` is non-interactive chrome.
 - **Not** for rich text editing  -  use `@revealui/core/richtext/client` (Lexical-based)
 
 ## Design Principles
