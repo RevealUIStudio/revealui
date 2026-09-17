@@ -29,7 +29,7 @@ export const preambles: PreambleTier[] = [
     name: 'Architecture',
     description:
       'Project-wide technical context  -  database, styling, formatting, config patterns',
-    ruleIds: ['database', 'biome', 'tailwind', 'parameterization'],
+    ruleIds: ['database', 'biome', 'tailwind', 'parameterization', 'versioning'],
   },
   {
     tier: 3,

@@ -84,7 +84,7 @@
     },
     {
       "relativePath": ".revealui/content/rules/npm-oidc-publish.md",
-      "sha256": "b416ac53a23387a37f54fd3f0ce7c3465fccc09c3d427b5a3abbf4795821be18"
+      "sha256": "37efdefbf18f2d446841803c303c2dc01abc3fb4d09b3bb0f022344ca3720a87"
     },
     {
       "relativePath": ".revealui/content/rules/parameterization.md",
@@ -121,6 +121,10 @@
     {
       "relativePath": ".revealui/content/rules/unused-declarations.md",
       "sha256": "3b1ff6f14af5f8dbdb896b3da4412b482b0f2db9eca3f16011ae4be65543c086"
+    },
+    {
+      "relativePath": ".revealui/content/rules/versioning.md",
+      "sha256": "f2dfb240b4d91255f64a8117897bcabb2653c32aac2d3227c92c51b80cca0504"
     },
     {
       "relativePath": ".revealui/content/skills/db-migrate/SKILL.md",

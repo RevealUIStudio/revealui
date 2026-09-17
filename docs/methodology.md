@@ -28,11 +28,13 @@ Library typed APIs are acceptable (`Zod`'s `.email()`). Third-party config that 
 
 ### Pre-1.0 versioning (M6)
 
-Every artifact starts at `0.1.0`. `1.0.0` is a public contract claim — "consumers can depend on this API without handholding." That claim requires real external consumers and a stable contract across at least one release cycle.
+SSOT: `.revealui/content/rules/versioning.md` (from `@revealui/harnesses`). Adapter files under `.claude/rules` / `.grok/rules` are wrappers only.
 
-Inside `0.x`: breaking changes bump minor (not major). Promotion to `1.0` requires real external consumers + stable contract for ≥1 release cycle.
+Every artifact starts at `0.1.0`. `1.0.0` is a public contract claim — "consumers can depend on this API without handholding." That requires real external consumers and a stable contract across at least one release cycle. Inside `0.x`: breaking changes bump minor (not major).
 
-(`@revealui/contracts` was briefly published on the `1.x` line, then demoted to `0.x` to follow this rule — see the contracts-demotion ADR in `docs/decisions/`. It is now pre-1.0 like everything else.)
+Three sets (GAP-497): **landed 1.x** (`@revealui/ai` 1.0.4, named exception); **stay 0.x** (all other public packages — blocked-on until consumers+stability); **never 1.0-publish** (`private: true` workspace packages and non-npm sibling repos). Platform 1.0 in MASTER_PLAN Bucket 3 is a different gate.
+
+(`@revealui/contracts` was briefly published on the `1.x` line, then demoted to `0.x` — see the contracts-demotion ADR in `docs/decisions/`.)
 
 ### Open-model AI runtime (M3)
 
@@ -103,7 +105,7 @@ Hooks architecture detail: `~/.claude/rules/hooks-architecture.md` (private).
 |-------|-----------------|
 | Audit-first SDLC (M5) | internal audit-first SDLC rule (private coordination hub) |
 | No-regex (M2) | `~/.claude/rules/` global rules |
-| Versioning (M6) | `~/.claude/rules/versioning.md` |
+| Versioning (M6) | `.revealui/content/rules/versioning.md` |
 | Secrets (M4) | `~/.claude/rules/secrets.md` + `docs/SECRETS.md` |
 | Hooks architecture (M8/M9/M10) | `~/.claude/rules/hooks-architecture.md` (private) |
 | 7-tier rename glossary (M1) | internal glossary (private coordination hub) |

@@ -1,3 +1,10 @@
+---
+name: rule-versioning
+description: "0.x until real external consumers + stable contract; ai@1.x is a named exception; private packages never 1.0-publish"
+---
+
+Wrapper: SSOT is `.revealui/content/rules/versioning.md`.
+
 # SemVer and 1.0 contract (M6)
 
 **SSOT:** `.revealui/content/rules/versioning.md` (this file, generated from `@revealui/harnesses`).
