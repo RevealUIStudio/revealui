@@ -107,12 +107,8 @@ export interface ProtectedStripe {
     ) => Promise<{
       id: string;
       status: string;
-      latest_invoice?:
-        | string
-        | null
-        | {
-            payment_intent?: string | null | { client_secret?: string | null };
-          };
+      /** Stripe `Subscription.latest_invoice` is `string | Invoice | null`. */
+      latest_invoice?: unknown;
     }>;
   };
 }

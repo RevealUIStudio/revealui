@@ -21,6 +21,21 @@ type HostRetrieveAssignable = StripeLikeRetrieve extends ProtectedStripe['custom
   : false;
 const hostRetrieveAssignable: HostRetrieveAssignable = true;
 
+/** Stripe Subscription.latest_invoice is `string | Invoice | null`. */
+type StripeLikeSubCreate = (params: {
+  customer: string;
+  items: Array<{ price: string }>;
+  payment_behavior: 'default_incomplete';
+}) => Promise<{
+  id: string;
+  status: string;
+  latest_invoice: string | { id: string; object: 'invoice' } | null;
+}>;
+type HostCreateAssignable = StripeLikeSubCreate extends ProtectedStripe['subscriptions']['create']
+  ? true
+  : false;
+const hostCreateAssignable: HostCreateAssignable = true;
+
 function mockStripe(overrides: Partial<ProtectedStripe> = {}): ProtectedStripe {
   return {
     customers: { retrieve: vi.fn(), create: vi.fn() },
@@ -45,6 +60,10 @@ function mockStripe(overrides: Partial<ProtectedStripe> = {}): ProtectedStripe {
 describe('issueRefund', () => {
   it('keeps Stripe Customer.deleted: void assignable to ProtectedStripe', () => {
     expect(hostRetrieveAssignable).toBe(true);
+  });
+
+  it('keeps Stripe Invoice latest_invoice assignable to ProtectedStripe', () => {
+    expect(hostCreateAssignable).toBe(true);
   });
 
   it('creates a refund with idempotency key', async () => {

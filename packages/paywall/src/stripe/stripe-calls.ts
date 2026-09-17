@@ -101,17 +101,15 @@ export async function reportAgentOverage(
   return { reported, skipped };
 }
 
-function invoiceClientSecret(
-  latestInvoice:
-    | string
-    | null
-    | undefined
-    | { payment_intent?: string | null | { client_secret?: string | null } },
-): string | null {
-  if (!latestInvoice || typeof latestInvoice === 'string') return null;
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function invoiceClientSecret(latestInvoice: unknown): string | null {
+  if (!isRecord(latestInvoice)) return null;
   const intent = latestInvoice.payment_intent;
-  if (!intent || typeof intent === 'string') return null;
-  return intent.client_secret ?? null;
+  if (!isRecord(intent)) return null;
+  return typeof intent.client_secret === 'string' ? intent.client_secret : null;
 }
 
 /**
