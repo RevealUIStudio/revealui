@@ -34,8 +34,7 @@ EOF
 
   if [ "$VALIDATION_FAILED" = true ]; then
     echo ""
-    echo "❌ Code validation failed. Fix violations or use:"
-    echo "   git commit --no-verify  (bypass validation)"
+    echo "❌ Code validation failed. Fix the listed violations and restage."
     exit 1
   else
     echo "✅ All files pass code standards"
