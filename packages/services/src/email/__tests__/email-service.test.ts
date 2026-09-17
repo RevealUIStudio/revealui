@@ -35,7 +35,7 @@ function mockFetch(...responses: MockRes[]): ReturnType<typeof vi.fn> {
       ok: r.ok,
       status: r.status ?? (r.ok ? 200 : 500),
       json: async () => r.json ?? {},
-      text: async () => r.text ?? '',
+      text: async () => r.text ?? (r.json !== undefined ? JSON.stringify(r.json) : ''),
     });
   }
   global.fetch = fn as unknown as typeof fetch;
