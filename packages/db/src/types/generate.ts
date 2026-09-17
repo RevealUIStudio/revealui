@@ -328,7 +328,7 @@ try {
     logger.info('   - All tables included');
     logger.info('   - Row, Insert, Update types generated');
     logger.info('   - Relationships included');
-    logger.info('   - Supabase-compatible structure');
+    logger.info('   - legacy public.Tables index (Neon SSOT)');
   }
 } catch (error) {
   logger.error('❌ Error generating Database type:', error instanceof Error ? error : undefined);
