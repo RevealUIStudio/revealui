@@ -124,8 +124,8 @@ value is never UI/API-revealable after write (credentials + private signing keys
 | `revealui/prod/electric/service-url` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/email/from` | public-config | no | vercel:api, vercel:admin, fly:worker, vercel:api-staging, vercel:admin-staging |  |
 | `revealui/prod/email/reply-to` | public-config | no | vercel:api, vercel:admin, fly:worker, vercel:api-staging, vercel:admin-staging |  |
-| `revealui/prod/google/wif-provider` | public-config | no | vercel:api, vercel:admin, fly:worker, vercel:api-staging, vercel:admin-staging | GAP-211 WIF provider resource name; Vercel OIDC token is injected at runtime, not vaulted |
 | `revealui/prod/google/service-account-email` | public-config | no | vercel:api, vercel:admin, fly:worker, vercel:api-staging, vercel:admin-staging |  |
+| `revealui/prod/google/wif-provider` | public-config | no | vercel:api, vercel:admin, fly:worker, vercel:api-staging, vercel:admin-staging | required@boot; GAP-211 WIF provider resource name; Vercel OIDC token is injected at runtime, not vaulted |
 | `revealui/prod/kek` | credential | yes | vercel:api, vercel:admin, fly:worker | REVEALUI_KEK - AES-256-GCM envelope key; has a NEXT dual-slot rotation story |
 | `revealui/prod/license/signer-invoke-secret` | credential | yes | app:license-signer, vercel:api | HMAC-SHA256 per-call auth for POST /internal/mint. Consumed by license-signer AND mint-client when REVEALUI_LICENSE_SIGN_VIA_SIGNER is on. No REVEALUI_SECRET fallback. Fly signer sets this Fly-direct (skip). |
 | `revealui/prod/license/signer-url` | public-config | no | vercel:api | Base URL for apps/license-signer (GAP-260 P4-3 mint-client). Not a secret. Flag REVEALUI_LICENSE_SIGN_VIA_SIGNER is a plain env toggle (not vaulted). |
