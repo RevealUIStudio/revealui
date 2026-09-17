@@ -40,8 +40,7 @@ function validLiveProdEnv(overrides: EnvMap = {}): EnvMap {
     REVEALUI_BILLING_PORTAL_CONFIG_ID: 'bpc_test_fixture',
     REVEALUI_AUDIT_SIGNING_KEY: AUDIT_SIGNING_KEY_PEM,
     GOOGLE_SERVICE_ACCOUNT_EMAIL: 'svc@project.iam.gserviceaccount.com',
-    GOOGLE_WIF_PROVIDER:
-      'projects/p/locations/global/workloadIdentityPools/pool/providers/vercel',
+    GOOGLE_WIF_PROVIDER: 'projects/p/locations/global/workloadIdentityPools/pool/providers/vercel',
     ...overrides,
   };
 }
