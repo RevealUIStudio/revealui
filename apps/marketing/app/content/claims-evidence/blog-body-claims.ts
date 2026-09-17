@@ -2499,7 +2499,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/claim-drift',
     exportPath: 'body.11',
-    text: 'That hard failure is the whole point. The numbers you read here are not a snapshot someone updated when they remembered. They are a measurement of the code as it exists right now: 32 packages, 66 UI components, 14 first-party MCP servers, 104 database tables, 60 access-control enforcement tests, 5 starter templates. Each one is checked on the commit that publishes it.',
+    text: 'That hard failure is the whole point. The numbers you read here are not a snapshot someone updated when they remembered. They are a measurement of the code as it exists right now: 32 packages, 66 UI components, 14 first-party MCP servers, 112 database tables, 60 access-control enforcement tests, 5 starter templates. Each one is checked on the commit that publishes it.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/14-claim-drift.md', note: 'body source paragraph 11' },
       {
@@ -11219,7 +11219,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/why-we-built-revealui',
     exportPath: 'body.51',
-    text: '**104 database tables** via Drizzle ORM on NeonDB (Postgres)',
+    text: '**112 database tables** via Drizzle ORM on NeonDB (Postgres)',
     evidence: [
       {
         kind: 'code',
