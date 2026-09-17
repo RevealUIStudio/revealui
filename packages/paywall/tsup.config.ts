@@ -14,5 +14,7 @@ export default defineConfig({
     '@revealui/db',
     '@revealui/db/schema',
     '@revealui/config/stripe-mode',
+    '@stripe/react-stripe-js',
+    '@stripe/stripe-js',
   ],
 });

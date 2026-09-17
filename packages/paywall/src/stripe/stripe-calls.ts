@@ -1,5 +1,12 @@
 import { getMeterEventTimestamp } from './pure.js';
-import type { OverageRow, ProtectedStripe, RefundResult, StripeRefundReason } from './types.js';
+import {
+  type IncompleteSubscriptionIntent,
+  type OverageRow,
+  PaywallBillingError,
+  type ProtectedStripe,
+  type RefundResult,
+  type StripeRefundReason,
+} from './types.js';
 
 /**
  * Issue a Stripe refund. Caller supplies the circuit-broken client.
@@ -92,4 +99,63 @@ export async function reportAgentOverage(
     }
   }
   return { reported, skipped };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function invoiceClientSecret(latestInvoice: unknown): string | null {
+  if (!isRecord(latestInvoice)) return null;
+  const intent = latestInvoice.payment_intent;
+  if (!isRecord(intent)) return null;
+  return typeof intent.client_secret === 'string' ? intent.client_secret : null;
+}
+
+/**
+ * Create a subscription that stays `incomplete` until the client confirms
+ * the first invoice PaymentIntent (Payment Element / 3DS).
+ *
+ * @example
+ * ```ts
+ * import { createSubscriptionWithIncompleteIntent } from '@revealui/paywall/stripe';
+ * const { clientSecret } = await createSubscriptionWithIncompleteIntent(stripe, {
+ *   customerId: 'cus_1',
+ *   priceId: 'price_1',
+ * });
+ * ```
+ */
+export async function createSubscriptionWithIncompleteIntent(
+  stripe: ProtectedStripe,
+  params: {
+    customerId: string;
+    priceId: string;
+    metadata?: Record<string, string>;
+  },
+): Promise<IncompleteSubscriptionIntent> {
+  const subscription = await stripe.subscriptions.create(
+    {
+      customer: params.customerId,
+      items: [{ price: params.priceId }],
+      payment_behavior: 'default_incomplete',
+      payment_settings: { save_default_payment_method: 'on_subscription' },
+      expand: ['latest_invoice.payment_intent'],
+      ...(params.metadata ? { metadata: params.metadata } : {}),
+    },
+    {
+      idempotencyKey: `incomplete-sub-${params.customerId}-${params.priceId}`,
+    },
+  );
+  const clientSecret = invoiceClientSecret(subscription.latest_invoice);
+  if (!clientSecret) {
+    throw new PaywallBillingError(
+      500,
+      'Stripe did not return a PaymentIntent client_secret for the incomplete subscription',
+    );
+  }
+  return {
+    subscriptionId: subscription.id,
+    clientSecret,
+    status: subscription.status,
+  };
 }

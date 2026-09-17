@@ -93,6 +93,30 @@ export interface ProtectedStripe {
       ) => Promise<unknown>;
     };
   };
+  subscriptions: {
+    create: (
+      params: {
+        customer: string;
+        items: Array<{ price: string }>;
+        payment_behavior: 'default_incomplete';
+        payment_settings?: { save_default_payment_method?: 'on_subscription' };
+        expand?: string[];
+        metadata?: Record<string, string>;
+      },
+      opts?: { idempotencyKey?: string },
+    ) => Promise<{
+      id: string;
+      status: string;
+      /** Stripe `Subscription.latest_invoice` is `string | Invoice | null`. */
+      latest_invoice?: unknown;
+    }>;
+  };
+}
+
+export interface IncompleteSubscriptionIntent {
+  subscriptionId: string;
+  clientSecret: string;
+  status: string;
 }
 
 export interface PgPoolLike {

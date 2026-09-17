@@ -11,7 +11,8 @@ export const checkoutRequestSchema = z.object({
 });
 
 export const checkoutResponseSchema = z.object({
-  url: z.string(),
+  url: z.string().optional(),
+  clientSecret: z.string().optional(),
 });
 
 export const portalResponseSchema = z.object({
@@ -35,4 +36,16 @@ export const refundResponseSchema = z.object({
 export const upgradeRequestSchema = z.object({
   priceId: z.string().min(1).optional(),
   targetTier: z.enum(['pro', 'max', 'enterprise']),
+});
+
+export const paymentIntentRequestSchema = z.object({
+  priceId: z.string().min(1).optional(),
+  tier: z.enum(['pro', 'max', 'enterprise']).optional(),
+  interval: z.enum(['month', 'year']).optional(),
+});
+
+export const paymentIntentResponseSchema = z.object({
+  clientSecret: z.string(),
+  subscriptionId: z.string(),
+  status: z.string(),
 });

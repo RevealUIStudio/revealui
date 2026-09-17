@@ -60,6 +60,7 @@ import {
   billingPortalConfigId,
   CheckoutRequestSchema,
   CheckoutResponseSchema,
+  createSubscriptionWithIncompleteIntent,
   ErrorSchema,
   ensureStripeCustomer,
   getAllCatalogSubscriptionPriceIds,
@@ -68,6 +69,8 @@ import {
   getStripeSubscriptionFallback,
   InvoicesResponseSchema,
   isStripeTaxEnabled,
+  PaymentIntentRequestSchema,
+  PaymentIntentResponseSchema,
   PortalResponseSchema,
   RefundRequestSchema,
   RefundResponseSchema,
@@ -185,6 +188,7 @@ app.openapi(checkoutRoute, async (c) => {
   // 10-minute idempotency window: prevents duplicate checkout sessions from
   // double-clicks or network retries while allowing a fresh attempt after 10 min.
   const idempotencyWindow = Math.floor(Date.now() / (10 * 60 * 1000));
+  const embedded = c.req.query('ui') === 'embedded';
   const session = await withStripe((stripe) =>
     stripe.checkout.sessions.create(
       {
@@ -217,28 +221,105 @@ app.openapi(checkoutRoute, async (c) => {
           trial_period_days: TRIAL_PERIOD_DAYS,
           metadata: { tier: resolvedTier, revealui_user_id: user.id },
         },
-        // First-time subscribers land on /welcome (3 concrete first actions:
-        // install CLI / clone source / read quick-start). Existing customers
-        // upgrading also see it — the page reads "Welcome" only when
-        // ?success=true, which Stripe appends here. See
-        // apps/admin/src/app/(backend)/welcome/page.tsx. Perpetual + renewal +
-        // credits success_urls (further down this file) intentionally stay on
-        // /account/billing — those flows are for known returning customers
-        // buying additional things, not first-action onboarding.
-        success_url: `${adminUrl}/welcome?success=true&tier=${resolvedTier}`,
-        cancel_url: `${adminUrl}/account/billing`,
+        ...(embedded
+          ? {
+              ui_mode: 'embedded_page' as const,
+              return_url: `${adminUrl}/welcome?success=true&tier=${resolvedTier}`,
+            }
+          : {
+              // First-time subscribers land on /welcome (3 concrete first actions:
+              // install CLI / clone source / read quick-start). Existing customers
+              // upgrading also see it — the page reads "Welcome" only when
+              // ?success=true, which Stripe appends here. See
+              // apps/admin/src/app/(backend)/welcome/page.tsx. Perpetual + renewal +
+              // credits success_urls (further down this file) intentionally stay on
+              // /account/billing — those flows are for known returning customers
+              // buying additional things, not first-action onboarding.
+              success_url: `${adminUrl}/welcome?success=true&tier=${resolvedTier}`,
+              cancel_url: `${adminUrl}/account/billing`,
+            }),
       },
       {
-        idempotencyKey: `checkout-sub-${user.id}-${resolvedTier}-${resolvedInterval}-${idempotencyWindow}`,
+        idempotencyKey: `checkout-sub-${user.id}-${resolvedTier}-${resolvedInterval}-${embedded ? 'embedded' : 'hosted'}-${idempotencyWindow}`,
       },
     ),
   );
+
+  if (embedded) {
+    if (!session.client_secret) {
+      throw new HTTPException(500, { message: 'Failed to create embedded checkout session' });
+    }
+    return c.json({ clientSecret: session.client_secret }, 200);
+  }
 
   if (!session.url) {
     throw new HTTPException(500, { message: 'Failed to create checkout session' });
   }
 
   return c.json({ url: session.url }, 200);
+});
+
+// POST /api/billing/payment-intent  — incomplete subscription client_secret (GAP-178)
+const paymentIntentRoute = createRoute({
+  method: 'post',
+  path: '/payment-intent',
+  tags: ['billing'],
+  summary: 'Create an incomplete subscription PaymentIntent',
+  description:
+    'Creates a Stripe subscription with payment_behavior=default_incomplete and returns the first invoice client_secret for Payment Element.',
+  request: {
+    body: {
+      content: {
+        'application/json': { schema: PaymentIntentRequestSchema },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: { 'application/json': { schema: PaymentIntentResponseSchema } },
+      description: 'PaymentIntent client_secret created',
+    },
+    401: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Not authenticated',
+    },
+  },
+});
+
+app.openapi(paymentIntentRoute, async (c) => {
+  const user = c.get('user');
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
+  assertAccountOwner(c);
+  await assertLiveCatalogComplete();
+
+  const { priceId, tier, interval } = c.req.valid('json');
+  const resolvedTier = tier ?? 'pro';
+  assertUnattendedCheckoutAllowed(resolvedTier);
+  const resolvedInterval = interval ?? 'month';
+  const resolvedPriceId = await resolveCatalogPriceId(
+    resolvedTier,
+    'subscription',
+    priceId,
+    resolvedInterval,
+  );
+  if (!user.email) {
+    throw new HTTPException(400, { message: 'An email address is required for billing' });
+  }
+  const customerId = await ensureStripeCustomer(user.id, user.email);
+  const intent = await createSubscriptionWithIncompleteIntent(customerId, resolvedPriceId, {
+    tier: resolvedTier,
+    revealui_user_id: user.id,
+  });
+  return c.json(
+    {
+      clientSecret: intent.clientSecret,
+      subscriptionId: intent.subscriptionId,
+      status: intent.status,
+    },
+    200,
+  );
 });
 
 // POST /api/billing/portal  -  Create a Stripe billing portal session

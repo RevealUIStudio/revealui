@@ -1,6 +1,6 @@
 {
   "name": "@revealui/paywall",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Runtime license enforcement, feature gating, and upgrade UI for software products",
   "license": "MIT",
   "repository": {
@@ -14,10 +14,18 @@
     "drizzle-orm": "catalog:"
   },
   "peerDependencies": {
-    "react": ">=19.0.0"
+    "react": ">=19.0.0",
+    "@stripe/react-stripe-js": "^3.0.0",
+    "@stripe/stripe-js": "^5.0.0"
   },
   "peerDependenciesMeta": {
     "react": {
+      "optional": true
+    },
+    "@stripe/react-stripe-js": {
+      "optional": true
+    },
+    "@stripe/stripe-js": {
       "optional": true
     }
   },
@@ -58,7 +66,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "main": "./dist/index.js",
   "publishConfig": {
