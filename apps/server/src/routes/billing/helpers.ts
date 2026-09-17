@@ -7,6 +7,14 @@
 
 import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import {
+  checkoutRequestSchema,
+  checkoutResponseSchema,
+  portalResponseSchema,
+  refundRequestSchema,
+  refundResponseSchema,
+  upgradeRequestSchema,
+} from '@revealui/contracts';
+import {
   allowsUnattendedCheckout,
   allowsUnattendedPerpetualCheckout,
   ENTERPRISE_SALES_HREF,
@@ -16,15 +24,23 @@ import { CircuitBreakerOpenError } from '@revealui/core/error-handling';
 import { getMaxAgentTasks } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient, getRestPool } from '@revealui/db';
-import {
-  accountEntitlements,
-  accountMemberships,
-  accountSubscriptions,
-  billingCatalog,
-  users,
-} from '@revealui/db/schema';
+import { billingCatalog } from '@revealui/db/schema';
 import { z } from '@revealui/openapi';
-import { and, eq, isNull } from 'drizzle-orm';
+import {
+  buildCheckoutMetadata,
+  type EarlyAdopterConfig,
+  ensureStripeCustomer as ensureStripeCustomerPaywall,
+  getEarlyAdopterConfig as getEarlyAdopterConfigPaywall,
+  getEarlyAdopterDiscount as getEarlyAdopterDiscountPaywall,
+  getHostedSubscriptionSnapshot as getHostedSubscriptionSnapshotPaywall,
+  getMeterEventTimestamp,
+  type PaidTier,
+  PaywallBillingError,
+  resolveCatalogPriceId as resolveCatalogPriceIdPaywall,
+  resolveHostedStripeCustomerId as resolveHostedStripeCustomerIdPaywall,
+  resolveUsageQuota as resolveUsageQuotaPaywall,
+} from '@revealui/paywall/stripe';
+import { and, eq } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
 import { getServices, type ProtectedStripe } from '../../lib/services-loader.js';
@@ -117,12 +133,7 @@ export const SUPPORT_RENEWAL_WINDOW_MS =
  * @param cycleStart - The first day of the billing cycle (UTC midnight)
  * @returns Unix timestamp (seconds) for the last second of that cycle
  */
-export function getMeterEventTimestamp(cycleStart: Date): number {
-  const nextCycleStart = new Date(
-    Date.UTC(cycleStart.getUTCFullYear(), cycleStart.getUTCMonth() + 1, 1),
-  );
-  return Math.floor(nextCycleStart.getTime() / 1000) - 1;
-}
+export { buildCheckoutMetadata, getMeterEventTimestamp };
 
 interface UserContext {
   id: string;
@@ -226,28 +237,9 @@ export async function withStripe<T>(
 
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 
-export const CheckoutRequestSchema = z.object({
-  priceId: z.string().min(1).optional().openapi({
-    description: 'Stripe price ID for the subscription',
-    example: 'price_abc123',
-  }),
-  tier: z.enum(['pro', 'max', 'enterprise']).optional().openapi({
-    description: 'License tier (defaults to pro)',
-    example: 'pro',
-  }),
-  interval: z.enum(['month', 'year']).optional().openapi({
-    description: 'Billing interval (defaults to month). "year" selects the annual price.',
-    example: 'month',
-  }),
-});
-
-export const CheckoutResponseSchema = z.object({
-  url: z.string().openapi({ description: 'Stripe checkout URL to redirect to' }),
-});
-
-export const PortalResponseSchema = z.object({
-  url: z.string().openapi({ description: 'Stripe billing portal URL' }),
-});
+export const CheckoutRequestSchema = checkoutRequestSchema;
+export const CheckoutResponseSchema = checkoutResponseSchema;
+export const PortalResponseSchema = portalResponseSchema;
 
 export const SubscriptionResponseSchema = z.object({
   tier: z
@@ -267,31 +259,8 @@ export const ErrorSchema = z.object({
   error: z.string(),
 });
 
-export const RefundRequestSchema = z.object({
-  paymentIntentId: z.string().min(1).optional().openapi({
-    description: 'Stripe PaymentIntent ID to refund. Provide either this or chargeId.',
-    example: 'pi_abc123',
-  }),
-  chargeId: z.string().min(1).optional().openapi({
-    description: 'Stripe Charge ID to refund. Provide either this or paymentIntentId.',
-    example: 'ch_abc123',
-  }),
-  amount: z.number().int().positive().optional().openapi({
-    description: 'Amount to refund in cents. Omit for full refund.',
-    example: 4900,
-  }),
-  reason: z.enum(['duplicate', 'fraudulent', 'requested_by_customer']).optional().openapi({
-    description: 'Reason for the refund (Stripe enum)',
-    example: 'requested_by_customer',
-  }),
-});
-
-export const RefundResponseSchema = z.object({
-  refundId: z.string().openapi({ description: 'Stripe refund ID', example: 're_abc123' }),
-  status: z.string().openapi({ description: 'Refund status', example: 'succeeded' }),
-  amount: z.number().openapi({ description: 'Amount refunded in cents', example: 4900 }),
-  currency: z.string().openapi({ description: 'Currency code', example: 'usd' }),
-});
+export const RefundRequestSchema = refundRequestSchema;
+export const RefundResponseSchema = refundResponseSchema;
 
 export const InvoiceItemSchema = z.object({
   id: z.string().openapi({ description: 'Stripe invoice ID', example: 'in_abc123' }),
@@ -335,16 +304,7 @@ export function assertUnattendedPerpetualCheckoutAllowed(tier: string): void {
   });
 }
 
-export const UpgradeRequestSchema = z.object({
-  priceId: z.string().min(1).optional().openapi({
-    description: 'Stripe price ID for the target tier',
-    example: 'price_enterprise_monthly',
-  }),
-  targetTier: z.enum(['pro', 'max', 'enterprise']).openapi({
-    description: 'Tier to upgrade to',
-    example: 'max',
-  }),
-});
+export const UpgradeRequestSchema = upgradeRequestSchema;
 
 export const UpgradeResponseSchema = z.object({
   success: z.boolean(),
@@ -398,201 +358,45 @@ export async function stripePriceIsUsable(
   }
 }
 
-export async function ensureStripeCustomer(userId: string, email: string): Promise<string> {
-  const db = getClient();
+function rethrowPaywall(err: unknown): never {
+  if (err instanceof PaywallBillingError) {
+    throw new HTTPException(err.status, { message: err.message });
+  }
+  throw err;
+}
 
-  // Fast path: user already has a Stripe customer id — but verify it still
-  // exists in the CURRENT Stripe mode before reusing it. A customer created
-  // under a different key (e.g. a live customer when the deployment later runs
-  // test keys, or vice versa) or one deleted in the dashboard would otherwise
-  // be handed to checkout.sessions.create and fail with "No such customer",
-  // surfacing as a generic "Invalid billing request". When unusable we clear it
-  // and re-provision via the create paths below.
-  const [user] = await db
-    .select({ stripeCustomerId: users.stripeCustomerId })
-    .from(users)
-    .where(eq(users.id, userId));
-
-  // protectedStripe is needed to verify an existing customer AND to create a
-  // new one — load it up front and 503 if absent.
+export const ensureStripeCustomer = async (userId: string, email: string): Promise<string> => {
   const services = await getServices();
   if (!services) {
     throw new HTTPException(503, {
       message: 'Payment service not available. Please try again shortly.',
     });
   }
-  const protectedStripe = services.protectedStripe;
-
-  const storedCustomerId = user?.stripeCustomerId;
-  if (storedCustomerId) {
-    if (await stripeCustomerIsUsable(protectedStripe, storedCustomerId)) {
-      return storedCustomerId;
-    }
-    // Stale (wrong-mode or deleted). Clear it — guarded on the stale value so a
-    // concurrent re-provision isn't clobbered — then fall through to create a
-    // fresh customer. The lock/fallback paths below treat a null id as
-    // "needs creation".
-    logger.warn(
-      'ensureStripeCustomer: stored customer not usable in current Stripe mode; re-provisioning',
-      { userId, storedCustomerId },
-    );
-    await db
-      .update(users)
-      .set({ stripeCustomerId: null, updatedAt: new Date() })
-      .where(and(eq(users.id, userId), eq(users.stripeCustomerId, storedCustomerId)));
-  }
-
-  // Slow path: need to create a Stripe customer. This is the race-prone
-  // section that issue #394 tracks. Two kinds of race exist:
-  //
-  //  1. Concurrent-request race: two ensureStripeCustomer() calls for the
-  //     same user at the same time — both see stripe_customer_id=null, both
-  //     create Stripe customers, only one write wins. Previously handled by
-  //     the Stripe idempotency key (`create-customer-${userId}`) — same key
-  //     returns the same Stripe customer.
-  //  2. Delayed-retry race: request creates Stripe customer, DB update
-  //     fails, then >24h later a subsequent call retries. Stripe idempotency
-  //     keys have a ~24h TTL, so the retry creates a NEW customer. Two
-  //     Stripe customers for one user, billing state splits.
-  //
-  // Fix: serialize the read→create→write critical section per-user using a
-  // Postgres advisory lock. Needs a real pg connection (not the NeonDB HTTP
-  // driver). The shared pg.Pool primitive landed by #390 (getRestPool) makes
-  // this reachable from here.
-  const pool = getRestPool();
-  if (pool) {
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-
-      // Per-user advisory lock. Scope string 'stripe:ensure:<userId>' is
-      // hashed by Postgres into a 64-bit lock id. Auto-released on
-      // COMMIT/ROLLBACK (pg_advisory_xact_lock, not pg_advisory_lock).
-      await client.query(`SELECT pg_advisory_xact_lock(hashtext($1))`, [`stripe:ensure:${userId}`]);
-
-      // Re-read inside the lock — a racing request may have won while we
-      // waited for the lock.
-      const winnerResult = await client.query<{ stripe_customer_id: string | null }>(
-        `SELECT stripe_customer_id FROM users WHERE id = $1`,
-        [userId],
-      );
-      const alreadyCreated = winnerResult.rows[0]?.stripe_customer_id;
-      if (alreadyCreated) {
-        await client.query('COMMIT');
-        return alreadyCreated;
-      }
-
-      // We hold the lock and no customer exists. Create and persist
-      // atomically.
-      const customer = await protectedStripe.customers.create(
-        {
-          email,
-          metadata: { revealui_user_id: userId },
-        },
-        {
-          idempotencyKey: `create-customer-${userId}`,
-        },
-      );
-
-      await client.query(
-        `UPDATE users SET stripe_customer_id = $1, updated_at = NOW() WHERE id = $2`,
-        [customer.id, userId],
-      );
-
-      await client.query('COMMIT');
-      return customer.id;
-    } catch (err) {
-      try {
-        await client.query('ROLLBACK');
-      } catch (rollbackErr) {
-        logger.error('ensureStripeCustomer rollback failed after error', {
-          userId,
-          rollbackErr: String(rollbackErr),
-        });
-      }
-      throw err;
-    } finally {
-      client.release();
-    }
-  }
-
-  // Fallback path: pool unavailable (e.g. build-time with no DATABASE_URL).
-  // Use the prior conditional-UPDATE best-effort pattern. Safe for the
-  // common single-request case; does NOT defend against the delayed-retry
-  // race — but that path is not reachable in production where POSTGRES_URL
-  // is set. Logged so any production hit is visible.
-  logger.warn('ensureStripeCustomer: shared pg.Pool unavailable, falling back to non-locked path', {
-    userId,
-  });
-
-  const customer = await protectedStripe.customers.create(
-    {
+  try {
+    return await ensureStripeCustomerPaywall(
+      getClient(),
+      getRestPool(),
+      services.protectedStripe,
+      userId,
       email,
-      metadata: { revealui_user_id: userId },
-    },
-    {
-      idempotencyKey: `create-customer-${userId}`,
-    },
-  );
+    );
+  } catch (err) {
+    rethrowPaywall(err);
+  }
+};
 
-  await db
-    .update(users)
-    .set({ stripeCustomerId: customer.id, updatedAt: new Date() })
-    .where(and(eq(users.id, userId), isNull(users.stripeCustomerId)));
-
-  const [updated] = await db
-    .select({ stripeCustomerId: users.stripeCustomerId })
-    .from(users)
-    .where(eq(users.id, userId));
-
-  return updated?.stripeCustomerId ?? customer.id;
-}
-
-type PaidTier = 'pro' | 'max' | 'enterprise';
-type BillingCatalogKind = 'subscription' | 'perpetual' | 'credits' | 'renewal';
-
-export async function resolveCatalogPriceId(
+export const resolveCatalogPriceId = async (
   tier: PaidTier,
-  kind: BillingCatalogKind,
+  kind: 'subscription' | 'perpetual' | 'credits' | 'renewal',
   requestedPriceId?: string,
   interval: 'month' | 'year' = 'month',
-): Promise<string> {
-  const db = getClient();
-  const mode = getConfiguredStripeMode();
-  // Annual subscriptions carry the interval in the planId (`subscription:<tier>:year`);
-  // monthly subscriptions and all non-subscription kinds keep the 2-part planId.
-  const planId =
-    kind === 'subscription' && interval === 'year' ? `${kind}:${tier}:year` : `${kind}:${tier}`;
-  const [catalogEntry] = await db
-    .select({ stripePriceId: billingCatalog.stripePriceId })
-    .from(billingCatalog)
-    .where(
-      and(
-        eq(billingCatalog.planId, planId),
-        eq(billingCatalog.tier, tier),
-        eq(billingCatalog.billingModel, kind),
-        eq(billingCatalog.mode, mode),
-        eq(billingCatalog.active, true),
-      ),
-    )
-    .limit(1);
-
-  const resolvedPriceId = catalogEntry?.stripePriceId;
-
-  if (!resolvedPriceId) {
-    throw new HTTPException(500, {
-      message: `Billing catalog is not configured for ${kind} ${tier} (${mode} mode)`,
-    });
+): Promise<string> => {
+  try {
+    return await resolveCatalogPriceIdPaywall(getClient(), tier, kind, requestedPriceId, interval);
+  } catch (err) {
+    rethrowPaywall(err);
   }
-
-  if (requestedPriceId?.trim() && requestedPriceId.trim() !== resolvedPriceId) {
-    throw new HTTPException(400, {
-      message: 'Requested price does not match the server billing catalog.',
-    });
-  }
-
-  return resolvedPriceId;
-}
+};
 
 export async function getAllCatalogSubscriptionPriceIds(): Promise<Set<string>> {
   const db = getClient();
@@ -609,93 +413,16 @@ export async function getAllCatalogSubscriptionPriceIds(): Promise<Set<string>> 
   return new Set(rows.map((r) => r.stripePriceId).filter((id): id is string => id !== null));
 }
 
-export async function getHostedSubscriptionSnapshot(userId: string): Promise<{
-  tier: 'free' | 'pro' | 'max' | 'enterprise';
-  status: string;
-  graceUntil: string | null;
-} | null> {
-  const db = getClient();
-  const [membership] = await db
-    .select({ accountId: accountMemberships.accountId })
-    .from(accountMemberships)
-    .where(and(eq(accountMemberships.userId, userId), eq(accountMemberships.status, 'active')))
-    .limit(1);
+export const getHostedSubscriptionSnapshot = async (userId: string) => {
+  return getHostedSubscriptionSnapshotPaywall(getClient(), userId);
+};
 
-  if (!membership?.accountId) return null;
-
-  const [entitlement] = await db
-    .select({
-      tier: accountEntitlements.tier,
-      status: accountEntitlements.status,
-      graceUntil: accountEntitlements.graceUntil,
-    })
-    .from(accountEntitlements)
-    .where(
-      and(
-        eq(accountEntitlements.accountId, membership.accountId),
-        eq(accountEntitlements.mode, getConfiguredStripeMode()),
-      ),
-    )
-    .limit(1);
-
-  if (!entitlement?.tier) return null;
-
-  // Grace period enforcement: if status is past_due/canceled but graceUntil
-  // is in the future, the customer retains access until grace expires
-  const now = new Date();
-  let effectiveStatus = entitlement.status;
-  if (
-    (effectiveStatus === 'past_due' ||
-      effectiveStatus === 'canceled' ||
-      effectiveStatus === 'revoked') &&
-    entitlement.graceUntil &&
-    entitlement.graceUntil > now
-  ) {
-    effectiveStatus = 'grace_period';
-  }
-
-  return {
-    tier: entitlement.tier as 'free' | 'pro' | 'max' | 'enterprise',
-    status: effectiveStatus,
-    graceUntil: entitlement.graceUntil?.toISOString() ?? null,
-  };
-}
-
-export async function resolveHostedStripeCustomerId(
+export const resolveHostedStripeCustomerId = async (
   userId: string,
   accountId?: string | null,
-): Promise<string | null> {
-  const db = getClient();
-  const resolvedAccountId =
-    accountId ??
-    (
-      await db
-        .select({ accountId: accountMemberships.accountId })
-        .from(accountMemberships)
-        .where(and(eq(accountMemberships.userId, userId), eq(accountMemberships.status, 'active')))
-        .limit(1)
-    )[0]?.accountId;
-
-  if (resolvedAccountId) {
-    const [subscription] = await db
-      .select({ stripeCustomerId: accountSubscriptions.stripeCustomerId })
-      .from(accountSubscriptions)
-      .where(eq(accountSubscriptions.accountId, resolvedAccountId))
-      .limit(1);
-
-    if (subscription?.stripeCustomerId) {
-      return subscription.stripeCustomerId;
-    }
-  }
-
-  const [dbUser] = await db
-    .select({ stripeCustomerId: users.stripeCustomerId })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
-
-  return dbUser?.stripeCustomerId ?? null;
-}
+): Promise<string | null> => {
+  return resolveHostedStripeCustomerIdPaywall(getClient(), userId, accountId);
+};
 
 /** Non-throwing tier resolver for Stripe subscription metadata (cf. webhook resolveTier). */
 export function resolveTierFromMetadata(
@@ -754,55 +481,15 @@ export async function getStripeSubscriptionFallback(
   }
 }
 
-export function resolveUsageQuota(c: { get: (key: string) => unknown }): number {
-  const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
-  const accountQuota = requestEntitlements?.limits?.maxAgentTasks;
+export const resolveUsageQuota = (c: { get: (key: string) => unknown }): number => {
+  return resolveUsageQuotaPaywall(
+    c.get('entitlements') as RequestEntitlements | undefined,
+    getMaxAgentTasks,
+  );
+};
 
-  if (typeof accountQuota === 'number') {
-    return accountQuota;
-  }
-
-  return getMaxAgentTasks();
-}
-
-// ─── Early Adopter Coupon ─────────────────────────────────────────────────────
-
-/** Early adopter coupon config  -  set via env vars, not hardcoded */
-interface EarlyAdopterConfig {
-  endDate: Date | null;
-  coupons: Record<string, string | undefined>;
-}
-
-export function getEarlyAdopterConfig(): EarlyAdopterConfig {
-  const endStr = process.env.REVEALUI_EARLY_ADOPTER_END;
-  return {
-    endDate: endStr && !Number.isNaN(new Date(endStr).getTime()) ? new Date(endStr) : null,
-    coupons: {
-      pro: process.env.REVEALUI_EARLY_ADOPTER_COUPON_PRO,
-      max: process.env.REVEALUI_EARLY_ADOPTER_COUPON_MAX,
-      enterprise: process.env.REVEALUI_EARLY_ADOPTER_COUPON_ENT,
-    },
-  };
-}
-
-/**
- * Returns either a `discounts` array (early adopter coupon) or `allow_promotion_codes: true`.
- * Stripe's `discounts` and `allow_promotion_codes` are mutually exclusive  -  when the early
- * adopter coupon is active, manual promotion codes are disabled.
- */
-export function getEarlyAdopterDiscount(
-  tier: string,
-): { discounts: Array<{ coupon: string }> } | { allow_promotion_codes: true } {
-  const config = getEarlyAdopterConfig();
-  if (!config.endDate || new Date() > config.endDate) {
-    return { allow_promotion_codes: true };
-  }
-  const couponId = config.coupons[tier];
-  if (!couponId) {
-    return { allow_promotion_codes: true };
-  }
-  return { discounts: [{ coupon: couponId }] };
-}
+export const getEarlyAdopterConfig = getEarlyAdopterConfigPaywall;
+export const getEarlyAdopterDiscount = getEarlyAdopterDiscountPaywall;
 
 export type { EarlyAdopterConfig };
 // Exported for testing

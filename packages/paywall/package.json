@@ -1,12 +1,17 @@
 {
   "name": "@revealui/paywall",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Runtime license enforcement, feature gating, and upgrade UI for software products",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/RevealUIStudio/revealui.git",
     "directory": "packages/paywall"
+  },
+  "dependencies": {
+    "@revealui/config": "workspace:*",
+    "@revealui/db": "workspace:*",
+    "drizzle-orm": "catalog:"
   },
   "peerDependencies": {
     "react": ">=19.0.0"

@@ -21,6 +21,7 @@ import {
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
+import { issueRefund, reportAgentOverage } from '@revealui/paywall/stripe';
 import {
   and,
   count,
@@ -64,7 +65,6 @@ import {
   getAllCatalogSubscriptionPriceIds,
   getEarlyAdopterDiscount,
   getHostedSubscriptionSnapshot,
-  getMeterEventTimestamp,
   getStripeSubscriptionFallback,
   InvoicesResponseSchema,
   isStripeTaxEnabled,
@@ -1702,38 +1702,18 @@ app.openapi(reportOverageRoute, async (c) => {
     .innerJoin(users, eq(agentTaskUsage.userId, users.id))
     .where(and(eq(agentTaskUsage.cycleStart, prevCycle), gt(agentTaskUsage.overage, 0)));
 
-  let reported = 0;
-  let skipped = 0;
-
-  for (const row of overageRows) {
-    if (!row.stripeCustomerId) {
-      skipped++;
-      continue;
-    }
-
-    try {
-      await protectedStripe.billing.meterEvents.create(
-        {
-          event_name: meterEventName,
-          payload: {
-            stripe_customer_id: row.stripeCustomerId,
-            value: String(row.overage),
-          },
-          timestamp: getMeterEventTimestamp(prevCycle),
-        },
-        { idempotencyKey: `overage-${row.userId}-${prevCycle}` },
-      );
-      reported++;
-    } catch (err) {
+  const { reported, skipped } = await reportAgentOverage(protectedStripe, overageRows, {
+    meterEventName,
+    cycleStart: prevCycle,
+    onError: (row, err) => {
       logger.error('Stripe meter event creation failed', err instanceof Error ? err : undefined, {
         userId: row.userId,
         stripeCustomerId: row.stripeCustomerId,
         overage: row.overage,
         meterEventName,
       });
-      skipped++;
-    }
-  }
+    },
+  });
 
   return c.json({ reported, skipped }, 200);
 });
@@ -1921,21 +1901,21 @@ app.openapi(refundRoute, async (c) => {
   // Binding to `amount || 'full'` (not `user.id`) keeps partial refunds of
   // different amounts distinct while converging full refunds and any two
   // admins issuing the same partial to one Stripe refund.
-  const idempotencyKey = `refund-${chargeId ?? paymentIntentId}-${amount ?? 'full'}`;
-
-  const refundParams: Stripe.RefundCreateParams = {
-    ...(paymentIntentId ? { payment_intent: paymentIntentId } : {}),
-    ...(chargeId ? { charge: chargeId } : {}),
-    ...(amount ? { amount } : {}),
-    ...(reason ? { reason } : {}),
-  };
-
-  const refund = await withStripe((stripe) =>
-    stripe.refunds.create(refundParams, { idempotencyKey }),
-  );
+  const services = await getServices();
+  if (!services) {
+    throw new HTTPException(503, {
+      message: 'Payment service not available. Please try again shortly.',
+    });
+  }
+  const refund = await issueRefund(services.protectedStripe, {
+    paymentIntentId,
+    chargeId,
+    amount,
+    reason,
+  });
 
   logger.info('Refund issued', {
-    refundId: refund.id,
+    refundId: refund.refundId,
     amount: refund.amount,
     status: refund.status,
     issuedBy: user.id,
@@ -1945,8 +1925,8 @@ app.openapi(refundRoute, async (c) => {
 
   return c.json(
     {
-      refundId: refund.id,
-      status: refund.status ?? 'pending',
+      refundId: refund.refundId,
+      status: refund.status,
       amount: refund.amount,
       currency: refund.currency,
     },
