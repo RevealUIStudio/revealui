@@ -18,6 +18,7 @@
     "@revealui/mcp": "workspace:*",
     "@revealui/openapi": "workspace:*",
     "@revealui/paywall": "workspace:*",
+    "@revealui/secrets": "workspace:*",
     "@revealui/security": "workspace:*",
     "@sentry/node": "^10.63.0",
     "drizzle-orm": "catalog:",

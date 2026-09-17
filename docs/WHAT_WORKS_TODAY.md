@@ -112,9 +112,9 @@ Honest list of things that are not done, not deployed, or not verified.
 
 | Metric | Value | Verified |
 |--------|-------|----------|
-| Workspaces (apps + packages) | 38 | Yes |
+| Workspaces (apps + packages) | 39 | Yes |
 | Apps | 6 (`admin`, `server`, `docs`, `marketing`, `license-signer`, `rsc-poc`) | Yes |
-| OSS packages (MIT) | 25 | Yes |
+| OSS packages (MIT) | 26 | Yes |
 | Pro packages (FSL-1.1-MIT) | 5 (`ai`, `engines`, `harnesses`, `mcp`, `services`) | Yes |
 | Internal packages | 2 (`@revealui/scripts`, `@revealui/apify-actor-governed-run`) | Yes |
 | UI components | 66 in `@revealui/presentation` | Yes |
@@ -140,7 +140,7 @@ cd revealui
 pnpm install
 pnpm gate                # Run the full CI gate locally
 pnpm test                # Run the full test suite
-pnpm typecheck:all       # Typecheck all 38 workspaces
+pnpm typecheck:all       # Typecheck all 39 workspaces
 pnpm validate:claims     # Run the marketing/docs claim-drift gate
 ```
 
