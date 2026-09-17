@@ -554,6 +554,8 @@ export {
 export {
   checkoutRequestSchema,
   checkoutResponseSchema,
+  paymentIntentRequestSchema,
+  paymentIntentResponseSchema,
   portalResponseSchema,
   refundRequestSchema,
   refundResponseSchema,

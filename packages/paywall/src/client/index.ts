@@ -44,6 +44,8 @@
  * @packageDocumentation
  */
 
+export { EmbeddedCheckout, type EmbeddedCheckoutProps } from './EmbeddedCheckout.js';
+export { PaymentElement, type PaymentElementProps } from './PaymentElement.js';
 export { PaywallGate, type PaywallGateProps } from './PaywallGate.js';
 export {
   type PaywallContextValue,
@@ -60,3 +62,8 @@ export {
   type UpgradeEventDetail,
   upgradeAwareFetch,
 } from './upgrade-aware-fetch.js';
+export {
+  type UsePaymentIntentOptions,
+  type UsePaymentIntentResult,
+  usePaymentIntent,
+} from './usePaymentIntent.js';

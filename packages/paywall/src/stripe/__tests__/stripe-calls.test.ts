@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { issueRefund, reportAgentOverage } from '../stripe-calls.js';
+import {
+  createSubscriptionWithIncompleteIntent,
+  issueRefund,
+  reportAgentOverage,
+} from '../stripe-calls.js';
 import type { ProtectedStripe } from '../types.js';
 
 /** Stripe live Customer.deleted is `void`; must stay assignable to ProtectedStripe. */
@@ -30,6 +34,9 @@ function mockStripe(overrides: Partial<ProtectedStripe> = {}): ProtectedStripe {
     },
     billing: {
       meterEvents: { create: vi.fn().mockResolvedValue({}) },
+    },
+    subscriptions: {
+      create: vi.fn(),
     },
     ...overrides,
   };
@@ -71,5 +78,35 @@ describe('reportAgentOverage', () => {
     );
     expect(out).toEqual({ reported: 1, skipped: 0 });
     expect(stripe.billing.meterEvents.create).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('createSubscriptionWithIncompleteIntent', () => {
+  it('returns the first invoice PaymentIntent client_secret', async () => {
+    const stripe = mockStripe({
+      subscriptions: {
+        create: vi.fn().mockResolvedValue({
+          id: 'sub_1',
+          status: 'incomplete',
+          latest_invoice: { payment_intent: { client_secret: 'pi_secret' } },
+        }),
+      },
+    });
+    const out = await createSubscriptionWithIncompleteIntent(stripe, {
+      customerId: 'cus_1',
+      priceId: 'price_1',
+    });
+    expect(out).toEqual({
+      subscriptionId: 'sub_1',
+      clientSecret: 'pi_secret',
+      status: 'incomplete',
+    });
+    expect(stripe.subscriptions.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        customer: 'cus_1',
+        payment_behavior: 'default_incomplete',
+      }),
+      { idempotencyKey: 'incomplete-sub-cus_1-price_1' },
+    );
   });
 });

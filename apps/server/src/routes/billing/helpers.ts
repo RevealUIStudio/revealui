@@ -9,6 +9,8 @@ import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import {
   checkoutRequestSchema,
   checkoutResponseSchema,
+  paymentIntentRequestSchema,
+  paymentIntentResponseSchema,
   portalResponseSchema,
   refundRequestSchema,
   refundResponseSchema,
@@ -28,12 +30,14 @@ import { billingCatalog } from '@revealui/db/schema';
 import { z } from '@revealui/openapi';
 import {
   buildCheckoutMetadata,
+  createSubscriptionWithIncompleteIntent as createSubscriptionWithIncompleteIntentPaywall,
   type EarlyAdopterConfig,
   ensureStripeCustomer as ensureStripeCustomerPaywall,
   getEarlyAdopterConfig as getEarlyAdopterConfigPaywall,
   getEarlyAdopterDiscount as getEarlyAdopterDiscountPaywall,
   getHostedSubscriptionSnapshot as getHostedSubscriptionSnapshotPaywall,
   getMeterEventTimestamp,
+  type IncompleteSubscriptionIntent,
   type PaidTier,
   PaywallBillingError,
   resolveCatalogPriceId as resolveCatalogPriceIdPaywall,
@@ -240,6 +244,8 @@ export async function withStripe<T>(
 
 export const CheckoutRequestSchema = checkoutRequestSchema;
 export const CheckoutResponseSchema = checkoutResponseSchema;
+export const PaymentIntentRequestSchema = paymentIntentRequestSchema;
+export const PaymentIntentResponseSchema = paymentIntentResponseSchema;
 export const PortalResponseSchema = portalResponseSchema;
 
 export const SubscriptionResponseSchema = z.object({
@@ -392,6 +398,28 @@ export const ensureStripeCustomer = async (userId: string, email: string): Promi
     rethrowPaywall(err);
   }
 };
+
+export async function createSubscriptionWithIncompleteIntent(
+  customerId: string,
+  priceId: string,
+  metadata?: Record<string, string>,
+): Promise<IncompleteSubscriptionIntent> {
+  const services = await getServices();
+  if (!services) {
+    throw new HTTPException(503, {
+      message: 'Payment service not available. Please try again shortly.',
+    });
+  }
+  try {
+    return await createSubscriptionWithIncompleteIntentPaywall(services.protectedStripe, {
+      customerId,
+      priceId,
+      metadata,
+    });
+  } catch (err) {
+    rethrowPaywall(err);
+  }
+}
 
 export const resolveCatalogPriceId = async (
   tier: PaidTier,

@@ -22,11 +22,16 @@ export {
   getMeterEventTimestamp,
   resolveUsageQuota,
 } from './pure.js';
-export { issueRefund, reportAgentOverage } from './stripe-calls.js';
+export {
+  createSubscriptionWithIncompleteIntent,
+  issueRefund,
+  reportAgentOverage,
+} from './stripe-calls.js';
 export {
   type BillingCatalogKind,
   type CheckoutMetadata,
   type EarlyAdopterConfig,
+  type IncompleteSubscriptionIntent,
   type LicenseTier,
   type OverageRow,
   type PaidTier,
