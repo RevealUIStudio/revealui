@@ -1,18 +1,14 @@
 /**
  * @revealui/db/types - Database Type Exports
  *
- * Centralized type exports for NeonDB database.
- * Provides feature parity with Supabase's Database type structure.
+ * Centralized type exports for Neon (Drizzle).
+ * `Database['public']['Tables']` is a leftover Supabase-shaped index, not a
+ * second database. Prefer table-specific Row/Insert types.
  *
  * ## Usage
  *
  * ```typescript
- * import type { Database } from '@revealui/db/types'
- *
- * // Extract table types
- * type User = Database['public']['Tables']['users']['Row']
- * type NewUser = Database['public']['Tables']['users']['Insert']
- * type UserUpdate = Database['public']['Tables']['users']['Update']
+ * import type { UsersRow, UsersInsert } from '@revealui/db/types'
  * ```
  */
 
