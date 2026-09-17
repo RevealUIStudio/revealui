@@ -1,6 +1,6 @@
 # RevealUI
 
-> The open runtime for businesses that run their own AI. Five primitives: People, Content, Offers, Payments, and Agents. Open source (MIT) plus Fair Source (FSL-1.1-MIT) Pro packages. Self-hostable. No vendor lock-in.
+> The agentic business runtime startups operate on their own domain — existing tools report in, you keep the stack. Five primitives: People, Content (offers and pages you ship, not a Contents/Videos CMS SKU), Offers, Payments, and Agents. Open source (MIT) plus Fair Source (FSL-1.1-MIT) Pro packages. Self-hostable. No vendor lock-in.
 
 ## Documentation
 

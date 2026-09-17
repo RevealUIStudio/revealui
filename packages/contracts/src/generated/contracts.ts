@@ -587,6 +587,32 @@ export const BoardsInsertContract = createContract({
 })
 
 // =============================================================================
+// Categories Contracts
+// =============================================================================
+
+/**
+ * Contract for categories row (Select)
+ * Database table: categories
+ */
+export const CategoriesRowContract = createContract({
+  name: 'CategoriesRow',
+  version: '1',
+  description: 'Database row contract for categories table',
+  schema: Schemas.CategoriesSelectSchema,
+})
+
+/**
+ * Contract for categories insert
+ * Database table: categories
+ */
+export const CategoriesInsertContract = createContract({
+  name: 'CategoriesInsert',
+  version: '1',
+  description: 'Database insert contract for categories table',
+  schema: Schemas.CategoriesInsertSchema,
+})
+
+// =============================================================================
 // CircuitBreakerState Contracts
 // =============================================================================
 
@@ -688,6 +714,32 @@ export const CollabEditsInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for collab_edits table',
   schema: Schemas.CollabEditsInsertSchema,
+})
+
+// =============================================================================
+// Contents Contracts
+// =============================================================================
+
+/**
+ * Contract for contents row (Select)
+ * Database table: contents
+ */
+export const ContentsRowContract = createContract({
+  name: 'ContentsRow',
+  version: '1',
+  description: 'Database row contract for contents table',
+  schema: Schemas.ContentsSelectSchema,
+})
+
+/**
+ * Contract for contents insert
+ * Database table: contents
+ */
+export const ContentsInsertContract = createContract({
+  name: 'ContentsInsert',
+  version: '1',
+  description: 'Database insert contract for contents table',
+  schema: Schemas.ContentsInsertSchema,
 })
 
 // =============================================================================
@@ -1029,6 +1081,32 @@ export const ErrorEventsInsertContract = createContract({
 })
 
 // =============================================================================
+// Events Contracts
+// =============================================================================
+
+/**
+ * Contract for events row (Select)
+ * Database table: events
+ */
+export const EventsRowContract = createContract({
+  name: 'EventsRow',
+  version: '1',
+  description: 'Database row contract for events table',
+  schema: Schemas.EventsSelectSchema,
+})
+
+/**
+ * Contract for events insert
+ * Database table: events
+ */
+export const EventsInsertContract = createContract({
+  name: 'EventsInsert',
+  version: '1',
+  description: 'Database insert contract for events table',
+  schema: Schemas.EventsInsertSchema,
+})
+
+// =============================================================================
 // FailedAttempts Contracts
 // =============================================================================
 
@@ -1234,6 +1312,32 @@ export const IdempotencyKeysInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for idempotency_keys table',
   schema: Schemas.IdempotencyKeysInsertSchema,
+})
+
+// =============================================================================
+// Info Contracts
+// =============================================================================
+
+/**
+ * Contract for info row (Select)
+ * Database table: info
+ */
+export const InfoRowContract = createContract({
+  name: 'InfoRow',
+  version: '1',
+  description: 'Database row contract for info table',
+  schema: Schemas.InfoSelectSchema,
+})
+
+/**
+ * Contract for info insert
+ * Database table: info
+ */
+export const InfoInsertContract = createContract({
+  name: 'InfoInsert',
+  version: '1',
+  description: 'Database insert contract for info table',
+  schema: Schemas.InfoInsertSchema,
 })
 
 // =============================================================================
@@ -1965,6 +2069,32 @@ export const PostsInsertContract = createContract({
 })
 
 // =============================================================================
+// Prices Contracts
+// =============================================================================
+
+/**
+ * Contract for prices row (Select)
+ * Database table: prices
+ */
+export const PricesRowContract = createContract({
+  name: 'PricesRow',
+  version: '1',
+  description: 'Database row contract for prices table',
+  schema: Schemas.PricesSelectSchema,
+})
+
+/**
+ * Contract for prices insert
+ * Database table: prices
+ */
+export const PricesInsertContract = createContract({
+  name: 'PricesInsert',
+  version: '1',
+  description: 'Database insert contract for prices table',
+  schema: Schemas.PricesInsertSchema,
+})
+
+// =============================================================================
 // ProcessedWebhookEvents Contracts
 // =============================================================================
 
@@ -2277,6 +2407,32 @@ export const SsoIdentitiesInsertContract = createContract({
 })
 
 // =============================================================================
+// Subscriptions Contracts
+// =============================================================================
+
+/**
+ * Contract for subscriptions row (Select)
+ * Database table: subscriptions
+ */
+export const SubscriptionsRowContract = createContract({
+  name: 'SubscriptionsRow',
+  version: '1',
+  description: 'Database row contract for subscriptions table',
+  schema: Schemas.SubscriptionsSelectSchema,
+})
+
+/**
+ * Contract for subscriptions insert
+ * Database table: subscriptions
+ */
+export const SubscriptionsInsertContract = createContract({
+  name: 'SubscriptionsInsert',
+  version: '1',
+  description: 'Database insert contract for subscriptions table',
+  schema: Schemas.SubscriptionsInsertSchema,
+})
+
+// =============================================================================
 // SyncMetadata Contracts
 // =============================================================================
 
@@ -2300,6 +2456,32 @@ export const SyncMetadataInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for sync_metadata table',
   schema: Schemas.SyncMetadataInsertSchema,
+})
+
+// =============================================================================
+// Tags Contracts
+// =============================================================================
+
+/**
+ * Contract for tags row (Select)
+ * Database table: tags
+ */
+export const TagsRowContract = createContract({
+  name: 'TagsRow',
+  version: '1',
+  description: 'Database row contract for tags table',
+  schema: Schemas.TagsSelectSchema,
+})
+
+/**
+ * Contract for tags insert
+ * Database table: tags
+ */
+export const TagsInsertContract = createContract({
+  name: 'TagsInsert',
+  version: '1',
+  description: 'Database insert contract for tags table',
+  schema: Schemas.TagsInsertSchema,
 })
 
 // =============================================================================
@@ -2612,6 +2794,32 @@ export const UsersInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for users table',
   schema: Schemas.UsersInsertSchema,
+})
+
+// =============================================================================
+// Videos Contracts
+// =============================================================================
+
+/**
+ * Contract for videos row (Select)
+ * Database table: videos
+ */
+export const VideosRowContract = createContract({
+  name: 'VideosRow',
+  version: '1',
+  description: 'Database row contract for videos table',
+  schema: Schemas.VideosSelectSchema,
+})
+
+/**
+ * Contract for videos insert
+ * Database table: videos
+ */
+export const VideosInsertContract = createContract({
+  name: 'VideosInsert',
+  version: '1',
+  description: 'Database insert contract for videos table',
+  schema: Schemas.VideosInsertSchema,
 })
 
 // =============================================================================

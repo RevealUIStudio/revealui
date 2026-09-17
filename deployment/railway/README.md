@@ -1,12 +1,13 @@
 # RevealUI on Railway (marketplace template)
 
 This directory holds the config-as-code files for a Railway template listing
-that deploys RevealUI's self-hosted Fleet stack. It is a second on-ramp for
-customers who already hold (or are buying) a RevealUI Fleet license and want
-a fast, infrastructure-as-code deploy, alongside the existing
-`docker-compose.forge.yml` path. It is a sales channel, not a replacement for
-RevealUI's own production hosting, which stays on Vercel, Neon, and Fly and is
-unaffected by anything in this directory.
+that deploys RevealUI Free (OSS) as a self-host try path: pgvector, migrate,
+api, and admin. Unlicensed Free is the default public listing. It is a second
+on-ramp alongside `docker-compose.forge.yml`. It is a customer self-host
+channel, not RevealUI Studio production hosting (Vercel, Neon, and Fly) and
+not a Studio cash-ladder SKU (Consultation / Pilot / Launch live on
+revealuistudio.com). Do not advertise Architecture Review or Fleet license
+as Railway listing copy.
 
 Read this whole document once before you touch the Railway dashboard. The
 license and first-boot steps are not optional, and skipping them produces a
@@ -27,10 +28,10 @@ entirely. This template is for:
 - Anyone who wants to try RevealUI's Free (OSS) tier on Railway with a single
   click, no license required — set `REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true`
   and omit the license vars.
-- An existing RevealUI Fleet (enterprise) customer moving their licensed
-  deployment to Railway — set `REVEALUI_LICENSE_KEY` /
-  `REVEALUI_LICENSE_PUBLIC_KEY` and leave `REVEALUI_ALLOW_UNLICENSED_SELF_HOST`
-  unset.
+- An existing licensed Enterprise customer moving a self-host deployment to
+  Railway — set `REVEALUI_LICENSE_KEY` / `REVEALUI_LICENSE_PUBLIC_KEY` and
+  leave `REVEALUI_ALLOW_UNLICENSED_SELF_HOST` unset. Fleet is not a public
+  pricing SKU; do not sell a Fleet license from this listing.
 - A prospect who has requested a trial license from RevealUI Studio for a
   Pro/Enterprise-tier walkthrough ahead of publishing the template listing.
 
@@ -238,7 +239,7 @@ and `apps/server/src/lib/required-env.ts` actually check today, not the
 | `REVEALUI_SECRET` | required, secret | `openssl rand -hex 32` (32-char minimum; this produces 64) |
 | `REVEALUI_KEK` | required, secret | `openssl rand -hex 32`, must be exactly 64 hex chars (AES-256-GCM envelope key) |
 | `REVEALUI_AUDIT_SIGNING_KEY` | required, secret | Ed25519 PKCS#8 PEM that signs every audit row: `openssl genpkey -algorithm Ed25519 -out audit-signing-key.pem`, then paste the file contents (with real newlines, or `\n`-escaped; both are normalized) |
-| `REVEALUI_LICENSE_KEY` | required unless running Free tier | **Issued by RevealUI Studio, not self-generated.** Contact RevealUI Studio or your account rep after purchasing a Fleet license at revealui.com/pricing. Omit for the Free-tier path below. Secret. |
+| `REVEALUI_LICENSE_KEY` | required unless running Free tier | **Issued by RevealUI Studio, not self-generated.** Contact sales for Enterprise licensing (Fleet is not a public pricing SKU). Omit for the Free (OSS) try path below. Secret. |
 | `REVEALUI_LICENSE_PUBLIC_KEY` | required unless running Free tier | Issued alongside `REVEALUI_LICENSE_KEY` above, the matching Ed25519 public key. Omit for the Free-tier path below. |
 | `REVEALUI_ALLOW_UNLICENSED_SELF_HOST` | optional | Set `true` to run Free (OSS) tier with no license. Must be set on **both** `api` and `admin`. A present-but-invalid license key still fails boot regardless of this flag. |
 | `REVEALUI_PUBLIC_SERVER_URL` | required | `https://${{api.RAILWAY_PUBLIC_DOMAIN}}` |

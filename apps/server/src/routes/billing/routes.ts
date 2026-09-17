@@ -21,6 +21,7 @@ import {
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
+import { issueRefund, reportAgentOverage } from '@revealui/paywall/stripe';
 import {
   and,
   count,
@@ -59,15 +60,17 @@ import {
   billingPortalConfigId,
   CheckoutRequestSchema,
   CheckoutResponseSchema,
+  createSubscriptionWithIncompleteIntent,
   ErrorSchema,
   ensureStripeCustomer,
   getAllCatalogSubscriptionPriceIds,
   getEarlyAdopterDiscount,
   getHostedSubscriptionSnapshot,
-  getMeterEventTimestamp,
   getStripeSubscriptionFallback,
   InvoicesResponseSchema,
   isStripeTaxEnabled,
+  PaymentIntentRequestSchema,
+  PaymentIntentResponseSchema,
   PortalResponseSchema,
   RefundRequestSchema,
   RefundResponseSchema,
@@ -185,6 +188,7 @@ app.openapi(checkoutRoute, async (c) => {
   // 10-minute idempotency window: prevents duplicate checkout sessions from
   // double-clicks or network retries while allowing a fresh attempt after 10 min.
   const idempotencyWindow = Math.floor(Date.now() / (10 * 60 * 1000));
+  const embedded = c.req.query('ui') === 'embedded';
   const session = await withStripe((stripe) =>
     stripe.checkout.sessions.create(
       {
@@ -217,28 +221,105 @@ app.openapi(checkoutRoute, async (c) => {
           trial_period_days: TRIAL_PERIOD_DAYS,
           metadata: { tier: resolvedTier, revealui_user_id: user.id },
         },
-        // First-time subscribers land on /welcome (3 concrete first actions:
-        // install CLI / clone source / read quick-start). Existing customers
-        // upgrading also see it — the page reads "Welcome" only when
-        // ?success=true, which Stripe appends here. See
-        // apps/admin/src/app/(backend)/welcome/page.tsx. Perpetual + renewal +
-        // credits success_urls (further down this file) intentionally stay on
-        // /account/billing — those flows are for known returning customers
-        // buying additional things, not first-action onboarding.
-        success_url: `${adminUrl}/welcome?success=true&tier=${resolvedTier}`,
-        cancel_url: `${adminUrl}/account/billing`,
+        ...(embedded
+          ? {
+              ui_mode: 'embedded_page' as const,
+              return_url: `${adminUrl}/welcome?success=true&tier=${resolvedTier}`,
+            }
+          : {
+              // First-time subscribers land on /welcome (3 concrete first actions:
+              // install CLI / clone source / read quick-start). Existing customers
+              // upgrading also see it — the page reads "Welcome" only when
+              // ?success=true, which Stripe appends here. See
+              // apps/admin/src/app/(backend)/welcome/page.tsx. Perpetual + renewal +
+              // credits success_urls (further down this file) intentionally stay on
+              // /account/billing — those flows are for known returning customers
+              // buying additional things, not first-action onboarding.
+              success_url: `${adminUrl}/welcome?success=true&tier=${resolvedTier}`,
+              cancel_url: `${adminUrl}/account/billing`,
+            }),
       },
       {
-        idempotencyKey: `checkout-sub-${user.id}-${resolvedTier}-${resolvedInterval}-${idempotencyWindow}`,
+        idempotencyKey: `checkout-sub-${user.id}-${resolvedTier}-${resolvedInterval}-${embedded ? 'embedded' : 'hosted'}-${idempotencyWindow}`,
       },
     ),
   );
+
+  if (embedded) {
+    if (!session.client_secret) {
+      throw new HTTPException(500, { message: 'Failed to create embedded checkout session' });
+    }
+    return c.json({ clientSecret: session.client_secret }, 200);
+  }
 
   if (!session.url) {
     throw new HTTPException(500, { message: 'Failed to create checkout session' });
   }
 
   return c.json({ url: session.url }, 200);
+});
+
+// POST /api/billing/payment-intent  — incomplete subscription client_secret (GAP-178)
+const paymentIntentRoute = createRoute({
+  method: 'post',
+  path: '/payment-intent',
+  tags: ['billing'],
+  summary: 'Create an incomplete subscription PaymentIntent',
+  description:
+    'Creates a Stripe subscription with payment_behavior=default_incomplete and returns the first invoice client_secret for Payment Element.',
+  request: {
+    body: {
+      content: {
+        'application/json': { schema: PaymentIntentRequestSchema },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: { 'application/json': { schema: PaymentIntentResponseSchema } },
+      description: 'PaymentIntent client_secret created',
+    },
+    401: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Not authenticated',
+    },
+  },
+});
+
+app.openapi(paymentIntentRoute, async (c) => {
+  const user = c.get('user');
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
+  assertAccountOwner(c);
+  await assertLiveCatalogComplete();
+
+  const { priceId, tier, interval } = c.req.valid('json');
+  const resolvedTier = tier ?? 'pro';
+  assertUnattendedCheckoutAllowed(resolvedTier);
+  const resolvedInterval = interval ?? 'month';
+  const resolvedPriceId = await resolveCatalogPriceId(
+    resolvedTier,
+    'subscription',
+    priceId,
+    resolvedInterval,
+  );
+  if (!user.email) {
+    throw new HTTPException(400, { message: 'An email address is required for billing' });
+  }
+  const customerId = await ensureStripeCustomer(user.id, user.email);
+  const intent = await createSubscriptionWithIncompleteIntent(customerId, resolvedPriceId, {
+    tier: resolvedTier,
+    revealui_user_id: user.id,
+  });
+  return c.json(
+    {
+      clientSecret: intent.clientSecret,
+      subscriptionId: intent.subscriptionId,
+      status: intent.status,
+    },
+    200,
+  );
 });
 
 // POST /api/billing/portal  -  Create a Stripe billing portal session
@@ -1702,38 +1783,18 @@ app.openapi(reportOverageRoute, async (c) => {
     .innerJoin(users, eq(agentTaskUsage.userId, users.id))
     .where(and(eq(agentTaskUsage.cycleStart, prevCycle), gt(agentTaskUsage.overage, 0)));
 
-  let reported = 0;
-  let skipped = 0;
-
-  for (const row of overageRows) {
-    if (!row.stripeCustomerId) {
-      skipped++;
-      continue;
-    }
-
-    try {
-      await protectedStripe.billing.meterEvents.create(
-        {
-          event_name: meterEventName,
-          payload: {
-            stripe_customer_id: row.stripeCustomerId,
-            value: String(row.overage),
-          },
-          timestamp: getMeterEventTimestamp(prevCycle),
-        },
-        { idempotencyKey: `overage-${row.userId}-${prevCycle}` },
-      );
-      reported++;
-    } catch (err) {
+  const { reported, skipped } = await reportAgentOverage(protectedStripe, overageRows, {
+    meterEventName,
+    cycleStart: prevCycle,
+    onError: (row, err) => {
       logger.error('Stripe meter event creation failed', err instanceof Error ? err : undefined, {
         userId: row.userId,
         stripeCustomerId: row.stripeCustomerId,
         overage: row.overage,
         meterEventName,
       });
-      skipped++;
-    }
-  }
+    },
+  });
 
   return c.json({ reported, skipped }, 200);
 });
@@ -1921,21 +1982,21 @@ app.openapi(refundRoute, async (c) => {
   // Binding to `amount || 'full'` (not `user.id`) keeps partial refunds of
   // different amounts distinct while converging full refunds and any two
   // admins issuing the same partial to one Stripe refund.
-  const idempotencyKey = `refund-${chargeId ?? paymentIntentId}-${amount ?? 'full'}`;
-
-  const refundParams: Stripe.RefundCreateParams = {
-    ...(paymentIntentId ? { payment_intent: paymentIntentId } : {}),
-    ...(chargeId ? { charge: chargeId } : {}),
-    ...(amount ? { amount } : {}),
-    ...(reason ? { reason } : {}),
-  };
-
-  const refund = await withStripe((stripe) =>
-    stripe.refunds.create(refundParams, { idempotencyKey }),
-  );
+  const services = await getServices();
+  if (!services) {
+    throw new HTTPException(503, {
+      message: 'Payment service not available. Please try again shortly.',
+    });
+  }
+  const refund = await issueRefund(services.protectedStripe, {
+    paymentIntentId,
+    chargeId,
+    amount,
+    reason,
+  });
 
   logger.info('Refund issued', {
-    refundId: refund.id,
+    refundId: refund.refundId,
     amount: refund.amount,
     status: refund.status,
     issuedBy: user.id,
@@ -1945,8 +2006,8 @@ app.openapi(refundRoute, async (c) => {
 
   return c.json(
     {
-      refundId: refund.id,
-      status: refund.status ?? 'pending',
+      refundId: refund.refundId,
+      status: refund.status,
       amount: refund.amount,
       currency: refund.currency,
     },

@@ -224,7 +224,7 @@ export default function PublishAgentPage() {
           <span className="text-sm text-muted-foreground">Publish Agent</span>
           <h1 className="mt-1 text-xl font-semibold text-foreground">Publish a New Agent</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Define your agent, add skills, and publish to the marketplace
+            Define an agent draft (preview). Publishing does not run skills.
           </p>
         </div>
 

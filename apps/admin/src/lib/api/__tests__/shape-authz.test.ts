@@ -2,10 +2,12 @@
  * Electric shape AuthZ helpers — fleet-operator vs hosted CMS admin/owner.
  */
 
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  canAccessKgShapes,
   isFleetOperator,
   requireAdminRole,
+  resolveKgShapeRepoWhere,
   userCanAccessSite,
   userCanAccessYjsDocument,
 } from '../shape-authz.js';
@@ -54,6 +56,74 @@ describe('requireAdminRole vs isFleetOperator', () => {
     ).toBe(false);
     expect(isFleetOperator(null)).toBe(false);
     expect(isFleetOperator(undefined)).toBe(false);
+  });
+});
+
+describe('canAccessKgShapes', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('allows a fleet operator regardless of licensed-operator env', () => {
+    expect(canAccessKgShapes(FLEET_OPERATOR)).toBe(true);
+    vi.stubEnv('REVEALUI_KG_LICENSED_OPERATOR', '1');
+    expect(canAccessKgShapes(FLEET_OPERATOR)).toBe(true);
+  });
+
+  it('denies hosted CMS admin/owner when licensed-operator env is unset (hosted default)', () => {
+    expect(canAccessKgShapes(HOSTED_ADMIN)).toBe(false);
+    expect(canAccessKgShapes(HOSTED_OWNER)).toBe(false);
+    expect(canAccessKgShapes(null)).toBe(false);
+    expect(canAccessKgShapes(undefined)).toBe(false);
+  });
+
+  it('allows a verified shell admin/owner when REVEALUI_KG_LICENSED_OPERATOR=1', () => {
+    vi.stubEnv('REVEALUI_KG_LICENSED_OPERATOR', '1');
+    expect(canAccessKgShapes(HOSTED_ADMIN)).toBe(true);
+    expect(canAccessKgShapes(HOSTED_OWNER)).toBe(true);
+  });
+
+  it('denies licensed-operator mode without verified email, admin role, or exact env=1', () => {
+    vi.stubEnv('REVEALUI_KG_LICENSED_OPERATOR', '1');
+    expect(
+      canAccessKgShapes({
+        role: 'admin',
+        emailVerified: false,
+      }),
+    ).toBe(false);
+    expect(
+      canAccessKgShapes({
+        role: 'viewer',
+        emailVerified: true,
+      }),
+    ).toBe(false);
+    vi.stubEnv('REVEALUI_KG_LICENSED_OPERATOR', 'true');
+    expect(canAccessKgShapes(HOSTED_ADMIN)).toBe(false);
+  });
+});
+
+describe('resolveKgShapeRepoWhere', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('keeps repo optional for fleet operators and required for licensed-operator', () => {
+    expect(resolveKgShapeRepoWhere(FLEET_OPERATOR, null)).toEqual({ ok: true, repo: null });
+    expect(resolveKgShapeRepoWhere(FLEET_OPERATOR, 'revealui')).toEqual({
+      ok: true,
+      repo: 'revealui',
+    });
+
+    vi.stubEnv('REVEALUI_KG_LICENSED_OPERATOR', '1');
+    expect(resolveKgShapeRepoWhere(HOSTED_ADMIN, null)).toEqual({ ok: false, reason: 'missing' });
+    expect(resolveKgShapeRepoWhere(HOSTED_ADMIN, 'revealui')).toEqual({
+      ok: true,
+      repo: 'revealui',
+    });
+    expect(resolveKgShapeRepoWhere(HOSTED_ADMIN, "x'; DROP TABLE kg_nodes;--")).toEqual({
+      ok: false,
+      reason: 'invalid',
+    });
   });
 });
 

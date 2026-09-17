@@ -355,7 +355,7 @@ export function perpetualLicenseLabel(sku: PerpetualLicenseSku): string {
 }
 
 export function perpetualLicenseSignupPath(sku: PerpetualLicenseSku): string {
-  return `/signup?license=${sku}`;
+  return `https://admin.revealui.com/signup?license=${sku}`;
 }
 
 export function perpetualLicenseCheckoutPath(sku: PerpetualLicenseSku): string {

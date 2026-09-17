@@ -76,17 +76,19 @@ export const SHAPE_AUTHZ_REGISTRY: Readonly<Record<string, ShapeAuthzEntry>> = {
   'kg-nodes': {
     table: 'kg_nodes',
     scope: 'admin_platform',
-    enforcement: 'isFleetOperator + optional repo where (fleet graph)',
+    enforcement:
+      'canAccessKgShapes + optional repo where (fleet) / required repo where (licensed-operator)',
   },
   'kg-edges': {
     table: 'kg_edges',
     scope: 'admin_platform',
-    enforcement: 'isFleetOperator + optional repo where (fleet graph)',
+    enforcement:
+      'canAccessKgShapes + optional repo where (fleet) / required repo where (licensed-operator)',
   },
   'kg-edge-episodes': {
     table: 'kg_edge_episodes',
     scope: 'admin_platform',
-    enforcement: 'isFleetOperator (join table; no ownership column)',
+    enforcement: 'canAccessKgShapes + isFleetOperator (join table; no repo column to scope)',
   },
   'kg-views': {
     table: 'yjs_documents',

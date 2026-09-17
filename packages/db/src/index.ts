@@ -73,7 +73,7 @@ export {
 } from './saga/index.js';
 // Re-export everything from core (schema)
 export * from './schema/index.js';
-// Re-export Database types (centralized type matching Supabase structure)
+// Re-export Database types (legacy public.Tables index; Neon is SSOT)
 export type {
   Database,
   TableInsert,

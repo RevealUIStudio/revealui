@@ -57,10 +57,9 @@ describe('Database Type Generation', () => {
       expect(content).toContain(table);
     }
 
-    // Verify tables are discovered automatically (not hardcoded)
-    expect(content).toContain(
-      'Tables are automatically discovered from packages/db/src/schema/*.ts',
-    );
+    // Verify tables are discovered from schema (not a hardcoded list)
+    expect(content).toContain('Tables are discovered from packages/db/src/schema/*.ts');
+    expect(content).toContain('Neon is the SSOT');
   });
 
   it('should generate Row, Insert, and Update types for each table', () => {

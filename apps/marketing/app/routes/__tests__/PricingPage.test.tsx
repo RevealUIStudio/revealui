@@ -334,7 +334,7 @@ describe('PricingPage product catalog', () => {
     expect(text.includes('RevVault is encrypted secret management inside Pro')).toBe(true);
   });
 
-  it('keeps Coming soon on the x402 card only, not the Agents band', async () => {
+  it('keeps Off by default on the x402 card only, not the Agents band', async () => {
     render(<PricingPage />);
     const sectionHeading = await screen.findByRole('heading', {
       name: PRICING_AGENTS_SECTION.heading,
@@ -351,18 +351,20 @@ describe('PricingPage product catalog', () => {
     const x402Card = x402.closest('div.rounded-2xl') ?? x402.parentElement;
     const mcpCard = mcp.closest('div.rounded-2xl') ?? mcp.parentElement;
 
-    const comingSoonBadges = screen.getAllByText('Coming soon', { exact: true });
-    expect(comingSoonBadges).toHaveLength(1);
-    const comingSoonBadge = comingSoonBadges[0] ?? null;
-    expect(comingSoonBadge).not.toBeNull();
-    expect(x402Card?.contains(comingSoonBadge)).toBe(true);
-    expect(a2aCard?.contains(comingSoonBadge)).toBe(false);
-    expect(mcpCard?.contains(comingSoonBadge)).toBe(false);
+    const offBadges = screen.getAllByText('Off by default', { exact: true });
+    expect(offBadges).toHaveLength(1);
+    const offBadge = offBadges[0] ?? null;
+    expect(offBadge).not.toBeNull();
+    expect(x402Card?.contains(offBadge)).toBe(true);
+    expect(a2aCard?.contains(offBadge)).toBe(false);
+    expect(mcpCard?.contains(offBadge)).toBe(false);
     expect(a2aCard?.textContent?.includes('Coming soon')).toBe(false);
     expect(mcpCard?.textContent?.includes('Coming soon')).toBe(false);
+    expect(x402Card?.textContent?.includes('Coming soon')).toBe(false);
+    expect(x402Card?.textContent?.includes('not a live payments product')).toBe(true);
     expect(mcpCard?.textContent?.includes('Discovery via marketplace.json')).toBe(true);
     expect(mcpCard?.textContent?.includes('third-party catalog')).toBe(true);
-    expect(PRICING_AGENT_X402.badge).toBe('Coming soon');
+    expect(PRICING_AGENT_X402.badge).toBe('Off by default');
     expect('badge' in PRICING_AGENTS_SECTION).toBe(false);
   });
 

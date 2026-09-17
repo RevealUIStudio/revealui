@@ -64,13 +64,13 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_AGENT_X402.body',
-    text: 'RevealUI implements the HTTP 402 payment protocol. Built on the open x402 standard, with a Coinbase-compatible facilitator implemented. Agents pay agents over standard HTTP. No accounts, no subscriptions. The rail ships in the code and activates when the operator configures a receiving wallet; it is not switched on today.',
+    text: 'The HTTP 402 (x402) payment rail ships in the code and stays off by default. Built on the open x402 standard, with a Coinbase-compatible facilitator implemented. It is not included today: X402_ENABLED is off, and this is not a live payments product until an operator turns the flag on.',
     evidence: [X402, X402_FACILITATOR],
   },
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_AGENT_MCP.body',
-    text: 'N production MCP servers for any MCP-capable IDE (Cursor, Claude Code, Copilot, Zed, and others), including Stripe, Neon, Vercel, Playwright, Next.js DevTools, content management, and email. First-party servers ship today. Discovery via marketplace.json and the servers list is a preview; the third-party catalog, charging, and payouts are not open. (interpolated: N from METRICS.mcpServers)',
+    text: 'N production MCP servers for any MCP-capable IDE (Cursor, Claude Code, Copilot, Zed, and others), including Stripe, Neon, Vercel, Playwright, Next.js DevTools, pages and offers, and email. First-party servers ship today. Discovery via marketplace.json and the servers list is a preview; the third-party catalog, charging, and payouts are not open. (interpolated: N from METRICS.mcpServers)',
     match: 'path',
     evidence: [MCP_SERVERS],
   },
@@ -107,7 +107,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'SUBSCRIPTION_TIERS[0].features[0]',
-    text: 'Unlimited admin collections',
+    text: 'Admin collections for offers and pages you ship (not a Contents/Videos CMS SKU)',
     evidence: [COLLECTIONS],
   },
   {
@@ -125,7 +125,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'SUBSCRIPTION_TIERS[1].features[0]',
-    text: 'Unlimited admin collections',
+    text: 'Admin collections for offers and pages you ship (not a Contents/Videos CMS SKU)',
     evidence: [COLLECTIONS],
   },
   {

@@ -19,9 +19,7 @@
  * Collection choice:
  *   Pages/Posts have required `blocks`/`richText` fields that DocumentForm
  *   cannot render (it only handles text/number/checkbox/select/date).
- *   Save would always fail for those collections via the admin UI.
- *   The `categories` collection has only `title` (text, required)  -  ideal for
- *   verifying the full admin CRUD flow.
+ *   Categories is title-only and now registered with a `categories` table.
  *
  * Run with:
  *   CI=1 PLAYWRIGHT_BASE_URL=https://admin.revealui.com \
@@ -157,7 +155,9 @@ test.describe('Content CRUD lifecycle', () => {
 
     await page.getByRole('button', { name: 'Save' }).click();
 
-    await expect(page.getByRole('button', { name: 'Create New' })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('button', { name: 'Create New' })).toBeVisible({
+      timeout: 15000,
+    });
     await expect(page.getByText(secondTitle)).toBeVisible({ timeout: 5000 });
   });
 });

@@ -5,6 +5,10 @@
  * SkillRegistry loaded from disk catalog paths.
  * Default (unset): null — no skills load when disabled.
  *
+ * Honesty: the flag is catalog wire only. It does not inject skills by itself.
+ * Injection happens later only if a runtime calls `injectSkillInstructions`
+ * and the activator selects skills. Do not claim "flag on = skills inject".
+ *
  * Catalog paths (GAP-411 residual 2):
  * - `REVEALUI_AI_SKILLS_GLOBAL_DIR` — global skills dir (default `~/.revealui/skills`)
  * - `REVEALUI_AI_SKILLS_LOCAL_DIR` — project-relative dir (default `.revealui/skills`)

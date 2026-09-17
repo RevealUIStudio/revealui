@@ -78,12 +78,12 @@ feature/* ──PR──▶ test ──PR──▶ main
 > via npm rather than via workspace links — same brand surface, decoupled
 > repo + deploy cadence.
 
-### OSS Packages (MIT) — 25
+### OSS Packages (MIT) — 26
 | Package | Purpose |
 |---------|---------|
 | @revealui/core | admin engine, REST API, auth, rich text, admin UI, plugins |
 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) |
-| @revealui/db | Drizzle ORM schema (104 tables) on NeonDB (Postgres); Supabase was removed (ADR 2026-05-01) |
+| @revealui/db | Drizzle ORM schema (112 tables) on NeonDB (Postgres); Supabase was removed (ADR 2026-05-01) |
 | @revealui/auth | Session auth, password reset, rate limiting |
 | @revealui/presentation | Native UI components in `packages/presentation/src/components/` (Tailwind v4, zero external UI deps; `@revealui/tokens` + `tailwind-merge`, vendored `cn`/`cva`) |
 | @revealui/router | Lightweight file-based router with SSR |
@@ -101,6 +101,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 | @revealui/test | E2E specs (Playwright), integration tests, fixtures, mocks, test utilities |
 | @revealui/openapi | Type-safe OpenAPI 3.x for Hono — route definitions, Zod validation, spec generation + Swagger UI |
 | @revealui/paywall | Runtime license enforcement, feature gating, and upgrade UI (Stripe + x402) |
+| @revealui/secrets | Multi-vendor secret loader (env, file mounts, revvault) |
 | @revealui/knowledge-graph | Fleet knowledge graph: bi-temporal, content-addressed graph over Neon + pgvector, `revkg` CLI |
 | @revealui/tokens | Design tokens — canonical CSS variables, typed TS export, brand canon (zero internal deps) |
 | @revealui/claim-gates | Fleet claim honesty engines (`validate:claims`) |

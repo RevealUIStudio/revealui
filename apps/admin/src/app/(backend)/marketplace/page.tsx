@@ -92,7 +92,7 @@ export default function MarketplacePage() {
             <div>
               <h1 className="text-xl font-semibold text-foreground">RevMarket</h1>
               <p className="mt-0.5 text-sm text-muted-foreground">
-                Browse autonomous agents - find the right agent for your task
+                Browse published agents (preview). Execution is not live.
               </p>
             </div>
             <div className="flex gap-2">

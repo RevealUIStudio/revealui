@@ -6,7 +6,7 @@ status: verified
 audience: user
 ---
 
-> Last verified: 2026-08-19
+> Last verified: 2026-09-16
 
 This page is an honest account of what RevealUI can and can't do right now.
 If you're evaluating RevealUI for a project, read this before the marketing page.
@@ -25,7 +25,7 @@ and a REST API. The heart of RevealUI and the most mature part of the codebase.
 **66 native React components in `@revealui/presentation`** (plus admin and rich-text UI in `@revealui/core`), built on Tailwind CSS v4. No external UI dependencies (no Radix, no Headless UI, no shadcn). Just React hooks, clsx, and CVA. Buttons, forms, modals, tables, toasts, navigation, data display, and layout primitives.
 
 ### Database schema
-**104 PostgreSQL tables** with Drizzle ORM, **88 CHECK constraints** enforced at the database level. NeonDB is the sole primary database (REST, agent memories, and RAG via pgvector on Neon). Supabase is not an internal datastore (ADR `2026-05-01-supabase-removal`); the customer-facing Supabase MCP adapter was removed (use Neon MCP). ElectricSQL is an optional sync layer (off by default).
+**112 PostgreSQL tables** with Drizzle ORM, **88 CHECK constraints** enforced at the database level. NeonDB is the sole primary database (REST, agent memories, and RAG via pgvector on Neon). Supabase is not an internal datastore (ADR `2026-05-01-supabase-removal`); the customer-facing Supabase MCP adapter was removed (use Neon MCP). ElectricSQL is an optional sync layer (off by default).
 
 ### Rich text editing
 Lexical-based rich text editor with custom nodes, serialization, and a plugin system.
@@ -74,6 +74,9 @@ Content Security Policy headers, CORS, HSTS, rate limiting, webhook rate limitin
 JWT-based licensing (EdDSA/Ed25519, server-side only — distinct from user-facing auth which is session-only) with tier checks (free / pro / max / enterprise), feature gating, grace periods (3-day subscription, 30-day perpetual, 7-day infrastructure), and revocation via DB status checks. Perpetual and subscription models supported.
 **License generation and enforcement work in tests. Not yet tested with paying customers.**
 
+### Knowledge Graph
+`@revealui/knowledge-graph` is a first-class Electric+CRDT contract surface (`revkg` CLI). Honest naming is correct in runtime, docs, and admin. It is **not** a Studio cash SKU and is not sold as Fleet KG on public pricing (Consultation / Pilot / Launch stay the Studio ladder).
+
 ### Fleet runtime images (GHCR)
 `ghcr.io/revealuistudio/revealui-api:latest`, `revealui-admin:latest`, and `revealui-migrate:latest` are published. Re-verified 2026-08-17: the GHCR anonymous token endpoint plus an OCI index GET returns HTTP 200 for those tags. A bare curl of the manifest URL without that token is 401 (GHCR default). RevForge stamps those tags. A stamped kit still needs a license JWT and operator env. This is not a sold customer walk.
 
@@ -100,7 +103,8 @@ Honest list of things that are not done, not deployed, or not verified.
   is still open. Operator guide: [FORGE_SSO_SETUP.md](./FORGE_SSO_SETUP.md).
   **SCIM is not built** (still a non-goal of the SSO MVP).
 - **No dunning logic.** Best-practice guidance only.
-- **No Prompts collection.** admin ships Pages, Posts, Products, Contents, Videos, Tenants — no Prompts.
+- **No Prompts collection.** Live admin collections today: Pages, Posts, Products, Tenants, Media, Orders, Conversations. **Contents and Videos are not shipped live CMS collections** (cms Contents = WIRE-UP-PENDING; not registered, no backing table). Do not treat them as included.
+- **Do not claim as live until walked:** Contents, Videos CMS, PTY output, hypervisor spawn, RevMarket-exec, x402 payments, skill injection from the `REVEALUI_AI_SKILLS` flag alone. x402 remains off by default (`X402_ENABLED`). Terminal WS forwards input/resize only; PTY output is not implemented. RevMarket sandbox stubs fail closed (preview) and do not fake a successful skill run. `REVEALUI_AI_SKILLS=1` loads a catalog + provider; the flag alone does not inject skills.
 
 ---
 
@@ -108,13 +112,13 @@ Honest list of things that are not done, not deployed, or not verified.
 
 | Metric | Value | Verified |
 |--------|-------|----------|
-| Workspaces (apps + packages) | 38 | Yes |
+| Workspaces (apps + packages) | 39 | Yes |
 | Apps | 6 (`admin`, `server`, `docs`, `marketing`, `license-signer`, `rsc-poc`) | Yes |
-| OSS packages (MIT) | 25 | Yes |
+| OSS packages (MIT) | 26 | Yes |
 | Pro packages (FSL-1.1-MIT) | 5 (`ai`, `engines`, `harnesses`, `mcp`, `services`) | Yes |
 | Internal packages | 2 (`@revealui/scripts`, `@revealui/apify-actor-governed-run`) | Yes |
 | UI components | 66 in `@revealui/presentation` | Yes |
-| Database tables | 104 | Yes (`countDbTables` in `@revealui/claim-gates`) |
+| Database tables | 112 | Yes (`countDbTables` in `@revealui/claim-gates`) |
 | CHECK constraints | 88 | Yes (`countCheckConstraints` in `@revealui/claim-gates`) |
 | MCP servers | 14 | Yes (run `ls packages/mcp/src/servers/*.ts` and count non-`_` files) |
 | Test cases | run `pnpm test` for current count | Reproducible |
@@ -136,7 +140,7 @@ cd revealui
 pnpm install
 pnpm gate                # Run the full CI gate locally
 pnpm test                # Run the full test suite
-pnpm typecheck:all       # Typecheck all 38 workspaces
+pnpm typecheck:all       # Typecheck all 39 workspaces
 pnpm validate:claims     # Run the marketing/docs claim-drift gate
 ```
 

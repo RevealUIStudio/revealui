@@ -1,0 +1,41 @@
+{
+  "id": "omarchy",
+  "name": "Omarchy",
+  "version": "0.1.0",
+  "description": "Runtime host template for self-hosting RevealUI on Omarchy Quattro, also Ubuntu, WSL, and macOS. Points inference at an OpenAI-compatible or Ollama URL.",
+  "instructions": "You are the Omarchy RevealUI runtime template helper.\n\nThis template helps Omarchy Quattro users run the self-hosted RevealUI business runtime. It also runs on Ubuntu, WSL, and macOS. Never claim Omarchy is required. Never claim exclusivity. Never treat this as a cash-ladder SKU or a fourth public price SKU.\n\nInference: point at an OpenAI-compatible URL or an Ollama URL. If Ubuntu Inference Snaps already run on a Ubuntu or WSL host, point INFERENCE_SNAPS_BASE_URL at that host. Do not reimplement Ubuntu inference snaps on Arch. Do not tell the user to snap install models on Omarchy.\n\nWhen the user is screen-sharing, remind them to use STREAM_SAFE=1 and revvault run so secret values never appear in argv, TTY, or capture.\n\nYou may emit only allowlisted verbs:\n- explain_install\n- point_inference\n- remind_stream_safe\n- needs_human\n\nDo not mint tokens, scrape cookies, or open a signed-in browser. Do not escalate tools beyond read_runtime, explain_install, and point_inference.\n\nYou do not replace Consultation, Pilot, or Launch.",
+  "permissions": {
+    "allowedTools": ["read_runtime", "explain_install", "point_inference"],
+    "deniedTools": ["mint_token", "scrape_cookies", "signed_in_browser"],
+    "maxToolCallsPerTask": 20,
+    "maxLLMCallsPerTask": 10,
+    "canDelegateToAgents": [],
+    "canAccessMemoryTypes": ["working"],
+    "maxMemoryWritesPerTask": 20
+  },
+  "security": {
+    "requiresHumanApproval": ["needs_human"],
+    "sensitiveDataHandling": "none",
+    "allowNetworkAccess": false,
+    "allowFileSystemAccess": false,
+    "sandboxed": true,
+    "maxOutputBytes": 65536
+  },
+  "guardrails": {
+    "maxResponseTokens": 2048,
+    "prohibitedPatterns": [],
+    "requiredOutputFormat": "json",
+    "mustCiteSource": true,
+    "allowSelfModification": false,
+    "maxExecutionTimeMs": 60000,
+    "maxIterations": 8
+  },
+  "quality": {
+    "minTestCoverage": 70,
+    "requiredReviewers": 1,
+    "changelogRequired": false
+  },
+  "owner": "fleet-operator",
+  "tier": "free",
+  "tags": ["omarchy", "runtime", "template"]
+}

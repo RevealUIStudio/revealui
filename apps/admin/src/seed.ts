@@ -13,12 +13,12 @@
  *   - Env via scripts/lib/seed-env.ts (direnv passwordless demotion + preflight)
  *   - CLI creates use overrideAccess: true (no interactive admin session)
  *   - Empty DB requires REVEALUI_ADMIN_EMAIL + REVEALUI_ADMIN_PASSWORD (≥12 chars)
- *   - contents/events are NOT seeded: not in allCollections (no Postgres tables)
+ *   - contents/events seed when those collections are registered
  *
  * Usage:
  *   pnpm db:seed                    # Seed everything
  *   pnpm db:seed -- --pages-only    # Seed pages only
- *   pnpm db:seed -- --content-only  # No-op notice (legacy collections unregistered)
+ *   pnpm db:seed -- --content-only  # Seed Contents + Events only
  */
 
 import config from '@reveal-config';
@@ -362,16 +362,11 @@ async function seedPages(
   return seedCollection(revealui, 'pages', pagesWithSite, 'slug', 'Pages');
 }
 
-/**
- * contents / events are WIRE-UP-PENDING (registry omits them; no tables).
- * Seeding them always produced "Collection not found" — gate closed here.
- */
-function seedContentNotice(): void {
-  logger.info('\nContents / Events: skipped (not registered)');
-  logger.info(
-    '  apps/admin collections registry omits contents/events until Postgres tables exist',
-  );
-  logger.info('  (see registry.ts WIRE-UP-PENDING). Re-enable seed when those land.');
+async function seedContentsAndEvents(
+  revealui: Awaited<ReturnType<typeof getRevealUI>>,
+): Promise<void> {
+  await seedCollection(revealui, 'contents', sampleContent.contents, 'name', 'Contents');
+  await seedCollection(revealui, 'events', sampleContent.events, 'title', 'Events');
 }
 
 // --- Main ---
@@ -400,7 +395,7 @@ async function main() {
     }
 
     if (!pagesOnly) {
-      seedContentNotice();
+      await seedContentsAndEvents(revealui);
     }
 
     if (pageResult.failed > 0) {
@@ -441,4 +436,4 @@ async function main() {
 
 main();
 
-export { pages, sampleContent, seedContentNotice as seedContent, seedPages };
+export { pages, sampleContent, seedContentsAndEvents as seedContent, seedPages };

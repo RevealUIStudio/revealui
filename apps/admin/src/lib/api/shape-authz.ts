@@ -11,7 +11,7 @@ import type { Database } from '@revealui/db/client';
 import { siteCollaborators, sites, yjsDocuments } from '@revealui/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { isAdminRole } from '@/lib/access/roles/isAdminRole';
-import { isSyncIdentifier, isUuid } from '@/lib/utils/identifier-validation';
+import { isRepoIdentifier, isSyncIdentifier, isUuid } from '@/lib/utils/identifier-validation';
 
 export { isUuid };
 
@@ -47,6 +47,50 @@ export function isFleetOperator(user: ShapeAuthUser | null | undefined): boolean
   if (!user) return false;
   if (user.emailVerified !== true) return false;
   return rolesFromJson(user._json).includes('super-admin');
+}
+
+/**
+ * Dual gate for fleet KG Electric shapes and `GET /api/kg/repos`.
+ *
+ * - Fleet operator (verified `_json.roles` super-admin): always allowed.
+ * - Licensed-operator mode: `REVEALUI_KG_LICENSED_OPERATOR=1` AND verified
+ *   shell admin/owner (`requireAdminRole` + `emailVerified === true`).
+ * - Else false.
+ *
+ * Default hosted (env unset) stays fleet-operator only so Pro tenants cannot
+ * sync the shared fleet graph (`kg_nodes` has `repo`, no `tenant_id`).
+ * Launch / self-host sets the env for Pro+ shell admins. Non-fleet callers
+ * who pass this check must still supply `repo=` on repo-partitioned shapes
+ * ({@link resolveKgShapeRepoWhere}).
+ */
+export function canAccessKgShapes(user: ShapeAuthUser | null | undefined): boolean {
+  if (isFleetOperator(user)) return true;
+  if (!user) return false;
+  if (process.env.REVEALUI_KG_LICENSED_OPERATOR !== '1') return false;
+  return requireAdminRole(user.role) && user.emailVerified === true;
+}
+
+export type KgShapeRepoWhereResult =
+  | { ok: true; repo: string | null }
+  | { ok: false; reason: 'missing' | 'invalid' };
+
+/**
+ * Repo scope for KG Electric `where`. Fleet operators keep optional `repo`.
+ * Licensed-operator callers (non-fleet, `canAccessKgShapes`) must pass a
+ * valid `repo`; fail closed if it is missing so they cannot sync the full
+ * fleet graph.
+ */
+export function resolveKgShapeRepoWhere(
+  user: ShapeAuthUser,
+  repo: string | null,
+): KgShapeRepoWhereResult {
+  if (repo !== null && !isRepoIdentifier(repo)) {
+    return { ok: false, reason: 'invalid' };
+  }
+  if (!isFleetOperator(user) && repo === null) {
+    return { ok: false, reason: 'missing' };
+  }
+  return { ok: true, repo };
 }
 
 /**

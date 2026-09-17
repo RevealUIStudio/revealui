@@ -23,20 +23,20 @@ function baseOpts(overrides: Partial<SandboxRunOptions> = {}): SandboxRunOptions
 }
 
 describe('forkProvider — happy path with the production runner', () => {
-  it('runs the bundled stub runner and returns the structured result', async () => {
+  it('runs the bundled stub runner and fails closed (no fake success)', async () => {
     const provider = forkProvider({ runnerPath: PROD_RUNNER });
     const opts = baseOpts({ skillName: 'happy-skill' });
     const result = await provider.run(opts);
 
-    expect(result.success).toBe(true);
+    expect(result.success).toBe(false);
     expect(result.output).toMatchObject({
       taskId: opts.taskId,
       skillName: 'happy-skill',
-      status: 'executed',
+      status: 'preview-not-executed',
     });
     expect(result.artifacts).toEqual([]);
     expect(result.tokensUsed).toBe(0);
-    expect(result.error).toBeUndefined();
+    expect(result.error).toMatch(/preview-only|not wired/i);
   }, 30_000);
 
   it('reports the correct provider tag and name', () => {

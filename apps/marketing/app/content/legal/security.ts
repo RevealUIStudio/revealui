@@ -8,13 +8,13 @@ import type { LegalSection } from './privacy';
 
 export const SECURITY_META = {
   title: 'Security',
-  lastUpdated: 'May 28, 2026',
+  lastUpdated: 'September 16, 2026',
   intro:
-    'RevealUI Studio is a solo-operator company building production software. Security is not a marketing line for us. It is a discipline we apply every day, and it determines whether real customers can trust us with their data. This page describes how we accept vulnerability reports, what we commit to in return, and the security posture our customers inherit when they self-host.',
+    'RevealUI Studio is a solo-operator company building production software. Security is not a marketing line for us. It is a discipline we apply every day, and it determines whether real customers can trust us with their data. This page is the on-site policy summary: how we accept vulnerability reports, what we commit to in return, and the security posture our customers inherit when they self-host. Formal GitHub reporting lives at the Security Advisories policy.',
   notice: {
     variant: 'success' as const,
     title: 'Safe-harbor commitment to good-faith researchers',
-    body: 'If you act in good faith and follow this policy, we will not pursue or support legal action against you for your security research. Email the security address to report a vulnerability. The machine-readable policy is at /.well-known/security.txt.',
+    body: 'If you act in good faith and follow this policy, we will not pursue or support legal action against you for your security research. Email the security address to report a vulnerability. The machine-readable policy is at /.well-known/security.txt. GitHub Security Advisories: https://github.com/RevealUIStudio/revealui/security/policy',
   },
 } as const;
 
@@ -22,7 +22,7 @@ export const SECURITY_SECTIONS: readonly LegalSection[] = [
   {
     heading: '1. Reporting a vulnerability',
     paragraphs: [
-      `If you believe you have found a security vulnerability in RevealUI or any of our hosted properties (revealui.com, admin.revealui.com, api.revealui.com, docs.revealui.com), email ${SITE.emails.security} with a clear description, reproduction steps, and the affected URL or component. If you need a backup address, use ${SITE.emails.founder}.`,
+      `If you believe you have found a security vulnerability in RevealUI or any of our hosted properties (revealui.com, admin.revealui.com, api.revealui.com, docs.revealui.com), email ${SITE.emails.security} with a clear description, reproduction steps, and the affected URL or component. You can also report through GitHub Security Advisories at ${SITE.urls.repoSecurity}. If you need a backup address, use ${SITE.emails.founder}.`,
       'We do not currently publish a PGP key. If your report contains sensitive material (proof-of-concept payloads, user data exposure, exploit details), email us first and we will arrange an encrypted channel before you share specifics.',
       'We acknowledge receipt within 2 business days and aim to provide a substantive initial response within 5 business days. As a solo-operator company we cannot promise 24×7 triage, but we treat real security reports as our highest priority.',
     ],
@@ -96,7 +96,7 @@ export const SECURITY_SECTIONS: readonly LegalSection[] = [
   {
     heading: '8. Machine-readable policy',
     paragraphs: [
-      'This policy is also published as an RFC 9116 security.txt file at https://revealui.com/.well-known/security.txt. Automated security tooling should read that file for contact and policy URLs.',
+      'This policy is also published as an RFC 9116 security.txt file at https://revealui.com/.well-known/security.txt. Automated security tooling should read that file for contact and policy URLs. GitHub Security Advisories (same reporting channel): https://github.com/RevealUIStudio/revealui/security/policy.',
     ],
   },
   {

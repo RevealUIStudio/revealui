@@ -119,7 +119,7 @@ Four protocols converge to create the agent-first web. Each solves a different p
 
 | Protocol | Created by | Governed by | Purpose | RevealUI implementation |
 |---|---|---|---|---|
-| **A2A** (Agent-to-Agent) | Google | Linux Foundation (Agentic AI Foundation) | Agents discover and delegate work to other agents | Full A2A 1.0: Agent Cards, JSON-RPC task lifecycle (`tasks/send`, `tasks/get`, `tasks/cancel`), SSE streaming |
+| **A2A** (Agent-to-Agent) | Google | Linux Foundation (Agentic AI Foundation) | Agents discover and delegate work to other agents | Agent Cards at `/.well-known/agent.json`. `POST /a2a` advertises `tasks/send`; the handler currently chats or stubs rather than a full task lifecycle |
 | **MCP** (Model Context Protocol) | Anthropic | Open standard | Agents use tools exposed by MCP servers | 14 first-party MCP servers: Stripe, Neon, Vercel, Code Validator, Playwright, Next.js DevTools, plus the RevealUI-internal Content / Email / Memory / Stripe / Docs servers, the contracts introspection server, and the adapter base class |
 | **x402** (HTTP 402 Payment Required) | Coinbase | Open standard | Internet-native micropayments for machine-to-machine commerce | Per-call USDC payments on Base, Coinbase facilitator verification, marketplace payment proxy |
 | **OpenAPI** | OpenAPI Initiative | Linux Foundation | Machine-readable API descriptions | Auto-generated from Hono route definitions with Zod schemas |
@@ -128,15 +128,15 @@ Four protocols converge to create the agent-first web. Each solves a different p
 
 Google's Agent-to-Agent protocol, now stewarded by the Linux Foundation's Agentic AI Foundation, defines how agents discover each other and delegate tasks. The core primitive is the **Agent Card** -- a JSON document at a well-known URL that describes what an agent can do.
 
-RevealUI implements the full A2A 1.0 task lifecycle. An external agent can:
+RevealUI advertises an Agent Card and accepts JSON-RPC at `POST /a2a`. Discovery is public. `tasks/send` is advertised; the handler currently chats or stubs rather than running a full A2A 1.0 lifecycle. An external agent can:
 
 1. **Discover** the platform agent via `GET /.well-known/agent.json`
-2. **Send a task** via `POST /a2a` with a JSON-RPC `tasks/send` request
-3. **Subscribe to updates** via SSE at `/a2a/stream/:taskId`
-4. **Check status** via `tasks/get`
-5. **Cancel** a running task via `tasks/cancel`
+2. **POST** JSON-RPC `tasks/send` to `/a2a` (chat-or-stub today, not a durable task runner)
+3. **Subscribe to updates** via SSE at `/a2a/stream/:taskId` where streaming is wired
+4. **Check status** via `tasks/get` where implemented
+5. **Cancel** via `tasks/cancel` where implemented
 
-Task execution is gated behind the `ai` feature flag -- you need a Pro or Enterprise license for agents to actually run tasks. But discovery is always public. Any agent on the internet can find your RevealUI instance and understand what it offers.
+Hosted agent execution is gated behind the `ai` feature flag. Discovery stays public. Any agent can read your Agent Card. Do not treat the advertised `tasks/send` methods as a complete A2A runner.
 
 ```bash
 # An agent discovers your RevealUI instance
@@ -165,11 +165,10 @@ Agents use the host's configured inference path. The `createLLMClientFromEnv()` 
 
 The Model Context Protocol (MCP) defines how agents invoke tools. Where A2A is about agent-to-agent communication, MCP is about agent-to-tool communication. An MCP server exposes a set of tools -- functions that an agent can call with structured inputs and get structured outputs.
 
-RevealUI ships with 14 first-party MCP servers (full list in [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers)). The seven that cover the core infrastructure stack:
+RevealUI ships with 14 first-party MCP servers (full list in [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers)). The six that cover the core infrastructure stack:
 
 - **Stripe** -- Create checkout sessions, manage subscriptions, query payment history
-- **Supabase** -- Vector storage, real-time auth, embedding operations
-- **Neon** -- Database management, connection pooling, branch operations
+- **Neon / pgvector** -- Database management, connection pooling, branch operations, and vector embeddings on the primary store
 - **Vercel** -- Deployment management, environment variables, domain configuration
 - **Code Validator** -- Static analysis, security scanning, TypeScript type checking
 - **Playwright** -- Browser automation, E2E testing, screenshot capture
@@ -277,7 +276,7 @@ That is it for the basics. The Agent Card (`/.well-known/agent.json`) and OpenAP
 curl -s https://your-api.example.com/.well-known/agent.json | jq .
 ```
 
-The response describes your instance's capabilities, supported protocols, and available skills. This is what other agents read when they evaluate your platform. Make sure the skills list matches what your instance actually offers.
+The response describes your instance's capabilities and supported protocols. The card can list skills even when hosted `streamTask` does not inject the skill catalog (`REVEALUI_AI_SKILLS` loads the library; injection is still pending). Read the card against what the instance actually runs.
 
 **Step 3: Publish MCP servers to the marketplace.**
 

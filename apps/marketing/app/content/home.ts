@@ -39,7 +39,7 @@ export const HOME_HERO = {
     sentence1:
       'Technical founders and small agencies who already run agents — existing tools report in, you keep the stack.',
     sentence2:
-      'Powerful and safe: agents leave receipts when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99).',
+      'Powerful and safe: agents leave receipts when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99/mo · $799/yr).',
     support: 'It runs on any AI provider you choose.',
   },
   cta: {
@@ -201,7 +201,7 @@ export const HOME_FAQ = {
     {
       question: 'How is this different from stitching separate tools together?',
       answer:
-        'Each vendor covers one slice. RevealUI is the whole runtime: people, content, billing, admin, and agents, self-hosted at all tiers. Deploy targets such as Vercel, Cloudflare, and Fly are places it runs, not competitors.',
+        'Each vendor covers one slice. RevealUI is the whole runtime: people, offers and pages you ship, billing, admin, and agents, self-hosted at all tiers. Deploy targets such as Vercel, Cloudflare, and Fly are places it runs, not competitors.',
     },
     {
       question: 'Can I self-host?',
@@ -221,7 +221,7 @@ export const HOME_FAQ = {
     {
       question: 'How do agent payments work?',
       answer:
-        'RevealUI speaks the HTTP 402 payment protocol so agents can pay over standard HTTP. The rail ships in the code and stays off while X402_ENABLED is off. See the agents section on the pricing page for current status.',
+        'RevealUI includes an HTTP 402 (x402) payment rail so agents can pay over standard HTTP when an operator turns it on. The rail ships in the code and stays off by default (X402_ENABLED off). It is not a live payments product today. See the agents section on the pricing page for current status.',
     },
   ] as readonly FaqItem[],
 } as const;

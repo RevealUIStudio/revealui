@@ -21,11 +21,11 @@
  */
 export const METRICS = {
   /** Packages in `packages/` directories. Source: claim-drift countPackages. */
-  packages: 32,
+  packages: 33,
   /** Apps in `apps/`. Source: claim-drift countApps. */
   apps: 6,
   /** Workspaces (packages + apps). Source: claim-drift countWorkspaces. */
-  workspaces: 38,
+  workspaces: 39,
   /** Test files across the monorepo. Source: claim-drift countTestFiles. */
   testFiles: 1364,
   /** UI components in `packages/presentation/`. Source: claim-drift countUIComponents. */
@@ -37,11 +37,11 @@ export const METRICS = {
    */
   mcpServers: 14,
   /** Drizzle pgTable declarations across packages/db/src/schema/. Source: claim-drift countDbTables. */
-  dbTables: 104,
+  dbTables: 112,
   /** License split. Source: claim-drift licenseSplit. */
   licenseSplit: {
     /** MIT-licensed packages. */
-    mit: 25,
+    mit: 26,
     /** Fair Source (FSL-1.1-MIT) packages: @revealui/ai, engines, harnesses, mcp, services. */
     fsl: 5,
     /** Internal/none: `scripts` and `apify-actor-governed-run` (private, no public license). */
@@ -53,13 +53,14 @@ export type Metrics = typeof METRICS;
 
 export const SITE = {
   brand: 'RevealUI',
-  brandTagline: 'The open runtime for businesses that run their own AI.',
+  brandTagline: 'The agentic business runtime startups operate on their own domain.',
   urls: {
     signup: 'https://admin.revealui.com/signup',
     admin: 'https://admin.revealui.com',
     docs: 'https://docs.revealui.com',
     docsMcp: 'https://docs.revealui.com/mcp',
     repo: 'https://github.com/RevealUIStudio/revealui',
+    repoSecurity: 'https://github.com/RevealUIStudio/revealui/security/policy',
     repoRoadmap: 'https://github.com/RevealUIStudio/revealui/blob/main/docs/ROADMAP.md',
     repoDiscussions: 'https://github.com/RevealUIStudio/revealui/discussions',
     repoIssues: 'https://github.com/RevealUIStudio/revealui/issues',

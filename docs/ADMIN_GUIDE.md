@@ -50,9 +50,11 @@ Your RevealUI project consists of:
 
 The admin provides a REST API for content delivery and includes collections for:
 
-- **Pages**, **Posts** (blog), **Media**, **Heros**, **Cards**, **Contents**, **Events**, **Banners**
+- **Pages**, **Posts** (blog), **Media**, **Heros**, **Cards**, **Events**, **Banners**
 - **Products**, **Prices**, **Categories**, **Tags**, **Orders**, **Subscriptions**
-- **Users**, **Tenants**, **Layouts**, **Videos**
+- **Users**, **Tenants**, **Layouts**
+
+**Honesty (2026-09-16):** **Contents** and **Videos** are not live shipped CMS collections (cms Contents = WIRE-UP-PENDING). Do not treat them as included. They may appear in older schema notes later in this guide; those notes are historical, not a sellable SKU.
 
 ### Commercial framing
 
@@ -210,9 +212,9 @@ export default async function fetchMainInfos(): Promise<MainInfo[]> {
 }
 ```
 
-**fetchVideos**
+**fetchVideos** (historical — this helper is not in the marketing tree; Videos is not a live CMS collection)
 
-**File**: `apps/marketing/src/lib/api/fetchVideos.ts`
+**File**: `apps/marketing/src/lib/api/fetchVideos.ts` (not present; do not treat as shipped)
 
 ```typescript
 import { fetchFromAdmin } from "./client";
@@ -362,15 +364,17 @@ Apply the same pattern to:
 
 ### Content Management
 
+**Honesty:** The walkthrough below is **historical schema notes**, not a live CMS. **Contents** and **Videos** are not registered (`WIRE-UP-PENDING`, no backing table) and are **not a live Contents/Videos CMS SKU**. Live admin collections today: Pages, Posts, Products, Tenants, Media, Orders, Conversations. Cards / Heros / Events / Banners listed here are also unregistered historical notes.
+
 #### Collections Overview
 
-Each collection serves a specific purpose on the frontend:
+Each collection *was designed* to serve a specific purpose on the frontend (not shipped live):
 
-1. **Contents** → Main content sections with images (used by `HomeMain`)
-2. **Cards** → Feature cards with CTAs (used by `HomeCard`)
-3. **Heros** → Large hero sections with images/videos (used by `HomeHero`)
-4. **Events** → Event listings with descriptions (used by `HomeSection`)
-5. **Banners** → Promotional banners with stats (used by `HomeContent`)
+1. **Contents** → Main content sections with images (used by `HomeMain`) — **not registered / not live**
+2. **Cards** → Feature cards with CTAs (used by `HomeCard`) — historical, not registered
+3. **Heros** → Large hero sections with images/videos (used by `HomeHero`) — historical, not registered
+4. **Events** → Event listings with descriptions (used by `HomeSection`) — historical, not registered
+5. **Banners** → Promotional banners with stats (used by `HomeContent`) — historical, not registered
 
 **Home Page Content Flow**
 
@@ -380,9 +384,9 @@ Each collection serves a specific purpose on the frontend:
 4. **Main Content** (from Contents) - Detailed information
 5. **Banner Section** (from Banners) - Call-to-action with stats
 
-**Recommended Entry Counts**
+**Recommended Entry Counts** (historical; Contents is not registered)
 
-- **Contents**: 1-3 entries
+- **Contents**: 1-3 entries (do not create — collection is not live)
 - **Cards**: 2-4 entries
 - **Heros**: 1-2 entries
 - **Events**: 1-3 entries
@@ -403,7 +407,7 @@ Each collection serves a specific purpose on the frontend:
 
 **Step 2: Create Content Entries**
 
-1. **Contents**: Create 1-3 entries for main sections
+1. **Contents**: Do not create entries — collection is not registered / not live
 2. **Cards**: Create 2-4 cards for different features
 3. **Heros**: Create 1-2 hero sections
 4. **Events**: Create 1-3 event entries
@@ -423,7 +427,7 @@ Each collection serves a specific purpose on the frontend:
 
 #### Collection Field Requirements
 
-**Contents Collection**
+**Contents Collection** (historical field notes — collection is not registered / not live)
 
 **Component**: `HomeMain`
 **Fetch Function**: `fetchMainInfos()`
@@ -833,7 +837,7 @@ Before creating posts, you may want to set up categories:
 
 Ready-to-use content examples for each collection. Copy and paste these into your admin panel and replace the placeholder text with your own content.
 
-**Contents Collection Examples**
+**Contents Collection Examples** (historical paste templates — collection is not registered / not live)
 
 **Entry 1: Welcome Section**
 
@@ -1156,7 +1160,7 @@ Image: [Link uploaded media]
 General Content:
 
 - [ ] Upload images to Media collection
-- [ ] Create 1-3 Contents entries
+- [ ] Skip Contents entries (collection is not registered / not live)
 - [ ] Create 2-4 Cards entries
 - [ ] Create 1-2 Heros entries
 - [ ] Create 1-3 Events entries

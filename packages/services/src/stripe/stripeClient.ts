@@ -327,6 +327,13 @@ function createProtectedStripe(stripeInstance?: Stripe) {
         callWithResilience(() => getStripeInstance().prices.list(params, options), 'prices.list'),
     },
     subscriptions: {
+      create: (
+        ...args: Parameters<Stripe['subscriptions']['create']>
+      ): Promise<Stripe.Subscription> =>
+        callWithResilience(
+          () => getStripeInstance().subscriptions.create(...args),
+          'subscriptions.create',
+        ),
       list: (
         ...args: Parameters<Stripe['subscriptions']['list']>
       ): Promise<Stripe.ApiList<Stripe.Subscription>> =>

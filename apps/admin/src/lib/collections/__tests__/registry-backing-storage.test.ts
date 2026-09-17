@@ -46,4 +46,20 @@ describe('registry backing-storage invariant', () => {
       expect(tableNames.has(slug)).toBe(true);
     },
   );
+
+  it('registers every on-disk collection config, including former WIRE-UP-PENDING slugs', () => {
+    const slugs = allCollections.map((collection) => collection.slug);
+    expect(slugs).toEqual(
+      expect.arrayContaining([
+        'contents',
+        'videos',
+        'categories',
+        'tags',
+        'events',
+        'info',
+        'prices',
+        'subscriptions',
+      ]),
+    );
+  });
 });

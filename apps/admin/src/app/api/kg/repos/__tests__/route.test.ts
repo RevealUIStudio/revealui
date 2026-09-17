@@ -4,7 +4,7 @@
 
 import * as authServer from '@revealui/auth/server';
 import { NextRequest } from 'next/server';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@revealui/auth/server', () => ({
   getSession: vi.fn(),
@@ -68,12 +68,36 @@ const mockSession = {
   },
 };
 
+const fleetOperatorSession = {
+  ...mockSession,
+  user: {
+    ...mockSession.user,
+    role: 'admin',
+    emailVerified: true,
+    _json: { roles: ['super-admin'] },
+  },
+};
+
+const hostedAdminSession = {
+  ...mockSession,
+  user: {
+    ...mockSession.user,
+    role: 'admin',
+    emailVerified: true,
+    _json: {},
+  },
+};
+
 describe('GET /api/kg/repos', () => {
   const mockGetSession = vi.mocked(authServer.getSession);
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockOrderBy.mockResolvedValue([{ repo: 'revealui' }, { repo: 'revdev' }, { repo: null }]);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it('returns 401 when session is missing', async () => {
@@ -84,8 +108,17 @@ describe('GET /api/kg/repos', () => {
     expect(response.status).toBe(401);
   });
 
-  it('returns the distinct repo list, dropping nulls', async () => {
-    mockGetSession.mockResolvedValue(mockSession);
+  it('returns 403 for a hosted CMS admin when licensed-operator env is unset', async () => {
+    mockGetSession.mockResolvedValue(hostedAdminSession);
+
+    const response = await GET(new NextRequest('http://localhost:3000/api/kg/repos'));
+
+    expect(response.status).toBe(403);
+    expect(mockSelectDistinct).not.toHaveBeenCalled();
+  });
+
+  it('returns the distinct repo list for a fleet operator, dropping nulls', async () => {
+    mockGetSession.mockResolvedValue(fleetOperatorSession);
 
     const response = await GET(new NextRequest('http://localhost:3000/api/kg/repos'));
     const data = await response.json();
@@ -94,8 +127,20 @@ describe('GET /api/kg/repos', () => {
     expect(data.repos).toEqual(['revealui', 'revdev']);
   });
 
+  it('returns the distinct repo list for a licensed-operator', async () => {
+    vi.stubEnv('REVEALUI_KG_LICENSED_OPERATOR', '1');
+    mockGetSession.mockResolvedValue(hostedAdminSession);
+
+    const response = await GET(new NextRequest('http://localhost:3000/api/kg/repos'));
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.repos).toEqual(['revealui', 'revdev']);
+    vi.unstubAllEnvs();
+  });
+
   it('handles errors gracefully', async () => {
-    mockGetSession.mockResolvedValue(mockSession);
+    mockGetSession.mockResolvedValue(fleetOperatorSession);
     mockOrderBy.mockRejectedValue(new Error('db down'));
 
     const response = await GET(new NextRequest('http://localhost:3000/api/kg/repos'));

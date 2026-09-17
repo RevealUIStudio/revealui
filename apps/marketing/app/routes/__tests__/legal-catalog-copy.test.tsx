@@ -1,8 +1,10 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
+import { SITE } from '../../content/site';
 import { ContactPage } from '../ContactPage';
 import { RefundPolicyPage } from '../RefundPolicyPage';
+import { SecurityPage } from '../SecurityPage';
 import { SupportPage } from '../SupportPage';
 
 afterEach(cleanup);
@@ -37,6 +39,15 @@ describe('refund and support leftover catalog copy', () => {
     expect(options[0]).toBe('General Question');
     expect(options.includes('Enterprise')).toBe(true);
     expect(options.some((label) => label.includes('Custom'))).toBe(false);
+  });
+
+  it('renders the on-site Security summary and links GitHub reporting', () => {
+    const { container } = render(<SecurityPage />);
+    expect(screen.getByRole('heading', { level: 1, name: 'Security' })).toBeInTheDocument();
+    expect(container.textContent ?? '').toContain('on-site policy summary');
+    expect(container.textContent ?? '').not.toContain('SOC 2 certified');
+    const github = screen.getByRole('link', { name: 'GitHub Security Advisories' });
+    expect(github.getAttribute('href')).toBe(SITE.urls.repoSecurity);
   });
 
   it('does not sell Starter Kit or invent a buyer community on support', () => {

@@ -70,7 +70,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
     name: 'Free (OSS)',
     description: 'Perfect for trying out RevealUI and small projects.',
     features: [
-      'Unlimited admin collections',
+      'Admin collections for offers and pages you ship (not a Contents/Videos CMS SKU)',
       '1 site',
       'Up to 3 users/editors',
       'Session-based auth',
@@ -80,7 +80,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Full source code access',
     ],
     cta: 'Start free',
-    ctaHref: '/signup',
+    ctaHref: 'https://admin.revealui.com/signup',
     highlighted: false,
   },
   {
@@ -88,7 +88,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
     name: 'Pro',
     description: 'For software companies building production products.',
     features: [
-      'Unlimited admin collections',
+      'Admin collections for offers and pages you ship (not a Contents/Videos CMS SKU)',
       'Up to 5 sites',
       'Up to 25 users/editors',
       'Session-based auth',
@@ -106,7 +106,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Full source code access',
     ],
     cta: 'Start your 7-day free trial',
-    ctaHref: '/signup?plan=pro',
+    ctaHref: 'https://admin.revealui.com/signup?plan=pro',
     highlighted: true,
   },
   {
@@ -123,7 +123,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Full source code access',
     ],
     cta: 'Start your 7-day free trial',
-    ctaHref: '/signup?plan=max',
+    ctaHref: 'https://admin.revealui.com/signup?plan=max',
     highlighted: false,
   },
   {
@@ -171,7 +171,7 @@ export const LAUNCH_PACKAGE_PRICE = '$7,500' as const;
 export const PRO_PERPETUAL_PRICE = '$1,499' as const;
 
 export function perpetualLicenseSignupPath(sku: 'pro'): string {
-  return `/signup?license=${sku}`;
+  return `https://admin.revealui.com/signup?license=${sku}`;
 }
 
 /**

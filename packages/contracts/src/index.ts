@@ -552,6 +552,16 @@ export {
 // =============================================================================
 
 export {
+  checkoutRequestSchema,
+  checkoutResponseSchema,
+  paymentIntentRequestSchema,
+  paymentIntentResponseSchema,
+  portalResponseSchema,
+  refundRequestSchema,
+  refundResponseSchema,
+  upgradeRequestSchema,
+} from './billing-http.js';
+export {
   RELEVANT_STRIPE_WEBHOOK_EVENT_COUNT,
   RELEVANT_STRIPE_WEBHOOK_EVENTS,
   type RelevantStripeWebhookEvent,

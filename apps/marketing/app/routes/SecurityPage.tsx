@@ -18,6 +18,8 @@ export function SecurityPage() {
             <a href={`mailto:${SITE.emails.security}`}>{SITE.emails.security}</a>
             {' · '}
             <a href="/.well-known/security.txt">/.well-known/security.txt</a>
+            {' · '}
+            <a href={SITE.urls.repoSecurity}>GitHub Security Advisories</a>
           </>
         ),
       }}

@@ -18,7 +18,7 @@ function getOpenGraphIdentity() {
   const name = process.env.REVEALUI_BRAND_NAME || process.env.REVEALUI_TENANT_NAME || 'RevealUI';
   const description =
     process.env.REVEALUI_BRAND_DESCRIPTION ??
-    'Agentic business runtime. Build your business, not your boilerplate.';
+    'The agentic business runtime startups operate on their own domain — existing tools report in, you keep the stack.';
   // Empty string = explicit opt-out (kits that don't want a description).
   return { name, description: description === '' ? undefined : description };
 }

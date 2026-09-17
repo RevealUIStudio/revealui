@@ -6,5 +6,15 @@ export default defineConfig({
   dts: false,
   sourcemap: false,
   clean: true,
-  external: ['react', 'react/jsx-runtime', 'stripe'],
+  external: [
+    'react',
+    'react/jsx-runtime',
+    'stripe',
+    'drizzle-orm',
+    '@revealui/db',
+    '@revealui/db/schema',
+    '@revealui/config/stripe-mode',
+    '@stripe/react-stripe-js',
+    '@stripe/stripe-js',
+  ],
 });

@@ -4,7 +4,7 @@
 
 import * as authServer from '@revealui/auth/server';
 import { NextRequest } from 'next/server';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GET } from '../kg-edges/route';
 
 vi.mock('@revealui/auth/server', () => ({
@@ -81,6 +81,10 @@ describe('GET /api/shapes/kg-edges', () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it('returns 401 when session is missing', async () => {
     mockGetSession.mockResolvedValue(null);
 
@@ -140,6 +144,26 @@ describe('GET /api/shapes/kg-edges', () => {
 
     expect(response.status).toBe(400);
     expect(data.error).toBe('VALIDATION_ERROR');
+  });
+
+  it('requires repo= for a licensed-operator and scopes Electric where', async () => {
+    vi.stubEnv('REVEALUI_KG_LICENSED_OPERATOR', '1');
+    mockGetSession.mockResolvedValue(mockSession);
+    const { prepareElectricUrl } = await import('@/lib/api/electric-proxy');
+
+    const missing = await GET(new NextRequest('http://localhost:3000/api/shapes/kg-edges'));
+    expect(missing.status).toBe(400);
+
+    const scoped = await GET(
+      new NextRequest('http://localhost:3000/api/shapes/kg-edges?repo=revdev'),
+    );
+    expect(scoped.status).toBe(200);
+    const originUrl = vi.mocked(prepareElectricUrl).mock.results.at(-1)?.value as URL;
+    expect(originUrl.searchParams.get('where')).toBe(`repo = 'revdev'`);
+    const columns = originUrl.searchParams.get('columns')?.split(',') ?? [];
+    expect(columns).not.toContain('search');
+    expect(columns).not.toContain('embedding');
+    vi.unstubAllEnvs();
   });
 
   it('handles errors gracefully', async () => {

@@ -20,3 +20,4 @@ export type {
   SandboxResult,
   SandboxRunOptions,
 } from './types.js';
+export { REVMARKET_PREVIEW_STUB_ERROR } from './types.js';

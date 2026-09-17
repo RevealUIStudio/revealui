@@ -14,7 +14,8 @@
  *
  * Extends the MCP Marketplace (Phase 5.5) with autonomous agent task execution.
  * Agents register with skills and pricing, users submit tasks, the system
- * matches tasks to capable agents, and results are delivered with billing.
+ * matches tasks to capable agents. Sandbox stubs fail closed (preview) until
+ * agent skill runtime is wired — they do not fake a successful skill run.
  *
  * Routes:
  *   GET    /api/revmarket/agents               -  browse published agents (public)
