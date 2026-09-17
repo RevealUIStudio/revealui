@@ -1,5 +1,6 @@
 import { getPublicKeys, normalizePem, selfVerifyLicenseKeypair } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
+import { resolveSecret } from '@revealui/secrets';
 import { sendCronFailureAlert } from './cron-alerts.js';
 import { setLicenseCanaryDegraded } from './startup-state.js';
 import { detectDeploymentMode, type EnvMap } from './validate-startup.js';
@@ -52,6 +53,20 @@ export async function runHostedLicenseCanary(env: EnvMap = process.env as EnvMap
   if (!rawPrivate) {
     // detectDeploymentMode === 'hosted' already implies presence; defensive.
     return;
+  }
+
+  // GAP-182: public verification keys go through @revealui/secrets so hosted
+  // env injection, file mounts, and revvault share one loader. Fall back to
+  // process.env so existing tests and getPublicKeys stay consistent.
+  try {
+    const loaded = await resolveSecret('REVEALUI_LICENSE_PUBLIC_KEY', {
+      source: env as Record<string, string | undefined>,
+    });
+    if (loaded && !env.REVEALUI_LICENSE_PUBLIC_KEY) {
+      env.REVEALUI_LICENSE_PUBLIC_KEY = loaded;
+    }
+  } catch {
+    // EnvProvider miss is fine — getPublicKeys still reads env / _NEXT.
   }
 
   // Build the SAME newline-normalized private key + ordered public-key list the

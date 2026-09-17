@@ -23,7 +23,7 @@ Labels match the `/products` page.
 
 | Product | Maturity | Notes |
 |---------|----------|-------|
-| **RevealUI** (monorepo) | Beta | Deployed (admin, API, marketing, docs). 32 packages. No external paying customers yet. |
+| **RevealUI** (monorepo) | Beta | Deployed (admin, API, marketing, docs). 33 packages. No external paying customers yet. |
 | **RevealUI Fleet** (self-hosted kit) | Alpha | Compose + license enforcement exist. GHCR images build and push. The launched pull-and-run customer kit is not a finished product. |
 | **RevVault** | Beta | Rust CLI + desktop app. Age-encrypted vault. Not published to crates.io. |
 | **RevDev** | Alpha | Studio (Tauri) + Console (Go TUI) + local daemon. Ships in [RevDev](https://github.com/RevealUIStudio/revdev). Public binaries are not a GA release. |

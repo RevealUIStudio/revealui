@@ -249,7 +249,19 @@ pnpm db:reset      # Reset and re-seed (destructive)
 
 ## 6. npm Package Publishing
 
-All `@revealui/*` packages are published through CI. There is no local npm publishing.
+All `@revealui/*` packages are published through CI after the package **already exists** on npm. There is no local npm publishing for subsequent versions.
+
+OIDC trusted publishing (npm CLI ≥ 11.5.1, Node ≥ 22.14) is the only supported CI path. Do not add `NPM_TOKEN` or `registry-url` on `setup-node` in `release.yml` — a placeholder `NODE_AUTH_TOKEN` blocks OIDC.
+
+**Brand-new package names cannot be created by OIDC or `npm stage publish`.** npm requires the name to exist before a trusted publisher can be attached and before staging. First publish is owner-gated:
+
+1. Built checkout of `main`. `npm login` (interactive 2FA). No long-lived write token.
+2. `pnpm --filter <pkg> publish --access public --provenance`
+3. npmjs.com → package Settings → Trusted Publisher: GitHub Actions, `RevealUIStudio/revealui`, workflow `release.yml`, environment `npm-publish`. Configs created after 2026-09-03 default to `npm stage publish`; enable direct `npm publish` only if this package must skip staging.
+4. Publishing access: **Require 2FA and disallow tokens**.
+5. Later versions: `gh workflow run release.yml --ref main`
+
+List unpublished public packages: `pnpm release:unpublished`. `release.yml` runs that script `--strict` so a missing first-publish fails before `changeset publish`.
 
 ### Production Releases (Manual)
 

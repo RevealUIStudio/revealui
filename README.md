@@ -80,7 +80,7 @@ Six principles that give you a tested starting point for every architectural dec
 | Principle | What it means |
 | --- | --- |
 | **Justifiable** | Every default earns its place. No magic, no hidden complexity, no decisions you can't explain to your team. |
-| **Orthogonal** | Clean separation of concerns across 32 packages. Use what you need, replace what you don't. Zero circular dependencies. |
+| **Orthogonal** | Clean separation of concerns across 33 packages. Use what you need, replace what you don't. Zero circular dependencies. |
 | **Sovereign** | Your infrastructure, your data, your rules. Deploy anywhere. Fork anything. No vendor holds your business hostage. |
 | **Hermetic** | Auth doesn't leak into billing. Content doesn't tangle with payments. Sealed boundaries, clean contracts between every layer. |
 | **Unified** | One Zod schema defines the truth. Types, validation, and API flow from database to server to UI with zero drift. |
@@ -151,7 +151,7 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 
 ## Packages
 
-### OSS Packages (MIT) — 25
+### OSS Packages (MIT) — 26
 
 | Package                                                 | Purpose                                           |
 | ------------------------------------------------------- | ------------------------------------------------- |
@@ -173,6 +173,7 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 | [`@revealui/dev`](packages/dev)                         | Shared configs (Biome, TypeScript, Tailwind)      |
 | [`@revealui/test`](packages/test)                       | E2E specs, integration tests, fixtures, mocks     |
 | [`@revealui/paywall`](packages/paywall)                 | Runtime license enforcement, feature gating, upgrade UI |
+| [`@revealui/secrets`](packages/secrets)                 | Multi-vendor secret loader (env, file mounts, revvault) |
 | [`@revealui/tokens`](packages/tokens)                   | Design tokens (CSS variables, typed TS export, brand canon) |
 | [`@revealui/knowledge-graph`](packages/knowledge-graph) | Fleet knowledge graph: bi-temporal, content-addressed graph over Neon + pgvector, `revkg` CLI |
 | [`create-revealui`](packages/create-revealui)           | `npm create revealui` initializer                 |
@@ -287,7 +288,7 @@ revealui/
 │   ├── marketing/       # revealui.com marketing site (port 3000)
 │   ├── license-signer/  # Internal license-signing service
 │   └── rsc-poc/         # In-tree RSC experiment
-├── packages/       # 25 OSS + 5 Pro + 2 internal = 32 packages
+├── packages/       # 26 OSS + 5 Pro + 2 internal = 33 packages
 ├── docs/           # guides + reference
 └── scripts/        # CI gates, release tooling, dev tools
 ```
