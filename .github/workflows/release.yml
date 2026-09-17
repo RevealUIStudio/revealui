@@ -126,6 +126,13 @@ jobs:
           path: sbom.json
           retention-days: 90
 
+      - name: Unpublished OSS first-publish guard
+        # npm OIDC trusted publishing and `npm stage publish` cannot create a
+        # brand-new package name (docs.npmjs.com/trusted-publishers +
+        # staged-publishing, 2026-09). Fail here with the bootstrap steps
+        # instead of ENEEDAUTH mid-publish (GAP-380 knowledge-graph lesson).
+        run: node scripts/release/unpublished-oss.mjs --strict
+
       - name: Validate release artifacts
         run: pnpm validate:artifacts
 

@@ -5,7 +5,7 @@ title: "Marketing Metrics — Pinned Truth"
 description: "Single source of truth for every metric, count, and status claim used in the marketing app and public-facing copy. Updated when the code changes; validated by claim-drift CI gate."
 category: internal
 audience: maintainer
-last-verified: 2026-08-25
+last-verified: 2026-09-17
 verified-via: pnpm tsx scripts/validate/claim-drift.ts
 ---
 
@@ -25,15 +25,15 @@ Source: `pnpm tsx scripts/validate/claim-drift.ts` on `origin/test` 2026-09-03 (
 
 | Metric | Canonical value | Source of truth (script ref) | Notes |
 |---|---|---|---|
-| Packages in `packages/` | **32** | `countPackages()` — `.ts`-bearing dir | Stale memory `reference_npm_account_topology` ("36") superseded by this. |
+| Packages in `packages/` | **33** | `countPackages()` — `.ts`-bearing dir | Includes `@revealui/secrets` (GAP-182). |
 | Apps in `apps/` | **6** | `countApps()` | admin / server / docs / marketing / license-signer / rsc-poc (GAP-194 T0 harness). |
-| Workspaces (monorepo total) | **38** | `countWorkspaces()` (= 32 packages + 6 apps) | |
+| Workspaces (monorepo total) | **39** | `countWorkspaces()` (= 33 packages + 6 apps) | |
 | Test files | **1364** | `countTestFiles()` — `*.test.ts` / `*.spec.ts` walking | Marketing copy should say "900+ tests" or quote the exact ground-truth number, never "20,000+" (the stale claim). claim-drift allows site.ts METRICS.testFiles within tolerance 100. |
 | UI components in `packages/presentation/` | **66** | `countUIComponents()` | Marketing copy says "66 native React components" or similar. |
 | **MCP servers** | **14** | `countMCPServers()` — `.ts` files in `packages/mcp/src/servers/` excluding `_`-prefixed | Includes `adapter.ts` (BaseAdapter + Vercel/Stripe/Neon subclasses) and the knowledge-graph stdio launcher. |
 | DB tables (Drizzle pgTable) | **104** | `countDbTables()` — `pgTable(` declarations across `packages/db/src/schema/*.ts` | Was 86 (2026-06-22); 93 after GAP-300; 96 on 2026-07-22; 97 after GAP-355 S4-1 `audit_anchors` (2026-07-23); 98 after GAP-260 P4-5 `license_jti_revocations` (2026-07-31); 101 after GAP-448 `kit_fulfillments` (2026-08-02; was 100 after GAP-464 SSO tables); **104** after GAP-256 PR-1 `margin_snapshots` + `account_margin_daily` + `admission_waitlist` (2026-08-09). `site.ts` METRICS.dbTables is gate-enforced by claim-drift. |
 | Access-control enforcement tests | **60** | `countEnforcementTests()` — `it(`/`test(` in `packages/core/src/__tests__/auth/` + `collections/operations/__tests__/access-enforcement.test.ts` | Quoted by the blog, both security attestations (`INFORMATION_SECURITY_POLICY`, `ASSET_INVENTORY`), `LAUNCH-CHECKLIST`, and marketing primitives. Gate-enforced so all surfaces move together. |
-| License: MIT packages | **25** | `licenseSplit.mit` | |
+| License: MIT packages | **26** | `licenseSplit.mit` | Includes `@revealui/secrets`. |
 | License: FSL-1.1-MIT packages | **5** | `licenseSplit.fsl` | @revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services |
 | License: internal/none | **2** | `licenseSplit.internal` | `@revealui/scripts` and `@revealui/apify-actor-governed-run` (private, no public license field). MIT total includes private `@revealui/ts-strada` (Strada Compiler API bridge). |
 

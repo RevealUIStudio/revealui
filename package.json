@@ -155,6 +155,7 @@
     "build:apify": "node scripts/deploy/build-apify-actor-standalone.mjs",
     "changeset": "node --require ./scripts/polyfill-yaml-safeload.cjs ./node_modules/@changesets/cli/bin.js",
     "changeset:publish": "node --require ./scripts/polyfill-yaml-safeload.cjs ./node_modules/@changesets/cli/bin.js publish",
+    "release:unpublished": "node scripts/release/unpublished-oss.mjs",
     "changeset:status": "node --require ./scripts/polyfill-yaml-safeload.cjs ./node_modules/@changesets/cli/bin.js status",
     "changeset:version": "node --require ./scripts/polyfill-yaml-safeload.cjs ./node_modules/@changesets/cli/bin.js version && node scripts/sync-mcp-server-json.mjs && pnpm install --no-frozen-lockfile && git add pnpm-lock.yaml packages/mcp/server.json",
     "clean": "rm -rf node_modules packages/*/node_modules apps/*/node_modules packages/*/dist apps/*/dist packages/*/.next apps/*/.next packages/*/.turbo apps/*/.turbo packages/*/tsconfig.tsbuildinfo apps/*/tsconfig.tsbuildinfo .next .turbo",
