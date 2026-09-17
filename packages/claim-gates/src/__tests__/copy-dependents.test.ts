@@ -170,25 +170,21 @@ describe('copy-dependent holds', () => {
     ).toBe(false);
   });
 
-  it('flags Contents/Videos CMS live claims unless honesty-qualified', () => {
+  it('does not flag Contents/Videos CMS claims after #2895 release', () => {
+    expect(COPY_DEPENDENT_HOLDS.find((h) => h.id === 'COPY-DEP-CONTENTS-CMS')?.status).toBe(
+      'released',
+    );
+    expect(COPY_DEPENDENT_HOLDS.find((h) => h.id === 'COPY-DEP-VIDEOS-CMS')?.status).toBe(
+      'released',
+    );
     expect(
       hits('The Contents CMS is live for every operator.').some(
         (x) => x.holdId === 'COPY-DEP-CONTENTS-CMS',
       ),
-    ).toBe(true);
+    ).toBe(false);
     expect(
       hits('Videos collection is available on every plan.').some(
         (x) => x.holdId === 'COPY-DEP-VIDEOS-CMS',
-      ),
-    ).toBe(true);
-    expect(
-      hits('Contents and Videos are not shipped live CMS collections.').some(
-        (x) => x.holdId === 'COPY-DEP-CONTENTS-CMS' || x.holdId === 'COPY-DEP-VIDEOS-CMS',
-      ),
-    ).toBe(false);
-    expect(
-      hits('Admin collections for offers and pages you ship (not a Contents/Videos CMS SKU)').some(
-        (x) => x.holdId === 'COPY-DEP-CONTENTS-CMS' || x.holdId === 'COPY-DEP-VIDEOS-CMS',
       ),
     ).toBe(false);
   });
