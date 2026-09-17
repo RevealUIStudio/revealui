@@ -25,3 +25,7 @@ Trusted-publisher setup (npm UI, interactive 2FA — a GAT cannot do this): repo
 ## If a leftover is blocked on a missing npm version
 
 Say so. Do not invent a token workaround. Wait for OIDC publish, then bump dependents off the registry (no path deps).
+
+## First name (404) — owner only, not agents
+
+OIDC and `npm stage publish` cannot **create** a package name (npm docs 2026-09). GAP-498: owner interactive 2FA `pnpm --filter <pkg> publish --access public` from built `main` **once**, then attach trusted publisher (`release.yml` / `npm-publish`) and disallow tokens. Agents still never `npm login`. Later versions are OIDC only.

@@ -76,7 +76,7 @@
     },
     {
       "relativePath": ".grok/rules/npm-oidc-publish.md",
-      "sha256": "b416ac53a23387a37f54fd3f0ce7c3465fccc09c3d427b5a3abbf4795821be18"
+      "sha256": "37efdefbf18f2d446841803c303c2dc01abc3fb4d09b3bb0f022344ca3720a87"
     },
     {
       "relativePath": ".grok/rules/public-issue-redaction.md",
@@ -129,6 +129,10 @@
     {
       "relativePath": ".grok/skills/rule-tailwind/SKILL.md",
       "sha256": "a1acc5fec46f84d78dfe7d342da03e54920b0c5686d159837c640a0ce33411a4"
+    },
+    {
+      "relativePath": ".grok/skills/rule-versioning/SKILL.md",
+      "sha256": "dc6621d66e2cd138731808a5c41a413732fe8a313809b55b5ee1f5c995781790"
     }
   ]
 }

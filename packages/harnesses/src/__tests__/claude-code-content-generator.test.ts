@@ -140,6 +140,9 @@ describe('ClaudeCodeGenerator', () => {
       expect(
         files.some((f) => f.relativePath === '.revealui/content/rules/npm-oidc-publish.md'),
       ).toBe(true);
+      expect(files.some((f) => f.relativePath === '.revealui/content/rules/versioning.md')).toBe(
+        true,
+      );
       expect(files.every((f) => f.relativePath.startsWith(`${MANAGER_CONTENT_OUTPUT}/`))).toBe(
         true,
       );
