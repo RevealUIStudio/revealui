@@ -1,17 +1,11 @@
-import {
-  SelectCVA as Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@revealui/presentation/client';
+import { Select } from '@revealui/presentation/client';
 import type { ShowcaseStory } from '@/components/showcase/types.js';
 
 const story: ShowcaseStory = {
   slug: 'select',
   name: 'Select',
   description:
-    'Compound select component with trigger, content, and items. Supports groups, labels, and separators.',
+    'Native HTML select (headless + styled). SelectCVA is non-interactive chrome — do not demo it as a form control. Prefer Listbox for fully custom list UIs.',
   category: 'component',
 
   controls: {
@@ -19,17 +13,13 @@ const story: ShowcaseStory = {
   },
 
   render: (props: Record<string, unknown>) => (
-    <Select>
-      <SelectTrigger className="w-64">
-        <SelectValue placeholder={props.placeholder as string} />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="apple">Apple</SelectItem>
-        <SelectItem value="banana">Banana</SelectItem>
-        <SelectItem value="cherry">Cherry</SelectItem>
-        <SelectItem value="grape">Grape</SelectItem>
-        <SelectItem value="mango">Mango</SelectItem>
-      </SelectContent>
+    <Select className="w-64" defaultValue="">
+      <option value="">{props.placeholder as string}</option>
+      <option value="apple">Apple</option>
+      <option value="banana">Banana</option>
+      <option value="cherry">Cherry</option>
+      <option value="grape">Grape</option>
+      <option value="mango">Mango</option>
     </Select>
   ),
 
@@ -37,29 +27,20 @@ const story: ShowcaseStory = {
     {
       name: 'With Default Value',
       render: () => (
-        <Select value="banana">
-          <SelectTrigger className="w-64">
-            <SelectValue placeholder="Select fruit" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="apple">Apple</SelectItem>
-            <SelectItem value="banana">Banana</SelectItem>
-            <SelectItem value="cherry">Cherry</SelectItem>
-          </SelectContent>
+        <Select className="w-64" defaultValue="banana">
+          <option value="apple">Apple</option>
+          <option value="banana">Banana</option>
+          <option value="cherry">Cherry</option>
         </Select>
       ),
     },
   ],
 
   code: (props: Record<string, unknown>) =>
-    `<Select>
-  <SelectTrigger>
-    <SelectValue placeholder="${props.placeholder}" />
-  </SelectTrigger>
-  <SelectContent>
-    <SelectItem value="apple">Apple</SelectItem>
-    <SelectItem value="banana">Banana</SelectItem>
-  </SelectContent>
+    `<Select className="w-64">
+  <option value="">${props.placeholder}</option>
+  <option value="apple">Apple</option>
+  <option value="banana">Banana</option>
 </Select>`,
 
   a11y: {
@@ -71,7 +52,8 @@ const story: ShowcaseStory = {
     aria: {
       'aria-invalid': 'Set when validation fails',
     },
-    notes: 'Native select semantics; prefer Listbox for fully custom list UIs.',
+    notes:
+      'This story uses the native <select> wrapper. SelectCVA is visual chrome only and is not a form control.',
   },
 };
 

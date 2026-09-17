@@ -451,10 +451,16 @@ export class ExecutionLogger {
     if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE);
 
     const { scriptName, days = 30 } = options;
+    const windowDays = Number.isFinite(days) && days > 0 ? Math.floor(days) : 30;
 
-    const whereClause = scriptName
-      ? `WHERE script_name = '${scriptName}' AND started_at >= NOW() - INTERVAL '${days} days'`
-      : `WHERE started_at >= NOW() - INTERVAL '${days} days'`;
+    const conditions: string[] = [`started_at >= NOW() - ($${1}::int * INTERVAL '1 day')`];
+    const params: unknown[] = [windowDays];
+    let paramIndex = 2;
+    if (scriptName) {
+      conditions.push(`script_name = $${paramIndex++}`);
+      params.push(scriptName);
+    }
+    const whereClause = `WHERE ${conditions.join(' AND ')}`;
 
     // Get overall stats
     const statsResult = await this.db.query<{
@@ -462,7 +468,8 @@ export class ExecutionLogger {
       successful: number;
       failed: number;
       avg_duration: number;
-    }>(`
+    }>(
+      `
       SELECT
         COUNT(*) as total,
         COUNT(*) FILTER (WHERE success = true) as successful,
@@ -470,7 +477,9 @@ export class ExecutionLogger {
         AVG(duration_ms) FILTER (WHERE duration_ms IS NOT NULL) as avg_duration
       FROM executions
       ${whereClause}
-    `);
+    `,
+      params,
+    );
 
     const stats = statsResult.rows[0];
 
@@ -480,7 +489,8 @@ export class ExecutionLogger {
       command: string;
       count: number;
       avg_duration: number;
-    }>(`
+    }>(
+      `
       SELECT
         script_name,
         command,
@@ -491,7 +501,19 @@ export class ExecutionLogger {
       GROUP BY script_name, command
       ORDER BY count DESC
       LIMIT 10
-    `);
+    `,
+      params,
+    );
+
+    const failureConditions = [
+      'success = false',
+      `started_at >= NOW() - ($1::int * INTERVAL '1 day')`,
+    ];
+    const failureParams: unknown[] = [windowDays];
+    if (scriptName) {
+      failureConditions.push('script_name = $2');
+      failureParams.push(scriptName);
+    }
 
     // Get recent failures
     const failuresResult = await this.db.query<{
@@ -499,13 +521,16 @@ export class ExecutionLogger {
       command: string;
       started_at: string;
       error: string;
-    }>(`
+    }>(
+      `
       SELECT script_name, command, started_at, error
       FROM executions
-      WHERE success = false ${scriptName ? `AND script_name = '${scriptName}'` : ''}
+      WHERE ${failureConditions.join(' AND ')}
       ORDER BY started_at DESC
       LIMIT 10
-    `);
+    `,
+      failureParams,
+    );
 
     return {
       totalExecutions: Number(stats.total),
