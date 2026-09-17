@@ -13,7 +13,7 @@ const story: ShowcaseStory = {
   },
 
   render: (props: Record<string, unknown>) => (
-    <Select className="w-64" defaultValue="">
+    <Select className="w-64" defaultValue="" aria-label="Fruit">
       <option value="">{props.placeholder as string}</option>
       <option value="apple">Apple</option>
       <option value="banana">Banana</option>
@@ -27,7 +27,7 @@ const story: ShowcaseStory = {
     {
       name: 'With Default Value',
       render: () => (
-        <Select className="w-64" defaultValue="banana">
+        <Select className="w-64" defaultValue="banana" aria-label="Fruit">
           <option value="apple">Apple</option>
           <option value="banana">Banana</option>
           <option value="cherry">Cherry</option>
@@ -37,7 +37,7 @@ const story: ShowcaseStory = {
   ],
 
   code: (props: Record<string, unknown>) =>
-    `<Select className="w-64">
+    `<Select className="w-64" aria-label="Fruit">
   <option value="">${props.placeholder}</option>
   <option value="apple">Apple</option>
   <option value="banana">Banana</option>
