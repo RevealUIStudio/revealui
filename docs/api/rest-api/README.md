@@ -4774,7 +4774,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Clean up orphaned vector data (internal cron)**
 
-Removes orphaned Supabase vector data (agent memories, RAG documents, RAG chunks) for sites that have been soft-deleted in NeonDB. Protected by X-Cron-Secret.
+Removes orphaned pgvector rows (agent memories, RAG documents, RAG chunks) for sites that have been soft-deleted in Neon. Protected by X-Cron-Secret.
 
 **Responses**
 
@@ -4788,7 +4788,7 @@ Removes orphaned Supabase vector data (agent memories, RAG documents, RAG chunks
 
 **Clean up orphaned vector data (internal cron)**
 
-Removes orphaned Supabase vector data (agent memories, RAG documents, RAG chunks) for sites that have been soft-deleted in NeonDB. Protected by X-Cron-Secret.
+Removes orphaned pgvector rows (agent memories, RAG documents, RAG chunks) for sites that have been soft-deleted in Neon. Protected by X-Cron-Secret.
 
 **Responses**
 
@@ -5080,7 +5080,7 @@ Returns subscription tiers, credit bundles, and perpetual license pricing. Price
 
 ## Collaboration
 
-### `POST` `//api/collab/update`
+### `POST` `/api/collab/update`
 
 **Apply a Yjs binary update to a document**
 
@@ -5094,7 +5094,7 @@ See API schema for request body shape.
 
 ---
 
-### `GET` `//api/collab/snapshot/{documentId}`
+### `GET` `/api/collab/snapshot/{documentId}`
 
 **Get current Yjs document state as base64**
 
@@ -5112,7 +5112,7 @@ See API schema for request body shape.
 
 ## Agent Collaboration
 
-### `POST` `//api/collab/agent/connect`
+### `POST` `/api/collab/agent/connect`
 
 **Get WebSocket URL for agent collaboration**
 
@@ -5126,7 +5126,7 @@ See API schema for request body shape.
 
 ---
 
-### `POST` `//api/collab/agent/edit`
+### `POST` `/api/collab/agent/edit`
 
 **Apply server-side edit to agent document**
 
@@ -5140,7 +5140,7 @@ See API schema for request body shape.
 
 ---
 
-### `GET` `//api/collab/agent/snapshot/{documentId}`
+### `GET` `/api/collab/agent/snapshot/{documentId}`
 
 **Get agent document state and connected clients**
 
