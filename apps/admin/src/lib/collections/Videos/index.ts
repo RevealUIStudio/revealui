@@ -1,7 +1,7 @@
 // WIRE-UP-PENDING — this `videos` collection config is NOT registered in
 // `apps/admin/src/lib/collections/registry.ts` (`allCollections`) and is not
 // consumed anywhere. It has no backing Postgres table. Kept on disk pending a
-// per-item register-vs-delete decision in PR review.
+// per-item register-vs-delete decision. Do not claim Videos as a live CMS SKU.
 import type { CollectionConfig } from '@revealui/core';
 
 const Videos: CollectionConfig = {

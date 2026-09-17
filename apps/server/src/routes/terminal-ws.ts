@@ -24,6 +24,22 @@ import { z } from 'zod';
 
 const DAEMON_SOCKET = `${process.env.HOME ?? '/tmp'}/.local/share/revealui/harness.sock`;
 
+/** Honesty notice: remote WS does not stream PTY output (input/resize only). */
+export const PTY_OUTPUT_NOT_IMPLEMENTED =
+  'PTY output streaming is not implemented on this remote bridge. Input and resize are forwarded; no output frames will arrive.';
+
+export function ptyOutputHonestyNotice(): {
+  type: 'status';
+  code: 'pty-output-preview';
+  message: string;
+} {
+  return {
+    type: 'status',
+    code: 'pty-output-preview',
+    message: PTY_OUTPUT_NOT_IMPLEMENTED,
+  };
+}
+
 /**
  * Runtime validation for the spawn body. The previous `c.req.json<{...}>()`
  * was a TypeScript cast only — nothing constrained the values at runtime on a
@@ -185,6 +201,9 @@ export function createTerminalRoute(): {
       // Real output streaming is tracked in revealui#1650.
 
       return {
+        onOpen(_event, ws) {
+          ws.send(JSON.stringify(ptyOutputHonestyNotice()));
+        },
         onMessage(event, ws) {
           try {
             const msg = JSON.parse(

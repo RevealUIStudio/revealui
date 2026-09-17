@@ -27,7 +27,12 @@ export type CopyDependentDetector =
   | 'cscrm-certified'
   | 'trustworthy-ai-badge'
   | 'aml-hardened'
-  | 'weight-scan';
+  | 'weight-scan'
+  | 'contents-cms-live'
+  | 'videos-cms-live'
+  | 'skill-injection-live'
+  | 'pty-output-live'
+  | 'hypervisor-spawn-live';
 
 export interface CopyDependentHold {
   readonly id: string;
@@ -119,6 +124,41 @@ export const COPY_DEPENDENT_HOLDS: readonly CopyDependentHold[] = [
     title: 'Model-weight scan copy',
     detector: 'weight-scan',
     why: 'Weights are not scanned for behavior. Provenance is hash plus URL, not a capability scan (GAP-484)',
+  },
+  {
+    id: 'COPY-DEP-CONTENTS-CMS',
+    status: 'waiting',
+    title: 'Contents CMS live claims',
+    detector: 'contents-cms-live',
+    why: 'Contents is an unregistered admin collection with no backing table (WIRE-UP-PENDING). Not a live CMS SKU until walked',
+  },
+  {
+    id: 'COPY-DEP-VIDEOS-CMS',
+    status: 'waiting',
+    title: 'Videos CMS live claims',
+    detector: 'videos-cms-live',
+    why: 'Videos is an unregistered admin collection with no backing table (WIRE-UP-PENDING). Not a live CMS SKU until walked',
+  },
+  {
+    id: 'COPY-DEP-SKILL-INJECTION',
+    status: 'waiting',
+    title: 'Skill injection live claims',
+    detector: 'skill-injection-live',
+    why: 'REVEALUI_AI_SKILLS loads a catalog + provider. The flag alone does not inject skills; do not claim inject as live until walked',
+  },
+  {
+    id: 'COPY-DEP-PTY-OUTPUT',
+    status: 'waiting',
+    title: 'Terminal PTY output live claims',
+    detector: 'pty-output-live',
+    why: 'Terminal WS forwards input/resize only. PTY output streaming is not implemented; do not claim as live until walked',
+  },
+  {
+    id: 'COPY-DEP-HYPERVISOR-SPAWN',
+    status: 'waiting',
+    title: 'Hypervisor spawn live claims',
+    detector: 'hypervisor-spawn-live',
+    why: 'MCP hypervisor spawn is opt-in (REVEALUI_MCP_HYPERVISOR_SPAWN) and not a walked live product. Package-purpose mentions of the hypervisor stay allowed',
   },
 ] as const;
 
@@ -414,6 +454,102 @@ function detectWeightScan(words: string[]): boolean {
   return false;
 }
 
+/**
+ * Same-line honesty for do-not-claim surfaces (Contents/Videos/PTY/skills/hypervisor).
+ * Qualifiers must sit on the same line as the capability mention.
+ */
+function hasDoNotClaimQualifier(words: string[]): boolean {
+  if (words.includes('preview')) return true;
+  if (words.includes('planned')) return true;
+  if (words.includes('roadmap')) return true;
+  if (words.includes('historical')) return true;
+  if (hasWordSequence(words, ['coming', 'soon'])) return true;
+  if (hasWordSequence(words, ['not', 'shipped'])) return true;
+  if (hasWordSequence(words, ['not', 'live'])) return true;
+  if (hasWordSequence(words, ['not', 'included'])) return true;
+  if (hasWordSequence(words, ['not', 'implemented'])) return true;
+  if (hasWordSequence(words, ['not', 'walked'])) return true;
+  if (hasWordSequence(words, ['not', 'registered'])) return true;
+  if (hasWordSequence(words, ['do', 'not', 'claim'])) return true;
+  if (hasWordSequence(words, ['do', 'not', 'treat'])) return true;
+  if (hasWordSequence(words, ['wire', 'up', 'pending'])) return true;
+  if (hasWordSequence(words, ['flag', 'alone'])) return true;
+  if (hasWordSequence(words, ['does', 'not', 'inject'])) return true;
+  if (hasWordSequence(words, ['not', 'a', 'live'])) return true;
+  return false;
+}
+
+/** "Contents CMS is live" / "Contents collection is available" — not a glossary. */
+function detectContentsCmsLive(words: string[]): boolean {
+  if (hasDoNotClaimQualifier(words)) return false;
+  for (let i = 0; i < words.length; i++) {
+    if (words[i] !== 'contents') continue;
+    if (!hasNearby(words, i, 8, new Set(['cms', 'collection']))) continue;
+    if (hasLiveCopula(words, i, 14)) return true;
+  }
+  return false;
+}
+
+/** "Videos CMS is live" / "Videos collection is shipped". */
+function detectVideosCmsLive(words: string[]): boolean {
+  if (hasDoNotClaimQualifier(words)) return false;
+  for (let i = 0; i < words.length; i++) {
+    if (words[i] !== 'videos') continue;
+    if (!hasNearby(words, i, 8, new Set(['cms', 'collection']))) continue;
+    if (hasLiveCopula(words, i, 14)) return true;
+  }
+  return false;
+}
+
+/**
+ * Flag-alone inject claims: "skill injection is live", "the flag injects skills".
+ * Neutral "skill injection" glossary without a live copula stays allowed.
+ */
+function detectSkillInjectionLive(words: string[]): boolean {
+  if (hasDoNotClaimQualifier(words)) return false;
+  for (let i = 0; i < words.length; i++) {
+    if (words[i] === 'skill' && words[i + 1] === 'injection') {
+      if (hasLiveCopula(words, i + 2, 12)) return true;
+    }
+    if (words[i] === 'skills' && (words[i + 1] === 'inject' || words[i + 1] === 'injected')) {
+      if (hasLiveCopula(words, i + 2, 12)) return true;
+    }
+    if (
+      (words[i] === 'flag' || words[i] === 'revealui') &&
+      hasNearby(words, i, 8, new Set(['injects', 'inject', 'injected'])) &&
+      hasNearby(words, i, 10, new Set(['skill', 'skills']))
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/** "PTY output is live" / "terminal PTY is available". */
+function detectPtyOutputLive(words: string[]): boolean {
+  if (hasDoNotClaimQualifier(words)) return false;
+  for (let i = 0; i < words.length; i++) {
+    if (words[i] === 'pty') {
+      if (hasLiveCopula(words, i + 1, 12)) return true;
+    }
+    if (words[i] === 'terminal' && words[i + 1] === 'pty') {
+      if (hasLiveCopula(words, i + 2, 12)) return true;
+    }
+  }
+  return false;
+}
+
+/** "hypervisor spawn is live" — not a bare MCP hypervisor framework mention. */
+function detectHypervisorSpawnLive(words: string[]): boolean {
+  if (hasDoNotClaimQualifier(words)) return false;
+  for (let i = 0; i < words.length; i++) {
+    if (words[i] !== 'hypervisor') continue;
+    if (!hasNearby(words, i, 6, new Set(['spawn']))) continue;
+    if (hasLiveCopula(words, i, 14)) return true;
+  }
+  return false;
+}
+
 function runDetector(detector: CopyDependentDetector, words: string[], line: string): boolean {
   switch (detector) {
     case 'marketplace-live':
@@ -436,6 +572,16 @@ function runDetector(detector: CopyDependentDetector, words: string[], line: str
       return detectAmlHardened(words);
     case 'weight-scan':
       return detectWeightScan(words);
+    case 'contents-cms-live':
+      return detectContentsCmsLive(words);
+    case 'videos-cms-live':
+      return detectVideosCmsLive(words);
+    case 'skill-injection-live':
+      return detectSkillInjectionLive(words);
+    case 'pty-output-live':
+      return detectPtyOutputLive(words);
+    case 'hypervisor-spawn-live':
+      return detectHypervisorSpawnLive(words);
     default:
       return false;
   }

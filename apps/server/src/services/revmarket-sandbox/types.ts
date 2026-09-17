@@ -70,6 +70,14 @@ export interface SandboxResult {
 }
 
 /**
+ * Default sandbox stub until agent skill runtime is wired.
+ * Fail closed — never report success for a run that did not execute a skill.
+ * Keep the string lockstep with `revmarket-task-runner.mjs`.
+ */
+export const REVMARKET_PREVIEW_STUB_ERROR =
+  'RevMarket execution is preview-only. Agent skill runtime is not wired; this is not a successful task run.';
+
+/**
  * Wire-format messages over the provider's IPC / IO channel. Stable so the
  * fork-target script can be a plain `.mjs` file independent of TS types here.
  */

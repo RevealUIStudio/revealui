@@ -25,7 +25,12 @@ vi.mock('node:net', () => ({
 }));
 
 import { requireRole } from '../../middleware/auth.js';
-import { createTerminalRoute, resolveWorkspaceCwd } from '../terminal-ws.js';
+import {
+  createTerminalRoute,
+  PTY_OUTPUT_NOT_IMPLEMENTED,
+  ptyOutputHonestyNotice,
+  resolveWorkspaceCwd,
+} from '../terminal-ws.js';
 
 const ROOT = '/srv/terminal-workspace';
 
@@ -40,6 +45,16 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 // resolveWorkspaceCwd
 // ---------------------------------------------------------------------------
+describe('PTY output honesty notice', () => {
+  it('does not claim remote PTY output is live', () => {
+    const notice = ptyOutputHonestyNotice();
+    expect(notice.type).toBe('status');
+    expect(notice.code).toBe('pty-output-preview');
+    expect(notice.message).toBe(PTY_OUTPUT_NOT_IMPLEMENTED);
+    expect(notice.message).toMatch(/not implemented/i);
+  });
+});
+
 describe('resolveWorkspaceCwd', () => {
   it('defaults to the workspace root when no cwd is requested', () => {
     expect(resolveWorkspaceCwd(undefined)).toBe(ROOT);

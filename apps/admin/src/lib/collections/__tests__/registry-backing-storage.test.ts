@@ -46,4 +46,10 @@ describe('registry backing-storage invariant', () => {
       expect(tableNames.has(slug)).toBe(true);
     },
   );
+
+  it('does not register Contents or Videos until they have backing tables', () => {
+    const slugs = allCollections.map((collection) => collection.slug);
+    expect(slugs).not.toContain('contents');
+    expect(slugs).not.toContain('videos');
+  });
 });

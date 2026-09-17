@@ -12,10 +12,9 @@
  *
  * Phase B contract:
  *   - Today, agent skills don't yet have runtime code. This runner returns a
- *     structured stub identical to the previous in-process placeholder
- *     (revmarket-executor.ts pre-GAP-161). When real agent code lands (Phase C+),
- *     this is the integration point: replace `runStub` with a dispatcher that
- *     loads the agent module by ID and invokes the skill.
+ *     structured preview stub (success: false). Do not fake a successful skill
+ *     run. When real agent code lands (Phase C+), replace `runStub` with a
+ *     dispatcher that loads the agent module by ID and invokes the skill.
  *   - Runner errors are caught and surfaced as `{ success: false, error }`.
  *   - Runner top-level throws crash the fork; parent's exit handler turns
  *     that into a `failed` task.
@@ -72,21 +71,23 @@ setTimeout(() => {
 }, 60_000).unref();
 
 /**
- * Stub agent execution — mirrors the placeholder behavior from the pre-GAP-161
- * `runAgentTask` in revmarket-executor.ts. Real agent dispatch will replace
- * this body when agent runtime code lands.
+ * Preview stub — fail closed until agent skill runtime is wired.
+ * Keep the error string lockstep with REVMARKET_PREVIEW_STUB_ERROR in types.ts.
  */
 async function runStub(task) {
+  const error =
+    'RevMarket execution is preview-only. Agent skill runtime is not wired; this is not a successful task run.';
   return {
-    success: true,
+    success: false,
     output: {
       taskId: task.taskId,
       skillName: task.skillName,
-      status: 'executed',
-      message: 'Task processed by RevMarket sandbox runner',
+      status: 'preview-not-executed',
+      message: error,
     },
     artifacts: [],
     tokensUsed: 0,
+    error,
   };
 }
 

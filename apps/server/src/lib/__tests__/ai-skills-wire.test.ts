@@ -43,6 +43,19 @@ describe('ai-skills-wire', () => {
     expect(createAgentSkillProvider).not.toHaveBeenCalled();
   });
 
+  it('treats the flag as catalog wire, not an inject claim', async () => {
+    const { isAiSkillsWireEnabled, createSkillProviderIfEnabled } = await import(
+      '../ai-skills-wire.js'
+    );
+    expect(isAiSkillsWireEnabled({ REVEALUI_AI_SKILLS: '1' })).toBe(true);
+    const provider = await createSkillProviderIfEnabled({ REVEALUI_AI_SKILLS: '1' });
+    expect(provider).not.toBeNull();
+    expect(createAgentSkillProvider).toHaveBeenCalledOnce();
+    expect(
+      createAgentSkillProvider.mock.results[0]?.value.injectSkillInstructions,
+    ).not.toHaveBeenCalled();
+  });
+
   it('builds provider and loads registry catalog when REVEALUI_AI_SKILLS=1', async () => {
     const { createSkillProviderIfEnabled } = await import('../ai-skills-wire.js');
     const provider = await createSkillProviderIfEnabled({ REVEALUI_AI_SKILLS: '1' });
