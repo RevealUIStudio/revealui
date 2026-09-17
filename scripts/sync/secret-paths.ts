@@ -394,9 +394,9 @@ export const SECRET_PATHS: SecretPathDef[] = [
     ],
   },
   {
-    path: 'revealui/prod/google/private-key',
-    kind: 'credential',
-    sensitive: true,
+    path: 'revealui/prod/google/wif-provider',
+    kind: 'public-config',
+    sensitive: false,
     tier: 'prod',
     consumers: [
       'vercel:api',
@@ -405,7 +405,9 @@ export const SECRET_PATHS: SecretPathDef[] = [
       'vercel:api-staging',
       'vercel:admin-staging',
     ],
-    note: 'PKCS8 PEM - Gmail SA domain-wide delegation; also read by staging (GAP-343)',
+    envVars: ['GOOGLE_WIF_PROVIDER'],
+    requiredInProdHosted: true,
+    note: 'GAP-211 WIF provider resource name; Vercel OIDC token is injected at runtime, not vaulted',
   },
   {
     path: 'revealui/prod/email/from',

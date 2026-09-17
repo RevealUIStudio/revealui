@@ -7,11 +7,12 @@
  * Lets AI agents send notification emails, digests, alerts, and
  * templated messages on behalf of a RevealUI site.
  *
- * Provider: Gmail REST API (GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY)
+ * Provider: Gmail REST API (GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_WIF_PROVIDER)
  *
  * Environment:
  *   GOOGLE_SERVICE_ACCOUNT_EMAIL  -  Google Workspace service account
- *   GOOGLE_PRIVATE_KEY            -  RSA private key (PKCS8, \n-escaped)
+ *   GOOGLE_WIF_PROVIDER           -  GCP workload identity provider resource name
+ *   VERCEL_OIDC_TOKEN             -  injected by Vercel OIDC
  *   EMAIL_FROM                    -  Sender address (default: noreply@revealui.com)
  *   EMAIL_REPLY_TO                -  Default reply-to (e.g. support@revealui.com)
  *

@@ -111,7 +111,7 @@ describe('sendEmail', () => {
   it('throws in production when no email provider is configured', async () => {
     process.env.NODE_ENV = 'production';
     delete process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    delete process.env.GOOGLE_PRIVATE_KEY;
+    delete process.env.GOOGLE_WIF_PROVIDER;
 
     const { sendEmail } = await importFresh();
     await expect(
@@ -122,7 +122,7 @@ describe('sendEmail', () => {
   it('logs and returns silently in development when no email provider is configured', async () => {
     process.env.NODE_ENV = 'development';
     delete process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    delete process.env.GOOGLE_PRIVATE_KEY;
+    delete process.env.GOOGLE_WIF_PROVIDER;
 
     const { sendEmail } = await importFresh();
     await expect(

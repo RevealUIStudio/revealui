@@ -246,7 +246,7 @@ and `apps/server/src/lib/required-env.ts` actually check today, not the
 | `NEXT_PUBLIC_SERVER_URL` | required | Same value as `REVEALUI_PUBLIC_SERVER_URL`. The boot validator rejects a mismatch. |
 | `CORS_ORIGIN` | required | `https://${{admin.RAILWAY_PUBLIC_DOMAIN}}` (comma-separate if you add more origins) |
 | `REVFORGE_LICENSED_DOMAIN` | optional | Set to your `admin` service's domain to enforce the RevForge domain lock (`apps/admin/src/proxy.ts`) |
-| `GOOGLE_SERVICE_ACCOUNT_EMAIL` / `GOOGLE_PRIVATE_KEY` | optional | Only if you want transactional email (password reset, notifications). If omitted, email sends no-op silently rather than failing boot. |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL` / `GOOGLE_WIF_PROVIDER` | optional | Transactional email via WIF. Hosted Vercel injects OIDC; Railway marketplace is a sales channel, not Studio production. |
 | `X402_ENABLED` / `X402_RECEIVING_ADDRESS` | optional | Only if enabling x402 micropayments; see `docs/architecture/x402.md` |
 
 ### `admin` service

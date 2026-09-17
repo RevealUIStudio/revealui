@@ -325,7 +325,7 @@ export const FIRST_24H_UX_SURFACES_2026_08_20: readonly First24hUxReceiptLine[] 
     plan: 'none',
     result: 'PASS',
     evidence:
-      'lifecycle-email-arming.test.ts — missing GOOGLE_SERVICE_ACCOUNT_EMAIL or GOOGLE_PRIVATE_KEY never arms, even with the flag or preview',
+      'lifecycle-email-arming.test.ts — missing GOOGLE_SERVICE_ACCOUNT_EMAIL or GOOGLE_WIF_PROVIDER never arms, even with the flag or preview',
   }),
   surface({
     surface: 'cron-lifecycle-host-allowlist',

@@ -18,7 +18,7 @@ Cross-reference `docs/ENVIRONMENT-VARIABLES-GUIDE.md` for env var details.
 | Cadence | Credentials |
 |---------|------------|
 | **90 days** | REVEALUI_SECRET, REVEALUI_KEK*, REVEALUI_LICENSE_ENCRYPTION_KEY*, REVEALUI_CRON_SECRET, REVEALUI_ADMIN_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY, TAVILY_API_KEY, HF_TOKEN, VERCEL_API_KEY, NEON_API_KEY, MCP_API_KEY |
-| **Quarterly** | STRIPE_SECRET_KEY, GOOGLE_CLIENT_SECRET, GOOGLE_PRIVATE_KEY, GITHUB_CLIENT_SECRET, REVEALUI_GITHUB_TOKEN, SENTRY_AUTH_TOKEN, ELECTRIC_API_KEY, ELECTRIC_DATABASE_URL (password), R2_SECRET_ACCESS_KEY |
+| **Quarterly** | STRIPE_SECRET_KEY, GOOGLE_CLIENT_SECRET, GITHUB_CLIENT_SECRET, REVEALUI_GITHUB_TOKEN, SENTRY_AUTH_TOKEN, ELECTRIC_API_KEY, ELECTRIC_DATABASE_URL (password), R2_SECRET_ACCESS_KEY |
 | **Annually** | REVEALUI_LICENSE_PRIVATE_KEY (Ed25519 pair), GOOGLE_CLIENT_ID, GITHUB_CLIENT_ID, VERCEL_CLIENT_ID, YOUTUBE_API_KEY |
 
 > The Supabase keys (`SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_DATABASE_URI`) are no longer on the active RevealUI rotation cadence. Supabase was removed as an internal datastore (ADR `2026-05-01-supabase-removal.md`); the legacy rotation steps below are retained only for self-hosted installs that have not yet completed migration.
@@ -177,7 +177,7 @@ curl -X POST https://api.revealui.com/api/agent/health -H "Authorization: Bearer
 revvault set revealui/env/services GOOGLE_CLIENT_SECRET "GOCSPX-..."
 
 # Service account: Console > IAM > Service Accounts > Keys > Add Key
-revvault set revealui/env/services GOOGLE_PRIVATE_KEY "-----BEGIN PRIVATE KEY..."
+revvault set revealui/prod/google/wif-provider --value "projects/.../providers/..."
 revvault set revealui/env/services GOOGLE_SERVICE_ACCOUNT_EMAIL "...@...iam.gserviceaccount.com"
 ```
 
@@ -259,7 +259,7 @@ All secrets are managed through RevVault. Namespace mapping:
 | `revealui/env/license` | REVEALUI_LICENSE_PRIVATE_KEY, REVEALUI_LICENSE_PUBLIC_KEY, REVEALUI_LICENSE_ENCRYPTION_KEY |
 | `revealui/env/stripe` | STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PUBLISHABLE_KEY, price IDs |
 | `revealui/env/supabase` | SUPABASE_DATABASE_URI, SUPABASE_SERVICE_ROLE_KEY, anon key — **Legacy** (retired per ADR `2026-05-01-supabase-removal.md`) |
-| `revealui/env/services` | ANTHROPIC_API_KEY, OPENAI_API_KEY, Google/GitHub OAuth, Workspace Gmail (`GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, `EMAIL_FROM`) |
+| `revealui/env/services` | ANTHROPIC_API_KEY, OPENAI_API_KEY, Google/GitHub OAuth, Workspace Gmail (`GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_WIF_PROVIDER`, `EMAIL_FROM`) |
 | `revealui/env/cron` | REVEALUI_CRON_SECRET |
 | `revealui/env/admin` | REVEALUI_ADMIN_API_KEY, REVEALUI_ADMIN_EMAIL |
 | `revealui/env/admin-url` | ADMIN_URL, API_URL |

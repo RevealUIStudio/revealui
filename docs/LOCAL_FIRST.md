@@ -144,7 +144,7 @@ revvault init
 # Store your secrets
 revvault set revealui/db/postgres-url
 revvault set revealui/stripe/secret-key
-revvault set revealui/google/private-key
+revvault set revealui/prod/google/wif-provider
 
 # Add to .envrc
 cat >> .envrc <<'EOF'

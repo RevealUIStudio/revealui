@@ -2,11 +2,12 @@
  * Shared Email Service
  *
  * Sends emails using Gmail REST API with domain-wide delegation.
- * Edge-compatible (fetch + jose, no Node.js-only dependencies).
+ * Edge-compatible (fetch only, no Node.js-only dependencies).
  *
- * Required env vars:
+ * Required env vars (GAP-211 — keyless WIF, no downloadable SA key):
  *   GOOGLE_SERVICE_ACCOUNT_EMAIL  -  GCP service account email
- *   GOOGLE_PRIVATE_KEY            -  RSA private key (PKCS8 PEM)
+ *   GOOGLE_WIF_PROVIDER           -  projects/.../workloadIdentityPools/.../providers/...
+ *   VERCEL_OIDC_TOKEN             -  injected by Vercel OIDC (or GOOGLE_WIF_ID_TOKEN)
  *   EMAIL_FROM                    -  sender address (e.g. noreply@revealui.com)
  *   EMAIL_REPLY_TO                -  default reply-to (e.g. support@revealui.com)
  *
@@ -21,10 +22,12 @@
  * Closes GAP-138.
  */
 
-import { normalizePem } from '@revealui/core/license';
 import { isHipaaProfile, resolveComplianceProfile } from '@revealui/security';
 import { logger as defaultLogger } from '@revealui/utils/logger';
-import { importPKCS8, SignJWT } from 'jose';
+
+import { gmailWifConfigured, mintGmailAccessToken } from './gmail-wif.js';
+
+export { gmailWifConfigured, mintGmailAccessToken } from './gmail-wif.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -115,14 +118,10 @@ export function clearGmailAccessTokenCache(): void {
 }
 
 export class GmailProvider implements EmailProvider {
-  private serviceAccountEmail: string;
-  private privateKey: string;
   private delegateEmail: string;
   private logger: EmailLogger;
 
   constructor(opts: { logger?: EmailLogger } = {}) {
-    this.serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || '';
-    this.privateKey = process.env.GOOGLE_PRIVATE_KEY || '';
     this.delegateEmail = process.env.EMAIL_FROM ?? 'noreply@revealui.com';
     this.logger = opts.logger ?? defaultLogger;
   }
@@ -133,40 +132,9 @@ export class GmailProvider implements EmailProvider {
       return gmailAccessToken.token;
     }
 
-    const key = await importPKCS8(normalizePem(this.privateKey), 'RS256');
-
-    const jwt = await new SignJWT({
-      scope: 'https://www.googleapis.com/auth/gmail.send',
-      sub: this.delegateEmail,
-    })
-      .setProtectedHeader({ alg: 'RS256', typ: 'JWT' })
-      .setIssuer(this.serviceAccountEmail)
-      .setAudience('https://oauth2.googleapis.com/token')
-      .setIssuedAt(now)
-      .setExpirationTime(now + 3600)
-      .sign(key);
-
-    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-        assertion: jwt,
-      }),
-    });
-
-    if (!tokenRes.ok) {
-      const body = await tokenRes.text();
-      throw new Error(`Google OAuth2 token exchange failed (${tokenRes.status}): ${body}`);
-    }
-
-    const { access_token, expires_in } = (await tokenRes.json()) as {
-      access_token: string;
-      expires_in?: number;
-    };
-    const ttl = typeof expires_in === 'number' && expires_in > 0 ? expires_in : 3600;
-    gmailAccessToken = { token: access_token, exp: now + ttl };
-    return access_token;
+    const minted = await mintGmailAccessToken();
+    gmailAccessToken = { token: minted.accessToken, exp: now + minted.expiresIn };
+    return minted.accessToken;
   }
 
   private buildRawMessage(options: EmailOptions): string {
@@ -210,8 +178,8 @@ export class GmailProvider implements EmailProvider {
   }
 
   async send(options: EmailOptions): Promise<EmailSendResult> {
-    if (!(this.serviceAccountEmail && this.privateKey)) {
-      return { success: false, error: 'Gmail service account credentials not configured' };
+    if (!gmailWifConfigured()) {
+      return { success: false, error: 'Gmail WIF credentials not configured' };
     }
 
     try {
@@ -290,7 +258,7 @@ export function getEmailProvider(opts: { logger?: EmailLogger } = {}): EmailProv
   }
 
   // Gmail REST API (production  -  edge-compatible, free with Workspace)
-  if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
+  if (gmailWifConfigured()) {
     return new GmailProvider({ logger });
   }
 

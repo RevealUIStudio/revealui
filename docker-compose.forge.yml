@@ -123,7 +123,7 @@ services:
 
       # Optional: Gmail transactional email (no Resend — removed PR #227)
       GOOGLE_SERVICE_ACCOUNT_EMAIL: ${GOOGLE_SERVICE_ACCOUNT_EMAIL:-}
-      GOOGLE_PRIVATE_KEY: ${GOOGLE_PRIVATE_KEY:-}
+      GOOGLE_WIF_PROVIDER: ${GOOGLE_WIF_PROVIDER:-}
       EMAIL_FROM: ${EMAIL_FROM:-noreply@revealui.com}
 
       # Optional: x402 micropayments
@@ -199,7 +199,7 @@ services:
 
       # Optional: Gmail email
       GOOGLE_SERVICE_ACCOUNT_EMAIL: ${GOOGLE_SERVICE_ACCOUNT_EMAIL:-}
-      GOOGLE_PRIVATE_KEY: ${GOOGLE_PRIVATE_KEY:-}
+      GOOGLE_WIF_PROVIDER: ${GOOGLE_WIF_PROVIDER:-}
 
     ports:
       - "${CMS_PORT:-4000}:4000"

@@ -81,7 +81,7 @@ No FAIL rows. `cron-lifecycle-production` is PASS (production remains disarmed).
 
 ## Leftovers
 
-1. **Owner inbox check on hosted test.** Confirm `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, and `EMAIL_FROM` are present on vercel:api-staging (GAP-343 already maps them). Then trigger `POST /api/cron/dispatch` (or wait for the daily 06:00 UTC cron on the staging project) against a known Pro/Max test account. Do not set `LIFECYCLE_EMAILS_ENABLED=true` on production/`main`.
+1. **Owner inbox check on hosted test.** Confirm `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_WIF_PROVIDER`, and `EMAIL_FROM` are present on vercel:api-staging (GAP-343 already maps them). Then trigger `POST /api/cron/dispatch` (or wait for the daily 06:00 UTC cron on the staging project) against a known Pro/Max test account. Do not set `LIFECYCLE_EMAILS_ENABLED=true` on production/`main`.
 2. **No live Stripe walk.** First charge / trial start in Stripe Checkout was not executed here.
 3. **Welcome page does not show `expiresAt`.** It shows the plan label and links to billing. Expiry is on billing + license after the API fix.
 4. **Security Review Gate.** Earlier billing-route work may still need `sec-review:approved` from a raw terminal. This arming PR does not change billing/auth routes.
