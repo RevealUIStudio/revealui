@@ -1,0 +1,39 @@
+{
+  "name": "omarchy",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Omarchy RevealUI runtime template + host plugin skeleton. Not a public SKU.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./runtime": "./src/runtime.ts",
+    "./agent": "./src/agent-spec.ts"
+  },
+  "files": [
+    "README.md",
+    "runtime.example.json",
+    "agent.json",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "dev": "tsc --watch",
+    "lint": "biome check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@revealui/dev": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "engines": {
+    "node": ">=24.13.0"
+  }
+}

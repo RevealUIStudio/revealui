@@ -1,0 +1,31 @@
+{
+  "version": "1.0.0",
+  "sku": null,
+  "note": "Point inference at an OpenAI-compatible or Ollama URL. Do not reimplement Ubuntu inference snaps on Arch. Existing Ubuntu or WSL snap hosts remain valid.",
+  "testedOn": "Omarchy Quattro",
+  "supportedOn": ["Omarchy", "Ubuntu", "WSL", "macOS"],
+  "inference": {
+    "preferred": "openai-compatible",
+    "openaiCompatible": {
+      "env": "OPENAI_BASE_URL",
+      "exampleUrl": "http://127.0.0.1:11434/v1"
+    },
+    "ollama": {
+      "env": "OLLAMA_BASE_URL",
+      "exampleUrl": "http://127.0.0.1:11434"
+    },
+    "hostSnaps": {
+      "env": "INFERENCE_SNAPS_BASE_URL",
+      "exampleUrl": "http://127.0.0.1:9090/v1",
+      "note": "Use snaps already running on Ubuntu or WSL. Do not install or reimplement snaps on Arch."
+    }
+  },
+  "install": {
+    "createRevealui": "npx create-revealui@latest",
+    "docker": "docker compose up -d",
+    "cursor": "Open this directory in Cursor after scaffold."
+  },
+  "streamSafe": {
+    "tip": "When screen-sharing, set STREAM_SAFE=1 and inject secrets with revvault run so values never appear in argv, TTY, or capture."
+  }
+}
