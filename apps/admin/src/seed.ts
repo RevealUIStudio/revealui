@@ -436,4 +436,4 @@ async function main() {
 
 main();
 
-export { pages, sampleContent, seedContentNotice as seedContent, seedPages };
+export { pages, sampleContent, seedContentsAndEvents as seedContent, seedPages };
