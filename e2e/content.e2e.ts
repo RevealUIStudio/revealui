@@ -57,12 +57,7 @@ async function goToAdmin(page: Page) {
 //   - Posts requires `content` (richText, required)  -  DocumentForm cannot fill richText
 //   - Categories only requires `title` (text)  -  works with current DocumentForm
 
-// categories is WIRE-UP-PENDING / unregistered (F-062-0001, F-023-0001).
-// DocumentForm cannot fill Pages/Posts required blocks/richText, so this
-// suite used categories as a title-only stand-in. That CRUD never hit a
-// live collection. Skip until a registered title-only collection exists.
-test.describe
-  .skip('Content CRUD lifecycle', () => {
+test.describe('Content CRUD lifecycle', () => {
     // Reuse the session cookie saved by global-setup  -  no per-test sign-in needed.
     // This avoids the 5/15min sign-in rate limit when retries are enabled.
     test.use({ storageState: AUTH_STATE_FILE });
