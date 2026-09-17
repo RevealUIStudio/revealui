@@ -19,9 +19,7 @@
  * Collection choice:
  *   Pages/Posts have required `blocks`/`richText` fields that DocumentForm
  *   cannot render (it only handles text/number/checkbox/select/date).
- *   `categories` is title-only but unregistered (WIRE-UP-PENDING). The
- *   categories CRUD describe is skipped (F-062-0001). Media upload via API
- *   remains — Media is a live collection.
+ *   Categories is title-only and now registered with a `categories` table.
  *
  * Run with:
  *   CI=1 PLAYWRIGHT_BASE_URL=https://admin.revealui.com \
@@ -59,117 +57,110 @@ async function goToAdmin(page: Page) {
 //   - Posts requires `content` (richText, required)  -  DocumentForm cannot fill richText
 //   - Categories only requires `title` (text)  -  works with current DocumentForm
 
-// categories is WIRE-UP-PENDING / unregistered (F-062-0001, F-023-0001).
-// DocumentForm cannot fill Pages/Posts required blocks/richText, so this
-// suite used categories as a title-only stand-in. That CRUD never hit a
-// live collection. Skip until a registered title-only collection exists.
-test.describe
-  .skip('Content CRUD lifecycle', () => {
-    // Reuse the session cookie saved by global-setup  -  no per-test sign-in needed.
-    // This avoids the 5/15min sign-in rate limit when retries are enabled.
-    test.use({ storageState: AUTH_STATE_FILE });
+test.describe('Content CRUD lifecycle', () => {
+  // Reuse the session cookie saved by global-setup  -  no per-test sign-in needed.
+  // This avoids the 5/15min sign-in rate limit when retries are enabled.
+  test.use({ storageState: AUTH_STATE_FILE });
 
-    const testTitle = `E2E Category ${Date.now()}`;
+  const testTitle = `E2E Category ${Date.now()}`;
 
-    test.beforeAll(async ({ request }) => {
-      // Skip if auth state doesn't exist or has no cookies (global-setup failed)
-      try {
-        const state = JSON.parse(readFileSync(AUTH_STATE_FILE, 'utf8')) as {
-          cookies?: unknown[];
-        };
-        if (!state.cookies?.length) {
-          test.skip();
-          return;
-        }
-      } catch {
+  test.beforeAll(async ({ request }) => {
+    // Skip if auth state doesn't exist or has no cookies (global-setup failed)
+    try {
+      const state = JSON.parse(readFileSync(AUTH_STATE_FILE, 'utf8')) as {
+        cookies?: unknown[];
+      };
+      if (!state.cookies?.length) {
         test.skip();
         return;
       }
-      // Skip if Admin is unreachable
-      try {
-        const res = await request.get(`${ADMIN_BASE}/api/health`, { timeout: 5000 });
-        if (!res.ok()) test.skip();
-      } catch {
-        test.skip();
+    } catch {
+      test.skip();
+      return;
+    }
+    // Skip if Admin is unreachable
+    try {
+      const res = await request.get(`${ADMIN_BASE}/api/health`, { timeout: 5000 });
+      if (!res.ok()) test.skip();
+    } catch {
+      test.skip();
+    }
+  });
+
+  test('admin can create a document via admin UI', async ({ page }) => {
+    // Capture API calls to diagnose save failures
+    const apiCalls: Array<{ url: string; method: string; status: number; body: string }> = [];
+    page.on('response', async (response) => {
+      if (response.url().includes('/api/collections/')) {
+        const body = await response.text().catch(() => '');
+        apiCalls.push({
+          url: response.url(),
+          method: response.request().method(),
+          status: response.status(),
+          body: body.slice(0, 300),
+        });
       }
     });
 
-    test('admin can create a document via admin UI', async ({ page }) => {
-      // Capture API calls to diagnose save failures
-      const apiCalls: Array<{ url: string; method: string; status: number; body: string }> = [];
-      page.on('response', async (response) => {
-        if (response.url().includes('/api/collections/')) {
-          const body = await response.text().catch(() => '');
-          apiCalls.push({
-            url: response.url(),
-            method: response.request().method(),
-            status: response.status(),
-            body: body.slice(0, 300),
-          });
-        }
-      });
+    await goToAdmin(page);
 
-      await goToAdmin(page);
-
-      // Click categories  -  retry if React hasn't hydrated yet (onClick not attached)
-      await expect(async () => {
-        await page.getByRole('button', { name: 'categories' }).click();
-        await expect(page.getByRole('button', { name: 'Create New' })).toBeVisible({
-          timeout: 3000,
-        });
-      }).toPass({ timeout: 20000 });
-
-      await page.getByRole('button', { name: 'Create New' }).click();
-
-      // Wait for form and fill the title field
-      await page.getByLabel(/title/i).waitFor({ timeout: 10000 });
-      await page.getByLabel(/title/i).fill(testTitle);
-
-      // Save
-      await page.getByRole('button', { name: 'Save' }).click();
-
-      // Success: AdminDashboard navigates back to the collection list after save.
-      // "Create New" reappearing signals the view transitioned (success clears the form).
-      // The success toast is cleared by handleCollectionClick before React renders it,
-      // so we detect success via navigation instead.
-      await expect(page.getByRole('button', { name: 'Create New' }))
-        .toBeVisible({ timeout: 15000 })
-        .catch((err: unknown) => {
-          // Debug: log API calls made during this test to diagnose the failure
-          console.error('[DEBUG] API calls during test:', JSON.stringify(apiCalls, null, 2));
-          throw err;
-        });
-
-      // Verify the new document appears in the collection list
-      await expect(page.getByText(testTitle)).toBeVisible({ timeout: 5000 });
-    });
-
-    test('admin can create a second document (verifies list + Create New flow)', async ({
-      page,
-    }) => {
-      const secondTitle = `E2E Category Second ${Date.now()}`;
-      await goToAdmin(page);
-
-      await expect(async () => {
-        await page.getByRole('button', { name: 'categories' }).click();
-        await expect(page.getByRole('button', { name: 'Create New' })).toBeVisible({
-          timeout: 3000,
-        });
-      }).toPass({ timeout: 20000 });
-
-      await page.getByRole('button', { name: 'Create New' }).click();
-
-      await page.getByLabel(/title/i).waitFor({ timeout: 10000 });
-      await page.getByLabel(/title/i).fill(secondTitle);
-
-      await page.getByRole('button', { name: 'Save' }).click();
-
+    // Click categories  -  retry if React hasn't hydrated yet (onClick not attached)
+    await expect(async () => {
+      await page.getByRole('button', { name: 'categories' }).click();
       await expect(page.getByRole('button', { name: 'Create New' })).toBeVisible({
-        timeout: 15000,
+        timeout: 3000,
       });
-      await expect(page.getByText(secondTitle)).toBeVisible({ timeout: 5000 });
-    });
+    }).toPass({ timeout: 20000 });
+
+    await page.getByRole('button', { name: 'Create New' }).click();
+
+    // Wait for form and fill the title field
+    await page.getByLabel(/title/i).waitFor({ timeout: 10000 });
+    await page.getByLabel(/title/i).fill(testTitle);
+
+    // Save
+    await page.getByRole('button', { name: 'Save' }).click();
+
+    // Success: AdminDashboard navigates back to the collection list after save.
+    // "Create New" reappearing signals the view transitioned (success clears the form).
+    // The success toast is cleared by handleCollectionClick before React renders it,
+    // so we detect success via navigation instead.
+    await expect(page.getByRole('button', { name: 'Create New' }))
+      .toBeVisible({ timeout: 15000 })
+      .catch((err: unknown) => {
+        // Debug: log API calls made during this test to diagnose the failure
+        console.error('[DEBUG] API calls during test:', JSON.stringify(apiCalls, null, 2));
+        throw err;
+      });
+
+    // Verify the new document appears in the collection list
+    await expect(page.getByText(testTitle)).toBeVisible({ timeout: 5000 });
   });
+
+  test('admin can create a second document (verifies list + Create New flow)', async ({ page }) => {
+    const secondTitle = `E2E Category Second ${Date.now()}`;
+    await goToAdmin(page);
+
+    await expect(async () => {
+      await page.getByRole('button', { name: 'categories' }).click();
+      await expect(page.getByRole('button', { name: 'Create New' })).toBeVisible({
+        timeout: 3000,
+      });
+    }).toPass({ timeout: 20000 });
+
+    await page.getByRole('button', { name: 'Create New' }).click();
+
+    await page.getByLabel(/title/i).waitFor({ timeout: 10000 });
+    await page.getByLabel(/title/i).fill(secondTitle);
+
+    await page.getByRole('button', { name: 'Save' }).click();
+
+    await expect(page.getByRole('button', { name: 'Create New' })).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(page.getByText(secondTitle)).toBeVisible({ timeout: 5000 });
+  });
+});
 
 // ---------------------------------------------------------------------------
 // Media upload  -  API-based (bypasses DocumentForm which lacks upload field type)

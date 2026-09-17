@@ -586,6 +586,32 @@ export type BoardsRow = z.infer<typeof BoardsSelectSchema>
 export type BoardsInsert = z.infer<typeof BoardsInsertSchema>
 
 // =============================================================================
+// Categories Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting categories rows from database
+ * Generated from Drizzle table definition: tables.categories
+ */
+export const CategoriesSelectSchema = createSelectSchema(tables.categories)
+
+/**
+ * Zod schema for inserting categories rows to database
+ * Generated from Drizzle table definition: tables.categories
+ */
+export const CategoriesInsertSchema = createInsertSchema(tables.categories)
+
+/**
+ * TypeScript type for categories row (Select)
+ */
+export type CategoriesRow = z.infer<typeof CategoriesSelectSchema>
+
+/**
+ * TypeScript type for categories insert
+ */
+export type CategoriesInsert = z.infer<typeof CategoriesInsertSchema>
+
+// =============================================================================
 // CircuitBreakerState Schemas
 // =============================================================================
 
@@ -688,6 +714,32 @@ export type CollabEditsRow = z.infer<typeof CollabEditsSelectSchema>
  * TypeScript type for collabEdits insert
  */
 export type CollabEditsInsert = z.infer<typeof CollabEditsInsertSchema>
+
+// =============================================================================
+// Contents Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting contents rows from database
+ * Generated from Drizzle table definition: tables.contents
+ */
+export const ContentsSelectSchema = createSelectSchema(tables.contents)
+
+/**
+ * Zod schema for inserting contents rows to database
+ * Generated from Drizzle table definition: tables.contents
+ */
+export const ContentsInsertSchema = createInsertSchema(tables.contents)
+
+/**
+ * TypeScript type for contents row (Select)
+ */
+export type ContentsRow = z.infer<typeof ContentsSelectSchema>
+
+/**
+ * TypeScript type for contents insert
+ */
+export type ContentsInsert = z.infer<typeof ContentsInsertSchema>
 
 // =============================================================================
 // Conversations Schemas
@@ -1028,6 +1080,32 @@ export type ErrorEventsRow = z.infer<typeof ErrorEventsSelectSchema>
 export type ErrorEventsInsert = z.infer<typeof ErrorEventsInsertSchema>
 
 // =============================================================================
+// Events Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting events rows from database
+ * Generated from Drizzle table definition: tables.events
+ */
+export const EventsSelectSchema = createSelectSchema(tables.events)
+
+/**
+ * Zod schema for inserting events rows to database
+ * Generated from Drizzle table definition: tables.events
+ */
+export const EventsInsertSchema = createInsertSchema(tables.events)
+
+/**
+ * TypeScript type for events row (Select)
+ */
+export type EventsRow = z.infer<typeof EventsSelectSchema>
+
+/**
+ * TypeScript type for events insert
+ */
+export type EventsInsert = z.infer<typeof EventsInsertSchema>
+
+// =============================================================================
 // FailedAttempts Schemas
 // =============================================================================
 
@@ -1234,6 +1312,32 @@ export type IdempotencyKeysRow = z.infer<typeof IdempotencyKeysSelectSchema>
  * TypeScript type for idempotencyKeys insert
  */
 export type IdempotencyKeysInsert = z.infer<typeof IdempotencyKeysInsertSchema>
+
+// =============================================================================
+// Info Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting info rows from database
+ * Generated from Drizzle table definition: tables.info
+ */
+export const InfoSelectSchema = createSelectSchema(tables.info)
+
+/**
+ * Zod schema for inserting info rows to database
+ * Generated from Drizzle table definition: tables.info
+ */
+export const InfoInsertSchema = createInsertSchema(tables.info)
+
+/**
+ * TypeScript type for info row (Select)
+ */
+export type InfoRow = z.infer<typeof InfoSelectSchema>
+
+/**
+ * TypeScript type for info insert
+ */
+export type InfoInsert = z.infer<typeof InfoInsertSchema>
 
 // =============================================================================
 // Jobs Schemas
@@ -1964,6 +2068,32 @@ export type PostsRow = z.infer<typeof PostsSelectSchema>
 export type PostsInsert = z.infer<typeof PostsInsertSchema>
 
 // =============================================================================
+// Prices Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting prices rows from database
+ * Generated from Drizzle table definition: tables.prices
+ */
+export const PricesSelectSchema = createSelectSchema(tables.prices)
+
+/**
+ * Zod schema for inserting prices rows to database
+ * Generated from Drizzle table definition: tables.prices
+ */
+export const PricesInsertSchema = createInsertSchema(tables.prices)
+
+/**
+ * TypeScript type for prices row (Select)
+ */
+export type PricesRow = z.infer<typeof PricesSelectSchema>
+
+/**
+ * TypeScript type for prices insert
+ */
+export type PricesInsert = z.infer<typeof PricesInsertSchema>
+
+// =============================================================================
 // ProcessedWebhookEvents Schemas
 // =============================================================================
 
@@ -2276,6 +2406,32 @@ export type SsoIdentitiesRow = z.infer<typeof SsoIdentitiesSelectSchema>
 export type SsoIdentitiesInsert = z.infer<typeof SsoIdentitiesInsertSchema>
 
 // =============================================================================
+// Subscriptions Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting subscriptions rows from database
+ * Generated from Drizzle table definition: tables.subscriptions
+ */
+export const SubscriptionsSelectSchema = createSelectSchema(tables.subscriptions)
+
+/**
+ * Zod schema for inserting subscriptions rows to database
+ * Generated from Drizzle table definition: tables.subscriptions
+ */
+export const SubscriptionsInsertSchema = createInsertSchema(tables.subscriptions)
+
+/**
+ * TypeScript type for subscriptions row (Select)
+ */
+export type SubscriptionsRow = z.infer<typeof SubscriptionsSelectSchema>
+
+/**
+ * TypeScript type for subscriptions insert
+ */
+export type SubscriptionsInsert = z.infer<typeof SubscriptionsInsertSchema>
+
+// =============================================================================
 // SyncMetadata Schemas
 // =============================================================================
 
@@ -2300,6 +2456,32 @@ export type SyncMetadataRow = z.infer<typeof SyncMetadataSelectSchema>
  * TypeScript type for syncMetadata insert
  */
 export type SyncMetadataInsert = z.infer<typeof SyncMetadataInsertSchema>
+
+// =============================================================================
+// Tags Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting tags rows from database
+ * Generated from Drizzle table definition: tables.tags
+ */
+export const TagsSelectSchema = createSelectSchema(tables.tags)
+
+/**
+ * Zod schema for inserting tags rows to database
+ * Generated from Drizzle table definition: tables.tags
+ */
+export const TagsInsertSchema = createInsertSchema(tables.tags)
+
+/**
+ * TypeScript type for tags row (Select)
+ */
+export type TagsRow = z.infer<typeof TagsSelectSchema>
+
+/**
+ * TypeScript type for tags insert
+ */
+export type TagsInsert = z.infer<typeof TagsInsertSchema>
 
 // =============================================================================
 // TaskSubmissions Schemas
@@ -2612,6 +2794,32 @@ export type UsersRow = z.infer<typeof UsersSelectSchema>
  * TypeScript type for users insert
  */
 export type UsersInsert = z.infer<typeof UsersInsertSchema>
+
+// =============================================================================
+// Videos Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting videos rows from database
+ * Generated from Drizzle table definition: tables.videos
+ */
+export const VideosSelectSchema = createSelectSchema(tables.videos)
+
+/**
+ * Zod schema for inserting videos rows to database
+ * Generated from Drizzle table definition: tables.videos
+ */
+export const VideosInsertSchema = createInsertSchema(tables.videos)
+
+/**
+ * TypeScript type for videos row (Select)
+ */
+export type VideosRow = z.infer<typeof VideosSelectSchema>
+
+/**
+ * TypeScript type for videos insert
+ */
+export type VideosInsert = z.infer<typeof VideosInsertSchema>
 
 // =============================================================================
 // Waitlist Schemas

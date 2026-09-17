@@ -31,10 +31,12 @@ import type {
   billingCatalog,
   boardColumns,
   boards,
+  categories,
   circuitBreakerState,
   codeProvenance,
   codeReviews,
   collabEdits,
+  contents,
   conversations,
   coordinationAgents,
   coordinationEvents,
@@ -48,6 +50,7 @@ import type {
   editSessionEvents,
   editSessions,
   errorEvents,
+  events,
   failedAttempts,
   gdprBreaches,
   gdprConsents,
@@ -56,6 +59,7 @@ import type {
   globalHeader,
   globalSettings,
   idempotencyKeys,
+  info,
   jobs,
   kgEdgeEpisodes,
   kgEdges,
@@ -84,6 +88,7 @@ import type {
   passkeys,
   passwordResetTokens,
   posts,
+  prices,
   processedWebhookEvents,
   products,
   ragChunks,
@@ -96,7 +101,9 @@ import type {
   siteCollaborators,
   sites,
   ssoIdentities,
+  subscriptions,
   syncMetadata,
+  tags,
   taskSubmissions,
   tenantProviderConfigs,
   tenants,
@@ -109,6 +116,7 @@ import type {
   userApiKeys,
   userDevices,
   users,
+  videos,
   waitlist,
   workspaceInferenceConfigs,
   yjsDocumentPatches,
@@ -229,6 +237,11 @@ export type BoardsRow = typeof boards.$inferSelect
 export type BoardsInsert = typeof boards.$inferInsert
 export type BoardsUpdate = Partial<BoardsInsert>
 
+// Categories
+export type CategoriesRow = typeof categories.$inferSelect
+export type CategoriesInsert = typeof categories.$inferInsert
+export type CategoriesUpdate = Partial<CategoriesInsert>
+
 // Circuit Breaker State
 export type CircuitBreakerStateRow = typeof circuitBreakerState.$inferSelect
 export type CircuitBreakerStateInsert = typeof circuitBreakerState.$inferInsert
@@ -248,6 +261,11 @@ export type CodeReviewsUpdate = Partial<CodeReviewsInsert>
 export type CollabEditsRow = typeof collabEdits.$inferSelect
 export type CollabEditsInsert = typeof collabEdits.$inferInsert
 export type CollabEditsUpdate = Partial<CollabEditsInsert>
+
+// Contents
+export type ContentsRow = typeof contents.$inferSelect
+export type ContentsInsert = typeof contents.$inferInsert
+export type ContentsUpdate = Partial<ContentsInsert>
 
 // Conversations
 export type ConversationsRow = typeof conversations.$inferSelect
@@ -314,6 +332,11 @@ export type ErrorEventsRow = typeof errorEvents.$inferSelect
 export type ErrorEventsInsert = typeof errorEvents.$inferInsert
 export type ErrorEventsUpdate = Partial<ErrorEventsInsert>
 
+// Events
+export type EventsRow = typeof events.$inferSelect
+export type EventsInsert = typeof events.$inferInsert
+export type EventsUpdate = Partial<EventsInsert>
+
 // Failed Attempts
 export type FailedAttemptsRow = typeof failedAttempts.$inferSelect
 export type FailedAttemptsInsert = typeof failedAttempts.$inferInsert
@@ -353,6 +376,11 @@ export type GlobalSettingsUpdate = Partial<GlobalSettingsInsert>
 export type IdempotencyKeysRow = typeof idempotencyKeys.$inferSelect
 export type IdempotencyKeysInsert = typeof idempotencyKeys.$inferInsert
 export type IdempotencyKeysUpdate = Partial<IdempotencyKeysInsert>
+
+// Info
+export type InfoRow = typeof info.$inferSelect
+export type InfoInsert = typeof info.$inferInsert
+export type InfoUpdate = Partial<InfoInsert>
 
 // Jobs
 export type JobsRow = typeof jobs.$inferSelect
@@ -494,6 +522,11 @@ export type PostsRow = typeof posts.$inferSelect
 export type PostsInsert = typeof posts.$inferInsert
 export type PostsUpdate = Partial<PostsInsert>
 
+// Prices
+export type PricesRow = typeof prices.$inferSelect
+export type PricesInsert = typeof prices.$inferInsert
+export type PricesUpdate = Partial<PricesInsert>
+
 // Processed Webhook Events
 export type ProcessedWebhookEventsRow = typeof processedWebhookEvents.$inferSelect
 export type ProcessedWebhookEventsInsert = typeof processedWebhookEvents.$inferInsert
@@ -554,10 +587,20 @@ export type SsoIdentitiesRow = typeof ssoIdentities.$inferSelect
 export type SsoIdentitiesInsert = typeof ssoIdentities.$inferInsert
 export type SsoIdentitiesUpdate = Partial<SsoIdentitiesInsert>
 
+// Subscriptions
+export type SubscriptionsRow = typeof subscriptions.$inferSelect
+export type SubscriptionsInsert = typeof subscriptions.$inferInsert
+export type SubscriptionsUpdate = Partial<SubscriptionsInsert>
+
 // Sync Metadata
 export type SyncMetadataRow = typeof syncMetadata.$inferSelect
 export type SyncMetadataInsert = typeof syncMetadata.$inferInsert
 export type SyncMetadataUpdate = Partial<SyncMetadataInsert>
+
+// Tags
+export type TagsRow = typeof tags.$inferSelect
+export type TagsInsert = typeof tags.$inferInsert
+export type TagsUpdate = Partial<TagsInsert>
 
 // Task Submissions
 export type TaskSubmissionsRow = typeof taskSubmissions.$inferSelect
@@ -618,6 +661,11 @@ export type UserDevicesUpdate = Partial<UserDevicesInsert>
 export type UsersRow = typeof users.$inferSelect
 export type UsersInsert = typeof users.$inferInsert
 export type UsersUpdate = Partial<UsersInsert>
+
+// Videos
+export type VideosRow = typeof videos.$inferSelect
+export type VideosInsert = typeof videos.$inferInsert
+export type VideosUpdate = Partial<VideosInsert>
 
 // Waitlist
 export type WaitlistRow = typeof waitlist.$inferSelect
@@ -685,10 +733,12 @@ export type DatabaseRelationships = {
   billingCatalog: Relationship[]
   boardColumns: Relationship[]
   boards: Relationship[]
+  categories: Relationship[]
   circuitBreakerState: Relationship[]
   codeProvenance: Relationship[]
   codeReviews: Relationship[]
   collabEdits: Relationship[]
+  contents: Relationship[]
   conversations: Relationship[]
   coordinationAgents: Relationship[]
   coordinationEvents: Relationship[]
@@ -702,6 +752,7 @@ export type DatabaseRelationships = {
   editSessionEvents: Relationship[]
   editSessions: Relationship[]
   errorEvents: Relationship[]
+  events: Relationship[]
   failedAttempts: Relationship[]
   gdprBreaches: Relationship[]
   gdprConsents: Relationship[]
@@ -710,6 +761,7 @@ export type DatabaseRelationships = {
   globalHeader: Relationship[]
   globalSettings: Relationship[]
   idempotencyKeys: Relationship[]
+  info: Relationship[]
   jobs: Relationship[]
   kgEdgeEpisodes: Relationship[]
   kgEdges: Relationship[]
@@ -738,6 +790,7 @@ export type DatabaseRelationships = {
   passkeys: Relationship[]
   passwordResetTokens: Relationship[]
   posts: Relationship[]
+  prices: Relationship[]
   processedWebhookEvents: Relationship[]
   products: Relationship[]
   ragChunks: Relationship[]
@@ -750,7 +803,9 @@ export type DatabaseRelationships = {
   siteCollaborators: Relationship[]
   sites: Relationship[]
   ssoIdentities: Relationship[]
+  subscriptions: Relationship[]
   syncMetadata: Relationship[]
+  tags: Relationship[]
   taskSubmissions: Relationship[]
   tenantProviderConfigs: Relationship[]
   tenants: Relationship[]
@@ -763,6 +818,7 @@ export type DatabaseRelationships = {
   userApiKeys: Relationship[]
   userDevices: Relationship[]
   users: Relationship[]
+  videos: Relationship[]
   waitlist: Relationship[]
   workspaceInferenceConfigs: Relationship[]
   yjsDocumentPatches: Relationship[]
@@ -856,6 +912,9 @@ export const boardsRelationships = [
   { foreignKeyName: 'boards_owner_id_users_id_fk', columns: ['owner_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
 ] as const satisfies readonly Relationship[]
 
+// Categories relationships
+export const categoriesRelationships: readonly Relationship[] = []
+
 // CircuitBreakerState relationships
 export const circuitBreakerStateRelationships: readonly Relationship[] = []
 
@@ -874,6 +933,9 @@ export const codeReviewsRelationships = [
 export const collabEditsRelationships = [
   { foreignKeyName: 'collab_edits_document_id_yjs_documents_id_fk', columns: ['document_id'], isOneToOne: true, referencedRelation: 'yjs_documents', referencedColumns: ['id'] },
 ] as const satisfies readonly Relationship[]
+
+// Contents relationships
+export const contentsRelationships: readonly Relationship[] = []
 
 // Conversations relationships
 export const conversationsRelationships = [
@@ -924,6 +986,9 @@ export const editSessionsRelationships = [
 // ErrorEvents relationships
 export const errorEventsRelationships: readonly Relationship[] = []
 
+// Events relationships
+export const eventsRelationships: readonly Relationship[] = []
+
 // FailedAttempts relationships
 export const failedAttemptsRelationships: readonly Relationship[] = []
 
@@ -947,6 +1012,9 @@ export const globalSettingsRelationships: readonly Relationship[] = []
 
 // IdempotencyKeys relationships
 export const idempotencyKeysRelationships: readonly Relationship[] = []
+
+// Info relationships
+export const infoRelationships: readonly Relationship[] = []
 
 // Jobs relationships
 export const jobsRelationships: readonly Relationship[] = []
@@ -1061,6 +1129,9 @@ export const postsRelationships = [
   { foreignKeyName: 'posts_featured_image_id_media_id_fk', columns: ['featured_image_id'], isOneToOne: true, referencedRelation: 'media', referencedColumns: ['id'] },
 ] as const satisfies readonly Relationship[]
 
+// Prices relationships
+export const pricesRelationships: readonly Relationship[] = []
+
 // ProcessedWebhookEvents relationships
 export const processedWebhookEventsRelationships: readonly Relationship[] = []
 
@@ -1107,8 +1178,14 @@ export const sitesRelationships = [
 // SsoIdentities relationships
 export const ssoIdentitiesRelationships: readonly Relationship[] = []
 
+// Subscriptions relationships
+export const subscriptionsRelationships: readonly Relationship[] = []
+
 // SyncMetadata relationships
 export const syncMetadataRelationships: readonly Relationship[] = []
+
+// Tags relationships
+export const tagsRelationships: readonly Relationship[] = []
 
 // TaskSubmissions relationships
 export const taskSubmissionsRelationships = [
@@ -1166,6 +1243,9 @@ export const userDevicesRelationships: readonly Relationship[] = []
 
 // Users relationships
 export const usersRelationships: readonly Relationship[] = []
+
+// Videos relationships
+export const videosRelationships: readonly Relationship[] = []
 
 // Waitlist relationships
 export const waitlistRelationships: readonly Relationship[] = []
@@ -1345,6 +1425,12 @@ export type Database = {
         Update: BoardsUpdate
         Relationships: typeof boardsRelationships
       }
+      categories: {
+        Row: CategoriesRow
+        Insert: CategoriesInsert
+        Update: CategoriesUpdate
+        Relationships: typeof categoriesRelationships
+      }
       circuit_breaker_state: {
         Row: CircuitBreakerStateRow
         Insert: CircuitBreakerStateInsert
@@ -1368,6 +1454,12 @@ export type Database = {
         Insert: CollabEditsInsert
         Update: CollabEditsUpdate
         Relationships: typeof collabEditsRelationships
+      }
+      contents: {
+        Row: ContentsRow
+        Insert: ContentsInsert
+        Update: ContentsUpdate
+        Relationships: typeof contentsRelationships
       }
       conversations: {
         Row: ConversationsRow
@@ -1447,6 +1539,12 @@ export type Database = {
         Update: ErrorEventsUpdate
         Relationships: typeof errorEventsRelationships
       }
+      events: {
+        Row: EventsRow
+        Insert: EventsInsert
+        Update: EventsUpdate
+        Relationships: typeof eventsRelationships
+      }
       failed_attempts: {
         Row: FailedAttemptsRow
         Insert: FailedAttemptsInsert
@@ -1494,6 +1592,12 @@ export type Database = {
         Insert: IdempotencyKeysInsert
         Update: IdempotencyKeysUpdate
         Relationships: typeof idempotencyKeysRelationships
+      }
+      info: {
+        Row: InfoRow
+        Insert: InfoInsert
+        Update: InfoUpdate
+        Relationships: typeof infoRelationships
       }
       jobs: {
         Row: JobsRow
@@ -1663,6 +1767,12 @@ export type Database = {
         Update: PostsUpdate
         Relationships: typeof postsRelationships
       }
+      prices: {
+        Row: PricesRow
+        Insert: PricesInsert
+        Update: PricesUpdate
+        Relationships: typeof pricesRelationships
+      }
       processed_webhook_events: {
         Row: ProcessedWebhookEventsRow
         Insert: ProcessedWebhookEventsInsert
@@ -1735,11 +1845,23 @@ export type Database = {
         Update: SsoIdentitiesUpdate
         Relationships: typeof ssoIdentitiesRelationships
       }
+      subscriptions: {
+        Row: SubscriptionsRow
+        Insert: SubscriptionsInsert
+        Update: SubscriptionsUpdate
+        Relationships: typeof subscriptionsRelationships
+      }
       sync_metadata: {
         Row: SyncMetadataRow
         Insert: SyncMetadataInsert
         Update: SyncMetadataUpdate
         Relationships: typeof syncMetadataRelationships
+      }
+      tags: {
+        Row: TagsRow
+        Insert: TagsInsert
+        Update: TagsUpdate
+        Relationships: typeof tagsRelationships
       }
       task_submissions: {
         Row: TaskSubmissionsRow
@@ -1812,6 +1934,12 @@ export type Database = {
         Insert: UsersInsert
         Update: UsersUpdate
         Relationships: typeof usersRelationships
+      }
+      videos: {
+        Row: VideosRow
+        Insert: VideosInsert
+        Update: VideosUpdate
+        Relationships: typeof videosRelationships
       }
       waitlist: {
         Row: WaitlistRow

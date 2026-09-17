@@ -47,9 +47,19 @@ describe('registry backing-storage invariant', () => {
     },
   );
 
-  it('does not register Contents or Videos until they have backing tables', () => {
+  it('registers every on-disk collection config, including former WIRE-UP-PENDING slugs', () => {
     const slugs = allCollections.map((collection) => collection.slug);
-    expect(slugs).not.toContain('contents');
-    expect(slugs).not.toContain('videos');
+    expect(slugs).toEqual(
+      expect.arrayContaining([
+        'contents',
+        'videos',
+        'categories',
+        'tags',
+        'events',
+        'info',
+        'prices',
+        'subscriptions',
+      ]),
+    );
   });
 });
