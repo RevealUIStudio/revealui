@@ -62,11 +62,22 @@ export function footerToCms(row: FooterRow): RevealDocument {
 }
 
 export function settingsToCms(row: SettingsRow): RevealDocument {
+  // jsonb columns are `unknown` on the drizzle row; RevealDocument's index
+  // signature is RevealValue, so we pass them through as JSON-compatible nulls.
   return {
-    ...row,
+    id: row.id,
+    schemaVersion: row.schemaVersion,
+    siteName: row.siteName,
+    siteDescription: row.siteDescription,
+    defaultMeta: row.defaultMeta ?? null,
+    contactEmail: row.contactEmail,
+    contactPhone: row.contactPhone,
+    socialProfiles: row.socialProfiles ?? null,
+    analyticsId: row.analyticsId,
+    features: row.features ?? null,
     createdAt: iso(row.createdAt),
     updatedAt: iso(row.updatedAt),
-  };
+  } as RevealDocument;
 }
 
 /**
