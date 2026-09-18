@@ -8,10 +8,11 @@
  * Do not import from apps/server; keep this admin-local mirror in sync.
  */
 
+import { isPlatformOperatorUser } from '@revealui/auth/platform-operator';
 import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import { type FeatureFlags, getFeaturesForTier } from '@revealui/core/features';
 import type { Database } from '@revealui/db/client';
-import { accountEntitlements } from '@revealui/db/schema';
+import { accountEntitlements, users } from '@revealui/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { resolveActiveMembership } from './resolve-membership';
 
@@ -75,4 +76,29 @@ export async function accountHasFeature(
       : featureRecord(getFeaturesForTier(tier));
 
   return features[featureKey] === true;
+}
+
+/**
+ * Platform / fleet-operator identity grant (GAP-300 honesty).
+ *
+ * Hosted Studio operators live in `users._json.roles` (`super-admin`), not
+ * `users.role`. Their usage chrome is Unlimited; account entitlements can
+ * still look Free if membership did not resolve. Dual-gate KG still needs
+ * `canAccessKgShapes` separately — this only answers the AI feature half.
+ */
+export async function platformOperatorHasFeature(
+  db: Database,
+  userId: string | null | undefined,
+  featureKey: keyof FeatureFlags,
+): Promise<boolean> {
+  if (!userId) return false;
+
+  const [row] = await db
+    .select({ json: users._json })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (!isPlatformOperatorUser({ _json: row?.json })) return false;
+  return getFeaturesForTier('enterprise')[featureKey] === true;
 }

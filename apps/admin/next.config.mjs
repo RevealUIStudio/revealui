@@ -175,6 +175,13 @@ const nextConfig = {
         destination: 'https://revealui.com/blog',
         permanent: true,
       },
+      // GAP-300 honesty: hosted deep links hit /billing, but the page lives
+      // under Account settings. Preserve query (upgrade=) on the target.
+      {
+        source: '/billing',
+        destination: '/account/billing',
+        permanent: false,
+      },
     ]
   },
   async rewrites() {

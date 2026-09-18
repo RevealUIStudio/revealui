@@ -30,3 +30,12 @@ describe('admin billing proxy rewrites', () => {
     expect(nextConfig.includes(rewriteDestination('/api/billing/checkout-perpetual'))).toBe(true);
   });
 });
+
+describe('admin billing deep-link redirects', () => {
+  const nextConfig = readFileSync(nextConfigPath, 'utf8');
+
+  it('redirects /billing to /account/billing so hosted deep links do not 404', () => {
+    expect(nextConfig.includes("source: '/billing'")).toBe(true);
+    expect(nextConfig.includes("destination: '/account/billing'")).toBe(true);
+  });
+});

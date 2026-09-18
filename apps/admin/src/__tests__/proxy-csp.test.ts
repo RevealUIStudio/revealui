@@ -305,6 +305,19 @@ describe('admin proxy — /welcome auth gate (post-checkout subscriber)', () => 
     const res = await proxy(new NextRequest('https://admin.example.com/account/billing'));
     expect(res.headers.get('location')).toContain('/login');
   });
+
+  it('redirects /billing to /account/billing and keeps the upgrade query', async () => {
+    const res = await proxy(
+      new NextRequest('https://admin.example.com/billing?upgrade=pro', {
+        headers: { cookie: 'revealui-session=tok; revealui-role=admin' },
+      }),
+    );
+    const location = res.headers.get('location');
+    expect(location).not.toBeNull();
+    const url = new URL(location!);
+    expect(url.pathname).toBe('/account/billing');
+    expect(url.searchParams.get('upgrade')).toBe('pro');
+  });
 });
 
 describe('admin proxy — fleet-mode page guard (GAP-289)', () => {
