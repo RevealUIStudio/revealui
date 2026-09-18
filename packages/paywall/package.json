@@ -1,6 +1,6 @@
 {
   "name": "@revealui/paywall",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Runtime license enforcement, feature gating, and upgrade UI for software products",
   "license": "MIT",
   "repository": {

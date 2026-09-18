@@ -1,5 +1,14 @@
 # @revealui/harnesses
 
+## 0.17.3
+
+### Patch Changes
+
+- c4b1db8: GAP-497: SemVer/1.0 contract rule in `.revealui/content/rules/versioning.md`; expand changesets ignore for private packages.
+  - @revealui/core@0.14.5
+  - @revealui/security@0.8.2
+  - @revealui/knowledge-graph@0.1.15
+
 ## 0.17.2
 
 ### Patch Changes

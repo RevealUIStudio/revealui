@@ -1,5 +1,13 @@
 # @revealui/cli
 
+## 0.9.13
+
+### Patch Changes
+
+- Updated dependencies [c9758f2]
+  - @revealui/config@0.6.1
+  - @revealui/setup@0.7.7
+
 ## 0.9.12
 
 ### Patch Changes

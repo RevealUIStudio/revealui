@@ -1,6 +1,6 @@
 {
   "name": "@revealui/editor",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "Visual edit-session runtime and dashboard canvas for RevealUI content",
   "license": "MIT",
   "repository": {
