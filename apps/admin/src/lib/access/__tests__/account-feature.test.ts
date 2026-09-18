@@ -35,6 +35,10 @@ vi.mock('@revealui/db/schema', () => ({
     graceUntil: 'account_entitlements.grace_until',
     features: 'account_entitlements.features',
   },
+  users: {
+    id: 'users.id',
+    _json: 'users._json',
+  },
 }));
 
 vi.mock('drizzle-orm', () => ({
@@ -44,7 +48,7 @@ vi.mock('drizzle-orm', () => ({
   or: (...args: unknown[]) => args,
 }));
 
-import { accountHasFeature } from '../account-feature';
+import { accountHasFeature, platformOperatorHasFeature } from '../account-feature';
 
 /**
  * Fluent select chain for resolveActiveMembership + entitlement lookup.
@@ -149,5 +153,31 @@ describe('accountHasFeature', () => {
       true,
     );
     expect(db.chain.innerJoin).toHaveBeenCalled();
+  });
+});
+
+describe('platformOperatorHasFeature', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetFeaturesForTier.mockReturnValue({ ai: true, aiMemory: true });
+  });
+
+  it('returns false for a hosted CMS admin without _json super-admin', async () => {
+    const db = makeDb([[{ json: { roles: ['admin'] } }]]);
+    await expect(platformOperatorHasFeature(db as never, 'user-1', 'ai')).resolves.toBe(false);
+    expect(mockGetFeaturesForTier).not.toHaveBeenCalled();
+  });
+
+  it('grants Enterprise AI features to a fleet-operator', async () => {
+    mockGetFeaturesForTier.mockReturnValue({ ai: true });
+    const db = makeDb([[{ json: { roles: ['super-admin'] } }]]);
+    await expect(platformOperatorHasFeature(db as never, 'user-1', 'ai')).resolves.toBe(true);
+    expect(mockGetFeaturesForTier).toHaveBeenCalledWith('enterprise');
+  });
+
+  it('returns false for a missing userId', async () => {
+    const db = makeDb([]);
+    await expect(platformOperatorHasFeature(db as never, null, 'ai')).resolves.toBe(false);
+    expect(db.select).not.toHaveBeenCalled();
   });
 });

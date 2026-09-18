@@ -54,4 +54,67 @@ describe('resolveSaasTier — cross-origin subscription 401', () => {
       credentials: 'include',
     });
   });
+
+  it('promotes Free + Unlimited usage quota to enterprise (fleet-operator honesty)', async () => {
+    const fetchMock = vi.fn((input: RequestInfo) => {
+      const url = String(input);
+      if (url.includes('/api/billing/subscription')) {
+        return Promise.resolve({
+          status: 200,
+          ok: true,
+          json: () => Promise.resolve({ tier: 'free' }),
+        });
+      }
+      return Promise.resolve({
+        status: 200,
+        ok: true,
+        json: () => Promise.resolve({ quota: -1, weekUsed: 0 }),
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(resolveSaasTier()).resolves.toBe('enterprise');
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.revealui.com/api/billing/usage',
+      expect.objectContaining({ credentials: 'include' }),
+    );
+  });
+
+  it('promotes a failed subscription probe to enterprise when usage is Unlimited', async () => {
+    const fetchMock = vi.fn((input: RequestInfo) => {
+      const url = String(input);
+      if (url.includes('/api/billing/subscription')) {
+        return Promise.resolve({ status: 401, ok: false });
+      }
+      return Promise.resolve({
+        status: 200,
+        ok: true,
+        json: () => Promise.resolve({ quota: -1 }),
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(resolveSaasTier()).resolves.toBe('enterprise');
+  });
+
+  it('keeps Free locked when usage is a finite Free/Pro allotment', async () => {
+    const fetchMock = vi.fn((input: RequestInfo) => {
+      const url = String(input);
+      if (url.includes('/api/billing/subscription')) {
+        return Promise.resolve({
+          status: 200,
+          ok: true,
+          json: () => Promise.resolve({ tier: 'free' }),
+        });
+      }
+      return Promise.resolve({
+        status: 200,
+        ok: true,
+        json: () => Promise.resolve({ quota: 0, weekUsed: 0 }),
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(resolveSaasTier()).resolves.toBe('free');
+  });
 });

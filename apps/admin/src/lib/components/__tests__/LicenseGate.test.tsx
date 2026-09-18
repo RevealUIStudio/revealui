@@ -162,4 +162,37 @@ describe('LicenseGate', () => {
       expect(screen.getByTestId('upgrade-prompt')).toBeInTheDocument();
     });
   });
+
+  describe('GAP-300 Unlimited / fleet-operator honesty', () => {
+    it('lets an Unlimited/enterprise session reach AI surfaces without a Pro card', () => {
+      mockUseLicense.mockReturnValue({
+        features: null,
+        isLoading: false,
+        tier: 'enterprise',
+      });
+      render(
+        <LicenseGate feature="ai">
+          <p>{childContent}</p>
+        </LicenseGate>,
+      );
+      expect(screen.getByText(childContent)).toBeInTheDocument();
+      expect(screen.queryByTestId('upgrade-prompt')).not.toBeInTheDocument();
+    });
+
+    it('lets a fleet-operator reach AI surfaces when the SaaS features map is stale', () => {
+      mockUseLicense.mockReturnValue({
+        features: { ai: false, aiLocal: true },
+        isLoading: false,
+        tier: 'free',
+        isFleetOperator: true,
+      });
+      render(
+        <LicenseGate feature="ai">
+          <p>{childContent}</p>
+        </LicenseGate>,
+      );
+      expect(screen.getByText(childContent)).toBeInTheDocument();
+      expect(screen.queryByTestId('upgrade-prompt')).not.toBeInTheDocument();
+    });
+  });
 });

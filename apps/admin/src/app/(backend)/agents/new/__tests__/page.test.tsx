@@ -22,6 +22,17 @@ beforeEach(() => {
 });
 
 describe('NewAgentPage', () => {
+  it('lets an Unlimited/enterprise session reach the new-agent form', () => {
+    mockUseLicense.mockReturnValue({
+      features: null,
+      isLoading: false,
+      tier: 'enterprise',
+    });
+    render(<NewAgentPage />);
+    expect(screen.queryByText(/requires a Pro license/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Content Writer/ })).toBeInTheDocument();
+  });
+
   it('keeps /agents/new Pro-gated on Free even when aiLocal is enabled', () => {
     mockUseLicense.mockReturnValue({
       features: { ai: false, aiLocal: true },

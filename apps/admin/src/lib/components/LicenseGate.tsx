@@ -2,6 +2,7 @@
 
 import type { FeatureFlags } from '@revealui/core/features';
 import type React from 'react';
+import { isLicensedFeatureUnlocked } from '@/lib/access/license-honesty';
 import { useLicense } from '@/lib/providers/LicenseProvider';
 import { UpgradePrompt } from '../../components/UpgradePrompt';
 
@@ -23,7 +24,7 @@ interface LicenseGateProps {
  * Note: this is a UX layer only  -  API-level enforcement happens in the API middleware.
  */
 export function LicenseGate({ feature, children, mode = 'inline' }: LicenseGateProps) {
-  const { features, isLoading } = useLicense();
+  const { features, isLoading, tier, isFleetOperator } = useLicense();
 
   if (isLoading) {
     return (
@@ -36,7 +37,12 @@ export function LicenseGate({ feature, children, mode = 'inline' }: LicenseGateP
     );
   }
 
-  const enabled = features?.[feature] ?? false;
+  const enabled = isLicensedFeatureUnlocked({
+    feature,
+    features,
+    tier,
+    isFleetOperator,
+  });
 
   if (!enabled) {
     if (mode === 'dialog') {

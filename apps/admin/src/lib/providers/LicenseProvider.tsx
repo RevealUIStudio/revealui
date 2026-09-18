@@ -4,10 +4,14 @@ import type { LicenseTierId } from '@revealui/contracts/pricing';
 import type { FeatureFlags } from '@revealui/core/features';
 import { createPaywall } from '@revealui/paywall';
 import { PaywallProvider, usePaywall } from '@revealui/paywall/client';
+import { createContext, use } from 'react';
+import { isUnlimitedOperatorQuota, resolveHonestLicenseTier } from '@/lib/access/license-honesty';
 import { isPreAuthPublicPath } from '@/lib/auth/redirect-to-login';
 
 /** Shared paywall instance for the admin. */
 const paywall = createPaywall();
+
+const LicenseExtrasContext = createContext({ isFleetOperator: false });
 
 /**
  * Why tier resolution failed. Surfaces must never invent a FREE plan when this
@@ -26,6 +30,12 @@ export interface LicenseContextValue {
    */
   resolveError: LicenseResolveError;
   refetch: () => Promise<void>;
+  /**
+   * Fleet kit (`REVEALUI_FLEET_MODE`) or an equivalent operator grant.
+   * Hosted Studio operators are usually detected via Unlimited usage, not
+   * this flag — cookie `revealui-role` is CMS shell admin, not `_json.roles`.
+   */
+  isFleetOperator: boolean;
 }
 
 /**
@@ -42,6 +52,62 @@ export class LicenseResolveFailure extends Error {
   }
 }
 
+function hostedApiOrigin(): string {
+  return (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
+}
+
+async function fetchUsageQuota(): Promise<number | null> {
+  try {
+    const res = await fetch(`${hostedApiOrigin()}/api/billing/usage`, {
+      credentials: 'include',
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { quota?: unknown };
+    return typeof data.quota === 'number' ? data.quota : null;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchSubscriptionTier(): Promise<
+  { ok: true; tier: string } | { ok: false; failure: LicenseResolveFailure }
+> {
+  let res: Response;
+  try {
+    // Same-origin App Router proxy forwards host-only revealui-session.
+    res = await fetch('/api/billing/subscription', {
+      credentials: 'include',
+    });
+  } catch {
+    return {
+      ok: false,
+      failure: new LicenseResolveFailure('unavailable', 'subscription fetch failed (network)'),
+    };
+  }
+
+  if (res.status === 401) {
+    // Same-origin proxy still 401s when the API session is missing. That is
+    // "API session unavailable", not "admin signed out". revealui-session is
+    // httpOnly, so document.cookie cannot prove presence and must not gate
+    // this path. True-unauth visitors never render this tree on protected
+    // routes (proxy sends them to /login?redirect=).
+    return {
+      ok: false,
+      failure: new LicenseResolveFailure('unavailable', 'subscription returned 401'),
+    };
+  }
+
+  if (!res.ok) {
+    return {
+      ok: false,
+      failure: new LicenseResolveFailure('unavailable', `subscription returned ${res.status}`),
+    };
+  }
+
+  const data = (await res.json()) as { tier: LicenseTierId };
+  return { ok: true, tier: data.tier };
+}
+
 export async function resolveSaasTier(): Promise<string> {
   // Login / MFA / signup have no full session yet. Do not probe subscription
   // (401 would bounce /mfa → /login — owner GAP-360 walk).
@@ -55,31 +121,26 @@ export async function resolveSaasTier(): Promise<string> {
     return 'free';
   }
 
-  let res: Response;
-  try {
-    // Same-origin App Router proxy forwards host-only revealui-session.
-    res = await fetch('/api/billing/subscription', {
-      credentials: 'include',
-    });
-  } catch {
-    throw new LicenseResolveFailure('unavailable', 'subscription fetch failed (network)');
+  const subscription = await fetchSubscriptionTier();
+  const subscriptionTier = subscription.ok ? subscription.tier : null;
+  const paid =
+    subscriptionTier === 'pro' || subscriptionTier === 'max' || subscriptionTier === 'enterprise';
+  if (paid) {
+    return subscriptionTier;
   }
 
-  if (res.status === 401) {
-    // Same-origin proxy still 401s when the API session is missing. That is
-    // "API session unavailable", not "admin signed out". revealui-session is
-    // httpOnly, so document.cookie cannot prove presence and must not gate
-    // this path. True-unauth visitors never render this tree on protected
-    // routes (proxy sends them to /login?redirect=).
-    throw new LicenseResolveFailure('unavailable', 'subscription returned 401');
+  // GAP-300 honesty: WeeklyUsageChrome hits the API origin and can show
+  // Unlimited while the same-origin subscription proxy 401s or returns Free
+  // for a fleet-operator grant. Unlimited quota is enterprise-equivalent.
+  const usageQuota = await fetchUsageQuota();
+  const honest = resolveHonestLicenseTier({ subscriptionTier, usageQuota });
+  if (honest !== 'free') {
+    return honest;
   }
-
-  if (!res.ok) {
-    throw new LicenseResolveFailure('unavailable', `subscription returned ${res.status}`);
+  if (!(subscription.ok || isUnlimitedOperatorQuota(usageQuota))) {
+    throw subscription.failure;
   }
-
-  const data = (await res.json()) as { tier: LicenseTierId };
-  return data.tier;
+  return honest;
 }
 
 interface LicenseProviderProps {
@@ -90,9 +151,11 @@ interface LicenseProviderProps {
 export function LicenseProvider({ children, isFleetMode = false }: LicenseProviderProps) {
   const resolveTier = isFleetMode ? () => Promise.resolve('enterprise') : resolveSaasTier;
   return (
-    <PaywallProvider paywall={paywall} resolveTier={resolveTier}>
-      {children}
-    </PaywallProvider>
+    <LicenseExtrasContext value={{ isFleetOperator: isFleetMode }}>
+      <PaywallProvider paywall={paywall} resolveTier={resolveTier}>
+        {children}
+      </PaywallProvider>
+    </LicenseExtrasContext>
   );
 }
 
@@ -103,6 +166,7 @@ export function LicenseProvider({ children, isFleetMode = false }: LicenseProvid
  * `LicenseContextValue` shape for backwards compatibility.
  */
 export function useLicense(): LicenseContextValue {
+  const extras = use(LicenseExtrasContext);
   const { tier, features, isLoading, refetch, resolveError } = usePaywall();
   return {
     tier: tier as LicenseTierId,
@@ -110,5 +174,6 @@ export function useLicense(): LicenseContextValue {
     isLoading,
     resolveError: (resolveError as LicenseResolveError) ?? null,
     refetch,
+    isFleetOperator: extras.isFleetOperator,
   };
 }
