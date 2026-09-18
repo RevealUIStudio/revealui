@@ -23,6 +23,17 @@ export const LICENSE_SUBSCRIPTION_PRICE_FALLBACKS: Record<
   enterprise: { price: '$1,499', period: '/mo' },
 };
 
+/** Annual catalog display. Max is $799/yr — never the retired $299 Max. */
+export const LICENSE_SUBSCRIPTION_ANNUAL_PRICE_FALLBACKS: Record<
+  LicenseTierId,
+  { price: string; period: string }
+> = {
+  free: { price: '$0', period: '/yr' },
+  pro: { price: '$399', period: '/yr' },
+  max: { price: '$799', period: '/yr' },
+  enterprise: { price: 'Contact sales', period: '/yr' },
+};
+
 export function mergeLicenseSubscriptionPrices(
   tiers: SubscriptionTier[],
   catalog: Pick<PricingResponse, 'subscriptions'> | null | undefined,
