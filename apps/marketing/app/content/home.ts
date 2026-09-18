@@ -32,15 +32,15 @@ import type { Cta, FaqItem } from './types';
 export const HOME_HERO = {
   eyebrow: 'Open source. Self-hostable.',
   // Brand LOCK 2026-09-15: known-for H1 (#2 operate on their domain).
-  // Proof stays in the subtitle: tools report in / keep the stack (#5),
-  // receipts when it matters, catalog matches checkout, powerful + safe.
+  // Public word PROOF = receipted action lives in the subtitle (not
+  // "outcome validation", not "proof of work"). Catalog honesty stays here.
   h1: 'The agentic business runtime startups operate on their own domain.',
   subtitle: {
     sentence1:
       'Technical founders and small agencies who already run agents — existing tools report in, you keep the stack.',
     sentence2:
-      'Powerful and safe: agents leave receipts when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99/mo · $799/yr).',
-    support: 'It runs on any AI provider you choose.',
+      'Powerful and safe: PROOF is a receipted action when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99/mo · $799/yr).',
+    support: 'BYOK / open-weight default. Same plan rules for humans and agents.',
   },
   cta: {
     primary: { label: 'Start free', href: SITE.urls.signup } satisfies Cta,

@@ -22,6 +22,8 @@ const BOOKING_URL =
 describe('quote calculator (product-site lockstep)', () => {
   it('defaults Who to I will (self-host) on this site', () => {
     expect(DEFAULT_QUOTE_ANSWERS.who).toBe('self');
+    expect(DEFAULT_QUOTE_ANSWERS.what).toBe('pilot');
+    expect(DEFAULT_QUOTE_ANSWERS.places).toBe('one');
     expect(QUOTE_CALCULATOR.questions.who.options[0]?.id).toBe('self');
   });
 
@@ -31,14 +33,14 @@ describe('quote calculator (product-site lockstep)', () => {
       'Defaults to self-host licenses. Studio work is on the same form and books at revealuistudio.com.',
     );
     expect(QUOTE_CALCULATOR.questions.who.label).toBe('Who runs it?');
-    expect(QUOTE_CALCULATOR.questions.what.label).toBe('What do you need?');
+    expect(QUOTE_CALCULATOR.questions.what.label).toBe('What problem are we solving?');
     expect(QUOTE_CALCULATOR.questions.places.label).toBe('How many sites?');
     expect(QUOTE_CALCULATOR.questions.who.options.map((option) => option.id)).toEqual([
       'self',
       'studio',
     ]);
     expect(QUOTE_CALCULATOR.questions.who.options.map((option) => option.label)).toEqual([
-      'I self-host',
+      'I self-host the runtime',
       'Studio implements with me',
     ]);
     expect(QUOTE_CALCULATOR.questions.what.options.map((option) => option.id)).toEqual([
@@ -47,9 +49,9 @@ describe('quote calculator (product-site lockstep)', () => {
       'launch',
     ]);
     expect(QUOTE_CALCULATOR.questions.what.options.map((option) => option.label)).toEqual([
-      'Consultation',
-      'Pilot: one site, one agent I run',
-      'Launch: live on my accounts',
+      'Consultation — diagnose the path / proof gap',
+      'Pilot — one site, one agent I run, one receipted action',
+      'Launch — money path live on my accounts',
     ]);
     expect(QUOTE_CALCULATOR.questions.places.options.map((option) => option.id)).toEqual([
       'one',

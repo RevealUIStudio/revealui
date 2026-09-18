@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { HOME_HERO } from '../content/home';
 import type { Audience } from '../lib/audience';
 import { useAudienceHead } from '../lib/use-audience-head';
 
@@ -95,7 +96,7 @@ describe('useAudienceHead — technical audience', () => {
     expect(
       document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.content,
     ).toBe(
-      'Technical founders and small agencies who already run agents — existing tools report in, you keep the stack. Powerful and safe: agents leave receipts when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99/mo · $799/yr).',
+      `${HOME_HERO.subtitle.sentence1} ${HOME_HERO.subtitle.sentence2}`,
     );
   });
 
