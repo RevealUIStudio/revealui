@@ -80,9 +80,10 @@ describe('WelcomePage', () => {
     const links = screen.getAllByRole('link');
     const hrefs = links.map((l) => l.getAttribute('href'));
     const sourceIdx = hrefs.indexOf('https://github.com/RevealUIStudio/revealui');
-    const agentIdx = hrefs.indexOf('/agents');
+    const pagesIdx = hrefs.indexOf('/pages');
     expect(sourceIdx).toBe(0);
-    expect(agentIdx).toBeGreaterThan(sourceIdx);
+    expect(pagesIdx).toBeGreaterThan(sourceIdx);
+    expect(hrefs).not.toContain('/agents');
     expect(hrefs).not.toContain('/account/license');
     expect(screen.queryByText('Your license key')).not.toBeInTheDocument();
   });
@@ -105,9 +106,9 @@ describe('WelcomePage', () => {
       expect(globalThis.fetch).toHaveBeenCalled();
     });
 
-    // Free / non-paid-success still uses the original heading; paid-success
-    // uses "First governed agent action" (GAP-302 residual).
-    expect(screen.getByText('Run your first agent')).toBeInTheDocument();
+    // Free first-day action is pages, not Pro agents (GAP-300).
+    expect(screen.getByText('Create your first page')).toBeInTheDocument();
+    expect(screen.queryByText('Run your first agent')).not.toBeInTheDocument();
     expect(screen.queryByText('Your license key')).not.toBeInTheDocument();
   });
 

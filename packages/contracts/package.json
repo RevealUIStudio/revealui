@@ -101,6 +101,11 @@
       "import": "./dist/public-catalog.js",
       "default": "./dist/public-catalog.js"
     },
+    "./meeting-vendor": {
+      "types": "./dist/meeting-vendor.d.ts",
+      "import": "./dist/meeting-vendor.js",
+      "default": "./dist/meeting-vendor.js"
+    },
     "./generated": {
       "types": "./dist/generated/database.d.ts",
       "import": "./dist/generated/database.js",

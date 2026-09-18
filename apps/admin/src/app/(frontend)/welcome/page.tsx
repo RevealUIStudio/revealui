@@ -5,6 +5,7 @@ import { Badge, Button } from '@revealui/presentation/client';
 import { useEffect, useState } from 'react';
 import { useLicense } from '@/lib/providers/LicenseProvider';
 import { isLicenseTierId, welcomeExpiryCopy } from './welcome-expiry';
+import { welcomeFirstDayCta } from './welcome-first-day';
 
 const DOCS_URL = process.env.NEXT_PUBLIC_DOCS_URL || 'https://docs.revealui.com';
 const STARTER_REPO_URL = 'https://github.com/RevealUIStudio/revealui';
@@ -83,6 +84,7 @@ export default function WelcomePage() {
   const tierLabel = TIER_LABELS[tier] ?? 'Free';
   const isPaidTier = tier !== 'free';
   const isPaidSuccess = isPostPurchase && isPaidTier;
+  const firstDayCta = welcomeFirstDayCta(tier);
 
   const handleCopyCli = async () => {
     try {
@@ -244,20 +246,18 @@ export default function WelcomePage() {
         </div>
 
         {!isPaidSuccess && (
-          /* CTA 4: Run your first agent (appended for non-paid variants) */
+          /* CTA 4: plan-gated first-day action (Free → pages, paid → agents) */
           <div className="rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:shadow-md">
             <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <span className="text-lg font-semibold">4</span>
             </div>
-            <h2 className="text-lg font-semibold text-foreground">Run your first agent</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Talk to an agent and watch it take a real action in your workspace.
-            </p>
+            <h2 className="text-lg font-semibold text-foreground">{firstDayCta.title}</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{firstDayCta.body}</p>
             <a
-              href="/agents"
+              href={firstDayCta.href}
               className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
             >
-              Open agents
+              {firstDayCta.linkLabel}
               <span aria-hidden="true">&rarr;</span>
             </a>
           </div>

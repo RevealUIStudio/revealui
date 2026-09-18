@@ -1,6 +1,7 @@
 import { getTiersFromCurrent, SUBSCRIPTION_TIERS } from '@revealui/contracts/pricing';
 import { describe, expect, it } from 'vitest';
 import {
+  LICENSE_SUBSCRIPTION_ANNUAL_PRICE_FALLBACKS,
   LICENSE_SUBSCRIPTION_PRICE_FALLBACKS,
   mergeLicenseSubscriptionPrices,
 } from '../license-subscription-prices';
@@ -19,6 +20,13 @@ describe('LICENSE_SUBSCRIPTION_PRICE_FALLBACKS', () => {
       'max',
       'enterprise',
     ]);
+  });
+
+  it('pins Max at $99/mo and $799/yr with no stale $299', () => {
+    expect(LICENSE_SUBSCRIPTION_PRICE_FALLBACKS.max.price).toBe('$99');
+    expect(LICENSE_SUBSCRIPTION_ANNUAL_PRICE_FALLBACKS.max.price).toBe('$799');
+    expect(LICENSE_SUBSCRIPTION_PRICE_FALLBACKS.max.price).not.toBe('$299');
+    expect(LICENSE_SUBSCRIPTION_ANNUAL_PRICE_FALLBACKS.max.price).not.toBe('$299');
   });
 });
 

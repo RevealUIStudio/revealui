@@ -51,6 +51,9 @@ describe('QuoteCalculator', () => {
     expect(
       within(card).getByText(QUOTE_CALCULATOR.studio.launch.body, { exact: true }),
     ).toBeInTheDocument();
+    expect(screen.getByText('Choose, pay, prep, meet, keep the pack.')).toBeInTheDocument();
+    expect(screen.getByText('Choose')).toBeInTheDocument();
+    expect(screen.getByText('Artifacts')).toBeInTheDocument();
   });
 
   it('stops quoting when there is more than one place', () => {

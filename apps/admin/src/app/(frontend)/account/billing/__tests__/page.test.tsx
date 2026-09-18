@@ -227,6 +227,10 @@ describe('BillingPage first-week trial UX', () => {
     expect(screen.getByText('Expires')).toBeInTheDocument();
     expect(screen.queryByText(/Your Pro trial ends/)).not.toBeInTheDocument();
     expect(screen.getByText(/you'll be charged \$99\/mo/i)).toBeInTheDocument();
+    expect(screen.getByTestId('billing-plan-honesty').textContent ?? '').toContain(
+      '$99/mo · $799/yr',
+    );
+    expect(screen.getByTestId('billing-plan-honesty').textContent ?? '').not.toContain('$299');
   });
 
   it('shows Pro trial expiry with the Pro price', async () => {
