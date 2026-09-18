@@ -84,9 +84,9 @@ export const QUOTE_CALCULATOR = {
     what: {
       label: 'What problem are we solving?',
       options: [
-        { id: 'consultation', label: 'Consultation — diagnose the path / proof gap' },
-        { id: 'pilot', label: 'Pilot — one site, one agent I run, one receipted action' },
-        { id: 'launch', label: 'Launch — money path live on my accounts' },
+        { id: 'consultation', label: 'Consultation: diagnose the path / proof gap' },
+        { id: 'pilot', label: 'Pilot: one site, one agent I run, one receipted action' },
+        { id: 'launch', label: 'Launch: money path live on my accounts' },
       ] as const satisfies readonly QuoteOption<WhatWork>[],
     },
     places: {

@@ -49,9 +49,9 @@ describe('quote calculator (product-site lockstep)', () => {
       'launch',
     ]);
     expect(QUOTE_CALCULATOR.questions.what.options.map((option) => option.label)).toEqual([
-      'Consultation — diagnose the path / proof gap',
-      'Pilot — one site, one agent I run, one receipted action',
-      'Launch — money path live on my accounts',
+      'Consultation: diagnose the path / proof gap',
+      'Pilot: one site, one agent I run, one receipted action',
+      'Launch: money path live on my accounts',
     ]);
     expect(QUOTE_CALCULATOR.questions.places.options.map((option) => option.id)).toEqual([
       'one',

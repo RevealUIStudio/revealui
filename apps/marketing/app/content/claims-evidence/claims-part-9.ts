@@ -61,7 +61,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
   {
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.questions.what.options[0].label',
-    text: 'Consultation — diagnose the path / proof gap',
+    text: 'Consultation: diagnose the path / proof gap',
     evidence: [
       {
         kind: 'test',
@@ -80,7 +80,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
   {
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.questions.what.options[1].label',
-    text: 'Pilot — one site, one agent I run, one receipted action',
+    text: 'Pilot: one site, one agent I run, one receipted action',
     evidence: [
       {
         kind: 'test',
@@ -92,7 +92,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
   {
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.questions.what.options[2].label',
-    text: 'Launch — money path live on my accounts',
+    text: 'Launch: money path live on my accounts',
     evidence: [
       {
         kind: 'test',
