@@ -70,7 +70,7 @@ describe('KnowledgeGraphPage license honesty', () => {
     });
     render(<KnowledgeGraphPage />);
     expect(screen.queryByText(/requires a Pro license/)).not.toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Knowledge Graph' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'RevMind' })).toBeInTheDocument();
   });
 
   it('keeps Free honestly locked (dual-gate still fail-closed without entitlement)', () => {
@@ -81,6 +81,6 @@ describe('KnowledgeGraphPage license honesty', () => {
     });
     render(<KnowledgeGraphPage />);
     expect(screen.getByText(/requires a Pro license/)).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Knowledge Graph' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'RevMind' })).not.toBeInTheDocument();
   });
 });

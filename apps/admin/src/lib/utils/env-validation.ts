@@ -189,10 +189,19 @@ export function validateRequiredEnvVars(
       // production so a misconfigured deploy fails fast at boot (instrumentation.ts)
       // instead of silently locking out every new user. Fleet kits and other
       // self-host deploys are exempt (no Workspace email) via isSaasHosted above.
+      // REVEALUI_EMAIL_BOOT_OPTIONAL=1 is a staging-walk opt-in until owner vaults
+      // revealui/prod/google/wif-provider — default remains fail-fast.
       const emailTransportVars = ['GOOGLE_SERVICE_ACCOUNT_EMAIL', 'GOOGLE_WIF_PROVIDER'];
+      const emailBootOptional = process.env.REVEALUI_EMAIL_BOOT_OPTIONAL === '1';
       for (const key of emailTransportVars) {
         if (!process.env[key]) {
-          missing.push(key);
+          if (emailBootOptional) {
+            warnings.push(
+              `${key} is required for hosted email; REVEALUI_EMAIL_BOOT_OPTIONAL=1 demotes this to a warning`,
+            );
+          } else {
+            missing.push(key);
+          }
         }
       }
     }
