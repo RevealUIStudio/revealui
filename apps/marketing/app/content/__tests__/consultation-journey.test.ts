@@ -56,6 +56,15 @@ describe('CONSULTATION_JOURNEY', () => {
     expect(blob.includes('Contents SKU')).toBe(false);
   });
 
+  it('keeps Consultation artifacts to a lightweight stack sketch, not an Architecture SKU', () => {
+    const artifacts = CONSULTATION_JOURNEY.steps[4]?.body.toLowerCase() ?? '';
+    const blob = JSON.stringify(CONSULTATION_JOURNEY).toLowerCase();
+    expect(artifacts).toContain('lightweight stack sketch');
+    expect(blob.includes('architecture sku')).toBe(false);
+    expect(blob.includes('mermaid')).toBe(false);
+    expect(blob.includes('architecture diagrams')).toBe(false);
+  });
+
   it('persists completed steps in localStorage', () => {
     const next = toggleConsultationStep({ completed: [] }, 'choose');
     writeConsultationProgress(next);

@@ -56,7 +56,7 @@ export const CONSULTATION_JOURNEY = {
     {
       id: 'artifacts',
       title: 'Artifacts',
-      body: 'Within one business day: notes, a next-step recommendation, and a stack sketch you can reuse.',
+      body: 'Within one business day: notes, a next-step recommendation, and a lightweight stack sketch you can reuse.',
     },
     {
       id: 'next',

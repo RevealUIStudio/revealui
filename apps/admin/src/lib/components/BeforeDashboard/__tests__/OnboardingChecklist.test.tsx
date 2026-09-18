@@ -183,6 +183,7 @@ describe('OnboardingChecklist', () => {
       expect(screen.getByText('First-day walk')).toBeInTheDocument();
     });
     expect(screen.queryByText('Open the Knowledge Graph')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Architecture diagrams/i)).not.toBeInTheDocument();
     expect(screen.getAllByRole('link').map((l) => l.getAttribute('href'))).not.toContain(
       '/knowledge-graph',
     );
@@ -200,7 +201,11 @@ describe('OnboardingChecklist', () => {
       'href',
       '/knowledge-graph',
     );
+    expect(
+      screen.getByText(/Architecture diagrams come from your Knowledge Graph/),
+    ).toBeInTheDocument();
     expect(screen.queryByText(/live nodes/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/\/tmp\//)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Mermaid/i)).not.toBeInTheDocument();
   });
 });

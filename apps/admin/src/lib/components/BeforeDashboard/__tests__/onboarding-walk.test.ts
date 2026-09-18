@@ -126,6 +126,26 @@ describe('walkStepsForTier', () => {
     expect(kg?.description.includes('file:')).toBe(false);
     expect(kg?.description.toLowerCase().includes('live nodes')).toBe(false);
   });
+
+  it('teases Launch/licensed architecture diagrams from KG, without a Mermaid job or Architecture SKU', () => {
+    const gated = walkStepsForTier('pro', { kgEntitled: true })
+      .find((step) => step.id === 'knowledgeGraph')
+      ?.description.toLowerCase();
+    expect(gated).toContain('architecture diagrams');
+    expect(gated).toContain('knowledge graph');
+    expect(gated).toContain('launch');
+    expect(gated).toContain('licensed');
+    expect(gated).toContain('graph wins');
+    expect(gated?.includes('mermaid')).toBe(false);
+    expect(gated?.includes('architecture sku')).toBe(false);
+
+    for (const tier of ['free', 'pro'] as const) {
+      const blob = JSON.stringify(walkStepsForTier(tier)).toLowerCase();
+      expect(blob.includes('architecture diagrams')).toBe(false);
+      expect(blob.includes('architecture sku')).toBe(false);
+      expect(blob.includes('mermaid')).toBe(false);
+    }
+  });
 });
 
 describe('shouldSurfaceKgWalk', () => {

@@ -165,7 +165,7 @@ export function walkStepsForTier(
             id: 'knowledgeGraph' as const,
             label: 'Open the Knowledge Graph',
             description:
-              'Problems, stack, and the next SKU may land here after a recorded session. Status and links, not files. Not a fourth product.',
+              'Architecture diagrams come from your Knowledge Graph (Launch / licensed). Problems, stack, and the next SKU may land here after a recorded session. Status and links, not files. Graph wins over orphan slides. Not a fourth product.',
             href: '/knowledge-graph',
             kind: 'open' as const,
           } satisfies WalkStep,
