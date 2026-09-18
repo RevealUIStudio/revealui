@@ -75,7 +75,7 @@ JWT-based licensing (EdDSA/Ed25519, server-side only — distinct from user-faci
 **License generation and enforcement work in tests. Not yet tested with paying customers.**
 
 ### Knowledge Graph
-`@revealui/knowledge-graph` is a first-class Electric+CRDT contract surface (`revkg` CLI). Honest naming is correct in runtime, docs, and admin. It is **not** a Studio cash SKU and is not sold as Fleet KG on public pricing (Consultation / Pilot / Launch stay the Studio ladder).
+`@revealui/knowledge-graph` is a first-class Electric+CRDT contract surface (`revkg` CLI). Honest naming is correct in runtime, docs, and admin. It is **not** a Studio cash SKU and is not sold as Fleet KG on public pricing (Consultation / Pilot / Launch stay the Studio ladder). Admin / licensed **RevMind** can export 2D diagrams from the graph (`POST /api/kg/diagram`, Mermaid SoT). That is architecture from the knowledge graph — **not** a public Architecture SKU.
 
 ### Fleet runtime images (GHCR)
 `ghcr.io/revealuistudio/revealui-api:latest`, `revealui-admin:latest`, and `revealui-migrate:latest` are published. Re-verified 2026-08-17: the GHCR anonymous token endpoint plus an OCI index GET returns HTTP 200 for those tags. A bare curl of the manifest URL without that token is 401 (GHCR default). RevForge stamps those tags. A stamped kit still needs a license JWT and operator env. This is not a sold customer walk.

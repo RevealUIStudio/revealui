@@ -70,6 +70,18 @@ export function canAccessKgShapes(user: ShapeAuthUser | null | undefined): boole
   return requireAdminRole(user.role) && user.emailVerified === true;
 }
 
+/**
+ * Launch architecture diagrams — stricter Launch / licensed path.
+ *
+ * Same dual-gate as {@link canAccessKgShapes} (fleet operator dogfood, or
+ * `REVEALUI_KG_LICENSED_OPERATOR=1` + verified shell admin). Named separately
+ * so `purpose: launch_architecture` cannot be relaxed to a future weaker
+ * consultation-only check. Not a public Architecture SKU.
+ */
+export function canAccessLaunchArchitecture(user: ShapeAuthUser | null | undefined): boolean {
+  return canAccessKgShapes(user);
+}
+
 export type KgShapeRepoWhereResult =
   | { ok: true; repo: string | null }
   | { ok: false; reason: 'missing' | 'invalid' };
