@@ -61,22 +61,17 @@ export const ArchiveBlock: Block = {
         },
       ],
     },
-    // WIRE-UP-PENDING — the `categories` relationship is disabled: its target
-    // `categories` collection has no backing table and is unregistered (see
-    // collections/registry.ts). ArchiveBlock is a live block (offered by Pages
-    // and rendered as `archive`), so it must not reference an unregistered
-    // slug. Re-enable once a `categories` migration + registration land.
-    // {
-    //   name: 'categories',
-    //   type: 'relationship',
-    //   admin: {
-    //     condition: (_: unknown, siblingData: ArchiveBlockData) =>
-    //       siblingData?.populateBy === 'collection',
-    //   },
-    //   hasMany: true,
-    //   label: 'Categories To Show',
-    //   relationTo: 'categories',
-    // },
+    {
+      name: 'categories',
+      type: 'relationship',
+      admin: {
+        condition: (_: unknown, siblingData: ArchiveBlockData) =>
+          siblingData?.populateBy === 'collection',
+      },
+      hasMany: true,
+      label: 'Categories To Show',
+      relationTo: 'categories',
+    },
     {
       name: 'limit',
       type: 'number',

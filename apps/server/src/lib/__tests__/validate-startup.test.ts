@@ -40,7 +40,7 @@ function validLiveProdEnv(overrides: EnvMap = {}): EnvMap {
     REVEALUI_BILLING_PORTAL_CONFIG_ID: 'bpc_test_fixture',
     REVEALUI_AUDIT_SIGNING_KEY: AUDIT_SIGNING_KEY_PEM,
     GOOGLE_SERVICE_ACCOUNT_EMAIL: 'svc@project.iam.gserviceaccount.com',
-    GOOGLE_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nfake\n-----END PRIVATE KEY-----',
+    GOOGLE_WIF_PROVIDER: 'projects/p/locations/global/workloadIdentityPools/pool/providers/vercel',
     ...overrides,
   };
 }
@@ -145,8 +145,8 @@ describe('validateStartup — production presence', () => {
 
   it('rejects missing Gmail email transport vars in production hosted env', () => {
     const env = validLiveProdEnv();
-    delete env.GOOGLE_PRIVATE_KEY;
-    expect(() => validateStartup(env)).toThrow(/GOOGLE_PRIVATE_KEY/);
+    delete env.GOOGLE_WIF_PROVIDER;
+    expect(() => validateStartup(env)).toThrow(/GOOGLE_WIF_PROVIDER/);
   });
 });
 
@@ -1009,7 +1009,7 @@ describe('validateStartup — lenient mode (Vercel-Sensitive var handling)', () 
       STRIPE_LIVE_MODE: '',
       REVEALUI_BILLING_PORTAL_CONFIG_ID: '',
       GOOGLE_SERVICE_ACCOUNT_EMAIL: '',
-      GOOGLE_PRIVATE_KEY: '',
+      GOOGLE_WIF_PROVIDER: '',
       // Sensitive in real Vercel pulls (empty string) — present-by-name in
       // lenient mode, so the Ed25519 parse is deferred to runtime.
       REVEALUI_AUDIT_SIGNING_KEY: '',

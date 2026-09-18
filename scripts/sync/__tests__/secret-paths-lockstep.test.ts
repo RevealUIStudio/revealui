@@ -188,7 +188,7 @@ describe.skipIf(!hasManifests)('manifest ↔ spec lockstep', () => {
     const allowedProdReuse: ReadonlySet<string> = new Set([
       'revealui/prod/stripe/agent-meter-event-name',
       'revealui/prod/google/service-account-email',
-      'revealui/prod/google/private-key',
+      'revealui/prod/google/wif-provider',
       'revealui/prod/email/from',
       'revealui/prod/email/reply-to',
     ]);

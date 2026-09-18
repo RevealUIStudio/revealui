@@ -3142,7 +3142,7 @@ This codebase follows the RevFleet engineering postures defined in [`docs/method
 
 **Audit-first SDLC (M5):** Before proposing any meaningful change to this codebase, audit the existing state — file paths, line numbers, intentional vs accidental duplication. A standards change without an audit of current deviations is not a complete proposal.
 
-**Pre-1.0 versioning (M6):** Every new package starts at `0.1.0`. Do not ship `1.0.0` until there are real external consumers and a stable contract across at least one release cycle. See `docs/methodology.md` for the full rule and the `@revealui/contracts` grandfathering note.
+**Pre-1.0 versioning (M6):** Every new package starts at `0.1.0`. Do not ship `1.0.0` until there are real external consumers and a stable contract across at least one release cycle. SSOT: `.revealui/content/rules/versioning.md`. `@revealui/ai` 1.0.4 is a named exception, not a waiver. See `docs/methodology.md` and GAP-497.
 
 ## Related Documentation
 

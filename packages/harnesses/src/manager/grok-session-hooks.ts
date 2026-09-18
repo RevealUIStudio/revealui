@@ -38,8 +38,24 @@ function hookFile(event: string, groups: GrokHookGroup[]): string {
   return `${JSON.stringify({ hooks: { [event]: groups } }, null, 2)}\n`;
 }
 
-const TRACKER_CMD =
-  'node "$HOME/revfleet/.jv/scripts/tracker-session-check.js" 2>/dev/null || true';
+/**
+ * Resolve fleet root the same way SessionStart adapters already do:
+ * $REVEALFLEET_ROOT, then $REVFLEET_ROOT, then ~/revealfleet, then ~/revfleet.
+ * Never hardcode only the dead ~/revfleet path (GAP-489 / GAP-418).
+ */
+const FLEET_RESOLVE = [
+  'FLEET="',
+  '$',
+  '{REVEALFLEET_ROOT:-',
+  '$',
+  '{REVFLEET_ROOT:-',
+  '$',
+  'HOME/revealfleet}}"; if [ ! -d "$FLEET/revealui" ] && [ ! -f "$FLEET/.jv/scripts/session-start-fleet.js" ]; then FLEET="$HOME/revfleet"; fi',
+].join('');
+
+const SESSION_START_FLEET_CMD = `${FLEET_RESOLVE}; node "$FLEET/.jv/scripts/session-start-fleet.js" || true`;
+
+const SESSION_END_FLEET_CMD = `${FLEET_RESOLVE}; node "$FLEET/.jv/scripts/session-end-fleet.js" || true`;
 
 /**
  * Soft-optional control-layer CLI. Tries monorepo dist first, then PATH.
@@ -47,7 +63,7 @@ const TRACKER_CMD =
  * daemon down). Pending hotfix/tmpscript lines print on stdout.
  */
 function controlLayerCmd(subcommand: string): string {
-  return `node "$HOME/revfleet/revealui/packages/harnesses/dist/cli.js" ${subcommand} 2>/dev/null || revealui-harnesses ${subcommand} 2>/dev/null || true`;
+  return `${FLEET_RESOLVE}; node "$FLEET/revealui/packages/harnesses/dist/cli.js" ${subcommand} 2>/dev/null || revealui-harnesses ${subcommand} 2>/dev/null || true`;
 }
 
 const HOTFIX_CMD = controlLayerCmd('hotfix check');
@@ -81,7 +97,7 @@ export const GROK_SESSION_START_HOOKS_JSON = hookFile('SessionStart', [
           'printf \'%s\\n\' "[menu] CURRENT-HANDOFF = session deltas; free surfaces = TRACKER.md; continue = /pickup"',
         timeout: 5,
       },
-      { type: 'command', command: TRACKER_CMD, timeout: 12 },
+      { type: 'command', command: SESSION_START_FLEET_CMD, timeout: 180 },
       { type: 'command', command: HOTFIX_CMD, timeout: 15 },
       { type: 'command', command: TMPSCRIPT_CMD, timeout: 12 },
       // register prints GAP-459 peer panel (or WARN if daemon down)
@@ -96,9 +112,10 @@ export const GROK_SESSION_END_HOOKS_JSON = hookFile('SessionEnd', [
       {
         type: 'command',
         command:
-          'printf \'%s\\n\' "[grok] adapter SessionEnd → control layer (daemon session.end + hotfix + temp-scripts)"',
+          'printf \'%s\\n\' "[grok] adapter SessionEnd → control layer (live-board + cleanup-session report + daemon session.end + hotfix + temp-scripts)"',
         timeout: 5,
       },
+      { type: 'command', command: SESSION_END_FLEET_CMD, timeout: 90 },
       { type: 'command', command: SESSION_END_CMD, timeout: 20 },
       { type: 'command', command: HOTFIX_CMD, timeout: 15 },
       { type: 'command', command: TMPSCRIPT_CMD, timeout: 12 },

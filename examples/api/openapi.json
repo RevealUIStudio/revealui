@@ -7208,7 +7208,7 @@
       "post": {
         "tags": ["maintenance"],
         "summary": "Clean up orphaned vector data (internal cron)",
-        "description": "Removes orphaned Supabase vector data (agent memories, RAG documents, RAG chunks) for sites that have been soft-deleted in NeonDB. Protected by X-Cron-Secret.",
+        "description": "Removes orphaned pgvector rows (agent memories, RAG documents, RAG chunks) for sites that have been soft-deleted in Neon. Protected by X-Cron-Secret.",
         "responses": {
           "200": {
             "description": "Cleanup completed successfully",
@@ -7742,7 +7742,7 @@
         }
       }
     },
-    "//api/collab/update": {
+    "/api/collab/update": {
       "post": {
         "tags": ["Collaboration"],
         "summary": "Apply a Yjs binary update to a document",
@@ -7763,7 +7763,7 @@
         }
       }
     },
-    "//api/collab/snapshot/{documentId}": {
+    "/api/collab/snapshot/{documentId}": {
       "get": {
         "tags": ["Collaboration"],
         "summary": "Get current Yjs document state as base64",
@@ -7787,7 +7787,7 @@
         }
       }
     },
-    "//api/collab/agent/connect": {
+    "/api/collab/agent/connect": {
       "post": {
         "tags": ["Agent Collaboration"],
         "summary": "Get WebSocket URL for agent collaboration",
@@ -7808,7 +7808,7 @@
         }
       }
     },
-    "//api/collab/agent/edit": {
+    "/api/collab/agent/edit": {
       "post": {
         "tags": ["Agent Collaboration"],
         "summary": "Apply server-side edit to agent document",
@@ -7827,7 +7827,7 @@
         }
       }
     },
-    "//api/collab/agent/snapshot/{documentId}": {
+    "/api/collab/agent/snapshot/{documentId}": {
       "get": {
         "tags": ["Agent Collaboration"],
         "summary": "Get agent document state and connected clients",
@@ -13937,7 +13937,7 @@
       "post": {
         "tags": ["maintenance"],
         "summary": "Clean up orphaned vector data (internal cron)",
-        "description": "Removes orphaned Supabase vector data (agent memories, RAG documents, RAG chunks) for sites that have been soft-deleted in NeonDB. Protected by X-Cron-Secret.",
+        "description": "Removes orphaned pgvector rows (agent memories, RAG documents, RAG chunks) for sites that have been soft-deleted in Neon. Protected by X-Cron-Secret.",
         "responses": {
           "200": {
             "description": "Cleanup completed successfully",

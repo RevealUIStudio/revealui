@@ -6,7 +6,9 @@ status: verified
 audience: maintainer
 ---
 
-Complete guide to the RevealUI Script Management Enhancement System - infrastructure for managing 203 TypeScript scripts with visibility, type safety, verification, and rollback capabilities.
+Live operator surface is `pnpm scripts` (`packages/scripts`). The rest of this
+page describes a **PROPOSED** EnhancedCLI / `scripts/lib` stack that is **not**
+the shipped CLI. Copy examples below only if you are implementing that stack.
 
 ## Status
 

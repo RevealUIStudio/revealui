@@ -41,7 +41,7 @@ export interface LifecycleArmingEnv {
   ADMIN_URL?: string;
   LIFECYCLE_EMAILS_ENABLED?: string;
   GOOGLE_SERVICE_ACCOUNT_EMAIL?: string;
-  GOOGLE_PRIVATE_KEY?: string;
+  GOOGLE_WIF_PROVIDER?: string;
 }
 
 export interface LifecycleArmingDecision {
@@ -50,7 +50,7 @@ export interface LifecycleArmingDecision {
 }
 
 export function isLifecycleMailboxConfigured(env: LifecycleArmingEnv): boolean {
-  return Boolean(env.GOOGLE_SERVICE_ACCOUNT_EMAIL && env.GOOGLE_PRIVATE_KEY);
+  return Boolean(env.GOOGLE_SERVICE_ACCOUNT_EMAIL && env.GOOGLE_WIF_PROVIDER);
 }
 
 export function isLifecycleEligibleTier(tier: string): boolean {
@@ -113,6 +113,6 @@ export function readLifecycleArmingEnv(env: NodeJS.ProcessEnv = process.env): Li
     ADMIN_URL: env.ADMIN_URL,
     LIFECYCLE_EMAILS_ENABLED: env.LIFECYCLE_EMAILS_ENABLED,
     GOOGLE_SERVICE_ACCOUNT_EMAIL: env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-    GOOGLE_PRIVATE_KEY: env.GOOGLE_PRIVATE_KEY,
+    GOOGLE_WIF_PROVIDER: env.GOOGLE_WIF_PROVIDER,
   };
 }

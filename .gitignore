@@ -1,4 +1,7 @@
 # Dependencies
+# Trailing-slash form is directories only; a symlink named node_modules
+# would otherwise be stageable by `git add -A` (GAP-418 item 8).
+node_modules
 node_modules/
 
 # Windows NTFS alternate data streams
@@ -184,6 +187,15 @@ CLAUDE.md
 
 # RevealUI cache files (PGlite database)
 .revealui/cache/
+
+# Runtime dumps (never commit)
+execution-logs.db
+**/execution-logs.db
+**/.pglite/
+**/.test-*.db
+**/.test-*.db-shm
+**/.test-*.db-wal
+.claude/settings.local.json
 
 # RevealUI local configuration (but allow manager contract + skills)
 .revealui/*

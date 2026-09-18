@@ -1,4 +1,6 @@
 {
+  // Dependabot (.github/dependabot.yml) is the live updater. This Renovate
+  // config is dormant; do not treat it as an active bot until it is wired.
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:base",

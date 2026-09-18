@@ -5,35 +5,10 @@
  * covers GmailProvider, MockEmailProvider, getEmailProvider selection, and
  * sendEmail's retry-with-backoff + prod-throw behavior.
  *
- * jose (importPKCS8 / SignJWT) and global fetch are mocked; env is stubbed
- * per test. No real network or credentials.
+ * global fetch is mocked; env is stubbed per test. No real network or credentials.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
-vi.mock('jose', () => ({
-  importPKCS8: vi.fn(async () => 'mock-key'),
-  SignJWT: class {
-    setProtectedHeader() {
-      return this;
-    }
-    setIssuer() {
-      return this;
-    }
-    setAudience() {
-      return this;
-    }
-    setIssuedAt() {
-      return this;
-    }
-    setExpirationTime() {
-      return this;
-    }
-    sign() {
-      return Promise.resolve('signed-jwt');
-    }
-  },
-}));
 
 import {
   clearGmailAccessTokenCache,
@@ -60,7 +35,7 @@ function mockFetch(...responses: MockRes[]): ReturnType<typeof vi.fn> {
       ok: r.ok,
       status: r.status ?? (r.ok ? 200 : 500),
       json: async () => r.json ?? {},
-      text: async () => r.text ?? '',
+      text: async () => r.text ?? (r.json !== undefined ? JSON.stringify(r.json) : ''),
     });
   }
   global.fetch = fn as unknown as typeof fetch;
@@ -69,12 +44,30 @@ function mockFetch(...responses: MockRes[]): ReturnType<typeof vi.fn> {
 
 const opts = { to: 'user@example.com', subject: 'Hi', html: '<p>hi</p>', text: 'hi' };
 
+function stubWif(): void {
+  vi.stubEnv('GOOGLE_SERVICE_ACCOUNT_EMAIL', 'sa@p.iam.gserviceaccount.com');
+  vi.stubEnv(
+    'GOOGLE_WIF_PROVIDER',
+    'projects/p/locations/global/workloadIdentityPools/pool/providers/vercel',
+  );
+  vi.stubEnv('VERCEL_OIDC_TOKEN', 'oidc');
+}
+
+function wifTokenHops(): MockRes[] {
+  return [
+    { ok: true, json: { access_token: 'fed' } },
+    { ok: true, json: { signedJwt: 'jwt' } },
+    { ok: true, json: { access_token: 'tok', expires_in: 3600 } },
+  ];
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   clearGmailAccessTokenCache();
   vi.stubEnv('NODE_ENV', 'test');
   vi.stubEnv('GOOGLE_SERVICE_ACCOUNT_EMAIL', '');
-  vi.stubEnv('GOOGLE_PRIVATE_KEY', '');
+  vi.stubEnv('GOOGLE_WIF_PROVIDER', '');
+  vi.stubEnv('VERCEL_OIDC_TOKEN', '');
   vi.stubEnv('EMAIL_FROM', 'noreply@revealui.com');
   vi.stubEnv('EMAIL_REPLY_TO', '');
 });
@@ -89,14 +82,23 @@ describe('GmailProvider', () => {
     const res = await new GmailProvider({ logger: silentLogger }).send(opts);
     expect(res).toEqual({
       success: false,
-      error: 'Gmail service account credentials not configured',
+      error: 'Gmail WIF credentials not configured',
     });
   });
 
   it('sends successfully when token exchange + gmail send both succeed', async () => {
     vi.stubEnv('GOOGLE_SERVICE_ACCOUNT_EMAIL', 'sa@p.iam.gserviceaccount.com');
-    vi.stubEnv('GOOGLE_PRIVATE_KEY', 'pk');
-    const fetchFn = mockFetch({ ok: true, json: { access_token: 'tok' } }, { ok: true });
+    vi.stubEnv(
+      'GOOGLE_WIF_PROVIDER',
+      'projects/p/locations/global/workloadIdentityPools/pool/providers/vercel',
+    );
+    vi.stubEnv('VERCEL_OIDC_TOKEN', 'oidc');
+    const fetchFn = mockFetch(
+      { ok: true, json: { access_token: 'fed' } },
+      { ok: true, json: { signedJwt: 'jwt' } },
+      { ok: true, json: { access_token: 'tok' } },
+      { ok: true },
+    );
 
     const res = await new GmailProvider({ logger: silentLogger }).send({
       ...opts,
@@ -104,32 +106,27 @@ describe('GmailProvider', () => {
     });
 
     expect(res).toEqual({ success: true });
-    expect(fetchFn).toHaveBeenCalledTimes(2);
-    expect(String(fetchFn.mock.calls[0]?.[0])).toContain('oauth2.googleapis.com');
-    expect(String(fetchFn.mock.calls[1]?.[0])).toContain('gmail.googleapis.com');
+    expect(fetchFn).toHaveBeenCalledTimes(4);
+    expect(String(fetchFn.mock.calls[0]?.[0])).toContain('sts.googleapis.com');
+    expect(String(fetchFn.mock.calls[1]?.[0])).toContain('iamcredentials.googleapis.com');
+    expect(String(fetchFn.mock.calls[2]?.[0])).toContain('oauth2.googleapis.com');
+    expect(String(fetchFn.mock.calls[3]?.[0])).toContain('gmail.googleapis.com');
   });
 
   it('reuses the Workspace access token on a second send (no second OAuth hop)', async () => {
-    vi.stubEnv('GOOGLE_SERVICE_ACCOUNT_EMAIL', 'sa@p.iam.gserviceaccount.com');
-    vi.stubEnv('GOOGLE_PRIVATE_KEY', 'pk');
-    const fetchFn = mockFetch(
-      { ok: true, json: { access_token: 'tok', expires_in: 3600 } },
-      { ok: true },
-      { ok: true },
-    );
+    stubWif();
+    const fetchFn = mockFetch(...wifTokenHops(), { ok: true }, { ok: true });
     const provider = new GmailProvider({ logger: silentLogger });
     await provider.send(opts);
     await provider.send(opts);
-    expect(fetchFn).toHaveBeenCalledTimes(3);
-    expect(String(fetchFn.mock.calls[0]?.[0])).toContain('oauth2.googleapis.com');
-    expect(String(fetchFn.mock.calls[1]?.[0])).toContain('gmail.googleapis.com');
-    expect(String(fetchFn.mock.calls[2]?.[0])).toContain('gmail.googleapis.com');
+    expect(fetchFn).toHaveBeenCalledTimes(5);
+    expect(String(fetchFn.mock.calls[3]?.[0])).toContain('gmail.googleapis.com');
+    expect(String(fetchFn.mock.calls[4]?.[0])).toContain('gmail.googleapis.com');
   });
 
   it('builds a message without optional text/replyTo', async () => {
-    vi.stubEnv('GOOGLE_SERVICE_ACCOUNT_EMAIL', 'sa@p.iam.gserviceaccount.com');
-    vi.stubEnv('GOOGLE_PRIVATE_KEY', 'pk');
-    mockFetch({ ok: true, json: { access_token: 'tok' } }, { ok: true });
+    stubWif();
+    mockFetch(...wifTokenHops(), { ok: true });
 
     const res = await new GmailProvider({ logger: silentLogger }).send({
       to: 'a@b.com',
@@ -141,12 +138,8 @@ describe('GmailProvider', () => {
   });
 
   it('returns an error (non-production) when the Gmail API responds non-ok', async () => {
-    vi.stubEnv('GOOGLE_SERVICE_ACCOUNT_EMAIL', 'sa@p.iam.gserviceaccount.com');
-    vi.stubEnv('GOOGLE_PRIVATE_KEY', 'pk');
-    mockFetch(
-      { ok: true, json: { access_token: 'tok' } },
-      { ok: false, status: 403, text: 'forbidden' },
-    );
+    stubWif();
+    mockFetch(...wifTokenHops(), { ok: false, status: 403, text: 'forbidden' });
 
     const res = await new GmailProvider({ logger: silentLogger }).send(opts);
 
@@ -156,12 +149,8 @@ describe('GmailProvider', () => {
 
   it('throws in production when delivery fails', async () => {
     vi.stubEnv('NODE_ENV', 'production');
-    vi.stubEnv('GOOGLE_SERVICE_ACCOUNT_EMAIL', 'sa@p.iam.gserviceaccount.com');
-    vi.stubEnv('GOOGLE_PRIVATE_KEY', 'pk');
-    mockFetch(
-      { ok: true, json: { access_token: 'tok' } },
-      { ok: false, status: 500, text: 'boom' },
-    );
+    stubWif();
+    mockFetch(...wifTokenHops(), { ok: false, status: 500, text: 'boom' });
 
     await expect(new GmailProvider({ logger: silentLogger }).send(opts)).rejects.toThrow(
       'Gmail email delivery failed',
@@ -170,14 +159,13 @@ describe('GmailProvider', () => {
   });
 
   it('surfaces a token-exchange failure', async () => {
-    vi.stubEnv('GOOGLE_SERVICE_ACCOUNT_EMAIL', 'sa@p.iam.gserviceaccount.com');
-    vi.stubEnv('GOOGLE_PRIVATE_KEY', 'pk');
+    stubWif();
     mockFetch({ ok: false, status: 401, text: 'bad jwt' });
 
     const res = await new GmailProvider({ logger: silentLogger }).send(opts);
 
     expect(res.success).toBe(false);
-    expect(res.error).toContain('token exchange failed');
+    expect(res.error).toContain('HTTP 401');
   });
 });
 
@@ -191,8 +179,7 @@ describe('MockEmailProvider', () => {
 
 describe('getEmailProvider', () => {
   it('returns a GmailProvider when credentials are present', () => {
-    vi.stubEnv('GOOGLE_SERVICE_ACCOUNT_EMAIL', 'sa@p.iam.gserviceaccount.com');
-    vi.stubEnv('GOOGLE_PRIVATE_KEY', 'pk');
+    stubWif();
     expect(getEmailProvider({ logger: silentLogger })).toBeInstanceOf(GmailProvider);
   });
 
@@ -204,8 +191,7 @@ describe('getEmailProvider', () => {
 
   it('refuses Gmail when the HIPAA profile is on, even if credentials exist', async () => {
     vi.stubEnv('REVEALUI_COMPLIANCE_PROFILE', 'hipaa');
-    vi.stubEnv('GOOGLE_SERVICE_ACCOUNT_EMAIL', 'sa@p.iam.gserviceaccount.com');
-    vi.stubEnv('GOOGLE_PRIVATE_KEY', 'pk');
+    stubWif();
     const provider = getEmailProvider({ logger: silentLogger });
     expect(provider).not.toBeInstanceOf(GmailProvider);
     await expect(provider.send(opts)).resolves.toMatchObject({
@@ -234,21 +220,15 @@ describe('sendEmail', () => {
   });
 
   it('retries a transient failure and then succeeds', async () => {
-    vi.stubEnv('GOOGLE_SERVICE_ACCOUNT_EMAIL', 'sa@p.iam.gserviceaccount.com');
-    vi.stubEnv('GOOGLE_PRIVATE_KEY', 'pk');
+    stubWif();
     // attempt 1: token ok, gmail 500 → failure; attempt 2: cached token, gmail ok
-    mockFetch(
-      { ok: true, json: { access_token: 't', expires_in: 3600 } },
-      { ok: false, status: 500, text: 'temp' },
-      { ok: true },
-    );
+    mockFetch(...wifTokenHops(), { ok: false, status: 500, text: 'temp' }, { ok: true });
     const res = await sendEmail(opts, { maxRetries: 2, logger: silentLogger });
     expect(res).toEqual({ success: true });
   });
 
   it('returns the failure (non-production) after exhausting retries', async () => {
-    vi.stubEnv('GOOGLE_SERVICE_ACCOUNT_EMAIL', 'sa@p.iam.gserviceaccount.com');
-    vi.stubEnv('GOOGLE_PRIVATE_KEY', 'pk');
+    stubWif();
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 500,
@@ -261,8 +241,7 @@ describe('sendEmail', () => {
 
   it('throws in production after exhausting retries', async () => {
     vi.stubEnv('NODE_ENV', 'production');
-    vi.stubEnv('GOOGLE_SERVICE_ACCOUNT_EMAIL', 'sa@p.iam.gserviceaccount.com');
-    vi.stubEnv('GOOGLE_PRIVATE_KEY', 'pk');
+    stubWif();
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 500,

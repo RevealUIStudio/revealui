@@ -96,7 +96,7 @@ limitations:
       trust/governance add-ons.
   - id: email-production-throw
     surface: api
-    summary: "Missing GOOGLE_PRIVATE_KEY throws in production (fixed — was silent skip)"
+    summary: "Missing Gmail WIF config throws in production (GAP-211; was silent skip)"
   - id: billing-meter
     surface: api
     summary: "Usage overage tracked in DB but not reported to Stripe Billing Meter"

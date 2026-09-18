@@ -12,7 +12,7 @@ import {
 
 const MAILBOX = {
   GOOGLE_SERVICE_ACCOUNT_EMAIL: 'sa@project.iam.gserviceaccount.com',
-  GOOGLE_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nfake\n-----END PRIVATE KEY-----',
+  GOOGLE_WIF_PROVIDER: 'projects/p/locations/global/workloadIdentityPools/pool/providers/vercel',
 } as const;
 
 describe('isLifecycleMailboxConfigured', () => {
@@ -23,7 +23,7 @@ describe('isLifecycleMailboxConfigured', () => {
         GOOGLE_SERVICE_ACCOUNT_EMAIL: MAILBOX.GOOGLE_SERVICE_ACCOUNT_EMAIL,
       }),
     ).toBe(false);
-    expect(isLifecycleMailboxConfigured({ GOOGLE_PRIVATE_KEY: MAILBOX.GOOGLE_PRIVATE_KEY })).toBe(
+    expect(isLifecycleMailboxConfigured({ GOOGLE_WIF_PROVIDER: MAILBOX.GOOGLE_WIF_PROVIDER })).toBe(
       false,
     );
     expect(isLifecycleMailboxConfigured(MAILBOX)).toBe(true);

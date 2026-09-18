@@ -32,7 +32,7 @@ function validHostedEnv(overrides: Record<string, string | undefined> = {}) {
     // suite failed presence checks on every case until these landed.
     REVEALUI_BILLING_PORTAL_CONFIG_ID: 'bpc_test123',
     GOOGLE_SERVICE_ACCOUNT_EMAIL: 'sender@project.iam.gserviceaccount.com',
-    GOOGLE_PRIVATE_KEY: 'fixture-google-service-account-key',
+    GOOGLE_WIF_PROVIDER: 'projects/p/locations/global/workloadIdentityPools/pool/providers/vercel',
     ...overrides,
   };
 }

@@ -1,8 +1,8 @@
 /**
  * Single Database Integration Tests
  *
- * Tests that the single Neon-primary client handles both relational and
- * vector operations correctly. Post-Supabase removal: one DB, one client.
+ * Filename is leftover (`dual-database`). Body is Neon-only: one client,
+ * REST + pgvector. Prefer `pnpm test:memory:neon`.
  */
 
 import { getRestClient, resetClient } from '@revealui/db/client';

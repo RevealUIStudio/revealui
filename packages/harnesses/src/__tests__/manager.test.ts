@@ -96,7 +96,8 @@ describe('project manager (.revealui)', () => {
       readFileSync(join(root, '.revealui/adapters/grok/hooks/session-start.json'), 'utf-8'),
     ) as { hooks: { SessionStart: Array<{ hooks: Array<{ command: string }> }> } };
     const startCmds = start.hooks.SessionStart.flatMap((g) => g.hooks.map((h) => h.command));
-    expect(startCmds.some((c) => c.includes('tracker-session-check.js'))).toBe(true);
+    expect(startCmds.some((c) => c.includes('session-start-fleet.js'))).toBe(true);
+    expect(startCmds.every((c) => !c.includes('"$HOME/revfleet/.jv'))).toBe(true);
     expect(startCmds.some((c) => c.includes('CURRENT-HANDOFF'))).toBe(true);
     expect(startCmds.some((c) => c.includes('/pickup'))).toBe(true);
     expect(startCmds.some((c) => c.includes('hotfix check'))).toBe(true);
@@ -112,6 +113,7 @@ describe('project manager (.revealui)', () => {
     expect(endCmds.some((c) => c.includes('tmpscript check'))).toBe(true);
     expect(endCmds.every((c) => !c.includes('.claude/hooks'))).toBe(true);
     expect(endCmds.some((c) => c.includes('session end'))).toBe(true);
+    expect(endCmds.some((c) => c.includes('session-end-fleet.js'))).toBe(true);
 
     const pre = JSON.parse(
       readFileSync(join(root, '.revealui/adapters/grok/hooks/pre-tool.json'), 'utf-8'),

@@ -14,6 +14,12 @@
     "marketing",
     "@revealui/test",
     "@revealui/scripts",
-    "@revealui/dev"
+    "@revealui/dev",
+    "@revealui/engines",
+    "@revealui/apify-actor-governed-run",
+    "revealui",
+    "@revealui/ts-strada",
+    "@revealui/license-signer",
+    "@rsc-poc/app"
   ]
 }

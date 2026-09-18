@@ -19,6 +19,7 @@ import { tailwindRule } from './tailwind.js';
 import { tokenEconomyRule } from './token-economy.js';
 import { trackerFirstRule } from './tracker-first.js';
 import { unusedDeclarationsRule } from './unused-declarations.js';
+import { versioningRule } from './versioning.js';
 
 export const rules: Rule[] = [
   adapterOnlyRule,
@@ -41,4 +42,5 @@ export const rules: Rule[] = [
   tokenEconomyRule,
   trackerFirstRule,
   unusedDeclarationsRule,
+  versioningRule,
 ];

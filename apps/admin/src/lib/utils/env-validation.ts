@@ -189,7 +189,7 @@ export function validateRequiredEnvVars(
       // production so a misconfigured deploy fails fast at boot (instrumentation.ts)
       // instead of silently locking out every new user. Fleet kits and other
       // self-host deploys are exempt (no Workspace email) via isSaasHosted above.
-      const emailTransportVars = ['GOOGLE_SERVICE_ACCOUNT_EMAIL', 'GOOGLE_PRIVATE_KEY'];
+      const emailTransportVars = ['GOOGLE_SERVICE_ACCOUNT_EMAIL', 'GOOGLE_WIF_PROVIDER'];
       for (const key of emailTransportVars) {
         if (!process.env[key]) {
           missing.push(key);

@@ -54,7 +54,7 @@ The admin provides a REST API for content delivery and includes collections for:
 - **Products**, **Prices**, **Categories**, **Tags**, **Orders**, **Subscriptions**
 - **Users**, **Tenants**, **Layouts**
 
-**Honesty (2026-09-16):** **Contents** and **Videos** are not live shipped CMS collections (cms Contents = WIRE-UP-PENDING). Do not treat them as included. They may appear in older schema notes later in this guide; those notes are historical, not a sellable SKU.
+**Honesty (2026-09-17):** Contents, Videos, Categories, Tags, Events, Info, Prices, and Subscriptions are registered CMS collections with backing tables ([#2895](https://github.com/RevealUIStudio/revealui/pull/2895)). Cards / Heros / Banners / Layouts in the list above are still not collections.
 
 ### Commercial framing
 
@@ -364,7 +364,7 @@ Apply the same pattern to:
 
 ### Content Management
 
-**Honesty:** The walkthrough below is **historical schema notes**, not a live CMS. **Contents** and **Videos** are not registered (`WIRE-UP-PENDING`, no backing table) and are **not a live Contents/Videos CMS SKU**. Live admin collections today: Pages, Posts, Products, Tenants, Media, Orders, Conversations. Cards / Heros / Events / Banners listed here are also unregistered historical notes.
+**Honesty:** Live admin collections: Users, Tenants, Pages, Posts, Products, Media, Orders, Conversations, Categories, Tags, Contents, Events, Info, Videos, Prices, Subscriptions ([#2895](https://github.com/RevealUIStudio/revealui/pull/2895)). Cards / Heros / Banners / Layouts are not collections. The walkthrough below may still mix historical field notes.
 
 #### Collections Overview
 

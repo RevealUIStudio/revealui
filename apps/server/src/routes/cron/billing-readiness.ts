@@ -248,7 +248,7 @@ app.post('/billing-readiness', async (c) => {
   // 6. Check email provider configuration (warning only  -  billing works without
   //    email, but transactional emails will silently fail)
   const hasGmail =
-    Boolean(process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) && Boolean(process.env.GOOGLE_PRIVATE_KEY);
+    Boolean(process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) && Boolean(process.env.GOOGLE_WIF_PROVIDER);
   if (!hasGmail) {
     warnings.push({
       check: 'email:provider',

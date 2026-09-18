@@ -1556,6 +1556,9 @@ importers:
       '@revealui/security':
         specifier: workspace:*
         version: link:../security
+      '@revealui/services':
+        specifier: workspace:*
+        version: link:../services
       '@revealui/setup':
         specifier: workspace:*
         version: link:../setup

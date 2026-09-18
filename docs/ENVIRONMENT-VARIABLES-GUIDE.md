@@ -86,7 +86,7 @@ pnpm dev
 | **For payments** | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | When testing checkout, subscriptions, or billing |
 | **For uploads** | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_BASE_URL` (Cloudflare R2) | When testing media uploads |
 | **For AI** | `LLM_PROVIDER`, `OLLAMA_BASE_URL` or `INFERENCE_SNAPS_BASE_URL` | When testing AI agent features |
-| **For email** | `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, `EMAIL_FROM` | When testing password reset or waitlist emails (Gmail API via Google Workspace service account) |
+| **For email** | `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_WIF_PROVIDER`, `EMAIL_FROM` | When testing password reset or waitlist emails (Gmail API via WIF + Workspace SA) |
 | **For sync** | `NEXT_PUBLIC_ELECTRIC_SERVICE_URL`, `ELECTRIC_SERVICE_URL` | When testing real-time sync features |
 | **For monitoring** | `NEXT_PUBLIC_SENTRY_DSN` (admin), `VITE_SENTRY_DSN` (marketing), `SENTRY_DSN` (server) | Recommended for staging and production; server is **required** in hosted prod |
 
@@ -176,10 +176,10 @@ Cloudflare R2 (S3-compatible) is the object-storage backend (GAP-208). The five 
 | `OAUTH_ADMIN_EMAILS` | No | None | Comma-separated email allowlist for OAuth admin access. Leave empty to allow any authenticated OAuth account. | MEDIUM | admin |
 | `NEXT_PUBLIC_APP_URL` | No | `NEXT_PUBLIC_SERVER_URL` | Base URL for constructing OAuth redirect URIs. | LOW (client-safe) | admin |
 | `GOOGLE_SERVICE_ACCOUNT_EMAIL` | No | None | Google Workspace service-account email with domain-wide delegation for Gmail API. Used for transactional emails (password reset, waitlist notifications). | HIGH (server-only) | admin, api |
-| `GOOGLE_PRIVATE_KEY` | No | None | Google Workspace service-account private key (PEM). Paired with `GOOGLE_SERVICE_ACCOUNT_EMAIL`. | HIGH (server-only) | admin, api |
+| `GOOGLE_WIF_PROVIDER` | No | None | GCP workload identity provider resource name (GAP-211). Paired with `GOOGLE_SERVICE_ACCOUNT_EMAIL`. Vercel injects `VERCEL_OIDC_TOKEN`. | HIGH (server-only) | admin, api |
 | `EMAIL_FROM` | No | `noreply@revealui.com` | Sender address for transactional emails. Must match a domain the Gmail service account can send as. | LOW | admin, api |
 | `EMAIL_REPLY_TO` | No | None | Optional reply-to address for transactional emails. | LOW | admin, api |
-| `LIFECYCLE_EMAILS_ENABLED` | No | unset (hosted test arms when Gmail SA is present; production stays disarmed) | First-week lifecycle cron (day-0 / day-1 / day-7) for Pro and Max. `true` is the production opt-in after an owner inbox check. `false` forces dry-run even on hosted test. Missing `GOOGLE_SERVICE_ACCOUNT_EMAIL` / `GOOGLE_PRIVATE_KEY` fail closed. Never set `true` on `main`. | MEDIUM | api |
+| `LIFECYCLE_EMAILS_ENABLED` | No | unset (hosted test arms when Gmail SA is present; production stays disarmed) | First-week lifecycle cron (day-0 / day-1 / day-7) for Pro and Max. `true` is the production opt-in after an owner inbox check. `false` forces dry-run even on hosted test. Missing `GOOGLE_SERVICE_ACCOUNT_EMAIL` / `GOOGLE_WIF_PROVIDER` fail closed. Never set `true` on `main`. | MEDIUM | api |
 | `REVEALUI_WAITLIST_NOTIFY_EMAIL` | No | None | Email address to notify on waitlist signups. Silently skipped if unset. | LOW | marketing |
 | `REVEALUI_SUPPORT_EMAIL` | No | `support@revealui.com` | Support contact shown in transactional emails sent to customers. | LOW | admin, api |
 
