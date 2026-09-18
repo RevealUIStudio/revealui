@@ -59,6 +59,11 @@
       "types": "./dist/memory/index.d.ts",
       "import": "./dist/memory/index.js",
       "default": "./dist/memory/index.js"
+    },
+    "./diagram": {
+      "types": "./dist/diagram/index.d.ts",
+      "import": "./dist/diagram/index.js",
+      "default": "./dist/diagram/index.js"
     }
   },
   "bin": {

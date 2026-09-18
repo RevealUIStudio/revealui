@@ -182,7 +182,7 @@ describe('OnboardingChecklist', () => {
     await waitFor(() => {
       expect(screen.getByText('First-day walk')).toBeInTheDocument();
     });
-    expect(screen.queryByText('Open the Knowledge Graph')).not.toBeInTheDocument();
+    expect(screen.queryByText('Open RevMind')).not.toBeInTheDocument();
     expect(screen.queryByText(/Architecture diagrams/i)).not.toBeInTheDocument();
     expect(screen.getAllByRole('link').map((l) => l.getAttribute('href'))).not.toContain(
       '/knowledge-graph',
@@ -195,15 +195,13 @@ describe('OnboardingChecklist', () => {
     });
     render(<OnboardingChecklist />);
     await waitFor(() => {
-      expect(screen.getByText('Open the Knowledge Graph')).toBeInTheDocument();
+      expect(screen.getByText('Open RevMind')).toBeInTheDocument();
     });
-    expect(screen.getByRole('link', { name: /Open the Knowledge Graph/ })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Open RevMind/ })).toHaveAttribute(
       'href',
       '/knowledge-graph',
     );
-    expect(
-      screen.getByText(/Architecture diagrams come from your Knowledge Graph/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/architecture from your knowledge graph/i)).toBeInTheDocument();
     expect(screen.queryByText(/live nodes/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/\/tmp\//)).not.toBeInTheDocument();
     expect(screen.queryByText(/Mermaid/i)).not.toBeInTheDocument();

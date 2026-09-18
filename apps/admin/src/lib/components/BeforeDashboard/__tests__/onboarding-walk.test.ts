@@ -112,7 +112,7 @@ describe('walkStepsForTier', () => {
     }
   });
 
-  it('surfaces Knowledge Graph as a bird-eye admin link when the gate allows', () => {
+  it('surfaces RevMind as a bird-eye admin link when the gate allows', () => {
     const steps = walkStepsForTier('pro', { kgEntitled: true });
     const kg = steps.find((step) => step.id === 'knowledgeGraph');
     expect(kg?.href).toBe('/knowledge-graph');
@@ -131,13 +131,13 @@ describe('walkStepsForTier', () => {
     const gated = walkStepsForTier('pro', { kgEntitled: true })
       .find((step) => step.id === 'knowledgeGraph')
       ?.description.toLowerCase();
-    expect(gated).toContain('architecture diagrams');
+    expect(gated).toContain('architecture from your knowledge graph');
     expect(gated).toContain('knowledge graph');
     expect(gated).toContain('launch');
     expect(gated).toContain('licensed');
     expect(gated).toContain('graph wins');
+    expect(gated).toContain('not a public architecture sku');
     expect(gated?.includes('mermaid')).toBe(false);
-    expect(gated?.includes('architecture sku')).toBe(false);
 
     for (const tier of ['free', 'pro'] as const) {
       const blob = JSON.stringify(walkStepsForTier(tier)).toLowerCase();

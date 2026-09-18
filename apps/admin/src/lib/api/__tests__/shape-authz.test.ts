@@ -5,6 +5,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   canAccessKgShapes,
+  canAccessLaunchArchitecture,
   isFleetOperator,
   requireAdminRole,
   resolveKgShapeRepoWhere,
@@ -99,6 +100,19 @@ describe('canAccessKgShapes', () => {
     ).toBe(false);
     vi.stubEnv('REVEALUI_KG_LICENSED_OPERATOR', 'true');
     expect(canAccessKgShapes(HOSTED_ADMIN)).toBe(false);
+  });
+});
+
+describe('canAccessLaunchArchitecture', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('stays fail-closed for hosted admins and open for fleet / licensed-operator', () => {
+    expect(canAccessLaunchArchitecture(HOSTED_ADMIN)).toBe(false);
+    expect(canAccessLaunchArchitecture(FLEET_OPERATOR)).toBe(true);
+    vi.stubEnv('REVEALUI_KG_LICENSED_OPERATOR', '1');
+    expect(canAccessLaunchArchitecture(HOSTED_ADMIN)).toBe(true);
   });
 });
 

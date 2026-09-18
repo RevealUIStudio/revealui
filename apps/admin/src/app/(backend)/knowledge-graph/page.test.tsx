@@ -102,7 +102,12 @@ describe('KnowledgeGraphPage canvas', () => {
 
     render(<KnowledgeGraphPage />);
 
+    expect(screen.getByRole('heading', { name: 'RevMind' })).toBeInTheDocument();
+    expect(screen.getAllByText(/architecture from your knowledge graph/i).length).toBeGreaterThan(
+      0,
+    );
     expect(screen.getByText(/hosted access is fleet-operator only/i)).toBeInTheDocument();
+    expect(screen.getByText('RevMind export')).toBeInTheDocument();
     expect(await screen.findByRole('img', { name: /knowledge graph with 2 nodes/i })).toBeDefined();
     expect(screen.getByRole('button', { name: 'file alpha.ts' })).toBeInTheDocument();
     // Canvas label + list row both show the name — list/detail stayed.

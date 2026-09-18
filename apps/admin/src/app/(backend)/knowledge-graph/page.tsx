@@ -16,6 +16,7 @@ import type { KgEdgeRecord, KgNodeRecord, UseKgViewDocumentResult } from '@revea
 import { ClientOnly, useKgViewDocument, useKnowledgeGraph } from '@revealui/sync';
 import { useEffect, useMemo, useState } from 'react';
 import { KnowledgeGraphCanvas } from '@/lib/components/KnowledgeGraphCanvas';
+import { DiagramExportPanel } from '@/lib/components/knowledge-graph/DiagramExportPanel';
 import { isEdgeLiveAt } from '@/lib/components/knowledge-graph/is-edge-live';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
@@ -114,11 +115,12 @@ function KnowledgeGraphExplorer() {
   return (
     <div className="min-h-screen">
       <div className="border-b border-border bg-card px-6 py-4">
-        <h1 className="text-xl font-semibold text-foreground">Knowledge Graph</h1>
+        <h1 className="text-xl font-semibold text-foreground">RevMind</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
-          Read-only knowledge graph. Hosted access is fleet-operator only so Pro tenants do not sync
-          the shared fleet graph. Launch and self-host can unlock verified Pro+ admin access, scoped
-          to a repo. Curation annotations are ephemeral; this screen never writes the graph.
+          Architecture from your knowledge graph. Hosted access is fleet-operator only so Pro
+          tenants do not sync the shared fleet graph. Launch and self-host can unlock verified Pro+
+          admin access, scoped to a repo. Curation annotations are ephemeral; this screen never
+          writes the graph. Not a public Architecture SKU.
         </p>
       </div>
 
@@ -202,6 +204,13 @@ function KnowledgeGraphExplorer() {
         isLoading={isLoading}
         error={error}
       />
+
+      <div className="border-b border-border px-6 py-4">
+        <DiagramExportPanel
+          repo={selectedRepo}
+          selection={selectedNodeId ? [selectedNodeId] : []}
+        />
+      </div>
 
       <div className="grid grid-cols-1 gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
         <div className="border-r border-border p-4">

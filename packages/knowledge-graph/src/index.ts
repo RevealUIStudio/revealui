@@ -13,6 +13,31 @@
 export { KG_TABLES, type KgDdlOptions, kgDdlStatements } from './db/ddl.js';
 export { makeExecutor, makePoolExecutor } from './db/executor.js';
 export {
+  capsForPurpose,
+  configureDiagramJob,
+  DIAGRAM_FORMATS,
+  DIAGRAM_HONESTY,
+  DIAGRAM_PURPOSES,
+  DIAGRAM_THEMES,
+  DIAGRAM_VIEWS,
+  type DiagramEdge,
+  type DiagramFormat,
+  type DiagramJobConfig,
+  type DiagramNode,
+  type DiagramPurpose,
+  type DiagramRenderResult,
+  type DiagramTheme,
+  type DiagramView,
+  getDiagramJobConfig,
+  hashDiagramSnapshot,
+  renderDiagram,
+  renderDiagramSvg,
+  renderMermaid,
+  resetDiagramJobConfig,
+  selectDiagramSubgraph,
+  snapshotGraphVersion,
+} from './diagram/index.js';
+export {
   additiveExtractors,
   type Extractor,
   type ExtractorContext,
