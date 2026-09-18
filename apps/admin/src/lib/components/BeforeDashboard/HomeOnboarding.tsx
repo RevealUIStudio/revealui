@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Onboarding lead for the CMS Overview home (GAP-300).
+ * Onboarding lead for the CMS Overview home (GAP-300 first-day walk).
  *
  * BeforeDashboard used to own checklist + nudge, but home routes render
  * AdminDashboard Overview — that slot was never mounted. This thin stack is

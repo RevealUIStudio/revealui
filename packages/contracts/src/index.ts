@@ -669,3 +669,42 @@ export {
   SecuritySeveritySchema,
   TOCTOU_STAT_READ_RULE,
 } from './security/index.js';
+
+// =============================================================================
+// Meeting vendor adapter (Consultation capture + P2 bundle fields)
+// =============================================================================
+
+export {
+  BANNED_MEETING_VENDOR_IDS,
+  type BannedMeetingVendorId,
+  CONSULTATION_MEETING_CAPTURE_KIND,
+  consultationSessionBuyerCopy,
+  DEFAULT_MEETING_VENDOR_ID,
+  emptyMeetingSessionRef,
+  isNakedJoinUrl,
+  isSupportedMeetingVendorId,
+  MEETING_ASSESS_KG_NODE_KINDS,
+  MEETING_AUTOMATION_STEPS,
+  MEETING_HUMAN_STEP,
+  MEETING_REMINDER_KINDS,
+  type MeetingAssessKgNodeKind,
+  type MeetingAutomationStep,
+  type MeetingBundleFields,
+  type MeetingCaptureKind,
+  type MeetingDeliveryCard,
+  type MeetingHumanStep,
+  type MeetingReminderKind,
+  type MeetingScheduleIntent,
+  type MeetingSessionRef,
+  type MeetingVendorId,
+  NARRATED_WALK_CAPTURE_KIND,
+  NARRATED_WALK_PURPOSES,
+  type NarratedWalkPurpose,
+  SUPPORTED_MEETING_VENDOR_IDS,
+  toMeetingAssessKgDelivery,
+  toMeetingBundleFields,
+  toMeetingDeliveryCard,
+  toMeetingScheduleIntent,
+  WHISPER_ASSESS_PIPELINE,
+  type WhisperAssessPipeline,
+} from './meeting-vendor.js';

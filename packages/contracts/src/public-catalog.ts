@@ -184,6 +184,18 @@ export function isPublicPerpetualCatalogName(name: string): boolean {
   return (PUBLIC_PERPETUAL_NAMES as readonly string[]).includes(name);
 }
 
+export {
+  consultationSessionBuyerCopy,
+  DEFAULT_MEETING_VENDOR_ID,
+  emptyMeetingSessionRef,
+  isNakedJoinUrl,
+  type MeetingBundleFields,
+  type MeetingDeliveryCard,
+  type MeetingSessionRef,
+  toMeetingBundleFields,
+  toMeetingDeliveryCard,
+} from './meeting-vendor.js';
+
 /** Standalone public perpetual catalog. Do not derive this from leftover SKUs. */
 export const PUBLIC_PERPETUAL_TIERS: PerpetualTier[] = [
   {

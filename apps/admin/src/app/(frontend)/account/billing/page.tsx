@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { TestModeBanner } from '@/components/TestModeBanner';
+import { planHonestyLine } from '@/lib/components/BeforeDashboard/onboarding-walk';
 import { hasCommercialUpgradePath } from '@/lib/components/should-show-upgrade-nav';
 import { apiFetch } from '@/lib/utils/csrf';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
@@ -442,6 +443,9 @@ function BillingContent() {
               {TIER_LABELS[tier]}
             </span>
           </div>
+          <p className="text-sm text-muted-foreground" data-testid="billing-plan-honesty">
+            {planHonestyLine(tier)}
+          </p>
 
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Status</span>

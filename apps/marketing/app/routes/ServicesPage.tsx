@@ -1,5 +1,6 @@
 import { Footer } from '../components/Footer';
 import { ClosingCta } from '../components/for-operators/ClosingCta';
+import { ConsultationJourney } from '../components/for-operators/ConsultationJourney';
 import { DiscoveryScopeShip } from '../components/for-operators/DiscoveryScopeShip';
 import { EngagementPricing } from '../components/for-operators/EngagementPricing';
 import { Faq as ServicesFaq } from '../components/for-operators/Faq';
@@ -45,6 +46,7 @@ export function ServicesPage() {
         path={pricingIntro.path}
         annotation={annotation}
       />
+      <ConsultationJourney />
       <DiscoveryScopeShip data={discovery.data} path={discovery.path} annotation={annotation} />
       <ServicesProof data={proof.data} path={proof.path} annotation={annotation} />
       <ServicesFaq />

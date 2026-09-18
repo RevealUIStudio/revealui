@@ -1,5 +1,22 @@
 # @revealui/mcp
 
+## 0.8.13
+
+### Patch Changes
+
+- c9758f2: GAP-211: Gmail send via Workload Identity Federation. Drop GOOGLE_PRIVATE_KEY; require GOOGLE_WIF_PROVIDER + runtime OIDC token.
+- Updated dependencies [5b81a99]
+- Updated dependencies [a6722e9]
+- Updated dependencies [c9758f2]
+  - @revealui/contracts@0.9.0
+  - @revealui/services@0.8.0
+  - @revealui/config@0.6.1
+  - @revealui/core@0.14.5
+  - @revealui/security@0.8.2
+  - @revealui/db@0.10.2
+  - @revealui/setup@0.7.7
+  - @revealui/knowledge-graph@0.1.15
+
 ## 0.8.12
 
 ### Patch Changes

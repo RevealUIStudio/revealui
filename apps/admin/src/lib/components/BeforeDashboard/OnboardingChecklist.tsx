@@ -1,57 +1,32 @@
 'use client';
 
+import { TIER_LABELS } from '@revealui/contracts/pricing';
 import { Button } from '@revealui/presentation/server';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useLicense } from '@/lib/providers/LicenseProvider';
 import { SITE_NAME } from '@/lib/utils/siteBranding';
+import {
+  dismissWalk,
+  markWalkStepVisited,
+  planHonestyLine,
+  readWalkProgress,
+  resolveWalkCompletion,
+  resolveWalkTier,
+  type WalkLiveSignals,
+  type WalkStepId,
+  walkProgressCounts,
+  walkStepsForTier,
+  wasWalkDismissed,
+} from './onboarding-walk';
 
-const DISMISSED_KEY = 'revealui-onboarding-dismissed';
+const EMPTY_SIGNALS: WalkLiveSignals = {
+  hasAgents: false,
+  hasAgentTasks: false,
+  hasPages: false,
+};
 
-type ItemKey = 'agents' | 'agentTasks' | 'pages' | 'products';
-
-interface ChecklistItem {
-  key: ItemKey;
-  label: string;
-  description: string;
-  href: string;
-}
-
-const items: ChecklistItem[] = [
-  {
-    key: 'agents',
-    label: 'Run your first agent',
-    description: 'Talk to an agent and watch it take an action on your behalf.',
-    href: '/agents',
-  },
-  {
-    key: 'agentTasks',
-    label: 'See the receipt',
-    description: 'Every agent action leaves a task record you can inspect.',
-    href: '/agent-tasks',
-  },
-  {
-    key: 'pages',
-    label: 'Create your first page',
-    description: 'Add a homepage, about page, or blog post to get started.',
-    href: '/pages',
-  },
-  {
-    key: 'products',
-    label: 'Add a product',
-    description: 'Set up your first product with pricing and details.',
-    href: '/products',
-  },
-];
-
-function wasDismissed(): boolean {
-  try {
-    return localStorage.getItem(DISMISSED_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
-
-/** Resolve a boolean from a same-origin admin collections proxy (pages, products). */
+/** Resolve a boolean from a same-origin admin collections proxy (pages). */
 async function hasAnyDoc(collection: string): Promise<boolean> {
   try {
     const res = await fetch(`/api/collections/${collection}?limit=1&depth=0`, {
@@ -66,16 +41,14 @@ async function hasAnyDoc(collection: string): Promise<boolean> {
 }
 
 /**
- * Derive checklist completion from live data rather than click tracking, so
- * the checklist reflects what the account has actually done. Every source
- * fails closed to `false` on its own  -  a 403 from an ungated tier or a
- * network hiccup on one item just leaves that item unchecked, it never
- * throws. `null` is returned only when derivation could not be attempted at
- * all, so the caller falls back to the plain static list.
+ * Derive first-day completion from live data rather than click tracking, so
+ * the walk reflects what the account has actually done. Every source fails
+ * closed to `false` on its own — a 403 from an ungated tier or a network
+ * hiccup just leaves that item unchecked.
  */
-async function fetchCompletionState(apiUrl: string): Promise<Record<ItemKey, boolean> | null> {
+async function fetchLiveSignals(apiUrl: string): Promise<WalkLiveSignals> {
   try {
-    const [agentsDone, agentTasksDone, pagesDone, productsDone] = await Promise.all([
+    const [hasAgents, hasAgentTasks, hasPages] = await Promise.all([
       fetch(`${apiUrl}/a2a/agents`, { credentials: 'include' })
         .then((r) => (r.ok ? r.json() : { agents: [] }))
         .then((data: { agents?: unknown[] }) => (data.agents?.length ?? 0) > 0)
@@ -85,55 +58,93 @@ async function fetchCompletionState(apiUrl: string): Promise<Record<ItemKey, boo
         .then((data: { exists?: boolean }) => data.exists ?? false)
         .catch(() => false),
       hasAnyDoc('pages'),
-      hasAnyDoc('products'),
     ]);
-
-    return {
-      agents: agentsDone,
-      agentTasks: agentTasksDone,
-      pages: pagesDone,
-      products: productsDone,
-    };
+    return { hasAgents, hasAgentTasks, hasPages };
   } catch {
-    return null;
+    return EMPTY_SIGNALS;
   }
 }
 
 export default function OnboardingChecklist() {
-  const [dismissed, setDismissed] = useState(wasDismissed);
-  const [completion, setCompletion] = useState<Record<ItemKey, boolean> | null>(null);
+  const license = useLicense();
+  const [dismissed, setDismissed] = useState(wasWalkDismissed);
+  const [signals, setSignals] = useState<WalkLiveSignals>(EMPTY_SIGNALS);
+  const [visited, setVisited] = useState(() => readWalkProgress().visited);
+  const [landed, setLanded] = useState(false);
+  const [kgEntitled, setKgEntitled] = useState(false);
 
   const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
+  const walkTier = resolveWalkTier({
+    tier: license.tier,
+    isLoading: license.isLoading,
+    resolveError: license.resolveError,
+  });
+
+  useEffect(() => {
+    if (dismissed) return;
+    const next = markWalkStepVisited('dashboard');
+    setVisited(next.visited);
+    setLanded(true);
+  }, [dismissed]);
 
   useEffect(() => {
     if (dismissed) return;
     let cancelled = false;
-    fetchCompletionState(apiUrl).then((state) => {
-      if (!cancelled) setCompletion(state);
+    fetchLiveSignals(apiUrl).then((state) => {
+      if (!cancelled) setSignals(state);
     });
     return () => {
       cancelled = true;
     };
   }, [dismissed, apiUrl]);
 
+  useEffect(() => {
+    if (dismissed) return;
+    let cancelled = false;
+    fetch('/api/kg/repos', { credentials: 'include' })
+      .then((res) => {
+        if (!cancelled) setKgEntitled(res.ok);
+      })
+      .catch(() => {
+        if (!cancelled) setKgEntitled(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [dismissed]);
+
+  const steps = useMemo(() => walkStepsForTier(walkTier, { kgEntitled }), [walkTier, kgEntitled]);
+  const completion = useMemo(
+    () => resolveWalkCompletion(steps, signals, visited, landed),
+    [steps, signals, visited, landed],
+  );
+  const counts = walkProgressCounts(steps, completion);
+
   if (dismissed) return null;
 
   const handleDismiss = () => {
-    try {
-      localStorage.setItem(DISMISSED_KEY, '1');
-    } catch {
-      // localStorage unavailable  -  dismiss in-memory only
-    }
+    dismissWalk();
     setDismissed(true);
   };
+
+  const handleVisit = (id: WalkStepId) => {
+    const next = markWalkStepVisited(id);
+    setVisited(next.visited);
+  };
+
+  const planLabel = walkTier ? TIER_LABELS[walkTier] : 'Plan not loaded';
 
   return (
     <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Getting Started</h2>
+          <h2 className="text-lg font-semibold text-foreground">First-day walk</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Welcome to {SITE_NAME}. Here are a few things to get you going.
+            Welcome to {SITE_NAME}. Follow these steps in order. {counts.completed} of{' '}
+            {counts.total} complete.
+          </p>
+          <p className="mt-1 text-sm text-foreground" data-testid="onboarding-plan-honesty">
+            <span className="font-medium">{planLabel}.</span> {planHonestyLine(walkTier)}
           </p>
         </div>
         <Button
@@ -148,33 +159,43 @@ export default function OnboardingChecklist() {
         </Button>
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-2">
-        {items.map((item, index) => {
-          const checked = completion?.[item.key] ?? false;
+      <ol className="grid list-none gap-2 p-0 sm:grid-cols-2">
+        {steps.map((item, index) => {
+          const checked = completion[item.id];
+          const locked = item.kind === 'locked';
 
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex items-start gap-3 rounded-lg border border-border bg-background p-3 transition-colors hover:border-primary/40 hover:bg-muted/40"
-            >
-              <span
-                className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border text-xs ${
-                  checked
-                    ? 'border-success bg-success/20 text-success'
-                    : 'border-border text-muted-foreground'
-                }`}
+            <li key={item.id}>
+              <Link
+                href={item.href}
+                onClick={() => handleVisit(item.id)}
+                className="flex items-start gap-3 rounded-lg border border-border bg-background p-3 transition-colors hover:border-primary/40 hover:bg-muted/40"
               >
-                {checked ? <span aria-hidden="true">&#10003;</span> : index + 1}
-              </span>
-              <div>
-                <p className="text-sm font-medium text-foreground">{item.label}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{item.description}</p>
-              </div>
-            </Link>
+                <span
+                  className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border text-xs ${
+                    checked
+                      ? 'border-success bg-success/20 text-success'
+                      : locked
+                        ? 'border-border bg-muted text-muted-foreground'
+                        : 'border-border text-muted-foreground'
+                  }`}
+                >
+                  {checked ? <span aria-hidden="true">&#10003;</span> : index + 1}
+                </span>
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    {item.label}
+                    {locked ? (
+                      <span className="ml-2 text-xs font-normal text-muted-foreground">Pro+</span>
+                    ) : null}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{item.description}</p>
+                </div>
+              </Link>
+            </li>
           );
         })}
-      </div>
+      </ol>
     </div>
   );
 }

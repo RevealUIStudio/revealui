@@ -18,7 +18,6 @@
     "@revealui/engines",
     "@revealui/apify-actor-governed-run",
     "revealui",
-    "@revealui/ts-strada",
     "@revealui/license-signer",
     "@rsc-poc/app"
   ]

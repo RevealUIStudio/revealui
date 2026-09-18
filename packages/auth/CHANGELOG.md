@@ -1,5 +1,18 @@
 # @revealui/auth
 
+## 0.5.9
+
+### Patch Changes
+
+- Updated dependencies [5b81a99]
+- Updated dependencies [a6722e9]
+- Updated dependencies [c9758f2]
+  - @revealui/contracts@0.9.0
+  - @revealui/config@0.6.1
+  - @revealui/core@0.14.5
+  - @revealui/security@0.8.2
+  - @revealui/db@0.10.2
+
 ## 0.5.8
 
 ### Patch Changes
