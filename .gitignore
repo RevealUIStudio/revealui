@@ -1,4 +1,7 @@
 # Dependencies
+# Trailing-slash form is directories only; a symlink named node_modules
+# would otherwise be stageable by `git add -A` (GAP-418 item 8).
+node_modules
 node_modules/
 
 # Windows NTFS alternate data streams

@@ -49,6 +49,18 @@ cleanup_sentinel() { rm -f "$GATE_SENTINEL"; }
 trap cleanup_sentinel EXIT
 echo $$ > "$GATE_SENTINEL"
 
+# GAP-418 item 8: a worktree with no node_modules made this hook a no-op
+# (`pnpm` unresolved). Fail closed — CI is still required.
+ROOT=$(git rev-parse --show-toplevel)
+if ! command -v pnpm >/dev/null 2>&1; then
+  echo "husky pre-push: pnpm not on PATH — fail closed" >&2
+  exit 1
+fi
+if [ ! -e "$ROOT/node_modules" ]; then
+  echo "husky pre-push: node_modules missing — fail closed (cannot resolve pnpm)" >&2
+  exit 1
+fi
+
 # ── Save dirty files to /tmp (never use git stash — it loses data on pop) ──
 # Skip if the coordinated push script already handled this
 SAVE_DIR=""
