@@ -188,9 +188,12 @@ export {
   consultationSessionBuyerCopy,
   DEFAULT_MEETING_VENDOR_ID,
   emptyMeetingSessionRef,
+  isNakedJoinUrl,
   type MeetingBundleFields,
+  type MeetingDeliveryCard,
   type MeetingSessionRef,
   toMeetingBundleFields,
+  toMeetingDeliveryCard,
 } from './meeting-vendor.js';
 
 /** Standalone public perpetual catalog. Do not derive this from leftover SKUs. */

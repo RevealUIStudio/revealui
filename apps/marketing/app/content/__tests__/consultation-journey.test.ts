@@ -37,6 +37,7 @@ describe('CONSULTATION_JOURNEY', () => {
     expect(CONSULTATION_PRICE).toBe('$300');
     expect(CONSULTATION_JOURNEY.steps[3]?.body).toContain('video session');
     expect(CONSULTATION_JOURNEY.steps[3]?.body).toContain('consent');
+    expect(CONSULTATION_JOURNEY.steps[3]?.body.toLowerCase()).toContain('no account required');
     expect(blob.includes('Google Meet')).toBe(false);
     expect(blob.includes('Cal.com')).toBe(false);
     expect(blob.includes('HubSpot')).toBe(false);

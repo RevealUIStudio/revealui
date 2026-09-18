@@ -5,9 +5,15 @@ import {
   consultationSessionBuyerCopy,
   DEFAULT_MEETING_VENDOR_ID,
   emptyMeetingSessionRef,
+  isNakedJoinUrl,
   isSupportedMeetingVendorId,
+  MEETING_AUTOMATION_STEPS,
+  MEETING_HUMAN_STEP,
   NARRATED_WALK_CAPTURE_KIND,
+  NARRATED_WALK_PURPOSES,
   toMeetingBundleFields,
+  toMeetingDeliveryCard,
+  toMeetingScheduleIntent,
   WHISPER_ASSESS_PIPELINE,
 } from '../meeting-vendor.js';
 
@@ -62,5 +68,55 @@ describe('meeting-vendor adapter', () => {
     expect(copy.includes('Cal.com')).toBe(false);
     expect(copy.includes('Zoom')).toBe(false);
     expect(copy.includes('OBS')).toBe(false);
+  });
+
+  it('defaults to guest-first join, not an account-required vendor UX', () => {
+    const session = emptyMeetingSessionRef();
+    expect(session.guestJoin).toBe(true);
+    expect(session.joinRequiresAccount).toBe(false);
+    const copy = consultationSessionBuyerCopy();
+    expect(copy.toLowerCase().includes('no account required')).toBe(true);
+    expect(copy.includes('Google account')).toBe(false);
+  });
+
+  it('delivers a naked join URL as a bird-eye link, not a filesystem path', () => {
+    const session = emptyMeetingSessionRef();
+    session.meetLink = 'https://meet.example/join';
+    expect(isNakedJoinUrl(session.meetLink)).toBe(true);
+    expect(isNakedJoinUrl('/tmp/meet.txt')).toBe(false);
+    expect(isNakedJoinUrl('file:///tmp/meet')).toBe(false);
+    expect(toMeetingDeliveryCard(session)).toEqual({
+      kind: 'link',
+      href: 'https://meet.example/join',
+      label: 'Join session',
+    });
+    session.meetLink = '/var/recordings/session.mp4';
+    expect(toMeetingDeliveryCard(session)).toBeNull();
+  });
+
+  it('automates schedule, prep, consent, and reminders; opening the link stays human', () => {
+    expect(MEETING_AUTOMATION_STEPS).toEqual([
+      'create_event',
+      'attach_join_url',
+      'send_prep',
+      'record_consent',
+      'send_reminders',
+    ]);
+    expect(MEETING_HUMAN_STEP).toBe('open_join_link');
+    const session = emptyMeetingSessionRef();
+    session.meetLink = 'https://meet.example/join';
+    expect(toMeetingScheduleIntent(session)).toEqual({
+      action: 'create_event',
+      meetLink: 'https://meet.example/join',
+      putNakedUrlInDescription: true,
+      guestJoin: true,
+      reminders: ['prep', 'consent', 'start'],
+    });
+  });
+
+  it('scopes narrated-walk to walks and livestream, not Consultation capture', () => {
+    expect(NARRATED_WALK_PURPOSES).toEqual(['walkthrough', 'livestream', 'youtube-when-needed']);
+    expect(NARRATED_WALK_PURPOSES.includes('consultation')).toBe(false);
+    expect(CONSULTATION_MEETING_CAPTURE_KIND).not.toBe(NARRATED_WALK_CAPTURE_KIND);
   });
 });
