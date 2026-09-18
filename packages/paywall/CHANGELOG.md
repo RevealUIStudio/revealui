@@ -1,5 +1,18 @@
 # @revealui/paywall
 
+## 0.5.0
+
+### Minor Changes
+
+- 5b81a99: GAP-177: extract billing Stripe helpers into `@revealui/paywall/stripe` and share checkout/refund Zod shapes from `@revealui/contracts`.
+- a6722e9: GAP-178: add Embedded Checkout + Payment Element to `@revealui/paywall/client` and `createSubscriptionWithIncompleteIntent` on `@revealui/paywall/stripe`.
+
+### Patch Changes
+
+- Updated dependencies [c9758f2]
+  - @revealui/config@0.6.1
+  - @revealui/db@0.10.2
+
 ## 0.2.0
 
 ### Minor Changes
