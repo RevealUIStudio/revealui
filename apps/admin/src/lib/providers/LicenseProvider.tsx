@@ -5,10 +5,7 @@ import type { FeatureFlags } from '@revealui/core/features';
 import { createPaywall } from '@revealui/paywall';
 import { PaywallProvider, usePaywall } from '@revealui/paywall/client';
 import { createContext, use } from 'react';
-import {
-  isUnlimitedOperatorQuota,
-  resolveHonestLicenseTier,
-} from '@/lib/access/license-honesty';
+import { isUnlimitedOperatorQuota, resolveHonestLicenseTier } from '@/lib/access/license-honesty';
 import { isPreAuthPublicPath } from '@/lib/auth/redirect-to-login';
 
 /** Shared paywall instance for the admin. */
@@ -127,9 +124,7 @@ export async function resolveSaasTier(): Promise<string> {
   const subscription = await fetchSubscriptionTier();
   const subscriptionTier = subscription.ok ? subscription.tier : null;
   const paid =
-    subscriptionTier === 'pro' ||
-    subscriptionTier === 'max' ||
-    subscriptionTier === 'enterprise';
+    subscriptionTier === 'pro' || subscriptionTier === 'max' || subscriptionTier === 'enterprise';
   if (paid) {
     return subscriptionTier;
   }
@@ -142,7 +137,7 @@ export async function resolveSaasTier(): Promise<string> {
   if (honest !== 'free') {
     return honest;
   }
-  if (!subscription.ok && !isUnlimitedOperatorQuota(usageQuota)) {
+  if (!(subscription.ok || isUnlimitedOperatorQuota(usageQuota))) {
     throw subscription.failure;
   }
   return honest;
