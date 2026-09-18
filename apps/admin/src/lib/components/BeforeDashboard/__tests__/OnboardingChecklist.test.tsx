@@ -13,7 +13,7 @@ function mockFetchImpl(handlers: {
   agents?: { ok: boolean; body?: unknown };
   agentTasks?: { ok: boolean; body?: unknown };
   pages?: { ok: boolean; body?: unknown };
-  kgRepos?: { ok: boolean; body?: unknown };
+  kgRepos?: { ok: boolean; status?: number; body?: unknown };
 }) {
   return vi.fn((input: RequestInfo | URL) => {
     const url = String(input);
