@@ -7,10 +7,12 @@ import {
   emptyMeetingSessionRef,
   isNakedJoinUrl,
   isSupportedMeetingVendorId,
+  MEETING_ASSESS_KG_NODE_KINDS,
   MEETING_AUTOMATION_STEPS,
   MEETING_HUMAN_STEP,
   NARRATED_WALK_CAPTURE_KIND,
   NARRATED_WALK_PURPOSES,
+  toMeetingAssessKgDelivery,
   toMeetingBundleFields,
   toMeetingDeliveryCard,
   toMeetingScheduleIntent,
@@ -112,6 +114,22 @@ describe('meeting-vendor adapter', () => {
       guestJoin: true,
       reminders: ['prep', 'consent', 'start'],
     });
+  });
+
+  it('maps post-meet assess to KG node kinds without a P0 bundle snapshot', () => {
+    expect(MEETING_ASSESS_KG_NODE_KINDS).toEqual(['problem', 'stack', 'next-sku']);
+    expect(toMeetingAssessKgDelivery()).toEqual({
+      kind: 'link',
+      href: '/knowledge-graph',
+      label: 'Knowledge Graph',
+    });
+    const session = emptyMeetingSessionRef();
+    session.recordingUri = 'https://drive.example/file/abc';
+    expect(toMeetingBundleFields(session)).toEqual({
+      meet_link: null,
+      recording_uri: 'https://drive.example/file/abc',
+    });
+    expect(Object.keys(toMeetingBundleFields(session)).includes('kg_snapshot')).toBe(false);
   });
 
   it('scopes narrated-walk to walks and livestream, not Consultation capture', () => {

@@ -71,6 +71,7 @@ export default function OnboardingChecklist() {
   const [signals, setSignals] = useState<WalkLiveSignals>(EMPTY_SIGNALS);
   const [visited, setVisited] = useState(() => readWalkProgress().visited);
   const [landed, setLanded] = useState(false);
+  const [kgEntitled, setKgEntitled] = useState(false);
 
   const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
   const walkTier = resolveWalkTier({
@@ -97,7 +98,22 @@ export default function OnboardingChecklist() {
     };
   }, [dismissed, apiUrl]);
 
-  const steps = useMemo(() => walkStepsForTier(walkTier), [walkTier]);
+  useEffect(() => {
+    if (dismissed) return;
+    let cancelled = false;
+    fetch('/api/kg/repos', { credentials: 'include' })
+      .then((res) => {
+        if (!cancelled) setKgEntitled(res.ok);
+      })
+      .catch(() => {
+        if (!cancelled) setKgEntitled(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [dismissed]);
+
+  const steps = useMemo(() => walkStepsForTier(walkTier, { kgEntitled }), [walkTier, kgEntitled]);
   const completion = useMemo(
     () => resolveWalkCompletion(steps, signals, visited, landed),
     [steps, signals, visited, landed],

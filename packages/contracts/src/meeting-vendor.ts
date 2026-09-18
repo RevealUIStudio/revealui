@@ -73,6 +73,21 @@ export const WHISPER_ASSESS_PIPELINE = {
 
 export type WhisperAssessPipeline = typeof WHISPER_ASSESS_PIPELINE;
 
+/** Post-meet assess may emit these KG nodes. Not a fourth Studio SKU. */
+export const MEETING_ASSESS_KG_NODE_KINDS = ['problem', 'stack', 'next-sku'] as const;
+
+export type MeetingAssessKgNodeKind = (typeof MEETING_ASSESS_KG_NODE_KINDS)[number];
+
+const KG_ADMIN_HREF = '/knowledge-graph';
+
+export function toMeetingAssessKgDelivery(): MeetingDeliveryCard {
+  return {
+    kind: 'link',
+    href: KG_ADMIN_HREF,
+    label: 'Knowledge Graph',
+  };
+}
+
 export interface MeetingSessionRef {
   vendorId: MeetingVendorId;
   captureKind: MeetingCaptureKind;

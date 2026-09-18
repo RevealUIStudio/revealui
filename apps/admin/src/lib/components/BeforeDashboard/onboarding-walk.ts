@@ -20,7 +20,24 @@ export type WalkStepId =
   | 'planHonesty'
   | 'firstDayAction'
   | 'receiptedAction'
+  | 'knowledgeGraph'
   | 'billing';
+
+export interface WalkKgGate {
+  /** Result of `canAccessKgShapes` (#2884). Do not invert or bypass. */
+  kgShapesAllowed: boolean;
+  /** Pro `ai` feature (same bar as LicenseGate + `/api/kg/repos`). */
+  hasProAi: boolean;
+}
+
+export interface WalkStepOptions {
+  /**
+   * True only when the #2884 dual-gate plus Pro AI already allowed KG.
+   * Callers should set this from `shouldSurfaceKgWalk` or a 200 from
+   * `/api/kg/repos` (that route applies both checks). Default hidden.
+   */
+  kgEntitled?: boolean;
+}
 
 export type WalkStepKind = 'open' | 'locked';
 
@@ -83,7 +100,14 @@ export function planHonestyLine(tier: LicenseTierId | null): string {
   return `You are on ${TIER_LABELS.enterprise}. Inquire / Contact sales, not unattended checkout.`;
 }
 
-export function walkStepsForTier(tier: LicenseTierId | null): WalkStep[] {
+export function shouldSurfaceKgWalk(gate: WalkKgGate): boolean {
+  return gate.hasProAi === true && gate.kgShapesAllowed === true;
+}
+
+export function walkStepsForTier(
+  tier: LicenseTierId | null,
+  options: WalkStepOptions = {},
+): WalkStep[] {
   const entitled = entitlesReceiptedAgentAction(tier);
   const firstDay: WalkStep = entitled
     ? {
@@ -135,6 +159,18 @@ export function walkStepsForTier(tier: LicenseTierId | null): WalkStep[] {
     },
     firstDay,
     receipt,
+    ...(options.kgEntitled === true
+      ? [
+          {
+            id: 'knowledgeGraph' as const,
+            label: 'Open the Knowledge Graph',
+            description:
+              'Problems, stack, and the next SKU may land here after a recorded session. Status and links, not files. Not a fourth product.',
+            href: '/knowledge-graph',
+            kind: 'open' as const,
+          } satisfies WalkStep,
+        ]
+      : []),
     {
       id: 'billing',
       label: 'Review account and billing',
@@ -157,6 +193,7 @@ export function resolveWalkCompletion(
     planHonesty: false,
     firstDayAction: false,
     receiptedAction: false,
+    knowledgeGraph: false,
     billing: false,
   };
 
@@ -182,6 +219,10 @@ export function resolveWalkCompletion(
     }
     if (step.id === 'receiptedAction') {
       completion.receiptedAction = signals.hasAgentTasks || visited.receiptedAction === true;
+      continue;
+    }
+    if (step.id === 'knowledgeGraph') {
+      completion.knowledgeGraph = visited.knowledgeGraph === true;
       continue;
     }
     completion.billing = visited.billing === true;
@@ -220,6 +261,7 @@ export function readWalkProgress(): OnboardingWalkProgress {
       'planHonesty',
       'firstDayAction',
       'receiptedAction',
+      'knowledgeGraph',
       'billing',
     ] as const) {
       if (source[id] === true) visited[id] = true;

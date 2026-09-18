@@ -9,6 +9,7 @@ import {
   readWalkProgress,
   resolveWalkCompletion,
   resolveWalkTier,
+  shouldSurfaceKgWalk,
   walkProgressCounts,
   walkStepsForTier,
 } from '../onboarding-walk';
@@ -102,6 +103,38 @@ describe('walkStepsForTier', () => {
     expect(steps.find((step) => step.id === 'firstDayAction')?.href).toBe('/pages');
     expect(steps.find((step) => step.id === 'receiptedAction')?.kind).toBe('locked');
   });
+
+  it('omits Knowledge Graph for Free/Pro when the #2884 gate does not allow it', () => {
+    for (const tier of ['free', 'pro', 'max', null] as const) {
+      const steps = walkStepsForTier(tier);
+      expect(steps.some((step) => step.id === 'knowledgeGraph')).toBe(false);
+      expect(steps.some((step) => step.href === '/knowledge-graph')).toBe(false);
+    }
+  });
+
+  it('surfaces Knowledge Graph as a bird-eye admin link when the gate allows', () => {
+    const steps = walkStepsForTier('pro', { kgEntitled: true });
+    const kg = steps.find((step) => step.id === 'knowledgeGraph');
+    expect(kg?.href).toBe('/knowledge-graph');
+    expect(kg?.kind).toBe('open');
+    expect(kg?.description.toLowerCase()).toContain('problems');
+    expect(kg?.description.toLowerCase()).toContain('stack');
+    expect(kg?.description.toLowerCase()).toContain('next sku');
+    expect(kg?.description.toLowerCase()).toContain('not a fourth product');
+    expect(kg?.description.toLowerCase()).toContain('links');
+    expect(kg?.description.includes('/tmp')).toBe(false);
+    expect(kg?.description.includes('file:')).toBe(false);
+    expect(kg?.description.toLowerCase().includes('live nodes')).toBe(false);
+  });
+});
+
+describe('shouldSurfaceKgWalk', () => {
+  it('requires both Pro AI and the #2884 dual-gate; never invents live KG', () => {
+    expect(shouldSurfaceKgWalk({ hasProAi: false, kgShapesAllowed: true })).toBe(false);
+    expect(shouldSurfaceKgWalk({ hasProAi: true, kgShapesAllowed: false })).toBe(false);
+    expect(shouldSurfaceKgWalk({ hasProAi: true, kgShapesAllowed: true })).toBe(true);
+    expect(shouldSurfaceKgWalk({ hasProAi: false, kgShapesAllowed: false })).toBe(false);
+  });
 });
 
 describe('resolveWalkCompletion', () => {
@@ -152,5 +185,19 @@ describe('resolveWalkCompletion', () => {
       completed: 1,
       total: 4,
     });
+  });
+
+  it('never marks Knowledge Graph complete from live agent/page signals', () => {
+    const kgSteps = walkStepsForTier('pro', { kgEntitled: true });
+    const completion = resolveWalkCompletion(
+      kgSteps,
+      { hasAgents: true, hasAgentTasks: true, hasPages: true },
+      {},
+      true,
+    );
+    expect(completion.knowledgeGraph).toBe(false);
+    expect(
+      resolveWalkCompletion(kgSteps, emptySignals, { knowledgeGraph: true }, true).knowledgeGraph,
+    ).toBe(true);
   });
 });

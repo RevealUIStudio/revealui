@@ -13,6 +13,7 @@ function mockFetchImpl(handlers: {
   agents?: { ok: boolean; body?: unknown };
   agentTasks?: { ok: boolean; body?: unknown };
   pages?: { ok: boolean; body?: unknown };
+  kgRepos?: { ok: boolean; body?: unknown };
 }) {
   return vi.fn((input: RequestInfo | URL) => {
     const url = String(input);
@@ -27,6 +28,14 @@ function mockFetchImpl(handlers: {
     if (url.includes('/api/collections/pages')) {
       const h = handlers.pages ?? { ok: true, body: { docs: [] } };
       return Promise.resolve({ ok: h.ok, json: () => Promise.resolve(h.body) } as Response);
+    }
+    if (url.includes('/api/kg/repos')) {
+      const h = handlers.kgRepos ?? { ok: false, status: 403, body: { error: 'Forbidden' } };
+      return Promise.resolve({
+        ok: h.ok,
+        status: h.status ?? (h.ok ? 200 : 403),
+        json: () => Promise.resolve(h.body),
+      } as Response);
     }
     return Promise.reject(new Error(`Unexpected fetch: ${url}`));
   });
@@ -165,5 +174,33 @@ describe('OnboardingChecklist', () => {
 
     expect(screen.queryByText('First-day walk')).not.toBeInTheDocument();
     expect(localStorage.getItem(DISMISSED_KEY)).toBe('1');
+  });
+
+  it('hides Knowledge Graph for Pro when /api/kg/repos is forbidden', async () => {
+    global.fetch = mockFetchImpl({ kgRepos: { ok: false, body: { error: 'Forbidden' } } });
+    render(<OnboardingChecklist />);
+    await waitFor(() => {
+      expect(screen.getByText('First-day walk')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Open the Knowledge Graph')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('link').map((l) => l.getAttribute('href'))).not.toContain(
+      '/knowledge-graph',
+    );
+  });
+
+  it('links Knowledge Graph when the dual-gate API allows, without fake live counts', async () => {
+    global.fetch = mockFetchImpl({
+      kgRepos: { ok: true, body: { repos: ['revealui'] } },
+    });
+    render(<OnboardingChecklist />);
+    await waitFor(() => {
+      expect(screen.getByText('Open the Knowledge Graph')).toBeInTheDocument();
+    });
+    expect(screen.getByRole('link', { name: /Open the Knowledge Graph/ })).toHaveAttribute(
+      'href',
+      '/knowledge-graph',
+    );
+    expect(screen.queryByText(/live nodes/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\/tmp\//)).not.toBeInTheDocument();
   });
 });
