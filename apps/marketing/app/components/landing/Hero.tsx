@@ -51,6 +51,12 @@ export function Hero() {
         <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-body sm:mt-7 sm:text-xl sm:leading-8">
           {hero.subtitle.sentence1}
         </p>
+        <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-body sm:text-lg sm:leading-8">
+          {hero.subtitle.sentence2}
+        </p>
+        <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+          {hero.subtitle.support}
+        </p>
 
         <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:mt-9 sm:flex-row sm:gap-4">
           <Button asChild size="lg" glow className="w-full gap-2 sm:w-auto">

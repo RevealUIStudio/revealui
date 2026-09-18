@@ -66,7 +66,7 @@ const PERPETUAL_PRICE = publicPerpetualPrice();
 
 export const DEFAULT_QUOTE_ANSWERS: QuoteAnswers = {
   who: 'self',
-  what: 'consultation',
+  what: 'pilot',
   places: 'one',
 };
 
@@ -77,16 +77,16 @@ export const QUOTE_CALCULATOR = {
     who: {
       label: 'Who runs it?',
       options: [
-        { id: 'self', label: 'I self-host' },
+        { id: 'self', label: 'I self-host the runtime' },
         { id: 'studio', label: 'Studio implements with me' },
       ] as const satisfies readonly QuoteOption<WhoLive>[],
     },
     what: {
-      label: 'What do you need?',
+      label: 'What problem are we solving?',
       options: [
-        { id: 'consultation', label: 'Consultation' },
-        { id: 'pilot', label: 'Pilot: one site, one agent I run' },
-        { id: 'launch', label: 'Launch: live on my accounts' },
+        { id: 'consultation', label: 'Consultation: diagnose the path / proof gap' },
+        { id: 'pilot', label: 'Pilot: one site, one agent I run, one receipted action' },
+        { id: 'launch', label: 'Launch: money path live on my accounts' },
       ] as const satisfies readonly QuoteOption<WhatWork>[],
     },
     places: {

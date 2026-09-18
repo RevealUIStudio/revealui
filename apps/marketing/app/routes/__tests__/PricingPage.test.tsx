@@ -6,6 +6,7 @@ import {
   PRICING_AGENT_MCP,
   PRICING_AGENT_X402,
   PRICING_AGENTS_SECTION,
+  PRICING_HERO,
 } from '../../content/pricing';
 import { SITE } from '../../content/site';
 import { PricingPage } from '../PricingPage';
@@ -23,8 +24,11 @@ describe('PricingPage product catalog', () => {
   it('renders the license catalog and the product-site quote calculator', async () => {
     render(<PricingPage />);
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'RevealUI pricing' }),
+      await screen.findByRole('heading', { level: 1, name: PRICING_HERO.title }),
     ).toBeInTheDocument();
+    const eyebrows = screen.getAllByText(PRICING_HERO.eyebrow ?? 'Pricing');
+    expect(eyebrows.some((node) => node.tagName === 'P')).toBe(true);
+    expect(screen.getByText(PRICING_HERO.subtitle ?? '')).toBeInTheDocument();
     expect(
       screen.getByRole('heading', { name: 'Who runs it. What you need. One price.' }),
     ).toBeInTheDocument();
@@ -32,6 +36,7 @@ describe('PricingPage product catalog', () => {
       'aria-checked',
       'true',
     );
+    expect(screen.getByRole('radio', { name: /Pilot/i })).toHaveAttribute('aria-checked', 'true');
   });
 
   it('keeps subscription Free, Pro, Max, and Enterprise as a license', async () => {
@@ -376,7 +381,7 @@ describe('PricingPage product catalog', () => {
 
   it('does not sell leftover catalog lies on the cards', async () => {
     const { container } = render(<PricingPage />);
-    await screen.findByRole('heading', { level: 1, name: 'RevealUI pricing' });
+    await screen.findByRole('heading', { level: 1, name: PRICING_HERO.title });
     const text = container.textContent ?? '';
     expect(text.includes('Slack support')).toBe(false);
     expect(text.includes('4h SLA')).toBe(false);
