@@ -38,7 +38,7 @@ export const CONSULTATION_JOURNEY = {
     {
       id: 'pay',
       title: 'Pay',
-      body: `Invoice before we start. Consultation is ${CONSULTATION_PRICE}. You get a receipt you can keep.`,
+      body: `Invoice before the session begins. Consultation is ${CONSULTATION_PRICE}. You get a receipt you can keep.`,
     },
     {
       id: 'prep',
