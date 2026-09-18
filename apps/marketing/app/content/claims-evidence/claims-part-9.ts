@@ -17,7 +17,7 @@ const QUOTE_RESOLVER: ClaimEntry['evidence'][number] = {
 const QUOTE_DEFAULT: ClaimEntry['evidence'][number] = {
   kind: 'test',
   ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#defaults Who to I will (self-host) on this site',
-  note: 'product site defaults Who to I will / self-host',
+  note: 'product site defaults Who to I will / self-host and What to Pilot',
 };
 
 const QUOTE_UI: ClaimEntry['evidence'][number] = {
@@ -54,6 +54,24 @@ export const claimsPart9: readonly ClaimEntry[] = [
   },
   {
     file: 'quote-calculator.ts',
+    exportPath: 'QUOTE_CALCULATOR.questions.what.label',
+    text: 'What problem are we solving?',
+    evidence: [QUOTE_DEFAULT, QUOTE_UI],
+  },
+  {
+    file: 'quote-calculator.ts',
+    exportPath: 'QUOTE_CALCULATOR.questions.what.options[0].label',
+    text: 'Consultation — diagnose the path / proof gap',
+    evidence: [
+      {
+        kind: 'test',
+        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#asks exactly three questions with the two exits',
+        note: 'Consultation option is the diagnose / proof-gap path, not a default Studio hour',
+      },
+    ],
+  },
+  {
+    file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.body',
     proofGrade: 'outcome',
     text: 'Defaults to self-host licenses. Studio work is on the same form and books at revealuistudio.com.',
@@ -62,7 +80,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
   {
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.questions.what.options[1].label',
-    text: 'Pilot: one site, one agent I run',
+    text: 'Pilot — one site, one agent I run, one receipted action',
     evidence: [
       {
         kind: 'test',
@@ -74,7 +92,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
   {
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.questions.what.options[2].label',
-    text: 'Launch: live on my accounts',
+    text: 'Launch — money path live on my accounts',
     evidence: [
       {
         kind: 'test',

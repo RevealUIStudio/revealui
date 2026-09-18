@@ -13,7 +13,11 @@ describe('QuoteCalculator', () => {
     const self = screen.getByRole('radio', {
       name: QUOTE_CALCULATOR.questions.who.options[0].label,
     });
+    const pilot = screen.getByRole('radio', {
+      name: QUOTE_CALCULATOR.questions.what.options[1].label,
+    });
     expect(self).toHaveAttribute('aria-checked', 'true');
+    expect(pilot).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByText(QUOTE_CALCULATOR.selfHost.title)).toBeInTheDocument();
     expect(screen.getByText(QUOTE_CALCULATOR.selfHost.free)).toBeInTheDocument();
     expect(screen.getByText(QUOTE_CALCULATOR.selfHost.agents)).toBeInTheDocument();

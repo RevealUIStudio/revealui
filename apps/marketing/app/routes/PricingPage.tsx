@@ -123,6 +123,9 @@ export function PricingPage() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background"
         />
+        <p className="mb-6 text-sm font-semibold uppercase tracking-[0.2em] text-primary">
+          {PRICING_HERO.eyebrow ?? 'Pricing'}
+        </p>
         <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
           <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
             {PRICING_HERO.title}
