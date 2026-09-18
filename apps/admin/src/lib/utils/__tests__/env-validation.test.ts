@@ -24,6 +24,7 @@ const ENV_KEYS = [
   'NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID',
   'GOOGLE_SERVICE_ACCOUNT_EMAIL',
   'GOOGLE_WIF_PROVIDER',
+  'REVEALUI_EMAIL_BOOT_OPTIONAL',
 ] as const;
 
 const saved: Record<string, string | undefined> = {};
@@ -140,6 +141,57 @@ describe('validateRequiredEnvVars', () => {
 
       expect(result.valid).toBe(false);
       expect(result.missing).toEqual(expect.arrayContaining(['SESSION_COOKIE_DOMAIN']));
+    });
+
+    it('REVEALUI_EMAIL_BOOT_OPTIONAL=1 demotes missing email transport vars to warnings', () => {
+      setCriticalRequiredVars();
+      process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'a-private-key';
+      process.env.SESSION_COOKIE_DOMAIN = '.example.com';
+      process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID = 'price_pro';
+      process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID = 'price_max';
+      process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID = 'price_ent';
+      process.env.REVEALUI_EMAIL_BOOT_OPTIONAL = '1';
+
+      const result = validateRequiredEnvVars({
+        environment: 'production',
+        failOnMissing: true,
+      });
+
+      expect(result.valid).toBe(true);
+      expect(result.missing).toEqual([]);
+      expect(result.warnings).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('GOOGLE_SERVICE_ACCOUNT_EMAIL'),
+          expect.stringContaining('GOOGLE_WIF_PROVIDER'),
+        ]),
+      );
+    });
+
+    it('does not treat REVEALUI_EMAIL_BOOT_OPTIONAL=true as opt-in', () => {
+      setCriticalRequiredVars();
+      process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'a-private-key';
+      process.env.SESSION_COOKIE_DOMAIN = '.example.com';
+      process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID = 'price_pro';
+      process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID = 'price_max';
+      process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID = 'price_ent';
+      process.env.REVEALUI_EMAIL_BOOT_OPTIONAL = 'true';
+
+      expect(() =>
+        validateRequiredEnvVars({ environment: 'production', failOnMissing: true }),
+      ).toThrow(/GOOGLE_WIF_PROVIDER/);
+    });
+
+    it('keeps other hosted-only vars hard-required when email boot is optional', () => {
+      setCriticalRequiredVars();
+      process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'a-private-key';
+      process.env.REVEALUI_EMAIL_BOOT_OPTIONAL = '1';
+
+      const result = validateRequiredEnvVars({ environment: 'production' });
+
+      expect(result.valid).toBe(false);
+      expect(result.missing).toEqual(expect.arrayContaining(['SESSION_COOKIE_DOMAIN']));
+      expect(result.missing).not.toContain('GOOGLE_WIF_PROVIDER');
+      expect(result.missing).not.toContain('GOOGLE_SERVICE_ACCOUNT_EMAIL');
     });
   });
 

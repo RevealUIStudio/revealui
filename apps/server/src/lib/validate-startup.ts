@@ -276,7 +276,22 @@ export function validateStartup(
       : plainSelfHostOptIn
         ? required.filter((key) => !(FORGE_LICENSE_KEYS as readonly string[]).includes(key))
         : required;
-  const missingProd = requiredFiltered.filter((key) => !isPresent(env, key, lenient));
+  // REVEALUI_EMAIL_BOOT_OPTIONAL=1 is a staging-walk opt-in until owner vaults
+  // revealui/prod/google/wif-provider — default remains fail-fast.
+  const emailTransportVars = ['GOOGLE_SERVICE_ACCOUNT_EMAIL', 'GOOGLE_WIF_PROVIDER'] as const;
+  const emailBootOptional = env.REVEALUI_EMAIL_BOOT_OPTIONAL === '1';
+  const requiredForBoot = emailBootOptional
+    ? requiredFiltered.filter((key) => !(emailTransportVars as readonly string[]).includes(key))
+    : requiredFiltered;
+  if (emailBootOptional) {
+    const missingEmail = emailTransportVars.filter((key) => !isPresent(env, key, lenient));
+    if (missingEmail.length > 0) {
+      process.stderr.write(
+        `REVEALUI_EMAIL_BOOT_OPTIONAL=1: missing ${missingEmail.join(', ')}; boot continues. Staging walk until owner vaults revealui/prod/google/wif-provider.\n`,
+      );
+    }
+  }
+  const missingProd = requiredForBoot.filter((key) => !isPresent(env, key, lenient));
   if (missingProd.length > 0) {
     throw new Error(
       `STARTUP VALIDATION FAILED (${mode} mode): Missing production-required env vars: ${missingProd.join(', ')}.`,
