@@ -4,7 +4,10 @@
  * artifacts → next. Not Studio Desk Sheet. Not a fourth SKU.
  */
 
-import { CONSULTATION_PRICE } from '@revealui/contracts/public-catalog';
+import {
+  CONSULTATION_PRICE,
+  consultationSessionBuyerCopy,
+} from '@revealui/contracts/public-catalog';
 
 export const CONSULTATION_JOURNEY_PROGRESS_KEY = 'revealui-consultation-journey';
 
@@ -48,7 +51,7 @@ export const CONSULTATION_JOURNEY = {
     {
       id: 'session',
       title: 'Session',
-      body: 'One Google Meet with screen share. We record only if you consent.',
+      body: consultationSessionBuyerCopy(),
     },
     {
       id: 'artifacts',

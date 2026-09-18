@@ -31,14 +31,18 @@ describe('CONSULTATION_JOURNEY', () => {
     ]);
   });
 
-  it('pins Consultation at $300 and names Google Meet, not Cal.com', () => {
+  it('pins Consultation at $300 with vendor-agnostic session copy', () => {
     const blob = JSON.stringify(CONSULTATION_JOURNEY);
     expect(CONSULTATION_JOURNEY.steps[1]?.body).toContain(CONSULTATION_PRICE);
     expect(CONSULTATION_PRICE).toBe('$300');
-    expect(blob).toContain('Google Meet');
+    expect(CONSULTATION_JOURNEY.steps[3]?.body).toContain('video session');
+    expect(CONSULTATION_JOURNEY.steps[3]?.body).toContain('consent');
+    expect(blob.includes('Google Meet')).toBe(false);
     expect(blob.includes('Cal.com')).toBe(false);
     expect(blob.includes('HubSpot')).toBe(false);
     expect(blob.includes('autodialer')).toBe(false);
+    expect(blob.includes('Zoom')).toBe(false);
+    expect(blob.includes('OBS')).toBe(false);
     expect(blob.toLowerCase().includes('soc2')).toBe(false);
     expect(blob.toLowerCase().includes('soc 2')).toBe(false);
     expect(blob.includes('CapCut')).toBe(false);
