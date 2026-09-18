@@ -95,9 +95,7 @@ describe('useAudienceHead — technical audience', () => {
     renderHook(() => useAudienceHead('technical'));
     expect(
       document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.content,
-    ).toBe(
-      `${HOME_HERO.subtitle.sentence1} ${HOME_HERO.subtitle.sentence2}`,
-    );
+    ).toBe(`${HOME_HERO.subtitle.sentence1} ${HOME_HERO.subtitle.sentence2}`);
   });
 
   it('sets document.documentElement.dataset.audience to technical', () => {

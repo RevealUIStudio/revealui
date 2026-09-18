@@ -26,7 +26,8 @@ describe('PricingPage product catalog', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: PRICING_HERO.title }),
     ).toBeInTheDocument();
-    expect(screen.getByText(PRICING_HERO.eyebrow ?? 'Pricing')).toBeInTheDocument();
+    const eyebrows = screen.getAllByText(PRICING_HERO.eyebrow ?? 'Pricing');
+    expect(eyebrows.some((node) => node.tagName === 'P')).toBe(true);
     expect(screen.getByText(PRICING_HERO.subtitle ?? '')).toBeInTheDocument();
     expect(
       screen.getByRole('heading', { name: 'Who runs it. What you need. One price.' }),
