@@ -198,7 +198,7 @@ const SHARED_RULE_MESSAGES: Readonly<Record<string, string>> = {
   'max-price-stale':
     'RevealUI Max is $99/mo (cents-of-record: scripts/setup/stripe-catalog.ts). Do not present $149 or $299 as the current Max price.',
   'retired-suite-path':
-    'The ~/suite/ path was retired 2026-05-08 (now ~/revfleet/). Update the path.',
+    'The ~/suite/ path was retired 2026-05-08 (now ~/revealfleet/). Update the path.',
 };
 
 const SHARED_FLEET_RULES: readonly Rule[] = SHARED_DETECTION_RULES.map((rule) => ({

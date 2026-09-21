@@ -241,6 +241,6 @@ export const SHARED_DETECTION_RULES: readonly DetectionRule[] = [
     // Username-free form only — see the file header's privacy carve-out.
     id: 'retired-suite-path',
     anyOf: ['~/suite/'],
-    unlessLineHas: [...COMMON_EXON, 'now ~/revfleet', 'renamed'],
+    unlessLineHas: [...COMMON_EXON, 'now ~/revealfleet', 'renamed'],
   },
 ];

@@ -18,7 +18,7 @@ import { resolvedFleetAttributionFiles, scanState } from './state.js';
 // ---------------------------------------------------------------------------
 // Fleet-product attribution gate (PR-D, docs-claims-2026-04-26)
 //
-// RevFleet is eight separate products (RevealUI, RevDev,
+// RevealFleet is eight separate products (RevealUI, RevDev,
 // RevVault, RevCon, RevealCoin, Forge, RevSkills, RevKit). When a docs
 // page that belongs to RevealUI itself names another fleet product, it
 // must either:
@@ -233,7 +233,7 @@ export const SHIPS_IN_TARGETS = new Set([
   'revskills',
   'revkit',
   'forge',
-  'revfleet',
+  'revealfleet',
 ]);
 
 export const LIVES_IN_TARGETS = new Set([
@@ -244,7 +244,7 @@ export const LIVES_IN_TARGETS = new Set([
   'revskills',
   'revkit',
   'forge',
-  'revfleet',
+  'revealfleet',
   'monorepo',
   'repo',
 ]);
@@ -257,7 +257,7 @@ export const SEE_TARGETS = new Set([
   'revskills',
   'revkit',
   'forge',
-  'revfleet',
+  'revealfleet',
   'fleet',
 ]);
 
@@ -311,9 +311,9 @@ export function hasFleetAttributionQualifier(line: string): boolean {
   const tokens = tokenize(line);
   const words = wordTexts(tokens);
 
-  // RevFleet as a bare word is itself an attribution frame
+  // RevealFleet as a bare word is itself an attribution frame
   for (const w of words) {
-    if (w === 'revfleet') return true;
+    if (w === 'revealfleet') return true;
   }
 
   // <org>/<repo> fleet attribution (org name assembled above)

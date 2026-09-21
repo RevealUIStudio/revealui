@@ -326,7 +326,7 @@ describe('PricingPage product catalog', () => {
   it('asks What is RevealFleet and does not sell parked fleet SKUs', async () => {
     render(<PricingPage />);
     expect(await screen.findByText('What is RevealFleet?')).toBeInTheDocument();
-    expect(screen.queryByText('What is RevFleet?')).toBeNull();
+    expect(screen.queryByText('What is RevealFleet?')).toBeNull();
     const answer = screen.getByText('RevealUI Studio ships RevealFleet', { exact: false });
     const text = answer.textContent ?? '';
     expect(text.includes('seven products')).toBe(false);

@@ -14,7 +14,7 @@ Narrow scope: this doc covers the parts of the RevealUI automation surface that 
 - **CI** — [`docs/CI_CD_GUIDE.md`](./CI_CD_GUIDE.md) and the workflow files in `.github/workflows/` (`ci.yml`, `deploy.yml`, `deploy-test.yml`, `release.yml`, `security.yml`, `db-backup.yml`).
 - **Deployment** — [`docs/guides/deployment.md`](./guides/deployment.md) (Vercel, Docker Compose, self-hosted Node.js).
 - **Branch pipeline + commands** — top-level [`CLAUDE.md`](../CLAUDE.md) (canonical package map, `pnpm gate`, `pnpm dev`, etc.).
-- **Skills + commands** — `~/revfleet/revskills/` (fleet-level Agent Skills). The `pnpm skills` CLI mentioned in older drafts of this file does not exist in this repo.
+- **Skills + commands** — `~/revealfleet/revskills/` (fleet-level Agent Skills). The `pnpm skills` CLI mentioned in older drafts of this file does not exist in this repo.
 
 What's left here, and what this doc covers, is just two things: agent integration (Claude Code CLI) and the branch-protection-as-code posture.
 
@@ -48,7 +48,7 @@ npm install -g @anthropic-ai/claude-code
 claude
 ```
 
-Project conventions are loaded from [`CLAUDE.md`](../CLAUDE.md) at the repo root. The agent's allowed permissions are defined in a local `.claude/settings.local.json` (not committed); see Anthropic's [Claude Code settings reference](https://code.claude.com/docs/en/settings) for the format. Per-rule conventions and commands under `.claude/rules/` and `.claude/commands/` may be locally symlinked from `~/revfleet/revcon/profiles/revealui/claude/`, but neither directory is tracked in this repo.
+Project conventions are loaded from [`CLAUDE.md`](../CLAUDE.md) at the repo root. The agent's allowed permissions are defined in a local `.claude/settings.local.json` (not committed); see Anthropic's [Claude Code settings reference](https://code.claude.com/docs/en/settings) for the format. Per-rule conventions and commands under `.claude/rules/` and `.claude/commands/` may be locally symlinked from `~/revealfleet/revcon/profiles/revealui/claude/`, but neither directory is tracked in this repo.
 
 ### MCP servers
 

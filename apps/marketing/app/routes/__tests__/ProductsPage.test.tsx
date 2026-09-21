@@ -25,9 +25,9 @@ describe('ProductsPage honesty and presentation', () => {
     );
   });
 
-  it('presents RevealUI licenses, not a RevFleet sister roster', () => {
+  it('presents RevealUI licenses, not a RevealFleet sister roster', () => {
     renderPage();
-    expect(screen.queryByRole('heading', { name: 'The RevFleet product family' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'The RevealFleet product family' })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'RevCon' })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'RevSkills' })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'RevForge' })).toBeNull();

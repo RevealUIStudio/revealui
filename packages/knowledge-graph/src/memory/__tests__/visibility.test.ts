@@ -4,7 +4,7 @@ import { episodeVisible } from '../visibility.js';
 
 function principal(partial: Partial<MemoryPrincipal> = {}): MemoryPrincipal {
   return {
-    did: 'did:revfleet:agent-a:fp1',
+    did: 'did:revealfleet:agent-a:fp1',
     agentId: 'agent-a',
     fingerprint: 'fp1',
     didKind: 'agent-key',
@@ -24,7 +24,7 @@ function ref(scope: {
 }) {
   return {
     schema: MEMORY_SCHEMA,
-    actorDid: scope.actorDid ?? 'did:revfleet:agent-a:fp1',
+    actorDid: scope.actorDid ?? 'did:revealfleet:agent-a:fp1',
     scope: {
       tenantId: scope.tenantId,
       workspaceId: scope.workspaceId,
@@ -63,7 +63,7 @@ describe('episodeVisible', () => {
   it('restricts private facts to the writing DID', () => {
     expect(
       episodeVisible(
-        principal({ did: 'did:revfleet:other:fp' }),
+        principal({ did: 'did:revealfleet:other:fp' }),
         ref({ tenantId: 'acct_1', classification: 'private' }),
       ),
     ).toBe(false);
@@ -76,7 +76,7 @@ describe('episodeVisible', () => {
     expect(
       episodeVisible(principal(), {
         schema: 'other',
-        actorDid: 'did:revfleet:agent-a:fp1',
+        actorDid: 'did:revealfleet:agent-a:fp1',
         scope: { tenantId: 'acct_1', classification: 'workspace' },
       }),
     ).toBe(false);

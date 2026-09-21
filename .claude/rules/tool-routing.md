@@ -10,7 +10,7 @@ A single Windows-host Claude Code instance can span both contexts:
 
 | Surface | Example path | Filesystem | Role |
 |---------|--------------|------------|------|
-| RevealUI (authoritative) | `\\wsl$\<distro>\...\revfleet\revealui\` (UNC) | WSL ext4 | Read + coordination from the Windows host |
+| RevealUI (authoritative) | `\\wsl$\<distro>\...\revealfleet\revealui\` (UNC) | WSL ext4 | Read + coordination from the Windows host |
 | Personal / Windows-native projects | e.g. `E:\projects\<repo>` | NTFS | Full native read/write |
 
 The older "one Windows instance for personal work, a separate WSL instance for RevealUI" split is obsolete. A single Windows-host instance now spans both, spinning up a WSL-native session for the write/build work below.
@@ -26,7 +26,7 @@ Fine to do over UNC from the Windows-host instance:
 
 ## Route writes, git, build, and test through WSL-native
 
-Any **write / git state / build / test** against the RevealUI tree must run from a **WSL-native Claude Code session** (start `claude` inside WSL at `~/revfleet/revealui`), or be driven into WSL via `wsl.exe`. Do **not** use `Edit` / `Write`, or run Windows (MSYS) git, against the tree over UNC.
+Any **write / git state / build / test** against the RevealUI tree must run from a **WSL-native Claude Code session** (start `claude` inside WSL at `~/revealfleet/revealui`), or be driven into WSL via `wsl.exe`. Do **not** use `Edit` / `Write`, or run Windows (MSYS) git, against the tree over UNC.
 
 Why (a **correctness** choice, not a tool limitation):
 

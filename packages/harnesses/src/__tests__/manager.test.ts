@@ -97,7 +97,7 @@ describe('project manager (.revealui)', () => {
     ) as { hooks: { SessionStart: Array<{ hooks: Array<{ command: string }> }> } };
     const startCmds = start.hooks.SessionStart.flatMap((g) => g.hooks.map((h) => h.command));
     expect(startCmds.some((c) => c.includes('session-start-fleet.js'))).toBe(true);
-    expect(startCmds.every((c) => !c.includes('"$HOME/revfleet/.jv'))).toBe(true);
+    expect(startCmds.every((c) => !c.includes('"$HOME/revealfleet/.jv'))).toBe(true);
     expect(startCmds.some((c) => c.includes('CURRENT-HANDOFF'))).toBe(true);
     expect(startCmds.some((c) => c.includes('/pickup'))).toBe(true);
     expect(startCmds.some((c) => c.includes('hotfix check'))).toBe(true);
@@ -173,7 +173,7 @@ describe('project manager (.revealui)', () => {
     expect(grokGate).toContain('pnpm gate');
     const grokManager = readFileSync(join(root, '.grok/rules/00-revealui-manager.md'), 'utf-8');
     expect(grokManager).toContain('Do not author policy there');
-    expect(grokManager).not.toContain('revfleet/.jv');
+    expect(grokManager).not.toContain('revealfleet/.jv');
 
     const check = checkManager(root);
     expect(check.ok).toBe(true);

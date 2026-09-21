@@ -1,12 +1,12 @@
 ---
 title: "RevealUI Methodology"
-description: "The engineering postures and coordination primitives that govern how RevFleet is built. This document is the canonical in-repo reference. Canonical rule definitions live in priv..."
+description: "The engineering postures and coordination primitives that govern how RevealFleet is built. This document is the canonical in-repo reference. Canonical rule definitions live in priv..."
 visibility: internal
 status: verified
 audience: maintainer
 ---
 
-The engineering postures and coordination primitives that govern how RevFleet is built. This document is the canonical in-repo reference. Canonical rule definitions live in private repos and `~/.claude/rules/`; cross-references are provided at the end.
+The engineering postures and coordination primitives that govern how RevealFleet is built. This document is the canonical in-repo reference. Canonical rule definitions live in private repos and `~/.claude/rules/`; cross-references are provided at the end.
 
 ---
 

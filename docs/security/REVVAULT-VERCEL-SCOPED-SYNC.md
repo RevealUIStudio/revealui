@@ -11,7 +11,7 @@ brick hosted license verification.
 ### 1. Prefer scoped apply (revvault ≥ this GAP-339 CLI)
 
 ```bash
-cd ~/revfleet/revealui
+cd ~/revealfleet/revealui
 
 # Manifest resolves from private planning-repo ops/sync/ (or
 # REVEALUI_SYNC_MANIFEST_DIR / JV_REPO). Prefer stream-safe token inject.

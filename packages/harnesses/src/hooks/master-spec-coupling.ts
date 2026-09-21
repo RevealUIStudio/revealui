@@ -59,9 +59,9 @@ const APP_SKIP = [
 const SOURCE_EXTS = new Set(['.ts', '.tsx', '.js', '.jsx']);
 
 const PRODUCT_MARKERS: readonly { readonly needle: string; readonly name: string }[] = [
-  { needle: `${sep}revfleet${sep}revealui${sep}`, name: 'revealui' },
-  { needle: `${sep}revfleet${sep}revdev${sep}`, name: 'revdev' },
-  { needle: `${sep}revfleet${sep}agency${sep}`, name: 'agency' },
+  { needle: `${sep}revealfleet${sep}revealui${sep}`, name: 'revealui' },
+  { needle: `${sep}revealfleet${sep}revdev${sep}`, name: 'revdev' },
+  { needle: `${sep}revealfleet${sep}agency${sep}`, name: 'agency' },
 ];
 
 /** True when `absFile` is a contract / schema / app product-source path. */

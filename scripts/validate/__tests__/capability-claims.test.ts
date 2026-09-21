@@ -85,7 +85,7 @@ describe('analyzeClaimText', () => {
   });
 
   it('does not flag benign non-capability prose', () => {
-    const s = analyzeClaimText('The RevFleet product family.');
+    const s = analyzeClaimText('The RevealFleet product family.');
     expect(isCapabilityClaim(s)).toBe(false);
   });
 
@@ -296,7 +296,7 @@ describe('checkCapabilityClaims', () => {
   });
 
   it('ignores non-capability prose entirely', () => {
-    const claims = [entry({ text: 'The RevFleet product family.' })];
+    const claims = [entry({ text: 'The RevealFleet product family.' })];
     const res = checkCapabilityClaims(claims, new Set(), root);
     expect(res.scanned).toBe(0);
     expect(res.violations).toHaveLength(0);

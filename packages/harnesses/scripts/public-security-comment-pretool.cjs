@@ -334,7 +334,7 @@ function loadCheck() {
     path.join(__dirname, '..', 'dist', 'gates', 'public-security-comment-gate.js'),
     path.join(
       os.homedir(),
-      'revfleet',
+      'revealfleet',
       'revealui',
       'packages',
       'harnesses',
@@ -388,7 +388,7 @@ function deny(reason) {
 function forwardToHarnessesHook(raw) {
   const cli = path.join(
     os.homedir(),
-    'revfleet',
+    'revealfleet',
     'revealui',
     'packages',
     'harnesses',

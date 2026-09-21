@@ -46,7 +46,7 @@ function writeIdentity(dir: string, agentId: string): void {
     join(dir, `${agentId}.json`),
     JSON.stringify({
       agentId,
-      did: `did:revfleet:${agentId}:fpabc`,
+      did: `did:revealfleet:${agentId}:fpabc`,
       fingerprint: 'fpabc',
       privateKeyPem: 'test-placeholder-not-a-key',
     }),
@@ -86,7 +86,7 @@ describe('loadStudioPrincipal', () => {
     process.env.REVDEV_HARNESS = 'grok';
     const principal = loadStudioPrincipal();
     expect(principal).toEqual({
-      did: 'did:revfleet:grok-1:fpabc',
+      did: 'did:revealfleet:grok-1:fpabc',
       agentId: 'grok-1',
       fingerprint: 'fpabc',
       didKind: 'agent-key',

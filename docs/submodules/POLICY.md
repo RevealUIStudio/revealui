@@ -1,6 +1,6 @@
 ---
 title: "No Git Submodules Policy"
-description: "**No git submodules are permitted in any RevFleet repository.** This policy is permanent and applies to all repos under the `RevealUIStudio` GitHub org."
+description: "**No git submodules are permitted in any RevealFleet repository.** This policy is permanent and applies to all repos under the `RevealUIStudio` GitHub org."
 visibility: internal
 status: verified
 audience: maintainer
@@ -8,7 +8,7 @@ audience: maintainer
 
 ## Rule
 
-**No git submodules are permitted in any RevFleet repository.** This policy is permanent and applies to all repos under the `RevealUIStudio` GitHub org.
+**No git submodules are permitted in any RevealFleet repository.** This policy is permanent and applies to all repos under the `RevealUIStudio` GitHub org.
 
 ## Why
 

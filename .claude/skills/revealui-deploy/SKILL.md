@@ -150,7 +150,7 @@ Non-production deploys need the `vercel alias` step. Check that:
 ## Manual Deploy (emergency)
 
 ```bash
-cd ~/revfleet/revealui
+cd ~/revealfleet/revealui
 
 # Deploy single app to preview
 VERCEL_PROJECT_ID=prj_XXX vercel pull --yes --environment=preview --token='TOKEN'

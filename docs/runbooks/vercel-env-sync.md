@@ -15,7 +15,7 @@ audience: maintainer
 1. **revvault binary** with PR [RevealUIStudio/revvault#40](https://github.com/RevealUIStudio/revvault/pull/40) (per-var path overrides).
 
    ```bash
-   cd ~/revfleet/revvault && cargo install --path crates/cli
+   cd ~/revealfleet/revvault && cargo install --path crates/cli
    revvault --version  # 0.1.0+ with `vars` table support
    ```
 
@@ -109,7 +109,7 @@ Outputs JSON describing every variable's diff state per project (Add / Update / 
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| `Cannot read manifest` | working directory mismatch | run from `~/revfleet/revealui` (root); pnpm scripts handle this |
+| `Cannot read manifest` | working directory mismatch | run from `~/revealfleet/revealui` (root); pnpm scripts handle this |
 | `403 Forbidden` from Vercel | `VERCEL_TOKEN` wrong/expired | regenerate token; export new value |
 | Var shows as `Add` even though it's already on Vercel | `vault_prefix` mismatch | check the manifest's project block matches the actual Vercel project ID |
 | `Orphan` warnings stack up | values added directly via Vercel UI | for each: add to manifest's `vars` table OR add to `skip` list with reason |
@@ -125,4 +125,4 @@ Outputs JSON describing every variable's diff state per project (Add / Update / 
 
 - Design doc: internal revvault-vercel sync design (private coordination hub)
 - Canonical env-var mapping: internal canonical-mapping doc (private coordination hub)
-- Secrets rule: [`~/revfleet/.claude/rules/secrets.md`](../../../.claude/rules/secrets.md)
+- Secrets rule: [`~/revealfleet/.claude/rules/secrets.md`](../../../.claude/rules/secrets.md)

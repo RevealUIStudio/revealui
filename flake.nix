@@ -306,10 +306,10 @@ PGHBA
             [ "''${TERM_PROGRAM:-}" = "zed" ] && _ok "''${_GREEN}✓ acp''${_NC}"
 
             # Fleet TRACKER present (coordination authority for free surfaces)
-            if [ -f "''${REVEALUI_TRACKER:-$HOME/revfleet/.jv/docs/TRACKER.md}" ]; then
+            if [ -f "''${REVEALUI_TRACKER:-$HOME/revealfleet/.jv/docs/TRACKER.md}" ]; then
               _ok "''${_GREEN}✓ tracker''${_NC}"
             else
-              _warn "tracker  ''${_DIM}→''${_NC}  missing ~/revfleet/.jv/docs/TRACKER.md"
+              _warn "tracker  ''${_DIM}→''${_NC}  missing ~/revealfleet/.jv/docs/TRACKER.md"
             fi
 
             echo ""
@@ -330,7 +330,7 @@ PGHBA
             # TRACKER — day-to-day free surfaces for all harnesses (fleet methodology).
             # Override path: REVEALUI_TRACKER
             tracker() {
-              local t="''${REVEALUI_TRACKER:-$HOME/revfleet/.jv/docs/TRACKER.md}"
+              local t="''${REVEALUI_TRACKER:-$HOME/revealfleet/.jv/docs/TRACKER.md}"
               if [ ! -f "$t" ]; then
                 echo "tracker: not found at $t" >&2
                 return 1
@@ -346,7 +346,7 @@ PGHBA
             # Workboard watcher — canonical fleet workboard under .jv (not the
             # in-repo stub at apps/.claude/workboard.md). Override: REVEALUI_WORKBOARD
             wb() {
-              local _wb="''${REVEALUI_WORKBOARD:-$HOME/revfleet/.jv/.claude/workboard.md}"
+              local _wb="''${REVEALUI_WORKBOARD:-$HOME/revealfleet/.jv/.claude/workboard.md}"
               if [ ! -f "$_wb" ]; then
                 echo "wb: workboard not found at $_wb" >&2
                 return 1

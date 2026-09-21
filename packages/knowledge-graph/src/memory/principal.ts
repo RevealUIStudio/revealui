@@ -14,7 +14,7 @@ export function validatePrincipal(principal: MemoryPrincipal | null | undefined)
   if (!(principal.did && principal.agentId && principal.fingerprint)) {
     return 'principal did, agentId, and fingerprint are required';
   }
-  if (!principal.did.startsWith('did:revfleet:')) return 'principal did must use did:revfleet:';
+  if (!principal.did.startsWith('did:revealfleet:')) return 'principal did must use did:revealfleet:';
   if (!principal.tenantId) return 'principal tenantId is required';
   if (principal.trustBoundary !== 'studio-local' && principal.trustBoundary !== 'hosted') {
     return 'principal trustBoundary is required';

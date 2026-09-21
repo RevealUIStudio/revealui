@@ -19,7 +19,7 @@ This runbook covers the **per-deploy verification smoke**. For ongoing first-72h
 
 ## Pre-flight (gate before running the smoke)
 
-### Required env vars (revvault-sourced — see `~/revfleet/.claude/rules/secrets.md`)
+### Required env vars (revvault-sourced — see `~/revealfleet/.claude/rules/secrets.md`)
 
 | Purpose | Revvault path | Where it lands |
 |---|---|---|

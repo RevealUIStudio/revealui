@@ -1,10 +1,10 @@
 /**
- * Archive a session exit into the RevFleet cold archive.
+ * Archive a session exit into the RevealFleet cold archive.
  *
  * Destination (operator convention, not product git):
  *   $REVFLEET_ARCHIVE/cold/sessions/daemon/   when REVFLEET_ARCHIVE is the parent
  *   $REVFLEET_ARCHIVE/sessions/daemon/        when REVFLEET_ARCHIVE is already cold/
- *   default: ~/revfleet/archive/cold/sessions/daemon/
+ *   default: ~/revealfleet/archive/cold/sessions/daemon/
  *
  * Purpose: keep a durable, centralized record of ended sessions so live peer
  * lists and workboard state stay clean. Soft-optional: never throws.
@@ -38,14 +38,14 @@ export interface ArchiveExitResult {
 export function coldDaemonSessionsDir(): string {
   const env = process.env.REVFLEET_ARCHIVE?.trim();
   if (env) {
-    // Parent layout: ~/revfleet/archive → cold/sessions/daemon
-    // Cold layout:   ~/revfleet/archive/cold → sessions/daemon
+    // Parent layout: ~/revealfleet/archive → cold/sessions/daemon
+    // Cold layout:   ~/revealfleet/archive/cold → sessions/daemon
     if (env.endsWith('/cold') || env.endsWith('\\cold') || /[/\\]cold$/.test(env)) {
       return join(env, 'sessions', 'daemon');
     }
     return join(env, 'cold', 'sessions', 'daemon');
   }
-  return join(homedir(), 'revfleet', 'archive', 'cold', 'sessions', 'daemon');
+  return join(homedir(), 'revealfleet', 'archive', 'cold', 'sessions', 'daemon');
 }
 
 function safeSlug(id: string): string {

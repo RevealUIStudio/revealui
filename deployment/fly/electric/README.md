@@ -54,7 +54,7 @@ child of `revvault run` — the outer shell expands the empty var before inject.
 ## Deploy
 
 ```bash
-cd ~/revfleet/revealui   # or worktree
+cd ~/revealfleet/revealui   # or worktree
 flyctl deploy --config deployment/fly/electric/fly.toml --remote-only
 flyctl status --app revealui-electric
 curl -sS "https://revealui-electric.fly.dev/v1/health"

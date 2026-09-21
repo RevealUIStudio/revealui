@@ -170,7 +170,7 @@ describe('quote calculator (product-site lockstep)', () => {
     expect(blob.includes('four tests')).toBe(false);
     expect(blob.includes('keep the stack')).toBe(false);
     expect(blob.includes('first half')).toBe(false);
-    expect(blob.includes('RevFleet')).toBe(false);
+    expect(blob.includes('RevealFleet')).toBe(false);
     expect(blob.includes('RevForge')).toBe(false);
     expect(blob.includes('RevKit')).toBe(false);
     expect(blob.includes('Maryville')).toBe(false);

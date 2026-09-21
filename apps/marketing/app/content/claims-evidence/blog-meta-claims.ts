@@ -92,40 +92,40 @@ export const blogMetaClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'title',
-    text: 'One Runtime, Eight Products: The RevFleet Family',
+    text: 'One Runtime, Eight Products: The RevealFleet Family',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'static post body source',
       },
       {
         kind: 'code',
         ref: 'apps/marketing/app/lib/blog-registry.ts',
-        note: 'live registry row for slug revfleet-product-family',
+        note: 'live registry row for slug revealfleet-product-family',
       },
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'excerpt',
     text: 'You do not adopt a framework, you adopt a fleet. RevealUI is the flagship runtime, and seven sister products extend it, from an encrypted secret vault to an agent tool marketplace.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'static post body source',
       },
       {
         kind: 'code',
         ref: 'apps/marketing/app/lib/blog-registry.ts',
-        note: 'live registry row for slug revfleet-product-family',
+        note: 'live registry row for slug revealfleet-product-family',
       },
       {
         kind: 'test',
-        ref: 'apps/marketing/app/lib/__tests__/blog-registry.test.ts#revfleet product family excerpt mentions encrypted secrets product',
+        ref: 'apps/marketing/app/lib/__tests__/blog-registry.test.ts#revealfleet product family excerpt mentions encrypted secrets product',
         note: 'GAP-467 registry lock for capability-shaped excerpt',
       },
     ],

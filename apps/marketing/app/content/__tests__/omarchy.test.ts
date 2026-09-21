@@ -9,7 +9,7 @@ const FORBIDDEN = [
   'RevDev',
   'RevForge',
   'RevKit',
-  'RevFleet',
+  'RevealFleet',
   'CapCut',
   'Railway',
   '$3500',

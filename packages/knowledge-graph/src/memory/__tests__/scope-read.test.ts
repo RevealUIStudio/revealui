@@ -18,7 +18,7 @@ afterEach(async () => {
 
 function hosted(partial: Partial<MemoryPrincipal> = {}): MemoryPrincipal {
   return {
-    did: 'did:revfleet:user_a:fpa',
+    did: 'did:revealfleet:user_a:fpa',
     agentId: 'user_a',
     fingerprint: 'fpa',
     didKind: 'user-account-fallback',
@@ -31,14 +31,14 @@ function hosted(partial: Partial<MemoryPrincipal> = {}): MemoryPrincipal {
 }
 
 const tenantB = hosted({
-  did: 'did:revfleet:user_b:fpb',
+  did: 'did:revealfleet:user_b:fpb',
   agentId: 'user_b',
   fingerprint: 'fpb',
   tenantId: 'acct_b',
 });
 
 const operator = hosted({
-  did: 'did:revfleet:ops:fpops',
+  did: 'did:revealfleet:ops:fpops',
   agentId: 'ops',
   fingerprint: 'fpops',
   isFleetOperator: true,
@@ -119,7 +119,7 @@ describe('queryMemory scope', () => {
       siteId: 'test',
     });
     const peer = hosted({
-      did: 'did:revfleet:user_peer:fpp',
+      did: 'did:revealfleet:user_peer:fpp',
       agentId: 'user_peer',
       fingerprint: 'fpp',
     });
