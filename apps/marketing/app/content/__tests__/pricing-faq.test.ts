@@ -10,10 +10,10 @@ function lastFaq(): (typeof PRICING_FAQS)[number] {
 }
 
 describe('pricing FAQ RevealFleet honesty', () => {
-  it('asks What is RevealFleet, not the RevealFleet nickname', () => {
+  it('asks What is RevealFleet, not the RevFleet nickname', () => {
     const faq = lastFaq();
     expect(faq.question).toBe('What is RevealFleet?');
-    expect(PRICING_FAQS.some((item) => item.question === 'What is RevealFleet?')).toBe(false);
+    expect(PRICING_FAQS.some((item) => item.question === 'What is RevFleet?')).toBe(false);
   });
 
   it('matches studio honesty: family name, buyable RevealUI catalog, RevVault inside Pro', () => {
@@ -47,8 +47,8 @@ describe('pricing FAQ RevealFleet honesty', () => {
 
   it('does not sell parked or internal fleet members', () => {
     const blob = PRICING_FAQS.map((item) => `${item.question} ${item.answer}`).join(' ');
-    expect(blob.includes('RevealFleet')).toBe(false);
-    expect(blob.includes('revealfleet')).toBe(false);
+    expect(blob.includes('RevFleet')).toBe(false);
+    expect(blob.includes('revfleet')).toBe(false);
     expect(blob.includes('RevForge')).toBe(false);
     expect(blob.includes('RevKit')).toBe(false);
     expect(blob.includes('RevDev')).toBe(false);
