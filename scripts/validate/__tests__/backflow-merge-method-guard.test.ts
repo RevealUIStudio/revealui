@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 const {
   ACK_LABEL,
+  BACKFLOW_APP_LOGIN,
+  CANONICAL_BACKFLOW_HEAD,
   isBackflowPr,
+  isCanonicalAppBackflow,
   parseLabels,
   resolveLabels,
   fetchLiveLabels,
@@ -27,6 +30,23 @@ describe('isBackflowPr', () => {
         'test',
       ),
     ).toBe(false);
+  });
+});
+
+describe('isCanonicalAppBackflow', () => {
+  it('passes the backflow App on the canonical head without the human ack label', () => {
+    expect(isCanonicalAppBackflow(CANONICAL_BACKFLOW_HEAD, BACKFLOW_APP_LOGIN)).toBe(true);
+  });
+
+  it('still requires the label when a human opens the canonical head', () => {
+    expect(isCanonicalAppBackflow(CANONICAL_BACKFLOW_HEAD, 'joshua-v-dev')).toBe(false);
+  });
+
+  it('still requires the label when the App uses any other head', () => {
+    expect(isCanonicalAppBackflow('main', BACKFLOW_APP_LOGIN)).toBe(false);
+    expect(isCanonicalAppBackflow('chore/backflow-main-into-test-manual', BACKFLOW_APP_LOGIN)).toBe(
+      false,
+    );
   });
 });
 
