@@ -17,7 +17,8 @@ test('api rollback moves only production hostnames', () => {
 
 test('unknown app refuses an implicit move-everything list', () => {
   assert.equal(aliasesToMove('preview', [{ alias: 'api.revealui.com' }]), null);
-  assert.equal(PRODUCTION_ALIASES.api.includes('test.api.revealui.com'), false);
+  const apiHosts = new Set(PRODUCTION_ALIASES.api);
+  assert.equal(apiHosts.has('test.api.revealui.com'), false);
 });
 
 test('admin and marketing keep their production names', () => {
