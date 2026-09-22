@@ -1,18 +1,5 @@
 # @revealui/mcp
 
-## 0.8.14
-
-### Patch Changes
-
-- Updated dependencies [896e5f4]
-- Updated dependencies [60a4e1f]
-  - @revealui/contracts@0.10.0
-  - @revealui/knowledge-graph@0.2.0
-  - @revealui/core@0.14.6
-  - @revealui/security@0.8.3
-  - @revealui/services@0.8.1
-  - @revealui/setup@0.7.8
-
 ## 0.8.13
 
 ### Patch Changes
