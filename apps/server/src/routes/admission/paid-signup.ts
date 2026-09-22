@@ -183,7 +183,6 @@ app.post('/paid-signup', zValidator('json', PaidSignupBodySchema), async (c) => 
   }
 
   let checkoutUrl: string | null = null;
-  let checkoutError = false;
   try {
     checkoutUrl = await createPaidSignupCheckoutSession({
       userId,
@@ -191,7 +190,6 @@ app.post('/paid-signup', zValidator('json', PaidSignupBodySchema), async (c) => 
       tier,
     });
   } catch (err) {
-    checkoutError = true;
     const message = err instanceof Error ? err.message : String(err);
     logger.error(
       '[admission-paid-signup] Stripe checkout failed after user create (paid-pending retained)',
@@ -218,7 +216,6 @@ app.post('/paid-signup', zValidator('json', PaidSignupBodySchema), async (c) => 
     userId,
     tier,
     admitReason: admit.reason,
-    checkoutError,
   });
 
   return c.json(
