@@ -183,7 +183,9 @@ describe('retired-suite-path', () => {
   });
 
   it('does not flag ~/suite/ when the current path is named alongside', () => {
-    expect(ruleMatches('the path is now ~/revealfleet/ (formerly ~/suite/)', suiteRule)).toBe(false);
+    expect(ruleMatches('the path is now ~/revealfleet/ (formerly ~/suite/)', suiteRule)).toBe(
+      false,
+    );
   });
 });
 
