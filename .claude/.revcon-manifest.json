@@ -1,7 +1,10 @@
 {
   "mode": "copy",
   "editor": "claude",
-  "profiles": ["revealfleet", "revealui"],
+  "profiles": [
+    "revealfleet",
+    "revealui"
+  ],
   "files": {
     "agents/builder.md": {
       "source": "profiles/revealui/claude/agents/builder.md",
@@ -49,7 +52,7 @@
     },
     "rules/opensrc.md": {
       "source": "profiles/revealfleet/claude/rules/opensrc.md",
-      "sha256": "c8d0eef53fda278bf2f077e4c7dbf843c8e0b07023b546429a2d209a1620ac55"
+      "sha256": "bdb095fac109fbb5616dde222e0cfbc3e1d52ebf616609f3e865717773a2fb73"
     },
     "rules/planning.md": {
       "source": "profiles/revealfleet/claude/rules/planning.md",
@@ -73,7 +76,7 @@
     },
     "rules/tool-routing.md": {
       "source": "profiles/revealui/claude/rules/tool-routing.md",
-      "sha256": "b69fe7359d70de8e204463fd3bfb118763de86d0ec1682bf6c5a04ab1a1b727b"
+      "sha256": "0a0c3a07e53d1adc426c25b39a88a9867328d5d48f63f9d9d6d4ac69632e5894"
     },
     "rules/versioning.md": {
       "source": "profiles/revealui/claude/rules/versioning.md",
@@ -93,7 +96,7 @@
     },
     "skills/revealui-deploy/SKILL.md": {
       "source": "profiles/revealui/claude/skills/revealui-deploy/SKILL.md",
-      "sha256": "8fd65cda6fef8b1e032f447d82bd52ae17369f1c1002563da30d05b23de6d981"
+      "sha256": "4c0019f2df8b48d1a076bb0031a13a4a8928b2c5ddb943fe74ea3cb67bf1ada5"
     },
     "skills/revealui-review/SKILL.md": {
       "source": "profiles/revealui/claude/skills/revealui-review/SKILL.md",
