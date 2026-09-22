@@ -424,10 +424,19 @@ jobs:
         run: |
           URL=$(vercel deploy --prebuilt --prod --archive=tgz --token="$VERCEL_TOKEN")
           echo "url=$URL" >> "$GITHUB_OUTPUT"
+          mkdir -p "$RUNNER_TEMP/deploy-url"
+          printf '%s\n' "$URL" > "$RUNNER_TEMP/deploy-url/url.txt"
           echo "::notice::${{ matrix.app }} deployed to $URL"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: deploy-url-${{ matrix.app }}
+          path: ${{ runner.temp }}/deploy-url/url.txt
+          retention-days: 1
+          if-no-files-found: error
 
   # ---------------------------------------------------------------------------
   # Post-deploy smoke test
@@ -450,10 +459,25 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      # Smoke the deployment URL from `vercel deploy`, not the public
+      # Cloudflare hostname. Alias cutover on api.revealui.com can fail TLS
+      # or return empty for minutes while the deployment URL is already
+      # healthy (2026-09-22 run 35686162709). A miss on the public name must
+      # not roll production back.
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          pattern: deploy-url-*
+          path: deploy-urls
+
       - name: Health check — API (readiness probe)
         run: |
-          API_URL="${REVEALUI_API_URL:-https://api.revealui.com}"
-          echo "Checking $API_URL/health/ready (DB + memory + config)..."
+          URL_FILE="deploy-urls/deploy-url-api/url.txt"
+          if [ ! -f "$URL_FILE" ]; then
+            echo "::notice::api was not in this deploy — skipping readiness probe"
+            exit 0
+          fi
+          API_URL=$(tr -d '[:space:]' < "$URL_FILE")
+          echo "Checking $API_URL/health/ready (deployment URL, not the public alias)..."
           for i in $(seq 1 12); do
             RESP=$(curl -sf "$API_URL/health/ready" 2>/dev/null || echo "")
             if [ -n "$RESP" ]; then
@@ -463,13 +487,18 @@ jobs:
             echo "Attempt $i/12 — waiting 10s..."
             sleep 10
           done
-          echo "::error::API readiness check failed after 2 minutes"
+          echo "::error::API readiness check failed after 2 minutes ($API_URL)"
           exit 1
 
       - name: Health check — Admin
         run: |
-          ADMIN_URL="${REVEALUI_ADMIN_URL:-https://admin.revealui.com}"
-          echo "Checking $ADMIN_URL..."
+          URL_FILE="deploy-urls/deploy-url-admin/url.txt"
+          if [ ! -f "$URL_FILE" ]; then
+            echo "::notice::admin was not in this deploy — skipping admin probe"
+            exit 0
+          fi
+          ADMIN_URL=$(tr -d '[:space:]' < "$URL_FILE")
+          echo "Checking $ADMIN_URL (deployment URL, not the public alias)..."
           for i in $(seq 1 12); do
             if curl -sf "$ADMIN_URL" -o /dev/null 2>&1; then
               echo "Admin healthy"
@@ -478,7 +507,7 @@ jobs:
             echo "Attempt $i/12 — waiting 10s..."
             sleep 10
           done
-          echo "::error::Admin health check failed after 2 minutes"
+          echo "::error::Admin health check failed after 2 minutes ($ADMIN_URL)"
           exit 1
 
       - name: Invocation guard — API (real function invocation)
@@ -492,7 +521,12 @@ jobs:
         # a stale response. A non-5xx proves the function invokes; 5xx (or no
         # response) trips the existing `if: failure()` rollback below.
         run: |
-          API_URL="${REVEALUI_API_URL:-https://api.revealui.com}"
+          URL_FILE="deploy-urls/deploy-url-api/url.txt"
+          if [ ! -f "$URL_FILE" ]; then
+            echo "::notice::api was not in this deploy — skipping invocation guard"
+            exit 0
+          fi
+          API_URL=$(tr -d '[:space:]' < "$URL_FILE")
           PROBE="$API_URL/api/billing/subscription?_cb=${GITHUB_RUN_ID}"
           echo "Invocation guard: GET $PROBE (expect a non-5xx, e.g. 401)..."
           for i in $(seq 1 12); do
@@ -517,8 +551,9 @@ jobs:
         #
         # Use scripts/deploy/vercel-rollback-previous-prod.mjs:
         # Vercel REST + VERCEL_ORG_ID (team id secret) + project id from
-        # detect matrix. Reassigns every alias on the newest READY prod
-        # deploy to the previous READY prod deploy and verifies.
+        # detect matrix. Reassigns allowlisted production hostnames on the
+        # newest READY prod deploy to the previous READY prod deploy and
+        # verifies. Nested or preview names are not moved.
         #
         # Needs checkout for the script; smoke job previously had none.
         run: |
