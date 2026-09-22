@@ -1,5 +1,11 @@
 # @revealui/contracts
 
+## 0.10.0
+
+### Minor Changes
+
+- 896e5f4: GAP-300: pluggable meeting-vendor adapter with provider-agnostic `meet_link` + `recording_uri` for Consultation capture and P2 bundle hooks.
+
 ## 0.9.0
 
 ### Minor Changes

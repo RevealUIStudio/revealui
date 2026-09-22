@@ -1,6 +1,6 @@
 {
   "name": "@revealui/presentation",
-  "version": "0.14.5",
+  "version": "0.14.6",
   "description": "Native React UI components built on Tailwind v4. Buttons, forms, dialogs, navigation, and more.",
   "keywords": [
     "components",
