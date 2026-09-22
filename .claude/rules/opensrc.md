@@ -14,27 +14,27 @@
 
 ```bash
 # Fetch a package (auto-detects version from lockfile)
-opensrc zod --cwd ~/revfleet/revealui
+opensrc zod --cwd "$REVEALFLEET_ROOT/revealui"
 
 # Fetch specific version
-opensrc stripe@17.0.0 --cwd ~/revfleet/revealui
+opensrc stripe@17.0.0 --cwd "$REVEALFLEET_ROOT/revealui"
 
 # Fetch multiple packages
-opensrc drizzle-orm hono @neondatabase/serverless --cwd ~/revfleet/revealui
+opensrc drizzle-orm hono @neondatabase/serverless --cwd "$REVEALFLEET_ROOT/revealui"
 
 # Fetch from GitHub repo
-opensrc vercel/ai --cwd ~/revfleet/revealui
+opensrc vercel/ai --cwd "$REVEALFLEET_ROOT/revealui"
 
 # List fetched sources
-opensrc list --cwd ~/revfleet/revealui
+opensrc list --cwd "$REVEALFLEET_ROOT/revealui"
 
 # Remove a fetched package
-opensrc rm zod --cwd ~/revfleet/revealui
+opensrc rm zod --cwd "$REVEALFLEET_ROOT/revealui"
 ```
 
 ## Conventions
 
-- Always pass `--cwd ~/revfleet/revealui` (opensrc writes to cwd)
+- Always pass `--cwd "$REVEALFLEET_ROOT/revealui"` (opensrc writes to cwd). Fleet root is the rfg bootstrap pin, never `$HOME/revealfleet` at runtime.
 - The `opensrc/` directory is gitignored — fetch on demand, don't hoard
 - After fetching, read files directly from `opensrc/<package>/` with the Read tool
 - Clean up when done if the source is no longer needed: `opensrc rm <package>`

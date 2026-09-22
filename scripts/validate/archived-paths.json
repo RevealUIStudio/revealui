@@ -1,6 +1,6 @@
 {
   "$comment": [
-    "Paths archived OUT of this repo into RevealUIStudio/revfleet-archive (GAP-451).",
+    "Paths archived OUT of this repo into RevealUIStudio/revealfleet-archive (GAP-451).",
     "Paths only, by design: the archive repo is private and this repo is public, so no",
     "archive content crosses the boundary. These are this repo's own former paths.",
     "Consumed by scripts/validate/archive-check.cjs to flag live docs that still link them.",

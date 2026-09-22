@@ -11,7 +11,7 @@ This document is the engineer-targeted Fair Source reference: license text, pack
 
 ## What's licensed how
 
-Five RevealUI packages ship under **FSL-1.1-MIT** (Fair Source). Every other package in RevFleet is plain MIT.
+Five RevealUI packages ship under **FSL-1.1-MIT** (Fair Source). Every other package in RevealFleet is plain MIT.
 
 | Package | License | Source | npm |
 |---------|---------|--------|-----|

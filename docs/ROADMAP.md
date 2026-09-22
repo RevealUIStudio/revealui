@@ -17,7 +17,7 @@ This file is the customer-facing board. Capability status and counts: [What Work
 
 ---
 
-## RevFleet product maturity
+## RevealFleet product maturity
 
 Labels match the `/products` page.
 

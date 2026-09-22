@@ -2,14 +2,14 @@
 visibility: public
 status: verified
 title: "RevVault"
-description: "Age-encrypted secret vault. CLI plus Tauri 2 desktop app. 100% passage-compatible. Source of truth for every secret in RevFleet."
+description: "Age-encrypted secret vault. CLI plus Tauri 2 desktop app. 100% passage-compatible. Source of truth for every secret in RevealFleet."
 category: fleet
 audience: developer
 ---
 
 **Age-encrypted secret vault with CLI and Tauri desktop app. 100% [passage](https://github.com/FiloSottile/passage)-compatible.**
 
-> RevVault is a separate RevFleet product, not part of the RevealUI monorepo. The repo is at [RevealUIStudio/revvault](https://github.com/RevealUIStudio/revvault). This page summarises what RevVault is and how it composes with RevealUI; the canonical product README lives in the RevVault repo.
+> RevVault is a separate RevealFleet product, not part of the RevealUI monorepo. The repo is at [RevealUIStudio/revvault](https://github.com/RevealUIStudio/revvault). This page summarises what RevVault is and how it composes with RevealUI; the canonical product README lives in the RevVault repo.
 
 ## What RevVault is
 
@@ -25,7 +25,7 @@ audience: developer
 
 RevealUI's [secrets convention](https://github.com/RevealUIStudio/revealui/blob/main/.claude/rules/secrets.md) is hard-rule:
 
-> Every secret RevFleet depends on lives in RevVault. Full stop.
+> Every secret RevealFleet depends on lives in RevVault. Full stop.
 
 That includes API keys, database URLs, webhook secrets, JWT/session secrets, signing keys, Solana keypairs, license keys, Vercel tokens, Fly tokens, Supabase credentials, Stripe keys, OAuth client secrets, age identities, SSH keys — anything else.
 
@@ -47,6 +47,6 @@ Active. Production-grade for personal / studio use; commercial offering wraps ex
 
 ## See also
 
-- [RevFleet overview](../REVFLEET) — how RevVault relates to the rest of RevFleet
+- [RevealFleet overview](../REVEALFLEET) — how RevVault relates to the rest of RevealFleet
 - [Credential rotation runbook](../CREDENTIAL-ROTATION-RUNBOOK) — RevVault paths per credential type
 - [RevVault README](https://github.com/RevealUIStudio/revvault/blob/main/README.md) — canonical product docs

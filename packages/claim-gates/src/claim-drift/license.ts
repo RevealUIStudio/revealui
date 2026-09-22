@@ -205,7 +205,7 @@ export const PHANTOM_PACKAGES: PhantomPackage[] = [
       // generated, gitignored, and not scanned — do not list them here.)
       'apps/docs/public/docs-pro/editors/index.md',
       'docs/fleet/revcon.md',
-      'docs/REVFLEET.md',
+      'docs/REVEALFLEET.md',
       // The validator itself — its fleet product rules list the phantom
       // by design (as the token sequence to detect leaks elsewhere):
       'scripts/validate/claim-drift.ts',

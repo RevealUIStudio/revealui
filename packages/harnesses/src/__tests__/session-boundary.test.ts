@@ -64,7 +64,7 @@ describe('session boundary (soft-optional daemon)', () => {
     const privateKeyPem = privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();
     const publicKeyPem = publicKey.export({ type: 'spki', format: 'pem' }).toString();
     const agentId = 'grok-test-agent-1';
-    const did = `did:revfleet:${agentId}:fpdeadbeef`;
+    const did = `did:revealfleet:${agentId}:fpdeadbeef`;
 
     process.env.REVDEV_HOOK_IDENTITY_DIR = join(dir, 'ids');
     process.env.REVDEV_DAEMON_SESSION_DIR = join(dir, 'sessions');
@@ -152,7 +152,7 @@ describe('session boundary (soft-optional daemon)', () => {
     const privateKeyPem = privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();
     const sig = signRpc(
       {
-        did: 'did:revfleet:a:fp',
+        did: 'did:revealfleet:a:fp',
         fingerprint: 'fp',
         privateKeyPem,
       },

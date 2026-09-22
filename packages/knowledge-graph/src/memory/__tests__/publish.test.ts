@@ -17,7 +17,7 @@ afterEach(async () => {
 
 function studioPrincipal(partial: Partial<MemoryPrincipal> = {}): MemoryPrincipal {
   return {
-    did: 'did:revfleet:grok-1:fpabc',
+    did: 'did:revealfleet:grok-1:fpabc',
     agentId: 'grok-1',
     fingerprint: 'fpabc',
     didKind: 'agent-key',
@@ -31,7 +31,7 @@ function studioPrincipal(partial: Partial<MemoryPrincipal> = {}): MemoryPrincipa
 
 function hostedPrincipal(partial: Partial<MemoryPrincipal> = {}): MemoryPrincipal {
   return {
-    did: 'did:revfleet:user_abc:fpxyz',
+    did: 'did:revealfleet:user_abc:fpxyz',
     agentId: 'user_abc',
     fingerprint: 'fpxyz',
     didKind: 'user-account-fallback',

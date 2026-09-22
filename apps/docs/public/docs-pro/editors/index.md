@@ -15,22 +15,22 @@ visibility: public
 ## What RevCon does
 
 - Syncs editor configs across **VS Code**, **Zed**, **Cursor**, and supported agent shells
-- Distributes Claude Code rules, Cursor rules, agent skill files, and shell snippets across all repos in RevFleet via `link.sh`
+- Distributes Claude Code rules, Cursor rules, agent skill files, and shell snippets across all repos in RevealFleet via `link.sh`
 - Validates frontmatter on agent/skill `.md`/`.mdc` files
 - Provides per-profile overrides (e.g. `revealui` profile) so a developer can swap conventions per project
 
 ## Why it's a separate product
 
-The `@revealui/editors` listing in earlier versions of this docs site referred to an in-monorepo package that does not exist. The functionality always lived in RevCon, which sits alongside RevealUI in the [RevFleet](https://github.com/RevealUIStudio).
+The `@revealui/editors` listing in earlier versions of this docs site referred to an in-monorepo package that does not exist. The functionality always lived in RevCon, which sits alongside RevealUI in the [RevealFleet](https://github.com/RevealUIStudio).
 
 ## Quick start
 
 ```bash
-# From any repo where you want RevFleet-aligned editor configs
+# From any repo where you want RevealFleet-aligned editor configs
 pnpm dlx revcon sync
 
 # Or, if RevCon is checked out alongside this repo
-~/revfleet/revcon/link.sh
+~/revealfleet/revcon/link.sh
 ```
 
 ## Related

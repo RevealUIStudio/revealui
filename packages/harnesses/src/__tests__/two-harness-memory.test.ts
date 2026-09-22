@@ -28,7 +28,7 @@ import {
 } from '../session/studio-local-kg-mcp.js';
 
 const claude: MemoryPrincipal = {
-  did: 'did:revfleet:claude-1:fpcla',
+  did: 'did:revealfleet:claude-1:fpcla',
   agentId: 'claude-1',
   fingerprint: 'fpcla',
   didKind: 'agent-key',
@@ -40,7 +40,7 @@ const claude: MemoryPrincipal = {
 
 const grok: MemoryPrincipal = {
   ...claude,
-  did: 'did:revfleet:grok-1:fpgro',
+  did: 'did:revealfleet:grok-1:fpgro',
   agentId: 'grok-1',
   fingerprint: 'fpgro',
   harness: 'grok',

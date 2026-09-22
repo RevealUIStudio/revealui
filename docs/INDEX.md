@@ -59,7 +59,7 @@ Live public paths only:
 - [Component Catalog](./COMPONENT_CATALOG.md): 66 native UI components in `@revealui/presentation` (plus admin and rich-text UI in `@revealui/core`)
 - [AI](./AI.md): AI package overview, prompt/response/semantic caching
 - [Pro](./PRO.md): Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`), MCP integration, open-model inference, x402, marketplace
-- [RevealFleet](./REVFLEET.md): Family name for RevealUI Studio software. Not a catalog SKU
+- [RevealFleet](./REVEALFLEET.md): Family name for RevealUI Studio software. Not a catalog SKU
 
 ## Agent Coordination
 
@@ -80,9 +80,9 @@ Live public paths only:
 
 ## RevealFleet
 
-RevealFleet (`/docs/REVFLEET`) is the family name for RevealUI Studio software. It is not a catalog SKU and not a public get-started path. **RevealUI** is the lead product and the buyable runtime.
+RevealFleet (`/docs/REVEALFLEET`) is the family name for RevealUI Studio software. It is not a catalog SKU and not a public get-started path. **RevealUI** is the lead product and the buyable runtime.
 
-- [RevealFleet](./REVFLEET.md): family name only
+- [RevealFleet](./REVEALFLEET.md): family name only
 - [What is RevealUI?](./WHAT_IS.md): canonical paragraph and catalog
 - [Quick Start](./QUICK_START.md): public get-started
 

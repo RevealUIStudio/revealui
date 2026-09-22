@@ -3,7 +3,7 @@ name: backflow-main-into-test
 # Thin caller — delegates to the org-shared reusable backflow workflow:
 #   RevealUIStudio/.github/.github/workflows/backflow-reusable.yml
 # Requires the BACKFLOW_APP_ID / BACKFLOW_APP_PRIVATE_KEY secrets + the
-# revfleet-backflow App installed on this repo (Contents + Pull requests r/w).
+# backflow App installed on this repo (Contents + Pull requests r/w).
 # Triggers on push to BOTH main and test, and on PRs targeting test:
 #   - push:main — main moved forward; open a backflow PR so test catches up.
 #   - push:test — self-heal: if ancestry is still broken (legacy squash of a

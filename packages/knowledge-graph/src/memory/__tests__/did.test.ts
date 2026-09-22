@@ -7,7 +7,7 @@ describe('httpFallbackDid', () => {
     const b = httpFallbackDid('user-1', 'acct_1');
     expect(a).toEqual(b);
     expect(a.didKind).toBe('user-account-fallback');
-    expect(a.did.startsWith('did:revfleet:user_')).toBe(true);
+    expect(a.did.startsWith('did:revealfleet:user_')).toBe(true);
   });
 
   it('differs across accounts', () => {

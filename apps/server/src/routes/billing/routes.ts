@@ -1766,7 +1766,7 @@ app.openapi(reportOverageRoute, async (c) => {
 
   const db = getClient();
   // GAP-131: `billing.meterEvents.create` is now wrapped by protectedStripe;
-  // every Stripe call across RevFleet shares one circuit breaker.
+  // every Stripe call across RevealFleet shares one circuit breaker.
 
   // Previous billing cycle = last calendar month
   const now = new Date();

@@ -12,12 +12,12 @@ describe('docs public nav', () => {
     expect(pro?.items.some((item) => item.label === 'Forge')).toBe(false);
   });
 
-  it('does not list companion products or /revfleet as a get-started path', () => {
+  it('does not list companion products or /revealfleet as a get-started path', () => {
     const sections = buildDocNavSections([]);
-    expect(sections.some((section) => section.title.includes('RevFleet'))).toBe(false);
+    expect(sections.some((section) => section.title.includes('RevealFleet'))).toBe(false);
     expect(sections.some((section) => section.title.includes('companion'))).toBe(false);
     const paths = sections.flatMap((section) => section.items.map((item) => item.path));
-    expect(paths.includes('/revfleet')).toBe(false);
+    expect(paths.includes('/revealfleet')).toBe(false);
     expect(paths.includes('/fleet')).toBe(false);
   });
 });

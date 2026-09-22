@@ -51,10 +51,10 @@ Not everyone wants to live in a terminal. The RevVault desktop app gives you a v
 
 RevVault is Beta. It is what the entire fleet runs on every day, which is the strongest test we can give it, but a few things are worth knowing before you adopt it.
 
-You hold the age identity key. That is the whole point, and it is also a responsibility: lose the key with no backup and you lose the secrets it protects, exactly as it should be for something nobody else can decrypt. The CLI is intentionally conservative about destructive operations, so renaming and bulk deletion are deliberate rather than one keystroke away. And like the rest of RevFleet, it is open, so you can read precisely what it does with your data before you trust it with any.
+You hold the age identity key. That is the whole point, and it is also a responsibility: lose the key with no backup and you lose the secrets it protects, exactly as it should be for something nobody else can decrypt. The CLI is intentionally conservative about destructive operations, so renaming and bulk deletion are deliberate rather than one keystroke away. And like the rest of RevealFleet, it is open, so you can read precisely what it does with your data before you trust it with any.
 
 The trade you are making is real surface area, your own key and your own store, in exchange for the one thing a vendor dashboard can never give you: secrets that only ever exist where you put them.
 
 ---
 
-*RevealUI is the open runtime for businesses that run their own AI. RevVault is part of the RevFleet family; read the source and get started on [GitHub](https://github.com/RevealUIStudio/revvault).*
+*RevealUI is the open runtime for businesses that run their own AI. RevVault is part of the RevealFleet family; read the source and get started on [GitHub](https://github.com/RevealUIStudio/revvault).*

@@ -124,7 +124,7 @@
   existing doc-currency and guardrail2-verdict gate exports).
 
 - 981b3f0: Retire the dead HTTP gateway twin and PGlite DaemonStore from `@revealui/harnesses` after the RevDev port (revdev#328/#329). Remote pairing lives only in `@revdev/daemon`. Breaking: removes `./storage` export and root `DaemonStore` / `SCHEMA_SQL` re-exports.
-- a3f9f09: GAP-459: session peer panel + archive-on-exit into revfleet cold sessions/daemon (live set stays unpolluted)
+- a3f9f09: GAP-459: session peer panel + archive-on-exit into revealfleet cold sessions/daemon (live set stays unpolluted)
 - 4d4f384: GAP-459: session reap CLI — cold-archive abandoned rows then signed harness.prune
 
 ### Patch Changes

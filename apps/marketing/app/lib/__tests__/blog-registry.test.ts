@@ -17,8 +17,8 @@ describe('GAP-467 blog registry', () => {
     expect(BLOG_POST_METADATA).toHaveLength(18);
   });
 
-  it('revfleet product family excerpt mentions encrypted secrets product', () => {
-    expect(post('revfleet-product-family').excerpt.toLowerCase()).toContain('encrypt');
+  it('revealfleet product family excerpt mentions encrypted secrets product', () => {
+    expect(post('revealfleet-product-family').excerpt.toLowerCase()).toContain('encrypt');
   });
 
   it('own your secrets excerpt says credentials never sit as plaintext on disk', () => {

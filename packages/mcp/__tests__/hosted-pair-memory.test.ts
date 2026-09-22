@@ -205,7 +205,7 @@ describe('Cursor HTTP + OpenCode HTTP share one accountId', () => {
       timeoutMs: 0,
       trustBoundary: 'studio-local',
       principalProvider: () => ({
-        did: 'did:revfleet:grok-1:fpgro',
+        did: 'did:revealfleet:grok-1:fpgro',
         agentId: 'grok-1',
         fingerprint: 'fpgro',
         didKind: 'agent-key',

@@ -2,7 +2,7 @@
  * Archive-check — shared inbound-link scanning for the central fleet archive.
  *
  * GAP-451. When a stale document is moved to the central archive
- * (`RevealUIStudio/revfleet-archive`), every LIVE inbound link to its old path
+ * (`RevealUIStudio/revealfleet-archive`), every LIVE inbound link to its old path
  * must be repointed at the archive URL. A link left behind is a dead link that
  * looks alive — the failure class this gate exists to catch.
  *
@@ -35,7 +35,7 @@
  */
 
 /** Prefix of a correctly-repointed archive link. */
-export const ARCHIVE_URL_PREFIX = 'revfleet-archive/blob/main/';
+export const ARCHIVE_URL_PREFIX = 'revealfleet-archive/blob/main/';
 
 /**
  * Relative-path substrings marking a file as itself a historical record.
@@ -109,7 +109,7 @@ export interface ScanInboundLinksInput {
  * The subtlety that makes a naive substring match wrong: a CORRECTLY repointed
  * link necessarily contains the origin path, because the archive mirrors each
  * repo's relative paths — the right pointer
- * `revfleet-archive/blob/main/<repo>/<origin>` embeds `<origin>` verbatim. So
+ * `revealfleet-archive/blob/main/<repo>/<origin>` embeds `<origin>` verbatim. So
  * matching on the origin alone flags a fixed doc exactly like a broken one,
  * and repointing would be impossible without gaming the string. Both forms are
  * counted and only the EXCESS is reported.

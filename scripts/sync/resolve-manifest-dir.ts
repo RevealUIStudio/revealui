@@ -44,7 +44,7 @@ export function resolveManifestDir(): string | null {
   const candidates = [
     resolve(HERE, '../../../../.jv/ops/sync'),
     resolve(HERE, '../../../.jv/ops/sync'),
-    resolve(homedir(), 'revfleet/.jv/ops/sync'),
+    resolve(homedir(), 'revealfleet/.jv/ops/sync'),
   ];
   for (const dir of candidates) {
     if (looksLikeManifestDir(dir)) return dir;

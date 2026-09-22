@@ -179,11 +179,13 @@ describe('retired-suite-path', () => {
   });
 
   it('does not flag ~/suite/ when the line marks the rename', () => {
-    expect(ruleMatches('~/suite/ was renamed to ~/revfleet/', suiteRule)).toBe(false);
+    expect(ruleMatches('~/suite/ was renamed to ~/revealfleet/', suiteRule)).toBe(false);
   });
 
   it('does not flag ~/suite/ when the current path is named alongside', () => {
-    expect(ruleMatches('the path is now ~/revfleet/ (formerly ~/suite/)', suiteRule)).toBe(false);
+    expect(ruleMatches('the path is now ~/revealfleet/ (formerly ~/suite/)', suiteRule)).toBe(
+      false,
+    );
   });
 });
 

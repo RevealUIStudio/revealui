@@ -25,5 +25,5 @@ Self-host and operator docs live on [Enterprise](./ENTERPRISE.md), [Deployment](
 ## Related
 
 - [What is RevealUI?](./WHAT_IS.md)
-- [RevealFleet family name](./REVFLEET.md)
+- [RevealFleet family name](./REVEALFLEET.md)
 - [Pricing](https://revealui.com/pricing)

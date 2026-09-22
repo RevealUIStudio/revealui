@@ -67,7 +67,7 @@ async function seed(exec: KgExecutor): Promise<void> {
 
 function studioPrincipal(partial: Partial<MemoryPrincipal> = {}): MemoryPrincipal {
   return {
-    did: 'did:revfleet:grok-1:fpabc',
+    did: 'did:revealfleet:grok-1:fpabc',
     agentId: 'grok-1',
     fingerprint: 'fpabc',
     didKind: 'agent-key',
@@ -81,7 +81,7 @@ function studioPrincipal(partial: Partial<MemoryPrincipal> = {}): MemoryPrincipa
 
 function hostedPrincipal(partial: Partial<MemoryPrincipal> = {}): MemoryPrincipal {
   return {
-    did: 'did:revfleet:user_abc:fpxyz',
+    did: 'did:revealfleet:user_abc:fpxyz',
     agentId: 'user_abc',
     fingerprint: 'fpxyz',
     didKind: 'user-account-fallback',
@@ -277,8 +277,8 @@ describe('createKnowledgeGraphToolset product mode', () => {
       `SELECT source, content_ref FROM kg_episodes WHERE id = $1`,
       [body.data.episodeId],
     );
-    expect(rows[0]?.source).toBe('agent:did:revfleet:grok-1:fpabc');
-    expect(rows[0]?.content_ref.actorDid).toBe('did:revfleet:grok-1:fpabc');
+    expect(rows[0]?.source).toBe('agent:did:revealfleet:grok-1:fpabc');
+    expect(rows[0]?.content_ref.actorDid).toBe('did:revealfleet:grok-1:fpabc');
     expect(rows[0]?.content_ref.schema).toBe('revealui.memory.v1');
     const scope = rows[0]?.content_ref.scope as { classification?: string };
     expect(scope.classification).toBe('private');
@@ -355,7 +355,7 @@ describe('createKnowledgeGraphToolset product mode', () => {
       trustBoundary: 'hosted',
       principalProvider: () =>
         hostedPrincipal({
-          did: 'did:revfleet:user_other:fpoth',
+          did: 'did:revealfleet:user_other:fpoth',
           agentId: 'user_other',
           fingerprint: 'fpoth',
           tenantId: 'acct_other',

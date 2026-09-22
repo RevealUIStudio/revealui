@@ -40,8 +40,8 @@ function hookFile(event: string, groups: GrokHookGroup[]): string {
 
 /**
  * Resolve fleet root the same way SessionStart adapters already do:
- * $REVEALFLEET_ROOT, then $REVFLEET_ROOT, then ~/revealfleet, then ~/revfleet.
- * Never hardcode only the dead ~/revfleet path (GAP-489 / GAP-418).
+ * $REVEALFLEET_ROOT, then $REVFLEET_ROOT, then ~/revealfleet.
+ * The retired ~/revfleet directory is not a fleet root (GAP-489 / GAP-418).
  */
 const FLEET_RESOLVE = [
   'FLEET="',
@@ -50,7 +50,7 @@ const FLEET_RESOLVE = [
   '$',
   '{REVFLEET_ROOT:-',
   '$',
-  'HOME/revealfleet}}"; if [ ! -d "$FLEET/revealui" ] && [ ! -f "$FLEET/.jv/scripts/session-start-fleet.js" ]; then FLEET="$HOME/revfleet"; fi',
+  'HOME/revealfleet}}"; if [ ! -d "$FLEET/revealui" ] && [ ! -f "$FLEET/.jv/scripts/session-start-fleet.js" ]; then FLEET="$HOME/revealfleet"; fi',
 ].join('');
 
 const SESSION_START_FLEET_CMD = `${FLEET_RESOLVE}; node "$FLEET/.jv/scripts/session-start-fleet.js" || true`;

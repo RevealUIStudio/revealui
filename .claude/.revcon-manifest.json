@@ -1,7 +1,10 @@
 {
   "mode": "copy",
   "editor": "claude",
-  "profiles": ["revfleet", "revealui"],
+  "profiles": [
+    "revealfleet",
+    "revealui"
+  ],
   "files": {
     "agents/builder.md": {
       "source": "profiles/revealui/claude/agents/builder.md",
@@ -40,7 +43,7 @@
       "sha256": "bc0458622a69774d33b1654e59699378f6dd4dbd9466d55b1a4128d937dac96c"
     },
     "rules/git.md": {
-      "source": "profiles/revfleet/claude/rules/git.md",
+      "source": "profiles/revealfleet/claude/rules/git.md",
       "sha256": "59fdde78476f102a1b65f88ec4a874471f5178e6ee9c1cdbe68f53f532221694"
     },
     "rules/no-regex.md": {
@@ -48,11 +51,11 @@
       "sha256": "70e4d178a3ae62aeda134a8855c9f29eecca2bdd61e72a4c18d6fcd1400cbb83"
     },
     "rules/opensrc.md": {
-      "source": "profiles/revfleet/claude/rules/opensrc.md",
-      "sha256": "c8d0eef53fda278bf2f077e4c7dbf843c8e0b07023b546429a2d209a1620ac55"
+      "source": "profiles/revealfleet/claude/rules/opensrc.md",
+      "sha256": "bdb095fac109fbb5616dde222e0cfbc3e1d52ebf616609f3e865717773a2fb73"
     },
     "rules/planning.md": {
-      "source": "profiles/revfleet/claude/rules/planning.md",
+      "source": "profiles/revealfleet/claude/rules/planning.md",
       "sha256": "731ed2f7a2df810224a6436bfefae96972d869fbb64a54e1055e3ebf6726d769"
     },
     "rules/priorities.md": {
@@ -68,12 +71,12 @@
       "sha256": "29f32b43a17f7842d34e05bb3c77e1abe5fa47247dc74ad9334aef60ed3211e3"
     },
     "rules/token-economy.md": {
-      "source": "profiles/revfleet/claude/rules/token-economy.md",
+      "source": "profiles/revealfleet/claude/rules/token-economy.md",
       "sha256": "b30a830e9dd333b05085bc5ce3994c477ac66390aabe4cf41741a64ccd12ef57"
     },
     "rules/tool-routing.md": {
       "source": "profiles/revealui/claude/rules/tool-routing.md",
-      "sha256": "b69fe7359d70de8e204463fd3bfb118763de86d0ec1682bf6c5a04ab1a1b727b"
+      "sha256": "0a0c3a07e53d1adc426c25b39a88a9867328d5d48f63f9d9d6d4ac69632e5894"
     },
     "rules/versioning.md": {
       "source": "profiles/revealui/claude/rules/versioning.md",
@@ -93,7 +96,7 @@
     },
     "skills/revealui-deploy/SKILL.md": {
       "source": "profiles/revealui/claude/skills/revealui-deploy/SKILL.md",
-      "sha256": "8fd65cda6fef8b1e032f447d82bd52ae17369f1c1002563da30d05b23de6d981"
+      "sha256": "4c0019f2df8b48d1a076bb0031a13a4a8928b2c5ddb943fe74ea3cb67bf1ada5"
     },
     "skills/revealui-review/SKILL.md": {
       "source": "profiles/revealui/claude/skills/revealui-review/SKILL.md",

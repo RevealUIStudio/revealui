@@ -39,7 +39,7 @@ function adapterHomePaths(revskillsRoot?: string): string[] {
     join(home, '.claude'),
     join(home, '.grok'),
     join(home, '.cursor'),
-    join(home, 'revfleet'),
+    join(home, 'revealfleet'),
   ];
   if (revskillsRoot && revskillsRoot.length > 0) paths.push(revskillsRoot);
   return paths;

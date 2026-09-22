@@ -28,7 +28,7 @@ function manifestFor(files: Record<string, string>): Manifest {
       sha256: sha256OfFile(path.join(root, '.claude', rel)),
     };
   }
-  return { mode: 'copy', editor: 'claude', profiles: ['revfleet', 'revealui'], files: entries };
+  return { mode: 'copy', editor: 'claude', profiles: ['revealfleet', 'revealui'], files: entries };
 }
 
 beforeEach(() => {

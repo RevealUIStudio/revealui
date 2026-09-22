@@ -19,7 +19,7 @@ All migrations follow this sequence:
 #    packages/db/src/schema/*.ts
 
 # 2. Generate the migration (creates BOTH the .sql AND the journal entry)
-cd ~/revfleet/revealui && pnpm --filter @revealui/db db:generate
+cd ~/revealfleet/revealui && pnpm --filter @revealui/db db:generate
 
 # 3. Review the generated files
 #    packages/db/migrations/NNNN_<name>.sql   — the DDL
@@ -27,7 +27,7 @@ cd ~/revfleet/revealui && pnpm --filter @revealui/db db:generate
 #    packages/db/migrations/meta/NNNN_snapshot.json — schema snapshot
 
 # 4. Apply locally
-cd ~/revfleet/revealui && pnpm db:migrate
+cd ~/revealfleet/revealui && pnpm db:migrate
 
 # 5. Commit all generated files together
 git add packages/db/migrations/
@@ -86,7 +86,7 @@ When SQL has been applied to a target environment outside the migrator (manual `
 Recovery procedure:
 
 ```bash
-cd ~/revfleet/revealui
+cd ~/revealfleet/revealui
 
 # 1. Pull the production POSTGRES_URL
 vercel env pull .vercel/.env.production.local --environment=production

@@ -108,7 +108,7 @@ describe('GrokGenerator', () => {
     expect(orientation?.content).toContain('rfg');
     expect(orientation?.content).toContain('Do not author policy there');
     expect(orientation?.content).not.toContain('joshua');
-    expect(orientation?.content).not.toContain('revfleet/.jv');
+    expect(orientation?.content).not.toContain('revealfleet/.jv');
   });
 
   it('does not re-emit content skills (avoids catalog collisions)', () => {

@@ -1,5 +1,5 @@
 ---
-title: "One Runtime, Eight Products: The RevFleet Family"
+title: "One Runtime, Eight Products: The RevealFleet Family"
 description: "You do not adopt a framework, you adopt a fleet. RevealUI is the flagship runtime, and seven sister products extend it."
 visibility: public
 status: narrative
@@ -9,7 +9,7 @@ author: Joshua Vaughn
 
 Most tools sell you a library. You install it, wire it into one corner of your app, and move on. RevealUI is built the other way around. It is a runtime that an entire family of products sits on top of, each one solving a problem you hit the moment you start running software for real.
 
-We call the family RevFleet. RevealUI is the flagship: the agentic business runtime that gives you People, Content, Offers, Payments, and Agents pre-wired into one deployable system. The other seven products are the tools we built to operate it, and we ship every one of them.
+We call the family RevealFleet. RevealUI is the flagship: the agentic business runtime that gives you People, Content, Offers, Payments, and Agents pre-wired into one deployable system. The other seven products are the tools we built to operate it, and we ship every one of them.
 
 This post is the map. It is also honest about where each product is, because "shipping" means different things at different stages, and you deserve to know which is which before you build on it.
 
@@ -60,4 +60,4 @@ So they compose instead of couple. You can take exactly the piece you need today
 
 ---
 
-*RevealUI is the open runtime for businesses that run their own AI. See the whole RevFleet lineup and current status at [revealui.com/products](https://revealui.com/products), or start with the runtime: `npx create-revealui`.*
+*RevealUI is the open runtime for businesses that run their own AI. See the whole RevealFleet lineup and current status at [revealui.com/products](https://revealui.com/products), or start with the runtime: `npx create-revealui`.*

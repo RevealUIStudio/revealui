@@ -138,7 +138,7 @@ Canonical defaults (when "open-model AI" is mentioned in marketing): Nemotron-3-
 ## 7. Brand language guardrails (per `brand-naming.md` + locked Q1)
 
 - **RevealUI** = the framework/runtime (customer-facing).
-- **RevFleet** = the umbrella product family (8 active products).
+- **RevealFleet** = the umbrella product family (8 active products).
 - **`RevForge`** = the stamping tool (NOT bare `Forge`).
 - **"Studio"** alone is ambiguous (collides with RevDev Studio app + RevealUI Studio agency); always qualify as "RevealUI Studio" or "RevDev Studio."
 - **Positioning (Q1 lock-in):** `shifts.md` primary + secondary —

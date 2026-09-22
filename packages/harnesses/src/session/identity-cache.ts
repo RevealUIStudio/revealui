@@ -25,7 +25,7 @@ export function defaultIdentityDir(): string {
 
 export function parseFingerprint(did: string): string | null {
   const parts = did.split(':');
-  if (parts.length < 4 || parts[0] !== 'did' || parts[1] !== 'revfleet') {
+  if (parts.length < 4 || parts[0] !== 'did' || parts[1] !== 'revealfleet') {
     return null;
   }
   return parts[parts.length - 1] || null;

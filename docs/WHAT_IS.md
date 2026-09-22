@@ -37,7 +37,7 @@ Public and code names are the same four strings. Do not use retired aliases (`Fo
 | **Max** | `max` | Pro plus unattended inference, higher limits. |
 | **Enterprise** | `enterprise` | License + studio support. Customer self-hosts. Domain lock. SSO is an operator preview ([#449](https://github.com/RevealUIStudio/revealui/issues/449)), not a customer-walked feature. |
 
-Internal-only aliases: `enterprise` in feature flags and license JWTs is the same public Enterprise tier. RevealFleet (`/docs/REVFLEET`) is the family name, not a fifth billing tier.
+Internal-only aliases: `enterprise` in feature flags and license JWTs is the same public Enterprise tier. RevealFleet (`/docs/REVEALFLEET`) is the family name, not a fifth billing tier.
 
 Limits and prices are pinned in `packages/contracts/src/pricing.ts` and restated on [revealui.com/pricing](https://revealui.com/pricing). Maintainer scorecards live off the public site.
 
@@ -79,7 +79,7 @@ Support response is not a feature flag. The published commitment is the same for
 
 ## RevealFleet
 
-RevealFleet (`/docs/REVFLEET`) is the family name for RevealUI Studio software. It is **not** a catalog SKU. **RevealUI** is the lead product and the buyable runtime.
+RevealFleet (`/docs/REVEALFLEET`) is the family name for RevealUI Studio software. It is **not** a catalog SKU. **RevealUI** is the lead product and the buyable runtime.
 
 The public catalog is Free, Pro ($49/mo), Max ($99/mo · $799/yr), Enterprise (inquire / Contact sales), and Pro Perpetual ($1,499). RevVault (separate product) is encrypted secret management inside Pro, not a separate paid SKU. Studio cash ladder (Consultation / Pilot / Launch) is not sold on this catalog. Knowledge Graph is runtime surface, not a fourth Studio SKU.
 
@@ -98,6 +98,6 @@ Get started on [Quick Start](./QUICK_START.md). Maturity labels for this runtime
 - [Quick Start](./QUICK_START.md)
 - [Pro](./PRO.md)
 - [Enterprise](./ENTERPRISE.md)
-- [RevealFleet](./REVFLEET.md)
+- [RevealFleet](./REVEALFLEET.md)
 - [What Works Today](./WHAT_WORKS_TODAY.md)
 - [SLA](./SLA.md)

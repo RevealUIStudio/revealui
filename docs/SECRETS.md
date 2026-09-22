@@ -1,6 +1,6 @@
 ---
 title: "Secrets Architecture"
-description: "**All secrets in RevFleet live in revvault, encrypted by an"
+description: "**All secrets in RevealFleet live in revvault, encrypted by an"
 visibility: internal
 status: verified
 audience: maintainer
@@ -10,7 +10,7 @@ audience: maintainer
 
 ## One-sentence summary
 
-**All secrets in RevFleet live in revvault, encrypted by an
+**All secrets in RevealFleet live in revvault, encrypted by an
 age identity that doesn't leave the developer's machine.**
 
 If that sentence ever becomes false — even for one secret — we have a
@@ -395,7 +395,7 @@ credentials/sentry/auth-token           # error tracking (CI + runtime)
 ```
 credentials/github/personal-access-token
 credentials/github/actions-secrets-mirror
-# revfleet-backflow GitHub App (Contents + Pull requests r/w) — authenticates the
+# backflow GitHub App (Contents + Pull requests r/w) — authenticates the
 # org-shared backflow-reusable.yml caller at .github/workflows/backflow-main-into-test.yml
 # in every fleet repo. Mirrored into each repo's Actions secrets as BACKFLOW_APP_ID /
 # BACKFLOW_APP_PRIVATE_KEY (publish step — value piped, never echoed or written to disk;
@@ -495,7 +495,7 @@ pnpm vercel:sync:apply    # apply to Vercel production
 
 The revvault store is unlocked by a single X25519 age identity at
 `$HOME/.age-identity/keys.txt` (or `REVVAULT_IDENTITY`). Losing that
-file means losing every secret in RevFleet.
+file means losing every secret in RevealFleet.
 
 Backup policy for the age identity is documented in
 [`SECURITY.md`](./SECURITY.md#age-identity-backup). Summary:

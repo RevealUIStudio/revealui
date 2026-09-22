@@ -43,13 +43,13 @@ export const BLOG_POST_METADATA: readonly BlogPostMeta[] = [
     file: '16-ui-of-the-future.md',
   },
   {
-    slug: 'revfleet-product-family',
-    title: 'One Runtime, Eight Products: The RevFleet Family',
+    slug: 'revealfleet-product-family',
+    title: 'One Runtime, Eight Products: The RevealFleet Family',
     excerpt:
       'You do not adopt a framework, you adopt a fleet. RevealUI is the flagship runtime, and seven sister products extend it, from an encrypted secret vault to an agent tool marketplace.',
     publishedAt: '2026-06-18T12:00:00.000Z',
     author: 'RevealUI Team',
-    file: '11-revfleet-product-family.md',
+    file: '11-revealfleet-product-family.md',
   },
   {
     slug: 'dashboard-agent-chat',

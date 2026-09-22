@@ -1223,13 +1223,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.0',
     text: 'Most tools sell you a library. You install it, wire it into one corner of your app, and move on. RevealUI is built the other way around. It is a runtime that an entire family of products sits on top of, each one solving a problem you hit the moment you start running software for real.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 0',
       },
       {
@@ -1240,13 +1240,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.1',
-    text: 'We call the family RevFleet. RevealUI is the flagship: the agentic business runtime that gives you People, Content, Offers, Payments, and Agents pre-wired into one deployable system. The other seven products are the tools we built to operate it, and we ship every one of them.',
+    text: 'We call the family RevealFleet. RevealUI is the flagship: the agentic business runtime that gives you People, Content, Offers, Payments, and Agents pre-wired into one deployable system. The other seven products are the tools we built to operate it, and we ship every one of them.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 1',
       },
       {
@@ -1257,13 +1257,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.2',
     text: 'This post is the map. It is also honest about where each product is, because "shipping" means different things at different stages, and you deserve to know which is which before you build on it.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 2',
       },
       {
@@ -1274,13 +1274,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.3',
     text: 'Every product carries one of four status badges. They mean exactly what they say:',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 3',
       },
       {
@@ -1291,13 +1291,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.4',
     text: '**Beta** -- production-ready code, dogfooded daily, limited real users.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 4',
       },
       {
@@ -1308,13 +1308,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.5',
     text: '**Alpha** -- works and ships, development-preview quality, may break.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 5',
       },
       {
@@ -1325,13 +1325,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.6',
     text: '**Active (MIT)** -- a released, free, open library, no support guarantees.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 6',
       },
       {
@@ -1342,13 +1342,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.7',
     text: '**Planned** -- code-complete or scaffolded, not yet shipped to users.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 7',
       },
       {
@@ -1359,13 +1359,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.8',
     text: 'No product on this page hides behind a vaguer word than that.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 8',
       },
       {
@@ -1376,13 +1376,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.9',
     text: '**RevealUI** (Beta) is the foundation everything else builds on. The five primitives, People, Content, Offers, Payments, and Agents, are pre-wired into a single runtime that your team and your AI agents share through one open protocol. Standard Postgres for data, S3-compatible object storage, real-time sync, a typed REST API with an OpenAPI spec, session auth, and feature gating, all in the box.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 9',
       },
       {
@@ -1393,13 +1393,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.10',
     text: 'You can run a real business on the open-source core today. Start here. Add the rest of the fleet as you grow into it.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 10',
       },
       {
@@ -1410,13 +1410,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.11',
     text: 'Each of these came out of operating RevealUI ourselves. We needed them, so we built them, then made them products.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 11',
       },
       {
@@ -1427,13 +1427,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.12',
     text: '**RevVault** (Beta) is an age-encrypted secret vault. A Rust CLI plus a Tauri desktop app keep your credentials encrypted on hardware you control, never in a vendor dashboard and never as plaintext on disk. It is the canonical secret store for every project in the fleet. There is a whole post on why your secrets do not belong in a `.env` file.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 12',
       },
       {
@@ -1444,13 +1444,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.13',
     text: '**RevForge** (Beta) is a white-label stamping tool for operators. It generates branded, domain-locked RevealUI trial kits as self-hosted runtime instances, so an agency or platform can hand a customer their own deployment without forking anything by hand.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 13',
       },
       {
@@ -1461,13 +1461,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.14',
     text: '**RevDev** (Alpha) is a multi-agent IDE harness: a desktop Studio, a terminal Console, and a Node daemon that coordinate AI coding agents across a multi-repo workspace. It speaks to Claude, Cursor, and Copilot through a shared coordination layer. Alpha means it works and we use it, not that it is bulletproof yet.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 14',
       },
       {
@@ -1478,13 +1478,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.15',
     text: '**RevCon** (Alpha) is editor config sync. One source of truth for Zed, VS Code, and Cursor settings, symlinked into every project, so you edit a config once and it propagates fleet-wide.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 15',
       },
       {
@@ -1495,13 +1495,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.16',
     text: '**RevSkills** (Active, MIT) is a library of Agent Skills: auth flows, schema patterns, test scaffolds, and more, ready to drop into any agent. Free, open, importable.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 16',
       },
       {
@@ -1512,13 +1512,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.17',
     text: '**RevMarket** (Planned, [#451](https://github.com/RevealUIStudio/revealui/issues/451)) is the agent tool marketplace. The runtime already ships a catalog of first-party integrations out of the box; RevMarket is the planned layer where third-party developers publish and discover MCP servers and agent capabilities. It is designed, not yet open to outside publishers, and we say so plainly on the roadmap.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 17',
       },
       {
@@ -1529,13 +1529,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.18',
     text: 'Why a fleet instead of one big product',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 18',
       },
       {
@@ -1546,13 +1546,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.19',
     text: 'The temptation, building this, was to fold everything into one monolith and call it a platform. We did the opposite on purpose.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 19',
       },
       {
@@ -1563,13 +1563,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.20',
     text: 'Each product is useful on its own. RevVault secures secrets for any project, RevealUI runtime or not. RevSkills drops into any Agent Skills setup. Bundling them would have made each one worse, locked behind a runtime you may not want yet.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 20',
       },
       {
@@ -1580,13 +1580,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.21',
     text: 'So they compose instead of couple. You can take exactly the piece you need today, and the rest is there when you need it. One foundation, eight products, no all-or-nothing.',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 21',
       },
       {
@@ -1597,13 +1597,13 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
     ],
   },
   {
-    file: 'blog/revfleet-product-family',
+    file: 'blog/revealfleet-product-family',
     exportPath: 'body.22',
-    text: '*RevealUI is the open runtime for businesses that run their own AI. See the whole RevFleet lineup and current status at [revealui.com/products](https://revealui.com/products), or start with the runtime: `npx create-revealui`.*',
+    text: '*RevealUI is the open runtime for businesses that run their own AI. See the whole RevealFleet lineup and current status at [revealui.com/products](https://revealui.com/products), or start with the runtime: `npx create-revealui`.*',
     evidence: [
       {
         kind: 'code',
-        ref: 'docs/blog/11-revfleet-product-family.md',
+        ref: 'docs/blog/11-revealfleet-product-family.md',
         note: 'body source paragraph 22',
       },
       {
@@ -2044,7 +2044,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/own-your-secrets',
     exportPath: 'body.12',
-    text: 'You hold the age identity key. That is the whole point, and it is also a responsibility: lose the key with no backup and you lose the secrets it protects, exactly as it should be for something nobody else can decrypt. The CLI is intentionally conservative about destructive operations, so renaming and bulk deletion are deliberate rather than one keystroke away. And like the rest of RevFleet, it is open, so you can read precisely what it does with your data before you trust it with any.',
+    text: 'You hold the age identity key. That is the whole point, and it is also a responsibility: lose the key with no backup and you lose the secrets it protects, exactly as it should be for something nobody else can decrypt. The CLI is intentionally conservative about destructive operations, so renaming and bulk deletion are deliberate rather than one keystroke away. And like the rest of RevealFleet, it is open, so you can read precisely what it does with your data before you trust it with any.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/12-own-your-secrets.md', note: 'body source paragraph 12' },
       {
@@ -2070,7 +2070,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/own-your-secrets',
     exportPath: 'body.14',
-    text: '*RevealUI is the open runtime for businesses that run their own AI. RevVault is part of the RevFleet family; read the source and get started on [GitHub](https://github.com/RevealUIStudio/revvault).*',
+    text: '*RevealUI is the open runtime for businesses that run their own AI. RevVault is part of the RevealFleet family; read the source and get started on [GitHub](https://github.com/RevealUIStudio/revvault).*',
     evidence: [
       { kind: 'code', ref: 'docs/blog/12-own-your-secrets.md', note: 'body source paragraph 14' },
       {
@@ -2083,7 +2083,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/zero-regex',
     exportPath: 'body.0',
-    text: 'There is a rule across the entire RevFleet codebase that surprises people: no hand-written regular expressions. Not "use them sparingly." Zero authored regex, enforced in CI.',
+    text: 'There is a rule across the entire RevealFleet codebase that surprises people: no hand-written regular expressions. Not "use them sparingly." Zero authored regex, enforced in CI.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/13-zero-regex.md', note: 'body source paragraph 0' },
       {
