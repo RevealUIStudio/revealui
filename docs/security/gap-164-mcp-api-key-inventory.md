@@ -1,6 +1,6 @@
 ---
 title: "GAP-164 MCP_API_KEY reference inventory"
-description: "Inventory of MCP_API_KEY references in this repo and which process loads the variable. Source system is owner TBD."
+description: "Inventory of MCP_API_KEY references in this repo and which process loads the variable. Source system is RevVault. Exact vault entry path is still unnamed."
 visibility: internal
 status: verified
 audience: maintainer
@@ -33,4 +33,12 @@ Alignment notes:
 |------|----------------|----------------------------|-------|
 | `scripts/validate/__tests__/mcp-admin-nodejs-runtime.test.ts` lines 13 and 71 | Local constant `MCP_API_ROOT` set to `apps/admin/src/app/api/mcp`, then passed to `listRouteFiles`. | The validate test process, as a directory path. | Shares the `MCP_API` prefix. It is not `MCP_API_KEY` and does not load a key. |
 
-**Source system: OWNER TBD — do not guess.**
+**Source system: RevVault.** The exact vault entry path is still unnamed. Do not invent one. See the owner ruling below.
+
+## Owner ruling (2026-09-23)
+
+Joshua ruled on 2026-09-23:
+
+- `MCP_API_KEY` source system is RevVault.
+- The exact vault entry path is still TBD. Joshua will name it next.
+- Do not invent a vault path. This document records no path until Joshua names one.
