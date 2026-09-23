@@ -380,10 +380,11 @@ describe('session CLI does not auto-query durable memory', () => {
       join(dirname(fileURLToPath(import.meta.url)), '../session/cli.ts'),
       'utf-8',
     );
-    const automatic = src.split("rest.includes('--memory')")[0] ?? src;
+    const flagAt = src.indexOf("rest.includes('--memory')");
+    const callAt = src.indexOf('queryDurableMemory(');
     expect(src).not.toContain('queryClaims');
     expect(src).not.toContain('publishDurableFinding');
-    expect(automatic).not.toContain('queryDurableMemory');
-    expect(src).toContain("rest.includes('--memory')");
+    expect(flagAt).toBeGreaterThan(-1);
+    expect(callAt).toBeGreaterThan(flagAt);
   });
 });
