@@ -191,6 +191,18 @@ export const SECRET_PATHS: SecretPathDef[] = [
     envVars: ['POSTGRES_URL', 'DATABASE_URL'],
     note: 'canonical Neon pooled url - feeds POSTGRES_URL + DATABASE_URL',
   },
+  // GAP-347: login URL for the revealui_readonly role. Owner generates the
+  // password and stores the URL. Intentionally absent from every sync manifest
+  // so app runtimes keep using postgres-url (read-write).
+  {
+    path: 'revealui/prod/db/postgres-url-readonly',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'prod',
+    consumers: [],
+    intentionallyUnsynced: true,
+    note: 'GAP-347 revealui_readonly Neon URL. Owner sets the password. Not an app runtime secret. See scripts/sql/revealui-readonly-role.sql and docs/runbooks/postgres-readonly-role.md',
+  },
   {
     path: 'revealui/prod/db/neon-api-key',
     kind: 'credential',
@@ -661,6 +673,15 @@ export const SECRET_PATHS: SecretPathDef[] = [
     tier: 'staging',
     consumers: ['vercel:api-staging', 'vercel:admin-staging'],
     note: 'Phase 1 (owner-run empty Neon branch + full migrate) fills this',
+  },
+  {
+    path: 'revealui/staging/db/postgres-url-readonly',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'staging',
+    consumers: [],
+    intentionallyUnsynced: true,
+    note: 'GAP-347 revealui_readonly URL for the staging Neon branch. Same leaf as prod. Not synced to staging apps.',
   },
   {
     path: 'revealui/staging/kek',
