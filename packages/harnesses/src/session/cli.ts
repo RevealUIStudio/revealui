@@ -11,6 +11,7 @@ import { join } from 'node:path';
 import { sessionEnd, sessionRegister } from './boundary.js';
 import { renderPeerPanel } from './peer-context.js';
 import { DEFAULT_HEARTBEAT_STALE_SECONDS, sessionReap } from './reap.js';
+import type { MemoryHarness, MemoryPrincipal } from '@revealui/knowledge-graph/memory';
 import { formatDurableMemoryWarn, queryDurableMemory } from './durable-memory.js';
 import {
   renderSessionAdapterLines,
@@ -39,6 +40,28 @@ async function printPeerPanel(actorAgentId?: string): Promise<void> {
   process.stderr.write(panel);
 }
 
+function sessionMemoryPrincipal(vendor: string): MemoryPrincipal {
+  const harness: MemoryHarness =
+    vendor === 'claude-code'
+      ? 'claude'
+      : vendor === 'grok' ||
+          vendor === 'cursor' ||
+          vendor === 'opencode' ||
+          vendor === 'revdev'
+        ? vendor
+        : 'other';
+  return {
+    did: `did:revealfleet:session:${harness}`,
+    agentId: 'session',
+    fingerprint: 'session',
+    didKind: 'user-account-fallback',
+    harness,
+    tenantId: 'studio-local',
+    trustBoundary: 'studio-local',
+    isFleetOperator: false,
+  };
+}
+
 export async function runSessionCli(args: string[]): Promise<void> {
   const [subcommand, ...rest] = args;
   if (subcommand === 'adapter') {
@@ -57,7 +80,11 @@ export async function runSessionCli(args: string[]): Promise<void> {
     }
     process.stdout.write(renderSessionAdapterLines(plan));
     if (rest.includes('--memory')) {
-      const result = await queryDurableMemory({ query: 'session-start', limit: 5 });
+      const result = await queryDurableMemory({
+        principal: sessionMemoryPrincipal(plan.vendor),
+        query: 'session-start',
+        limit: 5,
+      });
       const warn = formatDurableMemoryWarn(result);
       process.stderr.write(warn || '[durable-memory] read ok\n');
     }
