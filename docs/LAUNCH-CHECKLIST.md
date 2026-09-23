@@ -185,6 +185,7 @@ Complete the Stripe checkout checklist at `docs/checklists/stripe-checkout-verif
 - [ ] `REVEALUI_PUBLIC_SERVER_URL` and `NEXT_PUBLIC_SERVER_URL` use final production URLs **(blocking)**
 - [ ] CORS origins updated to match production domains **(blocking)**
 - [ ] Email domain verified (MX, SPF, DKIM, DMARC) for `@revealui.com` **(advisory)**
+- [ ] Cloudflare zone and record sheet reviewed (DNS only; nameservers unchanged; `media.revealui.com` replaces the sticky `r2.dev` URL on owner cutover): [GAP-233 + GAP-133](./runbooks/GAP-233-133-cloudflare-dns.md) **(advisory)**
 
 ---
 
