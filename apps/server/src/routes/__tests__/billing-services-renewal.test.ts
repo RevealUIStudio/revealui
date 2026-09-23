@@ -28,9 +28,9 @@ describe('FOUNDER_SERVICE_OFFERINGS  -  Track D', () => {
     expect(FOUNDER_SERVICE_OFFERINGS).toHaveLength(3);
   });
 
-  it('has IDs: consultation, pilot, launch-package', () => {
+  it('has IDs: consultation, proof-sprint, launch-package', () => {
     const ids = FOUNDER_SERVICE_OFFERINGS.map((s) => s.id);
-    expect(ids).toEqual(['consultation', 'pilot', 'launch-package']);
+    expect(ids).toEqual(['consultation', 'proof-sprint', 'launch-package']);
   });
 
   it('every offering satisfies the ServiceOffering interface', () => {
@@ -70,11 +70,11 @@ describe('FOUNDER_SERVICE_OFFERINGS  -  Track D', () => {
       expect(consultation!.name).toBe('Consultation');
     });
 
-    it('pilot has at least 3 includes', () => {
-      const pilot = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'pilot');
-      expect(pilot).toBeDefined();
-      expect(pilot!.includes.length).toBeGreaterThanOrEqual(3);
-      expect(pilot!.name).toBe('Pilot');
+    it('proof-sprint has at least 3 includes', () => {
+      const proof = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'proof-sprint');
+      expect(proof).toBeDefined();
+      expect(proof!.includes.length).toBeGreaterThanOrEqual(3);
+      expect(proof!.name).toBe('Proof Sprint');
     });
 
     it('launch-package has at least 5 includes', () => {

@@ -8,7 +8,7 @@ REV Guardrail is an enforcer agent for multi-agent fleets on RevealUI. You defin
 
 **Status:** Template / coming to gallery on test — do not mark “live checkout SKU.”
 
-Packaged only inside Consultation $300 / Pilot $1,500 / Launch $7,500. Not a middle SKU. Not hosted chatbot SaaS.
+Packaged only inside Consultation $300 / Proof Sprint $3,997 / Launch $14,500. Not a middle SKU. Not hosted chatbot SaaS.
 
 ## Includes
 

@@ -48,8 +48,11 @@ describe('public product catalog routes', () => {
     const selfHost = screen.getByRole('radio', { name: /I self-host/i });
     expect(selfHost).toHaveAttribute('aria-checked', 'true');
     expect(screen.queryByText('$300')).toBeNull();
+    expect(screen.queryByText('$1,500')).toBeNull();
     expect(screen.queryByText('$3,500')).toBeNull();
+    expect(screen.queryByText('$3,997')).toBeNull();
     expect(screen.queryByText('$7,500')).toBeNull();
+    expect(screen.queryByText('$14,500')).toBeNull();
     forbiddenOnPublicRoutes(container);
   });
 

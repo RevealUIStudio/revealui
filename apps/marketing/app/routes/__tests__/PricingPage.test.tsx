@@ -36,7 +36,10 @@ describe('PricingPage product catalog', () => {
       'aria-checked',
       'true',
     );
-    expect(screen.getByRole('radio', { name: /Pilot/i })).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByRole('radio', { name: /Proof Sprint/i })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
   });
 
   it('keeps subscription Free, Pro, Max, and Enterprise as a license', async () => {

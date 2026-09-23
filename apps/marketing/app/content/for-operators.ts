@@ -17,7 +17,7 @@
 import {
   CONSULTATION_PRICE,
   LAUNCH_PACKAGE_PRICE,
-  PILOT_PRICE,
+  PROOF_SPRINT_PRICE,
 } from '@revealui/contracts/public-catalog';
 import { SITE } from './site';
 import type { Cta, FaqItem } from './types';
@@ -37,9 +37,9 @@ const MANAGED_ROADMAP_HREF = '/for-operators/managed' as const;
 
 export const FOR_OPERATORS_HERO = {
   eyebrow: 'Studio work',
-  h1Lines: ['Consultation, Pilot, or Launch', 'on infrastructure you own.'] as const,
+  h1Lines: ['Consultation, Proof Sprint, or Launch', 'on infrastructure you own.'] as const,
   subtitle:
-    'Studio books Consultation, Pilot, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com, not on the product catalog.',
+    'Studio books Consultation, Proof Sprint, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com, not on the product catalog.',
   primaryCta: {
     label: 'Book a 30-minute intro',
     href: AGENCY_CONTACT,
@@ -102,14 +102,14 @@ export const FOR_OPERATORS_HOW_WE_DELIVER = {
 } as const;
 
 // ---------------------------------------------------------------------------
-// Studio engagement ladder — Consultation / Pilot / Launch on
+// Studio engagement ladder — Consultation / Proof Sprint / Launch on
 // revealuistudio.com only. Architecture work happens inside Launch.
 // Dead leftover rungs must not exist in this module. Prices import from
 // @revealui/contracts/public-catalog so leftover admin catalogs cannot
 // ship in the public marketing bundle.
 // ---------------------------------------------------------------------------
 
-export type AgencyEngagementId = 'consultation' | 'pilot' | 'launch-package';
+export type AgencyEngagementId = 'consultation' | 'proof-sprint' | 'launch-package';
 
 export interface AgencyEngagement {
   readonly id: AgencyEngagementId;
@@ -126,9 +126,9 @@ export const AGENCY_ENGAGEMENT_LADDER: readonly AgencyEngagement[] = [
     startsFrom: false,
   },
   {
-    id: 'pilot',
-    name: 'Pilot',
-    price: PILOT_PRICE,
+    id: 'proof-sprint',
+    name: 'Proof Sprint',
+    price: PROOF_SPRINT_PRICE,
     startsFrom: false,
   },
   {
@@ -151,7 +151,7 @@ function findEngagement(id: AgencyEngagementId): AgencyEngagement {
 }
 
 const CONSULTATION = findEngagement('consultation');
-const PILOT = findEngagement('pilot');
+const PROOF_SPRINT = findEngagement('proof-sprint');
 const LAUNCH_PACKAGE = findEngagement('launch-package');
 
 // ---------------------------------------------------------------------------
@@ -180,15 +180,15 @@ export const FOR_OPERATORS_PRICING = {
       cta: { label: 'Book a Consultation', href: AGENCY_CONTACT, external: true },
     },
     {
-      title: PILOT.name,
-      price: agencyEngagementPriceDisplay(PILOT),
-      body: 'One site on your domain and one agent you run. You keep it. Credits 100% to Launch if you start Launch within 30 days. This SKU lives on revealuistudio.com, not on the product catalog.',
+      title: PROOF_SPRINT.name,
+      price: agencyEngagementPriceDisplay(PROOF_SPRINT),
+      body: 'One site and one receipted action you operate. Stage B is included. Credits 100% to Launch if you start Launch within 45 days. This SKU lives on revealuistudio.com, not on the product catalog.',
       cta: { label: 'Book a Consultation', href: AGENCY_CONTACT, external: true },
     },
     {
       title: LAUNCH_PACKAGE.name,
       price: agencyEngagementPriceDisplay(LAUNCH_PACKAGE),
-      body: 'We stand up your RevealUI instance, including architecture work inside Launch, and get you to first deploy. This SKU lives on revealuistudio.com, not on the product catalog.',
+      body: 'We stand up your RevealUI instance, including architecture work inside Launch, a runbook, and 30 days of async stabilization. This SKU lives on revealuistudio.com, not on the product catalog.',
       cta: { label: 'Book a Consultation', href: AGENCY_CONTACT, external: true },
     },
   ] as readonly PricingRung[],
@@ -244,7 +244,7 @@ export const FOR_OPERATORS_FAQ = {
     },
     {
       question: 'How much does it cost?',
-      answer: `Studio SKUs live on revealuistudio.com, not on this catalog. ${CONSULTATION.name} is ${CONSULTATION.price}, ${PILOT.name} is ${PILOT.price}, and ${LAUNCH_PACKAGE.name} is ${LAUNCH_PACKAGE.price}. Book on Google Calendar from that site.`,
+      answer: `Studio SKUs live on revealuistudio.com, not on this catalog. ${CONSULTATION.name} is ${CONSULTATION.price}, ${PROOF_SPRINT.name} is ${PROOF_SPRINT.price}, and ${LAUNCH_PACKAGE.name} is ${LAUNCH_PACKAGE.price}. Book on Google Calendar from that site.`,
     },
     {
       question: 'How long does it take?',

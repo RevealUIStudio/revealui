@@ -356,7 +356,21 @@ describe('FOUNDER_SERVICE_OFFERINGS', () => {
 
   it('has the correct IDs in order', () => {
     const ids = FOUNDER_SERVICE_OFFERINGS.map((s) => s.id);
-    expect(ids).toEqual(['consultation', 'pilot', 'launch-package']);
+    expect(ids).toEqual(['consultation', 'proof-sprint', 'launch-package']);
+  });
+
+  it('locks Consultation, Proof Sprint, and Launch prices (2026-09-22)', () => {
+    const byId = Object.fromEntries(FOUNDER_SERVICE_OFFERINGS.map((s) => [s.id, s]));
+    expect(byId.consultation?.name).toBe('Consultation');
+    expect(byId.consultation?.price).toBe('$300');
+    expect(byId['proof-sprint']?.name).toBe('Proof Sprint');
+    expect(byId['proof-sprint']?.price).toBe('$3,997');
+    expect(byId['launch-package']?.name).toBe('Launch');
+    expect(byId['launch-package']?.price).toBe('$14,500');
+    const names = FOUNDER_SERVICE_OFFERINGS.map((s) => s.name);
+    expect(names).not.toContain('Pilot');
+    expect(names).not.toContain('Hour');
+    expect(names).not.toContain('Architecture Review');
   });
 
   it('service IDs are unique', () => {

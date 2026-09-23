@@ -35,7 +35,9 @@ describe('QuoteCalculator', () => {
     expect(card.textContent ?? '').toContain('$99');
     expect(card.textContent ?? '').not.toContain('$300');
     expect(card.textContent ?? '').not.toContain('$1,500');
+    expect(card.textContent ?? '').not.toContain('$3,997');
     expect(card.textContent ?? '').not.toContain('$7,500');
+    expect(card.textContent ?? '').not.toContain('$14,500');
   });
 
   it('prints the Studio SKU trio when You will and one place', () => {
@@ -46,12 +48,12 @@ describe('QuoteCalculator', () => {
     const card = screen.getByTestId('quote-card');
     expect(within(card).getByText(QUOTE_CALCULATOR.studio.consultation.title)).toBeInTheDocument();
     expect(within(card).getByText(QUOTE_CALCULATOR.studio.consultation.price)).toBeInTheDocument();
-    expect(within(card).getByText(QUOTE_CALCULATOR.studio.pilot.title)).toBeInTheDocument();
-    expect(within(card).getByText(QUOTE_CALCULATOR.studio.pilot.price)).toBeInTheDocument();
+    expect(within(card).getByText(QUOTE_CALCULATOR.studio.proofSprint.title)).toBeInTheDocument();
+    expect(within(card).getByText(QUOTE_CALCULATOR.studio.proofSprint.price)).toBeInTheDocument();
     expect(within(card).getByText(QUOTE_CALCULATOR.studio.launch.title)).toBeInTheDocument();
     expect(within(card).getByText(QUOTE_CALCULATOR.studio.launch.price)).toBeInTheDocument();
     expect(within(card).getByText(QUOTE_CALCULATOR.studio.consultation.body)).toBeInTheDocument();
-    expect(within(card).getByText(QUOTE_CALCULATOR.studio.pilot.body)).toBeInTheDocument();
+    expect(within(card).getByText(QUOTE_CALCULATOR.studio.proofSprint.body)).toBeInTheDocument();
     expect(
       within(card).getByText(QUOTE_CALCULATOR.studio.launch.body, { exact: true }),
     ).toBeInTheDocument();

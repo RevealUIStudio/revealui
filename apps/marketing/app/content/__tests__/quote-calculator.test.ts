@@ -1,7 +1,7 @@
 import {
   CONSULTATION_PRICE,
   LAUNCH_PACKAGE_PRICE,
-  PILOT_PRICE,
+  PROOF_SPRINT_PRICE,
 } from '@revealui/contracts/public-catalog';
 import { describe, expect, it } from 'vitest';
 import {
@@ -22,7 +22,7 @@ const BOOKING_URL =
 describe('quote calculator (product-site lockstep)', () => {
   it('defaults Who to I will (self-host) on this site', () => {
     expect(DEFAULT_QUOTE_ANSWERS.who).toBe('self');
-    expect(DEFAULT_QUOTE_ANSWERS.what).toBe('pilot');
+    expect(DEFAULT_QUOTE_ANSWERS.what).toBe('proof-sprint');
     expect(DEFAULT_QUOTE_ANSWERS.places).toBe('one');
     expect(QUOTE_CALCULATOR.questions.who.options[0]?.id).toBe('self');
   });
@@ -45,12 +45,12 @@ describe('quote calculator (product-site lockstep)', () => {
     ]);
     expect(QUOTE_CALCULATOR.questions.what.options.map((option) => option.id)).toEqual([
       'consultation',
-      'pilot',
+      'proof-sprint',
       'launch',
     ]);
     expect(QUOTE_CALCULATOR.questions.what.options.map((option) => option.label)).toEqual([
       'Consultation: diagnose the path / proof gap',
-      'Pilot: one site, one agent I run, one receipted action',
+      'Proof Sprint: one site, one receipted action I operate',
       'Launch: money path live on my accounts',
     ]);
     expect(QUOTE_CALCULATOR.questions.places.options.map((option) => option.id)).toEqual([
@@ -71,7 +71,7 @@ describe('quote calculator (product-site lockstep)', () => {
 
   it('locksteps printed numbers to public-catalog and the locked SKU trio', () => {
     expect(QUOTE_CALCULATOR.studio.consultation.price).toBe(CONSULTATION_PRICE);
-    expect(QUOTE_CALCULATOR.studio.pilot.price).toBe(PILOT_PRICE);
+    expect(QUOTE_CALCULATOR.studio.proofSprint.price).toBe(PROOF_SPRINT_PRICE);
     expect(QUOTE_CALCULATOR.studio.launch.price).toBe(LAUNCH_PACKAGE_PRICE);
     expect(QUOTE_CALCULATOR.selfHost.free).toContain(SUBSCRIPTION_PRICE_FALLBACKS.free.price);
     expect(QUOTE_CALCULATOR.selfHost.agents).toContain(SUBSCRIPTION_PRICE_FALLBACKS.pro.price);
@@ -80,8 +80,8 @@ describe('quote calculator (product-site lockstep)', () => {
     expect(perpetual).toBeDefined();
     expect(QUOTE_CALCULATOR.selfHost.perpetual).toContain(perpetual?.price);
     expect(QUOTE_CALCULATOR.studio.consultation.price).toBe('$300');
-    expect(QUOTE_CALCULATOR.studio.pilot.price).toBe('$1,500');
-    expect(QUOTE_CALCULATOR.studio.launch.price).toBe('$7,500');
+    expect(QUOTE_CALCULATOR.studio.proofSprint.price).toBe('$3,997');
+    expect(QUOTE_CALCULATOR.studio.launch.price).toBe('$14,500');
   });
 
   it('prints the self-host quote when Who is I will', () => {
@@ -98,33 +98,33 @@ describe('quote calculator (product-site lockstep)', () => {
     expect(quote.lines.join('\n').includes('14-day')).toBe(false);
   });
 
-  it('prints the Studio consultation, pilot, and launch quotes', () => {
+  it('prints the Studio consultation, Proof Sprint, and launch quotes', () => {
     const quote = resolveQuote({ who: 'studio', what: 'consultation', places: 'one' });
     expect(quote.kind).toBe('studio');
     expect(quote.skus?.map((sku) => [sku.title, sku.price])).toEqual([
       ['Consultation', '$300'],
-      ['Pilot', '$1,500'],
-      ['Launch', '$7,500'],
+      ['Proof Sprint', '$3,997'],
+      ['Launch', '$14,500'],
     ]);
     expect(quote.skus?.find((sku) => sku.id === 'consultation')?.highlighted).toBe(true);
     expect(quote.lines).toContain(QUOTE_CALCULATOR.studio.consultation.body);
-    expect(quote.lines).toContain(QUOTE_CALCULATOR.studio.pilot.body);
+    expect(quote.lines).toContain(QUOTE_CALCULATOR.studio.proofSprint.body);
     expect(quote.lines).toContain(QUOTE_CALCULATOR.studio.launch.body);
   });
 
-  it('prints the Studio pilot quote', () => {
-    const quote = resolveQuote({ who: 'studio', what: 'pilot', places: 'one' });
+  it('prints the Studio Proof Sprint quote', () => {
+    const quote = resolveQuote({ who: 'studio', what: 'proof-sprint', places: 'one' });
     expect(quote.kind).toBe('studio');
-    expect(quote.skus?.find((sku) => sku.id === 'pilot')?.highlighted).toBe(true);
-    expect(quote.skus?.find((sku) => sku.id === 'pilot')?.price).toBe('$1,500');
-    expect(quote.lines).toContain(QUOTE_CALCULATOR.studio.pilot.body);
+    expect(quote.skus?.find((sku) => sku.id === 'proof-sprint')?.highlighted).toBe(true);
+    expect(quote.skus?.find((sku) => sku.id === 'proof-sprint')?.price).toBe('$3,997');
+    expect(quote.lines).toContain(QUOTE_CALCULATOR.studio.proofSprint.body);
   });
 
   it('prints the Studio launch quote', () => {
     const quote = resolveQuote({ who: 'studio', what: 'launch', places: 'one' });
     expect(quote.kind).toBe('studio');
     expect(quote.skus?.find((sku) => sku.id === 'launch')?.highlighted).toBe(true);
-    expect(quote.skus?.find((sku) => sku.id === 'launch')?.price).toBe('$7,500');
+    expect(quote.skus?.find((sku) => sku.id === 'launch')?.price).toBe('$14,500');
     expect(quote.lines).toContain(QUOTE_CALCULATOR.studio.launch.body);
   });
 
@@ -141,7 +141,7 @@ describe('quote calculator (product-site lockstep)', () => {
     const answers: QuoteAnswers[] = [
       { who: 'self', what: 'consultation', places: 'one' },
       { who: 'studio', what: 'launch', places: 'one' },
-      { who: 'studio', what: 'pilot', places: 'many' },
+      { who: 'studio', what: 'proof-sprint', places: 'many' },
     ];
     for (const answer of answers) {
       const quote = resolveQuote(answer);
