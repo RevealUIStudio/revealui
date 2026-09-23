@@ -327,7 +327,7 @@ Phase 5.3 Track C. Required for perpetual license GitHub team provisioning and s
 | Variable | Required | Default | Description | Security | Used By |
 |----------|----------|---------|-------------|----------|---------|
 | `REVEALUI_GITHUB_TOKEN` | No | None | Fine-grained GitHub PAT with `org:write:members` scope. Adds perpetual license buyers to the GitHub team. | HIGH (server-only) | api |
-| `REVEALUI_CRON_SECRET` | No | None | Current shared secret for `X-Cron-Secret` on cron routes (billing support-renewal, `/api/cron/*`, maintenance). Must be 32+ characters. Overlap rotation: [`docs/security/gap-016-cron-secret-rotation.md`](./security/gap-016-cron-secret-rotation.md). | HIGH (server-only) | api, admin |
+| `REVEALUI_CRON_SECRET` | No | None | Current shared secret for `X-Cron-Secret` on cron routes (billing support-renewal, `/api/cron/*`, maintenance). Must be 32+ characters. During a rotation window the outgoing value stays valid while `REVEALUI_CRON_SECRET_PREVIOUS` is set. | HIGH (server-only) | api, admin |
 | `REVEALUI_CRON_SECRET_PREVIOUS` | No | unset | Outgoing `X-Cron-Secret` value accepted only during a rotation window. Remove after callers use `REVEALUI_CRON_SECRET`. Empty is steady state. | HIGH (server-only) | api, admin |
 | `CRON_SECRET` | No | unset | Vercel platform cron bearer (`Authorization: Bearer`) checked by `/api/cron/dispatch` and `/api/cron/uptime-check`. Distinct from `REVEALUI_CRON_SECRET`. Also the metrics fallback when `METRICS_SECRET` is unset. | HIGH (server-only) | api |
 | `CRON_SECRET_PREVIOUS` | No | unset | Outgoing Vercel bearer accepted only during a `CRON_SECRET` rotation window. Remove after the platform deployment sends the new bearer. | HIGH (server-only) | api |
