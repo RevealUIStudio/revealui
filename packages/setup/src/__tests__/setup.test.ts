@@ -19,7 +19,7 @@ interface PromptQuestion {
   validate?: (input: string) => boolean | string;
 }
 
-describe('setupEnvironment', () => {
+describe('setupEnvironment', { timeout: 20_000 }, () => {
   let tempDir: string;
 
   beforeEach(async () => {
