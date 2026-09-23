@@ -12,7 +12,7 @@ import { deleteSession } from '@revealui/auth/server';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
-import { clearSessionCookies } from '@/lib/utils/session-cookies';
+import { clearSessionCookies, requestHostFromHeaders } from '@/lib/utils/session-cookies';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -35,7 +35,9 @@ async function signOutHandler(request: NextRequest): Promise<NextResponse> {
     success: true,
   });
 
-  clearSessionCookies(response);
+  clearSessionCookies(response, {
+    requestHost: requestHostFromHeaders((name) => request.headers.get(name)),
+  });
 
   return response;
 }

@@ -8,6 +8,7 @@ import { stampTosAcceptanceByEmail } from '@/lib/auth/tos';
 import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 import {
   ROLE_COOKIE,
+  requestHostFromHeaders,
   requireSessionCookieDomain,
   SESSION_COOKIE,
   sessionCookieDomain,
@@ -37,14 +38,19 @@ const isWebSetupDisabled =
  * Cookie flags mirror apps/admin/src/app/api/auth/sign-in/route.ts exactly —
  * do not weaken httpOnly/secure/sameSite or diverge maxAge from DB session TTL.
  */
-function attachSessionCookies(response: NextResponse, sessionToken: string, role: string): void {
+function attachSessionCookies(
+  response: NextResponse,
+  sessionToken: string,
+  role: string,
+  requestHost: string | null,
+): void {
   response.cookies.set(ROLE_COOKIE, role, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
     maxAge: 60 * 60 * 24 * 7,
-    domain: sessionCookieDomain(),
+    domain: sessionCookieDomain({ requestHost }),
   });
 
   response.cookies.set(SESSION_COOKIE, sessionToken, {
@@ -53,7 +59,7 @@ function attachSessionCookies(response: NextResponse, sessionToken: string, role
     sameSite: 'lax',
     path: '/',
     maxAge: 60 * 60 * 24, // 1 day (matches DB session expiry)
-    domain: requireSessionCookieDomain(),
+    domain: requireSessionCookieDomain({ requestHost }),
   });
 }
 
@@ -215,7 +221,12 @@ export async function POST(request: Request): Promise<NextResponse<BootstrapResu
         const { token } = await createSession(userId, { userAgent, ipAddress });
         const body: BootstrapResult = { ...result, sessionMinted: true };
         const response = NextResponse.json(body, { status: 201 });
-        attachSessionCookies(response, token, result.user?.role ?? 'owner');
+        attachSessionCookies(
+          response,
+          token,
+          result.user?.role ?? 'owner',
+          requestHostFromHeaders((name) => request.headers.get(name)),
+        );
         return response;
       } catch (sessionError) {
         logger.error('Setup auto-login session mint failed', {

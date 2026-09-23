@@ -27,7 +27,11 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
-import { sessionCookieDomain, setRoleCookie } from '@/lib/utils/session-cookies';
+import {
+  requestHostFromHeaders,
+  sessionCookieDomain,
+  setRoleCookie,
+} from '@/lib/utils/session-cookies';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -117,6 +121,7 @@ async function backupHandler(request: NextRequest): Promise<NextResponse> {
       success: true,
       remainingCodes: result.remainingCodes,
     });
+    const requestHost = requestHostFromHeaders((name) => request.headers.get(name));
 
     // Set session cookie (same pattern as sign-in route)
     response.cookies.set('revealui-session', sessionToken, {
@@ -125,9 +130,9 @@ async function backupHandler(request: NextRequest): Promise<NextResponse> {
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24, // 1 day (matches DB session expiry)
-      domain: sessionCookieDomain({ logIfMissing: true }),
+      domain: sessionCookieDomain({ logIfMissing: true, requestHost }),
     });
-    setRoleCookie(response, user?.role, { maxAge: 60 * 60 * 24 });
+    setRoleCookie(response, user?.role, { maxAge: 60 * 60 * 24, requestHost });
 
     // Clear the mfa-pending cookie
     response.cookies.set('mfa-pending', '', {

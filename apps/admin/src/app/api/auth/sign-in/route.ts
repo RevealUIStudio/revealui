@@ -17,7 +17,11 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
-import { requireSessionCookieDomain, sessionCookieDomain } from '@/lib/utils/session-cookies';
+import {
+  requestHostFromHeaders,
+  requireSessionCookieDomain,
+  sessionCookieDomain,
+} from '@/lib/utils/session-cookies';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -117,13 +121,14 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
     // security boundary). Carries the actual DB role so the proxy can route
     // admin-only paths without blocking non-admin users entirely.
     const userRole = result.user.role ?? 'viewer';
+    const requestHost = requestHostFromHeaders((name) => request.headers.get(name));
     response.cookies.set('revealui-role', userRole, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
-      domain: sessionCookieDomain(),
+      domain: sessionCookieDomain({ requestHost }),
     });
 
     // Set password rotation cookie (proxy.ts uses this to block /admin access)
@@ -144,7 +149,7 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24, // 1 day (matches DB session expiry)
-      domain: requireSessionCookieDomain(),
+      domain: requireSessionCookieDomain({ requestHost }),
     });
 
     return response;

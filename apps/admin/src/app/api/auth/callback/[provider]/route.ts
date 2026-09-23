@@ -28,7 +28,7 @@ import { getOAuthAccountByProviderUser } from '@revealui/db/queries/oauth-accoun
 import { countActiveUsers } from '@revealui/db/queries/users';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
-import { sessionCookieDomain } from '@/lib/utils/session-cookies';
+import { requestHostFromHeaders, sessionCookieDomain } from '@/lib/utils/session-cookies';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -208,13 +208,14 @@ export async function GET(
     } catch {
       // Fall back to upsertOAuthUser role if DB re-read fails
     }
+    const requestHost = requestHostFromHeaders((name) => request.headers.get(name));
     response.cookies.set('revealui-role', userRole, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
-      domain: sessionCookieDomain(),
+      domain: sessionCookieDomain({ requestHost }),
     });
 
     response.cookies.set('revealui-session', token, {
@@ -223,7 +224,7 @@ export async function GET(
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24, // 1 day (matches DB session expiry)
-      domain: sessionCookieDomain({ logIfMissing: true }),
+      domain: sessionCookieDomain({ logIfMissing: true, requestHost }),
     });
 
     response.cookies.delete('oauth_state');

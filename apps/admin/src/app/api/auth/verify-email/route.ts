@@ -22,7 +22,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { isAdminRole } from '@/lib/access/roles/isAdminRole';
 // Shared module — not a Client Reference (see auth-redirect.ts header).
 import { parseLicense, resolveAuthDest } from '@/lib/utils/auth-redirect';
-import { sessionCookieDomain } from '@/lib/utils/session-cookies';
+import { requestHostFromHeaders, sessionCookieDomain } from '@/lib/utils/session-cookies';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -128,13 +128,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const response = NextResponse.redirect(`${baseUrl}${dest}`);
 
     // Set role cookie for proxy.ts role-aware gate (defense-in-depth).
+    const requestHost = requestHostFromHeaders((name) => request.headers.get(name));
     response.cookies.set('revealui-role', updatedUser.role, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
-      domain: sessionCookieDomain(),
+      domain: sessionCookieDomain({ requestHost }),
     });
 
     response.cookies.set('revealui-session', sessionToken, {
@@ -143,7 +144,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24, // 1 day (matches DB session expiry)
-      domain: sessionCookieDomain({ logIfMissing: true }),
+      domain: sessionCookieDomain({ logIfMissing: true, requestHost }),
     });
 
     return response;
