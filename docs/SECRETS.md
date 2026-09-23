@@ -227,6 +227,12 @@ value is never UI/API-revealable after write (credentials + private signing keys
 > - `revealui/prod/sentry/project-server` - `SENTRY_PROJECT` for apps/server; referenced by code
 >   but not currently emitted by either sync manifest.
 > Both fold into the spec in a later phase.
+>
+> **Declared, intentionally unsynced (GAP-347):** `revealui/prod/db/postgres-url-readonly` and
+> `revealui/staging/db/postgres-url-readonly`. Leaf name `postgres-url-readonly`, sibling of
+> `postgres-url`. These hold the Neon connection URL for the `revealui_readonly` role. They are
+> in `scripts/sync/secret-paths.ts` with `intentionallyUnsynced: true` so they never enter the
+> Vercel or Fly manifests. Owner runbook: [`docs/runbooks/postgres-readonly-role.md`](./runbooks/postgres-readonly-role.md).
 
 > **Stale duplicates slated for owner delete (P3-3) - do not add consumers:**
 > `revealui/prod/neon/postgres-url` + `revealui/db/neon-production` - both leftover from an

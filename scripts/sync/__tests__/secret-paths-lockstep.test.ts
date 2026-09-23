@@ -303,6 +303,23 @@ describe('migrating_since > 1-release-window tripwire', () => {
   });
 });
 
+describe('GAP-347 readonly database URL', () => {
+  it.each(['revealui/prod/db/postgres-url-readonly', 'revealui/staging/db/postgres-url-readonly'])(
+    '%s is a sensitive unsynced credential',
+    (path) => {
+      const def = SECRET_PATHS.find((d) => d.path === path);
+      expect(def?.kind).toBe('credential');
+      expect(def?.sensitive).toBe(true);
+      expect(def?.intentionallyUnsynced).toBe(true);
+      expect(def?.consumers).toEqual([]);
+      expect(DECLARED_PATHS.has(path)).toBe(true);
+      expect(SYNCED_PATHS.has(path)).toBe(false);
+      expect(allManifestPaths).not.toContain(path);
+      expect(docPaths).not.toContain(path);
+    },
+  );
+});
+
 describe('rendered synced surface', () => {
   it('renders every synced path (count derived from the spec, not a hand-maintained literal)', () => {
     expect(docPaths.length).toBe(syncedPathDefs().length);
