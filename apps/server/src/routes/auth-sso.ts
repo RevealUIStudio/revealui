@@ -42,6 +42,10 @@ import { getClient } from '@revealui/db';
 import { accountSsoProviders } from '@revealui/db/schema';
 import { and, eq, isNull } from 'drizzle-orm';
 import { Hono } from 'hono';
+import {
+  requestHostFromHeaders,
+  sessionCookieDomainForHost,
+} from '@revealui/core/session-cookie-domain';
 import { accountHasSsoFeature } from '../lib/account-entitlement.js';
 import { resolveSelfApiBaseUrl } from '../lib/self-api-url.js';
 
@@ -102,9 +106,23 @@ function cookieAttrs(maxAge: number): string {
   return `HttpOnly; SameSite=Lax; Path=/; Max-Age=${maxAge}${secure}`;
 }
 
-function sessionCookieDomain(): string | undefined {
+/**
+ * Domain attribute for the SSO session cookie.
+ * Staging hosts (`staging.revealui.com` and `*.staging.revealui.com`) resolve
+ * to `staging.revealui.com`. Every other host keeps `SESSION_COOKIE_DOMAIN`.
+ * Outside production the cookie stays host-only, matching admin sign-in.
+ */
+export function resolveSsoSessionCookieDomain(
+  requestHost: string | null | undefined,
+): string | undefined {
   if (process.env.NODE_ENV !== 'production') return undefined;
-  return process.env.SESSION_COOKIE_DOMAIN || undefined;
+  return sessionCookieDomainForHost(requestHost, process.env.SESSION_COOKIE_DOMAIN || undefined);
+}
+
+function sessionCookieDomainFromContext(c: {
+  req: { header: (name: string) => string | undefined };
+}): string | undefined {
+  return resolveSsoSessionCookieDomain(requestHostFromHeaders((name) => c.req.header(name)));
 }
 
 function setCookieHeader(name: string, value: string, maxAge: number, domain?: string): string {
@@ -763,7 +781,7 @@ app.get('/sso/:providerId/callback', async (c) => {
 
   const safePath = safeSsoRedirectPath(verified.redirectTo);
   const location = new URL(safePath, publicAppBaseUrl()).toString();
-  const domain = sessionCookieDomain();
+  const domain = sessionCookieDomainFromContext(c);
   const headers = new Headers();
   headers.set('Location', location);
   // Session maxAge matches createSession persistent default (7d cookie UX;
@@ -978,7 +996,7 @@ app.post('/sso/:providerId/callback', async (c) => {
 
   const safePath = safeSsoRedirectPath(verified.redirectTo);
   const location = new URL(safePath, publicAppBaseUrl()).toString();
-  const domain = sessionCookieDomain();
+  const domain = sessionCookieDomainFromContext(c);
   const headers = new Headers();
   headers.set('Location', location);
   appendSetCookie(headers, setCookieHeader(SESSION_COOKIE, token, 60 * 60 * 24 * 7, domain));

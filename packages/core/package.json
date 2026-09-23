@@ -66,6 +66,11 @@
       "import": "./dist/deployment-mode.js",
       "default": "./dist/deployment-mode.js"
     },
+    "./session-cookie-domain": {
+      "types": "./dist/session-cookie-domain.d.ts",
+      "import": "./dist/session-cookie-domain.js",
+      "default": "./dist/session-cookie-domain.js"
+    },
     "./margin-governor": {
       "types": "./dist/margin-governor.d.ts",
       "import": "./dist/margin-governor.js",

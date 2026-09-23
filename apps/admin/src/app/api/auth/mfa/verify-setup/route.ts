@@ -18,7 +18,11 @@ import {
 } from '@/lib/utils/error-response';
 import { rejectRecoverySession } from '@/lib/utils/recovery-guard';
 import { extractRequestContext } from '@/lib/utils/request-context';
-import { sessionCookieDomain, setRoleCookie } from '@/lib/utils/session-cookies';
+import {
+  requestHostFromHeaders,
+  sessionCookieDomain,
+  setRoleCookie,
+} from '@/lib/utils/session-cookies';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -88,16 +92,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
 
     const response = NextResponse.json({ success: true });
+    const requestHost = requestHostFromHeaders((name) => request.headers.get(name));
     response.cookies.set('revealui-session', sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24,
-      domain: sessionCookieDomain({ logIfMissing: true }),
+      domain: sessionCookieDomain({ logIfMissing: true, requestHost }),
     });
     // Keep role cookie in lockstep when rotating the session after MFA enroll.
-    setRoleCookie(response, session.user.role, { maxAge: 60 * 60 * 24 });
+    setRoleCookie(response, session.user.role, { maxAge: 60 * 60 * 24, requestHost });
     return response;
   } catch (error) {
     logger.error('Error verifying MFA setup', { error });

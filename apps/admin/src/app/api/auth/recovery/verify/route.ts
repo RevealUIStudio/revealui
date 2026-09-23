@@ -24,7 +24,11 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
-import { sessionCookieDomain, setRoleCookie } from '@/lib/utils/session-cookies';
+import {
+  requestHostFromHeaders,
+  sessionCookieDomain,
+  setRoleCookie,
+} from '@/lib/utils/session-cookies';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -94,6 +98,7 @@ async function verifyHandler(request: NextRequest): Promise<NextResponse> {
     const user = await getUserById(getClient(), verified.userId);
 
     const response = NextResponse.json({ success: true });
+    const requestHost = requestHostFromHeaders((name) => request.headers.get(name));
 
     // Set session cookie (same pattern as sign-in / MFA verify routes)
     response.cookies.set('revealui-session', sessionToken, {
@@ -102,9 +107,9 @@ async function verifyHandler(request: NextRequest): Promise<NextResponse> {
       sameSite: 'lax',
       path: '/',
       maxAge: 30 * 60, // 30 minutes (matches session expiry)
-      domain: sessionCookieDomain({ logIfMissing: true }),
+      domain: sessionCookieDomain({ logIfMissing: true, requestHost }),
     });
-    setRoleCookie(response, user?.role, { maxAge: 30 * 60 });
+    setRoleCookie(response, user?.role, { maxAge: 30 * 60, requestHost });
 
     return response;
   } catch (error) {

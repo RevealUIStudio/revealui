@@ -118,4 +118,27 @@ describe('requireSessionCookieDomain', () => {
     vi.stubEnv('SESSION_COOKIE_DOMAIN', '');
     expect(requireSessionCookieDomain()).toBeUndefined();
   });
+
+  it('resolves a staging host to staging.revealui.com even when production domain is configured', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('SESSION_COOKIE_DOMAIN', '.revealui.com');
+    expect(sessionCookieDomain({ requestHost: 'staging.revealui.com' })).toBe(
+      'staging.revealui.com',
+    );
+    expect(sessionCookieDomain({ requestHost: 'api.staging.revealui.com' })).toBe(
+      'staging.revealui.com',
+    );
+    expect(requireSessionCookieDomain({ requestHost: 'admin.staging.revealui.com' })).toBe(
+      'staging.revealui.com',
+    );
+  });
+
+  it('keeps SESSION_COOKIE_DOMAIN exactly for any non-staging host', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('SESSION_COOKIE_DOMAIN', '.revealui.com');
+    expect(sessionCookieDomain({ requestHost: 'admin.revealui.com' })).toBe('.revealui.com');
+    expect(sessionCookieDomain({ requestHost: 'api.revealui.com' })).toBe('.revealui.com');
+    expect(sessionCookieDomain()).toBe('.revealui.com');
+    expect(requireSessionCookieDomain({ requestHost: 'revealui.com' })).toBe('.revealui.com');
+  });
 });
