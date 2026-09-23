@@ -10,12 +10,14 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { checkPublicSecurityComment } from '../gates/public-security-comment-gate.js';
+import { resolveSessionAdapter } from '../session/resolve-adapter.js';
 import type {
   HarnessHookEvent,
   HarnessHookEventKind,
   HarnessHookSource,
 } from '../types/hook-event.js';
 import { emitMasterSpecCouplingWarnings } from './master-spec-coupling.js';
+import { normalizeGenericHookEvent } from './normalizers/generic.js';
 import type { ImplementedHookSource } from './normalizers/index.js';
 import { isImplementedHookSource, normalizeHookEvent } from './normalizers/index.js';
 import type { PolicyDecision, PolicySnapshotLoadResult } from './policy.js';
@@ -152,7 +154,7 @@ function buildEditorResponse(
 ): Record<string, unknown> {
   if (source === 'cursor') return buildCursorResponse(decision);
   if (source === 'vscode') return buildVSCodeResponse(kind, decision);
-  if (source === 'grok') return buildGrokResponse(decision);
+  if (source === 'grok' || source === 'generic') return buildGrokResponse(decision);
   return buildClaudeCodeResponse(decision);
 }
 
@@ -163,14 +165,10 @@ function buildEditorResponse(
  * and setting `process.exitCode`.
  */
 export async function runHookCommand(
-  source: ImplementedHookSource,
+  source: string,
   rawInput: unknown,
   options: HookRunOptions = defaultHookRunOptions(),
 ): Promise<HookRunResult> {
-  if (!isImplementedHookSource(source)) {
-    throw new Error(`No normalizer implemented for hook source "${source}"`);
-  }
-
   const snapshotResult = await loadPolicySnapshot(options.snapshotPath);
   // Honest enforcement tier (design invariant I-5): a receipt may claim
   // `enforced` ONLY when the policy signature cryptographically verifies
@@ -183,7 +181,15 @@ export async function runHookCommand(
       ? ('enforced' as const)
       : ('advisory' as const);
 
-  const event = normalizeHookEvent(source, rawInput, enforcementTier);
+  const implemented = isImplementedHookSource(source);
+  const plan = implemented ? null : resolveSessionAdapter(source);
+  if (!implemented && (!plan || (plan.mode === 'existing' && plan.hookSource))) {
+    throw new Error(`No normalizer implemented for hook source "${source}"`);
+  }
+  const event = implemented
+    ? normalizeHookEvent(source as ImplementedHookSource, rawInput, enforcementTier)
+    : normalizeGenericHookEvent(rawInput, enforcementTier);
+  const responseSource = implemented ? source : 'generic';
   let decision = evaluatePolicy(snapshotResult, event);
 
   // Safety floor (not snapshot-optional): public GitHub must not receive
@@ -235,7 +241,7 @@ export async function runHookCommand(
     event,
     decision,
     snapshotResult,
-    responseJson: buildEditorResponse(source, decision, event.kind),
+    responseJson: buildEditorResponse(responseSource, decision, event.kind),
     exitCode: decision.permission === 'deny' ? 2 : 0,
     spooled,
   };

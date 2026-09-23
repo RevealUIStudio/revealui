@@ -32,6 +32,14 @@ merge is worth thousands of tokens. Waste is spend that changes nothing.
 - Reserve large fan-out for proportional payoff.
 - Batch independent tool calls; do not refetch cached external results.
 
+## Context window
+
+Parent sessions compact at 160000 tokens on a 500000 window (32%). Snapshot 40000 tokens earlier (120000), before that compact runs.
+
+The numbers are authored only in `packages/harnesses/src/token-budget.ts`. Grok materialize writes them to `.revealui/adapters/grok/token-budget.json`. RevKit applies `compaction_at_tokens` on `grok-4.7` and `grok-4.7-build` and `auto_compact_threshold_percent = 32`. Other harnesses follow this contract with their own compact mechanism. Do not copy those TOML keys into a pressure score that is not this window.
+
+Grep and shell output past 30720 characters keeps 12288 characters at the head and 12288 at the tail. File reads stay intact. The Grok hook is `cap-tool-output.json`, emitted next to the session hooks.
+
 ## Verification is proportional, not skipped
 
 Right-sizing spend never means skipping verification on risky changes. Prove

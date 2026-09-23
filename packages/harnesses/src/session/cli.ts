@@ -6,9 +6,18 @@
  * is down the panel is a visible WARN (never silent empty peers).
  */
 
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import type { MemoryHarness, MemoryPrincipal } from '@revealui/knowledge-graph/memory';
 import { sessionEnd, sessionRegister } from './boundary.js';
+import { formatDurableMemoryWarn, queryDurableMemory } from './durable-memory.js';
 import { renderPeerPanel } from './peer-context.js';
 import { DEFAULT_HEARTBEAT_STALE_SECONDS, sessionReap } from './reap.js';
+import {
+  renderSessionAdapterLines,
+  resolveSessionAdapter,
+  writeThinAdapterPointer,
+} from './resolve-adapter.js';
 
 function printResult(
   label: string,
@@ -31,8 +40,62 @@ async function printPeerPanel(actorAgentId?: string): Promise<void> {
   process.stderr.write(panel);
 }
 
+function sessionMemoryPrincipal(vendor: string): MemoryPrincipal {
+  const harness: MemoryHarness =
+    vendor === 'claude-code'
+      ? 'claude'
+      : vendor === 'grok' || vendor === 'cursor' || vendor === 'opencode' || vendor === 'revdev'
+        ? vendor
+        : 'other';
+  return {
+    did: `did:revealfleet:session:${harness}`,
+    agentId: 'session',
+    fingerprint: 'session',
+    didKind: 'user-account-fallback',
+    harness,
+    tenantId: 'studio-local',
+    trustBoundary: 'studio-local',
+    isFleetOperator: false,
+  };
+}
+
 export async function runSessionCli(args: string[]): Promise<void> {
   const [subcommand, ...rest] = args;
+  if (subcommand === 'adapter') {
+    const vendor = rest.find((arg) => !arg.startsWith('--'));
+    const write = rest.includes('--write');
+    if (!vendor) {
+      process.stderr.write('usage: revealui-harnesses session adapter <vendor> [--write]\n');
+      return;
+    }
+    const plan = resolveSessionAdapter(vendor);
+    if (!plan) {
+      process.stderr.write(
+        `[control-layer] first\n[adapter] rejected "${vendor}": vendor id must be a slug\n`,
+      );
+      return;
+    }
+    process.stdout.write(renderSessionAdapterLines(plan));
+    if (rest.includes('--memory')) {
+      const result = await queryDurableMemory({
+        principal: sessionMemoryPrincipal(plan.vendor),
+        query: 'session-start',
+        limit: 5,
+      });
+      const warn = formatDurableMemoryWarn(result);
+      process.stderr.write(warn || '[durable-memory] read ok\n');
+    }
+    if (write && plan.mode === 'created') {
+      const rel = join('.revealui', 'adapters', `${plan.vendor}.md`);
+      if (existsSync(join(process.cwd(), rel))) {
+        process.stdout.write(`[adapter] ${plan.vendor}: pointer already exists, left in place\n`);
+      } else {
+        const written = writeThinAdapterPointer(process.cwd(), plan.vendor);
+        process.stdout.write(`[adapter] wrote ${written}\n`);
+      }
+    }
+    return;
+  }
   if (subcommand === 'register') {
     let backend = 'grok';
     let workDir = process.cwd();

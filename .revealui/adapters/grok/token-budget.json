@@ -1,0 +1,18 @@
+{
+  "contextWindowTokens": 500000,
+  "compactionAtTokens": 160000,
+  "snapshotHeadroomTokens": 40000,
+  "snapshotGateTokens": 120000,
+  "autoCompactThresholdPercent": 32,
+  "models": [
+    "grok-4.7",
+    "grok-4.7-build"
+  ],
+  "toolOutputCapChars": 30720,
+  "toolOutputHeadChars": 12288,
+  "toolOutputTailChars": 12288,
+  "cappedTools": [
+    "grep",
+    "run_terminal_command"
+  ]
+}

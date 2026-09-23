@@ -375,13 +375,16 @@ Authorization = "Bearer \${REVEALUI_MCP_TOKEN}"
 });
 
 describe('session CLI does not auto-query durable memory', () => {
-  it('register path does not call queryClaims or the durable helper', () => {
+  it('does not query durable memory unless the operator passes --memory', () => {
     const src = readFileSync(
       join(dirname(fileURLToPath(import.meta.url)), '../session/cli.ts'),
       'utf-8',
     );
+    const flagAt = src.indexOf("rest.includes('--memory')");
+    const callAt = src.indexOf('queryDurableMemory(');
     expect(src).not.toContain('queryClaims');
-    expect(src).not.toContain('queryDurableMemory');
     expect(src).not.toContain('publishDurableFinding');
+    expect(flagAt).toBeGreaterThan(-1);
+    expect(callAt).toBeGreaterThan(flagAt);
   });
 });

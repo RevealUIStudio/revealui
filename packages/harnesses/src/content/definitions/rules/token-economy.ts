@@ -1,10 +1,16 @@
+import { autoCompactThresholdPercent, TOKEN_BUDGET } from '../../../token-budget.js';
 import type { Rule } from '../../schemas/rule.js';
 
 /**
  * Control-layer token-economy guardrails (GAP-362).
  * Claude adapter: ~/.claude/rules/token-economy.md (thin pointer when materialized).
  * Runtime primitives: revdev loop.* / events.wait / work.completed.
+ *
+ * Compact numbers are interpolated from `src/token-budget.ts`.
  */
+const COMPACT_PCT = autoCompactThresholdPercent();
+const SNAPSHOT_GATE = TOKEN_BUDGET.compactionAtTokens - TOKEN_BUDGET.snapshotHeadroomTokens;
+
 export const tokenEconomyRule: Rule = {
   id: 'token-economy',
   tier: 'oss',
@@ -47,6 +53,14 @@ merge is worth thousands of tokens. Waste is spend that changes nothing.
 - Do not re-run work a subagent already owns; wait for the result.
 - Reserve large fan-out for proportional payoff.
 - Batch independent tool calls; do not refetch cached external results.
+
+## Context window
+
+Parent sessions compact at ${TOKEN_BUDGET.compactionAtTokens} tokens on a ${TOKEN_BUDGET.contextWindowTokens} window (${COMPACT_PCT}%). Snapshot ${TOKEN_BUDGET.snapshotHeadroomTokens} tokens earlier (${SNAPSHOT_GATE}), before that compact runs.
+
+The numbers are authored only in \`packages/harnesses/src/token-budget.ts\`. Grok materialize writes them to \`.revealui/adapters/grok/token-budget.json\`. RevKit applies \`compaction_at_tokens\` on ${TOKEN_BUDGET.models.map((id) => `\`${id}\``).join(' and ')} and \`auto_compact_threshold_percent = ${COMPACT_PCT}\`. Other harnesses follow this contract with their own compact mechanism. Do not copy those TOML keys into a pressure score that is not this window.
+
+Grep and shell output past ${TOKEN_BUDGET.toolOutputCapChars} characters keeps ${TOKEN_BUDGET.toolOutputHeadChars} characters at the head and ${TOKEN_BUDGET.toolOutputTailChars} at the tail. File reads stay intact. The Grok hook is \`cap-tool-output.json\`, emitted next to the session hooks.
 
 ## Verification is proportional, not skipped
 

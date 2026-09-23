@@ -103,7 +103,9 @@ describe('project manager (.revealui)', () => {
     expect(startCmds.some((c) => c.includes('hotfix check'))).toBe(true);
     expect(startCmds.some((c) => c.includes('tmpscript check'))).toBe(true);
     expect(startCmds.every((c) => !c.includes('.claude/hooks'))).toBe(true);
+    expect(startCmds.some((c) => c.includes('session adapter grok'))).toBe(true);
     expect(startCmds.some((c) => c.includes('session register'))).toBe(true);
+    expect(grokMd).toContain('session adapter grok');
 
     const end = JSON.parse(
       readFileSync(join(root, '.revealui/adapters/grok/hooks/session-end.json'), 'utf-8'),
@@ -121,6 +123,31 @@ describe('project manager (.revealui)', () => {
     const preCmds = pre.hooks.PreToolUse.flatMap((g) => g.hooks.map((h) => h.command));
     expect(preCmds.some((c) => c.includes('public-security-comment-pretool.cjs'))).toBe(true);
     expect(preCmds.some((c) => c.includes('|| true'))).toBe(false);
+
+    const cap = JSON.parse(
+      readFileSync(join(root, '.revealui/adapters/grok/hooks/cap-tool-output.json'), 'utf-8'),
+    ) as {
+      hooks: {
+        PostToolUse: Array<{ matcher?: string; hooks: Array<{ command: string }> }>;
+      };
+    };
+    expect(cap.hooks.PostToolUse[0]?.matcher).toBe('grep|run_terminal_command');
+    expect(cap.hooks.PostToolUse[0]?.hooks[0]?.command).toContain('cap-tool-output.js');
+
+    const budget = JSON.parse(
+      readFileSync(join(root, '.revealui/adapters/grok/token-budget.json'), 'utf-8'),
+    ) as {
+      compactionAtTokens: number;
+      autoCompactThresholdPercent: number;
+      snapshotGateTokens: number;
+      contextWindowTokens: number;
+    };
+    expect(budget.compactionAtTokens).toBe(160_000);
+    expect(budget.contextWindowTokens).toBe(500_000);
+    expect(budget.autoCompactThresholdPercent).toBe(32);
+    expect(budget.snapshotGateTokens).toBe(120_000);
+    expect(grokMd).toContain('cap-tool-output.json');
+    expect(grokMd).toContain('token-budget.json');
   });
 
   it('writeManagerAdapterContent emits manager content + cursor hooks + opencode surfaces', () => {
@@ -146,7 +173,8 @@ describe('project manager (.revealui)', () => {
       hooks: Record<string, Array<{ command: string; type: string }>>;
     };
     expect(hooks.version).toBe(1);
-    expect(hooks.hooks.sessionStart?.[0]?.command).toContain('revealui-harnesses hook cursor');
+    expect(hooks.hooks.sessionStart?.[0]?.command).toContain('session adapter cursor');
+    expect(hooks.hooks.sessionStart?.[1]?.command).toContain('revealui-harnesses hook cursor');
 
     // Manager content (claude-code generator) still lands under .revealui/content
     const contentRule = readFileSync(
