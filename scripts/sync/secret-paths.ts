@@ -1110,6 +1110,28 @@ export function findSensitivityGaps(vars: readonly ManifestVar[]): Drift[] {
 }
 
 /**
+ * GAP-234: `NEXT_PUBLIC_*` values are bundled into client JS, so Vercel type
+ * `sensitive` is the wrong flag. Manifest entries for those names must stay
+ * bare (`sensitive` defaults false). A `sensitive = true` marker would make
+ * the next create request type `sensitive` again.
+ *
+ * Independent of vault-path kind: a public name must not be sensitive even
+ * when the path is undeclared or credential-class.
+ */
+export function findNextPublicSensitiveMarks(vars: readonly ManifestVar[]): Drift[] {
+  const out: Drift[] = [];
+  for (const v of vars) {
+    if (!(v.name.startsWith('NEXT_PUBLIC_') && v.sensitive)) continue;
+    out.push({
+      kind: 'sensitivity-mismatch',
+      path: v.path,
+      detail: `${v.source} var ${v.name} is NEXT_PUBLIC_* and must not be sensitive`,
+    });
+  }
+  return out;
+}
+
+/**
  * A declared migration that has lingered past one release window is a finding.
  * Pure + deterministic: the caller supplies the reference instant and window
  * length (days), so the gate never depends on the wall clock. One release
