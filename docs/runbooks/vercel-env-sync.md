@@ -117,12 +117,13 @@ Outputs JSON describing every variable's diff state per project (Add / Update / 
 
 ## Out of scope (deferred to v2)
 
-- Preview + development env target sync — production-only in v1 per the internal canonical env-var mapping doc Q4
+- Preview + development env target sync — production-only in v1 per the internal canonical env-var mapping doc Q4. Owner name checklist for preview gaps: [`gap-123-preview-env-names.md`](./gap-123-preview-env-names.md)
 - Per-var Sensitive flag policy — gated on revvault adding `var_type` plumbing per concern C2 in the design doc
 - Auto-rotation chain — `revvault rotate <path>` triggering Vercel sync; design doc Phase 5
 
 ## See also
 
+- Preview name checklist (GAP-123): [`gap-123-preview-env-names.md`](./gap-123-preview-env-names.md)
 - Design doc: internal revvault-vercel sync design (private coordination hub)
 - Canonical env-var mapping: internal canonical-mapping doc (private coordination hub)
 - Secrets rule: [`~/revealfleet/.claude/rules/secrets.md`](../../../.claude/rules/secrets.md)
