@@ -3,7 +3,7 @@ visibility: internal
 status: verified
 audience: maintainer
 title: GAP-169 historical Supabase prefix erzpwtonzo inventory
-description: Search inventory for the retired Supabase project prefix erzpwtonzo. Historical hits only. No project deletion or key rotation.
+description: Search inventory for the retired Supabase project prefix erzpwtonzo. The project is dead and not live as of 2026-09-23. Historical hits only. No bot deletion and no key rotation.
 last-updated: 2026-09-23
 classification: internal
 ---
@@ -14,7 +14,7 @@ classification: internal
 
 Zero remaining references on the current tree of `origin/test` (`f2658af69cbe9f9f381fa13062127ee6a8fbdb0b`) and on every local and remote ref tip searched on 2026-09-23.
 
-This inventory does not delete the historical Supabase project, rotate keys, or edit production config.
+This inventory does not delete the historical Supabase project, rotate keys, or edit production config. A bot must not delete the project.
 
 ## Search method
 
@@ -47,6 +47,14 @@ These paths contained the prefix in older commits. None of these paths exist on 
 | `.env.backup` | Commit `77b64f020` (2026-01-12). Not an ancestor of `origin/test` or `origin/main`. Reachable from old package tag history such as `@revealui/auth@0.2.0`. The tag tip trees do not contain the prefix. | Historical env-shaped file, not current config. | `SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_URL` hosts included the prefix. Historical only. |
 | `.env.clean` | Commits `77b64f020` and `9b0ee1c57`. Same tag-history reachability. Not an ancestor of `origin/test` or `origin/main`. | Historical env-shaped file, not current config. | `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_URL`, and `SUPABASE_PROJECT_ID` included the prefix. Historical only. |
 
+## Owner ruling (2026-09-23)
+
+Joshua ruled on 2026-09-23:
+
+- The Supabase project for prefix `erzpwtonzo` is dead. It is not live.
+- A bot must not delete the Supabase project.
+- Dashboard cleanup, if still needed, is owner-only.
+
 ## Owner action
 
-Decide in the vendor dashboard whether the historical Supabase project for prefix `erzpwtonzo` is still live. This document does not delete that project or rotate keys.
+The live-or-dead question is settled by the owner ruling above. This document does not delete that project or rotate keys. Any remaining dashboard cleanup is owner-only.
