@@ -541,4 +541,8 @@ Settings pairing UI for the flow.
 | `revealui/prod/admin/signup-open` | admin `REVEALUI_SIGNUP_OPEN` | Boolean string; self-serve funnel gate |
 | `revealui/prod/api/bundle-pro` | api `REVEALUI_BUNDLE_PRO` | Pro bundle flag |
 
-Scoped sync runbook: [docs/security/REVVAULT-VERCEL-SCOPED-SYNC.md](./security/REVVAULT-VERCEL-SCOPED-SYNC.md).
+These two names are the unvaulted production pair (still `KNOWN_DRIFT` orphans).
+Owner apply list, project ids, and live targets (names only, checked
+2026-09-23 with decrypt off):
+[docs/security/REVVAULT-VERCEL-SCOPED-SYNC.md](./security/REVVAULT-VERCEL-SCOPED-SYNC.md#owner-apply-list-2026-09-23).
+The owner vaults the paths and runs scoped sync. This repo does not apply.
