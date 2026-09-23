@@ -9,7 +9,6 @@
 ### Patch Changes
 
 - @revealui/core@0.14.7
-- @revealui/security@0.8.2
 - @revealui/knowledge-graph@0.2.1
 
 ## 0.17.3

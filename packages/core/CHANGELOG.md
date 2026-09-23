@@ -7,7 +7,6 @@
 - Updated dependencies [c304dbb]
   - @revealui/contracts@0.11.0
   - @revealui/presentation@0.14.7
-  - @revealui/security@0.8.2
 
 ## 0.14.6
 

@@ -6,7 +6,6 @@
 
 - Updated dependencies
   - @revealui/config@0.7.0
-  - @revealui/security@0.8.2
 
 ## 0.7.8
 
