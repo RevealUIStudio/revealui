@@ -1,5 +1,14 @@
 # @revealui/ai
 
+## 1.0.7
+
+### Patch Changes
+
+- Updated dependencies [c304dbb]
+  - @revealui/contracts@0.11.0
+  - @revealui/db@0.10.3
+  - @revealui/core@0.14.7
+
 ## 1.0.6
 
 ### Patch Changes

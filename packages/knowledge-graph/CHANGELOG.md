@@ -1,5 +1,11 @@
 # @revealui/knowledge-graph
 
+## 0.2.1
+
+### Patch Changes
+
+- @revealui/db@0.10.3
+
 ## 0.2.0
 
 ### Minor Changes
