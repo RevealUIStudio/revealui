@@ -154,14 +154,20 @@ export const ENTERPRISE_SALES_HREF = 'https://revealui.com/contact' as const;
 export const BOOK_INTRO_HREF =
   'https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ21UZVcuYp7yO32rZmhyUvZFDJcvles81E9edGNFwSUP8SHEVzGvq0gKgNFo7q04YS5i-12ZE5P' as const;
 
-/** Studio Consultation on revealuistudio.com. Not a revealui.com catalog SKU. */
+/** Studio Consultation on revealuistudio.com. Not a revealui.com catalog SKU. Tax $0. */
 export const CONSULTATION_PRICE = '$300' as const;
 
-/** Studio Pilot on revealuistudio.com. Not a revealui.com catalog SKU. */
-export const PILOT_PRICE = '$1,500' as const;
+/**
+ * Studio Proof Sprint on revealuistudio.com. Not a revealui.com catalog SKU.
+ * Replaces Pilot $1,500 (retired 2026-09-22). 100% credit toward Launch within 45 days.
+ */
+export const PROOF_SPRINT_PRICE = '$3,997' as const;
 
-/** Studio Launch on revealuistudio.com. Not a revealui.com catalog SKU. */
-export const LAUNCH_PACKAGE_PRICE = '$7,500' as const;
+/**
+ * Studio Launch on revealuistudio.com. Not a revealui.com catalog SKU.
+ * Architecture stays inside this offer. The $7,500 list is retired (2026-09-22).
+ */
+export const LAUNCH_PACKAGE_PRICE = '$14,500' as const;
 
 /**
  * Pro Perpetual stays $1,499 one-time (2026-08-31 lock). Yearly Pro is now

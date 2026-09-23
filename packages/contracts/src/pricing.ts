@@ -19,8 +19,8 @@ export {
   type LicenseTierId,
   PAID_TIER_SUPPORT,
   type PerpetualTier,
-  PILOT_PRICE,
   PRO_PERPETUAL_PRICE,
+  PROOF_SPRINT_PRICE,
   type PricingResponse,
   PUBLIC_PERPETUAL_NAMES,
   PUBLIC_PERPETUAL_TIERS,
@@ -37,7 +37,7 @@ import {
   LAUNCH_PACKAGE_PRICE,
   type LicenseTierId,
   type PerpetualTier,
-  PILOT_PRICE,
+  PROOF_SPRINT_PRICE,
   PUBLIC_PERPETUAL_TIERS,
   type ServiceOffering,
   SUBSCRIPTION_TIERS,
@@ -187,14 +187,16 @@ export const CREDIT_BUNDLES: CreditBundle[] = [
 // =============================================================================
 // Founder-led Professional Services (Track D)
 //
-// Scope: public studio menu on revealuistudio.com — Consultation, Pilot,
+// Scope: public studio menu on revealuistudio.com — Consultation, Proof Sprint,
 // Launch. Architecture work happens inside Launch; it is not a public SKU.
+// Hour and Architecture Review are not public middle SKUs. Pilot $1,500 is retired.
 // These are NOT the product-catalog offerings. The product /pricing page
 // sells licenses only (Free / Pro / Max / Enterprise + Perpetual Pro).
 // Studio SKUs live on revealuistudio.com and in
 // apps/marketing/app/content/for-operators.ts (not rendered on /pricing).
-// Canonical Consultation / Pilot / Launch prices are owned here;
+// Canonical Consultation / Proof Sprint / Launch prices are owned here;
 // leftover studio surfaces import them rather than re-authoring.
+// Locked 2026-09-22.
 // =============================================================================
 
 export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
@@ -203,29 +205,30 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
     name: 'Consultation',
     price: CONSULTATION_PRICE,
     description:
-      'One-on-one time with the founder who built RevealUI. Scope a Pilot or Launch, debug a live site, or pair on a specific problem.',
+      'One-on-one time with the founder who built RevealUI. Path A is the default. Path B if you ask. You leave with a denser living pack and a Stage A share URL. Tax is $0. Scope a Proof Sprint or Launch, or pair on a specific problem.',
     includes: [
+      'Path A by default, Path B if you ask',
+      'Denser living pack and a Stage A share URL',
       'Scheduled video call with screen sharing',
       'Follow-up notes and action items',
-      'Priority scheduling (within 48 hours)',
     ],
-    deliverable: 'Session recording and written follow-up notes',
+    deliverable: 'Denser living pack, Stage A share URL, and written follow-up notes',
     cta: 'Book a Consultation',
     ctaHref: BOOK_INTRO_HREF,
   },
   {
-    id: 'pilot',
-    name: 'Pilot',
-    price: PILOT_PRICE,
+    id: 'proof-sprint',
+    name: 'Proof Sprint',
+    price: PROOF_SPRINT_PRICE,
     description:
-      'One site on your domain and one agent you run. You keep it. Credits 100% to Launch if you start Launch within 30 days.',
+      'One site and one receipted action you operate. Stage B is included. Credits 100% to Launch if you start Launch within 45 days.',
     includes: [
-      'One site live on your domain',
-      'One agent you operate (you keep it)',
-      'Handoff so you can run it without us',
-      'Full credit toward Launch if you start Launch within 30 days',
+      'One site',
+      'One receipted action you operate',
+      'Stage B included',
+      'Full credit toward Launch if you start Launch within 45 days',
     ],
-    deliverable: 'A working site and agent on your accounts',
+    deliverable: 'A working site and one receipted action on your accounts',
     cta: 'Book a Consultation',
     ctaHref: BOOK_INTRO_HREF,
   },
@@ -234,16 +237,16 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
     name: 'Launch',
     price: LAUNCH_PACKAGE_PRICE,
     description:
-      'Go from zero to production, including architecture work inside this engagement. I set up your RevealUI instance, configure your content model, deploy, and hand you the keys.',
+      'Go from zero to production. Architecture stays inside this engagement, with a runbook and 30 days of async stabilization. I set up your RevealUI instance, configure your content model, deploy, and hand you the keys.',
     includes: [
       'Architecture, schema, and security work inside Launch (not a separate SKU)',
+      'Runbook',
+      '30 days of async stabilization',
       'RevealUI project setup and configuration',
       'Content schema design for your use case',
-      'Authentication and access control',
       'Deployment with custom domain',
-      'Operational handoff documentation',
     ],
-    deliverable: 'Production-ready deployment within 2-4 weeks',
+    deliverable: 'Production-ready deployment, runbook, and 30 days of async stabilization',
     cta: 'Book a Consultation',
     ctaHref: BOOK_INTRO_HREF,
   },
