@@ -12,9 +12,10 @@
  *   list                             List harnesses in TSV format
  *   sync <harnessId> <push|pull>     Sync harness config to/from SSD
  *   coordinate [--project <path>]    Print current workboard state
- *   hook <cursor|claude-code|vscode|grok> Normalize a hook payload from stdin, evaluate policy, spool the receipt
+ *   hook <vendor>                    Control-layer hook. Known vendors use their adapter; an unknown slug gets a thin one
  *   acp                              Run RevealUI as an ACP agent on stdio (GAP-381 Phase D; Zed/JetBrains)
  *   skills list [--json]             Read-only skill catalog (GAP-293 Phase B)
+ *   session adapter <vendor> [--write]  Control layer first, then the vendor adapter (create a thin one if missing)
  *   session register|end|peers|reap  Soft-optional RevDev session boundary + peer panel + reaper (GAP-459)
  *
  * License: FSL-1.1-MIT
@@ -48,6 +49,7 @@ import { runHotfixCli } from './hotfix/cli.js';
 import { checkManager, materializeManager } from './manager/index.js';
 import { InferenceService } from './server/inference-service.js';
 import { runSessionCli } from './session/cli.js';
+import { resolveSessionAdapter } from './session/resolve-adapter.js';
 import { runTmpscriptCli } from './tmpscript/cli.js';
 import { WorkboardManager } from './workboard/workboard-manager.js';
 
@@ -492,9 +494,10 @@ async function readStdin(): Promise<string> {
  * JSON) defaults to allow rather than crashing the editor's hook pipeline.
  */
 async function handleHookCommand(source: string | undefined): Promise<void> {
-  if (!(source && isImplementedHookSource(source))) {
+  const adapter = source ? resolveSessionAdapter(source) : null;
+  if (!(source && (isImplementedHookSource(source) || adapter))) {
     process.stderr.write(
-      `Unsupported hook source: ${source ?? '(none)'}. Supported: cursor, claude-code, vscode, grok\n`,
+      `Unsupported hook source: ${source ?? '(none)'}. Supported: cursor, claude-code, vscode, grok, or a new vendor slug that uses the control layer\n`,
     );
     process.exitCode = 1;
     return;
@@ -810,8 +813,9 @@ Commands:
   sync <id> <push|pull>             Sync harness config to/from SSD (requires daemon)
   health                            Run health check (requires daemon)
   coordinate [--project <path>]     Print workboard state
-  hook <cursor|claude-code|vscode|grok>  Normalize a hook payload from stdin, evaluate policy, spool the receipt
+  hook <vendor>                     Control-layer hook. Known adapter, or a thin one for a new vendor
   acp                               Run RevealUI ACP agent on stdio (Zed / JetBrains / ACP clients)
+  session adapter <vendor> [--write]  Control layer first, then the vendor adapter
   session register|end|peers|reap   Soft-optional RevDev session boundary + peer panel + reaper (GAP-459)
   content <subcommand>              Manage canonical content definitions
   manager materialize [--project p] Write manager.json + .revealui/content + Cursor/OpenCode surfaces + equal stubs

@@ -79,7 +79,11 @@ export class CursorGenerator implements ContentGenerator {
   generateAll(_manifest: Manifest, _ctx: ResolverContext): GeneratedFile[] {
     const hooks: CursorHooksConfig['hooks'] = {};
     for (const eventName of CURSOR_HOOK_EVENT_NAMES) {
-      hooks[eventName] = [{ command: 'revealui-harnesses hook cursor', type: 'command' }];
+      const policy = { command: 'revealui-harnesses hook cursor', type: 'command' as const };
+      hooks[eventName] =
+        eventName === 'sessionStart'
+          ? [{ command: 'revealui-harnesses session adapter cursor', type: 'command' }, policy]
+          : [policy];
     }
 
     const config: CursorHooksConfig = { version: 1, hooks };

@@ -19,6 +19,15 @@ Shared policy, product tools, coordination, and day-to-day backlog live in the
 RevealUI native layer. Adapters communicate with that layer; they do not re-author
 shared hardlines.
 
+## Session order
+
+Every session does this, in this order, for whatever vendor it was pointed at:
+
+1. **Control layer first.** \`.revealui/manager.json\`, \`.revealui/content/\`, and the token budget. Do not start from the vendor home.
+2. **Then the adapter.** \`revealui-harnesses session adapter <vendor>\` resolves it.
+3. **Use the registered adapter** when one exists (Grok, Claude Code, Cursor, VS Code, OpenCode, RevDev, ACP). It extends the control layer.
+4. **Create a thin adapter** when none exists. It only forwards hooks to \`revealui-harnesses hook <vendor>\` and does not author policy. \`--write\` adds \`.revealui/adapters/<vendor>.md\` if that pointer is missing. A session does not invent a second rules tree.
+
 ## Authority order
 
 1. **Project manager** — \`./.revealui/manager.json\` (+ \`.revealui/content/\`)

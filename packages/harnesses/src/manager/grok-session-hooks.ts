@@ -21,6 +21,8 @@
  * (yellow OK for dual-harness Studio; green on control registries).
  */
 
+import { TOKEN_BUDGET } from '../token-budget.js';
+
 /** Relative paths under the project root after materialize. */
 export const GROK_HOOK_TEMPLATE_DIR = '.revealui/adapters/grok/hooks';
 
@@ -31,6 +33,7 @@ interface GrokHookCommand {
 }
 
 interface GrokHookGroup {
+  matcher?: string;
   hooks: GrokHookCommand[];
 }
 
@@ -40,17 +43,14 @@ function hookFile(event: string, groups: GrokHookGroup[]): string {
 
 /**
  * Resolve fleet root the same way SessionStart adapters already do:
- * $REVEALFLEET_ROOT, then $REVFLEET_ROOT, then ~/revealfleet.
- * The retired ~/revfleet directory is not a fleet root (GAP-489 / GAP-418).
+ * $REVEALFLEET_ROOT, else ~/revealfleet.
  */
 const FLEET_RESOLVE = [
   'FLEET="',
   '$',
   '{REVEALFLEET_ROOT:-',
   '$',
-  '{REVFLEET_ROOT:-',
-  '$',
-  'HOME/revealfleet}}"; if [ ! -d "$FLEET/revealui" ] && [ ! -f "$FLEET/.jv/scripts/session-start-fleet.js" ]; then FLEET="$HOME/revealfleet"; fi',
+  'HOME/revealfleet}"; if [ ! -d "$FLEET/revealui" ] && [ ! -f "$FLEET/.jv/scripts/session-start-fleet.js" ]; then FLEET="$HOME/revealfleet"; fi',
 ].join('');
 
 const SESSION_START_FLEET_CMD = `${FLEET_RESOLVE}; node "$FLEET/.jv/scripts/session-start-fleet.js" || true`;
@@ -82,9 +82,12 @@ const SESSION_END_CMD = controlLayerCmd('session end');
 const HOOK_GROK_CMD =
   'node "$HOME/.local/share/revealui/hooks/public-security-comment-pretool.cjs"';
 
+const SESSION_ADAPTER_CMD = controlLayerCmd('session adapter grok');
+
 export const GROK_SESSION_START_HOOKS_JSON = hookFile('SessionStart', [
   {
     hooks: [
+      { type: 'command', command: SESSION_ADAPTER_CMD, timeout: 15 },
       {
         type: 'command',
         command:
@@ -130,9 +133,49 @@ export const GROK_PRE_TOOL_HOOKS_JSON = hookFile('PreToolUse', [
   },
 ]);
 
+/**
+ * PostToolUse cap for grep and shell output. The script lives in revskills
+ * (one implementation). RevKit installs it beside the other XDG helpers.
+ * Matcher and the script both come from TOKEN_BUDGET.cappedTools.
+ */
+const CAP_TOOL_OUTPUT_CMD = 'node "$HOME/.local/share/revealui/hooks/cap-tool-output.js"';
+
+/**
+ * Mechanical denies owned by the fleet git-hooks scripts, not by ~/.claude.
+ * Exit 2 must propagate, so these commands are not wrapped in `|| true`.
+ */
+const fleetGitHook = (script: string): string =>
+  `${FLEET_RESOLVE}; node "$FLEET/.jv/scripts/git-hooks/${script}"`;
+
+export const GROK_NONUKES_HOOKS_JSON = hookFile('PreToolUse', [
+  {
+    matcher: 'Bash|run_terminal_command',
+    hooks: [{ type: 'command', command: fleetGitHook('nonukes.js'), timeout: 10 }],
+  },
+]);
+
+export const GROK_DIRTY_CHECKOUT_HOOKS_JSON = hookFile('PreToolUse', [
+  {
+    matcher: 'Bash|run_terminal_command',
+    hooks: [
+      { type: 'command', command: fleetGitHook('dirty-checkout-guard.js'), timeout: 10 },
+    ],
+  },
+]);
+
+export const GROK_CAP_TOOL_OUTPUT_HOOKS_JSON = hookFile('PostToolUse', [
+  {
+    matcher: TOKEN_BUDGET.cappedTools.join('|'),
+    hooks: [{ type: 'command', command: CAP_TOOL_OUTPUT_CMD, timeout: 10 }],
+  },
+]);
+
 /** Filenames under GROK_HOOK_TEMPLATE_DIR. RevKit copies the allowlist to `$GROK_HOME/hooks`. */
 export const GROK_HOOK_FILES = {
   'session-start.json': GROK_SESSION_START_HOOKS_JSON,
   'session-end.json': GROK_SESSION_END_HOOKS_JSON,
   'pre-tool.json': GROK_PRE_TOOL_HOOKS_JSON,
+  'cap-tool-output.json': GROK_CAP_TOOL_OUTPUT_HOOKS_JSON,
+  'nonukes.json': GROK_NONUKES_HOOKS_JSON,
+  'dirty-checkout.json': GROK_DIRTY_CHECKOUT_HOOKS_JSON,
 } as const;
