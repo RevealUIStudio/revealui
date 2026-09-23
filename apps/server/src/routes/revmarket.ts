@@ -9,8 +9,8 @@
  * `configureExecutor`; hosted deployments must keep `forkProvider`.
  * x402 emission on POST /tasks is gated on `X402_ENABLED=true` (default off).
  * When enabled, paid agents (basePriceUsdc > 0) require a verified payment
- * proof before the task is queued; free agents are unaffected. Stripe
- * Connect 80/20 split to the agent publisher is deferred to Phase B.
+ * proof before the task is queued; free agents are unaffected. Weekly
+ * Connect publisher pay is GAP-160. GAP-162 refunds are USDC on Base.
  *
  * Extends the MCP Marketplace (Phase 5.5) with autonomous agent task execution.
  * Agents register with skills and pricing, users submit tasks, the system
@@ -57,6 +57,14 @@ import {
   verifyPayment,
 } from '../middleware/x402.js';
 import { getExecutorStatus, getTaskProgress } from '../services/revmarket-executor.js';
+import { usdcToCents } from '../services/revmarket-refund-policy.js';
+import {
+  bookCancelRefunds,
+  decideDispute,
+  openTaskDispute,
+  recordInitialAttempt,
+  replyToDispute,
+} from '../services/revmarket-refunds.js';
 
 // =============================================================================
 // Helpers
@@ -738,6 +746,15 @@ app.openapi(
 
     const [created] = await db.insert(taskSubmissions).values(newTask).returning();
 
+    if (costUsdc && usdcToCents(costUsdc) > 0) {
+      await recordInitialAttempt(db, {
+        customerId: user.id,
+        taskId,
+        amountUsdc: costUsdc,
+        charged: resolvedPaymentMethod === 'x402-usdc',
+      });
+    }
+
     logger.info('RevMarket task submitted', {
       taskId,
       submitterId: user.id,
@@ -889,7 +906,146 @@ app.openapi(
       .set({ status: 'cancelled', updatedAt: new Date() })
       .where(eq(taskSubmissions.id, id));
 
+    try {
+      await bookCancelRefunds(db, {
+        taskId: id,
+        customerId: task.submitterId,
+        phase: task.status,
+        now: new Date(),
+      });
+    } catch (err) {
+      logger.error(
+        'RevMarket cancel refund booking failed',
+        err instanceof Error ? err : undefined,
+        {
+          taskId: id,
+        },
+      );
+    }
+
     logger.info('RevMarket task cancelled', { taskId: id, by: user.id });
+    return c.json({ success: true });
+  },
+);
+
+const DisputeReasonSchema = z.object({
+  reason: z.string().min(1).max(2000),
+});
+
+/** POST /tasks/:id/disputes — written reason after completion, inside 7 days. */
+app.openapi(
+  createRoute({
+    method: 'post',
+    path: '/tasks/{id}/disputes',
+    tags: ['revmarket'],
+    summary: 'Open a dispute on a completed task',
+    request: {
+      params: z.object({ id: z.string() }),
+      body: { content: { 'application/json': { schema: DisputeReasonSchema } } },
+    },
+    middleware: [authMiddleware({ required: true })] as const,
+    responses: {
+      201: {
+        content: {
+          'application/json': {
+            schema: z.object({ disputeId: z.string(), abuseFlag: z.boolean() }),
+          },
+        },
+        description: 'Dispute opened',
+      },
+      400: {
+        content: { 'application/json': { schema: z.object({ error: z.string() }) } },
+        description: 'Dispute rejected',
+      },
+    },
+  }),
+  // @ts-expect-error -- OpenAPI response union narrowing
+  async (c) => {
+    const user = c.get('user');
+    if (!user) throw new HTTPException(401, { message: 'Unauthorized' });
+    const { id } = c.req.valid('param');
+    const { reason } = c.req.valid('json');
+    const result = await openTaskDispute(getClient(), {
+      taskId: id,
+      userId: user.id,
+      isAdmin: hasApiRole(user, 'admin'),
+      reason,
+      now: new Date(),
+    });
+    if (!result.ok) throw new HTTPException(result.status, { message: result.error });
+    return c.json({ disputeId: result.disputeId, abuseFlag: result.abuseFlag }, 201);
+  },
+);
+
+/** POST /tasks/:id/disputes/reply — publisher, once. */
+app.openapi(
+  createRoute({
+    method: 'post',
+    path: '/tasks/{id}/disputes/reply',
+    tags: ['revmarket'],
+    summary: 'Publisher replies once to a dispute',
+    request: {
+      params: z.object({ id: z.string() }),
+      body: {
+        content: {
+          'application/json': { schema: z.object({ reply: z.string().min(1).max(2000) }) },
+        },
+      },
+    },
+    middleware: [authMiddleware({ required: true })] as const,
+    responses: {
+      200: {
+        content: { 'application/json': { schema: z.object({ success: z.boolean() }) } },
+        description: 'Reply recorded',
+      },
+    },
+  }),
+  // @ts-expect-error -- OpenAPI response union narrowing
+  async (c) => {
+    const user = c.get('user');
+    if (!user) throw new HTTPException(401, { message: 'Unauthorized' });
+    const { id } = c.req.valid('param');
+    const { reply } = c.req.valid('json');
+    const result = await replyToDispute(getClient(), { taskId: id, userId: user.id, reply });
+    if (!result.ok) throw new HTTPException(result.status, { message: result.error });
+    return c.json({ success: true });
+  },
+);
+
+/** POST /tasks/:id/disputes/decision — Joshua (admin) refunds or denies. */
+app.openapi(
+  createRoute({
+    method: 'post',
+    path: '/tasks/{id}/disputes/decision',
+    tags: ['revmarket'],
+    summary: 'Decide a dispute',
+    request: {
+      params: z.object({ id: z.string() }),
+      body: {
+        content: {
+          'application/json': {
+            schema: z.object({ decision: z.enum(['refund', 'deny']) }),
+          },
+        },
+      },
+    },
+    middleware: [authMiddleware({ required: true })] as const,
+    responses: {
+      200: {
+        content: { 'application/json': { schema: z.object({ success: z.boolean() }) } },
+        description: 'Decision recorded',
+      },
+    },
+  }),
+  // @ts-expect-error -- OpenAPI response union narrowing
+  async (c) => {
+    const user = c.get('user');
+    if (!user) throw new HTTPException(401, { message: 'Unauthorized' });
+    if (!hasApiRole(user, 'admin')) throw new HTTPException(403, { message: 'Forbidden' });
+    const { id } = c.req.valid('param');
+    const { decision } = c.req.valid('json');
+    const result = await decideDispute(getClient(), { taskId: id, decision, now: new Date() });
+    if (!result.ok) throw new HTTPException(result.status, { message: result.error });
     return c.json({ success: true });
   },
 );

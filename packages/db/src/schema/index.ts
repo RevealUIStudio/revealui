@@ -86,8 +86,11 @@ import {
   agentReviews,
   agentSkills,
   marketplaceAgents,
+  paymentAttempts,
   publisherEarnings,
   publisherPayouts,
+  revmarketDisputes,
+  revmarketRefunds,
   taskSubmissions,
 } from './revmarket.js';
 import { siteCollaborators, sites } from './sites.js';
@@ -118,6 +121,9 @@ export const usersRelations = relations(users, ({ many }) => ({
   magicLinks: many(magicLinks),
   publisherEarnings: many(publisherEarnings),
   publisherPayouts: many(publisherPayouts),
+  paymentAttempts: many(paymentAttempts),
+  revmarketRefunds: many(revmarketRefunds),
+  revmarketDisputes: many(revmarketDisputes),
 }));
 
 export const tenantsRelations = relations(tenants, () => ({}));
@@ -589,7 +595,7 @@ export const agentReviewsRelations = relations(agentReviews, ({ one }) => ({
   }),
 }));
 
-export const taskSubmissionsRelations = relations(taskSubmissions, ({ one }) => ({
+export const taskSubmissionsRelations = relations(taskSubmissions, ({ one, many }) => ({
   submitter: one(users, {
     fields: [taskSubmissions.submitterId],
     references: [users.id],
@@ -601,6 +607,12 @@ export const taskSubmissionsRelations = relations(taskSubmissions, ({ one }) => 
   earning: one(publisherEarnings, {
     fields: [taskSubmissions.id],
     references: [publisherEarnings.taskId],
+  }),
+  paymentAttempts: many(paymentAttempts),
+  refunds: many(revmarketRefunds),
+  dispute: one(revmarketDisputes, {
+    fields: [taskSubmissions.id],
+    references: [revmarketDisputes.taskId],
   }),
 }));
 
@@ -628,5 +640,46 @@ export const publisherEarningsRelations = relations(publisherEarnings, ({ one })
   payout: one(publisherPayouts, {
     fields: [publisherEarnings.payoutId],
     references: [publisherPayouts.id],
+  }),
+}));
+
+export const paymentAttemptsRelations = relations(paymentAttempts, ({ one }) => ({
+  customer: one(users, {
+    fields: [paymentAttempts.customerId],
+    references: [users.id],
+  }),
+  task: one(taskSubmissions, {
+    fields: [paymentAttempts.taskId],
+    references: [taskSubmissions.id],
+  }),
+  refund: one(revmarketRefunds, {
+    fields: [paymentAttempts.id],
+    references: [revmarketRefunds.paymentAttemptId],
+  }),
+}));
+
+export const revmarketRefundsRelations = relations(revmarketRefunds, ({ one }) => ({
+  attempt: one(paymentAttempts, {
+    fields: [revmarketRefunds.paymentAttemptId],
+    references: [paymentAttempts.id],
+  }),
+  customer: one(users, {
+    fields: [revmarketRefunds.customerId],
+    references: [users.id],
+  }),
+  task: one(taskSubmissions, {
+    fields: [revmarketRefunds.taskId],
+    references: [taskSubmissions.id],
+  }),
+}));
+
+export const revmarketDisputesRelations = relations(revmarketDisputes, ({ one }) => ({
+  customer: one(users, {
+    fields: [revmarketDisputes.customerId],
+    references: [users.id],
+  }),
+  task: one(taskSubmissions, {
+    fields: [revmarketDisputes.taskId],
+    references: [taskSubmissions.id],
   }),
 }));

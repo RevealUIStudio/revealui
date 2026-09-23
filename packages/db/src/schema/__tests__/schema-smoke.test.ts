@@ -69,8 +69,11 @@ import {
   agentReviews,
   agentSkills,
   marketplaceAgents,
+  paymentAttempts,
   publisherEarnings,
   publisherPayouts,
+  revmarketDisputes,
+  revmarketRefunds,
   taskSubmissions,
 } from '../revmarket.js';
 import { siteCollaborators, sites } from '../sites.js';
@@ -186,6 +189,9 @@ const allTables = [
   { table: taskSubmissions, name: 'task_submissions' },
   { table: publisherPayouts, name: 'publisher_payouts' },
   { table: publisherEarnings, name: 'publisher_earnings' },
+  { table: paymentAttempts, name: 'payment_attempts' },
+  { table: revmarketRefunds, name: 'revmarket_refunds' },
+  { table: revmarketDisputes, name: 'revmarket_disputes' },
   // sites.ts
   { table: sites, name: 'sites' },
   { table: siteCollaborators, name: 'site_collaborators' },
@@ -259,6 +265,9 @@ const allRelations = [
   { relation: schema.taskSubmissionsRelations, name: 'taskSubmissionsRelations' },
   { relation: schema.publisherPayoutsRelations, name: 'publisherPayoutsRelations' },
   { relation: schema.publisherEarningsRelations, name: 'publisherEarningsRelations' },
+  { relation: schema.paymentAttemptsRelations, name: 'paymentAttemptsRelations' },
+  { relation: schema.revmarketRefundsRelations, name: 'revmarketRefundsRelations' },
+  { relation: schema.revmarketDisputesRelations, name: 'revmarketDisputesRelations' },
   {
     relation: schema.workspaceInferenceConfigsRelations,
     name: 'workspaceInferenceConfigsRelations',
