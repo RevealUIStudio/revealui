@@ -1,6 +1,11 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { ProtocolConfig } from '../protocol/adapter.js';
-import { protocolConfigToVSCodeMcpConfig } from '../protocol/config-normalizer.js';
+import {
+  protocolConfigToVSCodeMcpConfig,
+  vscodeMarketplaceMcpTemplate,
+} from '../protocol/config-normalizer.js';
 
 function createTestConfig(overrides: Partial<ProtocolConfig> = {}): ProtocolConfig {
   return {
@@ -90,5 +95,30 @@ describe('protocolConfigToVSCodeMcpConfig', () => {
         }
       }
     });
+  });
+
+  it('marketplace template prompts for the URL and masks the token', () => {
+    const template = vscodeMarketplaceMcpTemplate();
+    expect(template.servers.revealui.url).toBe(`\${input:revealui-mcp-url}`);
+    expect(template.servers.revealui.headers.Authorization).toBe(
+      `Bearer \${input:revealui-mcp-token}`,
+    );
+    expect(template.inputs.find((input) => input.id === 'revealui-mcp-token')?.password).toBe(true);
+    expect(template.inputs.find((input) => input.id === 'revealui-mcp-url')?.password).toBe(false);
+    expect(JSON.stringify(template).includes('rvui_dev_')).toBe(false);
+
+    const committedPath = join(
+      import.meta.dirname,
+      '..',
+      '..',
+      '..',
+      '..',
+      'deployment',
+      'vscode',
+      'plugin',
+      '.mcp.json',
+    );
+    const committed = JSON.parse(readFileSync(committedPath, 'utf8')) as unknown;
+    expect(committed).toEqual(template);
   });
 });

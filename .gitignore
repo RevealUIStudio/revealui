@@ -125,6 +125,8 @@ scripts/**/*.d.ts.map
 
 # MCP server configs (developer-specific AI tool setup)
 .mcp.json
+# GAP-475 listing template: input refs only, no device token or instance URL.
+!deployment/vscode/plugin/.mcp.json
 
 # Agent/infra scripts (developer-specific ops tooling)
 scripts/agent/

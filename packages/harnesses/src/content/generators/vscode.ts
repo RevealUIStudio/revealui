@@ -46,6 +46,10 @@
  * `plugin.json`. See `../../../docs/vscode-agent-plugin.md` for the local
  * install + org-allowlist governance notes (multi-editor harness design doc
  * §6 Phase C acceptance).
+ *
+ * Marketplace listing uses the same hook contract. The prepared package lives
+ * at `deployment/vscode/plugin/` (GAP-475). That package adds listing metadata
+ * and a leak-proof `.mcp.json`. This generator still emits hooks only.
  */
 
 import type { ResolverContext } from '../resolvers/types.js';
@@ -59,7 +63,7 @@ import type { ContentGenerator, GeneratedFile } from './types.js';
  * Notably no `SessionEnd` -- VS Code does not document one, unlike Cursor and
  * Claude Code (see `../../hooks/normalizers/vscode.ts`'s module doc).
  */
-const VSCODE_HOOK_EVENT_NAMES: readonly string[] = [
+export const VSCODE_HOOK_EVENT_NAMES: readonly string[] = [
   'SessionStart',
   'UserPromptSubmit',
   'PreToolUse',
@@ -69,6 +73,15 @@ const VSCODE_HOOK_EVENT_NAMES: readonly string[] = [
   'SubagentStop',
   'Stop',
 ];
+
+/** Command every marketplace and generated hook entry must run. */
+export const VSCODE_HOOK_COMMAND = 'revealui-harnesses hook vscode';
+
+export const VSCODE_PLUGIN_NAME = 'revealui';
+export const VSCODE_PLUGIN_VERSION = '0.1.0';
+export const VSCODE_PLUGIN_DESCRIPTION =
+  'RevealUI governed hooks and MCP access for VS Code agent mode';
+export const VSCODE_MCP_SERVERS_PATH = '.mcp.json';
 
 /** One `plugin.json` `hooks.<eventName>` entry. */
 interface VSCodePluginHookEntry {
@@ -84,6 +97,22 @@ interface VSCodePluginManifest {
   hooks: Record<string, VSCodePluginHookEntry[]>;
   /** Path reference to the separately-generated `.mcp.json` -- see module doc. */
   mcpServers: string;
+}
+
+/** Hook manifest shared by local generation and the GAP-475 listing package. */
+export function buildVSCodePluginManifest(): VSCodePluginManifest {
+  const hooks: VSCodePluginManifest['hooks'] = {};
+  for (const eventName of VSCODE_HOOK_EVENT_NAMES) {
+    hooks[eventName] = [{ command: VSCODE_HOOK_COMMAND, type: 'command' }];
+  }
+
+  return {
+    name: VSCODE_PLUGIN_NAME,
+    description: VSCODE_PLUGIN_DESCRIPTION,
+    version: VSCODE_PLUGIN_VERSION,
+    hooks,
+    mcpServers: VSCODE_MCP_SERVERS_PATH,
+  };
 }
 
 export class VSCodeGenerator implements ContentGenerator {
@@ -107,23 +136,10 @@ export class VSCodeGenerator implements ContentGenerator {
   }
 
   generateAll(_manifest: Manifest, _ctx: ResolverContext): GeneratedFile[] {
-    const hooks: VSCodePluginManifest['hooks'] = {};
-    for (const eventName of VSCODE_HOOK_EVENT_NAMES) {
-      hooks[eventName] = [{ command: 'revealui-harnesses hook vscode', type: 'command' }];
-    }
-
-    const manifest: VSCodePluginManifest = {
-      name: 'revealui',
-      description: 'RevealUI governed hooks and MCP access for VS Code agent mode',
-      version: '0.1.0',
-      hooks,
-      mcpServers: '.mcp.json',
-    };
-
     return [
       {
         relativePath: '.revealui/vscode-plugin/plugin.json',
-        content: `${JSON.stringify(manifest, null, 2)}\n`,
+        content: `${JSON.stringify(buildVSCodePluginManifest(), null, 2)}\n`,
       },
     ];
   }

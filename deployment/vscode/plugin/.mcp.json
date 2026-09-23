@@ -1,0 +1,25 @@
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "revealui-mcp-url",
+      "description": "RevealUI governed MCP endpoint (https://<your-host>/api/mcp)",
+      "password": false
+    },
+    {
+      "type": "promptString",
+      "id": "revealui-mcp-token",
+      "description": "RevealUI governed MCP device token",
+      "password": true
+    }
+  ],
+  "servers": {
+    "revealui": {
+      "type": "http",
+      "url": "${input:revealui-mcp-url}",
+      "headers": {
+        "Authorization": "Bearer ${input:revealui-mcp-token}"
+      }
+    }
+  }
+}

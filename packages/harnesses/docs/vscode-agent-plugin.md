@@ -64,3 +64,13 @@ Source: docs.github.com/en/copilot/how-tos/administer-copilot/manage-mcp-usage/c
 (verified 2026-07-17). Publishing RevealUI's MCP entry into a customer's
 internal registry is a customer-side administrative action; this package
 does not automate it.
+
+## Marketplace package (GAP-475)
+
+A listing bundle is prepared at `deployment/vscode/plugin/` with a catalog at
+`deployment/vscode/marketplace.json` (not yet copied to
+`.github/plugin/marketplace.json`). Hooks stay command-based. `.mcp.json` uses
+input references for the instance URL and the device token. Publisher
+credentials and publish stay with the owner. See
+`docs/distribution/VSCODE-MARKETPLACE-OWNER-PUBLISH.md`. Local
+`chat.pluginLocations` remains the install path in this doc.
