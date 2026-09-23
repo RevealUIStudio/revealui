@@ -1,8 +1,8 @@
 /**
  * Drift gate for leftover studio anchors. The product /pricing catalog must
  * not derive a done-for-you ladder from AGENCY_ENGAGEMENT_LADDER. Studio
- * SKUs belong on revealuistudio.com: Consultation $300 / Pilot $1,500 /
- * Launch $7,500. Dead Fleet and Custom Build objects must not exist.
+ * SKUs belong on revealuistudio.com: Consultation $300 / Proof Sprint $3,997 /
+ * Launch $14,500. Dead Fleet and Custom Build objects must not exist.
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -45,11 +45,11 @@ function countOccurrencesInCode(source: string, needle: string): number {
 }
 
 describe('AGENCY_ENGAGEMENT_LADDER — locked studio anchors', () => {
-  it('pins Consultation, Pilot, and Launch only', () => {
+  it('pins Consultation, Proof Sprint, and Launch only', () => {
     expect(AGENCY_ENGAGEMENT_LADDER.map((e) => [e.id, e.name, e.price, e.startsFrom])).toEqual([
       ['consultation', 'Consultation', '$300', false],
-      ['pilot', 'Pilot', '$1,500', false],
-      ['launch-package', 'Launch', '$7,500', false],
+      ['proof-sprint', 'Proof Sprint', '$3,997', false],
+      ['launch-package', 'Launch', '$14,500', false],
     ]);
   });
 
@@ -64,8 +64,8 @@ describe('AGENCY_ENGAGEMENT_LADDER — locked studio anchors', () => {
       AGENCY_ENGAGEMENT_LADDER.map((e) => [e.id, agencyEngagementPriceDisplay(e)]),
     );
     expect(display.consultation).toBe('$300');
-    expect(display.pilot).toBe('$1,500');
-    expect(display['launch-package']).toBe('$7,500');
+    expect(display['proof-sprint']).toBe('$3,997');
+    expect(display['launch-package']).toBe('$14,500');
   });
 });
 
@@ -104,10 +104,10 @@ describe('for-operators retired public copy stays gone', () => {
     expect(countOccurrencesInCode(FOR_OPERATORS_SRC, 'Book a build call')).toBe(0);
   });
 
-  it('uses Consultation, Pilot, Launch, 5+ years, and a 30-minute intro', () => {
+  it('uses Consultation, Proof Sprint, Launch, 5+ years, and a 30-minute intro', () => {
     expect(AGENCY_ENGAGEMENT_LADDER.map((e) => e.name)).toEqual([
       'Consultation',
-      'Pilot',
+      'Proof Sprint',
       'Launch',
     ]);
     expect(FOR_OPERATORS_PROOF.body.includes('5+ years')).toBe(true);
@@ -137,24 +137,30 @@ describe('FOUNDER_SERVICE_OFFERINGS — founder-led services menu', () => {
     expect(names).not.toContain('Custom Build');
   });
 
-  it('agrees with the studio ladder on the shared pilot price', () => {
-    const pilot = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'pilot');
-    const ladderPilot = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === 'pilot');
-    expect(pilot?.price).toBe(ladderPilot?.price);
+  it('agrees with the studio ladder on the shared Proof Sprint price', () => {
+    const proof = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'proof-sprint');
+    const ladderProof = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === 'proof-sprint');
+    expect(proof?.price).toBe('$3,997');
+    expect(proof?.price).toBe(ladderProof?.price);
   });
 
   it('agrees with the studio ladder on the shared Launch price', () => {
     const launch = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'launch-package');
     const ladderLaunch = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === 'launch-package');
-    expect(launch?.price).toBe('$7,500');
+    expect(launch?.price).toBe('$14,500');
     expect(launch?.price).toBe(ladderLaunch?.price);
   });
 
-  it('$7,500 does not appear as a hand-typed literal in content/for-operators.ts code', () => {
-    expect(countOccurrencesInCode(FOR_OPERATORS_SRC, '$7,500')).toBe(0);
+  it('$14,500 does not appear as a hand-typed literal in content/for-operators.ts code', () => {
+    expect(countOccurrencesInCode(FOR_OPERATORS_SRC, '$14,500')).toBe(0);
   });
 
-  it('$7,500 does not appear as a hand-typed literal in content/pricing.ts code', () => {
-    expect(countOccurrencesInCode(PRICING_SRC, '$7,500')).toBe(0);
+  it('$14,500 does not appear as a hand-typed literal in content/pricing.ts code', () => {
+    expect(countOccurrencesInCode(PRICING_SRC, '$14,500')).toBe(0);
+  });
+
+  it('$7,500 and Pilot do not reappear as hand-typed literals in content/for-operators.ts', () => {
+    expect(countOccurrencesInCode(FOR_OPERATORS_SRC, '$7,500')).toBe(0);
+    expect(countOccurrencesInCode(FOR_OPERATORS_SRC, 'Pilot')).toBe(0);
   });
 });

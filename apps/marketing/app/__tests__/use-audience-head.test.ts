@@ -43,7 +43,7 @@ describe('useAudienceHead — non-technical audience', () => {
   it('sets document.title to the non-technical headline', () => {
     renderHook(() => useAudienceHead('non-technical'));
     expect(document.title).toBe(
-      'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
+      'RevealUI | Consultation, Proof Sprint, or Launch on infrastructure you own.',
     );
   });
 
@@ -56,7 +56,7 @@ describe('useAudienceHead — non-technical audience', () => {
   it('sets og:title to the non-technical title', () => {
     renderHook(() => useAudienceHead('non-technical'));
     expect(document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.content).toBe(
-      'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
+      'RevealUI | Consultation, Proof Sprint, or Launch on infrastructure you own.',
     );
   });
 
@@ -123,7 +123,7 @@ describe('useAudienceHead — audience switch', () => {
     );
 
     expect(document.title).toBe(
-      'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
+      'RevealUI | Consultation, Proof Sprint, or Launch on infrastructure you own.',
     );
 
     act(() => {

@@ -75,9 +75,9 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 
 | Service | Price | Notes |
 |---|---|---|
-| Consultation | $300 | revealuistudio.com only |
-| Pilot | $1,500 | One site on their domain, one agent they run; credits 100% to Launch within 30 days |
-| Launch | $7,500 | Architecture work happens inside Launch |
+| Consultation | $300 | revealuistudio.com only. Tax $0. Path A default, Path B if asked. |
+| Proof Sprint | $3,997 | One site and one receipted action they operate. Stage B included. 100% credit to Launch within 45 days. Replaces Pilot $1,500. |
+| Launch | $14,500 | Architecture stays inside Launch, with a runbook and 30 days of async stabilization. Replaces the $7,500 list. |
 
 **Status:** Studio SKUs stay on revealuistudio.com only. Do not copy them onto revealui.com. Live `/pricing` CTA is `Book an intro` → Google Calendar appointments. Do not write "Talk to founder" or "Buy now."
 

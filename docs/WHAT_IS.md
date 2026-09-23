@@ -81,7 +81,7 @@ Support response is not a feature flag. The published commitment is the same for
 
 RevealFleet (`/docs/REVEALFLEET`) is the family name for RevealUI Studio software. It is **not** a catalog SKU. **RevealUI** is the lead product and the buyable runtime.
 
-The public catalog is Free, Pro ($49/mo), Max ($99/mo · $799/yr), Enterprise (inquire / Contact sales), and Pro Perpetual ($1,499). RevVault (separate product) is encrypted secret management inside Pro, not a separate paid SKU. Studio cash ladder (Consultation / Pilot / Launch) is not sold on this catalog. Knowledge Graph is runtime surface, not a fourth Studio SKU.
+The public catalog is Free, Pro ($49/mo), Max ($99/mo · $799/yr), Enterprise (inquire / Contact sales), and Pro Perpetual ($1,499). RevVault (separate product) is encrypted secret management inside Pro, not a separate paid SKU. Studio cash ladder (Consultation / Proof Sprint / Launch) is not sold on this catalog. Knowledge Graph is runtime surface, not a fourth Studio SKU.
 
 Get started on [Quick Start](./QUICK_START.md). Maturity labels for this runtime live in [ROADMAP.md](./ROADMAP.md).
 

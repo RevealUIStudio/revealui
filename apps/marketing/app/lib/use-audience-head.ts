@@ -15,17 +15,17 @@ interface AudienceSeo {
 
 const SEO: Record<Audience, AudienceSeo> = {
   'non-technical': {
-    title: 'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
+    title: 'RevealUI | Consultation, Proof Sprint, or Launch on infrastructure you own.',
     description:
-      'Studio books Consultation, Pilot, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com.',
-    ogTitle: 'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
+      'Studio books Consultation, Proof Sprint, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com.',
+    ogTitle: 'RevealUI | Consultation, Proof Sprint, or Launch on infrastructure you own.',
     ogDescription:
-      'Studio books Consultation, Pilot, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com.',
+      'Studio books Consultation, Proof Sprint, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com.',
     ogImage:
       'https://api.revealui.com/api/og?title=RevealUI&description=Your%20business%2C%20delivered%20and%20yours%20to%20own.',
-    twitterTitle: 'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
+    twitterTitle: 'RevealUI | Consultation, Proof Sprint, or Launch on infrastructure you own.',
     twitterDescription:
-      'Studio books Consultation, Pilot, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com.',
+      'Studio books Consultation, Proof Sprint, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com.',
     twitterImage:
       'https://api.revealui.com/api/og?title=RevealUI&description=Your%20business%2C%20delivered%20and%20yours%20to%20own.',
   },
