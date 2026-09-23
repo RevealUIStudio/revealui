@@ -2042,6 +2042,32 @@ export type PasswordResetTokensRow = z.infer<typeof PasswordResetTokensSelectSch
 export type PasswordResetTokensInsert = z.infer<typeof PasswordResetTokensInsertSchema>
 
 // =============================================================================
+// PaymentAttempts Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting paymentAttempts rows from database
+ * Generated from Drizzle table definition: tables.paymentAttempts
+ */
+export const PaymentAttemptsSelectSchema = createSelectSchema(tables.paymentAttempts)
+
+/**
+ * Zod schema for inserting paymentAttempts rows to database
+ * Generated from Drizzle table definition: tables.paymentAttempts
+ */
+export const PaymentAttemptsInsertSchema = createInsertSchema(tables.paymentAttempts)
+
+/**
+ * TypeScript type for paymentAttempts row (Select)
+ */
+export type PaymentAttemptsRow = z.infer<typeof PaymentAttemptsSelectSchema>
+
+/**
+ * TypeScript type for paymentAttempts insert
+ */
+export type PaymentAttemptsInsert = z.infer<typeof PaymentAttemptsInsertSchema>
+
+// =============================================================================
 // Posts Schemas
 // =============================================================================
 
@@ -2326,6 +2352,58 @@ export type RegisteredAgentsRow = z.infer<typeof RegisteredAgentsSelectSchema>
  * TypeScript type for registeredAgents insert
  */
 export type RegisteredAgentsInsert = z.infer<typeof RegisteredAgentsInsertSchema>
+
+// =============================================================================
+// RevmarketDisputes Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting revmarketDisputes rows from database
+ * Generated from Drizzle table definition: tables.revmarketDisputes
+ */
+export const RevmarketDisputesSelectSchema = createSelectSchema(tables.revmarketDisputes)
+
+/**
+ * Zod schema for inserting revmarketDisputes rows to database
+ * Generated from Drizzle table definition: tables.revmarketDisputes
+ */
+export const RevmarketDisputesInsertSchema = createInsertSchema(tables.revmarketDisputes)
+
+/**
+ * TypeScript type for revmarketDisputes row (Select)
+ */
+export type RevmarketDisputesRow = z.infer<typeof RevmarketDisputesSelectSchema>
+
+/**
+ * TypeScript type for revmarketDisputes insert
+ */
+export type RevmarketDisputesInsert = z.infer<typeof RevmarketDisputesInsertSchema>
+
+// =============================================================================
+// RevmarketRefunds Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting revmarketRefunds rows from database
+ * Generated from Drizzle table definition: tables.revmarketRefunds
+ */
+export const RevmarketRefundsSelectSchema = createSelectSchema(tables.revmarketRefunds)
+
+/**
+ * Zod schema for inserting revmarketRefunds rows to database
+ * Generated from Drizzle table definition: tables.revmarketRefunds
+ */
+export const RevmarketRefundsInsertSchema = createInsertSchema(tables.revmarketRefunds)
+
+/**
+ * TypeScript type for revmarketRefunds row (Select)
+ */
+export type RevmarketRefundsRow = z.infer<typeof RevmarketRefundsSelectSchema>
+
+/**
+ * TypeScript type for revmarketRefunds insert
+ */
+export type RevmarketRefundsInsert = z.infer<typeof RevmarketRefundsInsertSchema>
 
 // =============================================================================
 // Sessions Schemas

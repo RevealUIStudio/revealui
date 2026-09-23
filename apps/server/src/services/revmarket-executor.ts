@@ -40,6 +40,8 @@ import {
 import { and, eq, sql } from 'drizzle-orm';
 import { createAuditStore } from '../lib/audit-signer.js';
 import { accrualForCompletedTask } from './revmarket-payout-policy.js';
+import { executionAfterFailure } from './revmarket-refund-policy.js';
+import { bookTerminalFailureRefunds } from './revmarket-refunds.js';
 
 import { forkProvider, type SandboxProvider } from './revmarket-sandbox/index.js';
 
@@ -337,6 +339,55 @@ function validateOutput(
 export async function completeTask(taskId: string, result: TaskResult): Promise<boolean> {
   const db = getClient();
 
+  const [existing] = await db
+    .select({
+      executionMeta: taskSubmissions.executionMeta,
+      submitterId: taskSubmissions.submitterId,
+      agentId: taskSubmissions.agentId,
+      status: taskSubmissions.status,
+    })
+    .from(taskSubmissions)
+    .where(eq(taskSubmissions.id, taskId))
+    .limit(1);
+
+  if (existing?.status !== 'running') {
+    logger.error(
+      'RevMarket task completion CAS failed  -  task left running before completion; audit row NOT written',
+      { taskId, attemptedStatus: result.success ? 'completed' : 'failed' },
+    );
+    return false;
+  }
+
+  const priorFailures = existing.executionMeta?.retryCount ?? 0;
+  if (!result.success) {
+    const outcome = executionAfterFailure({ priorFailures });
+    if (outcome.action === 'retry') {
+      const [retried] = await db
+        .update(taskSubmissions)
+        .set({
+          status: 'queued',
+          executionMeta: {
+            ...(existing.executionMeta ?? {}),
+            retryCount: outcome.failureCount,
+          },
+          errorMessage: result.error ?? null,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(taskSubmissions.id, taskId), eq(taskSubmissions.status, 'running')))
+        .returning();
+      if (!retried) {
+        logger.error(
+          'RevMarket task completion CAS failed  -  task left running before completion; audit row NOT written',
+          { taskId, attemptedStatus: 'queued' },
+        );
+        return false;
+      }
+      await writeAuditEntry(taskId, existing.agentId ?? 'unassigned', 'retry', result);
+      logger.info('RevMarket task retry queued', { taskId, failureCount: outcome.failureCount });
+      return true;
+    }
+  }
+
   const newStatus = result.success ? 'completed' : 'failed';
 
   // Atomic state transition: running → completed/failed
@@ -347,9 +398,11 @@ export async function completeTask(taskId: string, result: TaskResult): Promise<
       output: result.output,
       artifacts: result.artifacts,
       executionMeta: {
+        ...(existing.executionMeta ?? {}),
         completedAt: new Date().toISOString(),
         durationMs: result.durationMs,
         tokensUsed: result.tokensUsed,
+        retryCount: priorFailures,
       },
       errorMessage: result.error ?? null,
       updatedAt: new Date(),
@@ -389,6 +442,22 @@ export async function completeTask(taskId: string, result: TaskResult): Promise<
       logger.error('RevMarket earning accrual failed', err instanceof Error ? err : undefined, {
         taskId,
       });
+    }
+  } else {
+    try {
+      await bookTerminalFailureRefunds(db, {
+        taskId,
+        customerId: existing.submitterId,
+        now: new Date(),
+      });
+    } catch (err) {
+      logger.error(
+        'RevMarket failure refund booking failed',
+        err instanceof Error ? err : undefined,
+        {
+          taskId,
+        },
+      );
     }
   }
 

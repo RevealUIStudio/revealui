@@ -8,6 +8,7 @@
 
 import { sql } from 'drizzle-orm';
 import {
+  boolean,
   check,
   index,
   integer,
@@ -368,9 +369,135 @@ export const publisherEarnings = pgTable(
   ],
 );
 
+// =============================================================================
+// USDC-on-Base payment attempts, refunds, and disputes (GAP-162)
+//
+// One refund row per paid attempt. RevealCoin is not an asset on these tables.
+// =============================================================================
+
+export const paymentAttempts = pgTable(
+  'payment_attempts',
+  {
+    id: text('id').primaryKey(),
+
+    customerId: text('customer_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+
+    taskId: text('task_id')
+      .notNull()
+      .references(() => taskSubmissions.id, { onDelete: 'cascade' }),
+
+    amountUsdc: text('amount_usdc').notNull(),
+
+    /** Only USDC on Base. RevealCoin is not accepted. */
+    asset: text('asset').notNull().default('usdc-base'),
+
+    /** paid: USDC was verified. not_charged: no money moved. */
+    status: text('status').notNull().default('paid'),
+
+    attemptNo: integer('attempt_no').notNull(),
+
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    unique('payment_attempts_task_attempt_uq').on(table.taskId, table.attemptNo),
+    index('payment_attempts_customer_idx').on(table.customerId),
+    check('payment_attempts_status_check', sql`status IN ('paid', 'not_charged')`),
+    check('payment_attempts_asset_check', sql`asset = 'usdc-base'`),
+    check('payment_attempts_attempt_no_check', sql`attempt_no >= 1`),
+  ],
+);
+
+export const revmarketRefunds = pgTable(
+  'revmarket_refunds',
+  {
+    id: text('id').primaryKey(),
+
+    paymentAttemptId: text('payment_attempt_id')
+      .notNull()
+      .references(() => paymentAttempts.id, { onDelete: 'cascade' }),
+
+    customerId: text('customer_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+
+    taskId: text('task_id')
+      .notNull()
+      .references(() => taskSubmissions.id, { onDelete: 'cascade' }),
+
+    reason: text('reason').notNull(),
+
+    kind: text('kind').notNull(),
+
+    amountUsdc: text('amount_usdc').notNull(),
+
+    amountUsdCents: integer('amount_usd_cents').notNull(),
+
+    /** auto: the system books it. awaiting_joshua: Joshua sends the USDC. */
+    status: text('status').notNull(),
+
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    unique('revmarket_refunds_attempt_uq').on(table.paymentAttemptId),
+    index('revmarket_refunds_customer_created_idx').on(table.customerId, table.createdAt),
+    check(
+      'revmarket_refunds_kind_check',
+      sql`kind IN ('auto_fail', 'cancel', 'dispute', 'cap_held')`,
+    ),
+    check('revmarket_refunds_status_check', sql`status IN ('auto', 'awaiting_joshua')`),
+    check('revmarket_refunds_amount_nonneg_check', sql`amount_usd_cents >= 0`),
+  ],
+);
+
+export const revmarketDisputes = pgTable(
+  'revmarket_disputes',
+  {
+    id: text('id').primaryKey(),
+
+    taskId: text('task_id')
+      .notNull()
+      .references(() => taskSubmissions.id, { onDelete: 'cascade' }),
+
+    customerId: text('customer_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+
+    customerReason: text('customer_reason').notNull(),
+
+    publisherReply: text('publisher_reply'),
+
+    joshuaDecision: text('joshua_decision').notNull().default('pending'),
+
+    /** Fourth dispute in 30 days. The dispute still opens. */
+    abuseFlag: boolean('abuse_flag').notNull().default(false),
+
+    openedAt: timestamp('opened_at', { withTimezone: true }).notNull(),
+
+    windowEndsAt: timestamp('window_ends_at', { withTimezone: true }).notNull(),
+
+    decidedAt: timestamp('decided_at', { withTimezone: true }),
+  },
+  (table) => [
+    unique('revmarket_disputes_task_uq').on(table.taskId),
+    index('revmarket_disputes_customer_opened_idx').on(table.customerId, table.openedAt),
+    check(
+      'revmarket_disputes_decision_check',
+      sql`joshua_decision IN ('pending', 'refund', 'deny')`,
+    ),
+  ],
+);
+
 export type TaskSubmission = typeof taskSubmissions.$inferSelect;
 export type NewTaskSubmission = typeof taskSubmissions.$inferInsert;
 export type PublisherEarning = typeof publisherEarnings.$inferSelect;
 export type NewPublisherEarning = typeof publisherEarnings.$inferInsert;
 export type PublisherPayout = typeof publisherPayouts.$inferSelect;
 export type NewPublisherPayout = typeof publisherPayouts.$inferInsert;
+export type PaymentAttempt = typeof paymentAttempts.$inferSelect;
+export type NewPaymentAttempt = typeof paymentAttempts.$inferInsert;
+export type RevmarketRefund = typeof revmarketRefunds.$inferSelect;
+export type NewRevmarketRefund = typeof revmarketRefunds.$inferInsert;
+export type RevmarketDispute = typeof revmarketDisputes.$inferSelect;
+export type NewRevmarketDispute = typeof revmarketDisputes.$inferInsert;
