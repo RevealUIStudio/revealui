@@ -8,11 +8,11 @@
 
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import type { MemoryHarness, MemoryPrincipal } from '@revealui/knowledge-graph/memory';
 import { sessionEnd, sessionRegister } from './boundary.js';
+import { formatDurableMemoryWarn, queryDurableMemory } from './durable-memory.js';
 import { renderPeerPanel } from './peer-context.js';
 import { DEFAULT_HEARTBEAT_STALE_SECONDS, sessionReap } from './reap.js';
-import type { MemoryHarness, MemoryPrincipal } from '@revealui/knowledge-graph/memory';
-import { formatDurableMemoryWarn, queryDurableMemory } from './durable-memory.js';
 import {
   renderSessionAdapterLines,
   resolveSessionAdapter,
@@ -44,10 +44,7 @@ function sessionMemoryPrincipal(vendor: string): MemoryPrincipal {
   const harness: MemoryHarness =
     vendor === 'claude-code'
       ? 'claude'
-      : vendor === 'grok' ||
-          vendor === 'cursor' ||
-          vendor === 'opencode' ||
-          vendor === 'revdev'
+      : vendor === 'grok' || vendor === 'cursor' || vendor === 'opencode' || vendor === 'revdev'
         ? vendor
         : 'other';
   return {

@@ -11,9 +11,9 @@ export * from './client.js';
 export * from './providers/base.js';
 export * from './providers/groq.js';
 export * from './providers/inference-snaps.js';
-export * from './providers/typesafe-jev.js';
 export * from './providers/ollama.js';
 export * from './providers/openai-compat.js';
+export * from './providers/typesafe-jev.js';
 // Export the per-request client resolver (GAP-360 PR-2)
 export * from './resolve.js';
 

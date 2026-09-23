@@ -157,9 +157,7 @@ export const GROK_NONUKES_HOOKS_JSON = hookFile('PreToolUse', [
 export const GROK_DIRTY_CHECKOUT_HOOKS_JSON = hookFile('PreToolUse', [
   {
     matcher: 'Bash|run_terminal_command',
-    hooks: [
-      { type: 'command', command: fleetGitHook('dirty-checkout-guard.js'), timeout: 10 },
-    ],
+    hooks: [{ type: 'command', command: fleetGitHook('dirty-checkout-guard.js'), timeout: 10 }],
   },
 ]);
 

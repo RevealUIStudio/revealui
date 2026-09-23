@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { evaluateJev, JevConfigError, JEV_MODEL, typesafeApiKey } from '../typesafe-jev.js';
+import { evaluateJev, JEV_MODEL, JevConfigError, typesafeApiKey } from '../typesafe-jev.js';
 
 describe('evaluateJev', () => {
   it('refuses to run without a caller-supplied key', () => {
@@ -12,7 +12,7 @@ describe('evaluateJev', () => {
     let seenBody = '';
     const fetchImpl: typeof fetch = async (url, init) => {
       seenUrl = String(url);
-      seenAuth = String((init?.headers as Record<string, string>).Authorization);
+      seenAuth = String((init?.headers as Record<string, string> | undefined)?.Authorization ?? '');
       seenBody = String(init?.body);
       return new Response(
         JSON.stringify({

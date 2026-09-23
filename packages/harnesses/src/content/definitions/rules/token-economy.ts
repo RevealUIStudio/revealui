@@ -1,5 +1,5 @@
+import { autoCompactThresholdPercent, TOKEN_BUDGET } from '../../../token-budget.js';
 import type { Rule } from '../../schemas/rule.js';
-import { TOKEN_BUDGET, autoCompactThresholdPercent } from '../../../token-budget.js';
 
 /**
  * Control-layer token-economy guardrails (GAP-362).
