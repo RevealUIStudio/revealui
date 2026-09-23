@@ -65,7 +65,7 @@ publish.
 |-------|--------|
 | Publisher account | (not created this pass) |
 | Listing URL | n/a |
-| Plugin version | n/a |
+| Plugin version | 0.1.0 (package prepared; listing still owner) |
 | Owner | Joshua Vaughn |
 | Date | 2026-08-09 |
 
@@ -75,3 +75,20 @@ publish.
 (VS Code not installed). Marketplace listing remains owner ops when a customer
 or Studio needs the public path. Local `chat.pluginLocations` remains supported;
 connect-vscode.md already states Marketplace is not required.
+
+**Status 2026-09-23 (GAP-475 package prep):** The listing bundle is in the repo.
+Publish and the publisher account remain owner work. This pass did not create
+publisher credentials and did not publish.
+
+| Artifact | Path |
+| --- | --- |
+| Plugin directory | `deployment/vscode/plugin` |
+| Catalog (not on the discovery path) | `deployment/vscode/marketplace.json` |
+| Owner checklist | `docs/distribution/VSCODE-MARKETPLACE-OWNER-PUBLISH.md` |
+| Validate | `pnpm validate:vscode-marketplace` |
+| Local tarball | `pnpm package:vscode-plugin` |
+
+Plugin version: 0.1.0. Hooks stay command-based. MCP stays a path reference
+to `.mcp.json`, and that file uses input refs for the instance URL and the
+device token. `docs/guides/connect-vscode.md` stays on local
+`chat.pluginLocations` until the owner listing is live.

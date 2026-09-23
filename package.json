@@ -291,6 +291,8 @@
     "validate:stripe-catalog": "vitest run scripts/setup/__tests__/stripe-catalog.test.ts scripts/setup/__tests__/stripe-catalog-lockstep.test.ts",
     "validate:dockerfile-deps": "tsx scripts/validate/dockerfile-deps-lockstep.ts",
     "validate:railway-marketplace": "vitest run scripts/validate/__tests__/railway-marketplace-template.test.ts && tsx scripts/validate/railway-marketplace-template.ts",
+    "validate:vscode-marketplace": "vitest run scripts/validate/__tests__/vscode-marketplace-package.test.ts && tsx scripts/validate/vscode-marketplace-package.ts",
+    "package:vscode-plugin": "tsx scripts/validate/vscode-marketplace-package.ts --pack",
     "validate:secret-paths": "vitest run scripts/sync/__tests__/secret-paths-lockstep.test.ts",
     "validate:ci-path-filters": "vitest run scripts/ci/__tests__/expensive-suite.test.ts",
     "validate:doc-currency": "tsx scripts/validate/doc-currency.ts",
