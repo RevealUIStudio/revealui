@@ -38,14 +38,14 @@ import {
   verifySsoState,
 } from '@revealui/auth/server';
 import { logger } from '@revealui/core/observability/logger';
-import { getClient } from '@revealui/db';
-import { accountSsoProviders } from '@revealui/db/schema';
-import { and, eq, isNull } from 'drizzle-orm';
-import { Hono } from 'hono';
 import {
   requestHostFromHeaders,
   sessionCookieDomainForHost,
 } from '@revealui/core/session-cookie-domain';
+import { getClient } from '@revealui/db';
+import { accountSsoProviders } from '@revealui/db/schema';
+import { and, eq, isNull } from 'drizzle-orm';
+import { Hono } from 'hono';
 import { accountHasSsoFeature } from '../lib/account-entitlement.js';
 import { resolveSelfApiBaseUrl } from '../lib/self-api-url.js';
 

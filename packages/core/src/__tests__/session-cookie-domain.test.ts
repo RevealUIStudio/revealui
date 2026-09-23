@@ -3,8 +3,8 @@ import {
   isStagingRevealHost,
   normalizeRequestHost,
   requestHostFromHeaders,
-  sessionCookieDomainForHost,
   STAGING_SESSION_COOKIE_DOMAIN,
+  sessionCookieDomainForHost,
 } from '../session-cookie-domain.js';
 
 describe('normalizeRequestHost', () => {
