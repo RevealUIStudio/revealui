@@ -134,6 +134,8 @@ export function walk(dir: string, outFiles: string[] = []): string[] {
       walk(p, outFiles);
       continue;
     }
+    // tsup writes tsup.config.bundled_*.mjs beside the config and deletes it.
+    if (ent.name.includes('.bundled_')) continue;
     if (!SOURCE_EXTS.has(extname(ent.name))) continue;
     if (ent.name.includes('.test.') || ent.name.includes('.spec.')) continue;
     if (ent.name.endsWith('.e2e.tsx') || ent.name.endsWith('.e2e.ts')) continue;

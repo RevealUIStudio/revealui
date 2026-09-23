@@ -30,6 +30,7 @@
  * - External: pnpm, turbo, biome
  */
 
+import { availableParallelism, totalmem } from 'node:os';
 import { ErrorCode } from '@revealui/scripts/errors.js';
 import { execCommand } from '@revealui/scripts/exec.js';
 import { createLogger, getProjectRoot } from '../utils/base.js';
@@ -141,8 +142,40 @@ async function runCheck(check: CheckDef): Promise<CheckResult> {
   return { name: check.name, status: 'fail', durationMs };
 }
 
+/**
+ * Bound phase-1 fan-out. Unbounded Promise.all on a ~4GB machine stretches
+ * a warm harnesses build and claim-drift past PHASE_CHECK_TIMEOUT_MS, and
+ * the timeout SIGTERM races tsup's short-lived *.bundled_*.mjs files.
+ * About 1.25 GiB per worker. REVEALUI_GATE_CONCURRENCY overrides.
+ */
+function phaseConcurrency(checkCount: number): number {
+  const raw = process.env.REVEALUI_GATE_CONCURRENCY;
+  if (raw !== undefined && raw !== '') {
+    const parsed = Number(raw);
+    if (Number.isInteger(parsed) && parsed > 0) return Math.min(parsed, checkCount);
+  }
+  const byMemory = Math.max(1, Math.floor(totalmem() / (1024 * 1024 * 1024 * 1.25)));
+  return Math.max(1, Math.min(checkCount, availableParallelism(), byMemory));
+}
+
 async function runPhaseParallel(checks: CheckDef[]): Promise<CheckResult[]> {
-  return Promise.all(checks.map(runCheck));
+  const limit = phaseConcurrency(checks.length);
+  logger.info(`Parallel worker cap: ${limit} of ${checks.length}`);
+  const results = new Array<CheckResult>(checks.length);
+  let next = 0;
+
+  async function worker(): Promise<void> {
+    for (;;) {
+      const index = next;
+      if (index >= checks.length) return;
+      next += 1;
+      const check = checks[index];
+      if (check) results[index] = await runCheck(check);
+    }
+  }
+
+  await Promise.all(Array.from({ length: limit }, () => worker()));
+  return results;
 }
 
 async function runPhaseSerial(checks: CheckDef[]): Promise<CheckResult[]> {
