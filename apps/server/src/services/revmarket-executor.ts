@@ -374,7 +374,7 @@ export async function completeTask(taskId: string, result: TaskResult): Promise<
           updatedAt: new Date(),
         })
         .where(and(eq(taskSubmissions.id, taskId), eq(taskSubmissions.status, 'running')))
-        .returning({ id: taskSubmissions.id });
+        .returning();
       if (!retried) {
         logger.error(
           'RevMarket task completion CAS failed  -  task left running before completion; audit row NOT written',

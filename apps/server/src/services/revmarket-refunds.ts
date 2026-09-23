@@ -262,7 +262,7 @@ export async function replyToDispute(
     .update(revmarketDisputes)
     .set({ publisherReply: plan.reply })
     .where(and(eq(revmarketDisputes.id, dispute.id), isNull(revmarketDisputes.publisherReply)))
-    .returning({ id: revmarketDisputes.id });
+    .returning();
   if (!updated) return { ok: false, status: 400, error: 'publisher already replied' };
   return { ok: true };
 }
@@ -306,7 +306,7 @@ export async function decideDispute(
     .where(
       and(eq(revmarketDisputes.id, dispute.id), eq(revmarketDisputes.joshuaDecision, 'pending')),
     )
-    .returning({ id: revmarketDisputes.id });
+    .returning();
   if (!decided) return { ok: false, status: 409, error: 'Dispute already decided' };
 
   if (plan.decision === 'refund') {
