@@ -959,7 +959,6 @@ app.openapi(
       },
     },
   }),
-  // @ts-expect-error -- OpenAPI response union narrowing
   async (c) => {
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Unauthorized' });
@@ -1000,7 +999,6 @@ app.openapi(
       },
     },
   }),
-  // @ts-expect-error -- OpenAPI response union narrowing
   async (c) => {
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Unauthorized' });
@@ -1037,7 +1035,6 @@ app.openapi(
       },
     },
   }),
-  // @ts-expect-error -- OpenAPI response union narrowing
   async (c) => {
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Unauthorized' });
