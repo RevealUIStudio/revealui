@@ -22,7 +22,7 @@
  *   5. Not live mode → check skipped entirely (no stripe:tax-flag entry)
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MRR_TIER_PRICE_FALLBACK_CENTS } from '../../lib/tier-pricing.js';
 
 // --- Module mocks ---
@@ -99,6 +99,12 @@ interface CronBody {
   checkedAt: string;
 }
 
+// First import pulls @revealui/core/license/mint-client. On a cold Vite
+// transform that exceeds the 15s test budget, so warm it under a longer hook.
+beforeAll(async () => {
+  await import('./billing-readiness.js');
+}, 60_000);
+
 beforeEach(() => {
   vi.resetAllMocks();
   mockDb.select.mockReturnValue(mockDb);
@@ -107,6 +113,11 @@ beforeEach(() => {
   process.env.STRIPE_SECRET_KEY = 'sk_test_mock';
   process.env.STRIPE_WEBHOOK_SECRET = 'whsec_mock';
   process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'mock_priv_key';
+  delete process.env.REVEALUI_LICENSE_SIGN_VIA_SIGNER;
+  delete process.env.REVEALUI_LICENSE_SIGNER_URL;
+  delete process.env.REVEALUI_LICENSE_PUBLIC_KEY;
+  delete process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT;
+  delete process.env.REVEALUI_SIGNER_INVOKE_SECRET;
   process.env.STRIPE_PRO_PRICE_ID = 'price_pro';
   process.env.STRIPE_MAX_PRICE_ID = 'price_max';
   process.env.STRIPE_ENTERPRISE_PRICE_ID = 'price_enterprise';
@@ -282,5 +293,153 @@ describe('billing-readiness cron — Stripe Tax flag (GAP-437)', () => {
     expect(mockTaxSettingsRetrieve).not.toHaveBeenCalled();
     expect(body.failures.find((f) => f.check === 'stripe:tax-flag')).toBeUndefined();
     expect(body.warnings.find((w) => w.check === 'stripe:tax-flag')).toBeUndefined();
+  });
+});
+
+const LICENSE_SECTION_CHECKS = [
+  'env:REVEALUI_LICENSE_PRIVATE_KEY',
+  'env:REVEALUI_LICENSE_SIGNER_URL',
+  'env:REVEALUI_LICENSE_PUBLIC_KEY',
+  'env:REVEALUI_LICENSE_PUBLIC_KEY_NEXT',
+  'env:REVEALUI_SIGNER_INVOKE_SECRET',
+  'signer:health',
+] as const;
+
+function licenseSectionFailures(body: CronBody): CronBody['failures'] {
+  return body.failures.filter((f) =>
+    (LICENSE_SECTION_CHECKS as readonly string[]).includes(f.check),
+  );
+}
+
+describe('billing-readiness cron — license mint (REVEALUI-SERVER-A)', () => {
+  const PUBLIC_KEY = '-----BEGIN PUBLIC KEY-----\nCANARY-PUBLIC\n-----END PUBLIC KEY-----';
+  const INVOKE_SECRET = 'invoke-secret-canary-do-not-leak';
+  const SIGNER_URL = 'https://signer.example';
+
+  beforeEach(() => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(null, { status: 200 })),
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function enableSignerMode(flag = '1'): void {
+    process.env.REVEALUI_LICENSE_SIGN_VIA_SIGNER = flag;
+    process.env.REVEALUI_LICENSE_SIGNER_URL = SIGNER_URL;
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = PUBLIC_KEY;
+    process.env.REVEALUI_SIGNER_INVOKE_SECRET = INVOKE_SECRET;
+    delete process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+    delete process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT;
+  }
+
+  it('signer mode on + public key + signer URL + invoke secret + no private key passes the license section', async () => {
+    enableSignerMode('true');
+
+    const { body } = await callCron();
+    expect(licenseSectionFailures(body)).toEqual([]);
+    expect(JSON.stringify(body)).not.toContain(INVOKE_SECRET);
+    expect(JSON.stringify(body)).not.toContain('CANARY-PUBLIC');
+    expect(JSON.stringify(body)).not.toContain('mock_priv_key');
+
+    const fetchMock = globalThis.fetch as ReturnType<typeof vi.fn>;
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${SIGNER_URL}/health/live`);
+    expect(init.method).toBe('GET');
+    expect(JSON.stringify(init)).not.toContain(INVOKE_SECRET);
+  });
+
+  it('signer mode on accepts 1/yes/on the same way as true', async () => {
+    for (const flag of ['1', 'yes', 'on']) {
+      enableSignerMode(flag);
+      const { body } = await callCron();
+      expect(licenseSectionFailures(body), flag).toEqual([]);
+    }
+  });
+
+  it('signer mode off (absent) + no private key fails env:REVEALUI_LICENSE_PRIVATE_KEY', async () => {
+    delete process.env.REVEALUI_LICENSE_SIGN_VIA_SIGNER;
+    delete process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+
+    const { body } = await callCron();
+    const license = licenseSectionFailures(body);
+    expect(license).toEqual([{ check: 'env:REVEALUI_LICENSE_PRIVATE_KEY', detail: 'MISSING' }]);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it('signer mode explicitly false + no private key still names PRIVATE_KEY', async () => {
+    process.env.REVEALUI_LICENSE_SIGN_VIA_SIGNER = 'false';
+    delete process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+
+    const { body } = await callCron();
+    expect(licenseSectionFailures(body)).toEqual([
+      { check: 'env:REVEALUI_LICENSE_PRIVATE_KEY', detail: 'MISSING' },
+    ]);
+  });
+
+  it('signer mode on + missing SIGNER_URL fails naming SIGNER_URL, not PRIVATE_KEY', async () => {
+    enableSignerMode('yes');
+    delete process.env.REVEALUI_LICENSE_SIGNER_URL;
+
+    const { body } = await callCron();
+    const license = licenseSectionFailures(body);
+    expect(license.map((f) => f.check)).toEqual(['env:REVEALUI_LICENSE_SIGNER_URL']);
+    expect(license[0]?.detail).toBe('MISSING');
+    expect(license.some((f) => f.check === 'env:REVEALUI_LICENSE_PRIVATE_KEY')).toBe(false);
+    expect(JSON.stringify(body)).not.toContain(INVOKE_SECRET);
+    expect(JSON.stringify(body)).not.toContain('CANARY-PUBLIC');
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it('signer mode on + missing public key names PUBLIC_KEY, not PRIVATE_KEY', async () => {
+    enableSignerMode();
+    delete process.env.REVEALUI_LICENSE_PUBLIC_KEY;
+
+    const { body } = await callCron();
+    expect(licenseSectionFailures(body).map((f) => f.check)).toEqual([
+      'env:REVEALUI_LICENSE_PUBLIC_KEY',
+    ]);
+  });
+
+  it('signer mode on + missing invoke secret names REVEALUI_SIGNER_INVOKE_SECRET, not PRIVATE_KEY', async () => {
+    enableSignerMode();
+    delete process.env.REVEALUI_SIGNER_INVOKE_SECRET;
+
+    const { body } = await callCron();
+    expect(licenseSectionFailures(body).map((f) => f.check)).toEqual([
+      'env:REVEALUI_SIGNER_INVOKE_SECRET',
+    ]);
+  });
+
+  it('signer mode on does not require PUBLIC_KEY_NEXT', async () => {
+    enableSignerMode();
+    delete process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT;
+
+    const { body } = await callCron();
+    expect(body.failures.some((f) => f.check === 'env:REVEALUI_LICENSE_PUBLIC_KEY_NEXT')).toBe(
+      false,
+    );
+  });
+
+  it('signer health miss is a warning and does not fail the license section or echo the URL', async () => {
+    enableSignerMode();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new Error(`connect ECONNREFUSED ${SIGNER_URL} secret=${INVOKE_SECRET}`);
+      }),
+    );
+
+    const { body } = await callCron();
+    expect(licenseSectionFailures(body)).toEqual([]);
+    const warning = body.warnings.find((w) => w.check === 'signer:health');
+    expect(warning?.detail).toBe('probe failed (non-fatal)');
+    expect(JSON.stringify(body)).not.toContain(SIGNER_URL);
+    expect(JSON.stringify(body)).not.toContain(INVOKE_SECRET);
+    expect(JSON.stringify(body)).not.toContain('CANARY-PUBLIC');
   });
 });

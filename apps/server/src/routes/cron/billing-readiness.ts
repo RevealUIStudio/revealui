@@ -3,7 +3,9 @@
  *
  * Validates that the billing system is correctly configured:
  * 1. All expected Stripe price env vars are set
- * 2. REVEALUI_LICENSE_PRIVATE_KEY is present (for license JWT generation)
+ * 2. License mint config matches the live path: local mint requires
+ *    REVEALUI_LICENSE_PRIVATE_KEY; REVEALUI_LICENSE_SIGN_VIA_SIGNER requires
+ *    the signer URL, public key, and invoke secret (no private key on serverless)
  * 3. Billing catalog DB rows exist for all tiers
  * 4. Stripe price parity against the MRR fallback (CR8-P2-04)
  * 5. Stripe Tax Settings vs STRIPE_TAX_ENABLED, live mode only (GAP-437) —
@@ -16,6 +18,7 @@
  * Protected by X-Cron-Secret header.
  */
 
+import { isSignViaSigner } from '@revealui/core/license/mint-client';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
 import { billingCatalog } from '@revealui/db/schema';
@@ -40,14 +43,33 @@ const SUBSCRIPTION_TIERS: Array<{
 
 const ALERT_EMAIL = process.env.REVEALUI_ALERT_EMAIL ?? 'founder@revealui.com';
 
-/** Env vars that must be set for billing to work */
+/**
+ * Best-effort GET of the license-signer liveness route
+ * (`apps/license-signer` `GET /health/live`). A miss is a warning: mint config
+ * is the readiness gate; the probe must not page on a transient blip.
+ */
+const SIGNER_HEALTH_PATH = '/health/live';
+const SIGNER_HEALTH_PROBE_TIMEOUT_MS = 5_000;
+
+/** Env vars that must be set for billing to work (license mint is separate). */
 const REQUIRED_ENV_VARS = [
   'STRIPE_SECRET_KEY',
   'STRIPE_WEBHOOK_SECRET',
-  'REVEALUI_LICENSE_PRIVATE_KEY',
   'STRIPE_PRO_PRICE_ID',
   'STRIPE_MAX_PRICE_ID',
   'STRIPE_ENTERPRISE_PRICE_ID',
+] as const;
+
+/**
+ * Remote mint (`isSignViaSigner`: 1 | true | yes | on).
+ * Invoke secret name is `REVEALUI_SIGNER_INVOKE_SECRET` (mint-client).
+ * `REVEALUI_LICENSE_PUBLIC_KEY_NEXT` is the optional incoming rotation key
+ * (`getPublicKeys`); absence is steady state, so it is not required here.
+ */
+const SIGNER_MODE_REQUIRED_ENV_VARS = [
+  'REVEALUI_LICENSE_SIGNER_URL',
+  'REVEALUI_LICENSE_PUBLIC_KEY',
+  'REVEALUI_SIGNER_INVOKE_SECRET',
 ] as const;
 
 /** All plan IDs that should exist in the billing_catalog table */
@@ -77,6 +99,88 @@ interface WarningResult {
   detail: string;
 }
 
+function stripTrailingSlashes(s: string): string {
+  let end = s.length;
+  while (end > 0 && s.charCodeAt(end - 1) === '/'.charCodeAt(0)) {
+    end -= 1;
+  }
+  return end === s.length ? s : s.slice(0, end);
+}
+
+/**
+ * Names of missing env vars only. Never include values: private keys, PEMs,
+ * and the invoke secret must not appear in check details, logs, or email.
+ */
+function pushTrimmedEnv(results: CheckResult[], name: string): string {
+  const trimmed = (process.env[name] ?? '').trim();
+  const ok = trimmed.length > 0;
+  results.push({ check: `env:${name}`, ok, detail: ok ? 'set' : 'MISSING' });
+  return trimmed;
+}
+
+async function probeSignerHealth(baseUrl: string): Promise<CheckResult | WarningResult> {
+  const url = `${stripTrailingSlashes(baseUrl)}${SIGNER_HEALTH_PATH}`;
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      redirect: 'manual',
+      signal: AbortSignal.timeout(SIGNER_HEALTH_PROBE_TIMEOUT_MS),
+    });
+    try {
+      await res.body?.cancel();
+    } catch {
+      // Status is the signal. Do not read or log the body.
+    }
+    if (res.ok) {
+      return { check: 'signer:health', ok: true, detail: `HTTP ${res.status}` };
+    }
+    return { check: 'signer:health', detail: `HTTP ${res.status} (non-fatal)` };
+  } catch {
+    // Error text can embed the URL. Record only that the probe missed.
+    return { check: 'signer:health', detail: 'probe failed (non-fatal)' };
+  }
+}
+
+function isCheckResult(value: CheckResult | WarningResult): value is CheckResult {
+  return 'ok' in value;
+}
+
+/**
+ * Local mint: private key required (historical billing-readiness rule).
+ * Signer mode: signer URL + public key + invoke secret; private key must not
+ * fail the cron (Studio production keeps the mint key off Vercel).
+ */
+async function appendLicenseMintReadiness(
+  results: CheckResult[],
+  warnings: WarningResult[],
+): Promise<void> {
+  if (!isSignViaSigner()) {
+    const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+    results.push({
+      check: 'env:REVEALUI_LICENSE_PRIVATE_KEY',
+      ok: Boolean(privateKey),
+      detail: privateKey ? 'set' : 'MISSING',
+    });
+    return;
+  }
+
+  let signerUrl = '';
+  for (const name of SIGNER_MODE_REQUIRED_ENV_VARS) {
+    const trimmed = pushTrimmedEnv(results, name);
+    if (name === 'REVEALUI_LICENSE_SIGNER_URL') signerUrl = trimmed;
+  }
+  results.push({
+    check: 'env:REVEALUI_LICENSE_PRIVATE_KEY',
+    ok: true,
+    detail: 'not required when REVEALUI_LICENSE_SIGN_VIA_SIGNER is set',
+  });
+  if (!signerUrl) return;
+
+  const probe = await probeSignerHealth(signerUrl);
+  if (isCheckResult(probe)) results.push(probe);
+  else warnings.push(probe);
+}
+
 app.post('/billing-readiness', async (c) => {
   const provided = c.req.header('X-Cron-Secret') || c.req.header('x-cron-secret');
   if (!revealuiCronSecretMatches(provided)) {
@@ -86,7 +190,7 @@ app.post('/billing-readiness', async (c) => {
   const results: CheckResult[] = [];
   const warnings: WarningResult[] = [];
 
-  // 1. Check required env vars
+  // 1. Check required env vars (Stripe). License mint is section 1b.
   for (const varName of REQUIRED_ENV_VARS) {
     const value = process.env[varName];
     if (value) {
@@ -95,6 +199,9 @@ app.post('/billing-readiness', async (c) => {
       results.push({ check: `env:${varName}`, ok: false, detail: 'MISSING' });
     }
   }
+
+  // 1b. License mint: signer mode must not demand the private key.
+  await appendLicenseMintReadiness(results, warnings);
 
   // 2. Check Stripe key is live (not test) in production
   const stripeKey = process.env.STRIPE_SECRET_KEY;
