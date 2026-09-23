@@ -114,11 +114,9 @@ describe('revealui-harnesses hook <source> (CLI end to end)', () => {
     expect(result.stderr).toContain('invalid JSON on stdin');
   }, 25_000);
 
-  it('rejects an unsupported source with exit code 1', () => {
-    // opencode has no hook normalizer -- OpenCode has no hook system to
-    // normalize from (see hooks/normalizers/index.ts's dispatch doc comment).
+  it('rejects a non-slug source with exit code 1', () => {
     const result = runHookCli(
-      'opencode',
+      '../etc',
       { hook_event_name: 'x' },
       { REVEALUI_HOOK_SPOOL_PATH: spoolPath, REVEALUI_POLICY_SNAPSHOT_PATH: snapshotPath },
     );
