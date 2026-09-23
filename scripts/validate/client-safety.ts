@@ -293,6 +293,8 @@ function collectSourceFiles(dir: string, out: FoundFile[] = []): FoundFile[] {
       collectSourceFiles(join(dir, entry.name), out);
       continue;
     }
+    // tsup writes tsup.config.bundled_*.mjs beside the config and deletes it.
+    if (entry.name.includes('.bundled_')) continue;
     if (SOURCE_EXTS.has(extname(entry.name))) {
       const abs = join(dir, entry.name);
       out.push({ abs, rel: toPosix(relative(ROOT, abs)) });

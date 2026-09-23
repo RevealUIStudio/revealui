@@ -152,6 +152,8 @@ function collectFiles(dir: string, acc: FoundFile[] = []): FoundFile[] {
       collectFiles(abs, acc);
       continue;
     }
+    // tsup writes tsup.config.bundled_*.mjs beside the config and deletes it.
+    if (entry.name.includes('.bundled_')) continue;
     if (!SOURCE_EXTS.has(extname(entry.name))) continue;
     acc.push({ abs, rel: relative(REPO_ROOT, abs).split('\\').join('/') });
   }
