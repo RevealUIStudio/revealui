@@ -82,7 +82,14 @@ import { pageRevisions, pages } from './pages.js';
 import { passkeys } from './passkeys.js';
 import { passwordResetTokens } from './password-reset-tokens.js';
 import { orders, products } from './products.js';
-import { agentReviews, agentSkills, marketplaceAgents, taskSubmissions } from './revmarket.js';
+import {
+  agentReviews,
+  agentSkills,
+  marketplaceAgents,
+  publisherEarnings,
+  publisherPayouts,
+  taskSubmissions,
+} from './revmarket.js';
 import { siteCollaborators, sites } from './sites.js';
 import { tenants } from './tenants.js';
 import {
@@ -109,6 +116,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   oauthAccounts: many(oauthAccounts),
   passkeys: many(passkeys),
   magicLinks: many(magicLinks),
+  publisherEarnings: many(publisherEarnings),
+  publisherPayouts: many(publisherPayouts),
 }));
 
 export const tenantsRelations = relations(tenants, () => ({}));
@@ -559,6 +568,7 @@ export const marketplaceAgentsRelations = relations(marketplaceAgents, ({ one, m
   skills: many(agentSkills),
   reviews: many(agentReviews),
   tasks: many(taskSubmissions),
+  earnings: many(publisherEarnings),
 }));
 
 export const agentSkillsRelations = relations(agentSkills, ({ one }) => ({
@@ -587,5 +597,36 @@ export const taskSubmissionsRelations = relations(taskSubmissions, ({ one }) => 
   agent: one(marketplaceAgents, {
     fields: [taskSubmissions.agentId],
     references: [marketplaceAgents.id],
+  }),
+  earning: one(publisherEarnings, {
+    fields: [taskSubmissions.id],
+    references: [publisherEarnings.taskId],
+  }),
+}));
+
+export const publisherPayoutsRelations = relations(publisherPayouts, ({ one, many }) => ({
+  publisher: one(users, {
+    fields: [publisherPayouts.publisherId],
+    references: [users.id],
+  }),
+  earnings: many(publisherEarnings),
+}));
+
+export const publisherEarningsRelations = relations(publisherEarnings, ({ one }) => ({
+  publisher: one(users, {
+    fields: [publisherEarnings.publisherId],
+    references: [users.id],
+  }),
+  agent: one(marketplaceAgents, {
+    fields: [publisherEarnings.agentId],
+    references: [marketplaceAgents.id],
+  }),
+  task: one(taskSubmissions, {
+    fields: [publisherEarnings.taskId],
+    references: [taskSubmissions.id],
+  }),
+  payout: one(publisherPayouts, {
+    fields: [publisherEarnings.payoutId],
+    references: [publisherPayouts.id],
   }),
 }));

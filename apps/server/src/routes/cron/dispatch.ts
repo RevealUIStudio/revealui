@@ -37,6 +37,7 @@ import reconcileCustomersApp from './reconcile-customers.js';
 import reconcileEntitlementsApp from './reconcile-entitlements.js';
 import reconcileStripeSubscriptionsApp from './reconcile-stripe-subscriptions.js';
 import reconcileSubscriptionsApp from './reconcile-subscriptions.js';
+import revmarketPayoutsApp from './revmarket-payouts.js';
 import sweepGracePeriodsApp from './sweep-grace-periods.js';
 import uptimeCheckApp from './uptime-check.js';
 
@@ -128,6 +129,9 @@ const JOBS = [
     path: '/reconcile-entitlements',
   },
   { name: 'marketplace-payouts', app: marketplacePayoutsApp, path: '/marketplace-payouts' },
+  // Revmarket publisher pay. Monday UTC inside this Hobby dispatcher
+  // (REVMARKET_PAYOUT_FORCE=1 overrides). Not a second vercel.json cron.
+  { name: 'revmarket-payouts', app: revmarketPayoutsApp, path: '/revmarket-payouts' },
   { name: 'cleanup', app: cleanupApp, path: '/cleanup' },
   // GAP-256 PR-2: margin snapshot (free/paid COGS + MRR daily). No-op unless
   // MARGIN_SNAPSHOT_CRON_ENABLED=true. Runs via this single Hobby cron path

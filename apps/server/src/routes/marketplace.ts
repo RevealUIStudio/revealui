@@ -811,6 +811,7 @@ app.openapi(
  *
  * Creates or retrieves a Stripe Connect Express account for the authenticated
  * developer, then returns an Account Link URL for onboarding.
+ * The same stripeAccountId receives marketplace and Revmarket publisher pay.
  *
  * The developer is redirected back to MARKETPLACE_CONNECT_RETURN_URL after
  * completing or aborting the Stripe hosted onboarding flow.
@@ -939,7 +940,8 @@ app.openapi(
   (c) => {
     return c.json({
       success: true,
-      message: 'Stripe Connect onboarding complete. Your account is being verified.',
+      message:
+        'Stripe Connect onboarding complete. This account receives marketplace and Revmarket publisher pay. Your account is being verified.',
     });
   },
 );

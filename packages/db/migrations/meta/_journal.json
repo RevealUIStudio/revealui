@@ -295,6 +295,13 @@
       "when": 1789651200000,
       "tag": "0041_cms_collection_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1790147420627,
+      "tag": "0042_gap160_publisher_ledger",
+      "breakpoints": true
     }
   ]
 }

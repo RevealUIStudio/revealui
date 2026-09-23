@@ -31,9 +31,15 @@
 
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
-import { agentSkills, marketplaceAgents, taskSubmissions } from '@revealui/db/schema';
+import {
+  agentSkills,
+  marketplaceAgents,
+  publisherEarnings,
+  taskSubmissions,
+} from '@revealui/db/schema';
 import { and, eq, sql } from 'drizzle-orm';
 import { createAuditStore } from '../lib/audit-signer.js';
+import { accrualForCompletedTask } from './revmarket-payout-policy.js';
 
 import { forkProvider, type SandboxProvider } from './revmarket-sandbox/index.js';
 
@@ -375,6 +381,17 @@ export async function completeTask(taskId: string, result: TaskResult): Promise<
       .where(eq(marketplaceAgents.id, updated.agentId));
   }
 
+  if (result.success) {
+    try {
+      await accruePublisherEarning(db, updated);
+    } catch (err) {
+      // A ledger miss must not roll back a completion that already committed.
+      logger.error('RevMarket earning accrual failed', err instanceof Error ? err : undefined, {
+        taskId,
+      });
+    }
+  }
+
   // Write audit trail entry
   await writeAuditEntry(taskId, updated.agentId ?? 'unassigned', newStatus, result);
 
@@ -386,6 +403,44 @@ export async function completeTask(taskId: string, result: TaskResult): Promise<
   });
 
   return true;
+}
+
+/**
+ * Insert the publisher's 80% share for this task. Amount is insert-only.
+ * A second insert for the same task is ignored. No row on failure, zero share,
+ * or a missing agent.
+ */
+async function accruePublisherEarning(
+  db: ReturnType<typeof getClient>,
+  task: { id: string; agentId: string | null; costUsdc: string | null },
+): Promise<void> {
+  if (!(task.agentId && publisherEarnings)) return;
+  const accrual = accrualForCompletedTask({
+    success: true,
+    costUsdc: task.costUsdc,
+    completedAt: new Date(),
+  });
+  if (!accrual) return;
+
+  const [agent] = await db
+    .select({ publisherId: marketplaceAgents.publisherId })
+    .from(marketplaceAgents)
+    .where(eq(marketplaceAgents.id, task.agentId))
+    .limit(1);
+  if (!agent) return;
+
+  await db
+    .insert(publisherEarnings)
+    .values({
+      id: crypto.randomUUID(),
+      publisherId: agent.publisherId,
+      agentId: task.agentId,
+      taskId: task.id,
+      amountUsdCents: accrual.amountUsdCents,
+      status: 'accrued',
+      payableAt: accrual.payableAt,
+    })
+    .onConflictDoNothing({ target: publisherEarnings.taskId });
 }
 
 // =============================================================================
