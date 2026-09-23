@@ -93,6 +93,8 @@ feature/* --PR--> test --PR--> main
 
 5. **Verify production.** See [Section 8](#8-monitoring-and-verification).
 
+6. **Marketing honesty.** Copy that exists only on `test` is not what customers see. `pnpm validate:marketing-deploy-lockstep` fails if that copy is described as customer-visible before this Deploy workflow is green. Bots do not promote `test` to `main`. See [marketing-deploy-lockstep.md](./runbooks/marketing-deploy-lockstep.md).
+
 ### Deployed Apps
 
 | App | Framework | Production URL |
