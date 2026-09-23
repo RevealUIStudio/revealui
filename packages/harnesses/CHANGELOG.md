@@ -1,5 +1,16 @@
 # @revealui/harnesses
 
+## 0.18.0
+
+### Minor Changes
+
+- VS Code agent plugin generator ships the GAP-475 marketplace bundle and normalizes MCP config inputs. Publisher credentials stay with the owner.
+
+### Patch Changes
+
+- @revealui/core@0.14.7
+- @revealui/knowledge-graph@0.2.1
+
 ## 0.17.3
 
 ### Patch Changes
