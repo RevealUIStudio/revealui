@@ -92,11 +92,12 @@ Safe to loop (effect on redeploy only; `revealui/prod/secret` also invalidates a
 ```bash
 for p in \
   revealui/prod/secret \
-  revealui/prod/cron-secret \
   revealui/prod/admin/api-key ; do
   revvault generate "$p" --force --length 48 --no-symbols --no-ambiguous && echo "rotated $p"
 done
 ```
+
+`revealui/prod/cron-secret` is intentionally outside that loop. A hard cut drops every in-flight GitHub Actions cron until the GitHub secret is updated in the same minute. Routine rotation uses the overlap procedure: [`docs/security/gap-016-cron-secret-rotation.md`](../security/gap-016-cron-secret-rotation.md). The owner generates the new value. After callers have moved, the canonical vault path holds that value and `REVEALUI_CRON_SECRET_PREVIOUS` / `CRON_SECRET_PREVIOUS` are removed. When the outgoing value is already exposed, that same doc's incident cutover skips the overlap.
 Rotate **individually, with awareness** (each has a side effect):
 ```bash
 # Audit signing is Ed25519 PEM (not a random string). Rotate via revvault key

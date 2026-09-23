@@ -39,6 +39,7 @@ import {
 import { HTTPException } from 'hono/http-exception';
 import type Stripe from 'stripe';
 import { hasApiRole } from '../../lib/api-roles.js';
+import { revealuiCronSecretMatches } from '../../lib/cron-auth.js';
 import { getServices } from '../../lib/services-loader.js';
 import { getHostedLimitsForTier } from '../../lib/tier-limits.js';
 import { MRR_TIER_PRICE_FALLBACK_CENTS } from '../../lib/tier-pricing.js';
@@ -1644,16 +1645,8 @@ const supportRenewalRoute = createRoute({
 });
 
 app.openapi(supportRenewalRoute, async (c) => {
-  const { timingSafeEqual } = await import('node:crypto');
-  const cronSecret = process.env.REVEALUI_CRON_SECRET;
   const provided = c.req.header('X-Cron-Secret');
-
-  if (!(cronSecret && provided)) {
-    throw new HTTPException(403, { message: 'Forbidden' });
-  }
-  const a = Buffer.from(provided);
-  const b = Buffer.from(cronSecret);
-  if (a.length !== b.length || !timingSafeEqual(a, b)) {
+  if (!revealuiCronSecretMatches(provided)) {
     throw new HTTPException(403, { message: 'Forbidden' });
   }
 
@@ -1739,15 +1732,8 @@ const reportOverageRoute = createRoute({
 });
 
 app.openapi(reportOverageRoute, async (c) => {
-  const { timingSafeEqual } = await import('node:crypto');
-  const cronSecret = process.env.REVEALUI_CRON_SECRET;
   const provided = c.req.header('X-Cron-Secret');
-  if (!(cronSecret && provided)) {
-    throw new HTTPException(401, { message: 'Unauthorized' });
-  }
-  const a = Buffer.from(provided);
-  const b = Buffer.from(cronSecret);
-  if (a.length !== b.length || !timingSafeEqual(a, b)) {
+  if (!revealuiCronSecretMatches(provided)) {
     throw new HTTPException(401, { message: 'Unauthorized' });
   }
 
@@ -1832,16 +1818,8 @@ const sweepExpiredLicensesRoute = createRoute({
 });
 
 app.openapi(sweepExpiredLicensesRoute, async (c) => {
-  const { timingSafeEqual } = await import('node:crypto');
-  const cronSecret = process.env.REVEALUI_CRON_SECRET;
   const provided = c.req.header('X-Cron-Secret');
-
-  if (!(cronSecret && provided)) {
-    throw new HTTPException(403, { message: 'Forbidden' });
-  }
-  const a = Buffer.from(provided);
-  const b = Buffer.from(cronSecret);
-  if (a.length !== b.length || !timingSafeEqual(a, b)) {
+  if (!revealuiCronSecretMatches(provided)) {
     throw new HTTPException(403, { message: 'Forbidden' });
   }
 

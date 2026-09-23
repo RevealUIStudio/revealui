@@ -62,7 +62,9 @@ function setEnv(overrides: Record<string, string | undefined> = {}): void {
 
 function clearEnv(): void {
   delete process.env.REVEALUI_CRON_SECRET;
+  delete process.env.REVEALUI_CRON_SECRET_PREVIOUS;
   delete process.env.CRON_SECRET;
+  delete process.env.CRON_SECRET_PREVIOUS;
 }
 
 async function invokeDispatch(opts: {
@@ -175,5 +177,39 @@ describe('dispatch auth fail-closed', () => {
     });
     expect(res.status).toBe(401);
     expect(hoisted.forwarded).toHaveLength(0);
+  });
+});
+
+describe('dispatch rotation overlap', () => {
+  const PREVIOUS_REVEALUI = 'previous-revealui-cron-secret!!';
+  const PREVIOUS_VERCEL = 'previous-vercel-cron-secret!!!!';
+
+  it('accepts X-Cron-Secret matching REVEALUI_CRON_SECRET_PREVIOUS', async () => {
+    setEnv({ REVEALUI_CRON_SECRET_PREVIOUS: PREVIOUS_REVEALUI });
+    const res = await invokeDispatch({
+      method: 'POST',
+      headers: { 'X-Cron-Secret': PREVIOUS_REVEALUI },
+    });
+    expect(res.status).toBe(200);
+  });
+
+  it('accepts Authorization Bearer matching CRON_SECRET_PREVIOUS', async () => {
+    setEnv({ CRON_SECRET_PREVIOUS: PREVIOUS_VERCEL });
+    const res = await invokeDispatch({
+      method: 'GET',
+      headers: { Authorization: `Bearer ${PREVIOUS_VERCEL}` },
+    });
+    expect(res.status).toBe(200);
+  });
+
+  it('still fans out the current REVEALUI_CRON_SECRET during overlap', async () => {
+    setEnv({ REVEALUI_CRON_SECRET_PREVIOUS: PREVIOUS_REVEALUI });
+    const res = await invokeDispatch({
+      method: 'GET',
+      headers: { Authorization: `Bearer ${CRON_SECRET}` },
+    });
+    expect(res.status).toBe(200);
+    expect(hoisted.forwarded.every((job) => job.cronSecret === REVEALUI_CRON_SECRET)).toBe(true);
+    expect(hoisted.forwarded.some((job) => job.cronSecret === PREVIOUS_REVEALUI)).toBe(false);
   });
 });

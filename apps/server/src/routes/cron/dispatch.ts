@@ -9,14 +9,18 @@
  * Authorization: Bearer CRON_SECRET. Manual / WSL invocation remains
  * POST /api/cron/dispatch with X-Cron-Secret: REVEALUI_CRON_SECRET.
  *
- * Dispatch accepts either token (timing-safe, fail-closed). Sub-jobs are
- * always invoked with X-Cron-Secret: REVEALUI_CRON_SECRET. They compare
- * against that env, not Vercel's Bearer CRON_SECRET.
+ * Dispatch accepts either token (timing-safe, fail-closed), including the
+ * `*_PREVIOUS` overlap vars during rotation. Sub-jobs are always invoked
+ * with X-Cron-Secret set to the current REVEALUI_CRON_SECRET (never previous).
  */
 
-import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { Hono } from 'hono';
+import {
+  currentRevealuiCronSecret,
+  revealuiCronSecretMatches,
+  vercelCronSecretMatches,
+} from '../../lib/cron-auth.js';
 import billingApp from '../billing.js';
 import admissionPaidPendingExpireApp from './admission-paid-pending-expire.js';
 import admissionWaitlistDrainApp from './admission-waitlist-drain.js';
@@ -47,17 +51,6 @@ interface JobResult {
   durationMs: number;
 }
 
-function timingSafeMatch(provided: string, secret: string | undefined): boolean {
-  if (!secret) return false;
-  try {
-    const a = Buffer.from(provided);
-    const b = Buffer.from(secret);
-    return a.length === b.length && timingSafeEqual(a, b);
-  } catch {
-    return false;
-  }
-}
-
 function extractCronToken(c: {
   req: { header: (name: string) => string | undefined };
 }): string | undefined {
@@ -75,9 +68,7 @@ function authorizeCronDispatch(c: {
 }): boolean {
   const provided = extractCronToken(c);
   if (!provided) return false;
-  const revealuiOk = timingSafeMatch(provided, process.env.REVEALUI_CRON_SECRET);
-  const vercelOk = timingSafeMatch(provided, process.env.CRON_SECRET);
-  return revealuiOk || vercelOk;
+  return revealuiCronSecretMatches(provided) || vercelCronSecretMatches(provided);
 }
 
 const JOBS = [
@@ -178,7 +169,7 @@ app.on(['GET', 'POST'], '/dispatch', async (c) => {
   logger.info('[cron-dispatch] Starting consolidated cron run');
 
   const results: JobResult[] = [];
-  const fanoutSecret = process.env.REVEALUI_CRON_SECRET;
+  const fanoutSecret = currentRevealuiCronSecret();
   const fanoutHeaders: Record<string, string> = fanoutSecret
     ? { 'X-Cron-Secret': fanoutSecret }
     : {};

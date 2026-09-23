@@ -21,7 +21,6 @@
  * Protected by X-Cron-Secret header (timing-safe compare).
  */
 
-import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { accountSubscriptions } from '@revealui/db/schema';
@@ -29,6 +28,7 @@ import { and, inArray, isNotNull } from 'drizzle-orm';
 import { Hono } from 'hono';
 import type Stripe from 'stripe';
 import { sendCronFailureAlert } from '../../lib/cron-alerts.js';
+import { revealuiCronSecretMatches } from '../../lib/cron-auth.js';
 import { getServices } from '../../lib/services-loader.js';
 
 const app = new Hono();
@@ -101,19 +101,8 @@ interface DriftReport {
 }
 
 app.post('/reconcile-subscriptions', async (c) => {
-  const cronSecret = process.env.REVEALUI_CRON_SECRET;
   const provided = c.req.header('X-Cron-Secret') || c.req.header('x-cron-secret');
-
-  if (!(cronSecret && provided)) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  try {
-    const a = Buffer.from(provided);
-    const b = Buffer.from(cronSecret);
-    if (a.length !== b.length || !timingSafeEqual(a, b)) {
-      return c.json({ error: 'Unauthorized' }, 401);
-    }
-  } catch {
+  if (!revealuiCronSecretMatches(provided)) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 

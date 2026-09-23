@@ -16,13 +16,13 @@
  * Protected by X-Cron-Secret header.
  */
 
-import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
 import { billingCatalog } from '@revealui/db/schema';
 import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { sendCronFailureAlert } from '../../lib/cron-alerts.js';
+import { revealuiCronSecretMatches } from '../../lib/cron-auth.js';
 import { getServices } from '../../lib/services-loader.js';
 import { MRR_TIER_PRICE_FALLBACK_CENTS, type SubscriptionTierId } from '../../lib/tier-pricing.js';
 
@@ -78,20 +78,8 @@ interface WarningResult {
 }
 
 app.post('/billing-readiness', async (c) => {
-  const cronSecret = process.env.REVEALUI_CRON_SECRET;
   const provided = c.req.header('X-Cron-Secret') || c.req.header('x-cron-secret');
-
-  if (!(cronSecret && provided)) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-
-  try {
-    const a = Buffer.from(provided);
-    const b = Buffer.from(cronSecret);
-    if (a.length !== b.length || !timingSafeEqual(a, b)) {
-      return c.json({ error: 'Unauthorized' }, 401);
-    }
-  } catch {
+  if (!revealuiCronSecretMatches(provided)) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 

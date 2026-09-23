@@ -10,32 +10,20 @@
  * Protected by X-Cron-Secret header (defense-in-depth  -  also validated in dispatch.ts).
  */
 
-import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { cleanupOldLogs, cleanupOperational, cleanupStaleTokens } from '@revealui/db/cleanup';
 import { cleanupExpiredIdempotencyKeys, recoverStaleSagas } from '@revealui/db/saga';
 import { Hono } from 'hono';
+import { revealuiCronSecretMatches } from '../../lib/cron-auth.js';
 
 const app = new Hono();
 
 app.post('/cleanup', async (c) => {
   // Defense-in-depth: validate cron secret even though dispatch.ts also checks.
   // Prevents unauthorized access if the route is called directly.
-  const cronSecret = process.env.REVEALUI_CRON_SECRET;
   const provided = c.req.header('X-Cron-Secret') || c.req.header('x-cron-secret');
-
-  if (!(cronSecret && provided)) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-
-  try {
-    const a = Buffer.from(provided);
-    const b = Buffer.from(cronSecret);
-    if (a.length !== b.length || !timingSafeEqual(a, b)) {
-      return c.json({ error: 'Unauthorized' }, 401);
-    }
-  } catch {
+  if (!revealuiCronSecretMatches(provided)) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 

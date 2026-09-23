@@ -195,6 +195,27 @@ describe('envSchema  -  wizard env vars', () => {
     });
   });
 
+  describe('REVEALUI_CRON_SECRET_PREVIOUS', () => {
+    it('accepts a string >= 32 chars', () => {
+      const result = envSchema.safeParse(
+        makeValidEnv({ REVEALUI_CRON_SECRET_PREVIOUS: 'x'.repeat(32) }),
+      );
+      expect(result.success).toBe(true);
+    });
+
+    it('rejects a string < 32 chars', () => {
+      const result = envSchema.safeParse(
+        makeValidEnv({ REVEALUI_CRON_SECRET_PREVIOUS: 'x'.repeat(31) }),
+      );
+      expect(result.success).toBe(false);
+    });
+
+    it('is optional', () => {
+      const result = envSchema.safeParse(makeValidEnv());
+      expect(result.success).toBe(true);
+    });
+  });
+
   describe('license key signing', () => {
     it('accepts REVEALUI_LICENSE_PRIVATE_KEY', () => {
       const result = envSchema.safeParse(

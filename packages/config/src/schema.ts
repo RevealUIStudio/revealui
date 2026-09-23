@@ -76,8 +76,10 @@ const optionalSchema = z.object({
     .regex(/^[0-9a-f]{64}$/i, 'Must be exactly 64 hex characters')
     .optional(),
 
-  // Cron endpoint authentication
+  // Cron endpoint authentication. PREVIOUS is the overlap slot for zero-downtime
+  // rotation (docs/security/gap-016-cron-secret-rotation.md). Unset in steady state.
   REVEALUI_CRON_SECRET: secretSchema.optional(),
+  REVEALUI_CRON_SECRET_PREVIOUS: secretSchema.optional(),
 
   // Audit-log signing key (GAP-355 Stage 3): the Ed25519 private key (PKCS#8
   // PEM) that signs every audit row at the write door. Validated as a real

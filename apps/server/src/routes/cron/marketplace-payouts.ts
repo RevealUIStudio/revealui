@@ -15,13 +15,13 @@
  * Schedule: daily at 04:00 UTC (configured in vercel.json)
  */
 
-import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
 import { marketplaceServers, marketplaceTransactions } from '@revealui/db/schema';
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { sendCronFailureAlert } from '../../lib/cron-alerts.js';
+import { revealuiCronSecretMatches } from '../../lib/cron-auth.js';
 import { getServices } from '../../lib/services-loader.js';
 
 const app = new Hono();
@@ -38,20 +38,8 @@ interface PayoutResult {
 }
 
 app.post('/marketplace-payouts', async (c) => {
-  const cronSecret = process.env.REVEALUI_CRON_SECRET;
   const provided = c.req.header('X-Cron-Secret') || c.req.header('x-cron-secret');
-
-  if (!(cronSecret && provided)) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-
-  try {
-    const a = Buffer.from(provided);
-    const b = Buffer.from(cronSecret);
-    if (a.length !== b.length || !timingSafeEqual(a, b)) {
-      return c.json({ error: 'Unauthorized' }, 401);
-    }
-  } catch {
+  if (!revealuiCronSecretMatches(provided)) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 

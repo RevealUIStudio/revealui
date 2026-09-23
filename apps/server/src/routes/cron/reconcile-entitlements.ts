@@ -60,7 +60,6 @@
  * Protected by X-Cron-Secret (timing-safe compare).
  */
 
-import { timingSafeEqual } from 'node:crypto';
 import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
@@ -74,6 +73,7 @@ import {
 import { and, eq, isNull, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { sendCronFailureAlert } from '../../lib/cron-alerts.js';
+import { revealuiCronSecretMatches } from '../../lib/cron-auth.js';
 import { isUpgrade } from '../../lib/downgrade-cap.js';
 import {
   buildHostedEntitlementValues,
@@ -110,19 +110,8 @@ interface ScanResult {
 }
 
 app.post('/reconcile-entitlements', async (c) => {
-  const cronSecret = process.env.REVEALUI_CRON_SECRET;
   const provided = c.req.header('X-Cron-Secret') || c.req.header('x-cron-secret');
-
-  if (!(cronSecret && provided)) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  try {
-    const a = Buffer.from(provided);
-    const b = Buffer.from(cronSecret);
-    if (a.length !== b.length || !timingSafeEqual(a, b)) {
-      return c.json({ error: 'Unauthorized' }, 401);
-    }
-  } catch {
+  if (!revealuiCronSecretMatches(provided)) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 

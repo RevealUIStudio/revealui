@@ -444,6 +444,29 @@ export function validateStartup(
       errors.push('REVEALUI_CRON_SECRET must be at least 32 characters.');
     }
 
+    // Overlap slots for zero-downtime rotation. Empty/unset is steady state.
+    // See docs/security/gap-016-cron-secret-rotation.md.
+    const cronSecretPrevious = (env.REVEALUI_CRON_SECRET_PREVIOUS ?? '').trim();
+    if (
+      cronSecretPrevious &&
+      !skipFormat(env.REVEALUI_CRON_SECRET_PREVIOUS ?? '') &&
+      cronSecretPrevious.length < 32
+    ) {
+      errors.push(
+        'REVEALUI_CRON_SECRET_PREVIOUS must be at least 32 characters when set (transitional secret used during cron secret rotation).',
+      );
+    }
+    const vercelCronPrevious = (env.CRON_SECRET_PREVIOUS ?? '').trim();
+    if (
+      vercelCronPrevious &&
+      !skipFormat(env.CRON_SECRET_PREVIOUS ?? '') &&
+      vercelCronPrevious.length < 32
+    ) {
+      errors.push(
+        'CRON_SECRET_PREVIOUS must be at least 32 characters when set (transitional secret used during Vercel cron bearer rotation).',
+      );
+    }
+
     // Alert email format (hosted-only — primary use is unreconciled Stripe
     // webhooks; Forge customers can configure but aren't required to).
     const alertEmail = env.REVEALUI_ALERT_EMAIL ?? '';

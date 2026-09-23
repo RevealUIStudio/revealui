@@ -18,6 +18,7 @@ export const NEVER_SERVE = new Set([
   'SECRETS.md',
   'CREDENTIAL-ROTATION-RUNBOOK.md',
   'DEPLOYMENT-RUNBOOK.md',
+  'gap-016-cron-secret-rotation.md',
 ]);
 
 /**
