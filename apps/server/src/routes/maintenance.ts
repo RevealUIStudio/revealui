@@ -12,6 +12,7 @@ import { getRestClient } from '@revealui/db';
 import { cleanupOrphanedVectorData } from '@revealui/db/cleanup';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
+import { revealuiCronSecretMatches } from '../lib/cron-auth.js';
 
 const app = new OpenAPIHono();
 
@@ -66,16 +67,8 @@ const cleanupOrphansRoute = createRoute({
 });
 
 app.openapi(cleanupOrphansRoute, async (c) => {
-  const { timingSafeEqual } = await import('node:crypto');
-  const cronSecret = process.env.REVEALUI_CRON_SECRET;
   const provided = c.req.header('X-Cron-Secret');
-
-  if (!(cronSecret && provided)) {
-    throw new HTTPException(403, { message: 'Forbidden' });
-  }
-  const a = Buffer.from(provided);
-  const b = Buffer.from(cronSecret);
-  if (a.length !== b.length || !timingSafeEqual(a, b)) {
+  if (!revealuiCronSecretMatches(provided)) {
     throw new HTTPException(403, { message: 'Forbidden' });
   }
 

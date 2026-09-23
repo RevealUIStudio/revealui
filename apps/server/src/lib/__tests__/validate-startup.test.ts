@@ -308,6 +308,30 @@ describe('validateStartup — production format checks (live mode)', () => {
     );
   });
 
+  it('rejects a short REVEALUI_CRON_SECRET_PREVIOUS overlap secret', () => {
+    expect(() =>
+      validateStartup(validLiveProdEnv({ REVEALUI_CRON_SECRET_PREVIOUS: 'short' })),
+    ).toThrow(/REVEALUI_CRON_SECRET_PREVIOUS/);
+  });
+
+  it('treats empty REVEALUI_CRON_SECRET_PREVIOUS as unset', () => {
+    expect(() =>
+      validateStartup(validLiveProdEnv({ REVEALUI_CRON_SECRET_PREVIOUS: '' })),
+    ).not.toThrow();
+  });
+
+  it('accepts a 32+ character REVEALUI_CRON_SECRET_PREVIOUS overlap secret', () => {
+    expect(() =>
+      validateStartup(validLiveProdEnv({ REVEALUI_CRON_SECRET_PREVIOUS: 'p'.repeat(32) })),
+    ).not.toThrow();
+  });
+
+  it('rejects a short CRON_SECRET_PREVIOUS overlap secret', () => {
+    expect(() => validateStartup(validLiveProdEnv({ CRON_SECRET_PREVIOUS: 'short' }))).toThrow(
+      /CRON_SECRET_PREVIOUS/,
+    );
+  });
+
   it('throws when SENTRY_DSN is missing in hosted production (J-P0-1)', () => {
     const env = validLiveProdEnv();
     delete env.SENTRY_DSN;

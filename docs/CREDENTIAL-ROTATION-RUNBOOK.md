@@ -96,12 +96,9 @@ revvault set revealui/env/core REVEALUI_SECRET "$NEW_SECRET"
 
 #### REVEALUI_CRON_SECRET
 
-```bash
-openssl rand -hex 32  # → new value
-revvault set revealui/env/cron REVEALUI_CRON_SECRET "$(openssl rand -hex 32)"
-```
+Zero-downtime overlap (accept the outgoing value and the incoming value, then drop the outgoing value): [`docs/security/gap-016-cron-secret-rotation.md`](./security/gap-016-cron-secret-rotation.md).
 
-**Impact:** CRON_SECRET requires updating cron job headers.
+The API compares `X-Cron-Secret` to `REVEALUI_CRON_SECRET` or, during the window, `REVEALUI_CRON_SECRET_PREVIOUS`. Vercel platform cron `Authorization: Bearer` is a separate pair: `CRON_SECRET` and `CRON_SECRET_PREVIOUS`. The owner generates the new value and writes hosting env. Do not hard-cut the canonical vault entry and redeploy in one step — GitHub Actions (`.github/workflows/reconciliation-crons.yml`, `.github/workflows/worker-liveness.yml`) keep sending the previous GitHub secret `REVEALUI_CRON_SECRET` until that secret is updated.
 
 #### REVEALUI_ADMIN_API_KEY (inter-service auth)
 

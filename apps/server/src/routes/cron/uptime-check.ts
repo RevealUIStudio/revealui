@@ -11,14 +11,22 @@ import { healthCheck } from '@revealui/core/observability';
 import { logger } from '@revealui/core/observability/logger';
 import { AuditWriteError, classifyAuditWriteFailure } from '@revealui/core/security';
 import { Hono } from 'hono';
+import { vercelCronSecretMatches } from '../../lib/cron-auth.js';
 
 const app = new Hono();
 
 app.get('/', async (c) => {
-  // Verify cron secret to prevent unauthorized invocations
+  // Verify cron secret to prevent unauthorized invocations.
+  // Unset CRON_SECRET and CRON_SECRET_PREVIOUS stays fail-open (pre-existing).
+  // When either is set, the bearer must match current or the overlap previous.
   const authHeader = c.req.header('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  const bearerToken = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length)
+    : undefined;
+  const cronConfigured = Boolean(
+    process.env.CRON_SECRET?.trim() || process.env.CRON_SECRET_PREVIOUS?.trim(),
+  );
+  if (cronConfigured && !vercelCronSecretMatches(bearerToken)) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
