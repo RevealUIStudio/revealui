@@ -1047,6 +1047,7 @@ describe('GET /connect/return -- Stripe Connect callback', () => {
     const body = await parseBody(res);
     expect(body.success).toBe(true);
     expect(body.message).toContain('Stripe Connect onboarding complete');
+    expect(body.message).toContain('marketplace and Revmarket');
   });
 
   it('returns 200 regardless of auth (handled by middleware passthrough)', async () => {

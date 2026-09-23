@@ -158,6 +158,12 @@
       "rationale": "CMS collection tables (categories, tags, contents, events, info, videos, prices, subscriptions) for configs that were WIRE-UP-PENDING. Hand-written CREATE TABLE IF NOT EXISTS + CREATE INDEX IF NOT EXISTS so it is idempotent against fresh and re-applied DBs. db:generate against the current meta/ state would re-emit unrelated kg_*/CHECK drift from the stale snapshot chain (same 0025/0034/0040 pattern). Companion Drizzle schema at packages/db/src/schema/cms-collections.ts is the type contract; admin typed storage writes via Drizzle, not raw SQL.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Blocked on the pre-existing 0021-0040 snapshot-debt backfill. Same regen path as peer hand-written migrations: pnpm --filter @revealui/db db:generate against a clean DB once that backfill happens."
+    },
+    {
+      "tag": "0042_gap160_publisher_ledger",
+      "rationale": "GAP-160: CREATE TABLE publisher_payouts and publisher_earnings, partial unique index for one paid payout per publisher per week, and FKs to users, marketplace_agents, task_submissions. Hand-written IF NOT EXISTS / DO $$ because db:generate against the stale snapshot chain re-emits unrelated CREATE TABLE and DROP COLUMN drift (same 0041 pattern). Companion Drizzle schema at packages/db/src/schema/revmarket.ts.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Blocked on the pre-existing snapshot-debt backfill. Same regen path as 0041: pnpm --filter @revealui/db db:generate against a clean DB once that backfill happens. The Drizzle tables are the type contract."
     }
   ]
 }

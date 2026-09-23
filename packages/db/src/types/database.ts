@@ -91,6 +91,8 @@ import type {
   prices,
   processedWebhookEvents,
   products,
+  publisherEarnings,
+  publisherPayouts,
   ragChunks,
   ragDocuments,
   ragWorkspaces,
@@ -537,6 +539,16 @@ export type ProductsRow = typeof products.$inferSelect
 export type ProductsInsert = typeof products.$inferInsert
 export type ProductsUpdate = Partial<ProductsInsert>
 
+// Publisher Earnings
+export type PublisherEarningsRow = typeof publisherEarnings.$inferSelect
+export type PublisherEarningsInsert = typeof publisherEarnings.$inferInsert
+export type PublisherEarningsUpdate = Partial<PublisherEarningsInsert>
+
+// Publisher Payouts
+export type PublisherPayoutsRow = typeof publisherPayouts.$inferSelect
+export type PublisherPayoutsInsert = typeof publisherPayouts.$inferInsert
+export type PublisherPayoutsUpdate = Partial<PublisherPayoutsInsert>
+
 // Rag Chunks
 export type RagChunksRow = typeof ragChunks.$inferSelect
 export type RagChunksInsert = typeof ragChunks.$inferInsert
@@ -793,6 +805,8 @@ export type DatabaseRelationships = {
   prices: Relationship[]
   processedWebhookEvents: Relationship[]
   products: Relationship[]
+  publisherEarnings: Relationship[]
+  publisherPayouts: Relationship[]
   ragChunks: Relationship[]
   ragDocuments: Relationship[]
   ragWorkspaces: Relationship[]
@@ -1140,6 +1154,19 @@ export const productsRelationships = [
   { foreignKeyName: 'products_owner_id_users_id_fk', columns: ['owner_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
 ] as const satisfies readonly Relationship[]
 
+// PublisherEarnings relationships
+export const publisherEarningsRelationships = [
+  { foreignKeyName: 'publisher_earnings_publisher_id_users_id_fk', columns: ['publisher_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+  { foreignKeyName: 'publisher_earnings_agent_id_marketplace_agents_id_fk', columns: ['agent_id'], isOneToOne: true, referencedRelation: 'marketplace_agents', referencedColumns: ['id'] },
+  { foreignKeyName: 'publisher_earnings_task_id_task_submissions_id_fk', columns: ['task_id'], isOneToOne: true, referencedRelation: 'task_submissions', referencedColumns: ['id'] },
+  { foreignKeyName: 'publisher_earnings_payout_id_publisher_payouts_id_fk', columns: ['payout_id'], isOneToOne: true, referencedRelation: 'publisher_payouts', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
+
+// PublisherPayouts relationships
+export const publisherPayoutsRelationships = [
+  { foreignKeyName: 'publisher_payouts_publisher_id_users_id_fk', columns: ['publisher_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
+
 // RagChunks relationships
 export const ragChunksRelationships: readonly Relationship[] = []
 
@@ -1191,6 +1218,7 @@ export const tagsRelationships: readonly Relationship[] = []
 export const taskSubmissionsRelationships = [
   { foreignKeyName: 'task_submissions_submitter_id_users_id_fk', columns: ['submitter_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
   { foreignKeyName: 'task_submissions_agent_id_marketplace_agents_id_fk', columns: ['agent_id'], isOneToOne: true, referencedRelation: 'marketplace_agents', referencedColumns: ['id'] },
+  { foreignKeyName: 'task_submissions_id_publisher_earnings_task_id_fk', columns: ['id'], isOneToOne: true, referencedRelation: 'publisher_earnings', referencedColumns: ['task_id'] },
 ] as const satisfies readonly Relationship[]
 
 // TenantProviderConfigs relationships
@@ -1784,6 +1812,18 @@ export type Database = {
         Insert: ProductsInsert
         Update: ProductsUpdate
         Relationships: typeof productsRelationships
+      }
+      publisher_earnings: {
+        Row: PublisherEarningsRow
+        Insert: PublisherEarningsInsert
+        Update: PublisherEarningsUpdate
+        Relationships: typeof publisherEarningsRelationships
+      }
+      publisher_payouts: {
+        Row: PublisherPayoutsRow
+        Insert: PublisherPayoutsInsert
+        Update: PublisherPayoutsUpdate
+        Relationships: typeof publisherPayoutsRelationships
       }
       rag_chunks: {
         Row: RagChunksRow

@@ -7,7 +7,18 @@
  */
 
 import { sql } from 'drizzle-orm';
-import { check, index, integer, jsonb, pgTable, real, text, timestamp } from 'drizzle-orm/pg-core';
+import {
+  check,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  real,
+  text,
+  timestamp,
+  unique,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core';
 import { users } from './users.js';
 
 // =============================================================================
@@ -266,5 +277,100 @@ export type AgentSkill = typeof agentSkills.$inferSelect;
 export type NewAgentSkill = typeof agentSkills.$inferInsert;
 export type AgentReview = typeof agentReviews.$inferSelect;
 export type NewAgentReview = typeof agentReviews.$inferInsert;
+// =============================================================================
+// Publisher earnings + weekly Connect payouts
+//
+// One immutable earning per completed task (amount_usd_cents is insert-only).
+// One paid payout per publisher per week. A failed payout row does not block
+// the next attempt; earnings go back to accrued.
+// =============================================================================
+
+export const publisherPayouts = pgTable(
+  'publisher_payouts',
+  {
+    id: text('id').primaryKey(),
+
+    publisherId: text('publisher_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+
+    /** Monday UTC date (YYYY-MM-DD) of the sweep week. */
+    weekStart: text('week_start').notNull(),
+
+    /** Stripe Transfer id. Null until the transfer succeeds. */
+    stripeTransferId: text('stripe_transfer_id'),
+
+    amountUsdCents: integer('amount_usd_cents').notNull(),
+
+    /** pending: reserved; paid: transfer recorded; failed: earnings released. */
+    status: text('status').notNull().default('pending'),
+
+    earningIds: jsonb('earning_ids').$type<string[]>().notNull(),
+
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    failedAt: timestamp('failed_at', { withTimezone: true }),
+  },
+  (table) => [
+    index('publisher_payouts_publisher_week_idx').on(table.publisherId, table.weekStart),
+    uniqueIndex('publisher_payouts_publisher_week_paid_uq')
+      .on(table.publisherId, table.weekStart)
+      .where(sql`status = 'paid'`),
+    check('publisher_payouts_status_check', sql`status IN ('pending', 'paid', 'failed')`),
+    check('publisher_payouts_amount_nonneg_check', sql`amount_usd_cents >= 0`),
+  ],
+);
+
+export const publisherEarnings = pgTable(
+  'publisher_earnings',
+  {
+    id: text('id').primaryKey(),
+
+    publisherId: text('publisher_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+
+    agentId: text('agent_id').references(() => marketplaceAgents.id, { onDelete: 'set null' }),
+
+    /** One earning per task. A second completion does not insert another row. */
+    taskId: text('task_id')
+      .notNull()
+      .references(() => taskSubmissions.id, { onDelete: 'cascade' }),
+
+    /** 80% share in USD cents. Insert-only: payout updates must not change this. */
+    amountUsdCents: integer('amount_usd_cents').notNull(),
+
+    /**
+     * accrued: waiting for the weekly sweep
+     * held_for_dispute: excluded until the hold clears
+     * released_to_payout: selected for a transfer in flight
+     * paid: included in a paid payout
+     * dropped: removed (refund / dispute). Never an earning that can be paid.
+     */
+    status: text('status').notNull().default('accrued'),
+
+    /** Earliest sweep time. Set to completion + 7 days so the dispute window holds. */
+    payableAt: timestamp('payable_at', { withTimezone: true }).notNull(),
+
+    payoutId: text('payout_id').references(() => publisherPayouts.id, { onDelete: 'set null' }),
+
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    unique('publisher_earnings_task_id_uq').on(table.taskId),
+    index('publisher_earnings_publisher_status_idx').on(table.publisherId, table.status),
+    index('publisher_earnings_payable_at_idx').on(table.payableAt),
+    index('publisher_earnings_payout_id_idx').on(table.payoutId),
+    check(
+      'publisher_earnings_status_check',
+      sql`status IN ('accrued', 'held_for_dispute', 'released_to_payout', 'paid', 'dropped')`,
+    ),
+    check('publisher_earnings_amount_nonneg_check', sql`amount_usd_cents >= 0`),
+  ],
+);
+
 export type TaskSubmission = typeof taskSubmissions.$inferSelect;
 export type NewTaskSubmission = typeof taskSubmissions.$inferInsert;
+export type PublisherEarning = typeof publisherEarnings.$inferSelect;
+export type NewPublisherEarning = typeof publisherEarnings.$inferInsert;
+export type PublisherPayout = typeof publisherPayouts.$inferSelect;
+export type NewPublisherPayout = typeof publisherPayouts.$inferInsert;

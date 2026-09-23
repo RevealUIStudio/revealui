@@ -2147,6 +2147,58 @@ export const ProductsInsertContract = createContract({
 })
 
 // =============================================================================
+// PublisherEarnings Contracts
+// =============================================================================
+
+/**
+ * Contract for publisherEarnings row (Select)
+ * Database table: publisher_earnings
+ */
+export const PublisherEarningsRowContract = createContract({
+  name: 'PublisherEarningsRow',
+  version: '1',
+  description: 'Database row contract for publisher_earnings table',
+  schema: Schemas.PublisherEarningsSelectSchema,
+})
+
+/**
+ * Contract for publisherEarnings insert
+ * Database table: publisher_earnings
+ */
+export const PublisherEarningsInsertContract = createContract({
+  name: 'PublisherEarningsInsert',
+  version: '1',
+  description: 'Database insert contract for publisher_earnings table',
+  schema: Schemas.PublisherEarningsInsertSchema,
+})
+
+// =============================================================================
+// PublisherPayouts Contracts
+// =============================================================================
+
+/**
+ * Contract for publisherPayouts row (Select)
+ * Database table: publisher_payouts
+ */
+export const PublisherPayoutsRowContract = createContract({
+  name: 'PublisherPayoutsRow',
+  version: '1',
+  description: 'Database row contract for publisher_payouts table',
+  schema: Schemas.PublisherPayoutsSelectSchema,
+})
+
+/**
+ * Contract for publisherPayouts insert
+ * Database table: publisher_payouts
+ */
+export const PublisherPayoutsInsertContract = createContract({
+  name: 'PublisherPayoutsInsert',
+  version: '1',
+  description: 'Database insert contract for publisher_payouts table',
+  schema: Schemas.PublisherPayoutsInsertSchema,
+})
+
+// =============================================================================
 // RagChunks Contracts
 // =============================================================================
 

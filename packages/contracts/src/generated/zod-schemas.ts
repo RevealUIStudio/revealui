@@ -2146,6 +2146,58 @@ export type ProductsRow = z.infer<typeof ProductsSelectSchema>
 export type ProductsInsert = z.infer<typeof ProductsInsertSchema>
 
 // =============================================================================
+// PublisherEarnings Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting publisherEarnings rows from database
+ * Generated from Drizzle table definition: tables.publisherEarnings
+ */
+export const PublisherEarningsSelectSchema = createSelectSchema(tables.publisherEarnings)
+
+/**
+ * Zod schema for inserting publisherEarnings rows to database
+ * Generated from Drizzle table definition: tables.publisherEarnings
+ */
+export const PublisherEarningsInsertSchema = createInsertSchema(tables.publisherEarnings)
+
+/**
+ * TypeScript type for publisherEarnings row (Select)
+ */
+export type PublisherEarningsRow = z.infer<typeof PublisherEarningsSelectSchema>
+
+/**
+ * TypeScript type for publisherEarnings insert
+ */
+export type PublisherEarningsInsert = z.infer<typeof PublisherEarningsInsertSchema>
+
+// =============================================================================
+// PublisherPayouts Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting publisherPayouts rows from database
+ * Generated from Drizzle table definition: tables.publisherPayouts
+ */
+export const PublisherPayoutsSelectSchema = createSelectSchema(tables.publisherPayouts)
+
+/**
+ * Zod schema for inserting publisherPayouts rows to database
+ * Generated from Drizzle table definition: tables.publisherPayouts
+ */
+export const PublisherPayoutsInsertSchema = createInsertSchema(tables.publisherPayouts)
+
+/**
+ * TypeScript type for publisherPayouts row (Select)
+ */
+export type PublisherPayoutsRow = z.infer<typeof PublisherPayoutsSelectSchema>
+
+/**
+ * TypeScript type for publisherPayouts insert
+ */
+export type PublisherPayoutsInsert = z.infer<typeof PublisherPayoutsInsertSchema>
+
+// =============================================================================
 // RagChunks Schemas
 // =============================================================================
 
