@@ -4,7 +4,7 @@ Fleet claim honesty engines for multi-root claim-drift (GAP-462).
 
 ## Overview
 
-Extracts the claim-drift detector so every RevFleet product repo can run the
+Extracts the claim-drift detector so every RevealFleet product repo can run the
 same honesty gates without a full-copy of the scanner. Phase 1 keeps revealui
 `pnpm validate:claims` hard-fail with pre-extract parity. Phase 2 adds
 per-profile scan roots, soft missing-path handling, and `--warn` / `--baseline`

@@ -27,6 +27,7 @@ import {
   findExpiredMigrations,
   findLeafOrDirViolations,
   findManifestDrift,
+  findNextPublicSensitiveMarks,
   findNonKebabPaths,
   findRetiredPathUsage,
   findSensitivityGaps,
@@ -70,6 +71,43 @@ describe('secret-paths spec self-consistency', () => {
   it('every path segment is lower-kebab', () => {
     expect(findNonKebabPaths([...DECLARED_PATHS])).toEqual([]);
   });
+
+  // GAP-234: client-bundled names must never carry the Vercel sensitive marker.
+  // Synthetic names only — no vault values.
+  it('rejects sensitive=true on NEXT_PUBLIC_* manifest vars', () => {
+    const marked = findNextPublicSensitiveMarks([
+      {
+        name: 'NEXT_PUBLIC_SERVER_URL',
+        path: 'revealui/prod/public/server-url',
+        sensitive: true,
+        source: 'vercel:revealui-api',
+      },
+      {
+        name: 'REVEALUI_SECRET',
+        path: 'revealui/prod/secret',
+        sensitive: true,
+        source: 'vercel:revealui-api',
+      },
+    ]);
+    expect(marked).toEqual([
+      {
+        kind: 'sensitivity-mismatch',
+        path: 'revealui/prod/public/server-url',
+        detail:
+          'vercel:revealui-api var NEXT_PUBLIC_SERVER_URL is NEXT_PUBLIC_* and must not be sensitive',
+      },
+    ]);
+    expect(
+      findNextPublicSensitiveMarks([
+        {
+          name: 'NEXT_PUBLIC_STRIPE_PRO_PRICE_ID',
+          path: 'revealui/prod/stripe/pro-price-id',
+          sensitive: false,
+          source: 'vercel:revealui-admin',
+        },
+      ]),
+    ).toEqual([]);
+  });
 });
 
 describe.skipIf(!hasManifests)('manifest ↔ spec lockstep', () => {
@@ -99,10 +137,12 @@ describe.skipIf(!hasManifests)('manifest ↔ spec lockstep', () => {
 
   it('sensitivity-completeness: credential-class Vercel vars are sensitive, public vars are bare', () => {
     expect(findSensitivityGaps(vercelVars)).toEqual([]);
+    expect(findNextPublicSensitiveMarks(vercelVars)).toEqual([]);
   });
 
   it('sensitivity-completeness holds for the staging manifest too (GAP-343)', () => {
     expect(findSensitivityGaps(stagingVars)).toEqual([]);
+    expect(findNextPublicSensitiveMarks(stagingVars)).toEqual([]);
   });
 
   it('Vercel prod no longer syncs the license private key; public key stays bare', () => {
@@ -261,6 +301,23 @@ describe('migrating_since > 1-release-window tripwire', () => {
     // Both license leaves carry migratingSince, so both trip.
     expect(drift.map((d) => d.path)).toContain('revdev/license-signing-private-key');
   });
+});
+
+describe('GAP-347 readonly database URL', () => {
+  it.each(['revealui/prod/db/postgres-url-readonly', 'revealui/staging/db/postgres-url-readonly'])(
+    '%s is a sensitive unsynced credential',
+    (path) => {
+      const def = SECRET_PATHS.find((d) => d.path === path);
+      expect(def?.kind).toBe('credential');
+      expect(def?.sensitive).toBe(true);
+      expect(def?.intentionallyUnsynced).toBe(true);
+      expect(def?.consumers).toEqual([]);
+      expect(DECLARED_PATHS.has(path)).toBe(true);
+      expect(SYNCED_PATHS.has(path)).toBe(false);
+      expect(allManifestPaths).not.toContain(path);
+      expect(docPaths).not.toContain(path);
+    },
+  );
 });
 
 describe('rendered synced surface', () => {

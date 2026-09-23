@@ -85,6 +85,11 @@ const aiItems: NavItem[] = [
     label: 'Agent Tasks',
     icon: <IconTerminal data-slot="icon" className={iconClass} aria-hidden="true" />,
   },
+  {
+    href: '/knowledge-graph',
+    label: 'RevMind',
+    icon: <IconGlobe data-slot="icon" className={iconClass} aria-hidden="true" />,
+  },
 ];
 
 const operationsItems: NavItem[] = [
@@ -190,6 +195,9 @@ function AdminSidebarContent({
 
   const isCurrent = (href: string) => {
     if (href === '/') return pathname === '/';
+    if (href === '/knowledge-graph') {
+      return pathname.startsWith('/knowledge-graph') || pathname.startsWith('/revmind');
+    }
     return pathname.startsWith(href);
   };
 

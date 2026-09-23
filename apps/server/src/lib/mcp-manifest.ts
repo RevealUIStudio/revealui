@@ -252,7 +252,7 @@ export const MCP_SERVERS: readonly McpServerEntry[] = [
     id: 'email-provider',
     name: 'Email Provider',
     description:
-      'Internal helper for resolving email provider credentials and routing decisions across RevFleet.',
+      'Internal helper for resolving email provider credentials and routing decisions across RevealFleet.',
     category: 'helper',
     transport: 'stdio',
     modulePath: '@revealui/mcp/dist/servers/_email-provider.js',

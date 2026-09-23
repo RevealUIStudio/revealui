@@ -5,8 +5,11 @@
 // for feature→test). This guard:
 //
 //   1. PR mode (base=test, backflow-shaped title/head): fail until the PR carries
-//      the acknowledgment label `backflow:merge-commit`, and print UI instructions
-//      to use **Create a merge commit** (not Squash / Rebase).
+//      the human acknowledgment label `backflow:merge-commit`, and print UI
+//      instructions to use **Create a merge commit** (not Squash / Rebase).
+//      The revfleet-backflow App on the canonical head
+//      `chore/backflow-main-into-test` passes without that label. Auto-applying
+//      it would forge the human ack. Squash still fails ancestry mode.
 //   2. Ancestry mode (push to test / offline): fail if origin/main is not an
 //      ancestor of HEAD — catches a squash-merged backflow after the fact.
 //
@@ -28,6 +31,12 @@
 const { execFileSync } = require('node:child_process');
 
 const ACK_LABEL = 'backflow:merge-commit';
+const CANONICAL_BACKFLOW_HEAD = 'chore/backflow-main-into-test';
+const BACKFLOW_APP_LOGIN = 'revfleet-backflow[bot]';
+
+function isCanonicalAppBackflow(headRef, authorLogin) {
+  return headRef === CANONICAL_BACKFLOW_HEAD && authorLogin === BACKFLOW_APP_LOGIN;
+}
 
 function parseArgs(argv) {
   let mode = 'pr';
@@ -81,10 +90,12 @@ function parseLabels(raw) {
 }
 
 /**
- * Event payload labels are snapshotted at `opened`. The backflow bot applies
- * `backflow:merge-commit` immediately after create, so the first required check
- * often sees an empty PR_LABELS and fails closed until a later `labeled` rerun.
+ * Event payload labels are snapshotted at `opened`. A human may apply
+ * `backflow:merge-commit` after open, so the first required check often sees
+ * an empty PR_LABELS and fails closed until a later `labeled` rerun.
  * Prefer the event list when it already has the ack; otherwise use live labels.
+ * The backflow App does not apply this label. Canonical App PRs pass via
+ * isCanonicalAppBackflow instead.
  */
 function resolveLabels(eventLabels, liveLabels) {
   if (eventLabels.includes(ACK_LABEL)) return eventLabels;
@@ -143,6 +154,18 @@ async function runPrMode() {
   console.log('CLI:');
   console.log('  gh pr merge <N> --repo RevealUIStudio/revealui --merge');
   console.log('');
+
+  const authorLogin = process.env.PR_AUTHOR_LOGIN || '';
+  if (isCanonicalAppBackflow(headRef, authorLogin)) {
+    console.log(
+      `Canonical backflow App PR (${BACKFLOW_APP_LOGIN} on ${CANONICAL_BACKFLOW_HEAD}).`,
+    );
+    console.log(
+      'Human acknowledgment label is not required. Squash still fails ancestry mode on push to test.',
+    );
+    process.exit(0);
+  }
+
   console.log(`Acknowledgment label required on this PR: ${ACK_LABEL}`);
   console.log(`  gh pr edit <N> --repo RevealUIStudio/revealui --add-label "${ACK_LABEL}"`);
   console.log('');
@@ -224,7 +247,10 @@ function main() {
 
 module.exports = {
   ACK_LABEL,
+  BACKFLOW_APP_LOGIN,
+  CANONICAL_BACKFLOW_HEAD,
   isBackflowPr,
+  isCanonicalAppBackflow,
   parseLabels,
   resolveLabels,
   fetchLiveLabels,

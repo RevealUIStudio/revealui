@@ -30,13 +30,13 @@
  *    otherwise return early as duplicate.
  */
 
-import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { unreconciledWebhooks } from '@revealui/db/schema';
 import { and, asc, eq, isNull } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { sendCronFailureAlert } from '../../lib/cron-alerts.js';
+import { revealuiCronSecretMatches } from '../../lib/cron-auth.js';
 import { getServices } from '../../lib/services-loader.js';
 import { isSyntheticEventId } from '../../lib/synthetic-events.js';
 import { replayStripeEvent } from '../../lib/webhook-replay.js';
@@ -69,20 +69,8 @@ interface Result {
 }
 
 app.post('/drain-unreconciled', async (c) => {
-  const cronSecret = process.env.REVEALUI_CRON_SECRET;
   const provided = c.req.header('X-Cron-Secret') || c.req.header('x-cron-secret');
-
-  if (!(cronSecret && provided)) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-
-  try {
-    const a = Buffer.from(provided);
-    const b = Buffer.from(cronSecret);
-    if (a.length !== b.length || !timingSafeEqual(a, b)) {
-      return c.json({ error: 'Unauthorized' }, 401);
-    }
-  } catch {
+  if (!revealuiCronSecretMatches(provided)) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 

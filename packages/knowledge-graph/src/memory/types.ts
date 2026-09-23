@@ -21,7 +21,7 @@ export type MemoryHarness =
   | 'other';
 
 export interface MemoryPrincipal {
-  /** `did:revfleet:{agentId}:{fingerprint}` */
+  /** `did:revealfleet:{agentId}:{fingerprint}` */
   did: string;
   agentId: string;
   fingerprint: string;

@@ -50,7 +50,7 @@ The Gate-5 test key (`revealui/dev/stripe/secret-key`) and test webhook secret (
 ## 1. Confirm canonical live values exist in revvault
 
 ```bash
-cd ~/revfleet/revealui
+cd ~/revealfleet/revealui
 revvault get --full revealui/prod/stripe/secret-key | cut -c1-8        # expect sk_live_
 revvault get --full revealui/prod/stripe/webhook-secret | cut -c1-6    # expect whsec_
 revvault get --full revealui/prod/stripe/webhook-secret-live | cut -c1-6  # expect whsec_ (live endpoint)
@@ -63,7 +63,7 @@ If the live webhook secret was rotated in the pre-flip gate, make sure `revvault
 Use the canonical sync — this overwrites the Gate-5 Vercel-direct test values with the live revvault values. See [`vercel-env-sync.md`](./vercel-env-sync.md).
 
 ```bash
-cd ~/revfleet/revealui
+cd ~/revealfleet/revealui
 pnpm vercel:sync          # dry-run via print-manifest-path (private ops/sync)
 pnpm vercel:sync:apply    # after reviewing diffs
 ```
@@ -77,7 +77,7 @@ The `billing_catalog` is **mode-keyed** (ADR Layer 1 — `mode` column on `accou
 Seed the live-mode rows with the **live** Stripe key (the seed picks live/test by key prefix and prints a 5-second LIVE warning — intentional). The live rows must exist before the flip: the Fly startup validator and the per-cold-instance checkout gate both fail-fast if an expected live price row is missing. (Owner-gated — this is the Gate 1c live re-seed.)
 
 ```bash
-cd ~/revfleet/revealui
+cd ~/revealfleet/revealui
 STRIPE_SECRET_KEY="$(revvault get --full revealui/prod/stripe/secret-key)" \
 POSTGRES_URL="$(revvault get --full revealui/prod/db/postgres-url)" \
 pnpm stripe:seed -- --dry-run    # review: products/prices it would create + catalog sync
@@ -107,7 +107,7 @@ Before redeploying, confirm: `STRIPE_SECRET_KEY` = `sk_live_…`, `STRIPE_LIVE_M
 ## 6. Redeploy the API (single deploy picks up all of the above)
 
 ```bash
-cd ~/revfleet/revealui
+cd ~/revealfleet/revealui
 gh workflow run deploy.yml --ref main --field apps=api
 gh run watch "$(gh run list --workflow=deploy.yml --limit 1 --json databaseId -q '.[0].databaseId')" --exit-status
 ```

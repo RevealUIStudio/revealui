@@ -1,5 +1,11 @@
 # @revealui/config
 
+## 0.7.0
+
+### Minor Changes
+
+- Accept REVEALUI_CRON_SECRET_PREVIOUS as an optional overlap slot so cron auth can rotate without downtime.
+
 ## 0.6.1
 
 ### Patch Changes

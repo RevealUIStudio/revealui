@@ -17,7 +17,7 @@ This file is the customer-facing board. Capability status and counts: [What Work
 
 ---
 
-## RevFleet product maturity
+## RevealFleet product maturity
 
 Labels match the `/products` page.
 
@@ -102,7 +102,7 @@ Work that is real and unfinished. No gap IDs on this public page.
 | **A. Subscriptions** | Monthly | Free $0 / Pro $49/mo / Max $99/mo / Enterprise inquire |
 | **B. Agent credits** | Pay-per-use | $0.001/task (local inference) |
 | **C. Perpetual** | One-time | Pro Perpetual $1,499 public; Agency and Enterprise perpetual are not public catalog SKUs |
-| **D. Professional services** | Per-engagement | Consultation $300 / Pilot $1,500 / Launch $7,500 (revealuistudio.com) |
+| **D. Professional services** | Per-engagement | Consultation $300 / Proof Sprint $3,997 / Launch $14,500 (revealuistudio.com) |
 
 See [revealui.com/pricing](https://revealui.com/pricing) for the live catalog.
 

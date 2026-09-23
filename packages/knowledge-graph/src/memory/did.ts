@@ -38,7 +38,7 @@ function base58Encode(bytes: Uint8Array): string {
 
 /**
  * HTTP v1 fallback DID. Client cannot pick this string.
- * `did:revfleet:user_{sanitizedUserId}:{base58(sha256(mcp-v1:userId:accountId)).slice(0,32)}`
+ * `did:revealfleet:user_{sanitizedUserId}:{base58(sha256(mcp-v1:userId:accountId)).slice(0,32)}`
  */
 export function httpFallbackDid(
   userId: string,
@@ -48,7 +48,7 @@ export function httpFallbackDid(
   const digest = createHash('sha256').update(`mcp-v1:${userId}:${accountId}`, 'utf8').digest();
   const fingerprint = base58Encode(digest).slice(0, 32);
   return {
-    did: `did:revfleet:${agentId}:${fingerprint}`,
+    did: `did:revealfleet:${agentId}:${fingerprint}`,
     agentId,
     fingerprint,
     didKind: 'user-account-fallback',

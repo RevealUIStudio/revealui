@@ -1,5 +1,22 @@
 # @revealui/sync
 
+## 0.4.9
+
+### Patch Changes
+
+- Updated dependencies [c304dbb]
+  - @revealui/contracts@0.11.0
+  - @revealui/db@0.10.3
+  - @revealui/core@0.14.7
+
+## 0.4.8
+
+### Patch Changes
+
+- Updated dependencies [896e5f4]
+  - @revealui/contracts@0.10.0
+  - @revealui/core@0.14.6
+
 ## 0.4.7
 
 ### Patch Changes

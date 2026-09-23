@@ -17,7 +17,7 @@ const QUOTE_RESOLVER: ClaimEntry['evidence'][number] = {
 const QUOTE_DEFAULT: ClaimEntry['evidence'][number] = {
   kind: 'test',
   ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#defaults Who to I will (self-host) on this site',
-  note: 'product site defaults Who to I will / self-host',
+  note: 'product site defaults Who to I will / self-host and What to Proof Sprint',
 };
 
 const QUOTE_UI: ClaimEntry['evidence'][number] = {
@@ -29,7 +29,7 @@ const QUOTE_UI: ClaimEntry['evidence'][number] = {
 const QUOTE_LOCKSTEP: ClaimEntry['evidence'][number] = {
   kind: 'test',
   ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#locksteps printed numbers to public-catalog and the locked SKU trio',
-  note: 'printed Free / Pro / Max / Perpetual and Consultation / Pilot / Launch prices cannot drift from public-catalog',
+  note: 'printed Free / Pro / Max / Perpetual and Consultation / Proof Sprint / Launch prices cannot drift from public-catalog',
 };
 
 const QUOTE_INTRO: ClaimEntry['evidence'][number] = {
@@ -54,6 +54,24 @@ export const claimsPart9: readonly ClaimEntry[] = [
   },
   {
     file: 'quote-calculator.ts',
+    exportPath: 'QUOTE_CALCULATOR.questions.what.label',
+    text: 'What problem are we solving?',
+    evidence: [QUOTE_DEFAULT, QUOTE_UI],
+  },
+  {
+    file: 'quote-calculator.ts',
+    exportPath: 'QUOTE_CALCULATOR.questions.what.options[0].label',
+    text: 'Consultation: diagnose the path / proof gap',
+    evidence: [
+      {
+        kind: 'test',
+        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#asks exactly three questions with the two exits',
+        note: 'Consultation option is the diagnose / proof-gap path, not a default Studio hour',
+      },
+    ],
+  },
+  {
+    file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.body',
     proofGrade: 'outcome',
     text: 'Defaults to self-host licenses. Studio work is on the same form and books at revealuistudio.com.',
@@ -62,24 +80,24 @@ export const claimsPart9: readonly ClaimEntry[] = [
   {
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.questions.what.options[1].label',
-    text: 'Pilot: one site, one agent I run',
+    text: 'Proof Sprint: one site, one receipted action I operate',
     evidence: [
       {
         kind: 'test',
-        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio pilot quote',
-        note: 'pilot answer prints the $1,500 Pilot',
+        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio Proof Sprint quote',
+        note: 'Proof Sprint answer prints the $3,997 price',
       },
     ],
   },
   {
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.questions.what.options[2].label',
-    text: 'Launch: live on my accounts',
+    text: 'Launch: money path live on my accounts',
     evidence: [
       {
         kind: 'test',
         ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio launch quote',
-        note: 'live-flow answer prints the $7,500 launch quote',
+        note: 'live-flow answer prints the $14,500 launch quote',
       },
     ],
   },
@@ -126,14 +144,14 @@ export const claimsPart9: readonly ClaimEntry[] = [
   },
   {
     file: 'quote-calculator.ts',
-    exportPath: 'QUOTE_CALCULATOR.studio.pilot.body',
+    exportPath: 'QUOTE_CALCULATOR.studio.proofSprint.body',
     proofGrade: 'outcome',
-    text: 'One site on your domain, one agent you run, you keep it. Credits 100% to Launch if you start Launch within 30 days.',
+    text: 'One site and one receipted action you operate. Stage B is included. Credits 100% to Launch if you start Launch within 45 days.',
     evidence: [
       {
         kind: 'test',
-        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio pilot quote',
-        note: 'Studio + pilot prints $1,500 and the 30-day Launch credit',
+        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio Proof Sprint quote',
+        note: 'Studio + Proof Sprint prints $3,997 and the 45-day Launch credit',
       },
     ],
   },
@@ -141,12 +159,12 @@ export const claimsPart9: readonly ClaimEntry[] = [
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.studio.launch.body',
     proofGrade: 'outcome',
-    text: 'Architecture work happens inside Launch. Half now, half on delivery.',
+    text: 'Architecture work happens inside Launch, with a runbook and 30 days of async stabilization. Half now, half on delivery.',
     evidence: [
       {
         kind: 'test',
         ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio launch quote',
-        note: 'Studio + launch prints $7,500 and half/half on delivery. No four-tests holdback.',
+        note: 'Studio + launch prints $14,500 and half/half on delivery. No four-tests holdback.',
       },
     ],
   },

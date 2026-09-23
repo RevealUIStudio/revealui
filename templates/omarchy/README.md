@@ -8,7 +8,7 @@ This is a dogfood / OSS wedge for Omarchy Quattro users who want the self-hosted
 
 **Status:** Template / coming to gallery on test. Do not mark a live checkout SKU. Do not promote off `test` until the owner asks.
 
-Packaged only inside Consultation $300 / Pilot $1,500 / Launch $7,500. Not a middle SKU.
+Packaged only inside Consultation $300 / Proof Sprint $3,997 / Launch $14,500. Not a middle SKU.
 
 ## Tested / supported
 

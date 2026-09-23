@@ -40,7 +40,7 @@ export const MATERIALIZED_DIRS = ['.claude/rules', '.claude/agents', '.claude/sk
 const CONTENT_RULES_REL = path.posix.join('.revealui', 'content', 'rules');
 const MATERIALIZE_CMD = 'pnpm exec revealui-harnesses manager materialize';
 const REAPPLY_CMD =
-  'bash ~/revfleet/revcon/link.sh --target ~/revfleet/revealui --profile revfleet --profile revealui --editor claude --mode copy';
+  'bash ~/revealfleet/revcon/link.sh --target ~/revealfleet/revealui --profile revealfleet --profile revealui --editor claude --mode copy';
 
 export interface ManifestEntry {
   source: string;

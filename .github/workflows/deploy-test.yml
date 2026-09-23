@@ -151,6 +151,12 @@ jobs:
           URL=$(vercel deploy --prebuilt --archive=tgz --token="$VERCEL_TOKEN")
           echo "url=$URL" >> "$GITHUB_OUTPUT"
           echo "::notice::${{ matrix.app }} preview: $URL"
+          # Non-prod API hostname. Single label so Cloudflare Universal SSL
+          # (*.revealui.com) covers it. Not a production alias.
+          if [ "${{ matrix.app }}" = "api" ]; then
+            vercel alias set "$URL" api-test.revealui.com --token="$VERCEL_TOKEN" --scope "${TURBO_TEAM:-revealuistudio}"
+            echo "::notice::api-test.revealui.com -> $URL"
+          fi
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}

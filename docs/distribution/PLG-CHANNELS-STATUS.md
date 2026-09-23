@@ -9,13 +9,15 @@ Owner strategy: `business/strategy-product-led-online-revenue-2026-07-26.md`
 | Apify Governed Agent Run | GAP-431 | Done (`packages/apify-actor-governed-run`, tests green when deps installed) | Owner Store publish + PPE prices + smoke — [APIFY-GOVERNED-RUN-OWNER-PUBLISH.md](./APIFY-GOVERNED-RUN-OWNER-PUBLISH.md) |
 | Railway marketplace template | GAP-430 | Done (`deployment/railway/*` + `marketplace-template.json` Dockerfile wiring) | Leftover. Do not finish Railway here. Owner dashboard **republish** (set `RAILWAY_DOCKERFILE_PATH` on api/admin, verify `manifest.json`) + clean-account walk — [RAILWAY-MARKETPLACE-OWNER-PUBLISH.md](./RAILWAY-MARKETPLACE-OWNER-PUBLISH.md) |
 | Vercel one-click (runtime, not a SKU) | — | Done (`deployment/vercel/*`, CLI `vercel.json`, `/templates` Deploy buttons) | Owner twin sync + `vercel.com/templates/submit` — [VERCEL-TEMPLATE-OWNER-PUBLISH.md](./VERCEL-TEMPLATE-OWNER-PUBLISH.md). Listing URL is not live. |
+| PikaPods + Elest.io catalogs | GAP-432 | Drafts only ([outreach/GAP-432-PIKAPODS-ELEST.md](./outreach/GAP-432-PIKAPODS-ELEST.md)). `:latest` pulls; per-image version tags do not. Resource floor blank. | Owner dispatches the versioned image workflow from `main`, pastes measurements, and sends both requests. Submission evidence and catalog URLs stay blank. |
 
 Railway GAP-430 stays a leftover customer marketplace path (`deployment/railway`).
 The Vercel path is the runtime deploy for existing Next.js GitHub twins, not a
 Studio SKU and not a Starter Kit.
 
 Pick **one** channel to push to first stranger money; do not fan out all three
-before Stage 1 graduation.
+before Stage 1 graduation. GAP-432 is a draft pack only. `/templates` stays
+silent on PikaPods and Elest.io until a catalog URL is real.
 
 ### Community (not a fourth SKU)
 

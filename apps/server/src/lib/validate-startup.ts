@@ -276,7 +276,22 @@ export function validateStartup(
       : plainSelfHostOptIn
         ? required.filter((key) => !(FORGE_LICENSE_KEYS as readonly string[]).includes(key))
         : required;
-  const missingProd = requiredFiltered.filter((key) => !isPresent(env, key, lenient));
+  // REVEALUI_EMAIL_BOOT_OPTIONAL=1 is a staging-walk opt-in until owner vaults
+  // revealui/prod/google/wif-provider — default remains fail-fast.
+  const emailTransportVars = ['GOOGLE_SERVICE_ACCOUNT_EMAIL', 'GOOGLE_WIF_PROVIDER'] as const;
+  const emailBootOptional = env.REVEALUI_EMAIL_BOOT_OPTIONAL === '1';
+  const requiredForBoot = emailBootOptional
+    ? requiredFiltered.filter((key) => !(emailTransportVars as readonly string[]).includes(key))
+    : requiredFiltered;
+  if (emailBootOptional) {
+    const missingEmail = emailTransportVars.filter((key) => !isPresent(env, key, lenient));
+    if (missingEmail.length > 0) {
+      process.stderr.write(
+        `REVEALUI_EMAIL_BOOT_OPTIONAL=1: missing ${missingEmail.join(', ')}; boot continues. Staging walk until owner vaults revealui/prod/google/wif-provider.\n`,
+      );
+    }
+  }
+  const missingProd = requiredForBoot.filter((key) => !isPresent(env, key, lenient));
   if (missingProd.length > 0) {
     throw new Error(
       `STARTUP VALIDATION FAILED (${mode} mode): Missing production-required env vars: ${missingProd.join(', ')}.`,
@@ -427,6 +442,29 @@ export function validateStartup(
     const cronSecret = env.REVEALUI_CRON_SECRET ?? '';
     if (!skipFormat(cronSecret) && cronSecret.length < 32) {
       errors.push('REVEALUI_CRON_SECRET must be at least 32 characters.');
+    }
+
+    // Overlap slots for zero-downtime rotation. Empty/unset is steady state.
+    // See docs/security/gap-016-cron-secret-rotation.md.
+    const cronSecretPrevious = (env.REVEALUI_CRON_SECRET_PREVIOUS ?? '').trim();
+    if (
+      cronSecretPrevious &&
+      !skipFormat(env.REVEALUI_CRON_SECRET_PREVIOUS ?? '') &&
+      cronSecretPrevious.length < 32
+    ) {
+      errors.push(
+        'REVEALUI_CRON_SECRET_PREVIOUS must be at least 32 characters when set (transitional secret used during cron secret rotation).',
+      );
+    }
+    const vercelCronPrevious = (env.CRON_SECRET_PREVIOUS ?? '').trim();
+    if (
+      vercelCronPrevious &&
+      !skipFormat(env.CRON_SECRET_PREVIOUS ?? '') &&
+      vercelCronPrevious.length < 32
+    ) {
+      errors.push(
+        'CRON_SECRET_PREVIOUS must be at least 32 characters when set (transitional secret used during Vercel cron bearer rotation).',
+      );
     }
 
     // Alert email format (hosted-only — primary use is unreconciled Stripe

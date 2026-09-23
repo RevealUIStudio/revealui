@@ -1,6 +1,6 @@
 {
   "name": "@revealui/services",
-  "version": "0.8.0",
+  "version": "0.8.2",
   "description": "External service integrations, Stripe (payment processing + circuit breaker) and email (Gmail API delivery). Ships with RevealUI.",
   "repository": {
     "type": "git",
@@ -25,7 +25,7 @@
     "@tailwindcss/postcss": "catalog:",
     "@types/node": "^25.9.4",
     "@vitejs/plugin-react": "catalog:",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-v8": "^4.1.11",
     "@revealui/dev": "workspace:*",
     "dotenv": "catalog:",
     "postcss": "^8.5.16",
@@ -34,7 +34,7 @@
     "tailwindcss": "^4.3.2",
     "typescript": "catalog:",
     "vite": "catalog:",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   },
   "engines": {
     "node": ">=24.13.0"

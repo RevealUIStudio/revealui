@@ -12,13 +12,13 @@ describe('products roster honesty', () => {
     expect(PRODUCTS_PAGE_HERO.subtitle.toLowerCase().includes('zero paying')).toBe(true);
   });
 
-  it('presents licenses, not a RevFleet product family', () => {
-    expect(PRODUCTS_PAGE_HERO.h1.toLowerCase().includes('revfleet')).toBe(false);
+  it('presents licenses, not a RevealFleet product family', () => {
+    expect(PRODUCTS_PAGE_HERO.h1.toLowerCase().includes('revealfleet')).toBe(false);
     expect(PRODUCTS_PAGE_HERO.h1.toLowerCase().includes('product family')).toBe(false);
     expect(PRODUCTS_PAGE_HERO.h1.toLowerCase().includes('license')).toBe(true);
     expect(PRODUCTS_PAGE_HERO.subtitle.toLowerCase().includes('revealuistudio.com')).toBe(true);
-    expect(PRODUCTS_FLAGSHIP.body.toLowerCase().includes('revfleet')).toBe(false);
-    expect(PRODUCTS_CTA_SECTION.body.toLowerCase().includes('revfleet')).toBe(false);
+    expect(PRODUCTS_FLAGSHIP.body.toLowerCase().includes('revealfleet')).toBe(false);
+    expect(PRODUCTS_CTA_SECTION.body.toLowerCase().includes('revealfleet')).toBe(false);
   });
 
   it('lists the honest public catalog without Fleet get-started copy', () => {
@@ -38,7 +38,7 @@ describe('products roster honesty', () => {
     expect(blob.includes('RevForge')).toBe(false);
     expect(blob.includes('RevDev')).toBe(false);
     expect(blob.includes('RevKit')).toBe(false);
-    expect(blob.includes('RevFleet')).toBe(false);
+    expect(blob.includes('RevealFleet')).toBe(false);
   });
 
   it('uses a lifecycle-only status pill with no license in the status string', () => {

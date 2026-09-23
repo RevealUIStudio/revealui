@@ -10,10 +10,10 @@
  * Protected by X-Cron-Secret (also validated in dispatch.ts).
  */
 
-import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { Hono } from 'hono';
 import { runAdmissionWaitlistDrain } from '../../lib/admission-waitlist-drain-run.js';
+import { revealuiCronSecretMatches } from '../../lib/cron-auth.js';
 
 const app = new Hono();
 
@@ -22,18 +22,8 @@ function unauthorized(): Response {
 }
 
 function authorizeCron(c: { req: { header: (n: string) => string | undefined } }): boolean {
-  const cronSecret = process.env.REVEALUI_CRON_SECRET;
   const provided = c.req.header('X-Cron-Secret') || c.req.header('x-cron-secret');
-  if (!(cronSecret && provided)) {
-    return false;
-  }
-  try {
-    const a = Buffer.from(provided);
-    const b = Buffer.from(cronSecret);
-    return a.length === b.length && timingSafeEqual(a, b);
-  } catch {
-    return false;
-  }
+  return revealuiCronSecretMatches(provided);
 }
 
 app.post('/admission-waitlist-drain', async (c) => {

@@ -30,7 +30,7 @@ import {
 } from '../session/studio-local-kg-mcp.js';
 
 const principal: MemoryPrincipal = {
-  did: 'did:revfleet:grok-1:fpabc',
+  did: 'did:revealfleet:grok-1:fpabc',
   agentId: 'grok-1',
   fingerprint: 'fpabc',
   didKind: 'agent-key',

@@ -17,7 +17,7 @@ name: Dependabot Catalog Lockfile Auto-Fix
 #      already-correct workspace catalog.
 #   4. If the lockfile drifted, commits the fix to the PR head via the
 #      GitHub Contents API using a GitHub App installation token (the
-#      revfleet-backflow App), NOT GITHUB_TOKEN. An API commit is signed by
+#      backflow App), NOT GITHUB_TOKEN. An API commit is signed by
 #      GitHub's web-flow key ("Verified"), so it satisfies the
 #      require-signed-commits ruleset; a local `git push` was unsigned and
 #      left every catalog-touching Dependabot PR blocked.
@@ -77,7 +77,7 @@ jobs:
       # re-fires CI (a GITHUB_TOKEN push would be loop-suppressed — see the
       # header comment). Scoped to contents:write on this repo only. The
       # BACKFLOW_APP_ID / BACKFLOW_APP_PRIVATE_KEY secrets + the
-      # revfleet-backflow App installation are shared with
+      # backflow App installation are shared with
       # backflow-main-into-test.yml.
       - name: Mint backflow App token
         id: app-token

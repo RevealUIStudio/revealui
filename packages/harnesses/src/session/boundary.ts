@@ -132,7 +132,7 @@ export async function sessionRegister(options: RegisterOptions): Promise<Session
 
 /**
  * End the cached daemon session (signature-required), then archive the exit
- * into the RevFleet cold session store so live peer lists stay unpolluted.
+ * into the RevealFleet cold session store so live peer lists stay unpolluted.
  * Soft if no cache or daemon down — archive still runs when agentId is known.
  */
 export async function sessionEnd(options: EndOptions = {}): Promise<SessionBoundaryResult> {

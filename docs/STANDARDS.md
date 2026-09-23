@@ -3136,7 +3136,7 @@ For questions or issues:
 
 ## Fleet Methodology Alignment
 
-This codebase follows the RevFleet engineering postures defined in [`docs/methodology.md`](./methodology.md). Three postures directly affect code standards:
+This codebase follows the RevealFleet engineering postures defined in [`docs/methodology.md`](./methodology.md). Three postures directly affect code standards:
 
 **No-regex (M2):** No regex literals authored in fleet code. Replace with AST walkers, typed predicates, `Set`/`Map` lookups, `Intl.Segmenter`, or built-in parsers (`URL`, `JSON.parse`, `Date.parse`). Third-party config that requires a regex string must be marked `// REGEX-CONFIG-BOUNDARY`. Biome cannot enforce this today — it is enforced via code review and the AST-based pattern analyzer (`pnpm audit:any` catches the worst offenders).
 

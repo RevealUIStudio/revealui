@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockIsFeatureEnabled = vi.fn();
 const mockAccountHasFeature = vi.fn();
+const mockPlatformOperatorHasFeature = vi.fn();
 const mockGetClient = vi.fn(() => ({}));
 
 vi.mock('@revealui/core/features', () => ({
@@ -22,6 +23,7 @@ vi.mock('@revealui/utils/logger', () => ({
 
 vi.mock('@/lib/access/account-feature', () => ({
   accountHasFeature: (...args: unknown[]) => mockAccountHasFeature(...args),
+  platformOperatorHasFeature: (...args: unknown[]) => mockPlatformOperatorHasFeature(...args),
 }));
 
 vi.mock('next/server', () => {
@@ -47,6 +49,7 @@ describe('checkAIFeatureGate', () => {
     vi.clearAllMocks();
     vi.unstubAllEnvs();
     mockAccountHasFeature.mockResolvedValue(false);
+    mockPlatformOperatorHasFeature.mockResolvedValue(false);
     mockIsFeatureEnabled.mockReturnValue(false);
   });
 
@@ -113,6 +116,29 @@ describe('checkAIFeatureGate', () => {
     const checkAIFeatureGate = await loadFn();
 
     const result = await checkAIFeatureGate('user-1');
+    expect(result).not.toBeNull();
+    expect((result as { status: number }).status).toBe(403);
+  });
+
+  it('allows a fleet-operator when account entitlements and process license are Free', async () => {
+    mockAccountHasFeature.mockResolvedValue(false);
+    mockPlatformOperatorHasFeature.mockResolvedValue(true);
+    mockIsFeatureEnabled.mockReturnValue(false);
+    const checkAIFeatureGate = await loadFn();
+
+    const result = await checkAIFeatureGate('operator-1');
+    expect(result).toBeNull();
+    expect(mockPlatformOperatorHasFeature).toHaveBeenCalledWith({}, 'operator-1', 'ai');
+    expect(mockIsFeatureEnabled).not.toHaveBeenCalled();
+  });
+
+  it('still 403s a Free user who is not a platform operator', async () => {
+    mockAccountHasFeature.mockResolvedValue(false);
+    mockPlatformOperatorHasFeature.mockResolvedValue(false);
+    mockIsFeatureEnabled.mockReturnValue(false);
+    const checkAIFeatureGate = await loadFn();
+
+    const result = await checkAIFeatureGate('user-free');
     expect(result).not.toBeNull();
     expect((result as { status: number }).status).toBe(403);
   });

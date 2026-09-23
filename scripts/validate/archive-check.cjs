@@ -2,7 +2,7 @@
 // archive-check.cjs — public-repo half of the fleet archive gate (GAP-451).
 //
 // When a stale doc is moved out of this repo into the central fleet archive
-// (RevealUIStudio/revfleet-archive), every LIVE inbound link to its old path
+// (RevealUIStudio/revealfleet-archive), every LIVE inbound link to its old path
 // must be repointed at the archive URL. A link left behind is a dead link that
 // still looks alive — in the one repo where that is externally visible.
 //

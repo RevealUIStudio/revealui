@@ -23,11 +23,11 @@ latency on shape queries via the worker's Hono app surface).
 
 ## First deploy (one-time setup)
 
-Run from the monorepo root (`~/revfleet/revealui`) so flyctl uses
+Run from the monorepo root (`~/revealfleet/revealui`) so flyctl uses
 the right build context for the pnpm workspace:
 
 ```bash
-cd ~/revfleet/revealui
+cd ~/revealfleet/revealui
 
 # 1. Authenticate to Fly (one-time per machine)
 flyctl auth login
@@ -74,7 +74,7 @@ Isolated mint process. Only this app (plus the offline stamper) should hold
 `REVEALUI_LICENSE_PRIVATE_KEY` after api/worker cut over.
 
 ```bash
-cd ~/revfleet/revealui
+cd ~/revealfleet/revealui
 
 flyctl apps create revealui-license-signer --org personal
 
@@ -103,7 +103,7 @@ then.
 Manual deploys from the monorepo root:
 
 ```bash
-cd ~/revfleet/revealui
+cd ~/revealfleet/revealui
 flyctl deploy --config apps/server/fly.toml \
   --dockerfile apps/server/Dockerfile.worker \
   --remote-only
@@ -179,7 +179,7 @@ unhealthy. Investigate via `flyctl logs --app revealui-worker`.
    `min_machines_running = 1` keeps it always-on.
 
 4. **Build context = monorepo root**: not `apps/server/`. flyctl
-   auto-uses the right context when invoked from `~/revfleet/revealui`.
+   auto-uses the right context when invoked from `~/revealfleet/revealui`.
    If invoked from `apps/server/`, the build fails on missing
    `pnpm-workspace.yaml`.
 

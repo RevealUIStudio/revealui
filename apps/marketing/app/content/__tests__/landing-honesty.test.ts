@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { SUBSCRIPTION_PRICE_FALLBACKS } from '../../lib/pricing-fallbacks';
 import { HOME_DEMO, HOME_FAQ, HOME_HERO, HOME_HERO_FOUNDATION, HOME_PROBLEM } from '../home';
+import { PRICING_HERO } from '../pricing';
 import {
   PRICING_TEASER_LINKS,
   PRICING_TEASER_SECTION,
@@ -90,9 +91,14 @@ describe('Auditor voice and live-hero honesty', () => {
       'Technical founders and small agencies who already run agents — existing tools report in, you keep the stack.',
     );
     expect(HOME_HERO.subtitle.sentence2).toBe(
-      'Powerful and safe: agents leave receipts when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99/mo · $799/yr).',
+      'Powerful and safe: PROOF is a receipted action when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99/mo · $799/yr).',
     );
-    expect(HOME_HERO.subtitle.support).toBe('It runs on any AI provider you choose.');
+    expect(HOME_HERO.subtitle.support).toBe(
+      'BYOK / open-weight default. Same plan rules for humans and agents.',
+    );
+    expect(HOME_HERO.subtitle.sentence2.includes('PROOF')).toBe(true);
+    expect(HOME_HERO.subtitle.sentence2.includes('receipted action')).toBe(true);
+    expect(INDEX_HTML.includes(HOME_HERO.subtitle.sentence2)).toBe(true);
   });
 
   it('keeps the locked problem heading', () => {
@@ -129,9 +135,18 @@ describe('Auditor voice and live-hero honesty', () => {
     );
   });
 
-  it('names Pro extras instead of Pay when you scale', () => {
+  it('names Pro extras as agents with shared plan rules, not add agents', () => {
     expect(PRICING_TEASER_SECTION.heading).toBe(
-      'Start free. Pro adds agents, MCP, and receipts. Max is $99/mo.',
+      'Start free. Pro: agents with shared plan rules, MCP, and receipts (PROOF). Max is $99/mo.',
+    );
+    expect(PRICING_TEASER_SECTION.heading.includes('Pro adds agents')).toBe(false);
+  });
+
+  it('keeps the pricing H1 problem/PROOF-led with catalog in the sub', () => {
+    expect(PRICING_HERO.eyebrow).toBe('Pricing');
+    expect(PRICING_HERO.title).toBe('Tired of tools that don’t talk — and agents with no PROOF?');
+    expect(PRICING_HERO.subtitle).toBe(
+      'Self-host the agentic business runtime. Catalog: Free / Pro $49 / Max $99/mo · $799/yr. Studio work invoices on revealuistudio.com.',
     );
   });
 
@@ -158,6 +173,9 @@ describe('Auditor voice and live-hero honesty', () => {
     expect(LIVE_PRODUCT_BLOB.includes('hosted chatbot')).toBe(false);
     expect(LIVE_PRODUCT_BLOB.includes('SOC 2 this quarter')).toBe(false);
     expect(LIVE_PRODUCT_BLOB.includes('SOC2-this-quarter')).toBe(false);
+    expect(LIVE_PRODUCT_BLOB.includes('outcome validation')).toBe(false);
+    expect(LIVE_PRODUCT_BLOB.includes('proof of work')).toBe(false);
+    expect(LIVE_PRODUCT_BLOB.includes('proof-of-work')).toBe(false);
   });
 
   it('keeps Max at $99 and does not invent $299', () => {

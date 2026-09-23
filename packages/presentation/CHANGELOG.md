@@ -1,5 +1,19 @@
 # @revealui/presentation
 
+## 0.14.7
+
+### Patch Changes
+
+- Updated dependencies [c304dbb]
+  - @revealui/contracts@0.11.0
+
+## 0.14.6
+
+### Patch Changes
+
+- Updated dependencies [896e5f4]
+  - @revealui/contracts@0.10.0
+
 ## 0.14.5
 
 ### Patch Changes

@@ -1200,13 +1200,13 @@ The SDK handles the full 402 → payment → retry cycle automatically.
 
 # Professional Services (Track D)
 
-RevealUI Studio’s public menu is Consultation, Pilot, and Launch. Architecture work happens inside Launch.
+RevealUI Studio’s public menu is Consultation, Proof Sprint, and Launch. Architecture work happens inside Launch.
 
 | Service | Description | Deliverable |
 |---------|-------------|-------------|
-| **Consultation** | Scoped session with the founder | Follow-up notes |
-| **Pilot** | One site on your domain, one agent you run, you keep it | Working site and agent; credits 100% to Launch within 30 days |
-| **Launch** | Zero to production, including architecture work inside Launch | Production-ready deployment |
+| **Consultation** | Scoped session with the founder. Tax $0. | Denser living pack and a Stage A share URL |
+| **Proof Sprint** | One site and one receipted action you operate. Stage B included. $3,997. | Working site; 100% credit to Launch within 45 days |
+| **Launch** | Zero to production, including architecture inside Launch. $14,500. | Runbook and 30 days of async stabilization |
 
 Contact: [services@revealui.com](mailto:services@revealui.com)
 

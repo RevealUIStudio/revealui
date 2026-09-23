@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { VSCodeGenerator } from '../content/generators/vscode.js';
 import { buildManifest, generateContent, getGenerator, listGenerators } from '../content/index.js';
@@ -135,6 +137,41 @@ describe('VSCodeGenerator', () => {
       const content = file?.content ?? '';
       expect(content.includes('rvui_dev_')).toBe(false);
       expect(content.includes('Bearer ')).toBe(false);
+    });
+
+    it('matches the GAP-475 marketplace plugin.json hook contract', () => {
+      const committedPath = join(
+        import.meta.dirname,
+        '..',
+        '..',
+        '..',
+        '..',
+        'deployment',
+        'vscode',
+        'plugin',
+        'plugin.json',
+      );
+      const committed = JSON.parse(readFileSync(committedPath, 'utf8')) as {
+        name: string;
+        description: string;
+        version: string;
+        hooks: unknown;
+        mcpServers: string;
+      };
+      const [file] = generateContent('vscode', buildManifest(), ctx);
+      const generated = JSON.parse(file?.content ?? '{}') as {
+        name: string;
+        description: string;
+        version: string;
+        hooks: unknown;
+        mcpServers: string;
+      };
+
+      expect(committed.name).toBe(generated.name);
+      expect(committed.description).toBe(generated.description);
+      expect(committed.version).toBe(generated.version);
+      expect(committed.mcpServers).toBe(generated.mcpServers);
+      expect(committed.hooks).toEqual(generated.hooks);
     });
   });
 });

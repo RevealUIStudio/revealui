@@ -4,7 +4,7 @@
 # Holds REVEALUI_LICENSE_PRIVATE_KEY; HMAC-authed POST /internal/mint.
 #
 # Build context: monorepo root.
-#   cd ~/revfleet/revealui
+#   cd ~/revealfleet/revealui
 #   flyctl deploy --config apps/license-signer/fly.toml \
 #     --dockerfile apps/license-signer/Dockerfile --remote-only
 

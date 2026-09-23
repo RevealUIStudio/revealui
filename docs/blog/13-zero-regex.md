@@ -7,7 +7,7 @@ audience: user
 author: Joshua Vaughn
 ---
 
-There is a rule across the entire RevFleet codebase that surprises people: no hand-written regular expressions. Not "use them sparingly." Zero authored regex, enforced in CI.
+There is a rule across the entire RevealFleet codebase that surprises people: no hand-written regular expressions. Not "use them sparingly." Zero authored regex, enforced in CI.
 
 This sounds like an aesthetic preference. It is actually a security and maintainability decision, and it has paid for itself many times over.
 

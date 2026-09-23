@@ -1,5 +1,17 @@
 # @revealui/knowledge-graph
 
+## 0.2.1
+
+### Patch Changes
+
+- @revealui/db@0.10.3
+
+## 0.2.0
+
+### Minor Changes
+
+- 60a4e1f: Add RevMind diagram helpers: Mermaid source of truth plus themed 2D SVG from a knowledge-graph snapshot (consultation cap, launch architecture). Not a public Architecture SKU.
+
 ## 0.1.15
 
 ### Patch Changes

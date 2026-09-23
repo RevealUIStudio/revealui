@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { HOME_HERO } from '../content/home';
 import type { Audience } from '../lib/audience';
 import { useAudienceHead } from '../lib/use-audience-head';
 
@@ -42,7 +43,7 @@ describe('useAudienceHead — non-technical audience', () => {
   it('sets document.title to the non-technical headline', () => {
     renderHook(() => useAudienceHead('non-technical'));
     expect(document.title).toBe(
-      'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
+      'RevealUI | Consultation, Proof Sprint, or Launch on infrastructure you own.',
     );
   });
 
@@ -55,7 +56,7 @@ describe('useAudienceHead — non-technical audience', () => {
   it('sets og:title to the non-technical title', () => {
     renderHook(() => useAudienceHead('non-technical'));
     expect(document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.content).toBe(
-      'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
+      'RevealUI | Consultation, Proof Sprint, or Launch on infrastructure you own.',
     );
   });
 
@@ -94,9 +95,7 @@ describe('useAudienceHead — technical audience', () => {
     renderHook(() => useAudienceHead('technical'));
     expect(
       document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.content,
-    ).toBe(
-      'Technical founders and small agencies who already run agents — existing tools report in, you keep the stack. Powerful and safe: agents leave receipts when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99/mo · $799/yr).',
-    );
+    ).toBe(`${HOME_HERO.subtitle.sentence1} ${HOME_HERO.subtitle.sentence2}`);
   });
 
   it('sets document.documentElement.dataset.audience to technical', () => {
@@ -124,7 +123,7 @@ describe('useAudienceHead — audience switch', () => {
     );
 
     expect(document.title).toBe(
-      'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
+      'RevealUI | Consultation, Proof Sprint, or Launch on infrastructure you own.',
     );
 
     act(() => {

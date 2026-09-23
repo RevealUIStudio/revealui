@@ -9,7 +9,7 @@ audience: developer
 
 **Native developer tools for [RevealUI](https://github.com/RevealUIStudio/revealui). One product, two interfaces.**
 
-> RevDev is a separate RevFleet product, not part of the RevealUI monorepo. The repo is at [RevealUIStudio/revdev](https://github.com/RevealUIStudio/revdev). This page summarises what RevDev is and how it composes with RevealUI; the canonical product README lives in the RevDev repo.
+> RevDev is a separate RevealFleet product, not part of the RevealUI monorepo. The repo is at [RevealUIStudio/revdev](https://github.com/RevealUIStudio/revdev). This page summarises what RevDev is and how it composes with RevealUI; the canonical product README lives in the RevDev repo.
 
 ## What RevDev ships
 
@@ -52,5 +52,5 @@ Active. Pre-launch (no published binaries). The harness daemon is documented in 
 ## See also
 
 - [RevealUI Pro overview](../PRO) — what the Pro tier unlocks (including Studio's Pro features)
-- [RevFleet overview](../REVFLEET) — how RevDev relates to the rest of RevFleet
+- [RevealFleet overview](../REVEALFLEET) — how RevDev relates to the rest of RevealFleet
 - [RevDev README](https://github.com/RevealUIStudio/revdev/blob/main/README.md) — canonical product docs

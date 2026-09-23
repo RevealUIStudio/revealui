@@ -5,20 +5,22 @@
  * - `checkAIFeatureGate(userId)` checks the `ai` feature (Pro tier, $49/mo)
  * - `checkAIMemoryFeatureGate(userId)` checks the `aiMemory` feature (Pro tier, $49/mo)
  *
- * Resolution (GAP-477):
+ * Resolution (GAP-477 + GAP-300 honesty):
  * 1. Fail closed if no userId
  * 2. Account entitlements via membership + account_entitlements
- * 3. Fallback to process-level isFeatureEnabled (fleet/self-host JWT license)
- * 4. If account lookup cannot run (no DB URL, pool error), fall through to (3)
+ * 3. Platform / fleet-operator identity (`_json.roles` super-admin) — Enterprise
+ *    feature map. Sidebar Unlimited must not still Pro-gate API routes.
+ * 4. Fallback to process-level isFeatureEnabled (fleet/self-host JWT license)
+ * 5. If account lookup cannot run (no DB URL, pool error), fall through to (4)
  *    so fleet kits and unit tests that only mock process license still work
- * 5. Dev bypass only when REVEALUI_ALLOW_DEV_FEATURE_BYPASS=1 (not NODE_ENV)
+ * 6. Dev bypass only when REVEALUI_ALLOW_DEV_FEATURE_BYPASS=1 (not NODE_ENV)
  */
 
 import { type FeatureFlags, isFeatureEnabled } from '@revealui/core/features';
 import { getClient } from '@revealui/db/client';
 import { logger } from '@revealui/utils/logger';
 import { NextResponse } from 'next/server';
-import { accountHasFeature } from '@/lib/access/account-feature';
+import { accountHasFeature, platformOperatorHasFeature } from '@/lib/access/account-feature';
 
 function allowDevFeatureBypass(): boolean {
   return process.env.REVEALUI_ALLOW_DEV_FEATURE_BYPASS === '1';
@@ -34,6 +36,7 @@ async function userHasFeature(
   try {
     const db = getClient();
     if (await accountHasFeature(db, userId, featureKey)) return true;
+    if (await platformOperatorHasFeature(db, userId, featureKey)) return true;
   } catch (error) {
     // No DATABASE_URL in unit tests, or transient DB outage: do not 500 the
     // request. Hosted production still fails closed when process license is free

@@ -8,7 +8,7 @@
 # pnpm-workspace.yaml + packages/* are accessible for workspace
 # symlink resolution. flyctl auto-uses the monorepo root when
 # invoked from there:
-#   cd ~/revfleet/revealui
+#   cd ~/revealfleet/revealui
 #   flyctl deploy --config apps/server/fly.toml \
 #     --dockerfile apps/server/Dockerfile.worker
 #

@@ -1,5 +1,17 @@
 # @revealui/contracts
 
+## 0.11.0
+
+### Minor Changes
+
+- c304dbb: Studio offer lock 2026-09-22: Consultation stays $300, Proof Sprint is $3,997 (Pilot $1,500 retired), and Launch is $14,500. Architecture stays inside Launch. Hour and Architecture Review are not public SKUs.
+
+## 0.10.0
+
+### Minor Changes
+
+- 896e5f4: GAP-300: pluggable meeting-vendor adapter with provider-agnostic `meet_link` + `recording_uri` for Consultation capture and P2 bundle hooks.
+
 ## 0.9.0
 
 ### Minor Changes

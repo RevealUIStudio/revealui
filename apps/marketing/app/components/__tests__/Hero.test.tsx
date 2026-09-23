@@ -36,6 +36,17 @@ describe('Hero (product homepage)', () => {
     expect(subtitle.className).not.toContain('text-muted-foreground');
   });
 
+  it('publishes PROOF as a receipted action in the hero subtitle', () => {
+    renderHero();
+    const proof = screen.getByText(HOME_HERO.subtitle.sentence2);
+    expect(proof.className).toContain('text-body');
+    expect(proof.textContent ?? '').toContain('PROOF');
+    expect(proof.textContent ?? '').toContain('receipted action');
+    expect(proof.textContent ?? '').not.toContain('outcome validation');
+    expect(proof.textContent ?? '').not.toContain('proof of work');
+    expect(screen.getByText(HOME_HERO.subtitle.support)).toBeInTheDocument();
+  });
+
   it('renders primary CTA as a solid brand control with glow emphasis', () => {
     renderHero();
     const primary = screen.getByRole('link', {

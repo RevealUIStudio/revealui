@@ -104,7 +104,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_HERO.subtitle.sentence2',
     proofGrade: 'outcome',
-    text: 'Powerful and safe: agents leave receipts when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99/mo · $799/yr).',
+    text: 'Powerful and safe: PROOF is a receipted action when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99/mo · $799/yr).',
     evidence: [
       AUDIT_SIGNING,
       AUDIT_SIGNING_TEST,
@@ -122,8 +122,8 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_HERO.subtitle.support',
     proofGrade: 'behavior',
-    text: 'It runs on any AI provider you choose.',
-    evidence: [PROVIDERS, OPEN_WEIGHT],
+    text: 'BYOK / open-weight default. Same plan rules for humans and agents.',
+    evidence: [PROVIDERS, OPEN_WEIGHT, TIER_GATES],
   },
   {
     file: 'home.ts',
@@ -625,7 +625,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'pricing-teaser.ts',
     exportPath: 'PRICING_TEASER_SECTION.heading',
     proofGrade: 'outcome',
-    text: 'Start free. Pro adds agents, MCP, and receipts. Max is $99/mo.',
+    text: 'Start free. Pro: agents with shared plan rules, MCP, and receipts (PROOF). Max is $99/mo.',
     evidence: [LICENSE_MIT, TIER_GATES, MCP_CONTENT, AUDIT_SIGNING],
   },
   {
@@ -760,9 +760,16 @@ export const claimsPart1: readonly ClaimEntry[] = [
   },
   {
     file: 'pricing.ts',
+    exportPath: 'PRICING_HERO.title',
+    proofGrade: 'outcome',
+    text: 'Tired of tools that don’t talk — and agents with no PROOF?',
+    evidence: [AUDIT_SIGNING, AUDIT_SIGNING_TEST, SELF_HOST],
+  },
+  {
+    file: 'pricing.ts',
     exportPath: 'PRICING_HERO.subtitle',
-    text: 'Tired of tools that don’t talk — and agents you can’t audit?',
-    evidence: [PERPETUAL, TIER_LIMITS],
+    text: 'Self-host the agentic business runtime. Catalog: Free / Pro $49 / Max $99/mo · $799/yr. Studio work invoices on revealuistudio.com.',
+    evidence: [PRICING_FALLBACKS, SELF_HOST, PERPETUAL],
   },
   {
     file: 'pricing.ts',

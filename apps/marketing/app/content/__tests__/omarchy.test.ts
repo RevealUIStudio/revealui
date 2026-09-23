@@ -9,7 +9,7 @@ const FORBIDDEN = [
   'RevDev',
   'RevForge',
   'RevKit',
-  'RevFleet',
+  'RevealFleet',
   'CapCut',
   'Railway',
   '$3500',
@@ -29,7 +29,7 @@ describe('Omarchy template/plugin blurb', () => {
       'Runs great on Omarchy. Also Ubuntu, WSL, and macOS. A dogfood path for self-hosting the RevealUI business runtime.',
     );
     expect(OMARCHY.longer).toBe(
-      'Omarchy is a RevealUI runtime template for Omarchy Quattro users. Point inference at an OpenAI-compatible or Ollama URL, or at Ubuntu Inference Snaps already running on a host. This template does not reimplement snaps on Arch. It is a template, not a cash-ladder SKU and not required for Pilot or Launch.',
+      'Omarchy is a RevealUI runtime template for Omarchy Quattro users. Point inference at an OpenAI-compatible or Ollama URL, or at Ubuntu Inference Snaps already running on a host. This template does not reimplement snaps on Arch. It is a template, not a cash-ladder SKU and not required for Proof Sprint or Launch.',
     );
   });
 
@@ -83,7 +83,7 @@ describe('Omarchy template/plugin blurb', () => {
   it('does not claim Omarchy exclusivity or a required host', () => {
     const text = blob();
     expect(text.includes('Also Ubuntu, WSL, and macOS')).toBe(true);
-    expect(text.includes('not required for Pilot or Launch')).toBe(true);
+    expect(text.includes('not required for Proof Sprint or Launch')).toBe(true);
     expect(text.toLowerCase().includes('only runs on omarchy')).toBe(false);
     expect(text.toLowerCase().includes('omarchy required')).toBe(false);
   });

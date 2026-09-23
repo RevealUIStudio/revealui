@@ -25,7 +25,7 @@
     "@revealui/utils": "workspace:*",
     "@vitejs/plugin-react": "catalog:",
     "@vitejs/plugin-rsc": "0.5.27",
-    "hono": "4.12.34",
+    "hono": "4.13.8",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-server-dom-webpack": "19.2.8"

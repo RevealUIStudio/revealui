@@ -150,6 +150,36 @@ describe('validateStartup — production presence', () => {
   });
 });
 
+describe('validateStartup — REVEALUI_EMAIL_BOOT_OPTIONAL', () => {
+  it('does not throw for missing email transport vars when the flag is 1', () => {
+    const env = validLiveProdEnv({ REVEALUI_EMAIL_BOOT_OPTIONAL: '1' });
+    delete env.GOOGLE_WIF_PROVIDER;
+    delete env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    expect(() => validateStartup(env)).not.toThrow();
+  });
+
+  it('does not treat REVEALUI_EMAIL_BOOT_OPTIONAL=true as opt-in', () => {
+    const env = validLiveProdEnv({ REVEALUI_EMAIL_BOOT_OPTIONAL: 'true' });
+    delete env.GOOGLE_WIF_PROVIDER;
+    expect(() => validateStartup(env)).toThrow(/GOOGLE_WIF_PROVIDER/);
+  });
+
+  it('still rejects other missing hosted vars when email boot is optional', () => {
+    const env = validLiveProdEnv({ REVEALUI_EMAIL_BOOT_OPTIONAL: '1' });
+    delete env.GOOGLE_WIF_PROVIDER;
+    delete env.SENTRY_DSN;
+    expect(() => validateStartup(env)).toThrow(/SENTRY_DSN/);
+    try {
+      validateStartup(env);
+      throw new Error('expected validateStartup to throw');
+    } catch (err) {
+      expect(err).toBeInstanceOf(Error);
+      expect((err as Error).message).toContain('SENTRY_DSN');
+      expect((err as Error).message).not.toContain('GOOGLE_WIF_PROVIDER');
+    }
+  });
+});
+
 describe('validateStartup — audit signing key (GAP-355 Stage 3, both modes)', () => {
   it('rejects a missing REVEALUI_AUDIT_SIGNING_KEY (no REVEALUI_SECRET fallback)', () => {
     const env = validLiveProdEnv();
@@ -275,6 +305,30 @@ describe('validateStartup — production format checks (live mode)', () => {
   it('rejects REVEALUI_CRON_SECRET shorter than 32 chars', () => {
     expect(() => validateStartup(validLiveProdEnv({ REVEALUI_CRON_SECRET: 'short' }))).toThrow(
       /REVEALUI_CRON_SECRET/,
+    );
+  });
+
+  it('rejects a short REVEALUI_CRON_SECRET_PREVIOUS overlap secret', () => {
+    expect(() =>
+      validateStartup(validLiveProdEnv({ REVEALUI_CRON_SECRET_PREVIOUS: 'short' })),
+    ).toThrow(/REVEALUI_CRON_SECRET_PREVIOUS/);
+  });
+
+  it('treats empty REVEALUI_CRON_SECRET_PREVIOUS as unset', () => {
+    expect(() =>
+      validateStartup(validLiveProdEnv({ REVEALUI_CRON_SECRET_PREVIOUS: '' })),
+    ).not.toThrow();
+  });
+
+  it('accepts a 32+ character REVEALUI_CRON_SECRET_PREVIOUS overlap secret', () => {
+    expect(() =>
+      validateStartup(validLiveProdEnv({ REVEALUI_CRON_SECRET_PREVIOUS: 'p'.repeat(32) })),
+    ).not.toThrow();
+  });
+
+  it('rejects a short CRON_SECRET_PREVIOUS overlap secret', () => {
+    expect(() => validateStartup(validLiveProdEnv({ CRON_SECRET_PREVIOUS: 'short' }))).toThrow(
+      /CRON_SECRET_PREVIOUS/,
     );
   });
 

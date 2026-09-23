@@ -27,7 +27,7 @@ export const OMARCHY: OmarchyBlurb = {
   shortBlurb:
     'Runs great on Omarchy. Also Ubuntu, WSL, and macOS. A dogfood path for self-hosting the RevealUI business runtime.',
   longer:
-    'Omarchy is a RevealUI runtime template for Omarchy Quattro users. Point inference at an OpenAI-compatible or Ollama URL, or at Ubuntu Inference Snaps already running on a host. This template does not reimplement snaps on Arch. It is a template, not a cash-ladder SKU and not required for Pilot or Launch.',
+    'Omarchy is a RevealUI runtime template for Omarchy Quattro users. Point inference at an OpenAI-compatible or Ollama URL, or at Ubuntu Inference Snaps already running on a host. This template does not reimplement snaps on Arch. It is a template, not a cash-ladder SKU and not required for Proof Sprint or Launch.',
   includes: [
     'Docker and create-revealui install recipe',
     'OpenAI-compatible or Ollama URL wiring',

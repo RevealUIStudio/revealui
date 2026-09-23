@@ -4,7 +4,7 @@
   "keys": [
     "docs/STANDARDS.md::- validates proper imports from drizzle-zod",
     "docs/STANDARDS.md::- validates staged files before commit",
-    "docs/STANDARDS.md::this codebase follows the revfleet engineering postures defined in [`docs/methodology.md`](./methodology.md). three postures directly affect code standards:",
+    "docs/STANDARDS.md::this codebase follows the revealfleet engineering postures defined in [`docs/methodology.md`](./methodology.md). three postures directly affect code standards:",
     "docs/architecture/ADR-003-fair-source-licensing.md::all source code lives in the public repo. no gitignored packages. no private repo sync.",
     "docs/guides/deployment.md::- [ ] stripe webhook endpoint is registered in the stripe dashboard"
   ]

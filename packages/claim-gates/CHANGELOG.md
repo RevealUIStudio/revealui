@@ -1,5 +1,19 @@
 # @revealui/claim-gates
 
+## 0.2.4
+
+### Patch Changes
+
+- Updated dependencies [c304dbb]
+  - @revealui/contracts@0.11.0
+
+## 0.2.3
+
+### Patch Changes
+
+- Updated dependencies [896e5f4]
+  - @revealui/contracts@0.10.0
+
 ## 0.2.2
 
 ### Patch Changes

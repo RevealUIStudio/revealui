@@ -154,7 +154,7 @@ describe('marketing route registry', () => {
     expect(services?.permanent).toBe(true);
     expect(
       products,
-      '/products must stay on the product site as licenses, not RevFleet docs',
+      '/products must stay on the product site as licenses, not RevealFleet docs',
     ).toBeUndefined();
   });
 

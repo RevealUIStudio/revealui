@@ -36,7 +36,7 @@ export const CONSULTATION_JOURNEY = {
     {
       id: 'choose',
       title: 'Choose',
-      body: 'Pick Consultation when you need a founder session to name the problem and the next SKU. Pilot and Launch stay on the same ladder. There is no fourth product.',
+      body: 'Pick Consultation when you need a founder session to name the problem and the next SKU. Proof Sprint and Launch stay on the same ladder. There is no fourth product.',
     },
     {
       id: 'pay',
@@ -61,7 +61,7 @@ export const CONSULTATION_JOURNEY = {
     {
       id: 'next',
       title: 'Next',
-      body: 'Optional Pilot or Launch if the session proved the path. You can also stop. Nothing is an email sequence.',
+      body: 'Optional Proof Sprint or Launch if the session proved the path. You can also stop. Nothing is an email sequence.',
     },
   ] as const satisfies readonly ConsultationJourneyStep[],
 } as const;

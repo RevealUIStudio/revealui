@@ -9,7 +9,7 @@ audience: public
 
 # RevealFleet
 
-RevealFleet (`/docs/REVFLEET`) is the family name for RevealUI Studio software. It is **not** a buyable SKU and **not** a public get-started path.
+RevealFleet (`/docs/REVEALFLEET`) is the family name for RevealUI Studio software. It is **not** a buyable SKU and **not** a public get-started path.
 
 **RevealUI** is the lead product and the buyable runtime. The public catalog is Free, Pro ($49/mo), Max ($99/mo), Enterprise (inquire / Contact sales), and Pro Perpetual ($1,499). RevVault (separate product) is encrypted secret management inside Pro. It is not a separate paid SKU.
 

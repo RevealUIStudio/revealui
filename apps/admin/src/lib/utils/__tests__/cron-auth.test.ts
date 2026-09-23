@@ -13,6 +13,7 @@ describe('verifyCronAuth', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = TEST_SECRET;
+    delete process.env.REVEALUI_CRON_SECRET_PREVIOUS;
   });
 
   afterEach(() => {
@@ -40,9 +41,18 @@ describe('verifyCronAuth', () => {
 
   it('returns false when no secret is configured', async () => {
     delete process.env.REVEALUI_CRON_SECRET;
+    delete process.env.REVEALUI_CRON_SECRET_PREVIOUS;
     const verify = await loadFn();
     const result = verify(makeRequest('Bearer anything'));
     expect(result).toBe(false);
+  });
+
+  it('returns true when the token matches REVEALUI_CRON_SECRET_PREVIOUS', async () => {
+    const previous = 'pppp-qqqq-rrrr-ssss';
+    process.env.REVEALUI_CRON_SECRET_PREVIOUS = previous;
+    const verify = await loadFn();
+    expect(verify(makeRequest(`Bearer ${previous}`))).toBe(true);
+    expect(verify(makeRequest(`Bearer ${TEST_SECRET}`))).toBe(true);
   });
 
   it('returns false when no authorization header', async () => {

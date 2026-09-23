@@ -20,7 +20,7 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=%h/revfleet/revealui/packages/db
+WorkingDirectory=%h/revealfleet/revealui/packages/db
 
 # POSTGRES_URL (or DATABASE_URL) must be set in this file. The file is
 # user-owned, mode 0600, and is intentionally NOT committed to git.
@@ -40,7 +40,7 @@ EnvironmentFile=%h/.config/drizzle-studio/env
 # the currently-aliased version — version-resilient. drizzle-kit's
 # bin.cjs is the actual JS entrypoint, reached via pnpm's stable
 # package symlink (also version-resilient).
-ExecStart=%h/.local/bin/node %h/revfleet/revealui/packages/db/node_modules/drizzle-kit/bin.cjs studio --host 127.0.0.1 --port 4983
+ExecStart=%h/.local/bin/node %h/revealfleet/revealui/packages/db/node_modules/drizzle-kit/bin.cjs studio --host 127.0.0.1 --port 4983
 
 # Restart on crash with a brief backoff. drizzle-kit studio has been
 # observed to exit unexpectedly under certain shell/PTY conditions

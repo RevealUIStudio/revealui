@@ -47,7 +47,7 @@ export function hasRvuiTickerLeak(line: string): boolean {
  * ticker.
  */
 export const RVUI_LEAK_ALLOWLIST = new Set<string>([
-  'docs/REVFLEET.md',
+  'docs/REVEALFLEET.md',
   'docs/FLEET.md',
   'docs/fleet/revealcoin.md',
   // The REST API reference cites the internal route slug (`rvui-payment`)

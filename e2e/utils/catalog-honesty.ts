@@ -38,7 +38,9 @@ export const FORBIDDEN_CATALOG_PHRASES = [
   '$300',
   '$1,500',
   '$3,500',
+  '$3,997',
   '$7,500',
+  '$14,500',
   'No holdback',
   'cal.com/revealuistudio',
   'Done-for-you',
@@ -46,7 +48,7 @@ export const FORBIDDEN_CATALOG_PHRASES = [
 ] as const;
 
 export async function assertHonestProductCatalog(page: Page): Promise<void> {
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('RevealUI pricing', {
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('agents with no PROOF', {
     timeout: 10_000,
   });
 

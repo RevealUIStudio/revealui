@@ -90,6 +90,11 @@ describe('admin chrome white-label branding', () => {
       expect(screen.queryByText(/^Marketplace$/)).toBeNull();
     });
 
+    it('labels the knowledge graph nav as RevMind', () => {
+      render(<AdminSidebarLayout siteName="Acme">content</AdminSidebarLayout>);
+      expect(screen.getByText('RevMind')).toBeDefined();
+    });
+
     it('puts Sign out in the sidebar footer', () => {
       render(<AdminSidebarLayout siteName="Acme">content</AdminSidebarLayout>);
       expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();

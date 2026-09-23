@@ -1,6 +1,6 @@
 ---
 title: "Secrets Architecture"
-description: "**All secrets in RevFleet live in revvault, encrypted by an"
+description: "**All secrets in RevealFleet live in revvault, encrypted by an"
 visibility: internal
 status: verified
 audience: maintainer
@@ -10,7 +10,7 @@ audience: maintainer
 
 ## One-sentence summary
 
-**All secrets in RevFleet live in revvault, encrypted by an
+**All secrets in RevealFleet live in revvault, encrypted by an
 age identity that doesn't leave the developer's machine.**
 
 If that sentence ever becomes false — even for one secret — we have a
@@ -227,6 +227,12 @@ value is never UI/API-revealable after write (credentials + private signing keys
 > - `revealui/prod/sentry/project-server` - `SENTRY_PROJECT` for apps/server; referenced by code
 >   but not currently emitted by either sync manifest.
 > Both fold into the spec in a later phase.
+>
+> **Declared, intentionally unsynced (GAP-347):** `revealui/prod/db/postgres-url-readonly` and
+> `revealui/staging/db/postgres-url-readonly`. Leaf name `postgres-url-readonly`, sibling of
+> `postgres-url`. These hold the Neon connection URL for the `revealui_readonly` role. They are
+> in `scripts/sync/secret-paths.ts` with `intentionallyUnsynced: true` so they never enter the
+> Vercel or Fly manifests. Owner runbook: [`docs/runbooks/postgres-readonly-role.md`](./runbooks/postgres-readonly-role.md).
 
 > **Stale duplicates slated for owner delete (P3-3) - do not add consumers:**
 > `revealui/prod/neon/postgres-url` + `revealui/db/neon-production` - both leftover from an
@@ -395,7 +401,7 @@ credentials/sentry/auth-token           # error tracking (CI + runtime)
 ```
 credentials/github/personal-access-token
 credentials/github/actions-secrets-mirror
-# revfleet-backflow GitHub App (Contents + Pull requests r/w) — authenticates the
+# backflow GitHub App (Contents + Pull requests r/w) — authenticates the
 # org-shared backflow-reusable.yml caller at .github/workflows/backflow-main-into-test.yml
 # in every fleet repo. Mirrored into each repo's Actions secrets as BACKFLOW_APP_ID /
 # BACKFLOW_APP_PRIVATE_KEY (publish step — value piped, never echoed or written to disk;
@@ -495,7 +501,7 @@ pnpm vercel:sync:apply    # apply to Vercel production
 
 The revvault store is unlocked by a single X25519 age identity at
 `$HOME/.age-identity/keys.txt` (or `REVVAULT_IDENTITY`). Losing that
-file means losing every secret in RevFleet.
+file means losing every secret in RevealFleet.
 
 Backup policy for the age identity is documented in
 [`SECURITY.md`](./SECURITY.md#age-identity-backup). Summary:
@@ -541,4 +547,8 @@ Settings pairing UI for the flow.
 | `revealui/prod/admin/signup-open` | admin `REVEALUI_SIGNUP_OPEN` | Boolean string; self-serve funnel gate |
 | `revealui/prod/api/bundle-pro` | api `REVEALUI_BUNDLE_PRO` | Pro bundle flag |
 
-Scoped sync runbook: [docs/security/REVVAULT-VERCEL-SCOPED-SYNC.md](./security/REVVAULT-VERCEL-SCOPED-SYNC.md).
+These two names are the unvaulted production pair (still `KNOWN_DRIFT` orphans).
+Owner apply list, project ids, and live targets (names only, checked
+2026-09-23 with decrypt off):
+[docs/security/REVVAULT-VERCEL-SCOPED-SYNC.md](./security/REVVAULT-VERCEL-SCOPED-SYNC.md#owner-apply-list-2026-09-23).
+The owner vaults the paths and runs scoped sync. This repo does not apply.

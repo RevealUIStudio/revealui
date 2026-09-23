@@ -16,24 +16,24 @@ audience: developer
 A **non-monorepo, non-published convention bundle** that ships:
 
 - **Editor configs** for Zed, VS Code, and Cursor — symlinked into target projects so edits propagate instantly without commits to the target repo.
-- **Profiles** — per-project rule packs (e.g. `revealui` profile applies RevFleet's Claude Code rules + Cursor rules + agent skill files).
+- **Profiles** — per-project rule packs (e.g. `revealui` profile applies RevealFleet's Claude Code rules + Cursor rules + agent skill files).
 - **`link.sh` / `unlink.sh`** — installer + remover. Supports `--target`, `--profile`, `--editor`, and `--dry-run`.
 
 ```bash
 # Link into a project with the revealui profile
-./link.sh --target ~/revfleet/revealui --profile revealui
+./link.sh --target ~/revealfleet/revealui --profile revealui
 
 # Link base configs only (no profile)
-./link.sh --target ~/revfleet/revvault
+./link.sh --target ~/revealfleet/revvault
 
 # Link a single editor
-./link.sh --target ~/revfleet/revealui --profile revealui --editor zed
+./link.sh --target ~/revealfleet/revealui --profile revealui --editor zed
 
 # Preview without changes
-./link.sh --dry-run --target ~/revfleet/revealui --profile revealui
+./link.sh --dry-run --target ~/revealfleet/revealui --profile revealui
 
 # Remove symlinks
-./unlink.sh --target ~/revfleet/revealui
+./unlink.sh --target ~/revealfleet/revealui
 
 # List available profiles
 ./link.sh --list
@@ -57,6 +57,6 @@ Active.
 
 ## See also
 
-- [RevFleet overview](../REVFLEET) — how RevCon relates to the rest of RevFleet
+- [RevealFleet overview](../REVEALFLEET) — how RevCon relates to the rest of RevealFleet
 - [`/pro/editors`](/pro/editors) — Pro-docs page that points back to RevCon
 - [RevCon README](https://github.com/RevealUIStudio/revcon/blob/main/README.md) — canonical product docs

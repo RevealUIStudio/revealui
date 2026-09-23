@@ -4,13 +4,13 @@
 import {
   CONSULTATION_PRICE,
   LAUNCH_PACKAGE_PRICE,
-  PILOT_PRICE,
+  PROOF_SPRINT_PRICE,
 } from '@revealui/contracts/public-catalog';
 import { PERPETUAL_PRICE_FALLBACKS, SUBSCRIPTION_PRICE_FALLBACKS } from '../lib/pricing-fallbacks';
 import { SITE } from './site';
 
 export type WhoLive = 'self' | 'studio';
-export type WhatWork = 'consultation' | 'pilot' | 'launch';
+export type WhatWork = 'consultation' | 'proof-sprint' | 'launch';
 export type PlaceCount = 'one' | 'many';
 
 export interface QuoteAnswers {
@@ -66,7 +66,7 @@ const PERPETUAL_PRICE = publicPerpetualPrice();
 
 export const DEFAULT_QUOTE_ANSWERS: QuoteAnswers = {
   who: 'self',
-  what: 'consultation',
+  what: 'proof-sprint',
   places: 'one',
 };
 
@@ -77,16 +77,16 @@ export const QUOTE_CALCULATOR = {
     who: {
       label: 'Who runs it?',
       options: [
-        { id: 'self', label: 'I self-host' },
+        { id: 'self', label: 'I self-host the runtime' },
         { id: 'studio', label: 'Studio implements with me' },
       ] as const satisfies readonly QuoteOption<WhoLive>[],
     },
     what: {
-      label: 'What do you need?',
+      label: 'What problem are we solving?',
       options: [
-        { id: 'consultation', label: 'Consultation' },
-        { id: 'pilot', label: 'Pilot: one site, one agent I run' },
-        { id: 'launch', label: 'Launch: live on my accounts' },
+        { id: 'consultation', label: 'Consultation: diagnose the path / proof gap' },
+        { id: 'proof-sprint', label: 'Proof Sprint: one site, one receipted action I operate' },
+        { id: 'launch', label: 'Launch: money path live on my accounts' },
       ] as const satisfies readonly QuoteOption<WhatWork>[],
     },
     places: {
@@ -111,15 +111,15 @@ export const QUOTE_CALCULATOR = {
       price: CONSULTATION_PRICE,
       body: 'Invoice before start.',
     },
-    pilot: {
-      title: 'Pilot',
-      price: PILOT_PRICE,
-      body: 'One site on your domain, one agent you run, you keep it. Credits 100% to Launch if you start Launch within 30 days.',
+    proofSprint: {
+      title: 'Proof Sprint',
+      price: PROOF_SPRINT_PRICE,
+      body: 'One site and one receipted action you operate. Stage B is included. Credits 100% to Launch if you start Launch within 45 days.',
     },
     launch: {
       title: 'Launch',
       price: LAUNCH_PACKAGE_PRICE,
-      body: 'Architecture work happens inside Launch. Half now, half on delivery.',
+      body: 'Architecture work happens inside Launch, with a runbook and 30 days of async stabilization. Half now, half on delivery.',
     },
   },
   intro: {
@@ -151,11 +151,11 @@ function studioSkus(highlighted: WhatWork): readonly QuoteSkuLine[] {
       highlighted: highlighted === 'consultation',
     },
     {
-      id: 'pilot',
-      title: QUOTE_CALCULATOR.studio.pilot.title,
-      price: QUOTE_CALCULATOR.studio.pilot.price,
-      body: QUOTE_CALCULATOR.studio.pilot.body,
-      highlighted: highlighted === 'pilot',
+      id: 'proof-sprint',
+      title: QUOTE_CALCULATOR.studio.proofSprint.title,
+      price: QUOTE_CALCULATOR.studio.proofSprint.price,
+      body: QUOTE_CALCULATOR.studio.proofSprint.body,
+      highlighted: highlighted === 'proof-sprint',
     },
     {
       id: 'launch',

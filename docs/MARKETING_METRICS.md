@@ -75,9 +75,9 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 
 | Service | Price | Notes |
 |---|---|---|
-| Consultation | $300 | revealuistudio.com only |
-| Pilot | $1,500 | One site on their domain, one agent they run; credits 100% to Launch within 30 days |
-| Launch | $7,500 | Architecture work happens inside Launch |
+| Consultation | $300 | revealuistudio.com only. Tax $0. Path A default, Path B if asked. |
+| Proof Sprint | $3,997 | One site and one receipted action they operate. Stage B included. 100% credit to Launch within 45 days. Replaces Pilot $1,500. |
+| Launch | $14,500 | Architecture stays inside Launch, with a runbook and 30 days of async stabilization. Replaces the $7,500 list. |
 
 **Status:** Studio SKUs stay on revealuistudio.com only. Do not copy them onto revealui.com. Live `/pricing` CTA is `Book an intro` → Google Calendar appointments. Do not write "Talk to founder" or "Buy now."
 
@@ -138,7 +138,7 @@ Canonical defaults (when "open-model AI" is mentioned in marketing): Nemotron-3-
 ## 7. Brand language guardrails (per `brand-naming.md` + locked Q1)
 
 - **RevealUI** = the framework/runtime (customer-facing).
-- **RevFleet** = the umbrella product family (8 active products).
+- **RevealFleet** = the umbrella product family (8 active products).
 - **`RevForge`** = the stamping tool (NOT bare `Forge`).
 - **"Studio"** alone is ambiguous (collides with RevDev Studio app + RevealUI Studio agency); always qualify as "RevealUI Studio" or "RevDev Studio."
 - **Positioning (Q1 lock-in):** `shifts.md` primary + secondary —

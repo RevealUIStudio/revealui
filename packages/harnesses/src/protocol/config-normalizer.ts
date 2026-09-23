@@ -444,6 +444,25 @@ export interface VSCodeMcpConfig {
   servers: Record<string, VSCodeMcpServerConfig>;
 }
 
+/**
+ * Marketplace `.mcp.json` input. The instance URL is not a secret
+ * (`password: false`). The device token stays `password: true`.
+ */
+export interface VSCodeMarketplaceMcpInput {
+  type: 'promptString';
+  id: string;
+  description: string;
+  password: boolean;
+}
+
+/** Listing template: both the instance URL and the device token are input refs. */
+export interface VSCodeMarketplaceMcpConfig {
+  inputs: VSCodeMarketplaceMcpInput[];
+  servers: Record<string, VSCodeMcpServerConfig>;
+}
+
+const VSCODE_MARKETPLACE_URL_INPUT_ID = 'revealui-mcp-url';
+
 /** Options for wiring the RevealUI governed MCP endpoint into a VS Code agent-plugin `.mcp.json`. */
 export interface VSCodeMcpOptions {
   /** RevealUI governed MCP endpoint, e.g. `https://your-host/api/mcp`. */
@@ -504,6 +523,41 @@ export function protocolConfigToVSCodeMcpConfig(
         type: 'http',
         url: opts.mcpUrl,
         headers: { Authorization: `Bearer \${input:${tokenInputId}}` },
+      },
+    },
+  };
+}
+
+/**
+ * Leak-proof `.mcp.json` for the GAP-475 marketplace package.
+ *
+ * A listing cannot know the customer's host, so the URL is an input ref
+ * (`${input:revealui-mcp-url}`) rather than a committed instance URL. The
+ * device token stays an input ref with `password: true`. This function takes
+ * no ProtocolConfig and no environment, so a caller cannot pass a literal
+ * token or host into it.
+ */
+export function vscodeMarketplaceMcpTemplate(): VSCodeMarketplaceMcpConfig {
+  return {
+    inputs: [
+      {
+        type: 'promptString',
+        id: VSCODE_MARKETPLACE_URL_INPUT_ID,
+        description: 'RevealUI governed MCP endpoint (https://<your-host>/api/mcp)',
+        password: false,
+      },
+      {
+        type: 'promptString',
+        id: DEFAULT_VSCODE_TOKEN_INPUT_ID,
+        description: 'RevealUI governed MCP device token',
+        password: true,
+      },
+    ],
+    servers: {
+      revealui: {
+        type: 'http',
+        url: `\${input:${VSCODE_MARKETPLACE_URL_INPUT_ID}}`,
+        headers: { Authorization: `Bearer \${input:${DEFAULT_VSCODE_TOKEN_INPUT_ID}}` },
       },
     },
   };

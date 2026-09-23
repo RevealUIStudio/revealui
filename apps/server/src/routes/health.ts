@@ -10,6 +10,7 @@ import {
 import { getClient } from '@revealui/db';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { sql } from 'drizzle-orm';
+import { vercelCronSecretMatches } from '../lib/cron-auth.js';
 import {
   corsConfigMissing,
   licenseCanaryDegraded,
@@ -20,25 +21,30 @@ const app = new OpenAPIHono();
 
 /**
  * Verify metrics access via Bearer token or X-Metrics-Secret header.
- * Uses METRICS_SECRET or CRON_SECRET env var. Returns 401 if missing or invalid.
+ * Uses METRICS_SECRET when set (exclusive). Otherwise falls back to
+ * CRON_SECRET, and during a cron rotation also CRON_SECRET_PREVIOUS.
+ * Returns false if missing or invalid.
  */
 function verifyMetricsAccess(c: {
   req: { header: (name: string) => string | undefined };
 }): boolean {
-  const secret = process.env.METRICS_SECRET ?? process.env.CRON_SECRET;
-  if (!secret) return false;
-
   const authHeader = c.req.header('authorization');
   const metricsHeader = c.req.header('x-metrics-secret');
   const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : metricsHeader;
-
   if (!token) return false;
 
-  const tokenBuf = Buffer.from(token);
-  const secretBuf = Buffer.from(secret);
-  if (tokenBuf.length !== secretBuf.length) return false;
+  const metricsSecret = process.env.METRICS_SECRET;
+  // Empty string is set-but-blank: keep the historical exclusive fallback
+  // (do not accept CRON_SECRET) and fail closed.
+  if (metricsSecret === '') return false;
+  if (metricsSecret) {
+    const tokenBuf = Buffer.from(token);
+    const secretBuf = Buffer.from(metricsSecret);
+    if (tokenBuf.length !== secretBuf.length) return false;
+    return timingSafeEqual(tokenBuf, secretBuf);
+  }
 
-  return timingSafeEqual(tokenBuf, secretBuf);
+  return vercelCronSecretMatches(token);
 }
 
 // ---------------------------------------------------------------------------

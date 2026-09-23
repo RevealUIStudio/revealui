@@ -384,9 +384,9 @@ describe('Pricing Accuracy  -  Contracts vs Code Enforcement', () => {
       expect(FOUNDER_SERVICE_OFFERINGS).toHaveLength(3);
     });
 
-    it('service IDs are consultation, pilot, launch-package', () => {
+    it('service IDs are consultation, proof-sprint, launch-package', () => {
       const ids = FOUNDER_SERVICE_OFFERINGS.map((s) => s.id);
-      expect(ids).toEqual(['consultation', 'pilot', 'launch-package']);
+      expect(ids).toEqual(['consultation', 'proof-sprint', 'launch-package']);
     });
 
     it('every service has a non-empty includes list', () => {

@@ -11,29 +11,31 @@ import {
 
 describe('isMasterSpecTriggerPath', () => {
   it('matches contracts and db schema', () => {
-    expect(isMasterSpecTriggerPath('/home/u/revfleet/revealui/packages/contracts/src/foo.ts')).toBe(
-      true,
-    );
     expect(
-      isMasterSpecTriggerPath('/home/u/revfleet/revealui/packages/db/src/schema/users.ts'),
+      isMasterSpecTriggerPath('/home/u/revealfleet/revealui/packages/contracts/src/foo.ts'),
+    ).toBe(true);
+    expect(
+      isMasterSpecTriggerPath('/home/u/revealfleet/revealui/packages/db/src/schema/users.ts'),
     ).toBe(true);
   });
 
   it('matches apps/*/app and apps/*/src sources', () => {
-    expect(isMasterSpecTriggerPath('/home/u/revfleet/revealui/apps/admin/src/app/page.tsx')).toBe(
-      true,
-    );
-    expect(isMasterSpecTriggerPath('/home/u/revfleet/revealui/apps/server/src/index.ts')).toBe(
+    expect(
+      isMasterSpecTriggerPath('/home/u/revealfleet/revealui/apps/admin/src/app/page.tsx'),
+    ).toBe(true);
+    expect(isMasterSpecTriggerPath('/home/u/revealfleet/revealui/apps/server/src/index.ts')).toBe(
       true,
     );
   });
 
   it('skips tests, core package, and docs', () => {
     expect(
-      isMasterSpecTriggerPath('/home/u/revfleet/revealui/apps/admin/src/__tests__/x.test.ts'),
+      isMasterSpecTriggerPath('/home/u/revealfleet/revealui/apps/admin/src/__tests__/x.test.ts'),
     ).toBe(false);
-    expect(isMasterSpecTriggerPath('/home/u/revfleet/revealui/packages/core/src/x.ts')).toBe(false);
-    expect(isMasterSpecTriggerPath('/home/u/revfleet/revealui/docs/README.md')).toBe(false);
+    expect(isMasterSpecTriggerPath('/home/u/revealfleet/revealui/packages/core/src/x.ts')).toBe(
+      false,
+    );
+    expect(isMasterSpecTriggerPath('/home/u/revealfleet/revealui/docs/README.md')).toBe(false);
   });
 });
 

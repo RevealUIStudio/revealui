@@ -177,6 +177,14 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     return NextResponse.redirect(licenseUrl, 301);
   }
 
+  // GAP-300 honesty: /billing 404s — billing lives under Account settings.
+  // Preserve query (`upgrade=`) so checkout deep links keep working.
+  if (pathname === '/billing' || pathname === '/billing/') {
+    const billingUrl = request.nextUrl.clone();
+    billingUrl.pathname = '/account/billing';
+    return NextResponse.redirect(billingUrl);
+  }
+
   // Already-authenticated users have no reason to see the login/signup screens.
   // Honor a safe same-origin redirect/returnUrl so a license CTA is not dumped
   // on admin home `/` (search used to be wiped unconditionally).

@@ -503,6 +503,13 @@ async function gate(): Promise<void> {
         args: ['validate:pricing-lockstep'],
       },
       {
+        // GAP-466: test-branch marketing honesty is not customer-visible
+        // until production Deploy on main is green. Does not promote.
+        name: 'Marketing deploy lockstep (hard fail)',
+        command: 'pnpm',
+        args: ['validate:marketing-deploy-lockstep'],
+      },
+      {
         name: 'Stripe seeder catalog lockstep (hard fail)',
         command: 'pnpm',
         args: ['validate:stripe-catalog'],

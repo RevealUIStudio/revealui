@@ -8,8 +8,10 @@
  *   rollback printed "No previous deployment found" and left the broken
  *   deploy on the production alias.
  * - This script uses the Vercel REST API with an explicit team id, finds the
- *   second-most-recent READY production deployment, and re-points every
- *   alias currently on the newest (broken) deploy to that previous one.
+ *   second-most-recent READY production deployment, and re-points the
+ *   allowlisted production hostnames on the newest (broken) deploy to that
+ *   previous one. Other aliases (preview or nested test names) stay put.
+ *   A failure moving a non-production alias must not fail the rollback.
  *
  * Usage:
  *   VERCEL_TOKEN=… VERCEL_TEAM_ID=team_… node scripts/deploy/vercel-rollback-previous-prod.mjs \
@@ -21,40 +23,73 @@
  *   2 — bad args / missing env
  */
 import { parseArgs } from 'node:util';
+import { pathToFileURL } from 'node:url';
 
 const API = 'https://api.vercel.com';
+
+/**
+ * Hostnames a production rollback may move. Single-label names covered by
+ * Cloudflare Universal SSL (`*.revealui.com`), plus each app's production
+ * `*.vercel.app` alias. Nested names such as `test.api.revealui.com` are
+ * excluded: they are not on that certificate and must not ride prod rollback.
+ */
+export const PRODUCTION_ALIASES = {
+  api: ['api.revealui.com', 'revealui-api.vercel.app'],
+  admin: ['admin.revealui.com'],
+  marketing: [
+    'revealui.com',
+    'www.revealui.com',
+    'community.revealui.com',
+    'revealui-landing.vercel.app',
+  ],
+  docs: ['docs.revealui.com', 'docs-gold-three.vercel.app'],
+};
+
+/** Aliases on the newest deploy that this app is allowed to move. */
+export function aliasesToMove(appLabel, aliasesOnNewest) {
+  const allow = PRODUCTION_ALIASES[appLabel];
+  if (!allow) return null;
+  const allowed = new Set(allow);
+  return (aliasesOnNewest || []).filter((a) => a?.alias && allowed.has(a.alias));
+}
 
 function die(code, msg) {
   console.error(msg);
   process.exit(code);
 }
 
-const { values } = parseArgs({
-  options: {
-    'project-id': { type: 'string' },
-    'app-label': { type: 'string', default: 'app' },
-    'team-id': { type: 'string' },
-    token: { type: 'string' },
-    dry: { type: 'boolean', default: false },
-  },
-  allowPositionals: false,
-});
+let values;
+let projectId;
+let appLabel;
+let token;
+let teamId;
 
-const projectId = values['project-id'];
-const appLabel = values['app-label'] || 'app';
-const token = values.token || process.env.VERCEL_TOKEN;
-// Prefer explicit flag, then VERCEL_TEAM_ID, then VERCEL_ORG_ID (fleet secret
-// is the team id even when named ORG_ID — see deploy.yml / SECRETS.md).
-const teamId =
-  values['team-id'] || process.env.VERCEL_TEAM_ID || process.env.VERCEL_ORG_ID || '';
-
-if (!projectId) die(2, 'missing --project-id');
-if (!token) die(2, 'missing VERCEL_TOKEN / --token');
-if (!teamId) {
-  die(
-    2,
-    'missing team id: pass --team-id or set VERCEL_TEAM_ID / VERCEL_ORG_ID (team_… id, not TURBO_TEAM slug)',
-  );
+function initCli() {
+  const parsed = parseArgs({
+    options: {
+      'project-id': { type: 'string' },
+      'app-label': { type: 'string', default: 'app' },
+      'team-id': { type: 'string' },
+      token: { type: 'string' },
+      dry: { type: 'boolean', default: false },
+    },
+    allowPositionals: false,
+  });
+  values = parsed.values;
+  projectId = values['project-id'];
+  appLabel = values['app-label'] || 'app';
+  token = values.token || process.env.VERCEL_TOKEN;
+  // Prefer explicit flag, then VERCEL_TEAM_ID, then VERCEL_ORG_ID (fleet secret
+  // is the team id even when named ORG_ID — see deploy.yml / SECRETS.md).
+  teamId = values['team-id'] || process.env.VERCEL_TEAM_ID || process.env.VERCEL_ORG_ID || '';
+  if (!projectId) die(2, 'missing --project-id');
+  if (!token) die(2, 'missing VERCEL_TOKEN / --token');
+  if (!teamId) {
+    die(
+      2,
+      'missing team id: pass --team-id or set VERCEL_TEAM_ID / VERCEL_ORG_ID (team_… id, not TURBO_TEAM slug)',
+    );
+  }
 }
 
 async function api(path, init = {}) {
@@ -126,6 +161,7 @@ async function assignAlias(deploymentId, alias) {
 }
 
 async function main() {
+  initCli();
   console.log(`=== Rollback previous prod: ${appLabel} (${projectId}) team=${teamId} ===`);
 
   const deps = await listReadyProdDeployments();
@@ -141,20 +177,20 @@ async function main() {
   console.log(`Newest (broken candidate): ${broken.uid} https://${broken.url}`);
   console.log(`Previous (restore):        ${previous.uid} https://${previous.url}`);
 
-  const aliases = await listAliasesForDeployment(broken.uid);
-  if (aliases.length === 0) {
-    // Newest deploy may not own custom aliases yet, or smoke failed before
-    // alias assign. Still try to promote known production hostnames if any
-    // point at broken via a second list of all aliases that look production.
-    console.warn(
-      'No aliases currently bound to newest deploy — nothing to reassign via alias list.',
-    );
-    // Promote previous by assigning its own URL as a no-op check, then exit 1
-    // so humans notice: production alias may already be elsewhere.
+  if (!PRODUCTION_ALIASES[appLabel]) {
     die(
       1,
-      `Could not discover aliases on newest deploy for ${appLabel}. Manual check required.`,
+      `No production alias allowlist for ${appLabel}. Refusing to move every alias.`,
     );
+  }
+
+  const onNewest = await listAliasesForDeployment(broken.uid);
+  const aliases = aliasesToMove(appLabel, onNewest);
+  if (aliases.length === 0) {
+    console.log(
+      `No allowlisted production aliases on newest deploy for ${appLabel}. Other hostnames were left in place.`,
+    );
+    return;
   }
 
   console.log(`Reassigning ${aliases.length} alias(es) to previous deploy…`);
@@ -197,7 +233,12 @@ async function main() {
   );
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+const isDirectRun =
+  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isDirectRun) {
+  main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
+}

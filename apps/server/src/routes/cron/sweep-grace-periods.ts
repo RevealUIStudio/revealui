@@ -10,31 +10,19 @@
  * Schedule: every 15 minutes (configured in vercel.json)
  */
 
-import { timingSafeEqual } from 'node:crypto';
 import { resetLicenseState } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient, withTransaction } from '@revealui/db/client';
 import { accountEntitlements, accountSubscriptions, licenses } from '@revealui/db/schema';
 import { and, eq, lte } from 'drizzle-orm';
 import { Hono } from 'hono';
+import { revealuiCronSecretMatches } from '../../lib/cron-auth.js';
 
 const app = new Hono();
 
 app.post('/sweep-grace-periods', async (c) => {
-  const cronSecret = process.env.REVEALUI_CRON_SECRET;
   const provided = c.req.header('X-Cron-Secret') || c.req.header('x-cron-secret');
-
-  if (!(cronSecret && provided)) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-
-  try {
-    const a = Buffer.from(provided);
-    const b = Buffer.from(cronSecret);
-    if (a.length !== b.length || !timingSafeEqual(a, b)) {
-      return c.json({ error: 'Unauthorized' }, 401);
-    }
-  } catch {
+  if (!revealuiCronSecretMatches(provided)) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 

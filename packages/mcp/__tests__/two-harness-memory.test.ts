@@ -27,7 +27,7 @@ async function createTestDb(): Promise<TestDb> {
 
 function studioPrincipal(partial: Partial<MemoryPrincipal> = {}): MemoryPrincipal {
   return {
-    did: 'did:revfleet:claude-1:fpcla',
+    did: 'did:revealfleet:claude-1:fpcla',
     agentId: 'claude-1',
     fingerprint: 'fpcla',
     didKind: 'agent-key',
@@ -42,7 +42,7 @@ function studioPrincipal(partial: Partial<MemoryPrincipal> = {}): MemoryPrincipa
 const claudePrincipal = (): MemoryPrincipal => studioPrincipal();
 const grokPrincipal = (): MemoryPrincipal =>
   studioPrincipal({
-    did: 'did:revfleet:grok-1:fpgro',
+    did: 'did:revealfleet:grok-1:fpgro',
     agentId: 'grok-1',
     fingerprint: 'fpgro',
     harness: 'grok',
