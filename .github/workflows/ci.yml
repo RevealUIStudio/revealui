@@ -266,6 +266,12 @@ jobs:
         # local gate step in scripts/gates/ci-gate.ts.
         run: pnpm validate:claims-evidence
 
+      - name: Marketing deploy lockstep (hard fail)
+        # GAP-466: test-branch marketing honesty is not customer-visible
+        # until production Deploy on main is green. Does not promote.
+        # Mirrors the local gate step in scripts/gates/ci-gate.ts.
+        run: pnpm validate:marketing-deploy-lockstep
+
       - name: Rules lockstep validation (hard fail)
         # The .claude config surface (rules/agents/skills) is materialized
         # from revcon profiles with a sha256 manifest; tracked copies must

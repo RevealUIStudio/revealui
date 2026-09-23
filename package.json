@@ -287,6 +287,7 @@
     "validate:seed-wiring": "tsx scripts/validate/seed-script-wiring.ts",
     "validate:stripe-client": "tsx scripts/validate/stripe-client.ts",
     "validate:pricing-lockstep": "tsx scripts/validate/pricing-lockstep.ts",
+    "validate:marketing-deploy-lockstep": "vitest run scripts/validate/__tests__/marketing-deploy-lockstep.test.ts && tsx scripts/validate/marketing-deploy-lockstep.ts",
     "validate:stripe-catalog": "vitest run scripts/setup/__tests__/stripe-catalog.test.ts scripts/setup/__tests__/stripe-catalog-lockstep.test.ts",
     "validate:dockerfile-deps": "tsx scripts/validate/dockerfile-deps-lockstep.ts",
     "validate:railway-marketplace": "vitest run scripts/validate/__tests__/railway-marketplace-template.test.ts && tsx scripts/validate/railway-marketplace-template.ts",

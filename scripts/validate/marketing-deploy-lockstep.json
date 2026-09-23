@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "gap": "GAP-466",
+  "customerVisible": false,
+  "botPromote": "forbidden",
+  "offerLock": {
+    "revealuiPr": 2925,
+    "agencyPr": 211,
+    "onTest": true,
+    "onMain": false,
+    "note": "Verified 2026-09-23: both PRs are merged to test and are not on main. Studio ladder is Consultation $300, Proof Sprint $3,997, Launch $14,500. Do not describe it as customer-visible until production Deploy on main is green."
+  },
+  "honestySurfaces": [
+    "packages/contracts/src/public-catalog.ts",
+    "docs/MARKETING_METRICS.md",
+    "docs/WHAT_WORKS_TODAY.md",
+    "apps/marketing/app/content/home.ts",
+    "apps/marketing/app/content/pricing.ts",
+    "apps/marketing/app/content/pricing-teaser.ts",
+    "apps/marketing/app/content/quote-calculator.ts",
+    "apps/marketing/app/content/for-operators.ts",
+    "apps/marketing/app/content/consultation-journey.ts"
+  ]
+}
