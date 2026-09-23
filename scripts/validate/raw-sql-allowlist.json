@@ -72,6 +72,12 @@
       "rules": ["execute-sql-literal"],
       "reason": "ADR-009 pre-customer receipts genesis. TRUNCATE audit_log + audit_anchors RESTART IDENTITY is owner DDL; Drizzle has no query-builder for TRUNCATE. Append-only trigger blocks UPDATE/DELETE only. Fail-closed behind confirm env + attest flag. Permanent.",
       "migrationPhase": null
+    },
+    {
+      "path": "scripts/sql/revealui-readonly-role.sql",
+      "rules": ["sql-file-outside-migrations"],
+      "reason": "GAP-347 owner-run CREATE ROLE script for revealui_readonly. Not a schema migration and must not be applied by drizzle-kit or CI. The committed file refuses to create the role until the owner replaces the password sentinel. Permanent.",
+      "migrationPhase": null
     }
   ]
 }
