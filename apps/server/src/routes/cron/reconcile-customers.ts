@@ -32,6 +32,13 @@
  * resolves rows by event_id; orphan rows use a synthetic event_id of
  * `cron-orphan:<customerId>` so re-runs collide.
  *
+ * Studio Consultation / agency invoice customers (book→pay) are expected
+ * to exist in Stripe with no local `users` or `accountSubscriptions` row.
+ * Agency stamps those customers with `metadata.deal` prefixed
+ * `consultation_` (for example `consultation_2026_09_24`). A local
+ * user or subscription match still wins. Otherwise the scan records
+ * `skipped-studio-consultation` and does not write an orphan alert.
+ *
  * Bounded batch: process up to 100 Stripe customers per cron tick. If
  * pagination would have continued beyond the batch, log a WARN so ops
  * knows the next tick has more work.
@@ -55,11 +62,27 @@ const app = new Hono();
 const DEFAULT_BATCH_SIZE = 100;
 const DEFAULT_LOOKBACK_DAYS = 30;
 const ORPHAN_EVENT_TYPE = 'customer.orphaned';
+/**
+ * Studio Consultation invoice customers are stamped `deal=consultation_<date>`
+ * by agency / book→pay. Product checkout uses `revealui_user_id` instead.
+ */
+const STUDIO_CONSULTATION_DEAL_PREFIX = 'consultation_';
 
 interface CustomerScanResult {
   customerId: string;
   email: string | null;
-  outcome: 'matched' | 'orphan-already-tracked' | 'orphan-newly-alerted';
+  outcome:
+    | 'matched'
+    | 'orphan-already-tracked'
+    | 'orphan-newly-alerted'
+    | 'skipped-studio-consultation';
+}
+
+function isStudioConsultationInvoiceCustomer(
+  metadata: Stripe.Metadata | null | undefined,
+): boolean {
+  const deal = metadata?.deal;
+  return typeof deal === 'string' && deal.startsWith(STUDIO_CONSULTATION_DEAL_PREFIX);
 }
 
 app.post('/reconcile-customers', async (c) => {
@@ -173,6 +196,24 @@ app.post('/reconcile-customers', async (c) => {
         customerId: customer.id,
         email: customer.email ?? null,
         outcome: 'matched',
+      });
+      continue;
+    }
+
+    // Studio Consultation invoices live outside the product tenant path.
+    // A matched user or subscription above still wins.
+    if (isStudioConsultationInvoiceCustomer(customer.metadata)) {
+      logger.info(
+        `[reconcile-customers] skipped Studio Consultation invoice customer ${customer.id}`,
+        {
+          customerId: customer.id,
+          reason: 'studio-consultation-metadata',
+        },
+      );
+      results.push({
+        customerId: customer.id,
+        email: customer.email ?? null,
+        outcome: 'skipped-studio-consultation',
       });
       continue;
     }
