@@ -24,5 +24,10 @@ export default defineConfig({
   publicDir: 'public',
   define: {
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV ?? 'development'),
+    // Not a secret. Lets one SENTRY_ENVIRONMENT=staging value on the Vercel
+    // marketing project reach the browser SDK.
+    'import.meta.env.VITE_SENTRY_ENVIRONMENT': JSON.stringify(
+      process.env.VITE_SENTRY_ENVIRONMENT || process.env.SENTRY_ENVIRONMENT || '',
+    ),
   },
 });

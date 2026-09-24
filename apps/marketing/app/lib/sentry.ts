@@ -8,6 +8,7 @@
 // in production until the owner pastes the DSN into Vercel env. The corresponding CSP allowlist
 // for `connect-src` lives in apps/marketing/vercel.json.
 
+import { resolveSentryEnvironment } from '@revealui/core/sentry-environment';
 import * as Sentry from '@sentry/react';
 
 export function initSentry(): void {
@@ -23,7 +24,12 @@ export function initSentry(): void {
 
   Sentry.init({
     dsn,
-    environment: import.meta.env.MODE,
+    environment: resolveSentryEnvironment({
+      SENTRY_ENVIRONMENT: import.meta.env.VITE_SENTRY_ENVIRONMENT,
+      NODE_ENV: import.meta.env.PROD ? 'production' : 'development',
+      REVEALUI_API_URL: import.meta.env.VITE_API_URL,
+      NEXT_PUBLIC_SERVER_URL: import.meta.env.VITE_ADMIN_URL,
+    }),
     // Tracing and replay are analytics-class. Stay at 0 until cookie consent.
     tracesSampleRate: analyticsConsent && import.meta.env.PROD ? 0.1 : 0,
     replaysSessionSampleRate: 0,

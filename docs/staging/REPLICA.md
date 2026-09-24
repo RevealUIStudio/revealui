@@ -4,7 +4,7 @@ description: "Hosts, cookie domain, existing staging Neon, and owner-only Stripe
 visibility: internal
 status: verified
 audience: maintainer
-last_verified: 2026-09-23
+last_verified: 2026-09-24
 ---
 
 # GAP-343 staging replica
@@ -65,6 +65,10 @@ Own staging project. Do not share the production DSN. Names only; do not create 
 | `SENTRY_AUTH_TOKEN` | `revealui/staging/sentry/auth-token` | admin |
 | `SENTRY_ORG` | `revealui/staging/sentry/org` | admin |
 | `SENTRY_PROJECT` | `revealui/staging/sentry/project-admin` | admin |
+
+`SENTRY_ENVIRONMENT` is the Sentry environment label. It is not a secret and it is not a vault path. Set it to `staging` on the staging Vercel projects (API and admin) and on the staging Fly worker. Do not set it to `production` there. Do not add it to the committed production `apps/server/fly.toml` (`NODE_ENV` stays `production` on that app).
+
+The SDK also derives the label when the variable is unset: `api.staging.revealui.com` and any `*.staging.revealui.com` host report `staging`; `api.revealui.com` reports `production`; `VERCEL_ENV=preview` reports `preview`. A staging host is never labeled `production`. `REVEALUI_DEPLOY_ENV` is an accepted alias. Admin copies `SENTRY_ENVIRONMENT` into `NEXT_PUBLIC_SENTRY_ENVIRONMENT` at build time so the browser SDK matches. Marketing accepts `VITE_SENTRY_ENVIRONMENT` or the same `SENTRY_ENVIRONMENT` value.
 
 ## R2
 

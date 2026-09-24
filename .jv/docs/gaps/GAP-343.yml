@@ -1,0 +1,19 @@
+id: GAP-343
+title: Staging replica
+status: HELD
+updated: "2026-09-23"
+ruling_date: "2026-09-22"
+owner_ruling:
+  after_nine_test_card_paths: "Replica stays up"
+  hosts:
+    - staging.revealui.com
+    - api.staging.revealui.com
+    - admin.staging.revealui.com
+  cookie: "Session on staging.revealui.com"
+  production: "Stays live"
+  db: "Existing staging Neon. Keep rows, run missing migrations forward, no second DB"
+  stripe: "Test-mode webhook https://api.staging.revealui.com/api/webhooks/stripe + test billing portal + catalog seed on that DB only"
+  observability: "Own Sentry project + own R2 bucket"
+  mail: "Production sender"
+  boot_alerts: "Production alert inbox, stored in staging vault"
+notes: "Code/config/docs only. OWNER creates cloud resources. Paste 05-gap-343-staging-replica."

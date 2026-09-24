@@ -70,6 +70,13 @@ const nextConfig = {
       process.env.NEXT_PUBLIC_COMPLIANCE_PROFILE ||
       process.env.REVEALUI_COMPLIANCE_PROFILE ||
       '',
+    // Browser Sentry can only see NEXT_PUBLIC_*. Copy the non-secret deploy
+    // label so admin staging reports staging (or preview), not production.
+    NEXT_PUBLIC_SENTRY_ENVIRONMENT:
+      process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ||
+      process.env.SENTRY_ENVIRONMENT ||
+      process.env.REVEALUI_DEPLOY_ENV ||
+      '',
   },
   // Use standalone output for all environments including Vercel
   // Required for monorepo workspace packages to resolve correctly in serverless

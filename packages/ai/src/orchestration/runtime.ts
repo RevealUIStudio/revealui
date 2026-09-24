@@ -1,12 +1,23 @@
 /**
  * Agent Runtime
  *
- * Executes agent tasks with tool execution, memory management, and error handling
+ * Interactive tool loop (`executeTask`). Intentionally separate from
+ * `runGovernedTask` (governed receipts in `@revealui/apify-actor-governed-run`):
+ * receipts need an ordered action log and hard step caps; this runtime stays
+ * an open loop. Do not merge them.
+ *
+ * When the RevDev harness socket is reachable, each task arms Studio LoopGuard
+ * and ticks once per model iteration (`loop.arm`, `loop.tick`, `loop.status`).
+ * This runtime does not call `loop.stop`. `session.end` and `harness.prune`
+ * reap the loop. No daemon means no tick and no throw.
+ *
+ * Do not boot the MCP Hypervisor silent process health loop without a WIRE
+ * mount and a credential owner.
  */
 
 import { registerCleanupHandler } from '@revealui/core/monitoring';
 import type { LLMClient } from '../llm/client.js';
-import type { Message, ReasoningEffort } from '../llm/providers/base.js';
+import type { LLMResponse, Message, ReasoningEffort } from '../llm/providers/base.js';
 import { estimateCost } from '../llm/token-counter.js';
 import { toolParametersToJsonSchema } from '../llm/tool-json-schema.js';
 import type { AgentSkillProvider } from '../skills/integration/agent-skill-provider.js';
@@ -16,6 +27,24 @@ import { createToolsFromMcpClient, type McpClientLike } from '../tools/mcp-adapt
 import type { McpToolCallEvent } from '../tools/mcp-events.js';
 import { createWebSearchTool } from '../tools/web/duck-duck-go.js';
 import type { Agent, AgentResult, Task } from './agent.js';
+import {
+  createDaemonLoopGuard,
+  iterationAdvanced,
+  type LoopGuardPort,
+  type LoopGuardTickInput,
+  studioLoopId,
+} from './loop-guard.js';
+
+export type { LoopGuardPort, LoopGuardSignal, LoopGuardTickInput } from './loop-guard.js';
+export {
+  createDaemonLoopGuard,
+  DAEMON_LOOP_INTERVAL_MS,
+  DAEMON_LOOP_NOOP_LIMIT,
+  DAEMON_LOOP_TIMEOUT_MS,
+  iterationAdvanced,
+  PRODUCT_RUNTIME_ACTOR_ID,
+  studioLoopId,
+} from './loop-guard.js';
 
 /**
  * Reasoning-depth hint for a task. Alias of the neutral `ReasoningEffort` — the agnostic
@@ -94,15 +123,27 @@ export interface RuntimeConfig {
    * policy (e.g., from AgentSecuritySchema.requiresHumanApproval).
    */
   alwaysRequireApproval?: string[];
+  /**
+   * Studio LoopGuard (GAP-362). Default: `loop.arm`, `loop.tick`, and
+   * `loop.status` on the RevDev harness socket when it is reachable.
+   * This runtime does not call `loop.stop`. `session.end` and `harness.prune`
+   * reap the loop. Missing socket, connect failure, and RPC timeout leave
+   * the task on the unwired path (no throw). Pass `false` to skip the daemon
+   * even when Studio is attached. `runGovernedTask` does not use this port.
+   */
+  loopGuard?: LoopGuardPort | false;
 }
 
 export class AgentRuntime {
   protected config: RuntimeConfig;
+  private readonly loopGuard: LoopGuardPort | null;
   private taskQueue: Task[] = [];
   private executingTasks: Map<string, Promise<AgentResult>> = new Map();
   private isShuttingDown = false;
 
   constructor(config: RuntimeConfig = {}) {
+    this.loopGuard =
+      config.loopGuard === false ? null : (config.loopGuard ?? createDaemonLoopGuard());
     this.config = {
       maxIterations: config.maxIterations ?? 10,
       timeout: config.timeout ?? 60000, // 60 seconds
@@ -163,7 +204,7 @@ export class AgentRuntime {
     let iterations = 0;
     let totalTokens = 0;
     let totalCostUsd = 0;
-
+    const loopId = await this.openStudioLoop(task.id);
     // Merge MCP-discovered tools into the agent's tool set via `McpClient`.
     const mcpTools: Tool[] = [];
     const onToolAudit = this.config.onToolAudit;
@@ -251,12 +292,9 @@ export class AgentRuntime {
         const iterationTokens = response.usage?.totalTokens ?? 0;
         totalTokens += iterationTokens;
         const model = this.config.model;
-        if (model && iterationTokens > 0) {
-          const inputTokens = response.usage?.promptTokens ?? Math.floor(iterationTokens * 0.7);
-          const outputTokens = response.usage?.completionTokens ?? iterationTokens - inputTokens;
-          totalCostUsd +=
-            estimateCost(inputTokens, model, 'input').estimatedCostUsd +
-            estimateCost(outputTokens, model, 'output').estimatedCostUsd;
+        const spend = iterationSpend(response, model, iterationTokens);
+        if (spend.costUsd > 0) {
+          totalCostUsd += spend.costUsd;
         }
 
         // Add assistant response to messages
@@ -268,6 +306,22 @@ export class AgentRuntime {
 
         // If no tool calls, task is complete
         if (!response.toolCalls || response.toolCalls.length === 0) {
+          const stopReason = await this.tickStudioLoop(loopId, {
+            advanced: iterationAdvanced({ completed: true, newToolExecutions: 0 }),
+            ...spend.tick,
+          });
+          if (stopReason) {
+            return {
+              success: false,
+              error: stopReason,
+              toolResults,
+              metadata: {
+                executionTime: Date.now() - startTime,
+                tokensUsed: totalTokens,
+                cost: totalCostUsd,
+              },
+            };
+          }
           return {
             success: true,
             output: response.content,
@@ -281,6 +335,7 @@ export class AgentRuntime {
         }
 
         // Execute tool calls
+        let newToolExecutions = 0;
         for (const toolCall of response.toolCalls) {
           const tool = allTools.find((t) => t.name === toolCall.function.name);
 
@@ -329,6 +384,7 @@ export class AgentRuntime {
                     ? `Tool "${tool.label ?? tool.name}" denied: ${approval.reason}`
                     : `Tool "${tool.label ?? tool.name}" was denied by the user.`,
                 };
+                newToolExecutions += 1;
                 toolResults.push(denied);
                 messages.push({
                   role: 'tool',
@@ -344,7 +400,10 @@ export class AgentRuntime {
               ? deduplicator.getResult(tool.name, params)
               : undefined;
             const result = cached ?? (await tool.execute(params));
-            if (!cached) deduplicator.record(tool.name, params, result);
+            if (!cached) {
+              deduplicator.record(tool.name, params, result);
+              newToolExecutions += 1;
+            }
 
             toolResults.push(result);
 
@@ -357,11 +416,29 @@ export class AgentRuntime {
               toolCallId: toolCall.id,
             });
           } catch (error) {
+            newToolExecutions += 1;
             toolResults.push({
               success: false,
               error: error instanceof Error ? error.message : String(error),
             });
           }
+        }
+
+        const stopReason = await this.tickStudioLoop(loopId, {
+          advanced: iterationAdvanced({ completed: false, newToolExecutions }),
+          ...spend.tick,
+        });
+        if (stopReason) {
+          return {
+            success: false,
+            error: stopReason,
+            toolResults,
+            metadata: {
+              executionTime: Date.now() - startTime,
+              tokensUsed: totalTokens,
+              cost: totalCostUsd,
+            },
+          };
         }
       }
 
@@ -386,6 +463,42 @@ export class AgentRuntime {
           cost: totalCostUsd,
         },
       };
+    }
+  }
+
+  /**
+   * Arm LoopGuard for this task when Studio's daemon answers.
+   * Returns null when the daemon is absent or the call fails open.
+   */
+  protected async openStudioLoop(taskId: string): Promise<string | null> {
+    if (!this.loopGuard) return null;
+    const loopId = studioLoopId(taskId);
+    try {
+      const signal = await this.loopGuard.arm({ loopId });
+      return signal.attached ? loopId : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Report one model iteration. A non-null return is the daemon stop signal
+   * (`not_advancing` after the daemon no-op limit, default 3).
+   */
+  protected async tickStudioLoop(
+    loopId: string | null,
+    tick: LoopGuardTickInput,
+  ): Promise<string | null> {
+    if (!(loopId && this.loopGuard)) return null;
+    try {
+      const signal = await this.loopGuard.tick({ loopId, ...tick });
+      if (!signal.attached) return null;
+      if (signal.status === 'not_advancing') {
+        return signal.signal ?? 'loop not advancing';
+      }
+      return null;
+    } catch {
+      return null;
     }
   }
 
@@ -461,4 +574,36 @@ export class AgentRuntime {
       executingTasks: this.executingTasks.size,
     };
   }
+}
+
+interface IterationSpend {
+  readonly costUsd: number;
+  readonly tick: Pick<LoopGuardTickInput, 'tokensIn' | 'tokensOut' | 'costMicros'>;
+}
+
+function iterationSpend(
+  response: LLMResponse,
+  model: string | undefined,
+  iterationTokens: number,
+): IterationSpend {
+  const tokensIn =
+    response.usage?.promptTokens ?? (iterationTokens > 0 ? Math.floor(iterationTokens * 0.7) : 0);
+  const tokensOut =
+    response.usage?.completionTokens ??
+    (iterationTokens > 0 ? Math.max(0, iterationTokens - tokensIn) : 0);
+  let costUsd = 0;
+  if (model && iterationTokens > 0) {
+    costUsd =
+      estimateCost(tokensIn, model, 'input').estimatedCostUsd +
+      estimateCost(tokensOut, model, 'output').estimatedCostUsd;
+  }
+  const costMicros = costUsd > 0 ? Math.round(costUsd * 1_000_000) : 0;
+  return {
+    costUsd,
+    tick: {
+      ...(tokensIn > 0 ? { tokensIn } : {}),
+      ...(tokensOut > 0 ? { tokensOut } : {}),
+      ...(costMicros > 0 ? { costMicros } : {}),
+    },
+  };
 }
