@@ -115,7 +115,24 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
 
       - name: Generate SBOM (CycloneDX)
-        run: npx @cyclonedx/cyclonedx-npm@4.2.1 --output-file sbom.json --output-format json
+        # cyclonedx-npm shells out to `npm ls`. On this pnpm layout that
+        # exits 254 (ELSPROBLEMS) and writes no file (run 35941951866).
+        # cdxgen reads pnpm-lock.yaml. No second install, no license fetch,
+        # no Babel usage scan. A missing file fails this step.
+        # continue-on-error keeps a generator failure from blocking publish.
+        env:
+          FETCH_LICENSE: "false"
+        run: |
+          npx --yes @cyclonedx/cdxgen@12.8.4 \
+            -t pnpm \
+            -o sbom.json \
+            --spec-version 1.6 \
+            --no-babel \
+            --no-install-deps \
+            --fail-on-error \
+            --author "RevealUI Studio" \
+            .
+          node -e 'const fs=require("node:fs"); const s=fs.statSync("sbom.json"); if(!s.isFile()||s.size<10) process.exit(1);'
         continue-on-error: true
 
       - name: Upload SBOM artifact
