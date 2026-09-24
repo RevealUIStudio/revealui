@@ -4,28 +4,28 @@ description: "Owner-send drafts and checklist for PikaPods and Elest.io. Resourc
 visibility: internal
 status: narrative
 audience: maintainer
-last_verified: 2026-09-23
+last_verified: 2026-09-24
 owner: joshua
 ---
 
 # GAP-432 — PikaPods and Elest.io listing drafts
 
 Catalog requests are **not sent**. Listing URLs are blank. This file is the
-copy Joshua sends himself after the image workflow on `main` can tag each
-image with its own package version.
+copy Joshua sends. The image workflow on `main` already tags each image
+from its own package version.
 
-Checked 2026-09-23 against GHCR anonymous pulls and the public vendor docs
+Checked 2026-09-24 against GHCR anonymous pulls and the public vendor docs
 linked below. No outreach draft existed in this repo before this file.
 
 ## Owner still does
 
-1. Dispatch **Build & Push Forge Docker Images** from `main` after
-   `.github/workflows/docker.yml` on `main` tags each image from its own
-   `package.json` (landed on `test` in
-   [#2926](https://github.com/RevealUIStudio/revealui/pull/2926)). Today's
-   `main` workflow publishes `:latest` and `:sha-` only, plus one manual
-   `inputs.version` shared by every image. Server is `0.2.0` and admin is
-   `0.4.0`, so one shared version tag is the wrong label.
+1. Send the tags already on GHCR. The 2026-09-23 `main` push run published
+   `revealui-api:v0.2.0`, `revealui-admin:v0.4.0`, and
+   `revealui-migrate:v0.2.0` (commit
+   [`b753baadd`](https://github.com/RevealUIStudio/revealui/commit/b753baadd),
+   [#2926](https://github.com/RevealUIStudio/revealui/pull/2926)). Server is
+   `0.2.0` and admin is `0.4.0`. The optional shared `inputs.version` is not
+   the tag these images use.
 2. Paste measured CPU, memory, and disk into [Resource floor](#resource-floor).
 3. Send the PikaPods request and the Elest.io request himself.
 4. Paste the send record into [Submission evidence](#submission-evidence).
@@ -47,13 +47,14 @@ sign either request.
 | Free self-host | `REVEALUI_DEPLOYMENT_MODE=forge` and `REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true` on **api and admin**. Omit license key and public key |
 | License | MIT for the OSS packages. Pro packages in the images are FSL-1.1-MIT (self-host is allowed; each release converts to MIT after two years) |
 
-GHCR images, anonymous manifest check 2026-09-23:
+GHCR images, anonymous manifest check 2026-09-24. A cross tag 404 is
+expected: each image carries only its own package version.
 
 | Image | `:latest` | `:v0.2.0` | `:v0.4.0` |
 |-------|-----------|-----------|-----------|
-| `ghcr.io/revealuistudio/revealui-api` | HTTP 200 | HTTP 404 | HTTP 404 |
-| `ghcr.io/revealuistudio/revealui-admin` | HTTP 200 | HTTP 404 | HTTP 404 |
-| `ghcr.io/revealuistudio/revealui-migrate` | HTTP 200 | HTTP 404 | HTTP 404 |
+| `ghcr.io/revealuistudio/revealui-api` | HTTP 200 | HTTP 200 | HTTP 404 |
+| `ghcr.io/revealuistudio/revealui-admin` | HTTP 200 | HTTP 404 | HTTP 200 |
+| `ghcr.io/revealuistudio/revealui-migrate` | HTTP 200 | HTTP 200 | HTTP 404 |
 
 Postgres for this stack is `pgvector/pgvector:pg16`. A plain Postgres image
 fails migration `0000` (`CREATE EXTENSION vector`).
@@ -101,7 +102,7 @@ Homepage: https://www.pikapods.com/
 | Their criterion | This stack |
 |-----------------|------------|
 | Web app, one HTTPS port | Admin is `:4000` and API is `:3004`. Two HTTP ports. |
-| Official container image | Three GHCR images plus `pgvector/pgvector:pg16`. `:latest` pulls. Version tags do not. |
+| Official container image | Three GHCR images plus `pgvector/pgvector:pg16`. `:latest` pulls. Matching version tags pull: api and migrate `v0.2.0`, admin `v0.4.0`. |
 | License allows self-host | MIT OSS packages and FSL Pro packages both allow running the software |
 | Author paid hosting | Studio does not sell a customer VM |
 | Abuse / heavy CPU by design | No transcoding, proxy, or VPN workload in the default boot |
@@ -168,13 +169,12 @@ your adding-apps criteria, and two that do not yet:
   the images are FSL-1.1-MIT.
 - RevealUI Studio does not operate customer VMs. Customers run the
   software themselves.
-- Official images (anonymous pull of :latest checked 2026-09-23):
-  ghcr.io/revealuistudio/revealui-api:latest
-  ghcr.io/revealuistudio/revealui-admin:latest
-  ghcr.io/revealuistudio/revealui-migrate:latest
+- Official images (anonymous pull checked 2026-09-24, HTTP 200):
+  ghcr.io/revealuistudio/revealui-api:v0.2.0
+  ghcr.io/revealuistudio/revealui-admin:v0.4.0
+  ghcr.io/revealuistudio/revealui-migrate:v0.2.0
+  :latest on each of those three also returned HTTP 200.
   Database image: pgvector/pgvector:pg16
-  Per-image version tags are not published yet. I will send those
-  tags after the main-branch image workflow is dispatched.
 - The stack is four services, not one HTTPS port: postgres, a one-shot
   migrate container, api on port 3004 (GET /health), and admin on
   port 4000 (GET /api/health). I do not have a single-container image.
@@ -226,8 +226,10 @@ Proposed stack (no elestio.yml is in the repo yet):
   public web UI
 
 Anonymous pull of those three :latest tags returned HTTP 200 on
-2026-09-23. Per-image version tags are not published yet. I will send
-them after the main-branch image workflow is dispatched.
+2026-09-24. The same check returned HTTP 200 for
+ghcr.io/revealuistudio/revealui-api:v0.2.0,
+ghcr.io/revealuistudio/revealui-admin:v0.4.0, and
+ghcr.io/revealuistudio/revealui-migrate:v0.2.0.
 
 Free boot: REVEALUI_DEPLOYMENT_MODE=forge and
 REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true on both api and admin.
@@ -256,7 +258,7 @@ RevealUI Studio
 - [x] Draft both requests in this file
 - [x] Record GHCR `:latest` HTTP 200 and version-tag HTTP 404 (2026-09-23)
 - [x] Record the one-port and `NEXT_PUBLIC_*` build-arg gaps in both drafts
-- [ ] Versioned image workflow dispatched from `main` after the per-image tag step is on `main`
+- [x] Per-image version tags published from `main` (2026-09-23T05:35Z push run 35823040554, head `9044a015`). Anonymous re-check 2026-09-24: api and migrate `:v0.2.0` and admin `:v0.4.0` HTTP 200; cross tags HTTP 404
 - [ ] Resource floor filled from a pasted measurement
 - [ ] PikaPods request sent by Joshua
 - [ ] Elest.io request sent by Joshua
