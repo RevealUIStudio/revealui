@@ -1,5 +1,17 @@
 # @revealui/core
 
+## 0.15.0
+
+### Minor Changes
+
+- Export session-cookie-domain for staging replica hosts. This does not create cloud resources.
+
+### Patch Changes
+
+- Updated dependencies
+  - @revealui/contracts@0.12.0
+  - @revealui/presentation@0.14.8
+
 ## 0.14.7
 
 ### Patch Changes
