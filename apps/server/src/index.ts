@@ -19,8 +19,6 @@ if (process.env.SENTRY_DSN) {
   });
 }
 
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { getHeapStatistics } from 'node:v8';
 import { serve } from '@hono/node-server';
 import { initializeLicense } from '@revealui/core/license';
@@ -153,6 +151,7 @@ import revmarketRoute from './routes/revmarket.js';
 import rotationRoute from './routes/rotation.js';
 import ssoProvidersRoute from './routes/sso-providers.js';
 import studioAuthRoute from './routes/studio-auth.js';
+import swaggerDocsRoute from './routes/swagger-docs.js';
 import terminalAuthRoute from './routes/terminal-auth.js';
 import { createTerminalRoute } from './routes/terminal-ws.js';
 import ticketsRoute from './routes/tickets/index.js';
@@ -1107,101 +1106,12 @@ app.doc('/openapi.json', {
   ],
 });
 
-// Self-hosted Swagger UI (no CDN, CSP-strict compatible).
-// Resolve assets via import.meta.resolve so BOTH runtimes work (GAP-401):
-// - `tsx watch` has no tsup banner `require`
-// - the tsup banner injects `createRequire` + `const require`; a second
-//   `import { createRequire }` in this file becomes a SyntaxError in the
-//   bundled chunk (Identifier 'createRequire' has already been declared)
-//
-// Lazy-load on first /docs* hit. Top-level readFileSync of swagger-ui-dist
-// (or missing NFT-traced node_modules files on Vercel) would crash module
-// evaluation and take down /health with FUNCTION_INVOCATION_FAILED — same
-// class as the 2026-07-21 post-#2027 API outage.
-interface SwaggerAssets {
-  css: string;
-  bundleJs: string;
-  presetJs: string;
-}
-
-let swaggerAssetsCache: SwaggerAssets | null = null;
-
-function loadSwaggerAssets(): SwaggerAssets {
-  if (!swaggerAssetsCache) {
-    swaggerAssetsCache = {
-      css: readFileSync(
-        fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui.css')),
-        'utf-8',
-      ),
-      bundleJs: readFileSync(
-        fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui-bundle.js')),
-        'utf-8',
-      ),
-      presetJs: readFileSync(
-        fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui-standalone-preset.js')),
-        'utf-8',
-      ),
-    };
-  }
-  return swaggerAssetsCache;
-}
-
-const swaggerInitJs = `window.addEventListener('load', function () {
-  window.ui = SwaggerUIBundle({
-    url: '/openapi.json',
-    dom_id: '#swagger-ui',
-    presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
-    layout: 'BaseLayout',
-    deepLinking: true,
-  });
-});`;
-
-const IMMUTABLE_ASSET = 'public, max-age=31536000, immutable';
-
-app.get('/docs/swagger-ui.css', (c) =>
-  c.body(loadSwaggerAssets().css, 200, {
-    'content-type': 'text/css; charset=utf-8',
-    'cache-control': IMMUTABLE_ASSET,
-  }),
-);
-app.get('/docs/swagger-ui-bundle.js', (c) =>
-  c.body(loadSwaggerAssets().bundleJs, 200, {
-    'content-type': 'application/javascript; charset=utf-8',
-    'cache-control': IMMUTABLE_ASSET,
-  }),
-);
-app.get('/docs/swagger-ui-standalone-preset.js', (c) =>
-  c.body(loadSwaggerAssets().presetJs, 200, {
-    'content-type': 'application/javascript; charset=utf-8',
-    'cache-control': IMMUTABLE_ASSET,
-  }),
-);
-app.get('/docs/swagger-init.js', (c) =>
-  c.body(swaggerInitJs, 200, {
-    'content-type': 'application/javascript; charset=utf-8',
-    'cache-control': IMMUTABLE_ASSET,
-  }),
-);
-
-const SWAGGER_HTML = `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>RevealUI API · Reference</title>
-    <link rel="stylesheet" href="/docs/swagger-ui.css" />
-  </head>
-  <body>
-    <div id="swagger-ui"></div>
-    <script src="/docs/swagger-ui-bundle.js"></script>
-    <script src="/docs/swagger-ui-standalone-preset.js"></script>
-    <script src="/docs/swagger-init.js"></script>
-  </body>
-</html>`;
-
-app.get('/docs', (c) =>
-  c.html(SWAGGER_HTML, 200, { 'cache-control': 'public, max-age=300, must-revalidate' }),
-);
+// Self-hosted Swagger UI. Assets are colocated at build time
+// (copy-swagger-ui + vercel.json includeFiles). Do not resolve
+// swagger-ui-dist at request time — NFT does not trace import.meta.resolve,
+// which is REVEALUI-SERVER-E / REVEALUI-STAGING-1. The route loads files
+// lazily so a missing asset cannot take down /health.
+app.route('/', swaggerDocsRoute);
 
 // This page ships as a standalone HTML string with its own <style> block and
 // no stylesheet link, so it can't reference the app's --rvui-font-sans custom
