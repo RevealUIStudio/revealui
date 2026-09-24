@@ -31,16 +31,19 @@ export default defineConfig({
   esbuildOptions(options) {
     options.conditions = ['node', 'import', 'module', 'default'];
   },
-  // OG fonts + resvg WASM are read at runtime from dist (copy-og-fonts /
-  // copy-resvg-wasm). Do NOT binary-inline .ttf — that worked only in the
+  // OG fonts, resvg WASM, and Swagger UI files are read at runtime from dist
+  // (copy-og-fonts / copy-resvg-wasm / copy-swagger-ui). Do NOT binary-inline
+  // .ttf — that worked only in the
   // built bundle and broke `tsx watch` with ERR_UNKNOWN_FILE_EXTENSION
   // (GAP-401). CJS packages bundled via the @revealui/* chain still call
   // require() of Node built-ins; this banner keeps those calls working on
   // serverless platforms. Because the banner declares `createRequire` +
   // `const require` in every chunk, app source must NEVER import
   // createRequire itself (duplicate-identifier SyntaxError in the built
-  // bundle) — use import.meta.resolve instead, as index.ts (swagger-ui
-  // assets) and lib/mcp-hypervisor-wire.ts do.
+  // bundle) — use import.meta.resolve instead, as lib/mcp-hypervisor-wire.ts
+  // does. Swagger UI files are copied into dist/assets/swagger-ui and read
+  // with readFileSync (import.meta.resolve of swagger-ui-dist is not traced
+  // by @vercel/nft — REVEALUI-SERVER-E).
   banner: {
     js: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);",
   },

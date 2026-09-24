@@ -47,6 +47,7 @@ import {
 import { getClient } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
 import { auditAnchors, auditLog, SYSTEM_ANCHOR_SCOPE } from '@revealui/db/schema';
+import * as Sentry from '@sentry/node';
 import { and, asc, count, eq, gt, isNotNull, isNull, lte, max } from 'drizzle-orm';
 import { accountHasAuditLogFeature } from '../lib/account-entitlement.js';
 import { recordUsageMeter } from '../lib/metering.js';
@@ -58,6 +59,14 @@ import {
   type SignedAuditRow,
   type TraversableBatchResult,
 } from './audit-anchor-batch.js';
+import {
+  type AuditAnchorDbRetryConfig,
+  defaultDbRetrySleep,
+  isSqlOrQueryError,
+  isTransientDbConnectError,
+  resolveAuditAnchorDbRetry,
+  withTransientDbRetry,
+} from './audit-anchor-db-retry.js';
 
 export { SYSTEM_ANCHOR_SCOPE } from '@revealui/db/schema';
 export { planContiguousBatch, type SignedAuditRow } from './audit-anchor-batch.js';
@@ -139,6 +148,14 @@ export interface AnchorSweepOptions {
   now?: () => Date;
   /** When false, skip usage_meters write (tests without accounts table rows). */
   recordMeter?: boolean;
+  /**
+   * Transient Neon connect retry. Defaults come from env
+   * (`AUDIT_ANCHOR_DB_RETRY_*`) then `DEFAULT_AUDIT_ANCHOR_DB_RETRY`.
+   * `sleep` is injected by tests so backoff does not wait on the clock.
+   */
+  dbRetry?: Partial<AuditAnchorDbRetryConfig> & {
+    sleep?: (ms: number) => Promise<void>;
+  };
 }
 
 function batchSizeFromEnv(env: Record<string, string | undefined>): number {
@@ -174,12 +191,145 @@ async function defaultCanAnchorTenant(db: Database, tenant: string): Promise<boo
   return isFeatureEnabled('auditLog');
 }
 
+export type AuditAnchorFailureClass = 'transient_connect' | 'query' | 'unexpected';
+
+/**
+ * One Sentry capture per Neon outage. Cleared after a sweep reaches the
+ * database again, so the next outage is reported once rather than every poll.
+ */
+let transientConnectCaptured = false;
+
+/** Test-only: re-arm the transient-connect capture latch. */
+export function resetAuditAnchorSweepFailureLatchForTests(): void {
+  transientConnectCaptured = false;
+}
+
+function noteSweepDbRecovered(): void {
+  transientConnectCaptured = false;
+}
+
+function failureClassFor(err: unknown): AuditAnchorFailureClass {
+  if (isTransientDbConnectError(err)) return 'transient_connect';
+  if (isSqlOrQueryError(err)) return 'query';
+  return 'unexpected';
+}
+
+function errorSummary(error: Error): string {
+  const cause = error.cause instanceof Error ? `: ${error.cause.message}` : '';
+  const text = `${error.message}${cause}`;
+  const max = 300;
+  return text.length > max ? text.slice(0, max) : text;
+}
+
+function captureSweepException(
+  error: Error,
+  failureClass: AuditAnchorFailureClass,
+  attempts: number,
+): void {
+  Sentry.withScope((scope) => {
+    scope.setTag('component', 'audit-anchor-sweep');
+    scope.setTag('job', 'runAuditAnchorSweep');
+    scope.setTag('failure_class', failureClass);
+    scope.setTag('db_driver', 'neon-http');
+    scope.setExtra('attempts', attempts);
+    Sentry.captureException(error);
+  });
+}
+
+function reportSweepDbFailure(err: unknown, attempts: number): AnchorSweepResult {
+  const failureClass = failureClassFor(err);
+  const error = err instanceof Error ? err : new Error(String(err));
+  const summary = errorSummary(error);
+  const context = {
+    component: 'audit-anchor-sweep',
+    job: 'runAuditAnchorSweep',
+    failureClass,
+    attempts,
+  };
+  if (failureClass === 'transient_connect') {
+    logger.warn('audit-anchor-sweep: transient database connect failed; sweep exited cleanly', {
+      ...context,
+      error: summary,
+    });
+    if (!transientConnectCaptured) {
+      transientConnectCaptured = true;
+      captureSweepException(error, failureClass, attempts);
+    }
+  } else {
+    logger.error(
+      failureClass === 'query'
+        ? 'audit-anchor-sweep: query failed (not retried)'
+        : 'audit-anchor-sweep: sweep failed',
+      error,
+      context,
+    );
+    captureSweepException(error, failureClass, attempts);
+  }
+
+  return {
+    tenantsConsidered: 0,
+    anchorsInserted: 0,
+    tenantsSkipped: 0,
+    tenantsWaiting: 0,
+    tenantsFloorEngaged: 0,
+    nullTenantSignedRows: 0,
+    systemOutcome: 'skipped',
+    errors: [`database: ${summary}`],
+  };
+}
+
+/**
+ * Last-resort tick handler. `runAuditAnchorSweep` already settles database
+ * failures; this keeps a future throw from becoming an unhandled rejection.
+ */
+export function handleAuditAnchorSweepRejection(err: unknown): void {
+  const error = err instanceof Error ? err : new Error(String(err));
+  logger.error('audit-anchor-sweep: tick failed unexpectedly', error, {
+    component: 'audit-anchor-sweep',
+    job: 'runAuditAnchorSweep',
+    failureClass: 'unexpected',
+  });
+  captureSweepException(error, 'unexpected', 1);
+}
+
 /**
  * One sweep pass across all tenants that have non-null tenant + signed rows.
+ *
+ * Transient Neon HTTP connect failures (`fetch failed`) are retried with
+ * bounded backoff. After retries exhaust, the sweep logs a warning, captures
+ * once, and resolves so the Fly worker tick is not an unhandled rejection.
+ * Schema and syntax errors are not retried; they are logged and captured as
+ * query failures and still resolve so the worker stays up.
+ *
+ * The discovery count (`audit_log.tenant IS NULL AND signature IS NOT NULL`)
+ * matches the `audit_log` columns in `@revealui/db/schema`. REVEALUI-SERVER-F
+ * failed that statement because Neon could not connect, not because the SQL
+ * was invalid.
  */
 export async function runAuditAnchorSweep(
   options: AnchorSweepOptions = {},
 ): Promise<AnchorSweepResult> {
+  const env = options.env ?? process.env;
+  const retryConfig = resolveAuditAnchorDbRetry(env, options.dbRetry);
+  const sleep = options.dbRetry?.sleep ?? defaultDbRetrySleep;
+  let attempts = 0;
+  try {
+    const completed = await withTransientDbRetry(
+      async () => {
+        attempts += 1;
+        return executeAuditAnchorSweep(options);
+      },
+      retryConfig,
+      sleep,
+    );
+    noteSweepDbRecovered();
+    return completed;
+  } catch (err) {
+    return reportSweepDbFailure(err, attempts);
+  }
+}
+
+async function executeAuditAnchorSweep(options: AnchorSweepOptions): Promise<AnchorSweepResult> {
   const env = options.env ?? process.env;
   const db = options.db ?? getClient();
   const batchSize = options.batchSize ?? batchSizeFromEnv(env);
@@ -248,6 +398,7 @@ export async function runAuditAnchorSweep(
         mWaiting.inc();
       } else result.tenantsSkipped++;
     } catch (err) {
+      if (isTransientDbConnectError(err)) throw err;
       const msg = err instanceof Error ? err.message : String(err);
       result.errors.push(`${tenant}: ${msg}`);
       mErrors.inc();
@@ -275,6 +426,7 @@ export async function runAuditAnchorSweep(
     if (floorEngaged) result.tenantsFloorEngaged++;
     if (outcome === 'inserted') result.anchorsInserted++;
   } catch (err) {
+    if (isTransientDbConnectError(err)) throw err;
     const msg = err instanceof Error ? err.message : String(err);
     result.errors.push(`${SYSTEM_ANCHOR_SCOPE}: ${msg}`);
     logger.error(
@@ -547,6 +699,9 @@ let bootTimer: ReturnType<typeof setTimeout> | null = null;
  *   AUDIT_ANCHOR_INTERVAL_MS (default 60000 — poll cadence)
  *   AUDIT_ANCHOR_BATCH_SIZE (default 256)
  *   AUDIT_ANCHOR_MAX_LAG_MS (default 3600000 — partial-batch age trigger)
+ *   AUDIT_ANCHOR_DB_RETRY_ATTEMPTS (default 3, max 5)
+ *   AUDIT_ANCHOR_DB_RETRY_BASE_MS (default 200)
+ *   AUDIT_ANCHOR_DB_RETRY_MAX_MS (default 2000)
  *   REVEALUI_AUDIT_SIGNING_KEY (required for any insert)
  */
 export function startAuditAnchorSweep(env: Record<string, string | undefined> = process.env): void {
@@ -558,13 +713,18 @@ export function startAuditAnchorSweep(env: Record<string, string | undefined> = 
   const intervalMs = pollMsFromEnv(env);
 
   const tick = () => {
-    void runAuditAnchorSweep({ env }).then((r) => {
-      logger.info(
-        `audit-anchor-sweep: tick tenants=${r.tenantsConsidered} inserted=${r.anchorsInserted} ` +
-          `waiting=${r.tenantsWaiting} skipped=${r.tenantsSkipped} nullTenant=${r.nullTenantSignedRows} ` +
-          `system=${r.systemOutcome} errors=${r.errors.length}`,
-      );
-    });
+    void runAuditAnchorSweep({ env }).then(
+      (r) => {
+        logger.info(
+          `audit-anchor-sweep: tick tenants=${r.tenantsConsidered} inserted=${r.anchorsInserted} ` +
+            `waiting=${r.tenantsWaiting} skipped=${r.tenantsSkipped} nullTenant=${r.nullTenantSignedRows} ` +
+            `system=${r.systemOutcome} errors=${r.errors.length}`,
+        );
+      },
+      (err: unknown) => {
+        handleAuditAnchorSweepRejection(err);
+      },
+    );
   };
 
   // Fire once soon after boot, then on interval
