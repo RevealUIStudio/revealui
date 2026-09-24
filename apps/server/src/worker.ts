@@ -18,15 +18,17 @@
 // AND the worker boot here = double-init. For local worker testing, set
 // NODE_ENV=production explicitly: `NODE_ENV=production tsx src/worker.ts`.
 
+import { resolveSentryEnvironment } from '@revealui/core/sentry-environment';
 import * as Sentry from '@sentry/node';
 
 // Initialize Sentry before all other imports for proper instrumentation
-// (mirrors apps/server/src/index.ts:4-20). The Vercel entry initializes
+// (mirrors apps/server/src/index.ts). The Vercel entry initializes
 // its own Sentry instance; both honor the same SENTRY_DSN env.
+// Environment is not NODE_ENV: staging boots with NODE_ENV=production.
 if (process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
-    environment: process.env.NODE_ENV ?? 'production',
+    environment: resolveSentryEnvironment(process.env),
     tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
     beforeSend(event) {
       if (process.env.NODE_ENV !== 'production') return null;

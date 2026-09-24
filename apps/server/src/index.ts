@@ -1,10 +1,12 @@
+import { resolveSentryEnvironment } from '@revealui/core/sentry-environment';
 import * as Sentry from '@sentry/node';
 
-// Initialize Sentry before all other imports for proper instrumentation
+// Initialize Sentry before all other imports for proper instrumentation.
+// Environment is not NODE_ENV: staging boots with NODE_ENV=production.
 if (process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
-    environment: process.env.NODE_ENV ?? 'production',
+    environment: resolveSentryEnvironment(process.env),
     tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
     beforeSend(event) {
       // Don't send events in non-production environments

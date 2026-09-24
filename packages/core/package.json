@@ -71,6 +71,11 @@
       "import": "./dist/session-cookie-domain.js",
       "default": "./dist/session-cookie-domain.js"
     },
+    "./sentry-environment": {
+      "types": "./dist/sentry-environment.d.ts",
+      "import": "./dist/sentry-environment.js",
+      "default": "./dist/sentry-environment.js"
+    },
     "./margin-governor": {
       "types": "./dist/margin-governor.d.ts",
       "import": "./dist/margin-governor.js",
