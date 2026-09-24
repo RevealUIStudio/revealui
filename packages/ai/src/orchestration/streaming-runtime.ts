@@ -299,8 +299,6 @@ export class StreamingAgentRuntime extends AgentRuntime {
         error: error instanceof Error ? error.message : String(error),
         metadata: { executionTime: Date.now() - startTime },
       };
-    } finally {
-      await this.closeStudioLoop(loopId);
     }
   }
 }

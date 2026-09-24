@@ -5,8 +5,6 @@
  * tested. No RevealUI app currently constructs or starts this singleton at
  * process boot. Prefer explicit `revealui-mcp` / per-server launchers until a
  * dedicated WIRE ticket mounts the hypervisor with credential + metering ownership.
- * Do not boot the silent process health loop without that WIRE mount and a
- * credential owner. An unowned interval can orphan child MCP processes.
  *
  * Manages N running MCP server processes, pings them for liveness, and
  * dynamically exposes their tools at runtime. Inspired by the
@@ -998,11 +996,6 @@ export class MCPHypervisor {
   // Health check loop
   // ---------------------------------------------------------------------------
 
-  /**
-   * Silent process health loop. Do not boot this without a WIRE mount and a
-   * credential owner. Apps must not call `getInstance()` at process start
-   * just to keep this interval alive.
-   */
   private startHealthCheckLoop(): void {
     this.healthCheckTimer = setInterval(async () => {
       for (const [name] of this.servers) {

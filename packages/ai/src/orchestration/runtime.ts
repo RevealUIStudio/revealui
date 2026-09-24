@@ -7,7 +7,12 @@
  * an open loop. Do not merge them.
  *
  * When the RevDev harness socket is reachable, each task arms Studio LoopGuard
- * and ticks once per model iteration. No daemon means no tick and no throw.
+ * and ticks once per model iteration (`loop.arm`, `loop.tick`, `loop.status`).
+ * This runtime does not call `loop.stop`. `session.end` and `harness.prune`
+ * reap the loop. No daemon means no tick and no throw.
+ *
+ * Do not boot the MCP Hypervisor silent process health loop without a WIRE
+ * mount and a credential owner.
  */
 
 import { registerCleanupHandler } from '@revealui/core/monitoring';
@@ -119,11 +124,12 @@ export interface RuntimeConfig {
    */
   alwaysRequireApproval?: string[];
   /**
-   * Studio LoopGuard (GAP-362). Default: `loop.arm` / `loop.tick` / `loop.stop`
-   * on the RevDev harness socket when it is reachable. Missing socket, connect
-   * failure, and RPC timeout leave the task on the unwired path (no throw).
-   * Pass `false` to skip the daemon even when Studio is attached.
-   * `runGovernedTask` does not use this port; receipts stay a separate loop.
+   * Studio LoopGuard (GAP-362). Default: `loop.arm`, `loop.tick`, and
+   * `loop.status` on the RevDev harness socket when it is reachable.
+   * This runtime does not call `loop.stop`. `session.end` and `harness.prune`
+   * reap the loop. Missing socket, connect failure, and RPC timeout leave
+   * the task on the unwired path (no throw). Pass `false` to skip the daemon
+   * even when Studio is attached. `runGovernedTask` does not use this port.
    */
   loopGuard?: LoopGuardPort | false;
 }
@@ -199,228 +205,109 @@ export class AgentRuntime {
     let totalTokens = 0;
     let totalCostUsd = 0;
     const loopId = await this.openStudioLoop(task.id);
-    try {
-      // Merge MCP-discovered tools into the agent's tool set via `McpClient`.
-      const mcpTools: Tool[] = [];
-      const onToolAudit = this.config.onToolAudit;
-      if (this.config.mcpClients && this.config.mcpClients.length > 0) {
-        for (const { name, client } of this.config.mcpClients) {
-          try {
-            const fromClient = await createToolsFromMcpClient(client, {
-              namespace: name,
-              ...(onToolAudit !== undefined ? { onToolAudit } : {}),
-            });
-            mcpTools.push(...fromClient);
-          } catch {
-            // empty-catch-ok: an unhealthy MCP client shouldn't fail the whole task — other clients + base tools still apply
-          }
+    // Merge MCP-discovered tools into the agent's tool set via `McpClient`.
+    const mcpTools: Tool[] = [];
+    const onToolAudit = this.config.onToolAudit;
+    if (this.config.mcpClients && this.config.mcpClients.length > 0) {
+      for (const { name, client } of this.config.mcpClients) {
+        try {
+          const fromClient = await createToolsFromMcpClient(client, {
+            namespace: name,
+            ...(onToolAudit !== undefined ? { onToolAudit } : {}),
+          });
+          mcpTools.push(...fromClient);
+        } catch {
+          // empty-catch-ok: an unhealthy MCP client shouldn't fail the whole task — other clients + base tools still apply
         }
       }
+    }
 
-      // Swap in a custom WebSearchProvider if the agent config specifies one (P4-3)
-      const customProvider = agent.config?.webSearchProvider;
-      let baseTools: Tool[];
-      if (customProvider) {
-        const customSearchTool = createWebSearchTool(customProvider);
-        baseTools = agent.tools.map((t) => (t.name === 'web_search' ? customSearchTool : t));
-      } else {
-        baseTools = agent.tools;
-      }
+    // Swap in a custom WebSearchProvider if the agent config specifies one (P4-3)
+    const customProvider = agent.config?.webSearchProvider;
+    let baseTools: Tool[];
+    if (customProvider) {
+      const customSearchTool = createWebSearchTool(customProvider);
+      baseTools = agent.tools.map((t) => (t.name === 'web_search' ? customSearchTool : t));
+    } else {
+      baseTools = agent.tools;
+    }
 
-      const allTools = mcpTools.length > 0 ? [...baseTools, ...mcpTools] : baseTools;
+    const allTools = mcpTools.length > 0 ? [...baseTools, ...mcpTools] : baseTools;
 
-      let messages: Message[] = [
-        {
-          role: 'system',
-          content: agent.instructions,
-          // Cache agent instructions for cost savings (effective where promptCache is supported)
-          cache: this.config.enableCache || undefined,
-        },
-        {
-          role: 'user',
-          content: task.description,
-        },
-      ];
+    let messages: Message[] = [
+      {
+        role: 'system',
+        content: agent.instructions,
+        // Cache agent instructions for cost savings (effective where promptCache is supported)
+        cache: this.config.enableCache || undefined,
+      },
+      {
+        role: 'user',
+        content: task.description,
+      },
+    ];
 
-      // Inject activated skill instructions into the system prompt.
-      if (this.config.skillProvider) {
-        const { messages: augmented } = await this.config.skillProvider.injectSkillInstructions(
-          messages as Parameters<typeof this.config.skillProvider.injectSkillInstructions>[0],
-          { taskDescription: task.description },
-        );
-        messages = augmented as Message[];
-      }
+    // Inject activated skill instructions into the system prompt.
+    if (this.config.skillProvider) {
+      const { messages: augmented } = await this.config.skillProvider.injectSkillInstructions(
+        messages as Parameters<typeof this.config.skillProvider.injectSkillInstructions>[0],
+        { taskDescription: task.description },
+      );
+      messages = augmented as Message[];
+    }
 
-      try {
-        while (iterations < (this.config.maxIterations || 10)) {
-          iterations++;
+    try {
+      while (iterations < (this.config.maxIterations || 10)) {
+        iterations++;
 
-          // Check timeout
-          if (Date.now() - startTime > (this.config.timeout || 60000)) {
-            return {
-              success: false,
-              error: 'Task execution timeout',
-              toolResults,
-              metadata: {
-                executionTime: Date.now() - startTime,
-                tokensUsed: totalTokens,
-                cost: totalCostUsd,
-              },
-            };
-          }
+        // Check timeout
+        if (Date.now() - startTime > (this.config.timeout || 60000)) {
+          return {
+            success: false,
+            error: 'Task execution timeout',
+            toolResults,
+            metadata: {
+              executionTime: Date.now() - startTime,
+              tokensUsed: totalTokens,
+              cost: totalCostUsd,
+            },
+          };
+        }
 
-          // Get LLM response (with caching for agent instructions and tools)
-          const response = await llmClient.chat(messages, {
-            tools: allTools.map((tool) => ({
-              type: 'function',
-              function: {
-                name: tool.name,
-                description: tool.description,
-                parameters: toolParametersToJsonSchema(tool.parameters),
-              },
-            })),
-            cacheHint: this.config.enableCache,
-            effort: this.config.thinkingLevel,
-          });
+        // Get LLM response (with caching for agent instructions and tools)
+        const response = await llmClient.chat(messages, {
+          tools: allTools.map((tool) => ({
+            type: 'function',
+            function: {
+              name: tool.name,
+              description: tool.description,
+              parameters: toolParametersToJsonSchema(tool.parameters),
+            },
+          })),
+          cacheHint: this.config.enableCache,
+          effort: this.config.thinkingLevel,
+        });
 
-          // Accumulate token usage and cost
-          const iterationTokens = response.usage?.totalTokens ?? 0;
-          totalTokens += iterationTokens;
-          const model = this.config.model;
-          const spend = iterationSpend(response, model, iterationTokens);
-          if (spend.costUsd > 0) {
-            totalCostUsd += spend.costUsd;
-          }
+        // Accumulate token usage and cost
+        const iterationTokens = response.usage?.totalTokens ?? 0;
+        totalTokens += iterationTokens;
+        const model = this.config.model;
+        const spend = iterationSpend(response, model, iterationTokens);
+        if (spend.costUsd > 0) {
+          totalCostUsd += spend.costUsd;
+        }
 
-          // Add assistant response to messages
-          messages.push({
-            role: 'assistant',
-            content: response.content,
-            toolCalls: response.toolCalls || [],
-          });
+        // Add assistant response to messages
+        messages.push({
+          role: 'assistant',
+          content: response.content,
+          toolCalls: response.toolCalls || [],
+        });
 
-          // If no tool calls, task is complete
-          if (!response.toolCalls || response.toolCalls.length === 0) {
-            const stopReason = await this.tickStudioLoop(loopId, {
-              advanced: iterationAdvanced({ completed: true, newToolExecutions: 0 }),
-              ...spend.tick,
-            });
-            if (stopReason) {
-              return {
-                success: false,
-                error: stopReason,
-                toolResults,
-                metadata: {
-                  executionTime: Date.now() - startTime,
-                  tokensUsed: totalTokens,
-                  cost: totalCostUsd,
-                },
-              };
-            }
-            return {
-              success: true,
-              output: response.content,
-              toolResults,
-              metadata: {
-                executionTime: Date.now() - startTime,
-                tokensUsed: totalTokens,
-                cost: totalCostUsd,
-              },
-            };
-          }
-
-          // Execute tool calls
-          let newToolExecutions = 0;
-          for (const toolCall of response.toolCalls) {
-            const tool = allTools.find((t) => t.name === toolCall.function.name);
-
-            if (!tool) {
-              toolResults.push({
-                success: false,
-                error: `Tool "${toolCall.function.name}" not found`,
-              });
-              continue;
-            }
-
-            try {
-              const params = JSON.parse(toolCall.function.arguments) as unknown;
-
-              // Check if this tool requires human approval
-              const needsApproval =
-                tool.requiresApproval || this.config.alwaysRequireApproval?.includes(tool.name);
-
-              if (needsApproval) {
-                if (!this.config.approvalCallback) {
-                  // No approval callback  -  deny by default
-                  const denied: ToolResult = {
-                    success: false,
-                    error: `Tool "${tool.label ?? tool.name}" requires human approval but no approval handler is configured.`,
-                  };
-                  toolResults.push(denied);
-                  messages.push({
-                    role: 'tool',
-                    content: denied.error ?? '',
-                    toolCallId: toolCall.id,
-                  });
-                  continue;
-                }
-
-                const approval = await this.config.approvalCallback({
-                  toolName: tool.name,
-                  toolLabel: tool.label,
-                  params,
-                  description: `${tool.label ?? tool.name}: ${tool.description}`,
-                });
-
-                if (!approval.approved) {
-                  const denied: ToolResult = {
-                    success: false,
-                    error: approval.reason
-                      ? `Tool "${tool.label ?? tool.name}" denied: ${approval.reason}`
-                      : `Tool "${tool.label ?? tool.name}" was denied by the user.`,
-                  };
-                  newToolExecutions += 1;
-                  toolResults.push(denied);
-                  messages.push({
-                    role: 'tool',
-                    content: denied.error ?? '',
-                    toolCallId: toolCall.id,
-                  });
-                  continue;
-                }
-              }
-
-              // Return cached result for duplicate tool calls within this run
-              const cached = deduplicator.isDuplicate(tool.name, params)
-                ? deduplicator.getResult(tool.name, params)
-                : undefined;
-              const result = cached ?? (await tool.execute(params));
-              if (!cached) {
-                deduplicator.record(tool.name, params, result);
-                newToolExecutions += 1;
-              }
-
-              toolResults.push(result);
-
-              // Add tool result to messages.
-              // Use result.content (LLM-optimized summary) when available;
-              // otherwise serialize the full result so the model has context.
-              messages.push({
-                role: 'tool',
-                content: result.content ?? JSON.stringify(result.data ?? result),
-                toolCallId: toolCall.id,
-              });
-            } catch (error) {
-              newToolExecutions += 1;
-              toolResults.push({
-                success: false,
-                error: error instanceof Error ? error.message : String(error),
-              });
-            }
-          }
-
+        // If no tool calls, task is complete
+        if (!response.toolCalls || response.toolCalls.length === 0) {
           const stopReason = await this.tickStudioLoop(loopId, {
-            advanced: iterationAdvanced({ completed: false, newToolExecutions }),
+            advanced: iterationAdvanced({ completed: true, newToolExecutions: 0 }),
             ...spend.tick,
           });
           if (stopReason) {
@@ -435,32 +322,147 @@ export class AgentRuntime {
               },
             };
           }
+          return {
+            success: true,
+            output: response.content,
+            toolResults,
+            metadata: {
+              executionTime: Date.now() - startTime,
+              tokensUsed: totalTokens,
+              cost: totalCostUsd,
+            },
+          };
         }
 
-        return {
-          success: false,
-          error: 'Maximum iterations reached',
-          toolResults,
-          metadata: {
-            executionTime: Date.now() - startTime,
-            tokensUsed: totalTokens,
-            cost: totalCostUsd,
-          },
-        };
-      } catch (error) {
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : String(error),
-          toolResults,
-          metadata: {
-            executionTime: Date.now() - startTime,
-            tokensUsed: totalTokens,
-            cost: totalCostUsd,
-          },
-        };
+        // Execute tool calls
+        let newToolExecutions = 0;
+        for (const toolCall of response.toolCalls) {
+          const tool = allTools.find((t) => t.name === toolCall.function.name);
+
+          if (!tool) {
+            toolResults.push({
+              success: false,
+              error: `Tool "${toolCall.function.name}" not found`,
+            });
+            continue;
+          }
+
+          try {
+            const params = JSON.parse(toolCall.function.arguments) as unknown;
+
+            // Check if this tool requires human approval
+            const needsApproval =
+              tool.requiresApproval || this.config.alwaysRequireApproval?.includes(tool.name);
+
+            if (needsApproval) {
+              if (!this.config.approvalCallback) {
+                // No approval callback  -  deny by default
+                const denied: ToolResult = {
+                  success: false,
+                  error: `Tool "${tool.label ?? tool.name}" requires human approval but no approval handler is configured.`,
+                };
+                toolResults.push(denied);
+                messages.push({
+                  role: 'tool',
+                  content: denied.error ?? '',
+                  toolCallId: toolCall.id,
+                });
+                continue;
+              }
+
+              const approval = await this.config.approvalCallback({
+                toolName: tool.name,
+                toolLabel: tool.label,
+                params,
+                description: `${tool.label ?? tool.name}: ${tool.description}`,
+              });
+
+              if (!approval.approved) {
+                const denied: ToolResult = {
+                  success: false,
+                  error: approval.reason
+                    ? `Tool "${tool.label ?? tool.name}" denied: ${approval.reason}`
+                    : `Tool "${tool.label ?? tool.name}" was denied by the user.`,
+                };
+                newToolExecutions += 1;
+                toolResults.push(denied);
+                messages.push({
+                  role: 'tool',
+                  content: denied.error ?? '',
+                  toolCallId: toolCall.id,
+                });
+                continue;
+              }
+            }
+
+            // Return cached result for duplicate tool calls within this run
+            const cached = deduplicator.isDuplicate(tool.name, params)
+              ? deduplicator.getResult(tool.name, params)
+              : undefined;
+            const result = cached ?? (await tool.execute(params));
+            if (!cached) {
+              deduplicator.record(tool.name, params, result);
+              newToolExecutions += 1;
+            }
+
+            toolResults.push(result);
+
+            // Add tool result to messages.
+            // Use result.content (LLM-optimized summary) when available;
+            // otherwise serialize the full result so the model has context.
+            messages.push({
+              role: 'tool',
+              content: result.content ?? JSON.stringify(result.data ?? result),
+              toolCallId: toolCall.id,
+            });
+          } catch (error) {
+            newToolExecutions += 1;
+            toolResults.push({
+              success: false,
+              error: error instanceof Error ? error.message : String(error),
+            });
+          }
+        }
+
+        const stopReason = await this.tickStudioLoop(loopId, {
+          advanced: iterationAdvanced({ completed: false, newToolExecutions }),
+          ...spend.tick,
+        });
+        if (stopReason) {
+          return {
+            success: false,
+            error: stopReason,
+            toolResults,
+            metadata: {
+              executionTime: Date.now() - startTime,
+              tokensUsed: totalTokens,
+              cost: totalCostUsd,
+            },
+          };
+        }
       }
-    } finally {
-      await this.closeStudioLoop(loopId);
+
+      return {
+        success: false,
+        error: 'Maximum iterations reached',
+        toolResults,
+        metadata: {
+          executionTime: Date.now() - startTime,
+          tokensUsed: totalTokens,
+          cost: totalCostUsd,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        toolResults,
+        metadata: {
+          executionTime: Date.now() - startTime,
+          tokensUsed: totalTokens,
+          cost: totalCostUsd,
+        },
+      };
     }
   }
 
@@ -491,21 +493,12 @@ export class AgentRuntime {
     try {
       const signal = await this.loopGuard.tick({ loopId, ...tick });
       if (!signal.attached) return null;
-      if (signal.status === 'not_advancing' || signal.status === 'stopped') {
+      if (signal.status === 'not_advancing') {
         return signal.signal ?? 'loop not advancing';
       }
       return null;
     } catch {
       return null;
-    }
-  }
-
-  protected async closeStudioLoop(loopId: string | null): Promise<void> {
-    if (!(loopId && this.loopGuard)) return;
-    try {
-      await this.loopGuard.stop(loopId);
-    } catch {
-      /* fail-open: ending the task must not throw when the daemon drops */
     }
   }
 

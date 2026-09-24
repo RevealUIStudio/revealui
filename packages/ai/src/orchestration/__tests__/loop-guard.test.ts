@@ -2,8 +2,9 @@
  * Studio LoopGuard wire for AgentRuntime and StreamingAgentRuntime.
  *
  * No daemon: the task finishes as before.
- * Mock daemon: loop.arm, loop.tick, and loop.stop run, and three
- * non-advancing ticks stop the interactive loop (daemon no-op limit).
+ * Mock daemon: loop.arm and loop.tick run. loop.status reads the loop.
+ * There is no loop.stop. Three non-advancing ticks stop the interactive
+ * loop (daemon no-op limit).
  */
 
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
@@ -240,7 +241,7 @@ describe('AgentRuntime LoopGuard', () => {
     });
     const result = await runtime.executeTask(makeAgent(), makeTask(), chatClient(textResponse()));
     expect(result.success).toBe(true);
-    expect(server.calls.map((call) => call.method)).toEqual(['loop.arm', 'loop.tick', 'loop.stop']);
+    expect(server.calls.map((call) => call.method)).toEqual(['loop.arm', 'loop.tick']);
     const arm = server.calls[0]?.params;
     expect(arm?.intervalMs).toBe(DAEMON_LOOP_INTERVAL_MS);
     expect(arm?.actorAgentId).toBe('studio-agent');
@@ -252,7 +253,46 @@ describe('AgentRuntime LoopGuard', () => {
     expect(tick?.tokensOut).toBe(50);
     expect(tick?.costMicros).toBe(45);
     expect(tick?.loopId).toBe(arm?.loopId);
-    expect(server.calls[2]?.params.loopId).toBe(arm?.loopId);
+    expect(server.calls.some((call) => call.method === 'loop.stop')).toBe(false);
+  });
+
+  it('reads loop.status and treats a wire stop flag as not advancing', async () => {
+    const server = await startLoopServer((frame) => {
+      if (frame.method === 'loop.status') {
+        return { loop: null, stop: false, noopLimit: null };
+      }
+      if (frame.method === 'loop.tick') {
+        return {
+          loop: { status: 'armed', lastSignal: 'loop not advancing' },
+          stop: true,
+          noopLimit: DAEMON_LOOP_NOOP_LIMIT,
+        };
+      }
+      return { ...armedResult(), stop: false, noopLimit: DAEMON_LOOP_NOOP_LIMIT };
+    });
+    const guard = createDaemonLoopGuard({
+      socketPath: server.socketPath,
+      actorAgentId: 'studio-agent',
+      timeoutMs: 500,
+    });
+    const armed = await guard.arm({ loopId: 'loop-status' });
+    expect(armed.attached).toBe(true);
+    expect(armed.status).toBe('armed');
+    const read = await guard.status('loop-status');
+    expect(read.attached).toBe(false);
+    expect(read.status).toBe('unavailable');
+    const runtime = new AgentRuntime({
+      loopGuard: createDaemonLoopGuard({
+        socketPath: server.socketPath,
+        actorAgentId: 'studio-agent',
+        timeoutMs: 500,
+      }),
+    });
+    const result = await runtime.executeTask(makeAgent(), makeTask(), chatClient(textResponse()));
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('loop not advancing');
+    expect(server.calls.some((call) => call.method === 'loop.stop')).toBe(false);
+    expect(server.calls.some((call) => call.method === 'loop.status')).toBe(true);
   });
 
   it('reads the cached Studio session id when no actor override is set', async () => {
@@ -296,7 +336,8 @@ describe('AgentRuntime LoopGuard', () => {
     expect(server.calls.filter((call) => call.method === 'loop.tick')).toHaveLength(
       DAEMON_LOOP_NOOP_LIMIT,
     );
-    expect(server.calls.at(-1)?.method).toBe('loop.stop');
+    expect(server.calls.some((call) => call.method === 'loop.stop')).toBe(false);
+    expect(server.calls.at(-1)?.method).toBe('loop.tick');
     expect(server.calls[0]?.params.actorAgentId).toBe(PRODUCT_RUNTIME_ACTOR_ID);
   });
 
@@ -349,7 +390,7 @@ describe('StreamingAgentRuntime LoopGuard', () => {
       chunks.push(chunk);
     }
     expect(chunks.some((chunk) => chunk.type === 'done' && chunk.content === 'Hello')).toBe(true);
-    expect(server.calls.map((call) => call.method)).toEqual(['loop.arm', 'loop.tick', 'loop.stop']);
+    expect(server.calls.map((call) => call.method)).toEqual(['loop.arm', 'loop.tick']);
     expect(server.calls[1]?.params.advanced).toBe(true);
     expect(server.calls[0]?.params.actorAgentId).toBe('stream-agent');
   });
@@ -419,6 +460,7 @@ describe('StreamingAgentRuntime LoopGuard', () => {
     expect(ticks.filter((tick) => tick.params.advanced === false)).toHaveLength(
       DAEMON_LOOP_NOOP_LIMIT,
     );
-    expect(server.calls.at(-1)?.method).toBe('loop.stop');
+    expect(server.calls.some((call) => call.method === 'loop.stop')).toBe(false);
+    expect(server.calls.at(-1)?.method).toBe('loop.tick');
   });
 });

@@ -1,14 +1,20 @@
 /**
  * Studio LoopGuard client (GAP-362).
  *
- * Talks to the RevDev daemon on harness.sock (`loop.arm` / `loop.tick` /
- * `loop.stop`). Product paths with no daemon keep today's behavior: a missing
- * socket returns immediately, and a dead or silent socket fails open inside
- * `timeoutMs` without throwing.
+ * Sock methods on harness.sock are `loop.arm`, `loop.tick`, and `loop.status`.
+ * This client does not call `loop.stop`. `session.end` and `harness.prune`
+ * reap loops on the daemon. Product paths with no daemon keep today's
+ * behavior: a missing socket returns immediately, and a dead or silent socket
+ * fails open inside `timeoutMs` without throwing.
  *
- * The daemon owns the no-op counter. `DAEMON_LOOP_NOOP_LIMIT` (3) is that
- * default: after this many consecutive `advanced: false` ticks, `loop.tick`
- * returns `status: not_advancing`. This module does not keep a second counter.
+ * The daemon owns the no-op counter. Omit `noopLimit` and it applies
+ * `DAEMON_LOOP_NOOP_LIMIT` (3, RevDev `DEFAULT_LOOP_NOOP_LIMIT`). After that
+ * many consecutive `advanced: false` ticks, `loop.tick` returns `stop: true`
+ * and `status: not_advancing`. This module does not keep a second counter.
+ *
+ * `AgentRuntime` stays separate from `runGovernedTask`. Receipts are not
+ * this loop. Do not boot the MCP Hypervisor silent process health loop
+ * without a WIRE mount and a credential owner.
  */
 
 import { randomUUID } from 'node:crypto';
@@ -17,7 +23,7 @@ import { createConnection } from 'node:net';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
-/** RevDev `DEFAULT_NOOP_LIMIT`. Documented here; the daemon applies it. */
+/** RevDev `DEFAULT_LOOP_NOOP_LIMIT`. Omitted on arm so the daemon applies it. */
 export const DAEMON_LOOP_NOOP_LIMIT = 3;
 
 /**
@@ -53,7 +59,8 @@ export interface LoopGuardTickInput {
 export interface LoopGuardPort {
   arm(input: { readonly loopId: string; readonly actorAgentId?: string }): Promise<LoopGuardSignal>;
   tick(input: { readonly loopId: string } & LoopGuardTickInput): Promise<LoopGuardSignal>;
-  stop(loopId: string): Promise<void>;
+  /** Read the loop. `{ loop: null }` from the daemon is not attached. */
+  status(loopId: string): Promise<LoopGuardSignal>;
 }
 
 export interface DaemonLoopGuardConfig {
@@ -195,12 +202,14 @@ export function createDaemonLoopGuard(config: DaemonLoopGuardConfig = {}): LoopG
       }
     },
 
-    async stop(loopId) {
-      if (!attached || disabled) return;
+    async status(loopId) {
+      if (!attached || disabled) return UNAVAILABLE;
       try {
-        await call('loop.stop', { loopId, actorAgentId });
+        const result = await call('loop.status', { loopId, actorAgentId });
+        return signalFromResult(result);
       } catch {
         disabled = true;
+        return UNAVAILABLE;
       }
     },
   };
@@ -217,14 +226,24 @@ function signalFromResult(result: unknown): LoopGuardSignal {
   if (!result || typeof result !== 'object') {
     return { attached: true, status: 'armed', signal: null };
   }
-  const loop = (result as { loop?: unknown }).loop;
-  if (!loop || typeof loop !== 'object') {
+  const record = result as { loop?: unknown; stop?: unknown };
+  if (record.loop == null) {
+    return UNAVAILABLE;
+  }
+  if (typeof record.loop !== 'object') {
     return { attached: true, status: 'armed', signal: null };
   }
-  const statusRaw = (loop as { status?: unknown }).status;
-  const signalRaw = (loop as { lastSignal?: unknown }).lastSignal;
+  const statusRaw = (record.loop as { status?: unknown }).status;
+  const signalRaw = (record.loop as { lastSignal?: unknown }).lastSignal;
   const signal = typeof signalRaw === 'string' ? signalRaw : null;
-  if (statusRaw === 'not_advancing' || statusRaw === 'stopped' || statusRaw === 'armed') {
+  if (record.stop === true || statusRaw === 'not_advancing') {
+    return {
+      attached: true,
+      status: 'not_advancing',
+      signal: signal ?? 'loop not advancing',
+    };
+  }
+  if (statusRaw === 'stopped' || statusRaw === 'armed') {
     return { attached: true, status: statusRaw, signal };
   }
   return { attached: true, status: 'armed', signal };
