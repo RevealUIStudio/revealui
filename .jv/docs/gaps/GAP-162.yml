@@ -1,0 +1,17 @@
+id: GAP-162
+title: x402 / refunds (RevealCoin cancelled)
+status: HELD
+updated: "2026-09-23"
+ruling_date: "2026-09-22"
+owner_ruling:
+  asset: "USDC on Base (RevealCoin cancelled)"
+  failed_run: "Retry once, then full refund; never becomes an earning"
+  cancel: "Full refund only while pending or queued"
+  after_completion: "Dispute only with written reason; Joshua decides"
+  window: "Customer has 7 days; earning stays out of sweep through window (longer if dispute open)"
+  publisher: "May reply once; Joshua ruling final"
+  refund_effect: "Drops the earning"
+  abuse: "4th dispute in 30 days flagged; each still opens"
+  cap: "Auto refunds pause after $25 for that customer in 7 days; system sends failure + early-cancel until cap; Joshua sends dispute refunds + anything cap held"
+  ledger: "Each attempt = own refund row"
+notes: "Implement via Build paste 03-gap-162-usdc-refunds."

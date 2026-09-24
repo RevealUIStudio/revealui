@@ -1,0 +1,11 @@
+id: GAP-348
+title: RevDev DB inspector
+status: HELD
+updated: "2026-09-23"
+ruling_date: "2026-09-22"
+owner_ruling:
+  spec: "Stays as specified"
+  blocker: "Waits on SELECT-only role on current production DB"
+  neon: "Joshua creates role + vaults URL; no new Neon compute"
+  password: "Out of chat"
+notes: "Scaffold in revdev. Paste 06-gap-348-db-inspector-scaffold. No invent password."
