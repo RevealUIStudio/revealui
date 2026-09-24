@@ -141,6 +141,7 @@ flags).
 | Var | Default | Purpose |
 |-----|---------|---------|
 | `NODE_ENV` | `production` | Required for worker boot path |
+| `SENTRY_ENVIRONMENT` | unset in this production toml | Non-secret Sentry label. Leave unset on the production worker (`api.revealui.com` resolves to `production`). On a staging Fly app, set `SENTRY_ENVIRONMENT=staging` with `flyctl secrets set` or the app env. Do not commit `staging` into this production `fly.toml`. |
 | `WORKER_PORT` | `8080` | Fly maps this internally to public 80/443 via the `[http_service]` block |
 | `REVMARKET_EXECUTOR_ENABLED` | `false` | Flip to `true` when marketplace UI is ready to accept real customer task submissions |
 | `REVEALUI_FORGE` | `false` | Forge stamp pipeline sets `true` for self-hosted deployments (mounts terminal-ws WebSocket bridge) |

@@ -9,6 +9,7 @@
  * 3. Create sentry.client.config.ts and sentry.server.config.ts
  */
 
+import { resolveSentryEnvironment } from '@revealui/core/sentry-environment';
 import type * as Sentry from '@sentry/nextjs';
 
 export const sentryConfig: Parameters<typeof Sentry.init>[0] = {
@@ -27,7 +28,24 @@ export const sentryConfig: Parameters<typeof Sentry.init>[0] = {
   // Debug mode in development
   debug: process.env.NODE_ENV !== 'production',
 
-  environment: process.env.NODE_ENV || 'development',
+  environment: resolveSentryEnvironment({
+    SENTRY_ENVIRONMENT: process.env.SENTRY_ENVIRONMENT,
+    REVEALUI_DEPLOY_ENV: process.env.REVEALUI_DEPLOY_ENV,
+    NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
+    NODE_ENV: process.env.NODE_ENV,
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    REVEALUI_API_URL: process.env.REVEALUI_API_URL,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    API_URL: process.env.API_URL,
+    REVEALUI_PUBLIC_SERVER_URL: process.env.REVEALUI_PUBLIC_SERVER_URL,
+    NEXT_PUBLIC_SERVER_URL: process.env.NEXT_PUBLIC_SERVER_URL,
+    VERCEL_PROJECT_PRODUCTION_URL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
+    VERCEL_URL: process.env.VERCEL_URL,
+    SESSION_COOKIE_DOMAIN: process.env.SESSION_COOKIE_DOMAIN,
+    PASSKEY_RP_ID: process.env.PASSKEY_RP_ID,
+    PASSKEY_ORIGIN: process.env.PASSKEY_ORIGIN,
+    CORS_ORIGIN: process.env.CORS_ORIGIN,
+  }),
 
   // Ignore common non-critical errors
   ignoreErrors: [

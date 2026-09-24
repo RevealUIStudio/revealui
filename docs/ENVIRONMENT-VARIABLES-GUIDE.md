@@ -377,6 +377,7 @@ Phase 5.5. Required only when operating the RevealUI MCP marketplace.
 | `NEXT_PUBLIC_SENTRY_DSN` | No | None | Sentry DSN for the **admin** Next.js client. Recommended for staging and production. | LOW (client-safe) | admin |
 | `VITE_SENTRY_DSN` | No | None | Sentry DSN for the **marketing** Vite client. SDK no-ops when absent so dev builds stay quiet. | LOW (client-safe) | marketing |
 | `SENTRY_DSN` | Prod only | None | Sentry DSN for the **server** runtime. Server startup validator hard-fails prod boot without it. | LOW (server-only) | server |
+| `SENTRY_ENVIRONMENT` | No | host, else `NODE_ENV` | Sentry environment label. Not a secret. Set `staging` on the staging Vercel API, staging admin, and staging Fly worker. `preview` is the Vercel preview label. A `*.staging.revealui.com` host is never labeled `production`. | LOW | server, admin, marketing |
 | `SENTRY_AUTH_TOKEN` | No | None | Sentry auth token for source map uploads in CI/CD. | HIGH (server-only) | CI |
 | `SENTRY_ORG` | No | None | Sentry organization slug. | LOW | CI |
 | `SENTRY_PROJECT` | No | None | Sentry project slug. | LOW | CI |

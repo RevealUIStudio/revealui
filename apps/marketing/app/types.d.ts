@@ -14,6 +14,12 @@ interface ImportMetaEnv {
    */
   readonly VITE_SENTRY_DSN?: string;
   /**
+   * Sentry environment label for the marketing client. Not a secret.
+   * Set `VITE_SENTRY_ENVIRONMENT=staging` (or `SENTRY_ENVIRONMENT=staging`,
+   * copied in vite.config.ts) on the staging marketing project.
+   */
+  readonly VITE_SENTRY_ENVIRONMENT?: string;
+  /**
    * Studio-hosted Umami origin (no trailing path). Absent in dev and in prod
    * until set on the Vercel project; the tracker stays dormant without it.
    */
