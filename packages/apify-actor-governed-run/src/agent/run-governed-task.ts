@@ -1,3 +1,8 @@
+/**
+ * Governed receipt loop. Intentional dual with `AgentRuntime`: receipts need
+ * an ordered action log and charge/step caps. Do not merge this into the
+ * interactive runtime, and do not require Studio LoopGuard here.
+ */
 import type { LLMChatOptions, LLMResponse, Message, Tool, ToolDefinition } from '@revealui/ai';
 import { z } from 'zod/v4';
 import type { ActionLogEntry } from '../types.js';

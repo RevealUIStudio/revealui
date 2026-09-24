@@ -15,6 +15,7 @@ import { toolParametersToJsonSchema } from '../llm/tool-json-schema.js';
 import type { ToolResult } from '../tools/base.js';
 import { ToolCallDeduplicator } from '../tools/deduplicator.js';
 import type { Agent, Task } from './agent.js';
+import { iterationAdvanced } from './loop-guard.js';
 import { AgentRuntime, type RuntimeConfig } from './runtime.js';
 
 /**
@@ -131,6 +132,7 @@ export class StreamingAgentRuntime extends AgentRuntime {
       },
     ];
 
+    const loopId = await this.openStudioLoop(task.id);
     try {
       while (iterations < maxIterations) {
         iterations++;
@@ -193,6 +195,13 @@ export class StreamingAgentRuntime extends AgentRuntime {
 
         // If no tool calls, task is complete
         if (pendingToolCalls.length === 0) {
+          const stopReason = await this.tickStudioLoop(loopId, {
+            advanced: iterationAdvanced({ completed: true, newToolExecutions: 0 }),
+          });
+          if (stopReason) {
+            yield { type: 'error', error: stopReason };
+            return;
+          }
           yield {
             type: 'done',
             content: accumulatedContent,
@@ -208,7 +217,9 @@ export class StreamingAgentRuntime extends AgentRuntime {
           toolCalls: pendingToolCalls,
         });
 
-        // Execute all tool calls in this response
+        // Execute all tool calls in this response.
+        // Stream chunks do not carry provider usage, so these ticks omit spend.
+        let newToolExecutions = 0;
         for (const tc of pendingToolCalls) {
           yield { type: 'tool_call_start', toolCall: { name: tc.name, arguments: tc.arguments } };
 
@@ -248,6 +259,7 @@ export class StreamingAgentRuntime extends AgentRuntime {
           try {
             const result = await tool.execute(params);
             deduplicator.record(tc.name, params, result);
+            newToolExecutions += 1;
             toolResults.push(result);
             yield { type: 'tool_call_result', toolResult: result };
             messages.push({
@@ -256,6 +268,7 @@ export class StreamingAgentRuntime extends AgentRuntime {
               toolCallId: tc.id,
             });
           } catch (toolError) {
+            newToolExecutions += 1;
             const result: ToolResult = {
               success: false,
               error: toolError instanceof Error ? toolError.message : String(toolError),
@@ -269,6 +282,14 @@ export class StreamingAgentRuntime extends AgentRuntime {
             });
           }
         }
+
+        const stopReason = await this.tickStudioLoop(loopId, {
+          advanced: iterationAdvanced({ completed: false, newToolExecutions }),
+        });
+        if (stopReason) {
+          yield { type: 'error', error: stopReason };
+          return;
+        }
       }
 
       yield { type: 'error', error: 'Maximum iterations reached' };
@@ -278,6 +299,8 @@ export class StreamingAgentRuntime extends AgentRuntime {
         error: error instanceof Error ? error.message : String(error),
         metadata: { executionTime: Date.now() - startTime },
       };
+    } finally {
+      await this.closeStudioLoop(loopId);
     }
   }
 }

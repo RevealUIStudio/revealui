@@ -357,6 +357,26 @@ import { AgentRuntime } from '@revealui/ai/orchestration/runtime'
 const runtime = new AgentRuntime()
 ```
 
+#### Intentional dual: interactive runtime and governed receipts
+
+`AgentRuntime.executeTask` and `StreamingAgentRuntime.streamTask` are the interactive product loops. `runGovernedTask` (Apify actor `@revealui/apify-actor-governed-run`) is the governed receipt loop. Both call tools in a loop. They stay separate: receipts need an ordered action log plus charge and step caps; the interactive runtimes stay open until the model finishes, the iteration cap, or Studio LoopGuard says the loop is not advancing. Do not merge them.
+
+#### Studio LoopGuard (GAP-362)
+
+When the RevDev daemon socket is reachable (`REVEALUI_SOCKET`, otherwise `~/.local/share/revealui/harness.sock`), both interactive runtimes call `loop.arm` once per task, `loop.tick` after each model iteration, and `loop.stop` when the task ends.
+
+Fail-open: a missing socket returns immediately. A socket that refuses the connection or never answers is bounded by `timeoutMs` (default 750) and then ignored. The task does not throw and does not change its result.
+
+An iteration is advancing when the model returns a final answer, or when at least one tool runs that was not a duplicate of an earlier call in the same task. Duplicate-only rounds send `advanced: false`.
+
+No-op limit: the daemon default is 3 consecutive non-advancing ticks (`DAEMON_LOOP_NOOP_LIMIT`, matching RevDev `DEFAULT_NOOP_LIMIT`). This package does not keep a second counter. When `loop.tick` returns `status: not_advancing`, the interactive runtime stops and surfaces `lastSignal`. `intervalMs` defaults to 60000 so an interactive tool loop is not flagged as a sub-minute idle poll. The runtime does not sleep for that interval.
+
+The actor id is the cached Studio session (`daemon-sessions/<pid>.id`, then `<ppid>.id`) when one exists, otherwise `revealui-product-runtime`.
+
+`runGovernedTask` does not call LoopGuard.
+
+Pass `loopGuard: false` only when a caller must not report, including tests. The default wires whenever the daemon answers.
+
 ### Tools
 
 Tool registry and execution system with MCP integration.
