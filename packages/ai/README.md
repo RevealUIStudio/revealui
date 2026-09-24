@@ -357,6 +357,28 @@ import { AgentRuntime } from '@revealui/ai/orchestration/runtime'
 const runtime = new AgentRuntime()
 ```
 
+#### Intentional dual: interactive runtime and governed receipts
+
+`AgentRuntime.executeTask` and `StreamingAgentRuntime.streamTask` are the interactive product loops. `runGovernedTask` (Apify actor `@revealui/apify-actor-governed-run`) is the governed receipt loop. Both call tools in a loop. They stay separate: receipts need an ordered action log plus charge and step caps; the interactive runtimes stay open until the model finishes, the iteration cap, or Studio LoopGuard says the loop is not advancing. Do not merge them.
+
+#### Studio LoopGuard (GAP-362)
+
+When the RevDev daemon socket is reachable (`REVEALUI_SOCKET`, otherwise `~/.local/share/revealui/harness.sock`), both interactive runtimes call `loop.arm` once per task and `loop.tick` after each model iteration. `loop.status` reads the loop. This package does not call `loop.stop`. `session.end` and `harness.prune` reap loops on the daemon (`packages/ai/src/orchestration/loop-guard.ts:4-12`).
+
+Fail-open: a missing socket returns immediately. A socket that refuses the connection or never answers is bounded by `timeoutMs` (default 750) and then ignored. The task does not throw and does not change its result.
+
+An iteration is advancing when the model returns a final answer, or when at least one tool runs that was not a duplicate of an earlier call in the same task (`packages/ai/src/orchestration/loop-guard.ts:132`). Duplicate-only rounds send `advanced: false`.
+
+No-op limit: omit `noopLimit` and the daemon applies 3 (`DAEMON_LOOP_NOOP_LIMIT`, RevDev `DEFAULT_LOOP_NOOP_LIMIT`) (`packages/ai/src/orchestration/loop-guard.ts:27`). This package does not keep a second counter. When `loop.tick` returns `stop: true` or `status: not_advancing`, the interactive runtime stops and surfaces `lastSignal` (`packages/ai/src/orchestration/loop-guard.ts:239`). `intervalMs` defaults to 60000 so an interactive tool loop is not flagged as a sub-minute idle poll (`packages/ai/src/orchestration/loop-guard.ts:34`). The runtime does not sleep for that interval.
+
+The actor id is the cached Studio session (`daemon-sessions/<pid>.id`, then `<ppid>.id`) when one exists, otherwise `revealui-product-runtime`.
+
+`runGovernedTask` does not call LoopGuard. Do not merge it with `AgentRuntime`.
+
+Do not boot the MCP Hypervisor silent process health loop without a WIRE mount and a credential owner (`packages/mcp/src/hypervisor.ts:999`).
+
+Pass `loopGuard: false` only when a caller must not report, including tests. The default wires whenever the daemon answers.
+
 ### Tools
 
 Tool registry and execution system with MCP integration.
