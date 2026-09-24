@@ -1,5 +1,12 @@
 # @revealui/presentation
 
+## 0.14.8
+
+### Patch Changes
+
+- Updated dependencies
+  - @revealui/contracts@0.12.0
+
 ## 0.14.7
 
 ### Patch Changes

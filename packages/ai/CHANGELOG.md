@@ -1,5 +1,19 @@
 # @revealui/ai
 
+## 1.1.0
+
+### Minor Changes
+
+- Add the TypeSafe Jev System One adapter. Callers pass TYPESAFE_API_KEY. RevealUI does not ship a key.
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies
+  - @revealui/db@0.11.0
+  - @revealui/contracts@0.12.0
+  - @revealui/core@0.15.0
+
 ## 1.0.7
 
 ### Patch Changes

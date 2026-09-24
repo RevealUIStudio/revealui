@@ -1,5 +1,18 @@
 # @revealui/harnesses
 
+## 0.19.0
+
+### Minor Changes
+
+- Start sessions on the control layer, then the vendor adapter.
+
+### Patch Changes
+
+- dc1489e: Own the session compact budget in the control layer and emit the Grok output-cap hook from it. Sessions load that layer first, then the vendor adapter, and create a thin adapter when the vendor has none.
+- Updated dependencies
+  - @revealui/core@0.15.0
+  - @revealui/knowledge-graph@0.2.2
+
 ## 0.18.0
 
 ### Minor Changes
