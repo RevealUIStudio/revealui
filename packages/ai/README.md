@@ -367,9 +367,9 @@ When the RevDev daemon socket is reachable (`REVEALUI_SOCKET`, otherwise `~/.loc
 
 Fail-open: a missing socket returns immediately. A socket that refuses the connection or never answers is bounded by `timeoutMs` (default 750) and then ignored. The task does not throw and does not change its result.
 
-An iteration is advancing when the model returns a final answer, or when at least one tool runs that was not a duplicate of an earlier call in the same task. Duplicate-only rounds send `advanced: false`.
+An iteration is advancing when the model returns a final answer, or when at least one tool runs that was not a duplicate of an earlier call in the same task (`packages/ai/src/orchestration/loop-guard.ts:125`). Duplicate-only rounds send `advanced: false`.
 
-No-op limit: the daemon default is 3 consecutive non-advancing ticks (`DAEMON_LOOP_NOOP_LIMIT`, matching RevDev `DEFAULT_NOOP_LIMIT`). This package does not keep a second counter. When `loop.tick` returns `status: not_advancing`, the interactive runtime stops and surfaces `lastSignal`. `intervalMs` defaults to 60000 so an interactive tool loop is not flagged as a sub-minute idle poll. The runtime does not sleep for that interval.
+No-op limit: the daemon default is 3 consecutive non-advancing ticks (`DAEMON_LOOP_NOOP_LIMIT`, matching RevDev `DEFAULT_NOOP_LIMIT`) (`packages/ai/src/orchestration/loop-guard.ts:21`). This package does not keep a second counter. When `loop.tick` returns `status: not_advancing`, the interactive runtime stops and surfaces `lastSignal` (`packages/ai/src/orchestration/runtime.ts:494`). `intervalMs` defaults to 60000 so an interactive tool loop is not flagged as a sub-minute idle poll (`packages/ai/src/orchestration/loop-guard.ts:28`). The runtime does not sleep for that interval.
 
 The actor id is the cached Studio session (`daemon-sessions/<pid>.id`, then `<ppid>.id`) when one exists, otherwise `revealui-product-runtime`.
 
