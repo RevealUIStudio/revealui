@@ -89,10 +89,17 @@ describe('CursorGenerator', () => {
 
       for (const eventName of eventNames) {
         const entries = config.hooks[eventName] ?? [];
-        expect(entries).toHaveLength(1);
+        expect(entries.length).toBeGreaterThan(0);
         for (const entry of entries) {
           expect(entry.type).toBe('command');
-          expect(entry.command).toBe('revealui-harnesses hook cursor');
+        }
+        const policy = entries[entries.length - 1];
+        expect(policy?.command).toBe('revealui-harnesses hook cursor');
+        if (eventName === 'sessionStart') {
+          expect(entries).toHaveLength(2);
+          expect(entries[0]?.command).toBe('revealui-harnesses session adapter cursor');
+        } else {
+          expect(entries).toHaveLength(1);
         }
       }
     });

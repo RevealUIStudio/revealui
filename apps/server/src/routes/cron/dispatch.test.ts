@@ -38,6 +38,7 @@ vi.mock('./jobs-safety-net.js', () => ({ default: hoisted.stubApp() }));
 vi.mock('./lifecycle-emails.js', () => ({ default: hoisted.stubApp() }));
 vi.mock('./margin-snapshot.js', () => ({ default: hoisted.stubApp() }));
 vi.mock('./marketplace-payouts.js', () => ({ default: hoisted.stubApp() }));
+vi.mock('./revmarket-payouts.js', () => ({ default: hoisted.stubApp() }));
 vi.mock('./publish-scheduled.js', () => ({ default: hoisted.stubApp() }));
 vi.mock('./reconcile-customers.js', () => ({ default: hoisted.stubApp() }));
 vi.mock('./reconcile-entitlements.js', () => ({ default: hoisted.stubApp() }));

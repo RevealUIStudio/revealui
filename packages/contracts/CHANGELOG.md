@@ -1,5 +1,11 @@
 # @revealui/contracts
 
+## 0.12.0
+
+### Minor Changes
+
+- Add the publisher ledger and USDC refund tables, and publish the generated contracts for them.
+
 ## 0.11.0
 
 ### Minor Changes

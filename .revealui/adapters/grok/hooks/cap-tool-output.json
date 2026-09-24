@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "grep|run_terminal_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.local/share/revealui/hooks/cap-tool-output.js\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -129,6 +129,7 @@ function makeInsertChain() {
   const chain = {
     values: vi.fn(),
     returning: vi.fn().mockResolvedValue(result),
+    onConflictDoNothing: vi.fn(),
     then(
       onFulfilled?: (value: unknown) => unknown,
       onRejected?: (reason: unknown) => unknown,
@@ -137,6 +138,7 @@ function makeInsertChain() {
     },
   };
   chain.values.mockReturnValue(chain);
+  chain.onConflictDoNothing.mockReturnValue(chain);
   return chain;
 }
 
@@ -212,6 +214,15 @@ vi.mock('@revealui/db/schema', () => ({
     status: 'status',
     priority: 'priority',
     createdAt: 'created_at',
+  },
+  paymentAttempts: {
+    id: 'id',
+    customerId: 'customer_id',
+    taskId: 'task_id',
+    amountUsdc: 'amount_usdc',
+    asset: 'asset',
+    status: 'status',
+    attemptNo: 'attempt_no',
   },
 }));
 

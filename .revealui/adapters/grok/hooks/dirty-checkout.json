@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|run_terminal_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FLEET=\"${REVEALFLEET_ROOT:-$HOME/revealfleet}\"; if [ ! -d \"$FLEET/revealui\" ] && [ ! -f \"$FLEET/.jv/scripts/session-start-fleet.js\" ]; then FLEET=\"$HOME/revealfleet\"; fi; node \"$FLEET/.jv/scripts/git-hooks/dirty-checkout-guard.js\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

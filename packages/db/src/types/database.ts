@@ -87,15 +87,20 @@ import type {
   pages,
   passkeys,
   passwordResetTokens,
+  paymentAttempts,
   posts,
   prices,
   processedWebhookEvents,
   products,
+  publisherEarnings,
+  publisherPayouts,
   ragChunks,
   ragDocuments,
   ragWorkspaces,
   rateLimits,
   registeredAgents,
+  revmarketDisputes,
+  revmarketRefunds,
   sessions,
   sharedFacts,
   siteCollaborators,
@@ -517,6 +522,11 @@ export type PasswordResetTokensRow = typeof passwordResetTokens.$inferSelect
 export type PasswordResetTokensInsert = typeof passwordResetTokens.$inferInsert
 export type PasswordResetTokensUpdate = Partial<PasswordResetTokensInsert>
 
+// Payment Attempts
+export type PaymentAttemptsRow = typeof paymentAttempts.$inferSelect
+export type PaymentAttemptsInsert = typeof paymentAttempts.$inferInsert
+export type PaymentAttemptsUpdate = Partial<PaymentAttemptsInsert>
+
 // Posts
 export type PostsRow = typeof posts.$inferSelect
 export type PostsInsert = typeof posts.$inferInsert
@@ -536,6 +546,16 @@ export type ProcessedWebhookEventsUpdate = Partial<ProcessedWebhookEventsInsert>
 export type ProductsRow = typeof products.$inferSelect
 export type ProductsInsert = typeof products.$inferInsert
 export type ProductsUpdate = Partial<ProductsInsert>
+
+// Publisher Earnings
+export type PublisherEarningsRow = typeof publisherEarnings.$inferSelect
+export type PublisherEarningsInsert = typeof publisherEarnings.$inferInsert
+export type PublisherEarningsUpdate = Partial<PublisherEarningsInsert>
+
+// Publisher Payouts
+export type PublisherPayoutsRow = typeof publisherPayouts.$inferSelect
+export type PublisherPayoutsInsert = typeof publisherPayouts.$inferInsert
+export type PublisherPayoutsUpdate = Partial<PublisherPayoutsInsert>
 
 // Rag Chunks
 export type RagChunksRow = typeof ragChunks.$inferSelect
@@ -561,6 +581,16 @@ export type RateLimitsUpdate = Partial<RateLimitsInsert>
 export type RegisteredAgentsRow = typeof registeredAgents.$inferSelect
 export type RegisteredAgentsInsert = typeof registeredAgents.$inferInsert
 export type RegisteredAgentsUpdate = Partial<RegisteredAgentsInsert>
+
+// Revmarket Disputes
+export type RevmarketDisputesRow = typeof revmarketDisputes.$inferSelect
+export type RevmarketDisputesInsert = typeof revmarketDisputes.$inferInsert
+export type RevmarketDisputesUpdate = Partial<RevmarketDisputesInsert>
+
+// Revmarket Refunds
+export type RevmarketRefundsRow = typeof revmarketRefunds.$inferSelect
+export type RevmarketRefundsInsert = typeof revmarketRefunds.$inferInsert
+export type RevmarketRefundsUpdate = Partial<RevmarketRefundsInsert>
 
 // Sessions
 export type SessionsRow = typeof sessions.$inferSelect
@@ -789,15 +819,20 @@ export type DatabaseRelationships = {
   pages: Relationship[]
   passkeys: Relationship[]
   passwordResetTokens: Relationship[]
+  paymentAttempts: Relationship[]
   posts: Relationship[]
   prices: Relationship[]
   processedWebhookEvents: Relationship[]
   products: Relationship[]
+  publisherEarnings: Relationship[]
+  publisherPayouts: Relationship[]
   ragChunks: Relationship[]
   ragDocuments: Relationship[]
   ragWorkspaces: Relationship[]
   rateLimits: Relationship[]
   registeredAgents: Relationship[]
+  revmarketDisputes: Relationship[]
+  revmarketRefunds: Relationship[]
   sessions: Relationship[]
   sharedFacts: Relationship[]
   siteCollaborators: Relationship[]
@@ -1123,6 +1158,13 @@ export const passwordResetTokensRelationships = [
   { foreignKeyName: 'password_reset_tokens_user_id_users_id_fk', columns: ['user_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
 ] as const satisfies readonly Relationship[]
 
+// PaymentAttempts relationships
+export const paymentAttemptsRelationships = [
+  { foreignKeyName: 'payment_attempts_customer_id_users_id_fk', columns: ['customer_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+  { foreignKeyName: 'payment_attempts_task_id_task_submissions_id_fk', columns: ['task_id'], isOneToOne: true, referencedRelation: 'task_submissions', referencedColumns: ['id'] },
+  { foreignKeyName: 'payment_attempts_id_revmarket_refunds_payment_attempt_id_fk', columns: ['id'], isOneToOne: true, referencedRelation: 'revmarket_refunds', referencedColumns: ['payment_attempt_id'] },
+] as const satisfies readonly Relationship[]
+
 // Posts relationships
 export const postsRelationships = [
   { foreignKeyName: 'posts_author_id_users_id_fk', columns: ['author_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
@@ -1140,6 +1182,19 @@ export const productsRelationships = [
   { foreignKeyName: 'products_owner_id_users_id_fk', columns: ['owner_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
 ] as const satisfies readonly Relationship[]
 
+// PublisherEarnings relationships
+export const publisherEarningsRelationships = [
+  { foreignKeyName: 'publisher_earnings_publisher_id_users_id_fk', columns: ['publisher_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+  { foreignKeyName: 'publisher_earnings_agent_id_marketplace_agents_id_fk', columns: ['agent_id'], isOneToOne: true, referencedRelation: 'marketplace_agents', referencedColumns: ['id'] },
+  { foreignKeyName: 'publisher_earnings_task_id_task_submissions_id_fk', columns: ['task_id'], isOneToOne: true, referencedRelation: 'task_submissions', referencedColumns: ['id'] },
+  { foreignKeyName: 'publisher_earnings_payout_id_publisher_payouts_id_fk', columns: ['payout_id'], isOneToOne: true, referencedRelation: 'publisher_payouts', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
+
+// PublisherPayouts relationships
+export const publisherPayoutsRelationships = [
+  { foreignKeyName: 'publisher_payouts_publisher_id_users_id_fk', columns: ['publisher_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
+
 // RagChunks relationships
 export const ragChunksRelationships: readonly Relationship[] = []
 
@@ -1154,6 +1209,19 @@ export const rateLimitsRelationships: readonly Relationship[] = []
 
 // RegisteredAgents relationships
 export const registeredAgentsRelationships: readonly Relationship[] = []
+
+// RevmarketDisputes relationships
+export const revmarketDisputesRelationships = [
+  { foreignKeyName: 'revmarket_disputes_customer_id_users_id_fk', columns: ['customer_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+  { foreignKeyName: 'revmarket_disputes_task_id_task_submissions_id_fk', columns: ['task_id'], isOneToOne: true, referencedRelation: 'task_submissions', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
+
+// RevmarketRefunds relationships
+export const revmarketRefundsRelationships = [
+  { foreignKeyName: 'revmarket_refunds_payment_attempt_id_payment_attempts_id_fk', columns: ['payment_attempt_id'], isOneToOne: true, referencedRelation: 'payment_attempts', referencedColumns: ['id'] },
+  { foreignKeyName: 'revmarket_refunds_customer_id_users_id_fk', columns: ['customer_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+  { foreignKeyName: 'revmarket_refunds_task_id_task_submissions_id_fk', columns: ['task_id'], isOneToOne: true, referencedRelation: 'task_submissions', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
 
 // Sessions relationships
 export const sessionsRelationships = [
@@ -1191,6 +1259,8 @@ export const tagsRelationships: readonly Relationship[] = []
 export const taskSubmissionsRelationships = [
   { foreignKeyName: 'task_submissions_submitter_id_users_id_fk', columns: ['submitter_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
   { foreignKeyName: 'task_submissions_agent_id_marketplace_agents_id_fk', columns: ['agent_id'], isOneToOne: true, referencedRelation: 'marketplace_agents', referencedColumns: ['id'] },
+  { foreignKeyName: 'task_submissions_id_publisher_earnings_task_id_fk', columns: ['id'], isOneToOne: true, referencedRelation: 'publisher_earnings', referencedColumns: ['task_id'] },
+  { foreignKeyName: 'task_submissions_id_revmarket_disputes_task_id_fk', columns: ['id'], isOneToOne: true, referencedRelation: 'revmarket_disputes', referencedColumns: ['task_id'] },
 ] as const satisfies readonly Relationship[]
 
 // TenantProviderConfigs relationships
@@ -1761,6 +1831,12 @@ export type Database = {
         Update: PasswordResetTokensUpdate
         Relationships: typeof passwordResetTokensRelationships
       }
+      payment_attempts: {
+        Row: PaymentAttemptsRow
+        Insert: PaymentAttemptsInsert
+        Update: PaymentAttemptsUpdate
+        Relationships: typeof paymentAttemptsRelationships
+      }
       posts: {
         Row: PostsRow
         Insert: PostsInsert
@@ -1784,6 +1860,18 @@ export type Database = {
         Insert: ProductsInsert
         Update: ProductsUpdate
         Relationships: typeof productsRelationships
+      }
+      publisher_earnings: {
+        Row: PublisherEarningsRow
+        Insert: PublisherEarningsInsert
+        Update: PublisherEarningsUpdate
+        Relationships: typeof publisherEarningsRelationships
+      }
+      publisher_payouts: {
+        Row: PublisherPayoutsRow
+        Insert: PublisherPayoutsInsert
+        Update: PublisherPayoutsUpdate
+        Relationships: typeof publisherPayoutsRelationships
       }
       rag_chunks: {
         Row: RagChunksRow
@@ -1814,6 +1902,18 @@ export type Database = {
         Insert: RegisteredAgentsInsert
         Update: RegisteredAgentsUpdate
         Relationships: typeof registeredAgentsRelationships
+      }
+      revmarket_disputes: {
+        Row: RevmarketDisputesRow
+        Insert: RevmarketDisputesInsert
+        Update: RevmarketDisputesUpdate
+        Relationships: typeof revmarketDisputesRelationships
+      }
+      revmarket_refunds: {
+        Row: RevmarketRefundsRow
+        Insert: RevmarketRefundsInsert
+        Update: RevmarketRefundsUpdate
+        Relationships: typeof revmarketRefundsRelationships
       }
       sessions: {
         Row: SessionsRow

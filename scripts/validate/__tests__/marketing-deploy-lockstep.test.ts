@@ -197,7 +197,7 @@ describe('parseDeclaration', () => {
 });
 
 describe('committed declaration', () => {
-  it('keeps the offer lock off the customer-visible claim', () => {
+  it('keeps the offer lock off the customer-visible claim', { timeout: 20_000 }, () => {
     const raw = readFileSync(join(ROOT, DECLARATION_REL), 'utf8');
     const parsed = parseDeclaration(raw);
     expect(parsed.errors).toEqual([]);

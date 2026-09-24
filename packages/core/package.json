@@ -1,6 +1,6 @@
 {
   "name": "@revealui/core",
-  "version": "0.14.7",
+  "version": "0.15.0",
   "description": "RevealUI's runtime engine — admin UI, REST API, auth, rich text, plugin system, and access control. The heart of the open-source platform.",
   "license": "MIT",
   "dependencies": {
@@ -65,6 +65,11 @@
       "types": "./dist/deployment-mode.d.ts",
       "import": "./dist/deployment-mode.js",
       "default": "./dist/deployment-mode.js"
+    },
+    "./session-cookie-domain": {
+      "types": "./dist/session-cookie-domain.d.ts",
+      "import": "./dist/session-cookie-domain.js",
+      "default": "./dist/session-cookie-domain.js"
     },
     "./margin-governor": {
       "types": "./dist/margin-governor.d.ts",

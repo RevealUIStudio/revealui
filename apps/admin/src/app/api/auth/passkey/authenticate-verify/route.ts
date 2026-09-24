@@ -28,7 +28,7 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
-import { sessionCookieDomain } from '@/lib/utils/session-cookies';
+import { requestHostFromHeaders, sessionCookieDomain } from '@/lib/utils/session-cookies';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -166,6 +166,7 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
       },
     });
 
+    const requestHost = requestHostFromHeaders((name) => request.headers.get(name));
     // Set session cookie
     response.cookies.set('revealui-session', sessionToken, {
       httpOnly: true,
@@ -173,7 +174,7 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
-      domain: sessionCookieDomain({ logIfMissing: true }),
+      domain: sessionCookieDomain({ logIfMissing: true, requestHost }),
     });
 
     // Set role cookie for proxy.ts role-aware gate
@@ -183,7 +184,7 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
-      domain: sessionCookieDomain(),
+      domain: sessionCookieDomain({ requestHost }),
     });
 
     // Clear challenge cookie

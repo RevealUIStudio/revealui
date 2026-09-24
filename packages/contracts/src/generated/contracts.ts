@@ -2043,6 +2043,32 @@ export const PasswordResetTokensInsertContract = createContract({
 })
 
 // =============================================================================
+// PaymentAttempts Contracts
+// =============================================================================
+
+/**
+ * Contract for paymentAttempts row (Select)
+ * Database table: payment_attempts
+ */
+export const PaymentAttemptsRowContract = createContract({
+  name: 'PaymentAttemptsRow',
+  version: '1',
+  description: 'Database row contract for payment_attempts table',
+  schema: Schemas.PaymentAttemptsSelectSchema,
+})
+
+/**
+ * Contract for paymentAttempts insert
+ * Database table: payment_attempts
+ */
+export const PaymentAttemptsInsertContract = createContract({
+  name: 'PaymentAttemptsInsert',
+  version: '1',
+  description: 'Database insert contract for payment_attempts table',
+  schema: Schemas.PaymentAttemptsInsertSchema,
+})
+
+// =============================================================================
 // Posts Contracts
 // =============================================================================
 
@@ -2144,6 +2170,58 @@ export const ProductsInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for products table',
   schema: Schemas.ProductsInsertSchema,
+})
+
+// =============================================================================
+// PublisherEarnings Contracts
+// =============================================================================
+
+/**
+ * Contract for publisherEarnings row (Select)
+ * Database table: publisher_earnings
+ */
+export const PublisherEarningsRowContract = createContract({
+  name: 'PublisherEarningsRow',
+  version: '1',
+  description: 'Database row contract for publisher_earnings table',
+  schema: Schemas.PublisherEarningsSelectSchema,
+})
+
+/**
+ * Contract for publisherEarnings insert
+ * Database table: publisher_earnings
+ */
+export const PublisherEarningsInsertContract = createContract({
+  name: 'PublisherEarningsInsert',
+  version: '1',
+  description: 'Database insert contract for publisher_earnings table',
+  schema: Schemas.PublisherEarningsInsertSchema,
+})
+
+// =============================================================================
+// PublisherPayouts Contracts
+// =============================================================================
+
+/**
+ * Contract for publisherPayouts row (Select)
+ * Database table: publisher_payouts
+ */
+export const PublisherPayoutsRowContract = createContract({
+  name: 'PublisherPayoutsRow',
+  version: '1',
+  description: 'Database row contract for publisher_payouts table',
+  schema: Schemas.PublisherPayoutsSelectSchema,
+})
+
+/**
+ * Contract for publisherPayouts insert
+ * Database table: publisher_payouts
+ */
+export const PublisherPayoutsInsertContract = createContract({
+  name: 'PublisherPayoutsInsert',
+  version: '1',
+  description: 'Database insert contract for publisher_payouts table',
+  schema: Schemas.PublisherPayoutsInsertSchema,
 })
 
 // =============================================================================
@@ -2274,6 +2352,58 @@ export const RegisteredAgentsInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for registered_agents table',
   schema: Schemas.RegisteredAgentsInsertSchema,
+})
+
+// =============================================================================
+// RevmarketDisputes Contracts
+// =============================================================================
+
+/**
+ * Contract for revmarketDisputes row (Select)
+ * Database table: revmarket_disputes
+ */
+export const RevmarketDisputesRowContract = createContract({
+  name: 'RevmarketDisputesRow',
+  version: '1',
+  description: 'Database row contract for revmarket_disputes table',
+  schema: Schemas.RevmarketDisputesSelectSchema,
+})
+
+/**
+ * Contract for revmarketDisputes insert
+ * Database table: revmarket_disputes
+ */
+export const RevmarketDisputesInsertContract = createContract({
+  name: 'RevmarketDisputesInsert',
+  version: '1',
+  description: 'Database insert contract for revmarket_disputes table',
+  schema: Schemas.RevmarketDisputesInsertSchema,
+})
+
+// =============================================================================
+// RevmarketRefunds Contracts
+// =============================================================================
+
+/**
+ * Contract for revmarketRefunds row (Select)
+ * Database table: revmarket_refunds
+ */
+export const RevmarketRefundsRowContract = createContract({
+  name: 'RevmarketRefundsRow',
+  version: '1',
+  description: 'Database row contract for revmarket_refunds table',
+  schema: Schemas.RevmarketRefundsSelectSchema,
+})
+
+/**
+ * Contract for revmarketRefunds insert
+ * Database table: revmarket_refunds
+ */
+export const RevmarketRefundsInsertContract = createContract({
+  name: 'RevmarketRefundsInsert',
+  version: '1',
+  description: 'Database insert contract for revmarket_refunds table',
+  schema: Schemas.RevmarketRefundsInsertSchema,
 })
 
 // =============================================================================

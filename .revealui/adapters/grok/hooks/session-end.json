@@ -5,22 +5,27 @@
         "hooks": [
           {
             "type": "command",
-            "command": "printf '%s\\n' \"[grok] adapter SessionEnd → control layer (daemon session.end + hotfix + temp-scripts)\"",
+            "command": "printf '%s\\n' \"[grok] adapter SessionEnd → control layer (live-board + cleanup-session report + daemon session.end + hotfix + temp-scripts)\"",
             "timeout": 5
           },
           {
             "type": "command",
-            "command": "node \"$HOME/revealfleet/revealui/packages/harnesses/dist/cli.js\" session end 2>/dev/null || revealui-harnesses session end 2>/dev/null || true",
+            "command": "FLEET=\"${REVEALFLEET_ROOT:-$HOME/revealfleet}\"; if [ ! -d \"$FLEET/revealui\" ] && [ ! -f \"$FLEET/.jv/scripts/session-start-fleet.js\" ]; then FLEET=\"$HOME/revealfleet\"; fi; node \"$FLEET/.jv/scripts/session-end-fleet.js\" || true",
+            "timeout": 90
+          },
+          {
+            "type": "command",
+            "command": "FLEET=\"${REVEALFLEET_ROOT:-$HOME/revealfleet}\"; if [ ! -d \"$FLEET/revealui\" ] && [ ! -f \"$FLEET/.jv/scripts/session-start-fleet.js\" ]; then FLEET=\"$HOME/revealfleet\"; fi; node \"$FLEET/revealui/packages/harnesses/dist/cli.js\" session end 2>/dev/null || revealui-harnesses session end 2>/dev/null || true",
             "timeout": 20
           },
           {
             "type": "command",
-            "command": "node \"$HOME/revealfleet/revealui/packages/harnesses/dist/cli.js\" hotfix check 2>/dev/null || revealui-harnesses hotfix check 2>/dev/null || true",
+            "command": "FLEET=\"${REVEALFLEET_ROOT:-$HOME/revealfleet}\"; if [ ! -d \"$FLEET/revealui\" ] && [ ! -f \"$FLEET/.jv/scripts/session-start-fleet.js\" ]; then FLEET=\"$HOME/revealfleet\"; fi; node \"$FLEET/revealui/packages/harnesses/dist/cli.js\" hotfix check 2>/dev/null || revealui-harnesses hotfix check 2>/dev/null || true",
             "timeout": 15
           },
           {
             "type": "command",
-            "command": "node \"$HOME/revealfleet/revealui/packages/harnesses/dist/cli.js\" tmpscript check 2>/dev/null || revealui-harnesses tmpscript check 2>/dev/null || true",
+            "command": "FLEET=\"${REVEALFLEET_ROOT:-$HOME/revealfleet}\"; if [ ! -d \"$FLEET/revealui\" ] && [ ! -f \"$FLEET/.jv/scripts/session-start-fleet.js\" ]; then FLEET=\"$HOME/revealfleet\"; fi; node \"$FLEET/revealui/packages/harnesses/dist/cli.js\" tmpscript check 2>/dev/null || revealui-harnesses tmpscript check 2>/dev/null || true",
             "timeout": 12
           }
         ]

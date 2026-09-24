@@ -1,5 +1,15 @@
 # @revealui/services
 
+## 0.8.3
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies
+  - @revealui/db@0.11.0
+  - @revealui/contracts@0.12.0
+  - @revealui/core@0.15.0
+
 ## 0.8.2
 
 ### Patch Changes

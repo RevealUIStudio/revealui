@@ -36,7 +36,7 @@ import {
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
 import { extractRequestContext } from '@/lib/utils/request-context';
-import { sessionCookieDomain } from '@/lib/utils/session-cookies';
+import { requestHostFromHeaders, sessionCookieDomain } from '@/lib/utils/session-cookies';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -276,7 +276,10 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
         sameSite: 'lax',
         path: '/',
         maxAge: 60 * 60 * 24 * 7,
-        domain: sessionCookieDomain({ logIfMissing: true }),
+        domain: sessionCookieDomain({
+          logIfMissing: true,
+          requestHost: requestHostFromHeaders((name) => request.headers.get(name)),
+        }),
       });
 
       // Clear challenge cookie

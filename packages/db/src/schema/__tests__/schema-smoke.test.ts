@@ -65,7 +65,17 @@ import { passwordResetTokens } from '../password-reset-tokens.js';
 import { orders, products } from '../products.js';
 import { ragChunks, ragDocuments, ragWorkspaces } from '../rag.js';
 import { failedAttempts, rateLimits } from '../rate-limits.js';
-import { agentReviews, agentSkills, marketplaceAgents, taskSubmissions } from '../revmarket.js';
+import {
+  agentReviews,
+  agentSkills,
+  marketplaceAgents,
+  paymentAttempts,
+  publisherEarnings,
+  publisherPayouts,
+  revmarketDisputes,
+  revmarketRefunds,
+  taskSubmissions,
+} from '../revmarket.js';
 import { siteCollaborators, sites } from '../sites.js';
 import { tenants } from '../tenants.js';
 import {
@@ -177,6 +187,11 @@ const allTables = [
   { table: agentSkills, name: 'agent_skills' },
   { table: agentReviews, name: 'agent_reviews' },
   { table: taskSubmissions, name: 'task_submissions' },
+  { table: publisherPayouts, name: 'publisher_payouts' },
+  { table: publisherEarnings, name: 'publisher_earnings' },
+  { table: paymentAttempts, name: 'payment_attempts' },
+  { table: revmarketRefunds, name: 'revmarket_refunds' },
+  { table: revmarketDisputes, name: 'revmarket_disputes' },
   // sites.ts
   { table: sites, name: 'sites' },
   { table: siteCollaborators, name: 'site_collaborators' },
@@ -248,6 +263,11 @@ const allRelations = [
   { relation: schema.agentSkillsRelations, name: 'agentSkillsRelations' },
   { relation: schema.agentReviewsRelations, name: 'agentReviewsRelations' },
   { relation: schema.taskSubmissionsRelations, name: 'taskSubmissionsRelations' },
+  { relation: schema.publisherPayoutsRelations, name: 'publisherPayoutsRelations' },
+  { relation: schema.publisherEarningsRelations, name: 'publisherEarningsRelations' },
+  { relation: schema.paymentAttemptsRelations, name: 'paymentAttemptsRelations' },
+  { relation: schema.revmarketRefundsRelations, name: 'revmarketRefundsRelations' },
+  { relation: schema.revmarketDisputesRelations, name: 'revmarketDisputesRelations' },
   {
     relation: schema.workspaceInferenceConfigsRelations,
     name: 'workspaceInferenceConfigsRelations',

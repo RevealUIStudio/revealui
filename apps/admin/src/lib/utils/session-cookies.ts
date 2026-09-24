@@ -12,6 +12,10 @@
  */
 
 import { isHostedDeployment } from '@revealui/core/deployment-mode';
+import { sessionCookieDomainForHost } from '@revealui/core/session-cookie-domain';
+
+export { requestHostFromHeaders } from '@revealui/core/session-cookie-domain';
+
 import { logger } from '@revealui/utils/logger';
 import type { NextResponse } from 'next/server';
 
@@ -24,8 +28,16 @@ export interface SessionCookieDomainOptions {
    * Log an error when the variable is missing in production. The session
    * cookie SET sites opt in (a host-only session cookie silently breaks
    * cross-subdomain auth); the role-hint sites and sign-out stay silent.
+   * Not logged for a staging host: that host resolves its own domain.
    */
   logIfMissing?: boolean;
+  /**
+   * Public request host (`Host`, else `X-Forwarded-Host`).
+   * `staging.revealui.com` and `*.staging.revealui.com` resolve to
+   * `staging.revealui.com`. Any other host, including omitted, keeps
+   * `SESSION_COOKIE_DOMAIN` exactly.
+   */
+  requestHost?: string | null;
 }
 
 /**
@@ -33,6 +45,10 @@ export interface SessionCookieDomainOptions {
  * derivation: `SESSION_COOKIE_DOMAIN` in production, host-only otherwise.
  * An empty string counts as unset so the cookie falls back to host-only
  * rather than carrying `domain=""`.
+ *
+ * A request host of `staging.revealui.com` or `*.staging.revealui.com`
+ * resolves to `staging.revealui.com` instead of the configured production
+ * domain. Any other host keeps `SESSION_COOKIE_DOMAIN` exactly.
  *
  * Unlike the sign-in session cookie, this never throws when the variable is
  * missing  -  sign-out must still clear whatever cookie the host actually
@@ -44,12 +60,14 @@ export function sessionCookieDomain(options?: SessionCookieDomainOptions): strin
   if (process.env.NODE_ENV !== 'production') {
     return undefined;
   }
-  if (options?.logIfMissing && !process.env.SESSION_COOKIE_DOMAIN) {
+  const configured = process.env.SESSION_COOKIE_DOMAIN || undefined;
+  const resolved = sessionCookieDomainForHost(options?.requestHost, configured);
+  if (options?.logIfMissing && resolved === undefined) {
     logger.error(
       'SESSION_COOKIE_DOMAIN env var is required in production  -  session cookie will not be set cross-subdomain',
     );
   }
-  return process.env.SESSION_COOKIE_DOMAIN || undefined;
+  return resolved;
 }
 
 /**
@@ -70,16 +88,21 @@ export function sessionCookieDomain(options?: SessionCookieDomainOptions): strin
  * but threw on every successful sign-in at request time, turning a correct
  * login into a 500.
  */
-export function requireSessionCookieDomain(): string | undefined {
+export function requireSessionCookieDomain(options?: {
+  requestHost?: string | null;
+}): string | undefined {
   if (process.env.NODE_ENV !== 'production') {
     return undefined;
   }
-  if (isHostedDeployment(process.env) && !process.env.SESSION_COOKIE_DOMAIN) {
+  const configured = process.env.SESSION_COOKIE_DOMAIN || undefined;
+  const resolved = sessionCookieDomainForHost(options?.requestHost, configured);
+  if (resolved) return resolved;
+  if (isHostedDeployment(process.env)) {
     throw new Error(
       'SESSION_COOKIE_DOMAIN env var is required in production for cross-subdomain auth on a RevealUI Studio hosted deployment',
     );
   }
-  return process.env.SESSION_COOKIE_DOMAIN || undefined;
+  return undefined;
 }
 
 /** Default maxAge for role hint: 7 days (matches non-MFA sign-in). */
@@ -95,7 +118,7 @@ const ROLE_COOKIE_MAX_AGE_DEFAULT = 60 * 60 * 24 * 7;
 export function setRoleCookie(
   response: NextResponse,
   role: string | null | undefined,
-  options?: { maxAge?: number },
+  options?: { maxAge?: number; requestHost?: string | null },
 ): void {
   const userRole = role && role.length > 0 ? role : 'viewer';
   response.cookies.set(ROLE_COOKIE, userRole, {
@@ -104,7 +127,7 @@ export function setRoleCookie(
     sameSite: 'lax',
     path: '/',
     maxAge: options?.maxAge ?? ROLE_COOKIE_MAX_AGE_DEFAULT,
-    domain: sessionCookieDomain(),
+    domain: sessionCookieDomain({ requestHost: options?.requestHost }),
   });
 }
 
@@ -113,7 +136,10 @@ export function setRoleCookie(
  * `revealui-session` / `revealui-role` domain-scoped in production,
  * `revealui-must-rotate` host-only (it is set host-only at sign-in).
  */
-export function clearSessionCookies(response: NextResponse): void {
+export function clearSessionCookies(
+  response: NextResponse,
+  options?: { requestHost?: string | null },
+): void {
   const expire = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -122,7 +148,7 @@ export function clearSessionCookies(response: NextResponse): void {
     maxAge: 0,
     expires: new Date(0),
   };
-  const domain = sessionCookieDomain();
+  const domain = sessionCookieDomain({ requestHost: options?.requestHost });
 
   response.cookies.set(SESSION_COOKIE, '', { ...expire, domain });
   response.cookies.set(ROLE_COOKIE, '', { ...expire, domain });

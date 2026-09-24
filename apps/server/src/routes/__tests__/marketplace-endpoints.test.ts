@@ -783,5 +783,6 @@ describe('GET /connect/return  -  Stripe Connect return', () => {
     const body = await parseBody(res);
     expect(body.success).toBe(true);
     expect(body.message).toContain('Stripe Connect onboarding complete');
+    expect(body.message).toContain('marketplace and Revmarket');
   });
 });
