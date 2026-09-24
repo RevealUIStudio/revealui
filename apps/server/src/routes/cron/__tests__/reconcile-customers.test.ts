@@ -9,6 +9,7 @@ const hoisted = vi.hoisted(() => ({
   insertMock: vi.fn(),
   getClientMock: vi.fn(),
   customersListMock: vi.fn(),
+  sendCronFailureAlert: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({ logger: hoisted.logger }));
@@ -50,6 +51,10 @@ vi.mock('@revealui/services', () => ({
   protectedStripe: {
     customers: { list: hoisted.customersListMock },
   },
+}));
+
+vi.mock('../../../lib/cron-alerts.js', () => ({
+  sendCronFailureAlert: (...args: unknown[]) => hoisted.sendCronFailureAlert(...args),
 }));
 
 import reconcileApp from '../reconcile-customers.js';
@@ -108,6 +113,7 @@ function makeStripeCustomer(overrides: {
   email?: string | null;
   created?: number;
   deleted?: boolean;
+  metadata?: Record<string, string>;
 }) {
   return {
     id: overrides.id,
@@ -115,8 +121,18 @@ function makeStripeCustomer(overrides: {
     email: overrides.email ?? null,
     created: overrides.created ?? Math.floor(Date.now() / 1000) - 60,
     deleted: overrides.deleted,
+    metadata: overrides.metadata ?? {},
   };
 }
+
+/** Live Studio Consultation invoice stamp: deal=consultation_<date>. */
+const STUDIO_CONSULTATION_METADATA = {
+  buyer: 'network_buyer',
+  client: 'agency_client',
+  deal: 'consultation_2026_09_24',
+  end_client: 'end_client_example',
+  stage_b_fee: 'waived_network',
+};
 
 function makeStripeListResponse(
   customers: Array<ReturnType<typeof makeStripeCustomer>>,
@@ -469,6 +485,157 @@ describe('reconcile-customers Stripe error handling', () => {
     expect(body.error).toBe('stripe-error');
     expect(body.detail).toContain('Stripe is down');
     expect(hoisted.logger.error).toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Studio Consultation invoice customers are expected without product rows
+// ---------------------------------------------------------------------------
+describe('reconcile-customers Studio Consultation skip', () => {
+  it('skips a consultation-metadata customer without insert or CRITICAL alert', async () => {
+    const consultation = makeStripeCustomer({
+      id: 'cus_consultation_1',
+      email: 'buyer@example.com',
+      metadata: STUDIO_CONSULTATION_METADATA,
+    });
+    hoisted.customersListMock.mockResolvedValueOnce(makeStripeListResponse([consultation]));
+    hoisted.getClientMock.mockReturnValue(
+      buildDbMock({
+        selectQueue: [
+          { table: 'users', rows: [] },
+          { table: 'accountSubscriptions', rows: [] },
+        ],
+      }),
+    );
+
+    const res = await invoke(GOOD_SECRET);
+    const body = (await res.json()) as {
+      scanned: number;
+      orphaned: number;
+      alerted: number;
+      results: Array<{ customerId: string; email: string | null; outcome: string }>;
+    };
+
+    expect(res.status).toBe(200);
+    expect(body.scanned).toBe(1);
+    expect(body.orphaned).toBe(0);
+    expect(body.alerted).toBe(0);
+    expect(body.results).toEqual([
+      {
+        customerId: 'cus_consultation_1',
+        email: 'buyer@example.com',
+        outcome: 'skipped-studio-consultation',
+      },
+    ]);
+    expect(hoisted.insertMock).not.toHaveBeenCalled();
+    expect(hoisted.logger.error).not.toHaveBeenCalled();
+    expect(hoisted.sendCronFailureAlert).not.toHaveBeenCalled();
+    expect(hoisted.logger.info).toHaveBeenCalledWith(
+      expect.stringContaining('cus_consultation_1'),
+      expect.objectContaining({
+        customerId: 'cus_consultation_1',
+        reason: 'studio-consultation-metadata',
+      }),
+    );
+  });
+
+  it('still alerts an ordinary orphan that lacks consultation metadata', async () => {
+    // `deal=consultation` is not the agency stamp. Only `consultation_<date>` skips.
+    const orphan = makeStripeCustomer({
+      id: 'cus_orphan_plain',
+      email: 'lost@example.com',
+      metadata: { revealui_user_id: 'user_missing_row', deal: 'consultation' },
+    });
+    hoisted.customersListMock.mockResolvedValueOnce(makeStripeListResponse([orphan]));
+    hoisted.getClientMock.mockReturnValue(
+      buildDbMock({
+        selectQueue: [
+          { table: 'users', rows: [] },
+          { table: 'accountSubscriptions', rows: [] },
+          { table: 'unreconciledWebhooks', rows: [] },
+        ],
+      }),
+    );
+
+    const res = await invoke(GOOD_SECRET);
+    const body = (await res.json()) as {
+      orphaned: number;
+      alerted: number;
+      results: Array<{ customerId: string; outcome: string }>;
+    };
+
+    expect(body.orphaned).toBe(1);
+    expect(body.alerted).toBe(1);
+    expect(body.results[0]?.outcome).toBe('orphan-newly-alerted');
+    expect(body.results[0]?.customerId).toBe('cus_orphan_plain');
+    expect(hoisted.insertMock).toHaveBeenCalledTimes(1);
+    expect(hoisted.logger.error).toHaveBeenCalledWith(
+      expect.stringContaining('orphaned Stripe customer cus_orphan_plain'),
+      undefined,
+      expect.objectContaining({ customerId: 'cus_orphan_plain' }),
+    );
+    expect(hoisted.sendCronFailureAlert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        jobName: 'reconcile-customers',
+        severity: 'error',
+      }),
+    );
+  });
+
+  it('still matches a consultation-metadata customer when a users row exists', async () => {
+    const consultation = makeStripeCustomer({
+      id: 'cus_consultation_user',
+      metadata: STUDIO_CONSULTATION_METADATA,
+    });
+    hoisted.customersListMock.mockResolvedValueOnce(makeStripeListResponse([consultation]));
+    hoisted.getClientMock.mockReturnValue(
+      buildDbMock({
+        selectQueue: [{ table: 'users', rows: [{ id: 'usr_local_1' }] }],
+      }),
+    );
+
+    const res = await invoke(GOOD_SECRET);
+    const body = (await res.json()) as {
+      orphaned: number;
+      alerted: number;
+      results: Array<{ outcome: string }>;
+    };
+
+    expect(body.orphaned).toBe(0);
+    expect(body.alerted).toBe(0);
+    expect(body.results[0]?.outcome).toBe('matched');
+    expect(hoisted.insertMock).not.toHaveBeenCalled();
+    expect(hoisted.sendCronFailureAlert).not.toHaveBeenCalled();
+    expect(hoisted.logger.error).not.toHaveBeenCalled();
+  });
+
+  it('still matches a consultation-metadata customer when an accountSubscriptions row exists', async () => {
+    const consultation = makeStripeCustomer({
+      id: 'cus_consultation_sub',
+      metadata: { deal: 'consultation_future_book_pay' },
+    });
+    hoisted.customersListMock.mockResolvedValueOnce(makeStripeListResponse([consultation]));
+    hoisted.getClientMock.mockReturnValue(
+      buildDbMock({
+        selectQueue: [
+          { table: 'users', rows: [] },
+          { table: 'accountSubscriptions', rows: [{ accountId: 'acct_local_1' }] },
+        ],
+      }),
+    );
+
+    const res = await invoke(GOOD_SECRET);
+    const body = (await res.json()) as {
+      orphaned: number;
+      alerted: number;
+      results: Array<{ outcome: string }>;
+    };
+
+    expect(body.orphaned).toBe(0);
+    expect(body.alerted).toBe(0);
+    expect(body.results[0]?.outcome).toBe('matched');
+    expect(hoisted.insertMock).not.toHaveBeenCalled();
+    expect(hoisted.sendCronFailureAlert).not.toHaveBeenCalled();
   });
 });
 
