@@ -587,6 +587,84 @@ export const BoardsInsertContract = createContract({
 })
 
 // =============================================================================
+// BudgetIncidents Contracts
+// =============================================================================
+
+/**
+ * Contract for budgetIncidents row (Select)
+ * Database table: budget_incidents
+ */
+export const BudgetIncidentsRowContract = createContract({
+  name: 'BudgetIncidentsRow',
+  version: '1',
+  description: 'Database row contract for budget_incidents table',
+  schema: Schemas.BudgetIncidentsSelectSchema,
+})
+
+/**
+ * Contract for budgetIncidents insert
+ * Database table: budget_incidents
+ */
+export const BudgetIncidentsInsertContract = createContract({
+  name: 'BudgetIncidentsInsert',
+  version: '1',
+  description: 'Database insert contract for budget_incidents table',
+  schema: Schemas.BudgetIncidentsInsertSchema,
+})
+
+// =============================================================================
+// BudgetLedgers Contracts
+// =============================================================================
+
+/**
+ * Contract for budgetLedgers row (Select)
+ * Database table: budget_ledgers
+ */
+export const BudgetLedgersRowContract = createContract({
+  name: 'BudgetLedgersRow',
+  version: '1',
+  description: 'Database row contract for budget_ledgers table',
+  schema: Schemas.BudgetLedgersSelectSchema,
+})
+
+/**
+ * Contract for budgetLedgers insert
+ * Database table: budget_ledgers
+ */
+export const BudgetLedgersInsertContract = createContract({
+  name: 'BudgetLedgersInsert',
+  version: '1',
+  description: 'Database insert contract for budget_ledgers table',
+  schema: Schemas.BudgetLedgersInsertSchema,
+})
+
+// =============================================================================
+// BudgetPolicies Contracts
+// =============================================================================
+
+/**
+ * Contract for budgetPolicies row (Select)
+ * Database table: budget_policies
+ */
+export const BudgetPoliciesRowContract = createContract({
+  name: 'BudgetPoliciesRow',
+  version: '1',
+  description: 'Database row contract for budget_policies table',
+  schema: Schemas.BudgetPoliciesSelectSchema,
+})
+
+/**
+ * Contract for budgetPolicies insert
+ * Database table: budget_policies
+ */
+export const BudgetPoliciesInsertContract = createContract({
+  name: 'BudgetPoliciesInsert',
+  version: '1',
+  description: 'Database insert contract for budget_policies table',
+  schema: Schemas.BudgetPoliciesInsertSchema,
+})
+
+// =============================================================================
 // Categories Contracts
 // =============================================================================
 

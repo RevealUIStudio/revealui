@@ -586,6 +586,84 @@ export type BoardsRow = z.infer<typeof BoardsSelectSchema>
 export type BoardsInsert = z.infer<typeof BoardsInsertSchema>
 
 // =============================================================================
+// BudgetIncidents Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting budgetIncidents rows from database
+ * Generated from Drizzle table definition: tables.budgetIncidents
+ */
+export const BudgetIncidentsSelectSchema = createSelectSchema(tables.budgetIncidents)
+
+/**
+ * Zod schema for inserting budgetIncidents rows to database
+ * Generated from Drizzle table definition: tables.budgetIncidents
+ */
+export const BudgetIncidentsInsertSchema = createInsertSchema(tables.budgetIncidents)
+
+/**
+ * TypeScript type for budgetIncidents row (Select)
+ */
+export type BudgetIncidentsRow = z.infer<typeof BudgetIncidentsSelectSchema>
+
+/**
+ * TypeScript type for budgetIncidents insert
+ */
+export type BudgetIncidentsInsert = z.infer<typeof BudgetIncidentsInsertSchema>
+
+// =============================================================================
+// BudgetLedgers Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting budgetLedgers rows from database
+ * Generated from Drizzle table definition: tables.budgetLedgers
+ */
+export const BudgetLedgersSelectSchema = createSelectSchema(tables.budgetLedgers)
+
+/**
+ * Zod schema for inserting budgetLedgers rows to database
+ * Generated from Drizzle table definition: tables.budgetLedgers
+ */
+export const BudgetLedgersInsertSchema = createInsertSchema(tables.budgetLedgers)
+
+/**
+ * TypeScript type for budgetLedgers row (Select)
+ */
+export type BudgetLedgersRow = z.infer<typeof BudgetLedgersSelectSchema>
+
+/**
+ * TypeScript type for budgetLedgers insert
+ */
+export type BudgetLedgersInsert = z.infer<typeof BudgetLedgersInsertSchema>
+
+// =============================================================================
+// BudgetPolicies Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting budgetPolicies rows from database
+ * Generated from Drizzle table definition: tables.budgetPolicies
+ */
+export const BudgetPoliciesSelectSchema = createSelectSchema(tables.budgetPolicies)
+
+/**
+ * Zod schema for inserting budgetPolicies rows to database
+ * Generated from Drizzle table definition: tables.budgetPolicies
+ */
+export const BudgetPoliciesInsertSchema = createInsertSchema(tables.budgetPolicies)
+
+/**
+ * TypeScript type for budgetPolicies row (Select)
+ */
+export type BudgetPoliciesRow = z.infer<typeof BudgetPoliciesSelectSchema>
+
+/**
+ * TypeScript type for budgetPolicies insert
+ */
+export type BudgetPoliciesInsert = z.infer<typeof BudgetPoliciesInsertSchema>
+
+// =============================================================================
 // Categories Schemas
 // =============================================================================
 

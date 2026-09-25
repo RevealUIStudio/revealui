@@ -316,6 +316,11 @@
       "import": "./dist/jobs/index.js",
       "default": "./dist/jobs/index.js"
     },
+    "./budgets": {
+      "types": "./dist/budgets/index.d.ts",
+      "import": "./dist/budgets/index.js",
+      "default": "./dist/budgets/index.js"
+    },
     "./pool": {
       "types": "./dist/pool.d.ts",
       "import": "./dist/pool.js",

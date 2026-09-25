@@ -1,0 +1,37 @@
+export {
+  BUDGET_MODES,
+  type BudgetMode,
+  configureBudgetsMode,
+  currentBudgetsMode,
+  parseBudgetsMode,
+} from './mode.js';
+export {
+  BUDGET_SYSTEM_AGENT_ID,
+  type BudgetAuditWriter,
+  type BudgetDb,
+  type BudgetDecision,
+  type BudgetIncidentRef,
+  type BudgetRecordInput,
+  type BudgetRecordResult,
+  type BudgetReserveInput,
+  type BudgetScopeRef,
+  type BudgetWriteInput,
+  type ResolveBudgetIncidentInput,
+  type ResolveBudgetIncidentResult,
+  recordBudgetSpend,
+  reserveBudget,
+  resolveBudgetIncident,
+} from './reserve.js';
+export {
+  type BudgetLimitConfig,
+  configureBudgetLimits,
+  crossesHardStop,
+  crossesWarn,
+  defaultWarnPercent,
+  LIFETIME_WINDOW_START,
+  normalizeWarnPercent,
+  PAPERCLIP_DEFAULT_WARN_PERCENT,
+  warnAmount,
+  windowStart,
+  wouldExceedHardStop,
+} from './windows.js';
