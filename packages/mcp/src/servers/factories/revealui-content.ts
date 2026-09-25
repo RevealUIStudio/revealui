@@ -32,7 +32,6 @@
  * `REVEALUI_API_KEY` env vars when no override is set.
  */
 
-import { createHash } from 'node:crypto';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import {
   type CallToolRequest,
@@ -46,6 +45,7 @@ import {
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod/v4';
+import { hashMcpArguments, hashMcpToolSchema } from '../../approvals/call-identity.js';
 import { type McpToolError, validateToolArgs } from '../../validate-tool-args.js';
 
 // ---------------------------------------------------------------------------
@@ -163,23 +163,67 @@ export type McpToolMeterSink = (
   event: McpToolMeterEvent,
 ) => void | Promise<void>;
 
-/** sha256 (hex) of the canonical JSON of an arbitrary argument object. */
-function digestArgs(args: unknown): string {
-  return createHash('sha256').update(canonicalJson(args)).digest('hex');
+/**
+ * Decision from the hosted approval gate. The factory owns the mechanism.
+ * `apps/server` owns policy and persistence.
+ */
+export type McpApprovalDecision =
+  | { decision: 'allow' }
+  | { decision: 'deny'; reason: string }
+  | { decision: 'approval_required'; approvalId: string; expiresAt: string };
+
+export interface McpApprovalGateInput {
+  tool: string;
+  args: unknown;
+  argsHash: string;
+  toolSchemaHash: string;
+  /** From `_meta['revealui/approvalId']`. Never part of `args`. */
+  approvalId?: string;
+  clientName?: string;
 }
 
-/**
- * Deterministic JSON with object keys sorted, so the digest of the same
- * logical arguments is stable regardless of key order. No regex; a manual
- * recursive serializer over the parsed value.
- */
-function canonicalJson(value: unknown): string {
-  if (value === null || typeof value !== 'object') return JSON.stringify(value) ?? 'null';
-  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
-  const entries = Object.entries(value as Record<string, unknown>).sort((a, b) =>
-    a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0,
-  );
-  return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${canonicalJson(v)}`).join(',')}}`;
+export type McpToolApprovalGate = (
+  ctx: McpToolCallContext,
+  input: McpApprovalGateInput,
+) => Promise<McpApprovalDecision>;
+
+const APPROVAL_META_KEY = 'revealui/approvalId';
+const APPROVAL_NOTE = ' Human approval may be required before this tool runs.';
+
+/** sha256 hex of JCS(arguments). Same bytes as an approval `argsHash`. */
+function digestArgs(args: unknown): string {
+  return hashMcpArguments(args ?? {});
+}
+
+function readApprovalId(request: CallToolRequest): string | undefined {
+  const meta = request.params._meta;
+  if (!meta || typeof meta !== 'object') return undefined;
+  const raw = (meta as Record<string, unknown>)[APPROVAL_META_KEY];
+  if (typeof raw !== 'string' || raw.trim().length === 0) return undefined;
+  return raw;
+}
+
+function approvalToolError(
+  reasonCode: string,
+  extra?: Record<string, unknown>,
+): McpToolError & { structuredContent: Record<string, unknown> } {
+  return {
+    content: [{ type: 'text', text: `Error: ${reasonCode}` }],
+    isError: true,
+    structuredContent: { reasonCode, ...extra },
+  };
+}
+
+function schemaHashFor(tool: Tool): string | undefined {
+  try {
+    return hashMcpToolSchema({
+      name: tool.name,
+      inputSchema: tool.inputSchema,
+      annotations: tool.annotations ?? null,
+    });
+  } catch {
+    return undefined;
+  }
 }
 
 /** Allowlisted, non-secret scalars safe to store in a receipt in the clear. */
@@ -607,6 +651,20 @@ export interface CreateRevealuiContentServerOptions {
    * Default 4000. `0` disables the race (tests).
    */
   additionalToolsetTimeoutMs?: number;
+
+  /**
+   * Exact-call approval gate. Runs after authorization and the rate limiter,
+   * before credential resolution and tool execution. Unset on the stdio mount.
+   * A deny from `toolAuthorizer` (role, tier, or low-trust) is final: this
+   * gate is not consulted and cannot widen that deny.
+   */
+  approvalGate?: McpToolApprovalGate;
+
+  /**
+   * Tools whose descriptions should mention that approval may be required.
+   * Discovery only. Execution policy stays in `approvalGate`.
+   */
+  approvalEligibleTools?: ReadonlySet<string>;
 }
 
 /** Extra MCP tools mounted beside content (e.g. product-mode kg_*). */
@@ -861,6 +919,12 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
   // structurally absent when governed — not merely credential-gated. The stdio /
   // local mount (no options) keeps resources unchanged (single-operator trust).
   const governed = options?.credentialsProvider !== undefined;
+  const toolSchemaHashes = new Map<string, string>();
+  const advertised = [...TOOLS, ...(options?.additionalToolsets ?? []).flatMap((set) => set.tools)];
+  for (const tool of advertised) {
+    const hash = schemaHashFor(tool);
+    if (hash) toolSchemaHashes.set(tool.name, hash);
+  }
   const server = new Server(
     { name: 'revealui-content', version: '1.0.0' },
     { capabilities: governed ? { tools: {} } : { tools: {}, resources: {} } },
@@ -900,7 +964,12 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
 
   server.setRequestHandler(ListToolsRequestSchema, async (_request, extra) => {
     const extraTools = (options?.additionalToolsets ?? []).flatMap((set) => set.tools);
-    const listed = extraTools.length > 0 ? [...TOOLS, ...extraTools] : TOOLS;
+    const listed = (extraTools.length > 0 ? [...TOOLS, ...extraTools] : TOOLS).map((tool) => {
+      if (!(options?.approvalGate && options.approvalEligibleTools?.has(tool.name))) return tool;
+      const description = tool.description ?? tool.name;
+      if (description.includes('Human approval may be required')) return tool;
+      return { ...tool, description: `${description}${APPROVAL_NOTE}` };
+    });
     const authorizer = options?.toolAuthorizer;
     if (!authorizer) return { tools: listed };
     // Filtered discovery (I-7): advertise only tools this caller may execute.
@@ -1004,10 +1073,16 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
     ): Promise<boolean> {
       if (!auditSink) return true;
       const client = server.getClientVersion();
+      let argsDigest: string;
+      try {
+        argsDigest = digestArgs(rawArgs ?? {});
+      } catch {
+        argsDigest = hashMcpArguments({ mcpArgs: 'unhashable' });
+      }
       const record: McpToolAuditRecord = {
         outcome,
         tool: toolName,
-        argsDigest: digestArgs(rawArgs ?? null),
+        argsDigest,
         scalars: pickAuditScalars(rawArgs),
         durationMs: Date.now() - startTime,
         httpStatus: opts?.httpStatus,
@@ -1091,6 +1166,48 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
           },
           'rate-limit',
         );
+      }
+    }
+
+    // Approval runs after authz and the rate limiter, before credentials and
+    // before additional toolsets. An authz deny already returned above, so a
+    // low-trust or role denial cannot be widened by an approval.
+    if (options?.approvalGate) {
+      let argsHash: string;
+      try {
+        argsHash = digestArgs(rawArgs ?? {});
+      } catch {
+        return approvalToolError('approval_args_unhashable');
+      }
+      const toolSchemaHash = toolSchemaHashes.get(toolName);
+      if (!toolSchemaHash) {
+        return denied(
+          approvalToolError('approval_schema_unavailable'),
+          'approval_schema_unavailable',
+        );
+      }
+      const client = server.getClientVersion();
+      let decision: Awaited<ReturnType<NonNullable<typeof options.approvalGate>>>;
+      try {
+        decision = await options.approvalGate(ctx, {
+          tool: toolName,
+          args: rawArgs ?? {},
+          argsHash,
+          toolSchemaHash,
+          approvalId: readApprovalId(request),
+          clientName: client?.name,
+        });
+      } catch {
+        return denied(approvalToolError('approval_gate_failed'), 'approval_gate_failed');
+      }
+      if (decision.decision === 'deny') {
+        return denied(approvalToolError(decision.reason), decision.reason);
+      }
+      if (decision.decision === 'approval_required') {
+        return approvalToolError('approval_required', {
+          approvalId: decision.approvalId,
+          expiresAt: decision.expiresAt,
+        });
       }
     }
 

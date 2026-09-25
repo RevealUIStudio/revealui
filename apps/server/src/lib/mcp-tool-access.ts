@@ -156,6 +156,41 @@ export interface McpAuthzIdentity {
  * identity's server-derived tier. Governs both `tools/list` filtering and
  * `tools/call` execution.
  */
+/**
+ * Which tools may be placed behind an exact-call approval.
+ * Reads stay `never` unless a later settings change opts an eligible tool in.
+ * Only state-changing tools are eligible. The account `requireTools` list
+ * chooses which of those eligible tools actually pause for a human.
+ */
+export const TOOL_APPROVAL_DEFAULT: Record<McpToolName, 'never' | 'eligible'> = {
+  revealui_list_sites: 'never',
+  revealui_list_content: 'never',
+  revealui_get_content: 'never',
+  revealui_site_stats: 'never',
+  revealui_list_users: 'never',
+  revealui_session_list: 'never',
+  revealui_session_open: 'eligible',
+  revealui_session_get: 'never',
+  revealui_session_patch: 'eligible',
+  revealui_page_read: 'never',
+  kg_search: 'never',
+  kg_get_node: 'never',
+  kg_neighbors: 'never',
+  kg_path: 'never',
+  kg_at_time: 'never',
+  kg_context: 'never',
+  kg_add_episode: 'eligible',
+};
+
+export const MCP_APPROVAL_ELIGIBLE_TOOLS: ReadonlySet<string> = new Set(
+  MCP_TOOL_NAMES.filter((name) => TOOL_APPROVAL_DEFAULT[name] === 'eligible'),
+);
+
+export function mcpToolApprovalEligibility(toolName: string): 'never' | 'eligible' {
+  const policy = TOOL_APPROVAL_DEFAULT[toolName as McpToolName];
+  return policy ?? 'never';
+}
+
 export function authorizeMcpTool(identity: McpAuthzIdentity, toolName: string): boolean {
   const roleAllowed = mcpAuthz.hasPermission(
     [identity.role],

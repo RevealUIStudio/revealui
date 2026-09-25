@@ -2,9 +2,11 @@
  * Exact-call identity for governed MCP approvals.
  *
  * Hashes use RFC 8785 (`canonicalizeJcs`) so sign-time and verify-time bytes
- * match. The factory receipt digest still uses its local canonicalizer until
- * a later slice switches that path. An approval id never belongs in these
- * inputs: it travels outside `arguments`.
+ * match. The content factory receipt digest uses the same helper. An approval
+ * id never belongs in these inputs: it travels outside `arguments`.
+ *
+ * Only plain JSON is hashed. A Date or other class instance is rejected so it
+ * cannot collapse to `{}`.
  */
 
 import { createHash } from 'node:crypto';
@@ -34,11 +36,47 @@ function sha256Hex(canonical: string): string {
 }
 
 /**
+ * Reject values JSON cannot round-trip. `undefined` is left for JCS so the
+ * error still names it. Class instances (Date, Map) are not plain JSON.
+ */
+function assertPlainJson(value: unknown): void {
+  switch (typeof value) {
+    case 'undefined':
+    case 'function':
+    case 'symbol':
+    case 'bigint':
+    case 'number':
+    case 'string':
+    case 'boolean':
+      return;
+    case 'object': {
+      if (value === null) return;
+      if (Array.isArray(value)) {
+        for (const item of value) assertPlainJson(item);
+        return;
+      }
+      const proto = Object.getPrototypeOf(value);
+      if (proto !== Object.prototype && proto !== null) {
+        throw new Error('hashMcpArguments: value is not plain JSON');
+      }
+      for (const nested of Object.values(value as Record<string, unknown>)) {
+        assertPlainJson(nested);
+      }
+      return;
+    }
+    default:
+      throw new Error('hashMcpArguments: value is not plain JSON');
+  }
+}
+
+/**
  * sha256 hex of JCS(arguments). `null` and `undefined` hash as `{}`.
  * Nested `undefined` throws (fail closed): JSON cannot represent it.
  */
 export function hashMcpArguments(args: unknown): string {
-  return sha256Hex(canonicalizeJcs(args ?? {}));
+  const value = args ?? {};
+  assertPlainJson(value);
+  return sha256Hex(canonicalizeJcs(value));
 }
 
 /**

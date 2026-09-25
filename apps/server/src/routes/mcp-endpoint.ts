@@ -57,8 +57,13 @@ import type { Handler, MiddlewareHandler } from 'hono';
 import { Hono } from 'hono';
 import { isFleetOperator } from '../lib/access.js';
 import type { ApiAuthUser } from '../lib/api-roles.js';
+import { createMcpApprovalGate } from '../lib/mcp-approval-gate.js';
 import { recordMcpToolAudit } from '../lib/mcp-audit.js';
-import { authorizeMcpTool, type McpTier } from '../lib/mcp-tool-access.js';
+import {
+  authorizeMcpTool,
+  MCP_APPROVAL_ELIGIBLE_TOOLS,
+  type McpTier,
+} from '../lib/mcp-tool-access.js';
 import { MISSING_SELF_API_URL_MESSAGE, resolveSelfApiBaseUrl } from '../lib/self-api-url.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { entitlementMiddleware, getEntitlementsFromContext } from '../middleware/entitlements.js';
@@ -315,6 +320,8 @@ export function buildMcpEndpoint(config: McpEndpointConfig = {}): McpEndpointPar
         additionalToolsets: [kgToolset],
         additionalToolsetTimeoutMs: kgTimeoutMs,
         mutatingTools: new Set<string>(['kg_add_episode']),
+        approvalGate: createMcpApprovalGate(),
+        approvalEligibleTools: MCP_APPROVAL_ELIGIBLE_TOOLS,
       }),
     enableJsonResponse: true,
     allowedHosts,

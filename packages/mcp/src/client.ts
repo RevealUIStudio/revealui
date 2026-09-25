@@ -189,6 +189,17 @@ export type McpRequestOptions = {
   resetTimeoutOnProgress?: boolean;
 };
 
+function requestOptionsWithoutMeta(
+  options: McpRequestOptions & { meta?: Record<string, unknown> },
+): McpRequestOptions {
+  return {
+    signal: options.signal,
+    onProgress: options.onProgress,
+    timeout: options.timeout,
+    resetTimeoutOnProgress: options.resetTimeoutOnProgress,
+  };
+}
+
 /** Internal: translate our options to the SDK's native shape. */
 function toSdkRequestOptions(options?: McpRequestOptions): RequestOptions | undefined {
   if (!options) return undefined;
@@ -550,13 +561,22 @@ export class McpClient {
   async callTool(
     name: string,
     args?: Record<string, unknown>,
-    options?: McpRequestOptions,
+    options?: McpRequestOptions & { meta?: Record<string, unknown> },
   ): Promise<CallToolResult> {
     this.assertConnected('callTool');
     this.requireCapability('tools');
-    const params: { name: string; arguments?: Record<string, unknown> } = { name };
+    const params: {
+      name: string;
+      arguments?: Record<string, unknown>;
+      _meta?: Record<string, unknown>;
+    } = { name };
     if (args !== undefined) params.arguments = args;
-    const result = await this.sdk.callTool(params, undefined, toSdkRequestOptions(options));
+    if (options?.meta) params._meta = options.meta;
+    const result = await this.sdk.callTool(
+      params,
+      undefined,
+      toSdkRequestOptions(options ? requestOptionsWithoutMeta(options) : undefined),
+    );
     return result as CallToolResult;
   }
 
