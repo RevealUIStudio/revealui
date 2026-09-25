@@ -157,7 +157,7 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 | ------------------------------------------------------- | ------------------------------------------------- |
 | [`@revealui/core`](packages/core)                       | Runtime engine, REST API, auth, rich text, [plugins](docs/PLUGINS.md) |
 | [`@revealui/contracts`](packages/contracts)             | Zod schemas + TypeScript types (single source)    |
-| [`@revealui/db`](packages/db)                           | Drizzle ORM schema (117 tables) on NeonDB (Postgres) |
+| [`@revealui/db`](packages/db)                           | Drizzle ORM schema (120 tables) on NeonDB (Postgres) |
 | [`@revealui/auth`](packages/auth)                       | Session auth, password reset, rate limiting       |
 | [`@revealui/presentation`](packages/presentation)       | 66 UI components (Tailwind v4, zero ext deps)     |
 | [`@revealui/openapi`](packages/openapi)                 | OpenAPI route helpers and Swagger generation       |

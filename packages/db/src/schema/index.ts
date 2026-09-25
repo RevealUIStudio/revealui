@@ -77,6 +77,7 @@ import { workspaceInferenceConfigs } from './inference-configs.js';
 import { licenses } from './licenses.js';
 import { magicLinks } from './magic-links.js';
 import { marketplaceServers, marketplaceTransactions } from './marketplace.js';
+import { mcpApprovalSettings, mcpToolApprovals, mcpToolTrustRules } from './mcp-approvals.js';
 import { oauthAccounts } from './oauth-accounts.js';
 import { pageRevisions, pages } from './pages.js';
 import { passkeys } from './passkeys.js';
@@ -124,6 +125,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   paymentAttempts: many(paymentAttempts),
   revmarketRefunds: many(revmarketRefunds),
   revmarketDisputes: many(revmarketDisputes),
+  mcpApprovalsRequested: many(mcpToolApprovals, { relationName: 'mcpApprovalRequester' }),
+  mcpApprovalsDecided: many(mcpToolApprovals, { relationName: 'mcpApprovalDecider' }),
 }));
 
 export const tenantsRelations = relations(tenants, () => ({}));
@@ -133,6 +136,9 @@ export const accountsRelations = relations(accounts, ({ many, one }) => ({
   subscriptions: many(accountSubscriptions),
   entitlements: one(accountEntitlements),
   usageMeters: many(usageMeters),
+  mcpToolApprovals: many(mcpToolApprovals),
+  mcpToolTrustRules: many(mcpToolTrustRules),
+  mcpApprovalSettings: one(mcpApprovalSettings),
 }));
 
 export const accountMembershipsRelations = relations(accountMemberships, ({ one }) => ({
@@ -163,6 +169,42 @@ export const accountEntitlementsRelations = relations(accountEntitlements, ({ on
 export const usageMetersRelations = relations(usageMeters, ({ one }) => ({
   account: one(accounts, {
     fields: [usageMeters.accountId],
+    references: [accounts.id],
+  }),
+}));
+
+export const mcpToolApprovalsRelations = relations(mcpToolApprovals, ({ one, many }) => ({
+  account: one(accounts, {
+    fields: [mcpToolApprovals.accountId],
+    references: [accounts.id],
+  }),
+  requester: one(users, {
+    fields: [mcpToolApprovals.requesterUserId],
+    references: [users.id],
+    relationName: 'mcpApprovalRequester',
+  }),
+  decider: one(users, {
+    fields: [mcpToolApprovals.decidedByUserId],
+    references: [users.id],
+    relationName: 'mcpApprovalDecider',
+  }),
+  trustRules: many(mcpToolTrustRules),
+}));
+
+export const mcpToolTrustRulesRelations = relations(mcpToolTrustRules, ({ one }) => ({
+  account: one(accounts, {
+    fields: [mcpToolTrustRules.accountId],
+    references: [accounts.id],
+  }),
+  sourceApproval: one(mcpToolApprovals, {
+    fields: [mcpToolTrustRules.sourceApprovalId],
+    references: [mcpToolApprovals.id],
+  }),
+}));
+
+export const mcpApprovalSettingsRelations = relations(mcpApprovalSettings, ({ one }) => ({
+  account: one(accounts, {
+    fields: [mcpApprovalSettings.accountId],
     references: [accounts.id],
   }),
 }));
