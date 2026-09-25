@@ -72,6 +72,34 @@ function authorizeCronDispatch(c: {
   return revealuiCronSecretMatches(provided) || vercelCronSecretMatches(provided);
 }
 
+/** Max characters of a non-JSON sub-job body included in the dispatch error. */
+const JOB_RESPONSE_SNIPPET_CHARS = 200;
+
+/**
+ * Read a sub-job body as JSON. Do not call res.json() on this response:
+ * a plain-text 404 ("404 Not Found") parses the leading digits and then throws
+ * "Unexpected non-whitespace character after JSON at position 4".
+ */
+async function readJsonJobBody(res: Response, jobName: string): Promise<unknown> {
+  const status = res.status;
+  const contentType = (res.headers.get('content-type') ?? '').toLowerCase();
+  const text = await res.text();
+  const snippet = text.slice(0, JOB_RESPONSE_SNIPPET_CHARS);
+  if (!contentType.includes('application/json')) {
+    throw new Error(
+      `expected application/json from ${jobName}, got status ${status} content-type ${contentType || '(none)'} body ${snippet}`,
+    );
+  }
+  try {
+    return JSON.parse(text) as unknown;
+  } catch (parseErr) {
+    const detail = parseErr instanceof Error ? parseErr.message : String(parseErr);
+    throw new Error(
+      `json parse failed for ${jobName} (status ${status}): ${detail}; body ${snippet}`,
+    );
+  }
+}
+
 const JOBS = [
   // drain-unreconciled runs first so any failed webhook replays land back in
   // the accounting DB before billing-readiness evaluates price parity and
@@ -186,7 +214,7 @@ app.on(['GET', 'POST'], '/dispatch', async (c) => {
         headers: fanoutHeaders,
       });
       const res = await job.app.fetch(req);
-      const body = await res.json();
+      const body = await readJsonJobBody(res, job.name);
       results.push({
         name: job.name,
         status: res.status,

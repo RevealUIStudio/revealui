@@ -131,6 +131,7 @@ import cronReconcileStripeSubscriptionsRoute from './routes/cron/reconcile-strip
 import cronReconcileSubscriptionsRoute from './routes/cron/reconcile-subscriptions.js';
 import cronRevmarketPayoutsRoute from './routes/cron/revmarket-payouts.js';
 import cronSweepGraceRoute from './routes/cron/sweep-grace-periods.js';
+import cronUptimeCheckRoute from './routes/cron/uptime-check.js';
 import cronWorkerLivenessRoute from './routes/cron/worker-liveness.js';
 import devkitRoute from './routes/devkit.js';
 import errorsRoute from './routes/errors.js';
@@ -1312,6 +1313,7 @@ app.route('/api/cron', cronLifecycleEmailsRoute);
 app.route('/api/cron', cronMarginSnapshotRoute);
 app.route('/api/cron', cronAdmissionWaitlistDrainRoute);
 app.route('/api/cron', cronAdmissionPaidPendingExpireRoute);
+app.route('/api/cron', cronUptimeCheckRoute);
 app.route('/api/cron', cronWorkerLivenessRoute);
 app.route('/api/jobs', jobsRoute);
 app.route('/api/ghcr', ghcrRoute);
