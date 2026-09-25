@@ -48,6 +48,7 @@ vi.mock('drizzle-orm', () => ({
   and: vi.fn((...args: unknown[]) => args),
   eq: vi.fn((col: unknown, val: unknown) => ({ col, val })),
   gt: vi.fn((col: unknown, val: unknown) => ({ col, val, op: 'gt' })),
+  lt: vi.fn((col: unknown, val: unknown) => ({ col, val, op: 'lt' })),
   sql: Object.assign(
     vi.fn((...args: unknown[]) => args),
     { join: vi.fn() },
@@ -122,6 +123,8 @@ function setupAtomicDecrement(rows: unknown[]) {
   const insertChain = {
     values: mockValues.mockReturnValue({
       onConflictDoUpdate: mockOnConflictDoUpdate.mockReturnValue({
+        // Plan slot is already full, so the conditional upsert reserves nothing.
+        returning: vi.fn().mockResolvedValue([]),
         catch: vi.fn(),
       }),
     }),
@@ -182,6 +185,14 @@ describe('task-quota — atomic credit decrement (C-1 fix)', () => {
 
   it('blocks on atomic UPDATE error (503) rather than allowing free task', async () => {
     setupUsageCount(1);
+    mockInsert.mockReturnValue({
+      values: vi.fn().mockReturnValue({
+        onConflictDoUpdate: vi.fn().mockReturnValue({
+          returning: vi.fn().mockResolvedValue([]),
+          catch: vi.fn(),
+        }),
+      }),
+    });
 
     const returningChain = { returning: vi.fn().mockRejectedValue(new Error('DB timeout')) };
     const whereChain = { where: vi.fn().mockReturnValue(returningChain) };
