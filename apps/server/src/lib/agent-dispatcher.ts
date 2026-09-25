@@ -123,6 +123,13 @@ export async function buildDispatcher(
 
   async function refreshTrustLayers(ticketId: string): Promise<void> {
     const mode = currentLowTrustMode();
+    // Off is the pre-preset path: do not read the ticket again. An extra
+    // getTicketById here sits between the route's initial fetch and the
+    // final status fetch.
+    if (mode === 'off') {
+      trustLayers = [];
+      return;
+    }
     const row = await ticketQueries.getTicketById(db, ticketId);
     let metadata: unknown = row?.metadata;
     const accountId = resolution.accountId ?? '';
