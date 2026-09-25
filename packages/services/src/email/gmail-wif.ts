@@ -1,10 +1,18 @@
 /**
  * Keyless Gmail access via Workload Identity Federation (GAP-211).
  *
- * Vercel injects VERCEL_OIDC_TOKEN. We exchange it at STS for a federated
- * access token, IAM Credentials signs a domain-wide-delegation JWT, then
- * OAuth2 issues a Gmail access token. No downloadable SA private key.
+ * Vercel Functions deliver the OIDC token on the request header
+ * x-vercel-oidc-token. getVercelOidcToken() reads that header from the
+ * request context. We exchange it at STS for a federated access token,
+ * IAM Credentials signs a domain-wide-delegation JWT, then OAuth2 issues
+ * a Gmail access token. No downloadable SA private key.
+ *
+ * VERCEL_OIDC_TOKEN and GOOGLE_WIF_ID_TOKEN remain fallbacks for builds,
+ * local development, and non-Vercel runtimes. Do not vault a long-lived
+ * VERCEL_OIDC_TOKEN.
  */
+
+import { getVercelOidcToken } from '@vercel/oidc';
 
 const GMAIL_SEND_SCOPE = 'https://www.googleapis.com/auth/gmail.send';
 const STS_TOKEN_URL = 'https://sts.googleapis.com/v1/token';
@@ -23,7 +31,17 @@ export function gmailWifConfigured(env: GmailWifEnv = process.env): boolean {
   return Boolean(env.GOOGLE_SERVICE_ACCOUNT_EMAIL && env.GOOGLE_WIF_PROVIDER);
 }
 
-function subjectToken(env: GmailWifEnv): string | undefined {
+async function subjectToken(env: GmailWifEnv): Promise<string | undefined> {
+  // The helper reads x-vercel-oidc-token from the Vercel request context,
+  // then process.env.VERCEL_OIDC_TOKEN. It throws when neither is present.
+  try {
+    const fromHelper = await getVercelOidcToken();
+    if (typeof fromHelper === 'string' && fromHelper.length > 0) {
+      return fromHelper;
+    }
+  } catch {
+    // Non-Vercel runtimes, disabled OIDC, and non-JWT env stubs land here.
+  }
   const token = env.VERCEL_OIDC_TOKEN ?? env.GOOGLE_WIF_ID_TOKEN;
   return token && token.length > 0 ? token : undefined;
 }
@@ -49,7 +67,7 @@ async function readJson(res: Response): Promise<Record<string, unknown>> {
 
 /** Exchange the runtime OIDC token for a federated GCP access token. */
 export async function exchangeStsToken(env: GmailWifEnv): Promise<string> {
-  const token = subjectToken(env);
+  const token = await subjectToken(env);
   if (!token) {
     throw new Error(
       'No OIDC subject token (VERCEL_OIDC_TOKEN or GOOGLE_WIF_ID_TOKEN). Enable Vercel OIDC.',
