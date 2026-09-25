@@ -21,7 +21,7 @@ export interface AgentFeatureCard {
 
 export const PRICING_HERO: SectionHeading = {
   eyebrow: 'Pricing',
-  title: 'Tired of tools that don’t talk? Agents need PROOF.',
+  title: 'Tired of tools that don’t talk, and agents with no PROOF?',
   subtitle:
     'Self-host the agentic business runtime. Catalog: Free / Pro $49 / Max $99/mo · $799/yr. Studio work invoices on revealuistudio.com.',
 };

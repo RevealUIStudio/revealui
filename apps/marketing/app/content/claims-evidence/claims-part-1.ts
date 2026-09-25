@@ -762,7 +762,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'pricing.ts',
     exportPath: 'PRICING_HERO.title',
     proofGrade: 'outcome',
-    text: 'Tired of tools that don’t talk? Agents need PROOF.',
+    text: 'Tired of tools that don’t talk, and agents with no PROOF?',
     evidence: [AUDIT_SIGNING, AUDIT_SIGNING_TEST, SELF_HOST],
   },
   {
