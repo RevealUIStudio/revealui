@@ -15,12 +15,21 @@
  */
 
 import { logger } from '@revealui/core/observability/logger';
+import * as Sentry from '@sentry/node';
 import { Hono } from 'hono';
 import {
   currentRevealuiCronSecret,
   revealuiCronSecretMatches,
   vercelCronSecretMatches,
 } from '../../lib/cron-auth.js';
+import {
+  dispatchMonitorConfig,
+  jobMonitorConfig,
+  jobMonitorSlug,
+  MONITORED_JOB_NAMES,
+  resolveDispatchMonitorSlug,
+  sentryCronEnabled,
+} from '../../lib/cron-sentry-monitors.js';
 import billingApp from '../billing.js';
 import admissionPaidPendingExpireApp from './admission-paid-pending-expire.js';
 import admissionWaitlistDrainApp from './admission-waitlist-drain.js';
@@ -198,58 +207,73 @@ app.on(['GET', 'POST'], '/dispatch', async (c) => {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
-  logger.info('[cron-dispatch] Starting consolidated cron run');
+  const runDispatch = async (): Promise<Response> => {
+    logger.info('[cron-dispatch] Starting consolidated cron run');
 
-  const results: JobResult[] = [];
-  const fanoutSecret = currentRevealuiCronSecret();
-  const fanoutHeaders: Record<string, string> = fanoutSecret
-    ? { 'X-Cron-Secret': fanoutSecret }
-    : {};
+    const results: JobResult[] = [];
+    const fanoutSecret = currentRevealuiCronSecret();
+    const fanoutHeaders: Record<string, string> = fanoutSecret
+      ? { 'X-Cron-Secret': fanoutSecret }
+      : {};
 
-  for (const job of JOBS) {
-    const start = Date.now();
-    try {
-      const req = new Request(`http://localhost${job.path}`, {
-        method: 'POST',
-        headers: fanoutHeaders,
-      });
-      const res = await job.app.fetch(req);
-      const body = await readJsonJobBody(res, job.name);
-      results.push({
-        name: job.name,
-        status: res.status,
-        body,
-        durationMs: Date.now() - start,
-      });
-      logger.info(`[cron-dispatch] ${job.name}: ${res.status} (${Date.now() - start}ms)`);
-    } catch (err) {
-      const durationMs = Date.now() - start;
-      const message = err instanceof Error ? err.message : String(err);
-      results.push({
-        name: job.name,
-        status: 500,
-        body: { error: message },
-        durationMs,
-      });
-      logger.error(`[cron-dispatch] ${job.name} failed: ${message} (${durationMs}ms)`);
+    for (const job of JOBS) {
+      const start = Date.now();
+      try {
+        const runJob = async (): Promise<{ res: Response; body: unknown }> => {
+          const req = new Request(`http://localhost${job.path}`, {
+            method: 'POST',
+            headers: fanoutHeaders,
+          });
+          const res = await job.app.fetch(req);
+          const body = await readJsonJobBody(res, job.name);
+          return { res, body };
+        };
+        const { res, body } =
+          sentryCronEnabled() && MONITORED_JOB_NAMES.has(job.name)
+            ? await Sentry.withMonitor(jobMonitorSlug(job.name), runJob, jobMonitorConfig)
+            : await runJob();
+        results.push({
+          name: job.name,
+          status: res.status,
+          body,
+          durationMs: Date.now() - start,
+        });
+        logger.info(`[cron-dispatch] ${job.name}: ${res.status} (${Date.now() - start}ms)`);
+      } catch (err) {
+        const durationMs = Date.now() - start;
+        const message = err instanceof Error ? err.message : String(err);
+        results.push({
+          name: job.name,
+          status: 500,
+          body: { error: message },
+          durationMs,
+        });
+        logger.error(`[cron-dispatch] ${job.name} failed: ${message} (${durationMs}ms)`);
+      }
     }
+
+    const failed = results.filter((r) => r.status >= 400);
+    const totalMs = results.reduce((sum, r) => sum + r.durationMs, 0);
+
+    logger.info(
+      `[cron-dispatch] Complete: ${results.length} jobs, ${failed.length} failed, ${totalMs}ms total`,
+    );
+
+    return c.json({
+      status: failed.length === 0 ? 'ok' : 'partial',
+      jobs: results.length,
+      failed: failed.length,
+      totalMs,
+      results,
+      dispatchedAt: new Date().toISOString(),
+    });
+  };
+
+  if (!sentryCronEnabled()) {
+    return runDispatch();
   }
 
-  const failed = results.filter((r) => r.status >= 400);
-  const totalMs = results.reduce((sum, r) => sum + r.durationMs, 0);
-
-  logger.info(
-    `[cron-dispatch] Complete: ${results.length} jobs, ${failed.length} failed, ${totalMs}ms total`,
-  );
-
-  return c.json({
-    status: failed.length === 0 ? 'ok' : 'partial',
-    jobs: results.length,
-    failed: failed.length,
-    totalMs,
-    results,
-    dispatchedAt: new Date().toISOString(),
-  });
+  return Sentry.withMonitor(resolveDispatchMonitorSlug(), runDispatch, dispatchMonitorConfig);
 });
 
 export default app;

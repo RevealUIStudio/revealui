@@ -16,9 +16,18 @@ const hoisted = vi.hoisted(() => {
     };
   }
 
+  const sentry = {
+    withMonitor: vi.fn((slug: string, callback: () => unknown, _config?: unknown) => {
+      void slug;
+      return callback();
+    }),
+    captureCheckIn: vi.fn(),
+  };
+
   return {
     forwarded,
     stubApp,
+    sentry,
     logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
   };
 });
@@ -26,6 +35,8 @@ const hoisted = vi.hoisted(() => {
 vi.mock('@revealui/core/observability/logger', () => ({
   logger: hoisted.logger,
 }));
+
+vi.mock('@sentry/node', () => hoisted.sentry);
 
 vi.mock('../billing.js', () => ({ default: hoisted.stubApp() }));
 vi.mock('./billing-readiness.js', () => ({ default: hoisted.stubApp() }));
@@ -80,14 +91,20 @@ async function invokeDispatch(opts: {
   );
 }
 
+const FAKE_SENTRY_DSN = 'https://example@o0.ingest.sentry.io/0';
+
 beforeEach(() => {
   hoisted.forwarded.length = 0;
   vi.clearAllMocks();
   setEnv();
+  delete process.env.SENTRY_DSN;
+  delete process.env.SENTRY_CRON_DISPATCH_SLUG;
 });
 
 afterEach(() => {
   clearEnv();
+  delete process.env.SENTRY_DSN;
+  delete process.env.SENTRY_CRON_DISPATCH_SLUG;
 });
 
 describe('GET /dispatch (Vercel platform cron)', () => {
@@ -212,5 +229,77 @@ describe('dispatch rotation overlap', () => {
     expect(res.status).toBe(200);
     expect(hoisted.forwarded.every((job) => job.cronSecret === REVEALUI_CRON_SECRET)).toBe(true);
     expect(hoisted.forwarded.some((job) => job.cronSecret === PREVIOUS_REVEALUI)).toBe(false);
+  });
+});
+
+describe('dispatch Sentry cron monitors', () => {
+  it('does not open a Sentry cron monitor without SENTRY_DSN', async () => {
+    const res = await invokeDispatch({
+      method: 'GET',
+      headers: { Authorization: `Bearer ${CRON_SECRET}` },
+    });
+    expect(res.status).toBe(200);
+    expect(hoisted.sentry.withMonitor).not.toHaveBeenCalled();
+  });
+
+  it('checks in the dispatch monitor and each monitored job when SENTRY_DSN is set', async () => {
+    setEnv({ SENTRY_DSN: FAKE_SENTRY_DSN });
+    const res = await invokeDispatch({
+      method: 'GET',
+      headers: { Authorization: `Bearer ${CRON_SECRET}` },
+    });
+    expect(res.status).toBe(200);
+
+    const slugs = hoisted.sentry.withMonitor.mock.calls.map((call) => call[0]);
+    expect(slugs).toEqual([
+      'vercel-cron-dispatch',
+      'cron-drain-unreconciled',
+      'cron-reconcile-subscriptions',
+      'cron-reconcile-customers',
+      'cron-reconcile-stripe-subscriptions',
+      'cron-billing-readiness',
+      'cron-sweep-grace-periods',
+      'cron-reconcile-entitlements',
+    ]);
+
+    const dispatchConfig = hoisted.sentry.withMonitor.mock.calls[0]?.[2];
+    expect(dispatchConfig).toEqual({
+      schedule: { type: 'crontab', value: '0 6 * * *' },
+      checkinMargin: 30,
+      maxRuntime: 5,
+      timezone: 'UTC',
+      failureIssueThreshold: 1,
+      recoveryThreshold: 1,
+    });
+
+    const jobConfig = hoisted.sentry.withMonitor.mock.calls[1]?.[2];
+    expect(jobConfig).toEqual({
+      schedule: { type: 'crontab', value: '0 6 * * *' },
+      checkinMargin: 30,
+      maxRuntime: 2,
+      timezone: 'UTC',
+      failureIssueThreshold: 1,
+      recoveryThreshold: 1,
+    });
+  });
+
+  it('uses SENTRY_CRON_DISPATCH_SLUG when set', async () => {
+    setEnv({
+      SENTRY_DSN: FAKE_SENTRY_DSN,
+      SENTRY_CRON_DISPATCH_SLUG: 'custom-dispatch-slug',
+    });
+    const res = await invokeDispatch({
+      method: 'POST',
+      headers: { 'X-Cron-Secret': REVEALUI_CRON_SECRET },
+    });
+    expect(res.status).toBe(200);
+    expect(hoisted.sentry.withMonitor.mock.calls[0]?.[0]).toBe('custom-dispatch-slug');
+  });
+
+  it('does not check in when the request is unauthorized', async () => {
+    setEnv({ SENTRY_DSN: FAKE_SENTRY_DSN });
+    const res = await invokeDispatch({ method: 'GET' });
+    expect(res.status).toBe(401);
+    expect(hoisted.sentry.withMonitor).not.toHaveBeenCalled();
   });
 });
