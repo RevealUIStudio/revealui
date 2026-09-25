@@ -7,6 +7,7 @@ import {
   SectionHeader,
 } from '@revealui/presentation';
 import { useEffect, useMemo, useState } from 'react';
+import { PRICING_HIGHLIGHTED_BADGE } from '../../content/pricing';
 import {
   PRICING_TEASER_FOOTER,
   PRICING_TEASER_LINKS,
@@ -85,7 +86,7 @@ export function PricingTeaser() {
       />
 
       <div className="mx-auto mt-12 max-w-3xl sm:mt-14">
-        <PricingTable tiers={tiers} highlightedLabel="Recommended" />
+        <PricingTable tiers={tiers} highlightedLabel={PRICING_HIGHLIGHTED_BADGE} />
       </div>
 
       <div className="mx-auto mt-8 flex max-w-3xl flex-col items-center justify-center gap-2 text-sm sm:flex-row sm:gap-6">

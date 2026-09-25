@@ -136,7 +136,7 @@ export const QUOTE_CALCULATOR = {
   },
   introCta: {
     label: 'Book a 30-minute intro',
-    note: 'Google Calendar / Meet.',
+    note: 'Google Calendar / Google Meet.',
     href: SITE.urls.bookIntro,
   },
 } as const;

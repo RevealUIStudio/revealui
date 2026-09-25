@@ -78,6 +78,7 @@ describe('QuoteCalculator', () => {
     const intro = screen.getByRole('link', { name: QUOTE_CALCULATOR.introCta.label });
     expect(intro).toHaveAttribute('href', SITE.urls.bookIntro);
     expect(intro.getAttribute('href') ?? '').toContain('https://calendar.google.com/');
+    expect(screen.getByText('Google Calendar / Google Meet.')).toBeInTheDocument();
   });
 
   it('does not render leftover Fleet, Custom, or kit prices', () => {

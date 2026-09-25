@@ -66,7 +66,7 @@ describe('quote calculator (product-site lockstep)', () => {
     expect(QUOTE_CALCULATOR.intro.body).toBe(
       'The calculator stops here. Book a 30-minute intro to scope it.',
     );
-    expect(QUOTE_CALCULATOR.introCta.note).toBe('Google Calendar / Meet.');
+    expect(QUOTE_CALCULATOR.introCta.note).toBe('Google Calendar / Google Meet.');
   });
 
   it('locksteps printed numbers to public-catalog and the locked SKU trio', () => {
