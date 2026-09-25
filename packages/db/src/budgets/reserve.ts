@@ -303,6 +303,7 @@ async function applySpend(
   const scopesJson = JSON.stringify(
     input.scopes.map((scope) => ({ scope_type: scope.scopeType, scope_id: scope.scopeId })),
   );
+  // drizzle-raw: budget_apply_spend is plpgsql; Neon HTTP has no multi-statement transaction and Drizzle cannot express the advisory-locked ledger CTE
   const result = await db.execute(sql`
     SELECT budget_apply_spend(
       ${input.accountId}::text,
@@ -552,6 +553,7 @@ export async function resolveBudgetIncident(
     throw new Error('budget resolution is invalid');
   }
   if (input.actorUserId.length === 0) throw new Error('budget actorUserId is required');
+  // drizzle-raw: single-statement UPDATE RETURNING; a follow-up audit write cannot share a Neon HTTP transaction
   const result = await db.execute(sql`
     UPDATE budget_incidents
        SET status = 'resolved',
