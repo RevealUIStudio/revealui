@@ -632,6 +632,9 @@ jobs:
         # resolvability failure, which fails this job (and the workflow).
         env:
           APP_LIST: ${{ needs.detect.outputs.app-list }}
+          # Sent only to *.revealui.com by the verifier so the Cloudflare
+          # skip rule lets this runner past the edge challenge.
+          REVEALUI_CRON_EDGE_KEY: ${{ secrets.REVEALUI_CRON_EDGE_KEY }}
         run: |
           ARGS=""
           case " $APP_LIST " in
