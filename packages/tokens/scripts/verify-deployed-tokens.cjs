@@ -300,20 +300,35 @@ function checkFontResolvability(fontDecls, fontFaceFamilies, csp, externalFontRe
   return failures;
 }
 
+// Cloudflare edge key (CI only). Attached only to revealui.com hosts so it
+// never leaks to third-party font or CSS origins.
+const EDGE_KEY = process.env.REVEALUI_CRON_EDGE_KEY || '';
+function edgeInit(url, init = {}) {
+  if (!EDGE_KEY) return init;
+  let host;
+  try {
+    host = new URL(url).hostname;
+  } catch {
+    return init;
+  }
+  if (host !== 'revealui.com' && !host.endsWith('.revealui.com')) return init;
+  return { ...init, headers: { ...(init.headers || {}), 'x-revealui-cron-key': EDGE_KEY } };
+}
+
 // Default reachability probe: HEAD (falling back to GET on 405, since some
 // CDNs/dev servers reject HEAD) and treat any 2xx as reachable. A data: URI
 // is embedded in the CSS itself — no network round-trip needed to resolve it.
 async function defaultFetchAsset(absUrl) {
   if (absUrl.startsWith('data:')) return true;
   try {
-    const res = await fetch(absUrl, { method: 'HEAD', redirect: 'follow' });
+    const res = await fetch(absUrl, edgeInit(absUrl, { method: 'HEAD', redirect: 'follow' }));
     if (res.ok) return true;
     if (res.status !== 405) return false;
   } catch {
     return false;
   }
   try {
-    const res = await fetch(absUrl, { method: 'GET', redirect: 'follow' });
+    const res = await fetch(absUrl, edgeInit(absUrl, { method: 'GET', redirect: 'follow' }));
     return res.ok;
   } catch {
     return false;
@@ -428,7 +443,7 @@ function discoverCssImports(css, cssUrl, pageOrigin) {
 }
 
 async function fetchDeployed(pageUrl) {
-  const res = await fetch(pageUrl, { redirect: 'follow' });
+  const res = await fetch(pageUrl, edgeInit(pageUrl, { redirect: 'follow' }));
   if (!res.ok) throw new Error(`fetch ${pageUrl} → HTTP ${res.status}`);
   const html = await res.text();
   const csp = parseCsp(res.headers.get('content-security-policy'));
@@ -443,7 +458,7 @@ async function fetchDeployed(pageUrl) {
     seen.add(cssUrl);
     let cssText;
     try {
-      const cr = await fetch(cssUrl, { redirect: 'follow' });
+      const cr = await fetch(cssUrl, edgeInit(cssUrl, { redirect: 'follow' }));
       if (!cr.ok) continue;
       cssText = await cr.text();
     } catch {
