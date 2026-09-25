@@ -26,6 +26,15 @@ export { type AuditEvent, AuditLine, type AuditLineProps } from './audit-line.js
 export { AuthLayout, type AuthLayoutProps } from './auth-layout.js';
 export { Avatar, AvatarButton } from './avatar.js';
 export { AvatarGroup } from './avatar-group.js';
+export {
+  BOOKING_CALENDAR_DEFAULT_MESSAGES,
+  BookingCalendar,
+  type BookingCalendarMessages,
+  type BookingCalendarProps,
+  type BookingCalendarStatus,
+  type BookingCalendarValue,
+  type BookingSlot,
+} from './BookingCalendar.js';
 export { BuiltWithRevealUI } from './BuiltWithRevealUI.js';
 // The owned action button. `Button` is the sovereign export; `ButtonCVA` is a
 // deprecated alias kept for one minor to ease 0.x consumers and stacked
@@ -45,6 +54,13 @@ export {
 } from './badge.js';
 export { RevealUIMark, type RevealUIMarkProps } from './brand-mark.js';
 export { Breadcrumb, type BreadcrumbItem } from './breadcrumb.js';
+export {
+  Calendar,
+  type CalendarProps,
+  type CalendarSize,
+  calendarVariants,
+  type WeekStartsOn,
+} from './Calendar.js';
 export {
   Card,
   CardContent,
