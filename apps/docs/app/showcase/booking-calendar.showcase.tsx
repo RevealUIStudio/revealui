@@ -43,7 +43,7 @@ const story: ShowcaseStory = {
       Space: 'Select the focused slot',
     },
     aria: {
-      'aria-selected': 'true on the selected day',
+      'aria-selected': 'true on the selected day gridcell',
       role: 'radiogroup for the slots of the selected day',
       'aria-busy': 'true while status is loading',
     },

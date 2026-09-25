@@ -52,7 +52,13 @@ describe('Calendar', () => {
     expect(selected.getFullYear()).toBe(2026);
     expect(selected.getMonth()).toBe(8);
     expect(selected.getDate()).toBe(15);
-    expect(dayButton('Tuesday, September 15, 2026')).toHaveAttribute('aria-selected', 'true');
+    const selectedDay = dayButton('Tuesday, September 15, 2026');
+    expect(selectedDay).not.toHaveAttribute('aria-selected');
+    expect(selectedDay.closest('td')).toHaveAttribute('role', 'gridcell');
+    expect(selectedDay.closest('td')).toHaveAttribute('aria-selected', 'true');
+    const otherDay = dayButton('Wednesday, September 16, 2026');
+    expect(otherDay).not.toHaveAttribute('aria-selected');
+    expect(otherDay.closest('td')).toHaveAttribute('aria-selected', 'false');
   });
 
   it('marks leading days as outside the visible month', () => {

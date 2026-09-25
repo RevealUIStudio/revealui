@@ -62,7 +62,7 @@ const story: ShowcaseStory = {
     },
     aria: {
       role: 'grid',
-      'aria-selected': 'true on the selected day',
+      'aria-selected': 'true on the selected day gridcell',
       'aria-disabled': 'true on days outside min/max or rejected by isDateDisabled',
     },
   },

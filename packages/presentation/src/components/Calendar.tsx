@@ -314,14 +314,20 @@ function Calendar({
                 const isTabStop = isSameDay(cell.date, tabDate);
 
                 return (
-                  <td className="p-0.5 text-center" key={key}>
+                  // biome-ignore lint/a11y/useFocusableInteractive: APG date grid keeps focus on the day button inside the cell
+                  <td
+                    aria-selected={showDay ? isSelected : undefined}
+                    className="p-0.5 text-center"
+                    key={key}
+                    // biome-ignore lint/a11y/noNoninteractiveElementToInteractiveRole: APG date grid marks each day cell as a gridcell
+                    role="gridcell"
+                  >
                     {showDay ? (
                       <Button
                         appearance={isSelected ? 'solid' : 'ghost'}
                         aria-current={isToday ? 'date' : undefined}
                         aria-disabled={isUnavailable || undefined}
                         aria-label={formatDay(cell.date, locale)}
-                        aria-selected={isSelected}
                         className={cn(
                           daySizeClass[resolvedSize],
                           'px-0',
