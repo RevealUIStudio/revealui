@@ -11,12 +11,17 @@
  * — callers must treat that as a license / configuration failure.
  */
 
+import { parseTicketTrustPreset } from '@revealui/contracts';
 import type { Database } from '@revealui/db/client';
 import * as commentQueries from '@revealui/db/queries/ticket-comments';
 import * as ticketQueries from '@revealui/db/queries/tickets';
+import { isExternalTrustChannel, type TrustLayer } from '@revealui/security';
 import { resolveDispatchPrincipal, resolveJobPrincipal } from './agent-principal.js';
 import { applyAgentToolGovernance } from './agent-tool-governance.js';
 import { createAuditStore } from './audit-signer.js';
+import { currentLowTrustMode } from './low-trust-mode.js';
+import { createTicketOwnershipLoader } from './low-trust-ownership.js';
+import { commitPrincipalTrust } from './low-trust-run.js';
 
 export interface DispatcherResult {
   success: boolean;
@@ -34,6 +39,12 @@ export interface DispatcherTicket {
 
 export interface Dispatcher {
   dispatch(ticket: DispatcherTicket, options?: { dispatchId?: string }): Promise<DispatcherResult>;
+}
+
+function readMetadataChannel(metadata: unknown): string {
+  if (typeof metadata !== 'object' || metadata === null || Array.isArray(metadata)) return '';
+  const channel = (metadata as Record<string, unknown>).channel;
+  return typeof channel === 'string' ? channel : '';
 }
 
 /**
@@ -108,25 +119,72 @@ export async function buildDispatcher(
   const adminBaseUrl = process.env.ADMIN_URL ?? process.env.NEXT_PUBLIC_ADMIN_URL;
   const apiClient = buildCMSClient(adminBaseUrl);
 
-  // GAP-355 S6-4: pre-authorize admin/ticket tools at dispatch via wrapTools.
-  type DispatcherConfig = ConstructorParameters<typeof aiMod.TicketAgentDispatcher>[0];
+  let trustLayers: readonly TrustLayer[] = [];
 
-  const wrapTools: NonNullable<DispatcherConfig['wrapTools']> = (tools, ctx) => {
-    const principal = resolution.asJob
+  async function refreshTrustLayers(ticketId: string): Promise<void> {
+    const mode = currentLowTrustMode();
+    // Off is the pre-preset path: do not read the ticket again. An extra
+    // getTicketById here sits between the route's initial fetch and the
+    // final status fetch.
+    if (mode === 'off') {
+      trustLayers = [];
+      return;
+    }
+    const row = await ticketQueries.getTicketById(db, ticketId);
+    let metadata: unknown = row?.metadata;
+    const accountId = resolution.accountId ?? '';
+    const channel = readMetadataChannel(metadata);
+    const parsed = parseTicketTrustPreset(metadata);
+    if (!parsed.ok) {
+      trustLayers = [{ source: 'task', preset: 'invalid', origin: 'server' }];
+      return;
+    }
+    if (mode === 'enforce' && !parsed.preset && isExternalTrustChannel(channel)) {
+      const stamped = await ticketQueries.setTicketTrustPreset(db, ticketId, 'low_trust_review');
+      metadata = stamped?.metadata ?? metadata;
+    }
+    const settled = parseTicketTrustPreset(metadata);
+    if (!(settled.ok && settled.preset)) {
+      trustLayers = [];
+      return;
+    }
+    trustLayers = [
+      {
+        source: 'task',
+        preset: settled.preset,
+        origin: 'server',
+        ...(settled.preset === 'low_trust_review'
+          ? { scope: { kind: 'ticket' as const, id: ticketId, accountId } }
+          : {}),
+      },
+    ];
+  }
+
+  function principalFor(ticketId: string, asJob: boolean) {
+    return asJob
       ? resolveJobPrincipal({
-          agentId: `ticket-agent-${ctx.ticketId}`,
+          agentId: `ticket-agent-${ticketId}`,
           userId: resolution.userId,
           userRole: resolution.userRole,
           tenantId: resolution.workspaceId ?? null,
           accountId: resolution.accountId ?? null,
+          trustLayers,
         })
       : resolveDispatchPrincipal({
-          ticketId: ctx.ticketId,
+          ticketId,
           userId: resolution.userId,
           userRole: resolution.userRole,
           workspaceId: resolution.workspaceId,
           accountId: resolution.accountId,
+          trustLayers,
         });
+  }
+
+  // GAP-355 S6-4: pre-authorize admin/ticket tools at dispatch via wrapTools.
+  type DispatcherConfig = ConstructorParameters<typeof aiMod.TicketAgentDispatcher>[0];
+
+  const wrapTools: NonNullable<DispatcherConfig['wrapTools']> = (tools, ctx) => {
+    const principal = principalFor(ctx.ticketId, Boolean(resolution.asJob));
 
     return applyAgentToolGovernance(tools, {
       principal,
@@ -135,6 +193,7 @@ export async function buildDispatcher(
       accountId: resolution.accountId ?? null,
       userId: resolution.userId,
       taskId: ctx.ticketId,
+      ownership: createTicketOwnershipLoader(db, resolution.accountId ?? ''),
     }) as typeof tools;
   };
 
@@ -153,21 +212,15 @@ export async function buildDispatcher(
 
   return {
     async dispatch(ticket, options) {
-      const principal = resolution.asJob
-        ? resolveJobPrincipal({
-            agentId: `ticket-agent-${ticket.id}`,
-            userId: resolution.userId,
-            userRole: resolution.userRole,
-            tenantId: resolution.workspaceId ?? null,
-            accountId: resolution.accountId ?? null,
-          })
-        : resolveDispatchPrincipal({
-            ticketId: ticket.id,
-            userId: resolution.userId,
-            userRole: resolution.userRole,
-            workspaceId: resolution.workspaceId,
-            accountId: resolution.accountId,
-          });
+      await refreshTrustLayers(ticket.id);
+      const principal = principalFor(ticket.id, Boolean(resolution.asJob));
+      await commitPrincipalTrust({
+        principal,
+        mode: currentLowTrustMode(),
+        db,
+        sessionId: options?.dispatchId,
+        taskId: ticket.id,
+      });
 
       const startId = crypto.randomUUID();
       await auditStore.append({

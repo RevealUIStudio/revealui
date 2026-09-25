@@ -110,6 +110,32 @@ export async function createTicket(
   return result[0];
 }
 
+const TRUST_PRESET_KEY = 'trustPreset';
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Client and tool metadata patches cannot set or clear trustPreset.
+ * A preset already stored on the row is copied back onto the merge.
+ */
+export function mergeTicketMetadataPreservingTrust(
+  existing: unknown,
+  incoming: unknown,
+): Record<string, unknown> {
+  const base = isPlainRecord(existing) ? { ...existing } : {};
+  const patch = isPlainRecord(incoming) ? { ...incoming } : {};
+  delete patch[TRUST_PRESET_KEY];
+  const merged: Record<string, unknown> = { ...base, ...patch };
+  if (isPlainRecord(existing) && Object.hasOwn(existing, TRUST_PRESET_KEY)) {
+    merged[TRUST_PRESET_KEY] = existing[TRUST_PRESET_KEY];
+  } else {
+    delete merged[TRUST_PRESET_KEY];
+  }
+  return merged;
+}
+
 export async function updateTicket(
   db: Database,
   id: string,
@@ -129,12 +155,38 @@ export async function updateTicket(
     metadata: Record<string, unknown>;
   }>,
 ) {
+  let patch = data;
+  if (data.metadata) {
+    const existing = await getTicketById(db, id);
+    patch = {
+      ...data,
+      metadata: mergeTicketMetadataPreservingTrust(existing?.metadata, data.metadata),
+    };
+  }
   const result = await db
     .update(tickets)
-    .set({ ...data, updatedAt: new Date() })
+    .set({ ...patch, updatedAt: new Date() })
     .where(eq(tickets.id, id))
     .returning();
 
+  return result[0] ?? null;
+}
+
+/** Server-only write of trustPreset. Client updateTicket patches cannot do this. */
+export async function setTicketTrustPreset(
+  db: Database,
+  id: string,
+  preset: 'standard' | 'low_trust_review',
+) {
+  const existing = await getTicketById(db, id);
+  if (!existing) return null;
+  const base = isPlainRecord(existing.metadata) ? { ...existing.metadata } : {};
+  base[TRUST_PRESET_KEY] = preset;
+  const result = await db
+    .update(tickets)
+    .set({ metadata: base, updatedAt: new Date() })
+    .where(eq(tickets.id, id))
+    .returning();
   return result[0] ?? null;
 }
 
