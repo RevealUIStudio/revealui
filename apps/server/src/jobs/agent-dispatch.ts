@@ -21,6 +21,7 @@
  * leaks across jobs.
  */
 
+import { parseTicketTrustPreset } from '@revealui/contracts';
 import { isFeatureEnabled } from '@revealui/core/features';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
@@ -221,7 +222,9 @@ export async function agentDispatchHandler(
   // above — this block only runs once per dispatch (the first time that
   // dispatcher.dispatch() actually executes), because subsequent replays
   // hit the `alreadyProcessed` branch and skip writes.
-  if (!alreadyProcessed && memoized.output) {
+  const trustMeta = parseTicketTrustPreset(freshTicket?.metadata);
+  const lowTrustMemoryBlocked = trustMeta.ok && trustMeta.preset === 'low_trust_review';
+  if (!alreadyProcessed && memoized.output && !lowTrustMemoryBlocked) {
     try {
       const memoryValues = {
         id: crypto.randomUUID(),

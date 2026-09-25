@@ -2,7 +2,7 @@
  * GAP-355 Stage 6 S6-2 — authorizeAgentTool policy matrix.
  */
 
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import {
   type AgentPrincipal,
   resolveDispatchPrincipal,
@@ -10,11 +10,13 @@ import {
 } from '../agent-principal.js';
 import {
   adminToolIncludeForAgent,
+  agentExecPermissionKey,
   agentToolPermissionKey,
   authorizeAgentTool,
   getAgentToolMeta,
   listExecToolNames,
 } from '../agent-tool-access.js';
+import { configureAgentLowTrustMode } from '../low-trust-mode.js';
 
 function stream(role: string, grants?: AgentPrincipal['grants']): AgentPrincipal {
   return resolveStreamPrincipal({
@@ -71,9 +73,21 @@ describe('authorizeAgentTool — coding exec requires grant', () => {
       });
     });
 
-    it(`allows ${name} with explicit grant`, () => {
+    it(`does not treat a generic agent:tool grant as exec for ${name}`, () => {
       const r = authorizeAgentTool(
         stream('viewer', [{ resource: agentToolPermissionKey(name), action: 'execute' }]),
+        name,
+      );
+      expect(r).toMatchObject({
+        allowed: false,
+        reason: 'exec_requires_grant',
+        class: 'exec',
+      });
+    });
+
+    it(`allows ${name} with an agent:exec capability`, () => {
+      const r = authorizeAgentTool(
+        stream('viewer', [{ resource: agentExecPermissionKey(name), action: 'execute' }]),
         name,
       );
       expect(r).toMatchObject({
@@ -190,6 +204,132 @@ describe('authorizeAgentTool — dispatch principal', () => {
     expect(authorizeAgentTool(p, 'add_ticket_comment')).toMatchObject({
       allowed: false,
       reason: 'user_role_denied',
+    });
+  });
+});
+
+describe('authorizeAgentTool — low_trust_review beats an exec grant', () => {
+  afterEach(() => {
+    configureAgentLowTrustMode(null);
+  });
+
+  it('denies shell_exec under the preset even with an explicit exec grant', () => {
+    configureAgentLowTrustMode('enforce');
+    const principal = resolveStreamPrincipal({
+      mode: 'coding',
+      userId: 'user-1',
+      userRole: 'owner',
+      accountId: 'acct-1',
+      grants: [{ resource: agentToolPermissionKey('shell_exec'), action: 'execute' }],
+      trust: {
+        preset: 'low_trust_review',
+        scope: { kind: 'ticket', id: 'tkt-1', accountId: 'acct-1' },
+        sources: ['task'],
+      },
+    });
+    const result = authorizeAgentTool(principal, 'shell_exec');
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBe('low_trust_class_denied');
+  });
+
+  it('still denies shell_exec under the preset when the grant is agent:exec', () => {
+    configureAgentLowTrustMode('enforce');
+    const principal = resolveStreamPrincipal({
+      mode: 'coding',
+      userId: 'user-1',
+      userRole: 'owner',
+      accountId: 'acct-1',
+      grants: [{ resource: agentExecPermissionKey('shell_exec'), action: 'execute' }],
+      trust: {
+        preset: 'low_trust_review',
+        scope: { kind: 'ticket', id: 'tkt-1', accountId: 'acct-1' },
+        sources: ['task'],
+      },
+    });
+    expect(authorizeAgentTool(principal, 'shell_exec')).toMatchObject({
+      allowed: false,
+      reason: 'low_trust_class_denied',
+    });
+  });
+
+  it('denies list_users and web_scrape and the coding surface', () => {
+    configureAgentLowTrustMode('enforce');
+    const principal = resolveStreamPrincipal({
+      mode: 'admin',
+      userId: 'user-1',
+      userRole: 'owner',
+      accountId: 'acct-1',
+      trust: {
+        preset: 'low_trust_review',
+        scope: { kind: 'ticket', id: 'tkt-1', accountId: 'acct-1' },
+        sources: ['task'],
+      },
+    });
+    expect(authorizeAgentTool(principal, 'list_users').reason).toBe('low_trust_class_denied');
+    expect(authorizeAgentTool(principal, 'web_scrape')).toMatchObject({
+      allowed: false,
+      reason: 'low_trust_network_denied',
+      class: 'network',
+    });
+    expect(authorizeAgentTool(principal, 'file_read')).toMatchObject({
+      allowed: false,
+      reason: 'low_trust_class_denied',
+    });
+    expect(authorizeAgentTool(principal, 'revealui_kg_add_episode')).toMatchObject({
+      allowed: false,
+      reason: 'low_trust_memory_denied',
+    });
+    expect(authorizeAgentTool(principal, 'add_ticket_comment').allowed).toBe(true);
+  });
+
+  it('keeps exec and admin-pii denied in shadow and only logs other classes', () => {
+    configureAgentLowTrustMode('shadow');
+    const principal = resolveStreamPrincipal({
+      mode: 'coding',
+      userId: 'user-1',
+      userRole: 'owner',
+      accountId: 'acct-1',
+      grants: [{ resource: agentExecPermissionKey('shell_exec'), action: 'execute' }],
+      trust: {
+        preset: 'low_trust_review',
+        scope: { kind: 'ticket', id: 'tkt-1', accountId: 'acct-1' },
+        sources: ['task'],
+      },
+    });
+    expect(authorizeAgentTool(principal, 'shell_exec')).toMatchObject({
+      allowed: false,
+      reason: 'low_trust_class_denied',
+    });
+    expect(authorizeAgentTool(principal, 'list_users')).toMatchObject({
+      allowed: false,
+      reason: 'low_trust_class_denied',
+    });
+    expect(authorizeAgentTool(principal, 'file_read')).toMatchObject({
+      allowed: true,
+      wouldDenyReason: 'low_trust_class_denied',
+    });
+    expect(authorizeAgentTool(principal, 'web_scrape')).toMatchObject({
+      allowed: true,
+      wouldDenyReason: 'low_trust_network_denied',
+    });
+  });
+
+  it('ignores an expired exec capability', () => {
+    const principal = resolveStreamPrincipal({
+      mode: 'coding',
+      userId: 'user-1',
+      userRole: 'owner',
+      grants: [
+        {
+          resource: agentExecPermissionKey('shell_exec'),
+          action: 'execute',
+          expiresAt: '2000-01-01T00:00:00.000Z',
+        },
+      ],
+    });
+    expect(authorizeAgentTool(principal, 'shell_exec')).toMatchObject({
+      allowed: false,
+      reason: 'exec_requires_grant',
     });
   });
 });

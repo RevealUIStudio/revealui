@@ -6,18 +6,53 @@
  * trusted from client tool arguments.
  *
  * Stage 5 receipts record what happened; Stage 6 principals decide what may
- * happen. This module is types + pure resolvers only — no HTTP wiring yet.
+ * happen. Trust is resolved here from server layers. A client preset can only
+ * narrow. Grants never feed resolveTrust.
  *
  * @see .jv/docs/gap-specs/GAP-355-stage6-govern-agents-design.md §4.1
  */
 
+import {
+  type ResolvedTrust,
+  resolveTrust,
+  type TrustLayer,
+  type TrustResolveFailureReason,
+  type TrustSource,
+} from '@revealui/security';
+
+export const STANDARD_TRUST: ResolvedTrust = Object.freeze({
+  preset: 'standard',
+  scope: null,
+  sources: [],
+});
+
+export class TrustResolveError extends Error {
+  readonly reason: TrustResolveFailureReason;
+  readonly sources: readonly TrustSource[];
+
+  constructor(reason: TrustResolveFailureReason, sources: readonly TrustSource[]) {
+    super(`Trust resolve failed: ${reason}`);
+    this.name = 'TrustResolveError';
+    this.reason = reason;
+    this.sources = sources;
+  }
+}
+
+export function isTrustResolveError(err: unknown): err is TrustResolveError {
+  return err instanceof TrustResolveError;
+}
+
 /** How the agent run was started. */
 export type AgentPrincipalKind = 'stream' | 'dispatch' | 'mcp-bound' | 'job';
 
-/** Optional explicit grant (AGENT mode / future scope grants). */
+/**
+ * Optional explicit grant. Exec uses `agent:exec:<tool>`, not `agent:tool:<tool>`.
+ * `expiresAt` is an ISO timestamp. Expired or unparseable grants do not match.
+ */
 export interface AgentGrant {
   resource: string;
   action: string;
+  expiresAt?: string | null;
 }
 
 /**
@@ -42,6 +77,19 @@ export interface AgentPrincipal {
   roles: readonly string[];
   /** Explicit grants; empty means role-only evaluation (default). */
   grants: readonly AgentGrant[];
+  /**
+   * Resolved containment boundary. Standard when no layer narrows.
+   * Grants cannot change this field.
+   */
+  trust: ResolvedTrust;
+  /**
+   * Set when resolution failed. Enforce mode refuses the run. Shadow and off
+   * keep `trust` at standard and record the failure instead of throwing here.
+   */
+  trustResolveFailure: {
+    reason: TrustResolveFailureReason;
+    sources: readonly TrustSource[];
+  } | null;
 }
 
 // ─── Pure helpers ───────────────────────────────────────────────────────────
@@ -60,11 +108,59 @@ function uniqueRoles(roles: ReadonlyArray<string | null | undefined>): string[] 
 }
 
 function freezePrincipal(principal: AgentPrincipal): AgentPrincipal {
+  const sources: AgentPrincipal['trust']['sources'] = [...principal.trust.sources];
+  Object.freeze(sources);
   return Object.freeze({
     ...principal,
     roles: Object.freeze([...principal.roles]),
     grants: Object.freeze(principal.grants.map((g) => Object.freeze({ ...g }))),
+    trust: Object.freeze({
+      ...principal.trust,
+      scope: principal.trust.scope ? Object.freeze({ ...principal.trust.scope }) : null,
+      sources,
+    }),
+    trustResolveFailure: principal.trustResolveFailure
+      ? Object.freeze({
+          ...principal.trustResolveFailure,
+          sources: Object.freeze([...principal.trustResolveFailure.sources]),
+        })
+      : null,
   });
+}
+
+export interface TrustAssignmentInput {
+  /** Server layers. Client scope on these layers is ignored when origin is client. */
+  trustLayers?: readonly TrustLayer[];
+  /**
+   * Preset from a request body. Narrows only. Never supplies a scope.
+   */
+  clientPreset?: string | null;
+  /** Skip resolution and store this boundary. Tests and already-resolved callers. */
+  trust?: ResolvedTrust;
+}
+
+function settleTrust(
+  accountId: string | null,
+  input: TrustAssignmentInput | undefined,
+): Pick<AgentPrincipal, 'trust' | 'trustResolveFailure'> {
+  if (input?.trust) {
+    return { trust: input.trust, trustResolveFailure: null };
+  }
+  const layers: TrustLayer[] = [...(input?.trustLayers ?? [])];
+  if (input?.clientPreset != null && input.clientPreset !== '') {
+    layers.push({ source: 'task', preset: input.clientPreset, origin: 'client' });
+  }
+  if (layers.length === 0) {
+    return { trust: STANDARD_TRUST, trustResolveFailure: null };
+  }
+  const result = resolveTrust(layers, { accountId: accountId ?? '' });
+  if (!result.ok) {
+    return {
+      trust: STANDARD_TRUST,
+      trustResolveFailure: { reason: result.reason, sources: result.sources },
+    };
+  }
+  return { trust: result.trust, trustResolveFailure: null };
 }
 
 /**
@@ -78,12 +174,32 @@ export function principalRoleList(principal: AgentPrincipal): string[] {
  * True when the principal carries an explicit grant for resource+action.
  * Empty grants ⇒ false (role-only mode; S6-2 authorize uses roles).
  */
+function grantIsActive(grant: AgentGrant, nowMs: number): boolean {
+  if (grant.expiresAt == null || grant.expiresAt === '') return true;
+  const expiry = Date.parse(grant.expiresAt);
+  if (Number.isNaN(expiry)) return false;
+  return expiry > nowMs;
+}
+
+export function principalFindGrant(
+  principal: AgentPrincipal,
+  resource: string,
+  action: string,
+  nowMs: number = Date.now(),
+): AgentGrant | undefined {
+  return principal.grants.find(
+    (grant) =>
+      grant.resource === resource && grant.action === action && grantIsActive(grant, nowMs),
+  );
+}
+
 export function principalHasGrant(
   principal: AgentPrincipal,
   resource: string,
   action: string,
+  nowMs: number = Date.now(),
 ): boolean {
-  return principal.grants.some((g) => g.resource === resource && g.action === action);
+  return principalFindGrant(principal, resource, action, nowMs) !== undefined;
 }
 
 // ─── Resolvers (one per kind) ───────────────────────────────────────────────
@@ -97,6 +213,9 @@ export interface ResolveStreamPrincipalInput {
   tenantId?: string | null;
   accountId?: string | null;
   grants?: readonly AgentGrant[];
+  trustLayers?: readonly TrustLayer[];
+  clientPreset?: string | null;
+  trust?: ResolvedTrust;
 }
 
 /**
@@ -115,6 +234,7 @@ export function resolveStreamPrincipal(input: ResolveStreamPrincipalInput): Agen
     actingUserId: input.userId,
     roles: uniqueRoles([input.userRole, 'agent']),
     grants: input.grants ? [...input.grants] : [],
+    ...settleTrust(input.accountId ?? null, input),
   });
 }
 
@@ -127,6 +247,9 @@ export interface ResolveDispatchPrincipalInput {
   workspaceId?: string | null;
   accountId?: string | null;
   grants?: readonly AgentGrant[];
+  trustLayers?: readonly TrustLayer[];
+  clientPreset?: string | null;
+  trust?: ResolvedTrust;
 }
 
 /**
@@ -144,6 +267,7 @@ export function resolveDispatchPrincipal(input: ResolveDispatchPrincipalInput): 
     actingUserId: input.userId,
     roles: uniqueRoles([input.userRole, 'agent']),
     grants: input.grants ? [...input.grants] : [],
+    ...settleTrust(input.accountId ?? null, input),
   });
 }
 
@@ -154,6 +278,9 @@ export interface ResolveJobPrincipalInput {
   tenantId?: string | null;
   accountId?: string | null;
   grants?: readonly AgentGrant[];
+  trustLayers?: readonly TrustLayer[];
+  clientPreset?: string | null;
+  trust?: ResolvedTrust;
 }
 
 /**
@@ -171,6 +298,7 @@ export function resolveJobPrincipal(input: ResolveJobPrincipalInput): AgentPrinc
     actingUserId: input.userId ?? null,
     roles: uniqueRoles([input.userRole, 'agent']),
     grants: input.grants ? [...input.grants] : [],
+    ...settleTrust(input.accountId ?? null, input),
   });
 }
 
@@ -182,6 +310,9 @@ export interface ResolveMcpBoundPrincipalInput {
   tenantId?: string | null;
   accountId?: string | null;
   grants?: readonly AgentGrant[];
+  trustLayers?: readonly TrustLayer[];
+  clientPreset?: string | null;
+  trust?: ResolvedTrust;
 }
 
 /**
@@ -201,5 +332,6 @@ export function resolveMcpBoundPrincipal(input: ResolveMcpBoundPrincipalInput): 
     actingUserId: input.userId,
     roles: uniqueRoles([input.userRole, 'agent']),
     grants: input.grants ? [...input.grants] : [],
+    ...settleTrust(input.accountId ?? null, input),
   });
 }

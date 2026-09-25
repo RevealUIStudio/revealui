@@ -179,3 +179,66 @@ describe('principalHasGrant / principalRoleList', () => {
     expect(p.roles).toEqual(['admin', 'agent']);
   });
 });
+
+describe('resolveDispatchPrincipal trust', () => {
+  const scope = { kind: 'ticket' as const, id: 'tkt-1', accountId: 'acct-1' };
+
+  it('keeps a server low_trust layer when the client asks for standard', () => {
+    const p = resolveDispatchPrincipal({
+      ticketId: 'tkt-1',
+      userId: 'u',
+      userRole: 'owner',
+      accountId: 'acct-1',
+      grants: [{ resource: 'agent:exec:shell_exec', action: 'execute' }],
+      trustLayers: [{ source: 'task', preset: 'low_trust_review', origin: 'server', scope }],
+      clientPreset: 'standard',
+    });
+    expect(p.trust.preset).toBe('low_trust_review');
+    expect(p.trust.scope).toEqual(scope);
+    expect(p.trustResolveFailure).toBeNull();
+    expect(Object.isFrozen(p.trust)).toBe(true);
+  });
+
+  it('fails closed when low_trust has no scope', () => {
+    const p = resolveDispatchPrincipal({
+      ticketId: 'tkt-1',
+      userId: 'u',
+      userRole: 'owner',
+      accountId: 'acct-1',
+      trustLayers: [{ source: 'task', preset: 'low_trust_review', origin: 'server' }],
+    });
+    expect(p.trust.preset).toBe('standard');
+    expect(p.trust.scope).toBeNull();
+    expect(p.trustResolveFailure?.reason).toBe('missing_scope');
+  });
+
+  it('does not let a client preset bind a scope by itself', () => {
+    const p = resolveStreamPrincipal({
+      mode: 'admin',
+      userId: 'u',
+      userRole: 'owner',
+      accountId: 'acct-1',
+      clientPreset: 'low_trust_review',
+    });
+    expect(p.trust.preset).toBe('standard');
+    expect(p.trustResolveFailure?.reason).toBe('missing_scope');
+  });
+
+  it('fails closed on a cross-account scope', () => {
+    const p = resolveDispatchPrincipal({
+      ticketId: 'tkt-1',
+      userId: 'u',
+      userRole: 'owner',
+      accountId: 'acct-1',
+      trustLayers: [
+        {
+          source: 'task',
+          preset: 'low_trust_review',
+          origin: 'server',
+          scope: { kind: 'ticket', id: 'tkt-1', accountId: 'other-acct' },
+        },
+      ],
+    });
+    expect(p.trustResolveFailure?.reason).toBe('cross_account_scope');
+  });
+});

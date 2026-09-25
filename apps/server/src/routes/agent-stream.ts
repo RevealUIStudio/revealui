@@ -39,6 +39,8 @@ import { createAgentEventLoggerIfEnabled } from '../lib/ai-observability-wire.js
 import { createSkillProviderIfEnabled } from '../lib/ai-skills-wire.js';
 import { createAuditStore } from '../lib/audit-signer.js';
 import { asLLMNotConfigured } from '../lib/llm-not-configured.js';
+import { currentLowTrustMode } from '../lib/low-trust-mode.js';
+import { commitPrincipalTrust, trustRefusalReason } from '../lib/low-trust-run.js';
 import { recordUsageMeter } from '../lib/metering.js';
 import { detectDeploymentMode, type EnvMap } from '../lib/validate-startup.js';
 import { getEntitlementsFromContext } from '../middleware/entitlements.js';
@@ -73,6 +75,8 @@ const agentStreamRoute = createRoute({
             mode: z.enum(['admin', 'coding']).default('admin').optional(),
             /** Built-in agent id (e.g. revealui-ticket-agent). Scopes the admin tool catalog. */
             agentId: z.string().min(1).max(128).optional(),
+            /** Can only narrow the run to low_trust_review. Standard is ignored. */
+            trustPreset: z.enum(['standard', 'low_trust_review']).optional(),
           }),
         },
       },
@@ -124,12 +128,19 @@ const agentStreamRoute = createRoute({
     409: {
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(false),
-            error: z.string(),
-            code: z.literal('LLM_NOT_CONFIGURED'),
-            settingsPath: z.string(),
-          }),
+          schema: z.union([
+            z.object({
+              success: z.literal(false),
+              error: z.string(),
+              code: z.literal('LLM_NOT_CONFIGURED'),
+              settingsPath: z.string(),
+            }),
+            z.object({
+              success: z.literal(false),
+              code: z.literal('TRUST_RESOLVE_FAILED'),
+              reason: z.string(),
+            }),
+          ]),
         },
       },
       description: 'Hosted account has no LLM provider configured (set one at /settings/api-keys)',
@@ -211,13 +222,34 @@ app.openapi(agentStreamRoute, async (c) => {
   const taskRef: { id: string } = { id: `task-${Date.now()}` };
 
   // GAP-355 S6-1: server-derived principal for pre-authorize (never client input).
+  const lowTrustMode = currentLowTrustMode();
   const streamPrincipal = resolveStreamPrincipal({
     mode,
     userId: user.id,
     userRole: user.role,
     tenantId,
     accountId,
+    clientPreset: body.trustPreset,
   });
+  try {
+    await commitPrincipalTrust({
+      principal: streamPrincipal,
+      mode: lowTrustMode,
+      sessionId: runSession.sessionId,
+      taskId: taskRef.id,
+    });
+  } catch (err) {
+    const reason = trustRefusalReason(err) ?? 'preset_applied_audit_failed';
+    if (lowTrustMode === 'enforce') {
+      return c.json(
+        { success: false as const, code: 'TRUST_RESOLVE_FAILED' as const, reason },
+        409,
+      );
+    }
+  }
+  const lowTrustPreset =
+    streamPrincipal.trust.preset === 'low_trust_review' && lowTrustMode !== 'off';
+  const blockCodingSurface = lowTrustPreset && lowTrustMode === 'enforce';
   const streamAgentId = streamPrincipal.agentId;
 
   // GAP-355 S5-4: integrity audit for non-MCP tools (admin CMS + coding).
@@ -294,7 +326,7 @@ app.openapi(agentStreamRoute, async (c) => {
 
   // Load coding tools when mode is 'coding'
   let codingTools: unknown[] = [];
-  if (mode === 'coding') {
+  if (mode === 'coding' && !blockCodingSurface) {
     try {
       // Store path in variable to prevent TypeScript from resolving the module
       const codingToolsPath = '@revealui/ai/tools/coding';
@@ -368,7 +400,7 @@ app.openapi(agentStreamRoute, async (c) => {
 
   const scopedBuiltin = adminToolIncludeForAgent(body.agentId) !== undefined;
 
-  if (tenant && !scopedBuiltin) {
+  if (tenant && !scopedBuiltin && !lowTrustPreset) {
     let serverIds: string[] = [];
     try {
       serverIds = await listConnectedMcpServers(createRevvaultVault(), tenant);
@@ -583,8 +615,8 @@ Workspace: ${workspaceId}`,
   };
 
   // GAP-406 phase 4: opt-in skills + agent event logger (env-gated wire modules).
-  const skillProvider = await createSkillProviderIfEnabled();
-  const agentEventLogger = await createAgentEventLoggerIfEnabled();
+  const skillProvider = lowTrustPreset ? null : await createSkillProviderIfEnabled();
+  const agentEventLogger = lowTrustPreset ? null : await createAgentEventLoggerIfEnabled();
   if (agentEventLogger) {
     agentEventLogger.logDecision({
       timestamp: Date.now(),
