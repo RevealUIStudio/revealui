@@ -43,6 +43,7 @@ vi.mock('drizzle-orm', () => ({
   and: vi.fn((...args: unknown[]) => args),
   eq: vi.fn((col: unknown, val: unknown) => ({ col, val })),
   gt: vi.fn((col: unknown, val: unknown) => ({ col, val, op: 'gt' })),
+  lt: vi.fn((col: unknown, val: unknown) => ({ col, val, op: 'lt' })),
   sql: Object.assign(
     vi.fn((...args: unknown[]) => args),
     { join: vi.fn() },
@@ -110,10 +111,16 @@ const TEST_USER: UserContext = {
   role: 'admin',
 };
 
-/** Set up the mock chain for DB insert (fire-and-forget upsert). */
-function setupInsertMock(): void {
+/**
+ * Mock `insert().values().onConflictDoUpdate()`.
+ * `admitted` controls `.returning()` for the conditional plan-slot upsert:
+ * a row means the slot was reserved, an empty array means the quota is full.
+ * `.catch()` stays available for the fire-and-forget overage write.
+ */
+function setupInsertMock(admitted = true): void {
   const catchFn = vi.fn(() => Promise.resolve());
-  mockOnConflictDoUpdate.mockReturnValue({ catch: catchFn });
+  const returning = vi.fn().mockResolvedValue(admitted ? [{ count: 1 }] : []);
+  mockOnConflictDoUpdate.mockReturnValue({ catch: catchFn, returning });
   mockValues.mockReturnValue({ onConflictDoUpdate: mockOnConflictDoUpdate });
   mockInsert.mockReturnValue({ values: mockValues });
 }
@@ -276,6 +283,10 @@ describe('requireTaskQuota', () => {
   // =========================================================================
 
   describe('quota exceeded (x402 disabled)', () => {
+    beforeEach(() => {
+      setupInsertMock(false);
+    });
+
     it('returns 429 when count equals quota', async () => {
       mockedGetMaxAgentTasks.mockReturnValue(100);
       setupSelectMock(100);
@@ -397,6 +408,7 @@ describe('requireTaskQuota', () => {
 
     it('blocks pro tier at 10,000', async () => {
       mockedGetMaxAgentTasks.mockReturnValue(10_000);
+      setupInsertMock(false);
       setupSelectMock(10_000);
 
       const app = createApp(TEST_USER);
@@ -425,6 +437,7 @@ describe('requireTaskQuota', () => {
   describe('x402 payment path (quota exceeded, x402 enabled)', () => {
     beforeEach(() => {
       mockedGetMaxAgentTasks.mockReturnValue(100);
+      setupInsertMock(false);
       setupSelectMock(100);
       mockedGetX402Config.mockReturnValue({
         enabled: true,
