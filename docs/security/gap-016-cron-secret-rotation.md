@@ -22,10 +22,10 @@ There is no comma-separated accept-list. Each family is current value, plus one 
 |---------|------|----------------|
 | `REVEALUI_CRON_SECRET` | Current secret for header `X-Cron-Secret` (either casing). Admin cron routes compare `Authorization: Bearer` to this same var. | Set. 32+ characters in hosted production. |
 | `REVEALUI_CRON_SECRET_PREVIOUS` | Outgoing `X-Cron-Secret` / admin Bearer value. | Unset or empty. |
-| `CRON_SECRET` | Vercel platform cron bearer. `GET /api/cron/dispatch` accepts `Authorization: Bearer <CRON_SECRET>`. `GET /api/cron/uptime-check` compares the same bearer when this var or `CRON_SECRET_PREVIOUS` is set. | Set only if the api project already has it. |
+| `CRON_SECRET` | Vercel platform cron bearer. `GET /api/cron/dispatch` accepts `Authorization: Bearer <CRON_SECRET>`. `GET` and `POST /api/cron/uptime-check` accept that bearer, and also `X-Cron-Secret` matching `REVEALUI_CRON_SECRET`. | Set only if the api project already has it. |
 | `CRON_SECRET_PREVIOUS` | Outgoing Vercel bearer. | Unset or empty. |
 
-Comparisons are timing-safe and fail closed when the relevant pair is unset, with one pre-existing exception: `uptime-check` stays open when both `CRON_SECRET` and `CRON_SECRET_PREVIOUS` are unset. A 200 from that route proves a match only when one of those vars is set.
+Comparisons are timing-safe and fail closed when the relevant pair is unset, with one pre-existing exception: `uptime-check` stays open only when `REVEALUI_CRON_SECRET`, `REVEALUI_CRON_SECRET_PREVIOUS`, `CRON_SECRET`, and `CRON_SECRET_PREVIOUS` are all unset. A 200 from that route proves a match only when one of those vars is set.
 
 `/api/cron/dispatch` fans out to sub-jobs with `X-Cron-Secret` set to the **current** `REVEALUI_CRON_SECRET` only. Sub-jobs accept current or previous, so the fan-out keeps working through the window. Leave `REVEALUI_CRON_SECRET` set to the incoming value for the whole window.
 
@@ -68,7 +68,7 @@ Do this per environment (production, then staging if that env has crons). Genera
      `curl -sS -o /dev/null -w '%{http_code}' -X POST -H "X-Cron-Secret: $REVEALUI_CRON_SECRET_PREVIOUS" "$API_URL/api/cron/worker-liveness"`
    - Incoming value is not 401:
      `curl -sS -o /dev/null -w '%{http_code}' -X POST -H "X-Cron-Secret: $REVEALUI_CRON_SECRET" "$API_URL/api/cron/worker-liveness"`
-   - If step 2 ran, `GET $API_URL/api/cron/dispatch` with `Authorization: Bearer $CRON_SECRET` and with `Authorization: Bearer $CRON_SECRET_PREVIOUS` is not 401. That request runs the daily job list; use it only for the bearer check. `uptime-check` is the lighter bearer route, and only counts as proof when `CRON_SECRET` or `CRON_SECRET_PREVIOUS` is set.
+   - If step 2 ran, `GET $API_URL/api/cron/dispatch` with `Authorization: Bearer $CRON_SECRET` and with `Authorization: Bearer $CRON_SECRET_PREVIOUS` is not 401. That request runs the daily job list; use it only for the bearer check. `GET /api/cron/uptime-check` with the same bearer is the lighter check. Dispatch itself calls that job with `POST` and `X-Cron-Secret`, so a bearer-only curl does not prove the fan-out path. The route only counts as proof when one of the four cron secret vars is set.
    - API logs may show `cron secret rotation in flight` when a request matches a `*_PREVIOUS` var. That line does not include the secret.
 6. **Move callers.** Set the GitHub Actions secret `REVEALUI_CRON_SECRET` to the incoming value (used by `reconciliation-crons.yml` and `worker-liveness.yml`). Run both workflows with `workflow_dispatch` and confirm they finish green. Update any operator shell or external scheduler that still sends the outgoing value.
 7. **Drop the outgoing value.** Remove `REVEALUI_CRON_SECRET_PREVIOUS` from api, admin, and Fly. Remove `CRON_SECRET_PREVIOUS` if step 2 set it. Redeploy api and admin.
