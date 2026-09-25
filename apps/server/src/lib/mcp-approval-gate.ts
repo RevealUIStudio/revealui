@@ -250,6 +250,7 @@ async function consumeTrustRule(
   principal: ReadyPrincipal,
   call: GateCall,
 ): Promise<string | undefined> {
+  // drizzle-raw: atomic conditional UPDATE RETURNING; Neon HTTP has no transactions
   const result = await db.execute(sql`
     UPDATE mcp_tool_trust_rules
        SET uses = uses + 1
@@ -274,6 +275,7 @@ async function lapseStaleTrustRules(
   auditBase: McpApprovalAuditWrite,
 ): Promise<'ok' | 'audit_failed'> {
   const db = dbOf(deps);
+  // drizzle-raw: atomic conditional UPDATE RETURNING; Neon HTTP has no transactions
   const result = await db.execute(sql`
     UPDATE mcp_tool_trust_rules
        SET lapsed_at = now()
@@ -357,6 +359,7 @@ async function consumeApproval(
   auditBase: McpApprovalAuditWrite,
 ): Promise<{ decision: 'allow' } | { decision: 'deny'; reason: string }> {
   const db = dbOf(deps);
+  // drizzle-raw: atomic conditional UPDATE RETURNING; Neon HTTP has no transactions
   const result = await db.execute(sql`
     UPDATE mcp_tool_approvals
        SET status = 'consumed', consumed_at = now()
@@ -436,6 +439,7 @@ async function requestApproval(
       approvalId,
       message: err instanceof Error ? err.message : 'unknown',
     });
+    // drizzle-raw: expire pending row in place, never DELETE; Neon HTTP has no transactions
     await db.execute(sql`
       UPDATE mcp_tool_approvals
          SET status = 'expired'
