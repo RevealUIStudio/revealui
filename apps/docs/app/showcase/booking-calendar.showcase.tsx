@@ -50,7 +50,10 @@ const story: ShowcaseStory = {
   },
 
   sourceUrl: 'src/components/BookingCalendar.tsx',
-  related: ['calendar', 'radio'],
+  related: [
+    { slug: 'calendar', reason: 'The day grid BookingCalendar composes.' },
+    { slug: 'radio', reason: 'Open slots are a Radio group.' },
+  ],
 };
 
 export default story;

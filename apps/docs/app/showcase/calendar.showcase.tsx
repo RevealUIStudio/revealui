@@ -68,7 +68,13 @@ const story: ShowcaseStory = {
   },
 
   sourceUrl: 'src/components/Calendar.tsx',
-  related: ['booking-calendar', 'button'],
+  related: [
+    {
+      slug: 'booking-calendar',
+      reason: 'Composes Calendar with the open slots for the selected day.',
+    },
+    { slug: 'button', reason: 'Month navigation and day cells are Buttons.' },
+  ],
 };
 
 export default story;
