@@ -68,7 +68,8 @@ export interface DbOverride {
  * state='active'. Returns null when nothing is eligible.
  *
  * Eligibility = state='created' AND start_after <= now() AND (expire_at
- * IS NULL OR expire_at > now()).
+ * IS NULL OR expire_at > now()). `cancelled` is terminal and is never
+ * selected.
  */
 export async function claimNext(options: ClaimOptions = {}): Promise<Job | null> {
   const workerId = options.workerId ?? randomUUID();

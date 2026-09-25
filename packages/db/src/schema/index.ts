@@ -69,6 +69,7 @@ import { agentActions, agentContexts, agentMemories, conversations } from './age
 import { tenantProviderConfigs, userApiKeys } from './api-keys.js';
 import { appLogs } from './app-logs.js';
 import { auditLog } from './audit-log.js';
+import { budgetIncidents, budgetLedgers, budgetPolicies } from './budgets.js';
 import { codeProvenance, codeReviews } from './code-provenance.js';
 import { collabEdits } from './collab-edits.js';
 import { editSessionDocs, editSessionEvents, editSessions } from './edit-sessions.js';
@@ -139,6 +140,8 @@ export const accountsRelations = relations(accounts, ({ many, one }) => ({
   mcpToolApprovals: many(mcpToolApprovals),
   mcpToolTrustRules: many(mcpToolTrustRules),
   mcpApprovalSettings: one(mcpApprovalSettings),
+  budgetPolicies: many(budgetPolicies),
+  budgetIncidents: many(budgetIncidents),
 }));
 
 export const accountMembershipsRelations = relations(accountMemberships, ({ one }) => ({
@@ -206,6 +209,33 @@ export const mcpApprovalSettingsRelations = relations(mcpApprovalSettings, ({ on
   account: one(accounts, {
     fields: [mcpApprovalSettings.accountId],
     references: [accounts.id],
+  }),
+}));
+
+export const budgetPoliciesRelations = relations(budgetPolicies, ({ one, many }) => ({
+  account: one(accounts, {
+    fields: [budgetPolicies.accountId],
+    references: [accounts.id],
+  }),
+  ledgers: many(budgetLedgers),
+  incidents: many(budgetIncidents),
+}));
+
+export const budgetLedgersRelations = relations(budgetLedgers, ({ one }) => ({
+  policy: one(budgetPolicies, {
+    fields: [budgetLedgers.policyId],
+    references: [budgetPolicies.id],
+  }),
+}));
+
+export const budgetIncidentsRelations = relations(budgetIncidents, ({ one }) => ({
+  account: one(accounts, {
+    fields: [budgetIncidents.accountId],
+    references: [accounts.id],
+  }),
+  policy: one(budgetPolicies, {
+    fields: [budgetIncidents.policyId],
+    references: [budgetPolicies.id],
   }),
 }));
 

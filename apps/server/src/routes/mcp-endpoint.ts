@@ -57,6 +57,7 @@ import type { Handler, MiddlewareHandler } from 'hono';
 import { Hono } from 'hono';
 import { isFleetOperator } from '../lib/access.js';
 import type { ApiAuthUser } from '../lib/api-roles.js';
+import { recordGovernedMcpAction } from '../lib/budget-meter.js';
 import { createMcpApprovalGate } from '../lib/mcp-approval-gate.js';
 import { recordMcpToolAudit } from '../lib/mcp-audit.js';
 import {
@@ -297,6 +298,9 @@ export function buildMcpEndpoint(config: McpEndpointConfig = {}): McpEndpointPar
         durationMs: event.durationMs,
         errored: event.errored,
       });
+    // Account governed_actions ledger. Off mode returns before touching budgets.
+    // Slice 3 adds the pre-action reserve; this record is the counter until then.
+    await recordGovernedMcpAction({ accountId: identity.accountId });
   };
 
   const kgTimeoutMs = config.kgTimeoutMs ?? DEFAULT_KG_TOOL_TIMEOUT_MS;

@@ -176,6 +176,12 @@
       "rationale": "Governed MCP exact-call approvals: CREATE TABLE mcp_tool_approvals, mcp_tool_trust_rules, and mcp_approval_settings, plus a partial unique index on active trust rules. Hand-written IF NOT EXISTS / DO $$ because db:generate against the stale snapshot chain re-emits unrelated CREATE TABLE and DROP COLUMN drift (same 0041/0042/0043 pattern). Companion Drizzle schema at packages/db/src/schema/mcp-approvals.ts. source_approval_id is ON DELETE CASCADE so account deletion can remove the source approval and its rules together.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Blocked on the pre-existing snapshot-debt backfill. Same regen path as 0043: pnpm --filter @revealui/db db:generate against a clean DB once that backfill happens. The Drizzle tables are the type contract."
+    },
+    {
+      "tag": "0045_budget_policies",
+      "rationale": "Spec 02 slices 1-2: CREATE TABLE budget_policies, budget_ledgers, and budget_incidents, widen jobs_state_check to allow cancelled, and CREATE OR REPLACE FUNCTION budget_apply_spend. Hand-written IF NOT EXISTS / DO $$ because db:generate against the stale snapshot chain re-emits unrelated CREATE TABLE drift (same 0044 pattern). The apply function is plpgsql because a single CTE snapshot is fixed before an advisory-lock wait, so it cannot all-or-nothing update missing ledger rows under READ COMMITTED on Neon HTTP. Companion Drizzle schema at packages/db/src/schema/budgets.ts.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Blocked on the pre-existing snapshot-debt backfill. Same regen path as 0044: pnpm --filter @revealui/db db:generate against a clean DB once that backfill happens. The Drizzle tables are the type contract. The function is not modeled by drizzle-kit."
     }
   ]
 }

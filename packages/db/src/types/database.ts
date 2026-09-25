@@ -31,6 +31,9 @@ import type {
   billingCatalog,
   boardColumns,
   boards,
+  budgetIncidents,
+  budgetLedgers,
+  budgetPolicies,
   categories,
   circuitBreakerState,
   codeProvenance,
@@ -244,6 +247,21 @@ export type BoardColumnsUpdate = Partial<BoardColumnsInsert>
 export type BoardsRow = typeof boards.$inferSelect
 export type BoardsInsert = typeof boards.$inferInsert
 export type BoardsUpdate = Partial<BoardsInsert>
+
+// Budget Incidents
+export type BudgetIncidentsRow = typeof budgetIncidents.$inferSelect
+export type BudgetIncidentsInsert = typeof budgetIncidents.$inferInsert
+export type BudgetIncidentsUpdate = Partial<BudgetIncidentsInsert>
+
+// Budget Ledgers
+export type BudgetLedgersRow = typeof budgetLedgers.$inferSelect
+export type BudgetLedgersInsert = typeof budgetLedgers.$inferInsert
+export type BudgetLedgersUpdate = Partial<BudgetLedgersInsert>
+
+// Budget Policies
+export type BudgetPoliciesRow = typeof budgetPolicies.$inferSelect
+export type BudgetPoliciesInsert = typeof budgetPolicies.$inferInsert
+export type BudgetPoliciesUpdate = Partial<BudgetPoliciesInsert>
 
 // Categories
 export type CategoriesRow = typeof categories.$inferSelect
@@ -781,6 +799,9 @@ export type DatabaseRelationships = {
   billingCatalog: Relationship[]
   boardColumns: Relationship[]
   boards: Relationship[]
+  budgetIncidents: Relationship[]
+  budgetLedgers: Relationship[]
+  budgetPolicies: Relationship[]
   categories: Relationship[]
   circuitBreakerState: Relationship[]
   codeProvenance: Relationship[]
@@ -966,6 +987,22 @@ export const boardColumnsRelationships = [
 // Boards relationships
 export const boardsRelationships = [
   { foreignKeyName: 'boards_owner_id_users_id_fk', columns: ['owner_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
+
+// BudgetIncidents relationships
+export const budgetIncidentsRelationships = [
+  { foreignKeyName: 'budget_incidents_account_id_accounts_id_fk', columns: ['account_id'], isOneToOne: true, referencedRelation: 'accounts', referencedColumns: ['id'] },
+  { foreignKeyName: 'budget_incidents_policy_id_budget_policies_id_fk', columns: ['policy_id'], isOneToOne: true, referencedRelation: 'budget_policies', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
+
+// BudgetLedgers relationships
+export const budgetLedgersRelationships = [
+  { foreignKeyName: 'budget_ledgers_policy_id_budget_policies_id_fk', columns: ['policy_id'], isOneToOne: true, referencedRelation: 'budget_policies', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
+
+// BudgetPolicies relationships
+export const budgetPoliciesRelationships = [
+  { foreignKeyName: 'budget_policies_account_id_accounts_id_fk', columns: ['account_id'], isOneToOne: true, referencedRelation: 'accounts', referencedColumns: ['id'] },
 ] as const satisfies readonly Relationship[]
 
 // Categories relationships
@@ -1533,6 +1570,24 @@ export type Database = {
         Insert: BoardsInsert
         Update: BoardsUpdate
         Relationships: typeof boardsRelationships
+      }
+      budget_incidents: {
+        Row: BudgetIncidentsRow
+        Insert: BudgetIncidentsInsert
+        Update: BudgetIncidentsUpdate
+        Relationships: typeof budgetIncidentsRelationships
+      }
+      budget_ledgers: {
+        Row: BudgetLedgersRow
+        Insert: BudgetLedgersInsert
+        Update: BudgetLedgersUpdate
+        Relationships: typeof budgetLedgersRelationships
+      }
+      budget_policies: {
+        Row: BudgetPoliciesRow
+        Insert: BudgetPoliciesInsert
+        Update: BudgetPoliciesUpdate
+        Relationships: typeof budgetPoliciesRelationships
       }
       categories: {
         Row: CategoriesRow
