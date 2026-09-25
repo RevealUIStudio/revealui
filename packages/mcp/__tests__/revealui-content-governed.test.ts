@@ -79,6 +79,22 @@ async function startGoverned(opts: {
   mutatingTools?: Set<string>;
   auditFails?: boolean;
   collectionsProvider?: () => Promise<CollectionMcpSummary[] | null>;
+  toolAuthorizer?: (ctx: { authInfo?: unknown; sessionId?: string }, toolName: string) => boolean;
+  approvalGate?: (
+    ctx: { authInfo?: unknown; sessionId?: string },
+    input: {
+      tool: string;
+      args: unknown;
+      argsHash: string;
+      toolSchemaHash: string;
+      approvalId?: string;
+      clientName?: string;
+    },
+  ) => Promise<
+    | { decision: 'allow' }
+    | { decision: 'deny'; reason: string }
+    | { decision: 'approval_required'; approvalId: string; expiresAt: string }
+  >;
 }): Promise<GovernedServer> {
   const audits: McpToolAuditRecord[] = [];
   const handler = createNodeStreamableHttpHandler({
@@ -87,6 +103,8 @@ async function startGoverned(opts: {
       createRevealuiContentServer({
         mutatingTools: opts.mutatingTools ?? new Set<string>(),
         collectionsProvider: opts.collectionsProvider,
+        toolAuthorizer: opts.toolAuthorizer,
+        approvalGate: opts.approvalGate,
         credentialsProvider: (ctx) => {
           const info = ctx.authInfo as { token?: string } | undefined;
           if (!info?.token) throw new Error('no per-request credential');
@@ -465,5 +483,132 @@ describe('GAP-373 governed path exposes no resources surface', () => {
       if (prevUrl === undefined) delete process.env.REVEALUI_API_URL;
       else process.env.REVEALUI_API_URL = prevUrl;
     }
+  });
+});
+
+describe('exact-call approval gate', () => {
+  const sessionArgs = { site_id: 'site-1', title: 'Draft' };
+
+  it('returns approval_required and does not call REST', async () => {
+    const backend = await startFakeBackend(okBackend);
+    const governed = await startGoverned({
+      backendUrl: backend.url,
+      authInfo: () => ({ token: 'tokenA', extra: { userId: 'user-1', accountId: 'acct-1' } }),
+      approvalGate: async () => ({
+        decision: 'approval_required',
+        approvalId: 'appr-1',
+        expiresAt: '2026-09-25T12:30:00.000Z',
+      }),
+    });
+    const client = await connectClient(governed.url);
+    const result = await client.callTool('revealui_session_open', sessionArgs);
+    await client.close();
+
+    expect(result.isError).toBe(true);
+    expect(result.structuredContent).toEqual({
+      reasonCode: 'approval_required',
+      approvalId: 'appr-1',
+      expiresAt: '2026-09-25T12:30:00.000Z',
+    });
+    expect(backend.calls).toHaveLength(0);
+    expect(governed.audits.some((record) => record.outcome === 'invoked')).toBe(false);
+  });
+
+  it('executes on a later call when the gate allows the same approval id', async () => {
+    const backend = await startFakeBackend(okBackend);
+    const governed = await startGoverned({
+      backendUrl: backend.url,
+      authInfo: () => ({ token: 'tokenA', extra: { userId: 'user-1', accountId: 'acct-1' } }),
+      approvalGate: async (_ctx, input) => {
+        if (input.approvalId === 'appr-1') return { decision: 'allow' };
+        return {
+          decision: 'approval_required',
+          approvalId: 'appr-1',
+          expiresAt: '2026-09-25T12:30:00.000Z',
+        };
+      },
+    });
+    const client = await connectClient(governed.url);
+    const blocked = await client.callTool('revealui_session_open', sessionArgs);
+    const allowed = await client.callTool('revealui_session_open', sessionArgs, {
+      meta: { 'revealui/approvalId': 'appr-1' },
+    });
+    await client.close();
+
+    expect(blocked.isError).toBe(true);
+    expect(allowed.isError).toBeFalsy();
+    expect(backend.calls).toHaveLength(1);
+    expect(backend.calls[0]?.url).toContain('/api/content/sessions');
+  });
+
+  it('surfaces approval_args_mismatch and does not call REST', async () => {
+    const backend = await startFakeBackend(okBackend);
+    const governed = await startGoverned({
+      backendUrl: backend.url,
+      authInfo: () => ({ token: 'tokenA', extra: { userId: 'user-1', accountId: 'acct-1' } }),
+      approvalGate: async () => ({ decision: 'deny', reason: 'approval_args_mismatch' }),
+    });
+    const client = await connectClient(governed.url);
+    const result = await client.callTool('revealui_session_open', sessionArgs, {
+      meta: { 'revealui/approvalId': 'appr-1' },
+    });
+    await client.close();
+
+    expect(result.isError).toBe(true);
+    expect(result.structuredContent).toEqual({ reasonCode: 'approval_args_mismatch' });
+    expect(backend.calls).toHaveLength(0);
+    expect(governed.audits[0]?.outcome).toBe('denied');
+    expect(governed.audits[0]?.reason).toBe('approval_args_mismatch');
+  });
+
+  it('keeps the same args hash when the approval id travels in _meta', async () => {
+    const backend = await startFakeBackend(okBackend);
+    const hashes: string[] = [];
+    const governed = await startGoverned({
+      backendUrl: backend.url,
+      authInfo: () => ({ token: 'tokenA', extra: { userId: 'user-1', accountId: 'acct-1' } }),
+      approvalGate: async (_ctx, input) => {
+        hashes.push(input.argsHash);
+        expect(input.args).toEqual(sessionArgs);
+        if (input.approvalId) return { decision: 'allow' };
+        return {
+          decision: 'approval_required',
+          approvalId: 'appr-1',
+          expiresAt: '2026-09-25T12:30:00.000Z',
+        };
+      },
+    });
+    const client = await connectClient(governed.url);
+    await client.callTool('revealui_session_open', sessionArgs);
+    await client.callTool('revealui_session_open', sessionArgs, {
+      meta: { 'revealui/approvalId': 'appr-1' },
+    });
+    await client.close();
+
+    expect(hashes).toHaveLength(2);
+    expect(hashes[0]).toBe(hashes[1]);
+    expect(governed.audits.at(-1)?.argsDigest).toBe(hashes[0]);
+  });
+
+  it('does not consult the approval gate when authorization denies the tool', async () => {
+    const backend = await startFakeBackend(okBackend);
+    let gateCalls = 0;
+    const governed = await startGoverned({
+      backendUrl: backend.url,
+      authInfo: () => ({ token: 'tokenA', extra: { userId: 'user-1', accountId: 'acct-1' } }),
+      toolAuthorizer: () => false,
+      approvalGate: async () => {
+        gateCalls += 1;
+        return { decision: 'allow' };
+      },
+    });
+    const client = await connectClient(governed.url);
+    const result = await client.callTool('revealui_session_open', sessionArgs);
+    await client.close();
+
+    expect(result.isError).toBe(true);
+    expect(gateCalls).toBe(0);
+    expect(backend.calls).toHaveLength(0);
+    expect(governed.audits[0]?.reason).toBe('authz');
   });
 });

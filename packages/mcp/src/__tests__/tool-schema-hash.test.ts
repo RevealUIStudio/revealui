@@ -44,6 +44,12 @@ describe('MCP call identity hashes', () => {
     expect(() => hashMcpArguments({ collection: undefined })).toThrow(/undefined/);
   });
 
+  it('rejects a Date instead of hashing it as an empty object', () => {
+    expect(() => hashMcpArguments({ at: new Date('2026-09-25T00:00:00.000Z') })).toThrow(
+      'plain JSON',
+    );
+  });
+
   it('hashes the tool schema stably and changes when the schema changes', () => {
     const schema = {
       type: 'object',
