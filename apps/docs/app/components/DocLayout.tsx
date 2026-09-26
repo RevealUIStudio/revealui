@@ -59,7 +59,7 @@ function CircuitRNavMark(): React.JSX.Element {
         data-circuit-r-plate="light"
         className="block size-full max-w-none"
       />
-      {/* biome-ignore lint/performance/noImgElement: Vite docs chrome has no next/image; dark plate is the same letter on #060d1a. */}
+      {/* biome-ignore lint/performance/noImgElement: Vite docs chrome has no next/image; dark src is the same transparent kit master. */}
       <img
         src={CIRCUIT_R_NAV_DARK_SRC}
         alt=""
