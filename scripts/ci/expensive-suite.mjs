@@ -56,6 +56,7 @@ export function isShowcaseVisualPath(file) {
   if (file === 'apps/docs' || file.startsWith('apps/docs/')) return true;
   if (file.startsWith('design-system/')) return true;
   if (file === 'e2e/showcase-visual.e2e.ts') return true;
+  if (file.startsWith('e2e/__snapshots__/showcase-visual.e2e.ts/')) return true;
   if (file === 'e2e/showcase-a11y.e2e.ts') return true;
   if (file === 'e2e/showcase-matrix.e2e.ts') return true;
   return false;
