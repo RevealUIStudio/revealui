@@ -1,5 +1,15 @@
 # @revealui/db
 
+## 0.12.0
+
+### Minor Changes
+
+- 3bfb528: Record the account on governed MCP tool receipts so new rows anchor per account. Add the MCP approval tables and JCS helpers that bind a call to its tool, argument hash, schema hash, account, and requester. The approval gate is not wired in this slice.
+
+### Patch Changes
+
+- d7658e8: Keep `trustPreset` server-owned on ticket metadata updates. Client and tool patches cannot set or clear it.
+
 ## 0.11.0
 
 ### Minor Changes

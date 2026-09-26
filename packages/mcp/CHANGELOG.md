@@ -1,5 +1,27 @@
 # @revealui/mcp
 
+## 0.9.0
+
+### Minor Changes
+
+- 3bfb528: Record the account on governed MCP tool receipts so new rows anchor per account. Add the MCP approval tables and JCS helpers that bind a call to its tool, argument hash, schema hash, account, and requester. The approval gate is not wired in this slice.
+- 0354a49: Governed MCP calls can pause for an exact-argument approval. The content factory hashes arguments with JCS and runs an optional approval gate after authorization and rate limiting.
+
+### Patch Changes
+
+- Updated dependencies [5ce8320]
+- Updated dependencies [d7658e8]
+- Updated dependencies [3bfb528]
+- Updated dependencies [f65a5da]
+- Updated dependencies [18e1ab1]
+  - @revealui/security@0.9.0
+  - @revealui/contracts@0.13.0
+  - @revealui/db@0.12.0
+  - @revealui/core@0.15.1
+  - @revealui/services@0.8.4
+  - @revealui/setup@0.7.10
+  - @revealui/knowledge-graph@0.2.3
+
 ## 0.8.13
 
 ### Patch Changes
