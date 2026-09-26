@@ -13,7 +13,7 @@ import {
 import { HOME_PRIMITIVES } from '../primitives';
 import { PRODUCTS_PAGE_HERO } from '../products';
 import { QUOTE_CALCULATOR } from '../quote-calculator';
-import { RECEIPT_HERO_CAPTION } from '../receipt';
+import { RECEIPT_HERO_CAPTION, RECEIPT_HERO_TITLE } from '../receipt';
 
 const MARKETING_ROOT = join(dirname(fileURLToPath(import.meta.url)), '../../..');
 const INDEX_HTML = readFileSync(join(MARKETING_ROOT, 'index.html'), 'utf8');
@@ -110,8 +110,13 @@ describe('Auditor voice and live-hero honesty', () => {
     );
   });
 
-  it('keeps receipt honesty on the hero foil', () => {
+  it('keeps the governed-action receipt on the marketing home foil', () => {
+    expect(RECEIPT_HERO_TITLE).toBe('Governed action, on record');
     expect(RECEIPT_HERO_CAPTION.text).toBe("If an agent did it, there's a receipt.");
+    expect(RECEIPT_HERO_CAPTION.link.href).toBe(
+      'https://docs.revealui.com/security/audit-receipts',
+    );
+    expect(RECEIPT_HERO_CAPTION.link.label).toBe('Audit receipts docs →');
   });
 
   it('replaces the foundation A/B with a distinct keep-the-stack line', () => {

@@ -1,7 +1,9 @@
-// Docs landing receipt motif (frontend-excellence Phase 5 rollout echo,
-// GAP-480 Phase D). Static only: no animate="print". Demonstration content,
-// not live production data and not a customer case. Timestamps are static
-// strings (never Date.now()). Links to /security/audit-receipts.
+// Governed-action receipt copy. Marketing home mounts this motif
+// (apps/marketing). DocsIndexPage must not. Optional later: a small in-page
+// example on /security/audit-receipts, not landing chrome. Static only:
+// no animate="print". Demonstration content, not live production data and
+// not a customer case. Timestamps are static strings (never Date.now()).
+// Links to /security/audit-receipts.
 
 import type { AuditEvent } from '@revealui/presentation';
 
