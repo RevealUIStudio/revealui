@@ -219,7 +219,7 @@ function SidebarContent({ isHome, onNavigate }: { isHome: boolean; onNavigate?: 
         </Suspense>
       </div>
 
-      {/* Home link */}
+      {/* Docs home: product reference index. */}
       <ul className="m-0 list-none p-0">
         <li>
           <Link
@@ -231,7 +231,7 @@ function SidebarContent({ isHome, onNavigate }: { isHome: boolean; onNavigate?: 
                 : 'font-normal text-text-secondary hover:bg-accent-bg hover:text-accent'
             }`}
           >
-            Home
+            Docs home
           </Link>
         </li>
       </ul>
@@ -248,6 +248,15 @@ function SidebarContent({ isHome, onNavigate }: { isHome: boolean; onNavigate?: 
       ))}
 
       <div className="mt-auto border-t border-border pt-4">
+        <p className="mb-3 px-3 text-xs leading-5 text-text-muted">
+          Blog is on Studio. Docs are product reference.
+        </p>
+        <a
+          href="https://revealuistudio.com"
+          className="flex items-center gap-2 rounded-md px-3 py-2 text-[0.8125rem] text-text-muted no-underline transition-colors hover:text-text-secondary md:py-1.5"
+        >
+          Studio
+        </a>
         <a
           href="https://github.com/RevealUIStudio/revealui"
           className="flex items-center gap-2 rounded-md px-3 py-2 text-[0.8125rem] text-text-muted no-underline transition-colors hover:text-text-secondary md:py-1.5"
@@ -271,7 +280,7 @@ function Breadcrumbs({ sections: navSections }: { sections: NavSection[] }) {
   const { pathname } = useLocation();
   if (pathname === '/') return null;
 
-  const crumbs: { label: string; href?: string }[] = [{ label: 'Home', href: '/' }];
+  const crumbs: { label: string; href?: string }[] = [{ label: 'Docs home', href: '/' }];
 
   // Find matching section and item from the nav
   for (const section of navSections) {

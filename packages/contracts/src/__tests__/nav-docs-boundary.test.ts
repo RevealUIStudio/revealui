@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
   DOCS_BLOG_PREFIX,
+  DOCS_BOUNDARY_LINE,
+  DOCS_CHROME,
   isDocsBlogPath,
   NAV_DOCS_BOUNDARY_STATUS,
   NAV_DOCS_LOCK_IDS,
   NAV_DOCS_LOCKS,
   PRODUCT_BLOG_HOPS,
   pointsAtDocsBlog,
+  REFUSE_BLOG_IN_DOCS,
   STUDIO_BLOG_HREF,
   studioBlogPostHref,
   textPointsAtDocsBlog,
@@ -16,12 +19,29 @@ describe('admitted nav/docs boundary', () => {
   it('keeps the locked ids and admitted status', () => {
     expect(NAV_DOCS_LOCK_IDS).toEqual({
       docsProduct: 'nav-docs-product-2026-09-26',
+      blogStudio: 'nav-blog-studio-2026-09-26',
       productBlogPointsStudio: 'nav-product-blog-points-studio-2026-09-26',
       boundary: 'boundary-blog-studio-docs-ref-2026-09-26',
     });
     expect(NAV_DOCS_BOUNDARY_STATUS).toBe('admitted');
+    expect(DOCS_BOUNDARY_LINE).toBe('Blog is on Studio. Docs are product reference.');
+    expect(NAV_DOCS_LOCKS.find((lock) => lock.id === NAV_DOCS_LOCK_IDS.boundary)?.statement).toBe(
+      DOCS_BOUNDARY_LINE,
+    );
+    expect(REFUSE_BLOG_IN_DOCS).toEqual({
+      id: 'refuse-blog-in-docs',
+      statement: 'Blog as a top-level docs category hosting demand essays.',
+    });
+    expect(DOCS_CHROME).toEqual({
+      docsHomeLabel: 'Docs home',
+      studioLabel: 'Studio',
+      studioHref: 'https://revealuistudio.com',
+      blogLabel: 'Blog',
+      blogHref: 'https://revealuistudio.com/blog',
+    });
     expect(NAV_DOCS_LOCKS.map((lock) => lock.id)).toEqual([
       'nav-docs-product-2026-09-26',
+      'nav-blog-studio-2026-09-26',
       'nav-product-blog-points-studio-2026-09-26',
       'boundary-blog-studio-docs-ref-2026-09-26',
     ]);

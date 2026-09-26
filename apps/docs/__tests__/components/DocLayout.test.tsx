@@ -22,6 +22,11 @@ vi.mock('../../app/components/SearchBar', () => ({
   SearchBar: () => <div data-testid="search-bar">SearchBar</div>,
 }));
 
+import {
+  DOCS_BOUNDARY_LINE,
+  DOCS_CHROME,
+  STUDIO_BLOG_HREF,
+} from '../../../../packages/contracts/src/nav-docs-boundary.ts';
 import { DocLayout } from '../../app/components/DocLayout';
 
 describe('DocLayout', () => {
@@ -123,7 +128,7 @@ describe('DocLayout', () => {
 
     expect(screen.getByRole('link', { name: 'Database' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Quick Start' })).toBeNull();
-    expect(screen.getAllByText('Home').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(DOCS_CHROME.docsHomeLabel).length).toBeGreaterThanOrEqual(1);
 
     await user.click(screen.getByRole('button', { name: 'Getting Started' }));
 
@@ -142,15 +147,26 @@ describe('DocLayout', () => {
     );
   });
 
-  it('does not list Blog as a sidebar section', () => {
+  it('keeps Blog off the docs pillar and points Studio outbound', () => {
     render(
       <DocLayout>
         <div>Content</div>
       </DocLayout>,
     );
 
-    expect(screen.queryByRole('button', { name: 'Blog' })).toBeNull();
+    expect(screen.queryByRole('button', { name: DOCS_CHROME.blogLabel })).toBeNull();
     expect(screen.queryByRole('link', { name: 'UI of the Future' })).toBeNull();
+    const blog = screen.queryByRole('link', { name: DOCS_CHROME.blogLabel });
+    if (blog) {
+      expect(blog.getAttribute('href')).toBe(STUDIO_BLOG_HREF);
+    }
+    const docsHome = screen.getAllByRole('link', { name: DOCS_CHROME.docsHomeLabel });
+    expect(docsHome.length).toBeGreaterThanOrEqual(1);
+    expect(docsHome.every((link) => link.getAttribute('href') === '/')).toBe(true);
+    expect(screen.getByRole('link', { name: DOCS_CHROME.studioLabel }).getAttribute('href')).toBe(
+      DOCS_CHROME.studioHref,
+    );
+    expect(screen.getByText(DOCS_BOUNDARY_LINE)).toBeInTheDocument();
   });
 
   it('should render quiet GitHub and website links in the sidebar', () => {

@@ -4,10 +4,12 @@
  *
  * Admitted boundary (2026-09-26):
  *   nav-docs-product-2026-09-26
+ *   nav-blog-studio-2026-09-26
  *   nav-product-blog-points-studio-2026-09-26
  *   boundary-blog-studio-docs-ref-2026-09-26
+ *   refuse-blog-in-docs
  *
- * Docs stay product reference. The Studio blog lives on revealuistudio.com.
+ * Blog is on Studio. Docs are product reference.
  * Blog markdown may remain served. This check fails when public nav or
  * product redirects still send readers to docs.revealui.com/blog.
  *

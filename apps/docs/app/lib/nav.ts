@@ -130,7 +130,8 @@ export function buildDocNavSections(showcaseItems: NavItem[]): NavSection[] {
       ],
     },
     // nav-docs-product-2026-09-26: docs nav is product reference.
-    // boundary-blog-studio-docs-ref-2026-09-26: narrative posts live on the Studio site.
+    // refuse-blog-in-docs: Blog is not a top-level docs category.
+    // boundary-blog-studio-docs-ref-2026-09-26: Blog is on Studio. Docs are product reference.
     // /blog/* pages stay served until a later drop.
     {
       title: 'Legal',
