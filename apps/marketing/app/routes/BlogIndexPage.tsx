@@ -26,8 +26,16 @@ function staticToShared(post: (typeof staticBlogPosts)[number]): BlogPost {
     excerpt: post.excerpt,
     content: post.content,
     publishedAt: post.publishedAt,
+    createdAt: post.publishedAt,
     author: post.author,
   };
+}
+
+function byPublishedDesc(a: BlogPost, b: BlogPost): number {
+  const left = a.publishedAt ?? '';
+  const right = b.publishedAt ?? '';
+  if (left === right) return 0;
+  return left < right ? 1 : -1;
 }
 
 export function BlogIndexPage() {
@@ -44,13 +52,15 @@ export function BlogIndexPage() {
       .then((cms) => {
         if (cancelled || !cms?.length) return;
         const cmsSlugs = new Set(cms.map((p) => p.slug));
-        const staticPosts = staticBlogPosts.filter((p) => !cmsSlugs.has(p.slug)).map(staticToShared);
-        const merged = [...cms, ...staticPosts].sort((a, b) =>
-          a.publishedAt < b.publishedAt ? 1 : -1,
-        );
+        const staticPosts = staticBlogPosts
+          .filter((p) => !cmsSlugs.has(p.slug))
+          .map(staticToShared);
+        const merged = [...cms, ...staticPosts].sort(byPublishedDesc);
         setPosts(merged);
       })
-      .catch(() => {});
+      .catch(() => {
+        // Static posts already painted; a failed CMS fetch leaves them in place.
+      });
     return () => {
       cancelled = true;
     };
@@ -94,7 +104,7 @@ export function BlogIndexPage() {
                 className="flex flex-col rounded-2xl bg-card p-6 ring-1 ring-border transition-shadow hover:shadow-md sm:p-8"
               >
                 <time className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  {formatDate(post.publishedAt)}
+                  {formatDate(post.publishedAt ?? '')}
                 </time>
                 <h2 className="mt-3 text-xl font-bold tracking-tight text-foreground">
                   <a href={`/blog/${post.slug}`} className="transition-colors hover:text-primary">
