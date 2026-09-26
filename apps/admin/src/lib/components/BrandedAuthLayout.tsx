@@ -1,3 +1,4 @@
+import { readTenantBrandStyle } from '@revealui/config';
 import { BuiltWithRevealUI, Heading, SplitAuthLayout } from '@revealui/presentation/server';
 import type React from 'react';
 
@@ -21,9 +22,9 @@ import type React from 'react';
  *   (kit-default false; revealui.com SaaS-default true)
  *
  * Tenant brand color is consumed via the `--tenant-brand` / `--tenant-brand-on` CSS
- * vars injected at the root in `apps/admin/src/app/(frontend)/layout.tsx`.
- * When no tenant color is set, the brand column uses midnight (`surface-0`) so
- * the Circuit-R master stays on its designed navy surface.
+ * vars injected at the root in `apps/admin/src/app/(frontend)/layout.tsx` from
+ * Zod-validated config. When no valid tenant color is set, the brand column
+ * uses midnight (`surface-0`) so the Circuit-R master stays on its designed navy surface.
  */
 export function BrandedAuthLayout({ children }: { children: React.ReactNode }) {
   // `||` not `??`: Compose `${VAR:-}` interpolation delivers unset vars as
@@ -35,7 +36,10 @@ export function BrandedAuthLayout({ children }: { children: React.ReactNode }) {
   const logoUrl = process.env.REVEALUI_BRAND_LOGO_URL;
   const showPoweredBy = process.env.REVEALUI_SHOW_POWERED_BY !== 'false';
   const hasTenantBrand = Boolean(
-    process.env.REVEALUI_BRAND_PRIMARY_COLOR || process.env.REVEALUI_TENANT_BRAND,
+    readTenantBrandStyle({
+      REVEALUI_BRAND_PRIMARY_COLOR: process.env.REVEALUI_BRAND_PRIMARY_COLOR,
+      REVEALUI_TENANT_BRAND: process.env.REVEALUI_TENANT_BRAND,
+    }).primaryColor,
   );
 
   const brand = (

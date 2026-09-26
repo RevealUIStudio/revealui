@@ -1,3 +1,4 @@
+import { readTenantBrandStyle, renderTenantBrandStyle } from '@revealui/config';
 import { logger } from '@revealui/utils/logger';
 import type { Metadata } from 'next';
 import { draftMode, headers } from 'next/headers';
@@ -30,26 +31,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     );
   }
 
-  const primaryColor =
-    process.env.REVEALUI_BRAND_PRIMARY_COLOR ?? process.env.REVEALUI_TENANT_BRAND;
-  // Foreground color to use ON the brand color (e.g. for text in a brand-coloured panel).
-  // Customers with light brand colours must override this with a dark value (e.g. '#0f172a')
-  // to maintain WCAG contrast — there is no automatic contrast computation by design.
-  const brandOnColor = process.env.REVEALUI_TENANT_BRAND_ON ?? 'white';
-  // Optional tenant font family. The built-in values 'Inter' / 'Inter Tight'
-  // ship self-hosted (see the @fontsource-variable imports at the top of this
-  // file) and register under the "* Variable" family names, so map those two to
-  // their Variable counterparts; any other (custom) value passes through and
-  // must be loaded by the tenant. Unset → the default self-hosted stack via
-  // --font-sans. No third-party font host is used in any case.
-  const rawTenantFont = process.env.REVEALUI_TENANT_FONT?.trim();
-  const BuiltinFontToVariable: Record<string, string> = {
-    Inter: 'Inter Variable',
-    'Inter Tight': 'Inter Tight Variable',
-  };
-  const tenantFont = rawTenantFont
-    ? (BuiltinFontToVariable[rawTenantFont] ?? rawTenantFont)
-    : undefined;
+  // Brand CSS comes from Zod-validated config (hex, boolean/on, font allowlist).
+  // Invalid tokens are omitted. Nothing from raw env is interpolated below.
+  const tenantBrandCss = renderTenantBrandStyle(
+    readTenantBrandStyle({
+      REVEALUI_BRAND_PRIMARY_COLOR: process.env.REVEALUI_BRAND_PRIMARY_COLOR,
+      REVEALUI_TENANT_BRAND: process.env.REVEALUI_TENANT_BRAND,
+      REVEALUI_TENANT_BRAND_ON: process.env.REVEALUI_TENANT_BRAND_ON,
+      REVEALUI_TENANT_FONT: process.env.REVEALUI_TENANT_FONT,
+    }),
+  );
   // Fleet kits hide the RevealUI-branded Header/Footer by default. Customer-side
   // navigation/footer is out of scope for v1; future work can expose a tenant
   // header-block + footer-block via env or admin settings.
@@ -73,24 +64,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <link href="/apple-touch-icon.png" rel="apple-touch-icon" />
           {/* RevealUI Theme Fonts are self-hosted via @fontsource-variable/*
               (imported at the top of this layout); no third-party font hosts. GAP-324. */}
-          {primaryColor || tenantFont ? (
+          {tenantBrandCss ? (
             <style
-              // biome-ignore lint/security/noDangerouslySetInnerHtml: inline <style> takes a string; both values are server-side env vars, no user-html injection surface
-              dangerouslySetInnerHTML={{
-                __html: [
-                  ':root {',
-                  primaryColor ? `--tenant-brand: ${primaryColor};` : '',
-                  primaryColor ? '--primary: var(--tenant-brand);' : '',
-                  primaryColor ? `--tenant-brand-on: ${brandOnColor};` : '',
-                  tenantFont ? `--tenant-font: '${tenantFont}';` : '',
-                  '}',
-                  tenantFont
-                    ? `body { font-family: var(--tenant-font), 'Inter Variable', system-ui, -apple-system, sans-serif; }`
-                    : '',
-                ]
-                  .filter(Boolean)
-                  .join(' '),
-              }}
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: string is renderTenantBrandStyle() — Zod hex, boolean/on, and the font allowlist only
+              dangerouslySetInnerHTML={{ __html: tenantBrandCss }}
             />
           ) : null}
         </head>

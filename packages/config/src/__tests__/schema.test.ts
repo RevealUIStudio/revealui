@@ -51,6 +51,30 @@ describe('envSchema', () => {
     expect(() =>
       envSchema.parse(
         makeValidEnv({
+          REVEALUI_TENANT_BRAND: '#fff; } body { background: url(https://evil) }',
+        }),
+      ),
+    ).toThrow(/hex color/i);
+
+    expect(() =>
+      envSchema.parse(
+        makeValidEnv({
+          REVEALUI_TENANT_BRAND_ON: '</style><script>alert(1)</script>',
+        }),
+      ),
+    ).toThrow();
+
+    expect(() =>
+      envSchema.parse(
+        makeValidEnv({
+          REVEALUI_TENANT_FONT: "Inter'; } body { background: red }",
+        }),
+      ),
+    ).toThrow();
+
+    expect(() =>
+      envSchema.parse(
+        makeValidEnv({
           REVEALUI_ADMIN_EMAIL: 'not-an-email',
         }),
       ),
@@ -63,6 +87,33 @@ describe('envSchema', () => {
         }),
       ),
     ).toThrow(/PostgreSQL/i);
+  });
+});
+
+describe('tenant brand-on and font', () => {
+  it('accepts boolean/on, hex, and the font allowlist', () => {
+    const on = envSchema.parse(makeValidEnv({ REVEALUI_TENANT_BRAND_ON: 'on' }));
+    expect(on.REVEALUI_TENANT_BRAND_ON).toBe(true);
+
+    const off = envSchema.parse(makeValidEnv({ REVEALUI_TENANT_BRAND_ON: 'OFF' }));
+    expect(off.REVEALUI_TENANT_BRAND_ON).toBe(false);
+
+    const hex = envSchema.parse(makeValidEnv({ REVEALUI_TENANT_BRAND_ON: '#0f172a' }));
+    expect(hex.REVEALUI_TENANT_BRAND_ON).toBe('#0f172a');
+
+    const font = envSchema.parse(makeValidEnv({ REVEALUI_TENANT_FONT: 'Inter Tight' }));
+    expect(font.REVEALUI_TENANT_FONT).toBe('Inter Tight');
+  });
+
+  it('treats blank brand-on and font as unset', () => {
+    const result = envSchema.parse(
+      makeValidEnv({
+        REVEALUI_TENANT_BRAND_ON: '   ',
+        REVEALUI_TENANT_FONT: '',
+      }),
+    );
+    expect(result.REVEALUI_TENANT_BRAND_ON).toBeUndefined();
+    expect(result.REVEALUI_TENANT_FONT).toBeUndefined();
   });
 });
 
