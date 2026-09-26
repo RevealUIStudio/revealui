@@ -40,6 +40,7 @@ import type { AgentDispatchOutput, AgentDispatchPayload } from '../jobs/agent-di
 import { buildDispatcher, type Dispatcher } from '../lib/agent-dispatcher.js';
 import { AiModuleUnavailableBodySchema } from '../lib/ai-module-loader.js';
 import { asLLMNotConfigured } from '../lib/llm-not-configured.js';
+import { trustRefusalReason } from '../lib/low-trust-run.js';
 import { detectDeploymentMode, type EnvMap } from '../lib/validate-startup.js';
 import { getEntitlementsFromContext } from '../middleware/entitlements.js';
 
@@ -78,6 +79,14 @@ const LLMNotConfiguredSchema = z.object({
   code: z.literal('LLM_NOT_CONFIGURED'),
   settingsPath: z.string(),
 });
+
+const TrustResolveFailedSchema = z.object({
+  success: z.literal(false),
+  code: z.literal('TRUST_RESOLVE_FAILED'),
+  reason: z.string(),
+});
+
+const AgentTaskConflictSchema = z.union([LLMNotConfiguredSchema, TrustResolveFailedSchema]);
 
 /**
  * Resolve the LLM client for a sync dispatch and return the built dispatcher,
@@ -153,6 +162,8 @@ app.openapi(
               }),
               boardId: z.string().openapi({ description: 'Board to create the ticket on' }),
               priority: z.enum(['low', 'medium', 'high', 'critical']).optional().default('medium'),
+              /** Can only narrow. `standard` is ignored. A scope is the created ticket. */
+              trustPreset: z.enum(['standard', 'low_trust_review']).optional(),
             }),
           },
         },
@@ -181,7 +192,7 @@ app.openapi(
         description: 'AI feature requires Pro or Enterprise license',
       },
       409: {
-        content: { 'application/json': { schema: LLMNotConfiguredSchema } },
+        content: { 'application/json': { schema: AgentTaskConflictSchema } },
         description:
           'Hosted account has no LLM provider configured (set one at /settings/api-keys)',
       },
@@ -195,7 +206,7 @@ app.openapi(
     const user = requireAgentTaskRole(c);
     const db = c.get('db');
     const tenant = c.get('tenant');
-    const { instruction, boardId, priority } = c.req.valid('json');
+    const { instruction, boardId, priority, trustPreset } = c.req.valid('json');
 
     const board = await boardQueries.getBoardById(db, boardId);
     if (!board) {
@@ -222,6 +233,10 @@ app.openapi(
 
     if (!ticket) {
       return c.json({ success: false as const, error: 'Failed to create ticket' }, 400);
+    }
+
+    if (trustPreset === 'low_trust_review') {
+      await ticketQueries.setTicketTrustPreset(db, ticket.id, 'low_trust_review');
     }
 
     // --- Durable dispatch path (flag on) ---
@@ -284,6 +299,16 @@ app.openapi(
 
     const dispatchResult = await dispatchWithTimeout(db, dispatcher, ticket);
     if (!dispatchResult.success) {
+      if (dispatchResult.code === 'TRUST_RESOLVE_FAILED') {
+        return c.json(
+          {
+            success: false as const,
+            code: 'TRUST_RESOLVE_FAILED' as const,
+            reason: dispatchResult.reason ?? 'missing_scope',
+          },
+          409,
+        );
+      }
       return c.json({ success: false as const, error: dispatchResult.error }, 403);
     }
     const { result } = dispatchResult;
@@ -334,7 +359,7 @@ app.openapi(
         description: 'AI feature requires Pro or Enterprise license',
       },
       409: {
-        content: { 'application/json': { schema: LLMNotConfiguredSchema } },
+        content: { 'application/json': { schema: AgentTaskConflictSchema } },
         description:
           'Hosted account has no LLM provider configured (set one at /settings/api-keys)',
       },
@@ -417,6 +442,16 @@ app.openapi(
 
     const dispatchResult = await dispatchWithTimeout(db, dispatcher, ticket);
     if (!dispatchResult.success) {
+      if (dispatchResult.code === 'TRUST_RESOLVE_FAILED') {
+        return c.json(
+          {
+            success: false as const,
+            code: 'TRUST_RESOLVE_FAILED' as const,
+            reason: dispatchResult.reason ?? 'missing_scope',
+          },
+          409,
+        );
+      }
       return c.json({ success: false as const, error: dispatchResult.error }, 403);
     }
     const { result } = dispatchResult;
@@ -674,7 +709,7 @@ async function dispatchWithTimeout(
         metadata?: { executionTime?: number; tokensUsed?: number };
       };
     }
-  | { success: false; error: string }
+  | { success: false; error: string; code?: 'TRUST_RESOLVE_FAILED'; reason?: string }
 > {
   let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
   const timeoutPromise = new Promise<never>((_, reject) => {
@@ -700,6 +735,15 @@ async function dispatchWithTimeout(
     ]);
   } catch (dispatchErr) {
     clearTimeout(timeoutHandle);
+    const refused = trustRefusalReason(dispatchErr);
+    if (refused) {
+      return {
+        success: false,
+        error: 'Trust resolve failed',
+        code: 'TRUST_RESOLVE_FAILED',
+        reason: refused,
+      };
+    }
     await ticketQueries.updateTicket(db, ticket.id, { status: 'blocked' });
     const isTimeout =
       dispatchErr instanceof Error && dispatchErr.message === 'Agent dispatch timed out';

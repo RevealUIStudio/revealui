@@ -21,6 +21,15 @@ export {
 export { type AuditEvent, AuditLine, type AuditLineProps } from './components/audit-line.js';
 export { Avatar } from './components/avatar.js';
 export { AvatarGroup } from './components/avatar-group.js';
+export {
+  BOOKING_CALENDAR_DEFAULT_MESSAGES,
+  BookingCalendar,
+  type BookingCalendarMessages,
+  type BookingCalendarProps,
+  type BookingCalendarStatus,
+  type BookingCalendarValue,
+  type BookingSlot,
+} from './components/BookingCalendar.js';
 export { BuiltWithRevealUI } from './components/BuiltWithRevealUI.js';
 // The owned action button, re-exported on the client entry for convenience.
 // `Button` is the sovereign export; `ButtonCVA` is a deprecated alias kept for
@@ -36,6 +45,13 @@ export { Badge, type BadgeIntent, type BadgeProps } from './components/badge.js'
 // were absent from this barrel though their peers (Label, StatusDot) are here.
 export { RevealUIMark, type RevealUIMarkProps } from './components/brand-mark.js';
 export { Breadcrumb, type BreadcrumbItem } from './components/breadcrumb.js';
+export {
+  Calendar,
+  type CalendarProps,
+  type CalendarSize,
+  calendarVariants,
+  type WeekStartsOn,
+} from './components/Calendar.js';
 export { ChoiceCard, type ChoiceCardProps } from './components/Card.js';
 // CVA Components that use hooks
 export {

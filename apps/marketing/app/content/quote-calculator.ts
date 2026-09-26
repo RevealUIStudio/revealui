@@ -1,33 +1,19 @@
-// Product-site quote tool: one calculator, two exits, three questions.
-// Same numbers as revealuistudio.com. This site defaults Who to I will.
+// Product-site quote tool: license plans on this form.
+// Studio outcomes stay on revealuistudio.com. This site defaults Who to self-host.
 
-import {
-  CONSULTATION_PRICE,
-  LAUNCH_PACKAGE_PRICE,
-  PROOF_SPRINT_PRICE,
-} from '@revealui/contracts/public-catalog';
 import { PERPETUAL_PRICE_FALLBACKS, SUBSCRIPTION_PRICE_FALLBACKS } from '../lib/pricing-fallbacks';
 import { SITE } from './site';
 
 export type WhoLive = 'self' | 'studio';
-export type WhatWork = 'consultation' | 'proof-sprint' | 'launch';
 export type PlaceCount = 'one' | 'many';
+export type QuoteSurface = 'home' | 'pricing';
 
 export interface QuoteAnswers {
   readonly who: WhoLive;
-  readonly what: WhatWork;
   readonly places: PlaceCount;
 }
 
 export type QuoteKind = 'self-host' | 'studio' | 'intro';
-
-export interface QuoteSkuLine {
-  readonly id: WhatWork;
-  readonly title: string;
-  readonly price: string;
-  readonly body: string;
-  readonly highlighted: boolean;
-}
 
 export interface QuoteCta {
   readonly label: string;
@@ -37,11 +23,11 @@ export interface QuoteCta {
 export interface QuoteResult {
   readonly kind: QuoteKind;
   readonly title: string;
-  readonly price?: string;
+  readonly pathLabel?: string;
   readonly lines: readonly string[];
-  readonly skus?: readonly QuoteSkuLine[];
   readonly ownership: readonly string[];
   readonly startFreeCta?: QuoteCta;
+  readonly studioCta?: QuoteCta;
   readonly introCta: QuoteCta & { readonly note: string };
 }
 
@@ -66,28 +52,27 @@ const PERPETUAL_PRICE = publicPerpetualPrice();
 
 export const DEFAULT_QUOTE_ANSWERS: QuoteAnswers = {
   who: 'self',
-  what: 'proof-sprint',
   places: 'one',
 };
 
+const STUDIO_QUOTE_URL = `${SITE.urls.agency}/#calculator`;
+
+const STUDIO_BOUNDARY_SHORT =
+  'Need implementation? Studio is a separate path (Consultation, Pilot, Launch). This catalog is licenses only.';
+
 export const QUOTE_CALCULATOR = {
-  heading: 'Who runs it. What you need. One price.',
-  body: 'Defaults to self-host licenses. Studio work is on the same form and books at revealuistudio.com.',
+  heading: 'Who runs it. What you need. One product price.',
+  bodies: {
+    home: STUDIO_BOUNDARY_SHORT,
+    pricing: STUDIO_BOUNDARY_SHORT,
+  },
   questions: {
     who: {
       label: 'Who runs it?',
       options: [
         { id: 'self', label: 'I self-host the runtime' },
-        { id: 'studio', label: 'Studio implements with me' },
+        { id: 'studio', label: 'I need Studio implementation' },
       ] as const satisfies readonly QuoteOption<WhoLive>[],
-    },
-    what: {
-      label: 'What problem are we solving?',
-      options: [
-        { id: 'consultation', label: 'Consultation: diagnose the path / proof gap' },
-        { id: 'proof-sprint', label: 'Proof Sprint: one site, one receipted action I operate' },
-        { id: 'launch', label: 'Launch: money path live on my accounts' },
-      ] as const satisfies readonly QuoteOption<WhatWork>[],
     },
     places: {
       label: 'How many sites?',
@@ -104,23 +89,10 @@ export const QUOTE_CALCULATOR = {
     perpetual: `Optional one-time: Pro Perpetual ${PERPETUAL_PRICE}.`,
     enterprise: 'Enterprise: not in the calculator. Contact sales or book an intro.',
   },
-  studio: {
-    title: 'Studio',
-    consultation: {
-      title: 'Consultation',
-      price: CONSULTATION_PRICE,
-      body: 'Invoice before start.',
-    },
-    proofSprint: {
-      title: 'Proof Sprint',
-      price: PROOF_SPRINT_PRICE,
-      body: 'One site and one receipted action you operate. Stage B is included. Credits 100% to Launch if you start Launch within 45 days.',
-    },
-    launch: {
-      title: 'Launch',
-      price: LAUNCH_PACKAGE_PRICE,
-      body: 'Architecture work happens inside Launch, with a runbook and 30 days of async stabilization. Half now, half on delivery.',
-    },
+  studioPath: {
+    label: 'Studio path',
+    title: 'RevealUI Studio',
+    body: 'Open the separate RevealUI Studio quote. Studio lists Consultation, Pilot, and Launch on its own domain.',
   },
   intro: {
     title: 'More than one site',
@@ -134,38 +106,16 @@ export const QUOTE_CALCULATOR = {
     label: 'Start free',
     href: SITE.urls.signup,
   },
+  studioCta: {
+    label: 'Visit Studio quote',
+    href: STUDIO_QUOTE_URL,
+  },
   introCta: {
     label: 'Book a 30-minute intro',
-    note: 'Google Calendar / Meet.',
+    note: 'Google Calendar / Google Meet.',
     href: SITE.urls.bookIntro,
   },
 } as const;
-
-function studioSkus(highlighted: WhatWork): readonly QuoteSkuLine[] {
-  return [
-    {
-      id: 'consultation',
-      title: QUOTE_CALCULATOR.studio.consultation.title,
-      price: QUOTE_CALCULATOR.studio.consultation.price,
-      body: QUOTE_CALCULATOR.studio.consultation.body,
-      highlighted: highlighted === 'consultation',
-    },
-    {
-      id: 'proof-sprint',
-      title: QUOTE_CALCULATOR.studio.proofSprint.title,
-      price: QUOTE_CALCULATOR.studio.proofSprint.price,
-      body: QUOTE_CALCULATOR.studio.proofSprint.body,
-      highlighted: highlighted === 'proof-sprint',
-    },
-    {
-      id: 'launch',
-      title: QUOTE_CALCULATOR.studio.launch.title,
-      price: QUOTE_CALCULATOR.studio.launch.price,
-      body: QUOTE_CALCULATOR.studio.launch.body,
-      highlighted: highlighted === 'launch',
-    },
-  ];
-}
 
 export function resolveQuote(answers: QuoteAnswers): QuoteResult {
   const introCta = {
@@ -174,6 +124,21 @@ export function resolveQuote(answers: QuoteAnswers): QuoteResult {
     href: QUOTE_CALCULATOR.introCta.href,
   };
   const ownership = [...QUOTE_CALCULATOR.ownership];
+
+  if (answers.who === 'studio') {
+    return {
+      kind: 'studio',
+      title: QUOTE_CALCULATOR.studioPath.title,
+      pathLabel: QUOTE_CALCULATOR.studioPath.label,
+      lines: [QUOTE_CALCULATOR.studioPath.body],
+      ownership,
+      studioCta: {
+        label: QUOTE_CALCULATOR.studioCta.label,
+        href: QUOTE_CALCULATOR.studioCta.href,
+      },
+      introCta,
+    };
+  }
 
   if (answers.places === 'many') {
     return {
@@ -185,31 +150,20 @@ export function resolveQuote(answers: QuoteAnswers): QuoteResult {
     };
   }
 
-  if (answers.who === 'self') {
-    return {
-      kind: 'self-host',
-      title: QUOTE_CALCULATOR.selfHost.title,
-      lines: [
-        QUOTE_CALCULATOR.selfHost.free,
-        QUOTE_CALCULATOR.selfHost.agents,
-        QUOTE_CALCULATOR.selfHost.perpetual,
-        QUOTE_CALCULATOR.selfHost.enterprise,
-      ],
-      ownership,
-      startFreeCta: {
-        label: QUOTE_CALCULATOR.startFreeCta.label,
-        href: QUOTE_CALCULATOR.startFreeCta.href,
-      },
-      introCta,
-    };
-  }
-
   return {
-    kind: 'studio',
-    title: QUOTE_CALCULATOR.studio.title,
-    lines: studioSkus(answers.what).flatMap((sku) => [`${sku.title} ${sku.price}`, sku.body]),
-    skus: studioSkus(answers.what),
+    kind: 'self-host',
+    title: QUOTE_CALCULATOR.selfHost.title,
+    lines: [
+      QUOTE_CALCULATOR.selfHost.free,
+      QUOTE_CALCULATOR.selfHost.agents,
+      QUOTE_CALCULATOR.selfHost.perpetual,
+      QUOTE_CALCULATOR.selfHost.enterprise,
+    ],
     ownership,
+    startFreeCta: {
+      label: QUOTE_CALCULATOR.startFreeCta.label,
+      href: QUOTE_CALCULATOR.startFreeCta.href,
+    },
     introCta,
   };
 }

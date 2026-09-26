@@ -51,6 +51,7 @@ import {
   auditStorageSelfTest,
   installAuditStorage,
 } from './lib/audit-storage.js';
+import { startWorkerSentryHeartbeat } from './lib/cron-sentry-monitors.js';
 import { hydrateInferenceConfigs } from './lib/hydrate-inference-configs.js';
 import { runHostedLicenseCanary } from './lib/license-canary.js';
 import {
@@ -130,6 +131,12 @@ startAuditAnchorSweep();
 
 const port = Number(process.env.WORKER_PORT || process.env.PORT) || 8080;
 const server = serve({ fetch: app.fetch, port });
+
+// Sentry Cron Monitor heartbeat. The worker process emits this itself, so
+// liveness does not depend on GitHub Actions or Cloudflare. Upserts monitor
+// slug fly-worker-heartbeat on the first check-in. No-ops without SENTRY_DSN.
+// Interval defaults to 5 minutes. Override with SENTRY_CRON_HEARTBEAT_MS.
+startWorkerSentryHeartbeat();
 
 // Terminal WebSocket bridge — gated on REVEALUI_FORGE, default OFF. The
 // bridge proxies to a local harness daemon Unix socket at

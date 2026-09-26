@@ -586,6 +586,84 @@ export type BoardsRow = z.infer<typeof BoardsSelectSchema>
 export type BoardsInsert = z.infer<typeof BoardsInsertSchema>
 
 // =============================================================================
+// BudgetIncidents Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting budgetIncidents rows from database
+ * Generated from Drizzle table definition: tables.budgetIncidents
+ */
+export const BudgetIncidentsSelectSchema = createSelectSchema(tables.budgetIncidents)
+
+/**
+ * Zod schema for inserting budgetIncidents rows to database
+ * Generated from Drizzle table definition: tables.budgetIncidents
+ */
+export const BudgetIncidentsInsertSchema = createInsertSchema(tables.budgetIncidents)
+
+/**
+ * TypeScript type for budgetIncidents row (Select)
+ */
+export type BudgetIncidentsRow = z.infer<typeof BudgetIncidentsSelectSchema>
+
+/**
+ * TypeScript type for budgetIncidents insert
+ */
+export type BudgetIncidentsInsert = z.infer<typeof BudgetIncidentsInsertSchema>
+
+// =============================================================================
+// BudgetLedgers Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting budgetLedgers rows from database
+ * Generated from Drizzle table definition: tables.budgetLedgers
+ */
+export const BudgetLedgersSelectSchema = createSelectSchema(tables.budgetLedgers)
+
+/**
+ * Zod schema for inserting budgetLedgers rows to database
+ * Generated from Drizzle table definition: tables.budgetLedgers
+ */
+export const BudgetLedgersInsertSchema = createInsertSchema(tables.budgetLedgers)
+
+/**
+ * TypeScript type for budgetLedgers row (Select)
+ */
+export type BudgetLedgersRow = z.infer<typeof BudgetLedgersSelectSchema>
+
+/**
+ * TypeScript type for budgetLedgers insert
+ */
+export type BudgetLedgersInsert = z.infer<typeof BudgetLedgersInsertSchema>
+
+// =============================================================================
+// BudgetPolicies Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting budgetPolicies rows from database
+ * Generated from Drizzle table definition: tables.budgetPolicies
+ */
+export const BudgetPoliciesSelectSchema = createSelectSchema(tables.budgetPolicies)
+
+/**
+ * Zod schema for inserting budgetPolicies rows to database
+ * Generated from Drizzle table definition: tables.budgetPolicies
+ */
+export const BudgetPoliciesInsertSchema = createInsertSchema(tables.budgetPolicies)
+
+/**
+ * TypeScript type for budgetPolicies row (Select)
+ */
+export type BudgetPoliciesRow = z.infer<typeof BudgetPoliciesSelectSchema>
+
+/**
+ * TypeScript type for budgetPolicies insert
+ */
+export type BudgetPoliciesInsert = z.infer<typeof BudgetPoliciesInsertSchema>
+
+// =============================================================================
 // Categories Schemas
 // =============================================================================
 
@@ -1756,6 +1834,32 @@ export type MarketplaceTransactionsRow = z.infer<typeof MarketplaceTransactionsS
 export type MarketplaceTransactionsInsert = z.infer<typeof MarketplaceTransactionsInsertSchema>
 
 // =============================================================================
+// McpApprovalSettings Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting mcpApprovalSettings rows from database
+ * Generated from Drizzle table definition: tables.mcpApprovalSettings
+ */
+export const McpApprovalSettingsSelectSchema = createSelectSchema(tables.mcpApprovalSettings)
+
+/**
+ * Zod schema for inserting mcpApprovalSettings rows to database
+ * Generated from Drizzle table definition: tables.mcpApprovalSettings
+ */
+export const McpApprovalSettingsInsertSchema = createInsertSchema(tables.mcpApprovalSettings)
+
+/**
+ * TypeScript type for mcpApprovalSettings row (Select)
+ */
+export type McpApprovalSettingsRow = z.infer<typeof McpApprovalSettingsSelectSchema>
+
+/**
+ * TypeScript type for mcpApprovalSettings insert
+ */
+export type McpApprovalSettingsInsert = z.infer<typeof McpApprovalSettingsInsertSchema>
+
+// =============================================================================
 // McpDocumentOperations Schemas
 // =============================================================================
 
@@ -1780,6 +1884,58 @@ export type McpDocumentOperationsRow = z.infer<typeof McpDocumentOperationsSelec
  * TypeScript type for mcpDocumentOperations insert
  */
 export type McpDocumentOperationsInsert = z.infer<typeof McpDocumentOperationsInsertSchema>
+
+// =============================================================================
+// McpToolApprovals Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting mcpToolApprovals rows from database
+ * Generated from Drizzle table definition: tables.mcpToolApprovals
+ */
+export const McpToolApprovalsSelectSchema = createSelectSchema(tables.mcpToolApprovals)
+
+/**
+ * Zod schema for inserting mcpToolApprovals rows to database
+ * Generated from Drizzle table definition: tables.mcpToolApprovals
+ */
+export const McpToolApprovalsInsertSchema = createInsertSchema(tables.mcpToolApprovals)
+
+/**
+ * TypeScript type for mcpToolApprovals row (Select)
+ */
+export type McpToolApprovalsRow = z.infer<typeof McpToolApprovalsSelectSchema>
+
+/**
+ * TypeScript type for mcpToolApprovals insert
+ */
+export type McpToolApprovalsInsert = z.infer<typeof McpToolApprovalsInsertSchema>
+
+// =============================================================================
+// McpToolTrustRules Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting mcpToolTrustRules rows from database
+ * Generated from Drizzle table definition: tables.mcpToolTrustRules
+ */
+export const McpToolTrustRulesSelectSchema = createSelectSchema(tables.mcpToolTrustRules)
+
+/**
+ * Zod schema for inserting mcpToolTrustRules rows to database
+ * Generated from Drizzle table definition: tables.mcpToolTrustRules
+ */
+export const McpToolTrustRulesInsertSchema = createInsertSchema(tables.mcpToolTrustRules)
+
+/**
+ * TypeScript type for mcpToolTrustRules row (Select)
+ */
+export type McpToolTrustRulesRow = z.infer<typeof McpToolTrustRulesSelectSchema>
+
+/**
+ * TypeScript type for mcpToolTrustRules insert
+ */
+export type McpToolTrustRulesInsert = z.infer<typeof McpToolTrustRulesInsertSchema>
 
 // =============================================================================
 // Media Schemas

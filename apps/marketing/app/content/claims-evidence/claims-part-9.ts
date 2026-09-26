@@ -17,7 +17,7 @@ const QUOTE_RESOLVER: ClaimEntry['evidence'][number] = {
 const QUOTE_DEFAULT: ClaimEntry['evidence'][number] = {
   kind: 'test',
   ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#defaults Who to I will (self-host) on this site',
-  note: 'product site defaults Who to I will / self-host and What to Proof Sprint',
+  note: 'product site defaults Who to self-host and does not default a Studio SKU',
 };
 
 const QUOTE_UI: ClaimEntry['evidence'][number] = {
@@ -28,8 +28,26 @@ const QUOTE_UI: ClaimEntry['evidence'][number] = {
 
 const QUOTE_LOCKSTEP: ClaimEntry['evidence'][number] = {
   kind: 'test',
-  ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#locksteps printed numbers to public-catalog and the locked SKU trio',
-  note: 'printed Free / Pro / Max / Perpetual and Consultation / Proof Sprint / Launch prices cannot drift from public-catalog',
+  ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#locksteps printed product license numbers and omits Studio SKU prices',
+  note: 'printed Free / Pro / Max / Perpetual prices stay on the product calculator; Studio SKU prices do not',
+};
+
+const QUOTE_BOUNDARY: ClaimEntry['evidence'][number] = {
+  kind: 'test',
+  ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#asks who runs it and how many sites, with Studio as an outbound path',
+  note: 'product calculator names the Studio path and does not offer Studio SKUs as plans',
+};
+
+const QUOTE_STUDIO_ROUTE: ClaimEntry['evidence'][number] = {
+  kind: 'test',
+  ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#routes Studio implementation to revealuistudio.com without Studio prices',
+  note: 'Studio answers route to revealuistudio.com/#calculator and print no Studio prices',
+};
+
+const STUDIO_QUOTE_URL: ClaimEntry['evidence'][number] = {
+  kind: 'url',
+  ref: 'https://revealuistudio.com/#calculator',
+  note: 'Studio quote and booking path lives on the Studio domain',
 };
 
 const QUOTE_INTRO: ClaimEntry['evidence'][number] = {
@@ -49,57 +67,45 @@ export const claimsPart9: readonly ClaimEntry[] = [
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.heading',
     proofGrade: 'outcome',
-    text: 'Who runs it. What you need. One price.',
-    evidence: [QUOTE_RESOLVER, QUOTE_DEFAULT, QUOTE_UI],
+    text: 'Who runs it. What you need. One product price.',
+    evidence: [QUOTE_RESOLVER, QUOTE_DEFAULT, QUOTE_UI, QUOTE_BOUNDARY],
   },
   {
     file: 'quote-calculator.ts',
-    exportPath: 'QUOTE_CALCULATOR.questions.what.label',
-    text: 'What problem are we solving?',
-    evidence: [QUOTE_DEFAULT, QUOTE_UI],
-  },
-  {
-    file: 'quote-calculator.ts',
-    exportPath: 'QUOTE_CALCULATOR.questions.what.options[0].label',
-    text: 'Consultation: diagnose the path / proof gap',
-    evidence: [
-      {
-        kind: 'test',
-        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#asks exactly three questions with the two exits',
-        note: 'Consultation option is the diagnose / proof-gap path, not a default Studio hour',
-      },
-    ],
-  },
-  {
-    file: 'quote-calculator.ts',
-    exportPath: 'QUOTE_CALCULATOR.body',
+    exportPath: 'QUOTE_CALCULATOR.bodies.home',
     proofGrade: 'outcome',
-    text: 'Defaults to self-host licenses. Studio work is on the same form and books at revealuistudio.com.',
-    evidence: [QUOTE_DEFAULT, QUOTE_UI, THIS_SITE],
-  },
-  {
-    file: 'quote-calculator.ts',
-    exportPath: 'QUOTE_CALCULATOR.questions.what.options[1].label',
-    text: 'Proof Sprint: one site, one receipted action I operate',
+    text: 'Need implementation? Studio is a separate path (Consultation, Pilot, Launch). This catalog is licenses only.',
     evidence: [
+      QUOTE_BOUNDARY,
+      THIS_SITE,
       {
         kind: 'test',
-        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio Proof Sprint quote',
-        note: 'Proof Sprint answer prints the $3,997 price',
+        ref: 'apps/marketing/app/components/landing/__tests__/QuoteCalculator.test.tsx#shows the home Studio boundary as an outbound quote link',
+        note: 'home quote intro keeps licenses on RevealUI and points implementation at Studio',
       },
     ],
   },
   {
     file: 'quote-calculator.ts',
-    exportPath: 'QUOTE_CALCULATOR.questions.what.options[2].label',
-    text: 'Launch: money path live on my accounts',
+    exportPath: 'QUOTE_CALCULATOR.bodies.pricing',
+    proofGrade: 'outcome',
+    text: 'Need implementation? Studio is a separate path (Consultation, Pilot, Launch). This catalog is licenses only.',
     evidence: [
+      QUOTE_BOUNDARY,
+      THIS_SITE,
+      STUDIO_QUOTE_URL,
       {
         kind: 'test',
-        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio launch quote',
-        note: 'live-flow answer prints the $14,500 launch quote',
+        ref: 'apps/marketing/app/components/landing/__tests__/QuoteCalculator.test.tsx#shows the pricing Studio boundary as an outbound quote link',
+        note: 'pricing quote intro names the license catalog and sends Studio outcomes to revealuistudio.com',
       },
     ],
+  },
+  {
+    file: 'quote-calculator.ts',
+    exportPath: 'QUOTE_CALCULATOR.questions.who.options[1].label',
+    text: 'I need Studio implementation',
+    evidence: [QUOTE_BOUNDARY, QUOTE_STUDIO_ROUTE],
   },
   {
     file: 'quote-calculator.ts',
@@ -109,7 +115,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
       {
         kind: 'test',
         ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#stops quoting and books an intro when there is more than one place',
-        note: 'places=many stops quoting on both exits',
+        note: 'self-host plus more than one site stops quoting and books an intro',
       },
       BOOK_INTRO,
     ],
@@ -144,29 +150,10 @@ export const claimsPart9: readonly ClaimEntry[] = [
   },
   {
     file: 'quote-calculator.ts',
-    exportPath: 'QUOTE_CALCULATOR.studio.proofSprint.body',
+    exportPath: 'QUOTE_CALCULATOR.studioPath.body',
     proofGrade: 'outcome',
-    text: 'One site and one receipted action you operate. Stage B is included. Credits 100% to Launch if you start Launch within 45 days.',
-    evidence: [
-      {
-        kind: 'test',
-        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio Proof Sprint quote',
-        note: 'Studio + Proof Sprint prints $3,997 and the 45-day Launch credit',
-      },
-    ],
-  },
-  {
-    file: 'quote-calculator.ts',
-    exportPath: 'QUOTE_CALCULATOR.studio.launch.body',
-    proofGrade: 'outcome',
-    text: 'Architecture work happens inside Launch, with a runbook and 30 days of async stabilization. Half now, half on delivery.',
-    evidence: [
-      {
-        kind: 'test',
-        ref: 'apps/marketing/app/content/__tests__/quote-calculator.test.ts#prints the Studio launch quote',
-        note: 'Studio + launch prints $14,500 and half/half on delivery. No four-tests holdback.',
-      },
-    ],
+    text: 'Open the separate RevealUI Studio quote. Studio lists Consultation, Pilot, and Launch on its own domain.',
+    evidence: [QUOTE_STUDIO_ROUTE, STUDIO_QUOTE_URL],
   },
   {
     file: 'quote-calculator.ts',
@@ -181,6 +168,13 @@ export const claimsPart9: readonly ClaimEntry[] = [
       },
       BOOK_INTRO,
     ],
+  },
+  {
+    file: 'quote-calculator.ts',
+    exportPath: 'QUOTE_CALCULATOR.introCta.note',
+    proofGrade: 'behavior',
+    text: 'Google Calendar / Google Meet.',
+    evidence: [QUOTE_INTRO, BOOK_INTRO],
   },
   {
     file: 'quote-calculator.ts',

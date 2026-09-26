@@ -131,6 +131,7 @@ import cronReconcileStripeSubscriptionsRoute from './routes/cron/reconcile-strip
 import cronReconcileSubscriptionsRoute from './routes/cron/reconcile-subscriptions.js';
 import cronRevmarketPayoutsRoute from './routes/cron/revmarket-payouts.js';
 import cronSweepGraceRoute from './routes/cron/sweep-grace-periods.js';
+import cronUptimeCheckRoute from './routes/cron/uptime-check.js';
 import cronWorkerLivenessRoute from './routes/cron/worker-liveness.js';
 import devkitRoute from './routes/devkit.js';
 import errorsRoute from './routes/errors.js';
@@ -144,6 +145,7 @@ import licenseRoute from './routes/license.js';
 import logsRoute from './routes/logs.js';
 import maintenanceRoute from './routes/maintenance.js';
 import marketplaceRoute from './routes/marketplace.js';
+import mcpApprovalRoutes from './routes/mcp-approvals.js';
 import { mountMcpEndpoint } from './routes/mcp-endpoint.js';
 import mcpUsageRoute from './routes/mcp-usage.js';
 import nudgesRoute from './routes/nudges.js';
@@ -880,6 +882,12 @@ app.use('/api/v1/collab/update', requireFeature('advancedSync', { mode: 'entitle
 // the Pro-tier sell). Both versioned + unversioned mounts are gated.
 app.use('/api/mcp/usage*', requireFeature('mcp', { mode: 'entitlements' }));
 app.use('/api/v1/mcp/usage*', requireFeature('mcp', { mode: 'entitlements' }));
+// Approval list, decide, and settings are Pro, same as MCP usage.
+// The settings handler also rejects a free tier directly.
+app.use('/api/mcp/approvals*', requireFeature('mcp', { mode: 'entitlements' }));
+app.use('/api/v1/mcp/approvals*', requireFeature('mcp', { mode: 'entitlements' }));
+app.use('/api/mcp/approval-settings*', requireFeature('mcp', { mode: 'entitlements' }));
+app.use('/api/v1/mcp/approval-settings*', requireFeature('mcp', { mode: 'entitlements' }));
 
 // Audit log export is a Pro+ tier feature ("auditLog" in DEFAULT_FEATURES).
 // The basic /api/admin/audit listing stays admin-role-gated only — this
@@ -1278,6 +1286,9 @@ app.route('/api/agent-stream/elicit', agentStreamElicitRoute);
 app.route('/api/agent-stream', agentStreamRoute);
 // A.3: Usage aggregation endpoint for the /admin/mcp Usage tab.
 app.route('/api/mcp/usage', mcpUsageRoute);
+// Spec 01 slice 3: approval list, decide, and settings. Sibling paths of the
+// exact /api/mcp mount, same as /api/mcp/usage.
+app.route('/api/mcp', mcpApprovalRoutes);
 // GAP-371 Phase 1: governed MCP endpoint. Bound to the EXACT path /api/mcp
 // (auth → entitlements → requireFeature('mcp') → Streamable HTTP), so it does
 // not shadow the /api/mcp/usage route mounted above.
@@ -1312,6 +1323,7 @@ app.route('/api/cron', cronLifecycleEmailsRoute);
 app.route('/api/cron', cronMarginSnapshotRoute);
 app.route('/api/cron', cronAdmissionWaitlistDrainRoute);
 app.route('/api/cron', cronAdmissionPaidPendingExpireRoute);
+app.route('/api/cron', cronUptimeCheckRoute);
 app.route('/api/cron', cronWorkerLivenessRoute);
 app.route('/api/jobs', jobsRoute);
 app.route('/api/ghcr', ghcrRoute);
@@ -1371,6 +1383,7 @@ app.route('/api/v1/agent-tasks', agentTasksRoute);
 app.route('/api/v1/agent-stream/elicit', agentStreamElicitRoute);
 app.route('/api/v1/agent-stream', agentStreamRoute);
 app.route('/api/v1/mcp/usage', mcpUsageRoute);
+app.route('/api/v1/mcp', mcpApprovalRoutes);
 app.route('/api/v1/content', contentRoute);
 app.route('/api/v1/rag', ragIndexRoute);
 app.route('/api/v1/admin', adminObservabilityRoute);

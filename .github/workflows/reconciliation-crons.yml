@@ -44,6 +44,7 @@ jobs:
         env:
           API_URL: ${{ vars.REVEALUI_API_URL || 'https://api.revealui.com' }}
           CRON_SECRET: ${{ secrets.REVEALUI_CRON_SECRET }}
+          EDGE_KEY: ${{ secrets.REVEALUI_CRON_EDGE_KEY }}
         run: |
           if [[ -z "$CRON_SECRET" ]]; then
             echo "::error::REVEALUI_CRON_SECRET secret not set"
@@ -51,6 +52,7 @@ jobs:
           fi
           response=$(curl -sS -X POST \
             -H "X-Cron-Secret: $CRON_SECRET" \
+            -H "x-revealui-cron-key: $EDGE_KEY" \
             -H "Content-Type: application/json" \
             -w "\nHTTP_STATUS:%{http_code}" \
             "$API_URL/api/cron/drain-unreconciled" || true)
@@ -72,6 +74,7 @@ jobs:
         env:
           API_URL: ${{ vars.REVEALUI_API_URL || 'https://api.revealui.com' }}
           CRON_SECRET: ${{ secrets.REVEALUI_CRON_SECRET }}
+          EDGE_KEY: ${{ secrets.REVEALUI_CRON_EDGE_KEY }}
         run: |
           if [[ -z "$CRON_SECRET" ]]; then
             echo "::error::REVEALUI_CRON_SECRET secret not set"
@@ -79,6 +82,7 @@ jobs:
           fi
           response=$(curl -sS -X POST \
             -H "X-Cron-Secret: $CRON_SECRET" \
+            -H "x-revealui-cron-key: $EDGE_KEY" \
             -H "Content-Type: application/json" \
             -w "\nHTTP_STATUS:%{http_code}" \
             "$API_URL/api/cron/reconcile-subscriptions" || true)
@@ -100,6 +104,7 @@ jobs:
         env:
           API_URL: ${{ vars.REVEALUI_API_URL || 'https://api.revealui.com' }}
           CRON_SECRET: ${{ secrets.REVEALUI_CRON_SECRET }}
+          EDGE_KEY: ${{ secrets.REVEALUI_CRON_EDGE_KEY }}
         run: |
           if [[ -z "$CRON_SECRET" ]]; then
             echo "::error::REVEALUI_CRON_SECRET secret not set"
@@ -107,6 +112,7 @@ jobs:
           fi
           response=$(curl -sS -X POST \
             -H "X-Cron-Secret: $CRON_SECRET" \
+            -H "x-revealui-cron-key: $EDGE_KEY" \
             -H "Content-Type: application/json" \
             -w "\nHTTP_STATUS:%{http_code}" \
             "$API_URL/api/cron/sweep-grace-periods" || true)
@@ -128,6 +134,7 @@ jobs:
         env:
           API_URL: ${{ vars.REVEALUI_API_URL || 'https://api.revealui.com' }}
           CRON_SECRET: ${{ secrets.REVEALUI_CRON_SECRET }}
+          EDGE_KEY: ${{ secrets.REVEALUI_CRON_EDGE_KEY }}
         run: |
           if [[ -z "$CRON_SECRET" ]]; then
             echo "::error::REVEALUI_CRON_SECRET secret not set"
@@ -135,6 +142,7 @@ jobs:
           fi
           response=$(curl -sS -X POST \
             -H "X-Cron-Secret: $CRON_SECRET" \
+            -H "x-revealui-cron-key: $EDGE_KEY" \
             -H "Content-Type: application/json" \
             -w "\nHTTP_STATUS:%{http_code}" \
             "$API_URL/api/cron/reconcile-customers" || true)
@@ -156,6 +164,7 @@ jobs:
         env:
           API_URL: ${{ vars.REVEALUI_API_URL || 'https://api.revealui.com' }}
           CRON_SECRET: ${{ secrets.REVEALUI_CRON_SECRET }}
+          EDGE_KEY: ${{ secrets.REVEALUI_CRON_EDGE_KEY }}
         run: |
           if [[ -z "$CRON_SECRET" ]]; then
             echo "::error::REVEALUI_CRON_SECRET secret not set"
@@ -163,6 +172,7 @@ jobs:
           fi
           response=$(curl -sS -X POST \
             -H "X-Cron-Secret: $CRON_SECRET" \
+            -H "x-revealui-cron-key: $EDGE_KEY" \
             -H "Content-Type: application/json" \
             -w "\nHTTP_STATUS:%{http_code}" \
             "$API_URL/api/cron/reconcile-stripe-subscriptions" || true)

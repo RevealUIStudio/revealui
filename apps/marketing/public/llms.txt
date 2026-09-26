@@ -1,11 +1,11 @@
 # RevealUI
 
-> The agentic business runtime startups operate on their own domain — existing tools report in, you keep the stack. Five primitives: People, Content (offers and pages you ship, not a Contents/Videos CMS SKU), Offers, Payments, and Agents. Open source (MIT) plus Fair Source (FSL-1.1-MIT) Pro packages. Self-hostable. No vendor lock-in.
+> The agentic business runtime startups operate on their own domain. Existing tools report in, you keep the stack. Five primitives: People, Content (offers and pages you ship, not a Contents/Videos CMS SKU), Offers, Payments, and Agents. Open source (MIT) plus Fair Source (FSL-1.1-MIT) Pro packages. Self-hostable. No vendor lock-in.
 
 ## Documentation
 
 - [Documentation home](https://docs.revealui.com): Architecture, primitives, deployment, agent integration
-- [What works today](https://docs.revealui.com/WHAT_WORKS_TODAY): Honest pre-launch status — what is tested, what is stub, what is not yet wired
+- [What works today](https://docs.revealui.com/WHAT_WORKS_TODAY): Honest pre-launch status: what is tested, what is stub, what is not yet wired
 - [Architecture](https://docs.revealui.com/ARCHITECTURE): Five primitives, apps, packages, deploy topology
 
 ## Getting started
@@ -14,7 +14,7 @@ Live public paths only:
 
 - `npx create-revealui@latest`
 - GitHub templates (Use this template): [starter](https://github.com/RevealUIStudio/revealui-template-starter), [basic-blog](https://github.com/RevealUIStudio/revealui-template-basic-blog), [portfolio](https://github.com/RevealUIStudio/revealui-template-portfolio), [e-commerce](https://github.com/RevealUIStudio/revealui-template-e-commerce)
-- Apify [governed-agent-run](https://apify.com/revealuistudio/governed-agent-run) — pay-per-event. Receipt verification is $0.00001, not free
+- Apify [governed-agent-run](https://apify.com/revealuistudio/governed-agent-run): pay-per-event. Receipt verification is $0.00001, not free
 - [Quick start](https://docs.revealui.com/QUICK_START): local stack walkthrough
 - [Local-first](https://docs.revealui.com/LOCAL_FIRST): Run the stack on your machine
 

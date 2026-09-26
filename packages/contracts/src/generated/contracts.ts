@@ -587,6 +587,84 @@ export const BoardsInsertContract = createContract({
 })
 
 // =============================================================================
+// BudgetIncidents Contracts
+// =============================================================================
+
+/**
+ * Contract for budgetIncidents row (Select)
+ * Database table: budget_incidents
+ */
+export const BudgetIncidentsRowContract = createContract({
+  name: 'BudgetIncidentsRow',
+  version: '1',
+  description: 'Database row contract for budget_incidents table',
+  schema: Schemas.BudgetIncidentsSelectSchema,
+})
+
+/**
+ * Contract for budgetIncidents insert
+ * Database table: budget_incidents
+ */
+export const BudgetIncidentsInsertContract = createContract({
+  name: 'BudgetIncidentsInsert',
+  version: '1',
+  description: 'Database insert contract for budget_incidents table',
+  schema: Schemas.BudgetIncidentsInsertSchema,
+})
+
+// =============================================================================
+// BudgetLedgers Contracts
+// =============================================================================
+
+/**
+ * Contract for budgetLedgers row (Select)
+ * Database table: budget_ledgers
+ */
+export const BudgetLedgersRowContract = createContract({
+  name: 'BudgetLedgersRow',
+  version: '1',
+  description: 'Database row contract for budget_ledgers table',
+  schema: Schemas.BudgetLedgersSelectSchema,
+})
+
+/**
+ * Contract for budgetLedgers insert
+ * Database table: budget_ledgers
+ */
+export const BudgetLedgersInsertContract = createContract({
+  name: 'BudgetLedgersInsert',
+  version: '1',
+  description: 'Database insert contract for budget_ledgers table',
+  schema: Schemas.BudgetLedgersInsertSchema,
+})
+
+// =============================================================================
+// BudgetPolicies Contracts
+// =============================================================================
+
+/**
+ * Contract for budgetPolicies row (Select)
+ * Database table: budget_policies
+ */
+export const BudgetPoliciesRowContract = createContract({
+  name: 'BudgetPoliciesRow',
+  version: '1',
+  description: 'Database row contract for budget_policies table',
+  schema: Schemas.BudgetPoliciesSelectSchema,
+})
+
+/**
+ * Contract for budgetPolicies insert
+ * Database table: budget_policies
+ */
+export const BudgetPoliciesInsertContract = createContract({
+  name: 'BudgetPoliciesInsert',
+  version: '1',
+  description: 'Database insert contract for budget_policies table',
+  schema: Schemas.BudgetPoliciesInsertSchema,
+})
+
+// =============================================================================
 // Categories Contracts
 // =============================================================================
 
@@ -1757,6 +1835,32 @@ export const MarketplaceTransactionsInsertContract = createContract({
 })
 
 // =============================================================================
+// McpApprovalSettings Contracts
+// =============================================================================
+
+/**
+ * Contract for mcpApprovalSettings row (Select)
+ * Database table: mcp_approval_settings
+ */
+export const McpApprovalSettingsRowContract = createContract({
+  name: 'McpApprovalSettingsRow',
+  version: '1',
+  description: 'Database row contract for mcp_approval_settings table',
+  schema: Schemas.McpApprovalSettingsSelectSchema,
+})
+
+/**
+ * Contract for mcpApprovalSettings insert
+ * Database table: mcp_approval_settings
+ */
+export const McpApprovalSettingsInsertContract = createContract({
+  name: 'McpApprovalSettingsInsert',
+  version: '1',
+  description: 'Database insert contract for mcp_approval_settings table',
+  schema: Schemas.McpApprovalSettingsInsertSchema,
+})
+
+// =============================================================================
 // McpDocumentOperations Contracts
 // =============================================================================
 
@@ -1780,6 +1884,58 @@ export const McpDocumentOperationsInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for mcp_document_operations table',
   schema: Schemas.McpDocumentOperationsInsertSchema,
+})
+
+// =============================================================================
+// McpToolApprovals Contracts
+// =============================================================================
+
+/**
+ * Contract for mcpToolApprovals row (Select)
+ * Database table: mcp_tool_approvals
+ */
+export const McpToolApprovalsRowContract = createContract({
+  name: 'McpToolApprovalsRow',
+  version: '1',
+  description: 'Database row contract for mcp_tool_approvals table',
+  schema: Schemas.McpToolApprovalsSelectSchema,
+})
+
+/**
+ * Contract for mcpToolApprovals insert
+ * Database table: mcp_tool_approvals
+ */
+export const McpToolApprovalsInsertContract = createContract({
+  name: 'McpToolApprovalsInsert',
+  version: '1',
+  description: 'Database insert contract for mcp_tool_approvals table',
+  schema: Schemas.McpToolApprovalsInsertSchema,
+})
+
+// =============================================================================
+// McpToolTrustRules Contracts
+// =============================================================================
+
+/**
+ * Contract for mcpToolTrustRules row (Select)
+ * Database table: mcp_tool_trust_rules
+ */
+export const McpToolTrustRulesRowContract = createContract({
+  name: 'McpToolTrustRulesRow',
+  version: '1',
+  description: 'Database row contract for mcp_tool_trust_rules table',
+  schema: Schemas.McpToolTrustRulesSelectSchema,
+})
+
+/**
+ * Contract for mcpToolTrustRules insert
+ * Database table: mcp_tool_trust_rules
+ */
+export const McpToolTrustRulesInsertContract = createContract({
+  name: 'McpToolTrustRulesInsert',
+  version: '1',
+  description: 'Database insert contract for mcp_tool_trust_rules table',
+  schema: Schemas.McpToolTrustRulesInsertSchema,
 })
 
 // =============================================================================

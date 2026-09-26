@@ -148,6 +148,11 @@
       "types": "./dist/remote-client.d.ts",
       "import": "./dist/remote-client.js",
       "default": "./dist/remote-client.js"
+    },
+    "./approvals": {
+      "types": "./dist/approvals/call-identity.d.ts",
+      "import": "./dist/approvals/call-identity.js",
+      "default": "./dist/approvals/call-identity.js"
     }
   },
   "files": [

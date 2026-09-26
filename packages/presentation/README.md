@@ -1,6 +1,6 @@
 ---
 title: "@revealui/presentation"
-description: "65 native UI components for RevealUI - built with React 19 and Tailwind CSS v4. No external UI library dependencies (ships its own `cn`/`cva`; only `tailwind-merge` is a runtime..."
+description: "68 native UI components for RevealUI - built with React 19 and Tailwind CSS v4. No external UI library dependencies (ships its own `cn`/`cva`; only `tailwind-merge` is a runtime..."
 visibility: public
 status: verified
 audience: user
@@ -8,11 +8,11 @@ audience: user
 
 # @revealui/presentation
 
-65 native UI components for RevealUI  -  built with React 19 and Tailwind CSS v4. No external UI library dependencies (ships its own `cn`/`cva`; only `tailwind-merge` is a runtime dep).
+68 native UI components for RevealUI  -  built with React 19 and Tailwind CSS v4. No external UI library dependencies (ships its own `cn`/`cva`; only `tailwind-merge` is a runtime dep).
 
 ## Features
 
-- **65 Components**  -  Forms, data display, feedback, navigation, media, and layout
+- **68 Components**  -  Forms, data display, feedback, navigation, media, and layout
 - **6 Primitives**  -  Low-level building blocks (Box, Flex, Grid, Heading, Text, Slot)
 - **16 Hooks**  -  Focus trap, click outside, popover, roving tabindex, scroll lock, and more
 - **Headless + Styled**  -  Many components ship both unstyled (headless) and styled (CVA) variants
@@ -34,7 +34,7 @@ import { Box, Flex } from '@revealui/presentation/primitives'
 import { useClickOutside, useFocusTrap } from '@revealui/presentation/hooks'
 ```
 
-## Components (65)
+## Components (68)
 
 ### Layout
 | Component | Description |
@@ -62,6 +62,8 @@ import { useClickOutside, useFocusTrap } from '@revealui/presentation/hooks'
 | Fieldset | Form field grouping |
 | FormField | Form field wrapper |
 | LinkButton | Link-styled button |
+| Calendar | Month grid (navigate, select a day, disabled and out-of-range days) |
+| BookingCalendar | Selected day plus the open slots for that day |
 
 ### Data Display
 | Component | Description |
@@ -193,6 +195,30 @@ import { Button } from '@revealui/presentation'
 <Button variant="brand" appearance="solid" glow>Get started</Button>
 <Button variant="brand" appearance="solid" size="lg" shine>Upgrade</Button>
 <Button isLoading>Saving...</Button>
+```
+
+### `Calendar` and `BookingCalendar`
+
+`Calendar` is a single styled month grid (same shape as `Button`: one owned component, not a headless twin). `BookingCalendar` composes it with `Radio` for the open slots of the selected day. Slot labels and status copy come from the caller.
+
+```tsx
+import { BookingCalendar, Calendar } from '@revealui/presentation'
+
+<Calendar
+  month={month}
+  onMonthChange={setMonth}
+  value={day}
+  onValueChange={setDay}
+  min={min}
+  max={max}
+/>
+
+<BookingCalendar
+  status="ready"
+  slots={[{ start: '2026-09-15T09:00:00', end: '2026-09-15T09:30:00', label: 'Slot A' }]}
+  value={selected}
+  onChange={setSelected}
+/>
 ```
 
 ## Development

@@ -97,7 +97,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_HERO.subtitle.sentence1',
     proofGrade: 'outcome',
-    text: 'Technical founders and small agencies who already run agents — existing tools report in, you keep the stack.',
+    text: 'Technical founders and small agencies who already run agents. Existing tools report in, you keep the stack.',
     evidence: [SELF_HOST, MCP_SERVERS, MCP_CONTENT],
   },
   {
@@ -165,7 +165,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_PROBLEM.heading',
     proofGrade: 'outcome',
-    text: 'Tired of tools that don’t talk — and agents you can’t audit?',
+    text: 'Tired of tools that don’t talk, and agents you can’t audit?',
     evidence: [
       {
         kind: 'code',
@@ -762,7 +762,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'pricing.ts',
     exportPath: 'PRICING_HERO.title',
     proofGrade: 'outcome',
-    text: 'Tired of tools that don’t talk — and agents with no PROOF?',
+    text: 'Tired of tools that don’t talk, and agents with no PROOF?',
     evidence: [AUDIT_SIGNING, AUDIT_SIGNING_TEST, SELF_HOST],
   },
   {
@@ -780,8 +780,15 @@ export const claimsPart1: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_HERO_SUBTEXT.suffix',
-    text: 'Studio SKUs live on that site, not on this catalog.',
-    evidence: [PERPETUAL],
+    text: 'Need implementation? Studio is a separate path (Consultation, Pilot, Launch). This catalog is licenses only.',
+    evidence: [
+      PERPETUAL,
+      {
+        kind: 'test',
+        ref: 'apps/marketing/app/routes/__tests__/PricingPage.test.tsx#renders the license catalog and the product-site quote calculator',
+        note: 'pricing helper names Consultation, Pilot, and Launch and does not print Studio dollars',
+      },
+    ],
   },
   {
     file: 'pricing.ts',

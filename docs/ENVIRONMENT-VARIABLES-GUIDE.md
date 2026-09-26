@@ -329,7 +329,7 @@ Phase 5.3 Track C. Required for perpetual license GitHub team provisioning and s
 | `REVEALUI_GITHUB_TOKEN` | No | None | Fine-grained GitHub PAT with `org:write:members` scope. Adds perpetual license buyers to the GitHub team. | HIGH (server-only) | api |
 | `REVEALUI_CRON_SECRET` | No | None | Current shared secret for `X-Cron-Secret` on cron routes (billing support-renewal, `/api/cron/*`, maintenance). Must be 32+ characters. During a rotation window the outgoing value stays valid while `REVEALUI_CRON_SECRET_PREVIOUS` is set. | HIGH (server-only) | api, admin |
 | `REVEALUI_CRON_SECRET_PREVIOUS` | No | unset | Outgoing `X-Cron-Secret` value accepted only during a rotation window. Remove after callers use `REVEALUI_CRON_SECRET`. Empty is steady state. | HIGH (server-only) | api, admin |
-| `CRON_SECRET` | No | unset | Vercel platform cron bearer (`Authorization: Bearer`) checked by `/api/cron/dispatch` and `/api/cron/uptime-check`. Distinct from `REVEALUI_CRON_SECRET`. Also the metrics fallback when `METRICS_SECRET` is unset. | HIGH (server-only) | api |
+| `CRON_SECRET` | No | unset | Vercel platform cron bearer (`Authorization: Bearer`) checked by `/api/cron/dispatch` and `/api/cron/uptime-check`. The uptime route also accepts `X-Cron-Secret` (`REVEALUI_CRON_SECRET`), which is what dispatch sends. Distinct from `REVEALUI_CRON_SECRET`. Also the metrics fallback when `METRICS_SECRET` is unset. | HIGH (server-only) | api |
 | `CRON_SECRET_PREVIOUS` | No | unset | Outgoing Vercel bearer accepted only during a `CRON_SECRET` rotation window. Remove after the platform deployment sends the new bearer. | HIGH (server-only) | api |
 
 ---
@@ -376,7 +376,10 @@ Phase 5.5. Required only when operating the RevealUI MCP marketplace.
 |----------|----------|---------|-------------|----------|---------|
 | `NEXT_PUBLIC_SENTRY_DSN` | No | None | Sentry DSN for the **admin** Next.js client. Recommended for staging and production. | LOW (client-safe) | admin |
 | `VITE_SENTRY_DSN` | No | None | Sentry DSN for the **marketing** Vite client. SDK no-ops when absent so dev builds stay quiet. | LOW (client-safe) | marketing |
-| `SENTRY_DSN` | Prod only | None | Sentry DSN for the **server** runtime. Server startup validator hard-fails prod boot without it. | LOW (server-only) | server |
+| `SENTRY_DSN` | Prod only | None | Sentry DSN for the **server** runtime. Server startup validator hard-fails prod boot without it. Cron monitor check-ins no-op when this is unset. | LOW (server-only) | server |
+| `SENTRY_CRON_WORKER_SLUG` | No | `fly-worker-heartbeat` | Sentry Cron Monitor slug for the Fly worker heartbeat (`*/5 * * * *` UTC). The worker sends the check-in itself. | LOW | server (worker) |
+| `SENTRY_CRON_DISPATCH_SLUG` | No | `vercel-cron-dispatch` | Sentry Cron Monitor slug wrapping the daily Vercel dispatch (`0 6 * * *` UTC). | LOW | server |
+| `SENTRY_CRON_HEARTBEAT_MS` | No | `300000` | Fly worker heartbeat interval in milliseconds. Non-positive or non-numeric values fall back to the default. | LOW | server (worker) |
 | `SENTRY_ENVIRONMENT` | No | host, else `NODE_ENV` | Sentry environment label. Not a secret. Set `staging` on the staging Vercel API, staging admin, and staging Fly worker. `preview` is the Vercel preview label. A `*.staging.revealui.com` host is never labeled `production`. | LOW | server, admin, marketing |
 | `SENTRY_AUTH_TOKEN` | No | None | Sentry auth token for source map uploads in CI/CD. | HIGH (server-only) | CI |
 | `SENTRY_ORG` | No | None | Sentry organization slug. | LOW | CI |

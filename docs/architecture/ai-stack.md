@@ -52,9 +52,9 @@ The `aiAccessMode` field on entitlements controls enforcement:
 
 Task quota middleware (`apps/server/src/middleware/task-quota.ts`) runs on every agent request:
 
-1. Read current month's usage from `agent_task_usage` table
-2. If under quota, allow and increment atomically
-3. If over quota, check `agent_credit_balance` for prepaid credits
+1. Reserve one task for the current month with a single conditional upsert on `agent_task_usage` (insert the row, or increment `count` only while it is still under the plan quota)
+2. If that reserve lands, allow the request
+3. If it does not, read the stored count and check `agent_credit_balance` for prepaid credits
 4. If no credits and `X402_ENABLED=true`, return HTTP 402 for USDC payment
 5. Otherwise return 429 with upgrade prompt
 
