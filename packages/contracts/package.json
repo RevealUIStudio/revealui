@@ -160,6 +160,11 @@
       "types": "./dist/api/gdpr.d.ts",
       "import": "./dist/api/gdpr.js",
       "default": "./dist/api/gdpr.js"
+    },
+    "./nav-docs-boundary": {
+      "types": "./dist/nav-docs-boundary.d.ts",
+      "import": "./dist/nav-docs-boundary.js",
+      "default": "./dist/nav-docs-boundary.js"
     }
   },
   "files": [

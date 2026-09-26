@@ -129,8 +129,9 @@ export function buildDocNavSections(showcaseItems: NavItem[]): NavSection[] {
         { label: 'Local-First Setup', path: '/local-first' },
       ],
     },
-    // Narrative posts live on the Studio site. /blog/* pages stay served
-    // until redirects to that site are added.
+    // nav-docs-product-2026-09-26: docs nav is product reference.
+    // boundary-blog-studio-docs-ref-2026-09-26: narrative posts live on the Studio site.
+    // /blog/* pages stay served until a later drop.
     {
       title: 'Legal',
       items: [{ label: 'Third-Party Licenses', path: '/third-party-licenses' }],

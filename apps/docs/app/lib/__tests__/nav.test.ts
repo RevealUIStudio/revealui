@@ -1,4 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import {
+  isDocsBlogPath,
+  NAV_DOCS_LOCK_IDS,
+} from '../../../../../packages/contracts/src/nav-docs-boundary.ts';
 import { buildDocNavSections, initialOpenSectionTitles } from '../nav.js';
 
 describe('docs public nav', () => {
@@ -22,10 +26,11 @@ describe('docs public nav', () => {
   });
 
   it('does not present Blog as a docs sidebar pillar', () => {
+    expect(NAV_DOCS_LOCK_IDS.docsProduct).toBe('nav-docs-product-2026-09-26');
     const sections = buildDocNavSections([]);
     expect(sections.some((section) => section.title === 'Blog')).toBe(false);
     const paths = sections.flatMap((section) => section.items.map((item) => item.path));
-    expect(paths.some((path) => path === '/blog' || path.startsWith('/blog/'))).toBe(false);
+    expect(paths.some((path) => isDocsBlogPath(path))).toBe(false);
   });
 
   it('opens the section that owns the current path, otherwise Getting Started', () => {
