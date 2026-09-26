@@ -147,7 +147,7 @@ describe('Auditor voice and live-hero honesty', () => {
 
   it('keeps the pricing H1 problem/PROOF-led with catalog in the sub', () => {
     expect(PRICING_HERO.eyebrow).toBe('Pricing');
-    expect(PRICING_HERO.title).toBe('Tired of tools that don’t talk? Agents need PROOF.');
+    expect(PRICING_HERO.title).toBe('Tired of tools that don’t talk, and agents with no PROOF?');
     expect(PRICING_HERO.subtitle).toBe(
       'Self-host the agentic business runtime. Catalog: Free / Pro $49 / Max $99/mo · $799/yr. Studio work invoices on revealuistudio.com.',
     );
