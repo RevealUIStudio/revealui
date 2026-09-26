@@ -37,7 +37,7 @@ export const HOME_HERO = {
   h1: 'The agentic business runtime startups operate on their own domain.',
   subtitle: {
     sentence1:
-      'Technical founders and small agencies who already run agents — existing tools report in, you keep the stack.',
+      'Technical founders and small agencies who already run agents. Existing tools report in, you keep the stack.',
     sentence2:
       'Powerful and safe: PROOF is a receipted action when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99/mo · $799/yr).',
     support: 'BYOK / open-weight default. Same plan rules for humans and agents.',
@@ -93,7 +93,7 @@ export interface ProblemRow {
 
 export const HOME_PROBLEM = {
   eyebrow: 'The problem',
-  heading: 'Tired of tools that don’t talk — and agents you can’t audit?',
+  heading: 'Tired of tools that don’t talk, and agents you can’t audit?',
   // Hybrid: body states the fork once; matrix carries capability detail.
   // pathBlurbs removed (de-dupe) so we do not restate the three paths twice.
   body: 'Teams either stitch a vendor for each slice, or start with agents and rebuild the rest. RevealUI is one self-hosted runtime for the business and the agents that run it.',

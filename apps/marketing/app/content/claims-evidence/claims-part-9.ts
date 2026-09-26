@@ -184,6 +184,13 @@ export const claimsPart9: readonly ClaimEntry[] = [
   },
   {
     file: 'quote-calculator.ts',
+    exportPath: 'QUOTE_CALCULATOR.introCta.note',
+    proofGrade: 'behavior',
+    text: 'Google Calendar / Google Meet.',
+    evidence: [QUOTE_INTRO, BOOK_INTRO],
+  },
+  {
+    file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.ownership[0]',
     proofGrade: 'outcome',
     text: 'You own the accounts and the data.',

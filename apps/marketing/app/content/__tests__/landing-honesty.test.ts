@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { SUBSCRIPTION_PRICE_FALLBACKS } from '../../lib/pricing-fallbacks';
 import { HOME_DEMO, HOME_FAQ, HOME_HERO, HOME_HERO_FOUNDATION, HOME_PROBLEM } from '../home';
-import { PRICING_HERO } from '../pricing';
+import { PRICING_HERO, PRICING_HIGHLIGHTED_BADGE } from '../pricing';
 import {
   PRICING_TEASER_LINKS,
   PRICING_TEASER_SECTION,
@@ -12,10 +12,13 @@ import {
 } from '../pricing-teaser';
 import { HOME_PRIMITIVES } from '../primitives';
 import { PRODUCTS_PAGE_HERO } from '../products';
+import { QUOTE_CALCULATOR } from '../quote-calculator';
 import { RECEIPT_HERO_CAPTION } from '../receipt';
 
 const MARKETING_ROOT = join(dirname(fileURLToPath(import.meta.url)), '../../..');
 const INDEX_HTML = readFileSync(join(MARKETING_ROOT, 'index.html'), 'utf8');
+const LLMS_TXT = readFileSync(join(MARKETING_ROOT, 'public/llms.txt'), 'utf8');
+const EM_DASH = String.fromCodePoint(0x2014);
 
 const LIVE_PRODUCT_BLOB = [
   HOME_HERO.h1,
@@ -88,7 +91,7 @@ describe('Auditor voice and live-hero honesty', () => {
   it('uses the locked known-for H1 and concrete subtitle', () => {
     expect(HOME_HERO.h1).toBe('The agentic business runtime startups operate on their own domain.');
     expect(HOME_HERO.subtitle.sentence1).toBe(
-      'Technical founders and small agencies who already run agents — existing tools report in, you keep the stack.',
+      'Technical founders and small agencies who already run agents. Existing tools report in, you keep the stack.',
     );
     expect(HOME_HERO.subtitle.sentence2).toBe(
       'Powerful and safe: PROOF is a receipted action when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99/mo · $799/yr).',
@@ -103,7 +106,7 @@ describe('Auditor voice and live-hero honesty', () => {
 
   it('keeps the locked problem heading', () => {
     expect(HOME_PROBLEM.heading).toBe(
-      'Tired of tools that don’t talk — and agents you can’t audit?',
+      'Tired of tools that don’t talk, and agents you can’t audit?',
     );
   });
 
@@ -144,7 +147,7 @@ describe('Auditor voice and live-hero honesty', () => {
 
   it('keeps the pricing H1 problem/PROOF-led with catalog in the sub', () => {
     expect(PRICING_HERO.eyebrow).toBe('Pricing');
-    expect(PRICING_HERO.title).toBe('Tired of tools that don’t talk — and agents with no PROOF?');
+    expect(PRICING_HERO.title).toBe('Tired of tools that don’t talk? Agents need PROOF.');
     expect(PRICING_HERO.subtitle).toBe(
       'Self-host the agentic business runtime. Catalog: Free / Pro $49 / Max $99/mo · $799/yr. Studio work invoices on revealuistudio.com.',
     );
@@ -181,6 +184,23 @@ describe('Auditor voice and live-hero honesty', () => {
   it('keeps Max at $99 and does not invent $299', () => {
     expect(SUBSCRIPTION_PRICE_FALLBACKS.max.price).toBe('$99');
     expect(LIVE_PRODUCT_BLOB.includes('$299')).toBe(false);
+  });
+
+  it('names the Pro badge and Google Meet without an em dash', () => {
+    expect(PRICING_HIGHLIGHTED_BADGE).toBe('Recommended: Pro');
+    expect(QUOTE_CALCULATOR.introCta.note).toBe('Google Calendar / Google Meet.');
+    expect(QUOTE_CALCULATOR.introCta.note.includes(' / Meet.')).toBe(false);
+    const locked = [
+      HOME_HERO.subtitle.sentence1,
+      HOME_PROBLEM.heading,
+      PRICING_HERO.title,
+      PRICING_HIGHLIGHTED_BADGE,
+      QUOTE_CALCULATOR.introCta.note,
+      INDEX_HTML,
+      LLMS_TXT,
+    ].join('\n');
+    expect(locked.includes(EM_DASH)).toBe(false);
+    expect(locked.includes('&mdash;')).toBe(false);
   });
 
   it('describes agent payment rails as code-present and flag-off, not unfinished', () => {

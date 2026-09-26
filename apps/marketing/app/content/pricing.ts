@@ -21,7 +21,7 @@ export interface AgentFeatureCard {
 
 export const PRICING_HERO: SectionHeading = {
   eyebrow: 'Pricing',
-  title: 'Tired of tools that don’t talk — and agents with no PROOF?',
+  title: 'Tired of tools that don’t talk? Agents need PROOF.',
   subtitle:
     'Self-host the agentic business runtime. Catalog: Free / Pro $49 / Max $99/mo · $799/yr. Studio work invoices on revealuistudio.com.',
 };
@@ -61,7 +61,7 @@ export const PRICING_VALUE_BAND = {
   ],
 } as const;
 
-export const PRICING_HIGHLIGHTED_BADGE = 'Recommended' as const;
+export const PRICING_HIGHLIGHTED_BADGE = 'Recommended: Pro' as const;
 
 export const PRICING_TRIAL_NOTE =
   'Pro and Max include a 7-day free trial. Cancel during the trial and you pay nothing. First purchase, including annual, has a 14-day refund. No prorate after 14 days.' as const;
