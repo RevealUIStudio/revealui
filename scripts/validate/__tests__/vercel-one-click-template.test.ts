@@ -143,7 +143,7 @@ describe('Vercel one-click template listing', () => {
     const leftover = readFileSync(OWNER_PUBLISH, 'utf8');
     expect(existsSync(CIRCUIT_R_MASTER)).toBe(true);
     const master = readFileSync(CIRCUIT_R_MASTER, 'utf8');
-    expect(master.includes('translate(256,256) scale(1.06) translate(-300,-320)')).toBe(true);
+    expect(master.includes('translate(256,256) scale(1.06) translate(-310,-320)')).toBe(true);
     expect(leftover.includes('Circuit-R')).toBe(true);
     expect(leftover.includes('navy letter, scythe, empty bowl')).toBe(true);
     expect(leftover.includes('white plate')).toBe(true);

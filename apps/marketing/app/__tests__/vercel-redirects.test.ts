@@ -1,6 +1,11 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import {
+  NAV_DOCS_LOCK_IDS,
+  PRODUCT_BLOG_HOPS,
+  pointsAtDocsBlog,
+} from '../../../../packages/contracts/src/nav-docs-boundary.ts';
 
 interface VercelCondition {
   type: string;
@@ -161,6 +166,25 @@ describe('marketing vercel.json redirects', () => {
     );
     expect(resolveMarketingHop('/checkout', '?license=pro')).not.toContain('plan=');
     expect(resolveMarketingHop('/checkout', '?plan=max')).not.toContain('plan=pro');
+  });
+
+  it('sends /blog, /blog/:path*, and /philosophy to the Studio blog', () => {
+    expect(NAV_DOCS_LOCK_IDS.boundary).toBe('boundary-blog-studio-docs-ref-2026-09-26');
+    const redirects = readVercelConfig().redirects ?? [];
+    const expected = new Map<string, string>([
+      ['/blog', PRODUCT_BLOG_HOPS.index],
+      ['/blog/:path*', PRODUCT_BLOG_HOPS.postPattern],
+      ['/philosophy', PRODUCT_BLOG_HOPS.philosophy],
+    ]);
+    for (const [source, destination] of expected) {
+      const redirect = redirects.find((entry) => entry.source === source);
+      expect(redirect?.destination, source).toBe(destination);
+      expect(redirect?.permanent).toBe(true);
+      expect(pointsAtDocsBlog(redirect?.destination ?? '')).toBe(false);
+    }
+    for (const redirect of redirects) {
+      expect(pointsAtDocsBlog(redirect.destination)).toBe(false);
+    }
   });
 
   it('keeps /signup query-less so ?plan=pro still forwards, and bare /signup stays free', () => {

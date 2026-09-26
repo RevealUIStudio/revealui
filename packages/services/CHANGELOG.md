@@ -1,5 +1,19 @@
 # @revealui/services
 
+## 0.8.4
+
+### Patch Changes
+
+- 18e1ab1: Read the Vercel Function OIDC token with getVercelOidcToken so Gmail workload identity federation can send cron alerts. The token arrives on the request, not as a stored VERCEL_OIDC_TOKEN.
+- Updated dependencies [5ce8320]
+- Updated dependencies [d7658e8]
+- Updated dependencies [3bfb528]
+- Updated dependencies [f65a5da]
+  - @revealui/security@0.9.0
+  - @revealui/contracts@0.13.0
+  - @revealui/db@0.12.0
+  - @revealui/core@0.15.1
+
 ## 0.8.3
 
 ### Patch Changes

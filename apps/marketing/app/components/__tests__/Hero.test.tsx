@@ -3,6 +3,7 @@ import { Router, RouterProvider } from '@revealui/router';
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { HOME_GET_STARTED, HOME_HERO } from '../../content/home';
+import { RECEIPT_HERO_CAPTION, RECEIPT_HERO_TITLE } from '../../content/receipt';
 import { Hero } from '../landing/Hero';
 
 afterEach(cleanup);
@@ -73,6 +74,20 @@ describe('Hero (product homepage)', () => {
   it('does not expose an audience toggle', () => {
     renderHero();
     expect(screen.queryByRole('navigation', { name: 'Choose your view' })).toBeNull();
+  });
+
+  it('shows the governed-action receipt with a link to the audit-receipts docs', () => {
+    const { container } = renderHero();
+
+    expect(screen.getByRole('region', { name: RECEIPT_HERO_TITLE })).toBeInTheDocument();
+    expect(screen.getByText(RECEIPT_HERO_CAPTION.text)).toBeInTheDocument();
+
+    const docsLink = screen.getByRole('link', { name: RECEIPT_HERO_CAPTION.link.label });
+    expect(docsLink).toHaveAttribute('href', RECEIPT_HERO_CAPTION.link.href);
+    expect(docsLink.getAttribute('href') ?? '').toContain('/security/audit-receipts');
+
+    // Static motif: print animation injects a style tag only when animate="print".
+    expect(container.querySelector('style')).toBeNull();
   });
 
   it('uses a viewport-stage shell with full-bleed backdrop (not content-boxed paint)', () => {

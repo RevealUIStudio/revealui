@@ -1,6 +1,6 @@
 {
   "name": "@revealui/contracts",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "Single source of truth for Zod schemas and TypeScript types shared across packages and apps. Ships with RevealUI.",
   "keywords": [
     "contracts",
@@ -160,6 +160,11 @@
       "types": "./dist/api/gdpr.d.ts",
       "import": "./dist/api/gdpr.js",
       "default": "./dist/api/gdpr.js"
+    },
+    "./nav-docs-boundary": {
+      "types": "./dist/nav-docs-boundary.d.ts",
+      "import": "./dist/nav-docs-boundary.js",
+      "default": "./dist/nav-docs-boundary.js"
     }
   },
   "files": [

@@ -3,19 +3,20 @@
  * canonical SVG masters in packages/presentation/src/assets/brand/.
  * ──────────────────────────────────────────────────────────────────────────
  * Masters read:
- *   revealui-logo.svg      — navy Circuit-R master (fills #0a2c5a / #002247 /
- *                            #0e3468, frost #9fc9ff, amber #f0b519, mask #cm,
- *                            origin translate(-300,-320) scale 1.06). Public
- *                            chrome copies this file. No plate.
+ *   revealui-logo.svg      — kit Circuit-R master (true alpha). Transform lock
+ *                            translate(256,256) scale(1.06) translate(-310,-320).
+ *                            Public chrome copies this file. No plate.
+ *   revealui-logo-dark.svg — the same bytes as revealui-logo.svg. Path
+ *                            compatibility only. Not a second letterform and
+ *                            not a #060d1a plate.
  *   favicon.svg            — flat 3-path extract, no traces (browser-tab favicon)
  *
  * Derived in this script (same letterform, never a second R, never a frost invert):
- *   revealui-logo-dark.svg — the same navy letter at scale(1.06), composited
- *                            on Surface 0 #060d1a. One letter, two plates.
- *   icon-mark.svg      — master on a #060d1a rounded plate (rx=112), scale
- *                        0.742 (70% of the overshooting 1.06 master) so a
- *                        circular crop does not clip the stem or leg tip.
- *   icon-maskable.svg  — the same plate full-bleed (rx=0) for PWA masking.
+ *   icon-mark.svg      — ADAPTER-ONLY. Master on a #060d1a rounded plate
+ *                        (rx=112), scale 0.742, so a circular crop does not
+ *                        clip the stem or leg tip. Not the official mark.
+ *   icon-maskable.svg  — ADAPTER-ONLY. The same plate full-bleed (rx=0) for
+ *                        PWA masking. Not the official mark.
  *
  * Outputs, per app public/:
  *   favicon.svg, icon-mark.svg  — verbatim SVG copies (see SVG_SYNC)
@@ -47,7 +48,7 @@ const BRAND_DIR = path.join(ROOT, 'packages/presentation/src/assets/brand');
 const MASTER_SVG = path.join(BRAND_DIR, 'revealui-logo.svg');
 const MASTER_DARK_SVG = path.join(BRAND_DIR, 'revealui-logo-dark.svg');
 const FAVICON_SVG = path.join(BRAND_DIR, 'favicon.svg');
-const MASTER_TRANSFORM = 'translate(256,256) scale(1.06) translate(-300,-320)';
+const MASTER_TRANSFORM = 'translate(256,256) scale(1.06) translate(-310,-320)';
 const NAVY_FILLS = ['#0a2c5a', '#002247', '#0e3468', '#9fc9ff', '#f0b519'];
 const INVERT_FILLS = ['#164687', '#0d3169', '#1e57a8', '#e8f1ff', '#082448'];
 const ICON_MARK_SVG = path.join(BRAND_DIR, 'icon-mark.svg');
@@ -85,7 +86,12 @@ const TILE_BG = '#060d1a';
 
 function assertNavyCircuitRMaster(masterSvg) {
   if (!masterSvg.includes(MASTER_TRANSFORM)) {
-    throw new Error('revealui-logo.svg is missing the locked origin translate(-300,-320) at scale(1.06)');
+    throw new Error('revealui-logo.svg is missing the locked origin translate(-310,-320) at scale(1.06)');
+  }
+  if (masterSvg.includes('<rect') || masterSvg.includes(TILE_BG)) {
+    throw new Error(
+      'revealui-logo.svg must stay true-alpha. A #060d1a plate is adapter-only (icon-mark / maskable / apple-touch).',
+    );
   }
   if (!masterSvg.includes('mask="url(#cm)"') || !masterSvg.includes('maskUnits="userSpaceOnUse"')) {
     throw new Error('revealui-logo.svg is missing empty-bowl mask #cm');
@@ -135,7 +141,7 @@ function deriveNavyPlate(masterSvg, rx) {
 
 function deriveDarkFromLight(masterSvg) {
   assertNavyCircuitRMaster(masterSvg);
-  return insertSurface0Plate(masterSvg);
+  return masterSvg;
 }
 
 function resolveSharp() {
@@ -220,7 +226,7 @@ async function main() {
     if (fs.existsSync(stalePath)) fs.unlinkSync(stalePath);
   }
   console.log(
-    `brand: revealui-logo-dark.svg (navy letter on ${TILE_BG}), ` +
+    `brand: revealui-logo-dark.svg (same bytes as transparent kit master), ` +
       `favicon.ico (16/32 flat + 48 circuit), favicon-32.png, apple-touch-icon.png (180), ` +
       `icon-48/64/96/128/192/256/512.png`,
   );

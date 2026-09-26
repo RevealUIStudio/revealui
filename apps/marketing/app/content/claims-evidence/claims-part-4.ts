@@ -423,8 +423,28 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'receipt.ts',
     exportPath: 'RECEIPT_HERO_TITLE',
-    text: 'Refund, handled by an agent',
-    evidence: [REFUND_ROUTE, AGENT_ROUTES],
+    text: 'Governed action, on record',
+    evidence: [
+      AUDIT_SIGNING,
+      AUDIT_SIGNING_TEST,
+      AUDIT_LOG_SCHEMA,
+      {
+        ...AUDIT_RECEIPTS_DOC,
+        note: 'static marketing receipt title; a governed action is a signed audit row on record, not a live customer case',
+      },
+    ],
+  },
+  {
+    file: 'receipt.ts',
+    exportPath: 'RECEIPT_HERO_LINES[1].object',
+    text: 'policy check on deploy #318',
+    evidence: [
+      {
+        ...AUDIT_RECEIPTS_DOC,
+        note: 'static demonstration object on the marketing receipt; not a live deploy id',
+      },
+      AUDIT_LOG_SCHEMA,
+    ],
   },
   {
     file: 'receipt.ts',

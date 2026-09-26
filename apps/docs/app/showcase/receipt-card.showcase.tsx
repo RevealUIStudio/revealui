@@ -23,7 +23,7 @@ const story: ShowcaseStory = {
   slug: 'receipt-card',
   name: 'Receipt Card',
   description:
-    'A titled header, a stack of audit lines, and an optional integrity footer. The carrier of the "if an agent did it, there’s a receipt" motif.',
+    'A title row, a stack of audit lines, and an optional integrity seal. The carrier of the "if an agent did it, there’s a receipt" motif.',
   category: 'component',
   sourceUrl: 'src/components/receipt-card.tsx',
 

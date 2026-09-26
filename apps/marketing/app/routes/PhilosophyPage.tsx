@@ -24,11 +24,13 @@ function PhilosophyHero({ data, path, annotation }: PhilosophyHeroProps) {
       density="spacious"
       width="narrow"
       className="relative overflow-hidden"
+      backdrop={
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background"
+        />
+      }
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background"
-      />
       <p
         className="text-sm font-semibold uppercase tracking-wide text-primary"
         {...fieldAttrs(annotation, `${path}.eyebrow`)}

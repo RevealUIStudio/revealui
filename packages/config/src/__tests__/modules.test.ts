@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { getBrandingConfig } from '../modules/branding';
+import {
+  getBrandingConfig,
+  readTenantBrandStyle,
+  renderTenantBrandStyle,
+} from '../modules/branding';
 import { getDatabaseConfig } from '../modules/database';
 import { getDevToolsConfig, getSentryConfig } from '../modules/optional';
 import { getRevealConfig } from '../modules/reveal';
@@ -87,6 +91,111 @@ describe('config modules', () => {
         makeEnv({ REVEALUI_BRAND_NAME: '', REVEALUI_TENANT_NAME: '' }),
       );
       expect(config.name).toBe('RevealUI');
+    });
+
+    it('omits an invalid primary color and uses a valid tenant hex', () => {
+      const config = getBrandingConfig(
+        makeEnv({
+          REVEALUI_BRAND_PRIMARY_COLOR: 'orange; } body { background: red }',
+          REVEALUI_TENANT_BRAND: '#1a56db',
+        }),
+      );
+      expect(config.primaryColor).toBe('#1a56db');
+      expect(config.brandOnColor).toBe('white');
+    });
+
+    it('maps boolean/on to white and off to omitted', () => {
+      expect(
+        getBrandingConfig(
+          makeEnv({ REVEALUI_BRAND_PRIMARY_COLOR: '#112233', REVEALUI_TENANT_BRAND_ON: 'on' }),
+        ).brandOnColor,
+      ).toBe('white');
+      expect(
+        getBrandingConfig(
+          makeEnv({ REVEALUI_BRAND_PRIMARY_COLOR: '#112233', REVEALUI_TENANT_BRAND_ON: 'false' }),
+        ).brandOnColor,
+      ).toBeUndefined();
+    });
+
+    it('keeps a validated brand-on hex and drops an injection string', () => {
+      expect(
+        getBrandingConfig(
+          makeEnv({ REVEALUI_BRAND_PRIMARY_COLOR: '#112233', REVEALUI_TENANT_BRAND_ON: '#0f172a' }),
+        ).brandOnColor,
+      ).toBe('#0f172a');
+      expect(
+        getBrandingConfig(
+          makeEnv({
+            REVEALUI_BRAND_PRIMARY_COLOR: '#112233',
+            REVEALUI_TENANT_BRAND_ON: '#0f172a; } * { color: red }',
+          }),
+        ).brandOnColor,
+      ).toBeUndefined();
+    });
+
+    it('maps the font allowlist and omits any other family', () => {
+      expect(getBrandingConfig(makeEnv({ REVEALUI_TENANT_FONT: 'Inter' })).fontFamily).toBe(
+        'Inter Variable',
+      );
+      expect(getBrandingConfig(makeEnv({ REVEALUI_TENANT_FONT: 'Inter Tight' })).fontFamily).toBe(
+        'Inter Tight Variable',
+      );
+      expect(
+        getBrandingConfig({
+          ...makeEnv(),
+          REVEALUI_TENANT_FONT: "Inter'; } body{}",
+        } as EnvConfig).fontFamily,
+      ).toBeUndefined();
+    });
+  });
+
+  describe('renderTenantBrandStyle', () => {
+    it('emits validated tokens and the default on-color', () => {
+      const css = renderTenantBrandStyle(
+        readTenantBrandStyle({
+          REVEALUI_BRAND_PRIMARY_COLOR: '#ea580c',
+          REVEALUI_TENANT_FONT: 'Inter',
+        }),
+      );
+      expect(css).toBe(
+        ":root { --tenant-brand: #ea580c; --primary: var(--tenant-brand); --tenant-brand-on: white; --tenant-font: 'Inter Variable'; } body { font-family: var(--tenant-font), 'Inter Variable', system-ui, -apple-system, sans-serif; }",
+      );
+    });
+
+    it('omits style vars when every token is invalid', () => {
+      const css = renderTenantBrandStyle(
+        readTenantBrandStyle({
+          REVEALUI_BRAND_PRIMARY_COLOR: '</style><script>alert(1)</script>',
+          REVEALUI_TENANT_BRAND: 'red',
+          REVEALUI_TENANT_BRAND_ON: 'expression(alert(1))',
+          REVEALUI_TENANT_FONT: 'Comic Sans',
+        }),
+      );
+      expect(css).toBeUndefined();
+    });
+
+    it('does not copy an invalid brand-on or font into the style block', () => {
+      const css = renderTenantBrandStyle(
+        readTenantBrandStyle({
+          REVEALUI_TENANT_BRAND: '#abc',
+          REVEALUI_TENANT_BRAND_ON: 'white; background: url(https://evil)',
+          REVEALUI_TENANT_FONT: 'Inter Tight',
+        }),
+      );
+      expect(css).toContain('--tenant-brand: #abc;');
+      expect(css).not.toContain('--tenant-brand-on');
+      expect(css).not.toContain('evil');
+      expect(css).toContain("--tenant-font: 'Inter Tight Variable';");
+    });
+
+    it('refuses to emit a style object that bypassed validation', () => {
+      expect(
+        renderTenantBrandStyle({
+          primaryColor: '#fff; } body { background: url(https://evil) }',
+          brandOnColor: '</style>',
+          fontFamily: "Inter'; } body {}",
+        }),
+      ).toBeUndefined();
     });
   });
 

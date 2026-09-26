@@ -3,6 +3,7 @@
  */
 
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 // Mock @revealui/router
@@ -21,6 +22,11 @@ vi.mock('../../app/components/SearchBar', () => ({
   SearchBar: () => <div data-testid="search-bar">SearchBar</div>,
 }));
 
+import {
+  DOCS_BOUNDARY_LINE,
+  DOCS_CHROME,
+  STUDIO_BLOG_HREF,
+} from '../../../../packages/contracts/src/nav-docs-boundary.ts';
 import { DocLayout } from '../../app/components/DocLayout';
 
 describe('DocLayout', () => {
@@ -90,17 +96,77 @@ describe('DocLayout', () => {
     expect(screen.getAllByText('Reference').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('should render navigation links', () => {
+  it('renders category titles as prominent collapsible controls', () => {
     render(
       <DocLayout>
         <div>Content</div>
       </DocLayout>,
     );
 
-    expect(screen.getAllByText('Quick Start').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Authentication').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('Database')).toBeInTheDocument();
-    expect(screen.getAllByText('Home').length).toBeGreaterThanOrEqual(1);
+    const gettingStarted = screen.getByRole('button', { name: 'Getting Started' });
+    expect(gettingStarted).toHaveAttribute('aria-expanded', 'false');
+    expect(gettingStarted.className).toContain('text-base');
+    expect(gettingStarted.className).toContain('font-bold');
+    expect(gettingStarted.className).toContain('text-ink');
+    expect(gettingStarted.className).toContain('mt-6');
+    expect(gettingStarted.className).not.toContain('uppercase');
+    expect(gettingStarted.className).not.toContain('tracking-widest');
+    expect(gettingStarted.className).not.toContain('text-text-muted');
+
+    const coreGuides = screen.getByRole('button', { name: 'Core Guides' });
+    expect(coreGuides).toHaveAttribute('aria-expanded', 'true');
+    expect(coreGuides).toHaveAttribute('aria-controls');
+  });
+
+  it('shows links for the open section and reveals a collapsed section on click', async () => {
+    const user = userEvent.setup();
+    render(
+      <DocLayout>
+        <div>Content</div>
+      </DocLayout>,
+    );
+
+    expect(screen.getByRole('link', { name: 'Database' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Quick Start' })).toBeNull();
+    expect(screen.getAllByText(DOCS_CHROME.docsHomeLabel).length).toBeGreaterThanOrEqual(1);
+
+    await user.click(screen.getByRole('button', { name: 'Getting Started' }));
+
+    expect(screen.getByRole('link', { name: 'Quick Start' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Getting Started' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Core Guides' }));
+
+    expect(screen.queryByRole('link', { name: 'Database' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Core Guides' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+  });
+
+  it('keeps Blog off the docs pillar and points Studio outbound', () => {
+    render(
+      <DocLayout>
+        <div>Content</div>
+      </DocLayout>,
+    );
+
+    expect(screen.queryByRole('button', { name: DOCS_CHROME.blogLabel })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'UI of the Future' })).toBeNull();
+    const blog = screen.queryByRole('link', { name: DOCS_CHROME.blogLabel });
+    if (blog) {
+      expect(blog.getAttribute('href')).toBe(STUDIO_BLOG_HREF);
+    }
+    const docsHome = screen.getAllByRole('link', { name: DOCS_CHROME.docsHomeLabel });
+    expect(docsHome.length).toBeGreaterThanOrEqual(1);
+    expect(docsHome.every((link) => link.getAttribute('href') === '/')).toBe(true);
+    expect(screen.getByRole('link', { name: DOCS_CHROME.studioLabel }).getAttribute('href')).toBe(
+      DOCS_CHROME.studioHref,
+    );
+    expect(screen.getByText(DOCS_BOUNDARY_LINE)).toBeInTheDocument();
   });
 
   it('should render quiet GitHub and website links in the sidebar', () => {

@@ -6,8 +6,8 @@ import { StatusDot, VerdictChip } from '@revealui/presentation';
  * Honest product-as-proof: real `@revealui/presentation` primitives
  * (StatusDot, VerdictChip), not a screenshot. Admin shell shape only.
  *
- * GAP-480 de-dupe: does NOT re-stage the hero refund receipt / AuditLine
- * trail. Hero owns the receipt motif; this frame shows agents as governed
+ * GAP-480 de-dupe: does NOT re-stage the hero receipt / AuditLine
+ * trail. Hero owns the governed-action receipt motif; this frame shows agents as governed
  * users (roster + policy verdicts) so the page tells two complementary
  * product stories once each.
  *

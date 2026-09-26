@@ -28,9 +28,10 @@ export function Hero({
       density="spacious"
       width="narrow"
       className="relative isolate overflow-hidden"
+      backdrop={
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background" />
+      }
     >
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background" />
-
       <div className="relative text-center">
         <p
           className="mb-6 text-sm font-semibold uppercase tracking-[0.2em] text-primary"

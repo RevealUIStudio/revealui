@@ -35,7 +35,12 @@
  */
 
 import { loadEnvironment } from './loader.js';
-import { type BrandingConfig, getBrandingConfig } from './modules/branding.js';
+import {
+  type BrandingConfig,
+  getBrandingConfig,
+  type TenantBrandStyle,
+  type TenantBrandStyleSource,
+} from './modules/branding.js';
 import { type DatabaseConfig, getDatabaseConfig } from './modules/database.js';
 import {
   type DevToolsConfig,
@@ -320,6 +325,7 @@ export type { Environment } from './loader.js';
 // Export loader utilities (for advanced usage)
 export { detectEnvironment, loadEnvironment } from './loader.js';
 // Export module-level config getters (documented in docs/REFERENCE.md as standalone helpers)
+export { readTenantBrandStyle, renderTenantBrandStyle } from './modules/branding.js';
 export { getDatabaseConfig } from './modules/database.js';
 export { getRevealConfig } from './modules/reveal.js';
 export { getStripeConfig } from './modules/stripe.js';
@@ -343,6 +349,8 @@ export type {
   SentryConfig,
   StorageConfig,
   StripeConfig,
+  TenantBrandStyle,
+  TenantBrandStyleSource,
 };
 // Export validation functions
 export { formatValidationErrors, validateAndThrow, validateEnvVars };

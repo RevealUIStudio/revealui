@@ -448,6 +448,15 @@ async function gate(): Promise<void> {
         args: ['validate:marketing-voice'],
       },
       {
+        // Admitted 2026-09-26: docs stay product reference. Product blog hops
+        // point at the Studio site. Warn-only so the corpus can stay served
+        // while the public nav and redirects move.
+        name: 'Refuse blog in docs (warn)',
+        command: 'pnpm',
+        args: ['validate:refuse-blog-in-docs'],
+        warnOnly: true,
+      },
+      {
         // VES fleet-marketing voice gate needs dist prose slots (section/ctaSection).
         name: 'Marketing voice prose-slot dist (hard fail)',
         command: 'pnpm',
