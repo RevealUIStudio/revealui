@@ -35,7 +35,8 @@ export const PRICING_HERO_SUBTEXT = {
     'All plans run as self-hosted installations under your license. Enterprise is a license, not a hosted VM. Need a human?',
   linkLabel: 'revealuistudio.com',
   linkHref: SITE.urls.agency,
-  suffix: 'Studio SKUs live on that site, not on this catalog.',
+  suffix:
+    'Need implementation? Studio is a separate path (Consultation, Pilot, Launch). This catalog is licenses only.',
 } as const;
 
 export const PRICING_HERO_NAV_ANCHORS = [
