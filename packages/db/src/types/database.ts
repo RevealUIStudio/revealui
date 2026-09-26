@@ -31,6 +31,9 @@ import type {
   billingCatalog,
   boardColumns,
   boards,
+  budgetIncidents,
+  budgetLedgers,
+  budgetPolicies,
   categories,
   circuitBreakerState,
   codeProvenance,
@@ -76,7 +79,10 @@ import type {
   marketplaceAgents,
   marketplaceServers,
   marketplaceTransactions,
+  mcpApprovalSettings,
   mcpDocumentOperations,
+  mcpToolApprovals,
+  mcpToolTrustRules,
   media,
   messages,
   nodeIdMappings,
@@ -241,6 +247,21 @@ export type BoardColumnsUpdate = Partial<BoardColumnsInsert>
 export type BoardsRow = typeof boards.$inferSelect
 export type BoardsInsert = typeof boards.$inferInsert
 export type BoardsUpdate = Partial<BoardsInsert>
+
+// Budget Incidents
+export type BudgetIncidentsRow = typeof budgetIncidents.$inferSelect
+export type BudgetIncidentsInsert = typeof budgetIncidents.$inferInsert
+export type BudgetIncidentsUpdate = Partial<BudgetIncidentsInsert>
+
+// Budget Ledgers
+export type BudgetLedgersRow = typeof budgetLedgers.$inferSelect
+export type BudgetLedgersInsert = typeof budgetLedgers.$inferInsert
+export type BudgetLedgersUpdate = Partial<BudgetLedgersInsert>
+
+// Budget Policies
+export type BudgetPoliciesRow = typeof budgetPolicies.$inferSelect
+export type BudgetPoliciesInsert = typeof budgetPolicies.$inferInsert
+export type BudgetPoliciesUpdate = Partial<BudgetPoliciesInsert>
 
 // Categories
 export type CategoriesRow = typeof categories.$inferSelect
@@ -467,10 +488,25 @@ export type MarketplaceTransactionsRow = typeof marketplaceTransactions.$inferSe
 export type MarketplaceTransactionsInsert = typeof marketplaceTransactions.$inferInsert
 export type MarketplaceTransactionsUpdate = Partial<MarketplaceTransactionsInsert>
 
+// Mcp Approval Settings
+export type McpApprovalSettingsRow = typeof mcpApprovalSettings.$inferSelect
+export type McpApprovalSettingsInsert = typeof mcpApprovalSettings.$inferInsert
+export type McpApprovalSettingsUpdate = Partial<McpApprovalSettingsInsert>
+
 // Mcp Document Operations
 export type McpDocumentOperationsRow = typeof mcpDocumentOperations.$inferSelect
 export type McpDocumentOperationsInsert = typeof mcpDocumentOperations.$inferInsert
 export type McpDocumentOperationsUpdate = Partial<McpDocumentOperationsInsert>
+
+// Mcp Tool Approvals
+export type McpToolApprovalsRow = typeof mcpToolApprovals.$inferSelect
+export type McpToolApprovalsInsert = typeof mcpToolApprovals.$inferInsert
+export type McpToolApprovalsUpdate = Partial<McpToolApprovalsInsert>
+
+// Mcp Tool Trust Rules
+export type McpToolTrustRulesRow = typeof mcpToolTrustRules.$inferSelect
+export type McpToolTrustRulesInsert = typeof mcpToolTrustRules.$inferInsert
+export type McpToolTrustRulesUpdate = Partial<McpToolTrustRulesInsert>
 
 // Media
 export type MediaRow = typeof media.$inferSelect
@@ -763,6 +799,9 @@ export type DatabaseRelationships = {
   billingCatalog: Relationship[]
   boardColumns: Relationship[]
   boards: Relationship[]
+  budgetIncidents: Relationship[]
+  budgetLedgers: Relationship[]
+  budgetPolicies: Relationship[]
   categories: Relationship[]
   circuitBreakerState: Relationship[]
   codeProvenance: Relationship[]
@@ -808,7 +847,10 @@ export type DatabaseRelationships = {
   marketplaceAgents: Relationship[]
   marketplaceServers: Relationship[]
   marketplaceTransactions: Relationship[]
+  mcpApprovalSettings: Relationship[]
   mcpDocumentOperations: Relationship[]
+  mcpToolApprovals: Relationship[]
+  mcpToolTrustRules: Relationship[]
   media: Relationship[]
   messages: Relationship[]
   nodeIdMappings: Relationship[]
@@ -945,6 +987,22 @@ export const boardColumnsRelationships = [
 // Boards relationships
 export const boardsRelationships = [
   { foreignKeyName: 'boards_owner_id_users_id_fk', columns: ['owner_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
+
+// BudgetIncidents relationships
+export const budgetIncidentsRelationships = [
+  { foreignKeyName: 'budget_incidents_account_id_accounts_id_fk', columns: ['account_id'], isOneToOne: true, referencedRelation: 'accounts', referencedColumns: ['id'] },
+  { foreignKeyName: 'budget_incidents_policy_id_budget_policies_id_fk', columns: ['policy_id'], isOneToOne: true, referencedRelation: 'budget_policies', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
+
+// BudgetLedgers relationships
+export const budgetLedgersRelationships = [
+  { foreignKeyName: 'budget_ledgers_policy_id_budget_policies_id_fk', columns: ['policy_id'], isOneToOne: true, referencedRelation: 'budget_policies', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
+
+// BudgetPolicies relationships
+export const budgetPoliciesRelationships = [
+  { foreignKeyName: 'budget_policies_account_id_accounts_id_fk', columns: ['account_id'], isOneToOne: true, referencedRelation: 'accounts', referencedColumns: ['id'] },
 ] as const satisfies readonly Relationship[]
 
 // Categories relationships
@@ -1109,8 +1167,26 @@ export const marketplaceTransactionsRelationships = [
   { foreignKeyName: 'marketplace_transactions_server_id_marketplace_servers_id_fk', columns: ['server_id'], isOneToOne: true, referencedRelation: 'marketplace_servers', referencedColumns: ['id'] },
 ] as const satisfies readonly Relationship[]
 
+// McpApprovalSettings relationships
+export const mcpApprovalSettingsRelationships = [
+  { foreignKeyName: 'mcp_approval_settings_account_id_accounts_id_fk', columns: ['account_id'], isOneToOne: true, referencedRelation: 'accounts', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
+
 // McpDocumentOperations relationships
 export const mcpDocumentOperationsRelationships: readonly Relationship[] = []
+
+// McpToolApprovals relationships
+export const mcpToolApprovalsRelationships = [
+  { foreignKeyName: 'mcp_tool_approvals_account_id_accounts_id_fk', columns: ['account_id'], isOneToOne: true, referencedRelation: 'accounts', referencedColumns: ['id'] },
+  { foreignKeyName: 'mcp_tool_approvals_requester_user_id_users_id_fk', columns: ['requester_user_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+  { foreignKeyName: 'mcp_tool_approvals_decided_by_user_id_users_id_fk', columns: ['decided_by_user_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
+
+// McpToolTrustRules relationships
+export const mcpToolTrustRulesRelationships = [
+  { foreignKeyName: 'mcp_tool_trust_rules_account_id_accounts_id_fk', columns: ['account_id'], isOneToOne: true, referencedRelation: 'accounts', referencedColumns: ['id'] },
+  { foreignKeyName: 'mcp_tool_trust_rules_source_approval_id_mcp_tool_approvals_id_fk', columns: ['source_approval_id'], isOneToOne: true, referencedRelation: 'mcp_tool_approvals', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
 
 // Media relationships
 export const mediaRelationships = [
@@ -1495,6 +1571,24 @@ export type Database = {
         Update: BoardsUpdate
         Relationships: typeof boardsRelationships
       }
+      budget_incidents: {
+        Row: BudgetIncidentsRow
+        Insert: BudgetIncidentsInsert
+        Update: BudgetIncidentsUpdate
+        Relationships: typeof budgetIncidentsRelationships
+      }
+      budget_ledgers: {
+        Row: BudgetLedgersRow
+        Insert: BudgetLedgersInsert
+        Update: BudgetLedgersUpdate
+        Relationships: typeof budgetLedgersRelationships
+      }
+      budget_policies: {
+        Row: BudgetPoliciesRow
+        Insert: BudgetPoliciesInsert
+        Update: BudgetPoliciesUpdate
+        Relationships: typeof budgetPoliciesRelationships
+      }
       categories: {
         Row: CategoriesRow
         Insert: CategoriesInsert
@@ -1765,11 +1859,29 @@ export type Database = {
         Update: MarketplaceTransactionsUpdate
         Relationships: typeof marketplaceTransactionsRelationships
       }
+      mcp_approval_settings: {
+        Row: McpApprovalSettingsRow
+        Insert: McpApprovalSettingsInsert
+        Update: McpApprovalSettingsUpdate
+        Relationships: typeof mcpApprovalSettingsRelationships
+      }
       mcp_document_operations: {
         Row: McpDocumentOperationsRow
         Insert: McpDocumentOperationsInsert
         Update: McpDocumentOperationsUpdate
         Relationships: typeof mcpDocumentOperationsRelationships
+      }
+      mcp_tool_approvals: {
+        Row: McpToolApprovalsRow
+        Insert: McpToolApprovalsInsert
+        Update: McpToolApprovalsUpdate
+        Relationships: typeof mcpToolApprovalsRelationships
+      }
+      mcp_tool_trust_rules: {
+        Row: McpToolTrustRulesRow
+        Insert: McpToolTrustRulesInsert
+        Update: McpToolTrustRulesUpdate
+        Relationships: typeof mcpToolTrustRulesRelationships
       }
       media: {
         Row: MediaRow

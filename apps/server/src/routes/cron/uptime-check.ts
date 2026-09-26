@@ -1,8 +1,9 @@
 /**
  * Uptime Monitoring Cron
  *
- * Runs every 5 minutes via Vercel Cron. Records health check results
- * to the audit log for SLA tracking and SOC2 compliance (Availability TSC).
+ * Invoked by the daily dispatcher as POST /uptime-check with X-Cron-Secret,
+ * and directly as GET or POST /api/cron/uptime-check. Records health check
+ * results to the audit log for SLA tracking and SOC2 compliance (Availability TSC).
  *
  * SLA calculation: count(status=ok) / count(*) over a rolling 30-day window.
  */
@@ -11,22 +12,41 @@ import { healthCheck } from '@revealui/core/observability';
 import { logger } from '@revealui/core/observability/logger';
 import { AuditWriteError, classifyAuditWriteFailure } from '@revealui/core/security';
 import { Hono } from 'hono';
-import { vercelCronSecretMatches } from '../../lib/cron-auth.js';
+import { revealuiCronSecretMatches, vercelCronSecretMatches } from '../../lib/cron-auth.js';
 
 const app = new Hono();
 
-app.get('/', async (c) => {
-  // Verify cron secret to prevent unauthorized invocations.
-  // Unset CRON_SECRET and CRON_SECRET_PREVIOUS stays fail-open (pre-existing).
-  // When either is set, the bearer must match current or the overlap previous.
-  const authHeader = c.req.header('authorization');
-  const bearerToken = authHeader?.startsWith('Bearer ')
-    ? authHeader.slice('Bearer '.length)
-    : undefined;
-  const cronConfigured = Boolean(
-    process.env.CRON_SECRET?.trim() || process.env.CRON_SECRET_PREVIOUS?.trim(),
+const BEARER_PREFIX = 'Bearer ';
+
+function cronSecretsConfigured(): boolean {
+  return Boolean(
+    process.env.REVEALUI_CRON_SECRET?.trim() ||
+      process.env.REVEALUI_CRON_SECRET_PREVIOUS?.trim() ||
+      process.env.CRON_SECRET?.trim() ||
+      process.env.CRON_SECRET_PREVIOUS?.trim(),
   );
-  if (cronConfigured && !vercelCronSecretMatches(bearerToken)) {
+}
+
+function authorizeUptimeCheck(c: {
+  req: { header: (name: string) => string | undefined };
+}): boolean {
+  // Dispatch fan-out sends X-Cron-Secret (current REVEALUI_CRON_SECRET).
+  // Direct calls may also send Authorization: Bearer CRON_SECRET.
+  // Fail-open only when none of the four cron secret vars are set.
+  const headerSecret = c.req.header('X-Cron-Secret') || c.req.header('x-cron-secret');
+  const authorization = c.req.header('Authorization') || c.req.header('authorization');
+  const bearerToken = authorization?.startsWith(BEARER_PREFIX)
+    ? authorization.slice(BEARER_PREFIX.length)
+    : undefined;
+  const authorized =
+    revealuiCronSecretMatches(headerSecret) || vercelCronSecretMatches(bearerToken);
+  if (!cronSecretsConfigured()) return true;
+  return authorized;
+}
+
+// Path and methods match dispatch.ts fan-out: POST http://localhost/uptime-check.
+app.on(['GET', 'POST'], '/uptime-check', async (c) => {
+  if (!authorizeUptimeCheck(c)) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
@@ -63,7 +83,7 @@ app.get('/', async (c) => {
     });
   } catch (err) {
     // Audit write failed (or the write path itself threw before reaching
-    // storage) — health check data is still on stdout above, but a failed
+    // storage). Health check data is still on stdout above, but a failed
     // SLA-tracking write must not vanish silently.
     const cause = err instanceof AuditWriteError ? err.cause : err;
     logger.warn('Uptime-check audit write failed', {

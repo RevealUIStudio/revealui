@@ -7,17 +7,33 @@ import { QuoteCalculator } from '../QuoteCalculator';
 
 afterEach(cleanup);
 
+const STUDIO_PRICES = ['$300', '$1,500', '$3,997', '$7,500', '$14,500'] as const;
+
+function expectNoStudioPrices(text: string): void {
+  for (const price of STUDIO_PRICES) {
+    expect(text.includes(price)).toBe(false);
+  }
+  expect(text.includes('Stage B')).toBe(false);
+  expect(text.includes('waive')).toBe(false);
+  expect(text.includes('Proof Sprint')).toBe(false);
+  expect(text.includes('Pilot $1,500')).toBe(false);
+  expect(text.includes('Zapier')).toBe(false);
+  expect(text.includes('proof of work')).toBe(false);
+  expect(text.includes('\u2014')).toBe(false);
+  expect(text.includes(' / Meet.')).toBe(false);
+}
+
 describe('QuoteCalculator', () => {
   it('defaults Who to I will', () => {
-    render(<QuoteCalculator />);
+    render(<QuoteCalculator surface="home" />);
     const self = screen.getByRole('radio', {
       name: QUOTE_CALCULATOR.questions.who.options[0].label,
     });
-    const pilot = screen.getByRole('radio', {
-      name: QUOTE_CALCULATOR.questions.what.options[1].label,
-    });
     expect(self).toHaveAttribute('aria-checked', 'true');
-    expect(pilot).toHaveAttribute('aria-checked', 'true');
+    expect(screen.queryByRole('radio', { name: /Pilot/i })).toBeNull();
+    expect(screen.queryByRole('radio', { name: /Consultation/i })).toBeNull();
+    expect(screen.queryByRole('radio', { name: /Launch/i })).toBeNull();
+    expect(screen.getByText(/Consultation, Pilot, Launch/)).toBeInTheDocument();
     expect(screen.getByText(QUOTE_CALCULATOR.selfHost.title)).toBeInTheDocument();
     expect(screen.getByText(QUOTE_CALCULATOR.selfHost.free)).toBeInTheDocument();
     expect(screen.getByText(QUOTE_CALCULATOR.selfHost.agents)).toBeInTheDocument();
@@ -25,54 +41,67 @@ describe('QuoteCalculator', () => {
       'href',
       SITE.urls.signup,
     );
+    expect(screen.getByText(QUOTE_CALCULATOR.bodies.home)).toBeInTheDocument();
   });
 
   it('prints Free, Pro, and Max on the self-host default without talking', () => {
-    render(<QuoteCalculator />);
+    render(<QuoteCalculator surface="home" />);
     const card = screen.getByTestId('quote-card');
     expect(card.textContent ?? '').toContain('Free');
     expect(card.textContent ?? '').toContain('$49');
     expect(card.textContent ?? '').toContain('$99');
-    expect(card.textContent ?? '').not.toContain('$300');
-    expect(card.textContent ?? '').not.toContain('$1,500');
-    expect(card.textContent ?? '').not.toContain('$3,997');
-    expect(card.textContent ?? '').not.toContain('$7,500');
-    expect(card.textContent ?? '').not.toContain('$14,500');
+    expect(card.textContent ?? '').toContain('$1,499');
+    expectNoStudioPrices(card.textContent ?? '');
   });
 
-  it('prints the Studio SKU trio when You will and one place', () => {
-    render(<QuoteCalculator />);
+  it('shows the home Studio boundary as an outbound quote link', () => {
+    render(<QuoteCalculator surface="home" />);
+    expect(screen.getByText(QUOTE_CALCULATOR.bodies.home)).toBeInTheDocument();
     fireEvent.click(
       screen.getByRole('radio', { name: QUOTE_CALCULATOR.questions.who.options[1].label }),
     );
     const card = screen.getByTestId('quote-card');
-    expect(within(card).getByText(QUOTE_CALCULATOR.studio.consultation.title)).toBeInTheDocument();
-    expect(within(card).getByText(QUOTE_CALCULATOR.studio.consultation.price)).toBeInTheDocument();
-    expect(within(card).getByText(QUOTE_CALCULATOR.studio.proofSprint.title)).toBeInTheDocument();
-    expect(within(card).getByText(QUOTE_CALCULATOR.studio.proofSprint.price)).toBeInTheDocument();
-    expect(within(card).getByText(QUOTE_CALCULATOR.studio.launch.title)).toBeInTheDocument();
-    expect(within(card).getByText(QUOTE_CALCULATOR.studio.launch.price)).toBeInTheDocument();
-    expect(within(card).getByText(QUOTE_CALCULATOR.studio.consultation.body)).toBeInTheDocument();
-    expect(within(card).getByText(QUOTE_CALCULATOR.studio.proofSprint.body)).toBeInTheDocument();
-    expect(
-      within(card).getByText(QUOTE_CALCULATOR.studio.launch.body, { exact: true }),
-    ).toBeInTheDocument();
-    expect(screen.getByText('Choose, pay, prep, meet, keep the pack.')).toBeInTheDocument();
-    expect(screen.getByText('Choose')).toBeInTheDocument();
-    expect(screen.getByText('Artifacts')).toBeInTheDocument();
+    expect(within(card).getByText(QUOTE_CALCULATOR.studioPath.label)).toBeInTheDocument();
+    expect(within(card).getByText(QUOTE_CALCULATOR.studioPath.title)).toBeInTheDocument();
+    expect(within(card).getByText(QUOTE_CALCULATOR.studioPath.body)).toBeInTheDocument();
+    const studio = within(card).getByRole('link', { name: QUOTE_CALCULATOR.studioCta.label });
+    expect(studio).toHaveAttribute('href', `${SITE.urls.agency}/#calculator`);
+    expect(studio).toHaveAttribute('target', '_blank');
+    expect(studio).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(screen.queryByRole('link', { name: QUOTE_CALCULATOR.startFreeCta.label })).toBeNull();
+    expect(screen.queryByText('Choose, pay, prep, meet, keep the pack.')).toBeNull();
+    expect(screen.queryByRole('radiogroup', { name: 'How many sites?' })).toBeNull();
+    expectNoStudioPrices(card.textContent ?? '');
+  });
+
+  it('shows the pricing Studio boundary as an outbound quote link', () => {
+    render(<QuoteCalculator surface="pricing" />);
+    expect(screen.getByText(QUOTE_CALCULATOR.bodies.pricing)).toBeInTheDocument();
+    expect(QUOTE_CALCULATOR.bodies.pricing).toBe(QUOTE_CALCULATOR.bodies.home);
+    fireEvent.click(
+      screen.getByRole('radio', { name: QUOTE_CALCULATOR.questions.who.options[1].label }),
+    );
+    const card = screen.getByTestId('quote-card');
+    expect(within(card).getByText('Studio path')).toBeInTheDocument();
+    expect(within(card).getByRole('link', { name: 'Visit Studio quote' })).toHaveAttribute(
+      'href',
+      'https://revealuistudio.com/#calculator',
+    );
+    expectNoStudioPrices(card.textContent ?? '');
   });
 
   it('stops quoting when there is more than one place', () => {
-    render(<QuoteCalculator />);
+    render(<QuoteCalculator surface="home" />);
     fireEvent.click(
       screen.getByRole('radio', { name: QUOTE_CALCULATOR.questions.places.options[1].label }),
     );
     expect(screen.getByText(QUOTE_CALCULATOR.intro.title)).toBeInTheDocument();
     expect(screen.getByText(QUOTE_CALCULATOR.intro.body)).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Visit Studio quote' })).toBeNull();
   });
 
   it('always shows ownership lines and the Google Calendar intro', () => {
-    render(<QuoteCalculator />);
+    render(<QuoteCalculator surface="pricing" />);
     expect(screen.getByText(QUOTE_CALCULATOR.ownership[0])).toBeInTheDocument();
     expect(screen.getByText(QUOTE_CALCULATOR.ownership[1])).toBeInTheDocument();
     const intro = screen.getByRole('link', { name: QUOTE_CALCULATOR.introCta.label });
@@ -82,7 +111,7 @@ describe('QuoteCalculator', () => {
   });
 
   it('does not render leftover Fleet, Custom, or kit prices', () => {
-    const { container } = render(<QuoteCalculator />);
+    const { container } = render(<QuoteCalculator surface="home" />);
     const text = container.textContent ?? '';
     expect(text.includes('$25,000')).toBe(false);
     expect(text.includes('$50,000')).toBe(false);
@@ -91,5 +120,6 @@ describe('QuoteCalculator', () => {
     expect(text.includes('written plan')).toBe(false);
     expect(text.includes('four tests')).toBe(false);
     expect(text.includes('https://calendar.google.com/')).toBe(false);
+    expectNoStudioPrices(text);
   });
 });

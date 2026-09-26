@@ -18,7 +18,7 @@ export const RECEIPT_PRINT_STEP_MS = 420;
 /** Applied to each `AuditLine` row's wrapper. */
 export const RECEIPT_PRINT_LINE_CLASS = 'rvui-receipt-print-line';
 
-/** Applied to the integrity footer. */
+/** Applied to the integrity seal row. */
 export const RECEIPT_PRINT_SEAL_CLASS = 'rvui-receipt-print-seal';
 
 export const RECEIPT_PRINT_KEYFRAMES = `

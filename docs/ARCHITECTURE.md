@@ -69,7 +69,7 @@ RevealUI is a Postgres-primary stack with comprehensive type safety, optional si
 
 ### Core Systems
 
-1. **NeonDB (POSTGRES_URL — primary)**: Transactional REST API source. Houses 117 tables including `agent_memories` and other vector-typed tables (NeonDB supports `pgvector`). Source of truth for the application.
+1. **NeonDB (POSTGRES_URL, primary)**: Transactional REST API source. Houses 123 tables including `agent_memories` and other vector-typed tables (NeonDB supports `pgvector`). Source of truth for the application.
 2. **Supabase (removed)**: Historically hosted `rag_chunks` and related embedding tables; RAG embeddings now live on NeonDB `pgvector`. Supabase was removed as architecture per the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md).
 3. **ElectricSQL (optional sync layer)**: Real-time synchronization for agent contexts and conversations when enabled (env vars are off by default).
 4. **Vercel AI SDK**: Streaming AI completions with React hooks
@@ -207,7 +207,7 @@ RevealUI uses two frontend frameworks for two distinct surfaces. The choice is i
 
 ### Shared frontend layer
 
-Both surfaces share `@revealui/presentation` (66 native UI components, Tailwind v4, zero external UI deps), `@revealui/auth` (session auth), and `@revealui/contracts` (Zod schemas + types). The framework split is at the framework boundary; the component library and contracts are unified.
+Both surfaces share `@revealui/presentation` (68 native UI components, Tailwind v4, zero external UI deps), `@revealui/auth` (session auth), and `@revealui/contracts` (Zod schemas + types). The framework split is at the framework boundary; the component library and contracts are unified.
 
 For the full library + rationale, see [`guides/technology-stack.md`](./guides/technology-stack.md).
 

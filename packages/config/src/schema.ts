@@ -12,6 +12,40 @@ import { z } from 'zod/v4';
 
 const urlSchema = z.url().min(1);
 const secretSchema = z.string().min(32, 'Secret must be at least 32 characters');
+
+// REGEX-CONFIG-BOUNDARY: Zod format constraint for CSS hex colors. Shared by
+// every brand color that may be written into HTML. Not a security scanner.
+const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{3,8}$/;
+
+export function cssHexColorSchema(example: string): z.ZodString {
+  return z.string().regex(HEX_COLOR_PATTERN, `Must be a hex color (e.g. ${example})`);
+}
+
+/** Self-hosted admin faces. Mapped to their Variable family names at render time. */
+export const TENANT_FONT_VALUES = ['Inter', 'Inter Tight'] as const;
+export const tenantFontValueSchema = z.enum(TENANT_FONT_VALUES);
+
+/**
+ * Brand-on token. Hex and the keywords `white` / `black` are CSS colors.
+ * `z.stringbool()` accepts boolean spellings including `on` / `off` and
+ * yields a real boolean so the raw token is never copied into CSS.
+ */
+export const tenantBrandOnValueSchema = z.union([
+  cssHexColorSchema('#0f172a'),
+  z.enum(['white', 'black']),
+  z.stringbool(),
+]);
+
+function blankToUndefined(value: unknown): unknown {
+  if (typeof value !== 'string') return value;
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? undefined : trimmed;
+}
+
+function optionalBlank<T extends z.ZodType>(schema: T) {
+  return z.preprocess(blankToUndefined, schema.optional());
+}
+
 const postgresUrlSchema = z
   .string()
   .regex(
@@ -172,20 +206,23 @@ const optionalSchema = z.object({
   // Branding (Enterprise white-label)
   REVEALUI_BRAND_NAME: z.string().optional(),
   REVEALUI_BRAND_LOGO_URL: z.string().optional(),
-  REVEALUI_BRAND_PRIMARY_COLOR: z
-    .string()
-    .regex(/^#[0-9a-fA-F]{3,8}$/, 'Must be a hex color (e.g. #ea580c)')
-    .optional(),
+  REVEALUI_BRAND_PRIMARY_COLOR: cssHexColorSchema('#ea580c').optional(),
   REVEALUI_SHOW_POWERED_BY: z.enum(['true', 'false']).optional(),
 
   // Fleet-kit branding aliases — stamped kits use these names; they resolve to
   // REVEALUI_BRAND_NAME and REVEALUI_BRAND_PRIMARY_COLOR when the canonical vars
   // are absent.
   REVEALUI_TENANT_NAME: z.string().optional(),
-  REVEALUI_TENANT_BRAND: z
-    .string()
-    .regex(/^#[0-9a-fA-F]{3,8}$/, 'Must be a hex color (e.g. #1a56db)')
-    .optional(),
+  REVEALUI_TENANT_BRAND: cssHexColorSchema('#1a56db').optional(),
+  // Foreground used on the brand fill. Boolean/on (`z.stringbool`, whose
+  // truthy set includes "on") selects the constant white; falsy omits the
+  // variable. A hex uses the same Zod constraint as the brand color. The
+  // keywords `white` and `black` are an allowlist, not free text. Blank is
+  // unset. Anything else fails validation and must not be written into CSS.
+  REVEALUI_TENANT_BRAND_ON: optionalBlank(tenantBrandOnValueSchema),
+  // Self-hosted faces only. Other family names are rejected so they cannot
+  // be interpolated into the admin style block.
+  REVEALUI_TENANT_FONT: optionalBlank(tenantFontValueSchema),
 
   // License
   REVEALUI_LICENSE_KEY: z.string().optional(),

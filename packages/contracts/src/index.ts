@@ -708,3 +708,15 @@ export {
   WHISPER_ASSESS_PIPELINE,
   type WhisperAssessPipeline,
 } from './meeting-vendor.js';
+
+export {
+  mergeMetadataPreservingTrustPreset,
+  parseTicketTrustPreset,
+  type TicketTrustMetadata,
+  TicketTrustMetadataSchema,
+  type TicketTrustPreset,
+  type TicketTrustPresetParse,
+  TRUST_PRESET_METADATA_KEY,
+  TRUST_PRESET_VALUES,
+  TrustPresetSchema,
+} from './trust-preset.js';

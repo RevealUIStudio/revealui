@@ -63,7 +63,9 @@ describe('public product catalog routes', () => {
       'href',
       SITE.urls.agency,
     );
-    expect(screen.getByRole('radio', { name: /Studio implements with me/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('radio', { name: /I need Studio implementation/i }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: /I self-host/i })).toHaveAttribute(
       'aria-checked',
       'true',

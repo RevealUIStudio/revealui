@@ -96,6 +96,9 @@ export async function recordMcpToolAudit(input: McpAuditInput): Promise<void> {
       sessionId: input.sessionId ?? undefined,
       payload,
       policyViolations: [],
+      // Column scope for per-account anchoring. Payload.accountId stays for
+      // readers of the event body. Null when the caller has no account.
+      tenant: input.accountId,
     });
     recordAuditWriteResult({ ok: true, eventId: id, eventType });
   } catch (err) {

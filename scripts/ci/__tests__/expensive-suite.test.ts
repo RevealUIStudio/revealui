@@ -73,6 +73,10 @@ describe('classifyDsPaths', () => {
     );
     expect(classifyDsPaths(['apps/docs/app/showcase/button.showcase.tsx']).showcase).toBe(true);
     expect(classifyDsPaths(['e2e/showcase-visual.e2e.ts']).showcase).toBe(true);
+    expect(
+      classifyDsPaths(['e2e/__snapshots__/showcase-visual.e2e.ts/receipt-card-light-chromium.png'])
+        .showcase,
+    ).toBe(true);
   });
 });
 
@@ -171,6 +175,7 @@ describe('workflow wiring', () => {
     expect(ds).toContain('packages/tokens/**');
     expect(ds).toContain('packages/presentation/**');
     expect(ds).toContain('e2e/showcase-visual.e2e.ts');
+    expect(ds).toContain('e2e/__snapshots__/showcase-visual.e2e.ts/**');
     expect(ds).toContain('cancel-in-progress: true');
     const pushIdx = ds.indexOf('push:');
     const pushBlock = ds.slice(pushIdx, pushIdx + 400);

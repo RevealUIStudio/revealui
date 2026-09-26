@@ -22,10 +22,10 @@ export interface ReceiptCardProps {
   title: string;
   /** Ordered audit events, oldest first. Reuses `AuditLine`'s event type. */
   lines: AuditEvent[];
-  /** Optional integrity footer sealing the receipt. */
+  /** Optional integrity seal (algorithm plus a copyable hash). */
   integrity?: ReceiptIntegrity;
   /**
-   * When `'print'`, each line and the integrity footer play a one-shot CSS
+   * When `'print'`, each line and the integrity seal play a one-shot CSS
    * entrance stagger (the receipt "prints" itself), then the seal pulses
    * once. Undefined (default) is the current, unanimated rendering with zero
    * visual change. Disabled entirely under `prefers-reduced-motion: reduce`.
@@ -59,8 +59,8 @@ function SealIcon(): React.JSX.Element {
 }
 
 /**
- * A receipt: a titled header, a stack of `AuditLine` events, and an optional
- * integrity footer. The carrier of the "if an agent did it, there's a receipt"
+ * A receipt: a title row, a stack of `AuditLine` events, and an optional
+ * integrity seal. The carrier of the "if an agent did it, there's a receipt"
  * motif — monospace throughout, tabular-nums, perforated dashed dividers.
  */
 export function ReceiptCard({
@@ -85,7 +85,8 @@ export function ReceiptCard({
     >
       {printing && <style>{RECEIPT_PRINT_KEYFRAMES}</style>}
 
-      <header className="flex items-baseline justify-between gap-3 px-4 py-3">
+      {/* A header element is a banner landmark in this tree even inside the section. */}
+      <div className="flex items-baseline justify-between gap-3 px-4 py-3">
         <h3 className="text-sm font-semibold text-[var(--rvui-text-0)]">{title}</h3>
         {latest && (
           <time
@@ -96,7 +97,7 @@ export function ReceiptCard({
             {latest}
           </time>
         )}
-      </header>
+      </div>
 
       {lines.length > 0 && (
         <ul
@@ -116,7 +117,10 @@ export function ReceiptCard({
       )}
 
       {integrity && (
-        <footer
+        // biome-ignore lint/a11y/useSemanticElements: seal is not a form fieldset, and a footer element is a contentinfo landmark in this tree even inside the section
+        <div
+          role="group"
+          aria-label={`${integrity.kind} integrity`}
           className={cn(
             'flex items-center gap-2 border-t border-dashed px-4 py-2.5 text-xs',
             printing && RECEIPT_PRINT_SEAL_CLASS,
@@ -133,7 +137,7 @@ export function ReceiptCard({
             {integrity.kind}
           </span>
           <CopyRef value={integrity.value} noun="integrity hash" className="text-xs" />
-        </footer>
+        </div>
       )}
     </section>
   );

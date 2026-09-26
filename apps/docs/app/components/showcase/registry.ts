@@ -57,6 +57,12 @@ export const showcaseEntries: ShowcaseEntry[] = [
     loader: () => import('../../showcase/brand-mark.showcase.js'),
   },
   {
+    slug: 'booking-calendar',
+    name: 'Booking Calendar',
+    category: 'component',
+    loader: () => import('../../showcase/booking-calendar.showcase.js'),
+  },
+  {
     slug: 'breadcrumb',
     name: 'Breadcrumb',
     category: 'component',
@@ -73,6 +79,12 @@ export const showcaseEntries: ShowcaseEntry[] = [
     name: 'Button',
     category: 'component',
     loader: () => import('../../showcase/button.showcase.js'),
+  },
+  {
+    slug: 'calendar',
+    name: 'Calendar',
+    category: 'component',
+    loader: () => import('../../showcase/calendar.showcase.js'),
   },
   {
     slug: 'callout',

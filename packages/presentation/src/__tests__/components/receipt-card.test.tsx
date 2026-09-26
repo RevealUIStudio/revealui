@@ -30,7 +30,7 @@ describe('ReceiptCard', () => {
     expect(within(items[1] as HTMLElement).getByText('agent-system')).toBeInTheDocument();
   });
 
-  it('renders an integrity footer with a copy affordance', async () => {
+  it('renders an integrity seal with a copy affordance', async () => {
     const user = userEvent.setup();
     const writeText = vi.fn(() => Promise.resolve());
     Object.defineProperty(navigator, 'clipboard', {
@@ -38,7 +38,7 @@ describe('ReceiptCard', () => {
       writable: true,
       configurable: true,
     });
-    render(
+    const { container } = render(
       <ReceiptCard
         title="Sealed"
         lines={lines}
@@ -46,13 +46,23 @@ describe('ReceiptCard', () => {
       />,
     );
 
+    expect(screen.getByRole('group', { name: 'sha256 integrity' })).toBeInTheDocument();
+    expect(screen.queryByRole('contentinfo')).toBeNull();
+    expect(screen.queryByRole('banner')).toBeNull();
+    expect(container.querySelector('header')).toBeNull();
+    expect(container.querySelector('footer')).toBeNull();
     expect(screen.getByText('sha256')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Copy integrity hash a1b2c3d4' }));
     expect(writeText).toHaveBeenCalledWith('a1b2c3d4');
   });
 
-  it('omits the integrity footer when integrity is absent', () => {
-    render(<ReceiptCard title="No seal" lines={lines} />);
+  it('omits the integrity seal when integrity is absent', () => {
+    const { container } = render(<ReceiptCard title="No seal" lines={lines} />);
+    expect(screen.queryByRole('group', { name: /integrity/ })).toBeNull();
+    expect(screen.queryByRole('contentinfo')).toBeNull();
+    expect(screen.queryByRole('banner')).toBeNull();
+    expect(container.querySelector('header')).toBeNull();
+    expect(container.querySelector('footer')).toBeNull();
     expect(screen.queryByText('sha256')).toBeNull();
   });
 
@@ -69,8 +79,10 @@ describe('ReceiptCard', () => {
       expect(item.className).toBe('');
       expect(item.getAttribute('style')).toBeNull();
     }
-    const footer = container.querySelector('footer');
-    expect(footer?.className).not.toMatch(/rvui-receipt-print/);
+    const seal = screen.getByRole('group', { name: 'sha256 integrity' });
+    expect(seal.className).not.toMatch(/rvui-receipt-print/);
+    expect(container.querySelector('footer')).toBeNull();
+    expect(screen.queryByRole('contentinfo')).toBeNull();
     expect(container.querySelector('style')).toBeNull();
   });
 
@@ -96,9 +108,10 @@ describe('ReceiptCard', () => {
     expect(screen.getByText('agent-system')).toBeInTheDocument();
     expect(screen.getByText('sha256')).toBeInTheDocument();
 
-    const footer = container.querySelector('footer');
-    expect(footer?.className).toContain('rvui-receipt-print-seal');
-    expect(footer?.style.getPropertyValue('--rvui-print-i')).toBe(String(lines.length));
+    const seal = screen.getByRole('group', { name: 'sha256 integrity' });
+    expect(seal.className).toContain('rvui-receipt-print-seal');
+    expect(seal.style.getPropertyValue('--rvui-print-i')).toBe(String(lines.length));
+    expect(container.querySelector('footer')).toBeNull();
 
     expect(container.querySelector('style')?.textContent).toContain('rvui-receipt-print');
   });

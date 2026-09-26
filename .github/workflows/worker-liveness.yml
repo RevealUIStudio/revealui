@@ -48,6 +48,8 @@ jobs:
         env:
           API_URL: ${{ vars.REVEALUI_API_URL || 'https://api.revealui.com' }}
           CRON_SECRET: ${{ secrets.REVEALUI_CRON_SECRET }}
+          # Edge-only key matched by the Cloudflare skip rule. Not the app secret.
+          EDGE_KEY: ${{ secrets.REVEALUI_CRON_EDGE_KEY }}
         run: |
           if [[ -z "$CRON_SECRET" ]]; then
             echo "::error::REVEALUI_CRON_SECRET secret not set"
@@ -55,6 +57,7 @@ jobs:
           fi
           response=$(curl -sS \
             -H "X-Cron-Secret: $CRON_SECRET" \
+            -H "x-revealui-cron-key: $EDGE_KEY" \
             -w "\nHTTP_STATUS:%{http_code}" \
             "$API_URL/api/cron/worker-liveness" || true)
           status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d: -f2)

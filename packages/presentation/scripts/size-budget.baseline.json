@@ -1,33 +1,33 @@
 {
-  "version": "0.12.1",
+  "version": "0.14.8",
   "sizes": {
     ".": {
-      "raw": 8618,
-      "gzip": 2685
+      "raw": 9636,
+      "gzip": 3031
     },
     "./components": {
-      "raw": 5227,
-      "gzip": 1642
+      "raw": 5757,
+      "gzip": 1842
     },
     "./primitives": {
-      "raw": 229,
-      "gzip": 160
+      "raw": 230,
+      "gzip": 158
     },
     "./server": {
-      "raw": 3408,
-      "gzip": 1186
+      "raw": 3668,
+      "gzip": 1275
     },
     "./client": {
-      "raw": 5071,
-      "gzip": 1607
+      "raw": 5474,
+      "gzip": 1755
     },
     "./hooks": {
-      "raw": 1090,
-      "gzip": 434
+      "raw": 1257,
+      "gzip": 498
     },
     "./animations": {
       "raw": 15786,
-      "gzip": 4766
+      "gzip": 4792
     }
   }
 }

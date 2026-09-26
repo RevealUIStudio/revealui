@@ -21,6 +21,7 @@
 import { AuthorizationSystem } from '@revealui/core/security';
 import type { AgentPrincipal } from './agent-principal.js';
 import { principalHasGrant } from './agent-principal.js';
+import { currentLowTrustMode } from './low-trust-mode.js';
 
 const EXECUTE_ACTION = 'execute';
 
@@ -29,7 +30,27 @@ export function agentToolPermissionKey(toolName: string): string {
   return `agent:tool:${toolName}`;
 }
 
-export type AgentToolClass = 'read' | 'propose' | 'mutate' | 'exec' | 'admin-pii';
+/** Exec capability. A generic `agent:tool:<name>` grant never satisfies exec. */
+export function agentExecPermissionKey(toolName: string): string {
+  return `agent:exec:${toolName}`;
+}
+
+/** Admin and PII capability. Ticket metadata and presets cannot mint this. */
+export function agentAdminPiiPermissionKey(toolName: string): string {
+  return `agent:admin-pii:${toolName}`;
+}
+
+export type AgentToolClass =
+  | 'read'
+  | 'propose'
+  | 'mutate'
+  | 'exec'
+  | 'admin-pii'
+  | 'network'
+  | 'memory-write';
+
+/** The one in-scope output tool the preset allows. */
+const SCOPED_OUTPUT_TOOLS: ReadonlySet<string> = new Set(['add_ticket_comment']);
 export type AgentToolSurface = 'admin' | 'coding';
 
 export interface AgentToolMeta {
@@ -77,9 +98,11 @@ export const AGENT_TOOL_CATALOG: readonly AgentToolMeta[] = [
   { name: 'git_ops', surface: 'coding', class: 'exec' },
   { name: 'test_runner', surface: 'coding', class: 'exec' },
   { name: 'lint_fix', surface: 'coding', class: 'exec' },
-  // Dispatch extras (read-class; no shell)
-  { name: 'web_scrape', surface: 'coding', class: 'read' },
+  // Dispatch extras. web_scrape is network egress for every mode, not a read.
+  { name: 'web_scrape', surface: 'coding', class: 'network' },
   { name: 'document_summarize', surface: 'coding', class: 'read' },
+  // Knowledge-graph writes become future context. Not role-granted.
+  { name: 'revealui_kg_add_episode', surface: 'admin', class: 'memory-write' },
 ] as const;
 
 const TOOL_BY_NAME = new Map(AGENT_TOOL_CATALOG.map((t) => [t.name, t]));
@@ -103,7 +126,7 @@ const ADMIN_PII = AGENT_TOOL_CATALOG.filter(
 ).map((t) => t.name);
 
 const CODING_READ = AGENT_TOOL_CATALOG.filter(
-  (t) => t.surface === 'coding' && t.class === 'read',
+  (t) => t.surface === 'coding' && (t.class === 'read' || t.class === 'network'),
 ).map((t) => t.name);
 
 const CODING_MUTATE = AGENT_TOOL_CATALOG.filter(
@@ -150,7 +173,10 @@ export type AgentToolAuthzReason =
   | 'exec_requires_grant'
   | 'agent_role_denied'
   | 'user_role_denied'
-  | 'no_human_role';
+  | 'no_human_role'
+  | 'low_trust_class_denied'
+  | 'low_trust_network_denied'
+  | 'low_trust_memory_denied';
 
 export interface AgentToolAuthzResult {
   allowed: boolean;
@@ -159,6 +185,11 @@ export interface AgentToolAuthzResult {
   permissionKey: string | null;
   class: AgentToolClass | null;
   surface: AgentToolSurface | null;
+  /**
+   * Set in shadow mode when enforce would deny but the call is still allowed.
+   * Exec and admin-pii never use this path.
+   */
+  wouldDenyReason?: AgentToolAuthzReason;
 }
 
 function roleAllows(roles: readonly string[], permissionKey: string): boolean {
@@ -166,15 +197,77 @@ function roleAllows(roles: readonly string[], permissionKey: string): boolean {
   return agentAuthz.hasPermission([...roles], permissionKey, EXECUTE_ACTION);
 }
 
+function denied(
+  reason: AgentToolAuthzReason,
+  meta: AgentToolMeta,
+  permissionKey: string,
+): AgentToolAuthzResult {
+  return {
+    allowed: false,
+    reason,
+    permissionKey,
+    class: meta.class,
+    surface: meta.surface,
+  };
+}
+
+/**
+ * Preset deny. Runs before grants and before approvals.
+ * Shadow logs a would-deny for new classes. Exec and admin-pii stay denied.
+ */
+function lowTrustPresetDecision(
+  principal: AgentPrincipal,
+  meta: AgentToolMeta,
+): AgentToolAuthzResult | null {
+  const mode = currentLowTrustMode();
+  if (mode === 'off') return null;
+  if (principal.trust.preset !== 'low_trust_review') return null;
+  if (principal.trustResolveFailure) return null;
+
+  const permissionKey = agentToolPermissionKey(meta.name);
+  let reason: AgentToolAuthzReason | null = null;
+  let hard = false;
+
+  if (meta.class === 'exec' || meta.class === 'admin-pii') {
+    reason = 'low_trust_class_denied';
+    hard = true;
+  } else if (meta.class === 'network') {
+    reason = 'low_trust_network_denied';
+  } else if (meta.class === 'memory-write') {
+    reason = 'low_trust_memory_denied';
+  } else if (meta.surface === 'coding') {
+    reason = 'low_trust_class_denied';
+  } else if (meta.class === 'mutate' && !SCOPED_OUTPUT_TOOLS.has(meta.name)) {
+    reason = 'low_trust_class_denied';
+  }
+
+  if (!reason) return null;
+  if (!hard && mode === 'shadow') {
+    return {
+      allowed: true,
+      reason: 'allowed',
+      wouldDenyReason: reason,
+      permissionKey,
+      class: meta.class,
+      surface: meta.surface,
+    };
+  }
+  return denied(reason, meta, permissionKey);
+}
+
 /**
  * Deny-by-default authorization for one in-process agent tool.
  *
  * Order:
+ *  0. low_trust_review preset deny (before grants and approvals)
  *  1. Unknown tool → deny
- *  2. Explicit principal grant → allow (covers exec + exceptions)
- *  3. Exec class without grant → deny
- *  4. Agent role must allow (via `agent` in principal.roles or other roles)
- *  5. Admin surface: human role (roles minus `agent`) must also allow (∩)
+ *  2. Exec requires `agent:exec:<tool>`. Generic `agent:tool:<tool>` does not match.
+ *  3. Admin-pii explicit allow requires `agent:admin-pii:<tool>` only.
+ *  4. Other classes: explicit `agent:tool:<tool>` grant
+ *  5. Exec class without the exec capability → deny
+ *  6. Memory writes are not role-granted
+ *  7. Agent role must allow
+ *  8. Admin surface: human role (roles minus `agent`) must also allow (∩)
  */
 export function authorizeAgentTool(
   principal: AgentPrincipal,
@@ -191,9 +284,28 @@ export function authorizeAgentTool(
     };
   }
 
+  const presetDecision = lowTrustPresetDecision(principal, meta);
+  if (presetDecision) return presetDecision;
+
   const permissionKey = agentToolPermissionKey(toolName);
 
-  if (principalHasGrant(principal, permissionKey, EXECUTE_ACTION)) {
+  if (meta.class === 'exec') {
+    if (principalHasGrant(principal, agentExecPermissionKey(toolName), EXECUTE_ACTION)) {
+      return {
+        allowed: true,
+        reason: 'explicit_grant',
+        permissionKey,
+        class: meta.class,
+        surface: meta.surface,
+      };
+    }
+    return denied('exec_requires_grant', meta, permissionKey);
+  }
+
+  if (
+    meta.class === 'admin-pii' &&
+    principalHasGrant(principal, agentAdminPiiPermissionKey(toolName), EXECUTE_ACTION)
+  ) {
     return {
       allowed: true,
       reason: 'explicit_grant',
@@ -203,10 +315,14 @@ export function authorizeAgentTool(
     };
   }
 
-  if (meta.class === 'exec') {
+  if (meta.class === 'memory-write') {
+    return denied('agent_role_denied', meta, permissionKey);
+  }
+
+  if (meta.class !== 'admin-pii' && principalHasGrant(principal, permissionKey, EXECUTE_ACTION)) {
     return {
-      allowed: false,
-      reason: 'exec_requires_grant',
+      allowed: true,
+      reason: 'explicit_grant',
       permissionKey,
       class: meta.class,
       surface: meta.surface,

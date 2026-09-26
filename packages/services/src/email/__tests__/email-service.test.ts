@@ -10,6 +10,10 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('@vercel/oidc', () => ({
+  getVercelOidcToken: vi.fn(async () => undefined),
+}));
+
 import {
   clearGmailAccessTokenCache,
   GmailProvider,

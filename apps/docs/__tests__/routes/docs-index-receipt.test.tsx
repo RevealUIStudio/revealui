@@ -1,6 +1,5 @@
 /**
- * Docs landing static receipt motif (GAP-480 Phase D / frontend-excellence Phase 5).
- * Static only: no animate="print", no marketing CTAs.
+ * Docs index is product reference only. The receipt motif lives on marketing.
  */
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -35,17 +34,14 @@ describe('DocsIndexPage receipt motif', () => {
     vi.clearAllMocks();
   });
 
-  it('renders a static receipt header with audit-receipts link (no print animation)', () => {
-    const { container } = render(<DocsIndexPage />);
+  it('does not render a receipt motif on the docs index', () => {
+    render(<DocsIndexPage />);
 
-    expect(screen.getByRole('region', { name: 'Governed action, on record' })).toBeInTheDocument();
-    expect(screen.getByText(/If an agent did it, there's a receipt\./)).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Governed action, on record' })).toBeNull();
+    expect(screen.queryByText(/If an agent did it, there's a receipt\./)).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Audit receipts docs →' })).toBeNull();
+    expect(screen.queryByText('Governed action, on record')).toBeNull();
 
-    const docsLink = screen.getByRole('link', { name: 'Audit receipts docs →' });
-    expect(docsLink).toHaveAttribute('href', '/security/audit-receipts');
-
-    // Static only: print animation injects a <style> tag when animate="print".
-    expect(container.querySelector('style')).toBeNull();
     expect(screen.getByTestId('markdown')).toBeInTheDocument();
     expect(screen.getByTestId('markdown')).toHaveTextContent('Quick Start');
     expect(screen.getByTestId('markdown')).toHaveTextContent('Next steps');

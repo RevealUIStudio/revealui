@@ -77,7 +77,7 @@
     },
     {
       "source": "/philosophy",
-      "destination": "https://docs.revealui.com/blog/01-why-we-built-revealui",
+      "destination": "https://revealuistudio.com/blog/01-why-we-built-revealui",
       "permanent": true
     },
     {
@@ -107,12 +107,12 @@
     },
     {
       "source": "/blog",
-      "destination": "https://docs.revealui.com/blog/16-ui-of-the-future",
+      "destination": "https://revealuistudio.com/blog",
       "permanent": true
     },
     {
       "source": "/blog/:path*",
-      "destination": "https://docs.revealui.com/blog/:path*",
+      "destination": "https://revealuistudio.com/blog/:path*",
       "permanent": true
     },
     {

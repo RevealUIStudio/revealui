@@ -42,7 +42,7 @@ Live public paths only:
 
 - [Build Your Business](./BUILD_YOUR_BUSINESS.md): Product packaging, pricing direction, billing setup, and deployment path
 - [Marketplace](./MARKETPLACE.md): First-party MCP catalog ships; third-party publish and payouts are Planned ([#526](https://github.com/RevealUIStudio/revealui/issues/526))
-- [HTTP 402 Payments](./blog/02-http-402-payments.md): Paid API and machine-to-machine payment model
+- [HTTP 402 Payments](./PRO.md): Paid API and machine-to-machine payment model
 - [Pro](./PRO.md): Commercial packaging for AI, MCP, trust, and governance features
 
 ## Development
@@ -56,7 +56,7 @@ Live public paths only:
 
 - [Package Reference](./REFERENCE.md): Core, contracts, DB, config, presentation, utils, router, CLI
 - [Core Stability](./CORE_STABILITY.md): API stability tiers, production verification status, version policy
-- [Component Catalog](./COMPONENT_CATALOG.md): 66 native UI components in `@revealui/presentation` (plus admin and rich-text UI in `@revealui/core`)
+- [Component Catalog](./COMPONENT_CATALOG.md): 68 native UI components in `@revealui/presentation` (plus admin and rich-text UI in `@revealui/core`)
 - [AI](./AI.md): AI package overview, prompt/response/semantic caching
 - [Pro](./PRO.md): Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`), MCP integration, open-model inference, x402, marketplace
 - [RevealFleet](./REVEALFLEET.md): Family name for RevealUI Studio software. Not a catalog SKU
@@ -68,7 +68,7 @@ Live public paths only:
 - [Connect Cursor](./guides/connect-cursor.md): Cursor hooks + governed MCP
 - [Connect VS Code](./guides/connect-vscode.md): Copilot agent-plugin bundle
 - [Connect ACP (Zed / JetBrains)](./guides/connect-acp.md): RevealUI ACP agent on stdio
-- [Blog: Three AI Agents, One Codebase](./blog/03-multi-agent-coordination.md): The problem that led to the Holster
+- [AI coordination](./AI.md): Multi-agent coordination on one codebase
 
 ## Pro & Enterprise
 

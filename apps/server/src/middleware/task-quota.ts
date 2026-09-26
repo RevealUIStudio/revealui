@@ -2,9 +2,9 @@
  * Agent task quota middleware (Track B  -  metered billing).
  *
  * For authenticated users:
- *   - Looks up current billing cycle row in agent_task_usage
- *   - Returns 429 if count >= tier quota (or 402 + x402 payment if X402_ENABLED=true)
- *   - Atomically increments count before passing through
+ *   - Reserves one plan-quota slot with a single conditional upsert
+ *   - Returns 429 if that slot is already taken (or 402 + x402 payment if X402_ENABLED=true)
+ *   - Prepaid credits are spent only after the plan slot is refused
  *
  * For unauthenticated requests: passes through (feature gate handles auth separately).
  * For enterprise (Forge) tier: increments for metering but never blocks.
@@ -21,7 +21,7 @@ import { logger } from '@revealui/core/observability/logger';
 import { trackX402PaymentRequired } from '@revealui/core/observability/metrics';
 import { getClient } from '@revealui/db';
 import { agentCreditBalance, agentTaskUsage } from '@revealui/db/schema';
-import { and, eq, gt, sql } from 'drizzle-orm';
+import { and, eq, gt, lt, sql } from 'drizzle-orm';
 import type { Context, Next } from 'hono';
 import {
   buildPaymentRequired,
@@ -101,7 +101,33 @@ export async function requireTaskQuota(
     return next();
   }
 
-  // Fetch current count for this billing cycle
+  // Neon HTTP has no transactions, so the plan slot is one statement:
+  // insert the month row, or increment only while count is still under quota.
+  // A prior SELECT plus a later increment lets overlapping requests all pass.
+  if (quota > 0) {
+    try {
+      const [reserved] = await db
+        .insert(agentTaskUsage)
+        .values({ userId: user.id, cycleStart: cycle, count: 1, overage: 0 })
+        .onConflictDoUpdate({
+          target: [agentTaskUsage.userId, agentTaskUsage.cycleStart],
+          set: { count: sql`${agentTaskUsage.count} + 1`, updatedAt: new Date() },
+          setWhere: lt(agentTaskUsage.count, quota),
+        })
+        .returning();
+
+      if (reserved) {
+        quotaWriteFailures = 0;
+        return next();
+      }
+    } catch (err) {
+      onQuotaWriteError(err);
+      // Allow the request. One lost increment is better than blocking a paid user.
+      return next();
+    }
+  }
+
+  // Plan slot was not reserved (quota is 0, or count is already at the quota).
   const [row] = await db
     .select({ count: agentTaskUsage.count })
     .from(agentTaskUsage)

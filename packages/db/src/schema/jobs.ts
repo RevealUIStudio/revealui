@@ -46,6 +46,9 @@ export const jobs = pgTable(
      * - retry:     legacy — no new writes use this state; the CHECK constraint
      *              permits it so existing rows remain valid. Retrying jobs are
      *              written back as 'created' with updated start_after.
+     * - cancelled: terminal. A budget hard stop (spec 02) moves queued work
+     *              here. Claim never selects it. Nothing transitions it back
+     *              to created.
      */
     state: text('state').notNull().default('created'),
 
@@ -96,7 +99,10 @@ export const jobs = pgTable(
     // Partial index: supports the cron safety-net's stall-reclaim query
     // without bloating index size (most rows are not in 'active' state).
     index('jobs_locked_until_idx').on(table.lockedUntil).where(sql`state = 'active'`),
-    check('jobs_state_check', sql`state IN ('created', 'active', 'completed', 'failed', 'retry')`),
+    check(
+      'jobs_state_check',
+      sql`state IN ('created', 'active', 'completed', 'failed', 'retry', 'cancelled')`,
+    ),
   ],
 );
 

@@ -69,6 +69,7 @@ import { agentActions, agentContexts, agentMemories, conversations } from './age
 import { tenantProviderConfigs, userApiKeys } from './api-keys.js';
 import { appLogs } from './app-logs.js';
 import { auditLog } from './audit-log.js';
+import { budgetIncidents, budgetLedgers, budgetPolicies } from './budgets.js';
 import { codeProvenance, codeReviews } from './code-provenance.js';
 import { collabEdits } from './collab-edits.js';
 import { editSessionDocs, editSessionEvents, editSessions } from './edit-sessions.js';
@@ -77,6 +78,7 @@ import { workspaceInferenceConfigs } from './inference-configs.js';
 import { licenses } from './licenses.js';
 import { magicLinks } from './magic-links.js';
 import { marketplaceServers, marketplaceTransactions } from './marketplace.js';
+import { mcpApprovalSettings, mcpToolApprovals, mcpToolTrustRules } from './mcp-approvals.js';
 import { oauthAccounts } from './oauth-accounts.js';
 import { pageRevisions, pages } from './pages.js';
 import { passkeys } from './passkeys.js';
@@ -124,6 +126,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   paymentAttempts: many(paymentAttempts),
   revmarketRefunds: many(revmarketRefunds),
   revmarketDisputes: many(revmarketDisputes),
+  mcpApprovalsRequested: many(mcpToolApprovals, { relationName: 'mcpApprovalRequester' }),
+  mcpApprovalsDecided: many(mcpToolApprovals, { relationName: 'mcpApprovalDecider' }),
 }));
 
 export const tenantsRelations = relations(tenants, () => ({}));
@@ -133,6 +137,11 @@ export const accountsRelations = relations(accounts, ({ many, one }) => ({
   subscriptions: many(accountSubscriptions),
   entitlements: one(accountEntitlements),
   usageMeters: many(usageMeters),
+  mcpToolApprovals: many(mcpToolApprovals),
+  mcpToolTrustRules: many(mcpToolTrustRules),
+  mcpApprovalSettings: one(mcpApprovalSettings),
+  budgetPolicies: many(budgetPolicies),
+  budgetIncidents: many(budgetIncidents),
 }));
 
 export const accountMembershipsRelations = relations(accountMemberships, ({ one }) => ({
@@ -164,6 +173,69 @@ export const usageMetersRelations = relations(usageMeters, ({ one }) => ({
   account: one(accounts, {
     fields: [usageMeters.accountId],
     references: [accounts.id],
+  }),
+}));
+
+export const mcpToolApprovalsRelations = relations(mcpToolApprovals, ({ one, many }) => ({
+  account: one(accounts, {
+    fields: [mcpToolApprovals.accountId],
+    references: [accounts.id],
+  }),
+  requester: one(users, {
+    fields: [mcpToolApprovals.requesterUserId],
+    references: [users.id],
+    relationName: 'mcpApprovalRequester',
+  }),
+  decider: one(users, {
+    fields: [mcpToolApprovals.decidedByUserId],
+    references: [users.id],
+    relationName: 'mcpApprovalDecider',
+  }),
+  trustRules: many(mcpToolTrustRules),
+}));
+
+export const mcpToolTrustRulesRelations = relations(mcpToolTrustRules, ({ one }) => ({
+  account: one(accounts, {
+    fields: [mcpToolTrustRules.accountId],
+    references: [accounts.id],
+  }),
+  sourceApproval: one(mcpToolApprovals, {
+    fields: [mcpToolTrustRules.sourceApprovalId],
+    references: [mcpToolApprovals.id],
+  }),
+}));
+
+export const mcpApprovalSettingsRelations = relations(mcpApprovalSettings, ({ one }) => ({
+  account: one(accounts, {
+    fields: [mcpApprovalSettings.accountId],
+    references: [accounts.id],
+  }),
+}));
+
+export const budgetPoliciesRelations = relations(budgetPolicies, ({ one, many }) => ({
+  account: one(accounts, {
+    fields: [budgetPolicies.accountId],
+    references: [accounts.id],
+  }),
+  ledgers: many(budgetLedgers),
+  incidents: many(budgetIncidents),
+}));
+
+export const budgetLedgersRelations = relations(budgetLedgers, ({ one }) => ({
+  policy: one(budgetPolicies, {
+    fields: [budgetLedgers.policyId],
+    references: [budgetPolicies.id],
+  }),
+}));
+
+export const budgetIncidentsRelations = relations(budgetIncidents, ({ one }) => ({
+  account: one(accounts, {
+    fields: [budgetIncidents.accountId],
+    references: [accounts.id],
+  }),
+  policy: one(budgetPolicies, {
+    fields: [budgetIncidents.policyId],
+    references: [budgetPolicies.id],
   }),
 }));
 

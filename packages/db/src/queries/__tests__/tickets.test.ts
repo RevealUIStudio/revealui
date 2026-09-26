@@ -294,6 +294,20 @@ describe('ticket queries', () => {
       expect(result).toBeNull();
     });
 
+    it('strips trustPreset from a client metadata patch and keeps the stored value', async () => {
+      const existing = { id: 't1', metadata: { trustPreset: 'low_trust_review', note: 'keep' } };
+      db.select.mockReturnValue(createSelectChain([existing]));
+      const chain = createUpdateChain([existing]);
+      db.update.mockReturnValue(chain);
+
+      await updateTicket(db as never, 't1', {
+        metadata: { trustPreset: 'standard', note: 'edited' },
+      });
+
+      const setCall = chain.set.mock.calls[0]?.[0] as { metadata?: Record<string, unknown> };
+      expect(setCall.metadata).toEqual({ trustPreset: 'low_trust_review', note: 'edited' });
+    });
+
     it('sets updatedAt timestamp', async () => {
       const chain = createUpdateChain([{ id: 't1' }]);
       db.update.mockReturnValue(chain);

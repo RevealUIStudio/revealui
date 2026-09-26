@@ -57,8 +57,14 @@ import type { Handler, MiddlewareHandler } from 'hono';
 import { Hono } from 'hono';
 import { isFleetOperator } from '../lib/access.js';
 import type { ApiAuthUser } from '../lib/api-roles.js';
+import { recordGovernedMcpAction } from '../lib/budget-meter.js';
+import { createMcpApprovalGate } from '../lib/mcp-approval-gate.js';
 import { recordMcpToolAudit } from '../lib/mcp-audit.js';
-import { authorizeMcpTool, type McpTier } from '../lib/mcp-tool-access.js';
+import {
+  authorizeMcpTool,
+  MCP_APPROVAL_ELIGIBLE_TOOLS,
+  type McpTier,
+} from '../lib/mcp-tool-access.js';
 import { MISSING_SELF_API_URL_MESSAGE, resolveSelfApiBaseUrl } from '../lib/self-api-url.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { entitlementMiddleware, getEntitlementsFromContext } from '../middleware/entitlements.js';
@@ -292,6 +298,9 @@ export function buildMcpEndpoint(config: McpEndpointConfig = {}): McpEndpointPar
         durationMs: event.durationMs,
         errored: event.errored,
       });
+    // Account governed_actions ledger. Off mode returns before touching budgets.
+    // Slice 3 adds the pre-action reserve; this record is the counter until then.
+    await recordGovernedMcpAction({ accountId: identity.accountId });
   };
 
   const kgTimeoutMs = config.kgTimeoutMs ?? DEFAULT_KG_TOOL_TIMEOUT_MS;
@@ -315,6 +324,8 @@ export function buildMcpEndpoint(config: McpEndpointConfig = {}): McpEndpointPar
         additionalToolsets: [kgToolset],
         additionalToolsetTimeoutMs: kgTimeoutMs,
         mutatingTools: new Set<string>(['kg_add_episode']),
+        approvalGate: createMcpApprovalGate(),
+        approvalEligibleTools: MCP_APPROVAL_ELIGIBLE_TOOLS,
       }),
     enableJsonResponse: true,
     allowedHosts,
