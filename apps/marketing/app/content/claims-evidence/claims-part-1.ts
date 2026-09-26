@@ -780,8 +780,15 @@ export const claimsPart1: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_HERO_SUBTEXT.suffix',
-    text: 'Studio SKUs live on that site, not on this catalog.',
-    evidence: [PERPETUAL],
+    text: 'Licenses live on revealui.com. Studio implementation is a separate path: Consultation, Pilot $3,997, Launch $14,500. This page does not sell Studio offers as product plans.',
+    evidence: [
+      PERPETUAL,
+      {
+        kind: 'test',
+        ref: 'apps/marketing/app/routes/__tests__/PricingPage.test.tsx#renders the license catalog and the product-site quote calculator',
+        note: 'pricing helper names Consultation, Pilot $3,997, and Launch $14,500 as a separate Studio path',
+      },
+    ],
   },
   {
     file: 'pricing.ts',

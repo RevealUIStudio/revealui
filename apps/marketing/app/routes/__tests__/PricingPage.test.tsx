@@ -36,10 +36,11 @@ describe('PricingPage product catalog', () => {
       'aria-checked',
       'true',
     );
-    expect(screen.queryByRole('radio', { name: /Proof Sprint/i })).toBeNull();
-    expect(
-      screen.getByText(/For Studio Consultation, Proof Sprint, or Launch/i),
-    ).toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: /Pilot/i })).toBeNull();
+    expect(screen.getByText(/Consultation, Pilot, Launch/)).toBeInTheDocument();
+    expect(screen.getByText(/Pilot \$3,997/)).toBeInTheDocument();
+    expect(screen.getByText(/Launch \$14,500/)).toBeInTheDocument();
+    expect(screen.queryByText(/Proof Sprint/)).toBeNull();
   });
 
   it('keeps subscription Free, Pro, Max, and Enterprise as a license', async () => {

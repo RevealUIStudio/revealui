@@ -74,7 +74,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.bodies.home',
     proofGrade: 'outcome',
-    text: 'Self-host licenses are the default on RevealUI. For implementation, open the separate RevealUI Studio quote and booking path.',
+    text: 'Need implementation? Studio is a separate path (Consultation, Pilot, Launch). This catalog is licenses only.',
     evidence: [
       QUOTE_BOUNDARY,
       THIS_SITE,
@@ -89,7 +89,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.bodies.pricing',
     proofGrade: 'outcome',
-    text: 'This calculator covers Free, Pro, Max, and Pro Perpetual licenses. For Studio Consultation, Proof Sprint, or Launch, visit revealuistudio.com.',
+    text: 'Need implementation? Studio is a separate path (Consultation, Pilot, Launch). This catalog is licenses only.',
     evidence: [
       QUOTE_BOUNDARY,
       THIS_SITE,
@@ -152,7 +152,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.studioPath.body',
     proofGrade: 'outcome',
-    text: 'Open the separate RevealUI Studio quote. Studio lists Consultation, Proof Sprint, and Launch on its own domain.',
+    text: 'Open the separate RevealUI Studio quote. Studio lists Consultation, Pilot, and Launch on its own domain.',
     evidence: [QUOTE_STUDIO_ROUTE, STUDIO_QUOTE_URL],
   },
   {

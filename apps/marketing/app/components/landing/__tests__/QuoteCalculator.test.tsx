@@ -15,7 +15,9 @@ function expectNoStudioPrices(text: string): void {
   }
   expect(text.includes('Stage B')).toBe(false);
   expect(text.includes('waive')).toBe(false);
-  expect(text.includes('Pilot')).toBe(false);
+  expect(text.includes('Proof Sprint')).toBe(false);
+  expect(text.includes('Pilot $1,500')).toBe(false);
+  expect(text.includes('Zapier')).toBe(false);
   expect(text.includes('proof of work')).toBe(false);
   expect(text.includes('\u2014')).toBe(false);
   expect(text.includes(' / Meet.')).toBe(false);
@@ -28,9 +30,10 @@ describe('QuoteCalculator', () => {
       name: QUOTE_CALCULATOR.questions.who.options[0].label,
     });
     expect(self).toHaveAttribute('aria-checked', 'true');
-    expect(screen.queryByRole('radio', { name: /Proof Sprint/i })).toBeNull();
+    expect(screen.queryByRole('radio', { name: /Pilot/i })).toBeNull();
     expect(screen.queryByRole('radio', { name: /Consultation/i })).toBeNull();
     expect(screen.queryByRole('radio', { name: /Launch/i })).toBeNull();
+    expect(screen.getByText(/Consultation, Pilot, Launch/)).toBeInTheDocument();
     expect(screen.getByText(QUOTE_CALCULATOR.selfHost.title)).toBeInTheDocument();
     expect(screen.getByText(QUOTE_CALCULATOR.selfHost.free)).toBeInTheDocument();
     expect(screen.getByText(QUOTE_CALCULATOR.selfHost.agents)).toBeInTheDocument();
@@ -74,7 +77,7 @@ describe('QuoteCalculator', () => {
   it('shows the pricing Studio boundary as an outbound quote link', () => {
     render(<QuoteCalculator surface="pricing" />);
     expect(screen.getByText(QUOTE_CALCULATOR.bodies.pricing)).toBeInTheDocument();
-    expect(screen.queryByText(QUOTE_CALCULATOR.bodies.home)).toBeNull();
+    expect(QUOTE_CALCULATOR.bodies.pricing).toBe(QUOTE_CALCULATOR.bodies.home);
     fireEvent.click(
       screen.getByRole('radio', { name: QUOTE_CALCULATOR.questions.who.options[1].label }),
     );

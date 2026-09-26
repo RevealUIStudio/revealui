@@ -57,12 +57,14 @@ export const DEFAULT_QUOTE_ANSWERS: QuoteAnswers = {
 
 const STUDIO_QUOTE_URL = `${SITE.urls.agency}/#calculator`;
 
+const STUDIO_BOUNDARY_SHORT =
+  'Need implementation? Studio is a separate path (Consultation, Pilot, Launch). This catalog is licenses only.';
+
 export const QUOTE_CALCULATOR = {
   heading: 'Who runs it. What you need. One product price.',
   bodies: {
-    home: 'Self-host licenses are the default on RevealUI. For implementation, open the separate RevealUI Studio quote and booking path.',
-    pricing:
-      'This calculator covers Free, Pro, Max, and Pro Perpetual licenses. For Studio Consultation, Proof Sprint, or Launch, visit revealuistudio.com.',
+    home: STUDIO_BOUNDARY_SHORT,
+    pricing: STUDIO_BOUNDARY_SHORT,
   },
   questions: {
     who: {
@@ -90,7 +92,7 @@ export const QUOTE_CALCULATOR = {
   studioPath: {
     label: 'Studio path',
     title: 'RevealUI Studio',
-    body: 'Open the separate RevealUI Studio quote. Studio lists Consultation, Proof Sprint, and Launch on its own domain.',
+    body: 'Open the separate RevealUI Studio quote. Studio lists Consultation, Pilot, and Launch on its own domain.',
   },
   intro: {
     title: 'More than one site',

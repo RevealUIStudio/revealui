@@ -26,11 +26,9 @@ describe('quote calculator (product-site lockstep)', () => {
   it('asks who runs it and how many sites, with Studio as an outbound path', () => {
     expect(QUOTE_CALCULATOR.heading).toBe('Who runs it. What you need. One product price.');
     expect(QUOTE_CALCULATOR.bodies.home).toBe(
-      'Self-host licenses are the default on RevealUI. For implementation, open the separate RevealUI Studio quote and booking path.',
+      'Need implementation? Studio is a separate path (Consultation, Pilot, Launch). This catalog is licenses only.',
     );
-    expect(QUOTE_CALCULATOR.bodies.pricing).toBe(
-      'This calculator covers Free, Pro, Max, and Pro Perpetual licenses. For Studio Consultation, Proof Sprint, or Launch, visit revealuistudio.com.',
-    );
+    expect(QUOTE_CALCULATOR.bodies.pricing).toBe(QUOTE_CALCULATOR.bodies.home);
     expect(QUOTE_CALCULATOR.questions.who.label).toBe('Who runs it?');
     expect(QUOTE_CALCULATOR.questions.places.label).toBe('How many sites?');
     expect(QUOTE_CALCULATOR.questions.who.options.map((option) => option.id)).toEqual([
@@ -53,7 +51,7 @@ describe('quote calculator (product-site lockstep)', () => {
     expect(QUOTE_CALCULATOR.studioPath.label).toBe('Studio path');
     expect(QUOTE_CALCULATOR.studioPath.title).toBe('RevealUI Studio');
     expect(QUOTE_CALCULATOR.studioPath.body).toBe(
-      'Open the separate RevealUI Studio quote. Studio lists Consultation, Proof Sprint, and Launch on its own domain.',
+      'Open the separate RevealUI Studio quote. Studio lists Consultation, Pilot, and Launch on its own domain.',
     );
     expect(QUOTE_CALCULATOR.studioCta.label).toBe('Visit Studio quote');
     expect(QUOTE_CALCULATOR.studioCta.href).toBe(`${SITE.urls.agency}/#calculator`);
@@ -112,9 +110,12 @@ describe('quote calculator (product-site lockstep)', () => {
     for (const price of STUDIO_PRICES) {
       expect(lines.includes(price)).toBe(false);
     }
+    expect(lines.includes('Pilot')).toBe(true);
+    expect(lines.includes('Proof Sprint')).toBe(false);
     expect(lines.includes('Stage B')).toBe(false);
     expect(lines.includes('waive')).toBe(false);
-    expect(lines.includes('Pilot')).toBe(false);
+    expect(lines.includes('Pilot $1,500')).toBe(false);
+    expect(lines.includes('Zapier')).toBe(false);
   });
 
   it('stops quoting and books an intro when there is more than one place', () => {
@@ -170,7 +171,10 @@ describe('quote calculator (product-site lockstep)', () => {
     expect(blob.includes('proof of work')).toBe(false);
     expect(blob.includes('Stage B')).toBe(false);
     expect(blob.includes('waive')).toBe(false);
-    expect(blob.includes('Pilot')).toBe(false);
+    expect(blob.includes('Pilot')).toBe(true);
+    expect(blob.includes('Proof Sprint')).toBe(false);
+    expect(blob.includes('Pilot $1,500')).toBe(false);
+    expect(blob.includes('Zapier')).toBe(false);
     expect(blob.includes('\u2014')).toBe(false);
     expect(blob.includes(' / Meet.')).toBe(false);
   });
