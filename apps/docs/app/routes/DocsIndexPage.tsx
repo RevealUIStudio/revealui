@@ -35,5 +35,6 @@ Open [http://localhost:4000/admin](http://localhost:4000/admin) to see the admin
 Everything else lives in the sidebar. Found a gap in these docs? See the [Contributing Guide](https://github.com/RevealUIStudio/revealui/blob/main/CONTRIBUTING.md).
 `;
 
+  // Governed-action ReceiptCard lives on the marketing home, not this index.
   return <div>{renderMarkdown(content)}</div>;
 }
