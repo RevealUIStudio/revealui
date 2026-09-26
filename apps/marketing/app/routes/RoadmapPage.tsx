@@ -51,11 +51,13 @@ export function RoadmapPage() {
         width="default"
         className="relative overflow-hidden"
         innerClassName="max-w-4xl text-center"
+        backdrop={
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background"
+          />
+        }
       >
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background"
-        />
         <h1 className="font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
           {ROADMAP_HERO.title}
         </h1>

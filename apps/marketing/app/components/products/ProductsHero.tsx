@@ -7,11 +7,9 @@ const LICENSE_PRODUCT_ANCHORS = [{ slug: PRODUCTS_FLAGSHIP.slug, name: PRODUCTS_
 
 export interface ProductsHeroProps {
   /** Rich hero data; defaults to the static content module (byte-identical). */
-  data?: ProductsHeroData;
-  /** Dot-path of this block's data object within the page array, e.g. `blocks.0.data`. */
-  path?: string;
-  /** Edit-mode annotation. Inactive by default: emits zero data attributes. */
-  annotation?: BlockAnnotation;
+  readonly data?: ProductsHeroData;
+  readonly path?: string;
+  readonly annotation?: BlockAnnotation;
 }
 
 export function ProductsHero({
@@ -26,11 +24,13 @@ export function ProductsHero({
       width="default"
       className="relative overflow-hidden"
       innerClassName="max-w-4xl text-center"
+      backdrop={
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-background to-background"
+        />
+      }
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-background to-background"
-      />
       <h1
         className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
         {...fieldAttrs(annotation, `${path}.title`)}
@@ -43,7 +43,7 @@ export function ProductsHero({
       >
         {data.subtitle}
       </p>
-      <div className="mt-10 flex flex-wrap justify-center gap-2 text-sm font-medium">
+      <div className="mt-8 flex flex-wrap justify-center gap-3 text-sm font-medium">
         {LICENSE_PRODUCT_ANCHORS.map((anchor) => (
           <a
             key={anchor.slug}

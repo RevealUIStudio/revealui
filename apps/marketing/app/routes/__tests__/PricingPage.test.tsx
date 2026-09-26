@@ -379,6 +379,20 @@ describe('PricingPage product catalog', () => {
     expect('badge' in PRICING_AGENTS_SECTION).toBe(false);
   });
 
+  it('paints the hero wash on the section, not the max-width rail', async () => {
+    const { container } = render(<PricingPage />);
+    await screen.findByRole('heading', { level: 1, name: PRICING_HERO.title });
+    const section = container.querySelector('[data-slot="marketing-section"]');
+    expect(section).toHaveAttribute('data-has-backdrop', 'true');
+    const wash = section?.querySelector(':scope > [aria-hidden="true"]');
+    expect(wash).toBeTruthy();
+    expect(wash?.className).toContain('inset-0');
+    const rail = Array.from(section?.children ?? []).find(
+      (node) => node instanceof HTMLElement && node.className.includes('max-w-'),
+    );
+    expect(rail?.contains(wash ?? null)).toBe(false);
+  });
+
   it('links the final Get Started Free CTA to admin signup', async () => {
     render(<PricingPage />);
     const cta = await screen.findByRole('link', { name: 'Get Started Free' });

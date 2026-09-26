@@ -118,11 +118,13 @@ export function PricingPage() {
         width="default"
         className="relative overflow-hidden"
         innerClassName="max-w-4xl text-center"
+        backdrop={
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background"
+          />
+        }
       >
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background"
-        />
         <p className="mb-6 text-sm font-semibold uppercase tracking-[0.2em] text-primary">
           {PRICING_HERO.eyebrow ?? 'Pricing'}
         </p>
