@@ -157,7 +157,7 @@ export function PricingPage() {
         </div>
       </MarketingSection>
 
-      <QuoteCalculator />
+      <QuoteCalculator surface="pricing" />
 
       <MarketingSection id="subscriptions" tone="background" density="default" width="default">
         <SectionHeader

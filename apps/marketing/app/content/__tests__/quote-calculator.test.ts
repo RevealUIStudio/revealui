@@ -1,8 +1,3 @@
-import {
-  CONSULTATION_PRICE,
-  LAUNCH_PACKAGE_PRICE,
-  PROOF_SPRINT_PRICE,
-} from '@revealui/contracts/public-catalog';
 import { describe, expect, it } from 'vitest';
 import {
   PERPETUAL_PRICE_FALLBACKS,
@@ -19,21 +14,24 @@ import { SITE } from '../site';
 const BOOKING_URL =
   'https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ21UZVcuYp7yO32rZmhyUvZFDJcvles81E9edGNFwSUP8SHEVzGvq0gKgNFo7q04YS5i-12ZE5P';
 
+const STUDIO_PRICES = ['$300', '$3,997', '$7,500', '$14,500', '$1,500'] as const;
+
 describe('quote calculator (product-site lockstep)', () => {
   it('defaults Who to I will (self-host) on this site', () => {
     expect(DEFAULT_QUOTE_ANSWERS.who).toBe('self');
-    expect(DEFAULT_QUOTE_ANSWERS.what).toBe('proof-sprint');
     expect(DEFAULT_QUOTE_ANSWERS.places).toBe('one');
     expect(QUOTE_CALCULATOR.questions.who.options[0]?.id).toBe('self');
   });
 
-  it('asks exactly three questions with the two exits', () => {
-    expect(QUOTE_CALCULATOR.heading).toBe('Who runs it. What you need. One price.');
-    expect(QUOTE_CALCULATOR.body).toBe(
-      'Defaults to self-host licenses. Studio work is on the same form and books at revealuistudio.com.',
+  it('asks who runs it and how many sites, with Studio as an outbound path', () => {
+    expect(QUOTE_CALCULATOR.heading).toBe('Who runs it. What you need. One product price.');
+    expect(QUOTE_CALCULATOR.bodies.home).toBe(
+      'Self-host licenses are the default on RevealUI. For implementation, open the separate RevealUI Studio quote and booking path.',
+    );
+    expect(QUOTE_CALCULATOR.bodies.pricing).toBe(
+      'This calculator covers Free, Pro, Max, and Pro Perpetual licenses. For Studio Consultation, Proof Sprint, or Launch, visit revealuistudio.com.',
     );
     expect(QUOTE_CALCULATOR.questions.who.label).toBe('Who runs it?');
-    expect(QUOTE_CALCULATOR.questions.what.label).toBe('What problem are we solving?');
     expect(QUOTE_CALCULATOR.questions.places.label).toBe('How many sites?');
     expect(QUOTE_CALCULATOR.questions.who.options.map((option) => option.id)).toEqual([
       'self',
@@ -41,17 +39,7 @@ describe('quote calculator (product-site lockstep)', () => {
     ]);
     expect(QUOTE_CALCULATOR.questions.who.options.map((option) => option.label)).toEqual([
       'I self-host the runtime',
-      'Studio implements with me',
-    ]);
-    expect(QUOTE_CALCULATOR.questions.what.options.map((option) => option.id)).toEqual([
-      'consultation',
-      'proof-sprint',
-      'launch',
-    ]);
-    expect(QUOTE_CALCULATOR.questions.what.options.map((option) => option.label)).toEqual([
-      'Consultation: diagnose the path / proof gap',
-      'Proof Sprint: one site, one receipted action I operate',
-      'Launch: money path live on my accounts',
+      'I need Studio implementation',
     ]);
     expect(QUOTE_CALCULATOR.questions.places.options.map((option) => option.id)).toEqual([
       'one',
@@ -62,6 +50,13 @@ describe('quote calculator (product-site lockstep)', () => {
       'More than one: book an intro',
     );
     expect(QUOTE_CALCULATOR.selfHost.title).toBe('Self-host licenses');
+    expect(QUOTE_CALCULATOR.studioPath.label).toBe('Studio path');
+    expect(QUOTE_CALCULATOR.studioPath.title).toBe('RevealUI Studio');
+    expect(QUOTE_CALCULATOR.studioPath.body).toBe(
+      'Open the separate RevealUI Studio quote. Studio lists Consultation, Proof Sprint, and Launch on its own domain.',
+    );
+    expect(QUOTE_CALCULATOR.studioCta.label).toBe('Visit Studio quote');
+    expect(QUOTE_CALCULATOR.studioCta.href).toBe(`${SITE.urls.agency}/#calculator`);
     expect(QUOTE_CALCULATOR.intro.title).toBe('More than one site');
     expect(QUOTE_CALCULATOR.intro.body).toBe(
       'The calculator stops here. Book a 30-minute intro to scope it.',
@@ -69,25 +64,27 @@ describe('quote calculator (product-site lockstep)', () => {
     expect(QUOTE_CALCULATOR.introCta.note).toBe('Google Calendar / Google Meet.');
   });
 
-  it('locksteps printed numbers to public-catalog and the locked SKU trio', () => {
-    expect(QUOTE_CALCULATOR.studio.consultation.price).toBe(CONSULTATION_PRICE);
-    expect(QUOTE_CALCULATOR.studio.proofSprint.price).toBe(PROOF_SPRINT_PRICE);
-    expect(QUOTE_CALCULATOR.studio.launch.price).toBe(LAUNCH_PACKAGE_PRICE);
+  it('locksteps printed product license numbers and omits Studio SKU prices', () => {
     expect(QUOTE_CALCULATOR.selfHost.free).toContain(SUBSCRIPTION_PRICE_FALLBACKS.free.price);
     expect(QUOTE_CALCULATOR.selfHost.agents).toContain(SUBSCRIPTION_PRICE_FALLBACKS.pro.price);
     expect(QUOTE_CALCULATOR.selfHost.agents).toContain(SUBSCRIPTION_PRICE_FALLBACKS.max.price);
     const perpetual = PERPETUAL_PRICE_FALLBACKS['Pro Perpetual'];
     expect(perpetual).toBeDefined();
     expect(QUOTE_CALCULATOR.selfHost.perpetual).toContain(perpetual?.price);
-    expect(QUOTE_CALCULATOR.studio.consultation.price).toBe('$300');
-    expect(QUOTE_CALCULATOR.studio.proofSprint.price).toBe('$3,997');
-    expect(QUOTE_CALCULATOR.studio.launch.price).toBe('$14,500');
+    expect(QUOTE_CALCULATOR.selfHost.agents).toContain('$49');
+    expect(QUOTE_CALCULATOR.selfHost.agents).toContain('$99');
+    expect(QUOTE_CALCULATOR.selfHost.perpetual).toContain('$1,499');
+    const blob = JSON.stringify(QUOTE_CALCULATOR);
+    for (const price of STUDIO_PRICES) {
+      expect(blob.includes(price)).toBe(false);
+    }
   });
 
   it('prints the self-host quote when Who is I will', () => {
-    const quote = resolveQuote({ who: 'self', what: 'consultation', places: 'one' });
+    const quote = resolveQuote({ who: 'self', places: 'one' });
     expect(quote.kind).toBe('self-host');
     expect(quote.title).toBe('Self-host licenses');
+    expect(quote.studioCta).toBeUndefined();
     expect(quote.lines).toEqual([
       QUOTE_CALCULATOR.selfHost.free,
       QUOTE_CALCULATOR.selfHost.agents,
@@ -98,50 +95,41 @@ describe('quote calculator (product-site lockstep)', () => {
     expect(quote.lines.join('\n').includes('14-day')).toBe(false);
   });
 
-  it('prints the Studio consultation, Proof Sprint, and launch quotes', () => {
-    const quote = resolveQuote({ who: 'studio', what: 'consultation', places: 'one' });
+  it('routes Studio implementation to revealuistudio.com without Studio prices', () => {
+    const quote = resolveQuote({ who: 'studio', places: 'one' });
+    const many = resolveQuote({ who: 'studio', places: 'many' });
     expect(quote.kind).toBe('studio');
-    expect(quote.skus?.map((sku) => [sku.title, sku.price])).toEqual([
-      ['Consultation', '$300'],
-      ['Proof Sprint', '$3,997'],
-      ['Launch', '$14,500'],
-    ]);
-    expect(quote.skus?.find((sku) => sku.id === 'consultation')?.highlighted).toBe(true);
-    expect(quote.lines).toContain(QUOTE_CALCULATOR.studio.consultation.body);
-    expect(quote.lines).toContain(QUOTE_CALCULATOR.studio.proofSprint.body);
-    expect(quote.lines).toContain(QUOTE_CALCULATOR.studio.launch.body);
-  });
-
-  it('prints the Studio Proof Sprint quote', () => {
-    const quote = resolveQuote({ who: 'studio', what: 'proof-sprint', places: 'one' });
-    expect(quote.kind).toBe('studio');
-    expect(quote.skus?.find((sku) => sku.id === 'proof-sprint')?.highlighted).toBe(true);
-    expect(quote.skus?.find((sku) => sku.id === 'proof-sprint')?.price).toBe('$3,997');
-    expect(quote.lines).toContain(QUOTE_CALCULATOR.studio.proofSprint.body);
-  });
-
-  it('prints the Studio launch quote', () => {
-    const quote = resolveQuote({ who: 'studio', what: 'launch', places: 'one' });
-    expect(quote.kind).toBe('studio');
-    expect(quote.skus?.find((sku) => sku.id === 'launch')?.highlighted).toBe(true);
-    expect(quote.skus?.find((sku) => sku.id === 'launch')?.price).toBe('$14,500');
-    expect(quote.lines).toContain(QUOTE_CALCULATOR.studio.launch.body);
+    expect(many.kind).toBe('studio');
+    expect(quote.pathLabel).toBe('Studio path');
+    expect(quote.title).toBe('RevealUI Studio');
+    expect(quote.lines).toEqual([QUOTE_CALCULATOR.studioPath.body]);
+    expect(quote.studioCta).toEqual({
+      label: 'Visit Studio quote',
+      href: 'https://revealuistudio.com/#calculator',
+    });
+    expect(quote.startFreeCta).toBeUndefined();
+    const lines = quote.lines.join('\n');
+    for (const price of STUDIO_PRICES) {
+      expect(lines.includes(price)).toBe(false);
+    }
+    expect(lines.includes('Stage B')).toBe(false);
+    expect(lines.includes('waive')).toBe(false);
+    expect(lines.includes('Pilot')).toBe(false);
   });
 
   it('stops quoting and books an intro when there is more than one place', () => {
-    const selfMany = resolveQuote({ who: 'self', what: 'launch', places: 'many' });
-    const studioMany = resolveQuote({ who: 'studio', what: 'consultation', places: 'many' });
+    const selfMany = resolveQuote({ who: 'self', places: 'many' });
     expect(selfMany.kind).toBe('intro');
-    expect(studioMany.kind).toBe('intro');
     expect(selfMany.title).toBe(QUOTE_CALCULATOR.intro.title);
     expect(selfMany.lines).toContain(QUOTE_CALCULATOR.intro.body);
+    expect(selfMany.studioCta).toBeUndefined();
   });
 
   it('always carries ownership lines and the Google Calendar intro', () => {
     const answers: QuoteAnswers[] = [
-      { who: 'self', what: 'consultation', places: 'one' },
-      { who: 'studio', what: 'launch', places: 'one' },
-      { who: 'studio', what: 'proof-sprint', places: 'many' },
+      { who: 'self', places: 'one' },
+      { who: 'studio', places: 'one' },
+      { who: 'self', places: 'many' },
     ];
     for (const answer of answers) {
       const quote = resolveQuote(answer);
@@ -149,6 +137,7 @@ describe('quote calculator (product-site lockstep)', () => {
       expect(quote.introCta.href).toBe(BOOKING_URL);
       expect(quote.introCta.href).toBe(SITE.urls.bookIntro);
       expect(quote.introCta.href.startsWith('https://calendar.google.com/')).toBe(true);
+      expect(quote.introCta.note).toBe('Google Calendar / Google Meet.');
     }
   });
 
@@ -178,5 +167,11 @@ describe('quote calculator (product-site lockstep)', () => {
     expect(blob.includes('14-day')).toBe(false);
     expect(blob.includes('sit down')).toBe(false);
     expect(blob.includes('Three questions. A price you can read.')).toBe(false);
+    expect(blob.includes('proof of work')).toBe(false);
+    expect(blob.includes('Stage B')).toBe(false);
+    expect(blob.includes('waive')).toBe(false);
+    expect(blob.includes('Pilot')).toBe(false);
+    expect(blob.includes('\u2014')).toBe(false);
+    expect(blob.includes(' / Meet.')).toBe(false);
   });
 });

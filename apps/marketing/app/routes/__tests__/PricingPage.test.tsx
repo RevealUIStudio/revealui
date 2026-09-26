@@ -30,16 +30,16 @@ describe('PricingPage product catalog', () => {
     expect(eyebrows.some((node) => node.tagName === 'P')).toBe(true);
     expect(screen.getByText(PRICING_HERO.subtitle ?? '')).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'Who runs it. What you need. One price.' }),
+      screen.getByRole('heading', { name: 'Who runs it. What you need. One product price.' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: /I self-host/i })).toHaveAttribute(
       'aria-checked',
       'true',
     );
-    expect(screen.getByRole('radio', { name: /Proof Sprint/i })).toHaveAttribute(
-      'aria-checked',
-      'true',
-    );
+    expect(screen.queryByRole('radio', { name: /Proof Sprint/i })).toBeNull();
+    expect(
+      screen.getByText(/For Studio Consultation, Proof Sprint, or Launch/i),
+    ).toBeInTheDocument();
   });
 
   it('keeps subscription Free, Pro, Max, and Enterprise as a license', async () => {
