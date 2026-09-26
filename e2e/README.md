@@ -109,44 +109,20 @@ pnpm test:e2e auth.e2e.ts
 
 ### Full-Stack Tests (`full-stack-flows.e2e.ts`)
 
-Complete integration tests verifying browser → API → database:
+Browser → `POST /api/auth/sign-up` → `users` row. Needs admin and
+`TEST_DATABASE_URL` or `DATABASE_URL` pointed at the database admin writes.
+Cases skip with an FH-003 reason when that stack is absent. The
+`/signup-with-profile` multi-record rollback stays skipped: that route
+does not exist (F-062-0003).
 
 ```bash
 # Run full-stack tests
-pnpm playwright test full-stack-flows.e2e.ts
+pnpm playwright test e2e/full-stack-flows.e2e.ts --project=chromium
 
-# Test flows:
-# - User registration with DB verification
-# - Content creation and storage
-# - Data updates and synchronization
-# - Deletion with cascade effects
-# - Search/filter matching database queries
-# - Pagination consistency
-# - Real-time updates
-# - Transaction rollbacks
-```
-
-**Example Test:**
-```typescript
-test('should create user in database when signing up', async ({ page }) => {
-  // 1. Fill signup form in browser
-  await page.goto('/signup')
-  await fillField(page, 'input[name="email"]', testEmail)
-
-  // 2. Submit and wait for API
-  await page.click('button[type="submit"]')
-
-  // 3. Verify database record created
-  const user = await waitForDbRecord(db, 'users', {
-    column: 'email',
-    value: testEmail
-  })
-
-  expect(user).toBeTruthy()
-
-  // 4. Visual verification
-  await page.screenshot({ path: 'test-results/signup-success.png' })
-})
+# Live cases:
+# - Sign-up inserts a users row and shows inbox or /welcome
+# - Invalid email does not POST and does not insert
+# - A too-short password is rejected and does not insert
 ```
 
 ### Visual Snapshot Tests (`visual-snapshots.e2e.ts`)
