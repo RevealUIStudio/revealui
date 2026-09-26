@@ -8,8 +8,13 @@ import {
 } from '@revealui/presentation';
 import { Link, useLocation } from '@revealui/router';
 import type React from 'react';
-import { type CSSProperties, lazy, Suspense, useEffect, useState } from 'react';
-import { buildDocNavSections, type NavItem, type NavSection } from '../lib/nav';
+import { type CSSProperties, lazy, Suspense, useEffect, useId, useState } from 'react';
+import {
+  buildDocNavSections,
+  initialOpenSectionTitles,
+  type NavItem,
+  type NavSection,
+} from '../lib/nav';
 import { showcaseEntries } from './showcase/registry.js';
 
 const SearchBar = lazy(async () =>
@@ -59,7 +64,7 @@ function CircuitRNavMark(): React.JSX.Element {
         data-circuit-r-plate="light"
         className="block size-full max-w-none"
       />
-      {/* biome-ignore lint/performance/noImgElement: Vite docs chrome has no next/image; dark plate is the same letter on #060d1a. */}
+      {/* biome-ignore lint/performance/noImgElement: Vite docs chrome has no next/image; dark src is the same transparent kit master. */}
       <img
         src={CIRCUIT_R_NAV_DARK_SRC}
         alt=""
@@ -110,7 +115,82 @@ function NavLink({
   );
 }
 
+const CATEGORY_TITLE_CLASS =
+  'mt-6 flex h-auto w-full items-center justify-between gap-2 whitespace-normal rounded-md px-3 py-2.5 text-left text-base! font-bold! tracking-tight text-ink! transition-colors hover:bg-accent-bg hover:text-ink active:scale-none';
+
+function SidebarSection({
+  section,
+  open,
+  onToggle,
+  onNavigate,
+}: {
+  section: NavSection;
+  open: boolean;
+  onToggle: (title: string) => void;
+  onNavigate?: () => void;
+}): React.JSX.Element {
+  const panelId = useId();
+
+  return (
+    <div>
+      <Button
+        type="button"
+        appearance="ghost"
+        variant="neutral"
+        size="clear"
+        className={CATEGORY_TITLE_CLASS}
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => onToggle(section.title)}
+      >
+        <span>{section.title}</span>
+        <IconChevronRight
+          size="sm"
+          className={`text-text-secondary transition-transform duration-200 ${open ? 'rotate-90' : ''}`}
+        />
+      </Button>
+      <ul
+        id={panelId}
+        hidden={!open}
+        className={open ? 'm-0 flex list-none flex-col gap-px p-0' : 'hidden'}
+      >
+        {section.items.map((item) => (
+          <NavLink key={item.path} item={item} onNavigate={onNavigate} />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function SidebarContent({ isHome, onNavigate }: { isHome: boolean; onNavigate?: () => void }) {
+  const { pathname } = useLocation();
+  const [openSections, setOpenSections] = useState(
+    () => new Set(initialOpenSectionTitles(sections, pathname)),
+  );
+
+  useEffect(() => {
+    setOpenSections((current) => {
+      let changed = false;
+      const next = new Set(current);
+      for (const title of initialOpenSectionTitles(sections, pathname)) {
+        if (!next.has(title)) {
+          next.add(title);
+          changed = true;
+        }
+      }
+      return changed ? next : current;
+    });
+  }, [pathname]);
+
+  const toggleSection = (title: string): void => {
+    setOpenSections((current) => {
+      const next = new Set(current);
+      if (next.has(title)) next.delete(title);
+      else next.add(title);
+      return next;
+    });
+  };
+
   return (
     <>
       {/* Logo */}
@@ -139,7 +219,7 @@ function SidebarContent({ isHome, onNavigate }: { isHome: boolean; onNavigate?: 
         </Suspense>
       </div>
 
-      {/* Home link */}
+      {/* Docs home: product reference index. */}
       <ul className="m-0 list-none p-0">
         <li>
           <Link
@@ -151,26 +231,32 @@ function SidebarContent({ isHome, onNavigate }: { isHome: boolean; onNavigate?: 
                 : 'font-normal text-text-secondary hover:bg-accent-bg hover:text-accent'
             }`}
           >
-            Home
+            Docs home
           </Link>
         </li>
       </ul>
 
       {/* Nav sections */}
       {sections.map((section) => (
-        <div key={section.title}>
-          <div className="mt-4 px-3 pb-1 text-xs font-semibold uppercase tracking-widest text-text-muted">
-            {section.title}
-          </div>
-          <ul className="m-0 list-none space-y-px p-0">
-            {section.items.map((item) => (
-              <NavLink key={item.path} item={item} onNavigate={onNavigate} />
-            ))}
-          </ul>
-        </div>
+        <SidebarSection
+          key={section.title}
+          section={section}
+          open={openSections.has(section.title)}
+          onToggle={toggleSection}
+          onNavigate={onNavigate}
+        />
       ))}
 
       <div className="mt-auto border-t border-border pt-4">
+        <p className="mb-3 px-3 text-xs leading-5 text-text-muted">
+          Blog is on Studio. Docs are product reference.
+        </p>
+        <a
+          href="https://revealuistudio.com"
+          className="flex items-center gap-2 rounded-md px-3 py-2 text-[0.8125rem] text-text-muted no-underline transition-colors hover:text-text-secondary md:py-1.5"
+        >
+          Studio
+        </a>
         <a
           href="https://github.com/RevealUIStudio/revealui"
           className="flex items-center gap-2 rounded-md px-3 py-2 text-[0.8125rem] text-text-muted no-underline transition-colors hover:text-text-secondary md:py-1.5"
@@ -194,7 +280,7 @@ function Breadcrumbs({ sections: navSections }: { sections: NavSection[] }) {
   const { pathname } = useLocation();
   if (pathname === '/') return null;
 
-  const crumbs: { label: string; href?: string }[] = [{ label: 'Home', href: '/' }];
+  const crumbs: { label: string; href?: string }[] = [{ label: 'Docs home', href: '/' }];
 
   // Find matching section and item from the nav
   for (const section of navSections) {

@@ -1,8 +1,7 @@
 // Receipt-motif hero content (frontend-excellence Phase 5, receipt-hero-concept
 // spec 2026-07-18). A demonstration, not live production data: timestamps are
 // static strings (never Date.now()) so the sequence is deterministic for SSR
-// and the visual gate. Lines match the governed-action motif
-// (apps/docs/app/content/receipt.ts). The card renders on the marketing home,
+// and the visual gate. The card renders on the marketing home,
 // beside the hero. DocsIndexPage does not mount it.
 // See claims-evidence.ts for the evidence trail on every sentence here.
 //

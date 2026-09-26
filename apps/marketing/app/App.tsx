@@ -1,4 +1,5 @@
-import { Routes, useRouter } from '@revealui/router';
+import { PRODUCT_BLOG_HOPS, studioBlogPostHref } from '@revealui/contracts/nav-docs-boundary';
+import { Routes, useParams, useRouter } from '@revealui/router';
 import { useRef } from 'react';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { SITE } from './content/site';
@@ -27,13 +28,13 @@ function moved(to: string) {
   };
 }
 
-const MovedPhilosophy = moved(`${DOCS}/blog/01-why-we-built-revealui`);
+const MovedPhilosophy = moved(PRODUCT_BLOG_HOPS.philosophy);
 const MovedLocalAi = moved(`${DOCS}/local-first`);
 const MovedServices = moved('/pricing');
 const MovedUpgrade = moved('https://admin.revealui.com/signup?plan=pro');
 const MovedHowItWorks = moved(`${DOCS}/build-your-business`);
 const MovedManaged = moved(`${DOCS}/roadmap`);
-const MovedBlog = moved(`${DOCS}/blog/16-ui-of-the-future`);
+const MovedBlog = moved(PRODUCT_BLOG_HOPS.index);
 const MovedFairSource = moved(`${DOCS}/fair-source`);
 const MovedRoadmap = moved(`${DOCS}/roadmap`);
 const MovedClaims = moved(DOCS);
@@ -42,7 +43,9 @@ const MovedHipaa = moved(DOCS);
 const MovedSubprocessors = moved(DOCS);
 
 function MovedBlogPost() {
-  return <MovedPage to={`${DOCS}/blog/16-ui-of-the-future`} />;
+  const { slug } = useParams<{ slug?: string }>();
+  const to = slug ? studioBlogPostHref(slug) : PRODUCT_BLOG_HOPS.index;
+  return <MovedPage to={to} />;
 }
 
 export function App() {

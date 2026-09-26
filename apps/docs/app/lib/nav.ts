@@ -23,6 +23,43 @@ export interface NavSection {
   items: NavItem[];
 }
 
+/** Sidebar section opened when the current path matches no section. */
+export const DEFAULT_OPEN_NAV_SECTION = 'Getting Started';
+
+function itemContainsPath(item: NavItem, pathname: string): boolean {
+  if (item.path === pathname) return true;
+  const children = item.children;
+  if (!children) return false;
+  for (const child of children) {
+    if (itemContainsPath(child, pathname)) return true;
+  }
+  return false;
+}
+
+export function sectionContainsPath(section: NavSection, pathname: string): boolean {
+  for (const item of section.items) {
+    if (itemContainsPath(item, pathname)) return true;
+  }
+  return false;
+}
+
+/**
+ * Titles that should start expanded. The section that owns `pathname` wins.
+ * Home and other unmatched routes open Getting Started so the sidebar is not
+ * a stack of closed labels.
+ */
+export function initialOpenSectionTitles(navSections: NavSection[], pathname: string): string[] {
+  const matched: string[] = [];
+  for (const section of navSections) {
+    if (sectionContainsPath(section, pathname)) matched.push(section.title);
+  }
+  if (matched.length > 0) return matched;
+  for (const section of navSections) {
+    if (section.title === DEFAULT_OPEN_NAV_SECTION) return [section.title];
+  }
+  return [];
+}
+
 /**
  * Build the full sidebar navigation. `showcaseItems` are the registry-derived
  * per-component entries appended after the two stable Showcase anchors;
@@ -92,30 +129,10 @@ export function buildDocNavSections(showcaseItems: NavItem[]): NavSection[] {
         { label: 'Local-First Setup', path: '/local-first' },
       ],
     },
-    {
-      title: 'Blog',
-      items: [
-        {
-          label: 'Own the Upside of AI',
-          path: '/blog/17-shareable-upside',
-        },
-        {
-          label: 'Open runtime for FDE work',
-          path: '/blog/18-open-runtime-for-fde-work',
-        },
-        { label: 'UI of the Future', path: '/blog/16-ui-of-the-future' },
-        { label: 'Why We Built RevealUI', path: '/blog/01-why-we-built-revealui' },
-        { label: 'HTTP 402 Payments', path: '/blog/02-http-402-payments' },
-        { label: 'Multi-Agent Coordination', path: '/blog/03-multi-agent-coordination' },
-        { label: 'The Air-Gap Capable Stack', path: '/blog/04-local-first-ai-stack' },
-        { label: 'The Five Primitives', path: '/blog/05-five-primitives' },
-        { label: 'Open Source & Pro', path: '/blog/06-open-source-and-pro' },
-        { label: 'Agent-First Future', path: '/blog/07-agent-first-future' },
-        { label: 'Getting Started in About 30 Minutes', path: '/blog/08-getting-started' },
-        { label: '59 Components, One Dependency', path: '/blog/09-component-library' },
-        { label: 'Your Database, Your Storage, Your Sync', path: '/blog/10-own-your-data' },
-      ],
-    },
+    // nav-docs-product-2026-09-26: docs nav is product reference.
+    // refuse-blog-in-docs: Blog is not a top-level docs category.
+    // boundary-blog-studio-docs-ref-2026-09-26: Blog is on Studio. Docs are product reference.
+    // /blog/* pages stay served until a later drop.
     {
       title: 'Legal',
       items: [{ label: 'Third-Party Licenses', path: '/third-party-licenses' }],

@@ -1,10 +1,8 @@
 /**
- * Docs landing stays a documentation index. The governed-action ReceiptCard
- * lives on the marketing home, not DocsIndexPage.
+ * Docs index is product reference only. The receipt motif lives on marketing.
  */
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { DOCS_RECEIPT_CAPTION, DOCS_RECEIPT_TITLE } from '../../app/content/receipt';
 import { DocsIndexPage } from '../../app/routes/DocsIndexPage';
 
 vi.mock('../../app/lib/head', () => ({
@@ -36,12 +34,13 @@ describe('DocsIndexPage receipt motif', () => {
     vi.clearAllMocks();
   });
 
-  it('does not mount the governed-action receipt on the docs landing', () => {
+  it('does not render a receipt motif on the docs index', () => {
     render(<DocsIndexPage />);
 
-    expect(screen.queryByRole('region', { name: DOCS_RECEIPT_TITLE })).toBeNull();
-    expect(screen.queryByText(DOCS_RECEIPT_CAPTION.text)).toBeNull();
-    expect(screen.queryByRole('link', { name: DOCS_RECEIPT_CAPTION.link.label })).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Governed action, on record' })).toBeNull();
+    expect(screen.queryByText(/If an agent did it, there's a receipt\./)).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Audit receipts docs →' })).toBeNull();
+    expect(screen.queryByText('Governed action, on record')).toBeNull();
 
     expect(screen.getByTestId('markdown')).toBeInTheDocument();
     expect(screen.getByTestId('markdown')).toHaveTextContent('Quick Start');

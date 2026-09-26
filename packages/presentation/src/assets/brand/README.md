@@ -16,19 +16,26 @@ One Circuit-R family. Every colour derives from the OKLCH design tokens in
 Variants are that same letterform. There is no second R, no white plate, and
 no inverted frost-fill twin. Never steepen the leg.
 
+**Locked 2026-09-26** — the official mark is the kit Circuit-R master,
+true alpha, transform `translate(256,256) scale(1.06) translate(-310,-320)`.
+`revealui-logo.svg` and `revealui-logo-dark.svg` are the same bytes
+(sha256 `a94031503236900c7711cc3c9b766e584fc1079ff820a05a969e8cc1d7acfa33`).
+Do not invent a dark letterform. Do not CSS-invert the multi-color mark.
+Do not bake a `#060d1a` plate into either file. Navy plate is adapter-only
+(`icon-mark.svg`, `icon-maskable.svg`, apple-touch, PWA rasters).
+
 **Locked 2026-08-31** — optical-center **placement** of that same v2 curved-leg
-Circuit-R. The group is `translate(256,256) scale(1.06) translate(-300,-320)`
-(nudged left from -290; do not go back to -330). Do not put the stem on 256
-if it crops the scythe tip. The stem, bowl, curved scythe-leg, frost traces, amber vias,
+Circuit-R. The kit group is `translate(256,256) scale(1.06) translate(-310,-320)`.
+Do not stem-shift off that lock. Do not put the stem on 256 if it crops the
+scythe tip. The stem, bowl, curved scythe-leg, frost traces, amber vias,
 and clipPaths `cs` / `cb` / `cl` are the v2 drawing.
 
-**Locked 2026-08-31 12:42 AM ET (one letter, two plates)** — dark is not
-the frost invert. Dark is the same navy Circuit-R as the light master
-(fills `#0a2c5a` / `#002247` / `#0e3468`, frost traces `#9fc9ff`, amber
-`#f0b519`, empty-bowl mask `#cm`, origin `translate(-300,-320)` scale
-`1.06`) composited on Surface 0 `#060d1a`. Light is that same navy letter
-on light surfaces with no white plate. A frost-body invert is banned as
-identity. Do not add chrome or extra circuit noise.
+**Locked 2026-08-31 12:42 AM ET** — dark is not a frost invert and not a
+second letter. Fills stay `#0a2c5a` / `#002247` / `#0e3468`, frost traces
+`#9fc9ff`, amber `#f0b519`, empty-bowl mask `#cm`. A frost-body invert is
+banned as identity. Do not add chrome or extra circuit noise. The earlier
+Surface 0 plate on `revealui-logo-dark.svg` is retired; that file is the
+transparent kit master.
 
 **Locked 2026-08-31 (bowl counter)** — the eye of the R is a true hole. Inner
 path `M238,192 C300,190 345,196 360,222 C368,242 366,260 352,278 C334,300
@@ -46,20 +53,19 @@ No traces, pale fill, or horizontal lines in the counter.
 | Surface 0 (dark page)           | `#060d1a` | `oklch(0.16 0.030 260)` |
 | Paper (light page)              | `#f8fafd` | `oklch(0.985 0.005 250)` |
 
-Circuit-R letter fills (both plates): stem `#0a2c5a`, bowl `#002247`,
-leg `#0e3468`. Frost traces `#9fc9ff`. Amber vias `#f0b519`. Hairline
-`#060d1a`. Via cores `#dfeeff`. There is no second colorway and no
-frost-body invert (`#164687` / `#1e57a8` / `#e8f1ff` are banned).
+Circuit-R letter fills: stem `#0a2c5a`, bowl `#002247`, leg `#0e3468`.
+Frost traces `#9fc9ff`. Amber vias `#f0b519`. Via cores `#dfeeff`. There is
+no second colorway and no frost-body invert (`#164687` / `#1e57a8` /
+`#e8f1ff` are banned). Surface 0 `#060d1a` is the adapter plate only.
 
-## Masters (one letter, two plates)
+## Masters (one transparent letter)
 
-- `revealui-logo.svg` — navy Circuit-R on light surfaces. Frost traces,
-  amber vias. Transparent (no plate, no white tile). 512×512, locked
-  `scale(1.06)` and inner origin `translate(-300,-320)`.
-- `revealui-logo-dark.svg` — the same navy letter (same paths, origin,
-  mask `#cm`, clip `cl` `M219.6,335.1` / tip `488.0,484.0`) composited on
-  Surface 0 `#060d1a`. Derived from the light master. Not a remade R and
-  not a pale frost invert.
+- `revealui-logo.svg` — kit Circuit-R, true alpha. Frost traces, amber vias.
+  No plate, no checker, no white tile. 512×512, locked
+  `translate(256,256) scale(1.06) translate(-310,-320)`.
+- `revealui-logo-dark.svg` — the same file bytes as `revealui-logo.svg`.
+  Kept so existing `/revealui-logo-dark.svg` paths keep working. Not a
+  remade R, not a pale frost invert, and not a `#060d1a` plate.
 
 Public chrome (marketing nav, docs headers) renders the circuit masters at a
 **locked 48×48 CSS box** — light `revealui-logo.svg`, dark
@@ -90,16 +96,17 @@ Derived from the master. Do not invent a second R.
   type (Inter Tight 800). No live `<text>`. In app UI prefer
   `RevealUIWordmark`, which renders live HTML text.
 
-A dark page uses `revealui-logo-dark.svg` — the same navy mark on
-`#060d1a` — or the navy-plate icon-mark. A frost invert is a different
-identity and is banned.
+A dark page uses `revealui-logo-dark.svg` — the same transparent kit master,
+with the page surface behind it — or the navy-plate icon-mark adapter. A
+frost invert is a different identity and is banned. The navy plate is not
+the official mark.
 
 ## Size floor
 
 | Render size | Use |
 |---|---|
 | 16 / 32 | Flat mark only — `favicon.svg` / `revealui-mark.svg`. Traces mud at this size. |
-| ≥48     | Circuit master — `revealui-logo.svg` (light page), `revealui-logo-dark.svg` (dark page), or the `#060d1a` icon-mark tile |
+| ≥48     | Circuit master — `revealui-logo.svg` and `revealui-logo-dark.svg` (same transparent kit bytes). The `#060d1a` icon-mark tile is an adapter, not the official mark. |
 
 The flat no-circuit mark is **only** for 16/32. Do not ship a flat twin at 48 or 64.
 
@@ -126,10 +133,11 @@ Do not normalise these to a single value.
 ## Per-app deployables
 
 `gen-brand-assets.cjs` writes everything each app serves — the SVG copies as
-well as the rasters. Nothing here is copied by hand. Dark (`revealui-logo-dark.svg`),
-navy-plate SVGs, and favicon/PWA rasters are derived from the **light**
-navy master on each run. Dark keeps `scale(1.06)` and adds the Surface 0
-plate; tiled icons shrink to `scale(0.742)`. Do not author a frost invert.
+well as the rasters. Nothing here is copied by hand. `revealui-logo-dark.svg`
+is a byte copy of the transparent kit master. Navy-plate SVGs and
+favicon/PWA rasters are adapter derives (`scale(0.742)` on Surface 0). Do
+not author a frost invert, and do not put that plate back on the official
+mark.
 
 | App | Serves |
 |---|---|
@@ -176,7 +184,7 @@ node scripts/gen-brand-assets.cjs
 Expected output — four lines:
 
 ```
-brand: revealui-logo-dark.svg (navy letter on #060d1a), favicon.ico (16/32 flat + 48 circuit), favicon-32.png, apple-touch-icon.png (180), icon-48/64/96/128/192/256/512.png
+brand: revealui-logo-dark.svg (same bytes as transparent kit master), favicon.ico (16/32 flat + 48 circuit), favicon-32.png, apple-touch-icon.png (180), icon-48/64/96/128/192/256/512.png
 marketing: favicon.svg, icon-mark.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (64), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
 docs: favicon.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (32), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
 admin: favicon.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (32), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
