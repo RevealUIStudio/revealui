@@ -426,10 +426,11 @@ export const claimsPart4: readonly ClaimEntry[] = [
     text: 'Governed action, on record',
     evidence: [
       AUDIT_SIGNING,
+      AUDIT_SIGNING_TEST,
       AUDIT_LOG_SCHEMA,
       {
         ...AUDIT_RECEIPTS_DOC,
-        note: 'static marketing receipt title; demonstration lines, not a live customer case',
+        note: 'static marketing receipt title; a governed action is a signed audit row on record, not a live customer case',
       },
     ],
   },
