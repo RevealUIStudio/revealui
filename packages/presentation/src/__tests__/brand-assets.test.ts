@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -6,6 +7,10 @@ const brandDir = path.resolve(process.cwd(), 'src/assets/brand');
 
 function readBrand(name: string): string {
   return readFileSync(path.join(brandDir, name), 'utf8');
+}
+
+function sha256File(filePath: string): string {
+  return createHash('sha256').update(readFileSync(filePath)).digest('hex');
 }
 
 const STEM = 'M172,150 Q207,159 242,150';
@@ -21,7 +26,18 @@ const AMBER_VIA = '#f0b519';
 const NAVY_PLATE = '#060d1a';
 const TILE_SCALE = 'scale(0.742)';
 const MASTER_SCALE = 'scale(1.06)';
-const MASTER_TRANSFORM = 'translate(256,256) scale(1.06) translate(-300,-320)';
+const MASTER_TRANSFORM = 'translate(256,256) scale(1.06) translate(-310,-320)';
+const KIT_MASTER_SHA256 = 'a94031503236900c7711cc3c9b766e584fc1079ff820a05a969e8cc1d7acfa33';
+const PRODUCT_LOGO_PATHS = [
+  'packages/presentation/src/assets/brand/revealui-logo.svg',
+  'packages/presentation/src/assets/brand/revealui-logo-dark.svg',
+  'apps/marketing/public/revealui-logo.svg',
+  'apps/marketing/public/revealui-logo-dark.svg',
+  'apps/admin/public/revealui-logo.svg',
+  'apps/admin/public/revealui-logo-dark.svg',
+  'apps/docs/public/revealui-logo.svg',
+  'apps/docs/public/revealui-logo-dark.svg',
+] as const;
 const SCYTHE_CLIP = 'M219.6,335.1';
 const SCYTHE_TIP = '488.0,484.0';
 
@@ -64,10 +80,11 @@ describe('Circuit-R brand family', () => {
     expect(master.includes('style="overflow:hidden"')).toBe(true);
   });
 
-  it('keeps dark as the same navy Circuit-R on Surface 0, not a frost invert', () => {
+  it('keeps dark as the same transparent kit master bytes, not a plated invent', () => {
     expect(existsSync(path.join(brandDir, 'revealui-logo-dark.svg'))).toBe(true);
     const light = readBrand('revealui-logo.svg');
     const dark = readBrand('revealui-logo-dark.svg');
+    expect(dark).toBe(light);
     expect(dark.includes(MASTER_TRANSFORM)).toBe(true);
     expect(dark.includes(MASTER_SCALE)).toBe(true);
     expect(dark.includes(TILE_SCALE)).toBe(false);
@@ -77,14 +94,16 @@ describe('Circuit-R brand family', () => {
     expect(dark.includes(SCYTHE_CLIP)).toBe(true);
     expect(dark.includes(SCYTHE_TIP)).toBe(true);
     expect(dark.includes('translate(-330,-320)')).toBe(false);
+    expect(dark.includes('translate(-300,-320)')).toBe(false);
     expect(dark.includes('translate(-290,-320)')).toBe(false);
     expect(dark.includes(NAVY_STEM)).toBe(true);
     expect(dark.includes(NAVY_BOWL)).toBe(true);
     expect(dark.includes(NAVY_LEG)).toBe(true);
     expect(dark.includes(FROST_TRACE)).toBe(true);
     expect(dark.includes(AMBER_VIA)).toBe(true);
-    expect(dark.includes(NAVY_PLATE)).toBe(true);
-    expect(dark.includes(SURFACE_0_PLATE)).toBe(true);
+    expect(dark.includes(NAVY_PLATE)).toBe(false);
+    expect(dark.includes(SURFACE_0_PLATE)).toBe(false);
+    expect(dark.includes('<rect')).toBe(false);
     expect(dark.includes('<circle')).toBe(true);
     expect(dark.includes(INVERT_STEM)).toBe(false);
     expect(dark.includes(INVERT_BOWL)).toBe(false);
@@ -93,12 +112,20 @@ describe('Circuit-R brand family', () => {
     expect(dark.includes(INVERT_HAIRLINE)).toBe(false);
     expect(dark.includes(FACETED_A)).toBe(false);
     expect(dark.includes('fill="#dfeeff" fill-rule="evenodd"')).toBe(false);
-    expect(light.includes(MASTER_TRANSFORM)).toBe(true);
     expect(dark.includes('maskUnits="userSpaceOnUse"')).toBe(true);
     expect(dark.includes('mask="url(#cm)"')).toBe(true);
     expect(dark.includes('M238,192 C300,190 345,196 360,222')).toBe(true);
     expect(dark.includes('overflow="hidden"')).toBe(true);
     expect(dark.includes('style="overflow:hidden"')).toBe(true);
+  });
+
+  it('byte-matches every public Circuit-R logo to the locked kit master', () => {
+    const repoRoot = path.resolve(brandDir, '../../../../..');
+    for (const relativePath of PRODUCT_LOGO_PATHS) {
+      const filePath = path.join(repoRoot, relativePath);
+      expect(existsSync(filePath), relativePath).toBe(true);
+      expect(sha256File(filePath), relativePath).toBe(KIT_MASTER_SHA256);
+    }
   });
 
   it('uses the same 3 region paths, with no traces, on the flat small marks', () => {
