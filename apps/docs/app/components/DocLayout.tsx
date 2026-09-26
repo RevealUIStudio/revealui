@@ -8,8 +8,13 @@ import {
 } from '@revealui/presentation';
 import { Link, useLocation } from '@revealui/router';
 import type React from 'react';
-import { type CSSProperties, lazy, Suspense, useEffect, useState } from 'react';
-import { buildDocNavSections, type NavItem, type NavSection } from '../lib/nav';
+import { type CSSProperties, lazy, Suspense, useEffect, useId, useState } from 'react';
+import {
+  buildDocNavSections,
+  initialOpenSectionTitles,
+  type NavItem,
+  type NavSection,
+} from '../lib/nav';
 import { showcaseEntries } from './showcase/registry.js';
 
 const SearchBar = lazy(async () =>
@@ -110,7 +115,79 @@ function NavLink({
   );
 }
 
+const CATEGORY_TITLE_CLASS =
+  'mt-6 flex w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-base font-bold tracking-tight text-ink transition-colors hover:bg-accent-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
+
+function SidebarSection({
+  section,
+  open,
+  onToggle,
+  onNavigate,
+}: {
+  section: NavSection;
+  open: boolean;
+  onToggle: (title: string) => void;
+  onNavigate?: () => void;
+}): React.JSX.Element {
+  const panelId = useId();
+
+  return (
+    <div>
+      <button
+        type="button"
+        className={CATEGORY_TITLE_CLASS}
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => onToggle(section.title)}
+      >
+        <span>{section.title}</span>
+        <IconChevronRight
+          size="sm"
+          className={`text-text-secondary transition-transform duration-200 ${open ? 'rotate-90' : ''}`}
+        />
+      </button>
+      <ul
+        id={panelId}
+        hidden={!open}
+        className={open ? 'm-0 flex list-none flex-col gap-px p-0' : 'hidden'}
+      >
+        {section.items.map((item) => (
+          <NavLink key={item.path} item={item} onNavigate={onNavigate} />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function SidebarContent({ isHome, onNavigate }: { isHome: boolean; onNavigate?: () => void }) {
+  const { pathname } = useLocation();
+  const [openSections, setOpenSections] = useState(
+    () => new Set(initialOpenSectionTitles(sections, pathname)),
+  );
+
+  useEffect(() => {
+    setOpenSections((current) => {
+      let changed = false;
+      const next = new Set(current);
+      for (const title of initialOpenSectionTitles(sections, pathname)) {
+        if (!next.has(title)) {
+          next.add(title);
+          changed = true;
+        }
+      }
+      return changed ? next : current;
+    });
+  }, [pathname]);
+
+  const toggleSection = (title: string): void => {
+    setOpenSections((current) => {
+      const next = new Set(current);
+      if (next.has(title)) next.delete(title);
+      else next.add(title);
+      return next;
+    });
+  };
+
   return (
     <>
       {/* Logo */}
@@ -158,16 +235,13 @@ function SidebarContent({ isHome, onNavigate }: { isHome: boolean; onNavigate?: 
 
       {/* Nav sections */}
       {sections.map((section) => (
-        <div key={section.title}>
-          <div className="mt-4 px-3 pb-1 text-xs font-semibold uppercase tracking-widest text-text-muted">
-            {section.title}
-          </div>
-          <ul className="m-0 list-none space-y-px p-0">
-            {section.items.map((item) => (
-              <NavLink key={item.path} item={item} onNavigate={onNavigate} />
-            ))}
-          </ul>
-        </div>
+        <SidebarSection
+          key={section.title}
+          section={section}
+          open={openSections.has(section.title)}
+          onToggle={toggleSection}
+          onNavigate={onNavigate}
+        />
       ))}
 
       <div className="mt-auto border-t border-border pt-4">

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildDocNavSections } from '../nav.js';
+import { buildDocNavSections, initialOpenSectionTitles } from '../nav.js';
 
 describe('docs public nav', () => {
   it('labels Enterprise and points at /enterprise, not /forge', () => {
@@ -19,5 +19,23 @@ describe('docs public nav', () => {
     const paths = sections.flatMap((section) => section.items.map((item) => item.path));
     expect(paths.includes('/revealfleet')).toBe(false);
     expect(paths.includes('/fleet')).toBe(false);
+  });
+
+  it('does not present Blog as a docs sidebar pillar', () => {
+    const sections = buildDocNavSections([]);
+    expect(sections.some((section) => section.title === 'Blog')).toBe(false);
+    const paths = sections.flatMap((section) => section.items.map((item) => item.path));
+    expect(paths.some((path) => path === '/blog' || path.startsWith('/blog/'))).toBe(false);
+  });
+
+  it('opens the section that owns the current path, otherwise Getting Started', () => {
+    const sections = buildDocNavSections([{ label: 'Button', path: '/showcase/button' }]);
+
+    expect(initialOpenSectionTitles(sections, '/auth')).toEqual(['Core Guides']);
+    expect(initialOpenSectionTitles(sections, '/showcase/button')).toEqual(['Showcase']);
+    expect(initialOpenSectionTitles(sections, '/')).toEqual(['Getting Started']);
+    expect(initialOpenSectionTitles(sections, '/blog/01-why-we-built-revealui')).toEqual([
+      'Getting Started',
+    ]);
   });
 });
