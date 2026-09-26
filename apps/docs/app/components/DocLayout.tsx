@@ -116,7 +116,7 @@ function NavLink({
 }
 
 const CATEGORY_TITLE_CLASS =
-  'mt-6 flex w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-base font-bold tracking-tight text-ink transition-colors hover:bg-accent-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
+  'mt-6 flex h-auto w-full items-center justify-between gap-2 whitespace-normal rounded-md px-3 py-2.5 text-left text-base! font-bold! tracking-tight text-ink! transition-colors hover:bg-accent-bg hover:text-ink active:scale-none';
 
 function SidebarSection({
   section,
@@ -133,8 +133,11 @@ function SidebarSection({
 
   return (
     <div>
-      <button
+      <Button
         type="button"
+        appearance="ghost"
+        variant="neutral"
+        size="clear"
         className={CATEGORY_TITLE_CLASS}
         aria-expanded={open}
         aria-controls={panelId}
@@ -145,7 +148,7 @@ function SidebarSection({
           size="sm"
           className={`text-text-secondary transition-transform duration-200 ${open ? 'rotate-90' : ''}`}
         />
-      </button>
+      </Button>
       <ul
         id={panelId}
         hidden={!open}
