@@ -1,5 +1,18 @@
 # @revealui/presentation
 
+## 0.15.0
+
+### Minor Changes
+
+- 5d2f25c: Add Calendar, a month grid with keyboard and disabled days, and BookingCalendar, a day-plus-slots composite with loading, ready, empty, error, and unconfigured status.
+
+### Patch Changes
+
+- d3b2c04: Keep a receipt integrity seal from becoming a page landmark. The seal row is a named group, so a page that mounts ReceiptCard still has one contentinfo footer.
+- Updated dependencies [5ce8320]
+- Updated dependencies [3bfb528]
+  - @revealui/contracts@0.13.0
+
 ## 0.14.8
 
 ### Patch Changes

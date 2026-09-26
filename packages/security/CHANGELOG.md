@@ -1,5 +1,17 @@
 # @revealui/security
 
+## 0.9.0
+
+### Minor Changes
+
+- 5ce8320: Add the free `low_trust_review` trust resolver and the server-owned ticket trust metadata schema. Narrowest preset wins. Missing, ambiguous, and cross-account scopes fail closed.
+
+### Patch Changes
+
+- Updated dependencies [5ce8320]
+- Updated dependencies [3bfb528]
+  - @revealui/contracts@0.13.0
+
 ## 0.8.2
 
 ### Patch Changes

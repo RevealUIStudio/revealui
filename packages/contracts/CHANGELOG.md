@@ -1,5 +1,12 @@
 # @revealui/contracts
 
+## 0.13.0
+
+### Minor Changes
+
+- 5ce8320: Add the free `low_trust_review` trust resolver and the server-owned ticket trust metadata schema. Narrowest preset wins. Missing, ambiguous, and cross-account scopes fail closed.
+- 3bfb528: Record the account on governed MCP tool receipts so new rows anchor per account. Add the MCP approval tables and JCS helpers that bind a call to its tool, argument hash, schema hash, account, and requester. The approval gate is not wired in this slice.
+
 ## 0.12.0
 
 ### Minor Changes

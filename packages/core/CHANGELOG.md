@@ -1,5 +1,18 @@
 # @revealui/core
 
+## 0.15.1
+
+### Patch Changes
+
+- f65a5da: Resolve the Sentry environment from SENTRY_ENVIRONMENT and the deploy host so a staging host is not labeled production.
+- Updated dependencies [5ce8320]
+- Updated dependencies [3bfb528]
+- Updated dependencies [5d2f25c]
+- Updated dependencies [d3b2c04]
+  - @revealui/security@0.9.0
+  - @revealui/contracts@0.13.0
+  - @revealui/presentation@0.15.0
+
 ## 0.15.0
 
 ### Minor Changes
