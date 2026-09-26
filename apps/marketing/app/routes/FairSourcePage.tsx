@@ -364,12 +364,13 @@ export function FairSourcePage() {
         density="spacious"
         width="narrow"
         className="relative isolate overflow-hidden"
+        backdrop={
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background"
+          />
+        }
       >
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background"
-        />
-
         <div className="relative text-center">
           <p className="mb-6 text-sm font-semibold uppercase tracking-[0.2em] text-primary">
             {FAIR_SOURCE_HERO.eyebrow}
