@@ -37,10 +37,12 @@ describe('PricingPage product catalog', () => {
       'true',
     );
     expect(screen.queryByRole('radio', { name: /Pilot/i })).toBeNull();
-    expect(screen.getByText(/Consultation, Pilot, Launch/)).toBeInTheDocument();
-    expect(screen.getByText(/Pilot \$3,997/)).toBeInTheDocument();
-    expect(screen.getByText(/Launch \$14,500/)).toBeInTheDocument();
-    expect(screen.queryByText(/Proof Sprint/)).toBeNull();
+    expect(screen.getAllByText(/Consultation, Pilot, Launch/).length).toBeGreaterThan(0);
+    const pageText = document.body.textContent ?? '';
+    expect(pageText.includes('Proof Sprint')).toBe(false);
+    expect(pageText.includes('$3,997')).toBe(false);
+    expect(pageText.includes('$14,500')).toBe(false);
+    expect(pageText.includes('$300')).toBe(false);
   });
 
   it('keeps subscription Free, Pro, Max, and Enterprise as a license', async () => {

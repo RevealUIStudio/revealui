@@ -3,8 +3,6 @@
 // Done-for-you, Starter Kit, Agency Founding Kit, and the rented-stack
 // calculator are not part of this catalog.
 
-import { LAUNCH_PACKAGE_PRICE, PROOF_SPRINT_PRICE } from '@revealui/contracts/public-catalog';
-
 export {
   type PricingResponse,
   PUBLIC_PERPETUAL_NAMES,
@@ -37,7 +35,8 @@ export const PRICING_HERO_SUBTEXT = {
     'All plans run as self-hosted installations under your license. Enterprise is a license, not a hosted VM. Need a human?',
   linkLabel: 'revealuistudio.com',
   linkHref: SITE.urls.agency,
-  suffix: `Licenses live on revealui.com. Studio implementation is a separate path: Consultation, Pilot ${PROOF_SPRINT_PRICE}, Launch ${LAUNCH_PACKAGE_PRICE}. This page does not sell Studio offers as product plans.`,
+  suffix:
+    'Need implementation? Studio is a separate path (Consultation, Pilot, Launch). This catalog is licenses only.',
 } as const;
 
 export const PRICING_HERO_NAV_ANCHORS = [
