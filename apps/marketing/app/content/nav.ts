@@ -1,6 +1,7 @@
 // Sourced from: app/components/NavBar.tsx, app/components/Footer.tsx (Phase 1c, no copy changes).
 // Per the internal marketing-overhaul plan §4.4.
 
+import { STUDIO_BLOG_HREF } from '@revealui/contracts/nav-docs-boundary';
 import { COMMUNITY, SITE } from './site';
 import type { NavLink } from './types';
 
@@ -9,9 +10,11 @@ export const NAV_LINKS: readonly NavLink[] = [
   { label: 'Docs', href: SITE.urls.docs },
 ] as const;
 
-/** Public product footer: Docs, Pricing, Support. Legal lives in the one-line strip. */
+/** Public product footer. Blog is the Studio site. Legal lives in the one-line strip. */
 export const PRODUCT_FOOTER_LINKS: readonly NavLink[] = [
   { label: 'Docs', href: SITE.urls.docs, external: true },
+  // nav-product-blog-points-studio-2026-09-26
+  { label: 'Blog', href: STUDIO_BLOG_HREF, external: true },
   { label: 'Pricing', href: '/pricing' },
   { label: 'Templates', href: '/templates' },
   { label: 'Support', href: '/support' },
@@ -45,7 +48,8 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
       { label: 'Local AI', href: '/local-ai' },
       { label: 'Pricing', href: '/pricing' },
       { label: 'Documentation', href: SITE.urls.docs },
-      { label: 'Blog', href: '/blog' },
+      // nav-product-blog-points-studio-2026-09-26
+      { label: 'Blog', href: STUDIO_BLOG_HREF, external: true },
       { label: 'Roadmap', href: '/roadmap' },
       { label: 'Philosophy', href: '/philosophy' },
     ],

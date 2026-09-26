@@ -42,7 +42,7 @@ Live public paths only:
 
 - [Build Your Business](./BUILD_YOUR_BUSINESS.md): Product packaging, pricing direction, billing setup, and deployment path
 - [Marketplace](./MARKETPLACE.md): First-party MCP catalog ships; third-party publish and payouts are Planned ([#526](https://github.com/RevealUIStudio/revealui/issues/526))
-- [HTTP 402 Payments](./blog/02-http-402-payments.md): Paid API and machine-to-machine payment model
+- [HTTP 402 Payments](./PRO.md): Paid API and machine-to-machine payment model
 - [Pro](./PRO.md): Commercial packaging for AI, MCP, trust, and governance features
 
 ## Development
@@ -68,7 +68,7 @@ Live public paths only:
 - [Connect Cursor](./guides/connect-cursor.md): Cursor hooks + governed MCP
 - [Connect VS Code](./guides/connect-vscode.md): Copilot agent-plugin bundle
 - [Connect ACP (Zed / JetBrains)](./guides/connect-acp.md): RevealUI ACP agent on stdio
-- [Blog: Three AI Agents, One Codebase](./blog/03-multi-agent-coordination.md): The problem that led to the Holster
+- [AI coordination](./AI.md): Multi-agent coordination on one codebase
 
 ## Pro & Enterprise
 
