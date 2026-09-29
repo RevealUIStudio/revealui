@@ -37,9 +37,9 @@ const MANAGED_ROADMAP_HREF = '/for-operators/managed' as const;
 
 export const FOR_OPERATORS_HERO = {
   eyebrow: 'Studio work',
-  h1Lines: ['Consultation, Proof Sprint, or Launch', 'on infrastructure you own.'] as const,
+  h1Lines: ['Consultation, Pilot, or Launch', 'on infrastructure you own.'] as const,
   subtitle:
-    'Studio books Consultation, Proof Sprint, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com, not on the product catalog.',
+    'Studio books Consultation, Pilot, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com, not on the product catalog.',
   primaryCta: {
     label: 'Book a 30-minute intro',
     href: AGENCY_CONTACT,
@@ -102,7 +102,7 @@ export const FOR_OPERATORS_HOW_WE_DELIVER = {
 } as const;
 
 // ---------------------------------------------------------------------------
-// Studio engagement ladder — Consultation / Proof Sprint / Launch on
+// Studio engagement ladder: Consultation / Pilot / Launch on
 // revealuistudio.com only. Architecture work happens inside Launch.
 // Dead leftover rungs must not exist in this module. Prices import from
 // @revealui/contracts/public-catalog so leftover admin catalogs cannot
@@ -127,7 +127,7 @@ export const AGENCY_ENGAGEMENT_LADDER: readonly AgencyEngagement[] = [
   },
   {
     id: 'proof-sprint',
-    name: 'Proof Sprint',
+    name: 'Pilot',
     price: PROOF_SPRINT_PRICE,
     startsFrom: false,
   },
