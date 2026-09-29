@@ -4,7 +4,7 @@
  * Covers: SecurityHeaders, CORSManager, presets, middleware, rate limit headers.
  */
 
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   CORSManager,
   CORSPresets,
@@ -13,6 +13,7 @@ import {
   SecurityPresets,
   setRateLimitHeaders,
 } from '../headers.js';
+import { configureSecurityLogger, type SecurityLogger } from '../logger.js';
 
 // =============================================================================
 // SecurityHeaders
@@ -245,6 +246,11 @@ describe('SecurityPresets', () => {
 });
 
 describe('CORSPresets', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    configureSecurityLogger(console);
+  });
+
   it('strict blocks all origins', () => {
     const config = CORSPresets.strict();
     const cors = new CORSManager(config);
@@ -256,6 +262,69 @@ describe('CORSPresets', () => {
     const cors = new CORSManager(config);
     expect(cors.isOriginAllowed('https://a.com')).toBe(true);
     expect(cors.isOriginAllowed('https://b.com')).toBe(false);
+  });
+
+  it('permissive keeps a closed origin list unless wildcard origin is opted in', () => {
+    const closed = CORSPresets.permissive();
+    expect(closed.origin).toEqual([]);
+    expect(closed.credentials).toBe(false);
+    expect(closed.methods).toEqual(['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']);
+    expect(new CORSManager(closed).isOriginAllowed('https://any.example')).toBe(false);
+
+    const explicitFalse = CORSPresets.permissive({ allowWildcardOrigin: false });
+    expect(explicitFalse.origin).toEqual([]);
+
+    const open = CORSPresets.permissive({ allowWildcardOrigin: true });
+    expect(open.origin).toBe('*');
+    expect(open.credentials).toBe(false);
+    expect(open.allowedHeaders).toEqual(['*']);
+    expect(new CORSManager(open).isOriginAllowed('https://any.example')).toBe(true);
+  });
+
+  it('api keeps a closed origin list unless wildcard origin is opted in', () => {
+    const closed = CORSPresets.api();
+    expect(closed.origin).toEqual([]);
+    expect(closed.credentials).toBe(false);
+    expect(closed.allowedHeaders).toEqual(['Content-Type', 'Authorization', 'X-API-Key']);
+    expect(closed.exposedHeaders).toEqual([
+      'X-RateLimit-Limit',
+      'X-RateLimit-Remaining',
+      'X-RateLimit-Reset',
+    ]);
+    expect(new CORSManager(closed).isOriginAllowed('https://any.example')).toBe(false);
+
+    const open = CORSPresets.api({ allowWildcardOrigin: true });
+    expect(open.origin).toBe('*');
+    expect(open.credentials).toBe(false);
+    expect(open.methods).toEqual(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']);
+    expect(new CORSManager(open).isOriginAllowed('https://any.example')).toBe(true);
+  });
+
+  it('logs a production warning only after wildcard origin is opted in', () => {
+    const warn = vi.fn();
+    const logger: SecurityLogger = {
+      warn,
+      error: vi.fn(),
+      info: vi.fn(),
+      debug: vi.fn(),
+    };
+    configureSecurityLogger(logger);
+    vi.stubEnv('NODE_ENV', 'production');
+
+    CORSPresets.permissive();
+    CORSPresets.api();
+    CORSPresets.permissive({ allowWildcardOrigin: false });
+    expect(warn).not.toHaveBeenCalled();
+
+    CORSPresets.permissive({ allowWildcardOrigin: true });
+    CORSPresets.api({ allowWildcardOrigin: true });
+    expect(warn).toHaveBeenCalledTimes(2);
+
+    warn.mockClear();
+    vi.stubEnv('NODE_ENV', 'test');
+    CORSPresets.permissive({ allowWildcardOrigin: true });
+    CORSPresets.api({ allowWildcardOrigin: true });
+    expect(warn).not.toHaveBeenCalled();
   });
 });
 
