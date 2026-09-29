@@ -326,3 +326,16 @@ describe('rendered synced surface', () => {
     expect(syncedPathDefs().length).toBe(SYNCED_PATHS.size);
   });
 });
+
+describe('GAP-345 public is-live path', () => {
+  it('is absent from the secret-path spec and the generated inventory', () => {
+    expect(DECLARED_PATHS.has('revealui/prod/public/is-live')).toBe(false);
+    expect(SYNCED_PATHS.has('revealui/prod/public/is-live')).toBe(false);
+    expect(docPaths).not.toContain('revealui/prod/public/is-live');
+    const mentionsFlag = SECRET_PATHS.some((entry) => {
+      if (entry.note?.includes('NEXT_PUBLIC_IS_LIVE')) return true;
+      return entry.envVars?.includes('NEXT_PUBLIC_IS_LIVE') ?? false;
+    });
+    expect(mentionsFlag).toBe(false);
+  });
+});
