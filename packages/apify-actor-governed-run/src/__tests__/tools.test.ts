@@ -130,4 +130,52 @@ describe('webFetchTool', () => {
       expect(result.error).toMatch(/not allowed/);
     }
   });
+
+  describe('SSRF guard: additional non-global IPv6 ranges', () => {
+    const mustBeBlocked: Array<[label: string, url: string]> = [
+      [
+        'NAT64 local-use prefix (64:ff9b:1::/48) embedding a link-local IPv4 address',
+        'http://[64:ff9b:1::169.254.169.254]/',
+      ],
+      [
+        'NAT64 local-use prefix (64:ff9b:1::/48) with a public IPv4 in the low 32 bits',
+        'http://[64:ff9b:1::8.8.8.8]/',
+      ],
+      ['multicast (ff00::/8)', 'http://[ff02::1]/'],
+      ['documentation prefix (2001:db8::/32)', 'http://[2001:db8::1]/'],
+      ['discard-only prefix (100::/64)', 'http://[100::1]/'],
+      ['IPv4-compatible loopback (::a.b.c.d)', 'http://[::127.0.0.1]/'],
+      ['IPv4-compatible private address (::a.b.c.d)', 'http://[::192.168.1.1]/'],
+      ['6to4 (2002::/16) embedding a private IPv4 address', 'http://[2002:c0a8:101::]/'],
+      ['6to4 (2002::/16) embedding a link-local IPv4 address', 'http://[2002:a9fe:a9fe::]/'],
+    ];
+
+    it.each(mustBeBlocked)('blocks: %s (%s)', async (_label, url) => {
+      const result = await webFetchTool.execute({ url });
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/not allowed/);
+    });
+
+    const mustStayReachable: Array<[label: string, url: string]> = [
+      ['global unicast outside the documentation prefix', 'http://[2001:db9::1]/'],
+      ['6to4 embedding a public IPv4 address', 'http://[2002:808:808::]/'],
+      ['IPv4-compatible form of a public IPv4 address', 'http://[::8.8.8.8]/'],
+      ['NAT64 well-known prefix embedding a public IPv4 address', 'http://[64:ff9b::8.8.8.8]/'],
+      ['address just outside the NAT64 local-use prefix', 'http://[64:ff9b:2::1]/'],
+      ['address just outside the discard-only prefix', 'http://[100:0:0:1::]/'],
+    ];
+
+    it.each(mustStayReachable)('does not block: %s (%s)', async (_label, url) => {
+      const fetchSpy = vi
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValue(new Response('ok', { status: 200 }));
+      try {
+        const result = await webFetchTool.execute({ url });
+        expect(fetchSpy).toHaveBeenCalled();
+        expect(result.success).toBe(true);
+      } finally {
+        fetchSpy.mockRestore();
+      }
+    });
+  });
 });
