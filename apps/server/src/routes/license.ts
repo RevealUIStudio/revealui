@@ -261,7 +261,7 @@ app.openapi(verifyRoute, async (c) => {
     );
   }
 
-  // GAP-260 P4-5: per-jti denylist (fail-open for unknown; sticky once revoked).
+  // GAP-260 P4-5: per-jti denylist (confirmed absent allowed; sticky once revoked).
   // A leaked token lineage can be refused without rotating the vendor key or
   // revoking every token for the customer.
   if (payload.jti) {
@@ -282,10 +282,22 @@ app.openapi(verifyRoute, async (c) => {
         );
       }
     } catch (err) {
-      // isJtiRevoked already fail-opens on DB errors; this catch is defensive.
-      logger.warn('jti denylist check threw during verify — treating as not denylisted', {
+      logger.warn('jti denylist unavailable during verify — failing closed', {
         error: err instanceof Error ? err.message : 'unknown',
       });
+      return c.json(
+        {
+          valid: false,
+          reason: 'unverifiable' as const,
+          tier: 'free' as const,
+          customerId: null,
+          features: getFeaturesForTier('free'),
+          maxSites: 1,
+          maxUsers: 3,
+          expiresAt: null,
+        },
+        200,
+      );
     }
   }
 
@@ -606,17 +618,15 @@ app.openapi(refreshRoute, async (c) => {
     return deny();
   }
 
-  // GAP-260 P4-5: refuse a specifically revoked jti even when the customer
-  // still has an active license row (leaked-token lineage).
-  if (payload.jti && (await isJtiRevoked(getClient(), payload.jti))) {
-    return deny();
-  }
-
   // Return the current stored key for an ACTIVE, non-deleted license row of the
   // token's customerId, scoped to this deployment's Stripe mode (mirrors
   // getUserLicenseKey in billing.ts). Any DB failure fails closed to the same
   // 403 rather than leaking a distinguishable error.
   try {
+    // Refuse revoked or uncertain lineage even if the customer row is active.
+    if (payload.jti && (await isJtiRevoked(getClient(), payload.jti))) {
+      return deny();
+    }
     const [row] = await getClient()
       .select({ licenseKey: licenses.licenseKey })
       .from(licenses)
@@ -760,6 +770,10 @@ const currentRoute = createRoute({
       },
       description: 'Auto-provision is not enabled',
     },
+    503: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'License or revocation authority unavailable; no key returned',
+    },
   },
 });
 
@@ -773,7 +787,13 @@ app.openapi(currentRoute, async (c) => {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
 
-  const result = await getOwnerLicenseCurrent(user.id);
+  let result: Awaited<ReturnType<typeof getOwnerLicenseCurrent>>;
+  try {
+    result = await getOwnerLicenseCurrent(user.id);
+  } catch {
+    logger.warn('Owner license authority unavailable — refusing key delivery');
+    throw new HTTPException(503, { message: 'License unavailable' });
+  }
 
   if (result.licenseKey) {
     const entitlements = c.get('entitlements') as { accountId?: string } | undefined;

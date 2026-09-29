@@ -236,6 +236,17 @@ describe('POST /refresh', () => {
     expect(await res.json()).toEqual(DENIED);
   });
 
+  it('uniformly denies a JTI query outage despite an available active row and never mints', async () => {
+    mockedRefreshValidate.mockResolvedValue(VALID_PAYLOAD as never);
+    mockDbRows([{ licenseKey: 'stored.current.key' }]);
+    mockedIsJtiRevoked.mockRejectedValueOnce(new Error('JTI authority unavailable'));
+
+    const res = await createApp().request('/refresh', post(refreshBody()));
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual(DENIED);
+    expect(mockedGenerate).not.toHaveBeenCalled();
+  });
+
   it('never mints — mintLicenseKey is not called on any path', async () => {
     mockedRefreshValidate.mockResolvedValue(VALID_PAYLOAD as never);
     mockDbRows([{ licenseKey: 'stored.current.key' }]);

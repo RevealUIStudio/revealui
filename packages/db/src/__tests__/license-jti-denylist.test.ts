@@ -3,6 +3,7 @@ import {
   __resetJtiDenylistForTest,
   getJtiRevocationEpoch,
   isJtiRevoked,
+  JtiRevocationUnavailableError,
   recordJtiRevocations,
 } from '../license-jti-denylist.js';
 
@@ -50,15 +51,22 @@ describe('license jti denylist (GAP-260 P4-5)', () => {
   it('isJtiRevoked returns true and sticks after DB hit', async () => {
     const db = createMockDb({ selectRows: [{ jti: 'jti-revoked' }] });
     expect(await isJtiRevoked(db as never, 'jti-revoked')).toBe(true);
+    // A later authority outage cannot reopen an observed revocation.
+    db._limit.mockRejectedValue(new Error('DB unavailable'));
     // Second call must not re-query (sticky)
     expect(await isJtiRevoked(db as never, 'jti-revoked')).toBe(true);
     expect(db.select).toHaveBeenCalledOnce();
   });
 
-  it('isJtiRevoked fail-opens on DB error for non-sticky jtis', async () => {
+  it('rejects uncertain revocation with a typed error and retries after recovery', async () => {
     const db = createMockDb();
     db._limit.mockRejectedValueOnce(new Error('connection lost'));
+    await expect(isJtiRevoked(db as never, 'jti-x')).rejects.toBeInstanceOf(
+      JtiRevocationUnavailableError,
+    );
+    expect(getJtiRevocationEpoch()).toBe(0);
     expect(await isJtiRevoked(db as never, 'jti-x')).toBe(false);
+    expect(db.select).toHaveBeenCalledTimes(2);
   });
 
   it('recordJtiRevocations sets sticky and bumps epoch', async () => {
