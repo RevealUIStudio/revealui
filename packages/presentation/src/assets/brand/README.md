@@ -134,19 +134,22 @@ Do not normalise these to a single value.
 
 ## Per-app deployables
 
-`gen-brand-assets.cjs` writes everything each app serves, the SVG copies as
-well as the rasters. Nothing here is copied by hand. `revealui-logo-dark.svg`,
-`favicon.svg`, and `revealui-mark.svg` are byte copies of the transparent kit
-master. Navy-plate SVGs (`icon-mark.svg`, `icon-maskable.svg`) and the
-maskable rasters are adapters (`scale(0.742)` on Surface 0, inside the 80
-percent safe zone). Purpose `any` PNGs are the transparent master. Do not
-author a frost invert, and do not put that plate back on the official mark.
+`gen-brand-assets.cjs` writes the SVG copies and the generated rasters.
+`revealui-logo-dark.svg`, `favicon.svg`, and `revealui-mark.svg` are byte
+copies of the transparent kit master. Navy-plate SVGs (`icon-mark.svg`,
+`icon-maskable.svg`) stay locked adapters. Docs maskable rasters come from
+`icon-maskable.svg` (`scale(0.742)` on Surface 0, inside the 80 percent safe
+zone). Docs purpose `any` PNGs are the transparent master. Marketing and
+admin `icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, and
+`icon-maskable-512.png` are the official kit PNGs. The script must not
+overwrite those four files. Do not author a frost invert, and do not put
+that plate back on the official mark.
 
 | App | Serves |
 |---|---|
-| marketing | `revealui-logo.svg`, `revealui-logo-dark.svg`, `favicon.svg`, `icon-mark.svg`, `favicon.png` (64), `favicon.ico`, `apple-touch-icon.png` (iOS adapter), `icon-192/512.png` (transparent any), `icon-maskable-192/512.png` |
+| marketing | `revealui-logo.svg`, `revealui-logo-dark.svg`, `favicon.svg`, `icon-mark.svg`, `favicon.png` (64), `favicon.ico`, `apple-touch-icon.png` (iOS adapter), official kit `icon-192/512.png` (any) and `icon-maskable-192/512.png` (maskable) |
 | docs | `revealui-logo.svg`, `revealui-logo-dark.svg`, `favicon.svg`, `favicon.png` (32), `favicon.ico`, `apple-touch-icon.png` (iOS adapter), `icon-192/512.png` (transparent any), `icon-maskable-192/512.png` |
-| admin | same as docs |
+| admin | same SVG and favicon set as docs, plus the same official kit any and maskable PNGs as marketing |
 
 The SVG sync is load-bearing: marketing and docs chrome read
 `/revealui-logo.svg` from the app-local copy, and favicon/PWA copies read the
@@ -170,19 +173,21 @@ icon wiring. The Vite apps declare theirs in `index.html` alongside a
 `<meta name="theme-color" content="#060d1a">`.
 
 All three list separate icon entries: `icon-192.png` and `icon-512.png`
-(`any`, transparent master), `icon-maskable-192.png` and
-`icon-maskable-512.png` (`maskable`, navy plate), plus `favicon.svg`
-(`sizes` `any`, `image/svg+xml`, `purpose` `any`). Never one entry with
-purpose `any maskable`.
+(`any`, transparent), `icon-maskable-192.png` and `icon-maskable-512.png`
+(`maskable`, opaque navy plate), plus `favicon.svg` (`sizes` `any`,
+`image/svg+xml`, `purpose` `any`). Marketing and admin any and maskable
+PNGs are the official kit files. Never one entry with purpose `any maskable`.
 
 ## Regenerating
 
-Rasters and the `.ico` are produced from the kit master (transparent, no plate)
-and the locked navy-plate adapters (`icon-mark.svg`, `icon-maskable.svg`) by
+Generated rasters and the `.ico` come from the kit master (transparent, no
+plate) and the locked navy-plate adapters (`icon-mark.svg`,
+`icon-maskable.svg`) via
 [`scripts/gen-brand-assets.cjs`](../../../../../scripts/gen-brand-assets.cjs) at
 the repo root, using `sharp` (resolved from `apps/admin`'s dependency, no new
-package added). Purpose `any` PNGs keep alpha. Maskable PNGs keep the plate.
-Edit the master, then run:
+package added). The script leaves marketing and admin
+`icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, and
+`icon-maskable-512.png` untouched. Edit the master, then run:
 
 ```bash
 node scripts/gen-brand-assets.cjs
@@ -192,12 +197,12 @@ Expected output, four lines:
 
 ```
 brand: favicon.svg and revealui-mark.svg (kit master bytes), revealui-logo-dark.svg (same bytes), favicon.ico (transparent, no plate), favicon-32.png, apple-touch-icon.png (iOS adapter, 180), icon-192/512.png (transparent any), icon-maskable-192/512.png
-marketing: favicon.svg, icon-mark.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (64), favicon.ico (transparent, no plate), apple-touch-icon.png (iOS adapter, 180), icon-192/512.png (transparent any), icon-maskable-192/512.png
+marketing: favicon.svg, icon-mark.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (64), favicon.ico (transparent, no plate), apple-touch-icon.png (iOS adapter, 180), icon-192/512.png and icon-maskable-192/512.png left as official kit PNGs
 docs: favicon.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (32), favicon.ico (transparent, no plate), apple-touch-icon.png (iOS adapter, 180), icon-192/512.png (transparent any), icon-maskable-192/512.png
-admin: favicon.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (32), favicon.ico (transparent, no plate), apple-touch-icon.png (iOS adapter, 180), icon-192/512.png (transparent any), icon-maskable-192/512.png
+admin: favicon.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (32), favicon.ico (transparent, no plate), apple-touch-icon.png (iOS adapter, 180), icon-192/512.png and icon-maskable-192/512.png left as official kit PNGs
 ```
 
-That is the whole pipeline — there is no follow-up copy step.
+That is the whole pipeline. There is no follow-up copy step for the official kit PNGs.
 
 The master is authored in the RevealUI Design System project and lands here
 via its `repo-drop/` folder. Type outlining uses `@shuding/opentype.js`

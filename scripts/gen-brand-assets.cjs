@@ -25,12 +25,19 @@
  *   favicon.png                 : 32 from the transparent master; 64 from icon-mark
  *   favicon.ico                 : transparent master, no plate
  *   apple-touch-icon.png        : iOS adapter only, navy plate from icon-mark.svg, 180
- *   icon-192.png, icon-512.png  : transparent master, PWA purpose "any"
+ *   icon-192.png, icon-512.png  : docs and the brand dir rasterize the
+ *                                 transparent master (purpose "any")
  *   icon-maskable-192.png, icon-maskable-512.png
- *                               : from icon-maskable.svg, purpose "maskable"
+ *                               : docs and the brand dir rasterize
+ *                                 icon-maskable.svg (purpose "maskable")
+ *
+ * Marketing and admin do not take those rasters from this script. Their
+ * icon-192.png, icon-512.png, icon-maskable-192.png, and
+ * icon-maskable-512.png are the official kit PNGs. Leave those four files
+ * byte for byte. Never write a combined purpose "any maskable".
  *
  * Also refreshes icon-192.png / icon-512.png inside the brand dir itself,
- * which are tracked there as the canonical rasters.
+ * which are tracked there as generated rasters for docs.
  *
  * The SVG sync matters: marketing's <link rel="icon" type="image/svg+xml">
  * and NavBar's <img src="/revealui-logo.svg"> read the app-local copies,
@@ -84,6 +91,11 @@ const PLATE_PNG_SIZES = [48, 64, 96, 128, 256];
 const ANY_PNG_SIZES = [192, 512];
 /** Purpose "maskable". Navy plate, separate files. Never combined with "any". */
 const MASKABLE_SIZES = [192, 512];
+/**
+ * These apps ship the official kit PNGs. The script must not overwrite
+ * icon-192.png, icon-512.png, icon-maskable-192.png, or icon-maskable-512.png.
+ */
+const OFFICIAL_KIT_PNG_APPS = new Set(['marketing', 'admin']);
 const TILE_BG = '#060d1a';
 
 function assertNavyCircuitRMaster(masterSvg) {
@@ -243,14 +255,19 @@ async function main() {
     for (const size of PLATE_PNG_SIZES) {
       fs.copyFileSync(path.join(BRAND_DIR, `icon-${size}.png`), path.join(app.publicDir, `icon-${size}.png`));
     }
-    for (const size of ANY_PNG_SIZES) {
-      fs.copyFileSync(path.join(BRAND_DIR, `icon-${size}.png`), path.join(app.publicDir, `icon-${size}.png`));
-    }
-    for (const size of MASKABLE_SIZES) {
-      fs.copyFileSync(
-        path.join(BRAND_DIR, `icon-maskable-${size}.png`),
-        path.join(app.publicDir, `icon-maskable-${size}.png`),
-      );
+    if (!OFFICIAL_KIT_PNG_APPS.has(app.name)) {
+      for (const size of ANY_PNG_SIZES) {
+        fs.copyFileSync(
+          path.join(BRAND_DIR, `icon-${size}.png`),
+          path.join(app.publicDir, `icon-${size}.png`),
+        );
+      }
+      for (const size of MASKABLE_SIZES) {
+        fs.copyFileSync(
+          path.join(BRAND_DIR, `icon-maskable-${size}.png`),
+          path.join(app.publicDir, `icon-maskable-${size}.png`),
+        );
+      }
     }
 
     const icoEntries = [];
@@ -270,10 +287,13 @@ async function main() {
     fs.writeFileSync(path.join(app.publicDir, 'apple-touch-icon.png'), appleTouchPng);
 
     const synced = (SVG_SYNC[app.name] ?? []).join(', ');
+    const installedIcons = OFFICIAL_KIT_PNG_APPS.has(app.name)
+      ? 'icon-192/512.png and icon-maskable-192/512.png left as official kit PNGs'
+      : 'icon-192/512.png (transparent any), icon-maskable-192/512.png';
     console.log(
       `${app.name}: ${synced ? synced + ', ' : ''}favicon.png (${app.faviconPngSize}), ` +
         `favicon.ico (transparent, no plate), apple-touch-icon.png (iOS adapter, 180), ` +
-        `icon-192/512.png (transparent any), icon-maskable-192/512.png`,
+        installedIcons,
     );
   }
 }

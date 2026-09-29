@@ -381,11 +381,36 @@ describe('installed icons', () => {
         const { data, info } = await sharp(filePath).ensureAlpha().raw().toBuffer({
           resolveWithObject: true,
         });
-        const index = info.channels - 1;
-        expect(data[index], filePath).toBe(255);
-        expect(data[0], filePath).toBe(6);
-        expect(data[1], filePath).toBe(13);
-        expect(data[2], filePath).toBe(26);
+        const corners = [
+          [0, 0],
+          [info.width - 1, 0],
+          [0, info.height - 1],
+          [info.width - 1, info.height - 1],
+        ] as const;
+        for (const [x, y] of corners) {
+          const index = (y * info.width + x) * info.channels;
+          expect(data[index], `${filePath} ${x},${y} r`).toBe(6);
+          expect(data[index + 1], `${filePath} ${x},${y} g`).toBe(13);
+          expect(data[index + 2], `${filePath} ${x},${y} b`).toBe(26);
+          expect(data[index + 3], `${filePath} ${x},${y} a`).toBe(255);
+        }
+      }
+    }
+  });
+
+  it('keeps official kit PNGs byte for byte on marketing and admin', () => {
+    const repoRoot = path.resolve(brandDir, '../../../../..');
+    const officialRoots = ['apps/marketing/public', 'apps/admin/public'] as const;
+    const officialSha256 = {
+      'icon-192.png': '062e96dfe37edd9c6f1d03af43af6a35fc1d9158a9444e96faa4c426ffcadfe7',
+      'icon-512.png': '3614b9ced42fb4d51678ef8c19a603782dd95650df81f18f884d56ab7e45d090',
+      'icon-maskable-192.png': '99a3e0057e0f6d61678d8f4fbe1b490b6d2d1e542e3f094fc8b43096178bea8a',
+      'icon-maskable-512.png': '357040fd617c8f366485b37ce3514f152c734b594f47f077064b1973a05e9074',
+    } as const;
+    for (const relativeRoot of officialRoots) {
+      for (const name of Object.keys(officialSha256) as Array<keyof typeof officialSha256>) {
+        const filePath = path.join(repoRoot, relativeRoot, name);
+        expect(sha256File(filePath), filePath).toBe(officialSha256[name]);
       }
     }
   });
