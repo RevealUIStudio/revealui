@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -128,19 +129,47 @@ describe('Circuit-R brand family', () => {
     }
   });
 
-  it('uses the same 3 region paths, with no traces, on the flat small marks', () => {
-    const mark = readBrand('revealui-mark.svg');
-    const favicon = readBrand('favicon.svg');
-    expect(mark).toBe(favicon);
-    expect(mark.includes(STEM)).toBe(true);
-    expect(mark.includes(BOWL)).toBe(true);
-    expect(mark.includes(LEG)).toBe(true);
-    expect(mark.includes(NAVY_STEM)).toBe(true);
-    expect(mark.includes(NAVY_BOWL)).toBe(true);
-    expect(mark.includes(NAVY_LEG)).toBe(true);
-    expect(mark.includes('<circle')).toBe(false);
-    expect(mark.includes(FROST_TRACE)).toBe(false);
-    expect(mark.includes(FACETED_A)).toBe(false);
+  it('hashes every logo SVG to the kit master and allowlists plate adapters', () => {
+    const repoRoot = path.resolve(brandDir, '../../../../..');
+    const masterNames = new Set([
+      'revealui-logo.svg',
+      'revealui-logo-dark.svg',
+      'favicon.svg',
+      'revealui-mark.svg',
+    ]);
+    const adapterNames = new Set(['icon-mark.svg', 'icon-maskable.svg']);
+    const roots = [
+      'packages/presentation/src/assets/brand',
+      'apps/marketing/public',
+      'apps/docs/public',
+      'apps/admin/public',
+    ];
+    const masters: string[] = [];
+    const adapters: string[] = [];
+
+    for (const relativeRoot of roots) {
+      const files: string[] = [];
+      collectSvgFiles(path.join(repoRoot, relativeRoot), files);
+      for (const filePath of files) {
+        const base = path.basename(filePath);
+        if (adapterNames.has(base)) {
+          adapters.push(filePath);
+          expect(sha256File(filePath), filePath).not.toBe(KIT_MASTER_SHA256);
+          const text = readFileSync(filePath, 'utf8');
+          expect(text.includes(NAVY_PLATE), `${filePath} ADAPTER`).toBe(true);
+          expect(text.includes('<rect'), `${filePath} ADAPTER`).toBe(true);
+        } else if (masterNames.has(base)) {
+          masters.push(filePath);
+          expect(sha256File(filePath), filePath).toBe(KIT_MASTER_SHA256);
+          const text = readFileSync(filePath, 'utf8');
+          expect(text.includes(NAVY_PLATE), filePath).toBe(false);
+          expect(text.includes('<rect'), filePath).toBe(false);
+        }
+      }
+    }
+
+    expect(masters).toHaveLength(13);
+    expect(adapters).toHaveLength(3);
   });
 
   it('tiles the same circuit letter on a navy plate, inset for a circular crop', () => {
@@ -187,7 +216,7 @@ describe('Circuit-R brand family', () => {
     expect(readme.includes('Never render either file below 96px')).toBe(false);
   });
 
-  it('keeps the flat no-circuit mark only for 16/32 favicon rasters', () => {
+  it('keeps the favicon raster files and does not restore retired 48/64 twins', () => {
     expect(existsSync(path.join(brandDir, 'favicon-32.png'))).toBe(true);
     expect(existsSync(path.join(brandDir, 'favicon-48.png'))).toBe(false);
     expect(existsSync(path.join(brandDir, 'favicon-64.png'))).toBe(false);
@@ -216,3 +245,183 @@ describe('Circuit-R brand family', () => {
     expect(dark.includes(INVERT_TRACE)).toBe(false);
   });
 });
+
+const LOGO_ICON_ROOTS = [
+  'packages/presentation/src/assets/brand',
+  'apps/marketing/public',
+  'apps/docs/public',
+  'apps/admin/public',
+] as const;
+
+function collectSvgFiles(dir: string, acc: string[]): void {
+  if (!existsSync(dir)) return;
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (
+      entry.name === 'node_modules' ||
+      entry.name === 'docs-pro' ||
+      entry.name === '.well-known'
+    ) {
+      continue;
+    }
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      collectSvgFiles(full, acc);
+      continue;
+    }
+    if (entry.isFile() && entry.name.endsWith('.svg')) acc.push(full);
+  }
+}
+
+describe('installed icons', () => {
+  it('lists separate any and maskable icons plus the master favicon', () => {
+    const repoRoot = path.resolve(brandDir, '../../../../..');
+    const jsonManifests = [
+      'apps/marketing/public/site.webmanifest',
+      'apps/docs/public/site.webmanifest',
+    ];
+    for (const relativePath of jsonManifests) {
+      const manifest = JSON.parse(readFileSync(path.join(repoRoot, relativePath), 'utf8')) as {
+        icons: Array<{ src: string; sizes: string; type: string; purpose: string }>;
+      };
+      expect(JSON.stringify(manifest).includes('any maskable'), relativePath).toBe(false);
+      assertIconList(manifest.icons, relativePath);
+    }
+
+    const adminManifest = readFileSync(
+      path.join(repoRoot, 'apps/admin/src/app/manifest.ts'),
+      'utf8',
+    );
+    expect(adminManifest.includes('any maskable')).toBe(false);
+    expect(adminManifest.includes("src: '/icon-192.png'")).toBe(true);
+    expect(adminManifest.includes("purpose: 'any'")).toBe(true);
+    expect(adminManifest.includes("src: '/icon-maskable-192.png'")).toBe(true);
+    expect(adminManifest.includes("src: '/icon-maskable-512.png'")).toBe(true);
+    expect(adminManifest.includes("src: '/favicon.svg'")).toBe(true);
+    expect(adminManifest.includes("sizes: 'any'")).toBe(true);
+    expect(adminManifest.includes("type: 'image/svg+xml'")).toBe(true);
+  });
+
+  it('marks the SVG icon link sizes any and labels the iOS plate', () => {
+    const repoRoot = path.resolve(brandDir, '../../../../..');
+    const pages: Array<[string, string]> = [
+      [
+        'apps/marketing/index.html',
+        '<link rel="icon" type="image/svg+xml" href="/favicon.svg" sizes="any" />',
+      ],
+      [
+        'apps/docs/index.html',
+        '<link rel="icon" type="image/svg+xml" href="/favicon.svg" sizes="any" />',
+      ],
+      [
+        'apps/admin/src/app/(frontend)/layout.tsx',
+        '<link href="/favicon.svg" rel="icon" type="image/svg+xml" sizes="any" />',
+      ],
+    ];
+    for (const [relativePath, needle] of pages) {
+      const text = readFileSync(path.join(repoRoot, relativePath), 'utf8');
+      expect(text.includes(needle), relativePath).toBe(true);
+      expect(text.includes('iOS adapter only'), relativePath).toBe(true);
+    }
+  });
+
+  it('keeps transparent corners on purpose any icons', async () => {
+    const repoRoot = path.resolve(brandDir, '../../../../..');
+    const nodeRequire = createRequire(path.join(repoRoot, 'apps/admin/package.json'));
+    const sharp = nodeRequire('sharp') as (input: string) => {
+      ensureAlpha(): {
+        raw(): {
+          toBuffer(options: {
+            resolveWithObject: true;
+          }): Promise<{ data: Buffer; info: { width: number; height: number; channels: number } }>;
+        };
+      };
+    };
+
+    for (const relativeRoot of LOGO_ICON_ROOTS) {
+      for (const name of ['icon-192.png', 'icon-512.png'] as const) {
+        const filePath = path.join(repoRoot, relativeRoot, name);
+        expect(existsSync(filePath), filePath).toBe(true);
+        const { data, info } = await sharp(filePath).ensureAlpha().raw().toBuffer({
+          resolveWithObject: true,
+        });
+        const expected = name === 'icon-192.png' ? 192 : 512;
+        expect(info.width, filePath).toBe(expected);
+        expect(info.height, filePath).toBe(expected);
+        const corners = [
+          [0, 0],
+          [info.width - 1, 0],
+          [0, info.height - 1],
+          [info.width - 1, info.height - 1],
+        ] as const;
+        for (const [x, y] of corners) {
+          const index = (y * info.width + x) * info.channels + (info.channels - 1);
+          expect(data[index], `${filePath} ${x},${y}`).toBe(0);
+        }
+      }
+    }
+  });
+
+  it('keeps a navy plate on maskable icons', async () => {
+    const repoRoot = path.resolve(brandDir, '../../../../..');
+    const nodeRequire = createRequire(path.join(repoRoot, 'apps/admin/package.json'));
+    const sharp = nodeRequire('sharp') as (input: string) => {
+      ensureAlpha(): {
+        raw(): {
+          toBuffer(options: {
+            resolveWithObject: true;
+          }): Promise<{ data: Buffer; info: { width: number; height: number; channels: number } }>;
+        };
+      };
+    };
+
+    for (const relativeRoot of LOGO_ICON_ROOTS) {
+      for (const name of ['icon-maskable-192.png', 'icon-maskable-512.png'] as const) {
+        const filePath = path.join(repoRoot, relativeRoot, name);
+        expect(existsSync(filePath), filePath).toBe(true);
+        const { data, info } = await sharp(filePath).ensureAlpha().raw().toBuffer({
+          resolveWithObject: true,
+        });
+        const index = info.channels - 1;
+        expect(data[index], filePath).toBe(255);
+        expect(data[0], filePath).toBe(6);
+        expect(data[1], filePath).toBe(13);
+        expect(data[2], filePath).toBe(26);
+      }
+    }
+  });
+});
+
+function assertIconList(
+  icons: Array<{ src: string; sizes: string; type: string; purpose: string }>,
+  label: string,
+): void {
+  const bySrc = new Map(icons.map((icon) => [icon.src, icon]));
+  expect(bySrc.get('/icon-192.png'), label).toMatchObject({
+    sizes: '192x192',
+    type: 'image/png',
+    purpose: 'any',
+  });
+  expect(bySrc.get('/icon-512.png'), label).toMatchObject({
+    sizes: '512x512',
+    type: 'image/png',
+    purpose: 'any',
+  });
+  expect(bySrc.get('/icon-maskable-192.png'), label).toMatchObject({
+    sizes: '192x192',
+    type: 'image/png',
+    purpose: 'maskable',
+  });
+  expect(bySrc.get('/icon-maskable-512.png'), label).toMatchObject({
+    sizes: '512x512',
+    type: 'image/png',
+    purpose: 'maskable',
+  });
+  expect(bySrc.get('/favicon.svg'), label).toMatchObject({
+    sizes: 'any',
+    type: 'image/svg+xml',
+    purpose: 'any',
+  });
+  for (const icon of icons) {
+    expect(icon.purpose === 'any' || icon.purpose === 'maskable', label).toBe(true);
+  }
+}

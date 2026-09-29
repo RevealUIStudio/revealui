@@ -22,7 +22,8 @@ true alpha, transform `translate(256,256) scale(1.06) translate(-310,-320)`.
 (sha256 `a94031503236900c7711cc3c9b766e584fc1079ff820a05a969e8cc1d7acfa33`).
 Do not invent a dark letterform. Do not CSS-invert the multi-color mark.
 Do not bake a `#060d1a` plate into either file. Navy plate is adapter-only
-(`icon-mark.svg`, `icon-maskable.svg`, apple-touch, PWA rasters).
+(`icon-mark.svg`, `icon-maskable.svg`, apple-touch as an iOS adapter, and
+maskable PWA rasters). Purpose `any` icons are the transparent master.
 
 **Locked 2026-08-31** — optical-center **placement** of that same v2 curved-leg
 Circuit-R. The kit group is `translate(256,256) scale(1.06) translate(-310,-320)`.
@@ -81,9 +82,10 @@ behind the mark. Never swap in apple-touch or favicon rasters for the header.
 
 Derived from the master. Do not invent a second R.
 
-- `revealui-mark.svg` / `favicon.svg` — the same 3 region paths, no traces.
-  Browser-tab favicon at **16/32 only**. The two files are byte-identical;
-  `favicon.svg` is the deployment alias.
+- `revealui-mark.svg` / `favicon.svg`: the same kit master bytes as
+  `revealui-logo.svg` (sha256
+  `a94031503236900c7711cc3c9b766e584fc1079ff820a05a969e8cc1d7acfa33`).
+  No plate, no `<rect>`, no `#060d1a`. `favicon.svg` is the deployment alias.
 - `icon-mark.svg` — the same Circuit-R on a `#060d1a` rounded plate (`rx=112`),
   inset at `scale(0.742)` (70% of the overshooting 1.06 master) so a circular
   crop does not clip the stem or the leg tip. Source for GitHub, apple-touch,
@@ -105,10 +107,10 @@ the official mark.
 
 | Render size | Use |
 |---|---|
-| 16 / 32 | Flat mark only — `favicon.svg` / `revealui-mark.svg`. Traces mud at this size. |
-| ≥48     | Circuit master — `revealui-logo.svg` and `revealui-logo-dark.svg` (same transparent kit bytes). The `#060d1a` icon-mark tile is an adapter, not the official mark. |
+| 16 / 32 | `favicon.svg` / `revealui-mark.svg`, the same transparent kit master. `favicon.ico` is the transparent fallback. No plate. |
+| ≥48     | Circuit master: `revealui-logo.svg` and `revealui-logo-dark.svg` (same transparent kit bytes). The `#060d1a` icon-mark tile is an adapter, not the official mark. |
 
-The flat no-circuit mark is **only** for 16/32. Do not ship a flat twin at 48 or 64.
+`favicon.svg` and `revealui-mark.svg` are the kit master, including at 16/32. Do not ship a second flat letterform. `favicon.ico` stays transparent. No plate.
 
 ## Stroke weights
 
@@ -116,7 +118,7 @@ Optical, not drift — each file is tuned for its own render band:
 
 | File | `stroke-width` |
 |---|---|
-| `revealui-mark.svg` / `favicon.svg` | `1.6` |
+| `revealui-mark.svg` / `favicon.svg` | same strokes as the kit master |
 | `wordmark-*.svg` | `2.4` |
 | `revealui-logo.svg` / `revealui-logo-dark.svg` and navy-plate variants | `1.3` / `1.6` / `2` per trace class |
 
@@ -132,17 +134,18 @@ Do not normalise these to a single value.
 
 ## Per-app deployables
 
-`gen-brand-assets.cjs` writes everything each app serves — the SVG copies as
-well as the rasters. Nothing here is copied by hand. `revealui-logo-dark.svg`
-is a byte copy of the transparent kit master. Navy-plate SVGs and
-favicon/PWA rasters are adapter derives (`scale(0.742)` on Surface 0). Do
-not author a frost invert, and do not put that plate back on the official
-mark.
+`gen-brand-assets.cjs` writes everything each app serves, the SVG copies as
+well as the rasters. Nothing here is copied by hand. `revealui-logo-dark.svg`,
+`favicon.svg`, and `revealui-mark.svg` are byte copies of the transparent kit
+master. Navy-plate SVGs (`icon-mark.svg`, `icon-maskable.svg`) and the
+maskable rasters are adapters (`scale(0.742)` on Surface 0, inside the 80
+percent safe zone). Purpose `any` PNGs are the transparent master. Do not
+author a frost invert, and do not put that plate back on the official mark.
 
 | App | Serves |
 |---|---|
-| marketing | `revealui-logo.svg`, `revealui-logo-dark.svg`, `favicon.svg`, `icon-mark.svg`, `favicon.png` (64), `favicon.ico`, `apple-touch-icon.png`, `icon-192/512.png`, `icon-maskable-512.png` |
-| docs | `revealui-logo.svg`, `revealui-logo-dark.svg`, `favicon.svg`, `favicon.png` (32), `favicon.ico`, `apple-touch-icon.png`, `icon-192/512.png`, `icon-maskable-512.png` |
+| marketing | `revealui-logo.svg`, `revealui-logo-dark.svg`, `favicon.svg`, `icon-mark.svg`, `favicon.png` (64), `favicon.ico`, `apple-touch-icon.png` (iOS adapter), `icon-192/512.png` (transparent any), `icon-maskable-192/512.png` |
+| docs | `revealui-logo.svg`, `revealui-logo-dark.svg`, `favicon.svg`, `favicon.png` (32), `favicon.ico`, `apple-touch-icon.png` (iOS adapter), `icon-192/512.png` (transparent any), `icon-maskable-192/512.png` |
 | admin | same as docs |
 
 The SVG sync is load-bearing: marketing and docs chrome read
@@ -166,28 +169,32 @@ Next injects `<link rel="manifest">` itself, so admin's layout needs no
 icon wiring. The Vite apps declare theirs in `index.html` alongside a
 `<meta name="theme-color" content="#060d1a">`.
 
-All three point at the same four icon entries — `favicon.svg` (`any`),
-`icon-192/512.png` (`any`), `icon-maskable-512.png` (`maskable`).
+All three list separate icon entries: `icon-192.png` and `icon-512.png`
+(`any`, transparent master), `icon-maskable-192.png` and
+`icon-maskable-512.png` (`maskable`, navy plate), plus `favicon.svg`
+(`sizes` `any`, `image/svg+xml`, `purpose` `any`). Never one entry with
+purpose `any maskable`.
 
 ## Regenerating
 
-Rasters and the `.ico` are produced from `favicon.svg` and the derived navy
-plates by
+Rasters and the `.ico` are produced from the kit master (transparent, no plate)
+and the locked navy-plate adapters (`icon-mark.svg`, `icon-maskable.svg`) by
 [`scripts/gen-brand-assets.cjs`](../../../../../scripts/gen-brand-assets.cjs) at
 the repo root, using `sharp` (resolved from `apps/admin`'s dependency, no new
-package added). Edit the master, then run:
+package added). Purpose `any` PNGs keep alpha. Maskable PNGs keep the plate.
+Edit the master, then run:
 
 ```bash
 node scripts/gen-brand-assets.cjs
 ```
 
-Expected output — four lines:
+Expected output, four lines:
 
 ```
-brand: revealui-logo-dark.svg (same bytes as transparent kit master), favicon.ico (16/32 flat + 48 circuit), favicon-32.png, apple-touch-icon.png (180), icon-48/64/96/128/192/256/512.png
-marketing: favicon.svg, icon-mark.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (64), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
-docs: favicon.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (32), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
-admin: favicon.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (32), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
+brand: favicon.svg and revealui-mark.svg (kit master bytes), revealui-logo-dark.svg (same bytes), favicon.ico (transparent, no plate), favicon-32.png, apple-touch-icon.png (iOS adapter, 180), icon-192/512.png (transparent any), icon-maskable-192/512.png
+marketing: favicon.svg, icon-mark.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (64), favicon.ico (transparent, no plate), apple-touch-icon.png (iOS adapter, 180), icon-192/512.png (transparent any), icon-maskable-192/512.png
+docs: favicon.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (32), favicon.ico (transparent, no plate), apple-touch-icon.png (iOS adapter, 180), icon-192/512.png (transparent any), icon-maskable-192/512.png
+admin: favicon.svg, revealui-logo.svg, revealui-logo-dark.svg, favicon.png (32), favicon.ico (transparent, no plate), apple-touch-icon.png (iOS adapter, 180), icon-192/512.png (transparent any), icon-maskable-192/512.png
 ```
 
 That is the whole pipeline — there is no follow-up copy step.

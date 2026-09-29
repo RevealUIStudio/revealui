@@ -5,12 +5,12 @@ import { RevealUIMark } from './brand-mark.js';
 export interface RevealUIWordmarkProps {
   /** Sizing + layout utilities on the outer wrapper. Font size drives the whole lockup. */
   className?: string;
-  /** Render the Solar Amber outline stroke on the monogram. Default `true`. */
+  /** Accepted for existing call sites. Does not swap in a second letterform. */
   reveal?: boolean;
 }
 
 /**
- * The RevealUI wordmark — the Circuit-R monogram plus "RevealUI" set in the
+ * The RevealUI wordmark: the Circuit-R monogram plus "RevealUI" set in the
  * brand display face.
  *
  * The "RevealUI" text is real HTML, not SVG `<text>`: SVG text does not
@@ -18,9 +18,9 @@ export interface RevealUIWordmarkProps {
  * arbitrary system font), so this is the reliable way to get the display
  * face applied. "Reveal" tracks `--rvui-brand-text` and "UI" tracks
  * `--rvui-accent`, both of which flip automatically between the light and
- * dark token ladders in `@revealui/tokens` — no theme prop needed. The
- * monogram is the same canonical paths as `RevealUIMark`; see that
- * component and `src/assets/brand/` for the source of truth.
+ * dark token ladders in `@revealui/tokens`. No theme prop needed. The
+ * monogram is `RevealUIMark`, which renders the kit master asset. Light and
+ * dark files are the same bytes. See `src/assets/brand/` for the source of truth.
  */
 export function RevealUIWordmark({
   className,

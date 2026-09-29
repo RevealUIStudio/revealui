@@ -1,30 +1,33 @@
 /*
- * gen-brand-assets.cjs — regenerates the per-app brand ladder from the
+ * gen-brand-assets.cjs: regenerates the per-app brand ladder from the
  * canonical SVG masters in packages/presentation/src/assets/brand/.
  * ──────────────────────────────────────────────────────────────────────────
  * Masters read:
- *   revealui-logo.svg      — kit Circuit-R master (true alpha). Transform lock
+ *   revealui-logo.svg      : kit Circuit-R master (true alpha). Transform lock
  *                            translate(256,256) scale(1.06) translate(-310,-320).
  *                            Public chrome copies this file. No plate.
- *   revealui-logo-dark.svg — the same bytes as revealui-logo.svg. Path
+ *   revealui-logo-dark.svg : the same bytes as revealui-logo.svg. Path
  *                            compatibility only. Not a second letterform and
  *                            not a #060d1a plate.
- *   favicon.svg            — flat 3-path extract, no traces (browser-tab favicon)
+ *   favicon.svg            : the same kit master bytes (browser-tab favicon)
+ *   revealui-mark.svg      : the same kit master bytes
  *
  * Derived in this script (same letterform, never a second R, never a frost invert):
- *   icon-mark.svg      — ADAPTER-ONLY. Master on a #060d1a rounded plate
+ *   icon-mark.svg      : ADAPTER-ONLY. Master on a #060d1a rounded plate
  *                        (rx=112), scale 0.742, so a circular crop does not
  *                        clip the stem or leg tip. Not the official mark.
- *   icon-maskable.svg  — ADAPTER-ONLY. The same plate full-bleed (rx=0) for
- *                        PWA masking. Not the official mark.
+ *   icon-maskable.svg  : ADAPTER-ONLY. The same plate full-bleed (rx=0) for
+ *                        PWA masking. Mark stays inside the 80 percent safe
+ *                        zone. Not the official mark.
  *
  * Outputs, per app public/:
- *   favicon.svg, icon-mark.svg  — verbatim SVG copies (see SVG_SYNC)
- *   favicon.png                 — 32 from favicon.svg (flat); 64 from icon-mark
- *   favicon.ico                 — 16/32 flat + 48 circuit, multi-res
- *   apple-touch-icon.png        — from icon-mark.svg, 180
- *   icon-192.png, icon-512.png  — from icon-mark.svg, PWA purpose "any"
- *   icon-maskable-512.png       — from icon-maskable.svg, purpose "maskable"
+ *   favicon.svg, icon-mark.svg  : verbatim SVG copies (see SVG_SYNC)
+ *   favicon.png                 : 32 from the transparent master; 64 from icon-mark
+ *   favicon.ico                 : transparent master, no plate
+ *   apple-touch-icon.png        : iOS adapter only, navy plate from icon-mark.svg, 180
+ *   icon-192.png, icon-512.png  : transparent master, PWA purpose "any"
+ *   icon-maskable-192.png, icon-maskable-512.png
+ *                               : from icon-maskable.svg, purpose "maskable"
  *
  * Also refreshes icon-192.png / icon-512.png inside the brand dir itself,
  * which are tracked there as the canonical rasters.
@@ -48,6 +51,7 @@ const BRAND_DIR = path.join(ROOT, 'packages/presentation/src/assets/brand');
 const MASTER_SVG = path.join(BRAND_DIR, 'revealui-logo.svg');
 const MASTER_DARK_SVG = path.join(BRAND_DIR, 'revealui-logo-dark.svg');
 const FAVICON_SVG = path.join(BRAND_DIR, 'favicon.svg');
+const MARK_SVG = path.join(BRAND_DIR, 'revealui-mark.svg');
 const MASTER_TRANSFORM = 'translate(256,256) scale(1.06) translate(-310,-320)';
 const NAVY_FILLS = ['#0a2c5a', '#002247', '#0e3468', '#9fc9ff', '#f0b519'];
 const INVERT_FILLS = ['#164687', '#0d3169', '#1e57a8', '#e8f1ff', '#082448'];
@@ -56,9 +60,6 @@ const ICON_MASKABLE_SVG = path.join(BRAND_DIR, 'icon-maskable.svg');
 
 /** Locked transform on revealui-logo.svg. Do not steepen the letter. */
 /** Bowl counter uses mask#cm (userSpaceOnUse). Do not drop it. */
-const MASTER_SCALE = 'scale(1.06)';
-/** 70% of the overshooting master so a circular crop keeps stem + leg tip. */
-const TILE_SCALE = 'scale(0.742)';
 
 const APPS = [
   { name: 'marketing', publicDir: path.join(ROOT, 'apps/marketing/public'), faviconPngSize: 64 },
@@ -74,14 +75,15 @@ const SVG_SYNC = {
 };
 
 const APPLE_TOUCH_ICON_SIZE = 180;
-const ICO_FLAT_SIZES = [16, 32];
-const ICO_CIRCUIT_SIZE = 48;
-/** Flat mark only for 16/32, where traces mud. */
+/** Transparent fallback. No plate. */
+const ICO_SIZES = [16, 32, 48];
 const FLAT_PNG_SIZES = [32];
-/** Circuit master on Surface 0 plate. 48+ is this letter, not a flat twin. */
-const CIRCUIT_PNG_SIZES = [48, 64, 96, 128, 192, 256, 512];
-const PWA_SIZES = [192, 512];
-const MASKABLE_SIZE = 512;
+/** Plated adapter rasters. Not the purpose "any" icons. */
+const PLATE_PNG_SIZES = [48, 64, 96, 128, 256];
+/** Purpose "any". Transparent master, alpha preserved. */
+const ANY_PNG_SIZES = [192, 512];
+/** Purpose "maskable". Navy plate, separate files. Never combined with "any". */
+const MASKABLE_SIZES = [192, 512];
 const TILE_BG = '#060d1a';
 
 function assertNavyCircuitRMaster(masterSvg) {
@@ -113,30 +115,6 @@ function assertNavyCircuitRMaster(masterSvg) {
       );
     }
   }
-}
-
-function insertSurface0Plate(svg, { rx = null, scale = MASTER_SCALE } = {}) {
-  let out = svg;
-  if (scale !== MASTER_SCALE) {
-    const scaleAt = out.indexOf(MASTER_SCALE);
-    if (scaleAt === -1) {
-      throw new Error('revealui-logo.svg is missing the locked scale(1.06) transform');
-    }
-    out = out.slice(0, scaleAt) + scale + out.slice(scaleAt + MASTER_SCALE.length);
-  }
-  const svgGt = out.indexOf('>');
-  if (svgGt === -1) {
-    throw new Error('revealui-logo.svg is missing the root <svg> tag');
-  }
-  const rxAttr = rx === null ? '' : ` rx="${rx}"`;
-  const plate = `<rect width="512" height="512"${rxAttr} fill="${TILE_BG}"></rect>`;
-  return out.slice(0, svgGt + 1) + plate + out.slice(svgGt + 1);
-}
-
-/** Tiled icon: same navy letter, scale 0.742, Surface 0 plate. Not a second R. */
-function deriveNavyPlate(masterSvg, rx) {
-  assertNavyCircuitRMaster(masterSvg);
-  return insertSurface0Plate(masterSvg, { rx, scale: TILE_SCALE });
 }
 
 function deriveDarkFromLight(masterSvg) {
@@ -187,36 +165,45 @@ async function rasterize(sharp, src, size, { flatten = false } = {}) {
 async function main() {
   const sharp = resolveSharp();
 
-  for (const master of [MASTER_SVG, FAVICON_SVG]) {
-    if (!fs.existsSync(master)) {
-      console.error(`missing master: ${master}`);
-      process.exit(1);
-    }
+  if (!fs.existsSync(MASTER_SVG)) {
+    console.error(`missing master: ${MASTER_SVG}`);
+    process.exit(1);
   }
 
   const circuitMaster = fs.readFileSync(MASTER_SVG, 'utf8');
   assertNavyCircuitRMaster(circuitMaster);
   fs.writeFileSync(MASTER_DARK_SVG, deriveDarkFromLight(circuitMaster));
-  fs.writeFileSync(ICON_MARK_SVG, deriveNavyPlate(circuitMaster, 112));
-  fs.writeFileSync(ICON_MASKABLE_SVG, deriveNavyPlate(circuitMaster, 0));
+  fs.writeFileSync(FAVICON_SVG, circuitMaster);
+  fs.writeFileSync(MARK_SVG, circuitMaster);
+  // icon-mark.svg and icon-maskable.svg are locked ADAPTER files.
+  // Do not rewrite them from the master. The tile uses translate(-300,-320)
+  // at scale(0.742). A scale-only derive does not reproduce that file.
+  if (!fs.existsSync(ICON_MARK_SVG) || !fs.existsSync(ICON_MASKABLE_SVG)) {
+    throw new Error('missing locked adapter SVG (icon-mark.svg or icon-maskable.svg)');
+  }
 
   for (const size of FLAT_PNG_SIZES) {
-    const png = await rasterize(sharp, FAVICON_SVG, size);
+    const png = await rasterize(sharp, MASTER_SVG, size);
     fs.writeFileSync(path.join(BRAND_DIR, `favicon-${size}.png`), png);
   }
-  for (const size of CIRCUIT_PNG_SIZES) {
+  for (const size of PLATE_PNG_SIZES) {
     const png = await rasterize(sharp, ICON_MARK_SVG, size, { flatten: true });
     fs.writeFileSync(path.join(BRAND_DIR, `icon-${size}.png`), png);
   }
-  const brandIco = [];
-  for (const size of ICO_FLAT_SIZES) {
-    brandIco.push({ size, png: await rasterize(sharp, FAVICON_SVG, size) });
+  for (const size of ANY_PNG_SIZES) {
+    const png = await rasterize(sharp, MASTER_SVG, size);
+    fs.writeFileSync(path.join(BRAND_DIR, `icon-${size}.png`), png);
   }
-  brandIco.push({
-    size: ICO_CIRCUIT_SIZE,
-    png: await rasterize(sharp, ICON_MARK_SVG, ICO_CIRCUIT_SIZE, { flatten: true }),
-  });
+  for (const size of MASKABLE_SIZES) {
+    const png = await rasterize(sharp, ICON_MASKABLE_SVG, size);
+    fs.writeFileSync(path.join(BRAND_DIR, `icon-maskable-${size}.png`), png);
+  }
+  const brandIco = [];
+  for (const size of ICO_SIZES) {
+    brandIco.push({ size, png: await rasterize(sharp, MASTER_SVG, size) });
+  }
   fs.writeFileSync(path.join(BRAND_DIR, 'favicon.ico'), packIco(brandIco));
+  // iOS adapter only. Navy plate. Not the official mark.
   fs.writeFileSync(
     path.join(BRAND_DIR, 'apple-touch-icon.png'),
     await rasterize(sharp, ICON_MARK_SVG, APPLE_TOUCH_ICON_SIZE, { flatten: true }),
@@ -226,9 +213,10 @@ async function main() {
     if (fs.existsSync(stalePath)) fs.unlinkSync(stalePath);
   }
   console.log(
-    `brand: revealui-logo-dark.svg (same bytes as transparent kit master), ` +
-      `favicon.ico (16/32 flat + 48 circuit), favicon-32.png, apple-touch-icon.png (180), ` +
-      `icon-48/64/96/128/192/256/512.png`,
+    `brand: favicon.svg and revealui-mark.svg (kit master bytes), ` +
+      `revealui-logo-dark.svg (same bytes), favicon.ico (transparent, no plate), ` +
+      `favicon-32.png, apple-touch-icon.png (iOS adapter, 180), ` +
+      `icon-192/512.png (transparent any), icon-maskable-192/512.png`,
   );
 
   for (const app of APPS) {
@@ -252,43 +240,40 @@ async function main() {
     for (const size of FLAT_PNG_SIZES) {
       fs.copyFileSync(path.join(BRAND_DIR, `favicon-${size}.png`), path.join(app.publicDir, `favicon-${size}.png`));
     }
-    for (const size of CIRCUIT_PNG_SIZES) {
+    for (const size of PLATE_PNG_SIZES) {
       fs.copyFileSync(path.join(BRAND_DIR, `icon-${size}.png`), path.join(app.publicDir, `icon-${size}.png`));
+    }
+    for (const size of ANY_PNG_SIZES) {
+      fs.copyFileSync(path.join(BRAND_DIR, `icon-${size}.png`), path.join(app.publicDir, `icon-${size}.png`));
+    }
+    for (const size of MASKABLE_SIZES) {
+      fs.copyFileSync(
+        path.join(BRAND_DIR, `icon-maskable-${size}.png`),
+        path.join(app.publicDir, `icon-maskable-${size}.png`),
+      );
     }
 
     const icoEntries = [];
-    for (const size of ICO_FLAT_SIZES) {
-      icoEntries.push({ size, png: await rasterize(sharp, FAVICON_SVG, size) });
+    for (const size of ICO_SIZES) {
+      icoEntries.push({ size, png: await rasterize(sharp, MASTER_SVG, size) });
     }
-    icoEntries.push({
-      size: ICO_CIRCUIT_SIZE,
-      png: await rasterize(sharp, ICON_MARK_SVG, ICO_CIRCUIT_SIZE, { flatten: true }),
-    });
     fs.writeFileSync(path.join(app.publicDir, 'favicon.ico'), packIco(icoEntries));
     for (const stale of ['favicon-48.png', 'favicon-64.png']) {
       const stalePath = path.join(app.publicDir, stale);
       if (fs.existsSync(stalePath)) fs.unlinkSync(stalePath);
     }
 
+    // iOS adapter only. Navy plate. Not the official mark.
     const appleTouchPng = await rasterize(sharp, ICON_MARK_SVG, APPLE_TOUCH_ICON_SIZE, {
       flatten: true,
     });
     fs.writeFileSync(path.join(app.publicDir, 'apple-touch-icon.png'), appleTouchPng);
 
-    for (const size of PWA_SIZES) {
-      const png = await rasterize(sharp, ICON_MARK_SVG, size, { flatten: true });
-      fs.writeFileSync(path.join(app.publicDir, `icon-${size}.png`), png);
-    }
-
-    const maskablePng = await rasterize(sharp, ICON_MASKABLE_SVG, MASKABLE_SIZE, {
-      flatten: true,
-    });
-    fs.writeFileSync(path.join(app.publicDir, 'icon-maskable-512.png'), maskablePng);
-
     const synced = (SVG_SYNC[app.name] ?? []).join(', ');
     console.log(
       `${app.name}: ${synced ? synced + ', ' : ''}favicon.png (${app.faviconPngSize}), ` +
-        `favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png`,
+        `favicon.ico (transparent, no plate), apple-touch-icon.png (iOS adapter, 180), ` +
+        `icon-192/512.png (transparent any), icon-maskable-192/512.png`,
     );
   }
 }
