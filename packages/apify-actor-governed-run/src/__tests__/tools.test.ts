@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
+import { lookup as dnsLookup } from 'node:dns/promises';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 // Guardrail-2 blocker 3 (revealui#2198 REQUEST-CHANGES): `isBlockedHost` did
 // string equality/prefix matching on `url.hostname` with no DNS resolution,
@@ -22,7 +23,146 @@ vi.mock('node:dns/promises', () => ({
   }),
 }));
 
+interface LookupHit {
+  address: string;
+  family: number;
+}
+
+interface RecordedRequest {
+  hostname: string | undefined;
+  servername: string | undefined;
+  protocol: string | undefined;
+  rejectUnauthorized: boolean | undefined;
+  lookupResults: LookupHit[];
+  invokeLookup: () => LookupHit[];
+}
+
+const netHarness = vi.hoisted(() => {
+  const httpRequests: RecordedRequest[] = [];
+  const httpsRequests: RecordedRequest[] = [];
+  const response = {
+    status: 200,
+    body: 'ok',
+    headers: {} as Record<string, string>,
+  };
+
+  function readLookup(
+    lookup: (
+      hostname: string,
+      options: { all?: boolean },
+      callback: (
+        err: NodeJS.ErrnoException | null,
+        address: string | LookupHit[],
+        family?: number,
+      ) => void,
+    ) => void,
+    hostname: string,
+  ): LookupHit[] {
+    let hits: LookupHit[] | undefined;
+    lookup(hostname, { all: true }, (err, address) => {
+      if (err) throw err;
+      if (!Array.isArray(address)) {
+        throw new Error('pinned lookup must answer with the full address list');
+      }
+      hits = address.map((entry) => ({ address: entry.address, family: entry.family }));
+    });
+    if (!hits) {
+      throw new Error('pinned lookup must answer before returning');
+    }
+    return hits;
+  }
+
+  function record(sink: RecordedRequest[], rawOptions: unknown, callback: unknown) {
+    const options = rawOptions as {
+      hostname?: string;
+      servername?: string;
+      protocol?: string;
+      rejectUnauthorized?: boolean;
+      lookup?: (
+        hostname: string,
+        options: { all?: boolean },
+        callback: (
+          err: NodeJS.ErrnoException | null,
+          address: string | LookupHit[],
+          family?: number,
+        ) => void,
+      ) => void;
+    };
+    const invokeLookup = (): LookupHit[] => {
+      if (typeof options.lookup !== 'function') return [];
+      return readLookup(options.lookup, options.hostname ?? '');
+    };
+    const recorded: RecordedRequest = {
+      hostname: options.hostname,
+      servername: options.servername,
+      protocol: options.protocol,
+      rejectUnauthorized: options.rejectUnauthorized,
+      lookupResults: invokeLookup(),
+      invokeLookup,
+    };
+    sink.push(recorded);
+
+    const listeners: Record<string, Array<(chunk?: Buffer) => void>> = {};
+    const res = {
+      statusCode: response.status,
+      headers: { ...response.headers },
+      on(event: string, handler: (chunk?: Buffer) => void) {
+        const list = listeners[event] ?? [];
+        list.push(handler);
+        listeners[event] = list;
+        return res;
+      },
+      resume() {
+        return res;
+      },
+    };
+    const body = response.body;
+    return {
+      on() {
+        return this;
+      },
+      destroy() {},
+      end() {
+        if (typeof callback === 'function') {
+          (callback as (value: typeof res) => void)(res);
+        }
+        for (const handler of listeners.data ?? []) handler(Buffer.from(body));
+        for (const handler of listeners.end ?? []) handler();
+      },
+    };
+  }
+
+  return { httpRequests, httpsRequests, response, record };
+});
+
+vi.mock('node:http', async () => {
+  const actual = await vi.importActual<typeof import('node:http')>('node:http');
+  const request = (options: unknown, callback: unknown) =>
+    netHarness.record(netHarness.httpRequests, options, callback);
+  const mocked = { ...actual, request };
+  return { ...mocked, default: mocked };
+});
+
+vi.mock('node:https', async () => {
+  const actual = await vi.importActual<typeof import('node:https')>('node:https');
+  const request = (options: unknown, callback: unknown) =>
+    netHarness.record(netHarness.httpsRequests, options, callback);
+  const mocked = { ...actual, request };
+  return { ...mocked, default: mocked };
+});
+
 const { BUILT_IN_TOOLS, selectTools, webFetchTool } = await import('../agent/tools.js');
+
+const defaultDns = vi.mocked(dnsLookup).getMockImplementation();
+
+afterEach(() => {
+  if (defaultDns) vi.mocked(dnsLookup).mockImplementation(defaultDns);
+  netHarness.httpRequests.length = 0;
+  netHarness.httpsRequests.length = 0;
+  netHarness.response.status = 200;
+  netHarness.response.body = 'ok';
+  netHarness.response.headers = {};
+});
 
 describe('selectTools', () => {
   it('returns all built-in tools when no allowlist is given', () => {
@@ -99,19 +239,11 @@ describe('webFetchTool', () => {
     ];
 
     it.each(mustStayReachable)('does not block: %s (%s)', async (_label, ip) => {
-      // Stub fetch so the guard is exercised without a real network call --
-      // what's under test is that isBlockedHost lets the request through to
-      // fetch() at all, not the network behavior beyond that point.
-      const fetchSpy = vi
-        .spyOn(globalThis, 'fetch')
-        .mockResolvedValue(new Response('ok', { status: 200 }));
-      try {
-        const result = await webFetchTool.execute({ url: `http://${ip}/` });
-        expect(fetchSpy).toHaveBeenCalled();
-        expect(result.success).toBe(true);
-      } finally {
-        fetchSpy.mockRestore();
-      }
+      const result = await webFetchTool.execute({ url: `http://${ip}/` });
+      expect(netHarness.httpRequests).toHaveLength(1);
+      expect(netHarness.httpRequests[0]?.lookupResults).toEqual([{ address: ip, family: 4 }]);
+      expect(result.success).toBe(true);
+      expect(result.content).toBe('ok');
     });
   });
 
@@ -129,5 +261,71 @@ describe('webFetchTool', () => {
       expect(result.success).toBe(false);
       expect(result.error).toMatch(/not allowed/);
     }
+  });
+
+  it('refuses a name when any resolved address is blocked, and does not dial', async () => {
+    vi.mocked(dnsLookup).mockImplementation(async () => [
+      { address: '93.184.216.34', family: 4 },
+      { address: '10.0.0.1', family: 4 },
+    ]);
+    const result = await webFetchTool.execute({ url: 'http://mixed.example/' });
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/not allowed/);
+    expect(netHarness.httpRequests).toHaveLength(0);
+    expect(netHarness.httpsRequests).toHaveLength(0);
+  });
+
+  it('fails closed when resolution throws, and does not dial', async () => {
+    const result = await webFetchTool.execute({ url: 'http://unresolved.example/' });
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/not allowed/);
+    expect(netHarness.httpRequests).toHaveLength(0);
+  });
+
+  it('does not follow a redirect response', async () => {
+    netHarness.response.status = 302;
+    netHarness.response.headers = { location: 'http://10.0.0.1/' };
+    const result = await webFetchTool.execute({ url: 'http://172.32.0.1/start' });
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/redirects are not followed/);
+    expect(netHarness.httpRequests).toHaveLength(1);
+    expect(netHarness.httpsRequests).toHaveLength(0);
+  });
+
+  describe('DNS rebinding', () => {
+    const publicAddress = '93.184.216.34';
+    const privateAddress = '169.254.169.254';
+
+    it.each([
+      ['http://rebind.example/a', 'httpRequests', 'httpsRequests'],
+      ['https://rebind.example/a', 'httpsRequests', 'httpRequests'],
+    ] as const)(
+      'pins %s to the first public answer when a later lookup is private',
+      async (url, usedKey, unusedKey) => {
+        let dnsCalls = 0;
+        vi.mocked(dnsLookup).mockImplementation(async () => {
+          dnsCalls += 1;
+          if (dnsCalls === 1) return [{ address: publicAddress, family: 4 }];
+          return [{ address: privateAddress, family: 4 }];
+        });
+
+        const result = await webFetchTool.execute({ url });
+        const used = netHarness[usedKey];
+        const recorded = used[0];
+
+        expect(result.success).toBe(true);
+        expect(result.content).toBe('ok');
+        expect(used).toHaveLength(1);
+        expect(netHarness[unusedKey]).toHaveLength(0);
+        expect(recorded?.hostname).toBe('rebind.example');
+        expect(recorded?.rejectUnauthorized).not.toBe(false);
+        expect(recorded?.lookupResults).toEqual([{ address: publicAddress, family: 4 }]);
+        expect(recorded?.invokeLookup()).toEqual([{ address: publicAddress, family: 4 }]);
+        expect(dnsCalls).toBe(1);
+        if (url.startsWith('https:')) {
+          expect(recorded?.servername).toBe('rebind.example');
+        }
+      },
+    );
   });
 });
