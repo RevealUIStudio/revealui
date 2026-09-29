@@ -24,18 +24,17 @@ describe('REV Guardrail template/plugin blurb', () => {
     expect(REV_GUARDRAIL.title).toBe('REV Guardrail');
     expect(REV_GUARDRAIL.eyebrow).toBe('Agent template · Fleet plugin');
     expect(REV_GUARDRAIL.shortBlurb).toBe(
-      'Keeps sibling agents in lane. Enforces your offer and price locks, blocks overclaim (including fake SOC 2), requires Snapshot before Checkpoint, and writes a receipt for every enforcement.',
+      'Checks configured overclaim phrases (including fake SOC 2), flags configured ICP phrases, requires Snapshot before Checkpoint, and writes a receipt for every enforcement.',
     );
     expect(REV_GUARDRAIL.longer).toBe(
-      'REV Guardrail is an enforcer agent for multi-agent fleets on RevealUI. You define locks (who owns which ship, cash ladder, ICP antis, honesty rules). Guardrail stops drift and leaves an audit trail. You run it on your runtime. It is a template, not a hosted chatbot.',
+      'REV Guardrail is an enforcer agent for multi-agent fleets on RevealUI. You configure honesty, ICP phrase, and Snapshot-before-Checkpoint checks. Lane ownership and offer pricing are illustrative fields, not evaluated controls. You run it on your runtime. It is a template, not a hosted chatbot.',
     );
   });
 
   it('includes the Brand checklist and does-not-include bounds', () => {
     expect(REV_GUARDRAIL.includes).toEqual([
-      'lane/one-owner checks',
-      'offer/price locks',
-      'anti-overclaim (block SOC 2 certified without report)',
+      'configured overclaim phrase checks',
+      'configured ICP phrase checks',
       'Snapshot-before-Checkpoint',
       'receipt per enforcement',
     ]);
@@ -44,6 +43,13 @@ describe('REV Guardrail template/plugin blurb', () => {
       'replacing founder judgment',
       'a separate public price SKU',
     ]);
+  });
+
+  it('does not advertise lane or price enforcement without a supported evaluator', () => {
+    expect(REV_GUARDRAIL.longer).toContain('not evaluated controls');
+    expect(REV_GUARDRAIL.includes).not.toContain('lane/one-owner checks');
+    expect(REV_GUARDRAIL.includes).not.toContain('offer/price locks');
+    expect(REV_GUARDRAIL.shortBlurb).not.toContain('Enforces your offer and price locks');
   });
 
   it('is labeled as a template/plugin, not a live paid SKU', () => {
@@ -79,7 +85,7 @@ describe('REV Guardrail template/plugin blurb', () => {
 
   it('does not claim SOC 2 certified', () => {
     const text = blob();
-    expect(text.includes('SOC 2 certified without report')).toBe(true);
+    expect(text.includes('SOC 2 certified without report')).toBe(false);
     expect(text.includes('fake SOC 2')).toBe(true);
     expect(text.includes('SOC 2 certified.')).toBe(false);
     expect(text.includes('SOC2 certified')).toBe(false);

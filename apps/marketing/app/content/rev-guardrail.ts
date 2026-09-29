@@ -26,13 +26,12 @@ export const REV_GUARDRAIL: RevGuardrailBlurb = {
   title: 'REV Guardrail',
   eyebrow: 'Agent template · Fleet plugin',
   shortBlurb:
-    'Keeps sibling agents in lane. Enforces your offer and price locks, blocks overclaim (including fake SOC 2), requires Snapshot before Checkpoint, and writes a receipt for every enforcement.',
+    'Checks configured overclaim phrases (including fake SOC 2), flags configured ICP phrases, requires Snapshot before Checkpoint, and writes a receipt for every enforcement.',
   longer:
-    'REV Guardrail is an enforcer agent for multi-agent fleets on RevealUI. You define locks (who owns which ship, cash ladder, ICP antis, honesty rules). Guardrail stops drift and leaves an audit trail. You run it on your runtime. It is a template, not a hosted chatbot.',
+    'REV Guardrail is an enforcer agent for multi-agent fleets on RevealUI. You configure honesty, ICP phrase, and Snapshot-before-Checkpoint checks. Lane ownership and offer pricing are illustrative fields, not evaluated controls. You run it on your runtime. It is a template, not a hosted chatbot.',
   includes: [
-    'lane/one-owner checks',
-    'offer/price locks',
-    'anti-overclaim (block SOC 2 certified without report)',
+    'configured overclaim phrase checks',
+    'configured ICP phrase checks',
     'Snapshot-before-Checkpoint',
     'receipt per enforcement',
   ],

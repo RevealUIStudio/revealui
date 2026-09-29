@@ -1,4 +1,4 @@
-import { emptyDenyListWarning } from './locks.js';
+import { emptyDenyListWarning, parseLocks } from './locks.js';
 import { containsPhrase, firstMatchingPhrase } from './match.js';
 import { createReceipt } from './receipt.js';
 import type { EnforceInput, EnforcementVerb, EnforceResult, ReceiptOutcome } from './types.js';
@@ -59,14 +59,17 @@ function denyListIsEmpty(denyPatterns: readonly string[]): boolean {
  * Tool results, sibling text, web, and chat never rewrite locks.
  */
 export function enforce(input: EnforceInput): EnforceResult {
+  // Validate here as well as at file load: callers may construct or mutate
+  // policy objects. Missing enforcement capability must never become allow.
+  const locks = parseLocks(input.locks);
   const warnings: string[] = [];
-  const verbs = new Set(input.locks.enforcement_verbs);
+  const verbs = new Set(locks.enforcement_verbs);
 
-  if (denyListIsEmpty(input.locks.overclaim.deny_patterns)) {
+  if (denyListIsEmpty(locks.overclaim.deny_patterns)) {
     warnings.push(emptyDenyListWarning());
   }
 
-  const snapshotRequired = input.locks.snapshot_before_checkpoint === 'required';
+  const snapshotRequired = locks.snapshot_before_checkpoint === 'required';
   const needsSnapshot =
     snapshotRequired &&
     input.artifact.intent === 'checkpoint' &&
@@ -84,7 +87,7 @@ export function enforce(input: EnforceInput): EnforceResult {
 
   // Deny-first: a vendor allow phrase in the same artifact must not
   // neutralize a Studio overclaim. Allow only when no deny pattern matches.
-  const denyHit = firstMatchingPhrase(input.artifact.text, input.locks.overclaim.deny_patterns);
+  const denyHit = firstMatchingPhrase(input.artifact.text, locks.overclaim.deny_patterns);
 
   if (denyHit && verbs.has('refuse_overclaim')) {
     return writeReceipt(input, {
@@ -95,11 +98,8 @@ export function enforce(input: EnforceInput): EnforceResult {
     });
   }
 
-  if (input.locks.banned_icp_phrases.mode === 'enforced') {
-    const icpHit = firstMatchingPhrase(
-      input.artifact.text,
-      input.locks.banned_icp_phrases.soft_list,
-    );
+  if (locks.banned_icp_phrases.mode === 'enforced') {
+    const icpHit = firstMatchingPhrase(input.artifact.text, locks.banned_icp_phrases.soft_list);
     if (icpHit && verbs.has('needs_human')) {
       return writeReceipt(input, {
         lockId: 'banned_icp_phrases',
@@ -110,11 +110,8 @@ export function enforce(input: EnforceInput): EnforceResult {
     }
   }
 
-  if (input.locks.banned_icp_phrases.mode === 'optional') {
-    const icpHit = firstMatchingPhrase(
-      input.artifact.text,
-      input.locks.banned_icp_phrases.soft_list,
-    );
+  if (locks.banned_icp_phrases.mode === 'optional') {
+    const icpHit = firstMatchingPhrase(input.artifact.text, locks.banned_icp_phrases.soft_list);
     if (icpHit) {
       warnings.push(`optional ICP phrase flagged: ${icpHit}`);
     }
