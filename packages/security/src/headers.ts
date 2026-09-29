@@ -93,6 +93,29 @@ export interface CORSConfig {
 }
 
 /**
+ * Options for CORS presets that can open every origin.
+ * The wildcard stays off unless allowWildcardOrigin is true.
+ */
+export interface CorsPresetOptions {
+  allowWildcardOrigin?: boolean;
+}
+
+function presetOrigin(
+  options: CorsPresetOptions | undefined,
+  productionWarning: string,
+): '*' | string[] {
+  if (options?.allowWildcardOrigin !== true) {
+    return [];
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    getSecurityLogger().warn(productionWarning);
+  }
+
+  return '*';
+}
+
+/**
  * Security headers manager
  */
 export class SecurityHeaders {
@@ -518,43 +541,37 @@ export const CORSPresets = {
   }),
 
   /**
-   * Permissive CORS (all origins)  -  development only.
-   * Logs a warning if used when NODE_ENV === 'production'.
+   * Permissive CORS for development.
+   * Origin stays closed unless allowWildcardOrigin is true.
+   * A production warning is logged only when the wildcard is enabled.
    */
-  permissive: (): CORSConfig => {
-    if (process.env.NODE_ENV === 'production') {
-      getSecurityLogger().warn(
-        '[SecurityPresets] CORS permissive preset used in production  -  this allows all origins. Use moderate() with explicit origins instead.',
-      );
-    }
-    return {
-      origin: '*',
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['*'],
-      credentials: false,
-      maxAge: 86400,
-    };
-  },
+  permissive: (options?: CorsPresetOptions): CORSConfig => ({
+    origin: presetOrigin(
+      options,
+      '[SecurityPresets] CORS permissive preset used in production  -  this allows all origins. Use moderate() with explicit origins instead.',
+    ),
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['*'],
+    credentials: false,
+    maxAge: 86400,
+  }),
 
   /**
-   * API CORS (public read-only APIs)  -  credentials disabled.
-   * Logs a warning if used when NODE_ENV === 'production'.
+   * API CORS for public read-only APIs. Credentials stay disabled.
+   * Origin stays closed unless allowWildcardOrigin is true.
+   * A production warning is logged only when the wildcard is enabled.
    */
-  api: (): CORSConfig => {
-    if (process.env.NODE_ENV === 'production') {
-      getSecurityLogger().warn(
-        '[SecurityPresets] CORS api preset uses origin:"*". For production, pass explicit origins to moderate() instead.',
-      );
-    }
-    return {
-      origin: '*',
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
-      exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
-      credentials: false,
-      maxAge: 86400,
-    };
-  },
+  api: (options?: CorsPresetOptions): CORSConfig => ({
+    origin: presetOrigin(
+      options,
+      '[SecurityPresets] CORS api preset uses origin:"*". For production, pass explicit origins to moderate() instead.',
+    ),
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+    exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
+    credentials: false,
+    maxAge: 86400,
+  }),
 };
 
 /**
