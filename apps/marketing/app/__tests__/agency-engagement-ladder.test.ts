@@ -1,10 +1,10 @@
 /**
  * Drift gate for leftover studio anchors. The product /pricing catalog must
  * not derive a done-for-you ladder from AGENCY_ENGAGEMENT_LADDER. Studio
- * SKUs belong on revealuistudio.com: Consultation $300 / Proof Sprint $3,997 /
+ * SKUs belong on revealuistudio.com: Consultation $300 / Pilot $3,997 /
  * Launch $14,500. Dead Fleet and Custom Build objects must not exist.
  */
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { FOUNDER_SERVICE_OFFERINGS } from '@revealui/contracts/pricing';
 import { describe, expect, it } from 'vitest';
@@ -45,10 +45,10 @@ function countOccurrencesInCode(source: string, needle: string): number {
 }
 
 describe('AGENCY_ENGAGEMENT_LADDER — locked studio anchors', () => {
-  it('pins Consultation, Proof Sprint, and Launch only', () => {
+  it('pins Consultation, Pilot, and Launch only', () => {
     expect(AGENCY_ENGAGEMENT_LADDER.map((e) => [e.id, e.name, e.price, e.startsFrom])).toEqual([
       ['consultation', 'Consultation', '$300', false],
-      ['proof-sprint', 'Proof Sprint', '$3,997', false],
+      ['proof-sprint', 'Pilot', '$3,997', false],
       ['launch-package', 'Launch', '$14,500', false],
     ]);
   });
@@ -104,10 +104,10 @@ describe('for-operators retired public copy stays gone', () => {
     expect(countOccurrencesInCode(FOR_OPERATORS_SRC, 'Book a build call')).toBe(0);
   });
 
-  it('uses Consultation, Proof Sprint, Launch, 5+ years, and a 30-minute intro', () => {
+  it('uses Consultation, Pilot, Launch, 5+ years, and a 30-minute intro', () => {
     expect(AGENCY_ENGAGEMENT_LADDER.map((e) => e.name)).toEqual([
       'Consultation',
-      'Proof Sprint',
+      'Pilot',
       'Launch',
     ]);
     expect(FOR_OPERATORS_PROOF.body.includes('5+ years')).toBe(true);
@@ -137,7 +137,7 @@ describe('FOUNDER_SERVICE_OFFERINGS — founder-led services menu', () => {
     expect(names).not.toContain('Custom Build');
   });
 
-  it('agrees with the studio ladder on the shared Proof Sprint price', () => {
+  it('agrees with the studio ladder on the shared Pilot price', () => {
     const proof = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'proof-sprint');
     const ladderProof = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === 'proof-sprint');
     expect(proof?.price).toBe('$3,997');
@@ -159,8 +159,74 @@ describe('FOUNDER_SERVICE_OFFERINGS — founder-led services menu', () => {
     expect(countOccurrencesInCode(PRICING_SRC, '$14,500')).toBe(0);
   });
 
-  it('$7,500 and Pilot do not reappear as hand-typed literals in content/for-operators.ts', () => {
+  it('$7,500 and the retired Pilot $1,500 price do not reappear in content/for-operators.ts', () => {
     expect(countOccurrencesInCode(FOR_OPERATORS_SRC, '$7,500')).toBe(0);
-    expect(countOccurrencesInCode(FOR_OPERATORS_SRC, 'Pilot')).toBe(0);
+    expect(countOccurrencesInCode(FOR_OPERATORS_SRC, '$1,500')).toBe(0);
+    expect(countOccurrencesInCode(FOR_OPERATORS_SRC, 'Pilot $1,500')).toBe(0);
+  });
+});
+
+const RETIRED_PUBLIC_NAMES = [
+  'Proof Sprint',
+  'proof sprint',
+  'Proof sprint',
+  'PROOF SPRINT',
+] as const;
+
+function listMarketingSources(dir: string, acc: string[]): void {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === 'node_modules' || entry.name === 'dist' || entry.name === '__tests__') {
+      continue;
+    }
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      listMarketingSources(full, acc);
+      continue;
+    }
+    if (
+      entry.name.endsWith('.test.ts') ||
+      entry.name.endsWith('.test.tsx') ||
+      entry.name.endsWith('.test.js') ||
+      entry.name.endsWith('.test.jsx')
+    ) {
+      continue;
+    }
+    if (
+      entry.name.endsWith('.ts') ||
+      entry.name.endsWith('.tsx') ||
+      entry.name.endsWith('.js') ||
+      entry.name.endsWith('.jsx')
+    ) {
+      acc.push(full);
+    }
+  }
+}
+
+describe('retired public name stays out of marketing copy', () => {
+  it('has no user-visible Proof Sprint string in apps/marketing source', () => {
+    const marketingRoot = join(import.meta.dirname, '../..');
+    const files: string[] = [];
+    listMarketingSources(marketingRoot, files);
+    const hits: string[] = [];
+    for (const file of files) {
+      const source = readFileSync(file, 'utf8');
+      const lines = source.split('\n');
+      for (let index = 0; index < lines.length; index++) {
+        const line = lines[index] ?? '';
+        const trimmed = line.trimStart();
+        if (
+          trimmed.startsWith('//') ||
+          trimmed.startsWith('/*') ||
+          trimmed.startsWith('*/') ||
+          trimmed.startsWith('*')
+        ) {
+          continue;
+        }
+        for (const phrase of RETIRED_PUBLIC_NAMES) {
+          if (line.includes(phrase)) hits.push(`${file}:${index + 1}`);
+        }
+      }
+    }
+    expect(hits).toEqual([]);
   });
 });

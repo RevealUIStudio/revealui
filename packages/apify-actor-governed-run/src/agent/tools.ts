@@ -1,4 +1,6 @@
 import { lookup as dnsLookup } from 'node:dns/promises';
+import http from 'node:http';
+import https from 'node:https';
 import { isIPv4, isIPv6 } from 'node:net';
 import type { Tool, ToolResult } from '@revealui/ai';
 import { z } from 'zod/v4';
@@ -144,40 +146,145 @@ function isBlockedHostnameSuffix(host: string): boolean {
   return host === 'localhost' || host.endsWith('.internal') || host.endsWith('.local');
 }
 
+interface PinnedAddress {
+  address: string;
+  family: 4 | 6;
+}
+
+function isBlockedResolvedAddress(address: string, family: number): boolean {
+  if (family === 6) return isBlockedIPv6(address);
+  if (family === 4) return isBlockedIPv4(address);
+  return true;
+}
+
 /**
- * SSRF guard for the `web_fetch` tool. Blocks the cloud-metadata, loopback,
- * link-local, private, and carrier-grade-NAT ranges across both IPv4 and
- * IPv6 (mapped, compatible, NAT64, and 6to4 embeds, and the multicast,
- * documentation, discard-only, and NAT64 local-use prefixes), plus obvious
- * internal hostname suffixes. For a hostname that isn't a literal IP, it resolves DNS
- * and checks every resolved address, which is what stops a public name with
- * a static A/AAAA record pointed at a blocked address (e.g. a
- * `*.nip.io`-style wildcard DNS name resolving to the metadata IP).
+ * SSRF guard for the web fetch tool. Blocks cloud-metadata, loopback,
+ * link-local, private, and carrier-grade NAT ranges across IPv4 and IPv6,
+ * including mapped, compatible, NAT64, and 6to4 embedded IPv4 addresses,
+ * and multicast, documentation, discard-only, and NAT64 local-use prefixes.
+ * Internal hostname suffixes are also blocked. Other hostnames are resolved
+ * once, and every returned address is checked. If any address is blocked,
+ * or resolution fails, the host is refused.
  *
- * This does NOT re-check the resolved address at connection time, so a true
- * DNS-rebinding attack (the DNS answer changing between this check and the
- * `fetch()` call a few lines below) is still out of scope -- that requires
- * pinning the TCP connection to the specific address validated here, which
- * is more than this v0.1 scaffold carries. A *static* record pointed at a
- * blocked address, which is the reviewed bypass class, is fully closed.
+ * When the host is allowed, the socket is pinned to the first validated
+ * address. The request lookup callback returns that address and does not
+ * resolve again, so a DNS answer that changes before connect cannot change
+ * the connected address. The Host header and the TLS server name stay on
+ * the original hostname, and certificate verification stays at its default.
+ * Redirects are not followed.
  */
-async function isBlockedHost(hostname: string): Promise<boolean> {
+async function resolvePinnedAddress(hostname: string): Promise<PinnedAddress | null> {
   const host = stripIPv6Brackets(hostname).toLowerCase();
 
-  if (isBlockedHostnameSuffix(host)) return true;
-  if (isIPv4(host)) return isBlockedIPv4(host);
-  if (isIPv6(host)) return isBlockedIPv6(host);
+  if (isBlockedHostnameSuffix(host)) return null;
+  if (isIPv4(host)) {
+    return isBlockedIPv4(host) ? null : { address: host, family: 4 };
+  }
+  if (isIPv6(host)) {
+    return isBlockedIPv6(host) ? null : { address: host, family: 6 };
+  }
 
-  // Not a literal IP -- resolve it and check every address it points at.
   let addresses: Array<{ address: string; family: number }>;
   try {
     addresses = await dnsLookup(host, { all: true });
   } catch {
-    return true; // cannot resolve -- fail closed rather than let fetch() try
+    return null;
   }
-  return addresses.some((entry) =>
-    entry.family === 6 ? isBlockedIPv6(entry.address) : isBlockedIPv4(entry.address),
-  );
+  if (addresses.length === 0) return null;
+  if (addresses.some((entry) => isBlockedResolvedAddress(entry.address, entry.family))) {
+    return null;
+  }
+  const chosen = addresses[0];
+  if (!chosen || (chosen.family !== 4 && chosen.family !== 6)) return null;
+  return { address: chosen.address, family: chosen.family };
+}
+
+function pinnedLookup(pin: PinnedAddress): NonNullable<https.RequestOptions['lookup']> {
+  const lookup: NonNullable<https.RequestOptions['lookup']> = (_hostname, options, callback) => {
+    const wantsAll =
+      typeof options === 'object' && options !== null && 'all' in options && options.all === true;
+    if (wantsAll) {
+      callback(null, [{ address: pin.address, family: pin.family }]);
+      return;
+    }
+    callback(null, pin.address, pin.family);
+  };
+  return lookup;
+}
+
+function isIdentityEncoding(encoding: string | string[] | undefined): boolean {
+  if (encoding === undefined) return true;
+  if (typeof encoding !== 'string') return false;
+  return encoding.toLowerCase() === 'identity';
+}
+
+function createOneShotAgent(protocol: string): http.Agent {
+  if (protocol === 'https:') return new https.Agent({ keepAlive: false });
+  return new http.Agent({ keepAlive: false });
+}
+
+async function requestPinned(url: URL, pin: PinnedAddress, signal: AbortSignal): Promise<Response> {
+  const requestHost = stripIPv6Brackets(url.hostname);
+  const agent = createOneShotAgent(url.protocol);
+  const options: https.RequestOptions = {
+    protocol: url.protocol,
+    hostname: requestHost,
+    path: `${url.pathname}${url.search}`,
+    method: 'GET',
+    headers: {
+      accept: '*/*',
+      'accept-encoding': 'identity',
+    },
+    lookup: pinnedLookup(pin),
+    agent,
+    signal,
+  };
+  if (url.port !== '') options.port = Number(url.port);
+  if (url.protocol === 'https:' && !isIPv4(requestHost) && !isIPv6(requestHost)) {
+    options.servername = requestHost;
+  }
+
+  try {
+    return await new Promise((resolve, reject) => {
+      let settled = false;
+      const fail = (err: unknown): void => {
+        if (settled) return;
+        settled = true;
+        reject(err instanceof Error ? err : new Error(String(err)));
+      };
+      const succeed = (response: Response): void => {
+        if (settled) return;
+        settled = true;
+        resolve(response);
+      };
+      const transport = url.protocol === 'https:' ? https : http;
+      const req = transport.request(options, (res) => {
+        const status = res.statusCode ?? 0;
+        if (status >= 300 && status < 400) {
+          res.resume();
+          succeed(new Response(null, { status }));
+          return;
+        }
+        if (!isIdentityEncoding(res.headers['content-encoding'])) {
+          res.resume();
+          fail(new Error('unsupported content encoding'));
+          return;
+        }
+        const chunks: Buffer[] = [];
+        res.on('data', (chunk: Buffer | string) => {
+          chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+        });
+        res.on('end', () => {
+          succeed(new Response(new Uint8Array(Buffer.concat(chunks)), { status }));
+        });
+        res.on('error', fail);
+      });
+      req.on('error', fail);
+      req.end();
+    });
+  } finally {
+    agent.destroy();
+  }
 }
 
 export const webFetchTool: Tool = {
@@ -201,7 +308,8 @@ export const webFetchTool: Tool = {
     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
       return { success: false, error: 'only http/https URLs are allowed' };
     }
-    if (await isBlockedHost(url.hostname)) {
+    const pin = await resolvePinnedAddress(url.hostname);
+    if (!pin) {
       return {
         success: false,
         error: 'this host is not allowed (private, loopback, or internal address)',
@@ -211,7 +319,7 @@ export const webFetchTool: Tool = {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     try {
-      const response = await fetch(url, { signal: controller.signal, redirect: 'manual' });
+      const response = await requestPinned(url, pin, controller.signal);
       if (response.status >= 300 && response.status < 400) {
         return { success: false, error: 'redirects are not followed (SSRF safety)' };
       }

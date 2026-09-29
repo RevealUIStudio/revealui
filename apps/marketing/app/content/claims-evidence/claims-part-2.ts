@@ -405,7 +405,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
     file: 'for-operators.ts',
     exportPath: 'FOR_OPERATORS_HERO.h1Lines[0]',
     proofGrade: 'outcome',
-    text: 'Consultation, Proof Sprint, or Launch',
+    text: 'Consultation, Pilot, or Launch',
     evidence: [COMMERCIAL_POLICY],
   },
   {
@@ -419,7 +419,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
     file: 'for-operators.ts',
     exportPath: 'FOR_OPERATORS_HERO.subtitle',
     proofGrade: 'outcome',
-    text: 'Studio books Consultation, Proof Sprint, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com, not on the product catalog.',
+    text: 'Studio books Consultation, Pilot, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com, not on the product catalog.',
     match: 'path',
     evidence: [COMMERCIAL_POLICY, SELF_HOST],
   },

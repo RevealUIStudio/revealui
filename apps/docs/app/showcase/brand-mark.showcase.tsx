@@ -5,7 +5,7 @@ const story: ShowcaseStory = {
   slug: 'brand-mark',
   name: 'Brand Mark',
   description:
-    'The RevealUI logomark: Circuit-R family that inherits currentColor with an optional Solar Amber reveal stroke tracking --rvui-accent. Decorative by default; pass a title to expose it as an image.',
+    'The RevealUI logomark. Renders the kit master asset. Light and dark files are the same bytes. No inline letterform and no invert. Decorative by default; pass a title to name it.',
   category: 'component',
   sourceUrl: 'src/components/brand-mark.tsx',
 
@@ -24,22 +24,22 @@ const story: ShowcaseStory = {
 
   examples: [
     {
-      name: 'Reveal stroke vs mono',
+      name: 'Kit master',
       render: () => (
         <div className="flex items-end gap-8 text-primary">
           <div className="flex flex-col items-center gap-2">
             <RevealUIMark className="h-16 w-auto" reveal title="RevealUI" />
-            <span className="text-xs text-muted-foreground">reveal</span>
+            <span className="text-xs text-muted-foreground">light file</span>
           </div>
           <div className="flex flex-col items-center gap-2">
             <RevealUIMark className="h-16 w-auto" reveal={false} title="RevealUI" />
-            <span className="text-xs text-muted-foreground">mono</span>
+            <span className="text-xs text-muted-foreground">same master</span>
           </div>
         </div>
       ),
     },
     {
-      name: 'Inherits currentColor',
+      name: 'Same master on every surface',
       render: () => (
         <div className="flex items-end gap-8">
           <RevealUIMark className="h-12 w-auto text-foreground" reveal={false} title="Foreground" />

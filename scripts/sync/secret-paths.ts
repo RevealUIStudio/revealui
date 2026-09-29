@@ -569,15 +569,6 @@ export const SECRET_PATHS: SecretPathDef[] = [
     envVars: ['REVEALUI_API_URL', 'VITE_API_URL'],
     note: 'api self-origin: REVEALUI_API_URL (+ NEXT_PUBLIC_API_URL twin on Next apps; VITE_API_URL on marketing). Governed MCP tools fail without it.',
   },
-  {
-    path: 'revealui/prod/public/is-live',
-    kind: 'public-config',
-    sensitive: false,
-    tier: 'prod',
-    // marketing dropped (GAP-350): zero readers in apps/marketing.
-    consumers: ['vercel:admin'],
-    note: 'NEXT_PUBLIC_IS_LIVE - Stripe live-mode feature flag',
-  },
   // ── STAGING (GAP-343 Phase 3) ──────────────────────────────────────────────
   // The revealui/staging/* surface synced by private ops/sync
   // revvault-vercel-staging.toml (a SEPARATE manifest from the prod one -
