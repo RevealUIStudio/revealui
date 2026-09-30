@@ -109,14 +109,14 @@ overrides:
   tmp: '>=0.2.6'
   prismjs: '>=1.30.0'
   jsondiffpatch: '>=0.7.2'
-  markdown-it: '>=14.2.0'
+  markdown-it: '>=14.3.1 <15'
   js-yaml@5: '>=5.4.1'
   js-yaml@4: '>=4.2.0'
   js-yaml@3: '>=5.4.1'
   '@changesets/parse>js-yaml': '>=5.4.1'
   '@vercel/python-analysis>js-yaml': '>=5.4.1'
   minimatch: '>=10.2.4'
-  brace-expansion@5: '>=5.0.9'
+  brace-expansion@5: '>=5.0.12'
   rollup: '>=4.59.0'
   serialize-javascript: '>=7.0.3'
   immutable: '>=5.1.5'
@@ -124,7 +124,7 @@ overrides:
   agents: '>=0.3.10'
   langsmith: '>=0.4.6'
   '@modelcontextprotocol/sdk': '>=1.26.0'
-  undici: '>=7.29.0 <8'
+  undici: '>=7.29.1 <8'
   '@tootallnate/once': '>=3.0.1'
   flatted: '>=3.4.1'
   yauzl: '>=3.2.1'
@@ -133,7 +133,7 @@ overrides:
   typescript: 6.0.3
   body-parser: '>=2.2.1'
   next: '>=16.3.4'
-  ip-address: '>=10.3.1'
+  ip-address: '>=10.7.1'
   postcss: 8.5.25
   react: 19.2.8
   react-dom: 19.2.8
@@ -161,7 +161,7 @@ overrides:
   '@vitest/mocker': '>=4.1.11 <5'
   '@vitest/coverage-v8': '>=4.1.11 <5'
   '@vitest/ui': '>=4.1.11 <5'
-  brace-expansion: '>=5.0.9'
+  brace-expansion: '>=5.0.12'
 
 importers:
 
@@ -303,8 +303,8 @@ importers:
         specifier: 6.0.3
         version: 6.0.3
       undici:
-        specifier: '>=7.29.0 <8'
-        version: 7.29.0
+        specifier: '>=7.29.1 <8'
+        version: 7.30.0
       vercel:
         specifier: ^52.2.1
         version: 52.2.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.11.3)(rollup@4.62.2)(typescript@6.0.3)
@@ -1865,8 +1865,8 @@ importers:
         specifier: ^8.0.1
         version: 8.0.1
       undici:
-        specifier: '>=7.29.0 <8'
-        version: 7.29.0
+        specifier: '>=7.29.1 <8'
+        version: 7.30.0
     devDependencies:
       '@revealui/dev':
         specifier: workspace:*
@@ -5686,10 +5686,6 @@ packages:
     resolution: {integrity: sha512-YovQ3rzhaLMIrDjNDMkNS01tea93qhEhG5xy8f6+R0l+dw3Ki+5sCoIoI942iuLZTHWogWktgwVDhU09iNEimQ==}
     engines: {node: 20 || >=22}
 
-  brace-expansion@5.0.9:
-    resolution: {integrity: sha512-ScQ4IuvIEF1TMlP7Zt+vjJ//9zlPb2SDcxWxM3bk8s6t6GGdJ7KO1dCcTidOPJKePW30LE/2cT7wCyPho9/Wxg==}
-    engines: {node: 20 || >=22}
-
   braces@3.0.3:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
     engines: {node: '>=8'}
@@ -6912,8 +6908,8 @@ packages:
       '@types/node':
         optional: true
 
-  ip-address@10.5.1:
-    resolution: {integrity: sha512-EXujUp9jyOI/chPgtqk6uy7fDq8AeCB/WlfEuPg9LN0fN9lzKAKfuDYi60SMhHwgUiEhZvVYsbGZN+RUU1INiA==}
+  ip-address@10.7.2:
+    resolution: {integrity: sha512-7H/2gFSIitxc0hG3nOI1glS8QLo/EHBFFLk8vEUjXY/xu0AdL8jZ9U1IzO2PUm0d2D/ofQcAifb0g6OBkt8U7w==}
     engines: {node: '>= 12'}
 
   ipaddr.js@1.9.1:
@@ -7430,10 +7426,10 @@ packages:
     resolution: {integrity: sha512-FlCHFwNnutLgVTflOYHPW2pPcl2AACqVzExlkGQNsi4CJgqOHN7YTgDd4LuhgN1BFO3TS0vLAruV1Td6dwWPJA==}
     peerDependencies:
       '@types/markdown-it': '*'
-      markdown-it: '>=14.2.0'
+      markdown-it: '>=14.3.1 <15'
 
-  markdown-it@14.3.0:
-    resolution: {integrity: sha512-RCEsPjR+sr0x+AuYp601tKTkgFG4YEPLCzHST3cQ/fhlJkqAkz1L2/Qbp1j9qw5SBwQHFBoW8+hoN5xssOF0Tw==}
+  markdown-it@14.3.2:
+    resolution: {integrity: sha512-sHHjZ5fJKlgrG4qns2YwVcdNep35h5fERrfkD2YNsb9UFk0UIHarbiTaHKVMlPuWAoiilyK8Fv/jAm11slsY7Q==}
     hasBin: true
 
   markdown-table@3.0.4:
@@ -7503,8 +7499,8 @@ packages:
   mdn-data@2.27.1:
     resolution: {integrity: sha512-9Yubnt3e8A0OKwxYSXyhLymGW4sCufcLG6VdiDdUGVkPhpqLxlvP5vl1983gQjJl3tqbrM731mjaZaP68AgosQ==}
 
-  mdurl@2.0.0:
-    resolution: {integrity: sha512-Lf+9+2r+Tdp5wXDXC4PcIBjTDtq4UKjCPMQhKIuzpJNW0b96kVqSwW0bT7FhRSfmAiFYgP+SCRvdrDozfh0U5w==}
+  mdurl@2.1.0:
+    resolution: {integrity: sha512-1+HBaOx0zi/dQWht8rNv9MYf9qqpqL/kxI0hXImU6Y547zM6Sni8BQibt7ifgMcYtQg41ao3Ivd6cnSM86inpg==}
 
   media-typer@1.1.0:
     resolution: {integrity: sha512-aisnrDP4GNe06UcKFnV5bfMNPBUw4jsLGaWwWfnH3v02GnBuXX2MCVn5RbrWo0j3pczUilYblq7fQ7Nw2t5XKw==}
@@ -9155,8 +9151,8 @@ packages:
   undici-types@7.28.0:
     resolution: {integrity: sha512-LJAfY+2w6HGeT8d8J1wNQsUGUEGio6NWWpwdwurQe4f6oojzCFuGLizl1KSve4irsTxyLly1QhEeE6iapdaIvQ==}
 
-  undici@7.29.0:
-    resolution: {integrity: sha512-IDxfleLmmbSskfWSUATiN1nfn2rDuvnMOqb5CWR92iIfojA0Ud+ulOAAEQ57LPr9rWmsreUyf5lwyao+7GNNVw==}
+  undici@7.30.0:
+    resolution: {integrity: sha512-dkrQXeHSaoamnItlYbmzG0wFYrM0ZwDxCIg0A7aKjTyyhh9svRzCNFEzV+Vm05/yehjCzjDZ31KXfGEjYSztDQ==}
     engines: {node: '>=20.18.1'}
 
   unicode-trie@2.0.0:
@@ -12579,7 +12575,7 @@ snapshots:
       is-buffer: 2.0.5
       is-node-process: 1.2.0
       throttleit: 2.1.0
-      undici: 7.29.0
+      undici: 7.30.0
 
   '@vercel/build-utils@13.20.0':
     dependencies:
@@ -12799,7 +12795,7 @@ snapshots:
       ts-morph: 12.0.0
       tsx: 4.21.0
       typescript: 6.0.3
-      undici: 7.29.0
+      undici: 7.30.0
     transitivePeerDependencies:
       - encoding
       - rollup
@@ -12828,7 +12824,7 @@ snapshots:
       ts-morph: 12.0.0
       tsx: 4.21.0
       typescript: 6.0.3
-      undici: 7.29.0
+      undici: 7.30.0
     transitivePeerDependencies:
       - encoding
       - rollup
@@ -12901,7 +12897,7 @@ snapshots:
       ms: 2.1.3
       picocolors: 1.1.1
       tar-stream: 3.1.7
-      undici: 7.29.0
+      undici: 7.30.0
       xdg-app-paths: 5.1.0
       zod: 3.24.4
     transitivePeerDependencies:
@@ -13413,11 +13409,6 @@ snapshots:
   boolean@3.2.0: {}
 
   brace-expansion@5.0.12:
-    dependencies:
-      balanced-match: 4.0.4
-    optional: true
-
-  brace-expansion@5.0.9:
     dependencies:
       balanced-match: 4.0.4
 
@@ -14094,7 +14085,7 @@ snapshots:
     dependencies:
       debug: 4.4.3
       express: 5.2.1
-      ip-address: 10.5.1
+      ip-address: 10.7.2
     transitivePeerDependencies:
       - supports-color
 
@@ -14606,7 +14597,7 @@ snapshots:
     optionalDependencies:
       '@types/node': 25.9.5
 
-  ip-address@10.5.1: {}
+  ip-address@10.7.2: {}
 
   ipaddr.js@1.9.1: {}
 
@@ -14750,8 +14741,8 @@ snapshots:
       escape-string-regexp: 2.0.0
       js2xmlparser: 4.0.2
       klaw: 3.0.0
-      markdown-it: 14.3.0
-      markdown-it-anchor: 8.6.7(@types/markdown-it@14.1.2)(markdown-it@14.3.0)
+      markdown-it: 14.3.2
+      markdown-it-anchor: 8.6.7(@types/markdown-it@14.1.2)(markdown-it@14.3.2)
       marked: 4.3.0
       mkdirp: 1.0.4
       requizzle: 0.2.4
@@ -14775,7 +14766,7 @@ snapshots:
       saxes: 6.0.0
       symbol-tree: 3.2.4
       tough-cookie: 6.0.2
-      undici: 7.29.0
+      undici: 7.30.0
       w3c-xmlserializer: 5.0.0
       webidl-conversions: 8.0.1
       whatwg-mimetype: 5.0.0
@@ -15045,17 +15036,17 @@ snapshots:
 
   map-stream@0.1.0: {}
 
-  markdown-it-anchor@8.6.7(@types/markdown-it@14.1.2)(markdown-it@14.3.0):
+  markdown-it-anchor@8.6.7(@types/markdown-it@14.1.2)(markdown-it@14.3.2):
     dependencies:
       '@types/markdown-it': 14.1.2
-      markdown-it: 14.3.0
+      markdown-it: 14.3.2
 
-  markdown-it@14.3.0:
+  markdown-it@14.3.2:
     dependencies:
       argparse: 2.0.1
       entities: 4.5.0
       linkify-it: 5.0.2
-      mdurl: 2.0.0
+      mdurl: 2.1.0
       punycode.js: 2.3.1
       uc.micro: 2.1.0
 
@@ -15230,7 +15221,7 @@ snapshots:
 
   mdn-data@2.27.1: {}
 
-  mdurl@2.0.0: {}
+  mdurl@2.1.0: {}
 
   media-typer@1.1.0: {}
 
@@ -15468,7 +15459,7 @@ snapshots:
 
   minimatch@10.2.5:
     dependencies:
-      brace-expansion: 5.0.9
+      brace-expansion: 5.0.12
 
   minimatch@10.2.6:
     dependencies:
@@ -15552,7 +15543,7 @@ snapshots:
       '@modelcontextprotocol/sdk': 1.29.0(zod@3.25.76)
       find-process: 2.0.0
       pid-port: 2.0.0
-      undici: 7.29.0
+      undici: 7.30.0
       zod: 3.25.76
     transitivePeerDependencies:
       - '@cfworker/json-schema'
@@ -16607,7 +16598,7 @@ snapshots:
 
   socks@2.8.9:
     dependencies:
-      ip-address: 10.5.1
+      ip-address: 10.7.2
       smart-buffer: 4.2.0
 
   source-map-js@1.2.1: {}
@@ -17046,7 +17037,7 @@ snapshots:
 
   undici-types@7.28.0: {}
 
-  undici@7.29.0: {}
+  undici@7.30.0: {}
 
   unicode-trie@2.0.0:
     dependencies:
