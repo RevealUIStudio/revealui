@@ -1652,6 +1652,32 @@ export type LicenseJtiRevocationsRow = z.infer<typeof LicenseJtiRevocationsSelec
 export type LicenseJtiRevocationsInsert = z.infer<typeof LicenseJtiRevocationsInsertSchema>
 
 // =============================================================================
+// LicenseOperations Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting licenseOperations rows from database
+ * Generated from Drizzle table definition: tables.licenseOperations
+ */
+export const LicenseOperationsSelectSchema = createSelectSchema(tables.licenseOperations)
+
+/**
+ * Zod schema for inserting licenseOperations rows to database
+ * Generated from Drizzle table definition: tables.licenseOperations
+ */
+export const LicenseOperationsInsertSchema = createInsertSchema(tables.licenseOperations)
+
+/**
+ * TypeScript type for licenseOperations row (Select)
+ */
+export type LicenseOperationsRow = z.infer<typeof LicenseOperationsSelectSchema>
+
+/**
+ * TypeScript type for licenseOperations insert
+ */
+export type LicenseOperationsInsert = z.infer<typeof LicenseOperationsInsertSchema>
+
+// =============================================================================
 // Licenses Schemas
 // =============================================================================
 

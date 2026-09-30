@@ -8,15 +8,14 @@ audience: user
 
 # REST API Reference
 
-**Version:** 0.1.0
+**Version:** 1.0.0
 
 **Base URL (production):** `https://api.revealui.com/api`
 
 **Interactive docs:** Start the API server (`pnpm dev:api`) and open [http://localhost:3004](http://localhost:3004) for full Swagger UI with request builder.
 
-> **Note:** This reference is generated from `examples/api/openapi.json`. To regenerate from the live API spec, run:
+> **Note:** This reference and its schema snapshot are generated from the server route registry. No running server is required:
 > ```bash
-> curl http://localhost:3004/openapi.json > examples/api/openapi.json
 > pnpm docs:generate:api
 > ```
 
@@ -36,6 +35,7 @@ RevealUI uses **session-based authentication** (no JWTs). Sign in via `POST /aut
 - [gdpr](#gdpr)
 - [observability](#observability)
 - [license](#license)
+- [Kits](#kits)
 - [billing](#billing)
 - [webhooks](#webhooks)
 - [provenance](#provenance)
@@ -45,12 +45,20 @@ RevealUI uses **session-based authentication** (no JWTs). Sign in via `POST /aut
 - [labels](#labels)
 - [agent-tasks](#agent-tasks)
 - [agent](#agent)
+- [mcp](#mcp)
 - [content](#content)
 - [rag](#rag)
-- [BYOK](#byok)
+- [admin](#admin)
+- [Analytics](#analytics)
+- [Nudges](#nudges)
+- [DevKit](#devkit)
+- [Rotation](#rotation)
+- [API Keys](#api-keys)
+- [ghcr](#ghcr)
 - [maintenance](#maintenance)
 - [marketplace](#marketplace)
 - [pricing](#pricing)
+- [revmarket](#revmarket)
 - [Collaboration](#collaboration)
 - [Agent Collaboration](#agent-collaboration)
 
@@ -67,6 +75,7 @@ RevealUI uses **session-based authentication** (no JWTs). Sign in via `POST /aut
 - `200`  -  Agent card
 - `403`  -  AI feature requires Pro or Enterprise license
 - `404`  -  Agent not found
+- `503`  -  AI runtime package not available in this deployment (not a Free-plan limit)
 
 ---
 
@@ -86,6 +95,7 @@ RevealUI uses **session-based authentication** (no JWTs). Sign in via `POST /aut
 - `400`  -  Invalid agent ID format
 - `403`  -  AI feature requires Pro or Enterprise license
 - `404`  -  Agent not found
+- `503`  -  AI runtime package not available in this deployment (not a Free-plan limit)
 
 ---
 
@@ -110,6 +120,16 @@ RevealUI uses **session-based authentication** (no JWTs). Sign in via `POST /aut
 
 ---
 
+### `GET` `/.well-known/mcp.json`
+
+**MCP server discovery manifest**
+
+**Responses**
+
+- `200`  -  MCP server manifest
+
+---
+
 ### `GET` `/a2a/agents`
 
 **List all registered agents as A2A agent cards**
@@ -118,6 +138,7 @@ RevealUI uses **session-based authentication** (no JWTs). Sign in via `POST /aut
 
 - `200`  -  Agent card list
 - `403`  -  AI feature requires Pro or Enterprise license
+- `503`  -  AI runtime package not available in this deployment (not a Free-plan limit)
 
 ---
 
@@ -135,6 +156,7 @@ See API schema for request body shape.
 - `400`  -  Invalid request
 - `403`  -  AI feature requires Pro or Enterprise license
 - `409`  -  Agent already registered
+- `503`  -  AI runtime package not available in this deployment (not a Free-plan limit)
 
 ---
 
@@ -154,6 +176,7 @@ See API schema for request body shape.
 - `400`  -  Invalid agent ID format
 - `403`  -  AI feature requires Pro or Enterprise license
 - `404`  -  Agent not found
+- `503`  -  AI runtime package not available in this deployment (not a Free-plan limit)
 
 ---
 
@@ -185,6 +208,7 @@ See API schema for request body shape.
 - `400`  -  Invalid request
 - `403`  -  AI feature requires Pro or Enterprise license
 - `404`  -  Agent not found
+- `503`  -  AI runtime package not available in this deployment (not a Free-plan limit)
 
 ---
 
@@ -204,6 +228,7 @@ See API schema for request body shape.
 - `400`  -  Invalid agent ID format
 - `403`  -  Built-in agents cannot be retired or AI feature requires Pro or Enterprise license
 - `404`  -  Agent not found
+- `503`  -  AI runtime package not available in this deployment (not a Free-plan limit)
 
 ---
 
@@ -223,6 +248,7 @@ See API schema for request body shape.
 - `400`  -  Invalid agent ID format
 - `403`  -  AI feature requires Pro or Enterprise license
 - `404`  -  Agent not found
+- `503`  -  AI runtime package not available in this deployment (not a Free-plan limit)
 
 ---
 
@@ -244,6 +270,17 @@ See API schema for request body shape.
 
 ---
 
+### `GET` `/a2a/agent-tasks/exists`
+
+**Check whether any agent task has ever run**
+
+**Responses**
+
+- `200`  -  Whether at least one agent task exists
+- `401`  -  Authentication required
+
+---
+
 ### `GET` `/a2a/stream/{taskId}`
 
 **SSE stream for a running task**
@@ -258,6 +295,7 @@ See API schema for request body shape.
 
 - `200`  -  SSE event stream
 - `403`  -  AI feature requires Pro or Enterprise license
+- `503`  -  AI runtime package not available in this deployment (not a Free-plan limit)
 
 ---
 
@@ -274,6 +312,8 @@ See API schema for request body shape.
 - `200`  -  JSON-RPC response
 - `400`  -  Parse error or invalid request
 - `403`  -  AI feature requires Pro or Enterprise license
+- `409`  -  Hosted account has no LLM provider configured (set one at /settings/api-keys)
+- `503`  -  AI runtime package not available in this deployment (not a Free-plan limit)
 
 ---
 
@@ -295,7 +335,7 @@ Instant response with no dependencies. Kubernetes/load balancers use this to dec
 
 **Liveness probe (alias)**
 
-Alias for the root liveness probe — used by Playwright smoke tests and some load balancer conventions.
+Alias for the root liveness probe  -  used by Playwright smoke tests and some load balancer conventions.
 
 **Responses**
 
@@ -325,7 +365,7 @@ Exposes all application metrics collected by the core MetricsCollector in Promet
 **Responses**
 
 - `200`  -  Prometheus-compatible metrics in text/plain format
-- `401`  -  Unauthorized — missing or invalid metrics secret
+- `401`  -  Unauthorized  -  missing or invalid metrics secret
 
 ---
 
@@ -333,12 +373,12 @@ Exposes all application metrics collected by the core MetricsCollector in Promet
 
 **Metrics (JSON)**
 
-Metrics in JSON format — useful for internal dashboards and debugging. Requires METRICS_SECRET or CRON_SECRET authentication.
+Metrics in JSON format  -  useful for internal dashboards and debugging. Requires METRICS_SECRET or CRON_SECRET authentication.
 
 **Responses**
 
 - `200`  -  Metrics as JSON
-- `401`  -  Unauthorized — missing or invalid metrics secret
+- `401`  -  Unauthorized  -  missing or invalid metrics secret
 
 ---
 
@@ -368,7 +408,7 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 - `202`  -  Error accepted for processing
 - `400`  -  Invalid JSON or payload
-- `403`  -  Forbidden — invalid or missing internal token
+- `403`  -  Forbidden  -  invalid or missing internal token
 
 ---
 
@@ -396,7 +436,7 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 - `202`  -  Error accepted for processing
 - `400`  -  Invalid JSON or payload
-- `403`  -  Forbidden — invalid or missing internal token
+- `403`  -  Forbidden  -  invalid or missing internal token
 
 ---
 
@@ -675,7 +715,7 @@ Accepts warn/error/fatal log entries from apps that cannot write to the DB direc
 
 - `202`  -  Log entry accepted
 - `400`  -  Invalid payload
-- `403`  -  Forbidden — missing or invalid X-Internal-Token
+- `403`  -  Forbidden  -  missing or invalid X-Internal-Token
 
 ---
 
@@ -700,7 +740,7 @@ Accepts warn/error/fatal log entries from apps that cannot write to the DB direc
 
 - `202`  -  Log entry accepted
 - `400`  -  Invalid payload
-- `403`  -  Forbidden — missing or invalid X-Internal-Token
+- `403`  -  Forbidden  -  missing or invalid X-Internal-Token
 
 ---
 
@@ -716,6 +756,7 @@ Validates a JWT license key and returns the tier, features, and limits.
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
+| `requireRegistration` | `boolean` | - |  |
 | `licenseKey` | `string` | ✓ | JWT license key to verify |
 
 **Responses**
@@ -729,12 +770,15 @@ Validates a JWT license key and returns the tier, features, and limits.
 
 **Generate a license key (admin only)**
 
-Creates a signed JWT license key for a customer. Requires REVEALUI_LICENSE_PRIVATE_KEY and admin API key.
+Creates a signed JWT license key for a customer. Requires license mint config (REVEALUI_LICENSE_PRIVATE_KEY, or REVEALUI_LICENSE_SIGN_VIA_SIGNER + signer URL/secret) and admin API key.
 
 **Request body** (JSON)
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
+| `operationId` | `string (uuid)` | ✓ | Stable operation UUID reused with the same request to recover the committed token after a retry. |
+| `expectedCurrentLicenseKey` | `string` | - | Exact registered current token to replace; successful rotation atomically revokes its JTI and registers the replacement. |
+| `perpetual` | `boolean` | - | Explicit perpetual entitlement. When true, expiresInDays must be omitted. |
 | `tier` | `string` | ✓ | License tier to generate |
 | `customerId` | `string` | ✓ | Stripe customer ID or internal customer identifier |
 | `domains` | `array` | - | Licensed domains (optional) |
@@ -745,8 +789,29 @@ Creates a signed JWT license key for a customer. Requires REVEALUI_LICENSE_PRIVA
 **Responses**
 
 - `201`  -  License key generated
-- `401`  -  Unauthorized — missing or invalid admin API key
-- `500`  -  Server error — missing private key configuration
+- `401`  -  Unauthorized  -  missing or invalid admin API key
+- `409`  -  Operation conflict or current identity changed
+- `503`  -  Server error  -  missing private key configuration
+
+---
+
+### `POST` `/api/license/refresh`
+
+**Refresh a license key**
+
+Returns the current stored license key for the bound customerId. The presented JWT must match that customer and an undeleted, non-revoked registered prior token in the configured deployment mode. Unknown separately signed tokens require operator migration. Accepts a registered key expired within the refresh window. Never mints. Unbound or mismatched refresh is denied.
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `licenseKey` | `string` | ✓ | The current (possibly recently-expired) license key held by the instance |
+| `customerId` | `string` | ✓ | Customer id this instance is bound to. Must match the presented key. Unbound refresh is denied. |
+
+**Responses**
+
+- `200`  -  The current stored license key
+- `403`  -  Refresh denied
 
 ---
 
@@ -762,6 +827,33 @@ Returns which features are available at each license tier.
 
 ---
 
+### `GET` `/api/license/public-key`
+
+**Get the vendor license public key (PEM)**
+
+Returns the Ed25519 public key used to verify license JWTs. This is PUBLIC material (no auth): a supported client trust provisioning must bind it to the authenticated hosted issuer lifecycle so the RevDev daemon can verify their license. Null when the server has no key configured.
+
+**Responses**
+
+- `200`  -  Vendor public key (PEM), or null when the server has none configured
+
+---
+
+### `GET` `/api/license/current`
+
+**Get the signed-in owner license**
+
+Returns the latest license row for the authenticated user. Never mints. Disabled unless REVEALUI_LICENSE_AUTO_PROVISION=true.
+
+**Responses**
+
+- `200`  -  Owner license snapshot
+- `401`  -  Authentication required
+- `404`  -  Auto-provision is not enabled
+- `503`  -  License or revocation authority unavailable; no key returned
+
+---
+
 ### `POST` `/api/v1/license/verify`
 
 **Verify a license key**
@@ -772,6 +864,7 @@ Validates a JWT license key and returns the tier, features, and limits.
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
+| `requireRegistration` | `boolean` | - |  |
 | `licenseKey` | `string` | ✓ | JWT license key to verify |
 
 **Responses**
@@ -785,12 +878,15 @@ Validates a JWT license key and returns the tier, features, and limits.
 
 **Generate a license key (admin only)**
 
-Creates a signed JWT license key for a customer. Requires REVEALUI_LICENSE_PRIVATE_KEY and admin API key.
+Creates a signed JWT license key for a customer. Requires license mint config (REVEALUI_LICENSE_PRIVATE_KEY, or REVEALUI_LICENSE_SIGN_VIA_SIGNER + signer URL/secret) and admin API key.
 
 **Request body** (JSON)
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
+| `operationId` | `string (uuid)` | ✓ | Stable operation UUID reused with the same request to recover the committed token after a retry. |
+| `expectedCurrentLicenseKey` | `string` | - | Exact registered current token to replace; successful rotation atomically revokes its JTI and registers the replacement. |
+| `perpetual` | `boolean` | - | Explicit perpetual entitlement. When true, expiresInDays must be omitted. |
 | `tier` | `string` | ✓ | License tier to generate |
 | `customerId` | `string` | ✓ | Stripe customer ID or internal customer identifier |
 | `domains` | `array` | - | Licensed domains (optional) |
@@ -801,8 +897,29 @@ Creates a signed JWT license key for a customer. Requires REVEALUI_LICENSE_PRIVA
 **Responses**
 
 - `201`  -  License key generated
-- `401`  -  Unauthorized — missing or invalid admin API key
-- `500`  -  Server error — missing private key configuration
+- `401`  -  Unauthorized  -  missing or invalid admin API key
+- `409`  -  Operation conflict or current identity changed
+- `503`  -  Server error  -  missing private key configuration
+
+---
+
+### `POST` `/api/v1/license/refresh`
+
+**Refresh a license key**
+
+Returns the current stored license key for the bound customerId. The presented JWT must match that customer and an undeleted, non-revoked registered prior token in the configured deployment mode. Unknown separately signed tokens require operator migration. Accepts a registered key expired within the refresh window. Never mints. Unbound or mismatched refresh is denied.
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `licenseKey` | `string` | ✓ | The current (possibly recently-expired) license key held by the instance |
+| `customerId` | `string` | ✓ | Customer id this instance is bound to. Must match the presented key. Unbound refresh is denied. |
+
+**Responses**
+
+- `200`  -  The current stored license key
+- `403`  -  Refresh denied
 
 ---
 
@@ -818,6 +935,75 @@ Returns which features are available at each license tier.
 
 ---
 
+### `GET` `/api/v1/license/public-key`
+
+**Get the vendor license public key (PEM)**
+
+Returns the Ed25519 public key used to verify license JWTs. This is PUBLIC material (no auth): a supported client trust provisioning must bind it to the authenticated hosted issuer lifecycle so the RevDev daemon can verify their license. Null when the server has no key configured.
+
+**Responses**
+
+- `200`  -  Vendor public key (PEM), or null when the server has none configured
+
+---
+
+### `GET` `/api/v1/license/current`
+
+**Get the signed-in owner license**
+
+Returns the latest license row for the authenticated user. Never mints. Disabled unless REVEALUI_LICENSE_AUTO_PROVISION=true.
+
+**Responses**
+
+- `200`  -  Owner license snapshot
+- `401`  -  Authentication required
+- `404`  -  Auto-provision is not enabled
+- `503`  -  License or revocation authority unavailable; no key returned
+
+---
+
+## Kits
+
+### `GET` `/api/kits/agency-founding/download`
+
+**Download Agency Founding Kit package (signed token)**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `token` | `string` | ✓ |  -  | Signed download token |
+
+**Responses**
+
+- `200`  -  Kit package (text multi-file or redirected tarball)
+- `302`  -  Redirect to object-storage tarball (full mode)
+- `400`  -  Missing or invalid token
+- `404`  -  Fulfillment not ready
+- `410`  -  Token expired
+
+---
+
+### `GET` `/api/v1/kits/agency-founding/download`
+
+**Download Agency Founding Kit package (signed token)**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `token` | `string` | ✓ |  -  | Signed download token |
+
+**Responses**
+
+- `200`  -  Kit package (text multi-file or redirected tarball)
+- `302`  -  Redirect to object-storage tarball (full mode)
+- `400`  -  Missing or invalid token
+- `404`  -  Fulfillment not ready
+- `410`  -  Token expired
+
+---
+
 ## billing
 
 ### `POST` `/api/billing/checkout`
@@ -830,12 +1016,34 @@ Creates a Stripe checkout session for subscription purchase. Requires authentica
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `priceId` | `string` | - | Stripe price ID for the subscription |
-| `tier` | `string` | - | License tier (defaults to pro) |
+| `priceId` | `string` | - |  |
+| `tier` | `string` | - |  |
+| `interval` | `string` | - |  |
 
 **Responses**
 
 - `200`  -  Checkout session created
+- `401`  -  Not authenticated
+
+---
+
+### `POST` `/api/billing/payment-intent`
+
+**Create an incomplete subscription PaymentIntent**
+
+Creates a Stripe subscription with payment_behavior=default_incomplete and returns the first invoice client_secret for Payment Element.
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `priceId` | `string` | - |  |
+| `tier` | `string` | - |  |
+| `interval` | `string` | - |  |
+
+**Responses**
+
+- `200`  -  PaymentIntent client_secret created
 - `401`  -  Not authenticated
 
 ---
@@ -866,6 +1074,26 @@ Returns the current user's license tier, status, and expiration.
 
 ---
 
+### `GET` `/api/billing/invoices`
+
+**List invoices**
+
+Returns the current user's Stripe invoices with amounts, status, and PDF download links.
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `limit` | `string` | - |  -  | Max invoices to return (1-100, default 10) |
+| `starting_after` | `string` | - |  -  | Cursor for pagination (Stripe invoice ID) |
+
+**Responses**
+
+- `200`  -  List of invoices
+- `401`  -  Not authenticated
+
+---
+
 ### `POST` `/api/billing/upgrade`
 
 **Upgrade subscription tier**
@@ -876,12 +1104,12 @@ Upgrades an active subscription to a new price/tier mid-cycle. Prorations are cr
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `priceId` | `string` | - | Stripe price ID for the target tier |
-| `targetTier` | `string` | ✓ | Tier to upgrade to |
+| `priceId` | `string` | - |  |
+| `targetTier` | `string` | ✓ |  |
 
 **Responses**
 
-- `200`  -  Subscription upgraded — Stripe will fire customer.subscription.updated
+- `200`  -  Subscription upgraded  -  Stripe will fire customer.subscription.updated
 - `400`  -  No active subscription or no billing account
 - `401`  -  Not authenticated
 
@@ -897,6 +1125,32 @@ Cancels the active subscription at the end of the current billing period. The us
 
 - `200`  -  Subscription scheduled for cancellation at end of billing period
 - `400`  -  No active subscription found
+- `401`  -  Not authenticated
+
+---
+
+### `POST` `/api/billing/pause`
+
+**Pause subscription**
+
+Pauses billing for the current subscription. Access is retained during the pause period.
+
+**Responses**
+
+- `200`  -  Subscription paused
+- `401`  -  Not authenticated
+
+---
+
+### `POST` `/api/billing/resume`
+
+**Resume subscription**
+
+Resumes billing for a paused subscription.
+
+**Responses**
+
+- `200`  -  Subscription resumed
 - `401`  -  Not authenticated
 
 ---
@@ -922,15 +1176,82 @@ Creates a one-time Stripe payment session for a perpetual license. Includes 1 ye
 
 ---
 
+### `POST` `/api/billing/checkout-support-renewal`
+
+**Create a support renewal checkout session**
+
+Creates a one-time Stripe payment session to renew the annual support contract on a perpetual license. Requires authentication and an existing perpetual license.
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `priceId` | `string` | - | Stripe price ID for the support renewal product |
+| `tier` | `string` | ✓ | Perpetual license tier whose support to renew |
+
+**Responses**
+
+- `200`  -  Checkout session created
+- `401`  -  Not authenticated
+- `404`  -  No perpetual license found for this tier
+
+---
+
+### `POST` `/api/billing/checkout-credits`
+
+**Reject leftover credit-bundle checkout**
+
+Credit bundles are not sold. The route stays registered so leftover clients receive a closed rejection instead of an unattended Stripe session.
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `priceId` | `string` | - | Stripe price ID for the credit bundle product |
+| `bundle` | `string` | ✓ | Credit bundle name |
+
+**Responses**
+
+- `400`  -  Credit bundles are not sold
+- `401`  -  Not authenticated
+
+---
+
+### `GET` `/api/billing/credits`
+
+**Get current credit balance**
+
+Returns the authenticated user's prepaid agent task credit balance.
+
+**Responses**
+
+- `200`  -  Credit balance
+- `401`  -  Not authenticated
+
+---
+
 ### `GET` `/api/billing/usage`
 
 **Agent task usage**
 
-Returns agent task usage for the current billing cycle.
+Returns agent task usage for the current monthly billing cycle plus this ISO week (UTC). Monthly fields are unchanged.
 
 **Responses**
 
 - `200`  -  Current cycle usage
+- `401`  -  Not authenticated
+
+---
+
+### `GET` `/api/billing/seats`
+
+**Seat usage**
+
+Returns active member count and the tier seat cap for the current account.
+
+**Responses**
+
+- `200`  -  Current seat usage
 - `401`  -  Not authenticated
 
 ---
@@ -965,7 +1286,7 @@ Reads overage from the previous billing cycle and emits Stripe Billing Meter eve
 
 **Sweep expired licenses (internal cron)**
 
-Marks non-perpetual licenses whose expiresAt is in the past as expired, then clears the DB status cache. Protected by X-Cron-Secret.
+Marks non-perpetual licenses whose expiresAt is in the past as expired, and perpetual licenses whose supportExpiresAt is in the past as support_expired. Clears caches so changes take effect immediately. Protected by X-Cron-Secret.
 
 **Responses**
 
@@ -984,10 +1305,10 @@ Creates a Stripe refund for a payment intent or charge. Admin-only. Full or part
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `paymentIntentId` | `string` | - | Stripe PaymentIntent ID to refund. Provide either this or chargeId. |
-| `chargeId` | `string` | - | Stripe Charge ID to refund. Provide either this or paymentIntentId. |
-| `amount` | `integer` | - | Amount to refund in cents. Omit for full refund. |
-| `reason` | `string` | - | Reason for the refund (Stripe enum) |
+| `paymentIntentId` | `string` | - |  |
+| `chargeId` | `string` | - |  |
+| `amount` | `integer` | - |  |
+| `reason` | `string` | - |  |
 
 **Responses**
 
@@ -1029,12 +1350,34 @@ Creates a Stripe checkout session for subscription purchase. Requires authentica
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `priceId` | `string` | - | Stripe price ID for the subscription |
-| `tier` | `string` | - | License tier (defaults to pro) |
+| `priceId` | `string` | - |  |
+| `tier` | `string` | - |  |
+| `interval` | `string` | - |  |
 
 **Responses**
 
 - `200`  -  Checkout session created
+- `401`  -  Not authenticated
+
+---
+
+### `POST` `/api/v1/billing/payment-intent`
+
+**Create an incomplete subscription PaymentIntent**
+
+Creates a Stripe subscription with payment_behavior=default_incomplete and returns the first invoice client_secret for Payment Element.
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `priceId` | `string` | - |  |
+| `tier` | `string` | - |  |
+| `interval` | `string` | - |  |
+
+**Responses**
+
+- `200`  -  PaymentIntent client_secret created
 - `401`  -  Not authenticated
 
 ---
@@ -1065,6 +1408,26 @@ Returns the current user's license tier, status, and expiration.
 
 ---
 
+### `GET` `/api/v1/billing/invoices`
+
+**List invoices**
+
+Returns the current user's Stripe invoices with amounts, status, and PDF download links.
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `limit` | `string` | - |  -  | Max invoices to return (1-100, default 10) |
+| `starting_after` | `string` | - |  -  | Cursor for pagination (Stripe invoice ID) |
+
+**Responses**
+
+- `200`  -  List of invoices
+- `401`  -  Not authenticated
+
+---
+
 ### `POST` `/api/v1/billing/upgrade`
 
 **Upgrade subscription tier**
@@ -1075,12 +1438,12 @@ Upgrades an active subscription to a new price/tier mid-cycle. Prorations are cr
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `priceId` | `string` | - | Stripe price ID for the target tier |
-| `targetTier` | `string` | ✓ | Tier to upgrade to |
+| `priceId` | `string` | - |  |
+| `targetTier` | `string` | ✓ |  |
 
 **Responses**
 
-- `200`  -  Subscription upgraded — Stripe will fire customer.subscription.updated
+- `200`  -  Subscription upgraded  -  Stripe will fire customer.subscription.updated
 - `400`  -  No active subscription or no billing account
 - `401`  -  Not authenticated
 
@@ -1096,6 +1459,32 @@ Cancels the active subscription at the end of the current billing period. The us
 
 - `200`  -  Subscription scheduled for cancellation at end of billing period
 - `400`  -  No active subscription found
+- `401`  -  Not authenticated
+
+---
+
+### `POST` `/api/v1/billing/pause`
+
+**Pause subscription**
+
+Pauses billing for the current subscription. Access is retained during the pause period.
+
+**Responses**
+
+- `200`  -  Subscription paused
+- `401`  -  Not authenticated
+
+---
+
+### `POST` `/api/v1/billing/resume`
+
+**Resume subscription**
+
+Resumes billing for a paused subscription.
+
+**Responses**
+
+- `200`  -  Subscription resumed
 - `401`  -  Not authenticated
 
 ---
@@ -1121,15 +1510,82 @@ Creates a one-time Stripe payment session for a perpetual license. Includes 1 ye
 
 ---
 
+### `POST` `/api/v1/billing/checkout-support-renewal`
+
+**Create a support renewal checkout session**
+
+Creates a one-time Stripe payment session to renew the annual support contract on a perpetual license. Requires authentication and an existing perpetual license.
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `priceId` | `string` | - | Stripe price ID for the support renewal product |
+| `tier` | `string` | ✓ | Perpetual license tier whose support to renew |
+
+**Responses**
+
+- `200`  -  Checkout session created
+- `401`  -  Not authenticated
+- `404`  -  No perpetual license found for this tier
+
+---
+
+### `POST` `/api/v1/billing/checkout-credits`
+
+**Reject leftover credit-bundle checkout**
+
+Credit bundles are not sold. The route stays registered so leftover clients receive a closed rejection instead of an unattended Stripe session.
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `priceId` | `string` | - | Stripe price ID for the credit bundle product |
+| `bundle` | `string` | ✓ | Credit bundle name |
+
+**Responses**
+
+- `400`  -  Credit bundles are not sold
+- `401`  -  Not authenticated
+
+---
+
+### `GET` `/api/v1/billing/credits`
+
+**Get current credit balance**
+
+Returns the authenticated user's prepaid agent task credit balance.
+
+**Responses**
+
+- `200`  -  Credit balance
+- `401`  -  Not authenticated
+
+---
+
 ### `GET` `/api/v1/billing/usage`
 
 **Agent task usage**
 
-Returns agent task usage for the current billing cycle.
+Returns agent task usage for the current monthly billing cycle plus this ISO week (UTC). Monthly fields are unchanged.
 
 **Responses**
 
 - `200`  -  Current cycle usage
+- `401`  -  Not authenticated
+
+---
+
+### `GET` `/api/v1/billing/seats`
+
+**Seat usage**
+
+Returns active member count and the tier seat cap for the current account.
+
+**Responses**
+
+- `200`  -  Current seat usage
 - `401`  -  Not authenticated
 
 ---
@@ -1164,7 +1620,7 @@ Reads overage from the previous billing cycle and emits Stripe Billing Meter eve
 
 **Sweep expired licenses (internal cron)**
 
-Marks non-perpetual licenses whose expiresAt is in the past as expired, then clears the DB status cache. Protected by X-Cron-Secret.
+Marks non-perpetual licenses whose expiresAt is in the past as expired, and perpetual licenses whose supportExpiresAt is in the past as support_expired. Clears caches so changes take effect immediately. Protected by X-Cron-Secret.
 
 **Responses**
 
@@ -1183,10 +1639,10 @@ Creates a Stripe refund for a payment intent or charge. Admin-only. Full or part
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `paymentIntentId` | `string` | - | Stripe PaymentIntent ID to refund. Provide either this or chargeId. |
-| `chargeId` | `string` | - | Stripe Charge ID to refund. Provide either this or paymentIntentId. |
-| `amount` | `integer` | - | Amount to refund in cents. Omit for full refund. |
-| `reason` | `string` | - | Reason for the refund (Stripe enum) |
+| `paymentIntentId` | `string` | - |  |
+| `chargeId` | `string` | - |  |
+| `amount` | `integer` | - |  |
+| `reason` | `string` | - |  |
 
 **Responses**
 
@@ -2738,7 +3194,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Submit a natural language task for an agent to execute**
 
-Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result.
+Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result. When durable dispatch is enabled and the agent takes longer than ~22 s, returns 202 with a jobId the caller can poll at /status.
 
 **Request body** (JSON)
 
@@ -2747,12 +3203,16 @@ Creates a ticket from the instruction, dispatches an AI agent with admin tools t
 | `instruction` | `string` | ✓ |  |
 | `boardId` | `string` | ✓ | Board to create the ticket on |
 | `priority` | `string` | - |  |
+| `trustPreset` | `string` | - |  |
 
 **Responses**
 
-- `200`  -  Agent task completed
+- `200`  -  Agent task completed within the sync/poll window
+- `202`  -  Dispatch enqueued but still running at the poll-window timeout. Caller polls the statusUrl.
 - `400`  -  Bad request
 - `403`  -  AI feature requires Pro or Enterprise license
+- `409`  -  Hosted account has no LLM provider configured (set one at /settings/api-keys)
+- `503`  -  AI runtime package not available in this deployment (not a Free-plan limit)
 
 ---
 
@@ -2768,8 +3228,30 @@ Creates a ticket from the instruction, dispatches an AI agent with admin tools t
 
 **Responses**
 
-- `200`  -  Agent dispatch completed
+- `200`  -  Agent dispatch completed within the sync/poll window
+- `202`  -  Dispatch enqueued but still running at the poll-window timeout
 - `403`  -  AI feature requires Pro or Enterprise license
+- `404`  -  Ticket not found
+- `409`  -  Hosted account has no LLM provider configured (set one at /settings/api-keys)
+- `503`  -  AI runtime package not available in this deployment (not a Free-plan limit)
+
+---
+
+### `GET` `/api/agent-tasks/{ticketId}/status`
+
+**Fetch the canonical dispatch status for a ticket**
+
+Returns the current state of the most recent dispatch job for a ticket. `status = idle` means no job was ever queued (legacy sync dispatch or ticket never dispatched). Safe to poll; returns 200 even when nothing is in flight.
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `ticketId` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Dispatch status
 - `404`  -  Ticket not found
 
 ---
@@ -2778,7 +3260,7 @@ Creates a ticket from the instruction, dispatches an AI agent with admin tools t
 
 **Submit a natural language task for an agent to execute**
 
-Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result.
+Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result. When durable dispatch is enabled and the agent takes longer than ~22 s, returns 202 with a jobId the caller can poll at /status.
 
 **Request body** (JSON)
 
@@ -2787,12 +3269,16 @@ Creates a ticket from the instruction, dispatches an AI agent with admin tools t
 | `instruction` | `string` | ✓ |  |
 | `boardId` | `string` | ✓ | Board to create the ticket on |
 | `priority` | `string` | - |  |
+| `trustPreset` | `string` | - |  |
 
 **Responses**
 
-- `200`  -  Agent task completed
+- `200`  -  Agent task completed within the sync/poll window
+- `202`  -  Dispatch enqueued but still running at the poll-window timeout. Caller polls the statusUrl.
 - `400`  -  Bad request
 - `403`  -  AI feature requires Pro or Enterprise license
+- `409`  -  Hosted account has no LLM provider configured (set one at /settings/api-keys)
+- `503`  -  AI runtime package not available in this deployment (not a Free-plan limit)
 
 ---
 
@@ -2808,19 +3294,65 @@ Creates a ticket from the instruction, dispatches an AI agent with admin tools t
 
 **Responses**
 
-- `200`  -  Agent dispatch completed
+- `200`  -  Agent dispatch completed within the sync/poll window
+- `202`  -  Dispatch enqueued but still running at the poll-window timeout
 - `403`  -  AI feature requires Pro or Enterprise license
+- `404`  -  Ticket not found
+- `409`  -  Hosted account has no LLM provider configured (set one at /settings/api-keys)
+- `503`  -  AI runtime package not available in this deployment (not a Free-plan limit)
+
+---
+
+### `GET` `/api/v1/agent-tasks/{ticketId}/status`
+
+**Fetch the canonical dispatch status for a ticket**
+
+Returns the current state of the most recent dispatch job for a ticket. `status = idle` means no job was ever queued (legacy sync dispatch or ticket never dispatched). Safe to poll; returns 200 even when nothing is in flight.
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `ticketId` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Dispatch status
 - `404`  -  Ticket not found
 
 ---
 
 ## agent
 
+### `POST` `/api/agent-stream/elicit`
+
+**Submit an elicitation response for an in-flight agent run**
+
+Resolves a pending `elicitation/create` request issued by an MCP server during an agent-stream run. The client provides `{ sessionId, elicitationId, action, content? }`; the server maps the session to the pending handler promise and resolves it.
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `sessionId` | `string (uuid)` | ✓ |  |
+| `elicitationId` | `string` | ✓ |  |
+| `action` | `string` | ✓ |  |
+| `content` | `object` | - |  |
+
+**Responses**
+
+- `200`  -  Elicitation resolved
+- `401`  -  Authentication required
+- `403`  -  Session belongs to a different user
+- `404`  -  No pending elicitation matching the supplied ids
+
+---
+
 ### `POST` `/api/agent-stream`
 
 **Stream agent execution via SSE**
 
-Streams agent execution events in real-time using Server-Sent Events. Client-side: use fetch + ReadableStream (not EventSource — it does not support POST).
+Streams agent execution events in real-time using Server-Sent Events. Client-side: use fetch + ReadableStream (not EventSource  -  it does not support POST).
 
 **Request body** (JSON)
 
@@ -2832,12 +3364,42 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 | `priority` | `string` | - |  |
 | `provider` | `string` | - |  |
 | `model` | `string` | - |  |
+| `mode` | `string` | - |  |
+| `agentId` | `string` | - |  |
+| `trustPreset` | `string` | - |  |
 
 **Responses**
 
 - `200`  -  SSE stream of agent execution events (text/event-stream)
 - `400`  -  Missing instruction or invalid provider
 - `403`  -  AI feature requires Pro or Enterprise license
+- `409`  -  Hosted account has no LLM provider configured (set one at /settings/api-keys)
+- `500`  -  AI client resolve failed (not a Free-plan limit)
+- `503`  -  AI runtime package not available in this deployment (not a Free-plan limit)
+
+---
+
+### `POST` `/api/v1/agent-stream/elicit`
+
+**Submit an elicitation response for an in-flight agent run**
+
+Resolves a pending `elicitation/create` request issued by an MCP server during an agent-stream run. The client provides `{ sessionId, elicitationId, action, content? }`; the server maps the session to the pending handler promise and resolves it.
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `sessionId` | `string (uuid)` | ✓ |  |
+| `elicitationId` | `string` | ✓ |  |
+| `action` | `string` | ✓ |  |
+| `content` | `object` | - |  |
+
+**Responses**
+
+- `200`  -  Elicitation resolved
+- `401`  -  Authentication required
+- `403`  -  Session belongs to a different user
+- `404`  -  No pending elicitation matching the supplied ids
 
 ---
 
@@ -2845,7 +3407,7 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 **Stream agent execution via SSE**
 
-Streams agent execution events in real-time using Server-Sent Events. Client-side: use fetch + ReadableStream (not EventSource — it does not support POST).
+Streams agent execution events in real-time using Server-Sent Events. Client-side: use fetch + ReadableStream (not EventSource  -  it does not support POST).
 
 **Request body** (JSON)
 
@@ -2857,12 +3419,260 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 | `priority` | `string` | - |  |
 | `provider` | `string` | - |  |
 | `model` | `string` | - |  |
+| `mode` | `string` | - |  |
+| `agentId` | `string` | - |  |
+| `trustPreset` | `string` | - |  |
 
 **Responses**
 
 - `200`  -  SSE stream of agent execution events (text/event-stream)
 - `400`  -  Missing instruction or invalid provider
 - `403`  -  AI feature requires Pro or Enterprise license
+- `409`  -  Hosted account has no LLM provider configured (set one at /settings/api-keys)
+- `500`  -  AI client resolve failed (not a Free-plan limit)
+- `503`  -  AI runtime package not available in this deployment (not a Free-plan limit)
+
+---
+
+## mcp
+
+### `GET` `/api/mcp/usage`
+
+**Aggregate MCP usage for the caller’s account**
+
+Returns per-`meterName` totals, success / error / unknown counts (unknown = pre-A.3 row with NULL `errored`), duration counts, and p50 / p95 duration buckets in milliseconds. Filtered by the caller’s `accountId` (resolved from `entitlementMiddleware`) and the requested time range.
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `range` | `string` | - | `24h` |  |
+
+**Responses**
+
+- `200`  -  Usage aggregations for the caller’s account
+- `401`  -  Authentication required
+- `409`  -  Caller has no resolvable account membership
+
+---
+
+### `GET` `/api/mcp/approvals`
+
+**List governed MCP approvals for the caller account**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `status` | `string` | - |  -  |  |
+
+**Responses**
+
+- `200`  -  Approvals visible to this account
+- `401`  -  Authentication required
+- `403`  -  Caller cannot review approvals
+- `409`  -  Caller has no account
+
+---
+
+### `GET` `/api/mcp/approvals/:id`
+
+**Read one governed MCP approval**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Approval detail with a redacted argument preview
+- `401`  -  Authentication required
+- `403`  -  Caller cannot review approvals
+- `404`  -  Approval not found
+- `409`  -  Caller has no account
+
+---
+
+### `POST` `/api/mcp/approvals/:id/decide`
+
+**Approve or deny a pending MCP approval**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `verdict` | `string` | ✓ |  |
+| `note` | `string` | - |  |
+
+**Responses**
+
+- `200`  -  Decision recorded
+- `401`  -  Authentication required
+- `403`  -  Caller cannot decide this approval
+- `404`  -  Approval not found
+- `409`  -  Approval is not a pending unexpired request
+- `503`  -  Audit write failed, so the decision was refused
+
+---
+
+### `GET` `/api/mcp/approval-settings`
+
+**Read which eligible tools require approval**
+
+**Responses**
+
+- `200`  -  Current requireTools list
+- `401`  -  Authentication required
+- `403`  -  Caller cannot review approval settings
+- `409`  -  Caller has no account
+
+---
+
+### `PUT` `/api/mcp/approval-settings`
+
+**Replace which eligible tools require approval**
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `requireTools` | `array` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Settings saved
+- `400`  -  requireTools is not a set of eligible tools
+- `401`  -  Authentication required
+- `403`  -  Caller cannot change approval settings
+- `409`  -  Caller has no account
+
+---
+
+### `GET` `/api/v1/mcp/usage`
+
+**Aggregate MCP usage for the caller’s account**
+
+Returns per-`meterName` totals, success / error / unknown counts (unknown = pre-A.3 row with NULL `errored`), duration counts, and p50 / p95 duration buckets in milliseconds. Filtered by the caller’s `accountId` (resolved from `entitlementMiddleware`) and the requested time range.
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `range` | `string` | - | `24h` |  |
+
+**Responses**
+
+- `200`  -  Usage aggregations for the caller’s account
+- `401`  -  Authentication required
+- `409`  -  Caller has no resolvable account membership
+
+---
+
+### `GET` `/api/v1/mcp/approvals`
+
+**List governed MCP approvals for the caller account**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `status` | `string` | - |  -  |  |
+
+**Responses**
+
+- `200`  -  Approvals visible to this account
+- `401`  -  Authentication required
+- `403`  -  Caller cannot review approvals
+- `409`  -  Caller has no account
+
+---
+
+### `GET` `/api/v1/mcp/approvals/:id`
+
+**Read one governed MCP approval**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Approval detail with a redacted argument preview
+- `401`  -  Authentication required
+- `403`  -  Caller cannot review approvals
+- `404`  -  Approval not found
+- `409`  -  Caller has no account
+
+---
+
+### `POST` `/api/v1/mcp/approvals/:id/decide`
+
+**Approve or deny a pending MCP approval**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `verdict` | `string` | ✓ |  |
+| `note` | `string` | - |  |
+
+**Responses**
+
+- `200`  -  Decision recorded
+- `401`  -  Authentication required
+- `403`  -  Caller cannot decide this approval
+- `404`  -  Approval not found
+- `409`  -  Approval is not a pending unexpired request
+- `503`  -  Audit write failed, so the decision was refused
+
+---
+
+### `GET` `/api/v1/mcp/approval-settings`
+
+**Read which eligible tools require approval**
+
+**Responses**
+
+- `200`  -  Current requireTools list
+- `401`  -  Authentication required
+- `403`  -  Caller cannot review approval settings
+- `409`  -  Caller has no account
+
+---
+
+### `PUT` `/api/v1/mcp/approval-settings`
+
+**Replace which eligible tools require approval**
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `requireTools` | `array` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Settings saved
+- `400`  -  requireTools is not a set of eligible tools
+- `401`  -  Authentication required
+- `403`  -  Caller cannot change approval settings
+- `409`  -  Caller has no account
 
 ---
 
@@ -2993,6 +3803,52 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 - `200`  -  Post found
 - `404`  -  Not found
+
+---
+
+### `POST` `/api/content/media/presign`
+
+**Presign a direct-to-storage media upload**
+
+Returns a short-lived presigned PUT URL. The client uploads bytes directly to object storage, then calls POST /media/confirm. File bytes never buffer in the API function (GAP-215).
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `filename` | `string` | ✓ |  |
+| `mimeType` | `string` | ✓ |  |
+| `size` | `integer` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Presigned upload issued
+- `400`  -  Invalid request
+- `413`  -  File too large
+
+---
+
+### `POST` `/api/content/media/confirm`
+
+**Confirm a direct-to-storage media upload**
+
+After the client PUTs to the presigned URL, confirm HEADs the object, re-checks size and magic bytes, then creates the media DB row (GAP-215).
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `key` | `string` | ✓ |  |
+| `filename` | `string` | ✓ |  |
+| `mimeType` | `string` | ✓ |  |
+| `size` | `integer` | ✓ |  |
+| `alt` | `string` | - |  |
+
+**Responses**
+
+- `201`  -  Media registered
+- `400`  -  Validation failed
+- `413`  -  File too large
 
 ---
 
@@ -3299,6 +4155,233 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 - `200`  -  Page deleted
 - `404`  -  Not found
+
+---
+
+### `GET` `/api/content/globals/{slug}`
+
+**Get a global by slug**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `slug` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Global found
+- `404`  -  Not found
+
+---
+
+### `PATCH` `/api/content/globals/{slug}`
+
+**Update a global**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `slug` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+See API schema for request body shape.
+
+**Responses**
+
+- `200`  -  Global updated
+- `400`  -  Validation failed
+- `404`  -  Not found
+
+---
+
+### `GET` `/api/content/sessions`
+
+**List edit sessions**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `status` | `string` | - |  -  |  |
+| `siteId` | `string` | - |  -  |  |
+
+**Responses**
+
+- `200`  -  Session list
+
+---
+
+### `POST` `/api/content/sessions`
+
+**Open an edit session**
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `siteId` | `string` | ✓ |  |
+| `title` | `string` | ✓ |  |
+
+**Responses**
+
+- `201`  -  Session opened
+- `404`  -  Site not found
+
+---
+
+### `GET` `/api/content/sessions/{id}`
+
+**Get an edit session with its docs and recent events**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Session detail
+- `404`  -  Not found
+
+---
+
+### `GET` `/api/content/sessions/{id}/events`
+
+**Poll session events after a cursor**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `after` | `integer` | - |  -  |  |
+
+**Responses**
+
+- `200`  -  Events after the cursor
+- `404`  -  Not found
+
+---
+
+### `PATCH` `/api/content/sessions/{id}/docs/{docType}/{docId}`
+
+**Patch a draft field or apply a block-array op in an edit session**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+| `docType` | `string` | ✓ |  |
+| `docId` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+See API schema for request body shape.
+
+**Responses**
+
+- `200`  -  Draft patched
+- `400`  -  Bad request
+- `404`  -  Not found
+- `409`  -  Session not open
+- `422`  -  Voice validation rejected the patch (fleet-marketing only)
+
+---
+
+### `POST` `/api/content/sessions/{id}/publish`
+
+**Publish an edit session**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Session published
+- `400`  -  Unsupported doc type
+- `404`  -  Not found
+- `409`  -  Version conflict or session not open
+
+---
+
+### `POST` `/api/content/sessions/{id}/discard`
+
+**Discard an edit session**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Session discarded
+- `404`  -  Not found
+- `409`  -  Session not open
+
+---
+
+### `POST` `/api/content/sessions/{id}/preview-token`
+
+**Mint a preview token for an edit session**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `pageId` | `string` | - |  -  |  |
+
+**Responses**
+
+- `201`  -  Preview token minted
+- `404`  -  Not found
+- `409`  -  Session not open
+
+---
+
+### `GET` `/api/content/sessions/{id}/preview`
+
+**Read edit session draft overlays with a preview token**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `token` | `string` | ✓ |  -  |  |
+
+**Responses**
+
+- `200`  -  Draft overlays for the session
+- `401`  -  Invalid or expired token
+- `403`  -  Token does not authorize this session
+- `404`  -  Not found
+- `409`  -  Session not open
 
 ---
 
@@ -3804,6 +4887,52 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 ---
 
+### `POST` `/api/v1/content/media/presign`
+
+**Presign a direct-to-storage media upload**
+
+Returns a short-lived presigned PUT URL. The client uploads bytes directly to object storage, then calls POST /media/confirm. File bytes never buffer in the API function (GAP-215).
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `filename` | `string` | ✓ |  |
+| `mimeType` | `string` | ✓ |  |
+| `size` | `integer` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Presigned upload issued
+- `400`  -  Invalid request
+- `413`  -  File too large
+
+---
+
+### `POST` `/api/v1/content/media/confirm`
+
+**Confirm a direct-to-storage media upload**
+
+After the client PUTs to the presigned URL, confirm HEADs the object, re-checks size and magic bytes, then creates the media DB row (GAP-215).
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `key` | `string` | ✓ |  |
+| `filename` | `string` | ✓ |  |
+| `mimeType` | `string` | ✓ |  |
+| `size` | `integer` | ✓ |  |
+| `alt` | `string` | - |  |
+
+**Responses**
+
+- `201`  -  Media registered
+- `400`  -  Validation failed
+- `413`  -  File too large
+
+---
+
 ### `GET` `/api/v1/content/media`
 
 **List media**
@@ -4107,6 +5236,233 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 - `200`  -  Page deleted
 - `404`  -  Not found
+
+---
+
+### `GET` `/api/v1/content/globals/{slug}`
+
+**Get a global by slug**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `slug` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Global found
+- `404`  -  Not found
+
+---
+
+### `PATCH` `/api/v1/content/globals/{slug}`
+
+**Update a global**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `slug` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+See API schema for request body shape.
+
+**Responses**
+
+- `200`  -  Global updated
+- `400`  -  Validation failed
+- `404`  -  Not found
+
+---
+
+### `GET` `/api/v1/content/sessions`
+
+**List edit sessions**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `status` | `string` | - |  -  |  |
+| `siteId` | `string` | - |  -  |  |
+
+**Responses**
+
+- `200`  -  Session list
+
+---
+
+### `POST` `/api/v1/content/sessions`
+
+**Open an edit session**
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `siteId` | `string` | ✓ |  |
+| `title` | `string` | ✓ |  |
+
+**Responses**
+
+- `201`  -  Session opened
+- `404`  -  Site not found
+
+---
+
+### `GET` `/api/v1/content/sessions/{id}`
+
+**Get an edit session with its docs and recent events**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Session detail
+- `404`  -  Not found
+
+---
+
+### `GET` `/api/v1/content/sessions/{id}/events`
+
+**Poll session events after a cursor**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `after` | `integer` | - |  -  |  |
+
+**Responses**
+
+- `200`  -  Events after the cursor
+- `404`  -  Not found
+
+---
+
+### `PATCH` `/api/v1/content/sessions/{id}/docs/{docType}/{docId}`
+
+**Patch a draft field or apply a block-array op in an edit session**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+| `docType` | `string` | ✓ |  |
+| `docId` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+See API schema for request body shape.
+
+**Responses**
+
+- `200`  -  Draft patched
+- `400`  -  Bad request
+- `404`  -  Not found
+- `409`  -  Session not open
+- `422`  -  Voice validation rejected the patch (fleet-marketing only)
+
+---
+
+### `POST` `/api/v1/content/sessions/{id}/publish`
+
+**Publish an edit session**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Session published
+- `400`  -  Unsupported doc type
+- `404`  -  Not found
+- `409`  -  Version conflict or session not open
+
+---
+
+### `POST` `/api/v1/content/sessions/{id}/discard`
+
+**Discard an edit session**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Session discarded
+- `404`  -  Not found
+- `409`  -  Session not open
+
+---
+
+### `POST` `/api/v1/content/sessions/{id}/preview-token`
+
+**Mint a preview token for an edit session**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `pageId` | `string` | - |  -  |  |
+
+**Responses**
+
+- `201`  -  Preview token minted
+- `404`  -  Not found
+- `409`  -  Session not open
+
+---
+
+### `GET` `/api/v1/content/sessions/{id}/preview`
+
+**Read edit session draft overlays with a preview token**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `token` | `string` | ✓ |  -  |  |
+
+**Responses**
+
+- `200`  -  Draft overlays for the session
+- `401`  -  Invalid or expired token
+- `403`  -  Token does not authorize this session
+- `404`  -  Not found
+- `409`  -  Session not open
 
 ---
 
@@ -4495,14 +5851,14 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 | Name | Type | Required | Description |
 |------|------|:--------:|-------------|
 | `workspaceId` | `string` | ✓ | Workspace ID |
-| `collection` | `string` | ✓ | admin collection name |
+| `collection` | `string` | ✓ | Admin collection name |
 
 **Responses**
 
 - `200`  -  Indexing completed
 - `400`  -  Invalid collection name
 - `403`  -  AI feature requires Pro or Enterprise license
-- `502`  -  admin fetch error
+- `502`  -  Admin fetch error
 
 ---
 
@@ -4565,14 +5921,14 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 | Name | Type | Required | Description |
 |------|------|:--------:|-------------|
 | `workspaceId` | `string` | ✓ | Workspace ID |
-| `collection` | `string` | ✓ | admin collection name |
+| `collection` | `string` | ✓ | Admin collection name |
 
 **Responses**
 
 - `200`  -  Indexing completed
 - `400`  -  Invalid collection name
 - `403`  -  AI feature requires Pro or Enterprise license
-- `502`  -  admin fetch error
+- `502`  -  Admin fetch error
 
 ---
 
@@ -4626,7 +5982,737 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 ---
 
-## BYOK
+## admin
+
+### `GET` `/api/admin/logs`
+
+**List application logs (fleet operator only)**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
+| `app` | `string` | - |  -  |  |
+| `level` | `string` | - |  -  |  |
+
+**Responses**
+
+- `200`  -  Paginated app logs
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+
+---
+
+### `GET` `/api/admin/errors`
+
+**List error events (fleet operator only)**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
+
+**Responses**
+
+- `200`  -  Paginated error events
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+
+---
+
+### `GET` `/api/admin/audit`
+
+**List audit log entries (fleet operator only)**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
+| `severity` | `string` | - |  -  |  |
+| `agentId` | `string` | - |  -  |  |
+| `eventType` | `string` | - |  -  |  |
+| `dateFrom` | `string` | - |  -  | ISO 8601 lower bound (inclusive) on `timestamp`. |
+| `dateTo` | `string` | - |  -  | ISO 8601 upper bound (inclusive) on `timestamp`. |
+| `policyViolationId` | `string` | - |  -  | Match entries whose `policy_violations` JSONB array contains this string. Useful for scoping to a single rule's violations. |
+
+**Responses**
+
+- `200`  -  Paginated audit log entries
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+
+---
+
+### `GET` `/api/admin/webhooks`
+
+**List processed webhook events (fleet operator only)**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
+| `eventType` | `string` | - |  -  |  |
+
+**Responses**
+
+- `200`  -  Paginated webhook events
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+
+---
+
+### `GET` `/api/admin/jobs`
+
+**List durable-queue jobs (fleet operator only)**
+
+Paginated view of the `jobs` table. Filterable by state (created/active/completed/failed/retry) and by handler name. Ordered newest-created first.
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
+| `state` | `string` | - |  -  |  |
+| `name` | `string` | - |  -  |  |
+
+**Responses**
+
+- `200`  -  Paginated jobs
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+
+---
+
+### `GET` `/api/admin/jobs/summary`
+
+**Durable-queue aggregate stats (fleet operator only)**
+
+Returns: current depth by state, per-handler counts over the last 24 hours (completed / failed / running), and the 10 most-recent failures. Intended for the admin jobs dashboard header.
+
+**Responses**
+
+- `200`  -  Queue summary
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+
+---
+
+### `GET` `/api/admin/inference/config`
+
+**Read per-site inference config (Max tier)**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `workspaceId` | `string` | ✓ |  -  |  |
+
+**Responses**
+
+- `200`  -  Config (per-site) or system default
+
+---
+
+### `PUT` `/api/admin/inference/config`
+
+**Upsert per-site inference config (Max tier)**
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `workspaceId` | `string` | ✓ |  |
+| `provider` | `string` | ✓ |  |
+| `apiKey` | `string` | - |  |
+| `model` | `string` | - |  |
+| `baseURL` | `string (uri)` | - |  |
+| `temperature` | `number` | - |  |
+| `maxTokens` | `integer` | - |  |
+
+**Responses**
+
+- `200`  -  Config saved
+
+---
+
+### `DELETE` `/api/admin/inference/config`
+
+**Revert site to system default inference (Max tier)**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `workspaceId` | `string` | ✓ |  -  |  |
+
+**Responses**
+
+- `200`  -  Config deleted; default returned
+
+---
+
+### `GET` `/api/admin/local-ai/status`
+
+**Host local AI profile status (self-host only)**
+
+**Responses**
+
+- `200`  -  Profile snapshot or hosted unavailable
+- `404`  -  Hosted deployments do not expose host local AI status
+
+---
+
+### `GET` `/api/admin/margin/summary`
+
+**Latest margin snapshot, short history, and top accounts by cost**
+
+**Responses**
+
+- `200`  -  Margin admission analytics summary
+- `401`  -  Authentication required
+- `403`  -  Operator access required
+
+---
+
+### `GET` `/api/admin/coordination/sessions`
+
+**List coordination sessions across the agent fleet (admin-only)**
+
+Returns sessions from the Neon coordination_sessions table joined with agent info. Default scope is "active" (sessions with ended_at IS NULL). Empty result when no daemon writes have landed yet — the surface is intentionally tolerant of the no-data case so admins can deploy this before any daemon is configured.
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `scope` | `string` | - | `active` |  |
+| `agentId` | `string` | - |  -  |  |
+| `limit` | `integer` | - | `100` |  |
+| `offset` | `integer` | - | `0` |  |
+
+**Responses**
+
+- `200`  -  Paginated coordination sessions
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+
+---
+
+### `GET` `/api/v1/admin/logs`
+
+**List application logs (fleet operator only)**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
+| `app` | `string` | - |  -  |  |
+| `level` | `string` | - |  -  |  |
+
+**Responses**
+
+- `200`  -  Paginated app logs
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+
+---
+
+### `GET` `/api/v1/admin/errors`
+
+**List error events (fleet operator only)**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
+
+**Responses**
+
+- `200`  -  Paginated error events
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+
+---
+
+### `GET` `/api/v1/admin/audit`
+
+**List audit log entries (fleet operator only)**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
+| `severity` | `string` | - |  -  |  |
+| `agentId` | `string` | - |  -  |  |
+| `eventType` | `string` | - |  -  |  |
+| `dateFrom` | `string` | - |  -  | ISO 8601 lower bound (inclusive) on `timestamp`. |
+| `dateTo` | `string` | - |  -  | ISO 8601 upper bound (inclusive) on `timestamp`. |
+| `policyViolationId` | `string` | - |  -  | Match entries whose `policy_violations` JSONB array contains this string. Useful for scoping to a single rule's violations. |
+
+**Responses**
+
+- `200`  -  Paginated audit log entries
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+
+---
+
+### `GET` `/api/v1/admin/webhooks`
+
+**List processed webhook events (fleet operator only)**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
+| `eventType` | `string` | - |  -  |  |
+
+**Responses**
+
+- `200`  -  Paginated webhook events
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+
+---
+
+### `GET` `/api/v1/admin/jobs`
+
+**List durable-queue jobs (fleet operator only)**
+
+Paginated view of the `jobs` table. Filterable by state (created/active/completed/failed/retry) and by handler name. Ordered newest-created first.
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
+| `state` | `string` | - |  -  |  |
+| `name` | `string` | - |  -  |  |
+
+**Responses**
+
+- `200`  -  Paginated jobs
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+
+---
+
+### `GET` `/api/v1/admin/jobs/summary`
+
+**Durable-queue aggregate stats (fleet operator only)**
+
+Returns: current depth by state, per-handler counts over the last 24 hours (completed / failed / running), and the 10 most-recent failures. Intended for the admin jobs dashboard header.
+
+**Responses**
+
+- `200`  -  Queue summary
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+
+---
+
+### `GET` `/api/v1/admin/inference/config`
+
+**Read per-site inference config (Max tier)**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `workspaceId` | `string` | ✓ |  -  |  |
+
+**Responses**
+
+- `200`  -  Config (per-site) or system default
+
+---
+
+### `PUT` `/api/v1/admin/inference/config`
+
+**Upsert per-site inference config (Max tier)**
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `workspaceId` | `string` | ✓ |  |
+| `provider` | `string` | ✓ |  |
+| `apiKey` | `string` | - |  |
+| `model` | `string` | - |  |
+| `baseURL` | `string (uri)` | - |  |
+| `temperature` | `number` | - |  |
+| `maxTokens` | `integer` | - |  |
+
+**Responses**
+
+- `200`  -  Config saved
+
+---
+
+### `DELETE` `/api/v1/admin/inference/config`
+
+**Revert site to system default inference (Max tier)**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `workspaceId` | `string` | ✓ |  -  |  |
+
+**Responses**
+
+- `200`  -  Config deleted; default returned
+
+---
+
+### `GET` `/api/v1/admin/local-ai/status`
+
+**Host local AI profile status (self-host only)**
+
+**Responses**
+
+- `200`  -  Profile snapshot or hosted unavailable
+- `404`  -  Hosted deployments do not expose host local AI status
+
+---
+
+### `GET` `/api/v1/admin/margin/summary`
+
+**Latest margin snapshot, short history, and top accounts by cost**
+
+**Responses**
+
+- `200`  -  Margin admission analytics summary
+- `401`  -  Authentication required
+- `403`  -  Operator access required
+
+---
+
+### `GET` `/api/v1/admin/coordination/sessions`
+
+**List coordination sessions across the agent fleet (admin-only)**
+
+Returns sessions from the Neon coordination_sessions table joined with agent info. Default scope is "active" (sessions with ended_at IS NULL). Empty result when no daemon writes have landed yet — the surface is intentionally tolerant of the no-data case so admins can deploy this before any daemon is configured.
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `scope` | `string` | - | `active` |  |
+| `agentId` | `string` | - |  -  |  |
+| `limit` | `integer` | - | `100` |  |
+| `offset` | `integer` | - | `0` |  |
+
+**Responses**
+
+- `200`  -  Paginated coordination sessions
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+
+---
+
+## Analytics
+
+### `GET` `/api/analytics/summary`
+
+**Period totals for the authenticated user account**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `days` | `integer` | - | `30` |  |
+
+**Responses**
+
+- `200`  -  Aggregated metrics for the period
+
+---
+
+### `GET` `/api/analytics/by-meter`
+
+**Per-meter breakdown for the authenticated user account**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `days` | `integer` | - | `30` |  |
+
+**Responses**
+
+- `200`  -  Breakdown by meter name, sorted by count desc
+
+---
+
+### `GET` `/api/analytics/by-source`
+
+**Per-source breakdown for the authenticated user account**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `days` | `integer` | - | `30` |  |
+
+**Responses**
+
+- `200`  -  Breakdown by source (system|user|agent|api), sorted by count desc
+
+---
+
+### `GET` `/api/analytics/activation`
+
+**Platform-wide onboarding activation funnel (admin only)**
+
+**Responses**
+
+- `200`  -  Time-to-first-agent-action and day-7 return rate across all accounts
+- `403`  -  Admin role required
+
+---
+
+### `GET` `/api/v1/analytics/summary`
+
+**Period totals for the authenticated user account**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `days` | `integer` | - | `30` |  |
+
+**Responses**
+
+- `200`  -  Aggregated metrics for the period
+
+---
+
+### `GET` `/api/v1/analytics/by-meter`
+
+**Per-meter breakdown for the authenticated user account**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `days` | `integer` | - | `30` |  |
+
+**Responses**
+
+- `200`  -  Breakdown by meter name, sorted by count desc
+
+---
+
+### `GET` `/api/v1/analytics/by-source`
+
+**Per-source breakdown for the authenticated user account**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `days` | `integer` | - | `30` |  |
+
+**Responses**
+
+- `200`  -  Breakdown by source (system|user|agent|api), sorted by count desc
+
+---
+
+### `GET` `/api/v1/analytics/activation`
+
+**Platform-wide onboarding activation funnel (admin only)**
+
+**Responses**
+
+- `200`  -  Time-to-first-agent-action and day-7 return rate across all accounts
+- `403`  -  Admin role required
+
+---
+
+## Nudges
+
+### `GET` `/api/nudges/current`
+
+**The single onboarding nudge to show, or null**
+
+**Responses**
+
+- `200`  -  Current nudge for the authenticated user
+
+---
+
+### `POST` `/api/nudges/{nudgeId}/dismiss`
+
+**Snooze (1st call) or permanently retire (2nd call) a nudge**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `nudgeId` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Dismissal recorded
+
+---
+
+### `GET` `/api/v1/nudges/current`
+
+**The single onboarding nudge to show, or null**
+
+**Responses**
+
+- `200`  -  Current nudge for the authenticated user
+
+---
+
+### `POST` `/api/v1/nudges/{nudgeId}/dismiss`
+
+**Snooze (1st call) or permanently retire (2nd call) a nudge**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `nudgeId` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Dismissal recorded
+
+---
+
+## DevKit
+
+### `GET` `/api/devkit/profiles`
+
+**List available DevKit profiles**
+
+**Responses**
+
+- `200`  -  Profile metadata for all five available profiles
+
+---
+
+### `GET` `/api/devkit/profile/active`
+
+**Read the user's active DevKit profile**
+
+**Responses**
+
+- `200`  -  User selection (or null if unset)
+
+---
+
+### `PUT` `/api/devkit/profile/active`
+
+**Set the user's active DevKit profile (Max tier)**
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `profileId` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Profile selection saved
+
+---
+
+### `GET` `/api/v1/devkit/profiles`
+
+**List available DevKit profiles**
+
+**Responses**
+
+- `200`  -  Profile metadata for all five available profiles
+
+---
+
+### `GET` `/api/v1/devkit/profile/active`
+
+**Read the user's active DevKit profile**
+
+**Responses**
+
+- `200`  -  User selection (or null if unset)
+
+---
+
+### `PUT` `/api/v1/devkit/profile/active`
+
+**Set the user's active DevKit profile (Max tier)**
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `profileId` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Profile selection saved
+
+---
+
+## Rotation
+
+### `GET` `/api/rotation/history`
+
+**Read the user's credential lifecycle history**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `days` | `integer` | - | `30` |  |
+| `kind` | `string` | - |  -  |  |
+
+**Responses**
+
+- `200`  -  Credential events for the authenticated user, newest first
+
+---
+
+### `GET` `/api/v1/rotation/history`
+
+**Read the user's credential lifecycle history**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `days` | `integer` | - | `30` |  |
+| `kind` | `string` | - |  -  |  |
+
+**Responses**
+
+- `200`  -  Credential events for the authenticated user, newest first
+
+---
+
+## API Keys
 
 ### `GET` `/api/api-keys`
 
@@ -4768,13 +6854,83 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 ---
 
+## ghcr
+
+### `POST` `/api/ghcr/verify`
+
+**Verify license for GHCR image pull**
+
+Called by GitHub Packages webhook on Docker image pull. Validates the license key against account entitlements.
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `licenseKey` | `string` | ✓ |  |
+| `image` | `string` | - |  |
+
+**Responses**
+
+- `200`  -  Pull allowed
+- `401`  -  Missing or invalid webhook secret
+- `403`  -  Pull denied  -  no valid entitlement
+
+---
+
+### `GET` `/api/ghcr/status`
+
+**Check GHCR access status for authenticated user**
+
+Returns whether the authenticated user has GHCR pull access.
+
+**Responses**
+
+- `200`  -  Access status
+- `401`  -  Not authenticated
+
+---
+
+### `POST` `/api/v1/ghcr/verify`
+
+**Verify license for GHCR image pull**
+
+Called by GitHub Packages webhook on Docker image pull. Validates the license key against account entitlements.
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `licenseKey` | `string` | ✓ |  |
+| `image` | `string` | - |  |
+
+**Responses**
+
+- `200`  -  Pull allowed
+- `401`  -  Missing or invalid webhook secret
+- `403`  -  Pull denied  -  no valid entitlement
+
+---
+
+### `GET` `/api/v1/ghcr/status`
+
+**Check GHCR access status for authenticated user**
+
+Returns whether the authenticated user has GHCR pull access.
+
+**Responses**
+
+- `200`  -  Access status
+- `401`  -  Not authenticated
+
+---
+
 ## maintenance
 
 ### `POST` `/api/maintenance/cleanup-orphans`
 
 **Clean up orphaned vector data (internal cron)**
 
-Removes orphaned pgvector rows (agent memories, RAG documents, RAG chunks) for sites that have been soft-deleted in Neon. Protected by X-Cron-Secret.
+Removes orphaned Supabase vector data (agent memories, RAG documents, RAG chunks) for sites that have been soft-deleted in NeonDB. Protected by X-Cron-Secret.
 
 **Responses**
 
@@ -4788,7 +6944,7 @@ Removes orphaned pgvector rows (agent memories, RAG documents, RAG chunks) for s
 
 **Clean up orphaned vector data (internal cron)**
 
-Removes orphaned pgvector rows (agent memories, RAG documents, RAG chunks) for sites that have been soft-deleted in Neon. Protected by X-Cron-Secret.
+Removes orphaned Supabase vector data (agent memories, RAG documents, RAG chunks) for sites that have been soft-deleted in NeonDB. Protected by X-Cron-Secret.
 
 **Responses**
 
@@ -5078,9 +7234,713 @@ Returns subscription tiers, credit bundles, and perpetual license pricing. Price
 
 ---
 
+## revmarket
+
+### `GET` `/api/revmarket/agents`
+
+**Browse published marketplace agents**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `category` | `string` | - |  -  |  |
+| `search` | `string` | - |  -  |  |
+| `sortBy` | `string` | - |  -  |  |
+| `limit` | `string` | - |  -  |  |
+| `offset` | `string` | - |  -  |  |
+
+**Responses**
+
+- `200`  -  List of published agents
+
+---
+
+### `POST` `/api/revmarket/agents`
+
+**Publish a new marketplace agent**
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `name` | `string` | ✓ |  |
+| `description` | `string` | ✓ |  |
+| `definition` | `object` | ✓ |  |
+| `category` | `string` | - |  |
+| `tags` | `array` | - |  |
+| `pricingModel` | `string` | - |  |
+| `basePriceUsdc` | `string` | - |  |
+| `maxExecutionSecs` | `integer` | - |  |
+| `resourceLimits` | `object` | - |  |
+
+**Responses**
+
+- `201`  -  Agent published
+- `401`  -  Unauthorized
+
+---
+
+### `GET` `/api/revmarket/agents/{id}`
+
+**Get agent detail with skills**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Agent detail
+- `404`  -  Agent not found
+
+---
+
+### `PATCH` `/api/revmarket/agents/{id}`
+
+**Update own marketplace agent**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `name` | `string` | - |  |
+| `description` | `string` | - |  |
+| `definition` | `object` | - |  |
+| `category` | `string` | - |  |
+| `tags` | `array` | - |  |
+| `pricingModel` | `string` | - |  |
+| `basePriceUsdc` | `string` | - |  |
+| `maxExecutionSecs` | `integer` | - |  |
+| `status` | `string` | - |  |
+
+**Responses**
+
+- `200`  -  Agent updated
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+- `404`  -  Agent not found
+
+---
+
+### `DELETE` `/api/revmarket/agents/{id}`
+
+**Unpublish own marketplace agent**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Agent unpublished
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+- `404`  -  Agent not found
+
+---
+
+### `POST` `/api/revmarket/agents/{id}/skills`
+
+**Add a skill to a marketplace agent**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `name` | `string` | ✓ |  |
+| `description` | `string` | ✓ |  |
+| `inputSchema` | `object` | - |  |
+| `outputSchema` | `object` | - |  |
+| `examples` | `array` | - |  |
+
+**Responses**
+
+- `201`  -  Skill added
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+- `404`  -  Agent not found
+
+---
+
+### `POST` `/api/revmarket/tasks`
+
+**Submit a task to the agent marketplace**
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `agentId` | `string` | - |  |
+| `skillName` | `string` | ✓ |  |
+| `input` | `object` | ✓ |  |
+| `priority` | `integer` | - |  |
+| `paymentMethod` | `string` | - |  |
+
+**Responses**
+
+- `201`  -  Task submitted
+- `401`  -  Unauthorized
+- `402`  -  Payment required (x402)
+- `404`  -  Agent not found
+
+---
+
+### `GET` `/api/revmarket/tasks/{id}`
+
+**Get task status and result**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Task detail
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+- `404`  -  Task not found
+
+---
+
+### `POST` `/api/revmarket/tasks/{id}/cancel`
+
+**Cancel a pending or queued task**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Task cancelled
+- `400`  -  Task cannot be cancelled
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+- `404`  -  Task not found
+
+---
+
+### `POST` `/api/revmarket/tasks/{id}/disputes`
+
+**Open a dispute on a completed task**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `reason` | `string` | ✓ |  |
+
+**Responses**
+
+- `201`  -  Dispute opened
+- `400`  -  Dispute rejected
+
+---
+
+### `POST` `/api/revmarket/tasks/{id}/disputes/reply`
+
+**Publisher replies once to a dispute**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `reply` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Reply recorded
+
+---
+
+### `POST` `/api/revmarket/tasks/{id}/disputes/decision`
+
+**Decide a dispute**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `decision` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Decision recorded
+
+---
+
+### `GET` `/api/revmarket/agents/{id}/reviews`
+
+**List reviews for an agent**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `limit` | `string` | - |  -  |  |
+| `offset` | `string` | - |  -  |  |
+
+**Responses**
+
+- `200`  -  Reviews list
+
+---
+
+### `POST` `/api/revmarket/agents/{id}/reviews`
+
+**Leave a review for an agent**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `taskId` | `string` | - |  |
+| `rating` | `integer` | ✓ |  |
+| `comment` | `string` | - |  |
+
+**Responses**
+
+- `201`  -  Review submitted
+- `401`  -  Unauthorized
+- `404`  -  Agent not found
+
+---
+
+### `GET` `/api/revmarket/tasks/{id}/progress`
+
+**Get task execution progress**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Task progress
+- `401`  -  Unauthorized
+- `404`  -  Task not found
+
+---
+
+### `GET` `/api/revmarket/executor/status`
+
+**Get executor status (admin)**
+
+**Responses**
+
+- `200`  -  Executor status
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+
+---
+
+### `GET` `/api/v1/revmarket/agents`
+
+**Browse published marketplace agents**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `category` | `string` | - |  -  |  |
+| `search` | `string` | - |  -  |  |
+| `sortBy` | `string` | - |  -  |  |
+| `limit` | `string` | - |  -  |  |
+| `offset` | `string` | - |  -  |  |
+
+**Responses**
+
+- `200`  -  List of published agents
+
+---
+
+### `POST` `/api/v1/revmarket/agents`
+
+**Publish a new marketplace agent**
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `name` | `string` | ✓ |  |
+| `description` | `string` | ✓ |  |
+| `definition` | `object` | ✓ |  |
+| `category` | `string` | - |  |
+| `tags` | `array` | - |  |
+| `pricingModel` | `string` | - |  |
+| `basePriceUsdc` | `string` | - |  |
+| `maxExecutionSecs` | `integer` | - |  |
+| `resourceLimits` | `object` | - |  |
+
+**Responses**
+
+- `201`  -  Agent published
+- `401`  -  Unauthorized
+
+---
+
+### `GET` `/api/v1/revmarket/agents/{id}`
+
+**Get agent detail with skills**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Agent detail
+- `404`  -  Agent not found
+
+---
+
+### `PATCH` `/api/v1/revmarket/agents/{id}`
+
+**Update own marketplace agent**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `name` | `string` | - |  |
+| `description` | `string` | - |  |
+| `definition` | `object` | - |  |
+| `category` | `string` | - |  |
+| `tags` | `array` | - |  |
+| `pricingModel` | `string` | - |  |
+| `basePriceUsdc` | `string` | - |  |
+| `maxExecutionSecs` | `integer` | - |  |
+| `status` | `string` | - |  |
+
+**Responses**
+
+- `200`  -  Agent updated
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+- `404`  -  Agent not found
+
+---
+
+### `DELETE` `/api/v1/revmarket/agents/{id}`
+
+**Unpublish own marketplace agent**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Agent unpublished
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+- `404`  -  Agent not found
+
+---
+
+### `POST` `/api/v1/revmarket/agents/{id}/skills`
+
+**Add a skill to a marketplace agent**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `name` | `string` | ✓ |  |
+| `description` | `string` | ✓ |  |
+| `inputSchema` | `object` | - |  |
+| `outputSchema` | `object` | - |  |
+| `examples` | `array` | - |  |
+
+**Responses**
+
+- `201`  -  Skill added
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+- `404`  -  Agent not found
+
+---
+
+### `POST` `/api/v1/revmarket/tasks`
+
+**Submit a task to the agent marketplace**
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `agentId` | `string` | - |  |
+| `skillName` | `string` | ✓ |  |
+| `input` | `object` | ✓ |  |
+| `priority` | `integer` | - |  |
+| `paymentMethod` | `string` | - |  |
+
+**Responses**
+
+- `201`  -  Task submitted
+- `401`  -  Unauthorized
+- `402`  -  Payment required (x402)
+- `404`  -  Agent not found
+
+---
+
+### `GET` `/api/v1/revmarket/tasks/{id}`
+
+**Get task status and result**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Task detail
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+- `404`  -  Task not found
+
+---
+
+### `POST` `/api/v1/revmarket/tasks/{id}/cancel`
+
+**Cancel a pending or queued task**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Task cancelled
+- `400`  -  Task cannot be cancelled
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+- `404`  -  Task not found
+
+---
+
+### `POST` `/api/v1/revmarket/tasks/{id}/disputes`
+
+**Open a dispute on a completed task**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `reason` | `string` | ✓ |  |
+
+**Responses**
+
+- `201`  -  Dispute opened
+- `400`  -  Dispute rejected
+
+---
+
+### `POST` `/api/v1/revmarket/tasks/{id}/disputes/reply`
+
+**Publisher replies once to a dispute**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `reply` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Reply recorded
+
+---
+
+### `POST` `/api/v1/revmarket/tasks/{id}/disputes/decision`
+
+**Decide a dispute**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `decision` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Decision recorded
+
+---
+
+### `GET` `/api/v1/revmarket/agents/{id}/reviews`
+
+**List reviews for an agent**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `limit` | `string` | - |  -  |  |
+| `offset` | `string` | - |  -  |  |
+
+**Responses**
+
+- `200`  -  Reviews list
+
+---
+
+### `POST` `/api/v1/revmarket/agents/{id}/reviews`
+
+**Leave a review for an agent**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `taskId` | `string` | - |  |
+| `rating` | `integer` | ✓ |  |
+| `comment` | `string` | - |  |
+
+**Responses**
+
+- `201`  -  Review submitted
+- `401`  -  Unauthorized
+- `404`  -  Agent not found
+
+---
+
+### `GET` `/api/v1/revmarket/tasks/{id}/progress`
+
+**Get task execution progress**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `id` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Task progress
+- `401`  -  Unauthorized
+- `404`  -  Task not found
+
+---
+
+### `GET` `/api/v1/revmarket/executor/status`
+
+**Get executor status (admin)**
+
+**Responses**
+
+- `200`  -  Executor status
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+
+---
+
 ## Collaboration
 
-### `POST` `/api/collab/update`
+### `POST` `//api/collab/update`
 
 **Apply a Yjs binary update to a document**
 
@@ -5094,7 +7954,7 @@ See API schema for request body shape.
 
 ---
 
-### `GET` `/api/collab/snapshot/{documentId}`
+### `GET` `//api/collab/snapshot/{documentId}`
 
 **Get current Yjs document state as base64**
 
@@ -5112,7 +7972,7 @@ See API schema for request body shape.
 
 ## Agent Collaboration
 
-### `POST` `/api/collab/agent/connect`
+### `POST` `//api/collab/agent/connect`
 
 **Get WebSocket URL for agent collaboration**
 
@@ -5126,7 +7986,7 @@ See API schema for request body shape.
 
 ---
 
-### `POST` `/api/collab/agent/edit`
+### `POST` `//api/collab/agent/edit`
 
 **Apply server-side edit to agent document**
 
@@ -5140,7 +8000,7 @@ See API schema for request body shape.
 
 ---
 
-### `GET` `/api/collab/agent/snapshot/{documentId}`
+### `GET` `//api/collab/agent/snapshot/{documentId}`
 
 **Get agent document state and connected clients**
 

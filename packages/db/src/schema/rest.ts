@@ -63,6 +63,7 @@ export * from './inference-configs.js';
 export * from './jobs.js';
 export * from './kit-fulfillments.js';
 export * from './license-jti-revocations.js';
+export * from './license-operations.js';
 export * from './licenses.js';
 export * from './lifecycle-emails.js';
 export * from './magic-links.js';

@@ -54,7 +54,7 @@ export interface JSONSchema {
 }
 
 interface ConversionContext {
-  /** Track schemas seen to prevent infinite recursion */
+  /** Schemas on the active recursion path, not previously converted siblings. */
   seen: WeakSet<object>;
   /** Named schemas for $ref generation */
   components: Map<string, JSONSchema>;
@@ -75,9 +75,19 @@ export function zodToJsonSchema(schema: z.ZodTypeAny, ctx?: ConversionContext): 
   const metadata = getOpenApiMetadata(schema);
   if (metadata?.refId && ctx) {
     if (!context.components.has(metadata.refId)) {
-      // First encounter: convert and register as component
-      const refSchema = convertType(schema, context);
-      context.components.set(metadata.refId, refSchema);
+      // Reserve the reference before descending so named self/mutual cycles
+      // point at the eventual component rather than recursively expanding.
+      context.components.set(metadata.refId, {});
+      context.seen.add(schema);
+      try {
+        const refSchema = convertType(schema, context);
+        context.components.set(metadata.refId, refSchema);
+      } catch (error) {
+        context.components.delete(metadata.refId);
+        throw error;
+      } finally {
+        context.seen.delete(schema);
+      }
     }
     return { $ref: `#/components/schemas/${metadata.refId}` };
   }
@@ -88,24 +98,28 @@ export function zodToJsonSchema(schema: z.ZodTypeAny, ctx?: ConversionContext): 
   }
   context.seen.add(schema);
 
-  const result = convertType(schema, context);
+  try {
+    const result = convertType(schema, context);
 
-  // Apply OpenAPI metadata overrides
-  if (metadata) {
-    if (metadata.description) result.description = metadata.description;
-    if (metadata.example !== undefined) result.example = metadata.example;
-    if (metadata.format) result.format = metadata.format;
-    if (metadata.title) result.title = metadata.title;
-    if (metadata.deprecated) result.deprecated = metadata.deprecated;
-    if (metadata.default !== undefined) result.default = metadata.default;
+    // Apply OpenAPI metadata overrides
+    if (metadata) {
+      if (metadata.description) result.description = metadata.description;
+      if (metadata.example !== undefined) result.example = metadata.example;
+      if (metadata.format) result.format = metadata.format;
+      if (metadata.title) result.title = metadata.title;
+      if (metadata.deprecated) result.deprecated = metadata.deprecated;
+      if (metadata.default !== undefined) result.default = metadata.default;
+    }
+
+    // Apply Zod description
+    if (schema.description && !result.description) {
+      result.description = schema.description;
+    }
+
+    return result;
+  } finally {
+    context.seen.delete(schema);
   }
-
-  // Apply Zod description
-  if (schema.description && !result.description) {
-    result.description = schema.description;
-  }
-
-  return result;
 }
 
 /**

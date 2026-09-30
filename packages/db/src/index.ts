@@ -90,6 +90,11 @@ export {
   JtiRevocationUnavailableError,
   recordJtiRevocations,
 } from './license-jti-denylist.js';
+export {
+  applyLicenseOperation,
+  findLicenseOperation,
+  type LicenseOperationInput,
+} from './license-operations.js';
 // Re-export saga module
 export type {
   SagaContext,

@@ -909,3 +909,96 @@ describe('NativeOpenApiGeneratorV31', () => {
     expect(doc.webhooks).toBeUndefined();
   });
 });
+
+describe.each([NativeOpenApiGeneratorV3, NativeOpenApiGeneratorV31])(
+  'reused and recursive contracts (%s)',
+  (Generator) => {
+    const config = { openapi: '3.0.0', info: { title: 'Reuse', version: '1' } };
+
+    it('retains reused fields and request/response contracts across mounted routes', () => {
+      const field = z.string().min(3);
+      const body = z.object({ operationId: field, customerId: field });
+      const registry = new NativeOpenAPIRegistry();
+      for (const path of ['/api/license/generate', '/api/v1/license/generate']) {
+        registry.registerPath({
+          method: 'post',
+          path,
+          request: { body: { content: { 'application/json': { schema: body } } } },
+          responses: {
+            200: { description: 'OK', content: { 'application/json': { schema: body } } },
+          },
+        });
+      }
+      const document = new Generator(registry.definitions).generateDocument(config);
+      const expected = {
+        type: 'object',
+        properties: {
+          operationId: { type: 'string', minLength: 3 },
+          customerId: { type: 'string', minLength: 3 },
+        },
+        required: ['operationId', 'customerId'],
+      };
+      for (const path of ['/api/license/generate', '/api/v1/license/generate']) {
+        expect(document.paths).toHaveProperty(
+          [path, 'post', 'requestBody', 'content', 'application/json', 'schema'],
+          expected,
+        );
+        expect(document.paths).toHaveProperty(
+          [path, 'post', 'responses', '200', 'content', 'application/json', 'schema'],
+          expected,
+        );
+      }
+    });
+
+    it('emits named recursive references without dropping the complete component', () => {
+      let node!: z.ZodTypeAny;
+      node = z
+        .object({ name: z.string(), next: z.lazy(() => node).optional() })
+        .openapi({ refId: 'Node' });
+      const registry = new NativeOpenAPIRegistry();
+      registry.registerPath({
+        method: 'get',
+        path: '/nodes',
+        responses: {
+          200: { description: 'OK', content: { 'application/json': { schema: node } } },
+        },
+      });
+      const document = new Generator(registry.definitions).generateDocument(config);
+      expect(document.components).toHaveProperty(['schemas', 'Node', 'properties', 'next'], {
+        $ref: '#/components/schemas/Node',
+      });
+      expect(document.components).toHaveProperty(['schemas', 'Node', 'properties', 'name'], {
+        type: 'string',
+      });
+      expect(document.components).toHaveProperty(['schemas', 'Node', 'required'], ['name']);
+    });
+  },
+);
+
+it('releases the active recursion guard after a failed lazy conversion', () => {
+  let fail = true;
+  const schema = z.lazy(() => {
+    if (fail) throw new Error('synthetic schema failure');
+    return z.string().min(2);
+  });
+  const context = { seen: new WeakSet<object>(), components: new Map() };
+  expect(() => zodToJsonSchema(schema, context)).toThrow('synthetic schema failure');
+  fail = false;
+  expect(zodToJsonSchema(schema, context)).toEqual({ type: 'string', minLength: 2 });
+});
+
+it('rolls back a named component reservation after conversion fails', () => {
+  let fail = true;
+  const schema = z
+    .lazy(() => {
+      if (fail) throw new Error('synthetic named failure');
+      return z.string().min(2);
+    })
+    .openapi({ refId: 'Retryable' });
+  const context = { seen: new WeakSet<object>(), components: new Map() };
+  expect(() => zodToJsonSchema(schema, context)).toThrow('synthetic named failure');
+  expect(context.components.has('Retryable')).toBe(false);
+  fail = false;
+  expect(zodToJsonSchema(schema, context)).toEqual({ $ref: '#/components/schemas/Retryable' });
+  expect(context.components.get('Retryable')).toEqual({ type: 'string', minLength: 2 });
+});

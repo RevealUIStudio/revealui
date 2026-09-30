@@ -32,6 +32,7 @@ import {
   refreshLicenseIfStale,
   resetLicenseState,
   validateLicenseKey,
+  validateLicenseKeyForOperator,
   validateLicenseKeyForRefresh,
 } from '../license.js';
 
@@ -1113,5 +1114,59 @@ describe('license cache TTL revalidation', () => {
     await refreshLicenseIfStale();
     expect(getCurrentTier()).toBe('pro');
     expect(isLicensed('pro')).toBe(true);
+  });
+});
+
+describe('authenticated operator prior-token verification', () => {
+  it('authenticates expired prior without granting paid entitlement', async () => {
+    const key = await importPKCS8(privateKeyPem, 'EdDSA');
+    const token = await new SignJWT({
+      tier: 'enterprise',
+      customerId: 'operator-customer',
+      jti: 'operator-prior',
+    })
+      .setProtectedHeader({ alg: 'EdDSA' })
+      .setIssuer('https://revealui.com')
+      .setAudience('revealui-license')
+      .setIssuedAt(1)
+      .setExpirationTime(2)
+      .sign(key);
+    expect(await validateLicenseKey(token, publicKeyPem)).toBeNull();
+    expect(
+      await validateLicenseKeyForOperator(token, publicKeyPem, 'operator-customer'),
+    ).toMatchObject({ customerId: 'operator-customer', jti: 'operator-prior' });
+    expect(await validateLicenseKeyForOperator(token, publicKeyPem, 'another-customer')).toBeNull();
+    expect(await validateLicenseKeyForOperator(token, publicKeyPem, '')).toBeNull();
+    expect(
+      await validateLicenseKeyForOperator(
+        `${token.slice(0, -4)}xxxx`,
+        publicKeyPem,
+        'operator-customer',
+      ),
+    ).toBeNull();
+  });
+  it('denies wrong issuer/audience and future activation even for operators', async () => {
+    const key = await importPKCS8(privateKeyPem, 'EdDSA');
+    for (const claims of [
+      { iss: 'other', aud: 'revealui-license' },
+      { iss: 'https://revealui.com', aud: 'other' },
+      {
+        iss: 'https://revealui.com',
+        aud: 'revealui-license',
+        nbf: Math.floor(Date.now() / 1000) + 86400,
+      },
+    ]) {
+      const token = await new SignJWT({
+        tier: 'pro',
+        customerId: 'operator-customer',
+        jti: 'j',
+        ...claims,
+      })
+        .setProtectedHeader({ alg: 'EdDSA' })
+        .sign(key);
+      expect(
+        await validateLicenseKeyForOperator(token, publicKeyPem, 'operator-customer'),
+      ).toBeNull();
+    }
   });
 });

@@ -182,6 +182,12 @@
       "rationale": "Spec 02 slices 1-2: CREATE TABLE budget_policies, budget_ledgers, and budget_incidents, widen jobs_state_check to allow cancelled, and CREATE OR REPLACE FUNCTION budget_apply_spend. Hand-written IF NOT EXISTS / DO $$ because db:generate against the stale snapshot chain re-emits unrelated CREATE TABLE drift (same 0044 pattern). The apply function is plpgsql because a single CTE snapshot is fixed before an advisory-lock wait, so it cannot all-or-nothing update missing ledger rows under READ COMMITTED on Neon HTTP. Companion Drizzle schema at packages/db/src/schema/budgets.ts.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Blocked on the pre-existing snapshot-debt backfill. Same regen path as 0044: pnpm --filter @revealui/db db:generate against a clean DB once that backfill happens. The Drizzle tables are the type contract. The function is not modeled by drizzle-kit."
+    },
+    {
+      "tag": "0046_license_operations",
+      "rationale": "Atomic authenticated issuance and containment receipts through one PostgreSQL function, following 0045 for Neon HTTP. Companion Drizzle schema license-operations.ts. Existing snapshot chain debt prevents clean generation without unrelated drift.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Existing snapshot-debt backfill remains required; the function is not modeled by drizzle-kit."
     }
   ]
 }

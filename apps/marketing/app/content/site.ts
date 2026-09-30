@@ -27,7 +27,7 @@ export const METRICS = {
   /** Workspaces (packages + apps). Source: claim-drift countWorkspaces. */
   workspaces: 39,
   /** Test files across the monorepo. Source: claim-drift countTestFiles. */
-  testFiles: 1364,
+  testFiles: 1466,
   /** UI components in `packages/presentation/`. Source: claim-drift countUIComponents. */
   uiComponents: 68,
   /**
@@ -37,7 +37,7 @@ export const METRICS = {
    */
   mcpServers: 14,
   /** Drizzle pgTable declarations across packages/db/src/schema/. Source: claim-drift countDbTables. */
-  dbTables: 123,
+  dbTables: 124,
   /** License split. Source: claim-drift licenseSplit. */
   licenseSplit: {
     /** MIT-licensed packages. */

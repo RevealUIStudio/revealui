@@ -40,6 +40,7 @@ vi.mock('@revealui/core/license', () => {
     coversRenewalBound: vi.fn(() => false),
     DEFAULT_MANUAL_MINT_DAYS: 90,
     validateLicenseKey: vi.fn(),
+    validateLicenseKeyForOperator: vi.fn(),
     generateLicenseKey: vi.fn(),
     readLicenseJti: vi.fn(async () => null),
   };
@@ -58,6 +59,8 @@ vi.mock('@revealui/core/observability/logger', () => ({
 
 // Mock DB to prevent real connection attempts during tests
 vi.mock('@revealui/db', () => ({
+  findLicenseOperation: vi.fn(async () => null),
+  applyLicenseOperation: vi.fn(async (_db, input) => input.licenseKey),
   getClient: vi.fn(() => ({
     select: vi.fn(() => ({
       from: vi.fn(() => ({
@@ -89,7 +92,8 @@ vi.mock('../../lib/nudges/milestone-meters.js', () => ({
 
 import { validateLicenseKey } from '@revealui/core/license';
 import { mintLicenseKey } from '@revealui/core/license/mint-client';
-import { getClient, isJtiRevoked } from '@revealui/db';
+import { logger } from '@revealui/core/observability/logger';
+import { applyLicenseOperation, findLicenseOperation, getClient, isJtiRevoked } from '@revealui/db';
 import licenseApp from '../license.js';
 
 const mockedValidate = vi.mocked(validateLicenseKey);
@@ -109,7 +113,11 @@ async function parseBody(res: Response): Promise<any> {
 function post(_path: string, body: unknown, headers: Record<string, string> = {}) {
   return {
     method: 'POST',
-    body: JSON.stringify(body),
+    body: JSON.stringify(
+      _path === '/generate'
+        ? { operationId: '12345678-1234-4123-8123-123456789012', ...(body as object) }
+        : body,
+    ),
     headers: { 'Content-Type': 'application/json', ...headers },
   };
 }
@@ -136,6 +144,52 @@ describe('POST /verify', () => {
     expect(body.customerId).toBe('cus_123');
   });
 
+  it('denies a signed but unregistered credential when online registration is required', async () => {
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'public';
+    mockedValidate.mockResolvedValue({
+      tier: 'pro',
+      customerId: 'customer',
+      jti: 'registered-jti',
+    } as never);
+    const response = await createApp().request(
+      '/verify',
+      post('/verify', { licenseKey: 'signed.token', requireRegistration: true }),
+    );
+    expect(await response.json()).toMatchObject({
+      valid: false,
+      tier: 'free',
+      reason: 'migration_required',
+    });
+  });
+  it('fails closed without logging a driver error containing the bound token', async () => {
+    const token = 'synthetic.bound.jwt-must-not-be-logged';
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'public';
+    mockedValidate.mockResolvedValue({ tier: 'pro', customerId: 'customer', jti: 'j' } as never);
+    vi.mocked(getClient)
+      .mockReturnValueOnce({} as never)
+      .mockReturnValueOnce({
+        select: () => ({
+          from: () => ({
+            where: () => ({
+              limit: async () => {
+                throw new Error(`Failed query params: ${token}`);
+              },
+            }),
+          }),
+        }),
+      } as never);
+    const response = await createApp().request(
+      '/verify',
+      post('/verify', { licenseKey: token, requireRegistration: true }),
+    );
+    expect(await response.json()).toMatchObject({
+      valid: false,
+      reason: 'unverifiable',
+      tier: 'free',
+    });
+    expect(JSON.stringify(vi.mocked(logger.warn).mock.calls)).not.toContain(token);
+    expect(vi.mocked(logger.warn)).toHaveBeenCalled();
+  });
   it('returns valid:false for an invalid key', async () => {
     process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'pub-key';
     mockedValidate.mockResolvedValue(null as never);
@@ -337,6 +391,21 @@ describe('POST /verify  -  multi-key rotation (current + NEXT)', () => {
 
 describe('POST /generate', () => {
   const ADMIN_KEY = 'secret-admin';
+  beforeEach(() => {
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'pub-key';
+    vi.mocked(findLicenseOperation).mockResolvedValue(null);
+    vi.mocked(applyLicenseOperation).mockImplementation(async (_db, input) => input.licenseKey);
+    mockedValidate.mockImplementation(async () => {
+      const call = mockedGenerate.mock.calls.at(-1)?.[0];
+      return {
+        tier: call?.tier ?? 'pro',
+        customerId: call?.customerId ?? 'cus',
+        jti: 'synthetic-jti',
+        perpetual: call?.perpetual === true,
+        ...(call?.perpetual ? {} : { exp: Math.floor(Date.now() / 1000) + 86400 }),
+      } as never;
+    });
+  });
 
   it('generates a license key with valid admin key', async () => {
     process.env.REVEALUI_ADMIN_API_KEY = ADMIN_KEY;
@@ -354,6 +423,56 @@ describe('POST /generate', () => {
     expect(body.tier).toBe('pro');
   });
 
+  it('recovers committed result before signer access and rejects changed operation input', async () => {
+    process.env.REVEALUI_ADMIN_API_KEY = ADMIN_KEY;
+    delete process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+    delete process.env.REVEALUI_LICENSE_PUBLIC_KEY;
+    vi.mocked(findLicenseOperation).mockResolvedValue('committed.token');
+    mockedGenerate.mockClear();
+    const res = await createApp().request(
+      '/generate',
+      post('/generate', { tier: 'pro', customerId: 'customer' }, { 'X-Admin-API-Key': ADMIN_KEY }),
+    );
+    expect(res.status).toBe(201);
+    expect((await res.json()).licenseKey).toBe('committed.token');
+    expect(mockedGenerate).not.toHaveBeenCalled();
+    vi.mocked(findLicenseOperation).mockRejectedValue(new Error('synthetic conflict'));
+    expect(
+      (
+        await createApp().request(
+          '/generate',
+          post(
+            '/generate',
+            { tier: 'max', customerId: 'customer' },
+            { 'X-Admin-API-Key': ADMIN_KEY },
+          ),
+        )
+      ).status,
+    ).toBe(409);
+  });
+  it('does not acknowledge rollback and refuses perpetual duration ambiguity', async () => {
+    process.env.REVEALUI_ADMIN_API_KEY = ADMIN_KEY;
+    process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'private';
+    vi.mocked(applyLicenseOperation).mockRejectedValue(new Error('synthetic rollback'));
+    const res = await createApp().request(
+      '/generate',
+      post('/generate', { tier: 'pro', customerId: 'customer' }, { 'X-Admin-API-Key': ADMIN_KEY }),
+    );
+    expect(res.status).toBe(409);
+    expect(await res.text()).not.toContain('generated');
+    expect(
+      (
+        await createApp().request(
+          '/generate',
+          post(
+            '/generate',
+            { tier: 'pro', customerId: 'customer', perpetual: true, expiresInDays: 90 },
+            { 'X-Admin-API-Key': ADMIN_KEY },
+          ),
+        )
+      ).status,
+    ).toBe(400);
+  });
   it('returns 401 when admin key is missing', async () => {
     process.env.REVEALUI_ADMIN_API_KEY = ADMIN_KEY;
     const app = createApp();
@@ -371,7 +490,7 @@ describe('POST /generate', () => {
     expect(res.status).toBe(401);
   });
 
-  it('returns 500 when private key is not configured', async () => {
+  it('returns 503 when private key is not configured', async () => {
     process.env.REVEALUI_ADMIN_API_KEY = ADMIN_KEY;
     delete process.env.REVEALUI_LICENSE_PRIVATE_KEY;
 
@@ -380,7 +499,7 @@ describe('POST /generate', () => {
       '/generate',
       post('/generate', { tier: 'pro', customerId: 'cus' }, { 'X-Admin-API-Key': ADMIN_KEY }),
     );
-    expect(res.status).toBe(500);
+    expect(res.status).toBe(503);
 
     process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'priv-key';
   });
