@@ -1,5 +1,15 @@
 # @revealui/core
 
+## 0.15.2
+
+### Patch Changes
+
+- Updated dependencies [64928c2]
+- Updated dependencies [07614a3]
+  - @revealui/contracts@0.13.1
+  - @revealui/security@0.10.0
+  - @revealui/presentation@0.15.1
+
 ## 0.15.1
 
 ### Patch Changes

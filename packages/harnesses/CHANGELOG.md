@@ -1,5 +1,14 @@
 # @revealui/harnesses
 
+## 0.19.2
+
+### Patch Changes
+
+- Updated dependencies [07614a3]
+  - @revealui/security@0.10.0
+  - @revealui/core@0.15.2
+  - @revealui/knowledge-graph@0.2.4
+
 ## 0.19.1
 
 ### Patch Changes

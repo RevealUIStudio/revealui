@@ -1,5 +1,16 @@
 # @revealui/security
 
+## 0.10.0
+
+### Minor Changes
+
+- 07614a3: Require an explicit opt-in before the permissive and api CORS presets use a wildcard origin. Calls without that flag keep a closed origin list. Method, header, and credential settings stay the same.
+
+### Patch Changes
+
+- Updated dependencies [64928c2]
+  - @revealui/contracts@0.13.1
+
 ## 0.9.0
 
 ### Minor Changes

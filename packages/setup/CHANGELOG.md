@@ -1,5 +1,12 @@
 # @revealui/setup
 
+## 0.7.11
+
+### Patch Changes
+
+- Updated dependencies [07614a3]
+  - @revealui/security@0.10.0
+
 ## 0.7.10
 
 ### Patch Changes
