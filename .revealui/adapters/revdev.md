@@ -17,7 +17,7 @@ When cwd is this project:
 5. Local inference stays on snaps / Ollama via the daemon. No Anthropic SDK.
 
 Do not create `~/.revdev/rules/` hardline copies. Do not emit a parallel
-generator that duplicates `.revealui/content/`. Skills index RPC and
-AgentRuntime cockpit loops are later GAP-293 phases.
+generator that duplicates `.revealui/content/`. The skills index RPC shipped
+(GAP-293 Phase B). AgentRuntime cockpit loops are a later GAP-293 phase.
 
 See `.revealui/README.md` and `.jv/docs/gap-specs/GAP-293-revdev-harness-parity-design.md`.
