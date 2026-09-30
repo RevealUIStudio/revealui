@@ -1,5 +1,16 @@
 # @revealui/core
 
+## 0.15.3
+
+### Patch Changes
+
+- 8f911b2: Return an empty CORS allow-origin when the request origin is not on the configured allowlist. A missing or empty allowlist also grants no origin. Matching origins are unchanged.
+- Updated dependencies [a556378]
+- Updated dependencies [89e6d7e]
+  - @revealui/contracts@0.13.2
+  - @revealui/presentation@0.15.2
+  - @revealui/security@0.10.1
+
 ## 0.15.2
 
 ### Patch Changes
