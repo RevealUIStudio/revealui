@@ -158,10 +158,15 @@ export const BOOK_INTRO_HREF =
 export const CONSULTATION_PRICE = '$300' as const;
 
 /**
- * Studio Proof Sprint on revealuistudio.com. Not a revealui.com catalog SKU.
- * Replaces Pilot $1,500 (retired 2026-09-22). 100% credit toward Launch within 45 days.
+ * Studio middle SKU price on revealuistudio.com. Public name is Pilot.
+ * Not a revealui.com catalog SKU. The $1,500 list is retired.
+ * 100% credit toward Launch within 45 days.
+ * The export name PROOF_SPRINT_PRICE stays so existing imports keep working.
  */
 export const PROOF_SPRINT_PRICE = '$3,997' as const;
+
+/** Same value as PROOF_SPRINT_PRICE. Marketing imports this name. */
+export const PILOT_PRICE = PROOF_SPRINT_PRICE;
 
 /**
  * Studio Launch on revealuistudio.com. Not a revealui.com catalog SKU.

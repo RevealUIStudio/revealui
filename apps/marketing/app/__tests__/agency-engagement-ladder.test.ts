@@ -48,7 +48,7 @@ describe('AGENCY_ENGAGEMENT_LADDER — locked studio anchors', () => {
   it('pins Consultation, Pilot, and Launch only', () => {
     expect(AGENCY_ENGAGEMENT_LADDER.map((e) => [e.id, e.name, e.price, e.startsFrom])).toEqual([
       ['consultation', 'Consultation', '$300', false],
-      ['proof-sprint', 'Pilot', '$3,997', false],
+      ['pilot', 'Pilot', '$3,997', false],
       ['launch-package', 'Launch', '$14,500', false],
     ]);
   });
@@ -64,7 +64,7 @@ describe('AGENCY_ENGAGEMENT_LADDER — locked studio anchors', () => {
       AGENCY_ENGAGEMENT_LADDER.map((e) => [e.id, agencyEngagementPriceDisplay(e)]),
     );
     expect(display.consultation).toBe('$300');
-    expect(display['proof-sprint']).toBe('$3,997');
+    expect(display.pilot).toBe('$3,997');
     expect(display['launch-package']).toBe('$14,500');
   });
 });
@@ -138,10 +138,11 @@ describe('FOUNDER_SERVICE_OFFERINGS — founder-led services menu', () => {
   });
 
   it('agrees with the studio ladder on the shared Pilot price', () => {
-    const proof = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'proof-sprint');
-    const ladderProof = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === 'proof-sprint');
+    const proof = FOUNDER_SERVICE_OFFERINGS.find((s) => s.price === '$3,997');
+    const ladderProof = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === 'pilot');
     expect(proof?.price).toBe('$3,997');
     expect(proof?.price).toBe(ladderProof?.price);
+    expect(ladderProof?.name).toBe('Pilot');
   });
 
   it('agrees with the studio ladder on the shared Launch price', () => {
@@ -171,6 +172,13 @@ const RETIRED_PUBLIC_NAMES = [
   'proof sprint',
   'Proof sprint',
   'PROOF SPRINT',
+] as const;
+
+const RETIRED_IDENTIFIERS = [
+  'PROOF_SPRINT',
+  'proofSprint',
+  'proof-sprint',
+  'proof_sprint',
 ] as const;
 
 function listMarketingSources(dir: string, acc: string[]): void {
@@ -223,6 +231,24 @@ describe('retired public name stays out of marketing copy', () => {
           continue;
         }
         for (const phrase of RETIRED_PUBLIC_NAMES) {
+          if (line.includes(phrase)) hits.push(`${file}:${index + 1}`);
+        }
+      }
+    }
+    expect(hits).toEqual([]);
+  });
+
+  it('has no retired Proof Sprint identifiers in apps/marketing source', () => {
+    const marketingRoot = join(import.meta.dirname, '../..');
+    const files: string[] = [];
+    listMarketingSources(marketingRoot, files);
+    const hits: string[] = [];
+    for (const file of files) {
+      const source = readFileSync(file, 'utf8');
+      const lines = source.split('\n');
+      for (let index = 0; index < lines.length; index++) {
+        const line = lines[index] ?? '';
+        for (const phrase of RETIRED_IDENTIFIERS) {
           if (line.includes(phrase)) hits.push(`${file}:${index + 1}`);
         }
       }
