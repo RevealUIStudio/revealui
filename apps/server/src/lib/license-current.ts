@@ -2,7 +2,8 @@
  * Owner license lookup for GET /api/license/current.
  *
  * Latest row for the signed-in user (not latest-active like /refresh).
- * Never mints. Never logs the JWT.
+ * Never mints. Never logs the JWT. Authority lookup errors propagate so the
+ * route can refuse key delivery without mistaking an outage for an absent row.
  */
 
 import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';

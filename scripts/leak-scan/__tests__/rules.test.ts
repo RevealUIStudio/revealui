@@ -11,7 +11,7 @@ const byTag = (tag: string): Rule => {
 const cases: ReadonlyArray<{ tag: string; hit: string; miss: string }> = [
   { tag: 'abs-home-path', hit: 'see /home/alice/x', miss: 'see /home//x' },
   { tag: 'abs-windows-user', hit: 'C:\\Users\\alice\\x', miss: 'C:\\Programs\\x' },
-  { tag: 'private-jv-repo', hit: '~/revfleet/.jv/docs', miss: '~/revfleet/revealui' },
+  { tag: 'private-jv-repo', hit: '~/revealfleet/.jv/docs', miss: '~/revealfleet/revealui' },
   { tag: 'private-jv-name', hit: 'RevealUIStudio/revealui-jv', miss: 'RevealUIStudio/revealui' },
   { tag: 'lts-drive', hit: 'cd /mnt/e/backups', miss: 'cd /mnt/d/backups' },
   { tag: 'forge-drive', hit: '/mnt/forge/x', miss: '/mnt/sand/x' },
@@ -62,4 +62,31 @@ describe('BASE_RULES coverage + trust boundary', () => {
     const tags = BASE_RULES.map((r) => r.tag);
     expect(new Set(tags).size).toBe(tags.length);
   });
+});
+
+// Historical fixtures prove the structural owner retains prior rejection coverage.
+describe('private planning path protection', () => {
+  for (const path of [
+    '~/revealfleet/.jv/docs',
+    '~/revfleet/.jv/docs',
+    '~/suite/.jv/docs',
+    '/renamed-fleet_2/.jv/docs',
+    '/Fleet.v2/.jv/docs',
+    '/x/.jv/docs',
+  ]) {
+    it(`rejects ${path}`, () => expect(byTag('private-jv-repo').matches(path)).toBe(true));
+  }
+  for (const path of [
+    '~/revealfleet/revealui',
+    'renamed-fleet/docs',
+    'Fleet.v2/revdev',
+    'standalone .jv',
+    '$REVEALFLEET_ROOT/.jv',
+    '$root/.jv',
+    '${fleet}/.jv',
+    'name/.jv',
+    '[~/][A-Za-z][A-Za-z0-9._-]*/.jv',
+  ]) {
+    it(`allows ${path}`, () => expect(byTag('private-jv-repo').matches(path)).toBe(false));
+  }
 });

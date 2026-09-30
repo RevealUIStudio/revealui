@@ -581,14 +581,14 @@ async function cmdExtract(args: ParsedArgs): Promise<void> {
 
 /**
  * Deterministic handoff/memory ingest (no LLM). Explicit publish only.
- * Default dir: REVFLEET_HANDOFFS or ~/revealfleet/.jv/docs/handoffs/rolling.
+ * Default dir: REVEALFLEET_HANDOFFS or ~/revealfleet/.jv/docs/handoffs/rolling.
  */
 async function cmdIngestHandoffs(args: ParsedArgs): Promise<void> {
   const { loadMarkdownSources, textSourceToEpisode } = await import(
     '../extractors/handoff-memory.js'
   );
   const defaultDir =
-    process.env.REVFLEET_HANDOFFS ??
+    process.env.REVEALFLEET_HANDOFFS ??
     join(process.env.HOME ?? '', 'revealfleet/.jv/docs/handoffs/rolling');
   const dir = args.flags.get('dir') ?? defaultDir;
   const limitRaw = args.flags.get('limit');

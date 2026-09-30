@@ -29,7 +29,7 @@ export function createReceiptLog(): ReceiptWriter {
   const entries: GuardrailReceipt[] = [];
   return {
     get entries(): readonly GuardrailReceipt[] {
-      return entries;
+      return Object.freeze([...entries]);
     },
     append(receipt: GuardrailReceipt): void {
       entries.push(Object.freeze({ ...receipt }));

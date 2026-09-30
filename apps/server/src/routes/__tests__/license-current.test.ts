@@ -65,7 +65,7 @@ vi.mock('../../lib/nudges/milestone-meters.js', () => ({
 }));
 
 import { logger } from '@revealui/core/observability/logger';
-import { getClient } from '@revealui/db';
+import { getClient, isJtiRevoked } from '@revealui/db';
 import { recordMilestoneMeterFirstSafe } from '../../lib/nudges/milestone-meters.js';
 import licenseApp from '../license.js';
 
@@ -198,6 +198,15 @@ describe('GET /current', () => {
       tier: 'pro',
       expiresAt: null,
     });
+  });
+
+  it('returns a generic unavailable response without a JWT or activation meter on JTI outage', async () => {
+    mockLicenseRows([{ licenseKey: JWT, status: 'active', tier: 'pro', expiresAt: null }]);
+    vi.mocked(isJtiRevoked).mockRejectedValueOnce(new Error('private database failure details'));
+    const res = await createAuthedApp().request('/current');
+    expect(res.status).toBe(503);
+    expect(await res.json()).toMatchObject({ error: 'License unavailable', code: 'HTTP_503' });
+    expect(recordMilestoneMeterFirstSafe).not.toHaveBeenCalled();
   });
 
   it('does not log the JWT (HC9)', async () => {

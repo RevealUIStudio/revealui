@@ -1,9 +1,10 @@
 import { generateKeyPairSync } from 'node:crypto';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { createServer } from 'node:net';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
+import { coldDaemonSessionsDir } from '../session/archive-exit.js';
 import { hashParams, sessionEnd, sessionRegister, signRpc } from '../session/index.js';
 
 describe('session boundary (soft-optional daemon)', () => {
@@ -21,6 +22,29 @@ describe('session boundary (soft-optional daemon)', () => {
     dirs.length = 0;
   });
 
+  it('uses only the canonical archive setting', () => {
+    const canonical = process.env.REVEALFLEET_ARCHIVE;
+    const legacy = process.env.REVFLEET_ARCHIVE;
+    try {
+      delete process.env.REVEALFLEET_ARCHIVE;
+      process.env.REVFLEET_ARCHIVE = '/ignored-legacy-archive';
+      expect(coldDaemonSessionsDir()).toBe(
+        join(homedir(), 'revealfleet', 'archive', 'cold', 'sessions', 'daemon'),
+      );
+      process.env.REVEALFLEET_ARCHIVE = '/canonical/cold';
+      expect(coldDaemonSessionsDir()).toBe(join('/canonical/cold', 'sessions', 'daemon'));
+      process.env.REVEALFLEET_ARCHIVE = '/canonical/archive';
+      expect(coldDaemonSessionsDir()).toBe(
+        join('/canonical/archive', 'cold', 'sessions', 'daemon'),
+      );
+    } finally {
+      if (canonical === undefined) delete process.env.REVEALFLEET_ARCHIVE;
+      else process.env.REVEALFLEET_ARCHIVE = canonical;
+      if (legacy === undefined) delete process.env.REVFLEET_ARCHIVE;
+      else process.env.REVFLEET_ARCHIVE = legacy;
+    }
+  });
+
   it('skips register when socket absent', async () => {
     const result = await sessionRegister({
       backend: 'grok',
@@ -34,7 +58,7 @@ describe('session boundary (soft-optional daemon)', () => {
   it('archives on end even when socket absent (skipArchive false)', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'sess-arch-'));
     dirs.push(dir);
-    process.env.REVFLEET_ARCHIVE = join(dir, 'archive');
+    process.env.REVEALFLEET_ARCHIVE = join(dir, 'archive');
     process.env.REVDEV_DAEMON_SESSION_DIR = join(dir, 'sessions');
     process.env.REVDEV_HOOK_IDENTITY_DIR = join(dir, 'ids');
     const { writeDaemonSessionCache } = await import('../session/identity-cache.js');
@@ -51,7 +75,7 @@ describe('session boundary (soft-optional daemon)', () => {
     expect(existsSync(cold)).toBe(true);
     const files = readdirSync(cold).filter((f) => f.endsWith('.json'));
     expect(files.length).toBeGreaterThanOrEqual(1);
-    delete process.env.REVFLEET_ARCHIVE;
+    delete process.env.REVEALFLEET_ARCHIVE;
     delete process.env.REVDEV_DAEMON_SESSION_DIR;
     delete process.env.REVDEV_HOOK_IDENTITY_DIR;
   });

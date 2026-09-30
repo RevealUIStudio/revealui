@@ -91,16 +91,14 @@ describe('Auditor voice and live-hero honesty', () => {
   it('uses the locked known-for H1 and concrete subtitle', () => {
     expect(HOME_HERO.h1).toBe('The agentic business runtime startups operate on their own domain.');
     expect(HOME_HERO.subtitle.sentence1).toBe(
-      'Technical founders and small agencies who already run agents. Existing tools report in, you keep the stack.',
+      'Build your business on one self-hosted runtime for People, Content, Offers, Payments, and Agents.',
     );
     expect(HOME_HERO.subtitle.sentence2).toBe(
-      'Powerful and safe: PROOF is a receipted action when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99/mo · $799/yr).',
+      'Keep your code, accounts, and data on your infrastructure. Choose the product features your business needs, then add your own model.',
     );
-    expect(HOME_HERO.subtitle.support).toBe(
-      'BYOK / open-weight default. Same plan rules for humans and agents.',
-    );
-    expect(HOME_HERO.subtitle.sentence2.includes('PROOF')).toBe(true);
-    expect(HOME_HERO.subtitle.sentence2.includes('receipted action')).toBe(true);
+    expect(HOME_HERO.subtitle.support).toBe('Start with the free core. Pro adds the agent layer.');
+    expect(HOME_HERO.subtitle.sentence2.includes('your infrastructure')).toBe(true);
+    expect(HOME_HERO.subtitle.sentence2.includes('your own model')).toBe(true);
     expect(INDEX_HTML.includes(HOME_HERO.subtitle.sentence2)).toBe(true);
   });
 
@@ -144,17 +142,15 @@ describe('Auditor voice and live-hero honesty', () => {
   });
 
   it('names Pro extras as agents with shared plan rules, not add agents', () => {
-    expect(PRICING_TEASER_SECTION.heading).toBe(
-      'Start free. Pro: agents with shared plan rules, MCP, and receipts (PROOF). Max is $99/mo.',
-    );
+    expect(PRICING_TEASER_SECTION.heading).toBe('Start free. Add agents when you need them.');
     expect(PRICING_TEASER_SECTION.heading.includes('Pro adds agents')).toBe(false);
   });
 
   it('keeps the pricing H1 problem/PROOF-led with catalog in the sub', () => {
     expect(PRICING_HERO.eyebrow).toBe('Pricing');
-    expect(PRICING_HERO.title).toBe('Tired of tools that don’t talk, and agents with no PROOF?');
+    expect(PRICING_HERO.title).toBe('Choose a license for the runtime you run.');
     expect(PRICING_HERO.subtitle).toBe(
-      'Self-host the agentic business runtime. Catalog: Free / Pro $49 / Max $99/mo · $799/yr. Studio work invoices on revealuistudio.com.',
+      'Start with Free. Choose Pro or Max for agent features and higher limits. Enterprise licenses are scoped with sales. All plans are self-hosted.',
     );
   });
 
@@ -163,7 +159,7 @@ describe('Auditor voice and live-hero honesty', () => {
     expect(PRODUCTS_PAGE_HERO.subtitle.includes('Free')).toBe(true);
     expect(PRODUCTS_PAGE_HERO.subtitle.includes('Pro')).toBe(true);
     expect(PRODUCTS_PAGE_HERO.subtitle.includes('Max')).toBe(true);
-    expect(PRODUCTS_PAGE_HERO.subtitle.toLowerCase().includes('zero paying')).toBe(true);
+    expect(PRODUCTS_PAGE_HERO.subtitle.toLowerCase().includes('self-hosted')).toBe(true);
     expect(PRODUCTS_PAGE_HERO.subtitle.includes('RevDev')).toBe(false);
     expect(PRODUCTS_PAGE_HERO.subtitle.includes('RevForge')).toBe(false);
     expect(PRODUCTS_PAGE_HERO.subtitle.includes('RevKit')).toBe(false);

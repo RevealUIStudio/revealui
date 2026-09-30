@@ -30,7 +30,7 @@ describe('PricingPage product catalog', () => {
     expect(eyebrows.some((node) => node.tagName === 'P')).toBe(true);
     expect(screen.getByText(PRICING_HERO.subtitle ?? '')).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'Who runs it. What you need. One product price.' }),
+      screen.getByRole('heading', { name: 'Choose how you want to build.' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: /I self-host/i })).toHaveAttribute(
       'aria-checked',

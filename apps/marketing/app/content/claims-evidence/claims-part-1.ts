@@ -1,6 +1,5 @@
 import {
   AGENT_ROUTES,
-  AUDIT_PUBLIC_KEY_ROUTE,
   AUDIT_SIGNING,
   AUDIT_SIGNING_TEST,
   AUTH_SESSIONS,
@@ -18,7 +17,6 @@ import {
   MCP_RESOURCE_DEFAULT,
   MCP_SERVERS,
   MEMORY,
-  NO_TELEMETRY,
   OPEN_STANDARDS,
   OPEN_WEIGHT,
   PERPETUAL,
@@ -41,6 +39,21 @@ import type { ClaimEntry } from './types.js';
 
 export const claimsPart1: readonly ClaimEntry[] = [
   {
+    file: 'pricing-teaser.ts',
+    exportPath: 'PRICING_TEASER_TIERS[0].features[1]',
+    proofGrade: 'behavior',
+    text: 'Content APIs and admin components',
+    evidence: [COLLECTIONS],
+  },
+  {
+    file: 'pricing-teaser.ts',
+    exportPath: 'PRICING_TEASER_TIERS[0].features[2]',
+    proofGrade: 'behavior',
+    text: 'Offers and Stripe integration',
+    evidence: [BILLING, TIER_GATES],
+  },
+
+  {
     file: 'site.ts',
     exportPath: 'SITE.brandTagline',
     text: 'The agentic business runtime startups operate on their own domain.',
@@ -50,7 +63,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_HERO.eyebrow',
     proofGrade: 'behavior',
-    text: 'Open source. Self-hostable.',
+    text: 'Self-hostable. Source available.',
     evidence: [LICENSE_MIT, SELF_HOST],
   },
   {
@@ -97,33 +110,22 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_HERO.subtitle.sentence1',
     proofGrade: 'outcome',
-    text: 'Technical founders and small agencies who already run agents. Existing tools report in, you keep the stack.',
-    evidence: [SELF_HOST, MCP_SERVERS, MCP_CONTENT],
+    text: 'Build your business on one self-hosted runtime for People, Content, Offers, Payments, and Agents.',
+    evidence: [SELF_HOST, COLLECTIONS, RBAC_ABAC, BILLING, AGENT_ROUTES],
   },
   {
     file: 'home.ts',
     exportPath: 'HOME_HERO.subtitle.sentence2',
     proofGrade: 'outcome',
-    text: 'Powerful and safe: PROOF is a receipted action when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99/mo · $799/yr).',
-    evidence: [
-      AUDIT_SIGNING,
-      AUDIT_SIGNING_TEST,
-      AUDIT_PUBLIC_KEY_ROUTE,
-      PRICING_FALLBACKS,
-      TIER_GATES,
-      {
-        kind: 'code',
-        ref: 'scripts/validate/agent-audit-chokepoints.ts',
-        note: 'CI enforcer: agent execution chokepoints emit audit (GAP-355 Stage 5/6)',
-      },
-    ],
+    text: 'Keep your code, accounts, and data on your infrastructure. Choose the product features your business needs, then add your own model.',
+    evidence: [SELF_HOST, POSTGRES, REPO, TIER_GATES, PROVIDERS],
   },
   {
     file: 'home.ts',
     exportPath: 'HOME_HERO.subtitle.support',
     proofGrade: 'behavior',
-    text: 'BYOK / open-weight default. Same plan rules for humans and agents.',
-    evidence: [PROVIDERS, OPEN_WEIGHT, TIER_GATES],
+    text: 'Start with the free core. Pro adds the agent layer.',
+    evidence: [LICENSE_MIT, TIER_GATES, AGENT_ROUTES],
   },
   {
     file: 'home.ts',
@@ -263,7 +265,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_DEMO.mockupCaption.prefix',
     proofGrade: 'path',
-    text: 'Live admin chrome composed from',
+    text: 'Example admin interface built with',
     evidence: [
       {
         kind: 'code',
@@ -425,7 +427,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_GET_STARTED.cli.caption',
     proofGrade: 'behavior',
-    text: 'Local stack in about a minute. No credit card.',
+    text: 'Create a RevealUI app locally.',
     evidence: [
       CLI_CREATE,
       {
@@ -542,14 +544,14 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'proof.ts',
     exportPath: 'PROOF_SECTION.body',
     proofGrade: 'behavior',
-    text: 'The whole runtime lives in a public repo under an open license. Inspect it, run it, or fork it before you commit.',
+    text: 'The source is public. Review the MIT and FSL licenses, inspect the code, and try the runtime before you commit.',
     evidence: [REPO, LICENSE_MIT],
   },
   {
     file: 'proof.ts',
     exportPath: 'PROOF_TRUST.body',
     proofGrade: 'behavior',
-    text: 'Your security team can read the full source. The runtime is open source, MIT or Fair Source, in the public repo. There is no closed binary to explain when procurement asks.',
+    text: 'Your security team can inspect the full source. Core packages use MIT; Pro packages use FSL-1.1-MIT. Review the terms for the packages you will use.',
     evidence: [REPO, LICENSE_SPLIT],
   },
   {
@@ -625,36 +627,36 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'pricing-teaser.ts',
     exportPath: 'PRICING_TEASER_SECTION.heading',
     proofGrade: 'outcome',
-    text: 'Start free. Pro: agents with shared plan rules, MCP, and receipts (PROOF). Max is $99/mo.',
+    text: 'Start free. Add agents when you need them.',
     evidence: [LICENSE_MIT, TIER_GATES, MCP_CONTENT, AUDIT_SIGNING],
   },
   {
     file: 'pricing-teaser.ts',
     exportPath: 'PRICING_TEASER_SECTION.body',
     proofGrade: 'behavior',
-    text: 'Self-host the open stack at no cost. Pro, Max, and Enterprise add agent capacity and support. Pro and Max include a 7-day free trial.',
+    text: 'Free gives you the core runtime. Paid licenses add agent features and higher limits. You provide the infrastructure and model access.',
     evidence: [LICENSE_MIT, TIER_GATES, TIER_LIMITS, TRIAL],
   },
   {
     file: 'pricing-teaser.ts',
     exportPath: 'PRICING_TEASER_TIERS[0].description',
     proofGrade: 'behavior',
-    text: 'Run the open stack on your own infrastructure. Most packages stay MIT forever. No telemetry.',
-    evidence: [LICENSE_SPLIT, NO_TELEMETRY],
+    text: 'Build with the MIT-licensed core and run it on your infrastructure.',
+    evidence: [LICENSE_MIT, SELF_HOST],
   },
   {
     file: 'pricing-teaser.ts',
     exportPath: 'PRICING_TEASER_TIERS[0].features[3]',
     proofGrade: 'behavior',
-    text: 'Bring your own model (open-weight default)',
-    evidence: [OPEN_WEIGHT, PROVIDERS],
+    text: 'Core packages use the MIT license.',
+    evidence: [LICENSE_MIT, LICENSE_SPLIT],
   },
   {
     file: 'pricing-teaser.ts',
     exportPath: 'PRICING_TEASER_TIERS[1].description',
     proofGrade: 'behavior',
-    text: 'Add the AI layer, an agent task allowance, and priority support when you scale agents.',
-    evidence: [TIER_GATES, TIER_LIMITS],
+    text: 'Add agent tools, shared memory, and MCP integrations.',
+    evidence: [TIER_GATES, MEMORY, MCP_SERVERS],
   },
   {
     file: 'pricing-teaser.ts',
@@ -706,7 +708,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'products.ts',
     exportPath: 'PRODUCTS_PAGE_HERO.subtitle',
     proofGrade: 'outcome',
-    text: 'License one self-hosted runtime. Free, Pro, Max, Enterprise inquire, and Pro Perpetual. Studio SKUs live on revealuistudio.com. Zero paying customers.',
+    text: 'Choose a license for your self-hosted RevealUI runtime. Compare Free, Pro, Max, Enterprise, and Pro Perpetual.',
     evidence: [REPO, SELF_HOST, TIER_GATES],
   },
   {
@@ -734,21 +736,21 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'products.ts',
     exportPath: 'PRODUCTS_STATS_SECTION.heading',
     proofGrade: 'outcome',
-    text: 'Tested in a public repo you can self-host.',
+    text: 'Inspect what you will build on.',
     evidence: [CI_GATE],
   },
   {
     file: 'products.ts',
     exportPath: 'PRODUCTS_STATS_SECTION.body',
     proofGrade: 'outcome',
-    text: 'Not a starter template. A complete runtime with tested code you can inspect in the public repo.',
+    text: 'Read the source, tests, and release history before you choose.',
     evidence: [CI_GATE, REPO],
   },
   {
     file: 'products.ts',
     exportPath: 'PRODUCTS_CTA_SECTION.body',
     proofGrade: 'outcome',
-    text: 'Start with the runtime. One command, full source, ready for your first deploy.',
+    text: 'Create an app locally and follow the setup guide for your chosen template.',
     evidence: [REPO, CLI_CREATE],
   },
   {
@@ -762,13 +764,13 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'pricing.ts',
     exportPath: 'PRICING_HERO.title',
     proofGrade: 'outcome',
-    text: 'Tired of tools that don’t talk, and agents with no PROOF?',
+    text: 'Choose a license for the runtime you run.',
     evidence: [AUDIT_SIGNING, AUDIT_SIGNING_TEST, SELF_HOST],
   },
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_HERO.subtitle',
-    text: 'Self-host the agentic business runtime. Catalog: Free / Pro $49 / Max $99/mo · $799/yr. Studio work invoices on revealuistudio.com.',
+    text: 'Start with Free. Choose Pro or Max for agent features and higher limits. Enterprise licenses are scoped with sales. All plans are self-hosted.',
     evidence: [PRICING_FALLBACKS, SELF_HOST, PERPETUAL],
   },
   {
@@ -793,19 +795,19 @@ export const claimsPart1: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_TRACK_A_SECTION.heading',
-    text: 'Subscribe monthly or annually',
+    text: 'Choose monthly or annual billing.',
     evidence: [BILLING],
   },
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_TRACK_A_SECTION.body',
-    text: 'Every subscription includes an agent task allowance. 7-day free trial on Pro and Max.',
+    text: 'Paid subscriptions include an agent task allowance. Pro and Max include a 7-day free trial.',
     evidence: [TIER_LIMITS, TRIAL],
   },
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_VALUE_BAND.body',
-    text: 'Teams shipping more than one product typically rent auth, content, billing, and observability from four or five vendors, and the bill climbs further once enterprise SSO or compliance tiers enter. RevealUI replaces the rented stack with one runtime you own. You still pay for your own Postgres and compute.',
+    text: 'Build on shared accounts, content, offers, and billing. Add the agent layer when you need it. Your license covers RevealUI; hosting, your database, and model usage are separate costs.',
     evidence: [INFRA_COST_ESTIMATE, SELF_HOST],
   },
   {
@@ -829,7 +831,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_VALUE_BAND.points[3]',
-    text: "Open-weight AI by default: your bill doesn't scale with usage",
+    text: 'You provide model access and pay your infrastructure or provider costs',
     evidence: [OPEN_WEIGHT],
   },
   {
@@ -841,7 +843,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_TRACK_C_SECTION.body',
-    text: 'A perpetual license costs about three years of the subscription. Pay once, own it forever, and renew support only if you want it.',
+    text: 'Pro Perpetual lets you keep using your licensed version without a monthly subscription. Review the included update and support period before buying.',
     evidence: [PERPETUAL, COMMERCIAL_POLICY],
   },
 ];

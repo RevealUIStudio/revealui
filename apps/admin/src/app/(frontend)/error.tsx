@@ -16,10 +16,13 @@ export default function FrontendError({
         <IconAlertTriangle className="size-7 text-red-500 dark:text-red-400" aria-hidden="true" />
       </div>
 
-      <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">We hit a snag</h2>
+      <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">
+        We couldn't load this page
+      </h2>
 
       <p className="max-w-lg text-center text-neutral-600 dark:text-zinc-400">
-        Something unexpected happened. Please try again or come back later.
+        Try loading the page again. If the problem continues, keep the reference below when
+        contacting support.
       </p>
 
       {error.digest && (

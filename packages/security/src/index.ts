@@ -103,6 +103,7 @@ export { InMemoryBreachStorage, InMemoryGDPRStorage } from './gdpr-storage.js';
 export type {
   CORSConfig,
   ContentSecurityPolicyConfig,
+  CorsPresetOptions,
   HSTSConfig,
   PermissionsPolicyConfig,
   ReferrerPolicyValue,

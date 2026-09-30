@@ -52,7 +52,7 @@ function badgeFor(
     return (
       <span className="inline-flex items-center gap-2 rounded-full bg-success-subtle px-2.5 py-0.5 text-xs font-medium text-success-text ring-1 ring-success/30">
         <span aria-hidden="true" className="size-1.5 rounded-full bg-success" />
-        Operational · {r.latencyMs}ms
+        Responding · {r.latencyMs}ms
       </span>
     );
   }

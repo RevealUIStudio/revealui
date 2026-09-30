@@ -1,5 +1,11 @@
 # @revealui/db
 
+## 0.12.1
+
+### Patch Changes
+
+- d543e3d: Throw a typed `JtiRevocationUnavailableError` when the license JTI authority cannot be read, instead of reporting an unconfirmed token as not revoked. Confirmed absent rows and sticky revocations keep their existing semantics; callers must deny authorization while the lookup is unavailable.
+
 ## 0.12.0
 
 ### Minor Changes

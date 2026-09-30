@@ -4,7 +4,7 @@
 
 export const BLOG_INDEX = {
   title: 'Blog',
-  subtitle: 'Updates, guides, and insights from the RevealUI team.',
+  subtitle: 'Engineering notes, guides, and product changes from the RevealUI team.',
   empty: 'No posts yet. Check back soon for updates from the RevealUI team.',
   readMore: 'Read more',
   notifyHeading: 'Get notified when we publish',

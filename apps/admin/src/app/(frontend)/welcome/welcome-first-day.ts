@@ -13,14 +13,14 @@ export function welcomeFirstDayCta(tier: LicenseTierId): WelcomeFirstDayCta {
   if (entitlesReceiptedAgentAction(tier)) {
     return {
       title: 'Run your first agent',
-      body: 'Talk to an agent and watch it take a real action in your workspace.',
+      body: 'Open your agents workspace and choose a supported action to run.',
       href: '/agents',
       linkLabel: 'Open agents',
     };
   }
   return {
     title: 'Create your first page',
-    body: 'Put something real on the site. Free does not unlock Pro agents.',
+    body: 'Create a page and add the content you want to publish.',
     href: '/pages',
     linkLabel: 'Open pages',
   };

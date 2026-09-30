@@ -1,9 +1,9 @@
 /**
  * License JTI denylist (GAP-260 P4-5).
  *
- * Consult before accepting a verified license JWT. Fail-OPEN for unknown
- * jtis (not in table → allow). Once a jti is observed revoked, it stays
- * revoked in the process-local sticky set (never re-allows on this instance).
+ * Consult before accepting a verified license JWT. Unknown jtis are allowed
+ * only after a successful DB read proves the row absent. DB errors throw.
+ * Once a jti is observed revoked, it stays revoked in the process-local sticky set (never re-allows on this instance).
  * Revocation writes bump a local epoch and set sticky immediately.
  *
  * SLA for multi-instance: non-sticky instances re-query the DB on every check
@@ -34,6 +34,14 @@ export function getJtiRevocationEpoch(): number {
 export function __resetJtiDenylistForTest(): void {
   stickyRevoked.clear();
   revocationEpoch = 0;
+}
+
+/** A failed authority read is distinct from a successfully absent revocation row. */
+export class JtiRevocationUnavailableError extends Error {
+  constructor(cause: unknown) {
+    super('License revocation status unavailable', { cause });
+    this.name = 'JtiRevocationUnavailableError';
+  }
 }
 
 export type JtiRevocationInput = {
@@ -86,7 +94,7 @@ export async function recordJtiRevocations(
  * - Sticky true → true (never re-opens).
  * - DB row present → set sticky, true.
  * - DB row absent → false (fail-open for unknown).
- * - DB error → false (fail-open for unknown only; sticky true still denies).
+ * - DB error → throws JtiRevocationUnavailableError; sticky true still denies.
  */
 export async function isJtiRevoked(db: Database, jti: string | undefined | null): Promise<boolean> {
   const key = jti?.trim();
@@ -109,8 +117,9 @@ export async function isJtiRevoked(db: Database, jti: string | undefined | null)
       return true;
     }
     return false;
-  } catch {
-    // Fail-open for UNKNOWN only — sticky already handled above.
-    return false;
+  } catch (cause) {
+    // Never cache outages as either allowed or revoked: callers deny this check
+    // and can retry the authority on the next request.
+    throw new JtiRevocationUnavailableError(cause);
   }
 }

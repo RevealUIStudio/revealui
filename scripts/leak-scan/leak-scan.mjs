@@ -186,6 +186,9 @@ var patternRule = (tag, segments, reason) => ({
   matches: (line) => containsPattern(line, segments)
 });
 var isCDrive = (c) => c === "c" || c === "C";
+var isFleetRoot = (c) => c === "/" || c === "~";
+var isFleetHead = (c) => isLower(c) || isUpper(c);
+var isFleetBody = (c) => isNameChar(c) || c === ".";
 var BASE_RULES = [
   patternRule(
     "abs-home-path",
@@ -204,7 +207,11 @@ var BASE_RULES = [
     ],
     "absolute Windows user path (C:\\Users\\<name>)"
   ),
-  literalRule("private-jv-repo", "revfleet/.jv", "private repo path (~/revfleet/.jv/...)"),
+  patternRule(
+    "private-jv-repo",
+    [run(isFleetRoot, 1, 1), run(isFleetHead, 1, 1), run(isFleetBody, 0), lit("/.jv")],
+    "private planning checkout under a named fleet directory"
+  ),
   literalRule("private-jv-name", "revealui-jv", "private repo name (revealui-jv)"),
   literalRule("lts-drive", "/mnt/e/", "LTS drive mount path"),
   literalRule("forge-drive", "/mnt/forge/", "Forge drive mount path"),

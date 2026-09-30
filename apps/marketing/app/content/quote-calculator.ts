@@ -61,7 +61,7 @@ const STUDIO_BOUNDARY_SHORT =
   'Need implementation? Studio is a separate path (Consultation, Pilot, Launch). This catalog is licenses only.';
 
 export const QUOTE_CALCULATOR = {
-  heading: 'Who runs it. What you need. One product price.',
+  heading: 'Choose how you want to build.',
   bodies: {
     home: STUDIO_BOUNDARY_SHORT,
     pricing: STUDIO_BOUNDARY_SHORT,

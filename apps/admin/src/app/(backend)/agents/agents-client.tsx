@@ -141,7 +141,7 @@ function AgentCardsPanel() {
       {agents.length === 0 ? (
         <EmptyState
           icon={<IconStar className="size-6" aria-hidden="true" />}
-          title="No agents registered"
+          title="No agents yet"
           description="Create your first AI agent to get started with automated tasks and workflows."
           action={
             <LinkButton as={Link} href="/agents/new" variant="brand" size="sm">

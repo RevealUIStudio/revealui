@@ -8,6 +8,7 @@ import {
   isLowerNameChar,
   isNameChar,
   isPathSep,
+  isUpper,
   lit,
   literalIncludes,
   run,
@@ -37,6 +38,9 @@ const patternRule = (tag: string, segments: readonly Segment[], reason: string):
 
 /** 'c' or 'C' — the drive-letter head of the abs-windows-user rule. */
 const isCDrive: CharClass = (c) => c === 'c' || c === 'C';
+const isFleetRoot: CharClass = (c) => c === '/' || c === '~';
+const isFleetHead: CharClass = (c) => isLower(c) || isUpper(c);
+const isFleetBody: CharClass = (c) => isNameChar(c) || c === '.';
 
 /**
  * BASE ruleset — generic, structural patterns only, kept tag-for-tag with the
@@ -67,7 +71,11 @@ export const BASE_RULES: readonly Rule[] = [
     ],
     'absolute Windows user path (C:\\Users\\<name>)',
   ),
-  literalRule('private-jv-repo', 'revfleet/.jv', 'private repo path (~/revfleet/.jv/...)'),
+  patternRule(
+    'private-jv-repo',
+    [run(isFleetRoot, 1, 1), run(isFleetHead, 1, 1), run(isFleetBody, 0), lit('/.jv')],
+    'private planning checkout under a named fleet directory',
+  ),
   literalRule('private-jv-name', 'revealui-jv', 'private repo name (revealui-jv)'),
   literalRule('lts-drive', '/mnt/e/', 'LTS drive mount path'),
   literalRule('forge-drive', '/mnt/forge/', 'Forge drive mount path'),

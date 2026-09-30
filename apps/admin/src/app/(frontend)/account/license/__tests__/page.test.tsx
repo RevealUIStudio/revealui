@@ -255,7 +255,7 @@ describe('LicensePage session miss', () => {
     render(<LicensePage />);
 
     await waitFor(() => {
-      expect(screen.getByText('No license key is on this account yet.')).toBeDefined();
+      expect(screen.getByText('This account does not have a license key yet.')).toBeDefined();
     });
     expect(screen.queryByText('test-license-jwt')).toBeNull();
     expect(mockPush).not.toHaveBeenCalled();

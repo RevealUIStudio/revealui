@@ -27,7 +27,7 @@ export const REV_GUARDRAIL_AGENT_SPEC = {
   name: 'REV Guardrail',
   version: '0.1.0',
   description:
-    'Enforcer agent for multi-agent fleets. Applies file-backed offer, price, honesty, and Snapshot-before-Checkpoint locks, then writes a receipt.',
+    'Enforcer agent for multi-agent fleets. Evaluates file-backed honesty, ICP phrase, and Snapshot-before-Checkpoint locks, then writes a receipt for enforcement. Lane and price fields are illustrative configuration, not evaluated controls.',
   instructions: REV_GUARDRAIL_INSTRUCTIONS,
   permissions: {
     allowedTools: ['read_locks', 'write_receipt', 'enforce_lock'],

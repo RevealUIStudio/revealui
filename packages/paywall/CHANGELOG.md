@@ -1,5 +1,12 @@
 # @revealui/paywall
 
+## 0.5.2
+
+### Patch Changes
+
+- Updated dependencies [d543e3d]
+  - @revealui/db@0.12.1
+
 ## 0.5.1
 
 ### Patch Changes

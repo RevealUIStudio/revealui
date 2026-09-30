@@ -10,7 +10,7 @@ export function DocsIndexPage() {
 
   const content = `# RevealUI Documentation
 
-Agentic business runtime. People, Content, Offers, Payments, and Agents come pre-wired, open source, and ready to deploy. Self-host today. RevealUI Cloud is waitlist, not sold.
+Find the setup guides, configuration reference, and API documentation for your self-hosted runtime. Start with the guide for your chosen template.
 
 ## Quick Start
 
@@ -22,7 +22,7 @@ pnpm db:migrate
 pnpm dev
 \`\`\`
 
-Open [http://localhost:4000/admin](http://localhost:4000/admin) to see the admin dashboard.
+Follow the setup guide for your template to find its local app and admin URLs.
 
 [**Read the Quick Start guide**](/quick-start) for the full walkthrough.
 

@@ -31,6 +31,7 @@
  */
 
 import { availableParallelism, totalmem } from 'node:os';
+import { pathToFileURL } from 'node:url';
 import { ErrorCode } from '@revealui/scripts/errors.js';
 import { execCommand } from '@revealui/scripts/exec.js';
 import { createLogger, getProjectRoot } from '../utils/base.js';
@@ -227,7 +228,7 @@ function printSummary(results: CheckResult[], totalMs: number): void {
 // Gate Logic
 // =============================================================================
 
-async function gate(): Promise<void> {
+export async function gate(): Promise<void> {
   await getProjectRoot(import.meta.url);
 
   // Skip env validation during gate builds  -  same as CI.
@@ -265,6 +266,30 @@ async function gate(): Promise<void> {
 
   // --- Phase 1: Quality (parallel) ---
   if (phase === null || phase === 1) {
+    // Quality checks consume supported package exports. Build their declared
+    // dependency graphs before starting any parallel consumers, as CI does.
+    // This prerequisite applies even when phase 3 builds are disabled.
+    logger.info('Phase 1 prerequisite — quality package dependency graphs');
+    const prerequisite = await runCheck({
+      name: 'Quality package prerequisites',
+      command: 'pnpm',
+      args: [
+        'turbo',
+        'run',
+        'build',
+        '--filter=@revealui/harnesses...',
+        '--filter=@revealui/claim-gates...',
+        '--concurrency=2',
+      ],
+      timeout: 600_000,
+    });
+    allResults.push(prerequisite);
+    if (prerequisite.status === 'fail') {
+      logger.error('Quality prerequisites failed; export-consuming checks cannot run.');
+      printSummary(allResults, performance.now() - totalStart);
+      process.exit(ErrorCode.EXECUTION_ERROR);
+    }
+
     logger.info('Phase 1 \u2014 Quality checks (parallel)');
 
     // In changed-only mode: lint only files changed since the comparison base
@@ -319,8 +344,8 @@ async function gate(): Promise<void> {
       {
         // GAP-421 content materialization ADR phase 1: definitions must match
         // the committed `.revealui/content/` tree (byte compare via diffContent).
-        // Run after harnesses build (manager-only path builds the package first
-        // in CI; local gate assumes dist exists or builds via filter below).
+        // The sequential quality prerequisite above builds harnesses and its
+        // declared dependencies before manager/content export consumers.
         name: 'Harnesses content tree freshness (hard fail)',
         command: 'pnpm',
         args: ['validate:content-freshness'],
@@ -745,4 +770,6 @@ async function main(): Promise<void> {
   }
 }
 
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}
