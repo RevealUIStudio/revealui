@@ -1,4 +1,4 @@
-import { timingSafeEqual } from 'node:crypto';
+import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
 import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import { getFeaturesForTier } from '@revealui/core/features';
 import {
@@ -6,15 +6,26 @@ import {
   getPublicKeys,
   readPemEnv,
   validateLicenseKey,
+  validateLicenseKeyForOperator,
   validateLicenseKeyForRefresh,
 } from '@revealui/core/license';
 import {
   canMintLicense,
-  mintConfigMissingMessage,
   mintLicenseKey,
+  withPerpetualSiteCaps,
 } from '@revealui/core/license/mint-client';
 import { logger } from '@revealui/core/observability/logger';
-import { getClient, isJtiRevoked } from '@revealui/db';
+import {
+  applyLicenseOperation,
+  findLicenseOperation,
+  getClient,
+  isJtiRevoked,
+  type LicenseOperationDescriptor,
+  LicenseOperationDescriptorSchema,
+  type LicenseOperationResult,
+  LicensePromotionIdentitySchema,
+  LicensePromotionSchema,
+} from '@revealui/db';
 import { accountMemberships, licenses } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, isNull } from 'drizzle-orm';
@@ -35,6 +46,7 @@ const app = new OpenAPIHono<{ Variables: LicenseRouteVariables }>();
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 
 const LicenseVerifyRequestSchema = z.object({
+  requireRegistration: z.boolean().optional(),
   licenseKey: z.string().min(1).openapi({
     description: 'JWT license key to verify',
     example: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...',
@@ -42,6 +54,7 @@ const LicenseVerifyRequestSchema = z.object({
 });
 
 const LicenseVerifyResponseSchema = z.object({
+  licenseKeyDigest: z.string().optional(),
   valid: z.boolean().openapi({ description: 'Whether the license is valid' }),
   reason: z
     .enum([
@@ -52,6 +65,7 @@ const LicenseVerifyResponseSchema = z.object({
       'invalid',
       'misconfigured',
       'unverifiable',
+      'migration_required',
     ])
     .optional()
     .openapi({
@@ -92,7 +106,18 @@ const LicenseVerifyResponseSchema = z.object({
   }),
 });
 
-const LicenseGenerateRequestSchema = z.object({
+const LicenseGenerateInputSchema = z.object({
+  operationId: z.string().uuid().openapi({
+    description:
+      'Stable operation UUID reused with the same request to recover the committed token after a retry.',
+  }),
+  expectedCurrentLicenseKey: z.string().min(1).optional().openapi({
+    description:
+      'Exact registered current token to replace; successful rotation atomically revokes its JTI and registers the replacement.',
+  }),
+  perpetual: z.boolean().optional().openapi({
+    description: 'Explicit perpetual entitlement. When true, expiresInDays must be omitted.',
+  }),
   tier: z.enum(['pro', 'max', 'enterprise']).openapi({
     description: 'License tier to generate',
     example: 'pro',
@@ -122,6 +147,29 @@ const LicenseGenerateRequestSchema = z.object({
     example: 90,
   }),
 });
+const LicenseGenerateRequestSchema = z
+  .union([
+    LicenseGenerateInputSchema.extend({
+      recoverOnly: z.literal(false).optional(),
+      expectedMode: z.enum(['live', 'test']).optional(),
+      promotion: LicensePromotionSchema.optional(),
+    })
+      .strict()
+      .refine((input) => !input.promotion || input.expectedMode !== undefined, {
+        message: 'Promotion requires an explicit deployment mode assertion',
+      }),
+    LicenseGenerateInputSchema.omit({ expectedCurrentLicenseKey: true })
+      .extend({
+        recoverOnly: z.literal(true),
+        expectedMode: z.enum(['live', 'test']),
+        action: z.enum(['initial', 'rotation']),
+        promotion: LicensePromotionIdentitySchema,
+      })
+      .strict(),
+  ])
+  .refine((input) => !(input.perpetual === true && input.expiresInDays !== undefined), {
+    message: 'perpetual and expiresInDays are mutually exclusive',
+  });
 
 const LicenseGenerateResponseSchema = z.object({
   licenseKey: z.string().openapi({
@@ -133,6 +181,7 @@ const LicenseGenerateResponseSchema = z.object({
   customerId: z.string().openapi({
     description: 'Customer ID',
   }),
+  operation: LicenseOperationDescriptorSchema.optional(),
 });
 
 const ErrorSchema = z.object({
@@ -203,6 +252,7 @@ const verifyRoute = createRoute({
 });
 
 app.openapi(verifyRoute, async (c) => {
+  c.header('Cache-Control', 'no-store');
   const { licenseKey } = c.req.valid('json');
   // Ordered current + optional NEXT (GAP-259 / GAP-261 soak). Same candidate
   // list as refresh so a NEXT-signed token verifies GREEN during rotation.
@@ -236,14 +286,16 @@ app.openapi(verifyRoute, async (c) => {
       const [row] = await db
         .select({ status: licenses.status })
         .from(licenses)
-        .where(eq(licenses.licenseKey, licenseKey))
+        .where(
+          c.req.valid('json').requireRegistration
+            ? and(eq(licenses.licenseKey, licenseKey), eq(licenses.mode, getConfiguredStripeMode()))
+            : eq(licenses.licenseKey, licenseKey),
+        )
         .limit(1);
       if (row?.status === 'revoked') reason = 'revoked';
       else if (row?.status === 'expired') reason = 'expired';
-    } catch (err) {
-      logger.warn('Failed to check DB license status during verify', {
-        error: err instanceof Error ? err.message : 'unknown',
-      });
+    } catch {
+      logger.warn('Failed to check DB license status during verify');
     }
 
     return c.json(
@@ -281,10 +333,8 @@ app.openapi(verifyRoute, async (c) => {
           200,
         );
       }
-    } catch (err) {
-      logger.warn('jti denylist unavailable during verify — failing closed', {
-        error: err instanceof Error ? err.message : 'unknown',
-      });
+    } catch {
+      logger.warn('jti denylist unavailable during verify — failing closed');
       return c.json(
         {
           valid: false,
@@ -316,20 +366,31 @@ app.openapi(verifyRoute, async (c) => {
         supportExpiresAt: licenses.supportExpiresAt,
         perpetual: licenses.perpetual,
         userId: licenses.userId,
+        customerId: licenses.customerId,
+        tier: licenses.tier,
+        deletedAt: licenses.deletedAt,
       })
       .from(licenses)
-      .where(eq(licenses.licenseKey, licenseKey))
+      .where(
+        c.req.valid('json').requireRegistration
+          ? and(eq(licenses.licenseKey, licenseKey), eq(licenses.mode, getConfiguredStripeMode()))
+          : eq(licenses.licenseKey, licenseKey),
+      )
       .limit(1);
-    dbStatus = row?.status ?? null;
+    dbStatus =
+      row?.deletedAt ||
+      (c.req.valid('json').requireRegistration &&
+        row &&
+        (row.customerId !== payload.customerId || row.tier !== payload.tier))
+        ? 'revoked'
+        : (row?.status ?? null);
     licenseOwnerUserId = row?.userId ?? null;
     if (row?.perpetual) {
       supportExpiresAt = row.supportExpiresAt;
     }
-  } catch (err) {
+  } catch {
     dbCheckFailed = true;
-    logger.warn('Failed to check DB revocation status during verify  -  failing closed', {
-      error: err instanceof Error ? err.message : 'unknown',
-    });
+    logger.warn('Failed to check DB revocation status during verify  -  failing closed');
   }
 
   // Fail closed on an unverifiable revocation status. A structurally-valid JWT
@@ -353,11 +414,19 @@ app.openapi(verifyRoute, async (c) => {
     );
   }
 
-  if (dbStatus === 'revoked' || dbStatus === 'expired') {
+  const requiresRegistration = c.req.valid('json').requireRegistration === true;
+  if (
+    (requiresRegistration && !(payload.jti?.trim() && dbStatus)) ||
+    dbStatus === 'revoked' ||
+    dbStatus === 'expired'
+  ) {
     return c.json(
       {
         valid: false,
-        reason: 'revoked' as const,
+        reason:
+          requiresRegistration && !dbStatus
+            ? ('migration_required' as const)
+            : ('revoked' as const),
         tier: 'free' as const,
         customerId: null,
         features: getFeaturesForTier('free'),
@@ -399,10 +468,8 @@ app.openapi(verifyRoute, async (c) => {
         userId: licenseOwnerUserId,
         path: 'license/verify',
       });
-    } catch (err) {
-      logger.warn('license verify: failed to record activation meter', {
-        error: err instanceof Error ? err.message : 'unknown',
-      });
+    } catch {
+      logger.warn('license verify: failed to record activation meter');
     }
   }
 
@@ -414,6 +481,7 @@ app.openapi(verifyRoute, async (c) => {
     return c.json(
       {
         valid: true,
+        licenseKeyDigest: createHash('sha256').update(licenseKey).digest('hex'),
         reason: 'support_expired' as const,
         tier: payload.tier,
         customerId: payload.customerId,
@@ -432,6 +500,7 @@ app.openapi(verifyRoute, async (c) => {
   return c.json(
     {
       valid: true,
+      licenseKeyDigest: createHash('sha256').update(licenseKey).digest('hex'),
       reason: 'valid' as const,
       tier: payload.tier,
       customerId: payload.customerId,
@@ -464,6 +533,16 @@ const generateRoute = createRoute({
     },
   },
   responses: {
+    200: {
+      content: { 'application/json': { schema: LicenseGenerateResponseSchema } },
+      description: 'Matching committed operation recovered without minting',
+    },
+    404: {
+      content: {
+        'application/json': { schema: z.object({ error: z.literal('operation_not_found') }) },
+      },
+      description: 'Authenticated recover-only lookup proved that no operation is committed',
+    },
     201: {
       content: {
         'application/json': {
@@ -480,7 +559,11 @@ const generateRoute = createRoute({
       },
       description: 'Unauthorized  -  missing or invalid admin API key',
     },
-    500: {
+    409: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Operation conflict or current identity changed',
+    },
+    503: {
       content: {
         'application/json': {
           schema: ErrorSchema,
@@ -492,6 +575,7 @@ const generateRoute = createRoute({
 });
 
 app.openapi(generateRoute, async (c) => {
+  c.header('Cache-Control', 'no-store');
   // Admin authentication via API key header
   const apiKey = c.req.header('X-Admin-API-Key');
   const expectedKey = process.env.REVEALUI_ADMIN_API_KEY;
@@ -509,35 +593,183 @@ app.openapi(generateRoute, async (c) => {
     throw new HTTPException(401, { message: 'Unauthorized' });
   }
 
-  if (!canMintLicense()) {
-    logger.error(mintConfigMissingMessage());
-    throw new HTTPException(500, { message: 'License signing not configured' });
+  const input = c.req.valid('json');
+  const { tier, customerId, domains, maxSites, maxUsers, expiresInDays, perpetual, operationId } =
+    input;
+  const mode = getConfiguredStripeMode();
+  if (input.expectedMode !== undefined && input.expectedMode !== mode) {
+    throw new HTTPException(409, { message: 'License deployment mode mismatch' });
   }
-
-  const { tier, customerId, domains, maxSites, maxUsers, expiresInDays } = c.req.valid('json');
-
-  // jti auto-generated by generateLicenseKey / signer when omitted (Phase 1 audit B-2).
-  // GAP-287 PR-3: default drops to DEFAULT_MANUAL_MINT_DAYS (90d, down from
-  // 365d) for manually-minted keys; an explicit expiresInDays is always
-  // honored unchanged.
-  // GAP-260 P4-3: mintLicenseKey routes local vs license-signer.
-  const expiresInSeconds = (expiresInDays ?? DEFAULT_MANUAL_MINT_DAYS) * 24 * 60 * 60;
-  const licenseKey = await mintLicenseKey({
+  const expiresInSeconds =
+    perpetual === true ? null : (expiresInDays ?? DEFAULT_MANUAL_MINT_DAYS) * 86_400;
+  const grant = {
+    tier,
+    domains: domains ?? null,
+    maxSites: maxSites ?? null,
+    maxUsers: maxUsers ?? null,
+    perpetual: perpetual === true,
+    expiresInSeconds,
+  };
+  if (input.recoverOnly === true) {
+    try {
+      const recovered = await findLicenseOperation(
+        getClient(),
+        {
+          operationId,
+          requestFingerprint: '',
+          customerId,
+          mode,
+        },
+        { grant, action: input.action, promotion: input.promotion },
+      );
+      if (!recovered) return c.json({ error: 'operation_not_found' as const }, 404);
+      if (!recovered.operation) throw new Error('License operation migration required');
+      return c.json(
+        { licenseKey: recovered.licenseKey, tier, customerId, operation: recovered.operation },
+        200,
+      );
+    } catch {
+      throw new HTTPException(409, {
+        message: 'License operation unavailable, conflicting or migration required',
+      });
+    }
+  }
+  const expectedCurrentLicenseKey = input.expectedCurrentLicenseKey;
+  const mintInput = withPerpetualSiteCaps({
     tier,
     customerId,
-    ...(domains && { domains }),
-    ...(maxSites && { maxSites }),
-    ...(maxUsers && { maxUsers }),
+    domains,
+    maxSites,
+    maxUsers,
+    perpetual: perpetual === true,
     expiresInSeconds,
   });
+  const effectiveGrant = { ...grant, maxSites: mintInput.maxSites ?? null };
+  let descriptor: LicenseOperationDescriptor | null = null;
+  if (input.promotion) {
+    const action = expectedCurrentLicenseKey ? 'rotation' : 'initial';
+    const customerPath = `forge/customers/${customerId}/license-key`;
+    if (
+      input.promotion.path !==
+      (customerId === 'founder' ? 'revealui/dev/founder-license-key' : customerPath)
+    ) {
+      throw new HTTPException(409, { message: 'License promotion customer binding mismatch' });
+    }
+    descriptor = LicenseOperationDescriptorSchema.parse({
+      version: 1,
+      operationId,
+      customerId,
+      mode,
+      grant,
+      effectiveGrant,
+      action,
+      expectedCurrentLicenseKeySha256: expectedCurrentLicenseKey
+        ? createHash('sha256').update(expectedCurrentLicenseKey).digest('hex')
+        : null,
+      promotion: input.promotion,
+    });
+  }
+  const fingerprintInput = {
+    customerId,
+    tier,
+    domains: domains ?? null,
+    maxSites: maxSites ?? null,
+    maxUsers: maxUsers ?? null,
+    perpetual: perpetual === true,
+    expiresInSeconds,
+    mode,
+    expectedKeyHash: expectedCurrentLicenseKey
+      ? createHash('sha256').update(expectedCurrentLicenseKey).digest('hex')
+      : null,
+  };
+  const requestFingerprint = createHash('sha256')
+    .update(JSON.stringify(descriptor ? { ...fingerprintInput, descriptor } : fingerprintInput))
+    .digest('hex');
+  try {
+    const recovered = await findLicenseOperation(
+      getClient(),
+      { operationId, requestFingerprint, customerId, mode },
+      undefined,
+      descriptor,
+    );
+    if (recovered)
+      return c.json(
+        {
+          licenseKey: recovered.licenseKey,
+          tier,
+          customerId,
+          ...(recovered.operation ? { operation: recovered.operation } : {}),
+        },
+        201,
+      );
+  } catch {
+    throw new HTTPException(409, {
+      message: 'License operation unavailable or current identity changed',
+    });
+  }
+  const publicKeys = getPublicKeys();
+  if (!publicKeys.length)
+    throw new HTTPException(503, { message: 'License authority unavailable' });
+  const prior = expectedCurrentLicenseKey
+    ? await validateLicenseKeyForOperator(expectedCurrentLicenseKey, publicKeys, customerId)
+    : null;
+  if (expectedCurrentLicenseKey && (!prior?.jti?.trim() || prior.jti !== prior.jti.trim())) {
+    throw new HTTPException(409, { message: 'License migration or current identity required' });
+  }
+  if (!canMintLicense()) {
+    throw new HTTPException(503, { message: 'License signing not configured' });
+  }
+  const minted = await mintLicenseKey(mintInput);
+  const payload = await validateLicenseKey(minted, publicKeys, customerId);
+  if (
+    !payload?.jti?.trim() ||
+    payload.jti !== payload.jti.trim() ||
+    payload.tier !== tier ||
+    payload.perpetual !== effectiveGrant.perpetual ||
+    JSON.stringify(payload.domains ?? null) !== JSON.stringify(effectiveGrant.domains) ||
+    (payload.maxSites ?? null) !== effectiveGrant.maxSites ||
+    (payload.maxUsers ?? null) !== effectiveGrant.maxUsers ||
+    (descriptor &&
+      !perpetual &&
+      (!(Number.isInteger(payload.iat) && Number.isInteger(payload.exp)) ||
+        (payload.exp ?? 0) - (payload.iat ?? 0) !== effectiveGrant.expiresInSeconds)) ||
+    (perpetual === true ? payload.exp !== undefined : !payload.exp)
+  ) {
+    throw new HTTPException(503, { message: 'License signer identity unavailable' });
+  }
+  let result: LicenseOperationResult;
+  try {
+    result = await applyLicenseOperation(getClient(), {
+      operationId,
+      requestFingerprint,
+      customerId,
+      expectedCurrentLicenseKey: expectedCurrentLicenseKey ?? null,
+      priorJti: prior?.jti ?? null,
+      priorExpiresAt: prior?.exp ? new Date(prior.exp * 1000) : null,
+      licenseId: randomUUID(),
+      licenseKey: minted,
+      jti: payload.jti,
+      tier,
+      expiresAt: payload.exp ? new Date(payload.exp * 1000) : null,
+      perpetual: perpetual === true,
+      mode,
+      descriptor,
+    });
+  } catch {
+    // SQL driver errors may contain bound token parameters. Never expose/log them.
+    throw new HTTPException(409, {
+      message: 'License operation unavailable or current identity changed',
+    });
+  }
 
   logger.info('License key generated', { tier, customerId });
 
   return c.json(
     {
-      licenseKey,
+      licenseKey: result.licenseKey,
       tier,
       customerId,
+      ...(result.operation ? { operation: result.operation } : {}),
     },
     201,
   );
@@ -559,7 +791,7 @@ const refreshRoute = createRoute({
   tags: ['license'],
   summary: 'Refresh a license key',
   description:
-    'Returns the current stored license key for the bound customerId. The presented JWT must match that customer. Accepts a key expired within the refresh window. Never mints. Unbound or mismatched refresh is denied.',
+    'Returns the current stored license key for the bound customerId. The presented JWT must match that customer and an undeleted, non-revoked registered prior token in the configured deployment mode. Unknown separately signed tokens require operator migration. Accepts a registered key expired within the refresh window. Never mints. Unbound or mismatched refresh is denied.',
   request: {
     body: {
       content: {
@@ -590,6 +822,7 @@ const refreshRoute = createRoute({
 });
 
 app.openapi(refreshRoute, async (c) => {
+  c.header('Cache-Control', 'no-store');
   const { licenseKey, customerId } = c.req.valid('json');
   const boundCustomerId = customerId.trim();
 
@@ -627,6 +860,21 @@ app.openapi(refreshRoute, async (c) => {
     if (payload.jti && (await isJtiRevoked(getClient(), payload.jti))) {
       return deny();
     }
+    // Customer names alone cannot bind a credential to a billing mode. Unknown
+    // signed credentials require operator migration rather than key disclosure.
+    const [priorRow] = await getClient()
+      .select({ status: licenses.status })
+      .from(licenses)
+      .where(
+        and(
+          eq(licenses.licenseKey, licenseKey),
+          eq(licenses.customerId, boundCustomerId),
+          eq(licenses.mode, getConfiguredStripeMode()),
+          isNull(licenses.deletedAt),
+        ),
+      )
+      .limit(1);
+    if (!priorRow || priorRow.status === 'revoked') return deny();
     const [row] = await getClient()
       .select({ licenseKey: licenses.licenseKey })
       .from(licenses)
@@ -647,10 +895,8 @@ app.openapi(refreshRoute, async (c) => {
 
     logger.info('License key refreshed', { customerId: payload.customerId, tier: payload.tier });
     return c.json({ licenseKey: row.licenseKey }, 200);
-  } catch (err) {
-    logger.warn('License refresh failed during DB lookup  -  failing closed', {
-      error: err instanceof Error ? err.message : 'unknown',
-    });
+  } catch {
+    logger.warn('License refresh failed during DB lookup  -  failing closed');
     return deny();
   }
 });
@@ -697,7 +943,7 @@ const publicKeyRoute = createRoute({
   tags: ['license'],
   summary: 'Get the vendor license public key (PEM)',
   description:
-    'Returns the Ed25519 public key used to verify license JWTs. This is PUBLIC material (no auth): a buyer sets it as REVDEV_LICENSE_PUBLIC_KEY so the RevDev daemon can verify their license. Null when the server has no key configured.',
+    'Returns the Ed25519 public key used to verify license JWTs. This is PUBLIC material (no auth): a supported client trust provisioning must bind it to the authenticated hosted issuer lifecycle so the RevDev daemon can verify their license. Null when the server has no key configured.',
   responses: {
     200: {
       content: {

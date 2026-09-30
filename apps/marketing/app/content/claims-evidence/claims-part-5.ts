@@ -262,7 +262,7 @@ export const claimsPart5: readonly ClaimEntry[] = [
   {
     file: 'legal/sla.ts',
     exportPath: 'SLA_SECTIONS[3].paragraphs[0]',
-    text: 'If a self-hosted installation cannot reach our license validation service, your previously validated license keeps working for 7 days while we fix the outage. Full detail on every license grace period lives in our Terms of Service.',
+    text: 'If license validation or a hosted service fails, contact support with the error and affected deployment. Availability depends on the configured deployment and service providers. Our Terms explain subscription cancellation and continued use of acquired perpetual versions.',
     evidence: [LEGAL_SLA_CONTENT],
   },
   {
@@ -531,7 +531,7 @@ export const claimsPart5: readonly ClaimEntry[] = [
   {
     file: 'legal/support.ts',
     exportPath: 'SUPPORT_SECTIONS[3].paragraphs[0]',
-    text: 'We need to be honest about scope. A solo-operator support model only works if we say "no" to the things that would consume all our time without serving customers fairly.',
+    text: 'Support covers the product and documented setup paths. Implementation work and ongoing operation need a separately agreed scope.',
     evidence: [LEGAL_SUPPORT_CONTENT],
   },
   {
@@ -543,7 +543,7 @@ export const claimsPart5: readonly ClaimEntry[] = [
   {
     file: 'legal/support.ts',
     exportPath: 'SUPPORT_SECTIONS[3].listItems[1]',
-    text: 'We do not review private codebases line by line. Public GitHub repos we can sometimes glance at; private repos require an Enterprise engagement (see Pricing).',
+    text: 'Private codebase review is separately scoped work. Contact RevealUI Studio at https://revealuistudio.com/contact to discuss it; a product license does not include consulting.',
     evidence: [LEGAL_SUPPORT_CONTENT],
   },
   {
@@ -561,7 +561,7 @@ export const claimsPart5: readonly ClaimEntry[] = [
   {
     file: 'legal/support.ts',
     exportPath: 'SUPPORT_SECTIONS[3].listItems[4]',
-    text: 'We do not provide free architectural consulting outside the documented patterns. Track D professional services (when published) is the right channel for that.',
+    text: 'For architecture or implementation work beyond product support, discuss a scoped engagement with RevealUI Studio at https://revealuistudio.com/contact.',
     evidence: [LEGAL_SUPPORT_CONTENT],
   },
   {
@@ -715,7 +715,7 @@ export const claimsPart5: readonly ClaimEntry[] = [
   {
     file: 'legal/terms.ts',
     exportPath: 'TERMS_SECTIONS[3].subsections[1].paragraph',
-    text: 'The Pro and Max tiers include a 7-day free trial. You will not be charged during the trial period. If you do not cancel before the trial ends, your subscription will automatically begin and you will be charged the applicable monthly rate.',
+    text: 'The Pro and Max tiers include a 7-day free trial. You will not be charged during the trial period. If you do not cancel before the trial ends, your subscription will automatically begin and you will be charged the price for the monthly or annual billing interval selected at checkout.',
     evidence: [LEGAL_TERMS_CONTENT],
   },
   {
@@ -734,43 +734,43 @@ export const claimsPart5: readonly ClaimEntry[] = [
   {
     file: 'legal/terms.ts',
     exportPath: 'TERMS_SECTIONS[3].subsections[4].heading',
-    text: 'License continuity and grace periods',
+    text: 'License continuity and validation',
     evidence: [LEGAL_TERMS_CONTENT],
   },
   {
     file: 'legal/terms.ts',
     exportPath: 'TERMS_SECTIONS[3].subsections[4].listItems[0]',
-    text: 'If your subscription expires (Pro or Max): we grant a 3-day grace period during which paid features remain available. After the grace period, your account reverts to the free tier; your data is retained and your account is not deleted.',
+    text: 'Pro and Max subscriptions provide paid features during the paid entitlement period. Canceling renewal takes effect at the end of your current billing period. Export the data you need before changing your deployment or plan.',
     evidence: [LEGAL_TERMS_CONTENT],
   },
   {
     file: 'legal/terms.ts',
     exportPath: 'TERMS_SECTIONS[3].subsections[4].listItems[1]',
-    text: 'If a perpetual-license support renewal lapses: we grant a 30-day grace period during which paid features remain available. After the grace period, your installation enters read-only mode: you keep full access to your existing data and content, but new Pro features and updates are paused until renewal. You will never lose access to your own data because a support renewal lapsed.',
+    text: 'Pro Perpetual permits continued use of the acquired Pro version. Renewal is optional and is required only for future updates and support after the included coverage ends. A support renewal lapse does not block reads or writes in the acquired version or remove its purchased Pro features.',
     evidence: [LEGAL_TERMS_CONTENT],
   },
   {
     file: 'legal/terms.ts',
     exportPath: 'TERMS_SECTIONS[3].subsections[4].listItems[2]',
-    text: 'If our license-verification service is unreachable from your installation (vendor-side outage on our end): we grant a 7-day grace period during which your previously-validated license remains in effect. After the grace period, your installation reverts to free-tier behavior until our service is reachable again. You will not be charged for the outage and you can reach out to support for a credit.',
+    text: 'Self-hosted installations validate the configured license key. Availability of hosted APIs and integrations also depends on your deployment and service providers. If license validation or a hosted service fails, contact support with the error and affected deployment.',
     evidence: [LEGAL_TERMS_CONTENT],
   },
   {
     file: 'legal/terms.ts',
     exportPath: 'TERMS_SECTIONS[3].subsections[4].listItems[3]',
-    text: 'License revocation (chargeback, terms violation): we will revoke immediately and the grace periods above do not apply.',
+    text: 'A license may be revoked following a refund, chargeback, or terms violation. Revocation removes the associated paid entitlement.',
     evidence: [LEGAL_TERMS_CONTENT],
   },
   {
     file: 'legal/terms.ts',
     exportPath: 'TERMS_SECTIONS[3].subsections[4].listItems[4]',
-    text: 'Invalid or missing license key: paid features remain unavailable until a valid key is configured; grace periods do not apply because no entitlement has been established.',
+    text: 'Invalid or missing license key: configure a valid key to establish the paid entitlement.',
     evidence: [LEGAL_TERMS_CONTENT],
   },
   {
     file: 'legal/terms.ts',
     exportPath: 'TERMS_SECTIONS[4].paragraphs[0]',
-    text: 'Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) are commercially licensed. The license is granted per-subscription and is non-transferable. See LICENSE.commercial in the repository for full terms.',
+    text: 'Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) are commercially licensed. Paid runtime entitlements are granted by subscription or the purchased perpetual option and are non-transferable. Source use follows each package’s published license. See LICENSE.commercial in the repository for the licensing overview.',
     evidence: [LEGAL_TERMS_CONTENT],
   },
   {

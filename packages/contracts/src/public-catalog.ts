@@ -129,13 +129,13 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
     id: 'enterprise',
     name: 'Enterprise',
-    description: 'Full ecosystem access with scale and compliance.',
+    description: 'Discuss licensing for larger deployments and your requirements.',
     features: [
       'Everything in Max',
       'Unlimited sites',
       'Unlimited users/editors',
       'Session-based auth + OAuth',
-      'Full inference suite (all open models)',
+      'Supported open-model configurations',
       'Unlimited agent tasks',
       PAID_TIER_SUPPORT,
       'Annual pricing available',
@@ -158,10 +158,15 @@ export const BOOK_INTRO_HREF =
 export const CONSULTATION_PRICE = '$300' as const;
 
 /**
- * Studio Proof Sprint on revealuistudio.com. Not a revealui.com catalog SKU.
- * Replaces Pilot $1,500 (retired 2026-09-22). 100% credit toward Launch within 45 days.
+ * Studio middle SKU price on revealuistudio.com. Public name is Pilot.
+ * Not a revealui.com catalog SKU. The $1,500 list is retired.
+ * 100% credit toward Launch within 45 days.
+ * The export name PROOF_SPRINT_PRICE stays so existing imports keep working.
  */
 export const PROOF_SPRINT_PRICE = '$3,997' as const;
+
+/** Same value as PROOF_SPRINT_PRICE. Marketing imports this name. */
+export const PILOT_PRICE = PROOF_SPRINT_PRICE;
 
 /**
  * Studio Launch on revealuistudio.com. Not a revealui.com catalog SKU.
@@ -212,7 +217,6 @@ export const PUBLIC_PERPETUAL_TIERS: PerpetualTier[] = [
       'License key never expires',
       '1 year priority support included',
       'All Pro updates released during support period',
-      'Private GitHub repo access',
     ],
     renewal: '$149/yr for continued support',
     cta: 'Buy Pro Perpetual',

@@ -28,6 +28,7 @@ import {
   TIER_LABELS,
   TIER_LIMITS,
 } from '../pricing.js';
+import { PILOT_PRICE, PROOF_SPRINT_PRICE } from '../public-catalog.js';
 
 // =============================================================================
 // LicenseTierId coverage
@@ -357,6 +358,11 @@ describe('FOUNDER_SERVICE_OFFERINGS', () => {
   it('has the correct IDs in order', () => {
     const ids = FOUNDER_SERVICE_OFFERINGS.map((s) => s.id);
     expect(ids).toEqual(['consultation', 'proof-sprint', 'launch-package']);
+  });
+
+  it('keeps the Pilot price alias equal to the stable middle SKU export', () => {
+    expect(PILOT_PRICE).toBe(PROOF_SPRINT_PRICE);
+    expect(PILOT_PRICE).toBe('$3,997');
   });
 
   it('locks Consultation, Proof Sprint, and Launch prices (2026-09-22)', () => {

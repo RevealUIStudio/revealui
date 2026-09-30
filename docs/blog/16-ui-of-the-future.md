@@ -3,6 +3,7 @@ title: "The UI of the Future Has Yet to Reveal Itself"
 description: "The interface of the AI era is not a smarter chat window. It is your business itself, run by agents you own."
 visibility: public
 status: narrative
+lastUpdated: "2026-09-30"
 audience: user
 author: Joshua Vaughn
 ---
@@ -27,7 +28,7 @@ If agents are going to run real parts of a real business, "trust me" is not an a
 
 That means every agent is a governed and audited user that lives on your infrastructure. It gets an identity like a person. It gets permissions like a person. And every action it takes can land in a signed record you can check offline.
 
-If an agent did it, there's a receipt.
+Supported actions can leave signed records when audit signing is configured. A record helps you inspect an action; it does not establish that the outcome was correct.
 
 That standard carries more weight than any benchmark. A business you cannot inspect is a business you do not control, no matter how impressive the demo was.
 
@@ -37,7 +38,7 @@ Almost every agent you can buy today lives in someone else's cloud. Your data go
 
 You cannot build a life's work on a rented workforce.
 
-So the second precondition is that the whole thing lives under your roof. RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. It runs on any AI provider you choose, including models on your own hardware, because the point of owning your business is not conditional on which lab shipped the best weights this quarter.
+So the second precondition is that the whole thing lives under your roof. RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. It supports configured local runners and hosted provider adapters, because the point of owning your business is not conditional on which lab shipped the best weights this quarter.
 
 ## What this actually unlocks
 
@@ -55,7 +56,7 @@ And because it all runs on infrastructure you own, it compounds. The memory your
 
 I want to be precise about the present tense, because this industry has a lying problem and I refuse to add to it.
 
-Today, RevealUI is the runtime layer of that thesis. Five primitives that every business needs: People, Content, Offers, Payments, Agents. One permission model that covers humans and agents alike. A tamper-evident audit log. Local-first AI that runs on models you host, with any provider you choose as an option rather than a dependency. It is open source, and you can read every line.
+Today, RevealUI is the runtime layer of that thesis. Five primitives that every business needs: People, Content, Offers, Payments, Agents. One permission model that covers humans and agents alike. A tamper-evident audit log. Supported local inference is an option alongside hosted adapters. The core is MIT; Pro packages are source available under FSL-1.1-MIT. Paid runtime features use license validation. You can inspect the public source.
 
 Today, you still need to be the kind of person who can run your own infrastructure. The owner-operators come first: the founders and small teams who run their business on their own AI and want the receipts to prove what it did. They are who this is built with, right now, in production, by the one engineer in Tennessee writing this.
 

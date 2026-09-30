@@ -286,8 +286,8 @@ describe('HC16 / HC19 DELETE /studio-auth/devices/:deviceId', () => {
 });
 
 describe('HC16b OTP glob does not match /devices', () => {
-  it('index.ts registers OTP studio-auth on explicit paths only (not /devices glob)', () => {
-    const indexSource = readFileSync(resolve(__dirname, '../../index.ts'), 'utf-8');
+  it('app.ts registers OTP studio-auth on explicit paths only (not /devices glob)', () => {
+    const indexSource = readFileSync(resolve(__dirname, '../../app.ts'), 'utf-8');
 
     expect(indexSource).not.toContain("app.use('/api/studio-auth/*', routeLimit('studio-auth'))");
     expect(indexSource).not.toContain(

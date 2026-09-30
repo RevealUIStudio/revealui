@@ -6,7 +6,7 @@
  */
 
 import { generateKeyPairSync } from 'node:crypto';
-import { decodeProtectedHeader, importPKCS8, SignJWT } from 'jose';
+import { decodeJwt, decodeProtectedHeader, importPKCS8, SignJWT } from 'jose';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   computeKeyId,
@@ -32,6 +32,7 @@ import {
   refreshLicenseIfStale,
   resetLicenseState,
   validateLicenseKey,
+  validateLicenseKeyForOperator,
   validateLicenseKeyForRefresh,
 } from '../license.js';
 
@@ -61,6 +62,41 @@ afterEach(() => {
 // =============================================================================
 // generateLicenseKey
 // =============================================================================
+
+describe('single sampled mint timestamp', () => {
+  it('binds exact duration when the clock crosses a second between JWT setters', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-30T12:00:00.999Z'));
+    const original = SignJWT.prototype.setIssuedAt;
+    const setter = vi.spyOn(SignJWT.prototype, 'setIssuedAt').mockImplementation(function (value) {
+      const result = original.call(this, value);
+      vi.advanceTimersByTime(1001);
+      return result;
+    });
+    try {
+      const token = await generateLicenseKey(
+        { tier: 'pro', customerId: 'synthetic-clock' },
+        privateKeyPem,
+        3600,
+      );
+      const claims = decodeJwt(token);
+      expect(claims.nbf).toBe(claims.iat);
+      expect(claims.exp).toBe((claims.iat ?? 0) + 3600);
+      const perpetual = decodeJwt(
+        await generateLicenseKey(
+          { tier: 'pro', customerId: 'synthetic-clock', perpetual: true },
+          privateKeyPem,
+          null,
+        ),
+      );
+      expect(perpetual).not.toHaveProperty('exp');
+      expect(perpetual.nbf).toBe(perpetual.iat);
+    } finally {
+      setter.mockRestore();
+      vi.useRealTimers();
+    }
+  });
+});
 
 describe('generateLicenseKey', () => {
   it('generates a valid JWT string', async () => {
@@ -1113,5 +1149,59 @@ describe('license cache TTL revalidation', () => {
     await refreshLicenseIfStale();
     expect(getCurrentTier()).toBe('pro');
     expect(isLicensed('pro')).toBe(true);
+  });
+});
+
+describe('authenticated operator prior-token verification', () => {
+  it('authenticates expired prior without granting paid entitlement', async () => {
+    const key = await importPKCS8(privateKeyPem, 'EdDSA');
+    const token = await new SignJWT({
+      tier: 'enterprise',
+      customerId: 'operator-customer',
+      jti: 'operator-prior',
+    })
+      .setProtectedHeader({ alg: 'EdDSA' })
+      .setIssuer('https://revealui.com')
+      .setAudience('revealui-license')
+      .setIssuedAt(1)
+      .setExpirationTime(2)
+      .sign(key);
+    expect(await validateLicenseKey(token, publicKeyPem)).toBeNull();
+    expect(
+      await validateLicenseKeyForOperator(token, publicKeyPem, 'operator-customer'),
+    ).toMatchObject({ customerId: 'operator-customer', jti: 'operator-prior' });
+    expect(await validateLicenseKeyForOperator(token, publicKeyPem, 'another-customer')).toBeNull();
+    expect(await validateLicenseKeyForOperator(token, publicKeyPem, '')).toBeNull();
+    expect(
+      await validateLicenseKeyForOperator(
+        `${token.slice(0, -4)}xxxx`,
+        publicKeyPem,
+        'operator-customer',
+      ),
+    ).toBeNull();
+  });
+  it('denies wrong issuer/audience and future activation even for operators', async () => {
+    const key = await importPKCS8(privateKeyPem, 'EdDSA');
+    for (const claims of [
+      { iss: 'other', aud: 'revealui-license' },
+      { iss: 'https://revealui.com', aud: 'other' },
+      {
+        iss: 'https://revealui.com',
+        aud: 'revealui-license',
+        nbf: Math.floor(Date.now() / 1000) + 86400,
+      },
+    ]) {
+      const token = await new SignJWT({
+        tier: 'pro',
+        customerId: 'operator-customer',
+        jti: 'j',
+        ...claims,
+      })
+        .setProtectedHeader({ alg: 'EdDSA' })
+        .sign(key);
+      expect(
+        await validateLicenseKeyForOperator(token, publicKeyPem, 'operator-customer'),
+      ).toBeNull();
+    }
   });
 });

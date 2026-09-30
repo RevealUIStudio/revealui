@@ -1653,6 +1653,32 @@ export const LicenseJtiRevocationsInsertContract = createContract({
 })
 
 // =============================================================================
+// LicenseOperations Contracts
+// =============================================================================
+
+/**
+ * Contract for licenseOperations row (Select)
+ * Database table: license_operations
+ */
+export const LicenseOperationsRowContract = createContract({
+  name: 'LicenseOperationsRow',
+  version: '1',
+  description: 'Database row contract for license_operations table',
+  schema: Schemas.LicenseOperationsSelectSchema,
+})
+
+/**
+ * Contract for licenseOperations insert
+ * Database table: license_operations
+ */
+export const LicenseOperationsInsertContract = createContract({
+  name: 'LicenseOperationsInsert',
+  version: '1',
+  description: 'Database insert contract for license_operations table',
+  schema: Schemas.LicenseOperationsInsertSchema,
+})
+
+// =============================================================================
 // Licenses Contracts
 // =============================================================================
 

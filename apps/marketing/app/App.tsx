@@ -5,6 +5,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { SITE } from './content/site';
 import { RootLayout } from './layouts/RootLayout';
 import { useRouteMetaTitle } from './lib/use-route-meta-title';
+import { ClaimsPage } from './routes/ClaimsPage';
 import { ContactPage } from './routes/ContactPage';
 import { CookiesPage } from './routes/CookiesPage';
 import { HomePage } from './routes/HomePage';
@@ -37,10 +38,23 @@ const MovedManaged = moved(`${DOCS}/roadmap`);
 const MovedBlog = moved(PRODUCT_BLOG_HOPS.index);
 const MovedFairSource = moved(`${DOCS}/fair-source`);
 const MovedRoadmap = moved(`${DOCS}/roadmap`);
-const MovedClaims = moved(DOCS);
 const MovedSla = moved(`${DOCS}/sla`);
-const MovedHipaa = moved(DOCS);
-const MovedSubprocessors = moved(DOCS);
+function MovedHipaa() {
+  return (
+    <MovedPage
+      to="/security"
+      notice="A dedicated current HIPAA guide is not available here. Read our security disclosures and contact us about your deployment requirements."
+    />
+  );
+}
+function MovedSubprocessors() {
+  return (
+    <MovedPage
+      to="/privacy"
+      notice="A dedicated current subprocessor registry is not available here. Read our privacy disclosures and contact us for your procurement review."
+    />
+  );
+}
 
 function MovedBlogPost() {
   const { slug } = useParams<{ slug?: string }>();
@@ -58,7 +72,14 @@ export function App() {
   if (!registered.current && router.getRoutes().length === 0) {
     router.registerRoutes([
       { path: '/', component: HomePage, meta: { title: 'RevealUI' } },
-      { path: '/products', component: ProductsPage, meta: { title: 'Products | RevealUI' } },
+      {
+        path: '/products',
+        component: ProductsPage,
+        meta: {
+          title: 'Products | RevealUI',
+          description: 'Compare self-hosted RevealUI licenses and supported features.',
+        },
+      },
       {
         path: '/philosophy',
         component: MovedPhilosophy,
@@ -69,7 +90,15 @@ export function App() {
         component: MovedLocalAi,
         meta: { title: 'Moved | RevealUI' },
       },
-      { path: '/pricing', component: PricingPage, meta: { title: 'Pricing | RevealUI' } },
+      {
+        path: '/pricing',
+        component: PricingPage,
+        meta: {
+          title: 'Pricing | RevealUI',
+          description:
+            'Compare Free, Pro, Max, and perpetual licenses. Hosting and model usage are separate costs.',
+        },
+      },
       {
         path: '/upgrade',
         component: MovedUpgrade,
@@ -87,7 +116,15 @@ export function App() {
       },
       { path: '/blog', component: MovedBlog, meta: { title: 'Moved | RevealUI' } },
       { path: '/blog/:slug', component: MovedBlogPost, meta: { title: 'Moved | RevealUI' } },
-      { path: '/contact', component: ContactPage, meta: { title: 'Contact | RevealUI' } },
+      {
+        path: '/contact',
+        component: ContactPage,
+        meta: {
+          title: 'Contact | RevealUI',
+          description:
+            'Ask about a RevealUI license, product support, or your deployment requirements.',
+        },
+      },
       {
         path: '/fair-source',
         component: MovedFairSource,
@@ -106,27 +143,89 @@ export function App() {
       { path: '/roadmap', component: MovedRoadmap, meta: { title: 'Moved | RevealUI' } },
       {
         path: '/claims',
-        component: MovedClaims,
-        meta: { title: 'Moved | RevealUI' },
+        component: ClaimsPage,
+        meta: {
+          title: 'Claims and evidence | RevealUI',
+          description:
+            'Covered marketing statements and their cited evidence, with the limits of our automated checks.',
+        },
       },
-      { path: '/privacy', component: PrivacyPage, meta: { title: 'Privacy Policy | RevealUI' } },
-      { path: '/cookies', component: CookiesPage, meta: { title: 'Cookie Policy | RevealUI' } },
+      {
+        path: '/privacy',
+        component: PrivacyPage,
+        meta: {
+          title: 'Privacy Policy | RevealUI',
+          description:
+            'How RevealUI collects and uses personal information, and how to contact us about your rights.',
+        },
+      },
+      {
+        path: '/cookies',
+        component: CookiesPage,
+        meta: {
+          title: 'Cookie Policy | RevealUI',
+          description: 'The cookies and optional analytics used on revealui.com.',
+        },
+      },
       {
         path: '/legal/hipaa',
         component: MovedHipaa,
         meta: { title: 'Moved | RevealUI' },
       },
-      { path: '/terms', component: TermsPage, meta: { title: 'Terms of Service | RevealUI' } },
-      { path: '/security', component: SecurityPage, meta: { title: 'Security | RevealUI' } },
-      { path: '/support', component: SupportPage, meta: { title: 'Support | RevealUI' } },
+      {
+        path: '/terms',
+        component: TermsPage,
+        meta: {
+          title: 'Terms of Service | RevealUI',
+          description:
+            'RevealUI software and subscription terms. Review license and renewal conditions before purchasing.',
+        },
+      },
+      {
+        path: '/security',
+        component: SecurityPage,
+        meta: {
+          title: 'Security | RevealUI',
+          description:
+            'RevealUI security disclosures, reporting contacts, and deployment responsibilities.',
+        },
+      },
+      {
+        path: '/support',
+        component: SupportPage,
+        meta: {
+          title: 'Support | RevealUI',
+          description:
+            'How to get RevealUI product support, published response commitments, and scope.',
+        },
+      },
       { path: '/sla', component: MovedSla, meta: { title: 'Moved | RevealUI' } },
       {
         path: '/refund-policy',
         component: RefundPolicyPage,
-        meta: { title: 'Refund Policy | RevealUI' },
+        meta: {
+          title: 'Refund Policy | RevealUI',
+          description: 'RevealUI product refund conditions and how to request a refund.',
+        },
       },
-      { path: '/status', component: StatusPage, meta: { title: 'Status | RevealUI' } },
-      { path: '/templates', component: TemplatesPage, meta: { title: 'Templates | RevealUI' } },
+      {
+        path: '/status',
+        component: StatusPage,
+        meta: {
+          title: 'Status | RevealUI',
+          description:
+            'Check current API health endpoint reachability and read the limits of the check.',
+        },
+      },
+      {
+        path: '/templates',
+        component: TemplatesPage,
+        meta: {
+          title: 'Templates | RevealUI',
+          description:
+            'Supported RevealUI templates and the configuration each starting point needs.',
+        },
+      },
       {
         path: '/legal/subprocessors',
         component: MovedSubprocessors,

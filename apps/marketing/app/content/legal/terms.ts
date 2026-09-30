@@ -5,13 +5,13 @@ import type { LegalSection } from './privacy';
 
 export const TERMS_META = {
   title: 'Terms of Service',
-  lastUpdated: 'May 28, 2026',
+  lastUpdated: 'September 30, 2026',
   intro:
     'These Terms of Service ("Terms") govern your use of the RevealUI platform provided by REVEALUI STUDIO L.L.C., a Tennessee limited liability company ("we", "us", "our"). By creating an account or using the Service, you agree to these Terms.',
   notice: {
     variant: 'info' as const,
     title: 'Status: drafted in good faith, pending counsel review',
-    body: 'This page describes our actual practices and commitments today. The wording has not yet been reviewed by an attorney; we disclose this rather than hide it. The substance will not change after review. Only the wording may tighten. Questions in the meantime?',
+    body: 'This page describes our actual practices and commitments today. The wording has not yet been reviewed by an attorney; we disclose this rather than hide it. Review may identify changes to wording or commitments; material changes will be reflected in the published policy. Questions in the meantime?',
   },
 } as const;
 
@@ -51,7 +51,7 @@ export const TERMS_SECTIONS: readonly LegalSection[] = [
       {
         heading: 'Trial',
         paragraph:
-          'The Pro and Max tiers include a 7-day free trial. You will not be charged during the trial period. If you do not cancel before the trial ends, your subscription will automatically begin and you will be charged the applicable monthly rate.',
+          'The Pro and Max tiers include a 7-day free trial. You will not be charged during the trial period. If you do not cancel before the trial ends, your subscription will automatically begin and you will be charged the price for the monthly or annual billing interval selected at checkout.',
       },
       {
         heading: 'Cancellation',
@@ -63,13 +63,13 @@ export const TERMS_SECTIONS: readonly LegalSection[] = [
         paragraph: `We offer a full refund if requested within 14 days of your first paid charge (not including the trial period). After 14 days, no refunds are issued for partial billing periods. Contact ${SITE.emails.support} for refund requests. Perpetual licenses follow a separate window; see our full Refund Policy at /refund-policy.`,
       },
       {
-        heading: 'License continuity and grace periods',
+        heading: 'License continuity and validation',
         listItems: [
-          'If your subscription expires (Pro or Max): we grant a 3-day grace period during which paid features remain available. After the grace period, your account reverts to the free tier; your data is retained and your account is not deleted.',
-          'If a perpetual-license support renewal lapses: we grant a 30-day grace period during which paid features remain available. After the grace period, your installation enters read-only mode: you keep full access to your existing data and content, but new Pro features and updates are paused until renewal. You will never lose access to your own data because a support renewal lapsed.',
-          'If our license-verification service is unreachable from your installation (vendor-side outage on our end): we grant a 7-day grace period during which your previously-validated license remains in effect. After the grace period, your installation reverts to free-tier behavior until our service is reachable again. You will not be charged for the outage and you can reach out to support for a credit.',
-          'License revocation (chargeback, terms violation): we will revoke immediately and the grace periods above do not apply.',
-          'Invalid or missing license key: paid features remain unavailable until a valid key is configured; grace periods do not apply because no entitlement has been established.',
+          'Pro and Max subscriptions provide paid features during the paid entitlement period. Canceling renewal takes effect at the end of your current billing period. Export the data you need before changing your deployment or plan.',
+          'Pro Perpetual permits continued use of the acquired Pro version. Renewal is optional and is required only for future updates and support after the included coverage ends. A support renewal lapse does not block reads or writes in the acquired version or remove its purchased Pro features.',
+          'Self-hosted installations validate the configured license key. Availability of hosted APIs and integrations also depends on your deployment and service providers. If license validation or a hosted service fails, contact support with the error and affected deployment.',
+          'A license may be revoked following a refund, chargeback, or terms violation. Revocation removes the associated paid entitlement.',
+          'Invalid or missing license key: configure a valid key to establish the paid entitlement.',
         ],
       },
     ],
@@ -77,7 +77,7 @@ export const TERMS_SECTIONS: readonly LegalSection[] = [
   {
     heading: '5. Commercial License',
     paragraphs: [
-      'Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) are commercially licensed. The license is granted per-subscription and is non-transferable. See LICENSE.commercial in the repository for full terms.',
+      'Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) are commercially licensed. Paid runtime entitlements are granted by subscription or the purchased perpetual option and are non-transferable. Source use follows each package’s published license. See LICENSE.commercial in the repository for the licensing overview.',
     ],
   },
   {

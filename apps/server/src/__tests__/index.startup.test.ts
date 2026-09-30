@@ -25,6 +25,7 @@
 
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
 
 const indexSource = readFileSync(resolve(__dirname, '..', 'index.ts'), 'utf-8');
@@ -117,10 +118,18 @@ describe('apps/server/src/index.ts — post-Phase-2 invariants', () => {
       indexSource,
       'index.ts must export default app for api/index.js (Vercel) AND worker.ts',
     ).toContain('export default app;');
-    expect(
-      indexSource,
-      'index.ts must export terminalWs so worker.ts can call injectWebSocket',
-    ).toContain('export const terminalWs = createTerminalRoute()');
+    const parsed = ts.createSourceFile('index.ts', indexSource, ts.ScriptTarget.Latest, true);
+    const exportsTerminal = parsed.statements.some(
+      (statement) =>
+        ts.isExportDeclaration(statement) &&
+        statement.moduleSpecifier &&
+        ts.isStringLiteral(statement.moduleSpecifier) &&
+        statement.moduleSpecifier.text === './app.js' &&
+        statement.exportClause &&
+        ts.isNamedExports(statement.exportClause) &&
+        statement.exportClause.elements.some((binding) => binding.name.text === 'terminalWs'),
+    );
+    expect(exportsTerminal, 'index.ts must re-export terminalWs for worker.ts').toBe(true);
     expect(indexSource, 'index.ts must export initAlerting so worker.ts can call it').toContain(
       'export function initAlerting',
     );

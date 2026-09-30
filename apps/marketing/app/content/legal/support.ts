@@ -52,14 +52,14 @@ export const SUPPORT_SECTIONS: readonly LegalSection[] = [
   {
     heading: '4. What we cannot help with',
     paragraphs: [
-      'We need to be honest about scope. A solo-operator support model only works if we say "no" to the things that would consume all our time without serving customers fairly.',
+      'Support covers the product and documented setup paths. Implementation work and ongoing operation need a separately agreed scope.',
     ],
     listItems: [
       'We do not write your application code for you. RevealUI is a framework; you build with it.',
-      'We do not review private codebases line by line. Public GitHub repos we can sometimes glance at; private repos require an Enterprise engagement (see Pricing).',
+      'Private codebase review is separately scoped work. Contact RevealUI Studio at https://revealuistudio.com/contact to discuss it; a product license does not include consulting.',
       'We do not debug deployments to specific hosting environments (Kubernetes clusters, exotic Docker setups, customer VPNs) beyond the documented Vercel / Fly / Hetzner / Docker paths.',
       'We cannot recover data from a self-hosted instance that has been lost. We do not have access to your database. Always maintain your own backups.',
-      'We do not provide free architectural consulting outside the documented patterns. Track D professional services (when published) is the right channel for that.',
+      'For architecture or implementation work beyond product support, discuss a scoped engagement with RevealUI Studio at https://revealuistudio.com/contact.',
       'We do not provide live phone or video support at the Pro tier. Email-and-async only.',
     ],
   },

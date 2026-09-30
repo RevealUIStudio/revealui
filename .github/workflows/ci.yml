@@ -484,6 +484,12 @@ jobs:
           POSTGRES_URL: "postgresql://test:test@localhost:5432/revealui_migrations"
           DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_migrations"
 
+      - name: Verify license operation concurrency on independent Postgres connections
+        run: pnpm --filter @revealui/test exec vitest run --config vitest.integration.config.ts src/integration/database/license-operation-concurrency.integration.test.ts
+        env:
+          TEST_DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_migrations"
+          LICENSE_OPERATION_POSTGRES_REQUIRED: "true"
+
   # ---------------------------------------------------------------------------
   # Phase 2: Typecheck (all branches)
   # ---------------------------------------------------------------------------

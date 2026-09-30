@@ -3,11 +3,12 @@ title: "Run Your Admin by Talking to It"
 description: "Open the RevealUI admin, type what you want done, and watch the agent do it, with streaming output and full tool visibility."
 visibility: public
 status: narrative
+lastUpdated: "2026-09-30"
 audience: user
 author: Joshua Vaughn
 ---
 
-The fastest admin interface is a sentence.
+An admin task can start with a sentence.
 
 "Draft a post about our Q2 launch and save it as a draft." "How many users signed up last week?" "Mark every ticket from the demo account as resolved." In the RevealUI admin, you type that into a chat panel and the agent does it, in front of you, with every step it takes visible as it happens.
 
@@ -25,24 +26,24 @@ The reason this needed almost no new surface area is the architecture underneath
 
 So when you ask the agent to draft a post, it is not reaching through a special integration. It is calling the exact same create-post operation a human triggers from the dashboard. There is no separate "agent path" to keep in sync with the real one.
 
-That last part matters, and it is also today's limitation. The agent does not get its own identity or its own policy check; it runs with exactly the same permissions as the account or session that launched it, nothing more and nothing less. Per-agent policy scoping through the RBAC + ABAC engine, and a full audit trail of what the agent did, are not shipped yet.
+That last part matters, and it is also today's limitation. This essay originally described the session-bound implementation. For the current release, inspect the enabled tools, identity and permission configuration, and audit coverage in your deployment. Do not assume a separate agent identity or complete action recording from the chat interface alone.
 
 ## It runs on your models, not someone's API
 
-The agent streams its work over Server-Sent Events, and the inference behind it is yours to choose. RevealUI auto-detects the inference path at runtime, preferring a local Ubuntu Inference Snap and falling back to Ollama, both running open-weight models on your own hardware.
+The agent streams its work over Server-Sent Events, and the inference behind it is yours to choose. Configure the inference provider explicitly. The environment factory selects configuration rather than probing installed runners; a configured Groq key can take precedence over Ollama when no provider is specified.
 
 ```ts
-// The runtime picks the available local backend automatically.
-const llmClient = createLLMClientFromEnv(); // snap, else Ollama
+// Select the intended provider in configuration; the runner must be reachable.
+const llmClient = createLLMClientFromEnv();
 ```
 
-No proprietary API key. No per-token cloud bill. No customer data leaving your machine to reach a frontier model. If you would rather point it at a cloud-compatible endpoint, that is a single environment variable, but it is opt-in, never the default.
+With local inference configured, model requests go to your selected local endpoint. You supply the hardware and runner. Hosted model providers process requests sent to them and have their own usage costs; other services can still require network access.
 
 ## The honest scope
 
-Dashboard Agent Chat is a Pro-tier feature. The AI engine that powers it loads only for licensed deployments, so a free-tier install never pulls the agent code into memory at all.
+Dashboard Agent Chat is a Pro-tier feature. Agent orchestration requires the appropriate paid entitlement and configured model access. Check the selected tier and enabled tools before evaluating a workflow.
 
-And because it runs on open-weight models by design, set your expectations accordingly. These models are excellent at the structured work an admin is full of: drafting and editing content, querying and summarizing data, filling fields, orchestrating a sequence of API calls. They are not a frontier reasoning engine, and we would rather you know that than be surprised by it. For the daily operation of a business, structured and reliable is exactly the right trade.
+And because it runs on open-weight models by design, set your expectations accordingly. Model performance depends on the chosen model, tools, and workflow. Evaluate a representative task and inspect its actions before relying on it in your business.
 
 ## Try it
 

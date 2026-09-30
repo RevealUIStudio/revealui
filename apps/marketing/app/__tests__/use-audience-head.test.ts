@@ -80,9 +80,7 @@ describe('useAudienceHead — non-technical audience', () => {
 describe('useAudienceHead — technical audience', () => {
   it('sets document.title to the technical headline', () => {
     renderHook(() => useAudienceHead('technical'));
-    expect(document.title).toBe(
-      'RevealUI | The agentic business runtime startups operate on their own domain.',
-    );
+    expect(document.title).toBe('RevealUI | Build your business on software you can run yourself.');
   });
 
   it('does not mutate link[rel=canonical]', () => {
@@ -130,9 +128,7 @@ describe('useAudienceHead — audience switch', () => {
       rerender({ audience: 'technical' });
     });
 
-    expect(document.title).toBe(
-      'RevealUI | The agentic business runtime startups operate on their own domain.',
-    );
+    expect(document.title).toBe('RevealUI | Build your business on software you can run yourself.');
     expect(document.documentElement.dataset.audience).toBe('technical');
   });
 

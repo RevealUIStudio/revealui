@@ -37,7 +37,8 @@ vi.mock('@revealui/core/license', () => ({
   readLicenseJti: vi.fn(async () => null),
 }));
 
-vi.mock('@revealui/core/license/mint-client', () => ({
+vi.mock('@revealui/core/license/mint-client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@revealui/core/license/mint-client')>()),
   canMintLicense: vi.fn(() => Boolean(process.env.REVEALUI_LICENSE_PRIVATE_KEY?.trim())),
   mintConfigMissingMessage: vi.fn(() => 'REVEALUI_LICENSE_PRIVATE_KEY not configured'),
   mintLicenseKey: vi.fn().mockResolvedValue('rv-license-key-test-123'),
@@ -47,7 +48,8 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
-vi.mock('@revealui/db', () => ({
+vi.mock('@revealui/db', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@revealui/db')>()),
   getClient: vi.fn(),
   isJtiRevoked: vi.fn(async () => false),
 }));
@@ -75,6 +77,7 @@ vi.mock('../../lib/nudges/milestone-meters.js', () => ({
 
 import { getPublicKeys, validateLicenseKeyForRefresh } from '@revealui/core/license';
 import { mintLicenseKey } from '@revealui/core/license/mint-client';
+import { logger } from '@revealui/core/observability/logger';
 import { getClient, isJtiRevoked } from '@revealui/db';
 import licenseApp from '../license.js';
 
@@ -114,6 +117,7 @@ function mockDbRows(rows: Array<{ licenseKey: string }>) {
     select: () => ({
       from: () => ({
         where: () => ({
+          limit: () => Promise.resolve(rows.length ? [{ status: 'active' }] : []),
           orderBy: () => ({
             limit: () => Promise.resolve(rows),
           }),
@@ -123,13 +127,14 @@ function mockDbRows(rows: Array<{ licenseKey: string }>) {
   } as never);
 }
 
-function mockDbThrow() {
+function mockDbThrow(message = 'DB unavailable') {
   vi.mocked(getClient).mockReturnValue({
     select: () => ({
       from: () => ({
         where: () => ({
+          limit: () => Promise.reject(new Error(message)),
           orderBy: () => ({
-            limit: () => Promise.reject(new Error('DB unavailable')),
+            limit: () => Promise.reject(new Error(message)),
           }),
         }),
       }),
@@ -227,13 +232,16 @@ describe('POST /refresh', () => {
 
   it('fails closed with 403 when the DB lookup throws', async () => {
     mockedRefreshValidate.mockResolvedValue(VALID_PAYLOAD as never);
-    mockDbThrow();
+    const boundToken = 'synthetic.refresh.jwt-private';
+    mockDbThrow(`Failed query params: ${boundToken}`);
 
     const app = createApp();
-    const res = await app.request('/refresh', post(refreshBody()));
+    const res = await app.request('/refresh', post({ ...refreshBody(), licenseKey: boundToken }));
 
     expect(res.status).toBe(403);
     expect(await res.json()).toEqual(DENIED);
+    expect(JSON.stringify(vi.mocked(logger.warn).mock.calls)).not.toContain(boundToken);
+    expect(vi.mocked(logger.warn)).toHaveBeenCalled();
   });
 
   it('uniformly denies a JTI query outage despite an available active row and never mints', async () => {

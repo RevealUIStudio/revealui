@@ -76,16 +76,12 @@ export const DEFAULT_TIER_LIMITS: Record<string, RateLimitConfig> = {
 export class McpRateLimiter {
   private store: RateLimitStore;
   private limits: Record<string, RateLimitConfig>;
-  private cleanupInterval: ReturnType<typeof setInterval> | null = null;
+  private nextCleanupAt = Date.now() + 60_000;
+  private pendingCleanup: Promise<void> | null = null;
 
   constructor(options: McpRateLimiterOptions = {}) {
     this.limits = options.limits ?? DEFAULT_TIER_LIMITS;
     this.store = options.store ?? new InMemoryRateLimitStore();
-    // Clean up expired windows every 60s
-    this.cleanupInterval = setInterval(() => {
-      void this.cleanup();
-    }, 60_000);
-    if (this.cleanupInterval.unref) this.cleanupInterval.unref();
   }
 
   /**
@@ -96,6 +92,7 @@ export class McpRateLimiter {
     const config = this.limits[tier] ?? this.limits.free ?? { maxRequests: 60, windowMs: 60_000 };
     const key = `${tenantId}:${tier}`;
     const now = Date.now();
+    await this.cleanupIfDue(now);
 
     let entry = await this.store.get(key);
 
@@ -127,20 +124,30 @@ export class McpRateLimiter {
     this.limits[tier] = config;
   }
 
-  /** Clean up expired window entries. */
-  private async cleanup(): Promise<void> {
-    const now = Date.now();
-    // Use the longest window duration × 2 as the expiry cutoff
+  /** Request-driven cleanup keeps assembly and idle/serverless imports inert. */
+  private async cleanupIfDue(now: number): Promise<void> {
+    if (this.pendingCleanup) return this.pendingCleanup;
+    if (now < this.nextCleanupAt) return;
+    const pending = this.cleanup(now).then(() => {
+      this.nextCleanupAt = now + 60_000;
+    });
+    this.pendingCleanup = pending;
+    try {
+      await pending;
+    } finally {
+      if (this.pendingCleanup === pending) this.pendingCleanup = null;
+    }
+  }
+
+  /** Clean up expired window entries through the configured store. */
+  private async cleanup(now: number): Promise<void> {
+    // Use the longest window duration × 2 as the expiry cutoff.
     const maxWindowMs = Math.max(...Object.values(this.limits).map((c) => c.windowMs));
     await this.store.cleanup(now - maxWindowMs * 2);
   }
 
-  /** Dispose the rate limiter, clearing the cleanup timer and all windows. */
+  /** Dispose the rate limiter, releasing its store and all windows. */
   async dispose(): Promise<void> {
-    if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
-      this.cleanupInterval = null;
-    }
     await this.store.close();
   }
 }

@@ -80,9 +80,9 @@ export const BLOG_POST_METADATA: readonly BlogPostMeta[] = [
   },
   {
     slug: 'claim-drift',
-    title: 'The Marketing Site That Fails CI When It Lies',
+    title: 'How we keep product claims connected to source',
     excerpt:
-      'Every number on revealui.com is checked against the code on every push. When a stat drifts from reality, the build breaks before the lie ships.',
+      'Defined metrics have automated checks, and covered copy links to cited evidence. Human review still assesses whether a statement is supported.',
     publishedAt: '2026-06-14T12:00:00.000Z',
     author: 'RevealUI Team',
     file: '14-claim-drift.md',

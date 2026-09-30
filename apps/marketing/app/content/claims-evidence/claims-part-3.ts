@@ -699,7 +699,7 @@ export const claimsPart3: readonly ClaimEntry[] = [
   {
     file: 'fair-source.ts',
     exportPath: 'FAIR_SOURCE_HERO.ogSubtitle',
-    text: 'Source-visible. Commercially usable. MIT in two years.',
+    text: 'Source available. Published license terms apply.',
     evidence: [LICENSE_MIT],
   },
   {
@@ -735,7 +735,7 @@ export const claimsPart3: readonly ClaimEntry[] = [
   {
     file: 'fair-source.ts',
     exportPath: 'FAIR_SOURCE_CONTRACT_CARDS[2].body',
-    text: 'Run it in your VPC, on bare metal, or air-gapped. RevealUI does not phone home and does not depend on a vendor service to function.',
+    text: 'Run it in your VPC, on bare metal, or air-gapped. Paid features require valid entitlement; hosted APIs and third-party integrations have their own dependencies.',
     evidence: [SELF_HOST, NO_TELEMETRY],
   },
   {
@@ -747,7 +747,7 @@ export const claimsPart3: readonly ClaimEntry[] = [
   {
     file: 'fair-source.ts',
     exportPath: 'FAIR_SOURCE_CONTRACT_CARDS[3].body',
-    text: 'You cannot ship a substantially similar developer platform that competes with RevealUI on top of these packages. This is the only restriction. After two years, even this restriction lifts and the release becomes plain MIT.',
+    text: 'Competing uses are restricted by the package’s published license. Read its permitted-purpose, restriction, and conversion terms before relying on it.',
     evidence: [FAIR_SOURCE_PAGE, LICENSE_MIT],
   },
   {
@@ -765,7 +765,7 @@ export const claimsPart3: readonly ClaimEntry[] = [
   {
     file: 'fair-source.ts',
     exportPath: 'FAIR_SOURCE_PACKAGES_SECTION.body.suffix',
-    text: 'workspace package. Every other RevealUI package is plain MIT: no non-compete, no time limit, fully open source.',
+    text: 'workspace package. The core is MIT. Check each package’s license; internal workspace tooling can have different status.',
     evidence: [LICENSE_MIT, LICENSE_SPLIT],
   },
   {
@@ -777,7 +777,7 @@ export const claimsPart3: readonly ClaimEntry[] = [
   {
     file: 'fair-source.ts',
     exportPath: 'FAIR_SOURCE_PACKAGES_SECTION.footer.suffix',
-    text: ': npm always tells the truth.',
+    text: ': compare registry metadata with the LICENSE file included in the version you use.',
     evidence: [LICENSE_SPLIT],
   },
   {
@@ -806,14 +806,20 @@ export const claimsPart3: readonly ClaimEntry[] = [
   },
   {
     file: 'fair-source.ts',
+    exportPath: 'FAIR_SOURCE_CLOCK_SECTION.eyebrow',
+    text: 'Published change-date terms',
+    evidence: [LICENSE_MIT, FAIR_SOURCE_PAGE],
+  },
+  {
+    file: 'fair-source.ts',
     exportPath: 'FAIR_SOURCE_CLOCK_SECTION.heading',
-    text: 'Every release auto-converts to MIT.',
+    text: 'MIT conversion follows the published license.',
     evidence: [LICENSE_MIT],
   },
   {
     file: 'fair-source.ts',
     exportPath: 'FAIR_SOURCE_CLOCK_SECTION.body',
-    text: "The 2-year timer starts on each release's publish date. Older releases reach MIT first; newer releases start their own clock from their own publish date. The clause does not require any action from RevealUI Studio. It is in the license text and self-executing.",
+    text: 'Each package’s LICENSE specifies its Change Date. FSL conversion occurs on that date or the fourth anniversary of the first public distribution under FSL, whichever comes first. Read the license shipped with your version.',
     evidence: [LICENSE_MIT, FAIR_SOURCE_PAGE],
   },
   {
@@ -825,25 +831,25 @@ export const claimsPart3: readonly ClaimEntry[] = [
   {
     file: 'fair-source.ts',
     exportPath: 'FAIR_SOURCE_CLOCK_SECTION.steps[0].body',
-    text: 'Source on GitHub. Installable from npm. The 2-year clock starts ticking the moment the version tag lands.',
+    text: 'Inspect the package source and the LICENSE shipped with your version, including its Change Date.',
     evidence: [REPO, FAIR_SOURCE_PAGE],
   },
   {
     file: 'fair-source.ts',
     exportPath: 'FAIR_SOURCE_CLOCK_SECTION.steps[1].body',
-    text: 'All freedoms apply (use commercially, modify, self-host) except the non-compete clause. You build on it, you ship products with it, you charge customers for those products.',
+    text: 'Use follows the package’s published permitted-purpose and restriction terms.',
     evidence: [FAIR_SOURCE_PAGE],
   },
   {
     file: 'fair-source.ts',
     exportPath: 'FAIR_SOURCE_CLOCK_SECTION.steps[2].title',
-    text: 'Two years later: plain MIT',
+    text: 'At the conversion date: MIT',
     evidence: [LICENSE_MIT],
   },
   {
     file: 'fair-source.ts',
     exportPath: 'FAIR_SOURCE_CLOCK_SECTION.steps[2].body',
-    text: 'That specific release auto-converts to plain MIT. The non-compete clause lifts; the license becomes OSI-approved open source.',
+    text: 'The licensed work becomes available under the specified MIT Change License according to the published conversion terms.',
     evidence: [LICENSE_MIT],
   },
 ];

@@ -39,6 +39,63 @@ import type { ClaimEntry } from './types.js';
 
 export const claimsPart1: readonly ClaimEntry[] = [
   {
+    file: 'home.ts',
+    exportPath: 'HOME_BENEFITS[0].title',
+    text: 'Keep a foundation you can reuse.',
+    proofGrade: 'behavior',
+    evidence: [LICENSE_MIT, LICENSE_SPLIT, TIER_LIMITS, REPO],
+  },
+  {
+    file: 'home.ts',
+    exportPath: 'HOME_BENEFITS[0].body',
+    text: 'RevealFleet is the family of software behind RevealUI and the tools we use to build and operate it. The MIT core can be used in another app; paid runtime features follow your license limits.',
+    proofGrade: 'behavior',
+    evidence: [LICENSE_MIT, LICENSE_SPLIT, TIER_LIMITS, REPO],
+  },
+  {
+    file: 'home.ts',
+    exportPath: 'HOME_BENEFITS[1].title',
+    text: 'Choose where inference runs.',
+    proofGrade: 'behavior',
+    evidence: [PROVIDERS, OPEN_WEIGHT],
+  },
+  {
+    file: 'home.ts',
+    exportPath: 'HOME_BENEFITS[1].body',
+    text: 'Configure a supported local runner or hosted provider. Local inference needs suitable hardware; hosted providers process the model requests you send them.',
+    proofGrade: 'behavior',
+    evidence: [PROVIDERS, OPEN_WEIGHT],
+  },
+  {
+    file: 'home.ts',
+    exportPath: 'HOME_BENEFITS[2].title',
+    text: 'Inspect supported agent activity.',
+    proofGrade: 'behavior',
+    evidence: [AUDIT_SIGNING, AUDIT_SIGNING_TEST, TIER_GATES],
+  },
+  {
+    file: 'home.ts',
+    exportPath: 'HOME_BENEFITS[2].body',
+    text: 'When audit signing is configured, supported actions leave signed records. Pro adds downloadable Merkle roots and inclusion proofs. A record helps you investigate an action; it does not prove the business outcome was correct.',
+    proofGrade: 'behavior',
+    evidence: [AUDIT_SIGNING, AUDIT_SIGNING_TEST, TIER_GATES],
+  },
+  {
+    file: 'pricing-teaser.ts',
+    exportPath: 'PRICING_TEASER_TIERS[0].features[1]',
+    proofGrade: 'behavior',
+    text: 'Content APIs and admin components',
+    evidence: [COLLECTIONS],
+  },
+  {
+    file: 'pricing-teaser.ts',
+    exportPath: 'PRICING_TEASER_TIERS[0].features[2]',
+    proofGrade: 'behavior',
+    text: 'Offers and Stripe integration',
+    evidence: [BILLING, TIER_GATES],
+  },
+
+  {
     file: 'pricing-teaser.ts',
     exportPath: 'PRICING_TEASER_TIERS[0].features[1]',
     proofGrade: 'behavior',
@@ -56,7 +113,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
   {
     file: 'site.ts',
     exportPath: 'SITE.brandTagline',
-    text: 'The agentic business runtime startups operate on their own domain.',
+    text: 'Build your business on software you can run yourself.',
     evidence: [LICENSE_MIT, OPEN_WEIGHT, SELF_HOST],
   },
   {
@@ -70,7 +127,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_HERO.h1',
     proofGrade: 'outcome',
-    text: 'The agentic business runtime startups operate on their own domain.',
+    text: 'Build your business on software you can run yourself.',
     evidence: [
       {
         kind: 'code',
@@ -110,22 +167,22 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_HERO.subtitle.sentence1',
     proofGrade: 'outcome',
-    text: 'Build your business on one self-hosted runtime for People, Content, Offers, Payments, and Agents.',
+    text: 'RevealUI brings People, Content, Offers, Payments, and Agents into one self-hosted runtime.',
     evidence: [SELF_HOST, COLLECTIONS, RBAC_ABAC, BILLING, AGENT_ROUTES],
   },
   {
     file: 'home.ts',
     exportPath: 'HOME_HERO.subtitle.sentence2',
     proofGrade: 'outcome',
-    text: 'Keep your code, accounts, and data on your infrastructure. Choose the product features your business needs, then add your own model.',
-    evidence: [SELF_HOST, POSTGRES, REPO, TIER_GATES, PROVIDERS],
+    text: 'Start with the MIT-licensed core. Add Pro for agent tools, memory, and MCP integrations.',
+    evidence: [LICENSE_MIT, TIER_GATES, AGENT_ROUTES, MEMORY, MCP_SERVERS],
   },
   {
     file: 'home.ts',
     exportPath: 'HOME_HERO.subtitle.support',
     proofGrade: 'behavior',
-    text: 'Start with the free core. Pro adds the agent layer.',
-    evidence: [LICENSE_MIT, TIER_GATES, AGENT_ROUTES],
+    text: 'Use accounts and infrastructure you control. Hosting, database services, and model usage are separate costs.',
+    evidence: [SELF_HOST, INFRA_COST_ESTIMATE, BILLING, PROVIDERS],
   },
   {
     file: 'home.ts',
@@ -351,7 +408,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_FAQ.items[3].answer',
     proofGrade: 'behavior',
-    text: 'Yes. Most packages are MIT forever. A small Pro set is Fair Source and converts to MIT two years after each release. Self-host the full stack on your infrastructure at any tier. License detail is on the Fair Source page.',
+    text: 'Yes. Most packages are MIT forever. A small Pro set is Fair Source and follows its published terms for conversion to MIT. Self-host the full stack on your infrastructure at any tier. License detail is on the Fair Source page.',
     evidence: [LICENSE_SPLIT, LICENSE_MIT, SELF_HOST, POSTGRES],
   },
   {
