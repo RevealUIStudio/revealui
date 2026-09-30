@@ -127,8 +127,8 @@ export default function WelcomePage() {
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
           {isPostPurchase
-            ? 'Concrete first actions to put your subscription to work.'
-            : 'New here? Start with one of these tracks.'}
+            ? 'Find your license, create a project, and choose your first workspace action.'
+            : 'Create a project or open the guide for your next step.'}
         </p>
         {expiryCopy && (
           <p className="mx-auto mt-2 max-w-2xl text-lg text-muted-foreground">{expiryCopy}</p>
@@ -164,8 +164,8 @@ export default function WelcomePage() {
               </div>
               <h2 className="text-lg font-semibold text-foreground">First governed agent action</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Run an agent in your workspace. Every agent is a governed and audited user with a
-                receipt you can check.
+                Open your agents workspace to run a supported action and inspect its activity
+                record.
               </p>
               <a
                 href="/agents"
@@ -185,7 +185,7 @@ export default function WelcomePage() {
           </div>
           <h2 className="text-lg font-semibold text-foreground">Install the CLI</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Scaffold a new RevealUI project locally. Fastest path to a running stack.
+            Run this command to create a RevealUI project on your machine.
           </p>
           <div className="mt-4 flex items-center gap-2 rounded-md bg-muted px-3 py-2 font-mono text-xs text-foreground">
             <code className="flex-1 truncate">{CLI_INSTALL_COMMAND}</code>
@@ -210,8 +210,8 @@ export default function WelcomePage() {
           </div>
           <h2 className="text-lg font-semibold text-foreground">Clone the source</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Inspect the full monorepo — apps, packages, contracts, schemas. Full source-code access
-            is part of every paid tier.
+            Inspect the apps, packages, contracts, and schemas in the repository. The core uses the
+            MIT license; Pro packages are source available under their published license terms.
           </p>
           <a
             href={STARTER_REPO_URL}
@@ -231,8 +231,7 @@ export default function WelcomePage() {
           </div>
           <h2 className="text-lg font-semibold text-foreground">Read the quick-start</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            5-minute walk-through: define a collection, get a REST API + admin UI + MCP tool
-            automatically.
+            Follow the setup guide to configure your project and define your first collection.
           </p>
           <a
             href={`${DOCS_URL}/quick-start`}

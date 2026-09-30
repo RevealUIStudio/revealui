@@ -38,7 +38,7 @@ export const PRICING_FAQS: readonly FaqItem[] = [
   {
     question: 'How does AI inference work?',
     answer:
-      'Bring your own model. The default ships open-weight (Gemma-family and other open-weight models) via Ollama or Ubuntu Inference Snaps from Canonical (canonical default, Studio lifecycle pending), so your bill does not scale with usage. Switch to Claude, GPT, or any OpenAI-compatible provider in one config line. The runtime is provider-agnostic; the default is sovereignty-friendly.',
+      'Configure a supported local model or hosted provider. You manage the local infrastructure or pay the model provider for usage. Check the local AI guide for the supported setup paths.',
   },
   {
     question: 'What does "full source code access" mean?',

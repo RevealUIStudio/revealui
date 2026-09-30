@@ -29,8 +29,10 @@ describe('refund and support leftover catalog copy', () => {
 
   it('lets Enterprise inquire without leading a Custom SKU', () => {
     const { container } = render(<ContactPage />);
-    expect(screen.getByRole('heading', { level: 1, name: 'Get in touch' })).toBeInTheDocument();
-    expect(container.textContent ?? '').toContain('Interested in Enterprise?');
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Talk to the RevealUI team.' }),
+    ).toBeInTheDocument();
+    expect(container.textContent ?? '').toContain('discuss Enterprise');
     expect(container.textContent ?? '').not.toContain('custom pricing');
     expect(container.textContent ?? '').not.toContain('Custom Pricing');
     expect(container.textContent ?? '').not.toContain('Custom SKU');

@@ -182,13 +182,13 @@ export const FOR_OPERATORS_PRICING = {
     {
       title: PROOF_SPRINT.name,
       price: agencyEngagementPriceDisplay(PROOF_SPRINT),
-      body: 'One site and one receipted action you operate. Stage B is included. Credits 100% to Launch if you start Launch within 45 days. This SKU lives on revealuistudio.com, not on the product catalog.',
+      body: 'One site on your domain and one receipted action you operate. You keep it. The domain pack is included. Credits 100% to Launch if you start Launch within 45 days. This SKU lives on revealuistudio.com, not on the product catalog.',
       cta: { label: 'Book a Consultation', href: AGENCY_CONTACT, external: true },
     },
     {
       title: LAUNCH_PACKAGE.name,
       price: agencyEngagementPriceDisplay(LAUNCH_PACKAGE),
-      body: 'We stand up your RevealUI instance, including architecture work inside Launch, a runbook, and 30 days of async stabilization. This SKU lives on revealuistudio.com, not on the product catalog.',
+      body: 'Architecture work happens inside Launch, with a runbook and 30-day async stabilization. Half now, half on delivery. This SKU lives on revealuistudio.com, not on the product catalog.',
       cta: { label: 'Book a Consultation', href: AGENCY_CONTACT, external: true },
     },
   ] as readonly PricingRung[],

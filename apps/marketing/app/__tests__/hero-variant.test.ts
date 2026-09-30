@@ -40,13 +40,11 @@ describe('selectHomeHero', () => {
   });
 
   it('keeps the full locked positioning form on all hero variants', () => {
-    expect(HOME_HERO.subtitle.sentence1).toContain('Existing tools report in, you keep the stack');
+    expect(HOME_HERO.subtitle.sentence1).toContain('People, Content, Offers, Payments, and Agents');
     expect(HOME_HERO.subtitle.sentence2).toBe(
-      'Powerful and safe: PROOF is a receipted action when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99/mo · $799/yr).',
+      'Keep your code, accounts, and data on your infrastructure. Choose the product features your business needs, then add your own model.',
     );
-    expect(HOME_HERO.subtitle.support).toBe(
-      'BYOK / open-weight default. Same plan rules for humans and agents.',
-    );
+    expect(HOME_HERO.subtitle.support).toBe('Start with the free core. Pro adds the agent layer.');
     expect(HOME_HERO_FOUNDATION.subtitle.sentence2).toBe(HOME_HERO.subtitle.sentence2);
     expect(HOME_HERO_OWNERSHIP.subtitle.sentence2).toBe(HOME_HERO.subtitle.sentence2);
   });

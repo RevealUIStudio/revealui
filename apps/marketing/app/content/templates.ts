@@ -47,7 +47,7 @@ export interface TemplateCatalogItem {
 export const TEMPLATES_HERO = {
   title: 'Templates',
   subtitle:
-    'Scaffold a RevealUI app from the published CLI, start from a GitHub template, or deploy a Next.js twin to your Vercel account.',
+    'Create an app with the CLI, copy a GitHub template, or deploy a supported template to your Vercel account.',
 } as const;
 
 export const TEMPLATES_CLI = {
@@ -105,7 +105,7 @@ export const TEMPLATES_CLI_ITEMS: readonly TemplateCatalogItem[] = [
     id: 'starter-native',
     name: 'starter-native',
     stack: 'Vite + @revealui/router, no Next.js',
-    body: 'RevealUI-native runtime. No GitHub Use this template twin.',
+    body: 'A Vite app using the RevealUI router. Create it with the CLI.',
     githubHref: null,
     deployHref: null,
   },
@@ -118,7 +118,7 @@ export const TEMPLATES_GITHUB = {
 
 export const TEMPLATES_VERCEL = {
   heading: 'Deploy to Vercel',
-  body: 'The four Next.js GitHub twins can be cloned onto your Vercel account. You bring your own Neon or Postgres. This is the runtime deploy path, not a Studio SKU and not a Starter Kit. There is no live vercel.com/templates listing URL yet; owner submit is a dashboard step.',
+  body: 'Choose a supported Next.js template and connect your Postgres database. Review the required configuration before deploying it to your Vercel account.',
 } as const;
 
 export const TEMPLATES_APIFY = {

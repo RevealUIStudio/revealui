@@ -14,7 +14,7 @@ export interface StatusSurface {
 
 export const STATUS_HERO = {
   title: 'Status',
-  subtitle: 'Live probe and link surface for the four RevealUI properties.',
+  subtitle: 'Check endpoint availability and open the linked services.',
 } as const;
 
 export const STATUS_SUMMARY = {

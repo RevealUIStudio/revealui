@@ -30,17 +30,17 @@ import type { Cta, FaqItem } from './types';
 // ---------------------------------------------------------------------------
 
 export const HOME_HERO = {
-  eyebrow: 'Open source. Self-hostable.',
+  eyebrow: 'Self-hostable. Source available.',
   // Brand LOCK 2026-09-15: known-for H1 (#2 operate on their domain).
   // Public word PROOF = receipted action lives in the subtitle (not
   // "outcome validation", not "proof of work"). Catalog honesty stays here.
   h1: 'The agentic business runtime startups operate on their own domain.',
   subtitle: {
     sentence1:
-      'Technical founders and small agencies who already run agents. Existing tools report in, you keep the stack.',
+      'Build your business on one self-hosted runtime for People, Content, Offers, Payments, and Agents.',
     sentence2:
-      'Powerful and safe: PROOF is a receipted action when it matters, and the catalog matches checkout (Free / Pro $49 / Max $99/mo · $799/yr).',
-    support: 'BYOK / open-weight default. Same plan rules for humans and agents.',
+      'Keep your code, accounts, and data on your infrastructure. Choose the product features your business needs, then add your own model.',
+    support: 'Start with the free core. Pro adds the agent layer.',
   },
   cta: {
     primary: { label: 'Start free', href: SITE.urls.signup } satisfies Cta,
@@ -152,7 +152,7 @@ export const HOME_DEMO = {
   // Install path stays in the three beats (create-revealui).
   mockupCaption: {
     // ≥26-char prose units so claims-evidence indexes them (floor in gate).
-    prefix: 'Live admin chrome composed from',
+    prefix: 'Example admin interface built with',
     code: '@revealui/presentation',
     suffix: 'components. The three beats are the local install path.',
   },
@@ -242,7 +242,7 @@ export const HOME_GET_STARTED = {
   // CTA, not competing with the hero's primary/secondary buttons.
   cli: {
     command: ['npx', 'create-revealui@latest', 'my-app'],
-    caption: 'Local stack in about a minute. No credit card.',
+    caption: 'Create a RevealUI app locally.',
   },
   newsletter: {
     label: 'Not ready to start? Get product updates when they ship.',

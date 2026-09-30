@@ -10,7 +10,7 @@ import type { Cta } from './types';
 export const PRODUCTS_PAGE_HERO = {
   h1: 'RevealUI licenses',
   subtitle:
-    'License one self-hosted runtime. Free, Pro, Max, Enterprise inquire, and Pro Perpetual. Studio SKUs live on revealuistudio.com. Zero paying customers.',
+    'Choose a license for your self-hosted RevealUI runtime. Compare Free, Pro, Max, Enterprise, and Pro Perpetual.',
 } as const;
 
 export type ProductStatus = 'Beta' | 'Alpha' | 'GA' | 'Planned';
@@ -69,8 +69,8 @@ export interface StatItem {
 }
 
 export const PRODUCTS_STATS_SECTION = {
-  heading: 'Tested in a public repo you can self-host.',
-  body: 'Not a starter template. A complete runtime with tested code you can inspect in the public repo.',
+  heading: 'Inspect what you will build on.',
+  body: 'Read the source, tests, and release history before you choose.',
   items: [
     { stat: String(METRICS.packages), label: 'workspace packages' },
     { stat: String(METRICS.dbTables), label: 'database tables' },
@@ -81,7 +81,7 @@ export const PRODUCTS_STATS_SECTION = {
 
 export const PRODUCTS_CTA_SECTION = {
   heading: 'Start with the runtime',
-  body: 'Start with the runtime. One command, full source, ready for your first deploy.',
+  body: 'Create an app locally and follow the setup guide for your chosen template.',
   cliSnippet: 'npx create-revealui@latest my-app',
   cta: {
     docs: { label: 'Read the Docs', href: SITE.urls.docs } satisfies Cta,

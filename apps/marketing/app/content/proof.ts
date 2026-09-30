@@ -26,7 +26,7 @@ import { METRICS, SITE } from './site';
 export const PROOF_SECTION = {
   eyebrow: 'Open source',
   heading: 'Read the code before you build on it.',
-  body: 'The whole runtime lives in a public repo under an open license. Inspect it, run it, or fork it before you commit.',
+  body: 'The source is public. Review the MIT and FSL licenses, inspect the code, and try the runtime before you commit.',
   repoLinkLabel: 'View the repo on GitHub',
 } as const;
 
@@ -34,7 +34,7 @@ export const PROOF_SECTION = {
 // answers is whether their security team can read the code, not what
 // framework it runs on.
 export const PROOF_TRUST = {
-  body: 'Your security team can read the full source. The runtime is open source, MIT or Fair Source, in the public repo. There is no closed binary to explain when procurement asks.',
+  body: 'Your security team can inspect the full source. Core packages use MIT; Pro packages use FSL-1.1-MIT. Review the terms for the packages you will use.',
   linkLabel: 'Read the LICENSE',
   linkHref: SITE.urls.repoLicense,
   changelogCta: {
