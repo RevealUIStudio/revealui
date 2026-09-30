@@ -72,6 +72,7 @@ import type {
   kgOutbox,
   kitFulfillments,
   licenseJtiRevocations,
+  licenseOperations,
   licenses,
   lifecycleEmailsSent,
   magicLinks,
@@ -452,6 +453,11 @@ export type KitFulfillmentsUpdate = Partial<KitFulfillmentsInsert>
 export type LicenseJtiRevocationsRow = typeof licenseJtiRevocations.$inferSelect
 export type LicenseJtiRevocationsInsert = typeof licenseJtiRevocations.$inferInsert
 export type LicenseJtiRevocationsUpdate = Partial<LicenseJtiRevocationsInsert>
+
+// License Operations
+export type LicenseOperationsRow = typeof licenseOperations.$inferSelect
+export type LicenseOperationsInsert = typeof licenseOperations.$inferInsert
+export type LicenseOperationsUpdate = Partial<LicenseOperationsInsert>
 
 // Licenses
 export type LicensesRow = typeof licenses.$inferSelect
@@ -840,6 +846,7 @@ export type DatabaseRelationships = {
   kgOutbox: Relationship[]
   kitFulfillments: Relationship[]
   licenseJtiRevocations: Relationship[]
+  licenseOperations: Relationship[]
   licenses: Relationship[]
   lifecycleEmailsSent: Relationship[]
   magicLinks: Relationship[]
@@ -1135,6 +1142,9 @@ export const kitFulfillmentsRelationships: readonly Relationship[] = []
 
 // LicenseJtiRevocations relationships
 export const licenseJtiRevocationsRelationships: readonly Relationship[] = []
+
+// LicenseOperations relationships
+export const licenseOperationsRelationships: readonly Relationship[] = []
 
 // Licenses relationships
 export const licensesRelationships = [
@@ -1816,6 +1826,12 @@ export type Database = {
         Insert: LicenseJtiRevocationsInsert
         Update: LicenseJtiRevocationsUpdate
         Relationships: typeof licenseJtiRevocationsRelationships
+      }
+      license_operations: {
+        Row: LicenseOperationsRow
+        Insert: LicenseOperationsInsert
+        Update: LicenseOperationsUpdate
+        Relationships: typeof licenseOperationsRelationships
       }
       licenses: {
         Row: LicensesRow

@@ -376,6 +376,16 @@ export async function validateLicenseKeyForRefresh(
   return verifyAndParseLicenseJwt(licenseKey, publicKey, refreshAcceptDays * 86_400, bound);
 }
 
+/** Authenticated operator containment: validates issuer/signature/customer, not entitlement expiry. */
+export async function validateLicenseKeyForOperator(
+  licenseKey: string,
+  publicKey: string | readonly string[],
+  expectedCustomerId: string,
+): Promise<LicensePayload | null> {
+  if (!expectedCustomerId.trim()) return null;
+  return verifyAndParseLicenseJwt(licenseKey, publicKey, 0, expectedCustomerId, true);
+}
+
 /**
  * Shared verify + parse path for {@link validateLicenseKey} and
  * {@link validateLicenseKeyForRefresh}. The ONLY behavioral difference between
@@ -388,6 +398,7 @@ async function verifyAndParseLicenseJwt(
   publicKey: string | readonly string[],
   clockToleranceSeconds: number,
   expectedCustomerId?: string,
+  operator = false,
 ): Promise<LicensePayload | null> {
   const candidates = typeof publicKey === 'string' ? [publicKey] : [...publicKey];
   if (candidates.length === 0) return null;
@@ -403,12 +414,33 @@ async function verifyAndParseLicenseJwt(
     for (const candidate of ordered) {
       try {
         const key = await jose.importSPKI(candidate, 'EdDSA');
-        const { payload } = await jose.jwtVerify(licenseKey, key, {
-          algorithms: ['EdDSA'],
-          clockTolerance: clockToleranceSeconds,
-          issuer: LICENSE_ISSUER,
-          audience: LICENSE_AUDIENCE,
-        });
+        let payload: unknown;
+        if (operator) {
+          const verified = await jose.compactVerify(licenseKey, key, { algorithms: ['EdDSA'] });
+          const claims = JSON.parse(new TextDecoder().decode(verified.payload)) as Record<
+            string,
+            unknown
+          >;
+          if (
+            claims.iss !== LICENSE_ISSUER ||
+            !(
+              claims.aud === LICENSE_AUDIENCE ||
+              (Array.isArray(claims.aud) && claims.aud.includes(LICENSE_AUDIENCE))
+            ) ||
+            (claims.nbf !== undefined &&
+              (typeof claims.nbf !== 'number' || claims.nbf > Date.now() / 1000))
+          ) {
+            continue;
+          }
+          payload = claims;
+        } else {
+          ({ payload } = await jose.jwtVerify(licenseKey, key, {
+            algorithms: ['EdDSA'],
+            clockTolerance: clockToleranceSeconds,
+            issuer: LICENSE_ISSUER,
+            audience: LICENSE_AUDIENCE,
+          }));
+        }
         verifiedPayload = payload;
         verified = true;
         break;

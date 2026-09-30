@@ -16,7 +16,6 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '../..');
 const committedPath = join(repoRoot, 'docs/api/rest-api/README.md');
-const generateScript = join(repoRoot, 'scripts/docs/generate-api.ts');
 
 function main(): void {
   const committed = readFileSync(committedPath, 'utf-8');
@@ -24,7 +23,7 @@ function main(): void {
   const outPath = join(dir, 'README.md');
 
   try {
-    execFileSync('pnpm', ['exec', 'tsx', generateScript], {
+    execFileSync('pnpm', ['docs:generate:api'], {
       cwd: repoRoot,
       stdio: 'pipe',
       encoding: 'utf-8',

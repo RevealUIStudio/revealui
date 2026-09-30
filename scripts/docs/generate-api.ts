@@ -4,13 +4,14 @@
  * Usage:
  *   pnpm docs:generate:api
  *
- * Input:  examples/api/openapi.json  (update with: curl http://localhost:3004/openapi.json > examples/api/openapi.json)
+ * Input:  the maintained server route registry (no server startup required).
  * Output: docs/api/rest-api/README.md
  */
 
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import app, { openApiConfiguration } from '../../apps/server/src/app.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '../..');
@@ -18,8 +19,8 @@ const repoRoot = join(__dirname, '../..');
 const specPath = join(repoRoot, 'examples/api/openapi.json');
 // DOCS_API_OUT lets validate:api-docs regenerate into a temp path without
 // dirtying the working tree (GAP-395 drift gate).
-const outputPath =
-  process.env.DOCS_API_OUT?.trim() || join(repoRoot, 'docs/api/rest-api/README.md');
+const requestedOutput = process.env.DOCS_API_OUT?.trim();
+const outputPath = requestedOutput || join(repoRoot, 'docs/api/rest-api/README.md');
 
 interface OpenAPIParam {
   name: string;
@@ -83,9 +84,8 @@ function generateMarkdown(spec: OpenAPISpec): string {
     ``,
     `**Interactive docs:** Start the API server (\`pnpm dev:api\`) and open [http://localhost:3004](http://localhost:3004) for full Swagger UI with request builder.`,
     ``,
-    `> **Note:** This reference is generated from \`examples/api/openapi.json\`. To regenerate from the live API spec, run:`,
+    `> **Note:** This reference and its schema snapshot are generated from the server route registry. No running server is required:`,
     `> \`\`\`bash`,
-    `> curl http://localhost:3004/openapi.json > examples/api/openapi.json`,
     `> pnpm docs:generate:api`,
     `> \`\`\``,
     ``,
@@ -217,8 +217,13 @@ function generateMarkdown(spec: OpenAPISpec): string {
   return lines.join('\n');
 }
 
-const raw = readFileSync(specPath, 'utf-8');
-const spec = JSON.parse(raw) as OpenAPISpec;
+const sourceSpec = app.getOpenAPIDocument(openApiConfiguration);
+const spec = sourceSpec as unknown as OpenAPISpec;
+// The drift gate writes only its requested document. Normal generation also
+// refreshes the checked-in example using this same authoritative producer.
+if (!requestedOutput) {
+  writeFileSync(specPath, `${JSON.stringify(sourceSpec, null, 2)}\n`);
+}
 
 const markdown = generateMarkdown(spec);
 mkdirSync(dirname(outputPath), { recursive: true });

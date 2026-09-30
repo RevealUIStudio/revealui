@@ -92,6 +92,8 @@ vi.mock('../../lib/nudges/milestone-meters.js', () => ({
 
 // Default DB mock  -  returns no rows
 vi.mock('@revealui/db', () => ({
+  findLicenseOperation: vi.fn(async () => null),
+  applyLicenseOperation: vi.fn(async (_db, input) => input.licenseKey),
   getClient: vi.fn(() => ({
     select: vi.fn(() => ({
       from: vi.fn(() => ({
@@ -122,7 +124,11 @@ function createApp() {
 function post(body: unknown, headers: Record<string, string> = {}) {
   return {
     method: 'POST',
-    body: JSON.stringify(body),
+    body: JSON.stringify(
+      typeof body === 'object' && body !== null && 'customerId' in body
+        ? { operationId: '12345678-1234-4123-8123-123456789012', ...body }
+        : body,
+    ),
     headers: { 'Content-Type': 'application/json', ...headers },
   };
 }
@@ -140,6 +146,16 @@ beforeEach(() => {
   process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'priv-key';
   process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'pub-key';
   mockedGenerate.mockResolvedValue('generated.key');
+  mockedValidate.mockImplementation(async () => {
+    const grant = mockedGenerate.mock.lastCall?.[0];
+    return {
+      tier: grant?.tier,
+      customerId: grant?.customerId,
+      jti: '12345678-1234-4123-8123-123456789012',
+      perpetual: grant?.perpetual === true,
+      exp: grant?.perpetual ? undefined : Math.floor(Date.now() / 1000) + 86400,
+    } as never;
+  });
   // Restore default getClient mock after clearAllMocks
   vi.mocked(getClient).mockReturnValue({
     select: vi.fn(() => ({
@@ -341,7 +357,6 @@ describe('POST /verify  -  DB throws during invalid-JWT status check', () => {
     expect(body.reason).toBe('invalid'); // DB warn path  -  falls through to default
     expect(mockLoggerWarn).toHaveBeenCalledWith(
       expect.stringContaining('Failed to check DB license status'),
-      expect.anything(),
     );
   });
 });

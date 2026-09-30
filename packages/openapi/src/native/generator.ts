@@ -98,7 +98,7 @@ interface OperationObject {
 // =============================================================================
 
 interface GenerationContext {
-  /** Track circular schemas */
+  /** Schemas on the active conversion recursion path. */
   seen: WeakSet<object>;
   /** Collected component schemas (from refId references) */
   components: Map<string, JSONSchema>;
