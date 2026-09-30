@@ -23,6 +23,10 @@ export function useRouteMetaTitle(): void {
 
   const title = typeof match?.route.meta?.title === 'string' ? match.route.meta.title : null;
   const path = match?.route.path;
+  const description =
+    typeof match?.route.meta?.description === 'string'
+      ? match.route.meta.description
+      : 'Read RevealUI documentation and current product information.';
 
   useEffect(() => {
     if (title === null || path === '/') {
@@ -30,7 +34,13 @@ export function useRouteMetaTitle(): void {
     }
 
     document.title = title;
+    setMeta('meta[name="description"]', 'content', description);
+    setMeta('meta[property="og:description"]', 'content', description);
+    setMeta('meta[name="twitter:description"]', 'content', description);
+    const canonical = `https://revealui.com${window.location.pathname}`;
+    setMeta('link[rel="canonical"]', 'href', canonical);
+    setMeta('meta[property="og:url"]', 'content', canonical);
     setMeta('meta[property="og:title"]', 'content', title);
     setMeta('meta[name="twitter:title"]', 'content', title);
-  }, [path, title]);
+  }, [path, title, description]);
 }

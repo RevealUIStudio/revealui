@@ -129,13 +129,13 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
     id: 'enterprise',
     name: 'Enterprise',
-    description: 'Full ecosystem access with scale and compliance.',
+    description: 'Discuss licensing for larger deployments and your requirements.',
     features: [
       'Everything in Max',
       'Unlimited sites',
       'Unlimited users/editors',
       'Session-based auth + OAuth',
-      'Full inference suite (all open models)',
+      'Supported open-model configurations',
       'Unlimited agent tasks',
       PAID_TIER_SUPPORT,
       'Annual pricing available',
@@ -217,7 +217,6 @@ export const PUBLIC_PERPETUAL_TIERS: PerpetualTier[] = [
       'License key never expires',
       '1 year priority support included',
       'All Pro updates released during support period',
-      'Private GitHub repo access',
     ],
     renewal: '$149/yr for continued support',
     cta: 'Buy Pro Perpetual',

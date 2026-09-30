@@ -19,8 +19,8 @@ export const STATUS_HERO = {
 
 export const STATUS_SUMMARY = {
   pending: 'Checking current status...',
-  down: 'Some surfaces are not responding',
-  up: 'All probed surfaces are operational',
+  down: 'The API health check did not succeed',
+  up: 'The API health endpoint is responding',
   body: 'This page probes the API health endpoint in your browser when you load it. It reflects what your network sees right now, not a separate uptime service. Solo-operator company: we do not run 24×7 manned monitoring you can subscribe to.',
   recheck: 'Re-check now',
 } as const;
@@ -76,7 +76,7 @@ export const STATUS_INCIDENTS = {
 
 export const STATUS_OUTAGE = {
   heading: 'Are you experiencing an outage?',
-  body: 'If this page shows all surfaces operational but you are still seeing issues, the problem is probably between your network and ours, or specific to a feature this page does not probe yet. Email support with the URL you hit, the time you first saw the issue, and any error message. We treat outage reports as higher priority than standard support email.',
+  body: 'This health check tests the API response; it does not exercise product workflows. If you still see an issue, please report it. Email support with the URL you hit, the time you first saw the issue, and any error message. We treat outage reports as higher priority than standard support email.',
   security:
     'For confirmed security incidents, follow the security policy instead. That channel has different SLAs.',
 } as const;

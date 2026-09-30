@@ -91,14 +91,14 @@ export OLLAMA_BASE_URL=http://localhost:11434
 
 ## Step 3  -  Configure `@revealui/ai`
 
-The `createLLMClientFromEnv()` function in `@revealui/ai` auto-detects the available inference backend. No API key is needed for local inference.
+The `createLLMClientFromEnv()` function selects from configuration; it does not probe installed runners. Set `LLM_PROVIDER` explicitly for the inference path you intend. Without that setting, configured Inference Snaps takes precedence, then Groq, then Ollama, then the configured Anthropic, OpenAI, or xAI key. With no provider configuration it assumes the local Inference Snaps endpoint. No provider API key is needed for local inference, but the runner must be running and reachable. Hosted providers process the model requests sent to them.
 
 Auto-detection priority: `INFERENCE_SNAPS_BASE_URL` > `OLLAMA_BASE_URL`.
 
 ```typescript
 import { createLLMClientFromEnv } from '@revealui/ai/llm/client';
 
-// Automatically detects inference snaps or Ollama
+// Selects the configured provider; set LLM_PROVIDER explicitly for local inference
 const client = createLLMClientFromEnv();
 ```
 
@@ -163,7 +163,7 @@ Once set up, the full local-first stack starts with:
 ```bash
 # Local inference is already running (snap or Ollama)
 
-# Start RevealUI (uses local inference automatically)
+# Start RevealUI with your local provider explicitly configured
 pnpm dev:app
 ```
 

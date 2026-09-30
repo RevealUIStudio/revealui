@@ -74,13 +74,13 @@ export const claimsPart8: readonly ClaimEntry[] = [
   {
     file: 'status.ts',
     exportPath: 'STATUS_SUMMARY.down',
-    text: 'Some surfaces are not responding',
+    text: 'The API health check did not succeed',
     evidence: [STATUS_CONTENT],
   },
   {
     file: 'status.ts',
     exportPath: 'STATUS_SUMMARY.up',
-    text: 'All probed surfaces are operational',
+    text: 'The API health endpoint is responding',
     evidence: [STATUS_CONTENT, API_HEALTH],
   },
   {
@@ -128,7 +128,7 @@ export const claimsPart8: readonly ClaimEntry[] = [
   {
     file: 'status.ts',
     exportPath: 'STATUS_OUTAGE.body',
-    text: 'If this page shows all surfaces operational but you are still seeing issues, the problem is probably between your network and ours, or specific to a feature this page does not probe yet. Email support with the URL you hit, the time you first saw the issue, and any error message. We treat outage reports as higher priority than standard support email.',
+    text: 'This health check tests the API response; it does not exercise product workflows. If you still see an issue, please report it. Email support with the URL you hit, the time you first saw the issue, and any error message. We treat outage reports as higher priority than standard support email.',
     evidence: [STATUS_CONTENT],
   },
   {
@@ -182,7 +182,7 @@ export const claimsPart8: readonly ClaimEntry[] = [
   {
     file: 'legal/privacy.ts',
     exportPath: 'PRIVACY_META.notice.body',
-    text: 'This page describes our actual privacy practices today. The wording has not yet been reviewed by an attorney; we disclose this rather than hide it. The substance will not change after review. Only the wording may tighten. Privacy questions or data-rights requests in the meantime:',
+    text: 'This page describes our actual privacy practices today. The wording has not yet been reviewed by an attorney; we disclose this rather than hide it. Review may identify changes to wording or commitments; material changes will be reflected in the published policy. Privacy questions or data-rights requests in the meantime:',
     evidence: [LEGAL_PRIVACY_CONTENT],
   },
   {
@@ -194,7 +194,7 @@ export const claimsPart8: readonly ClaimEntry[] = [
   {
     file: 'legal/terms.ts',
     exportPath: 'TERMS_META.notice.body',
-    text: 'This page describes our actual practices and commitments today. The wording has not yet been reviewed by an attorney; we disclose this rather than hide it. The substance will not change after review. Only the wording may tighten. Questions in the meantime?',
+    text: 'This page describes our actual practices and commitments today. The wording has not yet been reviewed by an attorney; we disclose this rather than hide it. Review may identify changes to wording or commitments; material changes will be reflected in the published policy. Questions in the meantime?',
     evidence: [LEGAL_TERMS_CONTENT],
   },
   {

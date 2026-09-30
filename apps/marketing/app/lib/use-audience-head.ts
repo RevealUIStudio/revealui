@@ -30,14 +30,14 @@ const SEO: Record<Audience, AudienceSeo> = {
       'https://api.revealui.com/api/og?title=RevealUI&description=Your%20business%2C%20delivered%20and%20yours%20to%20own.',
   },
   technical: {
-    title: 'RevealUI | The agentic business runtime startups operate on their own domain.',
+    title: 'RevealUI | Build your business on software you can run yourself.',
     // Title mirrors HOME_HERO.h1. Description mirrors the known-for subtitle.
     description: `${HOME_HERO.subtitle.sentence1} ${HOME_HERO.subtitle.sentence2} ${HOME_HERO.subtitle.support}`,
-    ogTitle: 'RevealUI | The agentic business runtime startups operate on their own domain.',
+    ogTitle: 'RevealUI | Build your business on software you can run yourself.',
     ogDescription: `${HOME_HERO.subtitle.sentence1} ${HOME_HERO.subtitle.sentence2}`,
     ogImage:
       'https://api.revealui.com/api/og?title=RevealUI&description=The%20agentic%20business%20runtime%20startups%20operate%20on%20their%20own%20domain.',
-    twitterTitle: 'RevealUI | The agentic business runtime startups operate on their own domain.',
+    twitterTitle: 'RevealUI | Build your business on software you can run yourself.',
     twitterDescription: `${HOME_HERO.subtitle.sentence1} ${HOME_HERO.subtitle.sentence2}`,
     twitterImage:
       'https://api.revealui.com/api/og?title=RevealUI&description=The%20agentic%20business%20runtime%20startups%20operate%20on%20their%20own%20domain.',

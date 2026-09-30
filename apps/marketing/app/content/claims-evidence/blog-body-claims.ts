@@ -46,7 +46,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/open-runtime-for-fde-work',
     exportPath: 'body.2',
-    text: "Most of those teams still leave a vendor-owned stack. RevealUI is the self-hosted runtime built for a different handoff. Your business and the agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure. Studio's job is the forward-deployed practice on that runtime: stamp, wire, hand over, leave the keys.",
+    text: "A hosted product and a customer-controlled deployment offer different handoffs. RevealUI is the self-hosted runtime built for a different handoff. Your business and the agents that run it live under one roof. The design goal is agents governed through the same business system as your team. Actual permissions and recording depend on the configured workflow. Studio's job is the forward-deployed practice on that runtime: stamp, wire, hand over, leave the keys.",
     evidence: [
       {
         kind: 'code',
@@ -131,7 +131,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/open-runtime-for-fde-work',
     exportPath: 'body.7',
-    text: 'Most of those hires still land customers on infrastructure the vendor controls. The embed "succeeds" when the customer renews the vendor. That is a legitimate business model. It is not the only success condition.',
+    text: 'A hosted implementation can be a useful choice. For a self-hosted handoff, assess what the customer retains: accounts, project source, data, licensed software, and operating notes.',
     evidence: [
       {
         kind: 'code',
@@ -250,7 +250,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/open-runtime-for-fde-work',
     exportPath: 'body.14',
-    text: "**A receipt path the customer can inspect.** If an agent did it, there's a receipt. Soft foil only: no certification claims; Merkle root *delivery* is Pro+; verification is never paid.",
+    text: '**A record the customer can inspect.** Configure audit signing for supported actions. Pro adds downloadable Merkle roots and inclusion proofs; anchoring can lag. This is inspectability, not certification.',
     evidence: [
       {
         kind: 'code',
@@ -386,7 +386,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/open-runtime-for-fde-work',
     exportPath: 'body.22',
-    text: 'RevealUI Studio productizes the motion on the runtime: Consultation, Pilot, and Launch. The product noun stays **runtime**. The homepage is for owner-operators who run their own business on it. Forward-deployed delivery is how field work enters, not a rename of the product.',
+    text: 'RevealUI Studio offers Consultation, Pilot, and Launch: a focused review, one implemented action, or one business workflow. Agree on deliverables and maintenance responsibilities before work starts. Product licenses are separate.',
     evidence: [
       {
         kind: 'code',
@@ -437,7 +437,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/open-runtime-for-fde-work',
     exportPath: 'body.25',
-    text: "RevealUI's answer: a customer-owned runtime where your business and the agents that run it live under one roof, and every agent is a user with a receipt trail you can check.",
+    text: "RevealUI's approach is a self-hosted runtime for business data and supported agent workflows. Configure the tools, permissions, and action records your workflow needs, and review license and service dependencies before handoff.",
     evidence: [
       {
         kind: 'code',
@@ -497,7 +497,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/shareable-upside',
     exportPath: 'body.2',
-    text: 'Then generative AI stopped being a demo and started being a force that rewrites work. I could have bolted a chat box onto what I already had and called it a day. I did not. I rebuilt the fleet for that future. The result is RevealUI: a self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure.',
+    text: 'Then generative AI stopped being a demo and started being a force that rewrites work. I could have bolted a chat box onto what I already had and called it a day. I did not. I rebuilt the fleet for that future. The result is RevealUI: a self-hosted runtime where your business and the AI agents that run it live under one roof. The design goal is agents governed through the same business system as your team. Actual permissions and recording depend on the configured workflow.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/17-shareable-upside.md', note: 'body source paragraph 2' },
       {
@@ -510,7 +510,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/shareable-upside',
     exportPath: 'body.3',
-    text: "If an agent did it, there's a receipt.",
+    text: 'Supported actions can leave signed records when audit signing is configured. A record helps you inspect an action; it does not establish that the outcome was correct.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/17-shareable-upside.md', note: 'body source paragraph 3' },
       {
@@ -588,7 +588,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/shareable-upside',
     exportPath: 'body.9',
-    text: 'I will be direct. I do not have a wall of famous logos to hide behind. The honest stage of this work is: the code is real, the thesis is lived, and the commercial proof is still being earned. So yes, there is a leap of faith.',
+    text: 'I will be direct. I do not have a wall of famous logos to hide behind. The honest stage of this work is: the code is real, the thesis is lived, and the commercial proof is still being earned. You should be able to evaluate it before making a commitment.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/17-shareable-upside.md', note: 'body source paragraph 9' },
       {
@@ -601,7 +601,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/shareable-upside',
     exportPath: 'body.10',
-    text: 'The leap is not "trust me forever." The leap is "give the work a fair look." Read the repo. Run what you can. Ask hard questions. If the craft holds, take the next step. If it does not, walk away. I would rather lose you on the merits than keep you with marketing.',
+    text: 'Give the work a fair look. Read the repo. Run what you can. Ask hard questions. If the craft holds, take the next step. If it does not, walk away. I would rather lose you on the merits than keep you with marketing.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/17-shareable-upside.md', note: 'body source paragraph 10' },
       {
@@ -744,7 +744,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/shareable-upside',
     exportPath: 'body.21',
-    text: 'If you only want a magic button that prints money with no learning, this is not for you. The upward side of a K-shaped curve still requires a leap and then work. I can remove the false choice between "learn alone with nothing" and "rent everything forever." I cannot remove effort.',
+    text: 'Running a business still takes learning, maintenance, and judgment. I want to make the foundation easier to inspect and share, so you can choose the work and support that fit your needs.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/17-shareable-upside.md', note: 'body source paragraph 21' },
       {
@@ -809,7 +809,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/shareable-upside',
     exportPath: 'body.26',
-    text: 'If it earns your trust, take the leap. Host it. Break it. Tell me where it fails. Hire the studio if you want a hand with the last mile. Or build on your own with the same discipline of putting real systems in real hands. The goal is not that every path runs through me. The goal is that more people own the upside.',
+    text: 'If it earns your trust, evaluate the setup and choose your next step. Host it. Break it. Tell me where it fails. Hire the studio if you want a hand with the last mile. Or build on your own with the same discipline of putting real systems in real hands. The goal is not that every path runs through me. The goal is that more people own the upside.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/17-shareable-upside.md', note: 'body source paragraph 26' },
       {
@@ -965,7 +965,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/ui-of-the-future',
     exportPath: 'body.10',
-    text: "If an agent did it, there's a receipt.",
+    text: 'Supported actions can leave signed records when audit signing is configured. A record helps you inspect an action; it does not establish that the outcome was correct.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/16-ui-of-the-future.md', note: 'body source paragraph 10' },
       {
@@ -1030,7 +1030,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/ui-of-the-future',
     exportPath: 'body.15',
-    text: 'So the second precondition is that the whole thing lives under your roof. RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. It runs on any AI provider you choose, including models on your own hardware, because the point of owning your business is not conditional on which lab shipped the best weights this quarter.',
+    text: 'So the second precondition is that the whole thing lives under your roof. RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. It supports configured local runners and hosted provider adapters, because the point of owning your business is not conditional on which lab shipped the best weights this quarter.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/16-ui-of-the-future.md', note: 'body source paragraph 15' },
       {
@@ -1134,7 +1134,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/ui-of-the-future',
     exportPath: 'body.23',
-    text: 'Today, RevealUI is the runtime layer of that thesis. Five primitives that every business needs: People, Content, Offers, Payments, Agents. One permission model that covers humans and agents alike. A tamper-evident audit log. Local-first AI that runs on models you host, with any provider you choose as an option rather than a dependency. It is open source, and you can read every line.',
+    text: 'Today, RevealUI is the runtime layer of that thesis. Five primitives that every business needs: People, Content, Offers, Payments, Agents. One permission model that covers humans and agents alike. A tamper-evident audit log. Supported local inference is an option alongside hosted adapters. The core is MIT; Pro packages are source available under FSL-1.1-MIT. Paid runtime features use license validation. You can inspect the public source.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/16-ui-of-the-future.md', note: 'body source paragraph 23' },
       {
@@ -1616,7 +1616,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/dashboard-agent-chat',
     exportPath: 'body.0',
-    text: 'The fastest admin interface is a sentence.',
+    text: 'An admin task can start with a sentence.',
     evidence: [
       {
         kind: 'code',
@@ -1752,7 +1752,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/dashboard-agent-chat',
     exportPath: 'body.8',
-    text: "That last part matters, and it is also today's limitation. The agent does not get its own identity or its own policy check; it runs with exactly the same permissions as the account or session that launched it, nothing more and nothing less. Per-agent policy scoping through the RBAC + ABAC engine, and a full audit trail of what the agent did, are not shipped yet.",
+    text: "That last part matters, and it is also today's limitation. This essay originally described the session-bound implementation. For the current release, inspect the enabled tools, identity and permission configuration, and audit coverage in your deployment. Do not assume a separate agent identity or complete action recording from the chat interface alone.",
     evidence: [
       {
         kind: 'code',
@@ -1786,7 +1786,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/dashboard-agent-chat',
     exportPath: 'body.10',
-    text: 'The agent streams its work over Server-Sent Events, and the inference behind it is yours to choose. RevealUI auto-detects the inference path at runtime, preferring a local Ubuntu Inference Snap and falling back to Ollama, both running open-weight models on your own hardware.',
+    text: 'The agent streams its work over Server-Sent Events, and the inference behind it is yours to choose. Configure the inference provider explicitly. The environment factory selects configuration rather than probing installed runners; a configured Groq key can take precedence over Ollama when no provider is specified.',
     evidence: [
       {
         kind: 'code',
@@ -1803,7 +1803,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/dashboard-agent-chat',
     exportPath: 'body.11',
-    text: 'No proprietary API key. No per-token cloud bill. No customer data leaving your machine to reach a frontier model. If you would rather point it at a cloud-compatible endpoint, that is a single environment variable, but it is opt-in, never the default.',
+    text: 'With local inference configured, model requests go to your selected local endpoint. You supply the hardware and runner. Hosted model providers process requests sent to them and have their own usage costs; other services can still require network access.',
     evidence: [
       {
         kind: 'code',
@@ -1820,7 +1820,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/dashboard-agent-chat',
     exportPath: 'body.12',
-    text: 'Dashboard Agent Chat is a Pro-tier feature. The AI engine that powers it loads only for licensed deployments, so a free-tier install never pulls the agent code into memory at all.',
+    text: 'Dashboard Agent Chat is a Pro-tier feature. Agent orchestration requires the appropriate paid entitlement and configured model access. Check the selected tier and enabled tools before evaluating a workflow.',
     evidence: [
       {
         kind: 'code',
@@ -1837,7 +1837,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/dashboard-agent-chat',
     exportPath: 'body.13',
-    text: 'And because it runs on open-weight models by design, set your expectations accordingly. These models are excellent at the structured work an admin is full of: drafting and editing content, querying and summarizing data, filling fields, orchestrating a sequence of API calls. They are not a frontier reasoning engine, and we would rather you know that than be surprised by it. For the daily operation of a business, structured and reliable is exactly the right trade.',
+    text: 'And because it runs on open-weight models by design, set your expectations accordingly. Model performance depends on the chosen model, tools, and workflow. Evaluate a representative task and inspect its actions before relying on it in your business.',
     evidence: [
       {
         kind: 'code',
@@ -2083,7 +2083,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/zero-regex',
     exportPath: 'body.0',
-    text: 'There is a rule across the entire RevealFleet codebase that surprises people: no hand-written regular expressions. Not "use them sparingly." Zero authored regex, enforced in CI.',
+    text: 'Our maintained convention is to avoid authored regular expressions in application logic and use parsers or explicit predicates instead. The gates cover defined repositories and paths; third-party configuration boundaries and existing debt are documented separately.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/13-zero-regex.md', note: 'body source paragraph 0' },
       {
@@ -2096,7 +2096,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/zero-regex',
     exportPath: 'body.1',
-    text: 'This sounds like an aesthetic preference. It is actually a security and maintainability decision, and it has paid for itself many times over.',
+    text: 'This sounds like an aesthetic preference. It is actually a security and maintainability decision, and it guides how we review parsing and input handling.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/13-zero-regex.md', note: 'body source paragraph 1' },
       {
@@ -2174,7 +2174,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/zero-regex',
     exportPath: 'body.7',
-    text: '**Parsing structured text** uses real parsers. `URL` for URLs, `JSON.parse` for JSON, `Date.parse` for dates. These follow the language specs, and they reject malformed input correctly instead of approximately.',
+    text: '**Parsing structured text** uses real parsers. `URL` for URLs, `JSON.parse` for JSON, `Date.parse` for dates. These make the parsing rules explicit. Their acceptance behavior still needs application-specific validation; for example, Date.parse is not a strict date-schema validator.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/13-zero-regex.md', note: 'body source paragraph 7' },
       {
@@ -2304,7 +2304,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/zero-regex',
     exportPath: 'body.17',
-    text: 'Anyone can read that and know exactly what it counts. There is no pattern to misremember, no edge case lurking in a quantifier, and nothing for a malicious input to exploit. We have an AST-based analyzer in CI that hunts for the dangerous patterns regex tends to hide, command injection, time-of-check-to-time-of-use races, and ReDoS, and the no-regex rule means it has far less to hunt for.',
+    text: 'Anyone can read that and know exactly what it counts. This line-based example makes its counting rule readable, but it is not a syntax-aware count and can miss valid test declaration shapes. Readability does not establish input safety. We have an AST-based analyzer in CI that hunts for the dangerous patterns regex tends to hide, command injection, time-of-check-to-time-of-use races, and ReDoS, and the no-regex rule means it has far less to hunt for.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/13-zero-regex.md', note: 'body source paragraph 17' },
       {
@@ -2330,7 +2330,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/zero-regex',
     exportPath: 'body.19',
-    text: 'Readable, reviewable, and safe beats clever and opaque. For code you intend to run for years, that is not a close call.',
+    text: 'Readable and reviewable code makes assessment easier. Safety still requires validation of behavior. For code you intend to run for years, that is not a close call.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/13-zero-regex.md', note: 'body source paragraph 19' },
       {
@@ -2369,7 +2369,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/claim-drift',
     exportPath: 'body.1',
-    text: 'On revealui.com, that cannot happen. Every count we publish is checked against the actual code on every push, and if a number drifts from the truth, the build fails before the change can merge. The marketing site is not allowed to lie.',
+    text: 'Our claim-drift gate checks defined metrics against repository counts. The claims-evidence gate keeps covered copy linked to its cited artifacts. These checks catch specific kinds of drift; human review still assesses whether the evidence supports a statement.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/14-claim-drift.md', note: 'body source paragraph 1' },
       {
@@ -2434,7 +2434,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/claim-drift',
     exportPath: 'body.6',
-    text: 'The first half of the fix is a single source of truth. Every number the marketing site can state lives in one typed object, and no page is allowed to hardcode the integer anywhere else.',
+    text: 'The first half of the fix is a single source of truth. Defined marketing metrics live in a maintained typed object. The convention is to import those values and update their source when the underlying count changes.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/14-claim-drift.md', note: 'body source paragraph 6' },
       {
@@ -2447,7 +2447,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/claim-drift',
     exportPath: 'body.7',
-    text: 'A page that wants to say "68 UI components" imports `METRICS.uiComponents`. It never types `64`. Change the underlying number in one place and the copy follows automatically, on the marketing site, in the docs, and in the product roadmap, with no copy edit at all.',
+    text: 'A page that reports a UI component count imports `METRICS.uiComponents` rather than writing a literal count. Imported values follow the maintained object. Literal numbers in dated prose and other surfaces still need review and updates.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/14-claim-drift.md', note: 'body source paragraph 7' },
       {
@@ -2473,7 +2473,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/claim-drift',
     exportPath: 'body.9',
-    text: 'The second half is a check that proves those numbers are real. On every push, a claim-drift validator walks the docs and the marketing content, finds every place a number sits next to a noun it recognizes, and counts the real thing in the repository. The counts come straight from the source: it reads the components directory, the MCP servers directory, the database schema, and the test suites, and compares each published claim against the live count.',
+    text: 'The second half compares covered counts with their defined repository sources. On every push, a claim-drift validator walks the docs and the marketing content, finds every place a number sits next to a noun it recognizes, and counts the real thing in the repository. The counts come straight from the source: it reads the components directory, the MCP servers directory, the database schema, and the test suites, and compares the covered metric claims against the corresponding count.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/14-claim-drift.md', note: 'body source paragraph 9' },
       {
@@ -2499,7 +2499,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/claim-drift',
     exportPath: 'body.11',
-    text: 'That hard failure is the whole point. The numbers you read here are not a snapshot someone updated when they remembered. They are a measurement of the code as it exists right now: 33 packages, 68 UI components, 14 first-party MCP servers, 124 database tables, 60 access-control enforcement tests, 5 starter templates. Each one is checked on the commit that publishes it.',
+    text: 'That failure makes a covered mismatch visible during validation. Current metrics live in the maintained metrics owner; this dated essay is an explanation of the method, not a live measurement of repository size.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/14-claim-drift.md', note: 'body source paragraph 11' },
       {
@@ -2538,7 +2538,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/claim-drift',
     exportPath: 'body.14',
-    text: 'So the tool that keeps our marketing honest is itself built to the same standard it enforces: readable, reviewable, and impossible to quietly fool.',
+    text: 'The tooling is public and reviewable. Its checks have defined coverage and can fail or miss cases, so they complement review rather than replace it.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/14-claim-drift.md', note: 'body source paragraph 14' },
       {
@@ -2577,7 +2577,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/claim-drift',
     exportPath: 'body.17',
-    text: '*RevealUI is the open runtime for businesses that run their own AI. Every claim on this site is checked against the source; read it for yourself in the [docs](https://docs.revealui.com).*',
+    text: '*RevealUI is the open runtime for businesses that run their own AI. Covered claims link to cited evidence and defined metrics have automated checks; inspect the source for yourself in the [docs](https://docs.revealui.com).*',
     evidence: [
       { kind: 'code', ref: 'docs/blog/14-claim-drift.md', note: 'body source paragraph 17' },
       {

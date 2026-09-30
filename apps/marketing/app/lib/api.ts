@@ -61,12 +61,21 @@ export async function submitContact(payload: ContactPayload): Promise<string | n
     const res = await fetch(`${API_URL}/api/contact`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...payload, source: 'marketing-site' }),
+      body: JSON.stringify({ ...payload, source: 'marketing' }),
     });
-    if (res.ok) return null;
+    if (res.ok) {
+      const body: unknown = await res.json();
+      if (body && typeof body === 'object' && 'success' in body && body.success === true)
+        return null;
+      return 'We could not confirm that your message was accepted. Please try again or email founder@revealui.com.';
+    }
     // empty-catch-ok: malformed JSON from apps/server shouldn't crash the form; falls back to a generic status-coded message below.
-    const data = (await res.json().catch(() => ({}))) as { message?: string };
-    return data.message ?? `Submission failed: ${res.status}`;
+    const data = (await res.json().catch(() => ({}))) as { message?: unknown; error?: unknown };
+    return (
+      (typeof data.error === 'string' ? data.error : undefined) ??
+      (typeof data.message === 'string' ? data.message : undefined) ??
+      `Please check your inquiry and try again (status ${res.status}).`
+    );
   } catch {
     return 'Our service is temporarily unavailable. Please try again in a few minutes.';
   }

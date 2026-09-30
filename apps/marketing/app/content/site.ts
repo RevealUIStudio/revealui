@@ -53,7 +53,7 @@ export type Metrics = typeof METRICS;
 
 export const SITE = {
   brand: 'RevealUI',
-  brandTagline: 'The agentic business runtime startups operate on their own domain.',
+  brandTagline: 'Build your business on software you can run yourself.',
   urls: {
     signup: 'https://admin.revealui.com/signup',
     admin: 'https://admin.revealui.com',

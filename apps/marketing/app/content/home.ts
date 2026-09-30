@@ -34,23 +34,28 @@ export const HOME_HERO = {
   // Brand LOCK 2026-09-15: known-for H1 (#2 operate on their domain).
   // Public word PROOF = receipted action lives in the subtitle (not
   // "outcome validation", not "proof of work"). Catalog honesty stays here.
-  h1: 'The agentic business runtime startups operate on their own domain.',
+  h1: 'Build your business on software you can run yourself.',
   subtitle: {
     sentence1:
-      'Build your business on one self-hosted runtime for People, Content, Offers, Payments, and Agents.',
+      'RevealUI brings People, Content, Offers, Payments, and Agents into one self-hosted runtime.',
     sentence2:
-      'Keep your code, accounts, and data on your infrastructure. Choose the product features your business needs, then add your own model.',
-    support: 'Start with the free core. Pro adds the agent layer.',
+      'Start with the MIT-licensed core. Add Pro for agent tools, memory, and MCP integrations.',
+    support:
+      'Use accounts and infrastructure you control. Hosting, database services, and model usage are separate costs.',
   },
   cta: {
-    primary: { label: 'Start free', href: SITE.urls.signup } satisfies Cta,
-    secondary: { label: 'See it on GitHub', href: SITE.urls.repo, external: true } satisfies Cta,
+    primary: { label: 'Create a RevealUI account', href: SITE.urls.signup } satisfies Cta,
+    secondary: { label: 'Inspect the source', href: SITE.urls.repo, external: true } satisfies Cta,
   },
 } as const;
 
 // Trust strip under the hero (sm+). Short chrome; the matching claims live
 // on HOME_HERO.eyebrow and the proof cards.
-export const HOME_TRUST_SIGNALS = ['Open source', 'Self-hostable', 'Local-first AI'] as const;
+export const HOME_TRUST_SIGNALS = [
+  'MIT core',
+  'Self-hostable',
+  'Supported local inference',
+] as const;
 
 // ---------------------------------------------------------------------------
 // Hero: known-for #5 A/B (query still ?hero=foundation). Distinct H1 so the
@@ -206,7 +211,7 @@ export const HOME_FAQ = {
     {
       question: 'Can I self-host?',
       answer:
-        'Yes. Most packages are MIT forever. A small Pro set is Fair Source and converts to MIT two years after each release. Self-host the full stack on your infrastructure at any tier. License detail is on the Fair Source page.',
+        'Yes. Most packages are MIT forever. A small Pro set is Fair Source and follows its published terms for conversion to MIT. Self-host the full stack on your infrastructure at any tier. License detail is on the Fair Source page.',
     },
     {
       question: 'What does agent-native mean for my product?',
@@ -234,7 +239,7 @@ export const HOME_GET_STARTED = {
   heading: 'Start on your machine today.',
   body: 'Install with npx create-revealui@latest, a public GitHub template (starter, basic-blog, portfolio, or e-commerce), or the live Apify actor (pay-per-event; receipt verification is $0.00001, not free).',
   cta: {
-    primary: { label: 'Start free', href: SITE.urls.signup } satisfies Cta,
+    primary: { label: 'Create a RevealUI account', href: SITE.urls.signup } satisfies Cta,
     secondary: { label: 'Read the docs', href: SITE.urls.docs } satisfies Cta,
   },
   // CLI quick-start, moved here from the hero (frontend-excellence Phase 1
@@ -248,3 +253,19 @@ export const HOME_GET_STARTED = {
     label: 'Not ready to start? Get product updates when they ship.',
   },
 } as const;
+
+// Buyer benefits adopted from the September 30 public-copy assessment.
+export const HOME_BENEFITS = [
+  {
+    title: 'Keep a foundation you can reuse.',
+    body: 'RevealFleet is the family of software behind RevealUI and the tools we use to build and operate it. The MIT core can be used in another app; paid runtime features follow your license limits.',
+  },
+  {
+    title: 'Choose where inference runs.',
+    body: 'Configure a supported local runner or hosted provider. Local inference needs suitable hardware; hosted providers process the model requests you send them.',
+  },
+  {
+    title: 'Inspect supported agent activity.',
+    body: 'When audit signing is configured, supported actions leave signed records. Pro adds downloadable Merkle roots and inclusion proofs. A record helps you investigate an action; it does not prove the business outcome was correct.',
+  },
+] as const;

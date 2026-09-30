@@ -68,7 +68,7 @@ export const QUOTE_CALCULATOR = {
   },
   questions: {
     who: {
-      label: 'Who runs it?',
+      label: 'Who will implement it?',
       options: [
         { id: 'self', label: 'I self-host the runtime' },
         { id: 'studio', label: 'I need Studio implementation' },

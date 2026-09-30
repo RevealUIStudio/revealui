@@ -20,30 +20,12 @@
  * which we map to a 500 with a helpful message.
  */
 
+import { type ContactInquiry, ContactInquirySchema } from '@revealui/contracts/public-inquiry';
 import { logger } from '@revealui/core/observability/logger';
 import { zValidator } from '@revealui/openapi';
 import { Hono } from 'hono';
-import { z } from 'zod';
 import { sendEmail } from '../lib/email.js';
 import { escapeHtml } from '../lib/html.js';
-
-// Permissive enum — accommodates both marketing and agency form topics
-// without coupling them. The full set is validated downstream by length cap
-// rather than a closed enum so either form can add topics without an API
-// change. We log the raw topic in the email subject; misuse is caught by
-// rate limiting + honeypot, not topic validation.
-const ContactInquirySchema = z.object({
-  source: z.enum(['agency', 'marketing']).default('marketing'),
-  topic: z.string().min(1).max(40),
-  name: z.string().min(2).max(120).trim(),
-  email: z.string().email().max(254),
-  company: z.string().max(120).trim().optional(),
-  message: z.string().min(20).max(5000).trim(),
-  // Honeypot — hidden via CSS in the form. Bots fill it; humans don't.
-  website: z.string().max(0).optional(),
-});
-
-type ContactInquiry = z.infer<typeof ContactInquirySchema>;
 
 function buildEmailSubject(body: ContactInquiry): string {
   const tag = body.source === 'agency' ? '[agency]' : '[marketing]';
@@ -80,47 +62,58 @@ const app = new Hono();
  * Submits a contact inquiry — sends a notification email to the founder
  * inbox with the user's email set as Reply-To.
  */
-app.post('/', zValidator('json', ContactInquirySchema), async (c) => {
-  const body = c.req.valid('json') as ContactInquiry;
-  const ip = c.req.header('x-forwarded-for') ?? c.req.header('x-real-ip');
+app.post(
+  '/',
+  zValidator('json', ContactInquirySchema, (result, c) => {
+    if (!result.success) {
+      return c.json(
+        { success: false, error: result.error.issues.map((issue) => issue.message).join('; ') },
+        400,
+      );
+    }
+  }),
+  async (c) => {
+    const body = c.req.valid('json') as ContactInquiry;
+    const ip = c.req.header('x-forwarded-for') ?? c.req.header('x-real-ip');
 
-  // Honeypot trip — silently 200 to deny bots a signal
-  if (body.website !== undefined && body.website.length > 0) {
-    logger.warn('Contact form honeypot triggered', { ip, source: body.source });
-    return c.json({ success: true }, 200);
-  }
+    // Honeypot trip — silently 200 to deny bots a signal
+    if (body.website !== undefined && body.website.length > 0) {
+      logger.warn('Contact form honeypot triggered', { ip, source: body.source });
+      return c.json({ success: true }, 200);
+    }
 
-  try {
-    await sendEmail({
-      to: 'founder@revealui.com',
-      subject: buildEmailSubject(body),
-      html: buildEmailHtml(body),
-      text: buildEmailText(body),
-      replyTo: body.email,
-    });
+    try {
+      await sendEmail({
+        to: 'founder@revealui.com',
+        subject: buildEmailSubject(body),
+        html: buildEmailHtml(body),
+        text: buildEmailText(body),
+        replyTo: body.email,
+      });
 
-    logger.info('Contact form submitted', {
-      source: body.source,
-      topic: body.topic,
-      from: body.email,
-      ip,
-    });
+      logger.info('Contact form submitted', {
+        source: body.source,
+        topic: body.topic,
+        from: body.email,
+        ip,
+      });
 
-    return c.json({ success: true }, 200);
-  } catch (err) {
-    logger.error('Contact form email send failed', {
-      err: err instanceof Error ? err.message : String(err),
-      source: body.source,
-    });
-    return c.json(
-      {
-        success: false,
-        error:
-          'Could not deliver your message. Please email founder@revealui.com directly and reference your request.',
-      },
-      500,
-    );
-  }
-});
+      return c.json({ success: true }, 200);
+    } catch (err) {
+      logger.error('Contact form email send failed', {
+        err: err instanceof Error ? err.message : String(err),
+        source: body.source,
+      });
+      return c.json(
+        {
+          success: false,
+          error:
+            'Could not deliver your message. Please email founder@revealui.com directly and reference your request.',
+        },
+        500,
+      );
+    }
+  },
+);
 
 export default app;

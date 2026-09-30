@@ -2,7 +2,7 @@
 visibility: public
 status: verified
 title: "Fair Source"
-description: "How RevealUI Pro packages are licensed under FSL-1.1-MIT, what you can and cannot do with them, and how each release auto-converts to plain MIT after two years."
+description: "How RevealUI Pro packages are licensed under FSL-1.1-MIT, what you can and cannot do with them, and how MIT conversion follows the published license."
 category: reference
 audience: developer
 ---
@@ -11,7 +11,7 @@ This document is the engineer-targeted Fair Source reference: license text, pack
 
 ## What's licensed how
 
-Five RevealUI packages ship under **FSL-1.1-MIT** (Fair Source). Every other package in RevealFleet is plain MIT.
+Five RevealUI packages ship under **FSL-1.1-MIT** (Fair Source). Other package licenses vary; consult each package’s `package.json` and license file. The core is MIT.
 
 | Package | License | Source | npm |
 |---------|---------|--------|-----|
@@ -20,7 +20,7 @@ Five RevealUI packages ship under **FSL-1.1-MIT** (Fair Source). Every other pac
 | `@revealui/harnesses` | FSL-1.1-MIT | [packages/harnesses](https://github.com/RevealUIStudio/revealui/tree/main/packages/harnesses) | [npm](https://www.npmjs.com/package/@revealui/harnesses) |
 | `@revealui/mcp` | FSL-1.1-MIT | [packages/mcp](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp) | [npm](https://www.npmjs.com/package/@revealui/mcp) |
 | `@revealui/services` | FSL-1.1-MIT | [packages/services](https://github.com/RevealUIStudio/revealui/tree/main/packages/services) | [npm](https://www.npmjs.com/package/@revealui/services) |
-| Everything else (`@revealui/core`, `@revealui/auth`, `@revealui/db`, `@revealui/contracts`, `@revealui/presentation`, `@revealui/router`, `@revealui/security`, `@revealui/utils`, `@revealui/cache`, `@revealui/resilience`, `@revealui/sync`, `@revealui/cli`, `@revealui/setup`, `@revealui/dev`, `@revealui/test`, `@revealui/openapi`, `@revealui/config`, `@revealui/paywall`, `create-revealui`) | MIT | [packages/](https://github.com/RevealUIStudio/revealui/tree/main/packages) | [npm registry](https://www.npmjs.com/org/revealui) |
+| MIT packages (`@revealui/core`, `@revealui/auth`, `@revealui/db`, `@revealui/contracts`, `@revealui/presentation`, `@revealui/router`, `@revealui/security`, `@revealui/utils`, `@revealui/cache`, `@revealui/resilience`, `@revealui/sync`, `@revealui/cli`, `@revealui/setup`, `@revealui/dev`, `@revealui/test`, `@revealui/openapi`, `@revealui/config`, `@revealui/paywall`, `create-revealui`) | MIT | [packages/](https://github.com/RevealUIStudio/revealui/tree/main/packages) | [npm registry](https://www.npmjs.com/org/revealui) |
 
 To verify any package's license:
 
@@ -32,7 +32,7 @@ npm view @revealui/core license
 # → "MIT"
 ```
 
-The `license` field in each package's `package.json` is the canonical record. Do not rely on this document if the npm registry says otherwise.
+Read the LICENSE file shipped with the version you use. Registry metadata helps identify the declared license; it does not replace the license text.
 
 ## What FSL-1.1-MIT lets you do
 
@@ -40,29 +40,14 @@ In plain English:
 
 - ✅ **Use it commercially.** Ship it in your product, charge customers, no royalties or per-seat fees.
 - ✅ **Read and modify the source.** Every line is on GitHub. Audit it for security, fork it, patch it.
-- ✅ **Self-host on your own infra.** No phone-home, no vendor service required to function.
+- ✅ **Self-host on your own infra.** Paid runtime features require valid entitlement. Review your deployment and service dependencies when planning operation.
 - ❌ **Build a competing developer platform.** You cannot ship a substantially similar developer platform that competes with RevealUI on top of these specific packages.
 
-The non-compete clause is the only restriction. After **two years** (per release), even that lifts and the release becomes plain MIT.
+Read the LICENSE file shipped with the package for its permitted purpose, restrictions, and conversion terms.
 
-The FSL spec is short and plain — read it: [fsl.software/FSL-1.1-MIT.template.md](https://fsl.software/FSL-1.1-MIT.template.md).
+## MIT conversion
 
-## How the 2-year MIT clock works
-
-Each release starts its own clock at publish time. Older releases reach MIT first; newer releases extend the clock from their own publish dates.
-
-```
-@revealui/ai 0.4.0 published 2026-04-25
-  → becomes MIT 2028-04-25
-
-@revealui/ai 0.5.0 published 2026-08-01 (hypothetical)
-  → becomes MIT 2028-08-01
-
-@revealui/ai 0.6.0 published 2027-01-15 (hypothetical)
-  → becomes MIT 2029-01-15
-```
-
-The conversion is in the license text and self-executing — RevealUI Studio does not need to take any action. Two years after publish, that release IS plain MIT, full stop.
+The package LICENSE specifies a Change Date. FSL conversion occurs on that date or the fourth anniversary of the first public distribution of the licensed work under FSL, whichever comes first. A version tag alone does not establish a new two-year clock. The current repository’s Pro license files specify April 8, 2028; inspect the file included in the version you use.
 
 ## Pro tier enforcement (runtime, not source)
 
@@ -70,7 +55,7 @@ Source visibility ≠ free runtime access. The Pro tier is enforced at runtime v
 
 - **License JWTs** — Ed25519-signed by the license server (`apps/server/src/routes/license/`). Validated on every Pro entry point.
 - **Per-package feature gates** — each Pro feature checks `isFeatureEnabled('ai' | 'mcp' | 'aiMemory' | ...)` from `@revealui/core/features` before executing.
-- **Status checks every 5 minutes** — `checkLicenseStatus()` re-validates against the license server. Stale licenses are revoked at runtime.
+- **License validation** — the self-hosted runtime validates the configured signed key. Hosted license-status endpoints also check recorded entitlement status.
 
 This is documented at [apps/server/src/routes/license/](https://github.com/RevealUIStudio/revealui/tree/main/apps/server/src/routes/license).
 

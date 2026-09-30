@@ -93,7 +93,7 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'fair-source.ts',
     exportPath: 'FAIR_SOURCE_FAQS[0].answer',
-    text: 'Not in the OSI-approved sense: the non-compete clause means it is "source-available" rather than "open source." But for almost every practical purpose (read, modify, deploy, charge for products built on top), the freedoms match what most builders need from open source. After two years per release, the clause lifts and the code becomes plain MIT, which IS OSI open source.',
+    text: 'FSL-licensed packages are source available. Their published license permits defined uses and restricts competing uses. MIT conversion follows its Change Date and anniversary terms.',
     evidence: [FAIR_SOURCE_PAGE, LICENSE_MIT],
   },
   {
@@ -118,7 +118,7 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'fair-source.ts',
     exportPath: 'FAIR_SOURCE_FAQS[2].answer',
-    text: 'Two years after the publish date of that specific release. So each release of @revealui/ai becomes MIT on its own 2-year anniversary, and a newer release starts its own clock from its own publish date. Older releases reach MIT first; this is intentional.',
+    text: 'Check the LICENSE shipped with the version you use. Its Change Date and fourth-anniversary provision determine MIT conversion; a version tag alone does not establish a new two-year clock.',
     evidence: [LICENSE_MIT, FAIR_SOURCE_PAGE],
   },
   {
@@ -142,7 +142,7 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'fair-source.ts',
     exportPath: 'FAIR_SOURCE_FAQS[4].answer',
-    text: 'License enforcement is at runtime on the studio control plane (admin.revealui.com and api.revealui.com), not baked into the npm packages. That is a license check on RevealUI Studio infrastructure, not a customer VM we operate. You self-host the runtime. The hosted RevealUI API checks Ed25519-signed license JWTs and gates Pro API routes; the packages themselves ship ungated, so self-hosters run them freely. FSL is the legal protection: the source is visible and you can run it, but shipping a competing developer platform on top of it is exactly what the non-compete clause prohibits, with civil remedies available. Two years after each release, that release becomes plain MIT.',
+    text: 'License enforcement is at runtime on the studio control plane (admin.revealui.com and api.revealui.com), not baked into the npm packages. That is a license check on RevealUI Studio infrastructure, not a customer VM we operate. You self-host the runtime. The hosted RevealUI API checks Ed25519-signed license JWTs and gates Pro API routes; self-hosted paid features also use entitlement checks. FSL is the legal protection: the source is visible and you can run it, but shipping a competing developer platform on top of it is exactly what the non-compete clause prohibits, with civil remedies available. MIT conversion follows the published license terms.',
     evidence: [LICENSE_ED25519, FAIR_SOURCE_PAGE, LICENSE_RUNTIME_GATE_TEST],
   },
   {
@@ -154,7 +154,7 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'fair-source.ts',
     exportPath: 'FAIR_SOURCE_FAQS[5].answer',
-    text: 'Every other RevealUI package is plain MIT, no non-compete clause, no time limit, fully open source. That is the OSS substrate (auth, content, billing primitives, admin UI, presentation system, router, etc.). Fair Source applies to five packages: @revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, and @revealui/services.',
+    text: 'The core and the published MIT packages are open source under MIT. Check package-specific licenses for other workspace members. That is the OSS substrate (auth, content, billing primitives, admin UI, presentation system, router, etc.). Fair Source applies to five packages: @revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, and @revealui/services.',
     evidence: [LICENSE_MIT, LICENSE_SPLIT],
   },
   {
@@ -286,13 +286,13 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'claims.ts',
     exportPath: 'CLAIMS_SIGNED_LEDGER_NOTE.body',
-    text: 'Every action in the audit log is signed with a key you can check yourself. Verifying a record does not require our secret.',
+    text: 'When audit signing is configured, signed records can be checked with the published public key. Verification does not require our private signing key.',
     evidence: [AUDIT_ROW_SIGNER, AUDIT_SIGN_ROUNDTRIP],
   },
   {
     file: 'claims.ts',
     exportPath: 'CLAIMS_RECEIPT_HOLD_NOTE.body',
-    text: 'On Pro, the worker seals ranges of your signed audit log into Merkle roots you can download. You verify those roots offline with the published public key, without calling us. Free still gets a signed log. Root delivery is Pro. Checking a receipt is free either way.',
+    text: 'On Pro, a configured worker can seal ranges of signed records into downloadable Merkle roots and inclusion proofs. Anchoring can lag behind an action. Verify downloaded material offline with the published key. Free supports signed rows when signing is configured; root delivery requires Pro.',
     evidence: [
       AUDIT_MERKLE,
       AUDIT_ANCHOR_SCHEMA,
@@ -307,7 +307,7 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'claims.ts',
     exportPath: 'CLAIMS_HERO.subtitle',
-    text: 'Every sentence on this site that makes a claim about the product carries an entry below. Each one links to the code, the command, or the page that proves it.',
+    text: 'Covered marketing statements are indexed below with their cited evidence. Automated checks keep defined counts and citations aligned; human review assesses whether the evidence supports each statement.',
     evidence: [
       { ...CLAIMS_INDEX, note: `${CLAIMS_INDEX.note}; sentence 1, "carries an entry below"` },
       {
@@ -423,33 +423,13 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'receipt.ts',
     exportPath: 'RECEIPT_HERO_TITLE',
-    text: 'Governed action, on record',
-    evidence: [
-      AUDIT_SIGNING,
-      AUDIT_SIGNING_TEST,
-      AUDIT_LOG_SCHEMA,
-      {
-        ...AUDIT_RECEIPTS_DOC,
-        note: 'static marketing receipt title; a governed action is a signed audit row on record, not a live customer case',
-      },
-    ],
-  },
-  {
-    file: 'receipt.ts',
-    exportPath: 'RECEIPT_HERO_LINES[1].object',
-    text: 'policy check on deploy #318',
-    evidence: [
-      {
-        ...AUDIT_RECEIPTS_DOC,
-        note: 'static demonstration object on the marketing receipt; not a live deploy id',
-      },
-      AUDIT_LOG_SCHEMA,
-    ],
+    text: 'Illustrated agent action record',
+    evidence: [REFUND_ROUTE, AGENT_ROUTES],
   },
   {
     file: 'receipt.ts',
     exportPath: 'RECEIPT_HERO_CAPTION.text',
-    text: "If an agent did it, there's a receipt.",
+    text: 'Illustrated action record. Supported actions can be recorded when audit signing is configured.',
     evidence: [
       AUDIT_SIGNING,
       AUDIT_SIGNING_TEST,

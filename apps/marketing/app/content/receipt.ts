@@ -10,9 +10,8 @@
 // row signing without root delivery. Verification is never for sale.
 
 import type { AuditEvent } from '@revealui/presentation';
-import { SITE } from './site';
 
-export const RECEIPT_HERO_TITLE = 'Governed action, on record' as const;
+export const RECEIPT_HERO_TITLE = 'Illustrated agent action record' as const;
 
 export const RECEIPT_HERO_LINES: readonly AuditEvent[] = [
   {
@@ -22,13 +21,19 @@ export const RECEIPT_HERO_LINES: readonly AuditEvent[] = [
     object: 'agents@demo.revealui.com',
   },
   {
-    ts: '10:14:05',
-    actor: 'ops-agent',
-    action: 'ran',
-    object: 'policy check on deploy #318',
+    ts: '09:41:09',
+    actor: 'policy',
+    action: 'allowed',
+    object: 'refunds under $100',
   },
   {
-    ts: '10:14:06',
+    ts: '09:41:10',
+    actor: 'support-agent',
+    action: 'refunded',
+    object: 'order #4189',
+  },
+  {
+    ts: '09:41:11',
     actor: 'audit-log',
     action: 'recorded',
     // `object` stays a human-readable description (not the raw ref) so
@@ -49,9 +54,9 @@ export const RECEIPT_HERO_INTEGRITY = {
 // (auditLog). Verification is never paid. See docs/security/AUDIT_RECEIPTS.md
 // and CLAIMS_RECEIPT_HOLD_NOTE.
 export const RECEIPT_HERO_CAPTION = {
-  text: "If an agent did it, there's a receipt.",
+  text: 'Illustrated action record. Supported actions can be recorded when audit signing is configured.',
   link: {
-    label: 'Audit receipts docs →',
-    href: `${SITE.urls.docs}/security/audit-receipts`,
+    label: 'Read the receipt guide →',
+    href: 'https://docs.revealui.com/security/AUDIT_RECEIPTS',
   },
 } as const;

@@ -1,7 +1,7 @@
+import { ContactInquirySchema } from '@revealui/contracts/public-inquiry';
 import { Button, Callout, FormField, Input, Select, Textarea } from '@revealui/presentation';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
-import { z } from 'zod';
 import { submitContact } from '../lib/api';
 
 const topics = [
@@ -18,19 +18,10 @@ interface FieldErrors {
 }
 
 function validateField(field: keyof FieldErrors, value: string): string | undefined {
-  switch (field) {
-    case 'name':
-      if (!value.trim()) return 'Name is required';
-      return undefined;
-    case 'email':
-      if (!value.trim()) return 'Email is required';
-      if (!z.string().email().safeParse(value).success) return 'Enter a valid email address';
-      return undefined;
-    case 'message':
-      if (!value.trim()) return 'Message is required';
-      if (value.trim().length < 10) return 'Message must be at least 10 characters';
-      return undefined;
-  }
+  if (!value.trim())
+    return `${field === 'name' ? 'Name' : field === 'email' ? 'Email' : 'Message'} is required`;
+  const parsed = ContactInquirySchema.shape[field].safeParse(value);
+  return parsed.success ? undefined : parsed.error.issues[0]?.message;
 }
 
 export function ContactForm() {

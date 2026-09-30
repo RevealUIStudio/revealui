@@ -224,7 +224,7 @@ export const blogMetaClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/claim-drift',
     exportPath: 'title',
-    text: 'The Marketing Site That Fails CI When It Lies',
+    text: 'How we keep product claims connected to source',
     evidence: [
       { kind: 'code', ref: 'docs/blog/14-claim-drift.md', note: 'static post body source' },
       {
@@ -237,7 +237,7 @@ export const blogMetaClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/claim-drift',
     exportPath: 'excerpt',
-    text: 'Every number on revealui.com is checked against the code on every push. When a stat drifts from reality, the build breaks before the lie ships.',
+    text: 'Defined metrics have automated checks, and covered copy links to cited evidence. Human review still assesses whether a statement is supported.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/14-claim-drift.md', note: 'static post body source' },
       {

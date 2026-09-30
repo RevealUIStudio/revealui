@@ -34,7 +34,7 @@ export const PRIVACY_META = {
   notice: {
     variant: 'info' as const,
     title: 'Status: drafted in good faith, pending counsel review',
-    body: 'This page describes our actual privacy practices today. The wording has not yet been reviewed by an attorney; we disclose this rather than hide it. The substance will not change after review. Only the wording may tighten. Privacy questions or data-rights requests in the meantime:',
+    body: 'This page describes our actual privacy practices today. The wording has not yet been reviewed by an attorney; we disclose this rather than hide it. Review may identify changes to wording or commitments; material changes will be reflected in the published policy. Privacy questions or data-rights requests in the meantime:',
   },
 } as const;
 

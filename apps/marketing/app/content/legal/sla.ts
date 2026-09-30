@@ -49,7 +49,7 @@ export const SLA_SECTIONS: readonly LegalSection[] = [
   {
     heading: '4. What happens if our license service is down',
     paragraphs: [
-      'If a self-hosted installation cannot reach our license validation service, your previously validated license keeps working for 7 days while we fix the outage. Full detail on every license grace period lives in our Terms of Service.',
+      'If license validation or a hosted service fails, contact support with the error and affected deployment. Availability depends on the configured deployment and service providers. Our Terms explain subscription cancellation and continued use of acquired perpetual versions.',
     ],
   },
   {

@@ -41,8 +41,8 @@ describe('Hero (product homepage)', () => {
     renderHero();
     const proof = screen.getByText(HOME_HERO.subtitle.sentence2);
     expect(proof.className).toContain('text-body');
-    expect(proof.textContent ?? '').toContain('your infrastructure');
-    expect(proof.textContent ?? '').toContain('your own model');
+    expect(proof.textContent ?? '').toContain('MIT-licensed core');
+    expect(proof.textContent ?? '').toContain('Add Pro');
     expect(proof.textContent ?? '').not.toContain('outcome validation');
     expect(proof.textContent ?? '').not.toContain('proof of work');
     expect(screen.getByText(HOME_HERO.subtitle.support)).toBeInTheDocument();
@@ -60,11 +60,11 @@ describe('Hero (product homepage)', () => {
 
   it('shows Start free, GitHub, and the create-revealui command', () => {
     renderHero();
-    expect(screen.getByRole('link', { name: /start free/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Create a RevealUI account' })).toHaveAttribute(
       'href',
       HOME_HERO.cta.primary.href,
     );
-    expect(screen.getByRole('link', { name: /github/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Inspect the source' })).toHaveAttribute(
       'href',
       HOME_HERO.cta.secondary.href,
     );
@@ -84,7 +84,7 @@ describe('Hero (product homepage)', () => {
 
     const docsLink = screen.getByRole('link', { name: RECEIPT_HERO_CAPTION.link.label });
     expect(docsLink).toHaveAttribute('href', RECEIPT_HERO_CAPTION.link.href);
-    expect(docsLink.getAttribute('href') ?? '').toContain('/security/audit-receipts');
+    expect(docsLink.getAttribute('href') ?? '').toContain('/security/AUDIT_RECEIPTS');
 
     // Static motif: print animation injects a style tag only when animate="print".
     expect(container.querySelector('style')).toBeNull();
