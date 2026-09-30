@@ -1,5 +1,11 @@
 # @revealui/contracts
 
+## 0.13.1
+
+### Patch Changes
+
+- 64928c2: Clarify Free and Pro catalog descriptions to explain self-hosting and agent features.
+
 ## 0.13.0
 
 ### Minor Changes
