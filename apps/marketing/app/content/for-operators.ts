@@ -17,7 +17,7 @@
 import {
   CONSULTATION_PRICE,
   LAUNCH_PACKAGE_PRICE,
-  PROOF_SPRINT_PRICE,
+  PILOT_PRICE,
 } from '@revealui/contracts/public-catalog';
 import { SITE } from './site';
 import type { Cta, FaqItem } from './types';
@@ -109,7 +109,7 @@ export const FOR_OPERATORS_HOW_WE_DELIVER = {
 // ship in the public marketing bundle.
 // ---------------------------------------------------------------------------
 
-export type AgencyEngagementId = 'consultation' | 'proof-sprint' | 'launch-package';
+export type AgencyEngagementId = 'consultation' | 'pilot' | 'launch-package';
 
 export interface AgencyEngagement {
   readonly id: AgencyEngagementId;
@@ -126,9 +126,9 @@ export const AGENCY_ENGAGEMENT_LADDER: readonly AgencyEngagement[] = [
     startsFrom: false,
   },
   {
-    id: 'proof-sprint',
+    id: 'pilot',
     name: 'Pilot',
-    price: PROOF_SPRINT_PRICE,
+    price: PILOT_PRICE,
     startsFrom: false,
   },
   {
@@ -151,7 +151,7 @@ function findEngagement(id: AgencyEngagementId): AgencyEngagement {
 }
 
 const CONSULTATION = findEngagement('consultation');
-const PROOF_SPRINT = findEngagement('proof-sprint');
+const PILOT = findEngagement('pilot');
 const LAUNCH_PACKAGE = findEngagement('launch-package');
 
 // ---------------------------------------------------------------------------
@@ -180,8 +180,8 @@ export const FOR_OPERATORS_PRICING = {
       cta: { label: 'Book a Consultation', href: AGENCY_CONTACT, external: true },
     },
     {
-      title: PROOF_SPRINT.name,
-      price: agencyEngagementPriceDisplay(PROOF_SPRINT),
+      title: PILOT.name,
+      price: agencyEngagementPriceDisplay(PILOT),
       body: 'One site on your domain and one receipted action you operate. You keep it. The domain pack is included. Credits 100% to Launch if you start Launch within 45 days. This SKU lives on revealuistudio.com, not on the product catalog.',
       cta: { label: 'Book a Consultation', href: AGENCY_CONTACT, external: true },
     },
@@ -244,7 +244,7 @@ export const FOR_OPERATORS_FAQ = {
     },
     {
       question: 'How much does it cost?',
-      answer: `Studio SKUs live on revealuistudio.com, not on this catalog. ${CONSULTATION.name} is ${CONSULTATION.price}, ${PROOF_SPRINT.name} is ${PROOF_SPRINT.price}, and ${LAUNCH_PACKAGE.name} is ${LAUNCH_PACKAGE.price}. Book on Google Calendar from that site.`,
+      answer: `Studio SKUs live on revealuistudio.com, not on this catalog. ${CONSULTATION.name} is ${CONSULTATION.price}, ${PILOT.name} is ${PILOT.price}, and ${LAUNCH_PACKAGE.name} is ${LAUNCH_PACKAGE.price}. Book on Google Calendar from that site.`,
     },
     {
       question: 'How long does it take?',
