@@ -1,8 +1,9 @@
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 const {
   ACK_LABEL,
-  BACKFLOW_APP_LOGIN,
   CANONICAL_BACKFLOW_HEAD,
   isBackflowPr,
   isCanonicalAppBackflow,
@@ -34,19 +35,35 @@ describe('isBackflowPr', () => {
 });
 
 describe('isCanonicalAppBackflow', () => {
-  it('passes the backflow App on the canonical head without the human ack label', () => {
-    expect(isCanonicalAppBackflow(CANONICAL_BACKFLOW_HEAD, BACKFLOW_APP_LOGIN)).toBe(true);
-  });
+  const configuredLogin = 'configured-backflow[bot]';
+  const repository = 'RevealUIStudio/revealui';
+  const matches = (
+    head = CANONICAL_BACKFLOW_HEAD,
+    author = configuredLogin,
+    expected = configuredLogin,
+    source = repository,
+    base = repository,
+  ) => isCanonicalAppBackflow(head, author, expected, source, base);
 
-  it('still requires the label when a human opens the canonical head', () => {
-    expect(isCanonicalAppBackflow(CANONICAL_BACKFLOW_HEAD, 'joshua-v-dev')).toBe(false);
+  it('accepts the configured App on the canonical branch from this repository', () => {
+    expect(matches()).toBe(true);
   });
-
-  it('still requires the label when the App uses any other head', () => {
-    expect(isCanonicalAppBackflow('main', BACKFLOW_APP_LOGIN)).toBe(false);
-    expect(isCanonicalAppBackflow('chore/backflow-main-into-test-manual', BACKFLOW_APP_LOGIN)).toBe(
-      false,
-    );
+  it('denies missing or non-bot policy configuration', () => {
+    expect(matches(undefined, undefined, '')).toBe(false);
+    expect(matches(undefined, undefined, 'human')).toBe(false);
+  });
+  it('denies a wrong author and a spoofed bot', () => {
+    expect(matches(undefined, 'human')).toBe(false);
+    expect(matches(undefined, 'spoofed-backflow[bot]')).toBe(false);
+  });
+  it('denies forks and missing repository provenance', () => {
+    expect(matches(undefined, undefined, undefined, 'external/revealui')).toBe(false);
+    expect(matches(undefined, undefined, undefined, '')).toBe(false);
+    expect(matches(undefined, undefined, undefined, repository, '')).toBe(false);
+  });
+  it('denies noncanonical branches', () => {
+    expect(matches('main')).toBe(false);
+    expect(matches('chore/backflow-main-into-test-manual')).toBe(false);
   });
 });
 
@@ -118,4 +135,57 @@ describe('fetchLiveLabels', () => {
     ).toBeNull();
     expect(called).toBe(false);
   });
+});
+
+describe('repository identity policy enforcement', () => {
+  const script = fileURLToPath(new URL('../backflow-merge-method-guard.cjs', import.meta.url));
+  const run = (overrides: Record<string, string>) =>
+    spawnSync(process.execPath, [script, '--mode=pr'], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        PR_BASE_REF: 'test',
+        PR_HEAD_REF: CANONICAL_BACKFLOW_HEAD,
+        PR_AUTHOR_LOGIN: 'configured-backflow[bot]',
+        PR_HEAD_REPOSITORY: 'RevealUIStudio/revealui',
+        GITHUB_REPOSITORY: 'RevealUIStudio/revealui',
+        GITHUB_TOKEN: '',
+        PR_LABELS: ACK_LABEL,
+        REVEALFLEET_BACKFLOW_APP_LOGIN: 'configured-backflow[bot]',
+        ...overrides,
+      },
+    });
+  it('accepts a configured same-repository App', () =>
+    expect(run({ PR_LABELS: '' }).status).toBe(0));
+  it('denies missing policy even with the acknowledgment label', () =>
+    expect(run({ REVEALFLEET_BACKFLOW_APP_LOGIN: '' }).status).toBe(1));
+  it('denies wrong canonical-branch author even with the acknowledgment label', () =>
+    expect(run({ PR_AUTHOR_LOGIN: 'spoofed[bot]' }).status).toBe(1));
+  it('denies fork source even with the acknowledgment label', () =>
+    expect(run({ PR_HEAD_REPOSITORY: 'fork/revealui' }).status).toBe(1));
+  it('leaves ordinary feature PRs unchanged when policy is absent', () =>
+    expect(
+      run({ PR_HEAD_REF: 'feat/ordinary', PR_TITLE: 'Feature', REVEALFLEET_BACKFLOW_APP_LOGIN: '' })
+        .status,
+    ).toBe(0));
+});
+
+describe('manual backflow acknowledgment without App policy', () => {
+  const script = fileURLToPath(new URL('../backflow-merge-method-guard.cjs', import.meta.url));
+  const run = (labels: string) =>
+    spawnSync(process.execPath, [script, '--mode=pr'], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        PR_BASE_REF: 'test',
+        PR_HEAD_REF: 'main',
+        PR_TITLE: 'Manual backflow main into test',
+        PR_AUTHOR_LOGIN: 'human',
+        GITHUB_TOKEN: '',
+        PR_LABELS: labels,
+        REVEALFLEET_BACKFLOW_APP_LOGIN: '',
+      },
+    });
+  it('accepts the existing human acknowledgment', () => expect(run(ACK_LABEL).status).toBe(0));
+  it('requires the human acknowledgment', () => expect(run('').status).toBe(1));
 });

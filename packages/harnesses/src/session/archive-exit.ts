@@ -2,8 +2,8 @@
  * Archive a session exit into the RevealFleet cold archive.
  *
  * Destination (operator convention, not product git):
- *   $REVFLEET_ARCHIVE/cold/sessions/daemon/   when REVFLEET_ARCHIVE is the parent
- *   $REVFLEET_ARCHIVE/sessions/daemon/        when REVFLEET_ARCHIVE is already cold/
+ *   $REVEALFLEET_ARCHIVE/cold/sessions/daemon/   when REVEALFLEET_ARCHIVE is the parent
+ *   $REVEALFLEET_ARCHIVE/sessions/daemon/        when REVEALFLEET_ARCHIVE is already cold/
  *   default: ~/revealfleet/archive/cold/sessions/daemon/
  *
  * Purpose: keep a durable, centralized record of ended sessions so live peer
@@ -36,7 +36,7 @@ export interface ArchiveExitResult {
 
 /** Resolve cold sessions/daemon directory under the fleet archive. */
 export function coldDaemonSessionsDir(): string {
-  const env = process.env.REVFLEET_ARCHIVE?.trim();
+  const env = process.env.REVEALFLEET_ARCHIVE?.trim();
   if (env) {
     // Parent layout: ~/revealfleet/archive → cold/sessions/daemon
     // Cold layout:   ~/revealfleet/archive/cold → sessions/daemon

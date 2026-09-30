@@ -59,7 +59,7 @@ cements, today's bash scanners, several of which embed those literals directly.
 
 ## Remaining (lane §6)
 
-- **PR-time hardening**: pin `esbuild` as a direct devDep (reproducible bundle),
+- **PR-time hardening**: `esbuild` is pinned as a direct root devDependency for reproducible builds;
   wire `build.mjs --check` into CI, confirm gitleaks + check-client-leaks pass on
   the committed `.mjs`.
 - revkit propagation of `leak-scan.mjs` into each repo + a render drift gate.

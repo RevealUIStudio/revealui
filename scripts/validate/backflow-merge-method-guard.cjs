@@ -7,7 +7,7 @@
 //   1. PR mode (base=test, backflow-shaped title/head): fail until the PR carries
 //      the human acknowledgment label `backflow:merge-commit`, and print UI
 //      instructions to use **Create a merge commit** (not Squash / Rebase).
-//      The revfleet-backflow App on the canonical head
+//      The configured backflow App on the canonical head
 //      `chore/backflow-main-into-test` passes without that label. Auto-applying
 //      it would forge the human ack. Squash still fails ancestry mode.
 //   2. Ancestry mode (push to test / offline): fail if origin/main is not an
@@ -21,7 +21,8 @@
 // Usage:
 //   node scripts/validate/backflow-merge-method-guard.cjs --mode=pr
 //     env: PR_TITLE, PR_HEAD_REF, PR_BASE_REF, PR_LABELS (comma-separated)
-//          PR_NUMBER, GITHUB_REPOSITORY, GITHUB_TOKEN (live-fetch labels;
+//          PR_NUMBER, PR_HEAD_REPOSITORY, REVEALFLEET_BACKFLOW_APP_LOGIN,
+//          GITHUB_REPOSITORY, GITHUB_TOKEN (live-fetch labels;
 //          event snapshot is empty on `opened` before the bot labels)
 //   node scripts/validate/backflow-merge-method-guard.cjs --mode=ancestry
 //     cwd = git repo; fetches not performed (caller must fetch main)
@@ -32,10 +33,11 @@ const { execFileSync } = require('node:child_process');
 
 const ACK_LABEL = 'backflow:merge-commit';
 const CANONICAL_BACKFLOW_HEAD = 'chore/backflow-main-into-test';
-const BACKFLOW_APP_LOGIN = 'revfleet-backflow[bot]';
 
-function isCanonicalAppBackflow(headRef, authorLogin) {
-  return headRef === CANONICAL_BACKFLOW_HEAD && authorLogin === BACKFLOW_APP_LOGIN;
+function isCanonicalAppBackflow(headRef, authorLogin, expectedLogin, headRepository, baseRepository) {
+  return Boolean(expectedLogin && expectedLogin.endsWith('[bot]') && baseRepository) &&
+    headRef === CANONICAL_BACKFLOW_HEAD && authorLogin === expectedLogin &&
+    headRepository === baseRepository;
 }
 
 function parseArgs(argv) {
@@ -145,6 +147,12 @@ async function runPrMode() {
     process.exit(0);
   }
 
+  const expectedLogin = process.env.REVEALFLEET_BACKFLOW_APP_LOGIN || '';
+  if (headRef === CANONICAL_BACKFLOW_HEAD && (!expectedLogin || !expectedLogin.endsWith('[bot]'))) {
+    console.error('::error title=Backflow identity policy::Repository policy REVEALFLEET_BACKFLOW_APP_LOGIN must identify the provisioned backflow App bot.');
+    process.exit(1);
+  }
+
   console.log('Backflow PR detected (main → test ancestry path).');
   console.log('');
   console.log('HARDLINE: merge with Create a merge commit only.');
@@ -156,9 +164,16 @@ async function runPrMode() {
   console.log('');
 
   const authorLogin = process.env.PR_AUTHOR_LOGIN || '';
-  if (isCanonicalAppBackflow(headRef, authorLogin)) {
+  const headRepository = process.env.PR_HEAD_REPOSITORY || '';
+  const baseRepository = process.env.GITHUB_REPOSITORY || '';
+  const canonicalApp = isCanonicalAppBackflow(headRef, authorLogin, expectedLogin, headRepository, baseRepository);
+  if (headRef === CANONICAL_BACKFLOW_HEAD && !canonicalApp) {
+    console.error('::error title=Backflow identity policy::Canonical backflow branch must originate in this repository and be authored by its configured backflow App.');
+    process.exit(1);
+  }
+  if (canonicalApp) {
     console.log(
-      `Canonical backflow App PR (${BACKFLOW_APP_LOGIN} on ${CANONICAL_BACKFLOW_HEAD}).`,
+      `Canonical backflow App PR (${expectedLogin} on ${CANONICAL_BACKFLOW_HEAD}).`,
     );
     console.log(
       'Human acknowledgment label is not required. Squash still fails ancestry mode on push to test.',
@@ -247,7 +262,6 @@ function main() {
 
 module.exports = {
   ACK_LABEL,
-  BACKFLOW_APP_LOGIN,
   CANONICAL_BACKFLOW_HEAD,
   isBackflowPr,
   isCanonicalAppBackflow,
