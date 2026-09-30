@@ -724,7 +724,14 @@ export async function gate(): Promise<void> {
 
     const testCheck: CheckDef[] = noTest
       ? []
-      : [{ name: 'Tests', command: 'pnpm', args: testArgs, timeout: 600000 }];
+      : [
+          { name: 'Tests', command: 'pnpm', args: testArgs, timeout: 600000 },
+          {
+            name: 'Standalone production dependency audit gate test',
+            command: 'node',
+            args: ['--test', 'scripts/deploy/apify-standalone-dependency-audit.test.mjs'],
+          },
+        ];
 
     // OpenAPI mirror drift check runs after build because it inspects
     // @revealui/mcp/dist/, which Phase 3's build step populates. Phase 1

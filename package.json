@@ -237,7 +237,7 @@
     "stripe:catalog:check": "tsx scripts/setup/seed-stripe.ts --check",
     "stripe:seed:starter-kit-coupon": "tsx scripts/setup/seed-starter-kit-pro-coupon.ts",
     "whisper:sidecar": "tsx scripts/whisper-sidecar/server.ts",
-    "test": "turbo run test --concurrency=2 && node --test scripts/deploy/apify-standalone-dependency-audit.test.mjs",
+    "test": "turbo run test --concurrency=2",
     "test:coverage": "turbo run test:coverage --concurrency=2",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
