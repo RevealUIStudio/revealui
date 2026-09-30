@@ -46,7 +46,8 @@ vi.mock('@revealui/core/license', () => {
   };
 });
 
-vi.mock('@revealui/core/license/mint-client', () => ({
+vi.mock('@revealui/core/license/mint-client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@revealui/core/license/mint-client')>()),
   // Mirror local canMintLicense: private key presence (default path; flag off).
   canMintLicense: vi.fn(() => Boolean(process.env.REVEALUI_LICENSE_PRIVATE_KEY?.trim())),
   mintConfigMissingMessage: vi.fn(() => 'REVEALUI_LICENSE_PRIVATE_KEY not configured'),
@@ -58,9 +59,13 @@ vi.mock('@revealui/core/observability/logger', () => ({
 }));
 
 // Mock DB to prevent real connection attempts during tests
-vi.mock('@revealui/db', () => ({
+vi.mock('@revealui/db', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@revealui/db')>()),
   findLicenseOperation: vi.fn(async () => null),
-  applyLicenseOperation: vi.fn(async (_db, input) => input.licenseKey),
+  applyLicenseOperation: vi.fn(async (_db, input) => ({
+    licenseKey: input.licenseKey,
+    operation: input.descriptor ?? null,
+  })),
   getClient: vi.fn(() => ({
     select: vi.fn(() => ({
       from: vi.fn(() => ({
@@ -394,7 +399,10 @@ describe('POST /generate', () => {
   beforeEach(() => {
     process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'pub-key';
     vi.mocked(findLicenseOperation).mockResolvedValue(null);
-    vi.mocked(applyLicenseOperation).mockImplementation(async (_db, input) => input.licenseKey);
+    vi.mocked(applyLicenseOperation).mockImplementation(async (_db, input) => ({
+      licenseKey: input.licenseKey,
+      operation: input.descriptor ?? null,
+    }));
     mockedValidate.mockImplementation(async () => {
       const call = mockedGenerate.mock.calls.at(-1)?.[0];
       return {
@@ -427,7 +435,10 @@ describe('POST /generate', () => {
     process.env.REVEALUI_ADMIN_API_KEY = ADMIN_KEY;
     delete process.env.REVEALUI_LICENSE_PRIVATE_KEY;
     delete process.env.REVEALUI_LICENSE_PUBLIC_KEY;
-    vi.mocked(findLicenseOperation).mockResolvedValue('committed.token');
+    vi.mocked(findLicenseOperation).mockResolvedValue({
+      licenseKey: 'committed.token',
+      operation: null,
+    });
     mockedGenerate.mockClear();
     const res = await createApp().request(
       '/generate',

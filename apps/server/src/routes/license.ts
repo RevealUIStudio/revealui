@@ -9,9 +9,23 @@ import {
   validateLicenseKeyForOperator,
   validateLicenseKeyForRefresh,
 } from '@revealui/core/license';
-import { canMintLicense, mintLicenseKey } from '@revealui/core/license/mint-client';
+import {
+  canMintLicense,
+  mintLicenseKey,
+  withPerpetualSiteCaps,
+} from '@revealui/core/license/mint-client';
 import { logger } from '@revealui/core/observability/logger';
-import { applyLicenseOperation, findLicenseOperation, getClient, isJtiRevoked } from '@revealui/db';
+import {
+  applyLicenseOperation,
+  findLicenseOperation,
+  getClient,
+  isJtiRevoked,
+  type LicenseOperationDescriptor,
+  LicenseOperationDescriptorSchema,
+  type LicenseOperationResult,
+  LicensePromotionIdentitySchema,
+  LicensePromotionSchema,
+} from '@revealui/db';
 import { accountMemberships, licenses } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, isNull } from 'drizzle-orm';
@@ -92,48 +106,67 @@ const LicenseVerifyResponseSchema = z.object({
   }),
 });
 
+const LicenseGenerateInputSchema = z.object({
+  operationId: z.string().uuid().openapi({
+    description:
+      'Stable operation UUID reused with the same request to recover the committed token after a retry.',
+  }),
+  expectedCurrentLicenseKey: z.string().min(1).optional().openapi({
+    description:
+      'Exact registered current token to replace; successful rotation atomically revokes its JTI and registers the replacement.',
+  }),
+  perpetual: z.boolean().optional().openapi({
+    description: 'Explicit perpetual entitlement. When true, expiresInDays must be omitted.',
+  }),
+  tier: z.enum(['pro', 'max', 'enterprise']).openapi({
+    description: 'License tier to generate',
+    example: 'pro',
+  }),
+  customerId: z.string().min(1).openapi({
+    description: 'Stripe customer ID or internal customer identifier',
+    example: 'cus_abc123',
+  }),
+  domains: z
+    .array(z.string().max(253))
+    .max(100)
+    .optional()
+    .openapi({
+      description: 'Licensed domains (optional)',
+      example: ['example.com', 'app.example.com'],
+    }),
+  maxSites: z.number().int().positive().max(10_000).optional().openapi({
+    description: 'Maximum sites (defaults: Pro=5, Enterprise=unlimited)',
+    example: 5,
+  }),
+  maxUsers: z.number().int().positive().max(1_000_000).optional().openapi({
+    description: 'Maximum users (defaults: Pro=25, Enterprise=unlimited)',
+    example: 25,
+  }),
+  expiresInDays: z.number().int().positive().max(3650).optional().openapi({
+    description: 'License duration in days (default: 90, max: 10 years)',
+    example: 90,
+  }),
+});
 const LicenseGenerateRequestSchema = z
-  .object({
-    operationId: z.string().uuid().openapi({
-      description:
-        'Stable operation UUID reused with the same request to recover the committed token after a retry.',
-    }),
-    expectedCurrentLicenseKey: z.string().min(1).optional().openapi({
-      description:
-        'Exact registered current token to replace; successful rotation atomically revokes its JTI and registers the replacement.',
-    }),
-    perpetual: z.boolean().optional().openapi({
-      description: 'Explicit perpetual entitlement. When true, expiresInDays must be omitted.',
-    }),
-    tier: z.enum(['pro', 'max', 'enterprise']).openapi({
-      description: 'License tier to generate',
-      example: 'pro',
-    }),
-    customerId: z.string().min(1).openapi({
-      description: 'Stripe customer ID or internal customer identifier',
-      example: 'cus_abc123',
-    }),
-    domains: z
-      .array(z.string().max(253))
-      .max(100)
-      .optional()
-      .openapi({
-        description: 'Licensed domains (optional)',
-        example: ['example.com', 'app.example.com'],
+  .union([
+    LicenseGenerateInputSchema.extend({
+      recoverOnly: z.literal(false).optional(),
+      expectedMode: z.enum(['live', 'test']).optional(),
+      promotion: LicensePromotionSchema.optional(),
+    })
+      .strict()
+      .refine((input) => !input.promotion || input.expectedMode !== undefined, {
+        message: 'Promotion requires an explicit deployment mode assertion',
       }),
-    maxSites: z.number().int().positive().max(10_000).optional().openapi({
-      description: 'Maximum sites (defaults: Pro=5, Enterprise=unlimited)',
-      example: 5,
-    }),
-    maxUsers: z.number().int().positive().max(1_000_000).optional().openapi({
-      description: 'Maximum users (defaults: Pro=25, Enterprise=unlimited)',
-      example: 25,
-    }),
-    expiresInDays: z.number().int().positive().max(3650).optional().openapi({
-      description: 'License duration in days (default: 90, max: 10 years)',
-      example: 90,
-    }),
-  })
+    LicenseGenerateInputSchema.omit({ expectedCurrentLicenseKey: true })
+      .extend({
+        recoverOnly: z.literal(true),
+        expectedMode: z.enum(['live', 'test']),
+        action: z.enum(['initial', 'rotation']),
+        promotion: LicensePromotionIdentitySchema,
+      })
+      .strict(),
+  ])
   .refine((input) => !(input.perpetual === true && input.expiresInDays !== undefined), {
     message: 'perpetual and expiresInDays are mutually exclusive',
   });
@@ -148,6 +181,7 @@ const LicenseGenerateResponseSchema = z.object({
   customerId: z.string().openapi({
     description: 'Customer ID',
   }),
+  operation: LicenseOperationDescriptorSchema.optional(),
 });
 
 const ErrorSchema = z.object({
@@ -499,6 +533,16 @@ const generateRoute = createRoute({
     },
   },
   responses: {
+    200: {
+      content: { 'application/json': { schema: LicenseGenerateResponseSchema } },
+      description: 'Matching committed operation recovered without minting',
+    },
+    404: {
+      content: {
+        'application/json': { schema: z.object({ error: z.literal('operation_not_found') }) },
+      },
+      description: 'Authenticated recover-only lookup proved that no operation is committed',
+    },
     201: {
       content: {
         'application/json': {
@@ -550,45 +594,114 @@ app.openapi(generateRoute, async (c) => {
   }
 
   const input = c.req.valid('json');
-  const {
+  const { tier, customerId, domains, maxSites, maxUsers, expiresInDays, perpetual, operationId } =
+    input;
+  const mode = getConfiguredStripeMode();
+  if (input.expectedMode !== undefined && input.expectedMode !== mode) {
+    throw new HTTPException(409, { message: 'License deployment mode mismatch' });
+  }
+  const expiresInSeconds =
+    perpetual === true ? null : (expiresInDays ?? DEFAULT_MANUAL_MINT_DAYS) * 86_400;
+  const grant = {
+    tier,
+    domains: domains ?? null,
+    maxSites: maxSites ?? null,
+    maxUsers: maxUsers ?? null,
+    perpetual: perpetual === true,
+    expiresInSeconds,
+  };
+  if (input.recoverOnly === true) {
+    try {
+      const recovered = await findLicenseOperation(
+        getClient(),
+        {
+          operationId,
+          requestFingerprint: '',
+          customerId,
+          mode,
+        },
+        { grant, action: input.action, promotion: input.promotion },
+      );
+      if (!recovered) return c.json({ error: 'operation_not_found' as const }, 404);
+      if (!recovered.operation) throw new Error('License operation migration required');
+      return c.json(
+        { licenseKey: recovered.licenseKey, tier, customerId, operation: recovered.operation },
+        200,
+      );
+    } catch {
+      throw new HTTPException(409, {
+        message: 'License operation unavailable, conflicting or migration required',
+      });
+    }
+  }
+  const expectedCurrentLicenseKey = input.expectedCurrentLicenseKey;
+  const mintInput = withPerpetualSiteCaps({
     tier,
     customerId,
     domains,
     maxSites,
     maxUsers,
-    expiresInDays,
-    perpetual,
-    operationId,
-    expectedCurrentLicenseKey,
-  } = input;
-  const expiresInSeconds =
-    perpetual === true ? null : (expiresInDays ?? DEFAULT_MANUAL_MINT_DAYS) * 86_400;
-  // Fingerprint semantic request, not a freshly randomized retry token.
+    perpetual: perpetual === true,
+    expiresInSeconds,
+  });
+  const effectiveGrant = { ...grant, maxSites: mintInput.maxSites ?? null };
+  let descriptor: LicenseOperationDescriptor | null = null;
+  if (input.promotion) {
+    const action = expectedCurrentLicenseKey ? 'rotation' : 'initial';
+    const customerPath = `forge/customers/${customerId}/license-key`;
+    if (
+      input.promotion.path !==
+      (customerId === 'founder' ? 'revealui/dev/founder-license-key' : customerPath)
+    ) {
+      throw new HTTPException(409, { message: 'License promotion customer binding mismatch' });
+    }
+    descriptor = LicenseOperationDescriptorSchema.parse({
+      version: 1,
+      operationId,
+      customerId,
+      mode,
+      grant,
+      effectiveGrant,
+      action,
+      expectedCurrentLicenseKeySha256: expectedCurrentLicenseKey
+        ? createHash('sha256').update(expectedCurrentLicenseKey).digest('hex')
+        : null,
+      promotion: input.promotion,
+    });
+  }
+  const fingerprintInput = {
+    customerId,
+    tier,
+    domains: domains ?? null,
+    maxSites: maxSites ?? null,
+    maxUsers: maxUsers ?? null,
+    perpetual: perpetual === true,
+    expiresInSeconds,
+    mode,
+    expectedKeyHash: expectedCurrentLicenseKey
+      ? createHash('sha256').update(expectedCurrentLicenseKey).digest('hex')
+      : null,
+  };
   const requestFingerprint = createHash('sha256')
-    .update(
-      JSON.stringify({
-        customerId,
-        tier,
-        domains: domains ?? null,
-        maxSites: maxSites ?? null,
-        maxUsers: maxUsers ?? null,
-        perpetual: perpetual === true,
-        expiresInSeconds,
-        mode: getConfiguredStripeMode(),
-        expectedKeyHash: expectedCurrentLicenseKey
-          ? createHash('sha256').update(expectedCurrentLicenseKey).digest('hex')
-          : null,
-      }),
-    )
+    .update(JSON.stringify(descriptor ? { ...fingerprintInput, descriptor } : fingerprintInput))
     .digest('hex');
   try {
-    const recovered = await findLicenseOperation(getClient(), {
-      operationId,
-      requestFingerprint,
-      customerId,
-      mode: getConfiguredStripeMode(),
-    });
-    if (recovered) return c.json({ licenseKey: recovered, tier, customerId }, 201);
+    const recovered = await findLicenseOperation(
+      getClient(),
+      { operationId, requestFingerprint, customerId, mode },
+      undefined,
+      descriptor,
+    );
+    if (recovered)
+      return c.json(
+        {
+          licenseKey: recovered.licenseKey,
+          tier,
+          customerId,
+          ...(recovered.operation ? { operation: recovered.operation } : {}),
+        },
+        201,
+      );
   } catch {
     throw new HTTPException(409, {
       message: 'License operation unavailable or current identity changed',
@@ -606,28 +719,27 @@ app.openapi(generateRoute, async (c) => {
   if (!canMintLicense()) {
     throw new HTTPException(503, { message: 'License signing not configured' });
   }
-  const minted = await mintLicenseKey({
-    tier,
-    customerId,
-    domains,
-    maxSites,
-    maxUsers,
-    perpetual: perpetual === true,
-    expiresInSeconds,
-  });
+  const minted = await mintLicenseKey(mintInput);
   const payload = await validateLicenseKey(minted, publicKeys, customerId);
   if (
     !payload?.jti?.trim() ||
     payload.jti !== payload.jti.trim() ||
     payload.tier !== tier ||
-    payload.perpetual !== (perpetual === true) ||
+    payload.perpetual !== effectiveGrant.perpetual ||
+    JSON.stringify(payload.domains ?? null) !== JSON.stringify(effectiveGrant.domains) ||
+    (payload.maxSites ?? null) !== effectiveGrant.maxSites ||
+    (payload.maxUsers ?? null) !== effectiveGrant.maxUsers ||
+    (descriptor &&
+      !perpetual &&
+      (!(Number.isInteger(payload.iat) && Number.isInteger(payload.exp)) ||
+        (payload.exp ?? 0) - (payload.iat ?? 0) !== effectiveGrant.expiresInSeconds)) ||
     (perpetual === true ? payload.exp !== undefined : !payload.exp)
   ) {
     throw new HTTPException(503, { message: 'License signer identity unavailable' });
   }
-  let licenseKey: string;
+  let result: LicenseOperationResult;
   try {
-    licenseKey = await applyLicenseOperation(getClient(), {
+    result = await applyLicenseOperation(getClient(), {
       operationId,
       requestFingerprint,
       customerId,
@@ -640,7 +752,8 @@ app.openapi(generateRoute, async (c) => {
       tier,
       expiresAt: payload.exp ? new Date(payload.exp * 1000) : null,
       perpetual: perpetual === true,
-      mode: getConfiguredStripeMode(),
+      mode,
+      descriptor,
     });
   } catch {
     // SQL driver errors may contain bound token parameters. Never expose/log them.
@@ -653,9 +766,10 @@ app.openapi(generateRoute, async (c) => {
 
   return c.json(
     {
-      licenseKey,
+      licenseKey: result.licenseKey,
       tier,
       customerId,
+      ...(result.operation ? { operation: result.operation } : {}),
     },
     201,
   );

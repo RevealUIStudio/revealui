@@ -70,7 +70,8 @@ vi.mock('@revealui/core/license', () => {
   };
 });
 
-vi.mock('@revealui/core/license/mint-client', () => ({
+vi.mock('@revealui/core/license/mint-client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@revealui/core/license/mint-client')>()),
   canMintLicense: vi.fn(() => Boolean(process.env.REVEALUI_LICENSE_PRIVATE_KEY?.trim())),
   mintConfigMissingMessage: vi.fn(() => 'REVEALUI_LICENSE_PRIVATE_KEY not configured'),
   mintLicenseKey: vi.fn().mockResolvedValue('generated.key'),
@@ -91,9 +92,13 @@ vi.mock('../../lib/nudges/milestone-meters.js', () => ({
 }));
 
 // Default DB mock  -  returns no rows
-vi.mock('@revealui/db', () => ({
+vi.mock('@revealui/db', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@revealui/db')>()),
   findLicenseOperation: vi.fn(async () => null),
-  applyLicenseOperation: vi.fn(async (_db, input) => input.licenseKey),
+  applyLicenseOperation: vi.fn(async (_db, input) => ({
+    licenseKey: input.licenseKey,
+    operation: input.descriptor ?? null,
+  })),
   getClient: vi.fn(() => ({
     select: vi.fn(() => ({
       from: vi.fn(() => ({

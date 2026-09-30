@@ -774,22 +774,14 @@ Creates a signed JWT license key for a customer. Requires license mint config (R
 
 **Request body** (JSON)
 
-| Field | Type | Required | Description |
-|-------|------|:--------:|-------------|
-| `operationId` | `string (uuid)` | ✓ | Stable operation UUID reused with the same request to recover the committed token after a retry. |
-| `expectedCurrentLicenseKey` | `string` | - | Exact registered current token to replace; successful rotation atomically revokes its JTI and registers the replacement. |
-| `perpetual` | `boolean` | - | Explicit perpetual entitlement. When true, expiresInDays must be omitted. |
-| `tier` | `string` | ✓ | License tier to generate |
-| `customerId` | `string` | ✓ | Stripe customer ID or internal customer identifier |
-| `domains` | `array` | - | Licensed domains (optional) |
-| `maxSites` | `integer` | - | Maximum sites (defaults: Pro=5, Enterprise=unlimited) |
-| `maxUsers` | `integer` | - | Maximum users (defaults: Pro=25, Enterprise=unlimited) |
-| `expiresInDays` | `integer` | - | License duration in days (default: 90, max: 10 years) |
+See API schema for request body shape.
 
 **Responses**
 
+- `200`  -  Matching committed operation recovered without minting
 - `201`  -  License key generated
 - `401`  -  Unauthorized  -  missing or invalid admin API key
+- `404`  -  Authenticated recover-only lookup proved that no operation is committed
 - `409`  -  Operation conflict or current identity changed
 - `503`  -  Server error  -  missing private key configuration
 
@@ -882,22 +874,14 @@ Creates a signed JWT license key for a customer. Requires license mint config (R
 
 **Request body** (JSON)
 
-| Field | Type | Required | Description |
-|-------|------|:--------:|-------------|
-| `operationId` | `string (uuid)` | ✓ | Stable operation UUID reused with the same request to recover the committed token after a retry. |
-| `expectedCurrentLicenseKey` | `string` | - | Exact registered current token to replace; successful rotation atomically revokes its JTI and registers the replacement. |
-| `perpetual` | `boolean` | - | Explicit perpetual entitlement. When true, expiresInDays must be omitted. |
-| `tier` | `string` | ✓ | License tier to generate |
-| `customerId` | `string` | ✓ | Stripe customer ID or internal customer identifier |
-| `domains` | `array` | - | Licensed domains (optional) |
-| `maxSites` | `integer` | - | Maximum sites (defaults: Pro=5, Enterprise=unlimited) |
-| `maxUsers` | `integer` | - | Maximum users (defaults: Pro=25, Enterprise=unlimited) |
-| `expiresInDays` | `integer` | - | License duration in days (default: 90, max: 10 years) |
+See API schema for request body shape.
 
 **Responses**
 
+- `200`  -  Matching committed operation recovered without minting
 - `201`  -  License key generated
 - `401`  -  Unauthorized  -  missing or invalid admin API key
+- `404`  -  Authenticated recover-only lookup proved that no operation is committed
 - `409`  -  Operation conflict or current identity changed
 - `503`  -  Server error  -  missing private key configuration
 
