@@ -82,27 +82,26 @@ function isBlockedIPv4(ip: string): boolean {
   return false;
 }
 
-/** Render the last two 16-bit groups of an expanded IPv6 address as the dotted
- * IPv4 address they embed -- shared by the IPv4-mapped (`::ffff:a.b.c.d`) and
- * NAT64 (`64:ff9b::a.b.c.d`) embed forms below. */
-function embeddedIPv4(groups: number[]): string {
-  const g6 = groups[6] ?? 0;
-  const g7 = groups[7] ?? 0;
-  return [(g6 >> 8) & 0xff, g6 & 0xff, (g7 >> 8) & 0xff, g7 & 0xff].join('.');
+/** Render two adjacent 16-bit groups as a dotted IPv4 address.
+ * Offset 6 is the low 32 bits (IPv4-mapped, IPv4-compatible, NAT64).
+ * Offset 1 is the 32 bits following a /16 prefix (6to4). */
+function embeddedIPv4(groups: number[], offset = 6): string {
+  const high = groups[offset] ?? 0;
+  const low = groups[offset + 1] ?? 0;
+  return [(high >> 8) & 0xff, high & 0xff, (low >> 8) & 0xff, low & 0xff].join('.');
 }
 
 /** Blocked IPv6 ranges: unspecified (::, which routes to localhost on
- * Linux), loopback (::1), unique local addresses (fc00::/7, covers
- * fd00::/8), link-local (fe80::/10), IPv4-mapped addresses (::ffff:a.b.c.d),
- * and the NAT64 well-known prefix (64:ff9b::/96) -- both of the latter two
- * embed an IPv4 address in the low 32 bits, recursively checked against
- * `isBlockedIPv4`. This is what closes the `[::ffff:127.0.0.1]` /
- * `[::ffff:a9fe:a9fe]` bypasses plus the residual `[::]` and
- * `[64:ff9b::a9fe:a9fe]` bypasses (guardrail-2 APPROVE-with-residuals on
- * revealui#2202). */
+ * Linux), loopback (::1), unique local (fc00::/7), link-local (fe80::/10),
+ * multicast (ff00::/8), documentation (2001:db8::/32), discard-only
+ * (100::/64), and the NAT64 local-use prefix (64:ff9b:1::/48). IPv4-mapped
+ * (::ffff:a.b.c.d), deprecated IPv4-compatible (::a.b.c.d), the NAT64
+ * well-known prefix (64:ff9b::/96), and 6to4 (2002::/16) embed an IPv4
+ * address and are blocked when that address is blocked. Unparseable input
+ * fails closed. */
 function isBlockedIPv6(address: string): boolean {
   const groups = expandIPv6Groups(address);
-  if (!groups) return true; // unparseable -- fail closed
+  if (!groups) return true; // unparseable: fail closed
 
   const isZero = (n: number): boolean => n === 0;
   if (groups.every(isZero)) return true; // :: unspecified address
@@ -111,12 +110,32 @@ function isBlockedIPv6(address: string): boolean {
   const first = groups[0] ?? 0;
   if (first >= 0xfc00 && first <= 0xfdff) return true; // fc00::/7 (ULA)
   if (first >= 0xfe80 && first <= 0xfebf) return true; // fe80::/10 (link-local)
+  if (first >= 0xff00) return true; // ff00::/8 (multicast)
+
+  if (groups[0] === 0x2001 && groups[1] === 0x0db8) return true; // 2001:db8::/32
+
+  // 100::/64 discard-only. 100:0:0:1:: is outside this prefix.
+  if (groups[0] === 0x0100 && groups[1] === 0 && groups[2] === 0 && groups[3] === 0) {
+    return true;
+  }
 
   const isIPv4Mapped = groups.slice(0, 5).every(isZero) && groups[5] === 0xffff;
   if (isIPv4Mapped) return isBlockedIPv4(embeddedIPv4(groups));
 
+  // Deprecated IPv4-compatible form (::a.b.c.d). :: and ::1 already returned.
+  const isIPv4Compatible = groups.slice(0, 6).every(isZero);
+  if (isIPv4Compatible) return isBlockedIPv4(embeddedIPv4(groups));
+
   const isNAT64 = groups[0] === 0x64 && groups[1] === 0xff9b && groups.slice(2, 6).every(isZero);
   if (isNAT64) return isBlockedIPv4(embeddedIPv4(groups));
+
+  // 64:ff9b:1::/48 is local-use and not globally routable, so the whole
+  // prefix is blocked, including when the low 32 bits look public.
+  const isNAT64Local = groups[0] === 0x64 && groups[1] === 0xff9b && groups[2] === 0x0001;
+  if (isNAT64Local) return true;
+
+  // 6to4 embeds an IPv4 address in bits 16-47.
+  if (groups[0] === 0x2002) return isBlockedIPv4(embeddedIPv4(groups, 1));
 
   return false;
 }
@@ -140,11 +159,12 @@ function isBlockedResolvedAddress(address: string, family: number): boolean {
 
 /**
  * SSRF guard for the web fetch tool. Blocks cloud-metadata, loopback,
- * link-local, private, and carrier-grade NAT ranges for IPv4 and IPv6
- * (including mapped IPv4 addresses and the well-known translation prefix),
- * plus internal hostname suffixes. A hostname that is not a literal address
- * is resolved once, and every returned address is checked. If any address is
- * blocked, or resolution fails, the host is refused.
+ * link-local, private, and carrier-grade NAT ranges across IPv4 and IPv6,
+ * including mapped, compatible, NAT64, and 6to4 embedded IPv4 addresses,
+ * and multicast, documentation, discard-only, and NAT64 local-use prefixes.
+ * Internal hostname suffixes are also blocked. Other hostnames are resolved
+ * once, and every returned address is checked. If any address is blocked,
+ * or resolution fails, the host is refused.
  *
  * When the host is allowed, the socket is pinned to the first validated
  * address. The request lookup callback returns that address and does not

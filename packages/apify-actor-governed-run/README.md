@@ -139,14 +139,12 @@ const result = verifyReceipt(receipt); // { valid: boolean, reason?: string }
 ## Known limitations (v0.1)
 
 - The built-in tool catalog has exactly one tool (`web_fetch`, a bounded
-  HTTP(S) fetch). It resolves DNS and blocks the private, loopback,
-  link-local, and carrier-grade-NAT ranges across both IPv4 and IPv6
-  (including IPv4-mapped IPv6 addresses), and it does not follow redirects.
-  It does not pin the connection to the address it validated, so a true
-  DNS-rebinding attack, where the DNS answer changes between that check and
-  the fetch a moment later, is still out of scope. A public hostname with a
-  static record pointed at a blocked address is fully blocked. Expanding the
-  tool catalog is future work.
+  HTTP(S) fetch). It resolves DNS once and checks every returned address
+  against the IPv4 and IPv6 blocked ranges, including embedded IPv4
+  addresses and non-global IPv6 prefixes. It pins the connection to a
+  validated address, preserves the original Host header and TLS server
+  name with certificate verification enabled, and does not follow redirects.
+  Expanding the tool catalog is future work.
 - The Dockerfile has not been smoke-tested against a live `apify run` or the
   Apify build system. Run `apify run` locally and `apify push` to a test
   actor before Store submission.
