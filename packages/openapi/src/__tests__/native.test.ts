@@ -188,6 +188,45 @@ describe('zodToJsonSchema', () => {
       expect(zodToJsonSchema(z.string().uuid())).toMatchObject({ format: 'uuid' });
     });
 
+    it('retains anchored regex constraints without literal delimiters', () => {
+      const pattern = /^[0-9a-f]{64}$/;
+      const result = zodToJsonSchema(z.string().regex(pattern));
+      expect(result.pattern).toBe(pattern.source);
+      expect(new RegExp(result.pattern as string).test('a'.repeat(64))).toBe(true);
+      expect(new RegExp(result.pattern as string).test('A'.repeat(64))).toBe(false);
+      expect(new RegExp(result.pattern as string).test('a'.repeat(63))).toBe(false);
+    });
+
+    it('retains all pattern checks instead of overwriting earlier constraints', () => {
+      const result = zodToJsonSchema(z.string().regex(/^foo/).regex(/bar$/));
+      expect(result.pattern).toBe('^foo');
+      expect(result.allOf).toEqual([{ pattern: 'bar$' }]);
+    });
+
+    it('refuses regex flags instead of silently publishing different semantics', () => {
+      expect(() => zodToJsonSchema(z.string().regex(/^abc$/i))).toThrow('regex flags');
+    });
+
+    it('preserves literal endsWith rejection of a trailing line terminator', () => {
+      const input = z.string().endsWith('bar');
+      const result = zodToJsonSchema(input);
+      const pattern = new RegExp(result.pattern as string);
+      for (const value of ['foobar', 'foobar\n', 'foobar\r', 'foobar\u2028', 'foobar\u2029']) {
+        expect(pattern.test(value)).toBe(input.safeParse(value).success);
+      }
+    });
+
+    it('retains Zod4 literal prefix and inclusion constraints', () => {
+      for (const schema of [z.string().startsWith('f.o'), z.string().includes('f.o')]) {
+        const result = zodToJsonSchema(schema);
+        for (const value of ['f.o', 'foo', 'xf.o', 'f.o-tail']) {
+          expect(new RegExp(result.pattern as string).test(value)).toBe(
+            schema.safeParse(value).success,
+          );
+        }
+      }
+    });
+
     it('datetime format', () => {
       expect(zodToJsonSchema(z.string().datetime())).toMatchObject({ format: 'date-time' });
     });
@@ -251,6 +290,35 @@ describe('zodToJsonSchema', () => {
       expect(result.properties?.name).toEqual({ type: 'string' });
       expect(result.properties?.age).toEqual({ type: 'number' });
       expect(result.required).toEqual(['name', 'age']);
+    });
+
+    it('retains strict rejection on nested objects and union branches', () => {
+      const schema = z.strictObject({
+        promotion: z.union([
+          z.strictObject({ kind: z.literal('absent') }),
+          z.strictObject({ kind: z.literal('sha256'), sha256: z.string().regex(/^[0-9a-f]{64}$/) }),
+        ]),
+      });
+      const result = zodToJsonSchema(schema);
+      expect(result.additionalProperties).toBe(false);
+      for (const branch of result.properties?.promotion.oneOf ?? []) {
+        expect(branch.additionalProperties).toBe(false);
+      }
+      expect(result.properties?.promotion.oneOf?.[1].properties?.sha256.pattern).toBe(
+        '^[0-9a-f]{64}$',
+      );
+      expect(schema.safeParse({ promotion: { kind: 'absent', unexpected: true } }).success).toBe(
+        false,
+      );
+    });
+
+    it('retains supported typed catchalls and passthrough acceptance', () => {
+      expect(
+        zodToJsonSchema(z.object({ name: z.string() }).catchall(z.number())).additionalProperties,
+      ).toEqual({ type: 'number' });
+      expect(
+        zodToJsonSchema(z.object({ name: z.string() }).passthrough()).additionalProperties,
+      ).toBe(true);
     });
 
     it('optional fields are not required', () => {

@@ -1,7 +1,12 @@
 import { randomUUID } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { applyLicenseOperation, type LicenseOperationInput } from '../license-operations.js';
+import {
+  applyLicenseOperation,
+  findLicenseOperation,
+  type LicenseOperationInput,
+} from '../license-operations.js';
 import { licenseJtiRevocations } from '../schema/license-jti-revocations.js';
 import { licenseOperations } from '../schema/license-operations.js';
 import { licenses } from '../schema/licenses.js';
@@ -46,6 +51,99 @@ function replacement(prior: LicenseOperationInput): LicenseOperationInput {
 }
 
 describe('committed license operation contract', () => {
+  it('rolls back the descriptor column and signature transition if the final function creation fails', async () => {
+    const previous = await readFile(
+      new URL('../../migrations/0046_license_operations.sql', import.meta.url),
+      'utf8',
+    );
+    const transition = await readFile(
+      new URL('../../migrations/0047_license_operation_descriptors.sql', import.meta.url),
+      'utf8',
+    );
+    await db.pglite.exec(
+      'DROP FUNCTION license_apply_operation(text,text,text,text,text,timestamptz,text,text,text,timestamptz,boolean,text,text,jsonb); ALTER TABLE license_operations DROP COLUMN request_descriptor;',
+    );
+    await db.pglite.exec(previous.split('--> statement-breakpoint')[1]);
+    // Force a syntax error in the dynamic CREATE, after ALTER and DROP have executed.
+    await expect(
+      db.pglite.exec(transition.replace('RETURNS jsonb', 'RETURNS synthetic_missing_type')),
+    ).rejects.toThrow();
+    const functions = await db.pglite.query<{ pronargs: number }>(
+      "SELECT pronargs FROM pg_proc WHERE proname = 'license_apply_operation'",
+    );
+    expect(functions.rows).toEqual([{ pronargs: 13 }]);
+    const columns = await db.pglite.query(
+      "SELECT column_name FROM information_schema.columns WHERE table_name = 'license_operations' AND column_name = 'request_descriptor'",
+    );
+    expect(columns.rows).toEqual([]);
+    await db.pglite.exec(transition);
+    const migrated = await db.pglite.query<{ pronargs: number }>(
+      "SELECT pronargs FROM pg_proc WHERE proname = 'license_apply_operation'",
+    );
+    expect(migrated.rows).toEqual([{ pronargs: 14 }]);
+  });
+  it('recovers immutable promotion evidence without minting and binds declared grant, customer, mode and path', async () => {
+    const input = initial();
+    const grant = {
+      tier: input.tier,
+      domains: null,
+      maxSites: null,
+      maxUsers: null,
+      perpetual: true,
+      expiresInSeconds: null,
+    };
+    const promotion = {
+      kind: 'initial' as const,
+      path: `forge/customers/${input.customerId}/license-key`,
+    };
+    const descriptor = {
+      version: 1 as const,
+      operationId: input.operationId,
+      customerId: input.customerId,
+      mode: input.mode,
+      grant,
+      effectiveGrant: grant,
+      action: 'initial' as const,
+      expectedCurrentLicenseKeySha256: null,
+      promotion: { ...promotion, expected: { kind: 'absent' as const } },
+    };
+    const selector = { grant, action: descriptor.action, promotion };
+    const lookup = { ...input, requestFingerprint: '' };
+    expect(await findLicenseOperation(db.drizzle, lookup, selector)).toBeNull();
+    expect(await applyLicenseOperation(db.drizzle, { ...input, descriptor })).toEqual({
+      licenseKey: input.licenseKey,
+      operation: descriptor,
+    });
+    expect(await findLicenseOperation(db.drizzle, lookup, selector)).toEqual({
+      licenseKey: input.licenseKey,
+      operation: descriptor,
+    });
+    await expect(
+      findLicenseOperation(db.drizzle, { ...lookup, mode: 'test' }, selector),
+    ).rejects.toThrow();
+    await expect(
+      findLicenseOperation(db.drizzle, { ...lookup, customerId: randomUUID() }, selector),
+    ).rejects.toThrow();
+    await expect(
+      findLicenseOperation(db.drizzle, lookup, { ...selector, grant: { ...grant, tier: 'pro' } }),
+    ).rejects.toThrow();
+    await expect(
+      findLicenseOperation(db.drizzle, lookup, {
+        ...selector,
+        promotion: { ...promotion, path: 'revealui/dev/founder-license-key' },
+      }),
+    ).rejects.toThrow();
+    const legacy = initial();
+    await applyLicenseOperation(db.drizzle, legacy);
+    await expect(
+      findLicenseOperation(db.drizzle, { ...legacy, requestFingerprint: '' }, selector),
+    ).rejects.toThrow();
+    await db.drizzle
+      .update(licenses)
+      .set({ deletedAt: new Date() })
+      .where(eq(licenses.id, input.licenseId));
+    await expect(findLicenseOperation(db.drizzle, lookup, selector)).rejects.toThrow();
+  });
   it('cannot issue duplicate or previously revoked token identity', async () => {
     const input = initial();
     await applyLicenseOperation(db.drizzle, input);
@@ -60,9 +158,12 @@ describe('committed license operation contract', () => {
   });
   it('registers explicit perpetual issuance and returns the same receipt on retry', async () => {
     const input = initial();
-    expect(await applyLicenseOperation(db.drizzle, input)).toBe(input.licenseKey);
-    expect(await applyLicenseOperation(db.drizzle, { ...input, licenseKey: randomUUID() })).toBe(
-      input.licenseKey,
+    expect(await applyLicenseOperation(db.drizzle, input)).toEqual({
+      licenseKey: input.licenseKey,
+      operation: null,
+    });
+    expect(await applyLicenseOperation(db.drizzle, { ...input, licenseKey: randomUUID() })).toEqual(
+      { licenseKey: input.licenseKey, operation: null },
     );
     const [row] = await db.drizzle.select().from(licenses).where(eq(licenses.id, input.licenseId));
     expect(row).toMatchObject({ licenseKey: input.licenseKey, perpetual: true, expiresAt: null });

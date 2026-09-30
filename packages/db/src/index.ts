@@ -93,7 +93,12 @@ export {
 export {
   applyLicenseOperation,
   findLicenseOperation,
+  type LicenseOperationDescriptor,
+  LicenseOperationDescriptorSchema,
   type LicenseOperationInput,
+  type LicenseOperationResult,
+  LicensePromotionIdentitySchema,
+  LicensePromotionSchema,
 } from './license-operations.js';
 // Re-export saga module
 export type {
