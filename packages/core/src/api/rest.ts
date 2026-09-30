@@ -223,8 +223,10 @@ function getCorsOriginsFromConfig(config?: Config | RevealConfig): string[] {
 }
 
 /**
- * Get allowed CORS origin for a request
- * Checks config first, then environment variable, then allows all for development
+ * Get allowed CORS origin for a request.
+ * The allowlist comes from config, then REVEALUI_CORS_ORIGINS.
+ * A request origin on that list is returned. A missing list, an empty list,
+ * or a non-matching origin returns an empty allow-origin so nothing is granted.
  */
 function getAllowedOrigin(request: Request, config?: Config | RevealConfig): string {
   let allowedOrigins = getCorsOriginsFromConfig(config);
@@ -236,20 +238,11 @@ function getAllowedOrigin(request: Request, config?: Config | RevealConfig): str
 
   const origin = request.headers.get('origin');
 
-  // If config has specific origins and request origin matches, use it
   if (allowedOrigins.length > 0 && origin && allowedOrigins.includes(origin)) {
     return origin;
   }
 
-  // In development, allow all origins for convenience
-  // In production, this should never be reached if CORS is properly configured
-  if (process.env.NODE_ENV === 'development') {
-    return '*';
-  }
-
-  // In production, if no allowed origins configured, deny all (secure default)
-  // This prevents accidental exposure in production
-  return origin || '';
+  return '';
 }
 
 /**

@@ -210,13 +210,53 @@ describe('REST API handler', () => {
       expect(response.headers.get('Access-Control-Allow-Origin')).toBe('http://allowed.com');
     });
 
-    it('allows wildcard origin in development mode', async () => {
-      process.env.NODE_ENV = 'development';
+    it('returns an empty allow-origin when the request origin is not on the allowlist', async () => {
+      process.env.NODE_ENV = 'production';
+      const corsConfig = createMockConfig({
+        cors: ['http://first.example', 'http://second.example'],
+      } as Partial<Config>);
       const request = createRequest('http://localhost:3000/api/collections/posts', {
         method: 'OPTIONS',
+        headers: { Origin: 'http://other.example' },
+      });
+      const response = await handleRESTRequest(request, corsConfig, revealui);
+      expect(response.headers.get('Access-Control-Allow-Origin') ?? '').toBe('');
+    });
+
+    it('returns an empty allow-origin for a non-matching origin in development', async () => {
+      process.env.NODE_ENV = 'development';
+      const corsConfig = createMockConfig({
+        cors: ['http://first.example'],
+      } as Partial<Config>);
+      const request = createRequest('http://localhost:3000/api/collections/posts', {
+        method: 'OPTIONS',
+        headers: { Origin: 'http://other.example' },
+      });
+      const response = await handleRESTRequest(request, corsConfig, revealui);
+      expect(response.headers.get('Access-Control-Allow-Origin') ?? '').toBe('');
+    });
+
+    it('returns an empty allow-origin when the allowlist is missing', async () => {
+      process.env.NODE_ENV = 'production';
+      delete process.env.REVEALUI_CORS_ORIGINS;
+      const request = createRequest('http://localhost:3000/api/collections/posts', {
+        method: 'OPTIONS',
+        headers: { Origin: 'http://example.com' },
       });
       const response = await handleRESTRequest(request, config, revealui);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+      expect(response.headers.get('Access-Control-Allow-Origin') ?? '').toBe('');
+    });
+
+    it('returns an empty allow-origin when the allowlist is empty', async () => {
+      process.env.NODE_ENV = 'production';
+      process.env.REVEALUI_CORS_ORIGINS = '';
+      const corsConfig = createMockConfig({ cors: [] } as Partial<Config>);
+      const request = createRequest('http://localhost:3000/api/collections/posts', {
+        method: 'OPTIONS',
+        headers: { Origin: 'http://example.com' },
+      });
+      const response = await handleRESTRequest(request, corsConfig, revealui);
+      expect(response.headers.get('Access-Control-Allow-Origin') ?? '').toBe('');
     });
 
     it('falls back to REVEALUI_CORS_ORIGINS env var', async () => {
@@ -252,9 +292,13 @@ describe('REST API handler', () => {
 
     it('includes CORS headers on non-preflight responses', async () => {
       process.env.NODE_ENV = 'development';
-      const request = createRequest('http://localhost:3000/api/collections/posts');
+      const request = createRequest('http://localhost:3000/api/collections/posts', {
+        headers: { Origin: 'http://example.com' },
+      });
       const response = await handleRESTRequest(request, config, revealui);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBeTruthy();
+      expect(response.headers.get('Access-Control-Allow-Methods')).toContain('GET');
+      expect(response.headers.get('Access-Control-Allow-Credentials')).toBe('true');
+      expect(response.headers.get('Access-Control-Allow-Origin') ?? '').toBe('');
     });
   });
 
@@ -889,10 +933,13 @@ describe('REST API handler', () => {
       const findMock = vi.fn().mockRejectedValue(new Error('fail'));
       revealui = createMockRevealUI({ find: findMock });
 
-      const request = createRequest('http://localhost:3000/api/collections/posts');
+      const request = createRequest('http://localhost:3000/api/collections/posts', {
+        headers: { Origin: 'http://example.com' },
+      });
       const response = await handleRESTRequest(request, config, revealui);
 
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBeTruthy();
+      expect(response.headers.get('Access-Control-Allow-Methods')).toContain('GET');
+      expect(response.headers.get('Access-Control-Allow-Origin') ?? '').toBe('');
     });
 
     it('returns JSON content type on error responses', async () => {
