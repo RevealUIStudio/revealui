@@ -247,7 +247,7 @@ export const blogMetaClaims: readonly ClaimEntry[] = [
       },
       {
         kind: 'test',
-        ref: 'apps/marketing/app/lib/__tests__/blog-registry.test.ts#claim drift excerpt says every number is checked against the code',
+        ref: 'apps/marketing/app/lib/__tests__/blog-registry.test.ts#claim drift excerpt scopes automated checks and retains human assessment',
         note: 'GAP-467 registry lock for capability-shaped excerpt',
       },
     ],

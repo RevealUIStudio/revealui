@@ -24,6 +24,7 @@ import { type ContactInquiry, ContactInquirySchema } from '@revealui/contracts/p
 import { logger } from '@revealui/core/observability/logger';
 import { zValidator } from '@revealui/openapi';
 import { Hono } from 'hono';
+import { ZodError } from 'zod';
 import { sendEmail } from '../lib/email.js';
 import { escapeHtml } from '../lib/html.js';
 
@@ -67,7 +68,13 @@ app.post(
   zValidator('json', ContactInquirySchema, (result, c) => {
     if (!result.success) {
       return c.json(
-        { success: false, error: result.error.issues.map((issue) => issue.message).join('; ') },
+        {
+          success: false,
+          error:
+            result.error instanceof ZodError
+              ? result.error.issues.map((issue) => issue.message).join('; ')
+              : 'Please check your inquiry and try again.',
+        },
         400,
       );
     }
