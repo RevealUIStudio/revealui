@@ -99,7 +99,8 @@ describe('Auditor voice and live-hero honesty', () => {
     expect(HOME_HERO.subtitle.support).toBe(
       'Use accounts and infrastructure you control. Hosting, database services, and model usage are separate costs.',
     );
-    expect(INDEX_HTML.includes(HOME_HERO.subtitle.sentence2)).toBe(true);
+    expect(INDEX_HTML.includes(HOME_HERO.subtitle.sentence1)).toBe(true);
+    expect(INDEX_HTML).toContain('Hosting and model usage are separate costs.');
   });
 
   it('keeps the locked problem heading', () => {
