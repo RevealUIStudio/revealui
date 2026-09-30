@@ -35,7 +35,7 @@ describe('isBackflowPr', () => {
 });
 
 describe('isCanonicalAppBackflow', () => {
-  const configuredLogin = 'configured-backflow[bot]';
+  const configuredLogin = 'revealfleet-backflow[bot]';
   const repository = 'RevealUIStudio/revealui';
   const matches = (
     head = CANONICAL_BACKFLOW_HEAD,
@@ -146,12 +146,12 @@ describe('repository identity policy enforcement', () => {
         ...process.env,
         PR_BASE_REF: 'test',
         PR_HEAD_REF: CANONICAL_BACKFLOW_HEAD,
-        PR_AUTHOR_LOGIN: 'configured-backflow[bot]',
+        PR_AUTHOR_LOGIN: 'revealfleet-backflow[bot]',
         PR_HEAD_REPOSITORY: 'RevealUIStudio/revealui',
         GITHUB_REPOSITORY: 'RevealUIStudio/revealui',
         GITHUB_TOKEN: '',
         PR_LABELS: ACK_LABEL,
-        REVEALFLEET_BACKFLOW_APP_LOGIN: 'configured-backflow[bot]',
+        REVEALFLEET_BACKFLOW_APP_LOGIN: 'revealfleet-backflow[bot]',
         ...overrides,
       },
     });

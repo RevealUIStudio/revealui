@@ -51,9 +51,9 @@ jobs:
           PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
           PR_AUTHOR_LOGIN: ${{ github.event.pull_request.user.login }}
           PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
-          # Repository policy populated by the maintained App provisioner from
-          # authoritative installation metadata; never a guessed bot name.
-          REVEALFLEET_BACKFLOW_APP_LOGIN: ${{ vars.REVEALFLEET_BACKFLOW_APP_LOGIN }}
+          # Canonical App identity confirmed by its owner after the App rename.
+          # Keep this policy with the guard; no per-repository variable required.
+          REVEALFLEET_BACKFLOW_APP_LOGIN: revealfleet-backflow[bot]
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node scripts/validate/backflow-merge-method-guard.cjs --mode=pr
