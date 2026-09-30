@@ -2109,6 +2109,239 @@
     "/api/license/generate": {
       "post": {
         "responses": {
+          "200": {
+            "description": "Matching committed operation recovered without minting",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "licenseKey": {
+                      "type": "string",
+                      "description": "Signed JWT license key"
+                    },
+                    "tier": {
+                      "type": "string",
+                      "enum": [
+                        "pro",
+                        "max",
+                        "enterprise"
+                      ],
+                      "description": "License tier"
+                    },
+                    "customerId": {
+                      "type": "string",
+                      "description": "Customer ID"
+                    },
+                    "operation": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "number",
+                          "const": 1
+                        },
+                        "operationId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "customerId": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "live",
+                            "test"
+                          ]
+                        },
+                        "grant": {
+                          "type": "object",
+                          "properties": {
+                            "tier": {
+                              "type": "string",
+                              "enum": [
+                                "pro",
+                                "max",
+                                "enterprise"
+                              ]
+                            },
+                            "domains": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "nullable": true
+                            },
+                            "maxSites": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            },
+                            "maxUsers": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            },
+                            "perpetual": {
+                              "type": "boolean"
+                            },
+                            "expiresInSeconds": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "tier",
+                            "domains",
+                            "maxSites",
+                            "maxUsers",
+                            "perpetual",
+                            "expiresInSeconds"
+                          ]
+                        },
+                        "effectiveGrant": {
+                          "type": "object",
+                          "properties": {
+                            "tier": {
+                              "type": "string",
+                              "enum": [
+                                "pro",
+                                "max",
+                                "enterprise"
+                              ]
+                            },
+                            "domains": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "nullable": true
+                            },
+                            "maxSites": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            },
+                            "maxUsers": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            },
+                            "perpetual": {
+                              "type": "boolean"
+                            },
+                            "expiresInSeconds": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "tier",
+                            "domains",
+                            "maxSites",
+                            "maxUsers",
+                            "perpetual",
+                            "expiresInSeconds"
+                          ]
+                        },
+                        "action": {
+                          "type": "string",
+                          "enum": [
+                            "initial",
+                            "rotation"
+                          ]
+                        },
+                        "expectedCurrentLicenseKeySha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$",
+                          "nullable": true
+                        },
+                        "promotion": {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "initial",
+                                "rotation"
+                              ]
+                            },
+                            "path": {
+                              "type": "string",
+                              "pattern": "^(?:revealui\\/dev\\/founder-license-key|forge\\/customers\\/[a-zA-Z0-9][a-zA-Z0-9._-]*\\/license-key)$"
+                            },
+                            "expected": {
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "absent"
+                                    }
+                                  },
+                                  "additionalProperties": false,
+                                  "required": [
+                                    "kind"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "sha256"
+                                    },
+                                    "sha256": {
+                                      "type": "string",
+                                      "pattern": "^[0-9a-f]{64}$"
+                                    }
+                                  },
+                                  "additionalProperties": false,
+                                  "required": [
+                                    "kind",
+                                    "sha256"
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "kind",
+                            "path",
+                            "expected"
+                          ]
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "version",
+                        "operationId",
+                        "customerId",
+                        "mode",
+                        "grant",
+                        "effectiveGrant",
+                        "action",
+                        "expectedCurrentLicenseKeySha256",
+                        "promotion"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "licenseKey",
+                    "tier",
+                    "customerId"
+                  ]
+                }
+              }
+            }
+          },
           "201": {
             "description": "License key generated",
             "content": {
@@ -2132,6 +2365,205 @@
                     "customerId": {
                       "type": "string",
                       "description": "Customer ID"
+                    },
+                    "operation": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "number",
+                          "const": 1
+                        },
+                        "operationId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "customerId": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "live",
+                            "test"
+                          ]
+                        },
+                        "grant": {
+                          "type": "object",
+                          "properties": {
+                            "tier": {
+                              "type": "string",
+                              "enum": [
+                                "pro",
+                                "max",
+                                "enterprise"
+                              ]
+                            },
+                            "domains": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "nullable": true
+                            },
+                            "maxSites": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            },
+                            "maxUsers": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            },
+                            "perpetual": {
+                              "type": "boolean"
+                            },
+                            "expiresInSeconds": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "tier",
+                            "domains",
+                            "maxSites",
+                            "maxUsers",
+                            "perpetual",
+                            "expiresInSeconds"
+                          ]
+                        },
+                        "effectiveGrant": {
+                          "type": "object",
+                          "properties": {
+                            "tier": {
+                              "type": "string",
+                              "enum": [
+                                "pro",
+                                "max",
+                                "enterprise"
+                              ]
+                            },
+                            "domains": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "nullable": true
+                            },
+                            "maxSites": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            },
+                            "maxUsers": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            },
+                            "perpetual": {
+                              "type": "boolean"
+                            },
+                            "expiresInSeconds": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "tier",
+                            "domains",
+                            "maxSites",
+                            "maxUsers",
+                            "perpetual",
+                            "expiresInSeconds"
+                          ]
+                        },
+                        "action": {
+                          "type": "string",
+                          "enum": [
+                            "initial",
+                            "rotation"
+                          ]
+                        },
+                        "expectedCurrentLicenseKeySha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$",
+                          "nullable": true
+                        },
+                        "promotion": {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "initial",
+                                "rotation"
+                              ]
+                            },
+                            "path": {
+                              "type": "string",
+                              "pattern": "^(?:revealui\\/dev\\/founder-license-key|forge\\/customers\\/[a-zA-Z0-9][a-zA-Z0-9._-]*\\/license-key)$"
+                            },
+                            "expected": {
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "absent"
+                                    }
+                                  },
+                                  "additionalProperties": false,
+                                  "required": [
+                                    "kind"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "sha256"
+                                    },
+                                    "sha256": {
+                                      "type": "string",
+                                      "pattern": "^[0-9a-f]{64}$"
+                                    }
+                                  },
+                                  "additionalProperties": false,
+                                  "required": [
+                                    "kind",
+                                    "sha256"
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "kind",
+                            "path",
+                            "expected"
+                          ]
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "version",
+                        "operationId",
+                        "customerId",
+                        "mode",
+                        "grant",
+                        "effectiveGrant",
+                        "action",
+                        "expectedCurrentLicenseKeySha256",
+                        "promotion"
+                      ]
                     }
                   },
                   "required": [
@@ -2153,6 +2585,25 @@
                     "error": {
                       "type": "string",
                       "example": "Invalid license key"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Authenticated recover-only lookup proved that no operation is committed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "const": "operation_not_found"
                     }
                   },
                   "required": [
@@ -2210,77 +2661,263 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "operationId": {
-                    "type": "string",
-                    "format": "uuid",
-                    "description": "Stable operation UUID reused with the same request to recover the committed token after a retry."
-                  },
-                  "expectedCurrentLicenseKey": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Exact registered current token to replace; successful rotation atomically revokes its JTI and registers the replacement."
-                  },
-                  "perpetual": {
-                    "type": "boolean",
-                    "description": "Explicit perpetual entitlement. When true, expiresInDays must be omitted."
-                  },
-                  "tier": {
-                    "type": "string",
-                    "enum": [
-                      "pro",
-                      "max",
-                      "enterprise"
-                    ],
-                    "description": "License tier to generate",
-                    "example": "pro"
-                  },
-                  "customerId": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Stripe customer ID or internal customer identifier",
-                    "example": "cus_abc123"
-                  },
-                  "domains": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "maxLength": 253
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operationId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Stable operation UUID reused with the same request to recover the committed token after a retry."
+                      },
+                      "expectedCurrentLicenseKey": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Exact registered current token to replace; successful rotation atomically revokes its JTI and registers the replacement."
+                      },
+                      "perpetual": {
+                        "type": "boolean",
+                        "description": "Explicit perpetual entitlement. When true, expiresInDays must be omitted."
+                      },
+                      "tier": {
+                        "type": "string",
+                        "enum": [
+                          "pro",
+                          "max",
+                          "enterprise"
+                        ],
+                        "description": "License tier to generate",
+                        "example": "pro"
+                      },
+                      "customerId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Stripe customer ID or internal customer identifier",
+                        "example": "cus_abc123"
+                      },
+                      "domains": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "maxLength": 253
+                        },
+                        "maxItems": 100,
+                        "description": "Licensed domains (optional)",
+                        "example": [
+                          "example.com",
+                          "app.example.com"
+                        ]
+                      },
+                      "maxSites": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 10000,
+                        "description": "Maximum sites (defaults: Pro=5, Enterprise=unlimited)",
+                        "example": 5
+                      },
+                      "maxUsers": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 1000000,
+                        "description": "Maximum users (defaults: Pro=25, Enterprise=unlimited)",
+                        "example": 25
+                      },
+                      "expiresInDays": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 3650,
+                        "description": "License duration in days (default: 90, max: 10 years)",
+                        "example": 90
+                      },
+                      "recoverOnly": {
+                        "type": "boolean",
+                        "const": false
+                      },
+                      "expectedMode": {
+                        "type": "string",
+                        "enum": [
+                          "live",
+                          "test"
+                        ]
+                      },
+                      "promotion": {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "initial",
+                              "rotation"
+                            ]
+                          },
+                          "path": {
+                            "type": "string",
+                            "pattern": "^(?:revealui\\/dev\\/founder-license-key|forge\\/customers\\/[a-zA-Z0-9][a-zA-Z0-9._-]*\\/license-key)$"
+                          },
+                          "expected": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "const": "absent"
+                                  }
+                                },
+                                "additionalProperties": false,
+                                "required": [
+                                  "kind"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "const": "sha256"
+                                  },
+                                  "sha256": {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-f]{64}$"
+                                  }
+                                },
+                                "additionalProperties": false,
+                                "required": [
+                                  "kind",
+                                  "sha256"
+                                ]
+                              }
+                            ]
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "kind",
+                          "path",
+                          "expected"
+                        ]
+                      }
                     },
-                    "maxItems": 100,
-                    "description": "Licensed domains (optional)",
-                    "example": [
-                      "example.com",
-                      "app.example.com"
+                    "additionalProperties": false,
+                    "required": [
+                      "operationId",
+                      "tier",
+                      "customerId"
                     ]
                   },
-                  "maxSites": {
-                    "type": "integer",
-                    "exclusiveMinimum": 0,
-                    "maximum": 10000,
-                    "description": "Maximum sites (defaults: Pro=5, Enterprise=unlimited)",
-                    "example": 5
-                  },
-                  "maxUsers": {
-                    "type": "integer",
-                    "exclusiveMinimum": 0,
-                    "maximum": 1000000,
-                    "description": "Maximum users (defaults: Pro=25, Enterprise=unlimited)",
-                    "example": 25
-                  },
-                  "expiresInDays": {
-                    "type": "integer",
-                    "exclusiveMinimum": 0,
-                    "maximum": 3650,
-                    "description": "License duration in days (default: 90, max: 10 years)",
-                    "example": 90
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operationId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Stable operation UUID reused with the same request to recover the committed token after a retry."
+                      },
+                      "perpetual": {
+                        "type": "boolean",
+                        "description": "Explicit perpetual entitlement. When true, expiresInDays must be omitted."
+                      },
+                      "tier": {
+                        "type": "string",
+                        "enum": [
+                          "pro",
+                          "max",
+                          "enterprise"
+                        ],
+                        "description": "License tier to generate",
+                        "example": "pro"
+                      },
+                      "customerId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Stripe customer ID or internal customer identifier",
+                        "example": "cus_abc123"
+                      },
+                      "domains": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "maxLength": 253
+                        },
+                        "maxItems": 100,
+                        "description": "Licensed domains (optional)",
+                        "example": [
+                          "example.com",
+                          "app.example.com"
+                        ]
+                      },
+                      "maxSites": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 10000,
+                        "description": "Maximum sites (defaults: Pro=5, Enterprise=unlimited)",
+                        "example": 5
+                      },
+                      "maxUsers": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 1000000,
+                        "description": "Maximum users (defaults: Pro=25, Enterprise=unlimited)",
+                        "example": 25
+                      },
+                      "expiresInDays": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 3650,
+                        "description": "License duration in days (default: 90, max: 10 years)",
+                        "example": 90
+                      },
+                      "recoverOnly": {
+                        "type": "boolean",
+                        "const": true
+                      },
+                      "expectedMode": {
+                        "type": "string",
+                        "enum": [
+                          "live",
+                          "test"
+                        ]
+                      },
+                      "action": {
+                        "type": "string",
+                        "enum": [
+                          "initial",
+                          "rotation"
+                        ]
+                      },
+                      "promotion": {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "initial",
+                              "rotation"
+                            ]
+                          },
+                          "path": {
+                            "type": "string",
+                            "pattern": "^(?:revealui\\/dev\\/founder-license-key|forge\\/customers\\/[a-zA-Z0-9][a-zA-Z0-9._-]*\\/license-key)$"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "kind",
+                          "path"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                      "operationId",
+                      "tier",
+                      "customerId",
+                      "recoverOnly",
+                      "expectedMode",
+                      "action",
+                      "promotion"
+                    ]
                   }
-                },
-                "required": [
-                  "operationId",
-                  "tier",
-                  "customerId"
                 ]
               }
             }
@@ -4303,6 +4940,7 @@
                     "type": "boolean"
                   }
                 },
+                "additionalProperties": true,
                 "required": [
                   "id",
                   "type",
@@ -9021,7 +9659,8 @@
                   "slug": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
                   },
                   "excerpt": {
                     "type": "string",
@@ -9234,7 +9873,8 @@
                   "slug": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
                   },
                   "excerpt": {
                     "type": "string",
@@ -10208,7 +10848,8 @@
                   "slug": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
                   },
                   "description": {
                     "type": "string",
@@ -10380,7 +11021,8 @@
                   "slug": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
                   },
                   "description": {
                     "type": "string",
@@ -10662,7 +11304,8 @@
                   "slug": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
                   },
                   "path": {
                     "type": "string",
@@ -10875,7 +11518,8 @@
                   "slug": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
                   },
                   "path": {
                     "type": "string",
@@ -12781,7 +13425,8 @@
                   "slug": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
                   },
                   "description": {
                     "type": "string",
@@ -12978,7 +13623,8 @@
                   "slug": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
                   },
                   "description": {
                     "type": "string",
@@ -13641,6 +14287,7 @@
                           "type": "string"
                         }
                       },
+                      "additionalProperties": true,
                       "required": [
                         "id"
                       ]
@@ -17610,6 +18257,7 @@
                   },
                   "pricePerCallUsdc": {
                     "type": "string",
+                    "pattern": "^\\d+(\\.\\d{1,6})?$",
                     "default": "0.001"
                   },
                   "metadata": {
@@ -17694,7 +18342,8 @@
             "name": "id",
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^mcp_[\\w]{12}$"
             },
             "required": true
           }
@@ -17802,7 +18451,8 @@
             "name": "id",
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^mcp_[\\w]{12}$"
             },
             "required": true
           }
@@ -17906,7 +18556,8 @@
             "name": "id",
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^mcp_[\\w]{12}$"
             },
             "required": true
           }
@@ -20920,6 +21571,239 @@
     "/api/v1/license/generate": {
       "post": {
         "responses": {
+          "200": {
+            "description": "Matching committed operation recovered without minting",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "licenseKey": {
+                      "type": "string",
+                      "description": "Signed JWT license key"
+                    },
+                    "tier": {
+                      "type": "string",
+                      "enum": [
+                        "pro",
+                        "max",
+                        "enterprise"
+                      ],
+                      "description": "License tier"
+                    },
+                    "customerId": {
+                      "type": "string",
+                      "description": "Customer ID"
+                    },
+                    "operation": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "number",
+                          "const": 1
+                        },
+                        "operationId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "customerId": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "live",
+                            "test"
+                          ]
+                        },
+                        "grant": {
+                          "type": "object",
+                          "properties": {
+                            "tier": {
+                              "type": "string",
+                              "enum": [
+                                "pro",
+                                "max",
+                                "enterprise"
+                              ]
+                            },
+                            "domains": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "nullable": true
+                            },
+                            "maxSites": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            },
+                            "maxUsers": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            },
+                            "perpetual": {
+                              "type": "boolean"
+                            },
+                            "expiresInSeconds": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "tier",
+                            "domains",
+                            "maxSites",
+                            "maxUsers",
+                            "perpetual",
+                            "expiresInSeconds"
+                          ]
+                        },
+                        "effectiveGrant": {
+                          "type": "object",
+                          "properties": {
+                            "tier": {
+                              "type": "string",
+                              "enum": [
+                                "pro",
+                                "max",
+                                "enterprise"
+                              ]
+                            },
+                            "domains": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "nullable": true
+                            },
+                            "maxSites": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            },
+                            "maxUsers": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            },
+                            "perpetual": {
+                              "type": "boolean"
+                            },
+                            "expiresInSeconds": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "tier",
+                            "domains",
+                            "maxSites",
+                            "maxUsers",
+                            "perpetual",
+                            "expiresInSeconds"
+                          ]
+                        },
+                        "action": {
+                          "type": "string",
+                          "enum": [
+                            "initial",
+                            "rotation"
+                          ]
+                        },
+                        "expectedCurrentLicenseKeySha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$",
+                          "nullable": true
+                        },
+                        "promotion": {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "initial",
+                                "rotation"
+                              ]
+                            },
+                            "path": {
+                              "type": "string",
+                              "pattern": "^(?:revealui\\/dev\\/founder-license-key|forge\\/customers\\/[a-zA-Z0-9][a-zA-Z0-9._-]*\\/license-key)$"
+                            },
+                            "expected": {
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "absent"
+                                    }
+                                  },
+                                  "additionalProperties": false,
+                                  "required": [
+                                    "kind"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "sha256"
+                                    },
+                                    "sha256": {
+                                      "type": "string",
+                                      "pattern": "^[0-9a-f]{64}$"
+                                    }
+                                  },
+                                  "additionalProperties": false,
+                                  "required": [
+                                    "kind",
+                                    "sha256"
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "kind",
+                            "path",
+                            "expected"
+                          ]
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "version",
+                        "operationId",
+                        "customerId",
+                        "mode",
+                        "grant",
+                        "effectiveGrant",
+                        "action",
+                        "expectedCurrentLicenseKeySha256",
+                        "promotion"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "licenseKey",
+                    "tier",
+                    "customerId"
+                  ]
+                }
+              }
+            }
+          },
           "201": {
             "description": "License key generated",
             "content": {
@@ -20943,6 +21827,205 @@
                     "customerId": {
                       "type": "string",
                       "description": "Customer ID"
+                    },
+                    "operation": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "number",
+                          "const": 1
+                        },
+                        "operationId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "customerId": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "live",
+                            "test"
+                          ]
+                        },
+                        "grant": {
+                          "type": "object",
+                          "properties": {
+                            "tier": {
+                              "type": "string",
+                              "enum": [
+                                "pro",
+                                "max",
+                                "enterprise"
+                              ]
+                            },
+                            "domains": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "nullable": true
+                            },
+                            "maxSites": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            },
+                            "maxUsers": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            },
+                            "perpetual": {
+                              "type": "boolean"
+                            },
+                            "expiresInSeconds": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "tier",
+                            "domains",
+                            "maxSites",
+                            "maxUsers",
+                            "perpetual",
+                            "expiresInSeconds"
+                          ]
+                        },
+                        "effectiveGrant": {
+                          "type": "object",
+                          "properties": {
+                            "tier": {
+                              "type": "string",
+                              "enum": [
+                                "pro",
+                                "max",
+                                "enterprise"
+                              ]
+                            },
+                            "domains": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "nullable": true
+                            },
+                            "maxSites": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            },
+                            "maxUsers": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            },
+                            "perpetual": {
+                              "type": "boolean"
+                            },
+                            "expiresInSeconds": {
+                              "type": "integer",
+                              "exclusiveMinimum": 0,
+                              "nullable": true
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "tier",
+                            "domains",
+                            "maxSites",
+                            "maxUsers",
+                            "perpetual",
+                            "expiresInSeconds"
+                          ]
+                        },
+                        "action": {
+                          "type": "string",
+                          "enum": [
+                            "initial",
+                            "rotation"
+                          ]
+                        },
+                        "expectedCurrentLicenseKeySha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$",
+                          "nullable": true
+                        },
+                        "promotion": {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "initial",
+                                "rotation"
+                              ]
+                            },
+                            "path": {
+                              "type": "string",
+                              "pattern": "^(?:revealui\\/dev\\/founder-license-key|forge\\/customers\\/[a-zA-Z0-9][a-zA-Z0-9._-]*\\/license-key)$"
+                            },
+                            "expected": {
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "absent"
+                                    }
+                                  },
+                                  "additionalProperties": false,
+                                  "required": [
+                                    "kind"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "sha256"
+                                    },
+                                    "sha256": {
+                                      "type": "string",
+                                      "pattern": "^[0-9a-f]{64}$"
+                                    }
+                                  },
+                                  "additionalProperties": false,
+                                  "required": [
+                                    "kind",
+                                    "sha256"
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "kind",
+                            "path",
+                            "expected"
+                          ]
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "version",
+                        "operationId",
+                        "customerId",
+                        "mode",
+                        "grant",
+                        "effectiveGrant",
+                        "action",
+                        "expectedCurrentLicenseKeySha256",
+                        "promotion"
+                      ]
                     }
                   },
                   "required": [
@@ -20964,6 +22047,25 @@
                     "error": {
                       "type": "string",
                       "example": "Invalid license key"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Authenticated recover-only lookup proved that no operation is committed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "const": "operation_not_found"
                     }
                   },
                   "required": [
@@ -21021,77 +22123,263 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "operationId": {
-                    "type": "string",
-                    "format": "uuid",
-                    "description": "Stable operation UUID reused with the same request to recover the committed token after a retry."
-                  },
-                  "expectedCurrentLicenseKey": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Exact registered current token to replace; successful rotation atomically revokes its JTI and registers the replacement."
-                  },
-                  "perpetual": {
-                    "type": "boolean",
-                    "description": "Explicit perpetual entitlement. When true, expiresInDays must be omitted."
-                  },
-                  "tier": {
-                    "type": "string",
-                    "enum": [
-                      "pro",
-                      "max",
-                      "enterprise"
-                    ],
-                    "description": "License tier to generate",
-                    "example": "pro"
-                  },
-                  "customerId": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Stripe customer ID or internal customer identifier",
-                    "example": "cus_abc123"
-                  },
-                  "domains": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "maxLength": 253
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operationId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Stable operation UUID reused with the same request to recover the committed token after a retry."
+                      },
+                      "expectedCurrentLicenseKey": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Exact registered current token to replace; successful rotation atomically revokes its JTI and registers the replacement."
+                      },
+                      "perpetual": {
+                        "type": "boolean",
+                        "description": "Explicit perpetual entitlement. When true, expiresInDays must be omitted."
+                      },
+                      "tier": {
+                        "type": "string",
+                        "enum": [
+                          "pro",
+                          "max",
+                          "enterprise"
+                        ],
+                        "description": "License tier to generate",
+                        "example": "pro"
+                      },
+                      "customerId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Stripe customer ID or internal customer identifier",
+                        "example": "cus_abc123"
+                      },
+                      "domains": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "maxLength": 253
+                        },
+                        "maxItems": 100,
+                        "description": "Licensed domains (optional)",
+                        "example": [
+                          "example.com",
+                          "app.example.com"
+                        ]
+                      },
+                      "maxSites": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 10000,
+                        "description": "Maximum sites (defaults: Pro=5, Enterprise=unlimited)",
+                        "example": 5
+                      },
+                      "maxUsers": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 1000000,
+                        "description": "Maximum users (defaults: Pro=25, Enterprise=unlimited)",
+                        "example": 25
+                      },
+                      "expiresInDays": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 3650,
+                        "description": "License duration in days (default: 90, max: 10 years)",
+                        "example": 90
+                      },
+                      "recoverOnly": {
+                        "type": "boolean",
+                        "const": false
+                      },
+                      "expectedMode": {
+                        "type": "string",
+                        "enum": [
+                          "live",
+                          "test"
+                        ]
+                      },
+                      "promotion": {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "initial",
+                              "rotation"
+                            ]
+                          },
+                          "path": {
+                            "type": "string",
+                            "pattern": "^(?:revealui\\/dev\\/founder-license-key|forge\\/customers\\/[a-zA-Z0-9][a-zA-Z0-9._-]*\\/license-key)$"
+                          },
+                          "expected": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "const": "absent"
+                                  }
+                                },
+                                "additionalProperties": false,
+                                "required": [
+                                  "kind"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "const": "sha256"
+                                  },
+                                  "sha256": {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-f]{64}$"
+                                  }
+                                },
+                                "additionalProperties": false,
+                                "required": [
+                                  "kind",
+                                  "sha256"
+                                ]
+                              }
+                            ]
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "kind",
+                          "path",
+                          "expected"
+                        ]
+                      }
                     },
-                    "maxItems": 100,
-                    "description": "Licensed domains (optional)",
-                    "example": [
-                      "example.com",
-                      "app.example.com"
+                    "additionalProperties": false,
+                    "required": [
+                      "operationId",
+                      "tier",
+                      "customerId"
                     ]
                   },
-                  "maxSites": {
-                    "type": "integer",
-                    "exclusiveMinimum": 0,
-                    "maximum": 10000,
-                    "description": "Maximum sites (defaults: Pro=5, Enterprise=unlimited)",
-                    "example": 5
-                  },
-                  "maxUsers": {
-                    "type": "integer",
-                    "exclusiveMinimum": 0,
-                    "maximum": 1000000,
-                    "description": "Maximum users (defaults: Pro=25, Enterprise=unlimited)",
-                    "example": 25
-                  },
-                  "expiresInDays": {
-                    "type": "integer",
-                    "exclusiveMinimum": 0,
-                    "maximum": 3650,
-                    "description": "License duration in days (default: 90, max: 10 years)",
-                    "example": 90
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operationId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Stable operation UUID reused with the same request to recover the committed token after a retry."
+                      },
+                      "perpetual": {
+                        "type": "boolean",
+                        "description": "Explicit perpetual entitlement. When true, expiresInDays must be omitted."
+                      },
+                      "tier": {
+                        "type": "string",
+                        "enum": [
+                          "pro",
+                          "max",
+                          "enterprise"
+                        ],
+                        "description": "License tier to generate",
+                        "example": "pro"
+                      },
+                      "customerId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Stripe customer ID or internal customer identifier",
+                        "example": "cus_abc123"
+                      },
+                      "domains": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "maxLength": 253
+                        },
+                        "maxItems": 100,
+                        "description": "Licensed domains (optional)",
+                        "example": [
+                          "example.com",
+                          "app.example.com"
+                        ]
+                      },
+                      "maxSites": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 10000,
+                        "description": "Maximum sites (defaults: Pro=5, Enterprise=unlimited)",
+                        "example": 5
+                      },
+                      "maxUsers": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 1000000,
+                        "description": "Maximum users (defaults: Pro=25, Enterprise=unlimited)",
+                        "example": 25
+                      },
+                      "expiresInDays": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 3650,
+                        "description": "License duration in days (default: 90, max: 10 years)",
+                        "example": 90
+                      },
+                      "recoverOnly": {
+                        "type": "boolean",
+                        "const": true
+                      },
+                      "expectedMode": {
+                        "type": "string",
+                        "enum": [
+                          "live",
+                          "test"
+                        ]
+                      },
+                      "action": {
+                        "type": "string",
+                        "enum": [
+                          "initial",
+                          "rotation"
+                        ]
+                      },
+                      "promotion": {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "initial",
+                              "rotation"
+                            ]
+                          },
+                          "path": {
+                            "type": "string",
+                            "pattern": "^(?:revealui\\/dev\\/founder-license-key|forge\\/customers\\/[a-zA-Z0-9][a-zA-Z0-9._-]*\\/license-key)$"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "kind",
+                          "path"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                      "operationId",
+                      "tier",
+                      "customerId",
+                      "recoverOnly",
+                      "expectedMode",
+                      "action",
+                      "promotion"
+                    ]
                   }
-                },
-                "required": [
-                  "operationId",
-                  "tier",
-                  "customerId"
                 ]
               }
             }
@@ -23114,6 +24402,7 @@
                     "type": "boolean"
                   }
                 },
+                "additionalProperties": true,
                 "required": [
                   "id",
                   "type",
@@ -27832,7 +29121,8 @@
                   "slug": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
                   },
                   "excerpt": {
                     "type": "string",
@@ -28045,7 +29335,8 @@
                   "slug": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
                   },
                   "excerpt": {
                     "type": "string",
@@ -29019,7 +30310,8 @@
                   "slug": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
                   },
                   "description": {
                     "type": "string",
@@ -29191,7 +30483,8 @@
                   "slug": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
                   },
                   "description": {
                     "type": "string",
@@ -29473,7 +30766,8 @@
                   "slug": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
                   },
                   "path": {
                     "type": "string",
@@ -29686,7 +30980,8 @@
                   "slug": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
                   },
                   "path": {
                     "type": "string",
@@ -31592,7 +32887,8 @@
                   "slug": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
                   },
                   "description": {
                     "type": "string",
@@ -31789,7 +33085,8 @@
                   "slug": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
                   },
                   "description": {
                     "type": "string",
@@ -32452,6 +33749,7 @@
                           "type": "string"
                         }
                       },
+                      "additionalProperties": true,
                       "required": [
                         "id"
                       ]
@@ -36421,6 +37719,7 @@
                   },
                   "pricePerCallUsdc": {
                     "type": "string",
+                    "pattern": "^\\d+(\\.\\d{1,6})?$",
                     "default": "0.001"
                   },
                   "metadata": {
@@ -36505,7 +37804,8 @@
             "name": "id",
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^mcp_[\\w]{12}$"
             },
             "required": true
           }
@@ -36613,7 +37913,8 @@
             "name": "id",
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^mcp_[\\w]{12}$"
             },
             "required": true
           }
@@ -36717,7 +38018,8 @@
             "name": "id",
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^mcp_[\\w]{12}$"
             },
             "required": true
           }
@@ -40002,7 +41304,8 @@
             "maxLength": 100
           },
           "color": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$"
           }
         },
         "required": [

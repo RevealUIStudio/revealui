@@ -188,6 +188,12 @@
       "rationale": "Atomic authenticated issuance and containment receipts through one PostgreSQL function, following 0045 for Neon HTTP. Companion Drizzle schema license-operations.ts. Existing snapshot chain debt prevents clean generation without unrelated drift.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Existing snapshot-debt backfill remains required; the function is not modeled by drizzle-kit."
+    },
+    {
+      "tag": "0047_license_operation_descriptors",
+      "rationale": "Single atomic DO transition extends existing licensing operation function and persisted immutable promotion descriptor. One SQL statement is atomic under both maintained migrator and synthetic independent-statement loader. Companion Drizzle model updated.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Existing snapshot-debt backfill remains required; function transition is not modeled by drizzle-kit."
     }
   ]
 }

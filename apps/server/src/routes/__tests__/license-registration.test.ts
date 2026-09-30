@@ -1,4 +1,4 @@
-import { generateKeyPairSync, randomUUID } from 'node:crypto';
+import { createHash, generateKeyPairSync, randomUUID } from 'node:crypto';
 import { generateLicenseKey } from '@revealui/core/license';
 import { licenseJtiRevocations, licenses } from '@revealui/db/schema';
 import { createTestDb, type TestDb } from '@revealui/db/testing';
@@ -16,6 +16,7 @@ import licenseApp from '../license.js';
 
 let db: TestDb;
 let privateKey: string;
+let publicKey: string;
 const app = new Hono().route('/', licenseApp);
 beforeAll(async () => {
   db = await createTestDb();
@@ -25,6 +26,7 @@ beforeAll(async () => {
     privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
   });
   privateKey = keys.privateKey;
+  publicKey = keys.publicKey;
   vi.stubEnv('REVEALUI_LICENSE_PUBLIC_KEY', keys.publicKey);
   vi.stubEnv('REVEALUI_LICENSE_PUBLIC_KEY_NEXT', '');
   vi.stubEnv('REVEALUI_LICENSE_PRIVATE_KEY', keys.privateKey);
@@ -49,6 +51,82 @@ function post(path: string, body: object, admin = false) {
 }
 
 describe('registered hosted authority using signed tokens and real migration SQL', () => {
+  it('recovers exact immutable Vault promotion evidence without signer access or prior credential', async () => {
+    const customerId = randomUUID();
+    const promotion = {
+      kind: 'initial',
+      path: `forge/customers/${customerId}/license-key`,
+      expected: { kind: 'absent' },
+    };
+    const request = {
+      operationId: randomUUID(),
+      customerId,
+      tier: 'pro',
+      perpetual: true,
+      expectedMode: 'test',
+      promotion,
+    };
+    const recover = {
+      ...request,
+      recoverOnly: true,
+      action: 'initial',
+      promotion: { kind: promotion.kind, path: promotion.path },
+    };
+    expect((await post('/generate', recover)).status).toBe(401);
+    const miss = await post('/generate', recover, true);
+    expect(miss.status).toBe(404);
+    expect(await miss.json()).toEqual({ error: 'operation_not_found' });
+    const issued = await post('/generate', request, true);
+    expect(issued.status).toBe(201);
+    const first = await issued.json();
+    expect(first.operation.grant.maxSites).toBeNull();
+    expect(first.operation.effectiveGrant.maxSites).toBe(5);
+    expect(first.operation.promotion).toEqual(promotion);
+    const exactVaultBytes = ` ${first.licenseKey}\n`;
+    const rotation = {
+      ...request,
+      operationId: randomUUID(),
+      expectedCurrentLicenseKey: first.licenseKey,
+      promotion: {
+        ...promotion,
+        kind: 'rotation',
+        expected: {
+          kind: 'sha256',
+          sha256: createHash('sha256').update(exactVaultBytes).digest('hex'),
+        },
+      },
+    };
+    const rotated = await post('/generate', rotation, true);
+    expect(rotated.status).toBe(201);
+    const next = await rotated.json();
+    expect(next.operation.expectedCurrentLicenseKeySha256).toBe(
+      createHash('sha256').update(first.licenseKey).digest('hex'),
+    );
+    expect(next.operation.promotion.expected.sha256).not.toBe(
+      next.operation.expectedCurrentLicenseKeySha256,
+    );
+    const recoverRotation = {
+      ...recover,
+      operationId: rotation.operationId,
+      action: 'rotation',
+      promotion: { kind: 'rotation', path: promotion.path },
+    };
+    vi.stubEnv('REVEALUI_LICENSE_PRIVATE_KEY', '');
+    vi.stubEnv('REVEALUI_LICENSE_PUBLIC_KEY', '');
+    try {
+      const recovered = await post('/generate', recoverRotation, true);
+      expect(recovered.status).toBe(200);
+      expect(await recovered.json()).toEqual(next);
+      expect((await post('/generate', recover, true)).status).toBe(409);
+      expect((await post('/generate', { ...recoverRotation, tier: 'max' }, true)).status).toBe(409);
+      expect(
+        (await post('/generate', { ...recoverRotation, expectedMode: 'live' }, true)).status,
+      ).toBe(409);
+    } finally {
+      vi.stubEnv('REVEALUI_LICENSE_PRIVATE_KEY', privateKey);
+      vi.stubEnv('REVEALUI_LICENSE_PUBLIC_KEY', publicKey);
+    }
+  });
   it('contains prior credential; stale verify/refresh deny; persisted retry recovers replacement', async () => {
     const customerId = randomUUID();
     const request = { operationId: randomUUID(), customerId, tier: 'enterprise', perpetual: true };

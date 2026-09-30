@@ -202,6 +202,23 @@ function getCheckDef(check: unknown): Record<string, unknown> {
   return c?._zod?.def ?? {};
 }
 
+function schemaPattern(pattern: unknown): string {
+  if (pattern instanceof RegExp) {
+    if (pattern.flags) throw new Error('OpenAPI cannot represent regex flags');
+    return pattern.source;
+  }
+  if (typeof pattern === 'string') return pattern;
+  throw new Error('OpenAPI regex constraint has no supported pattern');
+}
+
+function addStringPattern(result: JSONSchema, pattern: string): void {
+  if (result.pattern === undefined) result.pattern = pattern;
+  else {
+    result.allOf ??= [];
+    result.allOf.push({ pattern });
+  }
+}
+
 function convertString(def: Record<string, unknown>): JSONSchema {
   const result: JSONSchema = { type: 'string' };
   const checks = (def.checks as unknown[]) ?? [];
@@ -221,6 +238,18 @@ function convertString(def: Record<string, unknown>): JSONSchema {
         break;
       case 'string_format':
         switch (cd.format) {
+          case 'starts_with':
+            addStringPattern(result, `^${escapeForPattern(String(cd.prefix))}`);
+            break;
+          case 'ends_with':
+            addStringPattern(result, `${escapeForPattern(String(cd.suffix))}(?![\\s\\S])`);
+            break;
+          case 'includes':
+            addStringPattern(result, escapeForPattern(String(cd.includes)));
+            break;
+          case 'regex':
+            addStringPattern(result, schemaPattern(cd.pattern));
+            break;
           case 'email':
             result.format = 'email';
             break;
@@ -253,16 +282,16 @@ function convertString(def: Record<string, unknown>): JSONSchema {
         }
         break;
       case 'pattern':
-        result.pattern = String(cd.pattern);
+        addStringPattern(result, schemaPattern(cd.pattern));
         break;
       case 'starts_with':
-        result.pattern = `^${escapeForPattern(String(cd.prefix))}`;
+        addStringPattern(result, `^${escapeForPattern(String(cd.prefix))}`);
         break;
       case 'ends_with':
-        result.pattern = `${escapeForPattern(String(cd.suffix))}$`;
+        addStringPattern(result, `${escapeForPattern(String(cd.suffix))}(?![\\s\\S])`);
         break;
       case 'includes':
-        result.pattern = escapeForPattern(String(cd.includes));
+        addStringPattern(result, escapeForPattern(String(cd.includes)));
         break;
     }
   }
@@ -356,6 +385,16 @@ function convertObject(def: Record<string, unknown>, ctx: ConversionContext): JS
   }
 
   const result: JSONSchema = { type: 'object', properties };
+  const catchall = def.catchall as z.ZodTypeAny | undefined;
+  if (catchall) {
+    const catchallType = (catchall._def as unknown as Record<string, unknown>).type;
+    result.additionalProperties =
+      catchallType === 'never'
+        ? false
+        : catchallType === 'unknown' || catchallType === 'any'
+          ? true
+          : zodToJsonSchema(catchall, ctx);
+  }
   if (required.length > 0) result.required = required;
 
   return result;

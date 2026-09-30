@@ -40,6 +40,7 @@ import { execFileSync } from 'node:child_process';
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { auditStandaloneProductionDependencies } from './apify-standalone-dependency-audit.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..', '..');
@@ -199,6 +200,8 @@ execFileSync('npm', ['install', '--package-lock-only', '--omit=dev'], {
   cwd: outDir,
   stdio: 'inherit',
 });
+console.log('[build-apify-actor] auditing standalone production dependency graph...');
+auditStandaloneProductionDependencies(outDir);
 
 console.log('[build-apify-actor] 6/6 writing standalone Dockerfile + .dockerignore...');
 const dockerfile = `# syntax=docker/dockerfile:1

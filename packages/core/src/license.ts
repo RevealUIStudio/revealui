@@ -1079,17 +1079,18 @@ export async function generateLicenseKey(
   // Strip the optional jti from the spread so jose.setJti() is the single
   // source of the claim (avoids a duplicate field in the payload).
   const { jti: _ignoredJti, ...rest } = payload;
+  const issuedAt = Math.floor(Date.now() / 1000);
   const builder = new jose.SignJWT({ ...rest })
     .setProtectedHeader(header)
-    .setIssuedAt()
+    .setIssuedAt(issuedAt)
     // Phase 1 audit B-2: enforce nbf so tokens cannot be replayed pre-issue
     // by a clock-skewed client.
-    .setNotBefore('0s')
+    .setNotBefore(issuedAt)
     .setJti(jti)
     .setIssuer(LICENSE_ISSUER)
     .setAudience(LICENSE_AUDIENCE);
   if (expiresInSeconds !== null) {
-    builder.setExpirationTime(`${expiresInSeconds}s`);
+    builder.setExpirationTime(issuedAt + expiresInSeconds);
   }
   return builder.sign(key);
 }

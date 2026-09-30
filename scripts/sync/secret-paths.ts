@@ -62,10 +62,12 @@ export interface SecretPathDef {
   /** Feeds P0-5 (⊇ REQUIRED_IN_PRODUCTION_HOSTED). Set only where confirmed required-at-boot. */
   requiredInProdHosted?: boolean;
   /**
-   * Env var name(s) this vault path is consumed as. REQUIRED for entries with
-   * `requiredInProdHosted` — P0-5 (prod-required-coverage.test.ts) asserts each
-   * is enforced at hosted-prod boot, via validate-startup's
+   * Env var name(s) enforced for this vault path. REQUIRED for entries with
+   * `requiredInProdHosted`. P0-5 (prod-required-coverage.test.ts) asserts each
+   * name is enforced at hosted-prod boot, via validate-startup's
    * REQUIRED_IN_PRODUCTION_HOSTED or a REQUIRED_ALWAYS_GROUPS alias group.
+   * List only those boot names. Another app's alias of the same path belongs
+   * in `note` and the sync manifest, not here.
    */
   envVars?: string[];
   /** Declared in-flight rename target (zero-downtime). The value has NOT moved yet. */
@@ -562,11 +564,13 @@ export const SECRET_PATHS: SecretPathDef[] = [
     sensitive: false,
     tier: 'prod',
     // vercel:api is required for governed MCP tool loopback (self REST calls).
-    // vercel:marketing reads it as VITE_API_URL (GAP-350); admin/api still use
-    // REVEALUI_API_URL + NEXT_PUBLIC_API_URL.
+    // Marketing reads this same path as VITE_API_URL (GAP-350). Admin still
+    // uses REVEALUI_API_URL + NEXT_PUBLIC_API_URL. Those are other apps' names,
+    // not validate-startup boot vars, so they stay out of envVars. The
+    // marketing manifest mapping is locked in secret-paths-lockstep.
     consumers: ['vercel:api', 'vercel:admin', 'vercel:marketing', 'vercel:docs'],
     requiredInProdHosted: true,
-    envVars: ['REVEALUI_API_URL', 'VITE_API_URL'],
+    envVars: ['REVEALUI_API_URL'],
     note: 'api self-origin: REVEALUI_API_URL (+ NEXT_PUBLIC_API_URL twin on Next apps; VITE_API_URL on marketing). Governed MCP tools fail without it.',
   },
   // ── STAGING (GAP-343 Phase 3) ──────────────────────────────────────────────

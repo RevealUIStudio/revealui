@@ -26,7 +26,8 @@ vi.mock('@revealui/core/license', () => ({
   readLicenseJti: vi.fn(async () => 'jti-1'),
 }));
 
-vi.mock('@revealui/core/license/mint-client', () => ({
+vi.mock('@revealui/core/license/mint-client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@revealui/core/license/mint-client')>()),
   canMintLicense: vi.fn(() => false),
   mintConfigMissingMessage: vi.fn(() => 'not configured'),
   mintLicenseKey: vi.fn(),
@@ -36,7 +37,8 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
-vi.mock('@revealui/db', () => ({
+vi.mock('@revealui/db', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@revealui/db')>()),
   getClient: vi.fn(),
   isJtiRevoked: vi.fn(async () => false),
 }));

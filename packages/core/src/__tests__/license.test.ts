@@ -6,7 +6,7 @@
  */
 
 import { generateKeyPairSync } from 'node:crypto';
-import { decodeProtectedHeader, importPKCS8, SignJWT } from 'jose';
+import { decodeJwt, decodeProtectedHeader, importPKCS8, SignJWT } from 'jose';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   computeKeyId,
@@ -62,6 +62,41 @@ afterEach(() => {
 // =============================================================================
 // generateLicenseKey
 // =============================================================================
+
+describe('single sampled mint timestamp', () => {
+  it('binds exact duration when the clock crosses a second between JWT setters', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-30T12:00:00.999Z'));
+    const original = SignJWT.prototype.setIssuedAt;
+    const setter = vi.spyOn(SignJWT.prototype, 'setIssuedAt').mockImplementation(function (value) {
+      const result = original.call(this, value);
+      vi.advanceTimersByTime(1001);
+      return result;
+    });
+    try {
+      const token = await generateLicenseKey(
+        { tier: 'pro', customerId: 'synthetic-clock' },
+        privateKeyPem,
+        3600,
+      );
+      const claims = decodeJwt(token);
+      expect(claims.nbf).toBe(claims.iat);
+      expect(claims.exp).toBe((claims.iat ?? 0) + 3600);
+      const perpetual = decodeJwt(
+        await generateLicenseKey(
+          { tier: 'pro', customerId: 'synthetic-clock', perpetual: true },
+          privateKeyPem,
+          null,
+        ),
+      );
+      expect(perpetual).not.toHaveProperty('exp');
+      expect(perpetual.nbf).toBe(perpetual.iat);
+    } finally {
+      setter.mockRestore();
+      vi.useRealTimers();
+    }
+  });
+});
 
 describe('generateLicenseKey', () => {
   it('generates a valid JWT string', async () => {

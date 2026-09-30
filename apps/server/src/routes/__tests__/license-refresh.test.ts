@@ -37,7 +37,8 @@ vi.mock('@revealui/core/license', () => ({
   readLicenseJti: vi.fn(async () => null),
 }));
 
-vi.mock('@revealui/core/license/mint-client', () => ({
+vi.mock('@revealui/core/license/mint-client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@revealui/core/license/mint-client')>()),
   canMintLicense: vi.fn(() => Boolean(process.env.REVEALUI_LICENSE_PRIVATE_KEY?.trim())),
   mintConfigMissingMessage: vi.fn(() => 'REVEALUI_LICENSE_PRIVATE_KEY not configured'),
   mintLicenseKey: vi.fn().mockResolvedValue('rv-license-key-test-123'),
@@ -47,7 +48,8 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
-vi.mock('@revealui/db', () => ({
+vi.mock('@revealui/db', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@revealui/db')>()),
   getClient: vi.fn(),
   isJtiRevoked: vi.fn(async () => false),
 }));
