@@ -52,13 +52,34 @@ it('assembles current API contracts without runtime startup or external I/O', as
   for (const prefix of ['/api/license', '/api/v1/license']) {
     const generate = spec.paths?.[`${prefix}/generate`]?.post;
     const body = generate?.requestBody as {
-      content: { 'application/json': { schema: { required: string[]; properties: object } } };
+      content: {
+        'application/json': {
+          schema: {
+            oneOf?: Array<{
+              required?: string[];
+              properties?: Record<string, { const?: unknown }>;
+            }>;
+            required?: string[];
+            properties?: Record<string, { const?: unknown }>;
+          };
+        };
+      };
     };
-    expect(body.content['application/json'].schema.required).toContain('operationId');
-    expect(body.content['application/json'].schema.properties).toHaveProperty('perpetual');
-    expect(body.content['application/json'].schema.properties).toHaveProperty(
-      'expectedCurrentLicenseKey',
+    const schemas = body.content['application/json'].schema.oneOf ?? [
+      body.content['application/json'].schema,
+    ];
+    expect(schemas).toHaveLength(2);
+    expect(schemas.every((schema) => schema.required?.includes('operationId'))).toBe(true);
+    expect(schemas.every((schema) => Object.hasOwn(schema.properties ?? {}, 'perpetual'))).toBe(
+      true,
     );
+    const normal = schemas.find((schema) =>
+      Object.hasOwn(schema.properties ?? {}, 'expectedCurrentLicenseKey'),
+    );
+    const recoverOnly = schemas.find((schema) => schema.properties?.recoverOnly?.const === true);
+    expect(normal).toBeDefined();
+    expect(recoverOnly).toBeDefined();
+    expect(Object.hasOwn(recoverOnly?.properties ?? {}, 'expectedCurrentLicenseKey')).toBe(false);
     expect(generate?.responses).toHaveProperty('503');
     expect(spec.paths?.[`${prefix}/verify`]?.post).toBeDefined();
   }
