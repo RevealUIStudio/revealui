@@ -149,6 +149,13 @@ describe('getOwnerLicenseCurrent', () => {
     });
   });
 
+  it('does not return an active key when the JTI authority is unavailable', async () => {
+    mockRows([{ licenseKey: JWT, status: 'active', tier: 'pro', expiresAt: null }]);
+    const unavailable = new Error('revocation unavailable');
+    vi.mocked(isJtiRevoked).mockRejectedValueOnce(unavailable);
+    await expect(getOwnerLicenseCurrent('user-a')).rejects.toBe(unavailable);
+  });
+
   it('does not crash on a garbage tier', async () => {
     mockRows([{ licenseKey: JWT, status: 'active', tier: 'not-a-tier', expiresAt: null }]);
     await expect(getOwnerLicenseCurrent('user-a')).resolves.toMatchObject({

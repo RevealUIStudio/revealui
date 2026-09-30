@@ -128,7 +128,7 @@ overrides:
   '@tootallnate/once': '>=3.0.1'
   flatted: '>=3.4.1'
   yauzl: '>=3.2.1'
-  esbuild: '>=0.28.1'
+  esbuild: 0.28.1
   vite: 8.0.16
   typescript: 6.0.3
   body-parser: '>=2.2.1'
@@ -254,6 +254,9 @@ importers:
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(@electric-sql/pglite@0.5.4)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.22.0)
+      esbuild:
+        specifier: 0.28.1
+        version: 0.28.1
       fast-glob:
         specifier: ^3.3.3
         version: 3.3.3
@@ -5713,7 +5716,7 @@ packages:
     resolution: {integrity: sha512-3WrrOuZiyaaZPWiEt4G3+IffISVC9HYlWueJEBWED4ZH4aIAC2PnkdnuRrR94M+w6yGWn4AglWtJtBI8YqvgoA==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     peerDependencies:
-      esbuild: '>=0.28.1'
+      esbuild: 0.28.1
 
   byte-counter@0.1.0:
     resolution: {integrity: sha512-jheRLVMeUKrDBjVw2O5+k4EvR4t9wtxHL+bo/LxfkxsVeuGMy3a5SEGgXdAFA4FSzTrU8rQXQIrsZ3oBq5a0pQ==}
@@ -9253,7 +9256,7 @@ packages:
     peerDependencies:
       '@types/node': ^20.19.0 || >=22.12.0
       '@vitejs/devtools': ^0.1.18
-      esbuild: '>=0.28.1'
+      esbuild: 0.28.1
       jiti: '>=1.21.0'
       less: ^4.0.0
       sass: ^1.70.0

@@ -87,6 +87,7 @@ export {
   getJtiRevocationEpoch,
   isJtiRevoked,
   type JtiRevocationInput,
+  JtiRevocationUnavailableError,
   recordJtiRevocations,
 } from './license-jti-denylist.js';
 // Re-export saga module

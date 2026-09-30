@@ -89,7 +89,7 @@ vi.mock('../../lib/nudges/milestone-meters.js', () => ({
 
 import { validateLicenseKey } from '@revealui/core/license';
 import { mintLicenseKey } from '@revealui/core/license/mint-client';
-import { getClient } from '@revealui/db';
+import { getClient, isJtiRevoked } from '@revealui/db';
 import licenseApp from '../license.js';
 
 const mockedValidate = vi.mocked(validateLicenseKey);
@@ -519,6 +519,16 @@ describe('POST /verify  -  DB revocation override', () => {
     expect(body.valid).toBe(false);
     expect(body.reason).toBe('unverifiable');
     expect(body.tier).toBe('free');
+  });
+
+  it('denies a JTI query outage even when the active license-row query would succeed', async () => {
+    mockedValidate.mockResolvedValue({ ...VALID_PAYLOAD, jti: 'jti-outage' } as never);
+    mockDb([{ status: 'active' }]);
+    vi.mocked(isJtiRevoked).mockRejectedValueOnce(new Error('JTI authority unavailable'));
+
+    const res = await createApp().request('/verify', post('/verify', { licenseKey: 'valid.jwt' }));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ valid: false, reason: 'unverifiable', tier: 'free' });
   });
 
   it('returns reason:revoked when JWT is invalid and DB row is revoked', async () => {

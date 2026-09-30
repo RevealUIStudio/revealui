@@ -51,7 +51,25 @@ export const GuardrailLocksSchema = z
       .strict(),
     enforcement_verbs: z.array(z.enum(ENFORCEMENT_VERBS)).min(1),
   })
-  .strict();
+  .strict()
+  .superRefine((locks, ctx) => {
+    const required = [
+      ...(locks.snapshot_before_checkpoint === 'required' ? ['require_snapshot'] : []),
+      ...(locks.overclaim.deny_patterns.some((pattern) => pattern.trim().length > 0)
+        ? ['refuse_overclaim']
+        : []),
+      ...(locks.banned_icp_phrases.mode === 'enforced' ? ['needs_human'] : []),
+    ];
+    for (const verb of required) {
+      if (!locks.enforcement_verbs.some((configured) => configured === verb)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['enforcement_verbs'],
+          message: `Active lock requires enforcement verb: ${verb}`,
+        });
+      }
+    }
+  });
 
 export function parseLocks(input: unknown): GuardrailLocks {
   return GuardrailLocksSchema.parse(input);

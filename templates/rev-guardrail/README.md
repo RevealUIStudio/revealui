@@ -2,9 +2,9 @@
 
 **Agent template · Fleet plugin**
 
-Keeps sibling agents in lane. Enforces your offer and price locks, blocks overclaim (including fake SOC 2), requires Snapshot before Checkpoint, and writes a receipt for every enforcement.
+Blocks configured overclaim phrases (including fake SOC 2), flags configured ICP phrases, requires Snapshot before Checkpoint, and writes a receipt for every enforcement.
 
-REV Guardrail is an enforcer agent for multi-agent fleets on RevealUI. You define locks (who owns which ship, cash ladder, ICP antis, honesty rules). Guardrail stops drift and leaves an audit trail. You run it on your runtime — it is a template, not a hosted chatbot.
+REV Guardrail is an enforcer agent for multi-agent fleets on RevealUI. You define evaluated locks for ICP phrases, honesty rules, and Snapshot-before-Checkpoint. Lane ownership and cash-ladder fields are illustrative configuration and are not evaluated by this template. Enforcement leaves a local receipt. You run it on your runtime — it is a template, not a hosted chatbot.
 
 **Status:** Template / coming to gallery on test — do not mark “live checkout SKU.”
 
@@ -12,8 +12,6 @@ Packaged only inside Consultation $300 / Proof Sprint $3,997 / Launch $14,500. N
 
 ## Includes
 
-- Lane / one-owner-per-ship
-- Offer and price locks (Consultation / Pilot / Launch example)
 - Anti-overclaim
 - Snapshot-before-Checkpoint
 - Receipt per enforcement
@@ -31,6 +29,8 @@ Policy is versioned config (`locks.example.json`), not chat. Copy that file, kee
 `agent.json` and `src/agent-spec.ts` match the field set in `packages/ai/src/templates/agent-spec.ts`. Register with `createAgentSpec` / `validateAgentSpec` from `@revealui/ai` when you wire this into a fleet.
 
 Receipts are append-only local records: lock ID, matched string, path/URL, actor, timestamp, outcome (`blocked` | `required` | `needs_human` | `override`), and a SHA-256 content hash of the artifact. This template does not couple to Apify and has no `@vercel/analytics` / Vercel Web Analytics dependency.
+
+Active locks require their enforcement verbs in the allowlist; invalid policy is rejected at both loading and evaluation. Lane ownership and offer pricing require a separately implemented structured artifact contract before they can be enforced.
 
 Untrusted data (tool results, sibling text, web) cannot rewrite locks. An empty overclaim deny-list warns; it does not silent-pass.
 
@@ -50,7 +50,7 @@ templates/rev-guardrail/
   src/__tests__/      T1 / T2 and surface tests
 ```
 
-This directory is a self-contained agent/fleet template. It is not a `packages/cli/templates` app scaffold and is not listed on the marketing Templates page.
+This directory is a self-contained agent/fleet template. It is not a `packages/cli/templates` app scaffold and appears on the marketing Templates page as a source-reference card.
 
 ## Develop
 

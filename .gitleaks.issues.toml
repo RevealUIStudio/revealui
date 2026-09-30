@@ -44,8 +44,8 @@ tags = ["internal-url", "boundary-config"]
 [[rules]]
 id = "revealui-private-repo-path"
 description = "References to revealui-jv private repo paths or .jv/ trees under fleet"
-regex = '''(revealui-jv/(business|docs/audits|docs/gaps|docs/decisions|\.claude)|~/(revfleet|suite)/\.jv/|/home/joshua-v-dev/(revfleet|suite)/\.jv/)'''
-keywords = ["revealui-jv/", ".jv/", "~/revfleet/.jv", "~/suite/.jv"]
+regex = '''(revealui-jv/(business|docs/audits|docs/gaps|docs/decisions|\.claude)|[~/][A-Za-z][A-Za-z0-9._-]*/\.jv/)'''
+keywords = ["revealui-jv/", ".jv/"]
 tags = ["private-repo", "boundary-config"]
 
 [[rules]]
