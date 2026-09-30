@@ -359,7 +359,7 @@ function LicenseContent() {
         <Card>
           <CardHeader>
             <CardTitle>License Key</CardTitle>
-            <CardDescription>No license key is on this account yet.</CardDescription>
+            <CardDescription>This account does not have a license key yet.</CardDescription>
           </CardHeader>
         </Card>
       )}

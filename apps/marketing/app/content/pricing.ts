@@ -21,9 +21,9 @@ export interface AgentFeatureCard {
 
 export const PRICING_HERO: SectionHeading = {
   eyebrow: 'Pricing',
-  title: 'Tired of tools that don’t talk, and agents with no PROOF?',
+  title: 'Choose a license for the runtime you run.',
   subtitle:
-    'Self-host the agentic business runtime. Catalog: Free / Pro $49 / Max $99/mo · $799/yr. Studio work invoices on revealuistudio.com.',
+    'Start with Free. Choose Pro or Max for agent features and higher limits. Enterprise licenses are scoped with sales. All plans are self-hosted.',
 };
 
 /** Coming-soon work stays off the cards. Do not sell it as included. */
@@ -47,18 +47,18 @@ export const PRICING_HERO_NAV_ANCHORS = [
 
 export const PRICING_TRACK_A_SECTION = {
   eyebrow: 'Subscription',
-  heading: 'Subscribe monthly or annually',
-  body: 'Every subscription includes an agent task allowance. 7-day free trial on Pro and Max.',
+  heading: 'Choose monthly or annual billing.',
+  body: 'Paid subscriptions include an agent task allowance. Pro and Max include a 7-day free trial.',
 } as const;
 
 export const PRICING_VALUE_BAND = {
   heading: 'You own the runtime.',
-  body: 'Teams shipping more than one product typically rent auth, content, billing, and observability from four or five vendors, and the bill climbs further once enterprise SSO or compliance tiers enter. RevealUI replaces the rented stack with one runtime you own. You still pay for your own Postgres and compute.',
+  body: 'Build on shared accounts, content, offers, and billing. Add the agent layer when you need it. Your license covers RevealUI; hosting, your database, and model usage are separate costs.',
   points: [
     'One runtime, not five separate SaaS subscriptions',
     'Self-host on Vercel, Cloudflare, Fly, Hetzner, or your own metal',
     'Full source code access on every tier',
-    "Open-weight AI by default: your bill doesn't scale with usage",
+    'You provide model access and pay your infrastructure or provider costs',
   ],
 } as const;
 
@@ -70,7 +70,7 @@ export const PRICING_TRIAL_NOTE =
 export const PRICING_TRACK_C_SECTION = {
   eyebrow: 'Perpetual',
   heading: 'Perpetual Licenses',
-  body: 'A perpetual license costs about three years of the subscription. Pay once, own it forever, and renew support only if you want it.',
+  body: 'Pro Perpetual lets you keep using your licensed version without a monthly subscription. Review the included update and support period before buying.',
 } as const;
 
 export const PRICING_AGENTS_SECTION = {

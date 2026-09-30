@@ -20,9 +20,8 @@ export interface TeaserTier {
 
 export const PRICING_TEASER_SECTION = {
   eyebrow: 'Pricing',
-  heading:
-    'Start free. Pro: agents with shared plan rules, MCP, and receipts (PROOF). Max is $99/mo.',
-  body: 'Self-host the open stack at no cost. Pro, Max, and Enterprise add agent capacity and support. Pro and Max include a 7-day free trial.',
+  heading: 'Start free. Add agents when you need them.',
+  body: 'Free gives you the core runtime. Paid licenses add agent features and higher limits. You provide the infrastructure and model access.',
 } as const;
 
 // Free and Pro get full cards, since they cover the self-serve path most
@@ -32,13 +31,12 @@ export const PRICING_TEASER_TIERS: readonly TeaserTier[] = [
   {
     id: 'free',
     name: 'Free',
-    description:
-      'Run the open stack on your own infrastructure. Most packages stay MIT forever. No telemetry.',
+    description: 'Build with the MIT-licensed core and run it on your infrastructure.',
     features: [
-      'Full primitive stack',
-      'Admin dashboard + API',
-      'Self-host on any infra',
-      'Bring your own model (open-weight default)',
+      'Sign-in and permissions',
+      'Content APIs and admin components',
+      'Offers and Stripe integration',
+      'Core packages use the MIT license.',
     ],
     cta: 'Start free',
     href: SITE.urls.signup,
@@ -47,8 +45,7 @@ export const PRICING_TEASER_TIERS: readonly TeaserTier[] = [
   {
     id: 'pro',
     name: 'Pro',
-    description:
-      'Add the AI layer, an agent task allowance, and priority support when you scale agents.',
+    description: 'Add agent tools, shared memory, and MCP integrations.',
     features: [
       'Everything in Free',
       '10,000 agent tasks / month included',

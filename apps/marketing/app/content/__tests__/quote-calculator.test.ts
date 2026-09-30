@@ -24,7 +24,7 @@ describe('quote calculator (product-site lockstep)', () => {
   });
 
   it('asks who runs it and how many sites, with Studio as an outbound path', () => {
-    expect(QUOTE_CALCULATOR.heading).toBe('Who runs it. What you need. One product price.');
+    expect(QUOTE_CALCULATOR.heading).toBe('Choose how you want to build.');
     expect(QUOTE_CALCULATOR.bodies.home).toBe(
       'Need implementation? Studio is a separate path (Consultation, Pilot, Launch). This catalog is licenses only.',
     );

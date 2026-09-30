@@ -101,7 +101,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'SUBSCRIPTION_TIERS[0].description',
-    text: 'Perfect for trying out RevealUI and small projects.',
+    text: 'Build with the free core on your infrastructure.',
     evidence: [TIER_LIMITS],
   },
   {
@@ -119,7 +119,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'SUBSCRIPTION_TIERS[1].description',
-    text: 'For software companies building production products.',
+    text: 'Add agent features and higher limits to your runtime.',
     evidence: [TIER_LIMITS],
   },
   {
@@ -341,7 +341,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing-faq.ts',
     exportPath: 'PRICING_FAQS[5].answer',
-    text: 'Bring your own model. The default ships open-weight (Gemma-family and other open-weight models) via Ollama or Ubuntu Inference Snaps from Canonical (canonical default, Studio lifecycle pending), so your bill does not scale with usage. Switch to Claude, GPT, or any OpenAI-compatible provider in one config line. The runtime is provider-agnostic; the default is sovereignty-friendly.',
+    text: 'Configure a supported local model or hosted provider. You manage the local infrastructure or pay the model provider for usage. Check the local AI guide for the supported setup paths.',
     evidence: [OPEN_WEIGHT, PROVIDERS],
   },
   {
@@ -535,14 +535,14 @@ export const claimsPart2: readonly ClaimEntry[] = [
     file: 'for-operators.ts',
     exportPath: 'FOR_OPERATORS_PRICING.rungs[1].body',
     proofGrade: 'outcome',
-    text: 'One site and one receipted action you operate. Stage B is included. Credits 100% to Launch if you start Launch within 45 days. This SKU lives on revealuistudio.com, not on the product catalog.',
+    text: 'One site on your domain and one receipted action you operate. You keep it. The domain pack is included. Credits 100% to Launch if you start Launch within 45 days. This SKU lives on revealuistudio.com, not on the product catalog.',
     evidence: [COMMERCIAL_POLICY, SELF_HOST],
   },
   {
     file: 'for-operators.ts',
     exportPath: 'FOR_OPERATORS_PRICING.rungs[2].body',
     proofGrade: 'outcome',
-    text: 'We stand up your RevealUI instance, including architecture work inside Launch, a runbook, and 30 days of async stabilization. This SKU lives on revealuistudio.com, not on the product catalog.',
+    text: 'Architecture work happens inside Launch, with a runbook and 30-day async stabilization. Half now, half on delivery. This SKU lives on revealuistudio.com, not on the product catalog.',
     evidence: [COMMERCIAL_POLICY],
   },
   {

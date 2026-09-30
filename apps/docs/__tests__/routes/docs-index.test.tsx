@@ -44,12 +44,15 @@ describe('DocsIndexPage', () => {
     expect(markdown).toHaveTextContent('npx create-revealui@latest my-app');
   });
 
-  it('does not sell Cloud as a hosted signup and keeps waitlist honesty', () => {
+  it('directs readers to self-hosted setup without a hosted signup', () => {
     render(<DocsIndexPage />);
 
     expect(screen.queryByText(/hosted product you can sign up for in minutes/i)).toBeNull();
-    expect(screen.getByText(/RevealUI Cloud is waitlist, not sold/i)).toBeInTheDocument();
-    expect(screen.getByText(/Self-host today/i)).toBeInTheDocument();
+    expect(screen.getByTestId('markdown')).toHaveTextContent('your self-hosted runtime');
+    expect(screen.getByTestId('markdown')).toHaveTextContent(
+      'Start with the guide for your chosen template',
+    );
+    expect(screen.getByTestId('markdown')).not.toHaveTextContent('RevealUI Cloud');
   });
 
   it('does not render marketing CTAs on the docs landing', () => {

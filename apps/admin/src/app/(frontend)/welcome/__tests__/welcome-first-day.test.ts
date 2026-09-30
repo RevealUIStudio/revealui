@@ -6,7 +6,7 @@ describe('welcomeFirstDayCta', () => {
     const cta = welcomeFirstDayCta('free');
     expect(cta.href).toBe('/pages');
     expect(cta.title).toBe('Create your first page');
-    expect(cta.body).toContain('does not unlock Pro agents');
+    expect(cta.linkLabel).toBe('Open pages');
   });
 
   it('sends Pro and Max to agents', () => {

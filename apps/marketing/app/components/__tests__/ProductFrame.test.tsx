@@ -7,7 +7,7 @@ describe('ProductFrame', () => {
     render(
       <ProductFrame
         caption={{
-          prefix: 'Live admin chrome composed from',
+          prefix: 'Example admin interface built with',
           code: '@revealui/presentation',
           suffix: 'components. The three beats are the local install path.',
         }}

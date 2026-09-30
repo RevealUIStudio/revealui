@@ -12,8 +12,8 @@ export interface ContactMethod {
 }
 
 export const CONTACT_HERO = {
-  title: 'Get in touch',
-  subtitle: 'Questions about RevealUI? Interested in Enterprise? We would love to hear from you.',
+  title: 'Talk to the RevealUI team.',
+  subtitle: 'Ask about a license, report a product issue, or discuss Enterprise.',
 } as const;
 
 export const CONTACT_METHODS: readonly ContactMethod[] = [

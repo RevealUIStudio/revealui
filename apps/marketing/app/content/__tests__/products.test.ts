@@ -9,14 +9,14 @@ describe('products roster honesty', () => {
     expect(PRODUCTS_PAGE_HERO.subtitle.toLowerCase().includes('five are ready to use today')).toBe(
       false,
     );
-    expect(PRODUCTS_PAGE_HERO.subtitle.toLowerCase().includes('zero paying')).toBe(true);
+    expect(PRODUCTS_PAGE_HERO.subtitle.toLowerCase().includes('self-hosted')).toBe(true);
   });
 
   it('presents licenses, not a RevealFleet product family', () => {
     expect(PRODUCTS_PAGE_HERO.h1.toLowerCase().includes('revealfleet')).toBe(false);
     expect(PRODUCTS_PAGE_HERO.h1.toLowerCase().includes('product family')).toBe(false);
     expect(PRODUCTS_PAGE_HERO.h1.toLowerCase().includes('license')).toBe(true);
-    expect(PRODUCTS_PAGE_HERO.subtitle.toLowerCase().includes('revealuistudio.com')).toBe(true);
+    expect(PRODUCTS_PAGE_HERO.subtitle.toLowerCase().includes('license')).toBe(true);
     expect(PRODUCTS_FLAGSHIP.body.toLowerCase().includes('revealfleet')).toBe(false);
     expect(PRODUCTS_CTA_SECTION.body.toLowerCase().includes('revealfleet')).toBe(false);
   });
@@ -24,7 +24,7 @@ describe('products roster honesty', () => {
   it('lists the honest public catalog without Fleet get-started copy', () => {
     expect(PRODUCTS_PAGE_HERO.subtitle.includes('RevealFleet')).toBe(false);
     expect(PRODUCTS_PAGE_HERO.subtitle.includes('Pro Perpetual')).toBe(true);
-    expect(PRODUCTS_PAGE_HERO.subtitle.toLowerCase().includes('inquire')).toBe(true);
+    expect(PRODUCTS_PAGE_HERO.subtitle.toLowerCase().includes('enterprise')).toBe(true);
     expect(PRODUCTS_PAGE_HERO.subtitle.includes('Contact sales')).toBe(false);
   });
 

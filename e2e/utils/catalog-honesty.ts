@@ -48,9 +48,12 @@ export const FORBIDDEN_CATALOG_PHRASES = [
 ] as const;
 
 export async function assertHonestProductCatalog(page: Page): Promise<void> {
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('agents with no PROOF', {
-    timeout: 10_000,
-  });
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'Choose a license for the runtime you run.',
+    {
+      timeout: 10_000,
+    },
+  );
 
   for (const name of HONEST_TIER_HEADINGS) {
     await expect(page.getByRole('heading', { name, exact: true }).first()).toBeVisible();

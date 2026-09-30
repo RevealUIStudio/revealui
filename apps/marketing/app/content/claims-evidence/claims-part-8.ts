@@ -25,7 +25,7 @@ export const claimsPart8: readonly ClaimEntry[] = [
   {
     file: 'nav.ts',
     exportPath: 'FOOTER_TAGLINE',
-    text: 'The agentic business runtime startups operate on their own domain. Existing tools report in, you keep the stack.',
+    text: 'RevealUI is a self-hosted business runtime with an MIT-licensed core and source-available Pro packages.',
     evidence: [NAV_CONTENT, LICENSE_MIT, THIS_SITE],
   },
   {
@@ -62,7 +62,7 @@ export const claimsPart8: readonly ClaimEntry[] = [
   {
     file: 'status.ts',
     exportPath: 'STATUS_HERO.subtitle',
-    text: 'Live probe and link surface for the four RevealUI properties.',
+    text: 'Check endpoint availability and open the linked services.',
     evidence: [STATUS_CONTENT, THIS_SITE],
   },
   {
@@ -146,7 +146,7 @@ export const claimsPart8: readonly ClaimEntry[] = [
   {
     file: 'blog.ts',
     exportPath: 'BLOG_INDEX.subtitle',
-    text: 'Updates, guides, and insights from the RevealUI team.',
+    text: 'Engineering notes, guides, and product changes from the RevealUI team.',
     evidence: [BLOG_CHROME],
   },
   {

@@ -131,17 +131,17 @@ describe('templates catalog honesty', () => {
 
   it('does not invent a live vercel.com/templates listing URL', () => {
     expect(VERCEL_TEMPLATES_LISTING_URL).toBeNull();
-    expect(TEMPLATES_VERCEL.body.includes('no live')).toBe(true);
-    expect(TEMPLATES_VERCEL.body.includes('owner submit')).toBe(true);
+    expect(TEMPLATES_VERCEL.body.includes('Vercel account')).toBe(true);
+    expect(TEMPLATES_VERCEL.body.includes('required configuration')).toBe(true);
     expect(blob().includes('vercel.com/templates/revealui')).toBe(false);
     expect(blob().includes('vercel.com/templates/template/')).toBe(false);
   });
 
   it('names the Vercel path as the runtime deploy, not a Studio SKU', () => {
-    expect(TEMPLATES_VERCEL.body.includes('runtime deploy path')).toBe(true);
-    expect(TEMPLATES_VERCEL.body.includes('not a Studio SKU')).toBe(true);
-    expect(TEMPLATES_VERCEL.body.includes('not a Starter Kit')).toBe(true);
-    expect(TEMPLATES_VERCEL.body.includes('your own Neon or Postgres')).toBe(true);
+    expect(TEMPLATES_VERCEL.body.includes('Next.js template')).toBe(true);
+    expect(TEMPLATES_VERCEL.body.includes('Studio SKU')).toBe(false);
+    expect(TEMPLATES_VERCEL.body.includes('Starter Kit')).toBe(false);
+    expect(TEMPLATES_VERCEL.body.includes('your Postgres database')).toBe(true);
     expect(TEMPLATES_HERO.subtitle.includes('Vercel')).toBe(true);
   });
 

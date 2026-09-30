@@ -37,12 +37,12 @@ describe('Hero (product homepage)', () => {
     expect(subtitle.className).not.toContain('text-muted-foreground');
   });
 
-  it('publishes PROOF as a receipted action in the hero subtitle', () => {
+  it('explains ownership and model choice in the hero subtitle', () => {
     renderHero();
     const proof = screen.getByText(HOME_HERO.subtitle.sentence2);
     expect(proof.className).toContain('text-body');
-    expect(proof.textContent ?? '').toContain('PROOF');
-    expect(proof.textContent ?? '').toContain('receipted action');
+    expect(proof.textContent ?? '').toContain('your infrastructure');
+    expect(proof.textContent ?? '').toContain('your own model');
     expect(proof.textContent ?? '').not.toContain('outcome validation');
     expect(proof.textContent ?? '').not.toContain('proof of work');
     expect(screen.getByText(HOME_HERO.subtitle.support)).toBeInTheDocument();

@@ -465,8 +465,14 @@ export const claimsPart4: readonly ClaimEntry[] = [
   },
   {
     file: 'contact.ts',
+    exportPath: 'CONTACT_HERO.title',
+    text: 'Talk to the RevealUI team.',
+    evidence: [LEGAL_CONTACT_CONTENT],
+  },
+  {
+    file: 'contact.ts',
     exportPath: 'CONTACT_HERO.subtitle',
-    text: 'Questions about RevealUI? Interested in Enterprise? We would love to hear from you.',
+    text: 'Ask about a license, report a product issue, or discuss Enterprise.',
     evidence: [
       LEGAL_CONTACT_CONTENT,
       { kind: 'url', ref: 'https://revealui.com/contact', note: 'public contact page' },

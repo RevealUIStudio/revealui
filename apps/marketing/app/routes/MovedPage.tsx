@@ -20,7 +20,7 @@ export function MovedPage({ to }: { to: string }) {
 
   return (
     <div className="mx-auto max-w-xl px-6 py-24 text-center">
-      <p className="text-body">This page moved.</p>
+      <p className="text-body">This page has moved.</p>
       <a href={to} className="mt-4 inline-block font-medium text-primary underline">
         Continue
       </a>

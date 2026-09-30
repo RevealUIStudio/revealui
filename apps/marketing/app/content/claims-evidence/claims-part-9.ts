@@ -67,7 +67,7 @@ export const claimsPart9: readonly ClaimEntry[] = [
     file: 'quote-calculator.ts',
     exportPath: 'QUOTE_CALCULATOR.heading',
     proofGrade: 'outcome',
-    text: 'Who runs it. What you need. One product price.',
+    text: 'Choose how you want to build.',
     evidence: [QUOTE_RESOLVER, QUOTE_DEFAULT, QUOTE_UI, QUOTE_BOUNDARY],
   },
   {

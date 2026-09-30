@@ -68,7 +68,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
     id: 'free',
     name: 'Free (OSS)',
-    description: 'Perfect for trying out RevealUI and small projects.',
+    description: 'Build with the free core on your infrastructure.',
     features: [
       'Admin collections for offers and pages you ship (not a Contents/Videos CMS SKU)',
       '1 site',
@@ -86,7 +86,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
     id: 'pro',
     name: 'Pro',
-    description: 'For software companies building production products.',
+    description: 'Add agent features and higher limits to your runtime.',
     features: [
       'Admin collections for offers and pages you ship (not a Contents/Videos CMS SKU)',
       'Up to 5 sites',
