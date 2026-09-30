@@ -424,6 +424,10 @@ export async function gate(): Promise<void> {
         name: 'API docs drift (hard fail)',
         command: 'pnpm',
         args: ['validate:api-docs'],
+        // The authoritative generator builds the server dependency closure
+        // before comparing the maintained document; cold CI routinely needs
+        // more than the generic five-minute phase-check budget.
+        timeout: 600_000,
       },
       {
         // ADR 2026-07-29 virtual serve: monorepo docs/ is SoT. Fail if leftover

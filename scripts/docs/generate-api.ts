@@ -12,6 +12,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import app, { openApiConfiguration } from '../../apps/server/src/app.js';
+import { assertOpenApi30Compatible } from './openapi-30-compat.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '../..');
@@ -218,6 +219,7 @@ function generateMarkdown(spec: OpenAPISpec): string {
 }
 
 const sourceSpec = app.getOpenAPIDocument(openApiConfiguration);
+assertOpenApi30Compatible(sourceSpec);
 const spec = sourceSpec as unknown as OpenAPISpec;
 // The drift gate writes only its requested document. Normal generation also
 // refreshes the checked-in example using this same authoritative producer.
