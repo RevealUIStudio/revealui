@@ -22,7 +22,10 @@ The following packages distributed in this repository are licensed under
 FSL-1.1-MIT, not MIT:
 
 - @revealui/ai          (see packages/ai/LICENSE)
+- @revealui/engines     (see packages/engines/LICENSE)
 - @revealui/harnesses   (see packages/harnesses/LICENSE)
+- @revealui/mcp         (see packages/mcp/LICENSE)
+- @revealui/services    (see packages/services/LICENSE)
 
 Additional Pro packages may be added in future. The presence of a LICENSE
 file inside a package directory containing the FSL-1.1-MIT text is the
@@ -61,7 +64,7 @@ that date or the fourth anniversary of the first publicly-available
 distribution of a specific version of the package under FSL, the package
 automatically converts to the MIT License (the "Change License"). After
 conversion, all FSL restrictions are removed for the version in question
-and going forward.
+for that licensed work. Later work follows its published license.
 
 This means every Pro package in this repository will eventually become MIT;
 FSL-1.1-MIT is a time-limited restriction, not a permanent one.

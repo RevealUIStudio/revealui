@@ -40,7 +40,6 @@ export const PRICING_HERO_SUBTEXT = {
 } as const;
 
 export const PRICING_HERO_NAV_ANCHORS = [
-  { label: 'Quote', href: '#quote' },
   { label: 'Subscription', href: '#subscriptions' },
   { label: 'Perpetual', href: '#perpetual' },
 ] as const;

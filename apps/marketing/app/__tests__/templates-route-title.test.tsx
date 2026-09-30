@@ -3,8 +3,7 @@ import { cleanup, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { App } from '../App';
 
-const HOME_SHELL_TITLE =
-  'RevealUI | The agentic business runtime startups operate on their own domain.';
+const HOME_SHELL_TITLE = 'RevealUI | Build your business on software you can run yourself.';
 const TEMPLATES_TITLE = 'Templates | RevealUI';
 
 function addMeta(attr: 'name' | 'property', key: string, value: string): void {

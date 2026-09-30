@@ -38,15 +38,22 @@ describe('public product catalog routes', () => {
     );
   });
 
-  it('home keeps the product hero, quote calculator, and catalog teaser', () => {
+  it('home explains the product and account creation with the catalog teaser', () => {
     const { container } = renderRouted(<HomePage />);
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
     const startFree = screen.getAllByRole('link', { name: /start free/i });
     expect(startFree.length).toBeGreaterThan(0);
     expect(startFree.every((link) => link.getAttribute('href') === SITE.urls.signup)).toBe(true);
-    expect(screen.getByRole('link', { name: 'See it on GitHub' })).toBeInTheDocument();
-    const selfHost = screen.getByRole('radio', { name: /I self-host/i });
-    expect(selfHost).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByRole('link', { name: 'Create a RevealUI account' })).toHaveAttribute(
+      'href',
+      SITE.urls.signup,
+    );
+    expect(screen.getByRole('link', { name: 'Inspect the source' })).toHaveAttribute(
+      'href',
+      SITE.urls.repo,
+    );
+    expect(screen.getByText('Keep a foundation you can reuse.')).toBeInTheDocument();
+    expect(screen.queryByRole('radio')).toBeNull();
     expect(screen.queryByText('$300')).toBeNull();
     expect(screen.queryByText('$1,500')).toBeNull();
     expect(screen.queryByText('$3,500')).toBeNull();
@@ -56,20 +63,14 @@ describe('public product catalog routes', () => {
     forbiddenOnPublicRoutes(container);
   });
 
-  it('pricing is the license catalog plus the quote calculator', async () => {
+  it('pricing is the license catalog with Studio as an outbound path', async () => {
     const { container } = renderRouted(<PricingPage />);
     expect(await screen.findByRole('heading', { name: 'Pro' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'revealuistudio.com' })).toHaveAttribute(
       'href',
       SITE.urls.agency,
     );
-    expect(
-      screen.getByRole('radio', { name: /I need Studio implementation/i }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: /I self-host/i })).toHaveAttribute(
-      'aria-checked',
-      'true',
-    );
+    expect(screen.queryByRole('radio')).toBeNull();
     forbiddenOnPublicRoutes(container);
   });
 

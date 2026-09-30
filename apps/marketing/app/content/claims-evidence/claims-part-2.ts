@@ -218,7 +218,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'SUBSCRIPTION_TIERS[3].description',
-    text: 'Full ecosystem access with scale and compliance.',
+    text: 'Discuss licensing for larger deployments and your requirements.',
     evidence: [TIER_LIMITS, RBAC_ABAC],
   },
   {
@@ -230,7 +230,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'SUBSCRIPTION_TIERS[3].features[4]',
-    text: 'Full inference suite (all open models)',
+    text: 'Supported open-model configurations',
     evidence: [PROVIDERS, OPEN_WEIGHT],
   },
   {
@@ -263,12 +263,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
     text: 'All Pro updates released during support period',
     evidence: [COMMERCIAL_POLICY],
   },
-  {
-    file: 'pricing.ts',
-    exportPath: 'PUBLIC_PERPETUAL_TIERS[0].features[4]',
-    text: 'Private GitHub repo access',
-    evidence: [COMMERCIAL_POLICY],
-  },
+
   {
     file: 'pricing-faq.ts',
     exportPath: 'PRICING_FAQS[0].question',
@@ -292,7 +287,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing-faq.ts',
     exportPath: 'PRICING_FAQS[1].answer',
-    text: "Pro and Max tiers include a 7-day free trial. After the trial ends, you'll be charged the monthly rate. You can cancel anytime during the trial without being charged.",
+    text: 'Pro and Max include a 7-day free trial. If you do not cancel, your selected monthly or annual subscription begins at the price shown at checkout. Cancel during the trial to avoid a charge.',
     evidence: [TRIAL, BILLING],
   },
   {
@@ -353,7 +348,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing-faq.ts',
     exportPath: 'PRICING_FAQS[6].answer',
-    text: 'You get the complete RevealUI source code: every app and package is published in the public monorepo. Infrastructure packages (@revealui/core, auth, db, contracts, security, utils, config, cache, resilience, openapi, sync) are MIT-licensed. The five Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) ship under Fair Source (FSL-1.1-MIT): source is visible, commercial use is permitted except for building a directly competing developer platform, and each release automatically converts to plain MIT two years after publication. All paid tiers add runtime entitlements (license validation, feature gates, priority updates) on top of that source access, and nothing is hidden behind a closed binary.',
+    text: 'Inspect RevealUI’s published source in the public monorepo. Infrastructure packages (@revealui/core, auth, db, contracts, security, utils, config, cache, resilience, openapi, sync) are MIT-licensed. The five Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) ship under Fair Source (FSL-1.1-MIT): source is visible, commercial use is permitted except for building a directly competing developer platform, and MIT conversion follows each package’s published Change Date and anniversary terms. All paid tiers add runtime entitlements (license validation, feature gates, priority updates) on top of that source access, and nothing is hidden behind a closed binary.',
     evidence: [LICENSE_SPLIT, LICENSE_MIT, REPO, TIER_GATES],
   },
   {

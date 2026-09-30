@@ -3,6 +3,7 @@ title: "I Built This So More People Could Own the Upside of AI"
 description: "AI is splitting outcomes. I spent the longer path building a self-hosted runtime so more people could own the tools, not only rent them."
 visibility: public
 status: narrative
+lastUpdated: "2026-09-30"
 audience: user
 author: Joshua Vaughn
 ---
@@ -11,9 +12,9 @@ I spent about ten years managing and training people in AT&T and T-Mobile author
 
 In 2019 I started teaching myself to code while running my own businesses. I was not chasing a credential. I was trying to stop renting every critical piece of a company from someone else. I built a fleet of software that began as a full-stack framework for multi-product businesses: the boring, load-bearing parts that every product needs before the product is allowed to exist.
 
-Then generative AI stopped being a demo and started being a force that rewrites work. I could have bolted a chat box onto what I already had and called it a day. I did not. I rebuilt the fleet for that future. The result is RevealUI: a self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure.
+Then generative AI stopped being a demo and started being a force that rewrites work. I could have bolted a chat box onto what I already had and called it a day. I did not. I rebuilt the fleet for that future. The result is RevealUI: a self-hosted runtime where your business and the AI agents that run it live under one roof. The design goal is agents governed through the same business system as your team. Actual permissions and recording depend on the configured workflow.
 
-If an agent did it, there's a receipt.
+Supported actions can leave signed records when audit signing is configured. A record helps you inspect an action; it does not establish that the outcome was correct.
 
 ## The split I refuse to ignore
 
@@ -27,9 +28,9 @@ I am still allowed to make a living. Paid work and public work can fund each oth
 
 ## What I am asking of you
 
-I will be direct. I do not have a wall of famous logos to hide behind. The honest stage of this work is: the code is real, the thesis is lived, and the commercial proof is still being earned. So yes, there is a leap of faith.
+I will be direct. I do not have a wall of famous logos to hide behind. The honest stage of this work is: the code is real, the thesis is lived, and the commercial proof is still being earned. You should be able to evaluate it before making a commitment.
 
-The leap is not "trust me forever." The leap is "give the work a fair look." Read the repo. Run what you can. Ask hard questions. If the craft holds, take the next step. If it does not, walk away. I would rather lose you on the merits than keep you with marketing.
+Give the work a fair look. Read the repo. Run what you can. Ask hard questions. If the craft holds, take the next step. If it does not, walk away. I would rather lose you on the merits than keep you with marketing.
 
 What I will not do is pretend a slogan is the same as a handoff. Mission without a runnable path is a speech. Mission with a runnable path is an invitation.
 
@@ -53,7 +54,7 @@ If you are a technical founder or a small team that wants to run your business a
 
 If you deploy systems for other people (the industry now calls that forward deployed work, under several job titles), this is a substrate you can leave behind when the engagement ends.
 
-If you only want a magic button that prints money with no learning, this is not for you. The upward side of a K-shaped curve still requires a leap and then work. I can remove the false choice between "learn alone with nothing" and "rent everything forever." I cannot remove effort.
+Running a business still takes learning, maintenance, and judgment. I want to make the foundation easier to inspect and share, so you can choose the work and support that fit your needs.
 
 ## Who I am in one breath
 
@@ -67,6 +68,6 @@ Look at the work.
 - Code: [github.com/RevealUIStudio/revealui](https://github.com/RevealUIStudio/revealui)
 - Studio: [revealuistudio.com](https://revealuistudio.com)
 
-If it earns your trust, take the leap. Host it. Break it. Tell me where it fails. Hire the studio if you want a hand with the last mile. Or build on your own with the same discipline of putting real systems in real hands. The goal is not that every path runs through me. The goal is that more people own the upside.
+If it earns your trust, evaluate the setup and choose your next step. Host it. Break it. Tell me where it fails. Hire the studio if you want a hand with the last mile. Or build on your own with the same discipline of putting real systems in real hands. The goal is not that every path runs through me. The goal is that more people own the upside.
 
 I built this so you could keep the runtime.

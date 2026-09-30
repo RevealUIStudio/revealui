@@ -1,5 +1,14 @@
 # @revealui/editor
 
+## 0.2.11
+
+### Patch Changes
+
+- Updated dependencies [a556378]
+- Updated dependencies [89e6d7e]
+  - @revealui/contracts@0.13.2
+  - @revealui/presentation@0.15.2
+
 ## 0.2.10
 
 ### Patch Changes

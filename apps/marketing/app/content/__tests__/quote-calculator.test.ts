@@ -29,7 +29,7 @@ describe('quote calculator (product-site lockstep)', () => {
       'Need implementation? Studio is a separate path (Consultation, Pilot, Launch). This catalog is licenses only.',
     );
     expect(QUOTE_CALCULATOR.bodies.pricing).toBe(QUOTE_CALCULATOR.bodies.home);
-    expect(QUOTE_CALCULATOR.questions.who.label).toBe('Who runs it?');
+    expect(QUOTE_CALCULATOR.questions.who.label).toBe('Who will implement it?');
     expect(QUOTE_CALCULATOR.questions.places.label).toBe('How many sites?');
     expect(QUOTE_CALCULATOR.questions.who.options.map((option) => option.id)).toEqual([
       'self',

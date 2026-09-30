@@ -126,23 +126,8 @@
       "permanent": true
     },
     {
-      "source": "/claims",
-      "destination": "https://docs.revealui.com",
-      "permanent": true
-    },
-    {
       "source": "/sla",
       "destination": "https://docs.revealui.com/sla",
-      "permanent": true
-    },
-    {
-      "source": "/legal/hipaa",
-      "destination": "https://docs.revealui.com",
-      "permanent": true
-    },
-    {
-      "source": "/legal/subprocessors",
-      "destination": "https://docs.revealui.com",
       "permanent": true
     },
     {

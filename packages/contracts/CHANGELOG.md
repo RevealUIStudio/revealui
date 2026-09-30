@@ -1,5 +1,12 @@
 # @revealui/contracts
 
+## 0.13.2
+
+### Patch Changes
+
+- a556378: Add a PILOT_PRICE alias for the Studio middle SKU amount. The previous export name stays so existing imports keep working. The amount is unchanged.
+- 89e6d7e: Clarify public catalog feature descriptions and export the shared public inquiry validation contract.
+
 ## 0.13.1
 
 ### Patch Changes

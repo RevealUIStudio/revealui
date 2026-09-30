@@ -9,7 +9,7 @@ export const CLAIMS_HERO = {
   eyebrow: 'Public proof',
   h1: 'The claims ledger',
   subtitle:
-    'Every sentence on this site that makes a claim about the product carries an entry below. Each one links to the code, the command, or the page that proves it.',
+    'Covered marketing statements are indexed below with their cited evidence. Automated checks keep defined counts and citations aligned; human review assesses whether the evidence supports each statement.',
 } as const;
 
 export const CLAIMS_COUNTS_LABELS = {
@@ -23,7 +23,7 @@ export const CLAIMS_COUNTS_LABELS = {
 // The heading is under the prose threshold, so only the body is indexed.
 export const CLAIMS_SIGNED_LEDGER_NOTE = {
   heading: 'Checkable by design',
-  body: 'Every action in the audit log is signed with a key you can check yourself. Verifying a record does not require our secret.',
+  body: 'When audit signing is configured, signed records can be checked with the published public key. Verification does not require our private signing key.',
 } as const;
 
 // GAP-355 Stage 4 S4-6: lift the "receipt you hold" embargo for Pro+
@@ -31,7 +31,7 @@ export const CLAIMS_SIGNED_LEDGER_NOTE = {
 // verifies them offline. Verification itself is never a paid product.
 export const CLAIMS_RECEIPT_HOLD_NOTE = {
   heading: 'Hold a root on Pro',
-  body: 'On Pro, the worker seals ranges of your signed audit log into Merkle roots you can download. You verify those roots offline with the published public key, without calling us. Free still gets a signed log. Root delivery is Pro. Checking a receipt is free either way.',
+  body: 'On Pro, a configured worker can seal ranges of signed records into downloadable Merkle roots and inclusion proofs. Anchoring can lag behind an action. Verify downloaded material offline with the published key. Free supports signed rows when signing is configured; root delivery requires Pro.',
 } as const;
 
 export const CLAIMS_LEDGER_INTRO =

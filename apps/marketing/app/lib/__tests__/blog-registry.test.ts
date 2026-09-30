@@ -27,8 +27,10 @@ describe('GAP-467 blog registry', () => {
     expect(e).toContain('encrypt');
   });
 
-  it('claim drift excerpt says every number is checked against the code', () => {
-    expect(post('claim-drift').excerpt.toLowerCase()).toContain('every ');
+  it('claim drift excerpt scopes automated checks and retains human assessment', () => {
+    const excerpt = post('claim-drift').excerpt.toLowerCase();
+    expect(excerpt).toContain('defined metrics have automated checks');
+    expect(excerpt).toContain('human review');
   });
 
   it('own your data excerpt claims real-time sync in the product stack', () => {

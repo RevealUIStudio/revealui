@@ -18,7 +18,7 @@ describe('selectHomeHero', () => {
 
   it('serves the L1 default hero by default (no query)', () => {
     expect(selectHomeHero('')).toBe(HOME_HERO);
-    expect(HOME_HERO.h1).toBe('The agentic business runtime startups operate on their own domain.');
+    expect(HOME_HERO.h1).toBe('Build your business on software you can run yourself.');
   });
 
   it('serves the L1 default for unknown hero values', () => {
@@ -42,9 +42,11 @@ describe('selectHomeHero', () => {
   it('keeps the full locked positioning form on all hero variants', () => {
     expect(HOME_HERO.subtitle.sentence1).toContain('People, Content, Offers, Payments, and Agents');
     expect(HOME_HERO.subtitle.sentence2).toBe(
-      'Keep your code, accounts, and data on your infrastructure. Choose the product features your business needs, then add your own model.',
+      'Start with the MIT-licensed core. Add Pro for agent tools, memory, and MCP integrations.',
     );
-    expect(HOME_HERO.subtitle.support).toBe('Start with the free core. Pro adds the agent layer.');
+    expect(HOME_HERO.subtitle.support).toBe(
+      'Use accounts and infrastructure you control. Hosting, database services, and model usage are separate costs.',
+    );
     expect(HOME_HERO_FOUNDATION.subtitle.sentence2).toBe(HOME_HERO.subtitle.sentence2);
     expect(HOME_HERO_OWNERSHIP.subtitle.sentence2).toBe(HOME_HERO.subtitle.sentence2);
   });

@@ -3,13 +3,14 @@ title: "Building a Codebase With Zero Hand-Written Regex"
 description: "We banned authored regex across the fleet. Here is what we use instead, and why it made the code safer and easier to read."
 visibility: public
 status: narrative
+lastUpdated: "2026-09-30"
 audience: user
 author: Joshua Vaughn
 ---
 
-There is a rule across the entire RevealFleet codebase that surprises people: no hand-written regular expressions. Not "use them sparingly." Zero authored regex, enforced in CI.
+Our maintained convention is to avoid authored regular expressions in application logic and use parsers or explicit predicates instead. The gates cover defined repositories and paths; third-party configuration boundaries and existing debt are documented separately.
 
-This sounds like an aesthetic preference. It is actually a security and maintainability decision, and it has paid for itself many times over.
+This sounds like an aesthetic preference. It is actually a security and maintainability decision, and it guides how we review parsing and input handling.
 
 ## Why regex is a liability, not a tool
 
@@ -30,7 +31,7 @@ That pattern is the kind of thing that ends up in an input validator, looks fine
 
 For every job regex usually does, there is a clearer, safer tool that says what it means:
 
-- **Parsing structured text** uses real parsers. `URL` for URLs, `JSON.parse` for JSON, `Date.parse` for dates. These follow the language specs, and they reject malformed input correctly instead of approximately.
+- **Parsing structured text** uses real parsers. `URL` for URLs, `JSON.parse` for JSON, `Date.parse` for dates. These make the parsing rules explicit. Their acceptance behavior still needs application-specific validation; for example, Date.parse is not a strict date-schema validator.
 - **Walking code and markup** uses AST walkers. We use `mdast` for Markdown, the Lexical tree for rich text, and `@typescript-eslint` for TypeScript. An AST knows the difference between a string literal and an identifier; a regex only sees characters.
 - **Membership and lookup** uses `Set` and `Map`. "Is this one of the allowed values" is a `Set.has`, not an alternation you have to keep escaping.
 - **Splitting human text** uses `Intl.Segmenter`, which understands graphemes and word boundaries across languages, where a regex quietly mangles anything outside ASCII.
@@ -53,13 +54,13 @@ for (const line of content.split('\n')) {
 }
 ```
 
-Anyone can read that and know exactly what it counts. There is no pattern to misremember, no edge case lurking in a quantifier, and nothing for a malicious input to exploit. We have an AST-based analyzer in CI that hunts for the dangerous patterns regex tends to hide, command injection, time-of-check-to-time-of-use races, and ReDoS, and the no-regex rule means it has far less to hunt for.
+Anyone can read that and know exactly what it counts. This line-based example makes its counting rule readable, but it is not a syntax-aware count and can miss valid test declaration shapes. Readability does not establish input safety. We have an AST-based analyzer in CI that hunts for the dangerous patterns regex tends to hide, command injection, time-of-check-to-time-of-use races, and ReDoS, and the no-regex rule means it has far less to hunt for.
 
 ## The trade-off
 
 The honest cost is line count. A typed predicate or a small parser-driven function is sometimes longer than the one-liner regex it replaces. We take that trade every time, because the longer version is the one a teammate can read at 11pm before a launch and actually trust.
 
-Readable, reviewable, and safe beats clever and opaque. For code you intend to run for years, that is not a close call.
+Readable and reviewable code makes assessment easier. Safety still requires validation of behavior. For code you intend to run for years, that is not a close call.
 
 ---
 

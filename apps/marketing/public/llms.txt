@@ -1,6 +1,6 @@
 # RevealUI
 
-> The agentic business runtime startups operate on their own domain. Existing tools report in, you keep the stack. Five primitives: People, Content (offers and pages you ship, not a Contents/Videos CMS SKU), Offers, Payments, and Agents. Open source (MIT) plus Fair Source (FSL-1.1-MIT) Pro packages. Self-hostable. No vendor lock-in.
+> Build your business on software you can run yourself. Five primitives: People, Content, Offers, Payments, and Agents. Open source (MIT) plus Fair Source (FSL-1.1-MIT) Pro packages. Self-hostable. Your deployment uses accounts and infrastructure you control; paid runtime features use license validation and third-party integrations have their own dependencies.
 
 ## Documentation
 
@@ -18,19 +18,19 @@ Live public paths only:
 - [Quick start](https://docs.revealui.com/QUICK_START): local stack walkthrough
 - [Local-first](https://docs.revealui.com/LOCAL_FIRST): Run the stack on your machine
 
-There is no `revealui.com/templates` page.
+- [Templates](https://revealui.com/templates): Supported starting points and their setup requirements.
 
 ## Source code
 
-- [GitHub](https://github.com/RevealUIStudio/revealui): Public monorepo. OSS packages under MIT; Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) under FSL-1.1-MIT (source-visible; each release auto-converts to MIT two years after publish).
+- [GitHub](https://github.com/RevealUIStudio/revealui): Public monorepo. OSS packages under MIT; Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) under FSL-1.1-MIT (source-visible; MIT conversion follows published change-date terms).
 - [Fair Source explainer](https://revealui.com/fair-source): What FSL-1.1-MIT means in practice
-- [Claims ledger](https://revealui.com/claims): Marketing sentences indexed against code
+- [Claims ledger](https://revealui.com/claims): Covered marketing statements and cited evidence; automated checks do not establish every claim’s truth
 
 ## The thesis
 
-RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure. It runs on any AI provider you choose.
+RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Configure supported agent tools, permissions, and a supported local or hosted model provider. Agents and integrations require the appropriate license and setup.
 
-If an agent did it, there's a receipt.
+Supported actions can leave signed records when audit signing is configured. Pro adds downloadable roots and inclusion proofs; a record does not establish that the business outcome was correct.
 
 Five primitives make up the runtime: People, Content, Offers, Payments, Agents.
 
@@ -39,8 +39,8 @@ Five primitives make up the runtime: People, Content, Offers, Payments, Agents.
 
 ## Pricing
 
-- [Pricing page](https://revealui.com/pricing): Free $0, Pro $49, Max $99, Enterprise inquire; Pro Perpetual $1,499
-- Billing rails are live end to end. Zero paying customers yet.
+- [Pricing page](https://revealui.com/pricing): Free $0, Pro $49/month or $399/year, Max $99/month or $799/year, Enterprise inquire; Pro Perpetual $1,499 once
+- Checkout is available. The maintainer reports no external paying customers yet.
 
 ## For agents
 
@@ -52,6 +52,6 @@ Five primitives make up the runtime: People, Content, Offers, Payments, Agents.
 
 - Zero paying customers. Used in production by the team that maintains it.
 - Stripe live mode is on for product billing; no paid customer base yet.
-- Default inference is open-weight on infrastructure you own (Inference Snaps or Ollama). Frontier providers are opt-in adapters.
+- Inference is selected from configuration. Set the provider explicitly; local runners require suitable hardware and hosted providers incur their own usage costs.
 - NeonDB is the primary database. Supabase is not an internal datastore.
 - Professional services and fixed-bid delivery: [revealuistudio.com](https://revealuistudio.com)

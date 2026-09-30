@@ -41,10 +41,10 @@ export const FAIR_SOURCE_HERO = {
     prefix: `${METRICS.licenseSplit.mit} RevealUI packages ship under plain MIT and stay that way. ${METRICS.licenseSplit.fsl} packages ship under`,
     fslLabel: 'FSL-1.1-MIT',
     fslHref: SITE.urls.fslSoftware,
-    suffix: `: source-visible, commercially usable, and each release auto-converts to plain MIT two years after publish. Same license model used by Sentry, GitButler, and Keygen. (The remaining ${METRICS.licenseSplit.internal} workspace packages are @revealui/scripts and @revealui/apify-actor-governed-run, private tooling with no public license field, not customer-facing.)`,
+    suffix: `: source-visible, commercially usable, and MIT conversion follows the published Change Date and anniversary terms. Same license model used by Sentry, GitButler, and Keygen. (The remaining ${METRICS.licenseSplit.internal} workspace packages are @revealui/scripts and @revealui/apify-actor-governed-run, private tooling with no public license field, not customer-facing.)`,
   },
   ogTitle: 'Fair Source',
-  ogSubtitle: 'Source-visible. Commercially usable. MIT in two years.',
+  ogSubtitle: 'Source available. Published license terms apply.',
 } as const;
 
 export const FAIR_SOURCE_CONTRACT_SECTION = {
@@ -66,12 +66,12 @@ export const FAIR_SOURCE_CONTRACT_CARDS: readonly ContractCard[] = [
   {
     kind: 'yes',
     title: 'Self-host on your own infra',
-    body: 'Run it in your VPC, on bare metal, or air-gapped. RevealUI does not phone home and does not depend on a vendor service to function.',
+    body: 'Run it in your VPC, on bare metal, or air-gapped. Paid features require valid entitlement; hosted APIs and third-party integrations have their own dependencies.',
   },
   {
     kind: 'no',
     title: 'Build a competing developer platform',
-    body: 'You cannot ship a substantially similar developer platform that competes with RevealUI on top of these packages. This is the only restriction. After two years, even this restriction lifts and the release becomes plain MIT.',
+    body: 'Competing uses are restricted by the package’s published license. Read its permitted-purpose, restriction, and conversion terms before relying on it.',
   },
 ];
 
@@ -83,12 +83,12 @@ export const FAIR_SOURCE_PACKAGES_SECTION = {
       'Five packages carry FSL-1.1-MIT: the four published to npm are listed below, plus the private',
     privatePackage: '@revealui/engines',
     suffix:
-      'workspace package. Every other RevealUI package is plain MIT: no non-compete, no time limit, fully open source.',
+      'workspace package. The core is MIT. Check each package’s license; internal workspace tooling can have different status.',
   },
   footer: {
     prefix: "Looking for a specific package's license? Run",
     command: 'npm view @revealui/<name> license',
-    suffix: ': npm always tells the truth.',
+    suffix: ': compare registry metadata with the LICENSE file included in the version you use.',
   },
 } as const;
 
@@ -124,23 +124,23 @@ export const FAIR_SOURCE_PACKAGES: readonly FslPackage[] = [
 ];
 
 export const FAIR_SOURCE_CLOCK_SECTION = {
-  eyebrow: 'The two-year clock',
-  heading: 'Every release auto-converts to MIT.',
-  body: "The 2-year timer starts on each release's publish date. Older releases reach MIT first; newer releases start their own clock from their own publish date. The clause does not require any action from RevealUI Studio. It is in the license text and self-executing.",
+  eyebrow: 'Published change-date terms',
+  heading: 'MIT conversion follows the published license.',
+  body: 'Each package’s LICENSE specifies its Change Date. FSL conversion occurs on that date or the fourth anniversary of the first public distribution under FSL, whichever comes first. Read the license shipped with your version.',
   steps: [
     {
       title: 'Release publishes under FSL-1.1-MIT',
-      body: 'Source on GitHub. Installable from npm. The 2-year clock starts ticking the moment the version tag lands.',
+      body: 'Inspect the package source and the LICENSE shipped with your version, including its Change Date.',
       color: 'emerald' as const,
     },
     {
-      title: 'Year one and year two',
-      body: 'All freedoms apply (use commercially, modify, self-host) except the non-compete clause. You build on it, you ship products with it, you charge customers for those products.',
+      title: 'Before conversion',
+      body: 'Use follows the package’s published permitted-purpose and restriction terms.',
       color: 'amber' as const,
     },
     {
-      title: 'Two years later: plain MIT',
-      body: 'That specific release auto-converts to plain MIT. The non-compete clause lifts; the license becomes OSI-approved open source.',
+      title: 'At the conversion date: MIT',
+      body: 'The licensed work becomes available under the specified MIT Change License according to the published conversion terms.',
       color: 'emerald' as const,
     },
   ],
@@ -178,7 +178,7 @@ export const FAIR_SOURCE_FAQS: readonly FaqItem[] = [
   {
     question: 'Is Fair Source open source?',
     answer:
-      'Not in the OSI-approved sense: the non-compete clause means it is "source-available" rather than "open source." But for almost every practical purpose (read, modify, deploy, charge for products built on top), the freedoms match what most builders need from open source. After two years per release, the clause lifts and the code becomes plain MIT, which IS OSI open source.',
+      'FSL-licensed packages are source available. Their published license permits defined uses and restricts competing uses. MIT conversion follows its Change Date and anniversary terms.',
   },
   {
     question: 'What counts as a "competing developer platform"?',
@@ -187,7 +187,7 @@ export const FAIR_SOURCE_FAQS: readonly FaqItem[] = [
   {
     question: 'When exactly does each release convert to MIT?',
     answer:
-      'Two years after the publish date of that specific release. So each release of @revealui/ai becomes MIT on its own 2-year anniversary, and a newer release starts its own clock from its own publish date. Older releases reach MIT first; this is intentional.',
+      'Check the LICENSE shipped with the version you use. Its Change Date and fourth-anniversary provision determine MIT conversion; a version tag alone does not establish a new two-year clock.',
   },
   {
     question: 'Why not just use plain MIT for everything?',
@@ -197,12 +197,12 @@ export const FAIR_SOURCE_FAQS: readonly FaqItem[] = [
   {
     question: 'How is the Pro tier enforced if the source is visible?',
     answer:
-      'License enforcement is at runtime on the studio control plane (admin.revealui.com and api.revealui.com), not baked into the npm packages. That is a license check on RevealUI Studio infrastructure, not a customer VM we operate. You self-host the runtime. The hosted RevealUI API checks Ed25519-signed license JWTs and gates Pro API routes; the packages themselves ship ungated, so self-hosters run them freely. FSL is the legal protection: the source is visible and you can run it, but shipping a competing developer platform on top of it is exactly what the non-compete clause prohibits, with civil remedies available. Two years after each release, that release becomes plain MIT.',
+      'License enforcement is at runtime on the studio control plane (admin.revealui.com and api.revealui.com), not baked into the npm packages. That is a license check on RevealUI Studio infrastructure, not a customer VM we operate. You self-host the runtime. The hosted RevealUI API checks Ed25519-signed license JWTs and gates Pro API routes; self-hosted paid features also use entitlement checks. FSL is the legal protection: the source is visible and you can run it, but shipping a competing developer platform on top of it is exactly what the non-compete clause prohibits, with civil remedies available. MIT conversion follows the published license terms.',
   },
   {
     question: 'What about the rest of the RevealUI packages?',
     answer:
-      'Every other RevealUI package is plain MIT, no non-compete clause, no time limit, fully open source. That is the OSS substrate (auth, content, billing primitives, admin UI, presentation system, router, etc.). Fair Source applies to five packages: @revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, and @revealui/services.',
+      'The core and the published MIT packages are open source under MIT. Check package-specific licenses for other workspace members. That is the OSS substrate (auth, content, billing primitives, admin UI, presentation system, router, etc.). Fair Source applies to five packages: @revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, and @revealui/services.',
   },
 ];
 

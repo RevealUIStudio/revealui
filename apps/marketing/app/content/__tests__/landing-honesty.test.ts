@@ -81,7 +81,7 @@ describe('landing payment and Enterprise honesty', () => {
   });
 
   it('keeps Start free and Pro checkout doors on the homepage teaser', () => {
-    expect(HOME_HERO.cta.primary.label).toBe('Start free');
+    expect(HOME_HERO.cta.primary.label).toBe('Create a RevealUI account');
     expect(PRICING_TEASER_TIERS.find((tier) => tier.id === 'free')?.cta).toBe('Start free');
     expect(PRICING_TEASER_TIERS.find((tier) => tier.id === 'pro')?.href).toBe('/pricing');
   });
@@ -89,17 +89,18 @@ describe('landing payment and Enterprise honesty', () => {
 
 describe('Auditor voice and live-hero honesty', () => {
   it('uses the locked known-for H1 and concrete subtitle', () => {
-    expect(HOME_HERO.h1).toBe('The agentic business runtime startups operate on their own domain.');
+    expect(HOME_HERO.h1).toBe('Build your business on software you can run yourself.');
     expect(HOME_HERO.subtitle.sentence1).toBe(
-      'Build your business on one self-hosted runtime for People, Content, Offers, Payments, and Agents.',
+      'RevealUI brings People, Content, Offers, Payments, and Agents into one self-hosted runtime.',
     );
     expect(HOME_HERO.subtitle.sentence2).toBe(
-      'Keep your code, accounts, and data on your infrastructure. Choose the product features your business needs, then add your own model.',
+      'Start with the MIT-licensed core. Add Pro for agent tools, memory, and MCP integrations.',
     );
-    expect(HOME_HERO.subtitle.support).toBe('Start with the free core. Pro adds the agent layer.');
-    expect(HOME_HERO.subtitle.sentence2.includes('your infrastructure')).toBe(true);
-    expect(HOME_HERO.subtitle.sentence2.includes('your own model')).toBe(true);
-    expect(INDEX_HTML.includes(HOME_HERO.subtitle.sentence2)).toBe(true);
+    expect(HOME_HERO.subtitle.support).toBe(
+      'Use accounts and infrastructure you control. Hosting, database services, and model usage are separate costs.',
+    );
+    expect(INDEX_HTML.includes(HOME_HERO.subtitle.sentence1)).toBe(true);
+    expect(INDEX_HTML).toContain('Hosting and model usage are separate costs.');
   });
 
   it('keeps the locked problem heading', () => {
@@ -109,12 +110,14 @@ describe('Auditor voice and live-hero honesty', () => {
   });
 
   it('keeps the governed-action receipt on the marketing home foil', () => {
-    expect(RECEIPT_HERO_TITLE).toBe('Governed action, on record');
-    expect(RECEIPT_HERO_CAPTION.text).toBe("If an agent did it, there's a receipt.");
-    expect(RECEIPT_HERO_CAPTION.link.href).toBe(
-      'https://docs.revealui.com/security/audit-receipts',
+    expect(RECEIPT_HERO_TITLE).toBe('Illustrated agent action record');
+    expect(RECEIPT_HERO_CAPTION.text).toBe(
+      'Illustrated action record. Supported actions can be recorded when audit signing is configured.',
     );
-    expect(RECEIPT_HERO_CAPTION.link.label).toBe('Audit receipts docs →');
+    expect(RECEIPT_HERO_CAPTION.link.href).toBe(
+      'https://docs.revealui.com/security/AUDIT_RECEIPTS',
+    );
+    expect(RECEIPT_HERO_CAPTION.link.label).toBe('Read the receipt guide →');
   });
 
   it('replaces the foundation A/B with a distinct keep-the-stack line', () => {
