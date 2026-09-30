@@ -98,7 +98,7 @@ vi.mock('@revealui/db', async (importOriginal) => ({
   applyLicenseOperation: vi.fn(async (_db, input) => ({
     licenseKey: input.licenseKey,
     operation: input.descriptor ?? null,
-})),
+  })),
   getClient: vi.fn(() => ({
     select: vi.fn(() => ({
       from: vi.fn(() => ({
