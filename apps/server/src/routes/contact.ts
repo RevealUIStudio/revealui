@@ -56,6 +56,9 @@ function buildEmailText(body: ContactInquiry): string {
   return lines.join('\n');
 }
 
+// Uniform acknowledgment means endpoint receipt, never inbox delivery or human review.
+// Keep this identical on the anti-abuse discard path so it does not disclose filtering.
+const received = { success: true, receipt: 'received' } as const;
 const app = new Hono();
 
 /**
@@ -86,7 +89,7 @@ app.post(
     // Honeypot trip — silently 200 to deny bots a signal
     if (body.website !== undefined && body.website.length > 0) {
       logger.warn('Contact form honeypot triggered', { ip, source: body.source });
-      return c.json({ success: true }, 200);
+      return c.json(received, 200);
     }
 
     try {
@@ -105,7 +108,7 @@ app.post(
         ip,
       });
 
-      return c.json({ success: true }, 200);
+      return c.json(received, 200);
     } catch (err) {
       logger.error('Contact form email send failed', {
         err: err instanceof Error ? err.message : String(err),
