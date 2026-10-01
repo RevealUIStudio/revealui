@@ -1,10 +1,32 @@
 import { createRequire } from 'node:module';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 // The verifier is a dependency-free CJS script (Node CLI). Load it via
 // createRequire so the same module the CI step runs is exercised here.
 const require = createRequire(import.meta.url);
 const verify = require('../../scripts/verify-deployed-tokens.cjs') as {
+  fetchScoped: (
+    url: string,
+    init?: RequestInit,
+    options?: {
+      fetchImpl?: typeof fetch;
+      edgeKey?: string;
+      maxRedirects?: number;
+    },
+  ) => Promise<{ response: Response; url: string; diagnostic: Record<string, unknown> }>;
+  verifyReachability: (
+    url: string,
+    options?: { fetchImpl?: typeof fetch; edgeKey?: string },
+  ) => Promise<{
+    ok: boolean;
+    cssBundleCount: number;
+    transportFailures: Array<Record<string, unknown>>;
+  }>;
+  fetchDeployed: (
+    url: string,
+    options?: { fetchImpl?: typeof fetch; edgeKey?: string },
+  ) => Promise<{ css: string; transportFailures: Array<Record<string, unknown>> }>;
+  defaultFetchAsset: (url: string) => Promise<boolean>;
   normalizeValue: (v: string) => string;
   extractTokenDecls: (css: string) => Map<string, Set<string>>;
   extractFontDecls: (css: string) => Map<string, string[]>;
@@ -352,5 +374,206 @@ describe('checkFontAssetReachability', () => {
       fetchAsset,
     );
     expect(calls).toBe(1);
+  });
+});
+
+describe('deployed verifier transport', () => {
+  afterEach(() => vi.unstubAllGlobals());
+  it('removes the edge key when a RevealUI redirect leaves the domain', async () => {
+    const requests: Array<{ url: string; key: string | null }> = [];
+    const fetchImpl = vi.fn(async (url, init) => {
+      requests.push({
+        url: String(url),
+        key: new Headers(init?.headers).get('x-revealui-cron-key'),
+      });
+      expect(init?.redirect).toBe('manual');
+      return requests.length === 1
+        ? new Response(null, {
+            status: 302,
+            headers: {
+              location: 'https://fonts.example.test/font.woff2',
+            },
+          })
+        : new Response('font', { status: 200 });
+    }) as typeof fetch;
+    await verify.fetchScoped(
+      'https://www.revealui.com/font.woff2',
+      {},
+      { fetchImpl, edgeKey: 'fixture-key' },
+    );
+    expect(requests.map((r) => r.key)).toEqual(['fixture-key', null]);
+  });
+  it('recomputes scope for every hop and accepts HTTPS subdomains only', async () => {
+    const keys: Array<string | null> = [];
+    const targets = [
+      'https://docs.revealui.com/a',
+      'http://docs.revealui.com/b',
+      'https://revealui.com.attacker.test/c',
+    ];
+    const fetchImpl = vi.fn(async (_url, init) => {
+      keys.push(new Headers(init?.headers).get('x-revealui-cron-key'));
+      const target = targets.shift();
+      return target
+        ? new Response(null, { status: 307, headers: { location: target } })
+        : new Response('ok');
+    }) as typeof fetch;
+    await verify.fetchScoped(
+      'https://revealui.com/',
+      { headers: { 'x-revealui-cron-key': 'caller-key' } },
+      {
+        fetchImpl,
+        edgeKey: 'fixture-key',
+      },
+    );
+    expect(keys).toEqual(['fixture-key', 'fixture-key', null, null]);
+  });
+  it('bounds redirect loops and rejects malformed or absent locations', async () => {
+    const loop = vi.fn(
+      async () => new Response(null, { status: 302, headers: { location: '/again' } }),
+    ) as typeof fetch;
+    await expect(
+      verify.fetchScoped('https://docs.revealui.com/', {}, { fetchImpl: loop, maxRedirects: 2 }),
+    ).rejects.toThrow('Redirect limit exceeded');
+    expect(loop).toHaveBeenCalledTimes(3);
+    await expect(
+      verify.fetchScoped(
+        'https://docs.revealui.com/',
+        {},
+        {
+          fetchImpl: vi.fn(async () => new Response(null, { status: 302 })) as typeof fetch,
+        },
+      ),
+    ).rejects.toThrow('Redirect missing Location');
+    await expect(
+      verify.fetchScoped(
+        'https://docs.revealui.com/',
+        {},
+        {
+          fetchImpl: vi.fn(
+            async () => new Response(null, { status: 302, headers: { location: 'https://[' } }),
+          ) as typeof fetch,
+        },
+      ),
+    ).rejects.toThrow('Invalid redirect Location');
+  });
+  it('reports Cloudflare challenge metadata and key presence without secret values', async () => {
+    const options = {
+      edgeKey: 'fixture-key',
+      fetchImpl: vi.fn(
+        async () =>
+          new Response('DO NOT LOG BODY', {
+            status: 403,
+            headers: { 'cf-mitigated': 'challenge', 'cf-ray': 'fixture-key-ray' },
+          }),
+      ) as typeof fetch,
+    };
+    const error = await verify
+      .fetchDeployed('https://www.revealui.com/?sensitive=query', options)
+      .catch((e) => e);
+    expect(error.transport).toMatchObject({
+      status: 403,
+      cfMitigated: 'challenge',
+      cfRay: '[redacted]-ray',
+      edgeKeyPresent: true,
+      edgeKeySent: true,
+    });
+    expect(error.message).not.toContain('fixture-key');
+    expect(error.message).not.toContain('sensitive=query');
+    expect(error.message).not.toContain('DO NOT LOG BODY');
+  });
+  it('redacts a configured key reflected in a redirected origin', async () => {
+    const edgeKey = 'fixture-key';
+    const fetchImpl = vi.fn(async (url, init) => {
+      if (String(url).includes('www.revealui.com')) {
+        return new Response(null, {
+          status: 302,
+          headers: { location: `https://${edgeKey}.example.com/private?secret=query` },
+        });
+      }
+      expect(new Headers(init?.headers).has('x-revealui-cron-key')).toBe(false);
+      return new Response('PRIVATE BODY', { status: 403 });
+    }) as typeof fetch;
+    const error = await verify
+      .fetchDeployed('https://www.revealui.com/', { edgeKey, fetchImpl })
+      .catch((e) => e);
+    expect(error.transport.origin).toBe('https://[redacted].example.com');
+    expect(JSON.stringify(error.transport)).not.toContain(edgeKey);
+    expect(error.message).not.toContain(edgeKey);
+    expect(error.message).not.toContain('private');
+    expect(error.message).not.toContain('secret=query');
+    expect(error.message).not.toContain('PRIVATE BODY');
+  });
+  it('reachability preflight succeeds publicly without a key or token parity', async () => {
+    const fetchImpl = vi.fn(async (_url, init) => {
+      expect(new Headers(init?.headers).has('x-revealui-cron-key')).toBe(false);
+      return new Response('<html><style>:root{--rvui-old:obsolete}</style></html>');
+    }) as typeof fetch;
+    expect(
+      await verify.verifyReachability('https://www.revealui.com/', { edgeKey: '', fetchImpl }),
+    ).toMatchObject({ ok: true, transportFailures: [] });
+  });
+  it('CSS access failures remain transport failures instead of being silently discarded', async () => {
+    const fetchImpl = vi.fn(async (url) =>
+      String(url).endsWith('.css')
+        ? new Response('challenge', {
+            status: 403,
+            headers: { 'cf-mitigated': 'challenge', 'cf-ray': 'css-ray' },
+          })
+        : new Response('<link rel="stylesheet" href="/assets/app.css">'),
+    ) as typeof fetch;
+    const result = await verify.fetchDeployed('https://docs.revealui.com/', {
+      edgeKey: '',
+      fetchImpl,
+    });
+    expect(result.transportFailures).toEqual([
+      expect.objectContaining({
+        status: 403,
+        cfMitigated: 'challenge',
+        cfRay: 'css-ray',
+        edgeKeyPresent: false,
+      }),
+    ]);
+  });
+  it('preflight ignores old asset damage and reports page challenges before mutation', async () => {
+    const fetchImpl = vi.fn(
+      async () => new Response('<link rel="stylesheet" href="/missing.css">'),
+    ) as typeof fetch;
+    expect(
+      await verify.verifyReachability('https://www.revealui.com/', { edgeKey: '', fetchImpl }),
+    ).toMatchObject({ ok: true });
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    const blocked = await verify.verifyReachability('https://www.revealui.com/', {
+      edgeKey: '',
+      fetchImpl: vi.fn(
+        async () =>
+          new Response('challenge', {
+            status: 403,
+            headers: { 'cf-mitigated': 'challenge', 'cf-ray': 'runner-ray' },
+          }),
+      ) as typeof fetch,
+    });
+    expect(blocked).toMatchObject({
+      ok: false,
+      transportFailures: [
+        expect.objectContaining({
+          status: 403,
+          cfRay: 'runner-ray',
+          edgeKeyPresent: false,
+        }),
+      ],
+    });
+  });
+  it('asset HEAD fallback uses the same scoped transport for GET', async () => {
+    const methods: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_url, init) => {
+        methods.push(init.method);
+        expect(init.redirect).toBe('manual');
+        return new Response(null, { status: init.method === 'HEAD' ? 405 : 200 });
+      }),
+    );
+    expect(await verify.defaultFetchAsset('https://fonts.example.test/a.woff2')).toBe(true);
+    expect(methods).toEqual(['HEAD', 'GET']);
   });
 });

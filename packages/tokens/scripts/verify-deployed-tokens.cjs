@@ -23,6 +23,7 @@
  *   --tokens <path>    canonical tokens.css (default: ../src/tokens.css)
  *   --allowlist <path> extra-value allowlist JSON
  *                      (default: ./verify-deployed-tokens.allowlist.json)
+ *   --reachability-only runner access to the page; no artifact checks
  *   --json             machine-readable report
  *
  * Exit 0 when every URL passes; exit 1 with a per-failure report otherwise.
@@ -300,35 +301,78 @@ function checkFontResolvability(fontDecls, fontFaceFamilies, csp, externalFontRe
   return failures;
 }
 
-// Cloudflare edge key (CI only). Attached only to revealui.com hosts so it
-// never leaks to third-party font or CSS origins.
+// The maintained transport recomputes credential scope at EVERY redirect hop.
+// fetch's automatic redirects can forward custom headers to another origin.
 const EDGE_KEY = process.env.REVEALUI_CRON_EDGE_KEY || '';
-function edgeInit(url, init = {}) {
-  if (!EDGE_KEY) return init;
-  let host;
-  try {
-    host = new URL(url).hostname;
-  } catch {
-    return init;
+const EDGE_HEADER = 'x-revealui-cron-key';
+const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
+function edgeInit(url, init = {}, edgeKey = EDGE_KEY) {
+  const parsed = new URL(url);
+  const headers = new Headers(init.headers);
+  headers.delete(EDGE_HEADER);
+  if (edgeKey && parsed.protocol === 'https:' &&
+      (parsed.hostname === 'revealui.com' || parsed.hostname.endsWith('.revealui.com'))) {
+    headers.set(EDGE_HEADER, edgeKey);
   }
-  if (host !== 'revealui.com' && !host.endsWith('.revealui.com')) return init;
-  return { ...init, headers: { ...(init.headers || {}), 'x-revealui-cron-key': EDGE_KEY } };
+  return { ...init, headers, redirect: 'manual', signal: init.signal || AbortSignal.timeout(15000) };
 }
 
+function responseDiagnostic(url, response, edgeKey = EDGE_KEY) {
+  const parsed = new URL(url);
+  const safeString = (value) => value ? value.replaceAll(edgeKey || '\0', '[redacted]').split('\n').join(' ').slice(0, 200) : null;
+  return {
+    origin: safeString(parsed.origin),
+    status: response?.status ?? null,
+    cfMitigated: safeString(response?.headers.get('cf-mitigated')),
+    cfRay: safeString(response?.headers.get('cf-ray')),
+    edgeKeyPresent: Boolean(edgeKey),
+    edgeKeySent: edgeInit(url, {}, edgeKey).headers.has(EDGE_HEADER),
+  };
+}
+function transportError(message, diagnostic) {
+  const error = new Error(`${message}: ${JSON.stringify(diagnostic)}`);
+  error.transport = diagnostic;
+  return error;
+}
+async function fetchScoped(url, init = {}, { fetchImpl = fetch, edgeKey = EDGE_KEY, maxRedirects = 5 } = {}) {
+  let current = new URL(url);
+  for (let hops = 0; ; hops += 1) {
+    if (!['http:', 'https:'].includes(current.protocol) || current.username || current.password) {
+      throw transportError('Unsupported request URL', responseDiagnostic(current, null, edgeKey));
+    }
+    let response;
+    try {
+      response = await fetchImpl(current.href, edgeInit(current.href, init, edgeKey));
+    } catch {
+      throw transportError('Request failed', responseDiagnostic(current, null, edgeKey));
+    }
+    const diagnostic = responseDiagnostic(current, response, edgeKey);
+    if (!REDIRECT_STATUSES.has(response.status)) return { response, url: current.href, diagnostic };
+    const location = response.headers.get('location');
+    await response.body?.cancel();
+    if (!location) throw transportError('Redirect missing Location', diagnostic);
+    if (hops >= maxRedirects) throw transportError('Redirect limit exceeded', diagnostic);
+    try {
+      current = new URL(location, current);
+    } catch {
+      throw transportError('Invalid redirect Location', diagnostic);
+    }
+  }
+}
 // Default reachability probe: HEAD (falling back to GET on 405, since some
 // CDNs/dev servers reject HEAD) and treat any 2xx as reachable. A data: URI
 // is embedded in the CSS itself — no network round-trip needed to resolve it.
 async function defaultFetchAsset(absUrl) {
   if (absUrl.startsWith('data:')) return true;
   try {
-    const res = await fetch(absUrl, edgeInit(absUrl, { method: 'HEAD', redirect: 'follow' }));
+    const { response: res } = await fetchScoped(absUrl, { method: 'HEAD' });
     if (res.ok) return true;
     if (res.status !== 405) return false;
   } catch {
     return false;
   }
   try {
-    const res = await fetch(absUrl, edgeInit(absUrl, { method: 'GET', redirect: 'follow' }));
+    const { response: res } = await fetchScoped(absUrl, { method: 'GET' });
     return res.ok;
   } catch {
     return false;
@@ -442,13 +486,14 @@ function discoverCssImports(css, cssUrl, pageOrigin) {
   return { sameOrigin, external };
 }
 
-async function fetchDeployed(pageUrl) {
-  const res = await fetch(pageUrl, edgeInit(pageUrl, { redirect: 'follow' }));
-  if (!res.ok) throw new Error(`fetch ${pageUrl} → HTTP ${res.status}`);
+async function fetchDeployed(pageUrl, transportOptions) {
+  const { response: res, url: finalPageUrl, diagnostic } = await fetchScoped(pageUrl, {}, transportOptions);
+  if (!res.ok || diagnostic.cfMitigated === 'challenge') throw transportError('Page request failed', diagnostic);
   const html = await res.text();
   const csp = parseCsp(res.headers.get('content-security-policy'));
-  const { cssLinks, externalFontRefs, inlineStyles, pageOrigin } = discoverFromHtml(html, pageUrl);
+  const { cssLinks, externalFontRefs, inlineStyles, pageOrigin } = discoverFromHtml(html, finalPageUrl);
 
+  const transportFailures = [];
   const cssParts = [...inlineStyles];
   const seen = new Set();
   const queue = [...cssLinks];
@@ -457,20 +502,33 @@ async function fetchDeployed(pageUrl) {
     if (seen.has(cssUrl)) continue;
     seen.add(cssUrl);
     let cssText;
+    let finalCssUrl;
     try {
-      const cr = await fetch(cssUrl, edgeInit(cssUrl, { redirect: 'follow' }));
-      if (!cr.ok) continue;
+      const { response: cr, diagnostic: cssDiagnostic, url: resolvedCssUrl } = await fetchScoped(cssUrl, {}, transportOptions);
+      if (!cr.ok || cssDiagnostic.cfMitigated === 'challenge') {
+        transportFailures.push(cssDiagnostic);
+        continue;
+      }
+      finalCssUrl = resolvedCssUrl;
       cssText = await cr.text();
-    } catch {
+    } catch (err) {
+      transportFailures.push(err.transport || responseDiagnostic(cssUrl, null, transportOptions?.edgeKey));
       continue;
     }
     cssParts.push(cssText);
-    const imports = discoverCssImports(cssText, cssUrl, pageOrigin);
+    const imports = discoverCssImports(cssText, finalCssUrl, pageOrigin);
     for (const u of imports.sameOrigin) if (!seen.has(u)) queue.push(u);
     for (const ext of imports.external) externalFontRefs.push(ext);
   }
 
-  return { css: cssParts.join('\n'), csp, externalFontRefs, cssBundleCount: seen.size };
+  return { css: cssParts.join('\n'), csp, externalFontRefs, cssBundleCount: seen.size, transportFailures, pageOrigin };
+}
+
+async function verifyReachability(pageUrl, transportOptions) {
+  const { response, diagnostic } = await fetchScoped(pageUrl, {}, transportOptions);
+  await response.body?.cancel();
+  const ok = response.ok && diagnostic.cfMitigated !== 'challenge';
+  return { url: pageUrl, ok, transportFailures: ok ? [] : [diagnostic] };
 }
 
 /* ── allowlist loading ────────────────────────────────────────────────
@@ -495,8 +553,7 @@ function loadAllowlist(path, host) {
 /* ── per-URL verification ─────────────────────────────────────────────── */
 async function verifyUrl(pageUrl, canonicalTokens, canonicalFontNames, allowlistPath) {
   const host = new URL(pageUrl).hostname;
-  const pageOrigin = new URL(pageUrl).origin;
-  const { css, csp, externalFontRefs, cssBundleCount } = await fetchDeployed(pageUrl);
+  const { css, csp, externalFontRefs, cssBundleCount, transportFailures, pageOrigin } = await fetchDeployed(pageUrl);
   const deployedTokens = extractTokenDecls(css);
   const deployedFonts = extractFontDecls(css);
   const fontFaceFamilies = extractFontFaceFamilies(css);
@@ -512,6 +569,7 @@ async function verifyUrl(pageUrl, canonicalTokens, canonicalFontNames, allowlist
   const relevantAssetFailures = assetFailures.filter((f) => canonicalFontNames.has(f.token));
 
   const ok =
+    transportFailures.length === 0 &&
     parity.missing.length === 0 &&
     parity.extra.length === 0 &&
     relevantFontFailures.length === 0 &&
@@ -520,6 +578,7 @@ async function verifyUrl(pageUrl, canonicalTokens, canonicalFontNames, allowlist
     url: pageUrl,
     ok,
     cssBundleCount,
+    transportFailures,
     hasCsp: csp !== null,
     externalFontRefs,
     parity,
@@ -534,14 +593,16 @@ function parseArgs(argv) {
   let tokens = join(__dirname, '..', 'src', 'tokens.css');
   let allowlist = join(__dirname, 'verify-deployed-tokens.allowlist.json');
   let json = false;
+  let reachabilityOnly = false;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--url') urls.push(argv[++i]);
     else if (a === '--tokens') tokens = argv[++i];
     else if (a === '--allowlist') allowlist = argv[++i];
     else if (a === '--json') json = true;
+    else if (a === '--reachability-only') reachabilityOnly = true;
   }
-  return { urls, tokens, allowlist, json };
+  return { urls, tokens, allowlist, json, reachabilityOnly };
 }
 
 function reportHuman(results) {
@@ -551,6 +612,9 @@ function reportHuman(results) {
       continue;
     }
     console.error(`\n✗ ${r.url} — design-system verification FAILED`);
+    for (const failure of r.transportFailures || []) {
+      console.error(`  TRANSPORT ${JSON.stringify(failure)}`);
+    }
     for (const m of r.parity.missing) {
       console.error(`  MISSING token ${m.token}: ${m.reason}`);
       console.error(`    expected: ${Array.isArray(m.expected) ? m.expected.join(' | ') : m.expected}`);
@@ -576,7 +640,7 @@ function reportHuman(results) {
 }
 
 async function main() {
-  const { urls, tokens, allowlist, json } = parseArgs(process.argv.slice(2));
+  const { urls, tokens, allowlist, json, reachabilityOnly } = parseArgs(process.argv.slice(2));
   if (urls.length === 0) {
     console.error('error: at least one --url is required');
     process.exit(2);
@@ -584,7 +648,7 @@ async function main() {
 
   let canonicalCss;
   try {
-    canonicalCss = readFileSync(tokens, 'utf8');
+    canonicalCss = reachabilityOnly ? '' : readFileSync(tokens, 'utf8');
   } catch {
     console.error(`error: cannot read canonical tokens.css at ${tokens}`);
     process.exit(2);
@@ -595,7 +659,8 @@ async function main() {
   const results = [];
   for (const url of urls) {
     try {
-      const r = await verifyUrl(url, canonicalTokens, canonicalFontNames, allowlist);
+      const r = reachabilityOnly ? await verifyReachability(url) :
+        await verifyUrl(url, canonicalTokens, canonicalFontNames, allowlist);
       r.parityCount = canonicalTokens.size;
       results.push(r);
     } catch (err) {
@@ -603,6 +668,7 @@ async function main() {
         url,
         ok: false,
         error: String(err && err.message ? err.message : err),
+        transportFailures: err.transport ? [err.transport] : [],
         parity: { missing: [], extra: [] },
         fontFailures: [],
         assetFailures: [],
@@ -617,12 +683,22 @@ async function main() {
     for (const r of results) {
       if (r.error) console.error(`\n✗ ${r.url} — ${r.error}`);
     }
-    reportHuman(results.filter((r) => !r.error));
+    if (reachabilityOnly) {
+      for (const r of results.filter((r) => !r.error)) {
+        console.log(`${r.ok ? '✓' : '✗'} ${r.url} — page access ${r.ok ? 'PASS' : 'FAIL'}`);
+        for (const failure of r.transportFailures) console.error(`  TRANSPORT ${JSON.stringify(failure)}`);
+      }
+    } else reportHuman(results.filter((r) => !r.error));
   }
-  process.exit(failed.length === 0 ? 0 : 1);
+  process.exitCode = failed.length === 0 ? 0 : 1;
 }
 
 module.exports = {
+  fetchScoped,
+  responseDiagnostic,
+  fetchDeployed,
+  verifyReachability,
+  defaultFetchAsset,
   normalizeValue,
   stripComments,
   extractTokenDecls,
