@@ -3,8 +3,8 @@ import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import { getFeaturesForTier } from '@revealui/core/features';
 import {
   DEFAULT_MANUAL_MINT_DAYS,
+  getLicensePublicKeyTrustManifest,
   getPublicKeys,
-  readPemEnv,
   validateLicenseKey,
   validateLicenseKeyForOperator,
   validateLicenseKeyForRefresh,
@@ -936,27 +936,67 @@ app.openapi(featuresRoute, async (c) => {
   );
 });
 
-// GET /api/license/public-key  -  Public: the vendor Ed25519 public key (PEM)
+// GET /api/license/public-key — versioned public issuer trust set.
 const publicKeyRoute = createRoute({
   method: 'get',
   path: '/public-key',
   tags: ['license'],
-  summary: 'Get the vendor license public key (PEM)',
+  summary: 'Get the hosted license issuer trust set',
   description:
-    'Returns the Ed25519 public key used to verify license JWTs. This is PUBLIC material (no auth): a supported client trust provisioning must bind it to the authenticated hosted issuer lifecycle so the RevDev daemon can verify their license. Null when the server has no key configured.',
+    'Returns one current and optionally one NEXT Ed25519 key in that order. keyId is lowercase SHA-256 hex of canonical SPKI DER; jwtKid preserves the existing first-eight-hex SHA-256 of normalized PEM. digest is lowercase SHA-256 hex of UTF-8 compact JSON with property order {version,issuer,audience,keys}, where each ordered key is {role,algorithm,keyId}. Clients must fetch this fixed-origin HTTPS endpoint without redirects and reject an unavailable or malformed trust set. The legacy publicKey property mirrors the current key for compatibility.',
   responses: {
     200: {
       content: {
         'application/json': {
           schema: z.object({
-            publicKey: z.string().nullable().openapi({
-              description: 'Ed25519 vendor public key in PEM, or null when unconfigured',
-              example: '-----BEGIN PUBLIC KEY-----\\n...\\n-----END PUBLIC KEY-----',
+            version: z.literal(1),
+            issuer: z.literal('https://revealui.com'),
+            audience: z.literal('revealui-license'),
+            keys: z
+              .array(
+                z.object({
+                  role: z.enum(['current', 'next']),
+                  algorithm: z.literal('EdDSA'),
+                  publicKey: z.string(),
+                  jwtKid: z
+                    .string()
+                    .length(8)
+                    .regex(/^[0-9a-f]{8}$/)
+                    .openapi({ description: 'Existing lowercase eight-hex JWT key hint' }),
+                  keyId: z
+                    .string()
+                    .length(64)
+                    .regex(/^[0-9a-f]{64}$/)
+                    .openapi({ description: 'Lowercase SHA-256 hex of canonical SPKI DER' }),
+                }),
+              )
+              .min(1)
+              .max(2)
+              .openapi({
+                description: 'Exactly current first, followed by optional NEXT; no duplicates',
+              }),
+            digest: z
+              .string()
+              .length(64)
+              .regex(/^[0-9a-f]{64}$/)
+              .openapi({
+                description: 'Lowercase SHA-256 hex of the ordered trust-set serialization',
+              }),
+            publicKey: z.string().openapi({
+              description: 'Legacy compatibility field containing the current Ed25519 PEM',
             }),
           }),
         },
       },
-      description: 'Vendor public key (PEM), or null when the server has none configured',
+      description: 'Versioned hosted issuer trust set',
+    },
+    503: {
+      content: {
+        'application/json': {
+          schema: z.object({ message: z.string() }),
+        },
+      },
+      description: 'The hosted issuer trust set is unavailable or invalid',
     },
   },
 });
@@ -965,8 +1005,15 @@ app.openapi(publicKeyRoute, async (c) => {
   // Non-secret verification material. Unescape literal \n (Vercel stores
   // multi-line PEMs escaped) with replaceAll, NOT the :156 regex (no-regex rule
   // for new code); mirrors the generate route's normalize at :372.
-  const publicKey = readPemEnv('REVEALUI_LICENSE_PUBLIC_KEY') ?? null;
-  return c.json({ publicKey }, 200);
+  try {
+    const manifest = await getLicensePublicKeyTrustManifest();
+    c.header('Cache-Control', 'no-store');
+    return c.json(manifest, 200);
+  } catch {
+    logger.error('License public-key trust set is unavailable or invalid');
+    c.header('Cache-Control', 'no-store');
+    return c.json({ message: 'License trust set unavailable' }, 503);
+  }
 });
 
 const LicenseCurrentResponseSchema = z.object({

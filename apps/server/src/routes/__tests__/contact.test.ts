@@ -29,10 +29,10 @@ describe('public inquiry delivery', () => {
     expect((await submit({ message: 'x'.repeat(19) })).status).toBe(400);
     expect(sendEmail).not.toHaveBeenCalled();
   });
-  it('confirms only provider acceptance and preserves the source', async () => {
+  it('acknowledges receipt after provider submission and preserves the source', async () => {
     vi.mocked(sendEmail).mockResolvedValueOnce(undefined);
     const accepted = await submit();
-    expect(await accepted.json()).toEqual({ success: true });
+    expect(await accepted.json()).toEqual({ success: true, receipt: 'received' });
     expect(sendEmail).toHaveBeenCalledWith(
       expect.objectContaining({ subject: '[marketing] general — Jo', replyTo: 'jo@example.com' }),
     );
@@ -44,6 +44,7 @@ describe('public inquiry delivery', () => {
   it('silently discards a filled honeypot', async () => {
     const discarded = await submit({ website: 'https://spam.example' });
     expect(discarded.status).toBe(200);
+    expect(await discarded.json()).toEqual({ success: true, receipt: 'received' });
     expect(sendEmail).not.toHaveBeenCalled();
   });
 });

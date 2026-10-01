@@ -53,7 +53,7 @@ export interface BlogPost {
 }
 
 /**
- * Submit the contact form. Returns null on success; an error message string
+ * Submit the contact form. Returns null on endpoint acknowledgment (not inbox delivery); an error message string
  * on validation/server failure.
  */
 export async function submitContact(payload: ContactPayload): Promise<string | null> {
@@ -67,7 +67,7 @@ export async function submitContact(payload: ContactPayload): Promise<string | n
       const body: unknown = await res.json();
       if (body && typeof body === 'object' && 'success' in body && body.success === true)
         return null;
-      return 'We could not confirm that your message was accepted. Please try again or email founder@revealui.com.';
+      return 'We could not confirm receipt of your request. Please try again or email founder@revealui.com.';
     }
     // empty-catch-ok: malformed JSON from apps/server shouldn't crash the form; falls back to a generic status-coded message below.
     const data = (await res.json().catch(() => ({}))) as { message?: unknown; error?: unknown };

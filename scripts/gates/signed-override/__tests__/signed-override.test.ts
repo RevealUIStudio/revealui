@@ -1,406 +1,193 @@
-import { createPrivateKey, createPublicKey, verify } from 'node:crypto';
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { runSignedOverrideCli } from '../cli.js';
-import {
-  canonicalOverridePayload,
-  generateEncryptedKeypair,
-  isPathInside,
-  type OverridePayload,
-  overrideAllowed,
-  PRIVATE_KEY_FILENAME,
-  PUBLIC_KEY_FILENAME,
-  SignedOverrideError,
-  signOverride,
-  type Verification,
-  verifyOverride,
-  writeEncryptedKeypair,
-} from '../signed-override.js';
+import { buildOwnerOverridePayload, verifyOwnerOverrideComments } from '../signed-override.js';
 
-const SHA_A = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-const SHA_B = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
-const PASSPHRASE = 'test-passphrase-gap-313';
-const NOW = new Date('2026-09-23T12:00:00.000Z');
-const FUTURE = '2026-09-23T13:00:00.000Z';
-const CLI_EXPIRES = '2099-01-01T00:00:00.000Z';
-const PAST = '2026-09-23T11:00:00.000Z';
-const REPO_ROOT = fileURLToPath(new URL('../../../../', import.meta.url));
-
-const tempDirs: string[] = [];
-
-function freshDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), 'signed-override-'));
-  tempDirs.push(dir);
-  return dir;
-}
-
+vi.mock('node:child_process', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('node:child_process')>()),
+  execFileSync: vi.fn(),
+}));
+const head = 'a'.repeat(40);
+let directory: string;
 afterEach(() => {
-  for (const dir of tempDirs) rmSync(dir, { recursive: true, force: true });
-  tempDirs.length = 0;
+  if (directory) rmSync(directory, { recursive: true, force: true });
+  vi.restoreAllMocks();
+  vi.clearAllMocks();
 });
-
-function payload(overrides: Partial<OverridePayload> = {}): OverridePayload {
-  return {
-    repo: 'RevealUIStudio/revealui',
-    pr_number: 313,
-    head_sha: SHA_A,
-    gate_name: 'Security review',
-    expires_at: FUTURE,
-    ...overrides,
-  };
-}
-
-function expectedFrom(body: OverridePayload) {
-  return {
-    repo: body.repo,
-    pr_number: body.pr_number,
-    head_sha: body.head_sha,
-    gate_name: body.gate_name,
-  };
-}
-
-describe('canonical payload', () => {
-  it('sorts keys and emits no extra whitespace', () => {
-    const body = payload();
-    const canonical = canonicalOverridePayload(body);
-    expect(canonical).toBe(
-      `{"expires_at":"${FUTURE}","gate_name":"Security review","head_sha":"${SHA_A}","pr_number":313,"repo":"RevealUIStudio/revealui"}`,
-    );
-    expect(canonical.includes(': ')).toBe(false);
-    expect(canonical.includes(', ')).toBe(false);
-  });
-});
-
-describe('keygen', () => {
-  it('writes an encrypted private key and a public key only under a temp dir', () => {
-    const dir = freshDir();
-    const paths = writeEncryptedKeypair(dir, PASSPHRASE);
-    expect(paths.privateKeyPath.startsWith(dir)).toBe(true);
-    expect(paths.publicKeyPath.startsWith(dir)).toBe(true);
-    expect(isPathInside(REPO_ROOT, paths.privateKeyPath)).toBe(false);
-
-    const privatePem = readFileSync(paths.privateKeyPath, 'utf8');
-    const publicPem = readFileSync(paths.publicKeyPath, 'utf8');
-    expect(privatePem.includes('BEGIN ENCRYPTED PRIVATE KEY')).toBe(true);
-    expect(privatePem.includes('BEGIN PRIVATE KEY')).toBe(false);
-    expect(publicPem.includes('BEGIN PUBLIC KEY')).toBe(true);
-    expect(() => createPrivateKey(privatePem)).toThrow();
-    expect(existsSync(join(REPO_ROOT, 'scripts/gates/signed-override', PRIVATE_KEY_FILENAME))).toBe(
-      false,
-    );
-    expect(existsSync(join(REPO_ROOT, 'scripts/gates/signed-override', PUBLIC_KEY_FILENAME))).toBe(
-      false,
-    );
-  });
-
-  it('refuses keygen output inside the repository', () => {
-    const stderr: string[] = [];
-    const code = runSignedOverrideCli(['keygen', '--out-dir', 'scripts/gates/signed-override'], {
-      cwd: REPO_ROOT,
-      env: { SIGNED_OVERRIDE_PASSPHRASE: PASSPHRASE },
-      stderr: (chunk) => {
-        stderr.push(chunk);
-      },
-      stdout: () => undefined,
-    });
-    expect(code).toBe(2);
-    expect(stderr.join('')).toContain('refusing to write key material');
-    expect(existsSync(join(REPO_ROOT, 'scripts/gates/signed-override', PRIVATE_KEY_FILENAME))).toBe(
-      false,
-    );
-  });
-});
-
-describe('sign and verify', () => {
-  it('accepts a matching unexpired payload', () => {
-    const { privateKeyPem, publicKeyPem } = generateEncryptedKeypair(PASSPHRASE);
-    const body = payload();
-    const blob = signOverride(body, privateKeyPem, PASSPHRASE);
-    const canonical = canonicalOverridePayload(blob.payload);
-    const cryptoOk = verify(
-      null,
-      Buffer.from(canonical, 'utf8'),
-      createPublicKey(publicKeyPem),
-      Buffer.from(blob.signature, 'base64'),
-    );
-    expect(cryptoOk).toBe(true);
-    const verification = verifyOverride({
-      blob,
-      publicKeyPem,
-      expected: expectedFrom(body),
-      now: NOW,
-    });
-    expect(verification).toEqual({ ok: true });
-  });
-
-  it('rejects a wrong head SHA even when the signature matches the signed payload', () => {
-    const { privateKeyPem, publicKeyPem } = generateEncryptedKeypair(PASSPHRASE);
-    const body = payload();
-    const blob = signOverride(body, privateKeyPem, PASSPHRASE);
-    const verification = verifyOverride({
-      blob,
-      publicKeyPem,
-      expected: expectedFrom(payload({ head_sha: SHA_B })),
-      now: NOW,
-    });
-    expect(verification.ok).toBe(false);
-    expect(verification.reason).toBe('wrong-sha');
-  });
-
-  it('rejects a payload whose head SHA was swapped after signing', () => {
-    const { privateKeyPem, publicKeyPem } = generateEncryptedKeypair(PASSPHRASE);
-    const blob = signOverride(payload(), privateKeyPem, PASSPHRASE);
-    const swapped = { ...blob, payload: { ...blob.payload, head_sha: SHA_B } };
-    const verification = verifyOverride({
-      blob: swapped,
-      publicKeyPem,
-      expected: expectedFrom(payload({ head_sha: SHA_B })),
-      now: NOW,
-    });
-    expect(verification.ok).toBe(false);
-    expect(verification.reason).toBe('bad-signature');
-  });
-
-  it('rejects a wrong gate', () => {
-    const { privateKeyPem, publicKeyPem } = generateEncryptedKeypair(PASSPHRASE);
-    const blob = signOverride(payload(), privateKeyPem, PASSPHRASE);
-    const verification = verifyOverride({
-      blob,
-      publicKeyPem,
-      expected: expectedFrom(payload({ gate_name: 'Other gate' })),
-      now: NOW,
-    });
-    expect(verification).toEqual({ ok: false, reason: 'wrong-gate' });
-  });
-
-  it('rejects a wrong repo', () => {
-    const { privateKeyPem, publicKeyPem } = generateEncryptedKeypair(PASSPHRASE);
-    const blob = signOverride(payload(), privateKeyPem, PASSPHRASE);
-    const verification = verifyOverride({
-      blob,
-      publicKeyPem,
-      expected: expectedFrom(payload({ repo: 'RevealUIStudio/other' })),
-      now: NOW,
-    });
-    expect(verification).toEqual({ ok: false, reason: 'wrong-repo' });
-  });
-
-  it('rejects a wrong PR', () => {
-    const { privateKeyPem, publicKeyPem } = generateEncryptedKeypair(PASSPHRASE);
-    const blob = signOverride(payload(), privateKeyPem, PASSPHRASE);
-    const verification = verifyOverride({
-      blob,
-      publicKeyPem,
-      expected: expectedFrom(payload({ pr_number: 314 })),
-      now: NOW,
-    });
-    expect(verification).toEqual({ ok: false, reason: 'wrong-pr' });
-  });
-
-  it('rejects an expired payload', () => {
-    const { privateKeyPem, publicKeyPem } = generateEncryptedKeypair(PASSPHRASE);
-    const body = payload({ expires_at: PAST });
-    const blob = signOverride(body, privateKeyPem, PASSPHRASE);
-    const verification = verifyOverride({
-      blob,
-      publicKeyPem,
-      expected: expectedFrom(body),
-      now: NOW,
-    });
-    expect(verification).toEqual({ ok: false, reason: 'expired' });
-  });
-
-  it('rejects a payload that expires at the current instant', () => {
-    const { privateKeyPem, publicKeyPem } = generateEncryptedKeypair(PASSPHRASE);
-    const body = payload({ expires_at: NOW.toISOString() });
-    const blob = signOverride(body, privateKeyPem, PASSPHRASE);
-    const verification = verifyOverride({
-      blob,
-      publicKeyPem,
-      expected: expectedFrom(body),
-      now: NOW,
-    });
-    expect(verification).toEqual({ ok: false, reason: 'expired' });
-  });
-
-  it('rejects a bad passphrase and does not produce a signature', () => {
-    const { privateKeyPem } = generateEncryptedKeypair(PASSPHRASE);
-    let caught: unknown;
-    try {
-      signOverride(payload(), privateKeyPem, 'wrong-passphrase');
-    } catch (err) {
-      caught = err;
-    }
-    expect(caught).toBeInstanceOf(SignedOverrideError);
-    if (!(caught instanceof SignedOverrideError)) {
-      throw new Error('expected SignedOverrideError');
-    }
-    expect(caught.code).toBe('bad-passphrase');
-  });
-
-  it('rejects a tampered signature', () => {
-    const { privateKeyPem, publicKeyPem } = generateEncryptedKeypair(PASSPHRASE);
-    const body = payload();
-    const blob = signOverride(body, privateKeyPem, PASSPHRASE);
-    const flipped = blob.signature[0] === 'A' ? 'B' : 'A';
-    const tampered = { ...blob, signature: `${flipped}${blob.signature.slice(1)}` };
-    const verification = verifyOverride({
-      blob: tampered,
-      publicKeyPem,
-      expected: expectedFrom(body),
-      now: NOW,
-    });
-    expect(verification.ok).toBe(false);
-    expect(verification.reason).toBe('bad-signature');
-  });
-
-  it('rejects an unsigned artifact', () => {
-    const { publicKeyPem } = generateEncryptedKeypair(PASSPHRASE);
-    const body = payload();
-    const verification = verifyOverride({
-      blob: { v: 1, alg: 'Ed25519', payload: body, signature: '' },
-      publicKeyPem,
-      expected: expectedFrom(body),
-      now: NOW,
-    });
-    expect(verification.ok).toBe(false);
-    expect(verification.reason).toBe('bad-signature');
-  });
-});
-
-describe('overrideAllowed', () => {
-  const ok: Verification = { ok: true };
-  const rejected: Verification = { ok: false, reason: 'bad-artifact' };
-
-  it('is false for a label alone', () => {
-    expect(overrideAllowed({ labelPresent: true, verification: rejected })).toBe(false);
-  });
-
-  it('is false for a valid signature without the label', () => {
-    expect(overrideAllowed({ labelPresent: false, verification: ok })).toBe(false);
-  });
-
-  it('is true only when the label and verification.ok are both present', () => {
-    expect(overrideAllowed({ labelPresent: true, verification: ok })).toBe(true);
-  });
-
-  it('is false when neither the label nor verification is present', () => {
-    expect(overrideAllowed({ labelPresent: false, verification: rejected })).toBe(false);
-  });
-});
-
-describe('cli roundtrip', () => {
-  it('signs and verifies an artifact from a temp key directory', () => {
-    const dir = freshDir();
-    const stdout: string[] = [];
-    const stderr: string[] = [];
-    const io = {
-      cwd: REPO_ROOT,
-      env: { SIGNED_OVERRIDE_PASSPHRASE: PASSPHRASE },
-      stdout: (chunk: string) => {
-        stdout.push(chunk);
-      },
-      stderr: (chunk: string) => {
-        stderr.push(chunk);
-      },
-    };
-    expect(runSignedOverrideCli(['keygen', '--out-dir', dir], io)).toBe(0);
-    const signed = join(dir, 'signed-override.json');
+describe('owner override preparation helper', () => {
+  it('prepares exact current-head payload and never invokes signing', () => {
+    directory = mkdtempSync(join(tmpdir(), 'override-cli-fixture-'));
+    vi.mocked(execFileSync).mockReturnValue(`${head}\n`);
+    const out = join(directory, 'payload');
     expect(
-      runSignedOverrideCli(
-        [
-          'sign',
-          '--private-key',
-          join(dir, PRIVATE_KEY_FILENAME),
-          '--repo',
-          'RevealUIStudio/revealui',
-          '--pr',
-          '313',
-          '--head-sha',
-          SHA_A,
-          '--gate',
-          'Security review',
-          '--expires',
-          CLI_EXPIRES,
-          '--out',
-          signed,
-        ],
-        io,
-      ),
-    ).toBe(0);
-    expect(existsSync(signed)).toBe(true);
-    const verifyOut: string[] = [];
-    const code = runSignedOverrideCli(
-      [
-        'verify',
-        '--public-key',
-        join(dir, PUBLIC_KEY_FILENAME),
-        '--artifact',
-        signed,
+      runSignedOverrideCli([
+        'prepare',
         '--repo',
-        'RevealUIStudio/revealui',
+        'RevealUIStudio/revdev',
         '--pr',
-        '313',
-        '--head-sha',
-        SHA_A,
+        '270',
         '--gate',
-        'Security review',
-      ],
-      {
-        ...io,
-        stdout: (chunk: string) => {
-          verifyOut.push(chunk);
-        },
-      },
-    );
-    expect(stderr.join('')).toBe('');
-    expect(code).toBe(0);
-    expect(verifyOut.join('')).toBe('ok\n');
-    expect(readFileSync(join(dir, PRIVATE_KEY_FILENAME), 'utf8')).toContain(
-      'BEGIN ENCRYPTED PRIVATE KEY',
-    );
-  });
-
-  it('rejects a bad passphrase file while signing', () => {
-    const dir = freshDir();
-    writeEncryptedKeypair(dir, PASSPHRASE);
-    const passFile = join(dir, 'passphrase');
-    writeFileSync(passFile, 'not-the-passphrase\n', { mode: 0o600 });
-    const stderr: string[] = [];
-    const code = runSignedOverrideCli(
-      [
-        'sign',
-        '--private-key',
-        join(dir, PRIVATE_KEY_FILENAME),
-        '--passphrase-file',
-        passFile,
-        '--repo',
-        'RevealUIStudio/revealui',
-        '--pr',
-        '313',
-        '--head-sha',
-        SHA_A,
-        '--gate',
-        'Security review',
+        'prove-red',
         '--expires',
-        FUTURE,
+        '2099-01-01',
         '--out',
-        join(dir, 'signed-override.json'),
-      ],
-      {
-        cwd: dir,
-        env: {},
-        stderr: (chunk) => {
-          stderr.push(chunk);
-        },
-        stdout: () => undefined,
-      },
+        out,
+      ]),
+    ).toBe(0);
+    expect(readFileSync(out, 'utf8')).toBe(
+      buildOwnerOverridePayload(
+        { repo: 'RevealUIStudio/revdev', pr: 270, head, gate: 'prove-red' },
+        '2099-01-01',
+      ),
     );
-    expect(code).toBe(1);
-    expect(stderr.join('')).toContain('could not decrypt private key');
-    expect(existsSync(join(dir, 'signed-override.json'))).toBe(false);
+    expect(vi.mocked(execFileSync).mock.calls.every(([program]) => program === 'gh')).toBe(true);
   });
+  it.each(['sign', 'keygen', 'verify'])(
+    'retires unsupported %s command without subprocesses',
+    (command) => {
+      vi.mocked(execFileSync).mockClear();
+      expect(runSignedOverrideCli([command])).toBe(1);
+      expect(execFileSync).not.toHaveBeenCalled();
+    },
+  );
+  it('rejects stale prepared head before posting', () => {
+    directory = mkdtempSync(join(tmpdir(), 'override-cli-fixture-'));
+    const payload = join(directory, 'payload');
+    writeFileSync(
+      payload,
+      buildOwnerOverridePayload(
+        { repo: 'RevealUIStudio/revdev', pr: 270, head: 'b'.repeat(40), gate: 'prove-red' },
+        '2099-01-01',
+      ),
+    );
+    vi.mocked(execFileSync).mockReturnValue(`${head}\n`);
+    vi.mocked(execFileSync).mockClear();
+    expect(
+      runSignedOverrideCli([
+        'post',
+        '--repo',
+        'RevealUIStudio/revdev',
+        '--pr',
+        '270',
+        '--gate',
+        'prove-red',
+        '--payload-file',
+        payload,
+        '--signature-file',
+        join(directory, 'sig'),
+      ]),
+    ).toBe(1);
+    expect(execFileSync).toHaveBeenCalledTimes(1);
+  });
+  it('posts only the externally supplied envelope for the current head through stdin', () => {
+    directory = mkdtempSync(join(tmpdir(), 'override-cli-fixture-'));
+    const payload = join(directory, 'payload');
+    const signature = join(directory, 'signature');
+    writeFileSync(
+      payload,
+      buildOwnerOverridePayload(
+        { repo: 'RevealUIStudio/revdev', pr: 270, head, gate: 'prove-red' },
+        '2099-01-01',
+      ),
+    );
+    writeFileSync(
+      signature,
+      '-----BEGIN SSH SIGNATURE-----\nsynthetic-transport-only\n-----END SSH SIGNATURE-----\n',
+    );
+    vi.mocked(execFileSync).mockReturnValue(`${head}\n`);
+    expect(
+      runSignedOverrideCli([
+        'post',
+        '--repo',
+        'RevealUIStudio/revdev',
+        '--pr',
+        '270',
+        '--gate',
+        'prove-red',
+        '--payload-file',
+        payload,
+        '--signature-file',
+        signature,
+      ]),
+    ).toBe(0);
+    expect(execFileSync).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(execFileSync).mock.calls[1]?.[1]).toEqual([
+      'pr',
+      'comment',
+      '270',
+      '--repo',
+      'RevealUIStudio/revdev',
+      '--body-file',
+      '-',
+    ]);
+    expect(vi.mocked(execFileSync).mock.calls[1]?.[2]).toMatchObject({
+      input: expect.stringContaining('REVEALFLEET-OVERRIDE-BEGIN'),
+    });
+  });
+  it('rejects passphrase flags instead of creating a new signing path', () => {
+    expect(runSignedOverrideCli(['prepare', '--passphrase-file', '/unread-secret'])).toBe(1);
+    expect(execFileSync).not.toHaveBeenCalled();
+  });
+});
+
+it('prepares and posts an externally signed real SSHSIG that the shared gate accepts', async () => {
+  const realProcess =
+    await vi.importActual<typeof import('node:child_process')>('node:child_process');
+  directory = mkdtempSync(join(tmpdir(), 'owner-helper-roundtrip-'));
+  const key = join(directory, 'owner');
+  realProcess.execFileSync('ssh-keygen', ['-t', 'ed25519', '-N', '', '-f', key], { stdio: 'pipe' });
+  const payload = join(directory, 'payload');
+  const expires = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+  vi.mocked(execFileSync).mockReturnValue(`${head}\n`);
+  vi.mocked(execFileSync).mockClear();
+  expect(
+    runSignedOverrideCli([
+      'prepare',
+      '--repo',
+      'RevealUIStudio/revdev',
+      '--pr',
+      '270',
+      '--gate',
+      'prove-red',
+      '--expires',
+      expires,
+      '--out',
+      payload,
+    ]),
+  ).toBe(0);
+  // Only this explicit synthetic fixture signs; production helper has no signing command.
+  realProcess.execFileSync(
+    'ssh-keygen',
+    ['-Y', 'sign', '-f', key, '-n', 'revealfleet-override', payload],
+    { stdio: 'pipe' },
+  );
+  expect(
+    runSignedOverrideCli([
+      'post',
+      '--repo',
+      'RevealUIStudio/revdev',
+      '--pr',
+      '270',
+      '--gate',
+      'prove-red',
+      '--payload-file',
+      payload,
+      '--signature-file',
+      `${payload}.sig`,
+    ]),
+  ).toBe(0);
+  const posted = vi.mocked(execFileSync).mock.calls.at(-1)?.[2] as { input: string };
+  const comment = posted.input;
+  expect(comment).toContain(readFileSync(`${payload}.sig`, 'utf8').trim());
+  expect(comment).toContain(readFileSync(payload, 'utf8'));
+  expect(
+    verifyOwnerOverrideComments({
+      comments: [{ body: comment }],
+      allowedSigners: `owner@revealui.com ${readFileSync(`${key}.pub`, 'utf8')}`,
+      expected: { repo: 'RevealUIStudio/revdev', pr: 270, head, gate: 'prove-red' },
+    }).ok,
+  ).toBe(true);
 });

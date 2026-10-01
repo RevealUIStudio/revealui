@@ -89,6 +89,7 @@ export type {
   SkillInvokeRequest,
   SkillInvokeToolCall,
   SkillInvokeToolDefinition,
+  SkillSuitabilityAssessment,
 } from './skill-invoke.js';
 export {
   buildSkillInvokeRequest,
@@ -108,6 +109,7 @@ export {
   resolveNativeWorkflowSkillId,
   SKILL_INVOKE_MAX_COMPLETION_TOKENS,
   SKILL_INVOKE_MAX_TOOL_ROUNDS,
+  SkillSuitabilityAssessmentSchema,
   skillInvokeCompletionBody,
   skillInvokeTimeoutMs,
 } from './skill-invoke.js';
@@ -115,7 +117,7 @@ export type {
   RunNativeSkillInvokeOptions,
   RunNativeSkillInvokeResult,
 } from './skill-invoke-runtime.js';
-export { runNativeSkillInvoke } from './skill-invoke-runtime.js';
+export { collectSkillInvokeOutput, runNativeSkillInvoke } from './skill-invoke-runtime.js';
 export type {
   ContentSnapshot,
   ContentSnapshotFile,

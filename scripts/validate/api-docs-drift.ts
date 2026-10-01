@@ -1,8 +1,8 @@
 /**
- * Fail when docs/api/rest-api/README.md drifts from `pnpm docs:generate:api`.
+ * Fail when generated API docs or the checked-in OpenAPI snapshot drifts.
  *
  * GAP-395: the checked-in REST API doc became hand-maintained; this gate
- * regenerates to a temp file (via DOCS_API_OUT) and diffs against the commit.
+ * regenerates both artifacts to temp files and diffs against the commit.
  *
  * Usage: pnpm validate:api-docs
  */
@@ -16,11 +16,14 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '../..');
 const committedPath = join(repoRoot, 'docs/api/rest-api/README.md');
+const committedSpecPath = join(repoRoot, 'examples/api/openapi.json');
 
 function main(): void {
   const committed = readFileSync(committedPath, 'utf-8');
+  const committedSpec = readFileSync(committedSpecPath, 'utf-8');
   const dir = mkdtempSync(join(tmpdir(), 'api-docs-drift-'));
   const outPath = join(dir, 'README.md');
+  const specOutPath = join(dir, 'openapi.json');
 
   try {
     execFileSync('pnpm', ['docs:generate:api'], {
@@ -30,9 +33,10 @@ function main(): void {
       env: { ...process.env, DOCS_API_OUT: outPath },
     });
     const generated = readFileSync(outPath, 'utf-8');
-    if (generated !== committed) {
+    const generatedSpec = readFileSync(specOutPath, 'utf-8');
+    if (generated !== committed || generatedSpec !== committedSpec) {
       console.error(
-        '[api-docs-drift] docs/api/rest-api/README.md is out of date.\n' +
+        '[api-docs-drift] Generated API docs or examples/api/openapi.json is out of date.\n' +
           'Run: pnpm docs:generate:api\n' +
           'and commit the result.',
       );

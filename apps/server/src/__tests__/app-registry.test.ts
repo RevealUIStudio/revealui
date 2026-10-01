@@ -57,10 +57,10 @@ it('assembles current API contracts without runtime startup or external I/O', as
           schema: {
             oneOf?: Array<{
               required?: string[];
-              properties?: Record<string, { const?: unknown }>;
+              properties?: Record<string, { const?: unknown; enum?: unknown[] }>;
             }>;
             required?: string[];
-            properties?: Record<string, { const?: unknown }>;
+            properties?: Record<string, { const?: unknown; enum?: unknown[] }>;
           };
         };
       };
@@ -76,9 +76,12 @@ it('assembles current API contracts without runtime startup or external I/O', as
     const normal = schemas.find((schema) =>
       Object.hasOwn(schema.properties ?? {}, 'expectedCurrentLicenseKey'),
     );
-    const recoverOnly = schemas.find((schema) => schema.properties?.recoverOnly?.const === true);
+    const recoverOnly = schemas.find((schema) =>
+      schema.properties?.recoverOnly?.enum?.some((value) => value === true),
+    );
     expect(normal).toBeDefined();
     expect(recoverOnly).toBeDefined();
+    expect(recoverOnly?.properties?.recoverOnly?.enum).toEqual([true]);
     expect(Object.hasOwn(recoverOnly?.properties ?? {}, 'expectedCurrentLicenseKey')).toBe(false);
     expect(generate?.responses).toHaveProperty('503');
     expect(spec.paths?.[`${prefix}/verify`]?.post).toBeDefined();
