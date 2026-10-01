@@ -5,6 +5,7 @@ import { SITE } from '../site';
 export interface LegalSection {
   readonly heading: string;
   readonly subsections?: readonly LegalSubsection[];
+  readonly collapsibleSubsections?: boolean;
   readonly listPreamble?: string;
   readonly paragraphs?: readonly string[];
   readonly listItems?: readonly string[];

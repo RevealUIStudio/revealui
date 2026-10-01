@@ -24,19 +24,23 @@ export function LegalSections({
       {sections.map((section) => (
         <div key={section.heading}>
           <h2>{section.heading}</h2>
-          {section.subsections?.map((sub) => (
-            <div key={sub.heading}>
-              <h3>{sub.heading}</h3>
-              {sub.paragraph && <p>{sub.paragraph}</p>}
-              {sub.listItems && (
-                <ul>
-                  {sub.listItems.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ))}
+          {section.subsections?.map((sub) => {
+            const Container = section.collapsibleSubsections ? 'details' : 'div';
+            const Heading = section.collapsibleSubsections ? 'summary' : 'h3';
+            return (
+              <Container key={sub.heading}>
+                <Heading>{sub.heading}</Heading>
+                {sub.paragraph && <p>{sub.paragraph}</p>}
+                {sub.listItems && (
+                  <ul>
+                    {sub.listItems.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                )}
+              </Container>
+            );
+          })}
           {section.listPreamble && <p>{section.listPreamble}</p>}
           {section.listItems && (
             <ul>

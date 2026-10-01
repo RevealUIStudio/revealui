@@ -8,7 +8,7 @@ import type { LegalSection } from './privacy';
 
 export const SECURITY_META = {
   title: 'Security',
-  lastUpdated: 'September 16, 2026',
+  lastUpdated: 'October 1, 2026',
   intro:
     'RevealUI Studio is a solo-operator company building production software. Security is not a marketing line for us. It is a discipline we apply every day, and it determines whether real customers can trust us with their data. This page is the on-site policy summary: how we accept vulnerability reports, what we commit to in return, and the security posture our customers inherit when they self-host. Formal GitHub reporting lives at the Security Advisories policy.',
   notice: {
@@ -87,10 +87,19 @@ export const SECURITY_SECTIONS: readonly LegalSection[] = [
     ],
   },
   {
-    heading: '7. Compliance',
-    paragraphs: [
-      'RevealUI Studio is a Tennessee LLC operating as a solo-operator company. We do not currently hold SOC 2, ISO 27001, or PCI DSS attestations. These are planned for later phases of the company; we will publish progress on this page when those audits begin.',
-      'For data protection: we are GDPR-aware in our framework design (consent, deletion, anonymization primitives are in the platform), but a Data Processing Agreement template is not yet finalized for EU B2B customers. If you require a DPA before purchase, contact us before signing up.',
+    heading: '7. Compliance FAQ',
+    collapsibleSubsections: true,
+    subsections: [
+      {
+        heading: 'What is your independent-assessment status?',
+        paragraph:
+          'RevealUI Studio is a Tennessee LLC operating as a solo-operator company. We do not currently hold SOC 2, ISO 27001, or PCI DSS attestations. These are planned for later phases of the company; we will publish progress on this page when those audits begin.',
+      },
+      {
+        heading: 'Can I arrange a Data Processing Agreement?',
+        paragraph:
+          'For data protection: we are GDPR-aware in our framework design (consent, deletion, anonymization primitives are in the platform), but a Data Processing Agreement template is not yet finalized for EU B2B customers. If you require a DPA before purchase, contact us before signing up.',
+      },
     ],
   },
   {
