@@ -117,7 +117,7 @@ export type {
   RunNativeSkillInvokeOptions,
   RunNativeSkillInvokeResult,
 } from './skill-invoke-runtime.js';
-export { runNativeSkillInvoke } from './skill-invoke-runtime.js';
+export { collectSkillInvokeOutput, runNativeSkillInvoke } from './skill-invoke-runtime.js';
 export type {
   ContentSnapshot,
   ContentSnapshotFile,
