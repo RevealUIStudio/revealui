@@ -21,7 +21,7 @@
  * License: FSL-1.1-MIT
  */
 
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createConnection } from 'node:net';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -592,18 +592,36 @@ async function main() {
       const skillId = args[1];
       if (!skillId) {
         process.stderr.write(
-          'Usage: revealui-harnesses skills invoke <doctor|recover|checkpoint> [--dry-run] [--project <dir>] [--revskills <dir>]\n',
+          'Usage: revealui-harnesses skills invoke <doctor|recover|checkpoint> [--dry-run] [--assessment <json-file>] [--project <dir>] [--revskills <dir>]\n',
         );
         process.exit(1);
       }
       const dryRun = args.includes('--dry-run');
-      const { buildSkillInvokeRequest } = await import('./content/skill-invoke.js');
+      const { buildSkillInvokeRequest, SkillSuitabilityAssessmentSchema } = await import(
+        './content/skill-invoke.js'
+      );
+      const assessmentIdx = args.indexOf('--assessment');
+      let assessment: import('./content/skill-invoke.js').SkillSuitabilityAssessment | undefined;
+      if (assessmentIdx >= 0) {
+        try {
+          const file = args[assessmentIdx + 1];
+          if (!file) throw new Error('--assessment requires a JSON file');
+          assessment = SkillSuitabilityAssessmentSchema.parse(
+            JSON.parse(readFileSync(file, 'utf8')),
+          );
+        } catch (error) {
+          process.stderr.write(
+            `Cannot read skill assessment: ${error instanceof Error ? error.message : String(error)}\n`,
+          );
+          process.exit(1);
+        }
+      }
       const catalog = listSkillCatalog({
         projectRoot,
         revskillsRoot,
         includeDefinitions: true,
       });
-      const prepared = buildSkillInvokeRequest(skillId, catalog);
+      const prepared = buildSkillInvokeRequest(skillId, catalog, assessment);
       if ('error' in prepared) {
         process.stderr.write(`${prepared.error}\n`);
         process.exit(1);
@@ -620,6 +638,7 @@ async function main() {
         catalog,
         projectRoot,
         revskillsRoot,
+        assessment,
       });
       process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
       if (result.error) process.exit(1);

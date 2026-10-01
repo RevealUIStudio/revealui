@@ -35,7 +35,7 @@ export type LicenseTier = 'free' | 'pro' | 'max' | 'enterprise';
  *
  * - active: License is valid and current
  * - grace: License has an issue but is within a grace period (still allowed)
- * - read-only: Perpetual support lapsed past grace — reads allowed, writes blocked
+ * - read-only: Reserved compatibility state; support lapse does not block perpetual writes
  * - expired: Grace period exhausted — degraded to free tier
  * - invalid: Signature invalid or tampered — hard fail
  * - missing: No license configured — free tier
@@ -54,7 +54,7 @@ export interface LicenseCheckResult {
   reason?: string;
   /** Milliseconds remaining in grace period (undefined if not in grace) */
   graceRemainingMs?: number;
-  /** Whether writes should be blocked (read-only mode for lapsed perpetual) */
+  /** Whether writes should be blocked; perpetual support lapse does not set this flag */
   readOnly: boolean;
 }
 
@@ -62,7 +62,7 @@ export interface LicenseCheckResult {
 export interface GracePeriodConfig {
   /** Days after subscription expiry before degrading to free (default: 3) */
   subscriptionDays: number;
-  /** Days after perpetual support lapse before read-only mode (default: 30) */
+  /** Deprecated compatibility setting; does not limit acquired perpetual runtime access */
   perpetualDays: number;
   /** Days of cached-license grace when infra is unreachable (default: 7) */
   infraDays: number;

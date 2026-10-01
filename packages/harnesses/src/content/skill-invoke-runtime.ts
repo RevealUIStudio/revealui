@@ -13,6 +13,7 @@ import {
   mapNativeToolsToCodingInclude,
   SKILL_INVOKE_MAX_TOOL_ROUNDS,
   type SkillInvokeRequest,
+  type SkillSuitabilityAssessment,
   skillInvokeTimeoutMs,
 } from './skill-invoke.js';
 
@@ -21,15 +22,24 @@ export interface RunNativeSkillInvokeOptions {
   catalog: SkillCatalogEntry[];
   projectRoot: string;
   revskillsRoot?: string;
+  assessment?: SkillSuitabilityAssessment;
+  validateOutput?: (text: string) => { valid: boolean; detail: string };
 }
 
 export interface RunNativeSkillInvokeResult {
   skillId: string;
   model: string;
+  skillSha256?: string;
   text: string;
   ran: boolean;
   toolsExecuted: boolean;
   toolTrace: Array<{ name: string }>;
+  executionStatus: 'not-started' | 'completed' | 'failed';
+  outputValidation: 'unverified' | 'valid' | 'invalid';
+  suitability: 'assessed' | 'unverified';
+  toolsCompleted: number;
+  toolsSucceeded: number;
+  validationDetail?: string;
   error?: string;
 }
 
@@ -48,8 +58,8 @@ function adapterHomePaths(revskillsRoot?: string): string[] {
 export async function runNativeSkillInvoke(
   options: RunNativeSkillInvokeOptions,
 ): Promise<RunNativeSkillInvokeResult> {
-  const prepared = buildSkillInvokeRequest(options.skillId, options.catalog);
-  if ('error' in prepared) {
+  const prepared = buildSkillInvokeRequest(options.skillId, options.catalog, options.assessment);
+  if ('error' in prepared || prepared.suitability !== 'assessed') {
     return {
       skillId: options.skillId,
       model: '',
@@ -57,7 +67,15 @@ export async function runNativeSkillInvoke(
       ran: false,
       toolsExecuted: false,
       toolTrace: [],
-      error: prepared.error,
+      executionStatus: 'not-started',
+      outputValidation: 'unverified',
+      suitability: 'unverified',
+      toolsCompleted: 0,
+      toolsSucceeded: 0,
+      error:
+        'error' in prepared
+          ? prepared.error
+          : 'Assess the skill inputs, outputs, limitations, and authorized tools before execution.',
     };
   }
   return runPreparedSkillInvoke(prepared, options);
@@ -84,10 +102,16 @@ async function runPreparedSkillInvoke(
     return {
       skillId: prepared.skillId,
       model: prepared.model,
+      skillSha256: prepared.skillSha256,
       text: '',
       ran: false,
       toolsExecuted: false,
       toolTrace: [],
+      executionStatus: 'not-started',
+      outputValidation: 'unverified',
+      suitability: prepared.suitability,
+      toolsCompleted: 0,
+      toolsSucceeded: 0,
       error:
         '@revealui/ai is not installed. Install it next to @revealui/harnesses (optionalDependency).',
     };
@@ -105,7 +129,7 @@ async function runPreparedSkillInvoke(
       type: string;
       content?: string;
       toolCall?: { name: string };
-      toolResult?: { content?: string };
+      toolResult?: { content?: string; success?: boolean };
       error?: string;
     }>;
     cleanup(): Promise<void>;
@@ -164,26 +188,80 @@ async function runPreparedSkillInvoke(
     timeout,
   });
 
-  const outputParts: string[] = [];
-  const toolTrace: Array<{ name: string }> = [];
   try {
-    for await (const chunk of runtime.streamTask(agent, task, llmClient)) {
-      if (chunk.type === 'text' && chunk.content) outputParts.push(chunk.content);
-      if (chunk.type === 'tool_call_start' && chunk.toolCall?.name) {
-        toolTrace.push({ name: chunk.toolCall.name });
-      }
-      if (chunk.type === 'error' && chunk.error) outputParts.push(`[error] ${chunk.error}`);
-    }
+    return await collectSkillInvokeOutput(
+      runtime.streamTask(agent, task, llmClient),
+      prepared,
+      options.validateOutput,
+    );
   } finally {
     await runtime.cleanup();
   }
+}
 
+/** Separate observed execution from caller-defined output checks and factual task success. */
+export async function collectSkillInvokeOutput(
+  stream: AsyncIterable<{
+    type: string;
+    content?: string;
+    toolCall?: { name: string };
+    toolResult?: { success?: boolean };
+    error?: string;
+  }>,
+  prepared: Pick<SkillInvokeRequest, 'skillId' | 'model' | 'skillSha256' | 'suitability'>,
+  validateOutput?: RunNativeSkillInvokeOptions['validateOutput'],
+): Promise<RunNativeSkillInvokeResult> {
+  const outputParts: string[] = [];
+  const toolTrace: Array<{ name: string }> = [];
+  let toolsCompleted = 0;
+  let toolsSucceeded = 0;
+  let completed = false;
+  let error: string | undefined;
+  try {
+    for await (const chunk of stream) {
+      if (chunk.type === 'text' && chunk.content) outputParts.push(chunk.content);
+      if (chunk.type === 'tool_call_start' && chunk.toolCall?.name)
+        toolTrace.push({ name: chunk.toolCall.name });
+      if (chunk.type === 'tool_call_result') {
+        toolsCompleted += 1;
+        if (chunk.toolResult?.success === true) toolsSucceeded += 1;
+      }
+      if (chunk.type === 'error') error = chunk.error || 'Skill execution failed';
+      if (chunk.type === 'done') completed = true;
+    }
+  } catch (cause) {
+    error = cause instanceof Error ? cause.message : String(cause);
+  }
+  if (!(completed || error)) error = 'Skill stream ended without a completion event';
+  const executionStatus = completed && !error ? 'completed' : 'failed';
+  const text = outputParts.join('\n');
+  let outputValidation: RunNativeSkillInvokeResult['outputValidation'] = 'unverified';
+  let validationDetail: string | undefined;
+  if (!error && validateOutput) {
+    try {
+      const verdict = validateOutput(text);
+      outputValidation = verdict.valid ? 'valid' : 'invalid';
+      validationDetail = verdict.detail;
+      if (!verdict.valid) error = `Skill output failed validation: ${verdict.detail}`;
+    } catch (cause) {
+      outputValidation = 'invalid';
+      error = `Skill output validator failed: ${cause instanceof Error ? cause.message : String(cause)}`;
+    }
+  }
   return {
     skillId: prepared.skillId,
     model: prepared.model,
-    text: outputParts.join('\n'),
+    skillSha256: prepared.skillSha256,
+    suitability: prepared.suitability,
+    text,
     ran: true,
-    toolsExecuted: toolTrace.length > 0,
+    toolsExecuted: toolsCompleted > 0,
     toolTrace,
+    toolsCompleted,
+    toolsSucceeded,
+    executionStatus,
+    outputValidation,
+    ...(validationDetail ? { validationDetail } : {}),
+    ...(error ? { error } : {}),
   };
 }

@@ -173,3 +173,27 @@ pnpm --filter @revealui/harnesses build
 ## License
 
 FSL-1.1-MIT (Fair Source — converts to MIT after 2 years). See [LICENSE](../../LICENSE).
+
+
+### Assess a native workflow before execution
+
+`skills invoke doctor --dry-run --project <dir>` reads the actual skill and returns
+its path, body SHA-256, declared tools, and an unverified preparation. It does not
+run a model or tools. Read the skill and any referenced resources; verify the
+required inputs, requested result, destination, effects, and acceptance criteria.
+Descriptions help discovery; they do not establish suitability.
+
+Supply `--assessment <json-file>` for execution. The assessment contains
+`skillSha256`, `desiredResult`, `outputDestination`, `inputsVerified`, `verdict`
+(`suitable`, `partial`, or `unsuitable`), `limitations`, and `authorizedTools`
+(`Read`, `Grep`, `Glob`, `Bash` as applicable). Execution rejects missing,
+malformed, unsuitable, stale assessments, partial assessments without limitations,
+and declared tools absent from the authorized list. The SHA binds the skill body;
+referenced resources still require caller review. Authorization remains bounded
+by the existing tool guard and owner policies.
+
+Results distinguish `executionStatus`, completed and successful tool counts,
+`suitability`, and `outputValidation`. `ran` means execution started; it is not
+proof of task success. CLI output remains unverified until a reviewer checks the
+requested report and evidence. API callers may supply `validateOutput` to validate
+their output contract; a passing shape check does not prove the report's claims.

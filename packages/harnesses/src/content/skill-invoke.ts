@@ -7,7 +7,9 @@
  * allowlisted tools through tool-guard + GAP-294. No git commits.
  */
 
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import { z } from 'zod';
 import type { SkillCatalogEntry } from './skill-catalog.js';
 import { skimSkillFrontmatter } from './skill-catalog.js';
 
@@ -48,7 +50,23 @@ export type NativeWorkflowToolName = (typeof NATIVE_WORKFLOW_TOOL_NAMES)[number]
 export const SKILL_INVOKE_MAX_COMPLETION_TOKENS = 2_048;
 export const SKILL_INVOKE_MAX_TOOL_ROUNDS = 6;
 
+/** Caller assessment of the actual skill body, not its discovery description. */
+export const SkillSuitabilityAssessmentSchema = z
+  .object({
+    skillSha256: z.string().regex(/^[a-f0-9]{64}$/),
+    desiredResult: z.string().trim().min(1),
+    outputDestination: z.string().trim().min(1),
+    inputsVerified: z.boolean(),
+    verdict: z.enum(['suitable', 'partial', 'unsuitable']),
+    limitations: z.array(z.string().trim().min(1)),
+    authorizedTools: z.array(z.enum(NATIVE_WORKFLOW_TOOL_NAMES)),
+  })
+  .strict();
+export type SkillSuitabilityAssessment = z.infer<typeof SkillSuitabilityAssessmentSchema>;
+
 export interface SkillInvokeRequest {
+  skillSha256: string;
+  suitability: 'assessed' | 'unverified';
   skillId: NativeWorkflowSkillId;
   model: typeof PHASE_C_INFERENCE_SNAP;
   path: string;
@@ -86,7 +104,15 @@ export function mapNativeToolsToCodingInclude(
 export function buildSkillInvokeRequest(
   skillId: string,
   catalog: SkillCatalogEntry[],
+  assessmentInput?: unknown,
 ): SkillInvokeRequest | { error: string } {
+  const parsed =
+    assessmentInput === undefined
+      ? undefined
+      : SkillSuitabilityAssessmentSchema.safeParse(assessmentInput);
+  if (parsed && !parsed.success)
+    return { error: `Invalid skill suitability assessment: ${parsed.error.message}` };
+  const assessment = parsed?.success ? parsed.data : undefined;
   const resolved = resolveNativeWorkflowSkillId(skillId);
   if (!resolved) {
     return {
@@ -107,12 +133,30 @@ export function buildSkillInvokeRequest(
     return { error: `cannot read ${entry.path}: ${msg}` };
   }
   const allowedTools = parseNativeWorkflowTools(skimSkillFrontmatter(body).allowedTools);
+  const skillSha256 = createHash('sha256').update(body).digest('hex');
+  if (
+    assessment &&
+    (assessment.skillSha256 !== skillSha256 ||
+      !assessment.inputsVerified ||
+      assessment.verdict === 'unsuitable' ||
+      !assessment.desiredResult.trim() ||
+      !assessment.outputDestination.trim() ||
+      (assessment.verdict === 'partial' && assessment.limitations.length === 0) ||
+      allowedTools.some((tool) => !assessment.authorizedTools.includes(tool)))
+  ) {
+    return {
+      error:
+        'Skill assessment is stale, unsuitable, missing required inputs/output, or does not authorize the declared tools.',
+    };
+  }
   const toolClause =
     allowedTools.length > 0
       ? `Use the provided tools (${allowedTools.join(', ')}) to gather facts. Do not invent file contents or command output. Do not commit or push.`
       : 'You cannot execute tools or git commits from this invoke. Name any command you would have run; do not claim you ran it.';
   return {
     skillId: resolved,
+    skillSha256,
+    suitability: assessment ? 'assessed' : 'unverified',
     model: PHASE_C_INFERENCE_SNAP,
     path: entry.path,
     system: body,
@@ -120,6 +164,11 @@ export function buildSkillInvokeRequest(
       `Run the ${resolved} workflow as a RevDev-native pass.`,
       `Local model is the product default Inference Snap: ${PHASE_C_INFERENCE_SNAP}.`,
       toolClause,
+      ...(assessment
+        ? [
+            `Requested result: ${assessment.desiredResult}. Output destination: ${assessment.outputDestination}. Limitations: ${assessment.limitations.join('; ')}.`,
+          ]
+        : ['Input/output suitability has not been assessed; do not claim task success.']),
       'Produce the structured report the skill specifies (traffic-light / diagnostic / checkpoint report).',
     ].join(' '),
     allowedTools,

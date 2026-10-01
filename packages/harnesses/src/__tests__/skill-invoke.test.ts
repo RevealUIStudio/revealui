@@ -21,6 +21,7 @@ import {
   skillInvokeCompletionBody,
   skillInvokeTimeoutMs,
 } from '../content/skill-invoke.js';
+import { runNativeSkillInvoke } from '../content/skill-invoke-runtime.js';
 
 function entry(id: string, dir: string): SkillCatalogEntry {
   const path = join(dir, 'SKILL.md');
@@ -153,5 +154,79 @@ allowed-tools: Bash, Read, Glob, Grep
     expect(classifySkillInvokeFailure(timeout)).toBe('timeout');
     expect(classifySkillInvokeFailure(new Error('fetch failed'))).toBe('connect');
     expect(classifySkillInvokeFailure(new Error('boom'))).toBe('other');
+  });
+});
+
+describe('skill suitability contract', () => {
+  it('refuses execution without assessment before loading a model or tools', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'skill-unassessed-'));
+    const result = await runNativeSkillInvoke({
+      skillId: 'doctor',
+      catalog: [entry('revealui-doctor', dir)],
+      projectRoot: dir,
+    });
+    expect(result.ran).toBe(false);
+    expect(result.executionStatus).toBe('not-started');
+    expect(result.toolsCompleted).toBe(0);
+    expect(result.error).toContain('Assess the skill');
+  });
+  it.each([null, {}, { verdict: 'unknown' }, { limitations: null }])(
+    'returns a diagnostic for malformed assessment %j',
+    (assessment) => {
+      const dir = mkdtempSync(join(tmpdir(), 'skill-malformed-'));
+      expect(
+        buildSkillInvokeRequest('doctor', [entry('revealui-doctor', dir)], assessment),
+      ).toHaveProperty('error');
+    },
+  );
+
+  it('rejects missing destination inputs, unapproved tools, and changed skill content', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'skill-assessment-'));
+    const skill = entry('revealui-doctor', dir);
+    const prepared = buildSkillInvokeRequest('doctor', [skill]);
+    if ('error' in prepared) throw new Error(prepared.error);
+    expect(prepared.suitability).toBe('unverified');
+    const assessment = {
+      skillSha256: prepared.skillSha256,
+      desiredResult: 'Diagnostic report',
+      outputDestination: 'local response',
+      inputsVerified: true,
+      verdict: 'suitable' as const,
+      limitations: [],
+      authorizedTools: [],
+    };
+    expect(buildSkillInvokeRequest('doctor', [skill], assessment)).toHaveProperty(
+      'suitability',
+      'assessed',
+    );
+    expect(
+      buildSkillInvokeRequest('doctor', [skill], { ...assessment, outputDestination: '' }),
+    ).toHaveProperty('error');
+    expect(
+      buildSkillInvokeRequest('doctor', [skill], { ...assessment, inputsVerified: false }),
+    ).toHaveProperty('error');
+    expect(
+      buildSkillInvokeRequest('doctor', [skill], { ...assessment, verdict: 'unsuitable' }),
+    ).toHaveProperty('error');
+    expect(
+      buildSkillInvokeRequest('doctor', [skill], { ...assessment, verdict: 'partial' }),
+    ).toHaveProperty('error');
+    expect(
+      buildSkillInvokeRequest('doctor', [skill], {
+        ...assessment,
+        verdict: 'partial',
+        limitations: ['Referenced resources need separate review'],
+      }),
+    ).toHaveProperty('suitability', 'assessed');
+    writeFileSync(skill.path, '---\nname: doctor\nallowed-tools: Bash\n---\nChanged instructions');
+    expect(buildSkillInvokeRequest('doctor', [skill], assessment)).toHaveProperty('error');
+    const changed = buildSkillInvokeRequest('doctor', [skill]);
+    if ('error' in changed) throw new Error(changed.error);
+    expect(
+      buildSkillInvokeRequest('doctor', [skill], {
+        ...assessment,
+        skillSha256: changed.skillSha256,
+      }),
+    ).toHaveProperty('error');
   });
 });
