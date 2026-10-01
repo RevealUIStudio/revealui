@@ -1,5 +1,20 @@
 # @revealui/harnesses
 
+## 0.20.0
+
+### Minor Changes
+
+- 79b9d6e: Add the shared owner SSHSIG verifier for exact repository, PR, head, gate and expiry authorizations. Replace the legacy JSON signing helper with preparation and posting of externally owner-signed payloads.
+- c0512d4: Keep perpetual support coverage advisory so expired support does not block purchased features or writes. Require a current input/output suitability assessment before native skill execution and report execution and output validation separately.
+
+  Clarify the public contact endpoint's uniform acknowledgment as request receipt, preserving the anti-abuse discard without claiming inbox delivery. Contact success copy uses receipt and a response aim, with email follow-up.
+
+### Patch Changes
+
+- Updated dependencies [c0512d4]
+  - @revealui/core@0.15.4
+  - @revealui/knowledge-graph@0.2.6
+
 ## 0.19.3
 
 ### Patch Changes

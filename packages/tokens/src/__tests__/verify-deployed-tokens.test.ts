@@ -1,5 +1,12 @@
 import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
+const allowlistPath = join(
+  dirname(fileURLToPath(import.meta.url)),
+  '../../scripts/verify-deployed-tokens.allowlist.json',
+);
 
 // The verifier is a dependency-free CJS script (Node CLI). Load it via
 // createRequire so the same module the CI step runs is exercised here.
@@ -10,13 +17,25 @@ const verify = require('../../scripts/verify-deployed-tokens.cjs') as {
     init?: RequestInit,
     options?: {
       fetchImpl?: typeof fetch;
-      edgeKey?: string;
       maxRedirects?: number;
     },
   ) => Promise<{ response: Response; url: string; diagnostic: Record<string, unknown> }>;
+  parseUrlTarget: (spec: string) => { fetchUrl: string; allowlistHost: string };
+  verifyUrl: (
+    pageUrl: string,
+    canonicalTokens: Map<string, Set<string>>,
+    canonicalFontNames: Set<string>,
+    allowlistPath: string,
+    options?: { fetchImpl?: typeof fetch; allowlistHost?: string },
+  ) => Promise<{
+    ok: boolean;
+    parity: { missing: unknown[]; extra: Array<{ token: string }> };
+    fontFailures: unknown[];
+    assetFailures: unknown[];
+  }>;
   verifyReachability: (
     url: string,
-    options?: { fetchImpl?: typeof fetch; edgeKey?: string },
+    options?: { fetchImpl?: typeof fetch },
   ) => Promise<{
     ok: boolean;
     cssBundleCount: number;
@@ -24,7 +43,7 @@ const verify = require('../../scripts/verify-deployed-tokens.cjs') as {
   }>;
   fetchDeployed: (
     url: string,
-    options?: { fetchImpl?: typeof fetch; edgeKey?: string },
+    options?: { fetchImpl?: typeof fetch },
   ) => Promise<{ css: string; transportFailures: Array<Record<string, unknown>> }>;
   defaultFetchAsset: (url: string) => Promise<boolean>;
   normalizeValue: (v: string) => string;
@@ -377,41 +396,157 @@ describe('checkFontAssetReachability', () => {
   });
 });
 
+describe('public host alias', () => {
+  it('parses origin=public-host without rewriting the fetch URL', () => {
+    expect(verify.parseUrlTarget('https://www.revealui.com')).toEqual({
+      fetchUrl: 'https://www.revealui.com',
+      allowlistHost: 'www.revealui.com',
+    });
+    expect(verify.parseUrlTarget('https://deploy.example/index.html=www.revealui.com')).toEqual({
+      fetchUrl: 'https://deploy.example/index.html',
+      allowlistHost: 'www.revealui.com',
+    });
+    expect(
+      verify.parseUrlTarget('https://deploy.example/index.html=https://docs.revealui.com/docs'),
+    ).toEqual({
+      fetchUrl: 'https://deploy.example/index.html',
+      allowlistHost: 'docs.revealui.com',
+    });
+    expect(() => verify.parseUrlTarget('https://deploy.example/?q=1=www.revealui.com')).toThrow(
+      '--url alias must be <origin>=<public-host>',
+    );
+  });
+
+  it('applies the public-host allowlist and the fetched CSP, and still fetches the deployment origin', async () => {
+    const canonical = verify.extractTokenDecls(
+      ":root{--rvui-font-sans:'Inter', system-ui, sans-serif}",
+    );
+    const html = [
+      '<link rel="stylesheet" href="/app.css">',
+      '<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter">',
+    ].join('');
+    const css =
+      ":root{--rvui-font-sans:'Inter', system-ui, sans-serif}" +
+      ":root{--rvui-font-sans:'Inter Variable', 'Inter', system-ui, sans-serif}" +
+      "@font-face{font-family:'Inter Variable';src:url(data:font/woff2;base64,QQ)}";
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (String(url).endsWith('.css')) return new Response(css, { status: 200 });
+      return new Response(html, {
+        status: 200,
+        headers: {
+          'content-security-policy': "default-src 'self'; style-src 'self'; font-src 'self'",
+        },
+      });
+    }) as typeof fetch;
+
+    const wrongHost = await verify.verifyUrl(
+      'https://deploy.example/',
+      canonical,
+      new Set(['--rvui-font-sans']),
+      allowlistPath,
+      { fetchImpl },
+    );
+    expect(wrongHost.ok).toBe(false);
+    expect(wrongHost.parity.extra.map((extra) => extra.token)).toContain('--rvui-font-sans');
+
+    const aliased = await verify.verifyUrl(
+      'https://deploy.example/',
+      canonical,
+      new Set(['--rvui-font-sans']),
+      allowlistPath,
+      { fetchImpl, allowlistHost: 'www.revealui.com' },
+    );
+    expect(aliased.parity.extra).toHaveLength(0);
+    expect(aliased.fontFailures).toHaveLength(0);
+    expect(aliased.assetFailures).toHaveLength(0);
+    expect(aliased.ok).toBe(true);
+    for (const call of fetchImpl.mock.calls) {
+      expect(String(call[0]).startsWith('https://deploy.example/')).toBe(true);
+    }
+  });
+
+  it('still fails an extra value that the public host does not allow', async () => {
+    const canonical = verify.extractTokenDecls(
+      ":root{--rvui-font-sans:'Inter', system-ui, sans-serif;--rvui-radius-sm:6px}",
+    );
+    const css =
+      ":root{--rvui-font-sans:'Inter Variable', 'Inter', system-ui, sans-serif;--rvui-radius-sm:6px;--rvui-radius-sm:99px}" +
+      "@font-face{font-family:'Inter Variable';src:url(data:font/woff2;base64,QQ)}";
+    const fetchImpl = vi.fn(async (url: string) =>
+      String(url).endsWith('.css')
+        ? new Response(css, { status: 200 })
+        : new Response('<link rel="stylesheet" href="/app.css">', {
+            status: 200,
+            headers: {
+              'content-security-policy': "default-src 'self'; style-src 'self'; font-src 'self'",
+            },
+          }),
+    ) as typeof fetch;
+    const result = await verify.verifyUrl(
+      'https://deploy.example/',
+      canonical,
+      new Set(['--rvui-font-sans']),
+      allowlistPath,
+      { fetchImpl, allowlistHost: 'www.revealui.com' },
+    );
+    expect(result.ok).toBe(false);
+    expect(result.parity.extra.map((extra) => extra.token)).toContain('--rvui-radius-sm');
+    expect(result.parity.extra.map((extra) => extra.token)).not.toContain('--rvui-font-sans');
+  });
+});
+
 describe('deployed verifier transport', () => {
   afterEach(() => vi.unstubAllGlobals());
-  it('removes the edge key when a RevealUI redirect leaves the domain', async () => {
-    const requests: Array<{ url: string; key: string | null }> = [];
-    const fetchImpl = vi.fn(async (url, init) => {
-      requests.push({
-        url: String(url),
-        key: new Headers(init?.headers).get('x-revealui-cron-key'),
-      });
-      expect(init?.redirect).toBe('manual');
-      return requests.length === 1
-        ? new Response(null, {
-            status: 302,
-            headers: {
-              location: 'https://fonts.example.test/font.woff2',
-            },
-          })
-        : new Response('font', { status: 200 });
-    }) as typeof fetch;
-    await verify.fetchScoped(
-      'https://www.revealui.com/font.woff2',
-      {},
-      { fetchImpl, edgeKey: 'fixture-key' },
-    );
-    expect(requests.map((r) => r.key)).toEqual(['fixture-key', null]);
+  it('drops credentials when a redirect leaves the origin and never sends the retired edge header', async () => {
+    const previous = process.env.REVEALUI_CRON_EDGE_KEY;
+    process.env.REVEALUI_CRON_EDGE_KEY = 'super-secret';
+    const scriptPath = require.resolve('../../scripts/verify-deployed-tokens.cjs');
+    delete require.cache[scriptPath];
+    const fresh = require(scriptPath) as typeof verify;
+    const requests: Array<{ url: string; authorization: string | null; edge: string | null }> = [];
+    try {
+      const fetchImpl = vi.fn(async (url, init) => {
+        const headers = new Headers(init?.headers);
+        requests.push({
+          url: String(url),
+          authorization: headers.get('authorization'),
+          edge: headers.get('x-revealui-cron-key'),
+        });
+        expect(init?.redirect).toBe('manual');
+        return requests.length === 1
+          ? new Response(null, {
+              status: 302,
+              headers: { location: 'https://fonts.example.test/font.woff2' },
+            })
+          : new Response('font', { status: 200 });
+      }) as typeof fetch;
+      await fresh.fetchScoped(
+        'https://www.revealui.com/font.woff2',
+        {
+          headers: {
+            authorization: 'Bearer fixture-key',
+            'x-revealui-cron-key': 'caller-key',
+          },
+        },
+        { fetchImpl },
+      );
+      expect(requests.map((r) => r.authorization)).toEqual(['Bearer fixture-key', null]);
+      expect(requests.map((r) => r.edge)).toEqual([null, null]);
+    } finally {
+      if (previous === undefined) delete process.env.REVEALUI_CRON_EDGE_KEY;
+      else process.env.REVEALUI_CRON_EDGE_KEY = previous;
+      delete require.cache[scriptPath];
+    }
   });
-  it('recomputes scope for every hop and accepts HTTPS subdomains only', async () => {
-    const keys: Array<string | null> = [];
+  it('drops credentials on a scheme change, a sibling host, and a lookalike host', async () => {
+    const authorizations: Array<string | null> = [];
     const targets = [
       'https://docs.revealui.com/a',
       'http://docs.revealui.com/b',
       'https://revealui.com.attacker.test/c',
     ];
     const fetchImpl = vi.fn(async (_url, init) => {
-      keys.push(new Headers(init?.headers).get('x-revealui-cron-key'));
+      authorizations.push(new Headers(init?.headers).get('authorization'));
       const target = targets.shift();
       return target
         ? new Response(null, { status: 307, headers: { location: target } })
@@ -419,13 +554,14 @@ describe('deployed verifier transport', () => {
     }) as typeof fetch;
     await verify.fetchScoped(
       'https://revealui.com/',
-      { headers: { 'x-revealui-cron-key': 'caller-key' } },
-      {
-        fetchImpl,
-        edgeKey: 'fixture-key',
-      },
+      { headers: { authorization: 'Bearer fixture-key', 'x-revealui-cron-key': 'caller-key' } },
+      { fetchImpl },
     );
-    expect(keys).toEqual(['fixture-key', 'fixture-key', null, null]);
+    expect(authorizations).toEqual(['Bearer fixture-key', null, null, null]);
+    expect(fetchImpl).toHaveBeenCalledTimes(4);
+    for (const call of fetchImpl.mock.calls) {
+      expect(new Headers(call[1]?.headers).has('x-revealui-cron-key')).toBe(false);
+    }
   });
   it('bounds redirect loops and rejects malformed or absent locations', async () => {
     const loop = vi.fn(
@@ -456,60 +592,83 @@ describe('deployed verifier transport', () => {
       ),
     ).rejects.toThrow('Invalid redirect Location');
   });
-  it('reports Cloudflare challenge metadata and key presence without secret values', async () => {
-    const options = {
-      edgeKey: 'fixture-key',
-      fetchImpl: vi.fn(
-        async () =>
-          new Response('DO NOT LOG BODY', {
-            status: 403,
-            headers: { 'cf-mitigated': 'challenge', 'cf-ray': 'fixture-key-ray' },
-          }),
-      ) as typeof fetch,
-    };
+  it('reports challenge metadata without response bodies or query strings', async () => {
+    const fetchImpl = vi.fn(
+      async () =>
+        new Response('DO NOT LOG BODY', {
+          status: 403,
+          headers: { 'cf-mitigated': 'challenge', 'cf-ray': 'runner-ray' },
+        }),
+    ) as typeof fetch;
     const error = await verify
-      .fetchDeployed('https://www.revealui.com/?sensitive=query', options)
+      .fetchDeployed('https://www.revealui.com/?sensitive=query', { fetchImpl })
       .catch((e) => e);
     expect(error.transport).toMatchObject({
       status: 403,
       cfMitigated: 'challenge',
-      cfRay: '[redacted]-ray',
-      edgeKeyPresent: true,
-      edgeKeySent: true,
+      cfRay: 'runner-ray',
+      origin: 'https://www.revealui.com',
     });
-    expect(error.message).not.toContain('fixture-key');
     expect(error.message).not.toContain('sensitive=query');
     expect(error.message).not.toContain('DO NOT LOG BODY');
+    expect(JSON.stringify(error.transport)).not.toContain('edgeKey');
   });
-  it('redacts a configured key reflected in a redirected origin', async () => {
-    const edgeKey = 'fixture-key';
+  it('redacts credential material reflected in a challenge ray or a redirected origin', async () => {
+    const secret = 'fixture-key';
+    const challenged = await verify.fetchScoped(
+      'https://www.revealui.com/?sensitive=query',
+      { headers: { authorization: secret, 'x-revealui-cron-key': 'caller-key' } },
+      {
+        fetchImpl: vi.fn(async (_url, init) => {
+          expect(new Headers(init?.headers).has('x-revealui-cron-key')).toBe(false);
+          expect(new Headers(init?.headers).get('authorization')).toBe(secret);
+          return new Response('DO NOT LOG BODY', {
+            status: 403,
+            headers: { 'cf-mitigated': 'challenge', 'cf-ray': `${secret}-ray` },
+          });
+        }) as typeof fetch,
+      },
+    );
+    expect(challenged.diagnostic).toMatchObject({
+      status: 403,
+      cfMitigated: 'challenge',
+      cfRay: '[redacted]-ray',
+    });
+    expect(JSON.stringify(challenged.diagnostic)).not.toContain(secret);
+
     const fetchImpl = vi.fn(async (url, init) => {
       if (String(url).includes('www.revealui.com')) {
+        expect(new Headers(init?.headers).get('authorization')).toBe(secret);
         return new Response(null, {
           status: 302,
-          headers: { location: `https://${edgeKey}.example.com/private?secret=query` },
+          headers: { location: `https://${secret}.example.com/private?secret=query` },
         });
       }
-      expect(new Headers(init?.headers).has('x-revealui-cron-key')).toBe(false);
-      return new Response('PRIVATE BODY', { status: 403 });
+      expect(new Headers(init?.headers).has('authorization')).toBe(false);
+      throw new Error('PRIVATE BODY');
     }) as typeof fetch;
     const error = await verify
-      .fetchDeployed('https://www.revealui.com/', { edgeKey, fetchImpl })
+      .fetchScoped(
+        'https://www.revealui.com/',
+        { headers: { authorization: secret } },
+        { fetchImpl },
+      )
       .catch((e) => e);
     expect(error.transport.origin).toBe('https://[redacted].example.com');
-    expect(JSON.stringify(error.transport)).not.toContain(edgeKey);
-    expect(error.message).not.toContain(edgeKey);
+    expect(JSON.stringify(error.transport)).not.toContain(secret);
+    expect(error.message).not.toContain(secret);
     expect(error.message).not.toContain('private');
     expect(error.message).not.toContain('secret=query');
     expect(error.message).not.toContain('PRIVATE BODY');
   });
-  it('reachability preflight succeeds publicly without a key or token parity', async () => {
+  it('reachability preflight succeeds publicly without token parity', async () => {
     const fetchImpl = vi.fn(async (_url, init) => {
       expect(new Headers(init?.headers).has('x-revealui-cron-key')).toBe(false);
+      expect(new Headers(init?.headers).has('authorization')).toBe(false);
       return new Response('<html><style>:root{--rvui-old:obsolete}</style></html>');
     }) as typeof fetch;
     expect(
-      await verify.verifyReachability('https://www.revealui.com/', { edgeKey: '', fetchImpl }),
+      await verify.verifyReachability('https://www.revealui.com/', { fetchImpl }),
     ).toMatchObject({ ok: true, transportFailures: [] });
   });
   it('CSS access failures remain transport failures instead of being silently discarded', async () => {
@@ -521,16 +680,13 @@ describe('deployed verifier transport', () => {
           })
         : new Response('<link rel="stylesheet" href="/assets/app.css">'),
     ) as typeof fetch;
-    const result = await verify.fetchDeployed('https://docs.revealui.com/', {
-      edgeKey: '',
-      fetchImpl,
-    });
+    const result = await verify.fetchDeployed('https://docs.revealui.com/', { fetchImpl });
     expect(result.transportFailures).toEqual([
       expect.objectContaining({
         status: 403,
         cfMitigated: 'challenge',
         cfRay: 'css-ray',
-        edgeKeyPresent: false,
+        origin: 'https://docs.revealui.com',
       }),
     ]);
   });
@@ -539,11 +695,12 @@ describe('deployed verifier transport', () => {
       async () => new Response('<link rel="stylesheet" href="/missing.css">'),
     ) as typeof fetch;
     expect(
-      await verify.verifyReachability('https://www.revealui.com/', { edgeKey: '', fetchImpl }),
-    ).toMatchObject({ ok: true });
+      await verify.verifyReachability('https://www.revealui.com/', { fetchImpl }),
+    ).toMatchObject({
+      ok: true,
+    });
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     const blocked = await verify.verifyReachability('https://www.revealui.com/', {
-      edgeKey: '',
       fetchImpl: vi.fn(
         async () =>
           new Response('challenge', {
@@ -558,7 +715,7 @@ describe('deployed verifier transport', () => {
         expect.objectContaining({
           status: 403,
           cfRay: 'runner-ray',
-          edgeKeyPresent: false,
+          origin: 'https://www.revealui.com',
         }),
       ],
     });

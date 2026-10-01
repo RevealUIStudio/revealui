@@ -1,5 +1,7 @@
 # @revealui/cli
 
+## 0.9.19
+
 ## 0.9.18
 
 ### Patch Changes

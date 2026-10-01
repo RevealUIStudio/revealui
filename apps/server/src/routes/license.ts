@@ -6,6 +6,7 @@ import {
   getLicensePublicKeyTrustManifest,
   getPublicKeys,
   validateLicenseKey,
+  validateLicenseKeyAgainstTrustManifest,
   validateLicenseKeyForOperator,
   validateLicenseKeyForRefresh,
 } from '@revealui/core/license';
@@ -55,6 +56,8 @@ const LicenseVerifyRequestSchema = z.object({
 
 const LicenseVerifyResponseSchema = z.object({
   licenseKeyDigest: z.string().optional(),
+  trustSetDigest: z.string().optional(),
+  verifiedKeyId: z.string().optional(),
   valid: z.boolean().openapi({ description: 'Whether the license is valid' }),
   reason: z
     .enum([
@@ -248,17 +251,46 @@ const verifyRoute = createRoute({
       },
       description: 'Missing license key',
     },
+    503: {
+      content: {
+        'application/json': {
+          schema: z.object({ message: z.string() }),
+        },
+      },
+      description: 'The configured issuer trust set is unavailable',
+    },
   },
 });
 
 app.openapi(verifyRoute, async (c) => {
   c.header('Cache-Control', 'no-store');
-  const { licenseKey } = c.req.valid('json');
+  const { licenseKey, requireRegistration } = c.req.valid('json');
+  const requiresRegistration = requireRegistration === true;
   // Ordered current + optional NEXT (GAP-259 / GAP-261 soak). Same candidate
   // list as refresh so a NEXT-signed token verifies GREEN during rotation.
-  const publicKeys = getPublicKeys();
+  let publicKeys: string[] = [];
+  let trustManifest: Awaited<ReturnType<typeof getLicensePublicKeyTrustManifest>> | null = null;
+  let verifiedKeyId: string | null = null;
+  let trustSetDigest: string | null = null;
+  let payload: Awaited<ReturnType<typeof validateLicenseKey>> = null;
 
-  if (publicKeys.length === 0) {
+  if (requiresRegistration) {
+    try {
+      trustManifest = await getLicensePublicKeyTrustManifest();
+    } catch {
+      logger.error('License trust set unavailable during strict verification');
+      return c.json({ message: 'License trust set unavailable' }, 503);
+    }
+    const verification = await validateLicenseKeyAgainstTrustManifest(licenseKey, trustManifest);
+    payload = verification?.payload ?? null;
+    verifiedKeyId = verification?.verifiedKeyId ?? null;
+    trustSetDigest = verification?.trustSetDigest ?? null;
+  } else {
+    publicKeys = getPublicKeys();
+    if (publicKeys.length > 0) payload = await validateLicenseKey(licenseKey, publicKeys);
+  }
+
+  if (!requiresRegistration && publicKeys.length === 0) {
     logger.error('REVEALUI_LICENSE_PUBLIC_KEY not configured');
     return c.json(
       {
@@ -274,8 +306,6 @@ app.openapi(verifyRoute, async (c) => {
       200,
     );
   }
-
-  const payload = await validateLicenseKey(licenseKey, publicKeys);
 
   if (!payload) {
     // JWT is invalid or expired. Check DB to distinguish between revoked (explicit
@@ -414,7 +444,6 @@ app.openapi(verifyRoute, async (c) => {
     );
   }
 
-  const requiresRegistration = c.req.valid('json').requireRegistration === true;
   if (
     (requiresRegistration && !(payload.jti?.trim() && dbStatus)) ||
     dbStatus === 'revoked' ||
@@ -441,6 +470,10 @@ app.openapi(verifyRoute, async (c) => {
   const now = new Date();
   const isSupportExpired =
     payload.perpetual === true && supportExpiresAt !== null && supportExpiresAt < now;
+  const trustReceipt =
+    requiresRegistration && trustSetDigest !== null && verifiedKeyId !== null
+      ? { trustSetDigest, verifiedKeyId }
+      : {};
 
   const features = getFeaturesForTier(payload.tier);
   const defaultMaxSites = payload.tier === 'enterprise' ? null : (payload.maxSites ?? 5);
@@ -473,6 +506,52 @@ app.openapi(verifyRoute, async (c) => {
     }
   }
 
+  // Strict registration is a fresh authorization receipt, not a cacheable
+  // signature result. Refuse success if the configured set changed while the
+  // registration and revocation reads were in flight.
+  if (requiresRegistration) {
+    try {
+      const latestManifest = await getLicensePublicKeyTrustManifest();
+      const configuredKeys = getPublicKeys();
+      const manifestMatchesConfiguration =
+        latestManifest.keys.length === configuredKeys.length &&
+        latestManifest.keys.every((key, index) => key.publicKey === configuredKeys[index]);
+      if (
+        latestManifest.digest !== trustSetDigest ||
+        !latestManifest.keys.some((key) => key.keyId === verifiedKeyId) ||
+        !manifestMatchesConfiguration
+      ) {
+        return c.json(
+          {
+            valid: false,
+            reason: 'unverifiable' as const,
+            tier: 'free' as const,
+            customerId: null,
+            features: getFeaturesForTier('free'),
+            maxSites: 1,
+            maxUsers: 3,
+            expiresAt: null,
+          },
+          200,
+        );
+      }
+    } catch {
+      return c.json(
+        {
+          valid: false,
+          reason: 'unverifiable' as const,
+          tier: 'free' as const,
+          customerId: null,
+          features: getFeaturesForTier('free'),
+          maxSites: 1,
+          maxUsers: 3,
+          expiresAt: null,
+        },
+        200,
+      );
+    }
+  }
+
   // A lapsed support contract freezes the purchased tier, it does not revoke it.
   // Perpetual licenses are sold as permanent ownership, so entitlements stay at
   // the tier that was bought. What lapses is update delivery and support, and
@@ -482,6 +561,7 @@ app.openapi(verifyRoute, async (c) => {
       {
         valid: true,
         licenseKeyDigest: createHash('sha256').update(licenseKey).digest('hex'),
+        ...trustReceipt,
         reason: 'support_expired' as const,
         tier: payload.tier,
         customerId: payload.customerId,
@@ -501,6 +581,7 @@ app.openapi(verifyRoute, async (c) => {
     {
       valid: true,
       licenseKeyDigest: createHash('sha256').update(licenseKey).digest('hex'),
+      ...trustReceipt,
       reason: 'valid' as const,
       tier: payload.tier,
       customerId: payload.customerId,

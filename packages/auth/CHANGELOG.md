@@ -1,5 +1,12 @@
 # @revealui/auth
 
+## 0.5.13
+
+### Patch Changes
+
+- Updated dependencies [c0512d4]
+  - @revealui/core@0.15.4
+
 ## 0.5.12
 
 ### Patch Changes

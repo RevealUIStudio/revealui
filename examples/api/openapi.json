@@ -1976,6 +1976,12 @@
                     "licenseKeyDigest": {
                       "type": "string"
                     },
+                    "trustSetDigest": {
+                      "type": "string"
+                    },
+                    "verifiedKeyId": {
+                      "type": "string"
+                    },
                     "valid": {
                       "type": "boolean",
                       "description": "Whether the license is valid"
@@ -2076,6 +2082,24 @@
                   },
                   "required": [
                     "error"
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The configured issuer trust set is unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
                   ]
                 }
               }
@@ -22080,6 +22104,12 @@
                     "licenseKeyDigest": {
                       "type": "string"
                     },
+                    "trustSetDigest": {
+                      "type": "string"
+                    },
+                    "verifiedKeyId": {
+                      "type": "string"
+                    },
                     "valid": {
                       "type": "boolean",
                       "description": "Whether the license is valid"
@@ -22180,6 +22210,24 @@
                   },
                   "required": [
                     "error"
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The configured issuer trust set is unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
                   ]
                 }
               }

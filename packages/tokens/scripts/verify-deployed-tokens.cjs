@@ -18,8 +18,17 @@
  *   node packages/tokens/scripts/verify-deployed-tokens.cjs \
  *     --url https://www.revealui.com --url https://docs.revealui.com
  *
+ *   A different origin can stand in for a public host. The fetch stays on
+ *   that origin (including its CSP). The allowlist and other host-scoped
+ *   checks stay on the public host:
+ *
+ *   node packages/tokens/scripts/verify-deployed-tokens.cjs \
+ *     --url https://deploy.example=www.revealui.com
+ *
  * Flags:
- *   --url <u>          deployed URL to verify (repeatable, required)
+ *   --url <u>          deployed URL to verify (repeatable, required).
+ *                      Optional =<public-host> (hostname or absolute URL)
+ *                      selects the allowlist host. The fetch URL is unchanged.
  *   --tokens <path>    canonical tokens.css (default: ../src/tokens.css)
  *   --allowlist <path> extra-value allowlist JSON
  *                      (default: ./verify-deployed-tokens.allowlist.json)
@@ -301,32 +310,54 @@ function checkFontResolvability(fontDecls, fontFaceFamilies, csp, externalFontRe
   return failures;
 }
 
-// The maintained transport recomputes credential scope at EVERY redirect hop.
-// fetch's automatic redirects can forward custom headers to another origin.
-const EDGE_KEY = process.env.REVEALUI_CRON_EDGE_KEY || '';
-const EDGE_HEADER = 'x-revealui-cron-key';
+// Manual redirects so credentials are not forwarded to another origin.
+// fetch's automatic redirects can forward custom headers across origins.
+// x-revealui-cron-key is never sent. REVEALUI_CRON_EDGE_KEY is not read.
+const CREDENTIAL_HEADERS = ['authorization', 'cookie', 'proxy-authorization'];
+const STRIPPED_HEADERS = ['x-revealui-cron-key'];
 const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
-function edgeInit(url, init = {}, edgeKey = EDGE_KEY) {
+
+function headerValues(init, names) {
+  const headers = new Headers(init?.headers);
+  const values = [];
+  for (const name of names) {
+    const value = headers.get(name);
+    if (value) values.push(value);
+  }
+  return values;
+}
+
+function credentialOriginFor(url) {
+  const parsed = new URL(url);
+  if (parsed.protocol !== 'https:' || parsed.username || parsed.password) return null;
+  return parsed.origin;
+}
+
+function scopedInit(url, init = {}, credentialOrigin = null) {
   const parsed = new URL(url);
   const headers = new Headers(init.headers);
-  headers.delete(EDGE_HEADER);
-  if (edgeKey && parsed.protocol === 'https:' &&
-      (parsed.hostname === 'revealui.com' || parsed.hostname.endsWith('.revealui.com'))) {
-    headers.set(EDGE_HEADER, edgeKey);
+  for (const name of STRIPPED_HEADERS) headers.delete(name);
+  if (parsed.origin !== credentialOrigin) {
+    for (const name of CREDENTIAL_HEADERS) headers.delete(name);
   }
   return { ...init, headers, redirect: 'manual', signal: init.signal || AbortSignal.timeout(15000) };
 }
 
-function responseDiagnostic(url, response, edgeKey = EDGE_KEY) {
+function responseDiagnostic(url, response, secrets = []) {
   const parsed = new URL(url);
-  const safeString = (value) => value ? value.replaceAll(edgeKey || '\0', '[redacted]').split('\n').join(' ').slice(0, 200) : null;
+  const safeString = (value) => {
+    if (!value) return null;
+    let out = value;
+    for (const secret of secrets) {
+      if (secret) out = out.split(secret).join('[redacted]');
+    }
+    return out.split('\n').join(' ').slice(0, 200);
+  };
   return {
     origin: safeString(parsed.origin),
     status: response?.status ?? null,
     cfMitigated: safeString(response?.headers.get('cf-mitigated')),
     cfRay: safeString(response?.headers.get('cf-ray')),
-    edgeKeyPresent: Boolean(edgeKey),
-    edgeKeySent: edgeInit(url, {}, edgeKey).headers.has(EDGE_HEADER),
   };
 }
 function transportError(message, diagnostic) {
@@ -334,19 +365,21 @@ function transportError(message, diagnostic) {
   error.transport = diagnostic;
   return error;
 }
-async function fetchScoped(url, init = {}, { fetchImpl = fetch, edgeKey = EDGE_KEY, maxRedirects = 5 } = {}) {
+async function fetchScoped(url, init = {}, { fetchImpl = fetch, maxRedirects = 5 } = {}) {
   let current = new URL(url);
+  const credentialOrigin = credentialOriginFor(url);
+  const secrets = headerValues(init, [...CREDENTIAL_HEADERS, ...STRIPPED_HEADERS]);
   for (let hops = 0; ; hops += 1) {
     if (!['http:', 'https:'].includes(current.protocol) || current.username || current.password) {
-      throw transportError('Unsupported request URL', responseDiagnostic(current, null, edgeKey));
+      throw transportError('Unsupported request URL', responseDiagnostic(current, null, secrets));
     }
     let response;
     try {
-      response = await fetchImpl(current.href, edgeInit(current.href, init, edgeKey));
+      response = await fetchImpl(current.href, scopedInit(current.href, init, credentialOrigin));
     } catch {
-      throw transportError('Request failed', responseDiagnostic(current, null, edgeKey));
+      throw transportError('Request failed', responseDiagnostic(current, null, secrets));
     }
-    const diagnostic = responseDiagnostic(current, response, edgeKey);
+    const diagnostic = responseDiagnostic(current, response, secrets);
     if (!REDIRECT_STATUSES.has(response.status)) return { response, url: current.href, diagnostic };
     const location = response.headers.get('location');
     await response.body?.cancel();
@@ -512,7 +545,7 @@ async function fetchDeployed(pageUrl, transportOptions) {
       finalCssUrl = resolvedCssUrl;
       cssText = await cr.text();
     } catch (err) {
-      transportFailures.push(err.transport || responseDiagnostic(cssUrl, null, transportOptions?.edgeKey));
+      transportFailures.push(err.transport || responseDiagnostic(cssUrl, null));
       continue;
     }
     cssParts.push(cssText);
@@ -551,9 +584,14 @@ function loadAllowlist(path, host) {
 }
 
 /* ── per-URL verification ─────────────────────────────────────────────── */
-async function verifyUrl(pageUrl, canonicalTokens, canonicalFontNames, allowlistPath) {
-  const host = new URL(pageUrl).hostname;
-  const { css, csp, externalFontRefs, cssBundleCount, transportFailures, pageOrigin } = await fetchDeployed(pageUrl);
+async function verifyUrl(pageUrl, canonicalTokens, canonicalFontNames, allowlistPath, options = {}) {
+  // Allowlist host is the public hostname this origin stands in for.
+  // CSP stays the fetched response policy and is not rewritten.
+  const host = options.allowlistHost || new URL(pageUrl).hostname;
+  const { css, csp, externalFontRefs, cssBundleCount, transportFailures, pageOrigin } = await fetchDeployed(
+    pageUrl,
+    options,
+  );
   const deployedTokens = extractTokenDecls(css);
   const deployedFonts = extractFontDecls(css);
   const fontFaceFamilies = extractFontFaceFamilies(css);
@@ -588,21 +626,65 @@ async function verifyUrl(pageUrl, canonicalTokens, canonicalFontNames, allowlist
 }
 
 /* ── CLI ──────────────────────────────────────────────────────────────── */
+function publicHostname(alias) {
+  if (alias.includes('://')) return new URL(alias).hostname;
+  const slash = alias.indexOf('/');
+  const hostport = slash === -1 ? alias : alias.slice(0, slash);
+  if (hostport.startsWith('[')) {
+    const end = hostport.indexOf(']');
+    if (end !== -1) return hostport.slice(1, end);
+  }
+  const colon = hostport.indexOf(':');
+  return colon === -1 ? hostport : hostport.slice(0, colon);
+}
+
+// <origin> or <origin>=<public-host>. The public host is a hostname or an
+// absolute URL. The fetch URL is the origin, unchanged.
+function parseUrlTarget(spec) {
+  if (typeof spec !== 'string' || spec.length === 0) {
+    throw new Error('--url value is empty');
+  }
+  const scheme = spec.indexOf('://');
+  if (scheme <= 0) throw new Error(`--url must be an absolute URL: ${spec}`);
+  const eq = spec.indexOf('=', scheme + 3);
+  let fetchUrl = spec;
+  let allowlistHost = null;
+  if (eq !== -1) {
+    fetchUrl = spec.slice(0, eq);
+    const alias = spec.slice(eq + 1);
+    if (!alias || alias.includes('=')) {
+      throw new Error(`--url alias must be <origin>=<public-host>: ${spec}`);
+    }
+    allowlistHost = publicHostname(alias);
+    if (!allowlistHost) throw new Error(`--url public host is empty: ${spec}`);
+  }
+  let parsed;
+  try {
+    parsed = new URL(fetchUrl);
+  } catch {
+    throw new Error(`--url must be an absolute URL: ${spec}`);
+  }
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    throw new Error(`--url must be an absolute URL: ${spec}`);
+  }
+  return { fetchUrl, allowlistHost: allowlistHost || parsed.hostname };
+}
+
 function parseArgs(argv) {
-  const urls = [];
+  const targets = [];
   let tokens = join(__dirname, '..', 'src', 'tokens.css');
   let allowlist = join(__dirname, 'verify-deployed-tokens.allowlist.json');
   let json = false;
   let reachabilityOnly = false;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
-    if (a === '--url') urls.push(argv[++i]);
+    if (a === '--url') targets.push(parseUrlTarget(argv[++i]));
     else if (a === '--tokens') tokens = argv[++i];
     else if (a === '--allowlist') allowlist = argv[++i];
     else if (a === '--json') json = true;
     else if (a === '--reachability-only') reachabilityOnly = true;
   }
-  return { urls, tokens, allowlist, json, reachabilityOnly };
+  return { targets, tokens, allowlist, json, reachabilityOnly };
 }
 
 function reportHuman(results) {
@@ -640,8 +722,8 @@ function reportHuman(results) {
 }
 
 async function main() {
-  const { urls, tokens, allowlist, json, reachabilityOnly } = parseArgs(process.argv.slice(2));
-  if (urls.length === 0) {
+  const { targets, tokens, allowlist, json, reachabilityOnly } = parseArgs(process.argv.slice(2));
+  if (targets.length === 0) {
     console.error('error: at least one --url is required');
     process.exit(2);
   }
@@ -657,10 +739,13 @@ async function main() {
   const canonicalFontNames = new Set([...extractFontDecls(canonicalCss).keys()]);
 
   const results = [];
-  for (const url of urls) {
+  for (const target of targets) {
+    const url = target.fetchUrl;
     try {
       const r = reachabilityOnly ? await verifyReachability(url) :
-        await verifyUrl(url, canonicalTokens, canonicalFontNames, allowlist);
+        await verifyUrl(url, canonicalTokens, canonicalFontNames, allowlist, {
+          allowlistHost: target.allowlistHost,
+        });
       r.parityCount = canonicalTokens.size;
       results.push(r);
     } catch (err) {
@@ -696,6 +781,8 @@ async function main() {
 module.exports = {
   fetchScoped,
   responseDiagnostic,
+  parseUrlTarget,
+  verifyUrl,
   fetchDeployed,
   verifyReachability,
   defaultFetchAsset,
