@@ -35,7 +35,6 @@ import { errorHandler } from './middleware/error.js';
 import {
   checkLicenseStatus,
   checkSupportExpiry,
-  enforceReadOnlyWrites,
   requireAIAccess,
   requireDomain,
   requireFeature,
@@ -670,9 +669,8 @@ const licenseStatusCheck = checkLicenseStatus(async (customerId) => {
 app.use('/api/*', licenseStatusCheck);
 app.use('/api/v1/*', licenseStatusCheck);
 
-// Perpetual license support expiry enforcement  -  downgrades premium features to free
-// when the annual support contract has expired. Basic admin access remains perpetual.
-// Sets X-Support-Expires header so clients can show renewal prompts.
+// Report perpetual support/update coverage without changing purchased runtime access.
+// License revocation remains enforced by licenseStatusCheck above.
 const supportExpiryCheck = checkSupportExpiry(async (customerId) => {
   return querySupportExpiry(getClient(), customerId);
 });
@@ -695,15 +693,6 @@ app.use('/a2a', licenseStatusCheck);
 app.use('/a2a/*', licenseStatusCheck);
 app.use('/a2a', supportExpiryCheck);
 app.use('/a2a/*', supportExpiryCheck);
-
-// GAP-310: block writes for lapsed-perpetual (read-only) licenses. Runs after
-// checkSupportExpiry (which sets the read-only signal) and before the feature
-// gates + route handlers. Governed by LICENSE_READ_ONLY_ENFORCE
-// (off default / shadow / enforce); inert unless a license is in read-only mode.
-app.use('/api/*', enforceReadOnlyWrites());
-app.use('/api/v1/*', enforceReadOnlyWrites());
-app.use('/a2a', enforceReadOnlyWrites());
-app.use('/a2a/*', enforceReadOnlyWrites());
 
 // License enforcement  -  gate premium routes by feature
 // Dashboard chat / agent-stream: Free + aiLocal (Ollama) allowed as local-only.

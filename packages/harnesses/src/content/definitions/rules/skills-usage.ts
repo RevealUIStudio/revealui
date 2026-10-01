@@ -4,15 +4,37 @@ export const skillsUsageRule: Rule = {
   id: 'skills-usage',
   tier: 'pro',
   name: 'Skill Auto-Use Guidelines',
-  description: 'When to proactively invoke skills vs wait for explicit user request',
+  description: 'Assess actual skill inputs, outputs, effects, and verification before invocation',
   scope: 'project',
   preambleTier: 4,
   tags: ['skills', 'automation'],
   content: `# Skill Auto-Use Guidelines
 
-When the Skill tool is available, proactively invoke the following skills in these situations:
+Skill names and descriptions are discovery signals, not proof of suitability.
+Before applying a skill, read its actual instructions and required references.
+Compare the user's requested result with the skill's required inputs, output
+format and destination, scope, prerequisites, side effects, and verification.
+Confirm inputs and tools are available and effects are within the user's authority.
 
-## Always invoke automatically (no user prompt needed)
+Record the assessed source/version, suitability verdict, and material limitations
+with the task evidence. Use a suitable skill. For partial fit, use only a safely
+separable applicable portion and identify the remaining work. Do not apply an
+unsuitable or unverified workflow. An explicitly named skill still requires this
+assessment; explain any inability to use it within the requested scope.
+
+After execution, compare observed output with the requested result and the
+skill's actual contract. A command exit, model response, write receipt, or ran
+flag does not establish task success. Keep execution, tool completion, output
+validation, and factual verification distinct; missing evidence stays unverified.
+
+Reassess when instructions, inputs, destination, tools, or execution results
+change materially. Reuse a current assessment when its contract is unchanged.
+Routine assessment does not require user approval and a skill does not authorize
+publication, messages, purchases, or other effects beyond the user's request.
+
+When the Skill tool is available, assess these candidates in the following situations:
+
+## Assess proactively (no user prompt needed)
 
 - \`/vercel-react-best-practices\`  -  before completing any PR that touches React components or hooks
 - \`/stripe-best-practices\`  -  any time you write or modify billing, payment, webhook, or Stripe code
@@ -38,6 +60,7 @@ When the Skill tool is available, proactively invoke the following skills in the
 
 ## When in doubt
 
-If a skill's description matches the current task, prefer invoking it over not invoking it.
-The overhead of loading a skill is low; missing relevant guidance has higher cost.`,
+Read the actual contract rather than inferring behavior from a matching description.
+Choose guidance that produces the requested result within the authorized scope.
+Identify missing inputs or evidence and continue independent work where possible.`,
 };

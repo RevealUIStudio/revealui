@@ -64,9 +64,16 @@ export function ContactForm() {
 
   if (status === 'success') {
     return (
-      <Callout variant="success" title="Message sent" role="status">
+      <Callout variant="success" title="Request received" role="status">
         <p className="text-sm">
-          We&apos;ll get back to you within 1-2 business days.{' '}
+          We aim to respond within 1–2 business days. If you haven&apos;t heard back, email{' '}
+          <a
+            href="mailto:founder@revealui.com"
+            className="font-semibold text-primary hover:underline"
+          >
+            founder@revealui.com
+          </a>
+          .{' '}
           <a
             href="https://docs.revealui.com"
             className="font-semibold text-primary hover:underline"
