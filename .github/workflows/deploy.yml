@@ -45,6 +45,7 @@ jobs:
   # ---------------------------------------------------------------------------
   validate:
     name: Validate Migrations
+    needs: [detect]
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -61,6 +62,23 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
+
+      - name: Preflight design verifier access before migrations
+        if: needs.detect.outputs.has-apps == 'true' && (contains(needs.detect.outputs.app-list, 'marketing') || contains(needs.detect.outputs.app-list, 'docs'))
+        # Check runner page access only; existing CSS damage must not block
+        # a corrective deployment. Token and artifact checks run AFTER deployment; a missing key is fine when public access works.
+        env:
+          APP_LIST: ${{ needs.detect.outputs.app-list }}
+          REVEALUI_CRON_EDGE_KEY: ${{ secrets.REVEALUI_CRON_EDGE_KEY }}
+        run: |
+          ARGS=""
+          case " $APP_LIST " in
+            *" marketing "*) ARGS="$ARGS --url https://www.revealui.com" ;;
+          esac
+          case " $APP_LIST " in
+            *" docs "*) ARGS="$ARGS --url https://docs.revealui.com" ;;
+          esac
+          node packages/tokens/scripts/verify-deployed-tokens.cjs --reachability-only $ARGS
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -632,8 +650,8 @@ jobs:
         # resolvability failure, which fails this job (and the workflow).
         env:
           APP_LIST: ${{ needs.detect.outputs.app-list }}
-          # Sent only to *.revealui.com by the verifier so the Cloudflare
-          # skip rule lets this runner past the edge challenge.
+          # Scoped to HTTPS RevealUI hosts at each redirect hop. Response
+          # diagnostics distinguish access failures without exposing the key.
           REVEALUI_CRON_EDGE_KEY: ${{ secrets.REVEALUI_CRON_EDGE_KEY }}
         run: |
           ARGS=""
