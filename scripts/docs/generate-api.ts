@@ -22,6 +22,7 @@ const specPath = join(repoRoot, 'examples/api/openapi.json');
 // dirtying the working tree (GAP-395 drift gate).
 const requestedOutput = process.env.DOCS_API_OUT?.trim();
 const outputPath = requestedOutput || join(repoRoot, 'docs/api/rest-api/README.md');
+const specOutputPath = requestedOutput ? join(dirname(requestedOutput), 'openapi.json') : specPath;
 
 interface OpenAPIParam {
   name: string;
@@ -221,11 +222,9 @@ function generateMarkdown(spec: OpenAPISpec): string {
 const sourceSpec = app.getOpenAPIDocument(openApiConfiguration);
 assertOpenApi30Compatible(sourceSpec);
 const spec = sourceSpec as unknown as OpenAPISpec;
-// The drift gate writes only its requested document. Normal generation also
-// refreshes the checked-in example using this same authoritative producer.
-if (!requestedOutput) {
-  writeFileSync(specPath, `${JSON.stringify(sourceSpec, null, 2)}\n`);
-}
+// The drift gate redirects both artifacts to temporary paths; normal
+// generation refreshes the checked-in snapshot with this same producer.
+writeFileSync(specOutputPath, `${JSON.stringify(sourceSpec, null, 2)}\n`);
 
 const markdown = generateMarkdown(spec);
 mkdirSync(dirname(outputPath), { recursive: true });

@@ -2144,7 +2144,9 @@
                       "properties": {
                         "version": {
                           "type": "number",
-                          "const": 1
+                          "enum": [
+                            1
+                          ]
                         },
                         "operationId": {
                           "type": "string",
@@ -2288,7 +2290,9 @@
                                   "properties": {
                                     "kind": {
                                       "type": "string",
-                                      "const": "absent"
+                                      "enum": [
+                                        "absent"
+                                      ]
                                     }
                                   },
                                   "additionalProperties": false,
@@ -2301,7 +2305,9 @@
                                   "properties": {
                                     "kind": {
                                       "type": "string",
-                                      "const": "sha256"
+                                      "enum": [
+                                        "sha256"
+                                      ]
                                     },
                                     "sha256": {
                                       "type": "string",
@@ -2377,7 +2383,9 @@
                       "properties": {
                         "version": {
                           "type": "number",
-                          "const": 1
+                          "enum": [
+                            1
+                          ]
                         },
                         "operationId": {
                           "type": "string",
@@ -2521,7 +2529,9 @@
                                   "properties": {
                                     "kind": {
                                       "type": "string",
-                                      "const": "absent"
+                                      "enum": [
+                                        "absent"
+                                      ]
                                     }
                                   },
                                   "additionalProperties": false,
@@ -2534,7 +2544,9 @@
                                   "properties": {
                                     "kind": {
                                       "type": "string",
-                                      "const": "sha256"
+                                      "enum": [
+                                        "sha256"
+                                      ]
                                     },
                                     "sha256": {
                                       "type": "string",
@@ -2609,7 +2621,9 @@
                   "properties": {
                     "error": {
                       "type": "string",
-                      "const": "operation_not_found"
+                      "enum": [
+                        "operation_not_found"
+                      ]
                     }
                   },
                   "required": [
@@ -2737,7 +2751,9 @@
                       },
                       "recoverOnly": {
                         "type": "boolean",
-                        "const": false
+                        "enum": [
+                          false
+                        ]
                       },
                       "expectedMode": {
                         "type": "string",
@@ -2767,7 +2783,9 @@
                                 "properties": {
                                   "kind": {
                                     "type": "string",
-                                    "const": "absent"
+                                    "enum": [
+                                      "absent"
+                                    ]
                                   }
                                 },
                                 "additionalProperties": false,
@@ -2780,7 +2798,9 @@
                                 "properties": {
                                   "kind": {
                                     "type": "string",
-                                    "const": "sha256"
+                                    "enum": [
+                                      "sha256"
+                                    ]
                                   },
                                   "sha256": {
                                     "type": "string",
@@ -2875,7 +2895,9 @@
                       },
                       "recoverOnly": {
                         "type": "boolean",
-                        "const": true
+                        "enum": [
+                          true
+                        ]
                       },
                       "expectedMode": {
                         "type": "string",
@@ -3108,10 +3130,12 @@
                           },
                           "jwtKid": {
                             "type": "string",
+                            "pattern": "^[0-9a-f]{8}$",
                             "description": "Existing lowercase eight-hex JWT key hint"
                           },
                           "keyId": {
                             "type": "string",
+                            "pattern": "^[0-9a-f]{64}$",
                             "description": "Lowercase SHA-256 hex of canonical SPKI DER"
                           }
                         },
@@ -3129,6 +3153,7 @@
                     },
                     "digest": {
                       "type": "string",
+                      "pattern": "^[0-9a-f]{64}$",
                       "description": "Lowercase SHA-256 hex of the ordered trust-set serialization"
                     },
                     "publicKey": {
@@ -22223,7 +22248,9 @@
                       "properties": {
                         "version": {
                           "type": "number",
-                          "const": 1
+                          "enum": [
+                            1
+                          ]
                         },
                         "operationId": {
                           "type": "string",
@@ -22367,7 +22394,9 @@
                                   "properties": {
                                     "kind": {
                                       "type": "string",
-                                      "const": "absent"
+                                      "enum": [
+                                        "absent"
+                                      ]
                                     }
                                   },
                                   "additionalProperties": false,
@@ -22380,7 +22409,9 @@
                                   "properties": {
                                     "kind": {
                                       "type": "string",
-                                      "const": "sha256"
+                                      "enum": [
+                                        "sha256"
+                                      ]
                                     },
                                     "sha256": {
                                       "type": "string",
@@ -22456,7 +22487,9 @@
                       "properties": {
                         "version": {
                           "type": "number",
-                          "const": 1
+                          "enum": [
+                            1
+                          ]
                         },
                         "operationId": {
                           "type": "string",
@@ -22600,7 +22633,9 @@
                                   "properties": {
                                     "kind": {
                                       "type": "string",
-                                      "const": "absent"
+                                      "enum": [
+                                        "absent"
+                                      ]
                                     }
                                   },
                                   "additionalProperties": false,
@@ -22613,7 +22648,9 @@
                                   "properties": {
                                     "kind": {
                                       "type": "string",
-                                      "const": "sha256"
+                                      "enum": [
+                                        "sha256"
+                                      ]
                                     },
                                     "sha256": {
                                       "type": "string",
@@ -22688,7 +22725,9 @@
                   "properties": {
                     "error": {
                       "type": "string",
-                      "const": "operation_not_found"
+                      "enum": [
+                        "operation_not_found"
+                      ]
                     }
                   },
                   "required": [
@@ -22816,7 +22855,9 @@
                       },
                       "recoverOnly": {
                         "type": "boolean",
-                        "const": false
+                        "enum": [
+                          false
+                        ]
                       },
                       "expectedMode": {
                         "type": "string",
@@ -22846,7 +22887,9 @@
                                 "properties": {
                                   "kind": {
                                     "type": "string",
-                                    "const": "absent"
+                                    "enum": [
+                                      "absent"
+                                    ]
                                   }
                                 },
                                 "additionalProperties": false,
@@ -22859,7 +22902,9 @@
                                 "properties": {
                                   "kind": {
                                     "type": "string",
-                                    "const": "sha256"
+                                    "enum": [
+                                      "sha256"
+                                    ]
                                   },
                                   "sha256": {
                                     "type": "string",
@@ -22954,7 +22999,9 @@
                       },
                       "recoverOnly": {
                         "type": "boolean",
-                        "const": true
+                        "enum": [
+                          true
+                        ]
                       },
                       "expectedMode": {
                         "type": "string",
@@ -23187,10 +23234,12 @@
                           },
                           "jwtKid": {
                             "type": "string",
+                            "pattern": "^[0-9a-f]{8}$",
                             "description": "Existing lowercase eight-hex JWT key hint"
                           },
                           "keyId": {
                             "type": "string",
+                            "pattern": "^[0-9a-f]{64}$",
                             "description": "Lowercase SHA-256 hex of canonical SPKI DER"
                           }
                         },
@@ -23208,6 +23257,7 @@
                     },
                     "digest": {
                       "type": "string",
+                      "pattern": "^[0-9a-f]{64}$",
                       "description": "Lowercase SHA-256 hex of the ordered trust-set serialization"
                     },
                     "publicKey": {
