@@ -714,8 +714,7 @@ async function verifyAndParseLicenseJwt(
       // no longer — in REVEALUI_LICENSE_PUBLIC_KEY[_NEXT].
       if (header.kid) {
         logger.warn(
-          `License JWT rejected: token kid "${header.kid}" did not verify against ` +
-            `any of the ${candidates.length} configured public key(s). ` +
+          `License JWT rejected: token kid did not verify against any of the ${candidates.length} configured public key(s). ` +
             'The signing key may not be in REVEALUI_LICENSE_PUBLIC_KEY / _NEXT.',
         );
       }
@@ -779,7 +778,7 @@ async function orderCandidatesByKid(
  * Outcome of a signing-keypair self-test. See {@link selfVerifyLicenseKeypair}.
  */
 export type KeypairCanaryResult =
-  | { status: 'ok'; kid: string | undefined }
+  | { status: 'ok'; kid: string; verifiedKeyId: string }
   | { status: 'mismatch' }
   | { status: 'degraded'; reason: string };
 
@@ -811,14 +810,26 @@ export async function selfVerifyLicenseKeypair(
   if (publicKeys.length === 0) {
     return { status: 'degraded', reason: 'no public key configured to verify against' };
   }
+  if (publicKeys.length > 2) {
+    return { status: 'degraded', reason: 'too many public keys configured for the trust set' };
+  }
 
   const jose = await getJose();
+  const descriptors: LicensePublicKeyTrustManifest['keys'][number][] = [];
 
   // Pre-parse every public PEM so a MALFORMED public key surfaces as `degraded`
   // (a jose import exception) instead of an indistinguishable `mismatch`.
-  for (const pk of publicKeys) {
+  for (const [index, pk] of publicKeys.entries()) {
     try {
-      await jose.importSPKI(pk, 'EdDSA');
+      const descriptor = await describeLicensePublicKey({
+        role: index === 0 ? 'current' : 'next',
+        publicKey: normalizePem(pk).trim(),
+      });
+      await jose.importSPKI(descriptor.publicKey, 'EdDSA');
+      if (descriptors.some((entry) => entry.keyId === descriptor.keyId)) {
+        return { status: 'degraded', reason: 'duplicate public key identity in trust set' };
+      }
+      descriptors.push(descriptor);
     } catch (err) {
       return {
         status: 'degraded',
@@ -827,17 +838,13 @@ export async function selfVerifyLicenseKeypair(
     }
   }
 
-  // Sign a throwaway token with the deployment's own private key. A malformed
-  // private PEM throws inside generateLicenseKey (importPKCS8) → degraded.
-  const firstKey = publicKeys[0] as string;
-  let token: string;
+  // First sign without a kid and identify the exact configured key that
+  // verifies the private key. A kid is only a hint, so verifying against the
+  // whole list without recording the matched key can accept a B-signed token
+  // labeled with A's kid.
+  let probe: string;
   try {
-    token = await generateLicenseKey(
-      { tier: 'pro', customerId: 'canary' },
-      privateKey,
-      60,
-      firstKey,
-    );
+    probe = await generateLicenseKey({ tier: 'pro', customerId: 'canary' }, privateKey, 60);
   } catch (err) {
     return {
       status: 'degraded',
@@ -845,28 +852,43 @@ export async function selfVerifyLicenseKeypair(
     };
   }
 
-  // Verify against the ordered public-key list. A null result AFTER imports
-  // succeeded means no configured key verifies a token our own private key
-  // signed: a definitive keypair mismatch.
-  const payload = await validateLicenseKey(token, publicKeys);
-  if (payload === null) {
+  const matching: typeof descriptors = [];
+  for (const descriptor of descriptors) {
+    if (await validateLicenseKey(probe, descriptor.publicKey)) matching.push(descriptor);
+  }
+  if (matching.length !== 1) {
     return { status: 'mismatch' };
   }
 
-  // kid allowlist: the token's kid must resolve to a configured public key.
+  const matchedKey = matching[0];
+  if (!matchedKey) return { status: 'mismatch' };
+
+  // Re-sign with the exact matched key as the JWT hint, then prove that both
+  // the signature and emitted hint identify that same accepted trust member.
+  let token: string;
+  try {
+    token = await generateLicenseKey(
+      { tier: 'pro', customerId: 'canary' },
+      privateKey,
+      60,
+      matchedKey.publicKey,
+    );
+  } catch (err) {
+    return {
+      status: 'degraded',
+      reason: `canary token signing failed: ${err instanceof Error ? err.message : String(err)}`,
+    };
+  }
+  if (!(await validateLicenseKey(token, matchedKey.publicKey))) {
+    return { status: 'mismatch' };
+  }
   const header = jose.decodeProtectedHeader(token);
   const kid = typeof header.kid === 'string' ? header.kid : undefined;
-  if (kid !== undefined) {
-    const allowed = await Promise.all(publicKeys.map((pk) => computeKeyId(pk)));
-    if (!allowed.includes(kid)) {
-      return {
-        status: 'degraded',
-        reason: `signed token kid "${kid}" is not among the configured public-key ids [${allowed.join(', ')}]`,
-      };
-    }
+  if (kid !== matchedKey.jwtKid) {
+    return { status: 'mismatch' };
   }
 
-  return { status: 'ok', kid };
+  return { status: 'ok', kid, verifiedKeyId: matchedKey.keyId };
 }
 
 /**

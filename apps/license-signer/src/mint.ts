@@ -2,6 +2,7 @@
  * Mint handler body validation + generateLicenseKey (unchanged core API).
  */
 
+import { createPrivateKey, createPublicKey, timingSafeEqual } from 'node:crypto';
 import { generateLicenseKey } from '@revealui/core/license';
 import { z } from 'zod';
 
@@ -58,8 +59,25 @@ export function getSigningPrivateKey(env: NodeJS.ProcessEnv = process.env): stri
   return raw.split('\\n').join('\n');
 }
 
-export function getSigningPublicKey(env: NodeJS.ProcessEnv = process.env): string | undefined {
-  const raw = env.REVEALUI_LICENSE_PUBLIC_KEY?.trim() ?? '';
-  if (!raw) return undefined;
-  return raw.split('\\n').join('\n');
+/** Derive the JWT kid source from the actual signer, never an unrelated env hint. */
+export function getSigningPublicKey(env: NodeJS.ProcessEnv = process.env): string {
+  const privateKey = createPrivateKey(getSigningPrivateKey(env));
+  if (privateKey.asymmetricKeyType !== 'ed25519') {
+    throw new Error('license-signer private key must be Ed25519');
+  }
+  const publicKey = createPublicKey(privateKey);
+  const derivedDer = publicKey.export({ type: 'spki', format: 'der' });
+  const normalizedConfiguredPem = env.REVEALUI_LICENSE_PUBLIC_KEY?.split('\\n').join('\n').trim();
+  const configuredPem = normalizedConfiguredPem || undefined;
+  if (configuredPem) {
+    const configuredKey = createPublicKey(configuredPem);
+    if (configuredKey.asymmetricKeyType !== 'ed25519') {
+      throw new Error('license-signer configured public key must be Ed25519');
+    }
+    const configuredDer = configuredKey.export({ type: 'spki', format: 'der' });
+    if (configuredDer.length !== derivedDer.length || !timingSafeEqual(configuredDer, derivedDer)) {
+      throw new Error('license-signer configured public key does not match its private key');
+    }
+  }
+  return configuredPem ?? publicKey.export({ type: 'spki', format: 'pem' }).toString().trim();
 }

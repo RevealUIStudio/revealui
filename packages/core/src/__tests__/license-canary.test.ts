@@ -1,4 +1,4 @@
-import { generateKeyPairSync } from 'node:crypto';
+import { createHash, createPublicKey, generateKeyPairSync } from 'node:crypto';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { computeKeyId, selfVerifyLicenseKeypair } from '../license.js';
 
@@ -32,19 +32,25 @@ beforeAll(() => {
 
 describe('selfVerifyLicenseKeypair', () => {
   it('returns ok when private key pairs with the configured public key', async () => {
-    const expectedKid = await computeKeyId(publicKeyA);
+    const expectedKid = await computeKeyId(publicKeyA.trim());
     const result = await selfVerifyLicenseKeypair(privateKeyA, [publicKeyA]);
-    expect(result).toMatchObject({ status: 'ok', kid: expectedKid });
+    expect(result, JSON.stringify(result)).toMatchObject({ status: 'ok', kid: expectedKid });
   });
 
   it('accepts a NEXT-signed token when the NEXT key is in the public-key list', async () => {
     const result = await selfVerifyLicenseKeypair(privateKeyB, [publicKeyA, publicKeyB]);
-    expect(result.status).toBe('ok');
+    expect(result, JSON.stringify(result)).toMatchObject({
+      status: 'ok',
+      kid: await computeKeyId(publicKeyB.trim()),
+      verifiedKeyId: createHash('sha256')
+        .update(createPublicKey(publicKeyB).export({ type: 'spki', format: 'der' }))
+        .digest('hex'),
+    });
   });
 
   it('returns mismatch when private key pairs with none of the configured public keys', async () => {
     const result = await selfVerifyLicenseKeypair(privateKeyC, [publicKeyA, publicKeyB]);
-    expect(result.status).toBe('mismatch');
+    expect(result, JSON.stringify(result)).toHaveProperty('status', 'mismatch');
   });
 
   it('returns degraded when publicKeys is empty', async () => {

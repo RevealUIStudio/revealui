@@ -35,6 +35,7 @@ import {
   validateLicenseKeyForOperator,
   validateLicenseKeyForRefresh,
 } from '../license.js';
+import { logger } from '../observability/logger.js';
 
 // ---------------------------------------------------------------------------
 // Key pair generation (one-time, shared across all tests)
@@ -94,6 +95,29 @@ describe('single sampled mint timestamp', () => {
     } finally {
       setter.mockRestore();
       vi.useRealTimers();
+    }
+  });
+});
+
+describe('rejected license logging', () => {
+  it('does not copy an untrusted JWT kid into logs', async () => {
+    const foreign = generateKeyPairSync('ed25519', {
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    });
+    const token = await new SignJWT({ tier: 'pro', customerId: 'foreign', jti: 'foreign' })
+      .setProtectedHeader({ alg: 'EdDSA', kid: 'BEARER_SENTINEL_DO_NOT_LOG' })
+      .setIssuer('https://revealui.com')
+      .setAudience('revealui-license')
+      .setIssuedAt()
+      .setExpirationTime('1m')
+      .sign(await importPKCS8(foreign.privateKey, 'EdDSA'));
+    const warn = vi.spyOn(logger, 'warn').mockImplementation(() => undefined);
+    try {
+      expect(await validateLicenseKey(token, publicKeyPem)).toBeNull();
+      expect(warn.mock.calls.flat().join(' ')).not.toContain('BEARER_SENTINEL_DO_NOT_LOG');
+    } finally {
+      warn.mockRestore();
     }
   });
 });

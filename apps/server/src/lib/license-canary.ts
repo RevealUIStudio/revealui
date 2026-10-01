@@ -1,4 +1,13 @@
-import { getPublicKeys, normalizePem, selfVerifyLicenseKeypair } from '@revealui/core/license';
+import {
+  getLicensePublicKeyTrustManifest,
+  getPublicKeys,
+  validateLicenseKeyAgainstTrustManifest,
+} from '@revealui/core/license';
+import {
+  canMintLicense,
+  LicenseMintConfigError,
+  mintLicenseKey,
+} from '@revealui/core/license/mint-client';
 import { logger } from '@revealui/core/observability/logger';
 import { resolveSecret } from '@revealui/secrets';
 import { sendCronFailureAlert } from './cron-alerts.js';
@@ -7,25 +16,27 @@ import { detectDeploymentMode, type EnvMap } from './validate-startup.js';
 
 const CANARY_JOB = 'hosted-license-canary';
 
+export type HostedLicenseCanaryOptions = {
+  /** Injected by tests; production uses the normal maintained fetch path. */
+  fetch?: typeof fetch;
+};
+
 /**
  * Boot-time self-test of the HOSTED deployment's license signing keypair.
  *
- * The hosted SaaS (revealui.com) signs per-subscriber license JWTs with
- * REVEALUI_LICENSE_PRIVATE_KEY and verifies them against the ordered public-key
- * list (REVEALUI_LICENSE_PUBLIC_KEY[_NEXT]). If those keys don't actually pair,
- * every subscriber token the deployment mints is unverifiable — but nothing
- * catches that until a real customer request fails. This canary signs a
- * throwaway token with the deployment's own private key and verifies it against
- * its own public keys BEFORE the deployment serves traffic:
+ * The hosted SaaS (revealui.com) signs per-subscriber license JWTs through the
+ * maintained local or remote mint path and verifies them against the ordered
+ * public-key set. This canary checks the signature, full matched key identity,
+ * and exact JWT kid before the deployment serves traffic:
  *
  *  - `ok`        → keypair is internally consistent. Clear any prior degrade.
- *  - `mismatch`  → the deployment signed a token NONE of its public keys can
- *                  verify (definitive keypair mismatch). THROW so the boot
+ *  - `mismatch`  → the signing path produced a token that no accepted key can
+ *                  verify, or its kid names a different key. THROW so the boot
  *                  chain's `.catch` calls process.exit(1) — fail loud, never
  *                  serve. This is the ONLY throw path.
  *  - `degraded`  → an ambiguous / possibly-environmental fault (malformed PEM,
- *                  jose parse exception, missing verify key, kid outside the
- *                  configured allowlist). Do NOT boot-refuse: hosted entitlement
+ *                  jose parse exception, missing verify key, signer outage).
+ *                  Do NOT boot-refuse: hosted entitlement
  *                  is DB-driven, so degrade to readiness-red + alert + Sentry and
  *                  keep the process alive for diagnosis.
  *
@@ -39,19 +50,16 @@ function isLocalDevEnv(env: EnvMap): boolean {
   return nodeEnv === 'development' || nodeEnv === 'test';
 }
 
-export async function runHostedLicenseCanary(env: EnvMap = process.env as EnvMap): Promise<void> {
+export async function runHostedLicenseCanary(
+  env: EnvMap = process.env as EnvMap,
+  options: HostedLicenseCanaryOptions = {},
+): Promise<void> {
   if (env.SKIP_ENV_VALIDATION === 'true') {
     return;
   }
 
   // Hosted-only: only the studio's deployment holds the signing key.
   if (detectDeploymentMode(env) !== 'hosted') {
-    return;
-  }
-
-  const rawPrivate = env.REVEALUI_LICENSE_PRIVATE_KEY;
-  if (!rawPrivate) {
-    // detectDeploymentMode === 'hosted' already implies presence; defensive.
     return;
   }
 
@@ -69,14 +77,12 @@ export async function runHostedLicenseCanary(env: EnvMap = process.env as EnvMap
     // EnvProvider miss is fine — getPublicKeys still reads env / _NEXT.
   }
 
-  // Build the SAME newline-normalized private key + ordered public-key list the
-  // request path uses, so the canary can't pass while real verification fails.
-  const privateKey = normalizePem(rawPrivate);
+  // Build the same normalized, ordered verification set used by requests.
   const publicKeys = getPublicKeys();
 
-  // Local dogfood (`pnpm dogfood:api`) often sets only the private key so
-  // detectDeploymentMode === 'hosted'. Without public keys the canary is
-  // environmentally incomplete — soft-skip in development/test (no ERROR alert).
+  // Local dogfood (`pnpm dogfood:api`) may set only a private key. Without
+  // public keys the canary is environmentally incomplete — soft-skip in
+  // development/test (no ERROR alert).
   // Production/staging still degrade+alert when keys are incomplete.
   if (publicKeys.length === 0 && isLocalDevEnv(env)) {
     logger.info(
@@ -86,22 +92,66 @@ export async function runHostedLicenseCanary(env: EnvMap = process.env as EnvMap
     return;
   }
 
-  const result = await selfVerifyLicenseKeypair(privateKey, publicKeys);
+  let result: import('@revealui/core/license').KeypairCanaryResult;
+  if (!canMintLicense(env)) {
+    result = { status: 'degraded', reason: 'hosted license signing path is not configured' };
+  } else {
+    try {
+      // Exercise the same maintained issuance primitive used by subscribers,
+      // then bind both signature and kid to the exact manifest member.
+      const manifest = await getLicensePublicKeyTrustManifest();
+      const token = await mintLicenseKey(
+        { tier: 'pro', customerId: 'license-canary', expiresInSeconds: 60 },
+        { env, fetch: options.fetch },
+      );
+      const verification = await validateLicenseKeyAgainstTrustManifest(
+        token,
+        manifest,
+        'license-canary',
+      );
+      const matchedKey = verification
+        ? manifest.keys.find((key) => key.keyId === verification.verifiedKeyId)
+        : undefined;
+      const { decodeProtectedHeader } = await import('jose');
+      const emittedKid = decodeProtectedHeader(token).kid;
+      const latestManifest = await getLicensePublicKeyTrustManifest();
+      if (
+        !(verification && matchedKey) ||
+        emittedKid !== matchedKey.jwtKid ||
+        latestManifest.digest !== manifest.digest ||
+        !latestManifest.keys.some((key) => key.keyId === verification.verifiedKeyId)
+      ) {
+        result = { status: 'mismatch' };
+      } else {
+        result = {
+          status: 'ok',
+          kid: matchedKey.jwtKid,
+          verifiedKeyId: matchedKey.keyId,
+        };
+      }
+    } catch (error) {
+      if (error instanceof LicenseMintConfigError) {
+        result = { status: 'mismatch' };
+      } else {
+        // An authority/signer outage is ambiguous; don't leak response bodies.
+        result = { status: 'degraded', reason: 'hosted signer or trust check unavailable' };
+      }
+    }
+  }
 
   if (result.status === 'ok') {
     // Clear any degrade left by a prior boot (e.g. a redeploy that fixed keys).
     setLicenseCanaryDegraded(false);
-    logger.info('Hosted license canary passed (sign→verify→kid self-check).');
+    logger.info('Hosted license canary passed (sign→verify→trust-member check).');
     return;
   }
 
   if (result.status === 'mismatch') {
     throw new Error(
-      'LICENSE CANARY FAILED: the hosted deployment signed a token with ' +
-        'REVEALUI_LICENSE_PRIVATE_KEY that NONE of its configured public keys ' +
-        '(REVEALUI_LICENSE_PUBLIC_KEY / REVEALUI_LICENSE_PUBLIC_KEY_NEXT) can verify. ' +
-        'The signing key does not pair with any verification key — real subscriber ' +
-        'licenses would be unverifiable. Fix the keypair before serving traffic.',
+      'LICENSE CANARY FAILED: the hosted signing path produced a token that does not ' +
+        'verify as the exact configured trust member named by its JWT kid. Real subscriber ' +
+        'licenses would be unverifiable or ambiguously labeled. Fix signer/trust pairing ' +
+        'before serving traffic.',
     );
   }
 
