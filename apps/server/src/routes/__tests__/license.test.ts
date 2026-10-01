@@ -37,6 +37,7 @@ vi.mock('@revealui/core/license', () => {
     normalizePem,
     readPemEnv,
     getPublicKeys,
+    getLicensePublicKeyTrustManifest: vi.fn(),
     coversRenewalBound: vi.fn(() => false),
     DEFAULT_MANUAL_MINT_DAYS: 90,
     validateLicenseKey: vi.fn(),
@@ -95,13 +96,14 @@ vi.mock('../../lib/nudges/milestone-meters.js', () => ({
   LICENSE_KEY_FETCHED_METER_NAME: 'license_key_fetched',
 }));
 
-import { validateLicenseKey } from '@revealui/core/license';
+import { getLicensePublicKeyTrustManifest, validateLicenseKey } from '@revealui/core/license';
 import { mintLicenseKey } from '@revealui/core/license/mint-client';
 import { logger } from '@revealui/core/observability/logger';
 import { applyLicenseOperation, findLicenseOperation, getClient, isJtiRevoked } from '@revealui/db';
 import licenseApp from '../license.js';
 
 const mockedValidate = vi.mocked(validateLicenseKey);
+const mockedTrustManifest = vi.mocked(getLicensePublicKeyTrustManifest);
 const mockedGenerate = vi.mocked(mintLicenseKey);
 
 function createApp() {
@@ -817,6 +819,7 @@ describe('GET /features', () => {
 
 describe('GET /public-key', () => {
   const ORIGINAL = process.env.REVEALUI_LICENSE_PUBLIC_KEY;
+  const ORIGINAL_NEXT = process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT;
 
   beforeEach(() => {
     if (ORIGINAL === undefined) {
@@ -824,27 +827,94 @@ describe('GET /public-key', () => {
     } else {
       process.env.REVEALUI_LICENSE_PUBLIC_KEY = ORIGINAL;
     }
+    if (ORIGINAL_NEXT === undefined) delete process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT;
+    else process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT = ORIGINAL_NEXT;
   });
 
-  it('returns the vendor public key PEM, unescaping literal \\n', async () => {
+  it('returns the versioned ordered trust set with no-store caching', async () => {
     process.env.REVEALUI_LICENSE_PUBLIC_KEY =
       '-----BEGIN PUBLIC KEY-----\\nMCowBQYDK2VwAyEA0000000000000000000000000000\\n-----END PUBLIC KEY-----';
+    const publicKey = process.env.REVEALUI_LICENSE_PUBLIC_KEY.split('\\n').join('\n');
+    const manifest = {
+      version: 1,
+      issuer: 'https://revealui.com',
+      audience: 'revealui-license',
+      keys: [
+        {
+          role: 'current',
+          algorithm: 'EdDSA',
+          publicKey,
+          jwtKid: '12345678',
+          keyId: 'a'.repeat(64),
+        },
+      ],
+      digest: 'b'.repeat(64),
+      publicKey,
+    } as const;
+    mockedTrustManifest.mockResolvedValueOnce(manifest);
     const app = createApp();
     const res = await app.request('/public-key');
     expect(res.status).toBe(200);
     const body = await parseBody(res);
-    expect(body.publicKey.startsWith('-----BEGIN PUBLIC KEY-----')).toBe(true);
-    // Literal backslash-n must be converted to a real newline (no-regex replaceAll).
-    expect(body.publicKey.includes('\\n')).toBe(false);
-    expect(body.publicKey.includes('\n')).toBe(true);
+    expect(body).toEqual(manifest);
+    expect(body.keys[0].role).toBe('current');
+    expect(body.keys[0].algorithm).toBe('EdDSA');
+    expect(body.keys[0].jwtKid).toBe('12345678');
+    expect(body.keys[0].keyId).toBe('a'.repeat(64));
+    expect(body.publicKey).toBe(publicKey);
+    expect(res.headers.get('cache-control')).toBe('no-store');
   });
 
-  it('returns publicKey:null when the key is not configured', async () => {
+  it('serves a manifest produced by the real core trust constructor', async () => {
+    const publicKey =
+      '-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=\n-----END PUBLIC KEY-----';
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = publicKey;
+    delete process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT;
+    const realCore =
+      await vi.importActual<typeof import('@revealui/core/license')>('@revealui/core/license');
+    mockedTrustManifest.mockImplementationOnce(() => realCore.getLicensePublicKeyTrustManifest());
+
+    const res = await createApp().request('/public-key');
+    expect(res.status).toBe(200);
+    expect(await parseBody(res)).toMatchObject({
+      version: 1,
+      issuer: 'https://revealui.com',
+      audience: 'revealui-license',
+      keys: [
+        {
+          role: 'current',
+          algorithm: 'EdDSA',
+          publicKey,
+          jwtKid: '874261a3',
+          keyId: '06e3fd8fda29bb60ab59557de61edb0aecdb231134be30e75b455f8e1b792fa9',
+        },
+      ],
+      digest: 'df4d41347f530f5ba0792c2a9a64cc6dd7faacecec92f9f2a87747e3f85eb917',
+    });
+    expect(res.headers.get('cache-control')).toBe('no-store');
+  });
+
+  it('returns 503 without a key rather than an empty trust set or legacy fallback', async () => {
     delete process.env.REVEALUI_LICENSE_PUBLIC_KEY;
+    mockedTrustManifest.mockRejectedValueOnce(new Error('unconfigured'));
     const app = createApp();
     const res = await app.request('/public-key');
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(503);
     const body = await parseBody(res);
-    expect(body.publicKey).toBeNull();
+    expect(body).toEqual({ message: 'License trust set unavailable' });
+    expect(res.headers.get('cache-control')).toBe('no-store');
+  });
+
+  it('returns 503 when the real core constructor rejects malformed configured keys', async () => {
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'not a PEM';
+    delete process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT;
+    const realCore =
+      await vi.importActual<typeof import('@revealui/core/license')>('@revealui/core/license');
+    mockedTrustManifest.mockImplementationOnce(() => realCore.getLicensePublicKeyTrustManifest());
+
+    const res = await createApp().request('/public-key');
+    expect(res.status).toBe(503);
+    expect(await parseBody(res)).toEqual({ message: 'License trust set unavailable' });
+    expect(res.headers.get('cache-control')).toBe('no-store');
   });
 });

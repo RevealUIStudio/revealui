@@ -139,7 +139,7 @@ function convertType(schema: z.ZodTypeAny, ctx: ConversionContext): JSONSchema {
     case 'boolean':
       return { type: 'boolean' };
     case 'null':
-      return { type: 'null' };
+      return { enum: [null] };
     case 'undefined':
     case 'void':
     case 'any':
@@ -339,11 +339,11 @@ function convertLiteral(def: Record<string, unknown>): JSONSchema {
   const values = def.values as unknown[];
   if (!values || values.length === 0) return {};
   const value = values[0];
-  if (typeof value === 'string') return { type: 'string', const: value };
-  if (typeof value === 'number') return { type: 'number', const: value };
-  if (typeof value === 'boolean') return { type: 'boolean', const: value };
-  if (value === null) return { type: 'null' };
-  return { const: value };
+  if (typeof value === 'string') return { type: 'string', enum: [value] };
+  if (typeof value === 'number') return { type: 'number', enum: [value] };
+  if (typeof value === 'boolean') return { type: 'boolean', enum: [value] };
+  if (value === null) return { enum: [null] };
+  return { enum: [value] };
 }
 
 function convertEnum(def: Record<string, unknown>): JSONSchema {
