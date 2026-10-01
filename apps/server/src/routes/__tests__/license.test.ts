@@ -38,6 +38,7 @@ vi.mock('@revealui/core/license', () => {
     readPemEnv,
     getPublicKeys,
     getLicensePublicKeyTrustManifest: vi.fn(),
+    validateLicenseKeyAgainstTrustManifest: vi.fn(),
     coversRenewalBound: vi.fn(() => false),
     DEFAULT_MANUAL_MINT_DAYS: 90,
     validateLicenseKey: vi.fn(),
@@ -96,7 +97,11 @@ vi.mock('../../lib/nudges/milestone-meters.js', () => ({
   LICENSE_KEY_FETCHED_METER_NAME: 'license_key_fetched',
 }));
 
-import { getLicensePublicKeyTrustManifest, validateLicenseKey } from '@revealui/core/license';
+import {
+  getLicensePublicKeyTrustManifest,
+  validateLicenseKey,
+  validateLicenseKeyAgainstTrustManifest,
+} from '@revealui/core/license';
 import { mintLicenseKey } from '@revealui/core/license/mint-client';
 import { logger } from '@revealui/core/observability/logger';
 import { applyLicenseOperation, findLicenseOperation, getClient, isJtiRevoked } from '@revealui/db';
@@ -104,6 +109,7 @@ import licenseApp from '../license.js';
 
 const mockedValidate = vi.mocked(validateLicenseKey);
 const mockedTrustManifest = vi.mocked(getLicensePublicKeyTrustManifest);
+const mockedManifestVerify = vi.mocked(validateLicenseKeyAgainstTrustManifest);
 const mockedGenerate = vi.mocked(mintLicenseKey);
 
 function createApp() {
@@ -132,6 +138,41 @@ function post(_path: string, body: unknown, headers: Record<string, string> = {}
 // ---------------------------------------------------------------------------
 
 describe('POST /verify', () => {
+  const trustManifest = {
+    version: 1 as const,
+    issuer: 'https://revealui.com' as const,
+    audience: 'revealui-license' as const,
+    keys: [
+      {
+        role: 'current' as const,
+        algorithm: 'EdDSA' as const,
+        publicKey: 'pub-key',
+        jwtKid: '12345678',
+        keyId: 'a'.repeat(64),
+      },
+    ],
+    digest: 'b'.repeat(64),
+    publicKey: 'pub-key',
+  };
+
+  beforeEach(() => {
+    mockedTrustManifest.mockClear();
+    mockedTrustManifest.mockResolvedValue(trustManifest);
+    mockedManifestVerify.mockImplementation(async (token, manifest) => {
+      const payload = await mockedValidate(
+        token,
+        manifest.keys.map((key) => key.publicKey),
+      );
+      return payload
+        ? {
+            payload,
+            verifiedKeyId: manifest.keys[0]!.keyId,
+            trustSetDigest: manifest.digest,
+          }
+        : null;
+    });
+  });
+
   it('returns valid:true for a good key', async () => {
     process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'pub-key';
     mockedValidate.mockResolvedValue({
@@ -152,7 +193,7 @@ describe('POST /verify', () => {
   });
 
   it('denies a signed but unregistered credential when online registration is required', async () => {
-    process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'public';
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'pub-key';
     mockedValidate.mockResolvedValue({
       tier: 'pro',
       customerId: 'customer',
@@ -166,6 +207,133 @@ describe('POST /verify', () => {
       valid: false,
       tier: 'free',
       reason: 'migration_required',
+    });
+  });
+
+  it('binds a strict registration success to the exact manifest and signing key', async () => {
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'pub-key';
+    mockedValidate.mockResolvedValue({
+      tier: 'pro',
+      customerId: 'customer',
+      jti: 'registered-jti',
+      exp: Math.floor(Date.now() / 1000) + 86400,
+    } as never);
+    vi.mocked(getClient).mockReturnValue({
+      select: () => ({
+        from: () => ({
+          where: () => ({
+            limit: async () => [
+              {
+                status: 'active',
+                customerId: 'customer',
+                tier: 'pro',
+                deletedAt: null,
+                perpetual: false,
+                userId: null,
+              },
+            ],
+          }),
+        }),
+      }),
+    } as never);
+
+    const response = await createApp().request(
+      '/verify',
+      post('/verify', { licenseKey: 'registered.token', requireRegistration: true }),
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      valid: true,
+      licenseKeyDigest: expect.any(String),
+      trustSetDigest: trustManifest.digest,
+      verifiedKeyId: trustManifest.keys[0]!.keyId,
+    });
+    expect(mockedTrustManifest).toHaveBeenCalledTimes(2);
+  });
+
+  it('denies strict success if the trust set changes during database verification', async () => {
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'public';
+    mockedValidate.mockResolvedValue({
+      tier: 'pro',
+      customerId: 'customer',
+      jti: 'registered-jti',
+      exp: Math.floor(Date.now() / 1000) + 86400,
+    } as never);
+    vi.mocked(getClient).mockReturnValue({
+      select: () => ({
+        from: () => ({
+          where: () => ({
+            limit: async () => [
+              {
+                status: 'active',
+                customerId: 'customer',
+                tier: 'pro',
+                deletedAt: null,
+                perpetual: false,
+                userId: null,
+              },
+            ],
+          }),
+        }),
+      }),
+    } as never);
+    mockedTrustManifest
+      .mockResolvedValueOnce(trustManifest)
+      .mockResolvedValueOnce({ ...trustManifest, digest: 'c'.repeat(64) });
+
+    const response = await createApp().request(
+      '/verify',
+      post('/verify', { licenseKey: 'registered.token', requireRegistration: true }),
+    );
+    expect(await response.json()).toMatchObject({
+      valid: false,
+      reason: 'unverifiable',
+      tier: 'free',
+    });
+  });
+
+  it('denies if configuration changes while the final manifest is being rebuilt', async () => {
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'pub-key';
+    mockedValidate.mockResolvedValue({
+      tier: 'pro',
+      customerId: 'customer',
+      jti: 'registered-jti',
+      exp: Math.floor(Date.now() / 1000) + 86400,
+    } as never);
+    vi.mocked(getClient).mockReturnValue({
+      select: () => ({
+        from: () => ({
+          where: () => ({
+            limit: async () => [
+              {
+                status: 'active',
+                customerId: 'customer',
+                tier: 'pro',
+                deletedAt: null,
+                perpetual: false,
+                userId: null,
+              },
+            ],
+          }),
+        }),
+      }),
+    } as never);
+    mockedTrustManifest
+      .mockImplementationOnce(async () => trustManifest)
+      .mockImplementationOnce(async () => {
+        const manifestFromEarlierConfiguration = trustManifest;
+        process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'rotated-during-manifest-build';
+        return manifestFromEarlierConfiguration;
+      });
+
+    const response = await createApp().request(
+      '/verify',
+      post('/verify', { licenseKey: 'registered.token', requireRegistration: true }),
+    );
+    expect(await response.json()).toMatchObject({
+      valid: false,
+      reason: 'unverifiable',
+      tier: 'free',
     });
   });
   it('fails closed without logging a driver error containing the bound token', async () => {
