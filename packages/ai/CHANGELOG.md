@@ -1,5 +1,12 @@
 # @revealui/ai
 
+## 1.2.3
+
+### Patch Changes
+
+- Updated dependencies [c0512d4]
+  - @revealui/core@0.15.4
+
 ## 1.2.2
 
 ### Patch Changes
