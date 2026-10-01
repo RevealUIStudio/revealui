@@ -9,11 +9,11 @@ name: Worker Liveness Probe (5-min)
 # every 5 minutes  -  free on a public repo, no Vercel Pro required.
 #
 # The probe route (apps/server/src/routes/cron/worker-liveness.ts) reads the
-# actual Fly worker URL from REVEALUI_WORKER_HEALTH_URL, a Vercel-direct env
-# var on the `api` project. This workflow never sees or prints that URL  -
-# it only knows the public api.revealui.com base and reports the probe's
-# healthy/status result, keeping the worker hostname out of the public repo
-# and out of Actions logs.
+# actual worker URL from REVEALUI_WORKER_HEALTH_URL, an env var on the
+# api project. This workflow never sees or prints that URL. It calls the cron
+# origin (REVEALUI_CRON_ORIGIN, default https://revealui-api.vercel.app) and
+# reports the probe's healthy/status result, keeping the worker hostname out
+# of the public repo and out of Actions logs.
 
 on:
   # Schedule re-enabled 2026-07-28 after GAP-455 green proof:
@@ -46,10 +46,8 @@ jobs:
     steps:
       - name: GET /api/cron/worker-liveness
         env:
-          API_URL: ${{ vars.REVEALUI_API_URL || 'https://api.revealui.com' }}
+          API_URL: ${{ vars.REVEALUI_CRON_ORIGIN || 'https://revealui-api.vercel.app' }}
           CRON_SECRET: ${{ secrets.REVEALUI_CRON_SECRET }}
-          # Edge-only key matched by the Cloudflare skip rule. Not the app secret.
-          EDGE_KEY: ${{ secrets.REVEALUI_CRON_EDGE_KEY }}
         run: |
           if [[ -z "$CRON_SECRET" ]]; then
             echo "::error::REVEALUI_CRON_SECRET secret not set"
@@ -57,7 +55,6 @@ jobs:
           fi
           response=$(curl -sS \
             -H "X-Cron-Secret: $CRON_SECRET" \
-            -H "x-revealui-cron-key: $EDGE_KEY" \
             -w "\nHTTP_STATUS:%{http_code}" \
             "$API_URL/api/cron/worker-liveness" || true)
           status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d: -f2)
