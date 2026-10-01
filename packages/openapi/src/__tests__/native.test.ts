@@ -156,7 +156,7 @@ describe('zodToJsonSchema', () => {
     });
 
     it('converts z.null()', () => {
-      expect(zodToJsonSchema(z.null())).toEqual({ type: 'null' });
+      expect(zodToJsonSchema(z.null())).toEqual({ enum: [null] });
     });
 
     it('converts z.date() to string format date-time', () => {
@@ -250,15 +250,19 @@ describe('zodToJsonSchema', () => {
 
   describe('literals and enums', () => {
     it('string literal', () => {
-      expect(zodToJsonSchema(z.literal('active'))).toEqual({ type: 'string', const: 'active' });
+      expect(zodToJsonSchema(z.literal('active'))).toEqual({ type: 'string', enum: ['active'] });
     });
 
     it('number literal', () => {
-      expect(zodToJsonSchema(z.literal(42))).toEqual({ type: 'number', const: 42 });
+      expect(zodToJsonSchema(z.literal(42))).toEqual({ type: 'number', enum: [42] });
     });
 
     it('boolean literal', () => {
-      expect(zodToJsonSchema(z.literal(true))).toEqual({ type: 'boolean', const: true });
+      expect(zodToJsonSchema(z.literal(true))).toEqual({ type: 'boolean', enum: [true] });
+    });
+
+    it('null literal', () => {
+      expect(zodToJsonSchema(z.literal(null))).toEqual({ enum: [null] });
     });
 
     it('z.enum()', () => {

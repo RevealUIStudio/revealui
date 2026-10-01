@@ -821,13 +821,14 @@ Returns which features are available at each license tier.
 
 ### `GET` `/api/license/public-key`
 
-**Get the vendor license public key (PEM)**
+**Get the hosted license issuer trust set**
 
-Returns the Ed25519 public key used to verify license JWTs. This is PUBLIC material (no auth): a supported client trust provisioning must bind it to the authenticated hosted issuer lifecycle so the RevDev daemon can verify their license. Null when the server has no key configured.
+Returns one current and optionally one NEXT Ed25519 key in that order. keyId is lowercase SHA-256 hex of canonical SPKI DER; jwtKid preserves the existing first-eight-hex SHA-256 of normalized PEM. digest is lowercase SHA-256 hex of UTF-8 compact JSON with property order {version,issuer,audience,keys}, where each ordered key is {role,algorithm,keyId}. Clients must fetch this fixed-origin HTTPS endpoint without redirects and reject an unavailable or malformed trust set. The legacy publicKey property mirrors the current key for compatibility.
 
 **Responses**
 
-- `200`  -  Vendor public key (PEM), or null when the server has none configured
+- `200`  -  Versioned hosted issuer trust set
+- `503`  -  The hosted issuer trust set is unavailable or invalid
 
 ---
 
@@ -921,13 +922,14 @@ Returns which features are available at each license tier.
 
 ### `GET` `/api/v1/license/public-key`
 
-**Get the vendor license public key (PEM)**
+**Get the hosted license issuer trust set**
 
-Returns the Ed25519 public key used to verify license JWTs. This is PUBLIC material (no auth): a supported client trust provisioning must bind it to the authenticated hosted issuer lifecycle so the RevDev daemon can verify their license. Null when the server has no key configured.
+Returns one current and optionally one NEXT Ed25519 key in that order. keyId is lowercase SHA-256 hex of canonical SPKI DER; jwtKid preserves the existing first-eight-hex SHA-256 of normalized PEM. digest is lowercase SHA-256 hex of UTF-8 compact JSON with property order {version,issuer,audience,keys}, where each ordered key is {role,algorithm,keyId}. Clients must fetch this fixed-origin HTTPS endpoint without redirects and reject an unavailable or malformed trust set. The legacy publicKey property mirrors the current key for compatibility.
 
 **Responses**
 
-- `200`  -  Vendor public key (PEM), or null when the server has none configured
+- `200`  -  Versioned hosted issuer trust set
+- `503`  -  The hosted issuer trust set is unavailable or invalid
 
 ---
 

@@ -241,9 +241,9 @@ export function readPemEnv(
 ): string | undefined {
   const raw = env[name];
   if (raw === undefined) return undefined;
-  const trimmed = raw.trim();
+  const trimmed = normalizePem(raw).trim();
   if (trimmed.length === 0) return undefined;
-  return normalizePem(trimmed);
+  return trimmed;
 }
 
 /**
@@ -262,12 +262,175 @@ export function readPemEnv(
  * live request.
  */
 export function getPublicKeys(): string[] {
-  const keys: string[] = [];
-  const current = process.env.REVEALUI_LICENSE_PUBLIC_KEY;
-  if (current) keys.push(normalizePem(current));
-  const next = process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT;
-  if (next) keys.push(normalizePem(next));
-  return keys;
+  return getPublicKeySnapshot().map(({ publicKey }) => publicKey);
+}
+
+type LicensePublicKeyRole = 'current' | 'next';
+
+type LicensePublicKeyCandidate = {
+  role: LicensePublicKeyRole;
+  publicKey: string;
+};
+
+const LICENSE_TRUST_ISSUER = 'https://revealui.com';
+const LICENSE_TRUST_AUDIENCE = 'revealui-license';
+const LICENSE_TRUST_MANIFEST_MAX_BYTES = 16 * 1024;
+const LICENSE_TRUST_PEM_MAX_BYTES = 2 * 1024;
+const LICENSE_TRUST_SPKI_BEGIN = '-----BEGIN PUBLIC KEY-----';
+const LICENSE_TRUST_SPKI_END = '-----END PUBLIC KEY-----';
+
+export type LicensePublicKeyTrustManifest = {
+  version: 1;
+  issuer: typeof LICENSE_TRUST_ISSUER;
+  audience: typeof LICENSE_TRUST_AUDIENCE;
+  keys: Array<{
+    role: LicensePublicKeyRole;
+    algorithm: 'EdDSA';
+    publicKey: string;
+    jwtKid: string;
+    keyId: string;
+  }>;
+  digest: string;
+  /** Compatibility field for clients of the original current-key response. */
+  publicKey: string;
+};
+
+function getPublicKeySnapshot(): LicensePublicKeyCandidate[] {
+  const current = readPemEnv('REVEALUI_LICENSE_PUBLIC_KEY');
+  const next = readPemEnv('REVEALUI_LICENSE_PUBLIC_KEY_NEXT');
+  const candidates: LicensePublicKeyCandidate[] = [];
+  if (current) candidates.push({ role: 'current', publicKey: current });
+  if (next) candidates.push({ role: 'next', publicKey: next });
+  return candidates;
+}
+
+function toHex(bytes: Uint8Array): string {
+  let hex = '';
+  for (const byte of bytes) hex += byte.toString(16).padStart(2, '0');
+  return hex;
+}
+
+function decodePublicKeySpki(publicKeyPem: string): Uint8Array {
+  if (new TextEncoder().encode(publicKeyPem).byteLength > LICENSE_TRUST_PEM_MAX_BYTES) {
+    throw new Error('License public key exceeds the supported size');
+  }
+  if (
+    !(
+      publicKeyPem.startsWith(LICENSE_TRUST_SPKI_BEGIN) &&
+      publicKeyPem.endsWith(LICENSE_TRUST_SPKI_END)
+    )
+  ) {
+    throw new Error('License trust entries must contain a public SPKI PEM');
+  }
+
+  const body = publicKeyPem
+    .slice(LICENSE_TRUST_SPKI_BEGIN.length, -LICENSE_TRUST_SPKI_END.length)
+    .split('\n')
+    .join('')
+    .split('\r')
+    .join('');
+  if (body.length === 0 || body.includes('-')) {
+    throw new Error('License public key PEM body is invalid');
+  }
+
+  let binary: string;
+  try {
+    binary = atob(body);
+  } catch {
+    throw new Error('License public key PEM body is invalid');
+  }
+  if (btoa(binary) !== body) throw new Error('License public key PEM body is not canonical base64');
+
+  const der = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    der[index] = binary.charCodeAt(index);
+  }
+  return der;
+}
+
+async function describeLicensePublicKey(
+  candidate: LicensePublicKeyCandidate,
+): Promise<LicensePublicKeyTrustManifest['keys'][number]> {
+  const spki = decodePublicKeySpki(candidate.publicKey);
+  const spkiBuffer = new ArrayBuffer(spki.byteLength);
+  new Uint8Array(spkiBuffer).set(spki);
+  const key = await crypto.subtle.importKey('spki', spkiBuffer, { name: 'Ed25519' }, true, [
+    'verify',
+  ]);
+  if (key.algorithm.name !== 'Ed25519') {
+    throw new Error('License trust entries must use Ed25519');
+  }
+  const canonicalSpki = new Uint8Array(await crypto.subtle.exportKey('spki', key));
+  if (
+    canonicalSpki.length !== spki.length ||
+    canonicalSpki.some((byte, index) => byte !== spki[index])
+  ) {
+    throw new Error('License public key SPKI is not canonical');
+  }
+
+  const keyId = toHex(new Uint8Array(await crypto.subtle.digest('SHA-256', canonicalSpki)));
+  const jwtKid = await computeKeyId(candidate.publicKey);
+  return {
+    role: candidate.role,
+    algorithm: 'EdDSA',
+    publicKey: candidate.publicKey,
+    jwtKid,
+    keyId,
+  };
+}
+
+/**
+ * Build the public, versioned trust manifest from the same ordered key snapshot
+ * consumed by license verification. Any malformed configured key makes the
+ * endpoint fail closed; a malformed NEXT entry is never silently discarded.
+ */
+export async function getLicensePublicKeyTrustManifest(): Promise<LicensePublicKeyTrustManifest> {
+  if (LICENSE_ISSUER !== LICENSE_TRUST_ISSUER || LICENSE_AUDIENCE !== LICENSE_TRUST_AUDIENCE) {
+    throw new Error('License issuer configuration does not match the hosted trust contract');
+  }
+  const snapshot = getPublicKeySnapshot();
+  if (snapshot.length === 0 || snapshot[0]?.role !== 'current' || snapshot.length > 2) {
+    throw new Error('License current public key is not configured');
+  }
+
+  const keys = await Promise.all(snapshot.map(describeLicensePublicKey));
+  const keyIds = new Set<string>();
+  const jwtKids = new Set<string>();
+  for (const key of keys) {
+    if (keyIds.has(key.keyId) || jwtKids.has(key.jwtKid)) {
+      throw new Error('License trust set contains duplicate key identities');
+    }
+    keyIds.add(key.keyId);
+    jwtKids.add(key.jwtKid);
+  }
+
+  const version = 1 as const;
+  const digestInput = JSON.stringify({
+    version,
+    issuer: LICENSE_TRUST_ISSUER,
+    audience: LICENSE_TRUST_AUDIENCE,
+    keys: keys.map(({ role, algorithm, keyId }) => ({ role, algorithm, keyId })),
+  });
+  const digest = toHex(
+    new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(digestInput))),
+  );
+  const current = keys[0];
+  if (!current) throw new Error('License current public key is not configured');
+  const manifest: LicensePublicKeyTrustManifest = {
+    version,
+    issuer: LICENSE_TRUST_ISSUER,
+    audience: LICENSE_TRUST_AUDIENCE,
+    keys,
+    digest,
+    publicKey: current.publicKey,
+  };
+
+  if (
+    new TextEncoder().encode(JSON.stringify(manifest)).byteLength > LICENSE_TRUST_MANIFEST_MAX_BYTES
+  ) {
+    throw new Error('License trust manifest exceeds the supported size');
+  }
+  return manifest;
 }
 
 /**

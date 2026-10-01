@@ -31,7 +31,26 @@ describe('API documentation dependency bootstrap', () => {
         }),
       }),
     );
-    expect(state.read).toHaveBeenCalledTimes(2);
+    expect(state.read).toHaveBeenCalledTimes(4);
+  });
+
+  it('fails when the JSON schema snapshot drifts even if the markdown matches', async () => {
+    state.read
+      .mockReturnValueOnce('same markdown')
+      .mockReturnValueOnce('{"paths":{}}')
+      .mockReturnValueOnce('same markdown')
+      .mockReturnValueOnce('{"paths":{"/new":{}}}');
+    const exit = vi.spyOn(process, 'exit').mockImplementation((() => {
+      throw new Error('drift gate exited');
+    }) as never);
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(import('../api-docs-drift.js')).rejects.toThrow('drift gate exited');
+    expect(exit).toHaveBeenCalledWith(1);
+    expect(state.remove).toHaveBeenCalledWith('/tmp/synthetic-api-docs-drift', {
+      recursive: true,
+      force: true,
+    });
   });
 
   it('fails closed when the supported dependency build fails and never consumes a generated reference', async () => {
@@ -41,7 +60,7 @@ describe('API documentation dependency bootstrap', () => {
     await expect(import('../api-docs-drift.js')).rejects.toThrow(
       'synthetic dependency build failed',
     );
-    expect(state.read).toHaveBeenCalledTimes(1);
+    expect(state.read).toHaveBeenCalledTimes(2);
     expect(state.remove).toHaveBeenCalledWith('/tmp/synthetic-api-docs-drift', {
       recursive: true,
       force: true,

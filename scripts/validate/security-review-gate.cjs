@@ -2,8 +2,7 @@
 // security-review-gate.cjs — review-before-merge gate for security-sensitive PRs.
 //
 // Policy: a pull request that touches a security-sensitive surface must carry a
-// RECORDED reviewer verdict — an approving GitHub review OR one of the
-// SEC_REVIEW_LABELS — before it merges. PRs that do not touch such a surface
+// RECORDED owner SSHSIG bound to its exact head and a request label before merge. PRs that do not touch such a surface
 // pass immediately, so this check is safe to require on every PR.
 //
 // A live guardrail-2 REQUEST-CHANGES verdict OVERRIDES the label. Verdicts are
@@ -20,11 +19,11 @@
 //                   <base> (git only; cannot see review state).
 //   (default)       --diff origin/test.
 //
-// Exit 0 = clear to merge (not security-sensitive, OR verdict recorded).
-// Exit 1 = HOLD (security-sensitive, no recorded verdict).
+// Exit 0 = no security-sensitive change, or an owner-signed direct/covered grant.
+// Exit 1 = HOLD (live reviewer rejection, missing/invalid grant, or incomplete evidence).
 //
-// Dependency-free (Node built-ins + the gh CLI) so the CI job needs no package
-// install. No regex — substring matching + Set (repo no-regex posture).
+// Uses the existing shared gates resolver/build and OpenSSH verification.
+// No local signing, private-key handling, or label-only grant.
 //
 // SECURITY_PATHS source of truth (GAP-404): scripts/validate/security-paths.shared.json
 // Widen shared surfaces there only. The fleet checker vendors a copy of that
@@ -36,6 +35,7 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 const { evaluateGuardrail2 } = require('./guardrail2-verdict.cjs');
+const { resolveGatesModule } = require('./gates-resolver.cjs');
 
 /**
  * Load revealui security path markers from the single editable source
@@ -64,7 +64,7 @@ function loadSharedSecurityPaths() {
 // and stored-content surfaces. Source: security-paths.shared.json (GAP-404).
 const SECURITY_PATHS = loadSharedSecurityPaths();
 
-// A recorded reviewer verdict = an approving GH review OR one of these labels.
+// These labels are request signals only; none grants clearance.
 const SEC_REVIEW_LABELS = new Set([
   'sec-review:approved',
   'security-reviewed',
@@ -121,39 +121,38 @@ function classifyFiles(files) {
   return hits;
 }
 
-/**
- * The gate decision for a security-sensitive PR (pure; unit-tested). Inputs are
- * the guardrail-2 marker verdict plus the legacy label/review signal.
- *
- *  - A live guardrail-2 REQUEST-CHANGES marker HOLDS, overriding the label (the
- *    revealui#1910 miss). Checked first.
- *  - Otherwise the gate clears ONLY on the owner-applied sec-review:approved
- *    label (or an approving review). A guardrail-2 APPROVE marker RESOLVES a
- *    prior REQUEST-CHANGES hold but never substitutes for the owner's clearance
- *    label: markers are reviewer proposals, the label is the owner disposition.
- *    So both a `clear` verdict and a `no-marker` verdict fall through to the
- *    same label/review requirement. (Fixes the #1914 B2 regression, where a
- *    `clear` marker exited 0 on its own — so any APPROVE-marker comment, which
- *    the PR author can post, cleared the gate with no owner label.)
- *
- * Returns `{ action: 'hold' | 'clear', kind, reviewer?, timestamp? }`.
- */
-function decideReviewGate({ verdict, labels = [], reviewDecision = '' }) {
+/** Labels/reviews request clearance; only the owner signature grants it. */
+function decideReviewGate({ verdict, labels = [], ownerVerification = { ok: false } }) {
   if (verdict && verdict.status === 'hold') {
-    return {
-      action: 'hold',
-      kind: 'request-changes',
-      reviewer: verdict.reviewer,
-      timestamp: verdict.timestamp,
-    };
+    return { action: 'hold', kind: 'request-changes', reviewer: verdict.reviewer, timestamp: verdict.timestamp };
   }
-  const labelSet = new Set(labels);
-  const hasReviewLabel = [...labelSet].some((l) => SEC_REVIEW_LABELS.has(l));
-  const approved = reviewDecision === 'APPROVED';
-  if (approved || hasReviewLabel) {
-    return { action: 'clear', kind: approved ? 'review' : 'label' };
+  const requested = labels.some((label) => SEC_REVIEW_LABELS.has(label));
+  if (requested && ownerVerification.ok === true) return { action: 'clear', kind: 'owner-signature', url: ownerVerification.url };
+  return { action: 'hold', kind: 'no-owner-signature', reason: ownerVerification.reason || (requested ? 'missing-owner-signature' : 'missing-request-label') };
+}
+
+/** REST pagination supplies complete discussion history, or throws closed. */
+function fetchPrDiscussion(prNumber, repo, ghImpl = gh) {
+  function list(kind) {
+    const endpoint = kind === 'comments' ? `issues/${prNumber}/comments` : `pulls/${prNumber}/reviews`;
+    const pages = JSON.parse(ghImpl(['api', `repos/${repo}/${endpoint}?per_page=100`, '--paginate', '--slurp']));
+    if (!Array.isArray(pages) || pages.some((page) => !Array.isArray(page))) throw new Error('invalid paginated discussion response');
+    const rows = pages.flat();
+    if (rows.length > 1000 || rows.some((row) => !row || typeof row.body !== 'string')) throw new Error('unbounded or invalid discussion response');
+    return rows.map((row) => ({ body: row.body, url: row.html_url, author: { login: row.user?.login || '' }, createdAt: row.created_at, submittedAt: row.submitted_at }));
   }
-  return { action: 'hold', kind: 'no-verdict' };
+  return { comments: list('comments'), reviews: list('reviews') };
+}
+
+function verifyPrOwnerRecord(data, prNumber, repo, discussion, allowedSigners, verifyImpl) {
+  const verdict = evaluateGuardrail2({ ...discussion, authorLogin: data.author?.login || '' });
+  if (verdict.status === 'hold') return decideReviewGate({ verdict });
+  const labels = (data.labels || []).map((label) => typeof label === 'string' ? label : label.name);
+  if (!labels.some((label) => SEC_REVIEW_LABELS.has(label))) return decideReviewGate({ verdict, labels });
+  const verifier = verifyImpl || resolveGatesModule()?.verifyOwnerOverrideComments;
+  if (typeof verifier !== 'function') throw new Error('shared owner-signature verifier unavailable');
+  const ownerVerification = verifier({ comments: discussion.comments, allowedSigners, expected: { repo, pr: Number(prNumber), head: data.headRefOid, gate: 'sec-review' } });
+  return decideReviewGate({ verdict, labels, ownerVerification });
 }
 
 /**
@@ -190,16 +189,9 @@ function decidePromoteUpstreamCoverage(coverage) {
   return { action: 'hold', kind: 'uncovered-commits', uncovered };
 }
 
-/**
- * Whether a PR record counts as a recorded sec-review clearance (label or
- * approving review). Does not consult guardrail-2 markers — those remain
- * reviewer proposals, not owner disposition (B2).
- */
-function prRecordHasVerdict({ labels = [], reviewDecision = '' }) {
-  const labelSet = new Set(labels);
-  if ([...labelSet].some((l) => SEC_REVIEW_LABELS.has(l))) return true;
-  if (reviewDecision === 'APPROVED') return true;
-  return false;
+/** Promotion coverage requires merged source and the identical signed door. */
+function prRecordHasVerdict({ merged = false, ...decision }) {
+  return merged === true && decideReviewGate(decision).action === 'clear';
 }
 
 /**
@@ -211,7 +203,9 @@ function fetchPrCommitShas(prNumber, repo, ghImpl) {
     ((args) => execFileSync('gh', args, { encoding: 'utf8', timeout: 120000, maxBuffer: 32 * 1024 * 1024 }));
   const path = `repos/${repo || '{owner}/{repo}'}/pulls/${prNumber}/commits`;
   const out = run(['api', path, '--paginate', '--jq', '.[].sha']);
-  return out.split('\n').filter((line) => line.length > 0);
+  const shas = out.split('\n').filter((line) => line.length > 0);
+  if (shas.length >= 250) throw new Error('PR commit list reached the API ceiling; signed coverage cannot be established');
+  return shas;
 }
 
 /**
@@ -221,50 +215,32 @@ function fetchCommitFiles(sha, repo, ghImpl) {
   const run =
     ghImpl ||
     ((args) => execFileSync('gh', args, { encoding: 'utf8', timeout: 30000, maxBuffer: 8 * 1024 * 1024 }));
-  const path = `repos/${repo || '{owner}/{repo}'}/commits/${sha}`;
-  const out = run(['api', path, '--jq', '[.files[]?.filename] | .[]']);
+  const path = `repos/${repo || '{owner}/{repo}'}/commits/${sha}?per_page=100`;
+  const out = run(['api', path, '--paginate', '--jq', '.files[]?.filename']);
   return out.split('\n').filter((line) => line.length > 0);
 }
 
 /**
  * Associated PRs for a commit (excluding the promote PR itself).
  */
-function fetchCommitPulls(sha, repo, excludePrNumber, ghImpl) {
-  const run =
-    ghImpl ||
-    ((args) => execFileSync('gh', args, { encoding: 'utf8', timeout: 30000, maxBuffer: 4 * 1024 * 1024 }));
-  const path = `repos/${repo || '{owner}/{repo}'}/commits/${sha}/pulls`;
-  // Accept header for media type is set by gh for this endpoint when using REST.
-  let out;
-  try {
-    out = run([
-      'api',
-      path,
-      '-H',
-      'Accept: application/vnd.github.groot-preview+json',
-      '--jq',
-      '.[] | [.number, (.labels | map(.name) | join(",")), .merged_at] | @tsv',
-    ]);
-  } catch {
-    return [];
-  }
+function fetchCommitPulls(sha, repo, excludePrNumber, ghImpl = gh, options = {}) {
+  const pages = JSON.parse(ghImpl(['api', `repos/${repo}/commits/${sha}/pulls?per_page=100`, '--paginate', '--slurp']));
+  if (!Array.isArray(pages) || pages.some((page) => !Array.isArray(page))) throw new Error('invalid associated PR response');
+  const records = pages.flat();
+  if (records.length > 1000) throw new Error('associated PR limit');
   const rows = [];
-  for (const line of out.split('\n')) {
-    if (!line) continue;
-    // TSV: number \t labelsCsv \t merged_at
-    const tab1 = line.indexOf('\t');
-    if (tab1 === -1) continue;
-    const numStr = line.slice(0, tab1);
-    const rest = line.slice(tab1 + 1);
-    const tab2 = rest.indexOf('\t');
-    const labelsCsv = tab2 === -1 ? rest : rest.slice(0, tab2);
-    const number = Number(numStr);
-    if (!Number.isFinite(number) || number === Number(excludePrNumber)) continue;
-    const labels = labelsCsv ? labelsCsv.split(',').filter(Boolean) : [];
-    rows.push({
-      number,
-      hasVerdict: prRecordHasVerdict({ labels, reviewDecision: '' }),
-    });
+  const cache = options.cache || new Map();
+  for (const associated of records) {
+    const number = associated.number;
+    if (!Number.isSafeInteger(number) || number <= 0 || number === Number(excludePrNumber) || !associated.merged_at || associated.base?.repo?.full_name !== repo) continue;
+    if (!cache.has(number)) {
+      const data = JSON.parse(ghImpl(['pr', 'view', String(number), '--repo', repo, '--json', 'labels,author,headRefOid,mergedAt']));
+      const discussion = fetchPrDiscussion(number, repo, ghImpl);
+      const decision = verifyPrOwnerRecord(data, number, repo, discussion, options.allowedSigners ?? process.env.REVFLEET_OVERRIDE_SIGNERS ?? '', options.verifyImpl);
+      cache.set(number, { head: data.headRefOid, merged: Boolean(data.mergedAt), decision, commits: fetchPrCommitShas(number, repo, ghImpl) });
+    }
+    const record = cache.get(number);
+    rows.push({ number, hasVerdict: record.merged && record.head === associated.head?.sha && record.commits.includes(sha) && record.decision.action === 'clear' });
   }
   return rows;
 }
@@ -293,7 +269,8 @@ function fetchCommitParentCount(sha, repo, ghImpl) {
  * not linked to the feature PR and has no sec-review label. Security deltas
  * still appear on the non-merge feature commits that actually authored them.
  */
-function buildPromoteCoverage(prNumber, repo, ghImpl) {
+function buildPromoteCoverage(prNumber, repo, ghImpl, options = {}) {
+  const cache = new Map();
   const shas = fetchPrCommitShas(prNumber, repo, ghImpl);
   const coverage = [];
   for (const sha of shas) {
@@ -311,10 +288,10 @@ function buildPromoteCoverage(prNumber, repo, ghImpl) {
       // Fail closed: unknown files → treat as security-touching so we demand a covering PR
       files = ['packages/auth/unknown'];
     }
-    if (classifyFiles(files).length === 0) continue;
+    if (hitsForFiles(files).length === 0) continue;
     let prs;
     try {
-      prs = fetchCommitPulls(sha, repo, prNumber, ghImpl);
+      prs = fetchCommitPulls(sha, repo, prNumber, ghImpl, { ...options, cache });
     } catch {
       prs = [];
     }
@@ -328,118 +305,42 @@ function buildPromoteCoverage(prNumber, repo, ghImpl) {
 }
 
 function runPrMode(prNumber, repo) {
-  let raw;
-  const ghArgs = [
-    'pr',
-    'view',
-    prNumber,
-    '--json',
-    'labels,reviewDecision,title,author,reviews,comments,baseRefName,headRefName',
-  ];
-  if (repo) ghArgs.push('-R', repo);
   try {
-    raw = gh(ghArgs);
-  } catch (err) {
-    process.stderr.write(
-      `security-review-gate: gh failed for PR ${prNumber} (${err instanceof Error ? err.message : 'unknown'}). ` +
-        `Cannot verify review state — treating as HOLD.\n`,
-    );
-    process.exit(1);
-  }
-  const data = JSON.parse(raw);
-  let files;
-  try {
-    files = fetchPrFiles(prNumber, repo);
-  } catch (err) {
-    process.stderr.write(
-      `security-review-gate: file-list fetch failed for PR ${prNumber} (${err instanceof Error ? err.message : 'unknown'}). ` +
-        `Cannot classify — treating as HOLD.\n`,
-    );
-    process.exit(1);
-  }
-  const hits = hitsForFiles(files);
-
-  if (hits.length === 0) {
-    process.stdout.write(
-      `PR #${prNumber}: no security-sensitive files touched — no review gate.\n`,
-    );
-    process.exit(0);
-  }
-
-  // Compute the guardrail-2 marker verdict (comments/reviews) and hand it, with
-  // the legacy label/review signal, to the pure `decideReviewGate`. A live
-  // REQUEST-CHANGES holds even with the label; a clear/no-marker verdict still
-  // requires the owner label (or an approving review) — see the function header.
-  const verdict = evaluateGuardrail2({
-    reviews: data.reviews || [],
-    comments: data.comments || [],
-    authorLogin: (data.author && data.author.login) || '',
-  });
-  const decision = decideReviewGate({
-    verdict,
-    labels: (data.labels || []).map((l) => l.name),
-    reviewDecision: data.reviewDecision,
-  });
-
-  if (decision.action === 'clear') {
-    process.stdout.write(
-      `PR #${prNumber} is security-sensitive AND carries a recorded verdict ` +
-        `(${decision.kind === 'review' ? 'approving review' : 'sec-review:approved label'}) — clear to merge.\n`,
-    );
-    process.exit(0);
-  }
-
-  if (decision.kind === 'request-changes') {
-    process.stderr.write(
-      `HOLD — PR #${prNumber} has a live guardrail-2 REQUEST-CHANGES verdict ` +
-        `(reviewer ${decision.reviewer || 'unknown'}, ${decision.timestamp || 'unknown time'}).\n` +
-        `   The sec-review:approved label and any approving review are OVERRIDDEN while this stands.\n` +
-        `   Required to clear: a LATER non-author guardrail-2 APPROVE marker AND the sec-review:approved label.\n`,
-    );
-    process.exit(1);
-  }
-
-  // GAP-458: promote (test → main) may inherit upstream feature-PR verdicts.
-  const baseRef = data.baseRefName || '';
-  const headRef = data.headRefName || '';
-  if (isPromotePr(baseRef, headRef)) {
-    let coverage;
-    try {
-      coverage = buildPromoteCoverage(prNumber, repo);
-    } catch (err) {
-      process.stderr.write(
-        `HOLD — PR #${prNumber} is a promote but upstream-verdict scan failed ` +
-          `(${err instanceof Error ? err.message : 'unknown'}). Failing closed.\n` +
-          `   Touched: ${[...new Set(hits)].join(', ')}\n` +
-          `   Override: apply "${[...SEC_REVIEW_LABELS][0]}" on this promote.\n`,
-      );
-      process.exit(1);
+    const target = repo || gh(['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner']).trim();
+    const data = JSON.parse(gh(['pr', 'view', prNumber, '--repo', target, '--json', 'labels,title,author,headRefOid,baseRefName,headRefName,isCrossRepository']));
+    const hits = hitsForFiles(fetchPrFiles(prNumber, target));
+    if (hits.length === 0) {
+      process.stdout.write(`PR #${prNumber}: no security-sensitive files touched — no review gate.\n`);
+      process.exitCode = 0;
+      return;
     }
-    const upstream = decidePromoteUpstreamCoverage(coverage);
-    if (upstream.action === 'clear') {
-      process.stdout.write(
-        `PR #${prNumber} is a test→main promote; all ${upstream.coveredCount} security-touching ` +
-          `commit(s) trace to an upstream PR with a recorded sec-review verdict — clear to merge ` +
-          `(GAP-458). Owner label still available as override.\n`,
-      );
-      process.exit(0);
+    const discussion = fetchPrDiscussion(prNumber, target);
+    const decision = verifyPrOwnerRecord(data, prNumber, target, discussion, process.env.REVFLEET_OVERRIDE_SIGNERS || '');
+    if (decision.action === 'clear') {
+      process.stdout.write(`PR #${prNumber}: verified exact-head owner sec-review signature (${decision.url || 'recorded comment'}).\n`);
+      process.exitCode = 0;
+      return;
     }
-    process.stderr.write(
-      `HOLD — PR #${prNumber} is a test→main promote with security-touching commit(s) that lack ` +
-        `an upstream sec-review verdict (GAP-458).\n` +
-        `   Uncovered commit(s): ${(upstream.uncovered || []).join(', ') || '(none mapped — treat as uncovered)'}\n` +
-        `   Touched: ${[...new Set(hits)].join(', ')}\n` +
-        `   Required: clear those commits on their feature PRs, OR apply "${[...SEC_REVIEW_LABELS][0]}" on this promote.\n`,
-    );
-    process.exit(1);
+    if (decision.kind === 'request-changes') {
+      process.stderr.write(`HOLD — live REQUEST-CHANGES by ${decision.reviewer || 'unknown'} at ${decision.timestamp || 'unknown time'}; owner signature cannot override it.\n`);
+      process.exitCode = 1;
+      return;
+    }
+    if (data.isCrossRepository === false && isPromotePr(data.baseRefName, data.headRefName)) {
+      const upstream = decidePromoteUpstreamCoverage(buildPromoteCoverage(prNumber, target));
+      if (upstream.action === 'clear') {
+        process.stdout.write(`PR #${prNumber}: ${upstream.coveredCount} security commits have current, signed merged-feature coverage.\n`);
+        process.exitCode = 0;
+        return;
+      }
+      process.stderr.write(`HOLD — unsigned or expired feature coverage: ${(upstream.uncovered || []).join(', ') || upstream.kind}.\n`);
+    }
+    process.stderr.write(`HOLD — PR #${prNumber} requires a request label and an unexpired owner SSHSIG over its exact repo/PR/head/sec-review context (${decision.reason || decision.kind}). Labels and reviews alone cannot clear it.\n`);
+    process.exitCode = 1;
+  } catch (error) {
+    process.stderr.write(`HOLD — security review evidence unavailable: ${error instanceof Error ? error.message : 'unknown failure'}.\n`);
+    process.exitCode = 1;
   }
-
-  process.stderr.write(
-    `HOLD — PR #${prNumber} touches a security-sensitive surface with NO recorded reviewer verdict.\n` +
-      `   Touched: ${[...new Set(hits)].join(', ')}\n` +
-      `   Required before merge: an approving review OR a "${[...SEC_REVIEW_LABELS][0]}" label.\n`,
-  );
-  process.exit(1);
 }
 
 function runDiffMode(base) {
@@ -465,7 +366,7 @@ function runDiffMode(base) {
   }
   process.stderr.write(
     `Current branch is SECURITY-SENSITIVE (vs ${base}). Touched: ${[...new Set(hits)].join(', ')}\n` +
-      `   The PR will need a recorded reviewer verdict before merge.\n`,
+      `   The PR will need a request label and an exact-head owner SSHSIG before merge.\n`,
   );
   process.exit(1);
 }
@@ -496,6 +397,10 @@ module.exports = {
   isPromotePr,
   decidePromoteUpstreamCoverage,
   prRecordHasVerdict,
+  fetchPrDiscussion,
+  verifyPrOwnerRecord,
+  fetchCommitPulls,
+  fetchPrCommitShas,
   fetchPrFiles,
   hitsForFiles,
   // exposed for integration tests / CI dry-runs
