@@ -81,6 +81,7 @@ app.post(
         400,
       );
     }
+    return undefined;
   }),
   async (c) => {
     const body = c.req.valid('json') as ContactInquiry;
