@@ -69,3 +69,17 @@ export {
   REQUIRED_SECURITY_AUDIT_CHECKS,
   SEC_REVIEW_APPROVED_LABEL,
 } from './sec-review-label-gate.js';
+export type {
+  OwnerOverrideComment,
+  OwnerOverrideContext,
+  OwnerOverrideResult,
+} from './signed-override.js';
+export {
+  buildOwnerOverrideComment,
+  buildOwnerOverridePayload,
+  OWNER_OVERRIDE_BEGIN,
+  OWNER_OVERRIDE_END,
+  OWNER_OVERRIDE_IDENTITY,
+  OWNER_OVERRIDE_NAMESPACE,
+  verifyOwnerOverrideComments,
+} from './signed-override.js';

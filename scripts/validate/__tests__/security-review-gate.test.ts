@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 const {
   SECURITY_PATHS,
@@ -74,31 +74,37 @@ describe('decideReviewGate — a live REQUEST-CHANGES holds, overriding the labe
   });
 });
 
-describe('decideReviewGate — B2: an APPROVE marker never clears without the owner label', () => {
-  // The #1914 B2 regression: a `clear` guardrail-2 verdict used to exit 0 on its
-  // own, so any APPROVE-marker comment (which the PR author can post) cleared the
-  // gate with no owner label. A marker is a reviewer proposal; the label is the
-  // owner disposition. Clearing requires the label (or an approving review) too.
-  it('HOLDS on a clear marker when no owner label / approving review exists', () => {
-    const d = decideReviewGate({ verdict: clearVerdict, labels: [] });
-    expect(d.action).toBe('hold');
-    expect(d.kind).toBe('no-verdict');
+describe('decideReviewGate — owner signature is the only grant', () => {
+  it.each([noMarker, clearVerdict])(
+    'denies labels, reviews and reviewer markers without a signature',
+    (verdict) => {
+      expect(
+        decideReviewGate({ verdict, labels: [CLEAR_LABEL], reviewDecision: 'APPROVED' }).action,
+      ).toBe('hold');
+    },
+  );
+  it('denies a valid signature without a request label', () => {
+    expect(
+      decideReviewGate({ verdict: noMarker, labels: [], ownerVerification: { ok: true } }).action,
+    ).toBe('hold');
   });
-  it('CLEARS when the clear marker is accompanied by the owner label', () => {
-    const d = decideReviewGate({ verdict: clearVerdict, labels: [CLEAR_LABEL] });
-    expect(d.action).toBe('clear');
-    expect(d.kind).toBe('label');
+  it('clears a request label and valid owner signature', () => {
+    expect(
+      decideReviewGate({
+        verdict: clearVerdict,
+        labels: [CLEAR_LABEL],
+        ownerVerification: { ok: true, url: 'signed-comment' },
+      }),
+    ).toEqual({ action: 'clear', kind: 'owner-signature', url: 'signed-comment' });
   });
-  it('CLEARS a no-marker PR on the owner label (legacy path, unchanged)', () => {
-    expect(decideReviewGate({ verdict: noMarker, labels: [CLEAR_LABEL] }).action).toBe('clear');
-  });
-  it('CLEARS a no-marker PR on an approving review (legacy path, unchanged)', () => {
-    const d = decideReviewGate({ verdict: noMarker, labels: [], reviewDecision: 'APPROVED' });
-    expect(d.action).toBe('clear');
-    expect(d.kind).toBe('review');
-  });
-  it('HOLDS a no-marker PR with neither label nor approving review', () => {
-    expect(decideReviewGate({ verdict: noMarker, labels: ['bug'] }).action).toBe('hold');
+  it('keeps a live REQUEST-CHANGES above even a valid owner signature', () => {
+    expect(
+      decideReviewGate({
+        verdict: holdVerdict,
+        labels: [CLEAR_LABEL],
+        ownerVerification: { ok: true },
+      }).kind,
+    ).toBe('request-changes');
   });
 });
 
@@ -182,15 +188,47 @@ describe('isPromotePr — GAP-458 promote detection', () => {
   });
 });
 
-describe('prRecordHasVerdict', () => {
-  it('accepts sec-review:approved', () => {
-    expect(prRecordHasVerdict({ labels: ['sec-review:approved'] })).toBe(true);
+describe('prRecordHasVerdict — promotion never inherits label-only grants', () => {
+  it('denies legacy labels and approving reviews', () => {
+    expect(
+      prRecordHasVerdict({ merged: true, labels: [CLEAR_LABEL], reviewDecision: 'APPROVED' }),
+    ).toBe(false);
   });
-  it('accepts APPROVED reviewDecision', () => {
-    expect(prRecordHasVerdict({ labels: [], reviewDecision: 'APPROVED' })).toBe(true);
+  it('requires both merged status and the signed door', () => {
+    expect(
+      prRecordHasVerdict({
+        merged: true,
+        verdict: noMarker,
+        labels: [CLEAR_LABEL],
+        ownerVerification: { ok: true },
+      }),
+    ).toBe(true);
+    expect(
+      prRecordHasVerdict({
+        merged: false,
+        verdict: noMarker,
+        labels: [CLEAR_LABEL],
+        ownerVerification: { ok: true },
+      }),
+    ).toBe(false);
   });
-  it('rejects empty', () => {
-    expect(prRecordHasVerdict({ labels: ['bug'] })).toBe(false);
+  it('denies live reviewer hold and expired signature', () => {
+    expect(
+      prRecordHasVerdict({
+        merged: true,
+        verdict: holdVerdict,
+        labels: [CLEAR_LABEL],
+        ownerVerification: { ok: true },
+      }),
+    ).toBe(false);
+    expect(
+      prRecordHasVerdict({
+        merged: true,
+        verdict: noMarker,
+        labels: [CLEAR_LABEL],
+        ownerVerification: { ok: false, reason: 'expired' },
+      }),
+    ).toBe(false);
   });
 });
 
@@ -225,4 +263,151 @@ describe('decidePromoteUpstreamCoverage — GAP-458', () => {
     expect(d.action).toBe('hold');
     expect(d.kind).toBe('no-security-commits');
   });
+});
+
+const {
+  fetchPrDiscussion,
+  verifyPrOwnerRecord,
+  fetchCommitPulls,
+  fetchPrCommitShas,
+} = require('../security-review-gate.cjs');
+const target = 'RevealUIStudio/revealui';
+const featureHead = 'a'.repeat(40);
+
+describe('owner grant evidence adapter', () => {
+  it('paginates comments AND reviews and normalizes reviewer identities', () => {
+    const calls: string[][] = [];
+    const result = fetchPrDiscussion(91, target, (args: string[]) => {
+      calls.push(args);
+      return JSON.stringify([
+        [
+          {
+            body: 'first',
+            user: { login: 'owner' },
+            created_at: '2026-09-30T01:00:00Z',
+            submitted_at: '2026-09-30T01:00:00Z',
+            html_url: 'url',
+          },
+        ],
+        [{ body: 'second', user: { login: 'reviewer' } }],
+      ]);
+    });
+    expect(calls.every((args) => args.includes('--paginate') && args.includes('--slurp'))).toBe(
+      true,
+    );
+    expect(result.comments).toHaveLength(2);
+    expect(result.reviews).toHaveLength(2);
+    expect(result.comments[0]).toMatchObject({ author: { login: 'owner' }, url: 'url' });
+  });
+  it('fails closed on incomplete or malformed paginated evidence', () => {
+    expect(() => fetchPrDiscussion(91, target, () => '{}')).toThrow();
+    expect(() => fetchPrDiscussion(91, target, () => '[[{"body":null}]]')).toThrow();
+  });
+  it('passes the trusted target and exact feature head to the sole shared verifier', () => {
+    const verifier = vi.fn(() => ({ ok: true }));
+    expect(
+      verifyPrOwnerRecord(
+        { author: { login: 'owner' }, labels: [{ name: CLEAR_LABEL }], headRefOid: featureHead },
+        91,
+        target,
+        { comments: [], reviews: [] },
+        'owner-anchor',
+        verifier,
+      ).action,
+    ).toBe('clear');
+    expect(verifier).toHaveBeenCalledWith({
+      comments: [],
+      allowedSigners: 'owner-anchor',
+      expected: { repo: target, pr: 91, head: featureHead, gate: 'sec-review' },
+    });
+    // No historical `now` is supplied: expired historical grants cannot be revived.
+  });
+  it('does not let the signature verifier erase a paginated live reviewer hold', () => {
+    const verifier = vi.fn(() => ({ ok: true }));
+    const decision = verifyPrOwnerRecord(
+      { author: { login: 'owner' }, labels: [{ name: CLEAR_LABEL }], headRefOid: featureHead },
+      91,
+      target,
+      {
+        comments: [
+          {
+            body: '<!-- guardrail2-verdict: REQUEST-CHANGES -->',
+            author: { login: 'reviewer' },
+            createdAt: '2026-09-30T01:00:00Z',
+          },
+        ],
+        reviews: [],
+      },
+      'anchor',
+      verifier,
+    );
+    expect(decision.kind).toBe('request-changes');
+    expect(verifier).not.toHaveBeenCalled();
+  });
+  it('denies commit-list truncation at the supported API ceiling', () => {
+    expect(() =>
+      fetchPrCommitShas(91, target, () =>
+        Array.from({ length: 250 }, () => featureHead).join('\n'),
+      ),
+    ).toThrow('API ceiling');
+  });
+});
+
+describe('signed merged feature promotion coverage', () => {
+  function fixture({
+    merged = true,
+    signed = true,
+    sameHead = true,
+    member = true,
+    hold = false,
+  } = {}) {
+    const sha = 'b'.repeat(40);
+    const run = (args: string[]) => {
+      if (args[0] === 'pr')
+        return JSON.stringify({
+          labels: [{ name: CLEAR_LABEL }],
+          author: { login: 'owner' },
+          headRefOid: featureHead,
+          mergedAt: merged ? '2026-09-30T01:00:00Z' : null,
+        });
+      const endpoint = args[1] ?? '';
+      if (endpoint.includes('/commits/') && endpoint.includes('/pulls?'))
+        return JSON.stringify([
+          [
+            {
+              number: 91,
+              merged_at: merged ? 'yes' : null,
+              base: { repo: { full_name: target } },
+              head: { sha: sameHead ? featureHead : 'c'.repeat(40) },
+            },
+          ],
+        ]);
+      if (endpoint.includes('/comments?'))
+        return JSON.stringify([
+          hold
+            ? [
+                {
+                  body: '<!-- guardrail2-verdict: REQUEST-CHANGES -->',
+                  user: { login: 'reviewer' },
+                  created_at: '2026-09-30T01:00:00Z',
+                },
+              ]
+            : [],
+        ]);
+      if (endpoint.includes('/reviews?')) return '[[]]';
+      if (endpoint.endsWith('/commits')) return member ? `${sha}\n` : `${'d'.repeat(40)}\n`;
+      throw new Error(`unexpected endpoint ${endpoint}`);
+    };
+    return fetchCommitPulls(sha, target, 99, run, {
+      allowedSigners: 'anchor',
+      verifyImpl: () => (signed ? { ok: true } : { ok: false, reason: 'expired' }),
+    });
+  }
+  it('accepts a current signed exact-head merged feature containing the commit', () =>
+    expect(fixture()).toEqual([{ number: 91, hasVerdict: true }]));
+  it('denies unmerged association', () => expect(fixture({ merged: false })).toEqual([]));
+  it.each([{ signed: false }, { sameHead: false }, { member: false }, { hold: true }])(
+    'denies missing or mismatched owner evidence %j',
+    (options) => expect(fixture(options)[0].hasVerdict).toBe(false),
+  );
 });
