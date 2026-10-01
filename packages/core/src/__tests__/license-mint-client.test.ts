@@ -13,7 +13,7 @@ import {
   signMintRequest,
   withPerpetualSiteCaps,
 } from '../license/mint-client.js';
-import { validateLicenseKey } from '../license.js';
+import { computeKeyId, validateLicenseKey } from '../license.js';
 
 let privateKeyPem: string;
 let publicKeyPem: string;
@@ -95,6 +95,48 @@ describe('mintLicenseKey local path', () => {
     const payload = await validateLicenseKey(jwt, publicKeyPem);
     expect(payload?.tier).toBe('pro');
     expect(payload?.customerId).toBe('cus_local');
+  });
+
+  it('labels NEXT when the local signing key pairs with NEXT during rotation', async () => {
+    const pairB = generateKeyPairSync('ed25519', {
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    });
+    const jwt = await mintLicenseKey(
+      { tier: 'pro', customerId: 'cus_rotating' },
+      {
+        env: {
+          REVEALUI_LICENSE_PRIVATE_KEY: pairB.privateKey,
+          REVEALUI_LICENSE_PUBLIC_KEY: publicKeyPem,
+          REVEALUI_LICENSE_PUBLIC_KEY_NEXT: pairB.publicKey,
+        },
+      },
+    );
+    expect(await validateLicenseKey(jwt, pairB.publicKey)).toMatchObject({
+      customerId: 'cus_rotating',
+    });
+    expect(await validateLicenseKey(jwt, publicKeyPem)).toBeNull();
+    const header = JSON.parse(
+      Buffer.from(jwt.split('.')[0] ?? '', 'base64url').toString('utf8'),
+    ) as { kid?: string };
+    expect(header.kid).toBe(await computeKeyId(pairB.publicKey.trim()));
+  });
+
+  it('rejects local issuance when neither accepted key matches the signer', async () => {
+    await expect(
+      mintLicenseKey(
+        { tier: 'pro', customerId: 'cus_untrusted_signer' },
+        {
+          env: {
+            REVEALUI_LICENSE_PRIVATE_KEY: privateKeyPem,
+            REVEALUI_LICENSE_PUBLIC_KEY: generateKeyPairSync('ed25519', {
+              publicKeyEncoding: { type: 'spki', format: 'pem' },
+              privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+            }).publicKey,
+          },
+        },
+      ),
+    ).rejects.toBeInstanceOf(LicenseMintConfigError);
   });
 
   it('throws LicenseMintConfigError when private key missing', async () => {
@@ -244,6 +286,72 @@ describe('mintLicenseKey remote path', () => {
     await expect(
       mintLicenseKey(
         { tier: 'pro', customerId: 'cus_x' },
+        {
+          env: {
+            REVEALUI_LICENSE_SIGN_VIA_SIGNER: 'true',
+            REVEALUI_LICENSE_SIGNER_URL: 'http://signer.example',
+            REVEALUI_SIGNER_INVOKE_SECRET: 'sec',
+          },
+          fetch: fetchMock as unknown as typeof fetch,
+        },
+      ),
+    ).rejects.toBeInstanceOf(LicenseMintRemoteError);
+  });
+
+  it('rejects an oversized signer response before parsing it', async () => {
+    const fetchMock = vi.fn(async () => new Response('x'.repeat(65 * 1024), { status: 200 }));
+    await expect(
+      mintLicenseKey(
+        { tier: 'pro', customerId: 'cus_large_response' },
+        {
+          env: {
+            REVEALUI_LICENSE_SIGN_VIA_SIGNER: 'true',
+            REVEALUI_LICENSE_SIGNER_URL: 'http://signer.example',
+            REVEALUI_SIGNER_INVOKE_SECRET: 'sec',
+          },
+          fetch: fetchMock as unknown as typeof fetch,
+        },
+      ),
+    ).rejects.toBeInstanceOf(LicenseMintRemoteError);
+  });
+
+  it('bounds a signer response stream that ignores the request abort signal', async () => {
+    vi.useFakeTimers();
+    const stalledBody = new ReadableStream<Uint8Array>({
+      pull: () => new Promise<void>(() => undefined),
+    });
+    const fetchMock = vi.fn(async () => new Response(stalledBody, { status: 200 }));
+    const pending = mintLicenseKey(
+      { tier: 'pro', customerId: 'cus_stalled_body' },
+      {
+        env: {
+          REVEALUI_LICENSE_SIGN_VIA_SIGNER: 'true',
+          REVEALUI_LICENSE_SIGNER_URL: 'http://signer.example',
+          REVEALUI_SIGNER_INVOKE_SECRET: 'sec',
+        },
+        fetch: fetchMock as unknown as typeof fetch,
+      },
+    );
+    const rejection = expect(pending).rejects.toBeInstanceOf(LicenseMintRemoteError);
+    try {
+      await vi.advanceTimersByTimeAsync(5_000);
+      await rejection;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('does not wait for a stalled response cancellation after the size limit', async () => {
+    const oversizedStalledCancel = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new Uint8Array(65 * 1024));
+      },
+      cancel: () => new Promise<void>(() => undefined),
+    });
+    const fetchMock = vi.fn(async () => new Response(oversizedStalledCancel, { status: 200 }));
+    await expect(
+      mintLicenseKey(
+        { tier: 'pro', customerId: 'cus_stalled_cancel' },
         {
           env: {
             REVEALUI_LICENSE_SIGN_VIA_SIGNER: 'true',

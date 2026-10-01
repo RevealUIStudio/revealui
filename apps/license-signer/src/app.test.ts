@@ -1,8 +1,9 @@
 import { generateKeyPairSync } from 'node:crypto';
-import { validateLicenseKey } from '@revealui/core/license';
+import { computeKeyId, validateLicenseKey } from '@revealui/core/license';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createLicenseSignerApp } from './app.js';
 import { signMintRequest } from './auth.js';
+import { getSigningPublicKey } from './mint.js';
 
 const INVOKE_SECRET = 'unit-test-signer-invoke-secret';
 const PATH = '/internal/mint';
@@ -46,6 +47,25 @@ async function signedMint(
 }
 
 describe('createLicenseSignerApp', () => {
+  it('preserves normalized configured PEM bytes when deriving the signer kid source', () => {
+    const wrapped = publicKeyPem.trim().replaceAll('\n', '\r\n');
+    expect(
+      getSigningPublicKey({
+        REVEALUI_LICENSE_PRIVATE_KEY: privateKeyPem,
+        REVEALUI_LICENSE_PUBLIC_KEY: wrapped,
+      } as NodeJS.ProcessEnv),
+    ).toBe(wrapped);
+  });
+
+  it('derives the signer hint when the optional public PEM is blank', () => {
+    expect(
+      getSigningPublicKey({
+        REVEALUI_LICENSE_PRIVATE_KEY: privateKeyPem,
+        REVEALUI_LICENSE_PUBLIC_KEY: '  ',
+      } as NodeJS.ProcessEnv),
+    ).toBe(publicKeyPem.trim());
+  });
+
   it('GET /health/live is unauthenticated', async () => {
     const app = createLicenseSignerApp(env());
     const res = await app.request('/health/live');
@@ -113,6 +133,46 @@ describe('createLicenseSignerApp', () => {
     expect(payload?.tier).toBe('pro');
     expect(payload?.customerId).toBe('cus_mint_1');
     expect(typeof payload?.jti).toBe('string');
+  });
+
+  it('rejects a stale configured public-key hint that does not match the signer', async () => {
+    const signerB = generateKeyPairSync('ed25519', {
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    });
+    const app = createLicenseSignerApp(
+      env({
+        REVEALUI_LICENSE_PRIVATE_KEY: signerB.privateKey,
+        // During overlap this can still name A while the active signer is B.
+        REVEALUI_LICENSE_PUBLIC_KEY: publicKeyPem,
+        REVEALUI_LICENSE_PUBLIC_KEY_NEXT: signerB.publicKey,
+      }),
+    );
+    const res = await signedMint(app, '{"tier":"pro","customerId":"cus_next"}');
+    expect(res.status).toBe(500);
+    const json = (await res.json()) as { licenseKey: string };
+    expect(json).not.toHaveProperty('licenseKey');
+  });
+
+  it('emits the actual signer identity as the JWT kid', async () => {
+    const signerB = generateKeyPairSync('ed25519', {
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    });
+    const app = createLicenseSignerApp(
+      env({
+        REVEALUI_LICENSE_PRIVATE_KEY: signerB.privateKey,
+        REVEALUI_LICENSE_PUBLIC_KEY: signerB.publicKey,
+      }),
+    );
+    const res = await signedMint(app, '{"tier":"pro","customerId":"cus_next"}');
+    expect(res.status).toBe(200);
+    const json = (await res.json()) as { licenseKey: string };
+    const header = JSON.parse(
+      Buffer.from(json.licenseKey.split('.')[0] ?? '', 'base64url').toString('utf8'),
+    ) as { kid?: string };
+    expect(header.kid).toBe(await computeKeyId(signerB.publicKey.trim()));
+    expect(await validateLicenseKey(json.licenseKey, signerB.publicKey)).not.toBeNull();
   });
 
   it('does not fall back to REVEALUI_SECRET for invoke auth', async () => {
