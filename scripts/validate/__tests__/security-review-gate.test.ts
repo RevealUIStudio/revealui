@@ -1,4 +1,12 @@
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
+import {
+  buildOwnerOverrideComment,
+  buildOwnerOverridePayload,
+} from '../../../packages/harnesses/src/gates/signed-override.js';
 
 const {
   SECURITY_PATHS,
@@ -410,4 +418,50 @@ describe('signed merged feature promotion coverage', () => {
     'denies missing or mismatched owner evidence %j',
     (options) => expect(fixture(options)[0].hasVerdict).toBe(false),
   );
+});
+
+it('real SSHSIG passes through the existing compiled resolver and sensitive gate decision', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'security-door-fixture-'));
+  try {
+    const key = join(directory, 'owner');
+    execFileSync('ssh-keygen', ['-t', 'ed25519', '-N', '', '-f', key], { stdio: 'pipe' });
+    const payload = join(directory, 'payload');
+    const expires = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+    writeFileSync(
+      payload,
+      buildOwnerOverridePayload(
+        { repo: target, pr: 91, head: featureHead, gate: 'sec-review' },
+        expires,
+      ),
+    );
+    execFileSync('ssh-keygen', ['-Y', 'sign', '-f', key, '-n', 'revealfleet-override', payload], {
+      stdio: 'pipe',
+    });
+    const body = buildOwnerOverrideComment(
+      readFileSync(payload, 'utf8'),
+      readFileSync(`${payload}.sig`, 'utf8'),
+    );
+    const anchor = `owner@revealui.com ${readFileSync(`${key}.pub`, 'utf8')}`;
+    const data = {
+      author: { login: 'owner' },
+      labels: [{ name: CLEAR_LABEL }],
+      headRefOid: featureHead,
+    };
+    const discussion = { comments: [{ body, url: 'signed-fixture' }], reviews: [] };
+    expect(verifyPrOwnerRecord(data, 91, target, discussion, anchor)).toMatchObject({
+      action: 'clear',
+      kind: 'owner-signature',
+      url: 'signed-fixture',
+    });
+    expect(
+      verifyPrOwnerRecord({ ...data, headRefOid: 'b'.repeat(40) }, 91, target, discussion, anchor)
+        .action,
+    ).toBe('hold');
+    expect(verifyPrOwnerRecord(data, 91, target, discussion, '').action).toBe('hold');
+    expect(
+      verifyPrOwnerRecord({ ...data, labels: [] }, 91, target, discussion, anchor).action,
+    ).toBe('hold');
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });

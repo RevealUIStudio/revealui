@@ -4,9 +4,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { runSignedOverrideCli } from '../cli.js';
-import { buildOwnerOverridePayload } from '../signed-override.js';
+import { buildOwnerOverridePayload, verifyOwnerOverrideComments } from '../signed-override.js';
 
-vi.mock('node:child_process', () => ({ execFileSync: vi.fn() }));
+vi.mock('node:child_process', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('node:child_process')>()),
+  execFileSync: vi.fn(),
+}));
 const head = 'a'.repeat(40);
 let directory: string;
 afterEach(() => {
@@ -128,4 +131,63 @@ describe('owner override preparation helper', () => {
     expect(runSignedOverrideCli(['prepare', '--passphrase-file', '/unread-secret'])).toBe(1);
     expect(execFileSync).not.toHaveBeenCalled();
   });
+});
+
+it('prepares and posts an externally signed real SSHSIG that the shared gate accepts', async () => {
+  const realProcess =
+    await vi.importActual<typeof import('node:child_process')>('node:child_process');
+  directory = mkdtempSync(join(tmpdir(), 'owner-helper-roundtrip-'));
+  const key = join(directory, 'owner');
+  realProcess.execFileSync('ssh-keygen', ['-t', 'ed25519', '-N', '', '-f', key], { stdio: 'pipe' });
+  const payload = join(directory, 'payload');
+  const expires = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+  vi.mocked(execFileSync).mockReturnValue(`${head}\n`);
+  vi.mocked(execFileSync).mockClear();
+  expect(
+    runSignedOverrideCli([
+      'prepare',
+      '--repo',
+      'RevealUIStudio/revdev',
+      '--pr',
+      '270',
+      '--gate',
+      'prove-red',
+      '--expires',
+      expires,
+      '--out',
+      payload,
+    ]),
+  ).toBe(0);
+  // Only this explicit synthetic fixture signs; production helper has no signing command.
+  realProcess.execFileSync(
+    'ssh-keygen',
+    ['-Y', 'sign', '-f', key, '-n', 'revealfleet-override', payload],
+    { stdio: 'pipe' },
+  );
+  expect(
+    runSignedOverrideCli([
+      'post',
+      '--repo',
+      'RevealUIStudio/revdev',
+      '--pr',
+      '270',
+      '--gate',
+      'prove-red',
+      '--payload-file',
+      payload,
+      '--signature-file',
+      `${payload}.sig`,
+    ]),
+  ).toBe(0);
+  const posted = vi.mocked(execFileSync).mock.calls.at(-1)?.[2] as { input: string };
+  const comment = posted.input;
+  expect(comment).toContain(readFileSync(`${payload}.sig`, 'utf8').trim());
+  expect(comment).toContain(readFileSync(payload, 'utf8'));
+  expect(
+    verifyOwnerOverrideComments({
+      comments: [{ body: comment }],
+      allowedSigners: `owner@revealui.com ${readFileSync(`${key}.pub`, 'utf8')}`,
+      expected: { repo: 'RevealUIStudio/revdev', pr: 270, head, gate: 'prove-red' },
+    }).ok,
+  ).toBe(true);
 });

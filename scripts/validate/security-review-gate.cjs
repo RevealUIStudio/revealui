@@ -19,11 +19,11 @@
 //                   <base> (git only; cannot see review state).
 //   (default)       --diff origin/test.
 //
-// Exit 0 = clear to merge (not security-sensitive, OR verdict recorded).
-// Exit 1 = HOLD (security-sensitive, no recorded verdict).
+// Exit 0 = no security-sensitive change, or an owner-signed direct/covered grant.
+// Exit 1 = HOLD (live reviewer rejection, missing/invalid grant, or incomplete evidence).
 //
-// Dependency-free (Node built-ins + the gh CLI) so the CI job needs no package
-// install. No regex — substring matching + Set (repo no-regex posture).
+// Uses the existing shared gates resolver/build and OpenSSH verification.
+// No local signing, private-key handling, or label-only grant.
 //
 // SECURITY_PATHS source of truth (GAP-404): scripts/validate/security-paths.shared.json
 // Widen shared surfaces there only. The fleet checker vendors a copy of that
@@ -215,8 +215,8 @@ function fetchCommitFiles(sha, repo, ghImpl) {
   const run =
     ghImpl ||
     ((args) => execFileSync('gh', args, { encoding: 'utf8', timeout: 30000, maxBuffer: 8 * 1024 * 1024 }));
-  const path = `repos/${repo || '{owner}/{repo}'}/commits/${sha}`;
-  const out = run(['api', path, '--jq', '[.files[]?.filename] | .[]']);
+  const path = `repos/${repo || '{owner}/{repo}'}/commits/${sha}?per_page=100`;
+  const out = run(['api', path, '--paginate', '--jq', '.files[]?.filename']);
   return out.split('\n').filter((line) => line.length > 0);
 }
 
@@ -288,7 +288,7 @@ function buildPromoteCoverage(prNumber, repo, ghImpl, options = {}) {
       // Fail closed: unknown files → treat as security-touching so we demand a covering PR
       files = ['packages/auth/unknown'];
     }
-    if (classifyFiles(files).length === 0) continue;
+    if (hitsForFiles(files).length === 0) continue;
     let prs;
     try {
       prs = fetchCommitPulls(sha, repo, prNumber, ghImpl, { ...options, cache });
@@ -366,7 +366,7 @@ function runDiffMode(base) {
   }
   process.stderr.write(
     `Current branch is SECURITY-SENSITIVE (vs ${base}). Touched: ${[...new Set(hits)].join(', ')}\n` +
-      `   The PR will need a recorded reviewer verdict before merge.\n`,
+      `   The PR will need a request label and an exact-head owner SSHSIG before merge.\n`,
   );
   process.exit(1);
 }
