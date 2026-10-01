@@ -48,6 +48,12 @@ describe('refund and support leftover catalog copy', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Security' })).toBeInTheDocument();
     expect(container.textContent ?? '').toContain('on-site policy summary');
     expect(container.textContent ?? '').not.toContain('SOC 2 certified');
+    const faq = screen.getByRole('heading', { level: 2, name: '7. Compliance FAQ' });
+    expect(faq.parentElement?.textContent).toContain('We do not currently hold SOC 2');
+    expect(faq.parentElement?.textContent).toContain('we will publish progress');
+    const question = screen.getByText('What is your independent-assessment status?');
+    expect(question.tagName).toBe('SUMMARY');
+    expect(question.closest('details')).not.toHaveAttribute('open');
     const github = screen.getByRole('link', { name: 'GitHub Security Advisories' });
     expect(github.getAttribute('href')).toBe(SITE.urls.repoSecurity);
   });

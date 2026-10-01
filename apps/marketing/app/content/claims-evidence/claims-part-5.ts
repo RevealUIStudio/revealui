@@ -162,13 +162,25 @@ export const claimsPart5: readonly ClaimEntry[] = [
   },
   {
     file: 'legal/security.ts',
-    exportPath: 'SECURITY_SECTIONS[6].paragraphs[0]',
+    exportPath: 'SECURITY_SECTIONS[6].subsections[0].heading',
+    text: 'What is your independent-assessment status?',
+    evidence: [LEGAL_SECURITY_CONTENT],
+  },
+  {
+    file: 'legal/security.ts',
+    exportPath: 'SECURITY_SECTIONS[6].subsections[0].paragraph',
     text: 'RevealUI Studio is a Tennessee LLC operating as a solo-operator company. We do not currently hold SOC 2, ISO 27001, or PCI DSS attestations. These are planned for later phases of the company; we will publish progress on this page when those audits begin.',
     evidence: [LEGAL_SECURITY_CONTENT],
   },
   {
     file: 'legal/security.ts',
-    exportPath: 'SECURITY_SECTIONS[6].paragraphs[1]',
+    exportPath: 'SECURITY_SECTIONS[6].subsections[1].heading',
+    text: 'Can I arrange a Data Processing Agreement?',
+    evidence: [LEGAL_SECURITY_CONTENT],
+  },
+  {
+    file: 'legal/security.ts',
+    exportPath: 'SECURITY_SECTIONS[6].subsections[1].paragraph',
     text: 'For data protection: we are GDPR-aware in our framework design (consent, deletion, anonymization primitives are in the platform), but a Data Processing Agreement template is not yet finalized for EU B2B customers. If you require a DPA before purchase, contact us before signing up.',
     evidence: [LEGAL_SECURITY_CONTENT],
   },
