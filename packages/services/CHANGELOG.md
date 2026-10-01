@@ -1,5 +1,12 @@
 # @revealui/services
 
+## 0.8.7
+
+### Patch Changes
+
+- Updated dependencies [c0512d4]
+  - @revealui/core@0.15.4
+
 ## 0.8.6
 
 ### Patch Changes
