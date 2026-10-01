@@ -763,6 +763,7 @@ Validates a JWT license key and returns the tier, features, and limits.
 
 - `200`  -  License verification result
 - `400`  -  Missing license key
+- `503`  -  The configured issuer trust set is unavailable
 
 ---
 
@@ -864,6 +865,7 @@ Validates a JWT license key and returns the tier, features, and limits.
 
 - `200`  -  License verification result
 - `400`  -  Missing license key
+- `503`  -  The configured issuer trust set is unavailable
 
 ---
 

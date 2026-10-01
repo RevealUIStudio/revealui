@@ -1,6 +1,10 @@
-import { createHash } from 'node:crypto';
+import { createHash, generateKeyPairSync } from 'node:crypto';
+import { importPKCS8, SignJWT } from 'jose';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { getLicensePublicKeyTrustManifest } from '../license.js';
+import {
+  getLicensePublicKeyTrustManifest,
+  validateLicenseKeyAgainstTrustManifest,
+} from '../license.js';
 
 const ORIGINAL_CURRENT = process.env.REVEALUI_LICENSE_PUBLIC_KEY;
 const ORIGINAL_NEXT = process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT;
@@ -64,6 +68,85 @@ describe('getLicensePublicKeyTrustManifest', () => {
     ]);
     expect(manifest.digest).toBe(FIXED_MANIFEST_DIGEST);
     expect(manifest.publicKey).toBe(FIXED_PEM);
+  });
+
+  it('returns the exact full key identity and digest that verified a NEXT-signed token', async () => {
+    const current = generateKeyPairSync('ed25519', {
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    });
+    const next = generateKeyPairSync('ed25519', {
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    });
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = current.publicKey;
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT = next.publicKey;
+    const manifest = await getLicensePublicKeyTrustManifest();
+    const token = await new SignJWT({ tier: 'pro', customerId: 'customer', jti: 'registration' })
+      .setProtectedHeader({ alg: 'EdDSA' })
+      .setIssuedAt()
+      .setIssuer('https://revealui.com')
+      .setAudience('revealui-license')
+      .setExpirationTime('5m')
+      .sign(await importPKCS8(next.privateKey, 'EdDSA'));
+
+    const result = await validateLicenseKeyAgainstTrustManifest(token, manifest, 'customer');
+    expect(result).toEqual({
+      payload: expect.objectContaining({ customerId: 'customer', tier: 'pro' }),
+      verifiedKeyId: manifest.keys[1]?.keyId,
+      trustSetDigest: manifest.digest,
+    });
+
+    const mutableManifest = {
+      ...manifest,
+      keys: manifest.keys.map((key) => ({ ...key })),
+    };
+    const inFlight = validateLicenseKeyAgainstTrustManifest(token, mutableManifest, 'customer');
+    mutableManifest.digest = 'f'.repeat(64);
+    mutableManifest.keys[1]!.keyId = 'e'.repeat(64);
+    await expect(inFlight).resolves.toMatchObject({
+      verifiedKeyId: manifest.keys[1]?.keyId,
+      trustSetDigest: manifest.digest,
+    });
+
+    const substitutedKeys = manifest.keys.map((key, index) =>
+      index === 1 ? { ...key, keyId: 'f'.repeat(64) } : key,
+    );
+    const substitutedDigestInput = JSON.stringify({
+      version: manifest.version,
+      issuer: manifest.issuer,
+      audience: manifest.audience,
+      keys: substitutedKeys.map(({ role, algorithm, keyId }) => ({ role, algorithm, keyId })),
+    });
+    await expect(
+      validateLicenseKeyAgainstTrustManifest(token, {
+        ...manifest,
+        keys: substitutedKeys,
+        digest: createHash('sha256').update(substitutedDigestInput).digest('hex'),
+      }),
+    ).resolves.toBeNull();
+    await expect(
+      validateLicenseKeyAgainstTrustManifest(token, {
+        ...manifest,
+        keys: manifest.keys.map((key, index) =>
+          index === 1 ? { ...key, jwtKid: 'ffffffff' } : key,
+        ),
+      }),
+    ).resolves.toBeNull();
+    await expect(
+      validateLicenseKeyAgainstTrustManifest(token, {
+        ...manifest,
+        digest: 'f'.repeat(64),
+      }),
+    ).resolves.toBeNull();
+    await expect(
+      validateLicenseKeyAgainstTrustManifest(token, {
+        ...manifest,
+        keys: manifest.keys.map((key, index) =>
+          index === 1 ? { ...key, publicKey: 'not PEM' } : key,
+        ),
+      }),
+    ).resolves.toBeNull();
   });
 
   it('trims after unescaping a terminal newline and preserves the current JWT kid', async () => {

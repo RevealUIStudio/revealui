@@ -65,18 +65,18 @@ jobs:
 
       - name: Preflight design verifier access before migrations
         if: needs.detect.outputs.has-apps == 'true' && (contains(needs.detect.outputs.app-list, 'marketing') || contains(needs.detect.outputs.app-list, 'docs'))
-        # Check runner page access only; existing CSS damage must not block
-        # a corrective deployment. Token and artifact checks run AFTER deployment; a missing key is fine when public access works.
+        # Runner access only, against the stable deployment hosts. This step
+        # runs before the new deployment exists. Token and font checks run
+        # after deploy. Existing CSS damage must not block a corrective deploy.
         env:
           APP_LIST: ${{ needs.detect.outputs.app-list }}
-          REVEALUI_CRON_EDGE_KEY: ${{ secrets.REVEALUI_CRON_EDGE_KEY }}
         run: |
           ARGS=""
           case " $APP_LIST " in
-            *" marketing "*) ARGS="$ARGS --url https://www.revealui.com" ;;
+            *" marketing "*) ARGS="$ARGS --url https://revealui-marketing-revealui-studio.vercel.app" ;;
           esac
           case " $APP_LIST " in
-            *" docs "*) ARGS="$ARGS --url https://docs.revealui.com" ;;
+            *" docs "*) ARGS="$ARGS --url https://revealui-docs-revealui-studio.vercel.app" ;;
           esac
           node packages/tokens/scripts/verify-deployed-tokens.cjs --reachability-only $ARGS
 
@@ -608,25 +608,23 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # Post-deploy design-system verification (marketing + docs)
-  # Runs AFTER the smoke test / alias verification against the live production
-  # URLs. Fetches the deployed HTML + same-origin CSS and asserts two things
-  # static checks cannot: (1) every canonical --rvui-* token survived the
-  # build/CDN round-trip with a numerically-identical value, and (2) each
-  # --rvui-font-* stack actually resolves — a leading family is registered by
-  # an @font-face in the deployed CSS, or is loadable under the live CSP.
+  # Runs after deploy, against the deployment URL from artifact
+  # deploy-url-<app> (url.txt). --url <origin>=<public-host> keeps the
+  # allowlist, token parity, font resolvability, and font asset checks on
+  # the public host. CSP is whatever that deployment response returns.
   #
-  # This is post-deploy ALERT semantics: the deploy already happened, so a
-  # failure here is the signal that production drifted from the design system
-  # (e.g. the 2026-07 fonts bug — token-correct CSS whose brand fonts never
-  # loaded because the CSP blocked Google Fonts and the self-hosted family
-  # names did not match the token stacks). Failing the workflow surfaces it.
+  # This is post-deploy alert semantics: the deploy already happened, so a
+  # failure here means that deployment drifted from the design system
+  # (token-correct CSS whose brand fonts never loaded, because the CSP
+  # blocked the external font host and the self-hosted family names did not
+  # match the token stacks). Failing the workflow surfaces it.
   # ---------------------------------------------------------------------------
   design-verify:
     name: Verify Design System
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [detect, deploy, smoke-test]
-    if: needs.detect.outputs.has-apps == 'true' && (contains(needs.detect.outputs.app-list, 'marketing') || contains(needs.detect.outputs.app-list, 'docs'))
+    needs: [detect, deploy]
+    if: ${{ success() && needs.detect.outputs.has-apps == 'true' && (contains(needs.detect.outputs.app-list, 'marketing') || contains(needs.detect.outputs.app-list, 'docs')) }}
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -642,31 +640,51 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          pattern: deploy-url-*
+          path: deploy-urls
+
       - name: Verify deployed tokens + font resolution
         # The verifier is dependency-free (Node 24 global fetch) and reads the
         # canonical tokens.css + allowlist straight from the checkout, so no
-        # `pnpm install` is required. It maps the affected apps to their
-        # production hostnames and exits non-zero on any parity or font-
-        # resolvability failure, which fails this job (and the workflow).
+        # `pnpm install` is required. It checks the deployment URL from the
+        # deploy job and applies the public host allowlist. It exits non-zero
+        # on any parity or font-resolvability failure, which fails this job
+        # (and the workflow).
         env:
           APP_LIST: ${{ needs.detect.outputs.app-list }}
-          # Scoped to HTTPS RevealUI hosts at each redirect hop. Response
-          # diagnostics distinguish access failures without exposing the key.
-          REVEALUI_CRON_EDGE_KEY: ${{ secrets.REVEALUI_CRON_EDGE_KEY }}
         run: |
-          ARGS=""
+          set -euo pipefail
+          args=()
           case " $APP_LIST " in
-            *" marketing "*) ARGS="$ARGS --url https://www.revealui.com" ;;
+            *" marketing "*)
+              url_file="deploy-urls/deploy-url-marketing/url.txt"
+              if [ ! -f "$url_file" ]; then
+                echo "::error::marketing deployment URL artifact is missing"
+                exit 1
+              fi
+              marketing_url=$(tr -d '[:space:]' < "$url_file")
+              args+=(--url "${marketing_url}=www.revealui.com")
+              ;;
           esac
           case " $APP_LIST " in
-            *" docs "*) ARGS="$ARGS --url https://docs.revealui.com" ;;
+            *" docs "*)
+              url_file="deploy-urls/deploy-url-docs/url.txt"
+              if [ ! -f "$url_file" ]; then
+                echo "::error::docs deployment URL artifact is missing"
+                exit 1
+              fi
+              docs_url=$(tr -d '[:space:]' < "$url_file")
+              args+=(--url "${docs_url}=docs.revealui.com")
+              ;;
           esac
-          if [ -z "$ARGS" ]; then
-            echo "::notice::No design-system surface (marketing/docs) in this deploy — skipping"
+          if [ "${#args[@]}" -eq 0 ]; then
+            echo "::notice::No design-system surface (marketing/docs) in this deploy, skipping"
             exit 0
           fi
-          echo "Verifying deployed design system:$ARGS"
-          node packages/tokens/scripts/verify-deployed-tokens.cjs $ARGS
+          echo "Verifying deployed design system: ${args[*]}"
+          node packages/tokens/scripts/verify-deployed-tokens.cjs "${args[@]}"
 
   # ---------------------------------------------------------------------------
   # Summary

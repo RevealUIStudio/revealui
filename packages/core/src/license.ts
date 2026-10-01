@@ -295,6 +295,12 @@ export type LicensePublicKeyTrustManifest = {
   publicKey: string;
 };
 
+export type LicenseTrustVerification = {
+  payload: LicensePayload;
+  verifiedKeyId: string;
+  trustSetDigest: string;
+};
+
 function getPublicKeySnapshot(): LicensePublicKeyCandidate[] {
   const current = readPemEnv('REVEALUI_LICENSE_PUBLIC_KEY');
   const next = readPemEnv('REVEALUI_LICENSE_PUBLIC_KEY_NEXT');
@@ -498,6 +504,95 @@ export async function validateLicenseKey(
     graceConfig.subscriptionDays * 86_400,
     expectedCustomerId,
   );
+}
+
+/**
+ * Verify against one already-built trust manifest and identify the exact
+ * configured key that accepted the token. The returned digest and key ID let
+ * a strict online verifier bind its result to the same set the caller fetched.
+ */
+export async function validateLicenseKeyAgainstTrustManifest(
+  licenseKey: string,
+  manifest: LicensePublicKeyTrustManifest,
+  expectedCustomerId?: string,
+): Promise<LicenseTrustVerification | null> {
+  try {
+    // Detach from the caller before the first await. Callers may retain and
+    // mutate their input object while signature verification is in flight.
+    const snapshot = Object.freeze({
+      version: manifest.version,
+      issuer: manifest.issuer,
+      audience: manifest.audience,
+      digest: manifest.digest,
+      publicKey: manifest.publicKey,
+      keys: Array.isArray(manifest.keys)
+        ? Object.freeze(manifest.keys.map((key) => Object.freeze({ ...key })))
+        : manifest.keys,
+    });
+    if (
+      snapshot.version !== 1 ||
+      snapshot.issuer !== LICENSE_TRUST_ISSUER ||
+      snapshot.audience !== LICENSE_TRUST_AUDIENCE ||
+      !/^[0-9a-f]{64}$/.test(snapshot.digest) ||
+      !Array.isArray(snapshot.keys) ||
+      snapshot.keys.length === 0 ||
+      snapshot.keys.length > 2 ||
+      snapshot.keys[0]?.role !== 'current' ||
+      snapshot.keys.some((key, index) => key.role !== (index === 0 ? 'current' : 'next'))
+    ) {
+      return null;
+    }
+
+    const described = await Promise.all(
+      snapshot.keys.map((key) =>
+        describeLicensePublicKey({ role: key.role, publicKey: key.publicKey }),
+      ),
+    );
+    const keyIds = new Set<string>();
+    const jwtKids = new Set<string>();
+    for (let index = 0; index < described.length; index += 1) {
+      const actual = described[index];
+      const supplied = snapshot.keys[index];
+      if (
+        !(actual && supplied) ||
+        actual.algorithm !== supplied.algorithm ||
+        actual.keyId !== supplied.keyId ||
+        actual.jwtKid !== supplied.jwtKid ||
+        keyIds.has(actual.keyId) ||
+        jwtKids.has(actual.jwtKid)
+      ) {
+        return null;
+      }
+      keyIds.add(actual.keyId);
+      jwtKids.add(actual.jwtKid);
+    }
+    const digestInput = JSON.stringify({
+      version: snapshot.version,
+      issuer: snapshot.issuer,
+      audience: snapshot.audience,
+      keys: described.map(({ role, algorithm, keyId }) => ({ role, algorithm, keyId })),
+    });
+    const expectedDigest = toHex(
+      new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(digestInput))),
+    );
+    if (snapshot.digest !== expectedDigest || snapshot.publicKey !== described[0]?.publicKey) {
+      return null;
+    }
+
+    for (const key of described) {
+      const payload = await validateLicenseKey(licenseKey, key.publicKey, expectedCustomerId);
+      if (payload) {
+        return {
+          payload,
+          verifiedKeyId: key.keyId,
+          trustSetDigest: snapshot.digest,
+        };
+      }
+    }
+  } catch {
+    return null;
+  }
+  return null;
 }
 
 /**

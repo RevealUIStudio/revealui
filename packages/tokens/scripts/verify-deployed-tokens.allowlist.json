@@ -1,5 +1,5 @@
 {
-  "_comment": "Extra --rvui-* values a deployed host may carry BEYOND the canonical tokens.css set. Scoped by hostname. Values are normalized (numeric/quote/formatting-insensitive) before comparison, so raw source formatting here is fine. Seeded with the three --rvui-font-* app-level overrides apps/marketing redeclares so its self-hosted @fontsource-variable families (Inter Variable / Inter Tight Variable / JetBrains Mono Variable) lead the stack. Anything not listed here that differs from canonical fails verification.",
+  "_comment": "Extra --rvui-* values a deployed host may carry BEYOND the canonical tokens.css set. Scoped by public hostname. Values are normalized (numeric/quote/formatting-insensitive) before comparison, so raw source formatting here is fine. Seeded with the three --rvui-font-* app-level overrides apps/marketing redeclares so its self-hosted @fontsource-variable families (Inter Variable / Inter Tight Variable / JetBrains Mono Variable) lead the stack. Anything not listed here that differs from canonical fails verification. To verify another origin that stands in for a public host, pass --url <origin>=<public-host>. Do not add deployment hostnames as keys.",
   "overrides": {
     "www.revealui.com": {
       "--rvui-font-sans": ["'Inter Variable', 'Inter', system-ui, sans-serif"],
