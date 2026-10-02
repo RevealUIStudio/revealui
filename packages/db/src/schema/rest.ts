@@ -16,6 +16,7 @@ export * from './accounts.js';
 export * from './admin.js';
 export {
   type AgentAction,
+  type AgentActionScope,
   type AgentContext,
   type AgentCreditBalance,
   type AgentMemory,

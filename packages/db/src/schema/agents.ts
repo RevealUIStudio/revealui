@@ -497,6 +497,11 @@ export type NewUserDevice = typeof userDevices.$inferInsert;
 export type SyncMetadata = typeof syncMetadata.$inferSelect;
 export type NewSyncMetadata = typeof syncMetadata.$inferInsert;
 export type AgentAction = typeof agentActions.$inferSelect;
+/** Trusted attribution shared by task receipts and private runtime ownership. */
+export type AgentActionScope = {
+  actorUserId: NonNullable<AgentAction['actorUserId']>;
+  accountId: AgentAction['accountId'];
+};
 export type NewAgentAction = typeof agentActions.$inferInsert;
 export type RegisteredAgent = typeof registeredAgents.$inferSelect;
 export type NewRegisteredAgent = typeof registeredAgents.$inferInsert;
