@@ -1,11 +1,13 @@
 /**
- * Pre-deploy environment validator for the api app.
+ * Pre-deploy environment validator for API and admin deployment posture.
  *
  * Pulls the production env from Vercel (`vercel pull`) and runs the same
  * `validateStartup()` that apps/server executes at module init. Any format /
  * presence error fails the CI gate before deploy starts, instead of
  * surfacing as a FUNCTION_INVOCATION_FAILED crash loop after the
  * deployment is already live.
+ * `--app admin` validates only explicit public deployment mode and rejects
+ * SKIP_ENV_VALIDATION. Admin validates its remaining requirements at runtime.
  *
  * Closes the gap that surfaced during the 2026-04-25 #540 incident: the
  * old bash gate only grep-matched env names against `vercel env ls`
@@ -14,7 +16,7 @@
  * URLs, alert-email shape, etc.).
  *
  * Reads `.vercel/.env.production.local` (produced by `vercel pull
- * --environment=production` against the api project). Injects
+ * --environment=production` against the selected app project). Injects
  * `NODE_ENV=production` because Vercel's pulled env file does not
  * include it (Vercel sets NODE_ENV at runtime).
  *
@@ -26,11 +28,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import {
-  detectDeploymentMode,
-  type EnvMap,
-  validateStartup,
-} from '../../apps/server/src/lib/validate-startup';
+import type { EnvMap } from '../../apps/server/src/lib/validate-startup';
+import { getExplicitDeploymentMode } from '../../packages/core/src/deployment-mode';
 
 export const ENV_FILE_DEFAULT = '.vercel/.env.production.local';
 
@@ -76,8 +75,8 @@ export function parseDotenv(content: string): EnvMap {
  * env value is impossible in practice. We additionally JSON-decode and
  * check for `v: 'v2'` + a `c` field to eliminate any residual ambiguity.
  */
-export function isVercelEncryptedBlob(value: string): boolean {
-  if (!value.startsWith('eyJ2IjoidjIi')) return false;
+export function isVercelEncryptedBlob(value: string | undefined): boolean {
+  if (!value?.startsWith('eyJ2IjoidjIi')) return false;
   try {
     const decoded = Buffer.from(value, 'base64').toString('utf8');
     const parsed: unknown = JSON.parse(decoded);
@@ -130,7 +129,7 @@ export function scrubVercelEncryptedBlobs(env: EnvMap): {
  */
 export const VERCEL_SENSITIVE_PLACEHOLDER = '[SENSITIVE]';
 
-export function isVercelSensitivePlaceholder(value: string): boolean {
+export function isVercelSensitivePlaceholder(value: string | undefined): boolean {
   return value === VERCEL_SENSITIVE_PLACEHOLDER;
 }
 
@@ -163,7 +162,7 @@ export function scrubSensitivePlaceholders(env: EnvMap): {
 export interface ValidateResult {
   ok: boolean;
   message: string;
-  mode: 'forge' | 'hosted';
+  mode: 'forge' | 'hosted' | null;
   stripeLiveMode: boolean;
   scrubbedBlobKeys: string[];
   scrubbedSensitiveKeys: string[];
@@ -176,7 +175,10 @@ export interface ValidateResult {
  * silently passing through to validateStartup which honors it) — pulling
  * a production env that contains the bypass flag is itself a config bug.
  */
-export function validatePulledEnv(pulled: EnvMap): ValidateResult {
+export async function validatePulledEnv(
+  pulled: EnvMap,
+  app: 'api' | 'admin' = 'api',
+): Promise<ValidateResult> {
   // Vercel rolled out v2 envelope encryption for `encrypted`-type env
   // vars around 2026-05-06. The CLI pull now returns ciphertext; treat
   // these as opaque so format checks skip on them (presence still passes).
@@ -200,7 +202,7 @@ export function validatePulledEnv(pulled: EnvMap): ValidateResult {
   // ValidateOptions for the full rationale.
   const opts = { lenient: true };
 
-  const mode = detectDeploymentMode(env, opts);
+  const mode = getExplicitDeploymentMode(env);
   const stripeLiveMode = env.STRIPE_LIVE_MODE === 'true';
 
   if (env.SKIP_ENV_VALIDATION === 'true') {
@@ -216,6 +218,23 @@ export function validatePulledEnv(pulled: EnvMap): ValidateResult {
   }
 
   try {
+    if (!mode) {
+      throw new Error('REVEALUI_DEPLOYMENT_MODE must be explicitly set to hosted or forge');
+    }
+    if (app === 'admin') {
+      return {
+        ok: true,
+        mode,
+        stripeLiveMode,
+        scrubbedBlobKeys: scrubbedKeys,
+        scrubbedSensitiveKeys,
+        message:
+          'admin production deployment posture is explicit; runtime validates remaining environment requirements.',
+      };
+    }
+    // Admin posture preflight must not bootstrap the API's database/license
+    // dependency graph. API retains its full maintained startup validator.
+    const { validateStartup } = await import('../../apps/server/src/lib/validate-startup');
     validateStartup(env, opts);
     return {
       ok: true,
@@ -237,7 +256,16 @@ export function validatePulledEnv(pulled: EnvMap): ValidateResult {
   }
 }
 
-function main(): void {
+export function parseAppArgument(args: string[]): 'api' | 'admin' {
+  if (args.length === 0) return 'api';
+  if (args.length === 2 && args[0] === '--app' && (args[1] === 'api' || args[1] === 'admin')) {
+    return args[1];
+  }
+  throw new Error('Usage: validate:prod-env [--app api|admin]');
+}
+
+async function main(): Promise<void> {
+  const app = parseAppArgument(process.argv.slice(2));
   const envFile = resolve(process.cwd(), ENV_FILE_DEFAULT);
 
   if (!existsSync(envFile)) {
@@ -249,10 +277,10 @@ function main(): void {
   }
 
   const pulled = parseDotenv(readFileSync(envFile, 'utf8'));
-  const result = validatePulledEnv(pulled);
+  const result = await validatePulledEnv(pulled, app);
 
   process.stdout.write(
-    `validate:prod-env mode=${result.mode} STRIPE_LIVE_MODE=${result.stripeLiveMode}\n`,
+    `validate:prod-env app=${app} mode=${result.mode ?? 'unknown'} STRIPE_LIVE_MODE=${result.stripeLiveMode}\n`,
   );
 
   if (result.scrubbedBlobKeys.length > 0) {
@@ -277,4 +305,11 @@ function main(): void {
 }
 
 const isMainModule = process.argv[1] ? import.meta.url === `file://${process.argv[1]}` : false;
-if (isMainModule) main();
+if (isMainModule) {
+  void main().catch((error: unknown) => {
+    process.stderr.write(
+      `validate:prod-env FAIL — ${error instanceof Error ? error.message : 'unexpected validation failure'}\n`,
+    );
+    process.exitCode = 1;
+  });
+}
