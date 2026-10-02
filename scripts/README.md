@@ -106,6 +106,10 @@ The supported local tooling requires `flock` and Node 24.13 or newer. Worker
 counts, including quality prerequisites, are bounded by available process
 memory and CPU; `REVEALUI_GATE_CONCURRENCY` can reduce that count but cannot
 exceed the budget. Less than 1.25 GiB of available memory rejects admission.
+`pnpm docs:generate:api` applies the same resource calculation to its supported
+server dependency build before importing routes and producing documentation.
+Build failures stop generation before either artifact is written.
+
 `pnpm validate:push` checks these contracts against synthetic local remotes and
 isolated resource/lock fixtures. These changes do not yet move validation before
 Git's transport connection; long-running transport behavior remains tracked in
