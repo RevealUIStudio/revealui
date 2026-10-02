@@ -137,15 +137,40 @@ export function isBotPromoteAttempt(input: {
   actor: string;
   baseRef: string;
   headRef: string;
+  eventName?: string;
+  event?: unknown;
 }): boolean {
-  const actor = input.actor.toLowerCase();
+  if (input.baseRef !== PRODUCTION_DEPLOY_BRANCH || input.headRef !== 'test') return false;
+
+  let initiator = input.actor;
+  let authorIsBot = false;
+  if (input.eventName === 'pull_request' || input.eventName === 'pull_request_target') {
+    const request = isRecord(input.event) ? input.event.pull_request : undefined;
+    const author = isRecord(request) ? request.user : undefined;
+    if (
+      !isRecord(author) ||
+      typeof author.login !== 'string' ||
+      author.login.trim().length === 0 ||
+      (author.type !== 'User' && author.type !== 'Bot')
+    ) {
+      throw new Error(
+        'Promotion requires a trusted pull-request author in the GitHub event payload.',
+      );
+    }
+    // A backflow synchronization changes GITHUB_ACTOR, not who opened the
+    // promotion. Read the GitHub-provided author, never a claimed author env var.
+    initiator = author.login;
+    authorIsBot = author.type === 'Bot';
+  }
+  const actor = initiator.toLowerCase();
   const bot =
+    authorIsBot ||
     actor.endsWith('[bot]') ||
     actor.endsWith('-bot') ||
     actor === 'dependabot' ||
     actor === 'github-actions' ||
     actor === 'renovate';
-  return bot && input.baseRef === PRODUCTION_DEPLOY_BRANCH && input.headRef === 'test';
+  return bot;
 }
 
 export function lineClaimsCustomerVisibleHonesty(line: string): string | null {
@@ -424,6 +449,15 @@ function readEnv(name: string): string {
   return typeof value === 'string' ? value : '';
 }
 
+function readGitHubEvent(eventName: string): unknown {
+  if (eventName !== 'pull_request' && eventName !== 'pull_request_target') return null;
+  const path = readEnv('GITHUB_EVENT_PATH');
+  if (path.length === 0) {
+    throw new Error('Promotion requires the GitHub event payload path.');
+  }
+  return JSON.parse(readFileSync(path, 'utf8')) as unknown;
+}
+
 function invokedAsCli(): boolean {
   const entry = process.argv[1];
   if (entry === undefined) return false;
@@ -444,10 +478,13 @@ async function main(): Promise<void> {
   const declaration = parsed.declaration;
   const hashed = hashSurfaces(root, declaration.honestySurfaces);
   const claims = scanMarketingHonestyClaims(root);
+  const eventName = readEnv('GITHUB_EVENT_NAME');
   const botPromoteAttempt = isBotPromoteAttempt({
     actor: readEnv('GITHUB_ACTOR'),
     baseRef: readEnv('GITHUB_BASE_REF'),
     headRef: readEnv('GITHUB_HEAD_REF'),
+    eventName,
+    event: readGitHubEvent(eventName),
   });
 
   let deploy: MainDeployReceipt | null = null;

@@ -24,11 +24,13 @@
 
 import { createHmac } from 'node:crypto';
 import { perpetualMaxSitesForTier } from '@revealui/contracts';
-import { generateLicenseKey, readPemEnv } from '../license.js';
+import { generateLicenseKey, readPemEnv, validateLicenseKey } from '../license.js';
 
 export const SIGNER_TIMESTAMP_HEADER = 'x-revealui-signer-timestamp';
 export const SIGNER_SIGNATURE_HEADER = 'x-revealui-signer-signature';
 export const SIGNER_MINT_PATH = '/internal/mint';
+const SIGNER_REQUEST_TIMEOUT_MS = 5_000;
+const MAX_SIGNER_RESPONSE_BYTES = 64 * 1024;
 
 export type MintEnv = Record<string, string | undefined>;
 
@@ -181,6 +183,25 @@ function joinSignerUrl(base: string, path: string): string {
   return `${stripTrailingSlashes(base)}${path}`;
 }
 
+function rejectOnAbort<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () =>
+      reject(signal.reason ?? new Error('license-signer request deadline exceeded'));
+    signal.addEventListener('abort', onAbort, { once: true });
+    if (signal.aborted) onAbort();
+    promise.then(
+      (value) => {
+        signal.removeEventListener('abort', onAbort);
+        resolve(value);
+      },
+      (error: unknown) => {
+        signal.removeEventListener('abort', onAbort);
+        reject(error);
+      },
+    );
+  });
+}
+
 async function mintViaSigner(
   input: MintLicensePayload,
   env: MintEnv,
@@ -198,23 +219,33 @@ async function mintViaSigner(
   const signature = signMintRequest(secret, 'POST', SIGNER_MINT_PATH, bodyText, ts);
   const url = joinSignerUrl(baseUrl, SIGNER_MINT_PATH);
 
-  let res: Response;
+  let res: Response | undefined;
+  let text: string;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), SIGNER_REQUEST_TIMEOUT_MS);
   try {
-    res = await fetchImpl(url, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        [SIGNER_TIMESTAMP_HEADER]: String(ts),
-        [SIGNER_SIGNATURE_HEADER]: signature,
-      },
-      body: bodyText,
-    });
+    res = await rejectOnAbort(
+      fetchImpl(url, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          [SIGNER_TIMESTAMP_HEADER]: String(ts),
+          [SIGNER_SIGNATURE_HEADER]: signature,
+        },
+        body: bodyText,
+        signal: controller.signal,
+      }),
+      controller.signal,
+    );
+    text = await readBoundedResponseText(res, controller);
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
-    throw new LicenseMintRemoteError(`license-signer fetch failed: ${detail}`, 0);
+    const phase = res ? 'response' : 'fetch';
+    throw new LicenseMintRemoteError(`license-signer ${phase} failed: ${detail}`, res?.status ?? 0);
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const text = await res.text();
+  if (!res) throw new LicenseMintRemoteError('license-signer returned no response', 0);
   if (!res.ok) {
     throw new LicenseMintRemoteError(
       `license-signer mint failed: HTTP ${res.status}: ${text.slice(0, 200)}`,
@@ -241,18 +272,69 @@ async function mintViaSigner(
   return licenseKey;
 }
 
+async function readBoundedResponseText(
+  res: Response,
+  controller: AbortController,
+): Promise<string> {
+  if (!res.body) return '';
+  const reader = res.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  let completed = false;
+  const reading = (async () => {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > MAX_SIGNER_RESPONSE_BYTES) {
+        controller.abort(new Error('response exceeds size limit'));
+        void reader.cancel().catch(() => undefined);
+        throw new Error('response exceeds size limit');
+      }
+      chunks.push(value);
+    }
+    completed = true;
+  })();
+  try {
+    await rejectOnAbort(reading, controller.signal);
+  } catch (err) {
+    // Do not wait for a broken stream's cancellation promise: the abort race
+    // must bound startup even when an injected transport ignores the signal.
+    void reader.cancel().catch(() => undefined);
+    throw err;
+  } finally {
+    if (completed) reader.releaseLock();
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
+}
+
 async function mintLocal(input: MintLicensePayload, env: MintEnv): Promise<string> {
   const privateKey = readPemEnv('REVEALUI_LICENSE_PRIVATE_KEY', env);
   if (!privateKey) {
     throw new LicenseMintConfigError(mintConfigMissingMessage(env));
   }
-  const publicKey = readPemEnv('REVEALUI_LICENSE_PUBLIC_KEY', env);
+  const publicKeys = [
+    readPemEnv('REVEALUI_LICENSE_PUBLIC_KEY', env),
+    readPemEnv('REVEALUI_LICENSE_PUBLIC_KEY_NEXT', env),
+  ].filter((key): key is string => Boolean(key));
 
   const { expiresInSeconds, ...payload } = input;
-  if (expiresInSeconds === undefined) {
-    return generateLicenseKey(payload, privateKey, undefined, publicKey);
+  if (publicKeys.length === 0) {
+    return generateLicenseKey(payload, privateKey, expiresInSeconds, undefined);
   }
-  return generateLicenseKey(payload, privateKey, expiresInSeconds, publicKey);
+  for (const publicKey of publicKeys) {
+    const token = await generateLicenseKey(payload, privateKey, expiresInSeconds, publicKey);
+    if (await validateLicenseKey(token, publicKey)) return token;
+  }
+  throw new LicenseMintConfigError(
+    'REVEALUI_LICENSE_PRIVATE_KEY does not match REVEALUI_LICENSE_PUBLIC_KEY or _NEXT',
+  );
 }
 
 export type MintLicenseKeyOptions = {

@@ -27,7 +27,7 @@ Skew window: 300s. **No fallback** to `REVEALUI_SECRET`.
 | Variable | Required | Notes |
 | --- | --- | --- |
 | `REVEALUI_LICENSE_PRIVATE_KEY` | yes | PKCS#8 Ed25519 PEM |
-| `REVEALUI_LICENSE_PUBLIC_KEY` | no | when set, JWT header gets `kid` |
+| `REVEALUI_LICENSE_PUBLIC_KEY` | no | optional consistency assertion; if set, it must match the private key. JWT `kid` is always derived from the actual signer. |
 | `REVEALUI_SIGNER_INVOKE_SECRET` | yes | vault: `revealui/prod/license/signer-invoke-secret` |
 | `PORT` | no | default `8791` |
 

@@ -3,7 +3,8 @@
  *
  * Env:
  *   REVEALUI_LICENSE_PRIVATE_KEY   — required PKCS#8 Ed25519 PEM
- *   REVEALUI_LICENSE_PUBLIC_KEY    — optional; enables kid on JWT header
+ *   JWT `kid` is derived from REVEALUI_LICENSE_PRIVATE_KEY so it always names
+ *   the actual signing key; the hosted canary checks it against current/NEXT.
  *   REVEALUI_SIGNER_INVOKE_SECRET  — required HMAC secret (no REVEALUI_SECRET fallback)
  *   PORT                           — default 8791
  */
@@ -11,12 +12,13 @@
 import { serve } from '@hono/node-server';
 import { createLicenseSignerApp } from './app.js';
 import { getInvokeSecret } from './auth.js';
-import { getSigningPrivateKey } from './mint.js';
+import { getSigningPrivateKey, getSigningPublicKey } from './mint.js';
 
 function boot(): void {
   // Fail loud at process start so a misconfigured deploy never binds a port.
   getInvokeSecret(process.env);
   getSigningPrivateKey(process.env);
+  getSigningPublicKey(process.env);
 
   const port = Number(process.env.PORT ?? '8791');
   if (!Number.isFinite(port) || port <= 0) {
