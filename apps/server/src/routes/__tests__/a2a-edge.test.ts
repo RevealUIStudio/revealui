@@ -10,6 +10,7 @@
  */
 
 import { isDeepStrictEqual } from 'node:util';
+import { logger } from '@revealui/core/observability/logger';
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -818,6 +819,51 @@ describe('GET /a2a/stream/:taskId  -  SSE stream', () => {
 
 describe('POST /a2a  -  quota enforcement', () => {
   beforeEach(resetMocks);
+
+  it.each([429, 402, 503])(
+    'preserves failed receipt and %s denial when the quota body is malformed without exposing its content',
+    async (status) => {
+      const db = receiptDb();
+      mockRequireTaskQuota.mockResolvedValue(
+        new Response('private-quota-body', {
+          status,
+          headers: {
+            'Content-Type': 'text/plain',
+            'Retry-After': '42',
+            'Content-Length': '18',
+            'Content-Encoding': 'gzip',
+            'X-PAYMENT-REQUIRED': 'synthetic-payment-requirement',
+          },
+        }),
+      );
+      const response = await makeA2AApp({ id: 'user-1' }, { features: { ai: true } }).request(
+        post('/', request),
+      );
+      expect(response.status).toBe(status);
+      expect(response.headers.get('Content-Type')).toBe('application/json');
+      expect(response.headers.get('Retry-After')).toBe('42');
+      expect(response.headers.get('Content-Length')).toBeNull();
+      expect(response.headers.get('Content-Encoding')).toBeNull();
+      expect(response.headers.get('X-PAYMENT-REQUIRED')).toBe('synthetic-payment-requirement');
+      const body = await response.json();
+      expect(body).toMatchObject({
+        error: 'Task quota rejected execution',
+        task: {
+          id: 'durable-task',
+          status: { state: 'failed' },
+          metadata: { receipt: { persisted: true } },
+        },
+      });
+      expect(db.rows.get('durable-task')).toMatchObject({ status: 'failed' });
+      expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
+      expect(logger.warn).toHaveBeenCalledWith('A2A quota rejection response could not be parsed', {
+        status,
+      });
+      expect(JSON.stringify([body, vi.mocked(logger.warn).mock.calls])).not.toContain(
+        'private-quota-body',
+      );
+    },
+  );
 
   it('returns quota Response directly when task quota is exceeded', async () => {
     // Simulate quota middleware returning a 429 Response

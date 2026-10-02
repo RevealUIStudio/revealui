@@ -1755,13 +1755,20 @@ a2a.openapi(
         const body = await quotaResponse
           .clone()
           .json()
-          .catch(() => ({}));
+          .catch(() => {
+            logger.warn('A2A quota rejection response could not be parsed', {
+              status: quotaResponse.status,
+            });
+            return { error: 'Task quota rejected execution' };
+          });
+        const headers = new Headers(quotaResponse.headers);
+        // The receipt changes the body; upstream byte/encoding metadata is stale.
+        headers.delete('Content-Length');
+        headers.delete('Content-Encoding');
+        headers.set('Content-Type', 'application/json');
         return new Response(
           JSON.stringify({ ...jsonObject(body), ...(receipt ? { task: receipt } : {}) }),
-          {
-            status: quotaResponse.status,
-            headers: quotaResponse.headers,
-          },
+          { status: quotaResponse.status, headers },
         );
       }
     }
