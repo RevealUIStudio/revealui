@@ -196,7 +196,11 @@ export async function create(
         // The create operation has already passed access control above.
         // The read-back must use overrideAccess to avoid a second access
         // check that fails when there's no req context (e.g. bootstrap).
-        const createdDoc = await findByID(config, tx, { id, overrideAccess: true });
+        const createdDoc = await findByID(config, tx, {
+          id,
+          req: options.req,
+          overrideAccess: true,
+        });
         if (!createdDoc) {
           throw new Error(
             `Failed to retrieve created document with id ${id}. Document not found in database.`,
@@ -207,7 +211,7 @@ export async function create(
     }
 
     await db.query(query, [id, ...values]);
-    const createdDoc = await findByID(config, db, { id, overrideAccess: true });
+    const createdDoc = await findByID(config, db, { id, req: options.req, overrideAccess: true });
     if (!createdDoc) {
       throw new Error(
         `Failed to retrieve created document with id ${id}. Document not found in database.`,

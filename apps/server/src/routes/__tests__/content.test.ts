@@ -8,7 +8,14 @@
 
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+beforeEach(() => {
+  vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', 'forge');
+});
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 // vi.mock() factories are hoisted to the top of the file by Vitest before any
@@ -65,6 +72,8 @@ interface UserCtx {
   id: string;
   role: string;
   email?: string;
+  emailVerified?: boolean;
+  _json?: unknown;
 }
 
 const ADMIN: UserCtx = { id: 'admin-1', role: 'admin', email: 'admin@example.com' };
@@ -1022,7 +1031,10 @@ describe('POST /sites/:siteId/pages  -  create page', () => {
 });
 
 describe('GET /pages/:id (IDOR)', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ status: 'published' }));
+  });
 
   it('returns 404 for non-published page without authentication (public read)', async () => {
     mockPageQueries.getPageById.mockResolvedValue(makePage({ status: 'draft' }));
@@ -1033,6 +1045,7 @@ describe('GET /pages/:id (IDOR)', () => {
 
   it('returns 200 for published page without authentication', async () => {
     mockPageQueries.getPageById.mockResolvedValue(makePage({ status: 'published' }));
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ status: 'published' }));
     const app = createApp(null);
     const res = await app.request('/pages/page-1');
     expect(res.status).toBe(200);
@@ -1072,7 +1085,10 @@ describe('GET /pages/:id (IDOR)', () => {
 });
 
 describe('PATCH /pages/:id (IDOR)', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ status: 'published' }));
+  });
 
   it('returns 401 without authentication', async () => {
     const app = createApp(null);
@@ -1153,7 +1169,10 @@ describe('PATCH /pages/:id (IDOR)', () => {
 });
 
 describe('DELETE /pages/:id (IDOR)', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ status: 'published' }));
+  });
 
   it('returns 401 without authentication', async () => {
     const app = createApp(null);
@@ -1193,5 +1212,90 @@ describe('DELETE /pages/:id (IDOR)', () => {
     const app = createApp(ADMIN);
     const res = await app.request('/pages/page-1', { method: 'DELETE' });
     expect(res.status).toBe(200);
+  });
+});
+
+describe('hosted site content role boundary', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', 'hosted');
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+  it.each(['admin', 'owner', 'super-admin'])(
+    'denies a foreign page to raw shell role %s',
+    async (role) => {
+      mockPageQueries.getPageById.mockResolvedValue(makePage({ siteId: 'site-1' }));
+      mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_B.id }));
+      const response = await createApp({ ...USER_A, role, emailVerified: true }).request(
+        '/pages/page-1',
+      );
+      expect(response.status).toBe(403);
+    },
+  );
+  it('allows a verified operator but denies its unverified counterpart', async () => {
+    mockPageQueries.getPageById.mockResolvedValue(makePage({ siteId: 'site-1' }));
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_B.id }));
+    const operator = { ...ADMIN, emailVerified: true, _json: { roles: ['super-admin'] } };
+    expect((await createApp(operator).request('/pages/page-1')).status).toBe(200);
+    expect(
+      (await createApp({ ...operator, emailVerified: false }).request('/pages/page-1')).status,
+    ).toBe(403);
+  });
+  it('preserves site-owner and anonymous published read contracts', async () => {
+    mockPageQueries.getPageById.mockResolvedValue(
+      makePage({ status: 'published', siteId: 'site-1' }),
+    );
+    mockSiteQueries.getSiteById.mockResolvedValue(
+      makeSite({ ownerId: USER_A.id, status: 'published' }),
+    );
+    expect((await createApp(USER_A).request('/pages/page-1')).status).toBe(200);
+    expect((await createApp(null).request('/pages/page-1')).status).toBe(200);
+    mockPageQueries.getPageById.mockResolvedValue(makePage({ status: 'draft' }));
+    expect((await createApp(null).request('/pages/page-1')).status).toBe(404);
+  });
+  it.each(['draft', 'deleted'])(
+    'denies an anonymous published page under a %s site',
+    async (status) => {
+      mockPageQueries.getPageById.mockResolvedValue(makePage({ status: 'published' }));
+      mockSiteQueries.getSiteById.mockResolvedValue(
+        status === 'deleted' ? null : makeSite({ status }),
+      );
+      expect((await createApp(null).request('/pages/page-1')).status).toBe(404);
+    },
+  );
+
+  it.each(['owner', 'operator'])(
+    'hides deleted-site pages from %s without mutation',
+    async (actor) => {
+      mockPageQueries.getPageById.mockResolvedValue(makePage({ status: 'draft' }));
+      mockSiteQueries.getSiteById.mockResolvedValue(null);
+      const user =
+        actor === 'owner'
+          ? USER_A
+          : { ...ADMIN, emailVerified: true, _json: { roles: ['super-admin'] } };
+      const app = createApp(user);
+      expect((await app.request('/pages/page-1')).status).toBe(404);
+      expect(
+        (
+          await app.request('/pages/page-1', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: 'Changed' }),
+          })
+        ).status,
+      ).toBe(404);
+      expect((await app.request('/pages/page-1', { method: 'DELETE' })).status).toBe(404);
+      expect(mockPageQueries.updatePage).not.toHaveBeenCalled();
+      expect(mockPageQueries.deletePage).not.toHaveBeenCalled();
+    },
+  );
+
+  it('denies foreign site mutation to a hosted tenant admin', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_B.id }));
+    const response = await createApp(ADMIN).request('/sites/site-1', { method: 'DELETE' });
+    expect(response.status).toBe(403);
+    expect(mockSiteQueries.deleteSite).not.toHaveBeenCalled();
   });
 });

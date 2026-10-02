@@ -19,8 +19,4 @@
  * locked the bootstrap owner out of /admin whenever they signed in via passkey
  * or OAuth (only sign-in had been corrected). Set lookup, no authored regex.
  */
-const ADMIN_ROLES: ReadonlySet<string> = new Set(['owner', 'admin', 'super-admin']);
-
-export function isAdminRole(role: string | null | undefined): boolean {
-  return role != null && ADMIN_ROLES.has(role);
-}
+export { isAdminRole } from '@revealui/utils/validation';

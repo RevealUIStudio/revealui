@@ -11,7 +11,7 @@ import * as pageQueries from '@revealui/db/queries/pages';
 import * as siteQueries from '@revealui/db/queries/sites';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
-import { hasApiRole } from '../../lib/api-roles.js';
+import { canAdministerAllContent } from '../../lib/access.js';
 import { asNonEmptyTuple } from '../../lib/type-guards.js';
 import {
   ErrorSchema,
@@ -123,7 +123,7 @@ app.openapi(
       const data = await pageQueries.getPagesBySite(db, siteId, { status: 'published' });
       return c.json({ success: true as const, data: data.map(serializePage) }, 200);
     }
-    if (!hasApiRole(user, 'admin') && site.ownerId !== user.id) {
+    if (!canAdministerAllContent(user) && site.ownerId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const data = await pageQueries.getPagesBySite(db, siteId, {
@@ -192,7 +192,7 @@ app.openapi(
     }
     const existingSite = await siteQueries.getSiteById(db, siteId);
     if (!existingSite) throw new HTTPException(404, { message: 'Site not found' });
-    if (!hasApiRole(user, 'admin') && existingSite.ownerId !== user.id) {
+    if (!canAdministerAllContent(user) && existingSite.ownerId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const page = await pageQueries.createPage(db, {
@@ -230,18 +230,17 @@ app.openapi(
     const { id } = c.req.valid('param');
     const page = await pageQueries.getPageById(db, id);
     if (!page) throw new HTTPException(404, { message: 'Page not found' });
+    const site = await siteQueries.getSiteById(db, page.siteId);
+    if (!site) throw new HTTPException(404, { message: 'Page not found' });
     if (!user) {
       // Public access: only published pages
-      if (page.status !== 'published') {
+      if (page.status !== 'published' || site?.status !== 'published') {
         throw new HTTPException(404, { message: 'Page not found' });
       }
       return c.json({ success: true as const, data: serializePage(page) }, 200);
     }
-    if (!hasApiRole(user, 'admin')) {
-      const site = await siteQueries.getSiteById(db, page.siteId);
-      if (!site || site.ownerId !== user.id) {
-        throw new HTTPException(403, { message: 'Forbidden' });
-      }
+    if (!canAdministerAllContent(user) && site.ownerId !== user.id) {
+      throw new HTTPException(403, { message: 'Forbidden' });
     }
     return c.json({ success: true as const, data: serializePage(page) }, 200);
   },
@@ -295,11 +294,10 @@ app.openapi(
     const { id } = c.req.valid('param');
     const existing = await pageQueries.getPageById(db, id);
     if (!existing) throw new HTTPException(404, { message: 'Page not found' });
-    if (!hasApiRole(user, 'admin')) {
-      const site = await siteQueries.getSiteById(db, existing.siteId);
-      if (!site || site.ownerId !== user.id) {
-        throw new HTTPException(403, { message: 'Forbidden' });
-      }
+    const site = await siteQueries.getSiteById(db, existing.siteId);
+    if (!site) throw new HTTPException(404, { message: 'Page not found' });
+    if (!canAdministerAllContent(user) && site.ownerId !== user.id) {
+      throw new HTTPException(403, { message: 'Forbidden' });
     }
     const body = c.req.valid('json');
     // Validate blocks for dangerous URLs, excessive nesting, and payload size
@@ -350,11 +348,10 @@ app.openapi(
     const { id } = c.req.valid('param');
     const existing = await pageQueries.getPageById(db, id);
     if (!existing) throw new HTTPException(404, { message: 'Page not found' });
-    if (!hasApiRole(user, 'admin')) {
-      const site = await siteQueries.getSiteById(db, existing.siteId);
-      if (!site || site.ownerId !== user.id) {
-        throw new HTTPException(403, { message: 'Forbidden' });
-      }
+    const site = await siteQueries.getSiteById(db, existing.siteId);
+    if (!site) throw new HTTPException(404, { message: 'Page not found' });
+    if (!canAdministerAllContent(user) && site.ownerId !== user.id) {
+      throw new HTTPException(403, { message: 'Forbidden' });
     }
     await pageQueries.deletePage(db, id);
     return c.json({ success: true as const, message: 'Page deleted' }, 200);

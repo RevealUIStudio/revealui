@@ -19,15 +19,12 @@
  * Mirrors apps/admin/src/lib/access/roles/isAdminRole.ts on the admin side.
  */
 
+import { getExplicitDeploymentMode } from '@revealui/core/deployment-mode';
+import { canAdministerAllContent as canAdministerContentForDeployment } from '@revealui/utils/validation';
 import { type ApiAuthUser, isPlatformSuperAdmin } from './api-roles.js';
 
 /** DB roles that grant admin-level access to admin/owner-gated server routes. */
-export const ADMIN_ROLES: ReadonlySet<string> = new Set(['owner', 'admin', 'super-admin']);
-
-/** True when the given DB role grants admin-level access. */
-export function isAdminRole(role: string | null | undefined): boolean {
-  return role != null && ADMIN_ROLES.has(role);
-}
+export { ADMIN_ROLES, isAdminRole } from '@revealui/utils/validation';
 
 /**
  * Fleet-wide operator surfaces (logs, margin). Tenant owner/admin is not
@@ -36,4 +33,9 @@ export function isAdminRole(role: string | null | undefined): boolean {
  */
 export function isFleetOperator(user: ApiAuthUser | null | undefined): boolean {
   return isPlatformSuperAdmin(user);
+}
+
+/** AUTH-001: hosted workspace seats do not confer platform content authority. */
+export function canAdministerAllContent(user: ApiAuthUser | null | undefined): boolean {
+  return canAdministerContentForDeployment(user, getExplicitDeploymentMode());
 }

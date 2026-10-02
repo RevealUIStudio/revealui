@@ -17,7 +17,7 @@ import * as postQueries from '@revealui/db/queries/posts';
 import * as siteQueries from '@revealui/db/queries/sites';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
-import { hasApiRole } from '../../lib/api-roles.js';
+import { canAdministerAllContent } from '../../lib/access.js';
 import type { ContentVariables } from './index.js';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
@@ -290,7 +290,7 @@ app.openapi(
     const db = c.get('db');
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-    if (!hasApiRole(user, 'admin'))
+    if (!canAdministerAllContent(user))
       throw new HTTPException(403, { message: 'Admin access required' });
 
     const { collection, items } = c.req.valid('json');
@@ -345,7 +345,7 @@ app.openapi(
     const db = c.get('db');
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-    if (!hasApiRole(user, 'admin'))
+    if (!canAdministerAllContent(user))
       throw new HTTPException(403, { message: 'Admin access required' });
 
     const { collection, items } = c.req.valid('json');
@@ -400,7 +400,7 @@ app.openapi(
     const db = c.get('db');
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-    if (!hasApiRole(user, 'admin'))
+    if (!canAdministerAllContent(user))
       throw new HTTPException(403, { message: 'Admin access required' });
 
     const { collection, items } = c.req.valid('json');

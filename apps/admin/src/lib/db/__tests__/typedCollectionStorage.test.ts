@@ -2,12 +2,22 @@ import type { RevealFindOptions } from '@revealui/core/types';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTypedCollectionStorage } from '../typedCollectionStorage';
 
-const { getRestClient } = vi.hoisted(() => ({
+const { getRestClient, getSiteContentActor, actorCanManageSite, getSiteById } = vi.hoisted(() => ({
   getRestClient: vi.fn(),
+  getSiteContentActor: vi.fn(),
+  actorCanManageSite: vi.fn(),
+  getSiteById: vi.fn(),
 }));
 
 vi.mock('@revealui/db/client', () => ({
   getRestClient,
+}));
+
+vi.mock('@revealui/db/queries/sites', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@revealui/db/queries/sites')>()),
+  getSiteContentActor,
+  actorCanManageSite,
+  getSiteById,
 }));
 
 describe('typedCollectionStorage', () => {
@@ -348,26 +358,30 @@ const pagesCollection = { slug: 'pages', fields: [] };
 
 describe('typedCollectionStorage pages bridge', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     process.env.POSTGRES_URL = 'postgresql://example';
+    getSiteContentActor.mockResolvedValue({ id: 'actor', role: 'viewer' });
+    actorCanManageSite.mockResolvedValue(true);
+    getSiteById.mockResolvedValue({ id: 'fleet-marketing', status: 'published' });
   });
 
-  it('attributes typed creation only from request auth and leaves unowned seed rows NULL', async () => {
-    const { chain, calls } = createPagesChain([
-      [{ ...pageRow, id: 'one' }],
-      [{ ...pageRow, id: 'two' }],
-    ]);
+  it('attributes creation to the authenticated actor and denies implicit seed writes', async () => {
+    const { chain, calls } = createPagesChain([[pageRow]]);
     getRestClient.mockReturnValue(chain);
     const storage = createTypedCollectionStorage();
     await storage?.create?.(pagesCollection, {
       data: { title: 'Own', slug: 'own', siteId: 'site-own', createdBy: 'forged' },
       req: { user: { id: 'actor' } } as never,
     });
-    await storage?.create?.(pagesCollection, {
-      data: { title: 'Seed', slug: 'seed', siteId: 'site-own', createdBy: 'forged' },
-    });
+    await expect(
+      storage?.create?.(pagesCollection, {
+        data: { title: 'Seed', slug: 'seed', siteId: 'site-own' },
+      }),
+    ).rejects.toMatchObject({ statusCode: 403 });
+    expect(calls.values).toHaveLength(1);
     expect(calls.values[0]).toMatchObject({ createdBy: 'actor', siteId: 'site-own' });
-    expect(calls.values[1]).toMatchObject({ createdBy: null });
   });
+
   it('maps a page row for findByID (canonical columns + _status mirror)', async () => {
     const { chain } = createPagesChain([[pageRow]]);
     getRestClient.mockReturnValue(chain);
@@ -407,21 +421,21 @@ describe('typedCollectionStorage pages bridge', () => {
     });
   });
 
-  it('signals not-handled for where shapes it cannot express (or)', async () => {
+  it('fails closed instead of falling back to unscoped SQL for unsupported filters', async () => {
     const { chain } = createPagesChain([]);
     getRestClient.mockReturnValue(chain);
 
     const storage = createTypedCollectionStorage();
-    const result = await storage?.find?.(pagesCollection, {
+    const result = storage?.find?.(pagesCollection, {
       where: { or: [{ slug: { equals: 'home' } }] },
       limit: 1,
       page: 1,
     });
 
-    expect(result).toBeUndefined();
+    await expect(result).rejects.toMatchObject({ statusCode: 400 });
   });
 
-  it('creates a page with site/path defaults derived server-side', async () => {
+  it('creates a page with an authorized explicit site and server-derived path', async () => {
     const inserted = {
       ...pageRow,
       id: 'page_new',
@@ -436,7 +450,9 @@ describe('typedCollectionStorage pages bridge', () => {
 
     const storage = createTypedCollectionStorage();
     const doc = await storage?.create?.(pagesCollection, {
+      req: { user: { id: 'actor' } } as never,
       data: {
+        siteId: 'fleet-marketing',
         title: 'About',
         slug: 'about',
         blocks: [{ blockType: 'hero', type: 'lowImpact' }],
@@ -473,6 +489,7 @@ describe('typedCollectionStorage pages bridge', () => {
 
     const storage = createTypedCollectionStorage();
     const doc = await storage?.update?.(pagesCollection, {
+      req: { user: { id: 'actor' } } as never,
       id: 'page_1',
       data: { slug: 'landing', _status: 'published' },
     });
@@ -498,10 +515,72 @@ describe('typedCollectionStorage pages bridge', () => {
     getRestClient.mockReturnValue(chain);
 
     const storage = createTypedCollectionStorage();
-    const doc = await storage?.delete?.(pagesCollection, { id: 'page_1' });
+    const doc = await storage?.delete?.(pagesCollection, {
+      id: 'page_1',
+      req: { user: { id: 'actor' } } as never,
+    });
 
     expect(doc).toMatchObject({ id: 'page_1', slug: 'home' });
     expect(calls.set[0]).toMatchObject({ deletedAt: expect.any(Date) });
+  });
+
+  it('does not expose a draft through anonymous direct ID reads', async () => {
+    const { chain } = createPagesChain([[{ ...pageRow, status: 'draft' }]]);
+    getRestClient.mockReturnValue(chain);
+    await expect(
+      createTypedCollectionStorage()?.findByID?.(pagesCollection, { id: 'page_1' }),
+    ).resolves.toBeNull();
+  });
+
+  it.each(['draft', 'deleted'])(
+    'does not expose a published page under a %s site',
+    async (status) => {
+      getSiteById.mockResolvedValue(status === 'deleted' ? null : { status });
+      const { chain } = createPagesChain([[pageRow]]);
+      getRestClient.mockReturnValue(chain);
+      await expect(
+        createTypedCollectionStorage()?.findByID?.(pagesCollection, { id: 'page_1' }),
+      ).resolves.toBeNull();
+    },
+  );
+
+  it('denies foreign ID reads despite forged flattened admin fields', async () => {
+    actorCanManageSite.mockResolvedValue(false);
+    const { chain } = createPagesChain([[pageRow]]);
+    getRestClient.mockReturnValue(chain);
+    const req = { user: { id: 'actor', role: 'admin', roles: ['super-admin'] } } as never;
+    await expect(
+      createTypedCollectionStorage()?.findByID?.(pagesCollection, { id: 'page_1', req }),
+    ).rejects.toMatchObject({ statusCode: 403 });
+    expect(getSiteContentActor).toHaveBeenCalledWith(chain, 'actor');
+  });
+
+  it.each(['another-owned', 'foreign'])(
+    'rejects moving a page to %s without a write',
+    async (siteId) => {
+      const { chain, calls } = createPagesChain([[pageRow]]);
+      getRestClient.mockReturnValue(chain);
+      await expect(
+        createTypedCollectionStorage()?.update?.(pagesCollection, {
+          id: 'page_1',
+          data: { siteId },
+          req: { user: { id: 'actor' } } as never,
+        }),
+      ).rejects.toMatchObject({ statusCode: 400 });
+      expect(actorCanManageSite.mock.calls.map((args) => args[2])).toEqual(['fleet-marketing']);
+      expect(calls.set).toHaveLength(0);
+    },
+  );
+
+  it('allows an explicit unchanged site on an otherwise authorized update', async () => {
+    const { chain, calls } = createPagesChain([[pageRow], [pageRow]]);
+    getRestClient.mockReturnValue(chain);
+    await createTypedCollectionStorage()?.update?.(pagesCollection, {
+      id: 'page_1',
+      data: { siteId: 'fleet-marketing', title: 'Updated' },
+      req: { user: { id: 'actor' } } as never,
+    });
+    expect(calls.set[0]).toMatchObject({ title: 'Updated', siteId: 'fleet-marketing' });
   });
 
   it('returns undefined (not handled) for write calls on other collections', async () => {
