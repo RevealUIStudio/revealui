@@ -12,8 +12,19 @@ function fixture() {
   const remote = join(directory, 'remote.git');
   const bin = join(directory, 'bin');
   mkdirSync(repo); mkdirSync(bin);
+  // Git hooks export repository-local namespace/configuration variables.
+  // A cwd change alone does not isolate a synthetic repository from that
+  // outer checkout: even git init/commit can otherwise target its metadata.
+  const localVariables = spawnSync('git', ['rev-parse', '--local-env-vars'], {
+    cwd: root, encoding: 'utf8',
+  });
+  assert.equal(localVariables.status, 0, localVariables.stderr);
   const env = { ...process.env, TMPDIR: directory, PATH: `${bin}:${process.env.PATH}` };
-  const run = (args, cwd = repo) => spawnSync('git', args, { cwd, env, encoding: 'utf8' });
+  for (const name of localVariables.stdout.trim().split('\n')) delete env[name];
+  for (const name of Object.keys(env)) {
+    if (/^GIT_CONFIG_(KEY|VALUE)_\d+$/.test(name)) delete env[name];
+  }
+  const run = (args, cwd = repo, gitEnv = env) => spawnSync('git', args, { cwd, env: gitEnv, encoding: 'utf8' });
   assert.equal(run(['init', '--bare', remote], directory).status, 0);
   assert.equal(run(['init', '-b', 'feature']).status, 0);
   // Synthetic repositories own their hook configuration, independent of the
@@ -48,6 +59,61 @@ test('normal helper pushes the validated HEAD and preserves existing saved work 
   assert.match(readFileSync(join(f.directory, 'checks'), 'utf8'), /gate --phase=1 --changed/);
   assert.equal(readFileSync(join(f.repo, '.turbo/cache'), 'utf8'), 'cached');
   for (const name of ['revealui-push-stash-old', 'revealui-gate-worktree-old', 'agent-stash-old']) assert.equal(readFileSync(join(f.directory, name, 'evidence'), 'utf8'), 'preserve');
+});
+
+test('native fixtures invoked by a real outer push hook preserve its repository namespace', () => {
+  const f = fixture();
+  assert.equal(f.run(['config', 'push.autoSetupRemote', 'false']).status, 0);
+  const source = f.run(['rev-parse', 'HEAD']).stdout.trim();
+  const branches = f.run(['for-each-ref', '--format=%(refname) %(objectname)', 'refs/heads']).stdout;
+  const index = readFileSync(join(f.repo, '.git/index'));
+  const config = readFileSync(join(f.repo, '.git/config'));
+  const tracked = readFileSync(join(f.repo, 'tracked'));
+  const cleanEnvironment = { ...f.env };
+  Object.assign(f.env, {
+    GIT_DIR: join(f.repo, '.git'),
+    GIT_WORK_TREE: f.repo,
+    GIT_INDEX_FILE: join(f.repo, '.git/index'),
+    GIT_COMMON_DIR: join(f.repo, '.git'),
+    GIT_OBJECT_DIRECTORY: join(f.repo, '.git/objects'),
+    GIT_CONFIG_COUNT: '1',
+    GIT_CONFIG_KEY_0: 'fixture.namespace',
+    GIT_CONFIG_VALUE_0: 'outer-hook',
+  });
+  // Execute the actual native fixture code from an actual Git pre-push hook.
+  // Select its existing success case so this regression cannot recurse.
+  writeFileSync(join(f.directory, 'bin/pnpm'), `#!/usr/bin/env node
+const { spawnSync } = require('node:child_process');
+const { writeFileSync } = require('node:fs');
+writeFileSync(${JSON.stringify(join(f.directory, 'hook-namespace.json'))}, JSON.stringify({
+  directory: process.env.GIT_DIR, index: process.env.GIT_INDEX_FILE,
+  common: process.env.GIT_COMMON_DIR, configCount: process.env.GIT_CONFIG_COUNT,
+}));
+const env = { ...process.env };
+delete env.NODE_TEST_CONTEXT;
+const result = spawnSync(process.execPath,
+  ['--test', '--test-name-pattern=^normal helper pushes', ${JSON.stringify(__filename)}],
+  { env, stdio: 'inherit' });
+process.exit(result.status ?? 1);
+`);
+  chmodSync(join(f.directory, 'bin/pnpm'), 0o755);
+  const result = f.push();
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /normal helper pushes the validated HEAD/);
+  const inherited = JSON.parse(readFileSync(join(f.directory, 'hook-namespace.json'), 'utf8'));
+  assert.ok(inherited.directory);
+  assert.equal(inherited.index, join(f.repo, '.git/index'));
+  assert.equal(inherited.common, join(f.repo, '.git'));
+  assert.equal(inherited.configCount, '1');
+  assert.equal(f.run(['rev-parse', 'HEAD']).stdout.trim(), source);
+  assert.equal(f.run(['for-each-ref', '--format=%(refname) %(objectname)', 'refs/heads']).stdout, branches);
+  assert.deepEqual(readFileSync(join(f.repo, '.git/index')), index);
+  assert.deepEqual(readFileSync(join(f.repo, '.git/config')), config);
+  assert.deepEqual(readFileSync(join(f.repo, 'tracked')), tracked);
+  assert.equal(f.run(['status', '--porcelain']).stdout, '');
+  const remote = f.run(['rev-parse', 'refs/heads/feature'], f.remote, cleanEnvironment);
+  assert.equal(remote.status, 0, remote.stderr);
+  assert.equal(remote.stdout.trim(), source);
 });
 
 test('failed required validation leaves remote unchanged', () => {
