@@ -188,6 +188,53 @@ describe('resolveWalkCompletion', () => {
     expect(completion.billing).toBe(true);
   });
 
+  it.each(['free', 'pro', 'max', 'enterprise'] as const)(
+    'does not count persisted action-link visits as completed %s work',
+    (tier) => {
+      const steps = walkStepsForTier(tier);
+      const visited = { firstDayAction: true, receiptedAction: true, billing: true };
+      const completion = resolveWalkCompletion(steps, emptySignals, visited, true);
+      expect(completion.firstDayAction).toBe(false);
+      expect(completion.receiptedAction).toBe(false);
+      expect(completion.billing).toBe(true);
+      expect(walkProgressCounts(steps, completion).completed).toBe(3);
+    },
+  );
+
+  it('agent catalog availability cannot count as running a paid agent or a receipt', () => {
+    const completion = resolveWalkCompletion(
+      proSteps,
+      { ...emptySignals, hasAgents: true },
+      { firstDayAction: true, receiptedAction: true },
+      true,
+    );
+    expect(completion.firstDayAction).toBe(false);
+    expect(completion.receiptedAction).toBe(false);
+    expect(walkProgressCounts(proSteps, completion)).toEqual({ completed: 1, total: 5 });
+  });
+
+  it('a live task record completes paid action and receipt without catalog or visits', () => {
+    const completion = resolveWalkCompletion(
+      proSteps,
+      { ...emptySignals, hasAgentTasks: true },
+      {},
+      true,
+    );
+    expect(completion.firstDayAction).toBe(true);
+    expect(completion.receiptedAction).toBe(true);
+  });
+
+  it('stale persisted action visits do not hide loss of live evidence', () => {
+    const visited = { firstDayAction: true, receiptedAction: true };
+    expect(
+      resolveWalkCompletion(proSteps, { ...emptySignals, hasAgentTasks: true }, visited, true)
+        .firstDayAction,
+    ).toBe(true);
+    const refreshed = resolveWalkCompletion(proSteps, emptySignals, visited, true);
+    expect(refreshed.firstDayAction).toBe(false);
+    expect(refreshed.receiptedAction).toBe(false);
+  });
+
   it('persists visits across reads', () => {
     markWalkStepVisited('planHonesty');
     markWalkStepVisited('billing');

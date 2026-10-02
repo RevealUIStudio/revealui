@@ -2,7 +2,7 @@
  * First-day / first-24h hosted onboarding walk (GAP-300).
  *
  * Plan-gated steps for the dashboard checklist. Free never unlocks Pro
- * agent surfaces. Completion is live data plus persisted visits.
+ * agent surfaces. Action completion requires live data; navigation steps may use persisted visits.
  */
 
 import type { LicenseTierId } from '@revealui/contracts/pricing';
@@ -54,7 +54,9 @@ export interface OnboardingWalkProgress {
 }
 
 export interface WalkLiveSignals {
+  /** Agent catalog availability is not evidence that an agent ran. */
   hasAgents: boolean;
+  /** Server-reported task-record existence, not successful business outcome. */
   hasAgentTasks: boolean;
   hasPages: boolean;
 }
@@ -212,13 +214,11 @@ export function resolveWalkCompletion(
     }
     if (step.id === 'firstDayAction') {
       completion.firstDayAction =
-        step.href === '/pages'
-          ? signals.hasPages || visited.firstDayAction === true
-          : signals.hasAgents || visited.firstDayAction === true;
+        step.href === '/pages' ? signals.hasPages === true : signals.hasAgentTasks === true;
       continue;
     }
     if (step.id === 'receiptedAction') {
-      completion.receiptedAction = signals.hasAgentTasks || visited.receiptedAction === true;
+      completion.receiptedAction = signals.hasAgentTasks === true;
       continue;
     }
     if (step.id === 'knowledgeGraph') {

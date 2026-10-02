@@ -139,6 +139,29 @@ describe('OnboardingChecklist', () => {
     expect(localStorage.getItem(ONBOARDING_WALK_KEY)).toContain('dashboard');
   });
 
+  it('keeps paid action and receipt unchecked after navigation with only an agent catalog', async () => {
+    localStorage.setItem(
+      ONBOARDING_WALK_KEY,
+      JSON.stringify({
+        visited: { firstDayAction: true, receiptedAction: true },
+      }),
+    );
+    global.fetch = mockFetchImpl({
+      agents: { ok: true, body: { agents: [{ name: 'available-agent' }] } },
+      agentTasks: { ok: true, body: { exists: false } },
+    });
+    render(<OnboardingChecklist />);
+    await waitFor(() =>
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/a2a/agent-tasks/exists'),
+        expect.objectContaining({ credentials: 'include' }),
+      ),
+    );
+    fireEvent.click(screen.getByRole('link', { name: /Run an allowed agent/ }));
+    fireEvent.click(screen.getByRole('link', { name: /See the receipt/ }));
+    expect(screen.getAllByText('✓')).toHaveLength(1);
+  });
+
   it('leaves receipt unchecked when a Pro source 403s (ungated miss)', async () => {
     global.fetch = mockFetchImpl({
       agents: { ok: true, body: { agents: [] } },
