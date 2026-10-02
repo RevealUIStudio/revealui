@@ -735,10 +735,14 @@
                   "properties": {
                     "exists": {
                       "type": "boolean"
+                    },
+                    "completed": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "exists"
+                    "exists",
+                    "completed"
                   ]
                 }
               }
@@ -753,7 +757,7 @@
             }
           }
         },
-        "summary": "Check whether any agent task has ever run",
+        "summary": "Check for attributed terminal task receipts and completed executions",
         "tags": [
           "a2a"
         ]
