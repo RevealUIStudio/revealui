@@ -19,6 +19,7 @@
 
 import type { A2AJsonRpcRequest } from '@revealui/contracts';
 import { A2AJsonRpcRequestSchema, AgentDefinitionSchema } from '@revealui/contracts';
+import { getExplicitDeploymentMode } from '@revealui/core/deployment-mode';
 import { logger } from '@revealui/core/observability/logger';
 import { trackX402PaymentRequired } from '@revealui/core/observability/metrics';
 import { classifyAuditWriteFailure } from '@revealui/core/security';
@@ -61,8 +62,8 @@ function actionScope(user: UserContext | undefined, entitlements: EntitlementCon
       ? { actorUserId: user.id, accountId: entitlements.accountId }
       : null;
   }
-  // Missing hosted membership is unresolved, never a personal account fallback.
-  if (detectDeploymentMode(process.env as EnvMap) !== 'forge') return null;
+  // Only explicit Forge posture permits personal scope; absent/invalid mode grants none.
+  if (getExplicitDeploymentMode(process.env as EnvMap) !== 'forge') return null;
   if (entitlements && entitlements.userId !== user.id) return null;
   return { actorUserId: user.id, accountId: null };
 }

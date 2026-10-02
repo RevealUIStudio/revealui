@@ -10,7 +10,7 @@
  */
 
 import { Hono } from 'hono';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Hoisted mock factories ───────────────────────────────────────────────────
 
@@ -254,7 +254,11 @@ const MOCK_CARD = {
   skills: [],
 };
 
+afterEach(() => vi.unstubAllEnvs());
+
 function resetMocks() {
+  // Existing personal deployment fixtures explicitly select the supported posture.
+  vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', 'forge');
   vi.clearAllMocks();
 
   mockGetCard.mockReturnValue(MOCK_CARD);
@@ -577,6 +581,39 @@ describe('authenticated agent action attribution', () => {
     } finally {
       vi.unstubAllEnvs();
     }
+  });
+
+  it.each(['', 'hosetd'])(
+    'unresolved deployment posture %j cannot claim personal scope',
+    async (mode) => {
+      vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', mode);
+      vi.stubEnv('REVEALUI_LICENSE_PRIVATE_KEY', '');
+      try {
+        scopedDb([{ actorUserId: 'user-1', accountId: null, status: 'completed' }]);
+        const app = makeA2AApp({ id: 'user-1' }, { features: { ai: true } });
+        expect(await (await app.request(get('/agent-tasks/exists'))).json()).toEqual({
+          exists: false,
+          completed: false,
+        });
+        const response = await app.request(
+          post('/', { jsonrpc: '2.0', id: 1, method: 'tasks/send' }),
+        );
+        expect(response.status).toBe(403);
+        expect(mockRequireTaskQuota).not.toHaveBeenCalled();
+        expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
+      } finally {
+        vi.unstubAllEnvs();
+      }
+    },
+  );
+
+  it('explicit Forge retains attributed personal completion', async () => {
+    scopedDb([{ actorUserId: 'user-1', accountId: null, status: 'completed' }]);
+    const app = makeA2AApp({ id: 'user-1' }, { features: { ai: true } });
+    expect(await (await app.request(get('/agent-tasks/exists'))).json()).toEqual({
+      exists: true,
+      completed: true,
+    });
   });
 
   it.each(['working', 'submitted', 'canceled', 'failed', 'completed'])(
