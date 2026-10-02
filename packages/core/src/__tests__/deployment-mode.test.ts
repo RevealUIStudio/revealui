@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   deploymentModeKeyConsistencyError,
   detectDeploymentMode,
+  getExplicitDeploymentMode,
   isHostedDeployment,
+  requireExplicitDeploymentMode,
 } from '../deployment-mode.js';
 
 describe('detectDeploymentMode', () => {
@@ -69,5 +71,29 @@ describe('deploymentModeKeyConsistencyError', () => {
 
   it('is a no-op when MODE is unset', () => {
     expect(deploymentModeKeyConsistencyError({ REVEALUI_LICENSE_PRIVATE_KEY: 'pem' })).toBeNull();
+  });
+});
+
+describe('explicit authorization deployment mode', () => {
+  it.each([
+    {},
+    { REVEALUI_DEPLOYMENT_MODE: 'typo' },
+    { REVEALUI_LICENSE_PRIVATE_KEY: 'synthetic' },
+  ])('keeps missing/invalid posture unknown despite signer presence', (env) => {
+    expect(getExplicitDeploymentMode(env)).toBeNull();
+  });
+  it('requires explicit valid production posture without signer inference', () => {
+    expect(() =>
+      requireExplicitDeploymentMode({ REVEALUI_LICENSE_PRIVATE_KEY: 'synthetic' }),
+    ).toThrow(/REVEALUI_DEPLOYMENT_MODE/);
+    expect(() => requireExplicitDeploymentMode({ REVEALUI_DEPLOYMENT_MODE: 'typo' })).toThrow(
+      /REVEALUI_DEPLOYMENT_MODE/,
+    );
+    expect(requireExplicitDeploymentMode({ REVEALUI_DEPLOYMENT_MODE: 'hosted' })).toBe('hosted');
+    expect(requireExplicitDeploymentMode({ REVEALUI_DEPLOYMENT_MODE: 'forge' })).toBe('forge');
+  });
+  it('normalizes explicit modes without requiring a signer', () => {
+    expect(getExplicitDeploymentMode({ REVEALUI_DEPLOYMENT_MODE: ' HOSTED ' })).toBe('hosted');
+    expect(getExplicitDeploymentMode({ REVEALUI_DEPLOYMENT_MODE: 'forge' })).toBe('forge');
   });
 });
