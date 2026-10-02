@@ -214,7 +214,7 @@ describe('a2a json-rpc handler', () => {
     });
   });
 
-  it('completes a stubbed tasks/send request for a registered agent', async () => {
+  it('fails actionably without a provider instead of completing placeholder output', async () => {
     trackTaskId('rpc-task');
 
     const response = await handleA2AJsonRpc(
@@ -237,20 +237,12 @@ describe('a2a json-rpc handler', () => {
       id: 'rpc-task',
       sessionId: 'session-123',
       status: {
-        state: 'completed',
+        state: 'failed',
+        message: { parts: [{ text: expect.stringContaining('Configure a provider') }] },
       },
-      artifacts: [
-        {
-          name: 'response',
-        },
-      ],
     });
-
-    const resultTask = response.result as {
-      status: { message?: { parts: Array<{ text?: string }> } };
-    };
-    expect(resultTask.status.message?.parts[0]?.text).toContain('[Ticket Agent] Received:');
-    expect(getTask('rpc-task')?.status.state).toBe('completed');
+    expect((response.result as { artifacts?: unknown[] }).artifacts ?? []).toHaveLength(0);
+    expect(getTask('rpc-task')?.status.state).toBe('failed');
   });
 
   it('uses the llm client when provided', async () => {
@@ -276,6 +268,24 @@ describe('a2a json-rpc handler', () => {
       status: { message?: { parts: Array<{ text?: string }> } };
     };
     expect(resultTask.status.message?.parts[0]?.text).toBe('LLM generated response');
+  });
+
+  it('fails unsupported empty input without calling the configured provider', async () => {
+    trackTaskId('rpc-empty-task');
+    const chat = vi.fn();
+    const response = await handleA2AJsonRpc(
+      {
+        jsonrpc: '2.0',
+        id: 'rpc-empty-task',
+        method: 'tasks/send',
+        params: { id: 'rpc-empty-task', message: userMessage('   ') },
+      },
+      'revealui-creator',
+      { chat } as never,
+    );
+    expect(response.result).toMatchObject({ status: { state: 'failed' } });
+    expect(chat).not.toHaveBeenCalled();
+    expect((response.result as { artifacts?: unknown[] }).artifacts ?? []).toHaveLength(0);
   });
 
   it('returns agent not found for unknown agents', async () => {
@@ -425,7 +435,7 @@ describe('a2a json-rpc handler', () => {
         },
       },
       agentId,
-      undefined,
+      { chat: vi.fn().mockResolvedValue({ content: 'Actual paid execution' }) } as never,
       { paymentVerified: true },
     );
 

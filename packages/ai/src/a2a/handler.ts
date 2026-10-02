@@ -119,8 +119,7 @@ async function handleTasksSend(
     // Transition to working
     updateTaskState(task.id, 'working');
 
-    // Execute via orchestration  -  for now, produce a direct text response.
-    // Full AgentRuntime integration wires in when an LLM provider is configured.
+    // A receipt may complete only after configured execution, never a placeholder.
     if (signal?.aborted) {
       return ok(id, getTask(task.id));
     }
@@ -132,23 +131,21 @@ async function handleTasksSend(
       .join('\n')
       .trim();
 
-    let responseText: string;
-    if (llmClient && textInput) {
-      // Real LLM call using the provided client
-      const messages: Message[] = [];
-      if (agentDef?.systemPrompt) {
-        messages.push({ role: 'system', content: agentDef.systemPrompt });
-      }
-      messages.push({ role: 'user', content: textInput });
-      const llmResponse = await llmClient.chat(messages);
-      responseText = llmResponse.content;
-    } else {
-      // Stub response when no LLM client is configured
-      responseText = agentDef
-        ? `[${agentDef.name}] Received: "${textInput}". Task queued for execution. ` +
-          `Capabilities: ${agentDef.capabilities.join(', ')}.`
-        : `Task received: "${textInput}". Processing...`;
+    if (!llmClient) {
+      throw new Error(
+        'No LLM provider is configured. Configure a provider before running this task.',
+      );
     }
+    if (!textInput) {
+      throw new Error('This agent requires a non-empty text message to run a task.');
+    }
+    const messages: Message[] = [];
+    if (agentDef?.systemPrompt) {
+      messages.push({ role: 'system', content: agentDef.systemPrompt });
+    }
+    messages.push({ role: 'user', content: textInput });
+    const llmResponse = await llmClient.chat(messages);
+    const responseText = llmResponse.content;
 
     const agentMessage: A2AMessage = {
       role: 'agent',

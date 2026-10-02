@@ -152,6 +152,8 @@ vi.mock('@revealui/db/schema', () => ({
   agentActions: {
     id: 'id',
     agentId: 'agentId',
+    actorUserId: 'actorUserId',
+    accountId: 'accountId',
     tool: 'tool',
     params: 'params',
     result: 'result',
@@ -165,7 +167,19 @@ vi.mock('@revealui/db/schema', () => ({
 vi.mock('@revealui/db', () => ({ getClient: mockGetClient }));
 
 vi.mock('drizzle-orm', () => ({
-  eq: vi.fn(() => 'eq'),
+  eq: vi.fn(
+    (column: string, value: unknown) => (row: Record<string, unknown>) => row[column] === value,
+  ),
+  isNull: vi.fn((column: string) => (row: Record<string, unknown>) => row[column] == null),
+  inArray: vi.fn(
+    (column: string, values: unknown[]) => (row: Record<string, unknown>) =>
+      values.includes(row[column]),
+  ),
+  and: vi.fn(
+    (...predicates: ((row: Record<string, unknown>) => boolean)[]) =>
+      (row: Record<string, unknown>) =>
+        predicates.every((predicate) => predicate(row)),
+  ),
   desc: vi.fn(() => 'desc'),
 }));
 
@@ -181,14 +195,17 @@ function makeWellKnownApp() {
   return app;
 }
 
-function makeA2AApp(user?: { id: string }, entitlements?: { features?: Record<string, boolean> }) {
+function makeA2AApp(
+  user?: { id: string },
+  entitlements?: { features?: Record<string, boolean>; accountId?: string | null; userId?: string },
+) {
   // biome-ignore lint/suspicious/noExplicitAny: test helper
   const app = new Hono<{ Variables: { user?: any; entitlements?: any } }>();
   if (user) {
     app.use('*', async (c, next) => {
       c.set('user', user);
       if (entitlements) {
-        c.set('entitlements', entitlements);
+        c.set('entitlements', { userId: user.id, ...entitlements });
       }
       await next();
     });
@@ -259,6 +276,7 @@ function resetMocks() {
   const defaultSelectChain = makeSelectChain([]);
   mockGetClient.mockReturnValue({
     select: vi.fn().mockReturnValue(defaultSelectChain),
+    selectDistinct: vi.fn().mockReturnValue(defaultSelectChain),
     insert: vi.fn().mockReturnValue({ values: vi.fn().mockResolvedValue(undefined) }),
     update: vi.fn().mockReturnValue({
       set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
@@ -435,9 +453,10 @@ describe('GET /a2a/agent-tasks/exists', () => {
   });
 
   it('returns exists: true when at least one agent_actions row exists', async () => {
-    const chain = makeSelectChain([{ id: 'action-1' }]);
+    const chain = makeSelectChain([{ id: 'action-1', status: 'completed' }]);
     mockGetClient.mockReturnValue({
       select: vi.fn().mockReturnValue(chain),
+      selectDistinct: vi.fn().mockReturnValue(chain),
       // biome-ignore lint/suspicious/noExplicitAny: test mock
     } as any);
 
@@ -453,6 +472,7 @@ describe('GET /a2a/agent-tasks/exists', () => {
     const chain = makeSelectChain([]);
     mockGetClient.mockReturnValue({
       select: vi.fn().mockReturnValue(chain),
+      selectDistinct: vi.fn().mockReturnValue(chain),
       // biome-ignore lint/suspicious/noExplicitAny: test mock
     } as any);
 
@@ -468,6 +488,7 @@ describe('GET /a2a/agent-tasks/exists', () => {
     const chain = makeSelectChain([], { throws: true });
     mockGetClient.mockReturnValue({
       select: vi.fn().mockReturnValue(chain),
+      selectDistinct: vi.fn().mockReturnValue(chain),
       // biome-ignore lint/suspicious/noExplicitAny: test mock
     } as any);
 
@@ -478,6 +499,125 @@ describe('GET /a2a/agent-tasks/exists', () => {
     const body = (await res.json()) as { exists: boolean };
     expect(body.exists).toBe(false);
   });
+});
+
+describe('authenticated agent action attribution', () => {
+  beforeEach(resetMocks);
+
+  function scopedDb(rows: Record<string, unknown>[]) {
+    let predicate = (_row: Record<string, unknown>) => true;
+    const chain = {
+      from: vi.fn(() => chain),
+      where: vi.fn((filter) => {
+        predicate = filter;
+        return chain;
+      }),
+      orderBy: vi.fn(() => chain),
+      limit: vi.fn(async (limit: number) => rows.filter(predicate).slice(0, limit)),
+    };
+    mockGetClient.mockReturnValue({ select: () => chain, selectDistinct: () => chain });
+  }
+
+  it('excludes another actor, account, legacy rows, and unfinished tasks', async () => {
+    scopedDb([
+      { actorUserId: 'other-user', accountId: 'account-a', status: 'completed' },
+      { actorUserId: 'user-1', accountId: 'account-b', status: 'completed' },
+      { actorUserId: null, accountId: 'account-a', status: 'completed' },
+      { actorUserId: 'user-1', accountId: 'account-a', status: 'running' },
+    ]);
+    const app = makeA2AApp({ id: 'user-1' }, { accountId: 'account-a' });
+    const response = await app.request(get('/agent-tasks/exists'));
+    expect(await response.json()).toEqual({ exists: false, completed: false });
+  });
+
+  it('distinguishes failed receipt from completion and finds an earlier success', async () => {
+    const app = makeA2AApp({ id: 'user-1' }, { accountId: 'account-a' });
+    scopedDb([{ actorUserId: 'user-1', accountId: 'account-a', status: 'failed' }]);
+    expect(await (await app.request(get('/agent-tasks/exists'))).json()).toEqual({
+      exists: true,
+      completed: false,
+    });
+    scopedDb([
+      { actorUserId: 'user-1', accountId: 'account-a', status: 'failed' },
+      { actorUserId: 'user-1', accountId: 'account-a', status: 'completed' },
+    ]);
+    expect(await (await app.request(get('/agent-tasks/exists'))).json()).toEqual({
+      exists: true,
+      completed: true,
+    });
+  });
+
+  it('task history shares actor/account isolation', async () => {
+    scopedDb([
+      { id: 'own', agentId: 'test-agent', actorUserId: 'user-1', accountId: 'account-a' },
+      { id: 'other', agentId: 'test-agent', actorUserId: 'user-2', accountId: 'account-a' },
+      { id: 'switched', agentId: 'test-agent', actorUserId: 'user-1', accountId: 'account-b' },
+      { id: 'legacy', agentId: 'test-agent', actorUserId: null, accountId: null },
+    ]);
+    const response = await makeA2AApp({ id: 'user-1' }, { accountId: 'account-a' }).request(
+      get('/agents/test-agent/tasks'),
+    );
+    expect(await response.json()).toMatchObject({ tasks: [{ id: 'own' }] });
+  });
+
+  it('unresolved hosted context cannot read personal rows or execute', async () => {
+    vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', 'hosted');
+    try {
+      const app = makeA2AApp({ id: 'user-1' }, { features: { ai: true } });
+      expect(await (await app.request(get('/agent-tasks/exists'))).json()).toEqual({
+        exists: false,
+        completed: false,
+      });
+      const response = await app.request(
+        post('/', { jsonrpc: '2.0', id: 1, method: 'tasks/send' }),
+      );
+      expect(response.status).toBe(403);
+      expect(mockRequireTaskQuota).not.toHaveBeenCalled();
+      expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it.each(['working', 'submitted', 'canceled', 'failed', 'completed'])(
+    'writes trusted attribution and preserves %s lifecycle',
+    async (state) => {
+      const values = vi.fn().mockResolvedValue(undefined);
+      mockGetClient.mockReturnValue({
+        insert: () => ({ values }),
+        select: () => makeSelectChain([]),
+      });
+      mockHandleA2AJsonRpc.mockResolvedValue({
+        jsonrpc: '2.0',
+        id: 1,
+        result: { id: 'task', status: { state } },
+      });
+      const app = makeA2AApp({ id: 'user-1' }, { accountId: 'account-a', features: { ai: true } });
+      await app.request(
+        post('/', {
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'tasks/send',
+          params: { actorUserId: 'forged', accountId: 'account-b' },
+        }),
+      );
+      await vi.waitFor(() => expect(values).toHaveBeenCalled());
+      const saved = values.mock.calls[0]?.[0];
+      expect(saved).toMatchObject({
+        actorUserId: 'user-1',
+        accountId: 'account-a',
+        status:
+          state === 'working'
+            ? 'running'
+            : state === 'submitted'
+              ? 'pending'
+              : state === 'canceled'
+                ? 'cancelled'
+                : state,
+      });
+      if (state === 'working' || state === 'submitted') expect(saved.completedAt).toBeNull();
+    },
+  );
 });
 
 describe('GET /a2a/stream/:taskId  -  SSE stream', () => {

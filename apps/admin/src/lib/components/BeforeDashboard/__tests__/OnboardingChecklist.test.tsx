@@ -125,7 +125,7 @@ describe('OnboardingChecklist', () => {
   it('shows a checkmark for live Pro signals and persists a billing visit', async () => {
     global.fetch = mockFetchImpl({
       agents: { ok: true, body: { agents: [{ name: 'demo' }] } },
-      agentTasks: { ok: true, body: { exists: true } },
+      agentTasks: { ok: true, body: { exists: true, completed: true } },
       pages: { ok: true, body: { docs: [] } },
     });
     render(<OnboardingChecklist />);

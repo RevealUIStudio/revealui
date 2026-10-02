@@ -25,13 +25,14 @@ import { classifyAuditWriteFailure } from '@revealui/core/security';
 import { getClient } from '@revealui/db';
 import { agentActions, marketplaceServers, registeredAgents } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull } from 'drizzle-orm';
 import { aiModuleUnavailableBody, getAiModule } from '../lib/ai-module-loader.js';
 import { createAuditStore } from '../lib/audit-signer.js';
 import { asLLMNotConfigured } from '../lib/llm-not-configured.js';
 import { buildMcpManifest } from '../lib/mcp-manifest.js';
 import { detectDeploymentMode, type EnvMap } from '../lib/validate-startup.js';
 import { authMiddleware } from '../middleware/auth.js';
+import type { EntitlementContext } from '../middleware/entitlements.js';
 import { requireFeature } from '../middleware/license.js';
 import { requireTaskQuota } from '../middleware/task-quota.js';
 import {
@@ -50,6 +51,27 @@ interface UserContext {
   email: string | null;
   name: string;
   role: string;
+}
+
+/** Receipt attribution uses authenticated actor and membership-resolved context only. */
+function actionScope(user: UserContext | undefined, entitlements: EntitlementContext | undefined) {
+  if (!user) return null;
+  if (entitlements?.accountId) {
+    return entitlements.userId === user.id
+      ? { actorUserId: user.id, accountId: entitlements.accountId }
+      : null;
+  }
+  // Missing hosted membership is unresolved, never a personal account fallback.
+  if (detectDeploymentMode(process.env as EnvMap) !== 'forge') return null;
+  if (entitlements && entitlements.userId !== user.id) return null;
+  return { actorUserId: user.id, accountId: null };
+}
+
+function actionScopePredicate(scope: { actorUserId: string; accountId: string | null }) {
+  return and(
+    eq(agentActions.actorUserId, scope.actorUserId),
+    scope.accountId ? eq(agentActions.accountId, scope.accountId) : isNull(agentActions.accountId),
+  );
 }
 
 const app = new OpenAPIHono();
@@ -347,7 +369,9 @@ app.openapi(
 // A2A task API  -  /a2a/*
 // =============================================================================
 
-const a2a = new OpenAPIHono<{ Variables: { user: UserContext | undefined } }>();
+const a2a = new OpenAPIHono<{
+  Variables: { user: UserContext | undefined; entitlements: EntitlementContext | undefined };
+}>();
 
 // Soft auth  -  populates user context when a session cookie is present.
 // Not required  -  anonymous A2A requests are allowed; stored keys are used when authenticated.
@@ -582,12 +606,14 @@ a2a.openapi(
     if (!isValidAgentId(agentId)) {
       return c.json({ error: 'Invalid agent ID format' }, 400);
     }
+    const scope = actionScope(user, c.get('entitlements'));
+    if (!scope) return c.json({ tasks: [] });
     try {
       const db = getClient();
       const rows = await db
         .select()
         .from(agentActions)
-        .where(eq(agentActions.agentId, agentId))
+        .where(and(eq(agentActions.agentId, agentId), actionScopePredicate(scope)))
         .orderBy(desc(agentActions.startedAt))
         .limit(20);
       return c.json({ tasks: rows });
@@ -600,19 +626,21 @@ a2a.openapi(
 /**
  * Cheapest possible existence check for onboarding-checklist derivation  -
  * requires auth + 'ai' feature, same gate as the task-history route above.
- * A single-row LIMIT 1 across all agents (agent_actions carries no
- * account scoping today), not a count.
+ * At most three distinct terminal statuses for the authenticated actor and resolved account.
+ * Unattributed legacy rows and unfinished task records do not establish completion.
  */
 a2a.openapi(
   createRoute({
     method: 'get',
     path: '/agent-tasks/exists',
     tags: ['a2a'],
-    summary: 'Check whether any agent task has ever run',
+    summary: 'Check for attributed terminal task receipts and completed executions',
     middleware: [requireFeature('ai', { mode: 'entitlements' })] as const,
     responses: {
       200: {
-        content: { 'application/json': { schema: z.object({ exists: z.boolean() }) } },
+        content: {
+          'application/json': { schema: z.object({ exists: z.boolean(), completed: z.boolean() }) },
+        },
         description: 'Whether at least one agent task exists',
       },
       401: {
@@ -626,12 +654,27 @@ a2a.openapi(
     if (!user) {
       return c.json({ error: 'Authentication required' }, 401);
     }
+    const scope = actionScope(user, c.get('entitlements'));
+    if (!scope) return c.json({ exists: false, completed: false });
     try {
       const db = getClient();
-      const rows = await db.select({ id: agentActions.id }).from(agentActions).limit(1);
-      return c.json({ exists: rows.length > 0 });
+      // One row per terminal status, so a recent failure cannot hide prior success.
+      const rows = await db
+        .selectDistinct({ status: agentActions.status })
+        .from(agentActions)
+        .where(
+          and(
+            actionScopePredicate(scope),
+            inArray(agentActions.status, ['completed', 'failed', 'cancelled']),
+          ),
+        )
+        .limit(3);
+      return c.json({
+        exists: rows.length > 0,
+        completed: rows.some((row) => row.status === 'completed'),
+      });
     } catch {
-      return c.json({ exists: false });
+      return c.json({ exists: false, completed: false });
     }
   },
 );
@@ -1090,6 +1133,8 @@ a2a.openapi(
 
     const req: A2AJsonRpcRequest = parsed.data;
 
+    const scope = actionScope(c.get('user'), c.get('entitlements'));
+
     // Gate task execution behind entitlements; read-only methods always allowed
     const executionMethods = new Set(['tasks/send', 'tasks/sendSubscribe']);
     if (executionMethods.has(req.method)) {
@@ -1108,6 +1153,17 @@ a2a.openapi(
               message:
                 "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
             },
+          },
+          403,
+        );
+      }
+
+      if (!scope) {
+        return c.json(
+          {
+            jsonrpc: '2.0',
+            id: req.id,
+            error: { code: -32003, message: 'Authenticated task account context is unavailable' },
           },
           403,
         );
@@ -1225,23 +1281,37 @@ a2a.openapi(
       });
     }
 
+    // Capture authenticated attribution before the asynchronous write. Request
+    // params and client-supplied account IDs cannot select receipt ownership.
     // Fire-and-forget: persist task execution record to agentActions
-    if (executionMethods.has(req.method)) {
-      const status = taskState === 'failed' ? 'failed' : 'completed';
+    if (executionMethods.has(req.method) && scope) {
+      const status =
+        taskState === 'completed'
+          ? 'completed'
+          : taskState === 'failed' || result.error
+            ? 'failed'
+            : taskState === 'canceled'
+              ? 'cancelled'
+              : taskState === 'working'
+                ? 'running'
+                : 'pending';
+      const terminal = ['completed', 'failed', 'cancelled'].includes(status);
       const actionId = crypto.randomUUID();
       void (async () => {
         try {
           const db = getClient();
           await db.insert(agentActions).values({
             id: actionId,
+            actorUserId: scope.actorUserId,
+            accountId: scope.accountId,
             agentId: agentId ?? 'revealui-creator',
             tool: req.method,
             params: (req.params ?? null) as Record<string, unknown> | null,
             result: taskResult as Record<string, unknown> | null,
             status,
             startedAt: new Date(startedAt),
-            completedAt: new Date(completedAt),
-            durationMs: completedAt - startedAt,
+            completedAt: terminal ? new Date(completedAt) : null,
+            durationMs: terminal ? completedAt - startedAt : null,
           });
         } catch (err) {
           // Non-fatal  -  in-memory task store remains authoritative for active tasks

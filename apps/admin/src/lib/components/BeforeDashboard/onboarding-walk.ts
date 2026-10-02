@@ -58,6 +58,8 @@ export interface WalkLiveSignals {
   hasAgents: boolean;
   /** Server-reported task-record existence, not successful business outcome. */
   hasAgentTasks: boolean;
+  /** Completed execution is distinct from a failed or cancelled receipt. */
+  hasCompletedAgentTask?: boolean;
   hasPages: boolean;
 }
 
@@ -214,7 +216,7 @@ export function resolveWalkCompletion(
     }
     if (step.id === 'firstDayAction') {
       completion.firstDayAction =
-        step.href === '/pages' ? signals.hasPages === true : signals.hasAgentTasks === true;
+        step.href === '/pages' ? signals.hasPages === true : signals.hasCompletedAgentTask === true;
       continue;
     }
     if (step.id === 'receiptedAction') {

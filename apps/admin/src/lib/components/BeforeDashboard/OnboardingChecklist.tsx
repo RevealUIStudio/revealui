@@ -48,18 +48,21 @@ async function hasAnyDoc(collection: string): Promise<boolean> {
  */
 async function fetchLiveSignals(apiUrl: string): Promise<WalkLiveSignals> {
   try {
-    const [hasAgents, hasAgentTasks, hasPages] = await Promise.all([
+    const [hasAgents, tasks, hasPages] = await Promise.all([
       fetch(`${apiUrl}/a2a/agents`, { credentials: 'include' })
         .then((r) => (r.ok ? r.json() : { agents: [] }))
         .then((data: { agents?: unknown[] }) => (data.agents?.length ?? 0) > 0)
         .catch(() => false),
       fetch(`${apiUrl}/a2a/agent-tasks/exists`, { credentials: 'include' })
         .then((r) => (r.ok ? r.json() : { exists: false }))
-        .then((data: { exists?: boolean }) => data.exists ?? false)
-        .catch(() => false),
+        .then((data: { exists?: boolean; completed?: boolean }) => ({
+          hasAgentTasks: data.exists === true,
+          hasCompletedAgentTask: data.completed === true,
+        }))
+        .catch(() => ({ hasAgentTasks: false, hasCompletedAgentTask: false })),
       hasAnyDoc('pages'),
     ]);
-    return { hasAgents, hasAgentTasks, hasPages };
+    return { hasAgents, ...tasks, hasPages };
   } catch {
     return EMPTY_SIGNALS;
   }

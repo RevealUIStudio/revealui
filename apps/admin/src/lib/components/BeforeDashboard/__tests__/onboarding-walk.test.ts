@@ -23,6 +23,17 @@ beforeEach(() => {
 });
 
 describe('resolveWalkTier', () => {
+  it('a failed receipt does not establish a completed first action', () => {
+    const completion = resolveWalkCompletion(
+      walkStepsForTier('pro'),
+      { hasAgents: true, hasAgentTasks: true, hasCompletedAgentTask: false, hasPages: false },
+      {},
+      true,
+    );
+    expect(completion.firstDayAction).toBe(false);
+    expect(completion.receiptedAction).toBe(true);
+  });
+
   it('returns null while loading or when resolve failed (does not invent Free)', () => {
     expect(resolveWalkTier({ tier: 'free', isLoading: true, resolveError: null })).toBeNull();
     expect(
@@ -178,7 +189,7 @@ describe('resolveWalkCompletion', () => {
   it('marks Pro agent + receipt from live signals and billing from persisted visits', () => {
     const completion = resolveWalkCompletion(
       proSteps,
-      { hasAgents: true, hasAgentTasks: true, hasPages: false },
+      { hasAgents: true, hasAgentTasks: true, hasCompletedAgentTask: true, hasPages: false },
       { billing: true },
       true,
     );
@@ -216,7 +227,7 @@ describe('resolveWalkCompletion', () => {
   it('a live task record completes paid action and receipt without catalog or visits', () => {
     const completion = resolveWalkCompletion(
       proSteps,
-      { ...emptySignals, hasAgentTasks: true },
+      { ...emptySignals, hasAgentTasks: true, hasCompletedAgentTask: true },
       {},
       true,
     );
@@ -227,8 +238,12 @@ describe('resolveWalkCompletion', () => {
   it('stale persisted action visits do not hide loss of live evidence', () => {
     const visited = { firstDayAction: true, receiptedAction: true };
     expect(
-      resolveWalkCompletion(proSteps, { ...emptySignals, hasAgentTasks: true }, visited, true)
-        .firstDayAction,
+      resolveWalkCompletion(
+        proSteps,
+        { ...emptySignals, hasAgentTasks: true, hasCompletedAgentTask: true },
+        visited,
+        true,
+      ).firstDayAction,
     ).toBe(true);
     const refreshed = resolveWalkCompletion(proSteps, emptySignals, visited, true);
     expect(refreshed.firstDayAction).toBe(false);
@@ -258,7 +273,7 @@ describe('resolveWalkCompletion', () => {
     const kgSteps = walkStepsForTier('pro', { kgEntitled: true });
     const completion = resolveWalkCompletion(
       kgSteps,
-      { hasAgents: true, hasAgentTasks: true, hasPages: true },
+      { hasAgents: true, hasAgentTasks: true, hasCompletedAgentTask: true, hasPages: true },
       {},
       true,
     );
