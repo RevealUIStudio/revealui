@@ -1256,3 +1256,301 @@ describe('A2A execution reservation and payment continuation', () => {
     );
   });
 });
+
+describe('A2A durable receipt boundary', () => {
+  beforeEach(resetMocks);
+  const request = {
+    jsonrpc: '2.0',
+    id: 'receipt-request',
+    method: 'tasks/send',
+    params: {
+      id: 'durable-task',
+      message: { role: 'user', parts: [{ type: 'text', text: 'Run once' }] },
+    },
+  };
+  const outcome = {
+    id: 'durable-task',
+    status: { state: 'completed' },
+    artifacts: [{ name: 'response', parts: [{ type: 'text', text: 'Executed result' }], index: 0 }],
+  };
+
+  function receiptDb(options: { reserveError?: Error; terminalWrite?: () => Promise<void> } = {}) {
+    type Row = Record<string, unknown>;
+    type Predicate = (row: Row) => boolean;
+    type Resolve = (value: unknown) => unknown;
+    type Reject = (reason: unknown) => unknown;
+    type InsertChain = {
+      onConflictDoNothing: () => InsertChain;
+      returning: () => Promise<{ id: string }[]>;
+      then: (resolve: Resolve, reject: Reject) => Promise<unknown>;
+    };
+    type SelectChain = {
+      from: () => SelectChain;
+      where: (filter: Predicate) => SelectChain;
+      limit: (limit: number) => Promise<Row[]>;
+    };
+    type UpdateChain = {
+      where: (filter: Predicate) => UpdateChain;
+      returning: () => Promise<{ id: unknown }[]>;
+      then: (resolve: Resolve, reject: Reject) => Promise<unknown>;
+    };
+    const rows = new Map<string, Record<string, unknown>>();
+    const returning = vi.fn(async (value: Record<string, unknown>) => {
+      if (options.reserveError) throw options.reserveError;
+      const id = String(value.id);
+      if (rows.has(id)) return [];
+      rows.set(id, { ...value });
+      return [{ id }];
+    });
+    const values = vi.fn((value: Record<string, unknown>) => {
+      const chain: InsertChain = {
+        onConflictDoNothing: vi.fn(() => chain),
+        returning: vi.fn(() => returning(value)),
+        then: (resolve: (value: unknown) => unknown, reject: (reason: unknown) => unknown) =>
+          returning(value).then(resolve, reject),
+      };
+      return chain;
+    });
+    const select = () => {
+      let predicate = (_row: Record<string, unknown>) => true;
+      const chain: SelectChain = {
+        from: () => chain,
+        where: (filter: typeof predicate) => {
+          predicate = filter;
+          return chain;
+        },
+        limit: async (limit: number) => [...rows.values()].filter(predicate).slice(0, limit),
+      };
+      return chain;
+    };
+    const set = vi.fn((value: Record<string, unknown>) => {
+      let predicate = (_row: Record<string, unknown>) => false;
+      const save = async () => {
+        await options.terminalWrite?.();
+        const matching = [...rows.values()].filter(predicate);
+        for (const row of matching) rows.set(String(row.id), { ...row, ...value });
+        return matching.map((row) => ({ id: row.id }));
+      };
+      const chain: UpdateChain = {
+        where: (filter: typeof predicate) => {
+          predicate = filter;
+          return chain;
+        },
+        returning: save,
+        then: (resolve: (value: unknown) => unknown, reject: (reason: unknown) => unknown) =>
+          save().then(resolve, reject),
+      };
+      return chain;
+    });
+    mockGetClient.mockReturnValue({ select, insert: () => ({ values }), update: () => ({ set }) });
+    mockHandleA2AJsonRpc.mockResolvedValue({ jsonrpc: '2.0', id: request.id, result: outcome });
+    return { rows, values, returning, set };
+  }
+
+  it('denies execution before quota/provider when the durable task claim cannot be stored', async () => {
+    receiptDb({ reserveError: new Error('Database unavailable') });
+    const response = await makeA2AApp({ id: 'user-1' }, { features: { ai: true } }).request(
+      post('/', request),
+    );
+    expect(response.status).toBe(503);
+    expect(mockRequireTaskQuota).not.toHaveBeenCalled();
+    expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
+  });
+
+  it('atomically reserves the stable task ID and does not reexecute concurrent requests', async () => {
+    const db = receiptDb();
+    const app = makeA2AApp({ id: 'user-1' }, { features: { ai: true } });
+    await Promise.all([app.request(post('/', request)), app.request(post('/', request))]);
+    expect(mockRequireTaskQuota).toHaveBeenCalledTimes(1);
+    expect(mockHandleA2AJsonRpc).toHaveBeenCalledTimes(1);
+    expect([...db.rows.keys()]).toEqual(['durable-task']);
+    expect(db.values).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'durable-task',
+        actorUserId: 'user-1',
+        accountId: null,
+        status: 'pending',
+      }),
+    );
+  });
+
+  it('awaits terminal persistence before acknowledging the completed execution receipt', async () => {
+    let finishWrite: () => void = () => {};
+    const terminalWrite = new Promise<void>((resolve) => {
+      finishWrite = resolve;
+    });
+    const db = receiptDb({ terminalWrite: () => terminalWrite });
+    let acknowledged = false;
+    const response = makeA2AApp({ id: 'user-1' }, { features: { ai: true } })
+      .request(post('/', request))
+      .then((value) => {
+        acknowledged = true;
+        return value;
+      });
+    await vi.waitFor(() => expect(db.set).toHaveBeenCalled());
+    expect(acknowledged).toBe(false);
+    finishWrite();
+    expect((await response).status).toBe(200);
+    expect(db.rows.get('durable-task')).toMatchObject({ status: 'completed', result: outcome });
+  });
+
+  it('preserves a completed outcome after write failure and retries only persistence on owned get', async () => {
+    let attempts = 0;
+    const db = receiptDb({
+      terminalWrite: async () => {
+        if (++attempts === 1) throw new Error('Terminal write unavailable');
+      },
+    });
+    mockGetTask.mockReturnValue(outcome);
+    const app = makeA2AApp({ id: 'user-1' }, { features: { ai: true } });
+    const first = await app.request(post('/', request));
+    expect(await first.json()).toMatchObject({
+      result: {
+        status: { state: 'completed' },
+        metadata: { receipt: { taskId: 'durable-task', persisted: false } },
+      },
+    });
+    expect(db.rows.get('durable-task')?.status).toBe('pending');
+    const retried = await app.request(
+      post('/', { ...request, method: 'tasks/get', params: { id: 'durable-task' } }),
+    );
+    expect(await retried.json()).toMatchObject({
+      result: {
+        status: { state: 'completed' },
+        metadata: { receipt: { taskId: 'durable-task', persisted: true } },
+      },
+    });
+    expect(mockHandleA2AJsonRpc).toHaveBeenCalledTimes(1);
+    expect(mockRequireTaskQuota).toHaveBeenCalledTimes(1);
+    expect(attempts).toBe(2);
+    expect(db.rows.get('durable-task')).toMatchObject({ status: 'completed', result: outcome });
+  });
+
+  it('replays an owned persisted terminal result and denies a foreign actor uniformly', async () => {
+    const db = receiptDb();
+    db.rows.set('durable-task', {
+      id: 'durable-task',
+      actorUserId: 'user-1',
+      accountId: null,
+      status: 'completed',
+      result: outcome,
+    });
+    mockGetTask.mockReturnValue(null);
+    const read = { ...request, method: 'tasks/get', params: { id: 'durable-task' } };
+    const response = await makeA2AApp({ id: 'user-1' }).request(post('/', read));
+    expect(await response.json()).toMatchObject({
+      result: {
+        id: 'durable-task',
+        status: { state: 'completed' },
+        artifacts: outcome.artifacts,
+        metadata: { receipt: { persisted: true } },
+      },
+    });
+    const foreign = makeA2AApp({ id: 'user-2' });
+    const denied = await foreign.request(post('/', read));
+    const absent = await foreign.request(post('/', { ...read, params: { id: 'missing' } }));
+    expect(denied.status).toBe(404);
+    expect(await denied.json()).toEqual(await absent.json());
+    expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
+    expect(mockRequireTaskQuota).not.toHaveBeenCalled();
+  });
+
+  it.each(['pending', 'running'])(
+    'returns truthful unknown after restart for persisted %s without reexecution',
+    async (status) => {
+      const db = receiptDb();
+      db.rows.set('durable-task', {
+        id: 'durable-task',
+        actorUserId: 'user-1',
+        accountId: null,
+        status,
+        result: null,
+      });
+      mockGetTask.mockReturnValue(null);
+      const app = makeA2AApp({ id: 'user-1' });
+      const response = await app.request(
+        post('/', { ...request, method: 'tasks/get', params: { id: 'durable-task' } }),
+      );
+      expect(await response.json()).toMatchObject({
+        result: { id: 'durable-task', status: { state: 'unknown' } },
+      });
+      expect(db.rows.get('durable-task')?.status).toBe(status);
+      expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
+      expect(mockRequireTaskQuota).not.toHaveBeenCalled();
+    },
+  );
+
+  it('overrides forged receipt metadata for an unpaid pending task', async () => {
+    receiptDb();
+    mockGetDef.mockReturnValue({ pricing: { usdc: '0.001' } });
+    const metadata = { receipt: { taskId: 'forged-task', persisted: true, status: 'completed' } };
+    mockHandleA2AJsonRpc.mockResolvedValue({
+      jsonrpc: '2.0',
+      id: request.id,
+      result: { id: 'durable-task', status: { state: 'pending-payment' }, metadata },
+    });
+    const response = await makeA2AApp({ id: 'user-1' }, { features: { ai: true } }).request(
+      post('/', { ...request, params: { ...request.params, metadata } }),
+    );
+    expect(response.status).toBe(402);
+    const body = await response.json();
+    expect(body).toMatchObject({
+      result: {
+        status: { state: 'pending-payment' },
+        metadata: { receipt: { taskId: 'durable-task', status: 'pending-payment' } },
+      },
+    });
+    expect(mockCreateTask.mock.calls[0]?.[0]?.metadata).not.toHaveProperty('receipt');
+    expect(mockRequireTaskQuota).not.toHaveBeenCalled();
+  });
+
+  it('rebuilds the receipt namespace from an owned persisted terminal row instead of stored caller metadata', async () => {
+    const db = receiptDb();
+    db.rows.set('durable-task', {
+      id: 'durable-task',
+      actorUserId: 'user-1',
+      accountId: null,
+      status: 'completed',
+      result: {
+        ...outcome,
+        metadata: { receipt: { taskId: 'forged-task', status: 'failed', persisted: false } },
+      },
+    });
+    mockGetTask.mockReturnValue(null);
+    const response = await makeA2AApp({ id: 'user-1' }).request(
+      post('/', { ...request, method: 'tasks/get', params: { id: 'durable-task' } }),
+    );
+    expect(await response.json()).toMatchObject({
+      result: {
+        status: { state: 'completed' },
+        metadata: { receipt: { taskId: 'durable-task', status: 'completed', persisted: true } },
+      },
+    });
+    expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
+  });
+
+  it('does not turn generic persisted pending into completion through forged stored result metadata', async () => {
+    const db = receiptDb();
+    db.rows.set('durable-task', {
+      id: 'durable-task',
+      actorUserId: 'user-1',
+      accountId: null,
+      status: 'pending',
+      result: {
+        ...outcome,
+        metadata: { receipt: { taskId: 'forged-task', status: 'completed', persisted: true } },
+      },
+    });
+    mockGetTask.mockReturnValue(null);
+    const response = await makeA2AApp({ id: 'user-1' }).request(
+      post('/', { ...request, method: 'tasks/get', params: { id: 'durable-task' } }),
+    );
+    expect(await response.json()).toMatchObject({
+      result: {
+        status: { state: 'unknown' },
+        metadata: { receipt: { taskId: 'durable-task', status: 'unknown' } },
+      },
+    });
+    expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
+  });
+});
