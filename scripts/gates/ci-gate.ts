@@ -141,8 +141,20 @@ export async function runCheck(check: CheckDef): Promise<CheckResult> {
     return { name: check.name, status: 'skip', durationMs: 0 };
   }
 
+  let args = check.args;
+  if (check.command === 'pnpm' && args[0] === 'turbo') {
+    const flags = args.filter((arg) => arg.startsWith('--concurrency='));
+    if (flags.length !== 1) throw new Error('Turbo gate checks must declare one worker cap.');
+    const maximum = Number(flags[0]?.slice('--concurrency='.length));
+    if (!Number.isInteger(maximum) || maximum < 1) {
+      throw new Error('Turbo gate worker cap must be a positive integer.');
+    }
+    const cap = phaseConcurrency(maximum);
+    // Headroom may have changed while an earlier serial test/build ran.
+    args = args.map((arg) => (arg.startsWith('--concurrency=') ? `--concurrency=${cap}` : arg));
+  }
   const start = performance.now();
-  const result = await execCommand(check.command, check.args, {
+  const result = await execCommand(check.command, args, {
     timeout: check.timeout ?? PHASE_CHECK_TIMEOUT_MS,
     stdio: admittedStdio(),
   });
@@ -713,6 +725,8 @@ export async function gate(): Promise<void> {
   if (phase === null || phase === 2) {
     logger.info('Phase 2 \u2014 Type checking (serial)');
 
+    const typecheckConcurrency = phaseConcurrency(2);
+
     // In changed-only mode: only typecheck packages changed since comparison base (and their dependents)
     const typecheckArgs = changed
       ? [
@@ -721,9 +735,9 @@ export async function gate(): Promise<void> {
           'typecheck',
           `--filter=...[${changeBase}]`,
           ...proFilter,
-          '--concurrency=2',
+          `--concurrency=${typecheckConcurrency}`,
         ]
-      : ['turbo', 'run', 'typecheck', ...proFilter, '--concurrency=2'];
+      : ['turbo', 'run', 'typecheck', ...proFilter, `--concurrency=${typecheckConcurrency}`];
 
     const phase2Checks: CheckDef[] = [
       { name: 'Type checking', command: 'pnpm', args: typecheckArgs, timeout: 300000 },
@@ -754,11 +768,19 @@ export async function gate(): Promise<void> {
   if (phase === null || phase === 3) {
     logger.info('Phase 3 \u2014 Test + Build (serial: tests first)');
 
-    // Turbo concurrency=2 + per-package maxWorkers=2 prevents fork explosion.
-    // Worst case: 2 packages × 2 forks = 4 processes × 150 MB = 600 MB total.
+    // Bound package fan-out using the same available-memory/CPU admission.
+    // Workspace createVitestConfig separately caps its package pool at two.
+    const taskConcurrency = phaseConcurrency(2);
     const testArgs = changed
-      ? ['turbo', 'run', 'test', `--filter=...[${changeBase}]`, ...proFilter, '--concurrency=2']
-      : ['turbo', 'run', 'test', ...proFilter, '--concurrency=2'];
+      ? [
+          'turbo',
+          'run',
+          'test',
+          `--filter=...[${changeBase}]`,
+          ...proFilter,
+          `--concurrency=${taskConcurrency}`,
+        ]
+      : ['turbo', 'run', 'test', ...proFilter, `--concurrency=${taskConcurrency}`];
 
     const buildCheck: CheckDef[] = noBuild
       ? []
@@ -773,7 +795,7 @@ export async function gate(): Promise<void> {
                 'build',
                 `--filter=...[${changeBase}]`,
                 ...proFilter,
-                '--concurrency=2',
+                `--concurrency=${taskConcurrency}`,
               ],
               timeout: 600000,
             },
@@ -787,7 +809,7 @@ export async function gate(): Promise<void> {
             {
               name: 'Build',
               command: 'pnpm',
-              args: ['turbo', 'run', 'build', ...proFilter, '--concurrency=2'],
+              args: ['turbo', 'run', 'build', ...proFilter, `--concurrency=${taskConcurrency}`],
               timeout: 900000,
             },
             {
