@@ -17,14 +17,23 @@
  * Discovery endpoints (agent.json, /a2a/agents) are public  -  no auth required.
  */
 
-import type { A2AJsonRpcRequest } from '@revealui/contracts';
-import { A2AJsonRpcRequestSchema, AgentDefinitionSchema } from '@revealui/contracts';
+import type { A2AJsonRpcRequest, A2ATask } from '@revealui/contracts';
+import {
+  A2AJsonRpcRequestSchema,
+  A2ASendTaskParamsSchema,
+  AgentDefinitionSchema,
+} from '@revealui/contracts';
 import { getExplicitDeploymentMode } from '@revealui/core/deployment-mode';
 import { logger } from '@revealui/core/observability/logger';
 import { trackX402PaymentRequired } from '@revealui/core/observability/metrics';
 import { classifyAuditWriteFailure } from '@revealui/core/security';
 import { getClient } from '@revealui/db';
-import { agentActions, marketplaceServers, registeredAgents } from '@revealui/db/schema';
+import {
+  type AgentActionScope,
+  agentActions,
+  marketplaceServers,
+  registeredAgents,
+} from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, inArray, isNull } from 'drizzle-orm';
 import { aiModuleUnavailableBody, getAiModule } from '../lib/ai-module-loader.js';
@@ -55,7 +64,10 @@ interface UserContext {
 }
 
 /** Receipt attribution uses authenticated actor and membership-resolved context only. */
-function actionScope(user: UserContext | undefined, entitlements: EntitlementContext | undefined) {
+function actionScope(
+  user: UserContext | undefined,
+  entitlements: EntitlementContext | undefined,
+): AgentActionScope | null {
   if (!user) return null;
   if (entitlements?.accountId) {
     return entitlements.userId === user.id
@@ -68,7 +80,7 @@ function actionScope(user: UserContext | undefined, entitlements: EntitlementCon
   return { actorUserId: user.id, accountId: null };
 }
 
-function actionScopePredicate(scope: { actorUserId: string; accountId: string | null }) {
+function actionScopePredicate(scope: AgentActionScope) {
   return and(
     eq(agentActions.actorUserId, scope.actorUserId),
     scope.accountId ? eq(agentActions.accountId, scope.accountId) : isNull(agentActions.accountId),
@@ -1005,6 +1017,8 @@ a2a.openapi(
       return c.json(aiModuleUnavailableBody(), 503);
     }
     const { taskId } = c.req.valid('param');
+    const scope = actionScope(c.get('user'), c.get('entitlements'));
+    if (!(scope && aiMod.getTask(taskId, scope))) return c.json({ error: 'Task not found' }, 404);
 
     const getTaskFn = aiMod.getTask;
     return c.body(
@@ -1021,17 +1035,17 @@ a2a.openapi(
 
           const poll = () => {
             iterations++;
-            const task = getTaskFn(taskId);
+            const task = getTaskFn(taskId, scope);
 
             if (!task) {
-              send({ error: `Task '${taskId}' not found` });
+              send({ error: 'Task not found' });
               controller.close();
               return;
             }
 
             send(task);
 
-            const terminal = ['completed', 'failed', 'canceled'];
+            const terminal = ['completed', 'failed', 'canceled', 'unknown'];
             if (terminal.includes(task.status.state) || iterations >= maxIterations) {
               controller.close();
               return;
@@ -1058,7 +1072,7 @@ a2a.openapi(
  * Handles: tasks/send, tasks/get, tasks/cancel, tasks/sendSubscribe
  *
  * tasks/send and tasks/sendSubscribe require the 'ai' feature.
- * tasks/get and tasks/cancel are always allowed.
+ * tasks/get and tasks/cancel require trusted task ownership without an AI feature gate.
  */
 a2a.openapi(
   createRoute({
@@ -1135,8 +1149,11 @@ a2a.openapi(
     const req: A2AJsonRpcRequest = parsed.data;
 
     const scope = actionScope(c.get('user'), c.get('entitlements'));
+    const agentId = c.req.header('X-Agent-ID');
+    let preparedTask: A2ATask | undefined;
+    let requiresPayment = false;
 
-    // Gate task execution behind entitlements; read-only methods always allowed
+    // Execution requires entitlements; all task methods retain trusted ownership.
     const executionMethods = new Set(['tasks/send', 'tasks/sendSubscribe']);
     if (executionMethods.has(req.method)) {
       const entitlements = (c as unknown as { get(k: string): unknown }).get('entitlements') as
@@ -1170,17 +1187,42 @@ a2a.openapi(
         );
       }
 
-      // Check and increment task quota (Track B metering)
-      const quotaResponse = await requireTaskQuota(c, async () => {
-        // No-op: quota check only, work is performed after quota validation
-      });
-      if (quotaResponse instanceof Response) {
-        return quotaResponse;
-      }
+      const sendParams = A2ASendTaskParamsSchema.safeParse(req.params);
+      if (!sendParams.success)
+        return c.json(
+          { jsonrpc: '2.0', id: req.id, error: { code: -32602, message: 'Invalid task params' } },
+          400,
+        );
+      if (agentId && !aiMod.agentCardRegistry.has(agentId))
+        return c.json(
+          { jsonrpc: '2.0', id: req.id, error: { code: -32003, message: 'Agent not found' } },
+          400,
+        );
+      const definition = aiMod.agentCardRegistry.getDef(agentId ?? 'revealui-creator');
+      requiresPayment = !!definition?.pricing;
+      const taskParams = {
+        ...sendParams.data,
+        metadata: definition?.pricing
+          ? { ...sendParams.data.metadata, pricing: definition.pricing }
+          : sendParams.data.metadata,
+      };
+      const execution = { agentId: agentId ?? 'revealui-creator', definition };
+      preparedTask =
+        aiMod.resumePendingTask(taskParams, scope, execution) ??
+        aiMod.createTask(taskParams, scope, execution) ??
+        undefined;
+      if (!preparedTask)
+        return c.json(
+          { jsonrpc: '2.0', id: req.id, error: { code: -32001, message: 'Task not found' } },
+          404,
+        );
     }
 
-    // Extract optional agent ID from X-Agent-ID header
-    const agentId = c.req.header('X-Agent-ID');
+    if (!scope)
+      return c.json(
+        { jsonrpc: '2.0', id: req.id, error: { code: -32001, message: 'Task not found' } },
+        404,
+      );
 
     // x402 payment proof verification: when an X-PAYMENT-PAYLOAD header is
     // present on an executable JSON-RPC method, verify it before calling
@@ -1214,13 +1256,30 @@ a2a.openapi(
       }
     }
 
+    // Consume the private execution reservation atomically before metering.
+    // An unpaid task remains pending and incurs no execution quota.
+    if (preparedTask && (!requiresPayment || paymentVerified)) {
+      if (!aiMod.claimTask(preparedTask, scope))
+        return c.json(
+          { jsonrpc: '2.0', id: req.id, error: { code: -32001, message: 'Task not found' } },
+          404,
+        );
+      const quotaResponse = await requireTaskQuota(c, async () => {
+        // Execution follows the metering decision using the same one-use claim.
+      });
+      if (quotaResponse instanceof Response) {
+        aiMod.updateTaskState(preparedTask.id, 'failed');
+        return quotaResponse;
+      }
+    }
+
     // Resolve the LLM client via the GAP-360 resolver: per-account BYOK on
     // hosted, env on self-hosted. userId comes from the authenticated session
     // context only (§6.1), never from the JSON-RPC request params/body. A
     // hosted account with no usable key surfaces as HTTP 409 with an actionable
     // settings path, not a silent localhost hang.
     let llmClient: unknown;
-    if (aiMod) {
+    if (executionMethods.has(req.method) && (!requiresPayment || paymentVerified)) {
       const sessionUserId = c.get('user')?.id ?? null;
       try {
         const db = getClient();
@@ -1231,6 +1290,7 @@ a2a.openapi(
       } catch (err) {
         const notConfigured = asLLMNotConfigured(err);
         if (notConfigured) {
+          if (preparedTask) aiMod.updateTaskState(preparedTask.id, 'failed');
           return c.json(
             {
               jsonrpc: '2.0',
@@ -1256,7 +1316,7 @@ a2a.openapi(
       req,
       agentId ?? undefined,
       llmClient as HandleParams[2],
-      { paymentVerified },
+      { paymentVerified, scope, preparedTask },
     );
     const completedAt = Date.now();
 
@@ -1326,7 +1386,7 @@ a2a.openapi(
       })();
     }
 
-    return c.json(result);
+    return c.json(result, result.error?.code === -32001 ? 404 : 200);
   },
 );
 

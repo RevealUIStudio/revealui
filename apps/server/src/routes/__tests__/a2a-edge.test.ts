@@ -24,6 +24,10 @@ const {
   mockUpdate,
   mockHandleA2AJsonRpc,
   mockGetTask,
+  mockCreateTask,
+  mockResumePendingTask,
+  mockClaimTask,
+  mockUpdateTaskState,
   mockIsFeatureEnabled,
   mockAgentDefinitionSafeParse,
   mockA2AJsonRpcSafeParse,
@@ -44,6 +48,10 @@ const {
   mockUpdate: vi.fn(),
   mockHandleA2AJsonRpc: vi.fn(),
   mockGetTask: vi.fn(),
+  mockCreateTask: vi.fn(),
+  mockResumePendingTask: vi.fn(),
+  mockClaimTask: vi.fn(),
+  mockUpdateTaskState: vi.fn(),
   mockIsFeatureEnabled: vi.fn(() => true),
   mockAgentDefinitionSafeParse: vi.fn((data: unknown) => ({ success: true, data })),
   mockA2AJsonRpcSafeParse: vi.fn((data: unknown) => ({ success: true, data })),
@@ -80,6 +88,10 @@ vi.mock('@revealui/ai', () => ({
   },
   handleA2AJsonRpc: mockHandleA2AJsonRpc,
   getTask: mockGetTask,
+  createTask: mockCreateTask,
+  resumePendingTask: mockResumePendingTask,
+  claimTask: mockClaimTask,
+  updateTaskState: mockUpdateTaskState,
   RPC_PARSE_ERROR: -32700,
   RPC_INVALID_REQUEST: -32600,
 }));
@@ -270,6 +282,13 @@ function resetMocks() {
   mockUpdate.mockImplementation(() => undefined);
   mockIsFeatureEnabled.mockReturnValue(true);
   mockHandleA2AJsonRpc.mockResolvedValue({ jsonrpc: '2.0', id: 1, result: { status: 'ok' } });
+  mockCreateTask.mockImplementation((params) => ({
+    ...params,
+    id: params.id ?? 'generated-task',
+    status: { state: 'submitted' },
+  }));
+  mockResumePendingTask.mockReturnValue(null);
+  mockClaimTask.mockReturnValue(true);
   mockBuildPaymentMethods.mockReturnValue(null);
   mockBuildPaymentRequired.mockReturnValue({ x402Version: 1, accepts: [] });
   mockEncodePaymentRequired.mockReturnValue('mock-encoded-payment-required');
@@ -635,7 +654,11 @@ describe('authenticated agent action attribution', () => {
           jsonrpc: '2.0',
           id: 1,
           method: 'tasks/send',
-          params: { actorUserId: 'forged', accountId: 'account-b' },
+          params: {
+            actorUserId: 'forged',
+            accountId: 'account-b',
+            message: { role: 'user', parts: [{ type: 'text', text: 'Run' }] },
+          },
         }),
       );
       await vi.waitFor(() => expect(values).toHaveBeenCalled());
@@ -660,23 +683,26 @@ describe('authenticated agent action attribution', () => {
 describe('GET /a2a/stream/:taskId  -  SSE stream', () => {
   beforeEach(resetMocks);
 
-  it('sends error event and closes when task is not found', async () => {
+  it('denies anonymous resubscription before reading task state', async () => {
+    mockGetTask.mockReturnValue({ id: 'private-task', status: { state: 'completed' } });
+    const response = await makeA2AApp().request(get('/stream/private-task'));
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: 'Task not found' });
+    expect(mockGetTask).not.toHaveBeenCalled();
+  });
+
+  it('returns absence before opening an SSE stream when task is not found', async () => {
     mockGetTask.mockReturnValue(undefined);
 
     const app = makeA2AApp({ id: 'user-1' });
     const res = await app.request(get('/stream/task-missing'));
 
-    expect(res.status).toBe(200);
-    expect(res.headers.get('Content-Type')).toContain('text/event-stream');
-
-    const text = await res.text();
-    const events = text
-      .split('\n')
-      .filter((l) => l.startsWith('data: '))
-      .map((l) => JSON.parse(l.slice(6)) as Record<string, unknown>);
-
-    expect(events).toHaveLength(1);
-    expect(events[0]?.error).toContain('task-missing');
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({ error: 'Task not found' });
+    expect(mockGetTask).toHaveBeenCalledWith('task-missing', {
+      actorUserId: 'user-1',
+      accountId: null,
+    });
   });
 
   it('sends task data and closes when task is in a terminal state', async () => {
@@ -719,7 +745,10 @@ describe('POST /a2a  -  quota enforcement', () => {
         jsonrpc: '2.0',
         id: 1,
         method: 'tasks/send',
-        params: { id: 'test-agent', message: { role: 'user', parts: [{ text: 'hi' }] } },
+        params: {
+          id: 'test-agent',
+          message: { role: 'user', parts: [{ type: 'text', text: 'hi' }] },
+        },
       }),
     );
 
@@ -783,7 +812,10 @@ describe('POST /a2a  -  JSON-RPC validation edge cases', () => {
         jsonrpc: '2.0',
         id: 1,
         method: 'tasks/send',
-        params: { id: 'test-agent', message: { role: 'user', parts: [{ text: 'hi' }] } },
+        params: {
+          id: 'test-agent',
+          message: { role: 'user', parts: [{ type: 'text', text: 'hi' }] },
+        },
       }),
     );
     const body = (await res.json()) as { error?: { message?: string } };
@@ -799,7 +831,10 @@ describe('POST /a2a  -  JSON-RPC validation edge cases', () => {
         jsonrpc: '2.0',
         id: 1,
         method: 'tasks/send',
-        params: { id: 'test-agent', message: { role: 'user', parts: [{ text: 'hi' }] } },
+        params: {
+          id: 'test-agent',
+          message: { role: 'user', parts: [{ type: 'text', text: 'hi' }] },
+        },
       }),
     );
 
@@ -822,7 +857,10 @@ describe('POST /a2a  -  JSON-RPC validation edge cases', () => {
         jsonrpc: '2.0',
         id: 2,
         method: 'tasks/sendSubscribe',
-        params: { id: 'test-agent', message: { role: 'user', parts: [{ text: 'stream' }] } },
+        params: {
+          id: 'test-agent',
+          message: { role: 'user', parts: [{ type: 'text', text: 'stream' }] },
+        },
       }),
     );
 
@@ -982,7 +1020,10 @@ describe('POST /a2a  -  x402 pending-payment flow', () => {
         jsonrpc: '2.0',
         id: 1,
         method: 'tasks/send',
-        params: { id: 'paid-agent', message: { role: 'user', parts: [{ text: 'do work' }] } },
+        params: {
+          id: 'paid-agent',
+          message: { role: 'user', parts: [{ type: 'text', text: 'do work' }] },
+        },
       }),
     );
 
@@ -1012,7 +1053,10 @@ describe('POST /a2a  -  x402 pending-payment flow', () => {
           jsonrpc: '2.0',
           id: 2,
           method: 'tasks/send',
-          params: { id: 'paid-agent', message: { role: 'user', parts: [{ text: 'work' }] } },
+          params: {
+            id: 'paid-agent',
+            message: { role: 'user', parts: [{ type: 'text', text: 'work' }] },
+          },
         },
         { 'X-PAYMENT-PAYLOAD': 'valid-base64-proof' },
       ),
@@ -1021,7 +1065,10 @@ describe('POST /a2a  -  x402 pending-payment flow', () => {
     expect(res.status).toBe(200);
     expect(mockVerifyPayment).toHaveBeenCalledWith('valid-base64-proof', expect.any(String), 'a2a');
     const callArgs = mockHandleA2AJsonRpc.mock.calls[0];
-    expect(callArgs?.[3]).toEqual({ paymentVerified: true });
+    expect(callArgs?.[3]).toMatchObject({
+      paymentVerified: true,
+      scope: { actorUserId: 'user-1', accountId: null },
+    });
   });
 
   it('returns 402 immediately when X-PAYMENT-PAYLOAD fails verification', async () => {
@@ -1040,7 +1087,10 @@ describe('POST /a2a  -  x402 pending-payment flow', () => {
           jsonrpc: '2.0',
           id: 3,
           method: 'tasks/send',
-          params: { id: 'paid-agent', message: { role: 'user', parts: [{ text: 'work' }] } },
+          params: {
+            id: 'paid-agent',
+            message: { role: 'user', parts: [{ type: 'text', text: 'work' }] },
+          },
         },
         { 'X-PAYMENT-PAYLOAD': 'bad-base64-proof' },
       ),
@@ -1091,13 +1141,118 @@ describe('POST /a2a  -  x402 pending-payment flow', () => {
         jsonrpc: '2.0',
         id: 5,
         method: 'tasks/send',
-        params: { id: 'free-agent', message: { role: 'user', parts: [{ text: 'work' }] } },
+        params: {
+          id: 'free-agent',
+          message: { role: 'user', parts: [{ type: 'text', text: 'work' }] },
+        },
       }),
     );
 
     expect(res.status).toBe(200);
     expect(mockVerifyPayment).not.toHaveBeenCalled();
     const callArgs = mockHandleA2AJsonRpc.mock.calls[0];
-    expect(callArgs?.[3]).toEqual({ paymentVerified: false });
+    expect(callArgs?.[3]).toMatchObject({
+      paymentVerified: false,
+      scope: { actorUserId: 'user-1', accountId: null },
+    });
+  });
+});
+
+describe('A2A execution reservation and payment continuation', () => {
+  beforeEach(resetMocks);
+  const request = {
+    jsonrpc: '2.0',
+    id: 'paid-continuation',
+    method: 'tasks/send',
+    params: {
+      id: 'owned-paid-task',
+      message: { role: 'user', parts: [{ type: 'text', text: 'Run once' }] },
+    },
+  };
+  const prepared = { id: 'owned-paid-task', status: { state: 'submitted' } };
+
+  it.each(['tasks/get', 'tasks/cancel'])('denies anonymous %s before dispatch', async (method) => {
+    const response = await makeA2AApp().request(post('/', { ...request, method }));
+    expect(response.status).toBe(404);
+    expect(await response.json()).toMatchObject({
+      error: { code: -32001, message: 'Task not found' },
+    });
+    expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
+    expect(mockRequireTaskQuota).not.toHaveBeenCalled();
+  });
+
+  it('rejects a task collision before quota, payment verification, or handler invocation', async () => {
+    mockCreateTask.mockReturnValue(null);
+    const response = await makeA2AApp({ id: 'user-1' }, { features: { ai: true } }).request(
+      post('/', request, { 'X-PAYMENT-PAYLOAD': 'proof' }),
+    );
+    expect(response.status).toBe(404);
+    expect(mockRequireTaskQuota).not.toHaveBeenCalled();
+    expect(mockVerifyPayment).not.toHaveBeenCalled();
+    expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
+  });
+
+  it('cannot transplant an owned payment reservation to another agent with the same pricing', async () => {
+    mockHas.mockReturnValue(true);
+    mockGetDef.mockReturnValue({ pricing: { usdc: '0.001' } });
+    mockResumePendingTask.mockImplementation((_params, _scope, binding) =>
+      binding.agentId === 'original-agent' ? prepared : null,
+    );
+    mockCreateTask.mockReturnValue(null);
+    const response = await makeA2AApp({ id: 'user-1' }, { features: { ai: true } }).request(
+      post('/', request, { 'X-Agent-ID': 'changed-agent', 'X-PAYMENT-PAYLOAD': 'proof' }),
+    );
+    expect(response.status).toBe(404);
+    expect(mockResumePendingTask).toHaveBeenCalledWith(
+      expect.anything(),
+      { actorUserId: 'user-1', accountId: null },
+      { agentId: 'changed-agent', definition: { pricing: { usdc: '0.001' } } },
+    );
+    expect(mockVerifyPayment).not.toHaveBeenCalled();
+    expect(mockRequireTaskQuota).not.toHaveBeenCalled();
+    expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
+  });
+
+  it.each([undefined, 'invalid-proof'])(
+    'keeps unpaid continuation pending without metering for proof %j',
+    async (proof) => {
+      mockGetDef.mockReturnValue({ pricing: { usdc: '0.001' } });
+      mockResumePendingTask.mockReturnValue(prepared);
+      mockVerifyPayment.mockResolvedValue({ valid: false, error: 'Invalid proof' });
+      mockHandleA2AJsonRpc.mockResolvedValue({
+        jsonrpc: '2.0',
+        id: request.id,
+        result: { id: prepared.id, status: { state: 'pending-payment' } },
+      });
+      const response = await makeA2AApp({ id: 'user-1' }, { features: { ai: true } }).request(
+        post('/', request, proof ? { 'X-PAYMENT-PAYLOAD': proof } : undefined),
+      );
+      expect(response.status).toBe(402);
+      expect(mockCreateTask).not.toHaveBeenCalled();
+      expect(mockClaimTask).not.toHaveBeenCalled();
+      expect(mockRequireTaskQuota).not.toHaveBeenCalled();
+      expect(mockUpdateTaskState).not.toHaveBeenCalled();
+    },
+  );
+
+  it('meters and invokes only one of two verified continuations sharing the same reservation', async () => {
+    mockGetDef.mockReturnValue({ pricing: { usdc: '0.001' } });
+    mockResumePendingTask.mockReturnValue(prepared);
+    mockClaimTask.mockReturnValueOnce(true).mockReturnValue(false);
+    const app = makeA2AApp({ id: 'user-1' }, { features: { ai: true } });
+    const responses = await Promise.all([
+      app.request(post('/', request, { 'X-PAYMENT-PAYLOAD': 'verified-proof' })),
+      app.request(post('/', request, { 'X-PAYMENT-PAYLOAD': 'verified-proof' })),
+    ]);
+    expect(responses.map((response) => response.status).sort()).toEqual([200, 404]);
+    expect(mockVerifyPayment).toHaveBeenCalledTimes(2);
+    expect(mockRequireTaskQuota).toHaveBeenCalledTimes(1);
+    expect(mockHandleA2AJsonRpc).toHaveBeenCalledTimes(1);
+    expect(mockVerifyPayment.mock.invocationCallOrder[0]).toBeLessThan(
+      mockClaimTask.mock.invocationCallOrder[0]!,
+    );
+    expect(mockClaimTask.mock.invocationCallOrder[0]).toBeLessThan(
+      mockRequireTaskQuota.mock.invocationCallOrder[0]!,
+    );
   });
 });

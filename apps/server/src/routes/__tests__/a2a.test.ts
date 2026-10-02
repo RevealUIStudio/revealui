@@ -184,7 +184,14 @@ function makeWellKnownApp() {
 }
 
 function makeA2AApp() {
-  const app = new Hono();
+  const app = new Hono<{
+    Variables: { user: { id: string }; entitlements: { userId: string; accountId: string } };
+  }>();
+  app.use('*', async (c, next) => {
+    c.set('user', { id: 'test-actor' });
+    c.set('entitlements', { userId: 'test-actor', accountId: 'test-account' });
+    await next();
+  });
   app.route('/', a2aRoutes);
   return app;
 }
