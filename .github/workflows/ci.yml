@@ -983,6 +983,7 @@ jobs:
           # NODE_ENV is the Vercel serverless entry (worker.ts owns Fly prod).
           SKIP_ENV_VALIDATION: "true"
           NODE_ENV: "development"
+          REVEALUI_DEPLOYMENT_MODE: "forge"
           POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
           REVEALUI_SECRET: "e2e-smoke-secret-at-least-32-chars-long"
           REVEALUI_PUBLIC_SERVER_URL: "http://localhost:3004"
@@ -999,6 +1000,7 @@ jobs:
           REVEALUI_PUBLIC_SERVER_URL: "http://localhost:4000"
           REVEALUI_KEK: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
           REVEALUI_ALLOW_UNLICENSED_SELF_HOST: "true"
+          REVEALUI_DEPLOYMENT_MODE: "forge"
 
       - name: Start marketing server
         run: pnpm --filter marketing start &
@@ -1116,6 +1118,7 @@ jobs:
           REVEALUI_PUBLIC_SERVER_URL: "http://localhost:4000"
           REVEALUI_KEK: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
           REVEALUI_ALLOW_UNLICENSED_SELF_HOST: "true"
+          REVEALUI_DEPLOYMENT_MODE: "forge"
 
       - name: Start marketing server
         run: pnpm --filter marketing start &
@@ -1230,6 +1233,7 @@ jobs:
           REVEALUI_PUBLIC_SERVER_URL: "http://localhost:4000"
           REVEALUI_KEK: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
           REVEALUI_ALLOW_UNLICENSED_SELF_HOST: "true"
+          REVEALUI_DEPLOYMENT_MODE: "forge"
 
       - name: Wait for Admin
         run: |
