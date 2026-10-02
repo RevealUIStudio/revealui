@@ -10,9 +10,15 @@ export { handleA2AJsonRpc, RPC_INVALID_REQUEST, RPC_PARSE_ERROR } from './handle
 export {
   appendArtifact,
   cancelTask,
+  claimTask,
   createTask,
   evictTask,
   getTask,
+  getTaskExecutionFingerprint,
+  getTaskInputFingerprint,
   getTaskSignal,
+  resumePendingTask,
+  startClaimedTask,
   updateTaskState,
+  withoutCallerReceipt,
 } from './task-store.js';
