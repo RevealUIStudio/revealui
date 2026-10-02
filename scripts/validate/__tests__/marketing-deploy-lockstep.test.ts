@@ -1,4 +1,6 @@
-import { readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
@@ -132,6 +134,48 @@ describe('evaluateMarketingDeployLockstep', () => {
     expect(claims).toEqual([]);
   });
 
+  it('preserves a human-authored promotion when backflow synchronizes it', () => {
+    expect(
+      isBotPromoteAttempt({
+        actor: 'revealfleet-backflow[bot]',
+        baseRef: 'main',
+        headRef: 'test',
+        eventName: 'pull_request',
+        event: { pull_request: { user: { login: 'RevealUIStudio', type: 'User' } } },
+      }),
+    ).toBe(false);
+  });
+
+  it('rejects a bot-authored promotion even when a human synchronizes it', () => {
+    expect(
+      isBotPromoteAttempt({
+        actor: 'RevealUIStudio',
+        baseRef: 'main',
+        headRef: 'test',
+        eventName: 'pull_request',
+        event: { pull_request: { user: { login: 'promotion-app', type: 'Bot' } } },
+      }),
+    ).toBe(true);
+  });
+
+  it.each([
+    undefined,
+    {},
+    { pull_request: {} },
+    { pull_request: { user: { login: 'RevealUIStudio' } } },
+    { pull_request: { user: { login: '', type: 'User' } } },
+  ])('fails closed when a promotion has no trusted PR author: %j', (event) => {
+    expect(() =>
+      isBotPromoteAttempt({
+        actor: 'RevealUIStudio',
+        baseRef: 'main',
+        headRef: 'test',
+        eventName: 'pull_request',
+        event,
+      }),
+    ).toThrow('trusted pull-request author');
+  });
+
   it('rejects a bot promote of test to main', () => {
     expect(
       isBotPromoteAttempt({
@@ -210,5 +254,38 @@ describe('committed declaration', () => {
     const hashed = hashSurfaces(ROOT, parsed.declaration?.honestySurfaces ?? []);
     expect(hashed.missing).toEqual([]);
     expect(scanMarketingHonestyClaims(ROOT)).toEqual([]);
+  });
+});
+
+describe('GitHub promotion event provenance', () => {
+  it.each([
+    { author: { login: 'owner', type: 'User' }, actor: 'backflow[bot]', status: 0 },
+    { author: { login: 'promotion-app', type: 'Bot' }, actor: 'owner', status: 1 },
+  ])('uses the trusted event author when the updater is $actor', ({ author, actor, status }) => {
+    const dir = mkdtempSync(join(tmpdir(), 'promotion-event-test-'));
+    try {
+      const eventPath = join(dir, 'event.json');
+      writeFileSync(eventPath, JSON.stringify({ pull_request: { user: author } }));
+      const result = spawnSync(
+        process.execPath,
+        [join(ROOT, 'scripts/validate/marketing-deploy-lockstep.ts')],
+        {
+          cwd: ROOT,
+          encoding: 'utf8',
+          env: {
+            ...process.env,
+            GITHUB_EVENT_NAME: 'pull_request',
+            GITHUB_EVENT_PATH: eventPath,
+            GITHUB_ACTOR: actor,
+            GITHUB_BASE_REF: 'main',
+            GITHUB_HEAD_REF: 'test',
+          },
+        },
+      );
+      expect(result.status, result.stderr + result.stdout).toBe(status);
+      if (status === 1) expect(result.stdout).toContain('Bot must not promote');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
