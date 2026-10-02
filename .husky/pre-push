@@ -5,10 +5,8 @@ if [ -z "$BASH_VERSION" ]; then
 fi
 
 # ── Execute from memory: the whole body is parsed before any of it runs ──
-# The dirty-save below reverts tracked files with `git checkout -- .` and
-# copies them back after the gate; when .husky/pre-push is itself dirty,
-# both steps rewrite this file on disk while it is executing (peer sessions
-# switching the shared checkout mid-push can do the same). A shell may
+# Peer sessions switching the shared checkout can rewrite this file while
+# a hook is running. A shell may
 # re-read a running script from disk between commands, so a mid-run rewrite
 # can corrupt execution, including the final gate exit status. Every code
 # path below exits inside this brace group, so the on-disk file is never
@@ -23,14 +21,21 @@ fi
 ZERO_SHA=0000000000000000000000000000000000000000
 PROTECTED_BRANCH=""
 FEATURE_BRANCH=""
+PUSH_SOURCE_SHA=""
 while read -r _local_ref local_sha remote_ref _remote_sha; do
   [ -z "$remote_ref" ] && continue
   [ "$local_sha" = "$ZERO_SHA" ] && continue # deletion: no local commits to validate
+  if [[ "$remote_ref" == refs/heads/* ]] && [ "$local_sha" != "$(git rev-parse HEAD)" ]; then
+    echo "husky pre-push: source differs from HEAD — validate its own checkout before pushing" >&2
+    exit 1
+  fi
   case "$remote_ref" in
     refs/heads/main|refs/heads/test)
+      PUSH_SOURCE_SHA="$local_sha"
       PROTECTED_BRANCH="${remote_ref#refs/heads/}"
       ;;
     refs/heads/*)
+      PUSH_SOURCE_SHA="$local_sha"
       FEATURE_BRANCH="${remote_ref#refs/heads/}"
       ;;
   esac
@@ -44,6 +49,18 @@ fi
 
 # ── Sentinel file: signals to auto-commit hook that a gate is running ──
 GIT_DIR=$(git rev-parse --git-dir)
+if ! command -v flock >/dev/null 2>&1; then
+  echo "husky pre-push: flock required for ownership-safe admission — fail closed" >&2
+  exit 1
+fi
+# Protect the existing sentinel and source check for the complete hook lifetime.
+# Never unlink this lease file or wait while Git's transport is already open.
+umask 077
+exec 8>>"$GIT_DIR/prepush-admission.lock"
+if ! flock --exclusive --nonblock 8; then
+  echo "husky pre-push: another hook owns this checkout — push rejected" >&2
+  exit 1
+fi
 GATE_SENTINEL="$GIT_DIR/gate-in-progress"
 cleanup_sentinel() { rm -f "$GATE_SENTINEL"; }
 trap cleanup_sentinel EXIT
@@ -61,56 +78,16 @@ if [ ! -e "$ROOT/node_modules" ]; then
   exit 1
 fi
 
-# ── Save dirty files to /tmp (never use git stash — it loses data on pop) ──
-# Skip if the coordinated push script already handled this
-SAVE_DIR=""
-if [ "${REVEALUI_PUSH_COORDINATED:-0}" != "1" ]; then
-  DIRTY=$(git status --porcelain -u 2>/dev/null || true)
-  if [ -n "$DIRTY" ]; then
-    SAVE_DIR="/tmp/revealui-prepush-save-$$"
-    mkdir -p "$SAVE_DIR/files"
-    : > "$SAVE_DIR/manifest"
-
-    echo ""
-    echo "Saving uncommitted files before gate..."
-
-    # Write status to temp file to avoid subshell
-    STATUS_FILE=$(mktemp)
-    git status --porcelain -u > "$STATUS_FILE" 2>/dev/null || true
-
-    while IFS= read -r line; do
-      status="${line:0:2}"
-      filepath="${line:3}"
-      [[ "$status" == " D" || "$status" == "D " ]] && continue
-      [[ "$filepath" == *" -> "* ]] && filepath="${filepath##* -> }"
-      filepath="${filepath%\"}"
-      filepath="${filepath#\"}"
-      if [ -f "$filepath" ]; then
-        dir=$(dirname "$filepath")
-        mkdir -p "$SAVE_DIR/files/$dir"
-        cp -f "$filepath" "$SAVE_DIR/files/$filepath"
-        echo "$filepath" >> "$SAVE_DIR/manifest"
-      fi
-    done < "$STATUS_FILE"
-    rm -f "$STATUS_FILE"
-
-    FILE_COUNT=$(wc -l < "$SAVE_DIR/manifest")
-    echo "  Saved $FILE_COUNT file(s) to $SAVE_DIR"
-
-    # Clean worktree
-    git checkout -- . 2>/dev/null || true
-    while IFS= read -r relpath; do
-      if ! git ls-files --error-unmatch "$relpath" >/dev/null 2>&1; then
-        rm -f "$relpath" 2>/dev/null || true
-      fi
-    done < "$SAVE_DIR/manifest"
-  fi
-else
-  echo ""
-  echo "(Dirty file handling by coordinated push script)"
+# Validate the exact committed source without changing staged or dirty work.
+# No lossy snapshot/restore path or caller override flag.
+SOURCE_STATUS=$(git status --porcelain --untracked-files=all)
+if [ -n "$SOURCE_STATUS" ]; then
+  echo "husky pre-push: clean index and worktree required — uncommitted work preserved" >&2
+  exit 1
 fi
 
 # Branch-aware gate strictness, keyed to the pushed refs
+VALIDATED_SHA="$PUSH_SOURCE_SHA"
 #   main/test: quality + typecheck (build + tests deferred to CI)
 #   feature/*: quality-only (local dev, no CI)
 GATE_EXIT=0
@@ -126,17 +103,11 @@ else
   pnpm gate --phase=1 --changed || GATE_EXIT=$?
 fi
 
-# Restore saved files (plain copy — never conflicts)
-if [ -n "$SAVE_DIR" ] && [ -f "$SAVE_DIR/manifest" ]; then
-  echo ""
-  echo "Restoring saved files..."
-  while IFS= read -r relpath; do
-    dir=$(dirname "$relpath")
-    mkdir -p "$dir"
-    cp -f "$SAVE_DIR/files/$relpath" "$relpath"
-  done < "$SAVE_DIR/manifest"
-  echo "  Restored $(wc -l < "$SAVE_DIR/manifest") file(s)"
-  rm -rf "$SAVE_DIR"
+AFTER_SHA=$(git rev-parse HEAD)
+AFTER_STATUS=$(git status --porcelain --untracked-files=all)
+if [ "$VALIDATED_SHA" != "$AFTER_SHA" ] || [ -n "$AFTER_STATUS" ]; then
+  echo "husky pre-push: source changed during validation — push rejected, work preserved" >&2
+  exit 1
 fi
 
 exit $GATE_EXIT
