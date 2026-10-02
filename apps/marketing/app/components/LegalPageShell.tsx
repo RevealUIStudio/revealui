@@ -31,7 +31,7 @@ export function LegalPageShell({
   children,
 }: LegalPageShellProps): React.JSX.Element {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen wrap-anywhere bg-background">
       {notice ? (
         <MarketingSection tone="background" density="compact" width={width}>
           <Callout variant={notice.variant} title={notice.title}>
