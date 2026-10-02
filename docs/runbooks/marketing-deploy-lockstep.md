@@ -16,6 +16,8 @@ Marketing copy can land on `test` before customers see it. Production updates on
 - Prose that says test honesty is already what customers see fails the guard.
 - A bot must not promote `test` to `main`. The owner promotes when live should match test honesty. This check never opens that promotion.
 
+For pull-request checks, the guard reads the promotion author from the GitHub-provided event payload. A backflow bot can synchronize an owner-authored promotion without becoming its author. Bot-authored promotions remain forbidden even when a human synchronizes them; missing or malformed author context fails closed. Outside pull-request events, the guard uses the event actor.
+
 Offer lock still on test, not on main (verified 2026-09-23):
 
 - RevealUI [pull 2925](https://github.com/RevealUIStudio/revealui/pull/2925) — Consultation $300, Proof Sprint $3,997, Launch $14,500
