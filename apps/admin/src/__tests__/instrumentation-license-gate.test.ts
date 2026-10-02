@@ -26,7 +26,8 @@ const loggerMock = {
   addLogHandler: vi.fn(),
 };
 
-vi.mock('@revealui/core/deployment-mode', () => ({
+vi.mock('@revealui/core/deployment-mode', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@revealui/core/deployment-mode')>()),
   detectDeploymentMode: (...args: unknown[]) => detectDeploymentMode(...args),
 }));
 
@@ -42,6 +43,17 @@ vi.mock('@/lib/utils/env-validation', () => ({
 }));
 
 vi.mock('@revealui/security', () => ({ configureClientIp: vi.fn() }));
+
+// This suite exercises the real license/posture boundary. Telemetry and audit
+// persistence have their own integration suites and must not initialize here.
+vi.mock('../../sentry.server.config', () => ({}));
+vi.mock('../../sentry.edge.config', () => ({}));
+vi.mock('@sentry/nextjs', () => ({ captureRequestError: vi.fn() }));
+vi.mock('@revealui/auth/audit-storage', () => ({
+  assertAuditStorageEnv: vi.fn(),
+  auditStorageSelfTest: vi.fn(async () => undefined),
+  installAuditStorage: vi.fn(),
+}));
 
 describe('instrumentation.ts register() — Forge boot license enforcement (GAP-436)', () => {
   let exitSpy: ReturnType<typeof vi.spyOn>;
@@ -119,6 +131,20 @@ describe('instrumentation.ts register() — Forge boot license enforcement (GAP-
     expect(exitSpy).not.toHaveBeenCalled();
     expect(loggerMock.info).not.toHaveBeenCalledWith('no license key — running Free (OSS) tier');
   });
+
+  it.each(['', 'typo'])(
+    'refuses production boot with unknown mode %s even under legacy SKIP',
+    async (mode) => {
+      vi.stubEnv('NODE_ENV', 'production');
+      vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', mode);
+      vi.stubEnv('SKIP_ENV_VALIDATION', 'true');
+      const { register } = await import('../instrumentation');
+      await expect(register()).rejects.toThrow('__process-exit-called__');
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(stderrSpy).toHaveBeenCalledWith(expect.stringContaining('REVEALUI_DEPLOYMENT_MODE'));
+      expect(detectDeploymentMode).not.toHaveBeenCalled();
+    },
+  );
 
   it('does not run the Node license gate on Edge (GAP-335)', async () => {
     detectDeploymentMode.mockReturnValue('forge');
