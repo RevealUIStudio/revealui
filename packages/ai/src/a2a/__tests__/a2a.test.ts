@@ -10,6 +10,8 @@ import {
   getTask as getOwnedTask,
   getTaskSignal as getOwnedTaskSignal,
   getTaskExecution,
+  getTaskExecutionFingerprint,
+  getTaskInputFingerprint,
   resumePendingTask,
   startClaimedTask,
   updateTaskState,
@@ -54,6 +56,37 @@ function trackTaskId(id: string) {
   createdTaskIds.push(id);
   return id;
 }
+
+it('does not evict a newer reservation when an older insert attempt fails', () => {
+  const id = trackTaskId('receipt-eviction-provenance');
+  const old = createTask({ id, message: userMessage('Old request') });
+  evictTask(id, old);
+  const current = createTask({ id, message: userMessage('Current request') });
+  evictTask(id, old);
+  expect(getTask(id)).toBe(current);
+  evictTask(id, current);
+  expect(getTask(id)).toBeNull();
+});
+
+it('binds receipt fingerprints to canonical input and trusted execution, excluding the caller receipt namespace', async () => {
+  const request = { message: userMessage('Run'), metadata: { b: 2, a: 1 } };
+  const same = {
+    metadata: { a: 1, b: 2, receipt: { persisted: true } },
+    message: userMessage('Run'),
+  };
+  expect(await getTaskInputFingerprint(request, executionBinding)).toBe(
+    await getTaskInputFingerprint(same, executionBinding),
+  );
+  expect(await getTaskInputFingerprint(request, executionBinding)).not.toBe(
+    await getTaskInputFingerprint(
+      { ...request, message: userMessage('Changed') },
+      executionBinding,
+    ),
+  );
+  expect(await getTaskExecutionFingerprint(executionBinding)).not.toBe(
+    await getTaskExecutionFingerprint({ ...executionBinding, agentId: 'other-agent' }),
+  );
+});
 
 describe('a2a agent card registry', () => {
   afterEach(() => {

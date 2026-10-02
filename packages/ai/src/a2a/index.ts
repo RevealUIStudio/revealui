@@ -14,8 +14,11 @@ export {
   createTask,
   evictTask,
   getTask,
+  getTaskExecutionFingerprint,
+  getTaskInputFingerprint,
   getTaskSignal,
   resumePendingTask,
   startClaimedTask,
   updateTaskState,
+  withoutCallerReceipt,
 } from './task-store.js';

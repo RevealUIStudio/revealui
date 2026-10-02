@@ -21,6 +21,7 @@ import type { A2AJsonRpcRequest, A2ATask } from '@revealui/contracts';
 import {
   A2AJsonRpcRequestSchema,
   A2ASendTaskParamsSchema,
+  A2ATaskSchema,
   AgentDefinitionSchema,
 } from '@revealui/contracts';
 import { getExplicitDeploymentMode } from '@revealui/core/deployment-mode';
@@ -29,6 +30,7 @@ import { trackX402PaymentRequired } from '@revealui/core/observability/metrics';
 import { classifyAuditWriteFailure } from '@revealui/core/security';
 import { getClient } from '@revealui/db';
 import {
+  type AgentAction,
   type AgentActionScope,
   agentActions,
   marketplaceServers,
@@ -85,6 +87,199 @@ function actionScopePredicate(scope: AgentActionScope) {
     eq(agentActions.actorUserId, scope.actorUserId),
     scope.accountId ? eq(agentActions.accountId, scope.accountId) : isNull(agentActions.accountId),
   );
+}
+
+type AiRuntime = NonNullable<Awaited<ReturnType<typeof getAiModule>>>;
+const RECEIPT_VERSION = 2;
+const executionMethods = new Set(['tasks/send', 'tasks/sendSubscribe']);
+const receiptPayloadSchema = z.object({
+  request: A2ASendTaskParamsSchema,
+  binding: z.object({
+    agentId: z.string().min(1),
+    definitionDigest: z.string().regex(/^[a-f0-9]{64}$/),
+    inputDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  }),
+});
+type ReceiptPayload = z.infer<typeof receiptPayloadSchema>;
+
+function receiptPayload(row: AgentAction): ReceiptPayload | null {
+  if (row.version !== RECEIPT_VERSION || !executionMethods.has(row.tool)) return null;
+  const parsed = receiptPayloadSchema.safeParse(row.params);
+  return parsed.success ? parsed.data : null;
+}
+
+function jsonObject(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+/** Remove the reserved server receipt namespace without changing historical data. */
+function withoutReceiptMetadata(value: unknown): unknown {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
+  const record = jsonObject(value);
+  const metadata = record.metadata;
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return value;
+  const clean = Object.fromEntries(
+    Object.entries(jsonObject(metadata)).filter(([key]) => key !== 'receipt'),
+  );
+  return { ...record, metadata: clean };
+}
+
+function receiptTask(task: A2ATask, persisted: boolean, error?: string): A2ATask {
+  const metadata = Object.fromEntries(
+    Object.entries(task.metadata ?? {}).filter(([key]) => key !== 'receipt'),
+  );
+  return {
+    ...task,
+    metadata: {
+      ...metadata,
+      receipt: {
+        taskId: task.id,
+        status: task.status.state,
+        persisted,
+        ...(error
+          ? { error: { code: 'RECEIPT_WRITE_FAILED', message: error, retry: 'tasks/get' } }
+          : {}),
+      },
+    },
+  };
+}
+
+function isTerminalTask(task: A2ATask): boolean {
+  return ['completed', 'failed', 'canceled'].includes(task.status.state);
+}
+
+function databaseStatus(task: A2ATask): string {
+  return task.status.state === 'canceled'
+    ? 'cancelled'
+    : task.status.state === 'working'
+      ? 'running'
+      : isTerminalTask(task)
+        ? task.status.state
+        : 'pending';
+}
+
+function storedTask(row: AgentAction): A2ATask {
+  const raw = jsonObject(row.result);
+  const status = jsonObject(raw.status);
+  const phase =
+    row.status === 'pending' && receiptPayload(row) && status.state === 'pending-payment';
+  const state =
+    row.status === 'cancelled'
+      ? 'canceled'
+      : ['completed', 'failed'].includes(row.status)
+        ? row.status
+        : phase
+          ? 'pending-payment'
+          : 'unknown';
+  const candidate = {
+    ...(state === 'unknown' ? {} : raw),
+    id: row.id,
+    status: {
+      ...status,
+      state,
+      timestamp:
+        typeof status.timestamp === 'string'
+          ? status.timestamp
+          : (row.completedAt ?? row.startedAt ?? new Date()).toISOString(),
+    },
+  };
+  const parsed = A2ATaskSchema.safeParse(candidate);
+  const task: A2ATask = parsed.success
+    ? parsed.data
+    : {
+        id: row.id,
+        status: { state: 'unknown', timestamp: new Date().toISOString() },
+      };
+  return receiptTask(task, true);
+}
+
+async function lookupReceipt(taskId: string, scope: AgentActionScope): Promise<AgentAction | null> {
+  const [row] = await getClient()
+    .select()
+    .from(agentActions)
+    .where(
+      and(
+        eq(agentActions.id, taskId),
+        eq(agentActions.version, RECEIPT_VERSION),
+        actionScopePredicate(scope),
+      ),
+    )
+    .limit(1);
+  return row && row.version === RECEIPT_VERSION && executionMethods.has(row.tool) ? row : null;
+}
+
+/** Persist the known outcome without ever invoking execution or changing a terminal winner. */
+async function persistTask(task: A2ATask, scope: AgentActionScope): Promise<A2ATask> {
+  try {
+    const terminal = isTerminalTask(task);
+    const completedAt = terminal ? new Date(task.status.timestamp) : null;
+    const saved = await getClient()
+      .update(agentActions)
+      .set({
+        status: databaseStatus(task),
+        result: {
+          ...task,
+          metadata: Object.fromEntries(
+            Object.entries(task.metadata ?? {}).filter(([key]) => key !== 'receipt'),
+          ),
+        },
+        error:
+          task.status.state === 'failed'
+            ? (task.status.message?.parts
+                .filter((part) => part.type === 'text')
+                .map((part) => ('text' in part ? part.text : ''))
+                .join('\n') ?? null)
+            : null,
+        completedAt,
+      })
+      .where(
+        and(
+          eq(agentActions.id, task.id),
+          eq(agentActions.version, RECEIPT_VERSION),
+          actionScopePredicate(scope),
+          inArray(agentActions.status, terminal ? ['pending', 'running'] : ['pending']),
+        ),
+      )
+      .returning();
+    if (saved.length) return receiptTask(task, true);
+    const existing = await lookupReceipt(task.id, scope);
+    if (existing && ['completed', 'failed', 'cancelled'].includes(existing.status))
+      return storedTask(existing);
+    throw new Error('The attributed receipt reservation is unavailable');
+  } catch (error) {
+    logger.warn('A2A receipt persistence failed', {
+      taskId: task.id,
+      reason: classifyAuditWriteFailure(error),
+    });
+    return receiptTask(
+      task,
+      false,
+      'The task outcome is known, but its receipt could not be saved. Fetch this task again to retry saving the receipt; do not rerun it.',
+    );
+  }
+}
+
+async function readOwnedTask(
+  taskId: string,
+  scope: AgentActionScope,
+  ai: AiRuntime,
+): Promise<A2ATask | null> {
+  const active = ai.getTask(taskId, scope);
+  const row = await lookupReceipt(taskId, scope);
+  if (!row)
+    return active
+      ? receiptTask(active, false, 'No durable receipt is available for this task.')
+      : null;
+  if (['completed', 'failed', 'cancelled'].includes(row.status)) return storedTask(row);
+  if (
+    active &&
+    (isTerminalTask(active) ||
+      (row.status === 'pending' && active.status.state === 'pending-payment'))
+  )
+    return persistTask(active, scope);
+  return active ? receiptTask(active, true) : storedTask(row);
 }
 
 const app = new OpenAPIHono();
@@ -629,7 +824,27 @@ a2a.openapi(
         .where(and(eq(agentActions.agentId, agentId), actionScopePredicate(scope)))
         .orderBy(desc(agentActions.startedAt))
         .limit(20);
-      return c.json({ tasks: rows });
+      return c.json({
+        tasks: rows.map((row) => {
+          const params = jsonObject(withoutReceiptMetadata(row.params));
+          return {
+            ...row,
+            params:
+              row.params && typeof row.params === 'object' && !Array.isArray(row.params)
+                ? {
+                    ...params,
+                    ...('request' in params
+                      ? { request: withoutReceiptMetadata(params.request) }
+                      : {}),
+                  }
+                : row.params,
+            result:
+              row.version === RECEIPT_VERSION && executionMethods.has(row.tool)
+                ? storedTask(row)
+                : withoutReceiptMetadata(row.result),
+          };
+        }),
+      });
     } catch {
       return c.json({ tasks: [] });
     }
@@ -1001,9 +1216,18 @@ a2a.openapi(
         content: { 'text/event-stream': { schema: z.unknown() } },
         description: 'SSE event stream',
       },
+      404: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Task not found in the authenticated actor and account scope',
+      },
       403: {
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
+      },
+      500: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description:
+          'Task operation could not complete; known execution outcomes include server-owned receipt status',
       },
       503: {
         content: { 'application/json': { schema: z.unknown() } },
@@ -1018,9 +1242,9 @@ a2a.openapi(
     }
     const { taskId } = c.req.valid('param');
     const scope = actionScope(c.get('user'), c.get('entitlements'));
-    if (!(scope && aiMod.getTask(taskId, scope))) return c.json({ error: 'Task not found' }, 404);
+    if (!(scope && (await readOwnedTask(taskId, scope, aiMod))))
+      return c.json({ error: 'Task not found' }, 404);
 
-    const getTaskFn = aiMod.getTask;
     return c.body(
       new ReadableStream({
         start(controller) {
@@ -1033,9 +1257,16 @@ a2a.openapi(
           let iterations = 0;
           const maxIterations = 240; // 120s at 500ms interval
 
-          const poll = () => {
+          const poll = async () => {
             iterations++;
-            const task = getTaskFn(taskId, scope);
+            let task: A2ATask | null;
+            try {
+              task = await readOwnedTask(taskId, scope, aiMod);
+            } catch {
+              send({ error: 'Durable task storage is unavailable' });
+              controller.close();
+              return;
+            }
 
             if (!task) {
               send({ error: 'Task not found' });
@@ -1092,15 +1323,29 @@ a2a.openapi(
     responses: {
       200: {
         content: { 'application/json': { schema: z.unknown() } },
-        description: 'JSON-RPC response',
+        description:
+          'JSON-RPC response with server-owned receipt status; persisted false requires receipt recovery rather than execution retry',
       },
       400: {
         content: { 'application/json': { schema: z.unknown() } },
         description: 'Parse error or invalid request',
       },
+      404: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Task not found in the authenticated actor and account scope',
+      },
+      402: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Payment proof required; the pending task has not executed',
+      },
       403: {
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
+      },
+      500: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description:
+          'Task operation could not complete; known execution outcomes include server-owned receipt status',
       },
       503: {
         content: { 'application/json': { schema: z.unknown() } },
@@ -1151,10 +1396,11 @@ a2a.openapi(
     const scope = actionScope(c.get('user'), c.get('entitlements'));
     const agentId = c.req.header('X-Agent-ID');
     let preparedTask: A2ATask | undefined;
+    let reservationPayload: ReceiptPayload | undefined;
+    let pendingResult: A2ATask | undefined;
     let requiresPayment = false;
 
     // Execution requires entitlements; all task methods retain trusted ownership.
-    const executionMethods = new Set(['tasks/send', 'tasks/sendSubscribe']);
     if (executionMethods.has(req.method)) {
       const entitlements = (c as unknown as { get(k: string): unknown }).get('entitlements') as
         | { features?: Record<string, boolean> }
@@ -1202,13 +1448,60 @@ a2a.openapi(
       requiresPayment = !!definition?.pricing;
       const taskParams = {
         ...sendParams.data,
+        id: sendParams.data.id ?? crypto.randomUUID(),
         metadata: definition?.pricing
-          ? { ...sendParams.data.metadata, pricing: definition.pricing }
-          : sendParams.data.metadata,
+          ? { ...aiMod.withoutCallerReceipt(sendParams.data.metadata), pricing: definition.pricing }
+          : aiMod.withoutCallerReceipt(sendParams.data.metadata),
       };
       const execution = { agentId: agentId ?? 'revealui-creator', definition };
+      const payload: ReceiptPayload = {
+        request: taskParams,
+        binding: {
+          agentId: execution.agentId,
+          definitionDigest: await aiMod.getTaskExecutionFingerprint(execution),
+          inputDigest: await aiMod.getTaskInputFingerprint(taskParams, execution),
+        },
+      };
+      reservationPayload = payload;
+      let prior: AgentAction | null;
+      try {
+        prior = await lookupReceipt(taskParams.id, scope);
+      } catch {
+        return c.json(
+          {
+            jsonrpc: '2.0',
+            id: req.id,
+            error: {
+              code: -32011,
+              message: 'Durable task storage is unavailable; execution has not started',
+            },
+          },
+          503,
+        );
+      }
+      if (prior) {
+        const trusted = receiptPayload(prior);
+        const unpaid = storedTask(prior).status.state === 'pending-payment';
+        if (!unpaid) {
+          return c.json(
+            { jsonrpc: '2.0', id: req.id, result: await readOwnedTask(prior.id, scope, aiMod) },
+            200,
+          );
+        }
+        if (
+          !trusted ||
+          trusted.binding.agentId !== payload.binding.agentId ||
+          trusted.binding.definitionDigest !== payload.binding.definitionDigest ||
+          trusted.binding.inputDigest !== payload.binding.inputDigest
+        ) {
+          return c.json(
+            { jsonrpc: '2.0', id: req.id, error: { code: -32001, message: 'Task not found' } },
+            404,
+          );
+        }
+      }
       preparedTask =
-        aiMod.resumePendingTask(taskParams, scope, execution) ??
+        (prior ? aiMod.resumePendingTask(taskParams, scope, execution) : null) ??
         aiMod.createTask(taskParams, scope, execution) ??
         undefined;
       if (!preparedTask)
@@ -1216,6 +1509,79 @@ a2a.openapi(
           { jsonrpc: '2.0', id: req.id, error: { code: -32001, message: 'Task not found' } },
           404,
         );
+      if (!prior) {
+        try {
+          const inserted = await getClient()
+            .insert(agentActions)
+            .values({
+              id: preparedTask.id,
+              ...scope,
+              version: RECEIPT_VERSION,
+              agentId: execution.agentId,
+              tool: req.method,
+              params: payload,
+              status: 'pending',
+              startedAt: new Date(),
+            })
+            .onConflictDoNothing()
+            .returning();
+          if (!inserted.length) {
+            aiMod.evictTask(preparedTask.id, preparedTask);
+            const owned = await lookupReceipt(preparedTask.id, scope);
+            return owned
+              ? c.json({ jsonrpc: '2.0', id: req.id, result: storedTask(owned) }, 200)
+              : c.json(
+                  {
+                    jsonrpc: '2.0',
+                    id: req.id,
+                    error: { code: -32001, message: 'Task not found' },
+                  },
+                  404,
+                );
+          }
+        } catch {
+          aiMod.evictTask(preparedTask.id, preparedTask);
+          return c.json(
+            {
+              jsonrpc: '2.0',
+              id: req.id,
+              error: {
+                code: -32011,
+                message: 'Durable task storage is unavailable; execution has not started',
+              },
+            },
+            503,
+          );
+        }
+      }
+      if (requiresPayment && prior) {
+        // Reuse the durable fingerprint without mutating another continuation's
+        // private lifecycle or overwriting its pending-to-running CAS input.
+        const existingPending = A2ATaskSchema.safeParse(prior.result);
+        if (!existingPending.success)
+          return c.json(
+            { jsonrpc: '2.0', id: req.id, error: { code: -32001, message: 'Task not found' } },
+            404,
+          );
+        pendingResult = existingPending.data;
+      } else if (requiresPayment) {
+        aiMod.updateTaskState(preparedTask.id, 'pending-payment');
+        const pending = aiMod.getTask(preparedTask.id, scope);
+        const saved = pending ? await persistTask(pending, scope) : null;
+        if (!saved || jsonObject(saved.metadata?.receipt).persisted !== true)
+          return c.json(
+            {
+              jsonrpc: '2.0',
+              id: req.id,
+              error: {
+                code: -32011,
+                message: 'Pending payment receipt could not be saved; execution has not started',
+              },
+            },
+            503,
+          );
+        pendingResult = { ...saved, metadata: aiMod.withoutCallerReceipt(saved.metadata) };
+      }
     }
 
     if (!scope)
@@ -1223,6 +1589,33 @@ a2a.openapi(
         { jsonrpc: '2.0', id: req.id, error: { code: -32001, message: 'Task not found' } },
         404,
       );
+
+    if (req.method === 'tasks/get' || req.method === 'tasks/cancel') {
+      const taskId = jsonObject(req.params).id;
+      if (typeof taskId !== 'string')
+        return c.json(
+          { jsonrpc: '2.0', id: req.id, error: { code: -32602, message: 'Invalid task params' } },
+          400,
+        );
+      let task = await readOwnedTask(taskId, scope, aiMod);
+      if (!task)
+        return c.json(
+          { jsonrpc: '2.0', id: req.id, error: { code: -32001, message: 'Task not found' } },
+          404,
+        );
+      if (req.method === 'tasks/cancel' && !isTerminalTask(task)) {
+        aiMod.cancelTask(taskId, scope);
+        const active = aiMod.getTask(taskId, scope);
+        task = await persistTask(
+          active ?? {
+            ...task,
+            status: { ...task.status, state: 'canceled', timestamp: new Date().toISOString() },
+          },
+          scope,
+        );
+      }
+      return c.json({ jsonrpc: '2.0', id: req.id, result: task }, 200);
+    }
 
     // x402 payment proof verification: when an X-PAYMENT-PAYLOAD header is
     // present on an executable JSON-RPC method, verify it before calling
@@ -1256,20 +1649,120 @@ a2a.openapi(
       }
     }
 
-    // Consume the private execution reservation atomically before metering.
-    // An unpaid task remains pending and incurs no execution quota.
-    if (preparedTask && (!requiresPayment || paymentVerified)) {
-      if (!aiMod.claimTask(preparedTask, scope))
+    // An unpaid read must not call the executor or rewrite another worker's
+    // phase. Its durable reservation is already saved and may now be claimed.
+    if (preparedTask && requiresPayment && !paymentVerified) {
+      const latest = await lookupReceipt(preparedTask.id, scope);
+      if (!latest)
         return c.json(
           { jsonrpc: '2.0', id: req.id, error: { code: -32001, message: 'Task not found' } },
           404,
         );
-      const quotaResponse = await requireTaskQuota(c, async () => {
-        // Execution follows the metering decision using the same one-use claim.
+      const task = storedTask(latest);
+      if (task.status.state !== 'pending-payment')
+        return c.json(
+          { jsonrpc: '2.0', id: req.id, result: await readOwnedTask(latest.id, scope, aiMod) },
+          200,
+        );
+      const resource = `${getBaseUrl(c.req.raw)}${new URL(c.req.url).pathname}`;
+      const usdc = jsonObject(task.metadata?.pricing).usdc;
+      const required = buildPaymentRequired(resource, typeof usdc === 'string' ? usdc : undefined);
+      trackX402PaymentRequired('a2a-pending-payment', getAdvertisedCurrencyLabel());
+      return c.json({ jsonrpc: '2.0', id: req.id, result: task }, 402, {
+        'X-PAYMENT-REQUIRED': encodePaymentRequired(required),
       });
+    }
+
+    // Consume the private execution reservation atomically before metering.
+    // An unpaid task remains pending and incurs no execution quota.
+    if (preparedTask && (!requiresPayment || paymentVerified)) {
+      let claimed = false;
+      try {
+        const saved = await getClient()
+          .update(agentActions)
+          .set({ status: 'running' })
+          .where(
+            and(
+              eq(agentActions.id, preparedTask.id),
+              eq(agentActions.version, RECEIPT_VERSION),
+              actionScopePredicate(scope),
+              eq(agentActions.status, 'pending'),
+              eq(agentActions.params, reservationPayload ?? null),
+              requiresPayment
+                ? eq(agentActions.result, pendingResult ?? null)
+                : isNull(agentActions.result),
+            ),
+          )
+          .returning();
+        claimed = saved.length > 0;
+      } catch {
+        return c.json(
+          {
+            jsonrpc: '2.0',
+            id: req.id,
+            error: {
+              code: -32011,
+              message: 'Execution claim could not be saved; execution has not started',
+            },
+          },
+          503,
+        );
+      }
+      if (!claimed)
+        return c.json(
+          { jsonrpc: '2.0', id: req.id, error: { code: -32001, message: 'Task not found' } },
+          404,
+        );
+      if (!aiMod.claimTask(preparedTask, scope)) {
+        const failed = aiMod.updateTaskState(preparedTask.id, 'failed');
+        return c.json(
+          {
+            jsonrpc: '2.0',
+            id: req.id,
+            error: {
+              code: -32001,
+              message: 'Task not found',
+              ...(failed ? { data: { task: await persistTask(failed, scope) } } : {}),
+            },
+          },
+          404,
+        );
+      }
+      let quotaResponse: Awaited<ReturnType<typeof requireTaskQuota>>;
+      try {
+        quotaResponse = await requireTaskQuota(c, async () => {
+          // Execution follows the metering decision using the same one-use claim.
+        });
+      } catch {
+        const failed = aiMod.updateTaskState(preparedTask.id, 'failed');
+        return c.json(
+          {
+            jsonrpc: '2.0',
+            id: req.id,
+            error: {
+              code: -32603,
+              message: 'Task quota could not be checked; execution has not started',
+              ...(failed ? { data: { task: await persistTask(failed, scope) } } : {}),
+            },
+          },
+          500,
+        );
+      }
       if (quotaResponse instanceof Response) {
         aiMod.updateTaskState(preparedTask.id, 'failed');
-        return quotaResponse;
+        const failed = aiMod.getTask(preparedTask.id, scope);
+        const receipt = failed ? await persistTask(failed, scope) : null;
+        const body = await quotaResponse
+          .clone()
+          .json()
+          .catch(() => ({}));
+        return new Response(
+          JSON.stringify({ ...jsonObject(body), ...(receipt ? { task: receipt } : {}) }),
+          {
+            status: quotaResponse.status,
+            headers: quotaResponse.headers,
+          },
+        );
       }
     }
 
@@ -1291,6 +1784,8 @@ a2a.openapi(
         const notConfigured = asLLMNotConfigured(err);
         if (notConfigured) {
           if (preparedTask) aiMod.updateTaskState(preparedTask.id, 'failed');
+          const failed = preparedTask ? aiMod.getTask(preparedTask.id, scope) : null;
+          const receipt = failed ? await persistTask(failed, scope) : null;
           return c.json(
             {
               jsonrpc: '2.0',
@@ -1298,35 +1793,83 @@ a2a.openapi(
               error: {
                 code: -32010,
                 message: notConfigured.error,
-                data: { code: notConfigured.code, settingsPath: notConfigured.settingsPath },
+                data: {
+                  code: notConfigured.code,
+                  settingsPath: notConfigured.settingsPath,
+                  ...(receipt ? { task: receipt } : {}),
+                },
               },
             },
             409,
           );
         }
-        // Any other failure  -  llmClient stays undefined, handler returns stub.
+        // The handler produces a truthful failed task when no provider is available.
       }
     }
 
-    const startedAt = Date.now();
     // llmClient is typed as unknown because it comes from dynamically imported Pro packages;
     // the runtime type is LLMClient when present.
     type HandleParams = Parameters<typeof aiMod.handleA2AJsonRpc>;
-    const result = await aiMod.handleA2AJsonRpc(
-      req,
-      agentId ?? undefined,
-      llmClient as HandleParams[2],
-      { paymentVerified, scope, preparedTask },
-    );
-    const completedAt = Date.now();
+    let result: Awaited<ReturnType<typeof aiMod.handleA2AJsonRpc>>;
+    try {
+      result = await aiMod.handleA2AJsonRpc(
+        req,
+        agentId ?? undefined,
+        llmClient as HandleParams[2],
+        { paymentVerified, scope, preparedTask },
+      );
+    } catch {
+      if (preparedTask) aiMod.updateTaskState(preparedTask.id, 'failed');
+      const failed = preparedTask ? aiMod.getTask(preparedTask.id, scope) : null;
+      return c.json(
+        {
+          jsonrpc: '2.0',
+          id: req.id,
+          error: {
+            code: -32603,
+            message: 'Task execution could not complete',
+            ...(failed ? { data: { task: await persistTask(failed, scope) } } : {}),
+          },
+        },
+        500,
+      );
+    }
+    if (result.error && preparedTask) aiMod.updateTaskState(preparedTask.id, 'failed');
 
-    // Inspect handler outcome up front — used by both the 402 branch and
-    // the agentActions audit log below.
-    const taskResult = result.result as {
-      id?: string;
-      status?: { state?: string };
-      metadata?: { pricing?: { usdc?: string } };
-    } | null;
+    const parsedTask = A2ATaskSchema.safeParse(result.result);
+    let actual = parsedTask.success
+      ? parsedTask.data
+      : preparedTask
+        ? aiMod.getTask(preparedTask.id, scope)
+        : null;
+    if (actual && preparedTask && actual.id !== preparedTask.id) {
+      actual = aiMod.updateTaskState(preparedTask.id, 'failed', {
+        role: 'agent',
+        parts: [
+          {
+            type: 'text',
+            text: 'Execution returned an inconsistent task identity. No successful result can be acknowledged.',
+          },
+        ],
+      });
+    }
+    if (actual?.status.state === 'submitted' && preparedTask) {
+      actual = aiMod.updateTaskState(preparedTask.id, 'failed', {
+        role: 'agent',
+        parts: [
+          {
+            type: 'text',
+            text: 'Execution returned without starting or completing the task. No successful result is available.',
+          },
+        ],
+      });
+    }
+    if (actual) {
+      const receipt = await persistTask(actual, scope);
+      if (result.error) result.error.data = { ...jsonObject(result.error.data), task: receipt };
+      else result.result = receipt;
+    }
+    const taskResult = result.result as A2ATask | undefined;
     const taskState = taskResult?.status?.state;
 
     // Pending-payment tasks: convert to HTTP 402 with X-PAYMENT-REQUIRED.
@@ -1335,55 +1878,16 @@ a2a.openapi(
     if (taskState === 'pending-payment') {
       const baseUrl = getBaseUrl(c.req.raw);
       const resource = `${baseUrl}${new URL(c.req.url).pathname}`;
-      const paymentRequired = buildPaymentRequired(resource, taskResult?.metadata?.pricing?.usdc);
+      const paymentRequired = buildPaymentRequired(
+        resource,
+        typeof jsonObject(taskResult?.metadata?.pricing).usdc === 'string'
+          ? (jsonObject(taskResult?.metadata?.pricing).usdc as string)
+          : undefined,
+      );
       trackX402PaymentRequired('a2a-pending-payment', getAdvertisedCurrencyLabel());
       return c.json(result, 402, {
         'X-PAYMENT-REQUIRED': encodePaymentRequired(paymentRequired),
       });
-    }
-
-    // Capture authenticated attribution before the asynchronous write. Request
-    // params and client-supplied account IDs cannot select receipt ownership.
-    // Fire-and-forget: persist task execution record to agentActions
-    if (executionMethods.has(req.method) && scope) {
-      const status =
-        taskState === 'completed'
-          ? 'completed'
-          : taskState === 'failed' || result.error
-            ? 'failed'
-            : taskState === 'canceled'
-              ? 'cancelled'
-              : taskState === 'working'
-                ? 'running'
-                : 'pending';
-      const terminal = ['completed', 'failed', 'cancelled'].includes(status);
-      const actionId = crypto.randomUUID();
-      void (async () => {
-        try {
-          const db = getClient();
-          await db.insert(agentActions).values({
-            id: actionId,
-            actorUserId: scope.actorUserId,
-            accountId: scope.accountId,
-            agentId: agentId ?? 'revealui-creator',
-            tool: req.method,
-            params: (req.params ?? null) as Record<string, unknown> | null,
-            result: taskResult as Record<string, unknown> | null,
-            status,
-            startedAt: new Date(startedAt),
-            completedAt: terminal ? new Date(completedAt) : null,
-            durationMs: terminal ? completedAt - startedAt : null,
-          });
-        } catch (err) {
-          // Non-fatal  -  in-memory task store remains authoritative for active tasks
-          logger.warn('agentActions write failed', {
-            eventId: actionId,
-            eventType: req.method,
-            reason: classifyAuditWriteFailure(err),
-            error: err instanceof Error ? err.message : String(err),
-          });
-        }
-      })();
     }
 
     return c.json(result, result.error?.code === -32001 ? 404 : 200);

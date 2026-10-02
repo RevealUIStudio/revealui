@@ -65,10 +65,7 @@ function freezeValue<T>(value: T): T {
   return value;
 }
 
-function inputKey(
-  params: Parameters<typeof createTask>[0],
-  execution: TaskExecutionBinding,
-): string {
+function normalizedJson(value: unknown): string {
   const normalize = (value: unknown): unknown => {
     if (Array.isArray(value)) return value.map(normalize);
     if (value && typeof value === 'object')
@@ -79,14 +76,43 @@ function inputKey(
       );
     return value;
   };
-  return JSON.stringify(
-    normalize({
-      sessionId: params.sessionId,
-      message: params.message,
-      metadata: params.metadata,
-      execution,
-    }),
-  );
+  return JSON.stringify(normalize(value));
+}
+
+/** Receipt metadata is a server-owned namespace, never caller attribution. */
+export function withoutCallerReceipt(
+  metadata: Record<string, unknown> | undefined,
+): Record<string, unknown> | undefined {
+  if (!metadata) return undefined;
+  return Object.fromEntries(Object.entries(metadata).filter(([key]) => key !== 'receipt'));
+}
+
+function inputKey(
+  params: Parameters<typeof createTask>[0],
+  execution: TaskExecutionBinding,
+): string {
+  return normalizedJson({
+    sessionId: params.sessionId,
+    message: params.message,
+    metadata: withoutCallerReceipt(params.metadata),
+    execution,
+  });
+}
+
+async function fingerprint(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+export function getTaskInputFingerprint(
+  params: Parameters<typeof createTask>[0],
+  execution: TaskExecutionBinding,
+): Promise<string> {
+  return fingerprint(inputKey(params, execution));
+}
+
+export function getTaskExecutionFingerprint(execution: TaskExecutionBinding): Promise<string> {
+  return fingerprint(normalizedJson(execution));
 }
 
 function now(): string {
@@ -118,7 +144,7 @@ export function createTask(
       timestamp: now(),
     },
     history: [snapshot.message],
-    metadata: snapshot.metadata,
+    metadata: withoutCallerReceipt(snapshot.metadata),
   };
   freezeValue(task);
   _tasks.set(id, {
@@ -292,8 +318,11 @@ export function getTaskSignal(id: string, scope: AgentActionScope): AbortSignal 
 }
 
 /**
- * Cleanup a task from the store (call after response has been sent).
+ * Trusted internal cleanup. Pass the original reservation when releasing an
+ * unexecuted task after an awaited durable-claim failure: an older attempt must
+ * never delete a replacement reservation with the same ID.
  */
-export function evictTask(id: string): void {
+export function evictTask(id: string, expectedReservation?: A2ATask): void {
+  if (expectedReservation && _tasks.get(id)?.prepared !== expectedReservation) return;
   _tasks.delete(id);
 }

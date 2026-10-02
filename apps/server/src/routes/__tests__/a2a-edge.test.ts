@@ -9,6 +9,7 @@
  *   POST /a2a (JSON-RPC)                  -  quota exceeded returns quota Response
  */
 
+import { isDeepStrictEqual } from 'node:util';
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -92,6 +93,32 @@ vi.mock('@revealui/ai', () => ({
   resumePendingTask: mockResumePendingTask,
   claimTask: mockClaimTask,
   updateTaskState: mockUpdateTaskState,
+  evictTask: vi.fn(),
+  cancelTask: vi.fn(),
+  withoutCallerReceipt: (metadata: Record<string, unknown> | undefined) => {
+    if (!metadata) return undefined;
+    const clean = { ...metadata };
+    delete clean.receipt;
+    return clean;
+  },
+  getTaskExecutionFingerprint: async (execution: unknown) => {
+    const digest = await crypto.subtle.digest(
+      'SHA-256',
+      new TextEncoder().encode(JSON.stringify(execution)),
+    );
+    return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join(
+      '',
+    );
+  },
+  getTaskInputFingerprint: async (params: unknown, execution: unknown) => {
+    const digest = await crypto.subtle.digest(
+      'SHA-256',
+      new TextEncoder().encode(JSON.stringify({ params, execution })),
+    );
+    return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join(
+      '',
+    );
+  },
   RPC_PARSE_ERROR: -32700,
   RPC_INVALID_REQUEST: -32600,
 }));
@@ -163,6 +190,7 @@ vi.mock('@revealui/db/schema', () => ({
   },
   agentActions: {
     id: 'id',
+    version: 'version',
     agentId: 'agentId',
     actorUserId: 'actorUserId',
     accountId: 'accountId',
@@ -180,7 +208,13 @@ vi.mock('@revealui/db', () => ({ getClient: mockGetClient }));
 
 vi.mock('drizzle-orm', () => ({
   eq: vi.fn(
-    (column: string, value: unknown) => (row: Record<string, unknown>) => row[column] === value,
+    (column: string, value: unknown) => (row: Record<string, unknown>) =>
+      value && typeof value === 'object'
+        ? isDeepStrictEqual(
+            JSON.parse(JSON.stringify(row[column] ?? null)),
+            JSON.parse(JSON.stringify(value)),
+          )
+        : row[column] === value,
   ),
   isNull: vi.fn((column: string) => (row: Record<string, unknown>) => row[column] == null),
   inArray: vi.fn(
@@ -295,18 +329,9 @@ function resetMocks() {
   mockVerifyPayment.mockResolvedValue({ valid: true });
   mockRequireTaskQuota.mockResolvedValue(undefined);
 
-  // Default DB: hydration query (registeredAgents) returns []
-  const defaultSelectChain = makeSelectChain([]);
-  mockGetClient.mockReturnValue({
-    select: vi.fn().mockReturnValue(defaultSelectChain),
-    selectDistinct: vi.fn().mockReturnValue(defaultSelectChain),
-    insert: vi.fn().mockReturnValue({ values: vi.fn().mockResolvedValue(undefined) }),
-    update: vi.fn().mockReturnValue({
-      set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
-    }),
-    delete: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
-    // biome-ignore lint/suspicious/noExplicitAny: test mock
-  } as any);
+  // Shared fluent fixture models the maintained atomic receipt boundary.
+  receiptDb();
+  mockHandleA2AJsonRpc.mockResolvedValue({ jsonrpc: '2.0', id: 1, result: { status: 'ok' } });
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -405,6 +430,65 @@ describe('GET /.well-known/payment-methods.json', () => {
 
 describe('GET /a2a/agents/:id/tasks', () => {
   beforeEach(resetMocks);
+  it('sanitizes legacy caller receipts and rebuilds server receipts only for owned version-two tasks', async () => {
+    const db = receiptDb();
+    const spoof = { persisted: true, taskId: 'forged', status: 'completed' };
+    db.rows.set('legacy', {
+      id: 'legacy',
+      version: 1,
+      agentId: 'test-agent',
+      tool: 'historical-tool',
+      actorUserId: 'user-1',
+      accountId: null,
+      status: 'failed',
+      params: { message: 'kept input', metadata: { receipt: spoof, label: 'kept' } },
+      result: { value: 'kept result', metadata: { receipt: spoof, label: 'kept' } },
+    });
+    db.rows.set('current', {
+      id: 'current',
+      version: 2,
+      agentId: 'test-agent',
+      tool: 'tasks/send',
+      actorUserId: 'user-1',
+      accountId: null,
+      status: 'completed',
+      params: { request: { metadata: { receipt: spoof, label: 'kept' } } },
+      result: {
+        id: 'current',
+        status: { state: 'failed', timestamp: '2026-10-02T00:00:00.000Z' },
+        metadata: { receipt: spoof, label: 'kept' },
+      },
+    });
+    db.rows.set('foreign', {
+      id: 'foreign',
+      version: 2,
+      agentId: 'test-agent',
+      actorUserId: 'other-user',
+      accountId: null,
+    });
+    const response = await makeA2AApp({ id: 'user-1' }).request(get('/agents/test-agent/tasks'));
+    const { tasks } = await response.json();
+    expect(tasks).toHaveLength(2);
+    expect(tasks[0]).toMatchObject({
+      id: 'legacy',
+      status: 'failed',
+      params: { message: 'kept input', metadata: { label: 'kept' } },
+      result: { value: 'kept result', metadata: { label: 'kept' } },
+    });
+    expect(tasks[0].params.metadata).not.toHaveProperty('receipt');
+    expect(tasks[0].result.metadata).not.toHaveProperty('receipt');
+    expect(tasks[1]).toMatchObject({
+      id: 'current',
+      result: {
+        status: { state: 'completed' },
+        metadata: {
+          label: 'kept',
+          receipt: { taskId: 'current', status: 'completed', persisted: true },
+        },
+      },
+    });
+    expect(tasks[1].params.request.metadata).not.toHaveProperty('receipt');
+  });
 
   it('returns 401 when caller is not authenticated', async () => {
     // makeA2AApp() without user → c.get("user") is undefined
@@ -638,15 +722,11 @@ describe('authenticated agent action attribution', () => {
   it.each(['working', 'submitted', 'canceled', 'failed', 'completed'])(
     'writes trusted attribution and preserves %s lifecycle',
     async (state) => {
-      const values = vi.fn().mockResolvedValue(undefined);
-      mockGetClient.mockReturnValue({
-        insert: () => ({ values }),
-        select: () => makeSelectChain([]),
-      });
+      const db = receiptDb();
       mockHandleA2AJsonRpc.mockResolvedValue({
         jsonrpc: '2.0',
         id: 1,
-        result: { id: 'task', status: { state } },
+        result: { id: 'task', status: { state, timestamp: '2026-10-02T00:00:00.000Z' } },
       });
       const app = makeA2AApp({ id: 'user-1' }, { accountId: 'account-a', features: { ai: true } });
       await app.request(
@@ -655,14 +735,22 @@ describe('authenticated agent action attribution', () => {
           id: 1,
           method: 'tasks/send',
           params: {
+            id: 'task',
             actorUserId: 'forged',
             accountId: 'account-b',
             message: { role: 'user', parts: [{ type: 'text', text: 'Run' }] },
           },
         }),
       );
-      await vi.waitFor(() => expect(values).toHaveBeenCalled());
-      const saved = values.mock.calls[0]?.[0];
+      const reserved = db.values.mock.calls[0]?.[0];
+      expect(reserved).toMatchObject({
+        id: 'task',
+        version: 2,
+        actorUserId: 'user-1',
+        accountId: 'account-a',
+        status: 'pending',
+      });
+      const saved = db.rows.get('task');
       expect(saved).toMatchObject({
         actorUserId: 'user-1',
         accountId: 'account-a',
@@ -670,12 +758,12 @@ describe('authenticated agent action attribution', () => {
           state === 'working'
             ? 'running'
             : state === 'submitted'
-              ? 'pending'
+              ? 'failed'
               : state === 'canceled'
                 ? 'cancelled'
                 : state,
       });
-      if (state === 'working' || state === 'submitted') expect(saved.completedAt).toBeNull();
+      if (state === 'working') expect(saved?.completedAt).toBeNull();
     },
   );
 });
@@ -872,6 +960,10 @@ describe('POST /a2a  -  JSON-RPC validation edge cases', () => {
     // ai feature disabled but tasks/get should bypass the gate
     mockIsFeatureEnabled.mockReturnValue(false);
 
+    mockGetTask.mockReturnValue({
+      id: 'task-1',
+      status: { state: 'completed', timestamp: '2026-10-02T00:00:00.000Z' },
+    });
     const app = makeA2AApp({ id: 'user-1' });
     const res = await app.request(
       post('/', {
@@ -883,25 +975,32 @@ describe('POST /a2a  -  JSON-RPC validation edge cases', () => {
     );
 
     expect(res.status).toBe(200);
-    // Dispatcher should be called for read-only methods even when ai is disabled
-    expect(mockHandleA2AJsonRpc).toHaveBeenCalledTimes(1);
+    expect(await res.json()).toMatchObject({ result: { id: 'task-1' } });
+    expect(mockGetTask).toHaveBeenCalledWith('task-1', { actorUserId: 'user-1', accountId: null });
+    expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
   });
 
-  it('forwards X-Agent-ID header as agentId to dispatcher', async () => {
-    const app = makeA2AApp({ id: 'user-1' });
+  it('forwards the trusted canonical agent header to an executable dispatcher', async () => {
+    mockHas.mockReturnValue(true);
+    const app = makeA2AApp({ id: 'user-1' }, { features: { ai: true } });
     const res = await app.request(
       post(
         '/',
-        { jsonrpc: '2.0', id: 6, method: 'tasks/get', params: { id: 'task-1' } },
+        {
+          jsonrpc: '2.0',
+          id: 6,
+          method: 'tasks/send',
+          params: {
+            id: 'task-1',
+            message: { role: 'user', parts: [{ type: 'text', text: 'Run' }] },
+          },
+        },
         { 'X-Agent-ID': 'custom-agent-42' },
       ),
     );
-
     expect(res.status).toBe(200);
     expect(mockHandleA2AJsonRpc).toHaveBeenCalledTimes(1);
-    // Second argument is the agentId from the X-Agent-ID header
-    const secondArg = mockHandleA2AJsonRpc.mock.calls[0]?.[1];
-    expect(secondArg).toBe('custom-agent-42');
+    expect(mockHandleA2AJsonRpc.mock.calls[0]?.[1]).toBe('custom-agent-42');
   });
 });
 
@@ -998,6 +1097,7 @@ describe('POST /a2a  -  x402 pending-payment flow', () => {
   });
 
   it('returns 402 with X-PAYMENT-REQUIRED when handler emits pending-payment state', async () => {
+    mockGetDef.mockReturnValue({ pricing: { usdc: '0.05' } });
     mockHandleA2AJsonRpc.mockResolvedValue({
       jsonrpc: '2.0',
       id: 1,
@@ -1109,6 +1209,19 @@ describe('POST /a2a  -  x402 pending-payment flow', () => {
   });
 
   it('does NOT verify payment for read-only methods (tasks/get)', async () => {
+    const db = receiptDb();
+    db.rows.set('task-1', {
+      id: 'task-1',
+      version: 2,
+      tool: 'tasks/send',
+      actorUserId: 'user-1',
+      accountId: null,
+      status: 'completed',
+      result: {
+        id: 'task-1',
+        status: { state: 'completed', timestamp: '2026-10-02T00:00:00.000Z' },
+      },
+    });
     mockHandleA2AJsonRpc.mockResolvedValue({
       jsonrpc: '2.0',
       id: 4,
@@ -1169,7 +1282,26 @@ describe('A2A execution reservation and payment continuation', () => {
       message: { role: 'user', parts: [{ type: 'text', text: 'Run once' }] },
     },
   };
-  const prepared = { id: 'owned-paid-task', status: { state: 'submitted' } };
+
+  async function seedUnpaid(app: ReturnType<typeof makeA2AApp>, agent?: string) {
+    const db = receiptDb();
+    expect(
+      (await app.request(post('/', request, agent ? { 'X-Agent-ID': agent } : undefined))).status,
+    ).toBe(402);
+    const reservation = mockCreateTask.mock.results.at(-1)?.value;
+    mockResumePendingTask.mockReturnValue(reservation);
+    mockCreateTask.mockClear();
+    mockUpdateTaskState.mockClear();
+    mockHandleA2AJsonRpc.mockResolvedValue({
+      jsonrpc: '2.0',
+      id: request.id,
+      result: {
+        id: request.params.id,
+        status: { state: 'completed', timestamp: '2026-10-02T00:00:00.000Z' },
+      },
+    });
+    return db;
+  }
 
   it.each(['tasks/get', 'tasks/cancel'])('denies anonymous %s before dispatch', async (method) => {
     const response = await makeA2AApp().request(post('/', { ...request, method }));
@@ -1195,19 +1327,15 @@ describe('A2A execution reservation and payment continuation', () => {
   it('cannot transplant an owned payment reservation to another agent with the same pricing', async () => {
     mockHas.mockReturnValue(true);
     mockGetDef.mockReturnValue({ pricing: { usdc: '0.001' } });
-    mockResumePendingTask.mockImplementation((_params, _scope, binding) =>
-      binding.agentId === 'original-agent' ? prepared : null,
-    );
-    mockCreateTask.mockReturnValue(null);
-    const response = await makeA2AApp({ id: 'user-1' }, { features: { ai: true } }).request(
+    const app = makeA2AApp({ id: 'user-1' }, { features: { ai: true } });
+    await seedUnpaid(app, 'original-agent');
+    mockResumePendingTask.mockClear();
+    const response = await app.request(
       post('/', request, { 'X-Agent-ID': 'changed-agent', 'X-PAYMENT-PAYLOAD': 'proof' }),
     );
     expect(response.status).toBe(404);
-    expect(mockResumePendingTask).toHaveBeenCalledWith(
-      expect.anything(),
-      { actorUserId: 'user-1', accountId: null },
-      { agentId: 'changed-agent', definition: { pricing: { usdc: '0.001' } } },
-    );
+    expect(mockResumePendingTask).not.toHaveBeenCalled();
+    expect(mockCreateTask).not.toHaveBeenCalled();
     expect(mockVerifyPayment).not.toHaveBeenCalled();
     expect(mockRequireTaskQuota).not.toHaveBeenCalled();
     expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
@@ -1217,14 +1345,10 @@ describe('A2A execution reservation and payment continuation', () => {
     'keeps unpaid continuation pending without metering for proof %j',
     async (proof) => {
       mockGetDef.mockReturnValue({ pricing: { usdc: '0.001' } });
-      mockResumePendingTask.mockReturnValue(prepared);
+      const app = makeA2AApp({ id: 'user-1' }, { features: { ai: true } });
+      await seedUnpaid(app);
       mockVerifyPayment.mockResolvedValue({ valid: false, error: 'Invalid proof' });
-      mockHandleA2AJsonRpc.mockResolvedValue({
-        jsonrpc: '2.0',
-        id: request.id,
-        result: { id: prepared.id, status: { state: 'pending-payment' } },
-      });
-      const response = await makeA2AApp({ id: 'user-1' }, { features: { ai: true } }).request(
+      const response = await app.request(
         post('/', request, proof ? { 'X-PAYMENT-PAYLOAD': proof } : undefined),
       );
       expect(response.status).toBe(402);
@@ -1237,9 +1361,19 @@ describe('A2A execution reservation and payment continuation', () => {
 
   it('meters and invokes only one of two verified continuations sharing the same reservation', async () => {
     mockGetDef.mockReturnValue({ pricing: { usdc: '0.001' } });
-    mockResumePendingTask.mockReturnValue(prepared);
     mockClaimTask.mockReturnValueOnce(true).mockReturnValue(false);
     const app = makeA2AApp({ id: 'user-1' }, { features: { ai: true } });
+    await seedUnpaid(app);
+    let release!: () => void;
+    const proofsReady = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let proofs = 0;
+    mockVerifyPayment.mockImplementation(async () => {
+      if (++proofs === 2) release();
+      await proofsReady;
+      return { valid: true };
+    });
     const responses = await Promise.all([
       app.request(post('/', request, { 'X-PAYMENT-PAYLOAD': 'verified-proof' })),
       app.request(post('/', request, { 'X-PAYMENT-PAYLOAD': 'verified-proof' })),
@@ -1257,95 +1391,182 @@ describe('A2A execution reservation and payment continuation', () => {
   });
 });
 
+const request = {
+  jsonrpc: '2.0',
+  id: 'receipt-request',
+  method: 'tasks/send',
+  params: {
+    id: 'durable-task',
+    message: { role: 'user', parts: [{ type: 'text', text: 'Run once' }] },
+  },
+};
+const outcome = {
+  id: 'durable-task',
+  status: { state: 'completed', timestamp: '2026-10-02T00:00:00.000Z' },
+  artifacts: [{ name: 'response', parts: [{ type: 'text', text: 'Executed result' }], index: 0 }],
+};
+
+function receiptDb(options: { reserveError?: Error; terminalWrite?: () => Promise<void> } = {}) {
+  const active = new Map<string, Record<string, unknown>>();
+  mockGetTask.mockImplementation((id) => active.get(id) ?? null);
+  mockCreateTask.mockImplementation((params) => {
+    const task = {
+      id: params.id,
+      metadata: params.metadata,
+      history: [params.message],
+      status: { state: 'submitted', timestamp: '2026-10-02T00:00:00.000Z' },
+    };
+    active.set(task.id, task);
+    return task;
+  });
+  mockUpdateTaskState.mockImplementation((id, state) => {
+    const task = active.get(id);
+    if (!task) return null;
+    const updated = { ...task, status: { state, timestamp: '2026-10-02T00:00:00.000Z' } };
+    active.set(id, updated);
+    return updated;
+  });
+  type Row = Record<string, unknown>;
+  type Predicate = (row: Row) => boolean;
+  type Resolve = (value: unknown) => unknown;
+  type Reject = (reason: unknown) => unknown;
+  type InsertChain = {
+    onConflictDoNothing: () => InsertChain;
+    returning: () => Promise<{ id: string }[]>;
+    then: (resolve: Resolve, reject: Reject) => Promise<unknown>;
+  };
+  type SelectChain = {
+    from: () => SelectChain;
+    where: (filter: Predicate) => SelectChain;
+    orderBy: () => SelectChain;
+    limit: (limit: number) => Promise<Row[]>;
+  };
+  type UpdateChain = {
+    where: (filter: Predicate) => UpdateChain;
+    returning: () => Promise<{ id: unknown }[]>;
+    then: (resolve: Resolve, reject: Reject) => Promise<unknown>;
+  };
+  const rows = new Map<string, Record<string, unknown>>();
+  const returning = vi.fn(async (value: Record<string, unknown>) => {
+    if (options.reserveError) throw options.reserveError;
+    const id = String(value.id);
+    if (rows.has(id)) return [];
+    rows.set(id, { result: null, completedAt: null, durationMs: null, ...value });
+    return [{ id }];
+  });
+  const values = vi.fn((value: Record<string, unknown>) => {
+    const chain: InsertChain = {
+      onConflictDoNothing: vi.fn(() => chain),
+      returning: vi.fn(() => returning(value)),
+      then: (resolve: (value: unknown) => unknown, reject: (reason: unknown) => unknown) =>
+        returning(value).then(resolve, reject),
+    };
+    return chain;
+  });
+  const select = () => {
+    let predicate = (_row: Record<string, unknown>) => true;
+    const chain: SelectChain = {
+      from: () => chain,
+      orderBy: () => chain,
+      where: (filter: typeof predicate) => {
+        predicate = filter;
+        return chain;
+      },
+      limit: async (limit: number) => [...rows.values()].filter(predicate).slice(0, limit),
+    };
+    return chain;
+  };
+  const set = vi.fn((value: Record<string, unknown>) => {
+    let predicate = (_row: Record<string, unknown>) => false;
+    const save = async () => {
+      if (['completed', 'failed', 'cancelled'].includes(String(value.status)))
+        await options.terminalWrite?.();
+      const matching = [...rows.values()].filter(predicate);
+      for (const row of matching) rows.set(String(row.id), { ...row, ...value });
+      return matching.map((row) => ({ id: row.id }));
+    };
+    const chain: UpdateChain = {
+      where: (filter: typeof predicate) => {
+        predicate = filter;
+        return chain;
+      },
+      returning: save,
+      then: (resolve: (value: unknown) => unknown, reject: (reason: unknown) => unknown) =>
+        save().then(resolve, reject),
+    };
+    return chain;
+  });
+  mockGetClient.mockReturnValue({ select, insert: () => ({ values }), update: () => ({ set }) });
+  mockHandleA2AJsonRpc.mockResolvedValue({ jsonrpc: '2.0', id: request.id, result: outcome });
+  return { rows, values, returning, set };
+}
+
 describe('A2A durable receipt boundary', () => {
   beforeEach(resetMocks);
-  const request = {
-    jsonrpc: '2.0',
-    id: 'receipt-request',
-    method: 'tasks/send',
-    params: {
+  it('never writes a handler outcome into another task reservation', async () => {
+    const db = receiptDb();
+    db.rows.set('other-task', {
+      id: 'other-task',
+      tool: 'tasks/send',
+      version: 2,
+      actorUserId: 'user-1',
+      accountId: null,
+      status: 'pending',
+      result: null,
+    });
+    mockHandleA2AJsonRpc.mockResolvedValue({
+      jsonrpc: '2.0',
+      id: request.id,
+      result: { ...outcome, id: 'other-task' },
+    });
+    const response = await makeA2AApp({ id: 'user-1' }, { features: { ai: true } }).request(
+      post('/', request),
+    );
+    expect(await response.json()).toMatchObject({
+      result: {
+        id: 'durable-task',
+        status: { state: 'failed' },
+        metadata: { receipt: { taskId: 'durable-task', persisted: true } },
+      },
+    });
+    expect(db.rows.get('other-task')).toMatchObject({ status: 'pending', result: null });
+    expect(db.rows.get('durable-task')).toMatchObject({ status: 'failed' });
+  });
+  it('never restores version-one caller JSON that forges the trusted unpaid receipt envelope', async () => {
+    const db = receiptDb();
+    db.rows.set('durable-task', {
       id: 'durable-task',
-      message: { role: 'user', parts: [{ type: 'text', text: 'Run once' }] },
-    },
-  };
-  const outcome = {
-    id: 'durable-task',
-    status: { state: 'completed' },
-    artifacts: [{ name: 'response', parts: [{ type: 'text', text: 'Executed result' }], index: 0 }],
-  };
-
-  function receiptDb(options: { reserveError?: Error; terminalWrite?: () => Promise<void> } = {}) {
-    type Row = Record<string, unknown>;
-    type Predicate = (row: Row) => boolean;
-    type Resolve = (value: unknown) => unknown;
-    type Reject = (reason: unknown) => unknown;
-    type InsertChain = {
-      onConflictDoNothing: () => InsertChain;
-      returning: () => Promise<{ id: string }[]>;
-      then: (resolve: Resolve, reject: Reject) => Promise<unknown>;
-    };
-    type SelectChain = {
-      from: () => SelectChain;
-      where: (filter: Predicate) => SelectChain;
-      limit: (limit: number) => Promise<Row[]>;
-    };
-    type UpdateChain = {
-      where: (filter: Predicate) => UpdateChain;
-      returning: () => Promise<{ id: unknown }[]>;
-      then: (resolve: Resolve, reject: Reject) => Promise<unknown>;
-    };
-    const rows = new Map<string, Record<string, unknown>>();
-    const returning = vi.fn(async (value: Record<string, unknown>) => {
-      if (options.reserveError) throw options.reserveError;
-      const id = String(value.id);
-      if (rows.has(id)) return [];
-      rows.set(id, { ...value });
-      return [{ id }];
-    });
-    const values = vi.fn((value: Record<string, unknown>) => {
-      const chain: InsertChain = {
-        onConflictDoNothing: vi.fn(() => chain),
-        returning: vi.fn(() => returning(value)),
-        then: (resolve: (value: unknown) => unknown, reject: (reason: unknown) => unknown) =>
-          returning(value).then(resolve, reject),
-      };
-      return chain;
-    });
-    const select = () => {
-      let predicate = (_row: Record<string, unknown>) => true;
-      const chain: SelectChain = {
-        from: () => chain,
-        where: (filter: typeof predicate) => {
-          predicate = filter;
-          return chain;
+      tool: 'tasks/send',
+      version: 1,
+      actorUserId: 'user-1',
+      accountId: null,
+      status: 'pending',
+      params: {
+        request: request.params,
+        binding: {
+          agentId: 'revealui-creator',
+          definitionDigest: 'a'.repeat(64),
+          inputDigest: 'b'.repeat(64),
         },
-        limit: async (limit: number) => [...rows.values()].filter(predicate).slice(0, limit),
-      };
-      return chain;
-    };
-    const set = vi.fn((value: Record<string, unknown>) => {
-      let predicate = (_row: Record<string, unknown>) => false;
-      const save = async () => {
-        await options.terminalWrite?.();
-        const matching = [...rows.values()].filter(predicate);
-        for (const row of matching) rows.set(String(row.id), { ...row, ...value });
-        return matching.map((row) => ({ id: row.id }));
-      };
-      const chain: UpdateChain = {
-        where: (filter: typeof predicate) => {
-          predicate = filter;
-          return chain;
-        },
-        returning: save,
-        then: (resolve: (value: unknown) => unknown, reject: (reason: unknown) => unknown) =>
-          save().then(resolve, reject),
-      };
-      return chain;
+      },
+      result: {
+        id: 'durable-task',
+        status: { state: 'pending-payment', timestamp: '2026-10-02T00:00:00.000Z' },
+        metadata: { receipt: { persisted: true } },
+      },
     });
-    mockGetClient.mockReturnValue({ select, insert: () => ({ values }), update: () => ({ set }) });
-    mockHandleA2AJsonRpc.mockResolvedValue({ jsonrpc: '2.0', id: request.id, result: outcome });
-    return { rows, values, returning, set };
-  }
+    mockGetTask.mockReturnValue(null);
+    const response = await makeA2AApp({ id: 'user-1' }, { features: { ai: true } }).request(
+      post('/', request, { 'X-PAYMENT-PAYLOAD': 'verified-proof' }),
+    );
+    expect(response.status).toBe(404);
+    expect(await response.json()).toMatchObject({
+      error: { code: -32001, message: 'Task not found' },
+    });
+    expect(mockVerifyPayment).not.toHaveBeenCalled();
+    expect(mockRequireTaskQuota).not.toHaveBeenCalled();
+    expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
+  });
 
   it('denies execution before quota/provider when the durable task claim cannot be stored', async () => {
     receiptDb({ reserveError: new Error('Database unavailable') });
@@ -1355,6 +1576,82 @@ describe('A2A durable receipt boundary', () => {
     expect(response.status).toBe(503);
     expect(mockRequireTaskQuota).not.toHaveBeenCalled();
     expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
+  });
+
+  it('preserves the shared unpaid fingerprint while competing paid continuations consume one claim', async () => {
+    const db = receiptDb();
+    mockGetDef.mockReturnValue({ pricing: { usdc: '0.001' } });
+    mockHandleA2AJsonRpc.mockImplementation(async () => ({
+      jsonrpc: '2.0',
+      id: request.id,
+      result: mockGetTask('durable-task'),
+    }));
+    const app = makeA2AApp({ id: 'user-1' }, { features: { ai: true } });
+    expect((await app.request(post('/', request))).status).toBe(402);
+    const fingerprint = structuredClone(db.rows.get('durable-task')?.result);
+    const original = mockCreateTask.mock.results[0]?.value;
+    mockResumePendingTask.mockReturnValue(original);
+    mockUpdateTaskState.mockClear();
+    mockRequireTaskQuota.mockClear();
+    mockHandleA2AJsonRpc.mockClear();
+    mockHandleA2AJsonRpc.mockResolvedValue({ jsonrpc: '2.0', id: request.id, result: outcome });
+    let release!: () => void;
+    const bothReady = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let proofs = 0;
+    mockVerifyPayment.mockImplementation(async () => {
+      proofs++;
+      if (proofs === 2) release();
+      await bothReady;
+      expect(db.rows.get('durable-task')?.result).toEqual(fingerprint);
+      return { valid: true };
+    });
+    const responses = await Promise.all([
+      app.request(post('/', request, { 'X-PAYMENT-PAYLOAD': 'proof-a' })),
+      app.request(post('/', request, { 'X-PAYMENT-PAYLOAD': 'proof-b' })),
+    ]);
+    expect(responses.map((response) => response.status).sort()).toEqual([200, 404]);
+    expect(mockUpdateTaskState).not.toHaveBeenCalledWith('durable-task', 'pending-payment');
+    expect(mockRequireTaskQuota).toHaveBeenCalledTimes(1);
+    expect(mockHandleA2AJsonRpc).toHaveBeenCalledTimes(1);
+    expect(db.rows.get('durable-task')).toMatchObject({ status: 'completed' });
+  });
+
+  it('does not rewrite a running winner when a continuation has no proof', async () => {
+    const db = receiptDb();
+    mockGetDef.mockReturnValue({ pricing: { usdc: '0.001' } });
+    const app = makeA2AApp({ id: 'user-1' }, { features: { ai: true } });
+    expect((await app.request(post('/', request))).status).toBe(402);
+    mockResumePendingTask.mockReturnValue(mockCreateTask.mock.results[0]?.value);
+    let started!: () => void;
+    const running = new Promise<void>((resolve) => {
+      started = resolve;
+    });
+    let finish!: () => void;
+    const provider = new Promise<void>((resolve) => {
+      finish = resolve;
+    });
+    mockHandleA2AJsonRpc.mockImplementation(async () => {
+      mockUpdateTaskState('durable-task', 'working');
+      started();
+      await provider;
+      return { jsonrpc: '2.0', id: request.id, result: outcome };
+    });
+    const paid = app.request(post('/', request, { 'X-PAYMENT-PAYLOAD': 'verified-proof' }));
+    await running;
+    mockUpdateTaskState.mockClear();
+    db.set.mockClear();
+    const unpaid = await app.request(post('/', request));
+    expect(unpaid.status).toBe(200);
+    expect(await unpaid.json()).toMatchObject({ result: { status: { state: 'working' } } });
+    expect(mockUpdateTaskState).not.toHaveBeenCalled();
+    expect(db.set).not.toHaveBeenCalled();
+    expect(db.rows.get('durable-task')?.status).toBe('running');
+    finish();
+    expect((await paid).status).toBe(200);
+    expect(mockRequireTaskQuota).toHaveBeenCalledTimes(1);
+    expect(mockHandleA2AJsonRpc).toHaveBeenCalledTimes(1);
   });
 
   it('atomically reserves the stable task ID and does not reexecute concurrent requests', async () => {
@@ -1367,6 +1664,8 @@ describe('A2A durable receipt boundary', () => {
     expect(db.values).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'durable-task',
+        tool: 'tasks/send',
+        version: 2,
         actorUserId: 'user-1',
         accountId: null,
         status: 'pending',
@@ -1387,7 +1686,10 @@ describe('A2A durable receipt boundary', () => {
         acknowledged = true;
         return value;
       });
-    await vi.waitFor(() => expect(db.set).toHaveBeenCalled());
+    await vi.waitFor(() =>
+      expect(db.set).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'completed' })),
+    );
+    expect(mockHandleA2AJsonRpc).toHaveBeenCalledTimes(1);
     expect(acknowledged).toBe(false);
     finishWrite();
     expect((await response).status).toBe(200);
@@ -1406,17 +1708,17 @@ describe('A2A durable receipt boundary', () => {
     const first = await app.request(post('/', request));
     expect(await first.json()).toMatchObject({
       result: {
-        status: { state: 'completed' },
+        status: { state: 'completed', timestamp: '2026-10-02T00:00:00.000Z' },
         metadata: { receipt: { taskId: 'durable-task', persisted: false } },
       },
     });
-    expect(db.rows.get('durable-task')?.status).toBe('pending');
+    expect(db.rows.get('durable-task')?.status).toBe('running');
     const retried = await app.request(
       post('/', { ...request, method: 'tasks/get', params: { id: 'durable-task' } }),
     );
     expect(await retried.json()).toMatchObject({
       result: {
-        status: { state: 'completed' },
+        status: { state: 'completed', timestamp: '2026-10-02T00:00:00.000Z' },
         metadata: { receipt: { taskId: 'durable-task', persisted: true } },
       },
     });
@@ -1430,6 +1732,8 @@ describe('A2A durable receipt boundary', () => {
     const db = receiptDb();
     db.rows.set('durable-task', {
       id: 'durable-task',
+      tool: 'tasks/send',
+      version: 2,
       actorUserId: 'user-1',
       accountId: null,
       status: 'completed',
@@ -1441,7 +1745,7 @@ describe('A2A durable receipt boundary', () => {
     expect(await response.json()).toMatchObject({
       result: {
         id: 'durable-task',
-        status: { state: 'completed' },
+        status: { state: 'completed', timestamp: '2026-10-02T00:00:00.000Z' },
         artifacts: outcome.artifacts,
         metadata: { receipt: { persisted: true } },
       },
@@ -1461,6 +1765,8 @@ describe('A2A durable receipt boundary', () => {
       const db = receiptDb();
       db.rows.set('durable-task', {
         id: 'durable-task',
+        tool: 'tasks/send',
+        version: 2,
         actorUserId: 'user-1',
         accountId: null,
         status,
@@ -1508,6 +1814,8 @@ describe('A2A durable receipt boundary', () => {
     const db = receiptDb();
     db.rows.set('durable-task', {
       id: 'durable-task',
+      tool: 'tasks/send',
+      version: 2,
       actorUserId: 'user-1',
       accountId: null,
       status: 'completed',
@@ -1522,7 +1830,7 @@ describe('A2A durable receipt boundary', () => {
     );
     expect(await response.json()).toMatchObject({
       result: {
-        status: { state: 'completed' },
+        status: { state: 'completed', timestamp: '2026-10-02T00:00:00.000Z' },
         metadata: { receipt: { taskId: 'durable-task', status: 'completed', persisted: true } },
       },
     });
@@ -1533,6 +1841,8 @@ describe('A2A durable receipt boundary', () => {
     const db = receiptDb();
     db.rows.set('durable-task', {
       id: 'durable-task',
+      tool: 'tasks/send',
+      version: 2,
       actorUserId: 'user-1',
       accountId: null,
       status: 'pending',

@@ -70,6 +70,7 @@ vi.mock('@revealui/ai', () => ({
   },
   handleA2AJsonRpc: mockHandleA2AJsonRpc,
   getTask: mockGetTask,
+  cancelTask: vi.fn(),
   RPC_PARSE_ERROR: -32700,
   RPC_INVALID_REQUEST: -32600,
 }));
@@ -141,8 +142,16 @@ const mockDbChain = {
   delete: vi.fn(),
 };
 
+let selectedPredicate = (_row: Record<string, unknown>) => true;
 const selectChain = {
   from: vi.fn(),
+  where: vi.fn((predicate: typeof selectedPredicate) => {
+    selectedPredicate = predicate;
+    return selectChain;
+  }),
+  limit: vi.fn(async (limit: number) =>
+    _dbResult.filter((row) => selectedPredicate(row as Record<string, unknown>)).slice(0, limit),
+  ),
   then(
     onFulfilled?: (value: unknown[]) => unknown,
     onRejected?: (reason: unknown) => unknown,
@@ -150,11 +159,29 @@ const selectChain = {
     return Promise.resolve(_dbResult).then(onFulfilled, onRejected);
   },
 };
-selectChain.from.mockReturnValue(selectChain);
+selectChain.from.mockImplementation(() => {
+  selectedPredicate = () => true;
+  return selectChain;
+});
 
 const insertChain = { values: vi.fn().mockResolvedValue(undefined) };
-const updateChain = { set: vi.fn(), where: vi.fn().mockResolvedValue(undefined) };
-updateChain.set.mockReturnValue(updateChain);
+let updateValue: Record<string, unknown> = {};
+let updatePredicate = (_row: Record<string, unknown>) => false;
+const updateChain = {
+  set: vi.fn((value: Record<string, unknown>) => {
+    updateValue = value;
+    return updateChain;
+  }),
+  where: vi.fn((predicate: typeof updatePredicate) => {
+    updatePredicate = predicate;
+    return updateChain;
+  }),
+  returning: vi.fn(async () => {
+    const matching = _dbResult.filter((row) => updatePredicate(row as Record<string, unknown>));
+    for (const row of matching) Object.assign(row as object, updateValue);
+    return matching.map((row) => ({ id: (row as { id: string }).id }));
+  }),
+};
 const deleteChain = { where: vi.fn().mockResolvedValue(undefined) };
 
 mockGetClient.mockReturnValue(mockDbChain);
@@ -165,10 +192,32 @@ vi.mock('@revealui/db', () => ({
 
 vi.mock('@revealui/db/schema', () => ({
   registeredAgents: { id: 'registeredAgents.id', definition: 'registeredAgents.definition' },
+  agentActions: {
+    id: 'id',
+    actorUserId: 'actorUserId',
+    accountId: 'accountId',
+    version: 'version',
+    tool: 'tool',
+    status: 'status',
+    params: 'params',
+    result: 'result',
+  },
 }));
 
 vi.mock('drizzle-orm', () => ({
-  eq: vi.fn((_col: unknown, _val: unknown) => `eq(${String(_col)},${String(_val)})`),
+  eq: vi.fn(
+    (column: string, value: unknown) => (row: Record<string, unknown>) => row[column] === value,
+  ),
+  isNull: vi.fn((column: string) => (row: Record<string, unknown>) => row[column] == null),
+  inArray: vi.fn(
+    (column: string, values: unknown[]) => (row: Record<string, unknown>) =>
+      values.includes(row[column]),
+  ),
+  and: vi.fn(
+    (...predicates: ((row: Record<string, unknown>) => boolean)[]) =>
+      (row: Record<string, unknown>) =>
+        predicates.every((predicate) => predicate(row)),
+  ),
 }));
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────
@@ -241,6 +290,7 @@ const MOCK_DEF = {
 function resetMocks() {
   vi.clearAllMocks();
   _dbResult = [];
+  mockGetTask.mockReturnValue(null);
 
   mockDbChain.select.mockReturnValue(selectChain);
   mockDbChain.insert.mockReturnValue(insertChain);
@@ -668,7 +718,28 @@ describe('DELETE /agents/:id', () => {
 describe('POST /a2a (JSON-RPC dispatcher)', () => {
   beforeEach(resetMocks);
 
+  function seedOwnedTask(state = 'completed') {
+    _dbResult = [
+      {
+        id: 'task-1',
+        actorUserId: 'test-actor',
+        accountId: 'test-account',
+        version: 2,
+        tool: 'tasks/send',
+        status: state,
+        result:
+          state === 'completed'
+            ? {
+                id: 'task-1',
+                status: { state: 'completed', timestamp: '2026-10-02T00:00:00.000Z' },
+              }
+            : null,
+      },
+    ];
+  }
+
   it('dispatches tasks/get and returns result', async () => {
+    seedOwnedTask('completed');
     mockHandleA2AJsonRpc.mockResolvedValue({
       jsonrpc: '2.0',
       id: 42,
@@ -683,7 +754,12 @@ describe('POST /a2a (JSON-RPC dispatcher)', () => {
     expect(res.status).toBe(200);
     const body = (await res.json()) as { id: number; result: unknown };
     expect(body.id).toBe(42);
-    expect(mockHandleA2AJsonRpc).toHaveBeenCalled();
+    expect(body.result).toMatchObject({
+      id: 'task-1',
+      status: { state: 'completed' },
+      metadata: { receipt: { persisted: true } },
+    });
+    expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
   });
 
   it('gates tasks/send behind the ai feature flag', async () => {
@@ -705,6 +781,7 @@ describe('POST /a2a (JSON-RPC dispatcher)', () => {
   });
 
   it('allows tasks/get without ai feature', async () => {
+    seedOwnedTask('completed');
     mockIsFeatureEnabled.mockReturnValue(false);
 
     const app = makeA2AApp();
@@ -712,8 +789,10 @@ describe('POST /a2a (JSON-RPC dispatcher)', () => {
       post('/', { jsonrpc: '2.0', id: 1, method: 'tasks/get', params: { id: 'task-1' } }),
     );
 
-    // Should reach dispatcher (not blocked by feature gate)
-    expect(mockHandleA2AJsonRpc).toHaveBeenCalled();
+    expect(await res.json()).toMatchObject({
+      result: { id: 'task-1', status: { state: 'completed' } },
+    });
+    expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
     expect(res.status).toBe(200);
   });
 
@@ -742,17 +821,29 @@ describe('POST /a2a (JSON-RPC dispatcher)', () => {
     expect(body.error.code).toBe(-32600); // RPC_INVALID_REQUEST
   });
 
-  it('calls dispatcher with the parsed RPC request and optional agent ID', async () => {
+  it('preserves the RPC request ID while durably canceling the owned task', async () => {
+    seedOwnedTask('pending');
     const app = makeA2AApp();
     // Send request without X-Agent-ID  -  dispatcher should receive (req, undefined)
     const res = await app.request(
       post('/', { jsonrpc: '2.0', id: 99, method: 'tasks/cancel', params: { id: 'task-1' } }),
     );
     expect(res.status).toBe(200);
-    expect(mockHandleA2AJsonRpc).toHaveBeenCalledTimes(1);
-    // First arg is the parsed RPC request object
-    const [rpcArg] = mockHandleA2AJsonRpc.mock.calls[0] ?? [];
-    expect(rpcArg).toMatchObject({ jsonrpc: '2.0', id: 99, method: 'tasks/cancel' });
+    expect(await res.json()).toMatchObject({
+      jsonrpc: '2.0',
+      id: 99,
+      result: {
+        id: 'task-1',
+        status: { state: 'canceled' },
+        metadata: { receipt: { persisted: true } },
+      },
+    });
+    expect(_dbResult[0]).toMatchObject({
+      status: 'cancelled',
+      actorUserId: 'test-actor',
+      accountId: 'test-account',
+    });
+    expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
   });
 
   it('gates tasks/sendSubscribe behind the ai feature flag', async () => {
@@ -774,6 +865,7 @@ describe('POST /a2a (JSON-RPC dispatcher)', () => {
   });
 
   it('allows tasks/cancel without ai feature', async () => {
+    seedOwnedTask('pending');
     mockIsFeatureEnabled.mockReturnValue(false);
 
     const app = makeA2AApp();
@@ -781,11 +873,16 @@ describe('POST /a2a (JSON-RPC dispatcher)', () => {
       post('/', { jsonrpc: '2.0', id: 1, method: 'tasks/cancel', params: { id: 'task-1' } }),
     );
 
-    expect(mockHandleA2AJsonRpc).toHaveBeenCalled();
+    expect(await res.json()).toMatchObject({
+      result: { id: 'task-1', status: { state: 'canceled' } },
+    });
+    expect(_dbResult[0]).toMatchObject({ status: 'cancelled' });
+    expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
     expect(res.status).toBe(200);
   });
 
-  it('forwards X-Agent-ID header to dispatcher', async () => {
+  it('keeps a task read scoped to its owner regardless of the agent header', async () => {
+    seedOwnedTask('completed');
     const app = makeA2AApp();
     const req = new Request('http://localhost/', {
       method: 'POST',
@@ -802,9 +899,14 @@ describe('POST /a2a (JSON-RPC dispatcher)', () => {
     });
     const res = await app.request(req);
     expect(res.status).toBe(200);
-    expect(mockHandleA2AJsonRpc).toHaveBeenCalledTimes(1);
-    const [, agentIdArg] = mockHandleA2AJsonRpc.mock.calls[0] ?? [];
-    expect(agentIdArg).toBe('custom-agent-42');
+    expect(await res.json()).toMatchObject({
+      result: { id: 'task-1', status: { state: 'completed' } },
+    });
+    expect(mockGetTask).toHaveBeenCalledWith('task-1', {
+      actorUserId: 'test-actor',
+      accountId: 'test-account',
+    });
+    expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
   });
 });
 

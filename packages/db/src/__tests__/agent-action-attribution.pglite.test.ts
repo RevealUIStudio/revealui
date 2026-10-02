@@ -1,6 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import { PGlite } from '@electric-sql/pglite';
+import { and, eq, inArray } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { agentActions } from '../schema/agents.js';
 
 let db: PGlite;
 beforeAll(async () => {
@@ -70,34 +73,64 @@ describe('agent action attribution migration', () => {
       expect((await owned('foreign-actor', 'account')).rows).toEqual([]);
       expect((await owned('actor', 'foreign-account')).rows).toEqual([]);
       await claimDb.exec(`ALTER TABLE agent_actions ADD COLUMN status text NOT NULL DEFAULT 'pending';
-        ALTER TABLE agent_actions ADD COLUMN result jsonb;`);
-      await claimDb.query('UPDATE agent_actions SET result = $1 WHERE id = $2', [
-        JSON.stringify({ status: { state: 'pending-payment' }, binding: 'trusted-agent-input' }),
-        'task-claim',
-      ]);
+        ALTER TABLE agent_actions ADD COLUMN result jsonb;
+        ALTER TABLE agent_actions ADD COLUMN params jsonb;
+        ALTER TABLE agent_actions ADD COLUMN tool text;
+        ALTER TABLE agent_actions ADD COLUMN version integer DEFAULT 1;`);
+      const payload = {
+        request: { message: 'Run' },
+        binding: {
+          agentId: 'trusted-agent',
+          inputDigest: 'trusted-agent-input',
+          definitionDigest: 'trusted-definition',
+        },
+      };
+      const pending = {
+        id: 'task-claim',
+        metadata: { pricing: { usdc: '0.001' } },
+        status: { timestamp: '2026-10-02T00:00:00.000Z', state: 'pending-payment' },
+      };
+      await claimDb.query(
+        "UPDATE agent_actions SET params = $1::jsonb, result = $2::jsonb, tool = 'tasks/send', version = 2 WHERE id = 'task-claim'",
+        [JSON.stringify(payload), JSON.stringify(pending)],
+      );
+      const client = drizzle(claimDb);
       const continueUnpaid = (actor: string, account: string, binding: string) =>
-        claimDb.query<{ id: string }>(
-          `UPDATE agent_actions SET status = 'running'
-          WHERE id = $1 AND actor_user_id = $2 AND account_id = $3 AND status = 'pending'
-            AND result->'status'->>'state' = 'pending-payment' AND result->>'binding' = $4
-          RETURNING id`,
-          ['task-claim', actor, account, binding],
-        );
-      expect(
-        (await continueUnpaid('foreign-actor', 'account', 'trusted-agent-input')).rows,
-      ).toEqual([]);
-      expect(
-        (await continueUnpaid('actor', 'foreign-account', 'trusted-agent-input')).rows,
-      ).toEqual([]);
-      expect((await continueUnpaid('actor', 'account', 'changed-agent-input')).rows).toEqual([]);
+        client
+          .update(agentActions)
+          .set({ status: 'running' })
+          .where(
+            and(
+              eq(agentActions.id, 'task-claim'),
+              eq(agentActions.actorUserId, actor),
+              eq(agentActions.accountId, account),
+              eq(agentActions.version, 2),
+              inArray(agentActions.tool, ['tasks/send', 'tasks/sendSubscribe']),
+              eq(agentActions.status, 'pending'),
+              eq(agentActions.params, {
+                binding: { ...payload.binding, inputDigest: binding },
+                request: payload.request,
+              }),
+              eq(agentActions.result, {
+                status: { state: 'pending-payment', timestamp: pending.status.timestamp },
+                metadata: pending.metadata,
+                id: 'task-claim',
+              }),
+            ),
+          )
+          .returning({ id: agentActions.id });
+      expect(await continueUnpaid('foreign-actor', 'account', 'trusted-agent-input')).toEqual([]);
+      expect(await continueUnpaid('actor', 'foreign-account', 'trusted-agent-input')).toEqual([]);
+      expect(await continueUnpaid('actor', 'account', 'changed-agent-input')).toEqual([]);
+      await claimDb.exec("UPDATE agent_actions SET version = 1 WHERE id = 'task-claim'");
+      expect(await continueUnpaid('actor', 'account', 'trusted-agent-input')).toEqual([]);
+      await claimDb.exec("UPDATE agent_actions SET version = 2 WHERE id = 'task-claim'");
       const continuations = await Promise.all([
         continueUnpaid('actor', 'account', 'trusted-agent-input'),
         continueUnpaid('actor', 'account', 'trusted-agent-input'),
       ]);
-      expect(continuations.flatMap((continuation) => continuation.rows)).toEqual([
-        { id: 'task-claim' },
-      ]);
-      expect((await continueUnpaid('actor', 'account', 'trusted-agent-input')).rows).toEqual([]);
+      expect(continuations.flat()).toEqual([{ id: 'task-claim' }]);
+      expect(await continueUnpaid('actor', 'account', 'trusted-agent-input')).toEqual([]);
     } finally {
       await claimDb.close();
     }
