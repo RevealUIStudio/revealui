@@ -110,7 +110,7 @@ export const budgetLedgers = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
-    primaryKey({ columns: [table.policyId, table.windowStart] }),
+    primaryKey({ name: 'budget_ledgers_pkey', columns: [table.policyId, table.windowStart] }),
     check('budget_ledgers_spent_check', sql`spent >= 0`),
   ],
 );

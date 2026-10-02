@@ -1,5 +1,5 @@
 {
-  "id": "8c1e8584-2e63-43ba-8d22-8e79145ca1b7",
+  "id": "9c6d324b-3f30-46ab-a5c9-55395cfbcba9",
   "prevId": "06d0116d-96b8-40aa-a248-31da033f418e",
   "version": "7",
   "dialect": "postgresql",
@@ -4539,8 +4539,8 @@
         }
       },
       "compositePrimaryKeys": {
-        "budget_ledgers_policy_id_window_start_pk": {
-          "name": "budget_ledgers_policy_id_window_start_pk",
+        "budget_ledgers_pkey": {
+          "name": "budget_ledgers_pkey",
           "columns": [
             "policy_id",
             "window_start"

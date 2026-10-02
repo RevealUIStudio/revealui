@@ -72,8 +72,8 @@ function cycleStart(): Date {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 }
 
-export async function requireTaskQuota(
-  c: Context<TaskQuotaEnv>,
+export async function requireTaskQuota<E extends TaskQuotaEnv>(
+  c: Context<E>,
   next: Next,
   // biome-ignore lint/suspicious/noConfusingVoidType: Hono middleware must return Response | void
 ): Promise<Response | void> {
