@@ -203,6 +203,9 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: "true"
 
+      - name: Push and gate admission contracts
+        run: pnpm validate:push
+
       - name: Biome lint (hard fail)
         run: pnpm lint
 

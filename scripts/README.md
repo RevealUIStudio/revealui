@@ -93,6 +93,24 @@ as `@revealui/scripts/*`. The local `scripts/lib/` directory holds only
 
 ## Common Commands
 
+`pnpm push [target-branch [remote]]` pushes the current committed HEAD to the
+named destination. It requires a clean index and worktree and never moves or
+deletes uncommitted files, saved work, worktrees, or caches. Direct Git pushes
+also reject dirty work and branch source commits that differ from the checkout.
+Use an independently prepared clean checkout for a different source commit.
+
+Coordinated pushes use a kernel-owned `flock` lease; a live holder never expires
+by age. The gate uses a separate per-user lease across worktrees and rejects
+contention immediately, including from a direct push with an open transport.
+The supported local tooling requires `flock` and Node 24.13 or newer. Worker
+counts, including quality prerequisites, are bounded by available process
+memory and CPU; `REVEALUI_GATE_CONCURRENCY` can reduce that count but cannot
+exceed the budget. Less than 1.25 GiB of available memory rejects admission.
+`pnpm validate:push` checks these contracts against synthetic local remotes and
+isolated resource/lock fixtures. These changes do not yet move validation before
+Git's transport connection; long-running transport behavior remains tracked in
+issue #3036.
+
 Every command below is a real alias in the root `package.json`. Run
 `jq '.scripts' package.json` for the full list.
 
