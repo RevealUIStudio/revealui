@@ -295,6 +295,8 @@ See API schema for request body shape.
 
 - `200`  -  SSE event stream
 - `403`  -  AI feature requires Pro or Enterprise license
+- `404`  -  Task not found in the authenticated actor and account scope
+- `500`  -  Task operation could not complete; known execution outcomes include server-owned receipt status
 - `503`  -  AI runtime package not available in this deployment (not a Free-plan limit)
 
 ---
@@ -309,10 +311,13 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200`  -  JSON-RPC response
+- `200`  -  JSON-RPC response with server-owned receipt status; persisted false requires receipt recovery rather than execution retry
 - `400`  -  Parse error or invalid request
+- `402`  -  Payment proof required; the pending task has not executed
 - `403`  -  AI feature requires Pro or Enterprise license
+- `404`  -  Task not found in the authenticated actor and account scope
 - `409`  -  Hosted account has no LLM provider configured (set one at /settings/api-keys)
+- `500`  -  Task operation could not complete; known execution outcomes include server-owned receipt status
 - `503`  -  AI runtime package not available in this deployment (not a Free-plan limit)
 
 ---

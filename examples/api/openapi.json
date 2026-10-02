@@ -782,6 +782,22 @@
               }
             }
           },
+          "404": {
+            "description": "Task not found in the authenticated actor and account scope",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "500": {
+            "description": "Task operation could not complete; known execution outcomes include server-owned receipt status",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
           "503": {
             "description": "AI runtime package not available in this deployment (not a Free-plan limit)",
             "content": {
@@ -813,7 +829,7 @@
       "post": {
         "responses": {
           "200": {
-            "description": "JSON-RPC response",
+            "description": "JSON-RPC response with server-owned receipt status; persisted false requires receipt recovery rather than execution retry",
             "content": {
               "application/json": {
                 "schema": {}
@@ -828,6 +844,14 @@
               }
             }
           },
+          "402": {
+            "description": "Payment proof required; the pending task has not executed",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
           "403": {
             "description": "AI feature requires Pro or Enterprise license",
             "content": {
@@ -836,8 +860,24 @@
               }
             }
           },
+          "404": {
+            "description": "Task not found in the authenticated actor and account scope",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
           "409": {
             "description": "Hosted account has no LLM provider configured (set one at /settings/api-keys)",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "500": {
+            "description": "Task operation could not complete; known execution outcomes include server-owned receipt status",
             "content": {
               "application/json": {
                 "schema": {}
