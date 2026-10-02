@@ -608,7 +608,7 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # Post-deploy design-system verification (marketing + docs)
-  # Runs after deploy, against the deployment URL from artifact
+  # Runs after deploy, against both the public URL and the deployment URL from artifact
   # deploy-url-<app> (url.txt). --url <origin>=<public-host> keeps the
   # allowlist, token parity, font resolvability, and font asset checks on
   # the public host. CSP is whatever that deployment response returns.
@@ -666,6 +666,7 @@ jobs:
               fi
               marketing_url=$(tr -d '[:space:]' < "$url_file")
               args+=(--url "${marketing_url}=www.revealui.com")
+              args+=(--url "https://www.revealui.com")
               ;;
           esac
           case " $APP_LIST " in
@@ -677,6 +678,7 @@ jobs:
               fi
               docs_url=$(tr -d '[:space:]' < "$url_file")
               args+=(--url "${docs_url}=docs.revealui.com")
+              args+=(--url "https://docs.revealui.com")
               ;;
           esac
           if [ "${#args[@]}" -eq 0 ]; then
