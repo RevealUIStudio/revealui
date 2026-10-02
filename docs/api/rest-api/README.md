@@ -272,7 +272,7 @@ See API schema for request body shape.
 
 ### `GET` `/a2a/agent-tasks/exists`
 
-**Check whether any agent task has ever run**
+**Check for attributed terminal task receipts and completed executions**
 
 **Responses**
 
@@ -4041,6 +4041,7 @@ After the client PUTs to the presigned URL, confirm HEADs the object, re-checks 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
 | `status` | `string` | - |  -  |  |
+| `createdByMe` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -5122,6 +5123,7 @@ After the client PUTs to the presigned URL, confirm HEADs the object, re-checks 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
 | `status` | `string` | - |  -  |  |
+| `createdByMe` | `string` | - |  -  |  |
 
 **Responses**
 
