@@ -30,16 +30,32 @@
  * - External: pnpm, turbo, biome
  */
 
-import { availableParallelism, totalmem } from 'node:os';
+import { AsyncLocalStorage } from 'node:async_hooks';
+import { type SpawnOptions, spawn } from 'node:child_process';
+import { closeSync, openSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { ErrorCode } from '@revealui/scripts/errors.js';
 import { execCommand } from '@revealui/scripts/exec.js';
 import { createLogger, getProjectRoot } from '../utils/base.js';
+import { phaseConcurrency } from '../utils/resource-admission.js';
+
+export { phaseConcurrency } from '../utils/resource-admission.js';
 
 const logger = createLogger();
 
 /** Phase-1 checks without an explicit timeout inherit this (not execCommand's 120s). */
 const PHASE_CHECK_TIMEOUT_MS = 300_000;
+const admissionDescriptor = new AsyncLocalStorage<number>();
+
+/** Actual validator processes retain admission if their gate parent exits. */
+function admittedStdio(capture = false): SpawnOptions['stdio'] | undefined {
+  const descriptor = admissionDescriptor.getStore();
+  const channel = capture ? 'pipe' : 'inherit';
+  if (descriptor === undefined) return channel;
+  return [channel, channel, channel, descriptor];
+}
 
 // =============================================================================
 // Types
@@ -61,11 +77,13 @@ interface CheckDef {
 async function resolveChangeBase(): Promise<string> {
   const branch = await execCommand('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
     capture: true,
+    stdio: admittedStdio(true),
   });
   if (branch.success && branch.stdout?.trim()) {
     const upstream = `origin/${branch.stdout.trim()}`;
     const check = await execCommand('git', ['rev-parse', '--verify', upstream], {
       capture: true,
+      stdio: admittedStdio(true),
     });
     if (check.success) return upstream;
   }
@@ -121,14 +139,27 @@ function parseArgs(): {
 // Check Runner
 // =============================================================================
 
-async function runCheck(check: CheckDef): Promise<CheckResult> {
+export async function runCheck(check: CheckDef): Promise<CheckResult> {
   if (check.skip) {
     return { name: check.name, status: 'skip', durationMs: 0 };
   }
 
+  let args = check.args;
+  if (check.command === 'pnpm' && args[0] === 'turbo') {
+    const flags = args.filter((arg) => arg.startsWith('--concurrency='));
+    if (flags.length !== 1) throw new Error('Turbo gate checks must declare one worker cap.');
+    const maximum = Number(flags[0]?.slice('--concurrency='.length));
+    if (!Number.isInteger(maximum) || maximum < 1) {
+      throw new Error('Turbo gate worker cap must be a positive integer.');
+    }
+    const cap = phaseConcurrency(maximum);
+    // Headroom may have changed while an earlier serial test/build ran.
+    args = args.map((arg) => (arg.startsWith('--concurrency=') ? `--concurrency=${cap}` : arg));
+  }
   const start = performance.now();
-  const result = await execCommand(check.command, check.args, {
+  const result = await execCommand(check.command, args, {
     timeout: check.timeout ?? PHASE_CHECK_TIMEOUT_MS,
+    stdio: admittedStdio(),
   });
   const durationMs = performance.now() - start;
 
@@ -144,19 +175,34 @@ async function runCheck(check: CheckDef): Promise<CheckResult> {
 }
 
 /**
- * Bound phase-1 fan-out. Unbounded Promise.all on a ~4GB machine stretches
- * a warm harnesses build and claim-drift past PHASE_CHECK_TIMEOUT_MS, and
- * the timeout SIGTERM races tsup's short-lived *.bundled_*.mjs files.
- * About 1.25 GiB per worker. REVEALUI_GATE_CONCURRENCY overrides.
+ * Kernel-owned admission spans worktrees. flock locks the inherited open file
+ * description; closing our descriptor releases it without deleting the file
+ * or expiring a live owner. There is no caller-supplied "already admitted" flag.
  */
-function phaseConcurrency(checkCount: number): number {
-  const raw = process.env.REVEALUI_GATE_CONCURRENCY;
-  if (raw !== undefined && raw !== '') {
-    const parsed = Number(raw);
-    if (Number.isInteger(parsed) && parsed > 0) return Math.min(parsed, checkCount);
+export async function withGateAdmission<T>(operation: () => Promise<T>): Promise<T> {
+  const descriptor = openSync(
+    join(tmpdir(), `revealui-gate-${process.getuid?.() ?? 'user'}.lock`),
+    'a',
+    0o600,
+  );
+  try {
+    await new Promise<void>((resolve, reject) => {
+      // Reject contention immediately: a direct Git push may already have an
+      // open transport, so resource admission must not wait inside its hook.
+      const child = spawn('flock', ['--exclusive', '--nonblock', '3'], {
+        stdio: ['ignore', 'inherit', 'inherit', descriptor],
+      });
+      child.once('error', reject);
+      child.once('exit', (code, signal) => {
+        if (code === 0) resolve();
+        else reject(new Error(`CI gate admission lock failed (${signal ?? code}).`));
+      });
+    });
+    phaseConcurrency(1);
+    return await admissionDescriptor.run(descriptor, operation);
+  } finally {
+    closeSync(descriptor);
   }
-  const byMemory = Math.max(1, Math.floor(totalmem() / (1024 * 1024 * 1024 * 1.25)));
-  return Math.max(1, Math.min(checkCount, availableParallelism(), byMemory));
 }
 
 async function runPhaseParallel(checks: CheckDef[]): Promise<CheckResult[]> {
@@ -270,6 +316,7 @@ export async function gate(): Promise<void> {
     // dependency graphs before starting any parallel consumers, as CI does.
     // This prerequisite applies even when phase 3 builds are disabled.
     logger.info('Phase 1 prerequisite — quality package dependency graphs');
+    const prerequisiteConcurrency = phaseConcurrency(2);
     const prerequisite = await runCheck({
       name: 'Quality package prerequisites',
       command: 'pnpm',
@@ -279,7 +326,7 @@ export async function gate(): Promise<void> {
         'build',
         '--filter=@revealui/harnesses...',
         '--filter=@revealui/claim-gates...',
-        '--concurrency=2',
+        `--concurrency=${prerequisiteConcurrency}`,
       ],
       timeout: 600_000,
     });
@@ -315,6 +362,7 @@ export async function gate(): Promise<void> {
 
     const phase1Checks: CheckDef[] = [
       biomeCheck,
+      { name: 'Push and gate admission contracts', command: 'pnpm', args: ['validate:push'] },
       { name: 'Any type audit', command: 'pnpm', args: ['audit:any'], warnOnly: true },
       { name: 'Console audit', command: 'pnpm', args: ['audit:console'], warnOnly: true },
       {
@@ -642,6 +690,8 @@ export async function gate(): Promise<void> {
   if (phase === null || phase === 2) {
     logger.info('Phase 2 \u2014 Type checking (serial)');
 
+    const typecheckConcurrency = phaseConcurrency(2);
+
     // In changed-only mode: only typecheck packages changed since comparison base (and their dependents)
     const typecheckArgs = changed
       ? [
@@ -650,9 +700,9 @@ export async function gate(): Promise<void> {
           'typecheck',
           `--filter=...[${changeBase}]`,
           ...proFilter,
-          '--concurrency=2',
+          `--concurrency=${typecheckConcurrency}`,
         ]
-      : ['turbo', 'run', 'typecheck', ...proFilter, '--concurrency=2'];
+      : ['turbo', 'run', 'typecheck', ...proFilter, `--concurrency=${typecheckConcurrency}`];
 
     const phase2Checks: CheckDef[] = [
       { name: 'Type checking', command: 'pnpm', args: typecheckArgs, timeout: 300000 },
@@ -683,11 +733,19 @@ export async function gate(): Promise<void> {
   if (phase === null || phase === 3) {
     logger.info('Phase 3 \u2014 Test + Build (serial: tests first)');
 
-    // Turbo concurrency=2 + per-package maxWorkers=2 prevents fork explosion.
-    // Worst case: 2 packages × 2 forks = 4 processes × 150 MB = 600 MB total.
+    // Bound package fan-out using the same available-memory/CPU admission.
+    // Workspace createVitestConfig separately caps its package pool at two.
+    const taskConcurrency = phaseConcurrency(2);
     const testArgs = changed
-      ? ['turbo', 'run', 'test', `--filter=...[${changeBase}]`, ...proFilter, '--concurrency=2']
-      : ['turbo', 'run', 'test', ...proFilter, '--concurrency=2'];
+      ? [
+          'turbo',
+          'run',
+          'test',
+          `--filter=...[${changeBase}]`,
+          ...proFilter,
+          `--concurrency=${taskConcurrency}`,
+        ]
+      : ['turbo', 'run', 'test', ...proFilter, `--concurrency=${taskConcurrency}`];
 
     const buildCheck: CheckDef[] = noBuild
       ? []
@@ -702,7 +760,7 @@ export async function gate(): Promise<void> {
                 'build',
                 `--filter=...[${changeBase}]`,
                 ...proFilter,
-                '--concurrency=2',
+                `--concurrency=${taskConcurrency}`,
               ],
               timeout: 600000,
             },
@@ -716,7 +774,7 @@ export async function gate(): Promise<void> {
             {
               name: 'Build',
               command: 'pnpm',
-              args: ['turbo', 'run', 'build', ...proFilter, '--concurrency=2'],
+              args: ['turbo', 'run', 'build', ...proFilter, `--concurrency=${taskConcurrency}`],
               timeout: 900000,
             },
             {
@@ -774,7 +832,7 @@ export async function gate(): Promise<void> {
 
 async function main(): Promise<void> {
   try {
-    await gate();
+    await withGateAdmission(gate);
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`);
     process.exit(ErrorCode.EXECUTION_ERROR);
