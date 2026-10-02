@@ -15,7 +15,7 @@ import { type Tenant as DbTenant, tenants } from '@revealui/db/schema/tenants';
 import { type User as DbUser, users } from '@revealui/db/schema/users';
 import { and, asc, count, desc, eq, isNull, or, type SQL, sql } from 'drizzle-orm';
 import { cmsCollectionHandlers } from './cmsCollectionStorage';
-import { DEFAULT_CMS_SITE_ID } from './defaultSite';
+import { DEFAULT_CMS_SITE_ID, resolveDefaultSiteId } from './defaultSite';
 
 type UserWhereCondition = NonNullable<RevealFindOptions['where']>;
 type UserSort = NonNullable<RevealFindOptions['sort']>;
@@ -645,7 +645,12 @@ async function createTypedPage(
   const values: NewPage = {
     id: typeof data.id === 'string' && data.id.length > 0 ? data.id : `rvl_${crypto.randomUUID()}`,
     siteId:
-      typeof data.siteId === 'string' && data.siteId.length > 0 ? data.siteId : DEFAULT_CMS_SITE_ID,
+      typeof data.siteId === 'string' && data.siteId.length > 0
+        ? data.siteId
+        : options.req?.user?.id
+          ? await resolveDefaultSiteId(String(options.req.user.id))
+          : DEFAULT_CMS_SITE_ID,
+    createdBy: options.req?.user?.id ? String(options.req.user.id) : null,
     title,
     slug,
     path:

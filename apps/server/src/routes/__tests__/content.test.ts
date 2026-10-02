@@ -863,6 +863,30 @@ describe('GET /sites/:siteId/pages  -  list pages', () => {
     mockPageQueries.getPagesBySite.mockResolvedValue([]);
   });
 
+  it('derives own-page filtering from the authenticated actor, never a requested creator', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_A.id }));
+    const response = await createApp(USER_A).request(
+      '/sites/site-1/pages?createdByMe=true&createdBy=forged',
+    );
+    expect(response.status).toBe(200);
+    expect(mockPageQueries.getPagesBySite).toHaveBeenCalledWith(
+      expect.anything(),
+      'site-1',
+      expect.objectContaining({ createdBy: USER_A.id }),
+    );
+  });
+  it('own-page milestones require authentication and retain site ownership enforcement', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(
+      makeSite({ ownerId: USER_A.id, status: 'published' }),
+    );
+    expect((await createApp(null).request('/sites/site-1/pages?createdByMe=true')).status).toBe(
+      401,
+    );
+    expect((await createApp(USER_B).request('/sites/site-1/pages?createdByMe=true')).status).toBe(
+      403,
+    );
+    expect(mockPageQueries.getPagesBySite).not.toHaveBeenCalled();
+  });
   it('returns published pages for unauthenticated requests (public read)', async () => {
     mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ status: 'published' }));
     const app = createApp(null);
@@ -969,9 +993,18 @@ describe('POST /sites/:siteId/pages  -  create page', () => {
     const res = await app.request('/sites/site-1/pages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: 'New Page', slug: 'new-page', path: '/new-page' }),
+      body: JSON.stringify({
+        title: 'New Page',
+        slug: 'new-page',
+        path: '/new-page',
+        createdBy: 'forged',
+      }),
     });
     expect(res.status).toBe(201);
+    expect(mockPageQueries.createPage).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ createdBy: USER_A.id }),
+    );
     const body = await res.json();
     expect(body.success).toBe(true);
     expect(body.data.title).toBe('New Page');

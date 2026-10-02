@@ -1,7 +1,7 @@
 import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
-import { resolveDefaultSiteId } from '@/lib/db/defaultSite';
+import { resolveDefaultSiteId, SiteSelectionRequiredError } from '@/lib/db/defaultSite';
 import { apiForwardHeaders } from '@/lib/utils/api-proxy-headers';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
@@ -25,6 +25,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 async function resolveListTarget(
   collection: string,
   searchParams: URLSearchParams,
+  userId: string,
 ): Promise<string> {
   if (collection !== 'pages') {
     return `${API_URL}/api/content/${collection}?${searchParams.toString()}`;
@@ -32,12 +33,16 @@ async function resolveListTarget(
   const forwarded = new URLSearchParams(searchParams);
   const explicit = forwarded.get('siteId');
   forwarded.delete('siteId');
-  const siteId = explicit && explicit.length > 0 ? explicit : await resolveDefaultSiteId();
+  const siteId = explicit && explicit.length > 0 ? explicit : await resolveDefaultSiteId(userId);
   const query = forwarded.toString();
   return `${API_URL}/api/content/sites/${encodeURIComponent(siteId)}/pages${query ? `?${query}` : ''}`;
 }
 
-async function resolveCreateTarget(collection: string, body: unknown): Promise<string> {
+async function resolveCreateTarget(
+  collection: string,
+  body: unknown,
+  userId: string,
+): Promise<string> {
   if (collection !== 'pages') {
     return `${API_URL}/api/content/${collection}`;
   }
@@ -45,11 +50,14 @@ async function resolveCreateTarget(collection: string, body: unknown): Promise<s
     isRecord(body) && typeof body.siteId === 'string' && body.siteId.length > 0
       ? body.siteId
       : undefined;
-  const siteId = explicit ?? (await resolveDefaultSiteId());
+  const siteId = explicit ?? (await resolveDefaultSiteId(userId));
   return `${API_URL}/api/content/sites/${encodeURIComponent(siteId)}/pages`;
 }
 
 function apiUnavailable(collection: string, error: unknown): NextResponse {
+  if (error instanceof SiteSelectionRequiredError) {
+    return NextResponse.json({ error: error.message }, { status: 409 });
+  }
   const err = error instanceof Error ? error : new Error(String(error));
   logger.error('Content API unavailable', err, { collection });
   return NextResponse.json({ error: 'Content API unavailable' }, { status: 503 });
@@ -103,9 +111,12 @@ export async function GET(
   const { searchParams } = new URL(request.url);
 
   try {
-    const apiResponse = await fetch(await resolveListTarget(collection, searchParams), {
-      headers: await apiForwardHeaders(request),
-    });
+    const apiResponse = await fetch(
+      await resolveListTarget(collection, searchParams, session.user.id),
+      {
+        headers: await apiForwardHeaders(request),
+      },
+    );
     return proxyResponse(apiResponse);
   } catch (err) {
     return apiUnavailable(collection, err);
@@ -129,7 +140,7 @@ export async function POST(
   // the only upload gate. JSON create for non-upload collections is unchanged.
   if (contentType.startsWith('multipart/form-data')) {
     try {
-      const target = await resolveCreateTarget(collection, undefined);
+      const target = await resolveCreateTarget(collection, undefined, session.user.id);
       const init: RequestInit & { duplex: 'half' } = {
         method: 'POST',
         headers: await apiForwardHeaders(request, { 'Content-Type': contentType }),
@@ -146,7 +157,7 @@ export async function POST(
   const body = await request.json();
 
   try {
-    const apiResponse = await fetch(await resolveCreateTarget(collection, body), {
+    const apiResponse = await fetch(await resolveCreateTarget(collection, body, session.user.id), {
       method: 'POST',
       headers: await apiForwardHeaders(request, { 'Content-Type': 'application/json' }),
       body: JSON.stringify(body),

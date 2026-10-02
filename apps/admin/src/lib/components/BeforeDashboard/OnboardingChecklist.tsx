@@ -29,7 +29,7 @@ const EMPTY_SIGNALS: WalkLiveSignals = {
 /** Resolve a boolean from a same-origin admin collections proxy (pages). */
 async function hasAnyDoc(collection: string): Promise<boolean> {
   try {
-    const res = await fetch(`/api/collections/${collection}?limit=1&depth=0`, {
+    const res = await fetch(`/api/collections/${collection}?limit=1&depth=0&createdByMe=true`, {
       credentials: 'include',
     });
     if (!res.ok) return false;

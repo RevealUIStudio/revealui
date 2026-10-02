@@ -118,6 +118,7 @@ async function batchCreate(
           await pageQueries.createPage(db, {
             id,
             siteId: String(item.siteId ?? ''),
+            createdBy: userId,
             title: String(item.title ?? ''),
             slug: String(item.slug ?? ''),
             path: String(item.path ?? '/'),

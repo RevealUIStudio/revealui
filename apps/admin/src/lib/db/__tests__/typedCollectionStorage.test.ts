@@ -351,6 +351,23 @@ describe('typedCollectionStorage pages bridge', () => {
     process.env.POSTGRES_URL = 'postgresql://example';
   });
 
+  it('attributes typed creation only from request auth and leaves unowned seed rows NULL', async () => {
+    const { chain, calls } = createPagesChain([
+      [{ ...pageRow, id: 'one' }],
+      [{ ...pageRow, id: 'two' }],
+    ]);
+    getRestClient.mockReturnValue(chain);
+    const storage = createTypedCollectionStorage();
+    await storage?.create?.(pagesCollection, {
+      data: { title: 'Own', slug: 'own', siteId: 'site-own', createdBy: 'forged' },
+      req: { user: { id: 'actor' } } as never,
+    });
+    await storage?.create?.(pagesCollection, {
+      data: { title: 'Seed', slug: 'seed', siteId: 'site-own', createdBy: 'forged' },
+    });
+    expect(calls.values[0]).toMatchObject({ createdBy: 'actor', siteId: 'site-own' });
+    expect(calls.values[1]).toMatchObject({ createdBy: null });
+  });
   it('maps a page row for findByID (canonical columns + _status mirror)', async () => {
     const { chain } = createPagesChain([[pageRow]]);
     getRestClient.mockReturnValue(chain);

@@ -88,6 +88,7 @@ app.openapi(
       params: SiteIdParam,
       query: z.object({
         status: z.enum(asNonEmptyTuple(PAGE_STATUSES)).optional().openapi({ example: 'published' }),
+        createdByMe: z.enum(['true', 'false']).optional(),
       }),
     },
     responses: {
@@ -109,10 +110,12 @@ app.openapi(
     const db = c.get('db');
     const user = c.get('user');
     const { siteId } = c.req.valid('param');
-    const { status } = c.req.valid('query');
+    const { status, createdByMe } = c.req.valid('query');
     const site = await siteQueries.getSiteById(db, siteId);
     if (!site) throw new HTTPException(404, { message: 'Site not found' });
     if (!user) {
+      if (createdByMe === 'true')
+        throw new HTTPException(401, { message: 'Authentication required' });
       // Public access: only published pages from published sites
       if (site.status !== 'published') {
         throw new HTTPException(404, { message: 'Site not found' });
@@ -123,7 +126,10 @@ app.openapi(
     if (!hasApiRole(user, 'admin') && site.ownerId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
-    const data = await pageQueries.getPagesBySite(db, siteId, { status });
+    const data = await pageQueries.getPagesBySite(db, siteId, {
+      status,
+      ...(createdByMe === 'true' ? { createdBy: user.id } : {}),
+    });
     return c.json({ success: true as const, data: data.map(serializePage) }, 200);
   },
 );
@@ -193,6 +199,7 @@ app.openapi(
       id: crypto.randomUUID(),
       siteId,
       ...body,
+      createdBy: user.id,
     });
     // biome-ignore lint/style/noNonNullAssertion: createPage always returns the created row
     return c.json({ success: true as const, data: serializePage(page!) }, 201);

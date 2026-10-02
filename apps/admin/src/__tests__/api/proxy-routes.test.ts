@@ -21,7 +21,9 @@ vi.stubGlobal('fetch', mockFetch);
 import { getSession } from '@revealui/auth/server';
 
 vi.mock('@revealui/auth/server', () => ({
-  getSession: vi.fn().mockResolvedValue({ userId: 'test-user', token: 'tok' }),
+  getSession: vi
+    .fn()
+    .mockResolvedValue({ userId: 'test-user', user: { id: 'test-user' }, token: 'tok' }),
 }));
 
 const mockGetSession = vi.mocked(getSession);
@@ -36,9 +38,10 @@ vi.mock('@revealui/utils/logger', () => ({
 
 // Pages are site-scoped: the list/create proxy resolves the default site
 // server-side. Mock the resolver so the target URL is deterministic.
-import { resolveDefaultSiteId } from '@/lib/db/defaultSite';
+import { resolveDefaultSiteId, SiteSelectionRequiredError } from '@/lib/db/defaultSite';
 
 vi.mock('@/lib/db/defaultSite', () => ({
+  SiteSelectionRequiredError: class extends Error {},
   resolveDefaultSiteId: vi.fn().mockResolvedValue('fleet-marketing'),
 }));
 
@@ -289,6 +292,27 @@ describe('pages site-scoping', () => {
     mockResolveDefaultSiteId.mockResolvedValue('fleet-marketing');
   });
 
+  it('forwards the own-creator filter and derives default-site ownership from the authenticated session', async () => {
+    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ success: true, data: [] }));
+    const res = await collectionsGet(
+      new NextRequest('http://localhost/api/collections/pages?createdByMe=true'),
+      { params: Promise.resolve({ collection: 'pages' }) },
+    );
+    expect(res.status).toBe(200);
+    expect(mockResolveDefaultSiteId).toHaveBeenCalledWith('test-user');
+    expect(String(mockFetch.mock.calls[0]?.[0])).toContain('createdByMe=true');
+  });
+  it('unresolved owned site requires selection without forwarding to a global fallback', async () => {
+    mockResolveDefaultSiteId.mockRejectedValueOnce(
+      new SiteSelectionRequiredError('Select a site you own'),
+    );
+    const res = await collectionsGet(
+      new NextRequest('http://localhost/api/collections/pages?createdByMe=true'),
+      { params: Promise.resolve({ collection: 'pages' }) },
+    );
+    expect(res.status).toBe(409);
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
   it('GET pages lists the default site and preserves other query params', async () => {
     mockFetch.mockResolvedValueOnce(makeUpstreamOk({ success: true, data: [] }));
     const req = new NextRequest('http://localhost/api/collections/pages?limit=1&depth=0');

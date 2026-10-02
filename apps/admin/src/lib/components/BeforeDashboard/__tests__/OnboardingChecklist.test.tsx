@@ -63,6 +63,17 @@ beforeEach(() => {
 });
 
 describe('OnboardingChecklist', () => {
+  it('requests only the authenticated creator page signal for Free onboarding', async () => {
+    license('free');
+    global.fetch = mockFetchImpl({ pages: { ok: true, body: { docs: [] } } });
+    render(<OnboardingChecklist />);
+    await waitFor(() =>
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/collections/pages?limit=1&depth=0&createdByMe=true',
+        expect.objectContaining({ credentials: 'include' }),
+      ),
+    );
+  });
   it('renders nothing when previously dismissed', () => {
     localStorage.setItem(DISMISSED_KEY, '1');
     global.fetch = mockFetchImpl({});

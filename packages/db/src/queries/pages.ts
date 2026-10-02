@@ -9,13 +9,14 @@ import { pages } from '../schema/pages.js';
 export async function getPagesBySite(
   db: Database,
   siteId: string,
-  options: { status?: string } = {},
+  options: { status?: string; createdBy?: string } = {},
 ) {
-  const { status } = options;
+  const { status, createdBy } = options;
   const conditions = [
     eq(pages.siteId, siteId),
     isNull(pages.deletedAt),
     ...(status ? [eq(pages.status, status)] : []),
+    ...(createdBy ? [eq(pages.createdBy, createdBy)] : []),
   ];
   return db
     .select()
@@ -52,9 +53,11 @@ export async function updatePage(
   id: string,
   data: Partial<typeof pages.$inferInsert>,
 ) {
+  // Creation attribution is immutable; ordinary updates cannot claim a page.
+  const mutable = { ...data, createdBy: undefined };
   const result = await db
     .update(pages)
-    .set({ ...data, updatedAt: new Date() })
+    .set({ ...mutable, updatedAt: new Date() })
     .where(eq(pages.id, id))
     .returning();
   return result[0] ?? null;

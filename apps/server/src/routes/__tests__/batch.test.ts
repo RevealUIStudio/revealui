@@ -91,6 +91,29 @@ describe('Batch Operations API', () => {
   // ─── POST /batch/create ──────────────────────────────────────────────────
 
   describe('POST /batch/create', () => {
+    it('attributes batch page creation to the authenticated actor rather than item ownership', async () => {
+      const res = await buildApp({ id: 'admin-actor', role: 'admin' }).request('/batch/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          collection: 'pages',
+          items: [
+            {
+              siteId: 'selected-site',
+              title: 'Own',
+              slug: 'own',
+              path: '/own',
+              createdBy: 'forged',
+            },
+          ],
+        }),
+      });
+      expect(res.status).toBe(200);
+      expect(mockPageQueries.createPage).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ createdBy: 'admin-actor', siteId: 'selected-site' }),
+      );
+    });
     it('creates items as admin', async () => {
       mockPostQueries.createPost.mockResolvedValue({ id: 'p1' });
 
