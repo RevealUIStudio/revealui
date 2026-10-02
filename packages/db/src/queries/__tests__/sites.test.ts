@@ -30,6 +30,7 @@ function createSelectChain(result: unknown[] = []) {
 function createInsertChain(result: unknown[] = []) {
   return {
     values: vi.fn().mockReturnThis(),
+    onConflictDoNothing: vi.fn().mockReturnThis(),
     returning: vi.fn().mockResolvedValue(result),
   };
 }

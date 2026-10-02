@@ -77,7 +77,11 @@ export async function getSiteBySlug(db: Database, slug: string) {
 }
 
 export async function createSite(db: Database, data: typeof sites.$inferInsert) {
-  const result = await db.insert(sites).values(data).returning();
+  const result = await db
+    .insert(sites)
+    .values(data)
+    .onConflictDoNothing({ target: sites.slug })
+    .returning();
   return result[0] ?? null;
 }
 
@@ -158,6 +162,11 @@ export async function actorCanManageSite(
 ): Promise<boolean> {
   const site = await getSiteById(db, siteId);
   return Boolean(site && canManageSiteContent(actor, site.ownerId, mode));
+}
+
+/** Live-site scope for queries whose caller already supplies authorization. */
+export function getLiveSiteIds(db: Database) {
+  return db.select({ id: sites.id }).from(sites).where(notDeleted);
 }
 
 /** Unpaginated SQL subquery for page reads; deleted sites never grant visibility. */

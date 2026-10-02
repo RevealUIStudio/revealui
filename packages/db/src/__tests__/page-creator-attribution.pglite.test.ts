@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { getPagesBySite, updatePage } from '../queries/pages.js';
+import { countPages, getPages, getPagesBySite, updatePage } from '../queries/pages.js';
 
 let client: PGlite;
 beforeAll(async () => {
@@ -17,6 +17,9 @@ describe('page creator attribution', () => {
   it('keeps legacy pages unclaimed and scopes real queries by creator, site and soft deletion', async () => {
     await client.exec(`CREATE TABLE users (id text PRIMARY KEY);
         INSERT INTO users VALUES ('actor'), ('other');
+        CREATE TABLE sites (id text PRIMARY KEY, owner_id text, status text, deleted_at timestamptz);
+        INSERT INTO sites VALUES ('one','actor','published',NULL), ('two','actor','draft',NULL),
+          ('foreign','other','published',NULL), ('deleted-site','actor','published',now());
         CREATE TABLE pages (
           id text PRIMARY KEY, schema_version text DEFAULT '1', version integer DEFAULT 1,
           site_id text NOT NULL, parent_id text, template_id text, title text, slug text,
@@ -36,11 +39,43 @@ describe('page creator attribution', () => {
       { created_by: null },
     ]);
     await client.exec(`INSERT INTO pages (id,site_id,title,slug,path,created_by,deleted_at) VALUES
-        ('own','one','Own','own','/own','actor',NULL),
+        ('own','one','Own','own','/','actor',NULL),
         ('other','one','Other','other','/other','other',NULL),
-        ('elsewhere','two','Elsewhere','elsewhere','/elsewhere','actor',NULL),
+        ('elsewhere','two','Elsewhere','elsewhere','/','actor',NULL),
+        ('foreign-page','foreign','Foreign','foreign','/foreign','actor',NULL),
+        ('deleted-site-page','deleted-site','Deleted site','deleted-site','/deleted-site','actor',NULL),
         ('deleted','one','Deleted','deleted','/deleted','actor',now());`);
     const db = drizzle(client);
+    await expect(getPages(db as never, { createdBy: 'actor' })).rejects.toThrow(
+      'require a site or owner scope',
+    );
+    await expect(countPages(db as never, {})).rejects.toThrow('require a site or owner scope');
+    expect(
+      (await getPages(db as never, { siteOwnerId: 'actor', createdBy: 'actor' })).map((p) => p.id),
+    ).toEqual(['elsewhere', 'own']);
+    expect(
+      (
+        await getPages(db as never, {
+          siteOwnerId: 'actor',
+          createdBy: 'actor',
+          limit: 1,
+          offset: 1,
+        })
+      ).map((p) => p.id),
+    ).toEqual(['own']);
+    expect(await countPages(db as never, { siteOwnerId: 'actor', createdBy: 'actor' })).toBe(2);
+    expect(
+      (
+        await getPages(db as never, {
+          siteOwnerId: 'actor',
+          createdBy: 'actor',
+          limit: 1,
+          offset: 0,
+        })
+      ).map((p) => p.id),
+    ).toEqual(['elsewhere']);
+    expect(await getPages(db as never, { siteId: 'deleted-site' })).toEqual([]);
+    expect(await countPages(db as never, { siteId: 'deleted-site' })).toBe(0);
     expect(
       (await getPagesBySite(db as never, 'one', { createdBy: 'actor' })).map((p) => p.id),
     ).toEqual(['own']);

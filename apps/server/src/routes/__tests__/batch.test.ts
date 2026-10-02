@@ -143,6 +143,18 @@ describe('Batch Operations API', () => {
       expect(body.results[0].status).toBe('created');
     });
 
+    it('reports duplicate site addresses as failed items rather than invented creations', async () => {
+      mockSiteQueries.createSite.mockResolvedValue(null);
+      const res = await buildApp(adminUser).request('/batch/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ collection: 'sites', items: [{ name: 'Site', slug: 'taken' }] }),
+      });
+      const body = await res.json();
+      expect(body.results[0].status).toBe('error');
+      expect(body.results[0].error).toBe('Operation failed');
+    });
+
     it('rejects unauthenticated users', async () => {
       const app = buildApp(null);
       const res = await app.request('/batch/create', {

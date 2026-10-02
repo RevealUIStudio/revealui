@@ -2,27 +2,65 @@
  * Page database queries
  */
 
-import { and, asc, eq, isNull } from 'drizzle-orm';
+import { and, asc, count, eq, inArray, isNull } from 'drizzle-orm';
 import type { Database } from '../client/index.js';
 import { pages } from '../schema/pages.js';
+import { getLiveSiteIds, getSiteIdsForContentRead } from './sites.js';
+
+interface PageListOptions {
+  siteId?: string;
+  siteOwnerId?: string;
+  status?: string;
+  createdBy?: string;
+  limit?: number;
+  offset?: number;
+}
+
+function pageListConditions(db: Database, options: PageListOptions) {
+  const { siteId, siteOwnerId, status, createdBy } = options;
+  if (!(siteId || siteOwnerId))
+    throw new Error('Page collection reads require a site or owner scope');
+  const conditions = [
+    isNull(pages.deletedAt),
+    inArray(pages.siteId, getLiveSiteIds(db)),
+    ...(siteId ? [eq(pages.siteId, siteId)] : []),
+    ...(siteOwnerId
+      ? [inArray(pages.siteId, getSiteIdsForContentRead(db, { id: siteOwnerId }, null))]
+      : []),
+    ...(status ? [eq(pages.status, status)] : []),
+    ...(createdBy ? [eq(pages.createdBy, createdBy)] : []),
+  ];
+  return and(...conditions);
+}
+
+/** Shared collection/site list query. Ownership comes from trusted callers. */
+export async function getPages(db: Database, options: PageListOptions) {
+  const query = db
+    .select()
+    .from(pages)
+    .where(pageListConditions(db, options))
+    .orderBy(asc(pages.path), asc(pages.id));
+  if (options.limit === undefined && options.offset === undefined) return query;
+  const bounded = query.$dynamic();
+  if (options.limit !== undefined) bounded.limit(options.limit);
+  if (options.offset !== undefined) bounded.offset(options.offset);
+  return bounded;
+}
+
+export async function countPages(db: Database, options: PageListOptions) {
+  const result = await db
+    .select({ total: count() })
+    .from(pages)
+    .where(pageListConditions(db, options));
+  return result[0]?.total ?? 0;
+}
 
 export async function getPagesBySite(
   db: Database,
   siteId: string,
   options: { status?: string; createdBy?: string } = {},
 ) {
-  const { status, createdBy } = options;
-  const conditions = [
-    eq(pages.siteId, siteId),
-    isNull(pages.deletedAt),
-    ...(status ? [eq(pages.status, status)] : []),
-    ...(createdBy ? [eq(pages.createdBy, createdBy)] : []),
-  ];
-  return db
-    .select()
-    .from(pages)
-    .where(and(...conditions))
-    .orderBy(asc(pages.path));
+  return getPages(db, { ...options, siteId });
 }
 
 export async function getPageById(db: Database, id: string) {

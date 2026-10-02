@@ -12,7 +12,7 @@ const API_URL =
 
 /**
  * Pages are the one site-scoped content collection: the API exposes list/create
- * only under `/sites/:siteId/pages`, while every other collection lists/creates
+ * under the flat collection read and `/sites/:siteId/pages` create, while every other collection lists/creates
  * flat under `/:collection`. The dashboard supplies the site scope here — an
  * explicit `siteId` when a site is selected, otherwise the server-resolved
  * default site (single-site operators never choose one). All other collections
@@ -30,12 +30,17 @@ async function resolveListTarget(
   if (collection !== 'pages') {
     return `${API_URL}/api/content/${collection}?${searchParams.toString()}`;
   }
+  // Creator completion spans owned sites and never resolves a default site.
+  // An explicit site remains a normal constraint in the owning API query.
+  if (searchParams.get('createdByMe') === 'true') {
+    return `${API_URL}/api/content/pages?${searchParams.toString()}`;
+  }
   const forwarded = new URLSearchParams(searchParams);
   const explicit = forwarded.get('siteId');
-  forwarded.delete('siteId');
   const siteId = explicit && explicit.length > 0 ? explicit : await resolveDefaultSiteId(userId);
+  forwarded.set('siteId', siteId);
   const query = forwarded.toString();
-  return `${API_URL}/api/content/sites/${encodeURIComponent(siteId)}/pages${query ? `?${query}` : ''}`;
+  return `${API_URL}/api/content/pages${query ? `?${query}` : ''}`;
 }
 
 async function resolveCreateTarget(
@@ -69,7 +74,11 @@ async function proxyResponse(response: Response): Promise<NextResponse> {
     logger.error('Content API request failed', new Error(text || 'Unknown error'), {
       status: response.status,
     });
-    return NextResponse.json({ error: 'API request failed' }, { status: response.status });
+    const message =
+      response.status === 409
+        ? 'This conflicts with an existing address or name. Choose another and try again.'
+        : 'API request failed';
+    return NextResponse.json({ error: message, message }, { status: response.status });
   }
   const data = await response.json();
 
@@ -77,8 +86,19 @@ async function proxyResponse(response: Response): Promise<NextResponse> {
   // The Hono API returns { success, data: T[] } but APIClient.find() reads { docs, totalDocs }.
   // Users route already returns { docs, ... }  -  only transform the { data } envelope.
   if (data && Array.isArray(data.data) && !data.docs) {
+    const countOr = (value: unknown, fallback: number): number =>
+      typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : fallback;
+    const limit = countOr(data.limit, 0);
+    const offset = countOr(data.offset, 0);
     return NextResponse.json(
-      { docs: data.data, totalDocs: data.data.length, totalPages: 1, page: 1 },
+      {
+        docs: data.data,
+        totalDocs: countOr(data.totalDocs, data.data.length),
+        totalPages: countOr(data.totalPages, 1),
+        page: countOr(data.page, limit > 0 ? Math.floor(offset / limit) + 1 : 1),
+        ...(data.limit !== undefined ? { limit } : {}),
+        ...(data.offset !== undefined ? { offset } : {}),
+      },
       { status: response.status },
     );
   }

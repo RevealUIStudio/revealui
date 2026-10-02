@@ -88,6 +88,79 @@ interface DocumentFormProps {
   onSave: (data: Record<string, unknown>) => void;
   onCancel: () => void;
   isLoading?: boolean;
+  scope?: DocumentScopeProps;
+}
+
+export interface DocumentScopeProps {
+  label: string;
+  value: string;
+  choices: Array<{ id: string; label: string }>;
+  loading?: boolean;
+  locked?: boolean;
+  error?: string;
+  onChange: (value: string) => void;
+  onCreate?: () => void;
+  onMore?: () => void;
+  onRetry?: () => void;
+}
+
+/** The same scope selector serves collection lists and document forms. */
+export function DocumentScopeSelector({
+  label,
+  value,
+  choices,
+  loading,
+  locked,
+  error,
+  onChange,
+  onCreate,
+  onMore,
+  onRetry,
+}: DocumentScopeProps) {
+  return (
+    <div className="space-y-2">
+      <label htmlFor="document-scope" className="block text-sm font-medium text-foreground">
+        {label}
+      </label>
+      <Select
+        id="document-scope"
+        value={value}
+        disabled={loading || locked}
+        onChange={(event) => onChange(event.target.value)}
+        required
+      >
+        <option value="">
+          {loading ? `Loading ${label.toLowerCase()}s…` : `Select a ${label.toLowerCase()}`}
+        </option>
+        {choices.map((choice) => (
+          <option key={choice.id} value={choice.id}>
+            {choice.label}
+          </option>
+        ))}
+      </Select>
+      {loading && <p role="status">Loading available {label.toLowerCase()}s…</p>}
+      {!(loading || locked || error) && choices.length === 0 && (
+        <p>No {label.toLowerCase()}s yet. Create one to continue.</p>
+      )}
+      {error && <p role="alert">{error}</p>}
+      {!locked && error && onRetry && (
+        <Button type="button" onClick={onRetry} disabled={loading}>
+          Retry
+        </Button>
+      )}
+      {!locked && onMore && (
+        <Button type="button" onClick={onMore} disabled={loading}>
+          More {label.toLowerCase()}s
+        </Button>
+      )}
+      {!locked && onCreate && (
+        <Button type="button" onClick={onCreate} disabled={loading}>
+          Create {label.toLowerCase()}
+        </Button>
+      )}
+      {locked && <p>The {label.toLowerCase()} for this document cannot be changed.</p>}
+    </div>
+  );
 }
 
 export function DocumentForm({
@@ -96,6 +169,7 @@ export function DocumentForm({
   onSave,
   onCancel,
   isLoading = false,
+  scope,
 }: DocumentFormProps) {
   const [formData, setFormData] = useState<Record<string, unknown>>(document || {});
 
@@ -103,7 +177,9 @@ export function DocumentForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    if (scope && (!scope.value || scope.loading)) return;
+    const scopeField = collection.admin?.scope?.field;
+    onSave(scope && scopeField ? { ...formData, [scopeField]: scope.value } : formData);
   };
 
   const handleFieldChange = (fieldName: string, value: unknown) => {
@@ -118,6 +194,7 @@ export function DocumentForm({
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {scope && <DocumentScopeSelector {...scope} />}
           {collection.upload && !document ? (
             <div>
               <label htmlFor="__file" className="block text-sm font-medium text-foreground">
@@ -158,7 +235,12 @@ export function DocumentForm({
             <Button type="button" variant="neutral" appearance="outline" onClick={onCancel}>
               Cancel
             </Button>
-            <Button type="submit" variant="brand" appearance="solid" disabled={isLoading}>
+            <Button
+              type="submit"
+              variant="brand"
+              appearance="solid"
+              disabled={isLoading || (!!scope && (!scope.value || scope.loading))}
+            >
               {isLoading ? 'Saving...' : 'Save'}
             </Button>
           </div>

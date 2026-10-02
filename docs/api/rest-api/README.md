@@ -3962,6 +3962,7 @@ After the client PUTs to the presigned URL, confirm HEADs the object, re-checks 
 **Responses**
 
 - `201`  -  Site created
+- `409`  -  Site address already in use
 
 ---
 
@@ -4023,6 +4024,29 @@ After the client PUTs to the presigned URL, confirm HEADs the object, re-checks 
 
 - `200`  -  Site deleted
 - `404`  -  Not found
+
+---
+
+### `GET` `/api/content/pages`
+
+**List pages across owned sites**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `siteId` | `string` | - |  -  |  |
+| `status` | `string` | - |  -  |  |
+| `createdByMe` | `string` | - |  -  |  |
+| `limit` | `integer` | - | `50` |  |
+| `offset` | `integer` | - | `0` |  |
+
+**Responses**
+
+- `200`  -  Page list
+- `401`  -  Authentication required
+- `403`  -  Forbidden
+- `404`  -  Site not found
 
 ---
 
@@ -5044,6 +5068,7 @@ After the client PUTs to the presigned URL, confirm HEADs the object, re-checks 
 **Responses**
 
 - `201`  -  Site created
+- `409`  -  Site address already in use
 
 ---
 
@@ -5105,6 +5130,29 @@ After the client PUTs to the presigned URL, confirm HEADs the object, re-checks 
 
 - `200`  -  Site deleted
 - `404`  -  Not found
+
+---
+
+### `GET` `/api/v1/content/pages`
+
+**List pages across owned sites**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `siteId` | `string` | - |  -  |  |
+| `status` | `string` | - |  -  |  |
+| `createdByMe` | `string` | - |  -  |  |
+| `limit` | `integer` | - | `50` |  |
+| `offset` | `integer` | - | `0` |  |
+
+**Responses**
+
+- `200`  -  Page list
+- `401`  -  Authentication required
+- `403`  -  Forbidden
+- `404`  -  Site not found
 
 ---
 

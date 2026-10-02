@@ -50,6 +50,8 @@ const { mockPostQueries, mockMediaQueries, mockSiteQueries, mockPageQueries } = 
   mockPageQueries: {
     getAllPages: vi.fn(),
     getPagesBySite: vi.fn(),
+    getPages: vi.fn(),
+    countPages: vi.fn(),
     createPage: vi.fn(),
     getPageById: vi.fn(),
     updatePage: vi.fn(),
@@ -667,6 +669,17 @@ describe('GET /sites  -  list sites', () => {
 describe('POST /sites  -  create site', () => {
   beforeEach(() => vi.clearAllMocks());
 
+  it('reports an atomic duplicate address as a correctable conflict', async () => {
+    mockSiteQueries.createSite.mockResolvedValue(null);
+    const res = await createApp(USER_A).request('/sites', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'New site', slug: 'existing' }),
+    });
+    expect(res.status).toBe(409);
+    expect(await res.text()).toContain('Choose another address');
+  });
+
   it('returns 401 without authentication', async () => {
     const app = createApp(null);
     const res = await app.request('/sites', {
@@ -865,6 +878,69 @@ describe('DELETE /sites/:id (IDOR)', () => {
 });
 
 // ─── Page Tests ──────────────────────────────────────────────────────────────
+
+describe('GET /pages — creator collection scope', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockPageQueries.getPages.mockResolvedValue([]);
+    mockPageQueries.countPages.mockResolvedValue(0);
+  });
+
+  it('reports the matching collection total separately from a bounded page', async () => {
+    mockPageQueries.getPages.mockResolvedValue([makePage()]);
+    mockPageQueries.countPages.mockResolvedValue(2);
+    const response = await createApp(USER_A).request('/pages?createdByMe=true&limit=1&offset=1');
+    expect(await response.json()).toMatchObject({
+      totalDocs: 2,
+      totalPages: 2,
+      limit: 1,
+      offset: 1,
+    });
+  });
+
+  it.each(['limit=0', 'limit=101', 'offset=-1'])(
+    'rejects invalid collection bounds %s',
+    async (query) => {
+      expect((await createApp(USER_A).request(`/pages?${query}`)).status).toBe(400);
+      expect(mockPageQueries.getPages).not.toHaveBeenCalled();
+    },
+  );
+
+  it('derives creator and owned-site scope from the session across multiple sites', async () => {
+    expect(
+      (
+        await createApp(USER_A).request(
+          '/pages?createdByMe=true&createdBy=forged&siteOwnerId=forged',
+        )
+      ).status,
+    ).toBe(200);
+    expect(mockPageQueries.getPages).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ createdBy: USER_A.id, siteOwnerId: USER_A.id }),
+    );
+    expect(mockSiteQueries.getSiteById).not.toHaveBeenCalled();
+  });
+
+  it('requires authentication and denies explicit foreign sites before the query', async () => {
+    expect((await createApp(null).request('/pages?createdByMe=true')).status).toBe(401);
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_B.id }));
+    expect((await createApp(USER_A).request('/pages?siteId=site-1&createdByMe=true')).status).toBe(
+      403,
+    );
+    expect(mockPageQueries.getPages).not.toHaveBeenCalled();
+  });
+
+  it('keeps an explicitly selected owned site as an additional creator constraint', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_A.id }));
+    expect((await createApp(USER_A).request('/pages?siteId=site-1&createdByMe=true')).status).toBe(
+      200,
+    );
+    expect(mockPageQueries.getPages).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ siteId: 'site-1', siteOwnerId: USER_A.id, createdBy: USER_A.id }),
+    );
+  });
+});
 
 describe('GET /sites/:siteId/pages  -  list pages', () => {
   beforeEach(() => {

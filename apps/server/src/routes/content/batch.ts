@@ -104,8 +104,8 @@ async function batchCreate(
             authorId: userId,
           });
           break;
-        case 'sites':
-          await siteQueries.createSite(db, {
+        case 'sites': {
+          const created = await siteQueries.createSite(db, {
             id,
             name: String(item.name ?? ''),
             slug: String(item.slug ?? ''),
@@ -113,7 +113,10 @@ async function batchCreate(
             status: item.status != null ? String(item.status) : undefined,
             ownerId: userId,
           });
+          if (!created)
+            throw new Error('This site address is already in use. Choose another address.');
           break;
+        }
         case 'pages':
           await pageQueries.createPage(db, {
             id,

@@ -77,6 +77,86 @@ function serializePage(
 // Page Routes
 // =============================================================================
 
+// Collection read spans the authenticated owner's sites. Onboarding therefore
+// observes a creator's first page even when another owned site is selected.
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/pages',
+    tags: ['content'],
+    summary: 'List pages across owned sites',
+    request: {
+      query: z.object({
+        siteId: z.string().min(1).optional(),
+        status: z.enum(asNonEmptyTuple(PAGE_STATUSES)).optional(),
+        createdByMe: z.enum(['true', 'false']).optional(),
+        limit: z.coerce.number().int().min(1).max(100).default(50),
+        offset: z.coerce.number().int().min(0).default(0),
+      }),
+    },
+    responses: {
+      200: {
+        content: {
+          'application/json': {
+            schema: z.object({
+              success: z.literal(true),
+              data: z.array(PageSchema),
+              totalDocs: z.number(),
+              totalPages: z.number(),
+              limit: z.number(),
+              offset: z.number(),
+            }),
+          },
+        },
+        description: 'Page list',
+      },
+      401: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Authentication required',
+      },
+      403: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Forbidden' },
+      404: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Site not found',
+      },
+    },
+  }),
+  async (c) => {
+    const db = c.get('db');
+    const user = c.get('user');
+    if (!user) throw new HTTPException(401, { message: 'Authentication required' });
+    const { siteId, status, createdByMe, limit, offset } = c.req.valid('query');
+    if (siteId) {
+      const site = await siteQueries.getSiteById(db, siteId);
+      if (!site) throw new HTTPException(404, { message: 'Site not found' });
+      if (!canAdministerAllContent(user) && site.ownerId !== user.id) {
+        throw new HTTPException(403, { message: 'Forbidden' });
+      }
+    }
+    const scope = {
+      siteId,
+      status,
+      ...(!siteId || createdByMe === 'true' ? { siteOwnerId: user.id } : {}),
+      ...(createdByMe === 'true' ? { createdBy: user.id } : {}),
+    };
+    const [data, totalDocs] = await Promise.all([
+      pageQueries.getPages(db, { ...scope, limit, offset }),
+      pageQueries.countPages(db, scope),
+    ]);
+    return c.json(
+      {
+        success: true as const,
+        data: data.map(serializePage),
+        totalDocs,
+        totalPages: Math.ceil(totalDocs / limit),
+        limit,
+        offset,
+      },
+      200,
+    );
+  },
+);
+
 // GET /sites/:siteId/pages
 app.openapi(
   createRoute({

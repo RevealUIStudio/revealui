@@ -3,7 +3,7 @@
 import { logger } from '@revealui/core/utils/logger';
 import { Button, IconPrimitiveContent, IconSettings } from '@revealui/presentation';
 import type { ReactNode } from 'react';
-import { useEffect, useReducer } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import type {
   RevealCollectionConfig,
   RevealConfig,
@@ -12,7 +12,7 @@ import type {
 } from '../../../types/index.js';
 import { APIError, APIErrorType, apiClient } from '../utils/index.js';
 import { CollectionList } from './CollectionList.js';
-import { DocumentForm } from './DocumentForm.js';
+import { DocumentForm, type DocumentScopeProps, DocumentScopeSelector } from './DocumentForm.js';
 import { GlobalForm } from './GlobalForm.js';
 
 // =============================================================================
@@ -154,13 +154,19 @@ function StatusBanners({
   return (
     <>
       {error && (
-        <div className="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
+        <div
+          role="alert"
+          className="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded"
+        >
           <p className="font-medium">Error</p>
           <p className="text-sm">{error}</p>
         </div>
       )}
       {successMessage && (
-        <div className="mb-4 bg-success/10 border border-success/30 text-success px-4 py-3 rounded">
+        <div
+          role="status"
+          className="mb-4 bg-success/10 border border-success/30 text-success px-4 py-3 rounded"
+        >
           <p className="font-medium">Success</p>
           <p className="text-sm">{successMessage}</p>
         </div>
@@ -518,6 +524,22 @@ export function AdminDashboard({
   overviewLead,
 }: AdminDashboardProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [scopeState, setScopeState] = useState({
+    collection: '',
+    choices: [] as Array<{ id: string; label: string }>,
+    value: '',
+    page: 1,
+    limit: 100,
+    totalPages: 1,
+    loaded: false,
+    loading: false,
+    error: '',
+  });
+  const scopeRequest = useRef(0);
+  const collectionRequest = useRef(0);
+  const scopeCreationRequest = useRef(0);
+  const [scopeCreateFor, setScopeCreateFor] = useState<RevealCollectionConfig | null>(null);
+  const [scopeSaving, setScopeSaving] = useState(false);
 
   const collections = config.collections || [];
   const globals = config.globals || [];
@@ -540,16 +562,132 @@ export function AdminDashboard({
     return;
   }, [state.error]);
 
-  const goToDashboard = () => dispatch({ type: 'NAVIGATE', view: { type: 'dashboard' } });
+  const goToDashboard = () => {
+    scopeCreationRequest.current++;
+    setScopeSaving(false);
+    scopeRequest.current++;
+    collectionRequest.current++;
+    setScopeCreateFor(null);
+    dispatch({ type: 'NAVIGATE', view: { type: 'dashboard' } });
+  };
 
-  const fetchCollection = async (collection: RevealCollectionConfig, page = 1) => {
+  const loadScope = async (
+    collection: RevealCollectionConfig,
+    page = 1,
+    selected?: string,
+    created?: RevealDocument,
+  ) => {
+    const scope = collection.admin?.scope;
+    if (!scope) return '';
+    const request = ++scopeRequest.current;
+    setScopeState((previous) => ({
+      ...(previous.collection === String(collection.slug)
+        ? previous
+        : {
+            choices: [],
+            value: '',
+            page: 1,
+            limit: 100,
+            totalPages: 1,
+            loaded: false,
+          }),
+      collection: String(collection.slug),
+      loading: true,
+      error: '',
+    }));
+    try {
+      const limit = page === 1 ? 100 : scopeState.limit;
+      const result = await apiClient.find({
+        collection: scope.resource,
+        page,
+        limit,
+        offset: (page - 1) * limit,
+      });
+      if (request !== scopeRequest.current) return '';
+      const choices = (result.docs ?? [])
+        .filter((doc) => doc.id != null)
+        .map((doc) => ({
+          id: String(doc.id),
+          label: String(doc[scope.titleField] ?? doc.id),
+        }));
+      if (created?.id && !choices.some((choice) => choice.id === String(created.id))) {
+        choices.push({
+          id: String(created.id),
+          label: String(created[scope.titleField] ?? created.id),
+        });
+      }
+      // A partial first page never proves a singleton resource.
+      const value =
+        selected ?? (result.totalDocs === 1 && choices.length === 1 ? (choices[0]?.id ?? '') : '');
+      setScopeState((previous) => ({
+        collection: String(collection.slug),
+        choices:
+          page > 1
+            ? [
+                ...previous.choices,
+                ...choices.filter(
+                  (choice) => !previous.choices.some((prior) => prior.id === choice.id),
+                ),
+              ]
+            : choices,
+        value,
+        page: result.page ?? page,
+        limit: result.limit && result.limit > 0 ? result.limit : limit,
+        totalPages: result.totalPages ?? 1,
+        loaded: true,
+        loading: false,
+        error: '',
+      }));
+      return value;
+    } catch (error) {
+      if (request === scopeRequest.current) {
+        setScopeState((previous) => ({
+          ...previous,
+          loaded: false,
+          loading: false,
+          error: extractErrorMessage(
+            error,
+            'Available choices could not be loaded. Please try again.',
+          ),
+        }));
+      }
+      return '';
+    }
+  };
+
+  const fetchCollection = async (
+    collection: RevealCollectionConfig,
+    page = 1,
+    selectedScope?: string,
+  ) => {
+    const request = ++collectionRequest.current;
     try {
       dispatch({ type: 'COLLECTION_LOADING' });
+      const scope = collection.admin?.scope;
+      const value = scope
+        ? (selectedScope ??
+          (scopeState.collection === String(collection.slug) && scopeState.loaded
+            ? scopeState.value
+            : await loadScope(collection)))
+        : '';
+      if (request !== collectionRequest.current) return;
+      if (scope && !value) {
+        dispatch({
+          type: 'COLLECTION_LOADED',
+          documents: [],
+          totalDocs: 0,
+          page: 1,
+          totalPages: 1,
+        });
+        return;
+      }
       const response = await apiClient.find({
         collection: String(collection.slug),
         page,
         limit: 10,
+        ...(scope ? { scope: { field: scope.field, value }, offset: (page - 1) * 10 } : {}),
       });
+      if (request !== collectionRequest.current) return;
       dispatch({
         type: 'COLLECTION_LOADED',
         documents: response.docs || [],
@@ -558,6 +696,7 @@ export function AdminDashboard({
         totalPages: response.totalPages || 1,
       });
     } catch (err: unknown) {
+      if (request !== collectionRequest.current) return;
       const msg = extractErrorMessage(err, 'Failed to fetch collection data. Please try again.');
       logApiError(err, 'Failed to fetch collection data');
       dispatch({
@@ -572,11 +711,103 @@ export function AdminDashboard({
   };
 
   const handleCollectionClick = async (collection: RevealCollectionConfig) => {
+    scopeCreationRequest.current++;
+    scopeRequest.current++;
+    setScopeSaving(false);
+    setScopeCreateFor(null);
     dispatch({ type: 'NAVIGATE', view: { type: 'collection', collection } });
     await fetchCollection(collection);
   };
 
+  const scopePropsFor = (
+    collection: RevealCollectionConfig,
+    document?: RevealDocument,
+  ): DocumentScopeProps | undefined => {
+    const scope = collection.admin?.scope;
+    if (!scope) return undefined;
+    const locked = !!document;
+    const current = scopeState.collection === String(collection.slug);
+    const value = locked ? String(document[scope.field] ?? '') : current ? scopeState.value : '';
+    const choices = current ? [...scopeState.choices] : [];
+    if (locked && value && !choices.some((choice) => choice.id === value)) {
+      choices.push({ id: value, label: `Current ${scope.label.toLowerCase()}` });
+    }
+    return {
+      label: scope.label,
+      value,
+      choices,
+      locked,
+      loading: !locked && scopeState.loading,
+      error: scopeState.error,
+      onRetry: () => {
+        if (state.view.type === 'collection') void fetchCollection(collection);
+        else void loadScope(collection);
+      },
+      onChange: (next) => {
+        setScopeState((previous) => ({ ...previous, value: next }));
+        if (state.view.type === 'collection') void fetchCollection(collection, 1, next);
+      },
+      ...(scope.createFields?.length
+        ? {
+            onCreate: () => {
+              dispatch({ type: 'SET_ERROR', error: null });
+              setScopeCreateFor(collection);
+            },
+          }
+        : {}),
+      ...(scopeState.page < scopeState.totalPages
+        ? { onMore: () => void loadScope(collection, scopeState.page + 1, scopeState.value) }
+        : {}),
+    };
+  };
+
+  const handleCreateScope = async (data: Record<string, unknown>) => {
+    const collection = scopeCreateFor;
+    const scope = collection?.admin?.scope;
+    if (!(collection && scope)) return;
+    const request = ++scopeCreationRequest.current;
+    setScopeSaving(true);
+    dispatch({ type: 'SET_ERROR', error: null });
+    try {
+      const created = await apiClient.create({ collection: scope.resource, data });
+      if (request !== scopeCreationRequest.current) return;
+      if (created.id == null) throw new Error('Creation returned no document');
+      const value = await loadScope(collection, 1, String(created.id), created);
+      if (request !== scopeCreationRequest.current) return;
+      setScopeCreateFor(null);
+      if (!value) {
+        dispatch({
+          type: 'SET_SUCCESS',
+          message: `${scope.label} created. Retry loading your sites to select it.`,
+        });
+        return;
+      }
+      if (state.view.type === 'collection') await fetchCollection(collection, 1, value);
+      if (request !== scopeCreationRequest.current) return;
+      dispatch({
+        type: 'SET_SUCCESS',
+        message: `${scope.label} created. You can now create a document.`,
+      });
+    } catch (error) {
+      if (request !== scopeCreationRequest.current) return;
+      dispatch({
+        type: 'SET_ERROR',
+        error: extractErrorMessage(
+          error,
+          'Creation failed. Check the name and address, then try again.',
+        ),
+      });
+    } finally {
+      if (request === scopeCreationRequest.current) setScopeSaving(false);
+    }
+  };
+
   const handleGlobalClick = async (global: RevealGlobalConfig) => {
+    scopeCreationRequest.current++;
+    scopeRequest.current++;
+    collectionRequest.current++;
+    setScopeSaving(false);
+    setScopeCreateFor(null);
     dispatch({ type: 'NAVIGATE', view: { type: 'global', global } });
     try {
       dispatch({ type: 'GLOBAL_LOADING' });
@@ -764,13 +995,45 @@ export function AdminDashboard({
     }
   };
 
+  // Scope creation reuses the normal document form and authenticated client.
+  if (scopeCreateFor?.admin?.scope) {
+    const scope = scopeCreateFor.admin.scope;
+    return (
+      <div className="min-h-screen bg-background">
+        <AdminHeader
+          title={`Create ${scope.label.toLowerCase()}`}
+          onBack={() => {
+            scopeCreationRequest.current++;
+            setScopeSaving(false);
+            setScopeCreateFor(null);
+          }}
+        />
+        <main className="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
+          <StatusBanners error={state.error} successMessage={state.successMessage} />
+          <DocumentForm
+            collection={{ slug: scope.resource, fields: scope.createFields ?? [] }}
+            onSave={(data) => void handleCreateScope(data)}
+            onCancel={() => {
+              scopeCreationRequest.current++;
+              setScopeSaving(false);
+              setScopeCreateFor(null);
+            }}
+            isLoading={scopeSaving}
+          />
+        </main>
+      </div>
+    );
+  }
+
   // ── Collection list view ──────────────────────────────────────────────
   if (state.view.type === 'collection' && state.view.collection) {
+    const collectionScope = scopePropsFor(state.view.collection);
     return (
       <div className="min-h-screen bg-background">
         <AdminHeader title={String(state.view.collection.slug)} onBack={goToDashboard} />
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <StatusBanners error={state.error} successMessage={state.successMessage} />
+          {collectionScope && <DocumentScopeSelector {...collectionScope} />}
           {state.collectionLoading && <LoadingSpinner />}
           <CollectionList
             collection={state.view.collection}
@@ -811,6 +1074,7 @@ export function AdminDashboard({
               onSave={(data) => void handleSave(data)}
               onCancel={goToDashboard}
               isLoading={state.saving}
+              scope={scopePropsFor(state.view.collection, state.view.document)}
             />
           </div>
         </main>

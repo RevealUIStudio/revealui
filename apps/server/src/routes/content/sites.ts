@@ -151,6 +151,10 @@ app.openapi(
         },
         description: 'Site created',
       },
+      409: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Site address already in use',
+      },
     },
   }),
   async (c) => {
@@ -163,8 +167,11 @@ app.openapi(
       ownerId: user.id,
       ...body,
     });
-    // biome-ignore lint/style/noNonNullAssertion: createSite always returns the created row
-    return c.json({ success: true as const, data: serializeSite(site!) }, 201);
+    if (!site)
+      throw new HTTPException(409, {
+        message: 'This site address is already in use. Choose another address.',
+      });
+    return c.json({ success: true as const, data: serializeSite(site) }, 201);
   },
 );
 
