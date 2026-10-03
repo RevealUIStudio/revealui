@@ -36,6 +36,16 @@ export const Pages: RevealCollectionConfig<Page> = {
     update: authenticated,
   },
   admin: {
+    scope: {
+      field: 'siteId',
+      resource: 'sites',
+      label: 'Site',
+      titleField: 'name',
+      createFields: [
+        { name: 'name', type: 'text', label: 'Site name', required: true },
+        { name: 'slug', type: 'text', label: 'Site address', required: true },
+      ],
+    },
     defaultColumns: ['title', 'slug', 'updatedAt'],
     livePreview: {
       url: ({ data }: { data: Record<string, unknown> }) => {

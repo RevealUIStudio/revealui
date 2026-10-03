@@ -10,7 +10,7 @@ import { cleanupVectorDataForSite } from '@revealui/db/cleanup';
 import * as siteQueries from '@revealui/db/queries/sites';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
-import { hasApiRole } from '../../lib/api-roles.js';
+import { canAdministerAllContent } from '../../lib/access.js';
 import { asNonEmptyTuple } from '../../lib/type-guards.js';
 import { ErrorSchema, IdParam, SlugField } from '../_helpers/content-schemas.js';
 import { PaginationQuery } from '../_helpers/pagination.js';
@@ -151,6 +151,10 @@ app.openapi(
         },
         description: 'Site created',
       },
+      409: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Site address already in use',
+      },
     },
   }),
   async (c) => {
@@ -163,8 +167,11 @@ app.openapi(
       ownerId: user.id,
       ...body,
     });
-    // biome-ignore lint/style/noNonNullAssertion: createSite always returns the created row
-    return c.json({ success: true as const, data: serializeSite(site!) }, 201);
+    if (!site)
+      throw new HTTPException(409, {
+        message: 'This site address is already in use. Choose another address.',
+      });
+    return c.json({ success: true as const, data: serializeSite(site) }, 201);
   },
 );
 
@@ -193,7 +200,7 @@ app.openapi(
     const { id } = c.req.valid('param');
     const site = await siteQueries.getSiteById(db, id);
     if (!site) throw new HTTPException(404, { message: 'Site not found' });
-    if (!hasApiRole(user, 'admin') && site.ownerId !== user.id) {
+    if (!canAdministerAllContent(user) && site.ownerId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     return c.json({ success: true as const, data: serializeSite(site) }, 200);
@@ -241,7 +248,7 @@ app.openapi(
     const body = c.req.valid('json');
     const existing = await siteQueries.getSiteById(db, id);
     if (!existing) throw new HTTPException(404, { message: 'Site not found' });
-    if (!hasApiRole(user, 'admin') && existing.ownerId !== user.id) {
+    if (!canAdministerAllContent(user) && existing.ownerId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const site = await siteQueries.updateSite(db, id, body);
@@ -277,7 +284,7 @@ app.openapi(
     const { id } = c.req.valid('param');
     const existing = await siteQueries.getSiteById(db, id);
     if (!existing) throw new HTTPException(404, { message: 'Site not found' });
-    if (!hasApiRole(user, 'admin') && existing.ownerId !== user.id) {
+    if (!canAdministerAllContent(user) && existing.ownerId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     await siteQueries.deleteSite(db, id);

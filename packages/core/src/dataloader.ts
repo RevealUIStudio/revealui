@@ -228,7 +228,7 @@ export const getDataLoader = (req: RevealRequest): ExtendedDataLoader => {
     if (!req.revealui) {
       throw new Error('RevealUI instance not available on request');
     }
-    const request = req.revealui.find(args);
+    const request = req.revealui.find({ ...args, req });
     findQueries.set(key, request);
     return request;
   };

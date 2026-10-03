@@ -735,10 +735,14 @@
                   "properties": {
                     "exists": {
                       "type": "boolean"
+                    },
+                    "completed": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "exists"
+                    "exists",
+                    "completed"
                   ]
                 }
               }
@@ -753,7 +757,7 @@
             }
           }
         },
-        "summary": "Check whether any agent task has ever run",
+        "summary": "Check for attributed terminal task receipts and completed executions",
         "tags": [
           "a2a"
         ]
@@ -772,6 +776,22 @@
           },
           "403": {
             "description": "AI feature requires Pro or Enterprise license",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found in the authenticated actor and account scope",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "500": {
+            "description": "Task operation could not complete; known execution outcomes include server-owned receipt status",
             "content": {
               "application/json": {
                 "schema": {}
@@ -809,7 +829,7 @@
       "post": {
         "responses": {
           "200": {
-            "description": "JSON-RPC response",
+            "description": "JSON-RPC response with server-owned receipt status; persisted false requires receipt recovery rather than execution retry",
             "content": {
               "application/json": {
                 "schema": {}
@@ -824,6 +844,14 @@
               }
             }
           },
+          "402": {
+            "description": "Payment proof required; the pending task has not executed",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
           "403": {
             "description": "AI feature requires Pro or Enterprise license",
             "content": {
@@ -832,8 +860,24 @@
               }
             }
           },
+          "404": {
+            "description": "Task not found in the authenticated actor and account scope",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
           "409": {
             "description": "Hosted account has no LLM provider configured (set one at /settings/api-keys)",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "500": {
+            "description": "Task operation could not complete; known execution outcomes include server-owned receipt status",
             "content": {
               "application/json": {
                 "schema": {}
@@ -11246,6 +11290,31 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Site address already in use",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
           }
         },
         "summary": "Create a site",
@@ -11545,6 +11614,188 @@
         ]
       }
     },
+    "/api/content/pages": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Page list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Page"
+                      }
+                    },
+                    "totalDocs": {
+                      "type": "number"
+                    },
+                    "totalPages": {
+                      "type": "number"
+                    },
+                    "limit": {
+                      "type": "number"
+                    },
+                    "offset": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data",
+                    "totalDocs",
+                    "totalPages",
+                    "limit",
+                    "offset"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Site not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "List pages across owned sites",
+        "tags": [
+          "content"
+        ],
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "published",
+                "scheduled",
+                "archived"
+              ]
+            }
+          },
+          {
+            "name": "createdByMe",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          }
+        ]
+      }
+    },
     "/api/content/sites/{siteId}/pages": {
       "get": {
         "responses": {
@@ -11631,6 +11882,17 @@
               "example": "published"
             },
             "example": "published"
+          },
+          {
+            "name": "createdByMe",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
           }
         ]
       },
@@ -31374,6 +31636,31 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Site address already in use",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
           }
         },
         "summary": "Create a site",
@@ -31673,6 +31960,188 @@
         ]
       }
     },
+    "/api/v1/content/pages": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Page list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Page"
+                      }
+                    },
+                    "totalDocs": {
+                      "type": "number"
+                    },
+                    "totalPages": {
+                      "type": "number"
+                    },
+                    "limit": {
+                      "type": "number"
+                    },
+                    "offset": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data",
+                    "totalDocs",
+                    "totalPages",
+                    "limit",
+                    "offset"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Site not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "List pages across owned sites",
+        "tags": [
+          "content"
+        ],
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "published",
+                "scheduled",
+                "archived"
+              ]
+            }
+          },
+          {
+            "name": "createdByMe",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          }
+        ]
+      }
+    },
     "/api/v1/content/sites/{siteId}/pages": {
       "get": {
         "responses": {
@@ -31759,6 +32228,17 @@
               "example": "published"
             },
             "example": "published"
+          },
+          {
+            "name": "createdByMe",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
           }
         ]
       },

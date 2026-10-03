@@ -272,7 +272,7 @@ See API schema for request body shape.
 
 ### `GET` `/a2a/agent-tasks/exists`
 
-**Check whether any agent task has ever run**
+**Check for attributed terminal task receipts and completed executions**
 
 **Responses**
 
@@ -295,6 +295,8 @@ See API schema for request body shape.
 
 - `200`  -  SSE event stream
 - `403`  -  AI feature requires Pro or Enterprise license
+- `404`  -  Task not found in the authenticated actor and account scope
+- `500`  -  Task operation could not complete; known execution outcomes include server-owned receipt status
 - `503`  -  AI runtime package not available in this deployment (not a Free-plan limit)
 
 ---
@@ -309,10 +311,13 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200`  -  JSON-RPC response
+- `200`  -  JSON-RPC response with server-owned receipt status; persisted false requires receipt recovery rather than execution retry
 - `400`  -  Parse error or invalid request
+- `402`  -  Payment proof required; the pending task has not executed
 - `403`  -  AI feature requires Pro or Enterprise license
+- `404`  -  Task not found in the authenticated actor and account scope
 - `409`  -  Hosted account has no LLM provider configured (set one at /settings/api-keys)
+- `500`  -  Task operation could not complete; known execution outcomes include server-owned receipt status
 - `503`  -  AI runtime package not available in this deployment (not a Free-plan limit)
 
 ---
@@ -3962,6 +3967,7 @@ After the client PUTs to the presigned URL, confirm HEADs the object, re-checks 
 **Responses**
 
 - `201`  -  Site created
+- `409`  -  Site address already in use
 
 ---
 
@@ -4026,6 +4032,29 @@ After the client PUTs to the presigned URL, confirm HEADs the object, re-checks 
 
 ---
 
+### `GET` `/api/content/pages`
+
+**List pages across owned sites**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `siteId` | `string` | - |  -  |  |
+| `status` | `string` | - |  -  |  |
+| `createdByMe` | `string` | - |  -  |  |
+| `limit` | `integer` | - | `50` |  |
+| `offset` | `integer` | - | `0` |  |
+
+**Responses**
+
+- `200`  -  Page list
+- `401`  -  Authentication required
+- `403`  -  Forbidden
+- `404`  -  Site not found
+
+---
+
 ### `GET` `/api/content/sites/{siteId}/pages`
 
 **List pages for a site**
@@ -4041,6 +4070,7 @@ After the client PUTs to the presigned URL, confirm HEADs the object, re-checks 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
 | `status` | `string` | - |  -  |  |
+| `createdByMe` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -5043,6 +5073,7 @@ After the client PUTs to the presigned URL, confirm HEADs the object, re-checks 
 **Responses**
 
 - `201`  -  Site created
+- `409`  -  Site address already in use
 
 ---
 
@@ -5107,6 +5138,29 @@ After the client PUTs to the presigned URL, confirm HEADs the object, re-checks 
 
 ---
 
+### `GET` `/api/v1/content/pages`
+
+**List pages across owned sites**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `siteId` | `string` | - |  -  |  |
+| `status` | `string` | - |  -  |  |
+| `createdByMe` | `string` | - |  -  |  |
+| `limit` | `integer` | - | `50` |  |
+| `offset` | `integer` | - | `0` |  |
+
+**Responses**
+
+- `200`  -  Page list
+- `401`  -  Authentication required
+- `403`  -  Forbidden
+- `404`  -  Site not found
+
+---
+
 ### `GET` `/api/v1/content/sites/{siteId}/pages`
 
 **List pages for a site**
@@ -5122,6 +5176,7 @@ After the client PUTs to the presigned URL, confirm HEADs the object, re-checks 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
 | `status` | `string` | - |  -  |  |
+| `createdByMe` | `string` | - |  -  |  |
 
 **Responses**
 

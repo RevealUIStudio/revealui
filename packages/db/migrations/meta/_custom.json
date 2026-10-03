@@ -194,6 +194,16 @@
       "rationale": "Single atomic DO transition extends existing licensing operation function and persisted immutable promotion descriptor. One SQL statement is atomic under both maintained migrator and synthetic independent-statement loader. Companion Drizzle model updated.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Existing snapshot-debt backfill remains required; function transition is not modeled by drizzle-kit."
+    },
+    {
+      "tag": "0048_agent_action_attribution",
+      "rationale": "The maintained reapplication policy requires ADD COLUMN/CREATE INDEX IF NOT EXISTS and duplicate_object guards for foreign keys, which drizzle-kit does not emit. The SQL applies only the new actor/account schema delta; the companion snapshot was produced by normal drizzle-kit generation from the complete current schema, without editing its contents.",
+      "missingSnapshot": false
+    },
+    {
+      "tag": "0049_page_creator_attribution",
+      "rationale": "The maintained reapplication policy requires ADD COLUMN/CREATE INDEX IF NOT EXISTS and duplicate_object guards for foreign keys, which drizzle-kit does not emit. The SQL applies only nullable page creator attribution; the companion snapshot was produced by normal drizzle-kit generation from parent 0048 without editing its contents.",
+      "missingSnapshot": false
     }
   ]
 }

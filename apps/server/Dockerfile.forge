@@ -44,6 +44,7 @@ COPY packages ./packages
 COPY apps/server  ./apps/server
 
 ENV NODE_ENV=production
+ENV REVEALUI_DEPLOYMENT_MODE=forge
 ENV SKIP_ENV_VALIDATION=true
 
 RUN pnpm turbo run build --filter=server...
@@ -69,6 +70,7 @@ RUN pnpm --filter server deploy /app/server-deploy --prod --legacy
 FROM build AS migrate
 WORKDIR /app/packages/db
 ENV NODE_ENV=production
+ENV REVEALUI_DEPLOYMENT_MODE=forge
 # drizzle-kit reads drizzle.config.ts (out=./migrations; dbCredentials.url from
 # POSTGRES_URL, supplied by the compose migrate service).
 CMD ["pnpm", "exec", "drizzle-kit", "migrate"]
@@ -79,6 +81,7 @@ CMD ["pnpm", "exec", "drizzle-kit", "migrate"]
 FROM node:24-alpine AS runner
 
 ENV NODE_ENV=production
+ENV REVEALUI_DEPLOYMENT_MODE=forge
 ENV PORT=3004
 # GAP-214 (parity with admin): flip the running container out of
 # RevealUIInstance's build-time guard (NODE_ENV=production && !RUNTIME_INIT) so

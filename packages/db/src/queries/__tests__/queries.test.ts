@@ -29,6 +29,7 @@ function createChainMock(resolvedValue: unknown = []) {
     'offset',
     'set',
     'values',
+    'onConflictDoNothing',
     'returning',
     'innerJoin',
     'groupBy',

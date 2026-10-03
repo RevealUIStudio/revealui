@@ -159,8 +159,11 @@ const optionalSchema = z.object({
   // License key signing (Ed25519 PEM)
   REVEALUI_LICENSE_PRIVATE_KEY: z.string().optional(),
   REVEALUI_LICENSE_PUBLIC_KEY: z.string().optional(),
-  // GAP-260 P4-1: explicit hosted vs forge posture (fallback: private-key presence)
-  REVEALUI_DEPLOYMENT_MODE: z.enum(['hosted', 'forge']).optional(),
+  // Production authority requires explicit posture; development can remain unconfigured.
+  REVEALUI_DEPLOYMENT_MODE: z.preprocess(
+    (value) => (typeof value === 'string' ? value.trim().toLowerCase() : value),
+    z.enum(['hosted', 'forge']).optional(),
+  ),
 
   // Email provider  -  Gmail REST API (preferred, edge-compatible)
   GOOGLE_SERVICE_ACCOUNT_EMAIL: z.string().email().optional(),
@@ -246,6 +249,9 @@ export function validateEnvironment(
 
   // Production-specific validations
   if (nodeEnv === 'production') {
+    if (!env.REVEALUI_DEPLOYMENT_MODE) {
+      errors.push('REVEALUI_DEPLOYMENT_MODE must be explicitly hosted or forge in production');
+    }
     if (env.REVEALUI_PUBLIC_SERVER_URL && !env.REVEALUI_PUBLIC_SERVER_URL.startsWith('https://')) {
       errors.push('REVEALUI_PUBLIC_SERVER_URL must use HTTPS in production');
     }

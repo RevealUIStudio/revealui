@@ -1,0 +1,96 @@
+import { readFile } from 'node:fs/promises';
+import { PGlite } from '@electric-sql/pglite';
+import { drizzle } from 'drizzle-orm/pglite';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { countPages, getPages, getPagesBySite, updatePage } from '../queries/pages.js';
+
+let client: PGlite;
+beforeAll(async () => {
+  client = new PGlite();
+  await client.waitReady;
+});
+afterAll(async () => {
+  await client.close();
+});
+
+describe('page creator attribution', () => {
+  it('keeps legacy pages unclaimed and scopes real queries by creator, site and soft deletion', async () => {
+    await client.exec(`CREATE TABLE users (id text PRIMARY KEY);
+        INSERT INTO users VALUES ('actor'), ('other');
+        CREATE TABLE sites (id text PRIMARY KEY, owner_id text, status text, deleted_at timestamptz);
+        INSERT INTO sites VALUES ('one','actor','published',NULL), ('two','actor','draft',NULL),
+          ('foreign','other','published',NULL), ('deleted-site','actor','published',now());
+        CREATE TABLE pages (
+          id text PRIMARY KEY, schema_version text DEFAULT '1', version integer DEFAULT 1,
+          site_id text NOT NULL, parent_id text, template_id text, title text, slug text,
+          path text, status text DEFAULT 'draft', blocks jsonb, seo jsonb,
+          block_count integer, word_count integer, lock jsonb, scheduled_at timestamptz,
+          created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now(),
+          published_at timestamptz, deleted_at timestamptz
+        );
+        INSERT INTO pages (id, site_id, title, slug, path) VALUES ('legacy', 'one', 'Old', 'old', '/old');`);
+    const migration = await readFile(
+      new URL('../../migrations/0049_page_creator_attribution.sql', import.meta.url),
+      'utf8',
+    );
+    await client.exec(migration);
+    await client.exec(migration);
+    expect((await client.query("SELECT created_by FROM pages WHERE id='legacy'")).rows).toEqual([
+      { created_by: null },
+    ]);
+    await client.exec(`INSERT INTO pages (id,site_id,title,slug,path,created_by,deleted_at) VALUES
+        ('own','one','Own','own','/','actor',NULL),
+        ('other','one','Other','other','/other','other',NULL),
+        ('elsewhere','two','Elsewhere','elsewhere','/','actor',NULL),
+        ('foreign-page','foreign','Foreign','foreign','/foreign','actor',NULL),
+        ('deleted-site-page','deleted-site','Deleted site','deleted-site','/deleted-site','actor',NULL),
+        ('deleted','one','Deleted','deleted','/deleted','actor',now());`);
+    const db = drizzle(client);
+    await expect(getPages(db as never, { createdBy: 'actor' })).rejects.toThrow(
+      'require a site or owner scope',
+    );
+    await expect(countPages(db as never, {})).rejects.toThrow('require a site or owner scope');
+    expect(
+      (await getPages(db as never, { siteOwnerId: 'actor', createdBy: 'actor' })).map((p) => p.id),
+    ).toEqual(['elsewhere', 'own']);
+    expect(
+      (
+        await getPages(db as never, {
+          siteOwnerId: 'actor',
+          createdBy: 'actor',
+          limit: 1,
+          offset: 1,
+        })
+      ).map((p) => p.id),
+    ).toEqual(['own']);
+    expect(await countPages(db as never, { siteOwnerId: 'actor', createdBy: 'actor' })).toBe(2);
+    expect(
+      (
+        await getPages(db as never, {
+          siteOwnerId: 'actor',
+          createdBy: 'actor',
+          limit: 1,
+          offset: 0,
+        })
+      ).map((p) => p.id),
+    ).toEqual(['elsewhere']);
+    expect(await getPages(db as never, { siteId: 'deleted-site' })).toEqual([]);
+    expect(await countPages(db as never, { siteId: 'deleted-site' })).toBe(0);
+    expect(
+      (await getPagesBySite(db as never, 'one', { createdBy: 'actor' })).map((p) => p.id),
+    ).toEqual(['own']);
+    await updatePage(db as never, 'own', { createdBy: 'other', title: 'Updated' });
+    expect(
+      (await getPagesBySite(db as never, 'one', { createdBy: 'actor' })).map((p) => p.id),
+    ).toEqual(['own']);
+    await updatePage(db as never, 'legacy', { createdBy: 'actor', title: 'Edited' });
+    expect(
+      (await getPagesBySite(db as never, 'one', { createdBy: 'actor' })).map((p) => p.id),
+    ).toEqual(['own']);
+    await client.exec("DELETE FROM users WHERE id='actor'");
+    expect(await getPagesBySite(db as never, 'one', { createdBy: 'actor' })).toEqual([]);
+    expect((await client.query("SELECT created_by FROM pages WHERE id='own'")).rows).toEqual([
+      { created_by: null },
+    ]);
+  });
+});

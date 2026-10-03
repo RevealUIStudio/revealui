@@ -10,6 +10,7 @@ import {
   type DetectDeploymentModeOptions,
   deploymentModeKeyConsistencyError,
   detectDeploymentMode as detectDeploymentModeCore,
+  requireExplicitDeploymentMode,
 } from '@revealui/core/deployment-mode';
 import {
   ALLOW_UNLICENSED_SELF_HOST_ENV,
@@ -228,6 +229,7 @@ export function validateStartup(
   env: EnvMap = process.env as EnvMap,
   { lenient = false }: ValidateOptions = {},
 ): void {
+  if (env.NODE_ENV === 'production') requireExplicitDeploymentMode(env);
   if (env.SKIP_ENV_VALIDATION === 'true') {
     return;
   }
@@ -256,7 +258,7 @@ export function validateStartup(
     return;
   }
 
-  const mode = detectDeploymentMode(env, { lenient });
+  const mode = requireExplicitDeploymentMode(env);
   const modeConsistency = deploymentModeKeyConsistencyError(env, { lenient });
   if (modeConsistency) {
     throw new Error(`STARTUP VALIDATION FAILED: ${modeConsistency}`);

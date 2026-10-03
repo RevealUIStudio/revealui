@@ -70,6 +70,10 @@ describe('Template file structure  -  shared (all templates)', () => {
       expect(files).toContain('next.config.mjs');
       expect(files).toContain('vercel.json');
       expect(files).toContain('.env.development.local');
+      const env = await fs.readFile(path.join(projectPath, '.env.development.local'), 'utf8');
+      expect(
+        env.split('\n').filter((line) => line.startsWith('REVEALUI_DEPLOYMENT_MODE=')),
+      ).toEqual(['REVEALUI_DEPLOYMENT_MODE=forge']);
       expect(files).toContain('README.md');
       expect(files).toContain('src');
     });
@@ -397,6 +401,10 @@ describe('Template file structure  -  starter-native (Vite + @revealui/router)',
     expect(files).toContain('index.html');
     expect(files).toContain('vercel.json');
     expect(files).toContain('.env.development.local'); // CLI-generated
+    const env = await fs.readFile(path.join(projectPath, '.env.development.local'), 'utf8');
+    expect(env.split('\n').filter((line) => line.startsWith('REVEALUI_DEPLOYMENT_MODE='))).toEqual([
+      'REVEALUI_DEPLOYMENT_MODE=forge',
+    ]);
     expect(files).toContain('README.md'); // CLI-generated
     expect(files).toContain('app');
     expect(files).toContain('src');

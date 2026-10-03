@@ -87,7 +87,7 @@ export async function findByID(
   }
 
   if (db?.collectionStorage?.findByID) {
-    const doc = await db.collectionStorage.findByID(config, { id });
+    const doc = await db.collectionStorage.findByID(config, { id, ...(req ? { req } : {}) });
     if (doc !== undefined) {
       if (!doc) return null;
 

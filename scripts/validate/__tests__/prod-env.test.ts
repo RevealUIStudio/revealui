@@ -1,8 +1,11 @@
+import { generateKeyPairSync } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
+import { validateStartup } from '../../../apps/server/src/lib/validate-startup';
 
 import {
   isVercelEncryptedBlob,
   isVercelSensitivePlaceholder,
+  parseAppArgument,
   parseDotenv,
   scrubSensitivePlaceholders,
   scrubVercelEncryptedBlobs,
@@ -13,9 +16,15 @@ import {
 const VALID_KEK = 'a'.repeat(64);
 const VALID_SECRET = 's'.repeat(32);
 const VALID_CRON = 'c'.repeat(32);
+const VALID_AUDIT_KEY = generateKeyPairSync('ed25519')
+  .privateKey.export({ type: 'pkcs8', format: 'pem' })
+  .toString();
 
 function validHostedEnv(overrides: Record<string, string | undefined> = {}) {
   return {
+    REVEALUI_DEPLOYMENT_MODE: 'hosted',
+    REVEALUI_AUDIT_SIGNING_KEY: VALID_AUDIT_KEY,
+    REVEALUI_API_URL: 'https://api.revealui.com',
     POSTGRES_URL: 'postgresql://example.com/prod',
     REVEALUI_SECRET: VALID_SECRET,
     REVEALUI_KEK: VALID_KEK,
@@ -44,6 +53,41 @@ function validHostedEnv(overrides: Record<string, string | undefined> = {}) {
  */
 const SAMPLE_V2_BLOB = 'eyJ2IjoidjIiLCJjIjoiYWJjZGVmZ2hpamtsbW5vcCIsImsiOlsxLDIsM119';
 // Decoded: {"v":"v2","c":"abcdefghijklmnop","k":[1,2,3]}
+
+describe('admin posture preflight', () => {
+  it.each(['hosted', 'forge'] as const)(
+    'accepts explicit %s without API dependencies',
+    async (mode) => {
+      const result = await validatePulledEnv({ REVEALUI_DEPLOYMENT_MODE: mode }, 'admin');
+      expect(result.ok).toBe(true);
+      expect(result.mode).toBe(mode);
+    },
+  );
+
+  it('rejects a legacy validation bypass for admin', async () => {
+    const result = await validatePulledEnv(
+      { REVEALUI_DEPLOYMENT_MODE: 'hosted', SKIP_ENV_VALIDATION: 'true' },
+      'admin',
+    );
+    expect(result.ok).toBe(false);
+  });
+
+  it.each(['', 'hosetd', VERCEL_SENSITIVE_PLACEHOLDER, SAMPLE_V2_BLOB])(
+    'rejects unknown admin posture %s',
+    async (mode) => {
+      const result = await validatePulledEnv({ REVEALUI_DEPLOYMENT_MODE: mode }, 'admin');
+      expect(result.ok).toBe(false);
+      expect(result.mode).toBeNull();
+    },
+  );
+
+  it('accepts only maintained target arguments', () => {
+    expect(parseAppArgument([])).toBe('api');
+    expect(parseAppArgument(['--app', 'admin'])).toBe('admin');
+    expect(() => parseAppArgument(['--app', 'marketing'])).toThrow('Usage:');
+    expect(() => parseAppArgument(['--app', 'admin', '--skip'])).toThrow('Usage:');
+  });
+});
 
 describe('parseDotenv', () => {
   it('parses simple KEY=value pairs', () => {
@@ -81,65 +125,87 @@ describe('parseDotenv', () => {
 });
 
 describe('validatePulledEnv', () => {
-  it('passes a clean hosted env (test-mode default)', () => {
-    const result = validatePulledEnv(validHostedEnv());
+  it('retains the actual API startup validator contract', () => {
+    expect(() =>
+      validateStartup({ ...validHostedEnv(), NODE_ENV: 'production' }, { lenient: true }),
+    ).not.toThrow();
+  });
+  it.each(['', 'hosetd', VERCEL_SENSITIVE_PLACEHOLDER, SAMPLE_V2_BLOB])(
+    'rejects an unobservable or invalid production mode %s',
+    async (mode) => {
+      const result = await validatePulledEnv(validHostedEnv({ REVEALUI_DEPLOYMENT_MODE: mode }));
+      expect(result.ok).toBe(false);
+      expect(result.message).toContain('REVEALUI_DEPLOYMENT_MODE');
+    },
+  );
+
+  it('accepts explicit hosted mode without an API-local license signer', async () => {
+    const result = await validatePulledEnv(
+      validHostedEnv({ REVEALUI_LICENSE_PRIVATE_KEY: undefined }),
+    );
+    expect(result.ok).toBe(true);
+    expect(result.mode).toBe('hosted');
+  });
+
+  it('passes a clean hosted env (test-mode default)', async () => {
+    const result = await validatePulledEnv(validHostedEnv());
     expect(result.ok).toBe(true);
     expect(result.mode).toBe('hosted');
     expect(result.stripeLiveMode).toBe(false);
   });
 
-  it('passes a clean hosted env in STRIPE_LIVE_MODE with live keys', () => {
-    const result = validatePulledEnv(
+  it('passes a clean hosted env in STRIPE_LIVE_MODE with live keys', async () => {
+    const result = await validatePulledEnv(
       validHostedEnv({ STRIPE_LIVE_MODE: 'true', STRIPE_SECRET_KEY: 'sk_live_abc' }),
     );
     expect(result.ok).toBe(true);
     expect(result.stripeLiveMode).toBe(true);
   });
 
-  it('always injects NODE_ENV=production (gap-acceptance: pulled env never carries NODE_ENV)', () => {
+  it('always injects NODE_ENV=production (gap-acceptance: pulled env never carries NODE_ENV)', async () => {
     const env = validHostedEnv();
     delete (env as Record<string, string | undefined>).NODE_ENV;
-    const result = validatePulledEnv(env);
+    const result = await validatePulledEnv(env);
     expect(result.ok).toBe(true);
   });
 
-  it('fails when a required env var is missing (acceptance: missing var fails pre-deploy)', () => {
+  it('fails when a required env var is missing (acceptance: missing var fails pre-deploy)', async () => {
     const env = validHostedEnv();
     delete (env as Record<string, string | undefined>).NEXT_PUBLIC_SERVER_URL;
-    const result = validatePulledEnv(env);
+    const result = await validatePulledEnv(env);
     expect(result.ok).toBe(false);
     expect(result.message).toMatch(/NEXT_PUBLIC_SERVER_URL/);
   });
 
-  it('fails when sk_test_* used in STRIPE_LIVE_MODE=true (acceptance criterion)', () => {
-    const result = validatePulledEnv(
+  it('fails when sk_test_* used in STRIPE_LIVE_MODE=true (acceptance criterion)', async () => {
+    const result = await validatePulledEnv(
       validHostedEnv({ STRIPE_LIVE_MODE: 'true', STRIPE_SECRET_KEY: 'sk_test_abc' }),
     );
     expect(result.ok).toBe(false);
     expect(result.message).toMatch(/sk_live_/);
   });
 
-  it('fails when sk_live_* used with STRIPE_LIVE_MODE unset (test-mode posture)', () => {
-    const result = validatePulledEnv(validHostedEnv({ STRIPE_SECRET_KEY: 'sk_live_abc' }));
+  it('fails when sk_live_* used with STRIPE_LIVE_MODE unset (test-mode posture)', async () => {
+    const result = await validatePulledEnv(validHostedEnv({ STRIPE_SECRET_KEY: 'sk_live_abc' }));
     expect(result.ok).toBe(false);
     expect(result.message).toMatch(/sk_test_/);
   });
 
-  it('fails when REVEALUI_CRON_SECRET <32 chars (acceptance criterion)', () => {
-    const result = validatePulledEnv(validHostedEnv({ REVEALUI_CRON_SECRET: 'short' }));
+  it('fails when REVEALUI_CRON_SECRET <32 chars (acceptance criterion)', async () => {
+    const result = await validatePulledEnv(validHostedEnv({ REVEALUI_CRON_SECRET: 'short' }));
     expect(result.ok).toBe(false);
     expect(result.message).toMatch(/REVEALUI_CRON_SECRET/);
     expect(result.message).toMatch(/32/);
   });
 
-  it('fails when REVEALUI_KEK is not 64 hex characters', () => {
-    const result = validatePulledEnv(validHostedEnv({ REVEALUI_KEK: 'not-hex-zzz' }));
+  it('fails when REVEALUI_KEK is not 64 hex characters', async () => {
+    const result = await validatePulledEnv(validHostedEnv({ REVEALUI_KEK: 'not-hex-zzz' }));
     expect(result.ok).toBe(false);
     expect(result.message).toMatch(/REVEALUI_KEK/);
   });
 
-  it('fails when production URL is not HTTPS', () => {
-    const result = validatePulledEnv(
+  it('fails when production URL is not HTTPS', async () => {
+    const result = await validatePulledEnv(
       validHostedEnv({
         REVEALUI_PUBLIC_SERVER_URL: 'http://api.revealui.com',
         NEXT_PUBLIC_SERVER_URL: 'http://api.revealui.com',
@@ -149,45 +215,47 @@ describe('validatePulledEnv', () => {
     expect(result.message).toMatch(/HTTPS/);
   });
 
-  it('fails when URL parity is broken between REVEALUI_PUBLIC_SERVER_URL and NEXT_PUBLIC_SERVER_URL', () => {
-    const result = validatePulledEnv(
+  it('fails when URL parity is broken between REVEALUI_PUBLIC_SERVER_URL and NEXT_PUBLIC_SERVER_URL', async () => {
+    const result = await validatePulledEnv(
       validHostedEnv({ NEXT_PUBLIC_SERVER_URL: 'https://different.example.com' }),
     );
     expect(result.ok).toBe(false);
     expect(result.message).toMatch(/must match/);
   });
 
-  it('fails when CORS_ORIGIN contains a non-HTTPS origin', () => {
-    const result = validatePulledEnv(
+  it('fails when CORS_ORIGIN contains a non-HTTPS origin', async () => {
+    const result = await validatePulledEnv(
       validHostedEnv({ CORS_ORIGIN: 'https://revealui.com,http://leak.example' }),
     );
     expect(result.ok).toBe(false);
     expect(result.message).toMatch(/CORS_ORIGIN/);
   });
 
-  it('fails when REVEALUI_ALERT_EMAIL is missing @', () => {
-    const result = validatePulledEnv(validHostedEnv({ REVEALUI_ALERT_EMAIL: 'no-at-sign' }));
+  it('fails when REVEALUI_ALERT_EMAIL is missing @', async () => {
+    const result = await validatePulledEnv(validHostedEnv({ REVEALUI_ALERT_EMAIL: 'no-at-sign' }));
     expect(result.ok).toBe(false);
     expect(result.message).toMatch(/REVEALUI_ALERT_EMAIL/);
   });
 
-  it('fails when STRIPE_WEBHOOK_SECRET does not start with whsec_', () => {
-    const result = validatePulledEnv(validHostedEnv({ STRIPE_WEBHOOK_SECRET: 'wrong-prefix' }));
+  it('fails when STRIPE_WEBHOOK_SECRET does not start with whsec_', async () => {
+    const result = await validatePulledEnv(
+      validHostedEnv({ STRIPE_WEBHOOK_SECRET: 'wrong-prefix' }),
+    );
     expect(result.ok).toBe(false);
     expect(result.message).toMatch(/whsec_/);
   });
 
-  it('rejects SKIP_ENV_VALIDATION=true even though validateStartup honors it', () => {
+  it('rejects SKIP_ENV_VALIDATION=true even though validateStartup honors it', async () => {
     // validateStartup short-circuits when SKIP_ENV_VALIDATION=true. The
     // pre-deploy gate must NOT — pulling a prod env that still contains
     // the bypass flag is itself a config bug worth blocking on.
-    const result = validatePulledEnv(validHostedEnv({ SKIP_ENV_VALIDATION: 'true' }));
+    const result = await validatePulledEnv(validHostedEnv({ SKIP_ENV_VALIDATION: 'true' }));
     expect(result.ok).toBe(false);
     expect(result.message).toMatch(/SKIP_ENV_VALIDATION/);
   });
 
-  it('reports the message verbatim from validateStartup so CI logs match runtime errors', () => {
-    const result = validatePulledEnv(validHostedEnv({ REVEALUI_SECRET: 'short' }));
+  it('reports the message verbatim from validateStartup so CI logs match runtime errors', async () => {
+    const result = await validatePulledEnv(validHostedEnv({ REVEALUI_SECRET: 'short' }));
     expect(result.ok).toBe(false);
     expect(result.message).toContain('REVEALUI_SECRET must be at least 32 characters');
   });
@@ -273,19 +341,19 @@ describe('scrubVercelEncryptedBlobs', () => {
 });
 
 describe('validatePulledEnv (Vercel v2 envelope integration)', () => {
-  it('passes when CORS_ORIGIN is a v2 envelope (treated as opaque; runtime decrypts)', () => {
+  it('passes when CORS_ORIGIN is a v2 envelope (treated as opaque; runtime decrypts)', async () => {
     // This is the 2026-05-11 regression: Vercel CLI started returning
     // ciphertext for `encrypted`-type vars, breaking every main Deploy.
     // After the scrub fix, the CI gate skips format check (presence still
     // counts) and lets deploy proceed; runtime validateStartup() catches
     // any real misconfig with decrypted values.
-    const result = validatePulledEnv(validHostedEnv({ CORS_ORIGIN: SAMPLE_V2_BLOB }));
+    const result = await validatePulledEnv(validHostedEnv({ CORS_ORIGIN: SAMPLE_V2_BLOB }));
     expect(result.ok).toBe(true);
     expect(result.scrubbedBlobKeys).toEqual(['CORS_ORIGIN']);
   });
 
-  it('lists every scrubbed key so CI logs can report the platform-encrypted footprint', () => {
-    const result = validatePulledEnv(
+  it('lists every scrubbed key so CI logs can report the platform-encrypted footprint', async () => {
+    const result = await validatePulledEnv(
       validHostedEnv({
         CORS_ORIGIN: SAMPLE_V2_BLOB,
         REVEALUI_PUBLIC_SERVER_URL: SAMPLE_V2_BLOB,
@@ -300,10 +368,10 @@ describe('validatePulledEnv (Vercel v2 envelope integration)', () => {
     ]);
   });
 
-  it('still fails on missing required vars even with blobs present (presence > format)', () => {
+  it('still fails on missing required vars even with blobs present (presence > format)', async () => {
     const env = validHostedEnv({ CORS_ORIGIN: SAMPLE_V2_BLOB });
     delete (env as Record<string, string | undefined>).REVEALUI_ALERT_EMAIL;
-    const result = validatePulledEnv(env);
+    const result = await validatePulledEnv(env);
     expect(result.ok).toBe(false);
     expect(result.message).toMatch(/REVEALUI_ALERT_EMAIL/);
   });
@@ -328,12 +396,12 @@ describe('sensitive-placeholder scrub (Vercel CLI >= 56.3)', () => {
     expect(scrubbedKeys).toEqual(['REVEALUI_KEK']);
   });
 
-  it('passes the 2026-07-17 incident shape: every sensitive-type var pulled as [SENSITIVE]', () => {
+  it('passes the 2026-07-17 incident shape: every sensitive-type var pulled as [SENSITIVE]', async () => {
     // Mirrors deploy run 29559213155, where CLI 56.3.1 redacted all 10
     // sensitive-type vars and each one failed a format check. With the
     // scrub, these rejoin the lenient presence-only path (the pre-56.3
     // empty-string behavior) and validation passes.
-    const result = validatePulledEnv(
+    const result = await validatePulledEnv(
       validHostedEnv({
         REVEALUI_KEK: VERCEL_SENSITIVE_PLACEHOLDER,
         REVEALUI_SECRET: VERCEL_SENSITIVE_PLACEHOLDER,
@@ -356,10 +424,10 @@ describe('sensitive-placeholder scrub (Vercel CLI >= 56.3)', () => {
     ]);
   });
 
-  it('still fails on missing required vars even with placeholders present (presence > format)', () => {
+  it('still fails on missing required vars even with placeholders present (presence > format)', async () => {
     const env = validHostedEnv({ REVEALUI_KEK: VERCEL_SENSITIVE_PLACEHOLDER });
     delete (env as Record<string, string | undefined>).REVEALUI_ALERT_EMAIL;
-    const result = validatePulledEnv(env);
+    const result = await validatePulledEnv(env);
     expect(result.ok).toBe(false);
     expect(result.message).toMatch(/REVEALUI_ALERT_EMAIL/);
   });

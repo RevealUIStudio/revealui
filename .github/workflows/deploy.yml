@@ -401,9 +401,13 @@ jobs:
       # api project (mirrors validateStartup format + presence checks). The
       # previous in-deploy bash grep against `vercel env ls` output covered
       # name-presence only and missed every value-format rule — replaced
-      # here as part of GAP-125. Admin pre-deploy validation is tracked as
-      # a follow-up; today admin's instrumentation handles env validation
-      # at boot (gentler, failOnMissing: false).
+      # here as part of GAP-125. Admin's public deployment posture is checked
+      # against this app's pulled environment before build/deploy; remaining
+      # admin environment requirements are enforced by instrumentation at boot.
+
+      - name: Validate admin production posture
+        if: matrix.app == 'admin'
+        run: pnpm validate:prod-env --app admin
 
       - name: Override Vercel project settings for CI
         run: |

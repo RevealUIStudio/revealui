@@ -2,9 +2,15 @@
  * Site database queries
  */
 
+import {
+  canAdministerAllContent,
+  canManageSiteContent,
+  type PlatformAuthUser,
+} from '@revealui/utils/validation';
 import { and, count, desc, eq, isNull, sql } from 'drizzle-orm';
 import type { Database } from '../client/index.js';
 import { sites } from '../schema/sites.js';
+import { users } from '../schema/users.js';
 
 /** Condition that excludes soft-deleted sites */
 const notDeleted = isNull(sites.deletedAt);
@@ -71,7 +77,11 @@ export async function getSiteBySlug(db: Database, slug: string) {
 }
 
 export async function createSite(db: Database, data: typeof sites.$inferInsert) {
-  const result = await db.insert(sites).values(data).returning();
+  const result = await db
+    .insert(sites)
+    .values(data)
+    .onConflictDoNothing({ target: sites.slug })
+    .returning();
   return result[0] ?? null;
 }
 
@@ -123,4 +133,58 @@ export async function decrementPageCount(db: Database, siteId: string): Promise<
     .update(sites)
     .set({ pageCount: sql`GREATEST(COALESCE(${sites.pageCount}, 0) - 1, 0)` })
     .where(eq(sites.id, siteId));
+}
+
+/** Resolve authorization fields from the canonical user row, never flattened CMS roles. */
+export async function getSiteContentActor(
+  db: Database,
+  userId: string,
+): Promise<PlatformAuthUser | null> {
+  const [actor] = await db
+    .select({
+      id: users.id,
+      role: users.role,
+      emailVerified: users.emailVerified,
+      _json: users._json,
+    })
+    .from(users)
+    .where(and(eq(users.id, userId), isNull(users.deletedAt), eq(users.status, 'active')))
+    .limit(1);
+  return actor ?? null;
+}
+
+/** Owner/operator authority. Deployment posture is supplied by maintained server configuration. */
+export async function actorCanManageSite(
+  db: Database,
+  actor: PlatformAuthUser | null,
+  siteId: string,
+  mode: 'hosted' | 'forge' | null,
+): Promise<boolean> {
+  const site = await getSiteById(db, siteId);
+  return Boolean(site && canManageSiteContent(actor, site.ownerId, mode));
+}
+
+/** Live-site scope for queries whose caller already supplies authorization. */
+export function getLiveSiteIds(db: Database) {
+  return db.select({ id: sites.id }).from(sites).where(notDeleted);
+}
+
+/** Unpaginated SQL subquery for page reads; deleted sites never grant visibility. */
+export function getSiteIdsForContentRead(
+  db: Database,
+  actor: PlatformAuthUser | null,
+  mode: 'hosted' | 'forge' | null,
+) {
+  return db
+    .select({ id: sites.id })
+    .from(sites)
+    .where(
+      and(
+        notDeleted,
+        !actor ? eq(sites.status, 'published') : undefined,
+        actor && !canAdministerAllContent(actor, mode)
+          ? eq(sites.ownerId, String(actor.id))
+          : undefined,
+      ),
+    );
 }

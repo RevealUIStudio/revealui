@@ -156,6 +156,10 @@ export async function initEngineAtBoot(): Promise<void> {
  */
 export async function registerNode(): Promise<void> {
   try {
+    if (process.env.NODE_ENV === 'production') {
+      const { requireExplicitDeploymentMode } = await import('@revealui/core/deployment-mode');
+      requireExplicitDeploymentMode(process.env);
+    }
     const { validateForgeLicenseAtStartup } = await import('@revealui/core/revforge-license-boot');
     await validateForgeLicenseAtStartup(process.env);
   } catch (err) {

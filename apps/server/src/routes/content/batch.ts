@@ -17,7 +17,7 @@ import * as postQueries from '@revealui/db/queries/posts';
 import * as siteQueries from '@revealui/db/queries/sites';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
-import { hasApiRole } from '../../lib/api-roles.js';
+import { canAdministerAllContent } from '../../lib/access.js';
 import type { ContentVariables } from './index.js';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
@@ -104,8 +104,8 @@ async function batchCreate(
             authorId: userId,
           });
           break;
-        case 'sites':
-          await siteQueries.createSite(db, {
+        case 'sites': {
+          const created = await siteQueries.createSite(db, {
             id,
             name: String(item.name ?? ''),
             slug: String(item.slug ?? ''),
@@ -113,11 +113,15 @@ async function batchCreate(
             status: item.status != null ? String(item.status) : undefined,
             ownerId: userId,
           });
+          if (!created)
+            throw new Error('This site address is already in use. Choose another address.');
           break;
+        }
         case 'pages':
           await pageQueries.createPage(db, {
             id,
             siteId: String(item.siteId ?? ''),
+            createdBy: userId,
             title: String(item.title ?? ''),
             slug: String(item.slug ?? ''),
             path: String(item.path ?? '/'),
@@ -289,7 +293,7 @@ app.openapi(
     const db = c.get('db');
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-    if (!hasApiRole(user, 'admin'))
+    if (!canAdministerAllContent(user))
       throw new HTTPException(403, { message: 'Admin access required' });
 
     const { collection, items } = c.req.valid('json');
@@ -344,7 +348,7 @@ app.openapi(
     const db = c.get('db');
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-    if (!hasApiRole(user, 'admin'))
+    if (!canAdministerAllContent(user))
       throw new HTTPException(403, { message: 'Admin access required' });
 
     const { collection, items } = c.req.valid('json');
@@ -399,7 +403,7 @@ app.openapi(
     const db = c.get('db');
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-    if (!hasApiRole(user, 'admin'))
+    if (!canAdministerAllContent(user))
       throw new HTTPException(403, { message: 'Admin access required' });
 
     const { collection, items } = c.req.valid('json');

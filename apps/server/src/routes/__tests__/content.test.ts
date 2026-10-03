@@ -8,7 +8,14 @@
 
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+beforeEach(() => {
+  vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', 'forge');
+});
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 // vi.mock() factories are hoisted to the top of the file by Vitest before any
@@ -43,6 +50,8 @@ const { mockPostQueries, mockMediaQueries, mockSiteQueries, mockPageQueries } = 
   mockPageQueries: {
     getAllPages: vi.fn(),
     getPagesBySite: vi.fn(),
+    getPages: vi.fn(),
+    countPages: vi.fn(),
     createPage: vi.fn(),
     getPageById: vi.fn(),
     updatePage: vi.fn(),
@@ -65,6 +74,8 @@ interface UserCtx {
   id: string;
   role: string;
   email?: string;
+  emailVerified?: boolean;
+  _json?: unknown;
 }
 
 const ADMIN: UserCtx = { id: 'admin-1', role: 'admin', email: 'admin@example.com' };
@@ -658,6 +669,17 @@ describe('GET /sites  -  list sites', () => {
 describe('POST /sites  -  create site', () => {
   beforeEach(() => vi.clearAllMocks());
 
+  it('reports an atomic duplicate address as a correctable conflict', async () => {
+    mockSiteQueries.createSite.mockResolvedValue(null);
+    const res = await createApp(USER_A).request('/sites', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'New site', slug: 'existing' }),
+    });
+    expect(res.status).toBe(409);
+    expect(await res.text()).toContain('Choose another address');
+  });
+
   it('returns 401 without authentication', async () => {
     const app = createApp(null);
     const res = await app.request('/sites', {
@@ -857,12 +879,99 @@ describe('DELETE /sites/:id (IDOR)', () => {
 
 // ─── Page Tests ──────────────────────────────────────────────────────────────
 
+describe('GET /pages — creator collection scope', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockPageQueries.getPages.mockResolvedValue([]);
+    mockPageQueries.countPages.mockResolvedValue(0);
+  });
+
+  it('reports the matching collection total separately from a bounded page', async () => {
+    mockPageQueries.getPages.mockResolvedValue([makePage()]);
+    mockPageQueries.countPages.mockResolvedValue(2);
+    const response = await createApp(USER_A).request('/pages?createdByMe=true&limit=1&offset=1');
+    expect(await response.json()).toMatchObject({
+      totalDocs: 2,
+      totalPages: 2,
+      limit: 1,
+      offset: 1,
+    });
+  });
+
+  it.each(['limit=0', 'limit=101', 'offset=-1'])(
+    'rejects invalid collection bounds %s',
+    async (query) => {
+      expect((await createApp(USER_A).request(`/pages?${query}`)).status).toBe(400);
+      expect(mockPageQueries.getPages).not.toHaveBeenCalled();
+    },
+  );
+
+  it('derives creator and owned-site scope from the session across multiple sites', async () => {
+    expect(
+      (
+        await createApp(USER_A).request(
+          '/pages?createdByMe=true&createdBy=forged&siteOwnerId=forged',
+        )
+      ).status,
+    ).toBe(200);
+    expect(mockPageQueries.getPages).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ createdBy: USER_A.id, siteOwnerId: USER_A.id }),
+    );
+    expect(mockSiteQueries.getSiteById).not.toHaveBeenCalled();
+  });
+
+  it('requires authentication and denies explicit foreign sites before the query', async () => {
+    expect((await createApp(null).request('/pages?createdByMe=true')).status).toBe(401);
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_B.id }));
+    expect((await createApp(USER_A).request('/pages?siteId=site-1&createdByMe=true')).status).toBe(
+      403,
+    );
+    expect(mockPageQueries.getPages).not.toHaveBeenCalled();
+  });
+
+  it('keeps an explicitly selected owned site as an additional creator constraint', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_A.id }));
+    expect((await createApp(USER_A).request('/pages?siteId=site-1&createdByMe=true')).status).toBe(
+      200,
+    );
+    expect(mockPageQueries.getPages).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ siteId: 'site-1', siteOwnerId: USER_A.id, createdBy: USER_A.id }),
+    );
+  });
+});
+
 describe('GET /sites/:siteId/pages  -  list pages', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockPageQueries.getPagesBySite.mockResolvedValue([]);
   });
 
+  it('derives own-page filtering from the authenticated actor, never a requested creator', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_A.id }));
+    const response = await createApp(USER_A).request(
+      '/sites/site-1/pages?createdByMe=true&createdBy=forged',
+    );
+    expect(response.status).toBe(200);
+    expect(mockPageQueries.getPagesBySite).toHaveBeenCalledWith(
+      expect.anything(),
+      'site-1',
+      expect.objectContaining({ createdBy: USER_A.id }),
+    );
+  });
+  it('own-page milestones require authentication and retain site ownership enforcement', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(
+      makeSite({ ownerId: USER_A.id, status: 'published' }),
+    );
+    expect((await createApp(null).request('/sites/site-1/pages?createdByMe=true')).status).toBe(
+      401,
+    );
+    expect((await createApp(USER_B).request('/sites/site-1/pages?createdByMe=true')).status).toBe(
+      403,
+    );
+    expect(mockPageQueries.getPagesBySite).not.toHaveBeenCalled();
+  });
   it('returns published pages for unauthenticated requests (public read)', async () => {
     mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ status: 'published' }));
     const app = createApp(null);
@@ -969,9 +1078,18 @@ describe('POST /sites/:siteId/pages  -  create page', () => {
     const res = await app.request('/sites/site-1/pages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: 'New Page', slug: 'new-page', path: '/new-page' }),
+      body: JSON.stringify({
+        title: 'New Page',
+        slug: 'new-page',
+        path: '/new-page',
+        createdBy: 'forged',
+      }),
     });
     expect(res.status).toBe(201);
+    expect(mockPageQueries.createPage).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ createdBy: USER_A.id }),
+    );
     const body = await res.json();
     expect(body.success).toBe(true);
     expect(body.data.title).toBe('New Page');
@@ -989,7 +1107,10 @@ describe('POST /sites/:siteId/pages  -  create page', () => {
 });
 
 describe('GET /pages/:id (IDOR)', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ status: 'published' }));
+  });
 
   it('returns 404 for non-published page without authentication (public read)', async () => {
     mockPageQueries.getPageById.mockResolvedValue(makePage({ status: 'draft' }));
@@ -1000,6 +1121,7 @@ describe('GET /pages/:id (IDOR)', () => {
 
   it('returns 200 for published page without authentication', async () => {
     mockPageQueries.getPageById.mockResolvedValue(makePage({ status: 'published' }));
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ status: 'published' }));
     const app = createApp(null);
     const res = await app.request('/pages/page-1');
     expect(res.status).toBe(200);
@@ -1039,7 +1161,10 @@ describe('GET /pages/:id (IDOR)', () => {
 });
 
 describe('PATCH /pages/:id (IDOR)', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ status: 'published' }));
+  });
 
   it('returns 401 without authentication', async () => {
     const app = createApp(null);
@@ -1120,7 +1245,10 @@ describe('PATCH /pages/:id (IDOR)', () => {
 });
 
 describe('DELETE /pages/:id (IDOR)', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ status: 'published' }));
+  });
 
   it('returns 401 without authentication', async () => {
     const app = createApp(null);
@@ -1160,5 +1288,90 @@ describe('DELETE /pages/:id (IDOR)', () => {
     const app = createApp(ADMIN);
     const res = await app.request('/pages/page-1', { method: 'DELETE' });
     expect(res.status).toBe(200);
+  });
+});
+
+describe('hosted site content role boundary', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', 'hosted');
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+  it.each(['admin', 'owner', 'super-admin'])(
+    'denies a foreign page to raw shell role %s',
+    async (role) => {
+      mockPageQueries.getPageById.mockResolvedValue(makePage({ siteId: 'site-1' }));
+      mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_B.id }));
+      const response = await createApp({ ...USER_A, role, emailVerified: true }).request(
+        '/pages/page-1',
+      );
+      expect(response.status).toBe(403);
+    },
+  );
+  it('allows a verified operator but denies its unverified counterpart', async () => {
+    mockPageQueries.getPageById.mockResolvedValue(makePage({ siteId: 'site-1' }));
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_B.id }));
+    const operator = { ...ADMIN, emailVerified: true, _json: { roles: ['super-admin'] } };
+    expect((await createApp(operator).request('/pages/page-1')).status).toBe(200);
+    expect(
+      (await createApp({ ...operator, emailVerified: false }).request('/pages/page-1')).status,
+    ).toBe(403);
+  });
+  it('preserves site-owner and anonymous published read contracts', async () => {
+    mockPageQueries.getPageById.mockResolvedValue(
+      makePage({ status: 'published', siteId: 'site-1' }),
+    );
+    mockSiteQueries.getSiteById.mockResolvedValue(
+      makeSite({ ownerId: USER_A.id, status: 'published' }),
+    );
+    expect((await createApp(USER_A).request('/pages/page-1')).status).toBe(200);
+    expect((await createApp(null).request('/pages/page-1')).status).toBe(200);
+    mockPageQueries.getPageById.mockResolvedValue(makePage({ status: 'draft' }));
+    expect((await createApp(null).request('/pages/page-1')).status).toBe(404);
+  });
+  it.each(['draft', 'deleted'])(
+    'denies an anonymous published page under a %s site',
+    async (status) => {
+      mockPageQueries.getPageById.mockResolvedValue(makePage({ status: 'published' }));
+      mockSiteQueries.getSiteById.mockResolvedValue(
+        status === 'deleted' ? null : makeSite({ status }),
+      );
+      expect((await createApp(null).request('/pages/page-1')).status).toBe(404);
+    },
+  );
+
+  it.each(['owner', 'operator'])(
+    'hides deleted-site pages from %s without mutation',
+    async (actor) => {
+      mockPageQueries.getPageById.mockResolvedValue(makePage({ status: 'draft' }));
+      mockSiteQueries.getSiteById.mockResolvedValue(null);
+      const user =
+        actor === 'owner'
+          ? USER_A
+          : { ...ADMIN, emailVerified: true, _json: { roles: ['super-admin'] } };
+      const app = createApp(user);
+      expect((await app.request('/pages/page-1')).status).toBe(404);
+      expect(
+        (
+          await app.request('/pages/page-1', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: 'Changed' }),
+          })
+        ).status,
+      ).toBe(404);
+      expect((await app.request('/pages/page-1', { method: 'DELETE' })).status).toBe(404);
+      expect(mockPageQueries.updatePage).not.toHaveBeenCalled();
+      expect(mockPageQueries.deletePage).not.toHaveBeenCalled();
+    },
+  );
+
+  it('denies foreign site mutation to a hosted tenant admin', async () => {
+    mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_B.id }));
+    const response = await createApp(ADMIN).request('/sites/site-1', { method: 'DELETE' });
+    expect(response.status).toBe(403);
+    expect(mockSiteQueries.deleteSite).not.toHaveBeenCalled();
   });
 });

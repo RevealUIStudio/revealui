@@ -32,6 +32,7 @@ export async function generateEnvFile(projectPath: string, config: EnvConfig): P
     '# REQUIRED - REVEALUI CORE',
     '# =============================================================================',
     '',
+    'REVEALUI_DEPLOYMENT_MODE=forge',
     `REVEALUI_SECRET=${secret}`,
     'REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000',
     'NEXT_PUBLIC_SERVER_URL=http://localhost:4000',

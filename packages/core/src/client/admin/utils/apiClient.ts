@@ -11,6 +11,7 @@ export interface APIResponse<T = RevealDocument> {
   doc?: T;
   totalDocs?: number;
   limit?: number;
+  offset?: number;
   totalPages?: number;
   page?: number;
   pagingCounter?: number;
@@ -47,6 +48,8 @@ export interface FindOptions {
   collection: string;
   page?: number;
   limit?: number;
+  offset?: number;
+  scope?: { field: string; value: string };
   where?: Record<string, unknown>;
   sort?: string;
   depth?: number;
@@ -177,10 +180,15 @@ export class APIClient {
       }
 
       // Handle validation errors
-      if (response.status === 400) {
+      if (response.status === 400 || response.status === 409) {
         const errorData = await parseErrorPayload(response);
         const errorMessage = getErrorMessage(errorData, 'Validation error');
-        throw new APIError(APIErrorType.Validation, errorMessage, 400, getErrorField(errorData));
+        throw new APIError(
+          APIErrorType.Validation,
+          errorMessage,
+          response.status,
+          getErrorField(errorData),
+        );
       }
 
       // Handle server errors
@@ -227,11 +235,21 @@ export class APIClient {
    * Find documents in a collection
    */
   async find(options: FindOptions): Promise<APIResponse> {
-    const { collection, page = 1, limit = 10, where, sort, depth } = options;
+    const { collection, page = 1, limit = 10, offset, scope, where, sort, depth } = options;
 
     const params = new URLSearchParams();
     params.set('page', String(page));
     params.set('limit', String(limit));
+    if (offset !== undefined) params.set('offset', String(offset));
+    if (scope) {
+      if (
+        !/^[A-Za-z][A-Za-z0-9_]*$/.test(scope.field) ||
+        ['page', 'limit', 'offset', 'where', 'sort', 'depth'].includes(scope.field)
+      ) {
+        throw new APIError(APIErrorType.Validation, 'Invalid collection scope field');
+      }
+      params.set(scope.field, scope.value);
+    }
     if (where) {
       params.set('where', JSON.stringify(where));
     }
