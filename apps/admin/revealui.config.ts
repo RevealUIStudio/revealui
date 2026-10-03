@@ -55,8 +55,8 @@ const dbAdapter =
         },
       });
 // Lazy typed-storage seam: resolve on each call, not at module load.
-// CLI seeds call loadSeedEnv() after importing this config module; if we
-// snapshot createTypedCollectionStorage() here, POSTGRES_URL is often still
+// Some consumers load their environment after importing this module; if we
+// snapshot createTypedCollectionStorage() here, POSTGRES_URL can still be
 // unset and pages writes fall through to dynamic SQL (which expects a Payload-
 // style `_status` column the canonical `pages.status` table does not have).
 type TypedStorage = NonNullable<ReturnType<typeof createTypedCollectionStorage>>;

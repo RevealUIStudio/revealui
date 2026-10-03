@@ -10,7 +10,7 @@
  * All seed operations are idempotent (checks for existing entries before creating).
  *
  * Durable rules:
- *   - Env via scripts/lib/seed-env.ts (direnv passwordless demotion + preflight)
+ *   - Env via scripts/lib/seed-env.ts (explicit target preservation + preflight)
  *   - CLI creates use overrideAccess: true (no interactive admin session)
  *   - Empty DB requires REVEALUI_ADMIN_EMAIL + REVEALUI_ADMIN_PASSWORD (≥12 chars)
  *   - contents/events seed when those collections are registered
@@ -21,8 +21,7 @@
  *   pnpm db:seed -- --content-only  # Seed Contents + Events only
  */
 
-import config from '@reveal-config';
-import { getRevealUI } from '@revealui/core';
+import type { getRevealUI } from '@revealui/core';
 import { getClient } from '@revealui/db';
 import { sites, users } from '@revealui/db/schema';
 import { eq, or } from 'drizzle-orm';
@@ -33,7 +32,7 @@ import {
 } from '../../../scripts/lib/seed-env.js';
 
 // pnpm db:seed:admin runs from monorepo root; seed-env loads apps/admin/.env.local
-// and demotes passwordless direnv/Nix POSTGRES_URL placeholders.
+// while preserving the caller-selected database target.
 loadSeedEnv(process.cwd());
 
 const logger = {
@@ -381,6 +380,8 @@ async function main() {
 
     await assertBootstrapCredentialsIfEmptyUsers();
 
+    const { getRevealUI } = await import('@revealui/core');
+    const { default: config } = await import('@reveal-config');
     const revealuiConfig = await config;
     const revealui = await getRevealUI({ config: revealuiConfig });
 
