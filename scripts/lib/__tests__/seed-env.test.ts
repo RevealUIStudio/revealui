@@ -37,6 +37,7 @@ describe('parseDbTarget / redact / probe detect', () => {
     ).toBe(true);
     expect(isProbeDatabaseUrl('postgresql://u:p@localhost:5434/anything')).toBe(true);
     expect(isProbeDatabaseUrl('postgresql://u:p@localhost:5432/revealui_probe')).toBe(true);
+    expect(isProbeDatabaseUrl('postgresql://u:p@localhost:5432/%72evealui_probe')).toBe(true);
     expect(isProbeDatabaseUrl('postgresql://u:p@localhost:5432/revealui')).toBe(false);
   });
 });
@@ -167,26 +168,18 @@ describe('assertSeedDatabaseReady', () => {
     else process.env.DATABASE_URL = prevDb;
   });
 
-  it('refuses the probe database with a SeedEnvError', async () => {
-    process.env.POSTGRES_URL =
-      'postgres://revealui:x@localhost:5434/revealui_probe?sslmode=disable';
+  it.each([
+    'postgres://revealui:x@localhost:5434/revealui_probe?sslmode=disable',
+    'postgres://revealui:x@localhost:5432/%72evealui_probe?sslmode=disable',
+  ])('refuses the probe database before connecting: %s', async (selected) => {
+    process.env.POSTGRES_URL = selected;
     delete process.env.REVEALUI_ALLOW_PROBE_DB;
-
-    await expect(
-      assertSeedDatabaseReady({
-        connect: async () => {
-          /* should not be called */
-        },
-      }),
-    ).rejects.toBeInstanceOf(SeedEnvError);
-
-    await expect(
-      assertSeedDatabaseReady({
-        connect: async () => {
-          /* should not be called */
-        },
-      }),
-    ).rejects.toThrow(/electric-latency-probe|5434|revealui_probe/);
+    const connect = vi.fn().mockResolvedValue(undefined);
+    await expect(assertSeedDatabaseReady({ connect })).rejects.toBeInstanceOf(SeedEnvError);
+    await expect(assertSeedDatabaseReady({ connect })).rejects.toThrow(
+      /electric-latency-probe|5434|revealui_probe/,
+    );
+    expect(connect).not.toHaveBeenCalled();
   });
 
   it('accepts passwordless trust authentication when the connector succeeds', async () => {

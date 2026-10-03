@@ -44,7 +44,9 @@ export function parseDbTarget(raw: string): ParsedDbTarget | null {
   try {
     const url = new URL(raw);
     if (!(['postgres:', 'postgresql:'].includes(url.protocol) && url.hostname)) return null;
-    const database = url.pathname.replace(/^\//, '').split('?')[0] ?? '';
+    // Match pg-connection-string's interpretation before classifying a target.
+    // An encoded probe name must not evade the seed guard.
+    const database = decodeURI(url.pathname.slice(1));
     if (!database) return null;
     // pg-connection-string lets host/port query values override the URI target.
     // Refuse that ambiguity before target display and probe classification.
@@ -52,7 +54,7 @@ export function parseDbTarget(raw: string): ParsedDbTarget | null {
       if (['host', 'port'].includes(key)) return null;
     }
     return {
-      host: url.hostname,
+      host: decodeURIComponent(url.hostname),
       port: url.port || '5432',
       database,
       user: decodeURIComponent(url.username || ''),
