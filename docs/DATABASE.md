@@ -9,7 +9,7 @@ audience: developer
 
 This guide describes the RevealUI database workflow and the underlying database scripts it orchestrates across different development environments.
 
-**Last Updated:** 2026-07-04
+**Last Updated:** 2026-10-02
 
 ---
 
@@ -324,6 +324,21 @@ postgresql://user:password@host.neon.tech/database?sslmode=require
 
 # Prefer Neon / POSTGRES_URL. Do not provision Supabase for new deployments.
 ```
+
+### Seed target precedence
+
+The shared seed loader preserves a nonempty caller-supplied `POSTGRES_URL`.
+If only `DATABASE_URL` is supplied, it promotes that value before loading dotenv
+files. When both caller keys are present, `POSTGRES_URL` wins. Files provide a
+target only when the caller has not supplied one. Passwordless URLs receive the
+same precedence; the database connector determines whether authentication works.
+
+Seed commands use this loader directly, without a preceding dotenv CLI phase.
+Admin configuration initializes after the loader establishes the target, and
+billing seeds use the same loader and connection preflight. Invalid URLs,
+host/port query aliases, probe targets rejected by the existing guard, and failed
+connections stop the seed before writes. Connection failures expose the target
+host and database without driver messages that might contain credentials.
 
 ### Optional Variables
 
@@ -754,7 +769,7 @@ pnpm db:restore backup.json
 
 ---
 
-**Last Updated:** 2026-07-04
+**Last Updated:** 2026-10-02
 **Part of:** Development Guide consolidation
 
 ---
