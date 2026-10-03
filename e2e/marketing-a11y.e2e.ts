@@ -13,7 +13,7 @@
  *     pnpm exec playwright test --project=chromium e2e/marketing-a11y.e2e.ts
  */
 
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { checkAccessibility } from './utils/a11y-helper';
 import { assertHonestProductCatalog } from './utils/catalog-honesty';
 
@@ -34,3 +34,48 @@ test.describe('Marketing accessibility', () => {
     await checkAccessibility(page);
   });
 });
+
+// Long addresses and technical URLs must remain readable within the shared
+// policy shell, including its notice and opened native FAQ answers.
+for (const width of [390, 1440]) {
+  test.describe(`Policy page reflow at ${width}px`, () => {
+    test.use({ viewport: { width, height: 900 }, reducedMotion: 'reduce' });
+
+    for (const [path, title] of [
+      ['/privacy', 'Privacy Policy'],
+      ['/cookies', 'Cookie Policy'],
+      ['/terms', 'Terms of Service'],
+      ['/security', 'Security'],
+      ['/support', 'Support'],
+      ['/refund-policy', 'Refund Policy'],
+    ] as const) {
+      test(`${path} fits the viewport with readable policy text`, async ({ page }) => {
+        await page.route('**/*', (route) =>
+          ['GET', 'HEAD'].includes(route.request().method()) ? route.continue() : route.abort(),
+        );
+        await page.goto(`${MarketingBase}${path}`, { waitUntil: 'load' });
+        await expect(page.getByRole('heading', { level: 1 })).toHaveText(title);
+        await page.evaluate(() => document.fonts.ready);
+
+        const expectReflow = async () => {
+          await expect
+            .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
+            .toBe(true);
+        };
+
+        await expectReflow();
+        for (const summary of await page.locator('main details > summary').all()) {
+          await summary.focus();
+          await summary.press('Enter');
+          await expect.poll(() => summary.evaluate((el) => el.closest('details')?.open)).toBe(true);
+          await expect(summary.locator('..').locator('p')).toBeVisible();
+          await expectReflow();
+          await summary.press('Enter');
+          await expect
+            .poll(() => summary.evaluate((el) => el.closest('details')?.open))
+            .toBe(false);
+        }
+      });
+    }
+  });
+}
