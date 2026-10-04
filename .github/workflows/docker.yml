@@ -56,6 +56,7 @@ on:
       - .github/actions/setup-pnpm-node/**
   pull_request:
     branches: [test, main]
+    types: [opened, synchronize, reopened, edited, ready_for_review]
   workflow_dispatch:
     inputs:
       version:

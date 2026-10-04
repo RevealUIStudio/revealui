@@ -18,6 +18,7 @@ on:
     branches: [main, test]
   pull_request:
     branches: [test]
+    types: [opened, synchronize, reopened, edited, ready_for_review]
 
 # Serialize land (push) separately from the PR gate so a feature PR check
 # cannot queue behind or delay auto-backflow.

@@ -24,3 +24,20 @@ describe('required-check workflows do not cancel in-flight runs', () => {
     },
   );
 });
+
+describe('required PR checks rerun after a base branch edit', () => {
+  it.each([
+    '.github/workflows/ci.yml',
+    '.github/workflows/docker.yml',
+    '.github/workflows/no-submodules.yml',
+    '.github/workflows/check-client-leaks.yml',
+    '.github/workflows/backflow-main-into-test.yml',
+  ])('%s includes edited without dropping ordinary PR events', (rel) => {
+    const yml = readFileSync(path.join(repoRoot, rel), 'utf8');
+    const trigger = yml.match(/ {2}pull_request(?:_target)?:\n(?: {4}[^\n]+\n)+/g)?.[0];
+    expect(trigger).toBeDefined();
+    for (const event of ['opened', 'synchronize', 'reopened', 'edited']) {
+      expect(trigger).toContain(event);
+    }
+  });
+});
