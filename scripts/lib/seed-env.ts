@@ -131,13 +131,9 @@ export class SeedEnvError extends Error {
  * Fail closed when the configured URL is missing, is the probe DB, or cannot
  * accept a connection. Call after loadSeedEnv(), before getClient().
  *
- * Escape hatch (tests / intentional probe work only):
- *   REVEALUI_ALLOW_PROBE_DB=1
- *
  * Passwordless authentication is accepted only when the connector succeeds.
  */
 export async function assertSeedDatabaseReady(options?: {
-  allowProbe?: boolean;
   connect?: (url: string) => Promise<void>;
 }): Promise<{ url: string; target: ParsedDbTarget }> {
   const url = resolveSeedDatabaseUrl();
@@ -149,8 +145,7 @@ export async function assertSeedDatabaseReady(options?: {
     );
   }
 
-  const allowProbe = options?.allowProbe === true || process.env.REVEALUI_ALLOW_PROBE_DB === '1';
-  if (isProbeDatabaseUrl(url) && !allowProbe) {
+  if (isProbeDatabaseUrl(url)) {
     const target = parseDbTarget(url);
     throw new SeedEnvError(
       [
