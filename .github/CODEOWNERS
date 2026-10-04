@@ -30,6 +30,7 @@
 **/api/sync/ @joshua-v-dev @RevealUIStudio
 **/lib/billing-status* @joshua-v-dev @RevealUIStudio
 **/lib/access* @joshua-v-dev @RevealUIStudio
+**/access/roles* @joshua-v-dev @RevealUIStudio
 **/lib/validate-startup* @joshua-v-dev @RevealUIStudio
 **/proxy.ts @joshua-v-dev @RevealUIStudio
 **/collections/operations* @joshua-v-dev @RevealUIStudio
