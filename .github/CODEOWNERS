@@ -1,0 +1,65 @@
+# Security-sensitive source and policy. GitHub requests a review from either
+# account; the protected test/main ruleset will require a code-owner approval.
+# Keep these patterns aligned with scripts/validate/security-paths.shared.json.
+# The CODEOWNERS file owns itself so later policy edits require review.
+/.github/CODEOWNERS @joshua-v-dev @RevealUIStudio
+/.github/workflows/ @joshua-v-dev @RevealUIStudio
+/scripts/validate/ @joshua-v-dev @RevealUIStudio
+
+# Authentication, authorization, licensing, money, and governed API surfaces.
+**/middleware/auth* @joshua-v-dev @RevealUIStudio
+**/middleware/license* @joshua-v-dev @RevealUIStudio
+**/middleware/entitlements* @joshua-v-dev @RevealUIStudio
+**/middleware/tenant* @joshua-v-dev @RevealUIStudio
+**/middleware/authorization* @joshua-v-dev @RevealUIStudio
+**/middleware/x402* @joshua-v-dev @RevealUIStudio
+**/routes/webhooks* @joshua-v-dev @RevealUIStudio
+**/routes/license* @joshua-v-dev @RevealUIStudio
+**/routes/terminal* @joshua-v-dev @RevealUIStudio
+**/routes/billing* @joshua-v-dev @RevealUIStudio
+**/routes/agent-stream* @joshua-v-dev @RevealUIStudio
+**/routes/agent-tasks* @joshua-v-dev @RevealUIStudio
+**/routes/auth* @joshua-v-dev @RevealUIStudio
+**/routes/api-keys* @joshua-v-dev @RevealUIStudio
+**/routes/a2a* @joshua-v-dev @RevealUIStudio
+**/routes/marketplace* @joshua-v-dev @RevealUIStudio
+**/routes/revmarket* @joshua-v-dev @RevealUIStudio
+**/routes/content/sessions* @joshua-v-dev @RevealUIStudio
+**/api/auth/ @joshua-v-dev @RevealUIStudio
+**/api/shapes/ @joshua-v-dev @RevealUIStudio
+**/api/sync/ @joshua-v-dev @RevealUIStudio
+**/lib/billing-status* @joshua-v-dev @RevealUIStudio
+**/lib/access* @joshua-v-dev @RevealUIStudio
+**/access/roles* @joshua-v-dev @RevealUIStudio
+**/lib/validate-startup* @joshua-v-dev @RevealUIStudio
+**/proxy.ts @joshua-v-dev @RevealUIStudio
+**/collections/operations* @joshua-v-dev @RevealUIStudio
+**/license-crypto* @joshua-v-dev @RevealUIStudio
+**/signing* @joshua-v-dev @RevealUIStudio
+**/webhooks.ts @joshua-v-dev @RevealUIStudio
+**/richtext* @joshua-v-dev @RevealUIStudio
+**/RichText/ @joshua-v-dev @RevealUIStudio
+**/sanitize* @joshua-v-dev @RevealUIStudio
+**/content-validation* @joshua-v-dev @RevealUIStudio
+**/remote-client* @joshua-v-dev @RevealUIStudio
+**/preview-token* @joshua-v-dev @RevealUIStudio
+
+# Security and governance packages.
+/packages/security/ @joshua-v-dev @RevealUIStudio
+/packages/auth/ @joshua-v-dev @RevealUIStudio
+/packages/mcp/ @joshua-v-dev @RevealUIStudio
+/packages/paywall/ @joshua-v-dev @RevealUIStudio
+/packages/harnesses/ @joshua-v-dev @RevealUIStudio
+/packages/editor/ @joshua-v-dev @RevealUIStudio
+/packages/db/src/schema/audit-log* @joshua-v-dev @RevealUIStudio
+/packages/db/src/audit-store* @joshua-v-dev @RevealUIStudio
+/packages/db/migrations/ @joshua-v-dev @RevealUIStudio
+/packages/apify-actor-governed-run/ @joshua-v-dev @RevealUIStudio
+
+# Seed database target and owner identity.
+/scripts/lib/seed-env.ts @joshua-v-dev @RevealUIStudio
+/scripts/lib/__tests__/seed-env.test.ts @joshua-v-dev @RevealUIStudio
+/scripts/seed-fleet-marketing-* @joshua-v-dev @RevealUIStudio
+/scripts/setup/seed-billing.ts @joshua-v-dev @RevealUIStudio
+/apps/admin/src/seed.ts @joshua-v-dev @RevealUIStudio
+/scripts/electric-latency-probe/ @joshua-v-dev @RevealUIStudio
