@@ -18,8 +18,7 @@
  *
  * Database / owner resolution (durable — see scripts/lib/seed-env.ts):
  *   - POSTGRES_URL preferred over DATABASE_URL; process env wins over dotenv files
- *   - electric-latency-probe DB (5434 / revealui_probe) is refused unless
- *     REVEALUI_ALLOW_PROBE_DB=1
+ *   - electric-latency-probe DB (5434 / revealui_probe) is always refused
  *   - Site owner email: REVEALUI_SEED_OWNER_EMAIL → revvault bootstrap email →
  *     founder@revealui.com → first active owner/admin user
  *

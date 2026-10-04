@@ -155,13 +155,10 @@ describe('resolveSeedOwnerEmailCandidates', () => {
 });
 
 describe('assertSeedDatabaseReady', () => {
-  const prevAllow = process.env.REVEALUI_ALLOW_PROBE_DB;
   const prevPg = process.env.POSTGRES_URL;
   const prevDb = process.env.DATABASE_URL;
 
   afterEach(() => {
-    if (prevAllow === undefined) delete process.env.REVEALUI_ALLOW_PROBE_DB;
-    else process.env.REVEALUI_ALLOW_PROBE_DB = prevAllow;
     if (prevPg === undefined) delete process.env.POSTGRES_URL;
     else process.env.POSTGRES_URL = prevPg;
     if (prevDb === undefined) delete process.env.DATABASE_URL;
@@ -173,7 +170,6 @@ describe('assertSeedDatabaseReady', () => {
     'postgres://revealui:x@localhost:5432/%72evealui_probe?sslmode=disable',
   ])('refuses the probe database before connecting: %s', async (selected) => {
     process.env.POSTGRES_URL = selected;
-    delete process.env.REVEALUI_ALLOW_PROBE_DB;
     const connect = vi.fn().mockResolvedValue(undefined);
     await expect(assertSeedDatabaseReady({ connect })).rejects.toBeInstanceOf(SeedEnvError);
     await expect(assertSeedDatabaseReady({ connect })).rejects.toThrow(
@@ -226,18 +222,21 @@ describe('assertSeedDatabaseReady', () => {
     expect((failure as Error).message).not.toContain('private-password');
   });
 
-  it('allows probe when REVEALUI_ALLOW_PROBE_DB=1 and connect succeeds', async () => {
+  it('refuses the probe even when the old override is present', async () => {
     process.env.POSTGRES_URL =
       'postgres://revealui:x@localhost:5434/revealui_probe?sslmode=disable';
+    const previous = process.env.REVEALUI_ALLOW_PROBE_DB;
     process.env.REVEALUI_ALLOW_PROBE_DB = '1';
-    let connected = false;
-    const result = await assertSeedDatabaseReady({
-      connect: async () => {
-        connected = true;
-      },
-    });
-    expect(connected).toBe(true);
-    expect(result.target.port).toBe('5434');
+    try {
+      const connect = vi.fn().mockResolvedValue(undefined);
+      await expect(assertSeedDatabaseReady({ connect })).rejects.toThrow(
+        /Seed refused the electric-latency-probe database/,
+      );
+      expect(connect).not.toHaveBeenCalled();
+    } finally {
+      if (previous === undefined) delete process.env.REVEALUI_ALLOW_PROBE_DB;
+      else process.env.REVEALUI_ALLOW_PROBE_DB = previous;
+    }
   });
 
   it('preserves supported non-routing query options for the connector', async () => {

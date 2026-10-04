@@ -34,6 +34,9 @@ on:
     branches: [main, test]
   pull_request:
     branches: [main, test]
+    # A stacked PR can be retargeted to test without a new head commit.
+    # Re-evaluate required checks against the new base on that edit.
+    types: [opened, synchronize, reopened, edited, ready_for_review]
 
 permissions:
   contents: read
