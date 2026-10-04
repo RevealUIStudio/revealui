@@ -1,7 +1,7 @@
 /**
  * GAP-355 Stage 4 S4-3 — Fly worker sweep: per-tenant Merkle anchors.
  *
- * For each non-null tenant with Max+ `auditLog` and new signed audit_log
+ * For each non-null tenant with Pro+ `auditLog` and new signed audit_log
  * rows after the last anchor, when the batch is **ready** (size ≥ N or
  * age ≥ max lag), build a batch, Merkle-root the signature leaves, sign the
  * root (Stage 3 Ed25519), insert audit_anchors, and meter `audit_anchor`.
