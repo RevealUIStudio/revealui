@@ -53,8 +53,8 @@ When we need to take infrastructure down for planned maintenance, we give at lea
 The API middleware can retain previously verified status for the exact signed
 license grant for up to seven days during an authority outage. This evidence is
 currently held in process memory: a restart loses it, and a grant without prior
-verification fails closed. Restart-safe continuity remains tracked by the license
-authority in [Commercial Readiness](./COMMERCIAL_READINESS.md). The Terms describe
+verification fails closed. The implementation does not preserve that evidence
+across a restart. The Terms describe
 continued use of acquired perpetual versions and the limits of support coverage.
 
 ---
@@ -62,7 +62,7 @@ continued use of acquired perpetual versions and the limits of support coverage.
 ## What this is not
 
 - Not a 99.9% / 99.99% promise.
-- Not an Enterprise-only number. Paid tiers share the same response commitment.
+- Not an Enterprise-only number. Paid tiers share the same published support targets.
 - Not a credit schedule. Service credits are not published as a formula on this page.
 - Not a claim about your self-hosted collab WebSocket, Neon project, or object store.
 
