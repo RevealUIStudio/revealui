@@ -158,15 +158,26 @@ export const BOOK_INTRO_HREF =
 export const CONSULTATION_PRICE = '$300' as const;
 
 /**
- * Studio middle SKU price on revealuistudio.com. Public name is Pilot.
- * Not a revealui.com catalog SKU. The $1,500 list is retired.
- * 100% credit toward Launch within 45 days.
- * The export name PROOF_SPRINT_PRICE stays so existing imports keep working.
+ * Studio Pilot price on revealuistudio.com. Not a revealui.com catalog SKU.
+ * The $1,500 list is retired. Includes 1 Adapter.
+ * 100% credit toward Launch within 45 days of Pilot start.
  */
-export const PROOF_SPRINT_PRICE = '$3,997' as const;
+export const PILOT_PRICE = '$3,997' as const;
 
-/** Same value as PROOF_SPRINT_PRICE. Marketing imports this name. */
-export const PILOT_PRICE = PROOF_SPRINT_PRICE;
+/** Catalog id for the Pilot engagement. */
+export const PILOT_SERVICE_ID = 'pilot' as const;
+
+/**
+ * @deprecated use PILOT_PRICE. Retired public name for the same $3,997 amount.
+ * Kept so existing imports keep working during the agency migration.
+ */
+export const PROOF_SPRINT_PRICE = PILOT_PRICE;
+
+/**
+ * @deprecated use PILOT_SERVICE_ID. Retired catalog id.
+ * findFounderServiceOffering still accepts this value.
+ */
+export const PROOF_SPRINT_SERVICE_ID = 'proof-sprint' as const;
 
 /**
  * Studio Launch on revealuistudio.com. Not a revealui.com catalog SKU.

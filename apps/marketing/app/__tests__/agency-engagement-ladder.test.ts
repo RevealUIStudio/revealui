@@ -140,9 +140,16 @@ describe('FOUNDER_SERVICE_OFFERINGS — founder-led services menu', () => {
   it('agrees with the studio ladder on the shared Pilot price', () => {
     const proof = FOUNDER_SERVICE_OFFERINGS.find((s) => s.price === '$3,997');
     const ladderProof = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === 'pilot');
+    expect(proof?.id).toBe('pilot');
+    expect(proof?.name).toBe('Pilot');
     expect(proof?.price).toBe('$3,997');
     expect(proof?.price).toBe(ladderProof?.price);
+    expect(proof?.includes).toContain('1 Adapter included');
+    expect(proof?.description).toContain('Includes 1 Adapter');
     expect(ladderProof?.name).toBe('Pilot');
+    expect(FOR_OPERATORS_PRICING.rungs[1]?.body).toContain('Includes 1 Adapter');
+    expect(FOR_OPERATORS_PRICING.rungs[1]?.body).toContain('Stage B is included');
+    expect(FOR_OPERATORS_PRICING.rungs[1]?.body.includes('Proof Sprint')).toBe(false);
   });
 
   it('agrees with the studio ladder on the shared Launch price', () => {
@@ -150,6 +157,8 @@ describe('FOUNDER_SERVICE_OFFERINGS — founder-led services menu', () => {
     const ladderLaunch = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === 'launch-package');
     expect(launch?.price).toBe('$14,500');
     expect(launch?.price).toBe(ladderLaunch?.price);
+    expect(launch?.includes).toContain('Up to 3 Adapters included');
+    expect(FOR_OPERATORS_PRICING.rungs[2]?.body).toContain('Up to 3 Adapters included');
   });
 
   it('$14,500 does not appear as a hand-typed literal in content/for-operators.ts code', () => {
