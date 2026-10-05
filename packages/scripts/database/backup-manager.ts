@@ -1,7 +1,20 @@
 /** Data-only PostgreSQL backup/restore into a compatible existing public schema. */
+import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { link, lstat, mkdir, open, readdir, readFile, unlink } from 'node:fs/promises';
+import { mkdtempSync, rmSync } from 'node:fs';
+import {
+  type FileHandle,
+  link,
+  lstat,
+  mkdir,
+  open,
+  readdir,
+  readFile,
+  unlink,
+} from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { escapeIdentifier, escapeLiteral } from '@revealui/db/orm';
 import { type Node as JsonNode, type ParseError, parseTree } from 'jsonc-parser';
 import { parse } from 'pgsql-parser';
@@ -354,6 +367,55 @@ async function syncDirectory(directory: string): Promise<void> {
     await handle.close();
   }
 }
+type InodeLink = (fd: number, destination: string) => void;
+let inodeLink: Promise<InodeLink | undefined> | undefined;
+function loadInodeLink(): Promise<InodeLink | undefined> {
+  inodeLink ??= compileInodeLink();
+  return inodeLink;
+}
+async function compileInodeLink(): Promise<InodeLink | undefined> {
+  if (process.platform !== 'linux') return undefined;
+  const directory = mkdtempSync(join(tmpdir(), 'revealui-link-empty-'));
+  const output = join(directory, 'link-empty.node');
+  try {
+    execFileSync(
+      'cc',
+      ['-shared', '-fPIC', '-o', output, fileURLToPath(new URL('./link-empty.c', import.meta.url))],
+      { timeout: 15_000 },
+    );
+    const native: { exports: unknown } = { exports: {} };
+    process.dlopen(native, output);
+    return typeof native.exports === 'function' ? (native.exports as InodeLink) : undefined;
+  } catch {
+    return undefined;
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+}
+async function readDescriptor(handle: FileHandle): Promise<string> {
+  const { size } = await handle.stat();
+  const buffer = Buffer.alloc(size);
+  let offset = 0;
+  while (offset < size) {
+    const { bytesRead } = await handle.read(buffer, offset, size - offset, offset);
+    if (bytesRead === 0) throw new Error('Backup staging verification failed');
+    offset += bytesRead;
+  }
+  return buffer.toString('utf8');
+}
+async function publishVerified(
+  handle: FileHandle,
+  stagePath: string,
+  destination: string,
+): Promise<void> {
+  const linkInode = await loadInodeLink();
+  if (linkInode) {
+    linkInode(handle.fd, destination);
+    return;
+  }
+  await link(stagePath, destination);
+}
+export const publication = { publishVerified };
 export async function createBackup(
   connection: DatabaseConnection,
   importMetaUrl: string,
@@ -437,22 +499,24 @@ export async function createBackup(
       { isolationLevel: 'repeatable read', readOnly: true, logger },
     );
     stage = join(backupDir, `.backup-stage-${randomUUID()}`);
-    const handle = await open(stage, 'wx', 0o600);
+    const handle = await open(stage, 'wx+', 0o600);
     try {
       await handle.writeFile(snapshot.content, 'utf8');
       // Retention follows the producer's declared local snapshot timestamp,
       // even if reading or publication finishes after a newer producer.
       await handle.utimes(timestamp, timestamp);
       await handle.sync();
+      // Read this descriptor. readFile(stage) is a second path lookup, which is
+      // the js/file-system-race CodeQL reports after open.
+      if ((await readDescriptor(handle)) !== snapshot.content)
+        throw new Error('Backup staging verification failed');
+      // Link the verified inode. link(stage) would publish whatever name is there now.
+      await publication.publishVerified(handle, stage, path);
+      await unlink(stage);
+      stage = undefined;
     } finally {
       await handle.close();
     }
-    if ((await readFile(stage, 'utf8')) !== snapshot.content)
-      throw new Error('Backup staging verification failed');
-    // Atomic no-clobber publication in the same filesystem; staging is never listed.
-    await link(stage, path);
-    await unlink(stage);
-    stage = undefined;
     await syncDirectory(backupDir);
     const metadata: BackupMetadata = {
       id: backupId,

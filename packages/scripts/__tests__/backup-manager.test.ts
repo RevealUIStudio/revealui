@@ -41,7 +41,12 @@ vi.mock('../index.js', () => ({
   listTables: async () => dependencies.tables,
 }));
 
-import { createBackup, listBackups, restoreBackup } from '../database/backup-manager.js';
+import {
+  createBackup,
+  listBackups,
+  publication,
+  restoreBackup,
+} from '../database/backup-manager.js';
 import { withTransaction } from '../database/transaction-manager.js';
 
 async function verifyCLI(directory: string) {
@@ -137,6 +142,7 @@ describe('backup and restore data integrity', () => {
     vi.mocked(link).mockRestore();
     vi.mocked(open).mockRestore();
     vi.mocked(unlink).mockRestore();
+    if (vi.isMockFunction(publication.publishVerified)) publication.publishVerified.mockRestore();
   });
 
   it.each(['json', 'sql'] as const)(
@@ -360,7 +366,9 @@ describe('backup and restore data integrity', () => {
 
   it('keeps prior backups and hides staging files when atomic publication fails', async () => {
     await writeFile(join(directory, 'backup-prior.json'), '{"first":[]}');
-    vi.mocked(link).mockRejectedValueOnce(new Error('injected publication failure'));
+    vi.spyOn(publication, 'publishVerified').mockRejectedValueOnce(
+      new Error('injected publication failure'),
+    );
     expect(
       (await createBackup(connection, import.meta.url, { backupDir: directory, retainCount: 1 }))
         .success,
@@ -402,25 +410,27 @@ describe('backup and restore data integrity', () => {
   });
 
   it('does not delete a newer complete artifact when an older snapshot publishes late', async () => {
-    const actual = await vi.importActual<typeof import('node:fs/promises')>('node:fs/promises');
     let staged!: () => void;
     const firstStaged = new Promise<void>((resolve) => {
       staged = resolve;
     });
     let resume!: () => void;
-    const publication = new Promise<void>((resolve) => {
+    const publicationGate = new Promise<void>((resolve) => {
       resume = resolve;
     });
     let first = true;
-    vi.mocked(link).mockImplementation(async (source, destination) => {
-      if (first) {
-        first = false;
-        await actual.utimes(source, 0, 0);
-        staged();
-        await publication;
-      }
-      await actual.link(source, destination);
-    });
+    const publishVerified = publication.publishVerified;
+    vi.spyOn(publication, 'publishVerified').mockImplementation(
+      async (handle, source, destination) => {
+        if (first) {
+          first = false;
+          await handle.utimes(0, 0);
+          staged();
+          await publicationGate;
+        }
+        await publishVerified(handle, source, destination);
+      },
+    );
     const older = createBackup(connection, import.meta.url, {
       backupDir: directory,
       retainCount: 1,
