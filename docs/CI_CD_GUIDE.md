@@ -54,6 +54,7 @@ Existing exception removal is owned by the same primitives:
 |---|---|---|
 | `scripts/git-hooks/push.sh`, `.husky/pre-push` | Validation ran after receive-pack opened and could outlive its transport | Awaited gates in the existing helper; native Git/Husky barriers and transport-close regressions in `scripts/git-hooks/__tests__/push.test.cjs` |
 | `scripts/git-hooks/cleanup.sh` | Global name/age globs deleted unknown snapshots/session files; stale-lock unlink could replace a live lease inode; global worktree pruning lacked checkout ownership | Cleanup now removes only declared caches; aged saved-work and active-lease regressions preserve unrelated work |
+| `scripts/git-hooks/__tests__/push.test.cjs` | Synthetic repositories and snapshot samples lacked creator cleanup after validation | Each test tracks its exact created roots and owned process groups, awaits child closure before removal even on failure, and preserves unknown older siblings; native lifecycle regression covers this ordering |
 | `docs/STANDARDS.md` | Emergency hook-bypass recipe contradicted required validation | Removed the bypass recipe; failures must be repaired in their owning source/validator |
 
 Older destructive stash/restore behavior was already removed from the push helper. Unknown saved snapshots remain preserved; their eventual retention/deletion belongs to the tool that creates them, with identity and lifecycle evidence, rather than this cache cleanup command.

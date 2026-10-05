@@ -1,13 +1,77 @@
 const assert = require('node:assert/strict');
-const { spawn, spawnSync } = require('node:child_process');
-const { mkdtempSync, mkdirSync, writeFileSync, readFileSync, copyFileSync, chmodSync, existsSync, utimesSync } = require('node:fs');
+const { AsyncLocalStorage } = require('node:async_hooks');
+const { spawn: spawnChild, spawnSync } = require('node:child_process');
+const { mkdtempSync, mkdirSync, writeFileSync, readFileSync, copyFileSync, chmodSync, existsSync, utimesSync, rmSync } = require('node:fs');
 const { tmpdir } = require('node:os');
 const { join, resolve } = require('node:path');
-const { test } = require('node:test');
+const { test: nativeTest } = require('node:test');
 const root = resolve(__dirname, '../../..');
+const fixtureScopes = new AsyncLocalStorage();
+
+function fixtureScope() {
+  const directories = new Set();
+  const children = new Set();
+  let disposed = false;
+  const scope = {
+    directory(prefix) {
+      assert.equal(disposed, false, 'a closed fixture cannot create more work');
+      const directory = mkdtempSync(prefix);
+      directories.add(directory);
+      return directory;
+    },
+    spawn(program, args, options) {
+      assert.equal(disposed, false, 'a closed fixture cannot start another process');
+      // Every asynchronous process group is created by this fixture invocation.
+      // Descendants retain its pipes, so close includes their owned closures.
+      const child = spawnChild(program, args, { ...options, detached: true });
+      const record = { child, closed: false };
+      record.done = new Promise((resolve) => child.once('close', () => {
+        record.closed = true;
+        resolve();
+      }));
+      children.add(record);
+      return child;
+    },
+    async dispose() {
+      if (disposed) return;
+      disposed = true;
+      const signal = (record, value) => {
+        if (record.closed || !record.child.pid) return;
+        try { process.kill(-record.child.pid, value); }
+        catch (error) { if (error.code !== 'ESRCH') throw error; }
+      };
+      for (const record of children) signal(record, 'SIGTERM');
+      const killRemaining = setTimeout(() => {
+        for (const record of children) signal(record, 'SIGKILL');
+      }, 2000);
+      try {
+        await Promise.all([...children].map((record) => record.done));
+      } finally {
+        clearTimeout(killRemaining);
+      }
+      // No name/age sweep: remove only roots returned to this creator by mkdtemp.
+      // Failed assertions still run this cleanup after their owned children close.
+      for (const directory of directories) rmSync(directory, { recursive: true, force: true });
+    },
+  };
+  return scope;
+}
+
+function test(name, ...arguments_) {
+  const body = arguments_.pop();
+  return nativeTest(name, arguments_[0] || {}, (context) => {
+    const scope = fixtureScope();
+    context.after(() => scope.dispose());
+    return fixtureScopes.run(scope, () => body(context));
+  });
+}
+
+function spawn(program, args, options) {
+  return fixtureScopes.getStore().spawn(program, args, options);
+}
 
 function fixture() {
-  const directory = mkdtempSync(join(tmpdir(), 'revealui-push-test-'));
+  const directory = fixtureScopes.getStore().directory(join(tmpdir(), 'revealui-push-test-'));
   const repo = join(directory, 'repo');
   const remote = join(directory, 'remote.git');
   const bin = join(directory, 'bin');
@@ -505,7 +569,7 @@ test('maintained cache cleanup preserves aged saved work and held admission inod
   const f = fixture();
   // This directory belongs solely to this fixture but matches a former global
   // deletion glob. Never populate or reclaim another session's fixed paths.
-  const saved = mkdtempSync(join(tmpdir(), 'revealui-push-stash-fixture-'));
+  const saved = fixtureScopes.getStore().directory(join(tmpdir(), 'revealui-push-stash-fixture-'));
   writeFileSync(join(saved, 'evidence'), 'saved work');
   utimesSync(saved, new Date(0), new Date(0));
   const lock = join(f.directory, `revealui-push-${process.getuid()}.lock`);
@@ -625,4 +689,34 @@ test('direct Git cannot preload the verifier to forge acceptance', () => {
   assert.equal(existsSync(join(f.directory, 'verifier-preload-ran')), false);
   assert.equal(existsSync(join(f.directory, 'checks')), false);
   assert.notEqual(f.run(['rev-parse', '--verify', 'refs/heads/feature'], f.remote).status, 0);
+});
+
+test('creator cleanup closes owned children on failure before removing exact roots and preserves older unknown work', async () => {
+  const parent = fixtureScopes.getStore().directory(join(tmpdir(), 'revealui-push-lifecycle-test-'));
+  const unknown = join(parent, 'older-saved-work');
+  mkdirSync(unknown); writeFileSync(join(unknown, 'evidence'), 'retain');
+  utimesSync(unknown, new Date(0), new Date(0));
+  const scope = fixtureScope();
+  const owned = scope.directory(join(parent, 'created-repo-'));
+  const closed = join(parent, 'child-closure');
+  const child = scope.spawn(process.execPath, ['-e', `
+const fs = require('node:fs');
+process.on('SIGTERM', () => {
+  fs.writeFileSync(${JSON.stringify(closed)}, String(fs.existsSync(${JSON.stringify(owned)})));
+  process.exit(0);
+});
+fs.writeFileSync(${JSON.stringify(join(owned, 'ready'))}, 'ready');
+setInterval(() => {}, 1000);
+`], { stdio: ['ignore', 'pipe', 'pipe'] });
+  await assert.rejects(async () => {
+    try {
+      await waitForFile(join(owned, 'ready'), child);
+      throw new Error('synthetic assertion failure');
+    } finally { await scope.dispose(); }
+  }, /synthetic assertion failure/);
+  assert.equal(child.exitCode, 0);
+  assert.equal(readFileSync(closed, 'utf8'), 'true', 'the root remains until child closure');
+  assert.equal(existsSync(owned), false);
+  assert.equal(readFileSync(join(unknown, 'evidence'), 'utf8'), 'retain');
+  await scope.dispose();
 });
