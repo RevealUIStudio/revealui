@@ -186,7 +186,7 @@ CI=true pnpm db:migrate
 **What it does:**
 
 1. Validates database connections
-2. Creates backup (unless `--no-backup`)
+2. Creates a complete backup through the shared backup manager (unless `--no-backup`); a requested backup failure aborts before dropping anything
 3. Drops all tables and custom types (enums)
 4. Runs migrations to recreate schema
 5. Optionally seeds sample data (`--seed`)
@@ -230,7 +230,7 @@ pnpm db:reset --database=rest
 **Backup location:**
 
 ```
-.revealui/backups/db-backup-2026-01-30T12-34-56.json
+.revealui/backups/backup-<timestamp>-<uuid>.json
 ```
 
 ### `pnpm db:seed`
@@ -255,14 +255,14 @@ pnpm db:reset --seed
 
 ### `pnpm db:backup`
 
-**Purpose:** Create JSON backup of all database tables.
+**Purpose:** Create a data-only PostgreSQL backup of compatible public tables.
 
 **What it does:**
 
-1. Connects to database
-2. Exports all tables to JSON format
-3. Saves to `.revealui/backups/` directory
-4. Cleans up old backups (keeps last 5)
+1. Reads the intended public-table catalog and all selected rows in one repeatable-read transaction on one leased client. Missing tables, permission failures, and incomplete reads abort the backup.
+2. Encodes values as PostgreSQL text in a versioned JSON envelope, preserving bigint, numeric precision, timestamp microseconds, JSON scalar strings, arrays, and bytea.
+3. Validates the whole artifact, syncs a private staging file, then publishes it atomically under a unique name in `.revealui/backups/`.
+4. Prunes older artifacts only after complete publication, ordered by each producer's declared local snapshot timestamp. The newest observed publisher retains the latest five by default; an older late publisher defers pruning. This ordering assumes the producer's local clock; it does not establish chronology across hosts. Concurrent publishers may temporarily exceed this retention target. A retention warning means the complete artifact exists but cleanup did not finish.
 
 **Usage:**
 
@@ -271,8 +271,23 @@ pnpm db:reset --seed
 pnpm db:backup
 
 # Backups saved to:
-# .revealui/backups/db-backup-<timestamp>.json
+# .revealui/backups/backup-<timestamp>-<uuid>.json
 ```
+
+These backups contain table data. Restore requires a compatible existing schema;
+they do not recreate schema definitions, sequences, grants, or other database
+objects. Ordinary public tables are supported. Partitioned, inherited, and foreign
+tables, generated columns, and identity columns fail closed under this contract.
+Row-level security must permit a complete read; filtered snapshots are refused.
+Before publication, the same snapshot client casts canonical text back through
+each catalog-rendered PostgreSQL column declaration and checks its text output.
+Conversion uses a transaction-local pg_catalog search path; the prior path is
+restored before writes and triggers. For columns with modifiers, both formats
+require typed equality between the bare type and target declaration, so numeric
+scale narrowing that changes a value fails before clearing rows. Operator SQL
+may normalize equivalent literal spelling; versioned JSON additionally requires
+canonical text equality. Unsupported equality or lossy input fails closed.
+This does not establish compatibility across different column types.
 
 ### `pnpm db:restore`
 
@@ -284,6 +299,23 @@ pnpm db:backup
 # Restore from specific backup
 pnpm db:restore .revealui/backups/db-backup-2026-01-30T12-34-56.json
 ```
+
+Restore validates the complete file and PostgreSQL input conversions before
+clearing any table. One leased PostgreSQL client owns the transaction, rollback,
+and release. Represented empty tables are cleared, omitted tables are preserved,
+and `--no-clear` appends rows. Foreign-key dependencies are deleted child first
+and inserted parent first; cycles and omitted inbound references fail closed.
+A later write failure rolls back earlier clears and inserts. A lost commit
+acknowledgement is reported as an unknown outcome and is never automatically retried.
+
+The shared manager accepts legacy JSON table maps and generated SQL INSERT
+backups, including comments and quoted semicolons. New JSON uses
+`{"version":1,"encoding":"postgres-text","tables":{...}}`, with each cell a
+string or null. Duplicate keys, malformed data, and unsupported formats fail
+before writes. SQL input is limited to literal INSERT values with explicit
+columns in public tables; arbitrary SQL is rejected. The producer represents an
+empty SQL table with `INSERT INTO "public"."table" SELECT * FROM "public"."table"
+WHERE FALSE;`. Existing generated INSERT backups remain supported.
 
 ### `pnpm db:status`
 
@@ -464,8 +496,8 @@ pnpm db:reset     # Same as other environments
 **Backups** (all environments):
 
 - Directory: `.revealui/backups/`
-- Format: `db-backup-<timestamp>.json`
-- Retention: Last 5 backups kept
+- Format: `backup-<timestamp>-<uuid>.json`; legacy `db-backup-` artifacts remain readable
+- Retention: Latest 5 by default; concurrent publishers may temporarily retain more
 - Gitignored: ✅ Yes (via `.revealui/`)
 
 ## Common Workflows
@@ -617,15 +649,11 @@ pnpm db:migrate
 
 ### Backup restoration fails
 
-**Solution:**
-
-```bash
-# Reset database first
-pnpm db:reset --confirm --no-backup
-
-# Then restore
-pnpm db:restore .revealui/backups/db-backup-<timestamp>.json
-```
+Inspect the reported format, table, column, type, or constraint error. Restore
+requires a compatible existing schema and validates the artifact before clears.
+Unsupported schema features require a change to the shared backup contract with
+roundtrip validation. A failed restore rolls back its own clears and inserts;
+resetting the database does not repair an invalid artifact or incompatible schema.
 
 ## Best Practices
 

@@ -17,8 +17,10 @@
  *   1 = verification failed (missing, corrupt, stale, or incomplete)
  */
 
-import { open, readdir } from 'node:fs/promises';
+import { open } from 'node:fs/promises';
 import { join } from 'node:path';
+import { inspectBackup, listBackups } from '@revealui/scripts/database/backup-manager.js';
+import { getProjectRoot } from '@revealui/scripts/index.js';
 
 const REQUIRED_TABLES = ['users', 'sites', 'pages', 'sessions', 'audit_log'] as const;
 const EXPECTED_NON_EMPTY = ['users', 'sites'] as const;
@@ -34,44 +36,24 @@ interface VerifyResult {
   ageHours: number | null;
 }
 
-function findProjectRoot(): string {
-  // Walk up from this script's directory to find the monorepo root
-  let dir = import.meta.dirname;
-  for (let i = 0; i < 10; i++) {
-    if (dir.endsWith('/suite/revealui') || dir.endsWith('\\suite\\revealui')) return dir;
-    dir = join(dir, '..');
-  }
-  return process.cwd();
-}
-
 async function findLatestBackup(backupDir: string): Promise<string | null> {
-  try {
-    const files = await readdir(backupDir);
-    const backups = files
-      .filter((f) => f.startsWith('backup-') && (f.endsWith('.json') || f.endsWith('.sql')))
-      .sort()
-      .reverse();
-    return backups[0] ? join(backupDir, backups[0]) : null;
-  } catch {
-    return null;
-  }
+  const backups = await listBackups(import.meta.url, { backupDir });
+  return backups[0] ? join(backupDir, backups[0]) : null;
 }
 
-async function verifyJsonBackup(content: string, result: VerifyResult): Promise<void> {
-  let data: Record<string, unknown[]>;
+async function verifyArtifact(
+  content: string,
+  format: 'json' | 'sql',
+  result: VerifyResult,
+): Promise<void> {
+  let summary: Awaited<ReturnType<typeof inspectBackup>>;
   try {
-    data = JSON.parse(content);
+    summary = await inspectBackup(content, format);
   } catch {
-    result.errors.push('JSON parse failed — backup file is corrupt');
+    result.errors.push('Backup syntax or data shape is invalid');
     return;
   }
-
-  if (typeof data !== 'object' || data === null) {
-    result.errors.push('Backup root is not an object');
-    return;
-  }
-
-  const tables = Object.keys(data);
+  const { tables, rowCounts } = summary;
   result.tables = tables.length;
 
   if (tables.length === 0) {
@@ -82,40 +64,20 @@ async function verifyJsonBackup(content: string, result: VerifyResult): Promise<
   // Check required tables
   for (const table of REQUIRED_TABLES) {
     if (!tables.includes(table)) {
-      result.errors.push(`Required table missing: ${table}`);
+      // Preserve the verifier's existing format policy: JSON requires these
+      // tables; SQL reports their absence as warnings.
+      (format === 'json' ? result.errors : result.warnings).push(
+        `Required table missing: ${table}`,
+      );
     }
   }
 
   // Check expected non-empty tables
-  let totalRows = 0;
-  for (const table of tables) {
-    const rows = Array.isArray(data[table]) ? data[table].length : 0;
-    totalRows += rows;
-  }
-  result.totalRows = totalRows;
+  result.totalRows = Object.values(rowCounts).reduce((total, count) => total + count, 0);
 
   for (const table of EXPECTED_NON_EMPTY) {
-    if (tables.includes(table) && Array.isArray(data[table]) && data[table].length === 0) {
+    if (tables.includes(table) && rowCounts[table] === 0) {
       result.warnings.push(`Expected non-empty table has 0 rows: ${table}`);
-    }
-  }
-}
-
-async function verifySqlBackup(content: string, result: VerifyResult): Promise<void> {
-  if (!content.includes('INSERT INTO')) {
-    result.errors.push('SQL backup contains no INSERT statements');
-    return;
-  }
-
-  // Count tables and rows from INSERT statements
-  const insertMatches = content.match(/INSERT INTO "([^"]+)"/g) || [];
-  const tableSet = new Set(insertMatches.map((m) => m.replace(/INSERT INTO "([^"]+)"/, '$1')));
-  result.tables = tableSet.size;
-  result.totalRows = insertMatches.length;
-
-  for (const table of REQUIRED_TABLES) {
-    if (!tableSet.has(table)) {
-      result.warnings.push(`Required table not found in SQL backup: ${table}`);
     }
   }
 }
@@ -126,7 +88,7 @@ async function main(): Promise<void> {
   const dirArg = args.find((a) => a.startsWith('--dir='));
 
   const maxAgeHours = maxAgeArg ? Number(maxAgeArg.split('=')[1]) : DEFAULT_MAX_AGE_HOURS;
-  const projectRoot = findProjectRoot();
+  const projectRoot = await getProjectRoot(import.meta.url);
   const backupDir = dirArg
     ? join(projectRoot, dirArg.slice('--dir='.length))
     : join(projectRoot, '.revealui', 'backups');
@@ -168,9 +130,9 @@ async function main(): Promise<void> {
       if (content.length === 0) {
         result.errors.push('Backup file is empty');
       } else if (latestPath.endsWith('.json')) {
-        await verifyJsonBackup(content, result);
+        await verifyArtifact(content, 'json', result);
       } else if (latestPath.endsWith('.sql')) {
-        await verifySqlBackup(content, result);
+        await verifyArtifact(content, 'sql', result);
       } else {
         result.errors.push(`Unknown backup format: ${latestPath}`);
       }
