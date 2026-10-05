@@ -22,7 +22,10 @@ export async function assertUserDomainCleanupComplete(db: Database, userId: stri
     .where(
       and(
         eq(sites.ownerId, userId),
-        sql`${sites.settings} ? 'consultationDomain' OR ${sites.settings} ? 'consultationDomainPending'`,
+        or(
+          sql`${sites.settings} ? 'consultationDomain'`,
+          sql`${sites.settings} ? 'consultationDomainPending'`,
+        ),
       ),
     )
     .limit(1);

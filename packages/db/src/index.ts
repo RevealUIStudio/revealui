@@ -75,6 +75,8 @@ export {
   getPoolMetrics,
   getRestClient,
   getRestPool,
+  getTransactionConnection,
+  getTransactionContext,
   hasDatabaseConnectionEnv,
   requiresTransactions,
   resetClient,

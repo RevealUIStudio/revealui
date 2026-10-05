@@ -26,8 +26,6 @@ describe.runIf(required || Boolean(databaseUrl))(
     let cms: Connection;
     let observer: Connection;
     let connectionString: string;
-    let admissionPid: number;
-    let cmsPid: number;
     const fixtures: Array<{ siteId: string; ownerId: string; buyerId: string; hostname: string }> =
       [];
 
@@ -48,10 +46,10 @@ describe.runIf(required || Boolean(databaseUrl))(
       admission = createClient({ connectionString: databaseUrl }) as unknown as Connection;
       cms = createClient({ connectionString: databaseUrl }) as unknown as Connection;
       observer = createClient({ connectionString: databaseUrl }) as unknown as Connection;
-      admissionPid = Number(
+      const admissionPid = Number(
         (await admission.execute(sql`select pg_backend_pid() as pid`)).rows[0]?.pid,
       );
-      cmsPid = Number((await cms.execute(sql`select pg_backend_pid() as pid`)).rows[0]?.pid);
+      const cmsPid = Number((await cms.execute(sql`select pg_backend_pid() as pid`)).rows[0]?.pid);
       const observerPid = Number(
         (await observer.execute(sql`select pg_backend_pid() as pid`)).rows[0]?.pid,
       );
@@ -125,12 +123,27 @@ describe.runIf(required || Boolean(databaseUrl))(
       return Number(result.rows[0]?.count);
     }
 
+    async function activeAdmissionPid(db: Connection) {
+      const pool = db.$client as Parameters<typeof getTransactionContext>[0];
+      const context = getTransactionContext(pool);
+      if (!context) throw new Error('Expected active admission transaction lease');
+      return Number(
+        (await context.connection.query('select pg_backend_pid() as pid')).rows[0]?.pid,
+      );
+    }
+
     it('deletes through a separate CMS session while admission is held without a user-row deadlock', async () => {
       const fixture = await seed();
+      let admissionPid = 0;
       const result = await withUserDomainCleanupAdmission(admission, fixture.ownerId, async () => {
+        admissionPid = await activeAdmissionPid(admission);
         expect(await heldAdvisoryLocks(admissionPid)).toBeGreaterThan(0);
         // A row lock held by admission would deadlock this independent CMS transaction.
         await cms.transaction(async (tx) => {
+          const cmsPid = Number(
+            (await tx.execute(sql`select pg_backend_pid() as pid`)).rows[0]?.pid,
+          );
+          expect(cmsPid).not.toBe(admissionPid);
           await tx.execute(sql`SET LOCAL statement_timeout = '3s'`);
           await tx.execute(sql`delete from users where id = ${fixture.ownerId}`);
         });
@@ -210,7 +223,9 @@ describe.runIf(required || Boolean(databaseUrl))(
       const released = new Promise<void>((resolve) => {
         release = resolve;
       });
+      let admissionPid = 0;
       const erasing = withUserDomainCleanupAdmission(admission, fixture.ownerId, async () => {
+        admissionPid = await activeAdmissionPid(admission);
         entered();
         await released;
         return 'finished';
@@ -269,14 +284,25 @@ describe.runIf(required || Boolean(databaseUrl))(
           }),
         ).rejects.toBeInstanceOf(SiteDomainCleanupRequiredError);
         expect(erased).toBe(false);
+        await removeConsultationDomain(
+          admission,
+          fixture.siteId,
+          fixture.ownerId,
+          fixture.hostname,
+        );
+        const admissionPid = await withUserDomainCleanupAdmission(admission, fixture.ownerId, () =>
+          activeAdmissionPid(admission),
+        );
         expect(await heldAdvisoryLocks(admissionPid)).toBe(0);
       },
     );
 
     it('releases failed admission on rollback so attachment and a subsequent erasure can retry', async () => {
       const fixture = await seed();
+      let admissionPid = 0;
       await expect(
         withUserDomainCleanupAdmission(admission, fixture.ownerId, async () => {
+          admissionPid = await activeAdmissionPid(admission);
           expect(await heldAdvisoryLocks(admissionPid)).toBeGreaterThan(0);
           throw new Error('Synthetic erasure failure');
         }),
@@ -301,7 +327,9 @@ describe.runIf(required || Boolean(databaseUrl))(
       const released = new Promise<void>((resolve) => {
         release = resolve;
       });
+      let writerPid = 0;
       const writer = admission.transaction(async (tx) => {
+        writerPid = Number((await tx.execute(sql`select pg_backend_pid() as pid`)).rows[0]?.pid);
         await reserveConsultationDomain(
           tx as unknown as Database,
           fixture.siteId,
@@ -327,12 +355,16 @@ describe.runIf(required || Boolean(databaseUrl))(
         void erasing.catch(() => undefined);
         await expect
           .poll(async () => {
-            const result = await observer.execute(sql`select wait_event_type, wait_event
-            from pg_stat_activity where pid = ${cmsPid}::integer`);
-            return (
-              result.rows[0]?.wait_event_type === 'Lock' &&
-              result.rows[0]?.wait_event === 'advisory'
-            );
+            const key = sql`hashtextextended('consultation-domain-owner:' || ${fixture.ownerId}, 0)`;
+            const result = await observer.execute(sql`select exists (
+              select 1 from pg_locks l join pg_stat_activity a on a.pid = l.pid
+              where l.locktype = 'advisory' and not l.granted and l.objsubid = 1
+                and l.classid::bigint = ((${key} >> 32) & 4294967295)
+                and l.objid::bigint = (${key} & 4294967295)
+                and ${writerPid}::integer = any(pg_blocking_pids(l.pid))
+                and a.wait_event_type = 'Lock' and a.wait_event = 'advisory'
+            ) as waiting`);
+            return result.rows[0]?.waiting === true;
           })
           .toBe(true);
         release();

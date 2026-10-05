@@ -645,7 +645,10 @@ export async function purgeSite(db: Database, id: string) {
         .where(
           and(
             eq(sites.id, id),
-            sql`${sites.settings} ? 'consultationDomain' OR ${sites.settings} ? 'consultationDomainPending'`,
+            or(
+              sql`${sites.settings} ? 'consultationDomain'`,
+              sql`${sites.settings} ? 'consultationDomainPending'`,
+            ),
           ),
         )
         .limit(1);

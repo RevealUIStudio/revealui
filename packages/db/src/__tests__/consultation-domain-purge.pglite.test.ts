@@ -185,4 +185,41 @@ describe('durable consultation domain deletion prerequisite', () => {
     await expect(purgeSite(db, 'missing-site')).resolves.toBeUndefined();
     await expect(purgeUser(db, 'missing-user')).resolves.toBeUndefined();
   });
+
+  it('admits account erasure while another owner retains a pending hostname', async () => {
+    const { ownerId: unrelatedOwnerId } = await delivery('unrelated-pending', false);
+    const userId = 'unrelated-erasure';
+    await testDb.drizzle.insert(schema.users).values({
+      id: userId,
+      name: 'Unrelated account',
+      status: 'active',
+    });
+    await expect(assertUserDomainCleanupComplete(db, unrelatedOwnerId)).rejects.toBeInstanceOf(
+      SiteDomainCleanupRequiredError,
+    );
+    await expect(assertUserDomainCleanupComplete(db, userId)).resolves.toBeUndefined();
+    let erasureAdmitted = false;
+    await expect(
+      withUserDomainCleanupAdmission(db, userId, async () => {
+        erasureAdmitted = true;
+        return 'admitted';
+      }),
+    ).resolves.toBe('admitted');
+    expect(erasureAdmitted).toBe(true);
+    await expect(anonymizeUser(db, userId)).resolves.toMatchObject({ status: 'deleted' });
+    await expect(purgeUser(db, userId)).resolves.toBeUndefined();
+    await expect(purgeUser(db, 'missing-unrelated-user')).resolves.toBeUndefined();
+    await expect(purgeSite(db, 'missing-unrelated-site')).resolves.toBeUndefined();
+    expect(
+      await testDb.drizzle.select().from(schema.users).where(eq(schema.users.id, userId)),
+    ).toEqual([]);
+    expect(
+      (
+        await testDb.drizzle
+          .select()
+          .from(schema.sites)
+          .where(eq(schema.sites.id, 'unrelated-pending'))
+      )[0]?.settings,
+    ).toHaveProperty('consultationDomainPending');
+  });
 });

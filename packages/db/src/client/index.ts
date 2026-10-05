@@ -26,8 +26,13 @@ import { neon } from '@neondatabase/serverless';
 import configModule from '@revealui/config';
 import { getSSLConfig } from '@revealui/utils/database';
 import { logger } from '@revealui/utils/logger';
-import { drizzle as drizzleNeon, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
-import { drizzle as drizzlePg, type NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { drizzle as drizzleNeon, type NeonHttpQueryResultHKT } from 'drizzle-orm/neon-http';
+import {
+  drizzle as drizzlePg,
+  type NodePgDatabase,
+  type NodePgQueryResultHKT,
+} from 'drizzle-orm/node-postgres';
+import type { PgDatabase } from 'drizzle-orm/pg-core';
 import { Pool, type PoolClient } from 'pg';
 import * as schema from '../schema/index.js'; // Full schema for backward compatibility
 import * as restSchema from '../schema/rest.js';
@@ -68,11 +73,10 @@ export type DatabaseType = 'rest';
  * This is the actual database client returned by createClient/getClient.
  * For the centralized Database type, see @revealui/db/types
  *
- * Note: This is a union type to support both Neon (cloud) and Postgres (localhost dev) drivers.
- * The actual type is NeonHttpDatabase for cloud Neon connections and NodePgDatabase for
- * localhost connections (where the pg driver is used for transaction support).
+ * Both Neon HTTP and pooled Postgres clients share this query-builder surface.
+ * The result type retains both drivers' results without combining their overloads.
  */
-export type Database = NeonHttpDatabase<typeof schema> | NodePgDatabase<typeof schema>;
+export type Database = PgDatabase<NeonHttpQueryResultHKT | NodePgQueryResultHKT, typeof schema>;
 
 export interface DatabaseConfig {
   connectionString: string;
