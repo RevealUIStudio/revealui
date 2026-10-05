@@ -53,9 +53,9 @@ When we need to take infrastructure down for planned maintenance, we give at lea
 The API middleware can retain previously verified status for the exact signed
 license grant for up to seven days during an authority outage. This evidence is
 currently held in process memory: a restart loses it, and a grant without prior
-verification fails closed. Restart-safe continuity remains tracked by the license
-authority in [Commercial Readiness](./COMMERCIAL_READINESS.md). The Terms describe
-continued use of acquired perpetual versions and the limits of support coverage.
+verification fails closed. Restart-safe continuity is not part of this published
+commitment. The Terms describe continued use of acquired perpetual versions and
+the limits of support coverage.
 
 ---
 
