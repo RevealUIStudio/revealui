@@ -42,6 +42,21 @@ export interface ParsedDbTarget {
  */
 export function parseDbTarget(raw: string): ParsedDbTarget | null {
   try {
+    // pg preprocesses whitespace and malformed percent escapes before parsing.
+    // Refuse those spellings so URL normalization cannot change driver identity.
+    const hex = '0123456789abcdefABCDEF';
+    for (let i = 0; i < raw.length; i++) {
+      const code = raw.charCodeAt(i);
+      if (code <= 0x20 || code === 0x7f) return null;
+      if (
+        raw[i] === '%' &&
+        (i + 2 >= raw.length ||
+          !hex.includes(raw.charAt(i + 1)) ||
+          !hex.includes(raw.charAt(i + 2)))
+      ) {
+        return null;
+      }
+    }
     const url = new URL(raw);
     if (!(['postgres:', 'postgresql:'].includes(url.protocol) && url.hostname)) return null;
     // Match pg-connection-string's interpretation before classifying a target.
@@ -132,6 +147,8 @@ export class SeedEnvError extends Error {
  * accept a connection. Call after loadSeedEnv(), before getClient().
  *
  * Passwordless authentication is accepted only when the connector succeeds.
+ * Bind the validated port and publish one URL for preflight and later writes,
+ * including consumers whose lazy dotenv loading restores ambient PG* options.
  */
 export async function assertSeedDatabaseReady(options?: {
   connect?: (url: string) => Promise<void>;
@@ -168,6 +185,18 @@ export async function assertSeedDatabaseReady(options?: {
     );
   }
 
+  // An omitted URI port otherwise lets pg use PGPORT while target display and
+  // probe classification use 5432. Keep explicit URLs byte-for-byte intact;
+  // bind only the omitted port, preserving credentials and query options.
+  const parsedUrl = new URL(url);
+  let boundUrl = url;
+  if (!parsedUrl.port) {
+    parsedUrl.port = target.port;
+    boundUrl = parsedUrl.toString();
+  }
+  process.env.POSTGRES_URL = boundUrl;
+  process.env.DATABASE_URL = boundUrl;
+
   const connect =
     options?.connect ??
     (async (connectionString: string) => {
@@ -187,7 +216,7 @@ export async function assertSeedDatabaseReady(options?: {
     });
 
   try {
-    await connect(url);
+    await connect(boundUrl);
   } catch {
     // Driver errors can include connection strings, passwords or SQL. Expose
     // only the validated target; the connection failure still stops all writes.
@@ -196,7 +225,7 @@ export async function assertSeedDatabaseReady(options?: {
     );
   }
 
-  return { url, target };
+  return { url: boundUrl, target };
 }
 
 /**
