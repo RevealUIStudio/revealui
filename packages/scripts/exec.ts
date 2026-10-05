@@ -13,6 +13,7 @@
 import { type SpawnOptions, spawn } from 'node:child_process';
 import { registerProcess, updateProcessStatus } from '@revealui/core/monitoring/process-registry';
 import type { ProcessMetadata } from '@revealui/core/monitoring/types';
+import { DryRunEngine } from './dry-run/dry-run-engine.js';
 import { createLogger, type Logger } from './logger.js';
 
 const trackedChildren = new Set<ReturnType<typeof spawn>>();
@@ -24,9 +25,13 @@ export interface ScriptResult {
   exitCode: number;
   stdout?: string;
   stderr?: string;
+  /** A prediction, not evidence that the command executed. */
+  simulated?: boolean;
 }
 
 export interface ExecOptions extends SpawnOptions {
+  /** Simulate without spawning. An active simulation cannot be overridden. */
+  dryRun?: boolean;
   /** Timeout in milliseconds (default: 120000 = 2 minutes) */
   timeout?: number;
   /** Capture stdout/stderr instead of inheriting (default: false) */
@@ -93,6 +98,20 @@ export async function execCommand(
   args: string[] = [],
   options: ExecOptions = {},
 ): Promise<ScriptResult> {
+  const { dryRun, ...executionOptions } = options;
+  const simulation = DryRunEngine.activeSimulation();
+  if (simulation || dryRun) {
+    const engine = simulation ?? new DryRunEngine({ enabled: true });
+    engine.recordCommand(command, args);
+    return {
+      success: true,
+      simulated: true,
+      exitCode: 0,
+      message: `Simulated command: ${command}`,
+      stdout: '',
+      stderr: '',
+    };
+  }
   const {
     timeout = 120000,
     capture = false,
@@ -101,7 +120,7 @@ export async function execCommand(
     env,
     metadata,
     ...spawnOptions
-  } = options;
+  } = executionOptions;
 
   const logger = customLogger || createLogger({ level: 'silent' });
 
@@ -243,7 +262,11 @@ export async function execSequence(
   const results: ScriptResult[] = [];
 
   for (const [command, args, cmdOptions] of commands) {
-    const result = await execCommand(command, args, { ...options, ...cmdOptions });
+    const result = await execCommand(command, args, {
+      ...options,
+      ...cmdOptions,
+      dryRun: Boolean(options.dryRun || cmdOptions?.dryRun),
+    });
     results.push(result);
 
     if (!result.success) {
@@ -270,7 +293,11 @@ export async function execParallel(
   options: ExecOptions = {},
 ): Promise<{ success: boolean; results: ScriptResult[] }> {
   const promises = commands.map(([command, args, cmdOptions]) =>
-    execCommand(command, args, { ...options, ...cmdOptions }),
+    execCommand(command, args, {
+      ...options,
+      ...cmdOptions,
+      dryRun: Boolean(options.dryRun || cmdOptions?.dryRun),
+    }),
   );
 
   const results = await Promise.all(promises);
