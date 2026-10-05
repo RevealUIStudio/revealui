@@ -26,13 +26,11 @@ import { neon } from '@neondatabase/serverless';
 import configModule from '@revealui/config';
 import { getSSLConfig } from '@revealui/utils/database';
 import { logger } from '@revealui/utils/logger';
-import { drizzle as drizzleNeon, type NeonHttpQueryResultHKT } from 'drizzle-orm/neon-http';
-import {
-  drizzle as drizzlePg,
-  type NodePgDatabase,
-  type NodePgQueryResultHKT,
-} from 'drizzle-orm/node-postgres';
+import { drizzle as drizzleNeon } from 'drizzle-orm/neon-http';
+import { drizzle as drizzlePg, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { PgDatabase } from 'drizzle-orm/pg-core';
+import type { PgQueryResultHKT } from 'drizzle-orm/pg-core/session';
+import type { TablesRelationalConfig } from 'drizzle-orm/relations';
 import { Pool, type PoolClient } from 'pg';
 import * as schema from '../schema/index.js'; // Full schema for backward compatibility
 import * as restSchema from '../schema/rest.js';
@@ -73,10 +71,12 @@ export type DatabaseType = 'rest';
  * This is the actual database client returned by createClient/getClient.
  * For the centralized Database type, see @revealui/db/types
  *
- * Both Neon HTTP and pooled Postgres clients share this query-builder surface.
- * The result type retains both drivers' results without combining their overloads.
+ * Public query-builder surface shared by the HTTP and node-postgres clients.
+ * Callback transaction transport is resolved internally by withTransaction;
+ * exposing a driver union makes common Drizzle builders unusable at call sites.
  */
-export type Database = PgDatabase<NeonHttpQueryResultHKT | NodePgQueryResultHKT, typeof schema>;
+type DatabaseSchema = typeof schema | typeof restSchema | typeof vectorSchema;
+export type Database = PgDatabase<PgQueryResultHKT, DatabaseSchema, TablesRelationalConfig>;
 
 export interface DatabaseConfig {
   connectionString: string;
@@ -226,7 +226,7 @@ export function createClient(
       client: pool,
       schema: dbSchema,
       logger: config.logger ?? false,
-    }) as Database;
+    });
     ownedClients.set(client, { config: { ...config }, dbSchema, pool });
     return client;
   } else {
@@ -237,7 +237,7 @@ export function createClient(
       client: sql,
       schema: dbSchema,
       logger: config.logger ?? false,
-    }) as Database;
+    });
     ownedClients.set(client, { config: { ...config }, dbSchema });
     return client;
   }
@@ -546,7 +546,7 @@ export async function withTransaction<T>(
     const parent = transactionScope.getStore();
     const run = async (connection: PoolClient, client: Database) =>
       (client as NodePgDatabase<typeof schema>).transaction(async (tx) => {
-        const transaction = tx as unknown as Database;
+        const transaction: Database = tx;
         ownedClients.set(transaction, owned);
         const scope: TransactionScope = {
           pool,
@@ -581,7 +581,7 @@ export async function withTransaction<T>(
         client: connection,
         schema: owned.dbSchema,
         logger: owned.config.logger ?? false,
-      }) as Database;
+      });
       return await run(connection, client);
     } finally {
       connection.release();
@@ -600,9 +600,7 @@ export async function withTransaction<T>(
 
   // Use Drizzle's built-in transaction API
   // This automatically handles BEGIN/COMMIT/ROLLBACK
-  return (db as NodePgDatabase<typeof schema>).transaction(
-    fn as (tx: NodePgDatabase<typeof schema>) => Promise<T>,
-  );
+  return (db as NodePgDatabase<typeof schema>).transaction((tx) => fn(tx));
 }
 
 // =============================================================================
