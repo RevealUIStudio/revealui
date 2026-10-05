@@ -38,6 +38,28 @@ Source: [`CLAUDE.md`](../CLAUDE.md) §Branch Pipeline.
 
 ---
 
+## Local push workflow
+
+Run `pnpm install` to initialize the declared Husky runtime, commit a clean checkout through the normal hooks, then use `pnpm push [target-branch [remote]]`. Defaults are the current branch and `origin`. Feature destinations await `pnpm gate --phase=1 --changed`; `test` and `main` await `pnpm gate --no-build --no-test`. These fixed gates finish before Git opens receive-pack, so the remote transport does not wait idle throughout local validation.
+
+The existing helper holds kernel leases through validation and transport and pushes the exact validated commit. The pre-push hook checks a live, inherited, one-use admission from the canonical privileged Bash parent for the checkout, HEAD/tree, clean source, destination ref, remote name/URL, and required gate strength. Direct branch pushes without that admission fail with helper guidance. Tag-only pushes and branch deletions retain their no-gate contract. Failed validation or a changed source/remote opens no transport; transport failures still return failure and require checking the remote result.
+
+The supported local toolchain is Linux/WSL with readable procfs, Node (the repository engine), `/bin/bash`, Git and `flock`, with the normal installed Husky hooks. Other platforms fail closed; there is no weaker process-title fallback. The normal entry and hook use fixed privileged Bash (`-p`). The owning bootstrap rejects `NODE_OPTIONS`, `BASH_ENV`, `ENV`, and exported shell-function injection before gates or transport; it does not unset them or run a weaker fallback. The hook checks kernel executable identity plus exact NUL-delimited Bash arguments and live ancestry, rather than a mutable process display title. Missing tools, unsupported hooks, disabled hooks, a dead producer, or a replayed/forged channel fail closed. The admission protects the maintained local workflow; local hooks still trust the installed Git/Node runtime and the operating-system account, as all repository hooks do. It is not a cryptographic attestation against same-account ptrace/memory modification or replacement of installed runtimes or tracked source. Git/Husky controls that disable hooks prevent project hook execution and remain outside local-hook enforcement; repository policy prohibits them. The fixed helper rejects disabled or unsupported hooks before its gates and transport. CI and protected-branch review remain independent requirements.
+
+The shared security classifier and CODEOWNERS cover the push hook, admission/bootstrap/cleanup directory, and all package manifests. Manifest review includes executable scripts and dependency runtime changes throughout the workspace, rather than only the root push command.
+
+Existing exception removal is owned by the same primitives:
+
+| Location | Failure class | Durable owner and removal evidence |
+|---|---|---|
+| `scripts/git-hooks/push.sh`, `.husky/pre-push` | Validation ran after receive-pack opened and could outlive its transport | Awaited gates in the existing helper; native Git/Husky barriers and transport-close regressions in `scripts/git-hooks/__tests__/push.test.cjs` |
+| `scripts/git-hooks/cleanup.sh` | Global name/age globs deleted unknown snapshots/session files; stale-lock unlink could replace a live lease inode; global worktree pruning lacked checkout ownership | Cleanup now removes only declared caches; aged saved-work and active-lease regressions preserve unrelated work |
+| `docs/STANDARDS.md` | Emergency hook-bypass recipe contradicted required validation | Removed the bypass recipe; failures must be repaired in their owning source/validator |
+
+Older destructive stash/restore behavior was already removed from the push helper. Unknown saved snapshots remain preserved; their eventual retention/deletion belongs to the tool that creates them, with identity and lifecycle evidence, rather than this cache cleanup command.
+
+---
+
 ## Workflows
 
 All workflows live in [`.github/workflows/`](../.github/workflows/).
@@ -245,7 +267,7 @@ A `git revert` on `main` re-runs the full `deploy.yml` pipeline (validate → mi
 ```bash
 git checkout main && git pull --ff-only origin main
 git revert <bad-sha>
-git push origin main          # triggers deploy.yml
+pnpm push main origin          # triggers deploy.yml
 ```
 
 ### Database rollback

@@ -159,7 +159,7 @@ Tests run as part of the CI gate:
 | Accessibility | main only | Playwright accessibility audit |
 | Visual regression | main only | Screenshot comparison against baselines |
 
-Feature branches run quality-only gates (lint + typecheck) via the pre-push hook. Unit tests run in CI on PR to `test` or `main`.
+Use `pnpm push [target-branch [remote]]` from a clean, committed checkout. The helper awaits `pnpm gate --phase=1 --changed` for feature destinations, or `pnpm gate --no-build --no-test` for `test` and `main`, before opening Git transport. The pre-push hook only verifies its live admission and rejects unadmitted branch updates. Unit tests run in CI on PR to `test` or `main`. See [the maintained push workflow](./CI_CD_GUIDE.md#local-push-workflow).
 
 ## Writing Tests
 
