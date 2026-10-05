@@ -240,7 +240,7 @@ function runAncestryMode() {
     console.error('  git fetch origin');
     console.error('  git checkout test');
     console.error('  git merge --no-ff origin/main');
-    console.error('  git push origin test');
+    console.error('  pnpm push test origin');
     console.error('');
     console.error('Or open/merge the automated backflow PR with --merge (not --squash).');
     process.exit(1);
