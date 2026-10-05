@@ -48,9 +48,13 @@ export async function withUserDomainCleanupAdmission<T>(
   erase: () => Promise<T>,
 ): Promise<T> {
   return withTransaction(db, async (tx) => {
-    await tx.select({
-      admission: sql`pg_advisory_xact_lock(hashtextextended(${CONSULTATION_DOMAIN_OWNER_LOCK_PREFIX} || ${userId}, 0))`,
-    });
+    // A one-row relation completes Drizzle's select builder without locking or
+    // depending on a user row. Awaiting select() alone does not execute SQL.
+    await tx
+      .select({
+        admission: sql`pg_advisory_xact_lock(hashtextextended(${CONSULTATION_DOMAIN_OWNER_LOCK_PREFIX} || ${userId}, 0))`,
+      })
+      .from(sql`(VALUES (1)) AS admission_scope(value)`);
     await assertUserDomainCleanupComplete(tx, userId);
     return erase();
   });
