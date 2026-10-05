@@ -340,6 +340,15 @@ host/port query aliases, probe targets rejected by the existing guard, and faile
 connections stop the seed before writes. Connection failures expose the target
 host and database without driver messages that might contain credentials.
 
+Before connecting, preflight binds an omitted URI port to `5432` and publishes
+the validated URL to both `POSTGRES_URL` and `DATABASE_URL`. That same URL is
+used for preflight and subsequent seed writes, even if lazy configuration loads
+conflicting `PGPORT`, `PGHOST`, or `PGDATABASE` values from a file. An explicit
+URI port remains unchanged. Credentials and supported non-routing query options
+are preserved. Raw ASCII whitespace/control characters and malformed percent
+escapes are rejected before connecting; correctly percent-encoded spaces remain
+supported.
+
 ### Optional Variables
 
 - `NODE_ENV` - Affects logging level (`development`, `production`, `test`)
