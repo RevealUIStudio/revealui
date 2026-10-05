@@ -9,7 +9,8 @@
  * - pg - PostgreSQL client for transaction management
  */
 
-import { escapeIdentifier, type PoolClient } from 'pg';
+import { escapeIdentifier } from '@revealui/db/orm';
+import type { PoolClient } from 'pg';
 import { createLogger, type Logger } from '../index.js';
 import type { DatabaseConnection } from './connection.js';
 

@@ -2,11 +2,14 @@
 import { randomUUID } from 'node:crypto';
 import { link, lstat, mkdir, open, readdir, readFile, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
+import { escapeIdentifier, escapeLiteral } from '@revealui/db/orm';
 import { type Node as JsonNode, type ParseError, parseTree } from 'jsonc-parser';
-import { escapeIdentifier, escapeLiteral, type PoolClient } from 'pg';
 import { parse } from 'pgsql-parser';
 import { createLogger, getProjectRoot, type Logger } from '../index.js';
 import type { DatabaseConnection } from './connection.js';
+
+type PoolClient = Awaited<ReturnType<DatabaseConnection['connect']>>;
+
 import { withTransaction } from './transaction-manager.js';
 
 export interface BackupOptions {
