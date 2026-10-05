@@ -1033,6 +1033,7 @@ Creates a Stripe subscription with payment_behavior=default_incomplete and retur
 | `priceId` | `string` | - |  |
 | `tier` | `string` | - |  |
 | `interval` | `string` | - |  |
+| `acceptedSupportPolicyRevision` | `string` | ✓ |  |
 
 **Responses**
 
@@ -1367,6 +1368,7 @@ Creates a Stripe subscription with payment_behavior=default_incomplete and retur
 | `priceId` | `string` | - |  |
 | `tier` | `string` | - |  |
 | `interval` | `string` | - |  |
+| `acceptedSupportPolicyRevision` | `string` | ✓ |  |
 
 **Responses**
 

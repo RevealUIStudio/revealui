@@ -73,6 +73,8 @@ import {
   PaymentIntentRequestSchema,
   PaymentIntentResponseSchema,
   PortalResponseSchema,
+  paidSupportCheckoutMetadata,
+  paidSupportCheckoutText,
   RefundRequestSchema,
   RefundResponseSchema,
   type RequestEntitlements,
@@ -201,7 +203,8 @@ app.openapi(checkoutRoute, async (c) => {
         // checkout.session.completed throws in resolveTier -> 500 -> the paid
         // customer never gets a license. Keep in lockstep with the
         // subscription_data.metadata below.
-        metadata: { tier: resolvedTier, revealui_user_id: user.id },
+        metadata: { tier: resolvedTier, revealui_user_id: user.id, ...paidSupportCheckoutMetadata },
+        custom_text: paidSupportCheckoutText,
         payment_method_types: ['card'],
         billing_address_collection: 'required',
         tax_id_collection: { enabled: true },
@@ -220,7 +223,11 @@ app.openapi(checkoutRoute, async (c) => {
         ],
         subscription_data: {
           trial_period_days: TRIAL_PERIOD_DAYS,
-          metadata: { tier: resolvedTier, revealui_user_id: user.id },
+          metadata: {
+            tier: resolvedTier,
+            revealui_user_id: user.id,
+            ...paidSupportCheckoutMetadata,
+          },
         },
         ...(embedded
           ? {
@@ -241,7 +248,7 @@ app.openapi(checkoutRoute, async (c) => {
             }),
       },
       {
-        idempotencyKey: `checkout-sub-${user.id}-${resolvedTier}-${resolvedInterval}-${embedded ? 'embedded' : 'hosted'}-${idempotencyWindow}`,
+        idempotencyKey: `checkout-sub-${user.id}-${resolvedTier}-${resolvedInterval}-${embedded ? 'embedded' : 'hosted'}-${paidSupportCheckoutMetadata.support_policy_revision}-${idempotencyWindow}`,
       },
     ),
   );
@@ -295,7 +302,7 @@ app.openapi(paymentIntentRoute, async (c) => {
   assertAccountOwner(c);
   await assertLiveCatalogComplete();
 
-  const { priceId, tier, interval } = c.req.valid('json');
+  const { priceId, tier, interval, acceptedSupportPolicyRevision } = c.req.valid('json');
   const resolvedTier = tier ?? 'pro';
   assertUnattendedCheckoutAllowed(resolvedTier);
   const resolvedInterval = interval ?? 'month';
@@ -312,6 +319,10 @@ app.openapi(paymentIntentRoute, async (c) => {
   const intent = await createSubscriptionWithIncompleteIntent(customerId, resolvedPriceId, {
     tier: resolvedTier,
     revealui_user_id: user.id,
+    support_policy_revision: acceptedSupportPolicyRevision,
+    support_policy_acceptance: 'inline_explicit',
+    // Stripe's subscription.created timestamps the stable acceptance record.
+    // A request-time timestamp would change parameters on an idempotent retry.
   });
   return c.json(
     {
@@ -1194,6 +1205,7 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
       {
         customer: customerId,
         mode: 'payment',
+        custom_text: paidSupportCheckoutText,
         payment_method_types: ['card'],
         billing_address_collection: 'required',
         tax_id_collection: { enabled: true },
@@ -1211,6 +1223,7 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
           metadata: {
             tier,
             perpetual: 'true',
+            ...paidSupportCheckoutMetadata,
             revealui_user_id: user.id,
             ...(githubUsername && { github_username: githubUsername }),
           },
@@ -1218,13 +1231,16 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
         metadata: {
           tier,
           perpetual: 'true',
+          ...paidSupportCheckoutMetadata,
           revealui_user_id: user.id,
           ...(githubUsername && { github_username: githubUsername }),
         },
         success_url: `${adminUrl}/account/billing?perpetual=true`,
         cancel_url: `${adminUrl}/account/billing`,
       },
-      { idempotencyKey: `checkout-perpetual-${user.id}-${tier}-${perpetualIdempotencyWindow}` },
+      {
+        idempotencyKey: `checkout-perpetual-${user.id}-${tier}-${paidSupportCheckoutMetadata.support_policy_revision}-${perpetualIdempotencyWindow}`,
+      },
     ),
   );
 
@@ -1325,6 +1341,7 @@ app.openapi(supportRenewalCheckoutRoute, async (c) => {
       {
         customer: customerId,
         mode: 'payment',
+        custom_text: paidSupportCheckoutText,
         payment_method_types: ['card'],
         billing_address_collection: 'required',
         tax_id_collection: { enabled: true },
@@ -1342,6 +1359,7 @@ app.openapi(supportRenewalCheckoutRoute, async (c) => {
           metadata: {
             tier,
             support_renewal: 'true',
+            ...paidSupportCheckoutMetadata,
             license_id: license.id,
             revealui_user_id: user.id,
           },
@@ -1349,13 +1367,16 @@ app.openapi(supportRenewalCheckoutRoute, async (c) => {
         metadata: {
           tier,
           support_renewal: 'true',
+          ...paidSupportCheckoutMetadata,
           license_id: license.id,
           revealui_user_id: user.id,
         },
         success_url: `${adminUrl}/account/billing?renewal=true`,
         cancel_url: `${adminUrl}/account/billing`,
       },
-      { idempotencyKey: `checkout-renewal-${user.id}-${license.id}-${renewalIdempotencyWindow}` },
+      {
+        idempotencyKey: `checkout-renewal-${user.id}-${license.id}-${paidSupportCheckoutMetadata.support_policy_revision}-${renewalIdempotencyWindow}`,
+      },
     ),
   );
 

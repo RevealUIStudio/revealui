@@ -14,12 +14,8 @@ import { getFeaturesForTier } from '@revealui/core/features';
 import type { Database } from '@revealui/db/client';
 import { accountEntitlements } from '@revealui/db/schema';
 import { and, eq } from 'drizzle-orm';
+import { isHostedEntitlementUsable } from './hosted-entitlement.js';
 import { resolveActiveMembership } from './resolve-membership.js';
-
-/** A subscription status that still confers the paid tier (mirrors the middleware). */
-function isHealthyStatus(status: string | null): boolean {
-  return status === 'active' || status === 'trialing';
-}
 
 function featureRecord(features: object | null | undefined): Record<string, boolean> {
   if (!features) return {};
@@ -71,11 +67,7 @@ export async function accountHasAiFeature(
 
   if (!entitlement) return false;
 
-  const status = entitlement.status ?? null;
-  const graceUntil = entitlement.graceUntil ?? null;
-  const graceActive = graceUntil != null && graceUntil.getTime() > Date.now();
-  const graceExpired = status !== null && !isHealthyStatus(status) && !graceActive;
-  if (graceExpired) return false;
+  if (!isHostedEntitlementUsable(entitlement.status, entitlement.graceUntil)) return false;
 
   const tier = (entitlement.tier as 'free' | 'pro' | 'max' | 'enterprise' | undefined) ?? 'free';
   const features =
@@ -118,11 +110,7 @@ export async function accountHasAuditLogFeature(
 
   if (!entitlement) return false;
 
-  const status = entitlement.status ?? null;
-  const graceUntil = entitlement.graceUntil ?? null;
-  const graceActive = graceUntil != null && graceUntil.getTime() > Date.now();
-  const graceExpired = status !== null && !isHealthyStatus(status) && !graceActive;
-  if (graceExpired) return false;
+  if (!isHostedEntitlementUsable(entitlement.status, entitlement.graceUntil)) return false;
 
   const tier = (entitlement.tier as 'free' | 'pro' | 'max' | 'enterprise' | undefined) ?? 'free';
   const features =
@@ -164,11 +152,7 @@ export async function accountHasSsoFeature(
 
   if (!entitlement) return false;
 
-  const status = entitlement.status ?? null;
-  const graceUntil = entitlement.graceUntil ?? null;
-  const graceActive = graceUntil != null && graceUntil.getTime() > Date.now();
-  const graceExpired = status !== null && !isHealthyStatus(status) && !graceActive;
-  if (graceExpired) return false;
+  if (!isHostedEntitlementUsable(entitlement.status, entitlement.graceUntil)) return false;
 
   const tier = (entitlement.tier as 'free' | 'pro' | 'max' | 'enterprise' | undefined) ?? 'free';
   const features =

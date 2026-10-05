@@ -168,7 +168,9 @@ describe('SUBSCRIPTION_TIERS', () => {
   it('sells the same email SLA on every paid tier and keeps coming-soon off the cards', () => {
     const paid = SUBSCRIPTION_TIERS.filter((tier) => tier.id !== 'free');
     for (const tier of paid) {
-      expect(tier.features).toContain('Email support (24h weekday / 4h if unusable)');
+      expect(tier.features).toContain(
+        'Email support (best-effort targets: 24h weekdays / 4h critical)',
+      );
       expect(tier.features.some((feature) => feature.includes('coming soon'))).toBe(false);
     }
   });

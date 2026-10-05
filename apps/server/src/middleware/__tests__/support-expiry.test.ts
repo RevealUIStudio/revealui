@@ -1,6 +1,8 @@
 import { Hono } from 'hono';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('@revealui/config/stripe-mode', () => ({ getConfiguredStripeMode: () => 'live' }));
+
 // ---------------------------------------------------------------------------
 // Mock dependencies
 // ---------------------------------------------------------------------------
@@ -29,7 +31,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
-import { getLicensePayload } from '@revealui/core/license';
+import { getLicensePayload, type LicensePayload } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import {
   checkLicenseStatus,
@@ -40,7 +42,7 @@ import {
 
 const mockedGetLicensePayload = vi.mocked(getLicensePayload);
 
-type QueryFn = (customerId: string) => Promise<{
+type QueryFn = (payload: LicensePayload) => Promise<{
   supportExpiresAt: Date | null;
   perpetual: boolean;
 }>;
@@ -89,10 +91,35 @@ afterEach(() => {
 // Tests
 // ---------------------------------------------------------------------------
 describe('checkSupportExpiry', () => {
+  it('does not claim another perpetual grant’s cached support coverage', async () => {
+    const expired = new Date(Date.now() - 86_400_000);
+    const future = new Date(Date.now() + 86_400_000);
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce({ perpetual: true, supportExpiresAt: future })
+      .mockResolvedValueOnce({ perpetual: true, supportExpiresAt: expired });
+    const app = createApp(query);
+    mockedGetLicensePayload.mockReturnValue({
+      customerId: 'cus_two',
+      tier: 'pro',
+      perpetual: true,
+      jti: 'jti_first',
+    });
+    expect((await app.request('/resource')).headers.get('X-Support-Status')).toBeNull();
+    mockedGetLicensePayload.mockReturnValue({
+      customerId: 'cus_two',
+      tier: 'pro',
+      perpetual: true,
+      jti: 'jti_second',
+    });
+    expect((await app.request('/resource')).headers.get('X-Support-Status')).toBe('expired');
+    expect(query).toHaveBeenCalledTimes(2);
+  });
   it('passes through for non-perpetual licenses', async () => {
     mockedGetLicensePayload.mockReturnValue({
       tier: 'pro',
       customerId: 'cus_1',
+      jti: 'jti_support',
     });
     const queryFn = vi.fn();
 
@@ -120,6 +147,7 @@ describe('checkSupportExpiry', () => {
     mockedGetLicensePayload.mockReturnValue({
       tier: 'pro',
       customerId: 'cus_perpetual',
+      jti: 'jti_support',
       perpetual: true,
     });
     const queryFn = vi.fn().mockResolvedValue({
@@ -131,7 +159,9 @@ describe('checkSupportExpiry', () => {
     const res = await app.request('/resource');
 
     expect(res.status).toBe(200);
-    expect(queryFn).toHaveBeenCalledWith('cus_perpetual');
+    expect(queryFn).toHaveBeenCalledWith(
+      expect.objectContaining({ customerId: 'cus_perpetual', jti: 'jti_support', perpetual: true }),
+    );
     expect(res.headers.get('X-Support-Expires')).toBe(futureDate.toISOString());
     // Should NOT set expired status
     expect(res.headers.get('X-Support-Status')).toBeNull();
@@ -142,6 +172,7 @@ describe('checkSupportExpiry', () => {
     mockedGetLicensePayload.mockReturnValue({
       tier: 'pro',
       customerId: 'cus_expired',
+      jti: 'jti_support',
       perpetual: true,
     });
     const queryFn = vi.fn().mockResolvedValue({
@@ -149,7 +180,7 @@ describe('checkSupportExpiry', () => {
       perpetual: true,
     });
 
-    // Provide entitlements that should be downgraded
+    // Purchased runtime entitlements survive the support lapse.
     const app = createApp(queryFn, {
       accountId: 'acc_1',
       tier: 'pro',
@@ -168,6 +199,7 @@ describe('checkSupportExpiry', () => {
     mockedGetLicensePayload.mockReturnValue({
       tier: 'pro',
       customerId: 'cus_cached',
+      jti: 'jti_support',
       perpetual: true,
     });
     const queryFn = vi.fn().mockResolvedValue({
@@ -190,6 +222,7 @@ describe('checkSupportExpiry', () => {
     mockedGetLicensePayload.mockReturnValue({
       tier: 'pro',
       customerId: 'cus_no_expiry',
+      jti: 'jti_support',
       perpetual: true,
     });
     const queryFn = vi.fn().mockResolvedValue({
@@ -210,6 +243,7 @@ describe('checkSupportExpiry', () => {
     mockedGetLicensePayload.mockReturnValue({
       tier: 'pro',
       customerId: 'cus_mismatch',
+      jti: 'jti_support',
       perpetual: true,
     });
     const queryFn = vi.fn().mockResolvedValue({
@@ -230,6 +264,7 @@ describe('checkSupportExpiry', () => {
     mockedGetLicensePayload.mockReturnValue({
       tier: 'pro',
       customerId: 'cus_no_ent',
+      jti: 'jti_support',
       perpetual: true,
     });
     const queryFn = vi.fn().mockResolvedValue({
@@ -251,6 +286,7 @@ describe('checkSupportExpiry', () => {
     mockedGetLicensePayload.mockReturnValue({
       tier: 'pro',
       customerId: 'cus_reset',
+      jti: 'jti_support',
       perpetual: true,
     });
     const queryFn = vi.fn().mockResolvedValue({
@@ -302,6 +338,7 @@ function perpetualPayload() {
   mockedGetLicensePayload.mockReturnValue({
     tier: 'pro',
     customerId: 'cus_continuity',
+    jti: 'jti_support',
     perpetual: true,
   });
 }

@@ -3,7 +3,7 @@ visibility: internal
 audience: maintainer
 title: "Commercial Readiness Handoff"
 description: "The trust-layer gap between shipping code and charging a user — moral, secure, effective."
-last-updated: 2026-05-19
+last-updated: 2026-10-05
 status: active-handoff
 owner: RevealUI Studio
 ---
@@ -174,12 +174,36 @@ the internal hub master plan § Current Reality). The remaining work is operatio
 
 ### Support
 
-- [ ] **One support channel, documented** — email at a minimum, with a published response
-      target ("best effort within 48 business hours" is honest for a solo operator; "within 4
-      hours 24×7" is not).
-- [ ] **Response SLA surfaced in the pricing page** so nobody is surprised.
+- [ ] **One support channel, documented** — email, with the shared `PAID_SUPPORT_POLICY`
+      revision: best-effort targets of 24 hours for weekday requests and 4 hours
+      for critical issues, without guaranteed response or staffed coverage. The founder
+      has no backup staff. Earlier accepted agreements retain their stated commitments;
+      the new policy applies to new purchases after publication.
+- [ ] **Response policy surfaced before purchase** — pricing, support, SLA, terms, hosted
+      checkout and inline checkout must disclose the same revision, record its acceptance,
+      and preserve the policy attached to existing agreements. Source text alone does not
+      establish checkout acceptance or publication.
 - [ ] **Runbook for the top 10 likely support questions** written before launch. Drafting these
       as docs up front also exposes UX gaps worth fixing instead.
+
+### License exception inventory
+
+The license authority owns these earlier exceptions. Their replacements stay in
+the existing entitlement, registration, and middleware primitives.
+
+| Earlier location and behavior | Durable destination | Removal evidence |
+|---|---|---|
+| `apps/server/src/lib/account-entitlement.ts` and `middleware/entitlements.ts`: independent status predicates let future grace metadata preserve revoked or expired features | `lib/hosted-entitlement.ts` owns the shared renewal-only usability predicate | Account feature and entitlement middleware regressions deny revoked/expired grants with future grace |
+| `apps/server/src/lib/billing-status.ts`: customer-level active-row preference could substitute another license; terminal expiry could receive grace from a future date | Exact signed token ID, customer, tier, perpetual flag, and billing mode bind registration status and support coverage | Real-database billing-status regressions cover same-customer grants, mode isolation, missing/ambiguous rows, and the token denylist |
+| `apps/server/src/middleware/license.ts`: absent status defaulted to active; one process-wide outage timer and customer cache let unrelated grants share grace | Registration must be usable; outage evidence and advisory support coverage are cached per signed grant and billing mode | License-status regressions cover unknown/missing authority, another token's outage evidence, terminal denials, and seven-day exhaustion |
+
+- [ ] **Restart-safe outage continuity** — owner: license authority. Process-local
+      status evidence is lost on restart, so an unavailable authority correctly
+      returns 503. The durable target is authenticated evidence scoped to the exact
+      signed grant, with bounded age, revocation propagation, and consistent enforcement
+      across restart and replica boundaries. Acceptance requires restart, tampering,
+      expiry, revoked-grant, and concurrent-replica tests. This readiness item tracks
+      the remaining work; the in-process cache does not complete it.
 
 ### Billing lifecycle end-to-end
 
@@ -262,11 +286,11 @@ These need explicit answers from the founder before the tracks above can resolve
 | Decision | Why it matters | Default if not decided |
 |----------|----------------|------------------------|
 | First product to charge for (Pro subscription? Perpetual license? RevealUI Fleet Docker? Track D services?) | Determines which legal / billing surfaces must be live first | Pro subscription is lowest-overhead |
-| Published SLA at each tier | Sets the refund / credit obligation | Free: none; Pro: 99% monthly; Max: 99.5% monthly |
-| License-check fail mode (open vs closed) | Customer-visible behaviour during outage | Fail-open with a short grace window |
+| Infrastructure uptime | Applies to vendor license/download infrastructure, not customer hosting | Existing published target: 99% monthly for all paid tiers; no separate Max target |
+| License-check outage continuity | Requires verified status for the exact signed grant and consistent runtime enforcement | Previously validated status has a bounded 7-day in-process grace scoped by mode, customer, token ID, tier, and perpetual flag; missing evidence or exhausted grace fails closed. Durable restart continuity remains unresolved. |
 | EU customers yes/no at launch | Triggers GDPR / DPA / VAT-OSS overhead | Delay EU until DPA is lawyer-reviewed |
 | Refund window length | Launch trust signal vs fraud exposure | 14 days first year, then 7 days |
-| Support response target | Promise in pricing page + ToS | 48 business hours for Pro |
+| Support response policy | Must be disclosed before new purchases and preserve earlier agreements | Owner approved revision 2026-10-04: best-effort 24h weekdays / 4h critical, no guaranteed coverage. Effective for new purchases after publication; earlier commitments retained. |
 | Marketing surface for "solo operator" framing | Trust honesty vs. perceived scale | Disclose in About / footer, not hide |
 
 ---

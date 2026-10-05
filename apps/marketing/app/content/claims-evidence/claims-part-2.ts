@@ -1,3 +1,4 @@
+import { PAID_SUPPORT_POLICY } from '@revealui/contracts/public-catalog';
 import {
   A2A_ROUTES,
   AUDIT_ANCHOR_API,
@@ -22,6 +23,8 @@ import {
   MCP_SERVERS,
   MEMORY,
   OPEN_WEIGHT,
+  PAID_SUPPORT_POLICY_CONTENT,
+  PAID_SUPPORT_POLICY_RENDERED_TEST,
   PERPETUAL,
   PRICING_FALLBACKS,
   PROVIDERS,
@@ -154,9 +157,9 @@ export const claimsPart2: readonly ClaimEntry[] = [
   },
   {
     file: 'pricing.ts',
-    exportPath: 'SUBSCRIPTION_TIERS[1].features[12]',
-    text: 'Email support (24h weekday / 4h if unusable)',
-    evidence: [COMMERCIAL_POLICY, SLA_PAGE],
+    exportPath: 'SUBSCRIPTION_TIERS[1].features[14]',
+    text: PAID_SUPPORT_POLICY.summary,
+    evidence: [PAID_SUPPORT_POLICY_CONTENT, PAID_SUPPORT_POLICY_RENDERED_TEST, SLA_PAGE],
   },
   {
     file: 'pricing.ts',
@@ -206,8 +209,8 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'SUBSCRIPTION_TIERS[2].features[5]',
-    text: 'Email support (24h weekday / 4h if unusable)',
-    evidence: [COMMERCIAL_POLICY, SLA_PAGE],
+    text: PAID_SUPPORT_POLICY.summary,
+    evidence: [PAID_SUPPORT_POLICY_CONTENT, PAID_SUPPORT_POLICY_RENDERED_TEST, SLA_PAGE],
   },
   {
     file: 'pricing.ts',
@@ -236,8 +239,8 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'SUBSCRIPTION_TIERS[3].features[6]',
-    text: 'Email support (24h weekday / 4h if unusable)',
-    evidence: [COMMERCIAL_POLICY, SLA_PAGE],
+    text: PAID_SUPPORT_POLICY.summary,
+    evidence: [PAID_SUPPORT_POLICY_CONTENT, PAID_SUPPORT_POLICY_RENDERED_TEST, SLA_PAGE],
   },
   {
     file: 'pricing.ts',
@@ -254,12 +257,18 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PUBLIC_PERPETUAL_TIERS[0].features[2]',
-    text: '1 year priority support included',
-    evidence: [COMMERCIAL_POLICY],
+    text: '1 year email support included',
+    evidence: [PERPETUAL, PAID_SUPPORT_POLICY_CONTENT],
   },
   {
     file: 'pricing.ts',
     exportPath: 'PUBLIC_PERPETUAL_TIERS[0].features[3]',
+    text: PAID_SUPPORT_POLICY.summary,
+    evidence: [PAID_SUPPORT_POLICY_CONTENT, PAID_SUPPORT_POLICY_RENDERED_TEST, SLA_PAGE],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PUBLIC_PERPETUAL_TIERS[0].features[4]',
     text: 'All Pro updates released during support period',
     evidence: [COMMERCIAL_POLICY],
   },

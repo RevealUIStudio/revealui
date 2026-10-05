@@ -209,7 +209,9 @@ describe('PricingPage product catalog', () => {
     expect(text.includes('Advanced inference configuration (coming soon)')).toBe(false);
     expect(text.includes('RevKit environment provisioning (coming soon)')).toBe(false);
     expect(text.includes('x402 agent payments (USDC, coming soon)')).toBe(false);
-    expect(text.includes('Email support (24h weekday / 4h if unusable)')).toBe(true);
+    expect(text.includes('Email support (best-effort targets: 24h weekdays / 4h critical)')).toBe(
+      true,
+    );
   });
 
   it('keeps Max monthly display at $99 when /api/pricing returns stale $299', async () => {
@@ -408,7 +410,9 @@ describe('PricingPage product catalog', () => {
     expect(text.includes('RevKit environment provisioning (coming soon)')).toBe(false);
     expect(text.includes('RevKit')).toBe(false);
     expect(text.includes('x402 agent payments (USDC, coming soon)')).toBe(false);
-    expect(text.includes('Email support (24h weekday / 4h if unusable)')).toBe(true);
+    expect(text.includes('Email support (best-effort targets: 24h weekdays / 4h critical)')).toBe(
+      true,
+    );
     expect(text.includes('$1,499')).toBe(true);
     expect(text.includes('Not included today: x402 agent payments')).toBe(true);
     expect(text.includes('Not included today: advanced inference configuration')).toBe(false);
