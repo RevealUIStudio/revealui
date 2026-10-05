@@ -32,12 +32,11 @@
  * ```
  */
 
-import { exec as execCallback } from 'node:child_process';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, rm, rmdir, unlink, writeFile } from 'node:fs/promises';
-import { promisify } from 'node:util';
 
-const execAsync = promisify(execCallback);
+const executionContext = new AsyncLocalStorage<{ engine: DryRunEngine; simulation: boolean }>();
 
 // =============================================================================
 // Types
@@ -151,6 +150,7 @@ export interface ExecResult {
 
   /** Simulated error output */
   stderr?: string;
+  simulated?: boolean;
 }
 
 // =============================================================================
@@ -168,6 +168,28 @@ export class DryRunEngine {
     this.options = options;
   }
 
+  /** Scope supported operations without allowing nested calls to downgrade simulation. */
+  run<T>(operation: () => T): T {
+    const inherited = executionContext.getStore();
+    if (inherited?.simulation) return operation();
+    return executionContext.run({ engine: this, simulation: this.enabled }, operation);
+  }
+
+  static activeSimulation(): DryRunEngine | undefined {
+    const context = executionContext.getStore();
+    return context?.simulation ? context.engine : undefined;
+  }
+
+  /** Record structured argv; no shell parsing or command-name safety heuristics. */
+  recordCommand(command: string, args: string[] = []): string {
+    return this.recordChange({
+      type: 'command-exec',
+      target: command,
+      impact: 'low',
+      metadata: { command, args: [...args], simulated: true },
+    });
+  }
+
   /**
    * File system operations wrapper
    */
@@ -180,7 +202,7 @@ export class DryRunEngine {
       content: string | Buffer,
       encoding: BufferEncoding = 'utf-8',
     ): Promise<FSOperationResult> => {
-      if (!this.enabled) {
+      if (!this.isEnabled()) {
         await writeFile(path, content, encoding);
         return { success: true };
       }
@@ -213,7 +235,7 @@ export class DryRunEngine {
      * Delete file (dry-run safe)
      */
     deleteFile: async (path: string): Promise<FSOperationResult> => {
-      if (!this.enabled) {
+      if (!this.isEnabled()) {
         await unlink(path);
         return { success: true };
       }
@@ -245,7 +267,7 @@ export class DryRunEngine {
      * Create directory (dry-run safe)
      */
     mkdir: async (path: string, recursive = false): Promise<FSOperationResult> => {
-      if (!this.enabled) {
+      if (!this.isEnabled()) {
         await mkdir(path, { recursive });
         return { success: true };
       }
@@ -266,7 +288,7 @@ export class DryRunEngine {
      * Remove directory (dry-run safe)
      */
     rmdir: async (path: string, recursive = false): Promise<FSOperationResult> => {
-      if (!this.enabled) {
+      if (!this.isEnabled()) {
         if (recursive) {
           await rm(path, { recursive: true, force: true });
         } else {
@@ -296,7 +318,7 @@ export class DryRunEngine {
      * Execute database query (dry-run safe)
      */
     query: async (sql: string, params?: unknown[]): Promise<DBOperationResult> => {
-      if (!this.enabled) {
+      if (!this.isEnabled()) {
         // In non-dry-run mode, this would execute actual query
         // For now, just return success
         return { success: true };
@@ -331,10 +353,14 @@ export class DryRunEngine {
    * Execute external command (dry-run safe)
    */
   exec = async (command: string): Promise<ExecResult> => {
-    if (!this.enabled) {
-      const { stdout, stderr } = await execAsync(command);
+    if (!this.isEnabled()) {
+      const { execCommand } = await import('../exec.js');
+      const { success, stdout, stderr } = await execCommand(command, [], {
+        shell: true,
+        capture: true,
+      });
       return {
-        success: true,
+        success,
         stdout,
         stderr,
       };
@@ -353,6 +379,7 @@ export class DryRunEngine {
 
     return {
       success: true,
+      simulated: true,
       changeId,
       stdout: `[DRY-RUN] Command would execute: ${command}`,
     };
@@ -414,7 +441,7 @@ export class DryRunEngine {
    * Check if dry-run is enabled
    */
   isEnabled(): boolean {
-    return this.enabled;
+    return this.enabled || Boolean(DryRunEngine.activeSimulation());
   }
 
   /**
@@ -422,6 +449,8 @@ export class DryRunEngine {
    */
   setEnabled(enabled: boolean): void {
     this.enabled = enabled;
+    const context = executionContext.getStore();
+    if (enabled && context?.engine === this) context.simulation = true;
   }
 
   // ===========================================================================
@@ -491,17 +520,20 @@ export class DryRunEngine {
    * Extract table name from SQL
    */
   private extractTableName(sql: string): string | null {
-    const patterns = [
-      /FROM\s+([a-zA-Z_][a-zA-Z0-9_]*)/i,
-      /INTO\s+([a-zA-Z_][a-zA-Z0-9_]*)/i,
-      /UPDATE\s+([a-zA-Z_][a-zA-Z0-9_]*)/i,
-    ];
-
-    for (const pattern of patterns) {
-      const match = sql.match(pattern);
-      if (match) return match[1];
+    // Report metadata only; never used to decide whether execution is safe.
+    const tokens: string[] = [];
+    let token = '';
+    for (const character of sql) {
+      if (character.trim() === '') {
+        if (token) tokens.push(token);
+        token = '';
+      } else token += character;
     }
-
+    if (token) tokens.push(token);
+    for (let index = 0; index < tokens.length - 1; index++) {
+      if (['FROM', 'INTO', 'UPDATE'].includes(tokens[index].toUpperCase()))
+        return tokens[index + 1];
+    }
     return null;
   }
 

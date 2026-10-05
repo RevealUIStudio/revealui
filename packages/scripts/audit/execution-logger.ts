@@ -38,7 +38,7 @@
 
 import { mkdir } from 'node:fs/promises';
 import { hostname } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { PGlite } from '@electric-sql/pglite';
 import { ErrorCode, ScriptError } from '../errors.js';
 
@@ -216,25 +216,88 @@ export interface ExecutionStats {
 
 export class ExecutionLogger {
   private static instance: ExecutionLogger | null = null;
+  private static lifecycle: Promise<void> = Promise.resolve();
+  private static quarantinedRoots = new Set<string>();
   private db: PGlite | null = null;
   private dbPath: string;
+  private projectRoot: string;
+  private ownedLeases = 0;
+  private closed = false;
 
-  private constructor(dbPath: string) {
-    this.dbPath = dbPath;
+  private constructor(projectRoot: string) {
+    this.projectRoot = projectRoot;
+    this.dbPath = join(projectRoot, '.revealui', 'execution-logs.db');
+  }
+
+  private static serialize<T>(operation: () => Promise<T>): Promise<T> {
+    const result = ExecutionLogger.lifecycle.then(operation);
+    ExecutionLogger.lifecycle = result.then(
+      () => undefined,
+      () => undefined,
+    );
+    return result;
+  }
+
+  /** Called only within the lifecycle queue. Unspecified roots borrow the active root. */
+  private static async ready(projectRoot?: string): Promise<ExecutionLogger> {
+    const root = resolve(projectRoot ?? ExecutionLogger.instance?.projectRoot ?? process.cwd());
+    if (ExecutionLogger.quarantinedRoots.has(root)) {
+      throw new ScriptError(
+        'Execution logger storage is quarantined after failed close',
+        ErrorCode.INVALID_STATE,
+      );
+    }
+    if (ExecutionLogger.instance) {
+      if (ExecutionLogger.instance.projectRoot !== root) {
+        throw new ScriptError(
+          'Execution logger project root differs from the active owner',
+          ErrorCode.INVALID_STATE,
+        );
+      }
+      return ExecutionLogger.instance;
+    }
+    const logger = new ExecutionLogger(root);
+    try {
+      await logger.initialize();
+    } catch (initializationError) {
+      try {
+        await logger.closeReady();
+      } catch (closeError) {
+        throw new AggregateError(
+          [initializationError, closeError],
+          'Execution logger initialization and partial close failed',
+        );
+      }
+      throw initializationError;
+    }
+    ExecutionLogger.instance = logger;
+    return logger;
   }
 
   /**
    * Get singleton instance
    */
   static async getInstance(projectRoot?: string): Promise<ExecutionLogger> {
-    if (!ExecutionLogger.instance) {
-      const root = projectRoot || process.cwd();
-      const dbPath = join(root, '.revealui', 'execution-logs.db');
-      ExecutionLogger.instance = new ExecutionLogger(dbPath);
-      await ExecutionLogger.instance.initialize();
-    }
+    return ExecutionLogger.serialize(() => ExecutionLogger.ready(projectRoot));
+  }
 
-    return ExecutionLogger.instance;
+  /** Own database lifetime until the idempotent release completes. */
+  static async acquire(projectRoot?: string): Promise<ExecutionLoggerLease> {
+    return ExecutionLogger.serialize(async () => {
+      const logger = await ExecutionLogger.ready(projectRoot);
+      logger.ownedLeases++;
+      let releasePromise: Promise<void> | undefined;
+      return {
+        logger,
+        release: () => {
+          releasePromise ??= ExecutionLogger.serialize(async () => {
+            logger.ownedLeases--;
+            if (logger.ownedLeases === 0) await logger.closeReady();
+          });
+          return releasePromise;
+        },
+      };
+    });
   }
 
   /**
@@ -587,11 +650,30 @@ export class ExecutionLogger {
    * Close database connection
    */
   async close(): Promise<void> {
-    if (this.db) {
-      await this.db.close();
-      this.db = null;
+    return ExecutionLogger.serialize(async () => {
+      if (this.ownedLeases > 0) {
+        throw new ScriptError(
+          'Cannot close execution logger while owned leases are active',
+          ErrorCode.INVALID_STATE,
+        );
+      }
+      await this.closeReady();
+    });
+  }
+
+  private async closeReady(): Promise<void> {
+    if (this.closed) return;
+    this.closed = true;
+    const database = this.db;
+    this.db = null;
+    try {
+      await database?.close();
+    } catch (error) {
+      ExecutionLogger.quarantinedRoots.add(this.projectRoot);
+      throw error;
+    } finally {
+      if (ExecutionLogger.instance === this) ExecutionLogger.instance = null;
     }
-    ExecutionLogger.instance = null;
   }
 
   // ===========================================================================
@@ -622,8 +704,14 @@ export class ExecutionLogger {
     try {
       const { execSync } = await import('node:child_process');
 
-      const commit = execSync('git rev-parse HEAD', { encoding: 'utf-8' }).trim();
-      const branch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8' }).trim();
+      const commit = execSync('git rev-parse HEAD', {
+        encoding: 'utf-8',
+        cwd: this.projectRoot,
+      }).trim();
+      const branch = execSync('git rev-parse --abbrev-ref HEAD', {
+        encoding: 'utf-8',
+        cwd: this.projectRoot,
+      }).trim();
 
       return { commit, branch };
     } catch {
@@ -677,8 +765,44 @@ export class ExecutionLogger {
 // =============================================================================
 
 /**
- * Get execution logger instance
+ * Borrow the ready instance. Maintained queries use withExecutionLogger and
+ * lifecycle consumers use acquireExecutionLogger to own storage lifetime.
  */
 export async function getExecutionLogger(projectRoot?: string): Promise<ExecutionLogger> {
   return ExecutionLogger.getInstance(projectRoot);
+}
+
+export interface ExecutionLoggerLease {
+  logger: ExecutionLogger;
+  release: () => Promise<void>;
+}
+
+export async function acquireExecutionLogger(projectRoot?: string): Promise<ExecutionLoggerLease> {
+  return ExecutionLogger.acquire(projectRoot);
+}
+
+/** Keep owned query lifetime within the existing logger acquisition primitive. */
+export async function withExecutionLogger<T>(
+  query: (logger: ExecutionLogger) => Promise<T>,
+  projectRoot?: string,
+): Promise<T> {
+  const lease = await acquireExecutionLogger(projectRoot);
+  let result: { success: true; value: T } | { success: false; error: unknown };
+  try {
+    result = { success: true, value: await query(lease.logger) };
+  } catch (error) {
+    result = { success: false, error };
+  }
+  try {
+    await lease.release();
+  } catch (releaseError) {
+    if (!result.success)
+      throw new AggregateError(
+        [result.error, releaseError],
+        'Execution logger query and release failed',
+      );
+    throw releaseError;
+  }
+  if (!result.success) throw result.error;
+  return result.value;
 }
