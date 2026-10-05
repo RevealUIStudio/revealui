@@ -30,11 +30,10 @@ import { drizzle as drizzleNeon } from 'drizzle-orm/neon-http';
 import { drizzle as drizzlePg, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { PgDatabase } from 'drizzle-orm/pg-core';
 import type { PgQueryResultHKT } from 'drizzle-orm/pg-core/session';
-import type { TablesRelationalConfig } from 'drizzle-orm/relations';
+import type { ExtractTablesWithRelations } from 'drizzle-orm/relations';
 import { Pool, type PoolClient } from 'pg';
 import * as schema from '../schema/index.js'; // Full schema for backward compatibility
 import * as restSchema from '../schema/rest.js';
-import type * as vectorSchema from '../schema/vector.js';
 
 // Monitoring integration is handled by the application layer to avoid
 // circular dependency (db <-> core)
@@ -75,8 +74,20 @@ export type DatabaseType = 'rest';
  * Callback transaction transport is resolved internally by withTransaction;
  * exposing a driver union makes common Drizzle builders unusable at call sites.
  */
-type DatabaseSchema = typeof schema | typeof restSchema | typeof vectorSchema;
-export type Database = PgDatabase<PgQueryResultHKT, DatabaseSchema, TablesRelationalConfig>;
+/**
+ * The public database contract uses the canonical schema barrel. The rest and
+ * vector schema objects are subsets/alternate projections used at runtime;
+ * unioning their object types here makes Drizzle's relational query map
+ * optional and erases selected columns to `unknown` for every consumer.
+ */
+type DatabaseSchema = typeof schema | typeof restSchema;
+type DatabaseFor<TSchema extends DatabaseSchema> = PgDatabase<
+  PgQueryResultHKT,
+  TSchema,
+  ExtractTablesWithRelations<TSchema>
+>;
+type FullDatabase = DatabaseFor<typeof schema>;
+export type Database = DatabaseFor<typeof restSchema>;
 
 export interface DatabaseConfig {
   connectionString: string;
@@ -89,11 +100,11 @@ export interface DatabaseConfig {
 
 type OwnedClient = {
   config: DatabaseConfig;
-  dbSchema: typeof restSchema | typeof vectorSchema | typeof schema;
+  dbSchema: DatabaseSchema;
   pool?: Pool;
   transactionClient?: Database;
 };
-const ownedClients = new WeakMap<Database, OwnedClient>();
+const ownedClients = new WeakMap<object, OwnedClient>();
 
 type TransactionScope = {
   pool: Pool;
@@ -194,10 +205,15 @@ function onClientPoolError(err: unknown): void {
  * })
  * ```
  */
+export function createClient(config: DatabaseConfig): FullDatabase;
+export function createClient<TSchema extends DatabaseSchema>(
+  config: DatabaseConfig,
+  dbSchema: TSchema,
+): DatabaseFor<TSchema>;
 export function createClient(
   config: DatabaseConfig,
-  dbSchema: typeof restSchema | typeof vectorSchema | typeof schema = schema,
-): Database {
+  dbSchema: DatabaseSchema = schema,
+): DatabaseFor<DatabaseSchema> {
   const isLocalhost = isLocalhostConnection(config.connectionString);
 
   if (isLocalhost || config.transactions) {
@@ -307,7 +323,7 @@ export function getClient(typeOrConnectionString?: DatabaseType | string): Datab
     ) {
       // Legacy API: Connection string provided, use as REST client
       if (!restClient) {
-        restClient = createClient({ connectionString: typeOrConnectionString });
+        restClient = createClient({ connectionString: typeOrConnectionString }, restSchema);
       }
       return restClient;
     }
@@ -405,7 +421,7 @@ function getTransactionClient(db: Database): Database {
   const cached = owned.transactionClient;
   const cachedPool = cached ? ownedClients.get(cached)?.pool : undefined;
   if (cached && cachedPool && [...activePools.values()].includes(cachedPool)) return cached;
-  owned.transactionClient = createClient({ ...owned.config, transactions: true }, owned.dbSchema);
+  owned.transactionClient = createClient({ ...owned.config, transactions: true }, restSchema);
   return owned.transactionClient;
 }
 
@@ -545,7 +561,7 @@ export async function withTransaction<T>(
     const pool = owned.pool;
     const parent = transactionScope.getStore();
     const run = async (connection: PoolClient, client: Database) =>
-      (client as NodePgDatabase<typeof schema>).transaction(async (tx) => {
+      (client as NodePgDatabase<typeof restSchema>).transaction(async (tx) => {
         const transaction: Database = tx;
         ownedClients.set(transaction, owned);
         const scope: TransactionScope = {
@@ -579,7 +595,7 @@ export async function withTransaction<T>(
     try {
       const client = drizzlePg({
         client: connection,
-        schema: owned.dbSchema,
+        schema: restSchema,
         logger: owned.config.logger ?? false,
       });
       return await run(connection, client);
@@ -600,7 +616,7 @@ export async function withTransaction<T>(
 
   // Use Drizzle's built-in transaction API
   // This automatically handles BEGIN/COMMIT/ROLLBACK
-  return (db as NodePgDatabase<typeof schema>).transaction((tx) => fn(tx));
+  return (db as NodePgDatabase<typeof restSchema>).transaction((tx) => fn(tx));
 }
 
 // =============================================================================

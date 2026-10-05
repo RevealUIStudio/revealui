@@ -37,9 +37,11 @@ export class DatabaseStorage implements Storage {
   async get(key: string): Promise<string | null> {
     // Filter expired entries at database level
     const now = new Date();
-    const result = await this.db.query.rateLimits.findFirst({
-      where: and(eq(rateLimits.key, key), gte(rateLimits.resetAt, now)),
-    });
+    const [result] = await this.db
+      .select({ value: rateLimits.value })
+      .from(rateLimits)
+      .where(and(eq(rateLimits.key, key), gte(rateLimits.resetAt, now)))
+      .limit(1);
 
     if (!result) {
       return null;
@@ -100,9 +102,11 @@ export class DatabaseStorage implements Storage {
     try {
       await this.db.transaction(async (tx) => {
         const now = new Date();
-        const result = await tx.query.rateLimits.findFirst({
-          where: and(eq(rateLimits.key, key), gte(rateLimits.resetAt, now)),
-        });
+        const [result] = await tx
+          .select({ value: rateLimits.value })
+          .from(rateLimits)
+          .where(and(eq(rateLimits.key, key), gte(rateLimits.resetAt, now)))
+          .limit(1);
         const { value, ttlSeconds } = updater(result?.value ?? null);
         const resetAt = new Date(Date.now() + ttlSeconds * 1000);
         await tx

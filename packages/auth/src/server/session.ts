@@ -455,12 +455,11 @@ export async function deleteSession(headers: Headers): Promise<boolean> {
 
   const db = getClient();
 
-  const result = await db.delete(sessions).where(inArray(sessions.tokenHash, tokenHashes));
-
-  // Check if any rows were deleted - Drizzle delete returns result with rowCount or similar
-  const rowCount =
-    'rowCount' in result && typeof result.rowCount === 'number' ? result.rowCount : 0;
-  return rowCount > 0;
+  const deleted = await db
+    .delete(sessions)
+    .where(inArray(sessions.tokenHash, tokenHashes))
+    .returning({ tokenHash: sessions.tokenHash });
+  return deleted.length > 0;
 }
 
 /**
