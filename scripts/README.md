@@ -47,7 +47,7 @@ scripts/
 ├── cli/                       # CLIs built on BaseCLI
 │   ├── _base.ts               # BaseCLI / ExecutingCLI / DispatcherCLI abstractions
 │   ├── scripts.ts             # `pnpm scripts` — interactive script explorer
-│   └── release.ts             # `pnpm release` — publish/release flows
+│   └── release.ts             # `pnpm release` — planning/status/version management
 ├── analyze/                   # Read-only audits (any-types, console, emdash, palette)
 │   └── __tests__/
 ├── validate/                  # Pass/fail validation gates (see validate/README.md)
@@ -183,14 +183,22 @@ pnpm test:integration        # Integration tests (sets up the test DB)
 pnpm release                 # Release CLI entry (scripts/cli/release.ts)
 pnpm release:dry-run         # Simulate a release (no changes)
 pnpm release:status          # Show pending changeset status
-pnpm release:oss             # Publish OSS packages
-pnpm release:pro             # Publish Pro packages
+pnpm release version        # Apply pending changeset versions locally
 ```
+
+OSS publication and release tags belong to GitHub Actions `release.yml` on
+`main`, with OIDC and environment `npm-publish`. After reviewed changesets are
+applied and promoted, the owner runs **Actions → Release OSS Packages**.
+The retained `release:oss`, `release:pro`, `release publish`, and `release tag`
+compatibility commands refuse local execution with a nonzero exit.
+`release.yml` publishes OSS packages only; the missing canonical Pro OIDC
+publication capability is tracked under GAP-501.
 
 ### Script Explorer
 
 ```bash
 pnpm scripts list                    # List registered scripts by category
+pnpm scripts list --supports-dry-run # Filter scripts with dry-run support (-d)
 pnpm scripts search <query>          # Full-text search
 pnpm scripts info <name>             # Detailed info for one script
 pnpm scripts run <name> <command>    # Execute a registered script with validation
@@ -205,6 +213,18 @@ pnpm scripts history                 # Execution history
 
 The interactive CLIs in `scripts/cli/` extend `BaseCLI` from
 [cli/_base.ts](./cli/_base.ts):
+
+`--dry-run` returns an explicit simulated plan before initialization,
+confirmation, opaque handlers, cleanup, or execution-history writes. It does
+not evaluate handler preconditions or predict actual success. Use normal
+read-only `release status` or `release preview` to inspect changesets.
+The `dry-run` release subcommand has the same planning contract without a flag.
+Supported executor and dispatcher simulation also prevents spawning or importing
+commands; nested calls cannot disable an active simulation. This contract covers
+the maintained CLI and supported helpers, not arbitrary JavaScript/raw APIs.
+`run()` returns the settled execution outcome and nonzero failure/cancellation
+code; execution history is finalized after cleanup with that outcome. One CLI
+instance rejects overlapping runs and can be reused sequentially.
 
 ```typescript
 class MyCLI extends BaseCLI {

@@ -87,8 +87,11 @@ validation and execution history.
 
 ### `release.ts` (`pnpm release`)
 
-Release and publish flows. Sub-entries wired as root aliases:
-`release:dry-run`, `release:oss`, `release:pro`, `release:status`.
+Release planning and changeset version management. `release:dry-run` plans
+without running hooks or handlers; `release:status` reads pending changesets.
+`release:oss` and `release:pro` remain compatibility aliases that refuse local
+publishing. OSS publishing and tags belong to `release.yml` on `main` with
+OIDC/environment `npm-publish`; Pro OIDC publication remains GAP-501 owner work.
 
 ## Shared Library (`@revealui/scripts`)
 
