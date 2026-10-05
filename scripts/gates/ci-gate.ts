@@ -94,6 +94,13 @@ interface CheckResult {
   name: string;
   status: 'pass' | 'fail' | 'warn' | 'skip';
   durationMs: number;
+  failure?: {
+    exitCode: number;
+    processExitCode?: number | null;
+    signal?: NodeJS.Signals;
+    timedOut: boolean;
+    timeoutMs?: number;
+  };
 }
 
 // =============================================================================
@@ -167,11 +174,19 @@ export async function runCheck(check: CheckDef): Promise<CheckResult> {
     return { name: check.name, status: 'pass', durationMs };
   }
 
-  if (check.warnOnly) {
-    return { name: check.name, status: 'warn', durationMs };
-  }
-
-  return { name: check.name, status: 'fail', durationMs };
+  const failure = {
+    exitCode: result.exitCode,
+    processExitCode: result.processExitCode,
+    signal: result.signal,
+    timedOut: result.timedOut === true,
+    timeoutMs: result.timedOut ? (check.timeout ?? PHASE_CHECK_TIMEOUT_MS) : undefined,
+  };
+  // Capture buffers and command arguments can contain credentials. Only report
+  // process outcome metadata, retaining warning-only policy unchanged.
+  const report = `${check.name}: ${formatFailure(failure)}`;
+  if (check.warnOnly) logger.warn(report);
+  else logger.error(report);
+  return { name: check.name, status: check.warnOnly ? 'warn' : 'fail', durationMs, failure };
 }
 
 /**
@@ -251,7 +266,18 @@ function formatDuration(ms: number): string {
   return `${(ms / 1000).toFixed(1)}s`;
 }
 
-function printSummary(results: CheckResult[], totalMs: number): void {
+function formatFailure(failure: NonNullable<CheckResult['failure']>): string {
+  const actual =
+    failure.processExitCode === null ? 'none' : (failure.processExitCode ?? failure.exitCode);
+  return [
+    `exit=${actual}`,
+    `status=${failure.exitCode}`,
+    ...(failure.signal ? [`signal=${failure.signal}`] : []),
+    ...(failure.timedOut ? [`timeout=${failure.timeoutMs}ms`] : []),
+  ].join(', ');
+}
+
+export function printSummary(results: CheckResult[], totalMs: number): void {
   const failed = results.some((r) => r.status === 'fail');
 
   logger.header('CI Gate Summary');
@@ -262,6 +288,7 @@ function printSummary(results: CheckResult[], totalMs: number): void {
     const suffix = r.status === 'warn' ? '  (warning)' : '';
     const pad = ' '.repeat(Math.max(1, 28 - r.name.length));
     console.log(`  ${icon} ${r.name}${pad}${duration}${suffix}`);
+    if (r.failure) console.log(`      ${formatFailure(r.failure)}`);
   }
 
   console.log('='.repeat(60));

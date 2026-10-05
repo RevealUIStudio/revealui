@@ -44,6 +44,8 @@
     "scripts/validate/guardrail2-verdict",
     "scripts/validate/security-paths",
     "scripts/git-hooks/",
+    "packages/scripts/exec.ts",
+    "scripts/gates/",
     ".husky/pre-push",
     "package.json",
     ".github/workflows/security-review-gate",

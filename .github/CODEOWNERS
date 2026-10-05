@@ -9,6 +9,8 @@
 # Push admission, bootstrap, cleanup, and executable/dependency entry points.
 /.husky/pre-push @joshua-v-dev @RevealUIStudio
 /scripts/git-hooks/ @joshua-v-dev @RevealUIStudio
+/packages/scripts/exec.ts @joshua-v-dev @RevealUIStudio
+/scripts/gates/ @joshua-v-dev @RevealUIStudio
 **/package.json @joshua-v-dev @RevealUIStudio
 
 # Authentication, authorization, licensing, money, and governed API surfaces.

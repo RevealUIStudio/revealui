@@ -58,6 +58,9 @@ describe('classifyFiles — maintained push admission and execution entry points
     'scripts/git-hooks/push-admission.cjs',
     'scripts/git-hooks/cleanup.sh',
     'scripts/git-hooks/__tests__/push.test.cjs',
+    'packages/scripts/exec.ts',
+    'scripts/gates/ci-gate.ts',
+    'scripts/gates/__tests__/ci-gate-worker-lifecycle.test.ts',
     'package.json',
     'packages/harnesses/package.json',
   ];
@@ -72,13 +75,26 @@ describe('classifyFiles — maintained push admission and execution entry points
 
   it('keeps code-owner review on the same push and manifest surfaces', () => {
     const owners = readFileSync(join(__dirname, '../../../.github/CODEOWNERS'), 'utf8');
-    for (const pattern of ['/.husky/pre-push', '/scripts/git-hooks/', '**/package.json']) {
+    for (const pattern of [
+      '/.husky/pre-push',
+      '/scripts/git-hooks/',
+      '/packages/scripts/exec.ts',
+      '/scripts/gates/',
+      '**/package.json',
+    ]) {
       expect(owners.split('\n')).toContain(`${pattern} @joshua-v-dev @RevealUIStudio`);
     }
   });
 
   it('does not classify normal cache content or documentation as execution policy', () => {
-    expect(classifyFiles(['docs/CI_CD_GUIDE.md', 'apps/admin/.next/cache/entry'])).toEqual([]);
+    expect(
+      classifyFiles([
+        'docs/CI_CD_GUIDE.md',
+        'apps/admin/.next/cache/entry',
+        'packages/scripts/paths.ts',
+        'scripts/utils/base.ts',
+      ]),
+    ).toEqual([]);
   });
 });
 
