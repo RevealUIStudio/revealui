@@ -25,7 +25,7 @@ Restore drills are conducted quarterly. Each drill validates at least one data s
 |------------|--------------|-----------|-----------|----------|-------|
 | **NeonDB (primary database)** | Managed point-in-time recovery (PITR) | Continuous (WAL streaming) | 7 days (Free), 30 days (Pro) | Neon cloud, same region | Neon (managed) |
 | **NeonDB branch snapshots** | On-demand branch creation | Before each migration, weekly | 30 days or manual cleanup | Neon cloud | RevealUI Studio |
-| **NeonDB logical backup** | Automated `pg_dump` via `db-backup.yml` | Daily, 02:00 UTC (+ manual dispatch) | 7 dumps (script) + 30-day GitHub artifact | GitHub Actions artifact | RevealUI Studio |
+| **NeonDB logical backup** | Shared data-only JSON/SQL backup manager via `db-backup.yml` | Daily, 02:00 UTC (+ manual dispatch) | 7 artifacts by default (best effort under concurrency) + 30-day GitHub artifact | GitHub Actions artifact | RevealUI Studio |
 | **Source code** | Git (distributed VCS) | Every push | Indefinite (full history) | GitHub (primary), LTS drive (mirror) | RevealUI Studio |
 | **Secrets and credentials** | RevVault (encrypted Rust CLI store) | On every secret change | Indefinite (versioned) | Local encrypted store, LTS backup | RevealUI Studio |
 | **npm packages** | Published to npm registry | Every release | Indefinite (immutable once published) | npm registry | RevealUI Studio |
@@ -49,7 +49,7 @@ These items are excluded by design, with justification:
 | Data Store | RTO (Recovery Time) | RPO (Recovery Point) | Notes |
 |------------|--------------------|-----------------------|-------|
 | **NeonDB** | 15 minutes | < 1 minute (PITR) | Branch restore is near-instant. Full PITR depends on WAL position. |
-| **NeonDB logical backup** | 30 minutes | 24 hours (daily dump) | Restore the most recent `db-backup.yml` artifact with `psql`. Independent of the provider PITR path. |
+| **NeonDB logical backup** | 30 minutes | 24 hours (daily artifact) | Restore the most recent data artifact through the shared restore manager into a compatible existing schema. |
 | **Source code (GitHub)** | 5 minutes | 0 (last push) | Clone from GitHub or LTS mirror. Branch protection prevents force-push. |
 | **Secrets (RevVault)** | 15 minutes | Last export (manual trigger) | Decrypt from LTS backup if local store is lost. |
 | **npm packages** | 0 (already published) | 0 (immutable) | Published packages are immutable. Rebuild from source if registry is unavailable. |
@@ -157,7 +157,7 @@ Each quarter, test at least one data store from the rotation schedule below. Ove
 
 **Prerequisites**:
 - Read access to the most recent `db-backup-*` artifact from the `Database Backup` workflow run
-- An empty scratch Postgres target (a fresh Neon branch or a local Postgres) to restore into
+- A scratch Postgres target with a compatible existing schema to restore into
 
 **Steps**:
 
@@ -172,11 +172,17 @@ Each quarter, test at least one data store from the rotation schedule below. Ove
 
 2. Download the most recent backup artifact:
    - Open the latest `Database Backup` workflow run in GitHub Actions.
-   - Download the `db-backup-<run_id>` artifact (30-day retention) and extract the dump from `.revealui/backups/`.
+   - Download the `db-backup-<run_id>` artifact (30-day retention) and extract the data backup from `.revealui/backups/`.
 
-3. Restore the dump into the scratch target (never restore over production):
+3. Configure the supported restore command for the scratch target and restore the
+   artifact through the shared manager. This workflow produces versioned JSON by
+   default and bounded literal INSERT SQL when selected; it does not run
+   `pg_dump`. The artifact contains table data, so the target schema, sequences,
+   grants, and other database objects must already be compatible. See the
+   [database backup contract](../DATABASE.md#pnpm-dbbackup) for supported tables,
+   types, transactional rollback, and empty-table behavior.
    ```bash
-   psql "$SCRATCH_DATABASE_URL" -f <extracted-dump-file>
+   pnpm db:restore <extracted-backup-file>
    ```
 
 4. Compare table counts against the baseline:
@@ -194,7 +200,13 @@ Each quarter, test at least one data store from the rotation schedule below. Ove
    psql "$SCRATCH_DATABASE_URL" -c "SELECT id, email, created_at FROM users ORDER BY created_at DESC LIMIT 5;"
    ```
 
-6. Confirm the workflow's own verify step is green (`scripts/commands/database/verify-backup.ts --max-age=1` runs in `db-backup.yml`).
+6. Confirm the workflow's structural verify step is green
+   (`scripts/commands/database/verify-backup.ts --max-age=1` runs in
+   `db-backup.yml`). It uses the shared decoder and filename owner. JSON requires
+   the configured core tables; SQL reports missing core tables as warnings, and
+   expected nonempty tables with zero rows produce warnings. Structural checks
+   complement this restore drill; they do not establish that a target schema can
+   restore the artifact or that recovery objectives have been met.
 
 7. Drop the scratch target and record results in the drill log (Section 6).
 

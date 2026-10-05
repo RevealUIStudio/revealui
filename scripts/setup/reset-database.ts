@@ -9,7 +9,7 @@
  * @dependencies
  * - scripts/lib/errors.ts - ErrorCode enum for exit codes
  * - scripts/lib/index.ts - Database utilities, logger, confirmation prompts
- * - node:fs/promises - File system operations for backups
+ * - packages/scripts/database/backup-manager.ts - Complete backup publication
  * - node:path - Path manipulation utilities
  *
  * Usage:
@@ -21,8 +21,9 @@
  *   pnpm db:reset --database=vector  # Reset only Vector database (Supabase)
  */
 
-import { mkdir, readdir, unlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { createBackup } from '@revealui/scripts/database/backup-manager.js';
+import { createConnection } from '@revealui/scripts/database/connection.js';
 import { getSSLConfig } from '@revealui/scripts/database/ssl-config.js';
 import { ErrorCode } from '@revealui/scripts/errors.js';
 import {
@@ -83,79 +84,6 @@ function getConnectionString(dbType: 'rest' | 'vector'): string | undefined {
   }
   // Vector database uses DATABASE_URL (Supabase)
   return process.env.DATABASE_URL || process.env.SUPABASE_DATABASE_URI;
-}
-
-/**
- * Creates a backup of the database tables.
- */
-async function createBackup(connectionString: string, projectRoot: string): Promise<string | null> {
-  const backupDir = join(projectRoot, '.revealui', 'backups');
-  await mkdir(backupDir, { recursive: true });
-
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const backupPath = join(backupDir, `db-backup-${timestamp}.json`);
-
-  try {
-    const { Pool } = await import('pg');
-    const pool = new Pool({
-      connectionString,
-      ssl: getSSLConfig(connectionString),
-    });
-
-    const backup: Record<string, unknown[]> = {};
-
-    const client = await pool.connect();
-    try {
-      // Get all tables
-      const tables = await listTables(connectionString);
-
-      for (const table of tables) {
-        try {
-          const result = await client.query(`SELECT * FROM "${table}"`);
-          backup[table] = result.rows;
-          logger.info(`Backed up ${result.rows.length} rows from ${table}`);
-        } catch (error) {
-          logger.warn(`Could not backup table ${table}: ${error}`);
-        }
-      }
-    } finally {
-      client.release();
-      await pool.end();
-    }
-
-    // Write backup to file
-    await writeFile(backupPath, JSON.stringify(backup, null, 2));
-    logger.success(`Backup created: ${backupPath}`);
-
-    // Clean up old backups (keep last 5)
-    await cleanOldBackups(backupDir, 5);
-
-    return backupPath;
-  } catch (error) {
-    logger.error(`Failed to create backup: ${error}`);
-    return null;
-  }
-}
-
-/**
- * Removes old backup files, keeping only the most recent ones.
- */
-async function cleanOldBackups(backupDir: string, keepCount: number): Promise<void> {
-  try {
-    const files = await readdir(backupDir);
-    const backupFiles = files
-      .filter((f) => f.startsWith('db-backup-') && f.endsWith('.json'))
-      .sort()
-      .reverse();
-
-    const toDelete = backupFiles.slice(keepCount);
-    for (const file of toDelete) {
-      await unlink(join(backupDir, file));
-      logger.info(`Deleted old backup: ${file}`);
-    }
-  } catch {
-    // Ignore errors during cleanup
-  }
 }
 
 /**
@@ -374,14 +302,19 @@ async function resetDatabase() {
     // Create backup
     if (!options.skipBackup) {
       logger.info('Creating backup...');
-      // biome-ignore lint/style/noNonNullAssertion: url guaranteed by filter above
-      const backupPath = await createBackup(db.url!, projectRoot);
-      if (!backupPath) {
-        const continueAnyway = await confirm('Backup failed. Continue anyway?');
-        if (!continueAnyway) {
-          logger.info('Reset cancelled.');
-          return;
-        }
+      const backupConnection = await createConnection({
+        // biome-ignore lint/style/noNonNullAssertion: url guaranteed by filter above
+        connectionString: db.url!,
+        type: db.type,
+        logger,
+      });
+      const backup = await createBackup(backupConnection, import.meta.url, {
+        backupDir: join(projectRoot, '.revealui', 'backups'),
+        logger,
+      }).finally(() => backupConnection.close());
+      if (!backup.success) {
+        logger.error('Requested backup failed. Aborting reset before dropping tables.');
+        process.exit(ErrorCode.EXECUTION_ERROR);
       }
     }
 

@@ -9,7 +9,7 @@
  * - pg - PostgreSQL client for transaction management
  */
 
-import type { PoolClient } from 'pg';
+import { escapeIdentifier, type PoolClient } from 'pg';
 import { createLogger, type Logger } from '../index.js';
 import type { DatabaseConnection } from './connection.js';
 
@@ -20,6 +20,12 @@ export interface TransactionOptions {
   logger?: Logger;
   /** Whether to use savepoints for nested transactions */
   useSavepoints?: boolean;
+  /** PostgreSQL isolation level for the managed transaction. */
+  isolationLevel?: 'read committed' | 'repeatable read' | 'serializable';
+  /** Prevent writes during snapshot reads. */
+  readOnly?: boolean;
+  /** Cancellation is checked before commit, after in-flight work settles. */
+  signal?: AbortSignal;
 }
 
 export interface TransactionContext {
@@ -52,62 +58,103 @@ export async function withTransaction<T>(
   const {
     timeout = 300000,
     logger = defaultLogger,
-    useSavepoints: _useSavepoints = false,
+    isolationLevel = 'read committed',
+    readOnly = false,
+    signal,
   } = options;
-
+  if (!Number.isSafeInteger(timeout) || timeout <= 0) {
+    throw new Error('Transaction timeout must be a positive safe integer');
+  }
+  if (!['read committed', 'repeatable read', 'serializable'].includes(isolationLevel)) {
+    throw new Error('Unsupported transaction isolation level');
+  }
+  signal?.throwIfAborted();
   const client = await connection.connect();
-  const _savepointId = 0;
+  let discard = false;
+  let began = false;
+  let committing = false;
+  let commitAcknowledged = false;
+  let expired = false;
+  const deadline = Date.now() + timeout;
 
   const ctx: TransactionContext = {
     client,
     savepointId: 0,
 
     async createSavepoint(name: string): Promise<void> {
-      await client.query(`SAVEPOINT ${name}`);
+      await client.query(`SAVEPOINT ${escapeIdentifier(name)}`);
     },
 
     async rollbackToSavepoint(name: string): Promise<void> {
-      await client.query(`ROLLBACK TO SAVEPOINT ${name}`);
+      await client.query(`ROLLBACK TO SAVEPOINT ${escapeIdentifier(name)}`);
     },
 
     async releaseSavepoint(name: string): Promise<void> {
-      await client.query(`RELEASE SAVEPOINT ${name}`);
+      await client.query(`RELEASE SAVEPOINT ${escapeIdentifier(name)}`);
     },
   };
 
-  // Set up timeout
-  const timeoutId = setTimeout(async () => {
-    logger.error(`Transaction timed out after ${timeout}ms`);
-    try {
-      await client.query('ROLLBACK');
-    } catch {
-      // Ignore rollback errors during timeout
-    }
-    client.release();
+  // The callback owns in-flight work until it settles. A timer must never roll
+  // back or return its client to the pool while that work can still issue queries.
+  const timeoutId = setTimeout(() => {
+    expired = true;
   }, timeout);
 
   try {
-    await client.query('BEGIN');
+    await client.query(
+      `BEGIN ISOLATION LEVEL ${isolationLevel.toUpperCase()} ${readOnly ? 'READ ONLY' : 'READ WRITE'}`,
+    );
+    began = true;
+    await client.query("SELECT set_config('statement_timeout', $1, true)", [String(timeout)]);
     logger.debug('Transaction started');
 
     const result = await fn(ctx);
-
-    await client.query('COMMIT');
-    logger.debug('Transaction committed');
+    signal?.throwIfAborted();
+    if (expired || Date.now() >= deadline) {
+      throw new Error(`Transaction timed out after ${timeout}ms`);
+    }
+    committing = true;
+    const acknowledgement = await client.query('COMMIT');
+    commitAcknowledged = true;
+    began = false;
+    if (acknowledgement.command === 'ROLLBACK') {
+      throw new Error('Transaction was rolled back instead of committed');
+    }
+    if (acknowledgement.command !== 'COMMIT') {
+      discard = true;
+      throw new Error(
+        'Transaction commit outcome is unknown; unexpected acknowledgement; no automatic retry is safe',
+      );
+    }
 
     return result;
   } catch (error) {
-    logger.error(`Transaction failed: ${error}`);
-    try {
-      await client.query('ROLLBACK');
-      logger.debug('Transaction rolled back');
-    } catch (rollbackError) {
-      logger.error(`Rollback failed: ${rollbackError}`);
+    if (committing && !commitAcknowledged) {
+      discard = true;
+      throw new Error('Transaction commit outcome is unknown; no automatic retry is safe', {
+        cause: error,
+      });
+    }
+    if (!(began || commitAcknowledged)) {
+      discard = true;
+    } else if (began) {
+      try {
+        await client.query('ROLLBACK');
+        logger.debug('Transaction rolled back');
+      } catch (rollbackError) {
+        discard = true;
+        logger.error(`Rollback failed: ${rollbackError}`);
+      }
     }
     throw error;
   } finally {
     clearTimeout(timeoutId);
-    client.release();
+    try {
+      client.release(discard);
+    } catch (releaseError) {
+      // Do not replace an operation error or misreport a confirmed commit.
+      logger.warn(`Transaction client release failed: ${releaseError}`);
+    }
   }
 }
 
