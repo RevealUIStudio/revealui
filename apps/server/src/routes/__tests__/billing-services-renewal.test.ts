@@ -13,6 +13,7 @@
 import {
   CREDIT_BUNDLES,
   FOUNDER_SERVICE_OFFERINGS,
+  findFounderServiceOffering,
   PERPETUAL_TIERS,
   type PricingResponse,
   SUBSCRIPTION_TIERS,
@@ -28,9 +29,9 @@ describe('FOUNDER_SERVICE_OFFERINGS  -  Track D', () => {
     expect(FOUNDER_SERVICE_OFFERINGS).toHaveLength(3);
   });
 
-  it('has IDs: consultation, proof-sprint, launch-package', () => {
+  it('has IDs: consultation, pilot, launch-package', () => {
     const ids = FOUNDER_SERVICE_OFFERINGS.map((s) => s.id);
-    expect(ids).toEqual(['consultation', 'proof-sprint', 'launch-package']);
+    expect(ids).toEqual(['consultation', 'pilot', 'launch-package']);
   });
 
   it('every offering satisfies the ServiceOffering interface', () => {
@@ -70,17 +71,21 @@ describe('FOUNDER_SERVICE_OFFERINGS  -  Track D', () => {
       expect(consultation!.name).toBe('Consultation');
     });
 
-    it('proof-sprint has at least 3 includes', () => {
-      const proof = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'proof-sprint');
-      expect(proof).toBeDefined();
-      expect(proof!.includes.length).toBeGreaterThanOrEqual(3);
-      expect(proof!.name).toBe('Proof Sprint');
+    it('pilot has at least 3 includes and the retired id still resolves', () => {
+      const pilot = findFounderServiceOffering('pilot');
+      const retired = findFounderServiceOffering('proof-sprint');
+      expect(pilot).toBeDefined();
+      expect(retired).toBe(pilot);
+      expect(pilot!.includes.length).toBeGreaterThanOrEqual(3);
+      expect(pilot!.includes).toContain('1 Adapter included');
+      expect(pilot!.name).toBe('Pilot');
     });
 
     it('launch-package has at least 5 includes', () => {
       const launch = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'launch-package');
       expect(launch).toBeDefined();
       expect(launch!.includes.length).toBeGreaterThanOrEqual(5);
+      expect(launch!.includes).toContain('Up to 3 Adapters included');
       expect(launch!.name).toBe('Launch');
     });
   });
