@@ -7,26 +7,28 @@ category: legal
 audience: user
 ---
 
-This page is the published support and license-infra commitment. It does not invent a new number.
+This page describes paid support and the license infrastructure uptime target.
 
-Owner source for the numbers: the SLA target decision recorded as Option B (2026-04-16). Public copy last updated on that page: 12 July 2026.
+Support policy revision: **2026-10-04**, maintained in `PAID_SUPPORT_POLICY` in `packages/contracts/src/public-catalog.ts`. The existing infrastructure uptime and maintenance-notice commitments remain in effect.
 
-RevealUI Studio is a solo-operated company. The commitments below are what we can hold on a bad week.
+RevealUI Studio is a solo-operated company with no backup support staff or on-call rotation. The support targets below are the same for every paid tier.
+
+This support policy (revision 2026-10-04) applies to new purchases made after it is published. Agreements accepted before publication retain their stated support commitments; this policy does not reduce them.
 
 ---
 
 ## The short version
 
-We respond within 24 hours during U.S. business hours, and within 4 hours for anything critical. License validation and download/release infrastructure target **99% monthly uptime**. Live status: [revealui.com/status](https://revealui.com/status).
+Email support has best-effort response targets of **24 hours for requests received on weekdays** and **4 hours for critical issues**. These are targets, not guaranteed response times or guaranteed coverage. License validation and download/release infrastructure target **99% monthly uptime**. Live status: [revealui.com/status](https://revealui.com/status).
 
 ---
 
 ## Support response times
 
-- **Business hours:** respond within 24 hours, Monday through Friday, 9am to 5pm U.S. Central Time, excluding weekends and U.S. federal holidays.
-- **Critical issues:** respond within 4 hours, any day. A critical issue is one where your data is at risk or you cannot use the product you purchased at all.
+- **Weekday target:** we aim to reply within 24 hours for requests received on weekdays. Support hours are Monday through Friday, 9am to 5pm U.S. Central Time, excluding U.S. federal holidays. Requests received outside those hours may take longer.
+- **Critical issues:** best-effort response target within 4 hours, any day. A critical issue is one where your data is at risk or you cannot use the product you purchased at all.
 
-These targets apply to email sent to support@revealui.com. They are the same for every paid tier today. There is no faster staffed tier and no Slack on-call rotation.
+These targets apply to email sent to support@revealui.com. There is no faster staffed tier or guaranteed staffed coverage. Earlier accepted agreements retain their stated response commitments.
 
 ---
 
@@ -48,7 +50,12 @@ When we need to take infrastructure down for planned maintenance, we give at lea
 
 ## License service down
 
-If a self-hosted installation cannot reach the license validation service, a previously validated license keeps working for 7 days while we fix the outage. Full legal detail is in the Terms of Service.
+The API middleware can retain previously verified status for the exact signed
+license grant for up to seven days during an authority outage. This evidence is
+currently held in process memory: a restart loses it, and a grant without prior
+verification fails closed. Restart-safe continuity remains tracked by the license
+authority in [Commercial Readiness](./COMMERCIAL_READINESS.md). The Terms describe
+continued use of acquired perpetual versions and the limits of support coverage.
 
 ---
 

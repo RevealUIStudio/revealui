@@ -8,7 +8,7 @@ import { configureClientIp } from '@revealui/security';
 import type { Context } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { logger as honoLogger } from 'hono/logger';
-import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
+import { queryBillingStatusForLicense, querySupportExpiry } from './lib/billing-status.js';
 import { createLazyHonoRoute } from './lib/lazy-hono-route.js';
 import { resolveSelfApiBaseUrl } from './lib/self-api-url.js';
 /**
@@ -662,17 +662,17 @@ app.use('/api/v1/*', entitlementMiddleware());
 app.use('/api/*', csrfMiddleware());
 app.use('/api/v1/*', csrfMiddleware());
 
-// License status enforcement  -  catches revoked/expired licenses (5-minute DB cache)
-const licenseStatusCheck = checkLicenseStatus(async (customerId) => {
-  return queryBillingStatusByCustomerId(getClient(), customerId);
+// License status enforcement  -  catches revoked/expired licenses (30-second default DB cache)
+const licenseStatusCheck = checkLicenseStatus(async (payload) => {
+  return queryBillingStatusForLicense(getClient(), payload);
 });
 app.use('/api/*', licenseStatusCheck);
 app.use('/api/v1/*', licenseStatusCheck);
 
 // Report perpetual support/update coverage without changing purchased runtime access.
 // License revocation remains enforced by licenseStatusCheck above.
-const supportExpiryCheck = checkSupportExpiry(async (customerId) => {
-  return querySupportExpiry(getClient(), customerId);
+const supportExpiryCheck = checkSupportExpiry(async (payload) => {
+  return querySupportExpiry(getClient(), payload);
 });
 app.use('/api/*', supportExpiryCheck);
 app.use('/api/v1/*', supportExpiryCheck);

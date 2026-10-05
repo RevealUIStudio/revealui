@@ -5,6 +5,7 @@
  * Uses the cached license state from @revealui/core  -  no DB call per request.
  */
 
+import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import { detectDeploymentMode } from '@revealui/core/deployment-mode';
 import {
   type FeatureFlags,
@@ -18,6 +19,7 @@ import {
   getLicensePayload,
   getLicenseStatus,
   hostMatchesLicensedDomains,
+  type LicensePayload,
   type LicenseTier,
 } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
@@ -41,8 +43,11 @@ import {
 const PRICING_URL = process.env.REVEALUI_PRICING_URL ?? 'https://revealui.com/pricing';
 const SUPPORT_EMAIL = process.env.REVEALUI_SUPPORT_EMAIL ?? 'support@revealui.com';
 
-/** Cache for DB-side license status checks, keyed by billing owner/customer */
-const dbStatusCache = new Map<string, { status: string; checkedAt: number }>();
+/** DB evidence is scoped to the signed grant, never shared across a customer's tokens. */
+const dbStatusCache = new Map<
+  string,
+  { status: string; checkedAt: number; unreachableSince: number | null }
+>();
 
 /**
  * TTL for the DB status cache. Defaults to 30s (was 5 min until GAP-139).
@@ -89,8 +94,19 @@ const DB_STATUS_CHECK_INTERVAL = parseDbStatusCheckIntervalEnv(
   process.env.DB_STATUS_CHECK_INTERVAL_MS,
 );
 
-/** Tracks when the DB became unreachable for infra grace period calculation */
-let dbUnreachableSince: number | null = null;
+function licenseIdentityKey(payload: LicensePayload): string {
+  return JSON.stringify([
+    getConfiguredStripeMode(),
+    payload.customerId,
+    payload.jti,
+    payload.tier,
+    payload.perpetual === true,
+  ]);
+}
+
+function isRegisteredRuntimeStatusUsable(status: string, payload: LicensePayload): boolean {
+  return status === 'active' || (status === 'support_expired' && payload.perpetual === true);
+}
 
 type RequestEntitlements = {
   accountId?: string | null;
@@ -242,15 +258,18 @@ export const requireDomain = (): MiddlewareHandler => {
 };
 
 /**
- * Check license status in the database with a 5-minute cache.
+ * Check license status in the database with a bounded 30-second default cache.
  * Returns 403 if the license has been revoked or expired.
  * Skips check for free tier (no license to validate).
+ * Authority outages retain a previously checked status for the configured
+ * grace window. Without that evidence, or after grace, requests fail closed.
+ * Cache evidence is process-local; a restart requires a successful check.
  *
- * @param queryLicenseStatus - Function that queries the DB for the license status.
+ * @param queryLicenseStatus - Queries the DB for this exact signature-verified grant.
  *   Injected to avoid coupling middleware to DB schema imports.
  */
 export const checkLicenseStatus = (
-  queryLicenseStatus: (customerId: string) => Promise<string | null>,
+  queryLicenseStatus: (payload: LicensePayload) => Promise<string | null>,
 ): MiddlewareHandler => {
   return async (c, next) => {
     const requestEntitlements = getRequestEntitlements(c);
@@ -297,46 +316,49 @@ export const checkLicenseStatus = (
       return;
     }
 
+    if (!payload.jti?.trim() || payload.jti !== payload.jti.trim()) {
+      throw new HTTPException(403, { message: 'Your license has no valid registered identity.' });
+    }
+
     const now = Date.now();
-    const cached = dbStatusCache.get(payload.customerId);
+    const identityKey = licenseIdentityKey(payload);
+    const cached = dbStatusCache.get(identityKey);
     if (!cached || now - cached.checkedAt > DB_STATUS_CHECK_INTERVAL) {
       try {
-        const status = await queryLicenseStatus(payload.customerId);
-        dbStatusCache.set(payload.customerId, {
-          status: status ?? 'active',
+        const status = await queryLicenseStatus(payload);
+        dbStatusCache.set(identityKey, {
+          status: status ?? 'unregistered',
           checkedAt: now,
+          unreachableSince: null,
         });
-        // DB reachable — clear unreachable tracker
-        dbUnreachableSince = null;
       } catch {
-        // DB unreachable — use cached status if available, track grace period
-        if (!dbUnreachableSince) {
-          dbUnreachableSince = now;
-        }
-
-        const infraGraceMs = getGraceConfig().infraDays * 86_400_000;
-        const unreachableDuration = now - dbUnreachableSince;
-
-        if (unreachableDuration > infraGraceMs) {
-          // Infra grace exhausted — degrade to free tier
-          dbStatusCache.delete(payload.customerId);
-          c.header('X-License-Mode', 'expired');
-          c.header('X-License-Reason', 'infra-unreachable-grace-exhausted');
-          await next();
-          return;
-        }
-
-        // Within infra grace — use last known status (or 'active' if never checked)
         if (!cached) {
-          dbStatusCache.set(payload.customerId, { status: 'active', checkedAt: now });
+          throw new HTTPException(503, {
+            message: 'License status is unavailable and no previously validated status is cached.',
+          });
         }
-        const graceRemainingMs = infraGraceMs - unreachableDuration;
-        c.header('X-License-Mode', 'grace');
-        c.header('X-License-Grace-Remaining', String(Math.ceil(graceRemainingMs / 86_400_000)));
+
+        // Known denials remain denials throughout an outage, including after
+        // grace expires. Never delete the last authoritative status here.
+        if (isRegisteredRuntimeStatusUsable(cached.status, payload)) {
+          cached.unreachableSince ??= now;
+          const infraGraceMs = getGraceConfig().infraDays * 86_400_000;
+          const unreachableDuration = now - cached.unreachableSince;
+          if (unreachableDuration >= infraGraceMs) {
+            throw new HTTPException(503, {
+              message:
+                'License status is unavailable and the infrastructure grace period has ended.',
+            });
+          }
+
+          const graceRemainingMs = infraGraceMs - unreachableDuration;
+          c.header('X-License-Mode', 'grace');
+          c.header('X-License-Grace-Remaining', String(Math.ceil(graceRemainingMs / 86_400_000)));
+        }
       }
     }
 
-    const effective = dbStatusCache.get(payload.customerId);
+    const effective = dbStatusCache.get(identityKey);
 
     // Revoked — immediate fail-closed, no grace period
     if (effective?.status === 'revoked') {
@@ -348,6 +370,12 @@ export const checkLicenseStatus = (
     if (effective?.status === 'expired') {
       throw new HTTPException(403, {
         message: `Your license has expired. Renew at ${PRICING_URL}`,
+      });
+    }
+
+    if (!(effective && isRegisteredRuntimeStatusUsable(effective.status, payload))) {
+      throw new HTTPException(403, {
+        message: `Your license has no usable registered entitlement. Contact ${SUPPORT_EMAIL}`,
       });
     }
 
@@ -473,7 +501,7 @@ export const requireAIAccess = (options: FeatureGateOptions = {}): MiddlewareHan
   };
 };
 
-/** Cache for perpetual support expiry checks, keyed by customer ID */
+/** Advisory support coverage for exactly the signed perpetual grant. */
 const supportExpiryCache = new Map<
   string,
   { supportExpiresAt: Date | null; perpetual: boolean; checkedAt: number }
@@ -487,7 +515,7 @@ const supportExpiryCache = new Map<
  */
 export const checkSupportExpiry = (
   querySupportExpiry: (
-    customerId: string,
+    payload: LicensePayload,
   ) => Promise<{ supportExpiresAt: Date | null; perpetual: boolean }>,
 ): MiddlewareHandler => {
   return async (c, next) => {
@@ -500,12 +528,13 @@ export const checkSupportExpiry = (
     }
 
     const now = Date.now();
-    const cached = supportExpiryCache.get(payload.customerId);
+    const identityKey = licenseIdentityKey(payload);
+    const cached = supportExpiryCache.get(identityKey);
 
     if (!cached || now - cached.checkedAt > DB_STATUS_CHECK_INTERVAL) {
       try {
-        const info = await querySupportExpiry(payload.customerId);
-        supportExpiryCache.set(payload.customerId, {
+        const info = await querySupportExpiry(payload);
+        supportExpiryCache.set(identityKey, {
           supportExpiresAt: info.supportExpiresAt,
           perpetual: info.perpetual,
           checkedAt: now,
@@ -520,7 +549,7 @@ export const checkSupportExpiry = (
       }
     }
 
-    const effective = supportExpiryCache.get(payload.customerId);
+    const effective = supportExpiryCache.get(identityKey);
 
     // Not a perpetual license in the DB (should not happen if JWT has perpetual=true, but be safe)
     if (!effective?.perpetual) {

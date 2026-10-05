@@ -626,3 +626,15 @@ export const LICENSE_RUNTIME_GATE_TEST: EvidenceRef = {
   ref: 'apps/server/src/middleware/__tests__/license.test.ts#denies Free callers for ai (agent-tasks /agents stay Pro-gated)',
   note: 'hosted requireFeature denies Free on Pro-gated routes; packages stay ungated',
 };
+
+export const PAID_SUPPORT_POLICY_CONTENT: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/contracts/src/public-catalog.ts',
+  note: 'PAID_SUPPORT_POLICY revision 2026-10-04: prospective best-effort targets and protection for earlier accepted agreements',
+};
+
+export const PAID_SUPPORT_POLICY_RENDERED_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'apps/marketing/app/routes/__tests__/legal-catalog-copy.test.tsx',
+  note: 'rendered support, SLA, and terms pages disclose prospective targets, solo coverage, and preservation of earlier agreements',
+};

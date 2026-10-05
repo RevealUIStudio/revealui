@@ -61,8 +61,28 @@ export interface PricingResponse {
   services: ServiceOffering[];
 }
 
-/** Same email SLA for every paid tier. Matches /sla: no Slack, no per-tier hours. */
-export const PAID_TIER_SUPPORT = 'Email support (24h weekday / 4h if unusable)' as const;
+/**
+ * Prospective paid-support policy, shared by catalog and published policy pages.
+ * The revision identifies the text; publication, not this date, starts its scope.
+ * It does not rewrite commitments in an earlier accepted agreement.
+ */
+export const PAID_SUPPORT_POLICY = {
+  revision: '2026-10-04',
+  standardResponseHours: 24,
+  criticalResponseHours: 4,
+  summary: 'Email support (best-effort targets: 24h weekdays / 4h critical)',
+  standardResponse:
+    'We aim to reply within 24 hours for requests received on weekdays. Support hours are Monday through Friday, 9am to 5pm U.S. Central Time, excluding U.S. federal holidays. Requests received outside those hours may take longer.',
+  criticalResponse:
+    'Critical issues have a best-effort response target of 4 hours, any day. A critical issue is one where your data is at risk or you cannot use the product you purchased at all.',
+  coverage:
+    'RevealUI Studio is operated by one person, with no backup support staff or on-call rotation. These response times are targets, not guaranteed response times or guaranteed coverage.',
+  applicability:
+    'This support policy (revision 2026-10-04) applies to new purchases made after it is published. Agreements accepted before publication retain their stated support commitments; this policy does not reduce them.',
+} as const;
+
+/** Same prospective email targets for every paid tier; no faster staffed tier. */
+export const PAID_TIER_SUPPORT = PAID_SUPPORT_POLICY.summary;
 
 export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
@@ -215,7 +235,8 @@ export const PUBLIC_PERPETUAL_TIERS: PerpetualTier[] = [
     features: [
       'All Pro tier features',
       'License key never expires',
-      '1 year priority support included',
+      '1 year email support included',
+      PAID_TIER_SUPPORT,
       'All Pro updates released during support period',
     ],
     renewal: '$149/yr for continued support',

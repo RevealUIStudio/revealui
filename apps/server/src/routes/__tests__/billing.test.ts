@@ -16,6 +16,7 @@ const mockCustomersRetrieve = vi.hoisted(() => vi.fn());
 const mockCheckoutSessionsCreate = vi.hoisted(() => vi.fn());
 const mockBillingPortalSessionsCreate = vi.hoisted(() => vi.fn());
 const mockSubscriptionsList = vi.hoisted(() => vi.fn());
+const mockSubscriptionsCreate = vi.hoisted(() => vi.fn());
 const mockSubscriptionsUpdate = vi.hoisted(() => vi.fn());
 const mockMeterEventsCreate = vi.hoisted(() => vi.fn());
 const mockLogger = vi.hoisted(() => ({
@@ -44,7 +45,11 @@ vi.mock('@revealui/services', () => ({
     customers: { create: mockCustomersCreate, retrieve: mockCustomersRetrieve },
     checkout: { sessions: { create: mockCheckoutSessionsCreate } },
     billingPortal: { sessions: { create: mockBillingPortalSessionsCreate } },
-    subscriptions: { list: mockSubscriptionsList, update: mockSubscriptionsUpdate },
+    subscriptions: {
+      list: mockSubscriptionsList,
+      update: mockSubscriptionsUpdate,
+      create: mockSubscriptionsCreate,
+    },
     refunds: { create: vi.fn() },
     invoices: { list: vi.fn() },
     // GAP-131: billing.meterEvents.create is now wrapped in protectedStripe
@@ -277,6 +282,128 @@ function post(path: string, body: unknown) {
 function get(path: string) {
   return new Request(`http://localhost${path}`, { method: 'GET' });
 }
+
+describe('purchase support policy acceptance', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetChains();
+    vi.stubEnv('ADMIN_URL', 'https://admin.revealui.com');
+    vi.stubEnv('STRIPE_SECRET_KEY', 'sk_test_mock');
+  });
+  afterEach(() => vi.unstubAllEnvs());
+
+  it.each([undefined, '2026-09-01'])(
+    'rejects inline purchase with missing or stale revision %s',
+    async (revision) => {
+      const res = await createApp().request(
+        post('/payment-intent', {
+          tier: 'pro',
+          acceptedSupportPolicyRevision: revision,
+        }),
+      );
+      expect(res.status).toBe(400);
+      expect(mockSubscriptionsCreate).not.toHaveBeenCalled();
+      expect(mockCustomersCreate).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['/checkout', '/checkout?ui=embedded'])(
+    'discloses the revision before payment in %s',
+    async (path) => {
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_server' }],
+        [{ stripeCustomerId: 'cus_existing' }],
+      );
+      mockCheckoutSessionsCreate.mockResolvedValue({
+        url: 'https://checkout.stripe.com/example',
+        client_secret: 'cs_example',
+      });
+      const res = await createApp().request(post(path, { tier: 'pro' }));
+      expect(res.status).toBe(200);
+      const session = mockCheckoutSessionsCreate.mock.calls[0]?.[0];
+      expect(session.custom_text.submit.message).toContain('By completing this purchase');
+      expect(session.custom_text.submit.message).toContain('2026-10-04');
+      expect(session.custom_text.submit.message).toContain('no backup support staff');
+      expect(session.metadata.support_policy_revision).toBe('2026-10-04');
+      expect(session.subscription_data.metadata.support_policy_revision).toBe('2026-10-04');
+    },
+  );
+
+  it('records explicit inline acceptance on the created subscription', async () => {
+    queueSelectResults(
+      [{ stripePriceId: 'price_pro_server' }],
+      [{ stripeCustomerId: 'cus_existing' }],
+    );
+    mockSubscriptionsCreate.mockResolvedValue({
+      id: 'sub_new',
+      status: 'incomplete',
+      latest_invoice: {
+        payment_intent: { client_secret: 'pi_secret' },
+      },
+    });
+    const res = await createApp().request(
+      post('/payment-intent', {
+        tier: 'pro',
+        acceptedSupportPolicyRevision: '2026-10-04',
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(mockSubscriptionsCreate.mock.calls[0]?.[0].metadata).toEqual(
+      expect.objectContaining({
+        support_policy_revision: '2026-10-04',
+        support_policy_acceptance: 'inline_explicit',
+      }),
+    );
+  });
+
+  it('keeps Stripe creation parameters stable when an accepted inline purchase is retried', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_server' }],
+        [{ stripeCustomerId: 'cus_existing' }],
+        [{ stripePriceId: 'price_pro_server' }],
+        [{ stripeCustomerId: 'cus_existing' }],
+      );
+      mockSubscriptionsCreate.mockResolvedValue({
+        id: 'sub_retry',
+        status: 'incomplete',
+        latest_invoice: { payment_intent: { client_secret: 'pi_retry' } },
+      });
+      const app = createApp();
+      const body = { tier: 'pro', acceptedSupportPolicyRevision: '2026-10-04' };
+      vi.setSystemTime(new Date('2026-10-05T04:00:00Z'));
+      expect((await app.request(post('/payment-intent', body))).status).toBe(200);
+      vi.setSystemTime(new Date('2026-10-05T04:01:00Z'));
+      expect((await app.request(post('/payment-intent', body))).status).toBe(200);
+      expect(mockSubscriptionsCreate.mock.calls[1]).toEqual(mockSubscriptionsCreate.mock.calls[0]);
+      expect(mockSubscriptionsCreate.mock.calls[0]?.[1].idempotencyKey).toContain('2026-10-04');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it.each(['/checkout-perpetual', '/checkout-support-renewal'])(
+    'discloses the policy and records the offered revision for one-time purchase %s',
+    async (path) => {
+      queueSelectResults(
+        path.includes('renewal') ? [{ id: 'license_existing', supportExpiresAt: null }] : [],
+        [{ stripePriceId: 'price_one_time' }],
+        [{ stripeCustomerId: 'cus_existing' }],
+      );
+      mockCheckoutSessionsCreate.mockResolvedValue({ url: 'https://checkout.stripe.com/one_time' });
+      const res = await createApp().request(post(path, { tier: 'pro' }));
+      expect(res.status).toBe(200);
+      const session = mockCheckoutSessionsCreate.mock.calls[0]?.[0];
+      expect(session.custom_text.submit.message).toContain('2026-10-04');
+      expect(session.custom_text.submit.message).toContain(
+        'Earlier accepted agreements retain their commitments',
+      );
+      expect(session.metadata.support_policy_revision).toBe('2026-10-04');
+      expect(session.payment_intent_data.metadata.support_policy_revision).toBe('2026-10-04');
+    },
+  );
+});
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
