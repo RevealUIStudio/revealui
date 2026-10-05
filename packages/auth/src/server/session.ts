@@ -206,7 +206,9 @@ export async function getSession(
       const result = await db
         .select()
         .from(users)
-        .where(and(eq(users.id, session.userId), isNull(users.deletedAt)))
+        .where(
+          and(eq(users.id, session.userId), eq(users.status, 'active'), isNull(users.deletedAt)),
+        )
         .limit(1);
       user = result[0] as User | undefined;
     } catch (error: unknown) {

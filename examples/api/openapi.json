@@ -1667,6 +1667,29 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Owned domain cleanup required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
           }
         },
         "summary": "Request data deletion (right to be forgotten)",
@@ -10100,6 +10123,7 @@
                     }
                   }
                 },
+                "additionalProperties": false,
                 "required": [
                   "title",
                   "slug"
@@ -10331,7 +10355,8 @@
                     "format": "date-time",
                     "nullable": true
                   }
-                }
+                },
+                "additionalProperties": false
               }
             }
           }
@@ -11092,13 +11117,15 @@
                         "type": "number"
                       }
                     },
+                    "additionalProperties": false,
                     "required": [
                       "x",
                       "y"
                     ],
                     "nullable": true
                   }
-                }
+                },
+                "additionalProperties": false
               }
             }
           }
@@ -11261,6 +11288,14 @@
               "example": "published"
             },
             "example": "published"
+          },
+          {
+            "name": "consultationBookingId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         ]
       },
@@ -11350,8 +11385,59 @@
                       "archived",
                       "maintenance"
                     ]
+                  },
+                  "visibility": {
+                    "type": "string",
+                    "enum": [
+                      "public",
+                      "private"
+                    ]
+                  },
+                  "settings": {
+                    "type": "object",
+                    "properties": {
+                      "consultation": {
+                        "type": "object",
+                        "properties": {
+                          "version": {
+                            "type": "number",
+                            "enum": [
+                              1
+                            ]
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "studio-consultation"
+                            ]
+                          },
+                          "bookingId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 256
+                          },
+                          "buyerUserId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 256
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "version",
+                          "kind",
+                          "bookingId",
+                          "buyerUserId"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                      "consultation"
+                    ]
                   }
                 },
+                "additionalProperties": false,
                 "required": [
                   "name",
                   "slug"
@@ -11533,11 +11619,19 @@
                       "maintenance"
                     ]
                   },
+                  "visibility": {
+                    "type": "string",
+                    "enum": [
+                      "public",
+                      "private"
+                    ]
+                  },
                   "favicon": {
                     "type": "string",
                     "nullable": true
                   }
-                }
+                },
+                "additionalProperties": false
               }
             }
           }
@@ -11610,6 +11704,1107 @@
             },
             "required": true,
             "example": "abc123"
+          }
+        ]
+      }
+    },
+    "/api/content/sites/{siteId}/consultation-lifecycle": {
+      "put": {
+        "responses": {
+          "200": {
+            "description": "Current consultation lifecycle",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Site"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Evidence does not match the current binding or refund",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Apply verified consultation payment lifecycle evidence",
+        "tags": [
+          "content"
+        ],
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "bookingId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "buyerUserId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "action": {
+                        "type": "string",
+                        "enum": [
+                          "observe"
+                        ]
+                      },
+                      "revoked": {
+                        "type": "boolean"
+                      },
+                      "domainPackEntitled": {
+                        "type": "boolean"
+                      },
+                      "refund": {
+                        "type": "object",
+                        "properties": {
+                          "chargeId": {
+                            "type": "string",
+                            "pattern": "^ch_[a-zA-Z0-9]+$"
+                          },
+                          "amountRefunded": {
+                            "type": "integer",
+                            "exclusiveMinimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "full": {
+                            "type": "boolean"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "chargeId",
+                          "amountRefunded",
+                          "full"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                      "bookingId",
+                      "buyerUserId",
+                      "action",
+                      "revoked",
+                      "domainPackEntitled"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "bookingId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "buyerUserId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "action": {
+                        "type": "string",
+                        "enum": [
+                          "resolve-domain-pack"
+                        ]
+                      },
+                      "chargeId": {
+                        "type": "string",
+                        "pattern": "^ch_[a-zA-Z0-9]+$"
+                      },
+                      "amountRefunded": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "decision": {
+                        "type": "string",
+                        "enum": [
+                          "retained",
+                          "revoked"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                      "bookingId",
+                      "buyerUserId",
+                      "action",
+                      "chargeId",
+                      "amountRefunded",
+                      "decision"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "bookingId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "buyerUserId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "action": {
+                        "type": "string",
+                        "enum": [
+                          "revoke"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                      "bookingId",
+                      "buyerUserId",
+                      "action"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/content/sites/{siteId}/collaborators": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Site collaborators",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "userId": {
+                            "type": "string"
+                          },
+                          "role": {
+                            "type": "string",
+                            "enum": [
+                              "admin",
+                              "editor",
+                              "viewer"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "userId",
+                          "role"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "List site collaborators",
+        "tags": [
+          "content"
+        ],
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true
+          }
+        ]
+      }
+    },
+    "/api/content/sites/{siteId}/collaborators/{userId}": {
+      "put": {
+        "responses": {
+          "200": {
+            "description": "Site collaborator saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Grant or update a site collaborator",
+        "tags": [
+          "content"
+        ],
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "admin",
+                      "editor",
+                      "viewer"
+                    ]
+                  }
+                },
+                "required": [
+                  "role"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "responses": {
+          "200": {
+            "description": "Site collaborator revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Revoke a site collaborator",
+        "tags": [
+          "content"
+        ],
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true
+          }
+        ]
+      }
+    },
+    "/api/content/consultation-domain": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Authenticated reader target only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "siteId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "siteId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No active domain delivery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Resolve a published private consultation hostname",
+        "tags": [
+          "content"
+        ],
+        "parameters": [
+          {
+            "name": "hostname",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ]
+      }
+    },
+    "/api/content/sites/{siteId}/consultation-domain": {
+      "put": {
+        "responses": {
+          "200": {
+            "description": "Verified domain attached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "siteId": {
+                          "type": "string"
+                        },
+                        "domain": {
+                          "type": "object",
+                          "properties": {
+                            "hostname": {
+                              "type": "string",
+                              "maxLength": 253,
+                              "pattern": "^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?$"
+                            },
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "vercel"
+                              ]
+                            },
+                            "projectId": {
+                              "type": "string",
+                              "pattern": "^prj_[a-zA-Z0-9]+$"
+                            },
+                            "verifiedAt": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "hostname",
+                            "provider",
+                            "projectId",
+                            "verifiedAt"
+                          ],
+                          "nullable": true
+                        },
+                        "customDomainAttached": {
+                          "type": "boolean"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "attached",
+                            "pending-verification",
+                            "detached"
+                          ]
+                        },
+                        "hostname": {
+                          "type": "string"
+                        },
+                        "verification": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "TXT"
+                                ]
+                              },
+                              "domain": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "domain",
+                              "value"
+                            ]
+                          }
+                        },
+                        "dns": {
+                          "type": "object",
+                          "properties": {
+                            "configuredBy": {
+                              "type": "string",
+                              "enum": [
+                                "A",
+                                "CNAME",
+                                "http",
+                                "dns-01"
+                              ],
+                              "nullable": true
+                            },
+                            "misconfigured": {
+                              "type": "boolean"
+                            },
+                            "acceptedChallenges": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "dns-01",
+                                  "http-01"
+                                ]
+                              }
+                            },
+                            "recommendedCNAME": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "rank": {
+                                    "type": "number"
+                                  },
+                                  "value": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "rank",
+                                  "value"
+                                ]
+                              }
+                            },
+                            "recommendedIPv4": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "rank": {
+                                    "type": "number"
+                                  },
+                                  "value": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "rank",
+                                  "value"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "configuredBy",
+                            "misconfigured",
+                            "acceptedChallenges",
+                            "recommendedCNAME",
+                            "recommendedIPv4"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "siteId",
+                        "domain",
+                        "customDomainAttached",
+                        "status"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Ownership or DNS verification pending; domain is not attached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "siteId": {
+                          "type": "string"
+                        },
+                        "domain": {
+                          "type": "object",
+                          "properties": {
+                            "hostname": {
+                              "type": "string",
+                              "maxLength": 253,
+                              "pattern": "^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?$"
+                            },
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "vercel"
+                              ]
+                            },
+                            "projectId": {
+                              "type": "string",
+                              "pattern": "^prj_[a-zA-Z0-9]+$"
+                            },
+                            "verifiedAt": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "hostname",
+                            "provider",
+                            "projectId",
+                            "verifiedAt"
+                          ],
+                          "nullable": true
+                        },
+                        "customDomainAttached": {
+                          "type": "boolean"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "attached",
+                            "pending-verification",
+                            "detached"
+                          ]
+                        },
+                        "hostname": {
+                          "type": "string"
+                        },
+                        "verification": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "TXT"
+                                ]
+                              },
+                              "domain": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "domain",
+                              "value"
+                            ]
+                          }
+                        },
+                        "dns": {
+                          "type": "object",
+                          "properties": {
+                            "configuredBy": {
+                              "type": "string",
+                              "enum": [
+                                "A",
+                                "CNAME",
+                                "http",
+                                "dns-01"
+                              ],
+                              "nullable": true
+                            },
+                            "misconfigured": {
+                              "type": "boolean"
+                            },
+                            "acceptedChallenges": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "dns-01",
+                                  "http-01"
+                                ]
+                              }
+                            },
+                            "recommendedCNAME": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "rank": {
+                                    "type": "number"
+                                  },
+                                  "value": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "rank",
+                                  "value"
+                                ]
+                              }
+                            },
+                            "recommendedIPv4": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "rank": {
+                                    "type": "number"
+                                  },
+                                  "value": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "rank",
+                                  "value"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "configuredBy",
+                            "misconfigured",
+                            "acceptedChallenges",
+                            "recommendedCNAME",
+                            "recommendedIPv4"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "siteId",
+                        "domain",
+                        "customDomainAttached",
+                        "status"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Current delivery cannot bind this domain",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Attach and verify a consultation hostname",
+        "tags": [
+          "content"
+        ],
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "hostname": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "hostname"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "responses": {
+          "200": {
+            "description": "Domain detached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "siteId": {
+                          "type": "string"
+                        },
+                        "domain": {
+                          "type": "object",
+                          "properties": {
+                            "hostname": {
+                              "type": "string",
+                              "maxLength": 253,
+                              "pattern": "^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?$"
+                            },
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "vercel"
+                              ]
+                            },
+                            "projectId": {
+                              "type": "string",
+                              "pattern": "^prj_[a-zA-Z0-9]+$"
+                            },
+                            "verifiedAt": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "hostname",
+                            "provider",
+                            "projectId",
+                            "verifiedAt"
+                          ],
+                          "nullable": true
+                        },
+                        "customDomainAttached": {
+                          "type": "boolean"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "attached",
+                            "pending-verification",
+                            "detached"
+                          ]
+                        },
+                        "hostname": {
+                          "type": "string"
+                        },
+                        "verification": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "TXT"
+                                ]
+                              },
+                              "domain": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "domain",
+                              "value"
+                            ]
+                          }
+                        },
+                        "dns": {
+                          "type": "object",
+                          "properties": {
+                            "configuredBy": {
+                              "type": "string",
+                              "enum": [
+                                "A",
+                                "CNAME",
+                                "http",
+                                "dns-01"
+                              ],
+                              "nullable": true
+                            },
+                            "misconfigured": {
+                              "type": "boolean"
+                            },
+                            "acceptedChallenges": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "dns-01",
+                                  "http-01"
+                                ]
+                              }
+                            },
+                            "recommendedCNAME": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "rank": {
+                                    "type": "number"
+                                  },
+                                  "value": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "rank",
+                                  "value"
+                                ]
+                              }
+                            },
+                            "recommendedIPv4": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "rank": {
+                                    "type": "number"
+                                  },
+                                  "value": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "rank",
+                                  "value"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "configuredBy",
+                            "misconfigured",
+                            "acceptedChallenges",
+                            "recommendedCNAME",
+                            "recommendedIPv4"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "siteId",
+                        "domain",
+                        "customDomainAttached",
+                        "status"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Detach a consultation hostname",
+        "tags": [
+          "content"
+        ],
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true
           }
         ]
       }
@@ -12038,6 +13233,7 @@
                     "additionalProperties": {}
                   }
                 },
+                "additionalProperties": false,
                 "required": [
                   "title",
                   "slug",
@@ -12269,7 +13465,8 @@
                     "format": "date-time",
                     "nullable": true
                   }
-                }
+                },
+                "additionalProperties": false
               }
             }
           }
@@ -13971,6 +15168,31 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Owned domain cleanup required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
           }
         },
         "summary": "Update a user",
@@ -14049,6 +15271,31 @@
           },
           "404": {
             "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Owned domain cleanup required",
             "content": {
               "application/json": {
                 "schema": {
@@ -14986,6 +16233,7 @@
           }
         },
         "summary": "Batch create items in a collection",
+        "description": "Supports posts, pages and sites using the direct mutation contracts. Media creation requires the media upload endpoint. Each item reports its own result.",
         "tags": [
           "content"
         ],
@@ -15097,6 +16345,7 @@
           }
         },
         "summary": "Batch update items in a collection",
+        "description": "Supports posts, pages, sites and media metadata using the direct mutation contracts and current per-item authority.",
         "tags": [
           "content"
         ],
@@ -15216,6 +16465,7 @@
           }
         },
         "summary": "Batch delete items in a collection",
+        "description": "Supports posts, pages and sites. Detach consultation hostnames before deleting sites. Media deletion requires the media delete endpoint so storage cleanup runs.",
         "tags": [
           "content"
         ],
@@ -15473,14 +16723,6 @@
           },
           "403": {
             "description": "AI feature requires Pro or Enterprise license",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "502": {
-            "description": "Admin fetch error",
             "content": {
               "application/json": {
                 "schema": {}
@@ -21993,6 +23235,29 @@
           },
           "401": {
             "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Owned domain cleanup required",
             "content": {
               "application/json": {
                 "schema": {
@@ -30446,6 +31711,7 @@
                     }
                   }
                 },
+                "additionalProperties": false,
                 "required": [
                   "title",
                   "slug"
@@ -30677,7 +31943,8 @@
                     "format": "date-time",
                     "nullable": true
                   }
-                }
+                },
+                "additionalProperties": false
               }
             }
           }
@@ -31438,13 +32705,15 @@
                         "type": "number"
                       }
                     },
+                    "additionalProperties": false,
                     "required": [
                       "x",
                       "y"
                     ],
                     "nullable": true
                   }
-                }
+                },
+                "additionalProperties": false
               }
             }
           }
@@ -31607,6 +32876,14 @@
               "example": "published"
             },
             "example": "published"
+          },
+          {
+            "name": "consultationBookingId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         ]
       },
@@ -31696,8 +32973,59 @@
                       "archived",
                       "maintenance"
                     ]
+                  },
+                  "visibility": {
+                    "type": "string",
+                    "enum": [
+                      "public",
+                      "private"
+                    ]
+                  },
+                  "settings": {
+                    "type": "object",
+                    "properties": {
+                      "consultation": {
+                        "type": "object",
+                        "properties": {
+                          "version": {
+                            "type": "number",
+                            "enum": [
+                              1
+                            ]
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "studio-consultation"
+                            ]
+                          },
+                          "bookingId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 256
+                          },
+                          "buyerUserId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 256
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "version",
+                          "kind",
+                          "bookingId",
+                          "buyerUserId"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                      "consultation"
+                    ]
                   }
                 },
+                "additionalProperties": false,
                 "required": [
                   "name",
                   "slug"
@@ -31879,11 +33207,19 @@
                       "maintenance"
                     ]
                   },
+                  "visibility": {
+                    "type": "string",
+                    "enum": [
+                      "public",
+                      "private"
+                    ]
+                  },
                   "favicon": {
                     "type": "string",
                     "nullable": true
                   }
-                }
+                },
+                "additionalProperties": false
               }
             }
           }
@@ -31956,6 +33292,1107 @@
             },
             "required": true,
             "example": "abc123"
+          }
+        ]
+      }
+    },
+    "/api/v1/content/sites/{siteId}/consultation-lifecycle": {
+      "put": {
+        "responses": {
+          "200": {
+            "description": "Current consultation lifecycle",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Site"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Evidence does not match the current binding or refund",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Apply verified consultation payment lifecycle evidence",
+        "tags": [
+          "content"
+        ],
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "bookingId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "buyerUserId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "action": {
+                        "type": "string",
+                        "enum": [
+                          "observe"
+                        ]
+                      },
+                      "revoked": {
+                        "type": "boolean"
+                      },
+                      "domainPackEntitled": {
+                        "type": "boolean"
+                      },
+                      "refund": {
+                        "type": "object",
+                        "properties": {
+                          "chargeId": {
+                            "type": "string",
+                            "pattern": "^ch_[a-zA-Z0-9]+$"
+                          },
+                          "amountRefunded": {
+                            "type": "integer",
+                            "exclusiveMinimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "full": {
+                            "type": "boolean"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "chargeId",
+                          "amountRefunded",
+                          "full"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                      "bookingId",
+                      "buyerUserId",
+                      "action",
+                      "revoked",
+                      "domainPackEntitled"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "bookingId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "buyerUserId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "action": {
+                        "type": "string",
+                        "enum": [
+                          "resolve-domain-pack"
+                        ]
+                      },
+                      "chargeId": {
+                        "type": "string",
+                        "pattern": "^ch_[a-zA-Z0-9]+$"
+                      },
+                      "amountRefunded": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "decision": {
+                        "type": "string",
+                        "enum": [
+                          "retained",
+                          "revoked"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                      "bookingId",
+                      "buyerUserId",
+                      "action",
+                      "chargeId",
+                      "amountRefunded",
+                      "decision"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "bookingId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "buyerUserId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "action": {
+                        "type": "string",
+                        "enum": [
+                          "revoke"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                      "bookingId",
+                      "buyerUserId",
+                      "action"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/sites/{siteId}/collaborators": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Site collaborators",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "userId": {
+                            "type": "string"
+                          },
+                          "role": {
+                            "type": "string",
+                            "enum": [
+                              "admin",
+                              "editor",
+                              "viewer"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "userId",
+                          "role"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "List site collaborators",
+        "tags": [
+          "content"
+        ],
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true
+          }
+        ]
+      }
+    },
+    "/api/v1/content/sites/{siteId}/collaborators/{userId}": {
+      "put": {
+        "responses": {
+          "200": {
+            "description": "Site collaborator saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Grant or update a site collaborator",
+        "tags": [
+          "content"
+        ],
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "admin",
+                      "editor",
+                      "viewer"
+                    ]
+                  }
+                },
+                "required": [
+                  "role"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "responses": {
+          "200": {
+            "description": "Site collaborator revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Revoke a site collaborator",
+        "tags": [
+          "content"
+        ],
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true
+          }
+        ]
+      }
+    },
+    "/api/v1/content/consultation-domain": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Authenticated reader target only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "siteId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "siteId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No active domain delivery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Resolve a published private consultation hostname",
+        "tags": [
+          "content"
+        ],
+        "parameters": [
+          {
+            "name": "hostname",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ]
+      }
+    },
+    "/api/v1/content/sites/{siteId}/consultation-domain": {
+      "put": {
+        "responses": {
+          "200": {
+            "description": "Verified domain attached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "siteId": {
+                          "type": "string"
+                        },
+                        "domain": {
+                          "type": "object",
+                          "properties": {
+                            "hostname": {
+                              "type": "string",
+                              "maxLength": 253,
+                              "pattern": "^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?$"
+                            },
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "vercel"
+                              ]
+                            },
+                            "projectId": {
+                              "type": "string",
+                              "pattern": "^prj_[a-zA-Z0-9]+$"
+                            },
+                            "verifiedAt": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "hostname",
+                            "provider",
+                            "projectId",
+                            "verifiedAt"
+                          ],
+                          "nullable": true
+                        },
+                        "customDomainAttached": {
+                          "type": "boolean"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "attached",
+                            "pending-verification",
+                            "detached"
+                          ]
+                        },
+                        "hostname": {
+                          "type": "string"
+                        },
+                        "verification": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "TXT"
+                                ]
+                              },
+                              "domain": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "domain",
+                              "value"
+                            ]
+                          }
+                        },
+                        "dns": {
+                          "type": "object",
+                          "properties": {
+                            "configuredBy": {
+                              "type": "string",
+                              "enum": [
+                                "A",
+                                "CNAME",
+                                "http",
+                                "dns-01"
+                              ],
+                              "nullable": true
+                            },
+                            "misconfigured": {
+                              "type": "boolean"
+                            },
+                            "acceptedChallenges": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "dns-01",
+                                  "http-01"
+                                ]
+                              }
+                            },
+                            "recommendedCNAME": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "rank": {
+                                    "type": "number"
+                                  },
+                                  "value": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "rank",
+                                  "value"
+                                ]
+                              }
+                            },
+                            "recommendedIPv4": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "rank": {
+                                    "type": "number"
+                                  },
+                                  "value": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "rank",
+                                  "value"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "configuredBy",
+                            "misconfigured",
+                            "acceptedChallenges",
+                            "recommendedCNAME",
+                            "recommendedIPv4"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "siteId",
+                        "domain",
+                        "customDomainAttached",
+                        "status"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Ownership or DNS verification pending; domain is not attached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "siteId": {
+                          "type": "string"
+                        },
+                        "domain": {
+                          "type": "object",
+                          "properties": {
+                            "hostname": {
+                              "type": "string",
+                              "maxLength": 253,
+                              "pattern": "^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?$"
+                            },
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "vercel"
+                              ]
+                            },
+                            "projectId": {
+                              "type": "string",
+                              "pattern": "^prj_[a-zA-Z0-9]+$"
+                            },
+                            "verifiedAt": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "hostname",
+                            "provider",
+                            "projectId",
+                            "verifiedAt"
+                          ],
+                          "nullable": true
+                        },
+                        "customDomainAttached": {
+                          "type": "boolean"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "attached",
+                            "pending-verification",
+                            "detached"
+                          ]
+                        },
+                        "hostname": {
+                          "type": "string"
+                        },
+                        "verification": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "TXT"
+                                ]
+                              },
+                              "domain": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "domain",
+                              "value"
+                            ]
+                          }
+                        },
+                        "dns": {
+                          "type": "object",
+                          "properties": {
+                            "configuredBy": {
+                              "type": "string",
+                              "enum": [
+                                "A",
+                                "CNAME",
+                                "http",
+                                "dns-01"
+                              ],
+                              "nullable": true
+                            },
+                            "misconfigured": {
+                              "type": "boolean"
+                            },
+                            "acceptedChallenges": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "dns-01",
+                                  "http-01"
+                                ]
+                              }
+                            },
+                            "recommendedCNAME": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "rank": {
+                                    "type": "number"
+                                  },
+                                  "value": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "rank",
+                                  "value"
+                                ]
+                              }
+                            },
+                            "recommendedIPv4": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "rank": {
+                                    "type": "number"
+                                  },
+                                  "value": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "rank",
+                                  "value"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "configuredBy",
+                            "misconfigured",
+                            "acceptedChallenges",
+                            "recommendedCNAME",
+                            "recommendedIPv4"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "siteId",
+                        "domain",
+                        "customDomainAttached",
+                        "status"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Current delivery cannot bind this domain",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Attach and verify a consultation hostname",
+        "tags": [
+          "content"
+        ],
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "hostname": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "hostname"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "responses": {
+          "200": {
+            "description": "Domain detached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "siteId": {
+                          "type": "string"
+                        },
+                        "domain": {
+                          "type": "object",
+                          "properties": {
+                            "hostname": {
+                              "type": "string",
+                              "maxLength": 253,
+                              "pattern": "^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?$"
+                            },
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "vercel"
+                              ]
+                            },
+                            "projectId": {
+                              "type": "string",
+                              "pattern": "^prj_[a-zA-Z0-9]+$"
+                            },
+                            "verifiedAt": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "hostname",
+                            "provider",
+                            "projectId",
+                            "verifiedAt"
+                          ],
+                          "nullable": true
+                        },
+                        "customDomainAttached": {
+                          "type": "boolean"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "attached",
+                            "pending-verification",
+                            "detached"
+                          ]
+                        },
+                        "hostname": {
+                          "type": "string"
+                        },
+                        "verification": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "TXT"
+                                ]
+                              },
+                              "domain": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "domain",
+                              "value"
+                            ]
+                          }
+                        },
+                        "dns": {
+                          "type": "object",
+                          "properties": {
+                            "configuredBy": {
+                              "type": "string",
+                              "enum": [
+                                "A",
+                                "CNAME",
+                                "http",
+                                "dns-01"
+                              ],
+                              "nullable": true
+                            },
+                            "misconfigured": {
+                              "type": "boolean"
+                            },
+                            "acceptedChallenges": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "dns-01",
+                                  "http-01"
+                                ]
+                              }
+                            },
+                            "recommendedCNAME": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "rank": {
+                                    "type": "number"
+                                  },
+                                  "value": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "rank",
+                                  "value"
+                                ]
+                              }
+                            },
+                            "recommendedIPv4": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "rank": {
+                                    "type": "number"
+                                  },
+                                  "value": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "rank",
+                                  "value"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "configuredBy",
+                            "misconfigured",
+                            "acceptedChallenges",
+                            "recommendedCNAME",
+                            "recommendedIPv4"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "siteId",
+                        "domain",
+                        "customDomainAttached",
+                        "status"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Detach a consultation hostname",
+        "tags": [
+          "content"
+        ],
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true
           }
         ]
       }
@@ -32384,6 +34821,7 @@
                     "additionalProperties": {}
                   }
                 },
+                "additionalProperties": false,
                 "required": [
                   "title",
                   "slug",
@@ -32615,7 +35053,8 @@
                     "format": "date-time",
                     "nullable": true
                   }
-                }
+                },
+                "additionalProperties": false
               }
             }
           }
@@ -34317,6 +36756,31 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Owned domain cleanup required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
           }
         },
         "summary": "Update a user",
@@ -34395,6 +36859,31 @@
           },
           "404": {
             "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Owned domain cleanup required",
             "content": {
               "application/json": {
                 "schema": {
@@ -35332,6 +37821,7 @@
           }
         },
         "summary": "Batch create items in a collection",
+        "description": "Supports posts, pages and sites using the direct mutation contracts. Media creation requires the media upload endpoint. Each item reports its own result.",
         "tags": [
           "content"
         ],
@@ -35443,6 +37933,7 @@
           }
         },
         "summary": "Batch update items in a collection",
+        "description": "Supports posts, pages, sites and media metadata using the direct mutation contracts and current per-item authority.",
         "tags": [
           "content"
         ],
@@ -35562,6 +38053,7 @@
           }
         },
         "summary": "Batch delete items in a collection",
+        "description": "Supports posts, pages and sites. Detach consultation hostnames before deleting sites. Media deletion requires the media delete endpoint so storage cleanup runs.",
         "tags": [
           "content"
         ],
@@ -35819,14 +38311,6 @@
           },
           "403": {
             "description": "AI feature requires Pro or Enterprise license",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "502": {
-            "description": "Admin fetch error",
             "content": {
               "application/json": {
                 "schema": {}
@@ -42252,6 +44736,13 @@
               "maintenance"
             ]
           },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "public",
+              "private"
+            ]
+          },
           "theme": {
             "nullable": true
           },
@@ -42287,6 +44778,7 @@
           "description",
           "ownerId",
           "status",
+          "visibility",
           "theme",
           "settings",
           "pageCount",

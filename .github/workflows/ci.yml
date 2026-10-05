@@ -479,8 +479,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
-      - name: Build @revealui/db and its workspace deps (drizzle.config.ts reads from dist/)
-        run: pnpm --filter '@revealui/db...' build
+      - name: Build database, CMS adapter and workspace deps (drizzle.config.ts reads from dist/)
+        run: pnpm --filter '@revealui/db...' --filter '@revealui/core...' build
         env:
           SKIP_ENV_VALIDATION: "true"
 
@@ -490,8 +490,8 @@ jobs:
           POSTGRES_URL: "postgresql://test:test@localhost:5432/revealui_migrations"
           DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_migrations"
 
-      - name: Verify license operation concurrency on independent Postgres connections
-        run: pnpm --filter @revealui/test exec vitest run --config vitest.integration.config.ts src/integration/database/license-operation-concurrency.integration.test.ts
+      - name: Verify license and domain erasure concurrency on independent Postgres connections
+        run: pnpm --filter @revealui/test exec vitest run --config vitest.integration.config.ts src/integration/database/license-operation-concurrency.integration.test.ts src/integration/database/consultation-domain-erasure.integration.test.ts
         env:
           TEST_DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_migrations"
           LICENSE_OPERATION_POSTGRES_REQUIRED: "true"

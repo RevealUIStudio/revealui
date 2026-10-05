@@ -50,4 +50,29 @@ describe('content cache headers', () => {
       expect(res.headers.get('cache-control')).toBe('no-store');
     }
   });
+
+  it.each(['Authorization', 'Cookie'])(
+    'does not share-cache requests carrying %s',
+    async (header) => {
+      const response = await buildApp().request('/api/content/posts/xyz', {
+        headers: { [header]: 'synthetic-session' },
+      });
+      expect(response.headers.get('Cache-Control')).toBe('no-store');
+    },
+  );
+
+  it('preserves explicit route cache policy and declines responses that set cookies', async () => {
+    const app = new Hono();
+    app.use('*', publicCacheMiddleware({ sMaxAge: 60 }));
+    app.get('/private', (c) => {
+      c.header('Cache-Control', 'no-store');
+      return c.json({ ok: true });
+    });
+    app.get('/session', (c) => {
+      c.header('Set-Cookie', 'synthetic-session=value');
+      return c.json({ ok: true });
+    });
+    expect((await app.request('/private')).headers.get('Cache-Control')).toBe('no-store');
+    expect((await app.request('/session')).headers.get('Cache-Control')).toBe('no-store');
+  });
 });

@@ -2,12 +2,56 @@
  * User database queries with soft-delete support
  */
 
-import { and, count, desc, eq, gt, ilike, inArray, isNull, or } from 'drizzle-orm';
-import type { Database } from '../client/index.js';
+import { and, count, desc, eq, gt, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
+import { type Database, withTransaction } from '../client/index.js';
+import { sites } from '../schema/sites.js';
 import { users } from '../schema/users.js';
+import { SiteDomainCleanupRequiredError } from './sites.js';
 
 /** Condition that excludes soft-deleted users */
 const notDeleted = isNull(users.deletedAt);
+const noOwnedConsultationDomain = (userId: string) =>
+  sql`NOT EXISTS (SELECT 1 FROM ${sites} WHERE ${sites.ownerId} = ${userId} AND (${sites.settings} ? 'consultationDomain' OR ${sites.settings} ? 'consultationDomainPending'))`;
+const CONSULTATION_DOMAIN_OWNER_LOCK_PREFIX = 'consultation-domain-owner:';
+
+/** Preserve the authenticated cleanup owner before any account deletion side effects. */
+export async function assertUserDomainCleanupComplete(db: Database, userId: string): Promise<void> {
+  const [retained] = await db
+    .select({ id: sites.id })
+    .from(sites)
+    .where(
+      and(
+        eq(sites.ownerId, userId),
+        sql`${sites.settings} ? 'consultationDomain' OR ${sites.settings} ? 'consultationDomainPending'`,
+      ),
+    )
+    .limit(1);
+  if (retained)
+    throw new SiteDomainCleanupRequiredError(
+      undefined,
+      'Detach owned consultation hostnames before deleting this account.',
+    );
+}
+
+/**
+ * Admit account erasure before side effects and exclude new provider resources
+ * until completion. The domain assignment trigger tries this same advisory key
+ * before locking canonical identities. Configured CMS calls reuse the maintained
+ * transaction lease, preserving pool capacity while cascading owned sites.
+ */
+export async function withUserDomainCleanupAdmission<T>(
+  db: Database,
+  userId: string,
+  erase: () => Promise<T>,
+): Promise<T> {
+  return withTransaction(db, async (tx) => {
+    await tx.select({
+      admission: sql`pg_advisory_xact_lock(hashtextextended(${CONSULTATION_DOMAIN_OWNER_LOCK_PREFIX} || ${userId}, 0))`,
+    });
+    await assertUserDomainCleanupComplete(tx, userId);
+    return erase();
+  });
+}
 
 /**
  * Soft cap on the number of users with `role: 'owner'`. App-layer only — not a
@@ -104,12 +148,35 @@ export async function updateUser(
   db: Database,
   id: string,
   data: Partial<typeof users.$inferInsert>,
+  options: { verificationTokenHash?: string } = {},
 ) {
+  const erasing = data.status === 'deleted' || data.deletedAt != null || data.anonymizedAt != null;
   const result = await db
     .update(users)
     .set({ ...data, updatedAt: new Date() })
-    .where(and(eq(users.id, id), notDeleted))
-    .returning();
+    .where(
+      and(
+        eq(users.id, id),
+        notDeleted,
+        ...(erasing ? [noOwnedConsultationDomain(id)] : []),
+        ...(options.verificationTokenHash
+          ? [
+              eq(users.emailVerificationToken, options.verificationTokenHash),
+              eq(users.emailVerified, false),
+              eq(users.status, 'active'),
+              or(
+                isNull(users.emailVerificationTokenExpiresAt),
+                gt(users.emailVerificationTokenExpiresAt, new Date()),
+              ),
+            ]
+          : []),
+      ),
+    )
+    .returning()
+    .catch((error: unknown) => {
+      throw SiteDomainCleanupRequiredError.fromDatabase(error) ?? error;
+    });
+  if (!result[0] && erasing) await assertUserDomainCleanupComplete(db, id);
   return result[0] ?? null;
 }
 
@@ -142,10 +209,15 @@ export async function getUserByEmail(db: Database, email: string) {
 
 /** Soft-delete: sets deletedAt timestamp instead of removing the row */
 export async function deleteUser(db: Database, id: string) {
-  await db
+  const removed = await db
     .update(users)
     .set({ deletedAt: new Date(), updatedAt: new Date(), status: 'deleted' })
-    .where(and(eq(users.id, id), notDeleted));
+    .where(and(eq(users.id, id), notDeleted, noOwnedConsultationDomain(id)))
+    .returning()
+    .catch((error: unknown) => {
+      throw SiteDomainCleanupRequiredError.fromDatabase(error) ?? error;
+    });
+  if (!removed[0]) await assertUserDomainCleanupComplete(db, id);
 }
 
 /** Restore a soft-deleted user */
@@ -186,14 +258,28 @@ export async function anonymizeUser(db: Database, id: string) {
       updatedAt: now,
       status: 'deleted',
     })
-    .where(eq(users.id, id))
-    .returning();
+    .where(and(eq(users.id, id), noOwnedConsultationDomain(id)))
+    .returning()
+    .catch((error: unknown) => {
+      throw SiteDomainCleanupRequiredError.fromDatabase(error) ?? error;
+    });
+  if (!result[0]) await assertUserDomainCleanupComplete(db, id);
   return result[0] ?? null;
 }
 
 /** Permanently remove a soft-deleted user (GDPR compliance / admin cleanup) */
 export async function purgeUser(db: Database, id: string) {
-  await db.delete(users).where(eq(users.id, id));
+  try {
+    const removed = await db
+      .delete(users)
+      .where(and(eq(users.id, id), noOwnedConsultationDomain(id)))
+      .returning();
+    if (!removed[0]) {
+      await assertUserDomainCleanupComplete(db, id);
+    }
+  } catch (error) {
+    throw SiteDomainCleanupRequiredError.fromDatabase(error) ?? error;
+  }
 }
 
 /** Count active (non-deleted, status='active') users */

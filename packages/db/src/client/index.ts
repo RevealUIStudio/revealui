@@ -18,6 +18,7 @@
  * - Neon: https://orm.drizzle.team/docs/connect-neon
  */
 
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { neon } from '@neondatabase/serverless';
 // Import config module (ESM)
 // Config uses proxy for lazy loading, so import is safe - validation only happens on property access
@@ -27,7 +28,7 @@ import { getSSLConfig } from '@revealui/utils/database';
 import { logger } from '@revealui/utils/logger';
 import { drizzle as drizzleNeon, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import { drizzle as drizzlePg, type NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
+import { Pool, type PoolClient } from 'pg';
 import * as schema from '../schema/index.js'; // Full schema for backward compatibility
 import * as restSchema from '../schema/rest.js';
 import type * as vectorSchema from '../schema/vector.js';
@@ -47,12 +48,6 @@ export interface PoolMetrics {
   /** Pool name/identifier */
   name: string;
 }
-
-// =============================================================================
-// Transaction Support Tracking
-// =============================================================================
-
-let restSupportsTransactions = false;
 
 // =============================================================================
 // Types
@@ -82,6 +77,51 @@ export type Database = NeonHttpDatabase<typeof schema> | NodePgDatabase<typeof s
 export interface DatabaseConfig {
   connectionString: string;
   logger?: boolean;
+  /** Use the maintained PostgreSQL pool when a callback transaction is required. */
+  transactions?: boolean;
+  /** Supported per-client pool capacity; otherwise the shared DB_POOL_MAX setting applies. */
+  poolMax?: number;
+}
+
+type OwnedClient = {
+  config: DatabaseConfig;
+  dbSchema: typeof restSchema | typeof vectorSchema | typeof schema;
+  pool?: Pool;
+  transactionClient?: Database;
+};
+const ownedClients = new WeakMap<Database, OwnedClient>();
+
+type TransactionScope = {
+  pool: Pool;
+  connection: PoolClient;
+  transaction: Database;
+  active: boolean;
+  pending: Promise<void>;
+};
+const transactionScope = new AsyncLocalStorage<TransactionScope>();
+
+/** Borrow the active owning lease; callers must never release this connection. */
+export function getTransactionConnection(pool: Pool): PoolClient | null {
+  const scope = transactionScope.getStore();
+  return scope?.active && scope.pool === pool ? scope.connection : null;
+}
+
+/** Adapter seam for the same lease and serialized, rollback-safe nested transactions. */
+export function getTransactionContext(pool: Pool): {
+  connection: PoolClient;
+  transaction<T>(fn: (connection: PoolClient) => Promise<T>): Promise<T>;
+} | null {
+  const scope = transactionScope.getStore();
+  if (!scope?.active || scope.pool !== pool) return null;
+  return {
+    connection: scope.connection,
+    transaction: (fn) => {
+      if (!scope.active) return Promise.reject(new Error('Database transaction scope has ended'));
+      return transactionScope.run(scope, () =>
+        withTransaction(scope.transaction, async () => fn(scope.connection)),
+      );
+    },
+  };
 }
 
 // =============================================================================
@@ -129,7 +169,8 @@ function onClientPoolError(err: unknown): void {
 /**
  * Creates a Drizzle database client, automatically selecting the appropriate driver:
  * - Localhost connections: Uses node-postgres with drizzle-orm/node-postgres (dev/test)
- * - All other connections: Uses @neondatabase/serverless with drizzle-orm/neon-http (Neon-primary)
+ * - Neon connections: Uses @neondatabase/serverless with drizzle-orm/neon-http
+ * - Callback transactions: Uses the maintained pg pool for the captured database
  *
  * @param config - Database configuration
  * @param dbSchema - Optional schema to use (defaults to full schema for backward compatibility)
@@ -155,9 +196,11 @@ export function createClient(
 ): Database {
   const isLocalhost = isLocalhostConnection(config.connectionString);
 
-  if (isLocalhost) {
-    // Use pg for localhost connections — Neon HTTP driver requires a Neon endpoint
-    const poolMax = parseInt(process.env.DB_POOL_MAX || '10', 10);
+  if (isLocalhost || config.transactions) {
+    // The same maintained pool handles ordinary Postgres and Neon callback transactions.
+    const poolMax = config.poolMax ?? Number(process.env.DB_POOL_MAX || '10');
+    if (!Number.isSafeInteger(poolMax) || poolMax < 1)
+      throw new Error('Database pool capacity must be a positive safe integer');
     const poolIdleTimeout = parseInt(process.env.DB_POOL_IDLE_TIMEOUT || '30000', 10);
 
     const pool = new Pool({
@@ -175,20 +218,24 @@ export function createClient(
     activePools.set(poolId, pool);
     registerPoolCleanup();
 
-    return drizzlePg({
+    const client = drizzlePg({
       client: pool,
       schema: dbSchema,
       logger: config.logger ?? false,
     }) as Database;
+    ownedClients.set(client, { config: { ...config }, dbSchema, pool });
+    return client;
   } else {
     // Use Neon serverless driver for NeonDB connections
     const sql = neon(config.connectionString);
 
-    return drizzleNeon({
+    const client = drizzleNeon({
       client: sql,
       schema: dbSchema,
       logger: config.logger ?? false,
     }) as Database;
+    ownedClients.set(client, { config: { ...config }, dbSchema });
+    return client;
   }
 }
 
@@ -313,35 +360,14 @@ function getClientByType(): Database {
       );
     }
 
-    // For pg-backed connections (localhost), create the pool
-    // externally so it can be shared with the CMS adapter via getRestPool().
-    if (isLocalhostConnection(url)) {
-      const poolMax = parseInt(process.env.DB_POOL_MAX || '10', 10);
-      const poolIdleTimeout = parseInt(process.env.DB_POOL_IDLE_TIMEOUT || '30000', 10);
-      const pool = new Pool({
-        connectionString: url,
-        ssl: getSSLConfig(url),
-        max: poolMax,
-        idleTimeoutMillis: poolIdleTimeout,
-        connectionTimeoutMillis: 10_000,
-      });
-      // Prevent an idle-client error from crashing the process (unhandled 'error' event).
-      pool.on('error', onClientPoolError);
-      restPool = pool;
-      const poolId = `rest-pool`;
-      activePools.set(poolId, pool);
-      registerPoolCleanup();
-      restClient = drizzlePg({
-        client: pool,
-        schema: restSchema,
-        logger: false,
-      }) as unknown as Database;
-    } else {
-      restClient = createClient({ connectionString: url }, restSchema);
-    }
-    restSupportsTransactions = isLocalhostConnection(url);
+    restClient = createClient({ connectionString: url }, restSchema);
+    restPool = ownedClients.get(restClient)?.pool ?? null;
   }
-  return restClient;
+  const scope = transactionScope.getStore();
+  const owned = ownedClients.get(restClient);
+  const pool =
+    owned?.pool ?? (owned?.transactionClient && ownedClients.get(owned.transactionClient)?.pool);
+  return scope?.active && scope.pool === pool ? scope.transaction : restClient;
 }
 
 /**
@@ -366,31 +392,32 @@ export function getRestClient(): Database {
 export function resetClient(): void {
   restClient = null;
   restPool = null;
-  restSupportsTransactions = false;
+}
+
+/** Resolve callback transactions through the same captured configuration and pool owner. */
+function getTransactionClient(db: Database): Database {
+  const owned = ownedClients.get(db);
+  if (!owned || owned.pool) return db;
+  const cached = owned.transactionClient;
+  const cachedPool = cached ? ownedClients.get(cached)?.pool : undefined;
+  if (cached && cachedPool && [...activePools.values()].includes(cachedPool)) return cached;
+  owned.transactionClient = createClient({ ...owned.config, transactions: true }, owned.dbSchema);
+  return owned.transactionClient;
 }
 
 /**
- * Returns the underlying pg.Pool used by the REST database client, or null
- * if the REST client uses Neon serverless (which has no pg.Pool).
- *
- * Pass this to `universalPostgresAdapter({ pool })` in revealui.config.ts
- * so both the CMS adapter and Drizzle ORM share a single connection pool.
- * This eliminates the dual-pool architecture that caused session/write
- * visibility bugs when env vars were overridden (e.g., probe DB setup).
+ * Share the maintained PostgreSQL pool with the CMS adapter. Neon HTTP queries
+ * retain their normal transport; callback transactions and CMS use one pool
+ * bound to the identical captured database URL, SSL and lifecycle owner.
  */
 export function getRestPool(): Pool | null {
-  // Force initialization if not yet done — but only if a DB URL is available.
-  // During Next.js build in CI, no DB URL exists and getClientByType would throw.
-  // Return null gracefully so the caller falls back to its own pool creation.
   if (!restClient) {
-    const url = process.env.POSTGRES_URL || process.env.DATABASE_URL;
-    if (!url) return null;
-    try {
-      getClientByType();
-    } catch {
-      return null;
-    }
+    if (!resolveDatabaseUrl()) return null;
+    getClientByType();
   }
+  if (!restClient) return null;
+  const transactionClient = getTransactionClient(restClient);
+  restPool = ownedClients.get(transactionClient)?.pool ?? null;
   return restPool;
 }
 
@@ -459,7 +486,7 @@ export async function closeAllPools(): Promise<void> {
   activePools.clear();
 
   // Reset global client
-  restClient = null;
+  resetClient();
 }
 
 // =============================================================================
@@ -475,18 +502,13 @@ export async function closeAllPools(): Promise<void> {
  * @example
  * ```typescript
  * // At app startup
- * requiresTransactions('rest') // throws if DB is Neon HTTP
+ * requiresTransactions('rest') // resolves the maintained transaction transport
  * ```
  */
 export function requiresTransactions(dbType: DatabaseType = 'rest'): void {
-  // Force client creation so we know the driver type
-  getClient(dbType);
-  if (!restSupportsTransactions) {
-    throw new Error(
-      `Transaction support required but not available for '${dbType}' database. ` +
-        'The Neon HTTP driver does not support transactions. ' +
-        'Use a localhost pg driver for transaction support.',
-    );
+  const client = getTransactionClient(getClient(dbType));
+  if (typeof client.transaction !== 'function') {
+    throw new Error(`Transaction support required but not available for '${dbType}' database.`);
   }
 }
 
@@ -495,28 +517,71 @@ export function requiresTransactions(dbType: DatabaseType = 'rest'): void {
  *
  * ⚠️ IMPORTANT: Transaction support depends on the database driver:
  * - ✅ Localhost (pg Pool): Full transaction support (dev/test)
- * - ❌ NeonDB (HTTP driver): Transactions NOT supported
+ * - ✅ NeonDB: normal reads use HTTP; callback transactions use the managed pg pool
  *
  * The Neon HTTP driver (@neondatabase/serverless with neon-http) does not support
  * transactions because it uses stateless HTTP requests. Each query is independent.
- * Use withSaga() for NeonDB-safe multi-step writes.
+ * Owned clients resolve callback transactions to the same captured database via
+ * the maintained pg pool. Unowned clients must expose their own transaction API.
  *
- * @param db - Database client (must be created with pg Pool driver)
+ * @param db - Owned database client, or an injected transaction-capable client
  * @param fn - Transaction callback that receives a transaction context
  * @returns Result from the transaction callback
- * @throws {Error} If using Neon HTTP driver (no transaction support)
+ * @throws {Error} If an unowned client cannot provide callback transactions
  * @throws {Error} If transaction fails (automatic ROLLBACK is performed)
  */
 export async function withTransaction<T>(
   db: Database,
   fn: (tx: Database) => Promise<T>,
 ): Promise<T> {
-  // Early check: fail fast with clear message based on tracked driver type
-  if (db === restClient && !restSupportsTransactions) {
-    throw new Error(
-      'Transaction not supported: database is using Neon HTTP driver. ' +
-        'Use withSaga() for NeonDB-safe multi-step writes, or use a localhost pg driver for transaction support.',
-    );
+  db = getTransactionClient(db);
+
+  const owned = ownedClients.get(db);
+  if (owned?.pool) {
+    const pool = owned.pool;
+    const parent = transactionScope.getStore();
+    const run = async (connection: PoolClient, client: Database) =>
+      (client as NodePgDatabase<typeof schema>).transaction(async (tx) => {
+        const transaction = tx as unknown as Database;
+        ownedClients.set(transaction, owned);
+        const scope: TransactionScope = {
+          pool,
+          connection,
+          transaction,
+          active: true,
+          pending: Promise.resolve(),
+        };
+        try {
+          return await transactionScope.run(scope, () => fn(transaction));
+        } finally {
+          scope.active = false;
+        }
+      });
+    if (parent?.active && parent.pool === pool) {
+      // Siblings must not interleave savepoint release/rollback on one lease.
+      // A child gets its own scope, allowing its own nested work without waiting
+      // on the parent's queue that is currently executing that child.
+      const result = parent.pending.then(() => {
+        if (!parent.active) throw new Error('Database transaction scope has ended');
+        return run(parent.connection, parent.transaction);
+      });
+      parent.pending = result.then(
+        () => undefined,
+        () => undefined,
+      );
+      return result;
+    }
+    const connection = await pool.connect();
+    try {
+      const client = drizzlePg({
+        client: connection,
+        schema: owned.dbSchema,
+        logger: owned.config.logger ?? false,
+      }) as Database;
+      return await run(connection, client);
+    } finally {
+      connection.release();
+    }
   }
 
   // Fallback: Check if this is a pg Pool-based client (supports transactions)
@@ -524,9 +589,8 @@ export async function withTransaction<T>(
 
   if (!hasPgTransaction) {
     throw new Error(
-      'Transaction not supported: database client is using Neon HTTP driver which does not support transactions. ' +
-        'Use withSaga() for NeonDB-safe multi-step writes, or use a localhost pg driver. ' +
-        'Neon HTTP driver uses stateless requests and cannot maintain transaction state.',
+      'Transaction not supported: the injected database client has no callback transaction API. ' +
+        'Use a client from the maintained database factory or inject a transaction-capable client.',
     );
   }
 
@@ -544,9 +608,9 @@ export async function withTransaction<T>(
 /**
  * Execute a saga  -  a NeonDB-safe alternative to withTransaction.
  *
- * Unlike withTransaction (which requires a pg Pool driver), withSaga works
- * with the NeonDB HTTP driver by modeling multi-step writes as individually
- * atomic operations with compensating actions for rollback.
+ * withSaga models multi-step writes as individually atomic operations with
+ * compensating actions for rollback. withTransaction resolves the maintained
+ * callback transport when a single database transaction is required.
  *
  * @see executeSaga in ../saga/neon-saga.ts for full documentation
  */

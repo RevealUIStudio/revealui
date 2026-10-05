@@ -11,11 +11,15 @@ export const indexPage: RevealAfterChangeHook<Page> = ({ doc, operation }) => {
     .then((indexer) => {
       if (!indexer) return;
       const record = asRecord(doc);
+      if (typeof record.siteId !== 'string' || record.siteId.length === 0) {
+        throw new Error('Page indexing requires its canonical siteId');
+      }
       return indexer.onDocumentChanged({
         collection: 'pages',
         id: String(record.id),
         operation: op,
         doc: record,
+        workspaceId: record.siteId,
       });
     })
     .catch(() => {
