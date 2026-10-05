@@ -3,7 +3,15 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { SUBSCRIPTION_PRICE_FALLBACKS } from '../../lib/pricing-fallbacks';
-import { HOME_DEMO, HOME_FAQ, HOME_HERO, HOME_HERO_FOUNDATION, HOME_PROBLEM } from '../home';
+import {
+  HOME_DEMO,
+  HOME_FAQ,
+  HOME_HERO,
+  HOME_HERO_FOUNDATION,
+  HOME_HERO_L2,
+  HOME_HERO_OWNERSHIP,
+  HOME_PROBLEM,
+} from '../home';
 import { PRICING_HERO, PRICING_HIGHLIGHTED_BADGE } from '../pricing';
 import {
   PRICING_TEASER_LINKS,
@@ -26,6 +34,8 @@ const LIVE_PRODUCT_BLOB = [
   HOME_HERO.subtitle.sentence2,
   HOME_HERO.subtitle.support,
   HOME_HERO_FOUNDATION.h1,
+  HOME_HERO_OWNERSHIP.h1,
+  HOME_HERO_L2.h1,
   HOME_PROBLEM.heading,
   HOME_PROBLEM.body,
   HOME_DEMO.eyebrow,
@@ -104,9 +114,7 @@ describe('Auditor voice and live-hero honesty', () => {
   });
 
   it('keeps the locked problem heading', () => {
-    expect(HOME_PROBLEM.heading).toBe(
-      'Tired of tools that don’t talk, and agents you can’t audit?',
-    );
+    expect(HOME_PROBLEM.heading).toBe('Choose how to build your business runtime.');
   });
 
   it('keeps the governed-action receipt on the marketing home foil', () => {
@@ -121,7 +129,9 @@ describe('Auditor voice and live-hero honesty', () => {
   });
 
   it('replaces the foundation A/B with a distinct keep-the-stack line', () => {
-    expect(HOME_HERO_FOUNDATION.h1).toBe('Existing tools report in. You keep the stack.');
+    expect(HOME_HERO_FOUNDATION.h1).toBe(
+      'Build on shared business primitives with supported integrations.',
+    );
     expect(HOME_HERO_FOUNDATION.h1).not.toBe(HOME_HERO.h1);
     expect(HOME_HERO_FOUNDATION.h1.toLowerCase().includes('foundation')).toBe(false);
   });
@@ -131,7 +141,9 @@ describe('Auditor voice and live-hero honesty', () => {
     expect(HOME_DEMO.heading).toBe(
       'Install locally. Test checkout. Point an agent at the same data.',
     );
-    expect(HOME_DEMO.body.toLowerCase().includes('minute')).toBe(true);
+    expect(HOME_DEMO.body).toContain('configure');
+    expect(HOME_DEMO.body).toContain('require Pro');
+    expect(HOME_DEMO.body.toLowerCase()).not.toContain('minute');
     expect(HOME_DEMO.beats[0]?.title).toBe('Install locally.');
     expect(HOME_DEMO.beats[1]?.title).toBe('Run a test checkout.');
     expect(HOME_DEMO.beats[2]?.title).toBe('Point an agent at the same data.');
@@ -140,7 +152,7 @@ describe('Auditor voice and live-hero honesty', () => {
   it('states Postgres and deploy ownership without the prison metaphor', () => {
     expect(HOME_FAQ.heading).toBe('Questions');
     expect(HOME_FAQ.items[0]?.answer).toBe(
-      'Your data stays in Postgres you control. Your deploy stays on infra you choose. Your code stays in your repo. Details live in the docs.',
+      'Use your own repository, database, and hosting accounts. The core uses MIT; Pro packages follow their published license terms and require license validation. Integrations have their own dependencies.',
     );
   });
 

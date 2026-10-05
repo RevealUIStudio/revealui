@@ -147,7 +147,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_HERO_OWNERSHIP.h1',
     proofGrade: 'outcome',
-    text: 'Run your whole business on one runtime you own.',
+    text: 'Run your business software on infrastructure you control.',
     evidence: [
       {
         kind: 'code',
@@ -188,7 +188,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_HERO_FOUNDATION.h1',
     proofGrade: 'outcome',
-    text: 'Existing tools report in. You keep the stack.',
+    text: 'Build on shared business primitives with supported integrations.',
     evidence: [
       MCP_SERVERS,
       MCP_CONTENT,
@@ -204,7 +204,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_HERO_L2.h1',
     proofGrade: 'outcome',
-    text: 'Your secrets stay on infra you own. Agents use the same plan rules.',
+    text: 'Configure agents for the business data and permissions you choose.',
     evidence: [
       {
         kind: 'code',
@@ -224,7 +224,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_PROBLEM.heading',
     proofGrade: 'outcome',
-    text: 'Tired of tools that don’t talk, and agents you can’t audit?',
+    text: 'Choose how to build your business runtime.',
     evidence: [
       {
         kind: 'code',
@@ -237,7 +237,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_PROBLEM.body',
     proofGrade: 'outcome',
-    text: 'Teams either stitch a vendor for each slice, or start with agents and rebuild the rest. RevealUI is one self-hosted runtime for the business and the agents that run it.',
+    text: 'Compare a shared runtime with connecting separate services or adding business features to an agent framework. Configure and maintain the services you choose.',
     evidence: [AUTH_SESSIONS, COLLECTIONS, BILLING, LICENSE_MIT],
   },
   // pathBlurbs claims retired (GAP-480 landing de-dupe): blurbs removed from
@@ -246,7 +246,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_PROBLEM.rows[0].sprawl',
     proofGrade: 'path',
-    text: 'A separate auth product, priced per seat',
+    text: 'Configure an authentication service',
     evidence: [
       {
         kind: 'url',
@@ -266,7 +266,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_PROBLEM.rows[1].sprawl',
     proofGrade: 'path',
-    text: 'A CMS plus a team to wire it',
+    text: 'Connect a content service and admin interface',
     evidence: [
       {
         kind: 'url',
@@ -284,6 +284,27 @@ export const claimsPart1: readonly ClaimEntry[] = [
   },
   {
     file: 'home.ts',
+    exportPath: 'HOME_PROBLEM.rows[2].sprawl',
+    proofGrade: 'behavior',
+    text: 'Integrate Stripe checkout and webhooks',
+    evidence: [BILLING, WEBHOOKS],
+  },
+  {
+    file: 'home.ts',
+    exportPath: 'HOME_PROBLEM.rows[3].sprawl',
+    proofGrade: 'behavior',
+    text: 'Connect tools and permissions to each service',
+    evidence: [MCP_CONTENT, RBAC_ABAC],
+  },
+  {
+    file: 'home.ts',
+    exportPath: 'HOME_PROBLEM.rows[3].agentOnly',
+    proofGrade: 'behavior',
+    text: 'Configure tools and business access',
+    evidence: [MCP_CONTENT, TIER_GATES],
+  },
+  {
+    file: 'home.ts',
     exportPath: 'HOME_PROBLEM.rows[2].revealui',
     proofGrade: 'behavior',
     text: 'Test-mode checkout, subscriptions, and webhook handling',
@@ -293,7 +314,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_PROBLEM.rows[3].revealui',
     proofGrade: 'behavior',
-    text: 'Agents use the same data and gates as your team',
+    text: 'Supported agent tools use configured API permissions and plan limits',
     evidence: [MCP_CONTENT, MCP_RESOURCE_DEFAULT],
   },
   {
@@ -315,7 +336,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_DEMO.body',
     proofGrade: 'outcome',
-    text: 'A local install takes about a minute. Test-mode checkout. Then point an agent at the same data your admin already uses.',
+    text: 'Create a local project, configure its services, and test a supported workflow. Agent tools require Pro and a configured model provider.',
     evidence: [CLI_CREATE, BILLING, MCP_CONTENT],
   },
   {
@@ -342,14 +363,14 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_DEMO.beats[0].body',
     proofGrade: 'behavior',
-    text: 'One command. Sign-in, content, admin, billing, and agent tooling run locally.',
+    text: 'Create a local project, then configure the database, authentication, and services your template needs.',
     evidence: [CLI_CREATE, AUTH_SESSIONS, WEBHOOKS, MCP_CONTENT],
   },
   {
     file: 'home.ts',
     exportPath: 'HOME_DEMO.beats[1].body',
     proofGrade: 'behavior',
-    text: 'A user signs up, picks a plan, and test-mode checkout completes. Switch to live mode when you take real money.',
+    text: 'Configure Stripe test credentials and webhooks, then test sign-up and checkout. Configure live credentials before accepting real payments.',
     evidence: [
       AUTH_SESSIONS,
       BILLING,
@@ -371,21 +392,21 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_DEMO.beats[2].body',
     proofGrade: 'behavior',
-    text: 'Connect a model. Agents use the same content, sign-in, and plan rules as your team.',
+    text: 'With Pro, configure a supported model provider and agent tools. Use the content API under the configured permissions and plan limits.',
     evidence: [PROVIDERS, MCP_CONTENT, TIER_GATES],
   },
   {
     file: 'home.ts',
     exportPath: 'HOME_FAQ.items[0].answer',
     proofGrade: 'behavior',
-    text: 'Your data stays in Postgres you control. Your deploy stays on infra you choose. Your code stays in your repo. Details live in the docs.',
-    evidence: [OPEN_STANDARDS, POSTGRES, SELF_HOST],
+    text: 'Use your own repository, database, and hosting accounts. The core uses MIT; Pro packages follow their published license terms and require license validation. Integrations have their own dependencies.',
+    evidence: [LICENSE_MIT, LICENSE_SPLIT, SELF_HOST, TIER_GATES, PROVIDERS],
   },
   {
     file: 'home.ts',
     exportPath: 'HOME_FAQ.items[1].answer',
     proofGrade: 'behavior',
-    text: 'Changes clear automated tests and security checks before they land. This site and the agency site at revealuistudio.com both run on RevealUI in production today.',
+    text: 'Used in production by the team that maintains it. Automated tests and security checks cover defined properties; review the source and validate your own deployment before launch.',
     evidence: [CI_GATE, THIS_SITE],
   },
   {
@@ -401,14 +422,14 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_FAQ.items[2].answer',
     proofGrade: 'outcome',
-    text: 'Each vendor covers one slice. RevealUI is the whole runtime: people, offers and pages you ship, billing, admin, and agents, self-hosted at all tiers. Deploy targets such as Vercel, Cloudflare, and Fly are places it runs, not competitors.',
+    text: 'RevealUI shares People, Content, Offers, Payments, and Agents across one self-hosted runtime. Configure the services and integrations you need; paid agent features require the appropriate license.',
     evidence: [AUTH_SESSIONS, COLLECTIONS, BILLING, AGENT_ROUTES, DEPLOY_TARGETS],
   },
   {
     file: 'home.ts',
     exportPath: 'HOME_FAQ.items[3].answer',
     proofGrade: 'behavior',
-    text: 'Yes. Most packages are MIT forever. A small Pro set is Fair Source and follows its published terms for conversion to MIT. Self-host the full stack on your infrastructure at any tier. License detail is on the Fair Source page.',
+    text: 'Yes. The core uses MIT; Pro packages use FSL-1.1-MIT and follow their published conversion terms. You operate the infrastructure. Paid features require the appropriate license and configuration; read the Fair Source guide for details.',
     evidence: [LICENSE_SPLIT, LICENSE_MIT, SELF_HOST, POSTGRES],
   },
   {
@@ -428,7 +449,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_FAQ.items[4].answer',
     proofGrade: 'behavior',
-    text: 'Agents sign in like users and face the same plan rules. They work on your content through the same APIs your app uses. How the wire protocol works is covered in the docs.',
+    text: 'Supported agent tools access your content through the configured API permissions and plan limits. Configure the agent identity, credentials, and model provider for your deployment.',
     evidence: [TIER_GATES, MCP_CONTENT, MCP_RESOURCE_DEFAULT, OPEN_STANDARDS],
   },
   {
@@ -442,7 +463,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_FAQ.items[5].answer',
     proofGrade: 'behavior',
-    text: 'By default, agents run on an open-weight model on infrastructure you own. Add Claude, GPT, or another provider when you choose. The local AI page walks through the full path.',
+    text: 'Configure a supported local runner or hosted provider. Local inference needs suitable hardware; hosted providers process the requests you send and charge for usage. Read the local-first guide for setup.',
     evidence: [OPEN_WEIGHT, PROVIDERS],
   },
   {
@@ -470,7 +491,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'home.ts',
     exportPath: 'HOME_GET_STARTED.body',
     proofGrade: 'outcome',
-    text: 'Install with npx create-revealui@latest, a public GitHub template (starter, basic-blog, portfolio, or e-commerce), or the live Apify actor (pay-per-event; receipt verification is $0.00001, not free).',
+    text: 'Create a local app with npx create-revealui@latest or a public GitHub template. Configure the services your template needs before testing your workflow. The Apify actor is a separate pay-per-event agent run, not an app installer.',
     evidence: [
       CLI_CREATE,
       {
@@ -538,7 +559,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'primitives.ts',
     exportPath: 'HOME_PRIMITIVES_SECTION.body',
     proofGrade: 'outcome',
-    text: 'Each one ships ready for your team and for agents. One login covers the whole set.',
+    text: 'People, Content, Offers, and Payments share one runtime. Pro adds agent tools; configure the services and permissions your deployment needs.',
     evidence: [OPEN_STANDARDS, COLLECTIONS, AGENT_ROUTES],
   },
   {
@@ -580,14 +601,14 @@ export const claimsPart1: readonly ClaimEntry[] = [
     file: 'primitives.ts',
     exportPath: 'HOME_PRIMITIVES[3].body',
     proofGrade: 'behavior',
-    text: 'Test-mode checkout and subscriptions ship ready, including webhooks. Go live when you take real money.',
+    text: 'Configure Stripe credentials and webhooks for test-mode checkout and subscriptions. Go live with live credentials when you are ready to accept payments.',
     evidence: [BILLING, WEBHOOKS, RECONCILE],
   },
   {
     file: 'primitives.ts',
     exportPath: 'HOME_PRIMITIVES[4].body',
     proofGrade: 'outcome',
-    text: 'Agents run on models you host by default. Add a hosted provider when you choose.',
+    text: 'Pro adds agent tools. Configure a supported local runner or hosted model provider; hardware and model usage are separate costs.',
     evidence: [OPEN_WEIGHT, PROVIDERS],
   },
   {

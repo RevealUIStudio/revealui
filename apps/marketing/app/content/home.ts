@@ -1,3 +1,6 @@
+// Surface status: HOME_HERO variants and HOME_BENEFITS are rendered on `/`.
+// HOME_GET_STARTED.cli is rendered by Hero. Other HOME_* sections are retained
+// CMS seed/component copy, not mounted by HomePage. See apps/marketing/README.md.
 // Sourced from: app/components/landing/Hero.tsx, app/components/landing/Problem.tsx,
 //   app/components/landing/Demo.tsx, app/components/landing/Faq.tsx,
 //   app/components/GetStarted.tsx (Phase 1c extraction).
@@ -58,29 +61,25 @@ export const HOME_TRUST_SIGNALS = [
 ] as const;
 
 // ---------------------------------------------------------------------------
-// Hero: known-for #5 A/B (query still ?hero=foundation). Distinct H1 so the
-// experiment is not receipts-only; subtitle inherits HOME_HERO (receipts +
-// catalog honesty live there). Served via selectHomeHero().
+// Hero query previews. Scoped claims adopted 2026-10-04; all share the default
+// setup, license, and cost disclosures. Served via selectHomeHero().
 // ---------------------------------------------------------------------------
 
 export const HOME_HERO_FOUNDATION = {
   ...HOME_HERO,
-  h1: 'Existing tools report in. You keep the stack.',
+  h1: 'Build on shared business primitives with supported integrations.',
 } as const;
 
-// Prior default H1, retained for rollback preview via ?hero=ownership
-// (not automatic traffic). Same subtitle as HOME_HERO.
+// Ownership preview via ?hero=ownership. Same disclosures as HOME_HERO.
 export const HOME_HERO_OWNERSHIP = {
   ...HOME_HERO,
-  h1: 'Run your whole business on one runtime you own.',
+  h1: 'Run your business software on infrastructure you control.',
 } as const;
 
-// Corpus L2 leverage-frame A/B (06-copy-corpus.md §4.1). Owner go 2026-07-31:
-// enable via ?hero=l2 only — not default traffic. Measurement still needs an
-// analytics sink (same note as foundation/ownership).
+// Agent configuration preview via ?hero=l2, without automatic traffic split.
 export const HOME_HERO_L2 = {
   ...HOME_HERO,
-  h1: 'Your secrets stay on infra you own. Agents use the same plan rules.',
+  h1: 'Configure agents for the business data and permissions you choose.',
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -98,10 +97,10 @@ export interface ProblemRow {
 
 export const HOME_PROBLEM = {
   eyebrow: 'The problem',
-  heading: 'Tired of tools that don’t talk, and agents you can’t audit?',
+  heading: 'Choose how to build your business runtime.',
   // Hybrid: body states the fork once; matrix carries capability detail.
   // pathBlurbs removed (de-dupe) so we do not restate the three paths twice.
-  body: 'Teams either stitch a vendor for each slice, or start with agents and rebuild the rest. RevealUI is one self-hosted runtime for the business and the agents that run it.',
+  body: 'Compare a shared runtime with connecting separate services or adding business features to an agent framework. Configure and maintain the services you choose.',
   /** Accessible name for the three-path comparison region. */
   tableAriaLabel: 'Vendor sprawl vs agent-framework vs RevealUI comparison',
   columns: {
@@ -113,27 +112,27 @@ export const HOME_PROBLEM = {
   rows: [
     {
       capability: 'Sign-in and permissions',
-      sprawl: 'A separate auth product, priced per seat',
+      sprawl: 'Configure an authentication service',
       agentOnly: 'Bring your own',
       revealui: 'Sign-in, roles, and policies built in',
     },
     {
       capability: 'Content and admin',
-      sprawl: 'A CMS plus a team to wire it',
+      sprawl: 'Connect a content service and admin interface',
       agentOnly: 'Bring your own',
       revealui: 'Your content model, with admin UI and API',
     },
     {
       capability: 'Billing',
-      sprawl: 'Stripe + your glue',
+      sprawl: 'Integrate Stripe checkout and webhooks',
       agentOnly: 'Bring your own',
       revealui: 'Test-mode checkout, subscriptions, and webhook handling',
     },
     {
       capability: 'Agents on your data',
-      sprawl: 'One-off integrations',
-      agentOnly: 'Tool registry only',
-      revealui: 'Agents use the same data and gates as your team',
+      sprawl: 'Connect tools and permissions to each service',
+      agentOnly: 'Configure tools and business access',
+      revealui: 'Supported agent tools use configured API permissions and plan limits',
     },
   ] as readonly ProblemRow[],
   footnote: `Capability only. Pricing is on the pricing page (Pro ${SUBSCRIPTION_PRICE_FALLBACKS.pro.price}/mo + your infrastructure). Vercel, Cloudflare, and Fly are deploy targets, not competitors.`,
@@ -152,7 +151,7 @@ export interface DemoBeat {
 export const HOME_DEMO = {
   eyebrow: 'See a local stack',
   heading: 'Install locally. Test checkout. Point an agent at the same data.',
-  body: 'A local install takes about a minute. Test-mode checkout. Then point an agent at the same data your admin already uses.',
+  body: 'Create a local project, configure its services, and test a supported workflow. Agent tools require Pro and a configured model provider.',
   // Honest: ProductFrame is live presentation components, not a screenshot.
   // Install path stays in the three beats (create-revealui).
   mockupCaption: {
@@ -165,17 +164,17 @@ export const HOME_DEMO = {
     {
       n: '01',
       title: 'Install locally.',
-      body: 'One command. Sign-in, content, admin, billing, and agent tooling run locally.',
+      body: 'Create a local project, then configure the database, authentication, and services your template needs.',
     },
     {
       n: '02',
       title: 'Run a test checkout.',
-      body: 'A user signs up, picks a plan, and test-mode checkout completes. Switch to live mode when you take real money.',
+      body: 'Configure Stripe test credentials and webhooks, then test sign-up and checkout. Configure live credentials before accepting real payments.',
     },
     {
       n: '03',
       title: 'Point an agent at the same data.',
-      body: 'Connect a model. Agents use the same content, sign-in, and plan rules as your team.',
+      body: 'With Pro, configure a supported model provider and agent tools. Use the content API under the configured permissions and plan limits.',
     },
   ] as readonly DemoBeat[],
 } as const;
@@ -196,32 +195,32 @@ export const HOME_FAQ = {
     {
       question: 'Will I get locked in?',
       answer:
-        'Your data stays in Postgres you control. Your deploy stays on infra you choose. Your code stays in your repo. Details live in the docs.',
+        'Use your own repository, database, and hosting accounts. The core uses MIT; Pro packages follow their published license terms and require license validation. Integrations have their own dependencies.',
     },
     {
       question: 'Is it production-ready?',
       answer:
-        'Changes clear automated tests and security checks before they land. This site and the agency site at revealuistudio.com both run on RevealUI in production today.',
+        'Used in production by the team that maintains it. Automated tests and security checks cover defined properties; review the source and validate your own deployment before launch.',
     },
     {
       question: 'How is this different from stitching separate tools together?',
       answer:
-        'Each vendor covers one slice. RevealUI is the whole runtime: people, offers and pages you ship, billing, admin, and agents, self-hosted at all tiers. Deploy targets such as Vercel, Cloudflare, and Fly are places it runs, not competitors.',
+        'RevealUI shares People, Content, Offers, Payments, and Agents across one self-hosted runtime. Configure the services and integrations you need; paid agent features require the appropriate license.',
     },
     {
       question: 'Can I self-host?',
       answer:
-        'Yes. Most packages are MIT forever. A small Pro set is Fair Source and follows its published terms for conversion to MIT. Self-host the full stack on your infrastructure at any tier. License detail is on the Fair Source page.',
+        'Yes. The core uses MIT; Pro packages use FSL-1.1-MIT and follow their published conversion terms. You operate the infrastructure. Paid features require the appropriate license and configuration; read the Fair Source guide for details.',
     },
     {
       question: 'What does agent-native mean for my product?',
       answer:
-        'Agents sign in like users and face the same plan rules. They work on your content through the same APIs your app uses. How the wire protocol works is covered in the docs.',
+        'Supported agent tools access your content through the configured API permissions and plan limits. Configure the agent identity, credentials, and model provider for your deployment.',
     },
     {
       question: 'How does AI inference work?',
       answer:
-        'By default, agents run on an open-weight model on infrastructure you own. Add Claude, GPT, or another provider when you choose. The local AI page walks through the full path.',
+        'Configure a supported local runner or hosted provider. Local inference needs suitable hardware; hosted providers process the requests you send and charge for usage. Read the local-first guide for setup.',
     },
     {
       question: 'How do agent payments work?',
@@ -237,7 +236,7 @@ export const HOME_FAQ = {
 
 export const HOME_GET_STARTED = {
   heading: 'Start on your machine today.',
-  body: 'Install with npx create-revealui@latest, a public GitHub template (starter, basic-blog, portfolio, or e-commerce), or the live Apify actor (pay-per-event; receipt verification is $0.00001, not free).',
+  body: 'Create a local app with npx create-revealui@latest or a public GitHub template. Configure the services your template needs before testing your workflow. The Apify actor is a separate pay-per-event agent run, not an app installer.',
   cta: {
     primary: { label: 'Create a RevealUI account', href: SITE.urls.signup } satisfies Cta,
     secondary: { label: 'Read the docs', href: SITE.urls.docs } satisfies Cta,

@@ -8,10 +8,9 @@ import {
 /**
  * Homepage-hero A/B variant selector.
  *
- * Default: known-for H1 (`HOME_HERO`, Brand LOCK 2026-09-15).
- * `?hero=foundation` — #5 keep-the-stack A/B (not receipts-only).
- * `?hero=ownership` — prior default H1, rollback/preview only.
- * `?hero=l2` — corpus L2 leverage-frame (owner go 2026-07-31; not default).
+ * Default: current benefits-first headline (`HOME_HERO`).
+ * `?hero=foundation`, `?hero=ownership`, and `?hero=l2` select explicit previews.
+ * Each retains the same setup, license, and cost disclosures as the default.
  *
  * An automatic traffic split + conversion measurement is deliberately out of
  * scope here: the marketing app has no analytics sink yet, so a real experiment
