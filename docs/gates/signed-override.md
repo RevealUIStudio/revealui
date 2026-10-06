@@ -30,7 +30,7 @@ ssh-keygen -t ed25519 -f ~/.ssh/id_revealfleet_override -C override@revealui.com
 Return only the contents of `~/.ssh/id_revealfleet_override.pub` or the public
 allowed-signers entry. The `.pub` suffix matters.
 
-Set the repository Actions variable `REVFLEET_OVERRIDE_SIGNERS` to the public
+Set the repository Actions variable `REVEALFLEET_OVERRIDE_SIGNERS` to the public
 allowed-signers entry. It has this shape (replace the placeholder with the
 owner's real public key; this is not an activation value):
 

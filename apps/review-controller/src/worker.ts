@@ -1,0 +1,64 @@
+import { randomUUID } from 'node:crypto';
+import { setTimeout as delay } from 'node:timers/promises';
+import { type ClaimedWebhook, MAX_WEBHOOK_ATTEMPTS, type WebhookInbox } from './inbox.js';
+
+export type WebhookWorkResult =
+  | 'idle'
+  | 'completed'
+  | 'retry-scheduled'
+  | 'terminal-failure'
+  | 'lease-lost';
+
+export interface WebhookHandler {
+  process(webhook: ClaimedWebhook): Promise<void>;
+}
+
+/** Process one durable delivery. The handler must be idempotent across retries. */
+export async function processNextWebhook(input: {
+  inbox: Pick<WebhookInbox, 'claimNext' | 'complete' | 'retry'>;
+  handler: WebhookHandler;
+  leaseDurationMs?: number;
+  createLeaseToken?: () => string;
+  now?: () => Date;
+}): Promise<WebhookWorkResult> {
+  const leaseToken = (input.createLeaseToken ?? randomUUID)();
+  const claimed = await input.inbox.claimNext(leaseToken, input.leaseDurationMs ?? 60_000);
+  if (!claimed) return 'idle';
+
+  try {
+    await input.handler.process(claimed);
+  } catch {
+    const delayMs = Math.min(60 * 60_000, 5_000 * 2 ** Math.min(claimed.attempts - 1, 10));
+    const retryAt = new Date((input.now ?? (() => new Date()))().getTime() + delayMs);
+    const updated = await input.inbox.retry(
+      claimed.deliveryId,
+      leaseToken,
+      'handler_error',
+      retryAt,
+    );
+    if (!updated) return 'lease-lost';
+    return claimed.attempts >= MAX_WEBHOOK_ATTEMPTS ? 'terminal-failure' : 'retry-scheduled';
+  }
+
+  return (await input.inbox.complete(claimed.deliveryId, leaseToken)) ? 'completed' : 'lease-lost';
+}
+
+export async function runWebhookWorker(input: {
+  inbox: Pick<WebhookInbox, 'claimNext' | 'complete' | 'retry'>;
+  handler: WebhookHandler;
+  signal: AbortSignal;
+  pollIntervalMs?: number;
+}): Promise<void> {
+  const pollIntervalMs = input.pollIntervalMs ?? 1_000;
+  if (!Number.isSafeInteger(pollIntervalMs) || pollIntervalMs < 100 || pollIntervalMs > 60_000)
+    throw new Error('invalid poll interval');
+  while (!input.signal.aborted) {
+    try {
+      const result = await processNextWebhook({ inbox: input.inbox, handler: input.handler });
+      if (result === 'idle') await delay(pollIntervalMs, undefined, { signal: input.signal });
+    } catch {
+      if (input.signal.aborted) break;
+      await delay(Math.max(pollIntervalMs, 5_000), undefined, { signal: input.signal });
+    }
+  }
+}

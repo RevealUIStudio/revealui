@@ -25,44 +25,27 @@
 // Uses the existing shared gates resolver/build and OpenSSH verification.
 // No local signing, private-key handling, or label-only grant.
 //
-// SECURITY_PATHS source of truth (GAP-404): scripts/validate/security-paths.shared.json
+// SECURITY_PATHS source of truth (GAP-404): packages/harnesses/src/gates/security-paths.shared.json
 // Widen shared surfaces there only. The fleet checker vendors a copy of that
 // file and adds a fleet-only overlay — never hand-edit a second full list.
 
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
 const { execFileSync } = require('child_process');
 const { evaluateGuardrail2 } = require('./guardrail2-verdict.cjs');
 const { resolveGatesModule } = require('./gates-resolver.cjs');
 
-/**
- * Load revealui security path markers from the single editable source
- * (GAP-404). The fleet checker (.jv) loads this same file + a fleet-only
- * overlay; never hand-edit a second copy of the shared list.
- */
-function loadSharedSecurityPaths() {
-  const file = path.join(__dirname, 'security-paths.shared.json');
-  const raw = fs.readFileSync(file, 'utf8');
-  const data = JSON.parse(raw);
-  if (!data || !Array.isArray(data.markers) || data.markers.length === 0) {
-    throw new Error(
-      `security-paths.shared.json must export a non-empty "markers" array (${file})`,
-    );
-  }
-  for (const m of data.markers) {
-    if (typeof m !== 'string' || m.length === 0) {
-      throw new Error(`security-paths.shared.json marker must be a non-empty string: ${m}`);
-    }
-  }
-  return data.markers;
+// Use the shared classifier and canonical marker source so controller shadow
+// evidence and this required gate cannot drift.
+const sharedGates = resolveGatesModule();
+if (
+  !sharedGates ||
+  typeof sharedGates.classifySecurityPaths !== 'function' ||
+  typeof sharedGates.classifySecurityPathsAtApiLimit !== 'function'
+) {
+  throw new Error('shared security path classifier unavailable');
 }
-
-// A changed file is security-sensitive if its path contains ANY of these
-// substrings. Deliberately broad — money, identity, credential, code-exec,
-// and stored-content surfaces. Source: security-paths.shared.json (GAP-404).
-const SECURITY_PATHS = loadSharedSecurityPaths();
+const SECURITY_PATHS = sharedGates.SECURITY_PATH_MARKERS;
 
 // These labels are request signals only; none grants clearance.
 const SEC_REVIEW_LABELS = new Set([
@@ -79,7 +62,7 @@ function gh(args) {
  * The REST list-files endpoint stops at 3000 files. A diff at (or past) that
  * ceiling cannot be classified honestly, so `hitsForFiles` fails closed there.
  */
-const MAX_CLASSIFIABLE_FILES = 3000;
+const MAX_CLASSIFIABLE_FILES = sharedGates.MAX_CLASSIFIABLE_SECURITY_PATHS;
 
 /**
  * Full changed-file list for a PR, paginated. `gh pr view --json files` caps at
@@ -93,7 +76,7 @@ function fetchPrFiles(prNumber, repo, ghImpl) {
     ghImpl ||
     ((args) => execFileSync('gh', args, { encoding: 'utf8', timeout: 120000, maxBuffer: 32 * 1024 * 1024 }));
   const path = `repos/${repo || '{owner}/{repo}'}/pulls/${prNumber}/files`;
-  const out = run(['api', path, '--paginate', '--jq', '.[].filename']);
+  const out = run(['api', path, '--paginate', '--jq', '.[] | .filename, .previous_filename // empty']);
   return out.split('\n').filter((line) => line.length > 0);
 }
 
@@ -102,23 +85,11 @@ function fetchPrFiles(prNumber, repo, ghImpl) {
  * endpoint may have truncated is treated as security-sensitive unconditionally.
  */
 function hitsForFiles(files) {
-  if (files.length >= MAX_CLASSIFIABLE_FILES) {
-    return ['(file list at the API ceiling — unclassifiable, failing closed)'];
-  }
-  return classifyFiles(files);
+  return sharedGates.classifySecurityPathsAtApiLimit(files);
 }
 
 function classifyFiles(files) {
-  const hits = [];
-  for (const f of files) {
-    for (const marker of SECURITY_PATHS) {
-      if (f.includes(marker)) {
-        hits.push(f);
-        break;
-      }
-    }
-  }
-  return hits;
+  return sharedGates.classifySecurityPaths(files);
 }
 
 /** Labels/reviews request clearance; only the owner signature grants it. */
@@ -236,7 +207,7 @@ function fetchCommitPulls(sha, repo, excludePrNumber, ghImpl = gh, options = {})
     if (!cache.has(number)) {
       const data = JSON.parse(ghImpl(['pr', 'view', String(number), '--repo', repo, '--json', 'labels,author,headRefOid,mergedAt']));
       const discussion = fetchPrDiscussion(number, repo, ghImpl);
-      const decision = verifyPrOwnerRecord(data, number, repo, discussion, options.allowedSigners ?? process.env.REVFLEET_OVERRIDE_SIGNERS ?? '', options.verifyImpl);
+      const decision = verifyPrOwnerRecord(data, number, repo, discussion, resolveAllowedSigners(options.allowedSigners), options.verifyImpl);
       cache.set(number, { head: data.headRefOid, merged: Boolean(data.mergedAt), decision, commits: fetchPrCommitShas(number, repo, ghImpl) });
     }
     const record = cache.get(number);
@@ -315,7 +286,7 @@ function runPrMode(prNumber, repo) {
       return;
     }
     const discussion = fetchPrDiscussion(prNumber, target);
-    const decision = verifyPrOwnerRecord(data, prNumber, target, discussion, process.env.REVFLEET_OVERRIDE_SIGNERS || '');
+    const decision = verifyPrOwnerRecord(data, prNumber, target, discussion, resolveAllowedSigners());
     if (decision.action === 'clear') {
       process.stdout.write(`PR #${prNumber}: verified exact-head owner sec-review signature (${decision.url || 'recorded comment'}).\n`);
       process.exitCode = 0;
@@ -385,6 +356,10 @@ function main() {
   runDiffMode(base);
 }
 
+function resolveAllowedSigners(explicit) {
+  return explicit ?? process.env.REVEALFLEET_OVERRIDE_SIGNERS ?? '';
+}
+
 // Export the surface list + classifier so the unit test can assert the
 // classification without spawning the CLI. Guarding main() behind
 // require.main === module keeps the CLI behavior identical when run directly.
@@ -403,6 +378,7 @@ module.exports = {
   fetchPrCommitShas,
   fetchPrFiles,
   hitsForFiles,
+  resolveAllowedSigners,
   // exposed for integration tests / CI dry-runs
   buildPromoteCoverage,
 };

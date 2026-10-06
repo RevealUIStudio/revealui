@@ -1,5 +1,5 @@
 {
-  "$schema_note": "Single source of truth for revealui SECURITY_PATHS markers (GAP-404). Loaded by security-review-gate.cjs. Fleet-only markers live only in the private .jv checker overlay. Edit THIS file when widening shared surfaces; do not hand-edit a second copy.",
+  "$schema_note": "Single source of truth for RevealUI security path markers. The shared harness classifier and security-review gate consume this file. Fleet-only markers live only in the private .jv checker overlay. Edit THIS file when widening shared surfaces; do not hand-edit a second copy.",
   "markers": [
     "middleware/auth",
     "middleware/license",

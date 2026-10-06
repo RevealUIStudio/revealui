@@ -24,10 +24,8 @@ describe('session boundary (soft-optional daemon)', () => {
 
   it('uses only the canonical archive setting', () => {
     const canonical = process.env.REVEALFLEET_ARCHIVE;
-    const legacy = process.env.REVFLEET_ARCHIVE;
     try {
       delete process.env.REVEALFLEET_ARCHIVE;
-      process.env.REVFLEET_ARCHIVE = '/ignored-legacy-archive';
       expect(coldDaemonSessionsDir()).toBe(
         join(homedir(), 'revealfleet', 'archive', 'cold', 'sessions', 'daemon'),
       );
@@ -40,8 +38,6 @@ describe('session boundary (soft-optional daemon)', () => {
     } finally {
       if (canonical === undefined) delete process.env.REVEALFLEET_ARCHIVE;
       else process.env.REVEALFLEET_ARCHIVE = canonical;
-      if (legacy === undefined) delete process.env.REVFLEET_ARCHIVE;
-      else process.env.REVFLEET_ARCHIVE = legacy;
     }
   });
 

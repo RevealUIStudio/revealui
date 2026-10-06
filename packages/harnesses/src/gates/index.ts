@@ -61,6 +61,20 @@ export {
   PUBLIC_VERDICT_MAX_CHARS,
   renderPublicGuardrail2Comment,
 } from './public-security-comment-gate.js';
+export type {
+  ReviewReceipt,
+  ReviewReceiptContext,
+  ReviewReceiptEnvelope,
+  ReviewReceiptResult,
+} from './review-receipt.js';
+export {
+  canonicalReviewReceipt,
+  canonicalReviewReceiptEnvelope,
+  parseReviewReceiptEnvelope,
+  REVIEW_RECEIPT_SCHEMA,
+  signReviewReceipt,
+  verifyReviewReceipt,
+} from './review-receipt.js';
 export type { LabelGateResult, StatusCheckLike } from './sec-review-label-gate.js';
 export {
   checkSecReviewLabelApply,
@@ -69,6 +83,13 @@ export {
   REQUIRED_SECURITY_AUDIT_CHECKS,
   SEC_REVIEW_APPROVED_LABEL,
 } from './sec-review-label-gate.js';
+export {
+  classifySecurityPaths,
+  classifySecurityPathsAtApiLimit,
+  MAX_CLASSIFIABLE_SECURITY_PATHS,
+  SECURITY_PATH_CLASSIFIER_VERSION,
+  SECURITY_PATH_MARKERS,
+} from './security-path-classifier.js';
 export type {
   OwnerOverrideComment,
   OwnerOverrideContext,

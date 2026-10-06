@@ -27,7 +27,7 @@ const clearVerdict = { status: 'clear', reviewer: 'reviewer', timestamp: '2026-0
 const ENFORCEMENT_MACHINERY_FILES = [
   'scripts/validate/security-review-gate.cjs',
   'scripts/validate/sec-audit-label-decision.cjs',
-  'scripts/validate/security-paths.shared.json',
+  'packages/harnesses/src/gates/security-paths.shared.json',
   '.github/workflows/security-review-gate.yml',
   '.github/workflows/sec-audit-label-guard.yml',
   '.github/workflows/security.yml',
@@ -148,6 +148,17 @@ describe('fetchPrFiles — the full paginated list, not the 100-file window', ()
     };
     fetchPrFiles(7, undefined, ghImpl);
     expect(calls[0]).toContain('repos/{owner}/{repo}/pulls/7/files');
+  });
+
+  it('classifies a renamed file by its protected previous path', () => {
+    const calls: string[][] = [];
+    const ghImpl = (args: string[]) => {
+      calls.push(args);
+      return 'apps/marketing/credentials.ts\npackages/security/credentials.ts\n';
+    };
+    const paths = fetchPrFiles(8, 'RevealUIStudio/revealui', ghImpl);
+    expect(calls[0]).toContain('.[] | .filename, .previous_filename // empty');
+    expect(classifyFiles(paths)).toContain('packages/security/credentials.ts');
   });
 });
 
@@ -278,11 +289,24 @@ const {
   verifyPrOwnerRecord,
   fetchCommitPulls,
   fetchPrCommitShas,
+  resolveAllowedSigners,
 } = require('../security-review-gate.cjs');
 const target = 'RevealUIStudio/revealui';
 const featureHead = 'a'.repeat(40);
 
 describe('owner grant evidence adapter', () => {
+  it('reads the canonical REVEALFLEET signer variable', () => {
+    const canonical = process.env.REVEALFLEET_OVERRIDE_SIGNERS;
+    try {
+      process.env.REVEALFLEET_OVERRIDE_SIGNERS = 'canonical-anchor';
+      expect(resolveAllowedSigners()).toBe('canonical-anchor');
+      expect(resolveAllowedSigners('explicit-anchor')).toBe('explicit-anchor');
+    } finally {
+      if (canonical === undefined) delete process.env.REVEALFLEET_OVERRIDE_SIGNERS;
+      else process.env.REVEALFLEET_OVERRIDE_SIGNERS = canonical;
+    }
+  });
+
   it('paginates comments AND reviews and normalizes reviewer identities', () => {
     const calls: string[][] = [];
     const result = fetchPrDiscussion(91, target, (args: string[]) => {

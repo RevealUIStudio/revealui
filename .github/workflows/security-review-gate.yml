@@ -59,9 +59,8 @@ jobs:
           # checkout exists only to supply this script code.
           # Kept under pull_request_target (defaults to base) as belt-and-braces.
           ref: ${{ github.event.pull_request.base.sha }}
-          # GAP-404: gate loads SECURITY_PATHS from security-paths.shared.json
-          # at module load. Sparse list must include that JSON or the job
-          # crashes ENOENT before it can classify the PR (revealui#2074).
+          # GAP-404: the shared gates build embeds the canonical security path
+          # list from packages/harnesses/src/gates/security-paths.shared.json.
           # GAP-408: guardrail2-verdict.cjs is a thin adapter over the
           # @revealui/harnesses gates module. Builds it from THIS checkout's
           # own source (packages/harnesses/ + packages/dev/ for the shared
@@ -78,7 +77,6 @@ jobs:
             scripts/validate/security-review-gate.cjs
             scripts/validate/guardrail2-verdict.cjs
             scripts/validate/gates-resolver.cjs
-            scripts/validate/security-paths.shared.json
             package.json
             pnpm-workspace.yaml
             pnpm-lock.yaml
@@ -113,7 +111,7 @@ jobs:
       - name: Evaluate review gate
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REVFLEET_OVERRIDE_SIGNERS: ${{ vars.REVFLEET_OVERRIDE_SIGNERS }}
+          REVEALFLEET_OVERRIDE_SIGNERS: ${{ vars.REVEALFLEET_OVERRIDE_SIGNERS }}
         run: |
           set -euo pipefail
           node scripts/validate/security-review-gate.cjs \
