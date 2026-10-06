@@ -7,6 +7,7 @@ import type {
   RevealPaginatedResult,
   RevealRequest,
 } from '@revealui/core/types';
+import { parseStoredJsonFields } from '@revealui/core/utils/stored-json-fields';
 import { getRestClient } from '@revealui/db/client';
 import { createPage, deletePage, getPageById, updatePage } from '@revealui/db/queries/pages';
 import { createPost, deletePost, getPostById, updatePost } from '@revealui/db/queries/posts';
@@ -88,12 +89,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-interface JsonBackedRow {
-  _json?: unknown;
-}
-
-function getJsonFields(row: JsonBackedRow): Record<string, unknown> {
-  return isRecord(row._json) ? row._json : {};
+function getJsonFields(row: Pick<DbUser | DbTenant, 'id' | '_json'>, collection: string) {
+  // The database's untyped JSONB value is validated by the shared storage
+  // boundary before it can become document content.
+  return parseStoredJsonFields(row._json, `${collection}.id=${row.id}`);
 }
 
 function splitName(name: string): { firstName?: string; lastName?: string } {
@@ -112,7 +111,7 @@ function splitName(name: string): { firstName?: string; lastName?: string } {
 }
 
 function mapUserDocument(row: DbUser): RevealDocument {
-  const json = getJsonFields(row);
+  const json = getJsonFields(row, 'users');
   const fallbackNames = splitName(row.name || '');
 
   return {
@@ -140,7 +139,7 @@ function mapUserDocument(row: DbUser): RevealDocument {
 }
 
 function mapTenantDocument(row: DbTenant): RevealDocument {
-  const json = getJsonFields(row);
+  const json = getJsonFields(row, 'tenants');
 
   return {
     ...json,

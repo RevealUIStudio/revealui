@@ -5,7 +5,6 @@
  */
 
 import bcrypt from 'bcryptjs';
-import { logger } from '../../observability/logger.js';
 import type {
   QueryableDatabaseAdapter,
   RevealCollectionConfig,
@@ -15,7 +14,11 @@ import type {
   RevealUpdateOptions,
   RevealWhere,
 } from '../../types/index.js';
-import { collectJsonFields, serializeValueForDatabase } from '../../utils/json-parsing.js';
+import {
+  collectJsonFields,
+  parseStoredJsonFields,
+  serializeValueForDatabase,
+} from '../../utils/json-parsing.js';
 import { flattenFields, isJsonFieldType } from '../../utils/type-guards.js';
 import { runBeforeFieldHooks } from './fieldHooks.js';
 import { runFieldValidators } from './fieldValidation.js';
@@ -243,26 +246,10 @@ export async function update(
         throw new Error(`Document with id ${id} not found`);
       }
 
-      if (rawResult.rows[0]._json !== null && rawResult.rows[0]._json !== undefined) {
-        try {
-          const rawJson: unknown = rawResult.rows[0]._json;
-          if (typeof rawJson === 'string') {
-            const parsed = JSON.parse(rawJson) as unknown;
-            existingJson =
-              parsed && typeof parsed === 'object' && !Array.isArray(parsed)
-                ? (parsed as Record<string, unknown>)
-                : {};
-          } else if (rawJson && typeof rawJson === 'object' && !Array.isArray(rawJson)) {
-            existingJson = rawJson as Record<string, unknown>;
-          }
-        } catch (error) {
-          // Log JSON parse error for debugging
-          logger.warn(`[CollectionOperations] Failed to parse _json for ${tableName}.id=${id}`, {
-            error: error instanceof Error ? { message: error.message, name: error.name } : error,
-          });
-          existingJson = {};
-        }
-      }
+      // Validate required stored content before issuing a write. Reuse the
+      // read decoder so corruption cannot be replaced or rejected only after
+      // a scalar update has already persisted.
+      existingJson = parseStoredJsonFields(rawResult.rows[0]._json, `${tableName}.id=${id}`);
     } else if (keys.length > 0) {
       // No JSON fields in collection - just verify document exists
       const checkQuery = checkExistsByIdQuery(tableName);

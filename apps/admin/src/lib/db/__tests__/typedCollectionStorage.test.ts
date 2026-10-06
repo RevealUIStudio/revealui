@@ -1,4 +1,5 @@
-import type { RevealFindOptions } from '@revealui/core/types';
+// @vitest-environment node
+import type { RevealFindOptions, RevealValue } from '@revealui/core/types';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTypedCollectionStorage } from '../typedCollectionStorage';
 
@@ -45,6 +46,101 @@ describe('typedCollectionStorage', () => {
     delete process.env.DATABASE_URL;
 
     expect(createTypedCollectionStorage()).toBeUndefined();
+  });
+
+  describe.each(['users', 'tenants'])('%s stored extension decoding', (slug) => {
+    function installRow(extension: RevealValue | undefined) {
+      process.env.POSTGRES_URL = 'postgresql://example';
+      const row = {
+        id: 'canonical_1',
+        name: 'Canonical Name',
+        email: 'canonical@example.com',
+        password: 'hashed',
+        role: 'admin',
+        status: 'active',
+        type: 'human',
+        roles: ['tenant-admin'],
+        domains: [{ domain: 'canonical.example.com' }],
+        createdAt: new Date('2026-03-12T00:00:00Z'),
+        updatedAt: new Date('2026-03-12T00:00:00Z'),
+        _json: extension,
+      };
+      getRestClient.mockReturnValue({
+        query: {
+          [slug]: {
+            findFirst: vi.fn().mockResolvedValue(row),
+            findMany: vi.fn().mockResolvedValue([row]),
+          },
+        },
+        select: vi.fn(() => ({
+          from: vi.fn(() => ({ where: vi.fn().mockResolvedValue([{ value: 1 }]) })),
+        })),
+      });
+      const storage = createTypedCollectionStorage();
+      if (!(storage?.find && storage.findByID)) throw new Error('Missing typed storage handlers');
+      return {
+        find: () => storage.find?.({ slug, fields: [] }, { limit: 10, page: 1 }),
+        findByID: () => storage.findByID?.({ slug, fields: [] }, { id: row.id }),
+      };
+    }
+
+    const invalidExtensions: Array<[label: string, extension: RevealValue]> = [
+      ['malformed text', '{broken'],
+      ['array', []],
+      ['number', 7],
+      ['boolean', false],
+      ['date', new Date('2026-03-12T00:00:00Z')],
+      ['encoded array', '[]'],
+      ['encoded null', 'null'],
+      ['encoded number', '7'],
+      ['identity replacement', { id: 'extension_1' }],
+      ['extension container', { _json: {} }],
+      ['reserved prototype', '{"__proto__":{"marker":true}}'],
+      ['nested reserved key', '{"nested":{"constructor":true}}'],
+      ['non-finite value', { value: Number.POSITIVE_INFINITY }],
+    ];
+
+    it.each(invalidExtensions)('rejects %s before findByID returns', async (_label, extension) => {
+      const handlers = installRow(extension);
+      await expect(handlers.findByID()).rejects.toThrow('_json');
+    });
+
+    it.each(invalidExtensions)('rejects %s before find returns', async (_label, extension) => {
+      const handlers = installRow(extension);
+      await expect(handlers.find()).rejects.toThrow('_json');
+    });
+
+    it.each([{}, '{}', null, undefined])(
+      'retains the empty legacy extension %j',
+      async (extension) => {
+        const handlers = installRow(extension);
+        expect(await handlers.findByID()).toMatchObject({ id: 'canonical_1' });
+        expect(await handlers.find()).toMatchObject({ docs: [{ id: 'canonical_1' }] });
+      },
+    );
+
+    it.each([
+      {
+        name: 'Extension Name',
+        email: 'extension@example.com',
+        note: '{"literal":true}',
+        listText: '[1,2]',
+        nested: { flags: [true, null], count: 3 },
+      },
+      '{"name":"Extension Name","email":"extension@example.com","note":"{\\"literal\\":true}","listText":"[1,2]","nested":{"flags":[true,null],"count":3}}',
+    ])('preserves extension content and canonical columns for %j', async (extension) => {
+      const handlers = installRow(extension);
+      const expected = {
+        id: 'canonical_1',
+        name: 'Canonical Name',
+        email: 'canonical@example.com',
+        note: '{"literal":true}',
+        listText: '[1,2]',
+        nested: { flags: [true, null], count: 3 },
+      };
+      expect(await handlers.findByID()).toMatchObject(expected);
+      expect(await handlers.find()).toMatchObject({ docs: [expected] });
+    });
   });
 
   it('maps users through Drizzle for findByID', async () => {

@@ -5,8 +5,58 @@
  * Handles the _json column pattern used for storing complex field types.
  */
 
-import { logger } from '../observability/logger.js';
-import type { RevealDocument } from '../types/index.js';
+import { z } from 'zod';
+import type { RevealDocument, RevealValue } from '../types/index.js';
+
+const reservedFieldNames = new Set(['__proto__', 'constructor', 'prototype']);
+const documentFieldNameSchema = z.string().refine((key) => !reservedFieldNames.has(key));
+
+const documentIdSchema = z.union([z.string().min(1), z.number().finite()]);
+
+// The schema receives opaque adapter/JSON values. Inspect keys before Zod
+// records can omit __proto__; nested values share this same boundary check.
+function rejectReservedFields(value: unknown, context: z.RefinementCtx) {
+  if (
+    value !== null &&
+    typeof value === 'object' &&
+    Object.keys(value).some((key) => reservedFieldNames.has(key))
+  ) {
+    context.addIssue({ code: 'custom', message: 'Reserved document field' });
+  }
+  return value;
+}
+
+const documentValueSchema: z.ZodType<RevealValue> = z.preprocess(
+  rejectReservedFields,
+  z.lazy(() =>
+    z.union([
+      z.string(),
+      z.number(),
+      z.boolean(),
+      z.null(),
+      z.date(),
+      z.array(documentValueSchema),
+      z.record(documentFieldNameSchema, documentValueSchema),
+    ]),
+  ),
+);
+const documentRecordSchema = z.preprocess(
+  rejectReservedFields,
+  z.record(documentFieldNameSchema, documentValueSchema.optional()),
+);
+
+/** Validate already-decoded adapter documents without interpreting string fields. */
+export function validateDocument(value: unknown, context: string): RevealDocument {
+  // Public adapter implementations are external runtime inputs despite their
+  // TypeScript return contract. Narrow the complete record before exposing it.
+  const document = documentRecordSchema.safeParse(value);
+  if (!document.success) throw new Error(`Invalid document in ${context}`);
+  const id = documentIdSchema.safeParse(document.data.id);
+  if (!id.success) throw new Error(`Invalid document id in ${context}`);
+  return { ...document.data, id: id.data };
+}
+
+const extensionFieldsSchema = z.record(documentFieldNameSchema, documentValueSchema);
 
 /**
  * Parse a JSON field value safely
@@ -32,6 +82,46 @@ export function parseJsonField(value: unknown): unknown {
 }
 
 /**
+ * Validate stored extension content before reads or read-modify-write merges.
+ * Opaque database/JSON parser input is narrowed by the shared runtime schema.
+ * SQL NULL and absent legacy extensions retain their empty-object meaning.
+ */
+export function parseStoredJsonFields(
+  encodedFields: unknown,
+  context: string,
+): Record<string, RevealValue> {
+  // _json is required structured content when present. Parse and validate the
+  // whole extension before constructing a result; corruption must fail the read.
+  let extensionFields: Record<string, RevealValue> = {};
+  if (encodedFields !== null && encodedFields !== undefined) {
+    // JSON.parse has an unvalidated return type; unknown keeps it opaque until
+    // the runtime schema below establishes the extension's actual shape.
+    let parsedFields: unknown = encodedFields;
+    if (typeof encodedFields === 'string') {
+      try {
+        parsedFields = JSON.parse(encodedFields);
+      } catch {
+        throw new Error(`Invalid _json JSON in ${context}`);
+      }
+    }
+    if (parsedFields !== null && typeof parsedFields === 'object') {
+      for (const key of Object.keys(parsedFields)) {
+        if (key === 'id' || key === '_json' || reservedFieldNames.has(key)) {
+          throw new Error(`Reserved _json field in ${context}: ${key}`);
+        }
+      }
+    }
+    const validatedFields = extensionFieldsSchema.safeParse(parsedFields);
+    if (!validatedFields.success) {
+      throw new Error(`Invalid _json object in ${context}`);
+    }
+    extensionFields = validatedFields.data;
+  }
+
+  return extensionFields;
+}
+
+/**
  * Deserialize JSON fields from database document
  *
  * Handles the _json column pattern:
@@ -42,70 +132,34 @@ export function parseJsonField(value: unknown): unknown {
  * - Deserializes other JSON strings (backwards compatibility)
  *
  * @param doc - Raw document from database
- * @param tableName - Table name (for logging)
- * @returns Deserialized document
+ * @param tableName - Table name (for error context)
+ * @returns Validated document with its database identity preserved
+ * @throws When identity or required internal JSON is invalid
  */
 export function deserializeJsonFields(
   doc: Record<string, unknown>,
   tableName?: string,
 ): RevealDocument {
-  // Ensure id field exists (required by RevealDocument type)
-  const rawId = doc.id;
-  const fallbackId =
-    rawId === null || rawId === undefined
-      ? ''
-      : typeof rawId === 'string' ||
-          typeof rawId === 'number' ||
-          typeof rawId === 'boolean' ||
-          typeof rawId === 'bigint'
-        ? String(rawId)
-        : '';
-  const result: RevealDocument = {
-    id: typeof rawId === 'string' || typeof rawId === 'number' ? rawId : fallbackId,
-    ...doc,
-  };
+  const context = tableName || 'unknown';
+  const parsedId = documentIdSchema.safeParse(doc.id);
+  if (!parsedId.success) throw new Error(`Invalid document id in ${context}`);
+  const id = parsedId.data;
 
-  // Handle _json column: deserialize and merge JSON fields into document
-  if (result._json !== null && result._json !== undefined) {
-    try {
-      // PostgreSQL JSONB returns as object, SQLite TEXT returns as string
-      const jsonFields =
-        typeof result._json === 'string' ? (JSON.parse(result._json) as unknown) : result._json;
+  const extensionFields = parseStoredJsonFields(doc._json, context);
 
-      // Merge JSON fields into document
-      if (jsonFields && typeof jsonFields === 'object') {
-        Object.assign(result, jsonFields);
-      }
-    } catch (error) {
-      // Invalid JSON - log for debugging but continue
-      logger.warn(`Failed to parse _json in ${tableName || 'unknown'}`, {
-        error: error instanceof Error ? { message: error.message, name: error.name } : error,
-      });
+  const result: RevealDocument = { id };
+  for (const [key, value] of Object.entries({ ...doc, ...extensionFields })) {
+    // The database identity is authoritative, including JSON-looking strings.
+    // Neither extension data nor backwards-compatible parsing may replace it.
+    if (key === 'id' || key === '_json') continue;
+    if (reservedFieldNames.has(key)) {
+      throw new Error(`Reserved document field in ${context}: ${key}`);
     }
-  }
-
-  // Remove _json from result (internal column)
-  Reflect.deleteProperty(result as Record<string, unknown>, '_json');
-
-  // Deserialize other JSON strings (for backwards compatibility with non-JSON fields)
-  for (const [key, value] of Object.entries(result)) {
-    if (value === null || value === undefined) {
-      result[key] = value;
-      continue;
+    const parsed = documentValueSchema.optional().safeParse(parseJsonField(value));
+    if (!parsed.success) {
+      throw new Error(`Invalid document field in ${context}: ${key}`);
     }
-
-    // Check for JSON string pattern
-    if (typeof value === 'string' && (value.startsWith('{') || value.startsWith('['))) {
-      try {
-        const parsed = JSON.parse(value) as unknown;
-        result[key] = parsed as RevealDocument[typeof key];
-      } catch {
-        // Not valid JSON, keep as string
-        result[key] = value;
-      }
-    } else {
-      result[key] = value;
-    }
+    result[key] = parsed.data;
   }
 
   return result;

@@ -251,7 +251,12 @@ export interface RevealGlobal {
 // =============================================================================
 
 export interface DatabaseResult {
-  rows: RevealDocument[];
+  /**
+   * SQL projections need not contain a document ID. Driver column values remain
+   * unknown here because SQL expressions and custom type parsers determine them;
+   * consumers must validate values against their query's expected result shape.
+   */
+  rows: Record<string, unknown>[];
   rowCount: number;
 }
 

@@ -1,8 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
-
-vi.mock('../../observability/logger.js', () => ({
-  logger: { warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn() },
-}));
+import { describe, expect, it } from 'vitest';
 
 import {
   collectJsonFields,
@@ -53,9 +49,8 @@ describe('parseJsonField', () => {
 // Tests  -  deserializeJsonFields
 // ---------------------------------------------------------------------------
 describe('deserializeJsonFields', () => {
-  it('ensures id field exists', () => {
-    const result = deserializeJsonFields({ name: 'test' });
-    expect(result.id).toBe('');
+  it('requires an id instead of fabricating one', () => {
+    expect(() => deserializeJsonFields({ name: 'test' })).toThrow('Invalid document id');
   });
 
   it('preserves string id', () => {
@@ -90,11 +85,8 @@ describe('deserializeJsonFields', () => {
     expect(result).not.toHaveProperty('_json');
   });
 
-  it('handles invalid _json string gracefully', () => {
-    const result = deserializeJsonFields({ id: '1', _json: 'not-json' });
-    expect(result.id).toBe('1');
-    // Should not throw, _json is removed
-    expect(result).not.toHaveProperty('_json');
+  it('refuses invalid required _json instead of returning partial data', () => {
+    expect(() => deserializeJsonFields({ id: '1', _json: 'not-json' })).toThrow('Invalid _json');
   });
 
   it('deserializes JSON string values in other fields', () => {
@@ -118,11 +110,8 @@ describe('deserializeJsonFields', () => {
     expect(result.field).toBeNull();
   });
 
-  it('preserves boolean id from spread (edge case)', () => {
-    // The spread `...doc` overwrites the computed id, so boolean survives
-    // biome-ignore lint/suspicious/noExplicitAny: test edge case
-    const result = deserializeJsonFields({ id: true as any });
-    expect(result.id).toBe(true);
+  it('rejects a boolean id at the database boundary', () => {
+    expect(() => deserializeJsonFields({ id: true })).toThrow('Invalid document id');
   });
 });
 
@@ -185,4 +174,96 @@ describe('serializeValueForDatabase', () => {
   it('returns booleans as-is', () => {
     expect(serializeValueForDatabase(true)).toBe(true);
   });
+});
+
+describe('document decoding validation', () => {
+  it.each([undefined, null, '', true, 1n, {}, [], Number.NaN, Number.POSITIVE_INFINITY])(
+    'rejects invalid source identity %s',
+    (id) => {
+      expect(() => deserializeJsonFields({ id })).toThrow();
+    },
+  );
+
+  it.each(['[123]', '{"id":"nested"}'])('preserves the raw string identity %s', (id) => {
+    expect(deserializeJsonFields({ id }).id).toBe(id);
+  });
+
+  it.each([{ id: 'replacement' }, '{"id":"replacement"}'])(
+    'rejects extension identity collisions',
+    (_json) => {
+      expect(() => deserializeJsonFields({ id: 'stored', _json })).toThrow();
+    },
+  );
+
+  it.each(['{broken', '[]', 'true', '0', '"text"', 'null', [], true, 0])(
+    'rejects malformed required extension data %j',
+    (_json) => {
+      expect(() => deserializeJsonFields({ id: 'stored', _json })).toThrow();
+    },
+  );
+
+  it.each([
+    '{"__proto__":{"admin":true}}',
+    '{"constructor":{"admin":true}}',
+    '{"prototype":{}}',
+    '{"_json":{}}',
+  ])('rejects reserved extension fields %s', (_json) => {
+    expect(() => deserializeJsonFields({ id: 'stored', _json })).toThrow();
+  });
+
+  it('preserves supported legacy content, dates, absent extension data, and input objects', () => {
+    const createdAt = new Date('2026-01-01T00:00:00Z');
+    const doc = {
+      id: 'stored',
+      createdAt,
+      optional: undefined,
+      title: '{literal',
+      meta: '[1,2]',
+      _json: { tags: ['one'] },
+    };
+    expect(deserializeJsonFields(doc)).toEqual({
+      id: 'stored',
+      createdAt,
+      optional: undefined,
+      title: '{literal',
+      meta: [1, 2],
+      tags: ['one'],
+    });
+    expect(doc._json).toEqual({ tags: ['one'] });
+    expect(doc.meta).toBe('[1,2]');
+    expect(deserializeJsonFields({ id: 'stored', _json: null })).toEqual({ id: 'stored' });
+  });
+});
+
+it.each(['{"nested":{"__proto__":{"admin":true}}}', '{"nested":{"constructor":{}}}'])(
+  'rejects nested reserved keys without silently dropping data',
+  (_json) => {
+    expect(() => deserializeJsonFields({ id: 'stored', _json })).toThrow();
+  },
+);
+
+it('preserves extension precedence for ordinary fields', () => {
+  expect(
+    deserializeJsonFields({
+      id: 0,
+      title: 'column',
+      _json: { title: 'extension', nested: { values: [1, true, null] } },
+    }),
+  ).toEqual({
+    id: 0,
+    title: 'extension',
+    nested: { values: [1, true, null] },
+  });
+});
+
+it('rejects unsupported decoded values before returning data', () => {
+  expect(() => deserializeJsonFields({ id: 'stored', _json: { callback: () => true } })).toThrow();
+  expect(() => deserializeJsonFields({ id: 'stored', field: new Map() })).toThrow();
+  expect(() => deserializeJsonFields({ id: 'stored', field: '{"value":1e999}' })).toThrow();
+});
+
+it('identifies corrupt internal JSON without echoing its contents', () => {
+  expect(() =>
+    deserializeJsonFields({ id: 'stored', _json: '{"secret":"private' }, 'documents'),
+  ).toThrow('Invalid _json JSON in documents');
 });

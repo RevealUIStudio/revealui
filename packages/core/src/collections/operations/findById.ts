@@ -4,6 +4,7 @@
  * Finds a single document by ID with optional relationship population.
  */
 
+import { safeParseRevealDocument } from '../../database/safe-parse.js';
 import { afterRead } from '../../fields/hooks/afterRead/index.js';
 import type {
   PopulateType,
@@ -14,7 +15,7 @@ import type {
   RevealWhere,
   SanitizedCollectionConfig,
 } from '../../types/index.js';
-import { deserializeJsonFields } from '../../utils/json-parsing.js';
+import { deserializeJsonFields, validateDocument } from '../../utils/json-parsing.js';
 import { publishedOnlyReadFilter } from './drafts.js';
 import { find } from './find.js';
 import { selectByIdQuery } from './sqlAdapter.js';
@@ -87,9 +88,10 @@ export async function findByID(
   }
 
   if (db?.collectionStorage?.findByID) {
-    const doc = await db.collectionStorage.findByID(config, { id, ...(req ? { req } : {}) });
-    if (doc !== undefined) {
-      if (!doc) return null;
+    const result = await db.collectionStorage.findByID(config, { id, ...(req ? { req } : {}) });
+    if (result !== undefined) {
+      if (result === null) return null;
+      const doc = validateDocument(result, `${config.slug}.findByID`);
 
       if (req && depth > 0) {
         const sanitizedConfig = {
@@ -131,7 +133,7 @@ export async function findByID(
     const idString = String(id);
     const query = selectByIdQuery(tableName);
     const result = await db.query(query, [idString]);
-    const rawDoc = result.rows[0];
+    const rawDoc = safeParseRevealDocument(result.rows[0]);
 
     if (!rawDoc) {
       // Don't throw here, just return null as expected
