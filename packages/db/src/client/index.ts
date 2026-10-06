@@ -27,9 +27,10 @@ import configModule from '@revealui/config';
 import { getSSLConfig } from '@revealui/utils/database';
 import { logger } from '@revealui/utils/logger';
 import { drizzle as drizzleNeon } from 'drizzle-orm/neon-http';
+import type { NeonHttpQueryResultHKT } from 'drizzle-orm/neon-http/session';
 import { drizzle as drizzlePg, type NodePgDatabase } from 'drizzle-orm/node-postgres';
+import type { NodePgQueryResultHKT } from 'drizzle-orm/node-postgres/session';
 import type { PgDatabase } from 'drizzle-orm/pg-core';
-import type { PgQueryResultHKT } from 'drizzle-orm/pg-core/session';
 import type { ExtractTablesWithRelations } from 'drizzle-orm/relations';
 import { Pool, type PoolClient } from 'pg';
 import * as schema from '../schema/index.js'; // Full schema for backward compatibility
@@ -81,8 +82,9 @@ export type DatabaseType = 'rest';
  * optional and erases selected columns to `unknown` for every consumer.
  */
 type DatabaseSchema = typeof schema | typeof restSchema;
+type DatabaseQueryResultHKT = NodePgQueryResultHKT | NeonHttpQueryResultHKT;
 type DatabaseFor<TSchema extends DatabaseSchema> = PgDatabase<
-  PgQueryResultHKT,
+  DatabaseQueryResultHKT,
   TSchema,
   ExtractTablesWithRelations<TSchema>
 >;
