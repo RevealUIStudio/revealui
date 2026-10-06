@@ -15,7 +15,13 @@
  *
  * Usage:
  *   VERCEL_TOKEN=… VERCEL_TEAM_ID=team_… node scripts/deploy/vercel-rollback-previous-prod.mjs \
- *     --project-id prj_… [--app-label api]
+ *     --project-id prj_… [--app-label api] \
+ *     [--admin-rollback-floor dpl_…] [--target-deployment-id dpl_…]
+ *
+ * Admin floor override: --admin-rollback-floor or ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID.
+ * Explicit rollback target: --target-deployment-id or ROLLBACK_TARGET_DEPLOYMENT_ID.
+ * An explicit target is used as given. Automatic admin selection skips
+ * candidates created before the floor and does not roll back when none remain.
  *
  * Exit codes:
  *   0 — previous deploy promoted (aliases reassigned) or nothing to do
@@ -45,12 +51,129 @@ export const PRODUCTION_ALIASES = {
   docs: ['docs.revealui.com', 'docs-gold-three.vercel.app'],
 };
 
+/** minimum admin deployment eligible for automatic rollback */
+export const DEFAULT_ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID = 'dpl_E53yHRcF354kyvXCs2svwNA6iUkY';
+
+/** Create time of the default floor deployment: 2026-10-06, about 16:37 UTC. */
+export const DEFAULT_ADMIN_ROLLBACK_FLOOR_CREATED_AT_MS = Date.parse('2026-10-06T16:37:00.000Z');
+
+const EPOCH_MS_THRESHOLD = 1_000_000_000_000;
+
 /** Aliases on the newest deploy that this app is allowed to move. */
 export function aliasesToMove(appLabel, aliasesOnNewest) {
   const allow = PRODUCTION_ALIASES[appLabel];
   if (!allow) return null;
   const allowed = new Set(allow);
   return (aliasesOnNewest || []).filter((a) => a?.alias && allowed.has(a.alias));
+}
+
+function trimmed(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function deploymentId(deployment) {
+  if (!deployment || typeof deployment !== 'object') return '';
+  if (typeof deployment.uid === 'string' && deployment.uid.length > 0) return deployment.uid;
+  if (typeof deployment.id === 'string' && deployment.id.length > 0) return deployment.id;
+  return '';
+}
+
+function asEpochMs(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    if (value > 0 && value < EPOCH_MS_THRESHOLD) return value * 1000;
+    return value;
+  }
+  if (typeof value === 'string' && value.trim().length > 0) {
+    const parsed = Date.parse(value);
+    if (Number.isFinite(parsed)) return parsed;
+    const asNumber = Number(value);
+    if (Number.isFinite(asNumber)) return asEpochMs(asNumber);
+  }
+  return null;
+}
+
+function deploymentCreatedMs(deployment) {
+  if (!deployment || typeof deployment !== 'object') return null;
+  return asEpochMs(deployment.createdAt ?? deployment.created);
+}
+
+function resolveFloorCreatedAt(deployments, floorDeploymentId, fallbackCreatedAt) {
+  const list = Array.isArray(deployments) ? deployments : [];
+  const match = list.find((deployment) => deploymentId(deployment) === floorDeploymentId);
+  const fromRecord = match ? deploymentCreatedMs(match) : null;
+  if (fromRecord != null) return fromRecord;
+  if (typeof fallbackCreatedAt === 'number' && Number.isFinite(fallbackCreatedAt)) {
+    return fallbackCreatedAt;
+  }
+  if (floorDeploymentId === DEFAULT_ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID) {
+    return DEFAULT_ADMIN_ROLLBACK_FLOOR_CREATED_AT_MS;
+  }
+  return null;
+}
+
+function isAtOrAfterAdminFloor(candidate, floorDeploymentId, floorCreatedAt) {
+  if (deploymentId(candidate) === floorDeploymentId) return true;
+  const created = deploymentCreatedMs(candidate);
+  if (created == null || floorCreatedAt == null) return false;
+  return created >= floorCreatedAt;
+}
+
+/**
+ * Choose the READY production deployment a rollback may restore.
+ * `deployments` is newest-first. Index 0 is the current deploy.
+ * An explicit target id wins when that deployment is in the list.
+ */
+export function selectRollbackTarget(deployments, options = {}) {
+  const list = Array.isArray(deployments) ? deployments : [];
+  const appLabel = trimmed(options.appLabel) || 'app';
+  const explicitTargetId = trimmed(options.explicitTargetId);
+  const floorDeploymentId =
+    trimmed(options.floorDeploymentId) || DEFAULT_ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID;
+
+  if (explicitTargetId) {
+    const found = list.find((deployment) => deploymentId(deployment) === explicitTargetId) || null;
+    return {
+      target: found,
+      rollback: Boolean(found),
+      reason: found ? 'explicit-target' : 'explicit-target-missing',
+    };
+  }
+
+  if (list.length < 2) {
+    return { target: null, rollback: false, reason: 'no-previous' };
+  }
+
+  if (appLabel !== 'admin') {
+    return { target: list[1], rollback: true, reason: 'previous' };
+  }
+
+  const floorCreatedAt = resolveFloorCreatedAt(list, floorDeploymentId, options.floorCreatedAt);
+  for (const candidate of list.slice(1)) {
+    if (isAtOrAfterAdminFloor(candidate, floorDeploymentId, floorCreatedAt)) {
+      return { target: candidate, rollback: true, reason: 'at-or-after-floor' };
+    }
+  }
+  return { target: null, rollback: false, reason: 'below-floor' };
+}
+
+export function rollbackRefusalMessage(decision, context = {}) {
+  const appLabel = context.appLabel || 'app';
+  if (decision?.reason === 'below-floor') {
+    return `No admin production deployment at or after floor ${context.floorDeploymentId} is eligible for automatic rollback. No rollback was performed.`;
+  }
+  if (decision?.reason === 'explicit-target-missing') {
+    return `Explicit rollback target ${context.explicitTargetId} is not a READY production deployment for ${appLabel}. No rollback was performed.`;
+  }
+  const foundCount = context.foundCount ?? 0;
+  return `No previous READY production deployment for ${appLabel} (found ${foundCount}). Broken deploy may still be live.`;
+}
+
+function readOverride(flagValue, envValue, fallback = '') {
+  const flag = trimmed(flagValue);
+  if (flag) return flag;
+  const env = trimmed(envValue);
+  if (env) return env;
+  return fallback;
 }
 
 function die(code, msg) {
@@ -70,6 +193,8 @@ function initCli() {
       'project-id': { type: 'string' },
       'app-label': { type: 'string', default: 'app' },
       'team-id': { type: 'string' },
+      'admin-rollback-floor': { type: 'string' },
+      'target-deployment-id': { type: 'string' },
       token: { type: 'string' },
       dry: { type: 'boolean', default: false },
     },
@@ -121,6 +246,15 @@ async function api(path, init = {}) {
   return body;
 }
 
+async function lookupDeploymentCreatedAt(id) {
+  try {
+    const data = await api(`/v13/deployments/${encodeURIComponent(id)}`);
+    return deploymentCreatedMs(data);
+  } catch {
+    return null;
+  }
+}
+
 async function listReadyProdDeployments() {
   // v6 deployments: newest first
   const data = await api(
@@ -165,17 +299,61 @@ async function main() {
   console.log(`=== Rollback previous prod: ${appLabel} (${projectId}) team=${teamId} ===`);
 
   const deps = await listReadyProdDeployments();
-  if (deps.length < 2) {
+  const explicitTargetId = readOverride(
+    values['target-deployment-id'],
+    process.env.ROLLBACK_TARGET_DEPLOYMENT_ID,
+  );
+  const floorDeploymentId =
+    appLabel === 'admin'
+      ? readOverride(
+          values['admin-rollback-floor'],
+          process.env.ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID,
+          DEFAULT_ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID,
+        )
+      : '';
+
+  let floorCreatedAt;
+  if (appLabel === 'admin' && !explicitTargetId) {
+    floorCreatedAt = resolveFloorCreatedAt(deps, floorDeploymentId);
+    if (floorCreatedAt == null) {
+      floorCreatedAt = await lookupDeploymentCreatedAt(floorDeploymentId);
+      if (floorCreatedAt == null) {
+        die(
+          1,
+          `Admin rollback floor ${floorDeploymentId} was not found. No rollback was performed.`,
+        );
+      }
+    }
+  }
+
+  const decision = selectRollbackTarget(deps, {
+    appLabel,
+    explicitTargetId,
+    floorDeploymentId,
+    floorCreatedAt,
+  });
+  if (!decision.rollback || !decision.target) {
     die(
       1,
-      `No previous READY production deployment for ${appLabel} (found ${deps.length}). Broken deploy may still be live.`,
+      rollbackRefusalMessage(decision, {
+        appLabel,
+        floorDeploymentId,
+        explicitTargetId,
+        foundCount: deps.length,
+      }),
     );
   }
 
   const broken = deps[0];
-  const previous = deps[1];
+  const previous = decision.target;
+  if (!broken?.uid || !previous.uid) {
+    die(1, `Rollback target for ${appLabel} is missing a deployment id. No rollback was performed.`);
+  }
   console.log(`Newest (broken candidate): ${broken.uid} https://${broken.url}`);
-  console.log(`Previous (restore):        ${previous.uid} https://${previous.url}`);
+  console.log(`Restore target:            ${previous.uid} https://${previous.url}`);
+  if (appLabel === 'admin' && !explicitTargetId) {
+    console.log(`Admin rollback floor:      ${floorDeploymentId}`);
+  }
 
   if (!PRODUCTION_ALIASES[appLabel]) {
     die(

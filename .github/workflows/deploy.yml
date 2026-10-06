@@ -512,17 +512,28 @@ jobs:
           echo "::error::API readiness check failed after 2 minutes ($API_URL)"
           exit 1
 
+      # Raw admin deployment URLs (*.vercel.app) require the Protection
+      # Bypass for Automation header. A missing secret fails this step and
+      # sets skip_rollback so the failure does not roll production back.
       - name: Health check — Admin
+        id: admin-health
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
           URL_FILE="deploy-urls/deploy-url-admin/url.txt"
           if [ ! -f "$URL_FILE" ]; then
             echo "::notice::admin was not in this deploy — skipping admin probe"
             exit 0
           fi
+          if [ -z "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
+            echo "skip_rollback=true" >> "$GITHUB_OUTPUT"
+            echo "::error::Owner must add the Protection Bypass for Automation secret as GitHub Actions secret VERCEL_AUTOMATION_BYPASS_SECRET. Admin smoke cannot authenticate, so this failure does not roll back."
+            exit 1
+          fi
           ADMIN_URL=$(tr -d '[:space:]' < "$URL_FILE")
           echo "Checking $ADMIN_URL (deployment URL, not the public alias)..."
           for i in $(seq 1 12); do
-            if curl -sf "$ADMIN_URL" -o /dev/null 2>&1; then
+            if curl -sf -H "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}" "$ADMIN_URL" -o /dev/null 2>&1; then
               echo "Admin healthy"
               exit 0
             fi
@@ -564,7 +575,10 @@ jobs:
           exit 1
 
       - name: Rollback on failure
-        if: failure()
+        # A smoke that cannot authenticate must never roll back. Real probe
+        # failures still do. Admin candidates before the rollback floor are
+        # refused inside the script.
+        if: failure() && steps.admin-health.outputs.skip_rollback != 'true'
         # Durable rollback (2026-07-21 #2027 postmortem): do NOT parse
         # `vercel ls | grep | sed`. That path returned empty when
         # VERCEL_TEAM_SLUG was set from TURBO_TEAM (wrong team vs the
@@ -574,8 +588,11 @@ jobs:
         # Use scripts/deploy/vercel-rollback-previous-prod.mjs:
         # Vercel REST + VERCEL_ORG_ID (team id secret) + project id from
         # detect matrix. Reassigns allowlisted production hostnames on the
-        # newest READY prod deploy to the previous READY prod deploy and
-        # verifies. Nested or preview names are not moved.
+        # newest READY prod deploy to the restore target and verifies.
+        # Other projects use the previous READY prod deploy. Admin skips
+        # candidates created before the rollback floor. An explicit
+        # ROLLBACK_TARGET_DEPLOYMENT_ID wins. Nested or preview names are
+        # not moved.
         #
         # Needs checkout for the script; smoke job previously had none.
         run: |
@@ -609,6 +626,9 @@ jobs:
           # Team id (team_…), NOT TURBO_TEAM slug — see script header.
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           DETECT_MATRIX: ${{ needs.detect.outputs.matrix }}
+          # Empty values keep the script default floor and automatic target.
+          ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID: ${{ vars.ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID }}
+          ROLLBACK_TARGET_DEPLOYMENT_ID: ${{ vars.ROLLBACK_TARGET_DEPLOYMENT_ID }}
 
   # ---------------------------------------------------------------------------
   # Post-deploy design-system verification (marketing + docs)
