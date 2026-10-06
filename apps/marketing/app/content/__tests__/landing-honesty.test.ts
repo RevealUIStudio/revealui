@@ -100,8 +100,9 @@ describe('landing payment and Enterprise honesty', () => {
   it('gives the Pro card the shared email support line', () => {
     const pro = PRICING_TEASER_TIERS.find((tier) => tier.id === 'pro');
     expect(pro?.features).toContain(PAID_TIER_SUPPORT_CARD);
-    expect(PAID_TIER_SUPPORT_CARD).toBe('Email support (24h weekday, 4h if unusable)');
+    expect(PAID_TIER_SUPPORT_CARD).toBe('Best-effort email support: 24h weekday, 4h critical');
     expect(pro?.features.join(' ')).not.toContain('Priority support');
+    expect(pro?.features.join(' ')).not.toContain('if unusable');
   });
 });
 

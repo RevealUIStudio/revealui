@@ -26,10 +26,48 @@ describe('MarkdownText', () => {
     expect(prose?.className).toContain('break-words');
   });
 
-  it('drops javascript URLs instead of linking them', () => {
-    render(<MarkdownText text="[click](javascript:alert(1)) stays text" />);
-    expect(screen.queryByRole('link')).toBeNull();
-    expect((document.body.textContent ?? '').includes('click')).toBe(true);
+  it('normalizes backslash http(s) URLs and marks them external', () => {
+    render(<MarkdownText text="[host](https:\\host) and [mail](mailto:support@revealui.com)" />);
+    const host = screen.getByRole('link', { name: 'host' });
+    expect(host).toHaveAttribute('href', 'https://host/');
+    expect(host).toHaveAttribute('target', '_blank');
+    expect(host).toHaveAttribute('rel', 'noopener noreferrer');
+    const mail = screen.getByRole('link', { name: 'mail' });
+    expect(mail).toHaveAttribute('href', 'mailto:support@revealui.com');
+    expect(mail.hasAttribute('target')).toBe(false);
+    expect(mail.hasAttribute('rel')).toBe(false);
+  });
+
+  it.each([
+    'javascript:alert(1)',
+    'JaVaScRiPt:alert(1)',
+    'java\tscript:alert(1)',
+    'java\nscript:alert(1)',
+    'java\rscript:alert(1)',
+    'java\u0000script:alert(1)',
+    'java\u0001script:alert(1)',
+    'javascript&#58;alert(1)',
+    'javascript&#x3a;alert(1)',
+    'javascript&colon;alert(1)',
+    'javascript%3Aalert(1)',
+    'java%73cript:alert(1)',
+    '%6Aavascript:alert(1)',
+    'data:text/html,hi',
+    'data:text/html;base64,PHNjcmlwdD4',
+    'vbscript:msgbox(1)',
+    'VBscript:msgbox(1)',
+    'file:///etc/passwd',
+    'FILE:///tmp/x',
+    '//evil.example/phish',
+    '\\\\evil.example\\share',
+    '\\javascript:alert(1)',
+    'javascript:\\alert(1)',
+    'javascript:\\\\alert(1)',
+  ])('renders no unsafe link for %j', (href) => {
+    const { container } = render(<MarkdownText text={`[label](${href}) stays text`} />);
+    expect(container.querySelector('a')).toBeNull();
+    const rendered = container.textContent ?? '';
+    expect(rendered.includes('label')).toBe(true);
   });
 });
 

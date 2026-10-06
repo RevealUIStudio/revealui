@@ -48,10 +48,21 @@ export function Code({ className, ...props }: React.ComponentPropsWithoutRef<'co
 
 const LINK_PROTOCOLS = new Set(['https:', 'http:', 'mailto:']);
 
-/** Accept only http(s) and mailto. Anything else (javascript:, data:) is dropped. */
-function safeHref(raw: string): string | null {
+interface SafeLink {
+  /** Normalized by the URL parser (`https:\\host` becomes `https://host/`). */
+  href: string;
+  /** http(s) have a tuple origin. mailto is opaque (`origin` is `"null"`). */
+  external: boolean;
+}
+
+/**
+ * Accept only http(s) and mailto. The parser folds case, backslashes, and
+ * tab/newline characters before the protocol check, so a disguised
+ * `javascript:` URL is dropped instead of linked.
+ */
+function safeHref(raw: string): SafeLink | null {
   const trimmed = raw.trim();
-  if (trimmed.length === 0 || trimmed.includes(' ') || trimmed.includes('\n')) return null;
+  if (trimmed.length === 0) return null;
   let url: URL;
   try {
     url = new URL(trimmed);
@@ -59,7 +70,8 @@ function safeHref(raw: string): string | null {
     return null;
   }
   if (!LINK_PROTOCOLS.has(url.protocol)) return null;
-  return trimmed;
+  const external = (url.protocol === 'https:' || url.protocol === 'http:') && url.origin !== 'null';
+  return { href: url.href, external };
 }
 
 function parseInline(input: string, allow: { strong: boolean; link: boolean }): React.ReactNode[] {
@@ -101,16 +113,15 @@ function parseInline(input: string, allow: { strong: boolean; link: boolean }): 
     if (allow.link && input.startsWith('[', i)) {
       const labelEnd = input.indexOf('](', i + 1);
       const hrefEnd = labelEnd === -1 ? -1 : input.indexOf(')', labelEnd + 2);
-      const href = hrefEnd === -1 ? null : safeHref(input.slice(labelEnd + 2, hrefEnd));
-      if (labelEnd !== -1 && hrefEnd !== -1 && href !== null) {
+      const safe = hrefEnd === -1 ? null : safeHref(input.slice(labelEnd + 2, hrefEnd));
+      if (labelEnd !== -1 && hrefEnd !== -1 && safe !== null) {
         flush();
-        const external = href.startsWith('https://') || href.startsWith('http://');
         nodes.push(
           <Link
             key={`a${i}`}
-            href={href}
+            href={safe.href}
             className="underline decoration-current underline-offset-2 wrap-anywhere"
-            {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+            {...(safe.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
           >
             {parseInline(input.slice(i + 1, labelEnd), { strong: true, link: false })}
           </Link>,

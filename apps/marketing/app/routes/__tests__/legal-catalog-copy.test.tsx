@@ -34,6 +34,19 @@ describe('refund and support leftover catalog copy', () => {
     },
   );
 
+  it.each([
+    ['support', SupportPage],
+    ['SLA', SlaPage],
+  ])('uses the SLA critical definition on %s', (_name, Page) => {
+    const { container } = render(<Page />);
+    const text = container.textContent ?? '';
+    expect(text).toContain('best-effort');
+    expect(text).toContain('your data is at risk');
+    expect(text).toContain('cannot use the product you purchased at all');
+    expect(text).not.toContain('if unusable');
+    expect(text).not.toContain('Priority support');
+  });
+
   it('keeps the infrastructure and maintenance commitments separate from best-effort support', () => {
     const { container } = render(<SlaPage />);
     const text = container.textContent ?? '';
