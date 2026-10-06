@@ -60,6 +60,7 @@ Documentation link checking runs separately via `pnpm --filter docs check:links`
 | Validator            | Command                    | Purpose                                        |
 | -------------------- | -------------------------- | ---------------------------------------------- |
 | `empty-catch.ts`     | `pnpm validate:empty-catch`| Flag silent empty catch blocks                 |
+| `admin-role-literal.ts` | `pnpm validate:admin-role` | Ban `role === 'admin'` outside the platform helper |
 | `raw-sql.ts`         | `pnpm validate:raw-sql`    | Flag raw SQL outside allowlisted paths         |
 | `as-never-values.ts` | `pnpm validate:as-never-values` | Flag `as never` value assertions          |
 | `stripe-client.ts`   | `pnpm validate:stripe-client` | Enforce Stripe client-safety boundaries     |

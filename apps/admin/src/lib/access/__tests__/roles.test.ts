@@ -161,6 +161,11 @@ describe('isAdmin', () => {
   it('denies TenantAdmin (not a user-level admin)', () => {
     expect(isAdmin({ req: makeReq(tenantAdmin) })).toBe(false);
   });
+
+  it('allows a shell owner whose app-layer roles are not admin', () => {
+    const shellOwner: UserWithRoles = { id: 'own', role: 'owner', roles: [Role.Viewer] };
+    expect(isAdmin({ req: makeReq(shellOwner) })).toBe(true);
+  });
 });
 
 // ─── isSuperAdmin ────────────────────────────────────────────────────────────
@@ -176,6 +181,11 @@ describe('isSuperAdmin', () => {
 
   it('denies UserAdmin', async () => {
     expect(await isSuperAdmin({ req: makeReq(admin) })).toBe(false);
+  });
+
+  it('denies a shell owner who does not carry the super-admin marker', async () => {
+    const shellOwner: UserWithRoles = { id: 'own', role: 'owner', roles: [Role.Viewer] };
+    expect(await isSuperAdmin({ req: makeReq(shellOwner) })).toBe(false);
   });
 
   it('denies unauthenticated', async () => {

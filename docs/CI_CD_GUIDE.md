@@ -99,6 +99,7 @@ The gate is two-tier (test branch = lighter, main branch = full). Quality phase 
 - `pnpm validate:migrations` (migration journal)
 - `pnpm validate:raw-sql` (no raw SQL outside of allowlisted callsites)
 - `pnpm validate:empty-catch`
+- `pnpm validate:admin-role`
 - `pnpm validate:changesets` (catches mixed ignored / non-ignored changeset frontmatter pre-merge)
 
 Warn-only: `pnpm audit:any`, `pnpm audit:console`.

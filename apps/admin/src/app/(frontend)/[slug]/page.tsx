@@ -6,7 +6,7 @@ import type { Metadata } from 'next';
 import { draftMode, headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { cache } from 'react';
-import { isAdminRole } from '@/lib/access/roles/isAdminRole';
+import { isAdmin as holdsAdmin } from '@/lib/access/roles/isAdminRole';
 import { RenderBlocks } from '@/lib/blocks/RenderBlocks';
 import { generateMeta } from '@/lib/cms/generateMeta';
 import { RevealUIRedirects } from '@/lib/components/RevealUIRedirects';
@@ -136,7 +136,7 @@ const queryPageBySlug = cache(async ({ slug }: { slug: string }) => {
       new Request('http://localhost', { headers: hdrs }),
     );
     const session = await getSession(hdrs, requestContext);
-    const isAdmin = Boolean(session) && isAdminRole(session?.user.role);
+    const isAdmin = Boolean(session) && holdsAdmin(session?.user);
 
     const req: RevealRequest =
       isAdmin && session

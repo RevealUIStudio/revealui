@@ -10,6 +10,7 @@ import { getClient } from '@revealui/db';
 import { anonymizeUser, updateUserStripeDeletion } from '@revealui/db/queries/users';
 import { users } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
+import { isAdmin } from '@revealui/utils/validation';
 import { eq } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import { sendCronFailureAlert } from '../lib/cron-alerts.js';
@@ -546,7 +547,7 @@ app.openapi(
   // @ts-expect-error -- OpenAPI response union narrowing
   async (c) => {
     const user = c.get('user');
-    if (user?.role !== 'admin') {
+    if (!isAdmin(user)) {
       throw new HTTPException(403, { message: 'Admin access required' });
     }
 

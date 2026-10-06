@@ -279,6 +279,7 @@
     "validate:changesets": "tsx scripts/validate/mixed-changesets.ts",
     "validate:changelogs": "tsx scripts/validate/changelog-format.ts",
     "validate:empty-catch": "tsx scripts/validate/empty-catch.ts",
+    "validate:admin-role": "tsx scripts/validate/admin-role-literal.ts",
     "validate:as-never-values": "tsx scripts/validate/as-never-values.ts",
     "validate:audit-one-door": "tsx scripts/validate/audit-log-single-door.ts",
     "validate:agent-audit-chokepoints": "tsx scripts/validate/agent-audit-chokepoints.ts",

@@ -1,5 +1,6 @@
 /**
- * GAP-444 — platform super-admin elevation + hasApiRole semantics.
+ * Platform ladder + hasApiRole semantics.
+ * Owner satisfies admin. Verified super-admin satisfies admin, not owner-only.
  */
 import { describe, expect, it } from 'vitest';
 import { type ApiAuthUser, hasApiRole, isPlatformSuperAdmin } from '../api-roles.js';
@@ -68,7 +69,7 @@ describe('hasApiRole', () => {
     expect(hasApiRole(admin, 'owner')).toBe(false);
   });
 
-  it('elevates super-admin to admin and owner gates only', () => {
+  it('elevates super-admin to admin gates, not owner-only or editor', () => {
     const founder = user({
       id: 'f',
       role: 'viewer',
@@ -76,10 +77,19 @@ describe('hasApiRole', () => {
       _json: { roles: ['super-admin'] },
     });
     expect(hasApiRole(founder, 'admin')).toBe(true);
-    expect(hasApiRole(founder, 'owner')).toBe(true);
+    expect(hasApiRole(founder, 'super-admin')).toBe(true);
+    expect(hasApiRole(founder, 'owner')).toBe(false);
     expect(hasApiRole(founder, 'admin', 'owner')).toBe(true);
     expect(hasApiRole(founder, 'editor')).toBe(false);
     expect(hasApiRole(founder, 'agent')).toBe(false);
+  });
+
+  it('lets a shell owner satisfy admin and super-admin checks', () => {
+    const owner = user({ id: 'o', role: 'owner', emailVerified: true });
+    expect(hasApiRole(owner, 'admin')).toBe(true);
+    expect(hasApiRole(owner, 'super-admin')).toBe(true);
+    expect(hasApiRole(owner, 'owner')).toBe(true);
+    expect(hasApiRole(owner, 'editor')).toBe(false);
   });
 
   it('does not elevate unverified super-admin markers', () => {

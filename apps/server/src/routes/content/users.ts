@@ -15,7 +15,7 @@
 import * as userQueries from '@revealui/db/queries/users';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
-import { isAdminRole } from '../../lib/access.js';
+import { isAdmin as holdsAdmin } from '../../lib/access.js';
 import { ErrorSchema, IdParam } from '../_helpers/content-schemas.js';
 import { dateToString, nullableDateToString } from '../_helpers/serialize.js';
 import type { ContentVariables } from './index.js';
@@ -129,7 +129,7 @@ app.openapi(
   async (c) => {
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-    if (!isAdminRole(user.role)) {
+    if (!holdsAdmin(user)) {
       throw new HTTPException(403, { message: 'Admin access required' });
     }
 
@@ -191,7 +191,7 @@ app.openapi(
     const { id } = c.req.valid('param');
 
     // Non-admins can only view their own profile
-    if (!isAdminRole(sessionUser.role) && sessionUser.id !== id) {
+    if (!holdsAdmin(sessionUser) && sessionUser.id !== id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
 
@@ -241,7 +241,7 @@ app.openapi(
     if (!sessionUser) throw new HTTPException(401, { message: 'Authentication required' });
 
     const { id } = c.req.valid('param');
-    const isAdmin = isAdminRole(sessionUser.role);
+    const isAdmin = holdsAdmin(sessionUser);
 
     // Non-admins can only update their own profile
     if (!isAdmin && sessionUser.id !== id) {
@@ -307,7 +307,7 @@ app.openapi(
   async (c) => {
     const sessionUser = c.get('user');
     if (!sessionUser) throw new HTTPException(401, { message: 'Authentication required' });
-    if (!isAdminRole(sessionUser.role)) {
+    if (!holdsAdmin(sessionUser)) {
       throw new HTTPException(403, { message: 'Admin access required' });
     }
 

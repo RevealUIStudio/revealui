@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, cn } from '@revealui/presentation';
-
+import { isAdmin } from '@revealui/utils/validation';
 import { usePathname, useRouter, useSelectedLayoutSegments } from 'next/navigation';
 import React, { useState } from 'react';
 import { isAuthPath } from '@/lib/auth/auth-paths';
@@ -113,7 +113,7 @@ export const AdminBar = (props: { adminBarProps?: RevealUIAdminBarProps }) => {
   // for the draft-preview controls and previously saw a stray "Dashboard" label on
   // billing/welcome — the bar is admin-only chrome now.
   const onAuthChange = React.useCallback((user: RevealUIMeUser) => {
-    setShow(user?.role === 'admin');
+    setShow(isAdmin(user));
   }, []);
 
   // All hooks above run unconditionally (Rules of Hooks). On auth-flow pages the bar must

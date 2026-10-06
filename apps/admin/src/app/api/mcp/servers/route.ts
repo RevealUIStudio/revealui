@@ -9,6 +9,7 @@
  */
 
 import { getSession } from '@revealui/auth/server';
+import { isAdmin } from '@revealui/utils/validation';
 import { type NextRequest, NextResponse } from 'next/server';
 import type { McpServerInfo } from '@/lib/components/agents/mcp-server-card';
 import { extractRequestContext } from '@/lib/utils/request-context';
@@ -269,7 +270,7 @@ export async function GET(request: NextRequest) {
   if (!authSession) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  if (authSession.user.role !== 'admin') {
+  if (!isAdmin(authSession.user)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
   const servers = MCP_SERVERS.map((s) => ({ ...s, status: resolveStatus(s) }));
