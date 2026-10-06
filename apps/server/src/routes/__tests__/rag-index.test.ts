@@ -222,6 +222,21 @@ describe('rag-index routes', () => {
   });
 
   describe('GET /rag/workspaces/:workspaceId/documents', () => {
+    it('rejects a workspace that does not match the resolved tenant', async () => {
+      const app = new Hono<{ Variables: { db: unknown; tenant: unknown; user: unknown } }>();
+      app.use('*', async (c, next) => {
+        c.set('user', { id: 'user-a', role: 'admin' });
+        c.set('tenant', { id: 'tenant-a' });
+        await next();
+      });
+      app.route('/rag', ragApp);
+
+      const res = await app.request('/rag/workspaces/tenant-b/documents');
+
+      expect(res.status).toBe(403);
+      expect(mockedGetRestClient).not.toHaveBeenCalled();
+    });
+
     it('returns documents for workspace', async () => {
       const mockDocs = [
         { id: 'doc-1', title: 'Test', status: 'indexed' },

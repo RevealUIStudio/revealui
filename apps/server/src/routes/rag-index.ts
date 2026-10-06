@@ -15,7 +15,6 @@ import { ragDocuments } from '@revealui/db/schema/rag';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, count, eq, isNotNull, max } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
-import { hasApiRole } from '../lib/api-roles.js';
 
 type Variables = {
   db: DatabaseClient;
@@ -23,7 +22,10 @@ type Variables = {
   user?: { id: string; role: string };
 };
 
-/** Verify the user is authenticated and the workspaceId matches the tenant context. */
+/**
+ * Verify the user is authenticated and, when a tenant is resolved, that the
+ * workspace matches that tenant. A role does not widen the workspace.
+ */
 function assertWorkspaceAccess(
   user: { id: string; role: string } | undefined,
   workspaceId: string,
@@ -32,8 +34,10 @@ function assertWorkspaceAccess(
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
-  // In multi-tenant mode, workspaceId must match the tenant context (admin bypass)
-  if (tenant && workspaceId !== tenant.id && !hasApiRole(user, 'admin')) {
+  if (workspaceId.trim().length === 0) {
+    throw new HTTPException(403, { message: 'Workspace scope is required' });
+  }
+  if (tenant && workspaceId !== tenant.id) {
     throw new HTTPException(403, { message: 'Access denied for this workspace' });
   }
 }
