@@ -61,11 +61,10 @@ const story: ShowcaseStory = {
     conformance: ['WCAG 1.3.1 Info and Relationships', 'WCAG 3.3.1 Error Identification'],
     aria: {
       'role="alert"': 'The error message is announced when it appears.',
-      'aria-invalid':
-        'Set on a single element child when error or invalid is set. A child that already sets it is left alone when the field is valid.',
+      'aria-invalid': 'Set on the control by the consumer when an error is present.',
     },
     notes:
-      'The child control must carry the same id passed to FormField so the label associates correctly. FormField sets aria-invalid and aria-describedby on a single element child. Helper text is hidden while an error is shown unless keepDescription is set.',
+      'The child control must carry the same id passed to FormField so the label associates correctly. Helper text is hidden while an error is shown to avoid duplicate descriptions.',
   },
 
   related: [{ slug: 'label', reason: 'FormField builds on FormLabel.' }],
