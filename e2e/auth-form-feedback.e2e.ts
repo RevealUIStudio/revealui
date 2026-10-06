@@ -1,7 +1,7 @@
 /**
  * Admin login and signup inline feedback.
  *
- * Requires apps/admin. Skips when the admin health check is unreachable.
+ * Requires apps/admin. Skips when the login page is unreachable.
  * Does not create an account or submit a real sign-in.
  */
 
@@ -11,7 +11,7 @@ const ADMIN_BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
 
 test.beforeAll(async ({ request }) => {
   try {
-    const res = await request.get(`${ADMIN_BASE}/api/health`, { timeout: 3000 });
+    const res = await request.get(`${ADMIN_BASE}/login`, { timeout: 5000 });
     if (!res.ok()) test.skip();
   } catch {
     test.skip();
