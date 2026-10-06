@@ -60,6 +60,11 @@ export {
   verifyAuditAnchorRoot,
   verifyInclusionProof,
 } from './audit-merkle.js';
+export {
+  clearAuditSelfTestFailure,
+  readAuditSelfTestFailure,
+  recordAuditSelfTestFailure,
+} from './audit-self-test-status.js';
 // Env-composed audit signer + public-key resolution (GAP-355 Stage 3, D4/D5)
 export type {
   AuditRowSignerFn,

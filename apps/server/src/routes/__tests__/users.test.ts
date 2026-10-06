@@ -6,9 +6,10 @@
  * user management endpoints.
  */
 
+import { audit } from '@revealui/core/security';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -181,10 +182,17 @@ describe('GET /users/:id  -  get single user', () => {
 });
 
 describe('PATCH /users/:id  -  role escalation prevention', () => {
+  let logSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    logSpy = vi.spyOn(audit, 'log');
     mockUserQueries.getUserById.mockResolvedValue(makeUser({ id: 'user-a' }));
     mockUserQueries.updateUser.mockResolvedValue(makeUser({ id: 'user-a' }));
+  });
+
+  afterEach(() => {
+    logSpy.mockRestore();
   });
 
   it('returns 401 for unauthenticated request', async () => {
@@ -239,6 +247,90 @@ describe('PATCH /users/:id  -  role escalation prevention', () => {
       body: JSON.stringify({ role: 'admin' }),
     });
     expect(res.status).toBe(200);
+  });
+
+  it('writes exactly one role audit row with the old and new roles', async () => {
+    mockUserQueries.updateUser.mockResolvedValue(makeUser({ role: 'editor' }));
+
+    const app = createApp(ADMIN);
+    const res = await app.request('/users/user-a', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-request-id': 'req-role-1',
+        'x-forwarded-for': '203.0.113.9',
+      },
+      body: JSON.stringify({ role: 'editor' }),
+    });
+
+    expect(res.status).toBe(200);
+    const roleAudits = logSpy.mock.calls.filter(
+      (call) => (call[0] as { type?: string }).type === 'role.assign',
+    );
+    expect(roleAudits).toHaveLength(1);
+    const event = roleAudits[0]?.[0] as {
+      actor: { id: string; ip?: string };
+      resource: { id: string };
+      changes: { before: { role: string }; after: { role: string } };
+      metadata: { oldRole: string; newRole: string; requestId?: string };
+    };
+    expect(event.actor.id).toBe('admin-1');
+    expect(event.actor.ip).toBe('203.0.113.9');
+    expect(event.resource.id).toBe('user-a');
+    expect(event.changes).toEqual({ before: { role: 'user' }, after: { role: 'editor' } });
+    expect(event.metadata.oldRole).toBe('user');
+    expect(event.metadata.newRole).toBe('editor');
+    expect(event.metadata.requestId).toBe('req-role-1');
+    expect(mockUserQueries.updateUser).toHaveBeenCalledOnce();
+  });
+
+  it('fails the request and leaves the role unchanged when the audit write fails', async () => {
+    logSpy.mockRejectedValueOnce(new Error('audit down'));
+
+    const app = createApp(ADMIN);
+    const res = await app.request('/users/user-a', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'admin' }),
+    });
+
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body.error).toContain('audit write failed');
+    expect(mockUserQueries.updateUser).not.toHaveBeenCalled();
+  });
+
+  it('does not write a role audit row for a non-role PATCH', async () => {
+    mockUserQueries.updateUser.mockResolvedValue(makeUser({ name: 'New Name' }));
+
+    const app = createApp(ADMIN);
+    const res = await app.request('/users/user-a', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'New Name' }),
+    });
+
+    expect(res.status).toBe(200);
+    const roleAudits = logSpy.mock.calls.filter(
+      (call) => (call[0] as { type?: string }).type === 'role.assign',
+    );
+    expect(roleAudits).toHaveLength(0);
+  });
+
+  it('does not write a role audit row when the submitted role is unchanged', async () => {
+    const app = createApp(ADMIN);
+    const res = await app.request('/users/user-a', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'user', name: 'Still Alice' }),
+    });
+
+    expect(res.status).toBe(200);
+    const roleAudits = logSpy.mock.calls.filter(
+      (call) => (call[0] as { type?: string }).type === 'role.assign',
+    );
+    expect(roleAudits).toHaveLength(0);
+    expect(mockUserQueries.updateUser).toHaveBeenCalledOnce();
   });
 
   it('allows non-admin to update own name', async () => {

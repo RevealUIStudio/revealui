@@ -87,19 +87,37 @@ export interface AuditStorage {
 }
 
 /**
+ * Walk an error and its `.cause` chain into one message. Drivers wrap the
+ * database error (the text that names the failed function or constraint) one
+ * level under a generic "Failed query" wrapper. Logging only the outer
+ * message drops that text. Bounded so a cyclic cause cannot loop.
+ */
+function auditErrorChain(error: unknown): string {
+  const parts: string[] = [];
+  let current: unknown = error;
+  for (let depth = 0; depth < 5 && current !== undefined; depth += 1) {
+    const message = current instanceof Error ? current.message : String(current);
+    if (message.length > 0 && !parts.some((part) => part.includes(message))) {
+      parts.push(message);
+    }
+    current = current instanceof Error ? current.cause : undefined;
+  }
+  return parts.join(' | cause: ');
+}
+
+/**
  * Thrown when `AuditSystem.log()` fails to persist an event. Carries the full
  * constructed event (including the generated `id`) so any catch site can
  * correlate the failure with exactly which event was dropped and classify
- * the underlying cause — without this, a `.catch()` only sees a raw
- * storage-layer error with no way to say which audit record never landed.
+ * the underlying cause. The message includes the driver cause chain so a
+ * boot self-test log is not only the outer query wrapper.
  */
 export class AuditWriteError extends Error {
   constructor(
     public readonly event: AuditEvent,
     public readonly cause: unknown,
   ) {
-    const causeMessage = cause instanceof Error ? cause.message : String(cause);
-    super(`Audit write failed for event ${event.id} (${event.type}): ${causeMessage}`);
+    super(`Audit write failed for event ${event.id} (${event.type}): ${auditErrorChain(cause)}`);
     this.name = 'AuditWriteError';
   }
 }

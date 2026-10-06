@@ -50,7 +50,9 @@ import type {
 import {
   audit,
   classifyAuditWriteFailure,
+  clearAuditSelfTestFailure,
   createAuditRowSignerFromEnv,
+  recordAuditSelfTestFailure,
   recordAuditWriteResult,
 } from '@revealui/security/server';
 
@@ -334,22 +336,29 @@ export function installAuditStorage(): void {
  * installed there synchronously by `installAuditStorage()`).
  */
 export async function auditStorageSelfTest(auditSystem: AuditSystem = audit): Promise<void> {
-  const marker = `__audit-self-test__:${randomUUID()}`;
-  const written = await auditSystem.log({
-    type: 'security.audit_self_test',
-    severity: 'low',
-    actor: { id: marker, type: 'system' },
-    action: 'audit-storage-self-test',
-    result: 'success',
-    metadata: { synthetic: true },
-  });
+  try {
+    const marker = `__audit-self-test__:${randomUUID()}`;
+    const written = await auditSystem.log({
+      type: 'security.audit_self_test',
+      severity: 'low',
+      actor: { id: marker, type: 'system' },
+      action: 'audit-storage-self-test',
+      result: 'success',
+      metadata: { synthetic: true },
+    });
 
-  const found = await auditSystem.query({ actorId: marker, limit: 5 });
-  if (!found.some((event) => event.id === written.id)) {
-    throw new Error(
-      'AUDIT STORAGE SELF-TEST FAILED: wrote a synthetic audit event but could not read it ' +
-        'back. Refusing to serve — a runtime that cannot record agent actions must not accept ' +
-        'traffic (fail-closed integrity, docs/decisions/2026-07-12-audit-receipt-architecture.md §2a).',
-    );
+    const found = await auditSystem.query({ actorId: marker, limit: 5 });
+    if (!found.some((event) => event.id === written.id)) {
+      throw new Error(
+        'AUDIT STORAGE SELF-TEST FAILED: wrote a synthetic audit event but could not read it ' +
+          'back. Refusing to serve. A runtime that cannot record agent actions must not accept ' +
+          'traffic (fail-closed integrity, docs/decisions/2026-07-12-audit-receipt-architecture.md §2a).',
+      );
+    }
+    clearAuditSelfTestFailure();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    recordAuditSelfTestFailure(message);
+    throw err;
   }
 }

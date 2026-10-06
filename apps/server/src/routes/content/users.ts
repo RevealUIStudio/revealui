@@ -12,6 +12,7 @@
  *   { docs, totalDocs, totalPages, page, limit, ... }
  */
 
+import { audit, getClientIp } from '@revealui/core/security';
 import * as userQueries from '@revealui/db/queries/users';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
@@ -277,6 +278,47 @@ app.openapi(
       Object.entries(body).filter(([key]) => !SENSITIVE_FIELDS.has(key)),
     );
 
+    // Role changes are recorded before the user row is updated. The HTTP
+    // database driver cannot hold one transaction across the audit insert and
+    // the user update, so the audit write is the gate: if it throws, the role
+    // is left unchanged.
+    const nextRole = typeof sanitized.role === 'string' ? sanitized.role : undefined;
+    if (nextRole !== undefined && nextRole !== existing.role) {
+      const ip = getClientIp(c.req.raw);
+      const requestId = c.get('requestId') || boundedRequestIdHeader(c.req.header('x-request-id'));
+      try {
+        await audit.log({
+          type: 'role.assign',
+          severity: 'high',
+          actor: {
+            id: sessionUser.id,
+            type: 'user',
+            ...(ip !== 'unknown' ? { ip } : {}),
+          },
+          resource: {
+            type: 'user',
+            id: existing.id,
+          },
+          action: 'role.assign',
+          result: 'success',
+          changes: {
+            before: { role: existing.role },
+            after: { role: nextRole },
+          },
+          metadata: {
+            oldRole: existing.role,
+            newRole: nextRole,
+            ...(requestId ? { requestId } : {}),
+          },
+        });
+      } catch (err) {
+        const detail = err instanceof Error ? err.message : String(err);
+        throw new HTTPException(500, {
+          message: `Role change was not applied because the audit write failed: ${detail}`,
+        });
+      }
+    }
+
     const updated = await userQueries.updateUser(db, id, sanitized);
     if (!updated) throw new HTTPException(404, { message: 'User not found' });
 
@@ -326,5 +368,11 @@ app.openapi(
     return c.json({ success: true as const, message: 'User deleted' }, 200);
   },
 );
+
+/** Inbound request id when middleware did not set one. Capped so a huge header cannot land in the audit payload. */
+function boundedRequestIdHeader(header: string | undefined): string | undefined {
+  if (!header || header.length === 0 || header.length > 128) return undefined;
+  return header;
+}
 
 export default app;
