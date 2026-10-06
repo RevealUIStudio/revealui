@@ -6,7 +6,7 @@
  *
  * Routes:
  *   GET  /api/terminal/sessions        -  list active PTY sessions
- *   POST /api/terminal/sessions        -  spawn a new Claude Code session
+ *   POST /api/terminal/sessions        -  spawn a session on a registered backend
  *   DELETE /api/terminal/sessions/:id  -  stop a session
  *   WS   /api/terminal/ws/:id          -  bidirectional terminal stream
  *
@@ -50,7 +50,74 @@ const SpawnTerminalSessionSchema = z.object({
   cols: z.number().int().min(1).max(1024).optional(),
   rows: z.number().int().min(1).max(1024).optional(),
   cwd: z.string().min(1).max(4096).optional(),
+  /** Harness spawn backend. Omit to use TERMINAL_AGENT_BACKEND or the provider chain. */
+  backend: z.string().min(1).max(64).optional(),
+  /** Model id. Omit to use TERMINAL_AGENT_MODEL, LLM_MODEL, or the backend default. */
+  model: z.string().min(1).max(256).optional(),
 });
+
+const SPAWN_BACKEND_ERROR_CODES = new Set([
+  'missing-backend',
+  'unknown-backend',
+  'missing-model',
+  'model-not-allowlisted',
+]);
+
+/** Widened so tsc does not require the optional package's types at check time. */
+const TERMINAL_SPAWN_SPECIFIER: string = '@revealui/harnesses/terminal-spawn';
+
+export interface TerminalSpawnRequest {
+  readonly backend?: string | null;
+  readonly model?: string | null;
+  readonly env: NodeJS.ProcessEnv;
+}
+
+export interface TerminalSpawnChoice {
+  readonly backend: string;
+  readonly model: string;
+}
+
+export interface TerminalRouteOptions {
+  readonly resolveSpawn?: (
+    input: TerminalSpawnRequest,
+  ) => Promise<TerminalSpawnChoice> | TerminalSpawnChoice;
+}
+
+function readSpawnBackendError(err: unknown): { code: string; message: string } | null {
+  if (!(err instanceof Error)) return null;
+  if (!('code' in err)) return null;
+  const code = err.code;
+  if (typeof code !== 'string' || !SPAWN_BACKEND_ERROR_CODES.has(code)) return null;
+  return { code, message: err.message };
+}
+
+function isResolveSpawnExport(loaded: unknown): loaded is {
+  resolveTerminalSpawn: (
+    input: TerminalSpawnRequest,
+  ) => Promise<TerminalSpawnChoice> | TerminalSpawnChoice;
+} {
+  if (typeof loaded !== 'object' || loaded === null) return false;
+  if (!('resolveTerminalSpawn' in loaded)) return false;
+  return typeof loaded.resolveTerminalSpawn === 'function';
+}
+
+async function defaultResolveSpawn(input: TerminalSpawnRequest): Promise<TerminalSpawnChoice> {
+  let loaded: unknown;
+  try {
+    loaded = await import(TERMINAL_SPAWN_SPECIFIER);
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : 'import failed';
+    throw new Error(
+      `Terminal spawn backend registry is unavailable (${detail}). Refusing to default to a vendor backend.`,
+    );
+  }
+  if (!isResolveSpawnExport(loaded)) {
+    throw new Error(
+      'Terminal spawn backend registry did not export resolveTerminalSpawn. Refusing to default to a vendor backend.',
+    );
+  }
+  return loaded.resolveTerminalSpawn(input);
+}
 
 /**
  * Bound the requested PTY working directory to the terminal workspace root
@@ -119,11 +186,12 @@ function daemonRpc(method: string, params: Record<string, unknown>): Promise<unk
 }
 
 /** Create the terminal WebSocket route with its own Hono + WS adapter. */
-export function createTerminalRoute(): {
+export function createTerminalRoute(options?: TerminalRouteOptions): {
   app: Hono;
   injectWebSocket: (server: ServerType) => void;
 } {
   const app = new Hono();
+  const resolveSpawn = options?.resolveSpawn ?? defaultResolveSpawn;
   const { upgradeWebSocket, injectWebSocket } = createNodeWebSocket({ app });
 
   // ── REST: list sessions ────────────────────────────────────────────
@@ -148,11 +216,28 @@ export function createTerminalRoute(): {
     }
 
     const name = body.name ?? `remote-${Date.now().toString(36)}`;
+    let selection: TerminalSpawnChoice;
+    try {
+      selection = await resolveSpawn({
+        backend: body.backend,
+        model: body.model,
+        env: process.env,
+      });
+    } catch (err) {
+      const spawnError = readSpawnBackendError(err);
+      if (spawnError) {
+        return c.json({ error: spawnError.message, code: spawnError.code }, 400);
+      }
+      return c.json(
+        { error: err instanceof Error ? err.message : 'Spawn backend resolution failed' },
+        503,
+      );
+    }
     try {
       const result = await daemonRpc('agent.spawn', {
         name,
-        backend: 'ClaudeCode',
-        model: 'claude-opus-4-6',
+        backend: selection.backend,
+        model: selection.model,
         prompt: '',
         cwd,
         cols: body.cols ?? 120,

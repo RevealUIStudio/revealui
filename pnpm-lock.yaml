@@ -785,6 +785,9 @@ importers:
       '@revealui/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@revealui/harnesses':
+        specifier: workspace:^
+        version: link:../../packages/harnesses
       '@revealui/knowledge-graph':
         specifier: workspace:*
         version: link:../../packages/knowledge-graph
