@@ -36,9 +36,9 @@ export interface ExecuteGovernedToolInput {
   alwaysRequireApproval?: readonly string[];
   onToolAudit?: (event: McpToolCallEvent) => void | Promise<void>;
   /**
-   * Skip the post-execution audit. MCP tools already audit inside execute
-   * with the server namespace. Approval blocks still audit here, because
-   * the tool body never runs.
+   * Skip the post-execution audit. Pass mcpToolSkipsExecutionAudit(tool).
+   * MCP tools already audit inside execute. Approval blocks still audit here,
+   * because the tool body never runs.
    */
   skipExecutionAudit?: boolean;
 }
@@ -55,6 +55,19 @@ export interface GovernedToolExecution {
 }
 
 const GOVERNED_AUDIT_NAMESPACE = 'governed';
+const MCP_TOOL_NAME_PREFIX = 'mcp_';
+const MCP_TOOL_NAME_SEPARATOR = '__';
+
+/**
+ * MCP adapter tools already emit an execution audit inside execute.
+ * Both runtimes pass this into executeGovernedTool so a second row is not written.
+ */
+export function mcpToolSkipsExecutionAudit(tool: Tool): boolean {
+  const metadata = tool.getMetadata?.();
+  const namespace = metadata?.mcpNamespace;
+  if (typeof namespace === 'string' && namespace.length > 0) return true;
+  return tool.name.startsWith(MCP_TOOL_NAME_PREFIX) && tool.name.includes(MCP_TOOL_NAME_SEPARATOR);
+}
 
 /**
  * Union tool names that always require approval.
@@ -197,6 +210,9 @@ export async function executeGovernedTool(
     throw error;
   }
 
+  // Record before the audit. A fail-closed audit throw must not drop the
+  // result, or the next identical call would run the tool again.
+  deduplicator.record(tool.name, params, result);
   if (!input.skipExecutionAudit) {
     await emitAudit(
       input.onToolAudit,
@@ -205,6 +221,5 @@ export async function executeGovernedTool(
     );
   }
 
-  deduplicator.record(tool.name, params, result);
   return { result, countsAsNewExecution: true, decision: 'allowed' };
 }

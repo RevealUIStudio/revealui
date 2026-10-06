@@ -21,8 +21,10 @@ import type { LLMClient } from '../../llm/client.js';
 import type { LLMChunk, LLMResponse } from '../../llm/providers/base.js';
 import { approvalConfigFromAgentSecurity, createAgentSpec } from '../../templates/agent-spec.js';
 import type { ApprovalCallback, Tool, ToolResult } from '../../tools/base.js';
+import { ToolCallDeduplicator } from '../../tools/deduplicator.js';
 import type { McpToolCallEvent } from '../../tools/mcp-events.js';
 import type { Agent, Task } from '../agent.js';
+import { executeGovernedTool } from '../governed-tool.js';
 import { AgentRuntime } from '../runtime.js';
 import { type AgentStreamChunk, StreamingAgentRuntime } from '../streaming-runtime.js';
 
@@ -294,5 +296,128 @@ describe('requiresHumanApproval mapping', () => {
     const result = chunks.find((chunk) => chunk.type === 'tool_call_result');
     expect(result?.approval).toBe('required');
     expect(result?.toolResult?.error).toContain('requires human approval');
+  });
+});
+
+describe('MCP execution audit', () => {
+  function mcpTool(onToolAudit: (event: McpToolCallEvent) => void | Promise<void>): Tool {
+    return {
+      name: 'mcp_srv__noop',
+      description: 'Remote MCP tool',
+      parameters: z.object({}),
+      getMetadata: () => ({ mcpNamespace: 'srv' }),
+      execute: vi.fn(async (): Promise<ToolResult> => {
+        await onToolAudit({
+          kind: 'mcp.tool.call',
+          namespace: 'srv',
+          toolName: 'noop',
+          duration_ms: 1,
+          success: true,
+        });
+        return { success: true, data: { ok: true } };
+      }),
+    };
+  }
+
+  function chatForMcp(): LLMClient {
+    let callCount = 0;
+    return {
+      chat: vi.fn(async (): Promise<LLMResponse> => {
+        callCount += 1;
+        if (callCount === 1) {
+          return {
+            content: '',
+            role: 'assistant',
+            toolCalls: [
+              {
+                id: 'tc-mcp',
+                type: 'function',
+                function: { name: 'mcp_srv__noop', arguments: '{}' },
+              },
+            ],
+          };
+        }
+        return { content: 'Done.', role: 'assistant' };
+      }),
+    } as unknown as LLMClient;
+  }
+
+  function streamForMcp(): LLMClient {
+    const first: LLMChunk[] = [
+      {
+        content: '',
+        done: true,
+        toolCalls: [
+          {
+            id: 'tc-mcp',
+            type: 'function',
+            function: { name: 'mcp_srv__noop', arguments: '{}' },
+          },
+        ],
+      },
+    ];
+    const stream = vi
+      .fn()
+      .mockReturnValueOnce(chunkGen(first))
+      .mockReturnValueOnce(chunkGen([{ content: 'Done.', done: true }]));
+    return { stream } as unknown as LLMClient;
+  }
+
+  it.each([{ name: 'AgentRuntime' }, { name: 'StreamingAgentRuntime' }])(
+    '$name emits exactly one execution audit for an MCP tool call',
+    async ({ name }) => {
+      const audits: McpToolCallEvent[] = [];
+      const onToolAudit = async (event: McpToolCallEvent): Promise<void> => {
+        audits.push(event);
+      };
+      const tool = mcpTool(onToolAudit);
+      const agent = makeAgent(tool);
+      if (name === 'AgentRuntime') {
+        const runtime = new AgentRuntime({ maxIterations: 4, loopGuard: false, onToolAudit });
+        await runtime.executeTask(agent, makeTask(), chatForMcp());
+      } else {
+        const runtime = new StreamingAgentRuntime({
+          maxIterations: 4,
+          loopGuard: false,
+          onToolAudit,
+        });
+        await collect(runtime.streamTask(agent, makeTask(), streamForMcp()));
+      }
+      expect(tool.execute).toHaveBeenCalledOnce();
+      expect(audits).toHaveLength(1);
+      expect(audits[0]).toMatchObject({ namespace: 'srv', toolName: 'noop', success: true });
+    },
+  );
+});
+
+describe('audit failure after a successful tool call', () => {
+  it('records the result before the audit so a retry does not run the tool again', async () => {
+    let runs = 0;
+    const tool: Tool = {
+      name: 'write_once',
+      description: 'Writes once',
+      parameters: z.object({}),
+      execute: vi.fn(async (): Promise<ToolResult> => {
+        runs += 1;
+        return { success: true, data: { runs } };
+      }),
+    };
+    const deduplicator = new ToolCallDeduplicator();
+    const input = {
+      tool,
+      params: { target: 'notes.txt' },
+      deduplicator,
+      onToolAudit: async (): Promise<void> => {
+        throw new Error('audit failed');
+      },
+    };
+
+    await expect(executeGovernedTool(input)).rejects.toThrow('audit failed');
+    expect(runs).toBe(1);
+
+    const second = await executeGovernedTool(input);
+    expect(runs).toBe(1);
+    expect(second.decision).toBe('cached');
+    expect(second.result).toEqual({ success: true, data: { runs: 1 } });
   });
 });

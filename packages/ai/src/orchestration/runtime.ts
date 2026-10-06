@@ -27,7 +27,11 @@ import { createToolsFromMcpClient, type McpClientLike } from '../tools/mcp-adapt
 import type { McpToolCallEvent } from '../tools/mcp-events.js';
 import { createWebSearchTool } from '../tools/web/duck-duck-go.js';
 import type { Agent, AgentResult, Task } from './agent.js';
-import { executeGovernedTool, mergeHumanApprovalNames } from './governed-tool.js';
+import {
+  executeGovernedTool,
+  mcpToolSkipsExecutionAudit,
+  mergeHumanApprovalNames,
+} from './governed-tool.js';
 import {
   createDaemonLoopGuard,
   iterationAdvanced,
@@ -42,6 +46,7 @@ export {
   type GovernedToolAuditEvent,
   type GovernedToolDecision,
   type GovernedToolExecution,
+  mcpToolSkipsExecutionAudit,
   mergeHumanApprovalNames,
 } from './governed-tool.js';
 
@@ -254,7 +259,6 @@ export class AgentRuntime {
     }
 
     const allTools = mcpTools.length > 0 ? [...baseTools, ...mcpTools] : baseTools;
-    const mcpToolNames = new Set(mcpTools.map((candidate) => candidate.name));
 
     let messages: Message[] = [
       {
@@ -378,7 +382,7 @@ export class AgentRuntime {
               approvalCallback: this.config.approvalCallback,
               alwaysRequireApproval: this.config.alwaysRequireApproval,
               onToolAudit: this.config.onToolAudit,
-              skipExecutionAudit: mcpToolNames.has(tool.name),
+              skipExecutionAudit: mcpToolSkipsExecutionAudit(tool),
             });
             if (execution.countsAsNewExecution) newToolExecutions += 1;
             toolResults.push(execution.result);

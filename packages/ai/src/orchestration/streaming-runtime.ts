@@ -15,7 +15,7 @@ import { toolParametersToJsonSchema } from '../llm/tool-json-schema.js';
 import type { ToolResult } from '../tools/base.js';
 import { ToolCallDeduplicator } from '../tools/deduplicator.js';
 import type { Agent, Task } from './agent.js';
-import { executeGovernedTool } from './governed-tool.js';
+import { executeGovernedTool, mcpToolSkipsExecutionAudit } from './governed-tool.js';
 import { iterationAdvanced } from './loop-guard.js';
 import { AgentRuntime, type RuntimeConfig } from './runtime.js';
 
@@ -258,6 +258,7 @@ export class StreamingAgentRuntime extends AgentRuntime {
               approvalCallback: this.config.approvalCallback,
               alwaysRequireApproval: this.config.alwaysRequireApproval,
               onToolAudit: this.config.onToolAudit,
+              skipExecutionAudit: mcpToolSkipsExecutionAudit(tool),
             });
             if (execution.countsAsNewExecution) newToolExecutions += 1;
             toolResults.push(execution.result);
