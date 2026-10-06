@@ -20,9 +20,11 @@
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
+import { materializeCodexSkills } from '../manager/codex.js';
+import { assertManagedDestination, contentRootRelative, loadManager } from '../manager/paths.js';
 import { buildManifest } from './definitions/index.js';
-import { getGenerator } from './generators/index.js';
-import { DEFAULT_CONTENT_GENERATOR_ID, MANAGER_CONTENT_OUTPUT } from './generators/types.js';
+import { generateContent } from './generators/index.js';
+import { DEFAULT_CONTENT_GENERATOR_ID, type GeneratedFile } from './generators/types.js';
 import type { Manifest } from './schemas/manifest.js';
 
 /**
@@ -37,7 +39,6 @@ export const MANAGER_MATERIALIZE_GENERATORS: readonly string[] = [
 ];
 
 /** Content rules path prefix under the project (relative). */
-const CONTENT_RULES_PREFIX = `${MANAGER_CONTENT_OUTPUT}/rules/`;
 
 /**
  * Relative path for the Claude Code load surface for a definition rule id.
@@ -53,6 +54,7 @@ export interface WriteManagerAdapterContentResult {
   paths: string[];
   /** Definition rules mirrored into `.claude/rules/` (GAP-421 phase 2). */
   claudeRuleMirrors: string[];
+  codexPaths: string[];
 }
 
 /**
@@ -64,31 +66,32 @@ export function writeManagerAdapterContent(
   projectRoot: string,
   options?: { generatorIds?: readonly string[]; manifest?: Manifest },
 ): WriteManagerAdapterContentResult {
-  const generatorIds = options?.generatorIds ?? MANAGER_MATERIALIZE_GENERATORS;
+  const config = loadManager(projectRoot);
+  const registered = new Set<string>(config.adapters.map((adapter) => adapter.id));
+  const generatorIds =
+    options?.generatorIds ??
+    MANAGER_MATERIALIZE_GENERATORS.filter(
+      (id) => id === DEFAULT_CONTENT_GENERATOR_ID || registered.has(id),
+    );
   const manifest = options?.manifest ?? buildManifest();
   const byGenerator: Record<string, number> = {};
   const paths: string[] = [];
   const claudeRuleMirrors: string[] = [];
+  const contentRulesPrefix = `${contentRootRelative(config)}/rules/`;
+  const planned: GeneratedFile[] = [];
   let total = 0;
 
   for (const id of generatorIds) {
-    const generator = getGenerator(id);
-    if (!generator) {
-      throw new Error(
-        `Unknown generator "${id}" during manager materialize. Available: check listGenerators()`,
-      );
-    }
-    const files = generator.generateAll(manifest, { projectRoot });
+    const files = generateContent(id, manifest, { projectRoot });
     for (const file of files) {
-      const absolutePath = join(projectRoot, file.relativePath);
-      mkdirSync(dirname(absolutePath), { recursive: true });
-      writeFileSync(absolutePath, file.content, 'utf-8');
+      planned.push(file);
       paths.push(file.relativePath);
 
       // GAP-421 phase 2: same rule body under Claude's load path.
       if (
         id === DEFAULT_CONTENT_GENERATOR_ID &&
-        file.relativePath.startsWith(CONTENT_RULES_PREFIX)
+        registered.has('claude-code') &&
+        file.relativePath.startsWith(contentRulesPrefix)
       ) {
         const ruleFile = basename(file.relativePath);
         if (!ruleFile.endsWith('.md') || ruleFile.startsWith('00-')) {
@@ -96,9 +99,7 @@ export function writeManagerAdapterContent(
         }
         const ruleId = ruleFile.slice(0, -'.md'.length);
         const claudeRel = claudeRulePathForDefinitionId(ruleId);
-        const claudeAbs = join(projectRoot, claudeRel);
-        mkdirSync(dirname(claudeAbs), { recursive: true });
-        writeFileSync(claudeAbs, file.content, 'utf-8');
+        planned.push({ relativePath: claudeRel, content: file.content });
         claudeRuleMirrors.push(claudeRel);
         paths.push(claudeRel);
         total += 1;
@@ -108,5 +109,16 @@ export function writeManagerAdapterContent(
     total += files.length;
   }
 
-  return { byGenerator, total, paths, claudeRuleMirrors };
+  for (const file of planned) assertManagedDestination(projectRoot, file.relativePath);
+  const codexPaths = config.adapters.some((adapter) => adapter.id === 'codex')
+    ? materializeCodexSkills(projectRoot, manifest)
+    : [];
+  for (const file of planned) {
+    const absolutePath = join(projectRoot, file.relativePath);
+    mkdirSync(dirname(absolutePath), { recursive: true });
+    writeFileSync(absolutePath, file.content, 'utf-8');
+  }
+  paths.push(...codexPaths);
+  total += codexPaths.length;
+  return { byGenerator, total, paths, claudeRuleMirrors, codexPaths };
 }

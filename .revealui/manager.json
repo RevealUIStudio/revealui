@@ -41,6 +41,11 @@
       "id": "revdev",
       "projectTree": null,
       "rank": "equal"
+    },
+    {
+      "id": "codex",
+      "projectTree": null,
+      "rank": "equal"
     }
   ],
   "mcp": {

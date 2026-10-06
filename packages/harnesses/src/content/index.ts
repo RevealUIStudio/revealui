@@ -41,8 +41,8 @@
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { buildManifest } from './definitions/index.js';
-import { getGenerator, listGenerators } from './generators/index.js';
-import type { DiffEntry, GeneratedFile } from './generators/types.js';
+import { generateContent } from './generators/index.js';
+import type { DiffEntry } from './generators/types.js';
 import type { ResolverContext } from './resolvers/types.js';
 import { type Manifest, ManifestSchema } from './schemas/manifest.js';
 
@@ -56,6 +56,7 @@ export {
   GROK_SPAWN_MAP,
   GROK_SPAWN_MAP_PATH,
   GrokGenerator,
+  generateContent,
   getGenerator,
   grokCommandPath,
   grokRulePathForDefinitionId,
@@ -167,21 +168,6 @@ export function validateManifest(manifest: unknown): ValidationResult {
     valid: false,
     errors: result.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`),
   };
-}
-
-/** Generate content files for a specific generator. */
-export function generateContent(
-  generatorId: string,
-  manifest: Manifest,
-  ctx: ResolverContext,
-): GeneratedFile[] {
-  const generator = getGenerator(generatorId);
-  if (!generator) {
-    throw new Error(
-      `Unknown generator "${generatorId}". Available: ${listGenerators().join(', ')}`,
-    );
-  }
-  return generator.generateAll(manifest, ctx);
 }
 
 /** Compare generated content against existing files on disk. */

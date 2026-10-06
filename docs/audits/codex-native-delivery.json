@@ -1,0 +1,248 @@
+{
+  "date": "2026-10-06",
+  "fleet": "revealfleet",
+  "scope": "Codex native instruction and skill delivery; uniform project content paths",
+  "entries": [
+    {
+      "location": ".agents/skills/revealui-conventions/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "@revealui/harnesses",
+      "canonicalSource": "packages/harnesses/src/content/definitions/skills/revealui-conventions.ts",
+      "durableDestination": ".agents/skills/revealui-conventions/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "70e4edb8a20c040b9e5e4739ca5d14190ace9eee30d112149d4580fe0502b34c",
+        "ownershipLedger": ".revealui/adapters/codex-files.json"
+      }
+    },
+    {
+      "location": ".agents/skills/revealui-db/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "@revealui/harnesses",
+      "canonicalSource": "packages/harnesses/src/content/definitions/skills/revealui-db.ts",
+      "durableDestination": ".agents/skills/revealui-db/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "50da7f50fbabcc11d40b205b496167b8757e5a675c0d5c5c0f182b9daa37a9e8",
+        "ownershipLedger": ".revealui/adapters/codex-files.json"
+      }
+    },
+    {
+      "location": ".agents/skills/revealui-debugging/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "@revealui/harnesses",
+      "canonicalSource": "packages/harnesses/src/content/definitions/skills/revealui-debugging.ts",
+      "durableDestination": ".agents/skills/revealui-debugging/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "bf751f815af5ab74c197810015257ec975f65af3bc56dde6b903fb2259ccce9c",
+        "ownershipLedger": ".revealui/adapters/codex-files.json"
+      }
+    },
+    {
+      "location": ".agents/skills/revealui-review/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "@revealui/harnesses",
+      "canonicalSource": "packages/harnesses/src/content/definitions/skills/revealui-review.ts",
+      "durableDestination": ".agents/skills/revealui-review/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "88137c8bec0f75ffba707cfbcfc96a79e8288d862ffac6fd0f5de0a185e8ef40",
+        "ownershipLedger": ".revealui/adapters/codex-files.json"
+      }
+    },
+    {
+      "location": ".agents/skills/revealui-safety/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "@revealui/harnesses",
+      "canonicalSource": "packages/harnesses/src/content/definitions/skills/revealui-safety.ts",
+      "durableDestination": ".agents/skills/revealui-safety/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "8db2d19f7ec82e39b3344fc90d26bb1100bffbbee96b3ecad3955186f55e8883",
+        "ownershipLedger": ".revealui/adapters/codex-files.json"
+      }
+    },
+    {
+      "location": ".agents/skills/revealui-tdd/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "@revealui/harnesses",
+      "canonicalSource": "packages/harnesses/src/content/definitions/skills/revealui-tdd.ts",
+      "durableDestination": ".agents/skills/revealui-tdd/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "8eafbeee924be02dbd758b91067b02060058cdee2c9652f366725785e834b3e2",
+        "ownershipLedger": ".revealui/adapters/codex-files.json"
+      }
+    },
+    {
+      "location": ".agents/skills/revealui-testing/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "@revealui/harnesses",
+      "canonicalSource": "packages/harnesses/src/content/definitions/skills/revealui-testing.ts",
+      "durableDestination": ".agents/skills/revealui-testing/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "0b86c021c22f4bc2eadc36e22512da3bab9529a55a3110f0e73cc168bdf3b416",
+        "ownershipLedger": ".revealui/adapters/codex-files.json"
+      }
+    },
+    {
+      "location": ".agents/skills/next-best-practices/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "RevCon RevealUI profile",
+      "canonicalSource": "revcon/profiles/revealui/claude/skills/next-best-practices/SKILL.md",
+      "durableDestination": ".agents/skills/next-best-practices/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "6ff0eb7e14fd2d32992e6e48e8f86f60e917df6651c7ecdfe85fb9d309a8f0f8",
+        "ownershipLedger": ".agents/.revcon-manifest.json"
+      }
+    },
+    {
+      "location": ".agents/skills/next-cache-components/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "RevCon RevealUI profile",
+      "canonicalSource": "revcon/profiles/revealui/claude/skills/next-cache-components/SKILL.md",
+      "durableDestination": ".agents/skills/next-cache-components/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "e4af48d7ea08928da50117db5aaf21d5d112e4a01fbcac4d8ec7efa50acbe3a3",
+        "ownershipLedger": ".agents/.revcon-manifest.json"
+      }
+    },
+    {
+      "location": ".agents/skills/turborepo/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "RevCon RevealUI profile",
+      "canonicalSource": "revcon/profiles/revealui/claude/skills/turborepo/SKILL.md",
+      "durableDestination": ".agents/skills/turborepo/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "139eec113966c9b1403e8b6d9b83ee6b265ef85f2dbb1b9145224af28ca7493c",
+        "ownershipLedger": ".agents/.revcon-manifest.json"
+      }
+    },
+    {
+      "location": ".agents/skills/vercel-composition-patterns/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "RevCon RevealUI profile",
+      "canonicalSource": "revcon/profiles/revealui/claude/skills/vercel-composition-patterns/SKILL.md",
+      "durableDestination": ".agents/skills/vercel-composition-patterns/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "74b9bace3415020b17a56eaf9b124a5b8a37b3ec8ef89909d19f648498b50eda",
+        "ownershipLedger": ".agents/.revcon-manifest.json"
+      }
+    },
+    {
+      "location": ".agents/skills/vercel-deploy/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "RevCon RevealUI profile",
+      "canonicalSource": "revcon/profiles/revealui/claude/skills/vercel-deploy/SKILL.md",
+      "durableDestination": ".agents/skills/vercel-deploy/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "699b8d45d1faf8cc91107ef4353cde87dcb7c5b114647aca9438d035a2222cb1",
+        "ownershipLedger": ".agents/.revcon-manifest.json"
+      }
+    },
+    {
+      "location": ".agents/skills/vercel-react-best-practices/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "RevCon RevealUI profile",
+      "canonicalSource": "revcon/profiles/revealui/claude/skills/vercel-react-best-practices/SKILL.md",
+      "durableDestination": ".agents/skills/vercel-react-best-practices/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "e04d04e3bd65a25f0e3dc694d0b5d3141e2bbb5a3601754490b4829c313dfa42",
+        "ownershipLedger": ".agents/.revcon-manifest.json"
+      }
+    },
+    {
+      "location": ".agents/skills/web-design-guidelines/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "RevCon RevealUI profile",
+      "canonicalSource": "revcon/profiles/revealui/claude/skills/web-design-guidelines/SKILL.md",
+      "durableDestination": ".agents/skills/web-design-guidelines/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "ec0b6456e2b090190db71eeac716e67d3c1dcb9e93a7f86990fd0a822fc6339e",
+        "ownershipLedger": ".agents/.revcon-manifest.json"
+      }
+    }
+  ],
+  "followUp": {
+    "id": "HARNESS-CODEX-RUNTIME",
+    "status": "planned",
+    "owner": "@revealui/harnesses adapter/protocol framework",
+    "owningPaths": [
+      "packages/harnesses/src/adapters",
+      "packages/harnesses/src/detection/auto-detector.ts",
+      "packages/harnesses/src/protocol/capabilities.ts",
+      "packages/harnesses/src/session/resolve-adapter.ts"
+    ],
+    "currentBehavior": "Codex is an instruction/skill adapter; programmatic execution and lifecycle integration are absent",
+    "durableTarget": "Supported Codex transport integrated with the existing adapter framework, shared MCP/memory, cancellation and resumable lifecycle; advertise only verified capabilities",
+    "validation": [
+      "Real Codex dispatch and output normalization",
+      "Cancellation and child cleanup",
+      "Resume/reconnect and lifecycle events",
+      "Authorization and supported blocking enforcement",
+      "Shared MCP and memory access"
+    ]
+  },
+  "validation": {
+    "managerDelivery": "passed after final build and regeneration",
+    "revconCopyLockstep": "passed; eight profile artifacts plus harness-owned assets",
+    "revconTests": "16 groups passed",
+    "subprocessPoolTests": "10 passed",
+    "fullGate": {
+      "result": "blocked",
+      "durationSeconds": 612.3,
+      "failure": "Biome lint; existing formatting and lint findings outside native delivery changes",
+      "owningLocations": [
+        "apps/docs/__tests__/utils/markdown.test.ts",
+        "apps/marketing/app/App.tsx",
+        "apps/marketing/app/components/ContactForm.tsx",
+        "apps/marketing/app/content/claims-evidence/blog-body-claims.ts",
+        "apps/marketing/app/content/claims-evidence/claims-part-1.ts",
+        "apps/marketing/app/content/claims-evidence/claims-part-2.ts",
+        "apps/marketing/app/content/claims-evidence/claims-part-4.ts",
+        "apps/marketing/app/content/home.ts",
+        "apps/marketing/app/content/pricing-faq.ts",
+        "apps/marketing/app/content/receipt.ts",
+        "apps/marketing/app/lib/api.ts",
+        "apps/marketing/app/lib/use-route-meta-title.ts",
+        "apps/marketing/app/routes/HomePage.tsx",
+        "apps/marketing/app/routes/LocalAiPage.tsx",
+        "apps/marketing/app/routes/MovedPage.tsx",
+        "packages/editor/src/canvas/EditSessionCanvas.tsx",
+        "packages/harnesses/src/__tests__/skill-invoke.test.ts",
+        "packages/harnesses/src/content/definitions/rules/token-economy.ts",
+        "packages/harnesses/src/content/index.ts",
+        "packages/harnesses/src/content/skill-invoke-runtime.ts",
+        "packages/harnesses/src/content/skill-invoke.ts",
+        "packages/harnesses/src/manager/grok-session-hooks.ts",
+        "packages/harnesses/src/session/reap.ts",
+        "scripts/docs/generate-api.ts",
+        "scripts/sync/__tests__/resolve-manifest-dir.test.ts",
+        "scripts/sync/resolve-manifest-dir.ts"
+      ],
+      "durableTarget": "Fix each finding in its source/configuration owner without bypassing lint",
+      "followUp": "HARNESS-INTEGRATION-GATE-DEBT",
+      "validationNeeded": "Run pnpm gate:quick after source-owner corrections",
+      "securityAudit": "Warning: dependency audit reports existing vulnerabilities; remediation belongs to dependency owners"
+    },
+    "harnessTests": "54 files, 643 tests passed",
+    "typechecks": "harnesses and scripts passed",
+    "build": "harnesses passed",
+    "revconReapply": "zero copied; eight unchanged",
+    "isolatedCommitTree": {
+      "harnessTests": "53 files, 637 tests passed",
+      "managerDelivery": "passed with no errors or warnings",
+      "revconTests": "10 groups passed, including five native fixtures",
+      "typecheck": "passed"
+    }
+  }
+}

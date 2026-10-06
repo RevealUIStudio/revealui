@@ -2,7 +2,9 @@ import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { buildManifest } from '../content/definitions/index.js';
 import { grokCommandPath, grokRulePathForDefinitionId } from '../content/generators/grok.js';
+import { generateContent } from '../content/generators/index.js';
 import { alwaysOnRuleIds } from '../content/preamble-ids.js';
+import { resolveTemplate } from '../content/resolvers/index.js';
 import { claudeRulePathForDefinitionId } from '../content/write-manager-adapters.js';
 import {
   claudeSettingsHasStudioLocalKg,
@@ -10,20 +12,23 @@ import {
   materializeStudioLocalKgMcp,
 } from '../session/studio-local-kg-mcp.js';
 import { tokenBudgetJsonText } from '../token-budget.js';
+import { checkCodexDelivery, materializeCodexPointer } from './codex.js';
 import { GROK_HOOK_FILES, GROK_HOOK_TEMPLATE_DIR } from './grok-session-hooks.js';
-import {
-  MANAGER_CONTENT_DIR,
-  MANAGER_DIR,
-  MANAGER_FILE,
-  type ManagerConfig,
-  ManagerSchema,
-} from './schema.js';
+import { assertManagedDestination, contentRootPath, loadManager, managerPath } from './paths.js';
+
+export { contentRootPath, loadManager, managerPath } from './paths.js';
+
+import { MANAGER_DIR, MANAGER_FILE, type ManagerConfig, ManagerSchema } from './schema.js';
 
 const STUB_HEADER = `> **RevealUI manager.** Policy and skills are owned by \`.revealui/\`.
 > This vendor tree is an **adapter stub only** (equal rank with every other vendor).
-> Do not fork hardlines here. Edit package definitions → generate into \`.revealui/content/\`.
+> Do not fork hardlines here. Edit package definitions → generate into \`{{CONTENT_ROOT}}/\`.
 > **Quality over speed:** correctness and proof outrank throughput in every session.
 `;
+
+function adapterBody(projectRoot: string, body: string): string {
+  return resolveTemplate(body, { projectRoot });
+}
 
 function isEnoent(err: unknown): boolean {
   return (
@@ -44,25 +49,6 @@ function readFileOrNull(filePath: string): string | null {
   }
 }
 
-export function managerPath(projectRoot: string): string {
-  return join(projectRoot, MANAGER_DIR, MANAGER_FILE);
-}
-
-export function contentRootPath(projectRoot: string, config?: ManagerConfig): string {
-  const root = config?.contentRoot ?? MANAGER_CONTENT_DIR;
-  return join(projectRoot, MANAGER_DIR, root);
-}
-
-/** Load manager.json or return defaults. */
-export function loadManager(projectRoot: string): ManagerConfig {
-  const path = managerPath(projectRoot);
-  const text = readFileOrNull(path);
-  if (text === null) {
-    return ManagerSchema.parse({});
-  }
-  return ManagerSchema.parse(JSON.parse(text) as unknown);
-}
-
 /**
  * Write manager.json (pretty).
  * Always performs a single writeFileSync after mkdir — no existsSync/read
@@ -72,6 +58,7 @@ export function writeManager(projectRoot: string, config?: ManagerConfig): strin
   const parsed = ManagerSchema.parse(config ?? {});
   const path = managerPath(projectRoot);
   const next = `${JSON.stringify(parsed, null, 2)}\n`;
+  assertManagedDestination(projectRoot, `${MANAGER_DIR}/${MANAGER_FILE}`);
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, next, 'utf-8');
   return path;
@@ -98,7 +85,7 @@ export function materializeClaudeStub(projectRoot: string): string {
 # RevealUI manager (Claude adapter)
 
 1. Open **\`.revealui/manager.json\`** for project authority.
-2. Shared policy SSOT: package definitions → **\`.revealui/content/\`** (materialize).
+2. Shared policy SSOT: package definitions → **\`{{CONTENT_ROOT}}/\`** (materialize).
 3. Claude loads \`.claude/rules/\`: definition-backed rule bodies are **mirrored** from content (GAP-421 phase 2); monorepo-only rules stay hand-authored here; this stub is adapter-only.
 4. Day-to-day free surfaces: path in \`manager.json\` → \`tracker.path\` (fleet: \`docs/TRACKER.md\`).
 5. Product I/O: RevealUI MCP only (device token via \`rfg\` / revvault) — not vendor side channels.
@@ -106,7 +93,8 @@ export function materializeClaudeStub(projectRoot: string): string {
 
 See \`.revealui/README.md\`.
 `;
-  writeFileSync(abs, body, 'utf-8');
+  assertManagedDestination(projectRoot, rel);
+  writeFileSync(abs, adapterBody(projectRoot, body), 'utf-8');
   return rel;
 }
 
@@ -115,13 +103,16 @@ export function materializeCursorStub(projectRoot: string): string {
   const rel = join('.cursor', 'revealui-manager.md');
   const abs = join(projectRoot, rel);
   mkdirSync(dirname(abs), { recursive: true });
+  assertManagedDestination(projectRoot, rel);
   writeFileSync(
     abs,
-    `${STUB_HEADER}
+    adapterBody(
+      projectRoot,
+      `${STUB_HEADER}
 # RevealUI manager (Cursor adapter)
 
 1. Open **\`.revealui/manager.json\`** for project authority.
-2. Shared rules/skills: **\`.revealui/content/\`** (generated from \`@revealui/harnesses\`).
+2. Shared rules/skills: **\`{{CONTENT_ROOT}}/\`** (generated from \`@revealui/harnesses\`).
 3. Day-to-day free surfaces: path in \`manager.json\` → \`tracker.path\` (fleet: \`docs/TRACKER.md\`).
 4. Product I/O: RevealUI MCP only (device token via \`rfg\` / revvault) — not vendor side channels.
 5. Equal vendors: Cursor is not more authoritative than Claude, Grok, or OpenCode.
@@ -131,6 +122,7 @@ Do not fork hardline policy under \`.cursor/rules/\`; edit package definitions i
 
 See \`.revealui/README.md\`.
 `,
+    ),
     'utf-8',
   );
   return rel;
@@ -141,15 +133,18 @@ export function materializeOpenCodeStub(projectRoot: string): string {
   const rel = join('.opencode', 'revealui-manager.md');
   const abs = join(projectRoot, rel);
   mkdirSync(dirname(abs), { recursive: true });
+  assertManagedDestination(projectRoot, rel);
   writeFileSync(
     abs,
-    `${STUB_HEADER}
+    adapterBody(
+      projectRoot,
+      `${STUB_HEADER}
 # RevealUI manager (OpenCode adapter)
 
 0. Control layer first: \`revealui-harnesses session adapter opencode\`.
    This file does not author policy.
 1. Open **\`.revealui/manager.json\`** for project authority.
-2. Shared rules/skills: **\`.revealui/content/\`** (generated from \`@revealui/harnesses\`).
+2. Shared rules/skills: **\`{{CONTENT_ROOT}}/\`** (generated from \`@revealui/harnesses\`).
 3. Day-to-day free surfaces: path in \`manager.json\` → \`tracker.path\` (fleet: \`docs/TRACKER.md\`).
 4. Product I/O: RevealUI MCP only (device token via \`rfg\` / revvault) — not vendor side channels.
 5. Equal vendors: OpenCode is not more authoritative than Claude, Grok, or Cursor.
@@ -159,6 +154,7 @@ Policy text is not owned under \`.opencode/\`.
 
 See \`.revealui/README.md\`.
 `,
+    ),
     'utf-8',
   );
   return rel;
@@ -176,15 +172,18 @@ export function materializeGrokPointer(projectRoot: string): string {
   const rel = join(MANAGER_DIR, 'adapters', 'grok.md');
   const abs = join(projectRoot, rel);
   mkdirSync(dirname(abs), { recursive: true });
+  assertManagedDestination(projectRoot, rel);
   writeFileSync(
     abs,
-    `${STUB_HEADER}
+    adapterBody(
+      projectRoot,
+      `${STUB_HEADER}
 # RevealUI manager (Grok adapter)
 
 Machine home (\`~/.grok\`) must stay **pointer-thin**. When cwd is this project:
 
 1. Read \`.revealui/manager.json\`
-2. Shared policy: \`.revealui/content/\` (SSOT). Grok's **load path** is
+2. Shared policy: \`{{CONTENT_ROOT}}/\` (SSOT). Grok's **load path** is
    \`.grok/rules/\` (preamble tier 1) + \`.grok/commands/\` (slash commands) +
    \`.grok/skills/rule-*/\` (on-demand), generated by \`manager materialize\`.
    Do not set \`[compat.claude] rules = true\` — that re-ingests the Claude vendor dump.
@@ -235,6 +234,7 @@ analog of GAP-421 Claude mirrors, not a second authoring home.
 Do not invent a second hotfix registry.
 Rebuild \`@revealui/harnesses\` so \`dist/cli.js session\` / \`hook grok\` are available.
 `,
+    ),
     'utf-8',
   );
 
@@ -256,16 +256,19 @@ Rebuild \`@revealui/harnesses\` so \`dist/cli.js session\` / \`hook grok\` are a
 }
 
 /**
- * GAP-293 Phase A: RevDev consumes `.revealui/content` as SSOT.
+ * GAP-293 Phase A: RevDev consumes `{{CONTENT_ROOT}}` as SSOT.
  * No second emit tree (would twin the claude-code generator).
  */
 export function materializeRevDevPointer(projectRoot: string): string {
   const rel = join(MANAGER_DIR, 'adapters', 'revdev.md');
   const abs = join(projectRoot, rel);
   mkdirSync(dirname(abs), { recursive: true });
+  assertManagedDestination(projectRoot, rel);
   writeFileSync(
     abs,
-    `${STUB_HEADER}
+    adapterBody(
+      projectRoot,
+      `${STUB_HEADER}
 # RevealUI manager (RevDev adapter)
 
 RevDev Studio, Console, and the daemon are an **equal adapter**. They **read**
@@ -274,17 +277,18 @@ the project manager and generated content. They do not own a second rules tree.
 When cwd is this project:
 
 1. Read **\`.revealui/manager.json\`**
-2. Read **\`.revealui/content/\`** for shared policy (SSOT after \`manager materialize\`)
+2. Read **\`{{CONTENT_ROOT}}/\`** for shared policy (SSOT after \`manager materialize\`)
 3. Open \`tracker.path\` from the manager (fleet TRACKER)
 4. Product I/O: RevealUI MCP (\`rfg\`) — not a vendor side channel
 5. Local inference stays on snaps / Ollama via the daemon. No Anthropic SDK.
 
 Do not create \`~/.revdev/rules/\` hardline copies. Do not emit a parallel
-generator that duplicates \`.revealui/content/\`. The skills index RPC shipped
+generator that duplicates \`{{CONTENT_ROOT}}/\`. The skills index RPC shipped
 (GAP-293 Phase B). AgentRuntime cockpit loops are a later GAP-293 phase.
 
 See \`.revealui/README.md\` and \`.jv/docs/gap-specs/GAP-293-revdev-harness-parity-design.md\`.
 `,
+    ),
     'utf-8',
   );
   return rel;
@@ -300,14 +304,33 @@ export function materializeManager(
   projectRoot: string,
   options?: {
     config?: ManagerConfig;
-    adapters?: Array<'claude-code' | 'cursor' | 'opencode' | 'grok' | 'revdev'>;
+    adapters?: Array<'claude-code' | 'codex' | 'cursor' | 'opencode' | 'grok' | 'revdev'>;
   },
 ): MaterializeResult {
-  const managerFile = writeManagerPreserving(projectRoot, options?.config);
-  const adapters = options?.adapters ?? ['claude-code', 'cursor', 'opencode', 'grok', 'revdev'];
+  const adapters = options?.adapters ?? [
+    'claude-code',
+    'codex',
+    'cursor',
+    'opencode',
+    'grok',
+    'revdev',
+  ];
+  const config = options?.config ?? loadManager(projectRoot);
+  const nextConfig =
+    adapters.includes('codex') && !config.adapters.some((adapter) => adapter.id === 'codex')
+      ? {
+          ...config,
+          adapters: [
+            ...config.adapters,
+            { id: 'codex' as const, projectTree: null, rank: 'equal' as const },
+          ],
+        }
+      : config;
+  const managerFile = writeManagerPreserving(projectRoot, nextConfig);
   const stubs: string[] = [];
   for (const id of adapters) {
     if (id === 'claude-code') stubs.push(materializeClaudeStub(projectRoot));
+    else if (id === 'codex') stubs.push(...materializeCodexPointer(projectRoot));
     else if (id === 'cursor') stubs.push(materializeCursorStub(projectRoot));
     else if (id === 'opencode') stubs.push(materializeOpenCodeStub(projectRoot));
     else if (id === 'grok') stubs.push(materializeGrokPointer(projectRoot));
@@ -349,7 +372,7 @@ function contentTreeHasFiles(contentRoot: string): boolean {
   }
 }
 
-/** Fail if manager missing; warn if equal-rank adapter stubs/surfaces lag materialize. */
+/** Required delivery for registered adapters fails closed; optional orientation may warn. */
 export function checkManager(projectRoot: string): ManagerCheckResult {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -380,6 +403,20 @@ export function checkManager(projectRoot: string): ManagerCheckResult {
       // Phase 2: definition rule bodies under .claude/rules must match content
       // (Claude load path). Monorepo-only rules (git.md, …) are not checked.
       const manifest = buildManifest();
+      const registered = new Set(parsedConfig.adapters.map((adapter) => adapter.id));
+      const expectedContent = generateContent('claude-code', manifest, { projectRoot });
+      for (const file of expectedContent) {
+        try {
+          assertManagedDestination(projectRoot, file.relativePath);
+          if (readFileOrNull(join(projectRoot, file.relativePath)) !== file.content) {
+            errors.push(
+              `missing or stale ${file.relativePath} — run: revealui-harnesses manager materialize`,
+            );
+          }
+        } catch (error) {
+          errors.push(error instanceof Error ? error.message : String(error));
+        }
+      }
       const grokAlwaysOn = alwaysOnRuleIds(manifest);
       for (const rule of manifest.rules) {
         const contentRel = join(MANAGER_DIR, parsedConfig.contentRoot, 'rules', `${rule.id}.md`);
@@ -392,18 +429,18 @@ export function checkManager(projectRoot: string): ManagerCheckResult {
           errors.push(`missing ${contentRel} — run: revealui-harnesses manager materialize`);
           continue;
         }
-        if (claudeBody === null) {
+        if (registered.has('claude-code') && claudeBody === null) {
           errors.push(
             `missing ${claudeRel} (GAP-421 phase 2: definition rules must load under .claude/rules) — run: revealui-harnesses manager materialize`,
           );
           continue;
         }
-        if (claudeBody !== contentBody) {
+        if (registered.has('claude-code') && claudeBody !== contentBody) {
           errors.push(
             `dual drift: ${claudeRel} !== ${contentRel} — run: revealui-harnesses manager materialize`,
           );
         }
-        if (grokAlwaysOn.has(rule.id)) {
+        if (registered.has('grok') && grokAlwaysOn.has(rule.id)) {
           const grokRel = grokRulePathForDefinitionId(rule.id);
           const grokBody = readFileOrNull(join(projectRoot, grokRel));
           if (grokBody === null) {
@@ -418,6 +455,7 @@ export function checkManager(projectRoot: string): ManagerCheckResult {
         }
       }
       for (const cmd of manifest.commands) {
+        if (!registered.has('grok')) continue;
         const grokCmdRel = grokCommandPath(cmd.id);
         if (readFileOrNull(join(projectRoot, grokCmdRel)) === null) {
           errors.push(
@@ -429,38 +467,54 @@ export function checkManager(projectRoot: string): ManagerCheckResult {
   }
 
   const claudeStub = join(projectRoot, '.claude', 'rules', '00-revealui-manager.md');
+  const reportAdapterIssue = (adapterId: string, message: string): void => {
+    if (parsedConfig?.adapters.some((adapter) => adapter.id === adapterId)) errors.push(message);
+  };
+  if (parsedConfig?.adapters.some((adapter) => adapter.id === 'codex')) {
+    errors.push(...checkCodexDelivery(projectRoot));
+  }
   if (readFileOrNull(claudeStub) === null) {
-    warnings.push('missing .claude/rules/00-revealui-manager.md stub (materialize claude-code)');
+    reportAdapterIssue(
+      'claude-code',
+      'missing .claude/rules/00-revealui-manager.md stub (materialize claude-code)',
+    );
   }
   const cursorStub = join(projectRoot, '.cursor', 'revealui-manager.md');
   if (readFileOrNull(cursorStub) === null) {
-    warnings.push('missing .cursor/revealui-manager.md stub (materialize cursor)');
+    reportAdapterIssue('cursor', 'missing .cursor/revealui-manager.md stub (materialize cursor)');
   }
   const cursorHooks = join(projectRoot, '.cursor', 'hooks.json');
   if (readFileOrNull(cursorHooks) === null) {
-    warnings.push(
+    reportAdapterIssue(
+      'cursor',
       'missing .cursor/hooks.json (manager materialize writes cursor generator output)',
     );
   }
   const opencodeStub = join(projectRoot, '.opencode', 'revealui-manager.md');
   if (readFileOrNull(opencodeStub) === null) {
-    warnings.push('missing .opencode/revealui-manager.md stub (materialize opencode)');
+    reportAdapterIssue(
+      'opencode',
+      'missing .opencode/revealui-manager.md stub (materialize opencode)',
+    );
   }
   const grokStub = join(projectRoot, MANAGER_DIR, 'adapters', 'grok.md');
   if (readFileOrNull(grokStub) === null) {
-    warnings.push('missing .revealui/adapters/grok.md stub (materialize grok)');
+    reportAdapterIssue('grok', 'missing .revealui/adapters/grok.md stub (materialize grok)');
   }
   const grokSpawnMap = join(projectRoot, '.grok', 'rules', '00-spawn-map.md');
   if (readFileOrNull(grokSpawnMap) === null) {
-    warnings.push('missing .grok/rules/00-spawn-map.md (materialize grok generator)');
+    reportAdapterIssue('grok', 'missing .grok/rules/00-spawn-map.md (materialize grok generator)');
   }
   const grokManagerRule = join(projectRoot, '.grok', 'rules', '00-revealui-manager.md');
   if (readFileOrNull(grokManagerRule) === null) {
-    warnings.push('missing .grok/rules/00-revealui-manager.md (materialize grok generator)');
+    reportAdapterIssue(
+      'grok',
+      'missing .grok/rules/00-revealui-manager.md (materialize grok generator)',
+    );
   }
   const grokPreTool = join(projectRoot, GROK_HOOK_TEMPLATE_DIR, 'pre-tool.json');
   if (readFileOrNull(grokPreTool) === null) {
-    warnings.push('missing Grok PreToolUse template (materialize grok hooks)');
+    reportAdapterIssue('grok', 'missing Grok PreToolUse template (materialize grok hooks)');
   }
   const grokCap = join(projectRoot, GROK_HOOK_TEMPLATE_DIR, 'cap-tool-output.json');
   if (readFileOrNull(grokCap) === null) {
@@ -472,7 +526,7 @@ export function checkManager(projectRoot: string): ManagerCheckResult {
   }
   const revdevStub = join(projectRoot, MANAGER_DIR, 'adapters', 'revdev.md');
   if (readFileOrNull(revdevStub) === null) {
-    warnings.push('missing .revealui/adapters/revdev.md stub (materialize revdev)');
+    reportAdapterIssue('revdev', 'missing .revealui/adapters/revdev.md stub (materialize revdev)');
   }
   const readme = join(projectRoot, MANAGER_DIR, 'README.md');
   if (readFileOrNull(readme) === null) {
@@ -480,13 +534,17 @@ export function checkManager(projectRoot: string): ManagerCheckResult {
   }
   const claudeSettings = readFileOrNull(join(projectRoot, '.claude', 'settings.json'));
   if (claudeSettings === null || !claudeSettingsHasStudioLocalKg(claudeSettings)) {
-    warnings.push(
+    reportAdapterIssue(
+      'claude-code',
       'missing knowledge-graph stdio MCP in .claude/settings.json (materialize claude-code)',
     );
   }
   const grokToml = readFileOrNull(join(projectRoot, '.grok', 'config.toml'));
   if (grokToml === null || !grokTomlHasStudioLocalKg(grokToml)) {
-    warnings.push('missing knowledge-graph stdio MCP in .grok/config.toml (materialize grok)');
+    reportAdapterIssue(
+      'grok',
+      'missing knowledge-graph stdio MCP in .grok/config.toml (materialize grok)',
+    );
   }
   return { ok: errors.length === 0, errors, warnings };
 }

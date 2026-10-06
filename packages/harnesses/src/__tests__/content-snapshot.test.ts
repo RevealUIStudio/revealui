@@ -103,7 +103,8 @@ describe('content snapshot (definition ↔ generator lock, GAP-406)', () => {
       manifest.rules.length +
       manifest.commands.length +
       manifest.agents.length +
-      manifest.skills.length;
+      manifest.skills.length +
+      manifest.skills.reduce((count, skill) => count + Object.keys(skill.references).length, 0);
     expect(snap.files.length).toBe(expected);
   });
 });

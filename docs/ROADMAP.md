@@ -115,3 +115,23 @@ See [revealui.com/pricing](https://revealui.com/pricing) for the live catalog.
 - **Email.** support@revealui.com
 
 We prioritize based on customer impact, charge readiness, and community demand.
+
+### HARNESS-CODEX-RUNTIME — Codex execution and lifecycle integration
+
+Native instruction and skill delivery is implemented through the project manager.
+The execution adapter remains planned. Its owner is `@revealui/harnesses`: extend
+the existing adapter/protocol framework, auto-detection, and session resolution.
+Validate real dispatch, cancellation and cleanup, resume/reconnect, lifecycle
+events, shared MCP/memory access, and supported blocking authorization before
+promoting any capability from the roadmap profile.
+
+Migration locations, owners, canonical sources, destinations, and removal evidence
+are recorded in [codex-native-delivery.json](audits/codex-native-delivery.json).
+
+### HARNESS-INTEGRATION-GATE-DEBT — Complete broad validation
+
+The bounded quick gate completed in 612.3 seconds. Native manager delivery,
+content snapshots, and content freshness passed; Biome lint failed on existing
+source findings. Fix the owning files listed in the migration audit and rerun
+`pnpm gate:quick`; do not suppress or bypass checks. Dependency owners must
+also address the security audit findings reported as a warning.

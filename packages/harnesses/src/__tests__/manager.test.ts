@@ -166,7 +166,9 @@ describe('project manager (.revealui)', () => {
       written.byGenerator.grok;
     // GAP-421 phase 2: definition rules also mirrored under .claude/rules/
     expect(written.claudeRuleMirrors.length).toBeGreaterThan(0);
-    expect(written.total).toBe(generatorTotal + written.claudeRuleMirrors.length);
+    expect(written.total).toBe(
+      generatorTotal + written.claudeRuleMirrors.length + written.codexPaths.length,
+    );
 
     const hooks = JSON.parse(readFileSync(join(root, '.cursor/hooks.json'), 'utf-8')) as {
       version: number;
@@ -280,15 +282,15 @@ describe('project manager (.revealui)', () => {
     expect(after.ok).toBe(true);
   });
 
-  it('checkManager warns when the RevDev consume-content stub is missing', () => {
+  it('checkManager fails when a registered RevDev consume-content stub is missing', () => {
     const root = tempProject();
     materializeManager(root, {
-      adapters: ['claude-code', 'cursor', 'opencode', 'grok'],
+      adapters: ['claude-code', 'codex', 'cursor', 'opencode', 'grok'],
     });
     writeManagerAdapterContent(root);
     const checked = checkManager(root);
-    expect(checked.ok).toBe(true);
-    expect(checked.warnings.some((w) => w.includes('revdev.md'))).toBe(true);
+    expect(checked.ok).toBe(false);
+    expect(checked.errors.some((w) => w.includes('revdev.md'))).toBe(true);
   });
 
   it('check fails when content tree is missing after manager.json exists', () => {

@@ -1,0 +1,41 @@
+{
+  "editor": "agents",
+  "files": {
+    "skills/next-best-practices/SKILL.md": {
+      "sha256": "6ff0eb7e14fd2d32992e6e48e8f86f60e917df6651c7ecdfe85fb9d309a8f0f8",
+      "source": "profiles/revealui/agents/skills/next-best-practices/SKILL.md"
+    },
+    "skills/next-cache-components/SKILL.md": {
+      "sha256": "e4af48d7ea08928da50117db5aaf21d5d112e4a01fbcac4d8ec7efa50acbe3a3",
+      "source": "profiles/revealui/agents/skills/next-cache-components/SKILL.md"
+    },
+    "skills/turborepo/SKILL.md": {
+      "sha256": "139eec113966c9b1403e8b6d9b83ee6b265ef85f2dbb1b9145224af28ca7493c",
+      "source": "profiles/revealui/agents/skills/turborepo/SKILL.md"
+    },
+    "skills/vercel-composition-patterns/SKILL.md": {
+      "sha256": "74b9bace3415020b17a56eaf9b124a5b8a37b3ec8ef89909d19f648498b50eda",
+      "source": "profiles/revealui/agents/skills/vercel-composition-patterns/SKILL.md"
+    },
+    "skills/vercel-deploy/SKILL.md": {
+      "sha256": "699b8d45d1faf8cc91107ef4353cde87dcb7c5b114647aca9438d035a2222cb1",
+      "source": "profiles/revealui/agents/skills/vercel-deploy/SKILL.md"
+    },
+    "skills/vercel-react-best-practices/SKILL.md": {
+      "sha256": "e04d04e3bd65a25f0e3dc694d0b5d3141e2bbb5a3601754490b4829c313dfa42",
+      "source": "profiles/revealui/agents/skills/vercel-react-best-practices/SKILL.md"
+    },
+    "skills/web-design-guidelines/SKILL.md": {
+      "sha256": "ec0b6456e2b090190db71eeac716e67d3c1dcb9e93a7f86990fd0a822fc6339e",
+      "source": "profiles/revealui/agents/skills/web-design-guidelines/SKILL.md"
+    },
+    "workflows/WORKFLOWS.md": {
+      "sha256": "c15e2535d64fe82cdca58c60caaf018123d1b190e342c13a9a92ac19d416795f",
+      "source": "profiles/revealui/workflows/WORKFLOWS.md"
+    }
+  },
+  "mode": "copy",
+  "profiles": [
+    "revealui"
+  ]
+}

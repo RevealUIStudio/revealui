@@ -15,7 +15,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildManifest } from './definitions/index.js';
-import { getGenerator, listGenerators } from './generators/index.js';
+import { generateContent, listGenerators } from './generators/index.js';
 import type { Manifest } from './schemas/manifest.js';
 
 function generateForSnapshot(
@@ -23,13 +23,7 @@ function generateForSnapshot(
   manifest: Manifest,
   projectRoot: string,
 ): { relativePath: string; content: string }[] {
-  const generator = getGenerator(generatorId);
-  if (!generator) {
-    throw new Error(
-      `Unknown generator "${generatorId}". Available: ${listGenerators().join(', ')}`,
-    );
-  }
-  return generator.generateAll(manifest, { projectRoot });
+  return generateContent(generatorId, manifest, { projectRoot });
 }
 
 export const CONTENT_SNAPSHOT_VERSION = 1 as const;

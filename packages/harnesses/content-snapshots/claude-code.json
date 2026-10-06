@@ -165,6 +165,10 @@
     {
       "relativePath": ".revealui/content/skills/tailwind-4-docs/SKILL.md",
       "sha256": "af697a576ad14aa59a7dff9864b2a95ee9a08bc18b2625eda76e7357be98bb13"
+    },
+    {
+      "relativePath": ".revealui/content/skills/tailwind-4-docs/references/gotchas.md",
+      "sha256": "bed9e4950d4352c932f105f858e2723b3c8f469b3f892981b9081a48d53f7db0"
     }
   ]
 }

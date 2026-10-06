@@ -1,8 +1,11 @@
+import { resolveTemplate } from '../resolvers/index.js';
+import type { ResolverContext } from '../resolvers/types.js';
+import type { Manifest } from '../schemas/manifest.js';
 import { ClaudeCodeGenerator } from './claude-code.js';
 import { CursorGenerator } from './cursor.js';
 import { GrokGenerator } from './grok.js';
 import { OpenCodeGenerator } from './opencode.js';
-import type { ContentGenerator } from './types.js';
+import type { ContentGenerator, GeneratedFile } from './types.js';
 import { VSCodeGenerator } from './vscode.js';
 
 export { ClaudeCodeGenerator } from './claude-code.js';
@@ -38,6 +41,23 @@ export function registerGenerator(generator: ContentGenerator): void {
 /** List all registered generator IDs. */
 export function listGenerators(): string[] {
   return [...generators.keys()];
+}
+
+/** One project-aware generation path for materialize, sync, diff, and validation. */
+export function generateContent(
+  generatorId: string,
+  manifest: Manifest,
+  ctx: ResolverContext,
+): GeneratedFile[] {
+  const generator = getGenerator(generatorId);
+  if (!generator)
+    throw new Error(
+      `Unknown generator "${generatorId}". Available: ${listGenerators().join(', ')}`,
+    );
+  return generator.generateAll(manifest, ctx).map((file) => ({
+    ...file,
+    content: resolveTemplate(file.content, ctx),
+  }));
 }
 
 // Built-in generators, registered eagerly so `generateContent()` /

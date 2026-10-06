@@ -185,7 +185,10 @@ CLAUDE.md
 # (must not enter the revcon rules-lockstep manifest).
 .claude/rules/00-revealui-manager.md
 .opencode/
-.agents/
+.agents/*
+!.agents/skills/
+!.agents/workflows/
+!.agents/.revcon-manifest.json
 
 # RevealUI cache files (PGlite database)
 .revealui/cache/
