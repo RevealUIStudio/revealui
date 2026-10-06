@@ -32,6 +32,9 @@ import { buildLlmCallReceipt } from './chat-receipt';
 
 export const ADMIN_CHAT_ROUTE = 'admin.chat';
 
+/** Process env bag. Matches the COGS and budget helpers, which read string flags. */
+type RuntimeEnv = Record<string, string | undefined>;
+
 export interface AdminChatAccountContext {
   accountId: string | null;
   tier: string;
@@ -44,7 +47,7 @@ export interface EnforceAdminChatRailsInput {
   userId: string;
   db: Database;
   now?: Date;
-  env?: NodeJS.ProcessEnv;
+  env?: RuntimeEnv;
   loadContext?: (db: Database, userId: string, now: Date) => Promise<AdminChatAccountContext>;
   admit?: (
     db: Database,
@@ -140,9 +143,7 @@ function disabledResponse(): NextResponse {
   );
 }
 
-export function adminChatDisabledResponse(
-  env: NodeJS.ProcessEnv = process.env,
-): NextResponse | null {
+export function adminChatDisabledResponse(env: RuntimeEnv = process.env): NextResponse | null {
   if (!isAiDisabled(env)) return null;
   return disabledResponse();
 }
@@ -330,7 +331,7 @@ export interface RecordAdminChatCallInput {
   durationMs: number;
   errored: boolean;
   now?: Date;
-  env?: NodeJS.ProcessEnv;
+  env?: RuntimeEnv;
   estimateMicros?: (
     model: string,
     promptTokens: number,

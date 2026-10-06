@@ -6,6 +6,7 @@
 
 import type { NextRequest } from 'next/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { RecordAdminChatCallInput } from '@/lib/ai/chat-cost-rails';
 
 const chat = vi.fn();
 
@@ -73,8 +74,12 @@ vi.mock('@/lib/middleware/rate-limit', () => ({
   rateLimit: vi.fn(() => async () => null),
 }));
 
-const enforceAdminChatRails = vi.fn(async () => ({ accountId: 'acct-test' }));
-const recordAdminChatCall = vi.fn(async () => undefined);
+const enforceAdminChatRails = vi.fn(
+  async (_input: { userId: string }): Promise<Response | { accountId: string | null }> => ({
+    accountId: 'acct-test',
+  }),
+);
+const recordAdminChatCall = vi.fn(async (_input: RecordAdminChatCallInput) => undefined);
 
 vi.mock('@/lib/ai/chat-cost-rails', async () => {
   const actual = await vi.importActual<typeof import('@/lib/ai/chat-cost-rails')>(
@@ -82,9 +87,13 @@ vi.mock('@/lib/ai/chat-cost-rails', async () => {
   );
   return {
     ...actual,
-    enforceAdminChatRails: (...args: unknown[]) => enforceAdminChatRails(...args),
-    recordAdminChatCall: (...args: unknown[]) => recordAdminChatCall(...args),
-  };
+    enforceAdminChatRails: (
+      input: Parameters<typeof actual.enforceAdminChatRails>[0],
+    ): ReturnType<typeof enforceAdminChatRails> => enforceAdminChatRails(input),
+    recordAdminChatCall: (
+      input: Parameters<typeof actual.recordAdminChatCall>[0],
+    ): ReturnType<typeof recordAdminChatCall> => recordAdminChatCall(input),
+  } as typeof actual;
 });
 
 vi.mock('@/lib/ai/chat-key-source', () => ({
@@ -157,7 +166,10 @@ describe('POST /api/chat cost rails wiring', () => {
         model: 'gpt-4o',
       }),
     );
-    const recorded = recordAdminChatCall.mock.calls[0]?.[0] as Record<string, unknown>;
+    const recorded = recordAdminChatCall.mock.calls[0]?.[0];
+    if (!recorded) {
+      throw new Error('expected a recorded chat call');
+    }
     expect(recorded).not.toHaveProperty('prompt');
     expect(recorded).not.toHaveProperty('apiKey');
     expect(JSON.stringify(recorded)).not.toContain('Hello');

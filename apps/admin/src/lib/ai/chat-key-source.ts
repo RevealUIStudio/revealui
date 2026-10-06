@@ -175,7 +175,7 @@ export async function describeAdminChatKey(input: {
   isHosted: boolean;
   dispatchEnabled: boolean;
   clientProvider: string | null;
-  env?: NodeJS.ProcessEnv;
+  env?: Record<string, string | undefined>;
   workspaceId?: string | null;
 }): Promise<LlmCallIdentity> {
   const env = input.env ?? process.env;

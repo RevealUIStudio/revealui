@@ -81,6 +81,7 @@ vi.mock('@revealui/ai/llm/server', () => {
     // resolver. It delegates to createLLMClientFromEnv so a test that overrides
     // createLLMClientFromEnv drives both the chat and embedding paths.
     resolveLLMClientForRequest: vi.fn(async () => createLLMClientFromEnv()),
+    hostedByokDispatchEnabled: vi.fn(() => false),
   };
 });
 

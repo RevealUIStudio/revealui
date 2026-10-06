@@ -333,9 +333,23 @@ describe('recordAdminChatCall', () => {
       durationMs: 40,
       errored: false,
     });
-    const encoded = JSON.stringify(inserts);
-    expect(encoded).not.toContain('prompt');
+    const receiptKeys = Object.keys(receipt?.values ?? {});
+    expect(receiptKeys).toEqual([
+      'id',
+      'userId',
+      'accountId',
+      'route',
+      'provider',
+      'model',
+      'keySource',
+      'promptTokens',
+      'completionTokens',
+      'estimatedCostMicros',
+      'createdAt',
+    ]);
+    const encoded = JSON.stringify(receipt?.values);
     expect(encoded).not.toContain('sk-');
     expect(encoded).not.toContain('apiKey');
+    expect(encoded).not.toContain('encryptedKey');
   });
 });
