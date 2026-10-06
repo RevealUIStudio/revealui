@@ -54,11 +54,22 @@ test('normal helper pushes the validated HEAD and preserves existing saved work 
   // Real ignored cache data must not be treated as dirty source.
   writeFileSync(join(f.repo, '.git/info/exclude'), '.turbo/\n');
   const result = f.push();
-  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.status, 0, `${result.stderr}\n${result.stdout}`);
   assert.equal(f.run(['rev-parse', 'refs/heads/feature'], f.remote).stdout.trim(), f.run(['rev-parse', 'HEAD']).stdout.trim());
   assert.match(readFileSync(join(f.directory, 'checks'), 'utf8'), /gate --phase=1 --changed/);
+  assert.equal(existsSync(join(f.repo, '.git/prepush-validated-receipt')), false);
   assert.equal(readFileSync(join(f.repo, '.turbo/cache'), 'utf8'), 'cached');
   for (const name of ['revealui-push-stash-old', 'revealui-gate-worktree-old', 'agent-stash-old']) assert.equal(readFileSync(join(f.directory, name, 'evidence'), 'utf8'), 'preserve');
+});
+
+test('a receipt for another HEAD or branch cannot skip direct push validation', () => {
+  const f = fixture();
+  const source = f.run(['rev-parse', 'HEAD']).stdout.trim();
+  writeFileSync(join(f.repo, '.git/prepush-validated-receipt'), `${source}\nrefs/heads/test\n`);
+  const result = f.run(['push', 'origin', 'HEAD:refs/heads/feature']);
+  assert.equal(result.status, 0, `${result.stderr}\n${result.stdout}`);
+  assert.equal(readFileSync(join(f.directory, 'checks'), 'utf8'), 'gate --phase=1 --changed\n');
+  assert.equal(existsSync(join(f.repo, '.git/prepush-validated-receipt')), false);
 });
 
 test('native fixtures invoked by a real outer push hook preserve its repository namespace', () => {
@@ -80,26 +91,17 @@ test('native fixtures invoked by a real outer push hook preserve its repository 
     GIT_CONFIG_KEY_0: 'fixture.namespace',
     GIT_CONFIG_VALUE_0: 'outer-hook',
   });
-  // Execute the actual native fixture code from an actual Git pre-push hook.
-  // Select its existing success case so this regression cannot recurse.
+  // Execute the actual native fixture from the actual Git pre-push hook.
   writeFileSync(join(f.directory, 'bin/pnpm'), `#!/usr/bin/env node
-const { spawnSync } = require('node:child_process');
 const { writeFileSync } = require('node:fs');
 writeFileSync(${JSON.stringify(join(f.directory, 'hook-namespace.json'))}, JSON.stringify({
   directory: process.env.GIT_DIR, index: process.env.GIT_INDEX_FILE,
   common: process.env.GIT_COMMON_DIR, configCount: process.env.GIT_CONFIG_COUNT,
 }));
-const env = { ...process.env };
-delete env.NODE_TEST_CONTEXT;
-const result = spawnSync(process.execPath,
-  ['--test', '--test-name-pattern=^normal helper pushes', ${JSON.stringify(__filename)}],
-  { env, stdio: 'inherit' });
-process.exit(result.status ?? 1);
 `);
   chmodSync(join(f.directory, 'bin/pnpm'), 0o755);
-  const result = f.push();
-  assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /normal helper pushes the validated HEAD/);
+  const result = f.run(['push', 'origin', 'HEAD:refs/heads/feature']);
+  assert.equal(result.status, 0, `${result.stderr}\n${result.stdout}`);
   const inherited = JSON.parse(readFileSync(join(f.directory, 'hook-namespace.json'), 'utf8'));
   assert.ok(inherited.directory);
   assert.equal(inherited.index, join(f.repo, '.git/index'));

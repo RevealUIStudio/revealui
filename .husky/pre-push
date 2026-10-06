@@ -22,6 +22,8 @@ ZERO_SHA=0000000000000000000000000000000000000000
 PROTECTED_BRANCH=""
 FEATURE_BRANCH=""
 PUSH_SOURCE_SHA=""
+BRANCH_REF_COUNT=0
+PUSH_BRANCH_REF=""
 while read -r _local_ref local_sha remote_ref _remote_sha; do
   [ -z "$remote_ref" ] && continue
   [ "$local_sha" = "$ZERO_SHA" ] && continue # deletion: no local commits to validate
@@ -31,10 +33,14 @@ while read -r _local_ref local_sha remote_ref _remote_sha; do
   fi
   case "$remote_ref" in
     refs/heads/main|refs/heads/test)
+      BRANCH_REF_COUNT=$((BRANCH_REF_COUNT + 1))
+      PUSH_BRANCH_REF="$remote_ref"
       PUSH_SOURCE_SHA="$local_sha"
       PROTECTED_BRANCH="${remote_ref#refs/heads/}"
       ;;
     refs/heads/*)
+      BRANCH_REF_COUNT=$((BRANCH_REF_COUNT + 1))
+      PUSH_BRANCH_REF="$remote_ref"
       PUSH_SOURCE_SHA="$local_sha"
       FEATURE_BRANCH="${remote_ref#refs/heads/}"
       ;;
@@ -86,12 +92,30 @@ if [ -n "$SOURCE_STATUS" ]; then
   exit 1
 fi
 
+# Coordinated pushes run the same branch-aware gate before Git opens its
+# remote transport. Accept only a receipt bound to this one exact branch ref
+# and HEAD; ordinary direct pushes still run the full gate below.
+GATE_RECEIPT="$GIT_DIR/prepush-validated-receipt"
+PREVALIDATED=0
+if [ "$BRANCH_REF_COUNT" -eq 1 ] && [ -f "$GATE_RECEIPT" ] && [ ! -L "$GATE_RECEIPT" ]; then
+  RECEIPT_LINES=()
+  while IFS= read -r line; do RECEIPT_LINES+=("$line"); done < "$GATE_RECEIPT"
+  if [ "${#RECEIPT_LINES[@]}" -eq 2 ] \
+    && [ "${RECEIPT_LINES[0]}" = "$PUSH_SOURCE_SHA" ] \
+    && [ "${RECEIPT_LINES[1]}" = "$PUSH_BRANCH_REF" ]; then
+    PREVALIDATED=1
+  fi
+  rm -f "$GATE_RECEIPT"
+fi
+
 # Branch-aware gate strictness, keyed to the pushed refs
 VALIDATED_SHA="$PUSH_SOURCE_SHA"
 #   main/test: quality + typecheck (build + tests deferred to CI)
 #   feature/*: quality-only (local dev, no CI)
 GATE_EXIT=0
-if [ -n "$PROTECTED_BRANCH" ]; then
+if [ "$PREVALIDATED" -eq 1 ]; then
+  echo "Using the coordinated push gate result for this exact HEAD and branch."
+elif [ -n "$PROTECTED_BRANCH" ]; then
   echo ""
   echo "Running CI gate for protected branch '$PROTECTED_BRANCH' (quality + typecheck; build + tests run in CI)..."
   echo ""
