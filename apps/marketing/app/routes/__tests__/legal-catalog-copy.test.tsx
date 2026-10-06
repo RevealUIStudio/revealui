@@ -101,4 +101,34 @@ describe('refund and support leftover catalog copy', () => {
     expect(container.textContent ?? '').not.toContain('Skool buyer community');
     expect(screen.queryByRole('link', { name: 'Join Skool' })).toBeNull();
   });
+
+  it('renders support channels as labeled links without raw markdown or bare URLs', () => {
+    const { container } = render(<SupportPage />);
+    const text = container.textContent ?? '';
+    expect(text).not.toContain('**');
+    expect(text).not.toContain('https://github.com/RevealUIStudio/revealui/discussions');
+    expect(text).not.toContain('https://docs.revealui.com');
+
+    const docsLinks = screen.getAllByRole('link', { name: 'Documentation' });
+    expect(docsLinks.length).toBeGreaterThanOrEqual(1);
+    expect(
+      docsLinks.every((link) => link.getAttribute('href') === 'https://docs.revealui.com'),
+    ).toBe(true);
+    const discussions = screen.getByRole('link', { name: 'GitHub Discussions' });
+    expect(discussions).toHaveAttribute(
+      'href',
+      'https://github.com/RevealUIStudio/revealui/discussions',
+    );
+    const issues = screen.getByRole('link', { name: 'GitHub Issues' });
+    expect(issues).toHaveAttribute('href', 'https://github.com/RevealUIStudio/revealui/issues');
+    expect(screen.getByRole('link', { name: 'SLA page' })).toHaveAttribute(
+      'href',
+      'https://revealui.com/sla',
+    );
+    expect(screen.getByText('create-revealui').tagName).toBe('CODE');
+
+    const prose = container.querySelector('[data-slot="markdown-text"]');
+    expect(prose?.className).toContain('wrap-anywhere');
+    expect(prose?.className).toContain('break-words');
+  });
 });

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PAID_TIER_SUPPORT_CARD } from '@revealui/contracts/public-catalog';
 import { describe, expect, it } from 'vitest';
 import { SUBSCRIPTION_PRICE_FALLBACKS } from '../../lib/pricing-fallbacks';
 import {
@@ -94,6 +95,13 @@ describe('landing payment and Enterprise honesty', () => {
     expect(HOME_HERO.cta.primary.label).toBe('Create a RevealUI account');
     expect(PRICING_TEASER_TIERS.find((tier) => tier.id === 'free')?.cta).toBe('Start free');
     expect(PRICING_TEASER_TIERS.find((tier) => tier.id === 'pro')?.href).toBe('/pricing');
+  });
+
+  it('gives the Pro card the shared email support line', () => {
+    const pro = PRICING_TEASER_TIERS.find((tier) => tier.id === 'pro');
+    expect(pro?.features).toContain(PAID_TIER_SUPPORT_CARD);
+    expect(PAID_TIER_SUPPORT_CARD).toBe('Email support (24h weekday, 4h if unusable)');
+    expect(pro?.features.join(' ')).not.toContain('Priority support');
   });
 });
 

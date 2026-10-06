@@ -443,19 +443,19 @@ export const claimsPart5: readonly ClaimEntry[] = [
   {
     file: 'legal/support.ts',
     exportPath: 'SUPPORT_SECTIONS[0].listItems[0]',
-    text: '**Documentation** at https://docs.revealui.com: covers setup, configuration, the API surface, and most "how do I do X with RevealUI" questions. Always check here first; if the answer is there, you have it now instead of waiting on an email reply.',
+    text: '**[Documentation](https://docs.revealui.com)**: covers setup, configuration, the API surface, and most "how do I do X with RevealUI" questions. Always check here first; if the answer is there, you have it now instead of waiting on an email reply.',
     evidence: [LEGAL_SUPPORT_CONTENT],
   },
   {
     file: 'legal/support.ts',
     exportPath: 'SUPPORT_SECTIONS[0].listItems[1]',
-    text: '**GitHub Discussions** at https://github.com/RevealUIStudio/revealui/discussions: community-friendly format for design questions, "is there a better way to do X", and ideas. Other users and the maintainer both watch this. Best for questions where a public answer benefits more than just you.',
+    text: '**[GitHub Discussions](https://github.com/RevealUIStudio/revealui/discussions)**: community-friendly format for design questions, "is there a better way to do X", and ideas. Other users and the maintainer both watch this. Best for questions where a public answer benefits more than just you.',
     evidence: [LEGAL_SUPPORT_CONTENT],
   },
   {
     file: 'legal/support.ts',
     exportPath: 'SUPPORT_SECTIONS[0].listItems[2]',
-    text: '**GitHub Issues** at https://github.com/RevealUIStudio/revealui/issues: for confirmed bugs and feature requests. Include reproduction steps. See §5 below for "bug vs support" guidance.',
+    text: '**[GitHub Issues](https://github.com/RevealUIStudio/revealui/issues)**: for confirmed bugs and feature requests. Include reproduction steps. See §5 below for "bug vs support" guidance.',
     evidence: [LEGAL_SUPPORT_CONTENT],
   },
   {
@@ -474,7 +474,7 @@ export const claimsPart5: readonly ClaimEntry[] = [
   {
     file: 'legal/support.ts',
     exportPath: 'SUPPORT_SECTIONS[0].listItems[5]',
-    text: '**Essays and product notes:** https://substack.com/@revealuistudio is the public broadcast list. It is not a support desk.',
+    text: '**[Essays and product notes](https://substack.com/@revealuistudio)**: the public broadcast list. It is not a support desk.',
     evidence: [LEGAL_SUPPORT_CONTENT],
   },
   {
@@ -486,7 +486,7 @@ export const claimsPart5: readonly ClaimEntry[] = [
   {
     file: 'legal/support.ts',
     exportPath: 'SUPPORT_SECTIONS[1].paragraphs[0]',
-    text: `Email ${SITE.emails.support}. ${PAID_SUPPORT_POLICY.standardResponse} ${PAID_SUPPORT_POLICY.criticalResponse} Complex issues may need multiple rounds of correspondence after that first response. Full detail is on our SLA page at https://revealui.com/sla.`,
+    text: `Email ${SITE.emails.support}. ${PAID_SUPPORT_POLICY.standardResponse} ${PAID_SUPPORT_POLICY.criticalResponse} Complex issues may need multiple rounds of correspondence after that first response. Full detail is on our [SLA page](https://revealui.com/sla).`,
     evidence: [
       PAID_SUPPORT_POLICY_CONTENT,
       PAID_SUPPORT_POLICY_RENDERED_TEST,
@@ -523,7 +523,7 @@ export const claimsPart5: readonly ClaimEntry[] = [
   {
     file: 'legal/support.ts',
     exportPath: 'SUPPORT_SECTIONS[1].paragraphs[4]',
-    text: 'Security reports: see the dedicated security policy at https://revealui.com/security. Those go to a separate address with a separate response commitment.',
+    text: 'Security reports: see the dedicated [security policy](https://revealui.com/security). Those go to a separate address with a separate response commitment.',
     evidence: [LEGAL_SUPPORT_CONTENT],
   },
   {
@@ -589,7 +589,7 @@ export const claimsPart5: readonly ClaimEntry[] = [
   {
     file: 'legal/support.ts',
     exportPath: 'SUPPORT_SECTIONS[3].listItems[1]',
-    text: 'Private codebase review is separately scoped work. Contact RevealUI Studio at https://revealuistudio.com/contact to discuss it; a product license does not include consulting.',
+    text: 'Private codebase review is separately scoped work. Contact [RevealUI Studio](https://revealuistudio.com/contact) to discuss it; a product license does not include consulting.',
     evidence: [LEGAL_SUPPORT_CONTENT],
   },
   {
@@ -607,7 +607,7 @@ export const claimsPart5: readonly ClaimEntry[] = [
   {
     file: 'legal/support.ts',
     exportPath: 'SUPPORT_SECTIONS[3].listItems[4]',
-    text: 'For architecture or implementation work beyond product support, discuss a scoped engagement with RevealUI Studio at https://revealuistudio.com/contact.',
+    text: 'For architecture or implementation work beyond product support, discuss a scoped engagement with [RevealUI Studio](https://revealuistudio.com/contact).',
     evidence: [LEGAL_SUPPORT_CONTENT],
   },
   {
@@ -650,7 +650,7 @@ export const claimsPart5: readonly ClaimEntry[] = [
   {
     file: 'legal/support.ts',
     exportPath: 'SUPPORT_SECTIONS[5].paragraphs[0]',
-    text: 'Live status of revealui.com, admin.revealui.com, api.revealui.com, and docs.revealui.com is published at https://revealui.com/status with a live probe of the API health endpoint and an honest disclosure of our monitoring posture (we are a solo-operator company; we do not run 24×7 manned monitoring).',
+    text: 'Live status of revealui.com, admin.revealui.com, api.revealui.com, and docs.revealui.com is published on the [status page](https://revealui.com/status) with a live probe of the API health endpoint and an honest disclosure of our monitoring posture (we are a solo-operator company; we do not run 24×7 manned monitoring).',
     evidence: [
       LEGAL_SUPPORT_CONTENT,
       PAID_SUPPORT_POLICY_CONTENT,

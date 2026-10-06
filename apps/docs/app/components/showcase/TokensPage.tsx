@@ -130,7 +130,8 @@ export function TokensPage() {
         <h1 className="text-2xl font-bold tracking-tight text-ink">Design Tokens</h1>
         <p className="mt-2 text-sm text-text-secondary">
           RevealUI's design language encoded as CSS custom properties. OKLCH color space,
-          dark-first, all in the <code className="font-mono text-accent">--rvui-*</code> namespace.
+          dark-first, all in the <code className="font-mono text-primary-text">--rvui-*</code>{' '}
+          namespace.
         </p>
       </div>
 

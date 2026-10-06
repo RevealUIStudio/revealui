@@ -47,6 +47,19 @@ describe('RevealUIWordmark', () => {
     expect(container.innerHTML.includes('invert')).toBe(false);
   });
 
+  it('accepts a Studio label while keeping the transparent mark', () => {
+    const { container, getByText } = render(<RevealUIWordmark label="RevealUI Studio" />);
+    expect(container).toHaveTextContent('RevealUI Studio');
+    expect(getByText('Reveal')).toBeInTheDocument();
+    expect(getByText('UI')).toBeInTheDocument();
+    const suffix = [...container.querySelectorAll('span')].find(
+      (el) => el.textContent === ' Studio',
+    );
+    expect(suffix).toBeTruthy();
+    expect(container.querySelector('img[src="/revealui-logo.svg"]')).toBeTruthy();
+    expect(container.querySelector('[class*="bg-"]')).toBeNull();
+  });
+
   it('merges a custom className onto the outer wrapper', () => {
     const { container } = render(<RevealUIWordmark className="text-4xl" />);
     const wrapper = container.firstElementChild;

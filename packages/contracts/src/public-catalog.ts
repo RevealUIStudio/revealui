@@ -84,6 +84,12 @@ export const PAID_SUPPORT_POLICY = {
 /** Same prospective email targets for every paid tier; no faster staffed tier. */
 export const PAID_TIER_SUPPORT = PAID_SUPPORT_POLICY.summary;
 
+/**
+ * Homepage Pro card line. Hours are the same constants the pricing feature
+ * line (`PAID_TIER_SUPPORT`) describes. This is not a faster tier.
+ */
+export const PAID_TIER_SUPPORT_CARD = `Email support (${PAID_SUPPORT_POLICY.standardResponseHours}h weekday, ${PAID_SUPPORT_POLICY.criticalResponseHours}h if unusable)`;
+
 export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
     id: 'free',

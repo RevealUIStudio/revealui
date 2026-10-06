@@ -1,15 +1,18 @@
+import { MarkdownText } from '@revealui/presentation';
 import type React from 'react';
 import type { LegalSection } from '../content/legal/privacy';
 
-function withMailLink(para: string, email: string | undefined): React.ReactNode {
-  if (!email) return para;
-  const idx = para.indexOf(email);
-  if (idx === -1) return para;
+function RichCopy({ text, email }: { text: string; email?: string }): React.JSX.Element {
+  if (!email) return <MarkdownText text={text} />;
+  const idx = text.indexOf(email);
+  if (idx === -1) return <MarkdownText text={text} />;
   return (
     <>
-      {para.slice(0, idx)}
-      <a href={`mailto:${email}`}>{email}</a>
-      {para.slice(idx + email.length)}
+      <MarkdownText text={text.slice(0, idx)} />
+      <a href={`mailto:${email}`} className="wrap-anywhere">
+        {email}
+      </a>
+      <MarkdownText text={text.slice(idx + email.length)} />
     </>
   );
 }
@@ -30,22 +33,34 @@ export function LegalSections({
             return (
               <Container key={sub.heading}>
                 <Heading>{sub.heading}</Heading>
-                {sub.paragraph && <p>{sub.paragraph}</p>}
+                {sub.paragraph && (
+                  <p>
+                    <RichCopy text={sub.paragraph} />
+                  </p>
+                )}
                 {sub.listItems && (
                   <ul>
                     {sub.listItems.map((item) => (
-                      <li key={item}>{item}</li>
+                      <li key={item}>
+                        <RichCopy text={item} />
+                      </li>
                     ))}
                   </ul>
                 )}
               </Container>
             );
           })}
-          {section.listPreamble && <p>{section.listPreamble}</p>}
+          {section.listPreamble && (
+            <p>
+              <RichCopy text={section.listPreamble} />
+            </p>
+          )}
           {section.listItems && (
             <ul>
               {section.listItems.map((item) => (
-                <li key={item}>{item}</li>
+                <li key={item}>
+                  <RichCopy text={item} />
+                </li>
               ))}
             </ul>
           )}
@@ -60,7 +75,9 @@ export function LegalSections({
             </ul>
           )}
           {section.paragraphs?.map((para) => (
-            <p key={para}>{withMailLink(para, section.contactEmail)}</p>
+            <p key={para}>
+              <RichCopy text={para} email={section.contactEmail} />
+            </p>
           ))}
         </div>
       ))}
