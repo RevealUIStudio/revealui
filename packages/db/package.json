@@ -4,6 +4,7 @@
   "description": "Drizzle ORM schema (124 tables) for RevealUI on PostgreSQL. Ships with RevealUI.",
   "license": "MIT",
   "dependencies": {
+    "@neondatabase/serverless": "catalog:",
     "@revealui/config": "workspace:*",
     "@revealui/utils": "workspace:*",
     "drizzle-orm": "catalog:",
