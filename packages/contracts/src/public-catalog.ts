@@ -188,6 +188,13 @@ export const PILOT_PRICE = '$3,997' as const;
 export const PILOT_SERVICE_ID = 'pilot' as const;
 
 /**
+ * Public name for the $297 custom-domain line.
+ * Sold alone only after Consultation. Included at Pilot and Launch.
+ * Stage B is the retired public name. Do not restore it in buyer copy.
+ */
+export const DOMAIN_ADDON_LABEL = 'Domain add-on' as const;
+
+/**
  * @deprecated use PILOT_PRICE. Retired public name for the same $3,997 amount.
  * Kept so existing imports keep working during the agency migration.
  */

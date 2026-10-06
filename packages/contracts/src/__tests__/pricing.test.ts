@@ -389,15 +389,17 @@ describe('FOUNDER_SERVICE_OFFERINGS', () => {
     expect(byId.pilot?.name).toBe('Pilot');
     expect(byId.pilot?.price).toBe('$3,997');
     expect(byId.pilot?.description).toBe(
-      'One site and one receipted action you operate. Includes 1 Adapter. Stage B is included. Credits 100% to Launch if you start Launch within 45 days of Pilot start.',
+      'One site and one receipted action you operate. Includes 1 Adapter. Domain add-on is included. Credits 100% to Launch if you start Launch within 45 days of Pilot start.',
     );
+    expect(byId.pilot?.description.includes('Stage B')).toBe(false);
     expect(byId.pilot?.includes).toEqual([
       'One site',
       'One receipted action you operate',
       '1 Adapter included',
-      'Stage B included',
+      'Domain add-on included',
       'Full credit toward Launch if you start Launch within 45 days of Pilot start',
     ]);
+    expect(byId.pilot?.includes.some((line) => line.includes('Stage B'))).toBe(false);
     expect(byId['launch-package']?.name).toBe('Launch');
     expect(byId['launch-package']?.price).toBe('$14,500');
     expect(byId['launch-package']?.includes).toContain('Up to 3 Adapters included');
@@ -412,9 +414,12 @@ describe('FOUNDER_SERVICE_OFFERINGS', () => {
     for (const service of FOUNDER_SERVICE_OFFERINGS) {
       expect(service.name.includes('Proof Sprint')).toBe(false);
       expect(service.description.includes('Proof Sprint')).toBe(false);
+      expect(service.description.includes('Stage B')).toBe(false);
       expect(service.deliverable.includes('Proof Sprint')).toBe(false);
+      expect(service.deliverable.includes('Stage B')).toBe(false);
       for (const line of service.includes) {
         expect(line.includes('Proof Sprint')).toBe(false);
+        expect(line.includes('Stage B')).toBe(false);
       }
     }
   });
