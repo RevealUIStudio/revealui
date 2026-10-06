@@ -37,15 +37,74 @@ customer or an administrator.
    fallbacks; production job claims now require the shared pool and use
    `SKIP LOCKED`. The injected one-statement claim remains only for PGlite tests.
 
-2. **Conversation/order collection writes.** The typed storage registry has
-   `find` and `findByID` handlers for these collections, but no `create`,
-   `update`, or `delete` handlers. Those operations still fall through the core
-   dynamic SQL adapter, which does not map all camelCase collection fields to
-   the normalized Drizzle columns. Extend the existing typed storage seam and
-   DB query owners to support validated canonical writes, preserving the order
-   hooks and soft-delete semantics. Validate CRUD through the collection API
-   against the migrated schema, including ownership denial, item/total
-   validation, status constraints, and hook behavior.
+2. **Conversation/order collection writes — audit complete; durable repair
+   remains open.** Do not add independent Hono and typed-storage mutation
+   implementations. First establish the maintained mutation contract and have
+   each supported ingress use it.
+
+   For persisted conversations, `apps/admin/src/lib/db/typedCollectionStorage.ts`
+   registers only reads. Direct RevealUI create/update falls through core SQL,
+   which sends camelCase names such as `userId` and `updatedAt` to a table with
+   snake_case columns. Create also rejects omitted server-owned values because
+   `apps/admin/src/lib/collections/Conversations/index.ts` marks ID, version,
+   and timestamps required, while core create does not apply field defaults.
+   The existing `packages/db/src/queries/conversations.ts` is the canonical
+   DB mutation owner to extend with validated collection operations. Preserve
+   existing chat/sync callers while routing `apps/admin/src/app/api/conversations`
+   and `apps/admin/src/app/api/sync/conversations` through that contract; remove
+   their independent input checks and direct mutation construction only after
+   equivalent tests pass. The admin collection proxy currently targets
+   `/api/content/conversations`, but
+   `apps/server/src/routes/content/index.ts` mounts no conversation route; make
+   its capability explicit and test its real endpoint instead of treating
+   the local storage bridge as browser coverage.
+
+   For orders, both browser and local paths are inconsistent. The admin proxy
+   forwards collection forms to `apps/server/src/routes/content/orders.ts`.
+   Its POST derives customer and total from the authenticated caller and line
+   items, while `apps/admin/src/lib/collections/Orders/index.ts` exposes those
+   values as writable fields. PATCH supports only status and metadata although
+   the collection advertises more editable fields. DELETE is mounted by the
+   proxy but absent from Hono; the DB schema explicitly marks financial orders
+   for soft deletion. Separately, local RevealUI order writes fall through
+   dynamic SQL: updates expect `_json`, which is absent from the canonical
+   table, and deletes physically remove rows. Extend
+   `packages/db/src/queries/orders.ts` with the shared validated mutation and
+   active-row contract, then align Hono and the local typed storage seam with
+   it. Decide and enforce order hooks in that owning mutation path; current
+   collection hooks are skipped by Hono and their user updates lack request
+   context. Do not claim hook preservation until integration tests demonstrate
+   it.
+
+   Existing parallel paths and their durable destinations:
+
+   - `apps/admin/src/app/api/collections/[collection]` proxies browser writes
+     to Hono, while local RevealUI writes use the typed-storage seam and then
+     core dynamic SQL. Converge both on validated DB mutation owners; evidence
+     of removal is that collection tests see canonical Drizzle writes and no
+     fallback `query` calls.
+   - Hono `getAllOrders`, `countOrders`, and `getOrderById` include deleted
+     orders, while `listOrders` filters them. Apply one active-order predicate
+     in `packages/db/src/queries/orders.ts`; prove list, count, detail, update,
+     and delete behavior against migrated tables.
+   - `packages/cli/templates/e-commerce/src/collections/Orders.ts` still emits
+     legacy `customer`, `total`, and item fields. Align the template to the
+     canonical order contract and test generated output before removing those
+     fields.
+   - Order side effects are split between collection hooks and Hono. Move
+     purchase/cart behavior to the shared mutation owner with authenticated
+     context and failure semantics; then remove duplicate hooks after tests
+     prove the same behavior through every supported ingress.
+
+   Required validation: migrated-schema tests for create/update/delete; valid
+   owner/admin and rejected foreign-owner/anonymous cases; strict item shape,
+   positive integer quantities, nonnegative integer money, currency and status
+   constraints; immutable identity fields; missing/deleted rows; active-row
+   list/count/detail consistency; optimistic version behavior for conversations;
+   order soft-delete retention; timestamp/default ownership; and side effects
+   through browser Hono and local RevealUI APIs. Test that malformed inputs fail
+   before persistence and that unsupported operations fail closed. PGlite
+   fixtures must include the migrated defaults, checks, FKs, and nullability.
 
 3. **Generated admin types.** `apps/admin/src/types/revealui.ts` still declares
    the legacy numeric `Order.id`, `orderedBy`, `total`, and legacy line items.
