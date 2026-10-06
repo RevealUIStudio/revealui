@@ -18,4 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
+      # Org secret. The composite action exports this as CLIENT_LEAK_PATTERNS.
+      # An empty value fails closed inside scripts/check-client-leaks.sh.
       - uses: RevealUIStudio/.github/.github/actions/check-client-leaks@8ea1ca5697dfc1f2041aac1368a9dd6d241121ab
+        with:
+          client_leak_patterns: ${{ secrets.CLIENT_LEAK_PATTERNS }}

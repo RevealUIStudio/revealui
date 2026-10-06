@@ -79,6 +79,10 @@ lint-output.txt
 # .envrc.local is gitignored (machine-specific overrides, e.g. CLAUDE_AGENT_ROLE)
 .envrc.local
 
+# Local client/prospect pattern list for scripts/check-client-leaks.sh.
+# CI uses the CLIENT_LEAK_PATTERNS org secret. Never commit this file.
+.client-name-watchlist.local
+
 # Vercel — ignore build output but commit project.json (needed for CI deploys)
 .vercel/output
 .vercel/cache

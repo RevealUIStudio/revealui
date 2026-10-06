@@ -1,8 +1,11 @@
 name: Issue + PR Body Leak Scan
 
-# Thin caller — logic in org-shared reusable workflow:
+# Non-name rules: org-shared reusable workflow
 #   RevealUIStudio/.github/.github/workflows/issue-leak-scan-reusable.yml
-# Requires .gitleaks.issues.toml on this repo's default branch.
+# which reads .gitleaks.issues.toml from this repo's default branch.
+# Client / prospect / venture names are not in that committed file.
+# The `names` job below runs scripts/check-client-leaks.sh against the
+# event body with CLIENT_LEAK_PATTERNS so that surface stays secret-backed.
 
 on:
   issues:
@@ -25,3 +28,41 @@ jobs:
   scan:
     uses: RevealUIStudio/.github/.github/workflows/issue-leak-scan-reusable.yml@8ea1ca5697dfc1f2041aac1368a9dd6d241121ab
     secrets: inherit
+
+  names:
+    name: Client / prospect name scan (event body)
+    # Trusted script only: default branch, never the PR head.
+    if: >-
+      github.actor != 'github-actions[bot]'
+      && github.actor != 'dependabot[bot]'
+      && github.actor != 'chatgpt-codex-connector[bot]'
+      && (github.event.comment == null || github.event.comment.user.type != 'Bot')
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Scan event body
+        env:
+          CLIENT_LEAK_PATTERNS: ${{ secrets.CLIENT_LEAK_PATTERNS }}
+          EVENT_BODY: ${{ github.event.comment.body || github.event.issue.body || github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+          body_file="$(mktemp)"
+          report="$(mktemp)"
+          cleanup() { rm -f "$body_file" "$report"; }
+          trap cleanup EXIT
+          printf '%s' "${EVENT_BODY:-}" > "$body_file"
+          set +e
+          LEAK_JSON=1 bash scripts/check-client-leaks.sh "$body_file" > "$report"
+          status=$?
+          set -e
+          if [[ "$status" -eq 1 ]]; then
+            echo "[client-leak] event body matched the secret pattern list. Match text withheld from the log." >&2
+          elif [[ "$status" -eq 0 ]]; then
+            echo "[client-leak] OK: event body scanned."
+          fi
+          exit "$status"
