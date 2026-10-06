@@ -8,7 +8,7 @@
 // Import config module (ESM)
 // Config uses proxy for lazy loading, so import is safe - validation only happens on property access
 import configModule from '@revealui/config';
-import { createClient, type Database } from '@revealui/db/client';
+import { createRestClient, type Database } from '@revealui/db/client';
 import { rateLimits } from '@revealui/db/schema';
 import { and, eq, gte } from 'drizzle-orm';
 import type { Storage } from './interface.js';
@@ -31,7 +31,7 @@ export class DatabaseStorage implements Storage {
       throw new Error('Database connection string required for DatabaseStorage');
     }
 
-    this.db = createClient({ connectionString: url });
+    this.db = createRestClient({ connectionString: url });
   }
 
   async get(key: string): Promise<string | null> {

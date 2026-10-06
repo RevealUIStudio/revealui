@@ -259,6 +259,11 @@ export function createClient(
   }
 }
 
+/** Create a client with the REST database contract and its matching schema. */
+export function createRestClient(config: DatabaseConfig): Database {
+  return createClient(config, restSchema);
+}
+
 // =============================================================================
 // Global Client (for singleton usage)
 // =============================================================================
