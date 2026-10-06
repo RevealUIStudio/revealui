@@ -250,6 +250,7 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
     includes: [
       'Architecture, schema, and security work inside Launch (not a separate SKU)',
       'Up to 3 Adapters included',
+      `${DOMAIN_ADDON_LABEL} included`,
       'Runbook',
       '30 days of async stabilization',
       'RevealUI project setup and configuration',

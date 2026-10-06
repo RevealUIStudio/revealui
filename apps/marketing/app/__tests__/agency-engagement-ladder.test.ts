@@ -161,6 +161,7 @@ describe('FOUNDER_SERVICE_OFFERINGS — founder-led services menu', () => {
     expect(launch?.price).toBe('$14,500');
     expect(launch?.price).toBe(ladderLaunch?.price);
     expect(launch?.includes).toContain('Up to 3 Adapters included');
+    expect(launch?.includes).toContain(`${DOMAIN_ADDON_LABEL} included`);
     expect(FOR_OPERATORS_PRICING.rungs[2]?.body).toContain('Up to 3 Adapters included');
   });
 
@@ -188,6 +189,10 @@ const RETIRED_PUBLIC_NAMES = [
   'stage B',
   'stage b',
   'STAGE B',
+  'Domain pack',
+  'domain pack',
+  'Domain Pack',
+  'DOMAIN PACK',
 ] as const;
 
 const RETIRED_IDENTIFIERS = [

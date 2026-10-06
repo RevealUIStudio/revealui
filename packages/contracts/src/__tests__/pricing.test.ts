@@ -30,7 +30,12 @@ import {
   TIER_LABELS,
   TIER_LIMITS,
 } from '../pricing.js';
-import { PILOT_PRICE, PROOF_SPRINT_PRICE, PROOF_SPRINT_SERVICE_ID } from '../public-catalog.js';
+import {
+  DOMAIN_ADDON_LABEL,
+  PILOT_PRICE,
+  PROOF_SPRINT_PRICE,
+  PROOF_SPRINT_SERVICE_ID,
+} from '../public-catalog.js';
 
 // =============================================================================
 // LicenseTierId coverage
@@ -403,6 +408,7 @@ describe('FOUNDER_SERVICE_OFFERINGS', () => {
     expect(byId['launch-package']?.name).toBe('Launch');
     expect(byId['launch-package']?.price).toBe('$14,500');
     expect(byId['launch-package']?.includes).toContain('Up to 3 Adapters included');
+    expect(byId['launch-package']?.includes).toContain(`${DOMAIN_ADDON_LABEL} included`);
     const names = FOUNDER_SERVICE_OFFERINGS.map((s) => s.name);
     expect(names).toContain('Pilot');
     expect(names).not.toContain('Proof Sprint');
