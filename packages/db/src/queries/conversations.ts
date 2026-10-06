@@ -3,14 +3,11 @@
  */
 
 import { and, desc, eq } from 'drizzle-orm';
+import type { Database } from '../client/index.js';
 import { conversations, messages } from '../schema/agents.js';
 
-// Accept any Drizzle database instance (NeonHttp, NodePg, PGlite, etc.)
-// biome-ignore lint/suspicious/noExplicitAny: Drizzle clients share the same query API but have different generic types
-type AnyDB = any;
-
 export async function getConversations(
-  db: AnyDB,
+  db: Database,
   userId: string,
   options: { limit?: number; offset?: number } = {},
 ) {
@@ -24,7 +21,7 @@ export async function getConversations(
     .offset(offset);
 }
 
-export async function getConversationById(db: AnyDB, id: string, userId: string) {
+export async function getConversationById(db: Database, id: string, userId: string) {
   const result = await db
     .select()
     .from(conversations)
@@ -34,7 +31,7 @@ export async function getConversationById(db: AnyDB, id: string, userId: string)
 }
 
 export async function createConversation(
-  db: AnyDB,
+  db: Database,
   data: { id: string; userId: string; agentId: string; title?: string },
 ) {
   const result = await db
@@ -51,7 +48,7 @@ export async function createConversation(
 }
 
 export async function updateConversationTitle(
-  db: AnyDB,
+  db: Database,
   id: string,
   userId: string,
   title: string,
@@ -64,7 +61,7 @@ export async function updateConversationTitle(
   return result[0] ?? null;
 }
 
-export async function deleteConversation(db: AnyDB, id: string, userId: string) {
+export async function deleteConversation(db: Database, id: string, userId: string) {
   // Messages cascade-delete via FK
   const result = await db
     .delete(conversations)
@@ -74,7 +71,7 @@ export async function deleteConversation(db: AnyDB, id: string, userId: string) 
 }
 
 export async function getMessages(
-  db: AnyDB,
+  db: Database,
   conversationId: string,
   options: { limit?: number; offset?: number } = {},
 ) {
@@ -92,7 +89,7 @@ export async function getMessages(
 // and conversation timestamp update below are not atomic  -  a failure between
 // them can leave the conversation's updatedAt stale.
 export async function addMessage(
-  db: AnyDB,
+  db: Database,
   data: { id: string; conversationId: string; role: string; content: string },
 ) {
   const result = await db
