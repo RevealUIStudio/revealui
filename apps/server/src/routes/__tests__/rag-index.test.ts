@@ -751,6 +751,40 @@ describe('rag-index routes  -  AI available', () => {
       vi.unstubAllGlobals();
     });
 
+    it('returns 409 when hosted refuses a deployment env model key', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({ docs: [{ id: 'doc-1', content: 'text' }] }),
+        }),
+      );
+      freshGetRestClient.mockReturnValue({});
+      process.env.REVEALUI_DEPLOYMENT_MODE = 'hosted';
+      mockResolve.mockRejectedValueOnce(
+        Object.assign(
+          new Error(
+            'Hosted deployments cannot use a deployment environment model key. Configure a provider key for this account under /settings/api-keys.',
+          ),
+          { code: 'HOSTED_ENV_MODEL_KEY_REFUSED' },
+        ),
+      );
+
+      const app = createFreshApp();
+      const res = await app.request('/rag/workspaces/ws-1/index/posts', { method: 'POST' });
+      const body = await res.json();
+
+      expect(res.status).toBe(409);
+      expect(body.success).toBe(false);
+      expect(body.code).toBe('LLM_NOT_CONFIGURED');
+      expect(body.settingsPath).toBe('/settings/api-keys');
+      expect(mockGenerateEmbedding).not.toHaveBeenCalled();
+      expect(mockIngest).not.toHaveBeenCalled();
+
+      delete process.env.REVEALUI_DEPLOYMENT_MODE;
+      vi.unstubAllGlobals();
+    });
+
     it('returns 409 on hosted when the account has no provider key', async () => {
       vi.stubGlobal(
         'fetch',

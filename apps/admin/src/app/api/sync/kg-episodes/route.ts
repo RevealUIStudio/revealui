@@ -173,6 +173,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       { status: 201 },
     );
   } catch (error) {
+    const notConfigured = embeddingNotConfiguredResponse(error);
+    if (notConfigured) return notConfigured;
     logger.error('Error flushing kg episode', { error });
     return createErrorResponse(error, {
       endpoint: '/api/sync/kg-episodes',

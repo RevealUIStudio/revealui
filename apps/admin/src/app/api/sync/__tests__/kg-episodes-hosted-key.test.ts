@@ -168,6 +168,28 @@ describe('POST /api/sync/kg-episodes embedding key', () => {
     expect(createFromEnv).not.toHaveBeenCalled();
   });
 
+  it('returns 409 when hosted refuses a deployment env model key', async () => {
+    process.env.REVEALUI_DEPLOYMENT_MODE = 'hosted';
+    resolveLLM.mockRejectedValueOnce(
+      Object.assign(
+        new Error(
+          'Hosted deployments cannot use a deployment environment model key. Configure a provider key for this account under /settings/api-keys.',
+        ),
+        { code: 'HOSTED_ENV_MODEL_KEY_REFUSED' },
+      ),
+    );
+
+    const res = await post();
+
+    expect(res.status).toBe(409);
+    expect(res.body.success).toBe(false);
+    expect(res.body.code).toBe('LLM_NOT_CONFIGURED');
+    expect(res.body.settingsPath).toBe('/settings/api-keys');
+    expect(generateEmbedding).not.toHaveBeenCalled();
+    expect(ingestEpisode).not.toHaveBeenCalled();
+    expect(createFromEnv).not.toHaveBeenCalled();
+  });
+
   it('passes isHosted false on forge and still uses the resolved client', async () => {
     process.env.REVEALUI_DEPLOYMENT_MODE = 'forge';
 

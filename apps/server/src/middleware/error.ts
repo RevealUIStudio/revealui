@@ -4,6 +4,7 @@ import { errorEvents } from '@revealui/db/schema';
 import * as Sentry from '@sentry/node';
 import type { ErrorHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+import { asLLMNotConfigured } from '../lib/llm-not-configured.js';
 
 export interface APIErrorResponse {
   success: false;
@@ -93,6 +94,13 @@ export const errorHandler: ErrorHandler = (err, c) => {
       } satisfies APIErrorResponse,
       400,
     );
+  }
+
+  // Missing account key, or a hosted refusal of the deployment env model key.
+  // Configuration, not a server fault: 409, and do not persist it as an outage.
+  const notConfigured = asLLMNotConfigured(err);
+  if (notConfigured) {
+    return c.json(notConfigured, 409);
   }
 
   // Unhandled server error  -  persist and report to Sentry

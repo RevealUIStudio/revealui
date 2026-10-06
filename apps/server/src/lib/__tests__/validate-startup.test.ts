@@ -796,7 +796,7 @@ describe('detectDeploymentMode', () => {
   });
 });
 
-describe('validateStartup — hosted platform inference ban', () => {
+describe('validateStartup: hosted platform inference ban', () => {
   it('fails hosted production for each banned model key, local-model URL, and dispatch flag', () => {
     for (const key of HOSTED_BANNED_INFERENCE_ENV_KEYS) {
       expect(() => validateStartup(validLiveProdEnv({ [key]: 'present' }))).toThrow(
