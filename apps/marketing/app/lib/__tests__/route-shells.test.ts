@@ -10,7 +10,7 @@ import {
   readTitle,
 } from '../html-shell';
 import { MARKETING_ROUTE_HEADS, marketingCanonical } from '../route-heads';
-import { assertMarketingSitemapShells, marketingShellPlan } from '../write-marketing-shells';
+import { assertMarketingSitemapShells, marketingShellPlan } from '../write-marketing-shells.server';
 
 const indexHtml = readFileSync(path.resolve(process.cwd(), 'index.html'), 'utf8');
 

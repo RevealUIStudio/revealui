@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vite';
-import { writeDocsShells } from './app/lib/write-docs-shells';
+import { writeDocsShells } from './app/lib/write-docs-shells.server';
 import {
   cleanGeneratedPublicMirror,
   docsSourceDir,

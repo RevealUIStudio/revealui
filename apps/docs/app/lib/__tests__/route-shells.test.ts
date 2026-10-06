@@ -10,8 +10,8 @@ import {
   readTitle,
   withoutTrailingSlash,
 } from '../html-shell';
-import { collectDocsRouteShells, routePathForDoc } from '../route-catalog';
-import { assertDocsSitemapShells, redirectedExactPaths } from '../write-docs-shells';
+import { collectDocsRouteShells, routePathForDoc } from '../route-catalog.server';
+import { assertDocsSitemapShells, redirectedExactPaths } from '../write-docs-shells.server';
 
 const indexHtml = readFileSync(path.resolve(process.cwd(), 'index.html'), 'utf8');
 const vercelJson = readFileSync(path.resolve(process.cwd(), 'vercel.json'), 'utf8');

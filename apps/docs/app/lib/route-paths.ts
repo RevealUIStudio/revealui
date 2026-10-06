@@ -1,6 +1,6 @@
 /**
  * Client-safe docs route path and title helpers.
- * Filesystem discovery lives in route-catalog.ts so the browser bundle
+ * Filesystem discovery lives in route-catalog.server.ts so the browser bundle
  * does not import node:fs.
  */
 

@@ -14,7 +14,7 @@ import {
   readRobots,
   shellRelativePath,
 } from './html-shell';
-import { collectDocsRouteShells, type DocsRouteShell } from './route-catalog';
+import { collectDocsRouteShells, type DocsRouteShell } from './route-catalog.server';
 
 const APP_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const OG_BASE = 'https://api.revealui.com/api/og';
