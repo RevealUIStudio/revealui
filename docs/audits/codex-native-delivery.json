@@ -266,14 +266,20 @@
       "canonical required stdio MCP configuration",
       "bounded request-scoped host approval callback",
       "abort and discard late/resolved approval answers",
-      "command-routed lazy CLI imports"
+      "command-routed lazy CLI imports",
+      "configured daemon-issued runtime identity lease",
+      "installed canonical MCP launcher with public identity propagation",
+      "native memory publish/query without inference",
+      "signed idempotent disposal and daemon-absent identity cleanup",
+      "local and hosted SQL scope enforcement",
+      "private/workspace metadata key isolation",
+      "historical unscoped memory provenance quarantine"
     ],
     "disabledCapabilities": [
       "fork",
       "background execution",
       "interactive approval UI",
       "lifecycle hooks",
-      "shared memory",
       "workboard/coordination"
     ],
     "validation": {
@@ -314,18 +320,6 @@
     },
     "remainingWork": [
       {
-        "id": "HARNESS-CODEX-MEMORY-AUTH",
-        "owner": "@revealui/harnesses session boundary and @revealui/mcp knowledge-graph principal/storage",
-        "owningPaths": [
-          "packages/harnesses/src/session/boundary.ts",
-          "packages/mcp/src/servers/_kg-principal.ts",
-          "packages/mcp/src/servers/knowledge-graph.ts"
-        ],
-        "failingBehavior": "MCP attachment is wired, but authenticated memory read/write through a registered Codex runtime session is not established; the MCP executable is not currently on the local PATH.",
-        "durableTarget": "Use maintained MCP package installation and existing signed session identity/authorization for the nested app-server process; retain unavailable/denied results when identity or storage is absent.",
-        "validationNeeded": "Authenticated publish/query round trip, missing principal/storage behavior, cross-scope denial, principal propagation and cleanup through real Codex; no new store, synthetic identity, or machine-only launcher."
-      },
-      {
         "id": "HARNESS-CODEX-APPROVAL-UI",
         "owner": "@revealui/harnesses and consuming host UI",
         "owningPaths": [
@@ -335,6 +329,116 @@
         "durableTarget": "Wire the consuming host review surface to onApproval with the native request details and AbortSignal.",
         "validationNeeded": "User accept/decline/cancel, expired review, cancellation, server resolution, and no late grants in the consuming host."
       }
-    ]
+    ],
+    "sharedMemory": {
+      "tracking": {
+        "id": "HARNESS-CODEX-MEMORY-AUTH",
+        "owner": "@revealui/harnesses session boundary and @revealui/mcp knowledge-graph principal/storage",
+        "owningPaths": [
+          "packages/harnesses/src/session/boundary.ts",
+          "packages/mcp/src/servers/_kg-principal.ts",
+          "packages/mcp/src/servers/knowledge-graph.ts"
+        ],
+        "failingBehavior": "MCP attachment is wired, but authenticated memory read/write through a registered Codex runtime session is not established; the MCP executable is not currently on the local PATH.",
+        "durableTarget": "Use maintained MCP package installation and existing signed session identity/authorization for the nested app-server process; retain unavailable/denied results when identity or storage is absent.",
+        "validationNeeded": "Authenticated publish/query round trip, missing principal/storage behavior, cross-scope denial, principal propagation and cleanup through real Codex; no new store, synthetic identity, or machine-only launcher.",
+        "status": "resolved",
+        "removalEvidence": "Existing signed session boundary, installed canonical MCP package CLI, verified key-backed principal, scoped SQL/metadata keys; native publish/read, denial, missing identity/storage and signed cleanup verified with synthetic storage and zero inference calls."
+      },
+      "capability": "Configured studioLocalMemory adapters only; default shipped profile remains disabled",
+      "nativeMethod": "mcpServer/tool/call",
+      "cliVersion": "0.160.0",
+      "inferenceCalls": 0,
+      "identitySource": "Existing RevDev session.register; private keys stay in the existing identity cache",
+      "storageSource": "Existing knowledge-graph product factory and database executor; no second store",
+      "priorExceptionInventory": [
+        {
+          "location": "packages/knowledge-graph/src/memory/scope-sql.ts and scope-read.ts",
+          "priorBehavior": "Studio-local bypassed authenticated visibility; operators could read isolated nodes without provenance",
+          "owner": "@revealui/knowledge-graph",
+          "durableDestination": "Shared SQL-before-LIMIT scope and provenance predicate",
+          "removalEvidence": "No studio-local/isolated-node bypass; local denial and unattributed-node tests"
+        },
+        {
+          "location": "packages/knowledge-graph/src/memory/tenant-key.ts and publish.ts; packages/mcp/src/servers/factories/knowledge-graph.ts",
+          "priorBehavior": "Private/workspace metadata reused graph keys; node-only MCP writes lacked episode-linked edges",
+          "owner": "@revealui/knowledge-graph and @revealui/mcp",
+          "durableDestination": "Existing key namespace primitive and product publication provenance",
+          "removalEvidence": "Scoped keys, public agent metadata, discovered edges, keyScopeVersion marker, metadata-collision and legacy-quarantine tests"
+        },
+        {
+          "location": "packages/harnesses/src/session/boundary.ts",
+          "priorBehavior": "Daemon-absent exit retained cached signing identity; PID-keyed cache could not identify a nested MCP process",
+          "owner": "@revealui/harnesses session boundary",
+          "durableDestination": "Registered runtime lease with explicit maintained storage paths and signed session end",
+          "removalEvidence": "Idempotent lease/disposal; daemon-present/absent cleanup; relative paths resolved in the maintained session boundary before public identity propagation."
+        },
+        {
+          "location": "packages/harnesses/src/session/studio-local-kg-mcp.ts",
+          "priorBehavior": "Managed launch depended on a global MCP executable and implicit parent PID",
+          "owner": "@revealui/harnesses and @revealui/mcp package exports",
+          "durableDestination": "Installed CLI resolution and public identity parameters",
+          "removalEvidence": "Normal optional workspace dependency; Node launches the package CLI; no home Codex config or signing key environment variable"
+        },
+        {
+          "location": "packages/harnesses/src/session/durable-memory.ts",
+          "priorBehavior": "Warning claimed studio-local memory was deliberately unscoped",
+          "owner": "@revealui/harnesses durable memory helper",
+          "durableDestination": "Accurate generic warning for sources without reported enforcement",
+          "removalEvidence": "Stale exemption wording removed and regression expectation updated"
+        }
+      ],
+      "remainingWork": [
+        {
+          "id": "KG-LEGACY-MEMORY-SCOPE-MIGRATION",
+          "owner": "@revealui/knowledge-graph ingestion/provenance and maintained migration tooling",
+          "owningPaths": [
+            "packages/knowledge-graph/src/ingest/index.ts",
+            "packages/knowledge-graph/src/memory/tenant-key.ts",
+            "packages/knowledge-graph/src/memory/scope-sql.ts"
+          ],
+          "failingBehavior": "Historical unscoped writes can merge private/workspace node metadata; node-only rows lack episode-linked provenance. Current merged nodes cannot safely reconstruct ownership.",
+          "durableTarget": "Maintained idempotent reconstruction from authoritative episode/outbox provenance into scoped keys and episode-linked subjects. Restore historical reads after verifying metadata ownership; never merely stamp the marker onto old rows.",
+          "validationNeeded": "Mixed private/workspace/tenant rows, node-only publications, key collisions, rollback/idempotence, scan contamination and no cross-scope disclosure",
+          "currentBehavior": "Authenticated SQL reads quarantine unmarked historical memory and connected nodes; unattributed nodes remain hidden. Original records are preserved."
+        },
+        {
+          "id": "KG-REPOSITORY-SEARCH-FILTER",
+          "owner": "@revealui/knowledge-graph shared search and MCP search schema",
+          "owningPaths": [
+            "packages/knowledge-graph/src/search/index.ts",
+            "packages/knowledge-graph/src/memory/query.ts",
+            "packages/mcp/src/servers/factories/knowledge-graph.ts",
+            "packages/harnesses/src/session/durable-memory.ts"
+          ],
+          "failingBehavior": "Existing MemoryQuery.repo is ignored by direct query and forwarded to an MCP schema that does not accept it.",
+          "durableTarget": "A uniform repository predicate in shared text/vector/traversal before LIMIT, exposed by the canonical MCP schema and existing helper.",
+          "validationNeeded": "Direct/MCP parity, all retrieval channels and existing authorization predicates",
+          "currentBehavior": "Codex memory command type excludes repo filtering; no unsupported filter is advertised."
+        }
+      ],
+      "validation": {
+        "nativeAcceptance": "Final rebuilt server passed real Codex app-server publish/query, private denial, foreign-scope denial, missing identity/storage, signed cleanup and cache removal; production MCP factory/principal provider with synthetic daemon/storage fixtures; zero turn/start calls",
+        "graphSuite": "Isolated staged suite: 143 cases; 141 passed in full run, two database beforeEach hooks exceeded the original 30-second deadline under concurrent package runs. Both affected files then passed all eight cases sequentially with unchanged deadlines.",
+        "mcpFocused": "Initial four focused files: 35 tests passed. Isolated full MCP suite: 500 passed, five skipped, three transport/fixture timeouts and one invalid historical key fixture. After correcting the fixture to use a real generated key, all 56 cases in the three affected files passed sequentially with unchanged deadlines.",
+        "adapterFocused": "Final adapter suite includes 40 cases; bounded registration and idempotent disposal are covered alongside native dispatch and managed memory.",
+        "harnessSuite": "Final isolated staged suite after relative-path normalization: 55 files, 679 tests passed in 53.37 seconds, including real native memory acceptance. Final additional stalled-registration deadline regression is covered by the adapter rerun.",
+        "builds": "All three isolated staged package builds passed; harness typecheck passed.",
+        "delivery": "Maintained manager materialize/check passed; generated Codex guide exactly matches the staged file.",
+        "changedSources": "Biome and staged diff whitespace checks passed."
+      },
+      "validationDebt": {
+        "id": "KG-MCP-TEST-RESOURCE-CONCURRENCY",
+        "owner": "@revealui/dev test/gate orchestration and knowledge-graph/MCP fixture owners",
+        "owningPaths": [
+          "packages/dev/src/vitest/create-config.ts",
+          "packages/knowledge-graph/src/__tests__/test-db.ts",
+          "packages/mcp/__tests__/knowledge-graph-factory.test.ts"
+        ],
+        "failingBehavior": "Concurrent full graph/MCP suites plus compiler processes exceeded database fixture startup and MCP transport deadlines; the same affected files passed sequentially with their original deadlines.",
+        "durableTarget": "Bound memory-heavy package/test orchestration and harden maintained fixture lifecycle so normal gates fit the existing budgets; do not raise deadlines or suppress assertions.",
+        "validationNeeded": "Full suites under normal gate load with original hook/transport deadlines and measured cold fixture memory/startup cost."
+      }
+    }
   }
 }

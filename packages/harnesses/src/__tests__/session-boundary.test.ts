@@ -1,11 +1,11 @@
-import { generateKeyPairSync } from 'node:crypto';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { generateKeyPairSync, verify } from 'node:crypto';
+import { existsSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { coldDaemonSessionsDir } from '../session/archive-exit.js';
-import { hashParams, sessionEnd, sessionRegister, signRpc } from '../session/index.js';
+import { hashParams, openRuntimeSession, sessionEnd, sessionRegister, signRpc } from '../session/index.js';
 
 describe('session boundary (soft-optional daemon)', () => {
   const dirs: string[] = [];
@@ -170,6 +170,73 @@ describe('session boundary (soft-optional daemon)', () => {
     delete process.env.REVDEV_HOOK_IDENTITY_DIR;
     delete process.env.REVDEV_DAEMON_SESSION_DIR;
   });
+
+  it.each([false, true])(
+    'isolates runtime identity storage and clears it on end (daemon absent: %s)',
+    async (absentOnEnd) => {
+      const dir = mkdtempSync(join(tmpdir(), 'runtime-boundary-'));
+      dirs.push(dir);
+      const socketPath = join(dir, 'daemon.sock');
+      const identityDir = join(dir, 'identities'),
+        sessionDir = join(dir, 'sessions');
+      const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+      const privateKeyPem = privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();
+      let ended = 0;
+      let expectedAgent = '';
+      const server = createServer((socket) => {
+        socket.once('data', (chunk) => {
+          const request = JSON.parse(chunk.toString());
+          let result: unknown = {};
+          if (request.method === 'session.register') {
+            expectedAgent = request.params.agentId;
+            expect(request.params.pid).toBe(process.pid);
+            result = {
+              agentId: expectedAgent,
+              did: `did:revealfleet:${expectedAgent}:fingerprint`,
+              privateKeyPem,
+            };
+          } else {
+            const [header, payload, signature] = request['x-revdev-signature'].split('.');
+            expect(
+              verify(
+                null,
+                Buffer.from(`${header}.${payload}`),
+                publicKey,
+                Buffer.from(signature, 'base64url'),
+              ),
+            ).toBe(true);
+            expect(JSON.parse(Buffer.from(payload, 'base64url').toString()).paramsHash).toBe(
+              hashParams('session.end', request.params),
+            );
+            ended++;
+          }
+          socket.end(`${JSON.stringify({ id: request.id, result })}\n`);
+        });
+      });
+      servers.push(server);
+      await new Promise<void>((resolve) => server.listen(socketPath, resolve));
+      const lease = await openRuntimeSession('codex', dir, {
+        socketPath: absentOnEnd ? 'daemon.sock' : socketPath,
+        identityDir: absentOnEnd ? 'identities' : identityDir,
+        sessionDir: absentOnEnd ? 'sessions' : sessionDir,
+        archiveDir: absentOnEnd ? 'archive' : join(dir, 'archive'),
+      });
+      expect(lease.ok).toBe(true);
+      expect(lease.identityDir).toBe(identityDir);
+      expect(lease.identity?.agentId).toBe(expectedAgent);
+      expect(lease.identity).not.toHaveProperty('privateKeyPem');
+      expect(existsSync(join(identityDir, `${expectedAgent}.json`))).toBe(true);
+      expect(readdirSync(sessionDir)).toHaveLength(1);
+      if (absentOnEnd) {
+        await new Promise<void>((resolve) => server.close(() => resolve()));
+        servers.splice(servers.indexOf(server), 1);
+      }
+      await Promise.all([lease.close(), lease.close()]);
+      expect(readdirSync(sessionDir)).toHaveLength(0);
+      expect(readdirSync(identityDir)).toHaveLength(0);
+      expect(ended).toBe(absentOnEnd ? 0 : 1);
+    },
+  );
 
   it('signRpc produces three base64url segments', () => {
     const { privateKey } = generateKeyPairSync('ed25519');

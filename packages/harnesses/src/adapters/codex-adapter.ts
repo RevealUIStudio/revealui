@@ -8,11 +8,23 @@ import { randomUUID } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { promisify } from 'node:util';
+import type { MemoryPrincipal } from '@revealui/knowledge-graph/memory';
 import { findHarnessProcesses } from '../detection/process-detector.js';
 import { checkCodexDelivery, codexPointerText } from '../manager/codex.js';
 import { loadManager, managerPath } from '../manager/paths.js';
 import type { McpServerConfig } from '../protocol/adapter.js';
 import { type ProtocolCapabilities, TOOL_PROFILES } from '../protocol/capabilities.js';
+import {
+  openRuntimeSession,
+  type RuntimeSessionLease,
+  type RuntimeSessionOptions,
+} from '../session/boundary.js';
+import { publishDurableFinding, queryDurableMemory } from '../session/durable-memory.js';
+import { defaultIdentityDir } from '../session/identity-cache.js';
+import {
+  STUDIO_LOCAL_KG_MCP_SERVER_NAME,
+  studioLocalKnowledgeGraphMcpServer,
+} from '../session/studio-local-kg-mcp.js';
 import type { HarnessAdapter } from '../types/adapter.js';
 import type {
   HarnessCapabilities,
@@ -73,6 +85,8 @@ export interface CodexAdapterConfig {
    * server principal provider. No identity or memory store is created here.
    */
   mcpServers?: McpServerConfig[];
+  /** Opt-in managed studio-local session and canonical shared memory server. */
+  studioLocalMemory?: RuntimeSessionOptions;
   /** Host review for this request only. Missing, failed or expired review declines. */
   onApproval?: (
     request: CodexApprovalRequest,
@@ -100,12 +114,15 @@ export class CodexAdapter implements HarnessAdapter {
   private readonly root: string;
   private readonly binary: string;
   private active?: ActiveRun;
+  private memorySession?: RuntimeSessionLease;
   private disposed = false;
+  private disposal?: Promise<void>;
   private readonly handlers = new Set<(event: HarnessEvent) => void>();
 
   constructor(config: CodexAdapterConfig = {}) {
     this.config = {
       ...config,
+      studioLocalMemory: config.studioLocalMemory ? { ...config.studioLocalMemory } : undefined,
       timeoutMs: milliseconds(config.timeoutMs ?? 120_000),
       approvalTimeoutMs: milliseconds(config.approvalTimeoutMs ?? 30_000),
       mcpServers: config.mcpServers?.map((server) => ({
@@ -118,6 +135,8 @@ export class CodexAdapter implements HarnessAdapter {
     for (const server of this.config.mcpServers ?? []) {
       if (!/^[a-zA-Z0-9_-]+$/.test(server.name) || names.has(server.name) || !server.command.trim())
         throw new Error('Codex MCP entries require unique safe names and non-empty commands');
+      if (config.studioLocalMemory && server.name === STUDIO_LOCAL_KG_MCP_SERVER_NAME)
+        throw new Error('Managed shared memory owns the knowledge-graph MCP entry');
       names.add(server.name);
     }
     this.root = resolve(config.projectRoot ?? process.cwd());
@@ -137,7 +156,10 @@ export class CodexAdapter implements HarnessAdapter {
     };
   }
   getProtocolCapabilities(): ProtocolCapabilities {
-    return TOOL_PROFILES.codex as ProtocolCapabilities;
+    const capabilities = TOOL_PROFILES.codex as ProtocolCapabilities;
+    return this.config.studioLocalMemory
+      ? { ...capabilities, memory: { supported: true, backend: 'knowledge-graph' } }
+      : capabilities;
   }
   async getInfo(): Promise<HarnessInfo> {
     return {
@@ -190,12 +212,17 @@ export class CodexAdapter implements HarnessAdapter {
       }
     }
   }
-  async dispose(): Promise<void> {
+  dispose(): Promise<void> {
     this.disposed = true;
-    const run = this.active;
-    run?.stop('Codex adapter disposed');
-    if (run) await run.done.promise;
-    this.handlers.clear();
+    this.disposal ??= (async () => {
+      const run = this.active;
+      run?.stop('Codex adapter disposed');
+      if (run) await run.done.promise;
+      await this.memorySession?.close();
+      this.memorySession = undefined;
+      this.handlers.clear();
+    })();
+    return this.disposal;
   }
 
   async execute(command: HarnessCommand): Promise<HarnessCommandResult> {
@@ -242,6 +269,10 @@ export class CodexAdapter implements HarnessAdapter {
           : (this.config.timeoutMs as number),
       );
       switch (command.type) {
+        case 'query-memory':
+        case 'publish-memory':
+          prompt = command.type;
+          break;
         case 'headless-prompt':
           if (command.maxTurns !== undefined)
             return {
@@ -277,15 +308,18 @@ export class CodexAdapter implements HarnessAdapter {
     const threadId = command.type === 'headless-prompt' ? command.threadId : undefined;
     if (threadId !== undefined && (!threadId.trim() || threadId.length > 512))
       return { success: false, command: command.type, message: 'Invalid Codex thread id' };
-    return this.dispatch(command.type, prompt, timeoutMs, threadId);
+    return this.dispatch(command, prompt, timeoutMs, threadId);
   }
 
   private async dispatch(
-    command: HarnessCommand['type'],
+    operation: HarnessCommand,
     prompt: string,
     timeoutMs: number,
     resumeThreadId?: string,
   ): Promise<HarnessCommandResult> {
+    const command = operation.type;
+    const memoryOperation =
+      operation.type === 'query-memory' || operation.type === 'publish-memory';
     const terminal = deferred<ObjectValue>();
     const pending = new Map<number, ReturnType<typeof deferred<ObjectValue>>>();
     let child: ChildProcessWithoutNullStreams | undefined;
@@ -360,7 +394,7 @@ export class CodexAdapter implements HarnessAdapter {
       () => run.stop(`Codex generation timed out after ${timeoutMs}ms`),
       timeoutMs,
     );
-    this.emit({ type: 'generation-started', taskId: run.taskId });
+    if (!memoryOperation) this.emit({ type: 'generation-started', taskId: run.taskId });
     try {
       if (run.stopped) throw new Error(run.stopped);
       if (
@@ -371,6 +405,61 @@ export class CodexAdapter implements HarnessAdapter {
         if (errors.length)
           throw new Error(`Codex project delivery is incomplete: ${errors.join('; ')}`);
       }
+      if (memoryOperation && !this.config.studioLocalMemory)
+        return {
+          success: false,
+          command,
+          data: {
+            status: 'unavailable',
+            available: false,
+            reason: 'durable-memory-unwired',
+            message: 'Managed shared memory is not configured',
+          },
+        };
+      let servers = this.config.mcpServers ?? [];
+      let principal: MemoryPrincipal | undefined;
+      if (this.config.studioLocalMemory) {
+        if (!this.memorySession) {
+          const lease = await openRuntimeSession('codex', this.root, {
+            ...this.config.studioLocalMemory,
+            timeoutMs: Math.min(this.config.studioLocalMemory.timeoutMs ?? 4000, timeoutMs),
+          });
+          if (lease.identity) this.memorySession = lease;
+          else {
+            if (memoryOperation)
+              return {
+                success: false,
+                command,
+                data: {
+                  status: 'unavailable',
+                  available: false,
+                  reason: 'principal-missing',
+                  message: lease.reason,
+                },
+              };
+            throw new Error(`Shared memory identity unavailable: ${lease.reason}`);
+          }
+        }
+        const identity = this.memorySession.identity;
+        if (!identity) throw new Error('Shared memory signing identity unavailable');
+        principal = {
+          ...identity,
+          didKind: 'agent-key',
+          harness: 'codex',
+          tenantId: 'studio-local',
+          trustBoundary: 'studio-local',
+          isFleetOperator: true,
+        };
+        servers = [
+          ...servers,
+          studioLocalKnowledgeGraphMcpServer({
+            agentId: identity.agentId,
+            identityDir: this.memorySession.identityDir ?? resolve(defaultIdentityDir()),
+            harness: 'codex',
+          }),
+        ];
+      }
+      if (run.stopped) throw new Error(run.stopped);
       child = spawn(this.binary, ['app-server', '--listen', 'stdio://'], {
         cwd: this.root,
         stdio: 'pipe',
@@ -570,10 +659,10 @@ export class CodexAdapter implements HarnessAdapter {
       }
       const started = await request(resumeThreadId ? 'thread/resume' : 'thread/start', {
         ...(resumeThreadId ? { threadId: resumeThreadId } : {}),
-        ...(this.config.mcpServers?.length
+        ...(servers.length
           ? {
               config: Object.fromEntries(
-                this.config.mcpServers.map(({ name, command, args, env }) => [
+                servers.map(({ name, command, args, env }) => [
                   `mcp_servers.${name}`,
                   {
                     command,
@@ -598,6 +687,27 @@ export class CodexAdapter implements HarnessAdapter {
       run.threadId = identifier(object(started.thread).id);
       if (resumeThreadId && run.threadId !== resumeThreadId)
         throw new Error('Codex resumed a different thread');
+      if (memoryOperation && principal) {
+        const options = {
+          callTool: (tool: string, args: Record<string, unknown>) =>
+            request('mcpServer/tool/call', {
+              threadId: run.threadId,
+              server: STUDIO_LOCAL_KG_MCP_SERVER_NAME,
+              tool,
+              arguments: args,
+            }),
+          timeoutMs,
+        };
+        const result =
+          operation.type === 'publish-memory'
+            ? await publishDurableFinding({ ...operation.input, principal }, options)
+            : operation.type === 'query-memory'
+              ? await queryDurableMemory({ ...operation.input, principal }, options)
+              : undefined;
+        if (run.stopped) throw new Error(run.stopped);
+        run.terminal = true;
+        return { success: result?.status === 'ok', command, data: result };
+      }
       turnRequested = true;
       const response = await Promise.race([
         request('turn/start', {
@@ -656,6 +766,17 @@ export class CodexAdapter implements HarnessAdapter {
     } catch (error) {
       run.terminal = true;
       const message = run.stopped ?? (error instanceof Error ? error.message : String(error));
+      if (memoryOperation)
+        return {
+          success: false,
+          command,
+          data: {
+            status: 'unavailable',
+            available: false,
+            reason: run.stopped ? 'cancelled' : 'codex-transport-unavailable',
+            message,
+          },
+        };
       this.emit({
         type: run.stopped ? 'generation-cancelled' : 'generation-failed',
         taskId: run.taskId,

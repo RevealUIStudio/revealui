@@ -12,6 +12,7 @@ export const STUDIO_LOCAL_TENANT = 'studio-local';
 export type MemoryClassification = 'private' | 'workspace';
 
 export type MemoryHarness =
+  | 'codex'
   | 'claude'
   | 'grok'
   | 'cursor'
@@ -125,6 +126,8 @@ export interface AdvisoryClaim {
 
 export interface MemoryContentRef {
   schema: typeof MEMORY_SCHEMA;
+  /** Older rows omit this marker and are quarantined by authenticated reads. */
+  keyScopeVersion?: 1;
   actorDid: string;
   harness: MemoryHarness;
   scope: MemoryScope;

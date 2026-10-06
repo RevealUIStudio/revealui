@@ -3,6 +3,8 @@
  * This package owns the harness-domain types (there is no packages/editors).
  */
 
+import type { MemoryPublishInput, MemoryQuery } from '@revealui/knowledge-graph/memory';
+
 export interface HarnessCapabilities {
   /** Can generate code from a prompt */
   generateCode: boolean;
@@ -25,6 +27,8 @@ export type HarnessCommand =
   | { type: 'analyze-code'; filePath: string; question?: string }
   | { type: 'apply-edit'; filePath: string; diff: string }
   | { type: 'apply-config'; configPath: string; content: string }
+  | { type: 'query-memory'; input: Omit<MemoryQuery, 'principal' | 'repo'> }
+  | { type: 'publish-memory'; input: Omit<MemoryPublishInput, 'principal'> }
   | { type: 'get-status' }
   | { type: 'cancel-generation'; taskId?: string }
   | { type: 'get-running-instances' }

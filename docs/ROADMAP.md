@@ -122,11 +122,15 @@ Native instruction and skill delivery is implemented through the project manager
 The execution adapter extends the existing harness framework and auto-detection
 with bounded app-server dispatch, streamed final output, cancellation/cleanup,
 project-scoped resume, canonical MCP attachment, and request-scoped host approval
-review. Its owner remains `@revealui/harnesses`. Authenticated shared-memory
-access, lifecycle hooks, and a packaged approval UI remain durable follow-up
-work. Memory reuses the existing knowledge-graph MCP principal/storage owners;
-do not create a second identity or store. Validate each integration before
-enabling its capability in the shipped profile.
+review. Its owner remains `@revealui/harnesses`. Configured authenticated memory
+uses the existing signed session boundary and installed knowledge-graph MCP
+launcher, with native tool calls requiring no model turn. Local and hosted
+reads enforce scope; scoped keys protect mutable node metadata. Historical
+unscoped memory is quarantined pending `KG-LEGACY-MEMORY-SCOPE-MIGRATION` in the
+knowledge-graph migration owner. Repository-filter support remains tracked in
+the shared search owner. Lifecycle hooks and a packaged approval UI remain
+follow-up work. Do not create a second identity or store; verify each integration
+before enabling its capability.
 
 Migration locations, owners, canonical sources, destinations, and removal evidence
 are recorded in [codex-native-delivery.json](audits/codex-native-delivery.json).

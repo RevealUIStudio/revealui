@@ -122,18 +122,65 @@ amendments, and `grantRoot` requests are not accepted. Other unsupported server
 requests receive a protocol error. On Unix, cleanup terminates the process group
 and escalates to SIGKILL after 500 ms.
 
-`mcpServers` accepts the existing canonical stdio MCP entries. Supplied servers
-are required: startup failure prevents dispatch. To attach shared memory, pass
-`studioLocalKnowledgeGraphMcpServer()` exported by `@revealui/harnesses`, as an
-entry. This launches `revealui-mcp knowledge-graph` through Codex's supported
-thread configuration; it does not write home configuration. The MCP package
-must be installed, and its existing principal provider and database must be
-available. Missing identity or storage remains an explicit unavailable result.
-The adapter creates no identity, memory store, or automatic publication.
+`mcpServers` accepts canonical stdio MCP entries. Supplied servers are required:
+startup failure prevents dispatch. For authenticated shared memory, configure
+`studioLocalMemory` on the adapter instead of manually supplying the
+`knowledge-graph` entry:
 
-Resume and MCP attachment are supported. Shared-memory capability remains
-disabled pending authenticated end-to-end validation. Fork, background execution,
-coordination, lifecycle hooks, and a packaged review UI remain follow-up work.
+```ts
+const adapter = new CodexAdapter({
+  projectRoot,
+  studioLocalMemory: {},
+});
+try {
+  await adapter.execute({
+    type: 'publish-memory',
+    input: {
+      scope: { tenantId: 'studio-local', classification: 'workspace' },
+      summary: 'A verified finding',
+      siteId: 'revealui',
+      subjects: [{ kind: 'concept', name: 'Finding', naturalKey: 'concept:finding' }],
+    },
+  });
+  await adapter.execute({ type: 'query-memory', input: { query: 'Finding' } });
+} finally {
+  await adapter.dispose();
+}
+```
+
+The existing RevDev daemon issues the identity. The maintained installed MCP
+package supplies its launcher; a global executable on PATH is unnecessary.
+Only the public agent ID, harness, and identity-directory path enter the native
+MCP configuration. Private signing material stays in the existing identity
+cache. `studioLocalMemory` accepts the maintained session boundary's
+`socketPath`, `identityDir`, `sessionDir`, `archiveDir`, and `timeoutMs` parameters;
+omitting them uses the existing defaults. Explicit relative paths resolve against
+the project root, and the nested MCP process receives the resolved identity path.
+The existing database configuration
+must be available. No home Codex configuration is written.
+
+Memory commands use native `mcpServer/tool/call`, with no model turn or automatic
+publication. Missing identity/storage returns unavailable, and unauthorized
+scope returns denied. The adapter holds one identity until disposal, which
+signs session shutdown and clears local identity/session caches. Cleanup still
+clears those caches if the daemon disappears.
+
+Configured adapters advertise the `knowledge-graph` memory backend; the default
+profile keeps memory disabled. Tenant, private, and workspace scope applies to
+local and hosted reads. Private/workspace-specific graph keys isolate mutable
+node metadata; use canonical keys returned by search for node/context lookups.
+Repository filtering is not part of the Codex memory command contract.
+
+Historical memory without `keyScopeVersion: 1`, and nodes connected to it, is
+hidden from authenticated reads. Reconstructing those records safely is tracked
+as `KG-LEGACY-MEMORY-SCOPE-MIGRATION` in the migration audit. Do not stamp the
+marker onto old rows: it asserts scoped keys and trustworthy metadata provenance.
+Unattributed legacy nodes also remain hidden. Graph scans with valid provenance
+remain visible to authorized fleet operators.
+
+Resume, MCP attachment, and configured authenticated memory are supported. Fork,
+background execution, coordination, lifecycle hooks, and a packaged review UI
+remain follow-up work.
 
 ## Machine vs project
 

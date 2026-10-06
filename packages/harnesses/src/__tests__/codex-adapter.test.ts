@@ -1,11 +1,13 @@
 import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CodexAdapter, type CodexAdapterConfig } from '../adapters/codex-adapter.js';
 import { writeManagerAdapterContent } from '../content/write-manager-adapters.js';
 import { materializeManager, writeManager } from '../manager/materialize.js';
 import { ManagerSchema } from '../manager/schema.js';
+import * as boundary from '../session/boundary.js';
 import { studioLocalKnowledgeGraphMcpServer } from '../session/studio-local-kg-mcp.js';
 import type { HarnessEvent } from '../types/core.js';
 
@@ -14,6 +16,7 @@ const adapters: CodexAdapter[] = [];
 afterEach(async () => {
   await Promise.all(adapters.splice(0).map((adapter) => adapter.dispose()));
   for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
+  vi.restoreAllMocks();
 });
 
 /** Synthetic wire peer exercises the real process/pipe/termination boundary. */
@@ -56,6 +59,10 @@ readline.createInterface({ input: process.stdin }).on('line', line => {
   if (msg.method === 'thread/start' || msg.method === 'thread/resume') {
     if (mode === 'resume-error' || mode === 'mcp-error') { send({ id: msg.id, error: { message: 'thread initialization failed' } }); return; }
     send({ id: msg.id, result: { thread: { id: 'thread1' } } });
+  }
+  if (msg.method === 'mcpServer/tool/call') {
+    if (mode === 'memory-hold') return;
+    send({ id: msg.id, result: { content: [{ type: 'text', text: JSON.stringify({ status: 'ok', available: true, enforcement: 'enforced', deniedCount: 0, data: { nodes: [], facts: [] } }) }], isError: false } });
   }
   if (msg.method === 'turn/start') {
     if (mode === 'close') { process.exit(7); }
@@ -111,7 +118,7 @@ readline.createInterface({ input: process.stdin }).on('line', line => {
       .trim()
       .split('\n')
       .map((line) => JSON.parse(line));
-  return { adapter, events, messages, root };
+  return { adapter, events, messages, root, trace };
 }
 
 function waitForEvent(
@@ -503,4 +510,104 @@ describe('Codex app-server adapter', () => {
     expect((await cancellation)?.success).toBe(true);
     expect(existsSync(join(root, 'wire.jsonl'))).toBe(false);
   });
+});
+
+describe('Codex managed memory commands', () => {
+  it('advertises memory only when managed identity is configured', () => {
+    expect(new CodexAdapter().getProtocolCapabilities().memory).toEqual({
+      supported: false,
+      backend: 'none',
+    });
+    expect(new CodexAdapter({ studioLocalMemory: {} }).getProtocolCapabilities().memory).toEqual({
+      supported: true,
+      backend: 'knowledge-graph',
+    });
+  });
+  it('returns unavailable without launching a child when memory is unwired', async () => {
+    const { adapter, trace } = fixture();
+    expect(
+      await adapter.execute({ type: 'query-memory', input: { query: 'finding' } }),
+    ).toMatchObject({
+      success: false,
+      data: { status: 'unavailable', reason: 'durable-memory-unwired' },
+    });
+    expect(existsSync(trace)).toBe(false);
+  });
+
+  it('bounds a stalled identity registration by the dispatch budget', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'codex-registration-'));
+    roots.push(dir);
+    const socketPath = join(dir, 'daemon.sock');
+    const server = createServer((socket) => socket.resume());
+    await new Promise<void>((resolve) => server.listen(socketPath, resolve));
+    try {
+      const { adapter, trace } = fixture('complete', {
+        timeoutMs: 100,
+        studioLocalMemory: {
+          socketPath,
+          timeoutMs: 60000,
+          identityDir: join(dir, 'identities'),
+          sessionDir: join(dir, 'sessions'),
+          archiveDir: join(dir, 'archive'),
+        },
+      });
+      const started = Date.now();
+      expect(
+        await adapter.execute({ type: 'query-memory', input: { query: 'finding' } }),
+      ).toMatchObject({ success: false, data: { status: 'unavailable' } });
+      expect(Date.now() - started).toBeLessThan(1000);
+      expect(existsSync(trace)).toBe(false);
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
+
+  it('rejects a competing managed MCP entry before registering identity', () => {
+    expect(
+      () =>
+        new CodexAdapter({
+          studioLocalMemory: {},
+          mcpServers: [studioLocalKnowledgeGraphMcpServer()],
+        }),
+    ).toThrow('owns the knowledge-graph');
+  });
+
+  it.each(['complete', 'memory-hold'])(
+    'routes memory without inference and cleans up %s',
+    async (mode) => {
+      const close = vi.fn(async () => ({ ok: true, skipped: false }));
+      vi.spyOn(boundary, 'openRuntimeSession').mockResolvedValue({
+        ok: true,
+        skipped: false,
+        identity: {
+          agentId: 'codex-test',
+          did: 'did:revealfleet:codex-test:fp',
+          fingerprint: 'fp',
+        },
+        close,
+      });
+      const { adapter, trace } = fixture(mode, {
+        studioLocalMemory: {},
+        timeoutMs: mode === 'memory-hold' ? 500 : 5000,
+      });
+      const result = await adapter.execute({ type: 'query-memory', input: { query: 'finding' } });
+      expect(result).toMatchObject({
+        success: mode === 'complete',
+        data: { status: mode === 'complete' ? 'ok' : 'unavailable' },
+      });
+      const requests = readFileSync(trace, 'utf8')
+        .trim()
+        .split('\n')
+        .map((line) => JSON.parse(line));
+      expect(requests.some((request) => request.method === 'mcpServer/tool/call')).toBe(true);
+      expect(requests.some((request) => request.method === 'turn/start')).toBe(false);
+      const started = requests.find((request) => request.method === 'thread/start');
+      expect(started.params.config['mcp_servers.knowledge-graph'].env).toMatchObject({
+        REVDEV_AGENT_ID: 'codex-test',
+        REVDEV_HARNESS: 'codex',
+      });
+      await Promise.all([adapter.dispose(), adapter.dispose()]);
+      expect(close).toHaveBeenCalledTimes(1);
+    },
+  );
 });

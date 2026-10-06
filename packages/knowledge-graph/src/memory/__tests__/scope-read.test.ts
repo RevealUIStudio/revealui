@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createKgTestDb, type KgTestDb } from '../../__tests__/test-db.js';
+import { deriveNodeId } from '../../ids.js';
 import { ingestEpisode } from '../../ingest/index.js';
 import { kgNeighbors, kgPath, kgSearch } from '../../search/index.js';
 import { publishMemory } from '../publish.js';
@@ -64,8 +65,16 @@ async function seedScan(): Promise<void> {
         repo: 'revealui',
         summary: 'the LLM client factory',
       },
+      { kind: 'symbol', name: 'getClient', naturalKey: `${SCAN_KEY}#getClient` },
     ],
-    edges: [],
+    edges: [
+      {
+        source: { kind: 'file', naturalKey: SCAN_KEY },
+        target: { kind: 'symbol', naturalKey: `${SCAN_KEY}#getClient` },
+        relation: 'exports',
+        fact: 'client.ts exports getClient',
+      },
+    ],
   });
 }
 
@@ -166,6 +175,20 @@ describe('queryMemory scope', () => {
     expect(result.status).toBe('ok');
     if (result.status !== 'ok') return;
     expect(result.data.nodes.some((n) => n.naturalKey === SCAN_KEY)).toBe(false);
+  });
+
+  it('hides unattributed nodes even from a local fleet operator', async () => {
+    await ingestEpisode(db.exec, {
+      episode: { episodeType: 'manual', source: 'test', siteId: 'test', referenceTime: new Date() },
+      nodes: [{ kind: 'concept', name: 'unattributed', naturalKey: 'concept:unattributed' }],
+      edges: [],
+    });
+    const result = await kgSearch(db.exec, {
+      query: 'unattributed',
+      principal: { ...operator, trustBoundary: 'studio-local' },
+    });
+    expect(result.nodes).toEqual([]);
+    expect((await kgSearch(db.exec, { query: 'unattributed' })).nodes).toHaveLength(1);
   });
 
   it('lets a fleet operator see code-scan provenance', async () => {
@@ -321,5 +344,97 @@ describe('queryClaims hosted', () => {
     expect(mine.enforcement).toBe('enforced');
     expect(mine.data.claims).toHaveLength(1);
     expect(mine.data.claims[0]?.targetNaturalKey).toBe(tenantNaturalKey('acct_a', 'a.ts'));
+  });
+});
+
+describe('local publication metadata scope', () => {
+  it('keeps private metadata separate from a shared subject with the same key', async () => {
+    const author = { ...operator, trustBoundary: 'studio-local' as const };
+    const publish = (classification: 'private' | 'workspace', name: string) =>
+      publishMemory(db.exec, {
+        principal: author,
+        scope: { tenantId: author.tenantId, classification },
+        summary: name,
+        subjects: [{ kind: 'concept', naturalKey: 'concept:reused', name, summary: name }],
+        siteId: 'test',
+      });
+    expect((await publish('workspace', 'brassshared')).status).toBe('ok');
+    expect((await publish('private', 'saffronprivate')).status).toBe('ok');
+    const peer = {
+      ...author,
+      ...tenantB,
+      tenantId: author.tenantId,
+      trustBoundary: 'studio-local' as const,
+      isFleetOperator: true,
+    };
+    const result = await queryMemory(db.exec, { principal: peer, query: 'brassshared' });
+    expect(result.status).toBe('ok');
+    if (result.status !== 'ok') return;
+    expect(result.data.nodes).toContainEqual(
+      expect.objectContaining({ name: 'brassshared', summary: 'brassshared' }),
+    );
+    expect(JSON.stringify(result)).not.toContain('saffronprivate');
+    expect((await queryMemory(db.exec, { principal: peer, query: 'saffronprivate' })).status).toBe(
+      'denied',
+    );
+  });
+
+  it('queries private claims by the original subject key', async () => {
+    const principal = { ...operator, trustBoundary: 'studio-local' as const };
+    expect(
+      (
+        await publishMemory(db.exec, {
+          principal,
+          scope: { tenantId: principal.tenantId, classification: 'private' },
+          summary: 'private intent',
+          subjects: [{ kind: 'concept', name: 'intent', naturalKey: 'concept:intent' }],
+          claim: { kind: 'intent', status: 'open' },
+          siteId: 'test',
+        })
+      ).status,
+    ).toBe('ok');
+    const result = await queryClaims(db.exec, { principal, subjectNaturalKey: 'concept:intent' });
+    expect(result).toMatchObject({
+      status: 'ok',
+      data: { claims: [expect.objectContaining({ claimKind: 'intent' })] },
+    });
+  });
+});
+
+describe('legacy memory provenance quarantine', () => {
+  it('hides metadata contaminated by historical private writes, including scan paths', async () => {
+    await seedScan();
+    await ingestEpisode(db.exec, {
+      episode: {
+        episodeType: 'agent-fact',
+        source: 'legacy',
+        siteId: 'test',
+        referenceTime: new Date(),
+        contentRef: {
+          schema: 'revealui.memory.v1',
+          actorDid: operator.did,
+          scope: { tenantId: operator.tenantId, classification: 'private' },
+        },
+      },
+      nodes: [
+        { kind: 'agent', name: operator.agentId, naturalKey: operator.did },
+        { kind: 'file', name: 'saffronprivate', summary: 'saffronprivate', naturalKey: SCAN_KEY },
+      ],
+      edges: [
+        {
+          source: { kind: 'agent', naturalKey: operator.did },
+          target: { kind: 'file', naturalKey: SCAN_KEY },
+          relation: 'discovered',
+          fact: 'saffronprivate',
+        },
+      ],
+    });
+    const principal = { ...operator, trustBoundary: 'studio-local' as const };
+    expect((await kgSearch(db.exec, { query: 'client', principal })).nodes).toEqual([]);
+    expect((await kgSearch(db.exec, { query: 'saffronprivate', principal })).nodes).toEqual([]);
+    expect(await inspectNodeVisibility(db.exec, deriveNodeId('file', SCAN_KEY), principal)).toBe(
+      'missing',
+    );
+    expect((await kgSearch(db.exec, { query: 'saffronprivate' })).nodes.length).toBeGreaterThan(0);
   });
 });

@@ -83,8 +83,9 @@ The native entry point is AGENTS.md (or a non-empty AGENTS.override.md).
 This adapter supplies project instructions and skills. CodexAdapter also provides
 bounded app-server dispatch, streamed output, project-scoped resume, MCP attachment,
 and cancellation through the shared harness registry. Approval review uses an optional
-host callback; absent review declines. Shared-memory authorization, lifecycle hooks,
-and a packaged review UI remain separate runtime milestones. Keep credentials in the existing secret store.
+host callback; absent review declines. Configured shared memory uses the existing signed
+session boundary and knowledge-graph MCP launcher; native memory calls need no model turn.
+Lifecycle hooks and a packaged review UI remain separate milestones. Keep credentials in the existing secret store.
 
 Instruction discovery: https://learn.chatgpt.com/docs/agent-configuration/agents-md
 `;

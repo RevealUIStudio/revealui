@@ -1,7 +1,7 @@
 /**
  * SQL-before-LIMIT visibility fragments for product memory reads.
- * Hosted principals are restricted in SQL; studio-local is unrestricted
- * (all episodes, single-operator).
+ * Authenticated principals are restricted in SQL across hosted and studio-local
+ * transports. Transport locality does not bypass memory scope.
  */
 
 import { MEMORY_SCHEMA, type MemoryPrincipal } from './types.js';
@@ -24,13 +24,13 @@ export interface BoundVisibility {
 /**
  * Bind tenant/did/workspace placeholders onto `params` once, then reuse them
  * in EXISTS fragments. Returns null when the principal is unrestricted
- * (absent or studio-local).
+ * (absent).
  */
 export function bindVisibility(
   principal: MemoryPrincipal | undefined,
   params: SqlParams,
 ): BoundVisibility | null {
-  if (principal?.trustBoundary !== 'hosted') return null;
+  if (!principal) return null;
 
   const tenant = params.add(principal.tenantId);
   const did = params.add(principal.did);
@@ -39,6 +39,7 @@ export function bindVisibility(
 
   const memoryVisible = (ep: string): string => `
     ${ep}.content_ref->>'schema' = '${MEMORY_SCHEMA}'
+    AND ${ep}.content_ref->>'keyScopeVersion' = '1'
     AND ${ep}.content_ref->'scope'->>'tenantId' = ${tenant}
     AND (
       (
@@ -62,13 +63,27 @@ export function bindVisibility(
       ? `(${memoryVisible(ep)} OR coalesce(${ep}.content_ref->>'schema', '') IS DISTINCT FROM '${MEMORY_SCHEMA}')`
       : memoryVisible(ep);
 
+  // Earlier writes could merge private/workspace metadata into one node.
+  // Quarantine their connected nodes until the graph owner reconstructs
+  // scoped provenance; an unscoped historical row cannot authorize a read.
+  const legacyNode = (id: string): string => `EXISTS (
+    SELECT 1 FROM kg_edges legacy_e
+    JOIN kg_edge_episodes legacy_ee ON legacy_ee.edge_id = legacy_e.id
+    JOIN kg_episodes legacy_ep ON legacy_ep.id = legacy_ee.episode_id
+    WHERE (legacy_e.source_id = ${id} OR legacy_e.target_id = ${id})
+      AND legacy_ep.content_ref->>'schema' = '${MEMORY_SCHEMA}'
+      AND coalesce(legacy_ep.content_ref->>'keyScopeVersion', '') IS DISTINCT FROM '1'
+  )`;
+
   const edgeVisible = (edgeAlias: string): string => `
     EXISTS (
       SELECT 1 FROM kg_edge_episodes vis_ee
       JOIN kg_episodes vis_ep ON vis_ep.id = vis_ee.episode_id
       WHERE vis_ee.edge_id = ${edgeAlias}.id
         AND (${episodeOk('vis_ep')})
-    )`;
+    )
+    AND NOT ${legacyNode(`${edgeAlias}.source_id`)}
+    AND NOT ${legacyNode(`${edgeAlias}.target_id`)}`;
 
   const incidentToVisible = (nodeAlias: string): string => `
     EXISTS (
@@ -77,27 +92,13 @@ export function bindVisibility(
         AND ${edgeVisible('vis_n_e')}
     )`;
 
-  const isolatedNode = (nodeAlias: string): string => `
-    NOT EXISTS (
-      SELECT 1 FROM kg_edges isol_e
-      WHERE isol_e.source_id = ${nodeAlias}.id OR isol_e.target_id = ${nodeAlias}.id
-    )`;
-
   return {
     edgeVisible,
     memoryEpisodeVisible: memoryVisible,
-    nodeVisible: (nodeAlias: string): string =>
-      operator
-        ? `
+    nodeVisible: (nodeAlias: string): string => `
       (
         (${nodeAlias}.kind = 'agent' AND ${nodeAlias}.natural_key = ${did})
         OR ${incidentToVisible(nodeAlias)}
-        OR ${isolatedNode(nodeAlias)}
-      )`
-        : `
-      (
-        (${nodeAlias}.kind = 'agent' AND ${nodeAlias}.natural_key = ${did})
-        OR ${incidentToVisible(nodeAlias)}
-      )`,
+      ) AND NOT ${legacyNode(`${nodeAlias}.id`)}`,
   };
 }

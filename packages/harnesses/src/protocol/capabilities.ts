@@ -12,7 +12,7 @@ export type SandboxMode = 'read-only' | 'workspace-write' | 'full-access';
 export type HookGranularity = 'none' | 'bash-only' | 'all-tools';
 
 /** Memory backend types. */
-export type MemoryBackend = 'none' | 'sqlite' | 'crdt' | 'file';
+export type MemoryBackend = 'none' | 'sqlite' | 'crdt' | 'file' | 'knowledge-graph';
 
 /**
  * Full capability declaration for a protocol adapter.
