@@ -650,6 +650,12 @@ jobs:
           DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_test"
           POSTGRES_URL: "postgresql://test:test@localhost:5432/revealui_test"
 
+      - name: Verify read-only repeatable-read snapshots under a concurrent writer
+        run: pnpm --filter @revealui/db exec vitest run src/__tests__/client/repeatable-read.integration.test.ts
+        env:
+          SKIP_ENV_VALIDATION: "true"
+          TEST_POSTGRES_URL: "postgresql://test:test@localhost:5432/revealui_test"
+
   # ---------------------------------------------------------------------------
   # Phase 3a.5: Coverage gate (main only)
   # ---------------------------------------------------------------------------

@@ -4,10 +4,11 @@
  * Finds multiple documents with pagination, filtering, sorting, and relationship population.
  */
 
+import { z } from 'zod';
+import { safeParseRevealDocuments } from '../../database/safe-parse.js';
 import { afterRead } from '../../fields/hooks/afterRead/index.js';
 import { buildWhereClause } from '../../queries/queryBuilder.js';
 import type {
-  DatabaseResult,
   QueryableDatabaseAdapter,
   RevealCollectionConfig,
   RevealFindOptions,
@@ -16,9 +17,24 @@ import type {
   RevealWhere,
   SanitizedCollectionConfig,
 } from '../../types/index.js';
-import { deserializeJsonFields } from '../../utils/json-parsing.js';
+import { deserializeJsonFields, validateDocument } from '../../utils/json-parsing.js';
 import { publishedOnlyReadFilter } from './drafts.js';
 import { countDocumentsQuery, escapeIdentifier, listDocumentsQuery } from './sqlAdapter.js';
+
+// Public adapters must return a complete pagination envelope. Documents are
+// validated separately by the shared document boundary before any hooks run.
+const storageFindResultSchema = z.object({
+  docs: z.array(z.unknown()),
+  totalDocs: z.number().int().nonnegative(),
+  limit: z.number().int().nonnegative(),
+  totalPages: z.number().int().nonnegative(),
+  page: z.number().int().positive(),
+  pagingCounter: z.number().int().nonnegative(),
+  hasPrevPage: z.boolean(),
+  hasNextPage: z.boolean(),
+  prevPage: z.number().int().positive().nullable(),
+  nextPage: z.number().int().positive().nullable(),
+});
 
 /**
  * Evaluate a collection's access.read function.
@@ -116,8 +132,14 @@ export async function find(
       : { ...options, where: mergedWhere, overrideAccess: true };
 
   if (db?.collectionStorage?.find) {
-    const result = await db.collectionStorage.find(config, accessOptions);
-    if (result !== undefined) {
+    const adapterResult = await db.collectionStorage.find(config, accessOptions);
+    if (adapterResult !== undefined) {
+      const envelope = storageFindResultSchema.safeParse(adapterResult);
+      if (!envelope.success) throw new Error(`Invalid find result in ${config.slug}`);
+      const result = {
+        ...envelope.data,
+        docs: envelope.data.docs.map((doc) => validateDocument(doc, `${config.slug}.find`)),
+      };
       if (req && depth > 0) {
         const sanitizedConfig = {
           ...config,
@@ -249,7 +271,7 @@ export async function find(
       offsetParam,
     );
     const docsResult = await db.query(dataQuery, [...params, limit, offset]);
-    let docs = docsResult.rows.map((row: DatabaseResult['rows'][number]) => {
+    let docs = safeParseRevealDocuments(docsResult.rows).map((row) => {
       return deserializeJsonFields(row, tableName);
     });
 

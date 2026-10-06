@@ -21,7 +21,7 @@ describe('clearUserCart', () => {
     mockFindByID.mockResolvedValue(user);
     mockUpdate.mockResolvedValue({ ...user, cart: { items: [] } });
 
-    const doc = { orderedBy: 'user-1', items: [] } as unknown as Parameters<
+    const doc = { customerId: 'user-1', items: [] } as unknown as Parameters<
       typeof clearUserCart
     >[0]['doc'];
 
@@ -48,13 +48,12 @@ describe('clearUserCart', () => {
     expect(result).toEqual(doc);
   });
 
-  it('handles orderedBy as an object with toString()', async () => {
+  it('uses the normalized customerId string', async () => {
     const user = { id: 'user-2', cart: { items: [{ id: 'item-2' }] } };
     mockFindByID.mockResolvedValue(user);
     mockUpdate.mockResolvedValue({ ...user, cart: { items: [] } });
 
-    const orderedByObj = { toString: () => 'user-2' };
-    const doc = { orderedBy: orderedByObj, items: [] } as unknown as Parameters<
+    const doc = { customerId: 'user-2', items: [] } as unknown as Parameters<
       typeof clearUserCart
     >[0]['doc'];
 
@@ -74,7 +73,7 @@ describe('clearUserCart', () => {
   });
 
   it('does nothing on update operation', async () => {
-    const doc = { orderedBy: 'user-1', items: [] } as unknown as Parameters<
+    const doc = { customerId: 'user-1', items: [] } as unknown as Parameters<
       typeof clearUserCart
     >[0]['doc'];
 
@@ -92,24 +91,25 @@ describe('clearUserCart', () => {
     expect(result).toEqual(doc);
   });
 
-  it('does nothing when orderedBy is missing', async () => {
+  it('rejects a missing customerId before side effects', async () => {
     const doc = { items: [] } as unknown as Parameters<typeof clearUserCart>[0]['doc'];
 
-    const result = await clearUserCart({
-      doc,
-      req: createReq() as unknown as Parameters<typeof clearUserCart>[0]['req'],
-      operation: 'create',
-      previousDoc: undefined as unknown as Parameters<typeof clearUserCart>[0]['previousDoc'],
-      collection: undefined as unknown as Parameters<typeof clearUserCart>[0]['collection'],
-      context: {} as unknown as Parameters<typeof clearUserCart>[0]['context'],
-    });
+    await expect(
+      clearUserCart({
+        doc,
+        req: createReq() as unknown as Parameters<typeof clearUserCart>[0]['req'],
+        operation: 'create',
+        previousDoc: undefined as unknown as Parameters<typeof clearUserCart>[0]['previousDoc'],
+        collection: undefined as unknown as Parameters<typeof clearUserCart>[0]['collection'],
+        context: {} as unknown as Parameters<typeof clearUserCart>[0]['context'],
+      }),
+    ).rejects.toThrow();
 
     expect(mockFindByID).not.toHaveBeenCalled();
-    expect(result).toEqual(doc);
   });
 
   it('does nothing when revealui is not available on req', async () => {
-    const doc = { orderedBy: 'user-1', items: [] } as unknown as Parameters<
+    const doc = { customerId: 'user-1', items: [] } as unknown as Parameters<
       typeof clearUserCart
     >[0]['doc'];
 
@@ -129,7 +129,7 @@ describe('clearUserCart', () => {
   it('does not update if user is not found', async () => {
     mockFindByID.mockResolvedValue(null);
 
-    const doc = { orderedBy: 'user-999', items: [] } as unknown as Parameters<
+    const doc = { customerId: 'user-999', items: [] } as unknown as Parameters<
       typeof clearUserCart
     >[0]['doc'];
 

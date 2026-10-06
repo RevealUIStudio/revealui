@@ -382,6 +382,11 @@
       "import": "./dist/utils/deep-clone.js",
       "default": "./dist/utils/deep-clone.js"
     },
+    "./utils/stored-json-fields": {
+      "types": "./dist/utils/stored-json-fields.d.ts",
+      "import": "./dist/utils/stored-json-fields.js",
+      "default": "./dist/utils/stored-json-fields.js"
+    },
     "./utils/errors": {
       "types": "./dist/utils/errors.d.ts",
       "import": "./dist/utils/errors.js",

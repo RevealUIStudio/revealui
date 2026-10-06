@@ -22,8 +22,11 @@ describe('updateUserPurchases', () => {
     mockUpdate.mockResolvedValue(user);
 
     const doc = {
-      orderedBy: 'user-1',
-      items: [{ product: 'prod-1' }, { product: 'prod-2' }],
+      customerId: 'user-1',
+      items: [
+        { productId: 'prod-1', title: 'One', quantity: 1, priceInCents: 100 },
+        { productId: 'prod-2', title: 'Two', quantity: 1, priceInCents: 200 },
+      ],
     } as unknown as Parameters<typeof updateUserPurchases>[0]['doc'];
 
     const result = await updateUserPurchases({
@@ -51,8 +54,11 @@ describe('updateUserPurchases', () => {
     mockUpdate.mockResolvedValue(user);
 
     const doc = {
-      orderedBy: 'user-1',
-      items: [{ product: 'prod-1' }, { product: 'prod-2' }],
+      customerId: 'user-1',
+      items: [
+        { productId: 'prod-1', title: 'One', quantity: 1, priceInCents: 100 },
+        { productId: 'prod-2', title: 'Two', quantity: 1, priceInCents: 200 },
+      ],
     } as unknown as Parameters<typeof updateUserPurchases>[0]['doc'];
 
     await updateUserPurchases({
@@ -72,14 +78,17 @@ describe('updateUserPurchases', () => {
     expect(purchases).toContain('prod-3');
   });
 
-  it('handles product references as objects with id', async () => {
+  it('uses normalized product ID fields', async () => {
     const user = { id: 'user-1', purchases: [] };
     mockFindByID.mockResolvedValue(user);
     mockUpdate.mockResolvedValue(user);
 
     const doc = {
-      orderedBy: 'user-1',
-      items: [{ product: { id: 'prod-obj-1' } }, { product: 'prod-str-1' }],
+      customerId: 'user-1',
+      items: [
+        { productId: 'prod-obj-1', title: 'Object product', quantity: 1, priceInCents: 100 },
+        { productId: 'prod-str-1', title: 'String product', quantity: 1, priceInCents: 200 },
+      ],
     } as unknown as Parameters<typeof updateUserPurchases>[0]['doc'];
 
     await updateUserPurchases({
@@ -103,8 +112,8 @@ describe('updateUserPurchases', () => {
     mockUpdate.mockResolvedValue(user);
 
     const doc = {
-      orderedBy: 'user-1',
-      items: [{ product: 'prod-new' }],
+      customerId: 'user-1',
+      items: [{ productId: 'prod-new', title: 'New', quantity: 1, priceInCents: 100 }],
     } as unknown as Parameters<typeof updateUserPurchases>[0]['doc'];
 
     await updateUserPurchases({
@@ -128,8 +137,8 @@ describe('updateUserPurchases', () => {
     mockUpdate.mockResolvedValue(user);
 
     const doc = {
-      orderedBy: 'user-1',
-      items: [{ product: 'prod-1' }],
+      customerId: 'user-1',
+      items: [{ productId: 'prod-1', title: 'One', quantity: 1, priceInCents: 100 }],
     } as unknown as Parameters<typeof updateUserPurchases>[0]['doc'];
 
     await updateUserPurchases({
@@ -147,8 +156,8 @@ describe('updateUserPurchases', () => {
 
   it('does nothing when revealui is not on req', async () => {
     const doc = {
-      orderedBy: 'user-1',
-      items: [{ product: 'prod-1' }],
+      customerId: 'user-1',
+      items: [{ productId: 'prod-1', title: 'One', quantity: 1, priceInCents: 100 }],
     } as unknown as Parameters<typeof updateUserPurchases>[0]['doc'];
 
     const result = await updateUserPurchases({
@@ -164,9 +173,9 @@ describe('updateUserPurchases', () => {
     expect(result).toEqual(doc);
   });
 
-  it('does nothing when orderedBy is missing', async () => {
+  it('does nothing when customerId is missing', async () => {
     const doc = {
-      items: [{ product: 'prod-1' }],
+      items: [{ productId: 'prod-1', title: 'One', quantity: 1, priceInCents: 100 }],
     } as unknown as Parameters<typeof updateUserPurchases>[0]['doc'];
 
     const result = await updateUserPurchases({
@@ -182,31 +191,34 @@ describe('updateUserPurchases', () => {
     expect(result).toEqual(doc);
   });
 
-  it('does nothing when items is not an array', async () => {
+  it('rejects invalid order items before side effects', async () => {
     const doc = {
-      orderedBy: 'user-1',
+      customerId: 'user-1',
       items: 'not-an-array',
     } as unknown as Parameters<typeof updateUserPurchases>[0]['doc'];
 
-    const result = await updateUserPurchases({
-      doc,
-      req: createReq() as unknown as Parameters<typeof updateUserPurchases>[0]['req'],
-      operation: 'create',
-      previousDoc: undefined as unknown as Parameters<typeof updateUserPurchases>[0]['previousDoc'],
-      collection: undefined as unknown as Parameters<typeof updateUserPurchases>[0]['collection'],
-      context: {} as unknown as Parameters<typeof updateUserPurchases>[0]['context'],
-    });
+    await expect(
+      updateUserPurchases({
+        doc,
+        req: createReq() as unknown as Parameters<typeof updateUserPurchases>[0]['req'],
+        operation: 'create',
+        previousDoc: undefined as unknown as Parameters<
+          typeof updateUserPurchases
+        >[0]['previousDoc'],
+        collection: undefined as unknown as Parameters<typeof updateUserPurchases>[0]['collection'],
+        context: {} as unknown as Parameters<typeof updateUserPurchases>[0]['context'],
+      }),
+    ).rejects.toThrow();
 
     expect(mockFindByID).not.toHaveBeenCalled();
-    expect(result).toEqual(doc);
   });
 
   it('does not update if user is not found', async () => {
     mockFindByID.mockResolvedValue(null);
 
     const doc = {
-      orderedBy: 'user-999',
-      items: [{ product: 'prod-1' }],
+      customerId: 'user-999',
+      items: [{ productId: 'prod-1', title: 'One', quantity: 1, priceInCents: 100 }],
     } as unknown as Parameters<typeof updateUserPurchases>[0]['doc'];
 
     await updateUserPurchases({
@@ -222,15 +234,14 @@ describe('updateUserPurchases', () => {
     expect(mockUpdate).not.toHaveBeenCalled();
   });
 
-  it('handles orderedBy as an object with toLocaleString', async () => {
+  it('uses the normalized customerId string', async () => {
     const user = { id: 'user-1', purchases: [] };
     mockFindByID.mockResolvedValue(user);
     mockUpdate.mockResolvedValue(user);
 
-    const orderedByObj = { toLocaleString: () => 'user-obj-1' };
     const doc = {
-      orderedBy: orderedByObj,
-      items: [{ product: 'prod-1' }],
+      customerId: 'user-obj-1',
+      items: [{ productId: 'prod-1', title: 'One', quantity: 1, priceInCents: 100 }],
     } as unknown as Parameters<typeof updateUserPurchases>[0]['doc'];
 
     await updateUserPurchases({

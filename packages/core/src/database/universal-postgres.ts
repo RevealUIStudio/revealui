@@ -15,7 +15,7 @@
 import type { Field } from '@revealui/contracts/admin';
 import { logger } from '../observability/logger.js';
 import type { DatabaseAdapter, DatabaseResult, QueryableDatabaseAdapter } from '../types/index.js';
-import { safeParseRevealDocuments } from './safe-parse.js';
+import { parseDatabaseRows } from './safe-parse.js';
 import { getSSLConfig } from './ssl-config.js';
 
 export interface UniversalPostgresAdapterConfig {
@@ -178,7 +178,7 @@ export function universalPostgresAdapter(
           query: async (queryString: string, values: unknown[] = []) => {
             const result = await client.query(queryString, values);
             return {
-              rows: safeParseRevealDocuments(result.rows),
+              rows: parseDatabaseRows(result.rows),
               rowCount: result.rowCount || 0,
             };
           },
@@ -215,7 +215,7 @@ export function universalPostgresAdapter(
         try {
           const result = await client.query(queryString, values);
           return {
-            rows: safeParseRevealDocuments(result.rows),
+            rows: parseDatabaseRows(result.rows),
             rowCount: result.rowCount || 0,
           };
         } finally {
@@ -271,7 +271,7 @@ export function universalPostgresAdapter(
             try {
               const result = await client.query(queryString, values);
               return {
-                rows: safeParseRevealDocuments(result.rows),
+                rows: parseDatabaseRows(result.rows),
                 rowCount: result.rowCount || 0,
               };
             } finally {
@@ -311,7 +311,7 @@ export function universalPostgresAdapter(
             try {
               const result = await client.query(queryString, values);
               return {
-                rows: safeParseRevealDocuments(result.rows),
+                rows: parseDatabaseRows(result.rows),
                 rowCount: result.rowCount || 0,
               };
             } finally {
@@ -333,7 +333,7 @@ export function universalPostgresAdapter(
               try {
                 const result = await client.query(queryString, values);
                 return {
-                  rows: safeParseRevealDocuments(result.rows),
+                  rows: parseDatabaseRows(result.rows),
                   rowCount: result.rowCount || 0,
                 };
               } finally {
@@ -365,7 +365,7 @@ export function universalPostgresAdapter(
         queryFn = async (queryString: string, values: unknown[] = []) => {
           const result = await db.query(queryString, values);
           return {
-            rows: safeParseRevealDocuments(result.rows),
+            rows: parseDatabaseRows(result.rows),
             rowCount: (result as { rowCount?: number }).rowCount || 0,
           };
         };
@@ -378,7 +378,7 @@ export function universalPostgresAdapter(
               query: async (queryString: string, values: unknown[] = []) => {
                 const result = await pgliteTx.query(queryString, values);
                 return {
-                  rows: safeParseRevealDocuments(result.rows),
+                  rows: parseDatabaseRows(result.rows),
                   rowCount: (result as { rowCount?: number }).rowCount || 0,
                 };
               },
@@ -405,7 +405,7 @@ export function universalPostgresAdapter(
             try {
               const result = await client.query(queryString, values);
               return {
-                rows: safeParseRevealDocuments(result.rows),
+                rows: parseDatabaseRows(result.rows),
                 rowCount: result.rowCount || 0,
               };
             } finally {

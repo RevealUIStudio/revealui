@@ -134,19 +134,13 @@ describe('InMemoryGDPRStorage', () => {
       expect(await storage.getDeletionRequest('nope')).toBeUndefined();
     });
 
-    it('overwrites an existing request with the same ID', async () => {
+    it('rejects duplicate request creation without changing stored data', async () => {
       const pending = makeDeletionRequest({ id: 'del-1', status: 'pending' });
-      const completed = {
-        ...pending,
-        status: 'completed' as const,
-        processedAt: new Date().toISOString(),
-      };
-
       await storage.setDeletionRequest(pending);
-      await storage.setDeletionRequest(completed);
-
-      const retrieved = await storage.getDeletionRequest('del-1');
-      expect(retrieved?.status).toBe('completed');
+      await expect(
+        storage.setDeletionRequest({ ...pending, userId: 'other-user' }),
+      ).rejects.toThrow('already exists');
+      expect(await storage.getDeletionRequest('del-1')).toEqual(pending);
     });
   });
 

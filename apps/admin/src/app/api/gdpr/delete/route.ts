@@ -13,8 +13,11 @@ import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 
 export const dynamic = 'force-dynamic';
 
-/** Collections that hold data linked to a user  -  deleted in cascade order. */
-const CASCADED_COLLECTIONS = ['conversations', 'orders', 'subscriptions', 'events'] as const;
+/** Collections with account-owned records, deleted in cascade order.
+ * Events are global catalog content with no user ownership field; account
+ * deletion must never query or remove them through a per-user cascade.
+ */
+const CASCADED_COLLECTIONS = ['conversations', 'orders', 'subscriptions'] as const;
 
 /**
  * Delete all documents in a collection belonging to a user.

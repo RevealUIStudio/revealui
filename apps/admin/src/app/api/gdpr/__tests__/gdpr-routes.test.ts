@@ -10,6 +10,12 @@ const mockGetSession = vi.fn();
 const mockCheckSessionMfa = vi.fn((..._args: unknown[]) => ({ allowed: true }));
 const mockGetRevealUIInstance = vi.fn();
 const mockWriteGDPRAuditEntry = vi.fn();
+const mockWithReadOnlyRepeatableRead = vi.fn((callback: (executor: object) => Promise<unknown>) =>
+  callback({}),
+);
+const mockWithCollectionReadExecutor = vi.fn(
+  (_executor: object, callback: () => Promise<unknown>) => callback(),
+);
 
 vi.mock('@revealui/auth/server', () => ({
   getSession: (...args: unknown[]) => mockGetSession(...args),
@@ -46,6 +52,16 @@ vi.mock('@/lib/utils/gdpr-audit', () => ({
   writeGDPRAuditEntry: (...args: unknown[]) => mockWriteGDPRAuditEntry(...args),
 }));
 
+vi.mock('@revealui/db/client', () => ({
+  withReadOnlyRepeatableRead: (...args: Parameters<typeof mockWithReadOnlyRepeatableRead>) =>
+    mockWithReadOnlyRepeatableRead(...args),
+}));
+
+vi.mock('@/lib/db/collectionReadExecutor', () => ({
+  withCollectionReadExecutor: (...args: Parameters<typeof mockWithCollectionReadExecutor>) =>
+    mockWithCollectionReadExecutor(...args),
+}));
+
 // Mock @revealui/db so getClient() doesn't attempt a real database connection.
 // The GDPR delete route calls db.delete(appLogs/errorEvents) (blocking SQL
 // cascade) and db.select().from(users) (Stripe customer ID lookup) — both
@@ -70,6 +86,9 @@ vi.mock('next/server', () => {
       this.body = body;
       this.status = init?.status ?? 200;
       this.headers = new Map(Object.entries(init?.headers ?? {}));
+    }
+    async json() {
+      return this.body;
     }
     static json(data: unknown, init?: { status?: number; headers?: Record<string, string> }) {
       return new MockNextResponse(data, init);
@@ -136,6 +155,31 @@ describe('POST /api/gdpr/delete', () => {
     );
   });
 
+  it('preserves global events during account deletion', async () => {
+    let globalEventDeleted = false;
+    const mockFind = vi.fn(async ({ collection }: { collection: string }) => ({
+      docs: collection === 'events' && !globalEventDeleted ? [{ id: 'global-event' }] : [],
+    }));
+    const mockDelete = vi.fn(async ({ collection }: { collection: string }) => {
+      if (collection === 'events') globalEventDeleted = true;
+      return {};
+    });
+    mockGetSession.mockResolvedValue({ user: { id: 'user-1', email: 'test@example.com' } });
+    mockGetRevealUIInstance.mockResolvedValue({ find: mockFind, delete: mockDelete });
+    mockWriteGDPRAuditEntry.mockResolvedValue(undefined);
+
+    const POST = await loadRoute();
+    const response = await POST(makeRequest());
+    expect(response.status).toBe(200);
+    expect(mockFind.mock.calls.map(([options]) => options.collection)).toEqual([
+      'conversations',
+      'orders',
+      'subscriptions',
+    ]);
+    expect(globalEventDeleted).toBe(false);
+    expect(mockDelete).toHaveBeenCalledExactlyOnceWith({ collection: 'users', id: 'user-1' });
+  });
+
   it('deletes documents in batches when user has many records', async () => {
     const mockFind = vi
       .fn()
@@ -193,6 +237,8 @@ describe('POST /api/gdpr/delete', () => {
 describe('POST /api/gdpr/export', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockWithReadOnlyRepeatableRead.mockImplementation((callback) => callback({}));
+    mockWithCollectionReadExecutor.mockImplementation((_executor, callback) => callback());
   });
 
   async function loadRoute() {
@@ -220,7 +266,12 @@ describe('POST /api/gdpr/export', () => {
       },
     });
 
-    const mockFind = vi.fn().mockResolvedValue({ docs: [{ id: 'doc-1' }] });
+    const mockFind = vi.fn().mockImplementation(({ page }: { page: number }) => ({
+      docs: page === 1 ? [{ id: 'doc-1' }] : [],
+      hasNextPage: false,
+      page,
+      totalDocs: page === 1 ? 1 : 0,
+    }));
     mockGetRevealUIInstance.mockResolvedValue({ find: mockFind });
     mockWriteGDPRAuditEntry.mockResolvedValue(undefined);
 
@@ -228,6 +279,8 @@ describe('POST /api/gdpr/export', () => {
     const res = await POST(makeRequest());
 
     expect((res as { status: number }).status).toBe(200);
+    expect(mockWithReadOnlyRepeatableRead).toHaveBeenCalledOnce();
+    expect(mockWithCollectionReadExecutor).toHaveBeenCalledOnce();
     const body = (res as unknown as { body: Record<string, unknown> }).body;
     expect(body).toEqual(
       expect.objectContaining({
@@ -240,6 +293,26 @@ describe('POST /api/gdpr/export', () => {
         format: 'json',
       }),
     );
+    expect(mockFind.mock.calls.map(([options]) => options)).toEqual([
+      {
+        collection: 'conversations',
+        where: { userId: { equals: 'user-1' } },
+        limit: 100,
+        page: 1,
+      },
+      {
+        collection: 'orders',
+        where: { customerId: { equals: 'user-1' } },
+        limit: 100,
+        page: 1,
+      },
+      {
+        collection: 'subscriptions',
+        where: { userId: { equals: 'user-1' } },
+        limit: 100,
+        page: 1,
+      },
+    ]);
 
     // Should set Content-Disposition header for download
     expect(
@@ -253,7 +326,7 @@ describe('POST /api/gdpr/export', () => {
     );
   });
 
-  it('handles partial collection failures gracefully', async () => {
+  it('fails closed when any required collection read fails', async () => {
     mockGetSession.mockResolvedValue({
       user: {
         id: 'user-1',
@@ -266,19 +339,72 @@ describe('POST /api/gdpr/export', () => {
 
     const mockFind = vi
       .fn()
-      .mockResolvedValueOnce({ docs: [{ id: 'conv-1' }] }) // conversations OK
-      .mockRejectedValueOnce(new Error('orders table down')) // orders fail
-      .mockResolvedValueOnce({ docs: [] }); // subscriptions OK
+      .mockResolvedValueOnce({
+        docs: [{ id: 'conv-1' }],
+        hasNextPage: false,
+        page: 1,
+        totalDocs: 1,
+      })
+      .mockRejectedValueOnce(new Error('orders table down'));
     mockGetRevealUIInstance.mockResolvedValue({ find: mockFind });
     mockWriteGDPRAuditEntry.mockResolvedValue(undefined);
 
     const POST = await loadRoute();
     const res = await POST(makeRequest());
 
+    expect((res as { status: number }).status).toBe(500);
+    expect(await res.json()).toMatchObject({
+      error: 'orders table down',
+    });
+    expect(mockWriteGDPRAuditEntry).not.toHaveBeenCalled();
+  });
+
+  it('fails closed before collection reads when snapshot transactions are unavailable', async () => {
+    mockGetSession.mockResolvedValue({
+      user: { id: 'user-1', email: 'test@example.com', role: 'user', status: 'active' },
+    });
+    const mockFind = vi.fn();
+    mockGetRevealUIInstance.mockResolvedValue({ find: mockFind });
+    mockWithReadOnlyRepeatableRead.mockRejectedValueOnce(
+      new Error('Read-only repeatable-read transactions require the PostgreSQL client pool'),
+    );
+
+    const POST = await loadRoute();
+    const response = await POST(makeRequest());
+
+    expect((response as { status: number }).status).toBe(500);
+    expect(mockFind).not.toHaveBeenCalled();
+    expect(mockWriteGDPRAuditEntry).not.toHaveBeenCalled();
+  });
+
+  it('fetches every page before returning a complete export', async () => {
+    mockGetSession.mockResolvedValue({
+      user: { id: 'user-1', email: 'test@example.com', role: 'user', status: 'active' },
+    });
+    const mockFind = vi
+      .fn()
+      .mockImplementation(({ collection, page }: { collection: string; page: number }) => {
+        if (collection === 'conversations' && page === 1) {
+          return { docs: [{ id: 'conv-1' }], hasNextPage: true, page: 1, totalDocs: 2 };
+        }
+        if (collection === 'conversations') {
+          return { docs: [{ id: 'conv-2' }], hasNextPage: false, page: 2, totalDocs: 2 };
+        }
+        return { docs: [], hasNextPage: false, page: 1, totalDocs: 0 };
+      });
+    mockGetRevealUIInstance.mockResolvedValue({ find: mockFind });
+    mockWriteGDPRAuditEntry.mockResolvedValue(undefined);
+
+    const POST = await loadRoute();
+    const res = await POST(makeRequest());
+    const body = (res as unknown as { body: { data: { conversations: Array<{ id: string }> } } })
+      .body;
+
     expect((res as { status: number }).status).toBe(200);
-    const body = (res as unknown as { body: Record<string, unknown> }).body;
-    const data = (body as { data: { conversations: unknown[]; orders: unknown[] } }).data;
-    expect(data.conversations).toHaveLength(1);
-    expect(data.orders).toEqual([]); // Graceful fallback
+    expect(body.data.conversations.map((conversation) => conversation.id)).toEqual([
+      'conv-1',
+      'conv-2',
+    ]);
+    expect(mockFind).toHaveBeenCalledTimes(4);
   });
 });

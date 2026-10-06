@@ -2,14 +2,9 @@
  * Worker-side claim + state transition primitives for the durable work
  * queue (CR8-P2-01 phase A).
  *
- * Primary path: `SELECT … FOR UPDATE SKIP LOCKED` via a pg Pool (Supabase
- * or localhost). Multiple concurrent worker invocations claim disjoint
+ * Primary path: `SELECT … FOR UPDATE SKIP LOCKED` via the shared pg Pool.
+ * Multiple concurrent worker invocations claim disjoint
  * rows without blocking each other.
- *
- * Fallback path: advisory-lock + UPDATE for the Neon HTTP driver, which
- * does not support row-level locks across stateless HTTP calls. Mirrors
- * the pattern used in apps/server/src/lib/seat-count-guard.ts and
- * ensureStripeCustomer. Lower throughput but correct.
  *
  * @see packages/db/src/jobs/enqueue.ts — producer side
  * @see packages/db/src/jobs/handlers.ts — handler registry
@@ -52,8 +47,7 @@ export interface ClaimOptions {
   /** Visibility timeout in milliseconds. Default: 60_000. */
   visibilityTimeoutMs?: number;
   /**
-   * Override the Drizzle client used for the claim (advisory-lock fallback
-   * path only). Primarily for tests that drive PGlite directly.
+   * Inject a Drizzle client for isolated tests that drive PGlite directly.
    */
   db?: Database;
 }
@@ -75,21 +69,16 @@ export async function claimNext(options: ClaimOptions = {}): Promise<Job | null>
   const workerId = options.workerId ?? randomUUID();
   const visibilityTimeoutMs = options.visibilityTimeoutMs ?? DEFAULT_VISIBILITY_TIMEOUT_MS;
 
-  // If the caller injected a db (tests with PGlite), skip the pool path and
-  // go straight to the Drizzle-over-HTTP-style advisory-lock fallback.
+  // Isolated tests can exercise the claim operation against their PGlite DB.
   if (options.db) {
     return claimWithAdvisoryLock(options.db, workerId, visibilityTimeoutMs);
   }
 
-  // Primary path: SKIP LOCKED via pg Pool.
   const pool = getRestPool();
-  if (pool) {
-    return claimWithSkipLocked(pool, workerId, visibilityTimeoutMs);
+  if (!pool) {
+    throw new Error('Job claiming requires the configured PostgreSQL connection pool');
   }
-
-  // Fallback path: advisory lock + UPDATE for Neon HTTP driver.
-  const db = getClient();
-  return claimWithAdvisoryLock(db, workerId, visibilityTimeoutMs);
+  return claimWithSkipLocked(pool, workerId, visibilityTimeoutMs);
 }
 
 /**
@@ -125,19 +114,15 @@ async function claimWithSkipLocked(
 }
 
 /**
- * Fallback claim path: advisory lock + UPDATE. Serializes claims across
- * workers (one-at-a-time) but correct under Neon HTTP driver semantics.
+ * Claim path for injected test executors that do not expose a pg.Pool.
  */
 async function claimWithAdvisoryLock(
   db: Database,
   workerId: string,
   visibilityTimeoutMs: number,
 ): Promise<Job | null> {
-  // Acquire a transactional advisory lock scoped to the claim operation.
-  // The lock is released at the end of the outer implicit transaction,
-  // which for Neon HTTP is the single statement — so we serialize via a
-  // single UPDATE that both locks and claims. The hash input is a constant
-  // so all workers queue on the same lock.
+  // Keep the injected test executor on one statement so tests do not need a
+  // PostgreSQL connection pool; production always uses SELECT ... SKIP LOCKED.
   const visibility = Math.round(visibilityTimeoutMs);
   const rows = await db.execute<JobRow>(sql`
     UPDATE jobs SET
@@ -156,8 +141,6 @@ async function claimWithAdvisoryLock(
     )
     RETURNING *`);
 
-  // Neon HTTP returns { rows }, node-postgres returns { rows } too — both
-  // accessible via .rows; Drizzle's .execute types it as QueryResult.
   const row = extractFirstRow(rows);
   return row ? rowToJob(row) : null;
 }

@@ -230,7 +230,7 @@ function captureSweepException(
     scope.setTag('component', 'audit-anchor-sweep');
     scope.setTag('job', 'runAuditAnchorSweep');
     scope.setTag('failure_class', failureClass);
-    scope.setTag('db_driver', 'neon-http');
+    scope.setTag('db_driver', 'postgres-pool');
     scope.setExtra('attempts', attempts);
     Sentry.captureException(error);
   });

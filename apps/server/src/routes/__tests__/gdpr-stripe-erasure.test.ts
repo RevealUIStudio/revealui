@@ -109,6 +109,10 @@ vi.mock('../../lib/drizzle-gdpr-storage.js', () => ({
   DrizzleBreachStorage: class {},
 }));
 
+vi.mock('../../lib/cron-alerts.js', () => ({
+  sendCronFailureAlert: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock('../../lib/services-loader.js', () => ({
   getServices: mockGetServices,
 }));
@@ -241,11 +245,11 @@ describe('I-2 — GDPR Article 17: stripe.customers.del called on erasure', () =
       expect(mockDeleteAllUserSessions).toHaveBeenCalledWith('user-1');
     });
 
-    it('still returns 201 on Stripe failure (local erasure completed)', async () => {
+    it('returns failure when required Stripe erasure fails', async () => {
       mockCustomersDel.mockRejectedValue(new Error('Stripe error'));
 
       const res = await deletionPost();
-      expect(res.status).toBe(201);
+      expect(res.status).toBe(500);
     });
 
     it('logs an error with userId and stripeCustomerId when Stripe fails', async () => {
@@ -272,6 +276,12 @@ describe('I-2 — GDPR Article 17: stripe.customers.del called on erasure', () =
         'user-1',
         'failed',
       );
+    });
+
+    it('returns failure when required Stripe service is unavailable', async () => {
+      mockGetServices.mockResolvedValue(null);
+      const response = await deletionPost();
+      expect(response.status).toBe(500);
     });
 
     it('does not call customers.del when services are unavailable', async () => {

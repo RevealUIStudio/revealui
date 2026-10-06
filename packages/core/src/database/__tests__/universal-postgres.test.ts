@@ -8,6 +8,8 @@
 
 import type { Field } from '@revealui/contracts/admin';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { find } from '../../collections/operations/find.js';
+import { findByID } from '../../collections/operations/findById.js';
 
 // --- Mock pg ---
 
@@ -474,24 +476,21 @@ describe('universalPostgresAdapter', () => {
       expect(result.rowCount).toBe(0);
     });
 
-    it('should filter out rows without id via safeParseRevealDocuments', async () => {
+    it('should preserve projected rows without id', async () => {
       const adapter = universalPostgresAdapter({
         connectionString: 'postgresql://user:pass@localhost/testdb',
       });
 
-      // Mix valid and invalid rows
       const rows = [
         { id: '1', title: 'valid' },
-        { title: 'missing-id' }, // no id
+        { title: 'projected' },
         { id: 2, title: 'numeric-id' },
-        null, // null row
       ];
-      mockClient.query.mockResolvedValue({ rows, rowCount: 4 });
+      mockClient.query.mockResolvedValue({ rows, rowCount: 3 });
 
       const result = await adapter.query('SELECT * FROM posts', []);
 
-      // safeParseRevealDocuments filters out rows without id and null rows
-      expect(result.rows).toHaveLength(2);
+      expect(result.rows).toEqual(rows);
     });
   });
 
@@ -499,7 +498,62 @@ describe('universalPostgresAdapter', () => {
   // Error handling
   // ==========================================================================
 
+  describe.each([
+    'postgresql://user:pass@localhost/testdb',
+    'postgresql://user:pass@example.neon.tech/testdb',
+    'postgresql://user:pass@example.supabase.co:5432/testdb',
+    'postgresql://user:pass@example.supabase.co:6543/testdb',
+  ])('raw row contract: %s', (connectionString) => {
+    it('preserves aggregate values through query and transaction', async () => {
+      const adapter = universalPostgresAdapter({ connectionString });
+      const rows = [{ total: '2' }];
+      mockClient.query.mockResolvedValue({ rows, rowCount: 1 });
+
+      expect(await adapter.query('SELECT COUNT(*) AS total FROM posts')).toEqual({
+        rows,
+        rowCount: 1,
+      });
+      if (!adapter.transaction) throw new Error('Universal adapter must support transactions');
+      const result = await adapter.transaction((tx) =>
+        tx.query('SELECT COUNT(*) AS total FROM posts'),
+      );
+      expect(result.rows).toEqual(rows);
+    });
+
+    it('rejects malformed driver rows and rolls the transaction back', async () => {
+      const adapter = universalPostgresAdapter({ connectionString });
+      mockClient.query.mockResolvedValue({ rows: [{ total: '2' }, null], rowCount: 2 });
+
+      await expect(adapter.query('SELECT COUNT(*) AS total FROM posts')).rejects.toThrow();
+      if (!adapter.transaction) throw new Error('Universal adapter must support transactions');
+      await expect(
+        adapter.transaction((tx) => tx.query('SELECT COUNT(*) AS total FROM posts')),
+      ).rejects.toThrow();
+      expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
+      expect(mockClient.query).not.toHaveBeenCalledWith('COMMIT');
+      expect(mockClient.release).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe('error handling', () => {
+    it.each([{ title: 'missing identity' }, { id: false }, { id: null }, { id: {} }])(
+      'filters malformed document IDs after adapting driver rows: %j',
+      async (row) => {
+        const adapter = universalPostgresAdapter({
+          connectionString: 'postgresql://user:pass@localhost/testdb',
+        });
+        const config = { slug: 'posts', fields: [] };
+        mockClient.query.mockResolvedValueOnce({ rows: [{ total: '1' }], rowCount: 1 });
+        mockClient.query.mockResolvedValueOnce({ rows: [row], rowCount: 1 });
+        const result = await find(config, adapter, {});
+        expect(result.totalDocs).toBe(1);
+        expect(result.docs).toEqual([]);
+
+        mockClient.query.mockResolvedValueOnce({ rows: [row], rowCount: 1 });
+        expect(await findByID(config, adapter, { id: 'expected-id' })).toBeNull();
+      },
+    );
+
     it('should propagate connection errors from pool.connect()', async () => {
       const adapter = universalPostgresAdapter({
         connectionString: 'postgresql://user:pass@localhost/testdb',

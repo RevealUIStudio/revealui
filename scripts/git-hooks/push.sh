@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Maintained coordinated push. The pre-push hook remains the validation owner.
+# Maintained coordinated push. Validate before opening the remote transport;
+# the pre-push hook verifies and consumes the exact-HEAD receipt.
 # Usage: pnpm push [target-branch [remote]]
 # Dirty work is rejected, never copied, reverted, deleted, or overwritten.
 set -euo pipefail
@@ -36,5 +37,38 @@ if [ -n "$SOURCE_STATUS" ]; then
   exit 1
 fi
 
-# Push the checkout validated by the hook, rather than a same-named local ref.
+ROOT=$(git rev-parse --show-toplevel)
+GIT_DIR=$(git rev-parse --git-dir)
+if [ ! -e "$ROOT/node_modules" ]; then
+  echo "ERROR: node_modules missing — cannot run the required push gate." >&2
+  exit 1
+fi
+
+# Git opens its SSH/HTTPS transport before invoking pre-push. Run the long
+# quality gate first so an idle remote connection cannot expire while it runs.
+VALIDATED_SHA=$(git rev-parse HEAD)
+case "$TARGET" in
+  main|test)
+    pnpm gate --no-build --no-test
+    ;;
+  *)
+    pnpm gate --phase=1 --changed
+    ;;
+esac
+
+AFTER_SHA=$(git rev-parse HEAD)
+AFTER_STATUS=$(git status --porcelain --untracked-files=all)
+if [ "$VALIDATED_SHA" != "$AFTER_SHA" ] || [ -n "$AFTER_STATUS" ]; then
+  echo "ERROR: source changed during validation; push rejected and work preserved." >&2
+  exit 1
+fi
+
+RECEIPT="$GIT_DIR/prepush-validated-receipt"
+RECEIPT_TEMP="$RECEIPT.$$"
+trap 'rm -f "$RECEIPT" "$RECEIPT_TEMP"' EXIT
+printf '%s\n%s\n' "$VALIDATED_SHA" "refs/heads/$TARGET" > "$RECEIPT_TEMP"
+mv "$RECEIPT_TEMP" "$RECEIPT"
+
+# Push the exact checkout that passed the gate. The hook checks the receipt,
+# rechecks clean HEAD/worktree state and retains admission locking.
 git push -- "$REMOTE" "HEAD:refs/heads/$TARGET"

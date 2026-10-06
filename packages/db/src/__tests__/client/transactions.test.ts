@@ -2,9 +2,8 @@
  * Transaction Handling Tests
  *
  * Tests for the withTransaction helper in packages/db/src/client/index.ts.
- * Since the Neon HTTP driver does not support transactions, these tests verify:
- * - Error when using Neon HTTP driver
- * - Successful delegation to Drizzle's transaction API for pg-based clients
+ * These tests verify:
+ * - Neon and self-hosted PostgreSQL URLs use the interactive pg transaction API
  * - Rollback behavior on error
  */
 
@@ -28,10 +27,6 @@ vi.mock('pg', () => {
   return { Pool: MockPool };
 });
 
-vi.mock('@neondatabase/serverless', () => ({
-  neon: vi.fn(() => vi.fn()),
-}));
-
 vi.mock('@revealui/config', () => ({
   default: {
     database: { url: undefined },
@@ -40,17 +35,6 @@ vi.mock('@revealui/config', () => ({
 
 vi.mock('@revealui/utils/database', () => ({
   getSSLConfig: vi.fn(() => false),
-}));
-
-vi.mock('drizzle-orm/neon-http', () => ({
-  drizzle: vi.fn(() => ({
-    query: {},
-    select: vi.fn(),
-    insert: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-    // Neon HTTP client does NOT have a transaction method
-  })),
 }));
 
 vi.mock('drizzle-orm/node-postgres', () => ({
@@ -84,16 +68,16 @@ describe('withTransaction', () => {
     resetClient();
   });
 
-  it('throws when used with a Neon HTTP client (no transaction support)', async () => {
+  it('uses the interactive PostgreSQL transaction API for Neon URLs', async () => {
+    mockTransaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) =>
+      fn({ insert: vi.fn(), update: vi.fn() }),
+    );
     const neonDb = createClient({
       connectionString: 'postgresql://user:pass@ep-cool.neon.tech/mydb',
     });
 
-    await expect(
-      withTransaction(neonDb, async () => {
-        return 'result';
-      }),
-    ).rejects.toThrow('Transaction not supported');
+    await expect(withTransaction(neonDb, async () => 'result')).resolves.toBe('result');
+    expect(mockTransaction).toHaveBeenCalledOnce();
   });
 
   it('delegates to Drizzle transaction API for pg-based clients', async () => {
@@ -195,18 +179,11 @@ describe('withTransaction', () => {
     expect(result).toEqual({ success: true });
   });
 
-  it('error message explains Neon HTTP limitation', async () => {
+  it('does not treat Neon as a stateless HTTP client', async () => {
     const neonDb = createClient({
       connectionString: 'postgresql://user:pass@ep-cool.neon.tech/mydb',
     });
-
-    try {
-      await withTransaction(neonDb, async () => 'x');
-      expect.fail('Should have thrown');
-    } catch (error) {
-      const message = (error as Error).message;
-      expect(message).toContain('Neon HTTP driver');
-      expect(message).toContain('stateless');
-    }
+    mockTransaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => fn({}));
+    await expect(withTransaction(neonDb, async () => 'x')).resolves.toBe('x');
   });
 });

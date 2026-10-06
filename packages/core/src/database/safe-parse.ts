@@ -1,14 +1,32 @@
 /**
  * Safe row parsing for database results.
  *
- * Database drivers return untyped rows  -  this module provides a type guard
- * that filters out malformed rows (missing `id`) before they reach the application.
- * All RevealUI tables have `id` as a non-nullable primary key, so filtering these
- * out prevents crashes from unexpected driver behavior or schema migrations.
+ * Validate generic SQL result shapes at the driver boundary. Document-specific
+ * parsing is separate because aggregates and projections need not select an ID.
  */
 
+import { z } from 'zod';
 import { logger } from '../observability/logger.js';
 import type { RevealDocument } from '../types/index.js';
+
+/**
+ * Validate the raw SQL row boundary without imposing a document projection.
+ * Column values are unknown because PostgreSQL expressions/custom type parsers
+ * can return arbitrary values; query consumers own their semantic validation.
+ * Reject malformed results atomically instead of silently dropping rows.
+ */
+const databaseRowSchema = z
+  .unknown()
+  .refine(
+    (row) => row === null || typeof row !== 'object' || !Object.hasOwn(row, '__proto__'),
+    'Database row contains a reserved prototype key',
+  )
+  .pipe(z.record(z.string(), z.unknown()));
+const databaseRowsSchema = z.array(databaseRowSchema);
+
+export function parseDatabaseRows(rows: unknown): Record<string, unknown>[] {
+  return databaseRowsSchema.parse(rows);
+}
 
 /**
  * Validate that a raw database row is a valid RevealDocument.

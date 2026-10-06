@@ -432,7 +432,7 @@ describe('DrizzleGDPRStorage', () => {
   // -------------------------------------------------------------------------
 
   describe('setDeletionRequest', () => {
-    it('inserts a deletion request with onConflictDoUpdate', async () => {
+    it('inserts a deletion request without allowing overwrite', async () => {
       setupInsertChain();
 
       await storage.setDeletionRequest({
@@ -446,7 +446,7 @@ describe('DrizzleGDPRStorage', () => {
 
       expect(mockDb.insert).toHaveBeenCalledOnce();
       expect(mockInsertValues).toHaveBeenCalledOnce();
-      expect(mockOnConflictDoUpdate).toHaveBeenCalledOnce();
+      expect(mockOnConflictDoUpdate).not.toHaveBeenCalled();
 
       const insertCall = mockInsertValues.mock.calls[0][0];
       expect(insertCall.id).toBe('del-1');
@@ -472,25 +472,17 @@ describe('DrizzleGDPRStorage', () => {
       expect(insertCall.requestedAt.toISOString()).toBe('2026-03-01T08:00:00.000Z');
     });
 
-    it('handles completed request with processedAt', async () => {
-      setupInsertChain();
-
-      await storage.setDeletionRequest({
-        id: 'del-3',
-        userId: 'user-1',
-        requestedAt: '2026-01-15T10:00:00.000Z',
-        processedAt: '2026-01-16T10:00:00.000Z',
-        status: 'completed',
-        dataCategories: ['personal'],
-        deletedData: ['profile', 'activities'],
-        retainedData: ['invoices'],
-      });
-
-      const insertCall = mockInsertValues.mock.calls[0][0];
-      expect(insertCall.processedAt).toBeInstanceOf(Date);
-      expect(insertCall.status).toBe('completed');
-      expect(insertCall.deletedData).toEqual(['profile', 'activities']);
-      expect(insertCall.retainedData).toEqual(['invoices']);
+    it('rejects creation with terminal status or results', async () => {
+      await expect(
+        storage.setDeletionRequest({
+          id: 'del-3',
+          userId: 'user-1',
+          requestedAt: '2026-01-15T10:00:00.000Z',
+          status: 'completed',
+          dataCategories: ['personal'],
+        }),
+      ).rejects.toThrow('created pending');
+      expect(mockDb.insert).not.toHaveBeenCalled();
     });
 
     it('stores null for optional fields when not provided', async () => {
@@ -625,9 +617,7 @@ describe('DrizzleGDPRStorage', () => {
     });
 
     it('propagates database errors from setDeletionRequest', async () => {
-      mockInsertValues.mockReturnValue({
-        onConflictDoUpdate: vi.fn().mockRejectedValue(new Error('Constraint violation')),
-      });
+      mockInsertValues.mockRejectedValue(new Error('Constraint violation'));
 
       await expect(
         storage.setDeletionRequest({
@@ -675,43 +665,40 @@ describe('DrizzleGDPRStorage', () => {
       expect(conflictCall.set.granted).toBe(false);
     });
 
-    it('deletion request tracks which data categories were deleted', async () => {
-      setupInsertChain();
-
-      await storage.setDeletionRequest({
-        id: 'del-erasure',
-        userId: 'user-1',
-        requestedAt: '2026-01-15T10:00:00.000Z',
-        processedAt: '2026-01-16T10:00:00.000Z',
+    it('finishes processing with explicit deleted and retained data', async () => {
+      mockUpdateSet.mockReturnValue({ where: mockUpdateWhere });
+      mockUpdateWhere.mockReturnValue({ returning: vi.fn().mockResolvedValue([{ id: 'del-1' }]) });
+      expect(
+        await storage.finishDeletionRequest('del-1', {
+          status: 'completed',
+          processedAt: '2026-01-16T10:00:00.000Z',
+          deletedData: ['profile'],
+          retainedData: ['invoices'],
+        }),
+      ).toBe(true);
+      expect(mockUpdateSet).toHaveBeenCalledWith({
         status: 'completed',
-        dataCategories: ['personal', 'behavioral', 'location'],
-        deletedData: ['profile', 'activities', 'location_history'],
+        processedAt: new Date('2026-01-16T10:00:00.000Z'),
+        deletedData: ['profile'],
         retainedData: ['invoices'],
       });
-
-      const insertCall = mockInsertValues.mock.calls[0][0];
-      expect(insertCall.deletedData).toEqual(['profile', 'activities', 'location_history']);
-      expect(insertCall.retainedData).toEqual(['invoices']);
-      expect(insertCall.status).toBe('completed');
+      expect(mockUpdateWhere).toHaveBeenCalledWith({
+        _and: [
+          { _eq: { col: 'gdpr_deletion_requests.id', val: 'del-1' } },
+          { _eq: { col: 'gdpr_deletion_requests.status', val: 'processing' } },
+        ],
+      });
     });
 
-    it('deletion request preserves full audit trail via upsert', async () => {
-      setupInsertChain();
-
-      await storage.setDeletionRequest({
-        id: 'del-audit',
-        userId: 'user-1',
-        requestedAt: '2026-01-15T10:00:00.000Z',
-        processedAt: '2026-01-16T10:00:00.000Z',
-        status: 'completed',
-        dataCategories: ['personal'],
-        deletedData: ['profile'],
-        retainedData: [],
-      });
-
-      const conflictCall = mockOnConflictDoUpdate.mock.calls[0][0];
-      expect(conflictCall.set.status).toBe('completed');
-      expect(conflictCall.set.processedAt).toBeInstanceOf(Date);
+    it('reports a rejected terminal transition', async () => {
+      mockUpdateSet.mockReturnValue({ where: mockUpdateWhere });
+      mockUpdateWhere.mockReturnValue({ returning: vi.fn().mockResolvedValue([]) });
+      expect(
+        await storage.finishDeletionRequest('del-1', {
+          status: 'failed',
+          processedAt: '2026-01-16T10:00:00.000Z',
+        }),
+      ).toBe(false);
     });
   });
 });

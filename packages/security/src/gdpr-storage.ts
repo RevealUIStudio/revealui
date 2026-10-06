@@ -6,7 +6,36 @@
  * with a database-backed store in production.
  */
 
-import type { ConsentRecord, ConsentType, DataBreach, DataDeletionRequest } from './gdpr.js';
+import type {
+  ConsentRecord,
+  ConsentType,
+  DataBreach,
+  DataCategory,
+  DataDeletionRequest,
+} from './gdpr.js';
+
+/** Validate category values from public callers and persisted JSON before use. */
+export function parseDataCategories(values: readonly string[]): DataCategory[] {
+  if (!Array.isArray(values)) throw new Error('Invalid deletion categories');
+  const categories: DataCategory[] = [];
+  for (let index = 0; index < values.length; index++) {
+    if (!Object.hasOwn(values, index)) throw new Error('Invalid deletion category');
+    const value = values[index];
+    switch (value) {
+      case 'personal':
+      case 'sensitive':
+      case 'financial':
+      case 'health':
+      case 'behavioral':
+      case 'location':
+        categories.push(value);
+        break;
+      default:
+        throw new Error('Invalid deletion category');
+    }
+  }
+  return categories;
+}
 
 /**
  * Storage interface for GDPR consent records and deletion requests.
@@ -41,9 +70,23 @@ export interface GDPRStorage {
   // ── Deletion Requests ────────────────────────────────────────────
 
   /**
-   * Store a deletion request, keyed by its `id`.
+   * Create a pending deletion request. Existing IDs must never be overwritten.
    */
   setDeletionRequest(request: DataDeletionRequest): Promise<void>;
+
+  /** Atomically claim a pending request. Return undefined if it cannot be claimed. */
+  claimDeletionRequest(requestId: string): Promise<DataDeletionRequest | undefined>;
+
+  /** Finish only a processing request; terminal records are immutable. */
+  finishDeletionRequest(
+    requestId: string,
+    result: {
+      status: 'completed' | 'failed';
+      processedAt: string;
+      deletedData?: string[];
+      retainedData?: string[];
+    },
+  ): Promise<boolean>;
 
   /**
    * Retrieve a deletion request by ID. Returns `undefined` if not found.
@@ -54,6 +97,38 @@ export interface GDPRStorage {
    * Retrieve all deletion requests for a given user.
    */
   getDeletionRequestsByUser(userId: string): Promise<DataDeletionRequest[]>;
+}
+
+/** Validate completion payloads before a storage adapter changes processing state. */
+export function parseDeletionResult(
+  result: Parameters<GDPRStorage['finishDeletionRequest']>[1],
+): Parameters<GDPRStorage['finishDeletionRequest']>[1] {
+  if (result === null || typeof result !== 'object') throw new Error('Invalid deletion result');
+  const { status, processedAt, deletedData, retainedData } = result;
+  if (status !== 'completed' && status !== 'failed')
+    throw new Error('Invalid deletion result status');
+  if (typeof processedAt !== 'string' || !Number.isFinite(new Date(processedAt).getTime())) {
+    throw new Error('Invalid deletion result timestamp');
+  }
+  return {
+    status,
+    processedAt,
+    deletedData: parseDeletionData(deletedData),
+    retainedData: parseDeletionData(retainedData),
+  };
+}
+
+function parseDeletionData(values: readonly string[] | undefined): string[] | undefined {
+  if (values === undefined) return undefined;
+  if (!Array.isArray(values)) throw new Error('Invalid deletion result data');
+  const data: string[] = [];
+  for (let index = 0; index < values.length; index++) {
+    const value = values[index];
+    if (!Object.hasOwn(values, index) || typeof value !== 'string')
+      throw new Error('Invalid deletion result data');
+    data.push(value);
+  }
+  return data;
 }
 
 /**
@@ -146,14 +221,56 @@ export class InMemoryGDPRStorage implements GDPRStorage {
   // ── Deletion Requests ────────────────────────────────────────────
 
   async setDeletionRequest(request: DataDeletionRequest): Promise<void> {
-    this.deletionRequests.set(request.id, request);
+    if (
+      request.status !== 'pending' ||
+      request.processedAt ||
+      request.deletedData ||
+      request.retainedData
+    ) {
+      throw new Error('Deletion requests must be created pending without results');
+    }
+    if (this.deletionRequests.has(request.id)) {
+      throw new Error('Deletion request already exists');
+    }
+    this.deletionRequests.set(
+      request.id,
+      structuredClone({ ...request, dataCategories: parseDataCategories(request.dataCategories) }),
+    );
+  }
+
+  async claimDeletionRequest(requestId: string): Promise<DataDeletionRequest | undefined> {
+    const request = this.deletionRequests.get(requestId);
+    if (request?.status !== 'pending') return undefined;
+    const claimed: DataDeletionRequest = { ...request, status: 'processing' };
+    this.deletionRequests.set(requestId, claimed);
+    return structuredClone(claimed);
+  }
+
+  async finishDeletionRequest(
+    requestId: string,
+    result: Parameters<GDPRStorage['finishDeletionRequest']>[1],
+  ): Promise<boolean> {
+    const validated = parseDeletionResult(result);
+    const request = this.deletionRequests.get(requestId);
+    if (request?.status !== 'processing') return false;
+    this.deletionRequests.set(requestId, {
+      ...request,
+      status: validated.status,
+      processedAt: validated.processedAt,
+      deletedData: validated.deletedData,
+      retainedData: validated.retainedData,
+    });
+    return true;
   }
 
   async getDeletionRequest(requestId: string): Promise<DataDeletionRequest | undefined> {
-    return this.deletionRequests.get(requestId);
+    const request = this.deletionRequests.get(requestId);
+    return request ? structuredClone(request) : undefined;
   }
 
   async getDeletionRequestsByUser(userId: string): Promise<DataDeletionRequest[]> {
-    return Array.from(this.deletionRequests.values()).filter((r) => r.userId === userId);
+    return Array.from(this.deletionRequests.values())
+      .filter((r) => r.userId === userId)
+      .map((request) => structuredClone(request));
   }
 }

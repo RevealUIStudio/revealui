@@ -14,9 +14,22 @@ import type {
   DataDeletionRequest,
   GDPRStorage,
 } from '@revealui/core/security';
+import { parseDataCategories, parseDeletionResult } from '@revealui/core/security';
 import { getClient } from '@revealui/db';
 import { gdprBreaches, gdprConsents, gdprDeletionRequests } from '@revealui/db/schema';
 import { and, eq } from 'drizzle-orm';
+
+function parseDeletionStatus(value: string): DataDeletionRequest['status'] {
+  switch (value) {
+    case 'pending':
+    case 'processing':
+    case 'completed':
+    case 'failed':
+      return value;
+    default:
+      throw new Error('Invalid persisted deletion request status');
+  }
+}
 
 export class DrizzleGDPRStorage implements GDPRStorage {
   private get db() {
@@ -78,28 +91,65 @@ export class DrizzleGDPRStorage implements GDPRStorage {
   // ── Deletion Requests ────────────────────────────────────────────
 
   async setDeletionRequest(request: DataDeletionRequest): Promise<void> {
-    await this.db
-      .insert(gdprDeletionRequests)
-      .values({
-        id: request.id,
-        userId: request.userId,
-        requestedAt: new Date(request.requestedAt),
-        processedAt: request.processedAt ? new Date(request.processedAt) : null,
-        status: request.status,
-        dataCategories: request.dataCategories,
-        reason: request.reason ?? null,
-        retainedData: request.retainedData ?? null,
-        deletedData: request.deletedData ?? null,
+    if (
+      request.status !== 'pending' ||
+      request.processedAt ||
+      request.deletedData ||
+      request.retainedData
+    ) {
+      throw new Error('Deletion requests must be created pending without results');
+    }
+    await this.db.insert(gdprDeletionRequests).values({
+      id: request.id,
+      userId: request.userId,
+      requestedAt: new Date(request.requestedAt),
+      processedAt: request.processedAt ? new Date(request.processedAt) : null,
+      status: request.status,
+      dataCategories: parseDataCategories(request.dataCategories),
+      reason: request.reason ?? null,
+      retainedData: request.retainedData ?? null,
+      deletedData: request.deletedData ?? null,
+    });
+  }
+
+  async claimDeletionRequest(requestId: string): Promise<DataDeletionRequest | undefined> {
+    const request = await this.getDeletionRequest(requestId);
+    if (request?.status !== 'pending') return undefined;
+    const rows = await this.db
+      .update(gdprDeletionRequests)
+      .set({ status: 'processing' })
+      .where(
+        and(
+          eq(gdprDeletionRequests.id, requestId),
+          eq(gdprDeletionRequests.status, 'pending'),
+          eq(gdprDeletionRequests.dataCategories, request.dataCategories),
+          eq(gdprDeletionRequests.userId, request.userId),
+        ),
+      )
+      .returning();
+    const row = rows[0];
+    return row ? this.toDeletionRequest(row) : undefined;
+  }
+
+  async finishDeletionRequest(
+    requestId: string,
+    result: Parameters<GDPRStorage['finishDeletionRequest']>[1],
+  ): Promise<boolean> {
+    const validated = parseDeletionResult(result);
+    const processedAt = new Date(validated.processedAt);
+    const rows = await this.db
+      .update(gdprDeletionRequests)
+      .set({
+        status: validated.status,
+        processedAt,
+        deletedData: validated.deletedData ?? null,
+        retainedData: validated.retainedData ?? null,
       })
-      .onConflictDoUpdate({
-        target: gdprDeletionRequests.id,
-        set: {
-          processedAt: request.processedAt ? new Date(request.processedAt) : null,
-          status: request.status,
-          retainedData: request.retainedData ?? null,
-          deletedData: request.deletedData ?? null,
-        },
-      });
+      .where(
+        and(eq(gdprDeletionRequests.id, requestId), eq(gdprDeletionRequests.status, 'processing')),
+      )
+      .returning();
+    return rows.length === 1;
   }
 
   async getDeletionRequest(requestId: string): Promise<DataDeletionRequest | undefined> {
@@ -144,8 +194,8 @@ export class DrizzleGDPRStorage implements GDPRStorage {
       userId: row.userId,
       requestedAt: row.requestedAt.toISOString(),
       processedAt: row.processedAt?.toISOString(),
-      status: row.status as DataDeletionRequest['status'],
-      dataCategories: row.dataCategories as DataDeletionRequest['dataCategories'],
+      status: parseDeletionStatus(row.status),
+      dataCategories: parseDataCategories(row.dataCategories),
       reason: row.reason ?? undefined,
       retainedData: row.retainedData ?? undefined,
       deletedData: row.deletedData ?? undefined,

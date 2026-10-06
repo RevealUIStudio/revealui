@@ -146,6 +146,9 @@ export const agentMemories = pgTable(
 // Conversations Table
 // =============================================================================
 
+export const CONVERSATION_STATUSES = ['active', 'archived', 'ended'] as const;
+export type ConversationStatus = (typeof CONVERSATION_STATUSES)[number];
+
 export const conversations = pgTable(
   'conversations',
   {

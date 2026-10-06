@@ -14,6 +14,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockPoolEnd = vi.fn().mockResolvedValue(undefined);
 const mockPoolOn = vi.fn();
+const mockPoolClientQuery = vi.fn().mockResolvedValue({ rows: [], rowCount: 0 });
+const mockPoolClientRelease = vi.fn();
+const mockPoolConnect = vi.fn().mockResolvedValue({
+  query: mockPoolClientQuery,
+  release: mockPoolClientRelease,
+});
 const mockPoolInstance = {
   totalCount: 5,
   idleCount: 3,
@@ -29,13 +35,10 @@ vi.mock('pg', () => {
     waitingCount = mockPoolInstance.waitingCount;
     end = mockPoolInstance.end;
     on = mockPoolInstance.on;
+    connect = mockPoolConnect;
   }
   return { Pool: MockPool };
 });
-
-vi.mock('@neondatabase/serverless', () => ({
-  neon: vi.fn(() => vi.fn()),
-}));
 
 vi.mock('@revealui/config', () => ({
   default: {
@@ -45,16 +48,6 @@ vi.mock('@revealui/config', () => ({
 
 vi.mock('@revealui/utils/database', () => ({
   getSSLConfig: vi.fn(() => false),
-}));
-
-vi.mock('drizzle-orm/neon-http', () => ({
-  drizzle: vi.fn(() => ({
-    query: {},
-    select: vi.fn(),
-    insert: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-  })),
 }));
 
 vi.mock('drizzle-orm/node-postgres', () => ({
@@ -72,14 +65,15 @@ vi.mock('drizzle-orm/node-postgres', () => ({
 // Import the module under test once (avoid repeated dynamic imports)
 // ============================================================================
 
-import { drizzle as drizzleNeon } from 'drizzle-orm/neon-http';
 import { drizzle as drizzlePg } from 'drizzle-orm/node-postgres';
 import {
   closeAllPools,
   createClient,
   getClient,
   getPoolMetrics,
+  getRestPool,
   resetClient,
+  withReadOnlyRepeatableRead,
 } from '../../client/index.js';
 
 // ============================================================================
@@ -96,6 +90,12 @@ describe('client/index  -  pool management', () => {
     mockPoolInstance.totalCount = 5;
     mockPoolInstance.idleCount = 3;
     mockPoolInstance.waitingCount = 0;
+    mockPoolClientQuery.mockReset().mockResolvedValue({ rows: [], rowCount: 0 });
+    mockPoolClientRelease.mockReset();
+    mockPoolConnect.mockReset().mockResolvedValue({
+      query: mockPoolClientQuery,
+      release: mockPoolClientRelease,
+    });
     resetClient();
   });
 
@@ -114,22 +114,22 @@ describe('client/index  -  pool management', () => {
   });
 
   describe('createClient', () => {
-    it('creates a Neon HTTP client for neon.tech connection strings', () => {
+    it('creates an interactive PostgreSQL client for neon.tech connection strings', () => {
       const db = createClient({
         connectionString: 'postgresql://user:pass@ep-cool-rain.neon.tech/mydb',
       });
 
       expect(db).toBeDefined();
-      expect(drizzleNeon).toHaveBeenCalled();
+      expect(drizzlePg).toHaveBeenCalled();
     });
 
-    it('uses Neon driver for non-localhost connection strings (e.g. Neon cloud)', () => {
+    it('uses the PostgreSQL wire client for cloud Neon connection strings', () => {
       const db = createClient({
         connectionString: 'postgresql://user:pass@ep-cool.neon.tech/neondb',
       });
 
       expect(db).toBeDefined();
-      expect(drizzleNeon).toHaveBeenCalled();
+      expect(drizzlePg).toHaveBeenCalled();
     });
 
     it('creates a pg Pool client for localhost connection strings', () => {
@@ -165,7 +165,7 @@ describe('client/index  -  pool management', () => {
         logger: true,
       });
 
-      expect(drizzleNeon).toHaveBeenCalledWith(
+      expect(drizzlePg).toHaveBeenCalledWith(
         expect.objectContaining({
           logger: true,
         }),
@@ -191,7 +191,7 @@ describe('client/index  -  pool management', () => {
 
     it('returns empty array when no pools are active', () => {
       // Before creating any localhost clients, there may be no pools
-      // (Neon HTTP clients do not create pools)
+      // Neon and self-hosted clients both use PostgreSQL pools in the Node runtime.
       const metrics = getPoolMetrics();
       expect(Array.isArray(metrics)).toBe(true);
     });
@@ -239,7 +239,77 @@ describe('client/index  -  pool management', () => {
     });
   });
 
+  describe('withReadOnlyRepeatableRead', () => {
+    it('uses one checked-out pool client with repeatable-read and read-only settings', async () => {
+      process.env.POSTGRES_URL = 'postgresql://rest-db';
+      const result = await withReadOnlyRepeatableRead(async () => 'snapshot');
+
+      expect(result).toBe('snapshot');
+      expect(mockPoolConnect).toHaveBeenCalledOnce();
+      expect(mockPoolClientQuery.mock.calls.map(([query]) => query)).toEqual([
+        'BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY',
+        'COMMIT',
+      ]);
+      expect(mockPoolClientRelease).toHaveBeenCalledOnce();
+    });
+
+    it('rolls back callback failures and always releases the connection', async () => {
+      process.env.POSTGRES_URL = 'postgresql://rest-db';
+      await expect(
+        withReadOnlyRepeatableRead(async () => {
+          throw new Error('snapshot read failed');
+        }),
+      ).rejects.toThrow('snapshot read failed');
+
+      expect(mockPoolClientQuery.mock.calls.map(([query]) => query)).toEqual([
+        'BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY',
+        'ROLLBACK',
+      ]);
+      expect(mockPoolClientRelease).toHaveBeenCalledOnce();
+    });
+
+    it('releases the connection when BEGIN fails', async () => {
+      process.env.POSTGRES_URL = 'postgresql://rest-db';
+      mockPoolClientQuery.mockRejectedValueOnce(new Error('begin failed'));
+      const callback = vi.fn(async () => 'unreachable');
+
+      await expect(withReadOnlyRepeatableRead(callback)).rejects.toThrow('begin failed');
+
+      expect(callback).not.toHaveBeenCalled();
+      expect(mockPoolClientQuery.mock.calls.map(([query]) => query)).toEqual([
+        'BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY',
+        'ROLLBACK',
+      ]);
+      expect(mockPoolClientRelease).toHaveBeenCalledOnce();
+    });
+
+    it('rolls back after COMMIT fails and releases the connection', async () => {
+      process.env.POSTGRES_URL = 'postgresql://rest-db';
+      mockPoolClientQuery
+        .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+        .mockRejectedValueOnce(new Error('commit failed'));
+
+      await expect(withReadOnlyRepeatableRead(async () => 'done')).rejects.toThrow('commit failed');
+
+      expect(mockPoolClientQuery.mock.calls.map(([query]) => query)).toEqual([
+        'BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY',
+        'COMMIT',
+        'ROLLBACK',
+      ]);
+      expect(mockPoolClientRelease).toHaveBeenCalledOnce();
+    });
+  });
+
   describe('getClient', () => {
+    it('shares the PostgreSQL wire pool for cloud Neon clients', () => {
+      process.env.POSTGRES_URL = 'postgresql://user:pass@ep-test.neon.tech/db';
+      getClient('rest');
+      const pool = getRestPool();
+
+      expect(pool).not.toBeNull();
+      expect(drizzlePg).toHaveBeenCalledWith(expect.objectContaining({ client: pool }));
+    });
+
     it('throws when no connection string is available for REST', () => {
       delete process.env.POSTGRES_URL;
       delete process.env.DATABASE_URL;

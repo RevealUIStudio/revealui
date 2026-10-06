@@ -1,10 +1,9 @@
 /**
  * @revealui/db - Database Client
  *
- * Provides a configured Drizzle ORM client for a single PostgreSQL database (Neon-primary).
- * Uses @neondatabase/serverless with drizzle-orm/neon-http for Neon connections.
- * Uses node-postgres (pg Pool) with drizzle-orm/node-postgres for localhost / 127.0.0.1
- * connections (development and test environments).
+ * Provides a configured Drizzle ORM client for PostgreSQL through node-postgres.
+ * The Node runtime uses the PostgreSQL wire protocol for Neon and self-hosted
+ * databases so transaction scopes can pin one connection.
  *
  * A single 'rest' database type selects this client. The legacy 'vector' type
  * (a holdover from the dual-DB Supabase era) was removed per
@@ -18,18 +17,16 @@
  * - Neon: https://orm.drizzle.team/docs/connect-neon
  */
 
-import { neon } from '@neondatabase/serverless';
 // Import config module (ESM)
 // Config uses proxy for lazy loading, so import is safe - validation only happens on property access
 // Direct ESM import - the Proxy ensures no validation occurs until properties are accessed
 import configModule from '@revealui/config';
 import { getSSLConfig } from '@revealui/utils/database';
 import { logger } from '@revealui/utils/logger';
-import { drizzle as drizzleNeon, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import { drizzle as drizzlePg, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from '../schema/index.js'; // Full schema for backward compatibility
-import * as restSchema from '../schema/rest.js';
+import type * as restSchema from '../schema/rest.js';
 import type * as vectorSchema from '../schema/vector.js';
 
 // Monitoring integration is handled by the application layer to avoid
@@ -73,43 +70,21 @@ export type DatabaseType = 'rest';
  * This is the actual database client returned by createClient/getClient.
  * For the centralized Database type, see @revealui/db/types
  *
- * Note: This is a union type to support both Neon (cloud) and Postgres (localhost dev) drivers.
- * The actual type is NeonHttpDatabase for cloud Neon connections and NodePgDatabase for
- * localhost connections (where the pg driver is used for transaction support).
+ * This client is backed by a node-postgres pool in the Node runtime.
  */
-export type Database = NeonHttpDatabase<typeof schema> | NodePgDatabase<typeof schema>;
+export type Database = NodePgDatabase<typeof schema>;
+export type DatabaseTransaction = Parameters<Parameters<Database['transaction']>[0]>[0];
 
 export interface DatabaseConfig {
   connectionString: string;
   logger?: boolean;
 }
 
+type DatabaseSchema = typeof restSchema | typeof vectorSchema | typeof schema;
+
 // =============================================================================
 // Client Creation
 // =============================================================================
-
-/**
- * Returns true when the connection string targets a Postgres endpoint we should
- * reach with the standard `pg` (node-postgres) driver rather than the Neon HTTP
- * driver. The Neon HTTP driver speaks a Neon-specific protocol and fails
- * silently against vanilla Postgres (errors surface as empty `NeonDbError`).
- *
- * Default to `pg` for anything that isn't an explicit Neon endpoint. This makes
- * self-hosted Fleet kits, RDS, Supabase Postgres, docker-compose stacks, and
- * any other self-hosted Postgres work out of the box. Only `*.neon.tech`
- * hosts (or `wss://` Neon WebSocket endpoints) route through the Neon driver.
- */
-function isLocalhostConnection(connectionString: string): boolean {
-  try {
-    const url = new URL(connectionString);
-    const host = url.hostname;
-    if (host === 'localhost' || host === '127.0.0.1') return true;
-    // Any non-Neon host should use pg — Neon HTTP driver requires a Neon endpoint.
-    return !host.endsWith('.neon.tech') && url.protocol !== 'wss:';
-  } catch {
-    return !(connectionString.includes('.neon.tech') || connectionString.startsWith('wss://'));
-  }
-}
 
 /**
  * Logs an unexpected error emitted by an idle pg pool client.
@@ -127,9 +102,7 @@ function onClientPoolError(err: unknown): void {
 }
 
 /**
- * Creates a Drizzle database client, automatically selecting the appropriate driver:
- * - Localhost connections: Uses node-postgres with drizzle-orm/node-postgres (dev/test)
- * - All other connections: Uses @neondatabase/serverless with drizzle-orm/neon-http (Neon-primary)
+ * Creates a PostgreSQL wire-protocol Drizzle client for the Node runtime.
  *
  * @param config - Database configuration
  * @param dbSchema - Optional schema to use (defaults to full schema for backward compatibility)
@@ -138,58 +111,46 @@ function onClientPoolError(err: unknown): void {
  * ```typescript
  * import { createClient } from '@revealui/db/client'
  *
- * // Automatically uses node-postgres for localhost (testing)
+ * // Uses node-postgres for PostgreSQL connections in the Node runtime
  * const testDb = createClient({
  *   connectionString: 'postgresql://test:test@localhost:5432/test',
  * })
  *
- * // Automatically uses Neon driver for NeonDB
+ * // Uses the PostgreSQL wire protocol for NeonDB
  * const neonDb = createClient({
  *   connectionString: process.env.POSTGRES_URL!, // NeonDB URL
  * })
  * ```
  */
+export function createClient(config: DatabaseConfig): Database;
+export function createClient<TSchema extends DatabaseSchema>(
+  config: DatabaseConfig,
+  dbSchema: TSchema,
+): NodePgDatabase<TSchema>;
 export function createClient(
   config: DatabaseConfig,
-  dbSchema: typeof restSchema | typeof vectorSchema | typeof schema = schema,
-): Database {
-  const isLocalhost = isLocalhostConnection(config.connectionString);
+  dbSchema: DatabaseSchema = schema,
+): NodePgDatabase<DatabaseSchema> {
+  const poolMax = parseInt(process.env.DB_POOL_MAX || '10', 10);
+  const poolIdleTimeout = parseInt(process.env.DB_POOL_IDLE_TIMEOUT || '30000', 10);
+  const pool = new Pool({
+    connectionString: config.connectionString,
+    ssl: getSSLConfig(config.connectionString),
+    max: poolMax,
+    idleTimeoutMillis: poolIdleTimeout,
+    connectionTimeoutMillis: 10_000,
+  });
+  pool.on('error', onClientPoolError);
+  activePools.set(`pool-${activePools.size + 1}`, pool);
+  registerPoolCleanup();
 
-  if (isLocalhost) {
-    // Use pg for localhost connections — Neon HTTP driver requires a Neon endpoint
-    const poolMax = parseInt(process.env.DB_POOL_MAX || '10', 10);
-    const poolIdleTimeout = parseInt(process.env.DB_POOL_IDLE_TIMEOUT || '30000', 10);
-
-    const pool = new Pool({
-      connectionString: config.connectionString,
-      ssl: getSSLConfig(config.connectionString), // Auto-detect SSL from connection string
-      max: poolMax,
-      idleTimeoutMillis: poolIdleTimeout,
-      connectionTimeoutMillis: 10_000, // 10 seconds
-    });
-    // Prevent an idle-client error from crashing the process (unhandled 'error' event).
-    pool.on('error', onClientPoolError);
-
-    // Track pool and register cleanup
-    const poolId = `pool-${activePools.size + 1}`;
-    activePools.set(poolId, pool);
-    registerPoolCleanup();
-
-    return drizzlePg({
-      client: pool,
-      schema: dbSchema,
-      logger: config.logger ?? false,
-    }) as Database;
-  } else {
-    // Use Neon serverless driver for NeonDB connections
-    const sql = neon(config.connectionString);
-
-    return drizzleNeon({
-      client: sql,
-      schema: dbSchema,
-      logger: config.logger ?? false,
-    }) as Database;
-  }
+  const client = drizzlePg({
+    client: pool,
+    schema: dbSchema,
+    logger: config.logger ?? false,
+  });
+  databasePools.set(client, pool);
+  return client;
 }
 
 // =============================================================================
@@ -202,6 +163,8 @@ let restClient: Database | null = null;
 // When the admin app passes this pool to universalPostgresAdapter({ pool }),
 // both systems use the same connection pool — eliminating dual-pool issues.
 let restPool: Pool | null = null;
+
+const databasePools = new WeakMap<object, Pool>();
 
 // Track all pg.Pool instances for monitoring and cleanup
 const activePools: Map<string, Pool> = new Map();
@@ -257,6 +220,8 @@ export function getClient(typeOrConnectionString?: DatabaseType | string): Datab
       // Legacy API: Connection string provided, use as REST client
       if (!restClient) {
         restClient = createClient({ connectionString: typeOrConnectionString });
+        restPool = databasePools.get(restClient) ?? null;
+        restSupportsTransactions = restPool !== null;
       }
       return restClient;
     }
@@ -313,39 +278,15 @@ function getClientByType(): Database {
       );
     }
 
-    // For pg-backed connections (localhost), create the pool
-    // externally so it can be shared with the CMS adapter via getRestPool().
-    if (isLocalhostConnection(url)) {
-      const poolMax = parseInt(process.env.DB_POOL_MAX || '10', 10);
-      const poolIdleTimeout = parseInt(process.env.DB_POOL_IDLE_TIMEOUT || '30000', 10);
-      const pool = new Pool({
-        connectionString: url,
-        ssl: getSSLConfig(url),
-        max: poolMax,
-        idleTimeoutMillis: poolIdleTimeout,
-        connectionTimeoutMillis: 10_000,
-      });
-      // Prevent an idle-client error from crashing the process (unhandled 'error' event).
-      pool.on('error', onClientPoolError);
-      restPool = pool;
-      const poolId = `rest-pool`;
-      activePools.set(poolId, pool);
-      registerPoolCleanup();
-      restClient = drizzlePg({
-        client: pool,
-        schema: restSchema,
-        logger: false,
-      }) as unknown as Database;
-    } else {
-      restClient = createClient({ connectionString: url }, restSchema);
-    }
-    restSupportsTransactions = isLocalhostConnection(url);
+    restClient = createClient({ connectionString: url }, schema);
+    restPool = databasePools.get(restClient) ?? null;
+    restSupportsTransactions = restPool !== null;
   }
   return restClient;
 }
 
 /**
- * Gets or creates the REST database client (NeonDB).
+ * Gets or creates the REST database client.
  * Convenience function for accessing the REST database.
  *
  * @example
@@ -371,7 +312,7 @@ export function resetClient(): void {
 
 /**
  * Returns the underlying pg.Pool used by the REST database client, or null
- * if the REST client uses Neon serverless (which has no pg.Pool).
+ * when no database connection is configured.
  *
  * Pass this to `universalPostgresAdapter({ pool })` in revealui.config.ts
  * so both the CMS adapter and Drizzle ORM share a single connection pool.
@@ -383,15 +324,51 @@ export function getRestPool(): Pool | null {
   // During Next.js build in CI, no DB URL exists and getClientByType would throw.
   // Return null gracefully so the caller falls back to its own pool creation.
   if (!restClient) {
-    const url = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+    const url = resolveDatabaseUrl();
     if (!url) return null;
-    try {
-      getClientByType();
-    } catch {
-      return null;
-    }
+    getClientByType();
   }
   return restPool;
+}
+
+/**
+ * Run a callback on one checked-out PostgreSQL connection under a read-only,
+ * repeatable-read transaction. The pool is the same one used by getRestClient
+ * and the RevealUI PostgreSQL adapter.
+ */
+export async function withReadOnlyRepeatableRead<T>(
+  callback: (transactionClient: Database) => Promise<T>,
+): Promise<T> {
+  const pool = getRestPool();
+  if (!pool) {
+    throw new Error('Read-only repeatable-read transactions require the PostgreSQL client pool');
+  }
+
+  const client = await pool.connect();
+  let transactionAttempted = false;
+  try {
+    transactionAttempted = true;
+    await client.query('BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');
+    const transactionClient = drizzlePg({ client, schema, logger: false });
+    const result = await callback(transactionClient);
+    await client.query('COMMIT');
+    transactionAttempted = false;
+    return result;
+  } catch (error) {
+    if (transactionAttempted) {
+      try {
+        await client.query('ROLLBACK');
+      } catch (rollbackError) {
+        logger.error(
+          'Database snapshot rollback failed after error',
+          rollbackError instanceof Error ? rollbackError : new Error(String(rollbackError)),
+        );
+      }
+    }
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 // =============================================================================
@@ -475,7 +452,7 @@ export async function closeAllPools(): Promise<void> {
  * @example
  * ```typescript
  * // At app startup
- * requiresTransactions('rest') // throws if DB is Neon HTTP
+ * requiresTransactions('rest')
  * ```
  */
 export function requiresTransactions(dbType: DatabaseType = 'rest'): void {
@@ -484,8 +461,7 @@ export function requiresTransactions(dbType: DatabaseType = 'rest'): void {
   if (!restSupportsTransactions) {
     throw new Error(
       `Transaction support required but not available for '${dbType}' database. ` +
-        'The Neon HTTP driver does not support transactions. ' +
-        'Use a localhost pg driver for transaction support.',
+        'The PostgreSQL client pool is unavailable for transaction support.',
     );
   }
 }
@@ -493,48 +469,16 @@ export function requiresTransactions(dbType: DatabaseType = 'rest'): void {
 /**
  * Execute a database transaction with automatic BEGIN/COMMIT/ROLLBACK.
  *
- * ⚠️ IMPORTANT: Transaction support depends on the database driver:
- * - ✅ Localhost (pg Pool): Full transaction support (dev/test)
- * - ❌ NeonDB (HTTP driver): Transactions NOT supported
- *
- * The Neon HTTP driver (@neondatabase/serverless with neon-http) does not support
- * transactions because it uses stateless HTTP requests. Each query is independent.
- * Use withSaga() for NeonDB-safe multi-step writes.
- *
- * @param db - Database client (must be created with pg Pool driver)
+ * @param db - PostgreSQL Drizzle client
  * @param fn - Transaction callback that receives a transaction context
  * @returns Result from the transaction callback
- * @throws {Error} If using Neon HTTP driver (no transaction support)
  * @throws {Error} If transaction fails (automatic ROLLBACK is performed)
  */
 export async function withTransaction<T>(
   db: Database,
-  fn: (tx: Database) => Promise<T>,
+  fn: (tx: DatabaseTransaction) => Promise<T>,
 ): Promise<T> {
-  // Early check: fail fast with clear message based on tracked driver type
-  if (db === restClient && !restSupportsTransactions) {
-    throw new Error(
-      'Transaction not supported: database is using Neon HTTP driver. ' +
-        'Use withSaga() for NeonDB-safe multi-step writes, or use a localhost pg driver for transaction support.',
-    );
-  }
-
-  // Fallback: Check if this is a pg Pool-based client (supports transactions)
-  const hasPgTransaction = 'transaction' in db && typeof db.transaction === 'function';
-
-  if (!hasPgTransaction) {
-    throw new Error(
-      'Transaction not supported: database client is using Neon HTTP driver which does not support transactions. ' +
-        'Use withSaga() for NeonDB-safe multi-step writes, or use a localhost pg driver. ' +
-        'Neon HTTP driver uses stateless requests and cannot maintain transaction state.',
-    );
-  }
-
-  // Use Drizzle's built-in transaction API
-  // This automatically handles BEGIN/COMMIT/ROLLBACK
-  return (db as NodePgDatabase<typeof schema>).transaction(
-    fn as (tx: NodePgDatabase<typeof schema>) => Promise<T>,
-  );
+  return db.transaction(fn);
 }
 
 // =============================================================================
@@ -542,11 +486,10 @@ export async function withTransaction<T>(
 // =============================================================================
 
 /**
- * Execute a saga  -  a NeonDB-safe alternative to withTransaction.
+ * Execute a saga as a compensating alternative to withTransaction.
  *
- * Unlike withTransaction (which requires a pg Pool driver), withSaga works
- * with the NeonDB HTTP driver by modeling multi-step writes as individually
- * atomic operations with compensating actions for rollback.
+ * withSaga models multi-step writes as individually atomic operations with
+ * compensating actions for rollback.
  *
  * @see executeSaga in ../saga/neon-saga.ts for full documentation
  */

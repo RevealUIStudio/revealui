@@ -5,6 +5,7 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { closeAllPools } from '../../client/index.js';
 import type { Database } from '../database.js';
 import { sessionsRelationships, sitesRelationships, usersRelationships } from '../database.js';
 import { createTestClient, getTestDatabaseUrl } from './test-utils.js';
@@ -27,7 +28,7 @@ describe('Database Type Integration Tests', () => {
   });
 
   afterAll(async () => {
-    // Cleanup if needed
+    await closeAllPools();
   });
 
   it('should have correct Database type structure', () => {

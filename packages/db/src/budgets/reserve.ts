@@ -1,10 +1,9 @@
 /**
  * Scoped budget reserve and record.
  *
- * Neon HTTP has no multi-statement transactions. `budget_apply_spend` is one
- * SQL statement: it takes an account advisory lock, then (as the next command
- * inside that transaction) reads and writes ledgers and incidents. Callers
- * on either driver issue a single `SELECT budget_apply_spend(...)`.
+ * `budget_apply_spend` takes an account advisory lock and reads and writes
+ * ledgers and incidents inside one PostgreSQL function call. Callers issue a
+ * single `SELECT budget_apply_spend(...)` statement.
  *
  * Reserve (tasks, governed_actions) is all-or-nothing across scopes and never
  * spends past a hard-stop limit. Record (cost_micros, and post-action counts
@@ -303,7 +302,7 @@ async function applySpend(
   const scopesJson = JSON.stringify(
     input.scopes.map((scope) => ({ scope_type: scope.scopeType, scope_id: scope.scopeId })),
   );
-  // drizzle-raw: budget_apply_spend is plpgsql; Neon HTTP has no multi-statement transaction and Drizzle cannot express the advisory-locked ledger CTE
+  // drizzle-raw: Drizzle cannot express the advisory-locked ledger operation as one typed query.
   const result = await db.execute(sql`
     SELECT budget_apply_spend(
       ${input.accountId}::text,
@@ -553,7 +552,7 @@ export async function resolveBudgetIncident(
     throw new Error('budget resolution is invalid');
   }
   if (input.actorUserId.length === 0) throw new Error('budget actorUserId is required');
-  // drizzle-raw: single-statement UPDATE RETURNING; a follow-up audit write cannot share a Neon HTTP transaction
+  // drizzle-raw: use UPDATE RETURNING to preserve the persisted incident row.
   const result = await db.execute(sql`
     UPDATE budget_incidents
        SET status = 'resolved',

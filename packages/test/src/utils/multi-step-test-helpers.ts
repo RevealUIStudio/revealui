@@ -1,8 +1,8 @@
 /**
  * Multi-step operation test helpers
  *
- * Since withTransaction() is NOT implemented (Neon HTTP driver limitation),
- * these helpers test compensating transaction patterns.
+ * These helpers test compensating patterns for workflows with independently
+ * committed steps or external side effects.
  *
  * PURPOSE: Verify that multi-step operations handle partial failures gracefully
  * without atomic transaction guarantees.

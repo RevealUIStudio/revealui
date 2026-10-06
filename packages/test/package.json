@@ -5,7 +5,6 @@
   "private": true,
   "license": "MIT",
   "dependencies": {
-    "@neondatabase/serverless": "catalog:",
     "@revealui/auth": "workspace:*",
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",

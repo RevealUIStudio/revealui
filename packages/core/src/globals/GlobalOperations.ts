@@ -3,6 +3,7 @@ import {
   validateColumnName,
   validateSlug,
 } from '../collections/operations/sqlAdapter.js';
+import { safeParseRevealDocument } from '../database/safe-parse.js';
 import { afterRead } from '../fields/hooks/afterRead/index.js';
 import { getRelationshipFields } from '../relationships/analyzer.js';
 import type {
@@ -102,7 +103,7 @@ export class RevealUIGlobal {
       }
 
       const result = await this.db.query(query, params);
-      let doc = result.rows[0];
+      let doc = safeParseRevealDocument(result.rows[0]);
 
       if (!doc) return null;
 
