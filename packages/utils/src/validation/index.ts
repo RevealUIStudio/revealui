@@ -18,6 +18,8 @@ export {
   PLATFORM_ROLE_LADDER,
   type PlatformAuthUser,
   type PlatformLadderRole,
+  type PlatformPosture,
+  platformPosture,
   platformRoleRank,
   type RoleCarrier,
   type RoleSubject,

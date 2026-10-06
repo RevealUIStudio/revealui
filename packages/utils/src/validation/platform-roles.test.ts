@@ -130,3 +130,36 @@ describe('platform role ladder', () => {
     expect(hasAnyRole(null, ['admin'])).toBe(false);
   });
 });
+
+describe('hosted bare owner is not platform admin', () => {
+  const tenantOwner = { id: 'tenant', role: 'owner', emailVerified: true };
+  const platformOwner = {
+    id: 'platform',
+    role: 'owner',
+    emailVerified: true,
+    _json: { roles: ['super-admin'] },
+  };
+
+  it('denies a tenant owner on admin gates and still matches owner', () => {
+    expect(isAdmin(tenantOwner, 'hosted')).toBe(false);
+    expect(isAdminRole('owner', 'hosted')).toBe(false);
+    expect(hasRole(tenantOwner, 'admin', 'hosted')).toBe(false);
+    expect(hasRole(tenantOwner, 'super-admin', 'hosted')).toBe(false);
+    expect(hasRole(tenantOwner, 'owner', 'hosted')).toBe(true);
+    expect(isSuperAdmin(tenantOwner)).toBe(false);
+  });
+
+  it('allows admin, super-admin, and a verified operator', () => {
+    expect(isAdmin({ role: 'admin' }, 'hosted')).toBe(true);
+    expect(isAdmin({ role: 'super-admin' }, 'hosted')).toBe(true);
+    expect(isAdmin(platformSuperAdmin, 'hosted')).toBe(true);
+    expect(isAdmin(platformOwner, 'hosted')).toBe(true);
+    expect(hasRole(platformOwner, 'admin', 'hosted')).toBe(true);
+  });
+
+  it('does not treat an unverified _json marker as the operator', () => {
+    expect(
+      isAdmin({ role: 'owner', emailVerified: false, _json: { roles: ['super-admin'] } }, 'hosted'),
+    ).toBe(false);
+  });
+});

@@ -3,7 +3,7 @@
  * Owner, super-admin, and admin pass. Editor, user, and signed-out callers do not.
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockGetSession = vi.fn();
 const mockGetRevealUIInstance = vi.fn();
@@ -79,10 +79,15 @@ function request(): { headers: { get: () => null } } {
 
 describe('admin routes share one admin decision', () => {
   beforeEach(() => {
+    vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', 'forge');
     vi.clearAllMocks();
     mockGetRevealUIInstance.mockResolvedValue({
       find: vi.fn().mockResolvedValue({ docs: [] }),
     });
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it.each(CASES)('GET /api/health ($name)', async ({ user, admin }) => {
@@ -112,5 +117,51 @@ describe('admin routes share one admin decision', () => {
     }
     // Past the role gate the handler asks for tenant and returns 400.
     expect(res.status).toBe(admin ? 400 : 403);
+  });
+});
+
+describe('hosted tenant owner is denied on admin routes', () => {
+  const tenantOwner = { id: 'u', role: 'owner', emailVerified: true };
+  const platformOwner = {
+    id: 'u',
+    role: 'owner',
+    emailVerified: true,
+    _json: { roles: ['super-admin'] },
+  };
+
+  beforeEach(() => {
+    vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', 'hosted');
+    vi.clearAllMocks();
+    mockGetRevealUIInstance.mockResolvedValue({
+      find: vi.fn().mockResolvedValue({ docs: [] }),
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('GET /api/health denies a bare owner and allows a verified operator', async () => {
+    const { GET } = await import('../health/route.js');
+    mockGetSession.mockResolvedValue({ user: tenantOwner });
+    const denied = (await GET(request() as never)) as unknown as {
+      body: Record<string, unknown>;
+    };
+    expect(denied.body).not.toHaveProperty('checks');
+
+    mockGetSession.mockResolvedValue({ user: platformOwner });
+    const allowed = (await GET(request() as never)) as unknown as {
+      body: Record<string, unknown>;
+    };
+    expect(allowed.body).toHaveProperty('checks');
+  });
+
+  it('GET /api/mcp/remote-servers denies a bare owner', async () => {
+    const { GET } = await import('../mcp/remote-servers/route.js');
+    mockGetSession.mockResolvedValue({ user: tenantOwner });
+    const res = (await GET(
+      new Request('http://admin.test/api/mcp/remote-servers') as never,
+    )) as unknown as { status: number };
+    expect(res.status).toBe(403);
   });
 });

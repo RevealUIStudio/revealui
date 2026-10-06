@@ -7,7 +7,7 @@
 import type { DatabaseClient } from '@revealui/db/client';
 import { hasAnyRole, isAdmin, isAdminRole } from '@revealui/utils/validation';
 import { Hono } from 'hono';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import coordinationApp from '../../routes/admin/coordination.js';
 import { hasApiRole } from '../api-roles.js';
 
@@ -66,6 +66,14 @@ function coordination(user: GateUser | null) {
 }
 
 describe('server admin decision', () => {
+  beforeEach(() => {
+    vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', 'forge');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it('agrees across isAdmin, isAdminRole, and hasApiRole(admin)', () => {
     for (const user of ADMINS) {
       expect(isAdmin(user)).toBe(true);
@@ -105,5 +113,39 @@ describe('server admin decision', () => {
     const app = coordination(null);
     const res = await app.fetch(new Request('http://localhost/sessions'));
     expect(res.status).toBe(401);
+  });
+});
+
+describe('hosted tenant owner is denied on admin routes', () => {
+  const tenantOwner: GateUser = { id: 'u', role: 'owner', emailVerified: true };
+  const platformOwner: GateUser = {
+    id: 'u',
+    role: 'owner',
+    emailVerified: true,
+    _json: { roles: ['super-admin'] },
+  };
+
+  beforeEach(() => {
+    vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', 'hosted');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('does not treat a bare owner as admin', () => {
+    expect(isAdmin(tenantOwner)).toBe(false);
+    expect(isAdminRole(tenantOwner)).toBe(false);
+    expect(hasApiRole(tenantOwner, 'admin')).toBe(false);
+    expect(hasApiRole(tenantOwner, 'owner')).toBe(true);
+    expect(isAdmin(admin)).toBe(true);
+    expect(isAdmin(platformOwner)).toBe(true);
+    expect(hasApiRole(platformOwner, 'admin')).toBe(true);
+  });
+
+  it('GET /admin/coordination/sessions denies a bare owner', async () => {
+    const app = coordination(tenantOwner);
+    const res = await app.fetch(new Request('http://localhost/sessions'));
+    expect(res.status).toBe(403);
   });
 });
