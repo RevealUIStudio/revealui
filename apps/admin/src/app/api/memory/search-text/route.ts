@@ -9,6 +9,7 @@
 
 import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/utils/logger';
+import { isAdmin as holdsAdmin } from '@revealui/utils/validation';
 import { type NextRequest, NextResponse } from 'next/server';
 import { checkAIMemoryFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response';
@@ -103,7 +104,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Perform vector search  -  enforce userId so non-admins can only search their own memories
     // Strip siteId from options for non-admins to prevent cross-tenant data access
     const service = new vectorMod.VectorMemoryService();
-    const isAdmin = authSession.user.role === 'admin';
+    const isAdmin = holdsAdmin(authSession.user);
     const safeOptions = {
       ...options,
       limit: options.limit ?? 10,

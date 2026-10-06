@@ -21,6 +21,7 @@ import {
   McpOAuthProvider,
   type OAuthClientMetadata,
 } from '@revealui/mcp/oauth';
+import { isAdmin } from '@revealui/utils/validation';
 import { type NextRequest, NextResponse } from 'next/server';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   if (!authSession) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  if (authSession.user.role !== 'admin') {
+  if (!isAdmin(authSession.user)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

@@ -19,6 +19,7 @@ import { getSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
 import { taskSubmissions } from '@revealui/db/schema';
 import { logger } from '@revealui/utils/logger';
+import { isAdmin } from '@revealui/utils/validation';
 import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import {
@@ -86,7 +87,7 @@ export async function PATCH(
       return createApplicationErrorResponse('Task not found', 'NOT_FOUND', 404);
     }
 
-    if (session.user.role !== 'admin') {
+    if (!isAdmin(session.user)) {
       if (task.submitterId !== session.user.id) {
         return createApplicationErrorResponse('Forbidden', 'FORBIDDEN', 403);
       }
@@ -182,7 +183,7 @@ export async function DELETE(
       return createApplicationErrorResponse('Task not found', 'NOT_FOUND', 404);
     }
 
-    if (session.user.role !== 'admin') {
+    if (!isAdmin(session.user)) {
       if (task.submitterId !== session.user.id) {
         return createApplicationErrorResponse('Forbidden', 'FORBIDDEN', 403);
       }

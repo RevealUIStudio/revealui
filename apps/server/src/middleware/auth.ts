@@ -149,7 +149,8 @@ export const authMiddleware = (options: AuthOptions = {}): MiddlewareHandler => 
 
 /**
  * Require specific roles. Must be used after authMiddleware({ required: true }).
- * Platform super-admin satisfies `admin` / `owner` requirements (GAP-444).
+ * Uses the platform ladder: owner satisfies admin and super-admin, and a
+ * verified super-admin satisfies admin. An owner-only list stays owner-only.
  */
 export const requireRole = (...roles: string[]): MiddlewareHandler => {
   return async (c, next) => {

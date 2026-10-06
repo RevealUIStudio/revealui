@@ -4,7 +4,7 @@
  * Tests for all role-based access functions used by admin collections.
  */
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Role } from '../permissions/roles';
 import { anyone } from '../roles/anyone';
 import { authenticated } from '../roles/authenticated';
@@ -161,6 +161,20 @@ describe('isAdmin', () => {
   it('denies TenantAdmin (not a user-level admin)', () => {
     expect(isAdmin({ req: makeReq(tenantAdmin) })).toBe(false);
   });
+
+  it('allows a shell owner whose app-layer roles are not admin on forge', () => {
+    vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', 'forge');
+    const shellOwner: UserWithRoles = { id: 'own', role: 'owner', roles: [Role.Viewer] };
+    expect(isAdmin({ req: makeReq(shellOwner) })).toBe(true);
+    vi.unstubAllEnvs();
+  });
+
+  it('denies a bare shell owner on hosted', () => {
+    vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', 'hosted');
+    const shellOwner: UserWithRoles = { id: 'own', role: 'owner', roles: [Role.Viewer] };
+    expect(isAdmin({ req: makeReq(shellOwner) })).toBe(false);
+    vi.unstubAllEnvs();
+  });
 });
 
 // ─── isSuperAdmin ────────────────────────────────────────────────────────────
@@ -176,6 +190,11 @@ describe('isSuperAdmin', () => {
 
   it('denies UserAdmin', async () => {
     expect(await isSuperAdmin({ req: makeReq(admin) })).toBe(false);
+  });
+
+  it('denies a shell owner who does not carry the super-admin marker', async () => {
+    const shellOwner: UserWithRoles = { id: 'own', role: 'owner', roles: [Role.Viewer] };
+    expect(await isSuperAdmin({ req: makeReq(shellOwner) })).toBe(false);
   });
 
   it('denies unauthenticated', async () => {

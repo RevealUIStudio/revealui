@@ -590,6 +590,11 @@ export async function gate(): Promise<void> {
         args: ['validate:empty-catch'],
       },
       {
+        name: 'Admin role literal (hard fail)',
+        command: 'pnpm',
+        args: ['validate:admin-role'],
+      },
+      {
         name: 'as-never on drizzle .values() (hard fail)',
         command: 'pnpm',
         args: ['validate:as-never-values'],

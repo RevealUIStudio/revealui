@@ -1,5 +1,6 @@
 import * as boardQueries from '@revealui/db/queries/boards';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
+import { isAdmin } from '@revealui/utils/validation';
 import { HTTPException } from 'hono/http-exception';
 import type { Variables } from '../_helpers/access.js';
 import { assertBoardTenantAccess } from '../_helpers/access.js';
@@ -129,7 +130,7 @@ app.openapi(
     if (!board) throw new HTTPException(404, { message: 'Board not found' });
     assertBoardTenantAccess(board, c.get('tenant'));
     const user = c.get('user');
-    if (board.ownerId && board.ownerId !== user?.id && user?.role !== 'admin') {
+    if (board.ownerId && board.ownerId !== user?.id && !isAdmin(user)) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     return c.json({ success: true as const, data: board }, 200);
@@ -175,7 +176,7 @@ app.openapi(
     if (!existing) throw new HTTPException(404, { message: 'Board not found' });
     assertBoardTenantAccess(existing, c.get('tenant'));
     const user = c.get('user');
-    if (existing.ownerId && existing.ownerId !== user?.id && user?.role !== 'admin') {
+    if (existing.ownerId && existing.ownerId !== user?.id && !isAdmin(user)) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const board = await boardQueries.updateBoard(db, id, body);
@@ -209,7 +210,7 @@ app.openapi(
     const board = await boardQueries.getBoardById(db, id);
     if (!board) throw new HTTPException(404, { message: 'Board not found' });
     const user = c.get('user');
-    if (board.ownerId && board.ownerId !== user?.id && user?.role !== 'admin') {
+    if (board.ownerId && board.ownerId !== user?.id && !isAdmin(user)) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     await boardQueries.deleteBoard(db, id);

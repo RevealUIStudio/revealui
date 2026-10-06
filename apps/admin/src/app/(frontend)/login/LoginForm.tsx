@@ -16,7 +16,7 @@ import {
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { type ChangeEvent, type FormEvent, Suspense, useState } from 'react';
-import { isAdminRole } from '@/lib/access/roles/isAdminRole';
+import { isAdmin } from '@/lib/access/roles/isAdminRole';
 import { PasswordInput } from '@/lib/components/PasswordInput';
 import { navigateAfterAuthChange } from '@/lib/utils/auth-navigation';
 import { buildAuthIntentQuery, readAuthIntent, resolveAuthDest } from '@/lib/utils/auth-redirect';
@@ -124,7 +124,7 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
         upgrade,
         license,
         redirect,
-        fallback: isAdminRole(result.user.role) ? '/' : '/welcome',
+        fallback: isAdmin(result.user) ? '/' : '/welcome',
       });
       navigateAfterAuthChange(dest);
     } else if ('requiresMfa' in result && result.requiresMfa) {
