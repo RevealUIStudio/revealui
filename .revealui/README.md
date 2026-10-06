@@ -79,6 +79,62 @@ including supporting resources. CI runs the same check for `.agents/`, project
 instruction files, manager files, and harness changes. Instruction delivery does
 not establish runtime dispatch or blocking lifecycle enforcement.
 
+## Local Codex runtime
+
+`CodexAdapter` is exported by `@revealui/harnesses` and registered by the existing
+harness auto-detector when `codex app-server` is available. It uses the user's
+normal Codex login and configuration; RevealUI does not copy credentials.
+
+The transport is app-server v2 over stdio, verified against Codex CLI 0.160.0.
+Each dispatch initializes a child, starts or resumes a thread and one turn, and
+returns the authoritative final assistant message only after a completed turn.
+An active turn emits `generation-ready` with its task, thread, and turn IDs.
+Callers can cancel from that event without polling. Streaming text uses
+`generation-progress`; failed and cancelled runs have
+separate terminal events and never emit `generation-completed`.
+
+Supported commands are `headless-prompt`, `generate-code`, `analyze-code`,
+`get-status`, `get-running-instances`, and `cancel-generation`. Cancellation
+accepts an optional `taskId` to prevent cancelling another caller's task. One
+adapter instance runs one generation at a time; another dispatch is rejected
+until cleanup finishes. `dispose()` cancels active work and releases the child.
+
+Constructor options include `projectRoot`, `model`, `reasoningEffort`,
+`timeoutMs`, `binaryPath`, and `sandbox`. The default sandbox is `read-only`;
+`workspace-write` requires explicit configuration. Model selection inherits
+Codex configuration when omitted. There is a 120-second default timeout and
+10 MiB aggregate transport output limit. `maxTurns` is rejected because this
+transport slice cannot enforce it. Registered Codex projects must pass native
+delivery checks before dispatch; maintained materialization repairs delivery.
+
+Pass a previous result's `threadId` on `headless-prompt` to resume. The adapter
+reads stored metadata and rejects threads outside `projectRoot`; it reapplies
+the configured sandbox, approval policy, model, instructions, and MCP entries.
+A missing or rejected thread fails rather than starting a replacement.
+
+`onApproval(request, signal)` connects a host's review UI. The request includes
+native command/file details and task/request IDs. Return `accept`, `decline`,
+or `cancel` for that request; cancellation also interrupts generation.
+Missing, failed, expired, or invalid review declines;
+`approvalTimeoutMs` defaults to 30 seconds. Cancellation and server resolution
+abort pending review and discard late answers. Session-wide decisions, policy
+amendments, and `grantRoot` requests are not accepted. Other unsupported server
+requests receive a protocol error. On Unix, cleanup terminates the process group
+and escalates to SIGKILL after 500 ms.
+
+`mcpServers` accepts the existing canonical stdio MCP entries. Supplied servers
+are required: startup failure prevents dispatch. To attach shared memory, pass
+`studioLocalKnowledgeGraphMcpServer()` exported by `@revealui/harnesses`, as an
+entry. This launches `revealui-mcp knowledge-graph` through Codex's supported
+thread configuration; it does not write home configuration. The MCP package
+must be installed, and its existing principal provider and database must be
+available. Missing identity or storage remains an explicit unavailable result.
+The adapter creates no identity, memory store, or automatic publication.
+
+Resume and MCP attachment are supported. Shared-memory capability remains
+disabled pending authenticated end-to-end validation. Fork, background execution,
+coordination, lifecycle hooks, and a packaged review UI remain follow-up work.
+
 ## Machine vs project
 
 | Root | Role |

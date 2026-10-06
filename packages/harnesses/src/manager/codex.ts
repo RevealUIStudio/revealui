@@ -80,9 +80,11 @@ Shared skills and supporting resources are generated under ${content}/skills/ an
 Native discovery paths are fixed by Codex; manager contentRoot configures the shared source location.
 
 The native entry point is AGENTS.md (or a non-empty AGENTS.override.md).
-This adapter supplies project instructions and skills. It does not claim a programmatic
-Codex executor or lifecycle-hook integration. Those capabilities remain separate
-from the shared policy adapter. Keep credentials in the existing secret store.
+This adapter supplies project instructions and skills. CodexAdapter also provides
+bounded app-server dispatch, streamed output, project-scoped resume, MCP attachment,
+and cancellation through the shared harness registry. Approval review uses an optional
+host callback; absent review declines. Shared-memory authorization, lifecycle hooks,
+and a packaged review UI remain separate runtime milestones. Keep credentials in the existing secret store.
 
 Instruction discovery: https://learn.chatgpt.com/docs/agent-configuration/agents-md
 `;

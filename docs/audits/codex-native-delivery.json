@@ -174,15 +174,16 @@
   ],
   "followUp": {
     "id": "HARNESS-CODEX-RUNTIME",
-    "status": "planned",
+    "status": "in-progress",
     "owner": "@revealui/harnesses adapter/protocol framework",
     "owningPaths": [
+      "packages/harnesses/src/adapters/codex-adapter.ts",
       "packages/harnesses/src/adapters",
       "packages/harnesses/src/detection/auto-detector.ts",
       "packages/harnesses/src/protocol/capabilities.ts",
       "packages/harnesses/src/session/resolve-adapter.ts"
     ],
-    "currentBehavior": "Codex is an instruction/skill adapter; programmatic execution and lifecycle integration are absent",
+    "currentBehavior": "Bounded dispatch, stream normalization, cancellation/cleanup, project-scoped persisted resume, canonical stdio MCP attachment, and bounded host approval review are implemented; authenticated shared memory, lifecycle hooks, and a packaged review UI remain follow-ups",
     "durableTarget": "Supported Codex transport integrated with the existing adapter framework, shared MCP/memory, cancellation and resumable lifecycle; advertise only verified capabilities",
     "validation": [
       "Real Codex dispatch and output normalization",
@@ -244,5 +245,96 @@
       "revconTests": "10 groups passed, including five native fixtures",
       "typecheck": "passed"
     }
+  },
+  "runtimeSlice": {
+    "date": "2026-10-06",
+    "transport": "Codex app-server v2, stdio JSON messages",
+    "verifiedCliVersion": "0.160.0",
+    "documentation": "https://learn.chatgpt.com/docs/app-server",
+    "wireVerification": "Official documentation and installed CLI generate-ts schemas; no generated protocol dependency installed",
+    "owningAdapter": "packages/harnesses/src/adapters/codex-adapter.ts",
+    "implemented": [
+      "fresh-thread dispatch",
+      "streaming and authoritative final output",
+      "generation-ready event with task/thread/turn identifiers",
+      "turn/interrupt cancellation",
+      "timeout/output bounds",
+      "process-group termination and pipe cleanup",
+      "registered native-delivery preflight",
+      "existing registry auto-detection and public export",
+      "project-scoped persisted-thread resume",
+      "canonical required stdio MCP configuration",
+      "bounded request-scoped host approval callback",
+      "abort and discard late/resolved approval answers",
+      "command-routed lazy CLI imports"
+    ],
+    "disabledCapabilities": [
+      "fork",
+      "background execution",
+      "interactive approval UI",
+      "lifecycle hooks",
+      "shared memory",
+      "workboard/coordination"
+    ],
+    "validation": {
+      "liveDispatch": "passed; exact expected response; read-only temporary project",
+      "liveCancellation": "passed; ready event triggered cancellation, interrupted result, no generation-completed event",
+      "liveModel": "gpt-6.1-sol",
+      "liveReasoningEffort": "low",
+      "availability": "installed CLI version/help verified",
+      "tests": {
+        "fullSuite": "Final isolated staged tree: 54 files, 671 tests passed in 41.92 seconds",
+        "adapterSuite": "35 adapter regression tests passed, including host cancellation racing terminal completion",
+        "typecheck": "isolated staged tree passed",
+        "build": "passed after resume, MCP, approvals, and lazy CLI routing changes",
+        "changedSourceBiome": "13 staged source files passed; final cancellation edit formatted and checked",
+        "deliveryCheck": "maintained isolated manager materialize and manager check passed with no errors or warnings",
+        "isolatedCliDiagnostic": "Before the CLI root fix: six isolated hook tests passed in 3.52 seconds, while the full-suite cold-start failure still required correction",
+        "transportAndCapabilities": "Initial focused verification: 65 tests passed; final full suite includes the added host cancellation case",
+        "previousFullSuite": "55 files; 661 of 662 tests passed",
+        "previousFailure": "Existing CLI hook fixture timed out its first tsx startup after 20 seconds; exit 143"
+      },
+      "liveResume": "passed through built CodexAdapter; same thread and retained previous reply after completed initial turn",
+      "liveMcp": "passed against installed app-server with synthetic stdio server; startup, tools discovery, and canonical dotted configuration; zero inference calls"
+    },
+    "priorExceptionInventory": "No prior Codex executor, operational recipe, or second transport exists in the affected adapter/protocol/detection paths. Superseded aspirational profile is removed from ROADMAP_PROFILES; shipped capabilities remain conservative.",
+    "validationDebt": {
+      "id": "HARNESS-CLI-STARTUP",
+      "owningPaths": [
+        "packages/harnesses/src/__tests__/cli-hook.test.ts",
+        "packages/harnesses/src/cli.ts"
+      ],
+      "owner": "@revealui/harnesses CLI/bootstrap",
+      "failingBehavior": "Before the fix, first source-loaded CLI hook startup intermittently exceeded its 20-second subprocess budget in the complete suite; observed before this runtime slice as well",
+      "durableTarget": "CLI routes before importing ACP, inference, content, session, and other command implementations; preserve hook assertions and timeout",
+      "validationNeeded": "Continue running the existing full harness suite and CLI hook regression tests with their original deadlines.",
+      "status": "resolved",
+      "priorExceptionInventory": "The existing CLI hook test uses a synchronous stdin subprocess fixture; no timeout increase, environment override, or production workaround was introduced.",
+      "removalEvidence": "Command implementations moved from eager entry-point imports into their owning CLI branches; two complete isolated suites passed (670 then 671 tests), including all unchanged CLI hook deadline assertions."
+    },
+    "remainingWork": [
+      {
+        "id": "HARNESS-CODEX-MEMORY-AUTH",
+        "owner": "@revealui/harnesses session boundary and @revealui/mcp knowledge-graph principal/storage",
+        "owningPaths": [
+          "packages/harnesses/src/session/boundary.ts",
+          "packages/mcp/src/servers/_kg-principal.ts",
+          "packages/mcp/src/servers/knowledge-graph.ts"
+        ],
+        "failingBehavior": "MCP attachment is wired, but authenticated memory read/write through a registered Codex runtime session is not established; the MCP executable is not currently on the local PATH.",
+        "durableTarget": "Use maintained MCP package installation and existing signed session identity/authorization for the nested app-server process; retain unavailable/denied results when identity or storage is absent.",
+        "validationNeeded": "Authenticated publish/query round trip, missing principal/storage behavior, cross-scope denial, principal propagation and cleanup through real Codex; no new store, synthetic identity, or machine-only launcher."
+      },
+      {
+        "id": "HARNESS-CODEX-APPROVAL-UI",
+        "owner": "@revealui/harnesses and consuming host UI",
+        "owningPaths": [
+          "packages/harnesses/src/adapters/codex-adapter.ts"
+        ],
+        "failingBehavior": "Host callback is implemented, but no packaged host review UI is supplied.",
+        "durableTarget": "Wire the consuming host review surface to onApproval with the native request details and AbortSignal.",
+        "validationNeeded": "User accept/decline/cancel, expired review, cancellation, server resolution, and no late grants in the consuming host."
+      }
+    ]
   }
 }

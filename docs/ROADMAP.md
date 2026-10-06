@@ -119,11 +119,14 @@ We prioritize based on customer impact, charge readiness, and community demand.
 ### HARNESS-CODEX-RUNTIME — Codex execution and lifecycle integration
 
 Native instruction and skill delivery is implemented through the project manager.
-The execution adapter remains planned. Its owner is `@revealui/harnesses`: extend
-the existing adapter/protocol framework, auto-detection, and session resolution.
-Validate real dispatch, cancellation and cleanup, resume/reconnect, lifecycle
-events, shared MCP/memory access, and supported blocking authorization before
-promoting any capability from the roadmap profile.
+The execution adapter extends the existing harness framework and auto-detection
+with bounded app-server dispatch, streamed final output, cancellation/cleanup,
+project-scoped resume, canonical MCP attachment, and request-scoped host approval
+review. Its owner remains `@revealui/harnesses`. Authenticated shared-memory
+access, lifecycle hooks, and a packaged approval UI remain durable follow-up
+work. Memory reuses the existing knowledge-graph MCP principal/storage owners;
+do not create a second identity or store. Validate each integration before
+enabling its capability in the shipped profile.
 
 Migration locations, owners, canonical sources, destinations, and removal evidence
 are recorded in [codex-native-delivery.json](audits/codex-native-delivery.json).
@@ -135,3 +138,12 @@ content snapshots, and content freshness passed; Biome lint failed on existing
 source findings. Fix the owning files listed in the migration audit and rerun
 `pnpm gate:quick`; do not suppress or bypass checks. Dependency owners must
 also address the security audit findings reported as a warning.
+
+### HARNESS-CLI-STARTUP — Bound cold CLI hook startup
+
+Resolved in the CLI owner: command routing now precedes imports of ACP,
+inference, content generation, session, and other command implementations.
+The hook path keeps its existing end-to-end assertions and 20-second subprocess
+budget. Cold full-suite validation passed after this change; keep the existing
+CLI hook suite as the regression gate. Evidence and prior failure behavior are
+recorded in the native delivery audit.

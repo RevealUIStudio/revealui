@@ -114,17 +114,27 @@ export function createDefaultCapabilities(): ProtocolCapabilities {
 /**
  * Capability profiles for tools that have working adapters in this package.
  *
- * `revealui-agent`, `opencode`, `cursor`, and `grok` ship adapters today
+ * `revealui-agent`, `codex`, `opencode`, `cursor`, and `grok` ship adapters today
  * (`OpenCodeAdapter` / `CursorAdapter` / `GrokAdapter`, `src/adapters/*.ts`). Profile data
  * for tools that are spec'd but have no adapter implementation lives in
  * `./roadmap-profiles.ts` to make the spec-vs-shipped gap structurally
  * visible.
  *
- * If you're looking for the previous full set (claude-code, codex,
+ * If you're looking for the previous full set (claude-code,
  * cursor, revealui-agent, opencode), import `ALL_KNOWN_PROFILES` from
  * `./roadmap-profiles.ts` which merges both.
  */
 export const TOOL_PROFILES: Record<string, ProtocolCapabilities> = {
+  // The app-server adapter implements bounded dispatch, resume and MCP attach. Native host
+  // features do not become shared capabilities until this adapter wires them.
+  codex: {
+    ...createDefaultCapabilities(),
+    dispatch: { generateCode: true, analyzeCode: true, applyEdit: false, executeCommand: false },
+    headless: true,
+    resumable: true,
+    supportsMcp: true,
+    sandbox: { supported: true, modes: ['read-only', 'workspace-write'] },
+  },
   // OpenCode brings its own model (BYO via models.dev/AI-SDK) and has no
   // in-loop hook system today -- an OpenCode plugin could add one later,
   // but until a plugin ships, `hooks.supported` stays honestly false.

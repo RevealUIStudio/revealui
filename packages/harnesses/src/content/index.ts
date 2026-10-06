@@ -19,8 +19,8 @@
  * vendor surfaces are emitted on the **same path** as manager content (equal
  * adapters), not only as orphaned hooks-tree tooling.
  *
- * The adapter layer (`../adapters/`) ships `revealui-agent`, `opencode`, and
- * `cursor` — `vscode` has no adapter (no headless CLI to exec).
+ * The adapter layer (`../adapters/`) ships `revealui-agent`, `codex`, `opencode`,
+ * `cursor`, and `grok` — `vscode` has no adapter (no headless CLI to exec).
  *
  * @example
  * ```ts
