@@ -2,6 +2,7 @@
  * @revealui/config - Database Configuration Module
  */
 
+import { resolveDatabaseUrl } from '../database-url.js';
 import type { EnvConfig } from '../schema.js';
 
 export interface DatabaseConfig {
@@ -10,8 +11,9 @@ export interface DatabaseConfig {
 }
 
 export function getDatabaseConfig(env: EnvConfig): DatabaseConfig {
-  // Accept POSTGRES_URL or DATABASE_URL (as fallback)
-  const url = env.POSTGRES_URL || env.DATABASE_URL || '';
+  // Same decision as every other runtime caller. Empty when nothing is set,
+  // so existing config consumers keep a string.
+  const url = resolveDatabaseUrl(env) ?? '';
 
   return {
     url,

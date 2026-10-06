@@ -12,6 +12,7 @@
  * Do NOT import in client-side code or edge runtime.
  */
 
+import { resolveDatabaseUrl } from '@revealui/config/database-url';
 import type { Field } from '@revealui/contracts/admin';
 import { logger } from '../observability/logger.js';
 import type { DatabaseAdapter, DatabaseResult, QueryableDatabaseAdapter } from '../types/index.js';
@@ -28,8 +29,9 @@ export interface UniversalPostgresAdapterConfig {
    */
   connectionString?: string;
   /**
-   * Environment variable name for connection string
-   * Defaults to checking: DATABASE_URL, POSTGRES_URL, SUPABASE_DATABASE_URI
+   * Environment variable name for connection string.
+   * When set, that variable is tried before resolveDatabaseUrl().
+   * When omitted, resolveDatabaseUrl() chooses the URL.
    */
   envVar?: string;
   /**
@@ -152,6 +154,22 @@ function detectProvider(connectionString: string): 'neon' | 'supabase' | 'electr
 /**
  * Creates a universal PostgreSQL adapter that works with Neon, Supabase, and Electric Postgres
  */
+function configuredConnectionString(config: UniversalPostgresAdapterConfig): string | undefined {
+  if (typeof config.connectionString === 'string' && config.connectionString.length > 0) {
+    return config.connectionString;
+  }
+  if (config.envVar) {
+    const named = process.env[config.envVar];
+    if (typeof named === 'string' && named.length > 0) return named;
+  }
+  return resolveDatabaseUrl();
+}
+
+function hasConfiguredDatabase(config: UniversalPostgresAdapterConfig): boolean {
+  if (config.connectionString || config.envVar) return true;
+  return Boolean(resolveDatabaseUrl());
+}
+
 export function universalPostgresAdapter(
   config: UniversalPostgresAdapterConfig = {},
 ): DatabaseAdapter {
@@ -232,17 +250,11 @@ export function universalPostgresAdapter(
     if (config.provider === 'electric') {
       provider = 'electric';
     } else {
-      // Get connection string from config or environment
-      connectionString =
-        config.connectionString ||
-        process.env[config.envVar || 'DATABASE_URL'] ||
-        process.env.POSTGRES_URL ||
-        process.env.SUPABASE_DATABASE_URI ||
-        process.env.DATABASE_URL;
+      connectionString = configuredConnectionString(config);
 
       if (!connectionString) {
         throw new Error(
-          'Database connection string not found. Set DATABASE_URL, POSTGRES_URL, or SUPABASE_DATABASE_URI environment variable.',
+          'Database connection string not found. Set POSTGRES_URL, DATABASE_URL, NEON_DATABASE_URL, or SUPABASE_DATABASE_URI.',
         );
       }
 
@@ -543,14 +555,7 @@ export function universalPostgresAdapter(
     // Create table schema for PGlite provider
     // For other providers, tables should be created via migrations
     createTable:
-      config.provider === 'electric' ||
-      !(
-        config.connectionString ||
-        config.envVar ||
-        process.env.DATABASE_URL ||
-        process.env.POSTGRES_URL ||
-        process.env.SUPABASE_DATABASE_URI
-      )
+      config.provider === 'electric' || !hasConfiguredDatabase(config)
         ? (tableName: string, fields: Field[]) => {
             const createdTables = getWorkerCreatedTables();
 
@@ -658,14 +663,7 @@ export function universalPostgresAdapter(
 
     // Create global table schema for PGlite provider
     createGlobalTable:
-      config.provider === 'electric' ||
-      !(
-        config.connectionString ||
-        config.envVar ||
-        process.env.DATABASE_URL ||
-        process.env.POSTGRES_URL ||
-        process.env.SUPABASE_DATABASE_URI
-      )
+      config.provider === 'electric' || !hasConfiguredDatabase(config)
         ? (globalSlug: string, fields: Field[]) => {
             const tableName = `global_${globalSlug}`;
             const createdTables = getWorkerCreatedTables();

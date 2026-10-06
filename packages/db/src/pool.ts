@@ -4,6 +4,7 @@
  * Configured for high performance and reliability
  */
 
+import { resolveDatabaseUrl } from '@revealui/config/database-url';
 import { getSSLConfig } from '@revealui/utils/database';
 import { logger } from '@revealui/utils/logger';
 import { Pool, type PoolClient, type PoolConfig } from 'pg';
@@ -17,8 +18,8 @@ interface PoolClientWithPID extends PoolClient {
  * Get SSL configuration based on environment
  */
 function getPoolSSLConfig(): PoolConfig['ssl'] {
-  // If DATABASE_URL is available, use it to determine SSL config
-  const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  // SSL follows the same URL the pool connects with.
+  const databaseUrl = resolveDatabaseUrl();
   if (databaseUrl) {
     return getSSLConfig(databaseUrl);
   }
@@ -30,23 +31,24 @@ function getPoolSSLConfig(): PoolConfig['ssl'] {
 /**
  * Connection pool configuration optimized for performance
  *
- * Validation is deferred to first pool usage (getPool) to avoid crashing
- * modules that transitively import this file without needing the pool.
+ * Missing host/URL validation is deferred to first pool usage (getPool) so
+ * importing this file without a database does not crash. A production conflict
+ * between POSTGRES_URL and DATABASE_URL throws while poolConfig is built,
+ * because the URL is chosen at import.
  */
 function assertProductionConfig(): void {
-  if (
-    process.env.NODE_ENV === 'production' &&
-    !process.env.DATABASE_HOST &&
-    !process.env.DATABASE_URL &&
-    !process.env.POSTGRES_URL
-  ) {
+  if (process.env.NODE_ENV !== 'production') return;
+  // A conflicting pair throws here. Do not treat it as "a URL is configured".
+  const url = resolveDatabaseUrl();
+  if (!(process.env.DATABASE_HOST || url)) {
     throw new Error('DATABASE_HOST (or DATABASE_URL / POSTGRES_URL) must be set in production');
   }
 }
 
 /**
- * Connection identity: a URL (DATABASE_URL, then POSTGRES_URL) wins when
- * present; discrete DATABASE_* vars are the fallback. The two forms must not
+ * Connection identity: resolveDatabaseUrl() wins when a URL is present
+ * (POSTGRES_URL, then DATABASE_URL, then legacy names). Discrete DATABASE_*
+ * vars are the fallback. The two forms must not
  * be mixed in one config object: pg gives explicitly-set fields precedence
  * over connectionString parts, so a `host: 'localhost'` default alongside a
  * URL silently redirects the URL's host to localhost. That was the defect
@@ -57,7 +59,7 @@ function assertProductionConfig(): void {
 export function getConnectionIdentity(
   env: NodeJS.ProcessEnv = process.env,
 ): Pick<PoolConfig, 'connectionString' | 'host' | 'port' | 'database' | 'user' | 'password'> {
-  const url = env.DATABASE_URL || env.POSTGRES_URL;
+  const url = resolveDatabaseUrl(env);
   if (url) {
     return { connectionString: url };
   }

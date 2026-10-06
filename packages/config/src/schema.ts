@@ -184,8 +184,11 @@ const optionalSchema = z.object({
   REVEALUI_CORS_ORIGINS: z.string().optional(), // admin: comma-separated allowed origins (alias for CORS_ORIGIN)
   REVEALUI_WHITELISTORIGINS: z.string().optional(), // Deprecated  -  use CORS_ORIGIN
 
-  // Database
+  // Database. resolveDatabaseUrl() is the runtime decision. These optional
+  // names survive validation so config.database.url can see them.
   DATABASE_URL: postgresUrlSchema.optional(), // Fallback for POSTGRES_URL
+  NEON_DATABASE_URL: z.string().optional(),
+  SUPABASE_DATABASE_URI: z.string().optional(),
 
   // Electric
   NEXT_PUBLIC_ELECTRIC_SERVICE_URL: z.string().optional(),

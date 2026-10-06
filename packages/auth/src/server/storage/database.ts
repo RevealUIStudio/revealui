@@ -5,9 +5,7 @@
  * Uses existing database infrastructure with no external cache dependency
  */
 
-// Import config module (ESM)
-// Config uses proxy for lazy loading, so import is safe - validation only happens on property access
-import configModule from '@revealui/config';
+import { resolveDatabaseUrl } from '@revealui/config/database-url';
 import { createClient, type Database } from '@revealui/db/client';
 import { rateLimits } from '@revealui/db/schema';
 import { and, eq, gte } from 'drizzle-orm';
@@ -17,15 +15,8 @@ export class DatabaseStorage implements Storage {
   private db: Database;
 
   constructor(connectionString?: string) {
-    // Use centralized config, but allow override for testing
-    // Type assertion needed because config is a Proxy and TypeScript may not infer types correctly
-    const config = configModule as { database: { url: string } };
-    const url =
-      connectionString ||
-      config.database?.url ||
-      process.env.POSTGRES_URL ||
-      process.env.DATABASE_URL ||
-      '';
+    // Explicit argument wins (tests). Otherwise the shared resolver.
+    const url = connectionString || resolveDatabaseUrl() || '';
 
     if (!url) {
       throw new Error('Database connection string required for DatabaseStorage');

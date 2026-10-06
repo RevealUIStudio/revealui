@@ -1771,12 +1771,12 @@ NeonDB / Postgres connection.
 
 ```ts
 interface DatabaseConfig {
-  url: string; // POSTGRES_URL or DATABASE_URL or SUPABASE_DATABASE_URI
+  url: string; // resolveDatabaseUrl()
   connectionString: string; // same as url
 }
 ```
 
-**Env vars:** `POSTGRES_URL`, `DATABASE_URL`, `SUPABASE_DATABASE_URI` (first non-empty wins)
+**Env vars:** `POSTGRES_URL`, then `DATABASE_URL`, then `NEON_DATABASE_URL`, then `SUPABASE_DATABASE_URI` (first non-empty wins). `resolveDatabaseUrl()` in `@revealui/config/database-url` is the only runtime decision. When `POSTGRES_URL` and `DATABASE_URL` differ, development warns and uses `POSTGRES_URL`; production throws. The log names variables only.
 
 ---
 

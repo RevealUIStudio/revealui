@@ -1,4 +1,5 @@
 import { getSession } from '@revealui/auth/server';
+import { resolveDatabaseUrl } from '@revealui/config/database-url';
 import type { RevealRequest } from '@revealui/core';
 import type { Page as PageType } from '@revealui/core/types/admin';
 import { logger } from '@revealui/utils/logger';
@@ -84,11 +85,7 @@ export async function generateMetadata({
   params: Promise<{ slug?: string }>;
 }): Promise<Metadata> {
   // During build, return minimal metadata to avoid database connections
-  if (
-    process.env.NODE_ENV === 'production' &&
-    !process.env.POSTGRES_URL &&
-    !process.env.DATABASE_URL
-  ) {
+  if (process.env.NODE_ENV === 'production' && !resolveDatabaseUrl()) {
     const { slug = 'home' } = await params;
     return { title: slug };
   }

@@ -16,7 +16,7 @@
  * DATABASE_URL is missing).
  */
 
-import config from '@revealui/config';
+import { resolveDatabaseUrl } from '@revealui/config/database-url';
 import { logger } from '@revealui/core/observability/logger';
 import { DatabaseStorage } from './database.js';
 import { InMemoryStorage } from './in-memory.js';
@@ -32,20 +32,9 @@ export function getStorage(): Storage {
     return globalStorage;
   }
 
-  // Priority: Database > In-Memory
-  // Try config first (may throw ConfigValidationError if unrelated env vars are missing),
-  // then fall back to process.env so Vercel deployments with a valid DATABASE_URL
-  // don't silently degrade to per-instance InMemoryStorage.
-  let dbUrl: string | undefined;
-  try {
-    const configUrl = config?.database?.url;
-    if (typeof configUrl === 'string' && configUrl) {
-      dbUrl = configUrl;
-    }
-  } catch {
-    // Config validation failed  -  try process.env fallback below
-  }
-  dbUrl = dbUrl || process.env.POSTGRES_URL || process.env.DATABASE_URL;
+  // One URL for the process. A production conflict throws here and must not
+  // fall through to in-memory storage.
+  const dbUrl = resolveDatabaseUrl();
 
   if (dbUrl) {
     try {
@@ -78,17 +67,14 @@ export function getStorage(): Storage {
  * Create a new storage instance (for testing)
  */
 export function createStorage(): Storage {
-  // Use centralized config for database URL
   try {
-    if (config?.database?.url) {
-      try {
-        return new DatabaseStorage();
-      } catch {
-        // Fall through to in-memory
-      }
+    const url = resolveDatabaseUrl();
+    if (url) {
+      return new DatabaseStorage(url);
     }
-  } catch {
-    // Config validation failed  -  fall through to in-memory
+  } catch (error) {
+    // Production conflict must not degrade to per-process memory.
+    if (process.env.NODE_ENV === 'production') throw error;
   }
 
   return new InMemoryStorage();

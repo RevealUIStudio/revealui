@@ -1,6 +1,7 @@
 import { createPrivateKey } from 'node:crypto';
 // Shared live/test classification — same rule the runtime money-boundary guard
 // (getStripe) uses, so the boot validator and the request path can't drift.
+import { resolveDatabaseUrl } from '@revealui/config/database-url';
 import {
   classifyStripePublishableKey,
   classifyStripeSecretKey,
@@ -253,6 +254,11 @@ export function validateStartup(
         'Check your .env file or deployment configuration.',
     );
   }
+
+  // Presence above accepts either canonical name. This call is the shared
+  // decision: production throws when the two values differ, other environments
+  // warn and keep POSTGRES_URL. The resolver never logs URL values.
+  resolveDatabaseUrl(env);
 
   if (env.NODE_ENV !== 'production') {
     return;

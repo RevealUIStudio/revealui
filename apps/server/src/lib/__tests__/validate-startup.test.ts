@@ -1,4 +1,5 @@
 import { generateKeyPairSync } from 'node:crypto';
+import { resetDatabaseUrlConflictWarning } from '@revealui/config/database-url';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { type EnvMap, validateStartup } from '../validate-startup.js';
 
@@ -86,6 +87,38 @@ describe('validateStartup — always-required presence', () => {
     expect(() =>
       validateStartup({ NODE_ENV: 'development', DATABASE_URL: 'postgresql://x' }),
     ).not.toThrow();
+  });
+
+  it('warns and continues in development when POSTGRES_URL and DATABASE_URL differ', () => {
+    resetDatabaseUrlConflictWarning();
+    const warn = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
+    try {
+      expect(() =>
+        validateStartup({
+          NODE_ENV: 'development',
+          POSTGRES_URL: 'postgresql://primary.example/db',
+          DATABASE_URL: 'postgresql://other.example/db',
+        }),
+      ).not.toThrow();
+      const warning = String(warn.mock.calls[0]?.[0]);
+      expect(warning).toContain('POSTGRES_URL');
+      expect(warning).toContain('DATABASE_URL');
+      expect(warning).not.toContain('primary.example');
+      expect(warning).not.toContain('postgresql://');
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it('fails closed in production when POSTGRES_URL and DATABASE_URL differ', () => {
+    expect(() =>
+      validateStartup({
+        NODE_ENV: 'production',
+        REVEALUI_DEPLOYMENT_MODE: 'hosted',
+        POSTGRES_URL: 'postgresql://primary.example/db',
+        DATABASE_URL: 'postgresql://other.example/db',
+      }),
+    ).toThrow('Refusing to choose');
   });
 
   it('throws when NODE_ENV is missing', () => {

@@ -258,15 +258,16 @@ function reconstructEvent(entry: {
  */
 export function assertAuditStorageEnv(env: NodeJS.ProcessEnv = process.env): void {
   // GAP-417 item 5: the predicate is OWNED by @revealui/db and matches
-  // getClient()'s resolution exactly (config url, then POSTGRES_URL /
-  // DATABASE_URL). The previous local triple also accepted DATABASE_HOST,
-  // which getClient() never consults — so the assert passed, the install then
-  // threw, and production silently kept the in-memory sink (proven in the
-  // #2161 re-review). Never re-inline this check.
+  // getClient()'s resolution exactly (resolveDatabaseUrl()). The previous
+  // local check also accepted DATABASE_HOST, which getClient() never
+  // consults, so the assert passed, the install then threw, and production
+  // silently kept the in-memory sink (proven in the #2161 re-review). Never
+  // re-inline this check. A production conflict throws from the resolver
+  // instead of looking like a missing URL.
   if (!hasDatabaseConnectionEnv(env)) {
     throw new Error(
       'AUDIT STORAGE ENV PARITY FAILED: no usable database connection is configured ' +
-        '(set POSTGRES_URL or DATABASE_URL, or provide @revealui/config database.url), ' +
+        '(set POSTGRES_URL or DATABASE_URL), ' +
         'so the audit write path cannot persist rows. Refusing to serve — an agent ' +
         'action that cannot be recorded must not execute (fail-closed integrity, ' +
         'docs/decisions/2026-07-12-audit-receipt-architecture.md §2a).',

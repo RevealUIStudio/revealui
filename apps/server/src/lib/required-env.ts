@@ -9,17 +9,15 @@
  */
 
 // Required-always env vars expressed as alias groups: each group is satisfied
-// when AT LEAST ONE of its names is set. This handles the Postgres connection
-// string having two equally-valid names in the codebase: `POSTGRES_URL` is the
-// historical Vercel-default name (used by validateStartup since the api app
-// was scaffolded), while `DATABASE_URL` is the name read by drizzle-orm's
-// rate-limit middleware path and several @neondatabase/serverless integrations.
-// Either is acceptable as long as ONE of them is set; the runtime resolves the
-// connection string from whichever is present. Treating them as aliases also
-// papers over the Vercel `vercel pull` quirk where Sensitive-marked vars
-// (POSTGRES_URL became sensitive on 2026-05-01) are excluded from the pulled
-// `.env.production.local` even though they're available at runtime — see the
-// 2026-05-01 deploy.yml validate-prod-env failure.
+// when AT LEAST ONE of its names is set. POSTGRES_URL and DATABASE_URL are
+// aliases for presence only. The runtime URL is chosen by resolveDatabaseUrl()
+// (POSTGRES_URL, then DATABASE_URL, then legacy names). When both canonical
+// names are set and differ, validateStartup fails closed in production.
+// Treating them as a presence group also papers over the Vercel `vercel pull`
+// quirk where Sensitive-marked vars (POSTGRES_URL became sensitive on
+// 2026-05-01) are excluded from the pulled `.env.production.local` even though
+// they're available at runtime. See the 2026-05-01 deploy.yml validate-prod-env
+// failure.
 export const REQUIRED_ALWAYS_GROUPS: ReadonlyArray<readonly string[]> = [
   ['POSTGRES_URL', 'DATABASE_URL'],
   ['NODE_ENV'],

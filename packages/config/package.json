@@ -36,6 +36,11 @@
       "types": "./dist/stripe-mode.d.ts",
       "import": "./dist/stripe-mode.js",
       "default": "./dist/stripe-mode.js"
+    },
+    "./database-url": {
+      "types": "./dist/database-url.d.ts",
+      "import": "./dist/database-url.js",
+      "default": "./dist/database-url.js"
     }
   },
   "files": [
