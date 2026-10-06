@@ -27,11 +27,15 @@ describe('MarkdownText', () => {
   });
 
   it('normalizes backslash http(s) URLs and marks them external', () => {
-    render(<MarkdownText text="[host](https:\\host) and [mail](mailto:support@revealui.com)" />);
+    render(
+      <MarkdownText text="[host](https:\\host), [docs](https://docs.revealui.com), and [mail](mailto:support@revealui.com)" />,
+    );
     const host = screen.getByRole('link', { name: 'host' });
     expect(host).toHaveAttribute('href', 'https://host/');
     expect(host).toHaveAttribute('target', '_blank');
     expect(host).toHaveAttribute('rel', 'noopener noreferrer');
+    const docs = screen.getByRole('link', { name: 'docs' });
+    expect(docs).toHaveAttribute('href', 'https://docs.revealui.com/');
     const mail = screen.getByRole('link', { name: 'mail' });
     expect(mail).toHaveAttribute('href', 'mailto:support@revealui.com');
     expect(mail.hasAttribute('target')).toBe(false);

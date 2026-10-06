@@ -123,9 +123,13 @@ describe('refund and support leftover catalog copy', () => {
     expect(text).not.toContain('https://docs.revealui.com');
 
     const docsLinks = screen.getAllByRole('link', { name: 'Documentation' });
-    expect(docsLinks.length).toBeGreaterThanOrEqual(1);
+    const docsHrefs = docsLinks.map((link) => link.getAttribute('href'));
+    // The notice anchor keeps SITE.urls.docs. MarkdownText returns url.href, which
+    // adds a trailing slash on an origin-only URL.
+    expect(docsHrefs).toContain(SITE.urls.docs);
+    expect(docsHrefs).toContain(`${SITE.urls.docs}/`);
     expect(
-      docsLinks.every((link) => link.getAttribute('href') === 'https://docs.revealui.com'),
+      docsHrefs.every((href) => href === SITE.urls.docs || href === `${SITE.urls.docs}/`),
     ).toBe(true);
     const discussions = screen.getByRole('link', { name: 'GitHub Discussions' });
     expect(discussions).toHaveAttribute(
