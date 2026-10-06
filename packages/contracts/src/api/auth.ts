@@ -13,6 +13,8 @@ import {
   SIGNUP_PASSWORD_MIN_MESSAGE,
 } from './password-policy.js';
 
+export { SIGNUP_PASSWORD_MIN_LENGTH, SIGNUP_PASSWORD_MIN_MESSAGE };
+
 /**
  * Sign-up request validation
  *

@@ -66,7 +66,7 @@ vi.mock('@/lib/utils/auth-navigation', () => ({
 
 vi.mock('@revealui/presentation/server', async () => {
   const { FormField } = await import(
-    '../../../../../../../packages/presentation/src/components/form-field.tsx'
+    '../../../../../../../packages/presentation/src/components/form-field'
   );
   return {
     FormField,
@@ -86,7 +86,7 @@ vi.mock('@revealui/presentation/server', async () => {
 
 vi.mock('@revealui/presentation/client', async () => {
   const checkbox = await import(
-    '../../../../../../../packages/presentation/src/components/Checkbox.tsx'
+    '../../../../../../../packages/presentation/src/components/Checkbox'
   );
   return { CheckboxCVA: checkbox.Checkbox };
 });
@@ -335,9 +335,21 @@ describe('SignupForm password requirements', () => {
         .getAllByRole('listitem')
         .find((element) => element.textContent?.includes(item.label));
       expect(row).toBeTruthy();
-      expect(row).toHaveTextContent('Not yet');
+      expect(row).toHaveTextContent(item.met ? 'Met' : 'Not yet');
     }
     expect(document.body.textContent?.includes('at least 8 characters')).toBe(false);
+
+    fireEvent.change(document.querySelector('#password') as HTMLInputElement, {
+      target: { value: 'Abcdefg1' },
+    });
+    const eightCharItems = signupPasswordChecklist('Abcdefg1');
+    expect(eightCharItems.find((item) => item.id === 'minLength')?.met).toBe(false);
+    for (const item of eightCharItems) {
+      const row = screen
+        .getAllByRole('listitem')
+        .find((element) => element.textContent?.includes(item.label));
+      expect(row).toHaveTextContent(item.met ? 'Met' : 'Not yet');
+    }
     expect(screen.getByLabelText('Password')).toHaveAttribute(
       'minLength',
       String(SIGNUP_PASSWORD_MIN_LENGTH),

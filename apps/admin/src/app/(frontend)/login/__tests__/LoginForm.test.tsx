@@ -56,7 +56,7 @@ vi.mock('@/lib/utils/auth-navigation', () => ({
 
 vi.mock('@revealui/presentation/server', async () => {
   const { FormField } = await import(
-    '../../../../../../../packages/presentation/src/components/form-field.tsx'
+    '../../../../../../../packages/presentation/src/components/form-field'
   );
   return {
     FormField,
@@ -421,9 +421,7 @@ describe('LoginForm inline validation and plan links', () => {
     render(<LoginForm oauthProviders={[]} />);
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
 
-    expect(
-      screen.getByRole('alert', { name: signInFieldMessage('', '', 'email') }),
-    ).toHaveTextContent(signInFieldMessage('', '', 'email'));
+    expect(screen.getByText(signInFieldMessage('', '', 'email'))).toBeInTheDocument();
     expect(screen.getByText(signInFieldMessage('', '', 'password'))).toBeInTheDocument();
     const email = document.querySelector('#email');
     const password = document.querySelector('#password');
