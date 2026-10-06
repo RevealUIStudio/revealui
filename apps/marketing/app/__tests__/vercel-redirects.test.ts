@@ -6,6 +6,7 @@ import {
   PRODUCT_BLOG_HOPS,
   pointsAtDocsBlog,
 } from '../../../../packages/contracts/src/nav-docs-boundary.ts';
+import { withoutTrailingSlash } from '../lib/html-shell';
 
 interface VercelCondition {
   type: string;
@@ -27,6 +28,8 @@ interface VercelRewrite {
 }
 
 interface VercelConfig {
+  trailingSlash?: boolean;
+  cleanUrls?: boolean;
   redirects?: VercelRedirect[];
   rewrites?: VercelRewrite[];
 }
@@ -124,7 +127,10 @@ describe('marketing vercel.json redirects', () => {
     const spaFallback = rewrites.find(
       (entry) => entry.source === '/(.*)' && entry.destination === '/index.html',
     );
-    expect(spaFallback, 'the SPA catch-all rewrite must remain after redirects').toBeDefined();
+    expect(
+      spaFallback,
+      'unknown paths must 404 instead of rewriting to index.html',
+    ).toBeUndefined();
 
     for (const source of ['/quote', '/calculator'] as const) {
       const redirect = redirects.find((entry) => entry.source === source);
@@ -184,6 +190,33 @@ describe('marketing vercel.json redirects', () => {
     }
     for (const redirect of redirects) {
       expect(pointsAtDocsBlog(redirect.destination)).toBe(false);
+    }
+  });
+
+  it('normalizes trailing slashes, /index.html, and leaves unknown case variants to 404', () => {
+    const config = readVercelConfig();
+    expect(config.trailingSlash).toBe(false);
+    expect(config.cleanUrls).toBe(true);
+    const index = (config.redirects ?? []).find((entry) => entry.source === '/index.html');
+    expect(index?.destination).toBe('/');
+    expect(index?.permanent).toBe(true);
+    expect(
+      (config.rewrites ?? []).some(
+        (entry) => entry.destination === '/index.html' && entry.source.includes('('),
+      ),
+    ).toBe(false);
+
+    const sitemap = readFileSync(path.resolve(process.cwd(), 'public/sitemap.xml'), 'utf8');
+    const locs = sitemap
+      .split('<loc>')
+      .slice(1)
+      .map((part) => part.split('</loc>')[0] ?? '');
+    for (const loc of locs) {
+      const pathname = new URL(loc).pathname;
+      if (pathname === '/') {
+        continue;
+      }
+      expect(withoutTrailingSlash(`${pathname}/`)).toBe(pathname);
     }
   });
 

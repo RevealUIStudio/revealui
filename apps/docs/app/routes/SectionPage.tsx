@@ -115,8 +115,9 @@ function SectionContent({ section, title }: SectionPageProps) {
     const fmTitle = typeof data.title === 'string' ? data.title.trim() : '';
     const fmDescription = typeof data.description === 'string' ? data.description.trim() : '';
     applyDocHead({
-      title: fmTitle === '' ? title : fmTitle,
-      description: fmDescription,
+      title: notFound ? 'Not Found' : fmTitle === '' ? title : fmTitle,
+      description: notFound ? '' : fmDescription,
+      noindex: notFound,
     });
     setRobotsNoindex(notFound);
     return () => setRobotsNoindex(false);

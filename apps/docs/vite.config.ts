@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vite';
+import { writeDocsShells } from './app/lib/write-docs-shells';
 import {
   cleanGeneratedPublicMirror,
   docsSourceDir,
@@ -120,8 +121,22 @@ function docsPublishPlugin(): Plugin {
   };
 }
 
+function docsShellsPlugin(): Plugin {
+  let outDir = '';
+  return {
+    name: 'docs-route-shells',
+    apply: 'build',
+    configResolved(config) {
+      outDir = path.resolve(config.root, config.build.outDir);
+    },
+    async closeBundle() {
+      await writeDocsShells(outDir);
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [tailwindcss(), react(), docsPublishPlugin()],
+  plugins: [tailwindcss(), react(), docsPublishPlugin(), docsShellsPlugin()],
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, './app'),

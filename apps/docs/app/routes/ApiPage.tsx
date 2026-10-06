@@ -6,6 +6,8 @@ import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { NotFoundPage } from '../components/NotFoundPage';
 import { useNoindex } from '../hooks/useNoindex';
 import { useWildcardPath } from '../hooks/useWildcardPath';
+import { applyDocHead } from '../lib/head';
+import { titleFromMarkdown } from '../lib/route-paths';
 import { loadMarkdownFile, renderMarkdown } from '../utils/markdown';
 import { resolveDocPath } from '../utils/paths';
 
@@ -72,6 +74,18 @@ function ApiPackageContent() {
       ctrl.abort();
     };
   }, [path]);
+
+  useEffect(() => {
+    if (loading || error !== null) {
+      return;
+    }
+    if (notFound) {
+      applyDocHead({ title: 'Not Found', noindex: true });
+      return;
+    }
+    const page = titleFromMarkdown(content, 'API Reference');
+    applyDocHead(page);
+  }, [loading, error, notFound, content]);
 
   if (loading) {
     return <LoadingSkeleton />;
@@ -156,6 +170,12 @@ pnpm docs:generate:api
 
 export function ApiPage() {
   const path = useWildcardPath();
+
+  useEffect(() => {
+    if (!path) {
+      applyDocHead({ title: 'API Reference' });
+    }
+  }, [path]);
 
   if (!path || path === '') {
     return <ApiIndex />;

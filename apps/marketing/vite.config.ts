@@ -2,12 +2,28 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
+import type { Plugin } from 'vite';
 import { defineConfig } from 'vite';
+import { writeMarketingShells } from './app/lib/write-marketing-shells';
+
+function marketingShellsPlugin(): Plugin {
+  let outDir = '';
+  return {
+    name: 'marketing-route-shells',
+    apply: 'build',
+    configResolved(config) {
+      outDir = path.resolve(config.root, config.build.outDir);
+    },
+    async closeBundle() {
+      await writeMarketingShells(outDir);
+    },
+  };
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  plugins: [tailwindcss(), react()],
+  plugins: [tailwindcss(), react(), marketingShellsPlugin()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './app'),

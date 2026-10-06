@@ -3,6 +3,8 @@
   "installCommand": "",
   "framework": "vite",
   "outputDirectory": "dist",
+  "trailingSlash": false,
+  "cleanUrls": true,
   "headers": [
     {
       "source": "/(.*)",
@@ -38,6 +40,9 @@
     }
   ],
   "redirects": [
+    { "source": "/index.html", "destination": "/", "permanent": true },
+    { "source": "/api", "destination": "/api/rest-api", "permanent": true },
+    { "source": "/mcp", "destination": "/pro/mcp", "permanent": true },
     { "source": "/docs/:path*", "destination": "/:path*", "permanent": true },
     { "source": "/contact", "destination": "https://revealui.com/contact", "permanent": true },
     { "source": "/reference/ai", "destination": "/ai", "permanent": true },
@@ -48,7 +53,6 @@
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
     { "source": "/robots.txt", "destination": "/robots.txt" },
-    { "source": "/llms.txt", "destination": "/llms.txt" },
-    { "source": "/((?!.*\\.mdx?$).*)", "destination": "/index.html" }
+    { "source": "/llms.txt", "destination": "/llms.txt" }
   ]
 }

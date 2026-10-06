@@ -28,7 +28,7 @@ beforeEach(() => {
   document.head.innerHTML = '';
   const canonical = document.createElement('link');
   canonical.rel = 'canonical';
-  canonical.href = 'https://revealui.com';
+  canonical.href = 'https://revealui.com/';
   document.head.appendChild(canonical);
 
   addMeta('meta[name="description"]', 'content', '');
