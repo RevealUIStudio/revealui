@@ -19,7 +19,7 @@ export async function getConversations(
     .select()
     .from(conversations)
     .where(and(eq(conversations.userId, userId), eq(conversations.status, 'active')))
-    .orderBy(desc(conversations.updatedAt))
+    .orderBy(desc(conversations.updatedAt), conversations.id)
     .limit(limit)
     .offset(offset);
 }
@@ -83,7 +83,7 @@ export async function getMessages(
     .select()
     .from(messages)
     .where(eq(messages.conversationId, conversationId))
-    .orderBy(messages.timestamp)
+    .orderBy(messages.timestamp, messages.id)
     .limit(limit)
     .offset(offset);
 }

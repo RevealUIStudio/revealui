@@ -36,7 +36,7 @@ export async function getAllOrders(
     .select()
     .from(orders)
     .where(conditions.length > 0 ? and(...conditions) : undefined)
-    .orderBy(desc(orders.createdAt))
+    .orderBy(desc(orders.createdAt), orders.id)
     .limit(limit)
     .offset(offset);
 }
