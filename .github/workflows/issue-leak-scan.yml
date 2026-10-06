@@ -26,8 +26,9 @@ concurrency:
 
 jobs:
   scan:
-    uses: RevealUIStudio/.github/.github/workflows/issue-leak-scan-reusable.yml@8ea1ca5697dfc1f2041aac1368a9dd6d241121ab
-    secrets: inherit
+    uses: revealui-studio/.github/.github/workflows/issue-leak-scan-reusable.yml@ed893dec79c02c60604d566a03ddfb305e9358fe
+    secrets:
+      client_leak_patterns: ${{ secrets.CLIENT_LEAK_PATTERNS }}
 
   names:
     name: Client / prospect name scan (event body)

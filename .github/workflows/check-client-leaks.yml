@@ -20,6 +20,6 @@ jobs:
     steps:
       # Org secret. The composite action exports this as CLIENT_LEAK_PATTERNS.
       # An empty value fails closed inside scripts/check-client-leaks.sh.
-      - uses: RevealUIStudio/.github/.github/actions/check-client-leaks@8ea1ca5697dfc1f2041aac1368a9dd6d241121ab
+      - uses: revealui-studio/.github/.github/actions/check-client-leaks@ed893dec79c02c60604d566a03ddfb305e9358fe
         with:
           client_leak_patterns: ${{ secrets.CLIENT_LEAK_PATTERNS }}
