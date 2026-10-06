@@ -7237,7 +7237,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/five-primitives',
     exportPath: 'body.20',
-    text: 'These functions return booleans or `WhereClause` objects, enabling row-level security. A `WhereClause` return lets you say "authenticated users can read, but only their own records." The access control system has 60 enforcement tests proving role isolation.',
+    text: 'These functions return booleans or `WhereClause` objects, enabling row-level security. A `WhereClause` return lets you say "authenticated users can read, but only their own records." The access control system has 64 enforcement tests proving role isolation.',
     evidence: [
       {
         kind: 'code',
