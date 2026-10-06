@@ -15,6 +15,7 @@ import { toolParametersToJsonSchema } from '../llm/tool-json-schema.js';
 import type { ToolResult } from '../tools/base.js';
 import { ToolCallDeduplicator } from '../tools/deduplicator.js';
 import type { Agent, Task } from './agent.js';
+import { executeGovernedTool } from './governed-tool.js';
 import { iterationAdvanced } from './loop-guard.js';
 import { AgentRuntime, type RuntimeConfig } from './runtime.js';
 
@@ -24,21 +25,21 @@ import { AgentRuntime, type RuntimeConfig } from './runtime.js';
  * The generator in `StreamingAgentRuntime.streamTask` emits the core turn
  * events (`text`, `tool_call_start`, `tool_call_result`, `error`, `done`).
  *
- * Side-channel events originate outside the generator — route-level
+ * Side-channel events originate outside the generator. Route-level
  * handlers (MCP sampling / elicitation) write them to the SSE stream
  * directly between turns:
  *
- *   - `session_info` — emitted once at stream start with the
+ *   - `session_info`: emitted once at stream start with the
  *     agent-run session id. Clients use the id to POST elicitation
  *     responses back via `POST /api/agent-stream/elicit`.
- *   - `sampling_request` — fired when a connected MCP server calls
+ *   - `sampling_request`: fired when a connected MCP server calls
  *     `sampling/create`; the handler services the request synchronously
  *     and emits this chunk for observability.
- *   - `elicitation_request` — fired when a connected MCP server calls
+ *   - `elicitation_request`: fired when a connected MCP server calls
  *     `elicitation/create`; the handler pauses waiting for a POST
  *     response keyed on `(sessionId, elicitationId)`.
  *
- * A.2b of the post-v1 MCP arc — the side-channel types are defined here
+ * A.2b of the post-v1 MCP arc. The side-channel types are defined here
  * so the `useAgentStream` consumer + future UI can narrow on them.
  * A.2b-backend wires the emission; A.2b-frontend renders them.
  */
@@ -55,6 +56,12 @@ export interface AgentStreamChunk {
   content?: string;
   toolCall?: { name: string; arguments: string };
   toolResult?: ToolResult;
+  /**
+   * Set on tool_call_result when the governed executor blocked the call.
+   * `required` means the tool needs approval and no callback is configured.
+   * `denied` means the approval callback refused the call.
+   */
+  approval?: 'required' | 'denied';
   error?: string;
   metadata?: {
     tokensUsed?: number;
@@ -71,13 +78,13 @@ export interface AgentStreamChunk {
    * Present on `sampling_request` + `elicitation_request`.
    */
   namespace?: string;
-  /** Present on `sampling_request` — requested model + shape. */
+  /** Present on `sampling_request`: requested model + shape. */
   sampling?: {
     model: string;
     messageCount: number;
     maxTokens: number;
   };
-  /** Present on `elicitation_request` — form payload. */
+  /** Present on `elicitation_request`: form payload. */
   elicitation?: {
     elicitationId: string;
     requestedSchema: unknown;
@@ -243,28 +250,34 @@ export class StreamingAgentRuntime extends AgentRuntime {
             params = {};
           }
 
-          // Deduplication check
-          if (deduplicator.isDuplicate(tc.name, params)) {
-            const cached = deduplicator.getResult(tc.name, params) as ToolResult;
-            toolResults.push(cached);
-            yield { type: 'tool_call_result', toolResult: cached };
-            messages.push({
-              role: 'tool',
-              content: extractContent(tc.name, cached),
-              toolCallId: tc.id,
-            });
-            continue;
-          }
-
           try {
-            const result = await tool.execute(params);
-            deduplicator.record(tc.name, params, result);
-            newToolExecutions += 1;
-            toolResults.push(result);
-            yield { type: 'tool_call_result', toolResult: result };
+            const execution = await executeGovernedTool({
+              tool,
+              params,
+              deduplicator,
+              approvalCallback: this.config.approvalCallback,
+              alwaysRequireApproval: this.config.alwaysRequireApproval,
+              onToolAudit: this.config.onToolAudit,
+            });
+            if (execution.countsAsNewExecution) newToolExecutions += 1;
+            toolResults.push(execution.result);
+            const approval =
+              execution.decision === 'approval_required'
+                ? 'required'
+                : execution.decision === 'denied'
+                  ? 'denied'
+                  : undefined;
+            yield {
+              type: 'tool_call_result',
+              toolResult: execution.result,
+              ...(approval !== undefined ? { approval } : {}),
+            };
+            const blocked = approval !== undefined;
             messages.push({
               role: 'tool',
-              content: extractContent(tc.name, result),
+              content: blocked
+                ? (execution.result.error ?? '')
+                : extractContent(tc.name, execution.result),
               toolCallId: tc.id,
             });
           } catch (toolError) {
