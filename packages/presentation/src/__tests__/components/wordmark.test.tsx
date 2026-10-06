@@ -33,10 +33,11 @@ describe('RevealUIWordmark', () => {
     expect(textWrapper?.style.fontFamily).not.toContain('Space Grotesk');
   });
 
-  it('colors "Reveal" with the brand-text token and "UI" with the accent token', () => {
+  it('colors "Reveal" with the brand-text token and "UI" with the AA warning-text token', () => {
     const { getByText } = render(<RevealUIWordmark />);
     expect(getByText('Reveal').style.color).toContain('--rvui-brand-text');
-    expect(getByText('UI').style.color).toContain('--rvui-accent');
+    expect(getByText('UI').style.color).toContain('--rvui-warning-text');
+    expect(getByText('UI').style.color.includes('--rvui-accent')).toBe(false);
   });
 
   it('keeps the same master asset when reveal is false', () => {

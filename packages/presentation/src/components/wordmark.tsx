@@ -26,8 +26,10 @@ export interface RevealUIWordmarkProps {
  * inherit page fonts in `<img>`/favicon contexts (it falls back to an
  * arbitrary system font), so this is the reliable way to get the display
  * face applied. "Reveal" tracks `--rvui-brand-text` and "UI" tracks
- * `--rvui-accent`, both of which flip automatically between the light and
- * dark token ladders in `@revealui/tokens`. No theme prop needed. The
+ * `--rvui-warning-text` (the AA text step in the amber family). The accent
+ * fill is about 1.93:1 on the light header and fails axe. Both tokens flip
+ * with the light and dark ladders in `@revealui/tokens`. No theme prop
+ * needed. The
  * monogram is `RevealUIMark`, which renders the kit master asset. Light and
  * dark files are the same bytes. See `src/assets/brand/` for the source of truth.
  */
@@ -41,7 +43,7 @@ function WordmarkLabel({ label }: { label: string }): React.JSX.Element {
   return (
     <>
       <span style={{ color: brandText }}>Reveal</span>
-      <span style={{ color: 'var(--rvui-accent, #eeb300)' }}>UI</span>
+      <span style={{ color: 'var(--rvui-warning-text, #6b4a00)' }}>UI</span>
       {suffix.length > 0 ? <span style={{ color: brandText }}>{suffix}</span> : null}
     </>
   );
