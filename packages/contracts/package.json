@@ -146,6 +146,11 @@
       "import": "./dist/a2a/index.js",
       "default": "./dist/a2a/index.js"
     },
+    "./api/password-policy": {
+      "types": "./dist/api/password-policy.d.ts",
+      "import": "./dist/api/password-policy.js",
+      "default": "./dist/api/password-policy.js"
+    },
     "./api/auth": {
       "types": "./dist/api/auth.d.ts",
       "import": "./dist/api/auth.js",

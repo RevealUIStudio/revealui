@@ -11,8 +11,18 @@
  * carried through the /mfa and /rotate-password intermediate steps.
  */
 
+import { SignInRequestSchema } from '@revealui/contracts/api/auth';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { messageForPath } from '@/lib/utils/auth-field-errors';
+
+function signInFieldMessage(email: string, password: string, field: 'email' | 'password'): string {
+  const result = SignInRequestSchema.safeParse({ email, password });
+  if (result.success) throw new Error('expected the sign-in schema to reject this value');
+  const message = messageForPath(result.error.issues, field);
+  if (!message) throw new Error(`missing ${field} issue`);
+  return message;
+}
 
 const mockSignIn = vi.fn();
 const mockPasskeySignIn = vi.fn();
@@ -44,26 +54,29 @@ vi.mock('@/lib/utils/auth-navigation', () => ({
   navigateAfterAuthChange: (path: string) => mockNavigate(path),
 }));
 
-vi.mock('@revealui/presentation/server', () => ({
-  // biome-ignore lint/suspicious/noExplicitAny: lightweight test doubles
-  Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
-  // biome-ignore lint/suspicious/noExplicitAny: lightweight test doubles
-  FormLabel: ({ children, htmlFor }: any) => <label htmlFor={htmlFor}>{children}</label>,
-  // biome-ignore lint/suspicious/noExplicitAny: lightweight test doubles
-  Heading: ({ children }: any) => <h2>{children}</h2>,
-  // biome-ignore lint/suspicious/noExplicitAny: lightweight test doubles
-  InputCVA: (props: any) => <input {...props} />,
-  GitHubIcon: () => <svg aria-hidden="true" />,
-  GoogleIcon: () => <svg aria-hidden="true" />,
-  LinkedInIcon: () => <svg aria-hidden="true" />,
-  PasskeyIcon: () => <svg aria-hidden="true" />,
-  VercelIcon: () => <svg aria-hidden="true" />,
-}));
-
-vi.mock('@/lib/components/PasswordInput', () => ({
-  // biome-ignore lint/suspicious/noExplicitAny: lightweight test doubles
-  PasswordInput: ({ children }: any) => <div>{children}</div>,
-}));
+vi.mock('@revealui/presentation/server', async () => {
+  const { FormField } = await import(
+    '../../../../../../../packages/presentation/src/components/form-field.tsx'
+  );
+  return {
+    FormField,
+    // biome-ignore lint/suspicious/noExplicitAny: lightweight test doubles
+    Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+    // biome-ignore lint/suspicious/noExplicitAny: lightweight test doubles
+    FormLabel: ({ children, htmlFor }: any) => <label htmlFor={htmlFor}>{children}</label>,
+    // biome-ignore lint/suspicious/noExplicitAny: lightweight test doubles
+    Heading: ({ children }: any) => <h2>{children}</h2>,
+    // biome-ignore lint/suspicious/noExplicitAny: lightweight test doubles
+    InputCVA: (props: any) => <input {...props} />,
+    GitHubIcon: () => <svg aria-hidden="true" />,
+    GoogleIcon: () => <svg aria-hidden="true" />,
+    LinkedInIcon: () => <svg aria-hidden="true" />,
+    PasskeyIcon: () => <svg aria-hidden="true" />,
+    VercelIcon: () => <svg aria-hidden="true" />,
+    IconEye: () => <svg aria-hidden="true" />,
+    IconEyeOff: () => <svg aria-hidden="true" />,
+  };
+});
 
 import { LoginForm } from '../LoginForm';
 
@@ -400,5 +413,100 @@ describe('LoginForm post-sign-in navigation', () => {
       expect(mockPasskeySignIn).toHaveBeenCalled();
     });
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+});
+
+describe('LoginForm inline validation and plan links', () => {
+  it('shows schema messages for an empty submit and does not call sign-in', () => {
+    render(<LoginForm oauthProviders={[]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+
+    expect(
+      screen.getByRole('alert', { name: signInFieldMessage('', '', 'email') }),
+    ).toHaveTextContent(signInFieldMessage('', '', 'email'));
+    expect(screen.getByText(signInFieldMessage('', '', 'password'))).toBeInTheDocument();
+    const email = document.querySelector('#email');
+    const password = document.querySelector('#password');
+    expect(email).toHaveAttribute('aria-invalid', 'true');
+    expect(email).toHaveAttribute('aria-describedby', 'email-error');
+    expect(password).toHaveAttribute('aria-invalid', 'true');
+    expect(password).toHaveAttribute('aria-describedby', 'password-error');
+    expect(document.querySelector('form')).toHaveAttribute('novalidate');
+    expect(mockSignIn).not.toHaveBeenCalled();
+  });
+
+  it('shows the schema email format error for a value without an @', () => {
+    render(<LoginForm oauthProviders={[]} />);
+    fireEvent.change(document.querySelector('#email') as HTMLInputElement, {
+      target: { value: 'not-an-email' },
+    });
+    fireEvent.change(document.querySelector('#password') as HTMLInputElement, {
+      target: { value: 'Password123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+
+    const message = signInFieldMessage('not-an-email', 'Password123', 'email');
+    expect(screen.getByRole('alert')).toHaveTextContent(message);
+    expect(message.toLowerCase()).toContain('email');
+    expect(mockSignIn).not.toHaveBeenCalled();
+  });
+
+  it.each(['pro', 'max', 'enterprise'] as const)(
+    'keeps ?plan=%s on the sign-up link and the post-auth destination',
+    async (plan) => {
+      mockSearchParams = { plan };
+      mockSignIn.mockResolvedValue({
+        success: true,
+        user: { id: '1', email: 'buyer@example.com', role: 'user' },
+      });
+
+      render(<LoginForm oauthProviders={[]} />);
+      expect(screen.getByRole('link', { name: 'Sign up' })).toHaveAttribute(
+        'href',
+        `/signup?plan=${plan}`,
+      );
+      fillAndSubmit();
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(`/account/billing?upgrade=${plan}`);
+      });
+    },
+  );
+
+  it('carries license and a same-origin redirect to sign-up, and drops an open redirect', () => {
+    mockSearchParams = {
+      license: 'pro',
+      redirect: '/welcome',
+    };
+    render(<LoginForm oauthProviders={[]} />);
+    expect(screen.getByRole('link', { name: 'Sign up' })).toHaveAttribute(
+      'href',
+      '/signup?license=pro&redirect=%2Fwelcome',
+    );
+
+    cleanup();
+    mockSearchParams = { plan: 'pro', redirect: 'https://evil.example/phish' };
+    render(<LoginForm oauthProviders={[]} />);
+    expect(screen.getByRole('link', { name: 'Sign up' })).toHaveAttribute(
+      'href',
+      '/signup?plan=pro',
+    );
+
+    cleanup();
+    mockSearchParams = { plan: 'max', redirect: '//evil.com' };
+    render(<LoginForm oauthProviders={[]} />);
+    expect(screen.getByRole('link', { name: 'Sign up' })).toHaveAttribute(
+      'href',
+      '/signup?plan=max',
+    );
+  });
+
+  it('maps ?upgrade= onto the sign-up link as plan', () => {
+    mockSearchParams = { upgrade: 'max', redirect: '/account/billing' };
+    render(<LoginForm oauthProviders={[]} />);
+    expect(screen.getByRole('link', { name: 'Sign up' })).toHaveAttribute(
+      'href',
+      '/signup?plan=max&redirect=%2Faccount%2Fbilling',
+    );
   });
 });
