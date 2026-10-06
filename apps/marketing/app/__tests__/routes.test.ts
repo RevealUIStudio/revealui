@@ -99,6 +99,23 @@ describe('marketing route registry', () => {
       .map((href) => new URL(href).pathname);
     expect(links).toContain('/claims');
     expect(links).toContain('/templates');
+    const discovery = [
+      readFileSync(path.resolve(process.cwd(), 'public/llms.txt'), 'utf8'),
+      readFileSync(path.resolve(process.cwd(), 'public/sitemap.xml'), 'utf8'),
+    ].join('\n');
+    const deadDocsPaths = [
+      '/agent-rules',
+      '/ci-cd-guide',
+      '/performance',
+      '/architecture/adr-002-dual-database',
+      '/architecture/adr-005-two-repo-model',
+      '/DEPLOYMENT-RUNBOOK',
+      '/CREDENTIAL-ROTATION-RUNBOOK',
+      '/AUDIT_STATUS',
+    ];
+    for (const route of deadDocsPaths) {
+      expect(discovery.includes(`https://docs.revealui.com${route}`), route).toBe(false);
+    }
     for (const link of links) {
       const match = router.match(link);
       expect(match?.route.component, `undiscovered page ${link}`).toBeDefined();
