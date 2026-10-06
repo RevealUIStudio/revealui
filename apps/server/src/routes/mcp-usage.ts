@@ -159,8 +159,7 @@ app.openapi(usageRoute, async (c) => {
       GROUP BY meter_name
       ORDER BY meter_name ASC
     `);
-    // Drizzle's `db.execute` returns either the raw rows array (PGlite,
-    // node-postgres pool) or `{ rows: [...] }` (neon-http). Normalize.
+    // Normalize PGlite's row-array result and node-postgres's `{ rows }` result.
     rows = Array.isArray(result)
       ? (result as UsageRow[])
       : ((result as { rows?: UsageRow[] }).rows ?? []);

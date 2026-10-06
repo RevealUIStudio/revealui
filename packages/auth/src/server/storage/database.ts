@@ -90,39 +90,25 @@ export class DatabaseStorage implements Storage {
 
   /**
    * Atomically read and update a value using a database transaction.
-   * Falls back to non-atomic get-then-set if transactions are unavailable
-   * (e.g., Neon HTTP mode in environments that don't support advisory locks).
    */
   async atomicUpdate(
     key: string,
     updater: (existing: string | null) => { value: string; ttlSeconds: number },
   ): Promise<void> {
-    try {
-      await this.db.transaction(async (tx) => {
-        const now = new Date();
-        const result = await tx.query.rateLimits.findFirst({
-          where: and(eq(rateLimits.key, key), gte(rateLimits.resetAt, now)),
-        });
-        const { value, ttlSeconds } = updater(result?.value ?? null);
-        const resetAt = new Date(Date.now() + ttlSeconds * 1000);
-        await tx
-          .insert(rateLimits)
-          .values({ key, value, resetAt })
-          .onConflictDoUpdate({
-            target: rateLimits.key,
-            set: { value, resetAt, updatedAt: new Date() },
-          });
+    await this.db.transaction(async (tx) => {
+      const now = new Date();
+      const result = await tx.query.rateLimits.findFirst({
+        where: and(eq(rateLimits.key, key), gte(rateLimits.resetAt, now)),
       });
-    } catch (error) {
-      // Only fall back for transaction-not-supported errors (e.g., Neon HTTP serverless).
-      // Re-throw real DB errors (connection failures, constraint violations, deadlocks).
-      const msg = error instanceof Error ? error.message : String(error);
-      if (!(msg.includes('transaction') || msg.includes('Transaction'))) {
-        throw error;
-      }
-      const existing = await this.get(key);
-      const { value, ttlSeconds } = updater(existing);
-      await this.set(key, value, ttlSeconds);
-    }
+      const { value, ttlSeconds } = updater(result?.value ?? null);
+      const resetAt = new Date(Date.now() + ttlSeconds * 1000);
+      await tx
+        .insert(rateLimits)
+        .values({ key, value, resetAt })
+        .onConflictDoUpdate({
+          target: rateLimits.key,
+          set: { value, resetAt, updatedAt: new Date() },
+        });
+    });
   }
 }

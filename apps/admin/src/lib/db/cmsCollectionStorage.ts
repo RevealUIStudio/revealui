@@ -11,7 +11,6 @@ import type {
   RevealPaginatedResult,
   RevealRequest,
 } from '@revealui/core/types';
-import { getRestClient } from '@revealui/db/client';
 import {
   cmsListFilter,
   createCategory,
@@ -56,6 +55,13 @@ import {
   updateTag,
   updateVideo,
 } from '@revealui/db/queries/cms-collections';
+import { z } from 'zod';
+import { getCollectionDatabase } from './collectionReadExecutor';
+
+const collectionPageSchema = z.object({
+  limit: z.number().int().min(1).max(500),
+  page: z.number().int().min(1).max(1_000_000),
+});
 
 type Handler = {
   findByID: (
@@ -136,7 +142,7 @@ function toDate(value: unknown): Date | undefined {
 export const cmsCollectionHandlers: Record<string, Handler> = {
   categories: {
     async findByID(_c, options) {
-      const row = await getCategoryById(getRestClient(), String(options.id));
+      const row = await getCategoryById(getCollectionDatabase(), String(options.id));
       return row ? asDoc(row as unknown as Record<string, unknown>) : null;
     },
     async find(_c, options) {
@@ -144,7 +150,7 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
       const page = options.page ?? 1;
       const filter = cmsListFilter('categories', options.where);
       const { rows, total } = await listCategories(
-        getRestClient(),
+        getCollectionDatabase(),
         limit,
         (page - 1) * limit,
         filter,
@@ -159,7 +165,7 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
       const data = options.data;
       const title = typeof data.title === 'string' ? data.title : '';
       if (!title) throw new Error('categories create requires title');
-      const row = await createCategory(getRestClient(), {
+      const row = await createCategory(getCollectionDatabase(), {
         id: newId(data),
         title,
         slug: typeof data.slug === 'string' ? data.slug : undefined,
@@ -169,7 +175,7 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
     },
     async update(_c, options) {
       const data = options.data;
-      const row = await updateCategory(getRestClient(), String(options.id), {
+      const row = await updateCategory(getCollectionDatabase(), String(options.id), {
         ...(typeof data.title === 'string' ? { title: data.title } : {}),
         ...(typeof data.slug === 'string' ? { slug: data.slug } : {}),
         ...(typeof data.slugLock === 'boolean' ? { slugLock: data.slugLock } : {}),
@@ -177,20 +183,25 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
       return row ? asDoc(row as unknown as Record<string, unknown>) : undefined;
     },
     async delete(_c, options) {
-      const row = await deleteCategory(getRestClient(), String(options.id));
+      const row = await deleteCategory(getCollectionDatabase(), String(options.id));
       return row ? asDoc(row as unknown as Record<string, unknown>) : undefined;
     },
   },
   events: {
     async findByID(_c, options) {
-      const row = await getEventById(getRestClient(), String(options.id));
+      const row = await getEventById(getCollectionDatabase(), String(options.id));
       return row ? asDoc(row as unknown as Record<string, unknown>) : null;
     },
     async find(_c, options) {
       const limit = options.limit ?? 10;
       const page = options.page ?? 1;
       const filter = cmsListFilter('events', options.where);
-      const { rows, total } = await listEvents(getRestClient(), limit, (page - 1) * limit, filter);
+      const { rows, total } = await listEvents(
+        getCollectionDatabase(),
+        limit,
+        (page - 1) * limit,
+        filter,
+      );
       return pageResult(
         rows.map((row) => asDoc(row as unknown as Record<string, unknown>)),
         total,
@@ -199,7 +210,7 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
     },
     async create(_c, options) {
       const data = options.data;
-      const row = await createEvent(getRestClient(), {
+      const row = await createEvent(getCollectionDatabase(), {
         id: newId(data),
         title: typeof data.title === 'string' ? data.title : undefined,
         name: typeof data.name === 'string' ? data.name : undefined,
@@ -211,7 +222,7 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
     },
     async update(_c, options) {
       const data = options.data;
-      const row = await updateEvent(getRestClient(), String(options.id), {
+      const row = await updateEvent(getCollectionDatabase(), String(options.id), {
         ...(typeof data.title === 'string' ? { title: data.title } : {}),
         ...(typeof data.name === 'string' ? { name: data.name } : {}),
         ...(typeof data.description === 'string' ? { description: data.description } : {}),
@@ -221,13 +232,13 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
       return row ? asDoc(row as unknown as Record<string, unknown>) : undefined;
     },
     async delete(_c, options) {
-      const row = await deleteEvent(getRestClient(), String(options.id));
+      const row = await deleteEvent(getCollectionDatabase(), String(options.id));
       return row ? asDoc(row as unknown as Record<string, unknown>) : undefined;
     },
   },
   contents: {
     async findByID(_c, options) {
-      const row = await getContentById(getRestClient(), String(options.id));
+      const row = await getContentById(getCollectionDatabase(), String(options.id));
       return row ? asDoc(row as unknown as Record<string, unknown>) : null;
     },
     async find(_c, options) {
@@ -235,7 +246,7 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
       const page = options.page ?? 1;
       const filter = cmsListFilter('contents', options.where);
       const { rows, total } = await listContents(
-        getRestClient(),
+        getCollectionDatabase(),
         limit,
         (page - 1) * limit,
         filter,
@@ -250,7 +261,7 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
       const data = options.data;
       const name = typeof data.name === 'string' ? data.name : '';
       if (!name) throw new Error('contents create requires name');
-      const row = await createContent(getRestClient(), {
+      const row = await createContent(getCollectionDatabase(), {
         id: newId(data),
         name,
         description: typeof data.description === 'string' ? data.description : undefined,
@@ -261,7 +272,7 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
     },
     async update(_c, options) {
       const data = options.data;
-      const row = await updateContent(getRestClient(), String(options.id), {
+      const row = await updateContent(getCollectionDatabase(), String(options.id), {
         ...(typeof data.name === 'string' ? { name: data.name } : {}),
         ...(typeof data.description === 'string' ? { description: data.description } : {}),
         ...(typeof data.image === 'string' ? { image: data.image } : {}),
@@ -270,20 +281,25 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
       return row ? asDoc(row as unknown as Record<string, unknown>) : undefined;
     },
     async delete(_c, options) {
-      const row = await deleteContent(getRestClient(), String(options.id));
+      const row = await deleteContent(getCollectionDatabase(), String(options.id));
       return row ? asDoc(row as unknown as Record<string, unknown>) : undefined;
     },
   },
   tags: {
     async findByID(_c, options) {
-      const row = await getTagById(getRestClient(), String(options.id));
+      const row = await getTagById(getCollectionDatabase(), String(options.id));
       return row ? asDoc(row as unknown as Record<string, unknown>) : null;
     },
     async find(_c, options) {
       const limit = options.limit ?? 10;
       const page = options.page ?? 1;
       const filter = cmsListFilter('tags', options.where);
-      const { rows, total } = await listTags(getRestClient(), limit, (page - 1) * limit, filter);
+      const { rows, total } = await listTags(
+        getCollectionDatabase(),
+        limit,
+        (page - 1) * limit,
+        filter,
+      );
       return pageResult(
         rows.map((row) => asDoc(row as unknown as Record<string, unknown>)),
         total,
@@ -295,32 +311,37 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
       const name = typeof data.name === 'string' ? data.name : '';
       const slug = typeof data.slug === 'string' ? data.slug : '';
       if (!(name && slug)) throw new Error('tags create requires name and slug');
-      const row = await createTag(getRestClient(), { id: newId(data), name, slug });
+      const row = await createTag(getCollectionDatabase(), { id: newId(data), name, slug });
       return row ? asDoc(row as unknown as Record<string, unknown>) : undefined;
     },
     async update(_c, options) {
       const data = options.data;
-      const row = await updateTag(getRestClient(), String(options.id), {
+      const row = await updateTag(getCollectionDatabase(), String(options.id), {
         ...(typeof data.name === 'string' ? { name: data.name } : {}),
         ...(typeof data.slug === 'string' ? { slug: data.slug } : {}),
       });
       return row ? asDoc(row as unknown as Record<string, unknown>) : undefined;
     },
     async delete(_c, options) {
-      const row = await deleteTag(getRestClient(), String(options.id));
+      const row = await deleteTag(getCollectionDatabase(), String(options.id));
       return row ? asDoc(row as unknown as Record<string, unknown>) : undefined;
     },
   },
   prices: {
     async findByID(_c, options) {
-      const row = await getPriceById(getRestClient(), String(options.id));
+      const row = await getPriceById(getCollectionDatabase(), String(options.id));
       return row ? asDoc(row as unknown as Record<string, unknown>) : null;
     },
     async find(_c, options) {
       const limit = options.limit ?? 10;
       const page = options.page ?? 1;
       const filter = cmsListFilter('prices', options.where);
-      const { rows, total } = await listPrices(getRestClient(), limit, (page - 1) * limit, filter);
+      const { rows, total } = await listPrices(
+        getCollectionDatabase(),
+        limit,
+        (page - 1) * limit,
+        filter,
+      );
       return pageResult(
         rows.map((row) => asDoc(row as unknown as Record<string, unknown>)),
         total,
@@ -331,7 +352,7 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
       const data = options.data;
       const title = typeof data.title === 'string' ? data.title : '';
       if (!title) throw new Error('prices create requires title');
-      const row = await createPrice(getRestClient(), {
+      const row = await createPrice(getCollectionDatabase(), {
         id: newId(data),
         title,
         slug: typeof data.slug === 'string' ? data.slug : undefined,
@@ -355,7 +376,7 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
     },
     async update(_c, options) {
       const data = options.data;
-      const row = await updatePrice(getRestClient(), String(options.id), {
+      const row = await updatePrice(getCollectionDatabase(), String(options.id), {
         ...(typeof data.title === 'string' ? { title: data.title } : {}),
         ...(typeof data.slug === 'string' ? { slug: data.slug } : {}),
         ...(toDate(data.publishedOn) ? { publishedOn: toDate(data.publishedOn) } : {}),
@@ -375,20 +396,25 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
         : undefined;
     },
     async delete(_c, options) {
-      const row = await deletePrice(getRestClient(), String(options.id));
+      const row = await deletePrice(getCollectionDatabase(), String(options.id));
       return row ? asDoc(row as unknown as Record<string, unknown>) : undefined;
     },
   },
   info: {
     async findByID(_c, options) {
-      const row = await getInfoById(getRestClient(), String(options.id));
+      const row = await getInfoById(getCollectionDatabase(), String(options.id));
       return row ? asDoc(row as unknown as Record<string, unknown>) : null;
     },
     async find(_c, options) {
       const limit = options.limit ?? 10;
       const page = options.page ?? 1;
       const filter = cmsListFilter('info', options.where);
-      const { rows, total } = await listInfo(getRestClient(), limit, (page - 1) * limit, filter);
+      const { rows, total } = await listInfo(
+        getCollectionDatabase(),
+        limit,
+        (page - 1) * limit,
+        filter,
+      );
       return pageResult(
         rows.map((row) => asDoc(row as unknown as Record<string, unknown>)),
         total,
@@ -404,7 +430,7 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
       if (!(title && subtitle && description && image)) {
         throw new Error('info create requires title, subtitle, description, and image');
       }
-      const row = await createInfo(getRestClient(), {
+      const row = await createInfo(getCollectionDatabase(), {
         id: newId(data),
         title,
         subtitle,
@@ -415,7 +441,7 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
     },
     async update(_c, options) {
       const data = options.data;
-      const row = await updateInfo(getRestClient(), String(options.id), {
+      const row = await updateInfo(getCollectionDatabase(), String(options.id), {
         ...(typeof data.title === 'string' ? { title: data.title } : {}),
         ...(typeof data.subtitle === 'string' ? { subtitle: data.subtitle } : {}),
         ...(typeof data.description === 'string' ? { description: data.description } : {}),
@@ -424,20 +450,25 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
       return row ? asDoc(row as unknown as Record<string, unknown>) : undefined;
     },
     async delete(_c, options) {
-      const row = await deleteInfo(getRestClient(), String(options.id));
+      const row = await deleteInfo(getCollectionDatabase(), String(options.id));
       return row ? asDoc(row as unknown as Record<string, unknown>) : undefined;
     },
   },
   videos: {
     async findByID(_c, options) {
-      const row = await getVideoById(getRestClient(), String(options.id));
+      const row = await getVideoById(getCollectionDatabase(), String(options.id));
       return row ? asDoc(row as unknown as Record<string, unknown>) : null;
     },
     async find(_c, options) {
       const limit = options.limit ?? 10;
       const page = options.page ?? 1;
       const filter = cmsListFilter('videos', options.where);
-      const { rows, total } = await listVideos(getRestClient(), limit, (page - 1) * limit, filter);
+      const { rows, total } = await listVideos(
+        getCollectionDatabase(),
+        limit,
+        (page - 1) * limit,
+        filter,
+      );
       return pageResult(
         rows.map((row) => asDoc(row as unknown as Record<string, unknown>)),
         total,
@@ -446,7 +477,7 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
     },
     async create(_c, options) {
       const data = options.data;
-      const row = await createVideo(getRestClient(), {
+      const row = await createVideo(getCollectionDatabase(), {
         id: newId(data),
         url: typeof data.url === 'string' ? data.url : undefined,
       });
@@ -454,29 +485,33 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
     },
     async update(_c, options) {
       const data = options.data;
-      const row = await updateVideo(getRestClient(), String(options.id), {
+      const row = await updateVideo(getCollectionDatabase(), String(options.id), {
         ...(typeof data.url === 'string' ? { url: data.url } : {}),
       });
       return row ? asDoc(row as unknown as Record<string, unknown>) : undefined;
     },
     async delete(_c, options) {
-      const row = await deleteVideo(getRestClient(), String(options.id));
+      const row = await deleteVideo(getCollectionDatabase(), String(options.id));
       return row ? asDoc(row as unknown as Record<string, unknown>) : undefined;
     },
   },
   subscriptions: {
     async findByID(_c, options) {
-      const row = await getSubscriptionById(getRestClient(), String(options.id));
+      const row = await getSubscriptionById(getCollectionDatabase(), String(options.id));
       return row ? asDoc(row as unknown as Record<string, unknown>) : null;
     },
     async find(_c, options) {
-      const limit = options.limit ?? 10;
-      const page = options.page ?? 1;
+      const { limit, page } = collectionPageSchema.parse({
+        limit: options.limit ?? 10,
+        page: options.page ?? 1,
+      });
+      const offset = (page - 1) * limit;
+      if (!Number.isSafeInteger(offset)) throw new Error('Invalid subscriptions page offset');
       const filter = cmsListFilter('subscriptions', options.where);
       const { rows, total } = await listSubscriptions(
-        getRestClient(),
+        getCollectionDatabase(),
         limit,
-        (page - 1) * limit,
+        offset,
         filter,
       );
       return pageResult(
@@ -499,7 +534,7 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
       if (!(userId && status && priceId)) {
         throw new Error('subscriptions create requires userId, status, and priceId');
       }
-      const row = await createSubscription(getRestClient(), {
+      const row = await createSubscription(getCollectionDatabase(), {
         id,
         userId,
         status,
@@ -517,7 +552,7 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
     },
     async update(_c, options) {
       const data = options.data;
-      const row = await updateSubscription(getRestClient(), String(options.id), {
+      const row = await updateSubscription(getCollectionDatabase(), String(options.id), {
         ...(typeof data.status === 'string' ? { status: data.status } : {}),
         ...(typeof data.priceId === 'string' ? { priceId: data.priceId } : {}),
         ...(typeof data.quantity === 'number' ? { quantity: data.quantity } : {}),
@@ -525,7 +560,7 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
       return row ? asDoc(row as unknown as Record<string, unknown>) : undefined;
     },
     async delete(_c, options) {
-      const row = await deleteSubscription(getRestClient(), String(options.id));
+      const row = await deleteSubscription(getCollectionDatabase(), String(options.id));
       return row ? asDoc(row as unknown as Record<string, unknown>) : undefined;
     },
   },

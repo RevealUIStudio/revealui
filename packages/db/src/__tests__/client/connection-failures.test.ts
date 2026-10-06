@@ -69,22 +69,8 @@ vi.mock('@revealui/config', () => ({
   default: {},
 }));
 
-vi.mock('@neondatabase/serverless', () => ({
-  neon: vi.fn(() => vi.fn()),
-}));
-
 vi.mock('@revealui/utils/database', () => ({
   getSSLConfig: vi.fn(() => false),
-}));
-
-vi.mock('drizzle-orm/neon-http', () => ({
-  drizzle: vi.fn(() => ({
-    query: {},
-    select: vi.fn(),
-    insert: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-  })),
 }));
 
 vi.mock('drizzle-orm/node-postgres', () => ({
@@ -642,8 +628,8 @@ describe('database connection failures', () => {
       expect(drizzlePgMod.drizzle).toHaveBeenCalled();
     });
 
-    it('uses Neon driver for NeonDB connections (no pool)', async () => {
-      const { neon } = await import('@neondatabase/serverless');
+    it('uses the PostgreSQL wire driver for NeonDB connections', async () => {
+      const drizzlePgMod = await import('drizzle-orm/node-postgres');
       const { createClient } = await import('../../client/index.js');
 
       createClient({
@@ -651,9 +637,7 @@ describe('database connection failures', () => {
           'postgresql://user:pass@ep-cool-snow-123456.us-east-2.aws.neon.tech/neondb',
       });
 
-      expect(neon).toHaveBeenCalledWith(
-        'postgresql://user:pass@ep-cool-snow-123456.us-east-2.aws.neon.tech/neondb',
-      );
+      expect(drizzlePgMod.drizzle).toHaveBeenCalled();
     });
   });
 

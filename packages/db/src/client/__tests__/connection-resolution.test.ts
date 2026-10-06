@@ -37,14 +37,6 @@ vi.mock('drizzle-orm/node-postgres', () => ({
   drizzle: vi.fn(() => ({ query: {} })),
 }));
 
-vi.mock('drizzle-orm/neon-http', () => ({
-  drizzle: vi.fn(() => ({ query: {} })),
-}));
-
-vi.mock('@neondatabase/serverless', () => ({
-  neon: vi.fn(() => ({})),
-}));
-
 import { getClient, resetClient } from '../index.js';
 
 const SMOKE_URL = 'postgresql://test:test@localhost:5432/smoke';

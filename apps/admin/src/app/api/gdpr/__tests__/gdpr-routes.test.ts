@@ -10,6 +10,12 @@ const mockGetSession = vi.fn();
 const mockCheckSessionMfa = vi.fn((..._args: unknown[]) => ({ allowed: true }));
 const mockGetRevealUIInstance = vi.fn();
 const mockWriteGDPRAuditEntry = vi.fn();
+const mockWithReadOnlyRepeatableRead = vi.fn((callback: (executor: object) => Promise<unknown>) =>
+  callback({}),
+);
+const mockWithCollectionReadExecutor = vi.fn(
+  (_executor: object, callback: () => Promise<unknown>) => callback(),
+);
 
 vi.mock('@revealui/auth/server', () => ({
   getSession: (...args: unknown[]) => mockGetSession(...args),
@@ -44,6 +50,16 @@ vi.mock('@/lib/utils/revealui-singleton', () => ({
 
 vi.mock('@/lib/utils/gdpr-audit', () => ({
   writeGDPRAuditEntry: (...args: unknown[]) => mockWriteGDPRAuditEntry(...args),
+}));
+
+vi.mock('@revealui/db/client', () => ({
+  withReadOnlyRepeatableRead: (...args: Parameters<typeof mockWithReadOnlyRepeatableRead>) =>
+    mockWithReadOnlyRepeatableRead(...args),
+}));
+
+vi.mock('@/lib/db/collectionReadExecutor', () => ({
+  withCollectionReadExecutor: (...args: Parameters<typeof mockWithCollectionReadExecutor>) =>
+    mockWithCollectionReadExecutor(...args),
 }));
 
 // Mock @revealui/db so getClient() doesn't attempt a real database connection.
@@ -221,6 +237,8 @@ describe('POST /api/gdpr/delete', () => {
 describe('POST /api/gdpr/export', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockWithReadOnlyRepeatableRead.mockImplementation((callback) => callback({}));
+    mockWithCollectionReadExecutor.mockImplementation((_executor, callback) => callback());
   });
 
   async function loadRoute() {
@@ -261,6 +279,8 @@ describe('POST /api/gdpr/export', () => {
     const res = await POST(makeRequest());
 
     expect((res as { status: number }).status).toBe(200);
+    expect(mockWithReadOnlyRepeatableRead).toHaveBeenCalledOnce();
+    expect(mockWithCollectionReadExecutor).toHaveBeenCalledOnce();
     const body = (res as unknown as { body: Record<string, unknown> }).body;
     expect(body).toEqual(
       expect.objectContaining({
@@ -336,6 +356,24 @@ describe('POST /api/gdpr/export', () => {
     expect(await res.json()).toMatchObject({
       error: 'orders table down',
     });
+    expect(mockWriteGDPRAuditEntry).not.toHaveBeenCalled();
+  });
+
+  it('fails closed before collection reads when snapshot transactions are unavailable', async () => {
+    mockGetSession.mockResolvedValue({
+      user: { id: 'user-1', email: 'test@example.com', role: 'user', status: 'active' },
+    });
+    const mockFind = vi.fn();
+    mockGetRevealUIInstance.mockResolvedValue({ find: mockFind });
+    mockWithReadOnlyRepeatableRead.mockRejectedValueOnce(
+      new Error('Read-only repeatable-read transactions require the PostgreSQL client pool'),
+    );
+
+    const POST = await loadRoute();
+    const response = await POST(makeRequest());
+
+    expect((response as { status: number }).status).toBe(500);
+    expect(mockFind).not.toHaveBeenCalled();
     expect(mockWriteGDPRAuditEntry).not.toHaveBeenCalled();
   });
 

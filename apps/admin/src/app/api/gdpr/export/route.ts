@@ -2,8 +2,10 @@ export const runtime = 'nodejs';
 
 import { getSession } from '@revealui/auth/server';
 import { validateDocument } from '@revealui/core/utils/stored-json-fields';
+import { withReadOnlyRepeatableRead } from '@revealui/db/client';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { withCollectionReadExecutor } from '@/lib/db/collectionReadExecutor';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
 import { writeGDPRAuditEntry } from '@/lib/utils/gdpr-audit';
@@ -95,27 +97,36 @@ async function gdprExportHandler(request: NextRequest) {
 
     // Required collections fail the whole export; a partial export could be
     // mistaken for a complete copy of the user's data.
-    const conversationsResult = await readCompleteCollection(
-      revealui,
-      'conversations',
-      { userId: { equals: userIdStr } },
-      MAX_EXPORT_BYTES,
+    const { conversations, orders, subscriptions } = await withReadOnlyRepeatableRead(
+      async (executor) =>
+        withCollectionReadExecutor(executor, async () => {
+          const conversationsResult = await readCompleteCollection(
+            revealui,
+            'conversations',
+            { userId: { equals: userIdStr } },
+            MAX_EXPORT_BYTES,
+          );
+          const ordersResult = await readCompleteCollection(
+            revealui,
+            'orders',
+            { customerId: { equals: userIdStr } },
+            MAX_EXPORT_BYTES - conversationsResult.serializedDocBytes,
+          );
+          const subscriptionsResult = await readCompleteCollection(
+            revealui,
+            'subscriptions',
+            { userId: { equals: userIdStr } },
+            MAX_EXPORT_BYTES -
+              conversationsResult.serializedDocBytes -
+              ordersResult.serializedDocBytes,
+          );
+          return {
+            conversations: conversationsResult.docs,
+            orders: ordersResult.docs,
+            subscriptions: subscriptionsResult.docs,
+          };
+        }),
     );
-    const ordersResult = await readCompleteCollection(
-      revealui,
-      'orders',
-      { customerId: { equals: userIdStr } },
-      MAX_EXPORT_BYTES - conversationsResult.serializedDocBytes,
-    );
-    const subscriptionsResult = await readCompleteCollection(
-      revealui,
-      'subscriptions',
-      { userId: { equals: userIdStr } },
-      MAX_EXPORT_BYTES - conversationsResult.serializedDocBytes - ordersResult.serializedDocBytes,
-    );
-    const conversations = conversationsResult.docs;
-    const orders = ordersResult.docs;
-    const subscriptions = subscriptionsResult.docs;
 
     // Guard the complete envelope as well as the accumulated document bytes.
     const totalRecords = conversations.length + orders.length + subscriptions.length;

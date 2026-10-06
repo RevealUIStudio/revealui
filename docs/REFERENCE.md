@@ -1454,7 +1454,7 @@ npm install @revealui/db
 
 ### `createClient(config: DatabaseConfig, schema?)`
 
-Creates a Drizzle ORM client. Auto-selects the right driver based on connection string.
+Creates a node-postgres Drizzle client for PostgreSQL in the Node runtime.
 
 ```ts
 import { createClient } from "@revealui/db/client";
@@ -1464,18 +1464,16 @@ const db = createClient({
 });
 ```
 
-**Driver selection:**
-
-- Neon HTTP driver (`@neondatabase/serverless`)  -  for `neon.tech` connection strings
-- node-postgres (`pg`)  -  for localhost, the legacy Supabase sidecar, and other Postgres hosts
-
-Returns `NeonHttpDatabase | NodePgDatabase` depending on the connection string.
+The PostgreSQL wire protocol is used for Neon and self-hosted PostgreSQL so
+transaction scopes can pin one connection. `getRestPool()` returns the pool
+shared by this client and the RevealUI adapter.
 
 ---
 
 ### `getRestClient(): Database`
 
-Returns (or lazily creates) the global NeonDB client. Reads `POSTGRES_URL` from env.
+Returns (or lazily creates) the global PostgreSQL client. Resolves the URL from
+`@revealui/config`, then `POSTGRES_URL` or `DATABASE_URL`.
 
 ```ts
 import { getRestClient } from "@revealui/db/client";

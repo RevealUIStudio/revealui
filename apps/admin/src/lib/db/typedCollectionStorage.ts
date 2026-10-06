@@ -8,7 +8,6 @@ import type {
   RevealRequest,
 } from '@revealui/core/types';
 import { parseStoredJsonFields, validateDocument } from '@revealui/core/utils/stored-json-fields';
-import { getRestClient } from '@revealui/db/client';
 import { cmsListFilter, cmsListSort } from '@revealui/db/queries/cms-collections';
 import { listConversations } from '@revealui/db/queries/conversations';
 import { listOrders } from '@revealui/db/queries/orders';
@@ -30,6 +29,7 @@ import type { PlatformAuthUser } from '@revealui/utils/validation';
 import { and, asc, count, desc, eq, inArray, isNull, or, type SQL, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { cmsCollectionHandlers } from './cmsCollectionStorage';
+import { getCollectionDatabase } from './collectionReadExecutor';
 import { resolveDefaultSiteId } from './defaultSite';
 
 type UserWhereCondition = NonNullable<RevealFindOptions['where']>;
@@ -280,7 +280,7 @@ async function findTypedOrderByID(
 ): Promise<RevealDocument | null | undefined> {
   if (collection.slug !== 'orders') return undefined;
   const id = String(z.union([z.string().min(1), z.number().int().safe()]).parse(options.id));
-  const [row] = await getRestClient()
+  const [row] = await getCollectionDatabase()
     .select()
     .from(orders)
     .where(and(eq(orders.id, id), isNull(orders.deletedAt)))
@@ -298,7 +298,12 @@ async function findTypedOrders(
   if (!Number.isSafeInteger(offset)) throw new Error('Invalid orders page offset');
   const filter = cmsListFilter('orders', options.where);
   const sort = cmsListSort('orders', options.sort);
-  const { rows, total } = await listOrders(getRestClient(), { limit, offset, filter, sort });
+  const { rows, total } = await listOrders(getCollectionDatabase(), {
+    limit,
+    offset,
+    filter,
+    sort,
+  });
   return paginationResult(rows.map(mapOrderDocument), total, limit, page);
 }
 
@@ -308,7 +313,7 @@ async function findTypedConversationByID(
 ): Promise<RevealDocument | null | undefined> {
   if (collection.slug !== 'conversations') return undefined;
   const id = String(z.union([z.string().min(1), z.number().int().safe()]).parse(options.id));
-  const [row] = await getRestClient()
+  const [row] = await getCollectionDatabase()
     .select()
     .from(conversations)
     .where(eq(conversations.id, id))
@@ -326,7 +331,12 @@ async function findTypedConversations(
   if (!Number.isSafeInteger(offset)) throw new Error('Invalid conversations page offset');
   const filter = cmsListFilter('conversations', options.where);
   const sort = cmsListSort('conversations', options.sort);
-  const { rows, total } = await listConversations(getRestClient(), { limit, offset, filter, sort });
+  const { rows, total } = await listConversations(getCollectionDatabase(), {
+    limit,
+    offset,
+    filter,
+    sort,
+  });
   return paginationResult(rows.map(mapConversationDocument), total, limit, page);
 }
 
@@ -477,7 +487,7 @@ async function findTypedUserByID(
     return undefined;
   }
 
-  const db = getRestClient();
+  const db = getCollectionDatabase();
   const row = await db.query.users.findFirst({
     where: eq(users.id, String(options.id)),
   });
@@ -503,7 +513,7 @@ async function findTypedUsers(
     return undefined;
   }
 
-  const db = getRestClient();
+  const db = getCollectionDatabase();
   const limit = options.limit ?? 10;
   const page = options.page ?? 1;
   const offset = (page - 1) * limit;
@@ -543,7 +553,7 @@ async function findTypedTenantByID(
     return undefined;
   }
 
-  const db = getRestClient();
+  const db = getCollectionDatabase();
   const row = await db.query.tenants.findFirst({
     where: eq(tenants.id, String(options.id)),
   });
@@ -569,7 +579,7 @@ async function findTypedTenants(
     return undefined;
   }
 
-  const db = getRestClient();
+  const db = getCollectionDatabase();
   const limit = options.limit ?? 10;
   const page = options.page ?? 1;
   const offset = (page - 1) * limit;
@@ -749,7 +759,7 @@ function pageStatusFromData(data: RevealDataObject): string | undefined {
 
 async function pageActor(req?: RevealRequest): Promise<PlatformAuthUser | null> {
   if (!req?.user?.id) return null;
-  const actor = await getSiteContentActor(getRestClient(), String(req.user.id));
+  const actor = await getSiteContentActor(getCollectionDatabase(), String(req.user.id));
   if (!actor)
     throw Object.assign(new Error('Access denied: authenticated user is unavailable'), {
       statusCode: 403,
@@ -764,7 +774,12 @@ async function requirePageSiteAuthority(
   if (
     !(
       actor &&
-      (await actorCanManageSite(getRestClient(), actor, siteId, getExplicitDeploymentMode()))
+      (await actorCanManageSite(
+        getCollectionDatabase(),
+        actor,
+        siteId,
+        getExplicitDeploymentMode(),
+      ))
     )
   ) {
     throw Object.assign(new Error('Access denied: you do not own this site'), { statusCode: 403 });
@@ -779,7 +794,7 @@ async function findTypedPageByID(
     return undefined;
   }
 
-  const db = getRestClient();
+  const db = getCollectionDatabase();
   const row = await getPageById(db, String(options.id));
   if (!row) return null;
   const actor = await pageActor(options.req);
@@ -811,7 +826,7 @@ async function findTypedPages(
     throw Object.assign(new Error('Unsupported pages sort'), { statusCode: 400 });
   }
 
-  const db = getRestClient();
+  const db = getCollectionDatabase();
   const visibleSites = getSiteIdsForContentRead(db, actor, getExplicitDeploymentMode());
   const scopedWhere = and(
     where,
@@ -893,7 +908,7 @@ async function createTypedPage(
     publishedAt: toDateOrNull(data.publishedAt),
   };
 
-  const db = getRestClient();
+  const db = getCollectionDatabase();
   const row = await createPage(db, values);
   if (!row) {
     throw new Error('pages create failed: no row returned');
@@ -909,7 +924,7 @@ async function updateTypedPage(
     return undefined;
   }
 
-  const db = getRestClient();
+  const db = getCollectionDatabase();
   const id = String(options.id);
 
   // getPageById filters soft-deleted rows; updatePage alone would resurrect
@@ -977,7 +992,7 @@ async function deleteTypedPage(
     return undefined;
   }
 
-  const db = getRestClient();
+  const db = getCollectionDatabase();
   const id = String(options.id);
   const existing = await getPageById(db, id);
   if (!existing) {
@@ -1137,7 +1152,7 @@ async function findTypedPostByID(
     return undefined;
   }
 
-  const db = getRestClient();
+  const db = getCollectionDatabase();
   const row = await getPostById(db, String(options.id));
   return row ? mapPostDocument(row) : null;
 }
@@ -1160,7 +1175,7 @@ async function findTypedPosts(
     return undefined;
   }
 
-  const db = getRestClient();
+  const db = getCollectionDatabase();
   const limit = options.limit ?? 10;
   const page = options.page ?? 1;
   const offset = (page - 1) * limit;
@@ -1229,7 +1244,7 @@ async function createTypedPost(
     publishedAt: toDateOrNull(data.publishedAt),
   };
 
-  const db = getRestClient();
+  const db = getCollectionDatabase();
   const row = await createPost(db, values);
   if (!row) {
     throw new Error('posts create failed: no row returned');
@@ -1245,7 +1260,7 @@ async function updateTypedPost(
     return undefined;
   }
 
-  const db = getRestClient();
+  const db = getCollectionDatabase();
   const id = String(options.id);
 
   // getPostById filters soft-deleted rows; updatePost alone would resurrect
@@ -1309,7 +1324,7 @@ async function deleteTypedPost(
     return undefined;
   }
 
-  const db = getRestClient();
+  const db = getCollectionDatabase();
   const id = String(options.id);
   const existing = await getPostById(db, id);
   if (!existing) {

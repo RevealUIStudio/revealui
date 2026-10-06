@@ -180,7 +180,7 @@ describe('runAuditAnchorSweep Neon connect failures (REVEALUI-SERVER-F)', () => 
     expect(sentry.setTag).toHaveBeenCalledWith('failure_class', 'transient_connect');
     expect(sentry.setTag).toHaveBeenCalledWith('component', 'audit-anchor-sweep');
     expect(sentry.setTag).toHaveBeenCalledWith('job', 'runAuditAnchorSweep');
-    expect(sentry.setTag).toHaveBeenCalledWith('db_driver', 'neon-http');
+    expect(sentry.setTag).toHaveBeenCalledWith('db_driver', 'postgres-pool');
     expect(sentry.setExtra).toHaveBeenCalledWith('attempts', 3);
   });
 

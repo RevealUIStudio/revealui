@@ -1,10 +1,8 @@
 /**
  * Multi-Step Operations Integration Tests
  *
- * PURPOSE: Verify multi-step operations handle partial failures gracefully WITHOUT transactions
- *
- * CRITICAL CONTEXT: withTransaction() is NOT implemented (Neon HTTP driver limitation at
- * packages/db/src/client/index.ts:460-469). These tests verify compensating transaction patterns.
+ * PURPOSE: Verify multi-step operations handle partial failures gracefully when
+ * each step commits independently or includes an external side effect.
  *
  * TESTS:
  * - Compensating transaction patterns (rollback on failure)

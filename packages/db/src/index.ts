@@ -70,6 +70,7 @@ export {
   createClient,
   type Database as DatabaseClient,
   type DatabaseConfig,
+  type DatabaseTransaction,
   type DatabaseType,
   getClient,
   getPoolMetrics,
@@ -79,6 +80,7 @@ export {
   requiresTransactions,
   resetClient,
   schema,
+  withReadOnlyRepeatableRead,
   withTransaction,
 } from './client/index.js';
 // GAP-260 P4-5: per-token JTI denylist

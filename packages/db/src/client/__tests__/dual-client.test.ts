@@ -13,21 +13,6 @@ vi.mock('@revealui/config', () => ({
   default: {},
 }));
 
-// Mock the database clients
-vi.mock('@neondatabase/serverless', () => ({
-  neon: vi.fn(() => ({})),
-}));
-
-vi.mock('drizzle-orm/neon-http', () => ({
-  drizzle: vi.fn(() => ({
-    query: {},
-    select: vi.fn(),
-    insert: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-  })),
-}));
-
 describe('Single Database Client', () => {
   beforeEach(() => {
     resetClient();

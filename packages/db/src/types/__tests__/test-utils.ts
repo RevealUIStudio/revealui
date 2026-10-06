@@ -4,8 +4,7 @@
  * Provides helpers for setting up test database connections and fixtures.
  */
 
-import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
+import { createClient } from '../../client/index.js';
 import * as schema from '../../schema/index.js';
 
 /**
@@ -28,12 +27,7 @@ export function getTestDatabaseUrl(): string {
  */
 export function createTestClient() {
   const connectionString = getTestDatabaseUrl();
-  const sql = neon(connectionString);
-
-  return drizzle({
-    client: sql,
-    schema,
-  });
+  return createClient({ connectionString }, schema);
 }
 
 /**

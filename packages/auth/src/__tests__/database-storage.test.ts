@@ -1,8 +1,8 @@
 /**
  * DatabaseStorage Tests (T-04)
  *
- * Covers atomicUpdate race condition prevention, transaction fallback
- * for serverless environments, incr semantics, and TTL expiration.
+ * Covers atomicUpdate race prevention, transaction error handling, incr
+ * semantics, and TTL expiration.
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -238,30 +238,27 @@ describe('DatabaseStorage', () => {
     });
   });
 
-  describe('atomicUpdate  -  transaction fallback', () => {
-    it('falls back to get+set when transaction is not supported', async () => {
+  describe('atomicUpdate  -  transaction errors', () => {
+    it('propagates a transaction capability error without a non-atomic retry', async () => {
       mockTransaction.mockRejectedValue(new Error('transaction is not supported'));
-      mockFindFirst.mockResolvedValue(null);
-      mockOnConflictDoUpdate.mockResolvedValue(undefined);
 
-      const updater = vi.fn().mockReturnValue({ value: 'fallback', ttlSeconds: 60 });
+      const updater = vi.fn().mockReturnValue({ value: 'should-not-run', ttlSeconds: 60 });
 
-      await storage.atomicUpdate('k', updater);
-      expect(updater).toHaveBeenCalledWith(null);
-      // Should have called get (via findFirst) and set (via insert)
-      expect(mockFindFirst).toHaveBeenCalled();
-      expect(mockInsert).toHaveBeenCalled();
+      await expect(storage.atomicUpdate('k', updater)).rejects.toThrow(
+        'transaction is not supported',
+      );
+      expect(updater).not.toHaveBeenCalled();
+      expect(mockFindFirst).not.toHaveBeenCalled();
+      expect(mockInsert).not.toHaveBeenCalled();
     });
 
-    it('falls back on "Transaction" (capitalized) error', async () => {
+    it('propagates errors containing the word Transaction', async () => {
       mockTransaction.mockRejectedValue(new Error('Transaction not available in serverless'));
-      mockFindFirst.mockResolvedValue({ value: '3' });
-      mockOnConflictDoUpdate.mockResolvedValue(undefined);
 
-      const updater = vi.fn().mockReturnValue({ value: '4', ttlSeconds: 60 });
+      const updater = vi.fn().mockReturnValue({ value: 'should-not-run', ttlSeconds: 60 });
 
-      await storage.atomicUpdate('k', updater);
-      expect(updater).toHaveBeenCalledWith('3');
+      await expect(storage.atomicUpdate('k', updater)).rejects.toThrow('Transaction not available');
+      expect(updater).not.toHaveBeenCalled();
     });
 
     it('re-throws real database errors (not transaction-related)', async () => {

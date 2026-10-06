@@ -128,38 +128,22 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
       const maxUsers = getMaxUsers();
       const db = getClient();
       if (maxUsers !== Infinity && isSelfHostedForge) {
-        // Check user limit. Prefer advisory lock inside a transaction to serialize
-        // concurrent sign-up limit checks (prevents TOCTOU race). Falls back to a
-        // non-atomic count when the driver doesn't support transactions (e.g. Neon HTTP).
+        // Serialize concurrent sign-up limit checks to prevent a TOCTOU race.
         let limitExceeded = false;
         let limitMsg = '';
-        try {
-          await db.transaction(async (tx) => {
-            await tx.execute(sql`SELECT pg_advisory_xact_lock(42000001)`);
-            const [row] = await tx
-              .select({ total: count() })
-              .from(users)
-              .where(eq(users.status, 'active'));
-            const activeCount = row?.total ?? 0;
-            isFirstUser = activeCount === 0;
-            if (activeCount >= maxUsers) {
-              limitExceeded = true;
-              limitMsg = `User limit reached (${activeCount}/${maxUsers}). Upgrade your license to add more users.`;
-            }
-          });
-        } catch (txError) {
-          // Neon HTTP driver doesn't support transactions  -  fall back to simple count.
-          // Safe for single-instance admin; concurrent sign-ups have a small TOCTOU window.
-          logger.warn('Transaction not supported, falling back to non-atomic user count', {
-            error: txError instanceof Error ? txError.message : String(txError),
-          });
-          const activeCount = await countActiveUsers(db);
+        await db.transaction(async (tx) => {
+          await tx.execute(sql`SELECT pg_advisory_xact_lock(42000001)`);
+          const [row] = await tx
+            .select({ total: count() })
+            .from(users)
+            .where(eq(users.status, 'active'));
+          const activeCount = row?.total ?? 0;
           isFirstUser = activeCount === 0;
           if (activeCount >= maxUsers) {
             limitExceeded = true;
             limitMsg = `User limit reached (${activeCount}/${maxUsers}). Upgrade your license to add more users.`;
           }
-        }
+        });
         if (limitExceeded) {
           return createApplicationErrorResponse(limitMsg, 'USER_LIMIT_REACHED', 403);
         }
