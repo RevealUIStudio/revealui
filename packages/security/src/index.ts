@@ -99,7 +99,12 @@ export {
 } from './encryption.js';
 export type { BreachStorage, GDPRStorage } from './gdpr-storage.js';
 // GDPR storage abstraction
-export { InMemoryBreachStorage, InMemoryGDPRStorage } from './gdpr-storage.js';
+export {
+  InMemoryBreachStorage,
+  InMemoryGDPRStorage,
+  parseDataCategories,
+  parseDeletionResult,
+} from './gdpr-storage.js';
 export type {
   CORSConfig,
   ContentSecurityPolicyConfig,

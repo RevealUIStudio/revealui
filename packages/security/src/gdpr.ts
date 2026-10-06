@@ -5,7 +5,12 @@
  */
 
 import { createHash, createHmac } from 'node:crypto';
-import type { BreachStorage, GDPRStorage } from './gdpr-storage.js';
+import {
+  type BreachStorage,
+  type GDPRStorage,
+  parseDataCategories,
+  parseDeletionResult,
+} from './gdpr-storage.js';
 import { getSecurityLogger } from './logger.js';
 
 export type ConsentType =
@@ -308,12 +313,17 @@ export class DataDeletionSystem {
     dataCategories: DataCategory[],
     reason?: string,
   ): Promise<DataDeletionRequest> {
+    if (typeof userId !== 'string' || userId.trim().length === 0)
+      throw new Error('Invalid deletion user ID');
+    if (reason !== undefined && typeof reason !== 'string')
+      throw new Error('Invalid deletion reason');
+    const categories = parseDataCategories(dataCategories);
     const request: DataDeletionRequest = {
       id: crypto.randomUUID(),
       userId,
       requestedAt: new Date().toISOString(),
       status: 'pending',
-      dataCategories,
+      dataCategories: categories,
       reason,
     };
 
@@ -335,28 +345,46 @@ export class DataDeletionSystem {
       retained: string[];
     }>,
   ): Promise<void> {
-    const request = await this.storage.getDeletionRequest(requestId);
-
+    const request = await this.storage.claimDeletionRequest(requestId);
     if (!request) {
-      throw new Error('Deletion request not found');
+      const existing = await this.storage.getDeletionRequest(requestId);
+      throw new Error(existing ? 'Deletion request is not pending' : 'Deletion request not found');
     }
 
-    request.status = 'processing';
-    await this.storage.setDeletionRequest(request);
-
+    let result: Parameters<GDPRStorage['finishDeletionRequest']>[1];
     try {
-      const result = await deleteData(request.userId, request.dataCategories);
-
-      request.status = 'completed';
-      request.processedAt = new Date().toISOString();
-      request.deletedData = result.deleted;
-      request.retainedData = result.retained;
-      await this.storage.setDeletionRequest(request);
+      const outcome = await deleteData(request.userId, request.dataCategories);
+      if (outcome === null || typeof outcome !== 'object')
+        throw new Error('Invalid deletion callback result');
+      const { deleted, retained } = outcome;
+      if (deleted === undefined || retained === undefined)
+        throw new Error('Invalid deletion callback result');
+      result = parseDeletionResult({
+        status: 'completed',
+        processedAt: new Date().toISOString(),
+        deletedData: deleted,
+        retainedData: retained,
+      });
     } catch (error) {
-      request.status = 'failed';
-      await this.storage.setDeletionRequest(request);
+      let finished: boolean;
+      try {
+        finished = await this.storage.finishDeletionRequest(requestId, {
+          status: 'failed',
+          processedAt: new Date().toISOString(),
+        });
+      } catch (persistenceError) {
+        throw new AggregateError(
+          [error, persistenceError],
+          'Unable to persist failed deletion request',
+        );
+      }
+      if (!finished)
+        throw new Error('Deletion request processing ownership lost', { cause: error });
       throw error;
     }
+
+    const finished = await this.storage.finishDeletionRequest(requestId, result);
+    if (!finished) throw new Error('Deletion request processing ownership lost');
   }
 
   /**

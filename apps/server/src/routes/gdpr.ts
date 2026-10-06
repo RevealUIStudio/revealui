@@ -392,6 +392,7 @@ app.openapi(
               metadata: { userId, stripeCustomerId, detail },
             });
             await updateUserStripeDeletion(db, userId, 'failed');
+            throw new Error('Required Stripe customer erasure failed', { cause: stripeErr });
           }
         } else {
           logger.error(
@@ -409,6 +410,7 @@ app.openapi(
             metadata: { userId, stripeCustomerId },
           });
           await updateUserStripeDeletion(db, userId, 'failed');
+          throw new Error('Stripe service unavailable during GDPR erasure');
         }
       }
 
