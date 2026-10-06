@@ -321,6 +321,17 @@ const configProxy = new Proxy({} as Config, {
 
 export default configProxy;
 
+export type {
+  DatabaseUrlEnv,
+  DatabaseUrlVariable,
+  ResolveDatabaseUrlOptions,
+} from './database-url.js';
+export {
+  DATABASE_URL_PRECEDENCE,
+  DatabaseUrlConflictError,
+  resetDatabaseUrlConflictWarning,
+  resolveDatabaseUrl,
+} from './database-url.js';
 export type { Environment } from './loader.js';
 // Export loader utilities (for advanced usage)
 export { detectEnvironment, loadEnvironment } from './loader.js';

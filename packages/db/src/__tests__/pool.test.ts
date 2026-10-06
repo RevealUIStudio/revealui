@@ -312,6 +312,18 @@ describe('pool module', () => {
       expect(getPool()).toBeDefined();
     });
 
+    it('throws on import when POSTGRES_URL and DATABASE_URL differ in production', async () => {
+      setEnv({
+        NODE_ENV: 'production',
+        DATABASE_HOST: undefined,
+        POSTGRES_URL: 'postgresql://primary.example/db',
+        DATABASE_URL: 'postgresql://other.example/db',
+      });
+      vi.resetModules();
+
+      await expect(import('../pool.js')).rejects.toThrow('Refusing to choose');
+    });
+
     it('does not throw in production when DATABASE_URL is set', async () => {
       setEnv({
         NODE_ENV: 'production',

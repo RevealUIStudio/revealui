@@ -3,6 +3,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import config from '@revealui/config';
+import { resolveDatabaseUrl } from '@revealui/config/database-url';
 import { getSharedCMSConfig } from '@revealui/config/revealui';
 import type { Field } from '@revealui/contracts/admin';
 import type { RevealUIField, RevealUIInstance } from '@revealui/core';
@@ -48,7 +49,7 @@ const dbAdapter =
         provider: 'electric',
       })
     : universalPostgresAdapter({
-        connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
+        connectionString: resolveDatabaseUrl(),
         poolFactory: async () => {
           const { getRestPool } = await import('@revealui/db/client');
           return getRestPool();

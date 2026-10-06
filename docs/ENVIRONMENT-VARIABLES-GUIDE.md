@@ -136,12 +136,15 @@ During Next.js builds, set `SKIP_ENV_VALIDATION=true` to defer validation to run
 
 ### Database
 
+Runtime code chooses the application database with `resolveDatabaseUrl()` in `@revealui/config` (subpath `@revealui/config/database-url`). Precedence, first non-empty value: `POSTGRES_URL`, `DATABASE_URL`, `NEON_DATABASE_URL`, `SUPABASE_DATABASE_URI`. When `POSTGRES_URL` and `DATABASE_URL` are both set and differ, development warns once and uses `POSTGRES_URL`. Production throws and does not pick a database. The warning and the error name the variable names only. They never include the URL.
+
 | Variable | Required | Default | Description | Security | Used By |
 |----------|----------|---------|-------------|----------|---------|
-| `POSTGRES_URL` | Yes | None | PostgreSQL connection string for the primary database (NeonDB recommended). Format: `postgresql://user:password@host:port/database?sslmode=require`. | HIGH (server-only) | admin, api |
-| `DATABASE_URL` | No | None | Fallback for `POSTGRES_URL`. If `POSTGRES_URL` is not set, this value is used automatically. A deprecation warning is logged. | HIGH (server-only) | admin, api |
-| `SUPABASE_DATABASE_URL` | No | None | Legacy only. Supabase was removed as architecture (ADR 2026-05-01); NeonDB `pgvector` holds agent memories and vectors. Leave unset on new deploys. | HIGH (server-only) | ai, api |
-| `SUPABASE_DATABASE_URI` | No | None | Alternative naming for the Supabase connection. Accepted as a fallback in the database config module. | HIGH (server-only) | admin, api |
+| `POSTGRES_URL` | Yes | None | Canonical PostgreSQL connection string (NeonDB recommended). Format: `postgresql://user:password@host:port/database?sslmode=require`. Wins when it is non-empty. | HIGH (server-only) | admin, api |
+| `DATABASE_URL` | No | None | Fallback used only when `POSTGRES_URL` is empty. If both are set and differ, production refuses to boot. | HIGH (server-only) | admin, api |
+| `NEON_DATABASE_URL` | No | None | Legacy name. Used only when `POSTGRES_URL` and `DATABASE_URL` are both empty. | HIGH (server-only) | scripts, legacy |
+| `SUPABASE_DATABASE_URL` | No | None | Legacy only. Not read by `resolveDatabaseUrl()`. Supabase was removed as architecture (ADR 2026-05-01); NeonDB `pgvector` holds agent memories and vectors. Leave unset on new deploys. | HIGH (server-only) | ai, api |
+| `SUPABASE_DATABASE_URI` | No | None | Legacy alias. Used only when `POSTGRES_URL`, `DATABASE_URL`, and `NEON_DATABASE_URL` are all empty. | HIGH (server-only) | admin, api |
 | `DB_POOL_MAX` | No | `10` | Maximum connections in the pg pool. | LOW | admin, api |
 | `DB_POOL_IDLE_TIMEOUT` | No | `30000` | Idle connection timeout in milliseconds. | LOW | admin, api |
 

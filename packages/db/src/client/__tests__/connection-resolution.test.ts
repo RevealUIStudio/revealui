@@ -7,12 +7,9 @@
  * `getClient()` connects to exactly the database the environment names and is
  * never silently redirected to a different one.
  *
- * These tests pin that invariant at the client layer: a set POSTGRES_URL (or
- * DATABASE_URL) is resolved verbatim into the pg pool, and `@revealui/config`
- * only ever supplies a URL it derived from those same vars (getDatabaseConfig
- * never synthesizes a default database — proven in
- * packages/config/src/__tests__/modules.test.ts). Together they guarantee the
- * resolver honors an explicit URL over any config value in every environment.
+ * These tests pin that invariant at the client layer: getClient() uses
+ * resolveDatabaseUrl() and copies that URL into the pg pool. A mocked
+ * config.database.url cannot point the pool at a different database.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -45,6 +42,7 @@ vi.mock('@neondatabase/serverless', () => ({
   neon: vi.fn(() => ({})),
 }));
 
+import { resolveDatabaseUrl } from '@revealui/config/database-url';
 import { getClient, resetClient } from '../index.js';
 
 const SMOKE_URL = 'postgresql://test:test@localhost:5432/smoke';
@@ -89,18 +87,25 @@ describe('getClient connection resolution', () => {
     expect(connectionStringOfLastPool()).toBe(dbUrl);
   });
 
-  it('uses the config-supplied url, which is itself derived from POSTGRES_URL/DATABASE_URL', () => {
-    // getDatabaseConfig returns POSTGRES_URL || DATABASE_URL || '' and never
-    // synthesizes a default, so config.database.url can only ever equal the
-    // URL the environment set. A set POSTGRES_URL therefore cannot be
-    // overridden by a config value pointing at a different database.
-    const configuredUrl = 'postgresql://test:test@localhost:5432/smoke';
-    mockConfig.database = { url: configuredUrl };
-    process.env.POSTGRES_URL = configuredUrl;
+  it('uses POSTGRES_URL and ignores a config database.url that points elsewhere', () => {
+    mockConfig.database = { url: 'postgresql://test:test@localhost:5432/from-config' };
+    process.env.POSTGRES_URL = SMOKE_URL;
 
     getClient();
 
-    expect(connectionStringOfLastPool()).toBe(configuredUrl);
+    expect(connectionStringOfLastPool()).toBe(SMOKE_URL);
+    expect(connectionStringOfLastPool()).toBe(resolveDatabaseUrl());
+  });
+
+  it('prefers POSTGRES_URL when DATABASE_URL differs outside production', () => {
+    process.env.NODE_ENV = 'test';
+    process.env.POSTGRES_URL = SMOKE_URL;
+    process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/other';
+
+    getClient();
+
+    expect(connectionStringOfLastPool()).toBe(SMOKE_URL);
+    expect(connectionStringOfLastPool()).toBe(resolveDatabaseUrl());
   });
 
   it('throws a named error when neither config nor env provides a url', () => {

@@ -5,6 +5,7 @@
  * Validates critical environment variables at startup.
  */
 
+import { DatabaseUrlConflictError, resolveDatabaseUrl } from '@revealui/config/database-url';
 import { getExplicitDeploymentMode } from '@revealui/core/deployment-mode';
 
 /**
@@ -76,11 +77,30 @@ export function validateRequiredEnvVars(
 
   // Check required variables
   for (const key of baseRequired) {
-    // Special handling for POSTGRES_URL - also check DATABASE_URL
+    // Presence follows resolveDatabaseUrl(), including legacy names. A
+    // production conflict is recorded as missing so boot exits without
+    // printing URL values. The resolver itself throws in that case.
     if (key === 'POSTGRES_URL') {
-      if (!(process.env.POSTGRES_URL || process.env.DATABASE_URL)) {
+      let resolved: string | undefined;
+      let conflict = false;
+      try {
+        resolved = resolveDatabaseUrl(process.env, {
+          nodeEnv: environment,
+          warn: (message) => {
+            warnings.push(message);
+          },
+        });
+      } catch (error) {
+        if (error instanceof DatabaseUrlConflictError) {
+          conflict = true;
+          missing.push('POSTGRES_URL and DATABASE_URL are both set and differ');
+        } else {
+          throw error;
+        }
+      }
+      if (!conflict && resolved === undefined) {
         missing.push(key);
-      } else if (process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
+      } else if (!conflict && process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
         warnings.push(
           'Using DATABASE_URL instead of POSTGRES_URL (consider standardizing to POSTGRES_URL)',
         );

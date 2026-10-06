@@ -1,3 +1,4 @@
+import { resolveDatabaseUrl } from '@revealui/config/database-url';
 import { getExplicitDeploymentMode } from '@revealui/core/deployment-mode';
 import type {
   RevealCollectionConfig,
@@ -81,7 +82,7 @@ function isSqlCondition(value: SQL<unknown> | null | undefined): value is SQL<un
 }
 
 function hasTypedCollectionDatabase(): boolean {
-  return Boolean(process.env.POSTGRES_URL || process.env.DATABASE_URL);
+  return Boolean(resolveDatabaseUrl());
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

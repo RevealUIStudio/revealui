@@ -126,11 +126,15 @@ pnpm revealui dev up
    - `revealui_migrations`
 5. Lists all RevealUI tables found
 
-**Environment Variables (priority order):**
+**Environment Variables (this script, not the runtime resolver):**
 
-- `DATABASE_URL` (primary)
-- `POSTGRES_URL` (fallback)
-- `SUPABASE_DATABASE_URI` (legacy alias only; Supabase was removed as architecture — see the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md). New deploys use `POSTGRES_URL` / Neon only.)
+`pnpm db:init` still reads its own list and has not moved to `resolveDatabaseUrl()`:
+
+- `DATABASE_URL` (primary for this script)
+- `POSTGRES_URL` (fallback for this script)
+- `SUPABASE_DATABASE_URI` (legacy alias only; Supabase was removed as architecture. See the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md). New deploys use `POSTGRES_URL`.)
+
+Runtime services use `resolveDatabaseUrl()` instead: `POSTGRES_URL`, then `DATABASE_URL`, then `NEON_DATABASE_URL`, then `SUPABASE_DATABASE_URI`.
 
 **Usage:**
 
@@ -339,11 +343,14 @@ pnpm db:status
 
 ### Required Variables
 
-**Primary:** (at least one required)
+**Primary:** (at least one required). Runtime order is `resolveDatabaseUrl()`:
 
-- `DATABASE_URL` - PostgreSQL connection string
-- `POSTGRES_URL` - Alternative name (Neon convention)
-- `SUPABASE_DATABASE_URI` - legacy alias only (Supabase was removed; prefer `POSTGRES_URL`)
+- `POSTGRES_URL` - canonical PostgreSQL connection string
+- `DATABASE_URL` - fallback when `POSTGRES_URL` is empty
+- `NEON_DATABASE_URL` - legacy, only when both names above are empty
+- `SUPABASE_DATABASE_URI` - legacy alias, last (Supabase was removed; prefer `POSTGRES_URL`)
+
+When `POSTGRES_URL` and `DATABASE_URL` are both set and differ, development warns and uses `POSTGRES_URL`. Production refuses to choose a database. Logs name the variables only.
 
 **Format:**
 

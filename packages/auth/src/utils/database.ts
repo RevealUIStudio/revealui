@@ -5,6 +5,7 @@
  * and creating test fixtures for authentication system tests.
  */
 
+import { resolveDatabaseUrl } from '@revealui/config/database-url';
 import { getClient } from '@revealui/db/client';
 import { sessions, users } from '@revealui/db/schema';
 import { and, eq, isNull } from 'drizzle-orm';
@@ -21,11 +22,16 @@ export interface TestDatabaseConfig {
  * Gets the test database connection string from environment variables
  */
 export function getTestDatabaseUrl(): string {
-  const url = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.TEST_DATABASE_URL;
+  // TEST_DATABASE_URL stays local to this helper. It is not an application
+  // database, so resolveDatabaseUrl() does not read it.
+  const testUrl = process.env.TEST_DATABASE_URL;
+  const url =
+    resolveDatabaseUrl() ||
+    (typeof testUrl === 'string' && testUrl.length > 0 ? testUrl : undefined);
 
   if (!url) {
     throw new Error(
-      'Test database URL not found. Set DATABASE_URL, POSTGRES_URL, or TEST_DATABASE_URL environment variable.',
+      'Test database URL not found. Set POSTGRES_URL, DATABASE_URL, or TEST_DATABASE_URL environment variable.',
     );
   }
 
@@ -36,9 +42,10 @@ export function getTestDatabaseUrl(): string {
  * Creates a test database client
  */
 export function createTestDatabaseClient() {
-  // getClient() uses the connection string from environment
-  // For tests, we need to ensure DATABASE_URL is set
+  // getClient() uses resolveDatabaseUrl(). Pin both canonical names to the
+  // same value so a pre-existing differing pair cannot select another database.
   const url = getTestDatabaseUrl();
+  process.env.POSTGRES_URL = url;
   process.env.DATABASE_URL = url;
   return getClient();
 }

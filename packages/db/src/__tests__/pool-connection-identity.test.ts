@@ -25,12 +25,23 @@ describe('getConnectionIdentity', () => {
     expect(identity).toEqual({ connectionString: NEON_URL });
   });
 
-  it('prefers DATABASE_URL over POSTGRES_URL', () => {
+  it('prefers POSTGRES_URL over DATABASE_URL outside production', () => {
     const identity = getConnectionIdentity({
-      DATABASE_URL: NEON_URL,
-      POSTGRES_URL: 'postgresql://other@other-host:5432/other',
+      NODE_ENV: 'test',
+      DATABASE_URL: 'postgresql://other@other-host:5432/other',
+      POSTGRES_URL: NEON_URL,
     });
     expect(identity.connectionString).toBe(NEON_URL);
+  });
+
+  it('refuses to choose when POSTGRES_URL and DATABASE_URL differ in production', () => {
+    expect(() =>
+      getConnectionIdentity({
+        NODE_ENV: 'production',
+        DATABASE_URL: 'postgresql://other@other-host:5432/other',
+        POSTGRES_URL: NEON_URL,
+      }),
+    ).toThrow('Refusing to choose');
   });
 
   it('never mixes discrete host fields into URL mode, even when both are set', () => {

@@ -12,6 +12,7 @@
  */
 
 import { neon } from '@neondatabase/serverless';
+import { resolveDatabaseUrl } from '@revealui/config/database-url';
 import { logger } from '@revealui/utils/logger';
 import { discoverTables } from './discover.js';
 
@@ -50,9 +51,7 @@ export async function introspectDatabase(
   // Only use environment fallback if connectionString is not in options at all
   // If explicitly set to undefined, treat as missing
   const connectionString =
-    'connectionString' in options
-      ? options.connectionString
-      : process.env.POSTGRES_URL || process.env.DATABASE_URL;
+    'connectionString' in options ? options.connectionString : resolveDatabaseUrl();
 
   if (!connectionString) {
     return {
@@ -188,7 +187,7 @@ export async function validateSchemaMatch(connectionString: string): Promise<{
 // CLI interface
 if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2);
-  const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+  const connectionString = resolveDatabaseUrl();
 
   if (!connectionString) {
     logger.error(

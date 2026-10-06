@@ -11,6 +11,7 @@
 
 import { mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
+import { resolveDatabaseUrl } from '@revealui/config/database-url';
 import getMcpConfig from '@revealui/config/mcp';
 import type { McpDocumentOperationsInsert, McpDocumentOperationsRow } from '@revealui/contracts';
 import { getSSLConfig } from '@revealui/core/database/ssl-config';
@@ -105,15 +106,13 @@ export async function connectPglite(options?: { dataDir?: string }): Promise<Mcp
 export async function connectPostgres(): Promise<McpDbClient> {
   const cfg = getMcpConfig();
 
-  const connectionString =
-    cfg.electricDatabaseUrl ||
-    process.env.DATABASE_URL ||
-    process.env.POSTGRES_URL ||
-    process.env.SUPABASE_DATABASE_URI;
+  // ELECTRIC_DATABASE_URL is a distinct ElectricSQL database, not an alias of
+  // the application database. When it is unset, the shared resolver decides.
+  const connectionString = cfg.electricDatabaseUrl || resolveDatabaseUrl();
 
   if (!connectionString) {
     throw new Error(
-      'Database connection string not found. Set ELECTRIC_DATABASE_URL, DATABASE_URL, POSTGRES_URL, or SUPABASE_DATABASE_URI.',
+      'Database connection string not found. Set ELECTRIC_DATABASE_URL, POSTGRES_URL, DATABASE_URL, NEON_DATABASE_URL, or SUPABASE_DATABASE_URI.',
     );
   }
 

@@ -250,6 +250,19 @@ describe('universalPostgresAdapter', () => {
       expect(mockPool.connect).toHaveBeenCalled();
     });
 
+    it('prefers POSTGRES_URL when DATABASE_URL is also set', async () => {
+      process.env.NODE_ENV = 'test';
+      process.env.POSTGRES_URL = 'postgresql://user:pass@localhost/postgresdb';
+      process.env.DATABASE_URL = 'postgresql://user:pass@localhost/envdb';
+
+      const adapter = universalPostgresAdapter({});
+      mockClient.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+      await adapter.connect();
+
+      const opts = (mockPool as { _opts?: { connectionString?: string } })._opts;
+      expect(opts?.connectionString).toBe('postgresql://user:pass@localhost/postgresdb');
+    });
+
     it('should read POSTGRES_URL from environment', async () => {
       process.env.POSTGRES_URL = 'postgresql://user:pass@localhost/postgresdb';
 
@@ -525,9 +538,7 @@ describe('universalPostgresAdapter', () => {
     it('should throw descriptive error when no connection string found', async () => {
       const adapter = universalPostgresAdapter({});
 
-      await expect(adapter.connect()).rejects.toThrow(
-        /DATABASE_URL.*POSTGRES_URL.*SUPABASE_DATABASE_URI/,
-      );
+      await expect(adapter.connect()).rejects.toThrow('POSTGRES_URL');
     });
   });
 
