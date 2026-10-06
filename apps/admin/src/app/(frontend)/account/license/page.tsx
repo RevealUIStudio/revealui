@@ -418,7 +418,7 @@ function LicenseContent() {
                   at startup.
                 </p>
                 <p className="mt-3">
-                  The same key activates the RevDev daemon — one purchase, one license, both
+                  The same key activates the RevDev daemon. One purchase, one license, both
                   products. Set it as{' '}
                   <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs dark:bg-zinc-900">
                     REVEALUI_LICENSE_KEY
@@ -631,7 +631,7 @@ function LicenseContent() {
                 >
                   {perpetualLoading === plan.tier
                     ? 'Redirecting…'
-                    : `Buy ${pricing?.perpetual.find((t) => t.name === plan.label)?.price ?? '—'}`}
+                    : `Buy ${pricing?.perpetual.find((t) => t.name === plan.label)?.price ?? 'N/A'}`}
                 </Button>
               </div>
             ))}

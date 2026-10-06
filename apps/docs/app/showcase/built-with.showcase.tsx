@@ -46,7 +46,7 @@ const story: ShowcaseStory = {
   usage: {
     when: 'Free-tier attribution in a page footer or corner.',
     avoid:
-      'Do not use the fixed `position` variants inside scrollable content or dialogs — they pin to the viewport.',
+      'Do not use the fixed `position` variants inside scrollable content or dialogs. They pin to the viewport.',
   },
 
   code: (props: Record<string, unknown>) =>
