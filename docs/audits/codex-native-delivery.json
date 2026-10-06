@@ -322,9 +322,7 @@
       {
         "id": "HARNESS-CODEX-APPROVAL-UI",
         "owner": "@revealui/harnesses and consuming host UI",
-        "owningPaths": [
-          "packages/harnesses/src/adapters/codex-adapter.ts"
-        ],
+        "owningPaths": ["packages/harnesses/src/adapters/codex-adapter.ts"],
         "failingBehavior": "Host callback is implemented, but no packaged host review UI is supplied.",
         "durableTarget": "Wire the consuming host review surface to onApproval with the native request details and AbortSignal.",
         "validationNeeded": "User accept/decline/cancel, expired review, cancellation, server resolution, and no late grants in the consuming host."
@@ -395,12 +393,33 @@
           "owningPaths": [
             "packages/knowledge-graph/src/ingest/index.ts",
             "packages/knowledge-graph/src/memory/tenant-key.ts",
-            "packages/knowledge-graph/src/memory/scope-sql.ts"
+            "packages/knowledge-graph/src/memory/scope-sql.ts",
+            "packages/knowledge-graph/src/ingest/engine.ts",
+            "packages/knowledge-graph/src/ingest/legacy-memory.ts",
+            "packages/knowledge-graph/src/cli/revkg.ts"
           ],
           "failingBehavior": "Historical unscoped writes can merge private/workspace node metadata; node-only rows lack episode-linked provenance. Current merged nodes cannot safely reconstruct ownership.",
           "durableTarget": "Maintained idempotent reconstruction from authoritative episode/outbox provenance into scoped keys and episode-linked subjects. Restore historical reads after verifying metadata ownership; never merely stamp the marker onto old rows.",
           "validationNeeded": "Mixed private/workspace/tenant rows, node-only publications, key collisions, rollback/idempotence, scan contamination and no cross-scope disclosure",
-          "currentBehavior": "Authenticated SQL reads quarantine unmarked historical memory and connected nodes; unattributed nodes remain hidden. Original records are preserved."
+          "currentBehavior": "Authenticated reads still quarantine unmarked memory and connected nodes. Maintained audit-legacy-memory reports missing/invalid snapshot or reconstruction-required blockers without exposing authored payloads. New additive memory ingestion preserves node and edge snapshots inside immutable episodes, including replica replay; original historical records remain unchanged.",
+          "recoveryBlocker": "Historical node outbox operations contain no episode identifier or atomic batch manifest. Sequence adjacency, timestamps and merged current nodes cannot prove node metadata ownership, including node-only publications. Full reconstruction requires authoritative original publication records or snapshots; current storage alone cannot recover missing ownership evidence.",
+          "inventory": [
+            {
+              "location": "packages/knowledge-graph/src/ingest/merge.ts: node upsert",
+              "behavior": "Historical unscoped mutable nodes merge metadata from memory scopes and scans; current node rows are not recovery evidence.",
+              "owner": "@revealui/knowledge-graph ingestion",
+              "durableDestination": "Scoped publication keys and immutable per-episode authored snapshots",
+              "removalEvidence": "Scoped keys already enforced; old contaminated rows remain quarantined pending safe reconstruction."
+            },
+            {
+              "location": "kg_outbox historical node ops and kg_edge_episodes",
+              "behavior": "Node ops have no episode ownership; edge provenance cannot attribute node-only rows or distinguish merged node metadata.",
+              "owner": "@revealui/knowledge-graph ingestion/provenance",
+              "durableDestination": "ingestEpisode memory snapshots in kg_episodes.content_ref, retained during replica replay",
+              "removalEvidence": "New writes retain authored snapshots. Missing historical evidence is explicitly reported; no adjacency-based or merged-node reconstruction path is introduced."
+            }
+          ],
+          "provenanceValidation": "38 focused graph tests passed across audit, publication, scoped reads and replica replay; seven new cases cover immutable payload preservation, node-only evidence, historical ambiguity, read-only inventory, tampering, transaction rollback/idempotence and edge provenance. Graph build and typecheck passed. Built audit CLI rejects --publish before database access. All 20 MCP product-mode integration cases passed against the rebuilt graph package; no production database access or inference calls."
         },
         {
           "id": "KG-REPOSITORY-SEARCH-FILTER",

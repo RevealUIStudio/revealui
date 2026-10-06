@@ -65,6 +65,33 @@ pnpm exec revkg drift --repo revealui
 
 ## Development
 
+### Historical memory provenance
+
+`revkg audit-legacy-memory` emits a read-only JSON inventory for
+`KG-LEGACY-MEMORY-SCOPE-MIGRATION`. It reports episode identifiers, blocker
+codes and counts without printing authored payloads or scope identities.
+`--publish` is rejected. This command does not restore historical reads.
+
+Historical memory episodes without `keyScopeVersion: 1` and their connected
+nodes remain quarantined by authenticated reads. The old outbox records node
+payloads without episode ownership; neighboring sequence numbers, timestamps
+and current merged node metadata cannot establish that ownership. Node-only
+publications may have no graph provenance at all. These are unresolved data
+recovery blockers, not permission to mark old rows as scoped.
+
+New additive memory ingestion stores a versioned `ingestSnapshot` of authored
+node and edge rows in the immutable episode's `content_ref`. It commits in the
+same transaction as graph writes and survives replica replay without a local
+outbox. Caller-supplied snapshots are replaced by the ingestion engine.
+Memory episode identifiers now include this snapshot; deterministic scan
+identifiers are unchanged. This preserves evidence for maintained recovery
+tooling; it cannot reconstruct missing historical evidence.
+
+Reconstruction remains tracked in the delivery audit. It needs authoritative
+historical snapshots or original publication records, validated scope ownership,
+transactional scoped replay, idempotence, and tests for collisions and scan
+contamination before any quarantined data can become visible.
+
 ```bash
 pnpm --filter @revealui/knowledge-graph typecheck
 pnpm --filter @revealui/knowledge-graph test
