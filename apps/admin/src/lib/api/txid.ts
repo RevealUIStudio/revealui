@@ -37,7 +37,9 @@ export async function generateTxId(db?: ReturnType<typeof getClient>): Promise<n
   // The ::xid cast strips off the epoch, giving you the raw 32-bit value
   // that matches what PostgreSQL sends in logical replication streams
   // (and then exposed through ElectricSQL which we'll match against in the client).
-  const result = await database.execute(sql`SELECT pg_current_xact_id()::xid::text as txid`);
+  const result = await database.execute(
+    sql<{ txid: string }>`SELECT pg_current_xact_id()::xid::text as txid`,
+  );
 
   const txid = result.rows[0]?.txid;
 
@@ -45,7 +47,7 @@ export async function generateTxId(db?: ReturnType<typeof getClient>): Promise<n
     throw new Error('Failed to get transaction ID');
   }
 
-  return parseInt(txid as string, 10);
+  return parseInt(txid, 10);
 }
 
 /**
@@ -69,7 +71,9 @@ export async function generateTxId(db?: ReturnType<typeof getClient>): Promise<n
 export async function generateTxIdInTransaction(
   tx: Parameters<Parameters<ReturnType<typeof getClient>['transaction']>[0]>[0],
 ): Promise<number> {
-  const result = await tx.execute(sql`SELECT pg_current_xact_id()::xid::text as txid`);
+  const result = await tx.execute(
+    sql<{ txid: string }>`SELECT pg_current_xact_id()::xid::text as txid`,
+  );
 
   const txid = result.rows[0]?.txid;
 
@@ -77,5 +81,5 @@ export async function generateTxIdInTransaction(
     throw new Error('Failed to get transaction ID');
   }
 
-  return parseInt(txid as string, 10);
+  return parseInt(txid, 10);
 }

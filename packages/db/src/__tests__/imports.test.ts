@@ -48,6 +48,7 @@ describe('@revealui/db - Import Paths', () => {
       const main = await import('@revealui/db');
       expect(main).toBeDefined();
       expect(main.getClient).toBeDefined();
+      expect(main.createRestClient).toBeDefined();
       expect(typeof main.getClient).toBe('function');
     },
     IMPORT_TIMEOUT_MS,

@@ -621,7 +621,7 @@ export async function withTransaction<T>(
 
   // Use Drizzle's built-in transaction API
   // This automatically handles BEGIN/COMMIT/ROLLBACK
-  return (db as NodePgDatabase<typeof restSchema>).transaction((tx) => fn(tx));
+  return db.transaction(fn);
 }
 
 // =============================================================================

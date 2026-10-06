@@ -68,6 +68,7 @@ export {
 export {
   closeAllPools,
   createClient,
+  createRestClient,
   type Database as DatabaseClient,
   type DatabaseConfig,
   type DatabaseType,
