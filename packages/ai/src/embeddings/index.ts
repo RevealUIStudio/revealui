@@ -71,8 +71,8 @@ export async function generateEmbedding(
     throw new Error('Text must be a non-empty string');
   }
 
-  // Prefer the caller-resolved client (BYOK / hosted). Fall back to the
-  // env-configured client for self-hosted and internal (no-user) callers.
+  // Prefer the caller-resolved client (per-account key). The env client is
+  // forge and self-host only; createLLMClientFromEnv throws on hosted.
   const client = options.client ?? createLLMClientFromEnv();
 
   // Ask client to embed  -  each provider uses its own default model when model is undefined

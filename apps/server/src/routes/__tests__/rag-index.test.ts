@@ -6,6 +6,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 // ---------------------------------------------------------------------------
 vi.mock('@revealui/db/client', () => ({
   getRestClient: vi.fn(),
+  getClient: vi.fn(() => ({})),
 }));
 
 vi.mock('@revealui/db/schema/rag', () => ({
@@ -437,6 +438,10 @@ describe('rag-index routes  -  AI available', () => {
   let freshGetRestClient: ReturnType<typeof vi.fn>;
   let mockIngest: ReturnType<typeof vi.fn>;
   let mockDeleteDocument: ReturnType<typeof vi.fn>;
+  let mockResolve: ReturnType<typeof vi.fn>;
+  let mockGenerateEmbedding: ReturnType<typeof vi.fn>;
+  let capturedEmbed: ((text: string) => Promise<number[]>) | undefined;
+  const resolvedClient = { marker: 'resolved-client' };
 
   beforeAll(async () => {
     vi.resetModules();
@@ -444,9 +449,12 @@ describe('rag-index routes  -  AI available', () => {
     mockIngest = vi.fn();
     mockDeleteDocument = vi.fn();
     freshGetRestClient = vi.fn();
+    mockResolve = vi.fn(async () => resolvedClient);
+    mockGenerateEmbedding = vi.fn(async () => ({ vector: [0.1, 0.2, 0.3] }));
 
     vi.doMock('@revealui/db/client', () => ({
       getRestClient: freshGetRestClient,
+      getClient: vi.fn(() => ({})),
     }));
 
     vi.doMock('@revealui/db/schema/rag', () => ({
@@ -458,11 +466,25 @@ describe('rag-index routes  -  AI available', () => {
     }));
 
     vi.doMock('@revealui/ai/embeddings', () => ({
-      generateEmbedding: vi.fn().mockResolvedValue({ vector: [0.1, 0.2, 0.3] }),
+      generateEmbedding: (...args: unknown[]) => mockGenerateEmbedding(...args),
+    }));
+
+    vi.doMock('@revealui/ai/llm/server', () => ({
+      resolveLLMClientForRequest: (...args: unknown[]) => mockResolve(...args),
+      createLLMClientFromEnv: () => {
+        throw new Error('env model client must not be constructed by rag-index');
+      },
     }));
 
     vi.doMock('@revealui/ai/ingestion', () => ({
       IngestionPipeline: class {
+        constructor(
+          _vectorDb: unknown,
+          _restDb: unknown,
+          embed: (text: string) => Promise<number[]>,
+        ) {
+          capturedEmbed = embed;
+        }
         ingest = mockIngest;
         deleteDocument = mockDeleteDocument;
       },
@@ -478,6 +500,9 @@ describe('rag-index routes  -  AI available', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    capturedEmbed = undefined;
+    mockResolve.mockImplementation(async () => resolvedClient);
+    mockGenerateEmbedding.mockResolvedValue({ vector: [0.1, 0.2, 0.3] });
   });
 
   // biome-ignore lint/suspicious/noExplicitAny: test helper
@@ -696,6 +721,66 @@ describe('rag-index routes  -  AI available', () => {
       expect(body.documentId).toBe('doc-99');
     });
 
+    it('embeds index text with the resolved customer client, not an env client', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({ docs: [] }),
+        }),
+      );
+      freshGetRestClient.mockReturnValue({});
+      process.env.REVEALUI_DEPLOYMENT_MODE = 'hosted';
+
+      const app = createFreshApp();
+      const res = await app.request('/rag/workspaces/ws-1/index/posts', { method: 'POST' });
+
+      expect(res.status).toBe(200);
+      expect(mockResolve).toHaveBeenCalledWith(
+        'test-user',
+        expect.anything(),
+        expect.objectContaining({ isHosted: true, workspaceId: 'ws-1' }),
+      );
+      expect(capturedEmbed).toBeTypeOf('function');
+      await capturedEmbed?.('hello from the index');
+      expect(mockGenerateEmbedding).toHaveBeenCalledWith('hello from the index', {
+        client: resolvedClient,
+      });
+
+      delete process.env.REVEALUI_DEPLOYMENT_MODE;
+      vi.unstubAllGlobals();
+    });
+
+    it('returns 409 on hosted when the account has no provider key', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({ docs: [{ id: 'doc-1', content: 'text' }] }),
+        }),
+      );
+      freshGetRestClient.mockReturnValue({});
+      process.env.REVEALUI_DEPLOYMENT_MODE = 'hosted';
+      mockResolve.mockRejectedValueOnce(
+        Object.assign(new Error('No LLM provider is configured for this account.'), {
+          code: 'LLM_NOT_CONFIGURED',
+          settingsPath: '/settings/api-keys',
+        }),
+      );
+
+      const app = createFreshApp();
+      const res = await app.request('/rag/workspaces/ws-1/index/posts', { method: 'POST' });
+      const body = await res.json();
+
+      expect(res.status).toBe(409);
+      expect(body.code).toBe('LLM_NOT_CONFIGURED');
+      expect(mockGenerateEmbedding).not.toHaveBeenCalled();
+      expect(mockIngest).not.toHaveBeenCalled();
+
+      delete process.env.REVEALUI_DEPLOYMENT_MODE;
+      vi.unstubAllGlobals();
+    });
+
     it('calls deleteDocument with the correct documentId', async () => {
       freshGetRestClient.mockReturnValue({});
       mockDeleteDocument.mockResolvedValue(undefined);
@@ -707,6 +792,49 @@ describe('rag-index routes  -  AI available', () => {
       });
 
       expect(mockDeleteDocument).toHaveBeenCalledWith('specific-doc-id');
+    });
+
+    it('embeds delete-path text with the resolved customer client', async () => {
+      freshGetRestClient.mockReturnValue({});
+      mockDeleteDocument.mockResolvedValue(undefined);
+      process.env.REVEALUI_DEPLOYMENT_MODE = 'forge';
+
+      const app = createFreshApp();
+      const res = await app.request('/rag/workspaces/ws-1/documents/doc-99', { method: 'DELETE' });
+
+      expect(res.status).toBe(200);
+      expect(mockResolve).toHaveBeenCalledWith(
+        'test-user',
+        expect.anything(),
+        expect.objectContaining({ isHosted: false, workspaceId: 'ws-1' }),
+      );
+      await capturedEmbed?.('delete neighbor');
+      expect(mockGenerateEmbedding).toHaveBeenCalledWith('delete neighbor', {
+        client: resolvedClient,
+      });
+
+      delete process.env.REVEALUI_DEPLOYMENT_MODE;
+    });
+
+    it('returns 409 on hosted delete when the account has no provider key', async () => {
+      process.env.REVEALUI_DEPLOYMENT_MODE = 'hosted';
+      mockResolve.mockRejectedValueOnce(
+        Object.assign(new Error('No LLM provider is configured for this account.'), {
+          code: 'LLM_NOT_CONFIGURED',
+          settingsPath: '/settings/api-keys',
+        }),
+      );
+
+      const app = createFreshApp();
+      const res = await app.request('/rag/workspaces/ws-1/documents/doc-99', { method: 'DELETE' });
+      const body = await res.json();
+
+      expect(res.status).toBe(409);
+      expect(body.code).toBe('LLM_NOT_CONFIGURED');
+      expect(mockDeleteDocument).not.toHaveBeenCalled();
+      expect(mockGenerateEmbedding).not.toHaveBeenCalled();
+
+      delete process.env.REVEALUI_DEPLOYMENT_MODE;
     });
   });
 });

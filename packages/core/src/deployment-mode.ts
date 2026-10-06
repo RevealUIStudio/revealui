@@ -96,3 +96,64 @@ export function deploymentModeKeyConsistencyError(
   }
   return null;
 }
+
+/**
+ * Env names that must not be set on a hosted deploy. A set value lets the
+ * platform pay for model inference, point every account at a shared local
+ * model, or re-enable a shared env key.
+ *
+ * Local-model URLs: OLLAMA_BASE_URL, INFERENCE_SNAPS_BASE_URL.
+ * HOSTED_BYOK_DISPATCH is banned at any value. Forge ignores this list.
+ */
+export const HOSTED_BANNED_INFERENCE_ENV_KEYS = [
+  'OPENAI_API_KEY',
+  'ANTHROPIC_API_KEY',
+  'GROQ_API_KEY',
+  'XAI_API_KEY',
+  'HF_TOKEN',
+  'OPENROUTER_API_KEY',
+  'LLM_PROVIDER',
+  'OLLAMA_BASE_URL',
+  'INFERENCE_SNAPS_BASE_URL',
+  'HOSTED_BYOK_DISPATCH',
+] as const;
+
+export type HostedBannedInferenceEnvKey = (typeof HOSTED_BANNED_INFERENCE_ENV_KEYS)[number];
+
+function bannedInferenceEnvIsSet(env: DeploymentModeEnv, key: string, lenient: boolean): boolean {
+  const value = env[key];
+  if (value === undefined) return false;
+  if (lenient) return true;
+  return value.trim() !== '';
+}
+
+/**
+ * Banned inference env names that are set while this process is hosted.
+ * Empty when the process is forge, or when hosted and none of the names are set.
+ * `lenient` counts an empty string as set (pre-deploy sensitive pulls).
+ * Mode detection itself stays strict: an empty private key does not flip forge to hosted.
+ */
+export function hostedPlatformInferenceViolations(
+  env: DeploymentModeEnv,
+  { lenient = false }: DetectDeploymentModeOptions = {},
+): HostedBannedInferenceEnvKey[] {
+  if (detectDeploymentMode(env) !== 'hosted') return [];
+  const found: HostedBannedInferenceEnvKey[] = [];
+  for (const key of HOSTED_BANNED_INFERENCE_ENV_KEYS) {
+    if (bannedInferenceEnvIsSet(env, key, lenient)) found.push(key);
+  }
+  return found;
+}
+
+/** Boot error when a hosted process carries a platform model key or local-model URL. */
+export function hostedPlatformInferenceError(
+  env: DeploymentModeEnv,
+  options?: DetectDeploymentModeOptions,
+): string | null {
+  const found = hostedPlatformInferenceViolations(env, options);
+  if (found.length === 0) return null;
+  return (
+    'Hosted deployments must not set platform model keys, local-model URLs, or HOSTED_BYOK_DISPATCH. ' +
+    `Remove: ${found.join(', ')}. Customers bring their own provider key.`
+  );
+}

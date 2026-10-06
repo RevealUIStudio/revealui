@@ -48,6 +48,8 @@ const PROVIDER_ENV_KEYS = [
   'LLM_TEMPERATURE',
   'LLM_MAX_TOKENS',
   'REVEALUI_ALLOW_NON_US_MODELS',
+  'REVEALUI_DEPLOYMENT_MODE',
+  'REVEALUI_LICENSE_PRIVATE_KEY',
 ] as const;
 
 const savedEnv: Record<string, string | undefined> = {};
@@ -57,6 +59,8 @@ beforeEach(() => {
     savedEnv[key] = process.env[key];
     delete process.env[key];
   }
+  // These cases exercise the forge env client. Hosted refusal is a separate file.
+  process.env.REVEALUI_DEPLOYMENT_MODE = 'forge';
 });
 
 afterEach(() => {

@@ -7,6 +7,7 @@
 // Log redaction lives in @revealui/security — import `redactLogContext`
 // (recursive walker) or `redactLogField` (single key/value).
 
+import { isHostedDeployment } from '@revealui/core/deployment-mode';
 import { createLogger } from '@revealui/core/observability/logger';
 import type { Database } from '@revealui/db/client';
 import { decryptApiKey } from '@revealui/db/crypto';
@@ -657,7 +658,26 @@ export class LLMClient {
 }
 
 /**
+ * Thrown when a hosted process asks for the deployment env model client.
+ * Hosted inference is per-account only. Forge and self-host may still use env keys.
+ */
+export class HostedEnvModelKeyRefusedError extends Error {
+  readonly code = 'HOSTED_ENV_MODEL_KEY_REFUSED' as const;
+
+  constructor() {
+    super(
+      'Hosted deployments cannot use a deployment environment model key. Configure a provider key for this account under /settings/api-keys.',
+    );
+    this.name = 'HostedEnvModelKeyRefusedError';
+  }
+}
+
+/**
  * Create an LLM client from environment variables.
+ *
+ * Hosted deployments (REVEALUI_DEPLOYMENT_MODE=hosted, or the private-key
+ * fallback in deployment-mode) throw {@link HostedEnvModelKeyRefusedError}
+ * before any env key or local-model URL is read. Forge and self-host are unchanged.
  *
  * When LLM_PROVIDER is not set, auto-detects the provider by checking env vars
  * in priority order: INFERENCE_SNAPS → GROQ → OLLAMA → ANTHROPIC_API_KEY →
@@ -682,6 +702,13 @@ export class LLMClient {
  *   xai             → grok-4.5          (base URL defaults to https://api.x.ai/v1)
  */
 export function createLLMClientFromEnv(): LLMClient {
+  // Refuse before the self-host profile or any provider key is read. A direct
+  // caller cannot reach a shared env model key on hosted, including when
+  // HOSTED_BYOK_DISPATCH is off.
+  if (isHostedDeployment()) {
+    throw new HostedEnvModelKeyRefusedError();
+  }
+
   // Self-host profile (idle/daily/snaps) fills missing LLM_* only; explicit env wins.
   // Hosted (VERCEL / REVEALUI_HOSTED) never loads the profile.
   applyLocalAiProfileToEnv();

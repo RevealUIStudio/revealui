@@ -9,13 +9,15 @@
  * Requires requireFeature('ai', { mode: 'entitlements' })  -  applied in apps/server/src/index.ts.
  */
 
+import { isHostedDeployment } from '@revealui/core/deployment-mode';
 import type { DatabaseClient } from '@revealui/db/client';
-import { getRestClient } from '@revealui/db/client';
+import { getClient, getRestClient } from '@revealui/db/client';
 import { ragDocuments } from '@revealui/db/schema/rag';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, count, eq, isNotNull, max } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import { hasApiRole } from '../lib/api-roles.js';
+import { asLLMNotConfigured } from '../lib/llm-not-configured.js';
 
 type Variables = {
   db: DatabaseClient;
@@ -28,7 +30,7 @@ function assertWorkspaceAccess(
   user: { id: string; role: string } | undefined,
   workspaceId: string,
   tenant: { id: string } | undefined,
-): void {
+): asserts user is { id: string; role: string } {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
@@ -48,6 +50,28 @@ function isValidCollectionName(name: string): boolean {
     if (!(isAlpha || isDigit || c === 95 || c === 45)) return false;
   }
   return true;
+}
+
+type EmbeddingModule = Pick<typeof import('@revealui/ai/embeddings'), 'generateEmbedding'>;
+
+/**
+ * Embed with the caller's resolved key. Hosted with no key throws
+ * LLM_NOT_CONFIGURED. Forge resolves the deployment env client inside the resolver.
+ */
+async function customerEmbeddingFn(
+  userId: string,
+  workspaceId: string,
+  embeddingsMod: EmbeddingModule,
+): Promise<(text: string) => Promise<number[]>> {
+  const llmMod = await import('@revealui/ai/llm/server');
+  const client = await llmMod.resolveLLMClientForRequest(userId, getClient(), {
+    isHosted: isHostedDeployment(process.env),
+    workspaceId,
+  });
+  return async (text: string): Promise<number[]> => {
+    const emb = await embeddingsMod.generateEmbedding(text, { client });
+    return emb.vector;
+  };
 }
 
 const app = new OpenAPIHono<{ Variables: Variables }>();
@@ -98,11 +122,16 @@ app.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
       },
+      409: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'No per-account LLM key on a hosted deployment',
+      },
     },
   }),
   async (c) => {
     const { workspaceId, collection } = c.req.valid('param');
-    assertWorkspaceAccess(c.get('user'), workspaceId, c.get('tenant'));
+    const user = c.get('user');
+    assertWorkspaceAccess(user, workspaceId, c.get('tenant'));
 
     if (!isValidCollectionName(collection)) {
       return c.json({ success: false, error: 'Invalid collection name' }, 400);
@@ -157,10 +186,14 @@ app.openapi(
 
     const vectorDb = getRestClient();
     const restDb = getRestClient();
-    const embeddingFn = async (text: string): Promise<number[]> => {
-      const emb = await embeddingsMod.generateEmbedding(text);
-      return emb.vector;
-    };
+    let embeddingFn: (text: string) => Promise<number[]>;
+    try {
+      embeddingFn = await customerEmbeddingFn(user.id, workspaceId, embeddingsMod);
+    } catch (err) {
+      const notConfigured = asLLMNotConfigured(err);
+      if (notConfigured) return c.json(notConfigured, 409);
+      throw err;
+    }
 
     // Type assertion needed: workspace @revealui/db and npm @revealui/db resolve
     // to structurally identical but nominally different Database types.
@@ -291,11 +324,16 @@ app.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
       },
+      409: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'No per-account LLM key on a hosted deployment',
+      },
     },
   }),
   async (c) => {
     const { workspaceId, documentId } = c.req.valid('param');
-    assertWorkspaceAccess(c.get('user'), workspaceId, c.get('tenant'));
+    const user = c.get('user');
+    assertWorkspaceAccess(user, workspaceId, c.get('tenant'));
 
     const [embeddingsMod, ingestionMod] = await Promise.all([
       import('@revealui/ai/embeddings').catch(() => null),
@@ -317,10 +355,14 @@ app.openapi(
     const vectorDb = getRestClient();
     const restDb = getRestClient();
 
-    const embeddingFn = async (text: string): Promise<number[]> => {
-      const emb = await embeddingsMod.generateEmbedding(text);
-      return emb.vector;
-    };
+    let embeddingFn: (text: string) => Promise<number[]>;
+    try {
+      embeddingFn = await customerEmbeddingFn(user.id, workspaceId, embeddingsMod);
+    } catch (err) {
+      const notConfigured = asLLMNotConfigured(err);
+      if (notConfigured) return c.json(notConfigured, 409);
+      throw err;
+    }
     // Type assertion: workspace vs npm @revealui/db nominal type mismatch (structurally identical)
     type PipelineDb = ConstructorParameters<typeof ingestionMod.IngestionPipeline>[0];
     const pipeline = new ingestionMod.IngestionPipeline(

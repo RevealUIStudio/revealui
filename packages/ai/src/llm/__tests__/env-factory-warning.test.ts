@@ -30,6 +30,8 @@ const PROVIDER_ENV_KEYS = [
   'OLLAMA_BASE_URL',
   'ANTHROPIC_API_KEY',
   'OPENAI_API_KEY',
+  'REVEALUI_DEPLOYMENT_MODE',
+  'REVEALUI_LICENSE_PRIVATE_KEY',
 ] as const;
 
 const savedEnv: Record<string, string | undefined> = {};
@@ -39,6 +41,7 @@ beforeEach(() => {
     savedEnv[key] = process.env[key];
     delete process.env[key];
   }
+  process.env.REVEALUI_DEPLOYMENT_MODE = 'forge';
 });
 
 afterEach(() => {
