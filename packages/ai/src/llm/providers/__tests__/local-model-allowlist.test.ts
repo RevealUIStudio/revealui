@@ -1,5 +1,5 @@
 /**
- * Local Ollama chat allowlist: US open-weight families, fail closed.
+ * Local Ollama chat allowlist: exact US open-weight library names, fail closed.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -15,6 +15,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
 import { createLLMClientFromEnv, LLMClient } from '../../client.js';
 import { OllamaProvider } from '../ollama.js';
 import {
+  APPROVED_LOCAL_OLLAMA_MODELS,
   DEFAULT_DAILY_OLLAMA_MODEL,
   resolveApprovedLocalModel,
   UnapprovedLocalModelError,
@@ -70,6 +71,40 @@ describe('resolveApprovedLocalModel', () => {
     expect(resolveApprovedLocalModel('  gemma4:e2b  ')).toBe('gemma4:e2b');
     expect(resolveApprovedLocalModel('phi4-mini')).toBe('phi4-mini');
     expect(resolveApprovedLocalModel('gpt-oss:20b')).toBe('gpt-oss:20b');
+  });
+
+  it('passes the default and each confirmed library name', () => {
+    const names = [
+      'gemma4',
+      'gemma3',
+      'llama4',
+      'llama3.3',
+      'llama3.2',
+      'llama3.1',
+      'gpt-oss',
+      'phi4',
+      'phi4-mini',
+      'olmo2',
+      'granite4',
+      'granite3.3',
+    ] as const;
+    expect([...APPROVED_LOCAL_OLLAMA_MODELS]).toEqual([...names]);
+    expect(resolveApprovedLocalModel(undefined)).toBe(DEFAULT_DAILY_OLLAMA_MODEL);
+    expect(resolveApprovedLocalModel(DEFAULT_DAILY_OLLAMA_MODEL)).toBe(DEFAULT_DAILY_OLLAMA_MODEL);
+    for (const name of names) {
+      expect(resolveApprovedLocalModel(name)).toBe(name);
+      expect(resolveApprovedLocalModel(`${name}:latest`)).toBe(`${name}:latest`);
+    }
+  });
+
+  it('refuses a suffixed fine-tune of an approved base', () => {
+    expect(() => resolveApprovedLocalModel('llama3-custom-ft:8b')).toThrow(
+      UnapprovedLocalModelError,
+    );
+  });
+
+  it('refuses a namespaced library id', () => {
+    expect(() => resolveApprovedLocalModel('user/gemma4')).toThrow(UnapprovedLocalModelError);
   });
 
   it('refuses an unlisted id', () => {

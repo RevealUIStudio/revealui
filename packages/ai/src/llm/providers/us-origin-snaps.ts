@@ -68,22 +68,29 @@ export const DEFAULT_LOW_RAM_INFERENCE_SNAP: UsOriginInferenceSnapId = 'gemma3';
 export const DEFAULT_DAILY_OLLAMA_MODEL = 'gemma4:e2b';
 
 /**
- * US open-weight families allowed for local Ollama chat.
- * Match is a family prefix plus a boundary (end, digit, or `: - . /`).
- * Anything else is refused. There is no denylist.
+ * Official Ollama library names for local chat.
+ * Match is exact on the name before `:`. The tag after `:` is free.
+ * Each name is a page on https://ollama.com/library, checked 2026-10-06.
+ * olmo3 has no library page, so only olmo2 is included.
  */
-export const APPROVED_LOCAL_MODEL_FAMILIES = [
-  'gemma',
-  'llama',
+export const APPROVED_LOCAL_OLLAMA_MODELS = [
+  'gemma4',
+  'gemma3',
+  'llama4',
+  'llama3.3',
+  'llama3.2',
+  'llama3.1',
   'gpt-oss',
-  'phi',
-  'olmo',
-  'granite',
+  'phi4',
+  'phi4-mini',
+  'olmo2',
+  'granite4',
+  'granite3.3',
 ] as const;
 
-export type ApprovedLocalModelFamily = (typeof APPROVED_LOCAL_MODEL_FAMILIES)[number];
+export type ApprovedLocalOllamaModel = (typeof APPROVED_LOCAL_OLLAMA_MODELS)[number];
 
-const LOCAL_MODEL_FAMILY_BOUNDARIES = new Set([':', '-', '.', '/']);
+const APPROVED_LOCAL_OLLAMA_MODEL_SET: ReadonlySet<string> = new Set(APPROVED_LOCAL_OLLAMA_MODELS);
 
 export class UnapprovedLocalModelError extends Error {
   readonly code = 'UNAPPROVED_LOCAL_MODEL' as const;
@@ -92,7 +99,7 @@ export class UnapprovedLocalModelError extends Error {
   constructor(modelId: string) {
     super(
       `Local model "${modelId}" is not on the US open-weight allowlist ` +
-        `(${APPROVED_LOCAL_MODEL_FAMILIES.join(', ')}). ` +
+        `(${APPROVED_LOCAL_OLLAMA_MODELS.join(', ')}). ` +
         `Set LLM_MODEL to an approved local tag (default ${DEFAULT_DAILY_OLLAMA_MODEL}).`,
     );
     this.name = 'UnapprovedLocalModelError';
@@ -100,22 +107,19 @@ export class UnapprovedLocalModelError extends Error {
   }
 }
 
-function isLocalModelFamilyBoundary(char: string | undefined): boolean {
-  if (char === undefined) return true;
-  if (char >= '0' && char <= '9') return true;
-  return LOCAL_MODEL_FAMILY_BOUNDARIES.has(char);
+/** Library name: the exact text before the first `:`, lowercased. */
+function ollamaLibraryName(modelId: string): string {
+  const id = modelId.trim().toLowerCase();
+  const colon = id.indexOf(':');
+  if (colon < 0) return id;
+  return id.slice(0, colon);
 }
 
-/** True when `modelId` belongs to an approved local Ollama family. */
+/** True when the Ollama library name is on the explicit local allowlist. */
 export function isApprovedLocalModel(modelId: string): boolean {
-  const id = modelId.trim().toLowerCase();
-  if (id.length === 0) return false;
-  const families = [...APPROVED_LOCAL_MODEL_FAMILIES].sort((a, b) => b.length - a.length);
-  for (const family of families) {
-    if (!id.startsWith(family)) continue;
-    if (isLocalModelFamilyBoundary(id[family.length])) return true;
-  }
-  return false;
+  const name = ollamaLibraryName(modelId);
+  if (name.length === 0) return false;
+  return APPROVED_LOCAL_OLLAMA_MODEL_SET.has(name);
 }
 
 /**
