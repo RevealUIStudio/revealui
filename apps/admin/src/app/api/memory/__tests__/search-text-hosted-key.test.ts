@@ -48,7 +48,7 @@ vi.mock('@revealui/db/client', () => ({
 }));
 
 vi.mock('@revealui/ai/embeddings', () => ({
-  generateEmbedding: (...args: unknown[]) => generateEmbedding(...args),
+  generateEmbedding,
 }));
 
 vi.mock('@revealui/ai/memory/vector', () => ({
@@ -58,8 +58,8 @@ vi.mock('@revealui/ai/memory/vector', () => ({
 }));
 
 vi.mock('@revealui/ai/llm/server', () => ({
-  resolveLLMClientForRequest: (...args: unknown[]) => resolveLLM(...args),
-  createLLMClientFromEnv: (...args: unknown[]) => createFromEnv(...args),
+  resolveLLMClientForRequest: resolveLLM,
+  createLLMClientFromEnv: createFromEnv,
 }));
 
 vi.mock('next/server', () => {
@@ -100,7 +100,7 @@ describe('POST /api/memory/search-text embedding key', () => {
   async function post(body: unknown) {
     const { POST } = await import('../search-text/route.js');
     const res = await POST(makeRequest(body));
-    return res as { status: number; body: Record<string, unknown> };
+    return res as unknown as { status: number; body: Record<string, unknown> };
   }
 
   it('embeds with the resolved client on hosted', async () => {

@@ -15488,6 +15488,14 @@
               }
             }
           },
+          "409": {
+            "description": "No per-account LLM key on a hosted deployment",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
           "502": {
             "description": "Admin fetch error",
             "content": {
@@ -15601,6 +15609,14 @@
           },
           "403": {
             "description": "AI feature requires Pro or Enterprise license",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "409": {
+            "description": "No per-account LLM key on a hosted deployment",
             "content": {
               "application/json": {
                 "schema": {}
@@ -35843,6 +35859,14 @@
               }
             }
           },
+          "409": {
+            "description": "No per-account LLM key on a hosted deployment",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
           "502": {
             "description": "Admin fetch error",
             "content": {
@@ -35956,6 +35980,14 @@
           },
           "403": {
             "description": "AI feature requires Pro or Enterprise license",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "409": {
+            "description": "No per-account LLM key on a hosted deployment",
             "content": {
               "application/json": {
                 "schema": {}

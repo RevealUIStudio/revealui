@@ -79,12 +79,12 @@ vi.mock('@revealui/sync/collab/server', () => ({
 }));
 
 vi.mock('@revealui/ai/embeddings', () => ({
-  generateEmbedding: (...args: unknown[]) => generateEmbedding(...args),
+  generateEmbedding,
 }));
 
 vi.mock('@revealui/ai/llm/server', () => ({
-  resolveLLMClientForRequest: (...args: unknown[]) => resolveLLM(...args),
-  createLLMClientFromEnv: (...args: unknown[]) => createFromEnv(...args),
+  resolveLLMClientForRequest: resolveLLM,
+  createLLMClientFromEnv: createFromEnv,
 }));
 
 vi.mock('next/server', () => {
@@ -132,7 +132,7 @@ describe('POST /api/sync/kg-episodes embedding key', () => {
   async function post() {
     const { POST } = await import('../kg-episodes/route.js');
     const res = await POST(makeRequest(flushBody));
-    return res as { status: number; body: Record<string, unknown> };
+    return res as unknown as { status: number; body: Record<string, unknown> };
   }
 
   it('embeds with the resolved client on hosted', async () => {

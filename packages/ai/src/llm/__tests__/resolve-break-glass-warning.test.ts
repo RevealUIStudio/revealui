@@ -38,6 +38,7 @@ const db = {} as Database;
 
 beforeEach(() => {
   warnSpy.mockClear();
+  mockCreateFromEnv.mockClear();
   delete process.env.HOSTED_BYOK_DISPATCH;
 });
 
