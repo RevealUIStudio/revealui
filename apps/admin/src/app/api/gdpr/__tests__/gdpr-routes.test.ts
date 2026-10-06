@@ -136,6 +136,31 @@ describe('POST /api/gdpr/delete', () => {
     );
   });
 
+  it('preserves global events during account deletion', async () => {
+    let globalEventDeleted = false;
+    const mockFind = vi.fn(async ({ collection }: { collection: string }) => ({
+      docs: collection === 'events' && !globalEventDeleted ? [{ id: 'global-event' }] : [],
+    }));
+    const mockDelete = vi.fn(async ({ collection }: { collection: string }) => {
+      if (collection === 'events') globalEventDeleted = true;
+      return {};
+    });
+    mockGetSession.mockResolvedValue({ user: { id: 'user-1', email: 'test@example.com' } });
+    mockGetRevealUIInstance.mockResolvedValue({ find: mockFind, delete: mockDelete });
+    mockWriteGDPRAuditEntry.mockResolvedValue(undefined);
+
+    const POST = await loadRoute();
+    const response = await POST(makeRequest());
+    expect(response.status).toBe(200);
+    expect(mockFind.mock.calls.map(([options]) => options.collection)).toEqual([
+      'conversations',
+      'orders',
+      'subscriptions',
+    ]);
+    expect(globalEventDeleted).toBe(false);
+    expect(mockDelete).toHaveBeenCalledExactlyOnceWith({ collection: 'users', id: 'user-1' });
+  });
+
   it('deletes documents in batches when user has many records', async () => {
     const mockFind = vi
       .fn()

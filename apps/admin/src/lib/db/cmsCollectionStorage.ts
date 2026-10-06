@@ -13,6 +13,7 @@ import type {
 } from '@revealui/core/types';
 import { getRestClient } from '@revealui/db/client';
 import {
+  cmsListFilter,
   createCategory,
   createContent,
   createEvent,
@@ -141,7 +142,13 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
     async find(_c, options) {
       const limit = options.limit ?? 10;
       const page = options.page ?? 1;
-      const { rows, total } = await listCategories(getRestClient(), limit, (page - 1) * limit);
+      const filter = cmsListFilter('categories', options.where);
+      const { rows, total } = await listCategories(
+        getRestClient(),
+        limit,
+        (page - 1) * limit,
+        filter,
+      );
       return pageResult(
         rows.map((row) => asDoc(row as unknown as Record<string, unknown>)),
         total,
@@ -182,7 +189,8 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
     async find(_c, options) {
       const limit = options.limit ?? 10;
       const page = options.page ?? 1;
-      const { rows, total } = await listEvents(getRestClient(), limit, (page - 1) * limit);
+      const filter = cmsListFilter('events', options.where);
+      const { rows, total } = await listEvents(getRestClient(), limit, (page - 1) * limit, filter);
       return pageResult(
         rows.map((row) => asDoc(row as unknown as Record<string, unknown>)),
         total,
@@ -225,7 +233,13 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
     async find(_c, options) {
       const limit = options.limit ?? 10;
       const page = options.page ?? 1;
-      const { rows, total } = await listContents(getRestClient(), limit, (page - 1) * limit);
+      const filter = cmsListFilter('contents', options.where);
+      const { rows, total } = await listContents(
+        getRestClient(),
+        limit,
+        (page - 1) * limit,
+        filter,
+      );
       return pageResult(
         rows.map((row) => asDoc(row as unknown as Record<string, unknown>)),
         total,
@@ -268,7 +282,8 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
     async find(_c, options) {
       const limit = options.limit ?? 10;
       const page = options.page ?? 1;
-      const { rows, total } = await listTags(getRestClient(), limit, (page - 1) * limit);
+      const filter = cmsListFilter('tags', options.where);
+      const { rows, total } = await listTags(getRestClient(), limit, (page - 1) * limit, filter);
       return pageResult(
         rows.map((row) => asDoc(row as unknown as Record<string, unknown>)),
         total,
@@ -304,7 +319,8 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
     async find(_c, options) {
       const limit = options.limit ?? 10;
       const page = options.page ?? 1;
-      const { rows, total } = await listPrices(getRestClient(), limit, (page - 1) * limit);
+      const filter = cmsListFilter('prices', options.where);
+      const { rows, total } = await listPrices(getRestClient(), limit, (page - 1) * limit, filter);
       return pageResult(
         rows.map((row) => asDoc(row as unknown as Record<string, unknown>)),
         total,
@@ -371,7 +387,8 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
     async find(_c, options) {
       const limit = options.limit ?? 10;
       const page = options.page ?? 1;
-      const { rows, total } = await listInfo(getRestClient(), limit, (page - 1) * limit);
+      const filter = cmsListFilter('info', options.where);
+      const { rows, total } = await listInfo(getRestClient(), limit, (page - 1) * limit, filter);
       return pageResult(
         rows.map((row) => asDoc(row as unknown as Record<string, unknown>)),
         total,
@@ -419,7 +436,8 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
     async find(_c, options) {
       const limit = options.limit ?? 10;
       const page = options.page ?? 1;
-      const { rows, total } = await listVideos(getRestClient(), limit, (page - 1) * limit);
+      const filter = cmsListFilter('videos', options.where);
+      const { rows, total } = await listVideos(getRestClient(), limit, (page - 1) * limit, filter);
       return pageResult(
         rows.map((row) => asDoc(row as unknown as Record<string, unknown>)),
         total,
@@ -454,7 +472,13 @@ export const cmsCollectionHandlers: Record<string, Handler> = {
     async find(_c, options) {
       const limit = options.limit ?? 10;
       const page = options.page ?? 1;
-      const { rows, total } = await listSubscriptions(getRestClient(), limit, (page - 1) * limit);
+      const filter = cmsListFilter('subscriptions', options.where);
+      const { rows, total } = await listSubscriptions(
+        getRestClient(),
+        limit,
+        (page - 1) * limit,
+        filter,
+      );
       return pageResult(
         rows.map((row) => asDoc(row as unknown as Record<string, unknown>)),
         total,
