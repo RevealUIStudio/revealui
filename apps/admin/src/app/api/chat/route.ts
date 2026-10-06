@@ -35,13 +35,16 @@ export const runtime = 'nodejs';
  * - Authentication context
  */
 
-const limiter = rateLimit(
-  {
-    maxRequests: 10, // 10 requests per window (stricter for AI)
-    windowMs: 60 * 1000, // 1 minute
-  },
-  { failClosed: true, route: ADMIN_CHAT_ROUTE },
-);
+const chatRate = {
+  maxRequests: 10, // 10 requests per window (stricter for AI)
+  windowMs: 60 * 1000, // 1 minute
+};
+
+/** Counts unauthenticated floods by IP. Fail closed when the store errors. */
+const ipLimiter = rateLimit(chatRate, { failClosed: true });
+
+/** Counts authenticated calls by user id and route. Fail closed when the store errors. */
+const userLimiter = rateLimit(chatRate, { failClosed: true, route: ADMIN_CHAT_ROUTE });
 
 // Lazily-initialized tool registry (shared across requests in production)
 let toolRegistry: unknown = null;
@@ -168,6 +171,10 @@ export async function POST(request: NextRequest) {
   const disabled = adminChatDisabledResponse();
   if (disabled) return disabled;
 
+  // IP bucket runs before auth so an unauthenticated flood is counted.
+  const ipLimitResponse = await ipLimiter(request);
+  if (ipLimitResponse) return ipLimitResponse;
+
   // Dynamic import  -  @revealui/ai is an optional Pro dependency
   const aiDeps = await loadChatAIDeps();
   if (!aiDeps) {
@@ -200,8 +207,8 @@ export async function POST(request: NextRequest) {
   const aiGate = await checkAIFeatureGate(authSession.user.id);
   if (aiGate) return aiGate;
 
-  // AI routes are keyed by user id and route, and fail closed if the store errors.
-  const rateLimitResponse = await limiter(request, authSession.user.id);
+  // Authenticated calls are keyed by user id and route, and fail closed if the store errors.
+  const rateLimitResponse = await userLimiter(request, authSession.user.id);
   if (rateLimitResponse) {
     return rateLimitResponse;
   }
