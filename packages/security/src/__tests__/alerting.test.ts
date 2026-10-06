@@ -104,6 +104,19 @@ describe('SecurityAlertService', () => {
     expect(result?.severity).toBe('critical');
   });
 
+  it('does not alert on a pending role assignment', async () => {
+    const result = await service.evaluateEvent(
+      makeEvent({
+        type: 'role.assign',
+        action: 'assign',
+        result: 'pending',
+        severity: 'high',
+        changes: { after: { role: 'admin' } },
+      }),
+    );
+    expect(result).toBeNull();
+  });
+
   it('does not alert on non-admin role assignment', async () => {
     const result = await service.evaluateEvent(
       makeEvent({

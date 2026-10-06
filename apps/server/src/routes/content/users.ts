@@ -12,7 +12,10 @@
  *   { docs, totalDocs, totalPages, page, limit, ... }
  */
 
+import { UserRoleSchema } from '@revealui/contracts';
+import { logger } from '@revealui/core/observability/logger';
 import { audit, getClientIp } from '@revealui/core/security';
+import type { Database } from '@revealui/db/client';
 import * as userQueries from '@revealui/db/queries/users';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
@@ -219,7 +222,7 @@ app.openapi(
             schema: z.object({
               name: z.string().min(1).max(200).optional(),
               email: z.string().email().optional(),
-              role: z.string().optional(),
+              role: UserRoleSchema.optional(),
               status: z.string().optional(),
               avatarUrl: z.string().nullable().optional(),
             }),
@@ -278,49 +281,94 @@ app.openapi(
       Object.entries(body).filter(([key]) => !SENSITIVE_FIELDS.has(key)),
     );
 
-    // Role changes are recorded before the user row is updated. The HTTP
-    // database driver cannot hold one transaction across the audit insert and
-    // the user update, so the audit write is the gate: if it throws, the role
-    // is left unchanged.
     const nextRole = typeof sanitized.role === 'string' ? sanitized.role : undefined;
-    if (nextRole !== undefined && nextRole !== existing.role) {
-      const ip = getClientIp(c.req.raw);
-      const requestId = c.get('requestId') || boundedRequestIdHeader(c.req.header('x-request-id'));
-      try {
-        await audit.log({
-          type: 'role.assign',
-          severity: 'high',
-          actor: {
-            id: sessionUser.id,
-            type: 'user',
-            ...(ip !== 'unknown' ? { ip } : {}),
-          },
-          resource: {
-            type: 'user',
-            id: existing.id,
-          },
-          action: 'role.assign',
-          result: 'success',
-          changes: {
-            before: { role: existing.role },
-            after: { role: nextRole },
-          },
-          metadata: {
-            oldRole: existing.role,
-            newRole: nextRole,
-            ...(requestId ? { requestId } : {}),
-          },
-        });
-      } catch (err) {
-        const detail = err instanceof Error ? err.message : String(err);
-        throw new HTTPException(500, {
-          message: `Role change was not applied because the audit write failed: ${detail}`,
-        });
-      }
+    if (nextRole === undefined || nextRole === existing.role) {
+      const updated = await userQueries.updateUser(db, id, sanitized);
+      if (!updated) throw new HTTPException(404, { message: 'User not found' });
+      return c.json({ success: true as const, data: serializeUser(updated) }, 200);
     }
 
-    const updated = await userQueries.updateUser(db, id, sanitized);
-    if (!updated) throw new HTTPException(404, { message: 'User not found' });
+    const ip = getClientIp(c.req.raw);
+    const requestId = c.get('requestId') || boundedRequestIdHeader(c.req.header('x-request-id'));
+    const roleEvent = {
+      type: 'role.assign' as const,
+      severity: 'high' as const,
+      actor: {
+        id: sessionUser.id,
+        type: 'user' as const,
+        ...(ip !== 'unknown' ? { ip } : {}),
+      },
+      resource: {
+        type: 'user',
+        id: existing.id,
+      },
+      action: 'role.assign',
+      changes: {
+        before: { role: existing.role },
+        after: { role: nextRole },
+      },
+      metadata: {
+        oldRole: existing.role,
+        newRole: nextRole,
+        ...(requestId ? { requestId } : {}),
+      },
+    };
+
+    // Drivers that support transactions insert the audit row and update the
+    // user in one transaction, so a failed update rolls the audit row back.
+    // The stateless HTTP driver rejects transaction() before the callback
+    // ("No transactions support in neon-http driver"). A signed append needs
+    // nextval and then INSERT, and it cannot join a transaction that driver
+    // does not have. That path records a pending row, applies the update, then
+    // records a success or failure row.
+    try {
+      const updated = await withRoleTransaction(db, async (tx) => {
+        try {
+          await audit.log({ ...roleEvent, result: 'success' }, { db: tx });
+        } catch (err) {
+          throw auditWriteHttpError(err);
+        }
+        const row = await userQueries.updateUser(tx, id, sanitized);
+        if (!row) throw new HTTPException(404, { message: 'User not found' });
+        return row;
+      });
+      return c.json({ success: true as const, data: serializeUser(updated) }, 200);
+    } catch (err) {
+      if (!(err instanceof TransactionUnavailable)) throw err;
+    }
+
+    try {
+      await audit.log({ ...roleEvent, result: 'pending' });
+    } catch (err) {
+      throw auditWriteHttpError(err);
+    }
+
+    let updated: Awaited<ReturnType<typeof userQueries.updateUser>>;
+    try {
+      updated = await userQueries.updateUser(db, id, sanitized);
+    } catch (err) {
+      await recordRoleOutcome(roleEvent, 'failure', err);
+      throw err;
+    }
+    if (!updated) {
+      await recordRoleOutcome(roleEvent, 'failure');
+      throw new HTTPException(404, { message: 'User not found' });
+    }
+
+    try {
+      await audit.log({ ...roleEvent, result: 'success' });
+    } catch (err) {
+      try {
+        await userQueries.updateUser(db, id, { role: existing.role });
+      } catch (revertErr) {
+        logger.error(
+          'Role restore failed after the success audit write failed',
+          revertErr instanceof Error ? revertErr : new Error(String(revertErr)),
+        );
+      }
+      await recordRoleOutcome(roleEvent, 'failure', err);
+      throw auditWriteHttpError(err);
+    }
 
     return c.json({ success: true as const, data: serializeUser(updated) }, 200);
   },
@@ -373,6 +421,72 @@ app.openapi(
 function boundedRequestIdHeader(header: string | undefined): string | undefined {
   if (!header || header.length === 0 || header.length > 128) return undefined;
   return header;
+}
+
+class TransactionUnavailable extends Error {
+  constructor() {
+    super('Transaction unavailable');
+    this.name = 'TransactionUnavailable';
+  }
+}
+
+const HTTP_DRIVER_NO_TRANSACTION = 'No transactions support in neon-http driver';
+
+function isHttpDriverWithoutTransactions(err: unknown): boolean {
+  return err instanceof Error && err.message.includes(HTTP_DRIVER_NO_TRANSACTION);
+}
+
+async function withRoleTransaction<T>(db: Database, fn: (tx: Database) => Promise<T>): Promise<T> {
+  const run = (db as { transaction?: (callback: (tx: Database) => Promise<T>) => Promise<T> })
+    .transaction;
+  if (typeof run !== 'function') throw new TransactionUnavailable();
+  let started = false;
+  try {
+    return await run.call(db, async (tx) => {
+      started = true;
+      return fn(tx);
+    });
+  } catch (err) {
+    if (!started && isHttpDriverWithoutTransactions(err)) throw new TransactionUnavailable();
+    throw err;
+  }
+}
+
+function auditWriteHttpError(err: unknown): HTTPException {
+  const error = err instanceof Error ? err : new Error(String(err));
+  logger.error('Role change audit write failed', error);
+  return new HTTPException(500, { message: 'Audit write failed' });
+}
+
+type RoleAssignEvent = {
+  type: 'role.assign';
+  severity: 'high';
+  actor: { id: string; type: 'user'; ip?: string };
+  resource: { type: string; id: string };
+  action: string;
+  changes: { before: { role: string }; after: { role: string } };
+  metadata: { oldRole: string; newRole: string; requestId?: string };
+};
+
+async function recordRoleOutcome(
+  roleEvent: RoleAssignEvent,
+  result: 'failure',
+  cause?: unknown,
+): Promise<void> {
+  if (cause !== undefined) {
+    logger.error(
+      'Role change was not applied',
+      cause instanceof Error ? cause : new Error(String(cause)),
+    );
+  }
+  try {
+    await audit.log({ ...roleEvent, result });
+  } catch (err) {
+    logger.error(
+      'Role change failure outcome was not recorded',
+      err instanceof Error ? err : new Error(String(err)),
+    );
+  }
 }
 
 export default app;

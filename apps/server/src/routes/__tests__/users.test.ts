@@ -40,11 +40,11 @@ interface UserCtx {
 const ADMIN: UserCtx = { id: 'admin-1', role: 'admin', email: 'admin@test.com' };
 const USER_A: UserCtx = { id: 'user-a', role: 'user' };
 
-function createApp(user: UserCtx | null = ADMIN) {
+function createApp(user: UserCtx | null = ADMIN, db: unknown = {}) {
   const app = new Hono<{ Variables: { user: UserCtx | undefined; db: unknown } }>();
   app.use('*', async (c, next) => {
     if (user) c.set('user', user);
-    c.set('db', {});
+    c.set('db', db);
     await next();
   });
   app.route('/', usersApp);
@@ -251,8 +251,10 @@ describe('PATCH /users/:id  -  role escalation prevention', () => {
 
   it('writes exactly one role audit row with the old and new roles', async () => {
     mockUserQueries.updateUser.mockResolvedValue(makeUser({ role: 'editor' }));
-
-    const app = createApp(ADMIN);
+    const tx = { marker: 'tx' };
+    const app = createApp(ADMIN, {
+      transaction: async (fn: (connection: unknown) => Promise<unknown>) => fn(tx),
+    });
     const res = await app.request('/users/user-a', {
       method: 'PATCH',
       headers: {
@@ -271,9 +273,11 @@ describe('PATCH /users/:id  -  role escalation prevention', () => {
     const event = roleAudits[0]?.[0] as {
       actor: { id: string; ip?: string };
       resource: { id: string };
+      result?: string;
       changes: { before: { role: string }; after: { role: string } };
       metadata: { oldRole: string; newRole: string; requestId?: string };
     };
+    expect(event.result).toBe('success');
     expect(event.actor.id).toBe('admin-1');
     expect(event.actor.ip).toBe('203.0.113.9');
     expect(event.resource.id).toBe('user-a');
@@ -281,11 +285,16 @@ describe('PATCH /users/:id  -  role escalation prevention', () => {
     expect(event.metadata.oldRole).toBe('user');
     expect(event.metadata.newRole).toBe('editor');
     expect(event.metadata.requestId).toBe('req-role-1');
+    expect(roleAudits[0]?.[1]).toEqual({ db: tx });
     expect(mockUserQueries.updateUser).toHaveBeenCalledOnce();
+    expect(mockUserQueries.updateUser.mock.calls[0]?.[0]).toBe(tx);
   });
 
-  it('fails the request and leaves the role unchanged when the audit write fails', async () => {
-    logSpy.mockRejectedValueOnce(new Error('audit down'));
+  it('returns a generic audit failure and hides driver text', async () => {
+    const driver = new Error('function generate_series(integer, unknown) does not exist');
+    logSpy.mockRejectedValueOnce(driver);
+    const { logger } = await import('@revealui/core/observability/logger');
+    const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => undefined);
 
     const app = createApp(ADMIN);
     const res = await app.request('/users/user-a', {
@@ -296,8 +305,42 @@ describe('PATCH /users/:id  -  role escalation prevention', () => {
 
     expect(res.status).toBe(500);
     const body = await res.json();
-    expect(body.error).toContain('audit write failed');
+    expect(body).toEqual({ error: 'Audit write failed' });
+    expect(JSON.stringify(body)).not.toContain('generate_series');
+    expect(JSON.stringify(body)).not.toContain('does not exist');
     expect(mockUserQueries.updateUser).not.toHaveBeenCalled();
+    const logged = errorSpy.mock.calls[0]?.[1];
+    expect(logged).toBeInstanceOf(Error);
+    expect((logged as Error).message).toContain('generate_series');
+    errorSpy.mockRestore();
+  });
+
+  it('records a failure outcome and leaves the role unchanged when the update fails', async () => {
+    const role = 'viewer';
+    mockUserQueries.getUserById.mockResolvedValue(makeUser({ id: 'user-a', role }));
+    mockUserQueries.updateUser.mockImplementation(async () => {
+      throw new Error('update failed');
+    });
+    const app = createApp(ADMIN, {
+      transaction: () => {
+        throw new Error('No transactions support in neon-http driver');
+      },
+    });
+
+    const res = await app.request('/users/user-a', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'editor' }),
+    });
+
+    expect(res.status).toBe(500);
+    const results = logSpy.mock.calls
+      .filter((call) => (call[0] as { type?: string }).type === 'role.assign')
+      .map((call) => (call[0] as { result?: string }).result);
+    expect(results).toEqual(['pending', 'failure']);
+    expect(results).not.toContain('success');
+    expect(role).toBe('viewer');
+    expect(mockUserQueries.updateUser).toHaveBeenCalledOnce();
   });
 
   it('does not write a role audit row for a non-role PATCH', async () => {
@@ -318,11 +361,12 @@ describe('PATCH /users/:id  -  role escalation prevention', () => {
   });
 
   it('does not write a role audit row when the submitted role is unchanged', async () => {
+    mockUserQueries.getUserById.mockResolvedValue(makeUser({ id: 'user-a', role: 'viewer' }));
     const app = createApp(ADMIN);
     const res = await app.request('/users/user-a', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ role: 'user', name: 'Still Alice' }),
+      body: JSON.stringify({ role: 'viewer', name: 'Still Alice' }),
     });
 
     expect(res.status).toBe(200);
@@ -331,6 +375,22 @@ describe('PATCH /users/:id  -  role escalation prevention', () => {
     );
     expect(roleAudits).toHaveLength(0);
     expect(mockUserQueries.updateUser).toHaveBeenCalledOnce();
+  });
+
+  it('rejects a role that is not one of the existing roles', async () => {
+    const app = createApp(ADMIN);
+    const res = await app.request('/users/user-a', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'superuser' }),
+    });
+
+    expect(res.status).toBe(400);
+    expect(mockUserQueries.updateUser).not.toHaveBeenCalled();
+    const roleAudits = logSpy.mock.calls.filter(
+      (call) => (call[0] as { type?: string }).type === 'role.assign',
+    );
+    expect(roleAudits).toHaveLength(0);
   });
 
   it('allows non-admin to update own name', async () => {

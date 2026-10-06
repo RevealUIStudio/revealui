@@ -58,7 +58,7 @@ export interface AuditEvent {
     name?: string;
   };
   action: string;
-  result: 'success' | 'failure' | 'partial';
+  result: 'success' | 'failure' | 'partial' | 'pending';
   changes?: {
     before?: Record<string, unknown>;
     after?: Record<string, unknown>;
@@ -75,13 +75,18 @@ export interface AuditQuery {
   startDate?: Date;
   endDate?: Date;
   severity?: AuditSeverity[];
-  result?: ('success' | 'failure' | 'partial')[];
+  result?: ('success' | 'failure' | 'partial' | 'pending')[];
   limit?: number;
   offset?: number;
 }
 
+/** Optional connection for a write that must share the caller's transaction. */
+export interface AuditWriteContext {
+  db?: unknown;
+}
+
 export interface AuditStorage {
-  write(event: AuditEvent): Promise<void>;
+  write(event: AuditEvent, context?: AuditWriteContext): Promise<void>;
   query(query: AuditQuery): Promise<AuditEvent[]>;
   count(query: AuditQuery): Promise<number>;
 }
@@ -157,7 +162,10 @@ export class AuditSystem {
    * failures; throws `AuditWriteError` (wrapping the storage-layer cause) on
    * a failed persist so the event that was lost is never anonymous.
    */
-  async log(event: Omit<AuditEvent, 'id' | 'timestamp'>): Promise<AuditEvent> {
+  async log(
+    event: Omit<AuditEvent, 'id' | 'timestamp'>,
+    context?: AuditWriteContext,
+  ): Promise<AuditEvent> {
     const fullEvent: AuditEvent = {
       ...event,
       id: crypto.randomUUID(),
@@ -172,7 +180,7 @@ export class AuditSystem {
     }
 
     try {
-      await this.storage.write(fullEvent);
+      await this.storage.write(fullEvent, context);
     } catch (cause) {
       throw new AuditWriteError(fullEvent, cause);
     }
@@ -351,7 +359,7 @@ export class InMemoryAuditStorage implements AuditStorage {
     this.maxEvents = maxEvents;
   }
 
-  async write(event: AuditEvent): Promise<void> {
+  async write(event: AuditEvent, _context?: AuditWriteContext): Promise<void> {
     this.events.push(event);
 
     // Trim old events

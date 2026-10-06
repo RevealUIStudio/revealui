@@ -46,6 +46,7 @@ import type {
   AuditSeverity,
   AuditStorage,
   AuditSystem,
+  AuditWriteContext,
 } from '@revealui/security/server';
 import {
   audit,
@@ -138,6 +139,18 @@ const DB_TO_SEVERITY: Record<DbSeverity, AuditSeverity> = {
  * security-model boundary mapping (severity + columns) here, so `@revealui/db`
  * stays free of a dependency on the security package.
  */
+function assertAuditDatabase(value: unknown): Database {
+  if (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as { insert?: unknown }).insert === 'function' &&
+    typeof (value as { execute?: unknown }).execute === 'function'
+  ) {
+    return value as Database;
+  }
+  throw new Error('Audit write context db cannot execute queries. The audit row was not written.');
+}
+
 export class DrizzleBackedAuditStorage implements AuditStorage {
   private readonly store: DrizzleAuditStoreType;
 
@@ -148,12 +161,14 @@ export class DrizzleBackedAuditStorage implements AuditStorage {
     this.store = createAuditStore(db);
   }
 
-  async write(event: AuditEvent): Promise<void> {
+  async write(event: AuditEvent, context?: AuditWriteContext): Promise<void> {
+    const store =
+      context?.db !== undefined ? createAuditStore(assertAuditDatabase(context.db)) : this.store;
     try {
       // The injected signer (createAuditStore) signs the row at the door on a
       // signing deployment; a signer failure makes append THROW (fail-closed),
       // caught below and routed through the write-result rails.
-      await this.store.append({
+      await store.append({
         id: event.id,
         timestamp: new Date(event.timestamp),
         eventType: event.type,

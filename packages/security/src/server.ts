@@ -22,6 +22,7 @@ export type {
   AuditQuery,
   AuditSeverity,
   AuditStorage,
+  AuditWriteContext,
 } from './audit.js';
 // Audit logging
 export {
