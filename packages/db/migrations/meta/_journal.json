@@ -351,6 +351,13 @@
       "when": 1790918126362,
       "tag": "0049_page_creator_attribution",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1791300000000,
+      "tag": "0050_llm_call_receipts",
+      "breakpoints": true
     }
   ]
 }

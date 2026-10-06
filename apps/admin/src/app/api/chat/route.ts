@@ -4,6 +4,13 @@ import { apiClient } from '@revealui/core/admin/utils/apiClient';
 import { getClient } from '@revealui/db';
 import { logger } from '@revealui/utils/logger';
 import type { NextRequest } from 'next/server';
+import {
+  ADMIN_CHAT_ROUTE,
+  adminChatDisabledResponse,
+  enforceAdminChatRails,
+  recordAdminChatCall,
+} from '@/lib/ai/chat-cost-rails';
+import { describeAdminChatKey, providerFromCircuitBreaker } from '@/lib/ai/chat-key-source';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { rateLimit } from '@/lib/middleware/rate-limit';
 import {
@@ -28,10 +35,13 @@ export const runtime = 'nodejs';
  * - Authentication context
  */
 
-const limiter = rateLimit({
-  maxRequests: 10, // 10 requests per window (stricter for AI)
-  windowMs: 60 * 1000, // 1 minute
-});
+const limiter = rateLimit(
+  {
+    maxRequests: 10, // 10 requests per window (stricter for AI)
+    windowMs: 60 * 1000, // 1 minute
+  },
+  { failClosed: true, route: ADMIN_CHAT_ROUTE },
+);
 
 // Lazily-initialized tool registry (shared across requests in production)
 let toolRegistry: unknown = null;
@@ -74,6 +84,9 @@ async function loadChatAIDeps() {
     generateEmbedding: embeddingsMod.generateEmbedding,
     createLLMClientFromEnv: llmServerMod.createLLMClientFromEnv,
     resolveLLMClientForRequest,
+    hostedByokDispatchEnabled: llmServerMod.hostedByokDispatchEnabled as
+      | ((isHosted: boolean) => boolean)
+      | undefined,
     VectorMemoryService: vectorMod.VectorMemoryService,
     createAdminTools: cmsMod.createAdminTools,
     ToolRegistry: registryMod.ToolRegistry,
@@ -152,6 +165,9 @@ function describeDestructiveAction(toolName: string, args: unknown): string {
 }
 
 export async function POST(request: NextRequest) {
+  const disabled = adminChatDisabledResponse();
+  if (disabled) return disabled;
+
   // Dynamic import  -  @revealui/ai is an optional Pro dependency
   const aiDeps = await loadChatAIDeps();
   if (!aiDeps) {
@@ -173,12 +189,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Apply rate limiting
-  const rateLimitResponse = await limiter(request);
-  if (rateLimitResponse) {
-    return rateLimitResponse;
-  }
-
   // Require authenticated session with a Pro (or higher) license
   const authSession = await getSession(request.headers, extractRequestContext(request));
   if (!authSession) {
@@ -189,6 +199,12 @@ export async function POST(request: NextRequest) {
   }
   const aiGate = await checkAIFeatureGate(authSession.user.id);
   if (aiGate) return aiGate;
+
+  // AI routes are keyed by user id and route, and fail closed if the store errors.
+  const rateLimitResponse = await limiter(request, authSession.user.id);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
 
   try {
     // Parse and validate request body
@@ -303,7 +319,15 @@ export async function POST(request: NextRequest) {
             totalQueries: number;
           }
         | undefined;
+      getCircuitBreakerStats?(): { primary?: { name?: string } };
     }
+
+    const rail = await enforceAdminChatRails({
+      userId: authSession.user.id,
+      db: getClient(),
+    });
+    if (rail instanceof Response) return rail;
+    const chatAccountId = rail.accountId;
 
     // Resolve the LLM client via the GAP-360 resolver: per-account BYOK on
     // hosted, env on self-hosted. userId is the authenticated session user
@@ -351,6 +375,28 @@ export async function POST(request: NextRequest) {
     const llmClient: ChatLLMClient = resolvedClient;
 
     logger.info('LLM client ready', { userId: authSession.user.id });
+
+    const dispatchEnabled = aiDeps.hostedByokDispatchEnabled
+      ? aiDeps.hostedByokDispatchEnabled(isHosted)
+      : isHosted;
+    let callIdentity: { keySource: 'byok' | 'site' | 'env'; provider: string; model: string } = {
+      keySource: isHosted && dispatchEnabled ? 'byok' : 'env',
+      provider: providerFromCircuitBreaker(llmClient) ?? 'unspecified',
+      model: 'unspecified',
+    };
+    try {
+      callIdentity = await describeAdminChatKey({
+        db: getClient(),
+        userId: authSession.user.id,
+        isHosted,
+        dispatchEnabled,
+        clientProvider: providerFromCircuitBreaker(llmClient),
+      });
+    } catch (error) {
+      logger.warn('Admin chat key source lookup failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
 
     // 1. Generate embedding for the user's message and search for context
     let memoryContext = '';
@@ -413,11 +459,24 @@ export async function POST(request: NextRequest) {
       iteration++;
 
       // Generate response from LLM with tools (with caching enabled)
+      const callStarted = Date.now();
       const chatResp = await llmClient.chat(conversationMessages, {
         maxTokens: 2000,
         temperature: 0.7,
         tools: toolDefinitions,
         enableCache, // Cache system prompt and tools (90% savings on hits)
+      });
+      await recordAdminChatCall({
+        db: getClient(),
+        userId: authSession.user.id,
+        accountId: chatAccountId,
+        provider: callIdentity.provider,
+        model: callIdentity.model,
+        keySource: callIdentity.keySource,
+        promptTokens: chatResp.usage?.promptTokens ?? 0,
+        completionTokens: chatResp.usage?.completionTokens ?? 0,
+        durationMs: Math.max(0, Date.now() - callStarted),
+        errored: false,
       });
 
       // Log cache usage for monitoring

@@ -1731,6 +1731,32 @@ export const LifecycleEmailsSentInsertContract = createContract({
 })
 
 // =============================================================================
+// LlmCallReceipts Contracts
+// =============================================================================
+
+/**
+ * Contract for llmCallReceipts row (Select)
+ * Database table: llm_call_receipts
+ */
+export const LlmCallReceiptsRowContract = createContract({
+  name: 'LlmCallReceiptsRow',
+  version: '1',
+  description: 'Database row contract for llm_call_receipts table',
+  schema: Schemas.LlmCallReceiptsSelectSchema,
+})
+
+/**
+ * Contract for llmCallReceipts insert
+ * Database table: llm_call_receipts
+ */
+export const LlmCallReceiptsInsertContract = createContract({
+  name: 'LlmCallReceiptsInsert',
+  version: '1',
+  description: 'Database insert contract for llm_call_receipts table',
+  schema: Schemas.LlmCallReceiptsInsertSchema,
+})
+
+// =============================================================================
 // MagicLinks Contracts
 // =============================================================================
 

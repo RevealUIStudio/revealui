@@ -321,6 +321,11 @@
       "import": "./dist/budgets/index.js",
       "default": "./dist/budgets/index.js"
     },
+    "./agent-task-quota": {
+      "types": "./dist/agent-task-quota.d.ts",
+      "import": "./dist/agent-task-quota.js",
+      "default": "./dist/agent-task-quota.js"
+    },
     "./pool": {
       "types": "./dist/pool.d.ts",
       "import": "./dist/pool.js",

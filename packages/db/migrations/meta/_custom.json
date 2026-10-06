@@ -204,6 +204,12 @@
       "tag": "0049_page_creator_attribution",
       "rationale": "The maintained reapplication policy requires ADD COLUMN/CREATE INDEX IF NOT EXISTS and duplicate_object guards for foreign keys, which drizzle-kit does not emit. The SQL applies only nullable page creator attribution; the companion snapshot was produced by normal drizzle-kit generation from parent 0048 without editing its contents.",
       "missingSnapshot": false
+    },
+    {
+      "tag": "0050_llm_call_receipts",
+      "rationale": "Per-call LLM receipts (model, provider, key source, token counts, estimated cost). No prompt, response, or key columns. Hand-written CREATE TABLE IF NOT EXISTS and duplicate_object foreign keys because db:generate against the stale snapshot chain re-emits unrelated drift. Companion Drizzle schema at packages/db/src/schema/llm-call-receipts.ts.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Blocked on the pre-existing snapshot-debt backfill. Same regen path as 0045: pnpm --filter @revealui/db db:generate against a clean DB once that backfill happens. The Drizzle table is the type contract."
     }
   ]
 }
