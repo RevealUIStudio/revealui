@@ -73,6 +73,19 @@ vi.mock('@revealui/ai', () => {
     // US-origin Inference Snaps hardline (agent-stream sampling allowlist)
     US_ORIGIN_INFERENCE_SNAP_IDS: ['nemotron-3-nano', 'nemotron-3-nano-omni', 'gemma3', 'gemma4'],
     DEFAULT_US_ORIGIN_INFERENCE_SNAP: 'gemma3',
+    resolveApprovedLocalModel: (model?: string) => {
+      const resolved = model !== undefined && model.trim() !== '' ? model.trim() : 'gemma4:e2b';
+      if (resolved === 'unlisted-model:1b') {
+        const error = new Error(
+          `Local model "${resolved}" is not on the US open-weight allowlist.`,
+        );
+        Object.assign(error, { code: 'UNAPPROVED_LOCAL_MODEL' });
+        throw error;
+      }
+      return resolved;
+    },
+    assertUsOriginInferenceSnap: (model?: string) =>
+      model !== undefined && model.trim() !== '' ? model.trim() : 'gemma3',
     createSamplingHandler: vi.fn().mockReturnValue(async () => ({ model: 'gemma3' })),
   };
 });
@@ -118,6 +131,27 @@ function createApp() {
   });
   app.route('/agent-stream', agentStream);
   return app;
+}
+
+function createLocalApp() {
+  const app = new Hono<{
+    Variables: { user?: { id: string; role: string }; aiAccessMode?: 'local' };
+  }>();
+  app.use('*', async (c, next) => {
+    c.set('user', { id: 'test-user', role: 'admin' });
+    c.set('aiAccessMode', 'local');
+    await next();
+  });
+  app.route('/agent-stream', agentStream);
+  return app;
+}
+
+function restoreEnv(
+  key: 'LLM_MODEL' | 'INFERENCE_SNAPS_BASE_URL',
+  value: string | undefined,
+): void {
+  if (value === undefined) delete process.env[key];
+  else process.env[key] = value;
 }
 
 function createAppWithTenant(tenantId: string) {
@@ -430,6 +464,64 @@ describe('agent-stream  -  success path (AI modules working)', () => {
   });
 
   // ── LLM client selection ──────────────────────────────────────────────────
+
+  it('uses the approved local default when free local mode has no LLM_MODEL', async () => {
+    const savedModel = process.env.LLM_MODEL;
+    const savedSnaps = process.env.INFERENCE_SNAPS_BASE_URL;
+    delete process.env.LLM_MODEL;
+    delete process.env.INFERENCE_SNAPS_BASE_URL;
+    try {
+      const { LLMClient } = await import('@revealui/ai/llm/client');
+      const app = createLocalApp();
+      const res = await jsonPost(app, '/agent-stream', { instruction: 'local default' });
+      expect(res.status).toBe(200);
+      expect(vi.mocked(LLMClient)).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'ollama', model: 'gemma4:e2b' }),
+      );
+    } finally {
+      restoreEnv('LLM_MODEL', savedModel);
+      restoreEnv('INFERENCE_SNAPS_BASE_URL', savedSnaps);
+    }
+  });
+
+  it('passes an approved LLM_MODEL on the free local path', async () => {
+    const savedModel = process.env.LLM_MODEL;
+    const savedSnaps = process.env.INFERENCE_SNAPS_BASE_URL;
+    process.env.LLM_MODEL = 'gemma4:e4b';
+    delete process.env.INFERENCE_SNAPS_BASE_URL;
+    try {
+      const { LLMClient } = await import('@revealui/ai/llm/client');
+      const app = createLocalApp();
+      const res = await jsonPost(app, '/agent-stream', { instruction: 'local approved' });
+      expect(res.status).toBe(200);
+      expect(vi.mocked(LLMClient)).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'ollama', model: 'gemma4:e4b' }),
+      );
+    } finally {
+      restoreEnv('LLM_MODEL', savedModel);
+      restoreEnv('INFERENCE_SNAPS_BASE_URL', savedSnaps);
+    }
+  });
+
+  it('refuses an unlisted local model before the client runs', async () => {
+    const savedModel = process.env.LLM_MODEL;
+    const savedSnaps = process.env.INFERENCE_SNAPS_BASE_URL;
+    process.env.LLM_MODEL = 'unlisted-model:1b';
+    delete process.env.INFERENCE_SNAPS_BASE_URL;
+    try {
+      const { LLMClient } = await import('@revealui/ai/llm/client');
+      const app = createLocalApp();
+      const res = await jsonPost(app, '/agent-stream', { instruction: 'local refused' });
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as { success: boolean; error: string };
+      expect(body.success).toBe(false);
+      expect(body.error).toContain('unlisted-model:1b');
+      expect(vi.mocked(LLMClient)).not.toHaveBeenCalled();
+    } finally {
+      restoreEnv('LLM_MODEL', savedModel);
+      restoreEnv('INFERENCE_SNAPS_BASE_URL', savedSnaps);
+    }
+  });
 
   it('calls createLLMClientFromEnv when no Authorization header is present', async () => {
     const { createLLMClientFromEnv } = await import('@revealui/ai');

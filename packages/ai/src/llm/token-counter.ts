@@ -57,8 +57,7 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
   'openai/gpt-oss-120b': { input: 0.15, output: 0.6, cacheWrite: 0, cacheRead: 0 },
   'openai/gpt-oss-20b': { input: 0.1, output: 0.5, cacheWrite: 0, cacheRead: 0 },
   'qwen/qwen3-32b': { input: 0.59, output: 0.79, cacheWrite: 0, cacheRead: 0 },
-  // Ollama (self-hosted  -  no cost)
-  'qwen2.5:3b': { input: 0, output: 0, cacheWrite: 0, cacheRead: 0 },
+  // Ollama (self-hosted, no cost). Default local chat tag is gemma4:e2b.
   'gemma4:e2b': { input: 0, output: 0, cacheWrite: 0, cacheRead: 0 },
   'gemma4:e4b': { input: 0, output: 0, cacheWrite: 0, cacheRead: 0 },
   'gemma4:26b': { input: 0, output: 0, cacheWrite: 0, cacheRead: 0 },

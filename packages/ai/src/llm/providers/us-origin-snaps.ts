@@ -17,7 +17,8 @@
  * Companion ADR: .jv docs/decisions/2026-07-24-us-origin-inference-snaps.md
  *
  * Weight-file fetches (URL + sha256, pickle refuse) live in
- * `../artifact-provenance.ts` (GAP-484). This module is snap-id origin only.
+ * `../artifact-provenance.ts` (GAP-484). Snap ids and the local Ollama chat
+ * allowlist both live in this module.
  */
 
 /**
@@ -60,11 +61,77 @@ export const DEFAULT_LOW_RAM_INFERENCE_SNAP: UsOriginInferenceSnapId = 'gemma3';
 
 /**
  * Preferred Ollama chat model for profile `daily` tier and bare Ollama defaults.
- * ~1.9GB Q4; quality step up from 1.5b-class while still fitting ~4GB WSL with
- * Studio + unload-after-request (`OLLAMA_KEEP_ALIVE=0`). One model at a time.
- * Ollama accepts any GGUF; US-origin hardline remains Inference Snaps only.
+ * Gemma 4 E2B is the smallest Gemma 4 tag the Ollama library publishes
+ * (https://ollama.com/library/gemma4). Edge and small local hosts use it first.
+ * Unlisted ids are refused by `resolveApprovedLocalModel`.
  */
-export const DEFAULT_DAILY_OLLAMA_MODEL = 'qwen2.5:3b';
+export const DEFAULT_DAILY_OLLAMA_MODEL = 'gemma4:e2b';
+
+/**
+ * US open-weight families allowed for local Ollama chat.
+ * Match is a family prefix plus a boundary (end, digit, or `: - . /`).
+ * Anything else is refused. There is no denylist.
+ */
+export const APPROVED_LOCAL_MODEL_FAMILIES = [
+  'gemma',
+  'llama',
+  'gpt-oss',
+  'phi',
+  'olmo',
+  'granite',
+] as const;
+
+export type ApprovedLocalModelFamily = (typeof APPROVED_LOCAL_MODEL_FAMILIES)[number];
+
+const LOCAL_MODEL_FAMILY_BOUNDARIES = new Set([':', '-', '.', '/']);
+
+export class UnapprovedLocalModelError extends Error {
+  readonly code = 'UNAPPROVED_LOCAL_MODEL' as const;
+  readonly modelId: string;
+
+  constructor(modelId: string) {
+    super(
+      `Local model "${modelId}" is not on the US open-weight allowlist ` +
+        `(${APPROVED_LOCAL_MODEL_FAMILIES.join(', ')}). ` +
+        `Set LLM_MODEL to an approved local tag (default ${DEFAULT_DAILY_OLLAMA_MODEL}).`,
+    );
+    this.name = 'UnapprovedLocalModelError';
+    this.modelId = modelId;
+  }
+}
+
+function isLocalModelFamilyBoundary(char: string | undefined): boolean {
+  if (char === undefined) return true;
+  if (char >= '0' && char <= '9') return true;
+  return LOCAL_MODEL_FAMILY_BOUNDARIES.has(char);
+}
+
+/** True when `modelId` belongs to an approved local Ollama family. */
+export function isApprovedLocalModel(modelId: string): boolean {
+  const id = modelId.trim().toLowerCase();
+  if (id.length === 0) return false;
+  const families = [...APPROVED_LOCAL_MODEL_FAMILIES].sort((a, b) => b.length - a.length);
+  for (const family of families) {
+    if (!id.startsWith(family)) continue;
+    if (isLocalModelFamilyBoundary(id[family.length])) return true;
+  }
+  return false;
+}
+
+/**
+ * Resolve the local Ollama chat model.
+ *
+ * Empty or omitted input uses `DEFAULT_DAILY_OLLAMA_MODEL`.
+ * @throws {UnapprovedLocalModelError} when the resolved id is off the allowlist
+ */
+export function resolveApprovedLocalModel(modelId: string | undefined): string {
+  const resolved =
+    modelId !== undefined && modelId.trim() !== '' ? modelId.trim() : DEFAULT_DAILY_OLLAMA_MODEL;
+  if (!isApprovedLocalModel(resolved)) {
+    throw new UnapprovedLocalModelError(resolved);
+  }
+  return resolved;
+}
 
 /** Operator escape env var. Never set in customer seed or CI green paths. */
 export const NON_US_MODELS_ESCAPE_ENV = 'REVEALUI_ALLOW_NON_US_MODELS';

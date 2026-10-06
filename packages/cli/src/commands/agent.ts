@@ -269,8 +269,8 @@ async function detectProvider(): Promise<{
       signal: AbortSignal.timeout(2000),
     });
     if (res.ok) {
-      // Lockstep packages/ai DEFAULT_DAILY_OLLAMA_MODEL
-      return { available: true, provider: 'ollama', model: 'qwen2.5:3b', projectRoot };
+      // Lockstep packages/ai DEFAULT_DAILY_OLLAMA_MODEL (gemma4:e2b).
+      return { available: true, provider: 'ollama', model: 'gemma4:e2b', projectRoot };
     }
   } catch {
     // not running

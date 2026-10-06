@@ -92,7 +92,7 @@ const KNOWN_SNAPS = PRODUCT_INFERENCE_SNAPS;
 const SNAP_IDS = PRODUCT_INFERENCE_SNAPS.map(([id]) => id);
 
 // Lockstep packages/ai DEFAULT_DAILY_OLLAMA_MODEL (cannot hard-require @revealui/ai).
-const DEFAULT_DAILY_OLLAMA = 'qwen2.5:3b';
+const DEFAULT_DAILY_OLLAMA = 'gemma4:e2b';
 
 function profilePath(): string {
   return (
@@ -491,7 +491,7 @@ export class InferenceService {
         model: DEFAULT_DAILY_OLLAMA,
         baseURL: 'http://127.0.0.1:11434',
         keepAlive: '0',
-        note: 'Ollama daily default (qwen2.5:3b); weights unload after each request',
+        note: 'Ollama daily default (gemma4:e2b); weights unload after each request',
       };
     } else if (tier === 'snaps' || tier === 'heavy') {
       profile = await this.applySnapTier(tier);
