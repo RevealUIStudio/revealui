@@ -8,6 +8,12 @@ const state = vi.hoisted(() => ({
   failPrerequisite: false,
   log: vi.fn(),
   admissionDirectory: null as string | null,
+  failure: null as {
+    exitCode: number;
+    processExitCode: number | null;
+    signal?: NodeJS.Signals;
+    timedOut: boolean;
+  } | null,
 }));
 vi.mock('node:os', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:os')>();
@@ -24,7 +30,15 @@ vi.mock('@revealui/scripts/exec.js', () => ({
   execCommand: vi.fn(async (command: string, args: string[]) => {
     state.calls.push([command, ...args]);
     return {
-      success: !(state.failPrerequisite && args.includes('--filter=@revealui/harnesses...')),
+      success: !(
+        state.failure ||
+        (state.failPrerequisite && args.includes('--filter=@revealui/harnesses...'))
+      ),
+      exitCode: state.failPrerequisite ? 7 : 0,
+      ...(state.failure || {}),
+      message: 'secret=synthetic-credential',
+      stdout: 'secret=synthetic-credential',
+      stderr: 'secret=synthetic-credential',
     };
   }),
 }));
@@ -33,18 +47,61 @@ vi.mock('../../utils/base.js', () => ({
   createLogger: () => ({
     info: state.log,
     error: state.log,
+    warn: state.log,
     success: state.log,
     header: state.log,
   }),
 }));
 
-import { gate, phaseConcurrency, runCheck, withGateAdmission } from '../ci-gate';
+import { gate, phaseConcurrency, printSummary, runCheck, withGateAdmission } from '../ci-gate';
 
 afterEach(() => {
   vi.restoreAllMocks();
   state.calls = [];
   state.failPrerequisite = false;
   state.admissionDirectory = null;
+  state.failure = null;
+  state.log.mockClear();
+});
+
+describe('gate command failure diagnostics', () => {
+  it.each([
+    { exitCode: 7, processExitCode: 7, timedOut: false },
+    { exitCode: 1, processExitCode: null, signal: 'SIGTERM' as const, timedOut: false },
+    { exitCode: 124, processExitCode: 0, timedOut: true },
+  ])('retains exact process outcome without capture buffers: %j', async (failure) => {
+    state.failure = failure;
+    const result = await runCheck({
+      name: 'fixture check',
+      command: 'fixture',
+      args: ['secret-argument'],
+      timeout: 321,
+    });
+    expect(result.status).toBe('fail');
+    expect(result.failure).toMatchObject(failure);
+    if (failure.timedOut) expect(result.failure?.timeoutMs).toBe(321);
+    const output = vi.spyOn(console, 'log').mockImplementation(() => {});
+    printSummary([result], result.durationMs);
+    const logged = JSON.stringify([state.log.mock.calls, output.mock.calls, result]);
+    expect(logged).not.toContain('synthetic-credential');
+    expect(logged).not.toContain('secret-argument');
+    expect(logged).toContain(`status=${failure.exitCode}`);
+    if ('signal' in failure) expect(logged).toContain('signal=SIGTERM');
+    if (failure.timedOut) expect(logged).toContain('timeout=321ms');
+  });
+
+  it('preserves warning-only policy while reporting the failed process', async () => {
+    state.failure = { exitCode: 7, processExitCode: 7, timedOut: false };
+    const result = await runCheck({
+      name: 'warning check',
+      command: 'fixture',
+      args: [],
+      warnOnly: true,
+    });
+    expect(result.status).toBe('warn');
+    expect(result.failure?.exitCode).toBe(7);
+    expect(state.log).toHaveBeenCalledWith('warning check: exit=7, status=7');
+  });
 });
 
 describe('quality prerequisite ordering', () => {
