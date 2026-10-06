@@ -33,7 +33,7 @@ export function docsDocumentTitle(pageTitle: string): string {
 export function routePathForDoc(rel: string): string | null {
   const normalized = rel.split('\\').join('/');
   if (normalized === 'api/README.md') {
-    return null;
+    return '/api/readme';
   }
   if (normalized.startsWith('api/') && normalized.endsWith('/README.md')) {
     const rest = normalized.slice('api/'.length, -'/README.md'.length);
@@ -42,7 +42,9 @@ export function routePathForDoc(rel: string): string | null {
     }
   }
   const slug = pathToSlugLookup(normalized);
-  if (!slug || slug === 'index' || slug.endsWith('/readme')) {
+  // `/index` is INDEX.md. cleanUrls serves the homepage file for that path,
+  // so it must not be written as another index.html.
+  if (!slug || slug === 'index') {
     return null;
   }
   return `/${slug}`;

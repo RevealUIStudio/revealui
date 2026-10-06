@@ -43,14 +43,100 @@
     { "source": "/index.html", "destination": "/", "permanent": true },
     { "source": "/api", "destination": "/api/rest-api", "permanent": true },
     { "source": "/mcp", "destination": "/pro/mcp", "permanent": true },
+    { "source": "/docs", "destination": "/", "permanent": true },
     { "source": "/docs/:path*", "destination": "/:path*", "permanent": true },
     { "source": "/contact", "destination": "https://revealui.com/contact", "permanent": true },
     { "source": "/reference/ai", "destination": "/ai", "permanent": true },
     { "source": "/reference/auth", "destination": "/auth", "permanent": true },
     { "source": "/reference/db", "destination": "/database", "permanent": true },
-    { "source": "/forge", "destination": "/enterprise", "permanent": true }
+    { "source": "/forge", "destination": "/enterprise", "permanent": true },
+    { "source": "/ADMIN_GUIDE", "destination": "/admin-guide", "permanent": true },
+    { "source": "/AI", "destination": "/ai", "permanent": true },
+    { "source": "/ai/PROMPT_CACHING", "destination": "/ai/prompt-caching", "permanent": true },
+    { "source": "/ai/RESPONSE_CACHING", "destination": "/ai/response-caching", "permanent": true },
+    { "source": "/ai/SEMANTIC_CACHING", "destination": "/ai/semantic-caching", "permanent": true },
+    { "source": "/api/README", "destination": "/api/readme", "permanent": true },
+    { "source": "/api/rest-api/README", "destination": "/api/rest-api", "permanent": true },
+    { "source": "/api/rest-api/readme", "destination": "/api/rest-api", "permanent": true },
+    { "source": "/ARCHITECTURE", "destination": "/architecture", "permanent": true },
+    {
+      "source": "/architecture/ADR-001-agent-first",
+      "destination": "/architecture/adr-001-agent-first",
+      "permanent": true
+    },
+    {
+      "source": "/architecture/ADR-003-fair-source-licensing",
+      "destination": "/architecture/adr-003-fair-source-licensing",
+      "permanent": true
+    },
+    {
+      "source": "/architecture/ADR-004-session-only-auth",
+      "destination": "/architecture/adr-004-session-only-auth",
+      "permanent": true
+    },
+    {
+      "source": "/architecture/ADR-006-engines-package-posture",
+      "destination": "/architecture/adr-006-engines-package-posture",
+      "permanent": true
+    },
+    {
+      "source": "/architecture/ADR-007-c11-unwired-subsystem-incubate",
+      "destination": "/architecture/adr-007-c11-unwired-subsystem-incubate",
+      "permanent": true
+    },
+    {
+      "source": "/architecture/ADR-008-core-logger-consolidation",
+      "destination": "/architecture/adr-008-core-logger-consolidation",
+      "permanent": true
+    },
+    { "source": "/AUTH", "destination": "/auth", "permanent": true },
+    { "source": "/BUILD_YOUR_BUSINESS", "destination": "/build-your-business", "permanent": true },
+    { "source": "/COMPONENT_CATALOG", "destination": "/component-catalog", "permanent": true },
+    { "source": "/CORE_STABILITY", "destination": "/core-stability", "permanent": true },
+    { "source": "/DATABASE", "destination": "/database", "permanent": true },
+    { "source": "/ENTERPRISE", "destination": "/enterprise", "permanent": true },
+    {
+      "source": "/ENVIRONMENT-VARIABLES-GUIDE",
+      "destination": "/environment-variables-guide",
+      "permanent": true
+    },
+    { "source": "/EXAMPLES", "destination": "/examples", "permanent": true },
+    { "source": "/FAIR_SOURCE", "destination": "/fair-source", "permanent": true },
+    { "source": "/FLEET", "destination": "/fleet", "permanent": true },
+    { "source": "/FORGE_SSO_SETUP", "destination": "/forge-sso-setup", "permanent": true },
+    { "source": "/guides/README", "destination": "/guides/readme", "permanent": true },
+    { "source": "/HARNESS_PROTOCOL", "destination": "/harness-protocol", "permanent": true },
+    { "source": "/INDEX", "destination": "/index", "permanent": true },
+    { "source": "/JOSHUA", "destination": "/joshua", "permanent": true },
+    { "source": "/LOCAL_FIRST", "destination": "/local-first", "permanent": true },
+    { "source": "/LOGGING", "destination": "/logging", "permanent": true },
+    { "source": "/MARKETPLACE", "destination": "/marketplace", "permanent": true },
+    { "source": "/PLUGINS", "destination": "/plugins", "permanent": true },
+    { "source": "/PRO", "destination": "/pro", "permanent": true },
+    { "source": "/QUICK_START", "destination": "/quick-start", "permanent": true },
+    { "source": "/REFERENCE", "destination": "/reference", "permanent": true },
+    { "source": "/REVEALFLEET", "destination": "/revealfleet", "permanent": true },
+    { "source": "/ROADMAP", "destination": "/roadmap", "permanent": true },
+    {
+      "source": "/security/AUDIT_RECEIPTS",
+      "destination": "/security/audit-receipts",
+      "permanent": true
+    },
+    { "source": "/SLA", "destination": "/sla", "permanent": true },
+    { "source": "/TESTING", "destination": "/testing", "permanent": true },
+    {
+      "source": "/THIRD_PARTY_LICENSES",
+      "destination": "/third-party-licenses",
+      "permanent": true
+    },
+    { "source": "/TROUBLESHOOTING", "destination": "/troubleshooting", "permanent": true },
+    { "source": "/WHAT_IS", "destination": "/what-is", "permanent": true },
+    { "source": "/WHAT_WORKS_TODAY", "destination": "/what-works-today", "permanent": true },
+    { "source": "/vaughn", "destination": "/harness-protocol", "permanent": true },
+    { "source": "/guides", "destination": "/guides/readme", "permanent": true }
   ],
   "rewrites": [
+    { "source": "/index", "destination": "/index.html" },
     { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
     { "source": "/robots.txt", "destination": "/robots.txt" },
     { "source": "/llms.txt", "destination": "/llms.txt" }

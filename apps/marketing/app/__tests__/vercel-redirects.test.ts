@@ -7,6 +7,7 @@ import {
   pointsAtDocsBlog,
 } from '../../../../packages/contracts/src/nav-docs-boundary.ts';
 import { withoutTrailingSlash } from '../lib/html-shell';
+import { MARKETING_ROUTE_HEADS, MARKETING_UNLISTED_SHELLS } from '../lib/route-heads';
 
 interface VercelCondition {
   type: string;
@@ -217,6 +218,34 @@ describe('marketing vercel.json redirects', () => {
         continue;
       }
       expect(withoutTrailingSlash(`${pathname}/`)).toBe(pathname);
+    }
+  });
+
+  it('covers every client route with a shell or a redirect', () => {
+    const app = readFileSync(path.resolve(process.cwd(), 'app/App.tsx'), 'utf8');
+    const marker = "path: '";
+    const routes: string[] = [];
+    let from = 0;
+    while (from < app.length) {
+      const at = app.indexOf(marker, from);
+      if (at === -1) {
+        break;
+      }
+      const start = at + marker.length;
+      const end = app.indexOf("'", start);
+      routes.push(app.slice(start, end));
+      from = end + 1;
+    }
+    const shells = new Set(
+      [...MARKETING_ROUTE_HEADS, ...MARKETING_UNLISTED_SHELLS].map((head) => head.path),
+    );
+    const sources = new Set((readVercelConfig().redirects ?? []).map((entry) => entry.source));
+    for (const routePath of routes) {
+      if (routePath === '/*notfound' || shells.has(routePath) || sources.has(routePath)) {
+        continue;
+      }
+      expect(routePath, routePath).toBe('/blog/:slug');
+      expect(sources.has('/blog/:path*')).toBe(true);
     }
   });
 

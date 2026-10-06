@@ -19,7 +19,9 @@ const vercelJson = readFileSync(path.resolve(process.cwd(), 'vercel.json'), 'utf
 describe('docs route paths', () => {
   it('maps the REST reference to /api/rest-api and skips the redirected /api index', () => {
     expect(routePathForDoc('api/rest-api/README.md')).toBe('/api/rest-api');
-    expect(routePathForDoc('api/README.md')).toBeNull();
+    expect(routePathForDoc('api/README.md')).toBe('/api/readme');
+    expect(routePathForDoc('guides/README.md')).toBe('/guides/readme');
+    expect(routePathForDoc('INDEX.md')).toBeNull();
     expect(routePathForDoc('ADMIN_GUIDE.md')).toBe('/admin-guide');
     expect(routePathForDoc('guides/quick-start.md')).toBe('/guides/quick-start');
   });
@@ -51,6 +53,13 @@ describe('docs route shells', () => {
     expect(rest?.title).toContain('REST API');
     const mcp = shells.find((entry) => entry.path === '/pro/mcp');
     expect(mcp?.canonical).toBe('https://docs.revealui.com/pro/mcp');
+    expect(shells.find((entry) => entry.path === '/guides/readme')?.canonical).toBe(
+      'https://docs.revealui.com/guides/readme',
+    );
+    expect(shells.find((entry) => entry.path === '/api/readme')?.canonical).toBe(
+      'https://docs.revealui.com/api/readme',
+    );
+    expect(shells.find((entry) => entry.path === '/index')).toBeUndefined();
   });
 
   it('writes self-referencing social tags and a noindex 404 shell', () => {
