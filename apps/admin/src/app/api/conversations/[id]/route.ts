@@ -12,6 +12,7 @@ import {
   deleteConversation,
   getConversationById,
   updateConversationTitle,
+  updateConversationTitleRequestSchema,
 } from '@revealui/db/queries/conversations';
 import type { NextRequest } from 'next/server';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
@@ -45,11 +46,15 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   if (aiGate) return aiGate;
 
   const { id } = await params;
-  const body = (await request.json()) as { title?: string };
-  if (!body.title) return Response.json({ error: 'Title required' }, { status: 400 });
+  const body = updateConversationTitleRequestSchema.safeParse(
+    await request.json().catch(() => undefined),
+  );
+  if (!body.success) {
+    return Response.json({ error: 'Invalid conversation input' }, { status: 400 });
+  }
 
   const db = getClient();
-  const conversation = await updateConversationTitle(db, id, session.user.id, body.title);
+  const conversation = await updateConversationTitle(db, id, session.user.id, body.data.title);
 
   if (!conversation) return Response.json({ error: 'Not found' }, { status: 404 });
   return Response.json({ conversation });

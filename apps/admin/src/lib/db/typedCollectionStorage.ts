@@ -9,7 +9,14 @@ import type {
 } from '@revealui/core/types';
 import { parseStoredJsonFields, validateDocument } from '@revealui/core/utils/stored-json-fields';
 import { cmsListFilter, cmsListSort } from '@revealui/db/queries/cms-collections';
-import { listConversations } from '@revealui/db/queries/conversations';
+import {
+  createCollectionConversation,
+  createCollectionConversationSchema,
+  deleteCollectionConversation,
+  listConversations,
+  updateCollectionConversation,
+  updateCollectionConversationSchema,
+} from '@revealui/db/queries/conversations';
 import { listOrders } from '@revealui/db/queries/orders';
 import { createPage, deletePage, getPageById, updatePage } from '@revealui/db/queries/pages';
 import { createPost, deletePost, getPostById, updatePost } from '@revealui/db/queries/posts';
@@ -28,6 +35,7 @@ import { type User as DbUser, users } from '@revealui/db/schema/users';
 import type { PlatformAuthUser } from '@revealui/utils/validation';
 import { and, asc, count, desc, eq, inArray, isNull, or, type SQL, sql } from 'drizzle-orm';
 import { z } from 'zod';
+import { isAdmin } from '@/lib/access';
 import { cmsCollectionHandlers } from './cmsCollectionStorage';
 import { getCollectionDatabase } from './collectionReadExecutor';
 import { resolveDefaultSiteId } from './defaultSite';
@@ -338,6 +346,56 @@ async function findTypedConversations(
     sort,
   });
   return paginationResult(rows.map(mapConversationDocument), total, limit, page);
+}
+
+function conversationOwnerId(req?: RevealRequest): string | undefined {
+  if (!req || isAdmin({ req })) return undefined;
+  const owner = z.object({ id: z.string().min(1) }).safeParse(req.user);
+  if (!owner.success) throw new Error('Access denied: authenticated conversation owner required');
+  return owner.data.id;
+}
+
+async function createTypedConversation(
+  collection: RevealCollectionConfig,
+  options: { data: RevealDataObject; req?: RevealRequest },
+): Promise<RevealDocument | undefined> {
+  if (collection.slug !== 'conversations') return undefined;
+  const data = createCollectionConversationSchema.parse(options.data);
+  const row = await createCollectionConversation(getCollectionDatabase(), data);
+  if (!row) throw new Error('conversations create failed: no row returned');
+  return mapConversationDocument(row);
+}
+
+async function updateTypedConversation(
+  collection: RevealCollectionConfig,
+  options: { id: string | number; data: RevealDataObject; req?: RevealRequest },
+): Promise<RevealDocument | undefined> {
+  if (collection.slug !== 'conversations') return undefined;
+  const id = z.union([z.string().min(1), z.number().int().safe()]).parse(options.id);
+  const data = updateCollectionConversationSchema.parse(options.data);
+  const row = await updateCollectionConversation(
+    getCollectionDatabase(),
+    String(id),
+    data,
+    conversationOwnerId(options.req),
+  );
+  if (!row) throw new Error(`conversations update: conversation not found: ${id}`);
+  return mapConversationDocument(row);
+}
+
+async function deleteTypedConversation(
+  collection: RevealCollectionConfig,
+  options: { id: string | number; req?: RevealRequest },
+): Promise<RevealDocument | undefined> {
+  if (collection.slug !== 'conversations') return undefined;
+  const id = z.union([z.string().min(1), z.number().int().safe()]).parse(options.id);
+  const row = await deleteCollectionConversation(
+    getCollectionDatabase(),
+    String(id),
+    conversationOwnerId(options.req),
+  );
+  if (!row) throw new Error(`conversations delete: conversation not found: ${id}`);
+  return mapConversationDocument(row);
 }
 
 function buildDomainConditions(values: string[]) {
@@ -1339,6 +1397,9 @@ const typedCollectionHandlers: Record<string, TypedCollectionHandler> = {
   conversations: {
     findByID: findTypedConversationByID,
     find: findTypedConversations,
+    create: createTypedConversation,
+    update: updateTypedConversation,
+    delete: deleteTypedConversation,
   },
   orders: {
     findByID: findTypedOrderByID,

@@ -59,7 +59,6 @@ export const Conversations: RevealCollectionConfig = {
     {
       name: 'id',
       type: 'text',
-      required: true,
       unique: true,
       admin: {
         description: 'Unique conversation identifier',
@@ -68,7 +67,6 @@ export const Conversations: RevealCollectionConfig = {
     {
       name: 'version',
       type: 'number',
-      required: true,
       defaultValue: 1,
       admin: {
         description: 'Schema version for migration handling',
@@ -120,16 +118,16 @@ export const Conversations: RevealCollectionConfig = {
     {
       name: 'createdAt',
       type: 'date',
-      required: true,
       admin: {
+        readOnly: true,
         description: 'When this conversation was created',
       },
     },
     {
       name: 'updatedAt',
       type: 'date',
-      required: true,
       admin: {
+        readOnly: true,
         description: 'When this conversation was last updated',
       },
     },

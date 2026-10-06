@@ -40,7 +40,8 @@ vi.mock('@/lib/access/account-feature', () => ({
   accountHasFeature: (...args: unknown[]) => mockAccountHasFeature(...args),
 }));
 
-vi.mock('@revealui/db/queries/conversations', () => ({
+vi.mock('@revealui/db/queries/conversations', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@revealui/db/queries/conversations')>()),
   getConversations: (...args: unknown[]) => mockGetConversations(...args),
   createConversation: (...args: unknown[]) => mockCreateConversation(...args),
   getConversationById: (...args: unknown[]) => mockGetConversationById(...args),

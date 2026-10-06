@@ -7,12 +7,12 @@
  * ElectricSQL picks up the database change and pushes it to all shape subscribers.
  */
 
-import crypto from 'node:crypto';
 import { getSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
-import { conversations } from '@revealui/db/schema';
+import { createCollectionConversation } from '@revealui/db/queries/conversations';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
   createApplicationErrorResponse,
@@ -37,6 +37,14 @@ function isValidAgentId(id: string): boolean {
   return true;
 }
 
+const createSyncConversationBodySchema = z
+  .object({
+    agent_id: z.string().min(1).max(200).refine(isValidAgentId),
+    title: z.string().trim().min(1).max(500).nullable().optional(),
+    device_id: z.string().min(1).max(200).nullable().optional(),
+  })
+  .strict();
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const session = await getSession(request.headers, extractRequestContext(request));
@@ -47,36 +55,25 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const aiGate = await checkAIFeatureGate(session.user.id);
     if (aiGate) return aiGate;
 
-    const body = (await request.json()) as {
-      agent_id?: string;
-      title?: string;
-      device_id?: string;
-    };
-
-    if (!(body.agent_id && isValidAgentId(body.agent_id))) {
+    const body = createSyncConversationBodySchema.safeParse(
+      await request.json().catch(() => undefined),
+    );
+    if (!body.success) {
       return createValidationErrorResponse(
         'agent_id is required and must be alphanumeric with hyphens/underscores',
         'agent_id',
-        body.agent_id,
+        undefined,
       );
     }
 
     const db = getClient();
-    const id = crypto.randomUUID();
-    const now = new Date();
-
-    const [created] = await db
-      .insert(conversations)
-      .values({
-        id,
-        userId: session.user.id,
-        agentId: body.agent_id,
-        title: body.title ?? null,
-        deviceId: body.device_id ?? null,
-        createdAt: now,
-        updatedAt: now,
-      })
-      .returning();
+    const created = await createCollectionConversation(db, {
+      userId: session.user.id,
+      agentId: body.data.agent_id,
+      title: body.data.title ?? null,
+      deviceId: body.data.device_id ?? null,
+    });
+    if (!created) throw new Error('Conversation create failed: no row returned');
 
     return NextResponse.json(created, { status: 201 });
   } catch (error) {

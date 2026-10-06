@@ -7,7 +7,11 @@
 
 import { getSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
-import { createConversation, getConversations } from '@revealui/db/queries/conversations';
+import {
+  createConversation,
+  createConversationRequestSchema,
+  getConversations,
+} from '@revealui/db/queries/conversations';
 import type { NextRequest } from 'next/server';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { extractRequestContext } from '@/lib/utils/request-context';
@@ -43,7 +47,12 @@ export async function POST(request: NextRequest) {
   const aiGate = await checkAIFeatureGate(session.user.id);
   if (aiGate) return aiGate;
 
-  const body = (await request.json()) as { title?: string };
+  const body = createConversationRequestSchema.safeParse(
+    await request.json().catch(() => undefined),
+  );
+  if (!body.success) {
+    return Response.json({ error: 'Invalid conversation input' }, { status: 400 });
+  }
   const db = getClient();
   const id = crypto.randomUUID();
 
@@ -51,7 +60,7 @@ export async function POST(request: NextRequest) {
     id,
     userId: session.user.id,
     agentId: 'admin-assistant',
-    title: body.title,
+    title: body.data.title,
   });
 
   return Response.json({ conversation }, { status: 201 });

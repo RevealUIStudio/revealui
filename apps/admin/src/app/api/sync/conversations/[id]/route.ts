@@ -9,9 +9,12 @@
 
 import { getSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
-import { conversations } from '@revealui/db/schema';
+import {
+  deleteCollectionConversation,
+  updateCollectionConversation,
+  updateCollectionConversationSchema,
+} from '@revealui/db/queries/conversations';
 import { logger } from '@revealui/utils/logger';
-import { and, eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
@@ -59,23 +62,15 @@ export async function PATCH(
       return createValidationErrorResponse('id must be a valid UUID', 'id', id);
     }
 
-    const body = (await request.json()) as {
-      title?: string;
-      status?: string;
-    };
-
-    const updates: Record<string, unknown> = { updatedAt: new Date() };
-    if (body.title !== undefined) updates.title = body.title;
-    if (body.status !== undefined) updates.status = body.status;
+    const body = updateCollectionConversationSchema.safeParse(
+      await request.json().catch(() => undefined),
+    );
+    if (!body.success) {
+      return createValidationErrorResponse('Invalid conversation update', 'body', undefined);
+    }
 
     const db = getClient();
-
-    // Only allow updating conversations owned by the current user
-    const [updated] = await db
-      .update(conversations)
-      .set(updates)
-      .where(and(eq(conversations.id, id), eq(conversations.userId, session.user.id)))
-      .returning();
+    const updated = await updateCollectionConversation(db, id, body.data, session.user.id);
 
     if (!updated) {
       return createApplicationErrorResponse('Conversation not found', 'NOT_FOUND', 404);
@@ -112,10 +107,7 @@ export async function DELETE(
     const db = getClient();
 
     // Only allow deleting conversations owned by the current user
-    const [deleted] = await db
-      .delete(conversations)
-      .where(and(eq(conversations.id, id), eq(conversations.userId, session.user.id)))
-      .returning();
+    const deleted = await deleteCollectionConversation(db, id, session.user.id);
 
     if (!deleted) {
       return createApplicationErrorResponse('Conversation not found', 'NOT_FOUND', 404);

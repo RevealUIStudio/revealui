@@ -42,22 +42,26 @@ customer or an administrator.
    implementations. First establish the maintained mutation contract and have
    each supported ingress use it.
 
-   For persisted conversations, `apps/admin/src/lib/db/typedCollectionStorage.ts`
-   registers only reads. Direct RevealUI create/update falls through core SQL,
-   which sends camelCase names such as `userId` and `updatedAt` to a table with
-   snake_case columns. Create also rejects omitted server-owned values because
-   `apps/admin/src/lib/collections/Conversations/index.ts` marks ID, version,
-   and timestamps required, while core create does not apply field defaults.
-   The existing `packages/db/src/queries/conversations.ts` is the canonical
-   DB mutation owner to extend with validated collection operations. Preserve
-   existing chat/sync callers while routing `apps/admin/src/app/api/conversations`
-   and `apps/admin/src/app/api/sync/conversations` through that contract; remove
-   their independent input checks and direct mutation construction only after
-   equivalent tests pass. The admin collection proxy currently targets
+   For persisted conversations, the local RevealUI path now has strict,
+   validated Drizzle create/update/delete handlers in
+   `apps/admin/src/lib/db/typedCollectionStorage.ts`; the core SQL fallback is
+   not reached. `packages/db/src/queries/conversations.ts` owns the shared
+   mutations, database defaults own timestamps, and updates advance/check the
+   version. The existing chat and sync Next routes now validate request bodies
+   and call these query owners instead of constructing their own mutations.
+   PGlite coverage verifies canonical writes, owner denial, invalid status and
+   fields, stale-version conflict, cascaded message deletion, and zero dynamic
+   fallback calls. The admin config no longer requires callers to provide
+   server-owned ID/version/timestamps.
+
+   One browser path remains open: the generic collection proxy targets
    `/api/content/conversations`, but
-   `apps/server/src/routes/content/index.ts` mounts no conversation route; make
-   its capability explicit and test its real endpoint instead of treating
-   the local storage bridge as browser coverage.
+   `apps/server/src/routes/content/index.ts` mounts no conversation route. Add
+   this capability to the maintained Hono content API using the shared query
+   schemas and owner/admin rules, or change the proxy to an already-supported
+   collection endpoint with equivalent admin scope. Prove browser create/read/
+   update/delete and owner denial end to end; local typed-storage coverage is
+   not browser coverage.
 
    For orders, both browser and local paths are inconsistent. The admin proxy
    forwards collection forms to `apps/server/src/routes/content/orders.ts`.
