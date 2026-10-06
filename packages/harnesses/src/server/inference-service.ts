@@ -91,8 +91,33 @@ export const PRODUCT_INFERENCE_SNAPS: ReadonlyArray<readonly [string, string]> =
 const KNOWN_SNAPS = PRODUCT_INFERENCE_SNAPS;
 const SNAP_IDS = PRODUCT_INFERENCE_SNAPS.map(([id]) => id);
 
-// Lockstep packages/ai DEFAULT_DAILY_OLLAMA_MODEL (cannot hard-require @revealui/ai).
-const DEFAULT_DAILY_OLLAMA = 'gemma4:e2b';
+interface DailyOllamaAllowlist {
+  resolveApprovedLocalModel?: (modelId: string | undefined) => string;
+}
+
+/**
+ * Daily Ollama tag from the US open-weight allowlist.
+ * Dynamic import: harnesses cannot hard-require @revealui/ai.
+ */
+export async function resolveDailyOllamaModel(): Promise<string> {
+  const allowlistPath = '@revealui/ai/llm/providers/us-origin-snaps';
+  let allowlist: DailyOllamaAllowlist;
+  try {
+    allowlist = (await import(allowlistPath)) as DailyOllamaAllowlist;
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : 'unknown error';
+    throw new Error(
+      `US open-weight local model allowlist is unavailable (${detail}). Install @revealui/ai.`,
+    );
+  }
+  const resolve = allowlist.resolveApprovedLocalModel;
+  if (typeof resolve !== 'function') {
+    throw new Error(
+      'US open-weight local model allowlist is unavailable (missing resolver). Install @revealui/ai.',
+    );
+  }
+  return resolve(undefined);
+}
 
 function profilePath(): string {
   return (
@@ -484,14 +509,15 @@ export class InferenceService {
         if ((await this.ollamaStatus()).running) break;
         await new Promise((r) => setTimeout(r, 250));
       }
+      const model = await resolveDailyOllamaModel();
       profile = {
         ...profile,
         tier: 'daily',
         provider: 'ollama',
-        model: DEFAULT_DAILY_OLLAMA,
+        model,
         baseURL: 'http://127.0.0.1:11434',
         keepAlive: '0',
-        note: 'Ollama daily default (gemma4:e2b); weights unload after each request',
+        note: `Ollama daily default (${model}); weights unload after each request`,
       };
     } else if (tier === 'snaps' || tier === 'heavy') {
       profile = await this.applySnapTier(tier);

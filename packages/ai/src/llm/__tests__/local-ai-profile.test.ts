@@ -13,6 +13,7 @@ import {
   profileDefaultsForTier,
   saveLocalAiProfile,
 } from '../local-ai-profile.js';
+import { DEFAULT_DAILY_OLLAMA_MODEL } from '../providers/us-origin-snaps.js';
 
 const dirs: string[] = [];
 
@@ -85,7 +86,8 @@ describe('local-ai-profile', () => {
 
   it('profileDefaultsForTier covers all tiers', () => {
     expect(profileDefaultsForTier('daily').provider).toBe('ollama');
-    expect(profileDefaultsForTier('daily').model).toBe('gemma4:e2b');
+    expect(profileDefaultsForTier('daily').model).toBe(DEFAULT_DAILY_OLLAMA_MODEL);
+    expect(profileDefaultsForTier('daily').note).toContain(DEFAULT_DAILY_OLLAMA_MODEL);
     expect(profileDefaultsForTier('snaps').provider).toBe('inference-snaps');
     expect(profileDefaultsForTier('heavy').model).toBe('nemotron-3-nano');
     expect(profileDefaultsForTier('idle').provider).toBeNull();

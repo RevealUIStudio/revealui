@@ -10,7 +10,7 @@
  *   pnpm --filter @revealui/ai test:integration
  *
  * Prerequisites:
- *   - Ollama running: `ollama serve` + `ollama pull gemma4:e2b`
+ *   - Ollama running: `ollama serve` plus the approved daily local tag
  *   - OR set GROQ_API_KEY in env
  */
 

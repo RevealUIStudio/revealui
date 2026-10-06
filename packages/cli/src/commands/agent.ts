@@ -240,6 +240,22 @@ async function loadProDeps(): Promise<ProDeps | null> {
   }
 }
 
+async function approvedDailyOllamaModel(): Promise<string | null> {
+  // String specifier so this OSS package does not statically import Pro.
+  const allowlistPath = '@revealui/ai/llm/providers/us-origin-snaps';
+  try {
+    const allowlist = (await import(allowlistPath)) as {
+      resolveApprovedLocalModel?: (modelId: string | undefined) => string;
+    };
+    if (typeof allowlist.resolveApprovedLocalModel !== 'function') return null;
+    return allowlist.resolveApprovedLocalModel(undefined);
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : 'unknown error';
+    logger.warn(`US open-weight local model allowlist is unavailable (${detail}).`);
+    return null;
+  }
+}
+
 async function detectProvider(): Promise<{
   available: boolean;
   provider: string;
@@ -269,8 +285,11 @@ async function detectProvider(): Promise<{
       signal: AbortSignal.timeout(2000),
     });
     if (res.ok) {
-      // Lockstep packages/ai DEFAULT_DAILY_OLLAMA_MODEL (gemma4:e2b).
-      return { available: true, provider: 'ollama', model: 'gemma4:e2b', projectRoot };
+      const model = await approvedDailyOllamaModel();
+      if (model === null) {
+        return { available: false, provider: 'none', model: 'none', projectRoot };
+      }
+      return { available: true, provider: 'ollama', model, projectRoot };
     }
   } catch {
     // not running

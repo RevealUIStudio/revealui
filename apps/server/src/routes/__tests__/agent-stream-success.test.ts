@@ -57,7 +57,8 @@ vi.mock('hono/streaming', () => ({
   ),
 }));
 
-vi.mock('@revealui/ai', () => {
+vi.mock('@revealui/ai', async () => {
+  const allowlist = await import('@revealui/ai/llm/providers/us-origin-snaps');
   const createLLMClientFromEnv = vi.fn().mockReturnValue({ type: 'env-client' });
   return {
     createLLMClientFromEnv,
@@ -70,22 +71,10 @@ vi.mock('@revealui/ai', () => {
     createCoreLoggerSink: vi.fn().mockReturnValue(() => {}),
     createUsageMeterSink: vi.fn().mockReturnValue(() => {}),
     createToolsFromMcpClient: vi.fn().mockResolvedValue([]),
-    // US-origin Inference Snaps hardline (agent-stream sampling allowlist)
-    US_ORIGIN_INFERENCE_SNAP_IDS: ['nemotron-3-nano', 'nemotron-3-nano-omni', 'gemma3', 'gemma4'],
-    DEFAULT_US_ORIGIN_INFERENCE_SNAP: 'gemma3',
-    resolveApprovedLocalModel: (model?: string) => {
-      const resolved = model !== undefined && model.trim() !== '' ? model.trim() : 'gemma4:e2b';
-      if (resolved === 'unlisted-model:1b') {
-        const error = new Error(
-          `Local model "${resolved}" is not on the US open-weight allowlist.`,
-        );
-        Object.assign(error, { code: 'UNAPPROVED_LOCAL_MODEL' });
-        throw error;
-      }
-      return resolved;
-    },
-    assertUsOriginInferenceSnap: (model?: string) =>
-      model !== undefined && model.trim() !== '' ? model.trim() : 'gemma3',
+    US_ORIGIN_INFERENCE_SNAP_IDS: allowlist.US_ORIGIN_INFERENCE_SNAP_IDS,
+    DEFAULT_US_ORIGIN_INFERENCE_SNAP: allowlist.DEFAULT_US_ORIGIN_INFERENCE_SNAP,
+    resolveApprovedLocalModel: allowlist.resolveApprovedLocalModel,
+    assertUsOriginInferenceSnap: allowlist.assertUsOriginInferenceSnap,
     createSamplingHandler: vi.fn().mockReturnValue(async () => ({ model: 'gemma3' })),
   };
 });
@@ -472,11 +461,14 @@ describe('agent-stream  -  success path (AI modules working)', () => {
     delete process.env.INFERENCE_SNAPS_BASE_URL;
     try {
       const { LLMClient } = await import('@revealui/ai/llm/client');
+      const { DEFAULT_DAILY_OLLAMA_MODEL } = await import(
+        '@revealui/ai/llm/providers/us-origin-snaps'
+      );
       const app = createLocalApp();
       const res = await jsonPost(app, '/agent-stream', { instruction: 'local default' });
       expect(res.status).toBe(200);
       expect(vi.mocked(LLMClient)).toHaveBeenCalledWith(
-        expect.objectContaining({ provider: 'ollama', model: 'gemma4:e2b' }),
+        expect.objectContaining({ provider: 'ollama', model: DEFAULT_DAILY_OLLAMA_MODEL }),
       );
     } finally {
       restoreEnv('LLM_MODEL', savedModel);
