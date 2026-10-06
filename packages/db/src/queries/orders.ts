@@ -2,7 +2,7 @@
  * Order database queries
  */
 
-import { and, count, desc, eq } from 'drizzle-orm';
+import { and, count, desc, eq, isNull, type SQL } from 'drizzle-orm';
 import type { Database } from '../client/index.js';
 import { orders } from '../schema/products.js';
 
@@ -39,6 +39,26 @@ export async function getAllOrders(
     .orderBy(desc(orders.createdAt), orders.id)
     .limit(limit)
     .offset(offset);
+}
+
+export async function listOrders(
+  db: Database,
+  options: { limit: number; offset: number; filter?: SQL; sort?: SQL[] },
+) {
+  const { limit, offset, filter, sort = [] } = options;
+  const where = and(isNull(orders.deletedAt), filter);
+  const rows = await db
+    .select()
+    .from(orders)
+    .where(where)
+    .orderBy(...sort, desc(orders.createdAt), orders.id)
+    .limit(limit)
+    .offset(offset);
+  const [{ total = 0 } = { total: 0 }] = await db
+    .select({ total: count() })
+    .from(orders)
+    .where(where);
+  return { rows, total };
 }
 
 export async function getOrderById(db: Database, id: string) {

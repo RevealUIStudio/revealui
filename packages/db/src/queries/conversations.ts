@@ -2,7 +2,7 @@
  * Conversation database queries
  */
 
-import { and, desc, eq } from 'drizzle-orm';
+import { and, count, desc, eq, type SQL } from 'drizzle-orm';
 import type { Database } from '../client/index.js';
 import { conversations, messages } from '../schema/agents.js';
 
@@ -19,6 +19,25 @@ export async function getConversations(
     .orderBy(desc(conversations.updatedAt), conversations.id)
     .limit(limit)
     .offset(offset);
+}
+
+export async function listConversations(
+  db: Database,
+  options: { limit: number; offset: number; filter?: SQL; sort?: SQL[] },
+) {
+  const { limit, offset, filter, sort = [] } = options;
+  const rows = await db
+    .select()
+    .from(conversations)
+    .where(filter)
+    .orderBy(...sort, desc(conversations.updatedAt), conversations.id)
+    .limit(limit)
+    .offset(offset);
+  const [{ total = 0 } = { total: 0 }] = await db
+    .select({ total: count() })
+    .from(conversations)
+    .where(filter);
+  return { rows, total };
 }
 
 export async function getConversationById(db: Database, id: string, userId: string) {

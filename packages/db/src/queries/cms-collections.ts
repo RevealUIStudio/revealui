@@ -4,6 +4,7 @@
 
 import {
   and,
+  asc,
   count,
   desc,
   eq,
@@ -21,6 +22,7 @@ import {
 import type { PgColumn } from 'drizzle-orm/pg-core';
 import { z } from 'zod';
 import type { Database } from '../client/index.js';
+import { conversations } from '../schema/agents.js';
 import {
   type Category,
   type ContentRow,
@@ -47,9 +49,52 @@ import {
   type VideoRow,
   videos,
 } from '../schema/cms-collections.js';
+import { orders } from '../schema/products.js';
 
-const cmsTables = { categories, contents, events, info, prices, subscriptions, tags, videos };
+const cmsTables = {
+  categories,
+  contents,
+  conversations,
+  events,
+  info,
+  orders,
+  prices,
+  subscriptions,
+  tags,
+  videos,
+};
+const listFields = {
+  conversations: [
+    'id',
+    'version',
+    'userId',
+    'agentId',
+    'title',
+    'status',
+    'deviceId',
+    'lastSyncedAt',
+    'createdAt',
+    'updatedAt',
+  ],
+  orders: [
+    'id',
+    'customerId',
+    'status',
+    'totalInCents',
+    'currency',
+    'stripePaymentIntentId',
+    'stripeCheckoutSessionId',
+    'createdAt',
+    'updatedAt',
+  ],
+} as const;
 const filterRecord = z.record(z.string(), z.unknown());
+
+function allowedListFields(collection: keyof typeof cmsTables) {
+  if (collection === 'conversations') return listFields.conversations;
+  if (collection === 'orders') return listFields.orders;
+  return undefined;
+}
 
 // These values cross the caller/access-rule boundary. `unknown` is intentional:
 // RevealWhere is only a compile-time promise and cannot establish runtime shape.
@@ -146,6 +191,10 @@ export function cmsListFilter(collection: keyof typeof cmsTables, input: unknown
           : collection === 'prices' && field === 'stripePriceID'
             ? 'stripePriceId'
             : field;
+      const allowedFields = allowedListFields(collection);
+      if (allowedFields && !allowedFields.some((allowedField) => allowedField === key)) {
+        throw new Error('Unsupported CMS list filter field');
+      }
       const column = Object.hasOwn(columns, key) ? columns[key] : undefined;
       if (!column || column.dataType === 'json')
         throw new Error('Unsupported CMS list filter field');
@@ -180,6 +229,24 @@ export function cmsListFilter(collection: keyof typeof cmsTables, input: unknown
     return and(...predicates);
   }
   return visit(input, 0);
+}
+
+/** Compile a validated sort object for one of the existing typed collection tables. */
+export function cmsListSort(collection: keyof typeof cmsTables, input: unknown): SQL[] {
+  if (input === undefined) return [];
+  const entries = Object.entries(readFilterRecord(input));
+  if (entries.length > 10) throw new Error('CMS list sort exceeds complexity limit');
+  const columns: Record<string, PgColumn> = getTableColumns(cmsTables[collection]);
+  return entries.map(([field, direction]) => {
+    const allowedFields = allowedListFields(collection);
+    if (allowedFields && !allowedFields.some((allowedField) => allowedField === field)) {
+      throw new Error('Unsupported CMS list sort field');
+    }
+    const column = Object.hasOwn(columns, field) ? columns[field] : undefined;
+    if (!column || column.dataType === 'json') throw new Error('Unsupported CMS list sort field');
+    const parsedDirection = z.enum(['1', '-1']).parse(direction);
+    return parsedDirection === '-1' ? desc(column) : asc(column);
+  });
 }
 
 function newId(data: { id?: unknown }): string {

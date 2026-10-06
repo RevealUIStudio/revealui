@@ -7,8 +7,11 @@ import type {
   RevealPaginatedResult,
   RevealRequest,
 } from '@revealui/core/types';
-import { parseStoredJsonFields } from '@revealui/core/utils/stored-json-fields';
+import { parseStoredJsonFields, validateDocument } from '@revealui/core/utils/stored-json-fields';
 import { getRestClient } from '@revealui/db/client';
+import { cmsListFilter, cmsListSort } from '@revealui/db/queries/cms-collections';
+import { listConversations } from '@revealui/db/queries/conversations';
+import { listOrders } from '@revealui/db/queries/orders';
 import { createPage, deletePage, getPageById, updatePage } from '@revealui/db/queries/pages';
 import { createPost, deletePost, getPostById, updatePost } from '@revealui/db/queries/posts';
 import {
@@ -18,11 +21,14 @@ import {
   getSiteIdsForContentRead,
 } from '@revealui/db/queries/sites';
 import { posts } from '@revealui/db/schema/admin';
+import { CONVERSATION_STATUSES, conversations } from '@revealui/db/schema/agents';
 import { pages } from '@revealui/db/schema/pages';
+import { ORDER_STATUSES, orders } from '@revealui/db/schema/products';
 import { type Tenant as DbTenant, tenants } from '@revealui/db/schema/tenants';
 import { type User as DbUser, users } from '@revealui/db/schema/users';
 import type { PlatformAuthUser } from '@revealui/utils/validation';
 import { and, asc, count, desc, eq, inArray, isNull, or, type SQL, sql } from 'drizzle-orm';
+import { z } from 'zod';
 import { cmsCollectionHandlers } from './cmsCollectionStorage';
 import { resolveDefaultSiteId } from './defaultSite';
 
@@ -30,6 +36,54 @@ type UserWhereCondition = NonNullable<RevealFindOptions['where']>;
 type UserSort = NonNullable<RevealFindOptions['sort']>;
 
 const SUPPORTED_COLLECTION = 'users';
+
+const listPageSchema = z.object({
+  limit: z.number().int().min(1).max(500).default(10),
+  page: z.number().int().min(1).max(1_000_000).default(1),
+});
+
+const jsonObjectSchema = z.record(z.string(), z.json()).nullable();
+const orderItemSchema = z
+  .object({
+    productId: z.string().min(1),
+    title: z.string().min(1),
+    quantity: z.number().int().positive(),
+    priceInCents: z.number().int().nonnegative(),
+  })
+  .strict();
+const orderDocumentSchema = z
+  .object({
+    id: z.string().min(1),
+    customerId: z.string().min(1),
+    status: z.enum(ORDER_STATUSES),
+    totalInCents: z.number().int().nonnegative(),
+    currency: z.string().length(3),
+    stripePaymentIntentId: z.string().nullable(),
+    stripeCheckoutSessionId: z.string().nullable(),
+    items: z.array(orderItemSchema),
+    shippingAddress: jsonObjectSchema,
+    metadata: jsonObjectSchema,
+    createdAt: z.date().transform((value) => value.toISOString()),
+    updatedAt: z.date().transform((value) => value.toISOString()),
+  })
+  .strict();
+const conversationDocumentSchema = z
+  .object({
+    id: z.string().min(1),
+    version: z.number().int().positive(),
+    userId: z.string().min(1),
+    agentId: z.string().min(1),
+    title: z.string().nullable(),
+    status: z.enum(CONVERSATION_STATUSES),
+    deviceId: z.string().nullable(),
+    lastSyncedAt: z
+      .date()
+      .nullable()
+      .transform((value) => value?.toISOString() ?? null),
+    createdAt: z.date().transform((value) => value.toISOString()),
+    updatedAt: z.date().transform((value) => value.toISOString()),
+  })
+  .strict();
 
 type TypedCollectionHandler = {
   findByID?: (
@@ -99,7 +153,17 @@ function splitName(name: string): { firstName?: string; lastName?: string } {
   const trimmed = name.trim();
   if (!trimmed) return {};
 
-  const parts = trimmed.split(/\s+/);
+  const parts: string[] = [];
+  let currentPart = '';
+  for (const character of trimmed) {
+    if (character.trim().length === 0) {
+      if (currentPart) parts.push(currentPart);
+      currentPart = '';
+    } else {
+      currentPart += character;
+    }
+  }
+  if (currentPart) parts.push(currentPart);
   if (parts.length === 1) {
     return { firstName: parts[0] };
   }
@@ -152,6 +216,118 @@ function mapTenantDocument(row: DbTenant): RevealDocument {
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
+}
+
+function mapOrderDocument(row: typeof orders.$inferSelect): RevealDocument {
+  const parsed = orderDocumentSchema.parse({
+    id: row.id,
+    customerId: row.customerId,
+    status: row.status,
+    totalInCents: row.totalInCents,
+    currency: row.currency,
+    stripePaymentIntentId: row.stripePaymentIntentId,
+    stripeCheckoutSessionId: row.stripeCheckoutSessionId,
+    items: row.items,
+    shippingAddress: row.shippingAddress,
+    metadata: row.metadata,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  });
+  return validateDocument(parsed, `orders.id=${row.id}`);
+}
+
+function mapConversationDocument(row: typeof conversations.$inferSelect): RevealDocument {
+  const parsed = conversationDocumentSchema.parse({
+    id: row.id,
+    version: row.version,
+    userId: row.userId,
+    agentId: row.agentId,
+    title: row.title,
+    status: row.status,
+    deviceId: row.deviceId,
+    lastSyncedAt: row.lastSyncedAt,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  });
+  return validateDocument(parsed, `conversations.id=${row.id}`);
+}
+
+function paginationResult(
+  docs: RevealDocument[],
+  totalDocs: number,
+  limit: number,
+  page: number,
+): RevealPaginatedResult {
+  const totalPages = totalDocs > 0 ? Math.ceil(totalDocs / limit) : 0;
+  const offset = (page - 1) * limit;
+  return {
+    docs,
+    totalDocs,
+    limit,
+    totalPages,
+    page,
+    pagingCounter: totalDocs > 0 ? offset + 1 : 0,
+    hasPrevPage: page > 1,
+    hasNextPage: page < totalPages,
+    prevPage: page > 1 ? page - 1 : null,
+    nextPage: page < totalPages ? page + 1 : null,
+  };
+}
+
+async function findTypedOrderByID(
+  collection: RevealCollectionConfig,
+  options: { id: string | number; req?: RevealRequest },
+): Promise<RevealDocument | null | undefined> {
+  if (collection.slug !== 'orders') return undefined;
+  const id = String(z.union([z.string().min(1), z.number().int().safe()]).parse(options.id));
+  const [row] = await getRestClient()
+    .select()
+    .from(orders)
+    .where(and(eq(orders.id, id), isNull(orders.deletedAt)))
+    .limit(1);
+  return row ? mapOrderDocument(row) : null;
+}
+
+async function findTypedOrders(
+  collection: RevealCollectionConfig,
+  options: RevealFindOptions,
+): Promise<RevealPaginatedResult | undefined> {
+  if (collection.slug !== 'orders') return undefined;
+  const { limit, page } = listPageSchema.parse(options);
+  const offset = (page - 1) * limit;
+  if (!Number.isSafeInteger(offset)) throw new Error('Invalid orders page offset');
+  const filter = cmsListFilter('orders', options.where);
+  const sort = cmsListSort('orders', options.sort);
+  const { rows, total } = await listOrders(getRestClient(), { limit, offset, filter, sort });
+  return paginationResult(rows.map(mapOrderDocument), total, limit, page);
+}
+
+async function findTypedConversationByID(
+  collection: RevealCollectionConfig,
+  options: { id: string | number; req?: RevealRequest },
+): Promise<RevealDocument | null | undefined> {
+  if (collection.slug !== 'conversations') return undefined;
+  const id = String(z.union([z.string().min(1), z.number().int().safe()]).parse(options.id));
+  const [row] = await getRestClient()
+    .select()
+    .from(conversations)
+    .where(eq(conversations.id, id))
+    .limit(1);
+  return row ? mapConversationDocument(row) : null;
+}
+
+async function findTypedConversations(
+  collection: RevealCollectionConfig,
+  options: RevealFindOptions,
+): Promise<RevealPaginatedResult | undefined> {
+  if (collection.slug !== 'conversations') return undefined;
+  const { limit, page } = listPageSchema.parse(options);
+  const offset = (page - 1) * limit;
+  if (!Number.isSafeInteger(offset)) throw new Error('Invalid conversations page offset');
+  const filter = cmsListFilter('conversations', options.where);
+  const sort = cmsListSort('conversations', options.sort);
+  const { rows, total } = await listConversations(getRestClient(), { limit, offset, filter, sort });
+  return paginationResult(rows.map(mapConversationDocument), total, limit, page);
 }
 
 function buildDomainConditions(values: string[]) {
@@ -1145,6 +1321,14 @@ async function deleteTypedPost(
 }
 
 const typedCollectionHandlers: Record<string, TypedCollectionHandler> = {
+  conversations: {
+    findByID: findTypedConversationByID,
+    find: findTypedConversations,
+  },
+  orders: {
+    findByID: findTypedOrderByID,
+    find: findTypedOrders,
+  },
   pages: {
     findByID: findTypedPageByID,
     find: findTypedPages,

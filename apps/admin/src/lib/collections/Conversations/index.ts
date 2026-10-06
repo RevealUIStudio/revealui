@@ -1,5 +1,16 @@
-import type { CollectionConfig } from '@revealui/core';
-import { authenticated, isAdmin } from '@/lib/access';
+import type { RevealCollectionConfig } from '@revealui/core/types';
+import { CONVERSATION_STATUSES } from '@revealui/db/schema/agents';
+import { z } from 'zod';
+import { isAdmin } from '@/lib/access';
+
+const conversationOwnerSchema = z.object({ id: z.string().min(1) });
+
+function conversationOwnerWhere(req: { user?: unknown } | undefined) {
+  // Auth adapters provide this value at runtime; parse it before using an ID
+  // in an access predicate.
+  const owner = conversationOwnerSchema.safeParse(req?.user);
+  return owner.success ? { userId: { equals: owner.data.id } } : false;
+}
 
 /**
  * Conversations Collection
@@ -12,31 +23,36 @@ import { authenticated, isAdmin } from '@/lib/access';
  * - PATCH  /api/conversations/:id
  * - DELETE /api/conversations/:id
  */
-export const Conversations: CollectionConfig = {
+export const Conversations: RevealCollectionConfig = {
   slug: 'conversations',
   access: {
-    create: authenticated,
-    read: ({ req }) => {
-      const user = req?.user as { id?: string } | null;
-      if (!user?.id) return false;
+    create: ({ req, data }) => {
+      const owner = conversationOwnerSchema.safeParse(req.user);
+      if (!owner.success) return false;
       if (isAdmin({ req })) return true;
-      return { user_id: { equals: user.id } };
+      return data?.userId === owner.data.id;
+    },
+    read: ({ req }) => {
+      const ownerWhere = conversationOwnerWhere(req);
+      if (ownerWhere === false) return false;
+      if (isAdmin({ req })) return true;
+      return ownerWhere;
     },
     update: ({ req }) => {
-      const user = req?.user as { id?: string } | null;
-      if (!user?.id) return false;
+      const ownerWhere = conversationOwnerWhere(req);
+      if (ownerWhere === false) return false;
       if (isAdmin({ req })) return true;
-      return { user_id: { equals: user.id } };
+      return ownerWhere;
     },
     delete: ({ req }) => {
-      const user = req?.user as { id?: string } | null;
-      if (!user?.id) return false;
+      const ownerWhere = conversationOwnerWhere(req);
+      if (ownerWhere === false) return false;
       if (isAdmin({ req })) return true;
-      return { user_id: { equals: user.id } };
+      return ownerWhere;
     },
   },
   admin: {
-    defaultColumns: ['id', 'session_id', 'user_id', 'agent_id', 'created_at', 'updated_at'],
+    defaultColumns: ['id', 'userId', 'agentId', 'status', 'createdAt', 'updatedAt'],
     useAsTitle: 'id',
   },
   fields: [
@@ -59,15 +75,7 @@ export const Conversations: CollectionConfig = {
       },
     },
     {
-      name: 'session_id',
-      type: 'text',
-      required: true,
-      admin: {
-        description: 'Session this conversation belongs to',
-      },
-    },
-    {
-      name: 'user_id',
+      name: 'userId',
       type: 'text',
       required: true,
       admin: {
@@ -75,7 +83,7 @@ export const Conversations: CollectionConfig = {
       },
     },
     {
-      name: 'agent_id',
+      name: 'agentId',
       type: 'text',
       required: true,
       admin: {
@@ -90,51 +98,27 @@ export const Conversations: CollectionConfig = {
       },
     },
     {
-      name: 'messages',
-      type: 'array',
-      fields: [
-        {
-          name: 'role',
-          type: 'text',
-          required: true,
-        },
-        {
-          name: 'content',
-          type: 'textarea',
-          required: true,
-        },
-        {
-          name: 'timestamp',
-          type: 'date',
-        },
-      ],
-      admin: {
-        description: 'Messages in this conversation',
-      },
-    },
-    {
       name: 'status',
       type: 'select',
-      options: [
-        { label: 'Active', value: 'active' },
-        { label: 'Paused', value: 'paused' },
-        { label: 'Completed', value: 'completed' },
-        { label: 'Abandoned', value: 'abandoned' },
-      ],
+      options: CONVERSATION_STATUSES.map((value) => ({
+        label: value.charAt(0).toUpperCase() + value.slice(1),
+        value,
+      })),
       defaultValue: 'active',
       admin: {
         description: 'Current status of the conversation',
       },
     },
     {
-      name: 'metadata',
-      type: 'json',
-      admin: {
-        description: 'Additional conversation metadata (title, tags, summary, etc.)',
-      },
+      name: 'deviceId',
+      type: 'text',
     },
     {
-      name: 'created_at',
+      name: 'lastSyncedAt',
+      type: 'date',
+    },
+    {
+      name: 'createdAt',
       type: 'date',
       required: true,
       admin: {
@@ -142,7 +126,7 @@ export const Conversations: CollectionConfig = {
       },
     },
     {
-      name: 'updated_at',
+      name: 'updatedAt',
       type: 'date',
       required: true,
       admin: {

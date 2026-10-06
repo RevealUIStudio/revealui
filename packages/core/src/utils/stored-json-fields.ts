@@ -1,1 +1,1 @@
-export { parseStoredJsonFields } from './json-parsing.js';
+export { parseStoredJsonFields, validateDocument } from './json-parsing.js';

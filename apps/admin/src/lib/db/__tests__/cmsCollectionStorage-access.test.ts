@@ -9,6 +9,10 @@ import type {
 import { getTableColumns, getTableName } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/pglite';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Conversations } from '@/lib/collections/Conversations';
+import { Orders } from '@/lib/collections/Orders';
+import { adminsOrCustomer } from '@/lib/collections/Orders/access/adminsOrCustomer';
+import { conversations } from '../../../../../../packages/db/src/schema/agents';
 import {
   categories,
   contents,
@@ -19,6 +23,7 @@ import {
   tags,
   videos,
 } from '../../../../../../packages/db/src/schema/cms-collections';
+import { orders } from '../../../../../../packages/db/src/schema/products';
 import { cmsCollectionHandlers } from '../cmsCollectionStorage';
 import { createTypedCollectionStorage } from '../typedCollectionStorage';
 
@@ -42,9 +47,25 @@ const collection: RevealCollectionConfig = {
   fields: [],
   access: { read: access },
 };
+const ordersReadCollection: RevealCollectionConfig = {
+  slug: Orders.slug,
+  fields: [],
+  access: { read: ({ req }) => adminsOrCustomer({ req }) },
+};
 
 beforeAll(async () => {
-  for (const table of [categories, contents, events, info, prices, subscriptions, tags, videos]) {
+  for (const table of [
+    categories,
+    contents,
+    conversations,
+    events,
+    info,
+    orders,
+    prices,
+    subscriptions,
+    tags,
+    videos,
+  ]) {
     const columns = Object.values(getTableColumns(table)).map(
       (column) => `"${column.name}" ${column.getSQLType()}`,
     );
@@ -72,10 +93,21 @@ afterAll(async () => {
 afterEach(() => {
   vi.unstubAllEnvs();
 });
-beforeEach(() => {
+beforeEach(async () => {
   vi.clearAllMocks();
   vi.stubEnv('POSTGRES_URL', 'postgresql://synthetic.invalid/test');
   getRestClient.mockReturnValue(database);
+  await client.exec(`
+    TRUNCATE conversations, orders;
+    INSERT INTO conversations (id, version, user_id, agent_id, title, status, created_at, updated_at)
+    VALUES ('conversation-a', 1, 'user-a', 'agent-a', 'Owned', 'active', '2026-01-01', '2026-01-02'),
+      ('conversation-a-archived', 1, 'user-a', 'agent-a', 'Archived', 'archived', '2026-01-01', '2026-01-03'),
+      ('conversation-b', 1, 'user-b', 'agent-b', 'Private', 'ended', '2026-01-01', '2026-01-04');
+    INSERT INTO orders (id, customer_id, status, total_in_cents, currency, items, created_at, updated_at, deleted_at)
+    VALUES ('order-a', 'user-a', 'confirmed', 1250, 'usd', '[{"productId":"p-a","title":"Plan","quantity":1,"priceInCents":1250}]', '2026-01-01', '2026-01-02', null),
+      ('order-b', 'user-b', 'confirmed', 2500, 'usd', '[{"productId":"p-b","title":"Other","quantity":1,"priceInCents":2500}]', '2026-01-01', '2026-01-03', null),
+      ('order-deleted', 'user-a', 'confirmed', 1000, 'usd', '[]', '2026-01-01', '2026-01-04', '2026-01-05');
+  `);
 });
 
 describe('CMS access-scoped lists', () => {
@@ -116,6 +148,106 @@ describe('CMS access-scoped lists', () => {
     expect.soft(result.docs).toHaveLength(1);
     expect.soft(result.totalDocs).toBe(2);
     expect(result.hasNextPage).toBe(true);
+  });
+});
+
+describe('normalized order and conversation collection reads', () => {
+  it('limits conversation creation to the authenticated owner', async () => {
+    const createAccess = Conversations.access?.create;
+    if (!createAccess) throw new Error('Missing conversation create access rule');
+
+    expect(
+      await createAccess({
+        req: { user: { id: 'user-a', email: 'a@example.com' } },
+        data: { userId: 'user-a' },
+      }),
+    ).toBe(true);
+    expect(
+      await createAccess({
+        req: { user: { id: 'user-a', email: 'a@example.com' } },
+        data: { userId: 'user-b' },
+      }),
+    ).toBe(false);
+    expect(await createAccess({ req: {}, data: { userId: 'user-a' } })).toBe(false);
+  });
+
+  it('applies the authenticated conversation owner predicate to rows and counts', async () => {
+    const result = await find(
+      Conversations,
+      { query, collectionStorage: createTypedCollectionStorage() },
+      { req: { user: { id: 'user-a', email: 'a@example.com' } }, limit: 10, page: 1 },
+    );
+    expect(result.docs.map((doc) => doc.id)).toEqual(['conversation-a-archived', 'conversation-a']);
+    expect(result.totalDocs).toBe(2);
+    expect(result.docs[0]).toMatchObject({ status: 'archived', userId: 'user-a' });
+    expect(result.docs[0]).not.toHaveProperty('session_id');
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it('intersects caller filters with order ownership and exposes cents without conversion', async () => {
+    const result = await find(
+      ordersReadCollection,
+      { query, collectionStorage: createTypedCollectionStorage() },
+      {
+        req: { user: { id: 'user-a', email: 'a@example.com' } },
+        where: { status: { equals: 'confirmed' } },
+        limit: 10,
+        page: 1,
+      },
+    );
+    expect(result.docs).toHaveLength(1);
+    expect(result.docs[0]).toMatchObject({
+      id: 'order-a',
+      customerId: 'user-a',
+      totalInCents: 1250,
+      currency: 'usd',
+      items: [{ productId: 'p-a', quantity: 1, priceInCents: 1250 }],
+    });
+    expect(result.totalDocs).toBe(1);
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it('excludes soft-deleted orders from both lists and detail reads', async () => {
+    const db = { query, collectionStorage: createTypedCollectionStorage() };
+    const result = await find(ordersReadCollection, db, {
+      req: { user: { id: 'user-a', email: 'a@example.com' } },
+    });
+    const deleted = await new RevealUICollection(ordersReadCollection, db).findByID({
+      id: 'order-deleted',
+      req: { user: { id: 'user-a', email: 'a@example.com' } },
+    });
+
+    expect(result.docs.map((doc) => doc.id)).toEqual(['order-a']);
+    expect(result.totalDocs).toBe(1);
+    expect(deleted).toBeNull();
+  });
+
+  it('rejects malformed filters before acquiring the database client', async () => {
+    await expect(
+      find(
+        ordersReadCollection,
+        { query, collectionStorage: createTypedCollectionStorage() },
+        {
+          req: { user: { id: 'user-a', email: 'a@example.com' } },
+          where: { totalInCents: { equals: '1250' } },
+        },
+      ),
+    ).rejects.toThrow();
+    expect(getRestClient).not.toHaveBeenCalled();
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it('rejects malformed stored order items rather than returning a partial document', async () => {
+    await client.exec('UPDATE orders SET items = \'[{"productId":"p-a"}]\' WHERE id = \'order-a\'');
+    await expect(
+      find(
+        ordersReadCollection,
+        { query, collectionStorage: createTypedCollectionStorage() },
+        {
+          req: { user: { id: 'user-a', email: 'a@example.com' } },
+        },
+      ),
+    ).rejects.toThrow();
   });
 });
 

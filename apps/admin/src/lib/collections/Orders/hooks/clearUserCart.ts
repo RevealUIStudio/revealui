@@ -1,15 +1,19 @@
 import type { RevealAfterChangeHook } from '@revealui/core';
-import type { Order } from '@revealui/core/types/admin';
+import { z } from 'zod';
+import type { OrderCollectionDocument } from '../types';
 
-export const clearUserCart: RevealAfterChangeHook<Order> = async ({ doc, req, operation }) => {
+export const clearUserCart: RevealAfterChangeHook<OrderCollectionDocument> = async ({
+  doc,
+  req,
+  operation,
+}) => {
   const { revealui } = req;
-
-  if (operation === 'create' && doc.orderedBy && revealui) {
-    const orderedBy = typeof doc.orderedBy === 'string' ? doc.orderedBy : doc.orderedBy.toString();
+  if (operation === 'create' && revealui) {
+    const customerId = z.string().min(1).parse(doc.customerId);
 
     const user = await revealui.findByID({
       collection: 'users',
-      id: orderedBy,
+      id: customerId,
     });
 
     if (user) {
@@ -22,7 +26,7 @@ export const clearUserCart: RevealAfterChangeHook<Order> = async ({ doc, req, op
 
       await revealui.update({
         collection: 'users',
-        id: orderedBy,
+        id: customerId,
         data: updatedUser,
       });
     }
