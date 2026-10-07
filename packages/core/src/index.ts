@@ -60,7 +60,10 @@ export { buildConfig } from './config/index.js';
 export { getRevealUI } from './config/runtime.js';
 export { deepMerge } from './config/utils.js';
 // Database adapters (PGlite/PostgreSQL only - SQLite support removed)
-export type { UniversalPostgresAdapterConfig } from './database/universal-postgres.js';
+export type {
+  SharedPostgresTransactionContext,
+  UniversalPostgresAdapterConfig,
+} from './database/universal-postgres.js';
 export { universalPostgresAdapter } from './database/universal-postgres.js';
 // Factory functions
 export {

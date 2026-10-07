@@ -20,9 +20,10 @@ beforeAll(async () => {
       ('operator', 'admin', true, '{"roles":["super-admin"]}', 'active', NULL),
       ('disabled', 'admin', true, '{"roles":["super-admin"]}', 'disabled', NULL);
     CREATE TABLE sites (id text PRIMARY KEY, schema_version text, version integer, owner_id text,
-      name text, slug text UNIQUE, description text, status text, theme jsonb, settings jsonb,
+      name text, slug text UNIQUE, description text, status text, visibility text NOT NULL DEFAULT 'public', theme jsonb, settings jsonb,
       page_count integer, favicon text, created_at timestamptz, updated_at timestamptz,
       published_at timestamptz, deleted_at timestamptz);
+    CREATE TABLE site_collaborators (site_id text, user_id text, role text);
     INSERT INTO sites (id,owner_id,status,deleted_at) VALUES ('owned','owner','draft',NULL),('foreign','someone-else','published',NULL),('retired','owner','published',now());`);
 });
 afterAll(async () => {
