@@ -19,8 +19,7 @@
  */
 
 import { eq, inArray, isNotNull } from 'drizzle-orm';
-import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
-import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import type { Database } from '../client/index.js';
 import { agentMemories } from '../schema/agents.js';
 import { ragChunks, ragDocuments } from '../schema/rag.js';
 import { sites } from '../schema/sites.js';
@@ -55,14 +54,6 @@ export function configureCleanup(overrides: Partial<CleanupConfig>): void {
 // Types
 // =============================================================================
 
-/**
- * Minimal Drizzle client interface accepted by cleanup functions.
- * Covers both NeonHttpDatabase and NodePgDatabase without importing
- * the full schema generic, keeping the API flexible for callers.
- */
-// biome-ignore lint/suspicious/noExplicitAny: Drizzle schema generic varies per client
-type DrizzleClient = NeonHttpDatabase<any> | NodePgDatabase<any>;
-
 export interface CleanupResult {
   /** Number of agent memories deleted (or that would be deleted in dry-run) */
   agentMemoriesDeleted: number;
@@ -92,7 +83,7 @@ export interface CleanupResult {
  * @param db - Drizzle client connected to NeonDB
  * @returns Summary of what was cleaned up
  */
-export async function cleanupOrphanedVectorData(db: DrizzleClient): Promise<CleanupResult> {
+export async function cleanupOrphanedVectorData(db: Database): Promise<CleanupResult> {
   // 1. Find all soft-deleted site IDs
   const deletedSiteRows = await db
     .select({ id: sites.id })
@@ -137,10 +128,7 @@ export async function cleanupOrphanedVectorData(db: DrizzleClient): Promise<Clea
 // Per-table find helpers (type-safe, no generics needed)
 // =============================================================================
 
-async function findOrphanedMemoryIds(
-  db: DrizzleClient,
-  deletedSiteIds: string[],
-): Promise<string[]> {
+async function findOrphanedMemoryIds(db: Database, deletedSiteIds: string[]): Promise<string[]> {
   const allIds: string[] = [];
   for (let i = 0; i < deletedSiteIds.length; i += config.batchSize) {
     const batch = deletedSiteIds.slice(i, i + config.batchSize);
@@ -155,10 +143,7 @@ async function findOrphanedMemoryIds(
   return allIds;
 }
 
-async function findOrphanedDocumentIds(
-  db: DrizzleClient,
-  deletedSiteIds: string[],
-): Promise<string[]> {
+async function findOrphanedDocumentIds(db: Database, deletedSiteIds: string[]): Promise<string[]> {
   const allIds: string[] = [];
   for (let i = 0; i < deletedSiteIds.length; i += config.batchSize) {
     const batch = deletedSiteIds.slice(i, i + config.batchSize);
@@ -173,10 +158,7 @@ async function findOrphanedDocumentIds(
   return allIds;
 }
 
-async function findOrphanedChunkIds(
-  db: DrizzleClient,
-  deletedSiteIds: string[],
-): Promise<string[]> {
+async function findOrphanedChunkIds(db: Database, deletedSiteIds: string[]): Promise<string[]> {
   const allIds: string[] = [];
   for (let i = 0; i < deletedSiteIds.length; i += config.batchSize) {
     const batch = deletedSiteIds.slice(i, i + config.batchSize);
@@ -195,21 +177,21 @@ async function findOrphanedChunkIds(
 // Per-table delete helpers
 // =============================================================================
 
-async function deleteMemoriesById(db: DrizzleClient, ids: string[]): Promise<void> {
+async function deleteMemoriesById(db: Database, ids: string[]): Promise<void> {
   for (let i = 0; i < ids.length; i += config.batchSize) {
     const batch = ids.slice(i, i + config.batchSize);
     await db.delete(agentMemories).where(inArray(agentMemories.id, batch));
   }
 }
 
-async function deleteDocumentsById(db: DrizzleClient, ids: string[]): Promise<void> {
+async function deleteDocumentsById(db: Database, ids: string[]): Promise<void> {
   for (let i = 0; i < ids.length; i += config.batchSize) {
     const batch = ids.slice(i, i + config.batchSize);
     await db.delete(ragDocuments).where(inArray(ragDocuments.id, batch));
   }
 }
 
-async function deleteChunksById(db: DrizzleClient, ids: string[]): Promise<void> {
+async function deleteChunksById(db: Database, ids: string[]): Promise<void> {
   for (let i = 0; i < ids.length; i += config.batchSize) {
     const batch = ids.slice(i, i + config.batchSize);
     await db.delete(ragChunks).where(inArray(ragChunks.id, batch));
@@ -234,7 +216,7 @@ async function deleteChunksById(db: DrizzleClient, ids: string[]): Promise<void>
  * @returns Summary of what was cleaned up
  */
 export async function cleanupVectorDataForSite(
-  db: DrizzleClient,
+  db: Database,
   siteId: string,
 ): Promise<{
   agentMemoriesDeleted: number;

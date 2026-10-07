@@ -9,10 +9,8 @@
  * overlays are accepted by the schema but PATCH / publish reject them with a
  * clear 400 until a later slice.
  *
- * SECURITY: every route here exposes DRAFT content, so every route  -  GETs
- * included  -  requires an authenticated user holding the content `update`
- * permission. The `/api/content/*` mount only gates POST/PATCH/DELETE by verb;
- * GET is public-read there, so these routes enforce authz explicitly.
+ * SECURITY: draft routes require current site editor authority. Explicit public
+ * previews retain bearer-token reads; private previews also verify membership.
  */
 
 import {
@@ -22,12 +20,13 @@ import {
   type Violation,
   validateMarketingBlock,
 } from '@revealui/contracts/marketing-voice';
+import { getExplicitDeploymentMode } from '@revealui/core/deployment-mode';
 import * as sessionQueries from '@revealui/db/queries/edit-sessions';
 import * as siteQueries from '@revealui/db/queries/sites';
 import type { EditSession, EditSessionDoc, EditSessionEvent, Page } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
-import { authorizationSystem } from '../../middleware/authorization.js';
+import { noStoreCacheMiddleware } from '../../middleware/cache-control.js';
 import { IdParam } from '../_helpers/content-schemas.js';
 import { dateToString, nullableDateToString } from '../_helpers/serialize.js';
 import {
@@ -42,6 +41,7 @@ import type { ContentVariables } from './index.js';
 const FLEET_MARKETING_SITE_SLUG = 'fleet-marketing';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
+app.use('*', noStoreCacheMiddleware());
 
 const MAX_REVISIONS_PER_DOC = 50;
 const RECENT_EVENTS_LIMIT = 50;
@@ -57,35 +57,51 @@ interface SessionUser {
 }
 
 /**
- * Open / list / patch / discard: human editors (`content:update`) or agents
- * proposing into a session (`content:propose`). Publish stays human-only via
- * `requireContentPublisher`.
+ * Site membership governs editing; the account role still distinguishes agents
+ * from humans for publication. Every caller applies current site authorization.
  */
-function requireContentEditor(user: SessionUser | undefined): SessionUser {
+function requireSessionActor(user: SessionUser | undefined): SessionUser {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
-  const canUpdate = authorizationSystem.hasPermission([user.role], 'content', 'update');
-  const canPropose = authorizationSystem.hasPermission([user.role], 'content', 'propose');
-  if (!(canUpdate || canPropose)) {
+  return user;
+}
+
+/** Publication remains a human site-editor action; agents can propose only. */
+function requireContentPublisher(user: SessionUser | undefined): SessionUser {
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
+  if (user.role === 'agent') {
     throw new HTTPException(403, {
-      message: 'Permission denied: content:update or content:propose',
+      message: 'Permission denied: publication requires a human site editor',
     });
   }
   return user;
 }
 
-/** Publish remains a human (or editor) act — never content:propose alone. */
-function requireContentPublisher(user: SessionUser | undefined): SessionUser {
-  if (!user) {
-    throw new HTTPException(401, { message: 'Authentication required' });
+/** Drafts require current editor membership, including when a preview token is supplied. */
+async function requireSessionSiteAccess(
+  db: ContentVariables['db'],
+  siteId: string,
+  user: ContentVariables['user'],
+  sessionId?: string,
+): Promise<void> {
+  if (!user) throw new HTTPException(401, { message: 'Authentication required' });
+  if (
+    !(await siteQueries.actorCanManageSite(
+      db,
+      user,
+      siteId,
+      getExplicitDeploymentMode(),
+      'propose',
+    ))
+  ) {
+    throw new HTTPException(403, { message: 'Site access denied' });
   }
-  if (!authorizationSystem.hasPermission([user.role], 'content', 'update')) {
-    throw new HTTPException(403, {
-      message: 'Permission denied: content:update required to publish',
-    });
+  if (sessionId && !(await sessionQueries.sessionHasValidPageScope(db, sessionId))) {
+    throw new HTTPException(409, { message: 'Session contains pages outside its live site scope' });
   }
-  return user;
 }
 
 function actorKindFor(user: SessionUser): 'human' | 'agent' {
@@ -583,11 +599,12 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db');
-    const user = requireContentEditor(c.get('user'));
+    const user = requireSessionActor(c.get('user'));
     const { siteId, title } = c.req.valid('json');
 
     const site = await siteQueries.getSiteById(db, siteId);
     if (!site) throw new HTTPException(404, { message: 'Site not found' });
+    await requireSessionSiteAccess(db, siteId, c.get('user'));
 
     const id = crypto.randomUUID();
     const session = await sessionQueries.createEditSession(db, {
@@ -639,9 +656,13 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db');
-    requireContentEditor(c.get('user'));
+    requireSessionActor(c.get('user'));
     const { status, siteId } = c.req.valid('query');
-    const rows = await sessionQueries.listEditSessions(db, { status, siteId });
+    const rows = await sessionQueries.listEditSessions(db, {
+      status,
+      siteId,
+      access: { actor: c.get('user') ?? null, mode: getExplicitDeploymentMode(), draft: true },
+    });
     return c.json({ success: true as const, data: rows.map(serializeSession) }, 200);
   },
 );
@@ -678,11 +699,12 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db');
-    requireContentEditor(c.get('user'));
+    requireSessionActor(c.get('user'));
     const { id } = c.req.valid('param');
 
     const session = await sessionQueries.getEditSessionById(db, id);
     if (!session) throw new HTTPException(404, { message: 'Session not found' });
+    await requireSessionSiteAccess(db, session.siteId, c.get('user'), session.id);
 
     const docs = await sessionQueries.getSessionDocs(db, id);
     const recent = await sessionQueries.getRecentSessionEvents(db, id, RECENT_EVENTS_LIMIT);
@@ -734,12 +756,13 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db');
-    requireContentEditor(c.get('user'));
+    requireSessionActor(c.get('user'));
     const { id } = c.req.valid('param');
     const { after } = c.req.valid('query');
 
     const session = await sessionQueries.getEditSessionById(db, id);
     if (!session) throw new HTTPException(404, { message: 'Session not found' });
+    await requireSessionSiteAccess(db, session.siteId, c.get('user'), session.id);
 
     const cursor = after ?? 0;
     const events = await sessionQueries.getSessionEventsAfter(db, id, cursor, EVENTS_PAGE_LIMIT);
@@ -837,12 +860,13 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db');
-    const user = requireContentEditor(c.get('user'));
+    const user = requireSessionActor(c.get('user'));
     const { id, docType, docId } = c.req.valid('param');
     const body = c.req.valid('json');
 
     const session = await sessionQueries.getEditSessionById(db, id);
     if (!session) throw new HTTPException(404, { message: 'Session not found' });
+    await requireSessionSiteAccess(db, session.siteId, c.get('user'), session.id);
     if (session.status !== 'open') {
       throw new HTTPException(409, { message: 'Session is not open' });
     }
@@ -861,7 +885,8 @@ app.openapi(
       nextDraft = structuredClone(doc.draft);
     } else {
       const page = await sessionQueries.getLivePage(db, docId);
-      if (!page) throw new HTTPException(404, { message: 'Page not found' });
+      if (!page || page.siteId !== session.siteId)
+        throw new HTTPException(404, { message: 'Page not found' });
       nextDraft = materializePageDraft(page);
       materializeBaseVersion = page.version;
     }
@@ -963,12 +988,13 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db');
-    // Publish is human/editor only — agents with content:propose cannot publish.
+    // Current human site editors can publish; agents can propose only.
     const user = requireContentPublisher(c.get('user'));
     const { id } = c.req.valid('param');
 
     const session = await sessionQueries.getEditSessionById(db, id);
     if (!session) throw new HTTPException(404, { message: 'Session not found' });
+    await requireSessionSiteAccess(db, session.siteId, c.get('user'), session.id);
     if (session.status !== 'open') {
       throw new HTTPException(409, { message: 'Session is not open' });
     }
@@ -990,7 +1016,7 @@ app.openapi(
     const conflicts: Array<Record<string, unknown>> = [];
     for (const doc of docs) {
       const page = await sessionQueries.getLivePage(db, doc.docId);
-      if (!page) {
+      if (!page || page.siteId !== session.siteId) {
         conflicts.push({ docType: doc.docType, docId: doc.docId, reason: 'not_found' });
         continue;
       }
@@ -1120,11 +1146,12 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db');
-    const user = requireContentEditor(c.get('user'));
+    const user = requireSessionActor(c.get('user'));
     const { id } = c.req.valid('param');
 
     const session = await sessionQueries.getEditSessionById(db, id);
     if (!session) throw new HTTPException(404, { message: 'Session not found' });
+    await requireSessionSiteAccess(db, session.siteId, c.get('user'), session.id);
     if (session.status !== 'open') {
       throw new HTTPException(409, { message: 'Session is not open' });
     }
@@ -1237,12 +1264,13 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db');
-    requireContentEditor(c.get('user'));
+    requireSessionActor(c.get('user'));
     const { id } = c.req.valid('param');
     const { pageId } = c.req.valid('query');
 
     const session = await sessionQueries.getEditSessionById(db, id);
     if (!session) throw new HTTPException(404, { message: 'Session not found' });
+    await requireSessionSiteAccess(db, session.siteId, c.get('user'), session.id);
     if (session.status !== 'open') {
       throw new HTTPException(409, { message: 'Session is not open' });
     }
@@ -1281,8 +1309,8 @@ app.openapi(
 // -----------------------------------------------------------------------------
 // GET /sessions/:id/preview?token=...  -  read-only draft overlays, token-auth'd
 // -----------------------------------------------------------------------------
-// NO cookie auth: the marketing iframe is a different origin and holds only the
-// signed token. The token grants this read and nothing else.
+// Explicitly public sites retain token-only previews. Private sites additionally
+// require a current authenticated site editor; old URLs cannot bypass revocation.
 
 app.openapi(
   createRoute({
@@ -1335,6 +1363,15 @@ app.openapi(
 
     const session = await sessionQueries.getEditSessionById(db, id);
     if (!session) throw new HTTPException(404, { message: 'Session not found' });
+    const site = await siteQueries.getSiteById(db, session.siteId);
+    if (!site) throw new HTTPException(404, { message: 'Site not found' });
+    if (site.visibility !== 'public') {
+      await requireSessionSiteAccess(db, session.siteId, c.get('user'), session.id);
+    } else if (!(await sessionQueries.sessionHasValidPageScope(db, session.id))) {
+      throw new HTTPException(409, {
+        message: 'Session contains pages outside its live site scope',
+      });
+    }
     if (session.status !== 'open') {
       throw new HTTPException(409, { message: 'Session is not open' });
     }

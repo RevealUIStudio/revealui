@@ -16,7 +16,8 @@ import { asNonEmptyTuple } from '../../lib/type-guards.js';
 import {
   ErrorSchema,
   IdParam,
-  SlugField,
+  PostCreateSchema,
+  PostPatchSchema,
   SlugParam,
   ValidationErrorSchema,
 } from '../_helpers/content-schemas.js';
@@ -162,17 +163,7 @@ app.openapi(
       body: {
         content: {
           'application/json': {
-            schema: z.object({
-              title: z.string().min(1).max(500),
-              slug: SlugField,
-              excerpt: z.string().max(1000).optional(),
-              content: z.unknown().optional(),
-              featuredImageId: z.string().optional(),
-              authorId: z.string().optional(),
-              status: z.enum(asNonEmptyTuple(POST_STATUSES)).optional(),
-              meta: z.record(z.string(), z.unknown()).optional(),
-              categories: z.array(z.string()).optional(),
-            }),
+            schema: PostCreateSchema,
           },
         },
       },
@@ -303,18 +294,7 @@ app.openapi(
       body: {
         content: {
           'application/json': {
-            schema: z.object({
-              title: z.string().min(1).max(500).optional(),
-              slug: SlugField.optional(),
-              excerpt: z.string().max(1000).nullable().optional(),
-              content: z.unknown().optional(),
-              featuredImageId: z.string().nullable().optional(),
-              status: z.enum(asNonEmptyTuple(POST_STATUSES)).optional(),
-              published: z.boolean().optional(),
-              meta: z.record(z.string(), z.unknown()).nullable().optional(),
-              categories: z.array(z.string()).optional(),
-              publishedAt: z.string().datetime().nullable().optional(),
-            }),
+            schema: PostPatchSchema,
           },
         },
       },

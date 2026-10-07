@@ -9,11 +9,12 @@
 import type { Database } from '@revealui/db/client';
 import { generateEmbedding } from '../embeddings/index.js';
 import { hybridSearch } from '../ingestion/hybrid-search.js';
+import type { RagReadAccess } from '../ingestion/rag-vector-service.js';
 import type { LLMClient } from '../llm/client.js';
 import { assembleContext } from './context-assembly.js';
 import { compressContext } from './overflow-compressor.js';
 
-export interface RAGOptions {
+export interface RAGOptions extends RagReadAccess {
   workspaceId: string;
   db: Database;
   /** Maximum search results to retrieve (default 5) */
@@ -53,6 +54,8 @@ export async function runRAG(query: string, options?: RAGOptions): Promise<strin
   // Retrieve relevant chunks
   const results = await hybridSearch(query, options.db, embeddingFn, {
     workspaceId: options.workspaceId,
+    userId: options.userId,
+    deploymentMode: options.deploymentMode,
     limit: options.limit ?? 5,
     threshold: options.threshold ?? 0.6,
     mode: options.mode ?? 'speed',
