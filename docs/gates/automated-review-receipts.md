@@ -200,12 +200,11 @@ change.
 
 The current repository owner, or later organization administrator, performs
 one-time setup: install the narrowly scoped GitHub App, provision its isolated
-signing identity and receipt store, grant the App only the needed repository
-permissions, and
-configure the required check to accept results only from that App. This is
-repository administration, not a per-PR command or review. Agent identities
-must not have App installation, ruleset administration, or secret-management
-permissions.
+signing identity and receipt store in a dedicated Neon project, grant the App
+only the needed repository permissions, and configure the required check to
+accept results only from that App. This is repository administration, not a
+per-PR command or review. Agent identities must not have App installation,
+ruleset administration, or secret-management permissions.
 
 `RevealUIStudio/revealui` remains under the current `RevealUIStudio` user
 account while its open PRs and drafts are resolved. Register the private App
@@ -263,6 +262,7 @@ than relying on Actions artifact attestations for private-repository evidence.
 | `.github` ruleset signed-commit requirement | Rejects commits without an accepted signature. | Verified agent/build provenance bound to the reviewed tree and merge receipt. | Every supported agent path has reproducible provenance; unsigned PR-controlled checks cannot satisfy admission. |
 | `scripts/gates/signed-override/` and `docs/gates/signed-override.md` | Makes the founder create and sign a payload for each exact head. | Exceptional, separately audited disposition only; never routine merge admission. | No routine gate or operator guide directs per-head signing; exception path remains bounded and tested. |
 | Request labels and `guardrail2-verdict` discussion markers | Labels/comments request or influence a review disposition. | Controller-owned evaluations with trusted reviewer identity and exact-tree binding. | Untrusted author comments and labels cannot authorize; existing hold signals still prevent merge. |
+| `revealui-review-controller` database and role in the product `RevealUI` Neon project's main branch | The controller database and product database share the branch, compute, and `neondb_owner` migration principal. A separate database alone cannot isolate the receipt store from that shared owner. | Dedicated controller Neon project with separate migration owner and SQL-created restricted runtime role; keep the existing database untouched during migration. | Dedicated-project migrations and runtime grants pass against live PostgreSQL; shadow receipts are verified; the owner confirms no controller service uses the shared-project database before retiring it. |
 
 ## Cutover decision
 

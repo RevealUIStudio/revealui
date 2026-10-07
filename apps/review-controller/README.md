@@ -110,8 +110,14 @@ without publishing it; its required summary fails if the image build fails.
 - Store the App key and webhook secret in this Fly app's secret store, never in
   repository Actions secrets, agent workspaces, the general product worker,
   the license signer, or RevVault paths used by those services.
-- Use a dedicated Postgres database. Create the runtime role with SQL rather
-  than the Neon Console, CLI, or API so it does not inherit `neon_superuser`.
+- Use a dedicated Neon project for the controller, with its own Postgres
+  database, branch, compute, migration owner, and runtime role. A second
+  database in the product's Neon project is insufficient for this security
+  boundary: roles and the migration owner can be shared across databases on
+  that branch. Do not place the product database owner credential in this
+  service or its deployment workflow. Create the controller runtime role with
+  SQL rather than the Neon Console, CLI, or API so it does not inherit
+  `neon_superuser`.
   `pnpm --filter @revealui/review-controller db:migrate` applies only the
   controller migration journal, using `REVIEW_CONTROLLER_MIGRATION_DATABASE_URL`
   for a migration-owner connection. The migration config binds that URL to the
