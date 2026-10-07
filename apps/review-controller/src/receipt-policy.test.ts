@@ -1,4 +1,5 @@
 import { generateKeyPairSync } from 'node:crypto';
+import { REVIEW_RECEIPT_SECURITY_CHECKS } from '@revealui/security/review-receipt';
 import { describe, expect, it } from 'vitest';
 import { readReceiptPolicy } from './receipt-policy.js';
 
@@ -10,7 +11,10 @@ const valid = {
   REVIEW_RECEIPT_PRIVATE_KEY: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString().trim(),
   REVIEW_RECEIPT_POLICY_VERSION: 'policy-1',
   REVIEW_RECEIPT_MAX_LIFETIME_MS: '21600000',
-  REVIEW_RECEIPT_REQUIRED_CHECKS: '[{"name":"CI","appId":77}]',
+  REVIEW_RECEIPT_REQUIRED_CHECKS: JSON.stringify([
+    { name: 'CI', appId: 77 },
+    ...REVIEW_RECEIPT_SECURITY_CHECKS,
+  ]),
 };
 
 describe('readReceiptPolicy', () => {
@@ -26,7 +30,7 @@ describe('readReceiptPolicy', () => {
       privateKey: valid.REVIEW_RECEIPT_PRIVATE_KEY,
       version: 'policy-1',
       maxLifetimeMs: 21_600_000,
-      requiredChecks: [{ name: 'CI', appId: 77 }],
+      requiredChecks: [{ name: 'CI', appId: 77 }, ...REVIEW_RECEIPT_SECURITY_CHECKS],
     });
   });
 
@@ -43,6 +47,12 @@ describe('readReceiptPolicy', () => {
     expect(() => readReceiptPolicy({ ...valid, REVIEW_RECEIPT_REQUIRED_CHECKS: '[]' })).toThrow(
       'must contain 1 to 64 entries',
     );
+    expect(() =>
+      readReceiptPolicy({
+        ...valid,
+        REVIEW_RECEIPT_REQUIRED_CHECKS: '[{"name":"CI","appId":77}]',
+      }),
+    ).toThrow('omits a mandatory security check');
     expect(() =>
       readReceiptPolicy({
         ...valid,

@@ -62,12 +62,14 @@ model API credentials or model-call path. Codex subscription reviews are configu
 the GitHub integration and do not use this service's model credentials. A
 local receipt evaluator reconciles the current PR snapshot, exact-head review
 observations, and required successful check-run identities before signing
-through the shared Ed25519 receipt contract. Its tests cover stale checks and
-reviews, dismissals, deterministic signing, and the higher sensitive-path
-threshold. The evaluator runs only in the opt-in shadow or publish mode described below.
-Codex contributes one independent reviewer identity, so its evidence alone
-cannot meet the shared two-review threshold for security-sensitive changes.
-The current gate and branch protections remain authoritative.
+through the shared Ed25519 receipt contract. The shadow policy uses one
+exact-head Codex subscription review and requires exact-head `CodeQL`,
+`Security Gate`, `Dependency Review`, and `Secret Scanning (Gitleaks)` check
+evidence. Those checks provide deterministic scan evidence; they are not a
+second semantic reviewer. The current gate and branch protections remain
+authoritative while shadow evidence is collected and workflow provenance and
+reviewer independence are reviewed. This policy change does not authorize
+publishing receipts or removing owner approval.
 
 The shared receipt store is append-only; shadow evaluation does not store its
 signed envelope. In publish mode the fixed-output App check-run writer places
@@ -123,10 +125,12 @@ metadata-only evaluation or `REVIEW_RECEIPT_MODE=publish` to persist and publish
 receipt checks. Both modes require
 `REVIEW_RECEIPT_KEY_ID`, `REVIEW_RECEIPT_PRIVATE_KEY` (Ed25519 PKCS#8 PEM),
 `REVIEW_RECEIPT_POLICY_VERSION`, `REVIEW_RECEIPT_MAX_LIFETIME_MS` (60 seconds
-to 24 hours), and `REVIEW_RECEIPT_REQUIRED_CHECKS` (a JSON array such as
-`[{"name":"CI / test","appId":12345}]`). The key must live in this
-controller's dedicated secret store. Stable selectors use check name and
-GitHub App ID; current run and suite IDs come from the live GitHub response.
+to 24 hours), and `REVIEW_RECEIPT_REQUIRED_CHECKS` (a JSON array containing
+the required CI selector plus `CodeQL` from App `57789` and `Security Gate`,
+`Dependency Review`, and `Secret Scanning (Gitleaks)` from GitHub Actions App
+`15368`). The key must live in this controller's dedicated secret store.
+Stable selectors use check name and GitHub App ID; current run and suite IDs
+come from the live GitHub response.
 Unknown modes and partial or malformed configuration stop startup. Publishing
 requires the controller's dedicated Ed25519 private key and receipt database;
 never store the signing key in repository variables.

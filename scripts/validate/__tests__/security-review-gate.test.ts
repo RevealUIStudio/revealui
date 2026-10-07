@@ -523,6 +523,19 @@ describe('receipt shadow configuration', () => {
     ).toThrow('REVIEW_RECEIPT_REQUIRED_CHECKS contains duplicate selectors');
   });
 
+  it('rejects receipt policies that omit mandatory exact-head security checks', () => {
+    expect(() =>
+      readReceiptShadowConfig({
+        REVIEW_RECEIPT_MODE: 'shadow',
+        REVIEW_RECEIPT_CONTROLLER_APP_ID: '30',
+        REVIEW_RECEIPT_MAX_LIFETIME_MS: '3600000',
+        REVIEW_RECEIPT_POLICY_VERSION: 'policy-1',
+        REVIEW_RECEIPT_TRUSTED_KEYS: JSON.stringify({ key: 'public key' }),
+        REVIEW_RECEIPT_REQUIRED_CHECKS: JSON.stringify([{ name: 'CI', appId: 20 }]),
+      }),
+    ).toThrow('REVIEW_RECEIPT_REQUIRED_CHECKS omits a mandatory security check');
+  });
+
   it('grants the base-trusted gate read access to check-run receipt evidence', () => {
     const workflow = readFileSync(
       join(__dirname, '../../../.github/workflows/security-review-gate.yml'),

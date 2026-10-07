@@ -81,8 +81,7 @@ export async function evaluateReceiptShadow(input: {
     policyVersion: input.policy.version,
     classifierVersion: input.snapshot.securityClassification.classifierVersion,
     requiredChecks,
-    minimumIndependentReviews:
-      input.snapshot.securityClassification.sensitivePaths.length > 0 ? 2 : 1,
+    minimumIndependentReviews: 1,
     maxReceiptLifetimeMs: input.policy.maxLifetimeMs,
     now,
   };

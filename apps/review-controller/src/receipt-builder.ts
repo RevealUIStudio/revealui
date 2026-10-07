@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import {
+  hasReviewReceiptSecurityChecks,
   type ReviewReceipt,
   type ReviewReceiptContext,
   reviewReceiptCheckEvidenceSha256,
@@ -34,11 +35,15 @@ export function signCandidateReceipt(input: {
   )
     throw new GitHubAppError('receipt_snapshot_context_mismatch');
 
-  const minimumForPaths = snapshot.securityClassification.sensitivePaths.length > 0 ? 2 : 1;
-  if (expected.minimumIndependentReviews < minimumForPaths)
+  if (expected.minimumIndependentReviews < 1)
     throw new GitHubAppError('receipt_review_threshold_too_weak');
   if (expected.requiredChecks.length === 0)
     throw new GitHubAppError('receipt_required_check_policy_empty');
+  if (
+    snapshot.securityClassification.sensitivePaths.length > 0 &&
+    !hasReviewReceiptSecurityChecks(expected.requiredChecks)
+  )
+    throw new GitHubAppError('receipt_security_check_policy_incomplete');
 
   const latestReviews = new Map<string, CodexReviewObservation>();
   for (const review of input.reviews) {

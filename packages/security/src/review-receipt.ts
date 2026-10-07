@@ -20,6 +20,23 @@ const SHA_PATTERN = /^[a-f0-9]{40,64}$/;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 const MAX_RECEIPT_BYTES = 48 * 1024;
 
+/** Independent, exact-head security evidence required for receipt admission. */
+export const REVIEW_RECEIPT_SECURITY_CHECKS = Object.freeze([
+  { name: 'CodeQL', appId: 57789 },
+  { name: 'Security Gate', appId: 15368 },
+  { name: 'Dependency Review', appId: 15368 },
+  { name: 'Secret Scanning (Gitleaks)', appId: 15368 },
+] as const);
+
+export function hasReviewReceiptSecurityChecks(
+  checks: readonly { name: string; appId: number }[],
+): boolean {
+  const selectors = new Set(checks.map((check) => `${check.appId}:${check.name}`));
+  return REVIEW_RECEIPT_SECURITY_CHECKS.every((check) =>
+    selectors.has(`${check.appId}:${check.name}`),
+  );
+}
+
 export interface ReviewReceipt {
   schema: typeof REVIEW_RECEIPT_SCHEMA;
   receiptId: string;

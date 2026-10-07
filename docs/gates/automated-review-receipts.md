@@ -90,9 +90,13 @@ is enforced and shadow-mode evidence meets the cutover criteria below.
 - Pull request workflows and code are untrusted. The controller evaluates
   source using pinned, base-branch policy and isolated read-only review jobs.
   It never runs an untrusted PR workflow with a privileged token.
-- Independent reviewers receive only the candidate tree and bounded review
-  tasks. They have no write credentials. At least two independently scheduled
-  reviews are required for paths classified as security-sensitive.
+- The current shadow prototype uses one exact-head review from the existing
+  Codex subscription integration and records exact-head `CodeQL`, `Security
+  Gate`, `Dependency Review`, and `Secret Scanning (Gitleaks)` check evidence.
+  These checks are deterministic scan evidence, not a second semantic review.
+  This prototype does not establish that the checks came from base-trusted
+  workflow definitions, so its receipts remain observational and cannot
+  replace existing owner approval or branch protection.
 - A merge controller runs outside PR-controlled workflow code. Prefer a
   narrowly scoped GitHub App with its signing key held in a managed secret
   store or KMS. A short-lived OIDC-issued credential is acceptable only when
@@ -146,11 +150,11 @@ re-expire the original review grant.
    API truncation, inaccessible data, unsupported merge state, or policy
    ambiguity prevents a successful receipt.
 3. Existing deterministic security and quality gates run as required checks.
-   Independent automated reviewers inspect the exact candidate tree. A clean
-   routine PR receives one review receipt; security-sensitive changes require
-   two independent reviews and deterministic security analysis. A finding
-   requiring human judgment routes the PR to a named exception queue, not a
-   fabricated automated approval.
+   The shadow prototype records one exact-head Codex subscription review plus
+   exact-head security-check evidence. A finding requiring human judgment
+   remains subject to the existing review and protection rules. Receipt
+   shadowing does not grant merge authority; reviewer independence and trusted
+   workflow provenance must be resolved before any policy cutover.
 4. The controller writes the signed receipt and the App-bound required check.
    It then enables or requests GitHub auto-merge using the repository's
    configured merge method. The PR remains open and visible while checks run.

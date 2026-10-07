@@ -199,7 +199,7 @@ function verifyReceiptShadow(input) {
       policyVersion: input.policyVersion,
       classifierVersion: sharedGates.SECURITY_PATH_CLASSIFIER_VERSION,
       requiredChecks,
-      minimumIndependentReviews: input.sensitive ? 2 : 1,
+      minimumIndependentReviews: 1,
       maxReceiptLifetimeMs: input.maxLifetimeMs,
       now: input.now,
     },
@@ -242,6 +242,8 @@ function readReceiptShadowConfig(env = process.env) {
   const selectors = requiredChecks.map((check) => `${check.appId}:${check.name}`);
   if (new Set(selectors).size !== selectors.length)
     throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS contains duplicate selectors');
+  if (!sharedGates.hasReviewReceiptSecurityChecks(requiredChecks))
+    throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS omits a mandatory security check');
   return { controllerAppId, maxLifetimeMs, policyVersion, trustedKeys, requiredChecks };
 }
 

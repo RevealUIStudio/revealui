@@ -1,4 +1,5 @@
 import { createPrivateKey } from 'node:crypto';
+import { hasReviewReceiptSecurityChecks } from '@revealui/security/review-receipt';
 
 export interface ReceiptPolicy {
   mode: 'shadow' | 'publish';
@@ -68,6 +69,8 @@ export function readReceiptPolicy(env: NodeJS.ProcessEnv): ReceiptPolicy | undef
   const selectorKeys = requiredChecks.map((check) => `${check.appId}:${check.name}`);
   if (new Set(selectorKeys).size !== selectorKeys.length)
     throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS contains duplicate selectors');
+  if (!hasReviewReceiptSecurityChecks(requiredChecks))
+    throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS omits a mandatory security check');
 
   return { mode, repositoryFullName, keyId, privateKey, version, maxLifetimeMs, requiredChecks };
 }

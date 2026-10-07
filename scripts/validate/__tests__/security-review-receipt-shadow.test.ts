@@ -20,6 +20,26 @@ function fixture(overrides: Record<string, unknown> = {}) {
     id: 101,
     check_suite: { id: 201 },
   };
+  const securityCheckRuns = [
+    { name: 'CodeQL', app: { id: 57789 }, id: 102, suite: 202 },
+    { name: 'Security Gate', app: { id: 15368 }, id: 103, suite: 203 },
+    { name: 'Dependency Review', app: { id: 15368 }, id: 104, suite: 204 },
+    { name: 'Secret Scanning (Gitleaks)', app: { id: 15368 }, id: 105, suite: 205 },
+  ].map(({ suite, ...run }) => ({
+    ...run,
+    head_sha: sha('a'),
+    status: 'completed',
+    conclusion: 'success',
+    completed_at: '2026-10-07T11:45:00.000Z',
+    check_suite: { id: suite },
+  }));
+  const requiredChecks = [
+    { name: 'CI / test', appId: 20 },
+    { name: 'CodeQL', appId: 57789 },
+    { name: 'Security Gate', appId: 15368 },
+    { name: 'Dependency Review', appId: 15368 },
+    { name: 'Secret Scanning (Gitleaks)', appId: 15368 },
+  ];
   const context = {
     repositoryId: 1234,
     repositoryFullName: 'RevealUIStudio/revealui',
@@ -32,8 +52,18 @@ function fixture(overrides: Record<string, unknown> = {}) {
     manifestSha256: digest('f'),
     policyVersion: 'receipt-policy-v1',
     classifierVersion: gates.SECURITY_PATH_CLASSIFIER_VERSION,
-    requiredChecks: [{ name: 'CI / test', appId: 20, checkRunId: 101, checkSuiteId: 201 }],
-    minimumIndependentReviews: 2,
+    requiredChecks: requiredChecks.map((selector) => {
+      const run = [currentCheckRun, ...securityCheckRuns].find(
+        (item) => item.name === selector.name && item.app.id === selector.appId,
+      );
+      if (!run) throw new Error(`missing fixture check ${selector.name}`);
+      return {
+        ...selector,
+        checkRunId: run.id,
+        checkSuiteId: run.check_suite.id,
+      };
+    }),
+    minimumIndependentReviews: 1,
     maxReceiptLifetimeMs: 60 * 60_000,
     now,
   };
@@ -58,18 +88,9 @@ function fixture(overrides: Record<string, unknown> = {}) {
       },
       reviews: [
         {
-          reviewerId: 'reviewer-a',
-          system: 'system-a',
-          executionId: 'execution-a',
-          revisionSha: context.headSha,
-          verdict: 'approve',
-          criticalFindings: 0,
-          highFindings: 0,
-        },
-        {
-          reviewerId: 'reviewer-b',
-          system: 'system-b',
-          executionId: 'execution-b',
+          reviewerId: 'github-user:900',
+          system: 'openai-codex-subscription',
+          executionId: 'github-review:500',
           revisionSha: context.headSha,
           verdict: 'approve',
           criticalFindings: 0,
@@ -77,23 +98,23 @@ function fixture(overrides: Record<string, unknown> = {}) {
         },
       ],
       checks: [
-        {
-          name: 'CI / test',
-          appId: 20,
-          checkRunId: 101,
-          checkSuiteId: 201,
-          conclusion: 'success',
+        ...[currentCheckRun, ...securityCheckRuns].map((run) => ({
+          name: run.name,
+          appId: run.app.id,
+          checkRunId: run.id,
+          checkSuiteId: run.check_suite.id,
+          conclusion: 'success' as const,
           evidenceSha256: gates.reviewReceiptCheckEvidenceSha256({
-            name: currentCheckRun.name,
-            appId: currentCheckRun.app.id,
-            checkRunId: currentCheckRun.id,
-            checkSuiteId: currentCheckRun.check_suite.id,
-            headSha: currentCheckRun.head_sha,
-            status: currentCheckRun.status,
-            conclusion: currentCheckRun.conclusion,
-            completedAt: currentCheckRun.completed_at,
+            name: run.name,
+            appId: run.app.id,
+            checkRunId: run.id,
+            checkSuiteId: run.check_suite.id,
+            headSha: run.head_sha,
+            status: run.status,
+            conclusion: run.conclusion,
+            completedAt: run.completed_at,
           }),
-        },
+        })),
       ],
       decision: 'approve',
     },
@@ -119,8 +140,8 @@ function fixture(overrides: Record<string, unknown> = {}) {
     baseSha: context.baseSha,
     baseTreeSha: context.baseTreeSha,
     mergeCandidateTreeSha: context.mergeCandidateTreeSha,
-    requiredChecks: [{ name: 'CI / test', appId: 20 }],
-    currentCheckRuns: [currentCheckRun],
+    requiredChecks,
+    currentCheckRuns: [currentCheckRun, ...securityCheckRuns],
     trustedKeys: { 'review-controller-2026-01': publicKey.export({ type: 'spki', format: 'pem' }) },
     policyVersion: context.policyVersion,
     maxLifetimeMs: context.maxReceiptLifetimeMs,

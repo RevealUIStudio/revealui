@@ -87,6 +87,7 @@ function build(
     checkRuns?: readonly GitHubCheckRun[];
     currentSnapshot?: PullRequestSnapshot;
     minimumIndependentReviews?: number;
+    requiredChecks?: (typeof expected.requiredChecks)[number][];
   } = {},
 ) {
   return signCandidateReceipt({
@@ -95,6 +96,7 @@ function build(
     expected: {
       ...expected,
       minimumIndependentReviews: input.minimumIndependentReviews ?? 1,
+      requiredChecks: input.requiredChecks ?? expected.requiredChecks,
     },
     snapshot: input.currentSnapshot ?? snapshot,
     mergeCandidateTreeSha: expected.mergeCandidateTreeSha,
@@ -154,7 +156,7 @@ describe('signCandidateReceipt', () => {
     expect(() => build({ reviews: [review(), dismissed] })).toThrow();
   });
 
-  it('does not issue a receipt for sensitive paths with a single subscription review', () => {
+  it('requires the exact-head security check suite for sensitive paths with one subscription review', () => {
     const sensitiveSnapshot = {
       ...snapshot,
       securityClassification: {
@@ -163,11 +165,34 @@ describe('signCandidateReceipt', () => {
       },
     };
     expect(() => build({ currentSnapshot: sensitiveSnapshot })).toThrow(
-      'receipt_review_threshold_too_weak',
+      'receipt_security_check_policy_incomplete',
     );
-    expect(() =>
-      build({ currentSnapshot: sensitiveSnapshot, minimumIndependentReviews: 2 }),
-    ).toThrow('receipt_insufficient_independent_reviews');
+    const securitySelectors = [
+      { name: 'CodeQL', appId: 57789, checkRunId: 102, checkSuiteId: 202 },
+      { name: 'Security Gate', appId: 15368, checkRunId: 103, checkSuiteId: 203 },
+      { name: 'Dependency Review', appId: 15368, checkRunId: 104, checkSuiteId: 204 },
+      { name: 'Secret Scanning (Gitleaks)', appId: 15368, checkRunId: 105, checkSuiteId: 205 },
+    ];
+    const securityRuns = securitySelectors.map(
+      (selector) =>
+        ({
+          id: selector.checkRunId,
+          check_suite: { id: selector.checkSuiteId },
+          name: selector.name,
+          head_sha: expected.headSha,
+          status: 'completed',
+          conclusion: 'success',
+          completed_at: '2026-10-06T12:45:00.000Z',
+          app: { id: selector.appId, slug: 'github-actions' },
+        }) satisfies GitHubCheckRun,
+    );
+    const signed = build({
+      currentSnapshot: sensitiveSnapshot,
+      requiredChecks: [...expected.requiredChecks, ...securitySelectors],
+      checkRuns: [checkRun, ...securityRuns],
+    });
+    expect(signed.receipt.reviews).toHaveLength(1);
+    expect(signed.receipt.checks).toHaveLength(5);
   });
 
   it('rejects a review containing findings', () => {

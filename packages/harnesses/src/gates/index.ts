@@ -14,8 +14,10 @@ export type {
 export {
   canonicalReviewReceipt,
   canonicalReviewReceiptEnvelope,
+  hasReviewReceiptSecurityChecks,
   parseReviewReceiptEnvelope,
   REVIEW_RECEIPT_SCHEMA,
+  REVIEW_RECEIPT_SECURITY_CHECKS,
   reviewReceiptCheckEvidenceSha256,
   signReviewReceipt,
   verifyReviewReceipt,

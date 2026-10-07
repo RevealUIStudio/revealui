@@ -119,7 +119,7 @@ describe('evaluateReceiptShadow', () => {
     });
   });
 
-  it('does not let one subscription review satisfy sensitive-path policy', async () => {
+  it('requires the configured security-check suite for a sensitive-path receipt', async () => {
     await expect(
       evaluateReceiptShadow({
         policy,
@@ -137,7 +137,7 @@ describe('evaluateReceiptShadow', () => {
       }),
     ).resolves.toMatchObject({
       status: 'ineligible',
-      reason: 'receipt_insufficient_independent_reviews',
+      reason: 'receipt_security_check_policy_incomplete',
     });
   });
 });
