@@ -725,13 +725,18 @@ app.post('/api/v1/billing/portal', requireFeature('payments', { mode: 'entitleme
 // Permissions are defined in packages/core/src/security/authorization.ts (CommonRoles).
 // ---------------------------------------------------------------------------
 
-// Content mutations: editor+ can create/update, admin+ can delete
-app.post('/api/content/*', requirePermission('content', 'create'));
-app.post('/api/v1/content/*', requirePermission('content', 'create'));
-app.patch('/api/content/*', requirePermission('content', 'update'));
-app.patch('/api/v1/content/*', requirePermission('content', 'update'));
-app.delete('/api/content/*', requirePermission('content', 'delete'));
-app.delete('/api/v1/content/*', requirePermission('content', 'delete'));
+// Site content uses current per-site authority; other collections retain account RBAC.
+app.post('/api/content/*', requirePermission('content', 'create', { siteScopedContent: true }));
+app.post('/api/v1/content/*', requirePermission('content', 'create', { siteScopedContent: true }));
+app.patch('/api/content/*', requirePermission('content', 'update', { siteScopedContent: true }));
+app.patch('/api/v1/content/*', requirePermission('content', 'update', { siteScopedContent: true }));
+app.put('/api/content/*', requirePermission('content', 'update', { siteScopedContent: true }));
+app.put('/api/v1/content/*', requirePermission('content', 'update', { siteScopedContent: true }));
+app.delete('/api/content/*', requirePermission('content', 'delete', { siteScopedContent: true }));
+app.delete(
+  '/api/v1/content/*',
+  requirePermission('content', 'delete', { siteScopedContent: true }),
+);
 
 // RAG index writes and deletes are administrative operations (rebuilding/managing the vector index).
 // Any authenticated user can read RAG query results, but only admins can modify index contents.
@@ -945,12 +950,16 @@ app.post('/api/content/*', writeProtected);
 app.post('/api/v1/content/*', writeProtected);
 app.patch('/api/content/*', writeProtected);
 app.patch('/api/v1/content/*', writeProtected);
+app.put('/api/content/*', writeProtected);
+app.put('/api/v1/content/*', writeProtected);
 app.delete('/api/content/*', writeProtected);
 app.delete('/api/v1/content/*', writeProtected);
 app.post('/api/content/*', rejectRecovery);
 app.post('/api/v1/content/*', rejectRecovery);
 app.patch('/api/content/*', rejectRecovery);
 app.patch('/api/v1/content/*', rejectRecovery);
+app.put('/api/content/*', rejectRecovery);
+app.put('/api/v1/content/*', rejectRecovery);
 app.delete('/api/content/*', rejectRecovery);
 app.delete('/api/v1/content/*', rejectRecovery);
 

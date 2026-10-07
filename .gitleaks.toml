@@ -29,6 +29,9 @@ description = "Test fixtures, CLI templates, documentation examples, and CI plac
 # REGEX-CONFIG-BOUNDARY (gitleaks TOML; minimal, anchored to the Vercel prj_ prefix).
 regexes = [
   '''prj_[A-Za-z0-9]{20,}''',
+  # Public GitHub advisory IDs (GHSA-xxxx-xxxx-xxxx) are published identifiers,
+  # not secrets. scripts/gates/security-gate.ts keys known advisories by them.
+  '''^GHSA(-[23456789cfghjmpqrvwx]{4}){3}$''',
 ]
 
 paths = [
