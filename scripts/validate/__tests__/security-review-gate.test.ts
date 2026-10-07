@@ -415,6 +415,7 @@ describe('signed merged feature promotion coverage', () => {
     sameHead = true,
     member = true,
     hold = false,
+    useEnvironment = false,
   } = {}) {
     const sha = 'b'.repeat(40);
     const run = (args: string[]) => {
@@ -454,10 +455,22 @@ describe('signed merged feature promotion coverage', () => {
       throw new Error(`unexpected endpoint ${endpoint}`);
     };
     return fetchCommitPulls(sha, target, 99, run, {
-      allowedSigners: 'anchor',
-      verifyImpl: () => (signed ? { ok: true } : { ok: false, reason: 'expired' }),
+      allowedSigners: useEnvironment ? undefined : 'anchor',
+      verifyImpl: ({ allowedSigners }: { allowedSigners: string }) =>
+        signed && allowedSigners === 'anchor' ? { ok: true } : { ok: false, reason: 'untrusted' },
     });
   }
+  it('uses canonical signer configuration and rejects retired aliases', () => {
+    try {
+      vi.stubEnv('REVEALFLEET_OVERRIDE_SIGNERS', 'anchor');
+      expect(fixture({ useEnvironment: true })).toEqual([{ number: 91, hasVerdict: true }]);
+      vi.stubEnv('REVEALFLEET_OVERRIDE_SIGNERS', '');
+      vi.stubEnv(['REV', 'FLEET', '_OVERRIDE_SIGNERS'].join(''), 'anchor');
+      expect(fixture({ useEnvironment: true })[0].hasVerdict).toBe(false);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
   it('accepts a current signed exact-head merged feature containing the commit', () =>
     expect(fixture()).toEqual([{ number: 91, hasVerdict: true }]));
   it('denies unmerged association', () => expect(fixture({ merged: false })).toEqual([]));

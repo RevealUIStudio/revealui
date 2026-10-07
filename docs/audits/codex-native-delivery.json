@@ -645,7 +645,7 @@
     ],
     "publicationFollowup": {
       "id": "CODEX-INTEGRATION-LIVE-BRANCH-RECONCILIATION",
-      "status": "reconciled-locally-awaiting-publication",
+      "status": "published-for-review",
       "owner": "RevealUI harnesses/knowledge-graph/MCP and RevCon integration branches",
       "owningPaths": [
         "packages/harnesses",
@@ -905,7 +905,7 @@
     },
     "publicationPreparation": {
       "date": "2026-10-07",
-      "status": "validated-locally",
+      "status": "published-for-review",
       "repositories": [
         {
           "repository": "RevealUIStudio/revealui",
@@ -954,7 +954,19 @@
         "validationNeeded": "Read back the effective rules for test and main and verify current workflow check names and signing constraints.",
         "status": "tracked; settings writes require owner disposition"
       },
-      "disposition": "Feature branch and review PR publication only; no merge, production deployment, paid inference, settings change or historical memory migration."
+      "disposition": "Feature branch and review PR publication only; no merge, production deployment, paid inference, settings change or historical memory migration.",
+      "pullRequests": [
+        {
+          "repository": "RevealUIStudio/revealui",
+          "url": "https://github.com/RevealUIStudio/revealui/pull/3080"
+        },
+        {
+          "repository": "revealui-studio/revcon",
+          "url": "https://github.com/revealui-studio/revcon/pull/158"
+        }
+      ],
+      "signerConfiguration": "Canonical REVEALFLEET_OVERRIDE_SIGNERS repository variable verified present; workflow and validator now consume that namespace without a retired alias.",
+      "reviewRequirement": "RevealUI requires a request label and a current owner SSHSIG bound to the exact repo/PR/head/sec-review context. No label, signature, merge or repository settings mutation was performed."
     }
   }
 }

@@ -236,7 +236,7 @@ function fetchCommitPulls(sha, repo, excludePrNumber, ghImpl = gh, options = {})
     if (!cache.has(number)) {
       const data = JSON.parse(ghImpl(['pr', 'view', String(number), '--repo', repo, '--json', 'labels,author,headRefOid,mergedAt']));
       const discussion = fetchPrDiscussion(number, repo, ghImpl);
-      const decision = verifyPrOwnerRecord(data, number, repo, discussion, options.allowedSigners ?? process.env.REVFLEET_OVERRIDE_SIGNERS ?? '', options.verifyImpl);
+      const decision = verifyPrOwnerRecord(data, number, repo, discussion, options.allowedSigners ?? process.env.REVEALFLEET_OVERRIDE_SIGNERS ?? '', options.verifyImpl);
       cache.set(number, { head: data.headRefOid, merged: Boolean(data.mergedAt), decision, commits: fetchPrCommitShas(number, repo, ghImpl) });
     }
     const record = cache.get(number);
@@ -315,7 +315,7 @@ function runPrMode(prNumber, repo) {
       return;
     }
     const discussion = fetchPrDiscussion(prNumber, target);
-    const decision = verifyPrOwnerRecord(data, prNumber, target, discussion, process.env.REVFLEET_OVERRIDE_SIGNERS || '');
+    const decision = verifyPrOwnerRecord(data, prNumber, target, discussion, process.env.REVEALFLEET_OVERRIDE_SIGNERS || '');
     if (decision.action === 'clear') {
       process.stdout.write(`PR #${prNumber}: verified exact-head owner sec-review signature (${decision.url || 'recorded comment'}).\n`);
       process.exitCode = 0;
