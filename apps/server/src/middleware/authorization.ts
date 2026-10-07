@@ -29,12 +29,31 @@ for (const role of Object.values(CommonRoles)) {
  *
  * Must be used after `authMiddleware({ required: true })`.
  */
-export const requirePermission = (resource: string, action: string): MiddlewareHandler => {
+export const requirePermission = (
+  resource: string,
+  action: string,
+  options: { siteScopedContent?: boolean } = {},
+): MiddlewareHandler => {
   return async (c, next) => {
     const user = c.get('user') as { id: string; role: string } | undefined;
 
     if (!user) {
       throw new HTTPException(401, { message: 'Authentication required' });
+    }
+
+    // Sites, pages and edit sessions enforce current canonical site authority in
+    // their routes. Account-wide roles cannot override or block that membership.
+    if (resource === 'content' && options.siteScopedContent) {
+      const segments = c.req.path.split('/');
+      const collection = segments[segments.indexOf('content') + 1];
+      if (
+        collection &&
+        ['sites', 'pages', 'sessions'].includes(collection) &&
+        (user.role !== 'agent' || collection === 'sessions')
+      ) {
+        await next();
+        return;
+      }
     }
 
     // Check cache first
