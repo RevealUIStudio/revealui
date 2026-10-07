@@ -354,7 +354,7 @@ function fetchPrDiscussion(prNumber, repo, ghImpl = gh) {
   return { comments: list('comments'), reviews: list('reviews') };
 }
 
-function verifyPrOwnerRecord(data, prNumber, repo, discussion, allowedSigners, verifyImpl) {
+function verifyPrOwnerRecord(data, prNumber, repo, discussion, allowedSigners = process.env.REVEALFLEET_OVERRIDE_SIGNERS || '', verifyImpl) {
   const verdict = evaluateGuardrail2({ ...discussion, authorLogin: data.author?.login || '' });
   if (verdict.status === 'hold') return decideReviewGate({ verdict });
   const labels = (data.labels || []).map((label) => typeof label === 'string' ? label : label.name);
