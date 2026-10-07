@@ -22,7 +22,7 @@ describe('isolated Review Controller migration on PostgreSQL', () => {
     const result = await owner.db.execute(sql`
       SELECT current_database() AS database_name,
         (SELECT count(*)::int FROM drizzle.__drizzle_migrations) AS migration_count,
-        (SELECT array_agg(tablename ORDER BY tablename)
+        (SELECT json_agg(tablename ORDER BY tablename)
          FROM pg_tables WHERE schemaname = 'public') AS public_tables
     `);
 
@@ -73,10 +73,10 @@ describe('isolated Review Controller migration on PostgreSQL', () => {
 
     await expect(
       runtime.db.execute(sql`CREATE TABLE review_controller_forbidden (id integer)`),
-    ).rejects.toMatchObject({ code: '42501' });
+    ).rejects.toMatchObject({ cause: { code: '42501' } });
     await expect(
       runtime.db.execute(sql`UPDATE review_controller_webhook_inbox SET payload = '{}'::jsonb`),
-    ).rejects.toMatchObject({ code: '42501' });
+    ).rejects.toMatchObject({ cause: { code: '42501' } });
   });
 
   it('allows runtime receipt append but rejects mutation even by the migration owner', async () => {
@@ -94,11 +94,13 @@ describe('isolated Review Controller migration on PostgreSQL', () => {
       runtime.db.execute(
         sql`DELETE FROM review_controller_signed_receipts WHERE receipt_id = 'ci-receipt'`,
       ),
-    ).rejects.toMatchObject({ code: '42501' });
+    ).rejects.toMatchObject({ cause: { code: '42501' } });
     await expect(
       owner.db.execute(
         sql`UPDATE review_controller_signed_receipts SET key_id = 'changed' WHERE receipt_id = 'ci-receipt'`,
       ),
-    ).rejects.toThrow('signed review receipts are append-only');
+    ).rejects.toMatchObject({
+      cause: { code: 'P0001', message: 'signed review receipts are append-only' },
+    });
   });
 });
