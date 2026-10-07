@@ -1,24 +1,22 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { PGlite } from '@electric-sql/pglite';
+import { readMigrationFiles } from 'drizzle-orm/migrator';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const runtimeRole = 'revealui-review-controller';
-const migrationFiles = [
-  '0000_review_controller_store.sql',
-  '0001_review_controller_receipt_immutable.sql',
-  '0002_review_controller_runtime_grants.sql',
-];
-
 describe('review-controller migration scope and runtime grants', () => {
   let database: PGlite;
 
   beforeAll(async () => {
     database = new PGlite();
     await database.exec(`CREATE ROLE "${runtimeRole}" WITH LOGIN`);
-    const migrationDirectory = resolve(process.cwd(), 'migrations');
-    for (const filename of migrationFiles) {
-      await database.exec(await readFile(resolve(migrationDirectory, filename), 'utf8'));
+    const migrations = readMigrationFiles({ migrationsFolder: 'migrations' });
+    expect(migrations).toHaveLength(3);
+    for (const migration of migrations) {
+      for (const statement of migration.sql) {
+        await database.exec(statement);
+      }
     }
   });
 

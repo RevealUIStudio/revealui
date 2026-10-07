@@ -114,11 +114,17 @@ without publishing it; its required summary fails if the image build fails.
   than the Neon Console, CLI, or API so it does not inherit `neon_superuser`.
   `pnpm --filter @revealui/review-controller db:migrate` applies only the
   controller migration journal, using `REVIEW_CONTROLLER_MIGRATION_DATABASE_URL`
-  for a migration-owner connection. It validates that the runtime role has no
-  elevated attributes or `neon_superuser` membership, then grants only inbox
-  processing access and append-only observation/receipt access. The runtime
-  role must not own schema or migration objects and receives no DDL, receipt
-  mutation, or observation mutation privileges. The canonical schema is
+  for a migration-owner connection. The migration config binds that URL to the
+  isolated journal (`apps/review-controller/drizzle.config.ts:3`). It validates that the runtime role has no
+  elevated attributes or role membership
+  (`apps/review-controller/migrations/0002_review_controller_runtime_grants.sql:13`,
+  `apps/review-controller/migrations/0002_review_controller_runtime_grants.sql:21`),
+  then grants only inbox processing access and append-only observation/receipt
+  access (`apps/review-controller/migrations/0002_review_controller_runtime_grants.sql:69`).
+  The runtime role must not own schema or migration objects and receives no DDL,
+  receipt mutation, or observation mutation privileges
+  (`apps/review-controller/migrations/0002_review_controller_runtime_grants.sql:37`).
+  The canonical schema is
   `packages/db/src/schema/internal/review-controller.ts`; the isolated journal
   reuses its table and trigger migrations from `packages/db/migrations/`.
 - Keep one controller machine during the initial Fly-volume/inbox design.
