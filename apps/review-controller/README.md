@@ -57,28 +57,27 @@ shadow observation is persisted. This mode does not request merges or bypass
 branch protection, and the existing owner gate remains authoritative until a
 separately reviewed policy cutover.
 
-This remains shadow evidence only. The controller has no hosted model API
-credentials or model-call path. Codex subscription reviews are configured in
+Receipt evaluation does not call a hosted model API. The controller has no
+model API credentials or model-call path. Codex subscription reviews are configured in
 the GitHub integration and do not use this service's model credentials. A
 local receipt evaluator reconciles the current PR snapshot, exact-head review
 observations, and required successful check-run identities before signing
 through the shared Ed25519 receipt contract. Its tests cover stale checks and
 reviews, dismissals, deterministic signing, and the higher sensitive-path
-threshold. The evaluator runs only in the opt-in shadow mode described below.
+threshold. The evaluator runs only in the opt-in shadow or publish mode described below.
 Codex contributes one independent reviewer identity, so its evidence alone
 cannot meet the shared two-review threshold for security-sensitive changes.
 The current gate and branch protections remain authoritative.
 
 The shared receipt store is append-only; shadow evaluation does not store its
-signed envelope. The fixed-output App check-run writer now places the canonical
-signed envelope in the App-authored check summary after the receipt has been
-persisted. The base-trusted security gate can verify that check in shadow mode
-against current PR and required-check evidence, while continuing to enforce
-the existing owner gate. The runtime handler still records shadow eligibility
-only and does not invoke the publisher. Merge-queue admission, runtime
-publication, and auto-merge remain unimplemented. The existing security gate
-remains authoritative until those stages and their cutover evidence are
-complete.
+signed envelope. In publish mode the fixed-output App check-run writer places
+the canonical envelope in the App-authored check summary after persistence.
+The base-trusted security gate can verify that check in shadow mode against
+current PR and required-check evidence, while continuing to enforce the
+existing owner gate. The runtime publisher does not request merges. Merge-queue
+candidate admission and the protected-gate/ruleset cutover remain unimplemented;
+the existing security gate remains authoritative until those stages are
+complete and reviewed.
 
 The production Dockerfile assembles a pnpm production deployment and keeps
 only the PostgreSQL driver external to the self-contained controller bundle.
