@@ -673,7 +673,7 @@
           "validationNeeded": "Reject arbitrary edits and untrusted ledgers; recover only copies proven to match an approved formatting transform or immutable source history; verify source hashes after regeneration."
         }
       },
-      "currentStateAuthority": "organizationMigrationReview.currentStateReview",
+      "currentStateAuthority": "organizationMigrationReview.reconciledUpdate",
       "bootstrapResolution": {
         "observedAt": "2026-10-07T10:50:29.755254+00:00",
         "status": "resolved-local; reconciled validation passed",
@@ -1076,7 +1076,7 @@
       "supersededBy": "organizationMigrationReview.reconciledUpdate"
     },
     "reconciledUpdate": {
-      "observedAt": "2026-10-07T11:03:17.363480+00:00",
+      "observedAt": "2026-10-07T11:06:48.502521+00:00",
       "upstreamTest": "cbfaad90a51774474a940e0f3d685c4bdd09c0a5",
       "deliveryFixCommit": "217f27e07",
       "status": "validated-local; feature publication follows maintained admission",
@@ -1094,7 +1094,9 @@
         "freshCheckout": "Full lint across 4559 files and the actual structure check pass without runtime materialization or changing the gate.",
         "ownership": "286 Claude entries, 21 definition rules and the canonical manager pointer; local and shared ownership checks pass.",
         "revcon": "61 maintained checks, 11 native delivery regressions, canonical policy/skill lockstep and private export scan.",
-        "earlierDiagnosticFailure": "The broad root-Vitest invocation used generic 5-second defaults and unconstrained workers; rerunning through the maintained package configurations passed all 91 cases. No product deadline or test configuration was changed."
+        "earlierDiagnosticFailure": "The broad root-Vitest invocation used generic 5-second defaults and unconstrained workers; rerunning through the maintained package configurations passed all 91 cases. No product deadline or test configuration was changed.",
+        "snapshotTests": 8,
+        "snapshotCli": "Built CLI now writes and checks all five snapshots inside the owning harness package; source and bundled-entry regressions pass."
       },
       "durableWork": {
         "CODEX-INTEGRATION-CLEAN-CHECKOUT-BOOTSTRAP": "resolved through portable tracked consumers and ownership regression tests",
@@ -1103,7 +1105,21 @@
         "REVCON-TRANSFER-REQUIRED-CHECKS": "still tracked; no repository settings disposition",
         "KG-LEGACY-MEMORY-SCOPE-MIGRATION": "still tracked; no historical scope inferred"
       },
-      "disposition": "Feature branch review publication only. No PR merge, owner signature, gate-clearing label, settings change, paid inference or historical memory migration."
+      "disposition": "Feature branch review publication only. No PR merge, owner signature, gate-clearing label, settings change, paid inference or historical memory migration.",
+      "companionPublication": {
+        "previousPullRequest": "https://github.com/revealui-studio/revcon/pull/158",
+        "previousState": "owner-merged at 2026-10-07T10:28:04Z",
+        "testHead": "14146d7e3a3031a87e9d065add30c6f7c73e1dd3",
+        "followupPullRequest": "https://github.com/revealui-studio/revcon/pull/159",
+        "followupHead": "33168ebbc198733244050fc52ef4745638852864",
+        "status": "published-for-review; remote checks pending"
+      },
+      "snapshotResolution": {
+        "owner": "packages/harnesses/src/content/snapshot.ts getContentSnapshotsDir",
+        "failingBehavior": "Fixed-depth module traversal resolved bundled dist/cli.js snapshots to packages/content-snapshots. Write and check shared the wrong path and could agree while committed package snapshots were stale. Push admission rejected the untracked output.",
+        "durableTarget": "Existing snapshot primitive locates its declared package owner for source and bundled layouts, preserving the supported explicit snapshot directory parameter.",
+        "removalEvidence": "Regenerated canonical package snapshots with the corrected built CLI. Two path regressions reproduced the failure before the fix; all eight snapshot tests and CLI checks pass. Only the session-produced misplaced snapshots were preserved in temporary diagnostic storage; no ignore exception or admission bypass was added."
+      }
     }
   }
 }

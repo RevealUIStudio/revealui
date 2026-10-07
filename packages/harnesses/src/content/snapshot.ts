@@ -11,7 +11,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildManifest } from './definitions/index.js';
@@ -55,11 +55,27 @@ export interface SnapshotCheckResult {
 }
 
 /** Directory holding committed `*.json` snapshots (package root). */
-export function getContentSnapshotsDir(): string {
-  // src/content/snapshot.ts → packageRoot/content-snapshots
-  // dist/content/snapshot.js → packageRoot/content-snapshots
-  const here = dirname(fileURLToPath(import.meta.url));
-  return join(here, '..', '..', 'content-snapshots');
+export function getContentSnapshotsDir(moduleUrl: string = import.meta.url): string {
+  // Bundles may place this module in dist/cli.js or dist/content/index.js.
+  // Resolve the declared package owner rather than assuming an entry depth.
+  let directory = dirname(fileURLToPath(moduleUrl));
+  for (;;) {
+    const metadataPath = join(directory, 'package.json');
+    if (existsSync(metadataPath)) {
+      const metadata: unknown = JSON.parse(readFileSync(metadataPath, 'utf8'));
+      if (
+        typeof metadata === 'object' &&
+        metadata !== null &&
+        'name' in metadata &&
+        metadata.name === '@revealui/harnesses'
+      ) {
+        return join(directory, 'content-snapshots');
+      }
+    }
+    const parent = dirname(directory);
+    if (parent === directory) throw new Error('Cannot locate the declared snapshot package owner');
+    directory = parent;
+  }
 }
 
 export function snapshotPathFor(generatorId: string, snapshotsDir?: string): string {
