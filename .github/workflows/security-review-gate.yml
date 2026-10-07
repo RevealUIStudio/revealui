@@ -86,6 +86,12 @@ jobs:
             apps/*/package.json
             packages/harnesses/
             packages/dev/
+            packages/security/
+            packages/contracts/
+            packages/db/
+            packages/config/
+            packages/utils/
+            packages/ts-strada/
           sparse-checkout-cone-mode: false
 
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
@@ -102,6 +108,7 @@ jobs:
           # Durable sparse-job contract (do not change without updating
           # scripts/validate/gates-resolver.cjs):
           #   - install harnesses + dev and their declared workspace dependency closure
+          #   - include the full source/config for security's workspace build closure
           #   - emit packages/harnesses/dist/gates/index.cjs via tsup.gates-cjs.ts
           # tsup.gates-cjs.ts has lived on main and test for the full dual-format era;
           # never require a tip-only package.json script.

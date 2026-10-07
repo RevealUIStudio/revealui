@@ -80,6 +80,12 @@ jobs:
             apps/*/package.json
             packages/harnesses/
             packages/dev/
+            packages/security/
+            packages/contracts/
+            packages/db/
+            packages/config/
+            packages/utils/
+            packages/ts-strada/
           sparse-checkout-cone-mode: false
 
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
@@ -95,6 +101,7 @@ jobs:
           set -euo pipefail
           # Same durable sparse contract as security-review-gate.yml:
           # tsup.gates-cjs.ts → dist/gates/index.cjs (gates-resolver SSOT).
+          # Include source/config for security's full workspace dependency build closure.
           pnpm install --frozen-lockfile --filter @revealui/harnesses... --filter @revealui/dev
           pnpm --filter @revealui/security... build
           pnpm --filter @revealui/harnesses exec tsup --config tsup.gates-cjs.ts

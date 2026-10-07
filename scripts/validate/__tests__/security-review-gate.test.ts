@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -51,6 +51,61 @@ describe('classifyFiles — enforcement-machinery self-protection', () => {
     // were removed, ENFORCEMENT_MACHINERY_FILES above would stop being flagged;
     // this line guarantees the markers are not so broad they catch everything.
     expect(classifyFiles(['apps/marketing/app/components/Hero.tsx'])).toEqual([]);
+  });
+});
+
+describe('trusted sparse gate build inputs', () => {
+  it('checks out every workspace package in the security build dependency closure', () => {
+    const packagesRoot = join(__dirname, '../../../packages');
+    type WorkspaceManifest = {
+      name?: unknown;
+      dependencies?: Record<string, unknown>;
+      optionalDependencies?: Record<string, unknown>;
+    };
+    const workspacePackages = new Map<string, { directory: string; manifest: WorkspaceManifest }>();
+    for (const entry of readdirSync(packagesRoot, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const directory = join(packagesRoot, entry.name);
+      const manifestPath = join(directory, 'package.json');
+      if (!existsSync(manifestPath)) continue;
+      const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as WorkspaceManifest;
+      if (typeof manifest.name === 'string')
+        workspacePackages.set(manifest.name, { directory, manifest });
+    }
+
+    const requiredPackages = new Set<string>();
+    const visit = (name: string) => {
+      if (requiredPackages.has(name)) return;
+      const workspacePackage = workspacePackages.get(name);
+      if (!workspacePackage) return;
+      requiredPackages.add(name);
+      const dependencies = {
+        ...workspacePackage.manifest.dependencies,
+        ...workspacePackage.manifest.optionalDependencies,
+      };
+      for (const [dependency, specifier] of Object.entries(dependencies)) {
+        if (typeof specifier === 'string' && specifier.startsWith('workspace:')) visit(dependency);
+      }
+    };
+    visit('@revealui/security');
+
+    for (const workflowName of ['security-review-gate.yml', 'sec-audit-label-guard.yml']) {
+      const workflow = readFileSync(
+        join(__dirname, `../../../.github/workflows/${workflowName}`),
+        'utf8',
+      );
+      const sparseCheckout = workflow.match(
+        /sparse-checkout:\s*\|\s*\n([\s\S]*?)sparse-checkout-cone-mode:/,
+      )?.[1];
+      expect(sparseCheckout, `${workflowName} sparse-checkout block`).toBeDefined();
+      for (const name of requiredPackages) {
+        const { directory } = workspacePackages.get(name)!;
+        const checkoutPath = `packages/${directory.slice(packagesRoot.length + 1)}/`;
+        expect(sparseCheckout, `${workflowName} must include ${checkoutPath}`).toContain(
+          checkoutPath,
+        );
+      }
+    }
   });
 });
 
