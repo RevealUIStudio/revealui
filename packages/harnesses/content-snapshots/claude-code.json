@@ -52,7 +52,7 @@
     },
     {
       "relativePath": ".revealui/content/rules/ai-mechanics.md",
-      "sha256": "802943574202960b588a4d6d6d7b481a7a079b70e22db7f3179230f865321ed2"
+      "sha256": "408c1d0af062f7e25b412c4dbbaf4649143aea53d0b36ecda4b3050f3995503f"
     },
     {
       "relativePath": ".revealui/content/rules/biome.md",
@@ -76,7 +76,7 @@
     },
     {
       "relativePath": ".revealui/content/rules/durable-solutions.md",
-      "sha256": "71596e024332b91406168f8600da781b1218f48a56639821de5df5133f611782"
+      "sha256": "85e29de505f448bea3640cadca945a85234f87885ddb136b17da3b7f14696334"
     },
     {
       "relativePath": ".revealui/content/rules/monorepo.md",
@@ -96,7 +96,7 @@
     },
     {
       "relativePath": ".revealui/content/rules/quality-over-speed.md",
-      "sha256": "8bfcbe93c5b73d738859656926478798a8bed2d55ca5be5dca50b6c997e9b009"
+      "sha256": "3aea4790fdb57a8273b757bbfa36690acc1936654f4ac377dd3ef999a5d6606c"
     },
     {
       "relativePath": ".revealui/content/rules/skills-usage.md",
@@ -148,11 +148,11 @@
     },
     {
       "relativePath": ".revealui/content/skills/revealui-review/SKILL.md",
-      "sha256": "420a65c8f5b28d5bc36294305d619a9f02cb45bac1762a1025921aa1eb323f73"
+      "sha256": "fcf7684b1df0a49f263e83ec5e6c11abf8205d6653075cad73a1b6029da09703"
     },
     {
       "relativePath": ".revealui/content/skills/revealui-safety/SKILL.md",
-      "sha256": "46430c8c872efc933731412254a15503402efa6075684eabac36d3592a799572"
+      "sha256": "10e73a28ad6ae87d92d8f0a093713fa5e58fd5481f9eb470fcee32d17ab4c746"
     },
     {
       "relativePath": ".revealui/content/skills/revealui-tdd/SKILL.md",

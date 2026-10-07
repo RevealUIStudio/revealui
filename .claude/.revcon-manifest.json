@@ -46,7 +46,7 @@
     },
     "rules/ai-mechanics.md": {
       "source": "harnesses:rules/ai-mechanics.md",
-      "sha256": "802943574202960b588a4d6d6d7b481a7a079b70e22db7f3179230f865321ed2"
+      "sha256": "408c1d0af062f7e25b412c4dbbaf4649143aea53d0b36ecda4b3050f3995503f"
     },
     "rules/biome.md": {
       "source": "harnesses:rules/biome.md",
@@ -85,7 +85,7 @@
     },
     "rules/durable-solutions.md": {
       "source": "harnesses:rules/durable-solutions.md",
-      "sha256": "71596e024332b91406168f8600da781b1218f48a56639821de5df5133f611782"
+      "sha256": "85e29de505f448bea3640cadca945a85234f87885ddb136b17da3b7f14696334"
     },
     "rules/exhaustive.md": {
       "source": "profiles/revealfleet/revealui/rules/exhaustive.md",
@@ -150,7 +150,7 @@
     },
     "rules/quality-over-speed.md": {
       "source": "harnesses:rules/quality-over-speed.md",
-      "sha256": "8bfcbe93c5b73d738859656926478798a8bed2d55ca5be5dca50b6c997e9b009"
+      "sha256": "3aea4790fdb57a8273b757bbfa36690acc1936654f4ac377dd3ef999a5d6606c"
     },
     "rules/secrets.md": {
       "source": "profiles/revealfleet/revealui/rules/secrets.md",

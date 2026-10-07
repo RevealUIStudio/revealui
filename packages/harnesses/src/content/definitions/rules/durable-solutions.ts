@@ -1,27 +1,28 @@
 import type { Rule } from '../../schemas/rule.js';
 
 /**
- * Long-term root-cause fixes only; hotfixes are registered debt (owner 2026-07-21).
- * Proposing workarounds is forbidden (owner 2026-08-06).
+ * Long-term root-cause fixes only (owner 2026-07-21).
+ * No workaround proposals (owner 2026-08-06) or one-off solutions (2026-09-29).
  */
 export const durableSolutionsRule: Rule = {
   id: 'durable-solutions',
   tier: 'oss',
   name: 'Durable Solutions',
   description:
-    'Root-cause fixes only; never propose workarounds; register any owner-accepted hotfix the same turn',
+    'Root-cause fixes only; never propose workarounds or ship one-offs; inventory existing debt',
   scope: 'global',
   preambleTier: 1,
   tags: ['sdlc', 'hardline', 'hotfix', 'quality', 'no-workarounds'],
   content: `# Durable Solutions
 
-**Status:** HARDLINE every session (all harnesses). Owner 2026-07-21 (durable first);
-owner 2026-08-06 (**proposing workarounds is forbidden**).
+**Status:** HARDLINE every session (all harnesses). Owner 2026-07-21 (durable first),
+2026-08-06 (no workaround proposals), and 2026-09-29 (no one-off solutions).
 
 Prefer long-term durable solutions. Fix root causes in the owning layer (shared
 lib, env bootstrap, policy, product primitive) so the failure class cannot
-recur. Session-local patches, one-off shell recipes, and "works on my machine"
-overrides are not done unless the owner accepts a **registered hotfix**.
+recur. Session-local patches, one-off shell recipes, machine-only overrides,
+symptom suppression, and parallel operational paths are prohibited. Owner
+acceptance or a registry entry does not make them acceptable fixes.
 
 ## Proposing workarounds is forbidden
 
@@ -42,7 +43,7 @@ This applies to **code, chat, handoffs, PR descriptions, and walk-throughs**.
 | Session-only | Scratch scripts the owner must re-run forever |
 | Symptom patch | Catch-and-ignore; disable the gate "for now" |
 | Parallel path | Second seed script / second resolver "just for this case" |
-| Silent demotion | "We'll harden later" with no registry entry or GAP |
+| Silent demotion | "We'll harden later" without a durable target and tracked work |
 | Soften the ban | "Temporary workaround:", "for now you can…", "as a stopgap…" |
 
 ### When blocked
@@ -59,33 +60,39 @@ State the block honestly. List **only durable next actions**.
 If the only honest move is "wait for GitHub Actions / deploy / owner merge",
 say that and stop. Waiting is not a workaround; offering a substitute procedure is.
 
-### Hotfixes (narrow exception — still not free-form advice)
+### Existing one-off debt
 
-A **registered hotfix** is allowed only when the owner **explicitly accepts**
-registered debt in-session (production or peer must be unblocked *now*). Same
-turn: register symptom, temporary shape, durable target, paths, optional GAP.
-Unregistered hotfixes are policy violations equal to orphan temp scripts.
+Inventory prior one-offs in affected source and operating instructions. For each,
+record the location, behavior, owner, durable destination, and evidence needed
+to remove it. The hotfix registry is an inventory of existing debt only; it
+never authorizes a new one-off. Do not treat registration, a ticket, or owner
+approval as a substitute for a root-cause fix.
 
-Proposing "just do this temporary thing" **without** owner-accepted registration
-is forbidden even if a hotfix *could* be registered later.
+Temporary read-only diagnostics and synthetic test fixtures may establish a
+cause. They are not product fixes and must not become operational dependencies.
+If an operation is needed repeatedly, implement it in the owning maintained
+tool with tests and normal review.
 
 ## Rules
 
 1. **Durable first.** Extend the real primitive; do not invent a parallel path.
 2. **Never propose workarounds** (see above). Refuse; fix or block.
-3. **Hotfixes are debt.** Only with named owner acceptance + same-turn register.
-4. **Every hotfix has a destination.** Pending entries surface at session
-   boundaries until converted.
-5. **Unregistered hotfixes are policy violations.**
+3. **No one-off exception.** Do not ship session, machine, env, or registry-backed
+   patches that leave the failure class open.
+4. **Inventory existing debt.** Track its owning path and durable replacement;
+   remove it after the replacement is verified.
+5. **Record blockers as durable work.** Name the owning primitive, target,
+   validation, and tracked follow-up. A ticket is not a fix.
 
 ## Durable shapes
 
 - Shared module / rule / hook / CI gate that fails closed for the class
-- Documented escape hatches with explicit env flags (product design, not session glue)
+- Supported configuration behavior with tested defaults and documented bounds,
+  never a special override that bypasses the root issue
 - Gaps/ADRs when the durable fix needs multi-session design
 - Tests that lock the durable behavior (prove red, then green)
-- One-time **data backfill** that converts existing rows to the new correct model
-  (paired with the forward fix) — not a permanent dual path
+- A versioned migration that converts existing rows to the new correct model,
+  paired with the forward fix and tested through the normal release path
 
 ## CLI (control layer)
 
@@ -93,8 +100,7 @@ is forbidden even if a hotfix *could* be registered later.
 revealui-harnesses hotfix check
 revealui-harnesses hotfix list
 revealui-harnesses hotfix audit [path]
-# Only if owner accepted a temporary patch (admits debt — not preferred):
-revealui-harnesses hotfix register --title … --symptom … --temporary … --durable …
+# Resolve an existing entry only after its durable replacement is verified:
 revealui-harnesses hotfix resolve <id> --pr <url>
 \`\`\`
 

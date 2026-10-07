@@ -902,6 +902,59 @@
           "sha256": "ec0b6456e2b090190db71eeac716e67d3c1dcb9e93a7f86990fd0a822fc6339e"
         }
       ]
+    },
+    "publicationPreparation": {
+      "date": "2026-10-07",
+      "status": "validated-locally",
+      "repositories": [
+        {
+          "repository": "RevealUIStudio/revealui",
+          "testHead": "3744de2def1ca2ac5294f7251dac053df6aa8068",
+          "branchAccess": "verified",
+          "branchRules": "PR review, required checks, backflow check and signed commits"
+        },
+        {
+          "repository": "revealui-studio/revcon",
+          "testHead": "0438842106bd3039c218947f049c68f03ba6a4e3",
+          "branchAccess": "verified",
+          "branchRules": "PR review, deletion and non-fast-forward protection"
+        }
+      ],
+      "policyUpdate": {
+        "canonicalSource": "packages/harnesses/src/content/definitions/rules/durable-solutions.ts",
+        "behavior": "Root-cause-only rule has no owner or registry exception. Related quality and review instructions agree. Public exports use configured identity and approved project references.",
+        "consumerPrimitive": "content export supports repeated --rule-profile directories and explicit --rule-id selections; canonical exports remove obsolete tier copies.",
+        "validation": "73 delivery/export/snapshot tests; successful harness build, source freshness and root lockstep; 61 RevCon checks, source lockstep and public export scan"
+      },
+      "debtInventory": [
+        {
+          "location": "RevCon harnesses/rules/pro/{durable-solutions,disposition-actions,code-over-docs}.md and native profile copies",
+          "priorBehavior": "Obsolete tiers and manually synchronized rule copies survived canonical export.",
+          "owner": "Harness content exporter",
+          "durableDestination": "Canonical tier files and selected native profile consumers",
+          "removalEvidence": "Exporter removes opposite-tier copies, exports declared rule selections, and both maintained source/consumer lockstep gates pass."
+        },
+        {
+          "location": "Canonical ai-mechanics rule and review/safety skill definitions",
+          "priorBehavior": "Generated public exports contained private reference paths or machine-specific identity and backup defaults.",
+          "owner": "Harness content definitions",
+          "durableDestination": "Configured identity, manager-discovered project references and configured backup location",
+          "removalEvidence": "Regenerated export passes the unchanged RevCon private-path gate."
+        }
+      ],
+      "requiredPolicyFollowup": {
+        "id": "REVCON-TRANSFER-REQUIRED-CHECKS",
+        "owner": "Organization/repository policy bootstrap",
+        "owningPaths": [
+          "RevCon .github/workflows/ci.yml",
+          "Maintained organization ruleset configuration"
+        ],
+        "failingBehavior": "Effective transferred test-branch rules did not return required status checks or required signatures despite the documented protection contract.",
+        "durableTarget": "Reconcile the declared protection contract through the maintained repository-policy primitive.",
+        "validationNeeded": "Read back the effective rules for test and main and verify current workflow check names and signing constraints.",
+        "status": "tracked; settings writes require owner disposition"
+      },
+      "disposition": "Feature branch and review PR publication only; no merge, production deployment, paid inference, settings change or historical memory migration."
     }
   }
 }

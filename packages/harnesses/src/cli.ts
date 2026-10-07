@@ -82,6 +82,8 @@ async function handleContentCommand(subcommand: string | undefined, args: string
     snapshotPathFor,
     validateManifest,
     writeAllContentSnapshots,
+    writeRuleProfileExports,
+    writeCanonicalDefinition,
   } = await import('./content/index.js');
   const manifest = buildManifest();
   // Same --project resolution as `manager` (GAP-421 content freshness runs from
@@ -276,6 +278,15 @@ async function handleContentCommand(subcommand: string | undefined, args: string
         process.exit(1);
       }
       const outputDir: string = rawOutput;
+      const ruleProfileDirectories: string[] = [];
+      const ruleIds: string[] = [];
+      for (const [index, flag] of args.entries()) {
+        if (flag !== '--rule-profile' && flag !== '--rule-id') continue;
+        const value = args[index + 1];
+        if (!value || value.startsWith('--')) throw new Error(`Missing value for ${flag}`);
+        (flag === '--rule-profile' ? ruleProfileDirectories : ruleIds).push(value);
+      }
+      const profileRuleCount = writeRuleProfileExports(manifest, ruleProfileDirectories, ruleIds);
 
       // 1. Write canonical definitions organized by type/tier
       const definitionTypes = [
@@ -288,10 +299,7 @@ async function handleContentCommand(subcommand: string | undefined, args: string
       let canonicalCount = 0;
       for (const { key, items } of definitionTypes) {
         for (const item of items) {
-          const tier = item.tier ?? 'oss';
-          const filePath = join(outputDir, key, tier, `${item.id}.md`);
-          mkdirSync(dirname(filePath), { recursive: true });
-          writeFileSync(filePath, item.content, 'utf-8');
+          writeCanonicalDefinition(outputDir, key, item);
           canonicalCount++;
         }
       }
@@ -367,6 +375,7 @@ async function handleContentCommand(subcommand: string | undefined, args: string
 
       process.stdout.write(`✓ Exported to ${outputDir}\n`);
       process.stdout.write(`  Canonical definitions: ${canonicalCount}\n`);
+      if (profileRuleCount) process.stdout.write(`  Profile rule copies: ${profileRuleCount}\n`);
       process.stdout.write(
         `  Generator output: ${generatedCount} files (${generatorIds.join(', ')})\n`,
       );
@@ -865,6 +874,7 @@ Content Subcommands:
   content snapshot [--check|--write] [--generator <id>]  Definition ↔ committed snapshot (GAP-406)
   content sync [--generator <id>] [--dry-run]  Generate into .revealui/content (default generator)
   content export --output <path>    Export canonical + generated files to directory
+    [--rule-profile <rules-dir>] [--rule-id <id>] (repeatable; selected canonical profile copies)
   content pull [--generator <id>] [--tier oss|pro|all]  Pull rules from rules repo
 
 Hotfix Subcommands (prefer durable root-cause fixes; register only as debt):

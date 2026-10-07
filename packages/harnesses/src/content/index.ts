@@ -38,7 +38,7 @@
  * ```
  */
 
-import { readFileSync } from 'node:fs';
+import { lstatSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { buildManifest } from './definitions/index.js';
 import { generateContent } from './generators/index.js';
@@ -217,4 +217,65 @@ export function listContent(manifest?: Manifest): ContentSummary {
     preambles: m.preambles.length,
     total: m.rules.length + m.commands.length + m.agents.length + m.skills.length,
   };
+}
+
+/** Export selected canonical rules to declared, existing profile rule directories. */
+export function writeRuleProfileExports(
+  manifest: Manifest,
+  directories: string[],
+  ruleIds: string[],
+): number {
+  if (directories.length === 0) return 0;
+  if (ruleIds.length === 0)
+    throw new Error('Profile rule export requires explicit --rule-id selection');
+  const selected = [...new Set(ruleIds)].map((id) => {
+    const rule = manifest.rules.find((candidate) => candidate.id === id);
+    if (!(rule && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id))) {
+      throw new Error(`Unknown canonical rule: ${id}`);
+    }
+    return rule;
+  });
+  const destinations = [...new Set(directories.map((directory) => resolve(directory)))].flatMap(
+    (directory) => {
+      if (!lstatSync(directory).isDirectory() || realpathSync(directory) !== directory) {
+        throw new Error('Profile rule directory must be a real, existing directory');
+      }
+      return selected.map((rule) => {
+        const destination = join(directory, `${rule.id}.md`);
+        try {
+          if (!lstatSync(destination).isFile() || lstatSync(destination).isSymbolicLink()) {
+            throw new Error('Profile rule destination must be a regular file');
+          }
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+        }
+        return { destination, content: rule.content };
+      });
+    },
+  );
+  for (const { destination, content } of destinations) writeFileSync(destination, content, 'utf8');
+  return destinations.length;
+}
+
+/** Canonical export replaces obsolete tier copies instead of retaining parallel definitions. */
+export function writeCanonicalDefinition(
+  outputDir: string,
+  kind: 'rules' | 'commands' | 'agents' | 'skills',
+  item: { id: string; tier?: 'oss' | 'pro'; content: string },
+): void {
+  const tier = item.tier ?? 'oss';
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item.id))
+    throw new Error('Invalid canonical definition id');
+  const stale = join(outputDir, kind, tier === 'oss' ? 'pro' : 'oss', `${item.id}.md`);
+  try {
+    if (!lstatSync(stale).isFile() || lstatSync(stale).isSymbolicLink()) {
+      throw new Error('Obsolete tier destination must be a regular file');
+    }
+    rmSync(stale);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+  }
+  const directory = join(outputDir, kind, tier);
+  mkdirSync(directory, { recursive: true });
+  writeFileSync(join(directory, `${item.id}.md`), item.content, 'utf8');
 }

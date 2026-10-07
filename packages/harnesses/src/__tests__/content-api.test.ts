@@ -1,5 +1,15 @@
-import { describe, expect, it } from 'vitest';
-import { buildManifest, generateContent, listContent, validateManifest } from '../content/index.js';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { afterEach, describe, expect, it } from 'vitest';
+import {
+  buildManifest,
+  generateContent,
+  listContent,
+  validateManifest,
+  writeCanonicalDefinition,
+  writeRuleProfileExports,
+} from '../content/index.js';
 
 describe('Content Public API', () => {
   describe('buildManifest', () => {
@@ -124,5 +134,69 @@ describe('Content Public API', () => {
       expect(new Set(assignedRuleIds).size).toBe(assignedRuleIds.length);
       expect(assignedRuleIds.sort()).toEqual(ruleIds.sort());
     });
+  });
+});
+
+describe('canonical profile rule export', () => {
+  const roots: string[] = [];
+  const root = () => {
+    const directory = mkdtempSync(join(tmpdir(), 'canonical-rule-export-'));
+    roots.push(directory);
+    return directory;
+  };
+  afterEach(() => {
+    for (const directory of roots.splice(0)) rmSync(directory, { recursive: true, force: true });
+  });
+  it('exports only selected rules and preserves adapted profile rules', () => {
+    const directory = root();
+    writeFileSync(join(directory, 'agent-dispatch.md'), 'adapted routing');
+    const manifest = buildManifest();
+    expect(writeRuleProfileExports(manifest, [directory], ['durable-solutions'])).toBe(1);
+    expect(readFileSync(join(directory, 'durable-solutions.md'), 'utf8')).toBe(
+      manifest.rules.find((rule) => rule.id === 'durable-solutions')!.content,
+    );
+    expect(readFileSync(join(directory, 'agent-dispatch.md'), 'utf8')).toBe('adapted routing');
+  });
+  it('rejects unknown selections and symlink destinations before any writes', () => {
+    const directory = root();
+    const protectedFile = join(root(), 'protected.md');
+    writeFileSync(protectedFile, 'owner content');
+    symlinkSync(protectedFile, join(directory, 'quality-over-speed.md'));
+    expect(() =>
+      writeRuleProfileExports(buildManifest(), [directory], ['durable-solutions', 'unknown-rule']),
+    ).toThrow('Unknown canonical rule');
+    expect(() =>
+      writeRuleProfileExports(
+        buildManifest(),
+        [directory],
+        ['durable-solutions', 'quality-over-speed'],
+      ),
+    ).toThrow('regular file');
+    expect(() => readFileSync(join(directory, 'durable-solutions.md'))).toThrow();
+    expect(readFileSync(protectedFile, 'utf8')).toBe('owner content');
+  });
+  it('removes an obsolete tier copy through canonical export', () => {
+    const directory = root();
+    mkdirSync(join(directory, 'rules/pro'), { recursive: true });
+    writeFileSync(join(directory, 'rules/pro/durable-solutions.md'), 'obsolete rule');
+    writeCanonicalDefinition(directory, 'rules', {
+      id: 'durable-solutions',
+      tier: 'oss',
+      content: 'canonical rule',
+    });
+    expect(readFileSync(join(directory, 'rules/oss/durable-solutions.md'), 'utf8')).toBe(
+      'canonical rule',
+    );
+    expect(() => readFileSync(join(directory, 'rules/pro/durable-solutions.md'))).toThrow();
+  });
+
+  it('enforces root-cause-only policy in canonical definitions', () => {
+    const manifest = buildManifest();
+    const durable = manifest.rules.find((rule) => rule.id === 'durable-solutions')!.content;
+    const quality = manifest.rules.find((rule) => rule.id === 'quality-over-speed')!.content;
+    expect(durable).toContain('registry entry does not make them acceptable fixes');
+    expect(durable).toContain('never authorizes a new one-off');
+    expect(durable).not.toContain('hotfix register');
+    expect(quality).toContain('never ship one-offs or registry-backed exceptions');
   });
 });
