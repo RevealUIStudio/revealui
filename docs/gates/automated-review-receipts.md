@@ -38,8 +38,10 @@ retry and receipt-ID collision rejection. The controller observes
 subscription-based GitHub review evidence and evaluates candidate receipts in
 shadow mode. The base-trusted security workflow can independently verify a
 receipt carried by the controller App's exact-head check, but does not use it
-to clear the active owner gate. Runtime receipt publication and merge
-authorization remain disabled.
+to clear the active owner gate. The controller also has a disabled-by-default
+`publish` mode that stores an eligible signed receipt before publishing an
+App-owned check, with durable expiration work. No controller is deployed, and
+the mode has no merge authority under the current rules.
 
 The isolated `apps/review-controller` service authenticates webhook
 signatures, checks the configured repository and App installation IDs, and
@@ -57,8 +59,8 @@ envelope carried by the configured controller App's exact-head check run. It
 re-fetches PR state, binds head/base/merge-candidate and current required-check
 run identities and evidence digests, and verifies the receipt signature
 against protected public keys. A changed completion record invalidates a
-receipt even if a check-run identity is reused. The current owner-signature gate remains authoritative; the controller
-runtime does not yet publish receipts or request a merge.
+receipt even if a check-run identity is reused. The current owner-signature
+gate remains authoritative; the controller runtime does not request a merge.
 
 ## Current blockers and owning primitives
 
@@ -196,13 +198,23 @@ change.
 
 ## One-time bootstrap and plan constraints
 
-The founder or organization administrator performs one-time setup: install
-the narrowly scoped GitHub App, provision its isolated signing identity and
-receipt store, grant the App only the needed repository permissions, and
+The current repository owner, or later organization administrator, performs
+one-time setup: install the narrowly scoped GitHub App, provision its isolated
+signing identity and receipt store, grant the App only the needed repository
+permissions, and
 configure the required check to accept results only from that App. This is
 repository administration, not a per-PR command or review. Agent identities
 must not have App installation, ruleset administration, or secret-management
 permissions.
+
+`RevealUIStudio/revealui` remains under the current `RevealUIStudio` user
+account while its open PRs and drafts are resolved. Register the private App
+under that current owner for the shadow rollout and install it only on this
+repository. Before a later transfer to the `revealui-studio` organization,
+verify the App registration's ownership-transfer behavior and plan for any
+installation change. After transfer, revalidate the App and installation IDs,
+webhook delivery, repository scope, and expected source of the required check
+before relying on a receipt for admission.
 
 Private repository ruleset capabilities depend on the organization plan.
 Verify that `revealui-jv` can bind the required check to an expected App before
@@ -254,20 +266,20 @@ than relying on Actions artifact attestations for private-repository evidence.
 
 ## Cutover decision
 
-This proposal does not remove or weaken any active protection. The shared
-receipt verifier is an initial building block; it is not a controller, does
-not fetch current GitHub state, and cannot authorize a merge on its own.
-Implementation, shadow evidence, repository plan verification, App identity
-enforcement, and the cutover ruleset change must be reviewed and pass as one migration. The
+This proposal does not remove or weaken any active protection. The isolated
+controller and App check publisher exist, but are not deployed and cannot
+authorize a merge under the current rules. Shadow evidence, repository plan
+verification, trusted review provenance, App identity enforcement, and the
+cutover ruleset change must be reviewed and pass as one migration. The
 public and private repositories may cut over at different times. Until then,
 the existing manual gate remains in force, and its per-PR burden is recorded
 as a known blocker rather than hidden behind a one-off shortcut.
 
-The implementation follow-up remains in this owning path: connect the
-controller runtime to immutable receipt storage and App check publication;
-deploy the isolated controller; configure the App-bound required check; and
-evaluate `merge_group` candidates before changing any active rule. Validation
-must
-cover stale checks, counterfeit same-name checks from another App, moved
-base/head, merge conflicts, incomplete file manifests, controller and API
-outages, receipt replay, key rotation, and actual source-App enforcement.
+The implementation follow-up remains in this owning path: provision and deploy
+the isolated controller, validate live receipt publication and expiration,
+establish trusted review provenance, configure the App-bound required check,
+and evaluate `merge_group` candidates before changing any active rule.
+Validation must cover stale checks, counterfeit same-name checks from another
+App, moved base/head, merge conflicts, incomplete file manifests, controller
+and API outages, receipt replay, key rotation, and actual source-App
+enforcement.
