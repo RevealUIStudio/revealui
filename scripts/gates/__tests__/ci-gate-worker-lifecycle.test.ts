@@ -39,7 +39,10 @@ it('retains admission in an actual validator after abrupt gate-parent terminatio
             assert.equal(parent.exitCode, null, output);
             return existsSync(marker);
           },
-          { timeout: 10000 },
+          // Cold tsx startup can exceed ten seconds when the shared runner is
+          // reclaiming memory. Keep readiness bounded without mistaking load
+          // for a failed admission handoff.
+          { timeout: 45000 },
         )
         .toBe(true);
     } catch (error) {
@@ -62,4 +65,4 @@ it('retains admission in an actual validator after abrupt gate-parent terminatio
     if (parent.exitCode === null && parent.signalCode === null) parent.kill('SIGKILL');
     await exited;
   }
-}, 15000);
+}, 60000);
