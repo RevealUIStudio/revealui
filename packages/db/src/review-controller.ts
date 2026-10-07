@@ -3,11 +3,11 @@ import { createPool } from './pool.js';
 import { reviewControllerSchema } from './schema/internal/review-controller.js';
 
 export {
+  reviewControllerSchema,
   reviewControllerShadowObservations,
   reviewControllerSignedReceipts,
   reviewControllerWebhookInbox,
 } from './schema/internal/review-controller.js';
-export { reviewControllerSchema } from './schema/internal/review-controller.js';
 
 export type ReviewControllerDatabase = ReturnType<typeof createReviewControllerDatabase>['db'];
 
