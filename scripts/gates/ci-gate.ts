@@ -390,6 +390,11 @@ export async function gate(): Promise<void> {
     const phase1Checks: CheckDef[] = [
       biomeCheck,
       { name: 'Push and gate admission contracts', command: 'pnpm', args: ['validate:push'] },
+      {
+        name: 'Security review gate unit tests',
+        command: 'pnpm',
+        args: ['validate:security-review-gate'],
+      },
       { name: 'Any type audit', command: 'pnpm', args: ['audit:any'], warnOnly: true },
       { name: 'Console audit', command: 'pnpm', args: ['audit:console'], warnOnly: true },
       {

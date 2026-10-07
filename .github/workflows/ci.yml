@@ -209,6 +209,9 @@ jobs:
       - name: Push and gate admission contracts
         run: pnpm validate:push
 
+      - name: Security review gate unit tests
+        run: pnpm validate:security-review-gate
+
       - name: Biome lint (hard fail)
         run: pnpm lint
 

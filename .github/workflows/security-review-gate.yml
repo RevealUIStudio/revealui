@@ -17,6 +17,8 @@
 # until org-migration companion (design §Review-trigger).
 #
 # Permissions stay least-privilege: pull_request_target defaults are wider.
+# checks: read lists check runs. This job cannot create them.
+# The review controller App private key is not available to this job.
 
 name: Security Review Gate
 
@@ -34,6 +36,7 @@ concurrency:
 permissions:
   contents: read
   pull-requests: read
+  checks: read
 
 jobs:
   security-review-gate:
@@ -79,6 +82,7 @@ jobs:
             scripts/validate/guardrail2-verdict.cjs
             scripts/validate/gates-resolver.cjs
             scripts/validate/security-paths.shared.json
+            scripts/validate/receipt-sensitive-paths.json
             package.json
             pnpm-workspace.yaml
             pnpm-lock.yaml
@@ -114,6 +118,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REVEALFLEET_OVERRIDE_SIGNERS: ${{ vars.REVEALFLEET_OVERRIDE_SIGNERS }}
+          REVEALFLEET_REVIEW_CONTROLLER_APP_ID: ${{ vars.REVEALFLEET_REVIEW_CONTROLLER_APP_ID }}
+          REVEALFLEET_REVIEW_CONTROLLER_APP_SLUG: ${{ vars.REVEALFLEET_REVIEW_CONTROLLER_APP_SLUG }}
         run: |
           set -euo pipefail
           node scripts/validate/security-review-gate.cjs \

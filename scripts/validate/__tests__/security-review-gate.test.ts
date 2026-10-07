@@ -535,3 +535,430 @@ it('real SSHSIG passes through the existing compiled resolver and sensitive gate
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+const {
+  SENSITIVE_PATH_CLASSES,
+  RECEIPT_CHECK_NAME,
+  RECEIPT_APP_ID_VAR,
+  RECEIPT_APP_SLUG_VAR,
+  classifySensitiveFiles,
+  reviewAdmission,
+  verifyAppReceiptCheck,
+  verifyIndependentApproval,
+  readReceiptControllerConfig,
+  buildReceiptAdmission,
+} = require('../security-review-gate.cjs');
+
+const APP_ID = 4242;
+const APP_SLUG = 'example-review-controller';
+const HEAD = 'a'.repeat(40);
+const OTHER_HEAD = 'b'.repeat(40);
+const receiptOk = { ok: true, url: 'https://example.test/check/10' };
+
+interface ReceiptRun {
+  id: number;
+  name: string;
+  head_sha: string;
+  status: string;
+  conclusion: string;
+  html_url: string;
+  app: { id: number; slug: string };
+}
+
+function receiptRun(overrides: Partial<ReceiptRun> = {}): ReceiptRun {
+  return {
+    id: 10,
+    name: RECEIPT_CHECK_NAME,
+    head_sha: HEAD,
+    status: 'completed',
+    conclusion: 'success',
+    html_url: 'https://example.test/check/10',
+    app: { id: APP_ID, slug: APP_SLUG },
+    ...overrides,
+  };
+}
+
+function classIds(file: string): string[] {
+  return classifySensitiveFiles([file]).flatMap((hit: { classes: string[] }) => hit.classes);
+}
+
+const SENSITIVE_SAMPLES = [
+  { id: 'workflows', file: '.github/workflows/ci.yml' },
+  { id: 'actions', file: '.github/actions/setup/action.yml' },
+  { id: 'auth', file: 'packages/auth/src/server/session.ts' },
+  { id: 'migrations', file: 'packages/db/migrations/meta/_journal.json' },
+  { id: 'gate', file: 'scripts/validate/security-review-gate.cjs' },
+  { id: 'codeowners', file: '.github/CODEOWNERS' },
+  { id: 'rulesets', file: '.github/rulesets/protect-main-test.json' },
+] as const;
+
+describe('sensitive path list', () => {
+  it('loads the class list from receipt-sensitive-paths.json only', () => {
+    const onDisk = JSON.parse(
+      readFileSync(join(__dirname, '../receipt-sensitive-paths.json'), 'utf8'),
+    ) as { classes: Array<{ id: string; markers: string[] }> };
+    expect(SENSITIVE_PATH_CLASSES).toEqual(
+      onDisk.classes.map((entry) => ({ id: entry.id, markers: entry.markers })),
+    );
+    expect(SENSITIVE_PATH_CLASSES.map((entry: { id: string }) => entry.id)).toEqual([
+      'workflows',
+      'actions',
+      'auth',
+      'migrations',
+      'gate',
+      'codeowners',
+      'rulesets',
+    ]);
+  });
+
+  it.each(SENSITIVE_SAMPLES)('classifies $id via $file', ({ id, file }) => {
+    expect(classIds(file)).toContain(id);
+  });
+
+  it('covers auth, session, roles, permissions, admin access, and migration journals', () => {
+    for (const file of [
+      'packages/auth/src/server/session.ts',
+      'apps/admin/src/lib/utils/session-cookies.ts',
+      'apps/admin/src/lib/access/permissions/roles.ts',
+      'apps/admin/src/lib/auth/roles.ts',
+      'apps/admin/src/proxy.ts',
+      'packages/core/src/auth/access.ts',
+      'packages/security/src/authorization.ts',
+      'packages/db/migrations/0054_example.sql',
+      'packages/db/migrations/meta/_journal.json',
+      'scripts/validate/receipt-sensitive-paths.json',
+    ]) {
+      expect(classIds(file).length).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe('review controller receipt grant', () => {
+  const normal = 'packages/paywall/src/index.ts';
+
+  it('passes an owner SSHSIG on a sensitive path without an App receipt', () => {
+    expect(classIds('.github/workflows/ci.yml')).toContain('workflows');
+    expect(
+      decideReviewGate({
+        verdict: noMarker,
+        labels: [CLEAR_LABEL],
+        ownerVerification: { ok: true, url: 'signed-comment' },
+        receiptVerification: { ok: false },
+        independentApproval: { ok: false },
+        sensitive: true,
+      }),
+    ).toEqual({ action: 'clear', kind: 'owner-signature', url: 'signed-comment' });
+  });
+
+  it('passes an App receipt on a normal security path', () => {
+    expect(classifyFiles([normal])).toEqual([normal]);
+    expect(classifySensitiveFiles([normal])).toEqual([]);
+    expect(reviewAdmission([normal])).toMatchObject({ gated: true, sensitive: false });
+    expect(
+      decideReviewGate({
+        verdict: noMarker,
+        labels: [],
+        receiptVerification: receiptOk,
+        sensitive: false,
+      }),
+    ).toEqual({ action: 'clear', kind: 'app-receipt', url: receiptOk.url });
+  });
+
+  it.each(SENSITIVE_SAMPLES)('fails an App receipt alone on $id', ({ file }) => {
+    expect(reviewAdmission([file]).sensitive).toBe(true);
+    expect(
+      decideReviewGate({
+        verdict: noMarker,
+        labels: [],
+        receiptVerification: receiptOk,
+        independentApproval: { ok: false, reason: 'no-independent-approval' },
+        sensitive: true,
+      }),
+    ).toMatchObject({
+      action: 'hold',
+      kind: 'sensitive-needs-independent-review',
+    });
+  });
+
+  it('passes an App receipt plus an independent approval on a sensitive path', () => {
+    const approval = verifyIndependentApproval({
+      authorLogin: 'pr-author',
+      appSlug: APP_SLUG,
+      reviews: [
+        {
+          author: { login: 'pr-author' },
+          state: 'APPROVED',
+          submittedAt: '2026-10-07T00:00:00Z',
+        },
+        {
+          author: { login: `${APP_SLUG}[bot]` },
+          state: 'APPROVED',
+          submittedAt: '2026-10-07T00:01:00Z',
+        },
+        {
+          author: { login: 'independent-reviewer' },
+          state: 'APPROVED',
+          submittedAt: '2026-10-07T00:02:00Z',
+        },
+      ],
+    });
+    expect(approval).toEqual({ ok: true, reviewer: 'independent-reviewer' });
+    expect(
+      decideReviewGate({
+        verdict: noMarker,
+        labels: [],
+        receiptVerification: receiptOk,
+        independentApproval: approval,
+        sensitive: true,
+      }),
+    ).toEqual({
+      action: 'clear',
+      kind: 'app-receipt-and-review',
+      url: receiptOk.url,
+      reviewer: 'independent-reviewer',
+    });
+  });
+
+  it('rejects a receipt from a different app id even when the check name matches', () => {
+    const result = verifyAppReceiptCheck({
+      headSha: HEAD,
+      checkRuns: [receiptRun({ app: { id: 999, slug: APP_SLUG } })],
+      appId: APP_ID,
+      appSlug: APP_SLUG,
+    });
+    expect(result).toEqual({ ok: false, reason: 'receipt-app-mismatch' });
+    expect(
+      decideReviewGate({
+        verdict: noMarker,
+        labels: [],
+        receiptVerification: result,
+        sensitive: false,
+      }).action,
+    ).toBe('hold');
+  });
+
+  it('rejects a stale head SHA and accepts the same check on the current head', () => {
+    const stale = verifyAppReceiptCheck({
+      headSha: HEAD,
+      checkRuns: [receiptRun({ head_sha: OTHER_HEAD })],
+      appId: APP_ID,
+      appSlug: APP_SLUG,
+    });
+    expect(stale).toEqual({ ok: false, reason: 'stale-head' });
+    expect(
+      verifyAppReceiptCheck({
+        headSha: OTHER_HEAD,
+        checkRuns: [receiptRun({ head_sha: OTHER_HEAD })],
+        appId: APP_ID,
+        appSlug: APP_SLUG,
+      }).ok,
+    ).toBe(true);
+  });
+
+  it('does not count an author self-review, including a different login case', () => {
+    const self = verifyIndependentApproval({
+      authorLogin: 'PR-Author',
+      appSlug: APP_SLUG,
+      reviews: [
+        {
+          author: { login: 'pr-author' },
+          state: 'APPROVED',
+          submittedAt: '2026-10-07T00:00:00Z',
+        },
+        {
+          author: { login: `${APP_SLUG}[bot]` },
+          state: 'APPROVED',
+          submittedAt: '2026-10-07T00:01:00Z',
+        },
+      ],
+    });
+    expect(self.ok).toBe(false);
+    expect(
+      decideReviewGate({
+        verdict: noMarker,
+        labels: [],
+        receiptVerification: receiptOk,
+        independentApproval: self,
+        sensitive: true,
+      }).action,
+    ).toBe('hold');
+  });
+
+  it('keeps a live REQUEST-CHANGES above an App receipt', () => {
+    expect(
+      decideReviewGate({
+        verdict: holdVerdict,
+        labels: [CLEAR_LABEL],
+        ownerVerification: { ok: true },
+        receiptVerification: receiptOk,
+        independentApproval: { ok: true, reviewer: 'independent-reviewer' },
+        sensitive: false,
+      }).kind,
+    ).toBe('request-changes');
+  });
+
+  it('rejects a same-named check from another slug and a differently named check from the App', () => {
+    expect(
+      verifyAppReceiptCheck({
+        headSha: HEAD,
+        checkRuns: [receiptRun({ app: { id: APP_ID, slug: 'other-app' } })],
+        appId: APP_ID,
+        appSlug: APP_SLUG,
+      }).reason,
+    ).toBe('receipt-app-mismatch');
+    expect(
+      verifyAppReceiptCheck({
+        headSha: HEAD,
+        checkRuns: [receiptRun({ name: 'Some other check' })],
+        appId: APP_ID,
+        appSlug: APP_SLUG,
+      }).ok,
+    ).toBe(false);
+  });
+
+  it('uses the newest matching check run, so a later failure invalidates an older success', () => {
+    expect(
+      verifyAppReceiptCheck({
+        headSha: HEAD,
+        checkRuns: [receiptRun({ id: 1 }), receiptRun({ id: 2, conclusion: 'failure' })],
+        appId: APP_ID,
+        appSlug: APP_SLUG,
+      }).reason,
+    ).toBe('receipt-check-not-success');
+  });
+
+  it('reads the App id and slug from repository variable names and ignores a partial pair', () => {
+    expect(readReceiptControllerConfig({})).toBeNull();
+    expect(readReceiptControllerConfig({ [RECEIPT_APP_ID_VAR]: String(APP_ID) })).toEqual({
+      ok: false,
+    });
+    expect(
+      readReceiptControllerConfig({
+        [RECEIPT_APP_ID_VAR]: String(APP_ID),
+        [RECEIPT_APP_SLUG_VAR]: APP_SLUG,
+      }),
+    ).toEqual({ ok: true, appId: APP_ID, appSlug: APP_SLUG });
+  });
+
+  it('treats a check run fetched for the current head as stale when its head_sha differs', () => {
+    const calls: string[][] = [];
+    const result = buildReceiptAdmission(
+      {
+        headSha: HEAD,
+        authorLogin: 'pr-author',
+        reviews: [],
+        files: [normal],
+        repo: target,
+        ghImpl: (args: string[]) => {
+          calls.push(args);
+          return JSON.stringify([
+            {
+              check_runs: [receiptRun({ head_sha: OTHER_HEAD })],
+            },
+          ]);
+        },
+      },
+      {
+        [RECEIPT_APP_ID_VAR]: String(APP_ID),
+        [RECEIPT_APP_SLUG_VAR]: APP_SLUG,
+      },
+    );
+    expect(calls[0]?.join(' ')).toContain(`/commits/${HEAD}/check-runs`);
+    expect(result.receiptVerification).toEqual({ ok: false, reason: 'stale-head' });
+    expect(result.sensitive).toBe(false);
+  });
+
+  it('counts an exact-head App receipt for promotion coverage and ignores a sensitive receipt alone', () => {
+    vi.stubEnv(RECEIPT_APP_ID_VAR, String(APP_ID));
+    vi.stubEnv(RECEIPT_APP_SLUG_VAR, APP_SLUG);
+    const featureSha = 'c'.repeat(40);
+    const run = (files: string) => (args: string[]) => {
+      const endpoint = args[1] ?? '';
+      if (endpoint.includes('/pulls?')) {
+        return JSON.stringify([
+          [
+            {
+              number: 91,
+              merged_at: '2026-10-07T00:00:00Z',
+              base: { repo: { full_name: target } },
+              head: { sha: HEAD },
+            },
+          ],
+        ]);
+      }
+      if (args[0] === 'pr') {
+        return JSON.stringify({
+          labels: [],
+          author: { login: 'pr-author' },
+          headRefOid: HEAD,
+          mergedAt: '2026-10-07T00:00:00Z',
+        });
+      }
+      if (endpoint.includes('/comments?') || endpoint.includes('/reviews?')) return '[[]]';
+      if (endpoint.includes('/files')) return files;
+      if (endpoint.includes('/check-runs')) {
+        return JSON.stringify([{ check_runs: [receiptRun()] }]);
+      }
+      if (endpoint.endsWith('/commits')) return `${featureSha}\n`;
+      throw new Error(`unexpected endpoint ${args.join(' ')}`);
+    };
+    expect(
+      fetchCommitPulls(featureSha, target, 99, run('packages/paywall/src/index.ts\n')),
+    ).toEqual([{ number: 91, hasVerdict: true }]);
+    expect(
+      fetchCommitPulls(featureSha, target, 99, run('.github/workflows/ci.yml\n'))[0]?.hasVerdict,
+    ).toBe(false);
+  });
+
+  it('clears a non-sensitive record from the receipt when the request label is absent', () => {
+    expect(
+      verifyPrOwnerRecord(
+        { author: { login: 'pr-author' }, labels: [], headRefOid: HEAD },
+        91,
+        target,
+        { comments: [], reviews: [] },
+        'anchor',
+        () => {
+          throw new Error('owner verifier must not run without a request label');
+        },
+        {
+          receiptVerification: receiptOk,
+          independentApproval: { ok: false },
+          sensitive: false,
+        },
+      ),
+    ).toMatchObject({ action: 'clear', kind: 'app-receipt' });
+  });
+
+  it('does not let an unclassifiable file list pass on an App receipt alone', () => {
+    const admission = reviewAdmission(
+      Array.from({ length: MAX_CLASSIFIABLE_FILES }, () => 'docs/page.md'),
+    );
+    expect(admission.sensitive).toBe(true);
+    expect(
+      decideReviewGate({
+        verdict: noMarker,
+        labels: [],
+        receiptVerification: receiptOk,
+        sensitive: admission.sensitive,
+      }).action,
+    ).toBe('hold');
+  });
+});
+
+describe('security review gate workflow trust boundary', () => {
+  const yml = readFileSync(
+    join(__dirname, '../../../.github/workflows/security-review-gate.yml'),
+    'utf8',
+  );
+
+  it('reads check runs and the App identifiers, and does not receive the App private key', () => {
+    expect(yml).toContain('checks: read');
+    expect(yml).not.toContain('checks: write');
+    expect(yml).toContain(RECEIPT_APP_ID_VAR);
+    expect(yml).toContain(RECEIPT_APP_SLUG_VAR);
+    expect(yml).toContain('scripts/validate/receipt-sensitive-paths.json');
+    expect(yml).not.toContain('GITHUB_APP_PRIVATE_KEY');
+    expect(yml).not.toContain('PRIVATE_KEY');
+  });
+});

@@ -300,6 +300,7 @@
     "validate:vscode-marketplace": "vitest run scripts/validate/__tests__/vscode-marketplace-package.test.ts && tsx scripts/validate/vscode-marketplace-package.ts",
     "package:vscode-plugin": "tsx scripts/validate/vscode-marketplace-package.ts --pack",
     "validate:secret-paths": "vitest run scripts/sync/__tests__/secret-paths-lockstep.test.ts",
+    "validate:security-review-gate": "pnpm --filter @revealui/harnesses exec tsup --config tsup.gates-cjs.ts && vitest run scripts/validate/__tests__/security-review-gate.test.ts",
     "validate:ci-path-filters": "vitest run scripts/ci/__tests__/expensive-suite.test.ts",
     "validate:doc-currency": "tsx scripts/validate/doc-currency.ts",
     "validate:rules-lockstep": "tsx scripts/validate/rules-lockstep.ts",

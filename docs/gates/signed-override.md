@@ -127,3 +127,7 @@ package, frozen dependency locks resolve that release, focused and required
 checks pass, and the owner supplies the public trust anchor. Existing bypass
 settings are separate owner dispositions after end-to-end verification. Do not
 close GAP-313 on a helper-only implementation or use a label-only fallback.
+
+## Review controller receipt
+
+The owner SSHSIG remains a full grant, including on sensitive paths. A pull request can also clear on a successful `RevealUI Receipt` check from the review controller App when that check is bound to the exact head. Sensitive paths still need an independent approval in addition to that check. Labels do not grant either path. See [review controller receipts](./review-controller-receipt.md).

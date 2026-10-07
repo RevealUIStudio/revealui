@@ -75,6 +75,7 @@ All workflows live in [`.github/workflows/`](../.github/workflows/).
 |------|---------|---------|
 | [`ci.yml`](../.github/workflows/ci.yml) | push/PR to `test`/`main` | Two-tier CI gate: quality + typecheck + tests + build (test); + integration + E2E + coverage (main) |
 | [`security.yml`](../.github/workflows/security.yml) | push/PR + weekly Mon 09:00 UTC | Native security gate: `pnpm audit`, custom secret/credential checks |
+| [`security-review-gate.yml`](../.github/workflows/security-review-gate.yml) | `pull_request_target` on `test` and `main` | Required review gate. Owner SSHSIG, or a review controller receipt check on the exact head. Sensitive paths also need an independent approval. |
 | [`deploy.yml`](../.github/workflows/deploy.yml) | push to `main`, workflow_dispatch | Production deploy: validate → migrate → detect-affected → matrix deploy → smoke test → auto-rollback on failure |
 | [`deploy-test.yml`](../.github/workflows/deploy-test.yml) | workflow_dispatch | On-demand QA preview deploys (Vercel preview env, manual only) |
 | [`release.yml`](../.github/workflows/release.yml) | workflow_dispatch | OSS npm publish via OIDC trusted publishing (SLSA Build Level 2 provenance) |
@@ -87,6 +88,16 @@ All workflows live in [`.github/workflows/`](../.github/workflows/).
 | [`no-submodules.yml`](../.github/workflows/no-submodules.yml) | push/PR | Hard-fail if a `.gitmodules` is added |
 
 Pinned action versions and SHAs are kept in lockstep with Renovate (`renovate.json5`).
+
+## Security review gate
+
+`security-review-gate.yml` is a required status check. The job name stays `Security review gate`. The workflow definition comes from the base branch (`pull_request_target`), so a pull request cannot rewrite the gate for its own evaluation.
+
+A pull request that does not touch a security path or a sensitive path passes. Other pull requests pass with an owner SSHSIG bound to the exact head, or with a successful `RevealUI Receipt` check run on that head from the review controller App. The check is matched by app id and slug (`REVEALFLEET_REVIEW_CONTROLLER_APP_ID`, `REVEALFLEET_REVIEW_CONTROLLER_APP_SLUG`). The check name is not enough.
+
+Sensitive paths are listed only in `scripts/validate/receipt-sensitive-paths.json`: workflows, composite actions, auth (packages, session, roles, permissions, admin access), Drizzle migrations and journals, the gate itself, CODEOWNERS, and ruleset files. Those need the App receipt plus an approving review from an account other than the pull request author and the App, or the owner SSHSIG. The App receipt alone does not pass.
+
+Repository rulesets are not stored in this repo. Keep the required check name `Security review gate` in the GitHub ruleset that protects `test` and `main`. Do not add the App as a bypass actor. Full install, variable, and secret names are in [review controller receipts](./gates/review-controller-receipt.md).
 
 ---
 
