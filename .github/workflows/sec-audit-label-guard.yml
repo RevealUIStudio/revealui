@@ -95,7 +95,8 @@ jobs:
           set -euo pipefail
           # Same durable sparse contract as security-review-gate.yml:
           # tsup.gates-cjs.ts → dist/gates/index.cjs (gates-resolver SSOT).
-          pnpm install --frozen-lockfile --filter @revealui/harnesses --filter @revealui/dev
+          pnpm install --frozen-lockfile --filter @revealui/harnesses... --filter @revealui/dev
+          pnpm --filter @revealui/security... build
           pnpm --filter @revealui/harnesses exec tsup --config tsup.gates-cjs.ts
 
       - name: Guard the clearance label

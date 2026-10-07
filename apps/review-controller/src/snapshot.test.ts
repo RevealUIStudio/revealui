@@ -241,11 +241,23 @@ describe('exact changed-file content', () => {
         sha,
         size: 1,
         encoding: 'base64' as const,
-        content: '!!!!',
+        content: 'AB==',
       }),
     };
     await expect(fetchChangedFileContent(invalidEncoding, manifest)).rejects.toMatchObject({
       code: 'invalid_review_blob_encoding',
+    });
+
+    const sizeMismatch = {
+      getBlob: async (sha: string) => ({
+        sha,
+        size: 2,
+        encoding: 'base64' as const,
+        content: 'AA==',
+      }),
+    };
+    await expect(fetchChangedFileContent(sizeMismatch, manifest)).rejects.toMatchObject({
+      code: 'review_blob_size_mismatch',
     });
 
     const oversized = {

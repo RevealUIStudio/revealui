@@ -124,11 +124,8 @@ export async function fetchChangedFileContent(
         if (encoded.length > maxEncodedBytes || encoded.length % 4 !== 0)
           fail('invalid_review_blob_encoding');
         const bytes = Buffer.from(encoded, 'base64');
-        if (
-          bytes.toString('base64') !== encoded ||
-          bytes.length !== blob.size ||
-          bytes.length > 256 * 1024
-        )
+        if (bytes.toString('base64') !== encoded) fail('invalid_review_blob_encoding');
+        if (bytes.length !== blob.size || bytes.length > 256 * 1024)
           fail('review_blob_size_mismatch');
         totalBytes += bytes.length;
         if (totalBytes > MAX_REVIEW_CONTENT_BYTES) fail('review_content_limit');
