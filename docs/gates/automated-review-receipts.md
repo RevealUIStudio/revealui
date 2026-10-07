@@ -55,8 +55,9 @@ These observations evaluate subscription-based review evidence in shadow mode.
 The base-trusted security gate now has a separate shadow verifier for a signed
 envelope carried by the configured controller App's exact-head check run. It
 re-fetches PR state, binds head/base/merge-candidate and current required-check
-run identities, and verifies the receipt signature against protected public
-keys. The current owner-signature gate remains authoritative; the controller
+run identities and evidence digests, and verifies the receipt signature
+against protected public keys. A changed completion record invalidates a
+receipt even if a check-run identity is reused. The current owner-signature gate remains authoritative; the controller
 runtime does not yet publish receipts or request a merge.
 
 ## Current blockers and owning primitives

@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import {
   type ReviewReceipt,
   type ReviewReceiptContext,
+  reviewReceiptCheckEvidenceSha256,
   signReviewReceipt,
 } from '@revealui/security/review-receipt';
 import { GitHubAppError, type GitHubCheckRun } from './github-app.js';
@@ -81,18 +82,16 @@ export function signCandidateReceipt(input: {
       checkRunId: run.id,
       checkSuiteId: run.check_suite.id,
       conclusion: 'success' as const,
-      evidenceSha256: sha256(
-        JSON.stringify({
-          name: run.name,
-          appId: run.app.id,
-          checkRunId: run.id,
-          checkSuiteId: run.check_suite.id,
-          headSha: run.head_sha,
-          status: run.status,
-          conclusion: run.conclusion,
-          completedAt: run.completed_at,
-        }),
-      ),
+      evidenceSha256: reviewReceiptCheckEvidenceSha256({
+        name: run.name,
+        appId: run.app.id,
+        checkRunId: run.id,
+        checkSuiteId: run.check_suite.id,
+        headSha: run.head_sha,
+        status: run.status,
+        conclusion: run.conclusion,
+        completedAt: run.completed_at,
+      }),
     };
   });
 

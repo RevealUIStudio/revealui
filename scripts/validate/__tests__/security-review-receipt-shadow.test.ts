@@ -10,6 +10,16 @@ const now = new Date('2026-10-07T12:00:00.000Z');
 
 function fixture(overrides: Record<string, unknown> = {}) {
   const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+  const currentCheckRun = {
+    name: 'CI / test',
+    app: { id: 20 },
+    head_sha: sha('a'),
+    status: 'completed',
+    conclusion: 'success',
+    completed_at: '2026-10-07T11:45:00.000Z',
+    id: 101,
+    check_suite: { id: 201 },
+  };
   const context = {
     repositoryId: 1234,
     repositoryFullName: 'RevealUIStudio/revealui',
@@ -73,7 +83,16 @@ function fixture(overrides: Record<string, unknown> = {}) {
           checkRunId: 101,
           checkSuiteId: 201,
           conclusion: 'success',
-          evidenceSha256: digest('2'),
+          evidenceSha256: gates.reviewReceiptCheckEvidenceSha256({
+            name: currentCheckRun.name,
+            appId: currentCheckRun.app.id,
+            checkRunId: currentCheckRun.id,
+            checkSuiteId: currentCheckRun.check_suite.id,
+            headSha: currentCheckRun.head_sha,
+            status: currentCheckRun.status,
+            conclusion: currentCheckRun.conclusion,
+            completedAt: currentCheckRun.completed_at,
+          }),
         },
       ],
       decision: 'approve',
@@ -101,17 +120,7 @@ function fixture(overrides: Record<string, unknown> = {}) {
     baseTreeSha: context.baseTreeSha,
     mergeCandidateTreeSha: context.mergeCandidateTreeSha,
     requiredChecks: [{ name: 'CI / test', appId: 20 }],
-    currentCheckRuns: [
-      {
-        name: 'CI / test',
-        app: { id: 20 },
-        head_sha: context.headSha,
-        status: 'completed',
-        conclusion: 'success',
-        id: 101,
-        check_suite: { id: 201 },
-      },
-    ],
+    currentCheckRuns: [currentCheckRun],
     trustedKeys: { 'review-controller-2026-01': publicKey.export({ type: 'spki', format: 'pem' }) },
     policyVersion: context.policyVersion,
     maxLifetimeMs: context.maxReceiptLifetimeMs,
@@ -146,6 +155,23 @@ describe('security review receipt shadow verification', () => {
             head_sha: sha('a'),
             status: 'completed',
             conclusion: 'failure',
+            id: 101,
+            check_suite: { id: 201 },
+          },
+        ],
+      },
+    ],
+    [
+      'a rerun of the same check identity',
+      {
+        currentCheckRuns: [
+          {
+            name: 'CI / test',
+            app: { id: 20 },
+            head_sha: sha('a'),
+            status: 'completed',
+            conclusion: 'success',
+            completed_at: '2026-10-07T11:50:00.000Z',
             id: 101,
             check_suite: { id: 201 },
           },

@@ -6,6 +6,7 @@ import {
   REVIEW_RECEIPT_SCHEMA,
   type ReviewReceipt,
   type ReviewReceiptContext,
+  reviewReceiptCheckEvidenceSha256,
   signReviewReceipt,
   verifyReviewReceipt,
 } from '../review-receipt.js';
@@ -36,6 +37,36 @@ const expected: ReviewReceiptContext = {
   maxReceiptLifetimeMs: 6 * 60 * 60 * 1000,
   now,
 };
+
+describe('review receipt check evidence digest', () => {
+  const current = {
+    name: 'CI',
+    appId: 77,
+    checkRunId: 101,
+    checkSuiteId: 201,
+    headSha: sha('a'),
+    status: 'completed',
+    conclusion: 'success',
+    completedAt: '2026-10-06T11:55:00Z',
+  };
+
+  it('is stable for one current run and changes when the same check is rerun', () => {
+    const original = reviewReceiptCheckEvidenceSha256(current);
+    expect(reviewReceiptCheckEvidenceSha256(current)).toBe(original);
+    expect(
+      reviewReceiptCheckEvidenceSha256({ ...current, completedAt: '2026-10-06T12:05:00Z' }),
+    ).not.toBe(original);
+  });
+
+  it('rejects non-successful or incomplete observations', () => {
+    expect(() => reviewReceiptCheckEvidenceSha256({ ...current, conclusion: 'failure' })).toThrow(
+      'invalid review receipt check evidence',
+    );
+    expect(() =>
+      reviewReceiptCheckEvidenceSha256({ ...current, completedAt: 'not-a-time' }),
+    ).toThrow('invalid review receipt check evidence');
+  });
+});
 
 function receipt(overrides: Partial<ReviewReceipt> = {}): ReviewReceipt {
   return {

@@ -124,7 +124,9 @@ The gate's independent shadow verifier uses repository variables
 PEM keys), `REVIEW_RECEIPT_POLICY_VERSION`,
 `REVIEW_RECEIPT_MAX_LIFETIME_MS`, and `REVIEW_RECEIPT_REQUIRED_CHECKS`. It reads
 the envelope only from the configured controller App's exact-head `RevealUI
-Receipt` check summary, then re-fetches the PR to detect head/base movement.
+Receipt` check summary, verifies the live required-check evidence digests, then
+re-fetches the PR to detect head/base movement. A check rerun invalidates the
+receipt even if GitHub reuses its check-run and suite IDs.
 Invalid or unavailable shadow evidence is logged but does not alter the
 existing gate decision. These variables are not sufficient to enable runtime
 publication or to clear the owner gate.

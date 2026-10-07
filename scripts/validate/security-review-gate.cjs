@@ -151,6 +151,30 @@ function verifyReceiptShadow(input) {
       !Number.isSafeInteger(run.id) ||
       !Number.isSafeInteger(run.check_suite?.id)
     ) return hold('receipt_required_check_missing_or_stale');
+    const signedChecks = Array.isArray(receipt.checks)
+      ? receipt.checks.filter((item) => item.name === selector.name && item.appId === selector.appId)
+      : [];
+    if (signedChecks.length !== 1) return hold('receipt_check_evidence_missing_or_ambiguous');
+    let evidenceSha256;
+    try {
+      evidenceSha256 = sharedGates.reviewReceiptCheckEvidenceSha256({
+        name: run.name,
+        appId: run.app.id,
+        checkRunId: run.id,
+        checkSuiteId: run.check_suite.id,
+        headSha: run.head_sha,
+        status: run.status,
+        conclusion: run.conclusion,
+        completedAt: run.completed_at,
+      });
+    } catch {
+      return hold('receipt_required_check_evidence_invalid');
+    }
+    if (
+      signedChecks[0].checkRunId !== run.id ||
+      signedChecks[0].checkSuiteId !== run.check_suite.id ||
+      signedChecks[0].evidenceSha256 !== evidenceSha256
+    ) return hold('receipt_required_check_rerun_or_changed');
     requiredChecks.push({
       name: selector.name,
       appId: selector.appId,

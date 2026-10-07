@@ -16,6 +16,7 @@ export {
   canonicalReviewReceiptEnvelope,
   parseReviewReceiptEnvelope,
   REVIEW_RECEIPT_SCHEMA,
+  reviewReceiptCheckEvidenceSha256,
   signReviewReceipt,
   verifyReviewReceipt,
 } from '@revealui/security/review-receipt';

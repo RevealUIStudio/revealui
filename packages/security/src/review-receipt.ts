@@ -6,7 +6,14 @@
  * merge. Callers must obtain expected context and trusted keys from protected
  * configuration and current GitHub API state.
  */
-import { createPrivateKey, createPublicKey, type KeyObject, sign, verify } from 'node:crypto';
+import {
+  createHash,
+  createPrivateKey,
+  createPublicKey,
+  type KeyObject,
+  sign,
+  verify,
+} from 'node:crypto';
 
 export const REVIEW_RECEIPT_SCHEMA = 'revealfleet-review-receipt/v1';
 const SHA_PATTERN = /^[a-f0-9]{40,64}$/;
@@ -80,6 +87,48 @@ export interface ReviewReceiptResult {
   ok: boolean;
   reason?: string;
   receiptId?: string;
+}
+
+/** Stable digest for the exact current successful GitHub check observation. */
+export function reviewReceiptCheckEvidenceSha256(input: {
+  name: string;
+  appId: number;
+  checkRunId: number;
+  checkSuiteId: number;
+  headSha: string;
+  status: string;
+  conclusion: string;
+  completedAt: string;
+}): string {
+  if (
+    !(
+      isNonEmptyString(input.name, 200) &&
+      isSafeInteger(input.appId, 1) &&
+      isSafeInteger(input.checkRunId, 1) &&
+      isSafeInteger(input.checkSuiteId, 1) &&
+      isSha(input.headSha)
+    ) ||
+    input.status !== 'completed' ||
+    input.conclusion !== 'success' ||
+    !isNonEmptyString(input.completedAt, 32) ||
+    !Number.isFinite(Date.parse(input.completedAt))
+  )
+    throw new Error('invalid review receipt check evidence');
+  return createHash('sha256')
+    .update(
+      JSON.stringify({
+        name: input.name,
+        appId: input.appId,
+        checkRunId: input.checkRunId,
+        checkSuiteId: input.checkSuiteId,
+        headSha: input.headSha,
+        status: input.status,
+        conclusion: input.conclusion,
+        completedAt: input.completedAt,
+      }),
+      'utf8',
+    )
+    .digest('hex');
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
