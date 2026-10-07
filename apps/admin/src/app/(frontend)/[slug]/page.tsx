@@ -1,17 +1,13 @@
-import { getSession } from '@revealui/auth/server';
-import type { RevealRequest } from '@revealui/core';
 import type { Page as PageType } from '@revealui/core/types/admin';
 import { logger } from '@revealui/utils/logger';
 import type { Metadata } from 'next';
-import { draftMode, headers } from 'next/headers';
+import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { cache } from 'react';
-import { isAdminRole } from '@/lib/access/roles/isAdminRole';
 import { RenderBlocks } from '@/lib/blocks/RenderBlocks';
 import { generateMeta } from '@/lib/cms/generateMeta';
+import { readPageCollection } from '@/lib/cms/page-reader';
 import { RevealUIRedirects } from '@/lib/components/RevealUIRedirects';
-import { extractRequestContext } from '@/lib/utils/request-context';
-import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 
 // Force dynamic rendering to prevent build-time RevealUI admin initialization
 export const dynamic = 'force-dynamic';
@@ -41,6 +37,7 @@ const RESERVED_AUTH_SLUGS = new Set([
   // Defense-in-depth: if routing priority ever changes, hard-404 here rather
   // than falling through to RevealUIRedirects with a reserved slug.
   'dashboard',
+  'client-shares',
 ]);
 
 // Removed generateStaticParams to prevent build-time initialization
@@ -122,45 +119,12 @@ const queryPageBySlug = cache(async ({ slug }: { slug: string }) => {
   try {
     const { isEnabled: draft } = await draftMode();
 
-    // Validate the session server-side. The proxy gate only checks cookie
-    // PRESENCE (and trusts a client-set `revealui-role`); the render path must
-    // not trust either. Draft / unpublished content is admin-only: only a real
-    // session whose role is in the admin set builds a user-bearing `req` and
-    // enables draft mode. Every other caller — anonymous, forged-cookie, or a
-    // non-admin (e.g. public-signup `user`) session — gets a user-LESS `req`
-    // so the collection's `authenticatedOrPublished` rule yields the
-    // published-only filter (NOT deny-all: passing `undefined` would trip
-    // find()'s `if (!req) return false` and 404 every public page).
-    const hdrs = await headers();
-    const requestContext = extractRequestContext(
-      new Request('http://localhost', { headers: hdrs }),
-    );
-    const session = await getSession(hdrs, requestContext);
-    const isAdmin = Boolean(session) && isAdminRole(session?.user.role);
-
-    const req: RevealRequest =
-      isAdmin && session
-        ? {
-            user: {
-              id: session.user.id,
-              email: session.user.email ?? '',
-              roles: [session.user.role],
-            },
-          }
-        : {};
-
-    const revealui = await getRevealUIInstance();
-
-    const result = await revealui.find({
-      collection: 'pages',
-      draft: draft && isAdmin,
+    // Every real session reaches the canonical site/page ACL. A draft cookie
+    // does not confer site editor authority; viewers remain published-only.
+    const result = await readPageCollection({
+      slug,
+      draft,
       limit: 1,
-      req,
-      where: {
-        slug: {
-          equals: slug,
-        },
-      },
     });
 
     return result.docs?.[0] || null;

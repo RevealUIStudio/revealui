@@ -326,6 +326,7 @@ app.openapi(
       },
       400: errorResponse('Invalid request body'),
       401: errorResponse('Authentication required'),
+      409: errorResponse('Owned domain cleanup required'),
     },
   }),
   async (c) => {
@@ -345,84 +346,94 @@ app.openapi(
     logger.info('Deletion request created', { userId: user.id, requestId: request.id });
 
     // Process the deletion immediately  -  anonymize PII and revoke sessions
-    await deletionSystem.processDeletion(request.id, async (userId, categories) => {
-      const db = getClient();
+    await deletionSystem
+      .processDeletion(request.id, async (userId, categories) => {
+        const db = getClient();
 
-      // Read stripeCustomerId before anonymization overwrites the user row
-      const [userRow] = await db
-        .select({ stripeCustomerId: users.stripeCustomerId })
-        .from(users)
-        .where(eq(users.id, userId))
-        .limit(1);
+        // Read stripeCustomerId before anonymization overwrites the user row
+        const [userRow] = await db
+          .select({ stripeCustomerId: users.stripeCustomerId })
+          .from(users)
+          .where(eq(users.id, userId))
+          .limit(1);
 
-      const anonymized = await anonymizeUser(db, userId);
-      if (!anonymized) {
-        throw new Error(`User ${userId} not found for anonymization`);
-      }
+        const anonymized = await anonymizeUser(db, userId);
+        if (!anonymized) {
+          throw new Error(`User ${userId} not found for anonymization`);
+        }
 
-      await deleteAllUserSessions(userId);
+        await deleteAllUserSessions(userId);
 
-      // I-2: GDPR Article 17 — delete the Stripe customer so Stripe purges PII
-      // (name, email, billing address, payment methods). This is irreversible.
-      // Do NOT roll back the local anonymization if Stripe fails — the erasure
-      // has started and must complete; ops must follow up on 'failed' status.
-      const stripeCustomerId = userRow?.stripeCustomerId ?? null;
-      if (stripeCustomerId) {
-        const services = await getServices();
-        if (services) {
-          try {
-            await services.protectedStripe.customers.del(stripeCustomerId);
-            await updateUserStripeDeletion(db, userId, 'deleted');
-            logger.info('GDPR: Stripe customer deleted', { userId, stripeCustomerId });
-          } catch (stripeErr) {
-            const detail = stripeErr instanceof Error ? stripeErr.message : String(stripeErr);
+        // I-2: GDPR Article 17 — delete the Stripe customer so Stripe purges PII
+        // (name, email, billing address, payment methods). This is irreversible.
+        // Do NOT roll back the local anonymization if Stripe fails — the erasure
+        // has started and must complete; ops must follow up on 'failed' status.
+        const stripeCustomerId = userRow?.stripeCustomerId ?? null;
+        if (stripeCustomerId) {
+          const services = await getServices();
+          if (services) {
+            try {
+              await services.protectedStripe.customers.del(stripeCustomerId);
+              await updateUserStripeDeletion(db, userId, 'deleted');
+              logger.info('GDPR: Stripe customer deleted', { userId, stripeCustomerId });
+            } catch (stripeErr) {
+              const detail = stripeErr instanceof Error ? stripeErr.message : String(stripeErr);
+              logger.error(
+                'GDPR: stripe.customers.del failed — manual follow-up required',
+                undefined,
+                {
+                  userId,
+                  stripeCustomerId,
+                  detail,
+                },
+              );
+              await sendCronFailureAlert({
+                jobName: 'gdpr-stripe-customer-delete',
+                error: stripeErr instanceof Error ? stripeErr : new Error(detail),
+                severity: 'error',
+                metadata: { userId, stripeCustomerId, detail },
+              });
+              await updateUserStripeDeletion(db, userId, 'failed');
+            }
+          } else {
             logger.error(
-              'GDPR: stripe.customers.del failed — manual follow-up required',
+              'GDPR: Stripe service unavailable during erasure — stripeDeletionStatus=failed',
               undefined,
               {
                 userId,
                 stripeCustomerId,
-                detail,
               },
             );
             await sendCronFailureAlert({
               jobName: 'gdpr-stripe-customer-delete',
-              error: stripeErr instanceof Error ? stripeErr : new Error(detail),
+              error: new Error('Stripe service unavailable during GDPR erasure'),
               severity: 'error',
-              metadata: { userId, stripeCustomerId, detail },
+              metadata: { userId, stripeCustomerId },
             });
             await updateUserStripeDeletion(db, userId, 'failed');
           }
-        } else {
-          logger.error(
-            'GDPR: Stripe service unavailable during erasure — stripeDeletionStatus=failed',
-            undefined,
-            {
-              userId,
-              stripeCustomerId,
-            },
-          );
-          await sendCronFailureAlert({
-            jobName: 'gdpr-stripe-customer-delete',
-            error: new Error('Stripe service unavailable during GDPR erasure'),
-            severity: 'error',
-            metadata: { userId, stripeCustomerId },
-          });
-          await updateUserStripeDeletion(db, userId, 'failed');
         }
-      }
 
-      logger.info('GDPR deletion processed', {
-        userId,
-        requestId: request.id,
-        categories,
+        logger.info('GDPR deletion processed', {
+          userId,
+          requestId: request.id,
+          categories,
+        });
+
+        return {
+          deleted: ['profile', 'email', 'avatar', 'mfa', 'sessions', 'preferences'],
+          retained: ['billing_records', 'audit_logs'],
+        };
+      })
+      .catch((error: unknown) => {
+        if (
+          error instanceof Error &&
+          'code' in error &&
+          error.code === 'SITE_DOMAIN_CLEANUP_REQUIRED'
+        )
+          throw new HTTPException(409, { message: error.message });
+        throw error;
       });
-
-      return {
-        deleted: ['profile', 'email', 'avatar', 'mfa', 'sessions', 'preferences'],
-        retained: ['billing_records', 'audit_logs'],
-      };
-    });
 
     const processed = await deletionSystem.getRequest(request.id);
 

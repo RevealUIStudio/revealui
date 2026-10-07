@@ -8,14 +8,15 @@ import type {
   RevealRequest,
 } from '@revealui/core/types';
 import { getRestClient } from '@revealui/db/client';
-import { createPage, deletePage, getPageById, updatePage } from '@revealui/db/queries/pages';
-import { createPost, deletePost, getPostById, updatePost } from '@revealui/db/queries/posts';
 import {
-  actorCanManageSite,
-  getSiteById,
-  getSiteContentActor,
-  getSiteIdsForContentRead,
-} from '@revealui/db/queries/sites';
+  createPage,
+  deletePage,
+  getPageById,
+  pageContentReadCondition,
+  updatePage,
+} from '@revealui/db/queries/pages';
+import { createPost, deletePost, getPostById, updatePost } from '@revealui/db/queries/posts';
+import { actorCanManageSite, getSiteContentActor } from '@revealui/db/queries/sites';
 import { posts } from '@revealui/db/schema/admin';
 import { pages } from '@revealui/db/schema/pages';
 import { type Tenant as DbTenant, tenants } from '@revealui/db/schema/tenants';
@@ -605,15 +606,13 @@ async function findTypedPageByID(
   }
 
   const db = getRestClient();
-  const row = await getPageById(db, String(options.id));
-  if (!row) return null;
   const actor = await pageActor(options.req);
-  if (!actor) {
-    if (row.status !== 'published') return null;
-    const site = await getSiteById(db, row.siteId);
-    return site?.status === 'published' ? mapPageDocument(row) : null;
-  }
-  await requirePageSiteAuthority(actor, row.siteId);
+  const row = await getPageById(db, String(options.id), {
+    actor,
+    mode: getExplicitDeploymentMode(),
+    includePublic: true,
+  });
+  if (!row) return null;
   return mapPageDocument(row);
 }
 
@@ -637,11 +636,13 @@ async function findTypedPages(
   }
 
   const db = getRestClient();
-  const visibleSites = getSiteIdsForContentRead(db, actor, getExplicitDeploymentMode());
   const scopedWhere = and(
     where,
-    inArray(pages.siteId, visibleSites),
-    !actor ? eq(pages.status, 'published') : undefined,
+    pageContentReadCondition(db, {
+      actor,
+      mode: getExplicitDeploymentMode(),
+      includePublic: true,
+    }),
   );
   const limit = options.limit ?? 10;
   const page = options.page ?? 1;

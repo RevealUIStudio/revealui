@@ -118,9 +118,15 @@ Memory integration is optional  -  agents degrade gracefully without it. Require
 - **Text splitter**: Chunk documents for embedding
 - **File parsers**: Extract text from various formats
 - **Hybrid search**: BM25 (keyword) + vector (semantic) with reranking
-- **admin indexer**: Auto-indexes admin content for agent context
+- **admin indexer**: Auto-indexes site-backed pages, including private pages and drafts, from their canonical database content
 
 Embeddings stored in Postgres via pgvector. NeonDB is the canonical store for both metadata and vectors. Supabase was removed; RAG uses Neon `pgvector` only.
+
+Retrieval requires a live source page in the indexed site and an exact current title/blocks snapshot. The shared page/site ACL runs before vector ranking, hybrid reranking, context assembly, or document summarization: anonymous readers receive published public pages, current viewers receive published member pages, and editors retain draft access. Revoked memberships, deleted accounts/sites/pages, unpublished viewer content, changed bodies, and legacy global/mismatched indexes are excluded on every read. Trusted callers pass `userId` and `deploymentMode`; model tool arguments cannot supply an actor role.
+
+CMS ingestion accepts only `pages` with an explicit site workspace. The server indexes canonical scoped rows without fetching an unauthenticated collection API, requires current edit permission, and scopes deletion to that site. Lists and status use the same live-source predicate and send `Cache-Control: no-store`. Text/file/URL documents remain site-scoped editor content because they have no published page source.
+
+The former `DEFAULT_WORKSPACE_ID`/`default` fallback in `apps/admin/src/lib/ai/indexer.ts` and `packages/ai/src/ingestion/admin-indexer.ts`, arbitrary collection fetch in `apps/server/src/routes/rag-index.ts`, and unguarded vector/document readers in `packages/ai/src/ingestion/rag-vector-service.ts` have been removed. Normal page reindexing removes stale copies by canonical page source ID, including legacy global copies. Historical rows require canonical reindexing before retrieval; the reader never trusts their labels or old content. The global Posts collection has no site-backed source, so it is outside the supported RAG collections until its owning content model supplies site authorization. The privacy regression suites exercise the maintained PGlite/pgvector adapter with synthetic embeddings and no external AI calls.
 
 ## Caching Layers
 
@@ -163,6 +169,12 @@ mcp:             pro      MCP framework integration
 aiMemory:        pro      Working + episodic memory
 aiInference:     max      Open-model inference configuration (snaps, harness)
 ```
+
+## Local profile storage
+
+`local-ai-profile.ts` owns the profile JSON and its companion shell environment file. The default user bundle retains `~/.local/share/revealui/inference-profile.json` and `~/.config/revealui/local-ai.active.env`. An explicit profile path, including the supported profile-path configuration, writes `local-ai.active.env` beside that profile rather than mutating the default user's shell file. `createLLMClientFromEnv({ profilePath, env })` accepts an explicit profile location and configuration context through the same loader. Calls without options retain `process.env` and the existing user profile. Hosted mode returns before reading local storage.
+
+The previous `saveLocalAiProfile(profile, fixturePath)` implementation still wrote its companion file under the host user's home. `local-ai-profile.test.ts` even documented and accepted that implicit host mutation. Provider-factory tests also cleared provider env keys while still reading the host profile. Both exceptions are removed: storage tests assert the actual companion fixture, and provider/warning tests use isolated configuration data and an explicit temporary profile path through the maintained factory. These fixtures do not depend on a host profile, host-file writes, or environment/worker overrides.
 
 ## Environment Variables
 
