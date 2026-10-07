@@ -322,9 +322,7 @@
       {
         "id": "HARNESS-CODEX-APPROVAL-UI",
         "owner": "@revealui/harnesses and consuming host UI",
-        "owningPaths": [
-          "packages/harnesses/src/adapters/codex-adapter.ts"
-        ],
+        "owningPaths": ["packages/harnesses/src/adapters/codex-adapter.ts"],
         "failingBehavior": "Host callback is implemented, but no packaged host review UI is supplied.",
         "durableTarget": "Wire the consuming host review surface to onApproval with the native request details and AbortSignal.",
         "validationNeeded": "User accept/decline/cancel, expired review, cancellation, server resolution, and no late grants in the consuming host."
@@ -424,10 +422,7 @@
           "provenanceValidation": "38 focused graph tests passed across audit, publication, scoped reads and replica replay; seven new cases cover immutable payload preservation, node-only evidence, historical ambiguity, read-only inventory, tampering, transaction rollback/idempotence and edge provenance. Graph build and typecheck passed. Built audit CLI rejects --publish before database access. All 20 MCP product-mode integration cases passed against the rebuilt graph package; no production database access or inference calls.",
           "availabilityLimit": "Unattested scan nodes, contaminated actors and their incident edges remain inaccessible to authenticated readers until authoritative reconstruction. A later publication cannot erase or bless unknown historical metadata. Fresh snapshots permit reads only when all required endpoints and metadata are attested.",
           "archiveSearch": {
-            "searchedRoots": [
-              "fleet checkout",
-              "user home"
-            ],
+            "searchedRoots": ["fleet checkout", "user home"],
             "examinedDaemonSessions": 240,
             "examinedSessionLedgerEntries": 240,
             "sessionArchiveContents": "Session identity, task, notes and exit metadata; no authored node or edge publication payload.",
@@ -657,7 +652,27 @@
       "failingBehavior": "Local integration commits are based on a test history that has diverged from live GitHub. Direct publication would not reconcile newer server changes.",
       "durableTarget": "Reconcile the integration series onto each verified current test branch in an isolated clean checkout. Preserve the existing patched dependencies, shared typed database and transaction contracts, and vendor-neutral policy ownership; regenerate consumers through their maintained owners. Publish through the maintained push admission path after the required validations and session authorization.",
       "validationNeeded": "Validate the resulting integrated source, canonical identity, portable native distribution, authenticated memory provenance and scoped reads, manager path support, source freshness and both lockstep gates. Confirm protected-branch required checks and app access before publication. Revalidate memory queries and transaction rollback against the shared database contract, preserve MCP SDK 1.31 and dependency overrides, retain the 25-minute CI suite timeout, and use the maintained clean-checkout push admission and planning projection lockstep gates.",
-      "localResolution": "Integration replay and durable ownership/projection corrections are committed on isolated branches after the recorded validations. Publication and protected-branch/App access verification remain separate actions."
+      "localResolution": "Integration replay and durable ownership/projection corrections are committed on isolated branches after the recorded validations. Publication and protected-branch/App access verification remain separate actions.",
+      "qualityBoundary": {
+        "owner": "Biome source selection; harness manager and RevCon generated-copy checks",
+        "priorBehavior": "Byte-preserving generated ownership ledgers and vendored skill reference examples were linted as application source.",
+        "durableTarget": "Exclude ownership metadata and reference bundles uniformly by artifact class, while continuing to lint maintained application and harness source. Generated content continues to be validated by its existing materialization and ownership checks.",
+        "validation": "Full application lint; archive namespace fixture and existing ownership checks.",
+        "inventory": "Native Grok documentation copies had been reformatted by application formatter hooks, leaving their recorded source hashes stale. Their maintained profile sources remain authoritative; generated-copy repair is tracked separately rather than adopting local edits.",
+        "projectionRecovery": {
+          "id": "NATIVE-PROJECTION-FORMAT-RECOVERY",
+          "status": "tracked; existing modified-copy protection prevents automatic replacement",
+          "owner": "RevCon projection ownership and application formatter scope",
+          "owningPaths": [
+            "RevCon link.sh snapshot_projection_ownership",
+            "RevealUI .grok/skills/tailwind-4-docs/references/{docs-index.tsx,docs/utils/colors.ts}",
+            "RevealUI biome.json"
+          ],
+          "failingBehavior": "Earlier formatter hooks changed byte-preserving vendor copies without updating their source ownership records. Normal projection refresh correctly refuses modified copies.",
+          "durableTarget": "Add source-verifiable recovery to the maintained projection primitive, preserving genuine user edits; regenerate reference consumers through that primitive.",
+          "validationNeeded": "Reject arbitrary edits and untrusted ledgers; recover only copies proven to match an approved formatting transform or immutable source history; verify source hashes after regeneration."
+        }
+      }
     },
     "disposition": "Owner, branch and source review refreshed; local audit update only. Pending edits preserved. No GitHub settings write, push, merge, production inference, or memory migration.",
     "previousReview": {
@@ -711,19 +726,12 @@
         {
           "pullRequest": 3074,
           "behavior": "MCP SDK dependency and override now require patched 1.31; preserve this during integration.",
-          "owningPaths": [
-            "packages/mcp/package.json",
-            "package.json",
-            "pnpm-lock.yaml"
-          ]
+          "owningPaths": ["packages/mcp/package.json", "package.json", "pnpm-lock.yaml"]
         },
         {
           "pullRequest": 3071,
           "behavior": "Dependency overrides updated for audit advisories, including sharp.",
-          "owningPaths": [
-            "package.json",
-            "pnpm-lock.yaml"
-          ]
+          "owningPaths": ["package.json", "pnpm-lock.yaml"]
         },
         {
           "pullRequest": 3052,
@@ -739,9 +747,7 @@
         {
           "pullRequest": 3079,
           "behavior": "Unit suite timeout increased from 15 to 25 minutes so the runner can report completion.",
-          "owningPaths": [
-            ".github/workflows/ci.yml"
-          ]
+          "owningPaths": [".github/workflows/ci.yml"]
         }
       ],
       "newCommitsChangedHarnessOrKnowledgeGraphSources": false,

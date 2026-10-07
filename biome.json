@@ -32,6 +32,8 @@
       "!**/.worktrees",
       "!**/.revealui",
       "!**/.claude",
+      "!**/.revcon-manifest.json",
+      "!**/skills/*/references",
       "!apps/admin/csp.js",
       "!apps/admin/cssVariables.js",
       "!**/importMap.js",

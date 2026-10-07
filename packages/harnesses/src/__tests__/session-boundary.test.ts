@@ -29,7 +29,7 @@ describe('session boundary (soft-optional daemon)', () => {
   });
 
   it('uses only the canonical archive setting', () => {
-    const retiredArchiveKey = ['REV', 'FLEET'].join('') + '_ARCHIVE';
+    const retiredArchiveKey = ['REV', 'FLEET', '_ARCHIVE'].join('');
     const canonical = process.env.REVEALFLEET_ARCHIVE;
     const legacy = process.env[retiredArchiveKey];
     try {
