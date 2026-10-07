@@ -47,6 +47,16 @@ and envelope digest metadata to the shadow observation. It never stores the
 envelope, publishes a check, or requests a merge. Missing, duplicate, running,
 or failed check evidence leaves the candidate ineligible.
 
+`REVIEW_RECEIPT_MODE=publish` uses the same evaluator, then appends an eligible
+signed envelope to the immutable receipt store before publishing the App-owned
+`RevealUI Receipt` success check with the canonical envelope in its summary.
+If evaluation is ineligible, it publishes a failed receipt check. A storage or
+GitHub publication error fails the webhook delivery for retry; storage failure
+can never produce a success check. The signed envelope is removed before the
+shadow observation is persisted. This mode does not request merges or bypass
+branch protection, and the existing owner gate remains authoritative until a
+separately reviewed policy cutover.
+
 This remains shadow evidence only. The controller has no hosted model API
 credentials or model-call path. Codex subscription reviews are configured in
 the GitHub integration and do not use this service's model credentials. A
@@ -109,14 +119,18 @@ write, Contents read, Merge queues read, and Pull requests write. The App has
 no Contents write, Administration, ruleset bypass, or workflow permission.
 Model-provider credentials are not part of this service configuration.
 
-Receipt shadow evaluation is opt-in. Set `REVIEW_RECEIPT_MODE=shadow`,
+Receipt evaluation is disabled by default. Set `REVIEW_RECEIPT_MODE=shadow` for
+metadata-only evaluation or `REVIEW_RECEIPT_MODE=publish` to persist and publish
+receipt checks. Both modes require
 `REVIEW_RECEIPT_KEY_ID`, `REVIEW_RECEIPT_PRIVATE_KEY` (Ed25519 PKCS#8 PEM),
 `REVIEW_RECEIPT_POLICY_VERSION`, `REVIEW_RECEIPT_MAX_LIFETIME_MS` (60 seconds
 to 24 hours), and `REVIEW_RECEIPT_REQUIRED_CHECKS` (a JSON array such as
 `[{"name":"CI / test","appId":12345}]`). The key must live in this
 controller's dedicated secret store. Stable selectors use check name and
 GitHub App ID; current run and suite IDs come from the live GitHub response.
-Unknown modes and partial or malformed shadow configuration stop startup.
+Unknown modes and partial or malformed configuration stop startup. Publishing
+requires the controller's dedicated Ed25519 private key and receipt database;
+never store the signing key in repository variables.
 
 The gate's independent shadow verifier uses repository variables
 `REVIEW_RECEIPT_MODE=shadow`, `REVIEW_RECEIPT_CONTROLLER_APP_ID`,
@@ -131,6 +145,8 @@ Invalid or unavailable shadow evidence is logged but does not alter the
 existing gate decision. These variables are not sufficient to enable runtime
 publication or to clear the owner gate.
 
-The remaining durable work is App-bound check publication, merge-queue
-candidate admission, and cutover evidence. Each stage must fail closed and
-remain separately testable before the next one is enabled.
+The remaining durable work is merge-queue candidate admission and cutover
+evidence. Receipt publication remains non-authoritative until the protected
+gate and repository ruleset have completed their separate reviewed migration.
+Each stage must fail closed and remain separately testable before the next one
+is enabled.

@@ -4,7 +4,7 @@ import {
 } from '@revealui/db/review-controller';
 import { and, desc, eq } from 'drizzle-orm';
 import type { GitHubCheckRun } from './github-app.js';
-import type { ReceiptEvaluation } from './receipt-evaluator.js';
+import type { ReceiptEvaluationMetadata } from './receipt-evaluator.js';
 import {
   type CodexReviewObservation,
   type ReviewEvidence,
@@ -24,7 +24,7 @@ export interface ShadowObservationStore {
     snapshot: PullRequestSnapshot;
     checkRuns: readonly GitHubCheckRun[];
     reviewEvidence?: ReviewEvidence;
-    receiptEvaluation?: ReceiptEvaluation;
+    receiptEvaluation?: ReceiptEvaluationMetadata;
   }): Promise<void>;
   recordMergeGroup(input: {
     deliveryId: string;
@@ -72,7 +72,7 @@ export class PostgresShadowObservationStore implements ShadowObservationStore {
     snapshot: PullRequestSnapshot;
     checkRuns: readonly GitHubCheckRun[];
     reviewEvidence?: ReviewEvidence;
-    receiptEvaluation?: ReceiptEvaluation;
+    receiptEvaluation?: ReceiptEvaluationMetadata;
   }): Promise<void> {
     const { snapshot } = input;
     const { content, ...snapshotEvidence } = snapshot;

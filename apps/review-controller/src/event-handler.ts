@@ -4,6 +4,8 @@ import type { ClaimedWebhook } from './inbox.js';
 import type { ShadowObservationStore } from './observations.js';
 import { evaluateReceiptShadow } from './receipt-evaluator.js';
 import type { ReceiptPolicy } from './receipt-policy.js';
+import { persistReceiptThenPublishCheck } from './receipt-publisher.js';
+import type { SignedReceiptStore } from './receipt-store.js';
 import type { CodexReviewObservation, ReviewEvidence } from './reviewer.js';
 import { fetchPullRequestSnapshot } from './snapshot.js';
 import type { WebhookHandler } from './worker.js';
@@ -15,11 +17,17 @@ export class ShadowWebhookHandler implements WebhookHandler {
     private readonly client: GitHubAppClient,
     private readonly observations: ShadowObservationStore,
     private readonly receiptPolicy?: ReceiptPolicy,
+    private readonly receiptStore?: SignedReceiptStore,
   ) {}
 
   async process(webhook: ClaimedWebhook): Promise<void> {
     if (webhook.repositoryId !== this.client.repositoryId)
       throw new GitHubAppError('repository_scope_mismatch');
+    if (
+      webhook.eventName === 'check_run' &&
+      this.client.isOwnReceiptCheckRun(record(webhook.payload.check_run))
+    )
+      return;
     if (webhook.eventName === 'merge_group') {
       await this.observeMergeGroup(webhook);
       return;
@@ -55,12 +63,39 @@ export class ShadowWebhookHandler implements WebhookHandler {
             },
           })
         : undefined;
+      if (this.receiptPolicy?.mode === 'publish') {
+        if (!this.receiptStore) throw new Error('receipt_publisher_store_required');
+        const externalId = `pr-${snapshot.repositoryId}-${snapshot.pullRequest}`;
+        if (receiptEvaluation?.status === 'eligible') {
+          await persistReceiptThenPublishCheck({
+            envelope: receiptEvaluation.envelope,
+            store: this.receiptStore,
+            github: this.client,
+          });
+        } else {
+          await this.client.upsertReceiptCheckRun({
+            headSha: snapshot.headSha,
+            externalId,
+            eligible: false,
+          });
+        }
+      }
+      const receiptMetadata = receiptEvaluation
+        ? receiptEvaluation.status === 'eligible'
+          ? {
+              status: receiptEvaluation.status,
+              evaluatedAt: receiptEvaluation.evaluatedAt,
+              receiptId: receiptEvaluation.receiptId,
+              envelopeSha256: receiptEvaluation.envelopeSha256,
+            }
+          : receiptEvaluation
+        : undefined;
       await this.observations.recordPullRequest({
         deliveryId: webhook.deliveryId,
         snapshot,
         checkRuns,
         reviewEvidence,
-        ...(receiptEvaluation ? { receiptEvaluation } : {}),
+        ...(receiptMetadata ? { receiptEvaluation: receiptMetadata } : {}),
       });
     }
   }

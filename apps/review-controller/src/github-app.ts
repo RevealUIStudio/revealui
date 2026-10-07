@@ -107,6 +107,15 @@ export class GitHubAppClient {
     if (this.key.asymmetricKeyType !== 'rsa') throw new Error('GitHub App key must be RSA');
   }
 
+  isOwnReceiptCheckRun(value: unknown): boolean {
+    return (
+      isRecord(value) &&
+      value.name === 'RevealUI Receipt' &&
+      isRecord(value.app) &&
+      value.app.id === this.config.appId
+    );
+  }
+
   get repositoryId(): number {
     return this.config.repositoryId;
   }

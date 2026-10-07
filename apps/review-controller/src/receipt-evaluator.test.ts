@@ -10,6 +10,7 @@ const sha = (letter: string) => letter.repeat(40);
 const digest = (letter: string) => letter.repeat(64);
 const { privateKey } = generateKeyPairSync('ed25519');
 const policy: ReceiptPolicy = {
+  mode: 'shadow',
   repositoryFullName: 'RevealUIStudio/revealui',
   keyId: 'receipt-key-1',
   privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
@@ -78,7 +79,7 @@ describe('evaluateReceiptShadow', () => {
       getFreshMergeCandidate: vi.fn(async () => sha('e')),
     });
 
-  it('evaluates a fresh receipt candidate and persists only its ID and digest metadata', async () => {
+  it('evaluates a fresh receipt candidate into a signed envelope and receipt metadata', async () => {
     const result = await evaluate({ status: 'observed', review });
     expect(result).toMatchObject({
       status: 'eligible',
@@ -86,7 +87,9 @@ describe('evaluateReceiptShadow', () => {
       envelopeSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
     });
     expect(JSON.stringify(result)).not.toContain('privateKey');
-    expect(JSON.stringify(result)).not.toContain('signature');
+    expect(result).toMatchObject({
+      envelope: { keyId: 'receipt-key-1', signature: expect.any(String) },
+    });
   });
 
   it('records ineligibility without fetching merge-candidate state when review evidence is absent', async () => {

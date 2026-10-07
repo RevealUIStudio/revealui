@@ -1,5 +1,8 @@
 import { createHash } from 'node:crypto';
-import type { ReviewReceiptContext } from '@revealui/security/review-receipt';
+import type {
+  ReviewReceiptContext,
+  ReviewReceiptEnvelope,
+} from '@revealui/security/review-receipt';
 import { GitHubAppError, type GitHubCheckRun } from './github-app.js';
 import { signCandidateReceipt } from './receipt-builder.js';
 import type { ReceiptPolicy } from './receipt-policy.js';
@@ -13,7 +16,12 @@ export type ReceiptEvaluation =
       evaluatedAt: string;
       receiptId: string;
       envelopeSha256: string;
+      envelope: ReviewReceiptEnvelope;
     };
+
+export type ReceiptEvaluationMetadata =
+  | Extract<ReceiptEvaluation, { status: 'ineligible' }>
+  | Omit<Extract<ReceiptEvaluation, { status: 'eligible' }>, 'envelope'>;
 
 export async function evaluateReceiptShadow(input: {
   policy: ReceiptPolicy;
@@ -78,6 +86,7 @@ export async function evaluateReceiptShadow(input: {
     maxReceiptLifetimeMs: input.policy.maxLifetimeMs,
     now,
   };
+
   try {
     const envelope = signCandidateReceipt({
       keyId: input.policy.keyId,
@@ -96,6 +105,7 @@ export async function evaluateReceiptShadow(input: {
       evaluatedAt: now.toISOString(),
       receiptId: envelope.receipt.receiptId,
       envelopeSha256,
+      envelope,
     };
   } catch (error) {
     if (error instanceof GitHubAppError && error.code.startsWith('receipt_'))

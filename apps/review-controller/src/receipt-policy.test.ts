@@ -20,6 +20,7 @@ describe('readReceiptPolicy', () => {
 
   it('parses stable check selectors and bounds receipt lifetime', () => {
     expect(readReceiptPolicy(valid)).toEqual({
+      mode: 'shadow',
       repositoryFullName: 'RevealUIStudio/revealui',
       keyId: 'receipt-key-1',
       privateKey: valid.REVIEW_RECEIPT_PRIVATE_KEY,
@@ -34,7 +35,7 @@ describe('readReceiptPolicy', () => {
       'REVIEW_RECEIPT_MODE is required',
     );
     expect(() => readReceiptPolicy({ REVIEW_RECEIPT_MODE: 'enabled' })).toThrow(
-      'REVIEW_RECEIPT_MODE must be shadow',
+      'REVIEW_RECEIPT_MODE must be shadow or publish',
     );
     expect(() => readReceiptPolicy({ ...valid, REVIEW_RECEIPT_PRIVATE_KEY: '' })).toThrow(
       'REVIEW_RECEIPT_PRIVATE_KEY is required',
@@ -48,5 +49,12 @@ describe('readReceiptPolicy', () => {
         REVIEW_RECEIPT_REQUIRED_CHECKS: '[{"name":"CI","appId":77},{"name":"CI","appId":77}]',
       }),
     ).toThrow('duplicate selectors');
+  });
+
+  it('accepts publish mode while requiring the same complete signing policy', () => {
+    expect(readReceiptPolicy({ ...valid, REVIEW_RECEIPT_MODE: 'publish' })).toMatchObject({
+      mode: 'publish',
+      repositoryFullName: 'RevealUIStudio/revealui',
+    });
   });
 });

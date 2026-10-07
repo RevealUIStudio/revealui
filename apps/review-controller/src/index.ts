@@ -62,7 +62,7 @@ async function boot(): Promise<void> {
   process.once('SIGTERM', stop);
   const worker = runWebhookWorker({
     inbox,
-    handler: new ShadowWebhookHandler(github, observations, receiptPolicy),
+    handler: new ShadowWebhookHandler(github, observations, receiptPolicy, receipts),
     signal: abortController.signal,
   });
   try {

@@ -1,6 +1,7 @@
 import { createPrivateKey } from 'node:crypto';
 
 export interface ReceiptPolicy {
+  mode: 'shadow' | 'publish';
   repositoryFullName: string;
   keyId: string;
   privateKey: string;
@@ -17,7 +18,8 @@ export function readReceiptPolicy(env: NodeJS.ProcessEnv): ReceiptPolicy | undef
       throw new Error('REVIEW_RECEIPT_MODE is required when receipt settings are present');
     return undefined;
   }
-  if (mode !== 'shadow') throw new Error('REVIEW_RECEIPT_MODE must be shadow');
+  if (mode !== 'shadow' && mode !== 'publish')
+    throw new Error('REVIEW_RECEIPT_MODE must be shadow or publish');
 
   const keyId = required(env, 'REVIEW_RECEIPT_KEY_ID');
   if (keyId.length > 128) throw new Error('REVIEW_RECEIPT_KEY_ID exceeds size limit');
@@ -67,12 +69,12 @@ export function readReceiptPolicy(env: NodeJS.ProcessEnv): ReceiptPolicy | undef
   if (new Set(selectorKeys).size !== selectorKeys.length)
     throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS contains duplicate selectors');
 
-  return { repositoryFullName, keyId, privateKey, version, maxLifetimeMs, requiredChecks };
+  return { mode, repositoryFullName, keyId, privateKey, version, maxLifetimeMs, requiredChecks };
 }
 
 function required(env: NodeJS.ProcessEnv, name: string): string {
   const value = env[name]?.trim() ?? '';
-  if (!value) throw new Error(`${name} is required when REVIEW_RECEIPT_MODE=shadow`);
+  if (!value) throw new Error(`${name} is required when REVIEW_RECEIPT_MODE is enabled`);
   return value;
 }
 

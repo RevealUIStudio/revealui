@@ -1,4 +1,5 @@
-import { generateKeyPairSync } from 'node:crypto';
+import { createHash, generateKeyPairSync } from 'node:crypto';
+import { canonicalReviewReceiptEnvelope } from '@revealui/security/review-receipt';
 import { describe, expect, it, vi } from 'vitest';
 import { ShadowWebhookHandler } from './event-handler.js';
 import type { GitHubAppClient, GitHubCheckRun } from './github-app.js';
@@ -22,6 +23,18 @@ function webhook(eventName: string, payload: Record<string, unknown>): ClaimedWe
 function fixtures() {
   const client = {
     repositoryId: 300,
+    isOwnReceiptCheckRun: vi.fn(
+      (run: unknown) =>
+        typeof run === 'object' &&
+        run !== null &&
+        'name' in run &&
+        run.name === 'RevealUI Receipt' &&
+        'app' in run &&
+        typeof run.app === 'object' &&
+        run.app !== null &&
+        'id' in run.app &&
+        run.app.id === 77,
+    ),
     getPullRequest: vi.fn(async () => ({
       number: 7,
       state: 'open',
@@ -40,6 +53,14 @@ function fixtures() {
       treeSha: 'f'.repeat(40),
     })),
     listPullRequestReviewComments: vi.fn(async () => []),
+    upsertReceiptCheckRun: vi.fn(async (input: { headSha: string; externalId: string }) => ({
+      id: 800,
+      name: 'RevealUI Receipt' as const,
+      head_sha: input.headSha,
+      status: 'completed' as const,
+      conclusion: 'success' as const,
+      external_id: input.externalId,
+    })),
   } as unknown as GitHubAppClient;
   const observations: ShadowObservationStore = {
     listReviewObservations: vi.fn(async () => []),
@@ -85,6 +106,22 @@ describe('shadow webhook event handler', () => {
     expect(client.listCheckRuns).toHaveBeenCalledWith('a'.repeat(40));
   });
 
+  it('ignores its own receipt check webhook to prevent a publication loop', async () => {
+    const { client, observations, handler } = fixtures();
+    await handler.process(
+      webhook('check_run', {
+        action: 'completed',
+        check_run: {
+          name: 'RevealUI Receipt',
+          app: { id: 77 },
+          pull_requests: [{ number: 7 }],
+        },
+      }),
+    );
+    expect(client.getPullRequest).not.toHaveBeenCalled();
+    expect(observations.recordPullRequest).not.toHaveBeenCalled();
+  });
+
   it('records that model evidence is not configured for review-triggering PR changes', async () => {
     const { client, observations } = fixtures();
     const handler = new ShadowWebhookHandler(client, observations);
@@ -103,9 +140,10 @@ describe('shadow webhook event handler', () => {
     );
   });
 
-  it('records a dry-run eligibility digest without persisting a receipt envelope', async () => {
+  it('persists an eligible signed receipt before publishing and stores only metadata in observations', async () => {
     const { privateKey } = generateKeyPairSync('ed25519');
     const policy: ReceiptPolicy = {
+      mode: 'publish',
       repositoryFullName: 'RevealUIStudio/revealui',
       keyId: 'receipt-key-1',
       privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
@@ -126,7 +164,32 @@ describe('shadow webhook event handler', () => {
         app: { id: 77, slug: 'github-actions' },
       } satisfies GitHubCheckRun,
     ]);
-    const handler = new ShadowWebhookHandler(client, observations, policy);
+    const events: string[] = [];
+    const receiptStore = {
+      ready: vi.fn(async () => undefined),
+      read: vi.fn(async () => null),
+      append: vi.fn(async (envelope: Parameters<NonNullable<typeof receiptStore.append>>[0]) => {
+        events.push('persist');
+        return {
+          receiptId: envelope.receipt.receiptId,
+          sha256: createHash('sha256')
+            .update(canonicalReviewReceiptEnvelope(envelope), 'utf8')
+            .digest('hex'),
+        };
+      }),
+    };
+    vi.mocked(client.upsertReceiptCheckRun).mockImplementation(async (input) => {
+      events.push(`publish:${input.eligible}`);
+      return {
+        id: 800,
+        name: 'RevealUI Receipt',
+        head_sha: input.headSha,
+        status: 'completed',
+        conclusion: 'success',
+        external_id: input.externalId,
+      };
+    });
+    const handler = new ShadowWebhookHandler(client, observations, policy, receiptStore);
     const reviewWebhook = webhook('pull_request_review', {
       action: 'submitted',
       pull_request: { number: 7 },
@@ -153,11 +216,13 @@ describe('shadow webhook event handler', () => {
       envelopeSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
     });
     expect(JSON.stringify(observation?.receiptEvaluation)).not.toContain('signature');
+    expect(events).toEqual(['persist', 'publish:true']);
   });
 
   it('re-evaluates the latest same-head review when required checks finish later', async () => {
     const { privateKey } = generateKeyPairSync('ed25519');
     const policy: ReceiptPolicy = {
+      mode: 'shadow',
       repositoryFullName: 'RevealUIStudio/revealui',
       keyId: 'receipt-key-1',
       privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
