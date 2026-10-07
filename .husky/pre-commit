@@ -2,7 +2,7 @@
 set -e
 
 # Scan for hardcoded secrets before committing
-pnpm secrets:scan
+git ls-files -z | pnpm secrets:scan -- --stdin-files
 
 # Gitleaks — scan staged changes for leaked secrets
 if command -v gitleaks >/dev/null 2>&1; then

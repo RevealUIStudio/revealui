@@ -116,7 +116,7 @@ jobs:
             # Keep general image prefixes in sync with on.push.paths. The
             # review controller is built on PRs only and is never published here.
             case "$f" in
-              apps/review-controller/*|packages/harnesses/*|pnpm-lock.yaml|package.json)
+              apps/review-controller/*|packages/harnesses/*)
                 review_controller=true
                 ;;
               apps/admin/*|apps/server/*|packages/ai/*|packages/auth/*|packages/cache/*|packages/config/*|packages/contracts/*|packages/core/*|packages/db/*|packages/dev/*|packages/mcp/*|packages/openapi/*|packages/paywall/*|packages/presentation/*|packages/resilience/*|packages/router/*|packages/security/*|packages/services/*|packages/setup/*|packages/sync/*|packages/tokens/*|packages/utils/*|package.json|pnpm-lock.yaml|turbo.json|.github/workflows/docker.yml|.github/actions/setup-pnpm-node/*)
