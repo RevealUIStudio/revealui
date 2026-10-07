@@ -1,6 +1,6 @@
 import { resolveTemplate } from '../resolvers/index.js';
 import type { ResolverContext } from '../resolvers/types.js';
-import type { Manifest } from '../schemas/manifest.js';
+import { hasRetiredFleetIdentity, type Manifest, ManifestSchema } from '../schemas/manifest.js';
 import { ClaudeCodeGenerator } from './claude-code.js';
 import { CursorGenerator } from './cursor.js';
 import { GrokGenerator } from './grok.js';
@@ -54,10 +54,14 @@ export function generateContent(
     throw new Error(
       `Unknown generator "${generatorId}". Available: ${listGenerators().join(', ')}`,
     );
-  return generator.generateAll(manifest, ctx).map((file) => ({
+  const files = generator.generateAll(ManifestSchema.parse(manifest), ctx).map((file) => ({
     ...file,
     content: resolveTemplate(file.content, ctx),
   }));
+  if (hasRetiredFleetIdentity(files)) {
+    throw new Error('Generated fleet content must use revealfleet and REVEALFLEET.');
+  }
+  return files;
 }
 
 // Built-in generators, registered eagerly so `generateContent()` /

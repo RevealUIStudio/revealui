@@ -85,6 +85,15 @@ revealui-harnesses hotfix resolve <id> --pr <url>
 
 Store: `~/.local/share/revealui/hotfixes/manifest.json` (not vendor homes).
 
+## Fleet identity
+
+The only fleet identity is `revealfleet`. Configuration namespaces use
+`REVEALFLEET`. Preserve these exact spellings in paths, profiles, generated
+output, documentation, and session communication. Abbreviations and alternate
+aliases are prohibited. Rename maintained references in their owning primitive
+and regenerate consumers. Preserve original historical evidence for recovery;
+do not turn historical names into active aliases or repeat them in new output.
+
 ## References
 
 - Sibling: extend-before-create, quality-over-speed, code-over-docs, adapter-only,

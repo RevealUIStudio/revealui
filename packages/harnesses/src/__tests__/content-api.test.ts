@@ -36,6 +36,20 @@ describe('Content Public API', () => {
   });
 
   describe('generateContent', () => {
+    it('rejects retired fleet values after resolving project content', () => {
+      const manifest = buildManifest();
+      manifest.rules[0]!.content = 'Project: {{PROJECT_NAME}}';
+      const projectName = ['rev', 'fleet'].join('');
+      expect(() =>
+        generateContent('claude-code', manifest, { projectRoot: '/test', projectName }),
+      ).toThrow('Generated fleet content must use revealfleet and REVEALFLEET.');
+      expect(() =>
+        generateContent('claude-code', manifest, {
+          projectRoot: '/test',
+          projectName: 'revealfleet',
+        }),
+      ).not.toThrow();
+    });
     it('throws for unknown generator', () => {
       const manifest = buildManifest();
       expect(() => generateContent('nonexistent', manifest, { projectRoot: '/test' })).toThrow(
