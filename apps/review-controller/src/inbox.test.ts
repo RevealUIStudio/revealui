@@ -113,6 +113,68 @@ describe('PostgresWebhookInbox', () => {
     );
     expect(row.rows[0]).toMatchObject({ state: 'failed', last_error_code: 'attempt_limit' });
   });
+
+  it('durably schedules and claims an idempotent receipt-expiration event at expiry', async () => {
+    const input = {
+      receiptId: 'receipt-abcdef',
+      repositoryId: 123,
+      installationId: 456,
+      pullRequest: 7,
+      headSha: 'a'.repeat(40),
+      baseSha: 'b'.repeat(40),
+      expiresAt: new Date('2000-01-01T00:00:00.000Z'),
+    };
+    await inbox.scheduleReceiptExpiration(input);
+    await inbox.scheduleReceiptExpiration(input);
+    const claim = await inbox.claimNext('11111111-1111-4111-8111-111111111111', 30_000);
+    expect(claim).toMatchObject({
+      deliveryId: 'receipt-expiry-receipt-abcdef',
+      eventName: 'receipt_expiration',
+      repositoryId: 123,
+      installationId: 456,
+      payload: {
+        receiptId: 'receipt-abcdef',
+        pullRequest: 7,
+        headSha: 'a'.repeat(40),
+        baseSha: 'b'.repeat(40),
+      },
+    });
+    expect(
+      await db.query<{ count: number }>(
+        "SELECT count(*)::int AS count FROM review_controller_webhook_inbox WHERE event_name = 'receipt_expiration'",
+      ),
+    ).toMatchObject({ rows: [{ count: 1 }] });
+  });
+
+  it('keeps receipt-expiration work retryable after the ordinary webhook attempt limit', async () => {
+    await inbox.scheduleReceiptExpiration({
+      receiptId: 'receipt-retry',
+      repositoryId: 123,
+      installationId: 456,
+      pullRequest: 7,
+      headSha: 'a'.repeat(40),
+      baseSha: 'b'.repeat(40),
+      expiresAt: new Date('2000-01-01T00:00:00.000Z'),
+    });
+    const deliveryId = 'receipt-expiry-receipt-retry';
+    const lease = '11111111-1111-4111-8111-111111111111';
+    await inbox.claimNext(lease, 30_000);
+    await db.query(
+      'UPDATE review_controller_webhook_inbox SET attempts = 12 WHERE delivery_id = $1',
+      [deliveryId],
+    );
+    expect(await inbox.retry(deliveryId, lease, 'handler_error', new Date('2000-01-01'))).toBe(
+      true,
+    );
+    const row = await db.query<{ state: string; attempts: number }>(
+      'SELECT state, attempts FROM review_controller_webhook_inbox WHERE delivery_id = $1',
+      [deliveryId],
+    );
+    expect(row.rows[0]).toMatchObject({ state: 'pending', attempts: 12 });
+    expect((await inbox.claimNext('22222222-2222-4222-8222-222222222222', 30_000))?.attempts).toBe(
+      13,
+    );
+  });
 });
 
 function webhook(deliveryId: string): AcceptedWebhook {

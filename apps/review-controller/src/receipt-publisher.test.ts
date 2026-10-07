@@ -60,9 +60,15 @@ describe('persistReceiptThenPublishCheck', () => {
     const store: SignedReceiptStore = {
       ready: async () => undefined,
       read: async () => null,
+      listLatest: async () => [],
       append: vi.fn(async () => {
         events.push('append');
         return { receiptId: envelope.receipt.receiptId, sha256 };
+      }),
+    };
+    const inbox = {
+      scheduleReceiptExpiration: vi.fn(async () => {
+        events.push('schedule-expiration');
       }),
     };
     const github: Pick<GitHubAppClient, 'upsertReceiptCheckRun'> = {
@@ -82,6 +88,8 @@ describe('persistReceiptThenPublishCheck', () => {
       persistReceiptThenPublishCheck({
         envelope,
         store,
+        inbox,
+        installationId: 456,
         github,
       }),
     ).resolves.toMatchObject({
@@ -89,7 +97,16 @@ describe('persistReceiptThenPublishCheck', () => {
       envelopeSha256: sha256,
       checkRun: { id: 800, conclusion: 'success' },
     });
-    expect(events).toEqual(['append', 'publish:true']);
+    expect(events).toEqual(['append', 'schedule-expiration', 'publish:true']);
+    expect(inbox.scheduleReceiptExpiration).toHaveBeenCalledWith({
+      receiptId: 'receipt-123',
+      repositoryId: 1234,
+      installationId: 456,
+      pullRequest: 3054,
+      headSha: sha('a'),
+      baseSha: sha('c'),
+      expiresAt: new Date(envelope.receipt.expiresAt),
+    });
     expect(github.upsertReceiptCheckRun).toHaveBeenCalledWith({
       headSha: envelope.receipt.head.sha,
       externalId: 'pr-1234-3054',
@@ -108,10 +125,13 @@ describe('persistReceiptThenPublishCheck', () => {
         store: {
           ready: async () => undefined,
           read: async () => null,
+          listLatest: async () => [],
           append: vi.fn(async () => {
             throw new Error('database unavailable');
           }),
         },
+        inbox: { scheduleReceiptExpiration: vi.fn(async () => undefined) },
+        installationId: 456,
         github,
       }),
     ).rejects.toThrow('database unavailable');

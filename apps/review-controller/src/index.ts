@@ -49,6 +49,15 @@ async function boot(): Promise<void> {
   const observations = new PostgresShadowObservationStore(database.db);
   const receipts = new PostgresSignedReceiptStore(database.db);
   await receipts.ready();
+  if (receiptPolicy?.mode === 'publish') {
+    const latestReceipts = await receipts.listLatest(repositoryId);
+    for (const receipt of latestReceipts) {
+      await inbox.scheduleReceiptExpiration({
+        ...receipt,
+        installationId,
+      });
+    }
+  }
   const abortController = new AbortController();
   const server = serve({ fetch: app.fetch, port }, (info) => {
     process.stdout.write(`review-controller listening on :${info.port}\n`);
@@ -62,7 +71,7 @@ async function boot(): Promise<void> {
   process.once('SIGTERM', stop);
   const worker = runWebhookWorker({
     inbox,
-    handler: new ShadowWebhookHandler(github, observations, receiptPolicy, receipts),
+    handler: new ShadowWebhookHandler(github, observations, receiptPolicy, receipts, inbox),
     signal: abortController.signal,
   });
   try {

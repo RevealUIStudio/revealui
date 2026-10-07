@@ -71,6 +71,187 @@ function fixtures() {
 }
 
 describe('shadow webhook event handler', () => {
+  it('fails the App-owned check when the latest signed receipt expires', async () => {
+    const { client, observations } = fixtures();
+    const { privateKey } = generateKeyPairSync('ed25519');
+    const policy: ReceiptPolicy = {
+      mode: 'publish',
+      repositoryFullName: 'RevealUIStudio/revealui',
+      keyId: 'receipt-key-1',
+      privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
+      version: 'policy-1',
+      maxLifetimeMs: 21_600_000,
+      requiredChecks: [{ name: 'CI', appId: 77 }],
+    };
+    const receiptStore = {
+      ready: vi.fn(async () => undefined),
+      append: vi.fn(),
+      read: vi.fn(async () => null),
+      listLatest: vi.fn(async () => [
+        {
+          receiptId: 'receipt-expired',
+          repositoryId: 300,
+          pullRequest: 7,
+          headSha: 'a'.repeat(40),
+          baseSha: 'b'.repeat(40),
+          expiresAt: new Date('2026-10-06T12:00:00.000Z'),
+        },
+      ]),
+    };
+    const handler = new ShadowWebhookHandler(client, observations, policy, receiptStore);
+    await handler.process(
+      webhook('receipt_expiration', {
+        receiptId: 'receipt-expired',
+        pullRequest: 7,
+        headSha: 'a'.repeat(40),
+        baseSha: 'b'.repeat(40),
+      }),
+    );
+    expect(client.upsertReceiptCheckRun).toHaveBeenCalledWith({
+      headSha: 'a'.repeat(40),
+      externalId: 'pr-300-7',
+      eligible: false,
+    });
+    expect(observations.recordPullRequest).not.toHaveBeenCalled();
+  });
+
+  it('ignores an expiration job after a newer receipt has replaced it', async () => {
+    const { client, observations } = fixtures();
+    const { privateKey } = generateKeyPairSync('ed25519');
+    const policy: ReceiptPolicy = {
+      mode: 'publish',
+      repositoryFullName: 'RevealUIStudio/revealui',
+      keyId: 'receipt-key-1',
+      privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
+      version: 'policy-1',
+      maxLifetimeMs: 21_600_000,
+      requiredChecks: [{ name: 'CI', appId: 77 }],
+    };
+    const receiptStore = {
+      ready: vi.fn(async () => undefined),
+      append: vi.fn(),
+      read: vi.fn(async () => null),
+      listLatest: vi.fn(async () => [
+        {
+          receiptId: 'receipt-newer',
+          repositoryId: 300,
+          pullRequest: 7,
+          headSha: 'a'.repeat(40),
+          baseSha: 'b'.repeat(40),
+          expiresAt: new Date(Date.now() + 60_000),
+        },
+      ]),
+    };
+    const handler = new ShadowWebhookHandler(client, observations, policy, receiptStore);
+    await handler.process(
+      webhook('receipt_expiration', {
+        receiptId: 'receipt-expired',
+        pullRequest: 7,
+        headSha: 'a'.repeat(40),
+        baseSha: 'b'.repeat(40),
+      }),
+    );
+    expect(client.getPullRequest).not.toHaveBeenCalled();
+    expect(client.upsertReceiptCheckRun).not.toHaveBeenCalled();
+  });
+
+  it('fails the current head when the receipt head moved before its expiry job ran', async () => {
+    const { client, observations } = fixtures();
+    const { privateKey } = generateKeyPairSync('ed25519');
+    const policy: ReceiptPolicy = {
+      mode: 'publish',
+      repositoryFullName: 'RevealUIStudio/revealui',
+      keyId: 'receipt-key-1',
+      privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
+      version: 'policy-1',
+      maxLifetimeMs: 21_600_000,
+      requiredChecks: [{ name: 'CI', appId: 77 }],
+    };
+    const receiptStore = {
+      ready: vi.fn(async () => undefined),
+      append: vi.fn(),
+      read: vi.fn(async () => null),
+      listLatest: vi.fn(async () => [
+        {
+          receiptId: 'receipt-expired',
+          repositoryId: 300,
+          pullRequest: 7,
+          headSha: 'a'.repeat(40),
+          baseSha: 'b'.repeat(40),
+          expiresAt: new Date('2026-10-06T12:00:00.000Z'),
+        },
+      ]),
+    };
+    vi.mocked(client.getPullRequest).mockResolvedValue({
+      number: 7,
+      state: 'open',
+      head: { sha: 'c'.repeat(40) },
+      base: { sha: 'b'.repeat(40) },
+    });
+    const handler = new ShadowWebhookHandler(client, observations, policy, receiptStore);
+    await handler.process(
+      webhook('receipt_expiration', {
+        receiptId: 'receipt-expired',
+        pullRequest: 7,
+        headSha: 'a'.repeat(40),
+        baseSha: 'b'.repeat(40),
+      }),
+    );
+    expect(client.upsertReceiptCheckRun).toHaveBeenCalledWith({
+      headSha: 'c'.repeat(40),
+      externalId: 'pr-300-7',
+      eligible: false,
+    });
+  });
+
+  it('rechecks latest receipt after reading the PR before revoking the check', async () => {
+    const { client, observations } = fixtures();
+    const { privateKey } = generateKeyPairSync('ed25519');
+    const policy: ReceiptPolicy = {
+      mode: 'publish',
+      repositoryFullName: 'RevealUIStudio/revealui',
+      keyId: 'receipt-key-1',
+      privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
+      version: 'policy-1',
+      maxLifetimeMs: 21_600_000,
+      requiredChecks: [{ name: 'CI', appId: 77 }],
+    };
+    const oldReceipt = {
+      receiptId: 'receipt-expired',
+      repositoryId: 300,
+      pullRequest: 7,
+      headSha: 'a'.repeat(40),
+      baseSha: 'b'.repeat(40),
+      expiresAt: new Date('2026-10-06T12:00:00.000Z'),
+    };
+    const receiptStore = {
+      ready: vi.fn(async () => undefined),
+      append: vi.fn(),
+      read: vi.fn(async () => null),
+      listLatest: vi
+        .fn()
+        .mockResolvedValueOnce([oldReceipt])
+        .mockResolvedValueOnce([
+          {
+            ...oldReceipt,
+            receiptId: 'receipt-replaced',
+            expiresAt: new Date(Date.now() + 60_000),
+          },
+        ]),
+    };
+    const handler = new ShadowWebhookHandler(client, observations, policy, receiptStore);
+    await handler.process(
+      webhook('receipt_expiration', {
+        receiptId: 'receipt-expired',
+        pullRequest: 7,
+        headSha: 'a'.repeat(40),
+        baseSha: 'b'.repeat(40),
+      }),
+    );
+    expect(receiptStore.listLatest).toHaveBeenCalledTimes(2);
+    expect(client.upsertReceiptCheckRun).not.toHaveBeenCalled();
+  });
+
   it('fetches fresh PR, file, tree, and check evidence before appending a shadow observation', async () => {
     const { client, observations, handler } = fixtures();
     await handler.process(
@@ -168,6 +349,7 @@ describe('shadow webhook event handler', () => {
     const receiptStore = {
       ready: vi.fn(async () => undefined),
       read: vi.fn(async () => null),
+      listLatest: vi.fn(async () => []),
       append: vi.fn(async (envelope: Parameters<NonNullable<typeof receiptStore.append>>[0]) => {
         events.push('persist');
         return {
@@ -176,6 +358,11 @@ describe('shadow webhook event handler', () => {
             .update(canonicalReviewReceiptEnvelope(envelope), 'utf8')
             .digest('hex'),
         };
+      }),
+    };
+    const expiryQueue = {
+      scheduleReceiptExpiration: vi.fn(async () => {
+        events.push('schedule-expiration');
       }),
     };
     vi.mocked(client.upsertReceiptCheckRun).mockImplementation(async (input) => {
@@ -189,7 +376,13 @@ describe('shadow webhook event handler', () => {
         external_id: input.externalId,
       };
     });
-    const handler = new ShadowWebhookHandler(client, observations, policy, receiptStore);
+    const handler = new ShadowWebhookHandler(
+      client,
+      observations,
+      policy,
+      receiptStore,
+      expiryQueue,
+    );
     const reviewWebhook = webhook('pull_request_review', {
       action: 'submitted',
       pull_request: { number: 7 },
@@ -216,7 +409,7 @@ describe('shadow webhook event handler', () => {
       envelopeSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
     });
     expect(JSON.stringify(observation?.receiptEvaluation)).not.toContain('signature');
-    expect(events).toEqual(['persist', 'publish:true']);
+    expect(events).toEqual(['persist', 'schedule-expiration', 'publish:true']);
   });
 
   it('re-evaluates the latest same-head review when required checks finish later', async () => {

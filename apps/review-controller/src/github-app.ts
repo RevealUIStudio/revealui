@@ -333,6 +333,15 @@ export class GitHubAppClient {
     );
     if (matches.length > 1) throw new GitHubAppError('receipt_check_run_ambiguous');
     const existing = matches[0];
+    if (existing?.status === 'completed' && existing.conclusion === conclusion)
+      return {
+        id: existing.id,
+        name: 'RevealUI Receipt',
+        head_sha: input.headSha,
+        status: 'completed',
+        conclusion,
+        external_id: input.externalId,
+      };
     const body = {
       name: 'RevealUI Receipt',
       external_id: input.externalId,

@@ -37,7 +37,9 @@ export async function processNextWebhook(input: {
       retryAt,
     );
     if (!updated) return 'lease-lost';
-    return claimed.attempts >= MAX_WEBHOOK_ATTEMPTS ? 'terminal-failure' : 'retry-scheduled';
+    return claimed.attempts >= MAX_WEBHOOK_ATTEMPTS && claimed.eventName !== 'receipt_expiration'
+      ? 'terminal-failure'
+      : 'retry-scheduled';
   }
 
   return (await input.inbox.complete(claimed.deliveryId, leaseToken)) ? 'completed' : 'lease-lost';

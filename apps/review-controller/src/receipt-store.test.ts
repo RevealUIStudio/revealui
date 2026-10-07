@@ -61,6 +61,21 @@ describe('PostgresSignedReceiptStore', () => {
     );
   });
 
+  it('lists only the latest immutable receipt per pull request and repository', async () => {
+    await store.append(signed);
+    await expect(store.listLatest(1234)).resolves.toEqual([
+      expect.objectContaining({
+        receiptId: 'receipt-1',
+        repositoryId: 1234,
+        pullRequest: 3054,
+        headSha: 'a'.repeat(40),
+        baseSha: 'c'.repeat(40),
+        expiresAt: new Date('2026-10-06T18:00:00.000Z'),
+      }),
+    ]);
+    await expect(store.listLatest(4321)).resolves.toEqual([]);
+  });
+
   it('rejects receipt ID reuse for different signed bytes', async () => {
     await store.append(signed);
     const changed = {

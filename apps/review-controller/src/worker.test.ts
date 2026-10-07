@@ -88,4 +88,30 @@ describe('webhook inbox worker', () => {
       new Date('2026-10-06T13:00:00.000Z').getTime(),
     );
   });
+
+  it('keeps receipt-expiration failures retrying beyond the webhook attempt limit', async () => {
+    const inbox = inboxFixture();
+    inbox.claimNext.mockResolvedValueOnce({
+      ...claimed,
+      eventName: 'receipt_expiration',
+      attempts: 12,
+    });
+    const result = await processNextWebhook({
+      inbox,
+      handler: {
+        process: vi.fn(async () => {
+          throw new Error('temporary GitHub outage');
+        }),
+      },
+      createLeaseToken: () => '22222222-2222-4222-8222-222222222222',
+      now: () => new Date('2026-10-06T12:00:00.000Z'),
+    });
+    expect(result).toBe('retry-scheduled');
+    expect(inbox.retry).toHaveBeenCalledWith(
+      claimed.deliveryId,
+      '22222222-2222-4222-8222-222222222222',
+      'handler_error',
+      new Date('2026-10-06T13:00:00.000Z'),
+    );
+  });
 });

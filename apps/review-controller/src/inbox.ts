@@ -21,6 +21,15 @@ export interface ClaimedWebhook {
 
 export interface WebhookInbox {
   enqueue(webhook: AcceptedWebhook): Promise<{ inserted: boolean }>;
+  scheduleReceiptExpiration(input: {
+    receiptId: string;
+    repositoryId: number;
+    installationId: number;
+    pullRequest: number;
+    headSha: string;
+    baseSha: string;
+    expiresAt: Date;
+  }): Promise<void>;
   ready(): Promise<void>;
   claimNext(leaseToken: string, leaseDurationMs: number): Promise<ClaimedWebhook | null>;
   complete(deliveryId: string, leaseToken: string): Promise<boolean>;
@@ -51,6 +60,48 @@ export class PostgresWebhookInbox implements WebhookInbox {
       .onConflictDoNothing()
       .returning({ deliveryId: reviewControllerWebhookInbox.deliveryId });
     return { inserted: result.length === 1 };
+  }
+
+  async scheduleReceiptExpiration(input: {
+    receiptId: string;
+    repositoryId: number;
+    installationId: number;
+    pullRequest: number;
+    headSha: string;
+    baseSha: string;
+    expiresAt: Date;
+  }): Promise<void> {
+    if (!/^[A-Za-z0-9._:-]{1,128}$/.test(input.receiptId)) throw new Error('invalid receipt ID');
+    if (
+      !Number.isSafeInteger(input.repositoryId) ||
+      input.repositoryId <= 0 ||
+      !Number.isSafeInteger(input.installationId) ||
+      input.installationId <= 0 ||
+      !Number.isSafeInteger(input.pullRequest) ||
+      input.pullRequest <= 0 ||
+      !/^[a-f0-9]{40,64}$/.test(input.headSha) ||
+      !/^[a-f0-9]{40,64}$/.test(input.baseSha) ||
+      !Number.isFinite(input.expiresAt.getTime())
+    )
+      throw new Error('invalid receipt expiration schedule');
+    await this.db
+      .insert(reviewControllerWebhookInbox)
+      .values({
+        deliveryId: `receipt-expiry-${input.receiptId}`,
+        eventName: 'receipt_expiration',
+        installationId: input.installationId,
+        repositoryId: input.repositoryId,
+        receivedAt: new Date(),
+        nextAttemptAt: input.expiresAt,
+        payload: {
+          receiptId: input.receiptId,
+          pullRequest: input.pullRequest,
+          headSha: input.headSha,
+          baseSha: input.baseSha,
+        },
+        state: 'pending',
+      })
+      .onConflictDoNothing();
   }
 
   async ready(): Promise<void> {
@@ -88,6 +139,7 @@ export class PostgresWebhookInbox implements WebhookInbox {
             eq(reviewControllerWebhookInbox.state, 'processing'),
             lte(reviewControllerWebhookInbox.lockedUntil, now),
             gte(reviewControllerWebhookInbox.attempts, MAX_WEBHOOK_ATTEMPTS),
+            sql`${reviewControllerWebhookInbox.eventName} <> 'receipt_expiration'`,
           ),
         );
 
@@ -98,13 +150,19 @@ export class PostgresWebhookInbox implements WebhookInbox {
           or(
             and(
               inArray(reviewControllerWebhookInbox.state, ['pending', 'failed']),
-              lte(reviewControllerWebhookInbox.attempts, MAX_WEBHOOK_ATTEMPTS - 1),
+              or(
+                lte(reviewControllerWebhookInbox.attempts, MAX_WEBHOOK_ATTEMPTS - 1),
+                eq(reviewControllerWebhookInbox.eventName, 'receipt_expiration'),
+              ),
               lte(reviewControllerWebhookInbox.nextAttemptAt, now),
             ),
             and(
               eq(reviewControllerWebhookInbox.state, 'processing'),
               lte(reviewControllerWebhookInbox.lockedUntil, now),
-              lte(reviewControllerWebhookInbox.attempts, MAX_WEBHOOK_ATTEMPTS - 1),
+              or(
+                lte(reviewControllerWebhookInbox.attempts, MAX_WEBHOOK_ATTEMPTS - 1),
+                eq(reviewControllerWebhookInbox.eventName, 'receipt_expiration'),
+              ),
             ),
           ),
         )
@@ -166,7 +224,10 @@ export class PostgresWebhookInbox implements WebhookInbox {
     if (!Number.isFinite(nextAttemptAt.getTime())) throw new Error('invalid retry time');
     return this.db.transaction(async (tx) => {
       const [claimed] = await tx
-        .select({ attempts: reviewControllerWebhookInbox.attempts })
+        .select({
+          attempts: reviewControllerWebhookInbox.attempts,
+          eventName: reviewControllerWebhookInbox.eventName,
+        })
         .from(reviewControllerWebhookInbox)
         .where(
           and(
@@ -181,7 +242,10 @@ export class PostgresWebhookInbox implements WebhookInbox {
       const result = await tx
         .update(reviewControllerWebhookInbox)
         .set({
-          state: claimed.attempts >= MAX_WEBHOOK_ATTEMPTS ? 'failed' : 'pending',
+          state:
+            claimed.attempts >= MAX_WEBHOOK_ATTEMPTS && claimed.eventName !== 'receipt_expiration'
+              ? 'failed'
+              : 'pending',
           nextAttemptAt,
           lastErrorCode: errorCode,
           lockedUntil: null,

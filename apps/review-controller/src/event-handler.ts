@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { type GitHubAppClient, GitHubAppError } from './github-app.js';
-import type { ClaimedWebhook } from './inbox.js';
+import type { ClaimedWebhook, WebhookInbox } from './inbox.js';
 import type { ShadowObservationStore } from './observations.js';
 import { evaluateReceiptShadow } from './receipt-evaluator.js';
 import type { ReceiptPolicy } from './receipt-policy.js';
@@ -18,11 +18,16 @@ export class ShadowWebhookHandler implements WebhookHandler {
     private readonly observations: ShadowObservationStore,
     private readonly receiptPolicy?: ReceiptPolicy,
     private readonly receiptStore?: SignedReceiptStore,
+    private readonly expiryQueue?: Pick<WebhookInbox, 'scheduleReceiptExpiration'>,
   ) {}
 
   async process(webhook: ClaimedWebhook): Promise<void> {
     if (webhook.repositoryId !== this.client.repositoryId)
       throw new GitHubAppError('repository_scope_mismatch');
+    if (webhook.eventName === 'receipt_expiration') {
+      await this.expireReceipt(webhook);
+      return;
+    }
     if (
       webhook.eventName === 'check_run' &&
       this.client.isOwnReceiptCheckRun(record(webhook.payload.check_run))
@@ -67,9 +72,12 @@ export class ShadowWebhookHandler implements WebhookHandler {
         if (!this.receiptStore) throw new Error('receipt_publisher_store_required');
         const externalId = `pr-${snapshot.repositoryId}-${snapshot.pullRequest}`;
         if (receiptEvaluation?.status === 'eligible') {
+          if (!this.expiryQueue) throw new Error('receipt_expiration_queue_required');
           await persistReceiptThenPublishCheck({
             envelope: receiptEvaluation.envelope,
             store: this.receiptStore,
+            inbox: this.expiryQueue,
+            installationId: webhook.installationId,
             github: this.client,
           });
         } else {
@@ -98,6 +106,52 @@ export class ShadowWebhookHandler implements WebhookHandler {
         ...(receiptMetadata ? { receiptEvaluation: receiptMetadata } : {}),
       });
     }
+  }
+
+  private async expireReceipt(webhook: ClaimedWebhook): Promise<void> {
+    if (this.receiptPolicy?.mode !== 'publish' || !this.receiptStore)
+      throw new GitHubAppError('receipt_expiration_store_required');
+    const payload = webhook.payload;
+    const receiptId = payload.receiptId;
+    const pullRequest = payload.pullRequest;
+    const headSha = payload.headSha;
+    const baseSha = payload.baseSha;
+    if (
+      typeof receiptId !== 'string' ||
+      !/^[A-Za-z0-9._:-]{1,128}$/.test(receiptId) ||
+      !Number.isSafeInteger(pullRequest) ||
+      Number(pullRequest) <= 0 ||
+      typeof headSha !== 'string' ||
+      !/^[a-f0-9]{40,64}$/.test(headSha) ||
+      typeof baseSha !== 'string' ||
+      !/^[a-f0-9]{40,64}$/.test(baseSha)
+    )
+      throw new GitHubAppError('invalid_receipt_expiration_payload');
+
+    const latest = (await this.receiptStore.listLatest(this.client.repositoryId)).find(
+      (receipt) => receipt.pullRequest === Number(pullRequest),
+    );
+    if (!latest || latest.receiptId !== receiptId) return;
+    if (latest.headSha !== headSha || latest.baseSha !== baseSha)
+      throw new GitHubAppError('receipt_expiration_identity_mismatch');
+    if (latest.expiresAt.getTime() > Date.now())
+      throw new GitHubAppError('receipt_expiration_not_due');
+
+    const current = await this.client.getPullRequest(Number(pullRequest));
+    if (current.state !== 'open') return;
+    const currentHead = record(current.head).sha;
+    if (typeof currentHead !== 'string' || !/^[a-f0-9]{40,64}$/.test(currentHead))
+      throw new GitHubAppError('invalid_pull_request_response');
+    const confirmedLatest = (await this.receiptStore.listLatest(this.client.repositoryId)).find(
+      (receipt) => receipt.pullRequest === Number(pullRequest),
+    );
+    if (!confirmedLatest || confirmedLatest.receiptId !== receiptId) return;
+    if (confirmedLatest.expiresAt.getTime() > Date.now()) return;
+    await this.client.upsertReceiptCheckRun({
+      headSha: currentHead,
+      externalId: `pr-${this.client.repositoryId}-${Number(pullRequest)}`,
+      eligible: false,
+    });
   }
 
   private async observeMergeGroup(webhook: ClaimedWebhook): Promise<void> {

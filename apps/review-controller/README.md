@@ -11,7 +11,7 @@ signature, restricts intake to one configured repository and App installation,
 and writes each delivery to a Postgres inbox before acknowledging it. The
 delivery ID is unique, so GitHub retries are idempotent. A database outage
 returns 503 and allows GitHub to retry. The inbox supports expiring, fenced
-claims, bounded retries, and a polling worker with graceful shutdown. For PR,
+claims, bounded webhook retries, and a worker with graceful shutdown. For PR,
 review, check-run, check-suite, and merge-group deliveries, the worker obtains
 a fresh GitHub App token scoped to this repository, fetches current PR files,
 base/head trees, and exact-head check runs, then appends a shadow observation.
@@ -56,6 +56,18 @@ can never produce a success check. The signed envelope is removed before the
 shadow observation is persisted. This mode does not request merges or bypass
 branch protection, and the existing owner gate remains authoritative until a
 separately reviewed policy cutover.
+
+Before publishing a success check, the controller also inserts an idempotent
+receipt-expiration job into that same durable inbox, due at the signed receipt's
+`expiresAt`. On startup it restores missing jobs from the latest immutable
+receipt per pull request. When due, the worker confirms the receipt is still the
+latest one, reads the live PR, and fails the App-owned check if the PR remains
+open. A superseded receipt job is a no-op; a closed PR needs no admission check.
+Expiration work retries beyond the ordinary webhook attempt limit so a
+temporary GitHub or database outage cannot silently turn an old success green
+forever. This uses the existing worker queue and does not create a separate
+scheduler or model-review path. New review/check evidence is still evaluated by
+the existing signed GitHub webhook flow.
 
 Receipt evaluation does not call a hosted model API. The controller has no
 model API credentials or model-call path. Codex subscription reviews are configured in
@@ -107,7 +119,9 @@ without publishing it; its required summary fails if the image build fails.
   `packages/db/migrations/` and are applied through the maintained database
   migration flow.
 - Keep one controller machine during the initial Fly-volume/inbox design.
-  Scale only after queue locking and receipt uniqueness are covered by tests.
+  Run one worker process. Queue leases recover work and prevent duplicate
+  claims; they do not fence concurrent check writes for the same PR. Scale only
+  after per-PR receipt/check mutation serialization is covered by tests.
 
 ## Configuration
 

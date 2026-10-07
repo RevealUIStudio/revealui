@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { canonicalReviewReceiptEnvelope } from '@revealui/security/review-receipt';
 import type { GitHubAppClient, ReceiptCheckRunResult } from './github-app.js';
+import type { WebhookInbox } from './inbox.js';
 import type { SignedReceiptStore } from './receipt-store.js';
 
 export interface PublishedReceiptCheck {
@@ -13,6 +14,8 @@ export interface PublishedReceiptCheck {
 export async function persistReceiptThenPublishCheck(input: {
   envelope: Parameters<SignedReceiptStore['append']>[0];
   store: SignedReceiptStore;
+  inbox: Pick<WebhookInbox, 'scheduleReceiptExpiration'>;
+  installationId: number;
   github: Pick<GitHubAppClient, 'upsertReceiptCheckRun'>;
 }): Promise<PublishedReceiptCheck> {
   const receipt = input.envelope.receipt;
@@ -21,6 +24,15 @@ export async function persistReceiptThenPublishCheck(input: {
   const stored = await input.store.append(input.envelope);
   if (stored.receiptId !== receipt.receiptId || stored.sha256 !== expectedSha256)
     throw new Error('stored_receipt_identity_mismatch');
+  await input.inbox.scheduleReceiptExpiration({
+    receiptId: receipt.receiptId,
+    repositoryId: receipt.repository.id,
+    installationId: input.installationId,
+    pullRequest: receipt.pullRequest,
+    headSha: receipt.head.sha,
+    baseSha: receipt.base.sha,
+    expiresAt: new Date(receipt.expiresAt),
+  });
   const checkRun = await input.github.upsertReceiptCheckRun({
     headSha: receipt.head.sha,
     externalId: `pr-${receipt.repository.id}-${receipt.pullRequest}`,
