@@ -3,6 +3,7 @@
  * OpenAPI metadata stays in the Hono route layer (`@revealui/openapi`).
  */
 import { z } from 'zod/v4';
+import { PAID_SUPPORT_POLICY } from './public-catalog.js';
 
 export const checkoutRequestSchema = z.object({
   priceId: z.string().min(1).optional(),
@@ -42,6 +43,7 @@ export const paymentIntentRequestSchema = z.object({
   priceId: z.string().min(1).optional(),
   tier: z.enum(['pro', 'max', 'enterprise']).optional(),
   interval: z.enum(['month', 'year']).optional(),
+  acceptedSupportPolicyRevision: z.literal(PAID_SUPPORT_POLICY.revision),
 });
 
 export const paymentIntentResponseSchema = z.object({

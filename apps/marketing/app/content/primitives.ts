@@ -1,6 +1,6 @@
 // Sourced from: app/components/landing/Primitives.tsx (Phase 1c, no copy
-// changes). HomePrimitive is label + body only, rendered on "/" via
-// components/landing/Primitives.tsx.
+// changes). Retained CMS seed/component copy; HomePage does not mount
+// components/landing/Primitives.tsx. See apps/marketing/README.md.
 // Per the internal marketing-overhaul plan §4.4.
 // Agents primitive MCP count is sourced from METRICS.mcpServers
 // (currently 14, per docs/MARKETING_METRICS.md §1); never hardcoded here.
@@ -23,7 +23,7 @@ export interface HomePrimitive {
 export const HOME_PRIMITIVES_SECTION = {
   eyebrow: 'Five primitives. One login.',
   heading: 'The five things every business runs on.',
-  body: 'Each one ships ready for your team and for agents. One login covers the whole set.',
+  body: 'People, Content, Offers, and Payments share one runtime. Pro adds agent tools; configure the services and permissions your deployment needs.',
   docsLink: { label: 'See the primitive reference →', href: SITE.urls.docs },
 } as const;
 
@@ -42,10 +42,10 @@ export const HOME_PRIMITIVES: readonly HomePrimitive[] = [
   },
   {
     label: 'Payments',
-    body: 'Test-mode checkout and subscriptions ship ready, including webhooks. Go live when you take real money.',
+    body: 'Configure Stripe credentials and webhooks for test-mode checkout and subscriptions. Go live with live credentials when you are ready to accept payments.',
   },
   {
     label: 'Agents',
-    body: 'Agents run on models you host by default. Add a hosted provider when you choose.',
+    body: 'Pro adds agent tools. Configure a supported local runner or hosted model provider; hardware and model usage are separate costs.',
   },
 ] as const;

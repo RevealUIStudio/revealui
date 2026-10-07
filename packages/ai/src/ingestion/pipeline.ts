@@ -6,12 +6,29 @@
  */
 
 import type { Database } from '@revealui/db/client';
+import { pages } from '@revealui/db/schema/pages';
 import { ragChunks, ragDocuments } from '@revealui/db/schema/rag';
 import { safeVectorInsert } from '@revealui/db/validation';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { estimateTokens } from '../internal/token-estimate.js';
 import { createParser } from './file-parsers.js';
+import { pageContentSnapshot } from './rag-vector-service.js';
 import { RecursiveCharacterSplitter } from './text-splitter.js';
+
+// Index readable block text, while rawContent stores the exact canonical source snapshot.
+function pageText(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value)) return value.map(pageText).filter(Boolean).join('\n');
+  if (!value || typeof value !== 'object') return '';
+  return Object.entries(value)
+    .filter(
+      ([key]) =>
+        !['id', 'type', 'blockType', 'blockName', 'url', 'src', 'className', 'style'].includes(key),
+    )
+    .map(([, child]) => pageText(child))
+    .filter(Boolean)
+    .join('\n');
+}
 
 export interface IngestRequest {
   workspaceId: string;
@@ -54,12 +71,44 @@ export class IngestionPipeline {
   }
 
   async ingest(req: IngestRequest): Promise<IngestResult> {
+    let content = req.rawContent;
+    if (req.sourceType === 'admin_collection') {
+      if (req.sourceCollection !== 'pages' || !req.sourceId) {
+        throw new Error('CMS indexing requires a site-backed page source');
+      }
+      const sourceId = req.sourceId;
+      const [page] = await this.restDb
+        .select({
+          siteId: pages.siteId,
+          title: pages.title,
+          blocks: pages.blocks,
+          snapshot: pageContentSnapshot(),
+        })
+        .from(pages)
+        .where(and(eq(pages.id, req.sourceId), isNull(pages.deletedAt)))
+        .limit(1);
+      if (!page || page.siteId !== req.workspaceId) {
+        throw new Error('Page source does not belong to this workspace');
+      }
+      req = { ...req, title: page.title, rawContent: page.snapshot, mimeType: 'text/plain' };
+      content = [page.title, pageText(page.blocks)].filter(Boolean).join('\n\n');
+      // Page IDs are globally unique: remove legacy default/moved-site copies too.
+      await this.db
+        .delete(ragDocuments)
+        .where(
+          and(
+            eq(ragDocuments.sourceType, 'admin_collection'),
+            eq(ragDocuments.sourceCollection, 'pages'),
+            eq(ragDocuments.sourceId, sourceId),
+          ),
+        );
+    }
     const docId = generateId('rdoc');
     const now = new Date();
 
     // 1. Insert document row with status='processing', guarded by cross-DB ref check.
     // safeVectorInsert validates that workspaceId (= site ID) exists in NeonDB before
-    // writing to the Supabase vector store, preventing orphaned RAG documents.
+    // writing RAG documents, preventing orphaned site references.
     await safeVectorInsert(
       this.restDb,
       async () =>
@@ -72,8 +121,8 @@ export class IngestionPipeline {
           title: req.title ?? null,
           mimeType: req.mimeType ?? 'text/plain',
           rawContent: req.rawContent,
-          wordCount: estimateWordCount(req.rawContent),
-          tokenEstimate: estimateTokens(req.rawContent),
+          wordCount: estimateWordCount(content),
+          tokenEstimate: estimateTokens(content),
           status: 'processing',
           createdAt: now,
           updatedAt: now,
@@ -84,7 +133,7 @@ export class IngestionPipeline {
     try {
       // 2. Parse
       const parser = createParser(req.mimeType ?? 'text/plain');
-      const { text } = parser.parse(req.rawContent);
+      const { text } = parser.parse(content);
 
       // 3. Split
       const chunks = this.splitter.split(text, {

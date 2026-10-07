@@ -1,5 +1,9 @@
 import { Hono } from 'hono';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+vi.mock('@revealui/config/stripe-mode', () => ({
+  getConfiguredStripeMode: vi.fn(() => 'live'),
+}));
 
 // ---------------------------------------------------------------------------
 // Mock dependencies
@@ -24,7 +28,8 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
-import { getLicensePayload } from '@revealui/core/license';
+import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
+import { getLicensePayload, type LicensePayload } from '@revealui/core/license';
 import { errorHandler } from '../error.js';
 import { checkLicenseStatus, resetDbStatusCache } from '../license.js';
 
@@ -36,7 +41,7 @@ async function parseBody(res: Response): Promise<any> {
 }
 
 function createApp(
-  queryFn: (customerId: string) => Promise<string | null>,
+  queryFn: (payload: LicensePayload) => Promise<string | null>,
   entitlements?: {
     accountId?: string | null;
     subscriptionStatus?: string | null;
@@ -69,16 +74,169 @@ function createApp(
 
 afterEach(() => {
   resetDbStatusCache();
+  vi.useRealTimers();
+  vi.mocked(getConfiguredStripeMode).mockReturnValue('live');
+});
+
+describe('license authority outages', () => {
+  const dayMs = 86_400_000;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-10-04T12:00:00Z'));
+    mockedGetLicensePayload.mockReturnValue({
+      tier: 'pro',
+      customerId: 'cus_outage',
+      jti: 'key_1',
+    });
+  });
+
+  it('refuses an unvalidated status during an outage, including after restart', async () => {
+    const query = vi.fn().mockResolvedValueOnce('active').mockRejectedValue(new Error('offline'));
+    const app = createApp(query);
+    expect((await app.request('/resource')).status).toBe(200);
+    resetDbStatusCache();
+
+    expect((await app.request('/resource')).status).toBe(503);
+  });
+
+  it('never borrows another token’s outage evidence for the same customer', async () => {
+    const query = vi.fn().mockResolvedValueOnce('active').mockRejectedValue(new Error('offline'));
+    const app = createApp(query);
+    expect((await app.request('/resource')).status).toBe(200);
+    mockedGetLicensePayload.mockReturnValue({
+      customerId: 'cus_outage',
+      tier: 'pro',
+      jti: 'key_unvalidated',
+    });
+    expect((await app.request('/resource')).status).toBe(503);
+  });
+
+  it.each([null, 'unknown'])(
+    'keeps an authoritative unusable status %s denied during a later outage',
+    async (status) => {
+      const query = vi.fn().mockResolvedValueOnce(status).mockRejectedValue(new Error('offline'));
+      const app = createApp(query);
+      expect((await app.request('/resource')).status).toBe(403);
+      vi.advanceTimersByTime(8 * dayMs);
+      expect((await app.request('/resource')).status).toBe(403);
+    },
+  );
+
+  it('retains a validated license for seven days, then prevents the handler from executing', async () => {
+    const query = vi.fn().mockResolvedValueOnce('active').mockRejectedValue(new Error('offline'));
+    const app = createApp(query);
+    expect((await app.request('/resource')).status).toBe(200);
+    vi.advanceTimersByTime(31_000);
+    const firstFailure = await app.request('/resource');
+    expect(firstFailure.status).toBe(200);
+    expect(firstFailure.headers.get('X-License-Mode')).toBe('grace');
+    vi.advanceTimersByTime(7 * dayMs - 1);
+    expect((await app.request('/resource')).status).toBe(200);
+    vi.advanceTimersByTime(1);
+    const exhausted = await app.request('/resource');
+    expect(exhausted.status).toBe(503);
+    expect(await exhausted.json()).not.toEqual({ ok: true });
+    expect((await app.request('/resource')).status).toBe(503);
+  });
+
+  it('does not let another customer reset an existing outage window', async () => {
+    const query = vi.fn().mockResolvedValue('active');
+    const app = createApp(query);
+    await app.request('/resource');
+    vi.advanceTimersByTime(31_000);
+    query.mockRejectedValueOnce(new Error('offline'));
+    await app.request('/resource');
+    vi.advanceTimersByTime(6 * dayMs);
+    mockedGetLicensePayload.mockReturnValue({ tier: 'pro', customerId: 'cus_other', jti: 'key_2' });
+    expect((await app.request('/resource')).status).toBe(200);
+    mockedGetLicensePayload.mockReturnValue({
+      tier: 'pro',
+      customerId: 'cus_outage',
+      jti: 'key_1',
+    });
+    query.mockRejectedValue(new Error('offline'));
+    vi.advanceTimersByTime(dayMs);
+    expect((await app.request('/resource')).status).toBe(503);
+  });
+
+  it.each(['revoked', 'expired'])(
+    'never grants outage grace to a known %s license',
+    async (status) => {
+      const query = vi.fn().mockResolvedValueOnce(status).mockRejectedValue(new Error('offline'));
+      const app = createApp(query);
+      expect((await app.request('/resource')).status).toBe(403);
+      vi.advanceTimersByTime(8 * dayMs);
+      expect((await app.request('/resource')).status).toBe(403);
+    },
+  );
+
+  it('rechecks revocation after the authority recovers from an exhausted outage', async () => {
+    const query = vi.fn().mockResolvedValueOnce('active').mockRejectedValue(new Error('offline'));
+    const app = createApp(query);
+    await app.request('/resource');
+    vi.advanceTimersByTime(31_000);
+    await app.request('/resource');
+    vi.advanceTimersByTime(7 * dayMs);
+    expect((await app.request('/resource')).status).toBe(503);
+    query.mockResolvedValue('revoked');
+    expect((await app.request('/resource')).status).toBe(403);
+  });
+
+  it('starts a new outage window only after the same customer validates successfully', async () => {
+    const query = vi.fn().mockResolvedValue('active');
+    const app = createApp(query);
+    await app.request('/resource');
+    vi.advanceTimersByTime(31_000);
+    query.mockRejectedValueOnce(new Error('offline'));
+    await app.request('/resource');
+    vi.advanceTimersByTime(6 * dayMs);
+    expect((await app.request('/resource')).status).toBe(200);
+    vi.advanceTimersByTime(31_000);
+    query.mockRejectedValue(new Error('offline'));
+    expect((await app.request('/resource')).status).toBe(200);
+    vi.advanceTimersByTime(2 * dayMs);
+    expect((await app.request('/resource')).status).toBe(200);
+  });
 });
 
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 describe('checkLicenseStatus', () => {
+  it.each([{ jti: 'another_jti' }, { tier: 'max' as const }, { perpetual: true }])(
+    'does not share cached authority across signed identities: %o',
+    async (change) => {
+      const first: LicensePayload = { customerId: 'cus_bound', tier: 'pro', jti: 'jti_first' };
+      const query = vi.fn().mockResolvedValueOnce('active').mockResolvedValue('revoked');
+      const app = createApp(query);
+      mockedGetLicensePayload.mockReturnValue(first);
+      expect((await app.request('/resource')).status).toBe(200);
+      mockedGetLicensePayload.mockReturnValue({ ...first, ...change });
+      expect((await app.request('/resource')).status).toBe(403);
+      expect(query).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it('does not share authority evidence across Stripe billing modes', async () => {
+    mockedGetLicensePayload.mockReturnValue({
+      customerId: 'cus_bound',
+      tier: 'pro',
+      jti: 'jti_mode',
+    });
+    const query = vi.fn().mockResolvedValueOnce('active').mockResolvedValue('revoked');
+    const app = createApp(query);
+    expect((await app.request('/resource')).status).toBe(200);
+    vi.mocked(getConfiguredStripeMode).mockReturnValue('test');
+    expect((await app.request('/resource')).status).toBe(403);
+    expect(query).toHaveBeenCalledTimes(2);
+  });
+
   it('passes for active license', async () => {
     mockedGetLicensePayload.mockReturnValue({
       tier: 'pro',
       customerId: 'cus_1',
+      jti: 'jti_1',
     });
     const queryFn = vi.fn().mockResolvedValue('active');
 
@@ -86,13 +244,16 @@ describe('checkLicenseStatus', () => {
     const res = await app.request('/resource');
 
     expect(res.status).toBe(200);
-    expect(queryFn).toHaveBeenCalledWith('cus_1');
+    expect(queryFn).toHaveBeenCalledWith(
+      expect.objectContaining({ customerId: 'cus_1', jti: 'jti_1' }),
+    );
   });
 
   it('returns 403 for revoked license', async () => {
     mockedGetLicensePayload.mockReturnValue({
       tier: 'pro',
       customerId: 'cus_1',
+      jti: 'jti_1',
     });
     const queryFn = vi.fn().mockResolvedValue('revoked');
 
@@ -108,6 +269,7 @@ describe('checkLicenseStatus', () => {
     mockedGetLicensePayload.mockReturnValue({
       tier: 'pro',
       customerId: 'cus_1',
+      jti: 'jti_1',
     });
     const queryFn = vi.fn().mockResolvedValue('expired');
 
@@ -134,6 +296,7 @@ describe('checkLicenseStatus', () => {
     mockedGetLicensePayload.mockReturnValue({
       tier: 'pro',
       customerId: 'cus_1',
+      jti: 'jti_1',
     });
     const queryFn = vi.fn().mockResolvedValue('active');
 
@@ -148,29 +311,34 @@ describe('checkLicenseStatus', () => {
     expect(queryFn).toHaveBeenCalledTimes(1);
   });
 
-  it('defaults to active when query returns null', async () => {
-    mockedGetLicensePayload.mockReturnValue({
-      tier: 'pro',
-      customerId: 'cus_1',
-    });
-    const queryFn = vi.fn().mockResolvedValue(null);
+  it.each([null, 'unknown', 'past_due', 'canceled', 'support_expired'])(
+    'denies a subscription grant with unusable registration status %s',
+    async (status) => {
+      mockedGetLicensePayload.mockReturnValue({
+        tier: 'pro',
+        customerId: 'cus_1',
+        jti: 'jti_1',
+      });
+      const queryFn = vi.fn().mockResolvedValue(status);
 
-    const app = createApp(queryFn);
-    const res = await app.request('/resource');
+      const app = createApp(queryFn);
+      const res = await app.request('/resource');
 
-    expect(res.status).toBe(200);
-  });
+      expect(res.status).toBe(403);
+    },
+  );
 
   it('caches status separately per customerId', async () => {
     const queryFn = vi
       .fn()
-      .mockImplementation(async (customerId: string) =>
-        customerId === 'cus_1' ? 'active' : 'revoked',
+      .mockImplementation(async (payload: LicensePayload) =>
+        payload.customerId === 'cus_1' ? 'active' : 'revoked',
       );
 
     mockedGetLicensePayload.mockReturnValue({
       tier: 'pro',
       customerId: 'cus_1',
+      jti: 'jti_1',
     });
     const app = createApp(queryFn);
 
@@ -180,12 +348,13 @@ describe('checkLicenseStatus', () => {
     mockedGetLicensePayload.mockReturnValue({
       tier: 'pro',
       customerId: 'cus_2',
+      jti: 'jti_1',
     });
 
     const res2 = await app.request('/resource');
     expect(res2.status).toBe(403);
-    expect(queryFn).toHaveBeenNthCalledWith(1, 'cus_1');
-    expect(queryFn).toHaveBeenNthCalledWith(2, 'cus_2');
+    expect(queryFn).toHaveBeenNthCalledWith(1, expect.objectContaining({ customerId: 'cus_1' }));
+    expect(queryFn).toHaveBeenNthCalledWith(2, expect.objectContaining({ customerId: 'cus_2' }));
   });
 
   it('skips the legacy DB query for hosted account entitlements', async () => {
@@ -261,13 +430,14 @@ describe('checkLicenseStatus  -  cache TTL freshness (GAP-139)', () => {
       mockedGetLicensePayload.mockReturnValue({
         tier: 'pro',
         customerId: 'cus_ttl_1',
+        jti: 'jti_1',
       });
 
       // First call returns 'active'; subsequent calls return 'revoked' to
       // simulate Stripe-side revocation that arrived between cache-fill +
       // next read.
       const queryFn = vi
-        .fn<(customerId: string) => Promise<string>>()
+        .fn<(payload: LicensePayload) => Promise<string>>()
         .mockResolvedValueOnce('active')
         .mockResolvedValue('revoked');
 
@@ -301,10 +471,11 @@ describe('checkLicenseStatus  -  cache TTL freshness (GAP-139)', () => {
     mockedGetLicensePayload.mockReturnValue({
       tier: 'pro',
       customerId: 'cus_reset_1',
+      jti: 'jti_1',
     });
 
     const queryFn = vi
-      .fn<(customerId: string) => Promise<string>>()
+      .fn<(payload: LicensePayload) => Promise<string>>()
       .mockResolvedValueOnce('active')
       .mockResolvedValue('revoked');
 

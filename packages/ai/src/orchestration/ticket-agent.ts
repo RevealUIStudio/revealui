@@ -13,6 +13,7 @@
  */
 
 import type { Database } from '@revealui/db/client';
+import type { RagReadAccess } from '../ingestion/rag-vector-service.js';
 import type { LLMClient } from '../llm/client.js';
 import type { EpisodicMemory } from '../memory/stores/episodic-memory.js';
 import type {
@@ -40,6 +41,8 @@ export interface TicketInput {
 }
 
 export interface TicketAgentConfig {
+  /** Trusted authentication context for site-backed document tools. */
+  ragAccess?: RagReadAccess;
   /** LLM client (Anthropic, OpenAI, etc.) */
   llmClient: LLMClient;
 
@@ -176,7 +179,10 @@ export class TicketAgentDispatcher {
       dispatchId: options.dispatchId,
     });
     const extraTools = db
-      ? [webScraperTool, createDocumentSummarizerTool(db, this.config.llmClient)]
+      ? [
+          webScraperTool,
+          createDocumentSummarizerTool(db, this.config.llmClient, this.config.ragAccess),
+        ]
       : [webScraperTool];
     let tools: Tool[] = [...cmsTools, ...ticketTools, ...extraTools];
     if (this.config.wrapTools) {

@@ -22,6 +22,7 @@ import {
   ENTERPRISE_SALES_HREF,
   type LicenseTierId,
 } from '@revealui/contracts/pricing';
+import { PAID_SUPPORT_POLICY } from '@revealui/contracts/public-catalog';
 import { CircuitBreakerOpenError } from '@revealui/core/error-handling';
 import { getMaxAgentTasks } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
@@ -54,6 +55,20 @@ import {
   fetchLiveBillingCatalogRows,
   findBillingCatalogGaps,
 } from '../../lib/validate-startup.js';
+
+/** Disclosure appears beside Stripe's payment button in hosted and embedded Checkout. */
+export const paidSupportCheckoutText = {
+  submit: {
+    message: `By completing this purchase, you accept support policy revision ${PAID_SUPPORT_POLICY.revision}: ${PAID_SUPPORT_POLICY.summary}. ${PAID_SUPPORT_POLICY.coverage} Read the [support policy](https://revealui.com/support) and [terms](https://revealui.com/terms). Earlier accepted agreements retain their commitments.`,
+  },
+};
+
+// An offered revision becomes accepted only when Checkout completes. Existing
+// subscriptions without this metadata keep their earlier agreement.
+export const paidSupportCheckoutMetadata = {
+  support_policy_revision: PAID_SUPPORT_POLICY.revision,
+  support_policy_acceptance: 'checkout_completion',
+};
 
 /** Default trial period for new subscriptions (overridable via env) */
 export const TRIAL_PERIOD_DAYS = Number.parseInt(process.env.REVEALUI_TRIAL_DAYS ?? '7', 10);

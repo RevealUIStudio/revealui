@@ -1,71 +1,40 @@
 import { useEffect } from 'react';
 import { HOME_HERO } from '../content/home';
 import type { Audience } from './audience';
-
-interface AudienceSeo {
-  title: string;
-  description: string;
-  ogTitle: string;
-  ogDescription: string;
-  ogImage: string;
-  twitterTitle: string;
-  twitterDescription: string;
-  twitterImage: string;
-}
-
-const SEO: Record<Audience, AudienceSeo> = {
-  'non-technical': {
-    title: 'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
-    description:
-      'Studio books Consultation, Pilot, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com.',
-    ogTitle: 'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
-    ogDescription:
-      'Studio books Consultation, Pilot, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com.',
-    ogImage:
-      'https://api.revealui.com/api/og?title=RevealUI&description=Your%20business%2C%20delivered%20and%20yours%20to%20own.',
-    twitterTitle: 'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
-    twitterDescription:
-      'Studio books Consultation, Pilot, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com.',
-    twitterImage:
-      'https://api.revealui.com/api/og?title=RevealUI&description=Your%20business%2C%20delivered%20and%20yours%20to%20own.',
-  },
-  technical: {
-    title: 'RevealUI | Build your business on software you can run yourself.',
-    // Title mirrors HOME_HERO.h1. Description mirrors the known-for subtitle.
-    description: `${HOME_HERO.subtitle.sentence1} ${HOME_HERO.subtitle.sentence2} ${HOME_HERO.subtitle.support}`,
-    ogTitle: 'RevealUI | Build your business on software you can run yourself.',
-    ogDescription: `${HOME_HERO.subtitle.sentence1} ${HOME_HERO.subtitle.sentence2}`,
-    ogImage:
-      'https://api.revealui.com/api/og?title=RevealUI&description=The%20agentic%20business%20runtime%20startups%20operate%20on%20their%20own%20domain.',
-    twitterTitle: 'RevealUI | Build your business on software you can run yourself.',
-    twitterDescription: `${HOME_HERO.subtitle.sentence1} ${HOME_HERO.subtitle.sentence2}`,
-    twitterImage:
-      'https://api.revealui.com/api/og?title=RevealUI&description=The%20agentic%20business%20runtime%20startups%20operate%20on%20their%20own%20domain.',
-  },
-};
+import type { HomeHeroVariant } from './hero-variant';
 
 function setMeta(selector: string, attr: string, value: string): void {
   document.querySelector<HTMLElement>(selector)?.setAttribute(attr, value);
 }
 
-export function useAudienceHead(audience: Audience): void {
+/** Homepage metadata follows the selected hero and restores the home canonical. */
+export function useAudienceHead(audience: Audience, hero: HomeHeroVariant = HOME_HERO): void {
   useEffect(() => {
-    const seo = SEO[audience];
+    const title =
+      audience === 'technical'
+        ? `RevealUI | ${hero.h1}`
+        : 'RevealUI | Implementation help from RevealUI Studio';
+    const description =
+      audience === 'technical'
+        ? `${hero.subtitle.sentence1} ${hero.subtitle.sentence2} ${hero.subtitle.support}`
+        : 'Work with RevealUI Studio to review, test, or launch a business flow on your accounts. Implementation engagements are separate from RevealUI licenses.';
+    const image = `https://api.revealui.com/api/og?title=RevealUI&description=${encodeURIComponent(audience === 'technical' ? hero.h1 : description)}`;
 
-    document.title = seo.title;
-
-    setMeta('meta[name="description"]', 'content', seo.description);
-    setMeta('meta[property="og:title"]', 'content', seo.ogTitle);
-    setMeta('meta[property="og:description"]', 'content', seo.ogDescription);
-    setMeta('meta[property="og:image"]', 'content', seo.ogImage);
-    setMeta('meta[name="twitter:title"]', 'content', seo.twitterTitle);
-    setMeta('meta[name="twitter:description"]', 'content', seo.twitterDescription);
-    setMeta('meta[name="twitter:image"]', 'content', seo.twitterImage);
+    document.title = title;
+    setMeta('meta[name="description"]', 'content', description);
+    setMeta('meta[property="og:title"]', 'content', title);
+    setMeta('meta[property="og:description"]', 'content', description);
+    setMeta('meta[property="og:image"]', 'content', image);
+    setMeta('meta[property="og:image:alt"]', 'content', title);
+    setMeta('meta[name="twitter:title"]', 'content', title);
+    setMeta('meta[name="twitter:description"]', 'content', description);
+    setMeta('meta[name="twitter:image"]', 'content', image);
+    setMeta('link[rel="canonical"]', 'href', 'https://revealui.com');
+    setMeta('meta[property="og:url"]', 'content', 'https://revealui.com');
 
     document.documentElement.dataset.audience = audience;
-
     document.dispatchEvent(
       new CustomEvent('revealui:audience', { detail: { audience }, bubbles: false }),
     );
-  }, [audience]);
+  }, [audience, hero]);
 }
