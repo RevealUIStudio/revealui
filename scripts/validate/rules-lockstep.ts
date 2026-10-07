@@ -16,7 +16,7 @@
  *   1. Every revcon-manifest entry that is NOT a definition-owned rule must
  *      exist with a matching sha256 (edit the revcon profile + re-link).
  *   2. Every definition-owned `.claude/rules/<id>.md` must match content
- *      (run manager materialize). Manifest hash for those ids is ignored.
+ *      (run manager materialize). Its manifest source must declare harness ownership and its hash must match.
  *   3. Every other git-tracked file under the materialized dirs must appear
  *      in the revcon manifest (stray hand-add).
  *
@@ -33,11 +33,19 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { contentRootRelative, loadManager } from '../../packages/harnesses/src/manager/paths.js';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 export const MANIFEST_REL = path.posix.join('.claude', '.revcon-manifest.json');
-export const MATERIALIZED_DIRS = ['.claude/rules', '.claude/agents', '.claude/skills'];
-const CONTENT_RULES_REL = path.posix.join('.revealui', 'content', 'rules');
+export const MATERIALIZED_DIRS = [
+  '.claude/rules',
+  '.claude/agents',
+  '.claude/skills',
+  '.claude/workflows',
+];
+function contentRulesRelative(root: string): string {
+  return path.posix.join(contentRootRelative(loadManager(root)), 'rules');
+}
 const MATERIALIZE_CMD = 'pnpm exec revealui-harnesses manager materialize';
 const REAPPLY_CMD =
   'bash ~/revealfleet/revcon/link.sh --target ~/revealfleet/revealui --profile revealfleet --profile revealui --editor claude --mode copy';
@@ -73,7 +81,7 @@ export function loadManifest(root: string): Manifest | null {
  * Empty when the content tree is absent (caller still fails manager check).
  */
 export function definitionRuleIdsFromContent(root: string): Set<string> {
-  const dir = path.join(root, CONTENT_RULES_REL);
+  const dir = path.join(root, contentRulesRelative(root));
   const ids = new Set<string>();
   if (!fs.existsSync(dir)) return ids;
   for (const name of fs.readdirSync(dir)) {
@@ -114,6 +122,7 @@ export function verifyLockstep(
 ): string[] {
   const problems: string[] = [];
   const defIds = definitionIds ?? definitionRuleIdsFromContent(root);
+  const contentRulesRel = contentRulesRelative(root);
 
   if (manifest.mode !== 'copy' || typeof manifest.files !== 'object' || manifest.files === null) {
     return [`${MANIFEST_REL} is malformed (expected mode "copy" with a files map)`];
@@ -136,17 +145,22 @@ export function verifyLockstep(
 
     // Definition-owned rules: lock to content, not the revcon profile hash.
     if (isDefinitionClaudeRule(fileRel, defIds)) {
+      if (entry.source !== `harnesses:${rel}` || sha256OfFile(abs) !== entry.sha256) {
+        problems.push(
+          `${fileRel} - stale or incorrect harness ownership — run: ${MATERIALIZE_CMD}`,
+        );
+      }
       const id = path.posix.basename(fileRel, '.md');
-      const contentAbs = path.join(root, CONTENT_RULES_REL, `${id}.md`);
+      const contentAbs = path.join(root, contentRulesRel, `${id}.md`);
       if (!fs.existsSync(contentAbs)) {
         problems.push(
-          `${fileRel} - definition rule missing content twin ${CONTENT_RULES_REL}/${id}.md — run: ${MATERIALIZE_CMD}`,
+          `${fileRel} - definition rule missing content twin ${contentRulesRel}/${id}.md — run: ${MATERIALIZE_CMD}`,
         );
         continue;
       }
       if (sha256OfFile(abs) !== sha256OfFile(contentAbs)) {
         problems.push(
-          `${fileRel} - dual drift vs ${CONTENT_RULES_REL}/${id}.md (GAP-421 phase 2). ` +
+          `${fileRel} - dual drift vs ${contentRulesRel}/${id}.md (GAP-421 phase 2). ` +
             `Run: ${MATERIALIZE_CMD}`,
         );
       }
@@ -165,9 +179,12 @@ export function verifyLockstep(
   // Definition mirrors not in the revcon manifest still must match content.
   for (const tracked of trackedFiles) {
     if (!isDefinitionClaudeRule(tracked, defIds)) continue;
+    if (!manifestRels.has(tracked)) {
+      problems.push(`${tracked} - missing harness ownership entry — run: ${MATERIALIZE_CMD}`);
+    }
     const id = path.posix.basename(tracked, '.md');
     const abs = path.join(root, tracked);
-    const contentAbs = path.join(root, CONTENT_RULES_REL, `${id}.md`);
+    const contentAbs = path.join(root, contentRulesRel, `${id}.md`);
     if (!fs.existsSync(abs)) continue;
     if (!fs.existsSync(contentAbs)) {
       problems.push(`${tracked} - definition rule missing content twin — run: ${MATERIALIZE_CMD}`);
@@ -175,7 +192,7 @@ export function verifyLockstep(
     }
     if (sha256OfFile(abs) !== sha256OfFile(contentAbs)) {
       problems.push(
-        `${tracked} - dual drift vs ${CONTENT_RULES_REL}/${id}.md — run: ${MATERIALIZE_CMD}`,
+        `${tracked} - dual drift vs ${contentRulesRel}/${id}.md — run: ${MATERIALIZE_CMD}`,
       );
     }
   }

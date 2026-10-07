@@ -476,7 +476,7 @@
   },
   "existingContentOwnershipDebt": {
     "id": "HARNESS-MANAGED-CONTENT-OWNERSHIP-CONVERGENCE",
-    "status": "pending",
+    "status": "complete",
     "owner": "@revealui/harnesses manager adapter generation and RevCon ownership manifests",
     "owningPaths": [
       "packages/harnesses/src/content/write-manager-adapters.ts",
@@ -494,36 +494,86 @@
         "behavior": "Committed content differs from legacy ownership hash.",
         "owner": "Harness manager adapters and legacy RevCon distribution",
         "durableDestination": "Single canonical generator and matching ownership ledger",
-        "removalEvidence": "Pending; mismatch verified both before and after the identity commit."
+        "removalEvidence": "Existing manifest entry migrated to the harness owner. Hash verified against staged canonical generation; original rule body and pending edits preserved. Regression tests prevent profile reapplication from reclaiming the file."
       },
       {
         "location": ".claude/rules/biome.md",
         "behavior": "Committed content differs from legacy ownership hash.",
         "owner": "Harness manager adapters and legacy RevCon distribution",
         "durableDestination": "Single canonical generator and matching ownership ledger",
-        "removalEvidence": "Pending; mismatch verified both before and after the identity commit."
+        "removalEvidence": "Existing manifest entry migrated to the harness owner. Hash verified against staged canonical generation; original rule body and pending edits preserved. Regression tests prevent profile reapplication from reclaiming the file."
       },
       {
         "location": ".claude/rules/skills-usage.md",
         "behavior": "Committed content differs from legacy ownership hash.",
         "owner": "Harness manager adapters and legacy RevCon distribution",
         "durableDestination": "Single canonical generator and matching ownership ledger",
-        "removalEvidence": "Pending; mismatch verified both before and after the identity commit."
+        "removalEvidence": "Existing manifest entry migrated to the harness owner. Hash verified against staged canonical generation; original rule body and pending edits preserved. Regression tests prevent profile reapplication from reclaiming the file."
       },
       {
         "location": ".claude/rules/token-economy.md",
         "behavior": "Committed content differs from legacy ownership hash.",
         "owner": "Harness manager adapters and legacy RevCon distribution",
         "durableDestination": "Single canonical generator and matching ownership ledger",
-        "removalEvidence": "Pending; mismatch verified both before and after the identity commit."
+        "removalEvidence": "Existing manifest entry migrated to the harness owner. Hash verified against staged canonical generation; original rule body and pending edits preserved. Regression tests prevent profile reapplication from reclaiming the file."
       },
       {
         "location": ".claude/rules/versioning.md",
         "behavior": "Committed content differs from legacy ownership hash.",
         "owner": "Harness manager adapters and legacy RevCon distribution",
         "durableDestination": "Single canonical generator and matching ownership ledger",
-        "removalEvidence": "Pending; mismatch verified both before and after the identity commit."
+        "removalEvidence": "Existing manifest entry migrated to the harness owner. Hash verified against staged canonical generation; original rule body and pending edits preserved. Regression tests prevent profile reapplication from reclaiming the file."
+      },
+      {
+        "location": ".claude/rules/coordination.md",
+        "behavior": "Installed profile rule differed from its recorded canonical profile source.",
+        "owner": "RevCon recorded profile source",
+        "durableDestination": "Existing profile rule and maintained copy distributor",
+        "removalEvidence": "Canonical profile reapplied through link.sh; source freshness and copy lockstep pass."
+      },
+      {
+        "location": ".claude/rules/git.md",
+        "behavior": "Installed profile rule differed from its recorded canonical profile source.",
+        "owner": "RevCon recorded profile source",
+        "durableDestination": "Existing profile rule and maintained copy distributor",
+        "removalEvidence": "Canonical profile reapplied through link.sh; source freshness and copy lockstep pass."
+      },
+      {
+        "location": ".claude/rules/opensrc.md",
+        "behavior": "Installed profile rule differed from its recorded canonical profile source.",
+        "owner": "RevCon recorded profile source",
+        "durableDestination": "Existing profile rule and maintained copy distributor",
+        "removalEvidence": "Profile source reapplied through link.sh; source freshness and copy lockstep pass. Fleet-root parameterization moved into the canonical opensrc profile."
+      },
+      {
+        "location": ".claude/rules/planning.md",
+        "behavior": "Installed profile rule differed from its recorded canonical profile source.",
+        "owner": "RevCon recorded profile source",
+        "durableDestination": "Existing profile rule and maintained copy distributor",
+        "removalEvidence": "Canonical profile reapplied through link.sh; source freshness and copy lockstep pass."
+      },
+      {
+        "location": ".claude/rules/priorities.md",
+        "behavior": "Installed profile rule differed from its recorded canonical profile source.",
+        "owner": "RevCon recorded profile source",
+        "durableDestination": "Existing profile rule and maintained copy distributor",
+        "removalEvidence": "Canonical profile reapplied through link.sh; source freshness and copy lockstep pass."
+      },
+      {
+        "location": ".claude/rules/single-source-of-truth.md",
+        "behavior": "Installed profile rule differed from its recorded canonical profile source.",
+        "owner": "RevCon recorded profile source",
+        "durableDestination": "Existing profile rule and maintained copy distributor",
+        "removalEvidence": "Canonical profile reapplied through link.sh; source freshness and copy lockstep pass."
+      },
+      {
+        "location": ".claude/rules/{control-layer,copy-voice,extend-before-create,model-allocation,no-em-dashes,secrets,temp-scripts}.md and .claude/workflows/WORKFLOWS.md",
+        "behavior": "Selected canonical profiles contained consumers absent from the installed tree and ledger.",
+        "owner": "RevCon selected profiles",
+        "durableDestination": "Existing profile distributor and ownership manifest",
+        "removalEvidence": "Regenerated by link.sh from tracked profile sources; generated copies and ledger entries pass copy lockstep."
       }
-    ]
+    ],
+    "resolution": "The existing Claude manifest now records harnesses:rules/<id>.md as the source for all 21 generated rule mirrors, with hashes generated by writeManagerAdapterContent. Profile-only entries retain their original owners. RevCon reapplication preserves harness-owned rules and their manifest entries; local and shared lockstep gates verify ownership and canonical content, including supported custom contentRoot configuration. RevCon unlink preserves harness ownership while pruning removed profile entries. Six stale profile rules were converged on their existing source owners; eight missing selected-profile consumers were regenerated by the maintained distributor. Source freshness and both lockstep gates pass for all 284 entries."
   }
 }

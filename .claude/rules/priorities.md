@@ -2,7 +2,11 @@
 
 ## Source of Truth
 
-All work must align with the master plan in the internal coordination hub (see the repo's `docs/INDEX.md` "Fleet coordination"); the in-repo `docs/MASTER_PLAN.md` is a retired pointer stub. If a task is not listed in the current phase of the hub plan, do not work on it without explicit user approval.
+All work must align with free surfaces on the internal coordination hub
+(TRACKER, open gaps/lanes; see the repo's `docs/INDEX.md` "Fleet coordination").
+The in-repo `docs/MASTER_PLAN.md` is a retired public pointer stub, not the plan
+of record. If a task is not listed on TRACKER or an open gap/lane, do not work
+on it without explicit user approval.
 
 ## Current Phase: Phase 3 — Post-Launch
 

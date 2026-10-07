@@ -40,6 +40,19 @@ afterEach(() => {
 });
 
 describe('verifyLockstep', () => {
+  it('uses the supported manager contentRoot for harness ownership', () => {
+    const body = '# Biome\n';
+    writeRule('rules/biome.md', body);
+    mkdirSync(path.join(root, '.revealui/custom/rules'), { recursive: true });
+    writeFileSync(
+      path.join(root, '.revealui/manager.json'),
+      JSON.stringify({ contentRoot: 'custom' }),
+    );
+    writeFileSync(path.join(root, '.revealui/custom/rules/biome.md'), body);
+    const manifest = manifestFor({ 'rules/biome.md': body });
+    manifest.files['rules/biome.md']!.source = 'harnesses:rules/biome.md';
+    expect(verifyLockstep(root, manifest, ['.claude/rules/biome.md'])).toEqual([]);
+  });
   it('passes when every copy matches the manifest and no strays exist', () => {
     writeRule('rules/git.md', '# Git Conventions\n');
     writeRule('agents/builder.md', '# Builder\n');
@@ -108,7 +121,7 @@ describe('verifyLockstep', () => {
     expect(problems[0]).toContain('malformed');
   });
 
-  it('definition-owned Claude rules must match content (not revcon hash)', () => {
+  it('definition-owned rules require their actual owner, ledger hash and content twin', () => {
     const body = '# Biome\nfrom definitions\n';
     writeRule('rules/biome.md', body);
     mkdirSync(path.join(root, '.revealui', 'content', 'rules'), { recursive: true });
@@ -126,6 +139,13 @@ describe('verifyLockstep', () => {
       },
     };
     const defIds = new Set(['biome']);
+    expect(verifyLockstep(root, manifest, ['.claude/rules/biome.md'], defIds)[0]).toContain(
+      'incorrect harness ownership',
+    );
+    manifest.files['rules/biome.md'] = {
+      source: 'harnesses:rules/biome.md',
+      sha256: sha256OfFile(path.join(root, '.claude/rules/biome.md')),
+    };
     expect(verifyLockstep(root, manifest, ['.claude/rules/biome.md'], defIds)).toEqual([]);
 
     writeRule('rules/biome.md', `${body}\ndrift\n`);
@@ -133,7 +153,7 @@ describe('verifyLockstep', () => {
     expect(drifted.some((p) => p.includes('dual drift'))).toBe(true);
   });
 
-  it('definition mirrors not in the revcon manifest are not strays when they match content', () => {
+  it('definition mirrors require an ownership entry even when they match content', () => {
     const body = '# Code over docs\n';
     writeRule('rules/code-over-docs.md', body);
     mkdirSync(path.join(root, '.revealui', 'content', 'rules'), { recursive: true });
@@ -142,6 +162,8 @@ describe('verifyLockstep', () => {
     const manifest = manifestFor({ 'rules/git.md': '' });
     const defIds = new Set(['code-over-docs']);
     const tracked = ['.claude/rules/git.md', '.claude/rules/code-over-docs.md'];
-    expect(verifyLockstep(root, manifest, tracked, defIds)).toEqual([]);
+    expect(verifyLockstep(root, manifest, tracked, defIds)[0]).toContain(
+      'missing harness ownership entry',
+    );
   });
 });

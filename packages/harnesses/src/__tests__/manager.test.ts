@@ -150,6 +150,36 @@ describe('project manager (.revealui)', () => {
     expect(grokMd).toContain('token-budget.json');
   });
 
+  it('materialization records harness rule ownership and preserves profile entries', () => {
+    const root = tempProject();
+    materializeManager(root);
+    const profileEntry = {
+      source: 'profiles/revealfleet/claude/rules/git.md',
+      sha256: 'a'.repeat(64),
+    };
+    const ledgerPath = join(root, '.claude/.revcon-manifest.json');
+    writeFileSync(
+      ledgerPath,
+      JSON.stringify({
+        mode: 'copy',
+        editor: 'claude',
+        profiles: ['revealfleet'],
+        files: { 'rules/git.md': profileEntry, 'rules/biome.md': profileEntry },
+      }),
+    );
+    writeManagerAdapterContent(root);
+    const ledger = JSON.parse(readFileSync(ledgerPath, 'utf8'));
+    expect(ledger.files['rules/git.md']).toEqual(profileEntry);
+    expect(ledger.files['rules/biome.md'].source).toBe('harnesses:rules/biome.md');
+    const first = readFileSync(ledgerPath, 'utf8');
+    writeManagerAdapterContent(root);
+    expect(readFileSync(ledgerPath, 'utf8')).toBe(first);
+    writeFileSync(ledgerPath, '{invalid');
+    const body = readFileSync(join(root, '.claude/rules/biome.md'), 'utf8');
+    expect(() => writeManagerAdapterContent(root)).toThrow();
+    expect(readFileSync(join(root, '.claude/rules/biome.md'), 'utf8')).toBe(body);
+  });
+
   it('writeManagerAdapterContent emits manager content + cursor hooks + opencode surfaces', () => {
     const root = tempProject();
     materializeManager(root);
@@ -167,7 +197,7 @@ describe('project manager (.revealui)', () => {
     // GAP-421 phase 2: definition rules also mirrored under .claude/rules/
     expect(written.claudeRuleMirrors.length).toBeGreaterThan(0);
     expect(written.total).toBe(
-      generatorTotal + written.claudeRuleMirrors.length + written.codexPaths.length,
+      generatorTotal + written.claudeRuleMirrors.length + written.codexPaths.length + 1,
     );
 
     const hooks = JSON.parse(readFileSync(join(root, '.cursor/hooks.json'), 'utf-8')) as {

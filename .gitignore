@@ -180,6 +180,7 @@ CLAUDE.md
 !.claude/rules/
 !.claude/agents/
 !.claude/skills/
+!.claude/workflows/
 !.claude/.revcon-manifest.json
 # Equal-rank adapter stubs from `revealui-harnesses manager materialize`
 # (must not enter the revcon rules-lockstep manifest).

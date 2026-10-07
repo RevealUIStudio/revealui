@@ -18,10 +18,13 @@
  * (e.g. git.md, coordination.md) are left alone.
  */
 
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
+import { z } from 'zod';
 import { materializeCodexSkills } from '../manager/codex.js';
 import { assertManagedDestination, contentRootRelative, loadManager } from '../manager/paths.js';
+import { RelativeManagerPathSchema } from '../manager/schema.js';
 import { buildManifest } from './definitions/index.js';
 import { generateContent } from './generators/index.js';
 import { DEFAULT_CONTENT_GENERATOR_ID, type GeneratedFile } from './generators/types.js';
@@ -38,14 +41,47 @@ export const MANAGER_MATERIALIZE_GENERATORS: readonly string[] = [
   'grok',
 ];
 
-/** Content rules path prefix under the project (relative). */
-
 /**
  * Relative path for the Claude Code load surface for a definition rule id.
  * Not used for `00-revealui-manager.md` (adapter stub from materializeManager).
  */
 export function claudeRulePathForDefinitionId(ruleId: string): string {
   return join('.claude', 'rules', `${ruleId}.md`);
+}
+
+const ClaudeOwnershipSchema = z.object({
+  mode: z.literal('copy'),
+  editor: z.literal('claude'),
+  profiles: z.array(z.string()),
+  files: z.record(
+    RelativeManagerPathSchema,
+    z.object({
+      source: z.string().min(1),
+      sha256: z.string().length(64),
+    }),
+  ),
+});
+
+/** One existing ledger records each file's actual owner; profile entries survive. */
+function claudeOwnershipFile(projectRoot: string, mirrors: GeneratedFile[]): GeneratedFile {
+  const relativePath = '.claude/.revcon-manifest.json';
+  assertManagedDestination(projectRoot, relativePath);
+  const absolutePath = join(projectRoot, relativePath);
+  const ownership = existsSync(absolutePath)
+    ? ClaudeOwnershipSchema.parse(JSON.parse(readFileSync(absolutePath, 'utf8')))
+    : { mode: 'copy' as const, editor: 'claude' as const, profiles: [], files: {} };
+  const entries = { ...ownership.files };
+  for (const file of mirrors) {
+    const rel = file.relativePath.slice('.claude/'.length);
+    entries[rel] = {
+      source: `harnesses:${rel}`,
+      sha256: createHash('sha256').update(file.content).digest('hex'),
+    };
+  }
+  ownership.files = Object.fromEntries(
+    Object.entries(entries).sort(([a], [b]) => a.localeCompare(b)),
+  );
+  return { relativePath, content: `${JSON.stringify(ownership, null, 2)}\n` };
 }
 
 export interface WriteManagerAdapterContentResult {
@@ -110,6 +146,13 @@ export function writeManagerAdapterContent(
   }
 
   for (const file of planned) assertManagedDestination(projectRoot, file.relativePath);
+  if (claudeRuleMirrors.length) {
+    const mirrors = planned.filter((file) => claudeRuleMirrors.includes(file.relativePath));
+    const ledger = claudeOwnershipFile(projectRoot, mirrors);
+    planned.push(ledger);
+    paths.push(ledger.relativePath);
+    total += 1;
+  }
   const codexPaths = config.adapters.some((adapter) => adapter.id === 'codex')
     ? materializeCodexSkills(projectRoot, manifest)
     : [];

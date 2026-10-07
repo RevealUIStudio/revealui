@@ -1,10 +1,5 @@
 {
-  "mode": "copy",
   "editor": "claude",
-  "profiles": [
-    "revealfleet",
-    "revealui"
-  ],
   "files": {
     "agents/builder.md": {
       "source": "profiles/revealui/claude/agents/builder.md",
@@ -30,57 +25,149 @@
       "source": "profiles/revealui/claude/agents/tester.md",
       "sha256": "6a952cae6ea1da8c613665c8be48793aa0d555c2f9c5f94092f156c56af822bb"
     },
+    "rules/adapter-only.md": {
+      "source": "harnesses:rules/adapter-only.md",
+      "sha256": "dcd894a7516ad394e15a6485a77aea302db87c4a9c4b1910507edd05a97078b8"
+    },
     "rules/agent-dispatch.md": {
-      "source": "profiles/revealui/claude/rules/agent-dispatch.md",
-      "sha256": "6e143f09468374ec50756396f3f8bf3a8b2c4cf923836a7f0a0aa1aee3f29a1f"
+      "source": "harnesses:rules/agent-dispatch.md",
+      "sha256": "0b2497c1817e23a1d4902cb5b5889cec4a6f6526179d7273622066705e444fe8"
+    },
+    "rules/ai-mechanics.md": {
+      "source": "harnesses:rules/ai-mechanics.md",
+      "sha256": "802943574202960b588a4d6d6d7b481a7a079b70e22db7f3179230f865321ed2"
     },
     "rules/biome.md": {
-      "source": "profiles/revealui/claude/rules/biome.md",
-      "sha256": "bbc4314534172800f709da8f3cb9630d2d849b3f6cbf1b4fb297469906a65d20"
+      "source": "harnesses:rules/biome.md",
+      "sha256": "053ac61189b299d733a99935c8b34285cc970c26b5b0b7d2ee7dc70ad1082d71"
+    },
+    "rules/code-analysis-policy.md": {
+      "source": "harnesses:rules/code-analysis-policy.md",
+      "sha256": "0ec5699691c7505d6c9ac3fa7b2150c546b5e738e0089af42732ac1a6272a04e"
+    },
+    "rules/code-over-docs.md": {
+      "source": "harnesses:rules/code-over-docs.md",
+      "sha256": "092c970e6638e76ca6a14f8fb0f25ca70eb76fa3da95e34fcdb0f6cd18c59561"
+    },
+    "rules/control-layer.md": {
+      "source": "profiles/revealfleet/claude/rules/control-layer.md",
+      "sha256": "289388f1038de4f372f5eeea5a61ee583fbea93042d01801b6c90b01d878c9f9"
     },
     "rules/coordination.md": {
       "source": "profiles/revealui/claude/rules/coordination.md",
-      "sha256": "bc0458622a69774d33b1654e59699378f6dd4dbd9466d55b1a4128d937dac96c"
+      "sha256": "b57713ad44f4f1cc9e2596d5be10f37cfab8cc77cebd60d62366f0c161d00e24"
+    },
+    "rules/copy-voice.md": {
+      "source": "profiles/revealui/claude/rules/copy-voice.md",
+      "sha256": "b8429c7bdc2fe8f6d1ee6c5d00ac6ee58dabdd9cc5ccaa0822d8ea2c96e17625"
+    },
+    "rules/database.md": {
+      "source": "harnesses:rules/database.md",
+      "sha256": "861acd93c300dbc33edc5e309826989c86500ba594b4eade3fa92186d202b756"
+    },
+    "rules/disposition-actions.md": {
+      "source": "harnesses:rules/disposition-actions.md",
+      "sha256": "521e36946f1d899fdc66e9b2bc6f58a7807bd389ef36074bea7009ef5b9ba909"
+    },
+    "rules/durable-solutions.md": {
+      "source": "harnesses:rules/durable-solutions.md",
+      "sha256": "71596e024332b91406168f8600da781b1218f48a56639821de5df5133f611782"
+    },
+    "rules/extend-before-create.md": {
+      "source": "profiles/revealfleet/claude/rules/extend-before-create.md",
+      "sha256": "eda319933321d2d69db659dfd6d441640d25d69b8c51b2ae026ca0974e0f430c"
     },
     "rules/git.md": {
       "source": "profiles/revealfleet/claude/rules/git.md",
-      "sha256": "59fdde78476f102a1b65f88ec4a874471f5178e6ee9c1cdbe68f53f532221694"
+      "sha256": "4e11ecc80ceb49e7e4042cb2dab1928648d4312d048b3f4cffc7dda856b01897"
+    },
+    "rules/model-allocation.md": {
+      "source": "profiles/revealfleet/claude/rules/model-allocation.md",
+      "sha256": "d71bb65d9315523e29b927ae47c7a3e9e35e763c7c30602d04c3043f92413c9b"
+    },
+    "rules/monorepo.md": {
+      "source": "harnesses:rules/monorepo.md",
+      "sha256": "b0864ce8e71e80b23b87a740c0b22d18b583b71c4150713c973a8225bad9c494"
+    },
+    "rules/no-em-dashes.md": {
+      "source": "profiles/revealfleet/claude/rules/no-em-dashes.md",
+      "sha256": "18b1cfe5218fd816837c13a2e6cd08786befad19a292f1fa85874a3ad0b5f22e"
     },
     "rules/no-regex.md": {
       "source": "profiles/revealui/claude/rules/no-regex.md",
       "sha256": "70e4d178a3ae62aeda134a8855c9f29eecca2bdd61e72a4c18d6fcd1400cbb83"
     },
+    "rules/npm-oidc-publish.md": {
+      "source": "harnesses:rules/npm-oidc-publish.md",
+      "sha256": "37efdefbf18f2d446841803c303c2dc01abc3fb4d09b3bb0f022344ca3720a87"
+    },
     "rules/opensrc.md": {
       "source": "profiles/revealfleet/claude/rules/opensrc.md",
       "sha256": "bdb095fac109fbb5616dde222e0cfbc3e1d52ebf616609f3e865717773a2fb73"
     },
+    "rules/parameterization.md": {
+      "source": "harnesses:rules/parameterization.md",
+      "sha256": "bfe4e287ca33926d9ee04f9eec6490ddffb04058594a4a9e1a20a5eb9e82e9e1"
+    },
     "rules/planning.md": {
       "source": "profiles/revealfleet/claude/rules/planning.md",
-      "sha256": "731ed2f7a2df810224a6436bfefae96972d869fbb64a54e1055e3ebf6726d769"
+      "sha256": "315062ea332839617615e4c5fda5e1d50fde69090e55af6895ed343e18027e7d"
     },
     "rules/priorities.md": {
       "source": "profiles/revealui/claude/rules/priorities.md",
-      "sha256": "be02cbb370c33fb790b3e6f0a0b265765f5e7402b4d884668c7093620a2ebcbb"
+      "sha256": "7203478d1360d630ba4fcf6cb478272ce6a2d4c0c6a080b5584eec92d74c44ec"
+    },
+    "rules/public-issue-redaction.md": {
+      "source": "harnesses:rules/public-issue-redaction.md",
+      "sha256": "23664f7279944b1c3b7069339089ff9d876247138cf3165a846bd89afb260e07"
+    },
+    "rules/quality-over-speed.md": {
+      "source": "harnesses:rules/quality-over-speed.md",
+      "sha256": "8bfcbe93c5b73d738859656926478798a8bed2d55ca5be5dca50b6c997e9b009"
+    },
+    "rules/secrets.md": {
+      "source": "profiles/revealfleet/claude/rules/secrets.md",
+      "sha256": "79d09010deb767f582cbd0a28f12d6bf3a36cc44e2f4260a7fbaddd709318d68"
     },
     "rules/single-source-of-truth.md": {
       "source": "profiles/revealui/claude/rules/single-source-of-truth.md",
-      "sha256": "95c4cb4f10d7e03c12080a759cb8d01a7859f0c69a08ff621f371263bba988f6"
+      "sha256": "191c0945564c2faa2b942bc0b32b41cf6ab009d3c09e38cee3177abd9d30babb"
     },
     "rules/skills-usage.md": {
-      "source": "profiles/revealui/claude/rules/skills-usage.md",
-      "sha256": "29f32b43a17f7842d34e05bb3c77e1abe5fa47247dc74ad9334aef60ed3211e3"
+      "source": "harnesses:rules/skills-usage.md",
+      "sha256": "8607d1d76c2800137808a5a5e72185ad2a632a0fb1553b59d55b3246b412d647"
+    },
+    "rules/stream-safe-secrets.md": {
+      "source": "harnesses:rules/stream-safe-secrets.md",
+      "sha256": "a8dd8ee4f106df0590c05f7e68a21c056a8338fd035af290e20a04d161326f0c"
+    },
+    "rules/tailwind.md": {
+      "source": "harnesses:rules/tailwind.md",
+      "sha256": "498578c8bc2c7d3370667efd6a60d17c09903ab774659ce5a031b3acdb70e6d3"
+    },
+    "rules/temp-scripts.md": {
+      "source": "profiles/revealfleet/claude/rules/temp-scripts.md",
+      "sha256": "66a574826b46352275606d88a9854a0e63c39433a97a55c75f50ccc0f4862a15"
     },
     "rules/token-economy.md": {
-      "source": "profiles/revealfleet/claude/rules/token-economy.md",
-      "sha256": "b30a830e9dd333b05085bc5ce3994c477ac66390aabe4cf41741a64ccd12ef57"
+      "source": "harnesses:rules/token-economy.md",
+      "sha256": "7ed4fc56740046530b5188de5810d77cc1fe86d2de238739e60de5ef04e4d851"
     },
     "rules/tool-routing.md": {
       "source": "profiles/revealui/claude/rules/tool-routing.md",
       "sha256": "0a0c3a07e53d1adc426c25b39a88a9867328d5d48f63f9d9d6d4ac69632e5894"
     },
+    "rules/tracker-first.md": {
+      "source": "harnesses:rules/tracker-first.md",
+      "sha256": "a31d4380657565bcb45e65c34458de01e77d0f547b9304e627f6764d90f55f1c"
+    },
+    "rules/unused-declarations.md": {
+      "source": "harnesses:rules/unused-declarations.md",
+      "sha256": "3b1ff6f14af5f8dbdb896b3da4412b482b0f2db9eca3f16011ae4be65543c086"
+    },
     "rules/versioning.md": {
-      "source": "profiles/revealui/claude/rules/versioning.md",
-      "sha256": "317e790e952a785ea043f35708796193a73ff022f336758e5faa211f5a73f95b"
+      "source": "harnesses:rules/versioning.md",
+      "sha256": "f2dfb240b4d91255f64a8117897bcabb2653c32aac2d3227c92c51b80cca0504"
     },
     "skills/revealui-conventions/SKILL.md": {
       "source": "profiles/revealui/claude/skills/revealui-conventions/SKILL.md",
@@ -113,6 +200,14 @@
     "skills/revealui-testing/SKILL.md": {
       "source": "profiles/revealui/claude/skills/revealui-testing/SKILL.md",
       "sha256": "2ca5589346bf5b0d03cad0dc86968e9c2e42a269d33e9974971d7c70390c4b0c"
+    },
+    "skills/tailwind-4-docs/references/docs-index.tsx": {
+      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs-index.tsx",
+      "sha256": "17016ea97e0376cd913e4f13781bde51d6d2710b911bf35d6b907f2dd1da8859"
+    },
+    "skills/tailwind-4-docs/references/docs-source.txt": {
+      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs-source.txt",
+      "sha256": "ef1ccbeff4e68ec14e889011e03a4ae1b1196ab6a4fc27a556016fce19ea6dd5"
     },
     "skills/tailwind-4-docs/references/docs/accent-color.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/accent-color.mdx",
@@ -170,10 +265,6 @@
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/backdrop-filter-invert.mdx",
       "sha256": "ce8bac130e26a3a48a8a5bf7ff2103148bc8ca24f4c07e28d459841fdd2a78af"
     },
-    "skills/tailwind-4-docs/references/docs/backdrop-filter.mdx": {
-      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/backdrop-filter.mdx",
-      "sha256": "efcac45c410a5fe5d25f66bb19c71e8293228f88b0344deef3ab1bfe489c56cb"
-    },
     "skills/tailwind-4-docs/references/docs/backdrop-filter-opacity.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/backdrop-filter-opacity.mdx",
       "sha256": "cf0735ac7d326ebf847da66a89e9327a5b569182a59c7982e12230f4c7cf2c0e"
@@ -185,6 +276,10 @@
     "skills/tailwind-4-docs/references/docs/backdrop-filter-sepia.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/backdrop-filter-sepia.mdx",
       "sha256": "07b8aa34ec84ca9410f3293a506df424a3cb6860ddd3099ebd649b618f331af7"
+    },
+    "skills/tailwind-4-docs/references/docs/backdrop-filter.mdx": {
+      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/backdrop-filter.mdx",
+      "sha256": "efcac45c410a5fe5d25f66bb19c71e8293228f88b0344deef3ab1bfe489c56cb"
     },
     "skills/tailwind-4-docs/references/docs/backface-visibility.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/backface-visibility.mdx",
@@ -290,13 +385,13 @@
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/clear.mdx",
       "sha256": "ce81291d8541b77d539d096196255fc228cd6de96b3be296b269b80298b32811"
     },
-    "skills/tailwind-4-docs/references/docs/color.mdx": {
-      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/color.mdx",
-      "sha256": "50ddd21dbedbf97bf867025aa37bdd0c3f771108b8ccf722a5f99367281b95e8"
-    },
     "skills/tailwind-4-docs/references/docs/color-scheme.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/color-scheme.mdx",
       "sha256": "ce74403c34c04425859a40f9846db2be8b2c78d3d7b30ecbb7e71fa1b6d7db49"
+    },
+    "skills/tailwind-4-docs/references/docs/color.mdx": {
+      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/color.mdx",
+      "sha256": "50ddd21dbedbf97bf867025aa37bdd0c3f771108b8ccf722a5f99367281b95e8"
     },
     "skills/tailwind-4-docs/references/docs/colors.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/colors.mdx",
@@ -370,10 +465,6 @@
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/filter-invert.mdx",
       "sha256": "2689a9de69a9445dd28185d03c995db5b6b3d75964c2d32e30b10cbb6b30afbf"
     },
-    "skills/tailwind-4-docs/references/docs/filter.mdx": {
-      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/filter.mdx",
-      "sha256": "55a53075f8da9e326fea142b4c2873447448468180597ac72aa47762cd4ab8d6"
-    },
     "skills/tailwind-4-docs/references/docs/filter-saturate.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/filter-saturate.mdx",
       "sha256": "a3463bf7f867be2ef065a8dd3ab6689718de8946da81fcf23f4d44d0cd640e3a"
@@ -381,6 +472,10 @@
     "skills/tailwind-4-docs/references/docs/filter-sepia.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/filter-sepia.mdx",
       "sha256": "90f8dfe08bb6b96a037a1675361cf09273b706a805bf6175d410f8f0b8d3212a"
+    },
+    "skills/tailwind-4-docs/references/docs/filter.mdx": {
+      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/filter.mdx",
+      "sha256": "55a53075f8da9e326fea142b4c2873447448468180597ac72aa47762cd4ab8d6"
     },
     "skills/tailwind-4-docs/references/docs/flex-basis.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/flex-basis.mdx",
@@ -394,10 +489,6 @@
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/flex-grow.mdx",
       "sha256": "d542e19b9a37b3c03f020ae520fc6d0beecfbcfc615638a12a480752113d8fe1"
     },
-    "skills/tailwind-4-docs/references/docs/flex.mdx": {
-      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/flex.mdx",
-      "sha256": "e0a5c1e75144a788883d509d21c22db45dbb89e8a8791cd447d57b6c1fdb83ee"
-    },
     "skills/tailwind-4-docs/references/docs/flex-shrink.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/flex-shrink.mdx",
       "sha256": "d7db031413dab3220c1a21826744106cc314d80e5322b0f42158d7c6902c586e"
@@ -405,6 +496,10 @@
     "skills/tailwind-4-docs/references/docs/flex-wrap.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/flex-wrap.mdx",
       "sha256": "423303e311c6882733f432f45cf47648fefdcfe0edc3cdef2b65223466bf8c37"
+    },
+    "skills/tailwind-4-docs/references/docs/flex.mdx": {
+      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/flex.mdx",
+      "sha256": "e0a5c1e75144a788883d509d21c22db45dbb89e8a8791cd447d57b6c1fdb83ee"
     },
     "skills/tailwind-4-docs/references/docs/float.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/float.mdx",
@@ -506,29 +601,29 @@
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/erin-lindford.jpg",
       "sha256": "c20d6375947d778a0de69ee14b93bb3118cee15d3b6ef04c391cbf36960e5acd"
     },
-    "skills/tailwind-4-docs/references/docs/img/guides/adonis.react.svg": {
-      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/adonis.react.svg",
-      "sha256": "8395af09a8407ed796cf399f26ceae35c391ea826451f0be3f76e58632172224"
-    },
     "skills/tailwind-4-docs/references/docs/img/guides/adonis-white.react.svg": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/adonis-white.react.svg",
       "sha256": "7f7170ffc9f7bfa7559dca0be3cda57cf5e9c8514e6ca1db18c1b88cc7b312bd"
     },
-    "skills/tailwind-4-docs/references/docs/img/guides/angular.react.svg": {
-      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/angular.react.svg",
-      "sha256": "4c2e7ebc394f8400826c8863150b9b78839da66673f88339f959ca1f38a1ab81"
+    "skills/tailwind-4-docs/references/docs/img/guides/adonis.react.svg": {
+      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/adonis.react.svg",
+      "sha256": "8395af09a8407ed796cf399f26ceae35c391ea826451f0be3f76e58632172224"
     },
     "skills/tailwind-4-docs/references/docs/img/guides/angular-white.react.svg": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/angular-white.react.svg",
       "sha256": "f8e1b2270567a6265672ae6c50b92983ebaaddcaa70b9db5c88356747a16ba24"
     },
-    "skills/tailwind-4-docs/references/docs/img/guides/astro.react.svg": {
-      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/astro.react.svg",
-      "sha256": "b581c446b8b774f78d656a208ed54c41064eab8d53aaa473db8cefd3a043ca90"
+    "skills/tailwind-4-docs/references/docs/img/guides/angular.react.svg": {
+      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/angular.react.svg",
+      "sha256": "4c2e7ebc394f8400826c8863150b9b78839da66673f88339f959ca1f38a1ab81"
     },
     "skills/tailwind-4-docs/references/docs/img/guides/astro-white.react.svg": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/astro-white.react.svg",
       "sha256": "0b93b6f473bc0034c0a523f1e52a3e10b99ac9b8cd1669b3a7e49e5e5fff5a94"
+    },
+    "skills/tailwind-4-docs/references/docs/img/guides/astro.react.svg": {
+      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/astro.react.svg",
+      "sha256": "b581c446b8b774f78d656a208ed54c41064eab8d53aaa473db8cefd3a043ca90"
     },
     "skills/tailwind-4-docs/references/docs/img/guides/ember.react.svg": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/ember.react.svg",
@@ -546,13 +641,13 @@
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/meteor.react.svg",
       "sha256": "8dc0a641b2de964ca79f91ae2ac2f2c209561773a3a352c1ca7251811cb5720c"
     },
-    "skills/tailwind-4-docs/references/docs/img/guides/nextjs.react.svg": {
-      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/nextjs.react.svg",
-      "sha256": "fd3ff0ef9a544638099d3d54bdb9ba350b292acac58f8350077a7ee859b609ce"
-    },
     "skills/tailwind-4-docs/references/docs/img/guides/nextjs-white.react.svg": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/nextjs-white.react.svg",
       "sha256": "79dedf1bd4dc8faf742df73e2a16aaa690540acc598101aabbd41f089900e1ee"
+    },
+    "skills/tailwind-4-docs/references/docs/img/guides/nextjs.react.svg": {
+      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/nextjs.react.svg",
+      "sha256": "fd3ff0ef9a544638099d3d54bdb9ba350b292acac58f8350077a7ee859b609ce"
     },
     "skills/tailwind-4-docs/references/docs/img/guides/nuxtjs.react.svg": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/nuxtjs.react.svg",
@@ -570,21 +665,21 @@
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/qwik.react.svg",
       "sha256": "3829f5c0fc58d223471143cba914748cd9455d45722a6d582db531b1fcb1f753"
     },
-    "skills/tailwind-4-docs/references/docs/img/guides/rails.react.svg": {
-      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/rails.react.svg",
-      "sha256": "6094c1498688e7dd65e04c45d221587c65b742cf846aea87ffbdbfb6a3f21d5d"
-    },
     "skills/tailwind-4-docs/references/docs/img/guides/rails-white.react.svg": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/rails-white.react.svg",
       "sha256": "cae0f86b328508796b8d48e14d4d9d2cf91d4d159f9acd3db7c8eb7a1f5d3bbc"
     },
-    "skills/tailwind-4-docs/references/docs/img/guides/react-router.react.svg": {
-      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/react-router.react.svg",
-      "sha256": "9676bed5f3eff1feec388fb85873017d8f663a569c11e91bc484431806532306"
+    "skills/tailwind-4-docs/references/docs/img/guides/rails.react.svg": {
+      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/rails.react.svg",
+      "sha256": "6094c1498688e7dd65e04c45d221587c65b742cf846aea87ffbdbfb6a3f21d5d"
     },
     "skills/tailwind-4-docs/references/docs/img/guides/react-router-white.react.svg": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/react-router-white.react.svg",
       "sha256": "3adf1a72e654383a61cdd58021760e102835ba6de5371c8b15f7203d6c92ee51"
+    },
+    "skills/tailwind-4-docs/references/docs/img/guides/react-router.react.svg": {
+      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/react-router.react.svg",
+      "sha256": "9676bed5f3eff1feec388fb85873017d8f663a569c11e91bc484431806532306"
     },
     "skills/tailwind-4-docs/references/docs/img/guides/rspack.react.svg": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/rspack.react.svg",
@@ -598,21 +693,21 @@
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/svelte.react.svg",
       "sha256": "804c8e9457eb2701a8e881717a6cc25974ecfbb1826a4013079748daa27239a5"
     },
-    "skills/tailwind-4-docs/references/docs/img/guides/symfony.react.svg": {
-      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/symfony.react.svg",
-      "sha256": "d293670b58fa81b4915cc4145c01d473c62c5f58811b1339d335ff2c1d0c4dea"
-    },
     "skills/tailwind-4-docs/references/docs/img/guides/symfony-white.react.svg": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/symfony-white.react.svg",
       "sha256": "f10427eb057631bd33b8803e4a3a80b15f4a0dadbaea41a634997b4b630186e1"
     },
-    "skills/tailwind-4-docs/references/docs/img/guides/tanstack.react.svg": {
-      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/tanstack.react.svg",
-      "sha256": "bc4d55b44d7aa96823bdaf0d8a8b87ffcc5f04f9523b856cd815b376e4fe413c"
+    "skills/tailwind-4-docs/references/docs/img/guides/symfony.react.svg": {
+      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/symfony.react.svg",
+      "sha256": "d293670b58fa81b4915cc4145c01d473c62c5f58811b1339d335ff2c1d0c4dea"
     },
     "skills/tailwind-4-docs/references/docs/img/guides/tanstack-white.react.svg": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/tanstack-white.react.svg",
       "sha256": "e919ca5826f069cf517a639b44c33a4bd6f6dbfbb99f7bf6fd768f521f4eb277"
+    },
+    "skills/tailwind-4-docs/references/docs/img/guides/tanstack.react.svg": {
+      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/tanstack.react.svg",
+      "sha256": "bc4d55b44d7aa96823bdaf0d8a8b87ffcc5f04f9523b856cd815b376e4fe413c"
     },
     "skills/tailwind-4-docs/references/docs/img/guides/vite.react.svg": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/guides/vite.react.svg",
@@ -645,10 +740,6 @@
     "skills/tailwind-4-docs/references/docs/img/zed-intellisense.png": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/img/zed-intellisense.png",
       "sha256": "84444bafac60dbcdce728cfe98044bf79918f972134a38dd5325619ce0dd53da"
-    },
-    "skills/tailwind-4-docs/references/docs-index.tsx": {
-      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs-index.tsx",
-      "sha256": "17016ea97e0376cd913e4f13781bde51d6d2710b911bf35d6b907f2dd1da8859"
     },
     "skills/tailwind-4-docs/references/docs/inline-size.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/inline-size.mdx",
@@ -802,13 +893,13 @@
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/outline-width.mdx",
       "sha256": "b891fc51c3bb6c3142d9894c7f0943366ae9b3b889d74eb503f8a984cd1b9754"
     },
-    "skills/tailwind-4-docs/references/docs/overflow.mdx": {
-      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/overflow.mdx",
-      "sha256": "51b6f3e470be8b11de6ec8084100c2e51593d9e4f169f4cc2fc264a8add2cc7e"
-    },
     "skills/tailwind-4-docs/references/docs/overflow-wrap.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/overflow-wrap.mdx",
       "sha256": "022bcefe31076eaaa3ffbfd86dc3d7eb4de143bd7daf910e238c67b9e0fe8871"
+    },
+    "skills/tailwind-4-docs/references/docs/overflow.mdx": {
+      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/overflow.mdx",
+      "sha256": "51b6f3e470be8b11de6ec8084100c2e51593d9e4f169f4cc2fc264a8add2cc7e"
     },
     "skills/tailwind-4-docs/references/docs/overscroll-behavior.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/overscroll-behavior.mdx",
@@ -818,13 +909,13 @@
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/padding.mdx",
       "sha256": "88182c3410b17efc64b38e99dae3968920f87a7b7f56517fa46a3582ab1d30df"
     },
-    "skills/tailwind-4-docs/references/docs/perspective.mdx": {
-      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/perspective.mdx",
-      "sha256": "08924ef08f13b27a3a847a0bec04c97e52c2ed589f2f15a6cdc2b904f398e409"
-    },
     "skills/tailwind-4-docs/references/docs/perspective-origin.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/perspective-origin.mdx",
       "sha256": "f9307a70a817019f34327d2f27d616b8f47c2f84ab572f43eb01f8ebf56c5f05"
+    },
+    "skills/tailwind-4-docs/references/docs/perspective.mdx": {
+      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/perspective.mdx",
+      "sha256": "08924ef08f13b27a3a847a0bec04c97e52c2ed589f2f15a6cdc2b904f398e409"
     },
     "skills/tailwind-4-docs/references/docs/place-content.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/place-content.mdx",
@@ -894,17 +985,13 @@
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/skew.mdx",
       "sha256": "c1d937427bed61510dcacd4f9c5509ff1d4a41af5205a5ff4f8d2e5a7fe3a49f"
     },
-    "skills/tailwind-4-docs/references/docs-source.txt": {
-      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs-source.txt",
-      "sha256": "ef1ccbeff4e68ec14e889011e03a4ae1b1196ab6a4fc27a556016fce19ea6dd5"
+    "skills/tailwind-4-docs/references/docs/stroke-width.mdx": {
+      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/stroke-width.mdx",
+      "sha256": "8fd0e240703193e40dbced7b73210eef89c5b3c217939e4dde544bc2c8168d79"
     },
     "skills/tailwind-4-docs/references/docs/stroke.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/stroke.mdx",
       "sha256": "8255d1bbbc187da530fad9ac707c19af18f2e2e25d9cdd3794d187dbb2bd462e"
-    },
-    "skills/tailwind-4-docs/references/docs/stroke-width.mdx": {
-      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/stroke-width.mdx",
-      "sha256": "8fd0e240703193e40dbced7b73210eef89c5b3c217939e4dde544bc2c8168d79"
     },
     "skills/tailwind-4-docs/references/docs/styling-with-utility-classes.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/styling-with-utility-classes.mdx",
@@ -970,10 +1057,6 @@
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/touch-action.mdx",
       "sha256": "3e992958bf50301a34afff829b382c0e25f196f04ea1b93b18ad1d68024f78e9"
     },
-    "skills/tailwind-4-docs/references/docs/transform.mdx": {
-      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/transform.mdx",
-      "sha256": "2d8875acf7b0f745174bbc8748d14d09d06094e45ca5dffb01d449f0a2e9b92f"
-    },
     "skills/tailwind-4-docs/references/docs/transform-origin.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/transform-origin.mdx",
       "sha256": "be15c7d1e6960333296144a3043003f0666163df0f4fd82102b6064dcde78c4b"
@@ -981,6 +1064,10 @@
     "skills/tailwind-4-docs/references/docs/transform-style.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/transform-style.mdx",
       "sha256": "c86dc78135e9e7497e16d05bfc0d28a1802e9ab76150494c99a3f0ec54777959"
+    },
+    "skills/tailwind-4-docs/references/docs/transform.mdx": {
+      "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/transform.mdx",
+      "sha256": "2d8875acf7b0f745174bbc8748d14d09d06094e45ca5dffb01d449f0a2e9b92f"
     },
     "skills/tailwind-4-docs/references/docs/transition-behavior.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/transition-behavior.mdx",
@@ -1045,6 +1132,15 @@
     "skills/tailwind-4-docs/references/docs/z-index.mdx": {
       "source": "profiles/revealui/claude/skills/tailwind-4-docs/references/docs/z-index.mdx",
       "sha256": "0db2d009a3346bb51e40b2ab46eeb7c6744ec0785bbd5f6264170b8c778d3bfa"
+    },
+    "workflows/WORKFLOWS.md": {
+      "source": "profiles/revealui/workflows/WORKFLOWS.md",
+      "sha256": "c15e2535d64fe82cdca58c60caaf018123d1b190e342c13a9a92ac19d416795f"
     }
-  }
+  },
+  "mode": "copy",
+  "profiles": [
+    "revealfleet",
+    "revealui"
+  ]
 }

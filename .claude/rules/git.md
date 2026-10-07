@@ -7,6 +7,17 @@
 - Description in imperative mood, lowercase, no period
 - Keep subject line under 72 characters
 
+## GitHub CLI (`gh`) — repo pin form
+
+Prefer short `-R owner/repo` over long `--repo`. Always pin the repo so the
+command works from any cwd. Prefer unquoted labels when the label has no spaces.
+
+```bash
+gh pr edit 2482 -R RevealUIStudio/revealui --add-label sec-review:approved
+```
+
+Owner-action one-liners in wrap-ups must use this form (see disposition-actions).
+
 ## Branch Naming
 - Feature: `feat/<short-description>` or `feat/<issue#>-<short-description>`
 - Bugfix: `fix/<short-description>` or `fix/<issue#>-<short-description>`
@@ -39,5 +50,5 @@ Grok worktrees: use `rfg … --worktree=…` (injects `--ref test`) or pass
 - One PR can close multiple issues: `Closes #1, Closes #2`
 
 ## Identity
-- Professional repos (RevealUIStudio): RevealUI Studio <43050008+joshua-v-dev@users.noreply.github.com>
-- Amended 2026-07-10: never "restore" founder@revealui.com. It belongs to the org account, so SSH-signed commits carrying it render Unverified and required-signatures rulesets silently block the merge. Full rationale in the fleet-level `~/.claude/rules/git.md`.
+- Professional repos (RevealUIStudio): display name `RevealUI Studio` plus the **signing account's** verified GitHub noreply address (shape `id+login@users.noreply.github.com` on the account that holds the SSH signing key). Do not paste a personal login into public rule copies; resolve the real address from the machine git config / fleet hardline when committing.
+- Amended 2026-07-10: never "restore" founder@revealui.com. It belongs to the org account, so SSH-signed commits carrying it render Unverified and required_signatures rulesets silently block the merge. Full rationale in the fleet-level Studio git hardline (not re-copied here).
