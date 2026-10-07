@@ -561,7 +561,9 @@ jobs:
   test-unit:
     name: Unit Tests (suite)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # A full run can finish its test tasks near 15m; leave time for the runner
+    # to report the result instead of cancelling completed tests at the limit.
+    timeout-minutes: 25
     needs: [quality, changes]
     if: needs.changes.outputs.full_suite == 'true'
 
