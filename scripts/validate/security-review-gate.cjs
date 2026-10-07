@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // security-review-gate.cjs — review-before-merge gate for security-sensitive PRs.
 //
-// Policy: a pull request that touches a security-sensitive surface must carry a
-// RECORDED owner SSHSIG bound to its exact head and a request label before merge. PRs that do not touch such a surface
-// pass immediately, so this check is safe to require on every PR.
+// Policy: a security-sensitive pull request must have an exact-candidate App
+// receipt when the base-trusted repository policy is in enforce mode. Otherwise
+// it requires the existing recorded owner SSHSIG and request label. PRs that do
+// not touch a security-sensitive surface pass immediately.
 //
 // A live guardrail-2 REQUEST-CHANGES verdict OVERRIDES the label. Verdicts are
 // posted as comments/reviews carrying a machine-parseable marker
@@ -19,7 +20,7 @@
 //                   <base> (git only; cannot see review state).
 //   (default)       --diff origin/test.
 //
-// Exit 0 = no security-sensitive change, or an owner-signed direct/covered grant.
+// Exit 0 = no security-sensitive change, or a valid App receipt / owner grant.
 // Exit 1 = HOLD (live reviewer rejection, missing/invalid grant, or incomplete evidence).
 //
 // Uses the existing shared gates resolver/build and OpenSSH verification.
@@ -92,7 +93,7 @@ function classifyFiles(files) {
   return sharedGates.classifySecurityPaths(files);
 }
 
-/** Labels/reviews request clearance; only the owner signature grants it. */
+/** Owner-mode labels/reviews request clearance; only the owner signature grants it. */
 function decideReviewGate({ verdict, labels = [], ownerVerification = { ok: false } }) {
   if (verdict && verdict.status === 'hold') {
     return { action: 'hold', kind: 'request-changes', reviewer: verdict.reviewer, timestamp: verdict.timestamp };
@@ -103,9 +104,28 @@ function decideReviewGate({ verdict, labels = [], ownerVerification = { ok: fals
 }
 
 /**
+ * In enforce mode, an exact-candidate App receipt can replace the routine
+ * owner grant. A live REQUEST-CHANGES verdict still wins, and the established
+ * owner signature remains an explicit recovery path when receipt admission is
+ * unavailable. Shadow mode never changes the owner decision.
+ */
+function decideReceiptAdmission({ mode, receiptResult, ownerDecision }) {
+  if (ownerDecision.kind === 'request-changes') return ownerDecision;
+  if (mode !== 'enforce') return ownerDecision;
+  if (receiptResult?.status === 'verified')
+    return { action: 'clear', kind: 'app-receipt', receiptId: receiptResult.receiptId };
+  if (ownerDecision.action === 'clear') return ownerDecision;
+  return {
+    action: 'hold',
+    kind: 'invalid-app-receipt',
+    reason: receiptResult?.reason || receiptResult?.status || 'receipt-unavailable',
+  };
+}
+
+/**
  * Verify a receipt carried by the controller-owned check run against live
- * GitHub observations. This is shadow evidence only; callers must continue to
- * apply the active owner gate until the separately reviewed cutover.
+ * GitHub observations. The caller decides whether the configured mode treats
+ * a valid receipt as admission or records it as shadow evidence.
  */
 function verifyReceiptShadow(input) {
   const hold = (reason) => ({ ok: false, reason });
@@ -206,14 +226,15 @@ function verifyReceiptShadow(input) {
   });
 }
 
-function readReceiptShadowConfig(env = process.env) {
+function readReceiptConfig(env = process.env) {
   const mode = env.REVIEW_RECEIPT_MODE?.trim();
   if (!mode) {
     if (Object.keys(env).some((name) => name.startsWith('REVIEW_RECEIPT_') && env[name]?.trim()))
       throw new Error('REVIEW_RECEIPT_MODE is required when receipt settings are present');
     return undefined;
   }
-  if (mode !== 'shadow') throw new Error('REVIEW_RECEIPT_MODE must be shadow');
+  if (mode !== 'shadow' && mode !== 'enforce')
+    throw new Error('REVIEW_RECEIPT_MODE must be shadow or enforce');
   const controllerAppId = Number(requiredEnv(env, 'REVIEW_RECEIPT_CONTROLLER_APP_ID'));
   const maxLifetimeMs = Number(requiredEnv(env, 'REVIEW_RECEIPT_MAX_LIFETIME_MS'));
   const policyVersion = requiredEnv(env, 'REVIEW_RECEIPT_POLICY_VERSION');
@@ -244,12 +265,12 @@ function readReceiptShadowConfig(env = process.env) {
     throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS contains duplicate selectors');
   if (!sharedGates.hasReviewReceiptSecurityChecks(requiredChecks))
     throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS omits a mandatory security check');
-  return { controllerAppId, maxLifetimeMs, policyVersion, trustedKeys, requiredChecks };
+  return { mode, controllerAppId, maxLifetimeMs, policyVersion, trustedKeys, requiredChecks };
 }
 
 function requiredEnv(env, name) {
   const value = env[name]?.trim() ?? '';
-  if (!value) throw new Error(`${name} is required when REVIEW_RECEIPT_MODE=shadow`);
+  if (!value) throw new Error(`${name} is required when REVIEW_RECEIPT_MODE is enabled`);
   return value;
 }
 
@@ -527,30 +548,51 @@ function runPrMode(prNumber, repo) {
       return;
     }
     const discussion = fetchPrDiscussion(prNumber, target);
-    try {
-      const receiptConfig = readReceiptShadowConfig();
-      if (receiptConfig) {
-        const receiptShadow = evaluateReceiptShadowForPr(prNumber, target, fetchPrFiles(prNumber, target), receiptConfig);
+    const ownerDecision = verifyPrOwnerRecord(data, prNumber, target, discussion, resolveAllowedSigners());
+    if (ownerDecision.kind === 'request-changes') {
+      process.stderr.write(`HOLD — live REQUEST-CHANGES by ${ownerDecision.reviewer || 'unknown'} at ${ownerDecision.timestamp || 'unknown time'}; receipt or owner signature cannot override it.\n`);
+      process.exitCode = 1;
+      return;
+    }
+    const receiptConfig = readReceiptConfig();
+    let receiptResult;
+    if (receiptConfig) {
+      try {
+        receiptResult = evaluateReceiptShadowForPr(
+          prNumber,
+          target,
+          fetchPrFiles(prNumber, target),
+          receiptConfig,
+        );
+      } catch (error) {
+        receiptResult = {
+          status: 'ineligible',
+          reason: `receipt_observation_unavailable:${error instanceof Error ? error.message : 'unknown failure'}`,
+        };
+      }
+      if (receiptConfig.mode === 'shadow') {
         process.stdout.write(
-          receiptShadow.status === 'verified'
-            ? `SHADOW — controller receipt ${receiptShadow.receiptId} verifies for this exact candidate; existing gate remains authoritative.\n`
-            : `SHADOW — controller receipt not verified (${receiptShadow.reason || receiptShadow.status}); existing gate remains authoritative.\n`,
+          receiptResult.status === 'verified'
+            ? `SHADOW — controller receipt ${receiptResult.receiptId} verifies for this exact candidate; existing gate remains authoritative.\n`
+            : `SHADOW — controller receipt not verified (${receiptResult.reason || receiptResult.status}); existing gate remains authoritative.\n`,
         );
       }
-    } catch (error) {
-      process.stdout.write(
-        `SHADOW — receipt observation unavailable (${error instanceof Error ? error.message : 'unknown failure'}); existing gate remains authoritative.\n`,
-      );
     }
-    const decision = verifyPrOwnerRecord(data, prNumber, target, discussion, resolveAllowedSigners());
-    if (decision.action === 'clear') {
-      process.stdout.write(`PR #${prNumber}: verified exact-head owner sec-review signature (${decision.url || 'recorded comment'}).\n`);
+    const decision = decideReceiptAdmission({
+      mode: receiptConfig?.mode,
+      receiptResult,
+      ownerDecision,
+    });
+    if (decision.kind === 'app-receipt') {
+      process.stdout.write(`PR #${prNumber}: verified App receipt ${decision.receiptId} for the exact current candidate.\n`);
       process.exitCode = 0;
       return;
     }
-    if (decision.kind === 'request-changes') {
-      process.stderr.write(`HOLD — live REQUEST-CHANGES by ${decision.reviewer || 'unknown'} at ${decision.timestamp || 'unknown time'}; owner signature cannot override it.\n`);
-      process.exitCode = 1;
+    if (decision.kind === 'invalid-app-receipt')
+      process.stderr.write(`HOLD — enforced App receipt is not valid for this exact candidate (${decision.reason}); only a valid owner SSHSIG may recover this gate.\n`);
+    if (decision.action === 'clear') {
+      process.stdout.write(`PR #${prNumber}: verified exact-head owner sec-review signature (${decision.url || 'recorded comment'}).\n`);
+      process.exitCode = 0;
       return;
     }
     if (data.isCrossRepository === false && isPromotePr(data.baseRefName, data.headRefName)) {
@@ -625,6 +667,7 @@ module.exports = {
   MAX_CLASSIFIABLE_FILES,
   classifyFiles,
   decideReviewGate,
+  decideReceiptAdmission,
   verifyReceiptShadow,
   isPromotePr,
   decidePromoteUpstreamCoverage,
@@ -636,7 +679,7 @@ module.exports = {
   fetchPrFiles,
   hitsForFiles,
   resolveAllowedSigners,
-  readReceiptShadowConfig,
+  readReceiptConfig,
   evaluateReceiptShadowForPr,
   // exposed for integration tests / CI dry-runs
   buildPromoteCoverage,

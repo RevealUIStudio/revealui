@@ -13,9 +13,10 @@ const {
   MAX_CLASSIFIABLE_FILES,
   classifyFiles,
   decideReviewGate,
+  decideReceiptAdmission,
   fetchPrFiles,
   hitsForFiles,
-  readReceiptShadowConfig,
+  readReceiptConfig,
 } = require('../security-review-gate.cjs');
 
 const CLEAR_LABEL = 'sec-review:approved';
@@ -490,26 +491,92 @@ describe('owner grant evidence adapter', () => {
   });
 });
 
-describe('receipt shadow configuration', () => {
-  it('is disabled unless the base-trusted workflow opts into shadow mode', () => {
-    expect(readReceiptShadowConfig({})).toBeUndefined();
+describe('receipt gate configuration', () => {
+  it('is disabled unless the base-trusted workflow opts into shadow or enforce mode', () => {
+    expect(readReceiptConfig({})).toBeUndefined();
   });
 
   it('requires complete trusted policy when shadow mode is enabled', () => {
-    expect(() => readReceiptShadowConfig({ REVIEW_RECEIPT_MODE: 'shadow' })).toThrow(
+    expect(() => readReceiptConfig({ REVIEW_RECEIPT_MODE: 'shadow' })).toThrow(
       'REVIEW_RECEIPT_CONTROLLER_APP_ID is required',
     );
   });
 
-  it('rejects partial receipt settings without an explicit shadow mode', () => {
-    expect(() => readReceiptShadowConfig({ REVIEW_RECEIPT_POLICY_VERSION: 'policy-1' })).toThrow(
+  it('accepts enforce mode only with the same complete trusted policy', () => {
+    expect(() => readReceiptConfig({ REVIEW_RECEIPT_MODE: 'enforce' })).toThrow(
+      'REVIEW_RECEIPT_CONTROLLER_APP_ID is required',
+    );
+    expect(() => readReceiptConfig({ REVIEW_RECEIPT_MODE: 'observe' })).toThrow(
+      'REVIEW_RECEIPT_MODE must be shadow or enforce',
+    );
+    expect(
+      readReceiptConfig({
+        REVIEW_RECEIPT_MODE: 'enforce',
+        REVIEW_RECEIPT_CONTROLLER_APP_ID: '30',
+        REVIEW_RECEIPT_MAX_LIFETIME_MS: '3600000',
+        REVIEW_RECEIPT_POLICY_VERSION: 'policy-1',
+        REVIEW_RECEIPT_TRUSTED_KEYS: JSON.stringify({ key: 'public key' }),
+        REVIEW_RECEIPT_REQUIRED_CHECKS: JSON.stringify([
+          { name: 'CI', appId: 20 },
+          { name: 'CodeQL', appId: 57789 },
+          { name: 'Security Gate', appId: 15368 },
+          { name: 'Dependency Review', appId: 15368 },
+          { name: 'Secret Scanning (Gitleaks)', appId: 15368 },
+        ]),
+      }),
+    ).toMatchObject({ mode: 'enforce', controllerAppId: 30 });
+  });
+
+  it('lets only a verified receipt replace the owner grant in enforce mode', () => {
+    const ownerHold = { action: 'hold', kind: 'no-owner-signature' };
+    expect(
+      decideReceiptAdmission({
+        mode: 'shadow',
+        receiptResult: { status: 'verified', receiptId: 'receipt-1' },
+        ownerDecision: ownerHold,
+      }),
+    ).toEqual(ownerHold);
+    expect(
+      decideReceiptAdmission({
+        mode: 'enforce',
+        receiptResult: { status: 'ineligible', reason: 'stale-head' },
+        ownerDecision: ownerHold,
+      }),
+    ).toMatchObject({ action: 'hold', kind: 'invalid-app-receipt', reason: 'stale-head' });
+    expect(
+      decideReceiptAdmission({
+        mode: 'enforce',
+        receiptResult: { status: 'verified', receiptId: 'receipt-1' },
+        ownerDecision: ownerHold,
+      }),
+    ).toMatchObject({ action: 'clear', kind: 'app-receipt', receiptId: 'receipt-1' });
+  });
+
+  it('keeps live reviewer holds authoritative over receipt admission', () => {
+    const reviewerHold = {
+      action: 'hold',
+      kind: 'request-changes',
+      reviewer: 'codex',
+      timestamp: '2026-10-07T12:00:00Z',
+    };
+    expect(
+      decideReceiptAdmission({
+        mode: 'enforce',
+        receiptResult: { status: 'verified', receiptId: 'receipt-1' },
+        ownerDecision: reviewerHold,
+      }),
+    ).toEqual(reviewerHold);
+  });
+
+  it('rejects partial receipt settings without an explicit gate mode', () => {
+    expect(() => readReceiptConfig({ REVIEW_RECEIPT_POLICY_VERSION: 'policy-1' })).toThrow(
       'REVIEW_RECEIPT_MODE is required when receipt settings are present',
     );
   });
 
   it('rejects duplicate required check selectors', () => {
     expect(() =>
-      readReceiptShadowConfig({
+      readReceiptConfig({
         REVIEW_RECEIPT_MODE: 'shadow',
         REVIEW_RECEIPT_CONTROLLER_APP_ID: '30',
         REVIEW_RECEIPT_MAX_LIFETIME_MS: '3600000',
@@ -525,7 +592,7 @@ describe('receipt shadow configuration', () => {
 
   it('rejects receipt policies that omit mandatory exact-head security checks', () => {
     expect(() =>
-      readReceiptShadowConfig({
+      readReceiptConfig({
         REVIEW_RECEIPT_MODE: 'shadow',
         REVIEW_RECEIPT_CONTROLLER_APP_ID: '30',
         REVIEW_RECEIPT_MAX_LIFETIME_MS: '3600000',

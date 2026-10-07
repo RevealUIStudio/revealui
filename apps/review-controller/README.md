@@ -135,8 +135,9 @@ Unknown modes and partial or malformed configuration stop startup. Publishing
 requires the controller's dedicated Ed25519 private key and receipt database;
 never store the signing key in repository variables.
 
-The gate's independent shadow verifier uses repository variables
-`REVIEW_RECEIPT_MODE=shadow`, `REVIEW_RECEIPT_CONTROLLER_APP_ID`,
+The gate's independent verifier uses repository variables
+`REVIEW_RECEIPT_MODE=shadow` or `REVIEW_RECEIPT_MODE=enforce`,
+`REVIEW_RECEIPT_CONTROLLER_APP_ID`,
 `REVIEW_RECEIPT_TRUSTED_KEYS` (a JSON object mapping key IDs to Ed25519 public
 PEM keys), `REVIEW_RECEIPT_POLICY_VERSION`,
 `REVIEW_RECEIPT_MAX_LIFETIME_MS`, and `REVIEW_RECEIPT_REQUIRED_CHECKS`. It reads
@@ -144,12 +145,20 @@ the envelope only from the configured controller App's exact-head `RevealUI
 Receipt` check summary, verifies the live required-check evidence digests, then
 re-fetches the PR to detect head/base movement. A check rerun invalidates the
 receipt even if GitHub reuses its check-run and suite IDs.
-Invalid or unavailable shadow evidence is logged but does not alter the
-existing gate decision. These variables are not sufficient to enable runtime
-publication or to clear the owner gate.
+In `shadow` mode, invalid or unavailable evidence is logged and does not alter
+the existing owner-gate decision. In `enforce` mode, a verified exact-candidate
+receipt clears the routine owner-signature requirement; missing, invalid, stale,
+or unavailable receipt evidence holds the gate. A live `REQUEST-CHANGES` verdict
+always holds, and a valid owner SSHSIG remains an explicit recovery path during
+receipt-service outages. The mode is read from the base-trusted workflow's
+repository variables, so PR-controlled code cannot enable or weaken it.
 
-The remaining durable work is merge-queue candidate admission and cutover
-evidence. Receipt publication remains non-authoritative until the protected
-gate and repository ruleset have completed their separate reviewed migration.
-Each stage must fail closed and remain separately testable before the next one
-is enabled.
+Enforce mode currently evaluates pull-request merge candidates. It does not
+admit `merge_group` candidates: those are observed but not evaluated or
+published. Do not enable merge queue admission until the controller can bind
+every queued PR receipt and required check to the exact group head/base, persist
+an immutable group receipt, and publish a check on that group head. Tests must
+cover multi-PR groups, stacked PRs, incomplete/ambiguous membership, stale or
+rerun evidence, candidate movement, retry idempotency, and persistence failure.
+Receipt enforcement on direct PRs and merge-queue admission therefore remain
+separate reviewed rollout stages.
