@@ -127,6 +127,9 @@ without publishing it; its required summary fails if the image build fails.
   The canonical schema is
   `packages/db/src/schema/internal/review-controller.ts`; the isolated journal
   reuses its table and trigger migrations from `packages/db/migrations/`.
+  The `Drizzle Migrations (suite)` CI job applies that isolated journal to a
+  second fresh PostgreSQL database and checks its table scope, migration count,
+  runtime grants, and receipt immutability with a real runtime-role login.
 - Keep one controller machine during the initial Fly-volume/inbox design.
   Run one worker process. Queue leases recover work and prevent duplicate
   claims; they do not fence concurrent check writes for the same PR. Scale only

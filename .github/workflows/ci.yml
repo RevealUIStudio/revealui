@@ -490,6 +490,28 @@ jobs:
           POSTGRES_URL: "postgresql://test:test@localhost:5432/revealui_migrations"
           DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_migrations"
 
+      - name: Prepare isolated Review Controller migration database
+        run: |
+          psql -v ON_ERROR_STOP=1 -d postgres -c \
+            'CREATE ROLE "revealui-review-controller" WITH LOGIN PASSWORD $$review_controller_ci$$ NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS'
+          psql -v ON_ERROR_STOP=1 -d postgres -c \
+            'CREATE DATABASE revealui_review_controller_ci OWNER test'
+        env:
+          PGHOST: localhost
+          PGUSER: test
+          PGPASSWORD: test
+
+      - name: Apply isolated Review Controller migrations (hard fail)
+        run: pnpm --filter @revealui/review-controller db:migrate
+        env:
+          REVIEW_CONTROLLER_MIGRATION_DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_review_controller_ci"
+
+      - name: Verify isolated Review Controller migration and runtime grants
+        run: pnpm --filter @revealui/review-controller exec vitest run --config vitest.postgres.config.ts
+        env:
+          REVIEW_CONTROLLER_MIGRATION_DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_review_controller_ci"
+          REVIEW_CONTROLLER_TEST_RUNTIME_DATABASE_URL: "postgresql://revealui-review-controller:review_controller_ci@localhost:5432/revealui_review_controller_ci"
+
       - name: Verify license and domain erasure concurrency on independent Postgres connections
         run: pnpm --filter @revealui/test exec vitest run --config vitest.integration.config.ts src/integration/database/license-operation-concurrency.integration.test.ts src/integration/database/consultation-domain-erasure.integration.test.ts
         env:
