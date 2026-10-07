@@ -1,4 +1,10 @@
 import { generateKeyPairSync, verify } from 'node:crypto';
+import {
+  canonicalReviewReceiptEnvelope,
+  REVIEW_RECEIPT_SCHEMA,
+  type ReviewReceiptContext,
+  signReviewReceipt,
+} from '@revealui/security/review-receipt';
 import { describe, expect, it, vi } from 'vitest';
 import { GitHubAppClient, type GitHubAppError } from './github-app.js';
 
@@ -27,9 +33,79 @@ function tokenResponse() {
   );
 }
 
+function signedEnvelope(headSha: string): string {
+  const pair = generateKeyPairSync('ed25519');
+  const tree = (letter: string) => letter.repeat(40);
+  const digest = (letter: string) => letter.repeat(64);
+  const clock = new Date(now);
+  const expected: ReviewReceiptContext = {
+    repositoryId: 300,
+    repositoryFullName: 'RevealUIStudio/revealui',
+    pullRequest: 3076,
+    headSha,
+    headTreeSha: tree('b'),
+    baseSha: tree('c'),
+    baseTreeSha: tree('d'),
+    mergeCandidateTreeSha: tree('e'),
+    manifestSha256: digest('f'),
+    policyVersion: 'policy-1',
+    classifierVersion: 'classifier-1',
+    requiredChecks: [{ name: 'CI', appId: 20, checkRunId: 101, checkSuiteId: 201 }],
+    minimumIndependentReviews: 1,
+    maxReceiptLifetimeMs: 60 * 60_000,
+    now: clock,
+  };
+  return canonicalReviewReceiptEnvelope(
+    signReviewReceipt({
+      keyId: 'controller-key-1',
+      privateKey: pair.privateKey.export({ type: 'pkcs8', format: 'pem' }),
+      expected,
+      receipt: {
+        schema: REVIEW_RECEIPT_SCHEMA,
+        receiptId: `receipt-${digest('1')}`,
+        issuedAt: new Date(clock.getTime() - 60_000).toISOString(),
+        expiresAt: new Date(clock.getTime() + 30 * 60_000).toISOString(),
+        repository: { id: expected.repositoryId, fullName: expected.repositoryFullName },
+        pullRequest: expected.pullRequest,
+        head: { sha: expected.headSha, treeSha: expected.headTreeSha },
+        base: { sha: expected.baseSha, treeSha: expected.baseTreeSha },
+        mergeCandidate: { treeSha: expected.mergeCandidateTreeSha },
+        manifest: { sha256: expected.manifestSha256, fileCount: 1 },
+        policy: {
+          version: expected.policyVersion,
+          classifierVersion: expected.classifierVersion,
+        },
+        reviews: [
+          {
+            reviewerId: 'reviewer-1',
+            system: 'system-1',
+            executionId: 'execution-1',
+            revisionSha: headSha,
+            verdict: 'approve',
+            criticalFindings: 0,
+            highFindings: 0,
+          },
+        ],
+        checks: [
+          {
+            name: 'CI',
+            appId: 20,
+            checkRunId: 101,
+            checkSuiteId: 201,
+            conclusion: 'success',
+            evidenceSha256: digest('2'),
+          },
+        ],
+        decision: 'approve',
+      },
+    }),
+  );
+}
+
 describe('GitHub App API client', () => {
-  it('publishes a fixed App-authored receipt check with no caller-controlled prose', async () => {
+  it('publishes a fixed App-authored receipt check carrying the canonical envelope', async () => {
     const headSha = 'a'.repeat(40);
+    const receiptEnvelope = signedEnvelope(headSha);
     const fetchImpl = vi.fn<typeof fetch>(async (input, init) => {
       const url = new URL(input instanceof Request ? input.url : input.toString());
       if (url.pathname.endsWith('/access_tokens')) return tokenResponse();
@@ -47,7 +123,7 @@ describe('GitHub App API client', () => {
         completed_at: '2026-10-06T12:00:00.000Z',
         output: {
           title: 'Receipt evidence is ready',
-          summary: 'Exact-head review and required check evidence passed receipt evaluation.',
+          summary: `Exact-head review and required check evidence passed receipt evaluation.\n\n<!-- revealui-review-receipt:v1 -->\n${receiptEnvelope}`,
         },
       });
       return new Response(
@@ -67,6 +143,7 @@ describe('GitHub App API client', () => {
         headSha,
         externalId: 'receipt-123',
         eligible: true,
+        receiptEnvelope,
       }),
     ).resolves.toEqual({
       id: 800,
@@ -76,6 +153,17 @@ describe('GitHub App API client', () => {
       conclusion: 'success',
       external_id: 'receipt-123',
     });
+  });
+
+  it('rejects an eligible receipt check without a canonical signed envelope', async () => {
+    const client = fixture(vi.fn<typeof fetch>());
+    await expect(
+      client.upsertReceiptCheckRun({
+        headSha: 'a'.repeat(40),
+        externalId: 'receipt-123',
+        eligible: true,
+      }),
+    ).rejects.toThrow('eligible receipt check requires a signed envelope');
   });
 
   it('rejects mismatched GitHub receipt check responses', async () => {
@@ -145,6 +233,7 @@ describe('GitHub App API client', () => {
         headSha,
         externalId: 'pr-300-7',
         eligible: true,
+        receiptEnvelope: signedEnvelope(headSha),
       }),
     ).resolves.toMatchObject({ id: 800, conclusion: 'success' });
   });

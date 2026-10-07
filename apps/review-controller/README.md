@@ -60,12 +60,15 @@ cannot meet the shared two-review threshold for security-sensitive changes.
 The current gate and branch protections remain authoritative.
 
 The shared receipt store is append-only; shadow evaluation does not store its
-signed envelope. A fixed-output App check-run writer is implemented and tested,
-along with a persist-before-publish coordinator, but shadow mode does not call
-them. The receipt store and check writer are not yet connected to a runtime
-publishing mode. Merge-queue admission and auto-merge remain unimplemented. The
-existing security gate remains authoritative until those stages and their
-cutover evidence are complete.
+signed envelope. The fixed-output App check-run writer now places the canonical
+signed envelope in the App-authored check summary after the receipt has been
+persisted. The base-trusted security gate can verify that check in shadow mode
+against current PR and required-check evidence, while continuing to enforce
+the existing owner gate. The runtime handler still records shadow eligibility
+only and does not invoke the publisher. Merge-queue admission, runtime
+publication, and auto-merge remain unimplemented. The existing security gate
+remains authoritative until those stages and their cutover evidence are
+complete.
 
 The production Dockerfile assembles a pnpm production deployment and keeps
 only the PostgreSQL driver external to the self-contained controller bundle.
@@ -114,6 +117,17 @@ to 24 hours), and `REVIEW_RECEIPT_REQUIRED_CHECKS` (a JSON array such as
 controller's dedicated secret store. Stable selectors use check name and
 GitHub App ID; current run and suite IDs come from the live GitHub response.
 Unknown modes and partial or malformed shadow configuration stop startup.
+
+The gate's independent shadow verifier uses repository variables
+`REVIEW_RECEIPT_MODE=shadow`, `REVIEW_RECEIPT_CONTROLLER_APP_ID`,
+`REVIEW_RECEIPT_TRUSTED_KEYS` (a JSON object mapping key IDs to Ed25519 public
+PEM keys), `REVIEW_RECEIPT_POLICY_VERSION`,
+`REVIEW_RECEIPT_MAX_LIFETIME_MS`, and `REVIEW_RECEIPT_REQUIRED_CHECKS`. It reads
+the envelope only from the configured controller App's exact-head `RevealUI
+Receipt` check summary, then re-fetches the PR to detect head/base movement.
+Invalid or unavailable shadow evidence is logged but does not alter the
+existing gate decision. These variables are not sufficient to enable runtime
+publication or to clear the owner gate.
 
 The remaining durable work is App-bound check publication, merge-queue
 candidate admission, and cutover evidence. Each stage must fail closed and

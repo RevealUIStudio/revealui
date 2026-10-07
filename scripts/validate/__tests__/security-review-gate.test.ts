@@ -15,6 +15,7 @@ const {
   decideReviewGate,
   fetchPrFiles,
   hitsForFiles,
+  readReceiptShadowConfig,
 } = require('../security-review-gate.cjs');
 
 const CLEAR_LABEL = 'sec-review:approved';
@@ -429,6 +430,59 @@ describe('owner grant evidence adapter', () => {
         Array.from({ length: 250 }, () => featureHead).join('\n'),
       ),
     ).toThrow('API ceiling');
+  });
+});
+
+describe('receipt shadow configuration', () => {
+  it('is disabled unless the base-trusted workflow opts into shadow mode', () => {
+    expect(readReceiptShadowConfig({})).toBeUndefined();
+  });
+
+  it('requires complete trusted policy when shadow mode is enabled', () => {
+    expect(() => readReceiptShadowConfig({ REVIEW_RECEIPT_MODE: 'shadow' })).toThrow(
+      'REVIEW_RECEIPT_CONTROLLER_APP_ID is required',
+    );
+  });
+
+  it('rejects partial receipt settings without an explicit shadow mode', () => {
+    expect(() => readReceiptShadowConfig({ REVIEW_RECEIPT_POLICY_VERSION: 'policy-1' })).toThrow(
+      'REVIEW_RECEIPT_MODE is required when receipt settings are present',
+    );
+  });
+
+  it('rejects duplicate required check selectors', () => {
+    expect(() =>
+      readReceiptShadowConfig({
+        REVIEW_RECEIPT_MODE: 'shadow',
+        REVIEW_RECEIPT_CONTROLLER_APP_ID: '30',
+        REVIEW_RECEIPT_MAX_LIFETIME_MS: '3600000',
+        REVIEW_RECEIPT_POLICY_VERSION: 'policy-1',
+        REVIEW_RECEIPT_TRUSTED_KEYS: JSON.stringify({ key: 'public key' }),
+        REVIEW_RECEIPT_REQUIRED_CHECKS: JSON.stringify([
+          { name: 'CI', appId: 20 },
+          { name: 'CI', appId: 20 },
+        ]),
+      }),
+    ).toThrow('REVIEW_RECEIPT_REQUIRED_CHECKS contains duplicate selectors');
+  });
+
+  it('grants the base-trusted gate read access to check-run receipt evidence', () => {
+    const workflow = readFileSync(
+      join(__dirname, '../../../.github/workflows/security-review-gate.yml'),
+      'utf8',
+    );
+    expect(workflow).toContain('checks: read');
+    for (const name of [
+      'REVIEW_RECEIPT_MODE',
+      'REVIEW_RECEIPT_CONTROLLER_APP_ID',
+      'REVIEW_RECEIPT_TRUSTED_KEYS',
+      'REVIEW_RECEIPT_POLICY_VERSION',
+      'REVIEW_RECEIPT_MAX_LIFETIME_MS',
+      'REVIEW_RECEIPT_REQUIRED_CHECKS',
+    ]) {
+      const expression = `\${{ vars.${name} }}`;
+      expect(workflow).toContain(`${name}: ${expression}`);
+    }
   });
 });
 

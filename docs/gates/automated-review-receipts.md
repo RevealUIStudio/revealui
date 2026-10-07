@@ -34,9 +34,12 @@ duplicate reviewer identities/executions, blocking findings, and checks that
 do not match the policy-bound App, check-run ID, and check-suite ID. It
 requires distinct reviewer identities, systems, and executions. The controller
 package also includes an append-only Postgres receipt store with idempotent
-retry and receipt-ID collision rejection. These are primitives: no workflow
-consumes them yet, and the controller does not evaluate model reviews, issue
-receipts, or authorize or merge a PR.
+retry and receipt-ID collision rejection. The controller observes
+subscription-based GitHub review evidence and evaluates candidate receipts in
+shadow mode. The base-trusted security workflow can independently verify a
+receipt carried by the controller App's exact-head check, but does not use it
+to clear the active owner gate. Runtime receipt publication and merge
+authorization remain disabled.
 
 The isolated `apps/review-controller` service authenticates webhook
 signatures, checks the configured repository and App installation IDs, and
@@ -48,11 +51,13 @@ the shared security classifier binds its version and matched paths into each
 snapshot, including both sides of renames; check observations bind producer
 App, head SHA, check-run ID, and check-suite ID. Truncated trees, incomplete
 pagination, API failures, and stale check heads fail closed.
-These observations do not evaluate model reviews or issue and store signed
-receipts, publish a check, or request a merge. The current owner-signature gate stays
-authoritative until those pieces, the workflow shadow evaluator, expected-App
-check, and merge-queue candidate handling are implemented and verified
-together.
+These observations evaluate subscription-based review evidence in shadow mode.
+The base-trusted security gate now has a separate shadow verifier for a signed
+envelope carried by the configured controller App's exact-head check run. It
+re-fetches PR state, binds head/base/merge-candidate and current required-check
+run identities, and verifies the receipt signature against protected public
+keys. The current owner-signature gate remains authoritative; the controller
+runtime does not yet publish receipts or request a merge.
 
 ## Current blockers and owning primitives
 
@@ -253,11 +258,11 @@ public and private repositories may cut over at different times. Until then,
 the existing manual gate remains in force, and its per-PR burden is recorded
 as a known blocker rather than hidden behind a one-off shortcut.
 
-The implementation follow-up remains in this owning path: connect
-`scripts/validate/security-review-gate.cjs` to the shared verifier in shadow
-mode; complete automated review and immutable signed-receipt storage; deploy
-the isolated controller; configure the App-bound required check; and evaluate
-`merge_group` candidates before changing any active rule. Validation must
+The implementation follow-up remains in this owning path: connect the
+controller runtime to immutable receipt storage and App check publication;
+deploy the isolated controller; configure the App-bound required check; and
+evaluate `merge_group` candidates before changing any active rule. Validation
+must
 cover stale checks, counterfeit same-name checks from another App, moved
 base/head, merge conflicts, incomplete file manifests, controller and API
 outages, receipt replay, key rotation, and actual source-App enforcement.

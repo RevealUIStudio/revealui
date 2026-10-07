@@ -1,4 +1,5 @@
 import { createPrivateKey, createSign } from 'node:crypto';
+import { parseReviewReceiptEnvelope } from '@revealui/security/review-receipt';
 import { GITHUB_INSTALLATION_PERMISSIONS } from './github-app-policy.js';
 
 const GITHUB_API = 'https://api.github.com';
@@ -296,15 +297,19 @@ export class GitHubAppClient {
     headSha: string;
     externalId: string;
     eligible: boolean;
+    receiptEnvelope?: string;
   }): Promise<ReceiptCheckRunResult> {
     if (!/^[a-f0-9]{40,64}$/.test(input.headSha)) throw new Error('invalid commit SHA');
     if (!/^[A-Za-z0-9._:-]{1,255}$/.test(input.externalId))
       throw new Error('invalid receipt check external ID');
+    if (input.eligible && !input.receiptEnvelope)
+      throw new Error('eligible receipt check requires a signed envelope');
+    if (input.receiptEnvelope) parseReviewReceiptEnvelope(input.receiptEnvelope);
     const conclusion = input.eligible ? 'success' : 'failure';
     const output = input.eligible
       ? {
           title: 'Receipt evidence is ready',
-          summary: 'Exact-head review and required check evidence passed receipt evaluation.',
+          summary: `Exact-head review and required check evidence passed receipt evaluation.\n\n<!-- revealui-review-receipt:v1 -->\n${input.receiptEnvelope}`,
         }
       : {
           title: 'Receipt evidence is not ready',

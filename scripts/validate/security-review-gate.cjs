@@ -102,6 +102,221 @@ function decideReviewGate({ verdict, labels = [], ownerVerification = { ok: fals
   return { action: 'hold', kind: 'no-owner-signature', reason: ownerVerification.reason || (requested ? 'missing-owner-signature' : 'missing-request-label') };
 }
 
+/**
+ * Verify a receipt carried by the controller-owned check run against live
+ * GitHub observations. This is shadow evidence only; callers must continue to
+ * apply the active owner gate until the separately reviewed cutover.
+ */
+function verifyReceiptShadow(input) {
+  const hold = (reason) => ({ ok: false, reason });
+  const check = input.receiptCheckRun;
+  if (
+    !check ||
+    check.name !== 'RevealUI Receipt' ||
+    check.head_sha !== input.headSha ||
+    check.status !== 'completed' ||
+    check.conclusion !== 'success' ||
+    check.app?.id !== input.controllerAppId ||
+    check.external_id !== `pr-${input.repositoryId}-${input.pullRequest}`
+  ) return hold('receipt_check_run_missing_or_untrusted');
+  const summary = check.output?.summary;
+  const marker = '<!-- revealui-review-receipt:v1 -->';
+  if (typeof summary !== 'string' || Buffer.byteLength(summary, 'utf8') > 64 * 1024)
+    return hold('receipt_check_summary_missing_or_oversized');
+  const markerIndex = summary.indexOf(marker);
+  if (markerIndex < 0 || summary.indexOf(marker, markerIndex + marker.length) >= 0)
+    return hold('receipt_check_summary_marker_invalid');
+  const rawEnvelope = summary.slice(markerIndex + marker.length).trim();
+  let envelope;
+  try {
+    envelope = JSON.parse(rawEnvelope);
+  } catch {
+    return hold('receipt_check_envelope_malformed');
+  }
+  const receipt = envelope && typeof envelope === 'object' ? envelope.receipt : null;
+  if (!receipt || typeof receipt.manifest?.sha256 !== 'string')
+    return hold('receipt_manifest_missing');
+
+  const requiredChecks = [];
+  for (const selector of input.requiredChecks) {
+    const matches = input.currentCheckRuns.filter(
+      (run) => run.name === selector.name && run.app?.id === selector.appId,
+    );
+    if (matches.length !== 1) return hold('receipt_required_check_selector_not_unique');
+    const [run] = matches;
+    if (
+      run.head_sha !== input.headSha ||
+      run.status !== 'completed' ||
+      run.conclusion !== 'success' ||
+      !Number.isSafeInteger(run.id) ||
+      !Number.isSafeInteger(run.check_suite?.id)
+    ) return hold('receipt_required_check_missing_or_stale');
+    requiredChecks.push({
+      name: selector.name,
+      appId: selector.appId,
+      checkRunId: run.id,
+      checkSuiteId: run.check_suite.id,
+    });
+  }
+
+  return sharedGates.verifyReviewReceipt({
+    envelope: rawEnvelope,
+    trustedKeys: input.trustedKeys,
+    expected: {
+      repositoryId: input.repositoryId,
+      repositoryFullName: input.repositoryFullName,
+      pullRequest: input.pullRequest,
+      headSha: input.headSha,
+      headTreeSha: input.headTreeSha,
+      baseSha: input.baseSha,
+      baseTreeSha: input.baseTreeSha,
+      mergeCandidateTreeSha: input.mergeCandidateTreeSha,
+      manifestSha256: receipt.manifest.sha256,
+      policyVersion: input.policyVersion,
+      classifierVersion: sharedGates.SECURITY_PATH_CLASSIFIER_VERSION,
+      requiredChecks,
+      minimumIndependentReviews: input.sensitive ? 2 : 1,
+      maxReceiptLifetimeMs: input.maxLifetimeMs,
+      now: input.now,
+    },
+  });
+}
+
+function readReceiptShadowConfig(env = process.env) {
+  const mode = env.REVIEW_RECEIPT_MODE?.trim();
+  if (!mode) {
+    if (Object.keys(env).some((name) => name.startsWith('REVIEW_RECEIPT_') && env[name]?.trim()))
+      throw new Error('REVIEW_RECEIPT_MODE is required when receipt settings are present');
+    return undefined;
+  }
+  if (mode !== 'shadow') throw new Error('REVIEW_RECEIPT_MODE must be shadow');
+  const controllerAppId = Number(requiredEnv(env, 'REVIEW_RECEIPT_CONTROLLER_APP_ID'));
+  const maxLifetimeMs = Number(requiredEnv(env, 'REVIEW_RECEIPT_MAX_LIFETIME_MS'));
+  const policyVersion = requiredEnv(env, 'REVIEW_RECEIPT_POLICY_VERSION');
+  if (!Number.isSafeInteger(controllerAppId) || controllerAppId <= 0)
+    throw new Error('REVIEW_RECEIPT_CONTROLLER_APP_ID must be a positive integer');
+  if (!Number.isSafeInteger(maxLifetimeMs) || maxLifetimeMs < 60_000 || maxLifetimeMs > 86_400_000)
+    throw new Error('REVIEW_RECEIPT_MAX_LIFETIME_MS must be between 60000 and 86400000');
+  if (policyVersion.length > 128) throw new Error('REVIEW_RECEIPT_POLICY_VERSION exceeds size limit');
+  const trustedKeys = parseJsonEnv(env, 'REVIEW_RECEIPT_TRUSTED_KEYS');
+  if (!isRecord(trustedKeys) || Object.keys(trustedKeys).length === 0 || Object.keys(trustedKeys).length > 32)
+    throw new Error('REVIEW_RECEIPT_TRUSTED_KEYS must be a non-empty key map');
+  for (const [keyId, publicKey] of Object.entries(trustedKeys)) {
+    if (!/^[A-Za-z0-9._:-]{1,128}$/.test(keyId) || typeof publicKey !== 'string' || publicKey.length > 8192)
+      throw new Error('REVIEW_RECEIPT_TRUSTED_KEYS contains an invalid key');
+  }
+  const requiredChecks = parseJsonEnv(env, 'REVIEW_RECEIPT_REQUIRED_CHECKS');
+  if (!Array.isArray(requiredChecks) || requiredChecks.length === 0 || requiredChecks.length > 64)
+    throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS must contain 1 to 64 entries');
+  for (const check of requiredChecks) {
+    if (
+      !isRecord(check) || typeof check.name !== 'string' || !check.name.trim() ||
+      check.name !== check.name.trim() || check.name.length > 200 ||
+      !Number.isSafeInteger(check.appId) || check.appId <= 0
+    ) throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS contains an invalid selector');
+  }
+  const selectors = requiredChecks.map((check) => `${check.appId}:${check.name}`);
+  if (new Set(selectors).size !== selectors.length)
+    throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS contains duplicate selectors');
+  return { controllerAppId, maxLifetimeMs, policyVersion, trustedKeys, requiredChecks };
+}
+
+function requiredEnv(env, name) {
+  const value = env[name]?.trim() ?? '';
+  if (!value) throw new Error(`${name} is required when REVIEW_RECEIPT_MODE=shadow`);
+  return value;
+}
+
+function parseJsonEnv(env, name) {
+  const raw = requiredEnv(env, name);
+  if (Buffer.byteLength(raw, 'utf8') > 32 * 1024) throw new Error(`${name} exceeds size limit`);
+  try { return JSON.parse(raw); } catch { throw new Error(`${name} must be valid JSON`); }
+}
+
+function isRecord(value) {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function fetchJson(args, ghImpl = gh) {
+  const raw = ghImpl(['api', ...args]);
+  return JSON.parse(raw);
+}
+
+function fetchCommitTreeSha(sha, repo, ghImpl = gh) {
+  if (!/^[a-f0-9]{40,64}$/.test(sha)) throw new Error('invalid commit SHA for receipt context');
+  const commit = fetchJson([`repos/${repo}/commits/${sha}`], ghImpl);
+  const treeSha = commit?.commit?.tree?.sha;
+  if (typeof treeSha !== 'string' || !/^[a-f0-9]{40,64}$/.test(treeSha))
+    throw new Error('receipt context commit tree unavailable');
+  return treeSha;
+}
+
+function fetchCurrentCheckRuns(headSha, repo, ghImpl = gh) {
+  const pages = JSON.parse(ghImpl([
+    'api', `repos/${repo}/commits/${headSha}/check-runs?filter=latest&per_page=100`,
+    '--paginate', '--slurp',
+  ]));
+  if (!Array.isArray(pages) || pages.some((page) => !Array.isArray(page?.check_runs)))
+    throw new Error('invalid check-run response for receipt verification');
+  const runs = pages.flatMap((page) => page.check_runs);
+  if (runs.length > 1000) throw new Error('check-run response limit exceeded');
+  return runs;
+}
+
+function evaluateReceiptShadowForPr(prNumber, repo, files, config, ghImpl = gh, now = new Date()) {
+  if (!config) return { status: 'disabled' };
+  const pullPath = `repos/${repo}/pulls/${prNumber}`;
+  const pr = fetchJson([pullPath], ghImpl);
+  if (
+    pr?.state !== 'open' || pr.draft === true || pr.mergeable !== true ||
+    pr.merged_at || pr.base?.repo?.full_name !== repo || pr.head?.repo?.full_name !== repo
+  ) return { status: 'ineligible', reason: 'pull_request_not_ready_or_same_repository' };
+  const headSha = pr.head?.sha;
+  const baseSha = pr.base?.sha;
+  const mergeSha = pr.merge_commit_sha;
+  const repositoryId = pr.base?.repo?.id;
+  if (![headSha, baseSha, mergeSha].every((sha) => typeof sha === 'string' && /^[a-f0-9]{40,64}$/.test(sha)) ||
+      !Number.isSafeInteger(repositoryId) || repositoryId <= 0)
+    return { status: 'ineligible', reason: 'pull_request_receipt_context_incomplete' };
+  const [headTreeSha, baseTreeSha, mergeCandidateTreeSha, currentCheckRuns] = [
+    fetchCommitTreeSha(headSha, repo, ghImpl),
+    fetchCommitTreeSha(baseSha, repo, ghImpl),
+    fetchCommitTreeSha(mergeSha, repo, ghImpl),
+    fetchCurrentCheckRuns(headSha, repo, ghImpl),
+  ];
+  const receiptRuns = currentCheckRuns.filter(
+    (run) => run.name === 'RevealUI Receipt' && run.app?.id === config.controllerAppId &&
+      run.external_id === `pr-${repositoryId}-${prNumber}`,
+  );
+  if (receiptRuns.length !== 1)
+    return { status: 'ineligible', reason: 'receipt_check_run_missing_or_ambiguous' };
+  const result = verifyReceiptShadow({
+    receiptCheckRun: receiptRuns[0],
+    controllerAppId: config.controllerAppId,
+    repositoryId,
+    repositoryFullName: repo,
+    pullRequest: Number(prNumber),
+    headSha,
+    headTreeSha,
+    baseSha,
+    baseTreeSha,
+    mergeCandidateTreeSha,
+    requiredChecks: config.requiredChecks,
+    currentCheckRuns,
+    trustedKeys: config.trustedKeys,
+    policyVersion: config.policyVersion,
+    maxLifetimeMs: config.maxLifetimeMs,
+    sensitive: hitsForFiles(files).length > 0,
+    now,
+  });
+  const fresh = fetchJson([pullPath], ghImpl);
+  if (fresh?.head?.sha !== headSha || fresh?.base?.sha !== baseSha || fresh?.merge_commit_sha !== mergeSha)
+    return { status: 'ineligible', reason: 'pull_request_changed_during_receipt_verification' };
+  return result.ok
+    ? { status: 'verified', receiptId: result.receiptId }
+    : { status: 'ineligible', reason: result.reason || 'receipt_invalid' };
+}
+
 /** REST pagination supplies complete discussion history, or throws closed. */
 function fetchPrDiscussion(prNumber, repo, ghImpl = gh) {
   function list(kind) {
@@ -286,6 +501,21 @@ function runPrMode(prNumber, repo) {
       return;
     }
     const discussion = fetchPrDiscussion(prNumber, target);
+    try {
+      const receiptConfig = readReceiptShadowConfig();
+      if (receiptConfig) {
+        const receiptShadow = evaluateReceiptShadowForPr(prNumber, target, fetchPrFiles(prNumber, target), receiptConfig);
+        process.stdout.write(
+          receiptShadow.status === 'verified'
+            ? `SHADOW — controller receipt ${receiptShadow.receiptId} verifies for this exact candidate; existing gate remains authoritative.\n`
+            : `SHADOW — controller receipt not verified (${receiptShadow.reason || receiptShadow.status}); existing gate remains authoritative.\n`,
+        );
+      }
+    } catch (error) {
+      process.stdout.write(
+        `SHADOW — receipt observation unavailable (${error instanceof Error ? error.message : 'unknown failure'}); existing gate remains authoritative.\n`,
+      );
+    }
     const decision = verifyPrOwnerRecord(data, prNumber, target, discussion, resolveAllowedSigners());
     if (decision.action === 'clear') {
       process.stdout.write(`PR #${prNumber}: verified exact-head owner sec-review signature (${decision.url || 'recorded comment'}).\n`);
@@ -369,6 +599,7 @@ module.exports = {
   MAX_CLASSIFIABLE_FILES,
   classifyFiles,
   decideReviewGate,
+  verifyReceiptShadow,
   isPromotePr,
   decidePromoteUpstreamCoverage,
   prRecordHasVerdict,
@@ -379,6 +610,8 @@ module.exports = {
   fetchPrFiles,
   hitsForFiles,
   resolveAllowedSigners,
+  readReceiptShadowConfig,
+  evaluateReceiptShadowForPr,
   // exposed for integration tests / CI dry-runs
   buildPromoteCoverage,
 };

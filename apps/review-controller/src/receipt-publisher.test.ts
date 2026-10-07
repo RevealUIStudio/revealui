@@ -94,6 +94,7 @@ describe('persistReceiptThenPublishCheck', () => {
       headSha: envelope.receipt.head.sha,
       externalId: 'pr-1234-3054',
       eligible: true,
+      receiptEnvelope: canonicalReviewReceiptEnvelope(envelope),
     });
   });
 

@@ -25,6 +25,7 @@ export async function persistReceiptThenPublishCheck(input: {
     headSha: receipt.head.sha,
     externalId: `pr-${receipt.repository.id}-${receipt.pullRequest}`,
     eligible: true,
+    receiptEnvelope: canonical,
   });
   if (checkRun.head_sha !== receipt.head.sha || checkRun.conclusion !== 'success')
     throw new Error('published_receipt_check_mismatch');
