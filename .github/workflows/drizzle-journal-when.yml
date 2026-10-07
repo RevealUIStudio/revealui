@@ -31,7 +31,8 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          persist-credentials: false
+          # The base-branch fetch below uses this checkout token.
+          persist-credentials: true
           fetch-depth: 1
 
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
@@ -41,7 +42,6 @@ jobs:
       - name: Test and check journal when order
         env:
           BASE_REF: ${{ github.base_ref }}
-          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           node_ts() {
@@ -52,8 +52,7 @@ jobs:
             fi
           }
           node_ts --test scripts/validate/__tests__/drizzle-journal-when.test.ts
-          git -c "http.extraheader=AUTHORIZATION: bearer ${GITHUB_TOKEN}" \
-            fetch --no-tags --depth=1 origin \
+          git fetch --no-tags --depth=1 origin \
             "${BASE_REF}:refs/remotes/origin/${BASE_REF}"
           node_ts scripts/validate/drizzle-journal-when.ts \
             --base-ref "origin/${BASE_REF}"
