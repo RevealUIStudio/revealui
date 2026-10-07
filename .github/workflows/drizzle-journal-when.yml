@@ -1,0 +1,59 @@
+name: Drizzle journal when order
+
+# New Drizzle journal entries must sort after every when already on the PR
+# base branch. Drizzle applies an entry only when its when is strictly
+# greater than the newest created_at it has stored, so an older when merged
+# later is skipped.
+#
+# Job name "Drizzle journal when order" is the status check to mark required
+# on test and main once it has stayed green. cancel-in-progress stays false
+# so a required run cannot be cancelled out from under a merge queue.
+# This workflow does not change branch protection.
+
+on:
+  pull_request:
+    branches: [test, main]
+    # Retargeting a pull request must re-check against the new base.
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: drizzle-journal-when-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  journal-when:
+    name: Drizzle journal when order
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: "24"
+
+      - name: Test and check journal when order
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          node_ts() {
+            if node --experimental-strip-types -e 'const n: number = 1' >/dev/null 2>&1; then
+              node --disable-warning=ExperimentalWarning --experimental-strip-types "$@"
+            else
+              node "$@"
+            fi
+          }
+          node_ts --test scripts/validate/__tests__/drizzle-journal-when.test.ts
+          git -c "http.extraheader=AUTHORIZATION: bearer ${GITHUB_TOKEN}" \
+            fetch --no-tags --depth=1 origin \
+            "${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+          node_ts scripts/validate/drizzle-journal-when.ts \
+            --base-ref "origin/${BASE_REF}"
