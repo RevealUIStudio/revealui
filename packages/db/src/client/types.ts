@@ -7,9 +7,8 @@
  * @module @revealui/db/client/types
  */
 
-import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
-import type * as schema from '../schema/index.js';
 import type { Database } from '../types/index.js';
+import type { Database as DrizzleDatabase } from './index.js';
 
 /**
  * Re-export the centralized Database type for convenience
@@ -21,7 +20,7 @@ export type { Database };
  *
  * This is the actual database client returned by createClient/getClient.
  */
-export type DatabaseClient = NeonHttpDatabase<typeof schema>;
+export type DatabaseClient = DrizzleDatabase;
 
 /**
  * Extract query result type for a table
@@ -55,8 +54,8 @@ export type QueryResults<T extends Database, N extends Array<keyof T['public']['
 /**
  * Transaction type for database operations
  *
- * Note: Neon HTTP driver doesn't support true transactions,
- * but this type provides API consistency for future migration.
+ * Owned Neon HTTP clients use the maintained PostgreSQL pool through
+ * withTransaction; injected transaction clients keep their own transport.
  */
 export type Transaction = DatabaseClient;
 

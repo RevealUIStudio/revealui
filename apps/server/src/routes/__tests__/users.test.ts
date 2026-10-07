@@ -13,7 +13,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
-const { mockUserQueries } = vi.hoisted(() => ({
+const { mockUserQueries, mockSiteQueries } = vi.hoisted(() => ({
   mockUserQueries: {
     getAllUsers: vi.fn(),
     countUsers: vi.fn(),
@@ -21,9 +21,15 @@ const { mockUserQueries } = vi.hoisted(() => ({
     updateUser: vi.fn(),
     deleteUser: vi.fn(),
   },
+  mockSiteQueries: { getSiteContentActor: vi.fn() },
 }));
 
 vi.mock('@revealui/db/queries/users', () => mockUserQueries);
+vi.mock('@revealui/db/queries/sites', () => mockSiteQueries);
+
+beforeEach(() => {
+  mockSiteQueries.getSiteContentActor.mockReset().mockResolvedValue(null);
+});
 
 // ─── Import under test ───────────────────────────────────────────────────────
 
@@ -35,6 +41,7 @@ interface UserCtx {
   id: string;
   role: string;
   email?: string;
+  _json?: { roles: string[] };
 }
 
 const ADMIN: UserCtx = { id: 'admin-1', role: 'admin', email: 'admin@test.com' };
@@ -141,6 +148,64 @@ describe('GET /users/:id  -  get single user', () => {
     const app = createApp(USER_A);
     const res = await app.request('/users/user-b');
     expect(res.status).toBe(403);
+    expect(mockSiteQueries.getSiteContentActor).toHaveBeenCalledWith(expect.any(Object), USER_A.id);
+    expect(mockUserQueries.getUserById).not.toHaveBeenCalled();
+  });
+
+  it('allows a verified canonical platform operator with viewer role to look up a buyer', async () => {
+    const operator = { ...USER_A, role: 'viewer' };
+    mockSiteQueries.getSiteContentActor.mockResolvedValue(
+      makeUser({
+        id: operator.id,
+        role: 'viewer',
+        emailVerified: true,
+        _json: { roles: ['super-admin'] },
+      }),
+    );
+    mockUserQueries.getUserById.mockResolvedValue(makeUser({ id: 'user-b' }));
+
+    const res = await createApp(operator).request('/users/user-b');
+    expect(res.status).toBe(200);
+    expect(mockSiteQueries.getSiteContentActor).toHaveBeenCalledWith(
+      expect.any(Object),
+      operator.id,
+    );
+    expect(mockUserQueries.getUserById).toHaveBeenCalledWith(expect.any(Object), 'user-b');
+    const { data } = await res.json();
+    expect(data.id).toBe('user-b');
+    expect(data.password).toBeUndefined();
+    expect(data.mfaSecret).toBeUndefined();
+    expect(data.emailVerificationToken).toBeUndefined();
+  });
+
+  it('denies a forged operator claim when the canonical actor has no platform authority', async () => {
+    const claimedOperator = {
+      ...USER_A,
+      role: 'viewer',
+      _json: { roles: ['super-admin'] },
+    };
+    mockSiteQueries.getSiteContentActor.mockResolvedValue(
+      makeUser({ id: USER_A.id, role: 'viewer', _json: { roles: ['viewer'] } }),
+    );
+
+    const res = await createApp(claimedOperator).request('/users/user-b');
+    expect(res.status).toBe(403);
+    expect(mockSiteQueries.getSiteContentActor).toHaveBeenCalledWith(expect.any(Object), USER_A.id);
+    expect(mockUserQueries.getUserById).not.toHaveBeenCalled();
+  });
+
+  it('denies a stale operator session when the canonical actor is no longer active', async () => {
+    const staleOperator = {
+      ...USER_A,
+      role: 'viewer',
+      _json: { roles: ['super-admin'] },
+    };
+    mockSiteQueries.getSiteContentActor.mockResolvedValue(null);
+
+    const res = await createApp(staleOperator).request('/users/user-b');
+    expect(res.status).toBe(403);
+    expect(mockSiteQueries.getSiteContentActor).toHaveBeenCalledWith(expect.any(Object), USER_A.id);
+    expect(mockUserQueries.getUserById).not.toHaveBeenCalled();
   });
 
   it('allows non-admin to view own profile', async () => {

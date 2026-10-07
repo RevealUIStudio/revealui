@@ -37,6 +37,7 @@
 import type { DatabaseClient } from '@revealui/db/client';
 import { OpenAPIHono } from '@revealui/openapi';
 import batchRoutes from './batch.js';
+import consultationDomainRoutes from './consultation-domain.js';
 import exportRoutes from './export.js';
 import globalsRoutes from './globals.js';
 import mediaRoutes from './media.js';
@@ -61,6 +62,7 @@ const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 app.route('/', postsRoutes);
 app.route('/', mediaRoutes);
 app.route('/', sitesRoutes);
+app.route('/', consultationDomainRoutes);
 app.route('/', pagesRoutes);
 app.route('/', globalsRoutes);
 app.route('/', sessionsRoutes);

@@ -16,8 +16,10 @@ import { UserRoleSchema } from '@revealui/contracts';
 import { logger } from '@revealui/core/observability/logger';
 import { audit, getClientIp } from '@revealui/core/security';
 import type { Database } from '@revealui/db/client';
+import { getSiteContentActor } from '@revealui/db/queries/sites';
 import * as userQueries from '@revealui/db/queries/users';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
+import { isPlatformSuperAdmin } from '@revealui/utils/validation';
 import { HTTPException } from 'hono/http-exception';
 import { isAdminRole } from '../../lib/access.js';
 import { ErrorSchema, IdParam } from '../_helpers/content-schemas.js';
@@ -194,12 +196,17 @@ app.openapi(
 
     const { id } = c.req.valid('param');
 
-    // Non-admins can only view their own profile
-    if (!isAdminRole(sessionUser.role) && sessionUser.id !== id) {
+    const db = c.get('db');
+    // Canonical verified platform operators may validate fulfillment buyers,
+    // including an operator whose account-wide role is viewer.
+    if (
+      !isAdminRole(sessionUser.role) &&
+      sessionUser.id !== id &&
+      !isPlatformSuperAdmin(await getSiteContentActor(db, sessionUser.id))
+    ) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
 
-    const db = c.get('db');
     const user = await userQueries.getUserById(db, id);
     if (!user) throw new HTTPException(404, { message: 'User not found' });
 
@@ -238,6 +245,10 @@ app.openapi(
         description: 'User updated',
       },
       404: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Not found' },
+      409: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Owned domain cleanup required',
+      },
     },
   }),
   async (c) => {
@@ -262,6 +273,16 @@ app.openapi(
     if (!isAdmin && (body.role !== undefined || body.status !== undefined)) {
       throw new HTTPException(403, { message: 'Only admins can change role or status' });
     }
+    if (body.status === 'deleted')
+      await userQueries.assertUserDomainCleanupComplete(db, id).catch((error: unknown) => {
+        if (
+          error instanceof Error &&
+          'code' in error &&
+          error.code === 'SITE_DOMAIN_CLEANUP_REQUIRED'
+        )
+          throw new HTTPException(409, { message: error.message });
+        throw error;
+      });
 
     // Owner soft-cap: gate promotions *into* the 'owner' role (not demotions
     // or no-op writes). See userQueries.OWNER_SOFT_CAP for rationale.
@@ -283,7 +304,7 @@ app.openapi(
 
     const nextRole = typeof sanitized.role === 'string' ? sanitized.role : undefined;
     if (nextRole === undefined || nextRole === existing.role) {
-      const updated = await userQueries.updateUser(db, id, sanitized);
+      const updated = await userQueries.updateUser(db, id, sanitized).catch(rethrowDomainCleanup);
       if (!updated) throw new HTTPException(404, { message: 'User not found' });
       return c.json({ success: true as const, data: serializeUser(updated) }, 200);
     }
@@ -328,7 +349,7 @@ app.openapi(
         } catch (err) {
           throw auditWriteHttpError(err);
         }
-        const row = await userQueries.updateUser(tx, id, sanitized);
+        const row = await userQueries.updateUser(tx, id, sanitized).catch(rethrowDomainCleanup);
         if (!row) throw new HTTPException(404, { message: 'User not found' });
         return row;
       });
@@ -348,7 +369,7 @@ app.openapi(
       updated = await userQueries.updateUser(db, id, sanitized);
     } catch (err) {
       await recordRoleOutcome(roleEvent, 'failure', err);
-      throw err;
+      rethrowDomainCleanup(err);
     }
     if (!updated) {
       await recordRoleOutcome(roleEvent, 'failure');
@@ -374,6 +395,13 @@ app.openapi(
   },
 );
 
+function rethrowDomainCleanup(error: unknown): never {
+  if (error instanceof Error && 'code' in error && error.code === 'SITE_DOMAIN_CLEANUP_REQUIRED') {
+    throw new HTTPException(409, { message: error.message });
+  }
+  throw error;
+}
+
 // DELETE /users/:id  -  soft-delete (admin-only)
 app.openapi(
   createRoute({
@@ -392,6 +420,10 @@ app.openapi(
         description: 'User deleted',
       },
       404: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Not found' },
+      409: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Owned domain cleanup required',
+      },
     },
   }),
   async (c) => {
@@ -412,7 +444,15 @@ app.openapi(
     const existing = await userQueries.getUserById(db, id);
     if (!existing) throw new HTTPException(404, { message: 'User not found' });
 
-    await userQueries.deleteUser(db, id);
+    await userQueries.deleteUser(db, id).catch((error: unknown) => {
+      if (
+        error instanceof Error &&
+        'code' in error &&
+        error.code === 'SITE_DOMAIN_CLEANUP_REQUIRED'
+      )
+        throw new HTTPException(409, { message: error.message });
+      throw error;
+    });
     return c.json({ success: true as const, message: 'User deleted' }, 200);
   },
 );

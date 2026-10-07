@@ -1,5 +1,6 @@
-import { BlockSchema } from '@revealui/contracts/content';
+import { type Block, BlockSchema } from '@revealui/contracts/content';
 import type { Page } from '@revealui/core/types/admin';
+import { RenderBlocks as RenderCanonicalBlocks } from '@revealui/presentation/server';
 import { logger } from '@revealui/utils/logger';
 import type React from 'react';
 import { Fragment } from 'react';
@@ -111,7 +112,7 @@ export const RenderBlocks = ({
   blocks,
   strictMode = true,
 }: {
-  blocks: Page['blocks'];
+  blocks: Array<Page['blocks'][number] | Block>;
   strictMode?: boolean;
 }) => {
   // Validate input
@@ -119,13 +120,33 @@ export const RenderBlocks = ({
     return null;
   }
 
+  // Native API/session pages share the maintained presentation renderer.
+  // Both formats pass through this owning entry point; native blocks are never
+  // interpreted as legacy CMS blocks. The shared renderer validates each block.
+  if (blocks.some((block) => block && (typeof block !== 'object' || !('blockType' in block)))) {
+    return (
+      <>
+        {blocks.map(
+          (block, index) =>
+            block &&
+            (typeof block === 'object' && 'blockType' in block ? (
+              <RenderBlocks key={block.id || index} blocks={[block]} strictMode={strictMode} />
+            ) : (
+              <RenderCanonicalBlocks key={block.id || index} blocks={[block]} />
+            )),
+        )}
+      </>
+    );
+  }
+  const cmsBlocks = blocks as Page['blocks'];
+
   // Transform and validate blocks using schema adapter
-  const validationResult = validateAndTransformBlocks(blocks);
+  const validationResult = validateAndTransformBlocks(cmsBlocks);
 
   // Additional runtime validation with Zod BlockSchema.parse() for each block
   // This provides an extra layer of validation using the schema types directly
   const validationErrors: Array<{ index: number; error: unknown }> = [];
-  blocks.forEach((block, index) => {
+  cmsBlocks.forEach((block, index) => {
     if (!block) return;
 
     try {
@@ -183,7 +204,7 @@ export const RenderBlocks = ({
 
   return (
     <Fragment>
-      {blocks.map((block, index) => {
+      {cmsBlocks.map((block, index) => {
         if (!block) {
           return null;
         }
