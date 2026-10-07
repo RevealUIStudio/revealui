@@ -12,6 +12,31 @@ import {
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
+describe('integration package selection', () => {
+  it('selects the maintained integration package and refuses an unmatched filter', () => {
+    const manifest = JSON.parse(
+      readFileSync(path.join(repoRoot, 'packages/test/package.json'), 'utf8'),
+    ) as { name: string };
+    const workflow = readFileSync(path.join(repoRoot, '.github/workflows/ci.yml'), 'utf8');
+    const start = workflow.indexOf('  test-integration-extended:');
+    const end = workflow.indexOf(
+      '\n  # ---------------------------------------------------------------------------',
+      start,
+    );
+    const job = workflow.slice(start, end);
+    const command = job
+      .split('\n')
+      .map((line) => line.trim())
+      .find(
+        (line) => line.startsWith('run: pnpm --filter ') && line.includes('run test:integration'),
+      );
+    expect(command).toBeDefined();
+    expect(command?.split(' ')[3]).toBe(manifest.name);
+    expect(command).toContain('--fail-if-no-match');
+    expect(job).toContain('TEST_DATABASE_URL:');
+  });
+});
+
 describe('isCheapCopyPath', () => {
   it('treats markdown, docs SoT, docs-pro, and marketing copy as cheap', () => {
     expect(isCheapCopyPath('docs/CI_CD_GUIDE.md')).toBe(true);

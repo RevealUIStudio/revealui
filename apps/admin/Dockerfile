@@ -35,6 +35,7 @@ COPY packages/paywall/package.json ./packages/paywall/
 COPY packages/presentation/package.json ./packages/presentation/
 COPY packages/resilience/package.json ./packages/resilience/
 COPY packages/secrets/package.json ./packages/secrets/
+COPY packages/scripts/package.json ./packages/scripts/
 COPY packages/security/package.json ./packages/security/
 COPY packages/services/package.json ./packages/services/
 COPY packages/setup/package.json ./packages/setup/

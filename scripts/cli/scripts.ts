@@ -6,7 +6,7 @@
  * Interactive tool to explore, search, and run scripts with enhanced discovery features.
  *
  * Usage:
- *   pnpm scripts list [--category <cat>] [--dry-run]   List scripts with filters
+ *   pnpm scripts list [--category <cat>] [--supports-dry-run] List scripts with filters
  *   pnpm scripts search <query>                        Full-text search
  *   pnpm scripts info <name>                           Detailed script information
  *   pnpm scripts tree                                  Dependency visualization
@@ -30,11 +30,10 @@
  * - node:url - URL utilities for ESM module paths
  */
 
-import { spawn } from 'node:child_process';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { getExecutionLogger } from '@revealui/scripts/audit/execution-logger.js';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { ErrorCode, ScriptError } from '@revealui/scripts/errors.js';
+import { execCommand } from '@revealui/scripts/exec.js';
 import type { ScriptSearchCriteria } from '@revealui/scripts/registry/script-metadata.js';
 import { createScriptRegistry } from '@revealui/scripts/registry/script-registry.js';
 import { type CommandDefinition, ExecutingCLI, runCLI } from './_base.js';
@@ -47,7 +46,7 @@ const PROJECT_ROOT = join(__dirname, '../..');
 /**
  * Script Explorer CLI
  */
-class ScriptsCLI extends ExecutingCLI {
+export class ScriptsCLI extends ExecutingCLI {
   protected enableExecutionLogging = true;
   name = 'scripts';
   description = 'Interactive script explorer and runner';
@@ -68,7 +67,7 @@ class ScriptsCLI extends ExecutingCLI {
             description: 'Filter by category',
           },
           {
-            name: 'dry-run',
+            name: 'supports-dry-run',
             short: 'd',
             type: 'boolean',
             description: 'Show only scripts with dry-run support',
@@ -133,7 +132,7 @@ class ScriptsCLI extends ExecutingCLI {
    */
   private async list() {
     const category = this.getFlag<string>('category', '');
-    const dryRun = this.getFlag('dry-run', false);
+    const dryRun = this.getFlag('supports-dry-run', false);
     const tagsStr = this.getFlag<string>('tags', '');
 
     const criteria: ScriptSearchCriteria = {};
@@ -408,33 +407,16 @@ class ScriptsCLI extends ExecutingCLI {
     this.output.progress(`Executing: pnpm ${args.join(' ')}\n`);
 
     // Execute using pnpm
-    return new Promise<void>((resolve, reject) => {
-      const child = spawn('pnpm', args, {
-        cwd: PROJECT_ROOT,
-        stdio: 'inherit',
+    const result = await execCommand('pnpm', args, { cwd: PROJECT_ROOT });
+    if (!result.success) {
+      throw new ScriptError(result.message, ErrorCode.EXECUTION_ERROR, {
+        exitCode: result.exitCode,
       });
-
-      child.on('close', (code) => {
-        if (code === 0) {
-          resolve();
-        } else {
-          reject(
-            new ScriptError(
-              `Script execution failed with code ${code}`,
-              ErrorCode.EXECUTION_ERROR,
-              { exitCode: code },
-            ),
-          );
-        }
-      });
-
-      child.on('error', (error) => {
-        reject(
-          new ScriptError(`Failed to execute script: ${error.message}`, ErrorCode.EXECUTION_ERROR, {
-            error: error.message,
-          }),
-        );
-      });
+    }
+    return this.output.success({
+      command: name,
+      executed: !result.simulated,
+      simulated: result.simulated,
     });
   }
 
@@ -446,7 +428,7 @@ class ScriptsCLI extends ExecutingCLI {
     const failed = this.getFlag('failed', false);
     const limit = this.getFlag<number>('limit', 20);
 
-    const logger = await getExecutionLogger(PROJECT_ROOT);
+    const logger = await this.getLogger();
 
     const history = await logger.getHistory({
       scriptName: name,
@@ -497,4 +479,6 @@ class ScriptsCLI extends ExecutingCLI {
 }
 
 // Run CLI
-runCLI(ScriptsCLI);
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  await runCLI(ScriptsCLI);
+}

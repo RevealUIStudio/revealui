@@ -53,10 +53,12 @@ import {
   validateRequiredArgs,
 } from '@revealui/scripts/args.js';
 import {
+  acquireExecutionLogger,
   type ExecutionLogger,
-  getExecutionLogger,
+  type ExecutionLoggerLease,
 } from '@revealui/scripts/audit/execution-logger.js';
 import { dispatchCommand } from '@revealui/scripts/cli/dispatch.js';
+import { type Change, DryRunEngine } from '@revealui/scripts/dry-run/dry-run-engine.js';
 import {
   ErrorCode,
   getExitCode,
@@ -64,7 +66,13 @@ import {
   ScriptError,
   wrapError,
 } from '@revealui/scripts/errors.js';
-import { createOutput, type OutputHandler, type ScriptOutput } from '@revealui/scripts/output.js';
+import {
+  createOutput,
+  fail,
+  type OutputHandler,
+  ok,
+  type ScriptOutput,
+} from '@revealui/scripts/output.js';
 
 // =============================================================================
 // Types
@@ -72,9 +80,21 @@ import { createOutput, type OutputHandler, type ScriptOutput } from '@revealui/s
 
 export interface CommandDefinition extends BaseCommandDefinition {
   /** Command handler function */
-  handler: (args: ParsedArgs) => Promise<ScriptOutput | undefined>;
+  handler: (args: ParsedArgs) => Promise<ScriptOutput | undefined> | Promise<void>;
   /** Whether this command requires user confirmation */
   confirmPrompt?: string;
+  /** A planning-only subcommand, independent of user flags. */
+  executionMode?: 'simulate';
+}
+
+export interface ExecutionOutcome {
+  status: 'succeeded' | 'failed' | 'cancelled' | 'simulated';
+  exitCode: ErrorCode;
+  error?: string;
+  result?: ScriptOutput;
+  changes?: Change[];
+  /** Preserve a handler/init failure when cleanup or finalization also fails. */
+  secondaryErrors?: string[];
 }
 
 export interface CLIOptions {
@@ -92,6 +112,7 @@ export interface CLIOptions {
  * Abstract base class for CLI tools
  */
 export abstract class BaseCLI {
+  private running = false;
   /** CLI name for help text */
   abstract name: string;
 
@@ -146,6 +167,7 @@ export abstract class BaseCLI {
    */
   defineGlobalArgs(): ArgDefinition[] {
     return [
+      { name: 'dry-run', type: 'boolean', description: 'Plan without executing handlers or hooks' },
       {
         name: 'json',
         short: 'j',
@@ -183,11 +205,39 @@ export abstract class BaseCLI {
     // Override in subclass
   }
 
+  /** Finalize after initialization, handler, confirmation and cleanup have settled. */
+  protected async finalizeRun(outcome: ExecutionOutcome): Promise<void> {
+    this.verbose(`Execution outcome: ${outcome.status}`);
+  }
+
   /**
    * Run the CLI
    */
-  async run(): Promise<void> {
-    let exitCode = ErrorCode.SUCCESS;
+  async run(): Promise<ExecutionOutcome> {
+    if (this.running) {
+      return {
+        status: 'failed',
+        exitCode: ErrorCode.INVALID_STATE,
+        error: 'CLI instance is already running',
+      };
+    }
+    this.running = true;
+    let outcome: ExecutionOutcome = { status: 'succeeded', exitCode: ErrorCode.SUCCESS };
+    let lifecycleStarted = false;
+
+    const recordFailure = (error: unknown) => {
+      const normalized = isScriptError(error) ? error : wrapError(error);
+      if (outcome.status === 'failed' || outcome.status === 'cancelled') {
+        outcome.secondaryErrors = [...(outcome.secondaryErrors ?? []), normalized.message];
+      } else {
+        outcome = {
+          status: normalized.code === ErrorCode.CANCELLED ? 'cancelled' : 'failed',
+          exitCode: getExitCode(normalized) || ErrorCode.GENERAL_ERROR,
+          error: normalized.message,
+        };
+      }
+      this.handleError(normalized);
+    };
 
     try {
       // Build parser config
@@ -209,7 +259,7 @@ export abstract class BaseCLI {
         } else {
           console.log(helpText);
         }
-        return;
+        return outcome;
       }
 
       // Find and execute command
@@ -225,7 +275,7 @@ export abstract class BaseCLI {
         }
         // No command specified - show help
         console.log(generateHelp(config));
-        return;
+        return outcome;
       }
 
       // Validate required args
@@ -238,38 +288,88 @@ export abstract class BaseCLI {
         );
       }
 
-      // Check for confirmation prompt
-      if (command.confirmPrompt && !this.args.flags.force) {
-        const confirmed = await this.confirm(command.confirmPrompt);
-        if (!confirmed) {
-          this.output.warn('Operation cancelled');
-          exitCode = ErrorCode.CANCELLED;
-          return;
-        }
+      // Opaque handlers may mutate via raw FS/DB APIs. Never invoke them or
+      // initialization/cleanup/audit hooks during simulation.
+      if (
+        this.args.flags['dry-run'] === true ||
+        command.executionMode === 'simulate' ||
+        DryRunEngine.activeSimulation()
+      ) {
+        const engine = DryRunEngine.activeSimulation() ?? new DryRunEngine({ enabled: true });
+        engine.recordCommand(this.name, this.argv);
+        outcome = {
+          status: 'simulated',
+          exitCode: ErrorCode.SUCCESS,
+          changes: engine.getChanges(),
+        };
+        this.output.success({
+          status: outcome.status,
+          command: command.name,
+          changes: outcome.changes,
+          description: command.description,
+        });
+        return outcome;
       }
 
-      // Run lifecycle hooks and command
+      lifecycleStarted = true;
       try {
         await this.beforeRun();
-        const result = await command.handler(this.args);
-
-        // If handler returned a result, output it
-        if (result) {
-          this.output.result(result);
-          if (!result.success) {
-            exitCode = ErrorCode.GENERAL_ERROR;
+        if (
+          command.confirmPrompt &&
+          !this.args.flags.force &&
+          !(await this.confirm(command.confirmPrompt))
+        ) {
+          outcome = {
+            status: 'cancelled',
+            exitCode: ErrorCode.CANCELLED,
+            error: 'Operation cancelled',
+          };
+          this.output.warn('Operation cancelled');
+        } else {
+          const result = await command.handler(this.args);
+          if (result) {
+            outcome.result = result;
+            if (!result.success) {
+              const code = result.error?.code;
+              const declaredCode = code ? ErrorCode[code as keyof typeof ErrorCode] : undefined;
+              outcome = {
+                status: declaredCode === ErrorCode.CANCELLED ? 'cancelled' : 'failed',
+                exitCode:
+                  typeof declaredCode === 'number' && declaredCode !== ErrorCode.SUCCESS
+                    ? declaredCode
+                    : ErrorCode.GENERAL_ERROR,
+                error: result.error?.message ?? 'Command failed',
+                result,
+              };
+            }
+            this.output.result(result);
           }
         }
+      } catch (error) {
+        recordFailure(error);
       } finally {
-        await this.afterRun();
+        try {
+          await this.afterRun();
+        } catch (error) {
+          recordFailure(error);
+        }
       }
     } catch (error) {
-      exitCode = this.handleError(error);
+      recordFailure(error);
     } finally {
-      if (this.exitOnComplete && exitCode !== ErrorCode.SUCCESS) {
-        process.exit(exitCode);
+      if (lifecycleStarted) {
+        try {
+          await this.finalizeRun(outcome);
+        } catch (error) {
+          recordFailure(error);
+        }
       }
+      if (this.exitOnComplete && outcome.exitCode !== ErrorCode.SUCCESS) {
+        process.exitCode = outcome.exitCode;
+      }
+      this.running = false;
     }
+    return outcome;
   }
 
   // ===========================================================================
@@ -410,7 +510,12 @@ export abstract class BaseCLI {
 
   private buildParserConfig(): ParserConfig {
     const commands = this.defineCommands();
-    const globalArgs = this.defineGlobalArgs();
+    const sharedArgs = BaseCLI.prototype.defineGlobalArgs.call(this);
+    const sharedNames = new Set(sharedArgs.map((arg) => arg.name));
+    const globalArgs = [
+      ...sharedArgs,
+      ...this.defineGlobalArgs().filter((arg) => !sharedNames.has(arg.name)),
+    ];
 
     return {
       name: this.name,
@@ -419,7 +524,7 @@ export abstract class BaseCLI {
       commands: commands.map((cmd) => ({
         name: cmd.name,
         description: cmd.description,
-        args: cmd.args,
+        args: cmd.args?.filter((arg) => !sharedNames.has(arg.name)),
       })),
     };
   }
@@ -478,21 +583,17 @@ export abstract class ExecutingCLI extends BaseCLI {
   /** Execution ID for tracking */
   protected executionId: string | null = null;
 
-  /** Track execution success */
-  protected executionSuccess = true;
-
-  /** Track execution error */
-  protected executionError: string | undefined;
-
   /** Execution logger instance */
   private logger: ExecutionLogger | null = null;
+  private loggerLease: ExecutionLoggerLease | null = null;
 
   /**
    * Get execution logger instance
    */
   protected async getLogger(): Promise<ExecutionLogger> {
     if (!this.logger) {
-      this.logger = await getExecutionLogger(this.projectRoot);
+      this.loggerLease = await acquireExecutionLogger(this.projectRoot);
+      this.logger = this.loggerLease.logger;
     }
     return this.logger;
   }
@@ -502,6 +603,7 @@ export abstract class ExecutingCLI extends BaseCLI {
    * Starts execution tracking if enabled
    */
   async beforeRun(): Promise<void> {
+    this.executionId = null;
     if (this.enableExecutionLogging) {
       const logger = await this.getLogger();
       this.executionId = await logger.startExecution({
@@ -516,26 +618,40 @@ export abstract class ExecutingCLI extends BaseCLI {
    * Hook called after running a command
    * Ends execution tracking if enabled
    */
-  async afterRun(): Promise<void> {
-    if (this.executionId) {
-      const logger = await this.getLogger();
-      await logger.endExecution(this.executionId, {
-        success: this.executionSuccess,
-        error: this.executionError,
-      });
+  protected async finalizeRun(outcome: ExecutionOutcome): Promise<void> {
+    const logger = this.logger;
+    const lease = this.loggerLease;
+    const executionId = this.executionId;
+    this.executionId = null;
+    this.logger = null;
+    this.loggerLease = null;
+    if (!logger) return;
+    let finalizationError: unknown;
+    let finalizationFailed = false;
+    try {
+      if (executionId)
+        await logger.endExecution(executionId, {
+          success: outcome.status === 'succeeded',
+          exitCode: outcome.exitCode,
+          error: outcome.error,
+          output: { status: outcome.status, secondaryErrors: outcome.secondaryErrors ?? [] },
+        });
+    } catch (error) {
+      finalizationError = error;
+      finalizationFailed = true;
     }
-    if (this.logger) {
-      await this.logger.close();
-      this.logger = null;
+    try {
+      await lease?.release();
+    } catch (error) {
+      if (finalizationFailed) {
+        throw new AggregateError(
+          [finalizationError, error],
+          'Execution audit finalization and close failed',
+        );
+      }
+      throw error;
     }
-  }
-
-  /**
-   * Mark execution as failed (call this in error handlers)
-   */
-  protected markExecutionFailed(error?: string): void {
-    this.executionSuccess = false;
-    this.executionError = error;
+    if (finalizationFailed) throw finalizationError;
   }
 }
 
@@ -596,31 +712,10 @@ export abstract class DispatcherCLI extends ExecutingCLI {
       });
     }
 
-    try {
-      const result = await dispatchCommand(scriptPath, {
-        args,
-        cwd: this.projectRoot,
-      });
-
-      if (!result.success) {
-        this.markExecutionFailed(result.error);
-        return {
-          success: false,
-          data: null,
-          message: result.error || `Command failed: ${name}`,
-        };
-      }
-
-      return {
-        success: true,
-        data: { command: name, scriptPath },
-        message: `Command completed: ${name}`,
-      };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      this.markExecutionFailed(errorMessage);
-      throw error;
-    }
+    const result = await dispatchCommand(scriptPath, { args, cwd: this.projectRoot });
+    return result.success
+      ? ok({ command: name, scriptPath, simulated: result.simulated })
+      : fail('EXECUTION_ERROR', result.error || `Command failed: ${name}`);
   }
 }
 

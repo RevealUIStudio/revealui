@@ -1,4 +1,4 @@
-/** CMS block derivation for `/` (home). */
+/** Retained home CMS seed. HomePage renders static content, not these blocks. */
 
 import { HOME_DEMO, HOME_GET_STARTED } from '../../../content/home';
 import { HOME_PRIMITIVES, HOME_PRIMITIVES_SECTION } from '../../../content/primitives';

@@ -1,3 +1,5 @@
+import { PAID_SUPPORT_POLICY } from '@revealui/contracts/public-catalog';
+import { SITE } from '../site.js';
 import {
   AUDIT_LOG_SCHEMA,
   AUTH_SESSIONS,
@@ -8,6 +10,8 @@ import {
   LEGAL_SUBPROCESSORS_CONTENT,
   LEGAL_SUPPORT_CONTENT,
   LEGAL_TERMS_CONTENT,
+  PAID_SUPPORT_POLICY_CONTENT,
+  PAID_SUPPORT_POLICY_RENDERED_TEST,
   POSTGRES,
   RBAC_ABAC,
   REFUND_ROUTE,
@@ -212,20 +216,20 @@ export const claimsPart5: readonly ClaimEntry[] = [
   {
     file: 'legal/sla.ts',
     exportPath: 'SLA_META.intro',
-    text: 'RevealUI Studio is a solo-operated company. We would rather commit to numbers we can hit on our worst week than promise something impressive and miss it. This page states exactly what we commit to today, for whom, and what those commitments do not cover.',
+    text: 'RevealUI Studio is a solo-operated company. This page states our support response targets and infrastructure uptime commitment, who they cover, and how to report an issue.',
     evidence: [LEGAL_SLA_CONTENT],
   },
   {
     file: 'legal/sla.ts',
     exportPath: 'SLA_SECTIONS[0].listItems[0]',
-    text: 'Business hours: we respond within 24 hours, Monday through Friday, 9am to 5pm U.S. Central Time. This excludes weekends and U.S. federal holidays.',
-    evidence: [LEGAL_SLA_CONTENT],
+    text: PAID_SUPPORT_POLICY.standardResponse,
+    evidence: [PAID_SUPPORT_POLICY_CONTENT, PAID_SUPPORT_POLICY_RENDERED_TEST, LEGAL_SLA_CONTENT],
   },
   {
     file: 'legal/sla.ts',
     exportPath: 'SLA_SECTIONS[0].listItems[1]',
-    text: 'Critical issues: we respond within 4 hours, any day of the week. A critical issue is one where your data is at risk or you are completely unable to use the product you purchased.',
-    evidence: [LEGAL_SLA_CONTENT],
+    text: PAID_SUPPORT_POLICY.criticalResponse,
+    evidence: [PAID_SUPPORT_POLICY_CONTENT, PAID_SUPPORT_POLICY_RENDERED_TEST, LEGAL_SLA_CONTENT],
   },
   {
     file: 'legal/sla.ts',
@@ -236,8 +240,14 @@ export const claimsPart5: readonly ClaimEntry[] = [
   },
   {
     file: 'legal/sla.ts',
+    exportPath: 'SLA_SECTIONS[0].paragraphs[1]',
+    text: PAID_SUPPORT_POLICY.applicability,
+    evidence: [PAID_SUPPORT_POLICY_CONTENT, PAID_SUPPORT_POLICY_RENDERED_TEST, LEGAL_SLA_CONTENT],
+  },
+  {
+    file: 'legal/sla.ts',
     exportPath: 'SLA_SECTIONS[1].paragraphs[0]',
-    text: 'For the license validation endpoint and the download and release endpoint, we target 99% uptime, measured monthly. That works out to as much as 7.3 hours of downtime in a month before we would consider ourselves out of this commitment. It is a generous floor on purpose: a solo operator needs room for a bad week without breaking a promise, and our actual uptime is typically well above this floor.',
+    text: 'For the license validation endpoint and the download and release endpoint, we target 99% uptime, measured monthly. That allows about 7.3 hours of downtime in an average month.',
     evidence: [LEGAL_SLA_CONTENT],
   },
   {
@@ -279,15 +289,9 @@ export const claimsPart5: readonly ClaimEntry[] = [
   },
   {
     file: 'legal/sla.ts',
-    exportPath: 'SLA_SECTIONS[4].heading',
-    text: '5. Why these numbers and not bigger ones',
-    evidence: [LEGAL_SLA_CONTENT],
-  },
-  {
-    file: 'legal/sla.ts',
     exportPath: 'SLA_SECTIONS[4].paragraphs[0]',
-    text: 'We are one person. There is no on-call rotation and no second engineer to page. A 24-hour response and a 99% uptime floor are numbers we can hold even through a sick week or a vacation. As the team grows, these commitments tighten, not the other way around. Being the solo-operated version of a promise you can trust is worth more to us than the impressive-sounding version we might quietly miss.',
-    evidence: [LEGAL_SLA_CONTENT],
+    text: PAID_SUPPORT_POLICY.coverage,
+    evidence: [PAID_SUPPORT_POLICY_CONTENT, PAID_SUPPORT_POLICY_RENDERED_TEST, LEGAL_SLA_CONTENT],
   },
   {
     file: 'legal/sla.ts',
@@ -475,20 +479,50 @@ export const claimsPart5: readonly ClaimEntry[] = [
   },
   {
     file: 'legal/support.ts',
+    exportPath: 'SUPPORT_SECTIONS[1].heading',
+    text: '2. Response targets and earlier agreements',
+    evidence: [PAID_SUPPORT_POLICY_CONTENT, LEGAL_SUPPORT_CONTENT],
+  },
+  {
+    file: 'legal/support.ts',
     exportPath: 'SUPPORT_SECTIONS[1].paragraphs[0]',
-    text: '(interpolated: SITE email / domain embedded at runtime)',
-    match: 'path',
-    evidence: [LEGAL_SUPPORT_CONTENT, LEGAL_SLA_CONTENT],
+    text: `Email ${SITE.emails.support}. ${PAID_SUPPORT_POLICY.standardResponse} ${PAID_SUPPORT_POLICY.criticalResponse} Complex issues may need multiple rounds of correspondence after that first response. Full detail is on our SLA page at https://revealui.com/sla.`,
+    evidence: [
+      PAID_SUPPORT_POLICY_CONTENT,
+      PAID_SUPPORT_POLICY_RENDERED_TEST,
+      LEGAL_SUPPORT_CONTENT,
+      LEGAL_SLA_CONTENT,
+    ],
   },
   {
     file: 'legal/support.ts',
     exportPath: 'SUPPORT_SECTIONS[1].paragraphs[1]',
+    text: PAID_SUPPORT_POLICY.coverage,
+    evidence: [
+      PAID_SUPPORT_POLICY_CONTENT,
+      PAID_SUPPORT_POLICY_RENDERED_TEST,
+      LEGAL_SUPPORT_CONTENT,
+    ],
+  },
+  {
+    file: 'legal/support.ts',
+    exportPath: 'SUPPORT_SECTIONS[1].paragraphs[2]',
+    text: PAID_SUPPORT_POLICY.applicability,
+    evidence: [
+      PAID_SUPPORT_POLICY_CONTENT,
+      PAID_SUPPORT_POLICY_RENDERED_TEST,
+      LEGAL_SUPPORT_CONTENT,
+    ],
+  },
+  {
+    file: 'legal/support.ts',
+    exportPath: 'SUPPORT_SECTIONS[1].paragraphs[3]',
     text: 'GitHub Issues and Discussions: best-effort. We read them, but we may not respond instantly. If something is urgent, email is the right channel.',
     evidence: [LEGAL_SUPPORT_CONTENT],
   },
   {
     file: 'legal/support.ts',
-    exportPath: 'SUPPORT_SECTIONS[1].paragraphs[2]',
+    exportPath: 'SUPPORT_SECTIONS[1].paragraphs[4]',
     text: 'Security reports: see the dedicated security policy at https://revealui.com/security. Those go to a separate address with a separate response commitment.',
     evidence: [LEGAL_SUPPORT_CONTENT],
   },
@@ -619,6 +653,7 @@ export const claimsPart5: readonly ClaimEntry[] = [
     text: 'Live status of revealui.com, admin.revealui.com, api.revealui.com, and docs.revealui.com is published at https://revealui.com/status with a live probe of the API health endpoint and an honest disclosure of our monitoring posture (we are a solo-operator company; we do not run 24×7 manned monitoring).',
     evidence: [
       LEGAL_SUPPORT_CONTENT,
+      PAID_SUPPORT_POLICY_CONTENT,
       {
         kind: 'url',
         ref: 'https://revealui.com/status',
@@ -632,6 +667,7 @@ export const claimsPart5: readonly ClaimEntry[] = [
     text: 'If you are experiencing an outage that the status page does not yet reflect, email support and include the surface you are hitting and the time you first saw the issue.',
     evidence: [
       LEGAL_SUPPORT_CONTENT,
+      PAID_SUPPORT_POLICY_CONTENT,
       {
         kind: 'url',
         ref: 'https://revealui.com/status',
@@ -642,8 +678,13 @@ export const claimsPart5: readonly ClaimEntry[] = [
   {
     file: 'legal/support.ts',
     exportPath: 'SUPPORT_SECTIONS[6].paragraphs[0]',
-    text: 'Today, every paid tier gets the same response commitment described in §2 and on our SLA page: 24 hours during business hours, 4 hours for a critical issue. We do not yet offer a faster tiered SLA, and we would rather tell you that plainly than promise a tier we cannot staff as a solo operator.',
-    evidence: [LEGAL_SUPPORT_CONTENT, LEGAL_SLA_CONTENT],
+    text: `Every paid tier has the same prospective response targets: ${PAID_SUPPORT_POLICY.summary}. We do not offer a faster staffed tier. Earlier agreements retain their stated support commitments.`,
+    evidence: [
+      PAID_SUPPORT_POLICY_CONTENT,
+      PAID_SUPPORT_POLICY_RENDERED_TEST,
+      LEGAL_SUPPORT_CONTENT,
+      LEGAL_SLA_CONTENT,
+    ],
   },
   {
     file: 'legal/support.ts',
@@ -778,6 +819,12 @@ export const claimsPart5: readonly ClaimEntry[] = [
     exportPath: 'TERMS_SECTIONS[3].subsections[4].listItems[4]',
     text: 'Invalid or missing license key: configure a valid key to establish the paid entitlement.',
     evidence: [LEGAL_TERMS_CONTENT],
+  },
+  {
+    file: 'legal/terms.ts',
+    exportPath: 'TERMS_SECTIONS[3].subsections[5].paragraph',
+    text: `${PAID_SUPPORT_POLICY.summary}. ${PAID_SUPPORT_POLICY.coverage} ${PAID_SUPPORT_POLICY.applicability} See https://revealui.com/support and https://revealui.com/sla for hours, scope, and contact details.`,
+    evidence: [PAID_SUPPORT_POLICY_CONTENT, PAID_SUPPORT_POLICY_RENDERED_TEST, LEGAL_TERMS_CONTENT],
   },
   {
     file: 'legal/terms.ts',

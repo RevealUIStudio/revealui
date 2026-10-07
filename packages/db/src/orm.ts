@@ -1,5 +1,5 @@
 /**
- * @revealui/db/orm — Drizzle ORM query helpers, re-exported.
+ * @revealui/db/orm — Database query and PostgreSQL quoting helpers, re-exported.
  *
  * Import Drizzle query operators (`eq`, `and`, `or`, `sql`, `inArray`, `desc`,
  * `count`, ...) from here rather than depending on the bare `drizzle-orm`
@@ -28,3 +28,6 @@
  */
 
 export * from 'drizzle-orm';
+
+// Canonical driver quoting for maintained tools that compose catalog identifiers.
+export { escapeIdentifier, escapeLiteral } from 'pg';

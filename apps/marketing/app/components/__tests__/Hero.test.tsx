@@ -2,8 +2,15 @@ import '@testing-library/jest-dom/vitest';
 import { Router, RouterProvider } from '@revealui/router';
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { HOME_GET_STARTED, HOME_HERO } from '../../content/home';
+import {
+  HOME_GET_STARTED,
+  HOME_HERO,
+  HOME_HERO_FOUNDATION,
+  HOME_HERO_L2,
+  HOME_HERO_OWNERSHIP,
+} from '../../content/home';
 import { RECEIPT_HERO_CAPTION, RECEIPT_HERO_TITLE } from '../../content/receipt';
+import { HomePage } from '../../routes/HomePage';
 import { Hero } from '../landing/Hero';
 
 afterEach(cleanup);
@@ -99,5 +106,23 @@ describe('Hero (product homepage)', () => {
     const backdrop = container.querySelector('[data-slot="hero-background"]');
     expect(backdrop).toBeTruthy();
     expect(backdrop?.parentElement).toBe(section);
+  });
+});
+
+describe('HomePage query previews', () => {
+  it.each([
+    ['foundation', HOME_HERO_FOUNDATION],
+    ['ownership', HOME_HERO_OWNERSHIP],
+    ['l2', HOME_HERO_L2],
+  ] as const)('keeps the visible %s headline and document title consistent', (variant, hero) => {
+    window.history.replaceState({}, '', `/?hero=${variant}`);
+    render(
+      <RouterProvider router={new Router()}>
+        <HomePage />
+      </RouterProvider>,
+    );
+    expect(screen.getByRole('heading', { level: 1, name: hero.h1 })).toBeInTheDocument();
+    expect(document.title).toBe(`RevealUI | ${hero.h1}`);
+    expect(screen.getByText(hero.subtitle.support)).toBeInTheDocument();
   });
 });

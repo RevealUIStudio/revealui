@@ -3605,8 +3605,17 @@
                       "month",
                       "year"
                     ]
+                  },
+                  "acceptedSupportPolicyRevision": {
+                    "type": "string",
+                    "enum": [
+                      "2026-10-04"
+                    ]
                   }
-                }
+                },
+                "required": [
+                  "acceptedSupportPolicyRevision"
+                ]
               }
             }
           }
@@ -25193,8 +25202,17 @@
                       "month",
                       "year"
                     ]
+                  },
+                  "acceptedSupportPolicyRevision": {
+                    "type": "string",
+                    "enum": [
+                      "2026-10-04"
+                    ]
                   }
-                }
+                },
+                "required": [
+                  "acceptedSupportPolicyRevision"
+                ]
               }
             }
           }

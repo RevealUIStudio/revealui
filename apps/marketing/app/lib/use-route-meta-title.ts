@@ -42,5 +42,9 @@ export function useRouteMetaTitle(): void {
     setMeta('meta[property="og:url"]', 'content', canonical);
     setMeta('meta[property="og:title"]', 'content', title);
     setMeta('meta[name="twitter:title"]', 'content', title);
+    const image = `https://api.revealui.com/api/og?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}`;
+    setMeta('meta[property="og:image"]', 'content', image);
+    setMeta('meta[property="og:image:alt"]', 'content', title);
+    setMeta('meta[name="twitter:image"]', 'content', image);
   }, [path, title, description]);
 }

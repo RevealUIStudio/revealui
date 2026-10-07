@@ -61,8 +61,28 @@ export interface PricingResponse {
   services: ServiceOffering[];
 }
 
-/** Same email SLA for every paid tier. Matches /sla: no Slack, no per-tier hours. */
-export const PAID_TIER_SUPPORT = 'Email support (24h weekday / 4h if unusable)' as const;
+/**
+ * Prospective paid-support policy, shared by catalog and published policy pages.
+ * The revision identifies the text; publication, not this date, starts its scope.
+ * It does not rewrite commitments in an earlier accepted agreement.
+ */
+export const PAID_SUPPORT_POLICY = {
+  revision: '2026-10-04',
+  standardResponseHours: 24,
+  criticalResponseHours: 4,
+  summary: 'Email support (best-effort targets: 24h weekdays / 4h critical)',
+  standardResponse:
+    'We aim to reply within 24 hours for requests received on weekdays. Support hours are Monday through Friday, 9am to 5pm U.S. Central Time, excluding U.S. federal holidays. Requests received outside those hours may take longer.',
+  criticalResponse:
+    'Critical issues have a best-effort response target of 4 hours, any day. A critical issue is one where your data is at risk or you cannot use the product you purchased at all.',
+  coverage:
+    'RevealUI Studio is operated by one person, with no backup support staff or on-call rotation. These response times are targets, not guaranteed response times or guaranteed coverage.',
+  applicability:
+    'This support policy (revision 2026-10-04) applies to new purchases made after it is published. Agreements accepted before publication retain their stated support commitments; this policy does not reduce them.',
+} as const;
+
+/** Same prospective email targets for every paid tier; no faster staffed tier. */
+export const PAID_TIER_SUPPORT = PAID_SUPPORT_POLICY.summary;
 
 export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
@@ -158,15 +178,26 @@ export const BOOK_INTRO_HREF =
 export const CONSULTATION_PRICE = '$300' as const;
 
 /**
- * Studio middle SKU price on revealuistudio.com. Public name is Pilot.
- * Not a revealui.com catalog SKU. The $1,500 list is retired.
- * 100% credit toward Launch within 45 days.
- * The export name PROOF_SPRINT_PRICE stays so existing imports keep working.
+ * Studio Pilot price on revealuistudio.com. Not a revealui.com catalog SKU.
+ * The $1,500 list is retired. Includes 1 Adapter.
+ * 100% credit toward Launch within 45 days of Pilot start.
  */
-export const PROOF_SPRINT_PRICE = '$3,997' as const;
+export const PILOT_PRICE = '$3,997' as const;
 
-/** Same value as PROOF_SPRINT_PRICE. Marketing imports this name. */
-export const PILOT_PRICE = PROOF_SPRINT_PRICE;
+/** Catalog id for the Pilot engagement. */
+export const PILOT_SERVICE_ID = 'pilot' as const;
+
+/**
+ * @deprecated use PILOT_PRICE. Retired public name for the same $3,997 amount.
+ * Kept so existing imports keep working during the agency migration.
+ */
+export const PROOF_SPRINT_PRICE = PILOT_PRICE;
+
+/**
+ * @deprecated use PILOT_SERVICE_ID. Retired catalog id.
+ * findFounderServiceOffering still accepts this value.
+ */
+export const PROOF_SPRINT_SERVICE_ID = 'proof-sprint' as const;
 
 /**
  * Studio Launch on revealuistudio.com. Not a revealui.com catalog SKU.
@@ -215,7 +246,8 @@ export const PUBLIC_PERPETUAL_TIERS: PerpetualTier[] = [
     features: [
       'All Pro tier features',
       'License key never expires',
-      '1 year priority support included',
+      '1 year email support included',
+      PAID_TIER_SUPPORT,
       'All Pro updates released during support period',
     ],
     renewal: '$149/yr for continued support',

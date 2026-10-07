@@ -182,13 +182,13 @@ export const FOR_OPERATORS_PRICING = {
     {
       title: PILOT.name,
       price: agencyEngagementPriceDisplay(PILOT),
-      body: 'One site on your domain and one receipted action you operate. You keep it. The domain pack is included. Credits 100% to Launch if you start Launch within 45 days. This SKU lives on revealuistudio.com, not on the product catalog.',
+      body: 'One site on your domain and one receipted action you operate. Includes 1 Adapter. Stage B is included. You keep it. The domain pack is included. Credits 100% to Launch if you start Launch within 45 days of Pilot start. This SKU lives on revealuistudio.com, not on the product catalog.',
       cta: { label: 'Book a Consultation', href: AGENCY_CONTACT, external: true },
     },
     {
       title: LAUNCH_PACKAGE.name,
       price: agencyEngagementPriceDisplay(LAUNCH_PACKAGE),
-      body: 'Architecture work happens inside Launch, with a runbook and 30-day async stabilization. Half now, half on delivery. This SKU lives on revealuistudio.com, not on the product catalog.',
+      body: 'Architecture work happens inside Launch, with a runbook and 30-day async stabilization. Up to 3 Adapters included. Half now, half on delivery. This SKU lives on revealuistudio.com, not on the product catalog.',
       cta: { label: 'Book a Consultation', href: AGENCY_CONTACT, external: true },
     },
   ] as readonly PricingRung[],

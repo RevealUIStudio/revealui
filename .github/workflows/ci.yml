@@ -561,7 +561,9 @@ jobs:
   test-unit:
     name: Unit Tests (suite)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # A full run can finish its test tasks near 15m; leave time for the runner
+    # to report the result instead of cancelling completed tests at the limit.
+    timeout-minutes: 25
     needs: [quality, changes]
     if: needs.changes.outputs.full_suite == 'true'
 
@@ -1369,14 +1371,11 @@ jobs:
           POSTGRES_URL: "postgresql://test:test@localhost:5432/revealui_test"
           DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_test"
 
-      # NOTE: packages/test's manifest name is the unscoped "test" (not
-      # "@revealui/test"). `--filter @revealui/test` matches zero packages and
-      # pnpm exits 0 — a false green. Filter by the real name. (Caught by the
-      # first CI run on this PR: "No projects matched the filters".)
       - name: Run packages/test integration suite
-        run: pnpm --filter test run test:integration
+        run: pnpm --filter @revealui/test --fail-if-no-match run test:integration
         env:
           SKIP_ENV_VALIDATION: "true"
+          TEST_DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_test"
           DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_test"
           POSTGRES_URL: "postgresql://test:test@localhost:5432/revealui_test"
           # Billing integration self-activates only when the test-mode key secret is set.

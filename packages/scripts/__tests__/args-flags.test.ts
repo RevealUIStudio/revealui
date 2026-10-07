@@ -33,4 +33,18 @@ describe('flagBoolean', () => {
     expect(args.command).toBe('oss');
     expect(flagBoolean(args, 'dry-run')).toBe(true);
   });
+
+  it.each(['yes', 'typo', ''])(
+    'rejects malformed safety boolean %s instead of choosing live execution',
+    (value) => {
+      expect(() =>
+        parseArgs([`--dry-run=${value}`, 'version'], {
+          name: 'fixture',
+          description: 'fixture',
+          args: [{ name: 'dry-run', type: 'boolean', description: 'simulation' }],
+          commands: [{ name: 'version', description: 'version' }],
+        }),
+      ).toThrow('requires true, false, 1 or 0');
+    },
+  );
 });

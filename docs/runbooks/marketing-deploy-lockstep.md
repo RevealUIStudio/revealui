@@ -20,7 +20,7 @@ For pull-request checks, the guard reads the promotion author from the GitHub-pr
 
 Offer lock still on test, not on main (verified 2026-09-23):
 
-- RevealUI [pull 2925](https://github.com/RevealUIStudio/revealui/pull/2925) — Consultation $300, Proof Sprint $3,997, Launch $14,500
+- RevealUI [pull 2925](https://github.com/RevealUIStudio/revealui/pull/2925): Consultation $300, Proof Sprint (retired public name, now Pilot) $3,997, Launch $14,500
 - Agency [pull 211](https://github.com/RevealUIStudio/agency/pull/211) — the same ladder on the studio site
 
 Do not describe that ladder as customer-visible until main deploy is green.
