@@ -461,6 +461,21 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+      review-controller-postgres:
+        # Match the isolated controller's Neon PostgreSQL 18 project. Product
+        # migrations retain the pgvector-enabled PostgreSQL 16 service above.
+        image: postgres:18
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: postgres
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd="pg_isready -U test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -498,19 +513,20 @@ jobs:
             'CREATE DATABASE revealui_review_controller_ci OWNER test'
         env:
           PGHOST: localhost
+          PGPORT: 5433
           PGUSER: test
           PGPASSWORD: test
 
       - name: Apply isolated Review Controller migrations (hard fail)
         run: pnpm --filter @revealui/review-controller db:migrate
         env:
-          REVIEW_CONTROLLER_MIGRATION_DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_review_controller_ci"
+          REVIEW_CONTROLLER_MIGRATION_DATABASE_URL: "postgresql://test:test@localhost:5433/revealui_review_controller_ci"
 
       - name: Verify isolated Review Controller migration and runtime grants
         run: pnpm --filter @revealui/review-controller exec vitest run --config vitest.postgres.config.ts
         env:
-          REVIEW_CONTROLLER_MIGRATION_DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_review_controller_ci"
-          REVIEW_CONTROLLER_TEST_RUNTIME_DATABASE_URL: "postgresql://revealui-review-controller:review_controller_ci@localhost:5432/revealui_review_controller_ci"
+          REVIEW_CONTROLLER_MIGRATION_DATABASE_URL: "postgresql://test:test@localhost:5433/revealui_review_controller_ci"
+          REVIEW_CONTROLLER_TEST_RUNTIME_DATABASE_URL: "postgresql://revealui-review-controller:review_controller_ci@localhost:5433/revealui_review_controller_ci"
 
       - name: Verify license and domain erasure concurrency on independent Postgres connections
         run: pnpm --filter @revealui/test exec vitest run --config vitest.integration.config.ts src/integration/database/license-operation-concurrency.integration.test.ts src/integration/database/consultation-domain-erasure.integration.test.ts

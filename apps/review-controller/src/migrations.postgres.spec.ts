@@ -21,6 +21,7 @@ describe('isolated Review Controller migration on PostgreSQL', () => {
   it('applies exactly the controller journal to a dedicated database', async () => {
     const result = await owner.db.execute(sql`
       SELECT current_database() AS database_name,
+        current_setting('server_version_num')::int / 10000 AS postgres_major,
         (SELECT count(*)::int FROM drizzle.__drizzle_migrations) AS migration_count,
         (SELECT json_agg(tablename ORDER BY tablename)
          FROM pg_tables WHERE schemaname = 'public') AS public_tables
@@ -28,6 +29,7 @@ describe('isolated Review Controller migration on PostgreSQL', () => {
 
     expect(result.rows[0]).toMatchObject({
       database_name: 'revealui_review_controller_ci',
+      postgres_major: 18,
       migration_count: 3,
       public_tables: [
         'review_controller_shadow_observations',
