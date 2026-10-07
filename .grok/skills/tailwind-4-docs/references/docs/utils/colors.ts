@@ -1,17 +1,14 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
+import fs from "node:fs/promises";
+import path from "node:path";
 
-const styles = await fs.readFile(
-  path.join(process.cwd(), 'node_modules/tailwindcss/theme.css'),
-  'utf-8',
-);
+const styles = await fs.readFile(path.join(process.cwd(), "node_modules/tailwindcss/theme.css"), "utf-8");
 
 let colors: Record<string, string> = {};
-for (let line of styles.split('\n')) {
-  if (line.startsWith('  --color-')) {
-    const [key, value] = line.split(':').map((part) => part.trim().replace(';', ''));
+for (let line of styles.split("\n")) {
+  if (line.startsWith("  --color-")) {
+    const [key, value] = line.split(":").map((part) => part.trim().replace(";", ""));
 
-    let name = key.replace('--color-', '');
+    let name = key.replace("--color-", "");
     colors[name] = value;
   }
 }

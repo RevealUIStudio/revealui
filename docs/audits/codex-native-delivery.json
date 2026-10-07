@@ -652,7 +652,7 @@
       "failingBehavior": "Local integration commits are based on a test history that has diverged from live GitHub. Direct publication would not reconcile newer server changes.",
       "durableTarget": "Reconcile the integration series onto each verified current test branch in an isolated clean checkout. Preserve the existing patched dependencies, shared typed database and transaction contracts, and vendor-neutral policy ownership; regenerate consumers through their maintained owners. Publish through the maintained push admission path after the required validations and session authorization.",
       "validationNeeded": "Validate the resulting integrated source, canonical identity, portable native distribution, authenticated memory provenance and scoped reads, manager path support, source freshness and both lockstep gates. Confirm protected-branch required checks and app access before publication. Revalidate memory queries and transaction rollback against the shared database contract, preserve MCP SDK 1.31 and dependency overrides, retain the 25-minute CI suite timeout, and use the maintained clean-checkout push admission and planning projection lockstep gates.",
-      "localResolution": "Portable adapter consumers are committed and generated from their existing owners. Integration is reconciled with current test, including pooled shutdown, canonical signer defaults and bounded admission tests. Fresh-checkout lint and structure, signed memory and Codex regressions pass. Owner-signed review and remote CI remain required before merge.",
+      "localResolution": "Portable adapter consumers and the reconciled integration series are committed on the existing feature branch. Local regressions and implementation CI passed at the recorded pre-save head. Merge admission depends on the peer-owned revealui-review-controller cutover and required checks; no owner-signing procedure is requested.",
       "qualityBoundary": {
         "owner": "Biome source selection; harness manager and RevCon generated-copy checks",
         "priorBehavior": "Byte-preserving generated ownership ledgers and vendored skill reference examples were linted as application source.",
@@ -661,7 +661,7 @@
         "inventory": "Native Grok documentation copies had been reformatted by application formatter hooks, leaving their recorded source hashes stale. Their maintained profile sources remain authoritative; generated-copy repair is tracked separately rather than adopting local edits.",
         "projectionRecovery": {
           "id": "NATIVE-PROJECTION-FORMAT-RECOVERY",
-          "status": "tracked; existing modified-copy protection prevents automatic replacement",
+          "status": "resolved for the two recorded formatter-drifted consumers; owning primitive published for review",
           "owner": "RevCon projection ownership and application formatter scope",
           "owningPaths": [
             "RevCon link.sh snapshot_projection_ownership",
@@ -670,10 +670,13 @@
           ],
           "failingBehavior": "Earlier formatter hooks changed byte-preserving vendor copies without updating their source ownership records. Normal projection refresh correctly refuses modified copies.",
           "durableTarget": "Add source-verifiable recovery to the maintained projection primitive, preserving genuine user edits; regenerate reference consumers through that primitive.",
-          "validationNeeded": "Reject arbitrary edits and untrusted ledgers; recover only copies proven to match an approved formatting transform or immutable source history; verify source hashes after regeneration."
+          "validationNeeded": "Reject arbitrary edits and untrusted ledgers; recover only copies proven to match an approved formatting transform or immutable source history; verify source hashes after regeneration.",
+          "removalEvidence": "RevCon PR #160 extends existing projection ownership recovery. Committed source ledger, unchanged canonical source, approved target formatter version and exact transformed-byte equality are required. Both consumers were regenerated through link.sh; canonical source hashes now match.",
+          "validation": "61 maintained RevCon checks and 17 focused native/projection checks passed. Real target formatter reproduced both historical drift hashes; dry-run did not write. Actual recovery, manager materialize/check and 286-entry/21-rule lockstep passed.",
+          "pullRequest": "https://github.com/revealui-studio/revcon/pull/160"
         }
       },
-      "currentStateAuthority": "organizationMigrationReview.latestStateReview",
+      "currentStateAuthority": "organizationMigrationReview.complementaryLaneSave",
       "bootstrapResolution": {
         "observedAt": "2026-10-07T10:50:29.755254+00:00",
         "status": "resolved-local; reconciled validation passed",
@@ -1184,11 +1187,12 @@
         "pullRequest": "https://github.com/RevealUIStudio/revealui/pull/3076",
         "observedHead": "8f6da425ce7f532f146f35dd8ec6bfcd19a993a0",
         "contract": "Exact-candidate Ed25519 receipts, append-only Postgres evidence and App-bound REVEALFLEET review receipt check; routine feature-to-test admission targets removal of per-PR human signing and labels. Current docs keep runtime receipt publication and merge authorization disabled; base owner gate remains active until protected cutover."
-      }
+      },
+      "supersededBy": "organizationMigrationReview.complementaryLaneSave"
     },
     "validatorRaceResolution": {
       "observedAt": "2026-10-07T21:30:01.211188+00:00",
-      "status": "validated locally; feature publication and remote CodeQL pending",
+      "status": "published; implementation CI and CodeQL passed at pre-save head 712fed8fa0602f54ed4bd6e4f4dba147e7b2e02a",
       "owner": "packages/harnesses/src/manager/paths.ts readManagedFile; consumed by manager validation and scripts/validate/rules-lockstep.ts",
       "behavior": "Open first with no-follow and nonblocking flags, validate regular-file descriptor identity against all path components, read descriptor bytes once, detect file/path changes, and close on every outcome. Hash and pointer checks reuse the same bytes.",
       "validation": "The pointer-replacement regression failed before the fix and passes after it. All 64 focused manager/Codex/lockstep tests pass with the final open-first reader. Full harness package build, supported manager CLI check, and 286-entry rules-lockstep gate pass; formatting and diff checks pass.",
@@ -1210,11 +1214,95 @@
       ],
       "reviewAuthority": "revealui-review-controller migration; no owner-signing procedure requested or produced.",
       "publicationAdmission": {
-        "status": "First maintained push stopped before transport because an independent live CI gate held the shared admission lock.",
-        "owner": "scripts/gates/ci-gate.ts withGateAdmission",
-        "evidence": "Live gate process 1970007 in revealui/.worktrees/receipted-merge-flow-20261006 held descriptor 23 for the shared gate lock.",
-        "nextAction": "Retry the normal maintained feature publication after independent gate release; do not remove locks, kill other work or bypass admission."
+        "status": "Published through maintained admission after the independent peer gate released; no lock removal or bypass.",
+        "validation": "Maintained push admission passed."
       }
+    },
+    "complementaryLaneSave": {
+      "observedAt": "2026-10-07T22:28:30.016414+00:00",
+      "scope": "Complementary native projection recovery, checkpoint skill preservation contract and native suitability validation. Peer review-controller migration remains read-only.",
+      "status": "Source changes locally validated; scoped publication and private checkpoint fragments follow through maintained repository primitives.",
+      "preSaveRevealUI": {
+        "repository": "RevealUIStudio/revealui",
+        "head": "712fed8fa0602f54ed4bd6e4f4dba147e7b2e02a",
+        "pullRequest": "https://github.com/RevealUIStudio/revealui/pull/3080",
+        "implementationCi": "Replacement implementation, quality and image runs passed at this head; prior runs remain historical.",
+        "codeql": {
+          "status": "passed; no new alerts in changed code",
+          "check": "https://github.com/RevealUIStudio/revealui/runs/113031959222"
+        },
+        "mergeAdmission": "Open proposal dependent on revealui-review-controller cutover and required checks; base security gate still uses previous authority."
+      },
+      "projectionRecovery": {
+        "sourceRepository": "revealui-studio/revcon",
+        "sourceHead": "0d507b21086940690a6c6328f0de9c8588dd9a29",
+        "pullRequest": "https://github.com/revealui-studio/revcon/pull/160",
+        "owner": "link.sh snapshot_projection_ownership",
+        "mode": "Explicit --recover-formatting extends the existing copy distributor; ordinary modified-copy protection remains strict.",
+        "proof": "Committed ownership ledger, unchanged profile source and generatedFrom, approved target Biome 2.5.2 or 2.5.4, and exact formatter output equality before any native write.",
+        "consumers": [
+          {
+            "path": ".grok/skills/tailwind-4-docs/references/docs-index.tsx",
+            "canonicalSha256": "17016ea97e0376cd913e4f13781bde51d6d2710b911bf35d6b907f2dd1da8859"
+          },
+          {
+            "path": ".grok/skills/tailwind-4-docs/references/docs/utils/colors.ts",
+            "canonicalSha256": "58688f585e57fa8caf7300656d310bb8ae36d09bf45c6abfe1278ed9fb18784c"
+          }
+        ],
+        "validation": "61 maintained checks; final 17 focused cases; actual dry-run/recovery and canonical manager materialization/check passed. Historical drift bytes remain in published Git history."
+      },
+      "checkpointSkill": {
+        "repository": "revealui-studio/revskills",
+        "pullRequest": "https://github.com/revealui-studio/revskills/pull/191",
+        "owner": "skills/revealui-checkpoint/SKILL.md",
+        "behavior": "Scoped multi-repository recovery ledger; live repository identity/default branch; exact fragment paths in isolated writers; source commit/publication before handoff; separate saved, published, landed and review states; actual Codex session identity; no peer sweep, fabricated launch command, whole-directory staging or controller signing procedure.",
+        "validation": "Full maintained corpus: 246 passed, zero failed. Latest native capability and checker-path clarifications pass skill validators and normal publication hooks."
+      },
+      "nativeSkillAssessment": {
+        "owner": "packages/harnesses/src/content/skill-invoke.ts",
+        "failingBehavior": "Unsupported declared Write/Edit capabilities were filtered out while a full checkpoint suitability assessment could still be accepted.",
+        "durableTarget": "Reject suitable verdicts when required declared native tools are unavailable. Partial reporting explicitly names missing tools and requires observed authorized host preservation before saved-state claims.",
+        "validation": "Regression failed before the fix; 20 skill invocation/catalog tests pass. Full harness build, manager check and 286-entry/21-rule ownership checks pass."
+      },
+      "validationBoundary": {
+        "requiredOwningChecks": "Passed supported manager and rules-lockstep checks.",
+        "genericCopyChecks": "Claude 286-entry check passes. Grok has 34 pre-existing package-owned strays after removing two proven drift violations. Generic native check has 42 package-owned strays; published baseline lacks the ignored profile ledger. These failures are not represented as passing."
+      },
+      "durableFollowups": [
+        {
+          "id": "PROJECTION-MULTI-OWNER-GATE-COMPOSITION",
+          "owner": "Harness package materialization and RevCon shared copy verifier",
+          "owningPaths": [
+            "packages/harnesses/src/content/write-manager-adapters.ts",
+            "packages/harnesses/src/manager/materialize.ts",
+            "RevCon scripts/verify-copy-lockstep.sh",
+            "RevealUI .revealui and .grok ownership metadata"
+          ],
+          "failingBehavior": "Generic profile-copy verification treats legitimate package-owned native/Grok consumers as strays; the profile-only native ledger is ignored and absent in a fresh published checkout.",
+          "existingOneOffInventory": "Populated-checkout profile ledger provides local verification evidence that is absent from committed consumers. No exemptions, adopted hashes, untracking or replacement ledger were introduced.",
+          "durableTarget": "Extend the existing ownership contract and verifier to compose source-verifiable package and profile ownership with portable metadata, preserving genuine edit and forged ledger rejection.",
+          "validationNeeded": "Mixed package/profile owners, edited package bytes, forged claims, fresh tracked-only checkout, and existing profile-only regressions.",
+          "trackedFollowup": "PROJECTION-MULTI-OWNER-GATE-COMPOSITION in this audit; implementation remains."
+        },
+        {
+          "id": "REVCON-TRANSFER-REQUIRED-CHECKS",
+          "status": "Maintained policy bootstrap/readback remains tracked; no settings changes."
+        },
+        {
+          "id": "KG-LEGACY-MEMORY-SCOPE-MIGRATION",
+          "status": "Historical author publication episode/scope evidence remains unavailable; no identity or scope inferred."
+        }
+      ],
+      "peerBoundary": {
+        "repository": "RevealUIStudio/revealui",
+        "pullRequest": "https://github.com/RevealUIStudio/revealui/pull/3076",
+        "authority": "revealui-review-controller",
+        "status": "Peer-owned migration is shadow-only until protected cutover evidence and required check binding are complete.",
+        "disposition": "No edits to peer worktree, signatures, approval labels, merges or settings writes."
+      },
+      "preservation": "Only owned changes in isolated feature worktrees are committed and published. Original dirty checkouts and peer changes remain untouched. Exact final heads and checkpoint fragment publication are recorded by the private coordination handoff.",
+      "remainingMilestones": "Lifecycle hooks, packaged host approval UI, controller cutover and tracked memory/protection/ownership debt remain separate from completed native delivery and transport integration."
     }
   }
 }
