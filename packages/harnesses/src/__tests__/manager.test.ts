@@ -1,9 +1,9 @@
 import { execFileSync } from 'node:child_process';
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import fs, { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MANAGER_MATERIALIZE_GENERATORS, writeManagerAdapterContent } from '../content/index.js';
 import {
   checkManager,
@@ -12,11 +12,13 @@ import {
   materializeManager,
   writeManager,
 } from '../manager/index.js';
+import { readManagedFile } from '../manager/paths.js';
 
 describe('project manager (.revealui)', () => {
   const dirs: string[] = [];
 
   afterEach(() => {
+    vi.restoreAllMocks();
     for (const d of dirs) {
       rmSync(d, { recursive: true, force: true });
     }
@@ -28,6 +30,43 @@ describe('project manager (.revealui)', () => {
     dirs.push(d);
     return d;
   }
+
+  it('rejects a parent directory replaced during a managed read and closes its descriptor', () => {
+    const root = tempProject();
+    mkdirSync(join(root, 'content'));
+    writeFileSync(join(root, 'content/rule.md'), '# Rule\n');
+    const read = fs.readFileSync;
+    const close = vi.spyOn(fs, 'closeSync');
+    vi.spyOn(fs, 'readFileSync').mockImplementation((...args: Parameters<typeof read>) => {
+      fs.renameSync(join(root, 'content'), join(root, 'original'));
+      mkdirSync(join(root, 'content'));
+      writeFileSync(join(root, 'content/rule.md'), '# Rule\n');
+      return read(...args);
+    });
+    expect(() => readManagedFile(root, 'content/rule.md')).toThrow('path changed');
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects in-place changes during a managed read and closes its descriptor', () => {
+    const root = tempProject();
+    writeFileSync(join(root, 'rule.md'), '# Rule\n');
+    const read = fs.readFileSync;
+    const close = vi.spyOn(fs, 'closeSync');
+    vi.spyOn(fs, 'readFileSync').mockImplementation((...args: Parameters<typeof read>) => {
+      writeFileSync(join(root, 'rule.md'), '# Changed rule\n');
+      return read(...args);
+    });
+    expect(() => readManagedFile(root, 'rule.md')).toThrow('file changed');
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects nonregular managed files without leaking a descriptor', () => {
+    const root = tempProject();
+    mkdirSync(join(root, 'directory'));
+    const close = vi.spyOn(fs, 'closeSync');
+    expect(() => readManagedFile(root, 'directory')).toThrow('file changed');
+    expect(close).toHaveBeenCalledTimes(1);
+  });
 
   it('parses default manager config', () => {
     const cfg = ManagerSchema.parse({});

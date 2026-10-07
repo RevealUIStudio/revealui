@@ -673,7 +673,7 @@
           "validationNeeded": "Reject arbitrary edits and untrusted ledgers; recover only copies proven to match an approved formatting transform or immutable source history; verify source hashes after regeneration."
         }
       },
-      "currentStateAuthority": "organizationMigrationReview.reconciledUpdate",
+      "currentStateAuthority": "organizationMigrationReview.latestStateReview",
       "bootstrapResolution": {
         "observedAt": "2026-10-07T10:50:29.755254+00:00",
         "status": "resolved-local; reconciled validation passed",
@@ -1120,6 +1120,91 @@
         "durableTarget": "Existing snapshot primitive locates its declared package owner for source and bundled layouts, preserving the supported explicit snapshot directory parameter.",
         "removalEvidence": "Regenerated canonical package snapshots with the corrected built CLI. Two path regressions reproduced the failure before the fix; all eight snapshot tests and CLI checks pass. Only the session-produced misplaced snapshots were preserved in temporary diagnostic storage; no ignore exception or admission bypass was added."
       }
+    },
+    "latestStateReview": {
+      "observedAt": "2026-10-07T21:24:01.771300+00:00",
+      "status": "RevCon follow-up merged; RevealUI implementation CI passed; security gates block merge",
+      "revealui": {
+        "repository": "RevealUIStudio/revealui",
+        "pullRequest": "https://github.com/RevealUIStudio/revealui/pull/3080",
+        "state": "OPEN",
+        "head": "443483703d2d57ca397322e61a10551ad7bb58fa",
+        "testHead": "0c8c71ce1cc73942f8fd7de2f336264bde89a003",
+        "mergeState": "BLOCKED",
+        "implementationCi": {
+          "run": "https://github.com/RevealUIStudio/revealui/actions/runs/37612298341",
+          "status": "completed successfully; quality, typecheck, unit, coverage, build, migrations, integration, E2E, accessibility and visual checks passed"
+        },
+        "imageCi": {
+          "run": "https://github.com/RevealUIStudio/revealui/actions/runs/37612298343",
+          "status": "server, admin, migrate and Docker image builds passed"
+        },
+        "priorRuns": "Earlier failures and cancellations remain visible in the PR rollup; replacement implementation and image runs passed at the same head.",
+        "securityReview": "HOLD: missing-request-label. Gate requires a request label and an unexpired owner SSHSIG bound to the exact repo/PR/head/sec-review context; labels and reviews alone cannot clear it.",
+        "codeql": {
+          "check": "https://github.com/RevealUIStudio/revealui/runs/112763639233",
+          "status": "failure: one high severity alert",
+          "title": "Potential file system race condition",
+          "path": "scripts/validate/rules-lockstep.ts",
+          "line": 150,
+          "message": "The file may have changed since it was checked."
+        }
+      },
+      "revcon": {
+        "repository": "revealui-studio/revcon",
+        "pullRequest": "https://github.com/revealui-studio/revcon/pull/159",
+        "state": "MERGED",
+        "mergedAt": "2026-10-07T11:12:37Z",
+        "head": "a152837f4f88344abc6beac2de087dbe1fb0a715",
+        "mergeCommit": "47119b2b6a0661c6e11ab13ac62f108715cb1cf4",
+        "testHead": "47119b2b6a0661c6e11ab13ac62f108715cb1cf4",
+        "checks": "All 14 returned checks passed; external owner merge, no merge performed by this session."
+      },
+      "durableWork": {
+        "CODEX-INTEGRATION-LOCKSTEP-FILE-RACE": {
+          "owner": "scripts/validate/rules-lockstep.ts verifyLockstep, supported by the existing managed destination/read primitive",
+          "failingBehavior": "Manager pointer validation checks path metadata before reopening the path to hash and read its contents; CodeQL flags a potential file system race at line 150.",
+          "durableTarget": "Converge validation on a safe existing read primitive, with consistent file identity and symlink handling; do not suppress the scanner or bypass the ownership gate.",
+          "validationNeeded": "Add a meaningful replacement/symlink race regression in scripts/validate/__tests__/rules-lockstep.test.ts, preserve native copy and pointer ownership checks, and obtain a passing CodeQL PR check.",
+          "trackedFollowup": "CODEX-INTEGRATION-LOCKSTEP-FILE-RACE in this existing audit; next implementation task.",
+          "existingOneOffInventory": "No exception introduced in this refresh. Inspect affected validation/read primitives and operating instructions before implementing the root fix."
+        }
+      },
+      "remainingDebt": [
+        "NATIVE-PROJECTION-FORMAT-RECOVERY",
+        "REVCON-TRANSFER-REQUIRED-CHECKS",
+        "KG-LEGACY-MEMORY-SCOPE-MIGRATION"
+      ],
+      "disposition": "Read-only remote refresh and local audit update only. Historical observations preserved. No source changes, commits, pushes, merges, signatures, labels or settings changes.",
+      "reviewAuthorityMigration": {
+        "authority": "revealui-review-controller",
+        "status": "User-directed migration; implementation location requested. The live base gate still requests SSHSIG; that is observed historical enforcement, not the intended completion flow.",
+        "disposition": "Do not request or produce owner signatures, gate-clearing labels or merge disposition as part of this integration publication."
+      }
+    },
+    "validatorRaceResolution": {
+      "observedAt": "2026-10-07T21:30:01.211188+00:00",
+      "status": "validated locally; feature publication and remote CodeQL pending",
+      "owner": "packages/harnesses/src/manager/paths.ts readManagedFile; consumed by manager validation and scripts/validate/rules-lockstep.ts",
+      "behavior": "Open first with no-follow and nonblocking flags, validate regular-file descriptor identity against all path components, read descriptor bytes once, detect file/path changes, and close on every outcome. Hash and pointer checks reuse the same bytes.",
+      "validation": "The pointer-replacement regression failed before the fix and passes after it. All 64 focused manager/Codex/lockstep tests pass with the final open-first reader. Full harness package build, supported manager CLI check, and 286-entry rules-lockstep gate pass; formatting and diff checks pass.",
+      "existingOneOffInventory": [
+        {
+          "location": "scripts/validate/rules-lockstep.ts verifyLockstep",
+          "behavior": "Separate metadata check and path reopen; repeated hashing/reading could observe different files.",
+          "owner": "RevealUI native ownership validator",
+          "durableDestination": "Shared manager-path descriptor reader",
+          "removalEvidence": "Path reopens removed; all native ownership bytes originate in the shared reader."
+        },
+        {
+          "location": "packages/harnesses/src/manager/materialize.ts readFileOrNull/checkManager",
+          "behavior": "Expected-content path check followed by separate read; manager validator did not share stable reads.",
+          "owner": "RevealUI manager validation",
+          "durableDestination": "Shared manager-path descriptor reader",
+          "removalEvidence": "All existing nullable validation reads now use the shared reader; redundant check before read removed."
+        }
+      ],
+      "reviewAuthority": "revealui-review-controller migration; no owner-signing procedure requested or produced."
     }
   }
 }

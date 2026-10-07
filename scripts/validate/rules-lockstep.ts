@@ -30,15 +30,14 @@
 
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { rules } from '../../packages/harnesses/src/content/definitions/rules/index.js';
 import { claudeManagerStubText } from '../../packages/harnesses/src/manager/materialize.js';
 import {
-  assertManagedDestination,
   contentRootRelative,
   loadManager,
+  readManagedFile,
 } from '../../packages/harnesses/src/manager/paths.js';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
@@ -69,13 +68,21 @@ export interface Manifest {
 }
 
 export function sha256OfFile(filePath: string): string {
-  return createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+  return createHash('sha256')
+    .update(readManagedFile(path.dirname(filePath), path.basename(filePath)))
+    .digest('hex');
 }
 
 export function loadManifest(root: string): Manifest | null {
   const manifestPath = path.join(root, MANIFEST_REL);
-  if (!fs.existsSync(manifestPath)) return null;
-  const parsed: unknown = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  let bytes: Buffer;
+  try {
+    bytes = readManagedFile(root, MANIFEST_REL);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+    throw error;
+  }
+  const parsed: unknown = JSON.parse(bytes.toString('utf8'));
   if (typeof parsed !== 'object' || parsed === null) {
     throw new Error(`${manifestPath} is not a JSON object`);
   }
@@ -129,26 +136,30 @@ export function verifyLockstep(
   for (const [rel, entry] of Object.entries(manifest.files)) {
     const fileRel = path.posix.join('.claude', rel);
     manifestRels.add(fileRel);
-    const abs = path.join(root, '.claude', rel);
-    if (!fs.existsSync(abs)) {
-      problems.push(`${fileRel} - missing on disk (manifest source: ${entry.source})`);
+    let bytes: Buffer;
+    try {
+      bytes = readManagedFile(root, fileRel);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        problems.push(`${fileRel} - missing on disk (manifest source: ${entry.source})`);
+      } else {
+        problems.push(
+          `${fileRel} - unsafe file or still a symlink; re-materialize with link.sh --mode copy`,
+        );
+      }
       continue;
     }
-    if (fs.lstatSync(abs).isSymbolicLink()) {
-      problems.push(`${fileRel} - still a symlink; re-materialize with link.sh --mode copy`);
-      continue;
-    }
+    const fileHash = createHash('sha256').update(bytes).digest('hex');
 
     if (fileRel === '.claude/rules/00-revealui-manager.md') {
       try {
-        assertManagedDestination(root, fileRel);
-        assertManagedDestination(root, '.revealui/adapters/claude-code.md');
+        const canonical = readManagedFile(root, '.revealui/adapters/claude-code.md');
         const body = claudeManagerStubText(root);
         if (
           entry.source !== 'harnesses:adapters/claude-code.md' ||
-          entry.sha256 !== sha256OfFile(abs) ||
-          fs.readFileSync(abs, 'utf8') !== body ||
-          fs.readFileSync(path.join(root, '.revealui/adapters/claude-code.md'), 'utf8') !== body
+          entry.sha256 !== fileHash ||
+          bytes.toString('utf8') !== body ||
+          canonical.toString('utf8') !== body
         ) {
           problems.push(
             `${fileRel} - stale or incorrect manager pointer ownership — run: ${MATERIALIZE_CMD}`,
@@ -164,23 +175,22 @@ export function verifyLockstep(
 
     // Definition-owned rules: lock to content, not the revcon profile hash.
     if (isDefinitionClaudeRule(fileRel, defIds)) {
-      if (entry.source !== `harnesses:${rel}` || sha256OfFile(abs) !== entry.sha256) {
+      if (entry.source !== `harnesses:${rel}` || fileHash !== entry.sha256) {
         problems.push(
           `${fileRel} - stale or incorrect harness ownership — run: ${MATERIALIZE_CMD}`,
         );
       }
       const id = path.posix.basename(fileRel, '.md');
-      const contentAbs = path.join(root, contentRulesRel, `${id}.md`);
-      if (!fs.existsSync(contentAbs)) {
+      try {
+        const twin = readManagedFile(root, `${contentRulesRel}/${id}.md`);
+        if (fileHash !== createHash('sha256').update(twin).digest('hex')) {
+          problems.push(
+            `${fileRel} - dual drift vs ${contentRulesRel}/${id}.md (GAP-421 phase 2). Run: ${MATERIALIZE_CMD}`,
+          );
+        }
+      } catch {
         problems.push(
-          `${fileRel} - definition rule missing content twin ${contentRulesRel}/${id}.md — run: ${MATERIALIZE_CMD}`,
-        );
-        continue;
-      }
-      if (sha256OfFile(abs) !== sha256OfFile(contentAbs)) {
-        problems.push(
-          `${fileRel} - dual drift vs ${contentRulesRel}/${id}.md (GAP-421 phase 2). ` +
-            `Run: ${MATERIALIZE_CMD}`,
+          `${fileRel} - definition rule missing content twin or unsafe path ${contentRulesRel}/${id}.md — run: ${MATERIALIZE_CMD}`,
         );
       }
       continue;
@@ -193,7 +203,7 @@ export function verifyLockstep(
       continue;
     }
 
-    const have = sha256OfFile(abs);
+    const have = fileHash;
     if (have !== entry.sha256) {
       problems.push(
         `${fileRel} - content differs from the manifest (locally edited?). ` +
@@ -209,16 +219,17 @@ export function verifyLockstep(
       problems.push(`${tracked} - missing harness ownership entry — run: ${MATERIALIZE_CMD}`);
     }
     const id = path.posix.basename(tracked, '.md');
-    const abs = path.join(root, tracked);
-    const contentAbs = path.join(root, contentRulesRel, `${id}.md`);
-    if (!fs.existsSync(abs)) continue;
-    if (!fs.existsSync(contentAbs)) {
-      problems.push(`${tracked} - definition rule missing content twin — run: ${MATERIALIZE_CMD}`);
-      continue;
-    }
-    if (sha256OfFile(abs) !== sha256OfFile(contentAbs)) {
+    try {
+      const native = readManagedFile(root, tracked);
+      const twin = readManagedFile(root, `${contentRulesRel}/${id}.md`);
+      if (!native.equals(twin)) {
+        problems.push(
+          `${tracked} - dual drift vs ${contentRulesRel}/${id}.md — run: ${MATERIALIZE_CMD}`,
+        );
+      }
+    } catch {
       problems.push(
-        `${tracked} - dual drift vs ${contentRulesRel}/${id}.md — run: ${MATERIALIZE_CMD}`,
+        `${tracked} - definition rule missing content twin or unsafe path — run: ${MATERIALIZE_CMD}`,
       );
     }
   }

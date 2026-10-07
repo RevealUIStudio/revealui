@@ -5,10 +5,10 @@
  * and malformed manifests.
  */
 
-import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import fs, { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { claudeManagerStubText } from '../../../packages/harnesses/src/manager/materialize.js';
 import { type Manifest, sha256OfFile, verifyLockstep } from '../rules-lockstep.js';
 
@@ -37,6 +37,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.restoreAllMocks();
   rmSync(root, { recursive: true, force: true });
 });
 
@@ -73,6 +74,30 @@ describe('verifyLockstep', () => {
     writeFileSync(target, body);
     symlinkSync(target, path.join(root, rel));
     expect(verifyLockstep(root, manifest, [rel]).join('\n')).toContain('still a symlink');
+  });
+
+  it('rejects a pointer replaced by a symlink while its bytes are being read', () => {
+    const rel = '.claude/rules/00-revealui-manager.md';
+    const body = claudeManagerStubText(root);
+    const pointer = writeRule('rules/00-revealui-manager.md', body);
+    mkdirSync(path.join(root, '.revealui/adapters'), { recursive: true });
+    writeFileSync(path.join(root, '.revealui/adapters/claude-code.md'), body);
+    const manifest = manifestFor({ 'rules/00-revealui-manager.md': body });
+    manifest.files['rules/00-revealui-manager.md']!.source = 'harnesses:adapters/claude-code.md';
+    const foreign = path.join(root, 'foreign.md');
+    writeFileSync(foreign, body);
+    const read = fs.readFileSync;
+    let replaced = false;
+    vi.spyOn(fs, 'readFileSync').mockImplementation((...args: Parameters<typeof read>) => {
+      if (!replaced && (args[0] === pointer || typeof args[0] === 'number')) {
+        replaced = true;
+        rmSync(pointer);
+        symlinkSync(foreign, pointer);
+      }
+      return read(...args);
+    });
+    expect(verifyLockstep(root, manifest, [rel]).join('\n')).toContain('unsafe');
+    expect(replaced).toBe(true);
   });
 
   it('keeps profile-owned native rules separate from package definitions', () => {

@@ -1,5 +1,5 @@
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { mkdirSync, readdirSync, writeFileSync } from 'node:fs';
+import { dirname, join, relative } from 'node:path';
 import { buildManifest } from '../content/definitions/index.js';
 import { grokCommandPath, grokRulePathForDefinitionId } from '../content/generators/grok.js';
 import { generateContent } from '../content/generators/index.js';
@@ -14,7 +14,13 @@ import {
 import { tokenBudgetJsonText } from '../token-budget.js';
 import { checkCodexDelivery, materializeCodexPointer } from './codex.js';
 import { GROK_HOOK_FILES, GROK_HOOK_TEMPLATE_DIR } from './grok-session-hooks.js';
-import { assertManagedDestination, contentRootPath, loadManager, managerPath } from './paths.js';
+import {
+  assertManagedDestination,
+  contentRootPath,
+  loadManager,
+  managerPath,
+  readManagedFile,
+} from './paths.js';
 
 export { contentRootPath, loadManager, managerPath } from './paths.js';
 
@@ -40,9 +46,12 @@ function isEnoent(err: unknown): boolean {
 }
 
 /** Read UTF-8 file contents, or null when missing (no existsSync TOCTOU). */
-function readFileOrNull(filePath: string): string | null {
+function readFileOrNull(projectRoot: string, filePath: string): string | null {
   try {
-    return readFileSync(filePath, 'utf-8');
+    return readManagedFile(
+      projectRoot,
+      relative(projectRoot, filePath).replaceAll('\\', '/'),
+    ).toString('utf8');
   } catch (err) {
     if (isEnoent(err)) return null;
     throw err;
@@ -386,7 +395,7 @@ export function checkManager(projectRoot: string): ManagerCheckResult {
   const errors: string[] = [];
   const warnings: string[] = [];
   const mPath = managerPath(projectRoot);
-  const managerText = readFileOrNull(mPath);
+  const managerText = readFileOrNull(projectRoot, mPath);
   let parsedConfig: ManagerConfig | undefined;
   if (managerText === null) {
     errors.push(
@@ -416,8 +425,7 @@ export function checkManager(projectRoot: string): ManagerCheckResult {
       const expectedContent = generateContent('claude-code', manifest, { projectRoot });
       for (const file of expectedContent) {
         try {
-          assertManagedDestination(projectRoot, file.relativePath);
-          if (readFileOrNull(join(projectRoot, file.relativePath)) !== file.content) {
+          if (readFileOrNull(projectRoot, join(projectRoot, file.relativePath)) !== file.content) {
             errors.push(
               `missing or stale ${file.relativePath} — run: revealui-harnesses manager materialize`,
             );
@@ -432,8 +440,8 @@ export function checkManager(projectRoot: string): ManagerCheckResult {
         const contentAbs = join(projectRoot, contentRel);
         const claudeRel = claudeRulePathForDefinitionId(rule.id);
         const claudeAbs = join(projectRoot, claudeRel);
-        const contentBody = readFileOrNull(contentAbs);
-        const claudeBody = readFileOrNull(claudeAbs);
+        const contentBody = readFileOrNull(projectRoot, contentAbs);
+        const claudeBody = readFileOrNull(projectRoot, claudeAbs);
         if (contentBody === null) {
           errors.push(`missing ${contentRel} — run: revealui-harnesses manager materialize`);
           continue;
@@ -451,7 +459,7 @@ export function checkManager(projectRoot: string): ManagerCheckResult {
         }
         if (registered.has('grok') && grokAlwaysOn.has(rule.id)) {
           const grokRel = grokRulePathForDefinitionId(rule.id);
-          const grokBody = readFileOrNull(join(projectRoot, grokRel));
+          const grokBody = readFileOrNull(projectRoot, join(projectRoot, grokRel));
           if (grokBody === null) {
             errors.push(
               `missing ${grokRel} (Grok load path: preamble tier 1) — run: revealui-harnesses manager materialize`,
@@ -466,7 +474,7 @@ export function checkManager(projectRoot: string): ManagerCheckResult {
       for (const cmd of manifest.commands) {
         if (!registered.has('grok')) continue;
         const grokCmdRel = grokCommandPath(cmd.id);
-        if (readFileOrNull(join(projectRoot, grokCmdRel)) === null) {
+        if (readFileOrNull(projectRoot, join(projectRoot, grokCmdRel)) === null) {
           errors.push(
             `missing ${grokCmdRel} (Grok load path: slash commands) — run: revealui-harnesses manager materialize`,
           );
@@ -482,73 +490,73 @@ export function checkManager(projectRoot: string): ManagerCheckResult {
   if (parsedConfig?.adapters.some((adapter) => adapter.id === 'codex')) {
     errors.push(...checkCodexDelivery(projectRoot));
   }
-  if (readFileOrNull(claudeStub) === null) {
+  if (readFileOrNull(projectRoot, claudeStub) === null) {
     reportAdapterIssue(
       'claude-code',
       'missing .claude/rules/00-revealui-manager.md stub (materialize claude-code)',
     );
   }
   const cursorStub = join(projectRoot, '.cursor', 'revealui-manager.md');
-  if (readFileOrNull(cursorStub) === null) {
+  if (readFileOrNull(projectRoot, cursorStub) === null) {
     reportAdapterIssue('cursor', 'missing .cursor/revealui-manager.md stub (materialize cursor)');
   }
   const cursorHooks = join(projectRoot, '.cursor', 'hooks.json');
-  if (readFileOrNull(cursorHooks) === null) {
+  if (readFileOrNull(projectRoot, cursorHooks) === null) {
     reportAdapterIssue(
       'cursor',
       'missing .cursor/hooks.json (manager materialize writes cursor generator output)',
     );
   }
   const opencodeStub = join(projectRoot, '.opencode', 'revealui-manager.md');
-  if (readFileOrNull(opencodeStub) === null) {
+  if (readFileOrNull(projectRoot, opencodeStub) === null) {
     reportAdapterIssue(
       'opencode',
       'missing .opencode/revealui-manager.md stub (materialize opencode)',
     );
   }
   const grokStub = join(projectRoot, MANAGER_DIR, 'adapters', 'grok.md');
-  if (readFileOrNull(grokStub) === null) {
+  if (readFileOrNull(projectRoot, grokStub) === null) {
     reportAdapterIssue('grok', 'missing .revealui/adapters/grok.md stub (materialize grok)');
   }
   const grokSpawnMap = join(projectRoot, '.grok', 'rules', '00-spawn-map.md');
-  if (readFileOrNull(grokSpawnMap) === null) {
+  if (readFileOrNull(projectRoot, grokSpawnMap) === null) {
     reportAdapterIssue('grok', 'missing .grok/rules/00-spawn-map.md (materialize grok generator)');
   }
   const grokManagerRule = join(projectRoot, '.grok', 'rules', '00-revealui-manager.md');
-  if (readFileOrNull(grokManagerRule) === null) {
+  if (readFileOrNull(projectRoot, grokManagerRule) === null) {
     reportAdapterIssue(
       'grok',
       'missing .grok/rules/00-revealui-manager.md (materialize grok generator)',
     );
   }
   const grokPreTool = join(projectRoot, GROK_HOOK_TEMPLATE_DIR, 'pre-tool.json');
-  if (readFileOrNull(grokPreTool) === null) {
+  if (readFileOrNull(projectRoot, grokPreTool) === null) {
     reportAdapterIssue('grok', 'missing Grok PreToolUse template (materialize grok hooks)');
   }
   const grokCap = join(projectRoot, GROK_HOOK_TEMPLATE_DIR, 'cap-tool-output.json');
-  if (readFileOrNull(grokCap) === null) {
+  if (readFileOrNull(projectRoot, grokCap) === null) {
     warnings.push('missing Grok output-cap template (materialize grok hooks)');
   }
   const grokBudget = join(projectRoot, MANAGER_DIR, 'adapters', 'grok', 'token-budget.json');
-  if (readFileOrNull(grokBudget) === null) {
+  if (readFileOrNull(projectRoot, grokBudget) === null) {
     warnings.push('missing Grok token-budget.json (materialize grok hooks)');
   }
   const revdevStub = join(projectRoot, MANAGER_DIR, 'adapters', 'revdev.md');
-  if (readFileOrNull(revdevStub) === null) {
+  if (readFileOrNull(projectRoot, revdevStub) === null) {
     reportAdapterIssue('revdev', 'missing .revealui/adapters/revdev.md stub (materialize revdev)');
   }
   const readme = join(projectRoot, MANAGER_DIR, 'README.md');
-  if (readFileOrNull(readme) === null) {
+  if (readFileOrNull(projectRoot, readme) === null) {
     warnings.push('missing .revealui/README.md manager contract');
   }
-  const claudeSettings = readFileOrNull(join(projectRoot, '.claude', 'settings.json'));
+  const claudeSettings = readFileOrNull(projectRoot, join(projectRoot, '.claude', 'settings.json'));
   if (claudeSettings === null || !claudeSettingsHasStudioLocalKg(claudeSettings)) {
     reportAdapterIssue(
       'claude-code',
       'missing knowledge-graph stdio MCP in .claude/settings.json (materialize claude-code)',
     );
   }
-  const grokToml = readFileOrNull(join(projectRoot, '.grok', 'config.toml'));
+  const grokToml = readFileOrNull(projectRoot, join(projectRoot, '.grok', 'config.toml'));
   if (grokToml === null || !grokTomlHasStudioLocalKg(grokToml)) {
     reportAdapterIssue(
       'grok',
