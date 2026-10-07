@@ -47,6 +47,7 @@ const logger = createLogger();
 
 /** Phase-1 checks without an explicit timeout inherit this (not execCommand's 120s). */
 const PHASE_CHECK_TIMEOUT_MS = 300_000;
+const GATE_ADMISSION_WAIT_SECONDS = 300;
 const admissionDescriptor = new AsyncLocalStorage<number>();
 
 /** Actual validator processes retain admission if their gate parent exits. */
@@ -202,11 +203,16 @@ export async function withGateAdmission<T>(operation: () => Promise<T>): Promise
   );
   try {
     await new Promise<void>((resolve, reject) => {
-      // Reject contention immediately: a direct Git push may already have an
-      // open transport, so resource admission must not wait inside its hook.
-      const child = spawn('flock', ['--exclusive', '--nonblock', '3'], {
-        stdio: ['ignore', 'inherit', 'inherit', descriptor],
-      });
+      // The maintained push owner runs this gate before opening Git transport,
+      // so contention can safely queue here. Bound the wait to avoid a stuck
+      // validator if an admission owner fails to release its kernel lock.
+      const child = spawn(
+        'flock',
+        ['--exclusive', '--wait', String(GATE_ADMISSION_WAIT_SECONDS), '3'],
+        {
+          stdio: ['ignore', 'inherit', 'inherit', descriptor],
+        },
+      );
       child.once('error', reject);
       child.once('exit', (code, signal) => {
         if (code === 0) resolve();

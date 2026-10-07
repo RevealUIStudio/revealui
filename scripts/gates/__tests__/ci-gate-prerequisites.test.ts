@@ -233,7 +233,7 @@ describe('gate resource admission', () => {
     );
   });
 
-  it('holds admission across concurrent operations and releases it after failure', async () => {
+  it('queues concurrent operations and releases admission after failure', async () => {
     state.admissionDirectory = mkdtempSync(join(tmpdir(), 'revealui-admission-test-'));
     vi.spyOn(process, 'availableMemory').mockReturnValue(4 * 1024 ** 3);
     let release!: () => void;
@@ -248,17 +248,13 @@ describe('gate resource admission', () => {
         throw new Error('synthetic check failure');
       });
       await vi.waitFor(() => expect(events).toEqual(['first']));
-      await expect(
-        withGateAdmission(async () => {
-          events.push('second');
-        }),
-      ).rejects.toThrow('admission lock failed');
+      const second = withGateAdmission(async () => {
+        events.push('second');
+      });
       expect(events).toEqual(['first']);
       release();
       await expect(first).rejects.toThrow('synthetic check failure');
-      await withGateAdmission(async () => {
-        events.push('second');
-      });
+      await second;
       expect(events).toEqual(['first', 'second']);
     } finally {
       release();
