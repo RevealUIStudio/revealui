@@ -34,7 +34,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { rules } from '../../packages/harnesses/src/content/definitions/rules/index.js';
-import { contentRootRelative, loadManager } from '../../packages/harnesses/src/manager/paths.js';
+import { claudeManagerStubText } from '../../packages/harnesses/src/manager/materialize.js';
+import {
+  assertManagedDestination,
+  contentRootRelative,
+  loadManager,
+} from '../../packages/harnesses/src/manager/paths.js';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 export const MANIFEST_REL = path.posix.join('.claude', '.revcon-manifest.json');
@@ -131,6 +136,29 @@ export function verifyLockstep(
     }
     if (fs.lstatSync(abs).isSymbolicLink()) {
       problems.push(`${fileRel} - still a symlink; re-materialize with link.sh --mode copy`);
+      continue;
+    }
+
+    if (fileRel === '.claude/rules/00-revealui-manager.md') {
+      try {
+        assertManagedDestination(root, fileRel);
+        assertManagedDestination(root, '.revealui/adapters/claude-code.md');
+        const body = claudeManagerStubText(root);
+        if (
+          entry.source !== 'harnesses:adapters/claude-code.md' ||
+          entry.sha256 !== sha256OfFile(abs) ||
+          fs.readFileSync(abs, 'utf8') !== body ||
+          fs.readFileSync(path.join(root, '.revealui/adapters/claude-code.md'), 'utf8') !== body
+        ) {
+          problems.push(
+            `${fileRel} - stale or incorrect manager pointer ownership — run: ${MATERIALIZE_CMD}`,
+          );
+        }
+      } catch {
+        problems.push(
+          `${fileRel} - missing or unsafe canonical manager pointer — run: ${MATERIALIZE_CMD}`,
+        );
+      }
       continue;
     }
 

@@ -640,7 +640,7 @@
     ],
     "publicationFollowup": {
       "id": "CODEX-INTEGRATION-LIVE-BRANCH-RECONCILIATION",
-      "status": "published-for-review",
+      "status": "published-for-review-blocked",
       "owner": "RevealUI harnesses/knowledge-graph/MCP and RevCon integration branches",
       "owningPaths": [
         "packages/harnesses",
@@ -652,7 +652,7 @@
       "failingBehavior": "Local integration commits are based on a test history that has diverged from live GitHub. Direct publication would not reconcile newer server changes.",
       "durableTarget": "Reconcile the integration series onto each verified current test branch in an isolated clean checkout. Preserve the existing patched dependencies, shared typed database and transaction contracts, and vendor-neutral policy ownership; regenerate consumers through their maintained owners. Publish through the maintained push admission path after the required validations and session authorization.",
       "validationNeeded": "Validate the resulting integrated source, canonical identity, portable native distribution, authenticated memory provenance and scoped reads, manager path support, source freshness and both lockstep gates. Confirm protected-branch required checks and app access before publication. Revalidate memory queries and transaction rollback against the shared database contract, preserve MCP SDK 1.31 and dependency overrides, retain the 25-minute CI suite timeout, and use the maintained clean-checkout push admission and planning projection lockstep gates.",
-      "localResolution": "Integration replay and durable ownership/projection corrections are committed on isolated branches after the recorded validations. Publication and protected-branch/App access verification remain separate actions.",
+      "localResolution": "Integration commits remain published in open review PRs. RevealUI lint correction passed remote CI; fresh-checkout structure validation and owner-signed review remain blocked. Current test advanced with pooled client shutdown, requiring renewed integration validation. RevCon checks remain green. Original pending edits were preserved.",
       "qualityBoundary": {
         "owner": "Biome source selection; harness manager and RevCon generated-copy checks",
         "priorBehavior": "Byte-preserving generated ownership ledgers and vendored skill reference examples were linted as application source.",
@@ -672,6 +672,16 @@
           "durableTarget": "Add source-verifiable recovery to the maintained projection primitive, preserving genuine user edits; regenerate reference consumers through that primitive.",
           "validationNeeded": "Reject arbitrary edits and untrusted ledgers; recover only copies proven to match an approved formatting transform or immutable source history; verify source hashes after regeneration."
         }
+      },
+      "currentStateAuthority": "organizationMigrationReview.currentStateReview",
+      "bootstrapResolution": {
+        "observedAt": "2026-10-07T10:50:29.755254+00:00",
+        "status": "implemented-and-tested-local; upstream reconciliation and publication pending",
+        "owner": "Existing manager materializer, repository ignore policy and shared ownership gates",
+        "behavior": "Portable manager pointers, Cursor hooks and OpenCode agent/command output are versioned. Claude pointer has a canonical .revealui/adapters/claude-code.md source and its own entry in the existing Claude ownership ledger. Local settings and private vendor state remain ignored.",
+        "validation": "Fresh tracked-files-only fixture reproduced all five missing consumers before the fix and passes afterward; 24 harness/ownership tests and 11 RevCon native delivery regressions pass; harness build succeeds.",
+        "upstreamTarget": "cbfaad90a51774474a940e0f3d685c4bdd09c0a5",
+        "inventoryRemoval": "Removed ignore entries that excluded required portable consumers. The private-state exclusion remains covered by the fresh-checkout fixture; no CI-only generation or gate bypass was introduced."
       }
     },
     "disposition": "Owner, branch and source review refreshed; local audit update only. Pending edits preserved. No GitHub settings write, push, merge, production inference, or memory migration.",
@@ -973,6 +983,96 @@
       ],
       "signerConfiguration": "Canonical REVEALFLEET_OVERRIDE_SIGNERS repository variable verified present; workflow and validator now consume that namespace without a retired alias.",
       "reviewRequirement": "RevealUI requires a request label and a current owner SSHSIG bound to the exact repo/PR/head/sec-review context. No label, signature, merge or repository settings mutation was performed."
+    },
+    "currentStateReview": {
+      "observedAt": "2026-10-07T10:25:56.771760+00:00",
+      "scope": "Refresh of integration PRs, repository identity, live test heads, local source state and completed CI evidence; no implementation, merge or settings change.",
+      "repositories": [
+        {
+          "repository": "RevealUIStudio/revealui",
+          "testHead": "19e3083c8121b401108d435f5a21229386cad252",
+          "previousReconciliationBase": "3744de2def1ca2ac5294f7251dac053df6aa8068",
+          "upstreamCommitsSinceBase": 4,
+          "upstreamChange": "PR #3078 merged pooled database client shutdown and graceful backup fixture shutdown. Integration branch has not incorporated this updated test head.",
+          "pullRequest": "https://github.com/RevealUIStudio/revealui/pull/3080",
+          "state": "OPEN",
+          "head": "c6c7b95f27b5b6d2cb21837e091609e166572184",
+          "mergeState": "BLOCKED",
+          "ci": {
+            "lint": "passed",
+            "admissionContracts": "passed",
+            "quality": "failed at Structure validation",
+            "suite": "Dependent expensive-suite jobs skipped; failing report wrappers do not establish independent suite failures.",
+            "images": "Latest image run passed; older failed or cancelled executions are superseded.",
+            "ownerReview": "Missing request label and unexpired exact-head owner SSHSIG.",
+            "qualityEvidence": "https://github.com/RevealUIStudio/revealui/actions/runs/37602299554/job/112729780072",
+            "ownerReviewEvidence": "https://github.com/RevealUIStudio/revealui/actions/runs/37602276024/job/112729269446"
+          }
+        },
+        {
+          "repository": "revealui-studio/revcon",
+          "testHead": "0438842106bd3039c218947f049c68f03ba6a4e3",
+          "pullRequest": "https://github.com/revealui-studio/revcon/pull/158",
+          "state": "OPEN",
+          "head": "9636e119eb14d121dfae3163e0c7c045da9f2e84",
+          "mergeState": "CLEAN",
+          "ci": "All 16 returned check runs passed; repository and test head unchanged."
+        }
+      ],
+      "localState": {
+        "originalCheckoutHeads": {
+          "revealui": "f08db5e82ca593810f649116fe099962291fca05",
+          "revcon": "6658fdf369c4202de193170f91dd79c1a7d7dcee",
+          ".jv": "49ecda655baa685040fa74820e70522f2855b730"
+        },
+        "observation": "Original checkout heads are unchanged and pending edits remain present. Integration worktrees matched their published heads and were clean before this audit refresh. Local pending changes have not been adopted or attributed to a time window.",
+        "auditDisposition": "Local state record only; not committed or published during this refresh."
+      },
+      "trackedRemainingWork": [
+        {
+          "id": "CODEX-INTEGRATION-CLEAN-CHECKOUT-BOOTSTRAP",
+          "owner": "Harness manager materialization and declared adapter delivery contract",
+          "owningPaths": [
+            "packages/harnesses/src/manager/materialize.ts",
+            "packages/harnesses/src/content/write-manager-adapters.ts",
+            ".gitignore",
+            "scripts/validate/structure.ts",
+            ".github/workflows/ci.yml"
+          ],
+          "failingBehavior": "Structure validation requires registered adapter artifacts that are present locally but ignored and untracked, so a clean CI checkout lacks them.",
+          "missingArtifacts": [
+            ".claude/rules/00-revealui-manager.md",
+            ".cursor/revealui-manager.md",
+            ".cursor/hooks.json",
+            ".opencode/revealui-manager.md",
+            ".claude/settings.json knowledge-graph stdio MCP declaration"
+          ],
+          "existingExceptionInventory": "Local generation satisfies manager check on a populated worktree, while Git ignores these required consumers. This local presence must not serve as proof of fresh-checkout delivery.",
+          "durableTarget": "Converge registered adapter materialization, portable generated artifacts and the maintained fresh-checkout bootstrap. Required consumers must be reproducible through the existing owner before validation, with ownership and secret-store boundaries preserved.",
+          "validationNeeded": "A tracked-files-only fresh checkout must satisfy structure and manager checks through the supported bootstrap. Verify regeneration and drift detection for each declared adapter, preserve existing gates and exercise the missing-artifact regression.",
+          "status": "tracked; implementation remains"
+        },
+        {
+          "id": "CODEX-INTEGRATION-LIVE-BRANCH-RECONCILIATION",
+          "owner": "RevealUI integration branch and shared database contract",
+          "owningPaths": [
+            "packages/db/src",
+            "packages/harnesses",
+            "packages/knowledge-graph",
+            "packages/mcp"
+          ],
+          "failingBehavior": "The reviewed integration series is based on the previous test head and does not include newly merged pooled client shutdown behavior.",
+          "durableTarget": "Reconcile the existing integration branch with current test without dropping integration or upstream changes.",
+          "validationNeeded": "Revalidate pool and backup shutdown, memory transaction rollback, scoped MCP memory reads, native delivery and the required CI checks on the final reconciled head. Re-prepare the unsigned owner-review payload if the PR head changes.",
+          "status": "tracked; reconciliation remains"
+        }
+      ],
+      "unchangedConstraints": [
+        "Only revealfleet identity and REVEALFLEET configuration namespace.",
+        "Root-cause fixes only; no gate bypass or one-off bootstrap recipe.",
+        "Existing native projection recovery and transferred RevCon protection follow-ups remain tracked; their resolution was not verified by this refresh.",
+        "No merge, security-gate clearance, settings write, paid inference or historical memory migration authorized by this state refresh."
+      ]
     }
   }
 }

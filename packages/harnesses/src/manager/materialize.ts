@@ -77,10 +77,7 @@ export function writeManagerPreserving(projectRoot: string, config?: ManagerConf
 }
 
 /** Thin Claude project stub: one rule file that points at the manager. */
-export function materializeClaudeStub(projectRoot: string): string {
-  const rel = join('.claude', 'rules', '00-revealui-manager.md');
-  const abs = join(projectRoot, rel);
-  mkdirSync(dirname(abs), { recursive: true });
+export function claudeManagerStubText(projectRoot: string): string {
   const body = `${STUB_HEADER}
 # RevealUI manager (Claude adapter)
 
@@ -93,8 +90,20 @@ export function materializeClaudeStub(projectRoot: string): string {
 
 See \`.revealui/README.md\`.
 `;
-  assertManagedDestination(projectRoot, rel);
-  writeFileSync(abs, adapterBody(projectRoot, body), 'utf-8');
+  return adapterBody(projectRoot, body);
+}
+
+/** Materialize the manager-owned Claude pointer from its canonical body. */
+export function materializeClaudeStub(projectRoot: string): string {
+  const rel = join('.claude', 'rules', '00-revealui-manager.md');
+  const canonical = join('.revealui', 'adapters', 'claude-code.md');
+  for (const destination of [rel, canonical]) assertManagedDestination(projectRoot, destination);
+  const body = claudeManagerStubText(projectRoot);
+  for (const destination of [rel, canonical]) {
+    const abs = join(projectRoot, destination);
+    mkdirSync(dirname(abs), { recursive: true });
+    writeFileSync(abs, body, 'utf-8');
+  }
   return rel;
 }
 

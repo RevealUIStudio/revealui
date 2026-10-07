@@ -36,6 +36,10 @@
       "sha256": "2b34d782f70845f000a55663dc6fd70c2df015d9be40e66aa4510b41121a7c0f",
       "generatedFrom": ".revealui/content/agents/tester.md"
     },
+    "rules/00-revealui-manager.md": {
+      "source": "harnesses:adapters/claude-code.md",
+      "sha256": "89c347da24fba97d0639579d9247f0bb5c6826d37a818ec5c2d6b3e0d270d287"
+    },
     "rules/adapter-only.md": {
       "source": "harnesses:rules/adapter-only.md",
       "sha256": "e68a2f1723af0790de34453e8e87e6e96734da1b9941bbf63cded0bc6f0c3c3c"

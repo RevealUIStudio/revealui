@@ -22,6 +22,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { z } from 'zod';
+import { claudeManagerStubText } from '../manager/materialize.js';
 import { materializeCodexSkills } from '../manager/codex.js';
 import { assertManagedDestination, contentRootRelative, loadManager } from '../manager/paths.js';
 import { RelativeManagerPathSchema } from '../manager/schema.js';
@@ -78,7 +79,10 @@ function claudeOwnershipFile(projectRoot: string, mirrors: GeneratedFile[]): Gen
   for (const file of mirrors) {
     const rel = file.relativePath.slice('.claude/'.length);
     entries[rel] = {
-      source: `harnesses:${rel}`,
+      source:
+        rel === 'rules/00-revealui-manager.md'
+          ? 'harnesses:adapters/claude-code.md'
+          : `harnesses:${rel}`,
       sha256: createHash('sha256').update(file.content).digest('hex'),
     };
   }
@@ -95,6 +99,7 @@ export interface WriteManagerAdapterContentResult {
   /** Definition rules mirrored into `.claude/rules/` (GAP-421 phase 2). */
   claudeRuleMirrors: string[];
   codexPaths: string[];
+  claudeAdapterPaths: string[];
 }
 
 /**
@@ -117,6 +122,7 @@ export function writeManagerAdapterContent(
   const byGenerator: Record<string, number> = {};
   const paths: string[] = [];
   const claudeRuleMirrors: string[] = [];
+  const claudeAdapterPaths: string[] = [];
   const contentRulesPrefix = `${contentRootRelative(config)}/rules/`;
   const planned: GeneratedFile[] = [];
   let total = 0;
@@ -149,9 +155,26 @@ export function writeManagerAdapterContent(
     total += files.length;
   }
 
+  if (registered.has('claude-code')) {
+    const body = claudeManagerStubText(projectRoot);
+    for (const relativePath of [
+      '.revealui/adapters/claude-code.md',
+      '.claude/rules/00-revealui-manager.md',
+    ]) {
+      planned.push({ relativePath, content: body });
+      paths.push(relativePath);
+      claudeAdapterPaths.push(relativePath);
+      total += 1;
+    }
+  }
+
   for (const file of planned) assertManagedDestination(projectRoot, file.relativePath);
   if (claudeRuleMirrors.length) {
-    const mirrors = planned.filter((file) => claudeRuleMirrors.includes(file.relativePath));
+    const mirrors = planned.filter(
+      (file) =>
+        claudeRuleMirrors.includes(file.relativePath) ||
+        file.relativePath === '.claude/rules/00-revealui-manager.md',
+    );
     const ledger = claudeOwnershipFile(projectRoot, mirrors);
     planned.push(ledger);
     paths.push(ledger.relativePath);
@@ -167,5 +190,5 @@ export function writeManagerAdapterContent(
   }
   paths.push(...codexPaths);
   total += codexPaths.length;
-  return { byGenerator, total, paths, claudeRuleMirrors, codexPaths };
+  return { byGenerator, total, paths, claudeRuleMirrors, codexPaths, claudeAdapterPaths };
 }

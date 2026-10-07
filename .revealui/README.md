@@ -194,3 +194,13 @@ remain follow-up work.
 - GAP-406 (adapter-only + manager)  
 - ADR `2026-07-21-harness-policy-runtime-launch-planes`  
 - ADR `2026-07-22-single-fleet-tracker`
+
+## Portable adapter delivery
+
+Manager pointers, Cursor hooks, OpenCode agents and commands, and the credential-free
+Claude knowledge-graph declaration are committed generated consumers. Local vendor
+settings remain ignored. A fresh checkout must pass the same structure and manager
+checks as a populated workspace. Regenerate through `manager materialize`; validation
+does not regenerate files or hide drift. The Claude pointer is owned by the existing
+ownership ledger and must match `.revealui/adapters/claude-code.md`, generated from
+the maintained manager template. RevCon preserves this package-owned pointer.

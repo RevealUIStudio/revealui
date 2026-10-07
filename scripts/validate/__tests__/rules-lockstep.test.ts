@@ -9,6 +9,7 @@ import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { claudeManagerStubText } from '../../../packages/harnesses/src/manager/materialize.js';
 import { type Manifest, sha256OfFile, verifyLockstep } from '../rules-lockstep.js';
 
 let root: string;
@@ -40,6 +41,40 @@ afterEach(() => {
 });
 
 describe('verifyLockstep', () => {
+  it('verifies canonical manager pointer ownership, drift and symlink safety', () => {
+    const rel = '.claude/rules/00-revealui-manager.md';
+    const body = claudeManagerStubText(root);
+    writeRule('rules/00-revealui-manager.md', body);
+    mkdirSync(path.join(root, '.revealui/adapters'), { recursive: true });
+    writeFileSync(path.join(root, '.revealui/adapters/claude-code.md'), body);
+    const manifest = manifestFor({ 'rules/00-revealui-manager.md': body });
+    manifest.files['rules/00-revealui-manager.md']!.source = 'harnesses:adapters/claude-code.md';
+    expect(verifyLockstep(root, manifest, [rel])).toEqual([]);
+    writeRule('rules/00-revealui-manager.md', '# Changed pointer\n');
+    expect(verifyLockstep(root, manifest, [rel]).join('\n')).toContain(
+      'incorrect manager pointer ownership',
+    );
+    writeRule('rules/00-revealui-manager.md', body);
+    manifest.files['rules/00-revealui-manager.md']!.source =
+      'profiles/revealui/claude/rules/00-revealui-manager.md';
+    expect(verifyLockstep(root, manifest, [rel]).join('\n')).toContain(
+      'incorrect manager pointer ownership',
+    );
+    manifest.files['rules/00-revealui-manager.md']!.source = 'harnesses:adapters/claude-code.md';
+    writeFileSync(
+      path.join(root, '.revealui/adapters/claude-code.md'),
+      '# Changed canonical pointer\n',
+    );
+    expect(verifyLockstep(root, manifest, [rel]).join('\n')).toContain(
+      'incorrect manager pointer ownership',
+    );
+    rmSync(path.join(root, rel));
+    const target = path.join(root, 'foreign.md');
+    writeFileSync(target, body);
+    symlinkSync(target, path.join(root, rel));
+    expect(verifyLockstep(root, manifest, [rel]).join('\n')).toContain('still a symlink');
+  });
+
   it('keeps profile-owned native rules separate from package definitions', () => {
     const body = '# Profile routing\n';
     writeRule(

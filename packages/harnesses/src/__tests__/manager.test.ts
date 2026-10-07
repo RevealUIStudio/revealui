@@ -1,4 +1,5 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -70,6 +71,35 @@ describe('project manager (.revealui)', () => {
     expect(revdevStub).toContain('.revealui/content/');
     expect(revdevStub).toContain('Do not create');
     expect(revdevStub).toContain('equal adapter');
+  });
+
+  it('keeps a tracked-files-only checkout valid while excluding private adapter state', () => {
+    const root = tempProject();
+    const clone = tempProject();
+    const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../../../..');
+    writeFileSync(join(root, '.gitignore'), readFileSync(join(repoRoot, '.gitignore')));
+    execFileSync('git', ['init', '-q', root]);
+    materializeManager(root);
+    writeManagerAdapterContent(root);
+    writeFileSync(join(root, '.claude/settings.local.json'), '{"private":true}');
+    writeFileSync(join(root, '.cursor/private.json'), '{"private":true}');
+    writeFileSync(join(root, '.opencode/private.json'), '{"private":true}');
+    execFileSync('git', ['add', '.'], { cwd: root });
+    const tracked = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' })
+      .split('\0')
+      .filter(Boolean);
+    for (const privateFile of [
+      '.claude/settings.local.json',
+      '.cursor/private.json',
+      '.opencode/private.json',
+    ]) {
+      expect(tracked).not.toContain(privateFile);
+    }
+    for (const rel of tracked) {
+      mkdirSync(dirname(join(clone, rel)), { recursive: true });
+      cpSync(join(root, rel), join(clone, rel));
+    }
+    expect(checkManager(clone).errors).toEqual([]);
   });
 
   it('materialize emits Grok peer SessionStart/SessionEnd control-layer hooks', () => {
@@ -200,7 +230,11 @@ describe('project manager (.revealui)', () => {
     // GAP-421 phase 2: definition rules also mirrored under .claude/rules/
     expect(written.claudeRuleMirrors.length).toBeGreaterThan(0);
     expect(written.total).toBe(
-      generatorTotal + written.claudeRuleMirrors.length + written.codexPaths.length + 1,
+      generatorTotal +
+        written.claudeRuleMirrors.length +
+        written.codexPaths.length +
+        written.claudeAdapterPaths.length +
+        1,
     );
 
     const hooks = JSON.parse(readFileSync(join(root, '.cursor/hooks.json'), 'utf-8')) as {
