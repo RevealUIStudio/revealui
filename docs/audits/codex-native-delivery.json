@@ -1178,8 +1178,12 @@
       "disposition": "Read-only remote refresh and local audit update only. Historical observations preserved. No source changes, commits, pushes, merges, signatures, labels or settings changes.",
       "reviewAuthorityMigration": {
         "authority": "revealui-review-controller",
-        "status": "User-directed migration; implementation location requested. The live base gate still requests SSHSIG; that is observed historical enforcement, not the intended completion flow.",
-        "disposition": "Do not request or produce owner signatures, gate-clearing labels or merge disposition as part of this integration publication."
+        "status": "Located implementation in the existing receipted-merge-flow worktree; migration PR is open and shadow-only.",
+        "disposition": "Integration remains a proposal pending controller cutover and required checks. No owner signature, approval label or self-merge is requested or produced.",
+        "implementation": "apps/review-controller and packages/harnesses/gates in feat/receipted-merge-flow-20261006",
+        "pullRequest": "https://github.com/RevealUIStudio/revealui/pull/3076",
+        "observedHead": "8f6da425ce7f532f146f35dd8ec6bfcd19a993a0",
+        "contract": "Exact-candidate Ed25519 receipts, append-only Postgres evidence and App-bound REVEALFLEET review receipt check; routine feature-to-test admission targets removal of per-PR human signing and labels. Current docs keep runtime receipt publication and merge authorization disabled; base owner gate remains active until protected cutover."
       }
     },
     "validatorRaceResolution": {
@@ -1204,7 +1208,13 @@
           "removalEvidence": "All existing nullable validation reads now use the shared reader; redundant check before read removed."
         }
       ],
-      "reviewAuthority": "revealui-review-controller migration; no owner-signing procedure requested or produced."
+      "reviewAuthority": "revealui-review-controller migration; no owner-signing procedure requested or produced.",
+      "publicationAdmission": {
+        "status": "First maintained push stopped before transport because an independent live CI gate held the shared admission lock.",
+        "owner": "scripts/gates/ci-gate.ts withGateAdmission",
+        "evidence": "Live gate process 1970007 in revealui/.worktrees/receipted-merge-flow-20261006 held descriptor 23 for the shared gate lock.",
+        "nextAction": "Retry the normal maintained feature publication after independent gate release; do not remove locks, kill other work or bypass admission."
+      }
     }
   }
 }
