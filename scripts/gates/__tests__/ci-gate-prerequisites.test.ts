@@ -42,16 +42,21 @@ vi.mock('@revealui/scripts/exec.js', () => ({
     };
   }),
 }));
-vi.mock('../../utils/base.js', () => ({
-  getProjectRoot: vi.fn(async () => '/project'),
-  createLogger: () => ({
-    info: state.log,
-    error: state.log,
-    warn: state.log,
-    success: state.log,
-    header: state.log,
-  }),
-}));
+vi.mock('../../utils/base.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../utils/base.js')>();
+  return {
+    ...actual,
+    getProjectRoot: vi.fn(async () => '/project'),
+    createLogger: () => ({
+      ...actual.createLogger(),
+      info: state.log,
+      error: state.log,
+      warning: state.log,
+      success: state.log,
+      header: state.log,
+    }),
+  };
+});
 
 import { gate, phaseConcurrency, printSummary, runCheck, withGateAdmission } from '../ci-gate';
 

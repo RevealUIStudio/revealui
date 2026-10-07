@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   buildOwnerOverrideComment,
   buildOwnerOverridePayload,
@@ -21,6 +21,8 @@ const CLEAR_LABEL = 'sec-review:approved';
 const noMarker = { status: 'no-marker' };
 const holdVerdict = { status: 'hold', reviewer: 'reviewer', timestamp: '2026-07-17T00:13:55Z' };
 const clearVerdict = { status: 'clear', reviewer: 'reviewer', timestamp: '2026-07-17T00:20:00Z' };
+
+afterEach(() => vi.unstubAllEnvs());
 
 // The enforcement-machinery markers this gate must self-protect. A PR editing
 // any of these files has to carry a recorded guardrail-2 verdict before merge.
@@ -415,7 +417,7 @@ describe('signed merged feature promotion coverage', () => {
     sameHead = true,
     member = true,
     hold = false,
-    useEnvironment = false,
+    useConfiguredAnchor = false,
   } = {}) {
     const sha = 'b'.repeat(40);
     const run = (args: string[]) => {
@@ -455,18 +457,20 @@ describe('signed merged feature promotion coverage', () => {
       throw new Error(`unexpected endpoint ${endpoint}`);
     };
     return fetchCommitPulls(sha, target, 99, run, {
-      allowedSigners: useEnvironment ? undefined : 'anchor',
+      allowedSigners: useConfiguredAnchor ? undefined : 'anchor',
       verifyImpl: ({ allowedSigners }: { allowedSigners: string }) =>
-        signed && allowedSigners === 'anchor' ? { ok: true } : { ok: false, reason: 'untrusted' },
+        signed && allowedSigners === 'anchor'
+          ? { ok: true }
+          : { ok: false, reason: 'missing-or-invalid-anchor' },
     });
   }
   it('uses canonical signer configuration and rejects retired aliases', () => {
     try {
       vi.stubEnv('REVEALFLEET_OVERRIDE_SIGNERS', 'anchor');
-      expect(fixture({ useEnvironment: true })).toEqual([{ number: 91, hasVerdict: true }]);
+      expect(fixture({ useConfiguredAnchor: true })).toEqual([{ number: 91, hasVerdict: true }]);
       vi.stubEnv('REVEALFLEET_OVERRIDE_SIGNERS', '');
       vi.stubEnv(['REV', 'FLEET', '_OVERRIDE_SIGNERS'].join(''), 'anchor');
-      expect(fixture({ useEnvironment: true })[0].hasVerdict).toBe(false);
+      expect(fixture({ useConfiguredAnchor: true })[0].hasVerdict).toBe(false);
     } finally {
       vi.unstubAllEnvs();
     }
@@ -474,6 +478,16 @@ describe('signed merged feature promotion coverage', () => {
   it('accepts a current signed exact-head merged feature containing the commit', () =>
     expect(fixture()).toEqual([{ number: 91, hasVerdict: true }]));
   it('denies unmerged association', () => expect(fixture({ merged: false })).toEqual([]));
+  it('uses the canonical configured anchor for merged promotion coverage', () => {
+    vi.stubEnv('REVEALFLEET_OVERRIDE_SIGNERS', 'anchor');
+    vi.stubEnv(['REV', 'FLEET', '_OVERRIDE_SIGNERS'].join(''), 'different-deprecated-anchor');
+    expect(fixture({ useConfiguredAnchor: true })).toEqual([{ number: 91, hasVerdict: true }]);
+  });
+  it('denies promotion coverage when only deprecated configuration is populated', () => {
+    vi.stubEnv('REVEALFLEET_OVERRIDE_SIGNERS', undefined);
+    vi.stubEnv(['REV', 'FLEET', '_OVERRIDE_SIGNERS'].join(''), 'anchor');
+    expect(fixture({ useConfiguredAnchor: true })).toEqual([{ number: 91, hasVerdict: false }]);
+  });
   it.each([{ signed: false }, { sameHead: false }, { member: false }, { hold: true }])(
     'denies missing or mismatched owner evidence %j',
     (options) => expect(fixture(options)[0].hasVerdict).toBe(false),
@@ -508,16 +522,23 @@ it('real SSHSIG passes through the existing compiled resolver and sensitive gate
       headRefOid: featureHead,
     };
     const discussion = { comments: [{ body, url: 'signed-fixture' }], reviews: [] };
-    expect(verifyPrOwnerRecord(data, 91, target, discussion, anchor)).toMatchObject({
+    vi.stubEnv('REVEALFLEET_OVERRIDE_SIGNERS', anchor);
+    vi.stubEnv(['REV', 'FLEET', '_OVERRIDE_SIGNERS'].join(''), 'different-deprecated-anchor');
+    expect(verifyPrOwnerRecord(data, 91, target, discussion)).toMatchObject({
       action: 'clear',
       kind: 'owner-signature',
       url: 'signed-fixture',
     });
     expect(
-      verifyPrOwnerRecord({ ...data, headRefOid: 'b'.repeat(40) }, 91, target, discussion, anchor)
-        .action,
+      verifyPrOwnerRecord({ ...data, headRefOid: 'b'.repeat(40) }, 91, target, discussion).action,
     ).toBe('hold');
     expect(verifyPrOwnerRecord(data, 91, target, discussion, '').action).toBe('hold');
+    vi.stubEnv('REVEALFLEET_OVERRIDE_SIGNERS', undefined);
+    vi.stubEnv(['REV', 'FLEET', '_OVERRIDE_SIGNERS'].join(''), anchor);
+    expect(verifyPrOwnerRecord(data, 91, target, discussion)).toMatchObject({
+      action: 'hold',
+      reason: 'missing-owner-anchor',
+    });
     expect(
       verifyPrOwnerRecord({ ...data, labels: [] }, 91, target, discussion, anchor).action,
     ).toBe('hold');

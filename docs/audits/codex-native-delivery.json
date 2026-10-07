@@ -640,7 +640,7 @@
     ],
     "publicationFollowup": {
       "id": "CODEX-INTEGRATION-LIVE-BRANCH-RECONCILIATION",
-      "status": "published-for-review-blocked",
+      "status": "published-for-review; reconciled-update-ready",
       "owner": "RevealUI harnesses/knowledge-graph/MCP and RevCon integration branches",
       "owningPaths": [
         "packages/harnesses",
@@ -652,7 +652,7 @@
       "failingBehavior": "Local integration commits are based on a test history that has diverged from live GitHub. Direct publication would not reconcile newer server changes.",
       "durableTarget": "Reconcile the integration series onto each verified current test branch in an isolated clean checkout. Preserve the existing patched dependencies, shared typed database and transaction contracts, and vendor-neutral policy ownership; regenerate consumers through their maintained owners. Publish through the maintained push admission path after the required validations and session authorization.",
       "validationNeeded": "Validate the resulting integrated source, canonical identity, portable native distribution, authenticated memory provenance and scoped reads, manager path support, source freshness and both lockstep gates. Confirm protected-branch required checks and app access before publication. Revalidate memory queries and transaction rollback against the shared database contract, preserve MCP SDK 1.31 and dependency overrides, retain the 25-minute CI suite timeout, and use the maintained clean-checkout push admission and planning projection lockstep gates.",
-      "localResolution": "Integration commits remain published in open review PRs. RevealUI lint correction passed remote CI; fresh-checkout structure validation and owner-signed review remain blocked. Current test advanced with pooled client shutdown, requiring renewed integration validation. RevCon checks remain green. Original pending edits were preserved.",
+      "localResolution": "Portable adapter consumers are committed and generated from their existing owners. Integration is reconciled with current test, including pooled shutdown, canonical signer defaults and bounded admission tests. Fresh-checkout lint and structure, signed memory and Codex regressions pass. Owner-signed review and remote CI remain required before merge.",
       "qualityBoundary": {
         "owner": "Biome source selection; harness manager and RevCon generated-copy checks",
         "priorBehavior": "Byte-preserving generated ownership ledgers and vendored skill reference examples were linted as application source.",
@@ -676,10 +676,10 @@
       "currentStateAuthority": "organizationMigrationReview.currentStateReview",
       "bootstrapResolution": {
         "observedAt": "2026-10-07T10:50:29.755254+00:00",
-        "status": "implemented-and-tested-local; upstream reconciliation and publication pending",
+        "status": "resolved-local; reconciled validation passed",
         "owner": "Existing manager materializer, repository ignore policy and shared ownership gates",
         "behavior": "Portable manager pointers, Cursor hooks and OpenCode agent/command output are versioned. Claude pointer has a canonical .revealui/adapters/claude-code.md source and its own entry in the existing Claude ownership ledger. Local settings and private vendor state remain ignored.",
-        "validation": "Fresh tracked-files-only fixture reproduced all five missing consumers before the fix and passes afterward; 24 harness/ownership tests and 11 RevCon native delivery regressions pass; harness build succeeds.",
+        "validation": "Fresh tracked-files-only regression fails before the fix and passes afterward. Actual tracked-file source snapshot passes full lint (4559 files) and structure validation. 143 merge/manager/ownership/shutdown regressions and 91 transaction/principal/Codex-memory/transport/delivery tests pass. Full RevCon suite: 61 checks; native delivery: 11 regressions; canonical rule/skill copy and public export scans pass.",
         "upstreamTarget": "cbfaad90a51774474a940e0f3d685c4bdd09c0a5",
         "inventoryRemoval": "Removed ignore entries that excluded required portable consumers. The private-state exclusion remains covered by the fresh-checkout fixture; no CI-only generation or gate bypass was introduced."
       }
@@ -1072,7 +1072,38 @@
         "Root-cause fixes only; no gate bypass or one-off bootstrap recipe.",
         "Existing native projection recovery and transferred RevCon protection follow-ups remain tracked; their resolution was not verified by this refresh.",
         "No merge, security-gate clearance, settings write, paid inference or historical memory migration authorized by this state refresh."
-      ]
+      ],
+      "supersededBy": "organizationMigrationReview.reconciledUpdate"
+    },
+    "reconciledUpdate": {
+      "observedAt": "2026-10-07T11:03:17.363480+00:00",
+      "upstreamTest": "cbfaad90a51774474a940e0f3d685c4bdd09c0a5",
+      "deliveryFixCommit": "217f27e07",
+      "status": "validated-local; feature publication follows maintained admission",
+      "preservedUpstream": [
+        "Pooled database client and backup fixture graceful shutdown",
+        "Canonical signer defaults with real SSHSIG and promotion coverage regressions",
+        "Bounded cold validator startup and worker lifecycle admission tests",
+        "MCP SDK and typed database contract",
+        "Existing CI suite timeout, dependency patches and resource admission"
+      ],
+      "conflictResolution": "Retained strict root-cause-only policy and sole canonical fleet identity; incorporated upstream cryptographic trust-anchor migration constraints and signer implementation. Retained both absent-anchor and empty-anchor regression coverage. Consumer conflicts were regenerated from canonical definitions.",
+      "validation": {
+        "reconciliationTests": 143,
+        "memoryAndCodexTests": 91,
+        "freshCheckout": "Full lint across 4559 files and the actual structure check pass without runtime materialization or changing the gate.",
+        "ownership": "286 Claude entries, 21 definition rules and the canonical manager pointer; local and shared ownership checks pass.",
+        "revcon": "61 maintained checks, 11 native delivery regressions, canonical policy/skill lockstep and private export scan.",
+        "earlierDiagnosticFailure": "The broad root-Vitest invocation used generic 5-second defaults and unconstrained workers; rerunning through the maintained package configurations passed all 91 cases. No product deadline or test configuration was changed."
+      },
+      "durableWork": {
+        "CODEX-INTEGRATION-CLEAN-CHECKOUT-BOOTSTRAP": "resolved through portable tracked consumers and ownership regression tests",
+        "CODEX-INTEGRATION-LIVE-BRANCH-RECONCILIATION": "resolved locally against the recorded current test head",
+        "NATIVE-PROJECTION-FORMAT-RECOVERY": "still tracked; no unverified replacement of pre-existing modified vendor reference copies",
+        "REVCON-TRANSFER-REQUIRED-CHECKS": "still tracked; no repository settings disposition",
+        "KG-LEGACY-MEMORY-SCOPE-MIGRATION": "still tracked; no historical scope inferred"
+      },
+      "disposition": "Feature branch review publication only. No PR merge, owner signature, gate-clearing label, settings change, paid inference or historical memory migration."
     }
   }
 }

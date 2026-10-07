@@ -9,6 +9,16 @@ recur. Session-local patches, one-off shell recipes, machine-only overrides,
 symptom suppression, and parallel operational paths are prohibited. Owner
 acceptance or a registry entry does not make them acceptable fixes.
 
+## Canonical fleet identity
+
+Use `revealfleet` as the sole fleet identity in visible names, profiles and
+paths, and `REVEALFLEET` as the configuration namespace. Reject alternate
+spellings and active aliases. Migrate references through their owning source
+and regenerate consumers; preserve original historical evidence for recovery.
+Negative fixtures may represent rejected input without creating an active alias.
+Preserve cryptographic protocols and trust anchors unless their security owners
+approve and validate that separate change.
+
 ## Proposing workarounds is forbidden
 
 Agents must **never** propose, suggest, list as an option, or frame as interim
