@@ -1,5 +1,5 @@
 import { serve } from '@hono/node-server';
-import { Pool } from 'pg';
+import { createReviewControllerDatabase } from '@revealui/db/review-controller';
 import { createReviewControllerApp } from './app.js';
 import { ShadowWebhookHandler } from './event-handler.js';
 import { GitHubAppClient } from './github-app.js';
@@ -32,9 +32,8 @@ async function boot(): Promise<void> {
   if (receiptPolicy && receiptPolicy.repositoryFullName !== repositoryFullName)
     throw new Error('receipt policy repository does not match controller repository');
   const privateKey = required('GITHUB_APP_PRIVATE_KEY');
-  const pool = new Pool({ connectionString: required('DATABASE_URL'), max: 5 });
-  await pool.query('SELECT 1');
-  const inbox = new PostgresWebhookInbox(pool);
+  const database = createReviewControllerDatabase(required('DATABASE_URL'));
+  const inbox = new PostgresWebhookInbox(database.db);
   await inbox.ready();
   const port = Number(process.env.PORT ?? '8080');
   if (!Number.isSafeInteger(port) || port <= 0 || port > 65535)
@@ -47,8 +46,8 @@ async function boot(): Promise<void> {
     repositoryFullName,
     privateKey,
   });
-  const observations = new PostgresShadowObservationStore(pool);
-  const receipts = new PostgresSignedReceiptStore(pool);
+  const observations = new PostgresShadowObservationStore(database.db);
+  const receipts = new PostgresSignedReceiptStore(database.db);
   await receipts.ready();
   const abortController = new AbortController();
   const server = serve({ fetch: app.fetch, port }, (info) => {
@@ -71,7 +70,7 @@ async function boot(): Promise<void> {
   } finally {
     process.off('SIGINT', stop);
     process.off('SIGTERM', stop);
-    await pool.end();
+    await database.close();
   }
 }
 

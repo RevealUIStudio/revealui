@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { canonicalReviewReceiptEnvelope } from '@revealui/harnesses/gates';
+import { canonicalReviewReceiptEnvelope } from '@revealui/security/review-receipt';
 import type { GitHubAppClient, ReceiptCheckRunResult } from './github-app.js';
 import type { SignedReceiptStore } from './receipt-store.js';
 

@@ -1,4 +1,8 @@
-import type { Pool } from 'pg';
+import {
+  type ReviewControllerDatabase,
+  reviewControllerShadowObservations,
+} from '@revealui/db/review-controller';
+import { and, desc, eq } from 'drizzle-orm';
 import type { GitHubCheckRun } from './github-app.js';
 import type { ReceiptEvaluation } from './receipt-evaluator.js';
 import {
@@ -34,7 +38,7 @@ export interface ShadowObservationStore {
 
 /** Append-only shadow observations; these rows are evidence, never authorization. */
 export class PostgresShadowObservationStore implements ShadowObservationStore {
-  constructor(private readonly pool: Pool) {}
+  constructor(private readonly db: ReviewControllerDatabase) {}
 
   async listReviewObservations(input: {
     repositoryId: number;
@@ -42,19 +46,24 @@ export class PostgresShadowObservationStore implements ShadowObservationStore {
     headSha: string;
     baseSha: string;
   }): Promise<CodexReviewObservation[]> {
-    const result = await this.pool.query<{ review_evidence: unknown }>(
-      `SELECT snapshot->'reviewEvidence' AS review_evidence
-       FROM review_controller_shadow_observations
-       WHERE event_kind = 'pull_request' AND repository_id = $1 AND pull_request = $2
-         AND head_sha = $3 AND base_sha = $4
-       ORDER BY observed_at DESC
-       LIMIT 100`,
-      [input.repositoryId, input.pullRequest, input.headSha, input.baseSha],
-    );
-    return result.rows.flatMap(({ review_evidence }) => {
-      if (!isRecord(review_evidence) || review_evidence.status !== 'observed') return [];
-      const review = review_evidence.review;
-      return isCodexReviewObservation(review) ? [review] : [];
+    const rows = await this.db
+      .select({ snapshot: reviewControllerShadowObservations.snapshot })
+      .from(reviewControllerShadowObservations)
+      .where(
+        and(
+          eq(reviewControllerShadowObservations.eventKind, 'pull_request'),
+          eq(reviewControllerShadowObservations.repositoryId, input.repositoryId),
+          eq(reviewControllerShadowObservations.pullRequest, input.pullRequest),
+          eq(reviewControllerShadowObservations.headSha, input.headSha),
+          eq(reviewControllerShadowObservations.baseSha, input.baseSha),
+        ),
+      )
+      .orderBy(desc(reviewControllerShadowObservations.observedAt))
+      .limit(100);
+    return rows.flatMap(({ snapshot }) => {
+      const reviewEvidence = snapshot.reviewEvidence;
+      if (!isRecord(reviewEvidence) || reviewEvidence.status !== 'observed') return [];
+      return isCodexReviewObservation(reviewEvidence.review) ? [reviewEvidence.review] : [];
     });
   }
 
@@ -71,33 +80,25 @@ export class PostgresShadowObservationStore implements ShadowObservationStore {
       ...snapshotEvidence,
       reviewEvidence: redactReviewEvidence(input.reviewEvidence ?? { status: 'not_observed' }),
       ...(input.receiptEvaluation ? { receiptEvaluation: input.receiptEvaluation } : {}),
-      content: content.map(({ path, side, blobSha, sha256 }) => ({
-        path,
-        side,
-        blobSha,
-        sha256,
-      })),
+      content: content.map(({ path, side, blobSha, sha256 }) => ({ path, side, blobSha, sha256 })),
     };
-    await this.pool.query(
-      `INSERT INTO review_controller_shadow_observations
-        (delivery_id, event_kind, repository_id, pull_request, head_sha, head_tree_sha,
-         base_sha, base_tree_sha, manifest_sha256, file_count, check_runs, snapshot)
-       VALUES ($1, 'pull_request', $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11::jsonb)
-       ON CONFLICT DO NOTHING`,
-      [
-        input.deliveryId,
-        snapshot.repositoryId,
-        snapshot.pullRequest,
-        snapshot.headSha,
-        snapshot.headTreeSha,
-        snapshot.baseSha,
-        snapshot.baseTreeSha,
-        snapshot.manifest.sha256,
-        snapshot.manifest.fileCount,
-        JSON.stringify(input.checkRuns),
-        JSON.stringify(persistedSnapshot),
-      ],
-    );
+    await this.db
+      .insert(reviewControllerShadowObservations)
+      .values({
+        deliveryId: input.deliveryId,
+        eventKind: 'pull_request',
+        repositoryId: snapshot.repositoryId,
+        pullRequest: snapshot.pullRequest,
+        headSha: snapshot.headSha,
+        headTreeSha: snapshot.headTreeSha,
+        baseSha: snapshot.baseSha,
+        baseTreeSha: snapshot.baseTreeSha,
+        manifestSha256: snapshot.manifest.sha256,
+        fileCount: snapshot.manifest.fileCount,
+        checkRuns: [...input.checkRuns],
+        snapshot: persistedSnapshot,
+      })
+      .onConflictDoNothing();
   }
 
   async recordMergeGroup(input: {
@@ -108,26 +109,27 @@ export class PostgresShadowObservationStore implements ShadowObservationStore {
     headTreeSha: string;
     checkRuns: readonly GitHubCheckRun[];
   }): Promise<void> {
-    await this.pool.query(
-      `INSERT INTO review_controller_shadow_observations
-        (delivery_id, event_kind, repository_id, head_sha, head_tree_sha, base_sha,
-         check_runs, snapshot)
-       VALUES ($1, 'merge_group', $2, $3, $4, $5, $6::jsonb, $7::jsonb)
-       ON CONFLICT DO NOTHING`,
-      [
-        input.deliveryId,
-        input.repositoryId,
-        input.headSha,
-        input.headTreeSha,
-        input.baseSha,
-        JSON.stringify(input.checkRuns),
-        JSON.stringify({
+    await this.db
+      .insert(reviewControllerShadowObservations)
+      .values({
+        deliveryId: input.deliveryId,
+        eventKind: 'merge_group',
+        repositoryId: input.repositoryId,
+        pullRequest: null,
+        headSha: input.headSha,
+        headTreeSha: input.headTreeSha,
+        baseSha: input.baseSha,
+        baseTreeSha: null,
+        manifestSha256: null,
+        fileCount: null,
+        checkRuns: [...input.checkRuns],
+        snapshot: {
           headSha: input.headSha,
           baseSha: input.baseSha,
           headTreeSha: input.headTreeSha,
-        }),
-      ],
-    );
+        },
+      })
+      .onConflictDoNothing();
   }
 }
 

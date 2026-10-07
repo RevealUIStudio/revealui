@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import {
   classifySecurityPathsAtApiLimit,
   SECURITY_PATH_CLASSIFIER_VERSION,
-} from '@revealui/harnesses/gates';
+} from '@revealui/security/security-path-classifier';
 import type { GitHubAppClient, GitTreeEntry, PullRequestFile } from './github-app.js';
 import { GitHubAppError } from './github-app.js';
 
@@ -117,11 +117,18 @@ export async function fetchChangedFileContent(
       const [blobSha, ref] = indexed;
       try {
         const blob = await client.getBlob(blobSha);
+        if (!Number.isSafeInteger(blob.size) || blob.size < 0 || blob.size > 256 * 1024)
+          fail('review_blob_limit');
         const encoded = blob.content.replace(/\s/g, '');
-        if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(encoded))
+        const maxEncodedBytes = Math.ceil((256 * 1024) / 3) * 4;
+        if (encoded.length > maxEncodedBytes || encoded.length % 4 !== 0)
           fail('invalid_review_blob_encoding');
         const bytes = Buffer.from(encoded, 'base64');
-        if (bytes.length !== blob.size || bytes.length > 256 * 1024)
+        if (
+          bytes.toString('base64') !== encoded ||
+          bytes.length !== blob.size ||
+          bytes.length > 256 * 1024
+        )
           fail('review_blob_size_mismatch');
         totalBytes += bytes.length;
         if (totalBytes > MAX_REVIEW_CONTENT_BYTES) fail('review_content_limit');

@@ -3,7 +3,7 @@ import {
   type ReviewReceipt,
   type ReviewReceiptContext,
   signReviewReceipt,
-} from '@revealui/harnesses/gates';
+} from '@revealui/security/review-receipt';
 import { GitHubAppError, type GitHubCheckRun } from './github-app.js';
 import type { CodexReviewObservation } from './reviewer.js';
 import type { PullRequestSnapshot } from './snapshot.js';

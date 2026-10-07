@@ -6,16 +6,16 @@
   "description": "Isolated GitHub review-receipt controller for protected pull-request admission.",
   "dependencies": {
     "@hono/node-server": ">=2.0.5",
+    "@revealui/db": "workspace:*",
+    "@revealui/security": "workspace:*",
     "hono": "4.13.8",
-    "pg": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@revealui/harnesses": "workspace:*",
     "@electric-sql/pglite": "catalog:",
     "@revealui/dev": "workspace:*",
+    "drizzle-orm": "catalog:",
     "@types/node": "catalog:",
-    "@types/pg": "8.20.0",
     "tsup": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",

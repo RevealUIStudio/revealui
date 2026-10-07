@@ -46,6 +46,11 @@
       "import": "./dist/schema/index.js",
       "default": "./dist/schema/index.js"
     },
+    "./review-controller": {
+      "types": "./dist/review-controller.d.ts",
+      "import": "./dist/review-controller.js",
+      "default": "./dist/review-controller.js"
+    },
     "./client": {
       "types": "./dist/client/index.d.ts",
       "import": "./dist/client/index.js",

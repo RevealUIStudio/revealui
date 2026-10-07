@@ -351,6 +351,20 @@
       "when": 1790918126362,
       "tag": "0049_page_creator_attribution",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1791331086182,
+      "tag": "0050_review_controller_store",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1791331086183,
+      "tag": "0051_review_controller_receipt_immutable",
+      "breakpoints": true
     }
   ]
 }

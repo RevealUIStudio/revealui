@@ -87,7 +87,11 @@ without publishing it; its required summary fails if the image build fails.
 - Use a dedicated Postgres database and restricted controller role. The
   runtime role must not own schema or migration objects. Apply migrations
   separately; do not grant the runtime role DDL or update/delete on shadow
-  observations or future receipt records.
+  observations or receipt records. The canonical schema is
+  `packages/db/src/schema/internal/review-controller.ts`; the generated table
+  migration and the append-only trigger migration live in
+  `packages/db/migrations/` and are applied through the maintained database
+  migration flow.
 - Keep one controller machine during the initial Fly-volume/inbox design.
   Scale only after queue locking and receipt uniqueness are covered by tests.
 

@@ -408,8 +408,10 @@ export function countPgTableCalls(fileName: string, content: string): number {
 }
 
 /**
- * Walk `packages/db/src/schema` (or an injected dir) and count CallExpressions
- * of `identifier`. Shared by table and CHECK collectors.
+ * Walk the product-facing `packages/db/src/schema` tree and count CallExpressions
+ * of `identifier`. Internal service schemas live under `schema/internal` and
+ * are excluded because they use isolated databases and are not part of the
+ * product database metrics. Shared by table and CHECK collectors.
  */
 export function countSchemaCallIdentifier(identifier: string, schemaDir?: string): number {
   const resolved = schemaDir ?? path.join(scanState.Root, 'packages/db/src/schema');
@@ -425,7 +427,7 @@ export function countSchemaCallIdentifier(identifier: string, schemaDir?: string
     }
     for (const e of entries) {
       const full = path.join(dir, e.name);
-      if (WALK_EXCLUDED_DIRS.has(e.name) || isIgnored(full)) continue;
+      if (WALK_EXCLUDED_DIRS.has(e.name) || e.name === 'internal' || isIgnored(full)) continue;
       if (e.isDirectory()) {
         walk(full);
       } else if (e.name.endsWith('.ts') && !e.name.endsWith('.test.ts')) {
@@ -444,8 +446,8 @@ export function countSchemaCallIdentifier(identifier: string, schemaDir?: string
 }
 
 /**
- * Count `pgTable(` declarations across `packages/db/src/schema/*.ts`.
- * The audit-first source of truth for "how many database tables ship".
+ * Count product `pgTable(` declarations across `packages/db/src/schema`.
+ * Isolated internal service tables are intentionally outside this product metric.
  * Path-injectable + exported for tests (GAP-192 PR1).
  */
 export function countDbTables(schemaDir?: string): number {

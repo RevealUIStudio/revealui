@@ -204,6 +204,16 @@
       "tag": "0049_page_creator_attribution",
       "rationale": "The maintained reapplication policy requires ADD COLUMN/CREATE INDEX IF NOT EXISTS and duplicate_object guards for foreign keys, which drizzle-kit does not emit. The SQL applies only nullable page creator attribution; the companion snapshot was produced by normal drizzle-kit generation from parent 0048 without editing its contents.",
       "missingSnapshot": false
+    },
+    {
+      "tag": "0050_review_controller_store",
+      "rationale": "Generated controller tables require the repository's idempotent foreign-key guard, which drizzle-kit does not emit. The migration otherwise matches the 0050 schema snapshot generated from product and isolated-service schemas.",
+      "missingSnapshot": false
+    },
+    {
+      "tag": "0051_review_controller_receipt_immutable",
+      "rationale": "Drizzle cannot express the append-only receipt trigger. This migration adds the database mutation guard after the generated receipt schema migration, and the companion snapshot copies the generated 0050 schema state unchanged.",
+      "missingSnapshot": false
     }
   ]
 }

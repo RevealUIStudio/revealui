@@ -3,7 +3,7 @@ import {
   canonicalReviewReceiptEnvelope,
   REVIEW_RECEIPT_SCHEMA,
   type ReviewReceiptEnvelope,
-} from '@revealui/harnesses/gates';
+} from '@revealui/security/review-receipt';
 import { describe, expect, it, vi } from 'vitest';
 import type { GitHubAppClient } from './github-app.js';
 import { persistReceiptThenPublishCheck } from './receipt-publisher.js';

@@ -1,8 +1,6 @@
-import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
-import { PGlite } from '@electric-sql/pglite';
-import type { Pool } from 'pg';
+import type { PGlite } from '@electric-sql/pglite';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { createTestDatabase } from './__tests__/database.js';
 import { PostgresWebhookInbox } from './inbox.js';
 import { PostgresShadowObservationStore } from './observations.js';
 import type { PullRequestSnapshot } from './snapshot.js';
@@ -13,20 +11,10 @@ describe('PostgresShadowObservationStore', () => {
   let store: PostgresShadowObservationStore;
 
   beforeEach(async () => {
-    db = new PGlite();
-    const migration = await readFile(
-      resolve(process.cwd(), 'migrations/0001_webhook_inbox.sql'),
-      'utf8',
-    );
-    await db.exec(migration);
-    const pool = {
-      query: async (sql: string, values?: unknown[]) => {
-        const result = await db.query(sql, values);
-        return { rows: result.rows, rowCount: result.affectedRows ?? null };
-      },
-    } as unknown as Pool;
-    inbox = new PostgresWebhookInbox(pool);
-    store = new PostgresShadowObservationStore(pool);
+    const database = await createTestDatabase();
+    db = database.client;
+    inbox = new PostgresWebhookInbox(database.db);
+    store = new PostgresShadowObservationStore(database.db);
   });
 
   afterEach(async () => {

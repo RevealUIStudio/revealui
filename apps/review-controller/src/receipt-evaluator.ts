@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import type { ReviewReceiptContext } from '@revealui/harnesses/gates';
+import type { ReviewReceiptContext } from '@revealui/security/review-receipt';
 import { GitHubAppError, type GitHubCheckRun } from './github-app.js';
 import { signCandidateReceipt } from './receipt-builder.js';
 import type { ReceiptPolicy } from './receipt-policy.js';

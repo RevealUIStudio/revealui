@@ -1,15 +1,13 @@
 import { generateKeyPairSync } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
-import { PGlite } from '@electric-sql/pglite';
+import type { PGlite } from '@electric-sql/pglite';
 import {
   canonicalReviewReceiptEnvelope,
   REVIEW_RECEIPT_SCHEMA,
   type ReviewReceipt,
   signReviewReceipt,
-} from '@revealui/harnesses/gates';
-import type { Pool } from 'pg';
+} from '@revealui/security/review-receipt';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { createTestDatabase } from './__tests__/database.js';
 import { PostgresSignedReceiptStore } from './receipt-store.js';
 
 describe('PostgresSignedReceiptStore', () => {
@@ -18,19 +16,9 @@ describe('PostgresSignedReceiptStore', () => {
   let signed: ReturnType<typeof signReviewReceipt>;
 
   beforeEach(async () => {
-    db = new PGlite();
-    const migration = await readFile(
-      resolve(process.cwd(), 'migrations/0001_webhook_inbox.sql'),
-      'utf8',
-    );
-    await db.exec(migration);
-    const pool = {
-      query: async (sql: string, values?: unknown[]) => {
-        const result = await db.query(sql, values);
-        return { rows: result.rows, rowCount: result.affectedRows ?? null };
-      },
-    } as unknown as Pool;
-    store = new PostgresSignedReceiptStore(pool);
+    const database = await createTestDatabase();
+    db = database.client;
+    store = new PostgresSignedReceiptStore(database.db);
     const { privateKey } = generateKeyPairSync('ed25519');
     signed = signReviewReceipt({
       keyId: 'controller-key-1',

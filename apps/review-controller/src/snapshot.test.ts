@@ -221,6 +221,46 @@ describe('exact changed-file content', () => {
     ).rejects.toMatchObject({ code: 'unsupported_review_file_type' });
   });
 
+  it('bounds base64 decoding and rejects non-canonical encodings', async () => {
+    const manifest = {
+      files: [
+        {
+          path: 'x',
+          status: 'added' as const,
+          head: { mode: '100644' as const, type: 'blob' as const, sha: 'a'.repeat(40) },
+          additions: 0,
+          deletions: 0,
+          changes: 0,
+        },
+      ],
+      fileCount: 1,
+      sha256: 'a'.repeat(64),
+    };
+    const invalidEncoding = {
+      getBlob: async (sha: string) => ({
+        sha,
+        size: 1,
+        encoding: 'base64' as const,
+        content: '!!!!',
+      }),
+    };
+    await expect(fetchChangedFileContent(invalidEncoding, manifest)).rejects.toMatchObject({
+      code: 'invalid_review_blob_encoding',
+    });
+
+    const oversized = {
+      getBlob: async (sha: string) => ({
+        sha,
+        size: 256 * 1024 + 1,
+        encoding: 'base64' as const,
+        content: '',
+      }),
+    };
+    await expect(fetchChangedFileContent(oversized, manifest)).rejects.toMatchObject({
+      code: 'review_blob_limit',
+    });
+  });
+
   it('fetches unique blobs concurrently with a bounded worker pool', async () => {
     const records = Array.from({ length: 12 }, (_, index) => {
       const bytes = Buffer.from(`export const file${index} = ${index};\n`, 'utf8');

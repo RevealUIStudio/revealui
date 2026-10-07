@@ -1,3 +1,9 @@
+import {
+  type ReviewControllerDatabase,
+  reviewControllerShadowObservations,
+  reviewControllerWebhookInbox,
+} from '@revealui/db/review-controller';
+import { and, asc, eq, gte, inArray, lte, or, sql } from 'drizzle-orm';
 import type { AcceptedWebhook } from './webhook.js';
 
 export const MAX_WEBHOOK_ATTEMPTS = 12;
@@ -11,15 +17,6 @@ export interface ClaimedWebhook {
   payload: Record<string, unknown>;
   attempts: number;
   leaseToken: string;
-}
-
-interface QueryResult<Row = Record<string, unknown>> {
-  rows: Row[];
-  rowCount: number | null;
-}
-
-interface InboxDatabase {
-  query<Row = Record<string, unknown>>(sql: string, values?: unknown[]): Promise<QueryResult<Row>>;
 }
 
 export interface WebhookInbox {
@@ -37,32 +34,34 @@ export interface WebhookInbox {
 
 /** Durable, idempotent webhook queue with expiring claims and fenced updates. */
 export class PostgresWebhookInbox implements WebhookInbox {
-  constructor(private readonly pool: InboxDatabase) {}
+  constructor(private readonly db: ReviewControllerDatabase) {}
 
   async enqueue(webhook: AcceptedWebhook): Promise<{ inserted: boolean }> {
-    const result = await this.pool.query(
-      `INSERT INTO review_controller_webhook_inbox
-        (delivery_id, event_name, installation_id, repository_id, received_at, payload, state)
-       VALUES ($1, $2, $3, $4, $5, $6::jsonb, 'pending')
-       ON CONFLICT (delivery_id) DO NOTHING
-       RETURNING delivery_id`,
-      [
-        webhook.deliveryId,
-        webhook.event,
-        webhook.installationId,
-        webhook.repositoryId,
-        webhook.receivedAt,
-        JSON.stringify(webhook.payload),
-      ],
-    );
-    return { inserted: result.rowCount === 1 };
+    const result = await this.db
+      .insert(reviewControllerWebhookInbox)
+      .values({
+        deliveryId: webhook.deliveryId,
+        eventName: webhook.event,
+        installationId: webhook.installationId,
+        repositoryId: webhook.repositoryId,
+        receivedAt: new Date(webhook.receivedAt),
+        payload: webhook.payload,
+        state: 'pending',
+      })
+      .onConflictDoNothing()
+      .returning({ deliveryId: reviewControllerWebhookInbox.deliveryId });
+    return { inserted: result.length === 1 };
   }
 
   async ready(): Promise<void> {
-    await this.pool.query('SELECT delivery_id FROM review_controller_webhook_inbox LIMIT 0');
-    await this.pool.query(
-      'SELECT observation_id FROM review_controller_shadow_observations LIMIT 0',
-    );
+    await this.db
+      .select({ deliveryId: reviewControllerWebhookInbox.deliveryId })
+      .from(reviewControllerWebhookInbox)
+      .limit(0);
+    await this.db
+      .select({ observationId: reviewControllerShadowObservations.observationId })
+      .from(reviewControllerShadowObservations)
+      .limit(0);
   }
 
   async claimNext(leaseToken: string, leaseDurationMs: number): Promise<ClaimedWebhook | null> {
@@ -73,50 +72,88 @@ export class PostgresWebhookInbox implements WebhookInbox {
       leaseDurationMs > 300_000
     )
       throw new Error('invalid lease duration');
-    await this.pool.query(
-      `UPDATE review_controller_webhook_inbox
-       SET state = 'failed', last_error_code = 'attempt_limit', locked_until = NULL, lease_token = NULL
-       WHERE state = 'processing' AND locked_until <= clock_timestamp() AND attempts >= $1`,
-      [MAX_WEBHOOK_ATTEMPTS],
-    );
-    const result = await this.pool.query<ClaimedWebhook>(
-      `WITH candidate AS (
-         SELECT delivery_id
-         FROM review_controller_webhook_inbox
-         WHERE (state IN ('pending', 'failed') AND attempts < $3 AND next_attempt_at <= clock_timestamp())
-            OR (state = 'processing' AND locked_until <= clock_timestamp() AND attempts < $3)
-         ORDER BY next_attempt_at, received_at, delivery_id
-         FOR UPDATE SKIP LOCKED
-         LIMIT 1
-       )
-       UPDATE review_controller_webhook_inbox AS inbox
-       SET state = 'processing',
-           attempts = inbox.attempts + 1,
-           locked_until = clock_timestamp() + ($2::double precision * interval '1 millisecond'),
-           lease_token = $1::uuid
-       FROM candidate
-       WHERE inbox.delivery_id = candidate.delivery_id
-       RETURNING inbox.delivery_id AS "deliveryId",
-                 inbox.event_name AS "eventName",
-                 inbox.installation_id::double precision AS "installationId",
-                 inbox.repository_id::double precision AS "repositoryId",
-                 inbox.received_at AS "receivedAt",
-                 inbox.payload,
-                 inbox.attempts,
-                 inbox.lease_token AS "leaseToken"`,
-      [leaseToken, leaseDurationMs, MAX_WEBHOOK_ATTEMPTS],
-    );
-    return result.rows[0] ?? null;
+
+    return this.db.transaction(async (tx) => {
+      const now = new Date();
+      await tx
+        .update(reviewControllerWebhookInbox)
+        .set({
+          state: 'failed',
+          lastErrorCode: 'attempt_limit',
+          lockedUntil: null,
+          leaseToken: null,
+        })
+        .where(
+          and(
+            eq(reviewControllerWebhookInbox.state, 'processing'),
+            lte(reviewControllerWebhookInbox.lockedUntil, now),
+            gte(reviewControllerWebhookInbox.attempts, MAX_WEBHOOK_ATTEMPTS),
+          ),
+        );
+
+      const [candidate] = await tx
+        .select({ deliveryId: reviewControllerWebhookInbox.deliveryId })
+        .from(reviewControllerWebhookInbox)
+        .where(
+          or(
+            and(
+              inArray(reviewControllerWebhookInbox.state, ['pending', 'failed']),
+              lte(reviewControllerWebhookInbox.attempts, MAX_WEBHOOK_ATTEMPTS - 1),
+              lte(reviewControllerWebhookInbox.nextAttemptAt, now),
+            ),
+            and(
+              eq(reviewControllerWebhookInbox.state, 'processing'),
+              lte(reviewControllerWebhookInbox.lockedUntil, now),
+              lte(reviewControllerWebhookInbox.attempts, MAX_WEBHOOK_ATTEMPTS - 1),
+            ),
+          ),
+        )
+        .orderBy(
+          asc(reviewControllerWebhookInbox.nextAttemptAt),
+          asc(reviewControllerWebhookInbox.receivedAt),
+          asc(reviewControllerWebhookInbox.deliveryId),
+        )
+        .for('update', { skipLocked: true })
+        .limit(1);
+      if (!candidate) return null;
+
+      const [claimed] = await tx
+        .update(reviewControllerWebhookInbox)
+        .set({
+          state: 'processing',
+          attempts: sql`${reviewControllerWebhookInbox.attempts} + 1`,
+          lockedUntil: new Date(now.getTime() + leaseDurationMs),
+          leaseToken,
+        })
+        .where(eq(reviewControllerWebhookInbox.deliveryId, candidate.deliveryId))
+        .returning();
+      if (!claimed) return null;
+      return {
+        deliveryId: claimed.deliveryId,
+        eventName: claimed.eventName,
+        installationId: claimed.installationId,
+        repositoryId: claimed.repositoryId,
+        receivedAt: claimed.receivedAt,
+        payload: claimed.payload,
+        attempts: claimed.attempts,
+        leaseToken: claimed.leaseToken ?? leaseToken,
+      };
+    });
   }
 
   async complete(deliveryId: string, leaseToken: string): Promise<boolean> {
-    const result = await this.pool.query(
-      `UPDATE review_controller_webhook_inbox
-       SET state = 'completed', completed_at = clock_timestamp(), locked_until = NULL, lease_token = NULL
-       WHERE delivery_id = $1 AND state = 'processing' AND lease_token = $2::uuid`,
-      [deliveryId, leaseToken],
-    );
-    return result.rowCount === 1;
+    const result = await this.db
+      .update(reviewControllerWebhookInbox)
+      .set({ state: 'completed', completedAt: new Date(), lockedUntil: null, leaseToken: null })
+      .where(
+        and(
+          eq(reviewControllerWebhookInbox.deliveryId, deliveryId),
+          eq(reviewControllerWebhookInbox.state, 'processing'),
+          eq(reviewControllerWebhookInbox.leaseToken, leaseToken),
+        ),
+      )
+      .returning({ deliveryId: reviewControllerWebhookInbox.deliveryId });
+    return result.length === 1;
   }
 
   async retry(
@@ -127,16 +164,38 @@ export class PostgresWebhookInbox implements WebhookInbox {
   ): Promise<boolean> {
     if (!/^[a-z][a-z0-9_]{0,63}$/.test(errorCode)) throw new Error('invalid error code');
     if (!Number.isFinite(nextAttemptAt.getTime())) throw new Error('invalid retry time');
-    const result = await this.pool.query(
-      `UPDATE review_controller_webhook_inbox
-       SET state = CASE WHEN attempts >= $4 THEN 'failed' ELSE 'pending' END,
-           next_attempt_at = $3,
-           last_error_code = $5,
-           locked_until = NULL,
-           lease_token = NULL
-       WHERE delivery_id = $1 AND state = 'processing' AND lease_token = $2::uuid`,
-      [deliveryId, leaseToken, nextAttemptAt.toISOString(), MAX_WEBHOOK_ATTEMPTS, errorCode],
-    );
-    return result.rowCount === 1;
+    return this.db.transaction(async (tx) => {
+      const [claimed] = await tx
+        .select({ attempts: reviewControllerWebhookInbox.attempts })
+        .from(reviewControllerWebhookInbox)
+        .where(
+          and(
+            eq(reviewControllerWebhookInbox.deliveryId, deliveryId),
+            eq(reviewControllerWebhookInbox.state, 'processing'),
+            eq(reviewControllerWebhookInbox.leaseToken, leaseToken),
+          ),
+        )
+        .for('update')
+        .limit(1);
+      if (!claimed) return false;
+      const result = await tx
+        .update(reviewControllerWebhookInbox)
+        .set({
+          state: claimed.attempts >= MAX_WEBHOOK_ATTEMPTS ? 'failed' : 'pending',
+          nextAttemptAt,
+          lastErrorCode: errorCode,
+          lockedUntil: null,
+          leaseToken: null,
+        })
+        .where(
+          and(
+            eq(reviewControllerWebhookInbox.deliveryId, deliveryId),
+            eq(reviewControllerWebhookInbox.state, 'processing'),
+            eq(reviewControllerWebhookInbox.leaseToken, leaseToken),
+          ),
+        )
+        .returning({ deliveryId: reviewControllerWebhookInbox.deliveryId });
+      return result.length === 1;
+    });
   }
 }

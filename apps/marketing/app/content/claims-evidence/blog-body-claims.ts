@@ -11202,7 +11202,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/why-we-built-revealui',
     exportPath: 'body.50',
-    text: '**39 workspaces** across the monorepo (6 apps, 33 packages with 26 MIT, 5 Fair Source, 2 internal)',
+    text: '**40 workspaces** across the monorepo (7 apps, 33 packages with 26 MIT, 5 Fair Source, 2 internal)',
     evidence: [
       {
         kind: 'code',

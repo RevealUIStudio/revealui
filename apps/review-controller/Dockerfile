@@ -9,9 +9,8 @@ COPY .npmrc* tsconfig.json ./
 COPY packages ./packages
 COPY apps/review-controller ./apps/review-controller
 
-RUN pnpm install --frozen-lockfile --filter "@revealui/review-controller..." --filter @revealui/harnesses
-RUN pnpm --filter @revealui/harnesses build:gates
-RUN pnpm --filter @revealui/review-controller build
+RUN pnpm install --frozen-lockfile --filter "@revealui/review-controller..."
+RUN pnpm --filter @revealui/review-controller... build
 RUN pnpm --filter @revealui/review-controller deploy /app/review-controller-deploy --prod --legacy
 
 FROM node:24-alpine
