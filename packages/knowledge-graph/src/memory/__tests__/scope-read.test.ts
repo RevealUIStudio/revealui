@@ -2,12 +2,14 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createKgTestDb, type KgTestDb } from '../../__tests__/test-db.js';
 import { deriveNodeId } from '../../ids.js';
 import { ingestEpisode } from '../../ingest/index.js';
+import { applyOps } from '../../ingest/merge.js';
 import { kgNeighbors, kgPath, kgSearch } from '../../search/index.js';
 import { publishMemory } from '../publish.js';
 import { queryClaims, queryMemory } from '../query.js';
 import { countDeniedMemoryHits, inspectNodeVisibility } from '../scope-read.js';
 import { tenantNaturalKey } from '../tenant-key.js';
 import type { MemoryPrincipal } from '../types.js';
+import { MEMORY_SCHEMA } from '../types.js';
 
 let db: KgTestDb;
 beforeEach(async () => {
@@ -195,6 +197,122 @@ describe('queryMemory scope', () => {
     await seedScan();
     const result = await kgSearch(db.exec, { query: 'client', principal: operator });
     expect(result.nodes.some((n) => n.naturalKey === SCAN_KEY)).toBe(true);
+  });
+
+  it('requires authored metadata when historical node-only writes have unknown subjects', async () => {
+    await seedScan();
+    // Replay the historical format: an episode plus node operations, with no
+    // snapshot or incident edge identifying the privately mutated scan node.
+    const historical = await ingestEpisode(db.exec, {
+      episode: {
+        episodeType: 'memory',
+        source: 'historical',
+        siteId: 'test',
+        referenceTime: new Date('2026-01-01T00:00:00Z'),
+        contentRef: {
+          schema: MEMORY_SCHEMA,
+          actorDid: tenantB.did,
+          scope: { tenantId: tenantB.tenantId, classification: 'private' },
+        },
+      },
+      nodes: [
+        {
+          kind: 'file',
+          name: 'client.ts',
+          naturalKey: SCAN_KEY,
+          summary: 'private lantern payload',
+          attributes: { path: 'private-lantern' },
+        },
+      ],
+      edges: [],
+    });
+    await applyOps(
+      db.exec,
+      historical.ops.filter((op) => op.t === 'node'),
+    );
+    await db.exec.query(
+      `UPDATE kg_episodes SET content_ref = content_ref - 'ingestSnapshot' WHERE id = $1`,
+      [historical.episodeId],
+    );
+    expect((await kgSearch(db.exec, { query: 'lantern', principal: operator })).nodes).toEqual([]);
+    expect(
+      (await kgNeighbors(db.exec, deriveNodeId('file', SCAN_KEY), { principal: operator })).edges,
+    ).toEqual([]);
+
+    // A later shared publication omits the private attribute. The merged row
+    // must remain hidden even though its new edge has authorized provenance.
+    await ingestEpisode(db.exec, {
+      episode: {
+        episodeType: 'memory',
+        source: 'shared',
+        siteId: 'test',
+        referenceTime: new Date('2026-01-01T00:00:00Z'),
+        contentRef: {
+          schema: MEMORY_SCHEMA,
+          keyScopeVersion: 1,
+          actorDid: operator.did,
+          scope: { tenantId: operator.tenantId, classification: 'workspace' },
+        },
+      },
+      nodes: [
+        { kind: 'file', name: 'client.ts', naturalKey: SCAN_KEY, summary: 'shared lantern' },
+        { kind: 'concept', name: 'shared lantern', naturalKey: 'concept:shared-lantern' },
+      ],
+      edges: [
+        {
+          source: { kind: 'file', naturalKey: SCAN_KEY },
+          target: { kind: 'concept', naturalKey: 'concept:shared-lantern' },
+          relation: 'relates-to',
+          fact: 'shared lantern relation',
+        },
+      ],
+    });
+    const visible = await kgSearch(db.exec, { query: 'lantern', principal: operator });
+    expect(visible.nodes.some((node) => node.naturalKey === SCAN_KEY)).toBe(false);
+    expect(visible.nodes.some((node) => node.naturalKey === 'concept:shared-lantern')).toBe(false);
+    expect(visible.facts).toEqual([]);
+
+    const published = await publishMemory(db.exec, {
+      principal: operator,
+      scope: { tenantId: operator.tenantId, classification: 'workspace' },
+      summary: 'fresh lantern',
+      siteId: 'test',
+      subjects: [{ kind: 'concept', name: 'fresh lantern', naturalKey: 'concept:fresh-lantern' }],
+    });
+    expect(published.status).toBe('ok');
+    expect(
+      (await kgSearch(db.exec, { query: 'fresh lantern', principal: operator })).nodes.length,
+    ).toBeGreaterThan(0);
+    // Recovery evidence remains available only to the unrestricted owner path.
+    expect(
+      (await kgSearch(db.exec, { query: 'lantern' })).nodes.some(
+        (node) => node.naturalKey === SCAN_KEY,
+      ),
+    ).toBe(true);
+  });
+
+  it('does not authorize an earlier private edge through a colliding shared publication', async () => {
+    const author = hosted();
+    const peer = hosted({ did: 'did:revealfleet:peer:fp', agentId: 'peer', fingerprint: 'fp' });
+    const referenceTime = new Date('2026-01-01T00:00:00Z');
+    for (const classification of ['private', 'workspace'] as const) {
+      const result = await publishMemory(db.exec, {
+        principal: author,
+        scope: { tenantId: author.tenantId, classification },
+        siteId: 'test',
+        referenceTime,
+        summary: classification === 'private' ? 'private lantern payload' : 'shared report',
+        subjects: [{ kind: 'agent', name: 'peer', naturalKey: peer.did }],
+      });
+      expect(result.status).toBe('ok');
+    }
+    // Edge identity includes endpoints, relation and validity time, so the
+    // immutable first edge remains when another episode shares that identity.
+    expect((await kgSearch(db.exec, { query: 'lantern' })).facts.length).toBeGreaterThan(0);
+    expect((await kgSearch(db.exec, { query: 'lantern', principal: peer })).facts).toEqual([]);
+    expect(
+      (await kgSearch(db.exec, { query: 'lantern', principal: author })).facts.length,
+    ).toBeGreaterThan(0);
   });
 });
 

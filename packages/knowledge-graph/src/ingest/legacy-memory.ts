@@ -53,7 +53,6 @@ function snapshotCounts(
       return op.id;
     });
     const nodeIds = new Set(nodes);
-    if (nodeIds.size !== nodes.length) throw new Error('duplicate snapshot node');
     const edges = snapshot.edges.map((value) => {
       const op = parseKgOp({
         t: 'edge',
@@ -75,7 +74,8 @@ function snapshotCounts(
         throw new Error('incomplete snapshot edge');
       return op.id;
     });
-    if (new Set(edges).size !== edges.length) throw new Error('duplicate snapshot edge');
+    // Snapshots preserve ordered operations. Repeated identities are valid
+    // ingestion input; they must not be mistaken for corrupted evidence.
     return {
       blocker: 'reconstruction-required',
       snapshotNodes: nodes.length,
@@ -98,18 +98,22 @@ export async function auditLegacyMemory(exec: KgExecutor): Promise<LegacyMemoryA
         WHERE ee.episode_id = ep.id) AS connected_nodes
      FROM kg_episodes ep
      WHERE ep.content_ref->>'schema' = $1
-       AND ep.content_ref->>'keyScopeVersion' IS DISTINCT FROM '1'
      ORDER BY ep.id`,
     [MEMORY_SCHEMA],
   );
+  const findings = rows.flatMap((row): LegacyMemoryFinding[] => {
+    const evidence = snapshotCounts(row);
+    if (
+      String(row.content_ref.keyScopeVersion) === '1' &&
+      evidence.blocker === 'reconstruction-required'
+    )
+      return [];
+    return [{ episodeId: row.id, ...evidence, connectedNodes: Number(row.connected_nodes) }];
+  });
   return {
     workId: 'KG-LEGACY-MEMORY-SCOPE-MIGRATION',
     readOnly: true,
-    legacyEpisodes: rows.length,
-    findings: rows.map((row) => ({
-      episodeId: row.id,
-      ...snapshotCounts(row),
-      connectedNodes: Number(row.connected_nodes),
-    })),
+    legacyEpisodes: findings.length,
+    findings,
   };
 }

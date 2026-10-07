@@ -107,6 +107,25 @@ describe('legacy memory provenance', () => {
     expect(await snapshot(db.exec)).toEqual(before);
   });
 
+  it('reports marked historical publications that still lack authoritative snapshots', async () => {
+    const marked = input();
+    marked.episode.contentRef!.keyScopeVersion = 1;
+    const result = await ingestEpisode(db.exec, marked);
+    await applyOps(db.exec, historicalOps(result.ops));
+    const report = await auditLegacyMemory(db.exec);
+    expect(report.legacyEpisodes).toBe(1);
+    expect(report.findings[0]?.blocker).toBe('missing-authoritative-snapshot');
+  });
+
+  it('retains ordered repeated node operations as authoritative evidence', async () => {
+    const repeated = input();
+    repeated.nodes.push({ ...repeated.nodes[0]!, summary: 'later authored summary' });
+    await ingestEpisode(db.exec, repeated);
+    const finding = (await auditLegacyMemory(db.exec)).findings[0];
+    expect(finding?.blocker).toBe('reconstruction-required');
+    expect(finding?.snapshotNodes).toBe(2);
+  });
+
   it('rejects a snapshot patched into an existing episode without its content-addressed identity', async () => {
     const result = await ingestEpisode(db.exec, input());
     await db.exec.query(

@@ -401,7 +401,7 @@
           "failingBehavior": "Historical unscoped writes can merge private/workspace node metadata; node-only rows lack episode-linked provenance. Current merged nodes cannot safely reconstruct ownership.",
           "durableTarget": "Maintained idempotent reconstruction from authoritative episode/outbox provenance into scoped keys and episode-linked subjects. Restore historical reads after verifying metadata ownership; never merely stamp the marker onto old rows.",
           "validationNeeded": "Mixed private/workspace/tenant rows, node-only publications, key collisions, rollback/idempotence, scan contamination and no cross-scope disclosure",
-          "currentBehavior": "Authenticated reads still quarantine unmarked memory and connected nodes. Maintained audit-legacy-memory reports missing/invalid snapshot or reconstruction-required blockers without exposing authored payloads. New additive memory ingestion preserves node and edge snapshots inside immutable episodes, including replica replay; original historical records remain unchanged.",
+          "currentBehavior": "Authenticated reads require node fields, attributes and timestamps to be attested by authorized immutable snapshots when any memory publication has incomplete provenance. Unattested scan metadata and both graph endpoints remain hidden. Memory edges always require an authorized snapshot of the actual immutable payload, preventing a colliding shared episode from authorizing an earlier private fact. Marked episodes with missing or invalid snapshots are included in the read-only audit. Original historical records remain unchanged.",
           "recoveryBlocker": "Historical node outbox operations contain no episode identifier or atomic batch manifest. Sequence adjacency, timestamps and merged current nodes cannot prove node metadata ownership, including node-only publications. Full reconstruction requires authoritative original publication records or snapshots; current storage alone cannot recover missing ownership evidence.",
           "inventory": [
             {
@@ -419,7 +419,21 @@
               "removalEvidence": "New writes retain authored snapshots. Missing historical evidence is explicitly reported; no adjacency-based or merged-node reconstruction path is introduced."
             }
           ],
-          "provenanceValidation": "38 focused graph tests passed across audit, publication, scoped reads and replica replay; seven new cases cover immutable payload preservation, node-only evidence, historical ambiguity, read-only inventory, tampering, transaction rollback/idempotence and edge provenance. Graph build and typecheck passed. Built audit CLI rejects --publish before database access. All 20 MCP product-mode integration cases passed against the rebuilt graph package; no production database access or inference calls."
+          "provenanceValidation": "38 focused graph tests passed across audit, publication, scoped reads and replica replay; seven new cases cover immutable payload preservation, node-only evidence, historical ambiguity, read-only inventory, tampering, transaction rollback/idempotence and edge provenance. Graph build and typecheck passed. Built audit CLI rejects --publish before database access. All 20 MCP product-mode integration cases passed against the rebuilt graph package; no production database access or inference calls.",
+          "availabilityLimit": "Unattested scan nodes, contaminated actors and their incident edges remain inaccessible to authenticated readers until authoritative reconstruction. A later publication cannot erase or bless unknown historical metadata. Fresh snapshots permit reads only when all required endpoints and metadata are attested.",
+          "archiveSearch": {
+            "searchedRoots": ["fleet checkout", "user home"],
+            "examinedDaemonSessions": 240,
+            "examinedSessionLedgerEntries": 240,
+            "sessionArchiveContents": "Session identity, task, notes and exit metadata; no authored node or edge publication payload.",
+            "hookReceipts": "No direct publication receipts identified by structured tool-name filtering. Text mentions are not publication evidence.",
+            "transcripts": "Original Claude, Codex and Grok session archives were searched. Examined publication mentions did not establish an authoritative node payload linked to episode and scope.",
+            "authoritativeHistoricalPublicationConfirmed": false,
+            "productionDatabaseAccess": false,
+            "historicalEvidenceModified": false,
+            "nextDurableWork": "Locate original publication records that bind authored node payloads to episode and scope, then implement maintained transactional reconstruction with rollback and idempotence tests."
+          },
+          "attestationValidation": "34 distinct graph cases passed across scoped reads, publication and historical provenance, including node-only scan contamination, later shared-edge authorization, immutable private-fact collisions, marked missing snapshots and ordered repeated operations. Rebuilt production MCP integration passed all 20 cases. Graph and harness builds/typechecks and normal commit gates passed. No production database access or inference calls."
         },
         {
           "id": "KG-REPOSITORY-SEARCH-FILTER",
@@ -459,5 +473,57 @@
         "validationNeeded": "Full suites under normal gate load with original hook/transport deadlines and measured cold fixture memory/startup cost."
       }
     }
+  },
+  "existingContentOwnershipDebt": {
+    "id": "HARNESS-MANAGED-CONTENT-OWNERSHIP-CONVERGENCE",
+    "status": "pending",
+    "owner": "@revealui/harnesses manager adapter generation and RevCon ownership manifests",
+    "owningPaths": [
+      "packages/harnesses/src/content/write-manager-adapters.ts",
+      "packages/harnesses/src/manager/materialize.ts",
+      ".claude/.revcon-manifest.json",
+      "revcon/link.sh",
+      "revcon/scripts/verify-copy-lockstep.sh"
+    ],
+    "failingBehavior": "Five committed managed-content files differ from their legacy RevCon ownership hashes. The same mismatches were present before this identity change; pending working-tree policy edits are independent.",
+    "durableTarget": "Converge each managed file on one canonical source and declared owner; regenerate content and its ownership ledger through that maintained owner, with copy-lockstep validation.",
+    "validationNeeded": "Canonical source freshness, one-owner enforcement, committed file hashes, profile and native adapter delivery, preservation of pending user edits.",
+    "inventory": [
+      {
+        "location": ".claude/rules/agent-dispatch.md",
+        "behavior": "Committed content differs from legacy ownership hash.",
+        "owner": "Harness manager adapters and legacy RevCon distribution",
+        "durableDestination": "Single canonical generator and matching ownership ledger",
+        "removalEvidence": "Pending; mismatch verified both before and after the identity commit."
+      },
+      {
+        "location": ".claude/rules/biome.md",
+        "behavior": "Committed content differs from legacy ownership hash.",
+        "owner": "Harness manager adapters and legacy RevCon distribution",
+        "durableDestination": "Single canonical generator and matching ownership ledger",
+        "removalEvidence": "Pending; mismatch verified both before and after the identity commit."
+      },
+      {
+        "location": ".claude/rules/skills-usage.md",
+        "behavior": "Committed content differs from legacy ownership hash.",
+        "owner": "Harness manager adapters and legacy RevCon distribution",
+        "durableDestination": "Single canonical generator and matching ownership ledger",
+        "removalEvidence": "Pending; mismatch verified both before and after the identity commit."
+      },
+      {
+        "location": ".claude/rules/token-economy.md",
+        "behavior": "Committed content differs from legacy ownership hash.",
+        "owner": "Harness manager adapters and legacy RevCon distribution",
+        "durableDestination": "Single canonical generator and matching ownership ledger",
+        "removalEvidence": "Pending; mismatch verified both before and after the identity commit."
+      },
+      {
+        "location": ".claude/rules/versioning.md",
+        "behavior": "Committed content differs from legacy ownership hash.",
+        "owner": "Harness manager adapters and legacy RevCon distribution",
+        "durableDestination": "Single canonical generator and matching ownership ledger",
+        "removalEvidence": "Pending; mismatch verified both before and after the identity commit."
+      }
+    ]
   }
 }
