@@ -14,6 +14,7 @@
   "devDependencies": {
     "@electric-sql/pglite": "catalog:",
     "@revealui/dev": "workspace:*",
+    "drizzle-kit": "^0.31.10",
     "drizzle-orm": "catalog:",
     "@types/node": "catalog:",
     "tsup": "catalog:",
@@ -26,6 +27,7 @@
   },
   "scripts": {
     "build": "tsup",
+    "db:migrate": "pnpm --filter @revealui/db build && drizzle-kit migrate --config=drizzle.config.ts",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "test": "vitest run",

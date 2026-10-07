@@ -110,14 +110,17 @@ without publishing it; its required summary fails if the image build fails.
 - Store the App key and webhook secret in this Fly app's secret store, never in
   repository Actions secrets, agent workspaces, the general product worker,
   the license signer, or RevVault paths used by those services.
-- Use a dedicated Postgres database and restricted controller role. The
-  runtime role must not own schema or migration objects. Apply migrations
-  separately; do not grant the runtime role DDL or update/delete on shadow
-  observations or receipt records. The canonical schema is
-  `packages/db/src/schema/internal/review-controller.ts`; the generated table
-  migration and the append-only trigger migration live in
-  `packages/db/migrations/` and are applied through the maintained database
-  migration flow.
+- Use a dedicated Postgres database. Create the runtime role with SQL rather
+  than the Neon Console, CLI, or API so it does not inherit `neon_superuser`.
+  `pnpm --filter @revealui/review-controller db:migrate` applies only the
+  controller migration journal, using `REVIEW_CONTROLLER_MIGRATION_DATABASE_URL`
+  for a migration-owner connection. It validates that the runtime role has no
+  elevated attributes or `neon_superuser` membership, then grants only inbox
+  processing access and append-only observation/receipt access. The runtime
+  role must not own schema or migration objects and receives no DDL, receipt
+  mutation, or observation mutation privileges. The canonical schema is
+  `packages/db/src/schema/internal/review-controller.ts`; the isolated journal
+  reuses its table and trigger migrations from `packages/db/migrations/`.
 - Keep one controller machine during the initial Fly-volume/inbox design.
   Run one worker process. Queue leases recover work and prevent duplicate
   claims; they do not fence concurrent check writes for the same PR. Scale only

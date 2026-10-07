@@ -718,6 +718,9 @@ importers:
       '@revealui/dev':
         specifier: workspace:*
         version: link:../../packages/dev
+      drizzle-kit:
+        specifier: ^0.31.10
+        version: 0.31.10
       '@types/node':
         specifier: 'catalog:'
         version: 25.9.5

@@ -182,6 +182,7 @@
     "db:generate-types": "node --import tsx scripts/dev-tools/post-migration-types.ts",
     "db:init": "node --import tsx scripts/setup/database.ts",
     "db:migrate": "pnpm --filter @revealui/db db:migrate",
+    "db:migrate:review-controller": "pnpm --filter @revealui/review-controller db:migrate",
     "db:migrate-and-generate": "pnpm db:migrate && pnpm db:generate-types",
     "db:reset": "node --import tsx scripts/setup/reset-database.ts",
     "db:seed": "pnpm db:seed:admin && pnpm db:seed:fleet-marketing && pnpm db:seed:fleet-marketing-home && pnpm db:seed:billing",
