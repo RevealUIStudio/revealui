@@ -14,8 +14,8 @@ export async function createTestDatabase(): Promise<{
   const client = new PGlite();
   const migrationDirectory = resolve(process.cwd(), '../../packages/db/migrations');
   for (const filename of [
-    '0050_review_controller_store.sql',
-    '0051_review_controller_receipt_immutable.sql',
+    '0053_review_controller_store.sql',
+    '0054_review_controller_receipt_immutable.sql',
   ]) {
     await client.exec(await readFile(resolve(migrationDirectory, filename), 'utf8'));
   }

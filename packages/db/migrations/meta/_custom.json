@@ -206,13 +206,18 @@
       "missingSnapshot": false
     },
     {
-      "tag": "0050_review_controller_store",
-      "rationale": "Generated controller tables require the repository's idempotent foreign-key guard, which drizzle-kit does not emit. The migration otherwise matches the 0050 schema snapshot generated from product and isolated-service schemas.",
+      "tag": "0050_private_site_visibility",
+      "rationale": "Normal drizzle-kit generation produced the companion SQL and snapshot from 0049. ADD COLUMN IF NOT EXISTS and a duplicate_object guard around the CHECK follow the maintained reapplication policy. No snapshot content was manually edited.",
       "missingSnapshot": false
     },
     {
-      "tag": "0051_review_controller_receipt_immutable",
-      "rationale": "Drizzle cannot express the append-only receipt trigger. This migration adds the database mutation guard after the generated receipt schema migration, and the companion snapshot copies the generated 0050 schema state unchanged.",
+      "tag": "0053_review_controller_store",
+      "rationale": "Generated controller tables require the repository's idempotent foreign-key guard, which drizzle-kit does not emit. The migration otherwise matches the 0053 schema snapshot generated from the latest product and isolated-service schemas.",
+      "missingSnapshot": false
+    },
+    {
+      "tag": "0054_review_controller_receipt_immutable",
+      "rationale": "Drizzle cannot express the append-only receipt trigger. This migration adds the database mutation guard after the generated receipt schema migration; its snapshot repeats the 0053 schema state unchanged.",
       "missingSnapshot": false
     }
   ]

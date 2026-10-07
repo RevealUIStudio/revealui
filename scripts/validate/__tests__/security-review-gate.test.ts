@@ -51,6 +51,53 @@ describe('classifyFiles — enforcement-machinery self-protection', () => {
   });
 });
 
+describe('classifyFiles — maintained push admission and execution entry points', () => {
+  const protectedFiles = [
+    '.husky/pre-push',
+    'scripts/git-hooks/push.sh',
+    'scripts/git-hooks/push-admission.cjs',
+    'scripts/git-hooks/cleanup.sh',
+    'scripts/git-hooks/__tests__/push.test.cjs',
+    'packages/scripts/exec.ts',
+    'scripts/gates/ci-gate.ts',
+    'scripts/gates/__tests__/ci-gate-worker-lifecycle.test.ts',
+    'package.json',
+    'packages/harnesses/package.json',
+  ];
+
+  it.each(protectedFiles)('requires security review for %s', (file) => {
+    expect(classifyFiles([file])).toEqual([file]);
+    expect(
+      decideReviewGate({ verdict: noMarker, labels: [CLEAR_LABEL], reviewDecision: 'APPROVED' })
+        .action,
+    ).toBe('hold');
+  });
+
+  it('keeps code-owner review on the same push and manifest surfaces', () => {
+    const owners = readFileSync(join(__dirname, '../../../.github/CODEOWNERS'), 'utf8');
+    for (const pattern of [
+      '/.husky/pre-push',
+      '/scripts/git-hooks/',
+      '/packages/scripts/exec.ts',
+      '/scripts/gates/',
+      '**/package.json',
+    ]) {
+      expect(owners.split('\n')).toContain(`${pattern} @joshua-v-dev @RevealUIStudio`);
+    }
+  });
+
+  it('does not classify normal cache content or documentation as execution policy', () => {
+    expect(
+      classifyFiles([
+        'docs/CI_CD_GUIDE.md',
+        'apps/admin/.next/cache/entry',
+        'packages/scripts/paths.ts',
+        'scripts/utils/base.ts',
+      ]),
+    ).toEqual([]);
+  });
+});
+
 // GAP-404: shared markers (security-paths.shared.json) must drive classifyFiles.
 // These three surfaces were the GAP-400 false-pass class — sessions, editor, audit store.
 describe('classifyFiles — shared SECURITY_PATHS source (GAP-404)', () => {

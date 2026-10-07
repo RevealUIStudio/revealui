@@ -52,8 +52,17 @@ export function publicCacheMiddleware(options: {
   return async (c, next) => {
     await next();
     // Only cache successful GET responses
-    if (c.req.method === 'GET' && c.res.status < 400) {
+    if (
+      c.req.method === 'GET' &&
+      c.res.status < 400 &&
+      !c.res.headers.has('Cache-Control') &&
+      !c.req.header('Authorization') &&
+      !c.req.header('Cookie') &&
+      !c.res.headers.has('Set-Cookie')
+    ) {
       c.header('Cache-Control', value);
+    } else if (!c.res.headers.has('Cache-Control')) {
+      c.header('Cache-Control', NO_STORE);
     }
   };
 }
