@@ -18,7 +18,7 @@
       "source": "profiles/revealui/agents/skills/vercel-composition-patterns/SKILL.md"
     },
     "skills/vercel-deploy/SKILL.md": {
-      "sha256": "699b8d45d1faf8cc91107ef4353cde87dcb7c5b114647aca9438d035a2222cb1",
+      "sha256": "30b2b8e3941315bb00a91a52cf41c3a2f740eeff17f6b125dcb0e1042b91794d",
       "source": "profiles/revealui/agents/skills/vercel-deploy/SKILL.md"
     },
     "skills/vercel-react-best-practices/SKILL.md": {
@@ -36,6 +36,7 @@
   },
   "mode": "copy",
   "profiles": [
+    "revealfleet",
     "revealui"
   ]
 }

@@ -341,7 +341,11 @@ export async function execParallel(
       const [command, args, cmdOptions] = entry;
       const start = performance.now();
       try {
-        results[index] = await execCommand(command, args, { ...execOptions, ...cmdOptions, dryRun: Boolean(execOptions.dryRun || cmdOptions?.dryRun) });
+        results[index] = await execCommand(command, args, {
+          ...execOptions,
+          ...cmdOptions,
+          dryRun: Boolean(execOptions.dryRun || cmdOptions?.dryRun),
+        });
       } catch (error) {
         results[index] = {
           success: false,

@@ -156,6 +156,7 @@ describe('project manager (.revealui)', () => {
     const profileEntry = {
       source: 'profiles/revealfleet/claude/rules/git.md',
       sha256: 'a'.repeat(64),
+      generatedFrom: '.revealui/content/rules/git.md',
     };
     const ledgerPath = join(root, '.claude/.revcon-manifest.json');
     writeFileSync(
@@ -164,12 +165,14 @@ describe('project manager (.revealui)', () => {
         mode: 'copy',
         editor: 'claude',
         profiles: ['revealfleet'],
+        generatedFrom: '.revealui',
         files: { 'rules/git.md': profileEntry, 'rules/biome.md': profileEntry },
       }),
     );
     writeManagerAdapterContent(root);
     const ledger = JSON.parse(readFileSync(ledgerPath, 'utf8'));
     expect(ledger.files['rules/git.md']).toEqual(profileEntry);
+    expect(ledger.generatedFrom).toBe('.revealui');
     expect(ledger.files['rules/biome.md'].source).toBe('harnesses:rules/biome.md');
     const first = readFileSync(ledgerPath, 'utf8');
     writeManagerAdapterContent(root);

@@ -49,18 +49,22 @@ export function claudeRulePathForDefinitionId(ruleId: string): string {
   return join('.claude', 'rules', `${ruleId}.md`);
 }
 
-const ClaudeOwnershipSchema = z.object({
-  mode: z.literal('copy'),
-  editor: z.literal('claude'),
-  profiles: z.array(z.string()),
-  files: z.record(
-    RelativeManagerPathSchema,
-    z.object({
-      source: z.string().min(1),
-      sha256: z.string().length(64),
-    }),
-  ),
-});
+const ClaudeOwnershipSchema = z
+  .object({
+    mode: z.literal('copy'),
+    editor: z.literal('claude'),
+    profiles: z.array(z.string()),
+    files: z.record(
+      RelativeManagerPathSchema,
+      z
+        .object({
+          source: z.string().min(1),
+          sha256: z.string().length(64),
+        })
+        .passthrough(),
+    ),
+  })
+  .passthrough();
 
 /** One existing ledger records each file's actual owner; profile entries survive. */
 function claudeOwnershipFile(projectRoot: string, mirrors: GeneratedFile[]): GeneratedFile {

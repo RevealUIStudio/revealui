@@ -33,6 +33,7 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { rules } from '../../packages/harnesses/src/content/definitions/rules/index.js';
 import { contentRootRelative, loadManager } from '../../packages/harnesses/src/manager/paths.js';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
@@ -48,7 +49,7 @@ function contentRulesRelative(root: string): string {
 }
 const MATERIALIZE_CMD = 'pnpm exec revealui-harnesses manager materialize';
 const REAPPLY_CMD =
-  'bash ~/revealfleet/revcon/link.sh --target ~/revealfleet/revealui --profile revealfleet --profile revealui --editor claude --mode copy';
+  'bash "$REVEALFLEET_ROOT/revcon/link.sh" --target "$PWD" --profile revealfleet --profile revealui --editor claude --mode copy';
 
 export interface ManifestEntry {
   source: string;
@@ -76,19 +77,9 @@ export function loadManifest(root: string): Manifest | null {
   return parsed as Manifest;
 }
 
-/**
- * Basenames (without .md) of definition-backed rules present under content.
- * Empty when the content tree is absent (caller still fails manager check).
- */
-export function definitionRuleIdsFromContent(root: string): Set<string> {
-  const dir = path.join(root, contentRulesRelative(root));
-  const ids = new Set<string>();
-  if (!fs.existsSync(dir)) return ids;
-  for (const name of fs.readdirSync(dir)) {
-    if (!name.endsWith('.md') || name.startsWith('00-')) continue;
-    ids.add(name.slice(0, -'.md'.length));
-  }
-  return ids;
+/** Package ownership comes from the canonical catalog, not native file presence. */
+export function definitionRuleIds(): Set<string> {
+  return new Set(rules.map((rule) => rule.id));
 }
 
 /** True when `rel` is `.claude/rules/<definition-id>.md`. */
@@ -112,7 +103,7 @@ function gitTrackedMaterializedFiles(root: string): string[] {
  * Pure verification core: returns one human-readable problem line per
  * violation. `trackedFiles` is the repo-relative list of git-tracked files
  * under MATERIALIZED_DIRS (injected so tests need no git repo).
- * `definitionIds` is injected for tests; defaults from content tree when omitted.
+ * `definitionIds` is injected for tests; defaults to the package catalog when omitted.
  */
 export function verifyLockstep(
   root: string,
@@ -121,7 +112,7 @@ export function verifyLockstep(
   definitionIds?: Set<string>,
 ): string[] {
   const problems: string[] = [];
-  const defIds = definitionIds ?? definitionRuleIdsFromContent(root);
+  const defIds = definitionIds ?? definitionRuleIds();
   const contentRulesRel = contentRulesRelative(root);
 
   if (manifest.mode !== 'copy' || typeof manifest.files !== 'object' || manifest.files === null) {
@@ -164,6 +155,13 @@ export function verifyLockstep(
             `Run: ${MATERIALIZE_CMD}`,
         );
       }
+      continue;
+    }
+
+    if (entry.source.startsWith('harnesses:')) {
+      problems.push(
+        `${fileRel} - unknown harness-owned rule; use the canonical definition catalog`,
+      );
       continue;
     }
 
@@ -219,7 +217,7 @@ export function main(): number {
   }
 
   const tracked = gitTrackedMaterializedFiles(ROOT);
-  const defIds = definitionRuleIdsFromContent(ROOT);
+  const defIds = definitionRuleIds();
   const problems = verifyLockstep(ROOT, manifest, tracked, defIds);
 
   if (problems.length > 0) {

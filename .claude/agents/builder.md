@@ -1,3 +1,4 @@
+<!-- generated from .revealui/content/agents/builder.md -->
 ---
 name: builder
 description: Builds and typechecks packages in isolation

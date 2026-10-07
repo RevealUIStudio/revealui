@@ -37,7 +37,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { ErrorCode } from '@revealui/scripts/errors.js';
-import { execCommand, execParallel } from '@revealui/scripts/exec.js';
+import { execCommand } from '@revealui/scripts/exec.js';
 import { createLogger, getProjectRoot } from '../utils/base.js';
 import { phaseConcurrency } from '../utils/resource-admission.js';
 

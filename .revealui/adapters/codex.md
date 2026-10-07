@@ -33,7 +33,7 @@ Read applicable rules before work in their scope:
 - .revealui/content/rules/code-analysis-policy.md: Prefer AST-based analysis over regex for security and architecture checks
 - .revealui/content/rules/database.md: NeonDB (PostgreSQL) primary store, Drizzle ORM, and migration discipline
 - .revealui/content/rules/parameterization.md: Never hardcode config values  -  extract, type, default, and make overridable
-- .revealui/content/rules/skills-usage.md: When to proactively invoke skills vs wait for explicit user request
+- .revealui/content/rules/skills-usage.md: Assess actual skill inputs, outputs, effects, and verification before invocation
 - .revealui/content/rules/tailwind.md: Tailwind v4 syntax rules, v3→v4 migration gotchas, and shared config patterns
 - .revealui/content/rules/versioning.md: 0.x until real external consumers + stable contract; ai@1.x is a named exception; private packages never 1.0-publish
 

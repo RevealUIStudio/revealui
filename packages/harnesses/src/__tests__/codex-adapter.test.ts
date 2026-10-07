@@ -338,7 +338,16 @@ describe('Codex app-server adapter', () => {
 
   it('never answers a request already resolved by the server', async () => {
     const { adapter, messages } = fixture('resolved-approval', {
-      onApproval: async () => 'accept',
+      onApproval: (_request, signal) =>
+        new Promise((resolve) => {
+          signal.addEventListener(
+            'abort',
+            () => {
+              resolve('accept');
+            },
+            { once: true },
+          );
+        }),
     });
     expect((await adapter.execute({ type: 'headless-prompt', prompt: 'hello' })).success).toBe(
       false,

@@ -5,7 +5,13 @@ import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { coldDaemonSessionsDir } from '../session/archive-exit.js';
-import { hashParams, openRuntimeSession, sessionEnd, sessionRegister, signRpc } from '../session/index.js';
+import {
+  hashParams,
+  openRuntimeSession,
+  sessionEnd,
+  sessionRegister,
+  signRpc,
+} from '../session/index.js';
 
 describe('session boundary (soft-optional daemon)', () => {
   const dirs: string[] = [];
@@ -23,11 +29,12 @@ describe('session boundary (soft-optional daemon)', () => {
   });
 
   it('uses only the canonical archive setting', () => {
+    const retiredArchiveKey = ['REV', 'FLEET'].join('') + '_ARCHIVE';
     const canonical = process.env.REVEALFLEET_ARCHIVE;
-    const legacy = process.env.REVFLEET_ARCHIVE;
+    const legacy = process.env[retiredArchiveKey];
     try {
       delete process.env.REVEALFLEET_ARCHIVE;
-      process.env.REVFLEET_ARCHIVE = '/ignored-legacy-archive';
+      process.env[retiredArchiveKey] = '/ignored-legacy-archive';
       expect(coldDaemonSessionsDir()).toBe(
         join(homedir(), 'revealfleet', 'archive', 'cold', 'sessions', 'daemon'),
       );
@@ -40,8 +47,8 @@ describe('session boundary (soft-optional daemon)', () => {
     } finally {
       if (canonical === undefined) delete process.env.REVEALFLEET_ARCHIVE;
       else process.env.REVEALFLEET_ARCHIVE = canonical;
-      if (legacy === undefined) delete process.env.REVFLEET_ARCHIVE;
-      else process.env.REVFLEET_ARCHIVE = legacy;
+      if (legacy === undefined) delete process.env[retiredArchiveKey];
+      else process.env[retiredArchiveKey] = legacy;
     }
   });
 

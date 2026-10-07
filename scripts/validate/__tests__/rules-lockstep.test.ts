@@ -40,6 +40,24 @@ afterEach(() => {
 });
 
 describe('verifyLockstep', () => {
+  it('keeps profile-owned native rules separate from package definitions', () => {
+    const body = '# Profile routing\n';
+    writeRule(
+      'rules/tool-routing.md',
+      `<!-- generated from .revealui/content/rules/tool-routing.md -->\n${body}`,
+    );
+    mkdirSync(path.join(root, '.revealui/content/rules'), { recursive: true });
+    writeFileSync(path.join(root, '.revealui/content/rules/tool-routing.md'), body);
+    const manifest = manifestFor({ 'rules/tool-routing.md': '' });
+    manifest.files['rules/tool-routing.md']!.source =
+      'profiles/revealui/revealui/rules/tool-routing.md';
+    expect(verifyLockstep(root, manifest, ['.claude/rules/tool-routing.md'])).toEqual([]);
+    manifest.files['rules/tool-routing.md']!.source = 'harnesses:rules/tool-routing.md';
+    expect(verifyLockstep(root, manifest, ['.claude/rules/tool-routing.md'])[0]).toContain(
+      'unknown harness-owned rule',
+    );
+  });
+
   it('uses the supported manager contentRoot for harness ownership', () => {
     const body = '# Biome\n';
     writeRule('rules/biome.md', body);

@@ -645,7 +645,7 @@
     ],
     "publicationFollowup": {
       "id": "CODEX-INTEGRATION-LIVE-BRANCH-RECONCILIATION",
-      "status": "pending",
+      "status": "reconciled-locally-awaiting-publication",
       "owner": "RevealUI harnesses/knowledge-graph/MCP and RevCon integration branches",
       "owningPaths": [
         "packages/harnesses",
@@ -656,7 +656,8 @@
       ],
       "failingBehavior": "Local integration commits are based on a test history that has diverged from live GitHub. Direct publication would not reconcile newer server changes.",
       "durableTarget": "Reconcile the integration series onto each verified current test branch in an isolated clean checkout. Preserve the existing patched dependencies, shared typed database and transaction contracts, and vendor-neutral policy ownership; regenerate consumers through their maintained owners. Publish through the maintained push admission path after the required validations and session authorization.",
-      "validationNeeded": "Validate the resulting integrated source, canonical identity, portable native distribution, authenticated memory provenance and scoped reads, manager path support, source freshness and both lockstep gates. Confirm protected-branch required checks and app access before publication. Revalidate memory queries and transaction rollback against the shared database contract, preserve MCP SDK 1.31 and dependency overrides, retain the 25-minute CI suite timeout, and use the maintained clean-checkout push admission and planning projection lockstep gates."
+      "validationNeeded": "Validate the resulting integrated source, canonical identity, portable native distribution, authenticated memory provenance and scoped reads, manager path support, source freshness and both lockstep gates. Confirm protected-branch required checks and app access before publication. Revalidate memory queries and transaction rollback against the shared database contract, preserve MCP SDK 1.31 and dependency overrides, retain the 25-minute CI suite timeout, and use the maintained clean-checkout push admission and planning projection lockstep gates.",
+      "localResolution": "Integration replay and durable ownership/projection corrections are committed on isolated branches after the recorded validations. Publication and protected-branch/App access verification remain separate actions."
     },
     "disposition": "Owner, branch and source review refreshed; local audit update only. Pending edits preserved. No GitHub settings write, push, merge, production inference, or memory migration.",
     "previousReview": {
@@ -765,6 +766,142 @@
         }
       ],
       "assessment": "The latest 24 RevealUI commits do not directly change harnesses or knowledge-graph source. Database contracts and MCP dependencies did change, so memory transaction behavior, returned rows, authenticated scoped reads and native delivery require validation on the reconciled branch. Existing pending edits were preserved and were not attributed to upstream commits; their exact change time is not established by this review."
+    },
+    "localReconciliation": {
+      "date": "2026-10-07",
+      "status": "complete-local",
+      "branch": "fix/codex-integration-reconcile-20261007",
+      "bases": {
+        "RevealUIStudio/revealui": "3744de2def1ca2ac5294f7251dac053df6aa8068",
+        "revealui-studio/revcon": "0438842106bd3039c218947f049c68f03ba6a4e3"
+      },
+      "originalCheckouts": {
+        "revealui": "f08db5e82ca593810f649116fe099962291fca05",
+        "revcon": "6658fdf369c4202de193170f91dd79c1a7d7dcee",
+        ".jv": "49ecda655baa685040fa74820e70522f2855b730"
+      },
+      "preservedUpstream": [
+        "MCP SDK 1.31 and patched dependency overrides",
+        "Shared typed PostgreSQL row and transaction contracts",
+        "Maintained gate resource admission and global dry-run semantics",
+        "Configured App authorization and private-content checks",
+        "Native RevCon policy sources and vendor projections",
+        "25-minute unit CI timeout and clean-checkout push admission"
+      ],
+      "replayDecisions": [
+        "Replayed all nine local RevealUI integration commits onto the fetched test head.",
+        "Replayed portable delivery and harness ownership in RevCon; the old profile rename was superseded by the current canonical native source layout."
+      ],
+      "durableCorrections": [
+        {
+          "location": "RevCon link.sh: distribute_editors / projection_real_file_owned",
+          "priorBehavior": "Native distribution could overwrite package-owned rule twins or lose existing vendor ownership evidence before projection migration.",
+          "owner": "RevCon distribution",
+          "durableDestination": "Existing distributor validates harness ownership before writes, excludes package-owned native twins, and retains hash-verified legacy projection evidence only in runtime state.",
+          "removalEvidence": "Native delivery fixtures cover package-rule preservation, idempotent projection migration and rejection of modified copies before native writes."
+        },
+        {
+          "location": "packages/harnesses/src/content/write-manager-adapters.ts",
+          "priorBehavior": "Ownership schema parsing discarded upstream projection metadata.",
+          "owner": "Harness materializer",
+          "durableDestination": "Existing ownership schema preserves metadata while validating file ownership.",
+          "removalEvidence": "Manager regression preserves outer and per-file generatedFrom metadata."
+        },
+        {
+          "location": "scripts/validate/rules-lockstep.ts",
+          "priorBehavior": "Every native rule file was inferred to be package-owned, so current profile projections failed the gate.",
+          "owner": "Rules lockstep gate",
+          "durableDestination": "Package ownership derives from the canonical rule definition catalog; unknown harness owner claims fail.",
+          "removalEvidence": "Gate fixtures accept profile-owned native projections and reject forged package ownership."
+        },
+        {
+          "location": "RevCon README.md, link.sh usage and scripts/verify-copy-lockstep.sh; RevealUI scripts/validate/rules-lockstep.ts remediation",
+          "priorBehavior": "Operating examples assumed a home-directory checkout and described the former symlink default.",
+          "owner": "Distribution documentation and gate remediation",
+          "durableDestination": "Supported REVEALFLEET_ROOT and explicit target arguments; documentation states copy delivery is the default.",
+          "removalEvidence": "Maintained examples and remediation updated; shell syntax checks and distribution suites pass."
+        }
+      ],
+      "validation": {
+        "workspaceBuild": "passed",
+        "harnessTypecheck": "passed",
+        "harnessTests": 128,
+        "nativeCodexMemoryTests": 1,
+        "memoryAndTransactionTests": 49,
+        "mcpPrincipalAndMemoryTests": 15,
+        "ownershipAndCiGateTests": 43,
+        "executionUtilityTests": 28,
+        "revconChecks": 61,
+        "nativeDeliveryFixtureTests": 10,
+        "sourceAndConsumerLockstep": "passed: 14 shared-skill comparisons, 9 rule comparisons, 42 fresh generated files, 285 Claude copies and 8 profile-owned Codex copies; 21 package rule mirrors"
+      },
+      "validationNotes": [
+        "Initial concurrent-build test failures included missing dist exports and process startup contention. Failed suites were rerun after the supported workspace build; original deadlines were retained.",
+        "The server-resolved approval fixture now holds review until withdrawal and verifies that a late acceptance cannot be sent."
+      ],
+      "remainingWork": [
+        "Protected-branch required-check and App-access verification before publication through the maintained push admission path.",
+        "Historical memory scope reconstruction remains the separately tracked KG-LEGACY-MEMORY-SCOPE-MIGRATION blocker; no historical identity or scope was inferred."
+      ],
+      "disposition": "Local isolated branches only. Original committed heads and pending edits preserved. No push, merge, settings write, paid inference or historical memory migration.",
+      "deliveredSkills": [
+        {
+          "path": ".agents/skills/revealui-conventions/SKILL.md",
+          "sha256": "70e4edb8a20c040b9e5e4739ca5d14190ace9eee30d112149d4580fe0502b34c"
+        },
+        {
+          "path": ".agents/skills/revealui-db/SKILL.md",
+          "sha256": "50da7f50fbabcc11d40b205b496167b8757e5a675c0d5c5c0f182b9daa37a9e8"
+        },
+        {
+          "path": ".agents/skills/revealui-debugging/SKILL.md",
+          "sha256": "bf751f815af5ab74c197810015257ec975f65af3bc56dde6b903fb2259ccce9c"
+        },
+        {
+          "path": ".agents/skills/revealui-review/SKILL.md",
+          "sha256": "88137c8bec0f75ffba707cfbcfc96a79e8288d862ffac6fd0f5de0a185e8ef40"
+        },
+        {
+          "path": ".agents/skills/revealui-safety/SKILL.md",
+          "sha256": "8db2d19f7ec82e39b3344fc90d26bb1100bffbbee96b3ecad3955186f55e8883"
+        },
+        {
+          "path": ".agents/skills/revealui-tdd/SKILL.md",
+          "sha256": "8eafbeee924be02dbd758b91067b02060058cdee2c9652f366725785e834b3e2"
+        },
+        {
+          "path": ".agents/skills/revealui-testing/SKILL.md",
+          "sha256": "0b86c021c22f4bc2eadc36e22512da3bab9529a55a3110f0e73cc168bdf3b416"
+        },
+        {
+          "path": ".agents/skills/next-best-practices/SKILL.md",
+          "sha256": "6ff0eb7e14fd2d32992e6e48e8f86f60e917df6651c7ecdfe85fb9d309a8f0f8"
+        },
+        {
+          "path": ".agents/skills/next-cache-components/SKILL.md",
+          "sha256": "e4af48d7ea08928da50117db5aaf21d5d112e4a01fbcac4d8ec7efa50acbe3a3"
+        },
+        {
+          "path": ".agents/skills/turborepo/SKILL.md",
+          "sha256": "139eec113966c9b1403e8b6d9b83ee6b265ef85f2dbb1b9145224af28ca7493c"
+        },
+        {
+          "path": ".agents/skills/vercel-composition-patterns/SKILL.md",
+          "sha256": "74b9bace3415020b17a56eaf9b124a5b8a37b3ec8ef89909d19f648498b50eda"
+        },
+        {
+          "path": ".agents/skills/vercel-deploy/SKILL.md",
+          "sha256": "30b2b8e3941315bb00a91a52cf41c3a2f740eeff17f6b125dcb0e1042b91794d"
+        },
+        {
+          "path": ".agents/skills/vercel-react-best-practices/SKILL.md",
+          "sha256": "e04d04e3bd65a25f0e3dc694d0b5d3141e2bbb5a3601754490b4829c313dfa42"
+        },
+        {
+          "path": ".agents/skills/web-design-guidelines/SKILL.md",
+          "sha256": "ec0b6456e2b090190db71eeac716e67d3c1dcb9e93a7f86990fd0a822fc6339e"
+        }
+      ]
     }
   }
 }
