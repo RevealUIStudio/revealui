@@ -184,7 +184,7 @@ export async function runCheck(check: CheckDef): Promise<CheckResult> {
   // Capture buffers and command arguments can contain credentials. Only report
   // process outcome metadata, retaining warning-only policy unchanged.
   const report = `${check.name}: ${formatFailure(failure)}`;
-  if (check.warnOnly) logger.warn(report);
+  if (check.warnOnly) logger.warning(report);
   else logger.error(report);
   return { name: check.name, status: check.warnOnly ? 'warn' : 'fail', durationMs, failure };
 }
