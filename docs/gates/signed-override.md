@@ -30,7 +30,7 @@ ssh-keygen -t ed25519 -f ~/.ssh/id_revealfleet_override -C override@revealui.com
 Return only the contents of `~/.ssh/id_revealfleet_override.pub` or the public
 allowed-signers entry. The `.pub` suffix matters.
 
-Set the repository Actions variable `REVFLEET_OVERRIDE_SIGNERS` to the public
+Set the repository Actions variable `REVEALFLEET_OVERRIDE_SIGNERS` to the public
 allowed-signers entry. It has this shape (replace the placeholder with the
 owner's real public key; this is not an activation value):
 
@@ -41,6 +41,28 @@ owner@revealui.com namespaces="revealfleet-override" ssh-ed25519 PUBLIC_KEY_BASE
 An absent trust anchor denies override authorization. The signature cannot
 supply its own trust anchor. Repository-variable administration remains an
 owner action; code delivery does not activate the key or change rulesets.
+
+### Canonical configuration cutover
+
+Repository-variable administration owns the configuration migration. Rename the
+existing GitHub Actions repository variable to `REVEALFLEET_OVERRIDE_SIGNERS`
+through the supported repository-variable editor/API, preserving the identical
+public allowed-signers entry. Coordinate this cutover with every consuming
+repository's security-gate workflow and CLI source. Do not create a second
+variable or key. There is no legacy-variable fallback in the verifier; a
+consumer that has not completed its cutover remains blocked.
+
+Validation requires each consumer's deployed workflow to supply the canonical
+variable, a current exact-head owner grant to verify using the unchanged public
+anchor, and legacy-only or missing configuration to deny authorization. Record
+the actual repository-variable change and fresh gate results before claiming the
+cutover is complete. Source tests and a merged code change do not establish
+GitHub settings activation.
+
+This is a configuration identifier migration. It does not change the canonical
+payload bytes, SSHSIG namespace, comment envelope, key, owner identity, expiry,
+or exact-head binding. Existing valid owner signatures remain bound to their
+original context; a different PR head still requires its own owner signature.
 
 ## Prepare, sign and attach
 

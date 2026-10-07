@@ -25,7 +25,7 @@ and a REST API. The heart of RevealUI and the most mature part of the codebase.
 **68 native React components in `@revealui/presentation`** (plus admin and rich-text UI in `@revealui/core`), built on Tailwind CSS v4. No external UI dependencies (no Radix, no Headless UI, no shadcn). Just React hooks, clsx, and CVA. Buttons, forms, modals, tables, toasts, navigation, data display, and layout primitives.
 
 ### Database schema
-**125 PostgreSQL tables** with Drizzle ORM, **111 CHECK constraints** enforced at the database level. NeonDB is the sole primary database (REST, agent memories, and RAG via pgvector on Neon). Supabase is not an internal datastore (ADR `2026-05-01-supabase-removal`); the customer-facing Supabase MCP adapter was removed (use Neon MCP). ElectricSQL is an optional sync layer (off by default).
+**125 PostgreSQL tables** with Drizzle ORM, **112 CHECK constraints** enforced at the database level. NeonDB is the sole primary database (REST, agent memories, and RAG via pgvector on Neon). Supabase is not an internal datastore (ADR `2026-05-01-supabase-removal`); the customer-facing Supabase MCP adapter was removed (use Neon MCP). ElectricSQL is an optional sync layer (off by default).
 
 ### Rich text editing
 Lexical-based rich text editor with custom nodes, serialization, and a plugin system.
@@ -119,14 +119,14 @@ Honest list of things that are not done, not deployed, or not verified.
 | Internal packages | 2 (`@revealui/scripts`, `@revealui/apify-actor-governed-run`) | Yes |
 | UI components | 68 in `@revealui/presentation` | Yes |
 | Database tables | 125 | Yes (`countDbTables` in `@revealui/claim-gates`) |
-| CHECK constraints | 111 | Yes (`countCheckConstraints` in `@revealui/claim-gates`) |
+| CHECK constraints | 112 | Yes (`countCheckConstraints` in `@revealui/claim-gates`) |
 | MCP servers | 14 | Yes (run `ls packages/mcp/src/servers/*.ts` and count non-`_` files) |
 | Test cases | run `pnpm test` for current count | Reproducible |
 | Test files | run `find . -name "*.test.ts*" -not -path "*/node_modules/*"` | Reproducible |
 | API route files | run `find apps/server/src/routes -name '*.ts' -not -name '*.test.ts' \| wc -l` | Reproducible |
 | Real production users | 0 | Yes |
 
-> Counting rules (enforced in CI by `pnpm validate:claims`, canonical values in `apps/marketing/app/content/site.ts` `METRICS`): **UI components** counts `.tsx` files in `packages/presentation/src/components/` excluding `_`-prefixed helpers. **MCP servers** counts `.ts` files in `packages/mcp/src/servers/` excluding `index*` and `_`-prefixed helpers, and includes the `adapter.ts` framework module (14). **Workspaces** counts `packages/*` plus `apps/*` that carry a `package.json` (32 + 6 = 38). `license-signer` and `rsc-poc` are in-tree apps, not customer-facing products. **Database tables** counts `pgTable(` CallExpressions; **CHECK constraints** counts `check(` CallExpressions; the **license split** is read from each `packages/*/package.json` `license` field.
+> Counting rules (enforced in CI by `pnpm validate:claims`, canonical values in `apps/marketing/app/content/site.ts` `METRICS`): **UI components** counts `.tsx` files in `packages/presentation/src/components/` excluding `_`-prefixed helpers. **MCP servers** counts `.ts` files in `packages/mcp/src/servers/` excluding `index*` and `_`-prefixed helpers, and includes the `adapter.ts` framework module (14). **Workspaces** counts `packages/*` plus `apps/*` that carry a `package.json` (33 + 6 = 39). `license-signer` and `rsc-poc` are in-tree apps, not customer-facing products. **Database tables** counts `pgTable(` CallExpressions; **CHECK constraints** counts `check(` CallExpressions; the **license split** is read from each `packages/*/package.json` `license` field.
 
 ---
 

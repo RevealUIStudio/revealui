@@ -1,27 +1,42 @@
 import type { Rule } from '../../schemas/rule.js';
 
 /**
- * Long-term root-cause fixes only; hotfixes are registered debt (owner 2026-07-21).
- * Proposing workarounds is forbidden (owner 2026-08-06).
+ * Root-cause fixes only; the registry inventories existing debt.
+ * No owner-approved, session-only or registered-hotfix exception.
  */
 export const durableSolutionsRule: Rule = {
   id: 'durable-solutions',
   tier: 'oss',
   name: 'Durable Solutions',
   description:
-    'Root-cause fixes only; never propose workarounds; register any owner-accepted hotfix the same turn',
+    'Root-cause fixes only; no one-off exceptions; inventory existing debt and verify its removal',
   scope: 'global',
   preambleTier: 1,
   tags: ['sdlc', 'hardline', 'hotfix', 'quality', 'no-workarounds'],
   content: `# Durable Solutions
 
-**Status:** HARDLINE every session (all harnesses). Owner 2026-07-21 (durable first);
-owner 2026-08-06 (**proposing workarounds is forbidden**).
+**Status:** HARDLINE every session, product and internal change (all harnesses).
+There is no one-off or hotfix exception.
+
+## Canonical fleet identity
+
+Use **RevealFleet** as the visible fleet name, \`revealfleet\` as its profile
+and path slug, and \`REVEALFLEET\` as its configuration prefix. Reject alternate
+fleet identity spellings and aliases in active names, generated content and
+configuration. Migrate existing instances through their owning source and
+validated consumer cutover; do not add a compatibility alias or fallback.
+
+Necessary negative test fixtures and historical security-detection patterns
+record rejected input and evidence; they do not authorize alternate active
+names. A naming migration must preserve existing cryptographic protocols and
+trust anchors unless their security owners approve and validate that separate
+change.
 
 Prefer long-term durable solutions. Fix root causes in the owning layer (shared
 lib, env bootstrap, policy, product primitive) so the failure class cannot
 recur. Session-local patches, one-off shell recipes, and "works on my machine"
-overrides are not done unless the owner accepts a **registered hotfix**.
+overrides are prohibited. Owner acceptance or a registry entry does not make
+a one-off solution acceptable.
 
 ## Proposing workarounds is forbidden
 
@@ -42,7 +57,7 @@ This applies to **code, chat, handoffs, PR descriptions, and walk-throughs**.
 | Session-only | Scratch scripts the owner must re-run forever |
 | Symptom patch | Catch-and-ignore; disable the gate "for now" |
 | Parallel path | Second seed script / second resolver "just for this case" |
-| Silent demotion | "We'll harden later" with no registry entry or GAP |
+| Silent demotion | Promise later hardening while the failing owning primitive stays open |
 | Soften the ban | "Temporary workaround:", "for now you can…", "as a stopgap…" |
 
 ### When blocked
@@ -51,41 +66,44 @@ State the block honestly. List **only durable next actions**.
 
 - **Blocked on:** unmerged durable PR, failed CI (name the outage), missing owner
   disposition, missing deploy, missing design decision.
-- **Do:** name the owning primitive, the PR/GAP/ADR, the one-line owner command
-  when disposition is needed.
+- **Do:** record the owning path, failing behavior, durable target, validation
+  needed and tracked follow-up. Continue useful authorized work that does not
+  depend on the blocker.
 - **Do not:** invent a second way to get the user unblocked that leaves the
   bug live for everyone else.
 
-If the only honest move is "wait for GitHub Actions / deploy / owner merge",
-say that and stop. Waiting is not a workaround; offering a substitute procedure is.
+When provider evidence or owner disposition is required, report that dependency
+honestly. A ticket records work; it is not a fix. Do not offer a substitute
+procedure that leaves the failure class open.
 
-### Hotfixes (narrow exception — still not free-form advice)
+### Existing one-off inventory
 
-A **registered hotfix** is allowed only when the owner **explicitly accepts**
-registered debt in-session (production or peer must be unblocked *now*). Same
-turn: register symptom, temporary shape, durable target, paths, optional GAP.
-Unregistered hotfixes are policy violations equal to orphan temp scripts.
+Search affected code and operating instructions for prior exceptions. Record
+each location, behavior, owner, durable destination and removal evidence. The
+hotfix registry inventories existing debt; it never authorizes a new one-off.
+Remove an existing exception after its owning replacement is verified.
 
-Proposing "just do this temporary thing" **without** owner-accepted registration
-is forbidden even if a hotfix *could* be registered later.
+Temporary read-only diagnostics and synthetic test fixtures may establish a
+cause. They must not become product fixes or operational dependencies. Repeated
+operations belong in the maintained owning tool with tests and normal review.
 
 ## Rules
 
 1. **Durable first.** Extend the real primitive; do not invent a parallel path.
 2. **Never propose workarounds** (see above). Refuse; fix or block.
-3. **Hotfixes are debt.** Only with named owner acceptance + same-turn register.
-4. **Every hotfix has a destination.** Pending entries surface at session
-   boundaries until converted.
-5. **Unregistered hotfixes are policy violations.**
+3. **No exceptions.** Owner acceptance and registration do not authorize one-offs.
+4. **Inventory existing debt.** Record location, owner, durable destination and
+   removal evidence; pending entries remain open until verified.
+5. **Blockers are durable work.** Identify the failing primitive and required
+   validation while continuing unaffected authorized work.
 
 ## Durable shapes
 
 - Shared module / rule / hook / CI gate that fails closed for the class
-- Documented escape hatches with explicit env flags (product design, not session glue)
-- Gaps/ADRs when the durable fix needs multi-session design
+- Supported configuration and bootstrap fixes in the owning model
+- Gaps/ADRs that track the owning fix and its validation across sessions
 - Tests that lock the durable behavior (prove red, then green)
-- One-time **data backfill** that converts existing rows to the new correct model
-  (paired with the forward fix) — not a permanent dual path
+- Maintained data migrations paired with the forward model fix and verification
 
 ## CLI (control layer)
 
@@ -93,7 +111,7 @@ is forbidden even if a hotfix *could* be registered later.
 revealui-harnesses hotfix check
 revealui-harnesses hotfix list
 revealui-harnesses hotfix audit [path]
-# Only if owner accepted a temporary patch (admits debt — not preferred):
+# Inventory an existing exception; never use this to authorize a new one-off:
 revealui-harnesses hotfix register --title … --symptom … --temporary … --durable …
 revealui-harnesses hotfix resolve <id> --pr <url>
 \`\`\`

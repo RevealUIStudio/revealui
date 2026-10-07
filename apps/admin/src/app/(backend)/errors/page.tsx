@@ -161,7 +161,7 @@ function ErrorsDashboard() {
 
       {!(loading || error) && rows.length === 0 && (
         <div className="m-4 p-8 text-center text-muted-foreground">
-          No errors recorded yet. This is a good sign.
+          No captured error events are available.
         </div>
       )}
 

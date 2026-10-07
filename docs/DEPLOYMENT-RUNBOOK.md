@@ -150,7 +150,7 @@ For urgent production fixes that cannot wait for the standard test-to-main flow.
    git checkout test
    git pull origin test
    git merge main
-   git push origin test
+   pnpm push test origin
    ```
 
 ---
@@ -183,7 +183,7 @@ If a code-level revert is needed:
 ```bash
 git checkout main
 git revert <commit-sha>    # revert the problematic merge commit
-git push origin main        # triggers deploy.yml with the reverted code
+pnpm push main origin        # triggers deploy.yml with the reverted code
 ```
 
 ### Database Rollback

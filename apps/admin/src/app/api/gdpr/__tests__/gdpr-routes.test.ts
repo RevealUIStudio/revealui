@@ -10,6 +10,23 @@ const mockGetSession = vi.fn();
 const mockCheckSessionMfa = vi.fn((..._args: unknown[]) => ({ allowed: true }));
 const mockGetRevealUIInstance = vi.fn();
 const mockWriteGDPRAuditEntry = vi.fn();
+const mockAssertDomainCleanupComplete = vi.fn().mockResolvedValue(undefined);
+let cleanupAdmissionActive = false;
+vi.mock('@revealui/db/queries/users', () => ({
+  withUserDomainCleanupAdmission: async (
+    db: unknown,
+    userId: string,
+    erase: () => Promise<unknown>,
+  ) => {
+    await mockAssertDomainCleanupComplete(db, userId);
+    cleanupAdmissionActive = true;
+    try {
+      return await erase();
+    } finally {
+      cleanupAdmissionActive = false;
+    }
+  },
+}));
 
 vi.mock('@revealui/auth/server', () => ({
   getSession: (...args: unknown[]) => mockGetSession(...args),
@@ -89,6 +106,8 @@ function makeRequest() {
 describe('POST /api/gdpr/delete', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAssertDomainCleanupComplete.mockResolvedValue(undefined);
+    cleanupAdmissionActive = false;
   });
 
   async function loadRoute() {
@@ -101,6 +120,26 @@ describe('POST /api/gdpr/delete', () => {
     const POST = await loadRoute();
     const res = await POST(makeRequest());
     expect((res as { status: number }).status).toBe(401);
+  });
+
+  it('returns actionable cleanup conflict before account erasure side effects', async () => {
+    const { SiteDomainCleanupRequiredError } = await import('@revealui/db/queries/sites');
+    mockGetSession.mockResolvedValue({ user: { id: 'operator', email: 'operator@customer.com' } });
+    mockAssertDomainCleanupComplete.mockRejectedValueOnce(
+      new SiteDomainCleanupRequiredError(
+        undefined,
+        'Detach owned consultation hostnames before deleting this account.',
+      ),
+    );
+    const POST = await loadRoute();
+    const result = await POST(makeRequest());
+    expect((result as { status: number }).status).toBe(409);
+    expect(await result.json()).toEqual({
+      error: 'Detach owned consultation hostnames before deleting this account.',
+      code: 'SITE_DOMAIN_CLEANUP_REQUIRED',
+    });
+    expect(mockGetRevealUIInstance).not.toHaveBeenCalled();
+    expect(mockWriteGDPRAuditEntry).not.toHaveBeenCalled();
   });
 
   it('cascade deletes user data and writes audit entry', async () => {
@@ -134,6 +173,93 @@ describe('POST /api/gdpr/delete', () => {
         requestedBy: 'test@example.com',
       }),
     );
+  });
+
+  it('holds cleanup admission through final CMS deletion', async () => {
+    let releaseUserDeletion: () => void = () => {};
+    const userDeleted = new Promise<void>((resolve) => {
+      releaseUserDeletion = resolve;
+    });
+    const mockDelete = vi.fn(async () => {
+      expect(cleanupAdmissionActive).toBe(true);
+      await userDeleted;
+    });
+    const revealui = {
+      find: vi.fn(async () => {
+        expect(cleanupAdmissionActive).toBe(true);
+        return { docs: [] };
+      }),
+      delete: mockDelete,
+    };
+    mockGetSession.mockResolvedValue({ user: { id: 'user-1', email: 'test@example.com' } });
+    mockGetRevealUIInstance.mockResolvedValue(revealui);
+    mockWriteGDPRAuditEntry.mockImplementation(async () => {
+      expect(cleanupAdmissionActive).toBe(true);
+    });
+    const POST = await loadRoute();
+    const response = POST(makeRequest());
+    try {
+      await vi.waitFor(() =>
+        expect(mockDelete).toHaveBeenCalledWith({ collection: 'users', id: 'user-1' }),
+      );
+      expect(cleanupAdmissionActive).toBe(true);
+    } finally {
+      releaseUserDeletion();
+    }
+    expect((await response).status).toBe(200);
+    expect(cleanupAdmissionActive).toBe(false);
+  });
+
+  it('bounds Sentry erasure without following redirects while admission remains held', async () => {
+    const controller = new AbortController();
+    const timeout = vi.spyOn(AbortSignal, 'timeout').mockReturnValue(controller.signal);
+    const fetchSentry = vi.fn((_url: string, options: RequestInit) => {
+      expect(cleanupAdmissionActive).toBe(true);
+      return new Promise<Response>((_resolve, reject) => {
+        options.signal?.addEventListener(
+          'abort',
+          () => reject(new Error('Sentry deadline exceeded')),
+          {
+            once: true,
+          },
+        );
+      });
+    });
+    vi.stubGlobal('fetch', fetchSentry);
+    vi.stubEnv('SENTRY_AUTH_TOKEN', 'synthetic-token');
+    vi.stubEnv('SENTRY_ORG', 'test-org');
+    vi.stubEnv('SENTRY_PROJECT', 'test-project');
+    const mockDelete = vi.fn().mockResolvedValue({});
+    mockGetSession.mockResolvedValue({ user: { id: 'user-1', email: 'test@example.com' } });
+    mockGetRevealUIInstance.mockResolvedValue({
+      find: vi.fn().mockResolvedValue({ docs: [] }),
+      delete: mockDelete,
+    });
+    mockWriteGDPRAuditEntry.mockResolvedValue(undefined);
+    const POST = await loadRoute();
+    const response = POST(makeRequest());
+    try {
+      await vi.waitFor(() => expect(fetchSentry).toHaveBeenCalledOnce());
+      expect(timeout).toHaveBeenCalledWith(10_000);
+      expect(fetchSentry).toHaveBeenCalledWith(
+        expect.stringContaining('/test-org/test-project/users/'),
+        expect.objectContaining({ redirect: 'error', signal: controller.signal }),
+      );
+      expect(cleanupAdmissionActive).toBe(true);
+      expect(mockDelete).not.toHaveBeenCalled();
+      controller.abort();
+      // Remote cleanup failure retains the existing nonblocking policy; its
+      // persistent retry/completion debt is separately inventoried.
+      expect((await response).status).toBe(200);
+      expect(mockDelete).toHaveBeenCalledWith({ collection: 'users', id: 'user-1' });
+      expect(cleanupAdmissionActive).toBe(false);
+    } finally {
+      controller.abort();
+      await response;
+      timeout.mockRestore();
+      vi.unstubAllGlobals();
+      vi.unstubAllEnvs();
+    }
   });
 
   it('deletes documents in batches when user has many records', async () => {
@@ -185,6 +311,7 @@ describe('POST /api/gdpr/delete', () => {
       revealui,
       expect.objectContaining({ metadata: expect.objectContaining({ aborted: true }) }),
     );
+    expect(cleanupAdmissionActive).toBe(false);
   });
 });
 

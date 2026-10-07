@@ -206,10 +206,14 @@
       "missingSnapshot": false
     },
     {
-      "tag": "0050_llm_call_receipts",
-      "rationale": "Per-call LLM receipts (model, provider, key source, token counts, estimated cost). No prompt, response, or key columns. Hand-written CREATE TABLE IF NOT EXISTS and duplicate_object foreign keys because db:generate against the stale snapshot chain re-emits unrelated drift. Companion Drizzle schema at packages/db/src/schema/llm-call-receipts.ts.",
-      "missingSnapshot": true,
-      "snapshotDebtNote": "Blocked on the pre-existing snapshot-debt backfill. Same regen path as 0045: pnpm --filter @revealui/db db:generate against a clean DB once that backfill happens. The Drizzle table is the type contract."
+      "tag": "0050_private_site_visibility",
+      "rationale": "Normal drizzle-kit generation produced the companion SQL and snapshot from 0049. ADD COLUMN IF NOT EXISTS and a duplicate_object guard around the CHECK follow the maintained reapplication policy. No snapshot content was manually edited.",
+      "missingSnapshot": false
+    },
+    {
+      "tag": "0055_llm_call_receipts",
+      "rationale": "Idempotent CREATE TABLE IF NOT EXISTS, CREATE INDEX IF NOT EXISTS, and duplicate_object foreign key guards are required for reapplication. drizzle-kit generate does not emit that form. The companion snapshot was produced by drizzle-kit generate from parent 0052 and only the filename was renamed so prevId still chains from that snapshot.",
+      "missingSnapshot": false
     }
   ]
 }

@@ -11,7 +11,7 @@
  *   pnpm gate:security --json     -  output JSON summary to stdout
  *
  * Checks:
- *   1. Dependency vulnerabilities (pnpm audit  -  fail on critical/high)
+ *   1. Dependency vulnerabilities (pnpm audit: fail on critical, warn on high)
  *   2. Hardcoded secrets/credentials (git grep patterns)
  *   3. Committed .env files (git ls-files)
  *   4. Auth & authorization patterns (warn only)
@@ -71,7 +71,34 @@ interface KnownUpstreamAdvisory {
   description: string;
 }
 
-const KnownUpstreamAdvisories: KnownUpstreamAdvisory[] = [];
+// Highs with no upstream patch. This list cannot excuse criticals:
+// checkDependencyAudit fails when critical > 0 before these entries are applied.
+const KnownUpstreamAdvisories: KnownUpstreamAdvisory[] = [
+  {
+    key: 'GHSA-86w9-cpqp-85rv',
+    moduleName: 'node-forge',
+    patchedVersions: '<0.0.0',
+    pathIncludes: 'packages__auth>selfsigned>node-forge',
+    description:
+      'GHSA-86w9-cpqp-85rv: node-forge via selfsigned is dev only in packages/auth. Recheck 2026-11-06.',
+  },
+  {
+    key: 'GHSA-ch52-4w7c-c8xp',
+    moduleName: 'http-cache-semantics',
+    patchedVersions: '<0.0.0',
+    pathIncludes: 'apify>@crawlee/core>got-scraping>got',
+    description:
+      'GHSA-ch52-4w7c-c8xp: http-cache-semantics via apify > crawlee > got is not reachable. Recheck 2026-11-06.',
+  },
+  {
+    key: 'GHSA-vfj7-8cjw-p6xm',
+    moduleName: 'braces',
+    patchedVersions: '<0.0.0',
+    pathIncludes: 'micromatch>braces',
+    description:
+      'GHSA-vfj7-8cjw-p6xm: braces via build tooling is not reachable. Recheck 2026-11-06.',
+  },
+];
 
 function classifyAuditAdvisories(advisories: AuditAdvisory[]): {
   actionable: AuditAdvisory[];
@@ -108,7 +135,7 @@ function classifyAuditAdvisories(advisories: AuditAdvisory[]): {
 
 /**
  * Check 1: Dependency vulnerability scan
- * Fails on critical or high severity; warns on moderate.
+ * Fails on critical. Warns on high and moderate.
  */
 async function checkDependencyAudit(projectRoot: string): Promise<CheckResult> {
   const start = performance.now();

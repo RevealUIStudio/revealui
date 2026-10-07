@@ -49,6 +49,29 @@ type TestVariables = { user: any; session: any };
 // Tests  -  authMiddleware
 // ---------------------------------------------------------------------------
 describe('authMiddleware', () => {
+  it.each([{ session: { metadata: { recovery: true } } }, { user: { mustRotatePassword: true } }])(
+    'rejects restricted identities for required private reads: %j',
+    async (restriction) => {
+      mockedGetSession.mockResolvedValue(mockSession(restriction));
+      const app = new Hono<{ Variables: TestVariables }>();
+      app.use('*', authMiddleware());
+      app.get('/api/v1/content/pages', (c) => c.json({ id: c.get('user')?.id }));
+      expect((await app.request('/api/v1/content/pages')).status).toBe(403);
+    },
+  );
+
+  it('keeps public reads anonymous while allowing recovery current-session inspection', async () => {
+    mockedGetSession.mockResolvedValue(mockSession({ session: { metadata: { recovery: true } } }));
+    const app = new Hono<{ Variables: TestVariables }>();
+    app.use('*', authMiddleware({ required: false }));
+    app.get('/api/content/consultation-domain', (c) => c.json({ id: c.get('user')?.id ?? null }));
+    app.get('/api/auth/session', (c) => c.json({ id: c.get('user')?.id ?? null }));
+    expect(await (await app.request('/api/content/consultation-domain')).json()).toEqual({
+      id: null,
+    });
+    expect(await (await app.request('/api/auth/session')).json()).toEqual({ id: 'user-1' });
+  });
+
   describe('required: true (default)', () => {
     it('sets user and session when session exists', async () => {
       mockedGetSession.mockResolvedValue(mockSession());

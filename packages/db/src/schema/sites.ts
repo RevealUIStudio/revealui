@@ -47,6 +47,9 @@ export const sites = pgTable(
     // Status: draft, published, archived
     status: text('status').notNull().default('draft'),
 
+    // Audience is independent of publication: private sites require membership.
+    visibility: text('visibility').notNull().default('public'),
+
     // Theme configuration (JSON blob)
     theme: jsonb('theme'),
 
@@ -78,6 +81,17 @@ export const sites = pgTable(
     index('sites_active_status_idx').on(table.status).where(sql`deleted_at IS NULL`),
     index('sites_owner_id_idx').on(table.ownerId),
     check('sites_status_check', sql`status IN ('draft', 'published', 'archived')`),
+    check('sites_visibility_check', sql`visibility IN ('public', 'private')`),
+    uniqueIndex('sites_consultation_booking_unique')
+      .on(sql`(${table.settings}->'consultation'->>'bookingId')`)
+      .where(sql`${table.settings} ? 'consultation'`),
+    uniqueIndex('sites_consultation_domain_unique')
+      .on(
+        sql`COALESCE(${table.settings}->'consultationDomain'->>'hostname', ${table.settings}->'consultationDomainPending'->>'hostname')`,
+      )
+      .where(
+        sql`${table.settings} ? 'consultationDomain' OR ${table.settings} ? 'consultationDomainPending'`,
+      ),
   ],
 );
 
