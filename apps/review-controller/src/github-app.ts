@@ -91,7 +91,10 @@ export interface GitHubPullRequestReviewComment {
 }
 
 export class GitHubAppError extends Error {
-  constructor(readonly code: string) {
+  constructor(
+    readonly code: string,
+    readonly retryAt?: number,
+  ) {
     super(code);
     this.name = 'GitHubAppError';
   }
@@ -101,6 +104,7 @@ export class GitHubAppClient {
   private readonly key;
   private cachedToken?: { value: string; expiresAt: number };
   private tokenPromise?: Promise<string>;
+  private rateLimitedUntil = 0;
 
   constructor(
     private readonly config: GitHubAppConfig,
@@ -506,6 +510,8 @@ export class GitHubAppClient {
       !(url.pathname.startsWith(repositoryPath) || url.pathname.startsWith(canonicalPath))
     )
       throw new GitHubAppError('api_url_out_of_scope');
+    if (this.rateLimitedUntil > this.now())
+      throw new GitHubAppError('github_rate_limited', this.rateLimitedUntil);
     const token = await this.installationToken();
     let response: Response;
     try {
@@ -524,7 +530,14 @@ export class GitHubAppClient {
     } catch {
       throw new GitHubAppError('github_api_unavailable');
     }
-    if (!response.ok) throw new GitHubAppError(`github_http_${response.status}`);
+    if (!response.ok) {
+      const retryAt = rateLimitRetryAt(response, this.now());
+      if (retryAt !== undefined) {
+        this.rateLimitedUntil = Math.max(this.rateLimitedUntil, retryAt);
+        throw new GitHubAppError('github_rate_limited', this.rateLimitedUntil);
+      }
+      throw new GitHubAppError(`github_http_${response.status}`);
+    }
     let raw: string;
     try {
       raw = await response.text();
@@ -588,7 +601,14 @@ export class GitHubAppClient {
     } catch {
       throw new GitHubAppError('github_token_unavailable');
     }
-    if (!response.ok) throw new GitHubAppError(`github_token_http_${response.status}`);
+    if (!response.ok) {
+      const retryAt = rateLimitRetryAt(response, this.now());
+      if (retryAt !== undefined) {
+        this.rateLimitedUntil = Math.max(this.rateLimitedUntil, retryAt);
+        throw new GitHubAppError('github_rate_limited', this.rateLimitedUntil);
+      }
+      throw new GitHubAppError(`github_token_http_${response.status}`);
+    }
     let body: unknown;
     try {
       body = JSON.parse(await response.text());
@@ -608,6 +628,23 @@ export class GitHubAppClient {
     this.cachedToken = { value: body.token, expiresAt };
     return body.token;
   }
+}
+
+function rateLimitRetryAt(response: Response, now: number): number | undefined {
+  if (response.status !== 403 && response.status !== 429) return undefined;
+  const remaining = response.headers.get('x-ratelimit-remaining');
+  const retryAfter = response.headers.get('retry-after');
+  if (remaining !== '0' && retryAfter === null && response.status !== 429) return undefined;
+
+  const resetSeconds = Number(response.headers.get('x-ratelimit-reset'));
+  const retrySeconds = retryAfter === null ? NaN : Number(retryAfter);
+  const retryDate = retryAfter === null ? NaN : Date.parse(retryAfter);
+  const candidates = [
+    Number.isFinite(resetSeconds) && resetSeconds > 0 ? resetSeconds * 1000 + 5_000 : NaN,
+    Number.isFinite(retrySeconds) && retrySeconds >= 0 ? now + retrySeconds * 1000 + 5_000 : NaN,
+    Number.isFinite(retryDate) ? retryDate + 5_000 : NaN,
+  ].filter((value) => Number.isFinite(value) && value > now);
+  return Math.min(now + 2 * 60 * 60_000, Math.max(now + 60_000, ...candidates));
 }
 
 function createAppJwt(

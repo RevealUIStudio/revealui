@@ -103,6 +103,29 @@ function signedEnvelope(headSha: string): string {
 }
 
 describe('GitHub App API client', () => {
+  it('uses GitHub reset metadata and pauses further API calls when the installation limit is exhausted', async () => {
+    const resetSeconds = Math.floor(now / 1000) + 300;
+    const fetchImpl = vi.fn<typeof fetch>(async (input) => {
+      if (String(input).includes('/access_tokens')) return tokenResponse();
+      return new Response(JSON.stringify({ message: 'API rate limit exceeded' }), {
+        status: 403,
+        headers: {
+          'x-ratelimit-remaining': '0',
+          'x-ratelimit-reset': String(resetSeconds),
+        },
+      });
+    });
+    const client = fixture(fetchImpl);
+    await expect(client.getTree('a'.repeat(40))).rejects.toMatchObject({
+      code: 'github_rate_limited',
+      retryAt: resetSeconds * 1000 + 5_000,
+    });
+    await expect(client.getTree('a'.repeat(40))).rejects.toMatchObject({
+      code: 'github_rate_limited',
+    });
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
   it('publishes a fixed App-authored receipt check carrying the canonical envelope', async () => {
     const headSha = 'a'.repeat(40);
     const receiptEnvelope = signedEnvelope(headSha);

@@ -50,8 +50,16 @@ export async function processNextWebhook(input: {
         ? 'terminal-failure'
         : 'lease-lost';
     }
+    const now = (input.now ?? (() => new Date()))().getTime();
     const delayMs = Math.min(60 * 60_000, 5_000 * 2 ** Math.min(claimed.attempts - 1, 10));
-    const retryAt = new Date((input.now ?? (() => new Date()))().getTime() + delayMs);
+    const retryAt = new Date(
+      Math.max(
+        now + delayMs,
+        error instanceof GitHubAppError && Number.isFinite(error.retryAt)
+          ? (error.retryAt ?? 0)
+          : 0,
+      ),
+    );
     const errorCode =
       error instanceof GitHubAppError && /^[a-z0-9_]{1,64}$/.test(error.code)
         ? error.code

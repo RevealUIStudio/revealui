@@ -81,6 +81,28 @@ describe('webhook inbox worker', () => {
     );
   });
 
+  it('defers rate-limited work until GitHub resets its installation budget', async () => {
+    const inbox = inboxFixture();
+    const resetAt = new Date('2026-10-06T12:30:00.000Z');
+    const result = await processNextWebhook({
+      inbox,
+      handler: {
+        process: vi.fn(async () => {
+          throw new GitHubAppError('github_rate_limited', resetAt.getTime());
+        }),
+      },
+      createLeaseToken: () => '22222222-2222-4222-8222-222222222222',
+      now: () => new Date('2026-10-06T12:00:00.000Z'),
+    });
+    expect(result).toBe('retry-scheduled');
+    expect(inbox.retry).toHaveBeenCalledWith(
+      claimed.deliveryId,
+      '22222222-2222-4222-8222-222222222222',
+      'github_rate_limited',
+      resetAt,
+    );
+  });
+
   it('terminally classifies deterministic unsupported snapshots without retrying', async () => {
     const inbox = inboxFixture();
     const result = await processNextWebhook({
