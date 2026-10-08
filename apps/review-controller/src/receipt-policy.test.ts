@@ -99,4 +99,36 @@ describe('readReceiptPolicy', () => {
       repositoryFullName: 'RevealUIStudio/revealui',
     });
   });
+
+  it('pins a separate reviewer App to both its bot login and numeric account ID', () => {
+    expect(
+      readReceiptPolicy({
+        ...valid,
+        REVIEW_RECEIPT_REVIEWER_LOGIN: 'revealui-reviewer[bot]',
+        REVIEW_RECEIPT_REVIEWER_ID: '90211',
+        REVIEW_RECEIPT_REVIEWER_POLICY_VERSION: 'review-policy-1',
+        REVIEW_RECEIPT_REVIEWER_MODEL: 'gpt-6-astra',
+      })?.trustedReviewer,
+    ).toEqual({
+      login: 'revealui-reviewer[bot]',
+      id: 90211,
+      policyVersion: 'review-policy-1',
+      model: 'gpt-6-astra',
+    });
+    expect(() =>
+      readReceiptPolicy({
+        ...valid,
+        REVIEW_RECEIPT_REVIEWER_LOGIN: 'revealui-reviewer[bot]',
+      }),
+    ).toThrow('must be set together');
+    expect(() =>
+      readReceiptPolicy({
+        ...valid,
+        REVIEW_RECEIPT_REVIEWER_LOGIN: 'revealui-reviewer[bot]',
+        REVIEW_RECEIPT_REVIEWER_ID: '0',
+        REVIEW_RECEIPT_REVIEWER_POLICY_VERSION: 'review-policy-1',
+        REVIEW_RECEIPT_REVIEWER_MODEL: 'gpt-6-astra',
+      }),
+    ).toThrow('invalid trusted reviewer App identity');
+  });
 });

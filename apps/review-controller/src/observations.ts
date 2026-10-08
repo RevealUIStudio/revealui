@@ -144,7 +144,7 @@ export class PostgresShadowObservationStore implements ShadowObservationStore {
 function isCodexReviewObservation(value: unknown): value is CodexReviewObservation {
   return (
     isRecord(value) &&
-    value.provider === 'codex-subscription' &&
+    (value.provider === 'codex-subscription' || value.provider === 'trusted-reviewer-app') &&
     Number.isSafeInteger(value.reviewerId) &&
     Number.isSafeInteger(value.reviewId) &&
     typeof value.reviewedHeadSha === 'string' &&

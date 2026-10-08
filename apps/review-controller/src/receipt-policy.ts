@@ -14,6 +14,7 @@ export interface ReceiptPolicy {
   version: string;
   maxLifetimeMs: number;
   requiredChecks: ReviewCheckSelector[];
+  trustedReviewer?: { login: string; id: number; policyVersion: string; model: string };
 }
 
 /** Missing mode keeps the receipt evaluator disabled; partial opt-in fails closed. */
@@ -71,7 +72,44 @@ export function readReceiptPolicy(env: NodeJS.ProcessEnv): ReceiptPolicy | undef
   if (!hasReviewReceiptCiCheck(requiredChecks))
     throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS omits the trusted CI check');
 
-  return { mode, repositoryFullName, keyId, privateKey, version, maxLifetimeMs, requiredChecks };
+  const reviewerLogin = env.REVIEW_RECEIPT_REVIEWER_LOGIN?.trim();
+  const reviewerIdText = env.REVIEW_RECEIPT_REVIEWER_ID?.trim();
+  const reviewerPolicyVersion = env.REVIEW_RECEIPT_REVIEWER_POLICY_VERSION?.trim();
+  const reviewerModel = env.REVIEW_RECEIPT_REVIEWER_MODEL?.trim();
+  const reviewerFields = [reviewerLogin, reviewerIdText, reviewerPolicyVersion, reviewerModel];
+  if (reviewerFields.some(Boolean) && reviewerFields.some((item) => !item))
+    throw new Error('trusted reviewer login, ID, policy version, and model must be set together');
+  let trustedReviewer: ReceiptPolicy['trustedReviewer'];
+  if (reviewerLogin && reviewerIdText && reviewerPolicyVersion && reviewerModel) {
+    const id = Number(reviewerIdText);
+    if (
+      !(
+        /^[A-Za-z0-9-]+\[bot\]$/.test(reviewerLogin) &&
+        /^[1-9][0-9]*$/.test(reviewerIdText) &&
+        Number.isSafeInteger(id) &&
+        /^[A-Za-z0-9._:-]{1,128}$/.test(reviewerPolicyVersion) &&
+        /^[A-Za-z0-9._-]{1,128}$/.test(reviewerModel)
+      )
+    )
+      throw new Error('invalid trusted reviewer App identity');
+    trustedReviewer = {
+      login: reviewerLogin,
+      id,
+      policyVersion: reviewerPolicyVersion,
+      model: reviewerModel,
+    };
+  }
+
+  return {
+    mode,
+    repositoryFullName,
+    keyId,
+    privateKey,
+    version,
+    maxLifetimeMs,
+    requiredChecks,
+    ...(trustedReviewer ? { trustedReviewer } : {}),
+  };
 }
 
 function required(env: NodeJS.ProcessEnv, name: string): string {

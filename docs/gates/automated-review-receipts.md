@@ -90,6 +90,38 @@ The contract must be tested against findings, stale and replayed results,
 edited or deleted events, and unavailable provider data. This blocker is
 tracked in [#3087](https://github.com/RevealUIStudio/revealui/issues/3087).
 
+The proposed replacement runs `apps/review-controller`'s reviewer command in
+`trusted-reviewer.yml` under `pull_request_target`, checked out at the protected
+base SHA. It reads PR files through the existing bounded, object-hash-verified
+snapshot client; it never checks out or executes the PR head. A separate
+reviewer GitHub App requests only Contents read and Pull requests write on the
+single repository. Its installation token cannot write controller checks or
+merge queues. The reviewer sends the bounded snapshot to the OpenAI Responses
+API with strict JSON output and no tools, then re-fetches PR state before
+submitting a native `APPROVED` or `CHANGES_REQUESTED` review at the full head
+commit. Refusals, incomplete responses, malformed verdicts, changed heads or
+bases, and oversized inputs produce no approval. The review body binds the
+repository, PR, head, base, manifest, reviewer policy version, and model.
+The controller pins the reviewer App's bot login and numeric account ID and
+requires that binding before accepting its native approval. Existing
+subscription comments and stale reviews remain non-approving.
+
+This path is not operational until its feature PR is reviewed and merged
+into the protected `test` branch, the dedicated reviewer App and model
+credential are provisioned, and a live exact-head positive and negative
+shadow trace is recorded. Until then `REVIEW_RECEIPT_MODE=shadow` and the
+owner-signature gate remain in force. The reviewer workflow is dormant unless
+`REVEALFLEET_REVIEWER_APP_ID` is configured as a repository variable. It also
+requires `REVEALFLEET_REVIEWER_INSTALLATION_ID`,
+`REVEALFLEET_REVIEWER_BOT_ID`, `REVEALFLEET_REVIEWER_BOT_LOGIN`,
+`REVEALFLEET_REVIEW_MODEL`, and `REVEALFLEET_REVIEW_POLICY_VERSION` as
+repository variables and `REVEALFLEET_REVIEWER_APP_PRIVATE_KEY` and
+`REVEALFLEET_REVIEWER_OPENAI_API_KEY` as Actions secrets. The controller's
+separate Fly app must receive matching `REVIEW_RECEIPT_REVIEWER_LOGIN`,
+`REVIEW_RECEIPT_REVIEWER_ID`, `REVIEW_RECEIPT_REVIEWER_MODEL`, and
+`REVIEW_RECEIPT_REVIEWER_POLICY_VERSION` settings before positive shadow
+evidence can be evaluated. Neither App's private key is shared with the other.
+
 The owning replacement is the existing trusted review-gate and disposition
 path. Replace per-PR human grants with an independently produced receipt,
 extend the required check to validate that receipt, and configure a GitHub App
