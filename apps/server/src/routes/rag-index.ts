@@ -9,10 +9,7 @@
  * Requires requireFeature('ai', { mode: 'entitlements' })  -  applied in apps/server/src/index.ts.
  */
 
-import {
-  getExplicitDeploymentMode,
-  isHostedDeployment,
-} from '@revealui/core/deployment-mode';
+import { getExplicitDeploymentMode, isHostedDeployment } from '@revealui/core/deployment-mode';
 import type { DatabaseClient } from '@revealui/db/client';
 import { getRestClient } from '@revealui/db/client';
 import { getPagesBySite } from '@revealui/db/queries/pages';

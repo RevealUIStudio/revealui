@@ -1,3 +1,4 @@
+import { resolveLLMClientForRequest } from '@revealui/ai/llm/server';
 import type { DatabaseClient } from '@revealui/db/client';
 import { pages } from '@revealui/db/schema/pages';
 import { ragDocuments } from '@revealui/db/schema/rag';
@@ -7,7 +8,6 @@ import { createTestDb, type TestDb } from '@revealui/db/testing';
 import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { resolveLLMClientForRequest } from '@revealui/ai/llm/server';
 import ragApp from '../rag-index.js';
 
 // Deterministic provider boundary only; routes, ACL, ingestion and pgvector are real.
