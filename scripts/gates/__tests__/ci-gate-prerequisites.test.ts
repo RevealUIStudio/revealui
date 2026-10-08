@@ -1,5 +1,5 @@
-import type { SpawnOptions } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { type SpawnOptions, spawnSync } from 'node:child_process';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -102,6 +102,22 @@ afterEach(async () => {
 function trackAdmission<T>(operation: Promise<T>): Promise<T> {
   state.admissionRuns.push(operation);
   return operation;
+}
+
+function expectAdmissionLockContended(): void {
+  const directory = state.admissionDirectory;
+  if (directory === null) throw new Error('Admission test directory was not created.');
+  const lockPath = join(directory, `revealui-gate-${process.getuid?.() ?? 'user'}.lock`);
+  const probe = spawnSync('flock', [
+    '--exclusive',
+    '--nonblock',
+    '--conflict-exit-code',
+    '75',
+    lockPath,
+    'true',
+  ]);
+  expect(probe.error).toBeUndefined();
+  expect(probe.status).toBe(75);
 }
 
 describe('gate command failure diagnostics', () => {
@@ -298,7 +314,8 @@ describe('gate resource admission', () => {
           expect(state.flockPids).toHaveLength(2);
           const pid = state.flockPids[1];
           if (pid === undefined) throw new Error('Second lock process did not start.');
-          expect(readFileSync(`/proc/${pid}/wchan`, 'utf8').trim()).toBe('locks_lock_inode_wait');
+          expect(process.kill(pid, 0)).toBe(true);
+          expectAdmissionLockContended();
           return pid;
         });
         expect(state.flockArguments[1]).toEqual(['--exclusive', '3']);
@@ -347,7 +364,8 @@ describe('gate resource admission', () => {
           expect(state.flockPids).toHaveLength(2);
           const pid = state.flockPids[1];
           if (pid === undefined) throw new Error('Second lock process did not start.');
-          expect(readFileSync(`/proc/${pid}/wchan`, 'utf8').trim()).toBe('locks_lock_inode_wait');
+          expect(process.kill(pid, 0)).toBe(true);
+          expectAdmissionLockContended();
           const handler = process
             .listeners(signal)
             .find((listener) => !existingHandlers.includes(listener));
