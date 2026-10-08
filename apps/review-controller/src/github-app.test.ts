@@ -513,4 +513,23 @@ describe('GitHub App API client', () => {
         }),
     ).toThrow('invalid GitHub App private key');
   });
+
+  it.each([
+    ['PKCS#1', privateKey.export({ type: 'pkcs1', format: 'pem' }).toString()],
+    ['PKCS#8', pem],
+  ])(
+    'accepts a complete %s App PEM whose line breaks were collapsed by a secret editor',
+    (_, key) => {
+      expect(
+        () =>
+          new GitHubAppClient({
+            appId: 100,
+            installationId: 200,
+            repositoryId: 300,
+            repositoryFullName: 'RevealUIStudio/revealui',
+            privateKey: key.replace(/\r?\n/g, ' '),
+          }),
+      ).not.toThrow();
+    },
+  );
 });

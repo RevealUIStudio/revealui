@@ -8,6 +8,24 @@ const MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
 const MAX_BLOB_BYTES = 256 * 1024;
 const MAX_PAGES = 30;
 
+function normalizeAppPrivateKey(value: string): string {
+  const pem = value.replace(/\\n/g, '\n').trim();
+  if (pem.includes('\n')) return pem;
+
+  // Secret editors can collapse PEM line breaks into spaces. Restore only a
+  // complete, recognized private-key envelope; crypto still validates the key.
+  const label = (['RSA PRIVATE KEY', 'PRIVATE KEY'] as const).find((candidate) =>
+    pem.startsWith(`-----BEGIN ${candidate}-----`),
+  );
+  if (!label) return pem;
+  const begin = `-----BEGIN ${label}-----`;
+  const end = `-----END ${label}-----`;
+  if (!pem.endsWith(end)) return pem;
+  const body = pem.slice(begin.length, -end.length).trim();
+  if (!/^[A-Za-z0-9+/=\s]+$/.test(body)) return pem;
+  return `${begin}\n${body.replace(/\s+/g, '')}\n${end}`;
+}
+
 export interface GitHubAppConfig {
   appId: number;
   installationId: number;
@@ -100,7 +118,7 @@ export class GitHubAppClient {
     )
       throw new Error('invalid GitHub App configuration');
     try {
-      this.key = createPrivateKey(config.privateKey.replace(/\\n/g, '\n'));
+      this.key = createPrivateKey(normalizeAppPrivateKey(config.privateKey));
     } catch {
       throw new Error('invalid GitHub App private key');
     }
