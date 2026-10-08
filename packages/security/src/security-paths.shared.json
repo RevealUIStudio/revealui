@@ -91,5 +91,12 @@
     "scripts/**/backflow-merge-method-guard.cjs",
     "scripts/**/gates-resolver.cjs"
   ],
-  "controllerMarkers": ["apps/review-controller/"]
+  "controllerMarkers": [
+    "apps/review-controller/",
+    "packages/db/src/schema/internal/review-controller",
+    "packages/db/src/review-controller",
+    ".github/workflows/docker.yml"
+  ],
+  "controllerMigrationRoots": ["packages/db/migrations/", "apps/review-controller/migrations/"],
+  "controllerMigrationToken": "review_controller"
 }

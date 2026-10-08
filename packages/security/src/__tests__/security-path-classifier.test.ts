@@ -21,7 +21,8 @@ describe('shared security path classifier', () => {
     ]);
     expect(SENSITIVE_PATH_MARKERS).toContain('scripts/ci/');
     expect(SENSITIVE_PATH_MARKERS).toContain('scripts/**/gates-resolver.cjs');
-    expect(CONTROLLER_PATH_MARKERS).toEqual(['apps/review-controller/']);
+    expect(CONTROLLER_PATH_MARKERS).toContain('apps/review-controller/');
+    expect(CONTROLLER_PATH_MARKERS).toContain('.github/workflows/docker.yml');
     expect(classifySensitivePaths(['scripts/validate/gates-resolver.cjs'])).toEqual([
       'scripts/validate/gates-resolver.cjs',
     ]);
@@ -30,6 +31,16 @@ describe('shared security path classifier', () => {
       'apps/review-controller/fly.toml',
     ]);
     expect(classifyControllerPaths(['apps/server/fly.toml'])).toEqual([]);
+    expect(
+      classifyControllerPaths(['packages/db/migrations/0053_review_controller_store.sql']),
+    ).toEqual(['packages/db/migrations/0053_review_controller_store.sql']);
+    expect(classifyControllerPaths(['packages/db/migrations/0026_audit_append_only.sql'])).toEqual(
+      [],
+    );
+    expect(classifyControllerPaths(['.github/workflows/docker.yml'])).toEqual([
+      '.github/workflows/docker.yml',
+    ]);
+    expect(classifyControllerPaths(['.github/workflows/ci.yml'])).toEqual([]);
   });
 
   it('fails closed at the changed-file API ceiling', () => {

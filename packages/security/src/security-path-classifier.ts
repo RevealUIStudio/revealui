@@ -32,11 +32,28 @@ export const SENSITIVE_PATH_MARKERS: readonly string[] = frozenMarkers(
   'sensitive path markers',
 );
 
-/** Controller source and deploy config. A receipt never clears these. */
+/** Controller source, schema, migrations, and deploy config. A receipt never clears these. */
 export const CONTROLLER_PATH_MARKERS: readonly string[] = frozenMarkers(
   securityPathData.controllerMarkers,
   'controller path markers',
 );
+
+const CONTROLLER_MIGRATION_ROOTS: readonly string[] = frozenMarkers(
+  securityPathData.controllerMigrationRoots,
+  'controller migration roots',
+);
+
+const controllerMigrationToken = securityPathData.controllerMigrationToken;
+if (typeof controllerMigrationToken !== 'string' || controllerMigrationToken.length === 0)
+  throw new Error('controller migration token is malformed');
+export const CONTROLLER_MIGRATION_TOKEN: string = controllerMigrationToken;
+
+function isControllerMigration(path: string): boolean {
+  return (
+    CONTROLLER_MIGRATION_ROOTS.some((root) => path.startsWith(root)) &&
+    path.includes(CONTROLLER_MIGRATION_TOKEN)
+  );
+}
 
 function markerMatchesPath(path: string, marker: string): boolean {
   if (marker.startsWith(SCRIPTS_GLOB_PREFIX)) {
@@ -69,7 +86,13 @@ export function classifySensitivePaths(paths: readonly string[]): string[] {
 
 /** Controller admission class. There is no receipt grant for these paths. */
 export function classifyControllerPaths(paths: readonly string[]): string[] {
-  return classifyAgainst(paths, CONTROLLER_PATH_MARKERS);
+  const hits = classifyAgainst(paths, CONTROLLER_PATH_MARKERS);
+  for (const path of paths) {
+    if (typeof path !== 'string' || path.length === 0)
+      throw new Error('security path classifier received an invalid path');
+    if (isControllerMigration(path) && !hits.includes(path)) hits.push(path);
+  }
+  return hits;
 }
 
 /** Fail closed when GitHub's changed-file endpoint reaches its documented ceiling. */

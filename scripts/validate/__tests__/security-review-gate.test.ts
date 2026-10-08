@@ -1037,9 +1037,46 @@ describe('sensitive and controller path list', () => {
     expect(classifyAdmission([file]).sensitive).toBe(true);
   });
 
-  it('does not treat another app Fly config as the controller', () => {
+  it.each([
+    'apps/review-controller/src/index.ts',
+    'apps/review-controller/fly.toml',
+    'apps/review-controller/migrations/0000_review_controller_store.sql',
+    'packages/db/src/schema/internal/review-controller.ts',
+    'packages/db/src/review-controller.ts',
+    'packages/db/migrations/0053_review_controller_store.sql',
+    'packages/db/migrations/0054_review_controller_receipt_immutable.sql',
+    '.github/workflows/docker.yml',
+  ])('treats %s as a controller path a receipt cannot clear', (file) => {
+    const admission = classifyAdmission([file]);
+    expect(admission.controller).toBe(true);
+    expect(
+      decideReceiptAdmission({
+        mode: 'enforce',
+        receiptResult: verifiedReceipt,
+        ownerDecision: ownerHold,
+        independentApproval: { ok: false, reason: 'no-independent-approval' },
+        admission,
+      }),
+    ).toMatchObject({ action: 'hold', kind: 'controller-self' });
+    expect(
+      decideReceiptAdmission({
+        mode: 'shadow',
+        receiptResult: verifiedReceipt,
+        ownerDecision: ownerHold,
+        independentApproval: { ok: false },
+        admission,
+      }).action,
+    ).toBe('hold');
+  });
+
+  it('does not treat another app Fly config or an unrelated migration as the controller', () => {
     expect(classifyAdmission(['apps/license-signer/fly.toml']).controller).toBe(false);
-    expect(classifyAdmission(['apps/review-controller/Dockerfile']).controller).toBe(true);
+    expect(classifyAdmission(['apps/server/fly.toml']).controller).toBe(false);
+    expect(
+      classifyAdmission(['packages/db/migrations/0026_audit_append_only.sql']).controller,
+    ).toBe(false);
+    expect(classifyAdmission(['docs/gates/review-controller-receipt.md']).controller).toBe(false);
+    expect(classifyAdmission(['.github/workflows/ci.yml']).controller).toBe(false);
   });
 
   it('mirrors the same paths in CODEOWNERS', () => {
@@ -1053,6 +1090,12 @@ describe('sensitive and controller path list', () => {
       '/.github/dependabot.yml',
       '/.github/actions/',
       '/apps/review-controller/',
+      '/apps/review-controller/fly.toml',
+      '/packages/db/src/schema/internal/review-controller.ts',
+      '/packages/db/src/review-controller.ts',
+      '/packages/db/migrations/*review_controller*',
+      '/apps/review-controller/migrations/',
+      '/.github/workflows/docker.yml',
     ]) {
       expect(codeowners).toContain(pattern);
     }

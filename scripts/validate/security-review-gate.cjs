@@ -10,9 +10,10 @@
 //   neither sensitive nor the controller.
 // - Sensitive paths need that receipt plus one independent approving review,
 //   or the owner SSHSIG.
-// - Controller paths (apps/review-controller, including its Fly config) have
-//   no receipt grant. They need an independent approving review or the owner
-//   SSHSIG.
+// - Controller paths have no receipt grant. That is the controller app
+//   (including its Fly config), its database schema and review_controller
+//   migrations, and .github/workflows/docker.yml. They need an independent
+//   approving review on the head commit or the owner SSHSIG.
 //
 // A live guardrail-2 REQUEST-CHANGES verdict OVERRIDES the label. Verdicts are
 // posted as comments/reviews carrying a machine-parseable marker

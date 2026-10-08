@@ -25,7 +25,7 @@ Both classes live only in `packages/security/src/security-paths.shared.json`. Th
 | --- | --- | --- |
 | Normal | Everything that is not sensitive and not the controller | Verified receipt, or the owner SSHSIG |
 | Sensitive | Workflows, composite actions, CodeQL config, Dependabot config, ruleset files, CODEOWNERS, auth, session, roles, permissions, admin access, Drizzle migrations and journals, the gate, `scripts/ci/`, `scripts/check-client-leaks.sh`, `scripts/**/backflow-merge-method-guard.cjs`, `scripts/**/gates-resolver.cjs` | Verified receipt plus one independent approving review, or the owner SSHSIG |
-| Controller | `apps/review-controller/**`, including `fly.toml` | Independent approving review, or the owner SSHSIG. A receipt never clears these paths |
+| Controller | `apps/review-controller/**` (including `fly.toml` and the isolated migration journal), `packages/db/src/schema/internal/review-controller.ts`, `packages/db/src/review-controller.ts`, product migrations whose names include `review_controller`, and `.github/workflows/docker.yml` (the workflow that builds the controller image) | Independent approving review on the head commit, or the owner SSHSIG. A receipt never clears these paths |
 
 Outside enforce mode, a receipt still never clears. Controller paths still need an independent approving review or the owner SSHSIG. Other gated paths keep the owner SSHSIG. Pull requests that touch none of those paths still pass.
 
@@ -57,24 +57,23 @@ The controller publishes `RevealUI Receipt` outside this repository's pull reque
 - The refresh workflow may re-run the base gate. That needs `actions: write`. It still does not receive either private key.
 - Setting `REVIEW_RECEIPT_MODE` to anything other than `enforce` leaves the owner SSHSIG as the only grant, even if the App id is already stored in a repository variable.
 - Sensitive paths need a second account. The App cannot supply that review, and the author cannot supply it either.
-- Controller paths have no receipt grant, so the controller cannot clear a change to its own code or Fly config.
+- Controller paths have no receipt grant. That includes the controller service, its Fly config, its database schema and `review_controller` migrations, and `.github/workflows/docker.yml`. The controller cannot clear a change to itself.
 
 ## Owner steps
 
 These settings live in GitHub and on the controller host. This pull request does not change them.
 
-1. Install the GitHub App named RevealFleet Review Controller on the repository RevealUIStudio/revealui. Repository installation only. Do not install it on unrelated repositories.
+1. Install the GitHub App `revealfleet-review-controller` on the repository RevealUIStudio/revealui. That slug is the canonical App. Repository installation only. Do not install it on unrelated repositories. Do not hardcode the App's numeric id in gate code or in this repository.
 
-2. Grant the App only these permissions:
+2. Grant the App only these permissions. The controller writes check runs and does not post pull request reviews or comments, so pull requests stay read-only:
    - Checks: Read and write (`checks: write`)
-   - Contents: Read-only (`contents: read`)
    - Pull requests: Read-only (`pull_requests: read`)
+   - Contents: Read-only (`contents: read`)
    - Actions: Read-only (`actions: read`)
-   - Merge queues: Read-only (`merge_queues: read`)
    - Metadata: Read-only (`metadata: read`)
-   GitHub includes metadata read on every App. Do not grant contents write, administration, workflows write, secrets, or a ruleset bypass role.
+   GitHub includes metadata read on every App. Do not grant `pull_requests: write`. Do not grant contents write, administration, workflows write, secrets, or a ruleset bypass role.
 
-3. Why those permissions are enough: the controller creates and updates one check run (`checks: write`), reads the pull request, its reviews, and inline review comments (`pull_requests: read`), and reads git trees and blobs (`contents: read`). Receipt evaluation lists workflow runs (`actions: read`). The shipped token request also includes merge queue read. The publisher does not merge and does not post pull request reviews or comments. Contents write would let the App push commits onto a pull request. Administration would let it change rulesets or Actions secrets. Pull request write would let the App submit the approving review that sensitive paths require.
+3. Why those permissions are enough: the only write is the receipt check run (`checks: write`). Reading the pull request, its reviews, and inline review comments needs `pull_requests: read`. Reading git trees and blobs needs `contents: read`. Receipt evaluation lists workflow runs (`actions: read`). The publisher does not merge. Contents write would let the App push commits onto a pull request. Administration would let it change rulesets or Actions secrets. Pull request write would let the App submit the approving review that sensitive and controller paths require.
 
 4. Follow-up for the receipted merge flow, not this pull request: `apps/review-controller/src/github-app-policy.ts` still requests `pull_requests: 'write'`. Drop that to `read`. Until that change, an installation limited to pull request read fails when the controller mints a token, because the token request still asks for write. Do not treat pull request write as permission for the App to satisfy the independent review.
 
@@ -85,7 +84,7 @@ These settings live in GitHub and on the controller host. This pull request does
    - `REVIEW_RECEIPT_POLICY_VERSION`
    - `REVIEW_RECEIPT_MAX_LIFETIME_MS`
    - `REVIEW_RECEIPT_REQUIRED_CHECKS`
-   `REVEALFLEET_REVIEW_CONTROLLER_APP_ID` and `REVEALFLEET_REVIEW_CONTROLLER_APP_SLUG` are not a grant. Leave them unused for admission.
+   `REVEALFLEET_REVIEW_CONTROLLER_APP_ID` and `REVEALFLEET_REVIEW_CONTROLLER_APP_SLUG` are not a grant. The slug variable currently holds a URL, not a slug, so those two variables must not be used to accept a check. Delete both once `REVIEW_RECEIPT_MODE=enforce` and the signed envelope are in place. Do not hardcode an App id in their place.
 
 6. Controller host secret store (the process that publishes the receipt check). Not this repository, not organization Actions secrets, and not a pull request workflow. Names only:
    - `GITHUB_APP_ID`
@@ -97,9 +96,9 @@ These settings live in GitHub and on the controller host. This pull request does
 
 7. Rulesets are stored in GitHub settings, not in this repository. On the ruleset that protects `test` and `main` (the required-check context is the job name `Security review gate`):
    - Keep `Security review gate` as a required status check.
-   - Do not add RevealFleet Review Controller as a bypass actor.
+   - Do not add `revealfleet-review-controller` as a bypass actor.
    - Do not grant the App permission to edit rulesets or dismiss reviews.
-   - After the controller is publishing checks, you may add a second required status check named `RevealUI Receipt` and restrict that check to the RevealFleet Review Controller App. Keep `Security review gate` required as well. The workflow gate is what verifies the envelope, enforce mode, sensitive-path dual control, and the controller-path ban on receipt grants.
+   - After the controller is publishing checks, you may add a second required status check named `RevealUI Receipt` and restrict that check to the `revealfleet-review-controller` App. Keep `Security review gate` required as well. The workflow gate is what verifies the envelope, enforce mode, sensitive-path dual control, and the controller-path ban on receipt grants.
    - No ruleset file in this repo needs an edit for this change.
 
 8. Merge the receipted merge flow before this pull request. This gate verifies that flow's signed envelope. It does not replace the controller.

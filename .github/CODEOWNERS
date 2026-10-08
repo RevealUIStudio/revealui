@@ -81,3 +81,9 @@
 /.github/dependabot.yml @joshua-v-dev @RevealUIStudio
 /.github/actions/ @joshua-v-dev @RevealUIStudio
 /apps/review-controller/ @joshua-v-dev @RevealUIStudio
+/apps/review-controller/fly.toml @joshua-v-dev @RevealUIStudio
+/packages/db/src/schema/internal/review-controller.ts @joshua-v-dev @RevealUIStudio
+/packages/db/src/review-controller.ts @joshua-v-dev @RevealUIStudio
+/packages/db/migrations/*review_controller* @joshua-v-dev @RevealUIStudio
+/apps/review-controller/migrations/ @joshua-v-dev @RevealUIStudio
+/.github/workflows/docker.yml @joshua-v-dev @RevealUIStudio
