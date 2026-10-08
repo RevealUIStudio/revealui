@@ -1,0 +1,48 @@
+# Requeue the security review gate when the controller App finishes a check run.
+#
+# check_run workflows are read from the default branch, not from the pull
+# request. This job does not check out pull request code. It only asks GitHub
+# to re-run the existing pull_request_target gate, which checks out the base
+# SHA and uses the base copy of the gate script.
+#
+# The job name is not "Security review gate". A skipped or failed requeue must
+# not replace that required check. actions: write is the narrowest permission
+# that can re-run a workflow. This job does not receive the App private key
+# and cannot create check runs.
+
+name: Security Review Gate Refresh
+
+on:
+  check_run:
+    types: [completed]
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  requeue:
+    name: Requeue security review gate
+    if: github.event.check_run.name == 'RevealUI Receipt' && github.event.check_run.app.id == vars.REVIEW_RECEIPT_CONTROLLER_APP_ID
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Re-run the base security review gate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_SHA: ${{ github.event.check_run.head_sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          runs="$(gh run list --repo "$REPO" --workflow "Security Review Gate" --commit "$HEAD_SHA" --json databaseId,event --limit 20)"
+          run_id="$(RUNS_JSON="$runs" node -e '
+            const runs = JSON.parse(process.env.RUNS_JSON || "[]");
+            const match = Array.isArray(runs) ? runs.find((run) => run.event === "pull_request_target") : undefined;
+            if (!match) process.exit(0);
+            process.stdout.write(String(match.databaseId));
+          ')"
+          if [ -z "$run_id" ]; then
+            echo "No base security review gate run for ${HEAD_SHA} yet."
+            exit 0
+          fi
+          gh run rerun --repo "$REPO" "$run_id"

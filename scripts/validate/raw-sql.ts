@@ -35,7 +35,7 @@
  *     only fires on .execute() with a literal DDL/DML payload.
  *
  *   sql-file-outside-migrations
- *     Any .sql file not under packages/db/migrations/. Catches
+ *     Any .sql file not under a maintained Drizzle migration root. Catches
  *     hand-applied migrations that bypass drizzle-kit.
  *
  * Suppression: add `// drizzle-raw: <reason>` on the same line OR
@@ -46,6 +46,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isSqlMigrationFile, SQL_MIGRATIONS_DIRS } from './raw-sql-migration-roots.js';
 
 // =============================================================================
 // Constants
@@ -138,9 +139,6 @@ const EXECUTE_SQL_LITERAL_EXCLUDED_PATH_SEGMENTS = [
   // Validators describe the banned patterns and must not self-flag.
   'scripts/validate/',
 ];
-
-// Rule: sql-file-outside-migrations. drizzle-kit writes SQL under this dir.
-const SQL_MIGRATIONS_DIR = 'packages/db/migrations';
 
 // Paths where bare .sql files are explicitly allowed (e.g., test fixtures).
 // Individual out-of-band .sql files that need a documented exemption go in
@@ -385,12 +383,12 @@ function checkSqlFileOutsideMigrations(
   allowlist: Map<string, Set<RuleId>>,
 ): string[] {
   if (file.ext !== '.sql') return [];
-  if (file.rel.startsWith(`${SQL_MIGRATIONS_DIR}/`)) return [];
+  if (isSqlMigrationFile(file.rel)) return [];
   if (includesAnyPathSegment(file.rel, SQL_FILE_ALLOWED_PATH_SEGMENTS)) return [];
   if (isAllowlisted(allowlist, file.rel, 'sql-file-outside-migrations')) return [];
 
   return [
-    `  ${file.rel}  .sql file outside ${SQL_MIGRATIONS_DIR}/ (apply via drizzle-kit or allowlist with reason)`,
+    `  ${file.rel}  .sql file outside maintained Drizzle migration roots (${SQL_MIGRATIONS_DIRS.join(', ')})`,
   ];
 }
 

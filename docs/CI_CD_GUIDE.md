@@ -93,9 +93,9 @@ Pinned action versions and SHAs are kept in lockstep with Renovate (`renovate.js
 
 `security-review-gate.yml` is a required status check. The job name stays `Security review gate`. The workflow definition comes from the base branch (`pull_request_target`), so a pull request cannot rewrite the gate for its own evaluation.
 
-A pull request that does not touch a security path or a sensitive path passes. Other pull requests pass with an owner SSHSIG bound to the exact head, or with a successful `RevealUI Receipt` check run on that head from the review controller App. The check is matched by app id and slug (`REVEALFLEET_REVIEW_CONTROLLER_APP_ID`, `REVEALFLEET_REVIEW_CONTROLLER_APP_SLUG`). The check name is not enough.
+Unless `REVIEW_RECEIPT_MODE` is exactly `enforce`, a pull request that does not touch a security, sensitive, or controller path passes, and every other pull request needs an owner SSHSIG bound to the exact head. A receipt never clears in that mode. App id and slug variables are not a grant.
 
-Sensitive paths are listed only in `scripts/validate/receipt-sensitive-paths.json`: workflows, composite actions, auth (packages, session, roles, permissions, admin access), Drizzle migrations and journals, the gate itself, CODEOWNERS, and ruleset files. Those need the App receipt plus an approving review from an account other than the pull request author and the App, or the owner SSHSIG. The App receipt alone does not pass.
+In enforce mode every pull request needs a verified signed receipt envelope on the `RevealUI Receipt` check, bound to the current head, or the owner SSHSIG. The path lists live only in `packages/security/src/security-paths.shared.json`. A receipt alone clears normal paths. Sensitive paths also need one independent approving review from a write-capable owner, member, or collaborator on that same head. Controller paths (`apps/review-controller/**`, including the Fly config) have no receipt grant.
 
 Repository rulesets are not stored in this repo. Keep the required check name `Security review gate` in the GitHub ruleset that protects `test` and `main`. Do not add the App as a bypass actor. Full install, variable, and secret names are in [review controller receipts](./gates/review-controller-receipt.md).
 

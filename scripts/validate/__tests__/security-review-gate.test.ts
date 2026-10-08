@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -13,8 +13,10 @@ const {
   MAX_CLASSIFIABLE_FILES,
   classifyFiles,
   decideReviewGate,
+  decideReceiptAdmission,
   fetchPrFiles,
   hitsForFiles,
+  readReceiptConfig,
 } = require('../security-review-gate.cjs');
 
 const CLEAR_LABEL = 'sec-review:approved';
@@ -29,7 +31,7 @@ afterEach(() => vi.unstubAllEnvs());
 const ENFORCEMENT_MACHINERY_FILES = [
   'scripts/validate/security-review-gate.cjs',
   'scripts/validate/sec-audit-label-decision.cjs',
-  'scripts/validate/security-paths.shared.json',
+  'packages/harnesses/src/gates/security-paths.shared.json',
   '.github/workflows/security-review-gate.yml',
   '.github/workflows/sec-audit-label-guard.yml',
   '.github/workflows/security.yml',
@@ -50,6 +52,61 @@ describe('classifyFiles — enforcement-machinery self-protection', () => {
     // were removed, ENFORCEMENT_MACHINERY_FILES above would stop being flagged;
     // this line guarantees the markers are not so broad they catch everything.
     expect(classifyFiles(['apps/marketing/app/components/Hero.tsx'])).toEqual([]);
+  });
+});
+
+describe('trusted sparse gate build inputs', () => {
+  it('checks out every workspace package in the security build dependency closure', () => {
+    const packagesRoot = join(__dirname, '../../../packages');
+    type WorkspaceManifest = {
+      name?: unknown;
+      dependencies?: Record<string, unknown>;
+      optionalDependencies?: Record<string, unknown>;
+    };
+    const workspacePackages = new Map<string, { directory: string; manifest: WorkspaceManifest }>();
+    for (const entry of readdirSync(packagesRoot, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const directory = join(packagesRoot, entry.name);
+      const manifestPath = join(directory, 'package.json');
+      if (!existsSync(manifestPath)) continue;
+      const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as WorkspaceManifest;
+      if (typeof manifest.name === 'string')
+        workspacePackages.set(manifest.name, { directory, manifest });
+    }
+
+    const requiredPackages = new Set<string>();
+    const visit = (name: string) => {
+      if (requiredPackages.has(name)) return;
+      const workspacePackage = workspacePackages.get(name);
+      if (!workspacePackage) return;
+      requiredPackages.add(name);
+      const dependencies = {
+        ...workspacePackage.manifest.dependencies,
+        ...workspacePackage.manifest.optionalDependencies,
+      };
+      for (const [dependency, specifier] of Object.entries(dependencies)) {
+        if (typeof specifier === 'string' && specifier.startsWith('workspace:')) visit(dependency);
+      }
+    };
+    visit('@revealui/security');
+
+    for (const workflowName of ['security-review-gate.yml', 'sec-audit-label-guard.yml']) {
+      const workflow = readFileSync(
+        join(__dirname, `../../../.github/workflows/${workflowName}`),
+        'utf8',
+      );
+      const sparseCheckout = workflow.match(
+        /sparse-checkout:\s*\|\s*\n([\s\S]*?)sparse-checkout-cone-mode:/,
+      )?.[1];
+      expect(sparseCheckout, `${workflowName} sparse-checkout block`).toBeDefined();
+      for (const name of requiredPackages) {
+        const { directory } = workspacePackages.get(name)!;
+        const checkoutPath = `packages/${directory.slice(packagesRoot.length + 1)}/`;
+        expect(sparseCheckout, `${workflowName} must include ${checkoutPath}`).toContain(
+          checkoutPath,
+        );
+      }
+    }
   });
 });
 
@@ -198,6 +255,17 @@ describe('fetchPrFiles — the full paginated list, not the 100-file window', ()
     fetchPrFiles(7, undefined, ghImpl);
     expect(calls[0]).toContain('repos/{owner}/{repo}/pulls/7/files');
   });
+
+  it('classifies a renamed file by its protected previous path', () => {
+    const calls: string[][] = [];
+    const ghImpl = (args: string[]) => {
+      calls.push(args);
+      return 'apps/marketing/credentials.ts\npackages/security/credentials.ts\n';
+    };
+    const paths = fetchPrFiles(8, 'RevealUIStudio/revealui', ghImpl);
+    expect(calls[0]).toContain('.[] | .filename, .previous_filename // empty');
+    expect(classifyFiles(paths)).toContain('packages/security/credentials.ts');
+  });
 });
 
 describe('hitsForFiles — the API ceiling fails closed', () => {
@@ -327,11 +395,24 @@ const {
   verifyPrOwnerRecord,
   fetchCommitPulls,
   fetchPrCommitShas,
+  resolveAllowedSigners,
 } = require('../security-review-gate.cjs');
 const target = 'RevealUIStudio/revealui';
 const featureHead = 'a'.repeat(40);
 
 describe('owner grant evidence adapter', () => {
+  it('reads the canonical REVEALFLEET signer variable', () => {
+    const canonical = process.env.REVEALFLEET_OVERRIDE_SIGNERS;
+    try {
+      process.env.REVEALFLEET_OVERRIDE_SIGNERS = 'canonical-anchor';
+      expect(resolveAllowedSigners()).toBe('canonical-anchor');
+      expect(resolveAllowedSigners('explicit-anchor')).toBe('explicit-anchor');
+    } finally {
+      if (canonical === undefined) delete process.env.REVEALFLEET_OVERRIDE_SIGNERS;
+      else process.env.REVEALFLEET_OVERRIDE_SIGNERS = canonical;
+    }
+  });
+
   it('paginates comments AND reviews and normalizes reviewer identities', () => {
     const calls: string[][] = [];
     const result = fetchPrDiscussion(91, target, (args: string[]) => {
@@ -407,6 +488,162 @@ describe('owner grant evidence adapter', () => {
         Array.from({ length: 250 }, () => featureHead).join('\n'),
       ),
     ).toThrow('API ceiling');
+  });
+});
+
+describe('receipt gate configuration', () => {
+  it('is disabled unless the base-trusted workflow opts into shadow or enforce mode', () => {
+    expect(readReceiptConfig({})).toBeUndefined();
+  });
+
+  it('requires complete trusted policy when shadow mode is enabled', () => {
+    expect(() => readReceiptConfig({ REVIEW_RECEIPT_MODE: 'shadow' })).toThrow(
+      'REVIEW_RECEIPT_CONTROLLER_APP_ID is required',
+    );
+  });
+
+  it('accepts enforce mode only with the same complete trusted policy', () => {
+    expect(() => readReceiptConfig({ REVIEW_RECEIPT_MODE: 'enforce' })).toThrow(
+      'REVIEW_RECEIPT_CONTROLLER_APP_ID is required',
+    );
+    expect(() => readReceiptConfig({ REVIEW_RECEIPT_MODE: 'observe' })).toThrow(
+      'REVIEW_RECEIPT_MODE must be shadow or enforce',
+    );
+    expect(
+      readReceiptConfig({
+        REVIEW_RECEIPT_MODE: 'enforce',
+        REVIEW_RECEIPT_CONTROLLER_APP_ID: '30',
+        REVIEW_RECEIPT_MAX_LIFETIME_MS: '3600000',
+        REVIEW_RECEIPT_POLICY_VERSION: 'policy-1',
+        REVIEW_RECEIPT_TRUSTED_KEYS: JSON.stringify({ key: 'public key' }),
+        REVIEW_RECEIPT_REQUIRED_CHECKS: JSON.stringify([
+          {
+            name: 'CI Feedback',
+            appId: 15368,
+            workflowId: 220400161,
+            workflowPath: '.github/workflows/ci.yml',
+            event: 'pull_request',
+          },
+          { name: 'CodeQL', appId: 57789 },
+          {
+            name: 'Security Gate',
+            appId: 15368,
+            workflowId: 401,
+            workflowPath: '.github/workflows/security.yml',
+            event: 'pull_request',
+          },
+          {
+            name: 'Dependency Review',
+            appId: 15368,
+            workflowId: 401,
+            workflowPath: '.github/workflows/security.yml',
+            event: 'pull_request',
+          },
+          {
+            name: 'Secret Scanning (Gitleaks)',
+            appId: 15368,
+            workflowId: 401,
+            workflowPath: '.github/workflows/security.yml',
+            event: 'pull_request',
+          },
+        ]),
+      }),
+    ).toMatchObject({ mode: 'enforce', controllerAppId: 30 });
+  });
+
+  it('lets only a verified receipt replace the owner grant in enforce mode', () => {
+    const ownerHold = { action: 'hold', kind: 'no-owner-signature' };
+    expect(
+      decideReceiptAdmission({
+        mode: 'shadow',
+        receiptResult: { status: 'verified', receiptId: 'receipt-1' },
+        ownerDecision: ownerHold,
+      }),
+    ).toEqual(ownerHold);
+    expect(
+      decideReceiptAdmission({
+        mode: 'enforce',
+        receiptResult: { status: 'ineligible', reason: 'stale-head' },
+        ownerDecision: ownerHold,
+      }),
+    ).toMatchObject({ action: 'hold', kind: 'invalid-app-receipt', reason: 'stale-head' });
+    expect(
+      decideReceiptAdmission({
+        mode: 'enforce',
+        receiptResult: { status: 'verified', receiptId: 'receipt-1' },
+        ownerDecision: ownerHold,
+      }),
+    ).toMatchObject({ action: 'clear', kind: 'app-receipt', receiptId: 'receipt-1' });
+  });
+
+  it('keeps live reviewer holds authoritative over receipt admission', () => {
+    const reviewerHold = {
+      action: 'hold',
+      kind: 'request-changes',
+      reviewer: 'codex',
+      timestamp: '2026-10-07T12:00:00Z',
+    };
+    expect(
+      decideReceiptAdmission({
+        mode: 'enforce',
+        receiptResult: { status: 'verified', receiptId: 'receipt-1' },
+        ownerDecision: reviewerHold,
+      }),
+    ).toEqual(reviewerHold);
+  });
+
+  it('rejects partial receipt settings without an explicit gate mode', () => {
+    expect(() => readReceiptConfig({ REVIEW_RECEIPT_POLICY_VERSION: 'policy-1' })).toThrow(
+      'REVIEW_RECEIPT_MODE is required when receipt settings are present',
+    );
+  });
+
+  it('rejects duplicate required check selectors', () => {
+    expect(() =>
+      readReceiptConfig({
+        REVIEW_RECEIPT_MODE: 'shadow',
+        REVIEW_RECEIPT_CONTROLLER_APP_ID: '30',
+        REVIEW_RECEIPT_MAX_LIFETIME_MS: '3600000',
+        REVIEW_RECEIPT_POLICY_VERSION: 'policy-1',
+        REVIEW_RECEIPT_TRUSTED_KEYS: JSON.stringify({ key: 'public key' }),
+        REVIEW_RECEIPT_REQUIRED_CHECKS: JSON.stringify([
+          { name: 'CI', appId: 20 },
+          { name: 'CI', appId: 20 },
+        ]),
+      }),
+    ).toThrow('REVIEW_RECEIPT_REQUIRED_CHECKS contains duplicate selectors');
+  });
+
+  it('rejects receipt policies that omit mandatory exact-head security checks', () => {
+    expect(() =>
+      readReceiptConfig({
+        REVIEW_RECEIPT_MODE: 'shadow',
+        REVIEW_RECEIPT_CONTROLLER_APP_ID: '30',
+        REVIEW_RECEIPT_MAX_LIFETIME_MS: '3600000',
+        REVIEW_RECEIPT_POLICY_VERSION: 'policy-1',
+        REVIEW_RECEIPT_TRUSTED_KEYS: JSON.stringify({ key: 'public key' }),
+        REVIEW_RECEIPT_REQUIRED_CHECKS: JSON.stringify([{ name: 'CI', appId: 20 }]),
+      }),
+    ).toThrow('REVIEW_RECEIPT_REQUIRED_CHECKS omits a mandatory security check');
+  });
+
+  it('grants the base-trusted gate read access to check-run receipt evidence', () => {
+    const workflow = readFileSync(
+      join(__dirname, '../../../.github/workflows/security-review-gate.yml'),
+      'utf8',
+    );
+    expect(workflow).toContain('checks: read');
+    for (const name of [
+      'REVIEW_RECEIPT_MODE',
+      'REVIEW_RECEIPT_CONTROLLER_APP_ID',
+      'REVIEW_RECEIPT_TRUSTED_KEYS',
+      'REVIEW_RECEIPT_POLICY_VERSION',
+      'REVIEW_RECEIPT_MAX_LIFETIME_MS',
+      'REVIEW_RECEIPT_REQUIRED_CHECKS',
+    ]) {
+      const expression = `\${{ vars.${name} }}`;
+      expect(workflow).toContain(`${name}: ${expression}`);
+    }
   });
 });
 
@@ -537,412 +774,288 @@ it('real SSHSIG passes through the existing compiled resolver and sensitive gate
 });
 
 const {
-  SENSITIVE_PATH_CLASSES,
-  RECEIPT_CHECK_NAME,
-  RECEIPT_APP_ID_VAR,
-  RECEIPT_APP_SLUG_VAR,
-  classifySensitiveFiles,
-  reviewAdmission,
-  verifyAppReceiptCheck,
   verifyIndependentApproval,
-  readReceiptControllerConfig,
-  buildReceiptAdmission,
+  classifyAdmission,
+  SENSITIVE_PATH_MARKERS,
+  CONTROLLER_PATH_MARKERS,
 } = require('../security-review-gate.cjs');
 
-const APP_ID = 4242;
-const APP_SLUG = 'example-review-controller';
 const HEAD = 'a'.repeat(40);
 const OTHER_HEAD = 'b'.repeat(40);
-const receiptOk = { ok: true, url: 'https://example.test/check/10' };
+const ownerHold = { action: 'hold', kind: 'no-owner-signature' };
+const verifiedReceipt = { status: 'verified', receiptId: 'receipt-1' };
 
-interface ReceiptRun {
-  id: number;
-  name: string;
-  head_sha: string;
-  status: string;
-  conclusion: string;
-  html_url: string;
-  app: { id: number; slug: string };
-}
-
-function receiptRun(overrides: Partial<ReceiptRun> = {}): ReceiptRun {
+function approvedReview(overrides: Record<string, unknown> = {}) {
   return {
-    id: 10,
-    name: RECEIPT_CHECK_NAME,
-    head_sha: HEAD,
-    status: 'completed',
-    conclusion: 'success',
-    html_url: 'https://example.test/check/10',
-    app: { id: APP_ID, slug: APP_SLUG },
+    state: 'APPROVED',
+    commit_id: HEAD,
+    author_association: 'MEMBER',
+    permission: 'write',
+    user: { login: 'independent-reviewer', type: 'User' },
     ...overrides,
   };
 }
 
-function classIds(file: string): string[] {
-  return classifySensitiveFiles([file]).flatMap((hit: { classes: string[] }) => hit.classes);
-}
-
-const SENSITIVE_SAMPLES = [
-  { id: 'workflows', file: '.github/workflows/ci.yml' },
-  { id: 'actions', file: '.github/actions/setup/action.yml' },
-  { id: 'auth', file: 'packages/auth/src/server/session.ts' },
-  { id: 'migrations', file: 'packages/db/migrations/meta/_journal.json' },
-  { id: 'gate', file: 'scripts/validate/security-review-gate.cjs' },
-  { id: 'codeowners', file: '.github/CODEOWNERS' },
-  { id: 'rulesets', file: '.github/rulesets/protect-main-test.json' },
-] as const;
-
-describe('sensitive path list', () => {
-  it('loads the class list from receipt-sensitive-paths.json only', () => {
-    const onDisk = JSON.parse(
-      readFileSync(join(__dirname, '../receipt-sensitive-paths.json'), 'utf8'),
-    ) as { classes: Array<{ id: string; markers: string[] }> };
-    expect(SENSITIVE_PATH_CLASSES).toEqual(
-      onDisk.classes.map((entry) => ({ id: entry.id, markers: entry.markers })),
-    );
-    expect(SENSITIVE_PATH_CLASSES.map((entry: { id: string }) => entry.id)).toEqual([
-      'workflows',
-      'actions',
-      'auth',
-      'migrations',
-      'gate',
-      'codeowners',
-      'rulesets',
-    ]);
-  });
-
-  it.each(SENSITIVE_SAMPLES)('classifies $id via $file', ({ id, file }) => {
-    expect(classIds(file)).toContain(id);
-  });
-
-  it('covers auth, session, roles, permissions, admin access, and migration journals', () => {
-    for (const file of [
-      'packages/auth/src/server/session.ts',
-      'apps/admin/src/lib/utils/session-cookies.ts',
-      'apps/admin/src/lib/access/permissions/roles.ts',
-      'apps/admin/src/lib/auth/roles.ts',
-      'apps/admin/src/proxy.ts',
-      'packages/core/src/auth/access.ts',
-      'packages/security/src/authorization.ts',
-      'packages/db/migrations/0054_example.sql',
-      'packages/db/migrations/meta/_journal.json',
-      'scripts/validate/receipt-sensitive-paths.json',
-    ]) {
-      expect(classIds(file).length).toBeGreaterThan(0);
+describe('signed receipt admission', () => {
+  it('does not clear on a verified receipt when mode is not enforce', () => {
+    for (const mode of ['shadow', undefined, '']) {
+      expect(
+        decideReceiptAdmission({
+          mode,
+          receiptResult: verifiedReceipt,
+          ownerDecision: ownerHold,
+          admission: { controller: false, sensitive: false, unclassifiable: false },
+        }),
+      ).toEqual(ownerHold);
     }
   });
-});
 
-describe('review controller receipt grant', () => {
-  const normal = 'packages/paywall/src/index.ts';
-
-  it('passes an owner SSHSIG on a sensitive path without an App receipt', () => {
-    expect(classIds('.github/workflows/ci.yml')).toContain('workflows');
+  it('clears a normal path on a verified receipt only in enforce mode', () => {
     expect(
-      decideReviewGate({
-        verdict: noMarker,
-        labels: [CLEAR_LABEL],
-        ownerVerification: { ok: true, url: 'signed-comment' },
-        receiptVerification: { ok: false },
-        independentApproval: { ok: false },
-        sensitive: true,
+      decideReceiptAdmission({
+        mode: 'enforce',
+        receiptResult: verifiedReceipt,
+        ownerDecision: ownerHold,
+        admission: classifyAdmission(['docs/readme.md']),
       }),
-    ).toEqual({ action: 'clear', kind: 'owner-signature', url: 'signed-comment' });
+    ).toMatchObject({ action: 'clear', kind: 'app-receipt', receiptId: 'receipt-1' });
   });
 
-  it('passes an App receipt on a normal security path', () => {
-    expect(classifyFiles([normal])).toEqual([normal]);
-    expect(classifySensitiveFiles([normal])).toEqual([]);
-    expect(reviewAdmission([normal])).toMatchObject({ gated: true, sensitive: false });
+  it('holds every enforce-mode pull request that has neither a receipt nor an owner SSHSIG', () => {
+    expect(classifyAdmission(['docs/readme.md'])).toEqual({
+      controller: false,
+      sensitive: false,
+      unclassifiable: false,
+    });
     expect(
-      decideReviewGate({
-        verdict: noMarker,
-        labels: [],
-        receiptVerification: receiptOk,
-        sensitive: false,
+      decideReceiptAdmission({
+        mode: 'enforce',
+        receiptResult: { status: 'ineligible', reason: 'receipt_check_run_missing_or_ambiguous' },
+        ownerDecision: ownerHold,
+        admission: classifyAdmission(['docs/readme.md']),
       }),
-    ).toEqual({ action: 'clear', kind: 'app-receipt', url: receiptOk.url });
+    ).toMatchObject({ action: 'hold', kind: 'invalid-app-receipt' });
   });
 
-  it.each(SENSITIVE_SAMPLES)('fails an App receipt alone on $id', ({ file }) => {
-    expect(reviewAdmission([file]).sensitive).toBe(true);
+  it('fails a receipt alone on a sensitive path', () => {
+    const admission = classifyAdmission(['.github/workflows/ci.yml']);
+    expect(admission.sensitive).toBe(true);
+    expect(admission.controller).toBe(false);
     expect(
-      decideReviewGate({
-        verdict: noMarker,
-        labels: [],
-        receiptVerification: receiptOk,
+      decideReceiptAdmission({
+        mode: 'enforce',
+        receiptResult: verifiedReceipt,
+        ownerDecision: ownerHold,
         independentApproval: { ok: false, reason: 'no-independent-approval' },
-        sensitive: true,
+        admission,
+      }),
+    ).toMatchObject({ action: 'hold', kind: 'sensitive-needs-independent-review' });
+  });
+
+  it('clears a sensitive path when enforce mode has a receipt and an independent review', () => {
+    expect(
+      decideReceiptAdmission({
+        mode: 'enforce',
+        receiptResult: verifiedReceipt,
+        ownerDecision: ownerHold,
+        independentApproval: { ok: true, reviewer: 'independent-reviewer' },
+        admission: { controller: false, sensitive: true, unclassifiable: false },
       }),
     ).toMatchObject({
-      action: 'hold',
-      kind: 'sensitive-needs-independent-review',
-    });
-  });
-
-  it('passes an App receipt plus an independent approval on a sensitive path', () => {
-    const approval = verifyIndependentApproval({
-      authorLogin: 'pr-author',
-      appSlug: APP_SLUG,
-      reviews: [
-        {
-          author: { login: 'pr-author' },
-          state: 'APPROVED',
-          submittedAt: '2026-10-07T00:00:00Z',
-        },
-        {
-          author: { login: `${APP_SLUG}[bot]` },
-          state: 'APPROVED',
-          submittedAt: '2026-10-07T00:01:00Z',
-        },
-        {
-          author: { login: 'independent-reviewer' },
-          state: 'APPROVED',
-          submittedAt: '2026-10-07T00:02:00Z',
-        },
-      ],
-    });
-    expect(approval).toEqual({ ok: true, reviewer: 'independent-reviewer' });
-    expect(
-      decideReviewGate({
-        verdict: noMarker,
-        labels: [],
-        receiptVerification: receiptOk,
-        independentApproval: approval,
-        sensitive: true,
-      }),
-    ).toEqual({
       action: 'clear',
       kind: 'app-receipt-and-review',
-      url: receiptOk.url,
       reviewer: 'independent-reviewer',
     });
   });
 
-  it('rejects a receipt from a different app id even when the check name matches', () => {
-    const result = verifyAppReceiptCheck({
-      headSha: HEAD,
-      checkRuns: [receiptRun({ app: { id: 999, slug: APP_SLUG } })],
-      appId: APP_ID,
-      appSlug: APP_SLUG,
-    });
-    expect(result).toEqual({ ok: false, reason: 'receipt-app-mismatch' });
+  it('fails a receipt alone on a controller path, including with an unused receipt in enforce mode', () => {
+    const admission = classifyAdmission(['apps/review-controller/fly.toml']);
+    expect(admission.controller).toBe(true);
     expect(
-      decideReviewGate({
-        verdict: noMarker,
-        labels: [],
-        receiptVerification: result,
-        sensitive: false,
-      }).action,
-    ).toBe('hold');
+      decideReceiptAdmission({
+        mode: 'enforce',
+        receiptResult: verifiedReceipt,
+        ownerDecision: ownerHold,
+        independentApproval: { ok: false },
+        admission,
+      }),
+    ).toMatchObject({ action: 'hold', kind: 'controller-self' });
+    expect(
+      decideReceiptAdmission({
+        mode: 'shadow',
+        receiptResult: verifiedReceipt,
+        ownerDecision: ownerHold,
+        independentApproval: { ok: false },
+        admission,
+      }),
+    ).toMatchObject({ action: 'hold', kind: 'controller-self' });
   });
 
-  it('rejects a stale head SHA and accepts the same check on the current head', () => {
-    const stale = verifyAppReceiptCheck({
-      headSha: HEAD,
-      checkRuns: [receiptRun({ head_sha: OTHER_HEAD })],
-      appId: APP_ID,
-      appSlug: APP_SLUG,
-    });
-    expect(stale).toEqual({ ok: false, reason: 'stale-head' });
+  it('clears a controller path by independent review or owner SSHSIG and never by receipt', () => {
+    const admission = classifyAdmission(['apps/review-controller/src/index.ts']);
     expect(
-      verifyAppReceiptCheck({
-        headSha: OTHER_HEAD,
-        checkRuns: [receiptRun({ head_sha: OTHER_HEAD })],
-        appId: APP_ID,
-        appSlug: APP_SLUG,
-      }).ok,
-    ).toBe(true);
-  });
-
-  it('does not count an author self-review, including a different login case', () => {
-    const self = verifyIndependentApproval({
-      authorLogin: 'PR-Author',
-      appSlug: APP_SLUG,
-      reviews: [
-        {
-          author: { login: 'pr-author' },
-          state: 'APPROVED',
-          submittedAt: '2026-10-07T00:00:00Z',
-        },
-        {
-          author: { login: `${APP_SLUG}[bot]` },
-          state: 'APPROVED',
-          submittedAt: '2026-10-07T00:01:00Z',
-        },
-      ],
-    });
-    expect(self.ok).toBe(false);
-    expect(
-      decideReviewGate({
-        verdict: noMarker,
-        labels: [],
-        receiptVerification: receiptOk,
-        independentApproval: self,
-        sensitive: true,
-      }).action,
-    ).toBe('hold');
-  });
-
-  it('keeps a live REQUEST-CHANGES above an App receipt', () => {
-    expect(
-      decideReviewGate({
-        verdict: holdVerdict,
-        labels: [CLEAR_LABEL],
-        ownerVerification: { ok: true },
-        receiptVerification: receiptOk,
+      decideReceiptAdmission({
+        mode: 'enforce',
+        receiptResult: verifiedReceipt,
+        ownerDecision: ownerHold,
         independentApproval: { ok: true, reviewer: 'independent-reviewer' },
-        sensitive: false,
-      }).kind,
-    ).toBe('request-changes');
+        admission,
+      }),
+    ).toMatchObject({ action: 'clear', kind: 'independent-review' });
+    expect(
+      decideReceiptAdmission({
+        mode: 'enforce',
+        receiptResult: { status: 'ineligible', reason: 'missing' },
+        ownerDecision: { action: 'clear', kind: 'owner-signature', url: 'signed-comment' },
+        admission,
+      }),
+    ).toMatchObject({ action: 'clear', kind: 'owner-signature' });
   });
 
-  it('rejects a same-named check from another slug and a differently named check from the App', () => {
+  it('keeps an owner SSHSIG able to clear a sensitive path without a receipt', () => {
     expect(
-      verifyAppReceiptCheck({
-        headSha: HEAD,
-        checkRuns: [receiptRun({ app: { id: APP_ID, slug: 'other-app' } })],
-        appId: APP_ID,
-        appSlug: APP_SLUG,
-      }).reason,
-    ).toBe('receipt-app-mismatch');
+      decideReceiptAdmission({
+        mode: 'enforce',
+        receiptResult: { status: 'ineligible', reason: 'missing' },
+        ownerDecision: { action: 'clear', kind: 'owner-signature', url: 'signed-comment' },
+        admission: { controller: false, sensitive: true, unclassifiable: false },
+      }),
+    ).toMatchObject({ action: 'clear', kind: 'owner-signature' });
+  });
+});
+
+describe('verifyIndependentApproval', () => {
+  it('counts an APPROVED write review on the current head from a member who is not an author', () => {
     expect(
-      verifyAppReceiptCheck({
+      verifyIndependentApproval({
+        reviews: [approvedReview()],
+        authorLogin: 'pr-author',
+        commitAuthorLogins: ['pr-author'],
         headSha: HEAD,
-        checkRuns: [receiptRun({ name: 'Some other check' })],
-        appId: APP_ID,
-        appSlug: APP_SLUG,
+      }),
+    ).toEqual({ ok: true, reviewer: 'independent-reviewer' });
+  });
+
+  it('does not count a bot or an App review', () => {
+    expect(
+      verifyIndependentApproval({
+        reviews: [
+          approvedReview({
+            user: { login: 'review-controller[bot]', type: 'Bot' },
+            author_association: 'NONE',
+          }),
+          approvedReview({
+            user: { login: 'some-app[bot]', type: 'Bot' },
+            author_association: 'COLLABORATOR',
+            permission: 'admin',
+          }),
+        ],
+        authorLogin: 'pr-author',
+        commitAuthorLogins: [],
+        headSha: HEAD,
       }).ok,
     ).toBe(false);
   });
 
-  it('uses the newest matching check run, so a later failure invalidates an older success', () => {
+  it('does not count a review recorded against a stale commit', () => {
     expect(
-      verifyAppReceiptCheck({
-        headSha: HEAD,
-        checkRuns: [receiptRun({ id: 1 }), receiptRun({ id: 2, conclusion: 'failure' })],
-        appId: APP_ID,
-        appSlug: APP_SLUG,
-      }).reason,
-    ).toBe('receipt-check-not-success');
-  });
-
-  it('reads the App id and slug from repository variable names and ignores a partial pair', () => {
-    expect(readReceiptControllerConfig({})).toBeNull();
-    expect(readReceiptControllerConfig({ [RECEIPT_APP_ID_VAR]: String(APP_ID) })).toEqual({
-      ok: false,
-    });
-    expect(
-      readReceiptControllerConfig({
-        [RECEIPT_APP_ID_VAR]: String(APP_ID),
-        [RECEIPT_APP_SLUG_VAR]: APP_SLUG,
-      }),
-    ).toEqual({ ok: true, appId: APP_ID, appSlug: APP_SLUG });
-  });
-
-  it('treats a check run fetched for the current head as stale when its head_sha differs', () => {
-    const calls: string[][] = [];
-    const result = buildReceiptAdmission(
-      {
-        headSha: HEAD,
+      verifyIndependentApproval({
+        reviews: [approvedReview({ commit_id: OTHER_HEAD })],
         authorLogin: 'pr-author',
-        reviews: [],
-        files: [normal],
-        repo: target,
-        ghImpl: (args: string[]) => {
-          calls.push(args);
-          return JSON.stringify([
-            {
-              check_runs: [receiptRun({ head_sha: OTHER_HEAD })],
-            },
-          ]);
-        },
-      },
-      {
-        [RECEIPT_APP_ID_VAR]: String(APP_ID),
-        [RECEIPT_APP_SLUG_VAR]: APP_SLUG,
-      },
-    );
-    expect(calls[0]?.join(' ')).toContain(`/commits/${HEAD}/check-runs`);
-    expect(result.receiptVerification).toEqual({ ok: false, reason: 'stale-head' });
-    expect(result.sensitive).toBe(false);
+        commitAuthorLogins: [],
+        headSha: HEAD,
+      }),
+    ).toEqual({ ok: false, reason: 'no-independent-approval' });
   });
 
-  it('counts an exact-head App receipt for promotion coverage and ignores a sensitive receipt alone', () => {
-    vi.stubEnv(RECEIPT_APP_ID_VAR, String(APP_ID));
-    vi.stubEnv(RECEIPT_APP_SLUG_VAR, APP_SLUG);
-    const featureSha = 'c'.repeat(40);
-    const run = (files: string) => (args: string[]) => {
-      const endpoint = args[1] ?? '';
-      if (endpoint.includes('/pulls?')) {
-        return JSON.stringify([
-          [
-            {
-              number: 91,
-              merged_at: '2026-10-07T00:00:00Z',
-              base: { repo: { full_name: target } },
-              head: { sha: HEAD },
-            },
-          ],
-        ]);
-      }
-      if (args[0] === 'pr') {
-        return JSON.stringify({
-          labels: [],
-          author: { login: 'pr-author' },
-          headRefOid: HEAD,
-          mergedAt: '2026-10-07T00:00:00Z',
-        });
-      }
-      if (endpoint.includes('/comments?') || endpoint.includes('/reviews?')) return '[[]]';
-      if (endpoint.includes('/files')) return files;
-      if (endpoint.includes('/check-runs')) {
-        return JSON.stringify([{ check_runs: [receiptRun()] }]);
-      }
-      if (endpoint.endsWith('/commits')) return `${featureSha}\n`;
-      throw new Error(`unexpected endpoint ${args.join(' ')}`);
+  it('does not count the pull request author, a commit author, a read-only account, or another association', () => {
+    const base = {
+      authorLogin: 'pr-author',
+      commitAuthorLogins: ['commit-author'],
+      headSha: HEAD,
     };
     expect(
-      fetchCommitPulls(featureSha, target, 99, run('packages/paywall/src/index.ts\n')),
-    ).toEqual([{ number: 91, hasVerdict: true }]);
+      verifyIndependentApproval({
+        ...base,
+        reviews: [approvedReview({ user: { login: 'PR-Author', type: 'User' } })],
+      }).ok,
+    ).toBe(false);
     expect(
-      fetchCommitPulls(featureSha, target, 99, run('.github/workflows/ci.yml\n'))[0]?.hasVerdict,
+      verifyIndependentApproval({
+        ...base,
+        reviews: [approvedReview({ user: { login: 'commit-author', type: 'User' } })],
+      }).ok,
+    ).toBe(false);
+    expect(
+      verifyIndependentApproval({
+        ...base,
+        reviews: [approvedReview({ permission: 'read' })],
+      }).ok,
+    ).toBe(false);
+    expect(
+      verifyIndependentApproval({
+        ...base,
+        reviews: [approvedReview({ author_association: 'CONTRIBUTOR' })],
+      }).ok,
+    ).toBe(false);
+    expect(
+      verifyIndependentApproval({
+        ...base,
+        reviews: [approvedReview({ state: 'COMMENTED' })],
+      }).ok,
     ).toBe(false);
   });
+});
 
-  it('clears a non-sensitive record from the receipt when the request label is absent', () => {
-    expect(
-      verifyPrOwnerRecord(
-        { author: { login: 'pr-author' }, labels: [], headRefOid: HEAD },
-        91,
-        target,
-        { comments: [], reviews: [] },
-        'anchor',
-        () => {
-          throw new Error('owner verifier must not run without a request label');
-        },
-        {
-          receiptVerification: receiptOk,
-          independentApproval: { ok: false },
-          sensitive: false,
-        },
+describe('sensitive and controller path list', () => {
+  it('loads both classes from packages/security/src/security-paths.shared.json only', () => {
+    const onDisk = JSON.parse(
+      readFileSync(
+        join(__dirname, '../../../packages/security/src/security-paths.shared.json'),
+        'utf8',
       ),
-    ).toMatchObject({ action: 'clear', kind: 'app-receipt' });
+    ) as { sensitiveMarkers: string[]; controllerMarkers: string[] };
+    expect(SENSITIVE_PATH_MARKERS).toEqual(onDisk.sensitiveMarkers);
+    expect(CONTROLLER_PATH_MARKERS).toEqual(onDisk.controllerMarkers);
+    expect(existsSync(join(__dirname, '../receipt-sensitive-paths.json'))).toBe(false);
   });
 
-  it('does not let an unclassifiable file list pass on an App receipt alone', () => {
-    const admission = reviewAdmission(
-      Array.from({ length: MAX_CLASSIFIABLE_FILES }, () => 'docs/page.md'),
-    );
-    expect(admission.sensitive).toBe(true);
-    expect(
-      decideReviewGate({
-        verdict: noMarker,
-        labels: [],
-        receiptVerification: receiptOk,
-        sensitive: admission.sensitive,
-      }).action,
-    ).toBe('hold');
+  it.each([
+    '.github/workflows/ci.yml',
+    '.github/actions/setup/action.yml',
+    '.github/codeql/codeql.yml',
+    '.github/dependabot.yml',
+    'packages/auth/src/server/session.ts',
+    'packages/db/migrations/meta/_journal.json',
+    'scripts/validate/security-review-gate.cjs',
+    'scripts/ci/expensive-suite.ts',
+    'scripts/check-client-leaks.sh',
+    'scripts/validate/backflow-merge-method-guard.cjs',
+    'scripts/validate/gates-resolver.cjs',
+    '.github/CODEOWNERS',
+  ])('treats %s as sensitive', (file) => {
+    expect(classifyAdmission([file]).sensitive).toBe(true);
+  });
+
+  it('does not treat another app Fly config as the controller', () => {
+    expect(classifyAdmission(['apps/license-signer/fly.toml']).controller).toBe(false);
+    expect(classifyAdmission(['apps/review-controller/Dockerfile']).controller).toBe(true);
+  });
+
+  it('mirrors the same paths in CODEOWNERS', () => {
+    const codeowners = readFileSync(join(__dirname, '../../../.github/CODEOWNERS'), 'utf8');
+    for (const pattern of [
+      '/scripts/ci/',
+      '/scripts/check-client-leaks.sh',
+      '/scripts/**/backflow-merge-method-guard.cjs',
+      '/scripts/**/gates-resolver.cjs',
+      '/.github/codeql/',
+      '/.github/dependabot.yml',
+      '/.github/actions/',
+      '/apps/review-controller/',
+    ]) {
+      expect(codeowners).toContain(pattern);
+    }
   });
 });
 
@@ -951,14 +1064,35 @@ describe('security review gate workflow trust boundary', () => {
     join(__dirname, '../../../.github/workflows/security-review-gate.yml'),
     'utf8',
   );
+  const refresh = readFileSync(
+    join(__dirname, '../../../.github/workflows/security-review-gate-refresh.yml'),
+    'utf8',
+  );
 
-  it('reads check runs and the App identifiers, and does not receive the App private key', () => {
+  it('keeps the evaluating job on the base copy with read-only permissions', () => {
+    expect(yml).toContain('pull_request_target:');
+    expect(yml).toContain('pull_request_review:');
+    expect(yml).toContain('types: [submitted]');
+    const baseCheckout = ['ref: $', '{{ github.event.pull_request.base.sha }}'].join('');
+    const headCheckout = ['ref: $', '{{ github.event.pull_request.head.sha }}'].join('');
+    expect(yml).toContain(baseCheckout);
+    expect(yml).not.toContain(headCheckout);
     expect(yml).toContain('checks: read');
     expect(yml).not.toContain('checks: write');
-    expect(yml).toContain(RECEIPT_APP_ID_VAR);
-    expect(yml).toContain(RECEIPT_APP_SLUG_VAR);
-    expect(yml).toContain('scripts/validate/receipt-sensitive-paths.json');
     expect(yml).not.toContain('GITHUB_APP_PRIVATE_KEY');
-    expect(yml).not.toContain('PRIVATE_KEY');
+    expect(yml).not.toContain('REVEALFLEET_REVIEW_CONTROLLER_APP_ID');
+    expect(yml).not.toContain('REVEALFLEET_REVIEW_CONTROLLER_APP_SLUG');
+    expect(yml).toContain('REVIEW_RECEIPT_MODE:');
+  });
+
+  it('requeues from a controller check run without checking out pull request code', () => {
+    expect(refresh).toContain('check_run:');
+    expect(refresh).toContain('types: [completed]');
+    expect(refresh).toContain("github.event.check_run.name == 'RevealUI Receipt'");
+    expect(refresh).toContain('actions: write');
+    expect(refresh).not.toContain('actions/checkout');
+    expect(refresh).not.toContain('GITHUB_APP_PRIVATE_KEY');
+    expect(refresh).not.toContain('name: Security review gate');
+    expect(refresh).toContain('event === "pull_request_target"');
   });
 });

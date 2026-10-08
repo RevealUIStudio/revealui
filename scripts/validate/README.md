@@ -104,13 +104,12 @@ build prerequisites without failing the build.
 ### Security-review gate
 
 `security-review-gate.cjs` is invoked by the `.github/workflows/security-review-gate.yml`
-workflow (not a `pnpm` alias). It reads security-path changes
-(`security-paths.shared.json`) and the sensitive-path classes
-(`receipt-sensitive-paths.json`). A gated pull request clears with an owner
-SSHSIG, or with a passing `RevealUI Receipt` check on the exact head from the
-review controller App. Sensitive classes also need an independent approval
-when the App receipt is the grant. Unit tests for that decision run with
-`pnpm validate:security-review-gate`. See
+workflow. It reads security, sensitive, and controller paths from
+`packages/security/src/security-paths.shared.json`. Outside
+`REVIEW_RECEIPT_MODE=enforce`, a gated pull request clears only with an owner
+SSHSIG. In enforce mode a verified signed receipt clears a normal path.
+Sensitive paths also need an independent approval. Controller paths have no
+receipt grant. Unit tests run with `pnpm validate:security-review-gate`. See
 [review controller receipts](../../docs/gates/review-controller-receipt.md).
 
 ## Related validators outside this directory

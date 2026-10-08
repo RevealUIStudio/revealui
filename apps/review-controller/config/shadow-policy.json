@@ -1,0 +1,38 @@
+{
+  "flyApp": "revealui-review-controller",
+  "repositoryFullName": "RevealUIStudio/revealui",
+  "repositoryId": 1127197866,
+  "policyVersion": "revealui-review-receipt-shadow-v1",
+  "maxLifetimeMs": 21600000,
+  "requiredChecks": [
+    {
+      "name": "CI Feedback",
+      "appId": 15368,
+      "workflowId": 220400161,
+      "workflowPath": ".github/workflows/ci.yml",
+      "event": "pull_request"
+    },
+    { "name": "CodeQL", "appId": 57789 },
+    {
+      "name": "Security Gate",
+      "appId": 15368,
+      "workflowId": 220400166,
+      "workflowPath": ".github/workflows/security.yml",
+      "event": "pull_request"
+    },
+    {
+      "name": "Dependency Review",
+      "appId": 15368,
+      "workflowId": 220400166,
+      "workflowPath": ".github/workflows/security.yml",
+      "event": "pull_request"
+    },
+    {
+      "name": "Secret Scanning (Gitleaks)",
+      "appId": 15368,
+      "workflowId": 220400166,
+      "workflowPath": ".github/workflows/security.yml",
+      "event": "pull_request"
+    }
+  ]
+}

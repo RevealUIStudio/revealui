@@ -1,6 +1,6 @@
 # Security-sensitive source and policy. GitHub requests a review from either
 # account; the protected test/main ruleset will require a code-owner approval.
-# Keep these patterns aligned with scripts/validate/security-paths.shared.json.
+# Keep these patterns aligned with packages/security/src/security-paths.shared.json.
 # The CODEOWNERS file owns itself so later policy edits require review.
 /.github/CODEOWNERS @joshua-v-dev @RevealUIStudio
 /.github/workflows/ @joshua-v-dev @RevealUIStudio
@@ -70,3 +70,14 @@
 /scripts/setup/seed-billing.ts @joshua-v-dev @RevealUIStudio
 /apps/admin/src/seed.ts @joshua-v-dev @RevealUIStudio
 /scripts/electric-latency-probe/ @joshua-v-dev @RevealUIStudio
+
+# Sensitive admission paths. Same set as sensitiveMarkers and controllerMarkers
+# in packages/security/src/security-paths.shared.json.
+/scripts/ci/ @joshua-v-dev @RevealUIStudio
+/scripts/check-client-leaks.sh @joshua-v-dev @RevealUIStudio
+/scripts/**/backflow-merge-method-guard.cjs @joshua-v-dev @RevealUIStudio
+/scripts/**/gates-resolver.cjs @joshua-v-dev @RevealUIStudio
+/.github/codeql/ @joshua-v-dev @RevealUIStudio
+/.github/dependabot.yml @joshua-v-dev @RevealUIStudio
+/.github/actions/ @joshua-v-dev @RevealUIStudio
+/apps/review-controller/ @joshua-v-dev @RevealUIStudio

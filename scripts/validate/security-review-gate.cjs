@@ -1,15 +1,18 @@
 #!/usr/bin/env node
 // security-review-gate.cjs — review-before-merge gate for security-sensitive PRs.
 //
-// Policy: a pull request that touches a security-sensitive surface must carry
-// either an owner SSHSIG bound to its exact head plus a request label, or a
-// successful RevealUI Receipt check run on that same head from the review
-// controller App (matched by app id and slug, not by check name alone).
-// Paths in receipt-sensitive-paths.json are stricter: the App receipt alone
-// does not pass. Those paths also need an approving review from an account
-// other than the PR author and the App, unless the owner SSHSIG is present.
-// PRs that touch neither surface pass immediately, so this check is safe to
-// require on every PR.
+// Policy:
+// - Unless REVIEW_RECEIPT_MODE is exactly enforce, a receipt never clears.
+//   The grant stays the recorded owner SSHSIG and request label. PRs that do
+//   not touch a security, sensitive, or controller path pass.
+// - In enforce mode every PR needs a verified signed receipt bound to the
+//   head SHA, or the owner SSHSIG. Receipt alone clears only paths that are
+//   neither sensitive nor the controller.
+// - Sensitive paths need that receipt plus one independent approving review,
+//   or the owner SSHSIG.
+// - Controller paths (apps/review-controller, including its Fly config) have
+//   no receipt grant. They need an independent approving review or the owner
+//   SSHSIG.
 //
 // A live guardrail-2 REQUEST-CHANGES verdict OVERRIDES the label. Verdicts are
 // posted as comments/reviews carrying a machine-parseable marker
@@ -25,98 +28,41 @@
 //                   <base> (git only; cannot see review state).
 //   (default)       --diff origin/test.
 //
-// Exit 0 = no gated change, an owner-signed grant, an exact-head App receipt
-// on a non-sensitive path, or an App receipt plus independent approval on a
-// sensitive path.
+// Exit 0 = no security-sensitive change, or a valid App receipt / owner grant.
 // Exit 1 = HOLD (live reviewer rejection, missing/invalid grant, or incomplete evidence).
 //
 // Uses the existing shared gates resolver/build and OpenSSH verification.
 // No local signing, private-key handling, or label-only grant.
 //
-// SECURITY_PATHS source of truth (GAP-404): scripts/validate/security-paths.shared.json
+// SECURITY_PATHS source of truth (GAP-404): packages/harnesses/src/gates/security-paths.shared.json
 // Widen shared surfaces there only. The fleet checker vendors a copy of that
 // file and adds a fleet-only overlay — never hand-edit a second full list.
 
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
 const { execFileSync } = require('child_process');
 const { evaluateGuardrail2 } = require('./guardrail2-verdict.cjs');
 const { resolveGatesModule } = require('./gates-resolver.cjs');
 
-/**
- * Load revealui security path markers from the single editable source
- * (GAP-404). The fleet checker (.jv) loads this same file + a fleet-only
- * overlay; never hand-edit a second copy of the shared list.
- */
-function loadSharedSecurityPaths() {
-  const file = path.join(__dirname, 'security-paths.shared.json');
-  const raw = fs.readFileSync(file, 'utf8');
-  const data = JSON.parse(raw);
-  if (!data || !Array.isArray(data.markers) || data.markers.length === 0) {
-    throw new Error(
-      `security-paths.shared.json must export a non-empty "markers" array (${file})`,
-    );
-  }
-  for (const m of data.markers) {
-    if (typeof m !== 'string' || m.length === 0) {
-      throw new Error(`security-paths.shared.json marker must be a non-empty string: ${m}`);
-    }
-  }
-  return data.markers;
+// Use the shared classifier and canonical marker source so controller shadow
+// evidence and this required gate cannot drift.
+const sharedGates = resolveGatesModule();
+if (
+  !sharedGates ||
+  typeof sharedGates.classifySecurityPaths !== 'function' ||
+  typeof sharedGates.classifySecurityPathsAtApiLimit !== 'function' ||
+  typeof sharedGates.classifySensitivePaths !== 'function' ||
+  typeof sharedGates.classifyControllerPaths !== 'function'
+) {
+  throw new Error('shared security path classifier unavailable');
 }
-
-// A changed file is security-sensitive if its path contains ANY of these
-// substrings. Deliberately broad — money, identity, credential, code-exec,
-// and stored-content surfaces. Source: security-paths.shared.json (GAP-404).
-const SECURITY_PATHS = loadSharedSecurityPaths();
-
-/**
- * Sensitive path classes (workflows, actions, auth, migrations, the gate,
- * CODEOWNERS, rulesets). One file, loaded here. An App receipt cannot clear
- * these without an independent approval. The owner SSHSIG still can.
- */
-function loadSensitivePathClasses() {
-  const file = path.join(__dirname, 'receipt-sensitive-paths.json');
-  const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-  if (!data || !Array.isArray(data.classes) || data.classes.length === 0) {
-    throw new Error(
-      `receipt-sensitive-paths.json must export a non-empty "classes" array (${file})`,
-    );
-  }
-  const ids = new Set();
-  const classes = [];
-  for (const entry of data.classes) {
-    if (
-      !entry ||
-      typeof entry.id !== 'string' ||
-      entry.id.length === 0 ||
-      !Array.isArray(entry.markers) ||
-      entry.markers.length === 0
-    ) {
-      throw new Error('receipt-sensitive-paths.json class must have an id and markers');
-    }
-    if (ids.has(entry.id)) throw new Error(`duplicate sensitive path class: ${entry.id}`);
-    ids.add(entry.id);
-    const markers = [];
-    for (const marker of entry.markers) {
-      if (typeof marker !== 'string' || marker.length === 0) {
-        throw new Error(`sensitive path marker must be a non-empty string (${entry.id})`);
-      }
-      markers.push(marker);
-    }
-    classes.push({ id: entry.id, markers });
-  }
-  return classes;
-}
-
-const SENSITIVE_PATH_CLASSES = loadSensitivePathClasses();
-
-/** Check name published by the review controller. Name alone never grants. */
-const RECEIPT_CHECK_NAME = 'RevealUI Receipt';
-const RECEIPT_APP_ID_VAR = 'REVEALFLEET_REVIEW_CONTROLLER_APP_ID';
-const RECEIPT_APP_SLUG_VAR = 'REVEALFLEET_REVIEW_CONTROLLER_APP_SLUG';
+const SECURITY_PATHS = sharedGates.SECURITY_PATH_MARKERS;
+const SENSITIVE_PATH_MARKERS = sharedGates.SENSITIVE_PATH_MARKERS;
+const CONTROLLER_PATH_MARKERS = sharedGates.CONTROLLER_PATH_MARKERS;
+if (!Array.isArray(SENSITIVE_PATH_MARKERS) || SENSITIVE_PATH_MARKERS.length === 0)
+  throw new Error('shared sensitive path list unavailable');
+if (!Array.isArray(CONTROLLER_PATH_MARKERS) || CONTROLLER_PATH_MARKERS.length === 0)
+  throw new Error('shared controller path list unavailable');
 
 // These labels are request signals only; none grants clearance.
 const SEC_REVIEW_LABELS = new Set([
@@ -133,7 +79,7 @@ function gh(args) {
  * The REST list-files endpoint stops at 3000 files. A diff at (or past) that
  * ceiling cannot be classified honestly, so `hitsForFiles` fails closed there.
  */
-const MAX_CLASSIFIABLE_FILES = 3000;
+const MAX_CLASSIFIABLE_FILES = sharedGates.MAX_CLASSIFIABLE_SECURITY_PATHS;
 
 /**
  * Full changed-file list for a PR, paginated. `gh pr view --json files` caps at
@@ -147,7 +93,7 @@ function fetchPrFiles(prNumber, repo, ghImpl) {
     ghImpl ||
     ((args) => execFileSync('gh', args, { encoding: 'utf8', timeout: 120000, maxBuffer: 32 * 1024 * 1024 }));
   const path = `repos/${repo || '{owner}/{repo}'}/pulls/${prNumber}/files`;
-  const out = run(['api', path, '--paginate', '--jq', '.[].filename']);
+  const out = run(['api', path, '--paginate', '--jq', '.[] | .filename, .previous_filename // empty']);
   return out.split('\n').filter((line) => line.length > 0);
 }
 
@@ -156,296 +102,400 @@ function fetchPrFiles(prNumber, repo, ghImpl) {
  * endpoint may have truncated is treated as security-sensitive unconditionally.
  */
 function hitsForFiles(files) {
-  if (files.length >= MAX_CLASSIFIABLE_FILES) {
-    return ['(file list at the API ceiling — unclassifiable, failing closed)'];
-  }
-  return classifyFiles(files);
+  return sharedGates.classifySecurityPathsAtApiLimit(files);
 }
 
 function classifyFiles(files) {
-  const hits = [];
-  for (const f of files) {
-    for (const marker of SECURITY_PATHS) {
-      if (f.includes(marker)) {
-        hits.push(f);
-        break;
-      }
-    }
-  }
-  return hits;
+  return sharedGates.classifySecurityPaths(files);
 }
 
-/** Files that need App receipt plus an independent approval, or an owner SSHSIG. */
-function classifySensitiveFiles(files) {
-  const hits = [];
-  for (const file of files) {
-    const classes = [];
-    for (const entry of SENSITIVE_PATH_CLASSES) {
-      for (const marker of entry.markers) {
-        if (file.includes(marker)) {
-          classes.push(entry.id);
-          break;
-        }
-      }
-    }
-    if (classes.length > 0) hits.push({ file, classes });
-  }
-  return hits;
-}
-
-/**
- * Whether this file list enters the gate, and whether the stricter sensitive
- * rule applies. An unclassifiable list fails closed as sensitive.
- */
-function reviewAdmission(files) {
-  const security = hitsForFiles(files);
-  if (files.length >= MAX_CLASSIFIABLE_FILES) {
-    return { gated: true, sensitive: true, security, sensitiveHits: [] };
-  }
-  const sensitiveHits = classifySensitiveFiles(files);
-  return {
-    gated: security.length > 0 || sensitiveHits.length > 0,
-    sensitive: sensitiveHits.length > 0,
-    security,
-    sensitiveHits,
-  };
-}
-
-function parsePositiveInt(raw) {
-  if (typeof raw !== 'string' || raw.length === 0 || raw.length > 12) return null;
-  const first = raw.charCodeAt(0);
-  if (first < 49 || first > 57) return null;
-  let value = 0;
-  for (const ch of raw) {
-    const code = ch.charCodeAt(0);
-    if (code < 48 || code > 57) return null;
-    value = value * 10 + (code - 48);
-  }
-  if (!Number.isSafeInteger(value) || value <= 0) return null;
-  return value;
-}
-
-function validAppSlug(slug) {
-  if (typeof slug !== 'string' || slug.length < 1 || slug.length > 100) return false;
-  if (slug.startsWith('-') || slug.endsWith('-')) return false;
-  for (const ch of slug) {
-    const code = ch.charCodeAt(0);
-    const digit = code >= 48 && code <= 57;
-    const lower = code >= 97 && code <= 122;
-    if (!digit && !lower && ch !== '-') return false;
-  }
-  return true;
-}
-
-function sameLogin(left, right) {
-  if (typeof left !== 'string' || typeof right !== 'string') return false;
-  return left.toLowerCase() === right.toLowerCase();
-}
-
-/**
- * Repository variables name the review controller App. Both must be set.
- * Absent configuration leaves the owner SSHSIG path unchanged. A partial or
- * malformed pair cannot be used to match a check run.
- */
-function readReceiptControllerConfig(env = process.env) {
-  const idRaw = env[RECEIPT_APP_ID_VAR];
-  const slugRaw = env[RECEIPT_APP_SLUG_VAR];
-  const idPresent = typeof idRaw === 'string' && idRaw.length > 0;
-  const slugPresent = typeof slugRaw === 'string' && slugRaw.length > 0;
-  if (!idPresent && !slugPresent) return null;
-  const appId = idPresent ? parsePositiveInt(idRaw) : null;
-  const appSlug = slugPresent && validAppSlug(slugRaw) ? slugRaw : null;
-  if (appId === null || appSlug === null) return { ok: false };
-  return { ok: true, appId, appSlug };
-}
-
-/**
- * A passing receipt is a completed success check on the exact head SHA whose
- * app id and slug both match configuration. The check name is required and
- * is not sufficient.
- */
-function verifyAppReceiptCheck({ headSha, checkRuns, appId, appSlug }) {
-  if (!Number.isSafeInteger(appId) || appId <= 0) return { ok: false, reason: 'app-id-unconfigured' };
-  if (!validAppSlug(appSlug)) return { ok: false, reason: 'app-slug-unconfigured' };
-  if (typeof headSha !== 'string' || headSha.length < 40) return { ok: false, reason: 'invalid-head' };
-  const named = [];
-  for (const run of Array.isArray(checkRuns) ? checkRuns : []) {
-    if (run && run.name === RECEIPT_CHECK_NAME) named.push(run);
-  }
-  const identity = [];
-  for (const run of named) {
-    const runAppId = run.app && run.app.id;
-    const runSlug = run.app && run.app.slug;
-    if (runAppId !== appId || runSlug !== appSlug) continue;
-    if (run.head_sha !== headSha) continue;
-    identity.push(run);
-  }
-  if (identity.length === 0) {
-    const stale = named.some(
-      (run) => run.app && run.app.id === appId && run.app.slug === appSlug && run.head_sha !== headSha,
-    );
-    if (stale) return { ok: false, reason: 'stale-head' };
-    const otherApp = named.some((run) => {
-      if (!run.app || run.head_sha !== headSha) return false;
-      return run.app.id !== appId || run.app.slug !== appSlug;
-    });
-    if (otherApp) return { ok: false, reason: 'receipt-app-mismatch' };
-    return { ok: false, reason: 'receipt-check-missing' };
-  }
-  let latest = identity[0];
-  for (const run of identity) {
-    if (typeof run.id !== 'number' || typeof latest.id !== 'number') {
-      return { ok: false, reason: 'receipt-check-missing' };
-    }
-    if (run.id > latest.id) latest = run;
-  }
-  if (latest.status !== 'completed' || latest.conclusion !== 'success') {
-    return { ok: false, reason: 'receipt-check-not-success' };
-  }
-  return {
-    ok: true,
-    url: typeof latest.html_url === 'string' ? latest.html_url : '',
-    checkRunId: latest.id,
-  };
-}
-
-/**
- * One current APPROVED review from an account that is neither the PR author
- * nor the review controller App. Author self-approval does not count.
- * Reviews use the normalized discussion shape from fetchPrDiscussion.
- */
-function verifyIndependentApproval({ authorLogin, appSlug, reviews }) {
-  if (typeof authorLogin !== 'string' || authorLogin.length === 0) {
-    return { ok: false, reason: 'missing-author' };
-  }
-  if (!validAppSlug(appSlug)) return { ok: false, reason: 'missing-app-slug' };
-  const appBot = `${appSlug}[bot]`;
-  const latest = new Map();
-  for (const review of Array.isArray(reviews) ? reviews : []) {
-    const login = review && review.author && review.author.login;
-    if (typeof login !== 'string' || login.length === 0) continue;
-    const submitted = typeof review.submittedAt === 'string' ? review.submittedAt : '';
-    const prev = latest.get(login);
-    if (!prev || submitted >= prev.submittedAt) latest.set(login, review);
-  }
-  for (const review of latest.values()) {
-    const login = review.author.login;
-    if (sameLogin(login, authorLogin) || sameLogin(login, appBot)) continue;
-    if (review.state === 'APPROVED') return { ok: true, reviewer: login };
-  }
-  return { ok: false, reason: 'no-independent-approval' };
-}
-
-/** Check runs recorded on one commit. Injectable ghImpl for tests. */
-function fetchCommitCheckRuns(sha, repo, ghImpl) {
-  const run =
-    ghImpl ||
-    ((args) =>
-      execFileSync('gh', args, {
-        encoding: 'utf8',
-        timeout: 60000,
-        maxBuffer: 8 * 1024 * 1024,
-      }));
-  const endpoint = `repos/${repo || '{owner}/{repo}'}/commits/${sha}/check-runs?per_page=100`;
-  const pages = JSON.parse(run(['api', endpoint, '--paginate', '--slurp']));
-  if (!Array.isArray(pages)) throw new Error('invalid check-run response');
-  const runs = [];
-  for (const page of pages) {
-    if (!page || !Array.isArray(page.check_runs)) throw new Error('invalid check-run page');
-    for (const item of page.check_runs) runs.push(item);
-  }
-  if (runs.length >= 1000) throw new Error('check-run list ceiling');
-  return runs;
-}
-
-/**
- * Receipt and independent-review evidence for one head. File classification
- * always comes from the supplied list. Check runs are fetched only when the
- * App id and slug are configured.
- */
-function buildReceiptAdmission({ headSha, authorLogin, reviews, files, repo, ghImpl }, env = process.env) {
-  const classified = reviewAdmission(files);
-  const config = readReceiptControllerConfig(env);
-  if (!config) {
-    return {
-      receiptVerification: { ok: false, reason: 'receipt-not-configured' },
-      independentApproval: { ok: false, reason: 'receipt-not-configured' },
-      sensitive: classified.sensitive,
-    };
-  }
-  if (!config.ok) {
-    return {
-      receiptVerification: { ok: false, reason: 'receipt-controller-config-invalid' },
-      independentApproval: { ok: false, reason: 'receipt-controller-config-invalid' },
-      sensitive: classified.sensitive,
-    };
-  }
-  let receiptVerification = { ok: false, reason: 'receipt-check-lookup-failed' };
-  try {
-    const checkRuns = fetchCommitCheckRuns(headSha, repo, ghImpl);
-    receiptVerification = verifyAppReceiptCheck({
-      headSha,
-      checkRuns,
-      appId: config.appId,
-      appSlug: config.appSlug,
-    });
-  } catch {
-    receiptVerification = { ok: false, reason: 'receipt-check-lookup-failed' };
-  }
-  return {
-    receiptVerification,
-    independentApproval: verifyIndependentApproval({
-      authorLogin,
-      appSlug: config.appSlug,
-      reviews,
-    }),
-    sensitive: classified.sensitive,
-  };
-}
-
-/**
- * Owner SSHSIG remains a full grant, including on sensitive paths.
- * An App receipt grants non-sensitive paths. Sensitive paths need that
- * receipt and an independent approval. A live REQUEST-CHANGES still holds.
- */
-function decideReviewGate({
-  verdict,
-  labels = [],
-  ownerVerification = { ok: false },
-  receiptVerification = { ok: false },
-  independentApproval = { ok: false },
-  sensitive = false,
-}) {
+/** Owner-mode labels/reviews request clearance; only the owner signature grants it. */
+function decideReviewGate({ verdict, labels = [], ownerVerification = { ok: false } }) {
   if (verdict && verdict.status === 'hold') {
     return { action: 'hold', kind: 'request-changes', reviewer: verdict.reviewer, timestamp: verdict.timestamp };
   }
   const requested = labels.some((label) => SEC_REVIEW_LABELS.has(label));
-  if (requested && ownerVerification.ok === true) {
-    return { action: 'clear', kind: 'owner-signature', url: ownerVerification.url };
+  if (requested && ownerVerification.ok === true) return { action: 'clear', kind: 'owner-signature', url: ownerVerification.url };
+  return { action: 'hold', kind: 'no-owner-signature', reason: ownerVerification.reason || (requested ? 'missing-owner-signature' : 'missing-request-label') };
+}
+
+const WRITE_ASSOCIATIONS = new Set(['OWNER', 'MEMBER', 'COLLABORATOR']);
+const WRITE_PERMISSIONS = new Set(['admin', 'maintain', 'write']);
+
+function loginKey(login) {
+  return typeof login === 'string' ? login.toLowerCase() : '';
+}
+
+/**
+ * One current APPROVED review from a human with write access, on this head.
+ * Bots, Apps, the pull request author, and commit authors do not count.
+ * A review recorded against any other commit does not count.
+ */
+function verifyIndependentApproval({
+  reviews = [],
+  authorLogin = '',
+  commitAuthorLogins = [],
+  headSha,
+  hasWriteAccess,
+}) {
+  const blocked = new Set(
+    [loginKey(authorLogin), ...commitAuthorLogins.map(loginKey)].filter((login) => login.length > 0),
+  );
+  for (const review of reviews) {
+    const login = review.user?.login || review.author?.login || '';
+    const type = review.user?.type || review.author?.type || '';
+    const association = review.author_association || review.authorAssociation || '';
+    const commitId = review.commit_id || review.commitId || '';
+    const state = review.state || '';
+    if (state !== 'APPROVED') continue;
+    if (type === 'Bot' || loginKey(login).endsWith('[bot]')) continue;
+    if (!WRITE_ASSOCIATIONS.has(association)) continue;
+    if (!login || blocked.has(loginKey(login))) continue;
+    if (commitId !== headSha) continue;
+    let write = false;
+    try {
+      if (typeof hasWriteAccess === 'function') write = hasWriteAccess(login) === true;
+      else write = WRITE_PERMISSIONS.has(review.permission);
+    } catch {
+      write = false;
+    }
+    if (!write) continue;
+    return { ok: true, reviewer: login };
   }
-  if (receiptVerification.ok === true && sensitive !== true) {
-    return { action: 'clear', kind: 'app-receipt', url: receiptVerification.url };
+  return { ok: false, reason: 'no-independent-approval' };
+}
+
+function classifyAdmission(files) {
+  if (!Array.isArray(files)) return { controller: true, sensitive: true, unclassifiable: true };
+  const securityHits = sharedGates.classifySecurityPathsAtApiLimit(files);
+  const unclassifiable = securityHits.some(
+    (hit) => typeof hit === 'string' && hit.startsWith('(file list'),
+  );
+  if (unclassifiable) return { controller: true, sensitive: true, unclassifiable: true };
+  return {
+    controller: sharedGates.classifyControllerPaths(files).length > 0,
+    sensitive: sharedGates.classifySensitivePaths(files).length > 0,
+    unclassifiable: false,
+  };
+}
+
+/**
+ * Enforce mode is the only receipt grant. A verified receipt clears a normal
+ * path. Sensitive paths also need an independent review. Controller paths
+ * never accept the receipt. Any other mode keeps the owner decision, except
+ * controller paths, which still have no receipt grant.
+ */
+function decideReceiptAdmission({
+  mode,
+  receiptResult,
+  ownerDecision,
+  independentApproval = { ok: false },
+  admission = { controller: false, sensitive: false, unclassifiable: false },
+}) {
+  if (ownerDecision.kind === 'request-changes') return ownerDecision;
+  if (admission.unclassifiable) {
+    if (ownerDecision.action === 'clear') return ownerDecision;
+    return { action: 'hold', kind: 'unclassifiable', reason: 'file-list-unclassifiable' };
   }
-  if (receiptVerification.ok === true && sensitive === true && independentApproval.ok === true) {
-    return {
-      action: 'clear',
-      kind: 'app-receipt-and-review',
-      url: receiptVerification.url,
-      reviewer: independentApproval.reviewer,
-    };
-  }
-  if (receiptVerification.ok === true && sensitive === true) {
+  if (admission.controller) {
+    if (ownerDecision.action === 'clear') return ownerDecision;
+    if (independentApproval?.ok === true)
+      return { action: 'clear', kind: 'independent-review', reviewer: independentApproval.reviewer };
     return {
       action: 'hold',
-      kind: 'sensitive-needs-independent-review',
-      reason: 'app-receipt-without-independent-review',
+      kind: 'controller-self',
+      reason: 'controller-path-has-no-receipt-grant',
     };
   }
+  if (mode !== 'enforce') return ownerDecision;
+  if (ownerDecision.action === 'clear') return ownerDecision;
+  const receiptOk = receiptResult?.status === 'verified';
+  if (admission.sensitive) {
+    if (receiptOk && independentApproval?.ok === true) {
+      return {
+        action: 'clear',
+        kind: 'app-receipt-and-review',
+        receiptId: receiptResult.receiptId,
+        reviewer: independentApproval.reviewer,
+      };
+    }
+    if (receiptOk) {
+      return {
+        action: 'hold',
+        kind: 'sensitive-needs-independent-review',
+        reason: independentApproval?.reason || 'no-independent-approval',
+      };
+    }
+    return {
+      action: 'hold',
+      kind: 'invalid-app-receipt',
+      reason: receiptResult?.reason || receiptResult?.status || 'receipt-unavailable',
+    };
+  }
+  if (receiptOk) return { action: 'clear', kind: 'app-receipt', receiptId: receiptResult.receiptId };
   return {
     action: 'hold',
-    kind: 'no-owner-signature',
-    reason: ownerVerification.reason || (requested ? 'missing-owner-signature' : 'missing-request-label'),
+    kind: 'invalid-app-receipt',
+    reason: receiptResult?.reason || receiptResult?.status || 'receipt-unavailable',
   };
+}
+
+/**
+ * Verify a receipt carried by the controller-owned check run against live
+ * GitHub observations. The caller decides whether the configured mode treats
+ * a valid receipt as admission or records it as shadow evidence.
+ */
+function verifyReceiptShadow(input) {
+  const hold = (reason) => ({ ok: false, reason });
+  const check = input.receiptCheckRun;
+  if (
+    !check ||
+    check.name !== 'RevealUI Receipt' ||
+    check.head_sha !== input.headSha ||
+    check.status !== 'completed' ||
+    check.conclusion !== 'success' ||
+    check.app?.id !== input.controllerAppId ||
+    check.external_id !== `pr-${input.repositoryId}-${input.pullRequest}`
+  ) return hold('receipt_check_run_missing_or_untrusted');
+  const summary = check.output?.summary;
+  const marker = '<!-- revealui-review-receipt:v1 -->';
+  if (typeof summary !== 'string' || Buffer.byteLength(summary, 'utf8') > 64 * 1024)
+    return hold('receipt_check_summary_missing_or_oversized');
+  const markerIndex = summary.indexOf(marker);
+  if (markerIndex < 0 || summary.indexOf(marker, markerIndex + marker.length) >= 0)
+    return hold('receipt_check_summary_marker_invalid');
+  const rawEnvelope = summary.slice(markerIndex + marker.length).trim();
+  let envelope;
+  try {
+    envelope = JSON.parse(rawEnvelope);
+  } catch {
+    return hold('receipt_check_envelope_malformed');
+  }
+  const receipt = envelope && typeof envelope === 'object' ? envelope.receipt : null;
+  if (!receipt || typeof receipt.manifest?.sha256 !== 'string')
+    return hold('receipt_manifest_missing');
+
+  const resolved = sharedGates.resolveReviewRequiredChecks({
+    selectors: input.requiredChecks,
+    checkRuns: input.currentCheckRuns,
+    workflowRuns: input.workflowRuns || [],
+    repositoryId: input.repositoryId,
+    headSha: input.headSha,
+    changedFiles: input.changedFiles || [],
+  });
+  if (!resolved.ok) return hold(resolved.reason);
+  const requiredChecks = [];
+  for (const selector of input.requiredChecks) {
+    const run = resolved.checks.find((check) =>
+      check.name === selector.name && check.app.id === selector.appId);
+    if (!run) return hold('receipt_required_check_selector_not_unique');
+    const signedChecks = Array.isArray(receipt.checks)
+      ? receipt.checks.filter((item) => item.name === selector.name && item.appId === selector.appId)
+      : [];
+    if (signedChecks.length !== 1) return hold('receipt_check_evidence_missing_or_ambiguous');
+    let evidenceSha256;
+    try {
+      evidenceSha256 = sharedGates.reviewReceiptCheckEvidenceSha256({
+        name: run.name,
+        appId: run.app.id,
+        checkRunId: run.id,
+        checkSuiteId: run.check_suite.id,
+        headSha: run.head_sha,
+        status: run.status,
+        conclusion: run.conclusion,
+        completedAt: run.completed_at,
+      });
+    } catch {
+      return hold('receipt_required_check_evidence_invalid');
+    }
+    if (
+      signedChecks[0].checkRunId !== run.id ||
+      signedChecks[0].checkSuiteId !== run.check_suite.id ||
+      signedChecks[0].evidenceSha256 !== evidenceSha256
+    ) return hold('receipt_required_check_rerun_or_changed');
+    requiredChecks.push({
+      name: selector.name,
+      appId: selector.appId,
+      checkRunId: run.id,
+      checkSuiteId: run.check_suite.id,
+    });
+  }
+
+  return sharedGates.verifyReviewReceipt({
+    envelope: rawEnvelope,
+    trustedKeys: input.trustedKeys,
+    expected: {
+      repositoryId: input.repositoryId,
+      repositoryFullName: input.repositoryFullName,
+      pullRequest: input.pullRequest,
+      headSha: input.headSha,
+      headTreeSha: input.headTreeSha,
+      baseSha: input.baseSha,
+      baseTreeSha: input.baseTreeSha,
+      mergeCandidateTreeSha: input.mergeCandidateTreeSha,
+      manifestSha256: receipt.manifest.sha256,
+      policyVersion: input.policyVersion,
+      classifierVersion: sharedGates.SECURITY_PATH_CLASSIFIER_VERSION,
+      requiredChecks,
+      minimumIndependentReviews: 1,
+      maxReceiptLifetimeMs: input.maxLifetimeMs,
+      now: input.now,
+    },
+  });
+}
+
+function readReceiptConfig(env = process.env) {
+  const mode = env.REVIEW_RECEIPT_MODE?.trim();
+  if (!mode) {
+    if (Object.keys(env).some((name) => name.startsWith('REVIEW_RECEIPT_') && env[name]?.trim()))
+      throw new Error('REVIEW_RECEIPT_MODE is required when receipt settings are present');
+    return undefined;
+  }
+  if (mode !== 'shadow' && mode !== 'enforce')
+    throw new Error('REVIEW_RECEIPT_MODE must be shadow or enforce');
+  const controllerAppId = Number(requiredEnv(env, 'REVIEW_RECEIPT_CONTROLLER_APP_ID'));
+  const maxLifetimeMs = Number(requiredEnv(env, 'REVIEW_RECEIPT_MAX_LIFETIME_MS'));
+  const policyVersion = requiredEnv(env, 'REVIEW_RECEIPT_POLICY_VERSION');
+  if (!Number.isSafeInteger(controllerAppId) || controllerAppId <= 0)
+    throw new Error('REVIEW_RECEIPT_CONTROLLER_APP_ID must be a positive integer');
+  if (!Number.isSafeInteger(maxLifetimeMs) || maxLifetimeMs < 60_000 || maxLifetimeMs > 86_400_000)
+    throw new Error('REVIEW_RECEIPT_MAX_LIFETIME_MS must be between 60000 and 86400000');
+  if (policyVersion.length > 128) throw new Error('REVIEW_RECEIPT_POLICY_VERSION exceeds size limit');
+  const trustedKeys = parseJsonEnv(env, 'REVIEW_RECEIPT_TRUSTED_KEYS');
+  if (!isRecord(trustedKeys) || Object.keys(trustedKeys).length === 0 || Object.keys(trustedKeys).length > 32)
+    throw new Error('REVIEW_RECEIPT_TRUSTED_KEYS must be a non-empty key map');
+  for (const [keyId, publicKey] of Object.entries(trustedKeys)) {
+    if (!/^[A-Za-z0-9._:-]{1,128}$/.test(keyId) || typeof publicKey !== 'string' || publicKey.length > 8192)
+      throw new Error('REVIEW_RECEIPT_TRUSTED_KEYS contains an invalid key');
+  }
+  const requiredChecks = parseJsonEnv(env, 'REVIEW_RECEIPT_REQUIRED_CHECKS');
+  if (!Array.isArray(requiredChecks) || requiredChecks.length === 0 || requiredChecks.length > 64)
+    throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS must contain 1 to 64 entries');
+  for (const check of requiredChecks) {
+    if (
+      !sharedGates.validReviewCheckSelector(check)
+    ) throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS contains an invalid selector');
+  }
+  const selectors = requiredChecks.map((check) => `${check.appId}:${check.name}`);
+  if (new Set(selectors).size !== selectors.length)
+    throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS contains duplicate selectors');
+  if (!sharedGates.hasReviewReceiptSecurityChecks(requiredChecks))
+    throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS omits a mandatory security check');
+  if (!sharedGates.hasReviewReceiptCiCheck(requiredChecks))
+    throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS omits the trusted CI check');
+  return { mode, controllerAppId, maxLifetimeMs, policyVersion, trustedKeys, requiredChecks };
+}
+
+function requiredEnv(env, name) {
+  const value = env[name]?.trim() ?? '';
+  if (!value) throw new Error(`${name} is required when REVIEW_RECEIPT_MODE is enabled`);
+  return value;
+}
+
+function parseJsonEnv(env, name) {
+  const raw = requiredEnv(env, name);
+  if (Buffer.byteLength(raw, 'utf8') > 32 * 1024) throw new Error(`${name} exceeds size limit`);
+  try { return JSON.parse(raw); } catch { throw new Error(`${name} must be valid JSON`); }
+}
+
+function isRecord(value) {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function fetchJson(args, ghImpl = gh) {
+  const raw = ghImpl(['api', ...args]);
+  return JSON.parse(raw);
+}
+
+function fetchCommitTreeSha(sha, repo, ghImpl = gh) {
+  if (!/^[a-f0-9]{40,64}$/.test(sha)) throw new Error('invalid commit SHA for receipt context');
+  const commit = fetchJson([`repos/${repo}/commits/${sha}`], ghImpl);
+  const treeSha = commit?.commit?.tree?.sha;
+  if (typeof treeSha !== 'string' || !/^[a-f0-9]{40,64}$/.test(treeSha))
+    throw new Error('receipt context commit tree unavailable');
+  return treeSha;
+}
+
+function fetchCurrentCheckRuns(headSha, repo, ghImpl = gh) {
+  const pages = JSON.parse(ghImpl([
+    'api', `repos/${repo}/commits/${headSha}/check-runs?filter=latest&per_page=100`,
+    '--paginate', '--slurp',
+  ]));
+  if (!Array.isArray(pages) || pages.some((page) => !Array.isArray(page?.check_runs)))
+    throw new Error('invalid check-run response for receipt verification');
+  const runs = pages.flatMap((page) => page.check_runs);
+  if (runs.length > 1000) throw new Error('check-run response limit exceeded');
+  return runs;
+}
+
+function fetchCurrentWorkflowRuns(headSha, repo, ghImpl = gh) {
+  const pages = JSON.parse(ghImpl([
+    'api', `repos/${repo}/actions/runs?head_sha=${headSha}&per_page=100`,
+    '--paginate', '--slurp',
+  ]));
+  if (!Array.isArray(pages) || pages.some((page) => !Array.isArray(page?.workflow_runs)))
+    throw new Error('invalid workflow-run response for receipt verification');
+  const runs = pages.flatMap((page) => page.workflow_runs);
+  if (!Number.isSafeInteger(pages[0]?.total_count) ||
+      pages[0].total_count !== runs.length || runs.length > 1000)
+    throw new Error('incomplete workflow-run response for receipt verification');
+  return runs;
+}
+
+function evaluateReceiptShadowForPr(prNumber, repo, files, config, ghImpl = gh, now = new Date()) {
+  if (!config) return { status: 'disabled' };
+  const pullPath = `repos/${repo}/pulls/${prNumber}`;
+  const pr = fetchJson([pullPath], ghImpl);
+  if (
+    pr?.state !== 'open' || pr.draft === true || pr.mergeable !== true ||
+    pr.merged_at || pr.base?.repo?.full_name !== repo || pr.head?.repo?.full_name !== repo
+  ) return { status: 'ineligible', reason: 'pull_request_not_ready_or_same_repository' };
+  const headSha = pr.head?.sha;
+  const baseSha = pr.base?.sha;
+  const mergeSha = pr.merge_commit_sha;
+  const repositoryId = pr.base?.repo?.id;
+  if (![headSha, baseSha, mergeSha].every((sha) => typeof sha === 'string' && /^[a-f0-9]{40,64}$/.test(sha)) ||
+      !Number.isSafeInteger(repositoryId) || repositoryId <= 0)
+    return { status: 'ineligible', reason: 'pull_request_receipt_context_incomplete' };
+  const [headTreeSha, baseTreeSha, mergeCandidateTreeSha, currentCheckRuns] = [
+    fetchCommitTreeSha(headSha, repo, ghImpl),
+    fetchCommitTreeSha(baseSha, repo, ghImpl),
+    fetchCommitTreeSha(mergeSha, repo, ghImpl),
+    fetchCurrentCheckRuns(headSha, repo, ghImpl),
+  ];
+  const receiptRuns = currentCheckRuns.filter(
+    (run) => run.name === 'RevealUI Receipt' && run.app?.id === config.controllerAppId &&
+      run.external_id === `pr-${repositoryId}-${prNumber}`,
+  );
+  if (receiptRuns.length !== 1)
+    return { status: 'ineligible', reason: 'receipt_check_run_missing_or_ambiguous' };
+  const result = verifyReceiptShadow({
+    receiptCheckRun: receiptRuns[0],
+    controllerAppId: config.controllerAppId,
+    repositoryId,
+    repositoryFullName: repo,
+    pullRequest: Number(prNumber),
+    headSha,
+    headTreeSha,
+    baseSha,
+    baseTreeSha,
+    mergeCandidateTreeSha,
+    requiredChecks: config.requiredChecks,
+    currentCheckRuns,
+    workflowRuns: fetchCurrentWorkflowRuns(headSha, repo, ghImpl),
+    changedFiles: files,
+    trustedKeys: config.trustedKeys,
+    policyVersion: config.policyVersion,
+    maxLifetimeMs: config.maxLifetimeMs,
+    sensitive: hitsForFiles(files).length > 0,
+    now,
+  });
+  const fresh = fetchJson([pullPath], ghImpl);
+  if (fresh?.head?.sha !== headSha || fresh?.base?.sha !== baseSha || fresh?.merge_commit_sha !== mergeSha)
+    return { status: 'ineligible', reason: 'pull_request_changed_during_receipt_verification' };
+  return result.ok
+    ? { status: 'verified', receiptId: result.receiptId }
+    : { status: 'ineligible', reason: result.reason || 'receipt_invalid' };
 }
 
 /** REST pagination supplies complete discussion history, or throws closed. */
@@ -459,36 +509,27 @@ function fetchPrDiscussion(prNumber, repo, ghImpl = gh) {
     return rows.map((row) => ({
       body: row.body,
       url: row.html_url,
-      author: { login: row.user?.login || '' },
+      author: { login: row.user?.login || '', type: row.user?.type || '' },
+      user: { login: row.user?.login || '', type: row.user?.type || '' },
       createdAt: row.created_at,
       submittedAt: row.submitted_at,
       state: typeof row.state === 'string' ? row.state : '',
+      commitId: typeof row.commit_id === 'string' ? row.commit_id : '',
+      authorAssociation: typeof row.author_association === 'string' ? row.author_association : '',
     }));
   }
   return { comments: list('comments'), reviews: list('reviews') };
 }
 
-function verifyPrOwnerRecord(data, prNumber, repo, discussion, allowedSigners = process.env.REVEALFLEET_OVERRIDE_SIGNERS || '', verifyImpl, admission) {
+function verifyPrOwnerRecord(data, prNumber, repo, discussion, allowedSigners = process.env.REVEALFLEET_OVERRIDE_SIGNERS || '', verifyImpl) {
   const verdict = evaluateGuardrail2({ ...discussion, authorLogin: data.author?.login || '' });
   if (verdict.status === 'hold') return decideReviewGate({ verdict });
   const labels = (data.labels || []).map((label) => typeof label === 'string' ? label : label.name);
-  const receiptVerification = admission && admission.receiptVerification ? admission.receiptVerification : { ok: false };
-  const independentApproval = admission && admission.independentApproval ? admission.independentApproval : { ok: false };
-  const sensitive = Boolean(admission && admission.sensitive);
-  if (!labels.some((label) => SEC_REVIEW_LABELS.has(label))) {
-    return decideReviewGate({
-      verdict,
-      labels,
-      ownerVerification: { ok: false, reason: 'missing-request-label' },
-      receiptVerification,
-      independentApproval,
-      sensitive,
-    });
-  }
+  if (!labels.some((label) => SEC_REVIEW_LABELS.has(label))) return decideReviewGate({ verdict, labels });
   const verifier = verifyImpl || resolveGatesModule()?.verifyOwnerOverrideComments;
   if (typeof verifier !== 'function') throw new Error('shared owner-signature verifier unavailable');
   const ownerVerification = verifier({ comments: discussion.comments, allowedSigners, expected: { repo, pr: Number(prNumber), head: data.headRefOid, gate: 'sec-review' } });
-  return decideReviewGate({ verdict, labels, ownerVerification, receiptVerification, independentApproval, sensitive });
+  return decideReviewGate({ verdict, labels, ownerVerification });
 }
 
 /**
@@ -572,24 +613,7 @@ function fetchCommitPulls(sha, repo, excludePrNumber, ghImpl = gh, options = {})
     if (!cache.has(number)) {
       const data = JSON.parse(ghImpl(['pr', 'view', String(number), '--repo', repo, '--json', 'labels,author,headRefOid,mergedAt']));
       const discussion = fetchPrDiscussion(number, repo, ghImpl);
-      let admission;
-      if (readReceiptControllerConfig()) {
-        let files;
-        try {
-          files = fetchPrFiles(number, repo, ghImpl);
-        } catch {
-          files = Array.from({ length: MAX_CLASSIFIABLE_FILES }, () => 'unreadable');
-        }
-        admission = buildReceiptAdmission({
-          headSha: data.headRefOid,
-          authorLogin: data.author?.login || '',
-          reviews: discussion.reviews,
-          files,
-          repo,
-          ghImpl,
-        });
-      }
-      const decision = verifyPrOwnerRecord(data, number, repo, discussion, options.allowedSigners ?? undefined, options.verifyImpl, admission);
+      const decision = verifyPrOwnerRecord(data, number, repo, discussion, resolveAllowedSigners(options.allowedSigners), options.verifyImpl);
       cache.set(number, { head: data.headRefOid, merged: Boolean(data.mergedAt), decision, commits: fetchPrCommitShas(number, repo, ghImpl) });
     }
     const record = cache.get(number);
@@ -657,43 +681,131 @@ function buildPromoteCoverage(prNumber, repo, ghImpl, options = {}) {
   return coverage;
 }
 
+function fetchPrCommitAuthorLogins(prNumber, repo, ghImpl) {
+  const run =
+    ghImpl ||
+    ((args) => execFileSync('gh', args, { encoding: 'utf8', timeout: 120000, maxBuffer: 32 * 1024 * 1024 }));
+  const path = `repos/${repo || '{owner}/{repo}'}/pulls/${prNumber}/commits`;
+  const out = run(['api', path, '--paginate', '--jq', '.[] | .author.login, .committer.login']);
+  const logins = out.split('\n').filter((line) => line.length > 0 && line !== 'null');
+  if (logins.length >= 500) throw new Error('PR commit author list reached the API ceiling');
+  return logins;
+}
+
+function collaboratorHasWriteAccess(repo, login, ghImpl, cache) {
+  const key = loginKey(login);
+  if (cache.has(key)) return cache.get(key);
+  if (!login || login.includes('/') || login.includes('?') || login.includes('#') || login.includes(' ')) {
+    cache.set(key, false);
+    return false;
+  }
+  try {
+    const body = JSON.parse(ghImpl(['api', `repos/${repo}/collaborators/${login}/permission`]));
+    const ok = WRITE_PERMISSIONS.has(body?.permission);
+    cache.set(key, ok);
+    return ok;
+  } catch {
+    cache.set(key, false);
+    return false;
+  }
+}
+
 function runPrMode(prNumber, repo) {
   try {
     const target = repo || gh(['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner']).trim();
     const data = JSON.parse(gh(['pr', 'view', prNumber, '--repo', target, '--json', 'labels,title,author,headRefOid,baseRefName,headRefName,isCrossRepository']));
     const files = fetchPrFiles(prNumber, target);
-    const classified = reviewAdmission(files);
-    if (!classified.gated) {
-      process.stdout.write(`PR #${prNumber}: no security-sensitive or sensitive files touched. No review gate.\n`);
+    const hits = hitsForFiles(files);
+    const admission = classifyAdmission(files);
+    let receiptConfig;
+    try {
+      receiptConfig = readReceiptConfig();
+    } catch (error) {
+      process.stderr.write(`HOLD: receipt policy is incomplete (${error instanceof Error ? error.message : 'unknown failure'}).\n`);
+      process.exitCode = 1;
+      return;
+    }
+    const enforce = receiptConfig?.mode === 'enforce';
+    if (!enforce && hits.length === 0 && !admission.sensitive && !admission.controller) {
+      process.stdout.write(`PR #${prNumber}: no security-sensitive files touched — no review gate.\n`);
       process.exitCode = 0;
       return;
     }
     const discussion = fetchPrDiscussion(prNumber, target);
-    const receiptAdmission = buildReceiptAdmission({
-      headSha: data.headRefOid,
-      authorLogin: data.author?.login || '',
-      reviews: discussion.reviews,
-      files,
-      repo: target,
-    });
-    const decision = verifyPrOwnerRecord(data, prNumber, target, discussion, undefined, undefined, receiptAdmission);
-    if (decision.action === 'clear') {
-      if (decision.kind === 'app-receipt') {
-        process.stdout.write(`PR #${prNumber}: verified exact-head RevealUI Receipt check from the review controller App (${decision.url || 'check run'}).\n`);
-      } else if (decision.kind === 'app-receipt-and-review') {
-        process.stdout.write(`PR #${prNumber}: verified exact-head RevealUI Receipt check and an independent approval (${decision.reviewer || 'reviewer'}).\n`);
-      } else {
-        process.stdout.write(`PR #${prNumber}: verified exact-head owner sec-review signature (${decision.url || 'recorded comment'}).\n`);
-      }
-      process.exitCode = 0;
-      return;
-    }
-    if (decision.kind === 'request-changes') {
-      process.stderr.write(`HOLD — live REQUEST-CHANGES by ${decision.reviewer || 'unknown'} at ${decision.timestamp || 'unknown time'}; owner signature cannot override it.\n`);
+    const ownerDecision = verifyPrOwnerRecord(data, prNumber, target, discussion, resolveAllowedSigners());
+    if (ownerDecision.kind === 'request-changes') {
+      process.stderr.write(`HOLD — live REQUEST-CHANGES by ${ownerDecision.reviewer || 'unknown'} at ${ownerDecision.timestamp || 'unknown time'}; receipt or owner signature cannot override it.\n`);
       process.exitCode = 1;
       return;
     }
-    if (data.isCrossRepository === false && isPromotePr(data.baseRefName, data.headRefName)) {
+    let receiptResult;
+    if (receiptConfig) {
+      try {
+        receiptResult = evaluateReceiptShadowForPr(
+          prNumber,
+          target,
+          files,
+          receiptConfig,
+        );
+      } catch (error) {
+        receiptResult = {
+          status: 'ineligible',
+          reason: `receipt_observation_unavailable:${error instanceof Error ? error.message : 'unknown failure'}`,
+        };
+      }
+      if (receiptConfig.mode === 'shadow') {
+        process.stdout.write(
+          receiptResult.status === 'verified'
+            ? `SHADOW — controller receipt ${receiptResult.receiptId} verifies for this exact candidate; existing gate remains authoritative.\n`
+            : `SHADOW — controller receipt not verified (${receiptResult.reason || receiptResult.status}); existing gate remains authoritative.\n`,
+        );
+      }
+    }
+    let independentApproval = { ok: false, reason: 'no-independent-approval' };
+    if (admission.controller || admission.sensitive) {
+      const permissionCache = new Map();
+      independentApproval = verifyIndependentApproval({
+        reviews: discussion.reviews,
+        authorLogin: data.author?.login || '',
+        commitAuthorLogins: fetchPrCommitAuthorLogins(prNumber, target),
+        headSha: data.headRefOid,
+        hasWriteAccess: (login) => collaboratorHasWriteAccess(target, login, gh, permissionCache),
+      });
+    }
+    const decision = decideReceiptAdmission({
+      mode: receiptConfig?.mode,
+      receiptResult,
+      ownerDecision,
+      independentApproval,
+      admission,
+    });
+    if (decision.kind === 'app-receipt') {
+      process.stdout.write(`PR #${prNumber}: verified App receipt ${decision.receiptId} for the exact current candidate.\n`);
+      process.exitCode = 0;
+      return;
+    }
+    if (decision.kind === 'app-receipt-and-review') {
+      process.stdout.write(`PR #${prNumber}: verified App receipt ${decision.receiptId} plus independent approving review by ${decision.reviewer}.\n`);
+      process.exitCode = 0;
+      return;
+    }
+    if (decision.kind === 'independent-review') {
+      process.stdout.write(`PR #${prNumber}: independent approving review by ${decision.reviewer} on the current head.\n`);
+      process.exitCode = 0;
+      return;
+    }
+    if (decision.kind === 'invalid-app-receipt')
+      process.stderr.write(`HOLD — enforced App receipt is not valid for this exact candidate (${decision.reason}); only a valid owner SSHSIG may recover this gate.\n`);
+    if (decision.kind === 'sensitive-needs-independent-review')
+      process.stderr.write(`HOLD: sensitive paths need a verified receipt and an independent approving review (${decision.reason}).\n`);
+    if (decision.kind === 'controller-self')
+      process.stderr.write(`HOLD: controller paths have no receipt grant (${decision.reason}).\n`);
+    if (decision.action === 'clear') {
+      process.stdout.write(`PR #${prNumber}: verified exact-head owner sec-review signature (${decision.url || 'recorded comment'}).\n`);
+      process.exitCode = 0;
+      return;
+    }
+    if (!enforce && data.isCrossRepository === false && isPromotePr(data.baseRefName, data.headRefName)) {
       const upstream = decidePromoteUpstreamCoverage(buildPromoteCoverage(prNumber, target));
       if (upstream.action === 'clear') {
         process.stdout.write(`PR #${prNumber}: ${upstream.coveredCount} security commits have current, signed merged-feature coverage.\n`);
@@ -702,10 +814,7 @@ function runPrMode(prNumber, repo) {
       }
       process.stderr.write(`HOLD — unsigned or expired feature coverage: ${(upstream.uncovered || []).join(', ') || upstream.kind}.\n`);
     }
-    const door = classified.sensitive
-      ? 'an owner SSHSIG, or a passing exact-head RevealUI Receipt check from the review controller App plus an approving review from an account other than the PR author and the App'
-      : 'an owner SSHSIG, or a passing exact-head RevealUI Receipt check from the review controller App';
-    process.stderr.write(`HOLD: PR #${prNumber} requires ${door} (${decision.reason || decision.kind}). Labels alone cannot clear it.\n`);
+    process.stderr.write(`HOLD — PR #${prNumber} requires a request label and an unexpired owner SSHSIG over its exact repo/PR/head/sec-review context (${decision.reason || decision.kind}). Labels and reviews alone cannot clear it.\n`);
     process.exitCode = 1;
   } catch (error) {
     process.stderr.write(`HOLD — security review evidence unavailable: ${error instanceof Error ? error.message : 'unknown failure'}.\n`);
@@ -727,23 +836,16 @@ function runDiffMode(base) {
     process.exit(2);
   }
   const files = out.split('\n').filter(Boolean);
-  const admission = reviewAdmission(files);
-  if (!admission.gated) {
+  const hits = classifyFiles(files);
+  if (hits.length === 0) {
     process.stdout.write(
-      `Current branch vs ${base}: no security-sensitive or sensitive files. No review gate.\n`,
+      `Current branch vs ${base}: no security-sensitive files — no review gate.\n`,
     );
     process.exit(0);
   }
-  const touched = [
-    ...admission.security,
-    ...admission.sensitiveHits.map((hit) => hit.file),
-  ];
-  const requirement = admission.sensitive
-    ? 'an exact-head owner SSHSIG, or a passing RevealUI Receipt check from the review controller App plus an independent approval'
-    : 'an exact-head owner SSHSIG, or a passing RevealUI Receipt check from the review controller App';
   process.stderr.write(
-    `Current branch is ${admission.sensitive ? 'SENSITIVE' : 'SECURITY-SENSITIVE'} (vs ${base}). Touched: ${[...new Set(touched)].join(', ')}\n` +
-      `   The PR will need ${requirement} before merge.\n`,
+    `Current branch is SECURITY-SENSITIVE (vs ${base}). Touched: ${[...new Set(hits)].join(', ')}\n` +
+      `   The PR will need a request label and an exact-head owner SSHSIG before merge.\n`,
   );
   process.exit(1);
 }
@@ -762,26 +864,25 @@ function main() {
   runDiffMode(base);
 }
 
+function resolveAllowedSigners(explicit) {
+  return explicit ?? process.env.REVEALFLEET_OVERRIDE_SIGNERS ?? '';
+}
+
 // Export the surface list + classifier so the unit test can assert the
 // classification without spawning the CLI. Guarding main() behind
 // require.main === module keeps the CLI behavior identical when run directly.
 module.exports = {
   SECURITY_PATHS,
+  SENSITIVE_PATH_MARKERS,
+  CONTROLLER_PATH_MARKERS,
   SEC_REVIEW_LABELS,
   MAX_CLASSIFIABLE_FILES,
-  SENSITIVE_PATH_CLASSES,
-  RECEIPT_CHECK_NAME,
-  RECEIPT_APP_ID_VAR,
-  RECEIPT_APP_SLUG_VAR,
   classifyFiles,
-  classifySensitiveFiles,
-  reviewAdmission,
   decideReviewGate,
-  verifyAppReceiptCheck,
+  decideReceiptAdmission,
   verifyIndependentApproval,
-  readReceiptControllerConfig,
-  buildReceiptAdmission,
-  fetchCommitCheckRuns,
+  classifyAdmission,
+  verifyReceiptShadow,
   isPromotePr,
   decidePromoteUpstreamCoverage,
   prRecordHasVerdict,
@@ -791,6 +892,11 @@ module.exports = {
   fetchPrCommitShas,
   fetchPrFiles,
   hitsForFiles,
+  resolveAllowedSigners,
+  readReceiptConfig,
+  evaluateReceiptShadowForPr,
+  fetchPrCommitAuthorLogins,
+  collaboratorHasWriteAccess,
   // exposed for integration tests / CI dry-runs
   buildPromoteCoverage,
 };

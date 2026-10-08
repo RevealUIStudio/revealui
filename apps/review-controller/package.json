@@ -1,0 +1,39 @@
+{
+  "name": "@revealui/review-controller",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Isolated GitHub review-receipt controller for protected pull-request admission.",
+  "dependencies": {
+    "@hono/node-server": ">=2.0.5",
+    "@revealui/db": "workspace:*",
+    "@revealui/security": "workspace:*",
+    "hono": "4.13.8",
+    "pg": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "catalog:",
+    "@revealui/dev": "workspace:*",
+    "drizzle-kit": "^0.31.10",
+    "drizzle-orm": "catalog:",
+    "@types/node": "catalog:",
+    "tsup": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "engines": {
+    "node": ">=24.13.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "db:migrate": "pnpm --filter @revealui/db build && drizzle-kit migrate --config=drizzle.config.ts",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "provision:shadow": "node --import tsx scripts/provision-shadow.ts",
+    "lint": "biome check ."
+  }
+}

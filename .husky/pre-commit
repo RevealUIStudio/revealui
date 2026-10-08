@@ -2,7 +2,7 @@
 set -e
 
 # Scan for hardcoded secrets before committing
-pnpm secrets:scan
+git ls-files -z | pnpm secrets:scan -- --stdin-files
 
 # Gitleaks — scan staged changes for leaked secrets
 if command -v gitleaks >/dev/null 2>&1; then
@@ -22,9 +22,9 @@ if [ -n "$STAGED_TS_FILES" ]; then
 
   while IFS= read -r file; do
     if [ -f "$file" ]; then
-      pnpm tsx scripts/validate/validate-code.ts "$file" > /dev/null 2>&1 || {
+      pnpm exec node --import tsx scripts/validate/validate-code.ts "$file" > /dev/null 2>&1 || {
         echo "  ❌ $file (has code standard violations)"
-        pnpm tsx scripts/validate/validate-code.ts "$file" 2>&1 | grep -A 1 "ERROR\|WARNING" | head -10
+        pnpm exec node --import tsx scripts/validate/validate-code.ts "$file" 2>&1 | grep -A 1 "ERROR\|WARNING" | head -10
         VALIDATION_FAILED=true
       }
     fi
@@ -49,7 +49,7 @@ STAGED=$(git diff --cached --name-only)
 DESIGN_CONTEXT_TOUCHED=$(printf '%s\n' "$STAGED" | grep -F "packages/presentation/src/tokens.css" || true)
 DESIGN_CONTEXT_TOUCHED="${DESIGN_CONTEXT_TOUCHED}$(printf '%s\n' "$STAGED" | grep -F "packages/presentation/design-context/" || true)"
 if [ -n "$DESIGN_CONTEXT_TOUCHED" ]; then
-  pnpm tsx scripts/validate/design-context-drift.ts || exit 1
+  pnpm exec node --import tsx scripts/validate/design-context-drift.ts || exit 1
 fi
 
 # Check if schema files changed

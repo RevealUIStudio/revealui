@@ -1,5 +1,5 @@
 {
-  "$schema_note": "Single source of truth for revealui SECURITY_PATHS markers (GAP-404). Loaded by security-review-gate.cjs. Fleet-only markers live only in the private .jv checker overlay. Edit THIS file when widening shared surfaces; do not hand-edit a second copy.",
+  "$schema_note": "Single source of truth for RevealUI security path markers. The shared harness classifier and security-review gate consume this file. Fleet-only markers live only in the private .jv checker overlay. Edit THIS file when widening shared surfaces; do not hand-edit a second copy.",
   "markers": [
     "middleware/auth",
     "middleware/license",
@@ -59,5 +59,37 @@
     "packages/db/src/audit-store",
     "packages/db/migrations/",
     "packages/apify-actor-governed-run/"
-  ]
+  ],
+  "sensitiveMarkers": [
+    ".github/workflows/",
+    ".github/actions/",
+    ".github/codeql/",
+    ".github/dependabot.yml",
+    ".github/rulesets/",
+    "ruleset.json",
+    "ruleset.yml",
+    "ruleset.yaml",
+    "CODEOWNERS",
+    "packages/auth/",
+    "packages/core/src/auth/",
+    "packages/core/src/session",
+    "packages/security/src/authorization",
+    "middleware/auth",
+    "middleware/authorization",
+    "routes/auth",
+    "api/auth/",
+    "access/roles",
+    "lib/access/",
+    "lib/auth/",
+    "/session",
+    "/proxy.ts",
+    "packages/db/migrations/",
+    "scripts/validate/security-review-gate",
+    "packages/security/src/security-paths.shared.json",
+    "scripts/ci/",
+    "scripts/check-client-leaks.sh",
+    "scripts/**/backflow-merge-method-guard.cjs",
+    "scripts/**/gates-resolver.cjs"
+  ],
+  "controllerMarkers": ["apps/review-controller/"]
 }
