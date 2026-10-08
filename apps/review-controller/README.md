@@ -198,6 +198,13 @@ and `event: "pull_request"`. The resolver binds each check to the newest
 matching workflow run and its check suite and holds if any workflow or local
 Action definition changed in the PR. The key must live in this controller's
 dedicated secret store.
+The maintained `pnpm --filter @revealui/review-controller provision:shadow --key-id <unique-key-id>` command validates
+`config/shadow-policy.json`, generates a dedicated Ed25519 pair in memory,
+imports the complete shadow configuration to the isolated Fly app in one
+operation, and writes only the public PEM under `config/trusted-keys/` for
+review and later gate configuration. Revalidate configured workflow IDs and
+repository ownership before every provisioning or rotation, especially after
+the move to `revealui-studio`. Never reuse the owner SSH signing key.
 Stable selectors use check name and GitHub App ID; current run and suite IDs
 come from the live GitHub response.
 Unknown modes and partial or malformed configuration stop startup. Publishing

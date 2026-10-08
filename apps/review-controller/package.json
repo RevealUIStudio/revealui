@@ -33,6 +33,7 @@
     "start": "node dist/index.js",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "provision:shadow": "node --import tsx scripts/provision-shadow.ts",
     "lint": "biome check ."
   }
 }
