@@ -19,7 +19,6 @@
  * route always ingests as `manual`.
  */
 
-import { hostname } from 'node:os';
 import { getSession } from '@revealui/auth/server';
 import { getPool } from '@revealui/db/pool';
 import {
@@ -33,6 +32,7 @@ import { isValidKgViewSlug } from '@revealui/sync/collab/server';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod/v4';
+import { resolveMemoryReadScope } from '@/lib/memory/memory-read-scope';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
   createApplicationErrorResponse,
@@ -126,6 +126,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       attributes: e.attributes,
     }));
 
+    const memoryScope = await resolveMemoryReadScope({
+      userId: session.user.id,
+      user: session.user,
+    });
+    const siteId = memoryScope?.siteIds.length === 1 ? memoryScope.siteIds[0] : undefined;
+    if (!siteId) {
+      return createApplicationErrorResponse(
+        'Site scope could not be resolved',
+        'SCOPE_UNRESOLVED',
+        403,
+      );
+    }
+
     const exec = makePoolExecutor(getPool());
     const embedder = await loadEmbedder();
     const referenceTime = new Date();
@@ -136,7 +149,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         episode: {
           episodeType: 'manual',
           source: v.source,
-          siteId: `admin-explorer:${hostname()}`,
+          siteId,
           content: v.content ?? null,
           contentRef: { ...v.contentRef, viewSlug: v.viewSlug },
           referenceTime,

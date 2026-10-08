@@ -15,6 +15,8 @@ const mockSearchSimilar = vi
   .fn()
   .mockResolvedValue([{ id: 'm1', content: 'memory content', similarity: 0.95 }]);
 
+const mockResolveMemoryReadScope = vi.fn();
+
 vi.mock('@revealui/auth/server', () => ({
   getSession: vi.fn(),
   checkRateLimit: vi
@@ -54,6 +56,10 @@ vi.mock('@revealui/ai/embeddings', () => ({
   generateEmbedding: vi.fn().mockResolvedValue({
     vector: new Array(1536).fill(0.1),
   }),
+}));
+
+vi.mock('@/lib/memory/memory-read-scope', () => ({
+  resolveMemoryReadScope: (...args: unknown[]) => mockResolveMemoryReadScope(...args),
 }));
 
 vi.mock('@/lib/utils/error-response', () => ({
@@ -101,6 +107,10 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+function allowTenantA(): void {
+  mockResolveMemoryReadScope.mockResolvedValue({ siteIds: ['tenant-a'] });
+}
+
 // =============================================================================
 // POST /api/memory/search (vector similarity)
 // =============================================================================
@@ -145,6 +155,7 @@ describe('POST /api/memory/search', () => {
   });
 
   it('returns search results for valid embedding', async () => {
+    allowTenantA();
     vi.mocked(getSession).mockResolvedValue(makeSession() as never);
     const embedding = new Array(1536).fill(0.1);
     const req = makeRequest('/api/memory/search', { queryEmbedding: embedding });
@@ -156,34 +167,42 @@ describe('POST /api/memory/search', () => {
     expect(body.count).toBe(1);
   });
 
-  it('enforces userId for non-admin users', async () => {
+  it('scopes search to the caller site and ignores a client user id', async () => {
+    allowTenantA();
     vi.mocked(getSession).mockResolvedValue(makeSession('viewer', 'user-456') as never);
     const embedding = new Array(1536).fill(0.1);
     const req = makeRequest('/api/memory/search', {
       queryEmbedding: embedding,
-      options: { userId: 'other-user' },
+      options: { userId: 'other-user', siteId: 'tenant-b' },
     });
     await searchVector(req);
 
+    expect(mockResolveMemoryReadScope).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: 'user-456', requestedSiteId: 'tenant-b' }),
+    );
     expect(mockSearchSimilar).toHaveBeenCalledWith(
       embedding,
-      expect.objectContaining({ userId: 'user-456' }),
+      expect.objectContaining({ siteIds: ['tenant-a'] }),
     );
+    expect(mockSearchSimilar.mock.calls[0]?.[1]).not.toHaveProperty('userId');
+    expect(mockSearchSimilar.mock.calls[0]?.[1]).not.toHaveProperty('siteId');
   });
 
-  it('allows admin to search any user memories', async () => {
+  it('returns no rows when site scope cannot be resolved', async () => {
+    mockResolveMemoryReadScope.mockResolvedValue(null);
     vi.mocked(getSession).mockResolvedValue(makeSession('admin') as never);
     const embedding = new Array(1536).fill(0.1);
     const req = makeRequest('/api/memory/search', {
       queryEmbedding: embedding,
-      options: { userId: 'other-user' },
+      options: { userId: 'other-user', siteId: 'tenant-b' },
     });
-    await searchVector(req);
+    const res = await searchVector(req);
+    const body = await res.json();
 
-    expect(mockSearchSimilar).toHaveBeenCalledWith(
-      embedding,
-      expect.objectContaining({ userId: 'other-user' }),
-    );
+    expect(res.status).toBe(200);
+    expect(body.results).toEqual([]);
+    expect(body.count).toBe(0);
+    expect(mockSearchSimilar).not.toHaveBeenCalled();
   });
 
   it('returns 400 for invalid JSON', async () => {
@@ -241,6 +260,7 @@ describe('POST /api/memory/search-text', () => {
   });
 
   it('returns search results for valid query', async () => {
+    allowTenantA();
     vi.mocked(getSession).mockResolvedValue(makeSession() as never);
     const req = makeRequest('/api/memory/search-text', { query: 'find relevant memories' });
     const res = await searchText(req);
@@ -252,6 +272,7 @@ describe('POST /api/memory/search-text', () => {
   });
 
   it('truncates long query in response to 100 chars', async () => {
+    allowTenantA();
     vi.mocked(getSession).mockResolvedValue(makeSession() as never);
     const longQuery = 'a'.repeat(200);
     const req = makeRequest('/api/memory/search-text', { query: longQuery });
@@ -260,18 +281,39 @@ describe('POST /api/memory/search-text', () => {
     expect(body.query).toHaveLength(100);
   });
 
-  it('enforces userId for non-admin users', async () => {
+  it('scopes text search to the caller site', async () => {
+    allowTenantA();
     vi.mocked(getSession).mockResolvedValue(makeSession('viewer', 'user-789') as never);
-    const req = makeRequest('/api/memory/search-text', { query: 'test' });
+    const req = makeRequest('/api/memory/search-text', {
+      query: 'test',
+      options: { siteId: 'tenant-b' },
+    });
     await searchText(req);
 
+    expect(mockResolveMemoryReadScope).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: 'user-789', requestedSiteId: 'tenant-b' }),
+    );
     expect(mockSearchSimilar).toHaveBeenCalledWith(
       expect.any(Array),
-      expect.objectContaining({ userId: 'user-789' }),
+      expect.objectContaining({ siteIds: ['tenant-a'] }),
     );
   });
 
-  it('passes through search options', async () => {
+  it('returns no rows for text search when site scope is missing', async () => {
+    mockResolveMemoryReadScope.mockResolvedValue(null);
+    vi.mocked(getSession).mockResolvedValue(makeSession('admin') as never);
+    const req = makeRequest('/api/memory/search-text', { query: 'tenant-b secret' });
+    const res = await searchText(req);
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.results).toEqual([]);
+    expect(body.count).toBe(0);
+    expect(mockSearchSimilar).not.toHaveBeenCalled();
+  });
+
+  it('passes through search options inside the caller site', async () => {
+    allowTenantA();
     vi.mocked(getSession).mockResolvedValue(makeSession() as never);
     const req = makeRequest('/api/memory/search-text', {
       query: 'test',
@@ -281,7 +323,12 @@ describe('POST /api/memory/search-text', () => {
 
     expect(mockSearchSimilar).toHaveBeenCalledWith(
       expect.any(Array),
-      expect.objectContaining({ limit: 5, threshold: 0.8, agentId: 'agent-1' }),
+      expect.objectContaining({
+        limit: 5,
+        threshold: 0.8,
+        agentId: 'agent-1',
+        siteIds: ['tenant-a'],
+      }),
     );
   });
 
