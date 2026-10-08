@@ -190,6 +190,7 @@ async function latestCurrentCodexReview(
     pullRequest: snapshot.pullRequest,
     headSha: snapshot.headSha,
     baseSha: snapshot.baseSha,
+    ...(trustedReviewer ? { trustedReviewer } : {}),
   });
   const acceptedReviews = reviews.filter((review) =>
     trustedReviewer
