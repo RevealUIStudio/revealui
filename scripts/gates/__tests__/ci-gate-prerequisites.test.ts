@@ -293,4 +293,62 @@ describe('gate resource admission', () => {
       }
     },
   );
+
+  it.skipIf(process.platform !== 'linux').each(['SIGINT', 'SIGTERM'] as const)(
+    'terminates a blocked flock waiter and exits the gate on %s',
+    async (signal) => {
+      state.admissionDirectory = mkdtempSync(join(tmpdir(), 'revealui-admission-test-'));
+      vi.spyOn(process, 'availableMemory').mockReturnValue(4 * 1024 ** 3);
+      let release!: () => void;
+      const held = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const events: string[] = [];
+      const existingHandlers = process.listeners(signal);
+      try {
+        const first = withGateAdmission(async () => {
+          events.push('first');
+          await held;
+        });
+        const firstCompletion = expect(first).resolves.toBeUndefined();
+        await vi.waitFor(() => expect(events).toEqual(['first']));
+
+        const waiting = withGateAdmission(async () => {
+          events.push('cancelled waiter operation');
+        });
+        const waitingFailure = expect(waiting).rejects.toThrow(
+          `CI gate admission interrupted (${signal}).`,
+        );
+        await vi.waitFor(() => {
+          expect(state.flockPids).toHaveLength(2);
+          const pid = state.flockPids[1];
+          if (pid === undefined) throw new Error('Second lock process did not start.');
+          expect(readFileSync(`/proc/${pid}/wchan`, 'utf8').trim()).toBe('locks_lock_inode_wait');
+          const handler = process
+            .listeners(signal)
+            .find((listener) => !existingHandlers.includes(listener));
+          expect(handler).toBeTypeOf('function');
+          return handler;
+        });
+        expect(state.flockArguments[1]).toEqual(['--exclusive', '3']);
+
+        const handler = process
+          .listeners(signal)
+          .find((listener) => !existingHandlers.includes(listener));
+        handler?.call(process);
+        await waitingFailure;
+        expect(events).toEqual(['first']);
+        expect(process.listeners(signal)).toEqual(existingHandlers);
+
+        release();
+        await firstCompletion;
+        await withGateAdmission(async () => {
+          events.push('next');
+        });
+        expect(events).toEqual(['first', 'next']);
+      } finally {
+        release();
+      }
+    },
+  );
 });
