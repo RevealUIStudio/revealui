@@ -1,7 +1,7 @@
 ---
 title: "One Runtime, Eight Products: The RevealFleet Family"
 description: "You do not adopt a framework, you adopt a fleet. RevealUI is the flagship runtime, and seven sister products extend it."
-visibility: public
+visibility: internal
 status: narrative
 audience: user
 author: Joshua Vaughn
