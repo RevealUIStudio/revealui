@@ -1,4 +1,3 @@
-import { resolveLLMClientForRequest } from '@revealui/ai/llm/server';
 import type { DatabaseClient } from '@revealui/db/client';
 import { pages } from '@revealui/db/schema/pages';
 import { ragDocuments } from '@revealui/db/schema/rag';
@@ -122,6 +121,7 @@ describe('site-backed RAG API authorization and canonical sources', () => {
     );
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({ total: 2, indexed: 2, failed: 0 });
+    const { resolveLLMClientForRequest } = await import('@revealui/ai/llm/server');
     expect(resolveLLMClientForRequest).toHaveBeenCalledWith(
       'editor',
       expect.anything(),
@@ -175,6 +175,7 @@ describe('site-backed RAG API authorization and canonical sources', () => {
   });
 
   it('returns 409 when hosted indexing has no account model key', async () => {
+    const { resolveLLMClientForRequest } = await import('@revealui/ai/llm/server');
     vi.mocked(resolveLLMClientForRequest).mockRejectedValueOnce(
       Object.assign(new Error('No LLM provider is configured for this account.'), {
         code: 'LLM_NOT_CONFIGURED',
