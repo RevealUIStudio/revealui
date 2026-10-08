@@ -105,6 +105,10 @@ repository, PR, head, base, manifest, reviewer policy version, and model.
 The controller pins the reviewer App's bot login and numeric account ID and
 requires that binding before accepting its native approval. Existing
 subscription comments and stale reviews remain non-approving.
+The same protected-base workflow also reconciles open, same-repository PRs
+targeting `test` twice per hour. It skips a PR that already has a native
+review bound to the current snapshot, and retries transient failures without
+depending on a new PR event.
 
 This path is not operational until its feature PR is reviewed and merged
 into the protected `test` branch, the dedicated reviewer App and model
@@ -121,6 +125,9 @@ separate Fly app must receive matching `REVIEW_RECEIPT_REVIEWER_LOGIN`,
 `REVIEW_RECEIPT_REVIEWER_ID`, `REVIEW_RECEIPT_REVIEWER_MODEL`, and
 `REVIEW_RECEIPT_REVIEWER_POLICY_VERSION` settings before positive shadow
 evidence can be evaluated. Neither App's private key is shared with the other.
+Before the later organization move, verify the reviewer and controller App
+installations still target the same repository ID, then update their configured
+repository full name and any changed installation IDs through normal review.
 
 The owning replacement is the existing trusted review-gate and disposition
 path. Replace per-PR human grants with an independently produced receipt,

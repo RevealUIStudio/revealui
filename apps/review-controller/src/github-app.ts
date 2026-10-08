@@ -165,6 +165,30 @@ export class GitHubAppClient {
     return result;
   }
 
+  async listOpenPullRequestNumbers(baseRef: string): Promise<number[]> {
+    if (!/^[A-Za-z0-9._/-]{1,128}$/.test(baseRef)) throw new Error('invalid base ref');
+    const results = await this.getPaginated(
+      `/repos/${this.config.repositoryFullName}/pulls?state=open&base=${encodeURIComponent(baseRef)}`,
+    );
+    return results.flatMap((value) => {
+      const base = isRecord(value) && isRecord(value.base) ? value.base : null;
+      const baseRepo = base && isRecord(base.repo) ? base.repo : null;
+      const head = isRecord(value) && isRecord(value.head) ? value.head : null;
+      const headRepo = head && isRecord(head.repo) ? head.repo : null;
+      if (
+        !(isRecord(value) && Number.isSafeInteger(value.number)) ||
+        Number(value.number) <= 0 ||
+        value.state !== 'open' ||
+        base?.ref !== baseRef ||
+        baseRepo?.id !== this.config.repositoryId ||
+        !headRepo ||
+        !Number.isSafeInteger(headRepo.id)
+      )
+        throw new GitHubAppError('invalid_pull_request_list');
+      return headRepo.id === this.config.repositoryId ? [Number(value.number)] : [];
+    });
+  }
+
   async listPullRequestReviews(number: number): Promise<
     Array<{
       id: number;

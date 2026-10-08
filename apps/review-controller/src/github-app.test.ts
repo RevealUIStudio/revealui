@@ -429,6 +429,34 @@ describe('GitHub App API client', () => {
     });
   });
 
+  it('reconciles only open same-repository pull requests targeting the protected base', async () => {
+    const fetchImpl = vi.fn<typeof fetch>(async (input) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      if (url.pathname.endsWith('/access_tokens')) return tokenResponse();
+      if (url.pathname.endsWith('/pulls'))
+        return Response.json([
+          {
+            number: 7,
+            state: 'open',
+            base: { ref: 'test', repo: { id: 300 } },
+            head: { repo: { id: 300 } },
+          },
+          {
+            number: 8,
+            state: 'open',
+            base: { ref: 'test', repo: { id: 300 } },
+            head: { repo: { id: 999 } },
+          },
+        ]);
+      return Response.json({ error: 'unexpected' }, { status: 404 });
+    });
+    const client = fixture(fetchImpl);
+    await expect(client.listOpenPullRequestNumbers('test')).resolves.toEqual([7]);
+    const url = new URL(String(fetchImpl.mock.calls[1]?.[0]));
+    expect(url.searchParams.get('state')).toBe('open');
+    expect(url.searchParams.get('base')).toBe('test');
+  });
+
   it('fetches complete paginated changed-file evidence and reuses the short-lived token', async () => {
     const fetchImpl = vi.fn<typeof fetch>(async (input) => {
       const url = new URL(input instanceof Request ? input.url : input.toString());

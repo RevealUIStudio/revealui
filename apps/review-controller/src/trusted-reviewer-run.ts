@@ -1,4 +1,4 @@
-import { GitHubAppClient } from './github-app.js';
+import { GitHubAppClient, GitHubAppError } from './github-app.js';
 import { requestStructuredReview, TrustedReviewerWebhookHandler } from './trusted-reviewer.js';
 
 function required(name: string): string {
@@ -41,7 +41,22 @@ async function main(): Promise<void> {
     { repositoryId, reviewer, policyVersion, model },
     (snapshot) => requestStructuredReview({ snapshot, apiKey, model, policyVersion }),
   );
-  await handler.reviewPullRequest(positiveInteger('REVIEW_PULL_REQUEST_NUMBER'));
+  const onePullRequest = process.env.REVIEW_PULL_REQUEST_NUMBER?.trim();
+  const pullRequests = onePullRequest
+    ? [positiveInteger('REVIEW_PULL_REQUEST_NUMBER')]
+    : await github.listOpenPullRequestNumbers('test');
+  let failures = 0;
+  for (const number of pullRequests) {
+    try {
+      await handler.reviewPullRequest(number);
+    } catch (error) {
+      failures += 1;
+      process.stderr.write(
+        `trusted-reviewer PR #${number} failed: ${error instanceof GitHubAppError ? error.code : 'reviewer_error'}\n`,
+      );
+    }
+  }
+  if (failures > 0) throw new Error(`${failures} pull request reviews incomplete`);
 }
 
 main().catch((error: unknown) => {
