@@ -201,7 +201,7 @@ dedicated secret store.
 The maintained `pnpm --filter @revealui/review-controller provision:shadow --key-id <unique-key-id>` command validates
 `config/shadow-policy.json`, generates a dedicated Ed25519 pair in memory,
 imports the complete shadow configuration to the isolated Fly app in one
-operation, and writes only the public PEM under `config/trusted-keys/` for
+operation, and writes only the public SPKI PEM (`.spki`) under `config/trusted-keys/` for
 review and later gate configuration. Revalidate configured workflow IDs and
 repository ownership before every provisioning or rotation, especially after
 the move to `revealui-studio`. Never reuse the owner SSH signing key.

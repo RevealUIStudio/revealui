@@ -22,7 +22,7 @@ export function makeProvisionPlan(config: ShadowConfig, keyId: string) {
   if (!/^[A-Za-z0-9-]+$/.test(config.flyApp)) throw new Error('invalid Fly app name');
   if (!Number.isSafeInteger(config.repositoryId) || config.repositoryId <= 0)
     throw new Error('invalid repository ID');
-  const publicPath = join(configDir, 'trusted-keys', `${keyId}.pem`);
+  const publicPath = join(configDir, 'trusted-keys', `${keyId}.spki`);
   if (existsSync(publicPath)) throw new Error('receipt public key ID already exists');
   const pair = generateKeyPairSync('ed25519');
   const privatePem = pair.privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();

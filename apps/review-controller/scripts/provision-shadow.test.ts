@@ -62,7 +62,7 @@ describe('shadow signer provisioning', () => {
   it('generates a distinct Ed25519 key and validates the full shadow policy before import', () => {
     const plan = makeProvisionPlan(config, 'revealui-review-controller-test-key');
     expect(plan.app).toBe('revealui-review-controller');
-    expect(plan.publicPath).toContain('trusted-keys/revealui-review-controller-test-key.pem');
+    expect(plan.publicPath).toContain('trusted-keys/revealui-review-controller-test-key.spki');
     const privateKey = createPrivateKey(plan.secrets.REVIEW_RECEIPT_PRIVATE_KEY);
     const publicKey = createPublicKey(plan.publicPem);
     expect(privateKey.asymmetricKeyType).toBe('ed25519');
