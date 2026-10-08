@@ -98,9 +98,11 @@ only the PostgreSQL driver external to the self-contained controller bundle.
 The existing Docker workflow builds this image for relevant pull requests
 without publishing it; its required summary fails if the image build fails.
 Deploy the Fly app from the monorepo root using
-`fly deploy --config apps/review-controller/fly.toml --remote-only` so the
+`fly deploy --config apps/review-controller/fly.toml --dockerfile apps/review-controller/Dockerfile --remote-only` so the
 Docker build context contains the workspace packages copied by that Dockerfile.
-The Fly config points to the same Dockerfile that CI builds. Keep the App
+Fly resolves the config's Dockerfile path relative to the config directory;
+the explicit deploy flag selects that file from the monorepo root. CI builds
+the same Dockerfile. Keep the App
 webhook inactive until the deployed service passes both `/health/live` and
 `/health/ready`; activate it only for the isolated shadow rollout.
 

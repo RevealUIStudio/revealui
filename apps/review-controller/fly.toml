@@ -1,9 +1,10 @@
-# Deploy from the monorepo root: the Dockerfile copies workspace packages.
+# Deploy from the monorepo root with --dockerfile apps/review-controller/Dockerfile:
+# the Dockerfile copies workspace packages from the root build context.
 app = 'revealui-review-controller'
 primary_region = 'iad'
 
 [build]
-  dockerfile = 'apps/review-controller/Dockerfile'
+  dockerfile = 'Dockerfile'
 
 [env]
   NODE_ENV = 'production'
