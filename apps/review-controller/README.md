@@ -113,6 +113,8 @@ delivery to the endpoint; it does not establish receipt evaluation readiness.
 Other authenticated lifecycle deliveries and irrelevant actions, such as
 `check_run.created`, are acknowledged only after App installation and repository
 scope checks; they do not enter the inbox.
+The worker stores bounded GitHub API error codes on retries for diagnosis;
+untyped exception text remains excluded from the database.
 
 ## Isolation contract
 

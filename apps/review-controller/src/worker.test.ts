@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { GitHubAppError } from './github-app.js';
 import type { ClaimedWebhook, WebhookInbox } from './inbox.js';
 import { processNextWebhook } from './worker.js';
 
@@ -54,6 +55,27 @@ describe('webhook inbox worker', () => {
       claimed.deliveryId,
       '22222222-2222-4222-8222-222222222222',
       'handler_error',
+      new Date('2026-10-06T12:00:10.000Z'),
+    );
+  });
+
+  it('stores a bounded typed GitHub failure code without storing exception text', async () => {
+    const inbox = inboxFixture();
+    const result = await processNextWebhook({
+      inbox,
+      handler: {
+        process: vi.fn(async () => {
+          throw new GitHubAppError('github_http_403');
+        }),
+      },
+      createLeaseToken: () => '22222222-2222-4222-8222-222222222222',
+      now: () => new Date('2026-10-06T12:00:00.000Z'),
+    });
+    expect(result).toBe('retry-scheduled');
+    expect(inbox.retry).toHaveBeenCalledWith(
+      claimed.deliveryId,
+      '22222222-2222-4222-8222-222222222222',
+      'github_http_403',
       new Date('2026-10-06T12:00:10.000Z'),
     );
   });

@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
+import { GitHubAppError } from './github-app.js';
 import { type ClaimedWebhook, MAX_WEBHOOK_ATTEMPTS, type WebhookInbox } from './inbox.js';
 
 export type WebhookWorkResult =
@@ -27,15 +28,14 @@ export async function processNextWebhook(input: {
 
   try {
     await input.handler.process(claimed);
-  } catch {
+  } catch (error) {
     const delayMs = Math.min(60 * 60_000, 5_000 * 2 ** Math.min(claimed.attempts - 1, 10));
     const retryAt = new Date((input.now ?? (() => new Date()))().getTime() + delayMs);
-    const updated = await input.inbox.retry(
-      claimed.deliveryId,
-      leaseToken,
-      'handler_error',
-      retryAt,
-    );
+    const errorCode =
+      error instanceof GitHubAppError && /^[a-z0-9_]{1,64}$/.test(error.code)
+        ? error.code
+        : 'handler_error';
+    const updated = await input.inbox.retry(claimed.deliveryId, leaseToken, errorCode, retryAt);
     if (!updated) return 'lease-lost';
     return claimed.attempts >= MAX_WEBHOOK_ATTEMPTS && claimed.eventName !== 'receipt_expiration'
       ? 'terminal-failure'
