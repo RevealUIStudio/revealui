@@ -1,50 +1,28 @@
 name: Dependabot Catalog Lockfile Auto-Fix
 
-# When Dependabot bumps a catalog-managed dependency, it sometimes replaces
-# `specifier: 'catalog:'` in the pnpm-lock.yaml importer block with the
-# resolved version (e.g. `specifier: 8.21.0`), even though
-# `pnpm-workspace.yaml`'s catalog was correctly bumped. The resulting
-# importer entry no longer matches the manifest, so
-# `pnpm install --frozen-lockfile` rejects it with
-# ERR_PNPM_OUTDATED_LOCKFILE — breaking every Quality / Security / CodeQL
-# job until a human checks out the branch and runs `pnpm install`.
+# Dependabot sometimes writes a resolved version into pnpm-lock.yaml where the
+# importer specifier should stay `catalog:`. `pnpm install --frozen-lockfile`
+# then fails until the lockfile is regenerated from the workspace catalog.
 #
-# This workflow runs that one-line fix automatically:
-#   1. Triggers only on Dependabot PRs that touched pnpm-lock.yaml.
-#   2. Checks out the PR head branch.
-#   3. Runs `pnpm install --lockfile-only --ignore-scripts`, which
-#      regenerates importer specifiers back to 'catalog:' against the
-#      already-correct workspace catalog.
-#   4. If the lockfile drifted, commits the fix to the PR head via the
-#      GitHub Contents API using a GitHub App installation token (the
-#      backflow App), NOT GITHUB_TOKEN. An API commit is signed by
-#      GitHub's web-flow key ("Verified"), so it satisfies the
-#      require-signed-commits ruleset; a local `git push` was unsigned and
-#      left every catalog-touching Dependabot PR blocked.
+# This workflow regenerates that lockfile and, when it changed, writes
+# pnpm-lock.yaml back with a GitHub App installation token. An API write is
+# signed by GitHub, so the require-signed-commits ruleset accepts it. An App
+# token also re-triggers pull_request workflows. The default GITHUB_TOKEN would
+# not.
 #
-# Why a GitHub App token instead of GITHUB_TOKEN: a push made with the
-# default GITHUB_TOKEN does NOT trigger `pull_request` /
-# `pull_request_target` workflows (GitHub loop-prevention). A GITHUB_TOKEN
-# push therefore left the corrected lockfile permanently "stale red" —
-# ci.yml never re-ran on the fix, so the PR kept showing the pre-fix
-# failure (or "no checks reported on the branch") and needed a manual
-# nudge (close/reopen, empty commit) to validate. Pushing with the App
-# installation token fires the `synchronize` event normally, so ci.yml
-# re-runs and the PR gets a real green check on the autofixed head.
-#
-# Push-loop guard: the App-token push DOES re-trigger this workflow, but
-# the re-triggered run's `github.actor` is the App's bot identity (not
-# dependabot[bot]), so the `if: github.actor == 'dependabot[bot]'` job
-# guard short-circuits it — no second fix, no loop. That same push re-runs
-# ci.yml under a non-dependabot actor, which is exactly the CI run we want.
-#
-# Security: `pull_request_target` runs with the BASE branch's workflow
-# definition, so a PR can't modify this workflow to escalate privileges.
-# The job only runs for the dependabot[bot] actor (which an external PR
-# cannot spoof), and `pnpm install --ignore-scripts` skips lifecycle
-# scripts so a malicious package.json change can't execute arbitrary code.
-# The App token is minted per-run, scoped to `contents: write` on this
-# repo only, and expires within ~1h.
+# Trust boundary:
+# - pull_request_target uses this file from the base branch.
+# - The job runs only when the pull request author is dependabot[bot] and the
+#   head repository is the base repository. Who triggered the event is not the
+#   check.
+# - Checkout uses the head commit SHA, persist-credentials: false, and no
+#   token. The App token is minted only after install, and only the lockfile
+#   write step receives it.
+# - Install uses --lockfile-only, --ignore-scripts, and --ignore-pnpmfile.
+#   pnpmfile hooks are moved aside. node-options and script-shell lines are
+#   removed from .npmrc before install.
+# - If the head commit already carries the autofix subject and the lockfile
+#   still drifts, the job fails instead of writing again.
 
 on:
   pull_request_target:
@@ -52,8 +30,6 @@ on:
     paths:
       - 'pnpm-lock.yaml'
 
-# GITHUB_TOKEN stays read-only: every write (the lockfile-fix push) goes
-# through the scoped, short-lived App installation token minted in the job.
 permissions:
   contents: read
 
@@ -64,37 +40,34 @@ concurrency:
 env:
   NODE_VERSION: "24"
   PNPM_VERSION: "10.28.2"
+  AUTOFIX_SUBJECT: "fix(deps): restore catalog specifiers in pnpm-lock.yaml"
+  npm_config_ignore_scripts: "true"
+  npm_config_ignore_pnpmfile: "true"
 
 jobs:
   autofix:
-    if: github.actor == 'dependabot[bot]'
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
     name: Restore catalog specifiers in lockfile
     runs-on: ubuntu-latest
     timeout-minutes: 8
+    permissions:
+      contents: read
 
     steps:
-      # Mint a GitHub App installation token so the lockfile-fix push
-      # re-fires CI (a GITHUB_TOKEN push would be loop-suppressed — see the
-      # header comment). Scoped to contents:write on this repo only. The
-      # BACKFLOW_APP_ID / BACKFLOW_APP_PRIVATE_KEY secrets + the
-      # backflow App installation are shared with
-      # backflow-main-into-test.yml.
-      - name: Mint backflow App token
-        id: app-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
-        with:
-          app-id: ${{ secrets.BACKFLOW_APP_ID }}
-          private-key: ${{ secrets.BACKFLOW_APP_PRIVATE_KEY }}
-          permission-contents: write
-
-      - name: Checkout PR head branch
+      - name: Checkout PR head commit
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          token: ${{ steps.app-token.outputs.token }}
-          persist-credentials: true
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Refuse credential headers in git config
+        run: |
+          set -euo pipefail
+          if git config --list | grep -F -q 'extraheader='; then
+            echo "::error::git config contains a credential header. Checkout must not persist a token."
+            exit 1
+          fi
 
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
@@ -103,45 +76,86 @@ jobs:
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
+
+      - name: Hold project hooks that can execute during install
+        run: |
+          set -euo pipefail
+          for hook in pnpmfile.cjs .pnpmfile.cjs pnpmfile.js .pnpmfile.js pnpmfile.mjs .pnpmfile.mjs; do
+            if [ -f "$hook" ]; then
+              mv "$hook" "$RUNNER_TEMP/held-$hook"
+            fi
+          done
+          if [ -f .npmrc ]; then
+            tmp="$RUNNER_TEMP/npmrc-sanitized"
+            : > "$tmp"
+            while IFS= read -r line || [ -n "$line" ]; do
+              trimmed=$(printf '%s' "$line" | tr -d '[:space:]')
+              lower=$(printf '%s' "$trimmed" | tr '[:upper:]' '[:lower:]')
+              case "$lower" in
+                node-options*|*node-options*|script-shell*|*script-shell*|ignore-scripts*|*ignore-scripts*|ignore-pnpmfile*|*ignore-pnpmfile*)
+                  continue
+                  ;;
+              esac
+              printf '%s\n' "$line" >> "$tmp"
+            done < .npmrc
+            mv "$tmp" .npmrc
+          fi
 
       - name: Regenerate lockfile entries from manifests
-        run: pnpm install --lockfile-only --ignore-scripts
+        run: pnpm install --lockfile-only --ignore-scripts --ignore-pnpmfile
 
       - name: Detect lockfile drift
         id: drift
         run: |
-          if git diff --quiet pnpm-lock.yaml; then
+          set -euo pipefail
+          if git diff --quiet -- pnpm-lock.yaml; then
             echo "drifted=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Lockfile already matches manifests — no fix needed"
+            echo "::notice::Lockfile already matches manifests. No fix needed."
           else
             echo "drifted=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::Lockfile drift detected — committing fix"
-            git --no-pager diff --stat pnpm-lock.yaml
+            echo "::notice::Lockfile drift detected."
+            git --no-pager diff --stat -- pnpm-lock.yaml
           fi
 
-      # Commit the lockfile fix through the GitHub Contents API (NOT a local
-      # `git push`). A commit created via the API with the App installation
-      # token is signed by GitHub's web-flow key and lands "Verified", so it
-      # satisfies the `require-signed-commits` ruleset — a plain
-      # `git commit && git push` produced an UNSIGNED commit that the ruleset
-      # rejected, leaving every catalog-touching Dependabot PR blocked. The
-      # App-token write still fires the `synchronize` event (re-running ci.yml
-      # on the fixed head) and the push-loop guard above still short-circuits
-      # the re-triggered autofix run.
+      - name: Stop if this head is already an autofix commit
+        if: steps.drift.outputs.drifted == 'true'
+        run: |
+          set -euo pipefail
+          subject=$(git log -1 --format=%s)
+          if [ "$subject" = "$AUTOFIX_SUBJECT" ]; then
+            echo "::error::Lockfile still drifts after a catalog autofix commit. Refusing another write."
+            exit 1
+          fi
+
+      - name: Mint backflow App token
+        id: app-token
+        if: steps.drift.outputs.drifted == 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ secrets.BACKFLOW_APP_ID }}
+          private-key: ${{ secrets.BACKFLOW_APP_PRIVATE_KEY }}
+          permission-contents: write
+
       - name: Commit catalog specifier fix (signed via GitHub API)
         if: steps.drift.outputs.drifted == 'true'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           BRANCH: ${{ github.event.pull_request.head.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
+          set -euo pipefail
+          tip=$(git rev-parse HEAD)
+          if [ "$tip" != "$HEAD_SHA" ]; then
+            echo "::error::Checkout SHA does not match the pull request head. Refusing to write."
+            exit 1
+          fi
           base64 -w0 pnpm-lock.yaml > /tmp/lock.b64
-          sha="$(gh api "repos/${{ github.repository }}/contents/pnpm-lock.yaml?ref=${BRANCH}" --jq .sha)"
+          blob_sha=$(git rev-parse "HEAD:pnpm-lock.yaml")
           jq -n \
-            --arg message "fix(deps): restore catalog specifiers in pnpm-lock.yaml" \
+            --arg message "$AUTOFIX_SUBJECT" \
             --rawfile content /tmp/lock.b64 \
-            --arg sha "$sha" \
+            --arg sha "$blob_sha" \
             --arg branch "$BRANCH" \
             '{message:$message, content:($content|rtrimstr("\n")), sha:$sha, branch:$branch}' > /tmp/lockfix.json
           gh api --method PUT "repos/${{ github.repository }}/contents/pnpm-lock.yaml" --input /tmp/lockfix.json >/dev/null
-          echo "::notice::Committed catalog-specifier fix via GitHub API (signed) to ${BRANCH}"
+          echo "::notice::Committed catalog specifier fix via the GitHub API to ${BRANCH}"
