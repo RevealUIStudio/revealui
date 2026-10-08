@@ -1,5 +1,5 @@
 import type { SpawnOptions } from 'node:child_process';
-import { mkdtempSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -11,6 +11,7 @@ const state = vi.hoisted(() => ({
   flockPids: [] as (number | undefined)[],
   flockArguments: [] as string[][],
   admissionDirectory: null as string | null,
+  admissionRuns: [] as Promise<unknown>[],
   failure: null as {
     exitCode: number;
     processExitCode: number | null;
@@ -77,16 +78,31 @@ vi.mock('../../utils/base.js', async (importOriginal) => {
 
 import { gate, phaseConcurrency, printSummary, runCheck, withGateAdmission } from '../ci-gate';
 
-afterEach(() => {
-  vi.restoreAllMocks();
-  state.calls = [];
-  state.flockPids = [];
-  state.flockArguments = [];
-  state.failPrerequisite = false;
-  state.admissionDirectory = null;
-  state.failure = null;
-  state.log.mockClear();
+afterEach(async () => {
+  const admissionDirectory = state.admissionDirectory;
+  try {
+    await Promise.allSettled(state.admissionRuns);
+    if (admissionDirectory !== null) {
+      rmSync(admissionDirectory, { recursive: true, force: true });
+      expect(existsSync(admissionDirectory)).toBe(false);
+    }
+  } finally {
+    vi.restoreAllMocks();
+    state.calls = [];
+    state.flockPids = [];
+    state.flockArguments = [];
+    state.admissionRuns = [];
+    state.failPrerequisite = false;
+    state.admissionDirectory = null;
+    state.failure = null;
+    state.log.mockClear();
+  }
 });
+
+function trackAdmission<T>(operation: Promise<T>): Promise<T> {
+  state.admissionRuns.push(operation);
+  return operation;
+}
 
 describe('gate command failure diagnostics', () => {
   it.each([
@@ -263,16 +279,20 @@ describe('gate resource admission', () => {
       });
       const events: string[] = [];
       try {
-        const first = withGateAdmission(async () => {
-          events.push('first');
-          await held;
-          throw new Error('synthetic check failure');
-        });
+        const first = trackAdmission(
+          withGateAdmission(async () => {
+            events.push('first');
+            await held;
+            throw new Error('synthetic check failure');
+          }),
+        );
         const firstFailure = expect(first).rejects.toThrow('synthetic check failure');
         await vi.waitFor(() => expect(events).toEqual(['first']));
-        const second = withGateAdmission(async () => {
-          events.push('second');
-        });
+        const second = trackAdmission(
+          withGateAdmission(async () => {
+            events.push('second');
+          }),
+        );
         const secondCompletion = expect(second).resolves.toBeUndefined();
         const secondPid = await vi.waitFor(() => {
           expect(state.flockPids).toHaveLength(2);
@@ -306,16 +326,20 @@ describe('gate resource admission', () => {
       const events: string[] = [];
       const existingHandlers = process.listeners(signal);
       try {
-        const first = withGateAdmission(async () => {
-          events.push('first');
-          await held;
-        });
+        const first = trackAdmission(
+          withGateAdmission(async () => {
+            events.push('first');
+            await held;
+          }),
+        );
         const firstCompletion = expect(first).resolves.toBeUndefined();
         await vi.waitFor(() => expect(events).toEqual(['first']));
 
-        const waiting = withGateAdmission(async () => {
-          events.push('cancelled waiter operation');
-        });
+        const waiting = trackAdmission(
+          withGateAdmission(async () => {
+            events.push('cancelled waiter operation');
+          }),
+        );
         const waitingFailure = expect(waiting).rejects.toThrow(
           `CI gate admission interrupted (${signal}).`,
         );
