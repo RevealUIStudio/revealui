@@ -37,8 +37,9 @@ concurrency:
 env:
   NODE_VERSION: "24"
   PNPM_VERSION: "10.28.2"
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN || secrets.VERCEL_TOKEN }}
+  # Production tokens are not workflow env. Environment secrets are visible
+  # only to jobs that name the production environment. The ref guard, detect,
+  # design verify, and summary jobs do not receive them.
   TURBO_TEAM: ${{ vars.TURBO_TEAM || 'revealuistudio' }}
 
 jobs:
@@ -67,6 +68,10 @@ jobs:
     needs: [production-ref, detect]
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    environment: production
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN || secrets.VERCEL_TOKEN }}
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -180,6 +185,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [production-ref, validate]
     timeout-minutes: 5
+    environment: production
+    env:
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN || secrets.VERCEL_TOKEN }}
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -236,7 +244,7 @@ jobs:
           POSTGRES_URL: ${{ secrets.PROD_POSTGRES_URL }}
         run: |
           if [ -z "${POSTGRES_URL:-}" ]; then
-            echo "::error::PROD_POSTGRES_URL secret not set on the repo"
+            echo "::error::PROD_POSTGRES_URL is not set for this job"
             exit 1
           fi
           echo "::group::Backfill check (pre-migrate)"
@@ -384,6 +392,9 @@ jobs:
     environment:
       name: production
       url: ${{ steps.deploy.outputs.url }}
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN || secrets.VERCEL_TOKEN }}
 
     strategy:
       fail-fast: false
@@ -488,6 +499,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: [production-ref, detect, deploy]
+    environment: production
 
     steps:
       # Checkout required for durable REST rollback script on failure

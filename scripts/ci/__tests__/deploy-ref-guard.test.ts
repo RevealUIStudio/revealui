@@ -26,4 +26,52 @@ describe('production deploy ref guard', () => {
       expect(workflow).toContain(needs);
     }
   });
+
+  it('reads production secrets only from jobs in the production environment', () => {
+    const envBlock = workflow.slice(workflow.indexOf('\nenv:\n'), workflow.indexOf('\njobs:\n'));
+    expect(envBlock).not.toContain('VERCEL_TOKEN');
+    expect(envBlock).not.toContain('PROD_POSTGRES_URL');
+    expect(envBlock).not.toContain('VERCEL_ORG_ID');
+
+    const turbo = ['TURBO_TOKEN: ', '$', '{{ secrets.TURBO_TOKEN || secrets.VERCEL_TOKEN }}'].join(
+      '',
+    );
+    for (const [start, end] of [
+      ['\n  validate:\n', '\n  migrate:\n'],
+      ['\n  migrate:\n', '\n  detect:\n'],
+      ['\n  deploy:\n', '\n  smoke-test:\n'],
+    ] as const) {
+      const block = sliceJob(workflow, start, end);
+      expect(block).toContain(turbo);
+    }
+
+    for (const [start, end] of [
+      ['\n  validate:\n', '\n  migrate:\n'],
+      ['\n  migrate:\n', '\n  detect:\n'],
+      ['\n  smoke-test:\n', '\n  design-verify:\n'],
+    ] as const) {
+      expect(sliceJob(workflow, start, end)).toContain('environment: production');
+    }
+
+    expect(sliceJob(workflow, '\n  deploy:\n', '\n  smoke-test:\n')).toContain('name: production');
+
+    for (const [start, end] of [
+      ['\n  production-ref:\n', '\n  validate:\n'],
+      ['\n  detect:\n', '\n  deploy:\n'],
+      ['\n  design-verify:\n', '\n  summary:\n'],
+    ] as const) {
+      expect(sliceJob(workflow, start, end)).not.toContain('environment:');
+    }
+    const summaryAt = workflow.indexOf('\n  summary:\n');
+    expect(summaryAt).toBeGreaterThanOrEqual(0);
+    expect(workflow.slice(summaryAt)).not.toContain('environment:');
+  });
 });
+
+function sliceJob(workflow: string, startMarker: string, endMarker: string): string {
+  const start = workflow.indexOf(startMarker);
+  expect(start).toBeGreaterThanOrEqual(0);
+  const end = workflow.indexOf(endMarker, start + startMarker.length);
+  expect(end).toBeGreaterThan(start);
+  return workflow.slice(start, end);
+}

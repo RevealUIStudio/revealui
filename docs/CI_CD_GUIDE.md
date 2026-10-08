@@ -92,7 +92,7 @@ Pinned action versions and SHAs are kept in lockstep with Renovate (`renovate.js
 
 ## Production deploy (`deploy.yml`)
 
-Production jobs run only when `github.ref` is `refs/heads/main`. A manual dispatch from any other ref fails in Production ref guard before validate, migrate, or deploy. Repository settings should also limit the `production` environment to the `main` branch.
+Production jobs run only when `github.ref` is `refs/heads/main`. A manual dispatch from any other ref fails in Production ref guard before validate, migrate, or deploy. Validate, migrate, deploy, and smoke test read production secrets from the `production` environment. Keep the repository copies of `PROD_POSTGRES_URL`, `VERCEL_TOKEN`, and `VERCEL_ORG_ID` until this workflow is on `main`, then move those copies into the Production environment and limit that environment to `main`.
 
 The real pipeline is six stages, all defined in [`deploy.yml`](../.github/workflows/deploy.yml):
 
@@ -107,10 +107,10 @@ The real pipeline is six stages, all defined in [`deploy.yml`](../.github/workfl
 
 | Secret | Used by | Source of truth |
 |--------|---------|-----------------|
-| `VERCEL_TOKEN` | every Vercel-touching job | revvault `revealui/prod/vercel/api-token` |
-| `VERCEL_ORG_ID` | env var | revvault |
-| `PROD_POSTGRES_URL` | `migrate` job (mirrored from Vercel `api` project's `POSTGRES_URL` because `vercel env pull` returns empty string for Sensitive vars) | revvault `revealui/prod/db/postgres-url` |
-| `TURBO_TOKEN` | turbo remote cache (falls back to `VERCEL_TOKEN`) | revvault |
+| `VERCEL_TOKEN` | validate, deploy, and smoke test, via the `production` environment | revvault `revealui/prod/vercel/api-token` |
+| `VERCEL_ORG_ID` | validate, deploy, and smoke test, via the `production` environment | revvault |
+| `PROD_POSTGRES_URL` | `migrate` job, via the `production` environment (mirrored from Vercel `api` project's `POSTGRES_URL` because `vercel env pull` returns empty string for Sensitive vars) | revvault `revealui/prod/db/postgres-url` |
+| `TURBO_TOKEN` | turbo remote cache on validate, migrate, and deploy (falls back to `VERCEL_TOKEN` on those jobs) | revvault |
 | `GITHUB_TOKEN` | provided automatically; used by `docker.yml` to push to GHCR | n/a |
 
 GitHub Actions secrets are downstream mirrors of revvault — never primary. Rotation = `revvault set --force <path>` then re-publish to GitHub Actions / Vercel.
