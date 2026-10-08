@@ -59,11 +59,11 @@ gemma3 status
 
 Each snap serves an OpenAI-compatible API locally. The `@revealui/ai` package auto-detects the running snap and routes agent calls to it. The same agent orchestration, memory system, and MCP integrations work with any supported inference path  -  because they all expose OpenAI-compatible `/v1/chat/completions` endpoints.
 
-As a fallback, **Ollama** supports any open source GGUF model (default: `qwen2.5:3b`):
+As a fallback, **Ollama** supports US open-weight local tags (default: `gemma4:e2b`):
 
 ```bash
 ollama serve &
-ollama pull qwen2.5:3b
+ollama pull gemma4:e2b
 ```
 
 No API key. No usage bill. No data leaving your machine.
@@ -82,7 +82,7 @@ direnv allow        # Nix builds and activates the full dev environment
 sudo snap install nemotron-3-nano
 
 # Or use Ollama
-ollama pull qwen2.5:3b
+ollama pull gemma4:e2b
 ```
 
 No `apt install`, no `brew install`, no conda environment. Every developer on the project gets the same toolchain regardless of what's on their system. It works the same on a Ryzen laptop as it does on a Mac or a Linux CI runner.
@@ -99,7 +99,7 @@ flake.nix
 └── devShell
     └── nodejs, pnpm, biome          # Standard RevealUI toolchain
 
-sudo snap install nemotron-3-nano    # Or: ollama pull qwen2.5:3b
+sudo snap install nemotron-3-nano    # Or: ollama pull gemma4:e2b
 └── OpenAI-compatible API served locally
 
 @revealui/ai                         # Agent orchestration routes to local model
@@ -111,7 +111,7 @@ The entire business stack with local AI  -  People, Content, Offers, Payments, a
 
 ## Who this is for
 
-The "local-first" configuration is one of several inference paths. RevealUI supports Ubuntu Inference Snaps (Canonical's managed runtime, planned recommended) and Ollama (any open source GGUF model, default local). Cloud-compatible providers (Groq, HuggingFace, and OpenAI-compatible endpoints) are pluggable but opt-in via env vars. Pick the path that fits your trust + cost profile; there is no vendor lock-in.
+The "local-first" configuration is one of several inference paths. RevealUI supports Ubuntu Inference Snaps (Canonical's managed runtime, planned recommended) and Ollama (US open-weight local tags, default gemma4:e2b). Cloud-compatible providers (Groq, HuggingFace, and OpenAI-compatible endpoints) are pluggable but opt-in via env vars. Pick the path that fits your trust + cost profile; there is no vendor lock-in.
 
 But there's a real and growing audience for whom those concerns matter:
 

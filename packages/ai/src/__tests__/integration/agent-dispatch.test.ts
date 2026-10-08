@@ -10,13 +10,14 @@
  *   pnpm --filter @revealui/ai test:integration
  *
  * Prerequisites:
- *   - Ollama running: `ollama serve` + `ollama pull qwen2.5:3b`
+ *   - Ollama running: `ollama serve` plus the approved daily local tag
  *   - OR set GROQ_API_KEY in env
  */
 
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod/v4';
 import { LLMClient } from '../../llm/client.js';
+import { resolveApprovedLocalModel } from '../../llm/providers/us-origin-snaps.js';
 import type { EpisodicMemory } from '../../memory/stores/episodic-memory.js';
 import type { Agent, AgentResult, Task } from '../../orchestration/agent.js';
 import { AgentRuntime } from '../../orchestration/runtime.js';
@@ -40,7 +41,7 @@ async function buildLLMClient(): Promise<LLMClient | null> {
       provider: 'ollama',
       apiKey: 'ollama',
       baseURL: `${ollamaBase}/v1`,
-      model: process.env.LLM_MODEL ?? 'qwen2.5:3b',
+      model: resolveApprovedLocalModel(process.env.LLM_MODEL),
     });
   }
 

@@ -54,6 +54,16 @@ type Variables = {
 
 const app = new OpenAPIHono<{ Variables: Variables }>();
 
+/** Clear refusal from the local allowlist. Other construct errors stay 500. */
+function localModelRefusalMessage(err: unknown): string | null {
+  if (!(err instanceof Error)) return null;
+  const code = (err as { code?: unknown }).code;
+  if (code === 'UNAPPROVED_LOCAL_MODEL' || code === 'NON_US_ORIGIN_INFERENCE_SNAP') {
+    return err.message;
+  }
+  return null;
+}
+
 const agentStreamRoute = createRoute({
   method: 'post',
   path: '/',
@@ -173,19 +183,29 @@ app.openapi(agentStreamRoute, async (c) => {
   let llmClient: unknown;
   if (isLocalOnly) {
     // Free tier: force local provider regardless of other env vars. Untouched
-    // by GAP-360 — the free/local path never resolves a per-account key.
+    // by GAP-360. The free/local path never resolves a per-account key.
+    // Ollama chat ids must pass the US open-weight allowlist. Snaps keep
+    // their own US-origin snap allowlist (default gemma3 when LLM_MODEL is unset).
     try {
       type LLMConfig = ConstructorParameters<typeof llmClientMod.LLMClient>[0];
       const localBaseURL = process.env.INFERENCE_SNAPS_BASE_URL ?? process.env.OLLAMA_BASE_URL;
       const localProvider = process.env.INFERENCE_SNAPS_BASE_URL ? 'inference-snaps' : 'ollama';
+      const model =
+        localProvider === 'inference-snaps'
+          ? aiMod.assertUsOriginInferenceSnap(process.env.LLM_MODEL)
+          : aiMod.resolveApprovedLocalModel(process.env.LLM_MODEL);
       llmClient = new llmClientMod.LLMClient({
         provider: localProvider as LLMConfig['provider'],
         apiKey: localProvider,
         baseURL: localBaseURL,
-        // Lockstep packages/ai DEFAULT_DAILY_OLLAMA_MODEL when ollama
-        model: process.env.LLM_MODEL ?? 'qwen2.5:3b',
+        model,
       });
     } catch (err) {
+      const refusal = localModelRefusalMessage(err);
+      if (refusal) {
+        logger.error('[agent-stream] local model refused', { message: refusal });
+        return c.json({ success: false as const, error: refusal }, 400);
+      }
       logger.error('[agent-stream] local LLM client construct failed', {
         message: err instanceof Error ? err.message : String(err),
       });
