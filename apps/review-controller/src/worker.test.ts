@@ -83,7 +83,8 @@ describe('webhook inbox worker', () => {
 
   it('defers rate-limited work until GitHub resets its installation budget', async () => {
     const inbox = inboxFixture();
-    const resetAt = new Date('2026-10-06T12:30:00.000Z');
+    inbox.claimNext.mockResolvedValueOnce({ ...claimed, attempts: 10 });
+    const resetAt = new Date('2026-10-06T12:02:00.000Z');
     const result = await processNextWebhook({
       inbox,
       handler: {
