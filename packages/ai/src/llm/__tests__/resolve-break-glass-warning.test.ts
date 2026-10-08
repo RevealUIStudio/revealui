@@ -1,11 +1,7 @@
 /**
- * GAP-360 PR-2 follow-up — the hosted BYOK-dispatch break-glass warning.
- *
- * When `HOSTED_BYOK_DISPATCH` is explicitly off on a hosted deployment, every
- * account falls back to sharing the deployment env LLM client instead of
- * per-account BYOK keys. That is a deliberate one-release rollback lever, but
- * an operator must be able to see it is active. Asserts the warning fires
- * exactly once per process (module-level guard), only when hosted + disabled.
+ * When HOSTED_BYOK_DISPATCH is explicitly off on a hosted deployment, the
+ * shared env model key stays refused. The warning fires once per process so
+ * an operator can see the flag is set. Per-account resolution still runs.
  *
  * Isolated in its own file so the module-level once-guard starts fresh.
  */
@@ -42,18 +38,25 @@ const db = {} as Database;
 
 beforeEach(() => {
   warnSpy.mockClear();
+  mockCreateFromEnv.mockClear();
   delete process.env.HOSTED_BYOK_DISPATCH;
 });
 
 describe('resolveLLMClientForRequest — hosted break-glass warning', () => {
-  it('warns once when HOSTED_BYOK_DISPATCH=off on a hosted deployment', async () => {
+  it('warns once when HOSTED_BYOK_DISPATCH=off on a hosted deployment and does not build an env client', async () => {
     process.env.HOSTED_BYOK_DISPATCH = 'off';
 
-    await resolveLLMClientForRequest('user-1', db, { isHosted: true });
-    await resolveLLMClientForRequest('user-1', db, { isHosted: true });
+    await expect(
+      resolveLLMClientForRequest('user-1', db, { isHosted: true }),
+    ).rejects.toMatchObject({ code: 'LLM_NOT_CONFIGURED' });
+    await expect(
+      resolveLLMClientForRequest('user-1', db, { isHosted: true }),
+    ).rejects.toMatchObject({ code: 'LLM_NOT_CONFIGURED' });
 
     expect(warnSpy).toHaveBeenCalledTimes(1);
     expect(warnSpy.mock.calls[0]?.[0]).toContain('HOSTED_BYOK_DISPATCH');
+    expect(String(warnSpy.mock.calls[0]?.[0])).toContain('refused');
+    expect(mockCreateFromEnv).not.toHaveBeenCalled();
   });
 
   it('does not warn on self-hosted (the flag off is the normal default there)', async () => {
@@ -67,5 +70,6 @@ describe('resolveLLMClientForRequest — hosted break-glass warning', () => {
     await resolveLLMClientForRequest('user-1', db, { isHosted: true }).catch(() => undefined);
 
     expect(warnSpy).not.toHaveBeenCalled();
+    expect(mockCreateFromEnv).not.toHaveBeenCalled();
   });
 });

@@ -5,7 +5,10 @@
  * Validates critical environment variables at startup.
  */
 
-import { getExplicitDeploymentMode } from '@revealui/core/deployment-mode';
+import {
+  getExplicitDeploymentMode,
+  hostedPlatformInferenceError,
+} from '@revealui/core/deployment-mode';
 
 /**
  * Literal hex-set check (no regex). Returns true when value is exactly 64
@@ -45,6 +48,8 @@ export function validateRequiredEnvVars(
   valid: boolean;
   missing: string[];
   warnings: string[];
+  /** True when a hosted production process has a platform model key or local-model URL. */
+  hostedInferenceRefused: boolean;
 } {
   const { failOnMissing = false, environment } = options;
 
@@ -70,6 +75,7 @@ export function validateRequiredEnvVars(
 
   const missing: string[] = [];
   const warnings: string[] = [];
+  let hostedInferenceRefused = false;
   if (environment === 'production' && !deploymentMode) {
     missing.push('REVEALUI_DEPLOYMENT_MODE (must be explicitly hosted or forge)');
   }
@@ -202,6 +208,16 @@ export function validateRequiredEnvVars(
     }
   }
 
+  // Production hosted boot refuses platform model keys and local-model URLs.
+  // Forge keeps env keys. Development does not run this gate.
+  if (environment === 'production') {
+    const inferenceProblem = hostedPlatformInferenceError(process.env);
+    if (inferenceProblem) {
+      missing.push(inferenceProblem);
+      hostedInferenceRefused = true;
+    }
+  }
+
   const valid = missing.length === 0;
 
   if (failOnMissing && !valid) {
@@ -212,5 +228,6 @@ export function validateRequiredEnvVars(
     valid,
     missing,
     warnings,
+    hostedInferenceRefused,
   };
 }
