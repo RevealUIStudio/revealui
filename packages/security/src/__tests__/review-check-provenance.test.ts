@@ -71,6 +71,15 @@ describe('required check workflow provenance', () => {
     }
   });
 
+  it('rejects a successful CI Feedback check when another job failed the workflow', () => {
+    expect(
+      resolve({
+        checkRuns: [check(102, 202)],
+        workflowRuns: [run(302, 202, { conclusion: 'failure' })],
+      }),
+    ).toEqual({ ok: false, reason: 'receipt_required_workflow_run_not_successful' });
+  });
+
   it('rejects a same-name check from an untrusted suite and a rerun with stale check evidence', () => {
     expect(resolve({ checkRuns: [check(101, 201), check(102, 999)] })).toEqual({
       ok: false,
