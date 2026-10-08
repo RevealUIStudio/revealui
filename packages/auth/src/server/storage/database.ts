@@ -8,7 +8,7 @@
 // Import config module (ESM)
 // Config uses proxy for lazy loading, so import is safe - validation only happens on property access
 import configModule from '@revealui/config';
-import { createClient, type Database } from '@revealui/db/client';
+import { createRestClient, type Database } from '@revealui/db/client';
 import { rateLimits } from '@revealui/db/schema';
 import { and, eq, gte } from 'drizzle-orm';
 import type { Storage } from './interface.js';
@@ -31,15 +31,17 @@ export class DatabaseStorage implements Storage {
       throw new Error('Database connection string required for DatabaseStorage');
     }
 
-    this.db = createClient({ connectionString: url });
+    this.db = createRestClient({ connectionString: url });
   }
 
   async get(key: string): Promise<string | null> {
     // Filter expired entries at database level
     const now = new Date();
-    const result = await this.db.query.rateLimits.findFirst({
-      where: and(eq(rateLimits.key, key), gte(rateLimits.resetAt, now)),
-    });
+    const [result] = await this.db
+      .select({ value: rateLimits.value })
+      .from(rateLimits)
+      .where(and(eq(rateLimits.key, key), gte(rateLimits.resetAt, now)))
+      .limit(1);
 
     if (!result) {
       return null;
@@ -100,9 +102,11 @@ export class DatabaseStorage implements Storage {
     try {
       await this.db.transaction(async (tx) => {
         const now = new Date();
-        const result = await tx.query.rateLimits.findFirst({
-          where: and(eq(rateLimits.key, key), gte(rateLimits.resetAt, now)),
-        });
+        const [result] = await tx
+          .select({ value: rateLimits.value })
+          .from(rateLimits)
+          .where(and(eq(rateLimits.key, key), gte(rateLimits.resetAt, now)))
+          .limit(1);
         const { value, ttlSeconds } = updater(result?.value ?? null);
         const resetAt = new Date(Date.now() + ttlSeconds * 1000);
         await tx
