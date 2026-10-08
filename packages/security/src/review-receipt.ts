@@ -28,12 +28,137 @@ export const REVIEW_RECEIPT_SECURITY_CHECKS = Object.freeze([
   { name: 'Secret Scanning (Gitleaks)', appId: 15368 },
 ] as const);
 
+export interface ReviewCheckSelector {
+  name: string;
+  appId: number;
+  workflowId?: number;
+  workflowPath?: string;
+  event?: 'pull_request';
+}
+
+export function validReviewCheckSelector(value: unknown): value is ReviewCheckSelector {
+  if (!isRecord(value)) return false;
+  if (
+    typeof value.name !== 'string' ||
+    value.name.length === 0 ||
+    value.name.length > 200 ||
+    value.name !== value.name.trim() ||
+    !isSafeInteger(value.appId, 1)
+  )
+    return false;
+  if (value.appId === 15368)
+    return (
+      exactKeys(value, ['name', 'appId', 'workflowId', 'workflowPath', 'event']) &&
+      isSafeInteger(value.workflowId, 1) &&
+      typeof value.workflowPath === 'string' &&
+      /^\.github\/workflows\/[a-zA-Z0-9._/-]+\.ya?ml$/.test(value.workflowPath) &&
+      !value.workflowPath.split('/').includes('..') &&
+      value.event === 'pull_request'
+    );
+  return exactKeys(value, ['name', 'appId']);
+}
+
+export interface ReviewWorkflowRun {
+  id: number;
+  check_suite_id: number;
+  head_sha: string;
+  workflow_id: number;
+  path: string;
+  event: string;
+  status: string;
+  conclusion: string | null;
+  repository: { id: number };
+  head_repository: { id: number };
+}
+
+export interface ReviewCheckRun {
+  id: number;
+  name: string;
+  head_sha: string;
+  status: string;
+  conclusion: string | null;
+  completed_at: string | null;
+  check_suite: { id: number };
+  app: { id: number };
+}
+
+/** Resolve live checks through the trusted workflow run, never by Actions name alone. */
+export function resolveReviewRequiredChecks(input: {
+  selectors: readonly ReviewCheckSelector[];
+  checkRuns: readonly ReviewCheckRun[];
+  workflowRuns: readonly ReviewWorkflowRun[];
+  repositoryId: number;
+  headSha: string;
+  changedFiles: readonly string[];
+}): { ok: true; checks: ReviewCheckRun[] } | { ok: false; reason: string } {
+  const checks: ReviewCheckRun[] = [];
+  const workflowSurfaceChanged =
+    input.changedFiles.length >= 3000 ||
+    input.changedFiles.some(
+      (path) => path.startsWith('.github/workflows/') || path.startsWith('.github/actions/'),
+    );
+  for (const selector of input.selectors) {
+    let matches = input.checkRuns.filter(
+      (run) => run.name === selector.name && run.app?.id === selector.appId,
+    );
+    if (selector.appId === 15368) {
+      if (!validReviewCheckSelector(selector) || workflowSurfaceChanged)
+        return { ok: false, reason: 'receipt_workflow_provenance_untrusted' };
+      const trustedRuns = input.workflowRuns.filter(
+        (run) =>
+          run.workflow_id === selector.workflowId &&
+          run.path === selector.workflowPath &&
+          run.event === selector.event &&
+          run.head_sha === input.headSha &&
+          run.repository?.id === input.repositoryId &&
+          run.head_repository?.id === input.repositoryId,
+      );
+      if (trustedRuns.length === 0)
+        return { ok: false, reason: 'receipt_required_workflow_run_missing' };
+      const latest = trustedRuns.reduce((a, b) => (a.id > b.id ? a : b));
+      if (latest.status !== 'completed' || latest.conclusion !== 'success')
+        return { ok: false, reason: 'receipt_required_workflow_run_not_successful' };
+      matches = matches.filter((run) => run.check_suite?.id === latest.check_suite_id);
+    } else if (selector.workflowId || selector.workflowPath || selector.event) {
+      return { ok: false, reason: 'receipt_workflow_provenance_untrusted' };
+    }
+    if (matches.length !== 1)
+      return { ok: false, reason: 'receipt_required_check_selector_not_unique' };
+    const run = matches[0];
+    if (
+      !run ||
+      run.head_sha !== input.headSha ||
+      run.status !== 'completed' ||
+      run.conclusion !== 'success' ||
+      !run.completed_at ||
+      !Number.isFinite(Date.parse(run.completed_at)) ||
+      !Number.isSafeInteger(run.id) ||
+      !Number.isSafeInteger(run.check_suite?.id)
+    )
+      return { ok: false, reason: 'receipt_required_check_missing_or_stale' };
+    checks.push(run);
+  }
+  return { ok: true, checks };
+}
+
 export function hasReviewReceiptSecurityChecks(
   checks: readonly { name: string; appId: number }[],
 ): boolean {
   const selectors = new Set(checks.map((check) => `${check.appId}:${check.name}`));
   return REVIEW_RECEIPT_SECURITY_CHECKS.every((check) =>
     selectors.has(`${check.appId}:${check.name}`),
+  );
+}
+
+export function hasReviewReceiptCiCheck(checks: readonly ReviewCheckSelector[]): boolean {
+  return checks.some(
+    (check) =>
+      check.name === 'CI Feedback' &&
+      check.appId === 15368 &&
+      check.workflowPath === '.github/workflows/ci.yml' &&
+      check.event === 'pull_request' &&
+      Number.isSafeInteger(check.workflowId) &&
+      Number(check.workflowId) > 0,
   );
 }
 

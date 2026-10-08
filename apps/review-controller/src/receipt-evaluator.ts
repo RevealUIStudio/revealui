@@ -2,7 +2,9 @@ import { createHash } from 'node:crypto';
 import type {
   ReviewReceiptContext,
   ReviewReceiptEnvelope,
+  ReviewWorkflowRun,
 } from '@revealui/security/review-receipt';
+import { resolveReviewRequiredChecks } from '@revealui/security/review-receipt';
 import { GitHubAppError, type GitHubCheckRun } from './github-app.js';
 import { signCandidateReceipt } from './receipt-builder.js';
 import type { ReceiptPolicy } from './receipt-policy.js';
@@ -27,6 +29,7 @@ export async function evaluateReceiptShadow(input: {
   policy: ReceiptPolicy;
   snapshot: PullRequestSnapshot;
   checkRuns: readonly GitHubCheckRun[];
+  workflowRuns: readonly ReviewWorkflowRun[];
   reviewEvidence: ReviewEvidence;
   getFreshMergeCandidate: (snapshot: PullRequestSnapshot) => Promise<string>;
   now?: Date;
@@ -42,21 +45,25 @@ export async function evaluateReceiptShadow(input: {
   const review = input.reviewEvidence.review;
   if (review.receiptReview?.verdict !== 'approve') return ineligible('codex_review_not_approving');
 
-  const requiredChecks: ReviewReceiptContext['requiredChecks'][number][] = [];
-  for (const selector of input.policy.requiredChecks) {
-    const matches = input.checkRuns.filter(
-      (run) => run.name === selector.name && run.app.id === selector.appId,
-    );
-    if (matches.length !== 1) return ineligible('receipt_required_check_selector_not_unique');
-    const [run] = matches;
-    if (!run) return ineligible('receipt_required_check_selector_not_unique');
-    requiredChecks.push({
-      name: selector.name,
-      appId: selector.appId,
+  const resolved = resolveReviewRequiredChecks({
+    selectors: input.policy.requiredChecks,
+    checkRuns: input.checkRuns,
+    workflowRuns: input.workflowRuns,
+    repositoryId: input.snapshot.repositoryId,
+    headSha: input.snapshot.headSha,
+    changedFiles: input.snapshot.manifest.files.flatMap((file) =>
+      file.previousPath ? [file.path, file.previousPath] : [file.path],
+    ),
+  });
+  if (!resolved.ok) return ineligible(resolved.reason);
+  const requiredChecks: ReviewReceiptContext['requiredChecks'][number][] = resolved.checks.map(
+    (run) => ({
+      name: run.name,
+      appId: run.app.id,
       checkRunId: run.id,
       checkSuiteId: run.check_suite.id,
-    });
-  }
+    }),
+  );
   let mergeCandidateTreeSha: string;
   try {
     mergeCandidateTreeSha = await input.getFreshMergeCandidate(input.snapshot);

@@ -42,6 +42,9 @@ export class ShadowWebhookHandler implements WebhookHandler {
     for (const number of pullRequests) {
       const snapshot = await fetchPullRequestSnapshot(this.client, number, this.snapshotCache);
       const checkRuns = await this.client.listCheckRuns(snapshot.headSha);
+      const workflowRuns = this.receiptPolicy
+        ? await this.client.listWorkflowRuns(snapshot.headSha)
+        : [];
       const reviewEvidence = await codexReviewEvidence(
         this.client,
         webhook,
@@ -54,6 +57,7 @@ export class ShadowWebhookHandler implements WebhookHandler {
             policy: this.receiptPolicy,
             snapshot,
             checkRuns,
+            workflowRuns,
             reviewEvidence: await latestCurrentCodexReview(
               this.observations,
               snapshot,

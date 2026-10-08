@@ -48,6 +48,7 @@ function fixtures() {
     getTree: vi.fn(async () => []),
     listPullRequestFiles: vi.fn(async () => []),
     listCheckRuns: vi.fn(async () => []),
+    listWorkflowRuns: vi.fn(async () => []),
     getFreshMergeCandidate: vi.fn(async () => ({
       mergeCommitSha: 'e'.repeat(40),
       treeSha: 'f'.repeat(40),

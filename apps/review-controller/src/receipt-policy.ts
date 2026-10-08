@@ -1,5 +1,10 @@
 import { createPrivateKey } from 'node:crypto';
-import { hasReviewReceiptSecurityChecks } from '@revealui/security/review-receipt';
+import {
+  hasReviewReceiptCiCheck,
+  hasReviewReceiptSecurityChecks,
+  type ReviewCheckSelector,
+  validReviewCheckSelector,
+} from '@revealui/security/review-receipt';
 
 export interface ReceiptPolicy {
   mode: 'shadow' | 'publish';
@@ -8,7 +13,7 @@ export interface ReceiptPolicy {
   privateKey: string;
   version: string;
   maxLifetimeMs: number;
-  requiredChecks: Array<{ name: string; appId: number }>;
+  requiredChecks: ReviewCheckSelector[];
 }
 
 /** Missing mode keeps the receipt evaluator disabled; partial opt-in fails closed. */
@@ -54,23 +59,17 @@ export function readReceiptPolicy(env: NodeJS.ProcessEnv): ReceiptPolicy | undef
   if (!Array.isArray(parsed) || parsed.length === 0 || parsed.length > 64)
     throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS must contain 1 to 64 entries');
   const requiredChecks = parsed.map((item) => {
-    if (
-      !isRecord(item) ||
-      typeof item.name !== 'string' ||
-      item.name.trim().length === 0 ||
-      item.name.length > 200 ||
-      item.name !== item.name.trim() ||
-      !Number.isSafeInteger(item.appId) ||
-      Number(item.appId) <= 0
-    )
+    if (!validReviewCheckSelector(item))
       throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS contains an invalid selector');
-    return { name: item.name, appId: Number(item.appId) };
+    return item;
   });
   const selectorKeys = requiredChecks.map((check) => `${check.appId}:${check.name}`);
   if (new Set(selectorKeys).size !== selectorKeys.length)
     throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS contains duplicate selectors');
   if (!hasReviewReceiptSecurityChecks(requiredChecks))
     throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS omits a mandatory security check');
+  if (!hasReviewReceiptCiCheck(requiredChecks))
+    throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS omits the trusted CI check');
 
   return { mode, repositoryFullName, keyId, privateKey, version, maxLifetimeMs, requiredChecks };
 }
@@ -79,8 +78,4 @@ function required(env: NodeJS.ProcessEnv, name: string): string {
   const value = env[name]?.trim() ?? '';
   if (!value) throw new Error(`${name} is required when REVIEW_RECEIPT_MODE is enabled`);
   return value;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

@@ -12,7 +12,7 @@ const now = Date.parse('2026-10-06T12:00:00.000Z');
 const { privateKey, publicKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
 const pem = privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();
 
-function fixture(fetchImpl: typeof fetch) {
+function fixture(fetchImpl: typeof fetch, receiptEvaluationEnabled = false) {
   return new GitHubAppClient(
     {
       appId: 100,
@@ -20,6 +20,7 @@ function fixture(fetchImpl: typeof fetch) {
       repositoryId: 300,
       repositoryFullName: 'RevealUIStudio/revealui',
       privateKey: pem,
+      receiptEvaluationEnabled,
     },
     fetchImpl,
     () => now,
@@ -103,6 +104,45 @@ function signedEnvelope(headSha: string): string {
 }
 
 describe('GitHub App API client', () => {
+  it('requests Actions read only for receipt evaluation and validates workflow-run metadata', async () => {
+    const headSha = 'a'.repeat(40);
+    const fetchImpl = vi.fn<typeof fetch>(async (input) => {
+      const url = new URL(input instanceof Request ? input.url : String(input));
+      if (url.pathname.endsWith('/access_tokens')) return tokenResponse();
+      if (url.pathname.endsWith('/actions/runs'))
+        return new Response(
+          JSON.stringify({
+            total_count: 1,
+            workflow_runs: [
+              {
+                id: 301,
+                check_suite_id: 201,
+                workflow_id: 401,
+                head_sha: headSha,
+                path: '.github/workflows/ci.yml',
+                event: 'pull_request',
+                status: 'completed',
+                conclusion: 'success',
+                repository: { id: 300 },
+                head_repository: { id: 300 },
+              },
+            ],
+          }),
+          { status: 200 },
+        );
+      throw new Error(`unexpected URL ${url.pathname}`);
+    });
+    await expect(fixture(fetchImpl).listWorkflowRuns(headSha)).rejects.toMatchObject({
+      code: 'receipt_workflow_access_disabled',
+    });
+    const client = fixture(fetchImpl, true);
+    await expect(client.listWorkflowRuns(headSha)).resolves.toMatchObject([
+      { id: 301, check_suite_id: 201, workflow_id: 401 },
+    ]);
+    const tokenCall = fetchImpl.mock.calls.find(([url]) => String(url).includes('/access_tokens'));
+    expect(JSON.parse(String(tokenCall?.[1]?.body)).permissions).toMatchObject({ actions: 'read' });
+  });
+
   it('uses GitHub reset metadata and pauses further API calls when the installation limit is exhausted', async () => {
     const resetSeconds = Math.floor(now / 1000) + 300;
     const fetchImpl = vi.fn<typeof fetch>(async (input) => {

@@ -4,6 +4,23 @@ import { describe, expect, it } from 'vitest';
 import { readReceiptPolicy } from './receipt-policy.js';
 
 const { privateKey } = generateKeyPairSync('ed25519');
+const securityChecks = REVIEW_RECEIPT_SECURITY_CHECKS.map((check) =>
+  check.appId === 15368
+    ? {
+        ...check,
+        workflowId: 100,
+        workflowPath: '.github/workflows/security.yml',
+        event: 'pull_request',
+      }
+    : check,
+);
+const ciCheck = {
+  name: 'CI Feedback',
+  appId: 15368,
+  workflowId: 220400161,
+  workflowPath: '.github/workflows/ci.yml',
+  event: 'pull_request',
+};
 const valid = {
   REVIEW_RECEIPT_MODE: 'shadow',
   GITHUB_REPOSITORY_FULL_NAME: 'RevealUIStudio/revealui',
@@ -11,10 +28,7 @@ const valid = {
   REVIEW_RECEIPT_PRIVATE_KEY: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString().trim(),
   REVIEW_RECEIPT_POLICY_VERSION: 'policy-1',
   REVIEW_RECEIPT_MAX_LIFETIME_MS: '21600000',
-  REVIEW_RECEIPT_REQUIRED_CHECKS: JSON.stringify([
-    { name: 'CI', appId: 77 },
-    ...REVIEW_RECEIPT_SECURITY_CHECKS,
-  ]),
+  REVIEW_RECEIPT_REQUIRED_CHECKS: JSON.stringify([ciCheck, ...securityChecks]),
 };
 
 describe('readReceiptPolicy', () => {
@@ -30,7 +44,7 @@ describe('readReceiptPolicy', () => {
       privateKey: valid.REVIEW_RECEIPT_PRIVATE_KEY,
       version: 'policy-1',
       maxLifetimeMs: 21_600_000,
-      requiredChecks: [{ name: 'CI', appId: 77 }, ...REVIEW_RECEIPT_SECURITY_CHECKS],
+      requiredChecks: [ciCheck, ...securityChecks],
     });
   });
 
@@ -59,6 +73,24 @@ describe('readReceiptPolicy', () => {
         REVIEW_RECEIPT_REQUIRED_CHECKS: '[{"name":"CI","appId":77},{"name":"CI","appId":77}]',
       }),
     ).toThrow('duplicate selectors');
+    expect(() =>
+      readReceiptPolicy({
+        ...valid,
+        REVIEW_RECEIPT_REQUIRED_CHECKS: JSON.stringify([
+          { name: 'CI Feedback', appId: 15368 },
+          ...securityChecks,
+        ]),
+      }),
+    ).toThrow('invalid selector');
+    expect(() =>
+      readReceiptPolicy({
+        ...valid,
+        REVIEW_RECEIPT_REQUIRED_CHECKS: JSON.stringify([
+          { name: 'Other CI', appId: 77 },
+          ...securityChecks,
+        ]),
+      }),
+    ).toThrow('omits the trusted CI check');
   });
 
   it('accepts publish mode while requiring the same complete signing policy', () => {

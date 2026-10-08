@@ -129,9 +129,11 @@ untyped exception text remains excluded from the database.
 - Subscribe only to `pull_request`, `pull_request_review`, `check_run`,
   `check_suite`, and `merge_group`. Request `Checks: write`, `Contents: read`,
   `Merge queues: read`, and `Pull requests: write` (GitHub also requires
-  repository metadata read). The source contract is
-  `src/github-app-policy.ts`; do not grant Contents write, Actions, repository
-  administration, or a ruleset bypass role.
+  repository metadata read). Receipt evaluation additionally needs `Actions:
+  read` to verify workflow-run provenance; observe-only installation tokens
+  do not request it. The source contract is `src/github-app-policy.ts`; do not
+  grant Contents write, Actions write, repository administration, or a ruleset
+  bypass role.
 - Store the App key and webhook secret in this Fly app's secret store, never in
   repository Actions secrets, agent workspaces, the general product worker,
   the license signer, or RevVault paths used by those services.
@@ -177,9 +179,10 @@ Required runtime settings are `DATABASE_URL`, `GITHUB_WEBHOOK_SECRET`,
 dedicated GitHub App, including its `BEGIN` and `END` lines. Store the PEM
 contents as the secret value, rather than its filename or an SSH signing key.
 The webhook secret must contain at least 32 characters. The App installation
-token is restricted to the configured repository and requests only Checks
-write, Contents read, Merge queues read, and Pull requests write. The App has
-no Contents write, Administration, ruleset bypass, or workflow permission.
+token is restricted to the configured repository and requests Checks write,
+Contents read, Merge queues read, and Pull requests write. Receipt evaluation
+additionally requests Actions read. The App has no Contents write,
+Administration, ruleset bypass, or Actions write permission.
 Model-provider credentials are not part of this service configuration.
 
 Receipt evaluation is disabled by default. Set `REVIEW_RECEIPT_MODE=shadow` for
@@ -188,9 +191,13 @@ receipt checks. Both modes require
 `REVIEW_RECEIPT_KEY_ID`, `REVIEW_RECEIPT_PRIVATE_KEY` (Ed25519 PKCS#8 PEM),
 `REVIEW_RECEIPT_POLICY_VERSION`, `REVIEW_RECEIPT_MAX_LIFETIME_MS` (60 seconds
 to 24 hours), and `REVIEW_RECEIPT_REQUIRED_CHECKS` (a JSON array containing
-the required CI selector plus `CodeQL` from App `57789` and `Security Gate`,
+the `CI Feedback` selector for `.github/workflows/ci.yml` plus `CodeQL` from App `57789` and `Security Gate`,
 `Dependency Review`, and `Secret Scanning (Gitleaks)` from GitHub Actions App
-`15368`). The key must live in this controller's dedicated secret store.
+`15368`). Every Actions selector also requires `workflowId`, `workflowPath`,
+and `event: "pull_request"`. The resolver binds each check to the newest
+matching workflow run and its check suite and holds if any workflow or local
+Action definition changed in the PR. The key must live in this controller's
+dedicated secret store.
 Stable selectors use check name and GitHub App ID; current run and suite IDs
 come from the live GitHub response.
 Unknown modes and partial or malformed configuration stop startup. Publishing

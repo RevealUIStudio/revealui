@@ -23,8 +23,8 @@ function fixture(overrides: Record<string, unknown> = {}) {
   const securityCheckRuns = [
     { name: 'CodeQL', app: { id: 57789 }, id: 102, suite: 202 },
     { name: 'Security Gate', app: { id: 15368 }, id: 103, suite: 203 },
-    { name: 'Dependency Review', app: { id: 15368 }, id: 104, suite: 204 },
-    { name: 'Secret Scanning (Gitleaks)', app: { id: 15368 }, id: 105, suite: 205 },
+    { name: 'Dependency Review', app: { id: 15368 }, id: 104, suite: 203 },
+    { name: 'Secret Scanning (Gitleaks)', app: { id: 15368 }, id: 105, suite: 203 },
   ].map(({ suite, ...run }) => ({
     ...run,
     head_sha: sha('a'),
@@ -36,9 +36,27 @@ function fixture(overrides: Record<string, unknown> = {}) {
   const requiredChecks = [
     { name: 'CI / test', appId: 20 },
     { name: 'CodeQL', appId: 57789 },
-    { name: 'Security Gate', appId: 15368 },
-    { name: 'Dependency Review', appId: 15368 },
-    { name: 'Secret Scanning (Gitleaks)', appId: 15368 },
+    ...['Security Gate', 'Dependency Review', 'Secret Scanning (Gitleaks)'].map((name) => ({
+      name,
+      appId: 15368,
+      workflowId: 401,
+      workflowPath: '.github/workflows/security.yml',
+      event: 'pull_request',
+    })),
+  ];
+  const workflowRuns = [
+    {
+      id: 301,
+      check_suite_id: 203,
+      head_sha: sha('a'),
+      workflow_id: 401,
+      path: '.github/workflows/security.yml',
+      event: 'pull_request',
+      status: 'completed',
+      conclusion: 'success',
+      repository: { id: 1234 },
+      head_repository: { id: 1234 },
+    },
   ];
   const context = {
     repositoryId: 1234,
@@ -142,6 +160,8 @@ function fixture(overrides: Record<string, unknown> = {}) {
     mergeCandidateTreeSha: context.mergeCandidateTreeSha,
     requiredChecks,
     currentCheckRuns: [currentCheckRun, ...securityCheckRuns],
+    workflowRuns,
+    changedFiles: ['packages/security/src/new.ts'],
     trustedKeys: { 'review-controller-2026-01': publicKey.export({ type: 'spki', format: 'pem' }) },
     policyVersion: context.policyVersion,
     maxLifetimeMs: context.maxReceiptLifetimeMs,
@@ -161,6 +181,51 @@ describe('security review receipt shadow verification', () => {
   it('accepts an exact-head signed receipt from the configured controller and live checks', () => {
     const { input } = fixture();
     expect(verifyReceiptShadow(input)).toMatchObject({ ok: true });
+  });
+
+  it('ignores an untrusted same-name Actions check but holds on a newer trusted run', () => {
+    const { input } = fixture();
+    const forged = {
+      ...input.currentCheckRuns.find((run) => run.name === 'Security Gate'),
+      id: 900,
+      check_suite: { id: 900 },
+    };
+    expect(
+      verifyReceiptShadow({
+        ...input,
+        currentCheckRuns: [...input.currentCheckRuns, forged],
+      }),
+    ).toMatchObject({ ok: true });
+    expect(
+      verifyReceiptShadow({
+        ...input,
+        workflowRuns: [
+          ...input.workflowRuns,
+          {
+            ...input.workflowRuns[0],
+            id: 302,
+            check_suite_id: 900,
+          },
+        ],
+        currentCheckRuns: [...input.currentCheckRuns, forged],
+      }),
+    ).toMatchObject({ ok: false, reason: 'receipt_required_check_selector_not_unique' });
+  });
+
+  it('holds when the PR changes workflow definitions or the trusted run disappears', () => {
+    const { input } = fixture();
+    expect(
+      verifyReceiptShadow({
+        ...input,
+        changedFiles: ['.github/workflows/security.yml'],
+      }),
+    ).toMatchObject({ ok: false, reason: 'receipt_workflow_provenance_untrusted' });
+    expect(
+      verifyReceiptShadow({
+        ...input,
+        workflowRuns: [],
+      }),
+    ).toMatchObject({ ok: false, reason: 'receipt_required_workflow_run_missing' });
   });
 
   it.each([
@@ -235,6 +300,10 @@ describe('security review receipt shadow verification', () => {
       }
       if (endpoint.includes('/check-runs?'))
         return JSON.stringify([{ check_runs: [...currentCheckRuns, receiptCheckRun] }]);
+      if (endpoint.includes('/actions/runs?'))
+        return JSON.stringify([
+          { total_count: input.workflowRuns.length, workflow_runs: input.workflowRuns },
+        ]);
       throw new Error(`unexpected endpoint ${endpoint}`);
     };
     const result = evaluateReceiptShadowForPr(
@@ -253,5 +322,53 @@ describe('security review receipt shadow verification', () => {
     );
     expect(result, JSON.stringify(result)).toMatchObject({ status: 'verified' });
     expect(prReads).toBe(2);
+  });
+
+  it('fails closed when workflow-run evidence is unavailable', () => {
+    const { input, context, receiptCheckRun, currentCheckRuns } = fixture();
+    const ghImpl = (args: string[]) => {
+      const endpoint = args[1] ?? '';
+      if (endpoint.endsWith('/pulls/3076'))
+        return JSON.stringify({
+          state: 'open',
+          draft: false,
+          mergeable: true,
+          merged_at: null,
+          merge_commit_sha: sha('e'),
+          base: {
+            sha: context.baseSha,
+            repo: { id: context.repositoryId, full_name: context.repositoryFullName },
+          },
+          head: { sha: context.headSha, repo: { full_name: context.repositoryFullName } },
+        });
+      if (endpoint.includes('/commits/')) {
+        const commitSha = endpoint.split('/commits/')[1];
+        const treeSha = new Map([
+          [context.headSha, context.headTreeSha],
+          [context.baseSha, context.baseTreeSha],
+          [sha('e'), context.mergeCandidateTreeSha],
+        ]).get(commitSha);
+        if (treeSha) return JSON.stringify({ commit: { tree: { sha: treeSha } } });
+      }
+      if (endpoint.includes('/check-runs?'))
+        return JSON.stringify([{ check_runs: [...currentCheckRuns, receiptCheckRun] }]);
+      throw new Error('workflow API unavailable');
+    };
+    expect(() =>
+      evaluateReceiptShadowForPr(
+        context.pullRequest,
+        context.repositoryFullName,
+        ['packages/security/src/new.ts'],
+        {
+          controllerAppId: 30,
+          maxLifetimeMs: 60 * 60_000,
+          policyVersion: context.policyVersion,
+          trustedKeys: input.trustedKeys,
+          requiredChecks: input.requiredChecks,
+        },
+        ghImpl,
+        now,
+      ),
+    ).toThrow('workflow API unavailable');
   });
 });

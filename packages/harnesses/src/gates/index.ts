@@ -6,20 +6,26 @@
  */
 
 export type {
+  ReviewCheckRun,
+  ReviewCheckSelector,
   ReviewReceipt,
   ReviewReceiptContext,
   ReviewReceiptEnvelope,
   ReviewReceiptResult,
+  ReviewWorkflowRun,
 } from '@revealui/security/review-receipt';
 export {
   canonicalReviewReceipt,
   canonicalReviewReceiptEnvelope,
+  hasReviewReceiptCiCheck,
   hasReviewReceiptSecurityChecks,
   parseReviewReceiptEnvelope,
   REVIEW_RECEIPT_SCHEMA,
   REVIEW_RECEIPT_SECURITY_CHECKS,
+  resolveReviewRequiredChecks,
   reviewReceiptCheckEvidenceSha256,
   signReviewReceipt,
+  validReviewCheckSelector,
   verifyReviewReceipt,
 } from '@revealui/security/review-receipt';
 export {

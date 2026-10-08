@@ -157,20 +157,20 @@ function verifyReceiptShadow(input) {
   if (!receipt || typeof receipt.manifest?.sha256 !== 'string')
     return hold('receipt_manifest_missing');
 
+  const resolved = sharedGates.resolveReviewRequiredChecks({
+    selectors: input.requiredChecks,
+    checkRuns: input.currentCheckRuns,
+    workflowRuns: input.workflowRuns || [],
+    repositoryId: input.repositoryId,
+    headSha: input.headSha,
+    changedFiles: input.changedFiles || [],
+  });
+  if (!resolved.ok) return hold(resolved.reason);
   const requiredChecks = [];
   for (const selector of input.requiredChecks) {
-    const matches = input.currentCheckRuns.filter(
-      (run) => run.name === selector.name && run.app?.id === selector.appId,
-    );
-    if (matches.length !== 1) return hold('receipt_required_check_selector_not_unique');
-    const [run] = matches;
-    if (
-      run.head_sha !== input.headSha ||
-      run.status !== 'completed' ||
-      run.conclusion !== 'success' ||
-      !Number.isSafeInteger(run.id) ||
-      !Number.isSafeInteger(run.check_suite?.id)
-    ) return hold('receipt_required_check_missing_or_stale');
+    const run = resolved.checks.find((check) =>
+      check.name === selector.name && check.app.id === selector.appId);
+    if (!run) return hold('receipt_required_check_selector_not_unique');
     const signedChecks = Array.isArray(receipt.checks)
       ? receipt.checks.filter((item) => item.name === selector.name && item.appId === selector.appId)
       : [];
@@ -255,9 +255,7 @@ function readReceiptConfig(env = process.env) {
     throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS must contain 1 to 64 entries');
   for (const check of requiredChecks) {
     if (
-      !isRecord(check) || typeof check.name !== 'string' || !check.name.trim() ||
-      check.name !== check.name.trim() || check.name.length > 200 ||
-      !Number.isSafeInteger(check.appId) || check.appId <= 0
+      !sharedGates.validReviewCheckSelector(check)
     ) throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS contains an invalid selector');
   }
   const selectors = requiredChecks.map((check) => `${check.appId}:${check.name}`);
@@ -265,6 +263,8 @@ function readReceiptConfig(env = process.env) {
     throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS contains duplicate selectors');
   if (!sharedGates.hasReviewReceiptSecurityChecks(requiredChecks))
     throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS omits a mandatory security check');
+  if (!sharedGates.hasReviewReceiptCiCheck(requiredChecks))
+    throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS omits the trusted CI check');
   return { mode, controllerAppId, maxLifetimeMs, policyVersion, trustedKeys, requiredChecks };
 }
 
@@ -310,6 +310,20 @@ function fetchCurrentCheckRuns(headSha, repo, ghImpl = gh) {
   return runs;
 }
 
+function fetchCurrentWorkflowRuns(headSha, repo, ghImpl = gh) {
+  const pages = JSON.parse(ghImpl([
+    'api', `repos/${repo}/actions/runs?head_sha=${headSha}&per_page=100`,
+    '--paginate', '--slurp',
+  ]));
+  if (!Array.isArray(pages) || pages.some((page) => !Array.isArray(page?.workflow_runs)))
+    throw new Error('invalid workflow-run response for receipt verification');
+  const runs = pages.flatMap((page) => page.workflow_runs);
+  if (!Number.isSafeInteger(pages[0]?.total_count) ||
+      pages[0].total_count !== runs.length || runs.length > 1000)
+    throw new Error('incomplete workflow-run response for receipt verification');
+  return runs;
+}
+
 function evaluateReceiptShadowForPr(prNumber, repo, files, config, ghImpl = gh, now = new Date()) {
   if (!config) return { status: 'disabled' };
   const pullPath = `repos/${repo}/pulls/${prNumber}`;
@@ -350,6 +364,8 @@ function evaluateReceiptShadowForPr(prNumber, repo, files, config, ghImpl = gh, 
     mergeCandidateTreeSha,
     requiredChecks: config.requiredChecks,
     currentCheckRuns,
+    workflowRuns: fetchCurrentWorkflowRuns(headSha, repo, ghImpl),
+    changedFiles: files,
     trustedKeys: config.trustedKeys,
     policyVersion: config.policyVersion,
     maxLifetimeMs: config.maxLifetimeMs,

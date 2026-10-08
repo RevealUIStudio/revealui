@@ -45,6 +45,7 @@ async function boot(): Promise<void> {
     repositoryId,
     repositoryFullName,
     privateKey,
+    receiptEvaluationEnabled: Boolean(receiptPolicy),
   });
   const observations = new PostgresShadowObservationStore(database.db);
   const receipts = new PostgresSignedReceiptStore(database.db);

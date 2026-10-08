@@ -1,6 +1,7 @@
 import { createPrivateKey, createSign } from 'node:crypto';
+import type { ReviewWorkflowRun } from '@revealui/security/review-receipt';
 import { parseReviewReceiptEnvelope } from '@revealui/security/review-receipt';
-import { GITHUB_INSTALLATION_PERMISSIONS } from './github-app-policy.js';
+import { installationPermissions } from './github-app-policy.js';
 import { MAX_REVIEW_BLOB_BYTES } from './review-limits.js';
 
 const GITHUB_API = 'https://api.github.com';
@@ -32,6 +33,7 @@ export interface GitHubAppConfig {
   repositoryId: number;
   repositoryFullName: string;
   privateKey: string;
+  receiptEvaluationEnabled?: boolean;
 }
 
 export interface PullRequestFile {
@@ -324,6 +326,38 @@ export class GitHubAppClient {
     });
   }
 
+  async listWorkflowRuns(sha: string): Promise<ReviewWorkflowRun[]> {
+    if (!this.config.receiptEvaluationEnabled)
+      throw new GitHubAppError('receipt_workflow_access_disabled');
+    if (!/^[a-f0-9]{40,64}$/.test(sha)) throw new Error('invalid commit SHA');
+    const runs = await this.getPaginated(
+      `/repos/${this.config.repositoryFullName}/actions/runs?head_sha=${sha}`,
+      'workflow_runs',
+    );
+    if (runs.length > 1000) throw new GitHubAppError('workflow_run_limit');
+    return runs.map((value) => {
+      if (
+        !(
+          isRecord(value) &&
+          isRecord(value.repository) &&
+          isRecord(value.head_repository) &&
+          Number.isSafeInteger(value.id) &&
+          Number.isSafeInteger(value.check_suite_id) &&
+          Number.isSafeInteger(value.workflow_id) &&
+          Number.isSafeInteger(value.repository.id) &&
+          Number.isSafeInteger(value.head_repository.id)
+        ) ||
+        typeof value.path !== 'string' ||
+        typeof value.event !== 'string' ||
+        value.head_sha !== sha ||
+        typeof value.status !== 'string' ||
+        !(value.conclusion === null || typeof value.conclusion === 'string')
+      )
+        throw new GitHubAppError('invalid_workflow_run');
+      return value as unknown as ReviewWorkflowRun;
+    });
+  }
+
   async upsertReceiptCheckRun(input: {
     headSha: string;
     externalId: string;
@@ -594,7 +628,7 @@ export class GitHubAppClient {
           },
           body: JSON.stringify({
             repository_ids: [this.config.repositoryId],
-            permissions: GITHUB_INSTALLATION_PERMISSIONS,
+            permissions: installationPermissions(Boolean(this.config.receiptEvaluationEnabled)),
           }),
         },
       );

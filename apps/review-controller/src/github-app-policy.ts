@@ -14,3 +14,10 @@ export const GITHUB_INSTALLATION_PERMISSIONS = Object.freeze({
   merge_queues: 'read',
   pull_requests: 'write',
 } as const);
+
+export function installationPermissions(receiptEvaluationEnabled: boolean) {
+  return {
+    ...GITHUB_INSTALLATION_PERMISSIONS,
+    ...(receiptEvaluationEnabled ? { actions: 'read' as const } : {}),
+  };
+}
