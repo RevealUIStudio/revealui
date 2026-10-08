@@ -1,4 +1,5 @@
-import { mkdtempSync } from 'node:fs';
+import type { SpawnOptions } from 'node:child_process';
+import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -7,6 +8,8 @@ const state = vi.hoisted(() => ({
   calls: [] as string[][],
   failPrerequisite: false,
   log: vi.fn(),
+  flockPids: [] as (number | undefined)[],
+  flockArguments: [] as string[][],
   admissionDirectory: null as string | null,
   failure: null as {
     exitCode: number;
@@ -15,6 +18,20 @@ const state = vi.hoisted(() => ({
     timedOut: boolean;
   } | null,
 }));
+vi.mock('node:child_process', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:child_process')>();
+  return {
+    ...actual,
+    spawn: vi.fn((program: string, args: readonly string[], options: SpawnOptions) => {
+      const child = actual.spawn(program, args, options);
+      if (program === 'flock') {
+        state.flockPids.push(child.pid);
+        state.flockArguments.push([...args]);
+      }
+      return child;
+    }),
+  };
+});
 vi.mock('node:os', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:os')>();
   return {
@@ -63,6 +80,8 @@ import { gate, phaseConcurrency, printSummary, runCheck, withGateAdmission } fro
 afterEach(() => {
   vi.restoreAllMocks();
   state.calls = [];
+  state.flockPids = [];
+  state.flockArguments = [];
   state.failPrerequisite = false;
   state.admissionDirectory = null;
   state.failure = null;
@@ -233,31 +252,45 @@ describe('gate resource admission', () => {
     );
   });
 
-  it('queues concurrent operations and releases admission after failure', async () => {
-    state.admissionDirectory = mkdtempSync(join(tmpdir(), 'revealui-admission-test-'));
-    vi.spyOn(process, 'availableMemory').mockReturnValue(4 * 1024 ** 3);
-    let release!: () => void;
-    const held = new Promise<void>((resolve) => {
-      release = resolve;
-    });
-    const events: string[] = [];
-    try {
-      const first = withGateAdmission(async () => {
-        events.push('first');
-        await held;
-        throw new Error('synthetic check failure');
+  it.skipIf(process.platform !== 'linux')(
+    'queues concurrent operations and releases admission after failure',
+    async () => {
+      state.admissionDirectory = mkdtempSync(join(tmpdir(), 'revealui-admission-test-'));
+      vi.spyOn(process, 'availableMemory').mockReturnValue(4 * 1024 ** 3);
+      let release!: () => void;
+      const held = new Promise<void>((resolve) => {
+        release = resolve;
       });
-      await vi.waitFor(() => expect(events).toEqual(['first']));
-      const second = withGateAdmission(async () => {
-        events.push('second');
-      });
-      expect(events).toEqual(['first']);
-      release();
-      await expect(first).rejects.toThrow('synthetic check failure');
-      await second;
-      expect(events).toEqual(['first', 'second']);
-    } finally {
-      release();
-    }
-  });
+      const events: string[] = [];
+      try {
+        const first = withGateAdmission(async () => {
+          events.push('first');
+          await held;
+          throw new Error('synthetic check failure');
+        });
+        const firstFailure = expect(first).rejects.toThrow('synthetic check failure');
+        await vi.waitFor(() => expect(events).toEqual(['first']));
+        const second = withGateAdmission(async () => {
+          events.push('second');
+        });
+        const secondCompletion = expect(second).resolves.toBeUndefined();
+        const secondPid = await vi.waitFor(() => {
+          expect(state.flockPids).toHaveLength(2);
+          const pid = state.flockPids[1];
+          if (pid === undefined) throw new Error('Second lock process did not start.');
+          expect(readFileSync(`/proc/${pid}/wchan`, 'utf8').trim()).toBe('locks_lock_inode_wait');
+          return pid;
+        });
+        expect(state.flockArguments[1]).toEqual(['--exclusive', '3']);
+        expect(secondPid).toBeTypeOf('number');
+        expect(events).toEqual(['first']);
+        release();
+        await firstFailure;
+        await secondCompletion;
+        expect(events).toEqual(['first', 'second']);
+      } finally {
+        release();
+      }
+    },
+  );
 });

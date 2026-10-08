@@ -47,7 +47,6 @@ const logger = createLogger();
 
 /** Phase-1 checks without an explicit timeout inherit this (not execCommand's 120s). */
 const PHASE_CHECK_TIMEOUT_MS = 300_000;
-const GATE_ADMISSION_WAIT_SECONDS = 300;
 const admissionDescriptor = new AsyncLocalStorage<number>();
 
 /** Actual validator processes retain admission if their gate parent exits. */
@@ -203,20 +202,39 @@ export async function withGateAdmission<T>(operation: () => Promise<T>): Promise
   );
   try {
     await new Promise<void>((resolve, reject) => {
-      // The maintained push owner runs this gate before opening Git transport,
-      // so contention can safely queue here. Bound the wait to avoid a stuck
-      // validator if an admission owner fails to release its kernel lock.
-      const child = spawn(
-        'flock',
-        ['--exclusive', '--wait', String(GATE_ADMISSION_WAIT_SECONDS), '3'],
-        {
-          stdio: ['ignore', 'inherit', 'inherit', descriptor],
-        },
-      );
-      child.once('error', reject);
+      const child = spawn('flock', ['--exclusive', '3'], {
+        stdio: ['ignore', 'inherit', 'inherit', descriptor],
+      });
+      let interruption: NodeJS.Signals | undefined;
+      let settled = false;
+      const onInterrupt = (signal: NodeJS.Signals) => {
+        interruption = signal;
+        child.kill(signal);
+      };
+      const cleanup = () => {
+        process.off('SIGINT', onSigint);
+        process.off('SIGTERM', onSigterm);
+      };
+      const onSigint = () => onInterrupt('SIGINT');
+      const onSigterm = () => onInterrupt('SIGTERM');
+      const finish = (error?: Error) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        if (error) reject(error);
+        else resolve();
+      };
+      process.once('SIGINT', onSigint);
+      process.once('SIGTERM', onSigterm);
+      child.once('error', (error) => finish(error));
       child.once('exit', (code, signal) => {
-        if (code === 0) resolve();
-        else reject(new Error(`CI gate admission lock failed (${signal ?? code}).`));
+        if (interruption) {
+          finish(new Error(`CI gate admission interrupted (${interruption}).`));
+        } else if (code === 0) {
+          finish();
+        } else {
+          finish(new Error(`CI gate admission lock failed (${signal ?? code}).`));
+        }
       });
     });
     phaseConcurrency(1);
