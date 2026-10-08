@@ -1,6 +1,9 @@
 name: Client Name Leak Scan
 
-# Thin caller — shared composite action. Job name preserved for rulesets.
+# Job name preserved for rulesets.
+# The scanner that decides pass or fail is the base commit's copy. The tree
+# it reads is the pull request merge, or the pushed commit. A change to
+# scripts/check-client-leaks.sh cannot grade itself.
 
 on:
   push:
@@ -18,4 +21,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - uses: RevealUIStudio/.github/.github/actions/check-client-leaks@8ea1ca5697dfc1f2041aac1368a9dd6d241121ab
+      - name: Checkout tree to scan
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          path: scan-tree
+
+      - name: Checkout trusted scanner
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/check-client-leaks.sh
+          sparse-checkout-cone-mode: false
+          path: trusted-scanner
+
+      - name: Scan the changes with the trusted scanner
+        run: bash trusted-scanner/scripts/check-client-leaks.sh scan-tree
