@@ -2,8 +2,8 @@ import {
   type ReviewControllerDatabase,
   reviewControllerShadowObservations,
 } from '@revealui/db/review-controller';
-import { and, desc, eq } from 'drizzle-orm';
-import type { GitHubCheckRun } from './github-app.js';
+import { and, desc, eq, sql } from 'drizzle-orm';
+import { GitHubAppError, type GitHubCheckRun } from './github-app.js';
 import type { ReceiptEvaluationMetadata } from './receipt-evaluator.js';
 import {
   type CodexReviewObservation,
@@ -46,24 +46,32 @@ export class PostgresShadowObservationStore implements ShadowObservationStore {
     headSha: string;
     baseSha: string;
   }): Promise<CodexReviewObservation[]> {
+    const candidate = and(
+      eq(reviewControllerShadowObservations.eventKind, 'pull_request'),
+      eq(reviewControllerShadowObservations.repositoryId, input.repositoryId),
+      eq(reviewControllerShadowObservations.pullRequest, input.pullRequest),
+      eq(reviewControllerShadowObservations.headSha, input.headSha),
+      eq(reviewControllerShadowObservations.baseSha, input.baseSha),
+      sql`${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,status}' = 'observed'`,
+      sql`${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,review,reviewedHeadSha}' = ${input.headSha}`,
+      sql`${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,review,currentHeadSha}' = ${input.headSha}`,
+    );
+    // One database snapshot selects a same-head denial before any approval.
+    // Later check snapshots and replayed approvals cannot evict the denial.
     const rows = await this.db
       .select({ snapshot: reviewControllerShadowObservations.snapshot })
       .from(reviewControllerShadowObservations)
-      .where(
-        and(
-          eq(reviewControllerShadowObservations.eventKind, 'pull_request'),
-          eq(reviewControllerShadowObservations.repositoryId, input.repositoryId),
-          eq(reviewControllerShadowObservations.pullRequest, input.pullRequest),
-          eq(reviewControllerShadowObservations.headSha, input.headSha),
-          eq(reviewControllerShadowObservations.baseSha, input.baseSha),
-        ),
+      .where(candidate)
+      .orderBy(
+        sql`CASE WHEN ${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,review,receiptReview,verdict}' = 'approve' AND ${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,review,receiptReview,revisionSha}' = ${input.headSha} THEN 1 ELSE 0 END`,
+        desc(reviewControllerShadowObservations.observedAt),
       )
-      .orderBy(desc(reviewControllerShadowObservations.observedAt))
-      .limit(100);
-    return rows.flatMap(({ snapshot }) => {
+      .limit(1);
+    return rows.map(({ snapshot }) => {
       const reviewEvidence = snapshot.reviewEvidence;
-      if (!isRecord(reviewEvidence) || reviewEvidence.status !== 'observed') return [];
-      return isCodexReviewObservation(reviewEvidence.review) ? [reviewEvidence.review] : [];
+      if (!(isRecord(reviewEvidence) && isCodexReviewObservation(reviewEvidence.review)))
+        throw new GitHubAppError('invalid_stored_review_observation');
+      return reviewEvidence.review;
     });
   }
 

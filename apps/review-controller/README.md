@@ -42,6 +42,9 @@ review whose GitHub state is not `APPROVED` produces no approving evidence.
 This deliberately treats a comment-only review with no inline comments as
 unresolved rather than inferring approval from missing findings. Stale reviews
 cannot approve. Review prose and source excerpts are not persisted.
+The observation store prioritizes a same-head non-approving review in one
+database read, so later check snapshots or replayed approvals
+cannot evict a rejection from receipt evaluation.
 
 The observed Codex GitHub integration can report a clean run as an issue
 comment containing only an abbreviated commit SHA, and can submit findings as

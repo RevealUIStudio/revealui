@@ -193,14 +193,18 @@ async function latestCurrentCodexReview(
   const current = reviews
     .filter(
       (review) =>
-        review.reviewedHeadSha === snapshot.headSha &&
-        review.currentHeadSha === snapshot.headSha &&
-        review.receiptReview?.revisionSha === snapshot.headSha,
+        review.reviewedHeadSha === snapshot.headSha && review.currentHeadSha === snapshot.headSha,
     )
     .sort(
       (left, right) =>
-        Number(left.receiptReview?.verdict === 'approve') -
-          Number(right.receiptReview?.verdict === 'approve') ||
+        Number(
+          left.receiptReview?.verdict === 'approve' &&
+            left.receiptReview.revisionSha === snapshot.headSha,
+        ) -
+          Number(
+            right.receiptReview?.verdict === 'approve' &&
+              right.receiptReview.revisionSha === snapshot.headSha,
+          ) ||
         Date.parse(right.observedAt) - Date.parse(left.observedAt) ||
         right.reviewId - left.reviewId,
     )[0];

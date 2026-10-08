@@ -108,6 +108,25 @@ describe('evaluateReceiptShadow', () => {
     expect(getFreshMergeCandidate).not.toHaveBeenCalled();
   });
 
+  it.each([
+    { reviewedHeadSha: sha('f') },
+    { currentHeadSha: sha('f') },
+    { receiptReview: { ...review.receiptReview, revisionSha: sha('f') } },
+  ])('rejects a review whose full-head binding is inconsistent', async (override) => {
+    const getFreshMergeCandidate = vi.fn(async () => sha('e'));
+    const result = await evaluateReceiptShadow({
+      policy,
+      snapshot,
+      checkRuns: [checkRun],
+      workflowRuns: [],
+      reviewEvidence: { status: 'observed', review: { ...review, ...override } },
+      getFreshMergeCandidate,
+      now: new Date('2026-10-06T13:00:00.000Z'),
+    });
+    expect(result).toMatchObject({ status: 'ineligible', reason: 'codex_review_not_approving' });
+    expect(getFreshMergeCandidate).not.toHaveBeenCalled();
+  });
+
   it('fails closed when a configured check selector is absent or ambiguous', async () => {
     await expect(evaluate({ status: 'observed', review }, [])).resolves.toMatchObject({
       status: 'ineligible',

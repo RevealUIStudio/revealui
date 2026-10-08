@@ -63,9 +63,9 @@ describe('PostgresShadowObservationStore', () => {
           reviewerLogin: 'chatgpt-codex-connector[bot]',
           reviewerId: 90210,
           reviewId: 81,
-          reviewedHeadSha: 'f'.repeat(40),
-          currentHeadSha: 'f'.repeat(40),
-          state: 'commented' as const,
+          reviewedHeadSha: snapshot.headSha,
+          currentHeadSha: snapshot.headSha,
+          state: 'approved' as const,
           action: 'submitted' as const,
           observedAt: '2026-10-06T12:01:00.000Z',
           bodySha256: '2'.repeat(64),
@@ -77,7 +77,7 @@ describe('PostgresShadowObservationStore', () => {
             reviewerId: 'github-user:90210',
             system: 'openai-codex-subscription',
             executionId: 'github-review:81',
-            revisionSha: 'f'.repeat(40),
+            revisionSha: snapshot.headSha,
             verdict: 'approve',
             criticalFindings: 0,
             highFindings: 0,
@@ -126,6 +126,91 @@ describe('PostgresShadowObservationStore', () => {
     expect(JSON.stringify(result.rows)).not.toContain('secret source');
     expect(JSON.stringify(result.rows)).not.toContain('private reviewer summary');
     expect(JSON.stringify(result.rows)).not.toContain('private finding detail');
+  });
+
+  it('retains an old non-approving review behind more than 100 snapshots and a replayed approval', async () => {
+    const snapshot: PullRequestSnapshot = {
+      repositoryId: 123,
+      pullRequest: 7,
+      state: 'open',
+      draft: false,
+      baseRef: 'test',
+      headSha: 'a'.repeat(40),
+      headTreeSha: 'b'.repeat(40),
+      baseSha: 'c'.repeat(40),
+      baseTreeSha: 'd'.repeat(40),
+      manifest: { files: [], fileCount: 0, sha256: 'e'.repeat(64) },
+      content: [],
+      securityClassification: {
+        classifierVersion: 'shared-security-paths-v1',
+        sensitivePaths: [],
+      },
+    };
+    const review = (reviewId: number, verdict: 'approve' | 'request-changes') => ({
+      status: 'observed' as const,
+      review: {
+        provider: 'codex-subscription' as const,
+        reviewerLogin: 'chatgpt-codex-connector[bot]',
+        reviewerId: 90210,
+        reviewId,
+        reviewedHeadSha: snapshot.headSha,
+        currentHeadSha: snapshot.headSha,
+        state: verdict === 'approve' ? ('approved' as const) : ('commented' as const),
+        action: 'submitted' as const,
+        observedAt: '2026-10-06T12:01:00.000Z',
+        bodySha256: '1'.repeat(64),
+        inlineCommentCount: 0,
+        inlineComments: [],
+        submittedAt: '2026-10-06T12:01:00.000Z',
+        exactHead: true,
+        receiptReview: {
+          reviewerId: 'github-user:90210',
+          system: 'openai-codex-subscription',
+          executionId: `github-review:${reviewId}`,
+          revisionSha: snapshot.headSha,
+          verdict,
+          criticalFindings: 0,
+          highFindings: 0,
+        },
+      },
+    });
+    const deliveryId = (number: number) =>
+      `00000000-0000-4000-8000-${number.toString(16).padStart(12, '0')}`;
+    const record = async (
+      number: number,
+      reviewEvidence?: ReturnType<typeof review>,
+      candidateSnapshot = snapshot,
+    ) => {
+      const id = deliveryId(number);
+      await inbox.enqueue(webhook(id));
+      await store.recordPullRequest({
+        deliveryId: id,
+        snapshot: candidateSnapshot,
+        checkRuns: [],
+        reviewEvidence,
+      });
+    };
+
+    await record(1, review(81, 'request-changes'));
+    for (let number = 2; number <= 112; number++) await record(number);
+    await record(113, review(82, 'approve'));
+    await record(114, review(83, 'request-changes'), {
+      ...snapshot,
+      baseSha: 'f'.repeat(40),
+    });
+    await record(115, review(84, 'request-changes'), {
+      ...snapshot,
+      headSha: 'f'.repeat(40),
+    });
+
+    const observations = await store.listReviewObservations({
+      repositoryId: snapshot.repositoryId,
+      pullRequest: snapshot.pullRequest,
+      headSha: snapshot.headSha,
+      baseSha: snapshot.baseSha,
+    });
+    expect(observations.map((observation) => observation.reviewId)).toEqual([81]);
+    expect(observations[0]?.receiptReview?.verdict).toBe('request-changes');
   });
 });
 

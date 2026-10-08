@@ -43,7 +43,13 @@ export async function evaluateReceiptShadow(input: {
   });
   if (input.reviewEvidence.status !== 'observed') return ineligible('codex_review_not_observed');
   const review = input.reviewEvidence.review;
-  if (review.receiptReview?.verdict !== 'approve') return ineligible('codex_review_not_approving');
+  if (
+    review.receiptReview?.verdict !== 'approve' ||
+    review.reviewedHeadSha !== input.snapshot.headSha ||
+    review.currentHeadSha !== input.snapshot.headSha ||
+    review.receiptReview.revisionSha !== input.snapshot.headSha
+  )
+    return ineligible('codex_review_not_approving');
 
   const resolved = resolveReviewRequiredChecks({
     selectors: input.policy.requiredChecks,

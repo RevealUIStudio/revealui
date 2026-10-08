@@ -620,9 +620,14 @@ describe('shadow webhook event handler', () => {
   it.each([
     { storedState: 'approved', incomingState: 'COMMENTED' },
     { storedState: 'commented', incomingState: 'APPROVED' },
+    {
+      storedState: 'approved',
+      incomingState: 'APPROVED',
+      storedRevisionSha: 'b'.repeat(40),
+    },
   ] as const)(
-    'keeps a same-head rejection authoritative when $incomingState arrives after stored $storedState',
-    async ({ storedState, incomingState }) => {
+    'keeps same-head negative or malformed evidence authoritative when $incomingState follows stored $storedState',
+    async ({ storedState, incomingState, ...stored }) => {
       const { privateKey } = generateKeyPairSync('ed25519');
       const policy: ReceiptPolicy = {
         mode: 'shadow',
@@ -654,7 +659,7 @@ describe('shadow webhook event handler', () => {
             reviewerId: 'github-user:90210',
             system: 'openai-codex-subscription',
             executionId: 'github-review:81',
-            revisionSha: 'a'.repeat(40),
+            revisionSha: 'storedRevisionSha' in stored ? stored.storedRevisionSha : 'a'.repeat(40),
             verdict: storedState === 'approved' ? 'approve' : 'request-changes',
             criticalFindings: 0,
             highFindings: 0,
