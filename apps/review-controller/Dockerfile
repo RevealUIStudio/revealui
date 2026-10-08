@@ -18,6 +18,13 @@ WORKDIR /app
 COPY --from=builder /repo/apps/review-controller/dist ./dist
 COPY --from=builder /app/review-controller-deploy/package.json ./package.json
 COPY --from=builder /app/review-controller-deploy/node_modules ./node_modules
+# A no-secret boot must reach configuration validation. This catches missing
+# runtime imports in the final image, including the externalized pg driver.
+RUN node dist/index.js > /tmp/review-controller-boot.log 2>&1; \
+    status=$?; \
+    test "$status" -eq 1 && \
+    grep -Fq 'review-controller startup failed: GITHUB_WEBHOOK_SECRET is required' /tmp/review-controller-boot.log && \
+    rm /tmp/review-controller-boot.log
 ENV NODE_ENV=production
 ENV PORT=8080
 EXPOSE 8080

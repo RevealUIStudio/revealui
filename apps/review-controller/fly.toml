@@ -1,5 +1,6 @@
-# Deploy from the monorepo root with --dockerfile apps/review-controller/Dockerfile:
-# the Dockerfile copies workspace packages from the root build context.
+# Deploy from the monorepo root with --dockerfile apps/review-controller/Dockerfile
+# and --ha=false. The Dockerfile needs the root build context; only one worker
+# may run until per-PR check mutations are serialized.
 app = 'revealui-review-controller'
 primary_region = 'iad'
 

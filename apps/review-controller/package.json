@@ -9,6 +9,7 @@
     "@revealui/db": "workspace:*",
     "@revealui/security": "workspace:*",
     "hono": "4.13.8",
+    "pg": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
