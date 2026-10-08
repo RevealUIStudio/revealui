@@ -107,6 +107,9 @@ on first deploy; verify the app has exactly one machine before accepting webhook
 Keep the App
 webhook inactive until the deployed service passes both `/health/live` and
 `/health/ready`; activate it only for the isolated shadow rollout.
+The webhook endpoint acknowledges a signed GitHub App `ping` for the configured
+App ID without adding it to the review-event inbox. A successful ping verifies
+delivery to the endpoint; it does not establish receipt evaluation readiness.
 
 ## Isolation contract
 

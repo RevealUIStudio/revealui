@@ -23,6 +23,19 @@ function input(overrides: Partial<Parameters<typeof verifyGitHubWebhook>[0]> = {
 }
 
 describe('verifyGitHubWebhook', () => {
+  it('authenticates an App ping without treating it as a repository event', () => {
+    const rawBody = JSON.stringify({ hook_id: 11, hook: { id: 11, type: 'App', app_id: 5230487 } });
+    expect(
+      verifyGitHubWebhook(
+        input({
+          event: 'ping',
+          rawBody,
+          signature: `sha256=${createHmac('sha256', secret).update(rawBody).digest('hex')}`,
+        }),
+      ),
+    ).toEqual({ ok: true, ping: { appId: 5230487, hookId: 11 } });
+  });
+
   it('authenticates raw bytes and returns a bounded PR delivery', () => {
     expect(verifyGitHubWebhook(input())).toMatchObject({
       ok: true,
@@ -39,6 +52,7 @@ describe('verifyGitHubWebhook', () => {
     ['missing secret', { secret: '' }, 'missing_secret'],
     ['malformed delivery', { deliveryId: 'not a delivery id' }, 'invalid_delivery'],
     ['unsupported event', { event: 'issues' }, 'unsupported_event'],
+    ['unsigned ping', { event: 'ping', signature: `sha256=${'0'.repeat(64)}` }, 'bad_signature'],
     [
       'invalid JSON',
       {

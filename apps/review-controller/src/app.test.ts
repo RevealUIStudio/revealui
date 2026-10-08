@@ -28,6 +28,7 @@ function fixture(repositoryId = '1234') {
       GITHUB_WEBHOOK_SECRET: secret,
       GITHUB_REPOSITORY_ID: repositoryId,
       GITHUB_INSTALLATION_ID: '9876',
+      GITHUB_APP_ID: '5230487',
     },
     now: () => new Date('2026-10-06T12:00:00.000Z'),
   });
@@ -35,6 +36,39 @@ function fixture(repositoryId = '1234') {
 }
 
 describe('review controller webhook intake', () => {
+  it('acknowledges a signed ping for this App without queueing it', async () => {
+    const { app, inbox } = fixture();
+    const body = JSON.stringify({ hook_id: 11, hook: { id: 11, type: 'App', app_id: 5230487 } });
+    const response = await app.request('/github/webhook', {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'x-github-event': 'ping',
+        'x-hub-signature-256': `sha256=${createHmac('sha256', secret).update(body).digest('hex')}`,
+      },
+      body,
+    });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ accepted: true });
+    expect(inbox.enqueue).not.toHaveBeenCalled();
+  });
+
+  it('rejects a signed ping for another App', async () => {
+    const { app, inbox } = fixture();
+    const body = JSON.stringify({ hook_id: 11, hook: { id: 11, type: 'App', app_id: 1 } });
+    const response = await app.request('/github/webhook', {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'x-github-event': 'ping',
+        'x-hub-signature-256': `sha256=${createHmac('sha256', secret).update(body).digest('hex')}`,
+      },
+      body,
+    });
+    expect(response.status).toBe(403);
+    expect(inbox.enqueue).not.toHaveBeenCalled();
+  });
+
   it('durably enqueues only authenticated, allowlisted GitHub deliveries', async () => {
     const { app, inbox } = fixture();
     const response = await app.request('/github/webhook', {

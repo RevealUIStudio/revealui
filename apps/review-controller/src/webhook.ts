@@ -24,6 +24,11 @@ export interface AcceptedWebhook {
   receivedAt: string;
 }
 
+export interface AcceptedPing {
+  appId: number;
+  hookId: number;
+}
+
 export function verifyGitHubWebhook(input: {
   secret: string;
   signature: string | undefined;
@@ -31,7 +36,10 @@ export function verifyGitHubWebhook(input: {
   event: string | undefined;
   rawBody: string;
   now?: Date;
-}): { ok: true; webhook: AcceptedWebhook } | { ok: false; reason: WebhookFailure } {
+}):
+  | { ok: true; webhook: AcceptedWebhook; ping?: never }
+  | { ok: true; ping: AcceptedPing; webhook?: never }
+  | { ok: false; reason: WebhookFailure } {
   if (input.secret.length < 32) return { ok: false, reason: 'missing_secret' };
   if (!(input.signature && input.deliveryId && input.event))
     return { ok: false, reason: 'missing_headers' };
@@ -41,7 +49,8 @@ export function verifyGitHubWebhook(input: {
     return { ok: false, reason: 'body_too_large' };
   if (!/^[a-f0-9-]{16,128}$/i.test(input.deliveryId))
     return { ok: false, reason: 'invalid_delivery' };
-  if (!ALLOWED_WEBHOOK_EVENTS.has(input.event)) return { ok: false, reason: 'unsupported_event' };
+  if (input.event !== 'ping' && !ALLOWED_WEBHOOK_EVENTS.has(input.event))
+    return { ok: false, reason: 'unsupported_event' };
 
   const expected = `sha256=${createHmac('sha256', input.secret).update(input.rawBody, 'utf8').digest('hex')}`;
   const actualBytes = Buffer.from(input.signature, 'ascii');
@@ -54,6 +63,23 @@ export function verifyGitHubWebhook(input: {
     payload = JSON.parse(input.rawBody);
   } catch {
     return { ok: false, reason: 'invalid_json' };
+  }
+  if (input.event === 'ping') {
+    if (!(isRecord(payload) && isRecord(payload.hook)))
+      return { ok: false, reason: 'invalid_payload' };
+    if (
+      payload.hook.type !== 'App' ||
+      !Number.isSafeInteger(payload.hook_id) ||
+      Number(payload.hook_id) <= 0 ||
+      payload.hook.id !== payload.hook_id ||
+      !Number.isSafeInteger(payload.hook.app_id) ||
+      Number(payload.hook.app_id) <= 0
+    )
+      return { ok: false, reason: 'invalid_payload' };
+    return {
+      ok: true,
+      ping: { appId: Number(payload.hook.app_id), hookId: Number(payload.hook_id) },
+    };
   }
   if (!(isRecord(payload) && validEventPayload(input.event, payload)))
     return { ok: false, reason: 'invalid_payload' };

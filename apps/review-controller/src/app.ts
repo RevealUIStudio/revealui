@@ -32,6 +32,12 @@ export function createReviewControllerApp(input: {
       ...(input.now ? { now: input.now() } : {}),
     });
     if (!verified.ok) return c.json({ error: 'invalid_webhook', reason: verified.reason }, 401);
+    if (verified.ping) {
+      const allowedAppId = Number(env.GITHUB_APP_ID);
+      if (!Number.isSafeInteger(allowedAppId) || verified.ping.appId !== allowedAppId)
+        return c.json({ error: 'app_not_allowed' }, 403);
+      return c.json({ accepted: true }, 200);
+    }
     const allowedRepositoryId = Number(env.GITHUB_REPOSITORY_ID);
     const allowedInstallationId = Number(env.GITHUB_INSTALLATION_ID);
     const actualRepositoryId = verified.webhook.repositoryId;
