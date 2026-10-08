@@ -34,6 +34,7 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "provision:shadow": "node --import tsx scripts/provision-shadow.ts",
+    "ops:status": "node --import tsx scripts/status.ts",
     "lint": "biome check ."
   }
 }
