@@ -7,12 +7,13 @@ import type { ReceiptPolicy } from './receipt-policy.js';
 import { persistReceiptThenPublishCheck } from './receipt-publisher.js';
 import type { SignedReceiptStore } from './receipt-store.js';
 import type { CodexReviewObservation, ReviewEvidence } from './reviewer.js';
-import { fetchPullRequestSnapshot } from './snapshot.js';
+import { fetchPullRequestSnapshot, PullRequestSnapshotCache } from './snapshot.js';
 import type { WebhookHandler } from './worker.js';
 
 const MAX_PULL_REQUESTS_PER_DELIVERY = 20;
 
 export class ShadowWebhookHandler implements WebhookHandler {
+  private readonly snapshotCache = new PullRequestSnapshotCache();
   constructor(
     private readonly client: GitHubAppClient,
     private readonly observations: ShadowObservationStore,
@@ -39,7 +40,7 @@ export class ShadowWebhookHandler implements WebhookHandler {
     }
     const pullRequests = extractPullRequestNumbers(webhook);
     for (const number of pullRequests) {
-      const snapshot = await fetchPullRequestSnapshot(this.client, number);
+      const snapshot = await fetchPullRequestSnapshot(this.client, number, this.snapshotCache);
       const checkRuns = await this.client.listCheckRuns(snapshot.headSha);
       const reviewEvidence = await codexReviewEvidence(
         this.client,

@@ -57,15 +57,47 @@ export interface PullRequestSnapshot {
   };
 }
 
+/** Cache only verified, immutable base/head content; PR state and checks remain fresh. */
+export class PullRequestSnapshotCache {
+  private readonly entries = new Map<string, PullRequestSnapshot>();
+
+  get(repositoryId: number, pullRequest: number, headSha: string, baseSha: string) {
+    const key = `${repositoryId}:${pullRequest}:${headSha}:${baseSha}`;
+    const snapshot = this.entries.get(key);
+    if (snapshot) {
+      this.entries.delete(key);
+      this.entries.set(key, snapshot);
+    }
+    return snapshot;
+  }
+
+  set(snapshot: PullRequestSnapshot): void {
+    const key = `${snapshot.repositoryId}:${snapshot.pullRequest}:${snapshot.headSha}:${snapshot.baseSha}`;
+    this.entries.delete(key);
+    this.entries.set(key, snapshot);
+    while (this.entries.size > 4) {
+      const oldest = this.entries.keys().next().value;
+      if (oldest === undefined) break;
+      this.entries.delete(oldest);
+    }
+  }
+}
+
 export async function fetchPullRequestSnapshot(
   client: GitHubAppClient,
   pullRequest: number,
+  cache?: PullRequestSnapshotCache,
 ): Promise<PullRequestSnapshot> {
   const pr = await client.getPullRequest(pullRequest);
   const head = record(pr.head);
   const base = record(pr.base);
   const headSha = sha(head.sha);
   const baseSha = sha(base.sha);
+  const state = typeof pr.state === 'string' ? pr.state : fail('invalid_pull_request_state');
+  const draft = typeof pr.draft === 'boolean' ? pr.draft : fail('invalid_pull_request_state');
+  const baseRef = typeof base.ref === 'string' ? base.ref : fail('invalid_pull_request_ref');
+  const cached = cache?.get(client.repositoryId, pullRequest, headSha, baseSha);
+  if (cached) return { ...cached, state, draft, baseRef };
   const [headTreeSha, baseTreeSha, files] = await Promise.all([
     client.getCommitTree(headSha),
     client.getCommitTree(baseSha),
@@ -78,12 +110,12 @@ export async function fetchPullRequestSnapshot(
   const manifest = buildChangedFileManifest(files, baseTree, headTree);
   const content = await fetchChangedFileContent(client, manifest);
   const symlinkTargets = validateChangedSymlinks(manifest, content, baseTree, headTree);
-  return {
+  const snapshot: PullRequestSnapshot = {
     repositoryId: client.repositoryId,
     pullRequest,
-    state: typeof pr.state === 'string' ? pr.state : fail('invalid_pull_request_state'),
-    draft: typeof pr.draft === 'boolean' ? pr.draft : fail('invalid_pull_request_state'),
-    baseRef: typeof base.ref === 'string' ? base.ref : fail('invalid_pull_request_ref'),
+    state,
+    draft,
+    baseRef,
     headSha,
     headTreeSha,
     baseSha,
@@ -92,6 +124,8 @@ export async function fetchPullRequestSnapshot(
     content,
     securityClassification: classifyManifestSecurity(manifest, symlinkTargets),
   };
+  cache?.set(snapshot);
+  return snapshot;
 }
 
 export async function fetchChangedFileContent(

@@ -24,7 +24,9 @@ tree for security-path classification. Escaping, dangling, and chained symlinks,
 binary content, and invalid UTF-8 fail closed. Review input is capped at
 256 files, 1 MiB per blob, and 8 MiB of unique blob content. Deterministic
 unsupported inputs receive a terminal inbox classification. Source text stays
-in worker memory and is not sent to a model provider by this service. Model
+in worker memory and is not sent to a model provider by this service. A bounded
+four-snapshot cache reuses verified base/head content across check events while
+refreshing PR state and check runs for each delivery. Model
 review is provided through the founder's ChatGPT subscription using Codex's GitHub
 automatic-review integration. For signed GitHub `pull_request_review`
 webhooks from `chatgpt-codex-connector[bot]`, the controller records the bot

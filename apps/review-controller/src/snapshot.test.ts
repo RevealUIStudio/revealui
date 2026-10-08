@@ -1,12 +1,14 @@
 import { createHash } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
-import type { GitTreeEntry, PullRequestFile } from './github-app.js';
+import type { GitHubAppClient, GitTreeEntry, PullRequestFile } from './github-app.js';
 import { MAX_REVIEW_BLOB_BYTES, MAX_REVIEW_FILES } from './review-limits.js';
 import type { ChangedFileContent, ChangedFileManifest } from './snapshot.js';
 import {
   buildChangedFileManifest,
   classifyManifestSecurity,
   fetchChangedFileContent,
+  fetchPullRequestSnapshot,
+  PullRequestSnapshotCache,
   validateChangedSymlinks,
 } from './snapshot.js';
 
@@ -57,6 +59,72 @@ const files: PullRequestFile[] = [
     changes: 4,
   },
 ];
+
+describe('SHA-bound snapshot cache', () => {
+  it('reuses verified content for check events while refreshing PR state and invalidating on a new head', async () => {
+    const bytes = Buffer.from('reviewed content\n');
+    const blobSha = createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
+    const baseSha = 'a'.repeat(40);
+    let headSha = 'b'.repeat(40);
+    let draft = false;
+    const client = {
+      repositoryId: 123,
+      getPullRequest: vi.fn(async () => ({
+        state: 'open',
+        draft,
+        base: { sha: baseSha, ref: 'main' },
+        head: { sha: headSha },
+      })),
+      getCommitTree: vi.fn(async (sha: string) =>
+        sha === baseSha ? 'c'.repeat(40) : 'd'.repeat(40),
+      ),
+      getTree: vi.fn(async (sha: string) =>
+        sha === 'c'.repeat(40)
+          ? []
+          : [
+              {
+                path: 'src/file.ts',
+                mode: '100644' as const,
+                type: 'blob' as const,
+                sha: blobSha,
+                size: bytes.length,
+              },
+            ],
+      ),
+      listPullRequestFiles: vi.fn(async () => [
+        {
+          filename: 'src/file.ts',
+          status: 'added' as const,
+          sha: blobSha,
+          additions: 1,
+          deletions: 0,
+          changes: 1,
+        },
+      ]),
+      getBlob: vi.fn(async (sha: string) => ({
+        sha,
+        size: bytes.length,
+        encoding: 'base64' as const,
+        content: bytes.toString('base64'),
+      })),
+    };
+    const cache = new PullRequestSnapshotCache();
+    const first = await fetchPullRequestSnapshot(client as unknown as GitHubAppClient, 7, cache);
+    draft = true;
+    const second = await fetchPullRequestSnapshot(client as unknown as GitHubAppClient, 7, cache);
+    expect(second.draft).toBe(true);
+    expect(second.manifest.sha256).toBe(first.manifest.sha256);
+    expect(client.getPullRequest).toHaveBeenCalledTimes(2);
+    expect(client.listPullRequestFiles).toHaveBeenCalledTimes(1);
+    expect(client.getBlob).toHaveBeenCalledTimes(1);
+    headSha = 'e'.repeat(40);
+    await fetchPullRequestSnapshot(client as unknown as GitHubAppClient, 7, cache);
+    expect(client.listPullRequestFiles).toHaveBeenCalledTimes(2);
+    expect(client.getBlob).toHaveBeenCalledTimes(2);
+    for (let number = 8; number <= 12; number += 1) cache.set({ ...first, pullRequest: number });
+    expect(cache.get(123, 7, first.headSha, first.baseSha)).toBeUndefined();
+  });
+});
 
 describe('changed file manifest', () => {
   it('binds additions, deletions, renames, blob identities, and file modes', () => {
