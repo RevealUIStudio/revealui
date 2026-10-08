@@ -36,6 +36,38 @@ import { parseArgs } from 'node:util';
 
 const API = 'https://api.vercel.com';
 
+/** One Vercel API request gives up after this many milliseconds. */
+export const VERCEL_API_TIMEOUT_MS = 10_000;
+
+/**
+ * Fetch with an AbortController deadline. A request that is still open when
+ * `timeoutMs` elapses rejects instead of waiting for the job timeout.
+ */
+export async function fetchWithTimeout(
+  url,
+  init = {},
+  timeoutMs = VERCEL_API_TIMEOUT_MS,
+  fetchImpl = fetch,
+) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
+  try {
+    return await fetchImpl(url, {
+      ...init,
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`Vercel API request timed out after ${timeoutMs}ms`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /**
  * Hostnames a production rollback may move. Single-label names covered by
  * Cloudflare Universal SSL (`*.revealui.com`), plus each app's production
@@ -228,17 +260,19 @@ function initCli() {
   }
 }
 
-async function api(path, init = {}) {
+async function api(path, init = {}, timeoutMs = 0) {
   const url = new URL(path.startsWith('http') ? path : `${API}${path}`);
   if (!url.searchParams.has('teamId')) url.searchParams.set('teamId', teamId);
-  const res = await fetch(url, {
+  const request = {
     ...init,
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
       ...(init.headers || {}),
     },
-  });
+  };
+  const res =
+    timeoutMs > 0 ? await fetchWithTimeout(url, request, timeoutMs) : await fetch(url, request);
   const text = await res.text();
   let body;
   try {
@@ -261,7 +295,11 @@ async function resolveAdminFloor(rawFloorDeploymentId) {
   const preview = floorFromLookup(rawFloorDeploymentId, null);
   if (preview.reason === 'floor-unset') return preview;
   try {
-    const body = await api(`/v13/deployments/${encodeURIComponent(preview.floorDeploymentId)}`);
+    const body = await api(
+      `/v13/deployments/${encodeURIComponent(preview.floorDeploymentId)}`,
+      {},
+      VERCEL_API_TIMEOUT_MS,
+    );
     return floorFromLookup(preview.floorDeploymentId, body);
   } catch (error) {
     const detail = error instanceof Error ? error.message : 'unknown error';

@@ -567,7 +567,9 @@ jobs:
           ADMIN_HOST="${ADMIN_HOST%%/*}"
           ADMIN_PROJECT_ID=$(jq -r '.admin' .github/vercel-projects.json)
           VERCEL_API="https://api.vercel.com"
-          DPL_ID=$(curl -sf -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+          # Cap each Vercel API call at 10s so a hung request fails this step
+          # and the failure rollback can still run inside the job timeout.
+          DPL_ID=$(curl -sf --max-time 10 -H "Authorization: Bearer ${VERCEL_TOKEN}" \
             "${VERCEL_API}/v6/deployments?projectId=${ADMIN_PROJECT_ID}&teamId=${VERCEL_ORG_ID}&target=production&state=READY&limit=20" \
             | jq -r --arg host "$ADMIN_HOST" '[.deployments[]? | select(.url == $host) | .uid][0] // empty' || true)
           if [ -z "$DPL_ID" ]; then
@@ -577,7 +579,7 @@ jobs:
           echo "Waiting for ${ADMIN_ALIAS} on ${DPL_ID}..."
           ALIASED=false
           for i in $(seq 1 12); do
-            if curl -sf -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+            if curl -sf --max-time 10 -H "Authorization: Bearer ${VERCEL_TOKEN}" \
               "${VERCEL_API}/v2/deployments/${DPL_ID}/aliases?teamId=${VERCEL_ORG_ID}" \
               | jq -e --arg alias "$ADMIN_ALIAS" 'any(.aliases[]?; .alias == $alias)' > /dev/null; then
               ALIASED=true

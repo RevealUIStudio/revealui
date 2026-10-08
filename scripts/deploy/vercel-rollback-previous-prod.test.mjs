@@ -2,10 +2,12 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   aliasesToMove,
+  fetchWithTimeout,
   floorFromLookup,
   PRODUCTION_ALIASES,
   rollbackRefusalMessage,
   selectRollbackTarget,
+  VERCEL_API_TIMEOUT_MS,
 } from './vercel-rollback-previous-prod.mjs';
 
 const FLOOR_ID = 'dpl_floor';
@@ -139,6 +141,41 @@ test('no eligible admin target leaves the live build in place', () => {
   });
   liveBuildLeftInPlace(message);
   assert.equal(message.includes(FLOOR_ID), true);
+});
+
+test('vercel api fetch aborts when the request outlasts the timeout', async () => {
+  assert.equal(VERCEL_API_TIMEOUT_MS, 10_000);
+  await assert.rejects(
+    fetchWithTimeout(
+      'https://api.vercel.com/v13/deployments/dpl_floor',
+      { headers: { Authorization: 'Bearer test' } },
+      30,
+      (_url, init) =>
+        new Promise((_resolve, reject) => {
+          init.signal.addEventListener('abort', () => {
+            const error = new Error('The operation was aborted');
+            error.name = 'AbortError';
+            reject(error);
+          });
+        }),
+    ),
+    (error) => {
+      assert.equal(error instanceof Error, true);
+      assert.equal(error.message.includes('timed out after 30ms'), true);
+      return true;
+    },
+  );
+});
+
+test('vercel api fetch returns when the request finishes before the timeout', async () => {
+  const response = await fetchWithTimeout(
+    'https://api.vercel.com/v13/deployments/dpl_floor',
+    {},
+    200,
+    async () => ({ ok: true, status: 200 }),
+  );
+  assert.equal(response.ok, true);
+  assert.equal(response.status, 200);
 });
 
 test('other apps still restore the immediate previous deployment', () => {
