@@ -40,8 +40,10 @@ shadow mode. The base-trusted security workflow can independently verify a
 receipt carried by the controller App's exact-head check, but does not use it
 to clear the active owner gate. The controller also has a disabled-by-default
 `publish` mode that stores an eligible signed receipt before publishing an
-App-owned check, with durable expiration work. No controller is deployed, and
-the mode has no merge authority under the current rules.
+App-owned check, with durable expiration work. The isolated controller is
+deployed in `shadow` mode on one Fly machine, using a dedicated Neon project
+and a controller-only receipt signer. It has published no receipt checks and
+has no merge authority under the current rules.
 
 The isolated `apps/review-controller` service authenticates webhook
 signatures, checks the configured repository and App installation IDs, and
@@ -75,6 +77,18 @@ The current workflow has two separate owner-dependent gates:
 
 The current ruleset also requires signed commits. Cursor-produced commits that
 lack a trusted signature can fail independently of those two gates.
+
+The current Codex GitHub integration has not yet supplied the review evidence
+that the receipt evaluator requires. Its observed findings use GitHub
+`COMMENTED` reviews, while observed clean results use issue comments and a
+short commit prefix; neither is an explicit `APPROVED` review bound to the full
+head. The controller correctly holds those observations. Before positive
+shadow evidence is possible, the existing reviewer-evidence collector and
+receipt verifier need a provider-authenticated, full-head-bound explicit
+verdict contract, or an isolated trusted review execution that produces one.
+The contract must be tested against findings, stale and replayed results,
+edited or deleted events, and unavailable provider data. This blocker is
+tracked in [#3087](https://github.com/RevealUIStudio/revealui/issues/3087).
 
 The owning replacement is the existing trusted review-gate and disposition
 path. Replace per-PR human grants with an independently produced receipt,
@@ -267,18 +281,19 @@ than relying on Actions artifact attestations for private-repository evidence.
 ## Cutover decision
 
 This proposal does not remove or weaken any active protection. The isolated
-controller and App check publisher exist, but are not deployed and cannot
-authorize a merge under the current rules. Shadow evidence, repository plan
-verification, trusted review provenance, App identity enforcement, and the
-cutover ruleset change must be reviewed and pass as one migration. The
-public and private repositories may cut over at different times. Until then,
+controller is deployed in shadow mode; its App check publisher remains
+inactive and cannot authorize a merge under the current rules. Shadow
+evidence, repository plan verification, trusted review provenance, App
+identity enforcement, and the cutover ruleset change must be reviewed and pass
+as one migration. The public and private repositories may cut over at different
+times. Until then,
 the existing manual gate remains in force, and its per-PR burden is recorded
 as a known blocker rather than hidden behind a one-off shortcut.
 
-The implementation follow-up remains in this owning path: provision and deploy
-the isolated controller, validate live receipt publication and expiration,
-establish trusted review provenance, configure the App-bound required check,
-and evaluate `merge_group` candidates before changing any active rule.
+The implementation follow-up remains in this owning path: validate live
+receipt publication and expiration, establish trusted review provenance,
+configure the App-bound required check, and evaluate `merge_group` candidates
+before changing any active rule.
 Validation must cover stale checks, counterfeit same-name checks from another
 App, moved base/head, merge conflicts, incomplete file manifests, controller
 and API outages, receipt replay, key rotation, and actual source-App
