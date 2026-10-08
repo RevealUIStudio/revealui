@@ -158,7 +158,10 @@ webhook inactive until the deployed service passes both `/health/live` and
 Required runtime settings are `DATABASE_URL`, `GITHUB_WEBHOOK_SECRET`,
 `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_REPOSITORY_ID`,
 `GITHUB_REPOSITORY_FULL_NAME`, `GITHUB_INSTALLATION_ID`, and `PORT`. The
-webhook secret must contain at least 32 characters. The App installation
+`GITHUB_APP_PRIVATE_KEY` value is the complete RSA PEM downloaded from the
+dedicated GitHub App, including its `BEGIN` and `END` lines. Store the PEM
+contents as the secret value, rather than its filename or an SSH signing key.
+The webhook secret must contain at least 32 characters. The App installation
 token is restricted to the configured repository and requests only Checks
 write, Contents read, Merge queues read, and Pull requests write. The App has
 no Contents write, Administration, ruleset bypass, or workflow permission.
