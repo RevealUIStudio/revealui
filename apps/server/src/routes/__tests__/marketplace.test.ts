@@ -33,6 +33,8 @@ const {
   mockBuildPaymentRequired,
   mockEncodePaymentRequired,
   mockVerifyPayment,
+  mockSettlePayment,
+  mockReadPaymentClaim,
   mockLoggerInfo,
   mockLoggerWarn,
   mockLoggerError,
@@ -60,6 +62,8 @@ const {
     mockBuildPaymentRequired: vi.fn(),
     mockEncodePaymentRequired: vi.fn(),
     mockVerifyPayment: vi.fn(),
+    mockSettlePayment: vi.fn(),
+    mockReadPaymentClaim: vi.fn(),
     mockLoggerInfo: vi.fn(),
     mockLoggerWarn: vi.fn(),
     mockLoggerError: vi.fn(),
@@ -82,6 +86,22 @@ vi.mock('../../middleware/x402.js', () => ({
   buildPaymentRequired: mockBuildPaymentRequired,
   encodePaymentRequired: mockEncodePaymentRequired,
   verifyPayment: mockVerifyPayment,
+  settlePayment: mockSettlePayment,
+  readPaymentClaim: mockReadPaymentClaim,
+  decideNonceClaim: (existing: { paymentNonce: string } | null) => (existing ? 'replay' : 'insert'),
+  settlementSupportsPayout: (
+    row: { status: string; amount: string; resource: string } | null | undefined,
+    expectedAmount: string,
+    resource: string,
+  ) =>
+    Boolean(
+      row && row.status === 'settled' && row.amount === expectedAmount && row.resource === resource,
+    ),
+  toUsdcAtomicUnits: (humanAmount: string) => {
+    const amount = Number.parseFloat(humanAmount);
+    if (!Number.isFinite(amount) || amount <= 0) return '1000';
+    return String(Math.round(amount * 1_000_000));
+  },
   getAdvertisedCurrencyLabel: () => 'usdc-only',
   getX402Config: () => ({ enabled: true }),
 }));
@@ -162,6 +182,7 @@ function makeInsertChain() {
   const chain = {
     values: vi.fn(),
     returning: vi.fn().mockResolvedValue(result),
+    onConflictDoNothing: vi.fn(),
     then(
       onFulfilled?: (value: unknown) => unknown,
       onRejected?: (reason: unknown) => unknown,
@@ -170,6 +191,7 @@ function makeInsertChain() {
     },
   };
   chain.values.mockReturnValue(chain);
+  chain.onConflictDoNothing.mockReturnValue(chain);
   return chain;
 }
 
@@ -227,6 +249,16 @@ vi.mock('@revealui/db/schema', () => ({
     metadata: 'metadata',
     createdAt: 'created_at',
     stripeTransferId: 'stripe_transfer_id',
+  },
+  x402Settlements: {
+    id: 'id',
+    paymentNonce: 'payment_nonce',
+    txHash: 'tx_hash',
+    amount: 'amount',
+    payer: 'payer',
+    resource: 'resource',
+    status: 'status',
+    createdAt: 'created_at',
   },
 }));
 
@@ -348,6 +380,23 @@ function resetMocks() {
   });
   mockEncodePaymentRequired.mockReturnValue('base64encoded');
   mockVerifyPayment.mockResolvedValue({ valid: true });
+  mockReadPaymentClaim.mockReturnValue({
+    ok: true,
+    claim: {
+      nonce: '0xnonce',
+      payer: '0xpayer',
+      amount: '5000',
+      validAfter: 0,
+      validBefore: 4_000_000_000,
+    },
+  });
+  mockSettlePayment.mockResolvedValue({
+    ok: true,
+    nonce: '0xnonce',
+    txHash: '0xtx',
+    amount: '5000',
+    payer: '0xpayer',
+  });
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: test helper  -  response shapes vary per endpoint
@@ -871,6 +920,7 @@ describe('POST /servers/:id/invoke -- x402 payment flow', () => {
 
   it('proxies request and returns 200 on valid payment + successful proxy', async () => {
     selectResults.push([MOCK_SERVER]);
+    insertResults.push([{ id: 'settle-1' }]);
     mockVerifyPayment.mockResolvedValueOnce({ valid: true });
 
     const originalFetch = globalThis.fetch;
@@ -901,6 +951,7 @@ describe('POST /servers/:id/invoke -- x402 payment flow', () => {
 
   it('returns 502 when upstream server is unreachable', async () => {
     selectResults.push([MOCK_SERVER]);
+    insertResults.push([{ id: 'settle-1' }]);
     mockVerifyPayment.mockResolvedValueOnce({ valid: true });
 
     const originalFetch = globalThis.fetch;
@@ -926,6 +977,7 @@ describe('POST /servers/:id/invoke -- x402 payment flow', () => {
 
   it('records transaction in database on successful proxy', async () => {
     selectResults.push([MOCK_SERVER]);
+    insertResults.push([{ id: 'settle-1' }]);
     mockVerifyPayment.mockResolvedValueOnce({ valid: true });
 
     const originalFetch = globalThis.fetch;
@@ -971,7 +1023,149 @@ describe('POST /servers/:id/invoke -- x402 payment flow', () => {
       'my-payment-payload-value',
       expect.stringContaining('/servers/mcp_abcdef123456/invoke'),
       'marketplace-invoke',
+      MOCK_SERVER.pricePerCallUsdc,
     );
+  });
+});
+
+describe('POST /servers/:id/invoke -- settlement before developer payout', () => {
+  beforeEach(resetMocks);
+
+  const invokeUrl = '/servers/mcp_abcdef123456/invoke';
+  const resource = 'http://localhost/api/marketplace/servers/mcp_abcdef123456/invoke';
+  const jsonRpcBody = { jsonrpc: '2.0', method: 'tools/list' };
+
+  function paidServer() {
+    return { ...MOCK_SERVER, pricePerCallUsdc: '1.00' };
+  }
+
+  function settledClaim(nonce = '0xnonce') {
+    return {
+      ok: true as const,
+      claim: {
+        nonce,
+        payer: '0xpayer',
+        amount: '1000000',
+        validAfter: 0,
+        validBefore: 4_000_000_000,
+      },
+    };
+  }
+
+  async function invoke(nonce = '0xnonce') {
+    mockReadPaymentClaim.mockReturnValueOnce(settledClaim(nonce));
+    const app = createApp();
+    return app.request(invokeUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-PAYMENT-PAYLOAD': `payload-${nonce}`,
+      },
+      body: JSON.stringify(jsonRpcBody),
+    });
+  }
+
+  it('produces no payout when verification succeeds but settlement does not', async () => {
+    selectResults.push([paidServer()]);
+    mockVerifyPayment.mockResolvedValueOnce({ valid: true });
+    mockSettlePayment.mockResolvedValueOnce({ ok: false, error: 'Payment was not settled' });
+
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn();
+    try {
+      const res = await invoke();
+      expect(res.status).toBe(402);
+      expect(mockStripeTransfersCreate).not.toHaveBeenCalled();
+      expect(globalThis.fetch).not.toHaveBeenCalled();
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('produces no payout when the facilitator settlement call fails', async () => {
+    selectResults.push([paidServer()]);
+    mockVerifyPayment.mockResolvedValueOnce({ valid: true });
+    mockSettlePayment.mockResolvedValueOnce({
+      ok: false,
+      error: 'Facilitator error: HTTP 502',
+    });
+
+    const res = await invoke();
+    expect(res.status).toBe(402);
+    expect(mockStripeTransfersCreate).not.toHaveBeenCalled();
+  });
+
+  it('rejects a payload whose nonce was already stored', async () => {
+    selectResults.push([paidServer()]);
+    selectResults.push([{ paymentNonce: '0xused' }]);
+
+    const res = await invoke('0xused');
+    expect(res.status).toBe(402);
+    const body = await parseBody(res);
+    expect(body.error).toContain('already used');
+    expect(mockSettlePayment).not.toHaveBeenCalled();
+    expect(mockStripeTransfersCreate).not.toHaveBeenCalled();
+  });
+
+  it('rejects a second insert of the same nonce and does not pay out', async () => {
+    selectResults.push([paidServer()]);
+    insertResults.push([]);
+    mockSettlePayment.mockResolvedValueOnce({
+      ok: true,
+      nonce: '0xnonce',
+      txHash: '0xtx',
+      amount: '1000000',
+      payer: '0xpayer',
+    });
+
+    const res = await invoke();
+    expect(res.status).toBe(402);
+    const body = await parseBody(res);
+    expect(body.error).toContain('already used');
+    expect(mockStripeTransfersCreate).not.toHaveBeenCalled();
+  });
+
+  it('pays the developer once for a settled payment and rejects the same payload after that', async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ result: 'proxied-ok' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+
+    try {
+      selectResults.push([paidServer()]);
+      selectResults.push([]);
+      insertResults.push([{ id: 'settle-1' }]);
+      selectResults.push([{ status: 'settled', amount: '1000000', resource }]);
+      mockSettlePayment.mockResolvedValueOnce({
+        ok: true,
+        nonce: '0xonce',
+        txHash: '0xtx-once',
+        amount: '1000000',
+        payer: '0xpayer',
+      });
+
+      const first = await invoke('0xonce');
+      expect(first.status).toBe(200);
+      expect(mockStripeTransfersCreate).toHaveBeenCalledTimes(1);
+      expect(mockStripeTransfersCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          amount: 80,
+          currency: 'usd',
+          destination: 'acct_test123',
+        }),
+      );
+
+      selectResults.push([paidServer()]);
+      selectResults.push([{ paymentNonce: '0xonce' }]);
+      const second = await invoke('0xonce');
+      expect(second.status).toBe(402);
+      expect(mockStripeTransfersCreate).toHaveBeenCalledTimes(1);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 });
 
