@@ -43,6 +43,15 @@ This deliberately treats a comment-only review with no inline comments as
 unresolved rather than inferring approval from missing findings. Stale reviews
 cannot approve. Review prose and source excerpts are not persisted.
 
+The observed Codex GitHub integration can report a clean run as an issue
+comment containing only an abbreviated commit SHA, and can submit findings as
+a `COMMENTED` pull-request review. Neither is an explicit approving verdict
+bound to the full head SHA. The controller therefore keeps these results
+ineligible, even when all required checks pass. Issue #3087 tracks obtaining
+and validating a provider result with an authenticated, full-head-bound
+approving state; receipt publication and owner-gate cutover must wait for that
+contract and positive hosted shadow evidence.
+
 When `REVIEW_RECEIPT_MODE=shadow` is configured, a review delivery with an
 approving Codex observation also runs the receipt evaluator. It resolves
 configured check selectors by stable check name and GitHub App ID to the

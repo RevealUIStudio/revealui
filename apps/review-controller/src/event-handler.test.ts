@@ -617,6 +617,148 @@ describe('shadow webhook event handler', () => {
     });
   });
 
+  it.each([
+    { storedState: 'approved', incomingState: 'COMMENTED' },
+    { storedState: 'commented', incomingState: 'APPROVED' },
+  ] as const)(
+    'keeps a same-head rejection authoritative when $incomingState arrives after stored $storedState',
+    async ({ storedState, incomingState }) => {
+      const { privateKey } = generateKeyPairSync('ed25519');
+      const policy: ReceiptPolicy = {
+        mode: 'shadow',
+        repositoryFullName: 'RevealUIStudio/revealui',
+        keyId: 'receipt-key-1',
+        privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
+        version: 'policy-1',
+        maxLifetimeMs: 21_600_000,
+        requiredChecks: [{ name: 'CI', appId: 77 }],
+      };
+      const { client, observations } = fixtures();
+      vi.mocked(observations.listReviewObservations).mockResolvedValue([
+        {
+          provider: 'codex-subscription',
+          reviewerLogin: 'chatgpt-codex-connector[bot]',
+          reviewerId: 90210,
+          reviewId: 81,
+          reviewedHeadSha: 'a'.repeat(40),
+          currentHeadSha: 'a'.repeat(40),
+          state: storedState,
+          action: 'submitted',
+          observedAt: '2026-10-06T11:59:00Z',
+          bodySha256: '1'.repeat(64),
+          inlineCommentCount: 0,
+          inlineComments: [],
+          submittedAt: '2026-10-06T11:59:00Z',
+          exactHead: true,
+          receiptReview: {
+            reviewerId: 'github-user:90210',
+            system: 'openai-codex-subscription',
+            executionId: 'github-review:81',
+            revisionSha: 'a'.repeat(40),
+            verdict: storedState === 'approved' ? 'approve' : 'request-changes',
+            criticalFindings: 0,
+            highFindings: 0,
+          },
+        },
+      ]);
+      const handler = new ShadowWebhookHandler(client, observations, policy);
+      await handler.process(
+        webhook('pull_request_review', {
+          action: 'submitted',
+          pull_request: { number: 7 },
+          review: {
+            id: 82,
+            user: { id: 90210, login: 'chatgpt-codex-connector[bot]', type: 'Bot' },
+            commit_id: 'a'.repeat(40),
+            state: incomingState,
+            body: '',
+            submitted_at: '2026-10-06T12:00:00Z',
+          },
+        }),
+      );
+      expect(
+        vi.mocked(observations.recordPullRequest).mock.calls[0]?.[0].receiptEvaluation,
+      ).toMatchObject({ status: 'ineligible', reason: 'codex_review_not_approving' });
+      expect(client.getFreshMergeCandidate).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([
+    { label: 'a clean Codex COMMENTED review', comments: [] },
+    {
+      label: 'a Codex COMMENTED review with an inline finding',
+      comments: [
+        {
+          id: 4221286854,
+          pull_request_review_id: 5459490806,
+          path: 'scripts/gates/ci-gate.ts',
+          line: null,
+          commit_id: 'a'.repeat(40),
+          body: 'A P2 documentation finding',
+          user: { id: 199175422, login: 'chatgpt-codex-connector[bot]', type: 'Bot' },
+        },
+      ],
+    },
+  ])(
+    'does not mint a receipt from $label even when the exact-head checks pass',
+    async ({ comments }) => {
+      const { privateKey } = generateKeyPairSync('ed25519');
+      const policy: ReceiptPolicy = {
+        mode: 'shadow',
+        repositoryFullName: 'RevealUIStudio/revealui',
+        keyId: 'receipt-key-1',
+        privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
+        version: 'policy-1',
+        maxLifetimeMs: 21_600_000,
+        requiredChecks: [{ name: 'CI', appId: 77 }],
+      };
+      const { client, observations } = fixtures();
+      vi.mocked(client.listPullRequestReviewComments).mockResolvedValue(comments);
+      vi.mocked(client.listCheckRuns).mockResolvedValue([
+        {
+          id: 102,
+          check_suite: { id: 202 },
+          name: 'CI',
+          head_sha: 'a'.repeat(40),
+          status: 'completed',
+          conclusion: 'success',
+          completed_at: '2026-10-06T11:59:00Z',
+          app: { id: 77, slug: 'github-actions' },
+        },
+      ]);
+      const handler = new ShadowWebhookHandler(client, observations, policy);
+      await handler.process(
+        webhook('pull_request_review', {
+          action: 'submitted',
+          pull_request: { number: 7 },
+          review: {
+            id: 5459490806,
+            user: { id: 199175422, login: 'chatgpt-codex-connector[bot]', type: 'Bot' },
+            commit_id: 'a'.repeat(40),
+            state: 'COMMENTED',
+            body: 'Codex Review',
+            submitted_at: '2026-10-06T12:00:00Z',
+          },
+        }),
+      );
+      const observation = vi.mocked(observations.recordPullRequest).mock.calls[0]?.[0];
+      expect(observation?.reviewEvidence).toMatchObject({
+        status: 'observed',
+        review: {
+          reviewedHeadSha: 'a'.repeat(40),
+          exactHead: true,
+          state: 'commented',
+          receiptReview: { verdict: 'request-changes' },
+        },
+      });
+      expect(observation?.receiptEvaluation).toMatchObject({
+        status: 'ineligible',
+        reason: 'codex_review_not_approving',
+      });
+      expect(client.getFreshMergeCandidate).not.toHaveBeenCalled();
+    },
+  );
+
   it('records stale Codex reviews as ineligible and ignores other review authors', async () => {
     const { observations, handler } = fixtures();
     const makeReview = (login: string, commit: string) => ({

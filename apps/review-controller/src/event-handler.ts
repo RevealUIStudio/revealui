@@ -188,6 +188,8 @@ async function latestCurrentCodexReview(
     baseSha: snapshot.baseSha,
   });
   if (incoming.status === 'observed') reviews.push(incoming.review);
+  // A replayed approval cannot supersede a same-head non-approving review.
+  // Remediation must produce a new head before an approval can become eligible.
   const current = reviews
     .filter(
       (review) =>
@@ -197,6 +199,8 @@ async function latestCurrentCodexReview(
     )
     .sort(
       (left, right) =>
+        Number(left.receiptReview?.verdict === 'approve') -
+          Number(right.receiptReview?.verdict === 'approve') ||
         Date.parse(right.observedAt) - Date.parse(left.observedAt) ||
         right.reviewId - left.reviewId,
     )[0];
