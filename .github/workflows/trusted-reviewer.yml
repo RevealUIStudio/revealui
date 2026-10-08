@@ -1,0 +1,54 @@
+# The workflow and executable come only from the protected base commit.
+# PR content is fetched as data through the narrowly scoped reviewer App.
+name: Trusted Reviewer
+
+on:
+  pull_request_target:
+    branches: [test]
+    types: [opened, synchronize, reopened, ready_for_review]
+  schedule:
+    - cron: '17,47 * * * *'
+
+concurrency:
+  group: trusted-reviewer-${{ github.repository_id }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    if: >-
+      vars.REVEALFLEET_REVIEWER_APP_ID != '' &&
+      (github.event_name == 'schedule' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: '24.13.0'
+          cache: pnpm
+      - name: Build trusted reviewer
+        run: |
+          pnpm install --frozen-lockfile --filter '@revealui/review-controller...'
+          pnpm --filter '@revealui/review-controller...' build
+      - name: Review exact pull request snapshot
+        env:
+          GITHUB_APP_ID: ${{ vars.REVEALFLEET_REVIEWER_APP_ID }}
+          GITHUB_INSTALLATION_ID: ${{ vars.REVEALFLEET_REVIEWER_INSTALLATION_ID }}
+          GITHUB_REVIEWER_BOT_ID: ${{ vars.REVEALFLEET_REVIEWER_BOT_ID }}
+          GITHUB_REVIEWER_BOT_LOGIN: ${{ vars.REVEALFLEET_REVIEWER_BOT_LOGIN }}
+          GITHUB_REPOSITORY_ID: ${{ github.event.repository.id }}
+          GITHUB_REPOSITORY_FULL_NAME: ${{ github.repository }}
+          REVIEW_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+          OPENAI_REVIEW_MODEL: ${{ vars.REVEALFLEET_REVIEW_MODEL }}
+          OPENAI_REVIEW_POLICY_VERSION: ${{ vars.REVEALFLEET_REVIEW_POLICY_VERSION }}
+          GITHUB_APP_PRIVATE_KEY: ${{ secrets.REVEALFLEET_REVIEWER_APP_PRIVATE_KEY }}
+          OPENAI_API_KEY: ${{ secrets.REVEALFLEET_REVIEWER_OPENAI_API_KEY }}
+        run: pnpm --filter @revealui/review-controller review:pr

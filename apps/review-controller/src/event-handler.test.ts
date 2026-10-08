@@ -589,6 +589,81 @@ describe('shadow webhook event handler', () => {
     });
   });
 
+  it('accepts only the configured reviewer App identity and excludes legacy stored approvals', async () => {
+    const { privateKey } = generateKeyPairSync('ed25519');
+    const { client, observations } = fixtures();
+    const policy: ReceiptPolicy = {
+      mode: 'shadow',
+      repositoryFullName: 'RevealUIStudio/revealui',
+      keyId: 'receipt-key-1',
+      privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
+      version: 'policy-1',
+      maxLifetimeMs: 21_600_000,
+      requiredChecks: [{ name: 'CI', appId: 77 }],
+      trustedReviewer: {
+        login: 'revealui-reviewer[bot]',
+        id: 90211,
+        policyVersion: 'review-policy-1',
+        model: 'gpt-6-astra',
+      },
+    };
+    const handler = new ShadowWebhookHandler(client, observations, policy);
+    const boundBody = JSON.stringify({
+      binding: {
+        version: 1,
+        repositoryId: 300,
+        pullRequest: 7,
+        headSha: 'a'.repeat(40),
+        baseSha: 'b'.repeat(40),
+        manifestSha256: createHash('sha256').update('[]').digest('hex'),
+        policyVersion: 'review-policy-1',
+        model: 'gpt-6-astra',
+      },
+      summary: 'No blocking findings.',
+      findings: [],
+    });
+    const review = (id: number, login: string, commit = 'a'.repeat(40), body = boundBody) =>
+      webhook('pull_request_review', {
+        action: 'submitted',
+        pull_request: { number: 7 },
+        review: {
+          id: 83,
+          user: { id, login, type: 'Bot' },
+          commit_id: commit,
+          state: 'APPROVED',
+          body,
+          submitted_at: '2026-10-06T12:02:00Z',
+        },
+      });
+    await handler.process(review(90210, 'chatgpt-codex-connector[bot]'));
+    await handler.process(review(90210, 'revealui-reviewer[bot]'));
+    await handler.process(review(90211, 'revealui-reviewer[bot]', 'b'.repeat(40)));
+    await handler.process(review(90211, 'revealui-reviewer[bot]', 'a'.repeat(40), '{}'));
+    await handler.process(review(90211, 'revealui-reviewer[bot]'));
+    const calls = vi.mocked(observations.recordPullRequest).mock.calls;
+    expect(calls[0]?.[0].reviewEvidence).toEqual({ status: 'not_requested' });
+    expect(calls[1]?.[0].reviewEvidence).toEqual({ status: 'not_requested' });
+    expect(calls[2]?.[0].reviewEvidence).toMatchObject({
+      status: 'observed',
+      review: { exactHead: false },
+    });
+    expect(calls[3]?.[0].reviewEvidence).toMatchObject({
+      status: 'observed',
+      review: { receiptReview: { verdict: 'request-changes' } },
+    });
+    expect(calls[4]?.[0].reviewEvidence).toMatchObject({
+      status: 'observed',
+      review: {
+        provider: 'trusted-reviewer-app',
+        receiptReview: {
+          system: 'openai-api-trusted-reviewer-app',
+          reviewerId: 'github-user:90211',
+          verdict: 'approve',
+        },
+      },
+    });
+  });
+
   it('does not treat a comment-only review with no inline comments as approval', async () => {
     const { observations, handler } = fixtures();
     await handler.process(

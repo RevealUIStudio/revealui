@@ -34,6 +34,7 @@ export interface GitHubAppConfig {
   repositoryFullName: string;
   privateKey: string;
   receiptEvaluationEnabled?: boolean;
+  role?: 'controller' | 'reviewer';
 }
 
 export interface PullRequestFile {
@@ -162,6 +163,96 @@ export class GitHubAppClient {
     )
       throw new GitHubAppError('invalid_pull_request_response');
     return result;
+  }
+
+  async listOpenPullRequestNumbers(baseRef: string): Promise<number[]> {
+    if (!/^[A-Za-z0-9._/-]{1,128}$/.test(baseRef)) throw new Error('invalid base ref');
+    const results = await this.getPaginated(
+      `/repos/${this.config.repositoryFullName}/pulls?state=open&base=${encodeURIComponent(baseRef)}`,
+    );
+    return results.flatMap((value) => {
+      const base = isRecord(value) && isRecord(value.base) ? value.base : null;
+      const baseRepo = base && isRecord(base.repo) ? base.repo : null;
+      const head = isRecord(value) && isRecord(value.head) ? value.head : null;
+      const headRepo = head && isRecord(head.repo) ? head.repo : null;
+      if (
+        !(isRecord(value) && Number.isSafeInteger(value.number)) ||
+        Number(value.number) <= 0 ||
+        value.state !== 'open' ||
+        base?.ref !== baseRef ||
+        baseRepo?.id !== this.config.repositoryId ||
+        !headRepo ||
+        !Number.isSafeInteger(headRepo.id)
+      )
+        throw new GitHubAppError('invalid_pull_request_list');
+      return headRepo.id === this.config.repositoryId ? [Number(value.number)] : [];
+    });
+  }
+
+  async listPullRequestReviews(number: number): Promise<
+    Array<{
+      id: number;
+      commit_id: string;
+      state: string;
+      body: string;
+      user: { id: number; login: string; type: string };
+    }>
+  > {
+    if (!Number.isSafeInteger(number) || number <= 0)
+      throw new Error('invalid pull request number');
+    const reviews = await this.getPaginated(
+      `/repos/${this.config.repositoryFullName}/pulls/${number}/reviews`,
+    );
+    return reviews.map((value) => {
+      if (
+        !(isRecord(value) && isRecord(value.user) && Number.isSafeInteger(value.id)) ||
+        typeof value.commit_id !== 'string' ||
+        !/^[a-f0-9]{40,64}$/.test(value.commit_id) ||
+        typeof value.state !== 'string' ||
+        !(value.body === null || typeof value.body === 'string') ||
+        !Number.isSafeInteger(value.user.id) ||
+        typeof value.user.login !== 'string' ||
+        typeof value.user.type !== 'string'
+      )
+        throw new GitHubAppError('invalid_pull_request_review');
+      return { ...value, body: value.body ?? '' } as unknown as {
+        id: number;
+        commit_id: string;
+        state: string;
+        body: string;
+        user: { id: number; login: string; type: string };
+      };
+    });
+  }
+
+  async submitPullRequestReview(input: {
+    pullNumber: number;
+    commitId: string;
+    event: 'APPROVE' | 'REQUEST_CHANGES';
+    body: string;
+    reviewer: { id: number; login: string };
+  }): Promise<number> {
+    if (
+      !Number.isSafeInteger(input.pullNumber) ||
+      input.pullNumber <= 0 ||
+      !/^[a-f0-9]{40,64}$/.test(input.commitId) ||
+      Buffer.byteLength(input.body, 'utf8') > 64 * 1024
+    )
+      throw new Error('invalid pull request review');
+    const value = await this.postJson(
+      `/repos/${this.config.repositoryFullName}/pulls/${input.pullNumber}/reviews`,
+      { commit_id: input.commitId, event: input.event, body: input.body },
+    );
+    if (
+      !(isRecord(value) && isRecord(value.user) && Number.isSafeInteger(value.id)) ||
+      value.commit_id !== input.commitId ||
+      value.state !== (input.event === 'APPROVE' ? 'APPROVED' : 'CHANGES_REQUESTED') ||
+      value.user.id !== input.reviewer.id ||
+      value.user.login !== input.reviewer.login ||
+      value.user.type !== 'Bot'
+    )
+      throw new GitHubAppError('invalid_submitted_review_response');
+    return Number(value.id);
   }
 
   async getFreshMergeCandidate(input: {
@@ -628,7 +719,10 @@ export class GitHubAppClient {
           },
           body: JSON.stringify({
             repository_ids: [this.config.repositoryId],
-            permissions: installationPermissions(Boolean(this.config.receiptEvaluationEnabled)),
+            permissions: installationPermissions(
+              Boolean(this.config.receiptEvaluationEnabled),
+              this.config.role,
+            ),
           }),
         },
       );

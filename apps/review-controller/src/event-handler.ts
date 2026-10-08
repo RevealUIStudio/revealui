@@ -8,6 +8,7 @@ import { persistReceiptThenPublishCheck } from './receipt-publisher.js';
 import type { SignedReceiptStore } from './receipt-store.js';
 import type { CodexReviewObservation, ReviewEvidence } from './reviewer.js';
 import { fetchPullRequestSnapshot, PullRequestSnapshotCache } from './snapshot.js';
+import { matchesTrustedReviewBinding } from './trusted-review-binding.js';
 import type { WebhookHandler } from './worker.js';
 
 const MAX_PULL_REQUESTS_PER_DELIVERY = 20;
@@ -49,8 +50,9 @@ export class ShadowWebhookHandler implements WebhookHandler {
         this.client,
         webhook,
         number,
-        snapshot.headSha,
+        snapshot,
         snapshot.draft,
+        this.receiptPolicy?.trustedReviewer,
       );
       const receiptEvaluation = this.receiptPolicy
         ? await evaluateReceiptShadow({
@@ -62,6 +64,7 @@ export class ShadowWebhookHandler implements WebhookHandler {
               this.observations,
               snapshot,
               reviewEvidence,
+              this.receiptPolicy.trustedReviewer,
             ),
             getFreshMergeCandidate: async (current) => {
               const candidate = await this.client.getFreshMergeCandidate({
@@ -180,17 +183,27 @@ async function latestCurrentCodexReview(
   observations: ShadowObservationStore,
   snapshot: Awaited<ReturnType<typeof fetchPullRequestSnapshot>>,
   incoming: ReviewEvidence,
+  trustedReviewer?: ReceiptPolicy['trustedReviewer'],
 ): Promise<ReviewEvidence> {
   const reviews = await observations.listReviewObservations({
     repositoryId: snapshot.repositoryId,
     pullRequest: snapshot.pullRequest,
     headSha: snapshot.headSha,
     baseSha: snapshot.baseSha,
+    ...(trustedReviewer ? { trustedReviewer } : {}),
   });
-  if (incoming.status === 'observed') reviews.push(incoming.review);
+  const acceptedReviews = reviews.filter((review) =>
+    trustedReviewer
+      ? review.provider === 'trusted-reviewer-app' &&
+        review.reviewerLogin === trustedReviewer.login &&
+        review.reviewerId === trustedReviewer.id
+      : review.provider === 'codex-subscription' &&
+        review.reviewerLogin === 'chatgpt-codex-connector[bot]',
+  );
+  if (incoming.status === 'observed') acceptedReviews.push(incoming.review);
   // A replayed approval cannot supersede a same-head non-approving review.
   // Remediation must produce a new head before an approval can become eligible.
-  const current = reviews
+  const current = acceptedReviews
     .filter(
       (review) =>
         review.reviewedHeadSha === snapshot.headSha && review.currentHeadSha === snapshot.headSha,
@@ -215,8 +228,9 @@ async function codexReviewEvidence(
   client: GitHubAppClient,
   webhook: ClaimedWebhook,
   pullNumber: number,
-  currentHeadSha: string,
+  snapshot: Awaited<ReturnType<typeof fetchPullRequestSnapshot>>,
   draft: boolean,
+  trustedReviewer?: ReceiptPolicy['trustedReviewer'],
 ): Promise<ReviewEvidence> {
   if (webhook.eventName !== 'pull_request_review')
     return isReviewTrigger(webhook) && !draft
@@ -224,15 +238,17 @@ async function codexReviewEvidence(
       : { status: 'not_requested' };
 
   const review = record(webhook.payload.review);
+  const currentHeadSha = snapshot.headSha;
   const author = isRecord(review.user) ? review.user : null;
   const action = webhook.payload.action;
   if (
     !(
       author &&
-      author.login === 'chatgpt-codex-connector[bot]' &&
+      author.login === (trustedReviewer?.login ?? 'chatgpt-codex-connector[bot]') &&
       author.type === 'Bot' &&
       Number.isSafeInteger(author.id) &&
       Number(author.id) > 0 &&
+      (!trustedReviewer || author.id === trustedReviewer.id) &&
       Number.isSafeInteger(review.id) &&
       Number(review.id) > 0 &&
       ['submitted', 'edited', 'dismissed'].includes(String(action)) &&
@@ -259,6 +275,14 @@ async function codexReviewEvidence(
       ? new Date(review.submitted_at).toISOString()
       : null;
   const body = typeof review.body === 'string' ? review.body : '';
+  const bindingMatches =
+    !trustedReviewer ||
+    matchesTrustedReviewBinding(
+      body,
+      snapshot,
+      trustedReviewer.policyVersion,
+      trustedReviewer.model,
+    );
   const reviewedCurrentHead = reviewedHeadSha === currentHeadSha;
   const exactHead = reviewedCurrentHead && actionValue !== 'dismissed' && state !== 'dismissed';
   const inlineComments = exactHead
@@ -267,7 +291,9 @@ async function codexReviewEvidence(
   if (
     inlineComments.some(
       (comment) =>
-        comment.user.login !== 'chatgpt-codex-connector[bot]' || comment.user.type !== 'Bot',
+        comment.user.login !== author.login ||
+        comment.user.id !== author.id ||
+        comment.user.type !== 'Bot',
     )
   )
     throw new GitHubAppError('review_comment_author_mismatch');
@@ -285,7 +311,7 @@ async function codexReviewEvidence(
   const receiptReview = reviewedCurrentHead
     ? {
         reviewerId: `github-user:${Number(author.id)}`,
-        system: 'openai-codex-subscription',
+        system: trustedReviewer ? 'openai-api-trusted-reviewer-app' : 'openai-codex-subscription',
         executionId: `github-review:${Number(review.id)}`,
         revisionSha: reviewedHeadSha,
         verdict:
@@ -293,6 +319,7 @@ async function codexReviewEvidence(
           state === 'dismissed' ||
           actionValue === 'dismissed' ||
           sanitizedComments.length > 0 ||
+          !bindingMatches ||
           state !== 'approved'
             ? ('request-changes' as const)
             : ('approve' as const),
@@ -303,7 +330,7 @@ async function codexReviewEvidence(
   return {
     status: 'observed',
     review: {
-      provider: 'codex-subscription',
+      provider: trustedReviewer ? 'trusted-reviewer-app' : 'codex-subscription',
       reviewerLogin: String(author.login),
       reviewerId: Number(author.id),
       reviewId: Number(review.id),

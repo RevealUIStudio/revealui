@@ -18,6 +18,7 @@ export interface ShadowObservationStore {
     pullRequest: number;
     headSha: string;
     baseSha: string;
+    trustedReviewer?: { login: string; id: number };
   }): Promise<CodexReviewObservation[]>;
   recordPullRequest(input: {
     deliveryId: string;
@@ -45,7 +46,10 @@ export class PostgresShadowObservationStore implements ShadowObservationStore {
     pullRequest: number;
     headSha: string;
     baseSha: string;
+    trustedReviewer?: { login: string; id: number };
   }): Promise<CodexReviewObservation[]> {
+    const provider = input.trustedReviewer ? 'trusted-reviewer-app' : 'codex-subscription';
+    const reviewerLogin = input.trustedReviewer?.login ?? 'chatgpt-codex-connector[bot]';
     const candidate = and(
       eq(reviewControllerShadowObservations.eventKind, 'pull_request'),
       eq(reviewControllerShadowObservations.repositoryId, input.repositoryId),
@@ -55,6 +59,13 @@ export class PostgresShadowObservationStore implements ShadowObservationStore {
       sql`${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,status}' = 'observed'`,
       sql`${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,review,reviewedHeadSha}' = ${input.headSha}`,
       sql`${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,review,currentHeadSha}' = ${input.headSha}`,
+      sql`${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,review,provider}' = ${provider}`,
+      sql`${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,review,reviewerLogin}' = ${reviewerLogin}`,
+      ...(input.trustedReviewer
+        ? [
+            sql`${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,review,reviewerId}' = ${String(input.trustedReviewer.id)}`,
+          ]
+        : []),
     );
     // One database snapshot selects a same-head denial before any approval.
     // Later check snapshots and replayed approvals cannot evict the denial.
@@ -144,7 +155,7 @@ export class PostgresShadowObservationStore implements ShadowObservationStore {
 function isCodexReviewObservation(value: unknown): value is CodexReviewObservation {
   return (
     isRecord(value) &&
-    value.provider === 'codex-subscription' &&
+    (value.provider === 'codex-subscription' || value.provider === 'trusted-reviewer-app') &&
     Number.isSafeInteger(value.reviewerId) &&
     Number.isSafeInteger(value.reviewId) &&
     typeof value.reviewedHeadSha === 'string' &&
