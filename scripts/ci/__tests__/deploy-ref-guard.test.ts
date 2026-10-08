@@ -66,6 +66,22 @@ describe('production deploy ref guard', () => {
     expect(summaryAt).toBeGreaterThanOrEqual(0);
     expect(workflow.slice(summaryAt)).not.toContain('environment:');
   });
+
+  it('smokes admin on the custom domain after the alias is assigned', () => {
+    const smoke = sliceJob(workflow, '\n  smoke-test:\n', '\n  design-verify:\n');
+    expect(smoke).toContain('timeout-minutes: 10');
+    expect(smoke).not.toContain('VERCEL_AUTOMATION_BYPASS_SECRET');
+    expect(smoke).not.toContain('skip_rollback');
+    expect(smoke).toContain('ADMIN_ALIAS: admin.revealui.com');
+    expect(smoke).toContain(['VERCEL_TOKEN: ', '$', '{{ secrets.VERCEL_TOKEN }}'].join(''));
+    expect(smoke).toContain(['VERCEL_ORG_ID: ', '$', '{{ secrets.VERCEL_ORG_ID }}'].join(''));
+    expect(smoke).toContain(['PUBLIC_URL="https://', '$', '{ADMIN_ALIAS}/login"'].join(''));
+    expect(smoke).toContain('if [ "$CODE" = "200" ]; then');
+    expect(smoke).not.toContain('curl -sf "$ADMIN_URL"');
+    const rollbackAt = smoke.indexOf('name: Rollback on failure');
+    expect(rollbackAt).toBeGreaterThanOrEqual(0);
+    expect(smoke.slice(rollbackAt, rollbackAt + 80)).toContain('if: failure()');
+  });
 });
 
 function sliceJob(workflow: string, startMarker: string, endMarker: string): string {

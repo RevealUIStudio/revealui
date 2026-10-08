@@ -497,7 +497,8 @@ jobs:
   smoke-test:
     name: Smoke Test
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # The admin alias wait alone can take about 4 minutes, so 5 is too tight.
+    timeout-minutes: 10
     needs: [production-ref, detect, deploy]
     environment: production
 
@@ -545,23 +546,63 @@ jobs:
           exit 1
 
       - name: Health check — Admin
+        env:
+          ADMIN_ALIAS: admin.revealui.com
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
         run: |
           URL_FILE="deploy-urls/deploy-url-admin/url.txt"
           if [ ! -f "$URL_FILE" ]; then
             echo "::notice::admin was not in this deploy — skipping admin probe"
             exit 0
           fi
+          # The admin custom domain is outside Vercel deployment protection
+          # (protection covers all deployments except custom domains). Raw
+          # *.vercel.app URLs answer with a 302 to Vercel SSO, which curl -sf
+          # counts as success, so they cannot prove admin health. Wait until
+          # the production alias points at this deployment, then probe the
+          # custom domain and require HTTP 200. No bypass secret is used.
           ADMIN_URL=$(tr -d '[:space:]' < "$URL_FILE")
-          echo "Checking $ADMIN_URL (deployment URL, not the public alias)..."
+          ADMIN_HOST="${ADMIN_URL#https://}"
+          ADMIN_HOST="${ADMIN_HOST%%/*}"
+          ADMIN_PROJECT_ID=$(jq -r '.admin' .github/vercel-projects.json)
+          VERCEL_API="https://api.vercel.com"
+          DPL_ID=$(curl -sf -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+            "${VERCEL_API}/v6/deployments?projectId=${ADMIN_PROJECT_ID}&teamId=${VERCEL_ORG_ID}&target=production&state=READY&limit=20" \
+            | jq -r --arg host "$ADMIN_HOST" '[.deployments[]? | select(.url == $host) | .uid][0] // empty' || true)
+          if [ -z "$DPL_ID" ]; then
+            echo "::error::No READY production deployment found for $ADMIN_URL"
+            exit 1
+          fi
+          echo "Waiting for ${ADMIN_ALIAS} on ${DPL_ID}..."
+          ALIASED=false
           for i in $(seq 1 12); do
-            if curl -sf "$ADMIN_URL" -o /dev/null 2>&1; then
+            if curl -sf -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+              "${VERCEL_API}/v2/deployments/${DPL_ID}/aliases?teamId=${VERCEL_ORG_ID}" \
+              | jq -e --arg alias "$ADMIN_ALIAS" 'any(.aliases[]?; .alias == $alias)' > /dev/null; then
+              ALIASED=true
+              break
+            fi
+            echo "Alias attempt $i/12: not on this deployment yet, waiting 10s..."
+            sleep 10
+          done
+          if [ "$ALIASED" != "true" ]; then
+            echo "::error::${ADMIN_ALIAS} was not assigned to ${DPL_ID} within 2 minutes"
+            exit 1
+          fi
+          PUBLIC_URL="https://${ADMIN_ALIAS}/login"
+          echo "Checking $PUBLIC_URL (custom domain, outside deployment protection)..."
+          CODE=""
+          for i in $(seq 1 12); do
+            CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "${PUBLIC_URL}?smoke=${GITHUB_RUN_ID}-${i}" || true)
+            if [ "$CODE" = "200" ]; then
               echo "Admin healthy"
               exit 0
             fi
             echo "Attempt $i/12 — waiting 10s..."
             sleep 10
           done
-          echo "::error::Admin health check failed after 2 minutes ($ADMIN_URL)"
+          echo "::error::Admin health check failed after 2 minutes ($PUBLIC_URL, last HTTP ${CODE:-none})"
           exit 1
 
       - name: Invocation guard — API (real function invocation)
