@@ -2,6 +2,7 @@
  * Tests for RenderBlocks component
  */
 
+import type { Block } from '@revealui/contracts/content';
 import type { Page } from '@revealui/core/types/admin';
 import { render, screen } from '@testing-library/react';
 import type React from 'react';
@@ -60,6 +61,35 @@ vi.mock('@/lib/components/ErrorBoundary', () => ({
 }));
 
 describe('RenderBlocks', () => {
+  it('renders canonical persisted text and headings through the shared renderer', () => {
+    const blocks: Block[] = [
+      { id: 'heading', type: 'heading', data: { text: 'Your delivery', level: 'h2' } },
+      {
+        id: 'copy',
+        type: 'text',
+        data: { content: 'Private consultation notes', format: 'plain' },
+      },
+    ];
+    render(<RenderBlocks blocks={blocks} />);
+    expect(screen.getByRole('heading', { name: 'Your delivery', level: 2 })).toBeInTheDocument();
+    expect(screen.getByText('Private consultation notes')).toBeInTheDocument();
+  });
+
+  it('keeps canonical and CMS blocks visible in their persisted order', () => {
+    const blocks = [
+      { id: 'copy', type: 'text', data: { content: 'Consultation summary', format: 'plain' } },
+      { blockType: 'code', code: 'const delivered = true;', language: 'typescript' },
+    ] as (Block | Page['blocks'][number])[];
+    render(<RenderBlocks blocks={blocks} />);
+    expect(screen.getByText('Consultation summary')).toBeInTheDocument();
+    expect(screen.getByText('const delivered = true;')).toBeInTheDocument();
+  });
+
+  it('skips malformed persisted native blocks without exposing validation internals', () => {
+    render(<RenderBlocks blocks={[{ id: 'bad', type: 'text', data: {} }] as Block[]} />);
+    expect(screen.queryByText('Block validation failed')).not.toBeInTheDocument();
+  });
+
   it('renders nothing when blocks array is empty', () => {
     const { container } = render(<RenderBlocks blocks={[]} />);
     expect(container.firstChild).toBeNull();
