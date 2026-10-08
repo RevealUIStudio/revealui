@@ -113,7 +113,7 @@ jobs:
       - name: Evaluate review gate
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REVFLEET_OVERRIDE_SIGNERS: ${{ vars.REVFLEET_OVERRIDE_SIGNERS }}
+          REVEALFLEET_OVERRIDE_SIGNERS: ${{ vars.REVEALFLEET_OVERRIDE_SIGNERS }}
         run: |
           set -euo pipefail
           node scripts/validate/security-review-gate.cjs \
