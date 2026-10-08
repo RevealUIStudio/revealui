@@ -18,8 +18,9 @@ function inboxFixture() {
   return {
     claimNext: vi.fn(async () => claimed),
     complete: vi.fn(async () => true),
+    fail: vi.fn(async () => true),
     retry: vi.fn(async () => true),
-  } satisfies Pick<WebhookInbox, 'claimNext' | 'complete' | 'retry'>;
+  } satisfies Pick<WebhookInbox, 'claimNext' | 'complete' | 'fail' | 'retry'>;
 }
 
 describe('webhook inbox worker', () => {
@@ -78,6 +79,26 @@ describe('webhook inbox worker', () => {
       'github_http_403',
       new Date('2026-10-06T12:00:10.000Z'),
     );
+  });
+
+  it('terminally classifies deterministic unsupported snapshots without retrying', async () => {
+    const inbox = inboxFixture();
+    const result = await processNextWebhook({
+      inbox,
+      handler: {
+        process: vi.fn(async () => {
+          throw new GitHubAppError('unsafe_review_symlink');
+        }),
+      },
+      createLeaseToken: () => '22222222-2222-4222-8222-222222222222',
+    });
+    expect(result).toBe('terminal-failure');
+    expect(inbox.fail).toHaveBeenCalledWith(
+      claimed.deliveryId,
+      '22222222-2222-4222-8222-222222222222',
+      'unsafe_review_symlink',
+    );
+    expect(inbox.retry).not.toHaveBeenCalled();
   });
 
   it('reports lease loss instead of acknowledging work claimed by another worker', async () => {

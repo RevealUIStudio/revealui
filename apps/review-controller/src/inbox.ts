@@ -3,7 +3,7 @@ import {
   reviewControllerShadowObservations,
   reviewControllerWebhookInbox,
 } from '@revealui/db/review-controller';
-import { and, asc, eq, gte, inArray, lte, or, sql } from 'drizzle-orm';
+import { and, asc, eq, gte, lte, or, sql } from 'drizzle-orm';
 import type { AcceptedWebhook } from './webhook.js';
 
 export const MAX_WEBHOOK_ATTEMPTS = 12;
@@ -33,6 +33,7 @@ export interface WebhookInbox {
   ready(): Promise<void>;
   claimNext(leaseToken: string, leaseDurationMs: number): Promise<ClaimedWebhook | null>;
   complete(deliveryId: string, leaseToken: string): Promise<boolean>;
+  fail(deliveryId: string, leaseToken: string, errorCode: string): Promise<boolean>;
   retry(
     deliveryId: string,
     leaseToken: string,
@@ -149,7 +150,7 @@ export class PostgresWebhookInbox implements WebhookInbox {
         .where(
           or(
             and(
-              inArray(reviewControllerWebhookInbox.state, ['pending', 'failed']),
+              eq(reviewControllerWebhookInbox.state, 'pending'),
               or(
                 lte(reviewControllerWebhookInbox.attempts, MAX_WEBHOOK_ATTEMPTS - 1),
                 eq(reviewControllerWebhookInbox.eventName, 'receipt_expiration'),
@@ -203,6 +204,22 @@ export class PostgresWebhookInbox implements WebhookInbox {
     const result = await this.db
       .update(reviewControllerWebhookInbox)
       .set({ state: 'completed', completedAt: new Date(), lockedUntil: null, leaseToken: null })
+      .where(
+        and(
+          eq(reviewControllerWebhookInbox.deliveryId, deliveryId),
+          eq(reviewControllerWebhookInbox.state, 'processing'),
+          eq(reviewControllerWebhookInbox.leaseToken, leaseToken),
+        ),
+      )
+      .returning({ deliveryId: reviewControllerWebhookInbox.deliveryId });
+    return result.length === 1;
+  }
+
+  async fail(deliveryId: string, leaseToken: string, errorCode: string): Promise<boolean> {
+    if (!/^[a-z][a-z0-9_]{0,63}$/.test(errorCode)) throw new Error('invalid error code');
+    const result = await this.db
+      .update(reviewControllerWebhookInbox)
+      .set({ state: 'failed', lastErrorCode: errorCode, lockedUntil: null, leaseToken: null })
       .where(
         and(
           eq(reviewControllerWebhookInbox.deliveryId, deliveryId),

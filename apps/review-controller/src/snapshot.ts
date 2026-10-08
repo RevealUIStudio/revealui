@@ -1,10 +1,18 @@
 import { createHash } from 'node:crypto';
+import { posix } from 'node:path';
 import {
   classifySecurityPathsAtApiLimit,
   SECURITY_PATH_CLASSIFIER_VERSION,
 } from '@revealui/security/security-path-classifier';
 import type { GitHubAppClient, GitTreeEntry, PullRequestFile } from './github-app.js';
 import { GitHubAppError } from './github-app.js';
+import {
+  MAX_REVIEW_BLOB_BYTES,
+  MAX_REVIEW_CONTENT_BYTES,
+  MAX_REVIEW_FILES,
+} from './review-limits.js';
+
+const SNAPSHOT_CLASSIFIER_VERSION = `${SECURITY_PATH_CLASSIFIER_VERSION}+symlink-targets-v1`;
 
 export interface ManifestFile {
   path: string;
@@ -30,9 +38,6 @@ export interface ChangedFileContent {
   sha256: string;
   text: string;
 }
-
-const MAX_REVIEW_FILES = 100;
-const MAX_REVIEW_CONTENT_BYTES = 2 * 1024 * 1024;
 
 export interface PullRequestSnapshot {
   repositoryId: number;
@@ -72,6 +77,7 @@ export async function fetchPullRequestSnapshot(
   ]);
   const manifest = buildChangedFileManifest(files, baseTree, headTree);
   const content = await fetchChangedFileContent(client, manifest);
+  const symlinkTargets = validateChangedSymlinks(manifest, content, baseTree, headTree);
   return {
     repositoryId: client.repositoryId,
     pullRequest,
@@ -84,7 +90,7 @@ export async function fetchPullRequestSnapshot(
     baseTreeSha,
     manifest,
     content,
-    securityClassification: classifyManifestSecurity(manifest),
+    securityClassification: classifyManifestSecurity(manifest, symlinkTargets),
   };
 }
 
@@ -100,9 +106,9 @@ export async function fetchChangedFileContent(
     ...(file.head ? [{ path: file.path, side: 'head' as const, entry: file.head }] : []),
   ]);
   for (const ref of refs) {
-    if (ref.entry.type !== 'blob' || !['100644', '100755'].includes(ref.entry.mode))
+    if (ref.entry.type !== 'blob' || !['100644', '100755', '120000'].includes(ref.entry.mode))
       fail('unsupported_review_file_type');
-    if (typeof ref.entry.size === 'number' && ref.entry.size > 256 * 1024)
+    if (typeof ref.entry.size === 'number' && ref.entry.size > MAX_REVIEW_BLOB_BYTES)
       fail('review_blob_limit');
   }
   const uniqueRefs = [...new Map(refs.map((ref) => [ref.entry.sha, ref])).entries()];
@@ -117,15 +123,15 @@ export async function fetchChangedFileContent(
       const [blobSha, ref] = indexed;
       try {
         const blob = await client.getBlob(blobSha);
-        if (!Number.isSafeInteger(blob.size) || blob.size < 0 || blob.size > 256 * 1024)
+        if (!Number.isSafeInteger(blob.size) || blob.size < 0 || blob.size > MAX_REVIEW_BLOB_BYTES)
           fail('review_blob_limit');
         const encoded = blob.content.replace(/\s/g, '');
-        const maxEncodedBytes = Math.ceil((256 * 1024) / 3) * 4;
+        const maxEncodedBytes = Math.ceil(MAX_REVIEW_BLOB_BYTES / 3) * 4;
         if (encoded.length > maxEncodedBytes || encoded.length % 4 !== 0)
           fail('invalid_review_blob_encoding');
         const bytes = Buffer.from(encoded, 'base64');
         if (bytes.toString('base64') !== encoded) fail('invalid_review_blob_encoding');
-        if (bytes.length !== blob.size || bytes.length > 256 * 1024)
+        if (bytes.length !== blob.size || bytes.length > MAX_REVIEW_BLOB_BYTES)
           fail('review_blob_size_mismatch');
         totalBytes += bytes.length;
         if (totalBytes > MAX_REVIEW_CONTENT_BYTES) fail('review_content_limit');
@@ -166,14 +172,61 @@ export async function fetchChangedFileContent(
   return contents;
 }
 
-export function classifyManifestSecurity(manifest: ChangedFileManifest) {
+export function classifyManifestSecurity(
+  manifest: ChangedFileManifest,
+  symlinkTargets: readonly string[] = [],
+) {
   const paths = manifest.files.flatMap((file) =>
     file.previousPath ? [file.path, file.previousPath] : [file.path],
   );
+  paths.push(...symlinkTargets);
   return {
-    classifierVersion: SECURITY_PATH_CLASSIFIER_VERSION,
+    classifierVersion: SNAPSHOT_CLASSIFIER_VERSION,
     sensitivePaths: classifySecurityPathsAtApiLimit(paths, manifest.fileCount),
   };
+}
+
+/** Resolve changed symlinks against the matching, SHA-bound Git tree. */
+export function validateChangedSymlinks(
+  manifest: ChangedFileManifest,
+  content: readonly ChangedFileContent[],
+  baseEntries: readonly GitTreeEntry[],
+  headEntries: readonly GitTreeEntry[],
+): string[] {
+  const trees = { base: treeIndex(baseEntries), head: treeIndex(headEntries) };
+  const contentBySide = new Map(content.map((row) => [`${row.side}:${row.path}`, row]));
+  const targets: string[] = [];
+  for (const file of manifest.files) {
+    for (const side of ['base', 'head'] as const) {
+      const entry = file[side];
+      if (entry?.mode !== '120000') continue;
+      const path = side === 'base' ? (file.previousPath ?? file.path) : file.path;
+      const link = contentBySide.get(`${side}:${path}`);
+      if (!link || link.blobSha !== entry.sha) fail('invalid_review_symlink');
+      const raw = link.text;
+      if (
+        !raw ||
+        raw.length > 4096 ||
+        raw.startsWith('/') ||
+        raw.includes('\\') ||
+        [...raw].some((character) => {
+          const code = character.charCodeAt(0);
+          return code < 32 || code === 127;
+        })
+      )
+        fail('unsafe_review_symlink');
+      const target = posix.normalize(posix.join(posix.dirname(path), raw));
+      if (target === '.' || target === '..' || target.startsWith('../'))
+        fail('unsafe_review_symlink');
+      const targetEntry = trees[side].get(target);
+      if (targetEntry?.type !== 'blob') fail('dangling_review_symlink');
+      // Chained symlinks and submodules need their own complete resolution model.
+      if (!['100644', '100755'].includes(targetEntry.mode))
+        fail('unsupported_review_symlink_target');
+      targets.push(target);
+    }
+  }
+  return targets;
 }
 
 export function buildChangedFileManifest(

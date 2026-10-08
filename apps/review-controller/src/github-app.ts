@@ -1,11 +1,11 @@
 import { createPrivateKey, createSign } from 'node:crypto';
 import { parseReviewReceiptEnvelope } from '@revealui/security/review-receipt';
 import { GITHUB_INSTALLATION_PERMISSIONS } from './github-app-policy.js';
+import { MAX_REVIEW_BLOB_BYTES } from './review-limits.js';
 
 const GITHUB_API = 'https://api.github.com';
 const API_VERSION = '2022-11-28';
 const MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
-const MAX_BLOB_BYTES = 256 * 1024;
 const MAX_PAGES = 30;
 
 function normalizeAppPrivateKey(value: string): string {
@@ -265,7 +265,7 @@ export class GitHubAppClient {
       result.sha !== blobSha ||
       !Number.isSafeInteger(result.size) ||
       Number(result.size) < 0 ||
-      Number(result.size) > MAX_BLOB_BYTES ||
+      Number(result.size) > MAX_REVIEW_BLOB_BYTES ||
       result.encoding !== 'base64' ||
       typeof result.content !== 'string'
     )

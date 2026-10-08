@@ -10,13 +10,25 @@ export type WebhookWorkResult =
   | 'terminal-failure'
   | 'lease-lost';
 
+const TERMINAL_SNAPSHOT_CODES = new Set([
+  'review_file_limit',
+  'review_blob_limit',
+  'review_content_limit',
+  'unsupported_review_file_type',
+  'unsafe_review_symlink',
+  'dangling_review_symlink',
+  'unsupported_review_symlink_target',
+  'binary_review_file',
+  'non_utf8_review_file',
+]);
+
 export interface WebhookHandler {
   process(webhook: ClaimedWebhook): Promise<void>;
 }
 
 /** Process one durable delivery. The handler must be idempotent across retries. */
 export async function processNextWebhook(input: {
-  inbox: Pick<WebhookInbox, 'claimNext' | 'complete' | 'retry'>;
+  inbox: Pick<WebhookInbox, 'claimNext' | 'complete' | 'fail' | 'retry'>;
   handler: WebhookHandler;
   leaseDurationMs?: number;
   createLeaseToken?: () => string;
@@ -29,6 +41,15 @@ export async function processNextWebhook(input: {
   try {
     await input.handler.process(claimed);
   } catch (error) {
+    if (
+      claimed.eventName !== 'receipt_expiration' &&
+      error instanceof GitHubAppError &&
+      TERMINAL_SNAPSHOT_CODES.has(error.code)
+    ) {
+      return (await input.inbox.fail(claimed.deliveryId, leaseToken, error.code))
+        ? 'terminal-failure'
+        : 'lease-lost';
+    }
     const delayMs = Math.min(60 * 60_000, 5_000 * 2 ** Math.min(claimed.attempts - 1, 10));
     const retryAt = new Date((input.now ?? (() => new Date()))().getTime() + delayMs);
     const errorCode =
@@ -46,7 +67,7 @@ export async function processNextWebhook(input: {
 }
 
 export async function runWebhookWorker(input: {
-  inbox: Pick<WebhookInbox, 'claimNext' | 'complete' | 'retry'>;
+  inbox: Pick<WebhookInbox, 'claimNext' | 'complete' | 'fail' | 'retry'>;
   handler: WebhookHandler;
   signal: AbortSignal;
   pollIntervalMs?: number;

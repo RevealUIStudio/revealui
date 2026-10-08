@@ -60,6 +60,23 @@ describe('PostgresWebhookInbox', () => {
     expect(await inbox.complete('00000000-0000-4000-8000-000000000002', second)).toBe(true);
   });
 
+  it('terminally classifies unsupported input with a fenced, safe error code', async () => {
+    const deliveryId = '00000000-0000-4000-8000-000000000012';
+    const lease = '11111111-1111-4111-8111-111111111111';
+    await inbox.enqueue(webhook(deliveryId));
+    await inbox.claimNext(lease, 30_000);
+    expect(
+      await inbox.fail(deliveryId, '22222222-2222-4222-8222-222222222222', 'review_file_limit'),
+    ).toBe(false);
+    expect(await inbox.fail(deliveryId, lease, 'review_file_limit')).toBe(true);
+    expect(await inbox.claimNext('33333333-3333-4333-8333-333333333333', 30_000)).toBeNull();
+    const row = await db.query<{ state: string; last_error_code: string }>(
+      'SELECT state, last_error_code FROM review_controller_webhook_inbox WHERE delivery_id = $1',
+      [deliveryId],
+    );
+    expect(row.rows[0]).toMatchObject({ state: 'failed', last_error_code: 'review_file_limit' });
+  });
+
   it('retries failed processing and caps attempts at the configured maximum', async () => {
     await inbox.enqueue(webhook('00000000-0000-4000-8000-000000000003'));
     const claim = await inbox.claimNext('11111111-1111-4111-8111-111111111111', 30_000);

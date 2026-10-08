@@ -1,10 +1,13 @@
 import { createHash } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
 import type { GitTreeEntry, PullRequestFile } from './github-app.js';
+import { MAX_REVIEW_BLOB_BYTES, MAX_REVIEW_FILES } from './review-limits.js';
+import type { ChangedFileContent, ChangedFileManifest } from './snapshot.js';
 import {
   buildChangedFileManifest,
   classifyManifestSecurity,
   fetchChangedFileContent,
+  validateChangedSymlinks,
 } from './snapshot.js';
 
 const baseEntries: GitTreeEntry[] = [
@@ -123,7 +126,7 @@ describe('changed file manifest', () => {
     );
 
     expect(classifyManifestSecurity(manifest)).toMatchObject({
-      classifierVersion: 'shared-security-paths-v1',
+      classifierVersion: 'shared-security-paths-v1+symlink-targets-v1',
       sensitivePaths: [oldPath],
     });
   });
@@ -139,6 +142,198 @@ describe('changed file manifest', () => {
 });
 
 describe('exact changed-file content', () => {
+  it('accepts a bounded 101-file, multi-megabyte snapshot with a large text blob', async () => {
+    const records = Array.from({ length: 101 }, (_, index) => {
+      const bytes = Buffer.from(
+        String(index).padStart(3, '0') + 'x'.repeat((index === 0 ? 600 : 40) * 1024 - 3),
+      );
+      const sha = createHash('sha1')
+        .update(`blob ${bytes.length}\0`, 'utf8')
+        .update(bytes)
+        .digest('hex');
+      return { path: `src/file-${index}.txt`, bytes, sha };
+    });
+    const blobs = new Map(records.map(({ bytes, sha }) => [sha, bytes]));
+    const manifest: ChangedFileManifest = {
+      files: records.map(({ path, bytes, sha }) => ({
+        path,
+        status: 'added',
+        head: { mode: '100644', type: 'blob', sha, size: bytes.length },
+        additions: 1,
+        deletions: 0,
+        changes: 1,
+      })),
+      fileCount: records.length,
+      sha256: 'a'.repeat(64),
+    };
+    const content = await fetchChangedFileContent(
+      {
+        getBlob: async (sha: string) => {
+          const bytes = blobs.get(sha);
+          if (!bytes) throw new Error('missing test blob');
+          return {
+            sha,
+            size: bytes.length,
+            encoding: 'base64' as const,
+            content: bytes.toString('base64'),
+          };
+        },
+      },
+      manifest,
+    );
+    expect(content).toHaveLength(101);
+    expect(content.find((row) => row.path === 'src/file-0.txt')?.text).toHaveLength(600 * 1024);
+  });
+
+  it('rejects binary data and content above the aggregate budget', async () => {
+    const binary = Buffer.from([65, 0, 66]);
+    const binarySha = createHash('sha1')
+      .update(`blob ${binary.length}\0`, 'utf8')
+      .update(binary)
+      .digest('hex');
+    const oneFile: ChangedFileManifest = {
+      files: [
+        {
+          path: 'src/binary',
+          status: 'added',
+          head: { mode: '100644', type: 'blob', sha: binarySha },
+          additions: 0,
+          deletions: 0,
+          changes: 0,
+        },
+      ],
+      fileCount: 1,
+      sha256: 'a'.repeat(64),
+    };
+    await expect(
+      fetchChangedFileContent(
+        {
+          getBlob: async (sha: string) => ({
+            sha,
+            size: binary.length,
+            encoding: 'base64' as const,
+            content: binary.toString('base64'),
+          }),
+        },
+        oneFile,
+      ),
+    ).rejects.toMatchObject({ code: 'binary_review_file' });
+
+    const records = Array.from({ length: 9 }, (_, index) => {
+      const bytes = Buffer.from(String(index) + 'x'.repeat(MAX_REVIEW_BLOB_BYTES - 1));
+      const sha = createHash('sha1')
+        .update(`blob ${bytes.length}\0`, 'utf8')
+        .update(bytes)
+        .digest('hex');
+      return { bytes, sha };
+    });
+    const bySha = new Map(records.map(({ bytes, sha }) => [sha, bytes]));
+    const manifest: ChangedFileManifest = {
+      files: records.map(({ bytes, sha }, index) => ({
+        path: `src/${index}.txt`,
+        status: 'added',
+        head: { mode: '100644', type: 'blob', sha, size: bytes.length },
+        additions: 0,
+        deletions: 0,
+        changes: 0,
+      })),
+      fileCount: records.length,
+      sha256: 'b'.repeat(64),
+    };
+    await expect(
+      fetchChangedFileContent(
+        {
+          getBlob: async (sha: string) => {
+            const bytes = bySha.get(sha);
+            if (!bytes) throw new Error('missing test blob');
+            return {
+              sha,
+              size: bytes.length,
+              encoding: 'base64' as const,
+              content: bytes.toString('base64'),
+            };
+          },
+        },
+        manifest,
+      ),
+    ).rejects.toMatchObject({ code: 'review_content_limit' });
+  });
+
+  it('resolves a changed symlink in its exact head tree and classifies its target', () => {
+    const path = 'apps/review-controller/migrations/0000.sql';
+    const target = '../../../packages/security/migrations/0000.sql';
+    const blobSha = 'a'.repeat(40);
+    const manifest: ChangedFileManifest = {
+      files: [
+        {
+          path,
+          status: 'added',
+          head: { mode: '120000', type: 'blob', sha: blobSha },
+          additions: 0,
+          deletions: 0,
+          changes: 0,
+        },
+      ],
+      fileCount: 1,
+      sha256: 'b'.repeat(64),
+    };
+    const content: ChangedFileContent[] = [
+      { path, side: 'head', blobSha, sha256: 'c'.repeat(64), text: target },
+    ];
+    const resolved = validateChangedSymlinks(
+      manifest,
+      content,
+      [],
+      [
+        { path, mode: '120000', type: 'blob', sha: blobSha },
+        {
+          path: 'packages/security/migrations/0000.sql',
+          mode: '100644',
+          type: 'blob',
+          sha: 'd'.repeat(40),
+        },
+      ],
+    );
+    expect(resolved).toEqual(['packages/security/migrations/0000.sql']);
+    expect(classifyManifestSecurity(manifest, resolved).sensitivePaths).toContain(resolved[0]);
+  });
+
+  it('rejects escaping, dangling, and chained symlink targets', () => {
+    const path = 'apps/review-controller/migrations/0000.sql';
+    const blobSha = 'a'.repeat(40);
+    const manifest: ChangedFileManifest = {
+      files: [
+        {
+          path,
+          status: 'added',
+          head: { mode: '120000', type: 'blob', sha: blobSha },
+          additions: 0,
+          deletions: 0,
+          changes: 0,
+        },
+      ],
+      fileCount: 1,
+      sha256: 'b'.repeat(64),
+    };
+    const rows = (text: string): ChangedFileContent[] => [
+      { path, side: 'head', blobSha, sha256: 'c'.repeat(64), text },
+    ];
+    expect(() => validateChangedSymlinks(manifest, rows('../../../../outside'), [], [])).toThrow(
+      'unsafe_review_symlink',
+    );
+    expect(() => validateChangedSymlinks(manifest, rows('../../../missing.sql'), [], [])).toThrow(
+      'dangling_review_symlink',
+    );
+    expect(() =>
+      validateChangedSymlinks(
+        manifest,
+        rows('../../../packages/db/link.sql'),
+        [],
+        [{ path: 'packages/db/link.sql', mode: '120000', type: 'blob', sha: 'd'.repeat(40) }],
+      ),
+    ).toThrow('unsupported_review_symlink_target');
+  });
+
   it('verifies Git blob identity, UTF-8 content, and records content digests', async () => {
     const bytes = Buffer.from('export const reviewed = true;\n', 'utf8');
     const blobSha = createHash('sha1')
@@ -184,7 +379,7 @@ describe('exact changed-file content', () => {
     ]);
   });
 
-  it('fails closed for oversized sets, tampered blobs, binary data, and symlinks', async () => {
+  it('fails closed for oversized sets and tampered blobs', async () => {
     const client = {
       getBlob: vi.fn(async () => ({
         sha: 'a'.repeat(40),
@@ -208,17 +403,11 @@ describe('exact changed-file content', () => {
       sha256: 'a'.repeat(64),
     };
     await expect(
-      fetchChangedFileContent(client, { ...base, fileCount: 101 }),
+      fetchChangedFileContent(client, { ...base, fileCount: MAX_REVIEW_FILES + 1 }),
     ).rejects.toMatchObject({ code: 'review_file_limit' });
     await expect(fetchChangedFileContent(client, base)).rejects.toMatchObject({
       code: 'review_blob_hash_mismatch',
     });
-    await expect(
-      fetchChangedFileContent(client, {
-        ...base,
-        files: [{ ...base.files[0]!, head: { ...base.files[0]!.head, mode: '120000' } }],
-      }),
-    ).rejects.toMatchObject({ code: 'unsupported_review_file_type' });
   });
 
   it('bounds base64 decoding and rejects non-canonical encodings', async () => {
@@ -263,7 +452,7 @@ describe('exact changed-file content', () => {
     const oversized = {
       getBlob: async (sha: string) => ({
         sha,
-        size: 256 * 1024 + 1,
+        size: MAX_REVIEW_BLOB_BYTES + 1,
         encoding: 'base64' as const,
         content: '',
       }),

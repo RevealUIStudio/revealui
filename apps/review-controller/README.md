@@ -18,11 +18,14 @@ base/head trees, and exact-head check runs, then appends a shadow observation.
 Manifests include rename/deletion and file-mode evidence; check observations
 retain GitHub check-run and check-suite IDs. The shared security classifier
 records its version and matched old/new paths for renames. The controller also
-fetches changed regular-file blobs from those exact trees, verifies Git object
-identities, rejects binary or invalid UTF-8 content, and caps review input at
-100 files, 256 KiB per blob, and 2 MiB total. Source text stays in worker
-memory and is not sent to a model provider by this service. Model review is
-provided through the founder's ChatGPT subscription using Codex's GitHub
+fetches changed regular-file and symlink blobs from those exact trees, verifies
+Git object identities, and resolves changed symlink targets within the matching
+tree for security-path classification. Escaping, dangling, and chained symlinks,
+binary content, and invalid UTF-8 fail closed. Review input is capped at
+256 files, 1 MiB per blob, and 8 MiB of unique blob content. Deterministic
+unsupported inputs receive a terminal inbox classification. Source text stays
+in worker memory and is not sent to a model provider by this service. Model
+review is provided through the founder's ChatGPT subscription using Codex's GitHub
 automatic-review integration. For signed GitHub `pull_request_review`
 webhooks from `chatgpt-codex-connector[bot]`, the controller records the bot
 account ID, review ID/state/action, reviewed and current head SHAs, timestamp,
