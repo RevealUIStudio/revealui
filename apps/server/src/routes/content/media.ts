@@ -21,7 +21,7 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import { hasApiRole } from '../../lib/api-roles.js';
 import { getMediaStorage } from '../../lib/storage.js';
-import { ErrorSchema, IdParam } from '../_helpers/content-schemas.js';
+import { ErrorSchema, IdParam, MediaPatchSchema } from '../_helpers/content-schemas.js';
 import { PaginationQuery } from '../_helpers/pagination.js';
 import type { ContentVariables } from './index.js';
 
@@ -583,10 +583,7 @@ app.openapi(
       body: {
         content: {
           'application/json': {
-            schema: z.object({
-              alt: z.string().max(500).nullable().optional(),
-              focalPoint: z.object({ x: z.number(), y: z.number() }).nullable().optional(),
-            }),
+            schema: MediaPatchSchema,
           },
         },
       },
