@@ -122,9 +122,10 @@ Docker build context contains the workspace packages copied by that Dockerfile.
 Fly resolves the config's Dockerfile path relative to the config directory;
 the explicit deploy flag selects that file from the monorepo root. CI builds
 the same Dockerfile. The `--ha=false` flag prevents Fly's default spare worker
-on first deploy; verify the app has exactly one machine before accepting webhooks.
+on first deploy; use the maintained `ops:status` diagnostic below to verify
+the app has exactly one started Machine before accepting webhooks.
 Keep the App
-webhook inactive until the deployed service passes both `/health/live` and
+webhook inactive until `ops:status` confirms both `/health/live` and
 `/health/ready`; activate it only for the isolated shadow rollout.
 The webhook endpoint acknowledges a signed GitHub App `ping` for the configured
 App ID without adding it to the review-event inbox. A successful ping verifies
@@ -134,6 +135,19 @@ Other authenticated lifecycle deliveries and irrelevant actions, such as
 scope checks; they do not enter the inbox.
 The worker stores bounded GitHub API error codes on retries for diagnosis;
 untyped exception text remains excluded from the database.
+
+The maintained `pnpm --filter @revealui/review-controller ops:status` diagnostic
+uses bounded read-only HTTP requests to the public `/health/live` and
+`/health/ready` endpoints and Fly's Machines API. Supply `FLY_READONLY_TOKEN`
+through the approved credential path: use a short-lived Fly read-only token
+scoped as narrowly as Fly supports, and never place it in repository files,
+shell history, or command arguments. The command does not run `flyctl`, write
+to the home directory, deploy, or change Machine state. It requires exactly
+one started Machine and successful HTTP and database probes. Authentication
+errors, timeouts, unexpected responses, and zero or multiple Machines return
+a failing status without printing the token or API response bodies. This is
+transport, database, and Machine inventory evidence only; it does not prove
+webhook processing, review eligibility, or receipt readiness.
 
 ## Isolation contract
 
