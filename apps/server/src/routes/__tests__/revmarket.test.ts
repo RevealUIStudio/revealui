@@ -98,6 +98,8 @@ vi.mock('../../services/revmarket-executor.js', async (importOriginal: <T>() => 
 let selectResults: unknown[][] = [];
 let insertResults: unknown[][] = [];
 let updateResults: unknown[][] = [];
+let lastInsertValues: unknown = null;
+let lastUpdateValues: unknown = null;
 
 function makeSelectChain() {
   const result = selectResults.shift() ?? [];
@@ -137,7 +139,10 @@ function makeInsertChain() {
       return Promise.resolve(undefined).then(onFulfilled, onRejected);
     },
   };
-  chain.values.mockReturnValue(chain);
+  chain.values.mockImplementation((values: unknown) => {
+    lastInsertValues = values;
+    return chain;
+  });
   chain.onConflictDoNothing.mockReturnValue(chain);
   return chain;
 }
@@ -155,7 +160,10 @@ function makeUpdateChain() {
       return Promise.resolve(undefined).then(onFulfilled, onRejected);
     },
   };
-  chain.set.mockReturnValue(chain);
+  chain.set.mockImplementation((values: unknown) => {
+    lastUpdateValues = values;
+    return chain;
+  });
   chain.where.mockReturnValue(chain);
   return chain;
 }
@@ -236,6 +244,7 @@ vi.mock('drizzle-orm', () => ({
 
 // ─── Import under test (after mocks) ────────────────────────────────────────
 
+import { eq } from 'drizzle-orm';
 import revmarketApp from '../revmarket.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -287,6 +296,14 @@ function del(path: string) {
   return new Request(`http://localhost${path}`, { method: 'DELETE' });
 }
 
+function patch(path: string, body: unknown) {
+  return new Request(`http://localhost${path}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
@@ -294,6 +311,8 @@ beforeEach(() => {
   selectResults = [];
   insertResults = [];
   updateResults = [];
+  lastInsertValues = null;
+  lastUpdateValues = null;
 });
 
 describe('GET /agents', () => {
@@ -308,6 +327,7 @@ describe('GET /agents', () => {
     const body = await res.json();
     expect(body.agents).toHaveLength(1);
     expect(body.total).toBe(1);
+    expect(eq).toHaveBeenCalledWith('status', 'published');
   });
 
   it('supports category filter', async () => {
@@ -343,6 +363,15 @@ describe('GET /agents/:id', () => {
 
     expect(res.status).toBe(404);
   });
+
+  it('hides a pending listing from the public detail query', async () => {
+    selectResults = [[{ id: 'agent_abc', name: 'Code Reviewer', status: 'pending' }]];
+
+    const app = createApp();
+    const res = await app.request(get('/agents/agent_abc'));
+
+    expect(res.status).toBe(404);
+  });
 });
 
 describe('POST /agents', () => {
@@ -356,10 +385,12 @@ describe('POST /agents', () => {
         name: 'My Agent',
         description: 'An excellent agent for testing purposes',
         definition: { capabilities: ['code-review'] },
+        license: 'MIT',
       }),
     );
 
     expect(res.status).toBe(201);
+    expect(lastInsertValues).toMatchObject({ status: 'pending', license: 'MIT' });
   });
 
   it('requires auth', async () => {
@@ -369,10 +400,81 @@ describe('POST /agents', () => {
         name: 'My Agent',
         description: 'An excellent agent for testing purposes',
         definition: { capabilities: [] },
+        license: 'MIT',
       }),
     );
 
     expect(res.status).toBe(401);
+  });
+
+  it('rejects a listing with no license', async () => {
+    const app = createApp(regularUser);
+    const res = await app.request(
+      post('/agents', {
+        name: 'My Agent',
+        description: 'An excellent agent for testing purposes',
+        definition: { capabilities: [] },
+      }),
+    );
+
+    expect(res.status).toBe(400);
+    expect(lastInsertValues).toBeNull();
+  });
+});
+
+describe('listing review', () => {
+  it('keeps a non-admin publish pending and off the public detail query', async () => {
+    insertResults = [[{ id: 'agent_new', status: 'pending' }]];
+    const app = createApp(regularUser);
+    const created = await app.request(
+      post('/agents', {
+        name: 'My Agent',
+        description: 'An excellent agent for testing purposes',
+        definition: { capabilities: ['code-review'] },
+        license: 'Apache-2.0',
+      }),
+    );
+
+    expect(created.status).toBe(201);
+    expect(lastInsertValues).toMatchObject({ status: 'pending', license: 'Apache-2.0' });
+
+    selectResults = [[{ id: 'agent_new', status: 'pending' }]];
+    const visible = await app.request(get('/agents/agent_new'));
+    expect(visible.status).toBe(404);
+  });
+
+  it('lets a marketplace admin approve a licensed listing', async () => {
+    selectResults = [[{ publisherId: regularUser.id, license: 'MIT' }]];
+    updateResults = [[{ id: 'agent_abc', status: 'published', license: 'MIT' }]];
+
+    const app = createApp(testUser);
+    const res = await app.request(patch('/agents/agent_abc', { status: 'published' }));
+
+    expect(res.status).toBe(200);
+    expect(lastUpdateValues).toMatchObject({ status: 'published' });
+    const body = await res.json();
+    expect(body.agent.status).toBe('published');
+  });
+
+  it('rejects a non-admin self-approval', async () => {
+    selectResults = [[{ publisherId: regularUser.id, license: 'MIT', status: 'pending' }]];
+
+    const app = createApp(regularUser);
+    const res = await app.request(patch('/agents/agent_abc', { status: 'published' }));
+
+    expect(res.status).toBe(403);
+    expect(lastUpdateValues).toBeNull();
+  });
+
+  it('returns an edited listing to pending', async () => {
+    selectResults = [[{ publisherId: regularUser.id, license: 'MIT', status: 'published' }]];
+    updateResults = [[{ id: 'agent_abc', status: 'pending' }]];
+
+    const app = createApp(regularUser);
+    const res = await app.request(patch('/agents/agent_abc', { name: 'Renamed Agent' }));
+
+    expect(res.status).toBe(200);
+    expect(lastUpdateValues).toMatchObject({ status: 'pending', name: 'Renamed Agent' });
   });
 });
 
