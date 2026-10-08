@@ -32,24 +32,26 @@ export function createReviewControllerApp(input: {
       ...(input.now ? { now: input.now() } : {}),
     });
     if (!verified.ok) return c.json({ error: 'invalid_webhook', reason: verified.reason }, 401);
+    const allowedAppId = Number(env.GITHUB_APP_ID);
     if (verified.ping) {
-      const allowedAppId = Number(env.GITHUB_APP_ID);
       if (!Number.isSafeInteger(allowedAppId) || verified.ping.appId !== allowedAppId)
         return c.json({ error: 'app_not_allowed' }, 403);
       return c.json({ accepted: true }, 200);
     }
     const allowedRepositoryId = Number(env.GITHUB_REPOSITORY_ID);
     const allowedInstallationId = Number(env.GITHUB_INSTALLATION_ID);
-    const actualRepositoryId = verified.webhook.repositoryId;
+    const scoped = verified.ignored ?? verified.webhook;
     if (
       !Number.isSafeInteger(allowedRepositoryId) ||
       allowedRepositoryId <= 0 ||
-      actualRepositoryId !== allowedRepositoryId ||
       !Number.isSafeInteger(allowedInstallationId) ||
       allowedInstallationId <= 0 ||
-      verified.webhook.installationId !== allowedInstallationId
+      scoped.installationId !== allowedInstallationId ||
+      (scoped.repositoryId !== undefined && scoped.repositoryId !== allowedRepositoryId) ||
+      (verified.ignored?.appId !== undefined && verified.ignored.appId !== allowedAppId)
     )
       return c.json({ error: 'repository_not_allowed' }, 403);
+    if (verified.ignored) return c.json({ accepted: true, ignored: true }, 200);
     try {
       const queued = await input.inbox.enqueue(verified.webhook);
       return c.json({ accepted: true, duplicate: !queued.inserted }, 202);

@@ -36,6 +36,69 @@ function fixture(repositoryId = '1234') {
 }
 
 describe('review controller webhook intake', () => {
+  it('acknowledges a signed irrelevant check action without queueing it', async () => {
+    const { app, inbox } = fixture();
+    const body = JSON.stringify({
+      action: 'created',
+      repository: { id: 1234, full_name: 'RevealUIStudio/revealui' },
+      installation: { id: 9876 },
+      check_run: { id: 1 },
+    });
+    const response = await app.request('/github/webhook', {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'x-github-event': 'check_run',
+        'x-hub-signature-256': `sha256=${createHmac('sha256', secret).update(body).digest('hex')}`,
+      },
+      body,
+    });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ accepted: true, ignored: true });
+    expect(inbox.enqueue).not.toHaveBeenCalled();
+  });
+
+  it('rejects an irrelevant check action from another repository', async () => {
+    const { app, inbox } = fixture();
+    const body = JSON.stringify({
+      action: 'created',
+      repository: { id: 9999, full_name: 'other/repo' },
+      installation: { id: 9876 },
+      check_run: { id: 1 },
+    });
+    const response = await app.request('/github/webhook', {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'x-github-event': 'check_run',
+        'x-hub-signature-256': `sha256=${createHmac('sha256', secret).update(body).digest('hex')}`,
+      },
+      body,
+    });
+    expect(response.status).toBe(403);
+    expect(inbox.enqueue).not.toHaveBeenCalled();
+  });
+
+  it('acknowledges this App installation event without queueing it', async () => {
+    const { app, inbox } = fixture();
+    const body = JSON.stringify({
+      action: 'new_permissions_accepted',
+      installation: { id: 9876, app_id: 5230487 },
+    });
+    const response = await app.request('/github/webhook', {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'x-github-event': 'installation',
+        'x-hub-signature-256': `sha256=${createHmac('sha256', secret).update(body).digest('hex')}`,
+      },
+      body,
+    });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ accepted: true, ignored: true });
+    expect(inbox.enqueue).not.toHaveBeenCalled();
+  });
+
   it('acknowledges a signed ping for this App without queueing it', async () => {
     const { app, inbox } = fixture();
     const body = JSON.stringify({ hook_id: 11, hook: { id: 11, type: 'App', app_id: 5230487 } });

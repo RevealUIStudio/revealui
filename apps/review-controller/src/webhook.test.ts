@@ -23,6 +23,40 @@ function input(overrides: Partial<Parameters<typeof verifyGitHubWebhook>[0]> = {
 }
 
 describe('verifyGitHubWebhook', () => {
+  it('authenticates but ignores a check-run creation in the configured repository', () => {
+    const rawBody = JSON.stringify({
+      action: 'created',
+      repository: { id: 1234, full_name: 'RevealUIStudio/revealui' },
+      installation: { id: 9876 },
+      check_run: { id: 1 },
+    });
+    expect(
+      verifyGitHubWebhook(
+        input({
+          event: 'check_run',
+          rawBody,
+          signature: `sha256=${createHmac('sha256', secret).update(rawBody).digest('hex')}`,
+        }),
+      ),
+    ).toEqual({ ok: true, ignored: { repositoryId: 1234, installationId: 9876 } });
+  });
+
+  it('authenticates the App installation lifecycle event without requiring a repository', () => {
+    const rawBody = JSON.stringify({
+      action: 'new_permissions_accepted',
+      installation: { id: 9876, app_id: 5230487 },
+    });
+    expect(
+      verifyGitHubWebhook(
+        input({
+          event: 'installation',
+          rawBody,
+          signature: `sha256=${createHmac('sha256', secret).update(rawBody).digest('hex')}`,
+        }),
+      ),
+    ).toEqual({ ok: true, ignored: { installationId: 9876, appId: 5230487 } });
+  });
+
   it('authenticates an App ping without treating it as a repository event', () => {
     const rawBody = JSON.stringify({ hook_id: 11, hook: { id: 11, type: 'App', app_id: 5230487 } });
     expect(

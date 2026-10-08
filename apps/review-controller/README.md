@@ -110,6 +110,9 @@ webhook inactive until the deployed service passes both `/health/live` and
 The webhook endpoint acknowledges a signed GitHub App `ping` for the configured
 App ID without adding it to the review-event inbox. A successful ping verifies
 delivery to the endpoint; it does not establish receipt evaluation readiness.
+Other authenticated lifecycle deliveries and irrelevant actions, such as
+`check_run.created`, are acknowledged only after App installation and repository
+scope checks; they do not enter the inbox.
 
 ## Isolation contract
 

@@ -29,6 +29,12 @@ export interface AcceptedPing {
   hookId: number;
 }
 
+export interface IgnoredWebhook {
+  installationId: number;
+  repositoryId?: number;
+  appId?: number;
+}
+
 export function verifyGitHubWebhook(input: {
   secret: string;
   signature: string | undefined;
@@ -37,8 +43,9 @@ export function verifyGitHubWebhook(input: {
   rawBody: string;
   now?: Date;
 }):
-  | { ok: true; webhook: AcceptedWebhook; ping?: never }
-  | { ok: true; ping: AcceptedPing; webhook?: never }
+  | { ok: true; webhook: AcceptedWebhook; ping?: never; ignored?: never }
+  | { ok: true; ping: AcceptedPing; webhook?: never; ignored?: never }
+  | { ok: true; ignored: IgnoredWebhook; webhook?: never; ping?: never }
   | { ok: false; reason: WebhookFailure } {
   if (input.secret.length < 32) return { ok: false, reason: 'missing_secret' };
   if (!(input.signature && input.deliveryId && input.event))
@@ -49,7 +56,12 @@ export function verifyGitHubWebhook(input: {
     return { ok: false, reason: 'body_too_large' };
   if (!/^[a-f0-9-]{16,128}$/i.test(input.deliveryId))
     return { ok: false, reason: 'invalid_delivery' };
-  if (input.event !== 'ping' && !ALLOWED_WEBHOOK_EVENTS.has(input.event))
+  if (
+    input.event !== 'ping' &&
+    input.event !== 'installation' &&
+    input.event !== 'installation_repositories' &&
+    !ALLOWED_WEBHOOK_EVENTS.has(input.event)
+  )
     return { ok: false, reason: 'unsupported_event' };
 
   const expected = `sha256=${createHmac('sha256', input.secret).update(input.rawBody, 'utf8').digest('hex')}`;
@@ -81,8 +93,36 @@ export function verifyGitHubWebhook(input: {
       ping: { appId: Number(payload.hook.app_id), hookId: Number(payload.hook_id) },
     };
   }
-  if (!(isRecord(payload) && validEventPayload(input.event, payload)))
-    return { ok: false, reason: 'invalid_payload' };
+  if (input.event === 'installation' || input.event === 'installation_repositories') {
+    if (!(isRecord(payload) && isRecord(payload.installation)))
+      return { ok: false, reason: 'invalid_payload' };
+    if (
+      !Number.isSafeInteger(payload.installation.id) ||
+      Number(payload.installation.id) <= 0 ||
+      !Number.isSafeInteger(payload.installation.app_id) ||
+      Number(payload.installation.app_id) <= 0 ||
+      typeof payload.action !== 'string'
+    )
+      return { ok: false, reason: 'invalid_payload' };
+    return {
+      ok: true,
+      ignored: {
+        installationId: Number(payload.installation.id),
+        appId: Number(payload.installation.app_id),
+      },
+    };
+  }
+  if (!isRecord(payload)) return { ok: false, reason: 'invalid_payload' };
+  const classification = classifyEventPayload(input.event, payload);
+  if (classification === 'invalid') return { ok: false, reason: 'invalid_payload' };
+  if (classification === 'ignored')
+    return {
+      ok: true,
+      ignored: {
+        installationId: Number((payload.installation as Record<string, unknown>).id),
+        repositoryId: Number((payload.repository as Record<string, unknown>).id),
+      },
+    };
   const receivedAt = input.now ?? new Date();
   if (!Number.isFinite(receivedAt.getTime())) return { ok: false, reason: 'invalid_payload' };
   return {
@@ -102,7 +142,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function validEventPayload(event: string, payload: Record<string, unknown>): boolean {
+function classifyEventPayload(
+  event: string,
+  payload: Record<string, unknown>,
+): 'process' | 'ignored' | 'invalid' {
   if (
     !(
       isRecord(payload.repository) &&
@@ -113,33 +156,37 @@ function validEventPayload(event: string, payload: Record<string, unknown>): boo
       Number(payload.installation.id) > 0
     )
   )
-    return false;
+    return 'invalid';
   const repoName = payload.repository.full_name;
-  if (typeof repoName !== 'string' || !/^[^/\s]+\/[^/\s]+$/.test(repoName)) return false;
+  if (typeof repoName !== 'string' || !/^[^/\s]+\/[^/\s]+$/.test(repoName)) return 'invalid';
   const action = payload.action;
+  if (typeof action !== 'string') return 'invalid';
   if (event === 'pull_request' || event === 'pull_request_review') {
     const allowedActions =
       event === 'pull_request'
         ? ['opened', 'synchronize', 'reopened', 'ready_for_review', 'converted_to_draft', 'closed']
         : ['submitted', 'edited', 'dismissed'];
-    return (
-      isRecord(payload.pull_request) &&
-      Number.isSafeInteger(payload.pull_request.number) &&
-      Number(payload.pull_request.number) > 0 &&
-      typeof action === 'string' &&
-      allowedActions.includes(action) &&
-      (event !== 'pull_request_review' || isRecord(payload.review))
-    );
+    if (!(isRecord(payload.pull_request) && Number.isSafeInteger(payload.pull_request.number)))
+      return 'invalid';
+    if (
+      Number(payload.pull_request.number) <= 0 ||
+      (event === 'pull_request_review' && !isRecord(payload.review))
+    )
+      return 'invalid';
+    return allowedActions.includes(action) ? 'process' : 'ignored';
   }
   if (event === 'merge_group')
-    return isRecord(payload.merge_group) && action === 'checks_requested';
+    return !isRecord(payload.merge_group)
+      ? 'invalid'
+      : action === 'checks_requested'
+        ? 'process'
+        : 'ignored';
   if (event === 'check_run')
-    return (
-      isRecord(payload.check_run) && ['completed', 'requested_action'].includes(String(action))
-    );
-  return (
-    event === 'check_suite' &&
-    isRecord(payload.check_suite) &&
-    ['completed', 'requested'].includes(String(action))
-  );
+    return !isRecord(payload.check_run)
+      ? 'invalid'
+      : ['completed', 'requested_action'].includes(action)
+        ? 'process'
+        : 'ignored';
+  if (event !== 'check_suite' || !isRecord(payload.check_suite)) return 'invalid';
+  return ['completed', 'requested'].includes(action) ? 'process' : 'ignored';
 }
