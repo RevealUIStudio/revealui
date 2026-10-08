@@ -647,8 +647,16 @@ jobs:
         # Use scripts/deploy/vercel-rollback-previous-prod.mjs:
         # Vercel REST + VERCEL_ORG_ID (team id secret) + project id from
         # detect matrix. Reassigns allowlisted production hostnames on the
-        # newest READY prod deploy to the previous READY prod deploy and
-        # verifies. Nested or preview names are not moved.
+        # newest READY prod deploy to the restore target and verifies.
+        # Nested or preview names are not moved.
+        #
+        # Admin reads ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID (repository
+        # variable). The script resolves that deployment createdAt from the
+        # Vercel API and refuses any target created before it. The floor
+        # deployment itself stays eligible. If the variable is unset, the
+        # floor cannot be resolved, or no eligible target remains, admin
+        # aliases stay on the live build and this step fails. Other apps
+        # still restore the previous READY production deployment.
         #
         # Needs checkout for the script; smoke job previously had none.
         run: |
@@ -682,6 +690,7 @@ jobs:
           # Team id (team_…), NOT TURBO_TEAM slug — see script header.
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           DETECT_MATRIX: ${{ needs.detect.outputs.matrix }}
+          ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID: ${{ vars.ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID }}
 
   # ---------------------------------------------------------------------------
   # Post-deploy design-system verification (marketing + docs)

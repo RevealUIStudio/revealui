@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * Durable production rollback for Vercel apps.
  *
@@ -8,22 +9,30 @@
  *   rollback printed "No previous deployment found" and left the broken
  *   deploy on the production alias.
  * - This script uses the Vercel REST API with an explicit team id, finds the
- *   second-most-recent READY production deployment, and re-points the
- *   allowlisted production hostnames on the newest (broken) deploy to that
- *   previous one. Other aliases (preview or nested test names) stay put.
- *   A failure moving a non-production alias must not fail the rollback.
+ *   restore target, and re-points the allowlisted production hostnames on the
+ *   newest (broken) deploy to that target. Other apps use the second-most-recent
+ *   READY production deployment. Admin uses the newest READY production
+ *   deployment at or after the rollback floor. Other aliases (preview or
+ *   nested test names) stay put. A failure moving a non-production alias must
+ *   not fail the rollback.
  *
  * Usage:
  *   VERCEL_TOKEN=… VERCEL_TEAM_ID=team_… node scripts/deploy/vercel-rollback-previous-prod.mjs \
  *     --project-id prj_… [--app-label api]
  *
+ * Admin rollback requires ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID. The script
+ * loads that deployment from the Vercel API and uses its createdAt as the
+ * floor. Targets created before the floor are refused. The floor deployment
+ * itself stays eligible. If the variable is unset, the floor cannot be
+ * resolved, or no eligible target remains, the script does not move aliases,
+ * reports that the live build was left in place, and exits 1.
+ *
  * Exit codes:
  *   0 — previous deploy promoted (aliases reassigned) or nothing to do
- *   1 — hard failure (no history, API error, verify failed)
+ *   1 — hard failure (no history, floor refusal, API error, verify failed)
  *   2 — bad args / missing env
  */
 import { parseArgs } from 'node:util';
-import { pathToFileURL } from 'node:url';
 
 const API = 'https://api.vercel.com';
 
@@ -51,6 +60,133 @@ export function aliasesToMove(appLabel, aliasesOnNewest) {
   if (!allow) return null;
   const allowed = new Set(allow);
   return (aliasesOnNewest || []).filter((a) => a?.alias && allowed.has(a.alias));
+}
+
+function trimmed(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function readDeploymentId(deployment) {
+  if (!deployment || typeof deployment !== 'object') return '';
+  if (typeof deployment.uid === 'string' && deployment.uid.trim().length > 0) {
+    return deployment.uid.trim();
+  }
+  if (typeof deployment.id === 'string' && deployment.id.trim().length > 0) {
+    return deployment.id.trim();
+  }
+  return '';
+}
+
+function asEpochMs(value) {
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) return value;
+  if (typeof value === 'string') {
+    const text = value.trim();
+    if (text.length === 0) return null;
+    const parsed = Date.parse(text);
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+    const asNumber = Number(text);
+    if (Number.isFinite(asNumber) && asNumber > 0) return asNumber;
+  }
+  return null;
+}
+
+function deploymentCreatedMs(deployment) {
+  if (!deployment || typeof deployment !== 'object') return null;
+  const direct = asEpochMs(deployment.createdAt ?? deployment.created);
+  if (direct != null) return direct;
+  const nested = deployment.deployment;
+  if (nested && typeof nested === 'object') {
+    return asEpochMs(nested.createdAt ?? nested.created);
+  }
+  return null;
+}
+
+function hasFloorCreatedAt(value) {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0;
+}
+
+/**
+ * Interpret a Vercel deployment lookup for the admin rollback floor.
+ * A blank id is unset. A body without createdAt cannot be resolved.
+ */
+export function floorFromLookup(floorDeploymentId, lookupBody) {
+  const id = trimmed(floorDeploymentId);
+  if (!id) {
+    return { ok: false, reason: 'floor-unset', floorDeploymentId: '', floorCreatedAt: null };
+  }
+  const floorCreatedAt = deploymentCreatedMs(lookupBody);
+  if (!hasFloorCreatedAt(floorCreatedAt)) {
+    return { ok: false, reason: 'floor-unresolvable', floorDeploymentId: id, floorCreatedAt: null };
+  }
+  return { ok: true, reason: 'resolved', floorDeploymentId: id, floorCreatedAt };
+}
+
+function isAtOrAfterAdminFloor(candidate, floorDeploymentId, floorCreatedAt) {
+  if (readDeploymentId(candidate) === floorDeploymentId) return true;
+  const created = deploymentCreatedMs(candidate);
+  if (!(hasFloorCreatedAt(created) && hasFloorCreatedAt(floorCreatedAt))) return false;
+  return created >= floorCreatedAt;
+}
+
+/**
+ * Choose the READY production deployment a rollback may restore.
+ * `deployments` is newest-first. Index 0 is the current deploy and is never
+ * a restore target. Admin selection requires a resolved floor createdAt.
+ */
+export function selectRollbackTarget(deployments, options = {}) {
+  const list = Array.isArray(deployments) ? deployments : [];
+  const appLabel = trimmed(options.appLabel) || 'app';
+
+  if (appLabel !== 'admin') {
+    if (list.length < 2) {
+      return { target: null, rollback: false, reason: 'no-previous' };
+    }
+    return { target: list[1], rollback: true, reason: 'previous' };
+  }
+
+  const floorDeploymentId = trimmed(options.floorDeploymentId);
+  if (!floorDeploymentId) {
+    return { target: null, rollback: false, reason: 'floor-unset' };
+  }
+  if (!hasFloorCreatedAt(options.floorCreatedAt)) {
+    return { target: null, rollback: false, reason: 'floor-unresolvable' };
+  }
+
+  for (const candidate of list.slice(1)) {
+    if (isAtOrAfterAdminFloor(candidate, floorDeploymentId, options.floorCreatedAt)) {
+      return { target: candidate, rollback: true, reason: 'at-or-after-floor' };
+    }
+  }
+  return { target: null, rollback: false, reason: 'no-eligible-target' };
+}
+
+export function rollbackRefusalMessage(decision, context = {}) {
+  const appLabel = context.appLabel || 'app';
+  const floorDeploymentId = context.floorDeploymentId || '';
+  const leftInPlace = 'No rollback was performed. The live build was left in place.';
+  if (decision?.reason === 'floor-unset') {
+    return (
+      `ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID is unset. Refusing an unbounded admin rollback. ` +
+      leftInPlace
+    );
+  }
+  if (decision?.reason === 'floor-unresolvable') {
+    return (
+      `Admin rollback floor ${floorDeploymentId} could not be resolved from the Vercel API. ` +
+      leftInPlace
+    );
+  }
+  if (decision?.reason === 'no-eligible-target') {
+    return (
+      `No READY production deployment for ${appLabel} at or after floor ${floorDeploymentId} ` +
+      `is eligible for rollback. ${leftInPlace}`
+    );
+  }
+  const foundCount = context.foundCount ?? 0;
+  return (
+    `No previous READY production deployment for ${appLabel} (found ${foundCount}). ` +
+    'Broken deploy may still be live.'
+  );
 }
 
 function die(code, msg) {
@@ -121,6 +257,19 @@ async function api(path, init = {}) {
   return body;
 }
 
+async function resolveAdminFloor(rawFloorDeploymentId) {
+  const preview = floorFromLookup(rawFloorDeploymentId, null);
+  if (preview.reason === 'floor-unset') return preview;
+  try {
+    const body = await api(`/v13/deployments/${encodeURIComponent(preview.floorDeploymentId)}`);
+    return floorFromLookup(preview.floorDeploymentId, body);
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : 'unknown error';
+    console.error(`Admin rollback floor lookup failed for ${preview.floorDeploymentId}: ${detail}`);
+    return floorFromLookup(preview.floorDeploymentId, null);
+  }
+}
+
 async function listReadyProdDeployments() {
   // v6 deployments: newest first
   const data = await api(
@@ -164,24 +313,51 @@ async function main() {
   initCli();
   console.log(`=== Rollback previous prod: ${appLabel} (${projectId}) team=${teamId} ===`);
 
+  let floorDeploymentId = '';
+  let floorCreatedAt = null;
+  if (appLabel === 'admin') {
+    const floor = await resolveAdminFloor(process.env.ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID);
+    floorDeploymentId = floor.floorDeploymentId;
+    floorCreatedAt = floor.floorCreatedAt;
+    if (!floor.ok) {
+      die(1, rollbackRefusalMessage(floor, { appLabel, floorDeploymentId }));
+    }
+  }
+
   const deps = await listReadyProdDeployments();
-  if (deps.length < 2) {
+  const decision = selectRollbackTarget(deps, {
+    appLabel,
+    floorDeploymentId,
+    floorCreatedAt,
+  });
+  if (!(decision.rollback && decision.target)) {
     die(
       1,
-      `No previous READY production deployment for ${appLabel} (found ${deps.length}). Broken deploy may still be live.`,
+      rollbackRefusalMessage(decision, {
+        appLabel,
+        floorDeploymentId,
+        foundCount: deps.length,
+      }),
     );
   }
 
   const broken = deps[0];
-  const previous = deps[1];
-  console.log(`Newest (broken candidate): ${broken.uid} https://${broken.url}`);
-  console.log(`Previous (restore):        ${previous.uid} https://${previous.url}`);
-
-  if (!PRODUCTION_ALIASES[appLabel]) {
+  const previous = decision.target;
+  if (!(broken?.uid && previous.uid)) {
     die(
       1,
-      `No production alias allowlist for ${appLabel}. Refusing to move every alias.`,
+      `Rollback target for ${appLabel} is missing a deployment id. ` +
+        'No rollback was performed. The live build was left in place.',
     );
+  }
+  console.log(`Newest (broken candidate): ${broken.uid} https://${broken.url}`);
+  console.log(`Restore target:            ${previous.uid} https://${previous.url}`);
+  if (appLabel === 'admin') {
+    console.log(`Admin rollback floor:      ${floorDeploymentId}`);
+  }
+
+  if (!PRODUCTION_ALIASES[appLabel]) {
+    die(1, `No production alias allowlist for ${appLabel}. Refusing to move every alias.`);
   }
 
   const onNewest = await listAliasesForDeployment(broken.uid);
@@ -233,8 +409,7 @@ async function main() {
   );
 }
 
-const isDirectRun =
-  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+const isDirectRun = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 
 if (isDirectRun) {
   main().catch((e) => {
