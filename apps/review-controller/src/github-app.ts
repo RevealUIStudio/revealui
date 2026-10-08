@@ -500,7 +500,11 @@ export class GitHubAppClient {
     options: { method?: 'GET' | 'POST' | 'PATCH'; body?: unknown } = {},
   ): Promise<{ body: unknown; next?: URL }> {
     const repositoryPath = `/repos/${this.config.repositoryFullName}/`;
-    if (url.origin !== GITHUB_API || !url.pathname.startsWith(repositoryPath))
+    const canonicalPath = `/repositories/${this.config.repositoryId}/`;
+    if (
+      url.origin !== GITHUB_API ||
+      !(url.pathname.startsWith(repositoryPath) || url.pathname.startsWith(canonicalPath))
+    )
       throw new GitHubAppError('api_url_out_of_scope');
     const token = await this.installationToken();
     let response: Response;
@@ -535,7 +539,12 @@ export class GitHubAppClient {
     } catch {
       throw new GitHubAppError('invalid_github_json');
     }
-    const next = parseNextLink(response.headers.get('link'), url.pathname);
+    const next = parseNextLink(
+      response.headers.get('link'),
+      url.pathname,
+      repositoryPath,
+      canonicalPath,
+    );
     return { body, ...(next ? { next } : {}) };
   }
 
@@ -618,8 +627,19 @@ function createAppJwt(
   return `${unsigned}.${signer.sign(key).toString('base64url')}`;
 }
 
-function parseNextLink(linkHeader: string | null, expectedPath: string): URL | undefined {
+function parseNextLink(
+  linkHeader: string | null,
+  expectedPath: string,
+  repositoryPath: string,
+  canonicalPath: string,
+): URL | undefined {
   if (!linkHeader) return undefined;
+  const suffix = expectedPath.startsWith(repositoryPath)
+    ? expectedPath.slice(repositoryPath.length)
+    : expectedPath.startsWith(canonicalPath)
+      ? expectedPath.slice(canonicalPath.length)
+      : null;
+  if (suffix === null) throw new GitHubAppError('api_url_out_of_scope');
   for (const segment of linkHeader.split(',')) {
     const match = segment.match(/^\s*<([^>]+)>\s*;\s*rel="next"\s*$/);
     if (!match?.[1]) continue;
@@ -629,7 +649,11 @@ function parseNextLink(linkHeader: string | null, expectedPath: string): URL | u
     } catch {
       throw new GitHubAppError('invalid_pagination_link');
     }
-    if (next.origin !== GITHUB_API || next.pathname !== expectedPath)
+    if (
+      next.origin !== GITHUB_API ||
+      (next.pathname !== `${repositoryPath}${suffix}` &&
+        next.pathname !== `${canonicalPath}${suffix}`)
+    )
       throw new GitHubAppError('pagination_link_out_of_scope');
     return next;
   }

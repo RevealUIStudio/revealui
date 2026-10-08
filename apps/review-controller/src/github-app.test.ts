@@ -337,12 +337,13 @@ describe('GitHub App API client', () => {
           {
             status: 200,
             headers: {
-              link: '<https://api.github.com/repos/RevealUIStudio/revealui/pulls/7/files?per_page=100&page=2>; rel="next"',
+              link: '<https://api.github.com/repositories/300/pulls/7/files?per_page=100&page=2>; rel="next"',
             },
           },
         );
       }
       if (url.pathname.endsWith('/files')) {
+        expect(url.pathname).toBe('/repositories/300/pulls/7/files');
         return new Response(
           JSON.stringify([
             {
@@ -494,6 +495,25 @@ describe('GitHub App API client', () => {
       return new Response('[]', {
         status: 200,
         headers: { link: '<https://attacker.example/steal?page=2>; rel="next"' },
+      });
+    });
+    await expect(fixture(fetchImpl).listPullRequestFiles(7)).rejects.toMatchObject({
+      code: 'pagination_link_out_of_scope',
+    });
+  });
+
+  it.each([
+    ['different repository', '/repositories/301/pulls/7/files'],
+    ['different endpoint', '/repositories/300/pulls/8/files'],
+  ])('rejects a canonical pagination link for a %s', async (_, path) => {
+    const fetchImpl = vi.fn<typeof fetch>(async (input) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      if (url.pathname.endsWith('/access_tokens')) return tokenResponse();
+      return new Response('[]', {
+        status: 200,
+        headers: {
+          link: `<https://api.github.com${path}?per_page=100&page=2>; rel="next"`,
+        },
       });
     });
     await expect(fixture(fetchImpl).listPullRequestFiles(7)).rejects.toMatchObject({
