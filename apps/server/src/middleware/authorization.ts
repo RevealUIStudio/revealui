@@ -23,17 +23,17 @@ for (const role of Object.values(CommonRoles)) {
   authz.registerRole(role);
 }
 
+/** Same allow/deny decision as `requirePermission`, without the Hono wrapper. */
+export function userHasPermission(role: string, resource: string, action: string): boolean {
+  return authz.hasPermission([role], resource, action);
+}
+
 /**
  * Require permission on a resource/action pair.
  * Falls back to PermissionCache for repeat checks.
  *
  * Must be used after `authMiddleware({ required: true })`.
  */
-/** Same allow/deny decision as `requirePermission`, without the Hono wrapper. */
-export function userHasPermission(role: string, resource: string, action: string): boolean {
-  return authz.hasPermission([role], resource, action);
-}
-
 export const requirePermission = (
   resource: string,
   action: string,
