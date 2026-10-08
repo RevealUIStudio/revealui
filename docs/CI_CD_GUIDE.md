@@ -75,7 +75,7 @@ All workflows live in [`.github/workflows/`](../.github/workflows/).
 |------|---------|---------|
 | [`ci.yml`](../.github/workflows/ci.yml) | push/PR to `test`/`main` | Two-tier CI gate: quality + typecheck + tests + build (test); + integration + E2E + coverage (main) |
 | [`security.yml`](../.github/workflows/security.yml) | push/PR + weekly Mon 09:00 UTC | Native security gate: `pnpm audit`, custom secret/credential checks |
-| [`deploy.yml`](../.github/workflows/deploy.yml) | push to `main`, workflow_dispatch | Production deploy: validate → migrate → detect-affected → matrix deploy → smoke test → auto-rollback on failure |
+| [`deploy.yml`](../.github/workflows/deploy.yml) | push to `main`; `workflow_dispatch` only for `refs/heads/main` | Production deploy: validate → migrate → detect-affected → matrix deploy → smoke test → auto-rollback on failure |
 | [`deploy-test.yml`](../.github/workflows/deploy-test.yml) | workflow_dispatch | On-demand QA preview deploys (Vercel preview env, manual only) |
 | [`release.yml`](../.github/workflows/release.yml) | workflow_dispatch | OSS npm publish via OIDC trusted publishing (SLSA Build Level 2 provenance) |
 | [`docker.yml`](../.github/workflows/docker.yml) | workflow_dispatch | Build & push Fleet self-hosted Docker images (`server` + `admin`) to GHCR |
@@ -91,6 +91,8 @@ Pinned action versions and SHAs are kept in lockstep with Renovate (`renovate.js
 ---
 
 ## Production deploy (`deploy.yml`)
+
+Production jobs run only when `github.ref` is `refs/heads/main`. A manual dispatch from any other ref fails in Production ref guard before validate, migrate, or deploy. Repository settings should also limit the `production` environment to the `main` branch.
 
 The real pipeline is six stages, all defined in [`deploy.yml`](../.github/workflows/deploy.yml):
 
