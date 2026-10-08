@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { Hono } from 'hono';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@revealui/utils/logger', () => ({
@@ -68,6 +69,27 @@ describe('createSSRHandler', () => {
     await handler(c);
     const htmlArg = c.html.mock.calls[0][0] as string;
     expect(htmlArg).toContain('__REVEALUI_DATA__');
+  });
+
+  it('keeps loader HTML inside the JSON data script and preserves hydration data', async () => {
+    const content = '</script><script>alert("loader")</script><!-- <img src=x onerror=alert(1)>';
+    const app = new Hono();
+    app.get('*', createSSRHandler([createRoute('/', { loader: async () => ({ content }) })]));
+
+    const response = await app.request('/');
+    const html = await response.text();
+    expect(response.status).toBe(200);
+    expect(html).not.toContain('<script>alert("loader")</script>');
+    expect(html).not.toContain('<img src=x');
+    expect(html.match(/<script\b/g)).toHaveLength(2);
+
+    const dataScript = html.match(
+      /<script id="__REVEALUI_DATA__" type="application\/json">([\s\S]*?)<\/script>/,
+    )?.[1];
+    expect(dataScript).toBeDefined();
+    expect(dataScript).not.toContain('<');
+    expect(dataScript).toContain('\\u003c/script>');
+    expect(JSON.parse(dataScript ?? '')).toMatchObject({ data: { content } });
   });
 
   it('uses custom template when provided', async () => {
