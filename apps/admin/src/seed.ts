@@ -23,6 +23,7 @@
 
 import type { getRevealUI } from '@revealui/core';
 import { getClient } from '@revealui/db';
+import { updatePage } from '@revealui/db/queries/pages';
 import { sites, users } from '@revealui/db/schema';
 import { eq, or } from 'drizzle-orm';
 import {
@@ -30,6 +31,7 @@ import {
   loadSeedEnv,
   SeedEnvError,
 } from '../../../scripts/lib/seed-env.js';
+import { homeLicenseBlocksPatch } from './lib/seed/home-license-copy.js';
 
 // pnpm db:seed:admin runs from monorepo root; seed-env loads apps/admin/.env.local
 // while preserving the caller-selected database target.
@@ -113,6 +115,9 @@ function pageSeed(input: {
   };
 }
 
+const HOME_LICENSE_SENTENCE =
+  '26 of the 33 packages are MIT, forever. The 5 Pro packages are Fair Source (FSL-1.1-MIT) and convert to MIT two years after each release. The remaining 2 workspace packages are internal tooling with no public license.';
+
 const pages = [
   pageSeed({
     title: 'Home',
@@ -129,7 +134,7 @@ const pages = [
       ),
       heading('Get Started', 'h3'),
       paragraph(
-        'Run npx create-revealui to scaffold a new project. Visit /admin to manage content, create pages, and configure your application. 26 of the 33 packages are MIT, forever. The 5 Pro packages are Fair Source (FSL-1.1-MIT) and convert to MIT two years after each release. The remaining 2 workspace packages are internal tooling with no public license.',
+        `Run npx create-revealui to scaffold a new project. Visit /admin to manage content, create pages, and configure your application. ${HOME_LICENSE_SENTENCE}`,
       ),
     ),
   }),
@@ -206,8 +211,21 @@ const sampleContent = {
 
 interface SeedCollectionResult {
   created: number;
+  updated: number;
   skipped: number;
   failed: number;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function storedPageId(doc: unknown): string | null {
+  if (!isRecord(doc)) return null;
+  const id = doc.id;
+  if (typeof id === 'string' && id.length > 0) return id;
+  if (typeof id === 'number') return String(id);
+  return null;
 }
 
 // --- Seed Functions ---
@@ -256,6 +274,7 @@ async function seedCollection(
 ): Promise<SeedCollectionResult> {
   logger.info(`\nSeeding ${label}...`);
   let created = 0;
+  let updated = 0;
   let skipped = 0;
   let failed = 0;
 
@@ -274,6 +293,26 @@ async function seedCollection(
       });
 
       if (existing.docs && existing.docs.length > 0) {
+        const doc = existing.docs[0];
+        const pageId = collection === 'pages' && identifier === 'home' ? storedPageId(doc) : null;
+        const patched =
+          pageId && isRecord(doc)
+            ? homeLicenseBlocksPatch(doc.blocks, HOME_LICENSE_SENTENCE)
+            : null;
+        if (pageId && patched) {
+          const row = await updatePage(getClient(), pageId, {
+            blocks: patched,
+            blockCount: patched.length,
+          });
+          if (!row) {
+            failed++;
+            logger.error(`   Could not refresh license copy on "${identifier}"`);
+            continue;
+          }
+          logger.success(`   Updated stale license copy on "${identifier}"`);
+          updated++;
+          continue;
+        }
         logger.info(`   Skipping "${identifier}" (already exists)`);
         skipped++;
         continue;
@@ -294,7 +333,7 @@ async function seedCollection(
     }
   }
 
-  return { created, skipped, failed };
+  return { created, updated, skipped, failed };
 }
 
 async function getOrCreateDefaultSite(
@@ -385,7 +424,7 @@ async function main() {
     const revealuiConfig = await config;
     const revealui = await getRevealUI({ config: revealuiConfig });
 
-    let pageResult: SeedCollectionResult = { created: 0, skipped: 0, failed: 0 };
+    let pageResult: SeedCollectionResult = { created: 0, updated: 0, skipped: 0, failed: 0 };
 
     if (!contentOnly) {
       pageResult = await seedPages(revealui);
@@ -398,7 +437,7 @@ async function main() {
     if (pageResult.failed > 0) {
       throw new SeedEnvError(
         `Admin page seed finished with ${pageResult.failed} failure(s) ` +
-          `(created=${pageResult.created}, skipped=${pageResult.skipped}). ` +
+          `(created=${pageResult.created}, updated=${pageResult.updated}, skipped=${pageResult.skipped}). ` +
           'Fix the errors above and re-run pnpm db:seed:admin.',
       );
     }
@@ -407,7 +446,7 @@ async function main() {
 
     if (!contentOnly) {
       logger.info(
-        `Pages: created=${pageResult.created} skipped=${pageResult.skipped} failed=${pageResult.failed}`,
+        `Pages: created=${pageResult.created} updated=${pageResult.updated} skipped=${pageResult.skipped} failed=${pageResult.failed}`,
       );
       for (const page of pages) {
         logger.info(`   /${page.slug} — ${page.title}`);
