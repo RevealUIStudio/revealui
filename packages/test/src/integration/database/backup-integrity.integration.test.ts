@@ -68,9 +68,7 @@ describe.skipIf(!target)('backup integrity through the supported pg adapter', ()
     if (connection) await cleanup(() => connection.close());
     if (control) {
       if (created)
-        await cleanup(() =>
-          control.query(`DROP DATABASE ${escapeIdentifier(databaseName)} WITH (FORCE)`),
-        );
+        await cleanup(() => control.query(`DROP DATABASE ${escapeIdentifier(databaseName)}`));
       for (const role of roles)
         await cleanup(() => control.query(`DROP ROLE ${escapeIdentifier(role)}`));
       await cleanup(() => control.end());
