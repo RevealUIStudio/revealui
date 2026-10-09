@@ -121,7 +121,7 @@ const pages = [
     richText: richTextDoc(
       heading('Stop building the backend. Ship the AI business.'),
       paragraph(
-        'Auth, billing, content, and agents - wired, audited, yours. Five primitives for you and your AI agents, governed by one RBAC + ABAC policy and signed into one tamper-evident audit chain.',
+        'Auth, billing, content, and agents: wired, audited, yours. Five primitives for you and your AI agents, governed by one RBAC + ABAC policy and signed into one tamper-evident audit chain.',
       ),
       heading('Why RevealUI?', 'h3'),
       paragraph(
@@ -129,7 +129,7 @@ const pages = [
       ),
       heading('Get Started', 'h3'),
       paragraph(
-        'Run npx create-revealui to scaffold a new project. Visit /admin to manage content, create pages, and configure your application. 20 of 26 packages are MIT - forever; the 5 Pro packages convert to MIT after 2 years.',
+        'Run npx create-revealui to scaffold a new project. Visit /admin to manage content, create pages, and configure your application. 26 of the 33 packages are MIT, forever. The 5 Pro packages are Fair Source (FSL-1.1-MIT) and convert to MIT two years after each release. The remaining 2 workspace packages are internal tooling with no public license.',
       ),
     ),
   }),
