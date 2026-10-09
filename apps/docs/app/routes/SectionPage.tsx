@@ -173,7 +173,7 @@ function SectionContent({ section, title }: SectionPageProps) {
           href={githubUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-medium text-accent no-underline transition-colors hover:text-accent-hover"
+          className="font-medium text-primary-text no-underline transition-colors hover:underline"
         >
           Edit this page on GitHub
         </a>

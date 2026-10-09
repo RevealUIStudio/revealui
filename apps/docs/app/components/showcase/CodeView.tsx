@@ -56,7 +56,7 @@ export function CodeView({ story, values }: CodeViewProps) {
           variant="neutral"
           size="sm"
           onClick={handleCopy}
-          className="h-auto px-2 py-1 text-xs text-text-muted hover:text-accent"
+          className="h-auto px-2 py-1 text-xs text-text-muted hover:text-primary-text"
         >
           {copied ? 'Copied!' : 'Copy'}
         </Button>

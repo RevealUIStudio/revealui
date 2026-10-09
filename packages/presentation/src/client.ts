@@ -212,7 +212,16 @@ export {
   TableRow,
 } from './components/table.js';
 export { Tab, TabList, TabPanel, Tabs } from './components/tabs.js';
-export { Code, Strong, Text, TextLink } from './components/text.js';
+export {
+  Code,
+  MarkdownText,
+  type MarkdownTextProps,
+  SkipLink,
+  type SkipLinkProps,
+  Strong,
+  Text,
+  TextLink,
+} from './components/text.js';
 export { Textarea } from './components/textarea-headless.js';
 export { Timeline, TimelineItem } from './components/timeline.js';
 export { ToastProvider, useToast } from './components/toast.js';

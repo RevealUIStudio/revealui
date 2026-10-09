@@ -10,6 +10,10 @@ const MANIFEST = join(PKG_ROOT, 'design-context', 'MANIFEST.sha256');
 
 const BRAND_LIGHT = 'oklch(0.36 0.190 240)';
 const BRAND_DARK = 'oklch(0.58 0.150 240)';
+const LIGHT_BRAND_TEXT = 'oklch(0.30 0.180 244)';
+const DARK_BRAND_TEXT = 'oklch(0.78 0.100 240)';
+const LIGHT_BRAND_SOFT = 'oklch(0.36 0.190 240 / 0.10)';
+const DARK_BRAND_SOFT = 'oklch(0.58 0.150 240 / 0.16)';
 
 interface BrandMeta {
   brand: { 'rvui-brand-light': string; 'rvui-brand-dark': string };
@@ -49,30 +53,38 @@ function expectDeclaration(name: string, value: string): void {
 // and warning-text-dark at 7.45:1; this math reproduces both within ~1%.
 // ---------------------------------------------------------------------------
 
-function parseOklch(value: string): { L: number; C: number; h: number } {
+function parseOklch(value: string): { L: number; C: number; h: number; alpha: number } {
   const open = value.indexOf('(');
   const close = value.lastIndexOf(')');
   if (open === -1 || close === -1) throw new Error(`not an oklch() value: ${value}`);
   const inner = value.slice(open + 1, close);
-  if (inner.includes('/')) throw new Error(`declared canon must not carry alpha: ${value}`);
-  const parts = inner.split(' ').filter((part) => part !== '');
+  const slash = inner.indexOf('/');
+  const channels = slash === -1 ? inner : inner.slice(0, slash);
+  const alphaSource = slash === -1 ? '' : inner.slice(slash + 1).trim();
+  const parts = channels.split(' ').filter((part) => part !== '');
   if (parts.length !== 3) throw new Error(`expected 3 oklch components: ${value}`);
   const L = Number(parts[0]);
   const C = Number(parts[1]);
   const h = Number(parts[2]);
-  if (Number.isNaN(L) || Number.isNaN(C) || Number.isNaN(h)) {
+  const alpha = alphaSource.length === 0 ? 1 : Number(alphaSource);
+  if (Number.isNaN(L) || Number.isNaN(C) || Number.isNaN(h) || Number.isNaN(alpha)) {
     throw new Error(`non-numeric oklch components: ${value}`);
   }
-  return { L, C, h };
+  return { L, C, h, alpha };
 }
 
 function clamp01(v: number): number {
   return Math.min(1, Math.max(0, v));
 }
 
-/** WCAG relative luminance of an oklch() color (sRGB-clamped). */
-function relativeLuminance(value: string): number {
-  const { L, C, h } = parseOklch(value);
+interface LinearRgb {
+  r: number;
+  g: number;
+  bl: number;
+}
+
+function toLinearRgb(value: string): LinearRgb & { alpha: number } {
+  const { L, C, h, alpha } = parseOklch(value);
   const rad = (h * Math.PI) / 180;
   const a = C * Math.cos(rad);
   const b = C * Math.sin(rad);
@@ -88,7 +100,33 @@ function relativeLuminance(value: string): number {
   const g = clamp01(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s);
   const bl = clamp01(-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s);
 
+  return { r, g, bl, alpha };
+}
+
+/** WCAG relative luminance of an oklch() color (sRGB-clamped). */
+function relativeLuminance(value: string): number {
+  const { r, g, bl } = toLinearRgb(value);
   return 0.2126729 * r + 0.7151522 * g + 0.072175 * bl;
+}
+
+function compositeLuminance(overlay: string, background: string): number {
+  const fg = toLinearRgb(overlay);
+  const bg = toLinearRgb(background);
+  const a = fg.alpha;
+  const mixed: LinearRgb = {
+    r: fg.r * a + bg.r * (1 - a),
+    g: fg.g * a + bg.g * (1 - a),
+    bl: fg.bl * a + bg.bl * (1 - a),
+  };
+  return 0.2126729 * mixed.r + 0.7151522 * mixed.g + 0.072175 * mixed.bl;
+}
+
+function contrastOnSoft(fg: string, overlay: string, background: string): number {
+  const yFg = relativeLuminance(fg);
+  const yBg = compositeLuminance(overlay, background);
+  const hi = Math.max(yFg, yBg);
+  const lo = Math.min(yFg, yBg);
+  return (hi + 0.05) / (lo + 0.05);
 }
 
 /** WCAG 1.4.3 contrast ratio between two oklch() colors. */
@@ -124,6 +162,7 @@ describe('tokens contract', () => {
     expect(theme.includes('--color-warning-foreground: var(--rvui-text-on-warning)')).toBe(true);
     expect(theme.includes('--color-info: var(--rvui-info)')).toBe(true);
     expect(theme.includes('--color-info-foreground: var(--rvui-text-on-brand)')).toBe(true);
+    expect(theme.includes('--color-link: var(--rvui-brand-text)')).toBe(true);
   });
 
   it('src/tokens.css contains the cobalt dark brand value', () => {
@@ -221,11 +260,54 @@ describe('contrast guards — WCAG AA invariants on the declared canon', () => {
     // (~4.69:1), clearing the floor the WCAG brand lift had pulled below AA.
     ['light text-on-brand on brand', light['text-on-brand'] ?? '', BRAND_LIGHT],
     ['dark text-on-brand on brand', dark['text-on-brand'] ?? '', BRAND_DARK],
+    // Primary text step used for links and active nav. Amber accent on white
+    // is about 2.02:1; these pairs are the replacement.
+    ['light brand-text on surface-1', LIGHT_BRAND_TEXT, light['surface-1'] ?? ''],
+    ['light brand-text on surface-0', LIGHT_BRAND_TEXT, light['surface-0'] ?? ''],
+    ['light brand-text on surface-2', LIGHT_BRAND_TEXT, light['surface-2'] ?? ''],
+    ['dark brand-text on surface-0', DARK_BRAND_TEXT, dark['surface-0'] ?? ''],
+    ['dark brand-text on surface-1', DARK_BRAND_TEXT, dark['surface-1'] ?? ''],
+    ['dark brand-text on surface-2', DARK_BRAND_TEXT, dark['surface-2'] ?? ''],
   ];
 
   for (const [label, fg, bg] of aaPairs) {
     it(`${label} >= ${AA_TEXT}:1`, () => {
       const ratio = contrast(fg, bg);
+      expect(ratio, `${label} = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(AA_TEXT);
+    });
+  }
+
+  it('declares the primary text step used for links', () => {
+    expect(CSS_COLLAPSED.includes(`--rvui-brand-text: ${LIGHT_BRAND_TEXT}`)).toBe(true);
+    expect(CSS_COLLAPSED.includes(`--rvui-brand-text: ${DARK_BRAND_TEXT}`)).toBe(true);
+    expect(CSS_COLLAPSED.includes(`--rvui-brand-soft: ${LIGHT_BRAND_SOFT}`)).toBe(true);
+    expect(CSS_COLLAPSED.includes(`--rvui-brand-soft: ${DARK_BRAND_SOFT}`)).toBe(true);
+  });
+
+  const activeNavPairs: Array<[string, string, string, string]> = [
+    [
+      'light brand-text on brand-soft over surface-1',
+      LIGHT_BRAND_TEXT,
+      LIGHT_BRAND_SOFT,
+      light['surface-1'] ?? '',
+    ],
+    [
+      'light brand-text on brand-soft over surface-2',
+      LIGHT_BRAND_TEXT,
+      LIGHT_BRAND_SOFT,
+      light['surface-2'] ?? '',
+    ],
+    [
+      'dark brand-text on brand-soft over surface-2',
+      DARK_BRAND_TEXT,
+      DARK_BRAND_SOFT,
+      dark['surface-2'] ?? '',
+    ],
+  ];
+
+  for (const [label, fg, overlay, bg] of activeNavPairs) {
+    it(`${label} >= ${AA_TEXT}:1`, () => {
+      const ratio = contrastOnSoft(fg, overlay, bg);
       expect(ratio, `${label} = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(AA_TEXT);
     });
   }

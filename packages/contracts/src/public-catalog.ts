@@ -84,6 +84,13 @@ export const PAID_SUPPORT_POLICY = {
 /** Same prospective email targets for every paid tier; no faster staffed tier. */
 export const PAID_TIER_SUPPORT = PAID_SUPPORT_POLICY.summary;
 
+/**
+ * Homepage Pro card line. Best-effort targets, same hours as
+ * `PAID_TIER_SUPPORT` and docs/SLA.md. Critical means data at risk or the
+ * product cannot be used (`PAID_SUPPORT_POLICY.criticalResponse`).
+ */
+export const PAID_TIER_SUPPORT_CARD = `Best-effort email support: ${PAID_SUPPORT_POLICY.standardResponseHours}h weekday, ${PAID_SUPPORT_POLICY.criticalResponseHours}h critical`;
+
 export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
     id: 'free',
