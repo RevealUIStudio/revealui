@@ -28,20 +28,14 @@ in worker memory and is not sent to a model provider by this service. A bounded
 four-snapshot cache reuses verified base/head content across check events while
 refreshing PR state and check runs for each delivery. GitHub rate-limit reset
 headers defer retries, and the worker stops making API calls until that reset.
-Model
-review is provided through the founder's ChatGPT subscription using Codex's GitHub
-automatic-review integration. For signed GitHub `pull_request_review`
-webhooks from `chatgpt-codex-connector[bot]`, the controller records the bot
-account ID, review ID/state/action, reviewed and current head SHAs, timestamp,
-and a digest of the review body. The controller fetches inline comments scoped
-to that review ID, requires each comment to come from the same bot and reviewed
-commit, and stores each comment's ID, path, line, severity, and body digest.
-`[P0]` comments map to critical findings; other comments map conservatively to
-high findings. Any inline comment, `CHANGES_REQUESTED` state, dismissal, or
-review whose GitHub state is not `APPROVED` produces no approving evidence.
-This deliberately treats a comment-only review with no inline comments as
-unresolved rather than inferring approval from missing findings. Stale reviews
-cannot approve. Review prose and source excerpts are not persisted.
+The separate Trusted Reviewer workflow runs only protected-base code and fetches
+pull-request files as data through a dedicated, narrowly scoped reviewer App.
+It submits an explicit native review pinned to the complete head SHA, base SHA,
+manifest digest, configured model and policy, and review-contract digest.
+The controller accepts only the configured reviewer App identity and that exact
+binding. Public reviews contain fixed verdict summaries and neutral finding
+markers; model prose and source details are never published in the review body.
+
 The observation store prioritizes a same-head non-approving review in one
 database read, so later check snapshots or replayed approvals
 cannot evict a rejection from receipt evaluation.
@@ -56,7 +50,7 @@ approving state; receipt publication and owner-gate cutover must wait for that
 contract and positive hosted shadow evidence.
 
 When `REVIEW_RECEIPT_MODE=shadow` is configured, a review delivery with an
-approving Codex observation also runs the receipt evaluator. It resolves
+approving trusted-reviewer observation also runs the receipt evaluator. It resolves
 configured check selectors by stable check name and GitHub App ID to the
 current exact-head run and suite IDs, then fetches the PR again and requires
 its head/base to remain unchanged while collecting GitHub's merge-candidate
@@ -89,18 +83,27 @@ scheduler or model-review path. New review/check evidence is still evaluated by
 the existing signed GitHub webhook flow.
 
 Receipt evaluation does not call a hosted model API. The controller has no
-model API credentials or model-call path. Codex subscription reviews are configured in
-the GitHub integration and do not use this service's model credentials. A
-local receipt evaluator reconciles the current PR snapshot, exact-head review
-observations, and required successful check-run identities before signing
-through the shared Ed25519 receipt contract. The shadow policy uses one
-exact-head Codex subscription review and requires exact-head `CodeQL`,
-`Security Gate`, `Dependency Review`, and `Secret Scanning (Gitleaks)` check
-evidence. Those checks provide deterministic scan evidence; they are not a
-second semantic reviewer. The current gate and branch protections remain
-authoritative while shadow evidence is collected and workflow provenance and
-reviewer independence are reviewed. This policy change does not authorize
-publishing receipts or removing owner approval.
+model API credentials or model-call path. The separate Trusted Reviewer uses
+the OpenAI Responses API and requires an approved API project and credential;
+a ChatGPT subscription alone does not provision those credentials.
+The approved project must be configured as `REVEALFLEET_REVIEW_OPENAI_PROJECT_ID`;
+the runner sends its project ID on every model request and rejects malformed
+credential values before constructing authorization headers.
+Its maintained review contract requires ten checklist assessments, confidence
+of at least 0.9, no missing-context needs, and three fresh review lenses.
+Any finding or request for changes vetoes approval immediately. Only uncertain
+assessments are retried, at most three attempts per lens. Malformed, refused,
+incomplete, oversized, or unexpected tool output cannot approve. The transport
+explicitly disables tools and provider response storage. Three model contexts
+are not three independent GitHub reviewer identities. The receipt policy still
+requires its configured App identity and the mandatory exact-head checks.
+Changes to the prompt, schema, lenses, or acceptance contract change the bound
+contract digest and invalidate older review evidence.
+
+The existing security gate and branch protections remain authoritative while
+the migration is validated. The target is routine PR admission through trusted
+review and controller-signed receipts, with the owner signing key reserved for
+explicit recovery. Issue #3087 tracks hosted evidence and cutover readiness.
 
 The shared receipt store is append-only; shadow evaluation does not store its
 signed envelope. In publish mode the fixed-output App check-run writer places

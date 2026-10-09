@@ -11,6 +11,7 @@ import {
   redactReviewEvidence,
 } from './reviewer.js';
 import type { PullRequestSnapshot } from './snapshot.js';
+import { REVIEW_CONTRACT_SHA256 } from './trusted-review-contract.js';
 
 export interface ShadowObservationStore {
   listReviewObservations(input: {
@@ -18,7 +19,8 @@ export interface ShadowObservationStore {
     pullRequest: number;
     headSha: string;
     baseSha: string;
-    trustedReviewer?: { login: string; id: number };
+    manifestSha256?: string;
+    trustedReviewer?: { login: string; id: number; policyVersion: string; model: string };
   }): Promise<CodexReviewObservation[]>;
   recordPullRequest(input: {
     deliveryId: string;
@@ -46,7 +48,8 @@ export class PostgresShadowObservationStore implements ShadowObservationStore {
     pullRequest: number;
     headSha: string;
     baseSha: string;
-    trustedReviewer?: { login: string; id: number };
+    manifestSha256?: string;
+    trustedReviewer?: { login: string; id: number; policyVersion: string; model: string };
   }): Promise<CodexReviewObservation[]> {
     const provider = input.trustedReviewer ? 'trusted-reviewer-app' : 'codex-subscription';
     const reviewerLogin = input.trustedReviewer?.login ?? 'chatgpt-codex-connector[bot]';
@@ -64,6 +67,17 @@ export class PostgresShadowObservationStore implements ShadowObservationStore {
       ...(input.trustedReviewer
         ? [
             sql`${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,review,reviewerId}' = ${String(input.trustedReviewer.id)}`,
+            // Legacy or differently bound approvals are ineligible; denials remain absorbing.
+            sql`(
+              ${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,review,receiptReview,verdict}' IS DISTINCT FROM 'approve'
+              OR (
+                ${reviewControllerShadowObservations.manifestSha256} = ${input.manifestSha256 ?? ''}
+                AND ${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,review,trustedReviewBinding,version}' = '2'
+                AND ${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,review,trustedReviewBinding,reviewContractSha256}' = ${REVIEW_CONTRACT_SHA256}
+                AND ${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,review,trustedReviewBinding,policyVersion}' = ${input.trustedReviewer.policyVersion}
+                AND ${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,review,trustedReviewBinding,model}' = ${input.trustedReviewer.model}
+              )
+            )`,
           ]
         : []),
     );

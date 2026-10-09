@@ -6,6 +6,7 @@ import type { GitHubAppClient, GitHubCheckRun } from './github-app.js';
 import type { ClaimedWebhook } from './inbox.js';
 import type { ShadowObservationStore } from './observations.js';
 import type { ReceiptPolicy } from './receipt-policy.js';
+import { REVIEW_CONTRACT_SHA256 } from './trusted-review-contract.js';
 
 function webhook(eventName: string, payload: Record<string, unknown>): ClaimedWebhook {
   return {
@@ -477,6 +478,7 @@ describe('shadow webhook event handler', () => {
       pullRequest: 7,
       headSha: 'a'.repeat(40),
       baseSha: 'b'.repeat(40),
+      manifestSha256: createHash('sha256').update('[]').digest('hex'),
     });
     expect(
       vi.mocked(observations.recordPullRequest).mock.calls[0]?.[0].receiptEvaluation,
@@ -610,7 +612,8 @@ describe('shadow webhook event handler', () => {
     const handler = new ShadowWebhookHandler(client, observations, policy);
     const boundBody = JSON.stringify({
       binding: {
-        version: 1,
+        version: 2,
+        reviewContractSha256: REVIEW_CONTRACT_SHA256,
         repositoryId: 300,
         pullRequest: 7,
         headSha: 'a'.repeat(40),
