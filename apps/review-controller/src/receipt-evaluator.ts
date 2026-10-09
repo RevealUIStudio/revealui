@@ -10,6 +10,10 @@ import { signCandidateReceipt } from './receipt-builder.js';
 import type { ReceiptPolicy } from './receipt-policy.js';
 import type { ReviewEvidence } from './reviewer.js';
 import type { PullRequestSnapshot } from './snapshot.js';
+import {
+  matchesTrustedReviewBindingValue,
+  trustedReviewBinding,
+} from './trusted-review-binding.js';
 
 export type ReceiptEvaluation =
   | { status: 'ineligible'; evaluatedAt: string; reason: string }
@@ -50,6 +54,18 @@ export async function evaluateReceiptShadow(input: {
     review.receiptReview.revisionSha !== input.snapshot.headSha
   )
     return ineligible('codex_review_not_approving');
+  const trusted = input.policy.trustedReviewer;
+  if (
+    trusted &&
+    (review.provider !== 'trusted-reviewer-app' ||
+      review.reviewerLogin !== trusted.login ||
+      review.reviewerId !== trusted.id ||
+      !matchesTrustedReviewBindingValue(
+        review.trustedReviewBinding,
+        trustedReviewBinding(input.snapshot, trusted.policyVersion, trusted.model),
+      ))
+  )
+    return ineligible('trusted_review_binding_mismatch');
 
   const resolved = resolveReviewRequiredChecks({
     selectors: input.policy.requiredChecks,

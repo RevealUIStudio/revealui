@@ -5,6 +5,7 @@ import { PostgresWebhookInbox } from './inbox.js';
 import { PostgresShadowObservationStore } from './observations.js';
 import type { ReviewEvidence } from './reviewer.js';
 import type { PullRequestSnapshot } from './snapshot.js';
+import { trustedReviewBinding } from './trusted-review-binding.js';
 
 describe('PostgresShadowObservationStore', () => {
   let db: PGlite;
@@ -220,6 +221,7 @@ describe('PostgresShadowObservationStore', () => {
         review: {
           ...result.review,
           provider: 'trusted-reviewer-app',
+          trustedReviewBinding: trustedReviewBinding(snapshot, 'review-policy-1', 'gpt-6-astra'),
           reviewerLogin: 'revealui-reviewer[bot]',
           reviewerId: 90211,
           receiptReview: {
@@ -235,16 +237,57 @@ describe('PostgresShadowObservationStore', () => {
       pullRequest: snapshot.pullRequest,
       headSha: snapshot.headSha,
       baseSha: snapshot.baseSha,
-      trustedReviewer: { login: 'revealui-reviewer[bot]', id: 90211 },
+      trustedReviewer: {
+        login: 'revealui-reviewer[bot]',
+        id: 90211,
+        policyVersion: 'review-policy-1',
+        model: 'gpt-6-astra',
+      },
+      manifestSha256: snapshot.manifest.sha256,
     };
+    // Older unbound and wrong-contract approvals cannot enter the candidate set.
+    const legacy = trusted(87, 'approve');
+    if (legacy.status !== 'observed') throw new Error('invalid fixture');
+    delete legacy.review.trustedReviewBinding;
+    await record(118, legacy);
+    expect(await store.listReviewObservations(candidate)).toEqual([]);
+    const obsolete = trusted(88, 'approve');
+    if (obsolete.status !== 'observed' || !obsolete.review.trustedReviewBinding)
+      throw new Error('invalid fixture');
+    obsolete.review.trustedReviewBinding.reviewContractSha256 = '0'.repeat(64);
+    await record(119, obsolete);
+    expect(await store.listReviewObservations(candidate)).toEqual([]);
     await record(116, trusted(85, 'approve'));
     expect((await store.listReviewObservations(candidate)).map((item) => item.reviewId)).toEqual([
       85,
     ]);
+    expect(
+      await store.listReviewObservations({
+        ...candidate,
+        trustedReviewer: { ...candidate.trustedReviewer, policyVersion: 'review-policy-2' },
+      }),
+    ).toEqual([]);
+    expect(
+      await store.listReviewObservations({
+        ...candidate,
+        trustedReviewer: { ...candidate.trustedReviewer, model: 'other-model' },
+      }),
+    ).toEqual([]);
+    expect(
+      await store.listReviewObservations({ ...candidate, manifestSha256: '0'.repeat(64) }),
+    ).toEqual([]);
     await record(117, trusted(86, 'request-changes'));
     expect((await store.listReviewObservations(candidate)).map((item) => item.reviewId)).toEqual([
       86,
     ]);
+    expect(
+      (
+        await store.listReviewObservations({
+          ...candidate,
+          trustedReviewer: { ...candidate.trustedReviewer, policyVersion: 'review-policy-2' },
+        })
+      ).map((item) => item.reviewId),
+    ).toEqual([86]);
   });
 });
 

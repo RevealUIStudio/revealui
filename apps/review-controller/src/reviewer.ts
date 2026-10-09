@@ -1,3 +1,4 @@
+import type { TrustedReviewBinding } from './trusted-review-binding.js';
 export interface CodexReviewObservation {
   provider: 'codex-subscription' | 'trusted-reviewer-app';
   reviewerLogin: string;
@@ -9,6 +10,7 @@ export interface CodexReviewObservation {
   action: 'submitted' | 'edited' | 'dismissed';
   observedAt: string;
   bodySha256: string;
+  trustedReviewBinding?: TrustedReviewBinding;
   inlineCommentCount: number;
   inlineComments: Array<{
     commentId: number;

@@ -24,6 +24,7 @@ async function main(): Promise<void> {
   if (!/^[A-Za-z0-9-]+\[bot\]$/.test(reviewer.login))
     throw new Error('GITHUB_REVIEWER_BOT_LOGIN must name a GitHub App bot');
   const apiKey = required('OPENAI_API_KEY');
+  const projectId = required('OPENAI_PROJECT_ID');
   const model = required('OPENAI_REVIEW_MODEL');
   const policyVersion = required('OPENAI_REVIEW_POLICY_VERSION');
   if (!/^[A-Za-z0-9._:-]{1,128}$/.test(policyVersion))
@@ -39,7 +40,7 @@ async function main(): Promise<void> {
   const handler = new TrustedReviewerWebhookHandler(
     github,
     { repositoryId, reviewer, policyVersion, model },
-    (snapshot) => requestStructuredReview({ snapshot, apiKey, model, policyVersion }),
+    (snapshot) => requestStructuredReview({ snapshot, apiKey, projectId, model, policyVersion }),
   );
   const onePullRequest = process.env.REVIEW_PULL_REQUEST_NUMBER?.trim();
   const pullRequests = onePullRequest

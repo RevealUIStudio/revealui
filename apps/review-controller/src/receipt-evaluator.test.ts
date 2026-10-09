@@ -5,6 +5,7 @@ import { evaluateReceiptShadow } from './receipt-evaluator.js';
 import type { ReceiptPolicy } from './receipt-policy.js';
 import type { CodexReviewObservation, ReviewEvidence } from './reviewer.js';
 import type { PullRequestSnapshot } from './snapshot.js';
+import { trustedReviewBinding } from './trusted-review-binding.js';
 
 const sha = (letter: string) => letter.repeat(40);
 const digest = (letter: string) => letter.repeat(64);
@@ -161,5 +162,65 @@ describe('evaluateReceiptShadow', () => {
       status: 'ineligible',
       reason: 'receipt_security_check_policy_incomplete',
     });
+  });
+});
+
+describe('trusted reviewer receipt admission', () => {
+  const trusted = {
+    login: 'revealui-reviewer[bot]',
+    id: 90211,
+    policyVersion: 'review-policy-1',
+    model: 'gpt-6-astra',
+  };
+  const binding = trustedReviewBinding(snapshot, trusted.policyVersion, trusted.model);
+  const trustedReview: CodexReviewObservation = {
+    ...review,
+    provider: 'trusted-reviewer-app',
+    reviewerLogin: trusted.login,
+    reviewerId: trusted.id,
+    trustedReviewBinding: binding,
+  };
+  it.each([
+    { ...trustedReview, trustedReviewBinding: undefined },
+    {
+      ...trustedReview,
+      trustedReviewBinding: { ...binding, reviewContractSha256: '0'.repeat(64) },
+    },
+    { ...trustedReview, trustedReviewBinding: { ...binding, policyVersion: 'old-policy' } },
+    { ...trustedReview, trustedReviewBinding: { ...binding, model: 'other-model' } },
+    { ...trustedReview, trustedReviewBinding: { ...binding, baseSha: sha('f') } },
+    { ...trustedReview, trustedReviewBinding: { ...binding, manifestSha256: digest('0') } },
+    { ...trustedReview, reviewerId: 90210 },
+  ])(
+    'refuses stale or unbound stored approval before check or merge-candidate evaluation',
+    async (candidate) => {
+      const getFreshMergeCandidate = vi.fn(async () => sha('e'));
+      const result = await evaluateReceiptShadow({
+        policy: { ...policy, trustedReviewer: trusted },
+        snapshot,
+        checkRuns: [checkRun],
+        workflowRuns: [],
+        reviewEvidence: { status: 'observed', review: candidate },
+        getFreshMergeCandidate,
+        now: new Date('2026-10-06T13:00:00.000Z'),
+      });
+      expect(result).toMatchObject({
+        status: 'ineligible',
+        reason: 'trusted_review_binding_mismatch',
+      });
+      expect(getFreshMergeCandidate).not.toHaveBeenCalled();
+    },
+  );
+  it('admits a current exact-binding trusted review', async () => {
+    const result = await evaluateReceiptShadow({
+      policy: { ...policy, trustedReviewer: trusted },
+      snapshot,
+      checkRuns: [checkRun],
+      workflowRuns: [],
+      reviewEvidence: { status: 'observed', review: trustedReview },
+      getFreshMergeCandidate: vi.fn(async () => sha('e')),
+      now: new Date('2026-10-06T13:00:00.000Z'),
+    });
+    expect(result.status).toBe('eligible');
   });
 });

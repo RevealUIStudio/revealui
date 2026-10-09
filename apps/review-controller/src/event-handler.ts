@@ -8,7 +8,11 @@ import { persistReceiptThenPublishCheck } from './receipt-publisher.js';
 import type { SignedReceiptStore } from './receipt-store.js';
 import type { CodexReviewObservation, ReviewEvidence } from './reviewer.js';
 import { fetchPullRequestSnapshot, PullRequestSnapshotCache } from './snapshot.js';
-import { matchesTrustedReviewBinding } from './trusted-review-binding.js';
+import {
+  matchesTrustedReviewBinding,
+  matchesTrustedReviewBindingValue,
+  trustedReviewBinding,
+} from './trusted-review-binding.js';
 import type { WebhookHandler } from './worker.js';
 
 const MAX_PULL_REQUESTS_PER_DELIVERY = 20;
@@ -190,13 +194,19 @@ async function latestCurrentCodexReview(
     pullRequest: snapshot.pullRequest,
     headSha: snapshot.headSha,
     baseSha: snapshot.baseSha,
+    manifestSha256: snapshot.manifest.sha256,
     ...(trustedReviewer ? { trustedReviewer } : {}),
   });
   const acceptedReviews = reviews.filter((review) =>
     trustedReviewer
       ? review.provider === 'trusted-reviewer-app' &&
         review.reviewerLogin === trustedReviewer.login &&
-        review.reviewerId === trustedReviewer.id
+        review.reviewerId === trustedReviewer.id &&
+        (review.receiptReview?.verdict !== 'approve' ||
+          matchesTrustedReviewBindingValue(
+            review.trustedReviewBinding,
+            trustedReviewBinding(snapshot, trustedReviewer.policyVersion, trustedReviewer.model),
+          ))
       : review.provider === 'codex-subscription' &&
         review.reviewerLogin === 'chatgpt-codex-connector[bot]',
   );
@@ -340,6 +350,15 @@ async function codexReviewEvidence(
       action: actionValue,
       observedAt: webhook.receivedAt.toISOString(),
       bodySha256: createHash('sha256').update(body, 'utf8').digest('hex'),
+      ...(trustedReviewer && bindingMatches
+        ? {
+            trustedReviewBinding: trustedReviewBinding(
+              snapshot,
+              trustedReviewer.policyVersion,
+              trustedReviewer.model,
+            ),
+          }
+        : {}),
       inlineCommentCount: inlineComments.length,
       inlineComments: sanitizedComments,
       submittedAt,

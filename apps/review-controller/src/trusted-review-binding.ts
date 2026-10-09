@@ -1,7 +1,9 @@
 import type { PullRequestSnapshot } from './snapshot.js';
+import { REVIEW_CONTRACT_SHA256 } from './trusted-review-contract.js';
 
 export interface TrustedReviewBinding {
-  version: 1;
+  version: 2;
+  reviewContractSha256: string;
   repositoryId: number;
   pullRequest: number;
   headSha: string;
@@ -18,7 +20,8 @@ export function trustedReviewBinding(
   model: string,
 ): TrustedReviewBinding {
   return {
-    version: 1,
+    version: 2,
+    reviewContractSha256: REVIEW_CONTRACT_SHA256,
     repositoryId: snapshot.repositoryId,
     pullRequest: snapshot.pullRequest,
     headSha: snapshot.headSha,
@@ -56,9 +59,17 @@ export function matchesTrustedReviewBinding(
     Array.isArray(container.binding)
   )
     return false;
-  const value = container.binding as Record<string, unknown>;
+  return matchesTrustedReviewBindingValue(container.binding, expected);
+}
+
+export function matchesTrustedReviewBindingValue(
+  value: unknown,
+  expected: TrustedReviewBinding,
+): boolean {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  const binding = value as Record<string, unknown>;
   return (
-    Object.keys(value).length === Object.keys(expected).length &&
-    Object.entries(expected).every(([key, item]) => value[key] === item)
+    Object.keys(binding).length === Object.keys(expected).length &&
+    Object.entries(expected).every(([key, item]) => binding[key] === item)
   );
 }

@@ -47,6 +47,7 @@ jobs:
           GITHUB_REPOSITORY_ID: ${{ github.event.repository.id }}
           GITHUB_REPOSITORY_FULL_NAME: ${{ github.repository }}
           REVIEW_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+          OPENAI_PROJECT_ID: ${{ vars.REVEALFLEET_REVIEW_OPENAI_PROJECT_ID }}
           OPENAI_REVIEW_MODEL: ${{ vars.REVEALFLEET_REVIEW_MODEL }}
           OPENAI_REVIEW_POLICY_VERSION: ${{ vars.REVEALFLEET_REVIEW_POLICY_VERSION }}
           GITHUB_APP_PRIVATE_KEY: ${{ secrets.REVEALFLEET_REVIEWER_APP_PRIVATE_KEY }}
