@@ -2,7 +2,7 @@
  * A2A edge-case tests (pass 14)
  *
  * Covers untested branches in a2a.ts not reached by a2a.test.ts:
- *   GET  /.well-known/marketplace.json    -  happy path + DB-unavailable fallback
+ *   GET  /.well-known/marketplace.json    -  preview while payments are off, terms when on, DB fallback
  *   GET  /.well-known/payment-methods.json  -  enabled (200) and disabled (404)
  *   GET  /a2a/agents/:id/tasks            -  401, 400, rows from DB, empty on DB error
  *   GET  /a2a/stream/:taskId              -  task not found (SSE error), terminal task (SSE close)
@@ -329,6 +329,7 @@ function resetMocks() {
   mockEncodePaymentRequired.mockReturnValue('mock-encoded-payment-required');
   mockVerifyPayment.mockResolvedValue({ valid: true });
   mockRequireTaskQuota.mockResolvedValue(undefined);
+  mockGetX402Config.mockReturnValue(x402Config(true));
 
   // Shared fluent fixture models the maintained atomic receipt boundary.
   receiptDb();
@@ -337,10 +338,54 @@ function resetMocks() {
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
+function x402Config(enabled: boolean) {
+  return {
+    enabled,
+    receivingAddress: '0xTestWallet',
+    network: 'evm:base',
+    pricePerTask: '0.001',
+    usdcAsset: '0xUSDC',
+    facilitatorUrl: 'https://x402.org/facilitator',
+    maxTimeoutSeconds: 300,
+    rvuiEnabled: false,
+    rvuiReceivingAddress: '',
+    rvuiNetwork: 'solana:devnet',
+    rvuiAsset: '',
+  };
+}
+
+interface MarketplaceDiscoveryBody {
+  version: string;
+  platform: string;
+  status: string;
+  paymentsEnabled: boolean;
+  registryUrl: string;
+  publishUrl: string;
+  servers: Array<{ id: string; invokeUrl: string }>;
+  revenueShare?: { platform: number; developer: number };
+  paymentMethods?: string[];
+}
+
+function expectPreviewMarketplace(body: MarketplaceDiscoveryBody): void {
+  expect(body.version).toBe('1.0');
+  expect(body.platform).toBe('revealui');
+  expect(body.status).toBe('preview');
+  expect(body.paymentsEnabled).toBe(false);
+  expect(body.registryUrl).toContain('/api/marketplace/servers');
+  expect(body.publishUrl).toContain('/api/marketplace/servers');
+  expect(body).not.toHaveProperty('revenueShare');
+  expect(body).not.toHaveProperty('paymentMethods');
+  const serialized = JSON.stringify(body);
+  expect(serialized).not.toContain('x402-usdc');
+  expect(serialized).not.toContain('0.2');
+  expect(serialized).not.toContain('0.8');
+}
+
 describe('GET /.well-known/marketplace.json', () => {
   beforeEach(resetMocks);
 
-  it('returns marketplace metadata with active servers from DB', async () => {
+  it('reports preview and omits payment terms while marketplace payments are off', async () => {
+    mockGetX402Config.mockReturnValue(x402Config(false));
     const serverRows = [
       {
         id: 'srv-1',
@@ -368,20 +413,47 @@ describe('GET /.well-known/marketplace.json', () => {
     const res = await app.request(get('/marketplace.json'));
 
     expect(res.status).toBe(200);
-    const body = (await res.json()) as {
-      servers: Array<{ id: string; invokeUrl: string }>;
-      version: string;
-      revenueShare: { platform: number; developer: number };
-    };
-    expect(body.version).toBe('1.0');
-    expect(body.revenueShare).toEqual({ platform: 0.2, developer: 0.8 });
+    expect(res.headers.get('Cache-Control')).toBe('public, max-age=60');
+    const body = (await res.json()) as MarketplaceDiscoveryBody;
+    expectPreviewMarketplace(body);
     expect(body.servers).toHaveLength(2);
     expect(body.servers[0]?.id).toBe('srv-1');
     // invokeUrl is constructed from baseUrl + server id
     expect(body.servers[0]?.invokeUrl).toContain('srv-1/invoke');
   });
 
+  it('advertises revenue share and x402-usdc only when marketplace payments are enabled', async () => {
+    mockGetX402Config.mockReturnValue(x402Config(true));
+    const selectChain = makeSelectChain([
+      {
+        id: 'srv-1',
+        name: 'GitHub MCP',
+        description: 'GitHub integration',
+        category: 'devtools',
+        pricePerCallUsdc: '0.001',
+      },
+    ]);
+    mockGetClient.mockReturnValue({
+      select: vi.fn().mockReturnValue(selectChain),
+      // biome-ignore lint/suspicious/noExplicitAny: test mock
+    } as any);
+
+    const app = makeWellKnownApp();
+    const res = await app.request(get('/marketplace.json'));
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as MarketplaceDiscoveryBody;
+    expect(body.status).toBe('live');
+    expect(body.paymentsEnabled).toBe(true);
+    expect(body.revenueShare).toEqual({ platform: 0.2, developer: 0.8 });
+    expect(body.paymentMethods).toEqual(['x402-usdc']);
+    expect(body.servers).toHaveLength(1);
+    expect(body.registryUrl).toContain('/api/marketplace/servers');
+    expect(body.publishUrl).toContain('/api/marketplace/servers');
+  });
+
   it('returns empty servers array when DB is unavailable', async () => {
+    mockGetX402Config.mockReturnValue(x402Config(false));
     const selectChain = makeSelectChain([], { throws: true });
     mockGetClient.mockReturnValue({
       select: vi.fn().mockReturnValue(selectChain),
@@ -393,7 +465,8 @@ describe('GET /.well-known/marketplace.json', () => {
 
     // Still 200  -  DB failure is caught and swallowed
     expect(res.status).toBe(200);
-    const body = (await res.json()) as { servers: unknown[] };
+    const body = (await res.json()) as MarketplaceDiscoveryBody;
+    expectPreviewMarketplace(body);
     expect(body.servers).toHaveLength(0);
   });
 });
