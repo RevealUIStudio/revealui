@@ -74,8 +74,9 @@ jobs:
 
           # Build matrix JSON from the single-source project-id map
           # (.github/vercel-projects.json); unknown apps dropped + warned.
+          # api is temporarily paused pending review.
           MATRIX=$(jq -cn --slurpfile map .github/vercel-projects.json --arg apps "$AFFECTED" '
-            [ ($apps | split(" ") | .[] | select(length > 0))
+            [ ($apps | split(" ") | .[] | select(length > 0 and . != "api"))
               | select($map[0][.] != null)
               | {app: ., "project-id": $map[0][.]} ]
           ')
