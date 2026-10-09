@@ -24,6 +24,7 @@ import {
   IconCheck,
   IconClose,
   Input,
+  Tooltip,
 } from '@revealui/presentation';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -59,6 +60,8 @@ const PERPETUAL_PLANS = [
     description: 'Pro features forever. Includes 1 year of support.',
   },
 ] as const;
+
+const PRICE_UNAVAILABLE_REASON = 'Buy. Price unavailable. Refresh the page before buying.';
 
 export default function LicensePage() {
   return (
@@ -418,7 +421,7 @@ function LicenseContent() {
                   at startup.
                 </p>
                 <p className="mt-3">
-                  The same key activates the RevDev daemon — one purchase, one license, both
+                  The same key activates the RevDev daemon. One purchase, one license, both
                   products. Set it as{' '}
                   <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs dark:bg-zinc-900">
                     REVEALUI_LICENSE_KEY
@@ -612,29 +615,48 @@ function LicenseContent() {
                 </div>
               </div>
             </div>
-            {PERPETUAL_PLANS.map((plan) => (
-              <div
-                key={plan.tier}
-                className="flex items-center justify-between rounded-lg border p-3 dark:border-zinc-800"
-              >
-                <div>
-                  <p className="text-sm font-medium">{plan.label}</p>
-                  <p className="text-xs text-zinc-600">{plan.description}</p>
-                </div>
-                <Button
-                  type="button"
-                  variant="neutral"
-                  size="sm"
-                  disabled={perpetualLoading === plan.tier}
-                  onClick={() => void handlePerpetualCheckout(plan)}
-                  className="ml-4 shrink-0 bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+            {PERPETUAL_PLANS.map((plan) => {
+              const listedPrice = pricing?.perpetual.find(
+                (tier) => tier.name === plan.label,
+              )?.price;
+              const priceReady = typeof listedPrice === 'string' && listedPrice.length > 0;
+              return (
+                <div
+                  key={plan.tier}
+                  className="flex items-center justify-between rounded-lg border p-3 dark:border-zinc-800"
                 >
-                  {perpetualLoading === plan.tier
-                    ? 'Redirecting…'
-                    : `Buy ${pricing?.perpetual.find((t) => t.name === plan.label)?.price ?? '—'}`}
-                </Button>
-              </div>
-            ))}
+                  <div>
+                    <p className="text-sm font-medium">{plan.label}</p>
+                    <p className="text-xs text-zinc-600">{plan.description}</p>
+                  </div>
+                  {priceReady ? (
+                    <Button
+                      type="button"
+                      variant="neutral"
+                      size="sm"
+                      disabled={perpetualLoading === plan.tier}
+                      onClick={() => void handlePerpetualCheckout(plan)}
+                      className="ml-4 shrink-0 bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+                    >
+                      {perpetualLoading === plan.tier ? 'Redirecting…' : `Buy ${listedPrice}`}
+                    </Button>
+                  ) : (
+                    <Tooltip content={PRICE_UNAVAILABLE_REASON}>
+                      <Button
+                        type="button"
+                        variant="neutral"
+                        size="sm"
+                        disabled
+                        aria-label={PRICE_UNAVAILABLE_REASON}
+                        className="ml-4 shrink-0 bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+                      >
+                        Buy
+                      </Button>
+                    </Tooltip>
+                  )}
+                </div>
+              );
+            })}
           </CardContent>
         </Card>
       )}

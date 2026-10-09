@@ -5,7 +5,7 @@ const story: ShowcaseStory = {
   slug: 'select',
   name: 'Select',
   description:
-    'Native HTML select (headless + styled). SelectCVA is non-interactive chrome — do not demo it as a form control. Prefer Listbox for fully custom list UIs.',
+    'Native HTML select (headless + styled). SelectCVA is non-interactive chrome. Do not demo it as a form control. Prefer Listbox for fully custom list UIs.',
   category: 'component',
 
   controls: {
