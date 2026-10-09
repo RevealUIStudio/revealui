@@ -1,7 +1,7 @@
 {
   "name": "@revealui/db",
   "version": "0.12.1",
-  "description": "Drizzle ORM schema (124 tables) for RevealUI on NeonDB (Postgres). Ships with RevealUI.",
+  "description": "Drizzle ORM schema (125 tables) for RevealUI on NeonDB (Postgres). Ships with RevealUI.",
   "license": "MIT",
   "dependencies": {
     "@neondatabase/serverless": "catalog:",
@@ -320,6 +320,11 @@
       "types": "./dist/budgets/index.d.ts",
       "import": "./dist/budgets/index.js",
       "default": "./dist/budgets/index.js"
+    },
+    "./agent-task-quota": {
+      "types": "./dist/agent-task-quota.d.ts",
+      "import": "./dist/agent-task-quota.js",
+      "default": "./dist/agent-task-quota.js"
     },
     "./pool": {
       "types": "./dist/pool.d.ts",
