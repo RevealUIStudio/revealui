@@ -43,6 +43,40 @@ test('302 to vercel.com fails', () => {
   assert.equal(result.reason, 'vercel-redirect');
 });
 
+test('302 to vercel.com/sso-api fails even when the body is the app 401 JSON', () => {
+  const result = classifyInvocationResponse({
+    status: 302,
+    headers: {
+      location:
+        'https://vercel.com/sso-api?url=https%3A%2F%2Fapi.revealui.com%2Fapi%2Fbilling%2Fsubscription',
+      'content-type': 'application/json',
+    },
+    body: APP_BODY,
+  });
+  assert.equal(result.pass, false);
+  assert.equal(result.reason, 'vercel-redirect');
+});
+
+test('any 3xx fails the invocation guard', () => {
+  const result = classifyInvocationResponse({
+    status: 302,
+    headers: { location: 'https://example.com/elsewhere', 'content-type': 'application/json' },
+    body: APP_BODY,
+  });
+  assert.equal(result.pass, false);
+  assert.equal(result.reason, 'redirect');
+});
+
+test('authentication page body fails the invocation guard', () => {
+  const result = classifyInvocationResponse({
+    status: 200,
+    headers: { 'content-type': 'text/html' },
+    body: '<html>Protected by Vercel Authentication</html>',
+  });
+  assert.equal(result.pass, false);
+  assert.equal(result.reason, 'protection-body');
+});
+
 test('5xx fails', () => {
   const result = classifyInvocationResponse({
     status: 503,

@@ -536,11 +536,12 @@ jobs:
             echo "::notice::api was not in this deploy, skipping readiness probe"
             exit 0
           fi
-          # The API custom domain is outside deployment protection (protection
-          # covers generated deployment URLs). Wait until the production alias
-          # points at this deployment, then probe https://api.revealui.com.
-          # Same budget as the admin alias wait: curl --max-time 10, 12 tries.
-          # No bypass secret or header is used.
+          # Wait until the production alias points at this deployment, then
+          # probe https://api.revealui.com/health/ready. The probe script
+          # requires HTTP 200 and the JSON health shape. A 302, including a
+          # redirect to vercel.com/sso-api, any other 3xx, and the
+          # authentication page do not pass. Same alias budget as admin:
+          # curl --max-time 10, 12 tries. No bypass secret or header is used.
           API_URL=$(tr -d '[:space:]' < "$URL_FILE")
           API_HOST="${API_URL#https://}"
           API_HOST="${API_HOST%%/*}"
@@ -571,19 +572,15 @@ jobs:
           fi
           PUBLIC_URL="https://${API_ALIAS}/health/ready"
           echo "Checking $PUBLIC_URL (production domain)..."
-          CODE=""
           for i in $(seq 1 12); do
-            BODY_FILE="${RUNNER_TEMP}/api-ready-${i}.json"
-            CODE=$(curl -sS -o "$BODY_FILE" -w '%{http_code}' --max-time 10 --max-redirs 0 \
-              "${PUBLIC_URL}?smoke=${GITHUB_RUN_ID}-${i}" || true)
-            if [ "$CODE" = "200" ] && jq -e '(.status | type) == "string" and .status != ""' "$BODY_FILE" > /dev/null 2>&1; then
+            if node scripts/deploy/api-readiness-probe.mjs --url "${PUBLIC_URL}?smoke=${GITHUB_RUN_ID}-${i}"; then
               echo "API ready"
               exit 0
             fi
             echo "Attempt $i/12, waiting 10s..."
             sleep 10
           done
-          echo "::error::API readiness check failed after 2 minutes ($PUBLIC_URL, last HTTP ${CODE:-none})"
+          echo "::error::API readiness check failed after 2 minutes ($PUBLIC_URL)"
           exit 1
 
       - name: Health check — Admin
@@ -597,12 +594,12 @@ jobs:
             echo "::notice::admin was not in this deploy — skipping admin probe"
             exit 0
           fi
-          # The admin custom domain is outside Vercel deployment protection
-          # (protection covers all deployments except custom domains). Raw
-          # *.vercel.app URLs answer with a 302 to Vercel SSO, which curl -sf
-          # counts as success, so they cannot prove admin health. Wait until
-          # the production alias points at this deployment, then probe the
-          # custom domain and require HTTP 200. No bypass secret is used.
+          # Wait until the production alias points at this deployment, then
+          # probe https://admin.revealui.com/login. curl without --location
+          # still exits 0 on a 302, so the probe is the node script: HTTP 200
+          # plus the sign-in page marker. A 302 to vercel.com/sso-api, any
+          # other 3xx, and the authentication page do not pass. No bypass
+          # secret or header is used.
           ADMIN_URL=$(tr -d '[:space:]' < "$URL_FILE")
           ADMIN_HOST="${ADMIN_URL#https://}"
           ADMIN_HOST="${ADMIN_HOST%%/*}"
@@ -634,29 +631,27 @@ jobs:
             exit 1
           fi
           PUBLIC_URL="https://${ADMIN_ALIAS}/login"
-          echo "Checking $PUBLIC_URL (custom domain, outside deployment protection)..."
-          CODE=""
+          echo "Checking $PUBLIC_URL"
           for i in $(seq 1 12); do
-            CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "${PUBLIC_URL}?smoke=${GITHUB_RUN_ID}-${i}" || true)
-            if [ "$CODE" = "200" ]; then
+            if node scripts/deploy/admin-login-probe.mjs --url "${PUBLIC_URL}?smoke=${GITHUB_RUN_ID}-${i}"; then
               echo "Admin healthy"
               exit 0
             fi
-            echo "Attempt $i/12 — waiting 10s..."
+            echo "Attempt $i/12, waiting 10s..."
             sleep 10
           done
-          echo "::error::Admin health check failed after 2 minutes ($PUBLIC_URL, last HTTP ${CODE:-none})"
+          echo "::error::Admin health check failed after 2 minutes ($PUBLIC_URL)"
           exit 1
 
       - name: Invocation guard — API (real function invocation)
         # GET /api/billing/subscription with no session returns the app's own
         # 401 JSON (success false, error "Authentication required", code
-        # HTTP_401). Readiness can pass while a real route still fails, so
-        # this probe must see that JSON. HTML, a redirect to vercel.com, a
-        # protection header, a 5xx, or a timeout does not pass. The readiness
-        # step already confirmed api.revealui.com points at this deployment.
-        # This step probes that domain only. Cache-bust with the run id.
-        # Failure still trips the existing `if: failure()` rollback below.
+        # HTTP_401). A 302 to vercel.com/sso-api, any other 3xx, the
+        # authentication page, HTML, a protection header, a 5xx, or a timeout
+        # does not pass. The readiness step already confirmed
+        # api.revealui.com points at this deployment. This step probes that
+        # domain only. Cache-bust with the run id. Failure still trips the
+        # existing `if: failure()` rollback below.
         run: |
           URL_FILE="deploy-urls/deploy-url-api/url.txt"
           if [ ! -f "$URL_FILE" ]; then
