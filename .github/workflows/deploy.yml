@@ -497,8 +497,11 @@ jobs:
   smoke-test:
     name: Smoke Test
     runs-on: ubuntu-latest
-    # The admin alias wait alone can take about 4 minutes, so 5 is too tight.
-    timeout-minutes: 10
+    # API and admin each wait for a production alias before probing.
+    # Each wait is 12 attempts of curl --max-time 10 plus 10s sleep (about
+    # 4 minutes). The previous 10 minute job budget covered the admin wait.
+    # 15 minutes covers both waits and still lets the failure rollback step start.
+    timeout-minutes: 15
     needs: [production-ref, detect, deploy]
     environment: production
 
@@ -514,35 +517,73 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      # Smoke the deployment URL from `vercel deploy`, not the public
-      # Cloudflare hostname. Alias cutover on api.revealui.com can fail TLS
-      # or return empty for minutes while the deployment URL is already
-      # healthy (2026-09-22 run 35686162709). A miss on the public name must
-      # not roll production back.
+      # API and admin probes use the production domain after that domain's
+      # alias is assigned to the deployment that just shipped. Raw generated
+      # URLs are not probed.
       - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           pattern: deploy-url-*
           path: deploy-urls
 
       - name: Health check — API (readiness probe)
+        env:
+          API_ALIAS: api.revealui.com
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
         run: |
           URL_FILE="deploy-urls/deploy-url-api/url.txt"
           if [ ! -f "$URL_FILE" ]; then
-            echo "::notice::api was not in this deploy — skipping readiness probe"
+            echo "::notice::api was not in this deploy, skipping readiness probe"
             exit 0
           fi
+          # The API custom domain is outside deployment protection (protection
+          # covers generated deployment URLs). Wait until the production alias
+          # points at this deployment, then probe https://api.revealui.com.
+          # Same budget as the admin alias wait: curl --max-time 10, 12 tries.
+          # No bypass secret or header is used.
           API_URL=$(tr -d '[:space:]' < "$URL_FILE")
-          echo "Checking $API_URL/health/ready (deployment URL, not the public alias)..."
+          API_HOST="${API_URL#https://}"
+          API_HOST="${API_HOST%%/*}"
+          API_PROJECT_ID=$(jq -r '.api' .github/vercel-projects.json)
+          VERCEL_API="https://api.vercel.com"
+          DPL_ID=$(curl -sf --max-time 10 -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+            "${VERCEL_API}/v6/deployments?projectId=${API_PROJECT_ID}&teamId=${VERCEL_ORG_ID}&target=production&state=READY&limit=20" \
+            | jq -r --arg host "$API_HOST" '[.deployments[]? | select(.url == $host) | .uid][0] // empty' || true)
+          if [ -z "$DPL_ID" ]; then
+            echo "::error::No READY production deployment found for $API_URL"
+            exit 1
+          fi
+          echo "Waiting for ${API_ALIAS} on ${DPL_ID}..."
+          ALIASED=false
           for i in $(seq 1 12); do
-            RESP=$(curl -sf "$API_URL/health/ready" 2>/dev/null || echo "")
-            if [ -n "$RESP" ]; then
-              echo "API ready: $RESP"
-              exit 0
+            if curl -sf --max-time 10 -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+              "${VERCEL_API}/v2/deployments/${DPL_ID}/aliases?teamId=${VERCEL_ORG_ID}" \
+              | jq -e --arg alias "$API_ALIAS" 'any(.aliases[]?; .alias == $alias)' > /dev/null; then
+              ALIASED=true
+              break
             fi
-            echo "Attempt $i/12 — waiting 10s..."
+            echo "Alias attempt $i/12: not on this deployment yet, waiting 10s..."
             sleep 10
           done
-          echo "::error::API readiness check failed after 2 minutes ($API_URL)"
+          if [ "$ALIASED" != "true" ]; then
+            echo "::error::${API_ALIAS} was not assigned to ${DPL_ID} within 2 minutes"
+            exit 1
+          fi
+          PUBLIC_URL="https://${API_ALIAS}/health/ready"
+          echo "Checking $PUBLIC_URL (production domain)..."
+          CODE=""
+          for i in $(seq 1 12); do
+            BODY_FILE="${RUNNER_TEMP}/api-ready-${i}.json"
+            CODE=$(curl -sS -o "$BODY_FILE" -w '%{http_code}' --max-time 10 --max-redirs 0 \
+              "${PUBLIC_URL}?smoke=${GITHUB_RUN_ID}-${i}" || true)
+            if [ "$CODE" = "200" ] && jq -e '(.status | type) == "string" and .status != ""' "$BODY_FILE" > /dev/null 2>&1; then
+              echo "API ready"
+              exit 0
+            fi
+            echo "Attempt $i/12, waiting 10s..."
+            sleep 10
+          done
+          echo "::error::API readiness check failed after 2 minutes ($PUBLIC_URL, last HTTP ${CODE:-none})"
           exit 1
 
       - name: Health check — Admin
@@ -608,34 +649,31 @@ jobs:
           exit 1
 
       - name: Invocation guard — API (real function invocation)
-        # GAP-253: /health/ready can pass while real request handling fails with
-        # FUNCTION_INVOCATION_FAILED — readiness does not exercise the full route
-        # handler the way a real API request does, and public /api/* responses can
-        # be CDN-cached (a stale 200 masks a broken function). Hit an AUTHENTICATED
-        # route with NO auth: a healthy function returns 401 (the handler + auth
-        # middleware actually executed); a broken function config returns a 5xx
-        # Vercel runtime error. Cache-bust with the run id so the CDN cannot serve
-        # a stale response. A non-5xx proves the function invokes; 5xx (or no
-        # response) trips the existing `if: failure()` rollback below.
+        # GET /api/billing/subscription with no session returns the app's own
+        # 401 JSON (success false, error "Authentication required", code
+        # HTTP_401). Readiness can pass while a real route still fails, so
+        # this probe must see that JSON. HTML, a redirect to vercel.com, a
+        # protection header, a 5xx, or a timeout does not pass. The readiness
+        # step already confirmed api.revealui.com points at this deployment.
+        # This step probes that domain only. Cache-bust with the run id.
+        # Failure still trips the existing `if: failure()` rollback below.
         run: |
           URL_FILE="deploy-urls/deploy-url-api/url.txt"
           if [ ! -f "$URL_FILE" ]; then
-            echo "::notice::api was not in this deploy — skipping invocation guard"
+            echo "::notice::api was not in this deploy, skipping invocation guard"
             exit 0
           fi
-          API_URL=$(tr -d '[:space:]' < "$URL_FILE")
-          PROBE="$API_URL/api/billing/subscription?_cb=${GITHUB_RUN_ID}"
-          echo "Invocation guard: GET $PROBE (expect a non-5xx, e.g. 401)..."
+          PROBE="https://api.revealui.com/api/billing/subscription?_cb=${GITHUB_RUN_ID}"
+          echo "Invocation guard: GET $PROBE"
           for i in $(seq 1 12); do
-            CODE=$(curl -s -o /dev/null -w '%{http_code}' "$PROBE" 2>/dev/null || echo "000")
-            if [ "$CODE" -ge 200 ] && [ "$CODE" -lt 500 ]; then
-              echo "Invocation OK: function returned HTTP $CODE (handler executed)"
+            if node scripts/deploy/api-invocation-guard.mjs --url "$PROBE"; then
+              echo "Invocation OK"
               exit 0
             fi
-            echo "Attempt $i/12 — got HTTP $CODE (function not invoking cleanly), waiting 10s..."
+            echo "Attempt $i/12 did not pass, waiting 10s..."
             sleep 10
           done
-          echo "::error::API invocation guard failed — /api/billing/subscription returned a 5xx (possible FUNCTION_INVOCATION_FAILED) after 2 minutes"
+          echo "::error::API invocation guard failed after 2 minutes ($PROBE)"
           exit 1
 
       - name: Rollback on failure
