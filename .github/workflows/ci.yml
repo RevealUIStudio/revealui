@@ -423,6 +423,12 @@ jobs:
           CI: "true"
           SKIP_ENV_VALIDATION: "true"
 
+      - name: Commit signature check contract (hard fail)
+        run: pnpm exec vitest run scripts/ci/__tests__/commit-signatures.test.ts scripts/validate/__tests__/required-check-no-cancel.test.ts
+        env:
+          CI: "true"
+          SKIP_ENV_VALIDATION: "true"
+
   # ---------------------------------------------------------------------------
   # Phase 1.5: Drizzle migration apply (all branches)
   #
