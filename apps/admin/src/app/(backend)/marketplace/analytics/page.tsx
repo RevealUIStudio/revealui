@@ -59,7 +59,7 @@ export default function AnalyticsPage() {
   }, [apiUrl]);
 
   const totalTasks = agents.reduce((sum, a) => sum + a.taskCount, 0);
-  const totalRevenue = agents.reduce(
+  const estimatedTaskValue = agents.reduce(
     (sum, a) => sum + a.taskCount * Number.parseFloat(a.basePriceUsdc),
     0,
   );
@@ -85,10 +85,10 @@ export default function AnalyticsPage() {
               <span className="text-sm text-muted-foreground">Analytics</span>
               <h1 className="mt-1 text-xl font-semibold text-foreground">Agent Analytics</h1>
               <p className="mt-0.5 text-sm text-muted-foreground">
-                Performance metrics and version history for your agents
+                Recorded activity and current listing details for your agents.
               </p>
             </div>
-            <LinkButton href="/marketplace/publish">Publish New Agent</LinkButton>
+            <LinkButton href="/marketplace/publish">Create agent draft</LinkButton>
           </div>
         </div>
 
@@ -97,7 +97,10 @@ export default function AnalyticsPage() {
           {loading ? (
             <AnalyticsSkeleton />
           ) : error ? (
-            <div className="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error">
+            <div
+              role="alert"
+              className="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error"
+            >
               Failed to load analytics: {error}
             </div>
           ) : (
@@ -107,13 +110,17 @@ export default function AnalyticsPage() {
                 <Stat
                   label="Published"
                   value={String(published)}
-                  description={`${drafts} drafts`}
+                  description={`${drafts} ${drafts === 1 ? 'draft' : 'drafts'}`}
                 />
-                <Stat label="Total Tasks" value={String(totalTasks)} description="completed" />
                 <Stat
-                  label="Revenue"
-                  value={`$${totalRevenue.toFixed(2)}`}
-                  description="USDC earned"
+                  label="Recorded tasks"
+                  value={String(totalTasks)}
+                  description="across all agents"
+                />
+                <Stat
+                  label="Estimated task value"
+                  value={`$${estimatedTaskValue.toFixed(2)}`}
+                  description="USDC at current listed prices"
                 />
                 <Stat
                   label="Avg Rating"
@@ -122,6 +129,10 @@ export default function AnalyticsPage() {
                 />
               </div>
 
+              <p className="mb-6 text-sm text-muted-foreground">
+                Estimates use each agent's task count and current listed price.
+              </p>
+
               {/* Agent table */}
               <h2 className="text-lg font-medium text-foreground mb-4">Your Agents</h2>
 
@@ -129,7 +140,9 @@ export default function AnalyticsPage() {
                 <EmptyState
                   title="No agents yet"
                   action={
-                    <LinkButton href="/marketplace/publish">Publish Your First Agent</LinkButton>
+                    <LinkButton href="/marketplace/publish">
+                      Create your first agent draft
+                    </LinkButton>
                   }
                 />
               ) : (
@@ -141,13 +154,14 @@ export default function AnalyticsPage() {
                       <TableHeader>Version</TableHeader>
                       <TableHeader>Tasks</TableHeader>
                       <TableHeader>Rating</TableHeader>
-                      <TableHeader>Revenue</TableHeader>
+                      <TableHeader>Estimated task value</TableHeader>
                       <TableHeader>Created</TableHeader>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {agents.map((agent) => {
-                      const revenue = agent.taskCount * Number.parseFloat(agent.basePriceUsdc);
+                      const estimatedValue =
+                        agent.taskCount * Number.parseFloat(agent.basePriceUsdc);
                       return (
                         <TableRow key={agent.id}>
                           <TableCell>
@@ -179,7 +193,7 @@ export default function AnalyticsPage() {
                             <span className="text-foreground">{agent.rating.toFixed(1)}</span>
                             <span className="text-muted-foreground"> ({agent.reviewCount})</span>
                           </TableCell>
-                          <TableCell>${revenue.toFixed(2)}</TableCell>
+                          <TableCell>${estimatedValue.toFixed(2)}</TableCell>
                           <TableCell>{new Date(agent.createdAt).toLocaleDateString()}</TableCell>
                         </TableRow>
                       );

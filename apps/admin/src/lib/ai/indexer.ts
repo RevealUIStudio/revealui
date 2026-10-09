@@ -44,8 +44,7 @@ async function getIndexer(): Promise<typeof indexerInstance> {
 
   indexerInstance = new ingestionMod.AdminIndexer({
     ingestionPipeline: pipeline,
-    enabledCollections: ['posts', 'pages'],
-    defaultWorkspaceId: process.env.DEFAULT_WORKSPACE_ID ?? 'default',
+    enabledCollections: ['pages'],
   });
 
   return indexerInstance;
