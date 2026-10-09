@@ -9,6 +9,7 @@
 import { checkRateLimit, getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
+import { resolveMemoryReadScope } from '@/lib/memory/memory-read-scope';
 import { checkAIMemoryFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response';
 import { extractRequestContext } from '@/lib/utils/request-context';
@@ -116,7 +117,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Perform search  -  enforce userId so non-admins can only search their own memories
     const mod = await import('@revealui/ai/memory/vector').catch(() => null);
     if (!mod) {
       return NextResponse.json(
@@ -124,12 +124,27 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         { status: 503 },
       );
     }
-    // Strip siteId from options for non-admins to prevent cross-tenant data access
+    const rawOptions =
+      options && typeof options === 'object' ? (options as Record<string, unknown>) : {};
+    const memoryScope = await resolveMemoryReadScope({
+      userId: authSession.user.id,
+      user: authSession.user,
+      requestedSiteId: typeof rawOptions.siteId === 'string' ? rawOptions.siteId : undefined,
+    });
+    if (!memoryScope) {
+      return NextResponse.json({
+        success: true,
+        results: [],
+        count: 0,
+      });
+    }
     const service = new mod.VectorMemoryService();
-    const isAdmin = authSession.user.role === 'admin';
     const safeOptions = {
-      ...((options as Record<string, unknown>) ?? {}),
-      ...(!isAdmin ? { userId: authSession.user.id, siteId: undefined } : {}),
+      siteIds: memoryScope.siteIds,
+      agentId: typeof rawOptions.agentId === 'string' ? rawOptions.agentId : undefined,
+      type: typeof rawOptions.type === 'string' ? rawOptions.type : undefined,
+      limit: typeof rawOptions.limit === 'number' ? rawOptions.limit : undefined,
+      threshold: typeof rawOptions.threshold === 'number' ? rawOptions.threshold : undefined,
     };
     const results = await service.searchSimilar(queryEmbedding, safeOptions);
 

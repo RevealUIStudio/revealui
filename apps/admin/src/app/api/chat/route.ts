@@ -4,6 +4,7 @@ import { apiClient } from '@revealui/core/admin/utils/apiClient';
 import { getClient } from '@revealui/db';
 import { logger } from '@revealui/utils/logger';
 import type { NextRequest } from 'next/server';
+import { resolveMemoryReadScope } from '@/lib/memory/memory-read-scope';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { rateLimit } from '@/lib/middleware/rate-limit';
 import {
@@ -362,12 +363,17 @@ export async function POST(request: NextRequest) {
         const queryEmbedding = await aiDeps.generateEmbedding(userMessage, {
           client: resolvedClient as never,
         });
-        const vectorService = new aiDeps.VectorMemoryService();
-
-        const searchResults = await vectorService.searchSimilar(queryEmbedding.vector, {
-          limit: 5,
-          threshold: 0.7,
+        const memoryScope = await resolveMemoryReadScope({
+          userId: authSession.user.id,
+          user: authSession.user,
         });
+        const searchResults = memoryScope
+          ? await new aiDeps.VectorMemoryService().searchSimilar(queryEmbedding.vector, {
+              limit: 5,
+              threshold: 0.7,
+              siteIds: memoryScope.siteIds,
+            })
+          : [];
 
         if (searchResults.length > 0) {
           memoryContext = searchResults.map((result) => `- ${result.memory.content}`).join('\n');
