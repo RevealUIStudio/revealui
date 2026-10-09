@@ -23,7 +23,6 @@
 
 import type { getRevealUI } from '@revealui/core';
 import { getClient } from '@revealui/db';
-import { updatePage } from '@revealui/db/queries/pages';
 import { sites, users } from '@revealui/db/schema';
 import { eq, or } from 'drizzle-orm';
 import {
@@ -31,7 +30,7 @@ import {
   loadSeedEnv,
   SeedEnvError,
 } from '../../../scripts/lib/seed-env.js';
-import { homeLicenseBlocksPatch } from './lib/seed/home-license-copy.js';
+import { persistRefreshedLicenseBlocks } from './lib/seed/home-license-copy.js';
 
 // pnpm db:seed:admin runs from monorepo root; seed-env loads apps/admin/.env.local
 // while preserving the caller-selected database target.
@@ -118,6 +117,9 @@ function pageSeed(input: {
 const HOME_LICENSE_SENTENCE =
   '26 of the 33 packages are MIT, forever. The 5 Pro packages are Fair Source (FSL-1.1-MIT) and convert to MIT two years after each release. The remaining 2 workspace packages are internal tooling with no public license.';
 
+const ABOUT_LICENSE_SENTENCE =
+  'The core runtime is MIT-licensed. The 5 Pro packages (ai, engines, harnesses, mcp, and services) are Fair Source (FSL-1.1-MIT): source-visible, commercially usable except as a competing developer platform, and each release converts to MIT two years after it ships.';
+
 const pages = [
   pageSeed({
     title: 'Home',
@@ -151,9 +153,7 @@ const pages = [
         'Built on React 19, Next.js 16, TypeScript, and Tailwind CSS v4. Every feature works for you and is accessible to your agents. One runtime, one set of permissions, one audit trail.',
       ),
       heading('Open Source + Pro', 'h3'),
-      paragraph(
-        'The core runtime is MIT-licensed. The 5 Pro packages (ai, engines, harnesses, mcp, services) are Fair Source (FSL-1.1-MIT), free for single-product use, commercially licensed for platforms, converting to MIT after two years.',
-      ),
+      paragraph(ABOUT_LICENSE_SENTENCE),
     ),
   }),
   pageSeed({
@@ -294,24 +294,28 @@ async function seedCollection(
 
       if (existing.docs && existing.docs.length > 0) {
         const doc = existing.docs[0];
-        const pageId = collection === 'pages' && identifier === 'home' ? storedPageId(doc) : null;
-        const patched =
-          pageId && isRecord(doc)
-            ? homeLicenseBlocksPatch(doc.blocks, HOME_LICENSE_SENTENCE)
+        const pageId =
+          collection === 'pages' && (identifier === 'home' || identifier === 'about')
+            ? storedPageId(doc)
             : null;
-        if (pageId && patched) {
-          const row = await updatePage(getClient(), pageId, {
-            blocks: patched,
-            blockCount: patched.length,
-          });
-          if (!row) {
+        if (pageId && isRecord(doc)) {
+          const refresh = await persistRefreshedLicenseBlocks(
+            getClient(),
+            pageId,
+            doc.blocks,
+            HOME_LICENSE_SENTENCE,
+            ABOUT_LICENSE_SENTENCE,
+          );
+          if (refresh === 'updated') {
+            logger.success(`   Updated stale license copy on "${identifier}"`);
+            updated++;
+            continue;
+          }
+          if (refresh === 'missing') {
             failed++;
             logger.error(`   Could not refresh license copy on "${identifier}"`);
             continue;
           }
-          logger.success(`   Updated stale license copy on "${identifier}"`);
-          updated++;
-          continue;
         }
         logger.info(`   Skipping "${identifier}" (already exists)`);
         skipped++;

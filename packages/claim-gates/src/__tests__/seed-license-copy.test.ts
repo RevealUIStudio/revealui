@@ -22,7 +22,11 @@ describe('seeded home license copy', () => {
 
     expect(seed).toContain(sentence);
     expect(seed).toContain('Auth, billing, content, and agents: wired, audited, yours.');
+    expect(seed).toContain(
+      'The 5 Pro packages (ai, engines, harnesses, mcp, and services) are Fair Source (FSL-1.1-MIT): source-visible, commercially usable except as a competing developer platform, and each release converts to MIT two years after it ships.',
+    );
     expect(seed).not.toContain('20 of 26');
     expect(seed).not.toContain('agents - wired');
+    expect(seed).not.toContain('commercially licensed for platforms');
   });
 });

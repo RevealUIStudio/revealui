@@ -1,12 +1,18 @@
 /**
- * Refresh the admin seed home page when a database already has the
- * pre-correction license sentence. New installs read the current sentence
- * from apps/admin/src/seed.ts; this walk updates that one sentence in place
+ * Refresh seeded home and about pages when a database already has a
+ * pre-correction license sentence. New installs read the current sentences
+ * from apps/admin/src/seed.ts; this walk updates those sentences in place
  * and leaves every other page untouched.
  */
 
+import type { Database } from '@revealui/db/client';
+import { updatePage } from '@revealui/db/queries/pages';
+
 export const STALE_HOME_LICENSE_SENTENCE =
   '20 of 26 packages are MIT - forever; the 5 Pro packages convert to MIT after 2 years.';
+
+export const STALE_ABOUT_LICENSE_SENTENCE =
+  'The core runtime is MIT-licensed. The 5 Pro packages (ai, engines, harnesses, mcp, services) are Fair Source (FSL-1.1-MIT), free for single-product use, commercially licensed for platforms, converting to MIT after two years.';
 
 const STALE_PRIMITIVES_FRAGMENT = 'agents - wired';
 const CURRENT_PRIMITIVES_FRAGMENT = 'agents: wired';
@@ -18,11 +24,16 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function replaceInString(
   value: string,
   licenseSentence: string,
+  aboutSentence: string,
 ): { text: string; replaced: boolean } {
   let text = value;
   let replaced = false;
   if (text.includes(STALE_HOME_LICENSE_SENTENCE)) {
     text = text.replaceAll(STALE_HOME_LICENSE_SENTENCE, licenseSentence);
+    replaced = true;
+  }
+  if (text.includes(STALE_ABOUT_LICENSE_SENTENCE)) {
+    text = text.replaceAll(STALE_ABOUT_LICENSE_SENTENCE, aboutSentence);
     replaced = true;
   }
   if (text.includes(STALE_PRIMITIVES_FRAGMENT)) {
@@ -38,12 +49,13 @@ function replaceInString(
 export function replaceStaleHomeCopy(
   value: unknown,
   licenseSentence: string,
+  aboutSentence: string,
 ): { value: unknown; replaced: boolean } {
   let replaced = false;
 
   function walk(node: unknown): unknown {
     if (typeof node === 'string') {
-      const next = replaceInString(node, licenseSentence);
+      const next = replaceInString(node, licenseSentence, aboutSentence);
       if (next.replaced) replaced = true;
       return next.text;
     }
@@ -64,11 +76,39 @@ export function replaceStaleHomeCopy(
 }
 
 /**
- * Return replacement blocks when the stored home page still carries the stale
- * sentence. Null means the page should stay as stored.
+ * Return replacement blocks when stored page JSON still carries a stale
+ * license sentence. Null means the page should stay as stored.
  */
-export function homeLicenseBlocksPatch(blocks: unknown, licenseSentence: string): unknown[] | null {
-  const next = replaceStaleHomeCopy(blocks, licenseSentence);
+export function homeLicenseBlocksPatch(
+  blocks: unknown,
+  licenseSentence: string,
+  aboutSentence: string,
+): unknown[] | null {
+  const next = replaceStaleHomeCopy(blocks, licenseSentence, aboutSentence);
   if (!(next.replaced && Array.isArray(next.value))) return null;
   return next.value;
+}
+
+export type LicenseBlocksRefreshStatus = 'unchanged' | 'updated' | 'missing';
+
+/**
+ * Write corrected blocks through the page query the admin seed uses.
+ * `unchanged` means the stored JSON did not contain a stale sentence.
+ * `missing` means the row was absent or soft-deleted.
+ */
+export async function persistRefreshedLicenseBlocks(
+  db: Database,
+  pageId: string,
+  blocks: unknown,
+  licenseSentence: string,
+  aboutSentence: string,
+): Promise<LicenseBlocksRefreshStatus> {
+  const patched = homeLicenseBlocksPatch(blocks, licenseSentence, aboutSentence);
+  if (!patched) return 'unchanged';
+  const row = await updatePage(db, pageId, {
+    blocks: patched,
+    blockCount: patched.length,
+  });
+  if (!row) return 'missing';
+  return 'updated';
 }
