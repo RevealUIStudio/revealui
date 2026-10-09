@@ -652,13 +652,16 @@ jobs:
         # newest READY prod deploy to the restore target and verifies.
         # Nested or preview names are not moved.
         #
-        # Admin reads ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID (repository
-        # variable). The script resolves that deployment createdAt from the
-        # Vercel API and refuses any target created before it. The floor
-        # deployment itself stays eligible. If the variable is unset, the
-        # floor cannot be resolved, or no eligible target remains, admin
-        # aliases stay on the live build and this step fails. Other apps
-        # still restore the previous READY production deployment.
+        # Api and admin read a per-project rollback floor from a repository
+        # variable (API_ROLLBACK_FLOOR_DEPLOYMENT_ID,
+        # ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID). The shared script resolves
+        # that deployment by id. It must belong to the app project, target
+        # production, and be READY. Candidates are compared by createdAt.
+        # The floor deployment itself stays eligible. Targets created before
+        # the floor are refused. If the variable is unset, the floor cannot
+        # be resolved, the floor fails those checks, or no eligible target
+        # remains, aliases stay on the live build and this step fails. Other
+        # apps still restore the previous READY production deployment.
         #
         # Needs checkout for the script; smoke job previously had none.
         run: |
@@ -693,6 +696,7 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           DETECT_MATRIX: ${{ needs.detect.outputs.matrix }}
           ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID: ${{ vars.ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID }}
+          API_ROLLBACK_FLOOR_DEPLOYMENT_ID: ${{ vars.API_ROLLBACK_FLOOR_DEPLOYMENT_ID }}
 
   # ---------------------------------------------------------------------------
   # Post-deploy design-system verification (marketing + docs)
