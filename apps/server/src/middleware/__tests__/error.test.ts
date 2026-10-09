@@ -289,6 +289,29 @@ describe('errorHandler', () => {
     });
   });
 
+  describe('hosted env model key refusal', () => {
+    it('returns 409 in the not-configured shape and does not persist an outage', async () => {
+      const app = createApp(() => {
+        const err = new Error(
+          'Hosted deployments cannot use a deployment environment model key. Configure a provider key for this account under /settings/api-keys.',
+        );
+        (err as Error & { code: string }).code = 'HOSTED_ENV_MODEL_KEY_REFUSED';
+        throw err;
+      });
+
+      const res = await app.request('/test');
+      const body = await parseBody(res);
+
+      expect(res.status).toBe(409);
+      expect(body.success).toBe(false);
+      expect(body.code).toBe('LLM_NOT_CONFIGURED');
+      expect(body.settingsPath).toBe('/settings/api-keys');
+      expect(body.error).toContain('deployment environment model key');
+      await new Promise((r) => setTimeout(r, 50));
+      expect(mockInsert).not.toHaveBeenCalled();
+    });
+  });
+
   describe('response format', () => {
     it('always includes success: false', async () => {
       const app = createApp(() => {

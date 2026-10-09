@@ -91,7 +91,9 @@ export async function buildDispatcher(
       auditStore,
     });
   } catch (err) {
-    if ((err as { code?: unknown } | null)?.code === 'LLM_NOT_CONFIGURED') throw err;
+    const code = (err as { code?: unknown } | null)?.code;
+    // Hosted env-key refusal is the same configuration failure as a missing key.
+    if (code === 'LLM_NOT_CONFIGURED' || code === 'HOSTED_ENV_MODEL_KEY_REFUSED') throw err;
     return null;
   }
 

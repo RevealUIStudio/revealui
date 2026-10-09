@@ -9,7 +9,7 @@
  * Requires requireFeature('ai', { mode: 'entitlements' })  -  applied in apps/server/src/index.ts.
  */
 
-import { getExplicitDeploymentMode } from '@revealui/core/deployment-mode';
+import { getExplicitDeploymentMode, isHostedDeployment } from '@revealui/core/deployment-mode';
 import type { DatabaseClient } from '@revealui/db/client';
 import { getRestClient } from '@revealui/db/client';
 import { getPagesBySite } from '@revealui/db/queries/pages';
@@ -22,6 +22,7 @@ import { ragDocuments } from '@revealui/db/schema/rag';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, count, eq, isNotNull, max } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
+import { asLLMNotConfigured } from '../lib/llm-not-configured.js';
 import { noStoreCacheMiddleware } from '../middleware/cache-control.js';
 
 type Variables = {
@@ -69,6 +70,33 @@ function isValidCollectionName(name: string): boolean {
   return true;
 }
 
+type EmbeddingModule = Pick<typeof import('@revealui/ai/embeddings'), 'generateEmbedding'>;
+
+/**
+ * Embed with the caller's resolved key. Hosted with no key throws
+ * LLM_NOT_CONFIGURED. Forge resolves the deployment env client inside the resolver.
+ */
+async function customerEmbeddingFn(
+  userId: string,
+  workspaceId: string,
+  db: DatabaseClient,
+  embeddingsMod: EmbeddingModule,
+): Promise<(text: string) => Promise<number[]>> {
+  const llmMod = await import('@revealui/ai/llm/server');
+  const client = await llmMod.resolveLLMClientForRequest(
+    userId,
+    db as unknown as Parameters<typeof llmMod.resolveLLMClientForRequest>[1],
+    {
+      isHosted: isHostedDeployment(process.env),
+      workspaceId,
+    },
+  );
+  return async (text: string): Promise<number[]> => {
+    const emb = await embeddingsMod.generateEmbedding(text, { client });
+    return emb.vector;
+  };
+}
+
 const app = new OpenAPIHono<{ Variables: Variables }>();
 app.use('*', noStoreCacheMiddleware());
 
@@ -114,12 +142,17 @@ app.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
       },
+      409: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'No per-account LLM key on a hosted deployment',
+      },
     },
   }),
   async (c) => {
     const { workspaceId, collection } = c.req.valid('param');
+    const user = c.get('user');
     const vectorDb = c.get('db') ?? getRestClient();
-    await assertWorkspaceAccess(vectorDb, c.get('user'), workspaceId);
+    await assertWorkspaceAccess(vectorDb, user, workspaceId);
 
     if (!isValidCollectionName(collection)) {
       return c.json({ success: false, error: 'Invalid collection name' }, 400);
@@ -149,10 +182,15 @@ app.openapi(
     }
 
     const restDb = vectorDb;
-    const embeddingFn = async (text: string): Promise<number[]> => {
-      const emb = await embeddingsMod.generateEmbedding(text);
-      return emb.vector;
-    };
+    let embeddingFn: (text: string) => Promise<number[]>;
+    try {
+      if (!user) throw new HTTPException(401, { message: 'Authentication required' });
+      embeddingFn = await customerEmbeddingFn(user.id, workspaceId, vectorDb, embeddingsMod);
+    } catch (err) {
+      const notConfigured = asLLMNotConfigured(err);
+      if (notConfigured) return c.json(notConfigured, 409);
+      throw err;
+    }
 
     // Type assertion needed: workspace @revealui/db and npm @revealui/db resolve
     // to structurally identical but nominally different Database types.

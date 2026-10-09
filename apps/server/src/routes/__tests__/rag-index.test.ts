@@ -16,6 +16,10 @@ vi.mock('@revealui/ai/embeddings', () => ({
   })),
 }));
 
+vi.mock('@revealui/ai/llm/server', () => ({
+  resolveLLMClientForRequest: vi.fn(async () => ({ marker: 'resolved-client' })),
+}));
+
 let testDb: TestDb;
 let db: DatabaseClient;
 function app(userId?: string, role = 'admin', tenantId?: string) {
@@ -117,6 +121,12 @@ describe('site-backed RAG API authorization and canonical sources', () => {
     );
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({ total: 2, indexed: 2, failed: 0 });
+    const { resolveLLMClientForRequest } = await import('@revealui/ai/llm/server');
+    expect(resolveLLMClientForRequest).toHaveBeenCalledWith(
+      'editor',
+      expect.anything(),
+      expect.objectContaining({ workspaceId: 'private' }),
+    );
     const docs = await db.select().from(ragDocuments);
     expect(docs.map((doc) => doc.sourceId).sort()).toEqual(['draft', 'published']);
   });
@@ -162,5 +172,21 @@ describe('site-backed RAG API authorization and canonical sources', () => {
     ).toBe(200);
     await db.delete(siteCollaborators).where(eq(siteCollaborators.id, 'viewer-member'));
     expect((await app('viewer').request(`${path}/documents`)).status).toBe(403);
+  });
+
+  it('returns 409 when hosted indexing has no account model key', async () => {
+    const { resolveLLMClientForRequest } = await import('@revealui/ai/llm/server');
+    vi.mocked(resolveLLMClientForRequest).mockRejectedValueOnce(
+      Object.assign(new Error('No LLM provider is configured for this account.'), {
+        code: 'LLM_NOT_CONFIGURED',
+        settingsPath: '/settings/api-keys',
+      }),
+    );
+    const response = await app('editor').request(`${path}/index/pages`, { method: 'POST' });
+    const body = await response.json();
+    expect(response.status).toBe(409);
+    expect(body.code).toBe('LLM_NOT_CONFIGURED');
+    expect(body.settingsPath).toBe('/settings/api-keys');
+    expect(body.success).toBe(false);
   });
 });

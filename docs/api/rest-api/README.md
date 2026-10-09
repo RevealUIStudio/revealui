@@ -6197,6 +6197,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 - `200`  -  Indexing completed
 - `400`  -  Invalid collection name
 - `403`  -  AI feature requires Pro or Enterprise license
+- `409`  -  No per-account LLM key on a hosted deployment
 
 ---
 
@@ -6266,6 +6267,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 - `200`  -  Indexing completed
 - `400`  -  Invalid collection name
 - `403`  -  AI feature requires Pro or Enterprise license
+- `409`  -  No per-account LLM key on a hosted deployment
 
 ---
 

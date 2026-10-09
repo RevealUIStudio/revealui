@@ -13,20 +13,21 @@ export interface LLMNotConfiguredShape {
   settingsPath: string;
 }
 
-/** Returns the 409 body when `err` is the resolver's not-configured error, else null. */
+const HOSTED_LLM_CONFIG_CODES = new Set(['LLM_NOT_CONFIGURED', 'HOSTED_ENV_MODEL_KEY_REFUSED']);
+
+/**
+ * Returns the 409 body when `err` is a missing account key or a hosted refusal
+ * of the deployment env model key. Both are configuration, not a server fault.
+ */
 export function asLLMNotConfigured(err: unknown): LLMNotConfiguredShape | null {
-  if (
-    err !== null &&
-    typeof err === 'object' &&
-    (err as { code?: unknown }).code === 'LLM_NOT_CONFIGURED'
-  ) {
-    const e = err as { message?: unknown; settingsPath?: unknown };
-    return {
-      success: false,
-      error: typeof e.message === 'string' ? e.message : 'No LLM provider is configured.',
-      code: 'LLM_NOT_CONFIGURED',
-      settingsPath: typeof e.settingsPath === 'string' ? e.settingsPath : '/settings/api-keys',
-    };
-  }
-  return null;
+  if (err === null || typeof err !== 'object') return null;
+  const code = (err as { code?: unknown }).code;
+  if (typeof code !== 'string' || !HOSTED_LLM_CONFIG_CODES.has(code)) return null;
+  const e = err as { message?: unknown; settingsPath?: unknown };
+  return {
+    success: false,
+    error: typeof e.message === 'string' ? e.message : 'No LLM provider is configured.',
+    code: 'LLM_NOT_CONFIGURED',
+    settingsPath: typeof e.settingsPath === 'string' ? e.settingsPath : '/settings/api-keys',
+  };
 }
