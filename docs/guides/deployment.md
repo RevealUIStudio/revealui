@@ -109,7 +109,7 @@ RevealUI includes GitHub Actions workflows:
 - **ci.yml** -- Runs on every push: Biome lint and typecheck (hard fail), tests (warn-only)
 - **release.yml** -- Manual dispatch only (Actions > Release OSS Packages > Run workflow): OIDC authentication, npm publish with provenance
 
-Vercel Git Integration is disabled. Production deploys run via `deploy.yml` on push to `main` (or manual dispatch). Test previews run via `deploy-test.yml`, triggered manually (`workflow_dispatch`) for QA spot-checks.
+Vercel Git Integration is disabled. Production deploys run via `deploy.yml` on push to `main`, or on manual dispatch only when the ref is `refs/heads/main`. Any other ref fails before validate, migrate, or deploy. Test previews run via `deploy-test.yml`, triggered manually (`workflow_dispatch`) for QA spot-checks.
 
 ### Custom Domains
 
