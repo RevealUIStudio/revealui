@@ -3186,6 +3186,32 @@ export type WorkspaceInferenceConfigsRow = z.infer<typeof WorkspaceInferenceConf
 export type WorkspaceInferenceConfigsInsert = z.infer<typeof WorkspaceInferenceConfigsInsertSchema>
 
 // =============================================================================
+// X402Settlements Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting x402Settlements rows from database
+ * Generated from Drizzle table definition: tables.x402Settlements
+ */
+export const X402SettlementsSelectSchema = createSelectSchema(tables.x402Settlements)
+
+/**
+ * Zod schema for inserting x402Settlements rows to database
+ * Generated from Drizzle table definition: tables.x402Settlements
+ */
+export const X402SettlementsInsertSchema = createInsertSchema(tables.x402Settlements)
+
+/**
+ * TypeScript type for x402Settlements row (Select)
+ */
+export type X402SettlementsRow = z.infer<typeof X402SettlementsSelectSchema>
+
+/**
+ * TypeScript type for x402Settlements insert
+ */
+export type X402SettlementsInsert = z.infer<typeof X402SettlementsInsertSchema>
+
+// =============================================================================
 // YjsDocumentPatches Schemas
 // =============================================================================
 

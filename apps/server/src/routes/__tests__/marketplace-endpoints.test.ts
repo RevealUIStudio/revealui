@@ -30,6 +30,8 @@ const {
   mockBuildPaymentRequired,
   mockEncodePaymentRequired,
   mockVerifyPayment,
+  mockSettlePayment,
+  mockReadPaymentClaim,
 } = vi.hoisted(() => {
   const _accountsCreate = vi.fn();
   const _accountLinksCreate = vi.fn();
@@ -54,6 +56,8 @@ const {
     mockBuildPaymentRequired: vi.fn(),
     mockEncodePaymentRequired: vi.fn(),
     mockVerifyPayment: vi.fn(),
+    mockSettlePayment: vi.fn(),
+    mockReadPaymentClaim: vi.fn(),
   };
 });
 
@@ -74,6 +78,22 @@ vi.mock('../../middleware/x402.js', () => ({
   buildPaymentRequired: mockBuildPaymentRequired,
   encodePaymentRequired: mockEncodePaymentRequired,
   verifyPayment: mockVerifyPayment,
+  settlePayment: mockSettlePayment,
+  readPaymentClaim: mockReadPaymentClaim,
+  decideNonceClaim: (existing: { paymentNonce: string } | null) => (existing ? 'replay' : 'insert'),
+  settlementSupportsPayout: (
+    row: { status: string; amount: string; resource: string } | null | undefined,
+    expectedAmount: string,
+    resource: string,
+  ) =>
+    Boolean(
+      row && row.status === 'settled' && row.amount === expectedAmount && row.resource === resource,
+    ),
+  toUsdcAtomicUnits: (humanAmount: string) => {
+    const amount = Number.parseFloat(humanAmount);
+    if (!Number.isFinite(amount) || amount <= 0) return '1000';
+    return String(Math.round(amount * 1_000_000));
+  },
   getAdvertisedCurrencyLabel: () => 'usdc-only',
   getX402Config: () => ({ enabled: true }),
 }));
@@ -156,6 +176,7 @@ function makeInsertChain() {
   const chain = {
     values: vi.fn(),
     returning: vi.fn().mockResolvedValue(result),
+    onConflictDoNothing: vi.fn(),
     then(
       onFulfilled?: (value: unknown) => unknown,
       onRejected?: (reason: unknown) => unknown,
@@ -164,6 +185,7 @@ function makeInsertChain() {
     },
   };
   chain.values.mockReturnValue(chain);
+  chain.onConflictDoNothing.mockReturnValue(chain);
   return chain;
 }
 
@@ -221,6 +243,16 @@ vi.mock('@revealui/db/schema', () => ({
     metadata: 'metadata',
     createdAt: 'created_at',
     stripeTransferId: 'stripe_transfer_id',
+  },
+  x402Settlements: {
+    id: 'id',
+    paymentNonce: 'payment_nonce',
+    txHash: 'tx_hash',
+    amount: 'amount',
+    payer: 'payer',
+    resource: 'resource',
+    status: 'status',
+    createdAt: 'created_at',
   },
 }));
 
@@ -335,6 +367,23 @@ function resetMocks() {
   });
   mockEncodePaymentRequired.mockReturnValue('base64encoded');
   mockVerifyPayment.mockResolvedValue({ valid: true });
+  mockReadPaymentClaim.mockReturnValue({
+    ok: true,
+    claim: {
+      nonce: '0xnonce',
+      payer: '0xpayer',
+      amount: '5000',
+      validAfter: 0,
+      validBefore: 4_102_444_800,
+    },
+  });
+  mockSettlePayment.mockResolvedValue({
+    ok: true,
+    nonce: '0xnonce',
+    txHash: '0xtx',
+    amount: '5000',
+    payer: '0xpayer',
+  });
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: test helper  -  response shapes vary per endpoint
@@ -682,6 +731,7 @@ describe('POST /servers/:id/invoke  -  x402 payment gate + proxy', () => {
 
   it('proxies request and returns 200 on successful payment + proxy', async () => {
     selectResults.push([MOCK_SERVER]);
+    insertResults.push([{ id: 'settle-1' }]);
     mockVerifyPayment.mockResolvedValueOnce({ valid: true });
 
     // Mock the upstream proxy fetch
@@ -711,6 +761,7 @@ describe('POST /servers/:id/invoke  -  x402 payment gate + proxy', () => {
 
   it('returns 502 when upstream server is unreachable', async () => {
     selectResults.push([MOCK_SERVER]);
+    insertResults.push([{ id: 'settle-1' }]);
     mockVerifyPayment.mockResolvedValueOnce({ valid: true });
 
     // Mock upstream fetch failure

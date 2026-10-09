@@ -3,9 +3,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   buildPaymentMethods,
   buildPaymentRequired,
+  createNonceClaimStore,
+  decideNonceClaim,
   encodePaymentRequired,
   getAdvertisedCurrencyLabel,
   getX402Config,
+  readPaymentClaim,
+  settlementSupportsPayout,
+  settlePayment,
+  toUsdcAtomicUnits,
   verifyPayment,
 } from '../index.js';
 
@@ -349,5 +355,213 @@ describe('verifyPayment', () => {
     }
     expect(onFacilitatorWarn).toHaveBeenCalledTimes(1);
     expect(onFacilitatorWarn.mock.calls[0][0]).toBe('x402 facilitator request failed');
+  });
+
+  it('calls only the verify endpoint and does not settle', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ isValid: true }),
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const encoded = encodeSignedPayload();
+    const result = await verifyPayment(encoded, 'https://example.com/test');
+    expect(result.valid).toBe(true);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch.mock.calls[0][0]).toBe('https://test-facilitator.example.com/verify');
+  });
+});
+
+function encodeSignedPayload(authorization: Record<string, string> = {}): string {
+  const payload = {
+    x402Version: 1,
+    scheme: 'exact',
+    network: 'evm:base',
+    payload: {
+      signature: '0xsig',
+      authorization: {
+        from: '0xpayer',
+        to: '0xpayee',
+        value: '1000',
+        validAfter: '0',
+        validBefore: '4000000000',
+        nonce: '0xnonce-1',
+        ...authorization,
+      },
+    },
+  };
+  return Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64');
+}
+
+describe('readPaymentClaim', () => {
+  const nowMs = 1_700_000_000_000;
+
+  it('rejects an authorization that has expired', () => {
+    const encoded = encodeSignedPayload({ validBefore: '1000' });
+    const result = readPaymentClaim(encoded, nowMs);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain('expired');
+  });
+
+  it('rejects an authorization that is not active yet', () => {
+    const encoded = encodeSignedPayload({ validAfter: '4000000000', validBefore: '4000000001' });
+    const result = readPaymentClaim(encoded, nowMs);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain('not active');
+  });
+
+  it('reads nonce, payer, and amount from an active authorization', () => {
+    const encoded = encodeSignedPayload({ nonce: '0xabc', value: '5000', from: '0xfrom' });
+    const result = readPaymentClaim(encoded, nowMs);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.claim.nonce).toBe('0xabc');
+      expect(result.claim.amount).toBe('5000');
+      expect(result.claim.payer).toBe('0xfrom');
+    }
+  });
+});
+
+describe('settlePayment', () => {
+  beforeEach(() => {
+    setEnv({
+      X402_ENABLED: 'true',
+      X402_RECEIVING_ADDRESS: '0xTestWallet',
+      X402_FACILITATOR_URL: 'https://test-facilitator.example.com',
+      X402_PRICE_PER_TASK: '0.001',
+    });
+  });
+
+  it('settles through the facilitator after the authorization is still active', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ success: true, transaction: '0xtxhash', payer: '0xfrom' }),
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const encoded = encodeSignedPayload({ value: '1000', nonce: '0xsettle' });
+    const result = await settlePayment(
+      encoded,
+      'https://example.com/resource',
+      'marketplace-invoke',
+      {},
+      '0.001',
+      1_700_000_000_000,
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.txHash).toBe('0xtxhash');
+      expect(result.nonce).toBe('0xsettle');
+      expect(result.amount).toBe('1000');
+      expect(result.payer).toBe('0xfrom');
+    }
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch.mock.calls[0][0]).toBe('https://test-facilitator.example.com/settle');
+  });
+
+  it('does not call the facilitator when the authorization has expired', async () => {
+    const mockFetch = vi.fn();
+    vi.stubGlobal('fetch', mockFetch);
+
+    const encoded = encodeSignedPayload({ validBefore: '10' });
+    const result = await settlePayment(
+      encoded,
+      'https://example.com/resource',
+      'marketplace-invoke',
+      {},
+      undefined,
+      1_700_000_000_000,
+    );
+    expect(result.ok).toBe(false);
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('returns failure when the facilitator settlement call fails', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 502,
+        text: () => Promise.resolve('bad gateway'),
+      }),
+    );
+
+    const encoded = encodeSignedPayload();
+    const result = await settlePayment(
+      encoded,
+      'https://example.com/resource',
+      'marketplace-invoke',
+      {},
+      '0.001',
+      1_700_000_000_000,
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain('HTTP 502');
+  });
+
+  it('returns failure when the facilitator reports the payment was not settled', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ success: false, errorReason: 'not settled' }),
+      }),
+    );
+
+    const encoded = encodeSignedPayload();
+    const result = await settlePayment(
+      encoded,
+      'https://example.com/resource',
+      'marketplace-invoke',
+      {},
+      '0.001',
+      1_700_000_000_000,
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toBe('not settled');
+  });
+});
+
+describe('nonce claim', () => {
+  const record = {
+    paymentNonce: '0xnonce-1',
+    txHash: '0xtx',
+    amount: '1000',
+    payer: '0xpayer',
+    resource: 'https://example.com/a',
+    status: 'settled' as const,
+  };
+
+  it('keeps one row per nonce, rejects a different second use, and returns the same row on an identical retry', () => {
+    const store = createNonceClaimStore();
+    const first = store.claim(record);
+    const replay = store.claim({ ...record, resource: 'https://example.com/b' });
+    const sameAgain = store.claim(record);
+
+    expect(first).toEqual({ ok: true, created: true, record });
+    expect(replay).toEqual({ ok: false, reason: 'replay' });
+    expect(sameAgain).toEqual({ ok: true, created: false, record });
+    expect(decideNonceClaim(null)).toBe('insert');
+    expect(decideNonceClaim({ paymentNonce: record.paymentNonce })).toBe('replay');
+  });
+
+  it('matches a payout only to a settled row for the same amount and resource', () => {
+    expect(toUsdcAtomicUnits('1.00')).toBe('1000000');
+    expect(
+      settlementSupportsPayout(
+        { status: 'settled', amount: '1000000', resource: 'https://example.com/a' },
+        '1000000',
+        'https://example.com/a',
+      ),
+    ).toBe(true);
+    expect(
+      settlementSupportsPayout(
+        { status: 'settled', amount: '1', resource: 'https://example.com/a' },
+        '1000000',
+        'https://example.com/a',
+      ),
+    ).toBe(false);
+    expect(settlementSupportsPayout(null, '1000000', 'https://example.com/a')).toBe(false);
   });
 });
