@@ -7,6 +7,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { FOUNDER_SERVICE_OFFERINGS } from '@revealui/contracts/pricing';
+import { DOMAIN_ADDON_LABEL } from '@revealui/contracts/public-catalog';
 import { describe, expect, it } from 'vitest';
 import {
   AGENCY_ENGAGEMENT_LADDER,
@@ -148,7 +149,9 @@ describe('FOUNDER_SERVICE_OFFERINGS — founder-led services menu', () => {
     expect(proof?.description).toContain('Includes 1 Adapter');
     expect(ladderProof?.name).toBe('Pilot');
     expect(FOR_OPERATORS_PRICING.rungs[1]?.body).toContain('Includes 1 Adapter');
-    expect(FOR_OPERATORS_PRICING.rungs[1]?.body).toContain('Stage B is included');
+    expect(FOR_OPERATORS_PRICING.rungs[1]?.body).toContain(`${DOMAIN_ADDON_LABEL} is included`);
+    expect(FOR_OPERATORS_PRICING.rungs[1]?.body.includes('Stage B')).toBe(false);
+    expect(FOR_OPERATORS_PRICING.rungs[1]?.body.includes('domain pack')).toBe(false);
     expect(FOR_OPERATORS_PRICING.rungs[1]?.body.includes('Proof Sprint')).toBe(false);
   });
 
@@ -158,6 +161,7 @@ describe('FOUNDER_SERVICE_OFFERINGS — founder-led services menu', () => {
     expect(launch?.price).toBe('$14,500');
     expect(launch?.price).toBe(ladderLaunch?.price);
     expect(launch?.includes).toContain('Up to 3 Adapters included');
+    expect(launch?.includes).toContain(`${DOMAIN_ADDON_LABEL} included`);
     expect(FOR_OPERATORS_PRICING.rungs[2]?.body).toContain('Up to 3 Adapters included');
   });
 
@@ -181,6 +185,14 @@ const RETIRED_PUBLIC_NAMES = [
   'proof sprint',
   'Proof sprint',
   'PROOF SPRINT',
+  'Stage B',
+  'stage B',
+  'stage b',
+  'STAGE B',
+  'Domain pack',
+  'domain pack',
+  'Domain Pack',
+  'DOMAIN PACK',
 ] as const;
 
 const RETIRED_IDENTIFIERS = [

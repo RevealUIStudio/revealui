@@ -539,7 +539,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
     file: 'for-operators.ts',
     exportPath: 'FOR_OPERATORS_PRICING.rungs[1].body',
     proofGrade: 'outcome',
-    text: 'One site on your domain and one receipted action you operate. Includes 1 Adapter. Stage B is included. You keep it. The domain pack is included. Credits 100% to Launch if you start Launch within 45 days of Pilot start. This SKU lives on revealuistudio.com, not on the product catalog.',
+    text: 'One site on your domain and one receipted action you operate. Includes 1 Adapter. Domain add-on is included. You keep it. Credits 100% to Launch if you start Launch within 45 days of Pilot start. This SKU lives on revealuistudio.com, not on the product catalog.',
     evidence: [COMMERCIAL_POLICY, SELF_HOST],
   },
   {
