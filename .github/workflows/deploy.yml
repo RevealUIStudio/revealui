@@ -2,7 +2,9 @@ name: Deploy
 
 # Production-only deployment. Vercel Git Integration is DISABLED.
 #
-# Trigger: push to main (merge from test) or manual dispatch.
+# Trigger: push to main (merge from test), or workflow_dispatch when the ref
+# is refs/heads/main. Any other ref fails in Production ref guard before
+# validate, migrate, or deploy.
 # Only affected apps are deployed — if a shared package changes, all apps deploy.
 #
 # Pre-deploy validation: migration drift check only (no full typecheck —
@@ -35,19 +37,41 @@ concurrency:
 env:
   NODE_VERSION: "24"
   PNPM_VERSION: "10.28.2"
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN || secrets.VERCEL_TOKEN }}
+  # Production tokens are not workflow env. Environment secrets are visible
+  # only to jobs that name the production environment. The ref guard, detect,
+  # design verify, and summary jobs do not receive them.
   TURBO_TEAM: ${{ vars.TURBO_TEAM || 'revealuistudio' }}
 
 jobs:
+  # Fail closed before any production job. workflow_dispatch can select any
+  # branch; push is already limited to main. Skipped jobs would still leave
+  # the workflow green, so this job exits 1 with a clear message.
+  production-ref:
+    name: Production ref guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require refs/heads/main
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
+            echo "::error::Production deploy jobs run only when the ref is refs/heads/main. This run is ${GITHUB_REF}. Refusing before validate, migrate, or deploy."
+            exit 1
+          fi
+          echo "Production ref ok: ${GITHUB_REF}"
+
   # ---------------------------------------------------------------------------
   # Pre-deploy validation — migration drift only (typecheck runs in CI)
   # ---------------------------------------------------------------------------
   validate:
     name: Validate Migrations
-    needs: [detect]
+    needs: [production-ref, detect]
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    environment: production
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN || secrets.VERCEL_TOKEN }}
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -159,8 +183,11 @@ jobs:
   migrate:
     name: Apply Migrations
     runs-on: ubuntu-latest
-    needs: [validate]
+    needs: [production-ref, validate]
     timeout-minutes: 5
+    environment: production
+    env:
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN || secrets.VERCEL_TOKEN }}
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -217,7 +244,7 @@ jobs:
           POSTGRES_URL: ${{ secrets.PROD_POSTGRES_URL }}
         run: |
           if [ -z "${POSTGRES_URL:-}" ]; then
-            echo "::error::PROD_POSTGRES_URL secret not set on the repo"
+            echo "::error::PROD_POSTGRES_URL is not set for this job"
             exit 1
           fi
           echo "::group::Backfill check (pre-migrate)"
@@ -241,6 +268,7 @@ jobs:
   detect:
     name: Detect Affected Apps
     runs-on: ubuntu-latest
+    needs: [production-ref]
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     outputs:
       matrix: ${{ steps.detect.outputs.matrix }}
@@ -359,11 +387,14 @@ jobs:
     # completes. (admin/marketing/docs build in 1-3.5 min; the wall is api-
     # specific, but the limit is shared across the matrix.)
     timeout-minutes: 40
-    needs: [validate, migrate, detect]
+    needs: [production-ref, validate, migrate, detect]
     if: needs.detect.outputs.has-apps == 'true'
     environment:
       name: production
       url: ${{ steps.deploy.outputs.url }}
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN || secrets.VERCEL_TOKEN }}
 
     strategy:
       fail-fast: false
@@ -466,8 +497,10 @@ jobs:
   smoke-test:
     name: Smoke Test
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    needs: [detect, deploy]
+    # The admin alias wait alone can take about 4 minutes, so 5 is too tight.
+    timeout-minutes: 10
+    needs: [production-ref, detect, deploy]
+    environment: production
 
     steps:
       # Checkout required for durable REST rollback script on failure
@@ -513,23 +546,63 @@ jobs:
           exit 1
 
       - name: Health check — Admin
+        env:
+          ADMIN_ALIAS: admin.revealui.com
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
         run: |
           URL_FILE="deploy-urls/deploy-url-admin/url.txt"
           if [ ! -f "$URL_FILE" ]; then
             echo "::notice::admin was not in this deploy — skipping admin probe"
             exit 0
           fi
+          # The admin custom domain is outside Vercel deployment protection
+          # (protection covers all deployments except custom domains). Raw
+          # *.vercel.app URLs answer with a 302 to Vercel SSO, which curl -sf
+          # counts as success, so they cannot prove admin health. Wait until
+          # the production alias points at this deployment, then probe the
+          # custom domain and require HTTP 200. No bypass secret is used.
           ADMIN_URL=$(tr -d '[:space:]' < "$URL_FILE")
-          echo "Checking $ADMIN_URL (deployment URL, not the public alias)..."
+          ADMIN_HOST="${ADMIN_URL#https://}"
+          ADMIN_HOST="${ADMIN_HOST%%/*}"
+          ADMIN_PROJECT_ID=$(jq -r '.admin' .github/vercel-projects.json)
+          VERCEL_API="https://api.vercel.com"
+          DPL_ID=$(curl -sf -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+            "${VERCEL_API}/v6/deployments?projectId=${ADMIN_PROJECT_ID}&teamId=${VERCEL_ORG_ID}&target=production&state=READY&limit=20" \
+            | jq -r --arg host "$ADMIN_HOST" '[.deployments[]? | select(.url == $host) | .uid][0] // empty' || true)
+          if [ -z "$DPL_ID" ]; then
+            echo "::error::No READY production deployment found for $ADMIN_URL"
+            exit 1
+          fi
+          echo "Waiting for ${ADMIN_ALIAS} on ${DPL_ID}..."
+          ALIASED=false
           for i in $(seq 1 12); do
-            if curl -sf "$ADMIN_URL" -o /dev/null 2>&1; then
+            if curl -sf -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+              "${VERCEL_API}/v2/deployments/${DPL_ID}/aliases?teamId=${VERCEL_ORG_ID}" \
+              | jq -e --arg alias "$ADMIN_ALIAS" 'any(.aliases[]?; .alias == $alias)' > /dev/null; then
+              ALIASED=true
+              break
+            fi
+            echo "Alias attempt $i/12: not on this deployment yet, waiting 10s..."
+            sleep 10
+          done
+          if [ "$ALIASED" != "true" ]; then
+            echo "::error::${ADMIN_ALIAS} was not assigned to ${DPL_ID} within 2 minutes"
+            exit 1
+          fi
+          PUBLIC_URL="https://${ADMIN_ALIAS}/login"
+          echo "Checking $PUBLIC_URL (custom domain, outside deployment protection)..."
+          CODE=""
+          for i in $(seq 1 12); do
+            CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "${PUBLIC_URL}?smoke=${GITHUB_RUN_ID}-${i}" || true)
+            if [ "$CODE" = "200" ]; then
               echo "Admin healthy"
               exit 0
             fi
             echo "Attempt $i/12 — waiting 10s..."
             sleep 10
           done
-          echo "::error::Admin health check failed after 2 minutes ($ADMIN_URL)"
+          echo "::error::Admin health check failed after 2 minutes ($PUBLIC_URL, last HTTP ${CODE:-none})"
           exit 1
 
       - name: Invocation guard — API (real function invocation)
@@ -627,7 +700,7 @@ jobs:
     name: Verify Design System
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [detect, deploy]
+    needs: [production-ref, detect, deploy]
     if: ${{ success() && needs.detect.outputs.has-apps == 'true' && (contains(needs.detect.outputs.app-list, 'marketing') || contains(needs.detect.outputs.app-list, 'docs')) }}
 
     steps:
@@ -698,7 +771,7 @@ jobs:
   summary:
     name: Deploy Summary
     runs-on: ubuntu-latest
-    needs: [detect, deploy]
+    needs: [production-ref, detect, deploy]
     if: always()
 
     steps:
