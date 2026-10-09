@@ -287,6 +287,8 @@
     "validate:agent-authorize-chokepoints": "tsx scripts/validate/agent-authorize-chokepoints.ts",
     "validate:kek-rotation": "vitest run scripts/security/__tests__/rotate-kek.test.ts",
     "validate:migrations": "tsx scripts/validate/migration-journal.ts",
+    "validate:journal-when": "node --disable-warning=ExperimentalWarning --experimental-strip-types scripts/validate/drizzle-journal-when.ts",
+    "test:journal-when": "node --disable-warning=ExperimentalWarning --experimental-strip-types --test scripts/validate/__tests__/drizzle-journal-when.test.ts",
     "validate:prod-env": "tsx scripts/validate/prod-env.ts",
     "validate:vercel-settings": "tsx scripts/validate/vercel-project-settings.ts",
     "validate:raw-sql": "tsx scripts/validate/raw-sql.ts",
