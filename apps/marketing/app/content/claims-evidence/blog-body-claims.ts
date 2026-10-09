@@ -8053,7 +8053,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/five-primitives',
     exportPath: 'body.68',
-    text: '**Ollama** (fallback)  -  Any open source GGUF model (chat: `qwen2.5:3b`, embeddings: `nomic-embed-text`)',
+    text: '**Ollama** (fallback)  -  US open-weight local tags (chat: `gemma4:e2b`, embeddings: `nomic-embed-text`)',
     evidence: [
       {
         kind: 'code',
@@ -8734,7 +8734,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/local-first-ai-stack',
     exportPath: 'body.13',
-    text: 'As a fallback, **Ollama** supports any open source GGUF model (default: `qwen2.5:3b`):',
+    text: 'As a fallback, **Ollama** supports US open-weight local tags (default: `gemma4:e2b`):',
     evidence: [
       {
         kind: 'code',
@@ -8853,7 +8853,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/local-first-ai-stack',
     exportPath: 'body.20',
-    text: 'The "local-first" configuration is one of several inference paths. RevealUI supports Ubuntu Inference Snaps (Canonical\'s managed runtime, planned recommended) and Ollama (any open source GGUF model, default local). Cloud-compatible providers (Groq, HuggingFace, and OpenAI-compatible endpoints) are pluggable but opt-in via env vars. Pick the path that fits your trust + cost profile; there is no vendor lock-in.',
+    text: 'The "local-first" configuration is one of several inference paths. RevealUI supports Ubuntu Inference Snaps (Canonical\'s managed runtime, planned recommended) and Ollama (US open-weight local tags, default gemma4:e2b). Cloud-compatible providers (Groq, HuggingFace, and OpenAI-compatible endpoints) are pluggable but opt-in via env vars. Pick the path that fits your trust + cost profile; there is no vendor lock-in.',
     evidence: [
       {
         kind: 'code',
