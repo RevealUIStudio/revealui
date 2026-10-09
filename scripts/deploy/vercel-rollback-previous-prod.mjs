@@ -10,22 +10,25 @@ import { pathToFileURL } from 'node:url';
  *   deploy on the production alias.
  * - This script uses the Vercel REST API with an explicit team id, finds the
  *   restore target, and re-points the allowlisted production hostnames on the
- *   newest (broken) deploy to that target. Other apps use the second-most-recent
- *   READY production deployment. Admin uses the newest READY production
- *   deployment at or after the rollback floor. Other aliases (preview or
- *   nested test names) stay put. A failure moving a non-production alias must
- *   not fail the rollback.
+ *   newest (broken) deploy to that target. Api and admin use the newest READY
+ *   production deployment at or after a per-project rollback floor. Other apps
+ *   use the second-most-recent READY production deployment. Other aliases
+ *   (preview or nested test names) stay put. A failure moving a non-production
+ *   alias must not fail the rollback.
  *
  * Usage:
  *   VERCEL_TOKEN=… VERCEL_TEAM_ID=team_… node scripts/deploy/vercel-rollback-previous-prod.mjs \
  *     --project-id prj_… [--app-label api]
  *
- * Admin rollback requires ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID. The script
- * loads that deployment from the Vercel API and uses its createdAt as the
- * floor. Targets created before the floor are refused. The floor deployment
- * itself stays eligible. If the variable is unset, the floor cannot be
- * resolved, or no eligible target remains, the script does not move aliases,
- * reports that the live build was left in place, and exits 1.
+ * Api and admin rollbacks require a per-project floor repository variable:
+ * API_ROLLBACK_FLOOR_DEPLOYMENT_ID or ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID.
+ * The script loads that deployment by id and uses its createdAt as the floor.
+ * The deployment must belong to the expected project, target production, and
+ * be READY. Candidates are compared by createdAt, never by id string. Targets
+ * created before the floor are refused. The floor deployment itself stays
+ * eligible. If the variable is unset, the floor cannot be resolved, the floor
+ * fails those checks, or no eligible target remains, the script does not move
+ * aliases, reports that the live build was left in place, and exits 1.
  *
  * Exit codes:
  *   0 — previous deploy promoted (aliases reassigned) or nothing to do
@@ -98,14 +101,18 @@ function trimmed(value) {
   return typeof value === 'string' ? value.trim() : '';
 }
 
-function readDeploymentId(deployment) {
-  if (!deployment || typeof deployment !== 'object') return '';
-  if (typeof deployment.uid === 'string' && deployment.uid.trim().length > 0) {
-    return deployment.uid.trim();
-  }
-  if (typeof deployment.id === 'string' && deployment.id.trim().length > 0) {
-    return deployment.id.trim();
-  }
+/**
+ * Repository variable that holds each floored app's deployment id.
+ * Apps absent from this map restore the previous READY production deployment.
+ */
+export const ROLLBACK_FLOOR_ENV = {
+  api: 'API_ROLLBACK_FLOOR_DEPLOYMENT_ID',
+  admin: 'ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID',
+};
+
+export function rollbackFloorEnvName(appLabel) {
+  const label = trimmed(appLabel);
+  if (Object.hasOwn(ROLLBACK_FLOOR_ENV, label)) return ROLLBACK_FLOOR_ENV[label];
   return '';
 }
 
@@ -138,23 +145,76 @@ function hasFloorCreatedAt(value) {
 }
 
 /**
- * Interpret a Vercel deployment lookup for the admin rollback floor.
- * A blank id is unset. A body without createdAt cannot be resolved.
+ * Prefer the record that carries createdAt. A wrapped `{ deployment }` body
+ * is read from the inner object when the top level has no timestamp.
  */
-export function floorFromLookup(floorDeploymentId, lookupBody) {
+function floorRecord(body) {
+  if (!body || typeof body !== 'object') return null;
+  if (asEpochMs(body.createdAt ?? body.created) != null) return body;
+  if (body.deployment && typeof body.deployment === 'object') return body.deployment;
+  return body;
+}
+
+function readLookupProjectId(record) {
+  if (!record || typeof record !== 'object') return '';
+  const direct = trimmed(record.projectId);
+  const nested =
+    record.project && typeof record.project === 'object' ? trimmed(record.project.id) : '';
+  if (direct && nested && direct !== nested) return '';
+  return direct || nested;
+}
+
+function isReadyLookup(record) {
+  if (!record || typeof record !== 'object') return false;
+  const readyState = trimmed(record.readyState);
+  const state = trimmed(record.state);
+  if (!readyState && !state) return false;
+  if (readyState && readyState !== 'READY') return false;
+  if (state && state !== 'READY') return false;
+  return true;
+}
+
+function refusedFloor(reason, floorDeploymentId, extra = {}) {
+  return {
+    ok: false,
+    reason,
+    floorDeploymentId,
+    floorCreatedAt: null,
+    ...extra,
+  };
+}
+
+/**
+ * Interpret a Vercel deployment lookup for a per-project rollback floor.
+ * A blank id is unset. A body without createdAt cannot be resolved. A
+ * resolved deployment must belong to `options.projectId`, target production,
+ * and be READY. Otherwise the floor is refused.
+ */
+export function floorFromLookup(floorDeploymentId, lookupBody, options = {}) {
   const id = trimmed(floorDeploymentId);
   if (!id) {
-    return { ok: false, reason: 'floor-unset', floorDeploymentId: '', floorCreatedAt: null };
+    return refusedFloor('floor-unset', '');
   }
   const floorCreatedAt = deploymentCreatedMs(lookupBody);
   if (!hasFloorCreatedAt(floorCreatedAt)) {
-    return { ok: false, reason: 'floor-unresolvable', floorDeploymentId: id, floorCreatedAt: null };
+    return refusedFloor('floor-unresolvable', id);
   }
-  return { ok: true, reason: 'resolved', floorDeploymentId: id, floorCreatedAt };
+  const record = floorRecord(lookupBody);
+  const expectedProjectId = trimmed(options.projectId);
+  const projectId = readLookupProjectId(record);
+  if (!expectedProjectId || !projectId || projectId !== expectedProjectId) {
+    return refusedFloor('floor-wrong-project', id, { projectId, expectedProjectId });
+  }
+  if (trimmed(record?.target) !== 'production') {
+    return refusedFloor('floor-not-production', id, { projectId, expectedProjectId });
+  }
+  if (!isReadyLookup(record)) {
+    return refusedFloor('floor-not-ready', id, { projectId, expectedProjectId });
+  }
+  return { ok: true, reason: 'resolved', floorDeploymentId: id, floorCreatedAt, projectId };
 }
 
-function isAtOrAfterAdminFloor(candidate, floorDeploymentId, floorCreatedAt) {
-  if (readDeploymentId(candidate) === floorDeploymentId) return true;
+function isAtOrAfterFloor(candidate, floorCreatedAt) {
   const created = deploymentCreatedMs(candidate);
   if (!(hasFloorCreatedAt(created) && hasFloorCreatedAt(floorCreatedAt))) return false;
   return created >= floorCreatedAt;
@@ -162,14 +222,15 @@ function isAtOrAfterAdminFloor(candidate, floorDeploymentId, floorCreatedAt) {
 
 /**
  * Choose the READY production deployment a rollback may restore.
- * `deployments` is newest-first. Index 0 is the current deploy and is never
- * a restore target. Admin selection requires a resolved floor createdAt.
+ * Index 0 is the current deploy and is never a restore target. Floored apps
+ * require a resolved floor createdAt. Eligible candidates are ordered by
+ * createdAt, newest first. Deployment id strings are not compared.
  */
 export function selectRollbackTarget(deployments, options = {}) {
   const list = Array.isArray(deployments) ? deployments : [];
   const appLabel = trimmed(options.appLabel) || 'app';
 
-  if (appLabel !== 'admin') {
+  if (!rollbackFloorEnvName(appLabel)) {
     if (list.length < 2) {
       return { target: null, rollback: false, reason: 'no-previous' };
     }
@@ -184,28 +245,50 @@ export function selectRollbackTarget(deployments, options = {}) {
     return { target: null, rollback: false, reason: 'floor-unresolvable' };
   }
 
-  for (const candidate of list.slice(1)) {
-    if (isAtOrAfterAdminFloor(candidate, floorDeploymentId, options.floorCreatedAt)) {
-      return { target: candidate, rollback: true, reason: 'at-or-after-floor' };
-    }
+  const eligible = list
+    .slice(1)
+    .filter((candidate) => isAtOrAfterFloor(candidate, options.floorCreatedAt));
+  eligible.sort((left, right) => {
+    const leftCreated = deploymentCreatedMs(left) ?? 0;
+    const rightCreated = deploymentCreatedMs(right) ?? 0;
+    return rightCreated - leftCreated;
+  });
+  const target = eligible[0];
+  if (!target) {
+    return { target: null, rollback: false, reason: 'no-eligible-target' };
   }
-  return { target: null, rollback: false, reason: 'no-eligible-target' };
+  return { target, rollback: true, reason: 'at-or-after-floor' };
 }
 
 export function rollbackRefusalMessage(decision, context = {}) {
   const appLabel = context.appLabel || 'app';
-  const floorDeploymentId = context.floorDeploymentId || '';
+  const floorDeploymentId = context.floorDeploymentId || decision?.floorDeploymentId || '';
   const leftInPlace = 'No rollback was performed. The live build was left in place.';
+  const variable = context.floorVariable || rollbackFloorEnvName(appLabel);
   if (decision?.reason === 'floor-unset') {
-    return (
-      `ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID is unset. Refusing an unbounded admin rollback. ` +
-      leftInPlace
-    );
+    const name = variable || 'ROLLBACK_FLOOR_DEPLOYMENT_ID';
+    return `${name} is unset. Refusing an unbounded ${appLabel} rollback. ${leftInPlace}`;
   }
   if (decision?.reason === 'floor-unresolvable') {
     return (
-      `Admin rollback floor ${floorDeploymentId} could not be resolved from the Vercel API. ` +
+      `Rollback floor ${floorDeploymentId} for ${appLabel} could not be resolved from the Vercel API. ` +
       leftInPlace
+    );
+  }
+  if (decision?.reason === 'floor-wrong-project') {
+    const expected = context.projectId || decision?.expectedProjectId || 'the expected project';
+    const actual = decision?.projectId || 'unknown';
+    return (
+      `Rollback floor ${floorDeploymentId} for ${appLabel} belongs to project ${actual}, not ${expected}. ` +
+      leftInPlace
+    );
+  }
+  if (decision?.reason === 'floor-not-ready') {
+    return `Rollback floor ${floorDeploymentId} for ${appLabel} is not READY. ${leftInPlace}`;
+  }
+  if (decision?.reason === 'floor-not-production') {
+    return (
+      `Rollback floor ${floorDeploymentId} for ${appLabel} does not target production. ${leftInPlace}`
     );
   }
   if (decision?.reason === 'no-eligible-target') {
@@ -260,7 +343,7 @@ function initCli() {
   }
 }
 
-async function api(path, init = {}, timeoutMs = 0) {
+async function api(path, init = {}, timeoutMs = VERCEL_API_TIMEOUT_MS) {
   const url = new URL(path.startsWith('http') ? path : `${API}${path}`);
   if (!url.searchParams.has('teamId')) url.searchParams.set('teamId', teamId);
   const request = {
@@ -271,8 +354,8 @@ async function api(path, init = {}, timeoutMs = 0) {
       ...(init.headers || {}),
     },
   };
-  const res =
-    timeoutMs > 0 ? await fetchWithTimeout(url, request, timeoutMs) : await fetch(url, request);
+  const deadline = timeoutMs > 0 ? timeoutMs : VERCEL_API_TIMEOUT_MS;
+  const res = await fetchWithTimeout(url, request, deadline);
   const text = await res.text();
   let body;
   try {
@@ -291,8 +374,8 @@ async function api(path, init = {}, timeoutMs = 0) {
   return body;
 }
 
-async function resolveAdminFloor(rawFloorDeploymentId) {
-  const preview = floorFromLookup(rawFloorDeploymentId, null);
+async function resolveFloor(rawFloorDeploymentId, expectedProjectId, appLabel) {
+  const preview = floorFromLookup(rawFloorDeploymentId, null, { projectId: expectedProjectId });
   if (preview.reason === 'floor-unset') return preview;
   try {
     const body = await api(
@@ -300,11 +383,13 @@ async function resolveAdminFloor(rawFloorDeploymentId) {
       {},
       VERCEL_API_TIMEOUT_MS,
     );
-    return floorFromLookup(preview.floorDeploymentId, body);
+    return floorFromLookup(preview.floorDeploymentId, body, { projectId: expectedProjectId });
   } catch (error) {
     const detail = error instanceof Error ? error.message : 'unknown error';
-    console.error(`Admin rollback floor lookup failed for ${preview.floorDeploymentId}: ${detail}`);
-    return floorFromLookup(preview.floorDeploymentId, null);
+    console.error(
+      `Rollback floor lookup failed for ${appLabel} ${preview.floorDeploymentId}: ${detail}`,
+    );
+    return floorFromLookup(preview.floorDeploymentId, null, { projectId: expectedProjectId });
   }
 }
 
@@ -353,12 +438,21 @@ async function main() {
 
   let floorDeploymentId = '';
   let floorCreatedAt = null;
-  if (appLabel === 'admin') {
-    const floor = await resolveAdminFloor(process.env.ADMIN_ROLLBACK_FLOOR_DEPLOYMENT_ID);
+  const floorVariable = rollbackFloorEnvName(appLabel);
+  if (floorVariable) {
+    const floor = await resolveFloor(process.env[floorVariable], projectId, appLabel);
     floorDeploymentId = floor.floorDeploymentId;
     floorCreatedAt = floor.floorCreatedAt;
     if (!floor.ok) {
-      die(1, rollbackRefusalMessage(floor, { appLabel, floorDeploymentId }));
+      die(
+        1,
+        rollbackRefusalMessage(floor, {
+          appLabel,
+          floorDeploymentId,
+          projectId,
+          floorVariable,
+        }),
+      );
     }
   }
 
@@ -390,8 +484,8 @@ async function main() {
   }
   console.log(`Newest (broken candidate): ${broken.uid} https://${broken.url}`);
   console.log(`Restore target:            ${previous.uid} https://${previous.url}`);
-  if (appLabel === 'admin') {
-    console.log(`Admin rollback floor:      ${floorDeploymentId}`);
+  if (floorVariable) {
+    console.log(`Rollback floor (${floorVariable}): ${floorDeploymentId}`);
   }
 
   if (!PRODUCTION_ALIASES[appLabel]) {
