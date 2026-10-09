@@ -28,12 +28,27 @@ import type { McpToolCallEvent } from '../tools/mcp-events.js';
 import { createWebSearchTool } from '../tools/web/duck-duck-go.js';
 import type { Agent, AgentResult, Task } from './agent.js';
 import {
+  executeGovernedTool,
+  mcpToolSkipsExecutionAudit,
+  mergeHumanApprovalNames,
+} from './governed-tool.js';
+import {
   createDaemonLoopGuard,
   iterationAdvanced,
   type LoopGuardPort,
   type LoopGuardTickInput,
   studioLoopId,
 } from './loop-guard.js';
+
+export {
+  type ExecuteGovernedToolInput,
+  executeGovernedTool,
+  type GovernedToolAuditEvent,
+  type GovernedToolDecision,
+  type GovernedToolExecution,
+  mcpToolSkipsExecutionAudit,
+  mergeHumanApprovalNames,
+} from './governed-tool.js';
 
 export type { LoopGuardPort, LoopGuardSignal, LoopGuardTickInput } from './loop-guard.js';
 export {
@@ -47,7 +62,7 @@ export {
 } from './loop-guard.js';
 
 /**
- * Reasoning-depth hint for a task. Alias of the neutral `ReasoningEffort` — the agnostic
+ * Reasoning-depth hint for a task. Alias of the neutral `ReasoningEffort`, the agnostic
  * Reasoner port's control vocabulary. Mapping a level to a provider's native control
  * (e.g. a thinking-token budget) is the adapter's job; a provider that advertises
  * `reasoningEffort: false` treats it as a no-op.
@@ -119,10 +134,15 @@ export interface RuntimeConfig {
   approvalCallback?: ApprovalCallback;
   /**
    * Additional tool names that always require approval, regardless of the
-   * tool's own `requiresApproval` flag. Use to enforce agent-level security
-   * policy (e.g., from AgentSecuritySchema.requiresHumanApproval).
+   * tool's own `requiresApproval` flag.
    */
   alwaysRequireApproval?: string[];
+  /**
+   * Tool names from AgentSecuritySchema.requiresHumanApproval.
+   * Merged into alwaysRequireApproval at construction so a spec that lists
+   * a tool is enforced by the same governed executor.
+   */
+  requiresHumanApproval?: readonly string[];
   /**
    * Studio LoopGuard (GAP-362). Default: `loop.arm`, `loop.tick`, and
    * `loop.status` on the RevDev harness socket when it is reachable.
@@ -157,7 +177,13 @@ export class AgentRuntime {
       modelTier: config.modelTier,
       model: config.model,
       approvalCallback: config.approvalCallback,
-      alwaysRequireApproval: config.alwaysRequireApproval,
+      alwaysRequireApproval: mergeHumanApprovalNames(
+        config.alwaysRequireApproval,
+        config.requiresHumanApproval,
+      ),
+      requiresHumanApproval: config.requiresHumanApproval
+        ? [...config.requiresHumanApproval]
+        : undefined,
     };
 
     // Register cleanup handler
@@ -217,7 +243,7 @@ export class AgentRuntime {
           });
           mcpTools.push(...fromClient);
         } catch {
-          // empty-catch-ok: an unhealthy MCP client shouldn't fail the whole task — other clients + base tools still apply
+          // empty-catch-ok: an unhealthy MCP client should not fail the whole task. Other clients and base tools still apply.
         }
       }
     }
@@ -349,70 +375,25 @@ export class AgentRuntime {
 
           try {
             const params = JSON.parse(toolCall.function.arguments) as unknown;
-
-            // Check if this tool requires human approval
-            const needsApproval =
-              tool.requiresApproval || this.config.alwaysRequireApproval?.includes(tool.name);
-
-            if (needsApproval) {
-              if (!this.config.approvalCallback) {
-                // No approval callback  -  deny by default
-                const denied: ToolResult = {
-                  success: false,
-                  error: `Tool "${tool.label ?? tool.name}" requires human approval but no approval handler is configured.`,
-                };
-                toolResults.push(denied);
-                messages.push({
-                  role: 'tool',
-                  content: denied.error ?? '',
-                  toolCallId: toolCall.id,
-                });
-                continue;
-              }
-
-              const approval = await this.config.approvalCallback({
-                toolName: tool.name,
-                toolLabel: tool.label,
-                params,
-                description: `${tool.label ?? tool.name}: ${tool.description}`,
-              });
-
-              if (!approval.approved) {
-                const denied: ToolResult = {
-                  success: false,
-                  error: approval.reason
-                    ? `Tool "${tool.label ?? tool.name}" denied: ${approval.reason}`
-                    : `Tool "${tool.label ?? tool.name}" was denied by the user.`,
-                };
-                newToolExecutions += 1;
-                toolResults.push(denied);
-                messages.push({
-                  role: 'tool',
-                  content: denied.error ?? '',
-                  toolCallId: toolCall.id,
-                });
-                continue;
-              }
-            }
-
-            // Return cached result for duplicate tool calls within this run
-            const cached = deduplicator.isDuplicate(tool.name, params)
-              ? deduplicator.getResult(tool.name, params)
-              : undefined;
-            const result = cached ?? (await tool.execute(params));
-            if (!cached) {
-              deduplicator.record(tool.name, params, result);
-              newToolExecutions += 1;
-            }
-
-            toolResults.push(result);
-
-            // Add tool result to messages.
-            // Use result.content (LLM-optimized summary) when available;
-            // otherwise serialize the full result so the model has context.
+            const execution = await executeGovernedTool({
+              tool,
+              params,
+              deduplicator,
+              approvalCallback: this.config.approvalCallback,
+              alwaysRequireApproval: this.config.alwaysRequireApproval,
+              onToolAudit: this.config.onToolAudit,
+              skipExecutionAudit: mcpToolSkipsExecutionAudit(tool),
+            });
+            if (execution.countsAsNewExecution) newToolExecutions += 1;
+            toolResults.push(execution.result);
+            const blocked =
+              execution.decision === 'approval_required' || execution.decision === 'denied';
             messages.push({
               role: 'tool',
-              content: result.content ?? JSON.stringify(result.data ?? result),
+              content: blocked
+                ? (execution.result.error ?? '')
+                : (execution.result.content ??
+                  JSON.stringify(execution.result.data ?? execution.result)),
               toolCallId: toolCall.id,
             });
           } catch (error) {
