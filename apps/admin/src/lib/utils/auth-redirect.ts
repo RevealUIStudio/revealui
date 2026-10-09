@@ -44,12 +44,29 @@ export function readAuthIntent(searchParams: ParamReader): {
   redirect: string | null;
 } {
   return {
-    upgrade: parseUpgrade(searchParams.get('upgrade')),
+    // `upgrade` is the in-app name. Marketing and the auth pages use `plan`.
+    // When both are present, `upgrade` wins. Unknown values are dropped.
+    upgrade: parseUpgrade(searchParams.get('upgrade')) ?? parseUpgrade(searchParams.get('plan')),
     license: parseLicense(searchParams.get('license')),
     redirect:
       safePostAuthRedirect(searchParams.get('redirect')) ??
       safePostAuthRedirect(searchParams.get('returnUrl')),
   };
+}
+
+/**
+ * Link between /login and /signup. Carries allowlisted plan, license, and
+ * same-origin redirect only. `plan` is the query name on both pages.
+ * Open redirects and unknown plan or license values are omitted.
+ */
+export function buildAuthPageHref(path: '/login' | '/signup', searchParams: ParamReader): string {
+  const { upgrade, license, redirect } = readAuthIntent(searchParams);
+  const params = new URLSearchParams();
+  if (upgrade) params.set('plan', upgrade);
+  if (license) params.set('license', license);
+  if (redirect) params.set('redirect', redirect);
+  const qs = params.toString();
+  return qs.length > 0 ? `${path}?${qs}` : path;
 }
 
 /**
