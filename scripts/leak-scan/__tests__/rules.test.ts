@@ -83,6 +83,7 @@ describe('private planning path protection', () => {
     'standalone .jv',
     '$REVEALFLEET_ROOT/.jv',
     '$root/.jv',
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: literal scanner fixture, not a template
     '${fleet}/.jv',
     'name/.jv',
     '[~/][A-Za-z][A-Za-z0-9._-]*/.jv',
