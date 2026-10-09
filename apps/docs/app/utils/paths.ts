@@ -150,6 +150,17 @@ export function sanitizePath(input: string): string {
   return segments.join('/');
 }
 
+/** `readme` and `README` both name the on-disk `README.md` index. */
+function markdownFileForSegment(resolvedPath: string): string {
+  const slash = resolvedPath.lastIndexOf('/');
+  const segment = slash === -1 ? resolvedPath : resolvedPath.slice(slash + 1);
+  if (segment.toLowerCase() === 'readme') {
+    const parent = slash === -1 ? '' : resolvedPath.slice(0, slash + 1);
+    return `${parent}README.md`;
+  }
+  return `${resolvedPath}.md`;
+}
+
 /**
  * Resolve a documentation path to a markdown file path
  */
@@ -225,10 +236,10 @@ export function resolveDocPath(options: ResolveDocPathOptions): ResolvedDocPath 
         resolvedPath = `${resolvedPath}/README.md`;
       } else if (section === 'api' && resolvedPath.includes('/')) {
         // Nested path like "revealui-core/index" -> "revealui-core/index.md"
-        resolvedPath = `${resolvedPath}.md`;
+        resolvedPath = markdownFileForSegment(resolvedPath);
       } else {
         // Guides/Reference: "getting-started" -> "getting-started.md"
-        resolvedPath = `${resolvedPath}.md`;
+        resolvedPath = markdownFileForSegment(resolvedPath);
       }
     }
   }
