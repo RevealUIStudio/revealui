@@ -219,6 +219,44 @@ describe('DrizzleAuditStore  -  append-only enforcement', () => {
       expect(db.insert).not.toHaveBeenCalled();
     });
 
+    it('allocates seq with an int cast so an untyped parameter can resolve generate_series', async () => {
+      (process.env as { NODE_ENV: string }).NODE_ENV = 'development';
+      const localDb = createMockDb();
+      const execute = vi.fn(async () => ({ rows: [{ seq: '4' }] }));
+      const signed = new DrizzleAuditStore(
+        Object.assign(localDb, { execute }) as never,
+        () => 'v1.ed25519.kid.sig',
+      );
+
+      await signed.append(makeEntry());
+
+      expect(execute).toHaveBeenCalledOnce();
+      const rendered = collectSqlText(execute.mock.calls[0]?.[0]);
+      expect(rendered).toContain('::int');
+      expect(rendered).toContain('generate_series');
+      const inserted = localDb._insertChain.values.mock.calls[0]?.[0] as { seq?: number };
+      expect(inserted.seq).toBe(4);
+    });
+
+    it('includes the driver error when seq allocation fails', async () => {
+      (process.env as { NODE_ENV: string }).NODE_ENV = 'development';
+      const driver = new Error('function generate_series(integer, unknown) does not exist');
+      const wrapped = new Error('Failed query: SELECT nextval', { cause: driver });
+      const localDb = createMockDb();
+      const execute = vi.fn(async () => {
+        throw wrapped;
+      });
+      const signed = new DrizzleAuditStore(
+        Object.assign(localDb, { execute }) as never,
+        () => 'v1.ed25519.kid.sig',
+      );
+
+      await expect(signed.append(makeEntry())).rejects.toThrow(
+        'function generate_series(integer, unknown) does not exist',
+      );
+      expect(localDb.insert).not.toHaveBeenCalled();
+    });
+
     it('does not throw the unsigned refuse when a signer is injected on a prod target', async () => {
       (process.env as { NODE_ENV: string }).NODE_ENV = 'development';
       // Refuse only runs when !signer — with a signer the UNSIGNED error must
@@ -252,3 +290,25 @@ describe('DrizzleAuditStore  -  append-only enforcement', () => {
     expect(sql).toContain("RAISE EXCEPTION 'audit_log is append-only");
   });
 });
+
+/** Flatten string leaves of a Drizzle SQL object so a test can see the cast text. */
+function collectSqlText(value: unknown): string {
+  const parts: string[] = [];
+  const seen = new Set<unknown>();
+  const visit = (node: unknown): void => {
+    if (typeof node === 'string') {
+      parts.push(node);
+      return;
+    }
+    if (!node || typeof node !== 'object') return;
+    if (seen.has(node)) return;
+    seen.add(node);
+    if (Array.isArray(node)) {
+      for (const item of node) visit(item);
+      return;
+    }
+    for (const nested of Object.values(node as Record<string, unknown>)) visit(nested);
+  };
+  visit(value);
+  return parts.join('');
+}

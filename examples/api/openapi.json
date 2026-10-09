@@ -15236,7 +15236,15 @@
                     "format": "email"
                   },
                   "role": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                      "owner",
+                      "admin",
+                      "editor",
+                      "viewer",
+                      "agent",
+                      "contributor"
+                    ]
                   },
                   "status": {
                     "type": "string"
@@ -36833,7 +36841,15 @@
                     "format": "email"
                   },
                   "role": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                      "owner",
+                      "admin",
+                      "editor",
+                      "viewer",
+                      "agent",
+                      "contributor"
+                    ]
                   },
                   "status": {
                     "type": "string"

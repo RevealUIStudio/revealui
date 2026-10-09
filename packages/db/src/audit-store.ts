@@ -289,18 +289,37 @@ export class DrizzleAuditStore {
    * `audit_log_seq_seq` bigserial name.
    *
    * Sequence gaps from an aborted transaction (a fetched value whose INSERT then
-   * fails/rolls back) are inherent to Postgres sequences and expected — that is a
+   * fails/rolls back) are inherent to Postgres sequences and expected. That is a
    * Stage-4 anchoring concern, already recorded; the signature over each row's
    * own `seq` is unaffected.
+   *
+   * The upper bound is cast to `int`. `generate_series` is overloaded, and a
+   * driver that binds parameters as untyped text leaves `$1` as `unknown`.
+   * Postgres then rejects `generate_series(1, $1)` and every signed append
+   * fails before the INSERT, including the boot self-test. `$1::int` resolves
+   * the overload for those drivers and is a no-op for typed drivers.
    */
   private async nextSeqValues(count: number): Promise<number[]> {
+    if (!Number.isInteger(count) || count < 1) {
+      throw new Error(
+        `DrizzleAuditStore: audit_log seq allocation count must be a positive integer (got ${String(count)})`,
+      );
+    }
     // Drizzle's `db.execute` returns either a raw rows array (PGlite,
     // node-postgres) or `{ rows: [...] }` (neon-http). Normalize both; the driver
     // return shapes don't share a nominal type, so narrow through `unknown`.
-    // drizzle-raw: nextval + generate_series over a sequence have no Drizzle query-builder equivalent; reads N seq values without inserting a row
-    const result: unknown = await this.db.execute(
-      sql`SELECT nextval(pg_get_serial_sequence('audit_log', 'seq')) AS seq FROM generate_series(1, ${count})`,
-    );
+    let result: unknown;
+    try {
+      // drizzle-raw: nextval + generate_series over a sequence have no Drizzle query-builder equivalent; reads N seq values without inserting a row
+      result = await this.db.execute(
+        sql`SELECT nextval(pg_get_serial_sequence('audit_log', 'seq')) AS seq FROM generate_series(1, ${count}::int)`,
+      );
+    } catch (err) {
+      throw new Error(
+        `DrizzleAuditStore: failed to allocate audit_log seq via nextval. Signed audit writes cannot continue. ${auditStoreErrorChain(err)}`,
+        { cause: err },
+      );
+    }
     const rows = Array.isArray(result)
       ? (result as Array<{ seq: number | string }>)
       : ((result as { rows?: Array<{ seq: number | string }> }).rows ?? []);
@@ -309,7 +328,15 @@ export class DrizzleAuditStore {
         `DrizzleAuditStore: expected ${count} audit_log seq value(s) from nextval, got ${rows.length}`,
       );
     }
-    return rows.map((row) => Number(row.seq));
+    return rows.map((row) => {
+      const seq = Number(row.seq);
+      if (!Number.isFinite(seq)) {
+        throw new Error(
+          'DrizzleAuditStore: nextval returned a non-numeric audit_log seq. Signed audit writes cannot continue.',
+        );
+      }
+      return seq;
+    });
   }
 
   /** Query entries with filters (human-side only) */
@@ -372,6 +399,23 @@ export class DrizzleAuditStore {
 }
 
 // ─── Row Mapping ────────────────────────────────────────────────────────────
+
+/**
+ * Join an error with its `.cause` chain. A query wrapper's own message names
+ * the SQL and hides the driver text one level down. Bounded against cycles.
+ */
+function auditStoreErrorChain(error: unknown): string {
+  const parts: string[] = [];
+  let current: unknown = error;
+  for (let depth = 0; depth < 5 && current !== undefined; depth += 1) {
+    const message = current instanceof Error ? current.message : String(current);
+    if (message.length > 0 && !parts.some((part) => part.includes(message))) {
+      parts.push(message);
+    }
+    current = current instanceof Error ? current.cause : undefined;
+  }
+  return parts.join(' | cause: ');
+}
 
 /** Convert a database row to an AuditEntry */
 function rowToEntry(row: typeof auditLog.$inferSelect): AuditEntry {

@@ -182,7 +182,7 @@ function mapEventToRule(event: AuditEvent): string | null {
     return 'failedLogins';
   }
 
-  if (event.type === 'role.assign') {
+  if (event.type === 'role.assign' && event.result === 'success') {
     const newRole = event.changes?.after?.role ?? event.metadata?.role;
     if (newRole === 'admin') {
       return 'privilegeEscalation';

@@ -53,6 +53,8 @@ import usersRoutes from './users.js';
 export type ContentVariables = {
   db: DatabaseClient;
   user?: { id: string; role: string };
+  /** Set by request-id middleware on the parent app. Absent in isolated route tests. */
+  requestId?: string;
 };
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();

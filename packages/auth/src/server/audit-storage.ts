@@ -46,11 +46,14 @@ import type {
   AuditSeverity,
   AuditStorage,
   AuditSystem,
+  AuditWriteContext,
 } from '@revealui/security/server';
 import {
   audit,
   classifyAuditWriteFailure,
+  clearAuditSelfTestFailure,
   createAuditRowSignerFromEnv,
+  recordAuditSelfTestFailure,
   recordAuditWriteResult,
 } from '@revealui/security/server';
 
@@ -136,6 +139,18 @@ const DB_TO_SEVERITY: Record<DbSeverity, AuditSeverity> = {
  * security-model boundary mapping (severity + columns) here, so `@revealui/db`
  * stays free of a dependency on the security package.
  */
+function assertAuditDatabase(value: unknown): Database {
+  if (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as { insert?: unknown }).insert === 'function' &&
+    typeof (value as { execute?: unknown }).execute === 'function'
+  ) {
+    return value as Database;
+  }
+  throw new Error('Audit write context db cannot execute queries. The audit row was not written.');
+}
+
 export class DrizzleBackedAuditStorage implements AuditStorage {
   private readonly store: DrizzleAuditStoreType;
 
@@ -146,12 +161,14 @@ export class DrizzleBackedAuditStorage implements AuditStorage {
     this.store = createAuditStore(db);
   }
 
-  async write(event: AuditEvent): Promise<void> {
+  async write(event: AuditEvent, context?: AuditWriteContext): Promise<void> {
+    const store =
+      context?.db !== undefined ? createAuditStore(assertAuditDatabase(context.db)) : this.store;
     try {
       // The injected signer (createAuditStore) signs the row at the door on a
       // signing deployment; a signer failure makes append THROW (fail-closed),
       // caught below and routed through the write-result rails.
-      await this.store.append({
+      await store.append({
         id: event.id,
         timestamp: new Date(event.timestamp),
         eventType: event.type,
@@ -334,22 +351,29 @@ export function installAuditStorage(): void {
  * installed there synchronously by `installAuditStorage()`).
  */
 export async function auditStorageSelfTest(auditSystem: AuditSystem = audit): Promise<void> {
-  const marker = `__audit-self-test__:${randomUUID()}`;
-  const written = await auditSystem.log({
-    type: 'security.audit_self_test',
-    severity: 'low',
-    actor: { id: marker, type: 'system' },
-    action: 'audit-storage-self-test',
-    result: 'success',
-    metadata: { synthetic: true },
-  });
+  try {
+    const marker = `__audit-self-test__:${randomUUID()}`;
+    const written = await auditSystem.log({
+      type: 'security.audit_self_test',
+      severity: 'low',
+      actor: { id: marker, type: 'system' },
+      action: 'audit-storage-self-test',
+      result: 'success',
+      metadata: { synthetic: true },
+    });
 
-  const found = await auditSystem.query({ actorId: marker, limit: 5 });
-  if (!found.some((event) => event.id === written.id)) {
-    throw new Error(
-      'AUDIT STORAGE SELF-TEST FAILED: wrote a synthetic audit event but could not read it ' +
-        'back. Refusing to serve — a runtime that cannot record agent actions must not accept ' +
-        'traffic (fail-closed integrity, docs/decisions/2026-07-12-audit-receipt-architecture.md §2a).',
-    );
+    const found = await auditSystem.query({ actorId: marker, limit: 5 });
+    if (!found.some((event) => event.id === written.id)) {
+      throw new Error(
+        'AUDIT STORAGE SELF-TEST FAILED: wrote a synthetic audit event but could not read it ' +
+          'back. Refusing to serve. A runtime that cannot record agent actions must not accept ' +
+          'traffic (fail-closed integrity, docs/decisions/2026-07-12-audit-receipt-architecture.md §2a).',
+      );
+    }
+    clearAuditSelfTestFailure();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    recordAuditSelfTestFailure(message);
+    throw err;
   }
 }
