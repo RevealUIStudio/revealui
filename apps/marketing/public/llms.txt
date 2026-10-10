@@ -45,7 +45,7 @@ Five primitives make up the runtime: People, Content, Offers, Payments, Agents.
 ## Pricing
 
 - [Pricing page](https://revealui.com/pricing): Free $0, Pro $49/month or $399/year, Max $99/month or $799/year, Enterprise inquire; Pro Perpetual $1,499 once
-- Checkout is available. The maintainer reports no external paying customers yet.
+- Checkout is available.
 
 ## For agents
 
@@ -53,10 +53,9 @@ Five primitives make up the runtime: People, Content, Offers, Payments, Agents.
 - [Agent rules](https://docs.revealui.com/agent-rules/): Conventions agents follow when contributing to a RevealUI codebase
 - [REST API](https://docs.revealui.com/api/): Hono + OpenAPI endpoints
 
-## Status (honest, pre-launch)
+## Availability and operating requirements
 
-- Zero paying customers. Used in production by the team that maintains it.
-- Stripe live mode is on for product billing; no paid customer base yet.
+- Stripe live mode is on for product billing.
 - Inference is selected from configuration. Set the provider explicitly; local runners require suitable hardware and hosted providers incur their own usage costs.
 - NeonDB is the primary database. Supabase is not an internal datastore.
 - Professional services and fixed-bid delivery: [revealuistudio.com](https://revealuistudio.com)

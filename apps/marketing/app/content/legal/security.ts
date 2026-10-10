@@ -37,7 +37,7 @@ export const SECURITY_SECTIONS: readonly LegalSection[] = [
       'Credit you publicly on this page when the issue is resolved, if you wish to be named. We will never publish your identity without your consent.',
     ],
     paragraphs: [
-      'We do not currently run a paid bug-bounty program. We are pre-revenue and cannot honestly promise bounty payouts that we may not be able to fund. If you find a material issue we will discuss recognition, swag, or (once we are revenue-generating) a discretionary reward.',
+      'We do not currently run a paid bug-bounty program. Submitting a report does not guarantee compensation. If you find a material issue, we may discuss recognition or a discretionary reward.',
     ],
   },
   {
