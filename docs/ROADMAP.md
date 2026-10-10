@@ -23,7 +23,7 @@ Labels match the `/products` page.
 
 | Product | Maturity | Notes |
 |---------|----------|-------|
-| **RevealUI** (monorepo) | Beta | Deployed (admin, API, marketing, docs). 33 packages. No external paying customers yet. |
+| **RevealUI** (monorepo) | Beta | Deployed (admin, API, marketing, docs). 33 packages. |
 | **RevealUI Fleet** (self-hosted kit) | Alpha | Compose + license enforcement exist. GHCR images build and push. The launched pull-and-run customer kit is not a finished product. |
 | **RevVault** | Beta | Rust CLI + desktop app. Age-encrypted vault. Not published to crates.io. |
 | **RevDev** | Alpha | Studio (Tauri) + Console (Go TUI) + local daemon. Ships in [RevDev](https://github.com/RevealUIStudio/revdev). Public binaries are not a GA release. |
@@ -32,7 +32,7 @@ Labels match the `/products` page.
 | **RevForge** | Alpha | Operator stamping tool. Private preview. |
 | **RevMarket** | Planned | First-party MCP catalog ships with the runtime. Third-party marketplace and live agent charging are not open. |
 
-**Labels:** Production = real external users + a stable contract. Beta = production-ready code, deployed and dogfooded, pre-revenue. Alpha = works and ships, may break. Active (MIT) = released library, no SLA. Planned = not shipped to users.
+**Labels:** Production = released with a stable supported contract. Beta = deployed for evaluation with verification limits documented. Alpha = works and ships, may break. Active (MIT) = released library, no SLA. Planned = not shipped to users.
 
 ---
 
@@ -42,7 +42,7 @@ Labels match the `/products` page.
 
 - **Auth.** Session auth (bcrypt, RBAC/ABAC, rate limiting, brute-force protection), TOTP MFA wired into the admin sign-in challenge, WebAuthn passkeys, magic-link recovery, OAuth (GitHub, Google, Vercel)
 - **Content engine.** Schema-first collections, Lexical rich text, media, draft/live lifecycle, REST API with OpenAPI
-- **Billing.** Stripe checkout, subscriptions, webhooks, license keys, billing portal, free/pro/max/enterprise gates. **Stripe live mode is ON** (flipped 2026-06-26). That is a billing-rail fact, not a claim that strangers are buying.
+- **Billing.** Stripe checkout, subscriptions, webhooks, license keys, billing portal, free/pro/max/enterprise gates. **Stripe live mode is ON** (flipped 2026-06-26). This describes payment configuration; feature availability is documented separately.
 - **Perpetual licenses.** Track C checkout is available
 - **UI.** 68 native React components in `@revealui/presentation` (Tailwind v4, no Radix/Headless UI/shadcn)
 - **Database.** 104 Postgres tables via Drizzle on Neon. ElectricSQL is an optional sync layer (off by default)

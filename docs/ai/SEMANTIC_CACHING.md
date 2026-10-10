@@ -8,7 +8,7 @@ audience: user
 
 Up to **73% cost reduction** in published industry benchmarks (Redis blog, FAQ-style traffic) through meaning-based caching.
 
-> **Note on benchmarks.** Every percentage and dollar figure in this guide is from Redis's published benchmarks and similar industry references — they are not measured RevealUI traffic (RevealUI is pre-launch with 0 paying customers). RevealUI ships the implementation; your real savings depend on your query distribution.
+> **Note on benchmarks.** Every percentage and dollar figure in this guide is from Redis's published benchmarks and similar industry references — they are not measurements of RevealUI traffic. RevealUI ships the implementation; your real savings depend on your query distribution.
 
 ## Overview
 
