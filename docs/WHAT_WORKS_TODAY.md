@@ -63,7 +63,7 @@ rate limiting, CSRF protection, and route handlers across `apps/server/src/route
 
 ### AI agent system
 LLM provider abstraction (default: Ollama; opt-in: Groq, HuggingFace, OpenAI-compatible), CRDT-based memory (`WorkingMemory`, `EpisodicMemory`, `SemanticMemory`, `ProceduralMemory`), tool registry, streaming runtime, and orchestration layer. Embeddings default to Ollama `nomic-embed-text` (768 dim). Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) are Fair Source / FSL-1.1-MIT.
-**Hosted BYOK was walked once on production** (2026-08-18, entitled Pro, Groq key, Send Task + Watch live returned a real model reply). That is a single operator walk, not a paying-customer load test. Local/open-weight remains the default. Platform-billed inference is not this surface.
+**Hosted BYOK was walked once on production** (2026-08-18, entitled Pro, Groq key, Send Task + Watch live returned a real model reply). That is a single operator walkthrough, not a sustained-load validation. Local/open-weight remains the default. Platform-billed inference is not this surface.
 
 ### Security
 RBAC + ABAC policy engine (50+ enforcement tests), AES-256-GCM encryption,
@@ -72,7 +72,7 @@ Content Security Policy headers, CORS, HSTS, rate limiting, webhook rate limitin
 
 ### License enforcement
 JWT-based licensing (EdDSA/Ed25519, server-side only — distinct from user-facing auth which is session-only) with tier checks (free / pro / max / enterprise), feature gating, grace periods (3-day subscription, 30-day perpetual, 7-day infrastructure), and revocation via DB status checks. Perpetual and subscription models supported.
-**License generation and enforcement work in tests. Not yet tested with paying customers.**
+**License generation and enforcement work in tests. Sustained-load validation remains unverified.**
 
 ### Knowledge Graph
 `@revealui/knowledge-graph` is a first-class Electric+CRDT contract surface (`revkg` CLI). Honest naming is correct in runtime, docs, and admin. It is **not** a Studio cash SKU and is not sold as Fleet KG on public pricing (Consultation / Pilot / Launch stay the Studio ladder). Admin / licensed **RevMind** can export 2D diagrams from the graph (`POST /api/kg/diagram`, Mermaid SoT). That is architecture from the knowledge graph. It is **not** a public Architecture SKU.
@@ -86,15 +86,12 @@ JWT-based licensing (EdDSA/Ed25519, server-side only — distinct from user-faci
 
 Honest list of things that are not done, not deployed, or not verified.
 
-- **Zero paying customers.** Pre-launch posture. The admin account exists for the studio's own use.
-- **Marketing site is live but external traffic is near-zero.** Deployed at [revealui.com](https://revealui.com); near-zero outside-the-team traffic to date.
-- **Docs site is live but external traffic is near-zero.** Deployed at [docs.revealui.com](https://docs.revealui.com); same caveat.
 - **No managed hosting service.** RevealUI Studio's own marketing site runs on Vercel; we do not (today) offer to host customer instances. Self-host (Vercel, Cloudflare, Fly, Hetzner, Docker, Fleet kit) is the path. Vercel and Cloudflare are friendly deploy targets, not competitors.
 - **Stripe live mode is ON in production** (flipped 2026-06-26 after the billing-readiness audit closed).
 - **REVEALUI_KEK rotation tooling ships** (`scripts/security/rotate-kek.ts`) — zero-downtime dual-key rotation; see the credential-rotation runbook.
 - **Support exists. A ticket desk does not.** Email [support@revealui.com](mailto:support@revealui.com), the [/support](https://revealui.com/support) page, and [GitHub Discussions](https://github.com/RevealUIStudio/revealui/discussions) are public. There is no customer ticketing product.
 - **Status is public.** Marketing footer links to [/status](https://revealui.com/status). The Upptime page is at [RevealUIStudio.github.io/status](https://RevealUIStudio.github.io/status).
-- **Terms of Service and Privacy Policy are live, but not yet lawyer-reviewed.** Drafted in good faith by RevealUI Studio and published at [/terms](https://revealui.com/terms) and [/privacy](https://revealui.com/privacy). Each page carries an explicit "draft pending counsel review" banner — we disclose this rather than hide it. Counsel review is scheduled post-first-revenue. Subscription prices are referenced as "published at /pricing at the time of purchase" rather than hardcoded, so the pricing page is the single source of truth.
+- **Terms of Service and Privacy Policy are live, but not yet lawyer-reviewed.** Drafted in good faith by RevealUI Studio and published at [/terms](https://revealui.com/terms) and [/privacy](https://revealui.com/privacy). Each page carries an explicit "draft pending counsel review" banner — we disclose this rather than hide it. Counsel review remains pending. Subscription prices are referenced as "published at /pricing at the time of purchase" rather than hardcoded, so the pricing page is the single source of truth.
 - **No SOC2 or ISO 27001.** Security certifications are planned for Phase 6, not current.
 - **MCP marketplace is preview, not live.** Publish/list/invoke/onboard endpoints are wired; third-party developer payouts are not fully shipped yet.
 - **Enterprise SSO (OIDC + SAML SP-initiated) is operator preview on test**,
