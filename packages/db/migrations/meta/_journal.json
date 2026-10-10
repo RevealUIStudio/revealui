@@ -372,6 +372,20 @@
       "when": 1791198485226,
       "tag": "0052_consultation_domain",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1791371180000,
+      "tag": "0053_review_controller_store",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1791371180001,
+      "tag": "0054_review_controller_receipt_immutable",
+      "breakpoints": true
     }
   ]
 }

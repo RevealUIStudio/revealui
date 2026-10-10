@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -13,8 +13,10 @@ const {
   MAX_CLASSIFIABLE_FILES,
   classifyFiles,
   decideReviewGate,
+  decideReceiptAdmission,
   fetchPrFiles,
   hitsForFiles,
+  readReceiptConfig,
 } = require('../security-review-gate.cjs');
 
 const CLEAR_LABEL = 'sec-review:approved';
@@ -29,7 +31,7 @@ afterEach(() => vi.unstubAllEnvs());
 const ENFORCEMENT_MACHINERY_FILES = [
   'scripts/validate/security-review-gate.cjs',
   'scripts/validate/sec-audit-label-decision.cjs',
-  'scripts/validate/security-paths.shared.json',
+  'packages/harnesses/src/gates/security-paths.shared.json',
   '.github/workflows/security-review-gate.yml',
   '.github/workflows/sec-audit-label-guard.yml',
   '.github/workflows/security.yml',
@@ -50,6 +52,61 @@ describe('classifyFiles — enforcement-machinery self-protection', () => {
     // were removed, ENFORCEMENT_MACHINERY_FILES above would stop being flagged;
     // this line guarantees the markers are not so broad they catch everything.
     expect(classifyFiles(['apps/marketing/app/components/Hero.tsx'])).toEqual([]);
+  });
+});
+
+describe('trusted sparse gate build inputs', () => {
+  it('checks out every workspace package in the security build dependency closure', () => {
+    const packagesRoot = join(__dirname, '../../../packages');
+    type WorkspaceManifest = {
+      name?: unknown;
+      dependencies?: Record<string, unknown>;
+      optionalDependencies?: Record<string, unknown>;
+    };
+    const workspacePackages = new Map<string, { directory: string; manifest: WorkspaceManifest }>();
+    for (const entry of readdirSync(packagesRoot, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const directory = join(packagesRoot, entry.name);
+      const manifestPath = join(directory, 'package.json');
+      if (!existsSync(manifestPath)) continue;
+      const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as WorkspaceManifest;
+      if (typeof manifest.name === 'string')
+        workspacePackages.set(manifest.name, { directory, manifest });
+    }
+
+    const requiredPackages = new Set<string>();
+    const visit = (name: string) => {
+      if (requiredPackages.has(name)) return;
+      const workspacePackage = workspacePackages.get(name);
+      if (!workspacePackage) return;
+      requiredPackages.add(name);
+      const dependencies = {
+        ...workspacePackage.manifest.dependencies,
+        ...workspacePackage.manifest.optionalDependencies,
+      };
+      for (const [dependency, specifier] of Object.entries(dependencies)) {
+        if (typeof specifier === 'string' && specifier.startsWith('workspace:')) visit(dependency);
+      }
+    };
+    visit('@revealui/security');
+
+    for (const workflowName of ['security-review-gate.yml', 'sec-audit-label-guard.yml']) {
+      const workflow = readFileSync(
+        join(__dirname, `../../../.github/workflows/${workflowName}`),
+        'utf8',
+      );
+      const sparseCheckout = workflow.match(
+        /sparse-checkout:\s*\|\s*\n([\s\S]*?)sparse-checkout-cone-mode:/,
+      )?.[1];
+      expect(sparseCheckout, `${workflowName} sparse-checkout block`).toBeDefined();
+      for (const name of requiredPackages) {
+        const { directory } = workspacePackages.get(name)!;
+        const checkoutPath = `packages/${directory.slice(packagesRoot.length + 1)}/`;
+        expect(sparseCheckout, `${workflowName} must include ${checkoutPath}`).toContain(
+          checkoutPath,
+        );
+      }
+    }
   });
 });
 
@@ -198,6 +255,17 @@ describe('fetchPrFiles — the full paginated list, not the 100-file window', ()
     fetchPrFiles(7, undefined, ghImpl);
     expect(calls[0]).toContain('repos/{owner}/{repo}/pulls/7/files');
   });
+
+  it('classifies a renamed file by its protected previous path', () => {
+    const calls: string[][] = [];
+    const ghImpl = (args: string[]) => {
+      calls.push(args);
+      return 'apps/marketing/credentials.ts\npackages/security/credentials.ts\n';
+    };
+    const paths = fetchPrFiles(8, 'RevealUIStudio/revealui', ghImpl);
+    expect(calls[0]).toContain('.[] | .filename, .previous_filename // empty');
+    expect(classifyFiles(paths)).toContain('packages/security/credentials.ts');
+  });
 });
 
 describe('hitsForFiles — the API ceiling fails closed', () => {
@@ -327,11 +395,24 @@ const {
   verifyPrOwnerRecord,
   fetchCommitPulls,
   fetchPrCommitShas,
+  resolveAllowedSigners,
 } = require('../security-review-gate.cjs');
 const target = 'RevealUIStudio/revealui';
 const featureHead = 'a'.repeat(40);
 
 describe('owner grant evidence adapter', () => {
+  it('reads the canonical REVEALFLEET signer variable', () => {
+    const canonical = process.env.REVEALFLEET_OVERRIDE_SIGNERS;
+    try {
+      process.env.REVEALFLEET_OVERRIDE_SIGNERS = 'canonical-anchor';
+      expect(resolveAllowedSigners()).toBe('canonical-anchor');
+      expect(resolveAllowedSigners('explicit-anchor')).toBe('explicit-anchor');
+    } finally {
+      if (canonical === undefined) delete process.env.REVEALFLEET_OVERRIDE_SIGNERS;
+      else process.env.REVEALFLEET_OVERRIDE_SIGNERS = canonical;
+    }
+  });
+
   it('paginates comments AND reviews and normalizes reviewer identities', () => {
     const calls: string[][] = [];
     const result = fetchPrDiscussion(91, target, (args: string[]) => {
@@ -407,6 +488,162 @@ describe('owner grant evidence adapter', () => {
         Array.from({ length: 250 }, () => featureHead).join('\n'),
       ),
     ).toThrow('API ceiling');
+  });
+});
+
+describe('receipt gate configuration', () => {
+  it('is disabled unless the base-trusted workflow opts into shadow or enforce mode', () => {
+    expect(readReceiptConfig({})).toBeUndefined();
+  });
+
+  it('requires complete trusted policy when shadow mode is enabled', () => {
+    expect(() => readReceiptConfig({ REVIEW_RECEIPT_MODE: 'shadow' })).toThrow(
+      'REVIEW_RECEIPT_CONTROLLER_APP_ID is required',
+    );
+  });
+
+  it('accepts enforce mode only with the same complete trusted policy', () => {
+    expect(() => readReceiptConfig({ REVIEW_RECEIPT_MODE: 'enforce' })).toThrow(
+      'REVIEW_RECEIPT_CONTROLLER_APP_ID is required',
+    );
+    expect(() => readReceiptConfig({ REVIEW_RECEIPT_MODE: 'observe' })).toThrow(
+      'REVIEW_RECEIPT_MODE must be shadow or enforce',
+    );
+    expect(
+      readReceiptConfig({
+        REVIEW_RECEIPT_MODE: 'enforce',
+        REVIEW_RECEIPT_CONTROLLER_APP_ID: '30',
+        REVIEW_RECEIPT_MAX_LIFETIME_MS: '3600000',
+        REVIEW_RECEIPT_POLICY_VERSION: 'policy-1',
+        REVIEW_RECEIPT_TRUSTED_KEYS: JSON.stringify({ key: 'public key' }),
+        REVIEW_RECEIPT_REQUIRED_CHECKS: JSON.stringify([
+          {
+            name: 'CI Feedback',
+            appId: 15368,
+            workflowId: 220400161,
+            workflowPath: '.github/workflows/ci.yml',
+            event: 'pull_request',
+          },
+          { name: 'CodeQL', appId: 57789 },
+          {
+            name: 'Security Gate',
+            appId: 15368,
+            workflowId: 401,
+            workflowPath: '.github/workflows/security.yml',
+            event: 'pull_request',
+          },
+          {
+            name: 'Dependency Review',
+            appId: 15368,
+            workflowId: 401,
+            workflowPath: '.github/workflows/security.yml',
+            event: 'pull_request',
+          },
+          {
+            name: 'Secret Scanning (Gitleaks)',
+            appId: 15368,
+            workflowId: 401,
+            workflowPath: '.github/workflows/security.yml',
+            event: 'pull_request',
+          },
+        ]),
+      }),
+    ).toMatchObject({ mode: 'enforce', controllerAppId: 30 });
+  });
+
+  it('lets only a verified receipt replace the owner grant in enforce mode', () => {
+    const ownerHold = { action: 'hold', kind: 'no-owner-signature' };
+    expect(
+      decideReceiptAdmission({
+        mode: 'shadow',
+        receiptResult: { status: 'verified', receiptId: 'receipt-1' },
+        ownerDecision: ownerHold,
+      }),
+    ).toEqual(ownerHold);
+    expect(
+      decideReceiptAdmission({
+        mode: 'enforce',
+        receiptResult: { status: 'ineligible', reason: 'stale-head' },
+        ownerDecision: ownerHold,
+      }),
+    ).toMatchObject({ action: 'hold', kind: 'invalid-app-receipt', reason: 'stale-head' });
+    expect(
+      decideReceiptAdmission({
+        mode: 'enforce',
+        receiptResult: { status: 'verified', receiptId: 'receipt-1' },
+        ownerDecision: ownerHold,
+      }),
+    ).toMatchObject({ action: 'clear', kind: 'app-receipt', receiptId: 'receipt-1' });
+  });
+
+  it('keeps live reviewer holds authoritative over receipt admission', () => {
+    const reviewerHold = {
+      action: 'hold',
+      kind: 'request-changes',
+      reviewer: 'codex',
+      timestamp: '2026-10-07T12:00:00Z',
+    };
+    expect(
+      decideReceiptAdmission({
+        mode: 'enforce',
+        receiptResult: { status: 'verified', receiptId: 'receipt-1' },
+        ownerDecision: reviewerHold,
+      }),
+    ).toEqual(reviewerHold);
+  });
+
+  it('rejects partial receipt settings without an explicit gate mode', () => {
+    expect(() => readReceiptConfig({ REVIEW_RECEIPT_POLICY_VERSION: 'policy-1' })).toThrow(
+      'REVIEW_RECEIPT_MODE is required when receipt settings are present',
+    );
+  });
+
+  it('rejects duplicate required check selectors', () => {
+    expect(() =>
+      readReceiptConfig({
+        REVIEW_RECEIPT_MODE: 'shadow',
+        REVIEW_RECEIPT_CONTROLLER_APP_ID: '30',
+        REVIEW_RECEIPT_MAX_LIFETIME_MS: '3600000',
+        REVIEW_RECEIPT_POLICY_VERSION: 'policy-1',
+        REVIEW_RECEIPT_TRUSTED_KEYS: JSON.stringify({ key: 'public key' }),
+        REVIEW_RECEIPT_REQUIRED_CHECKS: JSON.stringify([
+          { name: 'CI', appId: 20 },
+          { name: 'CI', appId: 20 },
+        ]),
+      }),
+    ).toThrow('REVIEW_RECEIPT_REQUIRED_CHECKS contains duplicate selectors');
+  });
+
+  it('rejects receipt policies that omit mandatory exact-head security checks', () => {
+    expect(() =>
+      readReceiptConfig({
+        REVIEW_RECEIPT_MODE: 'shadow',
+        REVIEW_RECEIPT_CONTROLLER_APP_ID: '30',
+        REVIEW_RECEIPT_MAX_LIFETIME_MS: '3600000',
+        REVIEW_RECEIPT_POLICY_VERSION: 'policy-1',
+        REVIEW_RECEIPT_TRUSTED_KEYS: JSON.stringify({ key: 'public key' }),
+        REVIEW_RECEIPT_REQUIRED_CHECKS: JSON.stringify([{ name: 'CI', appId: 20 }]),
+      }),
+    ).toThrow('REVIEW_RECEIPT_REQUIRED_CHECKS omits a mandatory security check');
+  });
+
+  it('grants the base-trusted gate read access to check-run receipt evidence', () => {
+    const workflow = readFileSync(
+      join(__dirname, '../../../.github/workflows/security-review-gate.yml'),
+      'utf8',
+    );
+    expect(workflow).toContain('checks: read');
+    for (const name of [
+      'REVIEW_RECEIPT_MODE',
+      'REVIEW_RECEIPT_CONTROLLER_APP_ID',
+      'REVIEW_RECEIPT_TRUSTED_KEYS',
+      'REVIEW_RECEIPT_POLICY_VERSION',
+      'REVIEW_RECEIPT_MAX_LIFETIME_MS',
+      'REVIEW_RECEIPT_REQUIRED_CHECKS',
+    ]) {
+      const expression = `\${{ vars.${name} }}`;
+      expect(workflow).toContain(`${name}: ${expression}`);
+    }
   });
 });
 
