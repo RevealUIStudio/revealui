@@ -202,15 +202,39 @@ export async function withGateAdmission<T>(operation: () => Promise<T>): Promise
   );
   try {
     await new Promise<void>((resolve, reject) => {
-      // Reject contention immediately: a direct Git push may already have an
-      // open transport, so resource admission must not wait inside its hook.
-      const child = spawn('flock', ['--exclusive', '--nonblock', '3'], {
+      const child = spawn('flock', ['--exclusive', '3'], {
         stdio: ['ignore', 'inherit', 'inherit', descriptor],
       });
-      child.once('error', reject);
+      let interruption: NodeJS.Signals | undefined;
+      let settled = false;
+      const onInterrupt = (signal: NodeJS.Signals) => {
+        interruption = signal;
+        child.kill(signal);
+      };
+      const cleanup = () => {
+        process.off('SIGINT', onSigint);
+        process.off('SIGTERM', onSigterm);
+      };
+      const onSigint = () => onInterrupt('SIGINT');
+      const onSigterm = () => onInterrupt('SIGTERM');
+      const finish = (error?: Error) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        if (error) reject(error);
+        else resolve();
+      };
+      process.once('SIGINT', onSigint);
+      process.once('SIGTERM', onSigterm);
+      child.once('error', (error) => finish(error));
       child.once('exit', (code, signal) => {
-        if (code === 0) resolve();
-        else reject(new Error(`CI gate admission lock failed (${signal ?? code}).`));
+        if (interruption) {
+          finish(new Error(`CI gate admission interrupted (${interruption}).`));
+        } else if (code === 0) {
+          finish();
+        } else {
+          finish(new Error(`CI gate admission lock failed (${signal ?? code}).`));
+        }
       });
     });
     phaseConcurrency(1);

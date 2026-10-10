@@ -200,7 +200,7 @@ async function owner(args) {
   let channel;
   try {
     console.log('Waiting for coordinated push admission...');
-    const acquired = await child('flock', ['--exclusive', '--wait', '300', '3'], ['inherit', 'inherit', 'inherit', global]);
+    const acquired = await child('flock', ['--exclusive', '3'], ['inherit', 'inherit', 'inherit', global]);
     if (acquired.code !== 0 || interrupted) throw new Error('Coordinated push admission was unavailable or interrupted.');
     const source = snapshot();
     const target = args[0] || source.branch;
