@@ -1,3 +1,4 @@
+import { CodexAdapter } from '../adapters/codex-adapter.js';
 import { CursorAdapter } from '../adapters/cursor-adapter.js';
 import { GrokAdapter } from '../adapters/grok-adapter.js';
 import { OpenCodeAdapter } from '../adapters/opencode-adapter.js';
@@ -13,6 +14,7 @@ import type { HarnessRegistry } from '../registry/harness-registry.js';
 export async function autoDetectHarnesses(registry: HarnessRegistry): Promise<string[]> {
   const candidates = [
     new RevealUIAgentAdapter(),
+    new CodexAdapter(),
     new OpenCodeAdapter(),
     new CursorAdapter(),
     new GrokAdapter(),

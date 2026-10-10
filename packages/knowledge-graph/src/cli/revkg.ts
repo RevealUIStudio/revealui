@@ -34,6 +34,8 @@
  *       writes. Refused in CI unless REVKG_ALLOW_WRITE=1.
  *   revkg graph push --until <n>|--seqs <csv> [--dry-run|--publish] [--json]
  *       P5 replica: ack local outbox rows (set pushed_at). Defaults to dry-run.
+ *   revkg audit-legacy-memory
+ *       Read-only JSON inventory of quarantined memory and recovery blockers.
  *
  * Connects to Neon via its own pool (`@revealui/db`'s `createPool`, DATABASE_URL
  * / POSTGRES_URL resolved by `getConnectionIdentity`) rather than the shared
@@ -61,7 +63,7 @@ import {
   parseClaimsEvidenceSource,
 } from '../extractors/index.js';
 import { readTextFile } from '../extractors/shared.js';
-import { applyScan, decommissionRepo, ingestEpisode } from '../ingest/index.js';
+import { applyScan, auditLegacyMemory, decommissionRepo, ingestEpisode } from '../ingest/index.js';
 import { resolveNaturalKey } from '../ingest/resolve.js';
 import type { NodeKind } from '../ontology/index.js';
 import { GRAPH_METHODS, graphApply, graphPull, graphPush, parseKgOps } from '../replica/index.js';
@@ -858,6 +860,18 @@ async function main(): Promise<void> {
   const [command, ...rest] = process.argv.slice(2);
   const args = parseArgs(rest);
   switch (command) {
+    case 'audit-legacy-memory': {
+      if (args.bools.has('publish'))
+        fail('audit-legacy-memory is read-only; reconstruction is tracked separately');
+      const { exec, close } = await getExecutor();
+      try {
+        const report = await auditLegacyMemory(exec);
+        out(JSON.stringify(report, null, 2));
+      } finally {
+        await close();
+      }
+      break;
+    }
     case 'scan':
       await cmdScan(args);
       break;
@@ -893,7 +907,7 @@ async function main(): Promise<void> {
       break;
     default:
       out(
-        'usage: revkg <scan|search|node|neighbors|at|drift|claims-check|extract|ingest-handoffs|decommission|graph> [...]',
+        'usage: revkg <scan|search|node|neighbors|at|drift|claims-check|extract|ingest-handoffs|decommission|graph|audit-legacy-memory> [...]',
       );
       process.exit(command ? 1 : 0);
   }

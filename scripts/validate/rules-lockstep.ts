@@ -16,7 +16,7 @@
  *   1. Every revcon-manifest entry that is NOT a definition-owned rule must
  *      exist with a matching sha256 (edit the revcon profile + re-link).
  *   2. Every definition-owned `.claude/rules/<id>.md` must match content
- *      (run manager materialize). Manifest hash for those ids is ignored.
+ *      (run manager materialize). Its manifest source must declare harness ownership and its hash must match.
  *   3. Every other git-tracked file under the materialized dirs must appear
  *      in the revcon manifest (stray hand-add).
  *
@@ -30,17 +30,30 @@
 
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { rules } from '../../packages/harnesses/src/content/definitions/rules/index.js';
+import { claudeManagerStubText } from '../../packages/harnesses/src/manager/materialize.js';
+import {
+  contentRootRelative,
+  loadManager,
+  readManagedFile,
+} from '../../packages/harnesses/src/manager/paths.js';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 export const MANIFEST_REL = path.posix.join('.claude', '.revcon-manifest.json');
-export const MATERIALIZED_DIRS = ['.claude/rules', '.claude/agents', '.claude/skills'];
-const CONTENT_RULES_REL = path.posix.join('.revealui', 'content', 'rules');
+export const MATERIALIZED_DIRS = [
+  '.claude/rules',
+  '.claude/agents',
+  '.claude/skills',
+  '.claude/workflows',
+];
+function contentRulesRelative(root: string): string {
+  return path.posix.join(contentRootRelative(loadManager(root)), 'rules');
+}
 const MATERIALIZE_CMD = 'pnpm exec revealui-harnesses manager materialize';
 const REAPPLY_CMD =
-  'bash ~/revealfleet/revcon/link.sh --target ~/revealfleet/revealui --profile revealfleet --profile revealui --editor claude --mode copy';
+  'bash "$REVEALFLEET_ROOT/revcon/link.sh" --target "$PWD" --profile revealfleet --profile revealui --editor claude --mode copy';
 
 export interface ManifestEntry {
   source: string;
@@ -55,32 +68,30 @@ export interface Manifest {
 }
 
 export function sha256OfFile(filePath: string): string {
-  return createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+  return createHash('sha256')
+    .update(readManagedFile(path.dirname(filePath), path.basename(filePath)))
+    .digest('hex');
 }
 
 export function loadManifest(root: string): Manifest | null {
   const manifestPath = path.join(root, MANIFEST_REL);
-  if (!fs.existsSync(manifestPath)) return null;
-  const parsed: unknown = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  let bytes: Buffer;
+  try {
+    bytes = readManagedFile(root, MANIFEST_REL);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+    throw error;
+  }
+  const parsed: unknown = JSON.parse(bytes.toString('utf8'));
   if (typeof parsed !== 'object' || parsed === null) {
     throw new Error(`${manifestPath} is not a JSON object`);
   }
   return parsed as Manifest;
 }
 
-/**
- * Basenames (without .md) of definition-backed rules present under content.
- * Empty when the content tree is absent (caller still fails manager check).
- */
-export function definitionRuleIdsFromContent(root: string): Set<string> {
-  const dir = path.join(root, CONTENT_RULES_REL);
-  const ids = new Set<string>();
-  if (!fs.existsSync(dir)) return ids;
-  for (const name of fs.readdirSync(dir)) {
-    if (!name.endsWith('.md') || name.startsWith('00-')) continue;
-    ids.add(name.slice(0, -'.md'.length));
-  }
-  return ids;
+/** Package ownership comes from the canonical catalog, not native file presence. */
+export function definitionRuleIds(): Set<string> {
+  return new Set(rules.map((rule) => rule.id));
 }
 
 /** True when `rel` is `.claude/rules/<definition-id>.md`. */
@@ -104,7 +115,7 @@ function gitTrackedMaterializedFiles(root: string): string[] {
  * Pure verification core: returns one human-readable problem line per
  * violation. `trackedFiles` is the repo-relative list of git-tracked files
  * under MATERIALIZED_DIRS (injected so tests need no git repo).
- * `definitionIds` is injected for tests; defaults from content tree when omitted.
+ * `definitionIds` is injected for tests; defaults to the package catalog when omitted.
  */
 export function verifyLockstep(
   root: string,
@@ -113,7 +124,8 @@ export function verifyLockstep(
   definitionIds?: Set<string>,
 ): string[] {
   const problems: string[] = [];
-  const defIds = definitionIds ?? definitionRuleIdsFromContent(root);
+  const defIds = definitionIds ?? definitionRuleIds();
+  const contentRulesRel = contentRulesRelative(root);
 
   if (manifest.mode !== 'copy' || typeof manifest.files !== 'object' || manifest.files === null) {
     return [`${MANIFEST_REL} is malformed (expected mode "copy" with a files map)`];
@@ -124,36 +136,74 @@ export function verifyLockstep(
   for (const [rel, entry] of Object.entries(manifest.files)) {
     const fileRel = path.posix.join('.claude', rel);
     manifestRels.add(fileRel);
-    const abs = path.join(root, '.claude', rel);
-    if (!fs.existsSync(abs)) {
-      problems.push(`${fileRel} - missing on disk (manifest source: ${entry.source})`);
+    let bytes: Buffer;
+    try {
+      bytes = readManagedFile(root, fileRel);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        problems.push(`${fileRel} - missing on disk (manifest source: ${entry.source})`);
+      } else {
+        problems.push(
+          `${fileRel} - unsafe file or still a symlink; re-materialize with link.sh --mode copy`,
+        );
+      }
       continue;
     }
-    if (fs.lstatSync(abs).isSymbolicLink()) {
-      problems.push(`${fileRel} - still a symlink; re-materialize with link.sh --mode copy`);
+    const fileHash = createHash('sha256').update(bytes).digest('hex');
+
+    if (fileRel === '.claude/rules/00-revealui-manager.md') {
+      try {
+        const canonical = readManagedFile(root, '.revealui/adapters/claude-code.md');
+        const body = claudeManagerStubText(root);
+        if (
+          entry.source !== 'harnesses:adapters/claude-code.md' ||
+          entry.sha256 !== fileHash ||
+          bytes.toString('utf8') !== body ||
+          canonical.toString('utf8') !== body
+        ) {
+          problems.push(
+            `${fileRel} - stale or incorrect manager pointer ownership — run: ${MATERIALIZE_CMD}`,
+          );
+        }
+      } catch {
+        problems.push(
+          `${fileRel} - missing or unsafe canonical manager pointer — run: ${MATERIALIZE_CMD}`,
+        );
+      }
       continue;
     }
 
     // Definition-owned rules: lock to content, not the revcon profile hash.
     if (isDefinitionClaudeRule(fileRel, defIds)) {
-      const id = path.posix.basename(fileRel, '.md');
-      const contentAbs = path.join(root, CONTENT_RULES_REL, `${id}.md`);
-      if (!fs.existsSync(contentAbs)) {
+      if (entry.source !== `harnesses:${rel}` || fileHash !== entry.sha256) {
         problems.push(
-          `${fileRel} - definition rule missing content twin ${CONTENT_RULES_REL}/${id}.md — run: ${MATERIALIZE_CMD}`,
+          `${fileRel} - stale or incorrect harness ownership — run: ${MATERIALIZE_CMD}`,
         );
-        continue;
       }
-      if (sha256OfFile(abs) !== sha256OfFile(contentAbs)) {
+      const id = path.posix.basename(fileRel, '.md');
+      try {
+        const twin = readManagedFile(root, `${contentRulesRel}/${id}.md`);
+        if (fileHash !== createHash('sha256').update(twin).digest('hex')) {
+          problems.push(
+            `${fileRel} - dual drift vs ${contentRulesRel}/${id}.md (GAP-421 phase 2). Run: ${MATERIALIZE_CMD}`,
+          );
+        }
+      } catch {
         problems.push(
-          `${fileRel} - dual drift vs ${CONTENT_RULES_REL}/${id}.md (GAP-421 phase 2). ` +
-            `Run: ${MATERIALIZE_CMD}`,
+          `${fileRel} - definition rule missing content twin or unsafe path ${contentRulesRel}/${id}.md — run: ${MATERIALIZE_CMD}`,
         );
       }
       continue;
     }
 
-    const have = sha256OfFile(abs);
+    if (entry.source.startsWith('harnesses:')) {
+      problems.push(
+        `${fileRel} - unknown harness-owned rule; use the canonical definition catalog`,
+      );
+      continue;
+    }
+
+    const have = fileHash;
     if (have !== entry.sha256) {
       problems.push(
         `${fileRel} - content differs from the manifest (locally edited?). ` +
@@ -165,17 +215,21 @@ export function verifyLockstep(
   // Definition mirrors not in the revcon manifest still must match content.
   for (const tracked of trackedFiles) {
     if (!isDefinitionClaudeRule(tracked, defIds)) continue;
-    const id = path.posix.basename(tracked, '.md');
-    const abs = path.join(root, tracked);
-    const contentAbs = path.join(root, CONTENT_RULES_REL, `${id}.md`);
-    if (!fs.existsSync(abs)) continue;
-    if (!fs.existsSync(contentAbs)) {
-      problems.push(`${tracked} - definition rule missing content twin — run: ${MATERIALIZE_CMD}`);
-      continue;
+    if (!manifestRels.has(tracked)) {
+      problems.push(`${tracked} - missing harness ownership entry — run: ${MATERIALIZE_CMD}`);
     }
-    if (sha256OfFile(abs) !== sha256OfFile(contentAbs)) {
+    const id = path.posix.basename(tracked, '.md');
+    try {
+      const native = readManagedFile(root, tracked);
+      const twin = readManagedFile(root, `${contentRulesRel}/${id}.md`);
+      if (!native.equals(twin)) {
+        problems.push(
+          `${tracked} - dual drift vs ${contentRulesRel}/${id}.md — run: ${MATERIALIZE_CMD}`,
+        );
+      }
+    } catch {
       problems.push(
-        `${tracked} - dual drift vs ${CONTENT_RULES_REL}/${id}.md — run: ${MATERIALIZE_CMD}`,
+        `${tracked} - definition rule missing content twin or unsafe path — run: ${MATERIALIZE_CMD}`,
       );
     }
   }
@@ -202,7 +256,7 @@ export function main(): number {
   }
 
   const tracked = gitTrackedMaterializedFiles(ROOT);
-  const defIds = definitionRuleIdsFromContent(ROOT);
+  const defIds = definitionRuleIds();
   const problems = verifyLockstep(ROOT, manifest, tracked, defIds);
 
   if (problems.length > 0) {

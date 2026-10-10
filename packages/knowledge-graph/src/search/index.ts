@@ -38,8 +38,8 @@ export interface KgSearchQuery {
   /** Max BFS depth for the traversal channel (default 3). */
   bfsDepth?: number;
   /**
-   * Product-memory principal. When hosted, node and fact channels restrict to
-   * visible rows in SQL before LIMIT. Studio-local / omitted = unrestricted.
+   * Product-memory principal. Authenticated node and fact channels restrict to
+   * visible rows in SQL before LIMIT across both transports. Omitted = unrestricted.
    */
   principal?: MemoryPrincipal;
 }

@@ -1510,6 +1510,9 @@ importers:
       '@revealui/ai':
         specifier: workspace:*
         version: link:../ai
+      '@revealui/mcp':
+        specifier: workspace:*
+        version: link:../mcp
 
   packages/knowledge-graph:
     dependencies:

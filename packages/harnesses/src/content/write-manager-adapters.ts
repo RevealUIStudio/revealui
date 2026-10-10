@@ -18,11 +18,17 @@
  * (e.g. git.md, coordination.md) are left alone.
  */
 
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
+import { z } from 'zod';
+import { materializeCodexSkills } from '../manager/codex.js';
+import { claudeManagerStubText } from '../manager/materialize.js';
+import { assertManagedDestination, contentRootRelative, loadManager } from '../manager/paths.js';
+import { RelativeManagerPathSchema } from '../manager/schema.js';
 import { buildManifest } from './definitions/index.js';
-import { getGenerator } from './generators/index.js';
-import { DEFAULT_CONTENT_GENERATOR_ID, MANAGER_CONTENT_OUTPUT } from './generators/types.js';
+import { generateContent } from './generators/index.js';
+import { DEFAULT_CONTENT_GENERATOR_ID, type GeneratedFile } from './generators/types.js';
 import type { Manifest } from './schemas/manifest.js';
 
 /**
@@ -36,9 +42,6 @@ export const MANAGER_MATERIALIZE_GENERATORS: readonly string[] = [
   'grok',
 ];
 
-/** Content rules path prefix under the project (relative). */
-const CONTENT_RULES_PREFIX = `${MANAGER_CONTENT_OUTPUT}/rules/`;
-
 /**
  * Relative path for the Claude Code load surface for a definition rule id.
  * Not used for `00-revealui-manager.md` (adapter stub from materializeManager).
@@ -47,12 +50,56 @@ export function claudeRulePathForDefinitionId(ruleId: string): string {
   return join('.claude', 'rules', `${ruleId}.md`);
 }
 
+const ClaudeOwnershipSchema = z
+  .object({
+    mode: z.literal('copy'),
+    editor: z.literal('claude'),
+    profiles: z.array(z.string()),
+    files: z.record(
+      RelativeManagerPathSchema,
+      z
+        .object({
+          source: z.string().min(1),
+          sha256: z.string().length(64),
+        })
+        .passthrough(),
+    ),
+  })
+  .passthrough();
+
+/** One existing ledger records each file's actual owner; profile entries survive. */
+function claudeOwnershipFile(projectRoot: string, mirrors: GeneratedFile[]): GeneratedFile {
+  const relativePath = '.claude/.revcon-manifest.json';
+  assertManagedDestination(projectRoot, relativePath);
+  const absolutePath = join(projectRoot, relativePath);
+  const ownership = existsSync(absolutePath)
+    ? ClaudeOwnershipSchema.parse(JSON.parse(readFileSync(absolutePath, 'utf8')))
+    : { mode: 'copy' as const, editor: 'claude' as const, profiles: [], files: {} };
+  const entries = { ...ownership.files };
+  for (const file of mirrors) {
+    const rel = file.relativePath.slice('.claude/'.length);
+    entries[rel] = {
+      source:
+        rel === 'rules/00-revealui-manager.md'
+          ? 'harnesses:adapters/claude-code.md'
+          : `harnesses:${rel}`,
+      sha256: createHash('sha256').update(file.content).digest('hex'),
+    };
+  }
+  ownership.files = Object.fromEntries(
+    Object.entries(entries).sort(([a], [b]) => a.localeCompare(b)),
+  );
+  return { relativePath, content: `${JSON.stringify(ownership, null, 2)}\n` };
+}
+
 export interface WriteManagerAdapterContentResult {
   byGenerator: Record<string, number>;
   total: number;
   paths: string[];
   /** Definition rules mirrored into `.claude/rules/` (GAP-421 phase 2). */
   claudeRuleMirrors: string[];
+  codexPaths: string[];
+  claudeAdapterPaths: string[];
 }
 
 /**
@@ -64,31 +111,33 @@ export function writeManagerAdapterContent(
   projectRoot: string,
   options?: { generatorIds?: readonly string[]; manifest?: Manifest },
 ): WriteManagerAdapterContentResult {
-  const generatorIds = options?.generatorIds ?? MANAGER_MATERIALIZE_GENERATORS;
+  const config = loadManager(projectRoot);
+  const registered = new Set<string>(config.adapters.map((adapter) => adapter.id));
+  const generatorIds =
+    options?.generatorIds ??
+    MANAGER_MATERIALIZE_GENERATORS.filter(
+      (id) => id === DEFAULT_CONTENT_GENERATOR_ID || registered.has(id),
+    );
   const manifest = options?.manifest ?? buildManifest();
   const byGenerator: Record<string, number> = {};
   const paths: string[] = [];
   const claudeRuleMirrors: string[] = [];
+  const claudeAdapterPaths: string[] = [];
+  const contentRulesPrefix = `${contentRootRelative(config)}/rules/`;
+  const planned: GeneratedFile[] = [];
   let total = 0;
 
   for (const id of generatorIds) {
-    const generator = getGenerator(id);
-    if (!generator) {
-      throw new Error(
-        `Unknown generator "${id}" during manager materialize. Available: check listGenerators()`,
-      );
-    }
-    const files = generator.generateAll(manifest, { projectRoot });
+    const files = generateContent(id, manifest, { projectRoot });
     for (const file of files) {
-      const absolutePath = join(projectRoot, file.relativePath);
-      mkdirSync(dirname(absolutePath), { recursive: true });
-      writeFileSync(absolutePath, file.content, 'utf-8');
+      planned.push(file);
       paths.push(file.relativePath);
 
       // GAP-421 phase 2: same rule body under Claude's load path.
       if (
         id === DEFAULT_CONTENT_GENERATOR_ID &&
-        file.relativePath.startsWith(CONTENT_RULES_PREFIX)
+        registered.has('claude-code') &&
+        file.relativePath.startsWith(contentRulesPrefix)
       ) {
         const ruleFile = basename(file.relativePath);
         if (!ruleFile.endsWith('.md') || ruleFile.startsWith('00-')) {
@@ -96,9 +145,7 @@ export function writeManagerAdapterContent(
         }
         const ruleId = ruleFile.slice(0, -'.md'.length);
         const claudeRel = claudeRulePathForDefinitionId(ruleId);
-        const claudeAbs = join(projectRoot, claudeRel);
-        mkdirSync(dirname(claudeAbs), { recursive: true });
-        writeFileSync(claudeAbs, file.content, 'utf-8');
+        planned.push({ relativePath: claudeRel, content: file.content });
         claudeRuleMirrors.push(claudeRel);
         paths.push(claudeRel);
         total += 1;
@@ -108,5 +155,40 @@ export function writeManagerAdapterContent(
     total += files.length;
   }
 
-  return { byGenerator, total, paths, claudeRuleMirrors };
+  if (registered.has('claude-code')) {
+    const body = claudeManagerStubText(projectRoot);
+    for (const relativePath of [
+      '.revealui/adapters/claude-code.md',
+      '.claude/rules/00-revealui-manager.md',
+    ]) {
+      planned.push({ relativePath, content: body });
+      paths.push(relativePath);
+      claudeAdapterPaths.push(relativePath);
+      total += 1;
+    }
+  }
+
+  for (const file of planned) assertManagedDestination(projectRoot, file.relativePath);
+  if (claudeRuleMirrors.length) {
+    const mirrors = planned.filter(
+      (file) =>
+        claudeRuleMirrors.includes(file.relativePath) ||
+        file.relativePath === '.claude/rules/00-revealui-manager.md',
+    );
+    const ledger = claudeOwnershipFile(projectRoot, mirrors);
+    planned.push(ledger);
+    paths.push(ledger.relativePath);
+    total += 1;
+  }
+  const codexPaths = config.adapters.some((adapter) => adapter.id === 'codex')
+    ? materializeCodexSkills(projectRoot, manifest)
+    : [];
+  for (const file of planned) {
+    const absolutePath = join(projectRoot, file.relativePath);
+    mkdirSync(dirname(absolutePath), { recursive: true });
+    writeFileSync(absolutePath, file.content, 'utf-8');
+  }
+  paths.push(...codexPaths);
+  total += codexPaths.length;
+  return { byGenerator, total, paths, claudeRuleMirrors, codexPaths, claudeAdapterPaths };
 }

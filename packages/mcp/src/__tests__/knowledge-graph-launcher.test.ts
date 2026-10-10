@@ -3,9 +3,11 @@
  * warn, import must not process.exit, CLI allowlist names the server.
  */
 
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { generateKeyPairSync } from 'node:crypto';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fingerprintAgentKey } from '@revealui/knowledge-graph/memory';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   loadHookIdentity,
@@ -22,6 +24,7 @@ const envKeys = [
   'REVDEV_HARNESS',
 ] as const;
 
+const identityDirs: string[] = [];
 const envSnapshot: Record<string, string | undefined> = {};
 
 beforeEach(() => {
@@ -33,6 +36,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  for (const dir of identityDirs.splice(0)) rmSync(dir, { recursive: true, force: true });
   for (const key of envKeys) {
     const value = envSnapshot[key];
     if (value === undefined) delete process.env[key];
@@ -40,18 +44,24 @@ afterEach(() => {
   }
 });
 
-function writeIdentity(dir: string, agentId: string): void {
+function writeIdentity(dir: string, agentId: string): string {
+  const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+  const fingerprint = fingerprintAgentKey(
+    publicKey.export({ type: 'spki', format: 'pem' }).toString(),
+  );
+  identityDirs.push(dir);
   mkdirSync(dir, { recursive: true });
   writeFileSync(
     join(dir, `${agentId}.json`),
     JSON.stringify({
       agentId,
-      did: `did:revealfleet:${agentId}:fpabc`,
-      fingerprint: 'fpabc',
-      privateKeyPem: 'test-placeholder-not-a-key',
+      did: `did:revealfleet:${agentId}:${fingerprint}`,
+      fingerprint,
+      privateKeyPem: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
     }),
-    'utf-8',
+    { encoding: 'utf-8', mode: 0o600 },
   );
+  return fingerprint;
 }
 
 describe('resolveStudioAgentId', () => {
@@ -80,15 +90,15 @@ describe('loadStudioPrincipal', () => {
 
   it('loads a hook-identity file for REVDEV_AGENT_ID', () => {
     const dir = mkdtempSync(join(tmpdir(), 'kg-id-'));
-    writeIdentity(dir, 'grok-1');
+    const fingerprint = writeIdentity(dir, 'grok-1');
     process.env.REVDEV_HOOK_IDENTITY_DIR = dir;
     process.env.REVDEV_AGENT_ID = 'grok-1';
     process.env.REVDEV_HARNESS = 'grok';
     const principal = loadStudioPrincipal();
     expect(principal).toEqual({
-      did: 'did:revealfleet:grok-1:fpabc',
+      did: `did:revealfleet:grok-1:${fingerprint}`,
       agentId: 'grok-1',
-      fingerprint: 'fpabc',
+      fingerprint,
       didKind: 'agent-key',
       harness: 'grok',
       tenantId: 'studio-local',

@@ -5,14 +5,27 @@ import { PreambleTierSchema } from './preamble.js';
 import { RuleSchema } from './rule.js';
 import { SkillSchema } from './skill.js';
 
-export const ManifestSchema = z.object({
-  version: z.literal(1),
-  generatedAt: z.string().datetime(),
-  rules: z.array(RuleSchema),
-  commands: z.array(CommandSchema),
-  agents: z.array(AgentSchema),
-  skills: z.array(SkillSchema),
-  preambles: z.array(PreambleTierSchema),
-});
+export function hasRetiredFleetIdentity(value: unknown): boolean {
+  return (JSON.stringify(value) ?? '').toLowerCase().includes(['rev', 'fleet'].join(''));
+}
+
+export const ManifestSchema = z
+  .object({
+    version: z.literal(1),
+    generatedAt: z.string().datetime(),
+    rules: z.array(RuleSchema),
+    commands: z.array(CommandSchema),
+    agents: z.array(AgentSchema),
+    skills: z.array(SkillSchema),
+    preambles: z.array(PreambleTierSchema),
+  })
+  .superRefine((manifest, ctx) => {
+    if (hasRetiredFleetIdentity(manifest)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Fleet content must use revealfleet and the REVEALFLEET configuration namespace.',
+      });
+    }
+  });
 
 export type Manifest = z.infer<typeof ManifestSchema>;

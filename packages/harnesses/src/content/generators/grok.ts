@@ -2,7 +2,7 @@
  * Grok content generator (control-layer phase 2).
  *
  * Grok auto-loads `<repo>/.grok/rules/*.md` and does not scan
- * `.revealui/content/`. Until this generator existed, Studio Grok ingested
+ * `{{CONTENT_ROOT}}/`. Until this generator existed, Studio Grok ingested
  * the Claude vendor tree via `[compat.claude] rules = true` (~38k tokens in
  * the monorepo). That dump cannot run on local/open models and fights the
  * native ACP agent's 4k-char cap.
@@ -115,7 +115,7 @@ function spawnMapMarkdown(): string {
   return `# Grok spawn types → control-layer agents
 
 Grok TUI \`spawn_subagent\` types are the wire contract. Content agents in
-\`.revealui/content/agents/\` (and this tree's \`.grok/agents/\`) are the policy
+\`{{CONTENT_ROOT}}/agents/\` (and this tree's \`.grok/agents/\`) are the policy
 SSOT. Prefer one well-scoped subagent (token economy).
 
 | Grok type | Content agent | When |
@@ -137,7 +137,7 @@ function managerOrientationMarkdown(): string {
 Grok loads this tree because cwd is the product. \`$HOME/.grok\` is a vendor
 cache (auth, sessions, UI, hooks). Do not author policy there.
 
-1. \`.revealui/manager.json\` then \`.revealui/content/\` (SSOT)
+1. \`.revealui/manager.json\` then \`{{CONTENT_ROOT}}/\` (SSOT)
 2. TRACKER from \`tracker.path\` on the manager
 3. Product I/O via RevealUI MCP (\`rfg\`). Secrets via revvault
 4. Keep \`[compat.claude] rules = false\`. Do not ingest the Claude vendor dump
@@ -196,7 +196,7 @@ export class GrokGenerator implements ContentGenerator {
   }
 
   generateSkill(_skill: Skill, _ctx: ResolverContext): GeneratedFile[] {
-    // Skills already live under `.agents/skills/` and `.revealui/content/skills/`.
+    // Skills already live under `.agents/skills/` and `{{CONTENT_ROOT}}/skills/`.
     // Re-emitting them here duplicates the catalog (100+ collisions).
     return [];
   }

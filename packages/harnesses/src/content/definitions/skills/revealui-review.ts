@@ -69,11 +69,11 @@ If copy/claims touched: \`pnpm validate:claims\`. If harness content touched: co
 ### A5. Git and secrets
 - [ ] Conventional commit: \`type(scope): description\`
 - [ ] Subject under 72 chars, imperative
-- [ ] Identity: \`RevealUI Studio <43050008+joshua-v-dev@users.noreply.github.com>\` (never \`founder@revealui.com\` on signed fleet commits)
+- [ ] Identity: use the configured signing identity and its verified email; do not embed a developer identity in shared instructions
 - [ ] No secrets in tree; revvault paths only in docs/chat
 
 ### A6. Process hardlines (when applicable)
-- [ ] Durable fix in owning primitive (no unregistered hotfix / workaround recipe)
+- [ ] Durable fix in owning primitive (no one-off or workaround recipe)
 - [ ] Proposal-shaped only unless owner named a disposition
 - [ ] Security surfaces: recorded review before "ready to merge" language
 

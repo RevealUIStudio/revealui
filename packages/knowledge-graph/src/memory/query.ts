@@ -3,7 +3,7 @@ import type { KgExecutor } from '../types.js';
 import { principalMissing, validatePrincipal } from './principal.js';
 import { countDeniedMemoryHits } from './scope-read.js';
 import { bindVisibility, SqlParams } from './scope-sql.js';
-import { shouldNamespaceKeys, tenantNaturalKey } from './tenant-key.js';
+import { scopedMemoryNaturalKey, shouldNamespaceKeys, tenantNaturalKey } from './tenant-key.js';
 import type {
   AdvisoryClaim,
   MemoryPrincipal,
@@ -29,13 +29,19 @@ function readerScope(principal: MemoryPrincipal): MemoryScope {
   };
 }
 
-function enforcementOf(principal: MemoryPrincipal): 'enforced' | 'deferred' {
-  return principal.trustBoundary === 'hosted' ? 'enforced' : 'deferred';
-}
-
-function namespaceInbound(principal: MemoryPrincipal, key: string): string {
-  if (!shouldNamespaceKeys(principal)) return key;
-  return tenantNaturalKey(principal.tenantId, key);
+function namespaceInbound(principal: MemoryPrincipal, key: string): string[] {
+  const legacy = shouldNamespaceKeys(principal) ? tenantNaturalKey(principal.tenantId, key) : key;
+  const unprefixed = legacy.startsWith(`tenant:${principal.tenantId}:`)
+    ? legacy.slice(`tenant:${principal.tenantId}:`.length)
+    : legacy;
+  if (unprefixed.startsWith('private:') || unprefixed.startsWith('workspace:')) return [legacy];
+  return [
+    ...new Set([
+      legacy,
+      scopedMemoryNaturalKey(principal, 'workspace', key),
+      scopedMemoryNaturalKey(principal, 'private', key),
+    ]),
+  ];
 }
 
 export async function queryMemory(
@@ -68,7 +74,7 @@ export async function queryMemory(
     return {
       status: 'ok',
       available: true,
-      enforcement: enforcementOf(input.principal),
+      enforcement: 'enforced',
       deniedCount,
       data,
     };
@@ -126,7 +132,7 @@ export async function queryClaims(
          AND e.expired_at IS NULL
          AND e.attributes->>'advisory' = 'true'
          AND e.attributes->>'status' = 'open'
-         AND (${subjectP}::text IS NULL OR t.natural_key = ${subjectP})
+         AND (${subjectP}::text[] IS NULL OR t.natural_key = ANY(${subjectP}::text[]))
          ${visSql}
        ORDER BY e.valid_at DESC, e.id`,
       params.values,
@@ -150,7 +156,7 @@ export async function queryClaims(
     return {
       status: 'ok',
       available: true,
-      enforcement: enforcementOf(input.principal),
+      enforcement: 'enforced',
       deniedCount: 0,
       data: { claims },
     };

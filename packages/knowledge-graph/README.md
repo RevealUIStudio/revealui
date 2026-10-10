@@ -65,6 +65,46 @@ pnpm exec revkg drift --repo revealui
 
 ## Development
 
+### Historical memory provenance
+
+`revkg audit-legacy-memory` emits a read-only JSON inventory for
+`KG-LEGACY-MEMORY-SCOPE-MIGRATION`. It reports episode identifiers, blocker
+codes and counts without printing authored payloads or scope identities.
+`--publish` is rejected. This command does not restore historical reads.
+The inventory also includes marked episodes whose authored snapshots are
+missing or invalid; a scope marker alone is insufficient recovery evidence.
+
+Historical memory episodes without `keyScopeVersion: 1` and their connected
+nodes remain quarantined by authenticated reads. The old outbox records node
+payloads without episode ownership; neighboring sequence numbers, timestamps
+and current merged node metadata cannot establish that ownership. Node-only
+publications may have no graph provenance at all. These are unresolved data
+recovery blockers, not permission to mark old rows as scoped.
+
+When any memory publication has incomplete provenance, authenticated reads
+require every returned node field, attribute and timestamp to be attested by
+authorized immutable snapshots. Unattested scan metadata and graph endpoints
+remain hidden because historical node-only writes cannot identify which nodes
+they mutated. All memory edges additionally require an authorized snapshot of
+the actual immutable fact and attributes: a later episode sharing an edge
+identity cannot authorize the earlier payload. Fresh publications can be read
+when their metadata and endpoints are attested. Existing contaminated actors
+or subjects can keep new incident edges hidden until authoritative recovery.
+Unrestricted owner diagnostics retain access to the original records.
+
+New additive memory ingestion stores a versioned `ingestSnapshot` of authored
+node and edge rows in the immutable episode's `content_ref`. It commits in the
+same transaction as graph writes and survives replica replay without a local
+outbox. Caller-supplied snapshots are replaced by the ingestion engine.
+Memory episode identifiers now include this snapshot; deterministic scan
+identifiers are unchanged. This preserves evidence for maintained recovery
+tooling; it cannot reconstruct missing historical evidence.
+
+Reconstruction remains tracked in the delivery audit. It needs authoritative
+historical snapshots or original publication records, validated scope ownership,
+transactional scoped replay, idempotence, and tests for collisions and scan
+contamination before any quarantined data can become visible.
+
 ```bash
 pnpm --filter @revealui/knowledge-graph typecheck
 pnpm --filter @revealui/knowledge-graph test

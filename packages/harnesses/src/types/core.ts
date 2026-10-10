@@ -3,6 +3,8 @@
  * This package owns the harness-domain types (there is no packages/editors).
  */
 
+import type { MemoryPublishInput, MemoryQuery } from '@revealui/knowledge-graph/memory';
+
 export interface HarnessCapabilities {
   /** Can generate code from a prompt */
   generateCode: boolean;
@@ -25,13 +27,23 @@ export type HarnessCommand =
   | { type: 'analyze-code'; filePath: string; question?: string }
   | { type: 'apply-edit'; filePath: string; diff: string }
   | { type: 'apply-config'; configPath: string; content: string }
+  | { type: 'query-memory'; input: Omit<MemoryQuery, 'principal' | 'repo'> }
+  | { type: 'publish-memory'; input: Omit<MemoryPublishInput, 'principal'> }
   | { type: 'get-status' }
+  | { type: 'cancel-generation'; taskId?: string }
   | { type: 'get-running-instances' }
   | { type: 'sync-config'; direction: ConfigSyncDirection }
   | { type: 'diff-config' }
   | { type: 'read-workboard' }
   | { type: 'update-workboard'; sessionId: string; task?: string; files?: string[] }
-  | { type: 'headless-prompt'; prompt: string; maxTurns?: number; timeoutMs?: number };
+  | {
+      type: 'headless-prompt';
+      prompt: string;
+      maxTurns?: number;
+      timeoutMs?: number;
+      /** Codex: resume a persisted thread belonging to the configured project. */
+      threadId?: string;
+    };
 
 export interface HarnessCommandResult {
   success: boolean;
@@ -44,6 +56,10 @@ export type HarnessEvent =
   | { type: 'harness-connected'; harnessId: string }
   | { type: 'harness-disconnected'; harnessId: string }
   | { type: 'generation-started'; taskId: string }
+  | { type: 'generation-ready'; taskId: string; threadId: string; turnId: string }
+  | { type: 'generation-progress'; taskId: string; delta: string }
+  | { type: 'generation-failed'; taskId: string; message: string }
+  | { type: 'generation-cancelled'; taskId: string; message: string }
   | { type: 'generation-completed'; taskId: string; output: string }
   | { type: 'error'; harnessId: string; message: string };
 

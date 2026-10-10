@@ -11,12 +11,17 @@
  * Package definitions in `@revealui/harnesses` remain build-time SSOT.
  */
 
+import { contentRootRelative, loadManager } from '../../manager/paths.js';
+import { RelativeManagerPathSchema } from '../../manager/schema.js';
+import { resolveTemplate } from '../resolvers/index.js';
 import type { ResolverContext } from '../resolvers/types.js';
 import type { Agent, Command, Manifest, Rule, Skill } from '../schemas/index.js';
 import type { ContentGenerator, GeneratedFile } from './types.js';
 import { MANAGER_CONTENT_OUTPUT } from './types.js';
 
-const CONTENT = MANAGER_CONTENT_OUTPUT;
+function contentOutput(ctx: ResolverContext): string {
+  return contentRootRelative(loadManager(ctx.projectRoot));
+}
 
 // Characters that force a YAML scalar to be quoted (fleet no-regex hardline:
 // Set membership over a character class, per .claude/rules/no-regex.md).
@@ -66,31 +71,31 @@ function ensureNl(body: string): string {
 export class ClaudeCodeGenerator implements ContentGenerator {
   readonly id = 'claude-code';
   /** Manager content root — not a vendor-private tree. */
-  readonly outputDir = CONTENT;
+  readonly outputDir = MANAGER_CONTENT_OUTPUT;
 
-  generateRule(rule: Rule, _ctx: ResolverContext): GeneratedFile[] {
+  generateRule(rule: Rule, ctx: ResolverContext): GeneratedFile[] {
     return [
       {
-        relativePath: `${CONTENT}/rules/${rule.id}.md`,
+        relativePath: `${contentOutput(ctx)}/rules/${rule.id}.md`,
         content: ensureNl(rule.content),
       },
     ];
   }
 
-  generateCommand(cmd: Command, _ctx: ResolverContext): GeneratedFile[] {
+  generateCommand(cmd: Command, ctx: ResolverContext): GeneratedFile[] {
     const frontmatter = ['---', `description: ${yamlEscape(cmd.description)}`];
     if (cmd.argumentHint) frontmatter.push(`argument-hint: ${yamlEscape(cmd.argumentHint)}`);
     if (cmd.disableModelInvocation) frontmatter.push('disable-model-invocation: true');
     frontmatter.push('---');
     return [
       {
-        relativePath: `${CONTENT}/commands/${cmd.id}.md`,
+        relativePath: `${contentOutput(ctx)}/commands/${cmd.id}.md`,
         content: `${frontmatter.join('\n')}\n\n${ensureNl(cmd.content)}`,
       },
     ];
   }
 
-  generateAgent(agent: Agent, _ctx: ResolverContext): GeneratedFile[] {
+  generateAgent(agent: Agent, ctx: ResolverContext): GeneratedFile[] {
     const frontmatter = [
       '---',
       `name: ${yamlEscape(agent.name)}`,
@@ -102,19 +107,25 @@ export class ClaudeCodeGenerator implements ContentGenerator {
     frontmatter.push('---');
     return [
       {
-        relativePath: `${CONTENT}/agents/${agent.id}.md`,
+        relativePath: `${contentOutput(ctx)}/agents/${agent.id}.md`,
         content: `${frontmatter.join('\n')}\n\n${ensureNl(agent.content)}`,
       },
     ];
   }
 
-  generateSkill(skill: Skill, _ctx: ResolverContext): GeneratedFile[] {
+  generateSkill(skill: Skill, ctx: ResolverContext): GeneratedFile[] {
+    const directory = `${contentOutput(ctx)}/skills/${RelativeManagerPathSchema.parse(skill.id)}`;
+    const references = Object.entries(skill.references).map(([path, content]) => ({
+      relativePath: `${directory}/${RelativeManagerPathSchema.parse(path)}`,
+      content: ensureNl(content),
+    }));
     if (skill.skipFrontmatter) {
       return [
         {
-          relativePath: `${CONTENT}/skills/${skill.id}/SKILL.md`,
+          relativePath: `${directory}/SKILL.md`,
           content: ensureNl(skill.content),
         },
+        ...references,
       ];
     }
     const frontmatter = [
@@ -126,9 +137,10 @@ export class ClaudeCodeGenerator implements ContentGenerator {
     frontmatter.push('---');
     return [
       {
-        relativePath: `${CONTENT}/skills/${skill.id}/SKILL.md`,
+        relativePath: `${directory}/SKILL.md`,
         content: `${frontmatter.join('\n')}\n\n${ensureNl(skill.content)}`,
       },
+      ...references,
     ];
   }
 
@@ -146,6 +158,9 @@ export class ClaudeCodeGenerator implements ContentGenerator {
     for (const skill of manifest.skills) {
       files.push(...this.generateSkill(skill, ctx));
     }
-    return files;
+    return files.map((file) => ({
+      ...file,
+      content: resolveTemplate(file.content, ctx),
+    }));
   }
 }

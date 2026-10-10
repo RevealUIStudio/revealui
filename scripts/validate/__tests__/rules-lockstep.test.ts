@@ -5,10 +5,11 @@
  * and malformed manifests.
  */
 
-import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import fs, { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { claudeManagerStubText } from '../../../packages/harnesses/src/manager/materialize.js';
 import { type Manifest, sha256OfFile, verifyLockstep } from '../rules-lockstep.js';
 
 let root: string;
@@ -36,10 +37,100 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.restoreAllMocks();
   rmSync(root, { recursive: true, force: true });
 });
 
 describe('verifyLockstep', () => {
+  it('verifies canonical manager pointer ownership, drift and symlink safety', () => {
+    const rel = '.claude/rules/00-revealui-manager.md';
+    const body = claudeManagerStubText(root);
+    writeRule('rules/00-revealui-manager.md', body);
+    mkdirSync(path.join(root, '.revealui/adapters'), { recursive: true });
+    writeFileSync(path.join(root, '.revealui/adapters/claude-code.md'), body);
+    const manifest = manifestFor({ 'rules/00-revealui-manager.md': body });
+    manifest.files['rules/00-revealui-manager.md']!.source = 'harnesses:adapters/claude-code.md';
+    expect(verifyLockstep(root, manifest, [rel])).toEqual([]);
+    writeRule('rules/00-revealui-manager.md', '# Changed pointer\n');
+    expect(verifyLockstep(root, manifest, [rel]).join('\n')).toContain(
+      'incorrect manager pointer ownership',
+    );
+    writeRule('rules/00-revealui-manager.md', body);
+    manifest.files['rules/00-revealui-manager.md']!.source =
+      'profiles/revealui/claude/rules/00-revealui-manager.md';
+    expect(verifyLockstep(root, manifest, [rel]).join('\n')).toContain(
+      'incorrect manager pointer ownership',
+    );
+    manifest.files['rules/00-revealui-manager.md']!.source = 'harnesses:adapters/claude-code.md';
+    writeFileSync(
+      path.join(root, '.revealui/adapters/claude-code.md'),
+      '# Changed canonical pointer\n',
+    );
+    expect(verifyLockstep(root, manifest, [rel]).join('\n')).toContain(
+      'incorrect manager pointer ownership',
+    );
+    rmSync(path.join(root, rel));
+    const target = path.join(root, 'foreign.md');
+    writeFileSync(target, body);
+    symlinkSync(target, path.join(root, rel));
+    expect(verifyLockstep(root, manifest, [rel]).join('\n')).toContain('still a symlink');
+  });
+
+  it('rejects a pointer replaced by a symlink while its bytes are being read', () => {
+    const rel = '.claude/rules/00-revealui-manager.md';
+    const body = claudeManagerStubText(root);
+    const pointer = writeRule('rules/00-revealui-manager.md', body);
+    mkdirSync(path.join(root, '.revealui/adapters'), { recursive: true });
+    writeFileSync(path.join(root, '.revealui/adapters/claude-code.md'), body);
+    const manifest = manifestFor({ 'rules/00-revealui-manager.md': body });
+    manifest.files['rules/00-revealui-manager.md']!.source = 'harnesses:adapters/claude-code.md';
+    const foreign = path.join(root, 'foreign.md');
+    writeFileSync(foreign, body);
+    const read = fs.readFileSync;
+    let replaced = false;
+    vi.spyOn(fs, 'readFileSync').mockImplementation((...args: Parameters<typeof read>) => {
+      if (!replaced && (args[0] === pointer || typeof args[0] === 'number')) {
+        replaced = true;
+        rmSync(pointer);
+        symlinkSync(foreign, pointer);
+      }
+      return read(...args);
+    });
+    expect(verifyLockstep(root, manifest, [rel]).join('\n')).toContain('unsafe');
+    expect(replaced).toBe(true);
+  });
+
+  it('keeps profile-owned native rules separate from package definitions', () => {
+    const body = '# Profile routing\n';
+    writeRule(
+      'rules/tool-routing.md',
+      `<!-- generated from .revealui/content/rules/tool-routing.md -->\n${body}`,
+    );
+    mkdirSync(path.join(root, '.revealui/content/rules'), { recursive: true });
+    writeFileSync(path.join(root, '.revealui/content/rules/tool-routing.md'), body);
+    const manifest = manifestFor({ 'rules/tool-routing.md': '' });
+    manifest.files['rules/tool-routing.md']!.source =
+      'profiles/revealui/revealui/rules/tool-routing.md';
+    expect(verifyLockstep(root, manifest, ['.claude/rules/tool-routing.md'])).toEqual([]);
+    manifest.files['rules/tool-routing.md']!.source = 'harnesses:rules/tool-routing.md';
+    expect(verifyLockstep(root, manifest, ['.claude/rules/tool-routing.md'])[0]).toContain(
+      'unknown harness-owned rule',
+    );
+  });
+
+  it('uses the supported manager contentRoot for harness ownership', () => {
+    const body = '# Biome\n';
+    writeRule('rules/biome.md', body);
+    mkdirSync(path.join(root, '.revealui/custom/rules'), { recursive: true });
+    writeFileSync(
+      path.join(root, '.revealui/manager.json'),
+      JSON.stringify({ contentRoot: 'custom' }),
+    );
+    writeFileSync(path.join(root, '.revealui/custom/rules/biome.md'), body);
+    const manifest = manifestFor({ 'rules/biome.md': body });
+    manifest.files['rules/biome.md']!.source = 'harnesses:rules/biome.md';
+    expect(verifyLockstep(root, manifest, ['.claude/rules/biome.md'])).toEqual([]);
+  });
   it('passes when every copy matches the manifest and no strays exist', () => {
     writeRule('rules/git.md', '# Git Conventions\n');
     writeRule('agents/builder.md', '# Builder\n');
@@ -108,7 +199,7 @@ describe('verifyLockstep', () => {
     expect(problems[0]).toContain('malformed');
   });
 
-  it('definition-owned Claude rules must match content (not revcon hash)', () => {
+  it('definition-owned rules require their actual owner, ledger hash and content twin', () => {
     const body = '# Biome\nfrom definitions\n';
     writeRule('rules/biome.md', body);
     mkdirSync(path.join(root, '.revealui', 'content', 'rules'), { recursive: true });
@@ -126,6 +217,13 @@ describe('verifyLockstep', () => {
       },
     };
     const defIds = new Set(['biome']);
+    expect(verifyLockstep(root, manifest, ['.claude/rules/biome.md'], defIds)[0]).toContain(
+      'incorrect harness ownership',
+    );
+    manifest.files['rules/biome.md'] = {
+      source: 'harnesses:rules/biome.md',
+      sha256: sha256OfFile(path.join(root, '.claude/rules/biome.md')),
+    };
     expect(verifyLockstep(root, manifest, ['.claude/rules/biome.md'], defIds)).toEqual([]);
 
     writeRule('rules/biome.md', `${body}\ndrift\n`);
@@ -133,7 +231,7 @@ describe('verifyLockstep', () => {
     expect(drifted.some((p) => p.includes('dual drift'))).toBe(true);
   });
 
-  it('definition mirrors not in the revcon manifest are not strays when they match content', () => {
+  it('definition mirrors require an ownership entry even when they match content', () => {
     const body = '# Code over docs\n';
     writeRule('rules/code-over-docs.md', body);
     mkdirSync(path.join(root, '.revealui', 'content', 'rules'), { recursive: true });
@@ -142,6 +240,8 @@ describe('verifyLockstep', () => {
     const manifest = manifestFor({ 'rules/git.md': '' });
     const defIds = new Set(['code-over-docs']);
     const tracked = ['.claude/rules/git.md', '.claude/rules/code-over-docs.md'];
-    expect(verifyLockstep(root, manifest, tracked, defIds)).toEqual([]);
+    expect(verifyLockstep(root, manifest, tracked, defIds)[0]).toContain(
+      'missing harness ownership entry',
+    );
   });
 });

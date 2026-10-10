@@ -46,6 +46,10 @@ describe('BASE_RULES parity', () => {
 });
 
 describe('BASE_RULES coverage + trust boundary', () => {
+  it('detects private planning paths under the canonical fleet identity', () => {
+    expect(byTag('private-jv-repo').matches('~/revealfleet/.jv/docs')).toBe(true);
+    expect(byTag('private-jv-repo').matches('~/revealfleet/revealui')).toBe(false);
+  });
   it('covers every BASE rule with a parity case', () => {
     const tagged = new Set(cases.map((c) => c.tag));
     const uncovered = BASE_RULES.filter((r) => !tagged.has(r.tag)).map((r) => r.tag);
