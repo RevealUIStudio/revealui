@@ -50,7 +50,6 @@ Five primitives make up the runtime: People, Content, Offers, Payments, Agents.
 ## For agents
 
 - [AI integration](https://docs.revealui.com/AI): How agents talk to a RevealUI runtime via MCP, A2A, and harness coordination
-- [Agent rules](https://docs.revealui.com/agent-rules/): Conventions agents follow when contributing to a RevealUI codebase
 - [REST API](https://docs.revealui.com/api/): Hono + OpenAPI endpoints
 
 ## Status (honest, pre-launch)

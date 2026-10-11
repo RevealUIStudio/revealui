@@ -6,6 +6,8 @@ import {
   PRODUCT_BLOG_HOPS,
   pointsAtDocsBlog,
 } from '../../../../packages/contracts/src/nav-docs-boundary.ts';
+import { withoutTrailingSlash } from '../lib/html-shell';
+import { MARKETING_ROUTE_HEADS, MARKETING_UNLISTED_SHELLS } from '../lib/route-heads';
 
 interface VercelCondition {
   type: string;
@@ -27,6 +29,8 @@ interface VercelRewrite {
 }
 
 interface VercelConfig {
+  trailingSlash?: boolean;
+  cleanUrls?: boolean;
   redirects?: VercelRedirect[];
   rewrites?: VercelRewrite[];
 }
@@ -124,7 +128,10 @@ describe('marketing vercel.json redirects', () => {
     const spaFallback = rewrites.find(
       (entry) => entry.source === '/(.*)' && entry.destination === '/index.html',
     );
-    expect(spaFallback, 'the SPA catch-all rewrite must remain after redirects').toBeDefined();
+    expect(
+      spaFallback,
+      'unknown paths must 404 instead of rewriting to index.html',
+    ).toBeUndefined();
 
     for (const source of ['/quote', '/calculator'] as const) {
       const redirect = redirects.find((entry) => entry.source === source);
@@ -184,6 +191,61 @@ describe('marketing vercel.json redirects', () => {
     }
     for (const redirect of redirects) {
       expect(pointsAtDocsBlog(redirect.destination)).toBe(false);
+    }
+  });
+
+  it('normalizes trailing slashes, /index.html, and leaves unknown case variants to 404', () => {
+    const config = readVercelConfig();
+    expect(config.trailingSlash).toBe(false);
+    expect(config.cleanUrls).toBe(true);
+    const index = (config.redirects ?? []).find((entry) => entry.source === '/index.html');
+    expect(index?.destination).toBe('/');
+    expect(index?.permanent).toBe(true);
+    expect(
+      (config.rewrites ?? []).some(
+        (entry) => entry.destination === '/index.html' && entry.source.includes('('),
+      ),
+    ).toBe(false);
+
+    const sitemap = readFileSync(path.resolve(process.cwd(), 'public/sitemap.xml'), 'utf8');
+    const locs = sitemap
+      .split('<loc>')
+      .slice(1)
+      .map((part) => part.split('</loc>')[0] ?? '');
+    for (const loc of locs) {
+      const pathname = new URL(loc).pathname;
+      if (pathname === '/') {
+        continue;
+      }
+      expect(withoutTrailingSlash(`${pathname}/`)).toBe(pathname);
+    }
+  });
+
+  it('covers every client route with a shell or a redirect', () => {
+    const app = readFileSync(path.resolve(process.cwd(), 'app/App.tsx'), 'utf8');
+    const marker = "path: '";
+    const routes: string[] = [];
+    let from = 0;
+    while (from < app.length) {
+      const at = app.indexOf(marker, from);
+      if (at === -1) {
+        break;
+      }
+      const start = at + marker.length;
+      const end = app.indexOf("'", start);
+      routes.push(app.slice(start, end));
+      from = end + 1;
+    }
+    const shells = new Set(
+      [...MARKETING_ROUTE_HEADS, ...MARKETING_UNLISTED_SHELLS].map((head) => head.path),
+    );
+    const sources = new Set((readVercelConfig().redirects ?? []).map((entry) => entry.source));
+    for (const routePath of routes) {
+      if (routePath === '/*notfound' || shells.has(routePath) || sources.has(routePath)) {
+        continue;
+      }
+      expect(routePath, routePath).toBe('/blog/:slug');
+      expect(sources.has('/blog/:path*')).toBe(true);
     }
   });
 

@@ -6,6 +6,8 @@ import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { NotFoundPage } from '../components/NotFoundPage';
 import { useNoindex } from '../hooks/useNoindex';
 import { useWildcardPath } from '../hooks/useWildcardPath';
+import { applyDocHead } from '../lib/head';
+import { titleFromMarkdown } from '../lib/route-paths';
 import { loadMarkdownFile, renderMarkdown } from '../utils/markdown';
 import { resolveDocPath } from '../utils/paths';
 
@@ -72,6 +74,18 @@ function GuideContent() {
       ctrl.abort();
     };
   }, [path]);
+
+  useEffect(() => {
+    if (loading || error !== null) {
+      return;
+    }
+    if (notFound) {
+      applyDocHead({ title: 'Not Found', noindex: true });
+      return;
+    }
+    const page = titleFromMarkdown(content, 'Guides');
+    applyDocHead(page);
+  }, [loading, error, notFound, content]);
 
   if (loading) {
     return <LoadingSkeleton />;
@@ -167,6 +181,13 @@ Guides are located in the \`docs/guides/\` directory. Available guides will be l
       ctrl.abort();
     };
   }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      const page = titleFromMarkdown(content, 'Guides');
+      applyDocHead({ title: page.title, description: page.description });
+    }
+  }, [loading, content]);
 
   if (loading) {
     return <LoadingSkeleton />;

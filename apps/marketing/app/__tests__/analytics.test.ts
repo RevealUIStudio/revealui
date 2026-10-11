@@ -325,19 +325,26 @@ describe('Umami traffic sink', () => {
     expect((body.payload as Record<string, unknown>).name).toBeUndefined();
   });
 
-  it('sends a second pageview on SPA history.pushState', async () => {
+  it('sends a pageview with the route title after the document head updates', async () => {
     stubUmamiEnv();
     const fetchMock = installUmamiStubs({ href: 'https://revealui.com/' });
+    document.title = 'RevealUI | Build your business on software you can run yourself.';
     const { initAnalytics } = await import('../lib/analytics');
     initAnalytics();
     expect(fetchMock).toHaveBeenCalledOnce();
 
-    window.history.pushState(null, '', '/products');
+    window.history.pushState(null, '', '/pricing');
+    expect(fetchMock).toHaveBeenCalledOnce();
+
+    document.title = 'Pricing | RevealUI';
+    document.dispatchEvent(new CustomEvent('revealui:document-head'));
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
     const second = await readFetchPayload(fetchMock, 1);
     expect(second.url).toBe(UMAMI_SEND_ENDPOINT);
-    expect((second.body.payload as Record<string, unknown>).url).toBe('/products');
+    const payload = second.body.payload as Record<string, unknown>;
+    expect(payload.url).toBe('/pricing');
+    expect(payload.title).toBe('Pricing | RevealUI');
   });
 
   it('does not load Vercel Web Analytics', async () => {

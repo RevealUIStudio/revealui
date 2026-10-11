@@ -3,6 +3,8 @@
   "installCommand": "",
   "framework": "vite",
   "outputDirectory": "dist",
+  "trailingSlash": false,
+  "cleanUrls": true,
   "headers": [
     {
       "source": "/(.*)",
@@ -46,6 +48,7 @@
       "destination": "https://revealui.com/:path*",
       "permanent": true
     },
+    { "source": "/index.html", "destination": "/", "permanent": true },
     { "source": "/docs", "destination": "https://docs.revealui.com", "permanent": true },
     {
       "source": "/docs/:path*",
@@ -160,7 +163,6 @@
   "rewrites": [
     { "source": "/robots.txt", "destination": "/robots.txt" },
     { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
-    { "source": "/.well-known/(.*)", "destination": "/.well-known/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/.well-known/(.*)", "destination": "/.well-known/$1" }
   ]
 }
