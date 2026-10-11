@@ -426,7 +426,7 @@ For security incidents, data breaches, or critical production failures, follow t
 | Workflow | File | Trigger | Purpose |
 |----------|------|---------|---------|
 | CI | `ci.yml` | Push/PR to test, main | Quality gate (lint, typecheck, test, build) |
-| Deploy | `deploy.yml` | Push to main, manual | Production deployment to Vercel |
+| Deploy | `deploy.yml` | Push to main; manual dispatch of refs/heads/main only | Production deployment to Vercel |
 | Deploy Test | `deploy-test.yml` | Manual (workflow_dispatch) | Preview deployment for QA |
 | Release OSS | `release.yml` | Manual (workflow_dispatch) | Production npm publish with provenance |
 | Security | `security.yml` | Scheduled, manual | CodeQL, Gitleaks, dependency audit |
