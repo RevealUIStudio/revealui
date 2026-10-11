@@ -102,7 +102,7 @@ Work that is real and unfinished. No gap IDs on this public page.
 | **A. Subscriptions** | Monthly | Free $0 / Pro $49/mo / Max $99/mo / Enterprise inquire |
 | **B. Agent credits** | Pay-per-use | $0.001/task (local inference) |
 | **C. Perpetual** | One-time | Pro Perpetual $1,499 public; Agency and Enterprise perpetual are not public catalog SKUs |
-| **D. Professional services** | Per-engagement | Consultation $300 / Pilot $3,997 (includes 1 Adapter) / Launch $14,500 (up to 3 Adapters) (revealuistudio.com) |
+| **D. Professional services** | Per-engagement | Consultation $300/hr / Pilot $3,997 (includes 1 Adapter) / Launch $14,500 (up to 3 Adapters) (revealuistudio.com) |
 
 See [revealui.com/pricing](https://revealui.com/pricing) for the live catalog.
 
