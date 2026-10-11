@@ -364,6 +364,22 @@ export async function gate(): Promise<void> {
       process.exit(ErrorCode.EXECUTION_ERROR);
     }
 
+    // This validator builds the full server dependency closure before loading
+    // the route registry. Running it alongside the other quality checks can
+    // exhaust a constrained runner and time out an otherwise valid build.
+    const apiDocs = await runCheck({
+      name: 'API docs drift (hard fail)',
+      command: 'pnpm',
+      args: ['validate:api-docs'],
+      timeout: 600_000,
+    });
+    allResults.push(apiDocs);
+    if (apiDocs.status === 'fail') {
+      logger.error('API docs drift validation failed; parallel quality checks were not started.');
+      printSummary(allResults, performance.now() - totalStart);
+      process.exit(ErrorCode.VALIDATION_ERROR);
+    }
+
     logger.info('Phase 1 \u2014 Quality checks (parallel)');
 
     // In changed-only mode: lint only files changed since the comparison base
@@ -493,16 +509,6 @@ export async function gate(): Promise<void> {
         name: 'Claim drift (hard fail)',
         command: 'pnpm',
         args: ['validate:claims'],
-      },
-      {
-        // GAP-395: REST API markdown must match `pnpm docs:generate:api`.
-        name: 'API docs drift (hard fail)',
-        command: 'pnpm',
-        args: ['validate:api-docs'],
-        // The authoritative generator builds the server dependency closure
-        // before comparing the maintained document; cold CI routinely needs
-        // more than the generic five-minute phase-check budget.
-        timeout: 600_000,
       },
       {
         // ADR 2026-07-29 virtual serve: monorepo docs/ is SoT. Fail if leftover

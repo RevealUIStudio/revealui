@@ -58,12 +58,13 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
-      # Scoped install + gates CJS only (same contract as security-review-gate).
+      # Build the shared gates dependency closure + gates CJS only.
       # Full monorepo install timed out; hooks/policy DTS is not needed here.
       - name: Install + build shared gates module
         run: |
           set -euo pipefail
-          pnpm install --frozen-lockfile --filter @revealui/harnesses --filter @revealui/dev
+          pnpm install --frozen-lockfile --filter @revealui/harnesses... --filter @revealui/dev
+          pnpm --filter @revealui/security... build
           pnpm --filter @revealui/harnesses exec tsup --config tsup.gates-cjs.ts
 
       # jv#871: a gate is not wired until CI has observed it green AND red.

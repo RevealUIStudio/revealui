@@ -63,7 +63,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 
 ## Package Map
 
-### Apps (6)
+### Apps (7)
 | App | Port | Framework | Purpose |
 |-----|------|-----------|---------|
 | server | 3004 | Hono | REST API (OpenAPI + Swagger) |
@@ -71,6 +71,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 | docs | 3002 | Vite/React | Documentation site (docs.revealui.com) |
 | marketing | 3000 | Vite/React | Product marketing site (revealui.com) |
 | license-signer | n/a | Hono | Internal license-signing service |
+| review-controller | 8080 | Hono | Internal shadow-mode review receipt controller |
 | rsc-poc | n/a | Next.js | In-tree RSC experiment (not a customer app) |
 
 > Note: the RevealUI Studio agency site (revealuistudio.com) lives in a

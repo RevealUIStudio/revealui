@@ -90,6 +90,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       docker: ${{ steps.diff.outputs.docker }}
+      review_controller: ${{ steps.diff.outputs.review_controller }}
     steps:
       - name: Checkout
         if: github.event_name == 'pull_request'
@@ -106,19 +107,25 @@ jobs:
         run: |
           if [ "$EVENT_NAME" != "pull_request" ]; then
             echo "docker=true" >> "$GITHUB_OUTPUT"
+            echo "review_controller=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           docker=false
+          review_controller=false
           while IFS= read -r f; do
-            # Keep this prefix list in lockstep with the on.push.paths filter.
+            # Keep general image prefixes in sync with on.push.paths. The
+            # review controller is built on PRs only and is never published here.
             case "$f" in
+              apps/review-controller/*|packages/harnesses/*)
+                review_controller=true
+                ;;
               apps/admin/*|apps/server/*|packages/ai/*|packages/auth/*|packages/cache/*|packages/config/*|packages/contracts/*|packages/core/*|packages/db/*|packages/dev/*|packages/mcp/*|packages/openapi/*|packages/paywall/*|packages/presentation/*|packages/resilience/*|packages/router/*|packages/security/*|packages/services/*|packages/setup/*|packages/sync/*|packages/tokens/*|packages/utils/*|package.json|pnpm-lock.yaml|turbo.json|.github/workflows/docker.yml|.github/actions/setup-pnpm-node/*)
                 docker=true
-                break
                 ;;
             esac
           done < <(git diff --name-only "$BASE_SHA"...HEAD)
           echo "docker=$docker" >> "$GITHUB_OUTPUT"
+          echo "review_controller=$review_controller" >> "$GITHUB_OUTPUT"
 
   build-and-push:
     name: Build ${{ matrix.app }}
@@ -208,27 +215,66 @@ jobs:
           provenance: ${{ github.event_name != 'pull_request' && 'mode=max' || 'false' }}
           sbom: ${{ github.event_name != 'pull_request' }}
 
+  # The isolated review controller is never published by this workflow. PRs
+  # build its final image so the production dependency assembly is verified.
+  review-controller-image:
+    name: Review controller image
+    needs: changes
+    if: github.event_name == 'pull_request' && needs.changes.outputs.review_controller == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - name: Build review controller image without publishing
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          file: apps/review-controller/Dockerfile
+          push: false
+          tags: revealui-review-controller:pr-${{ github.event.pull_request.number }}
+
   # The REQUIRED status context. Always runs (if: always()), so it reports on
-  # every PR regardless of path scoping: success when the build matrix
-  # succeeded or was skipped as image-irrelevant, failure on any build
-  # failure or cancellation. Required-checks live on this single context
-  # because skipped matrix jobs never expand into their per-app contexts.
+  # every PR regardless of path scoping: success when applicable image builds
+  # succeed or skip, failure on any build failure or cancellation.
+  # Required-checks live on this single context because skipped matrix jobs
+  # never expand into their per-app contexts.
   docker-images:
     name: Docker images
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [changes, build-and-push]
+    needs: [changes, build-and-push, review-controller-image]
     if: always()
     steps:
       - name: Evaluate build matrix result
         env:
-          RESULT: ${{ needs.build-and-push.result }}
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          BUILD_RESULT: ${{ needs.build-and-push.result }}
+          CONTROLLER_RESULT: ${{ needs.review-controller-image.result }}
         run: |
-          case "$RESULT" in
+          if [ "$CHANGES_RESULT" != "success" ]; then
+            echo "changes result: $CHANGES_RESULT"
+            exit 1
+          fi
+          case "$BUILD_RESULT" in
             success) echo "image builds green" ;;
             skipped) echo "image-irrelevant diff, builds skipped" ;;
             *)
-              echo "build-and-push result: $RESULT"
+              echo "build-and-push result: $BUILD_RESULT"
+              exit 1
+              ;;
+          esac
+          case "$CONTROLLER_RESULT" in
+            success) echo "review controller image build green" ;;
+            skipped) echo "review-controller-irrelevant diff, build skipped" ;;
+            *)
+              echo "review-controller-image result: $CONTROLLER_RESULT"
               exit 1
               ;;
           esac

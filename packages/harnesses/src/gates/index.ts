@@ -6,6 +6,36 @@
  */
 
 export type {
+  ReviewCheckRun,
+  ReviewCheckSelector,
+  ReviewReceipt,
+  ReviewReceiptContext,
+  ReviewReceiptEnvelope,
+  ReviewReceiptResult,
+  ReviewWorkflowRun,
+} from '@revealui/security/review-receipt';
+export {
+  canonicalReviewReceipt,
+  canonicalReviewReceiptEnvelope,
+  hasReviewReceiptCiCheck,
+  hasReviewReceiptSecurityChecks,
+  parseReviewReceiptEnvelope,
+  REVIEW_RECEIPT_SCHEMA,
+  REVIEW_RECEIPT_SECURITY_CHECKS,
+  resolveReviewRequiredChecks,
+  reviewReceiptCheckEvidenceSha256,
+  signReviewReceipt,
+  validReviewCheckSelector,
+  verifyReviewReceipt,
+} from '@revealui/security/review-receipt';
+export {
+  classifySecurityPaths,
+  classifySecurityPathsAtApiLimit,
+  MAX_CLASSIFIABLE_SECURITY_PATHS,
+  SECURITY_PATH_CLASSIFIER_VERSION,
+  SECURITY_PATH_MARKERS,
+} from '@revealui/security/security-path-classifier';
+export type {
   DeadInboundLink,
   ScanInboundLinksInput,
   ScannedFile,

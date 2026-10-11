@@ -229,7 +229,7 @@ This is the part that's genuinely hard to replicate by stitching services togeth
 
 Some numbers on what's actually shipped:
 
-- **39 workspaces** across the monorepo (6 apps, 33 packages with 26 MIT, 5 Fair Source, 2 internal)
+- **40 workspaces** across the monorepo (7 apps, 33 packages with 26 MIT, 5 Fair Source, 2 internal)
 - **124 database tables** via Drizzle ORM on NeonDB (Postgres)
 - **68 UI components** in `@revealui/presentation`, with one third-party runtime dependency (`tailwind-merge`), built directly on Tailwind v4 and React, with `cva` and `cn` vendored in-package
 - **14 first-party MCP servers** in `@revealui/mcp`

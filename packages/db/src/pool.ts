@@ -141,6 +141,8 @@ export function getPool(): Pool {
 }
 
 export interface CreatePoolOptions {
+  /** Dedicated connection target for isolated internal stores. */
+  connectionString?: string;
   connectionTimeoutMillis?: number;
   queryTimeoutMillis?: number;
   statementTimeoutMillis?: number;
@@ -163,9 +165,12 @@ export interface CreatePoolOptions {
  * (the raw-SQL `direct-import` gate blocks importing `pg` elsewhere).
  */
 export function createPool(options: CreatePoolOptions = {}): Pool {
+  const connectionEnv = options.connectionString
+    ? { ...process.env, DATABASE_URL: options.connectionString, POSTGRES_URL: '' }
+    : process.env;
   const pool = new Pool({
-    ...getConnectionIdentity(),
-    ssl: getPoolSSLConfig(),
+    ...getConnectionIdentity(connectionEnv),
+    ssl: options.connectionString ? getSSLConfig(options.connectionString) : getPoolSSLConfig(),
     connectionTimeoutMillis: options.connectionTimeoutMillis,
     query_timeout: options.queryTimeoutMillis,
     statement_timeout: options.statementTimeoutMillis,
