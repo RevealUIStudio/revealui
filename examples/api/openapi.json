@@ -132,6 +132,16 @@
                     "platform": {
                       "type": "string"
                     },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "preview",
+                        "live"
+                      ]
+                    },
+                    "paymentsEnabled": {
+                      "type": "boolean"
+                    },
                     "registryUrl": {
                       "type": "string"
                     },
@@ -197,10 +207,10 @@
                   "required": [
                     "version",
                     "platform",
+                    "status",
+                    "paymentsEnabled",
                     "registryUrl",
                     "publishUrl",
-                    "revenueShare",
-                    "paymentMethods",
                     "servers"
                   ]
                 }
