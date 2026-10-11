@@ -32,8 +32,9 @@ export async function GET(request: Request) {
     // Only zero-I/O probes run for anonymous callers — no DB query, no
     // Stripe call, no new anonymous load surface.
     try {
-      const { audit } = await import('@revealui/security/server');
-      if (process.env.NODE_ENV === 'production' && audit.isInMemoryStorage()) {
+      const { audit, readAuditSelfTestFailure } = await import('@revealui/security/server');
+      const selfTestFailed = Boolean(readAuditSelfTestFailure());
+      if (process.env.NODE_ENV === 'production' && (selfTestFailed || audit.isInMemoryStorage())) {
         return NextResponse.json({ status: 'unhealthy' }, { status: 503 });
       }
     } catch {
@@ -114,9 +115,17 @@ export async function GET(request: Request) {
   // login receipts) evaporate on restart: unhealthy. Dev shells without a DB
   // keep the in-memory sink by design: degraded, not unhealthy.
   try {
-    const { audit } = await import('@revealui/security/server');
+    const { audit, readAuditSelfTestFailure } = await import('@revealui/security/server');
+    const selfTestFailure = readAuditSelfTestFailure();
     const inMemory = audit.isInMemoryStorage();
-    if (!inMemory) {
+    if (process.env.NODE_ENV === 'production' && selfTestFailure) {
+      overallStatus = 'unhealthy';
+      checks.push({
+        name: 'audit-storage',
+        status: 'unhealthy',
+        message: selfTestFailure,
+      });
+    } else if (!inMemory) {
       checks.push({
         name: 'audit-storage',
         status: 'healthy',

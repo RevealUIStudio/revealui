@@ -58,7 +58,7 @@ export interface AuditEvent {
     name?: string;
   };
   action: string;
-  result: 'success' | 'failure' | 'partial';
+  result: 'success' | 'failure' | 'partial' | 'pending';
   changes?: {
     before?: Record<string, unknown>;
     after?: Record<string, unknown>;
@@ -75,31 +75,54 @@ export interface AuditQuery {
   startDate?: Date;
   endDate?: Date;
   severity?: AuditSeverity[];
-  result?: ('success' | 'failure' | 'partial')[];
+  result?: ('success' | 'failure' | 'partial' | 'pending')[];
   limit?: number;
   offset?: number;
 }
 
+/** Optional connection for a write that must share the caller's transaction. */
+export interface AuditWriteContext {
+  db?: unknown;
+}
+
 export interface AuditStorage {
-  write(event: AuditEvent): Promise<void>;
+  write(event: AuditEvent, context?: AuditWriteContext): Promise<void>;
   query(query: AuditQuery): Promise<AuditEvent[]>;
   count(query: AuditQuery): Promise<number>;
+}
+
+/**
+ * Walk an error and its `.cause` chain into one message. Drivers wrap the
+ * database error (the text that names the failed function or constraint) one
+ * level under a generic "Failed query" wrapper. Logging only the outer
+ * message drops that text. Bounded so a cyclic cause cannot loop.
+ */
+function auditErrorChain(error: unknown): string {
+  const parts: string[] = [];
+  let current: unknown = error;
+  for (let depth = 0; depth < 5 && current !== undefined; depth += 1) {
+    const message = current instanceof Error ? current.message : String(current);
+    if (message.length > 0 && !parts.some((part) => part.includes(message))) {
+      parts.push(message);
+    }
+    current = current instanceof Error ? current.cause : undefined;
+  }
+  return parts.join(' | cause: ');
 }
 
 /**
  * Thrown when `AuditSystem.log()` fails to persist an event. Carries the full
  * constructed event (including the generated `id`) so any catch site can
  * correlate the failure with exactly which event was dropped and classify
- * the underlying cause — without this, a `.catch()` only sees a raw
- * storage-layer error with no way to say which audit record never landed.
+ * the underlying cause. The message includes the driver cause chain so a
+ * boot self-test log is not only the outer query wrapper.
  */
 export class AuditWriteError extends Error {
   constructor(
     public readonly event: AuditEvent,
     public readonly cause: unknown,
   ) {
-    const causeMessage = cause instanceof Error ? cause.message : String(cause);
-    super(`Audit write failed for event ${event.id} (${event.type}): ${causeMessage}`);
+    super(`Audit write failed for event ${event.id} (${event.type}): ${auditErrorChain(cause)}`);
     this.name = 'AuditWriteError';
   }
 }
@@ -139,7 +162,10 @@ export class AuditSystem {
    * failures; throws `AuditWriteError` (wrapping the storage-layer cause) on
    * a failed persist so the event that was lost is never anonymous.
    */
-  async log(event: Omit<AuditEvent, 'id' | 'timestamp'>): Promise<AuditEvent> {
+  async log(
+    event: Omit<AuditEvent, 'id' | 'timestamp'>,
+    context?: AuditWriteContext,
+  ): Promise<AuditEvent> {
     const fullEvent: AuditEvent = {
       ...event,
       id: crypto.randomUUID(),
@@ -154,7 +180,7 @@ export class AuditSystem {
     }
 
     try {
-      await this.storage.write(fullEvent);
+      await this.storage.write(fullEvent, context);
     } catch (cause) {
       throw new AuditWriteError(fullEvent, cause);
     }
@@ -333,7 +359,7 @@ export class InMemoryAuditStorage implements AuditStorage {
     this.maxEvents = maxEvents;
   }
 
-  async write(event: AuditEvent): Promise<void> {
+  async write(event: AuditEvent, _context?: AuditWriteContext): Promise<void> {
     this.events.push(event);
 
     // Trim old events

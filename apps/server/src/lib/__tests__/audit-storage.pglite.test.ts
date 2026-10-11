@@ -16,9 +16,14 @@
  * constraint — 0 of 3 rows landed. Post-Stage-1 the boundary maps them
  * (low->info, medium->warn, high->critical) and every one lands.
  */
-import { randomUUID } from 'node:crypto';
+import { generateKeyPairSync, randomUUID } from 'node:crypto';
+import { __resetAuditSignerForTest } from '@revealui/auth/audit-storage';
 import type { AuditEvent, AuditStorage } from '@revealui/core/security';
-import { AuditSystem } from '@revealui/core/security';
+import {
+  AuditSystem,
+  clearAuditSelfTestFailure,
+  readAuditSelfTestFailure,
+} from '@revealui/core/security';
 import type { Database } from '@revealui/db/client';
 import { createTestDb, type TestDb } from '@revealui/db/testing';
 import { eq } from 'drizzle-orm';
@@ -178,28 +183,65 @@ describe('auditStorageSelfTest — boot-time round-trip gate', () => {
   let testDb: TestDb | undefined;
 
   afterEach(async () => {
+    delete process.env.REVEALUI_AUDIT_SIGNING_KEY;
+    __resetAuditSignerForTest();
+    clearAuditSelfTestFailure();
     if (testDb) {
       await testDb.close();
       testDb = undefined;
     }
   });
 
-  it('healthy storage: startup proceeds (resolves)', async () => {
+  it('healthy storage: startup proceeds (resolves) and the self-test row is readable', async () => {
     testDb = await createTestDb();
     const system = new AuditSystem(
       new DrizzleBackedAuditStorage(testDb.drizzle as unknown as Database),
     );
     await expect(auditStorageSelfTest(system)).resolves.toBeUndefined();
+
+    const { auditLog } = await import('@revealui/db/schema');
+    const rows = await testDb.drizzle.select().from(auditLog);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.eventType).toBe('security.audit_self_test');
+    expect(rows[0]?.severity).toBe('info');
+    expect(readAuditSelfTestFailure()).toBeUndefined();
   });
 
-  it('broken storage (write fails): startup REFUSES (rejects loudly)', async () => {
+  it('signed storage: self-test writes a signed row and reads that same row back', async () => {
+    const { privateKey } = generateKeyPairSync('ed25519');
+    const pem = privateKey.export({ type: 'pkcs8', format: 'pem' });
+    process.env.REVEALUI_AUDIT_SIGNING_KEY = typeof pem === 'string' ? pem : pem.toString();
+    __resetAuditSignerForTest();
+
+    testDb = await createTestDb();
+    const system = new AuditSystem(
+      new DrizzleBackedAuditStorage(testDb.drizzle as unknown as Database),
+    );
+    await expect(auditStorageSelfTest(system)).resolves.toBeUndefined();
+
+    const { auditLog } = await import('@revealui/db/schema');
+    const rows = await testDb.drizzle.select().from(auditLog);
+    expect(rows).toHaveLength(1);
+    const row = rows[0];
+    expect(row?.eventType).toBe('security.audit_self_test');
+    expect(row?.severity).toBe('info');
+    expect(row?.signature?.startsWith('v1.ed25519.')).toBe(true);
+    const payload = row?.payload as { id?: string; type?: string };
+    expect(payload.type).toBe('security.audit_self_test');
+    const found = await system.query({ actorId: row?.agentId, limit: 5 });
+    expect(found.some((event) => event.id === payload.id)).toBe(true);
+    expect(readAuditSelfTestFailure()).toBeUndefined();
+  });
+
+  it('broken storage (write fails): startup REFUSES (rejects loudly) and the failure is recorded', async () => {
     const failingWrite: AuditStorage = {
       write: () => Promise.reject(new Error('db down')),
       query: () => Promise.resolve([]),
       count: () => Promise.resolve(0),
     };
     const system = new AuditSystem(failingWrite);
-    await expect(auditStorageSelfTest(system)).rejects.toThrow();
+    await expect(auditStorageSelfTest(system)).rejects.toThrow('db down');
+    expect(readAuditSelfTestFailure()).toContain('db down');
   });
 
   it('broken storage (readback fails): startup REFUSES (rejects loudly)', async () => {
