@@ -47,7 +47,7 @@ export const PRICING_FAQS: readonly FaqItem[] = [
   },
   {
     question: 'What is Fair Source (FSL-1.1-MIT)?',
-    answer: `Fair Source is a middle path between closed commercial and plain open-source. Our five Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) are source-visible on GitHub, installable from npm, and legally usable in commercial products, with one non-compete clause: you can't ship a substantially similar developer platform that competes with RevealUI on top of them. Two years after each release, that release automatically converts to MIT. Same license model used by Sentry, GitButler, and Keygen. Source-available under FSL: free for everyone except SaaS competitors. Pro and Enterprise on /pricing are a license plus studio support on admin.revealui.com; you self-host. Enforcement is not baked into the npm packages. Full explainer at /fair-source.`,
+    answer: `Fair Source is a middle path between closed commercial and plain open-source. Our five Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) are source-visible in the public repository, installable from the public package registry, and legally usable in commercial products, with one non-compete clause: you can't ship a substantially similar developer platform that competes with RevealUI on top of them. Two years after each release, that release automatically converts to MIT. Other source-available developer tools use the same license model. Source-available under FSL: free for everyone except SaaS competitors. Pro and Enterprise on /pricing are a license plus studio support on admin.revealui.com; you self-host. Enforcement is not baked into the published packages. Full explainer at /fair-source.`,
   },
   {
     question: 'How do I buy Enterprise?',
@@ -56,6 +56,6 @@ export const PRICING_FAQS: readonly FaqItem[] = [
   {
     question: 'What is RevealFleet?',
     answer:
-      'RevealUI Studio ships RevealFleet. RevealUI is the lead product and the buyable runtime on this site. RevealFleet sits with the tools you already use: Stripe, Neon, Vercel, GitHub, Google Calendar, Gmail, and a BYO model. The catalog is Free, Pro at $49, Max at $99, Enterprise by inquiry, and Pro Perpetual at $1,499. RevVault is encrypted secret management inside Pro. It is not a separate paid SKU.',
+      'RevealFleet is the RevealUI product family. RevealUI is the lead product and the buyable runtime on this site. It works with the tools you already use: your payments processor, database, hosting provider, code host, calendar, and email provider, plus a model you bring. The catalog is Free, Pro at $49, Max at $99, Enterprise by inquiry, and Pro Perpetual at $1,499. RevVault is encrypted secret management inside Pro. It is not a separate paid SKU. RevealUI Studio is the services path on revealuistudio.com.',
   },
 ];

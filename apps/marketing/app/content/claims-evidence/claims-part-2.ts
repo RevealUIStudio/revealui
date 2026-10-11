@@ -61,19 +61,19 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_AGENT_A2A.body.suffix',
-    text: '. Capabilities, skills, and pricing all machine-readable.',
+    text: '. The card lists capabilities and skills.',
     evidence: [LIVE_AGENT_CARD],
   },
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_AGENT_X402.body',
-    text: 'The HTTP 402 (x402) payment rail ships in the code and stays off by default. Built on the open x402 standard, with a Coinbase-compatible facilitator implemented. It is not included today: X402_ENABLED is off, and this is not a live payments product until an operator turns the flag on.',
+    text: 'The HTTP 402 (x402) payment rail ships in the code and stays off by default. Built on the open x402 standard. It is not included today: X402_ENABLED is off, and this is not a live payments product until an operator turns the flag on.',
     evidence: [X402, X402_FACILITATOR],
   },
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_AGENT_MCP.body',
-    text: 'N production MCP servers for any MCP-capable IDE (Cursor, Claude Code, Copilot, Zed, and others), including Stripe, Neon, Vercel, Playwright, Next.js DevTools, pages and offers, and email. First-party servers ship today. Discovery via marketplace.json and the servers list is a preview; the third-party catalog, charging, and payouts are not open. (interpolated: N from METRICS.mcpServers)',
+    text: 'N production MCP servers for any MCP-capable editor or coding assistant, including payments, database, hosting, browser automation, web framework devtools, pages and offers, and email. First-party servers ship today. Discovery via marketplace.json and the servers list is a preview; the third-party catalog, charging, and payouts are not open. (interpolated: N from METRICS.mcpServers)',
     match: 'path',
     evidence: [MCP_SERVERS],
   },
@@ -116,7 +116,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'SUBSCRIPTION_TIERS[0].features[5]',
-    text: 'Local AI inference (Inference Snaps / Ollama)',
+    text: 'Local AI inference (open models on your own hardware)',
     evidence: [OPEN_WEIGHT],
   },
   {
@@ -369,7 +369,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing-faq.ts',
     exportPath: 'PRICING_FAQS[7].answer',
-    text: "Fair Source is a middle path between closed commercial and plain open-source. Our five Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) are source-visible on GitHub, installable from npm, and legally usable in commercial products, with one non-compete clause: you can't ship a substantially similar developer platform that competes with RevealUI on top of them. Two years after each release, that release automatically converts to MIT. Same license model used by Sentry, GitButler, and Keygen. Source-available under FSL: free for everyone except SaaS competitors. Pro and Enterprise on /pricing are a license plus studio support on admin.revealui.com; you self-host. Enforcement is not baked into the npm packages. Full explainer at /fair-source.",
+    text: "Fair Source is a middle path between closed commercial and plain open-source. Our five Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) are source-visible in the public repository, installable from the public package registry, and legally usable in commercial products, with one non-compete clause: you can't ship a substantially similar developer platform that competes with RevealUI on top of them. Two years after each release, that release automatically converts to MIT. Other source-available developer tools use the same license model. Source-available under FSL: free for everyone except SaaS competitors. Pro and Enterprise on /pricing are a license plus studio support on admin.revealui.com; you self-host. Enforcement is not baked into the published packages. Full explainer at /fair-source.",
     evidence: [
       LICENSE_SPLIT,
       FAIR_SOURCE_PAGE,
@@ -390,7 +390,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing-faq.ts',
     exportPath: 'PRICING_FAQS[9].answer',
-    text: 'RevealUI Studio ships RevealFleet. RevealUI is the lead product and the buyable runtime on this site. RevealFleet sits with the tools you already use: Stripe, Neon, Vercel, GitHub, Google Calendar, Gmail, and a BYO model. The catalog is Free, Pro at $49, Max at $99, Enterprise by inquiry, and Pro Perpetual at $1,499. RevVault is encrypted secret management inside Pro. It is not a separate paid SKU.',
+    text: 'RevealFleet is the RevealUI product family. RevealUI is the lead product and the buyable runtime on this site. It works with the tools you already use: your payments processor, database, hosting provider, code host, calendar, and email provider, plus a model you bring. The catalog is Free, Pro at $49, Max at $99, Enterprise by inquiry, and Pro Perpetual at $1,499. RevVault is encrypted secret management inside Pro. It is not a separate paid SKU. RevealUI Studio is the services path on revealuistudio.com.',
     evidence: [REPO, COMMERCIAL_POLICY, PRICING_FALLBACKS, REVVAULT_REPO],
   },
   {
