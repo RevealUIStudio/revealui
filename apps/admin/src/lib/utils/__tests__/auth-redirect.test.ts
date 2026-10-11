@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
   buildAuthIntentQuery,
+  buildAuthPageHref,
   parseLicense,
   parseUpgrade,
   readAuthIntent,
@@ -89,6 +90,22 @@ describe('resolveAuthDest', () => {
   });
 });
 
+describe('buildAuthPageHref', () => {
+  it('carries allowlisted plan, license, and redirect', () => {
+    expect(
+      buildAuthPageHref('/login', reader({ plan: 'pro', license: 'pro', redirect: '/welcome' })),
+    ).toBe('/login?plan=pro&license=pro&redirect=%2Fwelcome');
+  });
+
+  it('writes upgrade as plan and omits open redirects', () => {
+    expect(
+      buildAuthPageHref('/signup', reader({ upgrade: 'max', redirect: 'https://evil.example' })),
+    ).toBe('/signup?plan=max');
+    expect(buildAuthPageHref('/signup', reader({ redirect: '//evil.com' }))).toBe('/signup');
+    expect(buildAuthPageHref('/login', reader({ plan: 'nope', license: 'agency' }))).toBe('/login');
+  });
+});
+
 describe('buildAuthIntentQuery', () => {
   it('returns an empty string when there is no intent', () => {
     expect(buildAuthIntentQuery({ upgrade: null, redirect: null })).toBe('');
@@ -163,6 +180,26 @@ describe('readAuthIntent', () => {
       license: null,
       redirect: '/account/license',
     });
+  });
+
+  it('reads ?plan= as the upgrade intent when ?upgrade= is absent', () => {
+    expect(readAuthIntent(reader({ plan: 'max', redirect: '/welcome' }))).toEqual({
+      upgrade: 'max',
+      license: null,
+      redirect: '/welcome',
+    });
+  });
+
+  it('prefers ?upgrade= over ?plan= when both are set', () => {
+    expect(readAuthIntent(reader({ upgrade: 'pro', plan: 'max' }))).toEqual({
+      upgrade: 'pro',
+      license: null,
+      redirect: null,
+    });
+  });
+
+  it('drops an unknown plan', () => {
+    expect(readAuthIntent(reader({ plan: 'enterprise-deluxe' })).upgrade).toBeNull();
   });
 
   it('prefers ?redirect= over ?returnUrl=', () => {

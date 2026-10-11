@@ -1,10 +1,11 @@
 'use client';
 
 import { usePasskeySignIn, useSignIn } from '@revealui/auth/react';
+import { SignInRequestSchema } from '@revealui/contracts/api/auth';
 import { perpetualLicenseLabel } from '@revealui/contracts/pricing';
 import {
   Button,
-  FormLabel,
+  FormField,
   GitHubIcon,
   GoogleIcon,
   Heading,
@@ -18,8 +19,14 @@ import { useSearchParams } from 'next/navigation';
 import { type ChangeEvent, type FormEvent, Suspense, useState } from 'react';
 import { isAdminRole } from '@/lib/access/roles/isAdminRole';
 import { PasswordInput } from '@/lib/components/PasswordInput';
+import { messageForPath } from '@/lib/utils/auth-field-errors';
 import { navigateAfterAuthChange } from '@/lib/utils/auth-navigation';
-import { buildAuthIntentQuery, readAuthIntent, resolveAuthDest } from '@/lib/utils/auth-redirect';
+import {
+  buildAuthIntentQuery,
+  buildAuthPageHref,
+  readAuthIntent,
+  resolveAuthDest,
+} from '@/lib/utils/auth-redirect';
 import { apiFetch } from '@/lib/utils/csrf';
 
 export type OAuthProvider = 'github' | 'google' | 'vercel' | 'linkedin';
@@ -92,6 +99,8 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showFieldErrors, setShowFieldErrors] = useState(false);
+  const [touched, setTouched] = useState({ email: false, password: false });
   const oauthError = searchParams.get('error');
   const [error, setError] = useState<string | null>(
     oauthError ? (OAUTH_ERROR_MESSAGES[oauthError] ?? 'Sign-in failed. Please try again.') : null,
@@ -107,11 +116,23 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
   const anyLoading = isLoading || isPasskeyLoading;
   const hasAlternates = oauthProviders.length > 0 || passkeySupported;
 
+  const signInParsed = SignInRequestSchema.safeParse({ email, password });
+  const signInIssues = signInParsed.success ? [] : signInParsed.error.issues;
+  const emailError =
+    showFieldErrors || touched.email ? messageForPath(signInIssues, 'email') : undefined;
+  const passwordError =
+    showFieldErrors || touched.password ? messageForPath(signInIssues, 'password') : undefined;
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
     setUnverifiedEmail(null);
     setResendState('idle');
+
+    if (!signInParsed.success) {
+      setShowFieldErrors(true);
+      return;
+    }
 
     const result = await signIn({ email, password });
     if (result.success && 'requiresPasswordRotation' in result && result.requiresPasswordRotation) {
@@ -227,32 +248,28 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <FormLabel htmlFor="email" required>
-            Email
-          </FormLabel>
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        <FormField id="email" label="Email" required error={emailError}>
           <Input
             id="email"
             type="email"
             value={email}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+            onBlur={() => setTouched((current) => ({ ...current, email: true }))}
             disabled={anyLoading}
             autoComplete="email"
             required
           />
-        </div>
+        </FormField>
 
-        <div className="space-y-2">
-          <FormLabel htmlFor="password" required>
-            Password
-          </FormLabel>
+        <FormField id="password" label="Password" required error={passwordError}>
           <PasswordInput visible={showPassword} onToggle={() => setShowPassword((v) => !v)}>
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+              onBlur={() => setTouched((current) => ({ ...current, password: true }))}
               disabled={anyLoading}
               autoComplete="current-password"
               className="pr-10"
@@ -260,7 +277,7 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
               required
             />
           </PasswordInput>
-        </div>
+        </FormField>
 
         <Button type="submit" disabled={anyLoading} className="w-full">
           {isLoading ? 'Signing in…' : 'Sign in'}
@@ -320,7 +337,7 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
       <p className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{' '}
         <Link
-          href="/signup"
+          href={buildAuthPageHref('/signup', searchParams)}
           className="text-[var(--tenant-brand,#2563eb)] underline hover:opacity-80"
         >
           Sign up

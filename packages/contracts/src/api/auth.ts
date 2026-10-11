@@ -6,22 +6,88 @@
 
 import { z } from 'zod/v4';
 import { createContract } from '../foundation/contract.js';
+import {
+  type PasswordChecklistItem,
+  passwordStrengthChecklist,
+  SIGNUP_PASSWORD_MIN_LENGTH,
+  SIGNUP_PASSWORD_MIN_MESSAGE,
+} from './password-policy.js';
+
+export { SIGNUP_PASSWORD_MIN_LENGTH, SIGNUP_PASSWORD_MIN_MESSAGE };
 
 /**
  * Sign-up request validation
  *
  * Validates user registration data with:
  * - Email format validation and sanitization
- * - Password strength requirements (min 12 chars — GAP-244 lockstep with setup/bootstrap)
+ * - Password strength requirements (min 12 chars, GAP-244 lockstep with setup/bootstrap)
  * - Name validation and sanitization
  */
+const signUpPasswordSchema = z
+  .string()
+  .min(SIGNUP_PASSWORD_MIN_LENGTH, SIGNUP_PASSWORD_MIN_MESSAGE);
+
+const SIGNUP_CHECKLIST_ORDER = [
+  'minLength',
+  'uppercase',
+  'lowercase',
+  'number',
+  'maxLength',
+] as const satisfies readonly PasswordChecklistItem['id'][];
+
+function signupPasswordMinLabel(): string {
+  const result = signUpPasswordSchema.safeParse('');
+  if (!result.success) {
+    for (const issue of result.error.issues) {
+      if (issue.code === 'too_small') return issue.message;
+    }
+  }
+  return SIGNUP_PASSWORD_MIN_MESSAGE;
+}
+
+const SIGNUP_PASSWORD_MIN_LABEL = signupPasswordMinLabel();
+
+function signupPasswordMeetsMinimum(password: string): boolean {
+  const result = signUpPasswordSchema.safeParse(password);
+  if (result.success) return true;
+  for (const issue of result.error.issues) {
+    if (issue.code === 'too_small') return false;
+  }
+  return true;
+}
+
+/**
+ * Live sign-up password rule. Length comes from the sign-up schema.
+ * Uppercase, lowercase, number, and maximum length come from the strength
+ * validator. A password is ready only when every item is met, which is the
+ * same bar the server enforces (contract, then strength).
+ */
+export function signupPasswordChecklist(password: string): PasswordChecklistItem[] {
+  const byId = new Map<PasswordChecklistItem['id'], PasswordChecklistItem>();
+  byId.set('minLength', {
+    id: 'minLength',
+    label: SIGNUP_PASSWORD_MIN_LABEL,
+    met: signupPasswordMeetsMinimum(password),
+  });
+  for (const item of passwordStrengthChecklist(password)) {
+    if (item.id === 'minLength') continue;
+    byId.set(item.id, item);
+  }
+  const ordered: PasswordChecklistItem[] = [];
+  for (const id of SIGNUP_CHECKLIST_ORDER) {
+    const item = byId.get(id);
+    if (item) ordered.push(item);
+  }
+  return ordered;
+}
+
 export const SignUpRequestSchema = z.object({
   email: z
     .string()
     .min(1, 'Email is required')
     .email('Invalid email format')
     .transform((email) => email.toLowerCase().trim()),
-  password: z.string().min(12, 'Password must be at least 12 characters long'),
+  password: signUpPasswordSchema,
   name: z
     .string()
     .min(1, 'Name is required')
