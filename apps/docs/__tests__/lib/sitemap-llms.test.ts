@@ -116,6 +116,11 @@ describe('docs discovery files', () => {
     expect(unresolved).toEqual([]);
   });
 
+  it('reports Stripe live mode for product billing', () => {
+    expect(llms.includes('**Stripe** live mode is on for product billing.')).toBe(true);
+    expect(llms.includes('TEST mode')).toBe(false);
+  });
+
   it('names RevealFleet as the family, not a RevealFleet catalog or seven-product sell', () => {
     expect(llms.includes('[RevealFleet](https://docs.revealui.com/REVEALFLEET)')).toBe(true);
     expect(llms.includes('Not a catalog SKU and not for sale.')).toBe(true);
