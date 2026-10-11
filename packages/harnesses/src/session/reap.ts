@@ -119,7 +119,7 @@ export async function sessionReap(options: ReapOptions = {}): Promise<ReapResult
       ppid,
       timeoutMs,
     });
-    if (!reg.ok || !reg.agentId) {
+    if (!(reg.ok && reg.agentId)) {
       return {
         ok: false,
         skipped: true,
@@ -131,7 +131,7 @@ export async function sessionReap(options: ReapOptions = {}): Promise<ReapResult
     agentId = reg.agentId;
     identity = resolveAfterRegister({ agentId }) ?? loadHookIdentity(agentId);
   }
-  if (!identity || !agentId) {
+  if (!(identity && agentId)) {
     return {
       ok: false,
       skipped: true,
@@ -155,7 +155,7 @@ export async function sessionReap(options: ReapOptions = {}): Promise<ReapResult
   }
 
   const sessions = Array.isArray(asRecord(listRaw)?.sessions)
-    ? (asRecord(listRaw)!.sessions as unknown[])
+    ? (asRecord(listRaw)?.sessions as unknown[])
     : [];
   const candidates: Array<{ id: string; task: string; staleSeconds?: number }> = [];
   for (const row of sessions) {

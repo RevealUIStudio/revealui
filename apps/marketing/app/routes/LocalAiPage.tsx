@@ -81,10 +81,7 @@ function LocalAiPillars({ data, path, annotation }: LocalAiPillarsProps) {
     <MarketingSection tone="background" density="compact" width="default">
       <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-3">
         {data.pillars.map((pillar, index) => (
-          <div
-            key={`pillar-${index}`}
-            className="rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8"
-          >
+          <div key={pillar.title} className="rounded-2xl bg-card p-6 ring-1 ring-border sm:p-8">
             <h2
               className="font-display text-lg font-semibold tracking-tight text-foreground"
               {...fieldAttrs(annotation, `${path}.items.${index}.label`)}
@@ -152,7 +149,7 @@ function LocalAiMarketProof({ data, path, annotation }: LocalAiMarketProofProps)
       />
       <ul className="mt-12 list-none space-y-4 p-0 sm:mt-14">
         {data.adopters.map((adopter, index) => (
-          <li key={`adopter-${index}`} className="rounded-2xl bg-card p-6 ring-1 ring-border">
+          <li key={adopter.name} className="rounded-2xl bg-card p-6 ring-1 ring-border">
             <p className="text-base leading-7 text-body">
               <span
                 className="font-semibold text-foreground"

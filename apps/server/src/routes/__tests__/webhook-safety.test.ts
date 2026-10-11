@@ -203,7 +203,6 @@ vi.mock('../../lib/email.js', () => ({
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────
 
-import * as licenseModule from '@revealui/core/license';
 import * as mintModule from '@revealui/core/license/mint-client';
 import * as loggerModule from '@revealui/core/observability/logger';
 import webhooksApp from '../webhooks.js';
