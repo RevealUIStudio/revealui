@@ -7609,6 +7609,7 @@ Returns subscription tiers, credit bundles, and perpetual license pricing. Price
 | `pricingModel` | `string` | - |  |
 | `basePriceUsdc` | `string` | - |  |
 | `maxExecutionSecs` | `integer` | - |  |
+| `license` | `string` | ✓ |  |
 | `resourceLimits` | `object` | - |  |
 
 **Responses**
@@ -7657,6 +7658,7 @@ Returns subscription tiers, credit bundles, and perpetual license pricing. Price
 | `pricingModel` | `string` | - |  |
 | `basePriceUsdc` | `string` | - |  |
 | `maxExecutionSecs` | `integer` | - |  |
+| `license` | `string` | - |  |
 | `status` | `string` | - |  |
 
 **Responses**
@@ -7960,6 +7962,7 @@ Returns subscription tiers, credit bundles, and perpetual license pricing. Price
 | `pricingModel` | `string` | - |  |
 | `basePriceUsdc` | `string` | - |  |
 | `maxExecutionSecs` | `integer` | - |  |
+| `license` | `string` | ✓ |  |
 | `resourceLimits` | `object` | - |  |
 
 **Responses**
@@ -8008,6 +8011,7 @@ Returns subscription tiers, credit bundles, and perpetual license pricing. Price
 | `pricingModel` | `string` | - |  |
 | `basePriceUsdc` | `string` | - |  |
 | `maxExecutionSecs` | `integer` | - |  |
+| `license` | `string` | - |  |
 | `status` | `string` | - |  |
 
 **Responses**
