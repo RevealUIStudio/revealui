@@ -64,7 +64,7 @@ export const STATUS_MONITOR = {
   worksToday:
     'The probe above reflects current API reachability from your browser. Vercel runs its own platform health checks; we receive alerts when their checks fail.',
   watching:
-    'A separate public uptime history with subscribable incident channels is queued for after we have paying customers. Until then, this live-probe page is the honest interim.',
+    'A separate public uptime history with subscribable incident channels is planned. This page currently reports live probes; it does not provide a complete incident history.',
   missing:
     'A 24×7 on-call rotation. Multi-region failover. A separate paid status page domain. We will publish these on this page when they ship, not before.',
 } as const;
