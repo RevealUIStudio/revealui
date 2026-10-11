@@ -7,7 +7,7 @@ category: guide
 audience: developer
 ---
 
-Commercial guide to RevealUI Pro: packaging, MCP integrations, open-model inference, editors, harnesses, services, x402 payments, marketplace flows, and licensing.
+Commercial guide to RevealUI Pro: packaging, MCP integrations, open-model inference, editors, harnesses, services, x402 payments, the preview MCP server registry, and licensing.
 
 Canonical product definition: [What is RevealUI?](./WHAT_IS.md). Support and license-infra uptime: [SLA](./SLA.md).
 
@@ -37,7 +37,7 @@ Per-user or perpetual licenses can still exist for narrowly scoped products.
 - [Services](#revealuiservices)
 - [x402 Micropayments](#x402-micropayments)
 - [Perpetual Licenses](#perpetual-licenses)
-- [MCP Marketplace](#mcp-marketplace)
+- [MCP server registry (preview)](#mcp-server-registry-preview)
 - [Enterprise tier](#enterprise-tier)
 - [Related Documentation](#related-documentation)
 
@@ -54,7 +54,7 @@ This guide covers the full Pro surface area, not just MCP setup:
 - Open-model inference (Ollama shipped; Ubuntu Inference Snaps on roadmap)
 - editor and harness workflows
 - Stripe and x402 payment features
-- marketplace monetization
+- the preview MCP server registry (not open to third parties)
 - perpetual and Enterprise licensing
 
 ## Commercial Model
@@ -63,14 +63,14 @@ The target RevealUI Pro pricing model is:
 
 - **Platform subscription** for workspace or account access
 - **Metered agent execution** for workflows, tool calls, and other digital labor
-- **Commerce fees** for paid API, marketplace, and agent-initiated transaction flows
+- **Commerce fees** for paid API and agent-initiated transaction flows
 - **Trust and governance controls** for approvals, audit, policy, and compliance
 
 This is the model the product and billing architecture should converge on from 2026 onward.
 
 ## What Pro Includes
 
-RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime — Pro packages, Pro APIs, Pro feature gates. It also unlocks features in *companion products* across RevealFleet.
+RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime: Pro packages, Pro APIs, Pro feature gates. It also unlocks features in *companion products* across RevealFleet.
 
 **In the RevealUI runtime (this monorepo):**
 
@@ -79,13 +79,13 @@ RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime —
 - Open-model inference configuration per deployment
 - Stripe service integrations
 - x402 micropayments and paid API support
-- Marketplace and self-hosted commercial deployment options
+- Self-hosted commercial deployment options
 
 **Unlocked in companion products (separate repos in [RevealFleet](https://github.com/RevealUIStudio)):**
 
-- **Studio** desktop app (lives in [RevDev](https://github.com/RevealUIStudio/revdev), Tauri) — agent coordination hub, local inference management, visual agent dashboard. Studio talks to your RevealUI runtime; the Pro tier unlocks Studio's commercial features.
-- **RevVault** desktop app (lives in [RevVault](https://github.com/RevealUIStudio/revvault), Tauri) — age-encrypted secret management
-- **RevVault rotation engine** — automated credential lifecycle
+- **Studio** desktop app (lives in [RevDev](https://github.com/RevealUIStudio/revdev), Tauri): agent coordination hub, local inference management, visual agent dashboard. Studio talks to your RevealUI runtime; the Pro tier unlocks Studio's commercial features.
+- **RevVault** desktop app (lives in [RevVault](https://github.com/RevealUIStudio/revvault), Tauri): age-encrypted secret management
+- **RevVault rotation engine**: automated credential lifecycle
 
 ## Ecosystem Features by Tier
 
@@ -105,16 +105,16 @@ The MIT-licensed component (RevVault CLI) is free forever. Commercial features (
 
 RevealUI publishes every package to npm from the same public repo. There are two source licenses in play:
 
-- **OSS packages (MIT):** `@revealui/core`, `@revealui/auth`, `@revealui/db`, `@revealui/contracts`, `@revealui/security`, `@revealui/utils`, `@revealui/config`, `@revealui/cache`, `@revealui/resilience`, `@revealui/openapi`, `@revealui/sync`, `@revealui/paywall`, and the rest of the public infrastructure. Use them however you want — commercial products, forks, SaaS, whatever.
-- **Pro packages (Fair Source, FSL-1.1-MIT):** `@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, and `@revealui/services` (note: `@revealui/engines` is `"private": true` and not published on npm). Source-visible in the public repo, installable from npm like any other package, with one legal constraint: you can't build a product that competes directly with RevealUI on top of them. Two years after each release the license on that release automatically converts to plain MIT. FSL-1.1 is the same license used by Sentry, GitButler, and Keygen.
+- **OSS packages (MIT):** `@revealui/core`, `@revealui/auth`, `@revealui/db`, `@revealui/contracts`, `@revealui/security`, `@revealui/utils`, `@revealui/config`, `@revealui/cache`, `@revealui/resilience`, `@revealui/openapi`, `@revealui/sync`, `@revealui/paywall`, and the rest of the public infrastructure. Use them however you want: commercial products, forks, SaaS, whatever.
+- **Pro packages (Fair Source, FSL-1.1-MIT):** `@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, and `@revealui/services` (note: `@revealui/engines` is `"private": true` and not published on npm). Source-visible in the public repo, installable from npm like any other package, with one legal constraint: you can't build a product that competes directly with RevealUI on top of them. Two years after each release the license on that release automatically converts to plain MIT. Other source-available developer tools use the same license.
 
 **What this means in practice:**
 
 - You get full source access to the Pro packages for audit, security review, bug reports, and self-service debugging. No "black box" you have to trust.
-- You can use the Pro packages commercially as long as your product isn't a substantially similar developer platform competing with RevealUI. Building a SaaS product on top of the AI primitives, agents, editors, harnesses, or MCP marketplace is fine. Publishing a competing "platform software sold at the account or workspace level" isn't.
+- You can use the Pro packages commercially as long as your product isn't a substantially similar developer platform competing with RevealUI. Building a SaaS product on top of the AI primitives, agents, editors, harnesses, or MCP servers is fine. Publishing a competing "platform software sold at the account or workspace level" isn't.
 - Every Pro release has a scheduled MIT-conversion date two years out. You can see the history in the package's changelog, and today's FSL source becomes tomorrow's MIT source.
 
-The Pro tier gate isn't enforced by the license — it's enforced at runtime by license validation (`initializeLicense()`, 6-layer middleware, `checkAIFeatureGate()` at every Pro API entry point). The license JWTs are Ed25519-signed; the check can't be bypassed by forking the source. FSL is the legal backstop; runtime enforcement is the real protection.
+The Pro tier gate isn't enforced by the license. It's enforced at runtime by license validation (`initializeLicense()`, 6-layer middleware, `checkAIFeatureGate()` at every Pro API entry point). The license JWTs are Ed25519-signed; the check can't be bypassed by forking the source. FSL is the legal backstop; runtime enforcement is the real protection.
 
 For full decision context: [ADR-003: Fair Source Licensing](./architecture/ADR-003-fair-source-licensing.md). The root `LICENSE` file (MIT) and per-package `LICENSE` files inside `packages/ai/`, `packages/engines/`, `packages/harnesses/`, `packages/mcp/`, and `packages/services/` (FSL-1.1-MIT) describe the terms verbatim.
 
@@ -916,7 +916,7 @@ LLM_PROVIDER=ollama
 ## Per-user provider keys
 
 For multi-tenant deployments, individual users can register their own keys for the
-**open-model** provider endpoints supported by RevealUI — HuggingFace, Groq,
+**open-model** provider endpoints supported by RevealUI: HuggingFace, Groq,
 Ollama, and Ubuntu Inference Snaps. Proprietary "bring-your-own-key" paths
 (Anthropic, OpenAI, etc.) were removed on 2026-04-05 in the open-model-only pivot;
 `@revealui/ai` only ships providers for Apache-2.0 / Fair-Source open models.
@@ -937,7 +937,7 @@ User-level inference configuration takes precedence over server defaults.
 
 # RevCon (editor config sync)
 
-Editor configuration sync — recommended extensions, workspace settings, and AI rules for VS Code, Zed, and Cursor — lives in **RevCon**, a sibling repository published separately from this monorepo.
+Editor configuration sync (recommended extensions, workspace settings, and AI rules for code editors) lives in **RevCon**, a sibling repository published separately from this monorepo.
 
 - Repo: [`RevealUIStudio/editor-configs`](https://github.com/RevealUIStudio/editor-configs)
 - CLI: `revcon sync`, `revcon diff`, `revcon pull`, `revcon push`
@@ -1115,38 +1115,41 @@ STRIPE_PRICE_ID=price_...       # Your Pro tier price
 STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_PUBLISHABLE_KEY=pk_live_...
-
 ```
 
 ---
 
 # x402 Micropayments
 
-RevealUI Pro includes native support for the [x402 protocol](https://x402.org)  -  HTTP-402-based micropayments in USDC on Base. Agents and callers pay per-task without subscriptions or API keys.
+> **Off by default. Not a live payments product.** The x402 rail ships in the code behind `X402_ENABLED=false`. The server verifies payment proofs and does not settle them. Do not enable the rail until settlement ships.
+
+RevealUI Pro includes code for the open [x402 standard](https://x402.org): HTTP 402 micropayments in USDC on Base.
 
 ## Overview
 
-When a caller hits a metered endpoint without a valid payment, the API returns:
+When the rail is on and a caller hits a metered endpoint without a valid payment, the API returns:
 
 ```http
 HTTP/1.1 402 Payment Required
 X-PAYMENT-REQUIRED: <base64 PaymentRequired>
 ```
 
-The caller pays the required USDC amount on-chain, then retries with the payment proof in `X-PAYMENT-PAYLOAD`. The API verifies the payment via the Coinbase x402 facilitator and processes the request.
+The caller signs a USDC payment authorization and retries with the proof in `X-PAYMENT-PAYLOAD`. The API checks the proof with the configured facilitator's `/verify` endpoint. It does not settle the payment.
 
 ## Metered endpoints
 
-| Endpoint                                   | Default price                       |
-| ------------------------------------------ | ----------------------------------- |
-| `POST /a2a/:agentId/tasks/send`            | `X402_PRICE_PER_TASK` USDC          |
-| `POST /api/marketplace/servers/:id/invoke` | Per-server price (set by developer) |
+| Endpoint                                   | Behavior                                                         |
+| ------------------------------------------ | ---------------------------------------------------------------- |
+| `POST /a2a/:agentId/tasks/send`            | `X402_PRICE_PER_TASK` USDC when the rail is on                   |
+| `POST /api/marketplace/servers/:id/invoke` | Returns 503 while the rail is off. Per-listing price when it is on |
 
 ## Environment configuration
 
+Leave the rail off until settlement ships.
+
 ```bash
-# Enable x402 payment gating
-X402_ENABLED=true
+# x402 payment gating (default false; keep it off until settlement ships)
+X402_ENABLED=false
 
 # USDC receiving address on Base
 X402_RECEIVING_ADDRESS=0x...
@@ -1160,41 +1163,19 @@ X402_NETWORK=base
 
 ## Caller integration
 
-```typescript
-import { withPaymentInterceptor } from "@coinbase/x402/fetch";
-import { createWalletClient } from "viem";
-
-const wallet = createWalletClient({
-  /* your wallet config */
-});
-const fetch402 = withPaymentInterceptor(fetch, wallet);
-
-// Automatically handles 402 → pay → retry
-const response = await fetch402(
-  "https://api.revealui.com/a2a/my-agent/tasks/send",
-  {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      /* A2A task payload */
-    }),
-  },
-);
-```
-
-The SDK handles the full 402 → payment → retry cycle automatically.
+Use any x402-compatible client library. It reads the 402 response, signs the payment authorization, and retries the request.
 
 ## Security
 
-- Payment is verified by the [x402.org](https://x402.org) facilitator before any task is executed
-- Each `X-PAYMENT-PAYLOAD` is validated on-chain; replays are rejected
-- The receiving address is set server-side  -  callers cannot redirect payments
+- The configured facilitator verifies each proof before a task runs
+- Settlement is not implemented, and replay protection is not proven. Keep the rail off.
+- The receiving address is set server-side: callers cannot redirect payments
 
 ## Related
 
-- [MCP Marketplace](./MARKETPLACE.md)  -  per-server x402 pricing for community MCP servers
-- [AI agents](./AI.md)  -  A2A task dispatch with payment gating
-- [Coinbase x402 SDK](https://github.com/coinbase/x402)
+- [MCP server registry (preview)](./MARKETPLACE.md): dormant and operator-side. No third-party marketplace is open.
+- [AI agents](./AI.md): A2A task dispatch with payment gating
+- [x402 standard](https://x402.org)
 
 ---
 
@@ -1205,7 +1186,7 @@ RevealUI Studio’s public menu is Consultation, Pilot, and Launch. Architecture
 | Service | Description | Deliverable |
 |---------|-------------|-------------|
 | **Consultation** | Scoped session with the founder. Tax $0. | Denser living pack and a Stage A share URL |
-| **Pilot** | One site and one receipted action you operate. Includes 1 Adapter. Stage B is included. $3,997. | Working site; 100% credit to Launch within 45 days of Pilot start |
+| **Pilot** | One site and one receipted action you operate. Includes 1 Adapter. Domain add-on is included. $3,997. | Working site; 100% credit to Launch within 45 days of Pilot start |
 | **Launch** | Zero to production, including architecture inside Launch. Up to 3 Adapters included. $14,500. | Runbook and 30 days of async stabilization |
 
 Contact: [services@revealui.com](mailto:services@revealui.com)
@@ -1261,37 +1242,26 @@ Enterprise licenses follow the same perpetual model but are scoped to self-hoste
 
 ---
 
-# MCP Marketplace
+# MCP server registry (preview)
 
-The MCP Marketplace is Planned. First-party MCP servers ship today. Third-party publishing and live marketplace charging are not open. There is no 80/20 revenue share.
+The MCP marketplace is not open. First-party MCP servers ship today. Third-party publishing, charging, and payouts are off. There is no revenue share.
 
-This is a full reference guide for both publishers and callers.
-
-See **[MARKETPLACE.md](./MARKETPLACE.md)** for the complete guide, including:
-
-- Publishing a server (POST `/api/marketplace/servers`)
-- Category and pricing guidelines
-- Stripe Connect onboarding for payouts
-- Discovering and invoking servers as a caller
-- x402 payment flow with the Coinbase SDK
-- SSRF protection and server requirements
-- Rate limits
+The API keeps a small MCP server registry as a dormant, operator-side capability. See **[MARKETPLACE.md](./MARKETPLACE.md)** for the preview API reference.
 
 ### Quick reference
 
 ```http
-# Publish
+# Publish (operator admin only)
 POST /api/marketplace/servers
 Authorization: Bearer <session-token>
 
-# Discover
+# List
 GET /api/marketplace/servers?category=coding
 
-# Invoke (with x402 payment)
+# Invoke (returns 503 while x402 is off)
 POST /api/marketplace/servers/:id/invoke
-X-PAYMENT-PAYLOAD: <base64 proof>
 
-# Agent discovery
+# Discovery document (preview)
 GET /.well-known/marketplace.json
 ```
 
@@ -1299,9 +1269,9 @@ GET /.well-known/marketplace.json
 
 # Enterprise tier
 
-Customers buy the Enterprise tier of RevealUI as a **license plus studio support** on admin.revealui.com (Contact sales / inquire — not a public monthly SKU). The customer self-hosts. See [Enterprise](./ENTERPRISE.md).
+Customers buy the Enterprise tier of RevealUI as a **license plus studio support** on admin.revealui.com (Contact sales / inquire; not a public monthly SKU). The customer self-hosts. See [Enterprise](./ENTERPRISE.md).
 
-- **License (this tier)** — EdDSA-signed JWT, support, and Enterprise entitlements. Studio does **not** operate a dedicated customer VM on `revealui.com` infrastructure.
-- **Self-host** — You deploy on your own infrastructure. See [Enterprise](./ENTERPRISE.md) and [Deployment](./guides/deployment.md).
+- **License (this tier)**: EdDSA-signed JWT, support, and Enterprise entitlements. Studio does **not** operate a dedicated customer VM on `revealui.com` infrastructure.
+- **Self-host**: You deploy on your own infrastructure. See [Enterprise](./ENTERPRISE.md) and [Deployment](./guides/deployment.md).
 
 Both use the same Enterprise license tier and the same EdDSA-signed JWT format. The difference is how you run the stack, not whether Studio hosts it for you.

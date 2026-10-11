@@ -897,7 +897,7 @@ export const claimsPart1: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_VALUE_BAND.points[1]',
-    text: 'Self-host on Vercel, Cloudflare, Fly, Hetzner, or your own metal',
+    text: 'Self-host on the hosting provider you choose, or your own hardware',
     evidence: [DEPLOY_TARGETS],
   },
   {

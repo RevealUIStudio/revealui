@@ -95,7 +95,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Up to 3 users/editors',
       'Session-based auth',
       'Basic real-time sync',
-      'Local AI inference (Inference Snaps / Ollama)',
+      'Local AI inference (open models on your own hardware)',
       'Community support',
       'Full source code access',
     ],
@@ -115,7 +115,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'AI agents (local + cloud via RevealUI harness)',
       'Full AI memory (working + episodic + vector)',
       'Signed audit log plus downloadable Merkle roots you verify offline',
-      'Built-in Stripe payments',
+      'Built-in payments',
       'Full real-time sync',
       'Monitoring dashboard',
       'Custom domain mapping',
@@ -186,6 +186,13 @@ export const PILOT_PRICE = '$3,997' as const;
 
 /** Catalog id for the Pilot engagement. */
 export const PILOT_SERVICE_ID = 'pilot' as const;
+
+/**
+ * Public name for the $297 custom-domain line.
+ * Sold alone only after Consultation. Included at Pilot and Launch.
+ * Stage B is the retired public name. Do not restore it in buyer copy.
+ */
+export const DOMAIN_ADDON_LABEL = 'Domain add-on' as const;
 
 /**
  * @deprecated use PILOT_PRICE. Retired public name for the same $3,997 amount.
