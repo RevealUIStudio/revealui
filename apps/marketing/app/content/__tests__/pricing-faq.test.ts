@@ -19,7 +19,11 @@ describe('pricing FAQ RevealFleet honesty', () => {
   it('matches studio honesty: family name, buyable RevealUI catalog, RevVault inside Pro', () => {
     const faq = lastFaq();
     const answer = faq.answer;
-    expect(answer.includes('RevealUI Studio ships RevealFleet')).toBe(true);
+    expect(answer.includes('RevealFleet is the RevealUI product family')).toBe(true);
+    expect(answer.includes('RevealUI Studio ships RevealFleet')).toBe(false);
+    expect(answer.includes('RevealUI Studio is the services path on revealuistudio.com')).toBe(
+      true,
+    );
     expect(answer.includes('RevealUI is the lead product')).toBe(true);
     expect(answer.includes('buyable runtime')).toBe(true);
     expect(answer.includes('Free')).toBe(true);
