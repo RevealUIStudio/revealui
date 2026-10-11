@@ -1,41 +1,42 @@
 ---
 visibility: public
-status: verified
-title: "MCP Marketplace"
-description: "MCP server marketplace  -  discovery, publishing, invocation, and monetization"
+status: preview
+title: "MCP server registry (preview)"
+description: "Preview. The MCP marketplace is not open. First-party MCP servers ship today. Third-party publishing, charging, and payouts are off."
 category: guide
 audience: developer
 ---
 
-> **Preview status.** The publish/list/invoke/onboard endpoints are wired. **Stripe is live** in production; marketplace third-party payout rails remain incomplete relative to the planned 80/20 launch policy.
+> **Preview. The MCP marketplace is not open.** First-party MCP servers ship today. Third-party publishing, charging, and payouts are off. There is no revenue share today.
 
-The RevealUI MCP Marketplace lets developers publish Model Context Protocol (MCP) servers with a per-call price. Callers pay in USDC on Base via the x402 protocol. The planned revenue split is 80% developer / 20% platform; third-party developer payouts are not fully shipped yet (Stripe live mode is already on for first-party billing).
-
----
-
-## Overview
-
-```
-Developer publishes MCP server → RevealUI marketplace
-Agent discovers server via /.well-known/marketplace.json
-Agent calls POST /api/marketplace/servers/:id/invoke
-Agent pays in USDC (x402) → payment verified
-RevealUI proxies request to your server → returns response
-Revenue split: 20% platform / 80% developer
-Earnings accumulate → paid out via Stripe Connect
-```
+RevealUI keeps a small MCP server registry in the API as a dormant, operator-side capability. A self-hosting operator could use it to list MCP servers for their own instance. The flags that would let it take payments stay off by default, and RevealUI does not run a hosted registry or take a share of any call.
 
 ---
 
-## For developers: publishing a server
+## What ships today
+
+- **First-party MCP servers.** They ship in `@revealui/mcp`. See the [Pro guide](./PRO.md) for setup.
+- **Registry routes (preview).** List, detail, publish, and delete routes are mounted on the API. Publish and delete are operator admin only.
+- **Discovery document (preview).** `/.well-known/marketplace.json` returns registry metadata for agents.
+
+## What is off
+
+- **Third-party publishing.** Only an operator admin can publish a listing.
+- **Invoke.** `POST /api/marketplace/servers/:id/invoke` returns `503` while the x402 payment rail is off (`X402_ENABLED=false`, the default).
+- **Charging and payouts.** Nothing is charged and nothing accrues for payout while invoke is off.
+- **Settlement.** The x402 code verifies a payment proof and does not settle it. Do not enable the rail until settlement ships.
+- **Revenue share.** There is no revenue share.
+
+---
+
+## Registry API reference (preview)
 
 ### Prerequisites
 
-- A RevealUI account (any tier)
+- Operator admin only (preview)
 - An HTTPS MCP server endpoint
-- (Optional) A Stripe account for automatic payouts
 
-### 1. Publish your server
+### Publish a listing
 
 ```http
 POST /api/marketplace/servers
@@ -67,9 +68,9 @@ Content-Type: application/json
 }
 ```
 
-Your server is immediately discoverable and callable. Save the `id`  -  you'll use it for management operations.
+Active listings appear in the list endpoint. Invoke returns 503 while the payment rail is off. Save the `id` for management operations.
 
-### 2. Choose a category
+### Categories
 
 | Category       | Use for                                          |
 | -------------- | ------------------------------------------------ |
@@ -80,65 +81,24 @@ Your server is immediately discoverable and callable. Save the `id`  -  you'll u
 | `writing`      | Copywriting, editing, translation, proofreading  |
 | `other`        | Anything that doesn't fit above                  |
 
-### 3. Set your price
+### The price field
 
-`pricePerCallUsdc` is a per-invocation price in USDC (e.g. `"0.005"` = $0.005 per call). Callers pay this amount each time they invoke your server through the marketplace.
+`pricePerCallUsdc` is stored on each listing. It is not charged while the payment rail is off.
 
-**Guidelines:**
-
-- Simple tools (type checking, formatting): `0.001`–`0.005`
-- Medium tools (code review, analysis): `0.005`–`0.02`
-- Heavy tools (multi-step reasoning, large context): `0.02`–`0.1`
-
-### 4. Unpublish
+### Unpublish
 
 ```http
 DELETE /api/marketplace/servers/mcp_abc123xyz456
 Authorization: Bearer <your-session-token>
 ```
 
-This sets your server to `suspended`. It stops appearing in discovery and callers can no longer invoke it.
+This sets the listing to `suspended`. It stops appearing in the list endpoint.
 
----
-
-## Setting up payouts (Stripe Connect)
-
-Earnings accumulate in your marketplace balance. To receive automatic payouts:
-
-### 1. Start onboarding
-
-```http
-POST /api/marketplace/connect/onboard
-Authorization: Bearer <your-session-token>
-```
-
-**Response:**
-
-```json
-{
-  "url": "https://connect.stripe.com/setup/...",
-  "stripeAccountId": "acct_1abc..."
-}
-```
-
-Redirect your user (or yourself) to `url`. Stripe walks you through identity verification, bank account setup, and payout preferences.
-
-### 2. Complete onboarding
-
-After completing the Stripe flow, you're redirected back to the admin. Your `stripeAccountId` is stored on all your published servers.
-
-### Payout schedule
-
-Payouts are **batched** rather than per-call. Individual USDC micropayments are too small for immediate Stripe transfers (Stripe minimum is $0.50). Earnings accumulate in `marketplace_transactions` and are transferred on a weekly schedule once your balance crosses the minimum threshold.
-
----
-
-## For callers: using marketplace servers
-
-### Discover servers
+### List listings
 
 ```http
 GET /api/marketplace/servers
+GET /api/marketplace/servers?category=coding&limit=20
 ```
 
 ```json
@@ -151,7 +111,7 @@ GET /api/marketplace/servers
       "category": "coding",
       "tags": ["typescript", "linting"],
       "pricePerCallUsdc": "0.005",
-      "callCount": 1234
+      "callCount": 0
     }
   ],
   "limit": 50,
@@ -159,15 +119,7 @@ GET /api/marketplace/servers
 }
 ```
 
-Filter by category:
-
-```http
-GET /api/marketplace/servers?category=coding&limit=20
-```
-
-### Agent discovery
-
-Agents can discover the marketplace automatically via the well-known endpoint:
+### Discovery document
 
 ```http
 GET /.well-known/marketplace.json
@@ -179,15 +131,12 @@ GET /.well-known/marketplace.json
   "platform": "revealui",
   "registryUrl": "https://api.revealui.com/api/marketplace/servers",
   "publishUrl": "https://api.revealui.com/api/marketplace/servers",
-  "revenueShare": { "platform": 0.2, "developer": 0.8 },
-  "paymentMethods": ["x402-usdc"],
+  "paymentMethods": [],
   "servers": [...]
 }
 ```
 
-### Invoke a server
-
-#### Without payment (get requirements first)
+### Invoke (off)
 
 ```http
 POST /api/marketplace/servers/mcp_abc123xyz456/invoke
@@ -196,129 +145,31 @@ Content-Type: application/json
 { "jsonrpc": "2.0", "id": 1, "method": "check_types", "params": { "file": "src/app.ts" } }
 ```
 
-If you haven't paid, you receive:
+While `X402_ENABLED` is off, this returns:
 
 ```http
-HTTP/1.1 402 Payment Required
-X-PAYMENT-REQUIRED: <base64 PaymentRequired>
-Content-Type: application/json
-
-{
-  "error": "Payment required",
-  "x402Version": 1,
-  "accepts": [{
-    "scheme": "exact",
-    "network": "evm:base",
-    "maxAmountRequired": "5000",
-    "resource": "https://api.revealui.com/api/marketplace/servers/mcp_abc123xyz456/invoke",
-    "payTo": "0x...",
-    "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
-  }]
-}
+HTTP/1.1 503 Service Unavailable
 ```
 
-#### With x402 payment
-
-Pay the required amount in USDC on Base, then retry with the payment proof:
-
-```http
-POST /api/marketplace/servers/mcp_abc123xyz456/invoke
-Content-Type: application/json
-X-PAYMENT-PAYLOAD: <base64 signed payment proof>
-
-{ "jsonrpc": "2.0", "id": 1, "method": "check_types", "params": { "file": "src/app.ts" } }
-```
-
-The response is the raw JSON-RPC response from the server.
-
-#### Using the Coinbase x402 SDK
-
-```typescript
-import { withPaymentInterceptor } from "@coinbase/x402/fetch";
-import { createWalletClient } from "viem";
-
-const wallet = createWalletClient({
-  /* your wallet config */
-});
-
-const fetch402 = withPaymentInterceptor(fetch, wallet);
-
-const response = await fetch402(
-  "https://api.revealui.com/api/marketplace/servers/mcp_abc123xyz456/invoke",
-  {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: 1,
-      method: "check_types",
-      params: { file: "src/app.ts" },
-    }),
-  },
-);
-
-const result = await response.json();
-```
-
-The SDK handles the 402 → payment → retry cycle automatically.
+If an operator turns the rail on, the route answers an unpaid call with `402 Payment Required` and an `X-PAYMENT-REQUIRED` header, per the open [x402 standard](https://x402.org). Use any x402-compatible client library. Read the settlement note above first.
 
 ---
 
-## Revenue split
+## Listing requirements
 
-| Party             | Share |
-| ----------------- | ----- |
-| Developer         | 80%   |
-| RevealUI platform | 20%   |
-
-**Example:** A server priced at `0.005` USDC per call:
-
-- Developer earns: `0.004` USDC
-
----
-
-## 2027-2030 pricing direction
-
-The marketplace should not be treated as a flat-fee curiosity attached to a SaaS product. It should be treated as one leg of a larger agent-commerce pricing model.
-
-The long-term commercial model is:
-
-- base platform subscription at the account/workspace level
-- metered agent execution for workflow and tool usage
-- explicit marketplace and commerce monetization tied to completed economic activity
-- separate trust/governance pricing for spend controls, approvals, audit, provenance, and compliance
-
-That means the current `80/20` split is a workable launch policy, but not the full future model. From 2027 onward, RevealUI should be able to support:
-
-- per-call pricing for simple marketplace tools
-- outcome or transaction-linked fees for commerce actions
-- contracted or committed usage for high-volume agent operators
-- premium trust controls for customers who need agent spend governance
-
-The moral rule is simple: do not bill for failed, duplicated, reversed, or replayed agent actions. Marketplace monetization only works if developers and buyers both trust the ledger.
-
-- Platform fee: `0.001` USDC
-
-All transactions are recorded in `marketplace_transactions`. You can query transaction history via the API, and the login-gated admin `/marketplace` surface already covers earnings, analytics, and publish.
-
----
-
-## Server requirements
-
-Your MCP server must:
+A listed MCP server must:
 
 1. **Accept HTTP POST requests** at its configured URL
-2. **Speak JSON-RPC 2.0**  -  the marketplace proxy forwards the caller's request body as-is
-3. **Be reachable via HTTPS** (HTTP is only permitted in development)
-4. **Respond within 30 seconds**  -  the proxy times out at 30s
+2. **Speak JSON-RPC 2.0.** The proxy forwards the caller's request body as-is.
+3. **Be reachable over HTTPS** (HTTP is only permitted in development)
+4. **Respond within 30 seconds.** The proxy times out at 30s.
 
-The marketplace does not modify request or response bodies. It passes through the caller's JSON-RPC payload and returns your server's response verbatim.
+The proxy does not modify request or response bodies.
 
 ### Security
 
-- Your server's URL is **not publicly exposed**  -  callers invoke via the marketplace proxy at `/api/marketplace/servers/:id/invoke`
-- All invocations are logged in `marketplace_transactions`
-- Payment is verified by the [x402.org](https://x402.org) facilitator before your server is called
+- The listing URL is not returned by the list endpoint. Callers would invoke through `/api/marketplace/servers/:id/invoke`.
+- Invocations are logged in `marketplace_transactions`.
 
 ---
 
@@ -329,82 +180,27 @@ The marketplace does not modify request or response bodies. It passes through th
 | `GET /api/marketplace/servers`             | Global (60/min) |
 | `POST /api/marketplace/servers` (publish)  | 10/hour         |
 | `POST /api/marketplace/servers/:id/invoke` | 30/min          |
-| `POST /api/marketplace/connect/onboard`    | 5/15min         |
 
 ---
 
-## Testing your server
+## Not built yet
 
-Before publishing, verify your server works with the marketplace proxy:
+These are not built. There is no date for them.
 
-### Local testing
-
-```bash
-# Start the API server locally
-pnpm dev:api
-
-# Publish a test server pointing to your local MCP server
-curl -X POST http://localhost:3004/api/marketplace/servers \
-  -H "Content-Type: application/json" \
-  -H "Cookie: revealui-session=<your-session>" \
-  -d '{
-    "name": "Test Server",
-    "url": "http://localhost:8080/rpc",
-    "category": "coding",
-    "pricePerCallUsdc": "0.001"
-  }'
-
-# Invoke it (payment is skipped in development mode)
-curl -X POST http://localhost:3004/api/marketplace/servers/<id>/invoke \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc": "2.0", "id": 1, "method": "your_method", "params": {}}'
-```
-
-### Health checks (planned)
-
-Automatic health-check sweep with auto-suspend (3 consecutive failures, 5-minute interval) and a `POST /api/marketplace/servers/:id/restore` endpoint are on the marketplace roadmap. Until they ship, listing visibility is manually managed via the publish/unpublish endpoints documented above.
-
----
-
-## Disputes and refunds (planned)
-
-A `POST /api/marketplace/disputes` endpoint and an automatic-refund policy (HTTP 5xx, timeouts, proxy failures) are on the marketplace roadmap. Until that work lands, billing disputes are handled manually — contact [support@revealui.com](mailto:support@revealui.com).
-
----
+- Health checks with auto-suspend
+- A disputes endpoint and an automatic refund policy
+- A per-listing analytics endpoint
+- A publisher review gate and a tool-safety scanner
 
 ## Tax and compliance
 
-### For developers
-
-- You are responsible for reporting marketplace income to your local tax authority
-- RevealUI does not withhold taxes on marketplace payouts
-- If you exceed $600 USD in annual payouts (US), Stripe Connect will collect a W-9 and issue a 1099-K
-- International developers receive payouts per Stripe's cross-border transfer policies
-
-### For callers
-
-- Marketplace payments are in USDC (a stablecoin) via the x402 protocol
-- x402 payments are on-chain transactions on Base (Ethereum L2)
-- Consult your tax advisor regarding cryptocurrency transaction reporting in your jurisdiction
-
-### Platform obligations
-
-- All transactions are recorded in `marketplace_transactions` with full audit trail
-- RevealUI reports platform revenue per standard SaaS accounting practices
-- GDPR: developer and caller data is handled per the [RevealUI Privacy Policy](https://revealui.com/privacy)
-
----
-
-## Server analytics (planned)
-
-A developer-dashboard analytics surface (`GET /api/marketplace/servers/:id/analytics`) is on the marketplace roadmap. Until it ships, queries against `marketplace_transactions` in the API can be made by the publishing developer.
+Tax handling for any future marketplace will be published before it opens.
 
 ---
 
 ## Related
 
-- [Pro overview](./PRO.md)
+- [Pro guide](./PRO.md)
 - [AI agents](./AI.md)
 - [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md)
-- [x402 protocol](https://x402.org)
-- [Coinbase x402 SDK](https://github.com/coinbase/x402)
+- [x402 standard](https://x402.org)

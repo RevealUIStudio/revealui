@@ -55,7 +55,7 @@ export const PRICING_VALUE_BAND = {
   body: 'Build on shared accounts, content, offers, and billing. Add the agent layer when you need it. Your license covers RevealUI; hosting, your database, and model usage are separate costs.',
   points: [
     'One runtime, not five separate SaaS subscriptions',
-    'Self-host on Vercel, Cloudflare, Fly, Hetzner, or your own metal',
+    'Self-host on the hosting provider you choose, or your own hardware',
     'Full source code access on every tier',
     'You provide model access and pay your infrastructure or provider costs',
   ],
@@ -85,19 +85,19 @@ export const PRICING_AGENT_A2A = {
     prefix: 'Agents find RevealUI via a standard Agent Card at',
     linkLabel: SITE.urls.apiAgent,
     linkHref: SITE.urls.apiAgent,
-    suffix: '. Capabilities, skills, and pricing all machine-readable.',
+    suffix: '. The card lists capabilities and skills.',
   },
 } as const;
 
 export const PRICING_AGENT_X402 = {
   heading: 'x402-Native Payments',
   badge: 'Off by default',
-  body: 'The HTTP 402 (x402) payment rail ships in the code and stays off by default. Built on the open x402 standard, with a Coinbase-compatible facilitator implemented. It is not included today: X402_ENABLED is off, and this is not a live payments product until an operator turns the flag on.',
+  body: 'The HTTP 402 (x402) payment rail ships in the code and stays off by default. Built on the open x402 standard. It is not included today: X402_ENABLED is off, and this is not a live payments product until an operator turns the flag on.',
 } as const;
 
 export const PRICING_AGENT_MCP = {
   heading: 'MCP Servers',
-  body: `${METRICS.mcpServers} production MCP servers for any MCP-capable IDE (Cursor, Claude Code, Copilot, Zed, and others), including Stripe, Neon, Vercel, Playwright, Next.js DevTools, pages and offers, and email. First-party servers ship today. Discovery via marketplace.json and the servers list is a preview; the third-party catalog, charging, and payouts are not open.`,
+  body: `${METRICS.mcpServers} production MCP servers for any MCP-capable editor or coding assistant, including payments, database, hosting, browser automation, web framework devtools, pages and offers, and email. First-party servers ship today. Discovery via marketplace.json and the servers list is a preview; the third-party catalog, charging, and payouts are not open.`,
   docsLink: {
     label: 'MCP docs →',
     href: SITE.urls.docsMcp,
