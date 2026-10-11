@@ -21,11 +21,7 @@
 import { logger } from '@revealui/core/observability/logger';
 import { trackX402PaymentVerify } from '@revealui/core/observability/metrics';
 import {
-  buildPaymentMethods,
-  buildPaymentRequired,
-  encodePaymentRequired,
-  getAdvertisedCurrencyLabel,
-  getX402Config,
+  settlePayment as settlePaymentCore,
   verifyPayment as verifyPaymentCore,
 } from '@revealui/paywall/x402';
 
@@ -33,10 +29,23 @@ export type { X402Config } from '@revealui/paywall/x402';
 export {
   buildPaymentMethods,
   buildPaymentRequired,
+  decideNonceClaim,
   encodePaymentRequired,
   getAdvertisedCurrencyLabel,
   getX402Config,
-};
+  readPaymentClaim,
+  settlementSupportsPayout,
+  toUsdcAtomicUnits,
+} from '@revealui/paywall/x402';
+
+function facilitatorHooks() {
+  return {
+    onFacilitatorWarn: (message: string, meta: Record<string, unknown>) =>
+      logger.warn(message, meta),
+    onVerified: (verifiedRoute: string, durationMs: number, valid: boolean) =>
+      trackX402PaymentVerify(verifiedRoute, 'exact', valid ? 'valid' : 'invalid', durationMs),
+  };
+}
 
 /**
  * Verify a client's X-PAYMENT-PAYLOAD header value.
@@ -55,10 +64,20 @@ export async function verifyPayment(
   payloadHeader: string,
   resource: string,
   route: string = 'unknown',
+  customPrice?: string,
 ): Promise<{ valid: true } | { valid: false; error: string }> {
-  return verifyPaymentCore(payloadHeader, resource, route, {
-    onFacilitatorWarn: (message, meta) => logger.warn(message, meta),
-    onVerified: (verifiedRoute, durationMs, valid) =>
-      trackX402PaymentVerify(verifiedRoute, 'exact', valid ? 'valid' : 'invalid', durationMs),
-  });
+  return verifyPaymentCore(payloadHeader, resource, route, facilitatorHooks(), customPrice);
+}
+
+/**
+ * Settle a verified payment through the facilitator.
+ * A failure here must not be treated as a settled payment.
+ */
+export async function settlePayment(
+  payloadHeader: string,
+  resource: string,
+  route: string = 'unknown',
+  customPrice?: string,
+): Promise<Awaited<ReturnType<typeof settlePaymentCore>>> {
+  return settlePaymentCore(payloadHeader, resource, route, facilitatorHooks(), customPrice);
 }

@@ -372,6 +372,13 @@
       "when": 1791198485226,
       "tag": "0052_consultation_domain",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1791460800000,
+      "tag": "0056_x402_settlements",
+      "breakpoints": true
     }
   ]
 }

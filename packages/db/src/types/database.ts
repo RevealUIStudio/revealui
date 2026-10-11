@@ -131,6 +131,7 @@ import type {
   videos,
   waitlist,
   workspaceInferenceConfigs,
+  x402Settlements,
   yjsDocumentPatches,
   yjsDocuments,
 } from '../schema/index.js'
@@ -749,6 +750,11 @@ export type WorkspaceInferenceConfigsRow = typeof workspaceInferenceConfigs.$inf
 export type WorkspaceInferenceConfigsInsert = typeof workspaceInferenceConfigs.$inferInsert
 export type WorkspaceInferenceConfigsUpdate = Partial<WorkspaceInferenceConfigsInsert>
 
+// X402 Settlements
+export type X402SettlementsRow = typeof x402Settlements.$inferSelect
+export type X402SettlementsInsert = typeof x402Settlements.$inferInsert
+export type X402SettlementsUpdate = Partial<X402SettlementsInsert>
+
 // Yjs Document Patches
 export type YjsDocumentPatchesRow = typeof yjsDocumentPatches.$inferSelect
 export type YjsDocumentPatchesInsert = typeof yjsDocumentPatches.$inferInsert
@@ -905,6 +911,7 @@ export type DatabaseRelationships = {
   videos: Relationship[]
   waitlist: Relationship[]
   workspaceInferenceConfigs: Relationship[]
+  x402Settlements: Relationship[]
   yjsDocumentPatches: Relationship[]
   yjsDocuments: Relationship[]
 }
@@ -1410,6 +1417,9 @@ export const waitlistRelationships: readonly Relationship[] = []
 export const workspaceInferenceConfigsRelationships = [
   { foreignKeyName: 'workspace_inference_configs_workspace_id_sites_id_fk', columns: ['workspace_id'], isOneToOne: true, referencedRelation: 'sites', referencedColumns: ['id'] },
 ] as const satisfies readonly Relationship[]
+
+// X402Settlements relationships
+export const x402SettlementsRelationships: readonly Relationship[] = []
 
 // YjsDocumentPatches relationships
 export const yjsDocumentPatchesRelationships: readonly Relationship[] = []
@@ -2180,6 +2190,12 @@ export type Database = {
         Insert: WorkspaceInferenceConfigsInsert
         Update: WorkspaceInferenceConfigsUpdate
         Relationships: typeof workspaceInferenceConfigsRelationships
+      }
+      x402_settlements: {
+        Row: X402SettlementsRow
+        Insert: X402SettlementsInsert
+        Update: X402SettlementsUpdate
+        Relationships: typeof x402SettlementsRelationships
       }
       yjs_document_patches: {
         Row: YjsDocumentPatchesRow

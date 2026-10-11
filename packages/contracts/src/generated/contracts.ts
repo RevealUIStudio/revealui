@@ -3187,6 +3187,32 @@ export const WorkspaceInferenceConfigsInsertContract = createContract({
 })
 
 // =============================================================================
+// X402Settlements Contracts
+// =============================================================================
+
+/**
+ * Contract for x402Settlements row (Select)
+ * Database table: x402_settlements
+ */
+export const X402SettlementsRowContract = createContract({
+  name: 'X402SettlementsRow',
+  version: '1',
+  description: 'Database row contract for x402_settlements table',
+  schema: Schemas.X402SettlementsSelectSchema,
+})
+
+/**
+ * Contract for x402Settlements insert
+ * Database table: x402_settlements
+ */
+export const X402SettlementsInsertContract = createContract({
+  name: 'X402SettlementsInsert',
+  version: '1',
+  description: 'Database insert contract for x402_settlements table',
+  schema: Schemas.X402SettlementsInsertSchema,
+})
+
+// =============================================================================
 // YjsDocumentPatches Contracts
 // =============================================================================
 

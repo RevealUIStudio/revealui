@@ -90,6 +90,7 @@ export * from './users.js';
 export * from './waitlist.js';
 export * from './webhook-events.js';
 export * from './webhook-reconciliation.js';
+export * from './x402-settlements.js';
 export * from './yjs-document-patches.js';
 export * from './yjs-documents.js';
 
