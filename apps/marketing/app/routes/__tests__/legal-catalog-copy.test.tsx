@@ -34,6 +34,19 @@ describe('refund and support leftover catalog copy', () => {
     },
   );
 
+  it.each([
+    ['support', SupportPage],
+    ['SLA', SlaPage],
+  ])('uses the SLA critical definition on %s', (_name, Page) => {
+    const { container } = render(<Page />);
+    const text = container.textContent ?? '';
+    expect(text).toContain('best-effort');
+    expect(text).toContain('your data is at risk');
+    expect(text).toContain('cannot use the product you purchased at all');
+    expect(text).not.toContain('if unusable');
+    expect(text).not.toContain('Priority support');
+  });
+
   it('keeps the infrastructure and maintenance commitments separate from best-effort support', () => {
     const { container } = render(<SlaPage />);
     const text = container.textContent ?? '';
@@ -100,5 +113,39 @@ describe('refund and support leftover catalog copy', () => {
     expect(container.textContent ?? '').not.toContain('Paid product buyers (Starter Kit');
     expect(container.textContent ?? '').not.toContain('Skool buyer community');
     expect(screen.queryByRole('link', { name: 'Join Skool' })).toBeNull();
+  });
+
+  it('renders support channels as labeled links without raw markdown or bare URLs', () => {
+    const { container } = render(<SupportPage />);
+    const text = container.textContent ?? '';
+    expect(text).not.toContain('**');
+    expect(text).not.toContain('https://github.com/RevealUIStudio/revealui/discussions');
+    expect(text).not.toContain('https://docs.revealui.com');
+
+    const docsLinks = screen.getAllByRole('link', { name: 'Documentation' });
+    const docsHrefs = docsLinks.map((link) => link.getAttribute('href'));
+    // The notice anchor keeps SITE.urls.docs. MarkdownText returns url.href, which
+    // adds a trailing slash on an origin-only URL.
+    expect(docsHrefs).toContain(SITE.urls.docs);
+    expect(docsHrefs).toContain(`${SITE.urls.docs}/`);
+    expect(
+      docsHrefs.every((href) => href === SITE.urls.docs || href === `${SITE.urls.docs}/`),
+    ).toBe(true);
+    const discussions = screen.getByRole('link', { name: 'GitHub Discussions' });
+    expect(discussions).toHaveAttribute(
+      'href',
+      'https://github.com/RevealUIStudio/revealui/discussions',
+    );
+    const issues = screen.getByRole('link', { name: 'GitHub Issues' });
+    expect(issues).toHaveAttribute('href', 'https://github.com/RevealUIStudio/revealui/issues');
+    expect(screen.getByRole('link', { name: 'SLA page' })).toHaveAttribute(
+      'href',
+      'https://revealui.com/sla',
+    );
+    expect(screen.getByText('create-revealui').tagName).toBe('CODE');
+
+    const prose = container.querySelector('[data-slot="markdown-text"]');
+    expect(prose?.className).toContain('wrap-anywhere');
+    expect(prose?.className).toContain('break-words');
   });
 });

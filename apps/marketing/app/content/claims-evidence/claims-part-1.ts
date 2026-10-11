@@ -1,3 +1,4 @@
+import { PAID_TIER_SUPPORT_CARD } from '@revealui/contracts/public-catalog';
 import {
   AGENT_ROUTES,
   AUDIT_SIGNING,
@@ -19,6 +20,7 @@ import {
   MEMORY,
   OPEN_STANDARDS,
   OPEN_WEIGHT,
+  PAID_SUPPORT_POLICY_CONTENT,
   PERPETUAL,
   POSTGRES,
   PRICING_FALLBACKS,
@@ -752,6 +754,20 @@ export const claimsPart1: readonly ClaimEntry[] = [
       TIER_GATES,
       MEMORY,
       { kind: 'code', ref: 'packages/mcp/src', note: 'MCP hypervisor + servers' },
+    ],
+  },
+  {
+    file: 'pricing-teaser.ts',
+    exportPath: 'PRICING_TEASER_TIERS[1].features[3]',
+    proofGrade: 'behavior',
+    text: PAID_TIER_SUPPORT_CARD,
+    evidence: [
+      PAID_SUPPORT_POLICY_CONTENT,
+      {
+        kind: 'test',
+        ref: 'apps/marketing/app/content/__tests__/landing-honesty.test.ts#gives the Pro card the shared email support line',
+        note: 'homepage Pro feature uses the catalog card line, same hours as /pricing, not a faster tier',
+      },
     ],
   },
   {

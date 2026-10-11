@@ -4,56 +4,20 @@ import {
   IconClose,
   IconMenu,
   LinkButton,
+  RevealUIWordmark,
   useClickOutside,
   useEscapeKey,
   useFocusTrap,
   useScrollLock,
 } from '@revealui/presentation';
 import { Link, useLocation } from '@revealui/router';
-import type React from 'react';
-import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { NAV_AUTH, NAV_LINKS } from '../content/nav';
 
 const MOBILE_MENU_ID = 'marketing-mobile-menu';
 
-/** Untiled circuit master in public chrome. Locked 48px box — the ≥48 size floor, not a hero size. */
-const CIRCUIT_R_NAV_LIGHT_SRC = '/revealui-logo.svg';
-const CIRCUIT_R_NAV_DARK_SRC = '/revealui-logo-dark.svg';
-const CIRCUIT_R_NAV_PX = 48;
-
-interface CircuitRChromeStyle extends CSSProperties {
-  '--circuit-r-chrome-px': string;
-}
-
-function CircuitRNavMark(): React.JSX.Element {
-  const box: CircuitRChromeStyle = {
-    width: CIRCUIT_R_NAV_PX,
-    height: CIRCUIT_R_NAV_PX,
-    '--circuit-r-chrome-px': `${CIRCUIT_R_NAV_PX}px`,
-  };
-  return (
-    <span data-circuit-r-chrome className="relative block shrink-0 overflow-hidden" style={box}>
-      {/* biome-ignore lint/performance/noImgElement: Vite marketing chrome has no next/image; this is the Circuit-R master, not a raster. */}
-      <img
-        src={CIRCUIT_R_NAV_LIGHT_SRC}
-        alt=""
-        width={CIRCUIT_R_NAV_PX}
-        height={CIRCUIT_R_NAV_PX}
-        data-circuit-r-plate="light"
-        className="block size-full max-w-none"
-      />
-      {/* biome-ignore lint/performance/noImgElement: Vite marketing chrome has no next/image; dark src is the same transparent kit master. */}
-      <img
-        src={CIRCUIT_R_NAV_DARK_SRC}
-        alt=""
-        width={CIRCUIT_R_NAV_PX}
-        height={CIRCUIT_R_NAV_PX}
-        data-circuit-r-plate="dark"
-        className="absolute inset-0 hidden size-full max-w-none"
-      />
-    </span>
-  );
-}
+/** Product lockup. Studio passes a different `label` on the same wordmark. */
+const PRODUCT_WORDMARK = 'RevealUI';
 
 /**
  * Internal (relative) paths navigate client-side through @revealui/router so
@@ -164,9 +128,9 @@ export function NavBar() {
           href="/"
           className="flex shrink-0 items-center"
           aria-current={pathname === '/' ? 'page' : undefined}
-          aria-label="RevealUI"
+          aria-label={`${PRODUCT_WORDMARK} home`}
         >
-          <CircuitRNavMark />
+          <RevealUIWordmark label={PRODUCT_WORDMARK} className="text-xl" />
         </NavLink>
 
         {/* Desktop links */}

@@ -97,8 +97,8 @@ function NavLink({
         onClick={onNavigate}
         className={`block rounded-md py-2 pr-3 text-sm transition-all md:py-1.5 ${
           isActive
-            ? 'bg-accent-bg font-semibold text-accent'
-            : 'font-normal text-text-secondary hover:bg-accent-bg hover:text-accent'
+            ? 'bg-accent-bg font-semibold text-primary-text'
+            : 'font-normal text-text-secondary hover:bg-accent-bg hover:text-primary-text'
         }`}
         style={{ paddingLeft: `${depth * 12 + 12}px` }}
       >
@@ -227,8 +227,8 @@ function SidebarContent({ isHome, onNavigate }: { isHome: boolean; onNavigate?: 
             onClick={onNavigate}
             className={`block rounded-md px-3 py-2 text-sm transition-all md:py-1.5 ${
               isHome
-                ? 'bg-accent-bg font-semibold text-accent'
-                : 'font-normal text-text-secondary hover:bg-accent-bg hover:text-accent'
+                ? 'bg-accent-bg font-semibold text-primary-text'
+                : 'font-normal text-text-secondary hover:bg-accent-bg hover:text-primary-text'
             }`}
           >
             Docs home
@@ -351,7 +351,7 @@ function Breadcrumbs({ sections: navSections }: { sections: NavSection[] }) {
                   {crumb.href ? (
                     <Link
                       to={crumb.href}
-                      className="text-text-muted no-underline transition-colors hover:text-accent"
+                      className="text-text-muted no-underline transition-colors hover:text-primary-text"
                     >
                       {crumb.label}
                     </Link>

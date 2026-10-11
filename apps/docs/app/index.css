@@ -173,16 +173,16 @@
     margin-bottom: 0.375rem;
   }
 
-  /* Links */
+  /* Links. Primary text token, not amber accent (about 2.02:1 on white). */
   .markdown-content a {
-    color: var(--color-accent);
+    color: var(--color-link, var(--rvui-brand-text));
     text-decoration: none;
     font-weight: 500;
-    transition: color 0.15s ease;
+    overflow-wrap: anywhere;
   }
 
   .markdown-content a:hover {
-    color: var(--color-accent-hover);
+    color: var(--color-link, var(--rvui-brand-text));
     text-decoration: underline;
   }
 

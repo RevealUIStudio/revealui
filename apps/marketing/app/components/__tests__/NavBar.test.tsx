@@ -115,21 +115,24 @@ describe('NavBar (marketing)', () => {
   it('marks the home brand link as the current page on /', () => {
     window.history.pushState({}, '', '/');
     renderNavBar();
-    const home = screen.getByRole('link', { name: 'RevealUI' });
+    const home = screen.getByRole('link', { name: 'RevealUI home' });
     expect(home).toHaveAttribute('aria-current', 'page');
   });
 
-  it('keeps the nav logo-only with no visible product wordmark', () => {
+  it('shows the Circuit-R mark plus the RevealUI wordmark', () => {
     renderNavBar();
     const nav = screen.getByRole('navigation', { name: 'Primary' });
-    expect(nav).not.toHaveTextContent('RevealUI');
+    expect(nav).toHaveTextContent('RevealUI');
     expect(nav).not.toHaveTextContent('RevealUI Studio');
-    expect(screen.getByRole('link', { name: 'RevealUI' })).toBeInTheDocument();
+    const home = screen.getByRole('link', { name: 'RevealUI home' });
+    expect(home).toBeInTheDocument();
+    expect(home).toHaveTextContent('Reveal');
+    expect(home).toHaveTextContent('UI');
   });
 
   it('renders the circuit master, not the faceted or tiled mark', () => {
     const { container } = renderNavBar();
-    const home = screen.getByRole('link', { name: 'RevealUI' });
+    const home = screen.getByRole('link', { name: 'RevealUI home' });
     expect(home.querySelector('img[src="/revealui-logo.svg"]')).toBeTruthy();
     expect(container.querySelector('img[src="/icon-mark.svg"]')).toBeNull();
     expect(container.querySelector('img[src="/favicon.svg"]')).toBeNull();
@@ -139,24 +142,15 @@ describe('NavBar (marketing)', () => {
     expect(container.innerHTML.includes('M34 11')).toBe(false);
   });
 
-  it('locks light and dark Circuit-R plates to the same clipped 48px box in an h-16 row', () => {
+  it('keeps the transparent circuit master beside the wordmark in an h-16 row', () => {
     const { container } = renderNavBar();
-    const home = screen.getByRole('link', { name: 'RevealUI' });
+    const home = screen.getByRole('link', { name: 'RevealUI home' });
     const light = home.querySelector('img[src="/revealui-logo.svg"]');
     const dark = home.querySelector('img[src="/revealui-logo-dark.svg"]');
     expect(light).toBeTruthy();
     expect(dark).toBeTruthy();
-    expect(light).toHaveAttribute('width', '48');
-    expect(light).toHaveAttribute('height', '48');
-    expect(dark).toHaveAttribute('width', '48');
-    expect(dark).toHaveAttribute('height', '48');
-    expect(light?.getAttribute('class') ?? '').not.toContain('w-auto');
-    expect(dark?.getAttribute('class') ?? '').not.toContain('w-auto');
-    expect(dark?.getAttribute('class') ?? '').toContain('hidden');
-    const chrome = home.querySelector('[data-circuit-r-chrome]');
-    expect(chrome).toBeTruthy();
-    expect(chrome?.getAttribute('class') ?? '').toContain('overflow-hidden');
-    expect(chrome).toHaveStyle({ width: '48px', height: '48px' });
+    expect(light?.getAttribute('class') ?? '').toContain('w-auto');
+    expect(home.querySelector('[data-circuit-r-chrome]')).toBeNull();
     const nav = screen.getByRole('navigation', { name: 'Primary' });
     expect(nav.className).toContain('h-16');
     expect(nav.className).not.toContain('h-28');

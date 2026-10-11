@@ -229,5 +229,8 @@ describe('DocLayout', () => {
     // At least one Authentication link should have the active styling class
     const hasActiveLink = authLinks.some((link) => link.className.includes('font-semibold'));
     expect(hasActiveLink).toBe(true);
+    const active = authLinks.find((link) => link.className.includes('font-semibold'));
+    expect(active?.className).toContain('text-primary-text');
+    expect(active?.className).not.toContain('text-accent');
   });
 });
