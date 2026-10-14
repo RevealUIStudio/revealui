@@ -85,6 +85,7 @@ build prerequisites without failing the build.
 | ------------------------ | ------------------------------ | ------------------------------------------ |
 | `version-policy.ts`      | `pnpm validate:versions`       | Enforce the versioning policy              |
 | `migration-journal.ts`   | `pnpm validate:migrations`     | Verify migration journal integrity         |
+| `drizzle-journal-when.ts` | `pnpm validate:journal-when -- --base-ref <ref>` | Fail when a new journal `when` is not strictly after every `when` on the PR base branch. Tests: `pnpm test:journal-when`. Pull request job: `Drizzle journal when order`. |
 | `catalog-changeset.ts`   | `pnpm validate:catalog`        | Check the changeset catalog (warn)         |
 | `mixed-changesets.ts`    | `pnpm validate:changesets`     | Flag mixed OSS/Pro changesets              |
 | `changelog-format.ts`    | `pnpm validate:changelogs`     | Enforce changelog format                   |
