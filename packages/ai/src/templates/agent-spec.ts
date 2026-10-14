@@ -49,6 +49,17 @@ export const AgentSecuritySchema = z.object({
 
 export type AgentSecurity = z.infer<typeof AgentSecuritySchema>;
 
+/**
+ * Map AgentSecuritySchema.requiresHumanApproval onto runtime approval config.
+ * Spread the result into AgentRuntime or StreamingAgentRuntime config.
+ * The constructor unions it with alwaysRequireApproval.
+ */
+export function approvalConfigFromAgentSecurity(
+  security: Pick<AgentSecurity, 'requiresHumanApproval'>,
+): { requiresHumanApproval: string[] } {
+  return { requiresHumanApproval: [...security.requiresHumanApproval] };
+}
+
 // ─── Guardrails Schema ──────────────────────────────────────────────────────
 
 export const AgentGuardrailsSchema = z.object({
