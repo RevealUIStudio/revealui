@@ -379,6 +379,13 @@
       "when": 1792004120028,
       "tag": "0053_studio_crm_v1",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1792005849850,
+      "tag": "0054_crm_booking_source",
+      "breakpoints": true
     }
   ]
 }

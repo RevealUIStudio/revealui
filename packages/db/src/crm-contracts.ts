@@ -118,3 +118,38 @@ export const crmContactImportInput = z.strictObject({
     .max(500),
   idempotencyKey: id.optional(),
 });
+
+const bookingSnapshotCommon = { contract: z.literal('studio-crm-booking-v1'), bookingId: id };
+export const crmSourceBooking = z.discriminatedUnion('status', [
+  z.strictObject({ ...bookingSnapshotCommon, status: z.literal('missing') }),
+  z
+    .strictObject({
+      ...bookingSnapshotCommon,
+      status: z.enum(['slot_held', 'paid_scheduled']),
+      start: z.iso.datetime(),
+      end: z.iso.datetime(),
+      hours: z.number().int().min(1).max(8),
+      name: text,
+      email: z.email().max(254),
+      company: text.nullable(),
+      stageB: z.boolean(),
+      stageBFee: z.enum(['none', 'paid_addon', 'waived_network']),
+      stripeSessionId: id.nullable(),
+      eventId: id.nullable(),
+      refund: z
+        .strictObject({
+          chargeId: id,
+          amountRefunded: z.number().int().nonnegative(),
+          full: z.boolean(),
+          domainPackReview: z.enum(['not_applicable', 'review_required', 'retained', 'revoked']),
+        })
+        .nullable(),
+    })
+    .refine(
+      (v) =>
+        Date.parse(v.end) > Date.parse(v.start) &&
+        Date.parse(v.end) - Date.parse(v.start) === v.hours * 3600000 &&
+        (v.status !== 'paid_scheduled' || Boolean(v.stripeSessionId && v.eventId)),
+    ),
+]);
+export const crmBookingSyncInput = z.strictObject({ opportunityId: id, bookingId: id });

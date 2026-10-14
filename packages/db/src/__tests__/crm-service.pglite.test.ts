@@ -20,6 +20,12 @@ beforeAll(async () => {
   await pg.exec(
     await readFile(new URL('../../migrations/0053_studio_crm_v1.sql', import.meta.url), 'utf8'),
   );
+  await pg.exec(
+    await readFile(
+      new URL('../../migrations/0054_crm_booking_source.sql', import.meta.url),
+      'utf8',
+    ),
+  );
   db = drizzle(pg) as unknown as Database;
   crm = createCrmService(db, { userId: 'owner', accountId: 'a' });
 });
@@ -241,6 +247,67 @@ describe('native CRM persistence and security', () => {
       "UPDATE sites SET settings=jsonb_set(settings,'{consultationLifecycle,revoked}','true') WHERE id='site'",
     );
     expect(await crm.reconcileBooking(link.id)).toMatchObject({ lifecycle: { revoked: true } });
+  });
+  it('synchronizes the existing paid booking pipeline before private fulfillment and preserves source authority', async () => {
+    const organization = await crm.createOrganization(org('source-booking'));
+    const opportunity = await crm.createOpportunity({
+      organizationId: organization.id,
+      title: 'Existing three-hour consultation',
+      offer: 'consultation',
+    });
+    const input = { opportunityId: opportunity.id, bookingId: 'source-booking-1' };
+    const evidence = {
+      contract: 'studio-crm-booking-v1',
+      bookingId: input.bookingId,
+      status: 'paid_scheduled',
+      start: '2026-10-20T14:00:00.000Z',
+      end: '2026-10-20T17:00:00.000Z',
+      hours: 3,
+      name: 'Example Buyer',
+      email: 'source-buyer@example.test',
+      company: 'Example Co',
+      stageB: true,
+      stageBFee: 'paid_addon',
+      stripeSessionId: 'cs_source',
+      eventId: 'source_event',
+      refund: null,
+    };
+    const link = await crm.syncSourceBooking(input, evidence, 'https://studio.example.test/book');
+    expect(link.siteId).toBeNull();
+    expect(link.sourceSnapshot).toMatchObject({ hours: 3, status: 'paid_scheduled' });
+    expect(link.sourceSnapshot).not.toHaveProperty('email');
+    expect(
+      await crm.syncSourceBooking(input, evidence, 'https://studio.example.test/book'),
+    ).toEqual(link);
+    expect(await crm.list('contacts', {})).toContainEqual(
+      expect.objectContaining({ businessEmail: evidence.email, consent: 'unknown' }),
+    );
+    expect(await crm.list('opportunities', {})).toContainEqual(
+      expect.objectContaining({ id: opportunity.id, stage: 'research', realizedRevenueCents: 0 }),
+    );
+    await expect(
+      crm.syncSourceBooking(
+        input,
+        { ...evidence, bookingId: 'forged' },
+        'https://studio.example.test/book',
+      ),
+    ).rejects.toThrow('identity');
+    await expect(
+      crm.syncSourceBooking(
+        input,
+        { ...evidence, eventId: null },
+        'https://studio.example.test/book',
+      ),
+    ).rejects.toThrow();
+    expect(
+      (
+        await crm.syncSourceBooking(
+          input,
+          { contract: 'studio-crm-booking-v1', bookingId: input.bookingId, status: 'missing' },
+          'https://studio.example.test/book',
+        )
+      ).sourceSnapshot,
+    ).toMatchObject({ status: 'missing' });
   });
   it('rejects unbounded requests and payload privilege injection', async () => {
     await expect(crm.list('contacts', { limit: 1000 })).rejects.toThrow();

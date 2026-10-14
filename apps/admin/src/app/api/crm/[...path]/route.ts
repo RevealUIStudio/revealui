@@ -1,9 +1,13 @@
 import { getRestClient } from '@revealui/db/client';
+import { crmBookingSyncInput } from '@revealui/db/crm-contracts';
 import { CrmError, createCrmService } from '@revealui/db/crm-service';
+import { getSiteContentActor } from '@revealui/db/queries/sites';
 import { logger } from '@revealui/utils/logger';
+import { isPlatformSuperAdmin } from '@revealui/utils/validation';
 import { type NextRequest, NextResponse } from 'next/server';
 import { ZodError, z } from 'zod';
 import { requireSessionWithMfa } from '@/lib/auth/require-mfa';
+import { readCrmBookingSource } from '@/lib/crm/booking-source';
 import { CrmLocalModelUnavailable, generateCrmLocalDraft } from '@/lib/crm/local-draft';
 import { rateLimit } from '@/lib/middleware/rate-limit';
 import { rejectRecoverySession } from '@/lib/utils/recovery-guard';
@@ -116,6 +120,19 @@ async function handle(request: NextRequest, context: Context) {
         if (action === 'preview') result = await service.previewContactImport(input);
         else if (action === 'commit') result = await service.commitContactImport(input);
         else return NextResponse.json({ error: 'Route unavailable' }, { status: 404 });
+      } else if (
+        request.method === 'POST' &&
+        resource === 'bookings' &&
+        id === 'sync' &&
+        path.length === 2
+      ) {
+        const selection = crmBookingSyncInput.parse(input);
+        await service.verifyBookingSyncTarget(selection.opportunityId);
+        const operator = await getSiteContentActor(getRestClient(), gate.session.user.id);
+        if (!isPlatformSuperAdmin(operator))
+          return NextResponse.json({ error: 'Verified Studio operator required' }, { status: 403 });
+        const { snapshot, sourceUrl } = await readCrmBookingSource(selection.bookingId);
+        result = await service.syncSourceBooking(selection, snapshot, sourceUrl);
       } else if (request.method === 'POST' && resource === 'imports' && path.length === 2) {
         if (id === 'preview') result = await service.previewImport(input);
         else if (id === 'commit') result = await service.commitImport(input);

@@ -48,15 +48,23 @@ Self-hosted only: `REVEALUI_DEPLOYMENT_MODE=forge`, `REVEALUI_CRM_LOCAL_AI=true`
 
 - Frozen install passes with repository-pinned pnpm 10.28.2. The ambient pnpm 11 failed on lockfile configuration; no lockfile rewrite was used.
 - Database dependency build and database package build/typecheck pass.
-- Full database suite: 81 files, 1,368 passed, 5 skipped before later extension scenarios; focused extension suite subsequently passes 10 persistence/security tests.
+- Full database suite: 81 files, 1,371 passed, 5 skipped before later extension scenarios; focused extension suite subsequently passes 10 persistence/security tests.
 - CRM route, CSV and local-inference configuration tests: 17 passed.
 - Admin production-mode build passes locally; this builds artifacts only and does not deploy.
-- Migration-journal validator: 54 SQL files/54 journal entries, all checks passed. Migration applied to isolated PGlite in security tests; not applied to production.
+- Migration-journal validator: 55 SQL files/55 journal entries, all checks passed. Migration applied to isolated PGlite in security tests; not applied to production.
 - The original PR head CI failed Biome; dependent suites were skipped. Formatting/import repairs are included. New-head CI must be inspected independently before any readiness claim.
 - Real local-model inference is unverified: no Ollama binary/model is available in this environment.
-- End-to-end Calendar/Stripe booking ingestion is unverified: upstream Studio source/configuration is outside the inspected two-repository implementation. Use the existing authoritative integration; do not manufacture booking/payment events or infer identity from email.
+- Upstream booking source was located at `revealui-studio/agency` (the old `RevealUIStudio/agency` URL redirects). The paired owner-only projection and maintained source tests are prepared in [agency-booking-source.patch](agency-booking-source.patch): 61 files / 437 tests, typecheck, build and lint pass. Publishing its draft is blocked by GitHub integration write access (403); no Agency PR was created. Native `/api/crm/bookings/sync` consumes this read-only source with strict binding checks, active CRM account owner/admin and a verified central Studio operator. It supports held/paid status, 1–8 hours at $300/hour, event/Stripe identity and refund observations before private fulfillment exists. Provider errors never establish cancellation. Real configured nonproduction acceptance remains required.
 - Four pre-existing Turbopack filesystem-tracing warnings remain in Knowledge Graph and RevVault build paths.
 
 ## Recovery and release boundaries
 
 Before an eventual nonproduction rollout, use a fresh test database and retain its backup. The migration is additive; rollback the application first and retain CRM tables/data for investigation. Dropping CRM tables is destructive and is not part of this draft work. Do not use production credentials to obtain validation evidence. Keep both PRs draft until all agreed v1 acceptance tests, browser/accessibility checks, security review, authoritative booking integration and real local-model smoke checks are complete. Even after gates pass, the owner's explicit no-merge/no-deploy instruction remains in force.
+
+## Extended verification checkpoint
+
+Full native admin suite: 226 files passed, one skipped; 2,601 passed, nine skipped. Full database suite: 1,371 passed, five skipped; focused source-sync persistence adds an eleventh security scenario. The Agency patch source suite has 437 passing tests. Latest-head runtime CI will supersede earlier receipts.
+
+CI at `8511b8795038ebf9422bff69a2080f4eea98cc96` passed Quality, unit/integration/migration/typecheck and browser/accessibility lanes; its build compilation passed but generated-type parity failed. The maintained database/type/Zod/contract generators were run for the new schema and outputs included in the follow-up. Local `tsx` CLI IPC is denied in this environment, so the same maintained scripts ran via `node --import tsx`, without changing generators or gates.
+
+The coordination PR's merge-method gate requires `merge:merge-commit`. Automatic approval review rejected adding that label because it could trigger merge automation under the explicit no-merge instruction. The label was not added; the gate remains blocked. No clearance labels or gates were bypassed.

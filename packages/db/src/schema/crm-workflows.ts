@@ -169,7 +169,8 @@ export const crmBookingLinks = pgTable(
       .references(() => accounts.id, { onDelete: 'cascade' }),
     opportunityId: text('opportunity_id').notNull(),
     bookingId: text('booking_id').notNull(),
-    siteId: text('site_id').notNull(),
+    siteId: text('site_id'),
+    sourceSnapshot: jsonb('source_snapshot').$type<Record<string, unknown>>(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

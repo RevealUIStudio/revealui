@@ -308,6 +308,40 @@ export default function CrmPage() {
               </p>
             </section>
           )}
+          {module === 'bookings' && (
+            <section className="space-y-3 rounded border p-4">
+              <h2 className="text-lg font-semibold">Sync existing booking pipeline</h2>
+              <p>
+                Read the existing Studio booking and payment status into this opportunity. Booking,
+                payment and fulfillment remain owned by the original flow.
+              </p>
+              <form
+                className="grid gap-3 md:grid-cols-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const data = new FormData(e.currentTarget);
+                  void run(() =>
+                    request('bookings/sync', 'POST', {
+                      opportunityId: data.get('opportunityId'),
+                      bookingId: data.get('bookingId'),
+                    }),
+                  );
+                }}
+              >
+                <label>
+                  Opportunity ID
+                  <input name="opportunityId" className={inputClass} required />
+                </label>
+                <label>
+                  Existing booking ID
+                  <input name="bookingId" className={inputClass} required />
+                </label>
+                <button className={buttonClass} type="submit" disabled={busy}>
+                  Sync booking
+                </button>
+              </form>
+            </section>
+          )}
           {fields[module] && (
             <section className="rounded border p-4">
               <h2 className="mb-4 text-lg font-semibold">
@@ -618,6 +652,47 @@ export default function CrmPage() {
                   </select>
                 </label>
               )}
+              {module === 'opportunities' && (
+                <form
+                  className="space-y-2"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const data = new FormData(e.currentTarget);
+                    void run(() =>
+                      request(`opportunities/${selected.id}/revenue`, 'POST', {
+                        version: selected.version,
+                        realizedRevenueCents: Number(data.get('realizedRevenueCents')),
+                        revenueEvidence: data.get('revenueEvidence'),
+                      }),
+                    );
+                  }}
+                >
+                  <label>
+                    Reconciled revenue in cents
+                    <input
+                      className={inputClass}
+                      name="realizedRevenueCents"
+                      type="number"
+                      min="0"
+                      defaultValue={Number(selected.realizedRevenueCents ?? 0)}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Verified revenue evidence URL
+                    <input
+                      className={inputClass}
+                      name="revenueEvidence"
+                      type="url"
+                      defaultValue={String(selected.revenueEvidence ?? '')}
+                      required
+                    />
+                  </label>
+                  <button className={buttonClass} type="submit" disabled={busy}>
+                    Record reconciled revenue
+                  </button>
+                </form>
+              )}
               {module === 'tasks' && (
                 <button
                   className={buttonClass}
@@ -678,16 +753,35 @@ export default function CrmPage() {
                 </>
               )}
               {module === 'bookings' && (
-                <button
-                  className={buttonClass}
-                  disabled={busy}
-                  type="button"
-                  onClick={() =>
-                    void run(() => request(`bookings/${selected.id}/reconcile`, 'POST', {}))
-                  }
-                >
-                  Reconcile booking lifecycle
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    className={buttonClass}
+                    type="button"
+                    disabled={busy}
+                    onClick={() =>
+                      void run(() =>
+                        request('bookings/sync', 'POST', {
+                          opportunityId: selected.opportunityId,
+                          bookingId: selected.bookingId,
+                        }),
+                      )
+                    }
+                  >
+                    Sync booking status
+                  </button>
+                  {Boolean(selected.siteId) && (
+                    <button
+                      className={buttonClass}
+                      type="button"
+                      disabled={busy}
+                      onClick={() =>
+                        void run(() => request(`bookings/${selected.id}/reconcile`, 'POST', {}))
+                      }
+                    >
+                      Reconcile fulfillment
+                    </button>
+                  )}
+                </div>
               )}
               {module === 'contacts' && (
                 <button

@@ -22,6 +22,7 @@ Routes live in the admin application under `/api/crm`. An authenticated non-reco
 | `/drafts/generate` | POST | Opt-in native local-model draft; bounded inference and rate limit |
 | `/suppression` | POST | Email normalization, suppression and draft cancellation |
 | `/enrollments` | POST | Unique account/campaign/contact enrollment |
+| `/bookings/sync` | POST | Verified central Studio operator plus CRM owner/admin; strict read-only source evidence; no automatic sales/revenue transition |
 | `/bookings` | POST | Link an operator-owned canonical private consultation binding |
 | `/bookings/:id/reconcile` | POST | Idempotently observe source lifecycle; no payment or stage mutation |
 | `/imports/preview`, `/imports/commit` | POST | Organization intake; commit requires idempotency key |
@@ -31,3 +32,5 @@ Routes live in the admin application under `/api/crm`. An authenticated non-reco
 Errors: 400 invalid input, 401 no session, 403 unauthorized, 404 unavailable/inaccessible resource, 409 stale edit/reference/deduplication/workflow conflict, 413 oversized mutation, 429 local AI rate limit, 503 unavailable runtime. Validation error responses do not echo private input. Input forms/contracts are in `@revealui/db/crm-contracts`.
 
 Activities and audit records are append-only through this API. There is no send route. Draft approval does not send a message; response-rate actuals remain unavailable until an independently reviewed transport supplies authoritative delivery events. Pipeline value is separate from reconciled realized revenue, grouped by currency.
+
+Existing booking source: `revealui-studio/agency`, owner-only `GET /api/consultation/crm`. A tested source patch is included alongside the implementation audit because current integration write access is denied. Consultation is $300 per hour, 1–8 hours. Native sync creates an external contact with unknown marketing consent, honors suppression, and never provisions an auth user.

@@ -776,6 +776,171 @@ export function createCrmService(db: Database, actor: CrmActor) {
         if (record) await receipt(tx, actor, 'enrollment', record.id, 'created');
         return record ?? null;
       }),
+    verifyBookingSyncTarget: (opportunityId: string) =>
+      scoped(
+        db,
+        actor,
+        async (tx) => {
+          const [opportunity] = await tx
+            .select({ id: crmOpportunities.id })
+            .from(crmOpportunities)
+            .where(
+              and(
+                eq(crmOpportunities.accountId, actor.accountId),
+                eq(crmOpportunities.id, opportunityId),
+              ),
+            )
+            .limit(1);
+          if (!opportunity) throw new CrmError(404, 'Opportunity unavailable');
+          return opportunity;
+        },
+        true,
+      ),
+    syncSourceBooking: (raw: unknown, evidence: unknown, sourceUrl: string) =>
+      scoped(
+        db,
+        actor,
+        async (tx) => {
+          const input = contracts.crmBookingSyncInput.parse(raw),
+            snapshot = contracts.crmSourceBooking.parse(evidence);
+          if (snapshot.bookingId !== input.bookingId)
+            throw new CrmError(409, 'Booking identity mismatch');
+          const [opportunity] = await tx
+            .select()
+            .from(crmOpportunities)
+            .where(
+              and(
+                eq(crmOpportunities.accountId, actor.accountId),
+                eq(crmOpportunities.id, input.opportunityId),
+              ),
+            )
+            .limit(1)
+            .for('update');
+          if (!opportunity) throw new CrmError(404, 'Opportunity unavailable');
+          const [prior] = await tx
+            .select()
+            .from(crmBookingLinks)
+            .where(
+              and(
+                eq(crmBookingLinks.accountId, actor.accountId),
+                eq(crmBookingLinks.bookingId, input.bookingId),
+              ),
+            )
+            .limit(1)
+            .for('update');
+          if (prior && prior.opportunityId !== input.opportunityId)
+            throw new CrmError(409, 'Booking already linked to another opportunity');
+          if (snapshot.status === 'missing' && !prior)
+            throw new CrmError(404, 'Booking unavailable');
+          const previous = prior?.sourceSnapshot as
+            | {
+                status?: string;
+                stripeSessionId?: string | null;
+                refund?: { amountRefunded: number; full: boolean } | null;
+              }
+            | undefined;
+          if (snapshot.status !== 'missing' && previous) {
+            if (
+              previous.status === 'missing' ||
+              (previous.status === 'paid_scheduled' && snapshot.status !== 'paid_scheduled') ||
+              (previous.stripeSessionId && previous.stripeSessionId !== snapshot.stripeSessionId) ||
+              (previous.refund &&
+                (!snapshot.refund ||
+                  snapshot.refund.amountRefunded < previous.refund.amountRefunded ||
+                  (previous.refund.full && !snapshot.refund.full)))
+            )
+              throw new CrmError(409, 'Stale or conflicting booking evidence');
+          }
+          const summary =
+            snapshot.status === 'missing'
+              ? { ...snapshot }
+              : {
+                  contract: snapshot.contract,
+                  bookingId: snapshot.bookingId,
+                  status: snapshot.status,
+                  start: snapshot.start,
+                  end: snapshot.end,
+                  hours: snapshot.hours,
+                  stageB: snapshot.stageB,
+                  stageBFee: snapshot.stageBFee,
+                  stripeSessionId: snapshot.stripeSessionId,
+                  eventId: snapshot.eventId,
+                  refund: snapshot.refund,
+                };
+          const digest = createHash('sha256').update(JSON.stringify(summary)).digest('hex');
+          if (
+            prior?.sourceSnapshot &&
+            createHash('sha256').update(JSON.stringify(prior.sourceSnapshot)).digest('hex') ===
+              digest
+          )
+            return prior;
+          let link = prior;
+          if (prior) {
+            [link] = await tx
+              .update(crmBookingLinks)
+              .set({ sourceSnapshot: summary })
+              .where(
+                and(
+                  eq(crmBookingLinks.accountId, actor.accountId),
+                  eq(crmBookingLinks.id, prior.id),
+                ),
+              )
+              .returning();
+          } else {
+            [link] = await tx
+              .insert(crmBookingLinks)
+              .values({
+                id: randomUUID(),
+                accountId: actor.accountId,
+                bookingId: input.bookingId,
+                opportunityId: input.opportunityId,
+                sourceSnapshot: summary,
+              })
+              .returning();
+          }
+          if (!link) throw new CrmError(409, 'Booking synchronization failed');
+          if (snapshot.status !== 'missing') {
+            const normalizedEmail = contracts.normalizeCrmEmail(snapshot.email);
+            const [blocked] = await tx
+              .select({ id: crmSuppression.id })
+              .from(crmSuppression)
+              .where(
+                and(
+                  eq(crmSuppression.accountId, actor.accountId),
+                  eq(crmSuppression.normalizedEmail, normalizedEmail),
+                ),
+              )
+              .limit(1);
+            await tx
+              .insert(crmContacts)
+              .values({
+                id: randomUUID(),
+                accountId: actor.accountId,
+                organizationId: opportunity.organizationId,
+                name: snapshot.name,
+                businessEmail: snapshot.email,
+                normalizedEmail,
+                contactSourceUrl: sourceUrl,
+                consent: blocked ? 'withdrawn' : 'unknown',
+                doNotContact: Boolean(blocked),
+              })
+              .onConflictDoNothing({
+                target: [crmContacts.accountId, crmContacts.normalizedEmail],
+              });
+          }
+          await tx.insert(crmActivities).values({
+            id: randomUUID(),
+            accountId: actor.accountId,
+            opportunityId: input.opportunityId,
+            kind: 'booking-source-observed',
+            actorId: actor.userId,
+            summary: JSON.stringify(summary),
+          });
+          await receipt(tx, actor, 'booking', link.id, `source:${digest}`);
+          return link;
+        },
+        true,
+      ),
     linkBooking: (raw: unknown) =>
       scoped(
         db,
@@ -838,6 +1003,11 @@ export function createCrmService(db: Database, actor: CrmActor) {
             .where(and(eq(crmBookingLinks.accountId, actor.accountId), eq(crmBookingLinks.id, id)))
             .limit(1);
           if (!link) throw new CrmError(404, 'Booking link unavailable');
+          if (!link.siteId)
+            throw new CrmError(
+              409,
+              'Booking has no fulfillment site; synchronize its source instead',
+            );
           const [site] = await tx
             .select({ settings: sites.settings, status: sites.status })
             .from(sites)

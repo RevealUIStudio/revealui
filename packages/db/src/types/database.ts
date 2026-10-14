@@ -49,6 +49,19 @@ import type {
   coordinationSessions,
   coordinationWorkItems,
   crdtOperations,
+  crmActivities,
+  crmAuditEvents,
+  crmBookingLinks,
+  crmCampaigns,
+  crmContacts,
+  crmEnrollments,
+  crmImports,
+  crmOpportunities,
+  crmOrganizations,
+  crmOutreachDrafts,
+  crmStageHistory,
+  crmSuppression,
+  crmTasks,
   editSessionDocs,
   editSessionEvents,
   editSessions,
@@ -338,6 +351,71 @@ export type CoordinationWorkItemsUpdate = Partial<CoordinationWorkItemsInsert>
 export type CrdtOperationsRow = typeof crdtOperations.$inferSelect
 export type CrdtOperationsInsert = typeof crdtOperations.$inferInsert
 export type CrdtOperationsUpdate = Partial<CrdtOperationsInsert>
+
+// Crm Activities
+export type CrmActivitiesRow = typeof crmActivities.$inferSelect
+export type CrmActivitiesInsert = typeof crmActivities.$inferInsert
+export type CrmActivitiesUpdate = Partial<CrmActivitiesInsert>
+
+// Crm Audit Events
+export type CrmAuditEventsRow = typeof crmAuditEvents.$inferSelect
+export type CrmAuditEventsInsert = typeof crmAuditEvents.$inferInsert
+export type CrmAuditEventsUpdate = Partial<CrmAuditEventsInsert>
+
+// Crm Booking Links
+export type CrmBookingLinksRow = typeof crmBookingLinks.$inferSelect
+export type CrmBookingLinksInsert = typeof crmBookingLinks.$inferInsert
+export type CrmBookingLinksUpdate = Partial<CrmBookingLinksInsert>
+
+// Crm Campaigns
+export type CrmCampaignsRow = typeof crmCampaigns.$inferSelect
+export type CrmCampaignsInsert = typeof crmCampaigns.$inferInsert
+export type CrmCampaignsUpdate = Partial<CrmCampaignsInsert>
+
+// Crm Contacts
+export type CrmContactsRow = typeof crmContacts.$inferSelect
+export type CrmContactsInsert = typeof crmContacts.$inferInsert
+export type CrmContactsUpdate = Partial<CrmContactsInsert>
+
+// Crm Enrollments
+export type CrmEnrollmentsRow = typeof crmEnrollments.$inferSelect
+export type CrmEnrollmentsInsert = typeof crmEnrollments.$inferInsert
+export type CrmEnrollmentsUpdate = Partial<CrmEnrollmentsInsert>
+
+// Crm Imports
+export type CrmImportsRow = typeof crmImports.$inferSelect
+export type CrmImportsInsert = typeof crmImports.$inferInsert
+export type CrmImportsUpdate = Partial<CrmImportsInsert>
+
+// Crm Opportunities
+export type CrmOpportunitiesRow = typeof crmOpportunities.$inferSelect
+export type CrmOpportunitiesInsert = typeof crmOpportunities.$inferInsert
+export type CrmOpportunitiesUpdate = Partial<CrmOpportunitiesInsert>
+
+// Crm Organizations
+export type CrmOrganizationsRow = typeof crmOrganizations.$inferSelect
+export type CrmOrganizationsInsert = typeof crmOrganizations.$inferInsert
+export type CrmOrganizationsUpdate = Partial<CrmOrganizationsInsert>
+
+// Crm Outreach Drafts
+export type CrmOutreachDraftsRow = typeof crmOutreachDrafts.$inferSelect
+export type CrmOutreachDraftsInsert = typeof crmOutreachDrafts.$inferInsert
+export type CrmOutreachDraftsUpdate = Partial<CrmOutreachDraftsInsert>
+
+// Crm Stage History
+export type CrmStageHistoryRow = typeof crmStageHistory.$inferSelect
+export type CrmStageHistoryInsert = typeof crmStageHistory.$inferInsert
+export type CrmStageHistoryUpdate = Partial<CrmStageHistoryInsert>
+
+// Crm Suppression
+export type CrmSuppressionRow = typeof crmSuppression.$inferSelect
+export type CrmSuppressionInsert = typeof crmSuppression.$inferInsert
+export type CrmSuppressionUpdate = Partial<CrmSuppressionInsert>
+
+// Crm Tasks
+export type CrmTasksRow = typeof crmTasks.$inferSelect
+export type CrmTasksInsert = typeof crmTasks.$inferInsert
+export type CrmTasksUpdate = Partial<CrmTasksInsert>
 
 // Edit Session Docs
 export type EditSessionDocsRow = typeof editSessionDocs.$inferSelect
@@ -823,6 +901,19 @@ export type DatabaseRelationships = {
   coordinationSessions: Relationship[]
   coordinationWorkItems: Relationship[]
   crdtOperations: Relationship[]
+  crmActivities: Relationship[]
+  crmAuditEvents: Relationship[]
+  crmBookingLinks: Relationship[]
+  crmCampaigns: Relationship[]
+  crmContacts: Relationship[]
+  crmEnrollments: Relationship[]
+  crmImports: Relationship[]
+  crmOpportunities: Relationship[]
+  crmOrganizations: Relationship[]
+  crmOutreachDrafts: Relationship[]
+  crmStageHistory: Relationship[]
+  crmSuppression: Relationship[]
+  crmTasks: Relationship[]
   editSessionDocs: Relationship[]
   editSessionEvents: Relationship[]
   editSessions: Relationship[]
@@ -1065,6 +1156,45 @@ export const coordinationWorkItemsRelationships: readonly Relationship[] = []
 
 // CrdtOperations relationships
 export const crdtOperationsRelationships: readonly Relationship[] = []
+
+// CrmActivities relationships
+export const crmActivitiesRelationships: readonly Relationship[] = []
+
+// CrmAuditEvents relationships
+export const crmAuditEventsRelationships: readonly Relationship[] = []
+
+// CrmBookingLinks relationships
+export const crmBookingLinksRelationships: readonly Relationship[] = []
+
+// CrmCampaigns relationships
+export const crmCampaignsRelationships: readonly Relationship[] = []
+
+// CrmContacts relationships
+export const crmContactsRelationships: readonly Relationship[] = []
+
+// CrmEnrollments relationships
+export const crmEnrollmentsRelationships: readonly Relationship[] = []
+
+// CrmImports relationships
+export const crmImportsRelationships: readonly Relationship[] = []
+
+// CrmOpportunities relationships
+export const crmOpportunitiesRelationships: readonly Relationship[] = []
+
+// CrmOrganizations relationships
+export const crmOrganizationsRelationships: readonly Relationship[] = []
+
+// CrmOutreachDrafts relationships
+export const crmOutreachDraftsRelationships: readonly Relationship[] = []
+
+// CrmStageHistory relationships
+export const crmStageHistoryRelationships: readonly Relationship[] = []
+
+// CrmSuppression relationships
+export const crmSuppressionRelationships: readonly Relationship[] = []
+
+// CrmTasks relationships
+export const crmTasksRelationships: readonly Relationship[] = []
 
 // EditSessionDocs relationships
 export const editSessionDocsRelationships = [
@@ -1688,6 +1818,84 @@ export type Database = {
         Insert: CrdtOperationsInsert
         Update: CrdtOperationsUpdate
         Relationships: typeof crdtOperationsRelationships
+      }
+      crm_activities: {
+        Row: CrmActivitiesRow
+        Insert: CrmActivitiesInsert
+        Update: CrmActivitiesUpdate
+        Relationships: typeof crmActivitiesRelationships
+      }
+      crm_audit_events: {
+        Row: CrmAuditEventsRow
+        Insert: CrmAuditEventsInsert
+        Update: CrmAuditEventsUpdate
+        Relationships: typeof crmAuditEventsRelationships
+      }
+      crm_booking_links: {
+        Row: CrmBookingLinksRow
+        Insert: CrmBookingLinksInsert
+        Update: CrmBookingLinksUpdate
+        Relationships: typeof crmBookingLinksRelationships
+      }
+      crm_campaigns: {
+        Row: CrmCampaignsRow
+        Insert: CrmCampaignsInsert
+        Update: CrmCampaignsUpdate
+        Relationships: typeof crmCampaignsRelationships
+      }
+      crm_contacts: {
+        Row: CrmContactsRow
+        Insert: CrmContactsInsert
+        Update: CrmContactsUpdate
+        Relationships: typeof crmContactsRelationships
+      }
+      crm_enrollments: {
+        Row: CrmEnrollmentsRow
+        Insert: CrmEnrollmentsInsert
+        Update: CrmEnrollmentsUpdate
+        Relationships: typeof crmEnrollmentsRelationships
+      }
+      crm_imports: {
+        Row: CrmImportsRow
+        Insert: CrmImportsInsert
+        Update: CrmImportsUpdate
+        Relationships: typeof crmImportsRelationships
+      }
+      crm_opportunities: {
+        Row: CrmOpportunitiesRow
+        Insert: CrmOpportunitiesInsert
+        Update: CrmOpportunitiesUpdate
+        Relationships: typeof crmOpportunitiesRelationships
+      }
+      crm_organizations: {
+        Row: CrmOrganizationsRow
+        Insert: CrmOrganizationsInsert
+        Update: CrmOrganizationsUpdate
+        Relationships: typeof crmOrganizationsRelationships
+      }
+      crm_outreach_drafts: {
+        Row: CrmOutreachDraftsRow
+        Insert: CrmOutreachDraftsInsert
+        Update: CrmOutreachDraftsUpdate
+        Relationships: typeof crmOutreachDraftsRelationships
+      }
+      crm_stage_history: {
+        Row: CrmStageHistoryRow
+        Insert: CrmStageHistoryInsert
+        Update: CrmStageHistoryUpdate
+        Relationships: typeof crmStageHistoryRelationships
+      }
+      crm_suppression: {
+        Row: CrmSuppressionRow
+        Insert: CrmSuppressionInsert
+        Update: CrmSuppressionUpdate
+        Relationships: typeof crmSuppressionRelationships
+      }
+      crm_tasks: {
+        Row: CrmTasksRow
+        Insert: CrmTasksInsert
+        Update: CrmTasksUpdate
+        Relationships: typeof crmTasksRelationships
       }
       edit_session_docs: {
         Row: EditSessionDocsRow
