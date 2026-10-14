@@ -30,6 +30,7 @@ import {
   loadSeedEnv,
   SeedEnvError,
 } from '../../../scripts/lib/seed-env.js';
+import { persistRefreshedLicenseBlocks } from './lib/seed/home-license-copy.js';
 
 // pnpm db:seed:admin runs from monorepo root; seed-env loads apps/admin/.env.local
 // while preserving the caller-selected database target.
@@ -113,6 +114,12 @@ function pageSeed(input: {
   };
 }
 
+const HOME_LICENSE_SENTENCE =
+  '26 of the 33 packages are MIT, forever. The 5 Pro packages are Fair Source (FSL-1.1-MIT) and convert to MIT two years after each release. The remaining 2 workspace packages are internal tooling with no public license.';
+
+const ABOUT_LICENSE_SENTENCE =
+  'The core runtime is MIT-licensed. The 5 Pro packages (ai, engines, harnesses, mcp, and services) are Fair Source (FSL-1.1-MIT): source-visible, commercially usable except as a competing developer platform, and each release converts to MIT two years after it ships.';
+
 const pages = [
   pageSeed({
     title: 'Home',
@@ -121,7 +128,7 @@ const pages = [
     richText: richTextDoc(
       heading('Stop building the backend. Ship the AI business.'),
       paragraph(
-        'Auth, billing, content, and agents - wired, audited, yours. Five primitives for you and your AI agents, governed by one RBAC + ABAC policy and signed into one tamper-evident audit chain.',
+        'Auth, billing, content, and agents: wired, audited, yours. Five primitives for you and your AI agents, governed by one RBAC + ABAC policy and signed into one tamper-evident audit chain.',
       ),
       heading('Why RevealUI?', 'h3'),
       paragraph(
@@ -129,7 +136,7 @@ const pages = [
       ),
       heading('Get Started', 'h3'),
       paragraph(
-        'Run npx create-revealui to scaffold a new project. Visit /admin to manage content, create pages, and configure your application. 20 of 26 packages are MIT - forever; the 5 Pro packages convert to MIT after 2 years.',
+        `Run npx create-revealui to scaffold a new project. Visit /admin to manage content, create pages, and configure your application. ${HOME_LICENSE_SENTENCE}`,
       ),
     ),
   }),
@@ -146,9 +153,7 @@ const pages = [
         'Built on React 19, Next.js 16, TypeScript, and Tailwind CSS v4. Every feature works for you and is accessible to your agents. One runtime, one set of permissions, one audit trail.',
       ),
       heading('Open Source + Pro', 'h3'),
-      paragraph(
-        'The core runtime is MIT-licensed. The 5 Pro packages (ai, engines, harnesses, mcp, services) are Fair Source (FSL-1.1-MIT), free for single-product use, commercially licensed for platforms, converting to MIT after two years.',
-      ),
+      paragraph(ABOUT_LICENSE_SENTENCE),
     ),
   }),
   pageSeed({
@@ -206,8 +211,21 @@ const sampleContent = {
 
 interface SeedCollectionResult {
   created: number;
+  updated: number;
   skipped: number;
   failed: number;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function storedPageId(doc: unknown): string | null {
+  if (!isRecord(doc)) return null;
+  const id = doc.id;
+  if (typeof id === 'string' && id.length > 0) return id;
+  if (typeof id === 'number') return String(id);
+  return null;
 }
 
 // --- Seed Functions ---
@@ -256,6 +274,7 @@ async function seedCollection(
 ): Promise<SeedCollectionResult> {
   logger.info(`\nSeeding ${label}...`);
   let created = 0;
+  let updated = 0;
   let skipped = 0;
   let failed = 0;
 
@@ -274,6 +293,30 @@ async function seedCollection(
       });
 
       if (existing.docs && existing.docs.length > 0) {
+        const doc = existing.docs[0];
+        const pageId =
+          collection === 'pages' && (identifier === 'home' || identifier === 'about')
+            ? storedPageId(doc)
+            : null;
+        if (pageId && isRecord(doc)) {
+          const refresh = await persistRefreshedLicenseBlocks(
+            getClient(),
+            pageId,
+            doc.blocks,
+            HOME_LICENSE_SENTENCE,
+            ABOUT_LICENSE_SENTENCE,
+          );
+          if (refresh === 'updated') {
+            logger.success(`   Updated stale license copy on "${identifier}"`);
+            updated++;
+            continue;
+          }
+          if (refresh === 'missing') {
+            failed++;
+            logger.error(`   Could not refresh license copy on "${identifier}"`);
+            continue;
+          }
+        }
         logger.info(`   Skipping "${identifier}" (already exists)`);
         skipped++;
         continue;
@@ -294,7 +337,7 @@ async function seedCollection(
     }
   }
 
-  return { created, skipped, failed };
+  return { created, updated, skipped, failed };
 }
 
 async function getOrCreateDefaultSite(
@@ -385,7 +428,7 @@ async function main() {
     const revealuiConfig = await config;
     const revealui = await getRevealUI({ config: revealuiConfig });
 
-    let pageResult: SeedCollectionResult = { created: 0, skipped: 0, failed: 0 };
+    let pageResult: SeedCollectionResult = { created: 0, updated: 0, skipped: 0, failed: 0 };
 
     if (!contentOnly) {
       pageResult = await seedPages(revealui);
@@ -398,7 +441,7 @@ async function main() {
     if (pageResult.failed > 0) {
       throw new SeedEnvError(
         `Admin page seed finished with ${pageResult.failed} failure(s) ` +
-          `(created=${pageResult.created}, skipped=${pageResult.skipped}). ` +
+          `(created=${pageResult.created}, updated=${pageResult.updated}, skipped=${pageResult.skipped}). ` +
           'Fix the errors above and re-run pnpm db:seed:admin.',
       );
     }
@@ -407,7 +450,7 @@ async function main() {
 
     if (!contentOnly) {
       logger.info(
-        `Pages: created=${pageResult.created} skipped=${pageResult.skipped} failed=${pageResult.failed}`,
+        `Pages: created=${pageResult.created} updated=${pageResult.updated} skipped=${pageResult.skipped} failed=${pageResult.failed}`,
       );
       for (const page of pages) {
         logger.info(`   /${page.slug} — ${page.title}`);
