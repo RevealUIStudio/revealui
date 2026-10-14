@@ -5,7 +5,8 @@
  * Every CRM record is account-scoped; authorization is enforced by service/API.
  * Schema definitions alone must never be treated as an authorization boundary.
  */
-import { index, integer, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
+import { boolean, check, foreignKey, index, integer, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 import { accounts } from './accounts.js'
 import { users } from './users.js'
 
@@ -20,7 +21,7 @@ export const crmOrganizations = pgTable('crm_organizations', {
   sourceVerifiedAt: timestamp('source_verified_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdateFn(() => new Date()),
-}, (t) => [index('crm_org_account_idx').on(t.accountId), index('crm_org_name_idx').on(t.accountId, t.name)])
+}, (t) => [index('crm_org_account_idx').on(t.accountId), index('crm_org_name_idx').on(t.accountId, t.name), uniqueIndex('crm_org_account_id_unique').on(t.accountId, t.id)])
 
 export const crmContacts = pgTable('crm_contacts', {
   id: text('id').primaryKey(),
@@ -30,10 +31,10 @@ export const crmContacts = pgTable('crm_contacts', {
   role: text('role'),
   businessEmail: text('business_email'),
   contactSourceUrl: text('contact_source_url'),
-  doNotContact: integer('do_not_contact').notNull().default(0),
+  doNotContact: boolean('do_not_contact').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdateFn(() => new Date()),
-}, (t) => [index('crm_contacts_account_idx').on(t.accountId), index('crm_contacts_org_idx').on(t.organizationId)])
+}, (t) => [index('crm_contacts_account_idx').on(t.accountId), index('crm_contacts_org_idx').on(t.organizationId), foreignKey({ columns: [t.accountId, t.organizationId], foreignColumns: [crmOrganizations.accountId, crmOrganizations.id] })])
 
 export const crmOpportunities = pgTable('crm_opportunities', {
   id: text('id').primaryKey(),
@@ -47,7 +48,7 @@ export const crmOpportunities = pgTable('crm_opportunities', {
   nextActionAt: timestamp('next_action_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdateFn(() => new Date()),
-}, (t) => [index('crm_opps_account_stage_idx').on(t.accountId, t.stage), index('crm_opps_org_idx').on(t.organizationId)])
+}, (t) => [index('crm_opps_account_stage_idx').on(t.accountId, t.stage), index('crm_opps_org_idx').on(t.organizationId), uniqueIndex('crm_opp_account_id_unique').on(t.accountId, t.id), foreignKey({ columns: [t.accountId, t.organizationId], foreignColumns: [crmOrganizations.accountId, crmOrganizations.id] }), check('crm_opportunity_stage_check', sql`stage IN ('research','qualified','contact_ready','contacted','replied','discovery','proposal','won','lost','nurture','do_not_contact')`)])
 
 export const crmActivities = pgTable('crm_activities', {
   id: text('id').primaryKey(),
@@ -57,7 +58,7 @@ export const crmActivities = pgTable('crm_activities', {
   summary: text('summary').notNull(),
   actorId: text('actor_id').references(() => users.id, { onDelete: 'set null' }),
   occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index('crm_activity_account_idx').on(t.accountId), index('crm_activity_opportunity_idx').on(t.opportunityId)])
+}, (t) => [index('crm_activity_account_idx').on(t.accountId), index('crm_activity_opportunity_idx').on(t.opportunityId), foreignKey({ columns: [t.accountId, t.opportunityId], foreignColumns: [crmOpportunities.accountId, crmOpportunities.id] })])
 
 export const crmCampaigns = pgTable('crm_campaigns', {
   id: text('id').primaryKey(),
