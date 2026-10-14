@@ -330,6 +330,21 @@
       "types": "./dist/testing/index.d.ts",
       "import": "./dist/testing/index.js",
       "default": "./dist/testing/index.js"
+    },
+    "./crm-service": {
+      "types": "./dist/crm-service.d.ts",
+      "import": "./dist/crm-service.js",
+      "default": "./dist/crm-service.js"
+    },
+    "./crm-contracts": {
+      "types": "./dist/crm-contracts.d.ts",
+      "import": "./dist/crm-contracts.js",
+      "default": "./dist/crm-contracts.js"
+    },
+    "./crm-policy": {
+      "types": "./dist/crm-policy.d.ts",
+      "import": "./dist/crm-policy.js",
+      "default": "./dist/crm-policy.js"
     }
   },
   "files": [

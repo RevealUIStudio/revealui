@@ -1,23 +1,33 @@
-# CRM API contract — design draft
+---
+title: "Studio CRM API"
+description: "Implemented native admin CRM route contract and authorization boundary."
+visibility: internal
+status: draft
+audience: maintainer
+---
 
-All routes are under `/api/crm` and require a server-verified authenticated user and account membership. The account ID is resolved from authorized context, never trusted solely from request JSON. Errors: 400 invalid input; 401 unauthenticated; 403 unauthorized; 404 not found or inaccessible; 409 conflict; 429 throttled.
+# Native admin CRM API
 
-| Resource | Operations | Notes |
+Routes live in the admin application under `/api/crm`. An authenticated non-recovery session, applicable MFA and active account membership are required. `X-Account-ID` selects a candidate account; the service reauthorizes it and never trusts body-supplied identity. Mutation requests require same-origin and existing signed CSRF protection. Strict Zod validation rejects unknown fields. All successful responses are private/no-store.
+
+| Route | Method | Operation |
 |---|---|---|
-| /organizations | GET POST | Search, pagination, provenance and duplicate checks |
-| /organizations/:id | GET PATCH DELETE | Soft delete / retention review |
-| /contacts | GET POST | Suppression-first; never auto-provision login |
-| /contacts/:id | GET PATCH DELETE | Audit and contact-channel restrictions |
-| /opportunities | GET POST | Stage, owner, forecast and next action |
-| /opportunities/:id | GET PATCH | Optimistic concurrency; stage history |
-| /opportunities/:id/activities | GET POST | Append-only activity timeline |
-| /tasks | GET POST PATCH | Native ticket adapter with account boundary |
-| /campaigns | GET POST PATCH | Draft, review, approved, paused, archived |
-| /campaigns/:id/drafts | GET POST | Local AI suggestions or manually authored |
-| /campaigns/:id/approve | POST | Human identity + immutable approval event |
-| /campaigns/:id/send | POST | Must check approvals, suppression and provider configuration |
-| /imports/preview | POST | Parse, validate, dedupe, show proposed changes |
-| /imports/commit | POST | Idempotency key required |
-| /dashboard | GET | Aggregates filtered to account |
+| `/organizations`, `/contacts`, `/opportunities`, `/activities`, `/tasks`, `/campaigns`, `/drafts`, `/suppression`, `/enrollments`, `/bookings`, `/imports`, `/audit` | GET | Account-scoped list with limit 1–100, offset 0–100000 |
+| `/organizations`, `/contacts`, `/opportunities`, `/activities`, `/tasks`, `/campaigns`, `/drafts` | POST | Create validated native record |
+| `/organizations/:id`, `/contacts/:id`, `/opportunities/:id`, `/tasks/:id`, `/campaigns/:id`, `/drafts/:id` | PATCH | Optimistic version required; draft edit clears approval |
+| `/organizations/:id`, `/contacts/:id` | DELETE | Owner/admin tombstone; contact archive suppresses and cancels drafts |
+| `/opportunities/:id/stage` | POST | Validated transition plus immutable history |
+| `/opportunities/:id/revenue` | POST | Owner/admin evidenced reconciliation; never inferred from pipeline value |
+| `/drafts/:id/approve` | POST | Owner/admin review identity, version and suppression/channel checks |
+| `/drafts/generate` | POST | Opt-in native local-model draft; bounded inference and rate limit |
+| `/suppression` | POST | Email normalization, suppression and draft cancellation |
+| `/enrollments` | POST | Unique account/campaign/contact enrollment |
+| `/bookings` | POST | Link an operator-owned canonical private consultation binding |
+| `/bookings/:id/reconcile` | POST | Idempotently observe source lifecycle; no payment or stage mutation |
+| `/imports/preview`, `/imports/commit` | POST | Organization intake; commit requires idempotency key |
+| `/imports/contacts/preview`, `/imports/contacts/commit` | POST | External-contact intake; preserve suppression |
+| `/dashboard` | GET | Stage/currency totals, overdue work, activity/draft counts and booking links |
 
-Pagination is bounded. All writes validate Zod contracts and emit audit events. No endpoints are implemented by this document.
+Errors: 400 invalid input, 401 no session, 403 unauthorized, 404 unavailable/inaccessible resource, 409 stale edit/reference/deduplication/workflow conflict, 413 oversized mutation, 429 local AI rate limit, 503 unavailable runtime. Validation error responses do not echo private input. Input forms/contracts are in `@revealui/db/crm-contracts`.
+
+Activities and audit records are append-only through this API. There is no send route. Draft approval does not send a message; response-rate actuals remain unavailable until an independently reviewed transport supplies authoritative delivery events. Pipeline value is separate from reconciled realized revenue, grouped by currency.

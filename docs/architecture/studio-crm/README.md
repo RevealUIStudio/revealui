@@ -27,3 +27,7 @@ A. Audit and ADR; B. schema/migrations; C. auth-scoped services; D. UI; E. tasks
 
 ## Release gates
 No merge/deploy until generated migrations are reviewed, build/lint/typecheck/tests pass, cross-account attacks are rejected, suppression is enforced, outreach requires explicit approval, imports are idempotent, and a rollback is documented. No fabricated customer events.
+
+## Implementation delta
+
+Native persistence, authenticated admin services/UI, contact/organization imports, reviewable local-AI drafts, reporting and canonical consultation booking links now exist in this draft. See [implementation audit](implementation-audit.md) for exact reuse decisions, checks and remaining gates. Earlier schema-only statements above are historical. Nothing is merged, deployed, or production-tested.
