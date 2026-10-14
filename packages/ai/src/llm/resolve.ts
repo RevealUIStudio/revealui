@@ -34,7 +34,8 @@
  *
  * Feature flag (spec §7): HOSTED_BYOK_DISPATCH. Default ON for hosted, absent
  * (off) for self-hosted so self-hosted env-first behavior is byte-unchanged.
- * The flag is the one-release rollback lever.
+ * On hosted, an explicit off value must not switch accounts onto a shared
+ * deployment env key. Hosted still resolves per-account keys, then fails closed.
  */
 
 import { createLogger } from '@revealui/core/observability/logger';
@@ -143,21 +144,20 @@ export async function resolveLLMClientForRequest(
 ): Promise<LLMClient> {
   const hosted = ctx.isHosted;
 
-  // Feature-flag gate. When disabled (self-hosted default), behavior is
-  // byte-unchanged: env-first, exactly as before this PR.
+  // Feature-flag gate. When disabled on self-hosted, behavior is
+  // byte-unchanged: env-first. On hosted the flag must not re-enable a
+  // shared deployment env key. Per-account resolution continues, then fails closed.
   if (!hostedByokDispatchEnabled(hosted)) {
-    if (hosted && !warnedBreakGlass) {
-      warnedBreakGlass = true;
-      // Break-glass: HOSTED_BYOK_DISPATCH is explicitly off on a hosted
-      // deployment. Every account now shares the deployment env client while
-      // this lever is pulled — a deliberate one-release rollback, but an
-      // operator must know it is active.
-      resolverLogger.warn(
-        'HOSTED_BYOK_DISPATCH is disabled on a hosted deployment — all accounts are ' +
-          'sharing the deployment env LLM client instead of per-account BYOK keys.',
-      );
+    if (hosted) {
+      if (!warnedBreakGlass) {
+        warnedBreakGlass = true;
+        resolverLogger.warn(
+          'HOSTED_BYOK_DISPATCH is disabled on a hosted deployment. A shared deployment env model key stays refused. Per-account keys still resolve.',
+        );
+      }
+    } else {
+      return createLLMClientFromEnv();
     }
-    return createLLMClientFromEnv();
   }
 
   // 1. Per-user BYOK (preferred). On hosted, filter to hostedViable providers

@@ -1,3 +1,4 @@
+import { HOSTED_BANNED_INFERENCE_ENV_KEYS } from '@revealui/core/deployment-mode';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { validateRequiredEnvVars } from '../env-validation.js';
 
@@ -25,6 +26,7 @@ const ENV_KEYS = [
   'GOOGLE_SERVICE_ACCOUNT_EMAIL',
   'GOOGLE_WIF_PROVIDER',
   'REVEALUI_EMAIL_BOOT_OPTIONAL',
+  ...HOSTED_BANNED_INFERENCE_ENV_KEYS,
 ] as const;
 
 const saved: Record<string, string | undefined> = {};
@@ -210,6 +212,56 @@ describe('validateRequiredEnvVars', () => {
     expect(result.missing).toContain(
       'REVEALUI_DEPLOYMENT_MODE (must be explicitly hosted or forge)',
     );
+  });
+
+  describe('hosted platform inference ban', () => {
+    function hostedProductionReady(): void {
+      setCriticalRequiredVars();
+      process.env.REVEALUI_DEPLOYMENT_MODE = 'hosted';
+      process.env.SESSION_COOKIE_DOMAIN = '.example.com';
+      process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID = 'price_pro';
+      process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID = 'price_max';
+      process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID = 'price_ent';
+      process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL = 'svc@example.iam.gserviceaccount.com';
+      process.env.GOOGLE_WIF_PROVIDER =
+        'projects/p/locations/global/workloadIdentityPools/pool/providers/vercel';
+    }
+
+    it('fails hosted production for each banned model key, local-model URL, and dispatch flag', () => {
+      for (const key of HOSTED_BANNED_INFERENCE_ENV_KEYS) {
+        hostedProductionReady();
+        process.env[key] = 'present';
+        const result = validateRequiredEnvVars({ environment: 'production' });
+        expect(result.valid).toBe(false);
+        expect(result.hostedInferenceRefused).toBe(true);
+        expect(result.missing.join(' ')).toContain(key);
+        delete process.env[key];
+      }
+    });
+
+    it('lets forge production keep a provider key and a local-model URL', () => {
+      setCriticalRequiredVars();
+      process.env.REVEALUI_DEPLOYMENT_MODE = 'forge';
+      process.env.OPENAI_API_KEY = 'present';
+      process.env.OLLAMA_BASE_URL = 'http://127.0.0.1:11434';
+      process.env.HOSTED_BYOK_DISPATCH = 'false';
+
+      const result = validateRequiredEnvVars({ environment: 'production' });
+
+      expect(result.valid).toBe(true);
+      expect(result.hostedInferenceRefused).toBe(false);
+    });
+
+    it('does not apply the ban outside production', () => {
+      setCriticalRequiredVars();
+      process.env.REVEALUI_DEPLOYMENT_MODE = 'hosted';
+      process.env.OPENAI_API_KEY = 'present';
+
+      const result = validateRequiredEnvVars({ environment: 'development' });
+
+      expect(result.valid).toBe(true);
+      expect(result.hostedInferenceRefused).toBe(false);
+    });
   });
 
   describe('non-production environments', () => {

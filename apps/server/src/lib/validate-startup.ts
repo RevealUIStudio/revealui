@@ -10,6 +10,7 @@ import {
   type DetectDeploymentModeOptions,
   deploymentModeKeyConsistencyError,
   detectDeploymentMode as detectDeploymentModeCore,
+  hostedPlatformInferenceError,
   requireExplicitDeploymentMode,
 } from '@revealui/core/deployment-mode';
 import {
@@ -230,6 +231,14 @@ export function validateStartup(
   { lenient = false }: ValidateOptions = {},
 ): void {
   if (env.NODE_ENV === 'production') requireExplicitDeploymentMode(env);
+  // Hosted must not boot with a platform model key or local-model URL.
+  // SKIP_ENV_VALIDATION does not bypass this. Forge is unchanged.
+  if (env.NODE_ENV === 'production') {
+    const inferenceProblem = hostedPlatformInferenceError(env, { lenient });
+    if (inferenceProblem) {
+      throw new Error(`STARTUP VALIDATION FAILED: ${inferenceProblem}`);
+    }
+  }
   if (env.SKIP_ENV_VALIDATION === 'true') {
     return;
   }

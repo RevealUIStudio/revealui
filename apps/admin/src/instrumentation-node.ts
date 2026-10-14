@@ -192,11 +192,15 @@ export async function registerNode(): Promise<void> {
         environment,
       });
 
-      if (!result.valid) {
+      if (!result.valid || result.hostedInferenceRefused) {
         const message = `Missing required environment variables: ${result.missing.join(', ')}`;
         logger.error('Environment validation failed', new Error(message));
 
-        if (environment === 'production' && process.env.SKIP_ENV_VALIDATION !== 'true') {
+        // SKIP_ENV_VALIDATION bypasses ordinary missing-var exits. It does not
+        // bypass a hosted platform model key: that would let the platform pay.
+        const skipValidation = process.env.SKIP_ENV_VALIDATION === 'true';
+        const inferenceBlocksBoot = result.hostedInferenceRefused === true;
+        if (environment === 'production' && (inferenceBlocksBoot || !skipValidation)) {
           process.stderr.write(
             `ENV VALIDATION FAILED in production:\n  - ${result.missing.join('\n  - ')}\n`,
           );

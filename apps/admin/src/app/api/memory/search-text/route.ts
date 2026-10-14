@@ -10,6 +10,10 @@
 import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
+import {
+  embeddingNotConfiguredResponse,
+  resolveRequestEmbeddingClient,
+} from '@/lib/ai/request-embedding';
 import { checkAIMemoryFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response';
 import { extractRequestContext } from '@/lib/utils/request-context';
@@ -97,8 +101,24 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Generate embedding from query text
-    const embedding = await embeddingsMod.generateEmbedding(query);
+    // Customer key on hosted, deployment env on forge. Never an env model key on hosted.
+    let embeddingClient: Awaited<ReturnType<typeof resolveRequestEmbeddingClient>>;
+    try {
+      const siteId = typeof options.siteId === 'string' ? options.siteId : undefined;
+      embeddingClient = await resolveRequestEmbeddingClient(authSession.user.id, siteId);
+    } catch (err) {
+      const notConfigured = embeddingNotConfiguredResponse(err);
+      if (notConfigured) return notConfigured;
+      throw err;
+    }
+    if (!embeddingClient) {
+      return NextResponse.json(
+        { error: 'AI features require @revealui/ai (Pro)' },
+        { status: 503 },
+      );
+    }
+
+    const embedding = await embeddingsMod.generateEmbedding(query, { client: embeddingClient });
 
     // Perform vector search  -  enforce userId so non-admins can only search their own memories
     // Strip siteId from options for non-admins to prevent cross-tenant data access
@@ -119,6 +139,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       query: query.substring(0, 100), // Return truncated query for debugging
     });
   } catch (error) {
+    const notConfigured = embeddingNotConfiguredResponse(error);
+    if (notConfigured) return notConfigured;
     logger.error('Error in text-based memory search', error instanceof Error ? error : undefined);
     return createErrorResponse(error, {
       endpoint: '/api/memory/search-text',

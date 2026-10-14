@@ -33,6 +33,10 @@ import { isValidKgViewSlug } from '@revealui/sync/collab/server';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod/v4';
+import {
+  embeddingNotConfiguredResponse,
+  resolveRequestEmbeddingClient,
+} from '@/lib/ai/request-embedding';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
   createApplicationErrorResponse,
@@ -55,22 +59,28 @@ const KgFlushArgsSchema = z
   })
   .strict();
 
-interface EmbeddingModule {
-  generateEmbedding(text: string): Promise<{ vector: number[] }>;
-}
+type EmbeddingModule = Pick<typeof import('@revealui/ai/embeddings'), 'generateEmbedding'>;
 
-/** Best-effort embedder, mirroring `revkg`'s CLI and the MCP factory's `resolveEmbedder` (`@revealui/ai` is optional). */
-async function loadEmbedder(): Promise<((text: string) => Promise<number[]>) | undefined> {
+/**
+ * Customer embedder. Missing `@revealui/ai` stays best-effort (no vectors).
+ * A hosted account with no key throws so the route can fail closed.
+ */
+async function loadEmbedder(
+  userId: string,
+): Promise<((text: string) => Promise<number[]>) | undefined> {
+  let ai: EmbeddingModule;
   try {
     const specifier = '@revealui/ai/embeddings';
-    const ai = (await import(specifier)) as EmbeddingModule;
-    return async (text: string): Promise<number[]> => {
-      const result = await ai.generateEmbedding(text);
-      return result.vector;
-    };
+    ai = (await import(specifier)) as EmbeddingModule;
   } catch {
     return undefined;
   }
+  const client = await resolveRequestEmbeddingClient(userId);
+  if (!client) return undefined;
+  return async (text: string): Promise<number[]> => {
+    const result = await ai.generateEmbedding(text, { client });
+    return result.vector;
+  };
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -127,7 +137,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }));
 
     const exec = makePoolExecutor(getPool());
-    const embedder = await loadEmbedder();
+    let embedder: ((text: string) => Promise<number[]>) | undefined;
+    try {
+      embedder = await loadEmbedder(session.user.id);
+    } catch (err) {
+      const notConfigured = embeddingNotConfiguredResponse(err);
+      if (notConfigured) return notConfigured;
+      throw err;
+    }
     const referenceTime = new Date();
 
     const result = await ingestEpisode(
@@ -156,6 +173,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       { status: 201 },
     );
   } catch (error) {
+    const notConfigured = embeddingNotConfiguredResponse(error);
+    if (notConfigured) return notConfigured;
     logger.error('Error flushing kg episode', { error });
     return createErrorResponse(error, {
       endpoint: '/api/sync/kg-episodes',

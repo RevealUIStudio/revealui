@@ -1,4 +1,5 @@
 import { generateKeyPairSync } from 'node:crypto';
+import { HOSTED_BANNED_INFERENCE_ENV_KEYS } from '@revealui/core/deployment-mode';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { type EnvMap, validateStartup } from '../validate-startup.js';
 
@@ -792,6 +793,43 @@ describe('detectDeploymentMode', () => {
 
   it('returns "hosted" when REVEALUI_DEPLOYMENT_MODE=hosted without private key (GAP-260 P4-1)', () => {
     expect(detectDeploymentMode({ REVEALUI_DEPLOYMENT_MODE: 'hosted' })).toBe('hosted');
+  });
+});
+
+describe('validateStartup: hosted platform inference ban', () => {
+  it('fails hosted production for each banned model key, local-model URL, and dispatch flag', () => {
+    for (const key of HOSTED_BANNED_INFERENCE_ENV_KEYS) {
+      expect(() => validateStartup(validLiveProdEnv({ [key]: 'present' }))).toThrow(
+        new RegExp(key),
+      );
+    }
+  });
+
+  it('fails hosted production when HOSTED_BYOK_DISPATCH is true or false', () => {
+    expect(() => validateStartup(validLiveProdEnv({ HOSTED_BYOK_DISPATCH: 'false' }))).toThrow(
+      /HOSTED_BYOK_DISPATCH/,
+    );
+    expect(() => validateStartup(validLiveProdEnv({ HOSTED_BYOK_DISPATCH: 'true' }))).toThrow(
+      /HOSTED_BYOK_DISPATCH/,
+    );
+  });
+
+  it('does not let SKIP_ENV_VALIDATION keep a hosted model key', () => {
+    expect(() =>
+      validateStartup(validLiveProdEnv({ OPENAI_API_KEY: 'present', SKIP_ENV_VALIDATION: 'true' })),
+    ).toThrow(/OPENAI_API_KEY/);
+  });
+
+  it('treats an empty sensitive pull as set when lenient', () => {
+    expect(() =>
+      validateStartup(validLiveProdEnv({ OLLAMA_BASE_URL: '' }), { lenient: true }),
+    ).toThrow(/OLLAMA_BASE_URL/);
+  });
+
+  it('lets forge production keep every banned name', () => {
+    for (const key of HOSTED_BANNED_INFERENCE_ENV_KEYS) {
+      expect(() => validateStartup(validForgeProdEnv({ [key]: 'present' }))).not.toThrow();
+    }
   });
 });
 

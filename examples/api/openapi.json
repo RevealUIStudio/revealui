@@ -16737,6 +16737,14 @@
                 "schema": {}
               }
             }
+          },
+          "409": {
+            "description": "No per-account LLM key on a hosted deployment",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
           }
         },
         "summary": "Trigger RAG indexing for an admin collection",
@@ -38329,6 +38337,14 @@
           },
           "403": {
             "description": "AI feature requires Pro or Enterprise license",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "409": {
+            "description": "No per-account LLM key on a hosted deployment",
             "content": {
               "application/json": {
                 "schema": {}
