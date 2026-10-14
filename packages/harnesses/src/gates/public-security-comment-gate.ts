@@ -15,7 +15,8 @@ export interface PublicCommentGateResult {
 }
 
 /** Public org repos. Unknown owner/repo is treated as public (fail-closed). */
-const PRIVATE_REPOS: readonly string[] = ['revealuistudio/revealui-jv'];
+const KNOWN_GITHUB_OWNERS: readonly string[] = ['revealuistudio', 'revealui-studio'];
+const PRIVATE_REPO_NAME = 'revealui-jv';
 
 export const PUBLIC_VERDICT_MAX_CHARS = 800;
 
@@ -143,9 +144,47 @@ function extractRepo(command: string): string | null {
   return null;
 }
 
+function isGithubSlug(value: string): boolean {
+  if (value.length === 0) return false;
+  for (const ch of value) {
+    const code = ch.codePointAt(0) ?? 0;
+    const ok =
+      (code >= 48 && code <= 57) ||
+      (code >= 65 && code <= 90) ||
+      (code >= 97 && code <= 122) ||
+      code === 45 ||
+      code === 95 ||
+      code === 46;
+    if (!ok) return false;
+  }
+  return true;
+}
+
+function repositoryOwner(repository: string): string | null {
+  const slash = repository.indexOf('/');
+  if (slash <= 0 || repository.indexOf('/', slash + 1) !== -1) return null;
+  const owner = repository.slice(0, slash);
+  const name = repository.slice(slash + 1);
+  if (!(isGithubSlug(owner) && isGithubSlug(name))) return null;
+  return owner.toLowerCase();
+}
+
+function configuredRepositoryOwner(): string | null {
+  const raw = process.env.GITHUB_REPOSITORY;
+  if (typeof raw !== 'string' || raw.length === 0) return null;
+  return repositoryOwner(raw);
+}
+
 function isPrivateRepo(repo: string | null): boolean {
   if (!repo) return false;
-  return PRIVATE_REPOS.includes(repo);
+  const slash = repo.indexOf('/');
+  if (slash <= 0) return false;
+  const owner = repo.slice(0, slash);
+  const name = repo.slice(slash + 1);
+  if (name !== PRIVATE_REPO_NAME) return false;
+  if (KNOWN_GITHUB_OWNERS.includes(owner)) return true;
+  const configured = configuredRepositoryOwner();
+  return configured !== null && configured === owner;
 }
 
 function unquote(raw: string): string {
