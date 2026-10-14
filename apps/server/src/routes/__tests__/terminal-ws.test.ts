@@ -12,14 +12,23 @@
  */
 
 import { EventEmitter } from 'node:events';
+import { createConnection } from 'node:net';
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { resolveTerminalSpawn } from '../../../../../packages/harnesses/src/session/terminal-spawn.js';
 
 vi.mock('node:net', () => ({
   createConnection: vi.fn(() => {
-    const socket = new EventEmitter() as EventEmitter & { destroy: () => void };
+    const socket = new EventEmitter() as EventEmitter & {
+      destroy: () => void;
+      write: (data: string) => boolean;
+    };
     socket.destroy = vi.fn();
-    queueMicrotask(() => socket.emit('error', new Error('ECONNREFUSED (test stub)')));
+    socket.write = vi.fn(() => true);
+    queueMicrotask(() => {
+      socket.emit('connect');
+      socket.emit('error', new Error('ECONNREFUSED (test stub)'));
+    });
     return socket;
   }),
 }));
@@ -32,15 +41,53 @@ import {
   resolveWorkspaceCwd,
 } from '../terminal-ws.js';
 
+const SPAWN_ENV_KEYS = [
+  'TERMINAL_AGENT_BACKEND',
+  'TERMINAL_AGENT_MODEL',
+  'LLM_PROVIDER',
+  'LLM_MODEL',
+  'INFERENCE_SNAPS_BASE_URL',
+  'GROQ_API_KEY',
+  'OLLAMA_BASE_URL',
+  'ANTHROPIC_API_KEY',
+  'OPENAI_API_KEY',
+  'XAI_API_KEY',
+] as const;
+
+const savedSpawnEnv = new Map<string, string | undefined>();
+
 const ROOT = '/srv/terminal-workspace';
 
 beforeEach(() => {
   process.env.REVEALUI_TERMINAL_WORKSPACE_ROOT = ROOT;
+  for (const key of SPAWN_ENV_KEYS) {
+    savedSpawnEnv.set(key, process.env[key]);
+    delete process.env[key];
+  }
+  vi.mocked(createConnection).mockClear();
 });
 
 afterEach(() => {
   delete process.env.REVEALUI_TERMINAL_WORKSPACE_ROOT;
+  for (const key of SPAWN_ENV_KEYS) {
+    const saved = savedSpawnEnv.get(key);
+    if (saved === undefined) delete process.env[key];
+    else process.env[key] = saved;
+  }
 });
+
+function createApp() {
+  return createTerminalRoute({ resolveSpawn: resolveTerminalSpawn }).app;
+}
+
+function lastSpawnParams(): Record<string, unknown> {
+  const socket = vi.mocked(createConnection).mock.results.at(-1)?.value as {
+    write: { mock: { calls: Array<[string]> } };
+  };
+  const raw = socket.write.mock.calls[0]?.[0];
+  const frame = JSON.parse(String(raw)) as { params: Record<string, unknown> };
+  return frame.params;
+}
 
 // ---------------------------------------------------------------------------
 // resolveWorkspaceCwd
@@ -89,10 +136,6 @@ describe('resolveWorkspaceCwd', () => {
 // POST /sessions — validation before daemon RPC
 // ---------------------------------------------------------------------------
 describe('POST /sessions', () => {
-  function createApp() {
-    return createTerminalRoute().app;
-  }
-
   it('rejects a cwd outside the workspace root with 400, before any daemon call', async () => {
     const app = createApp();
     const res = await app.request('/sessions', {
@@ -140,6 +183,83 @@ describe('POST /sessions', () => {
     expect(res.status).toBe(500);
     const body = (await res.json()) as { error: string };
     expect(body.error).toContain('Daemon unreachable');
+    const params = lastSpawnParams();
+    expect(params.backend).toBe('InferenceSnaps');
+    expect(params.model).toBe('gemma3');
+    expect(params.cwd).toBe(`${ROOT}/projects/app`);
+  });
+
+  it('selects the spawn backend from config', async () => {
+    process.env.TERMINAL_AGENT_BACKEND = 'Groq';
+    process.env.TERMINAL_AGENT_MODEL = 'openai/gpt-oss-20b';
+    const app = createApp();
+    const res = await app.request('/sessions', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+
+    expect(res.status).toBe(500);
+    const params = lastSpawnParams();
+    expect(params.backend).toBe('Groq');
+    expect(params.model).toBe('openai/gpt-oss-20b');
+  });
+
+  it('rejects a missing backend before any daemon call', async () => {
+    process.env.TERMINAL_AGENT_BACKEND = '   ';
+    const app = createApp();
+    const res = await app.request('/sessions', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string; code: string };
+    expect(body.code).toBe('missing-backend');
+    expect(vi.mocked(createConnection)).not.toHaveBeenCalled();
+  });
+
+  it('rejects an unknown backend before any daemon call', async () => {
+    const app = createApp();
+    const res = await app.request('/sessions', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ backend: 'NotAVendor' }),
+    });
+
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string; code: string };
+    expect(body.code).toBe('unknown-backend');
+    expect(vi.mocked(createConnection)).not.toHaveBeenCalled();
+  });
+
+  it('rejects an excluded-origin model on the default backend', async () => {
+    const app = createApp();
+    const res = await app.request('/sessions', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ model: 'openrouter/free' }),
+    });
+
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { code: string };
+    expect(body.code).toBe('model-not-allowlisted');
+    expect(vi.mocked(createConnection)).not.toHaveBeenCalled();
+  });
+
+  it('spawns ClaudeCode when that backend is explicitly selected', async () => {
+    const app = createApp();
+    const res = await app.request('/sessions', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ backend: 'ClaudeCode', model: 'claude-sonnet-4-6' }),
+    });
+
+    expect(res.status).toBe(500);
+    const params = lastSpawnParams();
+    expect(params.backend).toBe('ClaudeCode');
+    expect(params.model).toBe('claude-sonnet-4-6');
   });
 });
 

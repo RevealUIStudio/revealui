@@ -24,6 +24,7 @@ export default defineConfig({
     'src/tmpscript/index.ts',
     'src/gates/index.ts',
     'src/acp/index.ts',
+    'src/session/terminal-spawn.ts',
   ],
   format: ['esm'],
   dts: false,

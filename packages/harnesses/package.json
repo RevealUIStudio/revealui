@@ -82,6 +82,11 @@
       "types": "./dist/acp/index.d.ts",
       "import": "./dist/acp/index.js",
       "default": "./dist/acp/index.js"
+    },
+    "./terminal-spawn": {
+      "types": "./dist/session/terminal-spawn.d.ts",
+      "import": "./dist/session/terminal-spawn.js",
+      "default": "./dist/session/terminal-spawn.js"
     }
   },
   "files": [
