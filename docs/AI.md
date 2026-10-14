@@ -99,7 +99,7 @@ const memory = {
 | Path | Chat | Embeddings | Notes |
 | ---- | ---- | ---------- | ----- |
 | **Ubuntu Inference Snaps** (canonical default — Studio lifecycle pending) | Yes | Depends on model | Canonical snap runtime  -  hardware-aware, single command install, OpenAI-compatible API |
-| Ollama | Yes | Yes | Any open source GGUF model, local inference. Default chat: `qwen2.5:3b`, embed: `nomic-embed-text` |
+| Ollama | Yes | Yes | US open-weight local tags. Default chat: `gemma4:e2b`, embed: `nomic-embed-text` |
 
 ### Inference Snaps Models
 
@@ -155,7 +155,7 @@ import { createTask, getTask, cancelTask, appendArtifact } from "@revealui/ai/a2
 
 ## Open-Model Inference
 
-The default and recommended path is open-model inference: **Ollama** (any open source GGUF model) and **Canonical's Ubuntu Inference Snaps** (planned recommended path; Studio lifecycle pending). Cloud-compatible providers — Groq, HuggingFace, OpenAI-compatible endpoints, and Anthropic (for prompt-caching) — are pluggable but opt-in via environment variables. There is no vendor lock-in: switch providers by changing `LLM_PROVIDER`.
+The default and recommended path is open-model inference: **Ollama** (US open-weight local tags, default gemma4:e2b) and **Canonical's Ubuntu Inference Snaps** (planned recommended path; Studio lifecycle pending). Cloud-compatible providers (Groq, HuggingFace, OpenAI-compatible endpoints, and Anthropic for prompt-caching) are pluggable but opt-in via environment variables. There is no vendor lock-in: switch providers by changing `LLM_PROVIDER`.
 
 For the planned recommended path (when you're ready to install + run a Canonical Inference Snap yourself):
 
