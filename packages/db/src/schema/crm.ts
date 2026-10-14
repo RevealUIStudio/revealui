@@ -26,7 +26,7 @@ export const crmOrganizations = pgTable('crm_organizations', {
 export const crmContacts = pgTable('crm_contacts', {
   id: text('id').primaryKey(),
   accountId: text('account_id').notNull().references(() => accounts.id, { onDelete: 'cascade' }),
-  organizationId: text('organization_id').references(() => crmOrganizations.id, { onDelete: 'set null' }),
+  organizationId: text('organization_id'),
   name: text('name'),
   role: text('role'),
   businessEmail: text('business_email'),
@@ -39,7 +39,7 @@ export const crmContacts = pgTable('crm_contacts', {
 export const crmOpportunities = pgTable('crm_opportunities', {
   id: text('id').primaryKey(),
   accountId: text('account_id').notNull().references(() => accounts.id, { onDelete: 'cascade' }),
-  organizationId: text('organization_id').notNull().references(() => crmOrganizations.id, { onDelete: 'cascade' }),
+  organizationId: text('organization_id').notNull(),
   title: text('title').notNull(),
   stage: text('stage').notNull().default('research'),
   valueCents: integer('value_cents'),
@@ -53,7 +53,7 @@ export const crmOpportunities = pgTable('crm_opportunities', {
 export const crmActivities = pgTable('crm_activities', {
   id: text('id').primaryKey(),
   accountId: text('account_id').notNull().references(() => accounts.id, { onDelete: 'cascade' }),
-  opportunityId: text('opportunity_id').notNull().references(() => crmOpportunities.id, { onDelete: 'cascade' }),
+  opportunityId: text('opportunity_id').notNull(),
   kind: text('kind').notNull(),
   summary: text('summary').notNull(),
   actorId: text('actor_id').references(() => users.id, { onDelete: 'set null' }),
