@@ -132,7 +132,8 @@ export function buildDocNavSections(showcaseItems: NavItem[]): NavSection[] {
     // nav-docs-product-2026-09-26: docs nav is product reference.
     // refuse-blog-in-docs: Blog is not a top-level docs category.
     // boundary-blog-studio-docs-ref-2026-09-26: Blog is on Studio. Docs are product reference.
-    // /blog/* pages stay served until a later drop.
+    // /blog/* pages stay served until a later drop. Held posts 02, 06, 07, and 11
+    // are withheld (visibility: internal) and redirect to revealuistudio.com/blog (D-09).
     {
       title: 'Legal',
       items: [{ label: 'Third-Party Licenses', path: '/third-party-licenses' }],

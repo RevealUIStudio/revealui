@@ -6,7 +6,7 @@
  * Used by the markdown resolver to translate flat URLs
  * (docs.revealui.com/admin-guide) into file fetches
  * (/admin-guide.md served from public/).
- * Generated: 87 entries.
+ * Generated: 83 entries.
  */
 
 export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
@@ -29,16 +29,12 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'architecture/ai-stack': 'architecture/ai-stack.md',
   auth: 'AUTH.md',
   'blog/01-why-we-built-revealui': 'blog/01-why-we-built-revealui.md',
-  'blog/02-http-402-payments': 'blog/02-http-402-payments.md',
   'blog/03-multi-agent-coordination': 'blog/03-multi-agent-coordination.md',
   'blog/04-local-first-ai-stack': 'blog/04-local-first-ai-stack.md',
   'blog/05-five-primitives': 'blog/05-five-primitives.md',
-  'blog/06-open-source-and-pro': 'blog/06-open-source-and-pro.md',
-  'blog/07-agent-first-future': 'blog/07-agent-first-future.md',
   'blog/08-getting-started': 'blog/08-getting-started.md',
   'blog/09-component-library': 'blog/09-component-library.md',
   'blog/10-own-your-data': 'blog/10-own-your-data.md',
-  'blog/11-revealfleet-product-family': 'blog/11-revealfleet-product-family.md',
   'blog/12-own-your-secrets': 'blog/12-own-your-secrets.md',
   'blog/13-zero-regex': 'blog/13-zero-regex.md',
   'blog/14-claim-drift': 'blog/14-claim-drift.md',

@@ -134,8 +134,21 @@ describe('slug-manifest', () => {
     expect(SLUG_TO_PATH['admin-guide']).toBe('ADMIN_GUIDE.md');
     expect(SLUG_TO_PATH['quick-start']).toBe('QUICK_START.md');
     expect(SLUG_TO_PATH.architecture).toBe('ARCHITECTURE.md');
-    expect(SLUG_TO_PATH['blog/02-http-402-payments']).toBe('blog/02-http-402-payments.md');
+    expect(SLUG_TO_PATH['blog/01-why-we-built-revealui']).toBe('blog/01-why-we-built-revealui.md');
     expect(SLUG_TO_PATH['ai/prompt-caching']).toBe('ai/PROMPT_CACHING.md');
+  });
+
+  it('held Studio blog posts are not served on the docs host (D-09)', () => {
+    // The Studio blog lives on revealuistudio.com. These posts are held there
+    // and must not be served or listed on docs.revealui.com.
+    for (const slug of [
+      'blog/02-http-402-payments',
+      'blog/06-open-source-and-pro',
+      'blog/07-agent-first-future',
+      'blog/11-revealfleet-product-family',
+    ]) {
+      expect(SLUG_TO_PATH[slug], slug).toBeUndefined();
+    }
   });
 
   it('Vite plugin INTERNAL_DOC_FILES are NOT in the manifest', () => {

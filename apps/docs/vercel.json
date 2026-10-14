@@ -43,7 +43,27 @@
     { "source": "/reference/ai", "destination": "/ai", "permanent": true },
     { "source": "/reference/auth", "destination": "/auth", "permanent": true },
     { "source": "/reference/db", "destination": "/database", "permanent": true },
-    { "source": "/forge", "destination": "/enterprise", "permanent": true }
+    { "source": "/forge", "destination": "/enterprise", "permanent": true },
+    {
+      "source": "/blog/02-http-402-payments",
+      "destination": "https://revealuistudio.com/blog",
+      "permanent": true
+    },
+    {
+      "source": "/blog/06-open-source-and-pro",
+      "destination": "https://revealuistudio.com/blog",
+      "permanent": true
+    },
+    {
+      "source": "/blog/07-agent-first-future",
+      "destination": "https://revealuistudio.com/blog",
+      "permanent": true
+    },
+    {
+      "source": "/blog/11-revealfleet-product-family",
+      "destination": "https://revealuistudio.com/blog",
+      "permanent": true
+    }
   ],
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/sitemap.xml" },

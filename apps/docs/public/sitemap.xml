@@ -34,12 +34,9 @@
   <url><loc>https://docs.revealui.com/local-first</loc><priority>0.6</priority></url>
   <!-- Blog -->
   <url><loc>https://docs.revealui.com/blog/01-why-we-built-revealui</loc><priority>0.7</priority></url>
-  <url><loc>https://docs.revealui.com/blog/02-http-402-payments</loc><priority>0.6</priority></url>
   <url><loc>https://docs.revealui.com/blog/03-multi-agent-coordination</loc><priority>0.6</priority></url>
   <url><loc>https://docs.revealui.com/blog/04-local-first-ai-stack</loc><priority>0.6</priority></url>
   <url><loc>https://docs.revealui.com/blog/05-five-primitives</loc><priority>0.7</priority></url>
-  <url><loc>https://docs.revealui.com/blog/06-open-source-and-pro</loc><priority>0.6</priority></url>
-  <url><loc>https://docs.revealui.com/blog/07-agent-first-future</loc><priority>0.6</priority></url>
   <url><loc>https://docs.revealui.com/blog/08-getting-started</loc><priority>0.7</priority></url>
   <!-- Architecture Decision Records -->
   <url><loc>https://docs.revealui.com/architecture/adr-001-agent-first</loc><priority>0.5</priority></url>
