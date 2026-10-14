@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@revealui/presentation';
 import { Description, Field, Label } from '@revealui/presentation/client';
+import { isAdmin as holdsAdmin } from '@revealui/utils/validation';
 import { useEffect, useReducer } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 import { apiFetch } from '@/lib/utils/csrf';
@@ -161,7 +162,7 @@ function RefundsDashboard() {
     };
   }, []);
 
-  const isAdmin = user?.role === 'admin' || user?.role === 'owner';
+  const isAdmin = holdsAdmin(user);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

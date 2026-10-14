@@ -364,6 +364,9 @@ jobs:
       - name: Empty-catch validation (hard fail)
         run: pnpm validate:empty-catch
 
+      - name: Admin role literal validation (hard fail)
+        run: pnpm validate:admin-role
+
       - name: audit_log ONE DOOR validation (hard fail)
         run: pnpm validate:audit-one-door
 

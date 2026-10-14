@@ -27,7 +27,7 @@ import { workspaceInferenceConfigs } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { eq } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
-import { isAdminRole } from '../../lib/access.js';
+import { isAdmin } from '../../lib/access.js';
 
 // LLMProviderType narrowed to the post-vultr-removal set.
 const ALLOWED_PROVIDERS = ['groq', 'huggingface', 'inference-snaps', 'ollama'] as const;
@@ -52,7 +52,7 @@ type AdminVariables = {
 
 function requireAdmin(user: { id: string; role: string } | undefined): void {
   if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-  if (!isAdminRole(user.role)) {
+  if (!isAdmin(user)) {
     throw new HTTPException(403, { message: 'Admin access required' });
   }
 }

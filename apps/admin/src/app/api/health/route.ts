@@ -1,5 +1,6 @@
 import { getSession } from '@revealui/auth/server';
 import config from '@revealui/config';
+import { isAdmin } from '@revealui/utils/validation';
 import { NextResponse } from 'next/server';
 import { extractRequestContext } from '@/lib/utils/request-context';
 import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
@@ -17,12 +18,12 @@ interface HealthCheck {
 /**
  * Enhanced health check endpoint
  * Unauthenticated: returns minimal status only
- * Authenticated (admin/editor): returns full health details with metrics and checks
+ * Shell admin (owner, super-admin, or admin): returns full health details with metrics and checks
  */
 export async function GET(request: Request) {
   // Auth check  -  unauthenticated requests get minimal status only
   const session = await getSession(request.headers, extractRequestContext(request));
-  const isAuthenticated = session?.user?.role === 'admin';
+  const isAuthenticated = isAdmin(session?.user);
 
   if (!isAuthenticated) {
     // GAP-417 (owner-ruled 2026-07-25): the unauthenticated arm reflects the

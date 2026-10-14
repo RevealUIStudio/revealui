@@ -25,6 +25,7 @@
 
 import { getSession } from '@revealui/auth/server';
 import type { ElicitResult } from '@revealui/mcp/client';
+import { isAdmin } from '@revealui/utils/validation';
 import { type NextRequest, NextResponse } from 'next/server';
 import { getCallSession, resolveElicitation } from '@/lib/mcp/call-sessions';
 import { extractRequestContext } from '@/lib/utils/request-context';
@@ -40,7 +41,7 @@ export async function POST(
   if (!authSession) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  if (authSession.user.role !== 'admin') {
+  if (!isAdmin(authSession.user)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

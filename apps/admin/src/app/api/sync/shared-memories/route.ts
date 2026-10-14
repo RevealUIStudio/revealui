@@ -12,6 +12,7 @@ import { getSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
 import { agentMemories, eq, sites } from '@revealui/db/schema';
 import { logger } from '@revealui/utils/logger';
+import { isAdmin } from '@revealui/utils/validation';
 import { and, desc, or } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
@@ -146,7 +147,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const db = getClient();
 
     // Validate site ownership for non-admins
-    if (session.user.role !== 'admin') {
+    if (!isAdmin(session.user)) {
       const [site] = await db
         .select({ ownerId: sites.ownerId })
         .from(sites)

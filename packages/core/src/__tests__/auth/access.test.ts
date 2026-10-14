@@ -51,6 +51,15 @@ describe('access control functions', () => {
     it('returns true when admin is one of many roles', () => {
       expect(isAdmin(userWithRoles(['editor', 'admin', 'viewer']))).toBe(true);
     });
+
+    it('treats owner and super-admin as admin', () => {
+      expect(isAdmin(userWithRoles(['owner']))).toBe(true);
+      expect(isAdmin(userWithRoles(['super-admin']))).toBe(true);
+    });
+
+    it('denies an unauthenticated subject', () => {
+      expect(isAdmin(nullUser)).toBe(false);
+    });
   });
 
   describe('isSuperAdmin', () => {
@@ -60,6 +69,10 @@ describe('access control functions', () => {
 
     it('returns true with super-admin role', () => {
       expect(isSuperAdmin(userWithRoles(['super-admin']))).toBe(true);
+    });
+
+    it('does not treat shell owner as super-admin', () => {
+      expect(isSuperAdmin(userWithRoles(['owner']))).toBe(false);
     });
   });
 
@@ -78,6 +91,13 @@ describe('access control functions', () => {
 
     it('returns true when role present', () => {
       expect(hasRole('editor')(userWithRoles(['editor']))).toBe(true);
+    });
+
+    it('lets owner satisfy an admin check and not an editor check', () => {
+      expect(hasRole('admin')(userWithRoles(['owner']))).toBe(true);
+      expect(hasRole('super-admin')(userWithRoles(['owner']))).toBe(true);
+      expect(hasRole('editor')(userWithRoles(['owner']))).toBe(false);
+      expect(hasRole('owner')(userWithRoles(['super-admin']))).toBe(false);
     });
   });
 

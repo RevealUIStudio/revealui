@@ -1,5 +1,4 @@
-import { Role } from '@/lib/access/permissions/roles';
-import { hasRole } from './hasRole';
+import { isAdmin as holdsAdmin } from '@revealui/utils/validation';
 
 /**
  * Access control: allows admins or the user themselves.
@@ -19,8 +18,8 @@ export const isAdminAndUser = ({ req, id }: { req: { user?: unknown }; id?: stri
     return false;
   }
 
-  // Admins can update any user
-  const isUserAdmin = hasRole(user, [Role.UserAdmin, Role.UserSuperAdmin]);
+  // Admins (owner, super-admin, or admin) can update any user
+  const isUserAdmin = holdsAdmin(user);
   if (isUserAdmin) {
     return true;
   }

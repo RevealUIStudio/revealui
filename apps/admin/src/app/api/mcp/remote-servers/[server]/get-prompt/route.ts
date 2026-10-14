@@ -18,6 +18,7 @@
 
 import { getSession } from '@revealui/auth/server';
 import { type GetPromptResult, McpCapabilityError } from '@revealui/mcp/client';
+import { isAdmin } from '@revealui/utils/validation';
 import { type NextRequest, NextResponse } from 'next/server';
 import {
   buildRemoteMcpClient,
@@ -45,7 +46,7 @@ export async function POST(
   if (!authSession) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  if (authSession.user.role !== 'admin') {
+  if (!isAdmin(authSession.user)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

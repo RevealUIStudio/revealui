@@ -10,6 +10,7 @@ import { getSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db/client';
 import { aiMemorySessions } from '@revealui/db/schema';
 import { logger } from '@revealui/utils/logger';
+import { isAdmin } from '@revealui/utils/validation';
 import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { checkAIMemoryFeatureGate } from '@/lib/middleware/ai-feature-gate';
@@ -88,7 +89,7 @@ export async function GET(
     if (!sessionRecord) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
-    if (sessionRecord.userId !== authSession.user.id && authSession.user.role !== 'admin') {
+    if (sessionRecord.userId !== authSession.user.id && !isAdmin(authSession.user)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -214,7 +215,7 @@ export async function POST(
       .limit(1);
 
     if (existingSession) {
-      if (existingSession.userId !== authSession.user.id && authSession.user.role !== 'admin') {
+      if (existingSession.userId !== authSession.user.id && !isAdmin(authSession.user)) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     } else {
@@ -329,7 +330,7 @@ export async function DELETE(
     if (!sessionRecord) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
-    if (sessionRecord.userId !== authSession.user.id && authSession.user.role !== 'admin') {
+    if (sessionRecord.userId !== authSession.user.id && !isAdmin(authSession.user)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
