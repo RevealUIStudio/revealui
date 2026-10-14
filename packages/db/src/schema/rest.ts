@@ -53,6 +53,7 @@ export * from './budgets.js';
 export * from './circuit-breaker.js';
 export * from './cms-collections.js';
 export * from './code-provenance.js';
+export * from './crm.js';
 export * from './collab-edits.js';
 export * from './coordination.js';
 export * from './crdt-operations.js';
