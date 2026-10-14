@@ -299,7 +299,7 @@ revealui/
 - **[What is RevealUI?](docs/WHAT_IS.md):** Canonical definition, tiers, feature matrix
 - **[Quick Start](docs/QUICK_START.md):** From zero to running app
 - **[Plugins](docs/PLUGINS.md):** Config-transform plugins in `@revealui/core`
-- **[Design Principles](docs/JOSHUA.md):** Six engineering principles  -  Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive  -  and the evidence behind each
+- **[Design Principles](docs/JOSHUA.md):** Six engineering principles: Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive, and the evidence behind each
 - **[Architecture](docs/ARCHITECTURE.md):** How the pieces fit together
 - **[Harness Protocol](docs/HARNESS_PROTOCOL.md):** Agent-tool coordination layer shipped in `@revealui/harnesses`
 - **[Pro](docs/PRO.md):** AI features, MCP, marketplace, and trust controls
