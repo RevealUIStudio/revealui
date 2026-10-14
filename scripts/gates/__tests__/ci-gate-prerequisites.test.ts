@@ -1,4 +1,5 @@
-import { mkdtempSync } from 'node:fs';
+import { type SpawnOptions, spawnSync } from 'node:child_process';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -7,7 +8,10 @@ const state = vi.hoisted(() => ({
   calls: [] as string[][],
   failPrerequisite: false,
   log: vi.fn(),
+  flockPids: [] as (number | undefined)[],
+  flockArguments: [] as string[][],
   admissionDirectory: null as string | null,
+  admissionRuns: [] as Promise<unknown>[],
   failure: null as {
     exitCode: number;
     processExitCode: number | null;
@@ -15,6 +19,20 @@ const state = vi.hoisted(() => ({
     timedOut: boolean;
   } | null,
 }));
+vi.mock('node:child_process', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:child_process')>();
+  return {
+    ...actual,
+    spawn: vi.fn((program: string, args: readonly string[], options: SpawnOptions) => {
+      const child = actual.spawn(program, args, options);
+      if (program === 'flock') {
+        state.flockPids.push(child.pid);
+        state.flockArguments.push([...args]);
+      }
+      return child;
+    }),
+  };
+});
 vi.mock('node:os', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:os')>();
   return {
@@ -60,14 +78,47 @@ vi.mock('../../utils/base.js', async (importOriginal) => {
 
 import { gate, phaseConcurrency, printSummary, runCheck, withGateAdmission } from '../ci-gate';
 
-afterEach(() => {
-  vi.restoreAllMocks();
-  state.calls = [];
-  state.failPrerequisite = false;
-  state.admissionDirectory = null;
-  state.failure = null;
-  state.log.mockClear();
+afterEach(async () => {
+  const admissionDirectory = state.admissionDirectory;
+  try {
+    await Promise.allSettled(state.admissionRuns);
+    if (admissionDirectory !== null) {
+      rmSync(admissionDirectory, { recursive: true, force: true });
+      expect(existsSync(admissionDirectory)).toBe(false);
+    }
+  } finally {
+    vi.restoreAllMocks();
+    state.calls = [];
+    state.flockPids = [];
+    state.flockArguments = [];
+    state.admissionRuns = [];
+    state.failPrerequisite = false;
+    state.admissionDirectory = null;
+    state.failure = null;
+    state.log.mockClear();
+  }
 });
+
+function trackAdmission<T>(operation: Promise<T>): Promise<T> {
+  state.admissionRuns.push(operation);
+  return operation;
+}
+
+function expectAdmissionLockContended(): void {
+  const directory = state.admissionDirectory;
+  if (directory === null) throw new Error('Admission test directory was not created.');
+  const lockPath = join(directory, `revealui-gate-${process.getuid?.() ?? 'user'}.lock`);
+  const probe = spawnSync('flock', [
+    '--exclusive',
+    '--nonblock',
+    '--conflict-exit-code',
+    '75',
+    lockPath,
+    'true',
+  ]);
+  expect(probe.error).toBeUndefined();
+  expect(probe.status).toBe(75);
+}
 
 describe('gate command failure diagnostics', () => {
   it.each([
@@ -233,35 +284,113 @@ describe('gate resource admission', () => {
     );
   });
 
-  it('holds admission across concurrent operations and releases it after failure', async () => {
-    state.admissionDirectory = mkdtempSync(join(tmpdir(), 'revealui-admission-test-'));
-    vi.spyOn(process, 'availableMemory').mockReturnValue(4 * 1024 ** 3);
-    let release!: () => void;
-    const held = new Promise<void>((resolve) => {
-      release = resolve;
-    });
-    const events: string[] = [];
-    try {
-      const first = withGateAdmission(async () => {
-        events.push('first');
-        await held;
-        throw new Error('synthetic check failure');
+  it.skipIf(process.platform !== 'linux')(
+    'queues concurrent operations and releases admission after failure',
+    async () => {
+      state.admissionDirectory = mkdtempSync(join(tmpdir(), 'revealui-admission-test-'));
+      vi.spyOn(process, 'availableMemory').mockReturnValue(4 * 1024 ** 3);
+      let release!: () => void;
+      const held = new Promise<void>((resolve) => {
+        release = resolve;
       });
-      await vi.waitFor(() => expect(events).toEqual(['first']));
-      await expect(
-        withGateAdmission(async () => {
-          events.push('second');
-        }),
-      ).rejects.toThrow('admission lock failed');
-      expect(events).toEqual(['first']);
-      release();
-      await expect(first).rejects.toThrow('synthetic check failure');
-      await withGateAdmission(async () => {
-        events.push('second');
+      const events: string[] = [];
+      try {
+        const first = trackAdmission(
+          withGateAdmission(async () => {
+            events.push('first');
+            await held;
+            throw new Error('synthetic check failure');
+          }),
+        );
+        const firstFailure = expect(first).rejects.toThrow('synthetic check failure');
+        await vi.waitFor(() => expect(events).toEqual(['first']));
+        const second = trackAdmission(
+          withGateAdmission(async () => {
+            events.push('second');
+          }),
+        );
+        const secondCompletion = expect(second).resolves.toBeUndefined();
+        const secondPid = await vi.waitFor(() => {
+          expect(state.flockPids).toHaveLength(2);
+          const pid = state.flockPids[1];
+          if (pid === undefined) throw new Error('Second lock process did not start.');
+          expect(process.kill(pid, 0)).toBe(true);
+          expectAdmissionLockContended();
+          return pid;
+        });
+        expect(state.flockArguments[1]).toEqual(['--exclusive', '3']);
+        expect(secondPid).toBeTypeOf('number');
+        expect(events).toEqual(['first']);
+        release();
+        await firstFailure;
+        await secondCompletion;
+        expect(events).toEqual(['first', 'second']);
+      } finally {
+        release();
+      }
+    },
+  );
+
+  it.skipIf(process.platform !== 'linux').each(['SIGINT', 'SIGTERM'] as const)(
+    'terminates a blocked flock waiter and exits the gate on %s',
+    async (signal) => {
+      state.admissionDirectory = mkdtempSync(join(tmpdir(), 'revealui-admission-test-'));
+      vi.spyOn(process, 'availableMemory').mockReturnValue(4 * 1024 ** 3);
+      let release!: () => void;
+      const held = new Promise<void>((resolve) => {
+        release = resolve;
       });
-      expect(events).toEqual(['first', 'second']);
-    } finally {
-      release();
-    }
-  });
+      const events: string[] = [];
+      const existingHandlers = process.listeners(signal);
+      try {
+        const first = trackAdmission(
+          withGateAdmission(async () => {
+            events.push('first');
+            await held;
+          }),
+        );
+        const firstCompletion = expect(first).resolves.toBeUndefined();
+        await vi.waitFor(() => expect(events).toEqual(['first']));
+
+        const waiting = trackAdmission(
+          withGateAdmission(async () => {
+            events.push('cancelled waiter operation');
+          }),
+        );
+        const waitingFailure = expect(waiting).rejects.toThrow(
+          `CI gate admission interrupted (${signal}).`,
+        );
+        await vi.waitFor(() => {
+          expect(state.flockPids).toHaveLength(2);
+          const pid = state.flockPids[1];
+          if (pid === undefined) throw new Error('Second lock process did not start.');
+          expect(process.kill(pid, 0)).toBe(true);
+          expectAdmissionLockContended();
+          const handler = process
+            .listeners(signal)
+            .find((listener) => !existingHandlers.includes(listener));
+          expect(handler).toBeTypeOf('function');
+          return handler;
+        });
+        expect(state.flockArguments[1]).toEqual(['--exclusive', '3']);
+
+        const handler = process
+          .listeners(signal)
+          .find((listener) => !existingHandlers.includes(listener));
+        handler?.call(process);
+        await waitingFailure;
+        expect(events).toEqual(['first']);
+        expect(process.listeners(signal)).toEqual(existingHandlers);
+
+        release();
+        await firstCompletion;
+        await withGateAdmission(async () => {
+          events.push('next');
+        });
+        expect(events).toEqual(['first', 'next']);
+      } finally {
+        release();
+      }
+    },
+  );
 });
