@@ -76,7 +76,12 @@ describe('production deploy ref guard', () => {
     expect(smoke).toContain(['VERCEL_TOKEN: ', '$', '{{ secrets.VERCEL_TOKEN }}'].join(''));
     expect(smoke).toContain(['VERCEL_ORG_ID: ', '$', '{{ secrets.VERCEL_ORG_ID }}'].join(''));
     expect(smoke).toContain(['PUBLIC_URL="https://', '$', '{ADMIN_ALIAS}/login"'].join(''));
-    expect(smoke).toContain('if [ "$CODE" = "200" ]; then');
+    expect(smoke).toContain('node scripts/deploy/admin-login-probe.mjs');
+    const adminProbe = readFileSync(
+      path.join(repoRoot, 'scripts/deploy/admin-login-probe.mjs'),
+      'utf8',
+    );
+    expect(adminProbe).toContain('response.status !== 200');
     expect(smoke).not.toContain('curl -sf "$ADMIN_URL"');
     const rollbackAt = smoke.indexOf('name: Rollback on failure');
     expect(rollbackAt).toBeGreaterThanOrEqual(0);
