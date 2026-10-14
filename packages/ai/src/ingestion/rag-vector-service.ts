@@ -108,9 +108,14 @@ export class RagVectorService {
       );
     }
 
+    const workspaceId = options.workspaceId.trim();
+    if (workspaceId.length === 0) {
+      throw new Error('RAG search requires a workspaceId scope');
+    }
+
     const conditions: SQL[] = [
       sql`${ragChunks}.embedding IS NOT NULL`,
-      eq(ragChunks.workspaceId, options.workspaceId),
+      eq(ragChunks.workspaceId, workspaceId),
       eq(ragChunks.workspaceId, ragDocuments.workspaceId),
       eq(ragDocuments.status, 'indexed'),
       (await ragDocumentReadCondition(this.db, options)) ?? sql`false`,

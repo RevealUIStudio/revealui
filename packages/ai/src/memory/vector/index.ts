@@ -10,6 +10,8 @@
  */
 
 export {
+  siteIdsFromSearchOptions,
+  UnscopedMemorySearchError,
   VectorMemoryService,
   type VectorSearchOptions,
   type VectorSearchResult,

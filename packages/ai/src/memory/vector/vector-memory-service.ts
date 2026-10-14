@@ -17,15 +17,56 @@ import type { AgentMemory } from '@revealui/contracts/agents';
 import { getRestClient } from '@revealui/db/client';
 import { agentMemories } from '@revealui/db/schema';
 import { assertCrossDbRefs, safeVectorInsert } from '@revealui/db/validation';
-import { and, eq, type SQL, sql } from 'drizzle-orm';
+import { and, eq, inArray, type SQL, sql } from 'drizzle-orm';
 
 export interface VectorSearchOptions {
   userId?: string;
+  /** Single site scope. Required unless `siteIds` is non-empty. */
   siteId?: string;
+  /** Site scope when the caller can access more than one site. */
+  siteIds?: readonly string[];
   agentId?: string;
   type?: string;
   limit?: number;
   threshold?: number; // Minimum similarity threshold (0-1)
+}
+
+/**
+ * Thrown when a similarity search has no site scope.
+ * The query is refused so a caller cannot omit the filter and read every tenant.
+ */
+export class UnscopedMemorySearchError extends Error {
+  readonly code = 'UNSCOPED_MEMORY_SEARCH' as const;
+
+  constructor() {
+    super('Memory search requires a site scope');
+    this.name = 'UnscopedMemorySearchError';
+  }
+}
+
+/**
+ * Site ids that bound a memory search.
+ * Blank values are dropped. An empty result is a hard failure, not a global query.
+ * `agent_memories` has no user id column. Per-user stores must filter themselves.
+ */
+export function siteIdsFromSearchOptions(options: VectorSearchOptions): string[] {
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  const push = (value: string | undefined): void => {
+    if (typeof value !== 'string') return;
+    const trimmed = value.trim();
+    if (trimmed.length === 0 || seen.has(trimmed)) return;
+    seen.add(trimmed);
+    ids.push(trimmed);
+  };
+  push(options.siteId);
+  if (options.siteIds) {
+    for (const id of options.siteIds) push(id);
+  }
+  if (ids.length === 0) {
+    throw new UnscopedMemorySearchError();
+  }
+  return ids;
 }
 
 export interface VectorSearchResult {
@@ -38,6 +79,10 @@ export interface VectorSearchResult {
  */
 export class VectorMemoryService {
   private _db: ReturnType<typeof getRestClient> | null = null;
+
+  constructor(db?: ReturnType<typeof getRestClient>) {
+    if (db) this._db = db;
+  }
 
   /**
    * Lazy-load database client to avoid connection initialization at module import time.
@@ -80,11 +125,11 @@ export class VectorMemoryService {
       throw new Error(`Invalid embedding dimension: expected 768, got ${queryEmbedding.length}`);
     }
 
+    // Refuse an unscoped search before any query runs.
+    const siteIds = siteIdsFromSearchOptions(options);
+
     // Build where conditions
-    const conditions: SQL[] = [];
-    if (options.siteId) {
-      conditions.push(eq(agentMemories.siteId, options.siteId));
-    }
+    const conditions: SQL[] = [inArray(agentMemories.siteId, siteIds)];
     if (options.agentId) {
       conditions.push(eq(agentMemories.agentId, options.agentId));
     }
