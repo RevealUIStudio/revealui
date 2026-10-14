@@ -69,7 +69,7 @@ describe('production deploy ref guard', () => {
 
   it('smokes admin on the custom domain after the alias is assigned', () => {
     const smoke = sliceJob(workflow, '\n  smoke-test:\n', '\n  design-verify:\n');
-    expect(smoke).toContain('timeout-minutes: 10');
+    expect(smoke).toContain('timeout-minutes: 15');
     expect(smoke).not.toContain('VERCEL_AUTOMATION_BYPASS_SECRET');
     expect(smoke).not.toContain('skip_rollback');
     expect(smoke).toContain('ADMIN_ALIAS: admin.revealui.com');
