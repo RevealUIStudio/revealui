@@ -34,7 +34,7 @@ export const crmContacts = pgTable('crm_contacts', {
   doNotContact: boolean('do_not_contact').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdateFn(() => new Date()),
-}, (t) => [index('crm_contacts_account_idx').on(t.accountId), index('crm_contacts_org_idx').on(t.organizationId), foreignKey({ columns: [t.accountId, t.organizationId], foreignColumns: [crmOrganizations.accountId, crmOrganizations.id] })])
+}, (t) => [index('crm_contacts_account_idx').on(t.accountId), index('crm_contacts_org_idx').on(t.organizationId), uniqueIndex('crm_contacts_account_id_unique').on(t.accountId, t.id), foreignKey({ columns: [t.accountId, t.organizationId], foreignColumns: [crmOrganizations.accountId, crmOrganizations.id] })])
 
 export const crmOpportunities = pgTable('crm_opportunities', {
   id: text('id').primaryKey(),
@@ -66,4 +66,4 @@ export const crmCampaigns = pgTable('crm_campaigns', {
   name: text('name').notNull(),
   status: text('status').notNull().default('draft'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index('crm_campaigns_account_idx').on(t.accountId)])
+}, (t) => [index('crm_campaigns_account_idx').on(t.accountId), uniqueIndex('crm_campaigns_account_id_unique').on(t.accountId, t.id)])
