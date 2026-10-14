@@ -12,11 +12,12 @@
 #
 # CONSERVATIVE: revokes only on a definitive audit FAILURE (never pending /
 # missing / cancelled), so it cannot false-revoke during the audit's in-flight
-# window. Deterministic (check conclusions only, no model) — keeps ADR
-# 2026-07-10-automated-security-review-eval condition 4 (additive-to-CI) intact.
+# window. Deterministic (check conclusions only, no model). Additive to CI:
+# it never merges around a required check.
 #
-# Overrides (ADR condition 9): repo variable SEC_AUDIT_GATE_DISABLED='true' is
-# the kill switch; the per-PR label `sec-audit-override` exempts one PR.
+# No repository variable and no label can exempt a pull request. A real
+# exception is an owner SSHSIG or a controller receipt plus independent
+# review. This job does not implement either of those as a skip.
 
 name: Security Audit Label Guard
 
@@ -102,11 +103,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          KILL_SWITCH: ${{ vars.SEC_AUDIT_GATE_DISABLED }}
         run: |
           set -euo pipefail
-          KILL=false
-          if [ "${KILL_SWITCH:-}" = "true" ]; then KILL=true; fi
 
           # PR numbers from whichever event fired, read from the event payload:
           # a labeled/review event carries .pull_request; a check_suite carries
@@ -167,27 +165,26 @@ jobs:
             payload=$(jq -n \
               --argjson checkRuns "$checks" \
               --argjson labels "$labels" \
-              --argjson killSwitch "$KILL" \
               --argjson reviews "$reviews" \
               --argjson comments "$comments" \
               --arg prAuthor "$prAuthor" \
-              '{checkRuns: $checkRuns, labels: $labels, killSwitch: $killSwitch, reviews: $reviews, comments: $comments, prAuthor: $prAuthor}')
+              '{checkRuns: $checkRuns, labels: $labels, reviews: $reviews, comments: $comments, prAuthor: $prAuthor}')
 
             decision=$(printf '%s' "$payload" | node scripts/validate/sec-audit-label-decision.cjs)
             action=$(printf '%s' "$decision" | awk '{print $1}')
             reason=$(printf '%s' "$decision" | cut -d' ' -f2-)
-            echo "decision: $action — $reason"
+            echo "decision: $action: $reason"
 
             if [ "$action" = "revoke" ]; then
               gh pr edit "$pr" --repo "$REPO" --remove-label "sec-review:approved"
               body=$(printf '%s\n' \
-                "🔒 **sec-review:approved was removed by the security-audit label guard.**" \
+                "sec-review:approved was removed by the security-audit label guard." \
                 "" \
                 "Reason: $reason" \
                 "" \
-                "The clearance label may only stand while the security audit is green on the current head AND no guardrail-2 REQUEST-CHANGES verdict is outstanding. Resolve the reason above (a passing audit, or a later non-author guardrail-2 APPROVE marker) and re-apply the label. The guard is deterministic and additive — it never merges around a required check, only withholds a premature approval." \
+                "The clearance label may stand only while the security audit is green on the current head and no guardrail-2 REQUEST-CHANGES verdict is outstanding. Resolve the reason above (a passing audit, or a later non-author guardrail-2 APPROVE marker) and re-apply the label. This guard never merges around a required check. It only removes a premature clearance label." \
                 "" \
-                "Overrides: apply the \`sec-audit-override\` label to exempt this PR, or set the repo variable \`SEC_AUDIT_GATE_DISABLED=true\` as a kill switch.")
+                "There is no repository-variable kill switch and no exemption label. A real exception is an owner SSHSIG or a controller receipt plus independent review.")
               gh pr comment "$pr" --repo "$REPO" --body "$body"
               echo "Removed sec-review:approved from PR #$pr."
             fi

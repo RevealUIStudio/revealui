@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-const {
-  decide,
-  checkState,
-  CLEAR_LABEL,
-  OVERRIDE_LABEL,
-} = require('../sec-audit-label-decision.cjs');
+const { decide, checkState, CLEAR_LABEL } = require('../sec-audit-label-decision.cjs');
 
 const green = (name: string) => ({ name, conclusion: 'SUCCESS', status: 'COMPLETED' });
 const red = (name: string) => ({ name, conclusion: 'FAILURE', status: 'COMPLETED' });
@@ -60,15 +55,22 @@ describe('decide', () => {
   it('SKIPS when the clearance label is not present', () => {
     expect(decide({ checkRuns: [red('CodeQL')], labels: ['bug'] }).action).toBe('skip');
   });
-  it('SKIPS when the per-PR override label is present, even with a red audit', () => {
-    const r = decide({ checkRuns: [red('CodeQL')], labels: [CLEAR_LABEL, OVERRIDE_LABEL] });
-    expect(r.action).toBe('skip');
-    expect(r.reason).toContain('override');
+  it('REVOKES when a former exemption label is present and an audit check is failing', () => {
+    const r = decide({
+      checkRuns: [red('CodeQL')],
+      labels: [CLEAR_LABEL, 'sec-audit-override'],
+    });
+    expect(r.action).toBe('revoke');
+    expect(r.reason).not.toContain('override');
   });
-  it('SKIPS when the kill switch is set, even with a red audit', () => {
-    expect(
-      decide({ checkRuns: [red('CodeQL')], labels: [CLEAR_LABEL], killSwitch: true }).action,
-    ).toBe('skip');
+  it('REVOKES when a leftover killSwitch field is set and an audit check is failing', () => {
+    const r = decide({
+      checkRuns: [red('CodeQL')],
+      labels: [CLEAR_LABEL],
+      killSwitch: true,
+    });
+    expect(r.action).toBe('revoke');
+    expect(r.reason).not.toContain('SEC_AUDIT_GATE_DISABLED');
   });
   it('accepts GitHub label objects, not just strings', () => {
     const r = decide({ checkRuns: [red('CodeQL')], labels: [{ name: CLEAR_LABEL }] });
@@ -115,17 +117,17 @@ describe('decide — guardrail-2 REQUEST-CHANGES revoke (revealui#1910)', () => 
     });
     expect(r.action).toBe('skip');
   });
-  it('the per-PR override label wins over a live REQUEST-CHANGES', () => {
+  it('REVOKES a live REQUEST-CHANGES even when a former exemption label is present', () => {
     const r = decide({
       checkRuns: allGreen(),
-      labels: [CLEAR_LABEL, OVERRIDE_LABEL],
+      labels: [CLEAR_LABEL, 'sec-audit-override'],
       prAuthor: 'RevealUIStudio',
       comments: [rcComment('RevealUIStudio', '2026-07-17T00:13:55Z')],
     });
-    expect(r.action).toBe('skip');
-    expect(r.reason).toContain('override');
+    expect(r.action).toBe('revoke');
+    expect(r.reason).toContain('REQUEST-CHANGES');
   });
-  it('the kill switch wins over a live REQUEST-CHANGES', () => {
+  it('REVOKES a live REQUEST-CHANGES even when a leftover killSwitch field is set', () => {
     const r = decide({
       killSwitch: true,
       checkRuns: allGreen(),
@@ -133,7 +135,8 @@ describe('decide — guardrail-2 REQUEST-CHANGES revoke (revealui#1910)', () => 
       prAuthor: 'RevealUIStudio',
       comments: [rcComment('RevealUIStudio', '2026-07-17T00:13:55Z')],
     });
-    expect(r.action).toBe('skip');
+    expect(r.action).toBe('revoke');
+    expect(r.reason).toContain('REQUEST-CHANGES');
   });
   it('SKIPS when there is no clearance label, regardless of a REQUEST-CHANGES', () => {
     const r = decide({
