@@ -34,7 +34,7 @@ export const crmContacts = pgTable('crm_contacts', {
   doNotContact: boolean('do_not_contact').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdateFn(() => new Date()),
-}, (t) => [index('crm_contacts_account_idx').on(t.accountId), index('crm_contacts_org_idx').on(t.organizationId), uniqueIndex('crm_contacts_account_id_unique').on(t.accountId, t.id), foreignKey({ columns: [t.accountId, t.organizationId], foreignColumns: [crmOrganizations.accountId, crmOrganizations.id] })])
+}, (t) => [index('crm_contacts_account_idx').on(t.accountId), index('crm_contacts_org_idx').on(t.organizationId), uniqueIndex('crm_contacts_account_id_unique').on(t.accountId, t.id), foreignKey({ columns: [t.accountId, t.organizationId], foreignColumns: [crmOrganizations.accountId, crmOrganizations.id] }).onDelete('restrict')])
 
 export const crmOpportunities = pgTable('crm_opportunities', {
   id: text('id').primaryKey(),
@@ -48,7 +48,7 @@ export const crmOpportunities = pgTable('crm_opportunities', {
   nextActionAt: timestamp('next_action_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdateFn(() => new Date()),
-}, (t) => [index('crm_opps_account_stage_idx').on(t.accountId, t.stage), index('crm_opps_org_idx').on(t.organizationId), uniqueIndex('crm_opp_account_id_unique').on(t.accountId, t.id), foreignKey({ columns: [t.accountId, t.organizationId], foreignColumns: [crmOrganizations.accountId, crmOrganizations.id] }), check('crm_opportunity_stage_check', sql`stage IN ('research','qualified','contact_ready','contacted','replied','discovery','proposal','won','lost','nurture','do_not_contact')`)])
+}, (t) => [index('crm_opps_account_stage_idx').on(t.accountId, t.stage), index('crm_opps_org_idx').on(t.organizationId), uniqueIndex('crm_opp_account_id_unique').on(t.accountId, t.id), foreignKey({ columns: [t.accountId, t.organizationId], foreignColumns: [crmOrganizations.accountId, crmOrganizations.id] }), check('crm_opportunity_stage_check', sql`stage IN ('research','qualified','contact_ready','contacted','replied','discovery','proposal','won','lost','nurture','do_not_contact')`), check('crm_opportunity_value_check', sql`value_cents IS NULL OR value_cents >= 0`)])
 
 export const crmActivities = pgTable('crm_activities', {
   id: text('id').primaryKey(),
@@ -58,7 +58,7 @@ export const crmActivities = pgTable('crm_activities', {
   summary: text('summary').notNull(),
   actorId: text('actor_id').references(() => users.id, { onDelete: 'set null' }),
   occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index('crm_activity_account_idx').on(t.accountId), index('crm_activity_opportunity_idx').on(t.opportunityId), foreignKey({ columns: [t.accountId, t.opportunityId], foreignColumns: [crmOpportunities.accountId, crmOpportunities.id] })])
+}, (t) => [index('crm_activity_account_idx').on(t.accountId), index('crm_activity_opportunity_idx').on(t.opportunityId), foreignKey({ columns: [t.accountId, t.opportunityId], foreignColumns: [crmOpportunities.accountId, crmOpportunities.id] }).onDelete('cascade')])
 
 export const crmCampaigns = pgTable('crm_campaigns', {
   id: text('id').primaryKey(),
