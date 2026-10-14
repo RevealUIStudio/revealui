@@ -43,6 +43,18 @@ async function parseBody(res: Response): Promise<any> {
 describe('agent-stream route', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    delete process.env.REVEALUI_AI_DISABLED;
+  });
+
+  it('returns 503 when REVEALUI_AI_DISABLED is true', async () => {
+    process.env.REVEALUI_AI_DISABLED = 'true';
+    const app = createApp();
+    const res = await jsonPost(app, '/agent-stream', { instruction: 'Hello' });
+    expect(res.status).toBe(503);
+    const body = await parseBody(res);
+    expect(body.code).toBe('AI_DISABLED');
+    expect(body.error).toBe('AI is temporarily disabled.');
+    delete process.env.REVEALUI_AI_DISABLED;
   });
 
   it('returns 400 when instruction is missing', async () => {

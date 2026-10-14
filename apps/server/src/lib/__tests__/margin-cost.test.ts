@@ -29,6 +29,12 @@ describe('classifyMeter', () => {
   it('defaults unknown names to local_default', () => {
     expect(classifyMeter('agent.stream.chunk')).toBe('local_default');
   });
+
+  it('classifies the llm chat meter as cloud cost', () => {
+    expect(classifyMeter('llm.chat')).toBe('cloud');
+    expect(classifyMeter('llm.embedding')).toBe('cloud');
+    expect(rateCentsForClass('cloud', rates)).toBe(rates.cloudMinuteCents);
+  });
 });
 
 describe('costCentsForMeterRow (HC13)', () => {

@@ -9,6 +9,9 @@
  * For unauthenticated requests: passes through (feature gate handles auth separately).
  * For enterprise (Forge) tier: increments for metering but never blocks.
  *
+ * The reservation itself lives in `@revealui/db/agent-task-quota` so admin chat
+ * counts against the same monthly row.
+ *
  * x402 payment path (Phase 5.2):
  *   When X402_ENABLED=true and quota is exceeded:
  *   - No X-PAYMENT-PAYLOAD header → HTTP 402 with X-PAYMENT-REQUIRED header
@@ -20,8 +23,7 @@ import { getMaxAgentTasks } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import { trackX402PaymentRequired } from '@revealui/core/observability/metrics';
 import { getClient } from '@revealui/db';
-import { agentCreditBalance, agentTaskUsage } from '@revealui/db/schema';
-import { and, eq, gt, lt, sql } from 'drizzle-orm';
+import { admitAgentTask } from '@revealui/db/agent-task-quota';
 import type { Context, Next } from 'hono';
 import {
   buildPaymentRequired,
@@ -30,20 +32,6 @@ import {
   getX402Config,
   verifyPayment,
 } from './x402.js';
-
-/** Tracks consecutive DB write failures for observability. */
-let quotaWriteFailures = 0;
-const FAILURE_LOG_INTERVAL = 10;
-
-function onQuotaWriteError(err: unknown): void {
-  quotaWriteFailures++;
-  if (quotaWriteFailures % FAILURE_LOG_INTERVAL === 1) {
-    logger.warn('Task quota DB write failed', {
-      consecutiveFailures: quotaWriteFailures,
-      error: err instanceof Error ? err.message : String(err),
-    });
-  }
-}
 
 interface UserContext {
   id: string;
@@ -66,12 +54,6 @@ interface TaskQuotaEnv {
   };
 }
 
-/** Returns the UTC timestamp for the start of the current calendar month. */
-function cycleStart(): Date {
-  const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-}
-
 export async function requireTaskQuota<E extends TaskQuotaEnv>(
   c: Context<E>,
   next: Next,
@@ -79,198 +61,78 @@ export async function requireTaskQuota<E extends TaskQuotaEnv>(
 ): Promise<Response | void> {
   const user = c.get('user');
   if (!user) {
-    // No auth  -  feature gate already handles this; just pass through
+    // No auth. Feature gate already handles this; just pass through.
     return next();
   }
 
   const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
   const quota = requestEntitlements?.limits?.maxAgentTasks ?? getMaxAgentTasks();
   const db = getClient();
-  const cycle = cycleStart();
+  const admission = await admitAgentTask(db, { userId: user.id, quota });
 
-  if (quota === Infinity) {
-    // Enterprise/Forge: increment for metering, never block
-    void db
-      .insert(agentTaskUsage)
-      .values({ userId: user.id, cycleStart: cycle, count: 1, overage: 0 })
-      .onConflictDoUpdate({
-        target: [agentTaskUsage.userId, agentTaskUsage.cycleStart],
-        set: { count: sql`${agentTaskUsage.count} + 1`, updatedAt: new Date() },
-      })
-      .catch(onQuotaWriteError);
+  if (admission.admitted) {
     return next();
   }
-
-  // Neon HTTP has no transactions, so the plan slot is one statement:
-  // insert the month row, or increment only while count is still under quota.
-  // A prior SELECT plus a later increment lets overlapping requests all pass.
-  if (quota > 0) {
-    try {
-      const [reserved] = await db
-        .insert(agentTaskUsage)
-        .values({ userId: user.id, cycleStart: cycle, count: 1, overage: 0 })
-        .onConflictDoUpdate({
-          target: [agentTaskUsage.userId, agentTaskUsage.cycleStart],
-          set: { count: sql`${agentTaskUsage.count} + 1`, updatedAt: new Date() },
-          setWhere: lt(agentTaskUsage.count, quota),
-        })
-        .returning();
-
-      if (reserved) {
-        quotaWriteFailures = 0;
-        return next();
-      }
-    } catch (err) {
-      onQuotaWriteError(err);
-      // Allow the request. One lost increment is better than blocking a paid user.
-      return next();
-    }
+  if (admission.reason === 'billing_error') {
+    return c.json({ error: 'Billing error  -  please retry.' }, 503);
   }
 
-  // Plan slot was not reserved (quota is 0, or count is already at the quota).
-  const [row] = await db
-    .select({ count: agentTaskUsage.count })
-    .from(agentTaskUsage)
-    .where(and(eq(agentTaskUsage.userId, user.id), eq(agentTaskUsage.cycleStart, cycle)))
-    .limit(1);
+  const current = admission.used;
+  const x402 = getX402Config();
+  const resetAt = admission.resetAt;
 
-  const current = row?.count ?? 0;
+  if (x402.enabled && x402.receivingAddress) {
+    const parsedUrl = new URL(c.req.url);
+    const resource = `${parsedUrl.origin}${parsedUrl.pathname}`;
+    const payloadHeader = c.req.header('X-PAYMENT-PAYLOAD');
 
-  if (current >= quota) {
-    // C-1 fix: atomic credit decrement via a single UPDATE … WHERE balance >= 1
-    // RETURNING. A non-atomic read-then-write allows concurrent requests to both
-    // observe a positive balance and both decrement, enabling free tasks under load.
-    // If the WHERE clause's balance >= 1 condition fails, 0 rows are returned and
-    // we fall through to normal quota enforcement.
-    try {
-      const [decremented] = await db
-        .update(agentCreditBalance)
-        .set({
-          balance: sql`${agentCreditBalance.balance} - 1`,
-          updatedAt: new Date(),
-        })
-        .where(and(eq(agentCreditBalance.userId, user.id), gt(agentCreditBalance.balance, 0)))
-        .returning();
+    if (payloadHeader) {
+      const result = await verifyPayment(payloadHeader, resource, 'task-quota');
 
-      if (decremented !== undefined) {
-        // Increment usage count for metering (fire-and-forget  -  credit already deducted)
-        void db
-          .insert(agentTaskUsage)
-          .values({ userId: user.id, cycleStart: cycle, count: current + 1, overage: 1 })
-          .onConflictDoUpdate({
-            target: [agentTaskUsage.userId, agentTaskUsage.cycleStart],
-            set: {
-              count: sql`${agentTaskUsage.count} + 1`,
-              overage: sql`${agentTaskUsage.overage} + 1`,
-              updatedAt: new Date(),
-            },
-          })
-          .catch(onQuotaWriteError);
-
+      if (result.valid) {
+        logger.info('x402 payment accepted  -  task quota bypassed', {
+          userId: user.id,
+          resource,
+          used: current,
+        });
         return next();
       }
-    } catch (err) {
-      // Atomic decrement failed — block to prevent free usage
-      logger.error(
-        'Credit deduction failed  -  blocking task',
-        err instanceof Error ? err : undefined,
-        { userId: user.id },
-      );
-      return c.json({ error: 'Billing error  -  please retry.' }, 503);
-    }
 
-    // Track overage for billing reports (fire-and-forget)
-    void db
-      .insert(agentTaskUsage)
-      .values({ userId: user.id, cycleStart: cycle, count: current, overage: 1 })
-      .onConflictDoUpdate({
-        target: [agentTaskUsage.userId, agentTaskUsage.cycleStart],
-        set: { overage: sql`${agentTaskUsage.overage} + 1`, updatedAt: new Date() },
-      })
-      .catch(onQuotaWriteError);
-
-    const x402 = getX402Config();
-    const resetAt = new Date(
-      Date.UTC(cycle.getUTCFullYear(), cycle.getUTCMonth() + 1, 1),
-    ).toISOString();
-
-    if (x402.enabled && x402.receivingAddress) {
-      // x402 payment path  -  agents can pay USDC per task instead of hard-blocking
-      const parsedUrl = new URL(c.req.url);
-      const resource = `${parsedUrl.origin}${parsedUrl.pathname}`;
-      const payloadHeader = c.req.header('X-PAYMENT-PAYLOAD');
-
-      if (payloadHeader) {
-        // Verify the payment proof the agent sent
-        const result = await verifyPayment(payloadHeader, resource, 'task-quota');
-
-        if (result.valid) {
-          logger.info('x402 payment accepted  -  task quota bypassed', {
-            userId: user.id,
-            resource,
-            used: current,
-          });
-          // Allow through without incrementing quota (it's a paid overage call)
-          return next();
-        }
-
-        return c.json(
-          {
-            payment_required: true,
-            error: result.error,
-            amount: x402.pricePerTask,
-            currency: 'USDC',
-          },
-          402,
-        );
-      }
-
-      // No payment header  -  return 402 with x402 payment requirements
-      const paymentRequired = buildPaymentRequired(resource);
-      trackX402PaymentRequired('task-quota', getAdvertisedCurrencyLabel());
       return c.json(
         {
           payment_required: true,
+          error: result.error,
           amount: x402.pricePerTask,
           currency: 'USDC',
-          address: x402.receivingAddress,
-          used: current,
-          quota,
-          resetAt,
         },
         402,
-        { 'X-PAYMENT-REQUIRED': encodePaymentRequired(paymentRequired) },
       );
     }
 
-    // x402 disabled → existing 429 behavior (no behavioral change for subscribers)
+    const paymentRequired = buildPaymentRequired(resource);
+    trackX402PaymentRequired('task-quota', getAdvertisedCurrencyLabel());
     return c.json(
       {
-        error: 'Agent task quota exceeded for this billing cycle.',
+        payment_required: true,
+        amount: x402.pricePerTask,
+        currency: 'USDC',
+        address: x402.receivingAddress,
         used: current,
-        quota,
+        quota: admission.quota,
         resetAt,
       },
-      429,
+      402,
+      { 'X-PAYMENT-REQUIRED': encodePaymentRequired(paymentRequired) },
     );
   }
 
-  // Increment usage count  -  awaited to ensure metering accuracy.
-  // On failure, allow the request but log for reconciliation.
-  try {
-    await db
-      .insert(agentTaskUsage)
-      .values({ userId: user.id, cycleStart: cycle, count: 1, overage: 0 })
-      .onConflictDoUpdate({
-        target: [agentTaskUsage.userId, agentTaskUsage.cycleStart],
-        set: { count: sql`${agentTaskUsage.count} + 1`, updatedAt: new Date() },
-      });
-    quotaWriteFailures = 0; // Reset on success
-  } catch (err) {
-    onQuotaWriteError(err);
-    // Allow the request  -  one lost increment is better than blocking paid users.
-    // The failure counter + logs enable reconciliation.
-  }
-
-  return next();
+  return c.json(
+    {
+      error: 'Agent task quota exceeded for this billing cycle.',
+      used: current,
+      quota: admission.quota,
+      resetAt,
+    },
+    429,
+  );
 }

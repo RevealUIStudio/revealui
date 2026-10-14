@@ -81,6 +81,7 @@ vi.mock('@revealui/ai/llm/server', () => {
     // resolver. It delegates to createLLMClientFromEnv so a test that overrides
     // createLLMClientFromEnv drives both the chat and embedding paths.
     resolveLLMClientForRequest: vi.fn(async () => createLLMClientFromEnv()),
+    hostedByokDispatchEnabled: vi.fn(() => false),
   };
 });
 
@@ -153,11 +154,28 @@ vi.mock('@/lib/middleware/rate-limit', () => ({
   rateLimit: vi.fn(() => async () => null), // Return null = no rate limit response
 }));
 
+vi.mock('@/lib/ai/chat-cost-rails', () => ({
+  ADMIN_CHAT_ROUTE: 'admin.chat',
+  adminChatDisabledResponse: vi.fn(() => null),
+  enforceAdminChatRails: vi.fn(async () => ({ accountId: 'acct-test' })),
+  recordAdminChatCall: vi.fn(async () => undefined),
+}));
+
+vi.mock('@/lib/ai/chat-key-source', () => ({
+  describeAdminChatKey: vi.fn(async () => ({
+    keySource: 'byok',
+    provider: 'openai',
+    model: 'gpt-4o',
+  })),
+  providerFromCircuitBreaker: vi.fn(() => 'openai'),
+}));
+
 describe('Chat API', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Mock environment to skip vector memory
     process.env.ENABLE_VECTOR_MEMORY = 'false';
+    delete process.env.REVEALUI_AI_DISABLED;
   });
 
   describe('POST /api/chat', () => {

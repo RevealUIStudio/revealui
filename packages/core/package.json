@@ -87,6 +87,11 @@
       "import": "./dist/cogs-breaker.js",
       "default": "./dist/cogs-breaker.js"
     },
+    "./ai-runtime-guards": {
+      "types": "./dist/ai-runtime-guards.d.ts",
+      "import": "./dist/ai-runtime-guards.js",
+      "default": "./dist/ai-runtime-guards.js"
+    },
     "./revforge-license": {
       "types": "./dist/revforge-license.d.ts",
       "import": "./dist/revforge-license.js",

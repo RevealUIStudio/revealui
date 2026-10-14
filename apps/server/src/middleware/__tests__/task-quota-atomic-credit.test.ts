@@ -134,6 +134,21 @@ function setupAtomicDecrement(rows: unknown[]) {
   return { setChain, whereChain, returningChain };
 }
 
+/** Walk a Drizzle SQL fragment for a bound value without serializing table cycles. */
+function sqlFragmentContains(value: unknown, needle: string, seen = new Set<object>()): boolean {
+  if (typeof value === 'string') return value === needle;
+  if (value == null || typeof value !== 'object') return false;
+  if (seen.has(value)) return false;
+  seen.add(value);
+  if (Array.isArray(value)) {
+    return value.some((item) => sqlFragmentContains(item, needle, seen));
+  }
+  for (const nested of Object.values(value as Record<string, unknown>)) {
+    if (sqlFragmentContains(nested, needle, seen)) return true;
+  }
+  return false;
+}
+
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('task-quota — atomic credit decrement (C-1 fix)', () => {
@@ -169,7 +184,7 @@ describe('task-quota — atomic credit decrement (C-1 fix)', () => {
     expect(mockUpdate).toHaveBeenCalledTimes(1);
     expect(whereChain.where).toHaveBeenCalledTimes(1);
     const whereArg = whereChain.where.mock.calls[0][0];
-    expect(JSON.stringify(whereArg)).toContain(TEST_USER.id);
+    expect(sqlFragmentContains(whereArg, TEST_USER.id)).toBe(true);
   });
 
   it('calls .returning() (not a separate SELECT) to check if balance was positive', async () => {

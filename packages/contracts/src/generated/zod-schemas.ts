@@ -1730,6 +1730,32 @@ export type LifecycleEmailsSentRow = z.infer<typeof LifecycleEmailsSentSelectSch
 export type LifecycleEmailsSentInsert = z.infer<typeof LifecycleEmailsSentInsertSchema>
 
 // =============================================================================
+// LlmCallReceipts Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting llmCallReceipts rows from database
+ * Generated from Drizzle table definition: tables.llmCallReceipts
+ */
+export const LlmCallReceiptsSelectSchema = createSelectSchema(tables.llmCallReceipts)
+
+/**
+ * Zod schema for inserting llmCallReceipts rows to database
+ * Generated from Drizzle table definition: tables.llmCallReceipts
+ */
+export const LlmCallReceiptsInsertSchema = createInsertSchema(tables.llmCallReceipts)
+
+/**
+ * TypeScript type for llmCallReceipts row (Select)
+ */
+export type LlmCallReceiptsRow = z.infer<typeof LlmCallReceiptsSelectSchema>
+
+/**
+ * TypeScript type for llmCallReceipts insert
+ */
+export type LlmCallReceiptsInsert = z.infer<typeof LlmCallReceiptsInsertSchema>
+
+// =============================================================================
 // MagicLinks Schemas
 // =============================================================================
 

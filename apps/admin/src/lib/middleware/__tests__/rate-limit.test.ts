@@ -159,6 +159,55 @@ describe('rateLimit', () => {
     const result = await limiter(makeRequest({ 'x-forwarded-for': '1.2.3.4' }) as never);
     expect(result).toBeNull();
   });
+
+  it('fails closed when the store errors and failClosed is set', async () => {
+    mockCheckRateLimit.mockRejectedValue(new Error('store down'));
+    const { rateLimit } = await loadModule();
+    const limiter = rateLimit(
+      { maxRequests: 10, windowMs: 60000 },
+      { failClosed: true, route: 'admin.chat' },
+    );
+
+    const result = await limiter(
+      makeRequest({ 'x-forwarded-for': '1.2.3.4' }) as never,
+      'user-123',
+    );
+    expect(result).not.toBeNull();
+    expect((result as { status: number }).status).toBe(503);
+  });
+
+  it('keys a routed limiter by user id and route, not IP', async () => {
+    mockCheckRateLimit.mockResolvedValue({
+      allowed: true,
+      remaining: 9,
+      resetAt: Date.now() + 60000,
+    });
+    const { rateLimit } = await loadModule();
+    const limiter = rateLimit(
+      { maxRequests: 10, windowMs: 60000 },
+      { failClosed: true, route: 'admin.chat' },
+    );
+
+    await limiter(makeRequest({ 'x-forwarded-for': '203.0.113.50' }) as never, 'user-123');
+
+    expect(mockCheckRateLimit).toHaveBeenCalledWith(
+      'rate_limit:admin.chat:user-123',
+      expect.anything(),
+    );
+    expect(mockCheckRateLimit.mock.calls[0]?.[0]).not.toContain('203.0.113.50');
+  });
+
+  it('rejects a routed limiter when the user id is missing', async () => {
+    const { rateLimit } = await loadModule();
+    const limiter = rateLimit(
+      { maxRequests: 10, windowMs: 60000 },
+      { failClosed: true, route: 'admin.chat' },
+    );
+
+    const result = await limiter(makeRequest({ 'x-forwarded-for': '203.0.113.50' }) as never, null);
+    expect((result as { status: number }).status).toBe(503);
+    expect(mockCheckRateLimit).not.toHaveBeenCalled();
+  });
 });
 
 describe('withRateLimit', () => {

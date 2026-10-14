@@ -130,6 +130,11 @@
       "import": "./dist/llm/server.js",
       "default": "./dist/llm/server.js"
     },
+    "./llm/cost": {
+      "types": "./dist/llm/cost.d.ts",
+      "import": "./dist/llm/cost.js",
+      "default": "./dist/llm/cost.js"
+    },
     "./llm/providers/base": {
       "types": "./dist/llm/providers/base.d.ts",
       "import": "./dist/llm/providers/base.js",
