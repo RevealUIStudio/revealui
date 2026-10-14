@@ -7,6 +7,7 @@ import {
   DECLARATION_REL,
   digestText,
   evaluateMarketingDeployLockstep,
+  fetchLatestGreenMainDeploy,
   findVisibilityClaims,
   hashSurfaces,
   isBotPromoteAttempt,
@@ -15,6 +16,7 @@ import {
   PRODUCTION_DEPLOY_WORKFLOW,
   parseDeclaration,
   parseLatestDeployRun,
+  productionRepositoryCandidates,
   type SurfaceDigest,
   scanMarketingHonestyClaims,
   surfacesMatch,
@@ -254,6 +256,81 @@ describe('committed declaration', () => {
     const hashed = hashSurfaces(ROOT, parsed.declaration?.honestySurfaces ?? []);
     expect(hashed.missing).toEqual([]);
     expect(scanMarketingHonestyClaims(ROOT)).toEqual([]);
+  });
+});
+
+describe('production repository owner', () => {
+  const greenRun = {
+    workflow_runs: [
+      {
+        head_sha: 'abc123',
+        conclusion: 'success',
+        head_branch: 'main',
+        path: '.github/workflows/deploy.yml',
+      },
+    ],
+  };
+
+  function fetchImpl(urls: string[], statusFor: (url: string) => number): typeof fetch {
+    return (async (input: RequestInfo | URL) => {
+      const url =
+        typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+      urls.push(url);
+      const status = statusFor(url);
+      if (status !== 200) return new Response('missing', { status });
+      return new Response(JSON.stringify(greenRun), { status: 200 });
+    }) as typeof fetch;
+  }
+
+  it('uses GITHUB_REPOSITORY when it names an owner and repository', () => {
+    expect(productionRepositoryCandidates('revealui-studio/revealui')).toEqual([
+      'revealui-studio/revealui',
+    ]);
+    expect(productionRepositoryCandidates('RevealUIStudio/revealui')).toEqual([
+      'RevealUIStudio/revealui',
+    ]);
+  });
+
+  it('tries the former and current orgs when GITHUB_REPOSITORY is unset', () => {
+    expect(productionRepositoryCandidates('')).toEqual([
+      'RevealUIStudio/revealui',
+      'revealui-studio/revealui',
+    ]);
+  });
+
+  it('falls through a missing former org and reads the renamed repository', async () => {
+    const urls: string[] = [];
+    const result = await fetchLatestGreenMainDeploy('token', {
+      repositoryEnv: '',
+      fetchImpl: fetchImpl(urls, (url) => (url.includes('/repos/RevealUIStudio/') ? 404 : 200)),
+    });
+    expect(urls.map((url) => url.includes('/repos/revealui-studio/revealui/'))).toEqual([
+      false,
+      true,
+    ]);
+    expect(result.error).toBeNull();
+    expect(result.receipt?.sha).toBe('abc123');
+  });
+
+  it('does not try another org when GITHUB_REPOSITORY is set', async () => {
+    const urls: string[] = [];
+    const result = await fetchLatestGreenMainDeploy('token', {
+      repositoryEnv: 'revealui-studio/revealui',
+      fetchImpl: fetchImpl(urls, () => 404),
+    });
+    expect(urls).toHaveLength(1);
+    expect(urls[0]).toContain('/repos/revealui-studio/revealui/');
+    expect(result.error).toContain('HTTP 404');
+  });
+
+  it('does not fall through on a non-404 response', async () => {
+    const urls: string[] = [];
+    const result = await fetchLatestGreenMainDeploy('token', {
+      repositoryEnv: '',
+      fetchImpl: fetchImpl(urls, () => 401),
+    });
+    expect(urls).toHaveLength(1);
+    expect(result.error).toContain('HTTP 401');
   });
 });
 
