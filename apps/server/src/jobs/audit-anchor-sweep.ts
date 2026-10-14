@@ -67,6 +67,7 @@ import {
   resolveAuditAnchorDbRetry,
   withTransientDbRetry,
 } from './audit-anchor-db-retry.js';
+import { startAdaptivePollLoop } from './audit-anchor-scheduler.js';
 
 export { SYSTEM_ANCHOR_SCOPE } from '@revealui/db/schema';
 export { planContiguousBatch, type SignedAuditRow } from './audit-anchor-batch.js';
@@ -81,10 +82,14 @@ export const DEFAULT_ANCHOR_BATCH_SIZE = 256;
 export const DEFAULT_ANCHOR_MAX_LAG_MS = 60 * 60 * 1000;
 
 /**
- * How often the worker polls for ready batches (not the lag itself).
+ * Maximum idle wait between worker sweeps. Waiting batches wake the worker at
+ * their max-lag deadline instead of paying for a fixed one-minute poll.
  * Override: AUDIT_ANCHOR_INTERVAL_MS.
  */
-export const DEFAULT_ANCHOR_POLL_MS = 60 * 1000;
+export const DEFAULT_ANCHOR_POLL_MS = 10 * 60 * 1000;
+
+/** Retry cadence after a settled sweep failure, preserving the former poll rate. */
+export const DEFAULT_ANCHOR_RETRY_POLL_MS = 60 * 1000;
 
 /** Usage meter name after successful root insert (design §4 step 7 / §9). */
 export const AUDIT_ANCHOR_METER_NAME = 'audit_anchor';
@@ -133,6 +138,8 @@ export interface AnchorSweepResult {
   nullTenantSignedRows: number;
   /** GAP-427: outcome of the one null-tenant system-scope pass this sweep. */
   systemOutcome: 'inserted' | 'waiting' | 'skipped';
+  /** Epoch milliseconds when the oldest waiting batch reaches maxLagMs. */
+  nextReadinessAtMs?: number;
   errors: string[];
 }
 
@@ -177,6 +184,13 @@ function pollMsFromEnv(env: Record<string, string | undefined>): number {
   if (!raw) return DEFAULT_ANCHOR_POLL_MS;
   const n = Number(raw);
   return Number.isInteger(n) && n > 0 ? n : DEFAULT_ANCHOR_POLL_MS;
+}
+
+function retryPollMsFromEnv(env: Record<string, string | undefined>): number {
+  const raw = env.AUDIT_ANCHOR_INTERVAL_MS?.trim();
+  if (!raw) return DEFAULT_ANCHOR_RETRY_POLL_MS;
+  const n = Number(raw);
+  return Number.isInteger(n) && n > 0 ? n : DEFAULT_ANCHOR_RETRY_POLL_MS;
 }
 
 function resolveRootSigner(env: Record<string, string | undefined>): Ed25519AuditRowSigner | null {
@@ -382,7 +396,7 @@ async function executeAuditAnchorSweep(options: AnchorSweepOptions): Promise<Anc
         continue;
       }
 
-      const { outcome, floorEngaged } = await anchorTenantBatch(
+      const { outcome, floorEngaged, readinessAtMs } = await anchorTenantBatch(
         db,
         signer,
         tenant,
@@ -395,6 +409,12 @@ async function executeAuditAnchorSweep(options: AnchorSweepOptions): Promise<Anc
       if (outcome === 'inserted') result.anchorsInserted++;
       else if (outcome === 'waiting') {
         result.tenantsWaiting++;
+        if (readinessAtMs !== undefined) {
+          result.nextReadinessAtMs = Math.min(
+            result.nextReadinessAtMs ?? Number.POSITIVE_INFINITY,
+            readinessAtMs,
+          );
+        }
         mWaiting.inc();
       } else result.tenantsSkipped++;
     } catch (err) {
@@ -412,7 +432,7 @@ async function executeAuditAnchorSweep(options: AnchorSweepOptions): Promise<Anc
   // GAP-427: one system-scope pass for null-tenant rows. Not entitlement
   // gated and never metered (recordMeter forced false — no account FK).
   try {
-    const { outcome, floorEngaged } = await anchorTenantBatch(
+    const { outcome, floorEngaged, readinessAtMs } = await anchorTenantBatch(
       db,
       signer,
       SYSTEM_ANCHOR_SCOPE,
@@ -423,6 +443,12 @@ async function executeAuditAnchorSweep(options: AnchorSweepOptions): Promise<Anc
       /* isSystem */ true,
     );
     result.systemOutcome = outcome;
+    if (outcome === 'waiting' && readinessAtMs !== undefined) {
+      result.nextReadinessAtMs = Math.min(
+        result.nextReadinessAtMs ?? Number.POSITIVE_INFINITY,
+        readinessAtMs,
+      );
+    }
     if (floorEngaged) result.tenantsFloorEngaged++;
     if (outcome === 'inserted') result.anchorsInserted++;
   } catch (err) {
@@ -530,7 +556,7 @@ async function anchorTenantBatch(
   now: () => Date,
   doMeter: boolean,
   isSystem = false,
-): Promise<{ outcome: TenantOutcome; floorEngaged: boolean }> {
+): Promise<{ outcome: TenantOutcome; floorEngaged: boolean; readinessAtMs?: number }> {
   const anchored = await lastAnchoredSeq(db, tenant);
   // GAP-427: first anchor for a tenant (or the system scope) starts above the
   // closed unsigned era, not at seq 1. Once anchors exist, strict last+1
@@ -546,7 +572,11 @@ async function anchorTenantBatch(
       );
     }
   }
-  const done = (outcome: TenantOutcome) => ({ outcome, floorEngaged });
+  const done = (outcome: TenantOutcome, readinessAtMs?: number) => ({
+    outcome,
+    floorEngaged,
+    ...(readinessAtMs === undefined ? {} : { readinessAtMs }),
+  });
   const last = anchored > 0 ? anchored : floor;
 
   const candidates = await db
@@ -571,7 +601,7 @@ async function anchorTenantBatch(
   for (const row of candidates) {
     if (row.signature === null || row.signature === undefined) continue;
     signed.push({ seq: row.seq, signature: row.signature });
-    if (oldestTs === null) oldestTs = row.timestamp;
+    if (oldestTs === null || row.timestamp < oldestTs) oldestTs = row.timestamp;
   }
 
   if (signed.length === 0) return done('skipped');
@@ -622,7 +652,7 @@ async function anchorTenantBatch(
   const ageMs = oldestTs ? now().getTime() - oldestTs.getTime() : 0;
   const readyByLag = batch.length >= 1 && ageMs >= maxLagMs;
   if (!(readyBySize || readyByLag)) {
-    return done('waiting');
+    return done('waiting', (oldestTs?.getTime() ?? now().getTime()) + maxLagMs);
   }
 
   assertTraversalIntegrity(plan);
@@ -688,15 +718,14 @@ async function anchorTenantBatch(
   return done('inserted');
 }
 
-let sweepTimer: ReturnType<typeof setInterval> | null = null;
-let bootTimer: ReturnType<typeof setTimeout> | null = null;
+let stopSweepLoop: (() => void) | null = null;
 
 /**
  * Start the poll loop on the Fly worker. No-op when disabled.
  *
  * Env:
  *   AUDIT_ANCHOR_SWEEP_ENABLED=true
- *   AUDIT_ANCHOR_INTERVAL_MS (default 60000 — poll cadence)
+ *   AUDIT_ANCHOR_INTERVAL_MS (default 600000 — maximum idle wait)
  *   AUDIT_ANCHOR_BATCH_SIZE (default 256)
  *   AUDIT_ANCHOR_MAX_LAG_MS (default 3600000 — partial-batch age trigger)
  *   AUDIT_ANCHOR_DB_RETRY_ATTEMPTS (default 3, max 5)
@@ -711,45 +740,31 @@ export function startAuditAnchorSweep(env: Record<string, string | undefined> = 
   }
 
   const intervalMs = pollMsFromEnv(env);
-
-  const tick = () => {
-    void runAuditAnchorSweep({ env }).then(
-      (r) => {
-        logger.info(
-          `audit-anchor-sweep: tick tenants=${r.tenantsConsidered} inserted=${r.anchorsInserted} ` +
-            `waiting=${r.tenantsWaiting} skipped=${r.tenantsSkipped} nullTenant=${r.nullTenantSignedRows} ` +
-            `system=${r.systemOutcome} errors=${r.errors.length}`,
-        );
-      },
-      (err: unknown) => {
-        handleAuditAnchorSweepRejection(err);
-      },
-    );
-  };
-
-  // Fire once soon after boot, then on interval
-  bootTimer = setTimeout(tick, 15_000);
-  if (typeof bootTimer === 'object' && bootTimer !== null && 'unref' in bootTimer) {
-    (bootTimer as NodeJS.Timeout).unref?.();
-  }
-  sweepTimer = setInterval(tick, intervalMs);
-  if (typeof sweepTimer === 'object' && sweepTimer !== null && 'unref' in sweepTimer) {
-    (sweepTimer as NodeJS.Timeout).unref?.();
-  }
+  const retryIntervalMs = retryPollMsFromEnv(env);
+  stopAuditAnchorSweep();
+  stopSweepLoop = startAdaptivePollLoop({
+    initialDelayMs: 15_000,
+    maxIdlePollMs: intervalMs,
+    retryDelayMs: retryIntervalMs,
+    run: () => runAuditAnchorSweep({ env }),
+    onResult: (r) => {
+      logger.info(
+        `audit-anchor-sweep: tick tenants=${r.tenantsConsidered} inserted=${r.anchorsInserted} ` +
+          `waiting=${r.tenantsWaiting} skipped=${r.tenantsSkipped} nullTenant=${r.nullTenantSignedRows} ` +
+          `system=${r.systemOutcome} errors=${r.errors.length}`,
+      );
+    },
+    onError: handleAuditAnchorSweepRejection,
+    shouldRetrySoon: (result) => result.errors.length > 0,
+  });
   logger.info(
-    `audit-anchor-sweep: started pollMs=${intervalMs} batchSize=${batchSizeFromEnv(env)} ` +
+    `audit-anchor-sweep: started maxIdlePollMs=${intervalMs} batchSize=${batchSizeFromEnv(env)} ` +
       `maxLagMs=${maxLagFromEnv(env)}`,
   );
 }
 
 /** Test / shutdown helper. */
 export function stopAuditAnchorSweep(): void {
-  if (sweepTimer) {
-    clearInterval(sweepTimer);
-    sweepTimer = null;
-  }
-  if (bootTimer) {
-    clearTimeout(bootTimer);
-    bootTimer = null;
-  }
+  stopSweepLoop?.();
+  stopSweepLoop = null;
 }
