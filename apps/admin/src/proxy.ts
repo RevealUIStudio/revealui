@@ -1,6 +1,7 @@
 import { parseBuyablePerpetualLicenseSku } from '@revealui/contracts/pricing';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { isClientSharePath } from './lib/auth/auth-paths';
 import { buildAdminCsp, buildAdminPermissionsPolicy, generateNonce } from './lib/security/csp';
 import { generateCsrfToken, validateCsrfToken } from './lib/utils/csrf-token';
 import { safePostAuthRedirect } from './lib/utils/safe-internal-redirect';
@@ -82,6 +83,19 @@ const LEGACY_ADMIN_PREFIX = '/admin';
 // (Drizzle ORM, pg driver, etc.) required by the rate limit storage layer.
 export default async function proxy(request: NextRequest): Promise<NextResponse | Response> {
   const { pathname } = request.nextUrl;
+  const redirectWithCachePolicy = (url: URL | NextRequest['nextUrl'], status = 307) => {
+    const response = NextResponse.redirect(url, status);
+    if (
+      request.headers.has('cookie') ||
+      request.headers.has('authorization') ||
+      isClientSharePath(pathname) ||
+      url.pathname === '/login' ||
+      url.pathname === '/rotate-password'
+    ) {
+      response.headers.set('Cache-Control', 'private, no-store');
+    }
+    return response;
+  };
 
   // Per-request CSP nonce. Next.js reads the nonce from the request's
   // Content-Security-Policy header and applies it to its framework, bundle, and
@@ -136,7 +150,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     const url = request.nextUrl.clone();
     url.pathname =
       pathname === LEGACY_ADMIN_PREFIX ? '/' : pathname.slice(LEGACY_ADMIN_PREFIX.length);
-    return NextResponse.redirect(url, 301);
+    return redirectWithCachePolicy(url, 301);
   }
 
   // Setup redirect: when no users exist, redirect unauthenticated requests to /setup.
@@ -157,7 +171,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
           if (data.needed === true) {
             const setupUrl = request.nextUrl.clone();
             setupUrl.pathname = '/setup';
-            return NextResponse.redirect(setupUrl);
+            return redirectWithCachePolicy(setupUrl);
           }
         }
       } catch {
@@ -174,7 +188,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
   ) {
     const licenseUrl = request.nextUrl.clone();
     licenseUrl.pathname = '/account/license';
-    return NextResponse.redirect(licenseUrl, 301);
+    return redirectWithCachePolicy(licenseUrl, 301);
   }
 
   // GAP-300 honesty: /billing 404s — billing lives under Account settings.
@@ -182,7 +196,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
   if (pathname === '/billing' || pathname === '/billing/') {
     const billingUrl = request.nextUrl.clone();
     billingUrl.pathname = '/account/billing';
-    return NextResponse.redirect(billingUrl);
+    return redirectWithCachePolicy(billingUrl);
   }
 
   // Already-authenticated users have no reason to see the login/signup screens.
@@ -190,8 +204,36 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
   // on admin home `/` (search used to be wiped unconditionally).
   if (pathname === '/login' || pathname === '/signup') {
     const session = request.cookies.get('revealui-session')?.value;
-    const role = request.cookies.get('revealui-role')?.value;
-    if (session && role) {
+    // Cookie presence cannot redirect an expired session away from sign-in.
+    // Reuse the maintained server session endpoint, retaining binding context.
+    let role: string | null = null;
+    if (session) {
+      try {
+        const sessionHeaders = new Headers();
+        for (const name of [
+          'cookie',
+          'user-agent',
+          'x-forwarded-for',
+          'x-real-ip',
+          'cf-connecting-ip',
+        ]) {
+          const value = request.headers.get(name);
+          if (value) sessionHeaders.set(name, value);
+        }
+        const sessionResponse = await fetch(new URL('/api/auth/session', request.nextUrl.origin), {
+          headers: sessionHeaders,
+          cache: 'no-store',
+          redirect: 'error',
+        });
+        if (sessionResponse.ok) {
+          const current = (await sessionResponse.json()) as { user?: { role?: unknown } };
+          if (typeof current.user?.role === 'string') role = current.user.role;
+        }
+      } catch {
+        // A failed validation leaves the sign-in form available; it grants no access.
+      }
+    }
+    if (role) {
       const destUrl = request.nextUrl.clone();
       const requested = safePostAuthRedirect(
         request.nextUrl.searchParams.get('redirect') ??
@@ -207,7 +249,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
         destUrl.pathname = ADMIN_ROLES.has(role) ? '/' : '/welcome';
         destUrl.search = '';
       }
-      return NextResponse.redirect(destUrl);
+      return redirectWithCachePolicy(destUrl);
     }
   }
 
@@ -230,14 +272,14 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
           signupUrl.pathname = '/signup';
           signupUrl.search = '';
           signupUrl.searchParams.set('license', license);
-          return NextResponse.redirect(signupUrl);
+          return redirectWithCachePolicy(signupUrl);
         }
       }
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = '/login';
       loginUrl.searchParams.delete('license');
       loginUrl.searchParams.set('redirect', pathname);
-      return NextResponse.redirect(loginUrl);
+      return redirectWithCachePolicy(loginUrl);
     }
 
     // Role-aware gate: admin-only paths require owner/admin/super-admin.
@@ -249,7 +291,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
         welcomeUrl.pathname = '/welcome';
         welcomeUrl.search = '';
         welcomeUrl.searchParams.set('denied', 'admin');
-        return NextResponse.redirect(welcomeUrl);
+        return redirectWithCachePolicy(welcomeUrl);
       }
     }
 
@@ -258,7 +300,13 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     if (mustRotate === '1') {
       const rotateUrl = request.nextUrl.clone();
       rotateUrl.pathname = '/rotate-password';
-      return NextResponse.redirect(rotateUrl);
+      const returnPath =
+        safePostAuthRedirect(
+          request.nextUrl.searchParams.get('redirect'),
+          request.nextUrl.origin,
+        ) ?? `${pathname}${request.nextUrl.search}`;
+      rotateUrl.searchParams.set('redirect', returnPath);
+      return redirectWithCachePolicy(rotateUrl);
     }
   }
 
@@ -272,7 +320,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     const homeUrl = request.nextUrl.clone();
     homeUrl.pathname = '/';
     homeUrl.search = '';
-    return NextResponse.redirect(homeUrl);
+    return redirectWithCachePolicy(homeUrl);
   }
 
   // Strip overrideAccess from external API requests — only server-side code may use it.
@@ -288,6 +336,13 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
   // CORS Handling and Security Headers for API requests
   if (pathname.startsWith('/api')) {
     const response = NextResponse.next();
+    if (
+      request.headers.has('cookie') ||
+      request.headers.has('authorization') ||
+      pathname.startsWith('/api/auth/')
+    ) {
+      response.headers.set('Cache-Control', 'private, no-store');
+    }
     const origin = request.headers.get('origin');
 
     // CORS headers — only set when origin is in the allowed list
@@ -352,6 +407,16 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
   // Page routes: thread the nonce via request headers so Next.js applies it to
   // its inline bootstrap scripts, and set the matching CSP on the response.
   const response = NextResponse.next({ request: { headers: requestHeaders } });
+  if (
+    isClientSharePath(pathname) ||
+    request.headers.has('cookie') ||
+    request.headers.has('authorization')
+  ) {
+    response.headers.set('Cache-Control', 'private, no-store');
+  }
+  if (isClientSharePath(pathname)) {
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+  }
   response.headers.set('Content-Security-Policy', cspValue);
   response.headers.set('Permissions-Policy', buildAdminPermissionsPolicy(pathname));
   // Mint/refresh the CSRF token cookie on page loads too. The billing,

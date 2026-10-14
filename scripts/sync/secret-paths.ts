@@ -94,7 +94,7 @@ export const SECRET_PATHS: SecretPathDef[] = [
     kind: 'credential',
     sensitive: true,
     tier: 'prod',
-    consumers: ['vercel:api', 'vercel:admin'],
+    consumers: ['vercel:api', 'vercel:admin', 'vercel:agency'],
     note: 'sk_live_* - set Fly-direct (mode-gated), not synced to the worker',
   },
   {
@@ -341,7 +341,7 @@ export const SECRET_PATHS: SecretPathDef[] = [
     kind: 'public-config',
     sensitive: false,
     tier: 'prod',
-    consumers: ['vercel:admin'],
+    consumers: ['vercel:api', 'vercel:admin'],
     envVars: ['REVEALUI_SIGNUP_OPEN'],
     note: 'Boolean string; self-serve signup funnel gate (true/false)',
   },
@@ -405,7 +405,16 @@ export const SECRET_PATHS: SecretPathDef[] = [
       'fly:worker',
       'vercel:api-staging',
       'vercel:admin-staging',
+      'vercel:agency',
     ],
+  },
+  {
+    path: 'revealui/prod/google/private-key',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'prod',
+    consumers: ['vercel:agency'],
+    note: 'Existing Studio Calendar service-account signing authority; API/admin email uses WIF instead. Inventory debt: migrate the Calendar provider primitive to short-lived authority before retiring this legacy key. Registration does not authorize a new workaround or provision a key.',
   },
   {
     path: 'revealui/prod/google/wif-provider',
@@ -568,10 +577,103 @@ export const SECRET_PATHS: SecretPathDef[] = [
     // uses REVEALUI_API_URL + NEXT_PUBLIC_API_URL. Those are other apps' names,
     // not validate-startup boot vars, so they stay out of envVars. The
     // marketing manifest mapping is locked in secret-paths-lockstep.
-    consumers: ['vercel:api', 'vercel:admin', 'vercel:marketing', 'vercel:docs'],
+    consumers: ['vercel:api', 'vercel:admin', 'vercel:marketing', 'vercel:docs', 'fly:worker'],
     requiredInProdHosted: true,
     envVars: ['REVEALUI_API_URL'],
     note: 'api self-origin: REVEALUI_API_URL (+ NEXT_PUBLIC_API_URL twin on Next apps; VITE_API_URL on marketing). Governed MCP tools fail without it.',
+  },
+  {
+    path: 'revealui/prod/studio/stripe-webhook-secret',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'prod',
+    consumers: ['vercel:agency'],
+    note: 'Existing Studio Stripe webhook signature verification; separate endpoint from product billing.',
+  },
+  {
+    path: 'revealui/prod/studio/stripe-consultation-price-id',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'prod',
+    consumers: ['vercel:agency'],
+  },
+  {
+    path: 'revealui/prod/studio/stripe-stage-b-price-id',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'prod',
+    consumers: ['vercel:agency'],
+  },
+  {
+    path: 'revealui/prod/studio/google-calendar-id',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'prod',
+    consumers: ['vercel:agency'],
+  },
+  {
+    path: 'revealui/prod/studio/google-impersonate-subject',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'prod',
+    consumers: ['vercel:agency'],
+  },
+  {
+    path: 'revealui/prod/studio/site-url',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'prod',
+    consumers: ['vercel:admin'],
+    note: 'STUDIO_SITE_URL: exact HTTPS Studio origin for authenticated operator fulfillment forwarding.',
+  },
+  {
+    path: 'revealui/prod/studio/owner-session',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'prod',
+    consumers: ['vercel:admin', 'vercel:agency'],
+    note: 'STUDIO_OWNER_SESSION: server-only existing Studio owner gate; never client bundled. Source registration does not provision a live credential.',
+  },
+  {
+    path: 'revealui/prod/studio/content-api-url',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'prod',
+    consumers: ['vercel:agency'],
+    note: 'STUDIO_CONTENT_API_URL: exact HTTPS content API origin; redirects cannot receive the operator credential.',
+  },
+  {
+    path: 'revealui/prod/studio/content-device-token',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'prod',
+    consumers: ['vercel:agency'],
+    note: 'STUDIO_CONTENT_DEVICE_TOKEN: managed canonical operator device credential, validated by existing session/device auth on every API request. Provisioning and deployment require normal reviewed disposition.',
+  },
+  {
+    path: 'revealui/prod/studio/vercel-token',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'prod',
+    consumers: ['vercel:api'],
+    note: 'STUDIO_VERCEL_TOKEN: dedicated Studio domain-provider authority. Scope to the configured project/team during reviewed provisioning; never use the fleet deployment/sync token.',
+  },
+  {
+    path: 'revealui/prod/studio/vercel-project-id',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'prod',
+    consumers: ['vercel:api'],
+    note: 'STUDIO_VERCEL_PROJECT_ID: exact production project for provider-verified Consultation domain bindings.',
+  },
+  {
+    path: 'revealui/prod/studio/vercel-team-id',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'prod',
+    consumers: [],
+    intentionallyUnsynced: true,
+    note: 'STUDIO_VERCEL_TEAM_ID: optional team scope. The maintained deployment is a personal account; register an explicit managed consumer when a reviewed team-scoped deployment requires this slot.',
   },
   // ── STAGING (GAP-343 Phase 3) ──────────────────────────────────────────────
   // The revealui/staging/* surface synced by private ops/sync
@@ -956,6 +1058,7 @@ export interface ManifestVar {
 export type DriftKind =
   | 'undeclared-in-spec' // manifest/doc path not in SECRET_PATHS
   | 'missing-from-manifest' // synced spec path absent from every manifest
+  | 'undeclared-consumer' // a manifest sends a declared path to an undeclared runtime
   | 'missing-from-doc' // synced spec path absent from the rendered generated block
   | 'undeclared-in-doc' // doc generated-block path not in SECRET_PATHS
   | 'retired-path-in-use' // a RENAME_MAP key is actively synced
@@ -1037,10 +1140,21 @@ export function findSpecSensitivityInconsistencies(defs: readonly SecretPathDef[
   return out;
 }
 
-/** Manifest ↔ spec: undeclared manifest paths + synced spec paths missing from every manifest. */
-export function findManifestDrift(manifestPaths: readonly string[]): Drift[] {
+/** The registry abbreviates maintained project/app slugs by dropping `revealui-`. */
+function manifestConsumer(source: string): string {
+  for (const platform of ['vercel', 'fly']) {
+    const prefix = `${platform}:revealui-`;
+    if (source.startsWith(prefix)) return `${platform}:${source.slice(prefix.length)}`;
+  }
+  return source;
+}
+
+/** Manifest ↔ spec: path coverage and declared authority for every parsed runtime consumer. */
+export function findManifestDrift(manifest: readonly (string | ManifestVar)[]): Drift[] {
   const out: Drift[] = [];
-  const manifestSet = new Set(manifestPaths);
+  const manifestSet = new Set(
+    manifest.map((entry) => (typeof entry === 'string' ? entry : entry.path)),
+  );
   for (const path of manifestSet) {
     if (!DECLARED_PATHS.has(path)) {
       out.push({
@@ -1056,6 +1170,18 @@ export function findManifestDrift(manifestPaths: readonly string[]): Drift[] {
         kind: 'missing-from-manifest',
         path,
         detail: 'declared synced in SECRET_PATHS but absent from every manifest (explicit-listing)',
+      });
+    }
+  }
+  const definitions = new Map(SECRET_PATHS.map((definition) => [definition.path, definition]));
+  for (const entry of manifest) {
+    if (typeof entry === 'string') continue;
+    const definition = definitions.get(entry.path);
+    if (definition && !definition.consumers.includes(manifestConsumer(entry.source))) {
+      out.push({
+        kind: 'undeclared-consumer',
+        path: entry.path,
+        detail: `${entry.source} var ${entry.name} is not a declared consumer of this path`,
       });
     }
   }

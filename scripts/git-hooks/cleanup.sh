@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────
-# WSL disk cleanup — removes temp files, caches, and orphans
+# Checkout cache cleanup — preserves saved work and admission leases
 #
 # Usage:  pnpm cleanup          (standard cleanup)
-#         pnpm cleanup --deep   (aggressive — also clears turbo remote cache)
+#         pnpm cleanup --deep   (also clears the user Turbo cache)
 # ─────────────────────────────────────────────────────────────
 set -euo pipefail
 
@@ -23,39 +23,13 @@ echo "  RevealUI Disk Cleanup"
 echo "═══════════════════════════════════════════════════"
 echo ""
 
-# ── /tmp cleanup ─────────────────────────────────────────────
-echo "[1/5] Cleaning /tmp..."
-
-for pattern in "revealui-push-stash-*" "revealui-gate-worktree-*" "agent-stash*" "mcp-stores-stash"; do
-  for d in /tmp/$pattern; do
-    [ -d "$d" ] || continue
-    count_size "$d"
-    rm -rf "$d"
-    echo "  Removed $d"
-  done
-done
-
-# Stale lock files
-rm -f /tmp/revealui-push.lock 2>/dev/null && echo "  Removed stale push lock" || true
-
-# Session IDs older than 12 hours
-STALE_SESSIONS=$(find /tmp -maxdepth 1 -name "revealui-session-*.id" -mmin +720 2>/dev/null | wc -l)
-find /tmp -maxdepth 1 -name "revealui-session-*.id" -mmin +720 -delete 2>/dev/null || true
-[ "$STALE_SESSIONS" -gt 0 ] && echo "  Removed $STALE_SESSIONS stale session ID file(s)"
-
-# Claude autocommit/agent-edit temp files
-for pattern in "claude-autocommit-*" "claude-agent-edits-*" "claude-session-*"; do
-  STALE=$(find /tmp -maxdepth 1 -name "$pattern" -mmin +720 2>/dev/null | wc -l)
-  find /tmp -maxdepth 1 -name "$pattern" -mmin +720 -delete 2>/dev/null || true
-  [ "$STALE" -gt 0 ] && echo "  Removed $STALE stale $pattern file(s)"
-done
-
-# ── Git worktree cleanup ─────────────────────────────────────
-echo "[2/5] Pruning git worktrees..."
-git worktree prune 2>/dev/null && echo "  Done" || echo "  Skipped"
+# Temporary snapshots, session IDs, and lock files have independent owners.
+# Names and ages do not prove that saved work is disposable or a lease dead.
+# Cleanup never reclaims those files or another checkout's worktree metadata.
+echo "[1/3] Clearing checkout Turbo caches..."
 
 # ── Turbo cache ──────────────────────────────────────────────
-echo "[3/5] Clearing turbo cache..."
+
 for d in .turbo node_modules/.cache/turbo; do
   if [ -d "$d" ]; then
     count_size "$d"
@@ -69,12 +43,12 @@ if [ "$DEEP" -eq 1 ]; then
   if [ -d "$TURBO_CACHE" ]; then
     count_size "$TURBO_CACHE"
     rm -rf "$TURBO_CACHE"
-    echo "  Removed $TURBO_CACHE (remote cache)"
+    echo "  Removed $TURBO_CACHE (user cache)"
   fi
 fi
 
 # ── Next.js caches ───────────────────────────────────────────
-echo "[4/5] Clearing Next.js build caches..."
+echo "[2/3] Clearing Next.js build caches..."
 for app in apps/admin apps/marketing; do
   for cache in "$app/.next/cache" "$app/.next/trace"; do
     if [ -d "$cache" ]; then
@@ -86,7 +60,7 @@ for app in apps/admin apps/marketing; do
 done
 
 # ── Disk report ──────────────────────────────────────────────
-echo "[5/5] Disk status..."
+echo "[3/3] Disk status..."
 AVAIL=$(df --output=avail -h / 2>/dev/null | tail -1 | tr -d ' ')
 USED=$(df --output=pcent / 2>/dev/null | tail -1 | tr -d ' ')
 FREED_MB=$((freed / 1024))

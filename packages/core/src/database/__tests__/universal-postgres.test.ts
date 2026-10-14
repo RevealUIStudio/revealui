@@ -72,7 +72,11 @@ vi.mock('../ssl-config', () => ({
   validateSSLConfig: () => true,
 }));
 
-import { clearGlobalPGlite, universalPostgresAdapter } from '../universal-postgres.js';
+import {
+  clearGlobalPGlite,
+  type SharedPostgresTransactionContext,
+  universalPostgresAdapter,
+} from '../universal-postgres.js';
 
 // ============================================================================
 // Helper
@@ -130,6 +134,97 @@ describe('universalPostgresAdapter', () => {
       }
     }
     clearGlobalPGlite(true);
+  });
+
+  // ==========================================================================
+  // Shared managed transaction ownership
+  // ==========================================================================
+
+  describe('shared managed transaction context', () => {
+    function scopedFixture() {
+      const borrowed = { query: vi.fn(), release: vi.fn() };
+      const delegated = vi.fn();
+      const context: SharedPostgresTransactionContext = {
+        connection: borrowed as unknown as SharedPostgresTransactionContext['connection'],
+        transaction<T>(
+          fn: (connection: SharedPostgresTransactionContext['connection']) => Promise<T>,
+        ): Promise<T> {
+          delegated(fn);
+          return fn(context.connection);
+        },
+      };
+      const pool = mockPool as unknown as NonNullable<
+        Parameters<typeof universalPostgresAdapter>[0]
+      >['pool'];
+      return { borrowed, context, pool, delegated };
+    }
+
+    it('borrows the current lease and returns to pooled queries after that scope ends', async () => {
+      const { borrowed, context, pool } = scopedFixture();
+      borrowed.query.mockResolvedValue({ rows: [{ id: 'scoped' }, {}], rowCount: 2 });
+      mockClient.query.mockResolvedValue({ rows: [{ id: 'outside' }], rowCount: 1 });
+      const transactionContext = vi.fn().mockResolvedValueOnce(context).mockResolvedValueOnce(null);
+      const poolFactory = vi.fn().mockResolvedValue(pool);
+      const adapter = universalPostgresAdapter({ poolFactory, transactionContext });
+      expect(await adapter.query('SELECT scoped WHERE id = $1', ['scoped'])).toEqual({
+        rows: [{ id: 'scoped' }],
+        rowCount: 2,
+      });
+      expect(mockPool.connect).not.toHaveBeenCalled();
+      expect(borrowed.release).not.toHaveBeenCalled();
+      expect(await adapter.query('SELECT outside')).toEqual({
+        rows: [{ id: 'outside' }],
+        rowCount: 1,
+      });
+      expect(poolFactory).toHaveBeenCalledTimes(1);
+      expect(transactionContext).toHaveBeenCalledTimes(2);
+      expect(transactionContext).toHaveBeenLastCalledWith(pool);
+      expect(mockPool.connect).toHaveBeenCalledTimes(1);
+      expect(mockClient.release).toHaveBeenCalledTimes(1);
+    });
+
+    it('delegates nested transactions to the owning savepoint scope without committing or releasing it', async () => {
+      const { borrowed, context, pool, delegated } = scopedFixture();
+      borrowed.query.mockResolvedValue({ rows: [{ id: 'nested' }, null], rowCount: 2 });
+      const adapter = universalPostgresAdapter({ pool, transactionContext: () => context });
+      if (!adapter.transaction) throw new Error('Expected maintained transaction support');
+      expect(await adapter.transaction((tx) => tx.query('UPDATE scoped RETURNING id'))).toEqual({
+        rows: [{ id: 'nested' }],
+        rowCount: 2,
+      });
+      expect(delegated).toHaveBeenCalledTimes(1);
+      expect(borrowed.query).toHaveBeenCalledExactlyOnceWith('UPDATE scoped RETURNING id', []);
+      expect(mockPool.connect).not.toHaveBeenCalled();
+      expect(borrowed.release).not.toHaveBeenCalled();
+    });
+
+    it('propagates nested failure to the owning transaction without controlling its connection', async () => {
+      const { borrowed, context, pool, delegated } = scopedFixture();
+      const failure = new Error('Synthetic nested query failure');
+      borrowed.query.mockRejectedValue(failure);
+      const adapter = universalPostgresAdapter({ pool, transactionContext: async () => context });
+      if (!adapter.transaction) throw new Error('Expected maintained transaction support');
+      await expect(adapter.transaction((tx) => tx.query('UPDATE fails'))).rejects.toBe(failure);
+      expect(delegated).toHaveBeenCalledTimes(1);
+      expect(borrowed.query).toHaveBeenCalledExactlyOnceWith('UPDATE fails', []);
+      expect(mockPool.connect).not.toHaveBeenCalled();
+      expect(borrowed.release).not.toHaveBeenCalled();
+    });
+
+    it('retains ordinary shared-pool transaction ownership outside managed context', async () => {
+      const { pool } = scopedFixture();
+      mockClient.query.mockResolvedValue({ rows: [{ id: 'ordinary' }], rowCount: 1 });
+      const adapter = universalPostgresAdapter({ pool, transactionContext: () => null });
+      if (!adapter.transaction) throw new Error('Expected maintained transaction support');
+      await adapter.transaction((tx) => tx.query('UPDATE ordinary'));
+      expect(mockClient.query.mock.calls.map(([query]) => query)).toEqual([
+        'BEGIN',
+        'UPDATE ordinary',
+        'COMMIT',
+      ]);
+      expect(mockPool.connect).toHaveBeenCalledTimes(1);
+      expect(mockClient.release).toHaveBeenCalledTimes(1);
+    });
   });
 
   // ==========================================================================

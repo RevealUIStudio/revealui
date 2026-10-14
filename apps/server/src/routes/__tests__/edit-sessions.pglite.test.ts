@@ -817,7 +817,7 @@ describe('mutations on a non-open session', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Authorization  -  every route rejects anonymous + non-editor (GETs included)
+// Authorization  -  current site authority governs access, including GETs
 // ---------------------------------------------------------------------------
 
 describe('authorization on every session route', () => {
@@ -864,8 +864,9 @@ describe('authorization on every session route', () => {
     expect(statuses.every((s) => s === 401)).toBe(true);
   });
 
-  it('rejects a non-editor (viewer) with 403 on every route including GETs', async () => {
+  it('returns an empty scoped list and denies direct routes for an unrelated viewer', async () => {
     const statuses = await callAll(VIEWER);
-    expect(statuses.every((s) => s === 403)).toBe(true);
+    expect(statuses).toEqual([403, 200, 403, 403, 403, 403, 403]);
+    expect((await (await createApp(VIEWER).request('/sessions')).json()).data).toEqual([]);
   });
 });

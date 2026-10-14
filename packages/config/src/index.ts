@@ -47,6 +47,8 @@ import {
   getOptionalConfig,
   type OptionalConfig,
   type SentryConfig,
+  type StudioDomainConfig,
+  type StudioFulfillmentConfig,
 } from './modules/optional.js';
 import { getRevealConfig, type RevealConfig } from './modules/reveal.js';
 import { getStorageConfig, type R2StorageConfig, type StorageConfig } from './modules/storage.js';
@@ -327,6 +329,7 @@ export { detectEnvironment, loadEnvironment } from './loader.js';
 // Export module-level config getters (documented in docs/REFERENCE.md as standalone helpers)
 export { readTenantBrandStyle, renderTenantBrandStyle } from './modules/branding.js';
 export { getDatabaseConfig } from './modules/database.js';
+export { getStudioDomainConfig, getStudioFulfillmentConfig } from './modules/optional.js';
 export { getRevealConfig } from './modules/reveal.js';
 export { getStripeConfig } from './modules/stripe.js';
 // Export shared RevealUI configuration functions
@@ -349,6 +352,8 @@ export type {
   SentryConfig,
   StorageConfig,
   StripeConfig,
+  StudioDomainConfig,
+  StudioFulfillmentConfig,
   TenantBrandStyle,
   TenantBrandStyleSource,
 };

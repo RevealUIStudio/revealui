@@ -5,12 +5,63 @@
  * Modeled after VectorMemoryService  -  same Drizzle cosine-distance pattern.
  */
 
-import { getRestClient } from '@revealui/db/client';
+import { type Database, getRestClient } from '@revealui/db/client';
+import { pageContentReadCondition } from '@revealui/db/queries/pages';
+import { getSiteContentActor, getSiteIdsForContentRead } from '@revealui/db/queries/sites';
+import { pages } from '@revealui/db/schema/pages';
 import type { RagChunk, RagDocument } from '@revealui/db/schema/rag';
 import { ragChunks, ragDocuments } from '@revealui/db/schema/rag';
-import { and, asc, eq, type SQL, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, or, type SQL, sql } from 'drizzle-orm';
 
-export interface RagSearchOptions {
+/** Identity comes from the authenticated caller, never from model/tool parameters. */
+export interface RagReadAccess {
+  userId?: string;
+  deploymentMode?: 'hosted' | 'forge' | null;
+}
+
+/** Identical database serialization at ingestion and read time. */
+export function pageContentSnapshot() {
+  return sql<string>`jsonb_build_object('title', ${pages.title}, 'blocks', ${pages.blocks})::text`;
+}
+
+/** Recheck current source, publication and membership before returning any indexed text. */
+export async function ragDocumentReadCondition(db: Database, access: RagReadAccess = {}) {
+  const actor = access.userId ? await getSiteContentActor(db, access.userId) : null;
+  const mode = access.deploymentMode ?? null;
+  // A revoked/deleted supplied identity must not fall back to anonymous public access.
+  if (access.userId && !actor) return sql`false`;
+  return (
+    or(
+      and(
+        eq(ragDocuments.sourceType, 'admin_collection'),
+        eq(ragDocuments.sourceCollection, 'pages'),
+        sql`exists (${db
+          .select({ id: pages.id })
+          .from(pages)
+          .where(
+            and(
+              eq(pages.id, ragDocuments.sourceId),
+              eq(pages.siteId, ragDocuments.workspaceId),
+              eq(ragDocuments.rawContent, pageContentSnapshot()),
+              pageContentReadCondition(db, { actor, mode, includePublic: true }),
+            ),
+          )})`,
+      ),
+      and(
+        inArray(ragDocuments.sourceType, ['url', 'file', 'text']),
+        inArray(
+          ragDocuments.workspaceId,
+          getSiteIdsForContentRead(db, actor, mode, {
+            draft: true,
+            includePublic: false,
+          }),
+        ),
+      ),
+    ) ?? sql`false`
+  );
+}
+
+export interface RagSearchOptions extends RagReadAccess {
   workspaceId: string;
   limit?: number; // default 5
   threshold?: number; // minimum similarity 0–1 (default 0.6)
@@ -27,9 +78,13 @@ export interface RagSearchResult {
 }
 
 export class RagVectorService {
-  private _db: ReturnType<typeof getRestClient> | null = null;
+  private _db: Database | null;
 
-  private get db(): ReturnType<typeof getRestClient> {
+  constructor(db?: Database) {
+    this._db = db ?? null;
+  }
+
+  private get db(): Database {
     if (!this._db) {
       this._db = getRestClient();
     }
@@ -56,6 +111,9 @@ export class RagVectorService {
     const conditions: SQL[] = [
       sql`${ragChunks}.embedding IS NOT NULL`,
       eq(ragChunks.workspaceId, options.workspaceId),
+      eq(ragChunks.workspaceId, ragDocuments.workspaceId),
+      eq(ragDocuments.status, 'indexed'),
+      (await ragDocumentReadCondition(this.db, options)) ?? sql`false`,
     ];
 
     if (options.sourceCollection) {
@@ -126,11 +184,20 @@ export class RagVectorService {
   /**
    * Get all chunks for a document ordered by chunk index.
    */
-  async getChunksByDocument(documentId: string): Promise<RagChunk[]> {
+  async getChunksByDocument(documentId: string, access: RagReadAccess = {}): Promise<RagChunk[]> {
     return this.db
-      .select()
+      .select({ chunk: ragChunks })
       .from(ragChunks)
-      .where(eq(ragChunks.documentId, documentId))
-      .orderBy(asc(ragChunks.chunkIndex));
+      .innerJoin(ragDocuments, eq(ragChunks.documentId, ragDocuments.id))
+      .where(
+        and(
+          eq(ragChunks.documentId, documentId),
+          eq(ragChunks.workspaceId, ragDocuments.workspaceId),
+          eq(ragDocuments.status, 'indexed'),
+          await ragDocumentReadCondition(this.db, access),
+        ),
+      )
+      .orderBy(asc(ragChunks.chunkIndex))
+      .then((rows) => rows.map((row) => row.chunk));
   }
 }

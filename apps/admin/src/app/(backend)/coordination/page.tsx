@@ -87,12 +87,9 @@ function CoordinationDashboard() {
     <div className="min-h-screen">
       {/* Page header */}
       <div className="border-b border-border bg-card px-6 py-4">
-        <h1 className="text-xl font-semibold text-foreground">Active Agents</h1>
+        <h1 className="text-xl font-semibold text-foreground">Coordination sessions</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
-          Coordination sessions across the agent fleet. Daemons running with{' '}
-          <code className="font-mono text-xs">POSTGRES_URL</code> set dual-write to{' '}
-          <code className="font-mono text-xs">coordination_sessions</code>; this surface reads from
-          there.
+          Review recorded agent sessions and their current status.
         </p>
       </div>
 
@@ -167,8 +164,8 @@ function CoordinationDashboard() {
             title={scope === 'active' ? 'No active sessions' : 'No sessions found'}
             description={
               scope === 'active'
-                ? 'No active coordination sessions. The daemon writes here when started with POSTGRES_URL set; sessions appear within seconds of session.register.'
-                : 'No coordination sessions found. Either no daemons have run with POSTGRES_URL set, or all sessions have ended.'
+                ? 'No recorded sessions are currently active. Choose All sessions to review ended sessions.'
+                : 'No coordination sessions are available in this view.'
             }
           />
         ) : (

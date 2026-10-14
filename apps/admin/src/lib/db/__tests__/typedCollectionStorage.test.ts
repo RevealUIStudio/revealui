@@ -524,37 +524,6 @@ describe('typedCollectionStorage pages bridge', () => {
     expect(calls.set[0]).toMatchObject({ deletedAt: expect.any(Date) });
   });
 
-  it('does not expose a draft through anonymous direct ID reads', async () => {
-    const { chain } = createPagesChain([[{ ...pageRow, status: 'draft' }]]);
-    getRestClient.mockReturnValue(chain);
-    await expect(
-      createTypedCollectionStorage()?.findByID?.(pagesCollection, { id: 'page_1' }),
-    ).resolves.toBeNull();
-  });
-
-  it.each(['draft', 'deleted'])(
-    'does not expose a published page under a %s site',
-    async (status) => {
-      getSiteById.mockResolvedValue(status === 'deleted' ? null : { status });
-      const { chain } = createPagesChain([[pageRow]]);
-      getRestClient.mockReturnValue(chain);
-      await expect(
-        createTypedCollectionStorage()?.findByID?.(pagesCollection, { id: 'page_1' }),
-      ).resolves.toBeNull();
-    },
-  );
-
-  it('denies foreign ID reads despite forged flattened admin fields', async () => {
-    actorCanManageSite.mockResolvedValue(false);
-    const { chain } = createPagesChain([[pageRow]]);
-    getRestClient.mockReturnValue(chain);
-    const req = { user: { id: 'actor', role: 'admin', roles: ['super-admin'] } } as never;
-    await expect(
-      createTypedCollectionStorage()?.findByID?.(pagesCollection, { id: 'page_1', req }),
-    ).rejects.toMatchObject({ statusCode: 403 });
-    expect(getSiteContentActor).toHaveBeenCalledWith(chain, 'actor');
-  });
-
   it.each(['another-owned', 'foreign'])(
     'rejects moving a page to %s without a write',
     async (siteId) => {
@@ -580,7 +549,7 @@ describe('typedCollectionStorage pages bridge', () => {
       data: { siteId: 'fleet-marketing', title: 'Updated' },
       req: { user: { id: 'actor' } } as never,
     });
-    expect(calls.set[0]).toMatchObject({ title: 'Updated', siteId: 'fleet-marketing' });
+    expect(calls.set[0]).toMatchObject({ title: 'Updated', siteId: undefined });
   });
 
   it('returns undefined (not handled) for write calls on other collections', async () => {

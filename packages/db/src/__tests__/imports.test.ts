@@ -23,8 +23,9 @@ describe('@revealui/db - Import Paths', () => {
     'should import schemas from core export',
     async () => {
       const core = await import('@revealui/db/core');
-      // Check that schema exports exist (they may be empty if not implemented)
-      expect(core).toBeDefined();
+      const schema = await import('@revealui/db/schema');
+      expect(core.schema.users).toBe(schema.users);
+      expect(core.schema.sites).toBe(schema.sites);
     },
     IMPORT_TIMEOUT_MS,
   );
@@ -47,6 +48,7 @@ describe('@revealui/db - Import Paths', () => {
       const main = await import('@revealui/db');
       expect(main).toBeDefined();
       expect(main.getClient).toBeDefined();
+      expect(main.createRestClient).toBeDefined();
       expect(typeof main.getClient).toBe('function');
     },
     IMPORT_TIMEOUT_MS,
@@ -57,9 +59,15 @@ describe('@revealui/db - Import Paths', () => {
     async () => {
       const core = await import('@revealui/db/core');
       const main = await import('@revealui/db');
+      const client = await import('@revealui/db/client');
 
       // Main should re-export everything from core
       expect(main).toMatchObject(core);
+      // All entry points must reach the same transaction owner and lease scope.
+      expect(core.getTransactionContext).toBe(client.getTransactionContext);
+      expect(main.getTransactionContext).toBe(client.getTransactionContext);
+      expect(core.getTransactionConnection).toBe(client.getTransactionConnection);
+      expect(main.getTransactionConnection).toBe(client.getTransactionConnection);
     },
     IMPORT_TIMEOUT_MS,
   );

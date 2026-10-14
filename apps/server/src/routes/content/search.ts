@@ -7,13 +7,17 @@
  * Requires Drizzle migration 0002_triggers_search_vectors to have been run.
  */
 
+import { getExplicitDeploymentMode } from '@revealui/core/deployment-mode';
 import { getClient } from '@revealui/db/client';
+import { pageContentReadCondition } from '@revealui/db/queries/pages';
 import { pages, posts } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, count, desc, eq, sql } from 'drizzle-orm';
+import { noStoreCacheMiddleware } from '../../middleware/cache-control.js';
 import type { ContentVariables } from './index.js';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
+app.use('*', noStoreCacheMiddleware());
 
 // =============================================================================
 // Schemas
@@ -122,7 +126,15 @@ app.openapi(
     }
 
     if (type === 'pages' || type === 'all') {
-      const pageWhere = and(sql`search_vector @@ ${tsquery}`, eq(pages.status, 'published'));
+      const pageWhere = and(
+        sql`search_vector @@ ${tsquery}`,
+        eq(pages.status, 'published'),
+        pageContentReadCondition(db, {
+          actor: c.get('user') ?? null,
+          mode: getExplicitDeploymentMode(),
+          includePublic: true,
+        }),
+      );
       const [pageResults, pageCount] = await Promise.all([
         db
           .select({

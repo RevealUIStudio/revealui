@@ -82,11 +82,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     // Mark email as verified and consume the token in one update.
-    const updatedUser = await updateUser(db, user.id, {
-      emailVerified: true,
-      emailVerifiedAt: new Date(),
-      emailVerificationToken: null,
-    });
+    const updatedUser = await updateUser(
+      db,
+      user.id,
+      {
+        emailVerified: true,
+        emailVerifiedAt: new Date(),
+        emailVerificationToken: null,
+        emailVerificationTokenExpiresAt: null,
+      },
+      { verificationTokenHash: tokenHash },
+    );
 
     if (!updatedUser) {
       // Row vanished between lookup and update (e.g. concurrent deletion).

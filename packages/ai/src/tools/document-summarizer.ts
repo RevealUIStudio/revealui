@@ -7,6 +7,7 @@
 
 import type { Database } from '@revealui/db/client';
 import { z } from 'zod/v4';
+import type { RagReadAccess } from '../ingestion/rag-vector-service.js';
 import { RagVectorService } from '../ingestion/rag-vector-service.js';
 import type { LLMClient } from '../llm/client.js';
 import type { Tool, ToolResult } from './base.js';
@@ -19,8 +20,12 @@ const SummarizerParams = z.object({
 const SHORT_DOCUMENT_TOKENS = 4000;
 const CHARS_PER_TOKEN = 4;
 
-export function createDocumentSummarizerTool(_db: Database, llmClient: LLMClient): Tool {
-  const vectorService = new RagVectorService();
+export function createDocumentSummarizerTool(
+  db: Database,
+  llmClient: LLMClient,
+  access: RagReadAccess = {},
+): Tool {
+  const vectorService = new RagVectorService(db);
 
   return {
     name: 'document_summarize',
@@ -39,7 +44,7 @@ export function createDocumentSummarizerTool(_db: Database, llmClient: LLMClient
       const { documentId, focusQuestion } = parsed.data;
 
       try {
-        const chunks = await vectorService.getChunksByDocument(documentId);
+        const chunks = await vectorService.getChunksByDocument(documentId, access);
         if (chunks.length === 0) {
           return { success: false, error: `Document "${documentId}" not found or has no chunks` };
         }

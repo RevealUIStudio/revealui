@@ -28,11 +28,11 @@ const RRF_K = 60;
 
 export async function hybridSearch(
   query: string,
-  _db: Database,
+  db: Database,
   embeddingFn: (text: string) => Promise<number[]>,
   options: HybridSearchOptions,
 ): Promise<RagSearchResult[]> {
-  const service = new RagVectorService();
+  const service = new RagVectorService(db);
   const mode = options.mode ?? 'speed';
   const limit = options.limit ?? 5;
 

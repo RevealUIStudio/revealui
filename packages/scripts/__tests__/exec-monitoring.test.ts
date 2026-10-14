@@ -3,8 +3,9 @@
  */
 
 import { getProcessStats, processRegistry } from '@revealui/core/monitoring';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { execCommand } from '../exec.js';
+import { createLogger } from '../logger.js';
 
 describe('Exec Monitoring Integration', () => {
   beforeEach(() => {
@@ -12,6 +13,7 @@ describe('Exec Monitoring Integration', () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     processRegistry.clear();
   });
 
@@ -79,7 +81,116 @@ describe('Exec Monitoring Integration', () => {
     });
 
     expect(result.success).toBe(false);
+    expect(result).toMatchObject({
+      exitCode: 124,
+      processExitCode: null,
+      signal: 'SIGTERM',
+      timedOut: true,
+    });
   });
+
+  it('retains actual nonzero exit and signal outcomes', async () => {
+    const failed = await execCommand(process.execPath, ['-e', 'process.exit(7)'], {
+      capture: true,
+    });
+    expect(failed).toMatchObject({
+      success: false,
+      exitCode: 7,
+      processExitCode: 7,
+      timedOut: false,
+    });
+    const signaled = await execCommand(
+      process.execPath,
+      ['-e', "process.kill(process.pid, 'SIGTERM')"],
+      { capture: true },
+    );
+    expect(signaled).toMatchObject({
+      success: false,
+      processExitCode: null,
+      signal: 'SIGTERM',
+      timedOut: false,
+    });
+    expect(signaled.message).toContain('SIGTERM');
+  });
+
+  it('keeps a graceful zero exit after the deadline failed', async () => {
+    const result = await execCommand(
+      'sh',
+      ['-c', 'trap "exit 0" TERM; echo ready; while :; do sleep 1; done'],
+      { capture: true, timeout: 1000 },
+    );
+    expect(result.stdout).toContain('ready');
+    expect(result).toMatchObject({
+      success: false,
+      exitCode: 124,
+      processExitCode: 0,
+      timedOut: true,
+    });
+  });
+
+  it('cancels escalation after actual closure and logs no command arguments', async () => {
+    const timers = vi.spyOn(globalThis, 'setTimeout');
+    const canceled = vi.spyOn(globalThis, 'clearTimeout');
+    const logger = createLogger({ level: 'silent' });
+    const warning = vi.spyOn(logger, 'warn');
+    const result = await execCommand(
+      process.execPath,
+      ['-e', 'setInterval(() => {}, 1000)', 'synthetic-secret-argument'],
+      { capture: true, timeout: 100, logger },
+    );
+    expect(result.timedOut).toBe(true);
+    const escalation = timers.mock.calls.findIndex((call) => call[1] === 5000);
+    expect(escalation).toBeGreaterThanOrEqual(0);
+    expect(canceled).toHaveBeenCalledWith(timers.mock.results[escalation]?.value);
+    expect(JSON.stringify(warning.mock.calls)).not.toContain('synthetic-secret-argument');
+  });
+
+  it('retains owned escalation when a real child abort emits an error before closure', async () => {
+    const controller = new AbortController();
+    const logger = createLogger({ level: 'silent' });
+    // Abort after the runner records its deadline, exercising Node's actual
+    // spawned-child error event rather than synthesizing an execution result.
+    vi.spyOn(logger, 'warn').mockImplementation(() => controller.abort());
+    const result = await execCommand(
+      'sh',
+      ['-c', 'trap "" TERM; echo abort-ready; while :; do sleep 1; done'],
+      {
+        capture: true,
+        timeout: 1000,
+        signal: controller.signal,
+        logger,
+      },
+    );
+    expect(result.stdout).toContain('abort-ready');
+    expect(result).toMatchObject({
+      success: false,
+      exitCode: 124,
+      processExitCode: null,
+      signal: 'SIGKILL',
+      timedOut: true,
+    });
+    expect(result.message).toContain('force-killed');
+  }, 15000);
+
+  it('force-kills owned live descendants after their group leader exits', async () => {
+    const descendant =
+      "process.on('SIGTERM', () => {}); process.send('ready'); setInterval(() => {}, 1000);";
+    const script = `const { spawn } = require('node:child_process');
+const child = spawn(process.execPath, ['-e', ${JSON.stringify(descendant)}], { stdio: ['ignore', 'inherit', 'inherit', 'ipc'] });
+child.once('message', () => { console.log('descendant ready'); process.exit(0); });`;
+    const result = await execCommand(process.execPath, ['-e', script], {
+      capture: true,
+      timeout: 1000,
+    });
+    expect(result.stdout).toContain('descendant ready');
+    expect(result).toMatchObject({
+      success: false,
+      exitCode: 124,
+      processExitCode: 0,
+      timedOut: true,
+    });
+    expect(result.message).toContain('force-killed');
+  }, 15000);
 
   it('should track multiple processes', async () => {
     const initialStats = getProcessStats();

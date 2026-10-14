@@ -1,40 +1,50 @@
 #!/usr/bin/env bash
-# Maintained coordinated push. The pre-push hook remains the validation owner.
+# Gates finish before Git opens transport. The hook verifies live admission.
 # Usage: pnpm push [target-branch [remote]]
-# Dirty work is rejected, never copied, reverted, deleted, or overwritten.
 set -euo pipefail
-
-if ! command -v flock >/dev/null 2>&1; then
-  echo "ERROR: coordinated push requires flock for ownership-safe locking." >&2
+{
+if [ "$#" -gt 2 ]; then
+  echo "Expected pnpm push [target-branch [remote]]." >&2
   exit 1
 fi
-
-# Do not unlink this file: a new inode would allow concurrent holders.
-LOCK_FILE="${TMPDIR:-/tmp}/revealui-push-$(id -u).lock"
-umask 077
-exec 9>>"$LOCK_FILE"
-echo "Waiting for coordinated push admission..."
-if ! flock --exclusive --wait 300 9; then
-  echo "ERROR: another coordinated push still owns admission." >&2
+# Check before any Node process starts; a preload can replace the owner logic.
+if [ -n "${NODE_OPTIONS:-}" ] || [ -n "${BASH_ENV:-}" ] || [ -n "${ENV:-}" ]; then
+  echo "Push denied: Node or shell startup injection is unsupported for push admission." >&2
   exit 1
 fi
-
+ROOT=$(git rev-parse --show-toplevel)
+ROOT=$(cd -- "$ROOT" && pwd -P)
 BRANCH=$(git symbolic-ref --quiet --short HEAD)
 TARGET="${1:-$BRANCH}"
 REMOTE="${2:-origin}"
-if [ "$#" -gt 2 ] || ! git check-ref-format "refs/heads/$TARGET"; then
-  echo "ERROR: expected pnpm push [target-branch [remote]]." >&2
-  exit 1
+SCRIPT="$ROOT/scripts/git-hooks/push.sh"
+# Fixed privileged Bash ignores BASH_ENV/ENV, inherited functions and shell
+# options. Its live kernel executable and exact NUL-delimited argv are the
+# provenance boundary, rather than a Node process's mutable display title.
+if [[ "$-" != *p* ]] || [ "$0" != "$SCRIPT" ] || [ "$#" -ne 2 ]; then
+  exec /bin/bash -p "$SCRIPT" "$TARGET" "$REMOTE"
 fi
-if ! git remote get-url -- "$REMOTE" >/dev/null; then
-  echo "ERROR: push remote is not configured." >&2
-  exit 1
+NODE=$(command -v node)
+NODE=$("$NODE" -p 'process.execPath')
+PUSH_CHILD_PID=""
+PUSH_INTERRUPTED=0
+forward_interrupt() { PUSH_INTERRUPTED=1; [ -z "$PUSH_CHILD_PID" ] || kill -INT "$PUSH_CHILD_PID" 2>/dev/null || true; }
+forward_termination() { PUSH_INTERRUPTED=1; [ -z "$PUSH_CHILD_PID" ] || kill -TERM "$PUSH_CHILD_PID" 2>/dev/null || true; }
+trap forward_interrupt INT
+trap forward_termination TERM
+# Remain alive while the owner and Git run. The hook proves this exact parent.
+"$NODE" "$ROOT/scripts/git-hooks/push-admission.cjs" owner "$TARGET" "$REMOTE" <&0 &
+PUSH_CHILD_PID=$!
+if [ "$PUSH_INTERRUPTED" -eq 1 ]; then
+  kill -TERM "$PUSH_CHILD_PID" 2>/dev/null || true
 fi
-SOURCE_STATUS=$(git status --porcelain --untracked-files=all)
-if [ -n "$SOURCE_STATUS" ]; then
-  echo "ERROR: coordinated push requires a clean index and worktree; all uncommitted work is preserved." >&2
-  exit 1
+if wait "$PUSH_CHILD_PID"; then
+  PUSH_CHILD_PID=""
+  [ "$PUSH_INTERRUPTED" -eq 0 ] || exit 1
+  exit 0
+else
+  PUSH_STATUS=$?
+  PUSH_CHILD_PID=""
+  exit "$PUSH_STATUS"
 fi
-
-# Push the checkout validated by the hook, rather than a same-named local ref.
-git push -- "$REMOTE" "HEAD:refs/heads/$TARGET"
+}

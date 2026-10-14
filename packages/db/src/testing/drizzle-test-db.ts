@@ -67,10 +67,90 @@ function findMigrationsDir(): string {
   return resolve(import.meta.dirname, '..', '..', 'migrations');
 }
 
-/**
- * Read and parse all migration SQL files in order.
- * Drizzle-kit migrations use `--> statement-breakpoint` as separator.
- */
+/** Split SQL without cutting PL/pgSQL bodies, comments, or quoted values. */
+function splitMigrationStatements(content: string): string[] {
+  const statements: string[] = [];
+  let start = 0;
+  let quote: "'" | '"' | null = null;
+  let backslashEscapes = false;
+  let dollarQuote: string | null = null;
+  let lineComment = false;
+  let blockCommentDepth = 0;
+
+  for (let i = 0; i < content.length; i++) {
+    const char = content[i];
+    const next = content[i + 1];
+    if (lineComment) {
+      if (char === '\n') lineComment = false;
+      continue;
+    }
+    if (blockCommentDepth > 0) {
+      if (char === '/' && next === '*') {
+        blockCommentDepth++;
+        i++;
+      } else if (char === '*' && next === '/') {
+        blockCommentDepth--;
+        i++;
+      }
+      continue;
+    }
+    if (dollarQuote) {
+      if (content.startsWith(dollarQuote, i)) {
+        i += dollarQuote.length - 1;
+        dollarQuote = null;
+      }
+      continue;
+    }
+    if (quote) {
+      if (char === quote) {
+        if (next === quote) i++;
+        else quote = null;
+      } else if (quote === "'" && backslashEscapes && char === '\\') {
+        // Escaped strings appear in hand-written migration functions.
+        i++;
+      }
+      continue;
+    }
+    if (char === '-' && next === '-') {
+      lineComment = true;
+      i++;
+    } else if (char === '/' && next === '*') {
+      blockCommentDepth = 1;
+      i++;
+    } else if (char === "'" || char === '"') {
+      quote = char;
+      backslashEscapes = char === "'" && content[i - 1]?.toLowerCase() === 'e';
+    } else if (char === '$') {
+      let end = i + 1;
+      while (end < content.length) {
+        const code = content.charCodeAt(end);
+        if (
+          !(
+            (code >= 65 && code <= 90) ||
+            (code >= 97 && code <= 122) ||
+            (code >= 48 && code <= 57) ||
+            code === 95
+          )
+        )
+          break;
+        end++;
+      }
+      if (content[end] === '$') {
+        dollarQuote = content.slice(i, end + 1);
+        i = end;
+      }
+    } else if (char === ';') {
+      const statement = content.slice(start, i + 1).trim();
+      if (statement) statements.push(statement);
+      start = i + 1;
+    }
+  }
+  const remainder = content.slice(start).trim();
+  if (remainder) statements.push(remainder);
+  return statements;
+}
+
+/** Read all migration files in order, applying each top-level SQL statement. */
 async function loadMigrations(dir: string): Promise<string[]> {
   const { readdir } = await import('node:fs/promises');
   const files = await readdir(dir);
@@ -79,10 +159,7 @@ async function loadMigrations(dir: string): Promise<string[]> {
   const statements: string[] = [];
   for (const file of sqlFiles) {
     const content = await readFile(resolve(dir, file), 'utf-8');
-    for (const stmt of content.split('--> statement-breakpoint')) {
-      const trimmed = stmt.trim();
-      if (trimmed) statements.push(trimmed);
-    }
+    statements.push(...splitMigrationStatements(content));
   }
 
   return statements;

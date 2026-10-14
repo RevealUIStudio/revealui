@@ -55,6 +55,12 @@ tsx scripts/validate/boundary.ts
 Documentation link checking runs separately via `pnpm --filter docs check:links`
 (`apps/docs/scripts/check-links.ts`) and is part of the CI `quality` job.
 
+`validate:docs-imports` checks the package's declared entry points against its
+built type declarations. A declared entry point with no build output is
+inconclusive, rather than a missing export: the strict command fails until the
+owning package graph is built. `--warn` reports both stale imports and missing
+build prerequisites without failing the build.
+
 ### Code Quality
 
 | Validator            | Command                    | Purpose                                        |

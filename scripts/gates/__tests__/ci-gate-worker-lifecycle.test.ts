@@ -22,22 +22,35 @@ it('retains admission in an actual validator after abrupt gate-parent terminatio
   const exited = new Promise<void>((resolve) => parent.once('exit', () => resolve()));
   let worker: number | undefined;
   let output = '';
+  const capture = (data: unknown) => {
+    output = `${output}${String(data)}`.slice(-4096);
+  };
   parent.stdout?.on('data', (data) => {
-    output += String(data);
+    capture(data);
   });
   parent.stderr?.on('data', (data) => {
-    output += String(data);
+    capture(data);
   });
   try {
-    await expect
-      .poll(
-        () => {
-          assert.equal(parent.exitCode, null, output);
-          return existsSync(marker);
-        },
-        { timeout: 10000 },
-      )
-      .toBe(true);
+    try {
+      await expect
+        .poll(
+          () => {
+            assert.equal(parent.exitCode, null, output);
+            return existsSync(marker);
+          },
+          // Cold tsx startup can exceed ten seconds when the shared runner is
+          // reclaiming memory. Keep readiness bounded without mistaking load
+          // for a failed admission handoff.
+          { timeout: 45000 },
+        )
+        .toBe(true);
+    } catch (error) {
+      throw new Error(
+        `Synthetic validator readiness failed: parent PID=${parent.pid ?? 'unavailable'}, exit=${parent.exitCode ?? 'none'}, signal=${parent.signalCode ?? 'none'}\nCaptured fixture output (last 4096 characters):\n${output || '(none)'}`,
+        { cause: error },
+      );
+    }
     worker = Number(readFileSync(marker, 'utf8'));
     assert.ok(Number.isInteger(worker) && worker > 1);
     parent.kill('SIGKILL');
@@ -52,4 +65,4 @@ it('retains admission in an actual validator after abrupt gate-parent terminatio
     if (parent.exitCode === null && parent.signalCode === null) parent.kill('SIGKILL');
     await exited;
   }
-}, 15000);
+}, 60000);

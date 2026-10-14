@@ -192,6 +192,23 @@ describe('I-2 — GDPR Article 17: stripe.customers.del called on erasure', () =
   });
 
   describe('user has stripeCustomerId — stripe.customers.del is called', () => {
+    it('returns owned-domain cleanup conflict before erasure, session revocation or Stripe deletion', async () => {
+      mockAnonymizeUser.mockRejectedValueOnce(
+        Object.assign(
+          new Error('Detach owned consultation hostnames before deleting this account.'),
+          { code: 'SITE_DOMAIN_CLEANUP_REQUIRED', statusCode: 409 },
+        ),
+      );
+      const response = await deletionPost();
+      expect(response.status).toBe(409);
+      expect(await response.json()).toMatchObject({
+        success: false,
+        error: 'Detach owned consultation hostnames before deleting this account.',
+      });
+      expect(mockDeleteAllUserSessions).not.toHaveBeenCalled();
+      expect(mockCustomersDel).not.toHaveBeenCalled();
+      expect(mockUpdateUserStripeDeletion).not.toHaveBeenCalled();
+    });
     it('calls stripe.customers.del with the user stripeCustomerId', async () => {
       await deletionPost();
       expect(mockCustomersDel).toHaveBeenCalledWith('cus_test123');

@@ -87,6 +87,16 @@ describe('page creator attribution', () => {
     expect(
       (await getPagesBySite(db as never, 'one', { createdBy: 'actor' })).map((p) => p.id),
     ).toEqual(['own']);
+    expect(await updatePage(db as never, 'own', { siteId: 'foreign', title: 'Leaked' })).toBeNull();
+    expect((await client.query("SELECT site_id,title FROM pages WHERE id='own'")).rows).toEqual([
+      { site_id: 'one', title: 'Updated' },
+    ]);
+    expect(
+      await updatePage(db as never, 'own', { siteId: 'one', id: 'reassigned', title: 'Same site' }),
+    ).toMatchObject({ id: 'own', siteId: 'one', title: 'Same site' });
+    expect(
+      await updatePage(db as never, 'deleted', { title: 'Revived', deletedAt: null }),
+    ).toBeNull();
     await client.exec("DELETE FROM users WHERE id='actor'");
     expect(await getPagesBySite(db as never, 'one', { createdBy: 'actor' })).toEqual([]);
     expect((await client.query("SELECT created_by FROM pages WHERE id='own'")).rows).toEqual([

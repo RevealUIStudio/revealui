@@ -12,8 +12,10 @@
  *   { docs, totalDocs, totalPages, page, limit, ... }
  */
 
+import { getSiteContentActor } from '@revealui/db/queries/sites';
 import * as userQueries from '@revealui/db/queries/users';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
+import { isPlatformSuperAdmin } from '@revealui/utils/validation';
 import { HTTPException } from 'hono/http-exception';
 import { isAdmin as holdsAdmin } from '../../lib/access.js';
 import { ErrorSchema, IdParam } from '../_helpers/content-schemas.js';
@@ -190,12 +192,19 @@ app.openapi(
 
     const { id } = c.req.valid('param');
 
-    // Non-admins can only view their own profile
-    if (!holdsAdmin(sessionUser) && sessionUser.id !== id) {
+    const db = c.get('db');
+    // Non-admins can only view their own profile. The shared ladder reads the
+    // session user, not the role string alone. A canonical verified platform
+    // operator may still look up a fulfillment buyer, including an operator
+    // whose account-wide role is viewer.
+    if (
+      !holdsAdmin(sessionUser) &&
+      sessionUser.id !== id &&
+      !isPlatformSuperAdmin(await getSiteContentActor(db, sessionUser.id))
+    ) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
 
-    const db = c.get('db');
     const user = await userQueries.getUserById(db, id);
     if (!user) throw new HTTPException(404, { message: 'User not found' });
 
@@ -234,6 +243,10 @@ app.openapi(
         description: 'User updated',
       },
       404: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Not found' },
+      409: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Owned domain cleanup required',
+      },
     },
   }),
   async (c) => {
@@ -258,6 +271,16 @@ app.openapi(
     if (!isAdmin && (body.role !== undefined || body.status !== undefined)) {
       throw new HTTPException(403, { message: 'Only admins can change role or status' });
     }
+    if (body.status === 'deleted')
+      await userQueries.assertUserDomainCleanupComplete(db, id).catch((error: unknown) => {
+        if (
+          error instanceof Error &&
+          'code' in error &&
+          error.code === 'SITE_DOMAIN_CLEANUP_REQUIRED'
+        )
+          throw new HTTPException(409, { message: error.message });
+        throw error;
+      });
 
     // Owner soft-cap: gate promotions *into* the 'owner' role (not demotions
     // or no-op writes). See userQueries.OWNER_SOFT_CAP for rationale.
@@ -277,7 +300,15 @@ app.openapi(
       Object.entries(body).filter(([key]) => !SENSITIVE_FIELDS.has(key)),
     );
 
-    const updated = await userQueries.updateUser(db, id, sanitized);
+    const updated = await userQueries.updateUser(db, id, sanitized).catch((error: unknown) => {
+      if (
+        error instanceof Error &&
+        'code' in error &&
+        error.code === 'SITE_DOMAIN_CLEANUP_REQUIRED'
+      )
+        throw new HTTPException(409, { message: error.message });
+      throw error;
+    });
     if (!updated) throw new HTTPException(404, { message: 'User not found' });
 
     return c.json({ success: true as const, data: serializeUser(updated) }, 200);
@@ -302,6 +333,10 @@ app.openapi(
         description: 'User deleted',
       },
       404: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Not found' },
+      409: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Owned domain cleanup required',
+      },
     },
   }),
   async (c) => {
@@ -322,7 +357,15 @@ app.openapi(
     const existing = await userQueries.getUserById(db, id);
     if (!existing) throw new HTTPException(404, { message: 'User not found' });
 
-    await userQueries.deleteUser(db, id);
+    await userQueries.deleteUser(db, id).catch((error: unknown) => {
+      if (
+        error instanceof Error &&
+        'code' in error &&
+        error.code === 'SITE_DOMAIN_CLEANUP_REQUIRED'
+      )
+        throw new HTTPException(409, { message: error.message });
+      throw error;
+    });
     return c.json({ success: true as const, message: 'User deleted' }, 200);
   },
 );

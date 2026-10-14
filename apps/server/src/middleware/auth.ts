@@ -14,7 +14,7 @@ import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { userDevices, users } from '@revealui/db/schema';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import type { MiddlewareHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { type ApiAuthUser, hasApiRole, isPlatformSuperAdmin } from '../lib/api-roles.js';
@@ -72,7 +72,7 @@ async function resolveDeviceToken(token: string): Promise<ResolvedDeviceAuth | n
     .limit(1);
 
   if (!device) return null;
-  if (device.tokenExpiresAt && device.tokenExpiresAt < now) return null;
+  if (device.tokenExpiresAt && device.tokenExpiresAt <= now) return null;
 
   const [user] = await db
     .select({
@@ -81,13 +81,14 @@ async function resolveDeviceToken(token: string): Promise<ResolvedDeviceAuth | n
       name: users.name,
       role: users.role,
       emailVerified: users.emailVerified,
+      mustRotatePassword: users.mustRotatePassword,
       _json: users._json,
     })
     .from(users)
-    .where(eq(users.id, device.userId))
+    .where(and(eq(users.id, device.userId), eq(users.status, 'active'), isNull(users.deletedAt)))
     .limit(1);
 
-  if (!user) return null;
+  if (!user || user.mustRotatePassword) return null;
 
   // Update lastSeen (fire-and-forget  -  don't block the request)
   db.update(userDevices)
@@ -138,6 +139,24 @@ export const authMiddleware = (options: AuthOptions = {}): MiddlewareHandler => 
     //    admin Next.js surface runs via `extractRequestContext(request)`.
     const sessionData = await getSession(c.req.raw.headers, extractRequestContext(c));
     if (sessionData) {
+      const metadata = sessionData.session.metadata as Record<string, unknown> | null;
+      const restricted =
+        metadata?.recovery === true || sessionData.user.mustRotatePassword === true;
+      // The canonical recovery session purpose permits only password change,
+      // sign-out and current-session inspection. Optional public routes keep
+      // anonymous access; restricted identities never gain private authority.
+      const recoveryEndpoint =
+        /^\/api\/(?:v1\/)?auth\/(?:change-password|sign-out|me|session)\/?$/.test(c.req.path);
+      if (restricted && !recoveryEndpoint) {
+        c.set('user', undefined);
+        c.set('session', undefined);
+        if (required)
+          throw new HTTPException(403, {
+            message: 'Complete password recovery or rotation before accessing private data.',
+          });
+        await next();
+        return;
+      }
       c.set('user', sessionData.user);
       c.set('session', sessionData.session);
     } else if (required) {

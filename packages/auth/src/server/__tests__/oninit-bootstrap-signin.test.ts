@@ -25,11 +25,11 @@ let testDb: TestDb;
 
 vi.mock('@revealui/db/client', () => ({
   getClient: () => testDb.drizzle,
-  // DatabaseStorage's constructor calls createClient() to open its own real
+  // DatabaseStorage's constructor calls createRestClient() to open its own real
   // `pg` Pool. The pool is never queried in these tests — its `.db` is
   // swapped for the PGlite-backed client immediately after construction —
   // but the constructor call itself must not throw.
-  createClient: () => testDb.drizzle,
+  createRestClient: () => testDb.drizzle,
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({

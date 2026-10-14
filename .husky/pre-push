@@ -1,114 +1,35 @@
 #!/bin/bash
-# Re-exec under bash if invoked via sh (Husky runs hooks with `sh -e`)
+# Husky invokes hooks through sh; parse the complete body under Bash.
 if [ -z "$BASH_VERSION" ]; then
-  exec bash -e "$0" "$@"
+  exec /bin/bash -p -e "$0" "$@"
 fi
-
-# ── Execute from memory: the whole body is parsed before any of it runs ──
-# Peer sessions switching the shared checkout can rewrite this file while
-# a hook is running. A shell may
-# re-read a running script from disk between commands, so a mid-run rewrite
-# can corrupt execution, including the final gate exit status. Every code
-# path below exits inside this brace group, so the on-disk file is never
-# read again once the group has been parsed.
+case "$-" in
+  *p*) ;;
+  *) exec /bin/bash -p -e "$0" "$@" ;;
+esac
 {
-
-# ── Gate scope: decided by the refs being pushed, not the checked-out branch ──
-# git feeds pre-push one "<local ref> <local sha> <remote ref> <remote sha>"
-# line per pushed ref on stdin. Tag pushes and ref deletions add no commits
-# to any branch, so they never gate; branch pushes gate on the remote branch
-# being pushed, regardless of which branch is checked out.
-ZERO_SHA=0000000000000000000000000000000000000000
-PROTECTED_BRANCH=""
-FEATURE_BRANCH=""
-PUSH_SOURCE_SHA=""
-while read -r _local_ref local_sha remote_ref _remote_sha; do
+set -euo pipefail
+REFS=$(cat)
+BRANCH_UPDATE=0
+while read -r local_ref local_sha remote_ref remote_sha; do
   [ -z "$remote_ref" ] && continue
-  [ "$local_sha" = "$ZERO_SHA" ] && continue # deletion: no local commits to validate
-  if [[ "$remote_ref" == refs/heads/* ]] && [ "$local_sha" != "$(git rev-parse HEAD)" ]; then
-    echo "husky pre-push: source differs from HEAD — validate its own checkout before pushing" >&2
-    exit 1
+  if [[ "$remote_ref" == refs/heads/* ]] && [[ ! "$local_sha" =~ ^0+$ ]]; then
+    BRANCH_UPDATE=1
   fi
-  case "$remote_ref" in
-    refs/heads/main|refs/heads/test)
-      PUSH_SOURCE_SHA="$local_sha"
-      PROTECTED_BRANCH="${remote_ref#refs/heads/}"
-      ;;
-    refs/heads/*)
-      PUSH_SOURCE_SHA="$local_sha"
-      FEATURE_BRANCH="${remote_ref#refs/heads/}"
-      ;;
-  esac
-done
+done <<< "$REFS"
 
-if [ -z "$PROTECTED_BRANCH" ] && [ -z "$FEATURE_BRANCH" ]; then
-  echo ""
-  echo "No branch refs in this push (tags or deletions only); skipping CI gate."
+# Tags and deletions add no branch commits. A managed no-op still consumes
+# its live admission so the owner can confirm that the installed hook ran.
+if [ "$BRANCH_UPDATE" -eq 0 ] && { [ -n "$REFS" ] || ! { : <&3; } 2>/dev/null; }; then
+  echo "No branch updates (tags or deletions only); skipping validation."
   exit 0
 fi
-
-# ── Sentinel file: signals to auto-commit hook that a gate is running ──
-GIT_DIR=$(git rev-parse --git-dir)
-if ! command -v flock >/dev/null 2>&1; then
-  echo "husky pre-push: flock required for ownership-safe admission — fail closed" >&2
+if [ -n "${NODE_OPTIONS:-}" ] || [ -n "${BASH_ENV:-}" ] || [ -n "${ENV:-}" ]; then
+  echo "Push denied: Node or shell startup injection is unsupported for push admission." >&2
   exit 1
 fi
-# Protect the existing sentinel and source check for the complete hook lifetime.
-# Never unlink this lease file or wait while Git's transport is already open.
-umask 077
-exec 8>>"$GIT_DIR/prepush-admission.lock"
-if ! flock --exclusive --nonblock 8; then
-  echo "husky pre-push: another hook owns this checkout — push rejected" >&2
-  exit 1
-fi
-GATE_SENTINEL="$GIT_DIR/gate-in-progress"
-cleanup_sentinel() { rm -f "$GATE_SENTINEL"; }
-trap cleanup_sentinel EXIT
-echo $$ > "$GATE_SENTINEL"
-
-# GAP-418 item 8: a worktree with no node_modules made this hook a no-op
-# (`pnpm` unresolved). Fail closed — CI is still required.
 ROOT=$(git rev-parse --show-toplevel)
-if ! command -v pnpm >/dev/null 2>&1; then
-  echo "husky pre-push: pnpm not on PATH — fail closed" >&2
-  exit 1
-fi
-if [ ! -e "$ROOT/node_modules" ]; then
-  echo "husky pre-push: node_modules missing — fail closed (cannot resolve pnpm)" >&2
-  exit 1
-fi
-
-# Validate the exact committed source without changing staged or dirty work.
-# No lossy snapshot/restore path or caller override flag.
-SOURCE_STATUS=$(git status --porcelain --untracked-files=all)
-if [ -n "$SOURCE_STATUS" ]; then
-  echo "husky pre-push: clean index and worktree required — uncommitted work preserved" >&2
-  exit 1
-fi
-
-# Branch-aware gate strictness, keyed to the pushed refs
-VALIDATED_SHA="$PUSH_SOURCE_SHA"
-#   main/test: quality + typecheck (build + tests deferred to CI)
-#   feature/*: quality-only (local dev, no CI)
-GATE_EXIT=0
-if [ -n "$PROTECTED_BRANCH" ]; then
-  echo ""
-  echo "Running CI gate for protected branch '$PROTECTED_BRANCH' (quality + typecheck; build + tests run in CI)..."
-  echo ""
-  pnpm gate --no-build --no-test || GATE_EXIT=$?
-else
-  echo ""
-  echo "Running quality checks for '$FEATURE_BRANCH'..."
-  echo ""
-  pnpm gate --phase=1 --changed || GATE_EXIT=$?
-fi
-
-AFTER_SHA=$(git rev-parse HEAD)
-AFTER_STATUS=$(git status --porcelain --untracked-files=all)
-if [ "$VALIDATED_SHA" != "$AFTER_SHA" ] || [ -n "$AFTER_STATUS" ]; then
-  echo "husky pre-push: source changed during validation — push rejected, work preserved" >&2
-  exit 1
-fi
-
-exit $GATE_EXIT
+NODE=$(command -v node)
+"$NODE" "$ROOT/scripts/git-hooks/push-admission.cjs" verify "$@" <<< "$REFS"
+exit $?
 }

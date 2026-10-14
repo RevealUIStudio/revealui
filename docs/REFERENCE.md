@@ -818,14 +818,21 @@ Adds a `redirects` collection for managing URL redirects.
 PostgreSQL adapter that works with both PGlite (in-memory, for tests) and a real Postgres connection.
 
 ```ts
-import { universalPostgresAdapter } from "@revealui/core";
+import { buildConfig, universalPostgresAdapter } from "@revealui/core";
 
 buildConfig({
   db: universalPostgresAdapter({
-    pool: { connectionString: process.env.POSTGRES_URL },
+    poolFactory: async () => (await import("@revealui/db/client")).getRestPool(),
+    transactionContext: async (pool) =>
+      (await import("@revealui/db/client")).getTransactionContext(pool),
   }),
 });
 ```
+
+The shared-pool configuration above resolves the maintained database owner lazily.
+Inside `withTransaction`, CMS queries borrow its connection and nested adapter
+transactions delegate to the owner's savepoint scope. Outside that scope, the
+adapter checks out and releases its own pooled connection.
 
 ### `objectStorage()`
 
@@ -1513,7 +1520,16 @@ const result = await withTransaction(db, async (tx) => {
 })
 ```
 
-> **Important:** Transactions only work with node-postgres (localhost / other Postgres hosts, including the legacy Supabase sidecar). The Neon HTTP driver does not support multi-statement transactions.
+> Owned clients use the maintained PostgreSQL pool for callback transactions, including Neon databases whose normal queries use HTTP. The transaction pool uses the same captured database URL, SSL settings, schema and cleanup owner; the CMS adapter shares that pool. Injected clients must provide their own transaction API.
+
+The factory's `getClient()` and the CMS adapter's `transactionContext` seam reuse
+the active lease for the same database. Nested transactions use serialized
+savepoints, so a failed sibling rolls back its own work and the outer transaction
+retains control of commit and release. `getTransactionContext(pool)` exposes the
+borrowed connection and nested transaction callback; `getTransactionConnection(pool)`
+exposes only the connection. Both return `null` outside their active owning scope.
+`createClient` accepts a positive integer `poolMax`; scoped CMS work reuses the
+same lease even when that pool has one connection.
 
 ---
 
@@ -3627,7 +3643,8 @@ npm install @revealui/router
 | Import path               | Environment | Purpose                         |
 | ------------------------- | ----------- | ------------------------------- |
 | `@revealui/router`        | Both        | Components, hooks, Router class |
-| `@revealui/router/server` | Server only | SSR rendering utilities         |
+| `@revealui/router/server` | Server only | RSC request rendering, actions and request context |
+| `@revealui/router/server-ssr` | SPA server/client | Hono SSR and client hydration |
 
 ---
 
@@ -3911,28 +3928,24 @@ const post = useData<Post>();
 
 ## Server-Side Rendering
 
-Import from `@revealui/router/server`. The router integrates with Hono for SSR.
+Import SPA SSR helpers from `@revealui/router/server-ssr`. The separate
+`@revealui/router/server` entry point provides RSC-safe request rendering,
+actions and request context.
 
 ### `createSSRHandler(routes, options?): HonoHandler`
 
-Creates a Hono request handler that matches the URL, runs the route loader, renders to an HTML string (or streams), and inlines loader data for hydration. Uses `react-dom/server` under the hood.
+Creates a Hono request handler that matches the URL, runs the route loader and
+renders with `react-dom/server`. The default nonstreaming template includes
+loader data and the `/src/client.tsx` module entry for hydration. The streaming
+option returns the React HTML stream directly; it does not apply that template.
 
 ```ts
-import { createSSRHandler } from "@revealui/router/server";
+import { createSSRHandler } from "@revealui/router/server-ssr";
 import { Hono } from "hono";
 import { routes } from "./routes";
 
 const app = new Hono();
-app.get(
-  "*",
-  createSSRHandler(routes, {
-    template: (html, data) => `<!DOCTYPE html>
-<html><head><title>${data?.title ?? "App"}</title></head>
-<body><div id="root">${html}</div>
-<script type="module" src="/src/client.tsx"></script>
-</body></html>`,
-  }),
-);
+app.get("*", createSSRHandler(routes));
 ```
 
 **`SSROptions`:**
@@ -3941,7 +3954,7 @@ app.get(
 interface SSROptions {
   /** HTML template function — receives rendered HTML + loader data */
   template?: (html: string, data?: Record<string, unknown>) => string;
-  /** Enable streaming SSR via renderToPipeableStream */
+  /** Return a React readable HTML stream instead of applying the template */
   streaming?: boolean;
   /** Error handler */
   onError?: (error: Error, context: Context) => void;
@@ -3950,28 +3963,33 @@ interface SSROptions {
 
 ---
 
-### `createDevServer(routes, options?): Promise<void>`
+### `createDevServer(routes, options?)`
 
-Starts a local development server with HMR support. Wraps Hono + Vite middleware.
+Starts a Hono Node development server and returns its server handle. It does not
+install Vite middleware, serve bundled client assets or provide HMR.
 
 ```ts
-import { createDevServer } from "@revealui/router/server";
+import { createDevServer } from "@revealui/router/server-ssr";
 import { routes } from "./routes";
 
-await createDevServer(routes, { port: 3000 });
+const server = await createDevServer(routes, { port: 3000 });
 ```
 
 ---
 
-### `hydrate(router?, rootElement?): Promise<void>`
+### `hydrate(router, rootElement?): Promise<void>`
 
 Hydrates the server-rendered HTML on the client. Call this in your client entry point.
 
 ```ts
 // src/client.tsx
-import { hydrate } from "@revealui/router/server";
+import { Router } from "@revealui/router";
+import { hydrate } from "@revealui/router/server-ssr";
+import { routes } from "./routes";
 
-await hydrate(); // auto-detects router + #root element
+const router = new Router();
+router.registerRoutes(routes);
+await hydrate(router); // defaults to the #root element
 ```
 
 ---
@@ -4199,7 +4217,7 @@ await createProject({
     projectPath: "/tmp/my-app",
     template: "basic-blog",
   },
-  database: { provider: "neon", postgresUrl: "postgresql://localhost/myapp" },
+  database: { provider: "local", postgresUrl: "postgresql://localhost/myapp" },
   storage: { provider: "skip" },
   payment: { enabled: false },
   devenv: { createDevContainer: false, createDevbox: false },
@@ -4517,6 +4535,11 @@ logger.progress(3, 10, "Processing files");
 # @revealui/sync
 
 Real-time collaboration and sync primitives. Provides Yjs-based collaborative editing (WebSocket) and ElectricSQL shape subscriptions for live data sync. Reads use ElectricSQL; writes use REST mutations via `/api/sync/*`.
+
+This package is marked experimental. The APIs below are exported; collaborative
+sessions and shape subscriptions require the corresponding authenticated server
+routes and deployment configuration. Internal `useSyncMutations` is not a public
+package export.
 
 ```bash
 npm install @revealui/sync
@@ -4848,7 +4871,8 @@ React hooks for real-time data subscriptions via ElectricSQL shapes. Reads are l
 
 ### `useSyncMutations<TCreate, TUpdate, TRecord>(endpoint: string)`
 
-Low-level hook that returns `create`, `update`, and `remove` mutation functions for a given sync API endpoint. Used internally by the data hooks below.
+Internal hook used by the public data hooks below. It is not exported for direct
+consumer imports; use the mutation functions returned by those public hooks.
 
 **Returns:**
 

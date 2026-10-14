@@ -40,6 +40,129 @@ export const SITE_STATUSES = ['draft', 'published', 'archived', 'maintenance'] a
 export const SiteStatusSchema = z.enum(SITE_STATUSES);
 export type SiteStatus = (typeof SITE_STATUSES)[number];
 
+export const SITE_VISIBILITIES = ['public', 'private'] as const;
+export const SiteVisibilitySchema = z.enum(SITE_VISIBILITIES);
+export type SiteVisibility = (typeof SITE_VISIBILITIES)[number];
+
+/** Trusted Studio fulfillment binding; the database protects its immutability. */
+export const SiteConsultationBindingSchema = z.strictObject({
+  version: z.literal(1),
+  kind: z.literal('studio-consultation'),
+  bookingId: z
+    .string()
+    .min(1)
+    .max(256)
+    .refine((value) => value === value.trim()),
+  buyerUserId: z
+    .string()
+    .min(1)
+    .max(256)
+    .refine((value) => value === value.trim()),
+});
+export type SiteConsultationBinding = z.infer<typeof SiteConsultationBindingSchema>;
+
+/** Current payment entitlement; binding provenance remains immutable separately. */
+export const SiteConsultationLifecycleSchema = z
+  .strictObject({
+    version: z.literal(1),
+    revoked: z.boolean(),
+    domainPackPurchased: z.boolean(),
+    domainPack: z.enum(['entitled', 'unentitled', 'review_required', 'retained', 'revoked']),
+    amountRefunded: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+    chargeId: z
+      .string()
+      .regex(/^ch_[a-zA-Z0-9]+$/)
+      .optional(),
+  })
+  .refine(
+    (value) =>
+      (value.amountRefunded > 0 ? Boolean(value.chargeId) : value.chargeId === undefined) &&
+      (!value.revoked || value.domainPack === 'revoked'),
+    'Refund evidence and terminal revocation must be internally consistent',
+  );
+export type SiteConsultationLifecycle = z.infer<typeof SiteConsultationLifecycleSchema>;
+
+const ConsultationIdentity = SiteConsultationBindingSchema.pick({
+  bookingId: true,
+  buyerUserId: true,
+});
+const RefundEvidence = z.strictObject({
+  chargeId: z.string().regex(/^ch_[a-zA-Z0-9]+$/),
+  amountRefunded: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
+  full: z.boolean(),
+});
+export const SiteConsultationLifecycleMutationSchema = z.discriminatedUnion('action', [
+  ConsultationIdentity.extend({
+    action: z.literal('observe'),
+    revoked: z.boolean(),
+    domainPackEntitled: z.boolean(),
+    refund: RefundEvidence.optional(),
+  }),
+  ConsultationIdentity.extend({
+    action: z.literal('resolve-domain-pack'),
+    chargeId: RefundEvidence.shape.chargeId,
+    amountRefunded: RefundEvidence.shape.amountRefunded,
+    decision: z.enum(['retained', 'revoked']),
+  }),
+  ConsultationIdentity.extend({ action: z.literal('revoke') }),
+]);
+export type SiteConsultationLifecycleMutation = z.infer<
+  typeof SiteConsultationLifecycleMutationSchema
+>;
+
+/** Persisted hostnames are canonical; user input normalizes before this check. */
+export const ConsultationHostnameSchema = z
+  .string()
+  .max(253)
+  .regex(
+    /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?$/,
+    'Use a DNS hostname without a URL, port, wildcard or IP address',
+  )
+  .refine(
+    (hostname) =>
+      ![
+        'revealui.com',
+        'revealuistudio.com',
+        'vercel.app',
+        'localhost',
+        'local',
+        'internal',
+        'test',
+        'invalid',
+        'example',
+        'lan',
+        'home',
+        'onion',
+      ].some((reserved) => hostname === reserved || hostname.endsWith(`.${reserved}`)),
+    'Use a client-controlled public hostname',
+  );
+export const ConsultationHostnameInputSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .pipe(ConsultationHostnameSchema);
+export const SiteConsultationDomainSchema = z.strictObject({
+  hostname: ConsultationHostnameSchema,
+  provider: z.literal('vercel'),
+  projectId: z.string().regex(/^prj_[a-zA-Z0-9]+$/),
+  verifiedAt: z.iso.datetime(),
+});
+export type SiteConsultationDomain = z.infer<typeof SiteConsultationDomainSchema>;
+export const SiteConsultationDomainPendingSchema = SiteConsultationDomainSchema.omit({
+  verifiedAt: true,
+});
+export type SiteConsultationDomainPending = z.infer<typeof SiteConsultationDomainPendingSchema>;
+export const ConsultationVerificationSchema = z.array(
+  z.object({ type: z.literal('TXT'), domain: z.string(), value: z.string() }),
+);
+export const ConsultationDnsProofSchema = z.object({
+  configuredBy: z.enum(['A', 'CNAME', 'http', 'dns-01']).nullable(),
+  misconfigured: z.boolean(),
+  acceptedChallenges: z.array(z.enum(['dns-01', 'http-01'])),
+  recommendedCNAME: z.array(z.object({ rank: z.number(), value: z.string() })),
+  recommendedIPv4: z.array(z.object({ rank: z.number(), value: z.array(z.string()) })),
+});
+
 // =============================================================================
 // Site Theme
 // =============================================================================
@@ -183,6 +306,12 @@ export const SiteSettingsSchema = z.object({
       }),
     )
     .optional(),
+
+  /** Assigned by verified Studio fulfillment; arbitrary site owners cannot forge it. */
+  consultation: SiteConsultationBindingSchema.optional(),
+  consultationLifecycle: SiteConsultationLifecycleSchema.optional(),
+  consultationDomain: SiteConsultationDomainSchema.optional(),
+  consultationDomainPending: SiteConsultationDomainPendingSchema.optional(),
 });
 
 export type SiteSettings = z.infer<typeof SiteSettingsSchema>;
@@ -227,6 +356,9 @@ export const SiteSchema = DualEntitySchema.extend({
   /** Current status */
   status: SiteStatusSchema,
 
+  /** Publication and audience are independent. Private sites require membership. */
+  visibility: SiteVisibilitySchema.default('public'),
+
   /** Site settings */
   settings: SiteSettingsSchema,
 
@@ -262,6 +394,7 @@ export const CreateSiteInputSchema = z.object({
   description: z.string().max(500).optional(),
   ownerId: z.string(),
   templateId: z.string().optional(),
+  visibility: SiteVisibilitySchema.optional(),
   settings: SiteSettingsSchema.partial().optional(),
   theme: SiteThemeSchema.optional(),
 });
@@ -294,6 +427,7 @@ export function createSite(id: string, input: CreateSiteInput): Site {
     description: input.description,
     ownerId: input.ownerId,
     status: 'draft',
+    visibility: input.visibility ?? 'public',
     settings,
     templateId: input.templateId,
     theme: input.theme,
@@ -350,7 +484,7 @@ export function createSite(id: string, input: CreateSiteInput): Site {
           description: 'Publish the site to make it live',
           params: {},
           requiredCapabilities: ['publish'],
-          sideEffects: ['Site becomes publicly accessible'],
+          sideEffects: ['Site becomes accessible to its configured audience'],
         },
         {
           name: 'unpublish',
@@ -388,6 +522,7 @@ export const UpdateSiteInputSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().max(500).optional(),
   status: SiteStatusSchema.optional(),
+  visibility: SiteVisibilitySchema.optional(),
   settings: SiteSettingsSchema.partial().optional(),
   theme: SiteThemeSchema.partial().optional(),
 });

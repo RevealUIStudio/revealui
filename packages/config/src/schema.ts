@@ -53,6 +53,54 @@ const postgresUrlSchema = z
     'Must be a PostgreSQL connection string (postgresql:// or postgres://)',
   );
 
+/** Optional authenticated Studio fulfillment bridge; absent for self-hosts. */
+const studioFulfillmentFields = {
+  STUDIO_SITE_URL: optionalBlank(
+    urlSchema.refine((value) => {
+      const url = new URL(value);
+      return (
+        url.protocol === 'https:' &&
+        !url.username &&
+        !url.password &&
+        url.pathname === '/' &&
+        !url.search &&
+        !url.hash
+      );
+    }, 'Studio URL must be an HTTPS origin without credentials, path, query or fragment'),
+  ),
+  STUDIO_OWNER_SESSION: optionalBlank(secretSchema),
+};
+function completeStudioConfig(value: { STUDIO_SITE_URL?: string; STUDIO_OWNER_SESSION?: string }) {
+  return Boolean(value.STUDIO_SITE_URL) === Boolean(value.STUDIO_OWNER_SESSION);
+}
+export const studioFulfillmentEnvSchema = z
+  .object(studioFulfillmentFields)
+  .refine(completeStudioConfig, {
+    message: 'STUDIO_SITE_URL and STUDIO_OWNER_SESSION must be configured together',
+  });
+
+const studioDomainFields = {
+  STUDIO_VERCEL_TOKEN: optionalBlank(z.string().min(1)),
+  STUDIO_VERCEL_PROJECT_ID: optionalBlank(z.string().regex(/^prj_[a-zA-Z0-9]+$/)),
+  STUDIO_VERCEL_TEAM_ID: optionalBlank(z.string().regex(/^team_[a-zA-Z0-9]+$/)),
+};
+function completeStudioDomainConfig(value: {
+  STUDIO_VERCEL_TOKEN?: string;
+  STUDIO_VERCEL_PROJECT_ID?: string;
+  STUDIO_VERCEL_TEAM_ID?: string;
+}) {
+  return (
+    Boolean(value.STUDIO_VERCEL_PROJECT_ID) === Boolean(value.STUDIO_VERCEL_TOKEN) &&
+    (!value.STUDIO_VERCEL_TEAM_ID || Boolean(value.STUDIO_VERCEL_PROJECT_ID))
+  );
+}
+export const studioDomainEnvSchema = z
+  .object(studioDomainFields)
+  .refine(completeStudioDomainConfig, {
+    message:
+      'Studio domain verification requires STUDIO_VERCEL_TOKEN and STUDIO_VERCEL_PROJECT_ID together; team scope requires the project',
+  });
+
 // =============================================================================
 // Required Variables Schemas
 // =============================================================================
@@ -90,6 +138,8 @@ const requiredSchema = z.object({
 // =============================================================================
 
 const optionalSchema = z.object({
+  ...studioFulfillmentFields,
+  ...studioDomainFields,
   // Admin
   REVEALUI_ADMIN_EMAIL: z.string().email().optional(),
   REVEALUI_ADMIN_PASSWORD: z.string().min(12, 'Password must be at least 12 characters').optional(),
@@ -235,7 +285,15 @@ const optionalSchema = z.object({
 // Combined Schema
 // =============================================================================
 
-export const envSchema = requiredSchema.merge(optionalSchema);
+export const envSchema = requiredSchema
+  .merge(optionalSchema)
+  .refine(completeStudioConfig, {
+    message: 'STUDIO_SITE_URL and STUDIO_OWNER_SESSION must be configured together',
+  })
+  .refine(completeStudioDomainConfig, {
+    message:
+      'Studio domain verification requires STUDIO_VERCEL_TOKEN and STUDIO_VERCEL_PROJECT_ID together; team scope requires the project',
+  });
 
 // =============================================================================
 // Environment-Specific Validation

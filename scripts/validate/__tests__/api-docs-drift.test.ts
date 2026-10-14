@@ -26,6 +26,7 @@ describe('API documentation dependency bootstrap', () => {
       'pnpm',
       ['docs:generate:api'],
       expect.objectContaining({
+        stdio: 'inherit',
         env: expect.objectContaining({
           DOCS_API_OUT: '/tmp/synthetic-api-docs-drift/README.md',
         }),

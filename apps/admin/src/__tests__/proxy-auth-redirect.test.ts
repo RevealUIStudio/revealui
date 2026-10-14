@@ -40,9 +40,20 @@ const EDITOR_COOKIES = 'revealui-session=sess-abc; revealui-role=editor';
 describe('admin proxy — authenticated redirect off /login + /signup', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ needed: false }),
+    mockFetch.mockImplementation(async (input, options) => {
+      const cookie = new Headers(options?.headers).get('cookie') ?? '';
+      const role = cookie
+        .split(';')
+        .map((part) => part.trim())
+        .find((part) => part.startsWith('revealui-role='))
+        ?.slice('revealui-role='.length);
+      return {
+        ok: true,
+        json: async () =>
+          String(input).endsWith('/api/auth/session')
+            ? { user: { role: role ?? 'viewer' } }
+            : { needed: false },
+      };
     });
   });
 
@@ -179,9 +190,20 @@ describe('admin proxy — authenticated redirect off /login + /signup', () => {
 describe('admin proxy — role-aware admin-only gate', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ needed: false }),
+    mockFetch.mockImplementation(async (input, options) => {
+      const cookie = new Headers(options?.headers).get('cookie') ?? '';
+      const role = cookie
+        .split(';')
+        .map((part) => part.trim())
+        .find((part) => part.startsWith('revealui-role='))
+        ?.slice('revealui-role='.length);
+      return {
+        ok: true,
+        json: async () =>
+          String(input).endsWith('/api/auth/session')
+            ? { user: { role: role ?? 'viewer' } }
+            : { needed: false },
+      };
     });
   });
 
@@ -233,9 +255,20 @@ describe('admin proxy — role-aware admin-only gate', () => {
 describe('admin proxy — /dashboard auth gate (GAP-292)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ needed: false }),
+    mockFetch.mockImplementation(async (input, options) => {
+      const cookie = new Headers(options?.headers).get('cookie') ?? '';
+      const role = cookie
+        .split(';')
+        .map((part) => part.trim())
+        .find((part) => part.startsWith('revealui-role='))
+        ?.slice('revealui-role='.length);
+      return {
+        ok: true,
+        json: async () =>
+          String(input).endsWith('/api/auth/session')
+            ? { user: { role: role ?? 'viewer' } }
+            : { needed: false },
+      };
     });
   });
 
@@ -262,9 +295,20 @@ describe('admin proxy — /dashboard auth gate (GAP-292)', () => {
 describe('admin proxy — /forgot-password is not public (S1)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ needed: false }),
+    mockFetch.mockImplementation(async (input, options) => {
+      const cookie = new Headers(options?.headers).get('cookie') ?? '';
+      const role = cookie
+        .split(';')
+        .map((part) => part.trim())
+        .find((part) => part.startsWith('revealui-role='))
+        ?.slice('revealui-role='.length);
+      return {
+        ok: true,
+        json: async () =>
+          String(input).endsWith('/api/auth/session')
+            ? { user: { role: role ?? 'viewer' } }
+            : { needed: false },
+      };
     });
   });
 
@@ -284,5 +328,51 @@ describe('admin proxy — /forgot-password is not public (S1)', () => {
     const res = await proxy(req('/reset-password'));
     // Public path → no auth redirect to /login.
     expect(redirectPath(res)).not.toBe('/login');
+  });
+});
+
+describe('admin proxy — authenticated client deliveries', () => {
+  it('preserves the share path through normal sign-in', async () => {
+    const res = await proxy(req('/client-shares/delivery-1'));
+    const location = new URL(res.headers.get('location') ?? 'https://invalid.test');
+    expect(location.pathname).toBe('/login');
+    expect(location.searchParams.get('redirect')).toBe('/client-shares/delivery-1');
+  });
+
+  it.each(['/client-shares', '/client-shares/delivery-1'])(
+    'allows a viewer on %s with private no-store and noindex headers',
+    async (path) => {
+      const res = await proxy(req(path, VIEWER_COOKIES));
+      expect(redirectPath(res)).toBeNull();
+      expect(res.headers.get('Cache-Control')).toBe('private, no-store');
+      expect(res.headers.get('X-Robots-Tag')).toBe('noindex, nofollow');
+    },
+  );
+
+  it('keeps authenticated generic page responses out of shared caches', async () => {
+    const res = await proxy(req('/published-page', VIEWER_COOKIES));
+    expect(res.headers.get('Cache-Control')).toBe('private, no-store');
+  });
+});
+
+describe('admin proxy — validated entry sessions and rotation intent', () => {
+  it('lets an expired-cookie visitor reach sign-in instead of looping to a private reader', async () => {
+    mockFetch.mockResolvedValue({ ok: false, status: 401 });
+    const res = await proxy(req('/login?redirect=/client-shares/delivery', VIEWER_COOKIES));
+    expect(redirectPath(res)).toBeNull();
+    expect(res.headers.get('Cache-Control')).toBe('private, no-store');
+  });
+  it('uses the canonical session role instead of the role cookie for entry redirects', async () => {
+    mockFetch.mockResolvedValue({ ok: true, json: async () => ({ user: { role: 'viewer' } }) });
+    expect(redirectPath(await proxy(req('/login', ADMIN_COOKIES)))).toBe('/welcome');
+  });
+  it('preserves a private reader path and query through forced password rotation', async () => {
+    const res = await proxy(
+      req('/client-shares/delivery?page=2', `${VIEWER_COOKIES}; revealui-must-rotate=1`),
+    );
+    const location = new URL(res.headers.get('location') ?? 'https://invalid.test');
+    expect(res.headers.get('Cache-Control')).toBe('private, no-store');
+    expect(location.pathname).toBe('/rotate-password');
+    expect(location.searchParams.get('redirect')).toBe('/client-shares/delivery?page=2');
   });
 });

@@ -7,23 +7,28 @@
 
 import { validateBlocks } from '@revealui/contracts/content-validation';
 import { PAGE_STATUSES } from '@revealui/contracts/entities';
+import { getExplicitDeploymentMode } from '@revealui/core/deployment-mode';
 import * as pageQueries from '@revealui/db/queries/pages';
 import * as siteQueries from '@revealui/db/queries/sites';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
-import { canAdministerAllContent } from '../../lib/access.js';
 import { asNonEmptyTuple } from '../../lib/type-guards.js';
+import { noStoreCacheMiddleware } from '../../middleware/cache-control.js';
 import {
   ErrorSchema,
   IdParam,
+  PageCreateSchema,
+  PagePatchSchema,
   SiteIdParam,
-  SlugField,
   ValidationErrorSchema,
 } from '../_helpers/content-schemas.js';
 import { dateToString, nullableDateToString } from '../_helpers/serialize.js';
 import type { ContentVariables } from './index.js';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
+
+// Publication can change audience at any time; authenticated content is never shared-cacheable.
+app.use('*', noStoreCacheMiddleware());
 
 // =============================================================================
 // Page Schemas
@@ -126,17 +131,10 @@ app.openapi(
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
     const { siteId, status, createdByMe, limit, offset } = c.req.valid('query');
-    if (siteId) {
-      const site = await siteQueries.getSiteById(db, siteId);
-      if (!site) throw new HTTPException(404, { message: 'Site not found' });
-      if (!canAdministerAllContent(user) && site.ownerId !== user.id) {
-        throw new HTTPException(403, { message: 'Forbidden' });
-      }
-    }
     const scope = {
       siteId,
       status,
-      ...(!siteId || createdByMe === 'true' ? { siteOwnerId: user.id } : {}),
+      access: { actor: user, mode: getExplicitDeploymentMode() },
       ...(createdByMe === 'true' ? { createdBy: user.id } : {}),
     };
     const [data, totalDocs] = await Promise.all([
@@ -193,22 +191,19 @@ app.openapi(
     const { status, createdByMe } = c.req.valid('query');
     const site = await siteQueries.getSiteById(db, siteId);
     if (!site) throw new HTTPException(404, { message: 'Site not found' });
-    if (!user) {
-      if (createdByMe === 'true')
-        throw new HTTPException(401, { message: 'Authentication required' });
-      // Public access: only published pages from published sites
-      if (site.status !== 'published') {
-        throw new HTTPException(404, { message: 'Site not found' });
-      }
-      const data = await pageQueries.getPagesBySite(db, siteId, { status: 'published' });
-      return c.json({ success: true as const, data: data.map(serializePage) }, 200);
-    }
-    if (!canAdministerAllContent(user) && site.ownerId !== user.id) {
-      throw new HTTPException(403, { message: 'Forbidden' });
+    if (!user && createdByMe === 'true')
+      throw new HTTPException(401, { message: 'Authentication required' });
+    if (
+      !(await siteQueries.actorCanReadSite(db, user ?? null, siteId, getExplicitDeploymentMode(), {
+        includePublic: true,
+      }))
+    ) {
+      throw new HTTPException(404, { message: 'Site not found' });
     }
     const data = await pageQueries.getPagesBySite(db, siteId, {
       status,
-      ...(createdByMe === 'true' ? { createdBy: user.id } : {}),
+      access: { actor: user ?? null, mode: getExplicitDeploymentMode(), includePublic: true },
+      ...(createdByMe === 'true' && user ? { createdBy: user.id } : {}),
     });
     return c.json({ success: true as const, data: data.map(serializePage) }, 200);
   },
@@ -226,16 +221,7 @@ app.openapi(
       body: {
         content: {
           'application/json': {
-            schema: z.object({
-              title: z.string().min(1).max(500),
-              slug: SlugField,
-              path: z.string().min(1).max(500),
-              status: z.enum(asNonEmptyTuple(PAGE_STATUSES)).optional(),
-              parentId: z.string().optional(),
-              templateId: z.string().optional(),
-              blocks: z.array(z.unknown()).optional(),
-              seo: z.record(z.string(), z.unknown()).optional(),
-            }),
+            schema: PageCreateSchema,
           },
         },
       },
@@ -272,7 +258,14 @@ app.openapi(
     }
     const existingSite = await siteQueries.getSiteById(db, siteId);
     if (!existingSite) throw new HTTPException(404, { message: 'Site not found' });
-    if (!canAdministerAllContent(user) && existingSite.ownerId !== user.id) {
+    if (
+      !(await siteQueries.actorCanManageSite(
+        db,
+        user,
+        existingSite.id,
+        getExplicitDeploymentMode(),
+      ))
+    ) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const page = await pageQueries.createPage(db, {
@@ -308,20 +301,12 @@ app.openapi(
     const db = c.get('db');
     const user = c.get('user');
     const { id } = c.req.valid('param');
-    const page = await pageQueries.getPageById(db, id);
+    const page = await pageQueries.getPageById(db, id, {
+      actor: user ?? null,
+      mode: getExplicitDeploymentMode(),
+      includePublic: true,
+    });
     if (!page) throw new HTTPException(404, { message: 'Page not found' });
-    const site = await siteQueries.getSiteById(db, page.siteId);
-    if (!site) throw new HTTPException(404, { message: 'Page not found' });
-    if (!user) {
-      // Public access: only published pages
-      if (page.status !== 'published' || site?.status !== 'published') {
-        throw new HTTPException(404, { message: 'Page not found' });
-      }
-      return c.json({ success: true as const, data: serializePage(page) }, 200);
-    }
-    if (!canAdministerAllContent(user) && site.ownerId !== user.id) {
-      throw new HTTPException(403, { message: 'Forbidden' });
-    }
     return c.json({ success: true as const, data: serializePage(page) }, 200);
   },
 );
@@ -338,17 +323,7 @@ app.openapi(
       body: {
         content: {
           'application/json': {
-            schema: z.object({
-              title: z.string().min(1).max(500).optional(),
-              slug: SlugField.optional(),
-              path: z.string().min(1).max(500).optional(),
-              status: z.enum(asNonEmptyTuple(PAGE_STATUSES)).optional(),
-              parentId: z.string().nullable().optional(),
-              templateId: z.string().nullable().optional(),
-              blocks: z.array(z.unknown()).optional(),
-              seo: z.record(z.string(), z.unknown()).nullable().optional(),
-              publishedAt: z.string().datetime().nullable().optional(),
-            }),
+            schema: PagePatchSchema,
           },
         },
       },
@@ -376,7 +351,7 @@ app.openapi(
     if (!existing) throw new HTTPException(404, { message: 'Page not found' });
     const site = await siteQueries.getSiteById(db, existing.siteId);
     if (!site) throw new HTTPException(404, { message: 'Page not found' });
-    if (!canAdministerAllContent(user) && site.ownerId !== user.id) {
+    if (!(await siteQueries.actorCanManageSite(db, user, site.id, getExplicitDeploymentMode()))) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const body = c.req.valid('json');
@@ -430,7 +405,7 @@ app.openapi(
     if (!existing) throw new HTTPException(404, { message: 'Page not found' });
     const site = await siteQueries.getSiteById(db, existing.siteId);
     if (!site) throw new HTTPException(404, { message: 'Page not found' });
-    if (!canAdministerAllContent(user) && site.ownerId !== user.id) {
+    if (!(await siteQueries.actorCanManageSite(db, user, site.id, getExplicitDeploymentMode()))) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     await pageQueries.deletePage(db, id);

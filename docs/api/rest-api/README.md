@@ -540,6 +540,7 @@ Accepts structured error payloads from admin client-side and any other app that 
 - `201`  -  Deletion request created
 - `400`  -  Invalid request body
 - `401`  -  Authentication required
+- `409`  -  Owned domain cleanup required
 
 ---
 
@@ -665,6 +666,7 @@ Accepts structured error payloads from admin client-side and any other app that 
 - `201`  -  Deletion request created
 - `400`  -  Invalid request body
 - `401`  -  Authentication required
+- `409`  -  Owned domain cleanup required
 
 ---
 
@@ -3946,6 +3948,7 @@ After the client PUTs to the presigned URL, confirm HEADs the object, re-checks 
 | `limit` | `integer` | - | `20` |  |
 | `offset` | `integer` | - | `0` |  |
 | `status` | `string` | - |  -  |  |
+| `consultationBookingId` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -3965,6 +3968,8 @@ After the client PUTs to the presigned URL, confirm HEADs the object, re-checks 
 | `slug` | `string` | ✓ |  |
 | `description` | `string` | - |  |
 | `status` | `string` | - |  |
+| `visibility` | `string` | - |  |
+| `settings` | `object` | - |  |
 
 **Responses**
 
@@ -4008,6 +4013,7 @@ After the client PUTs to the presigned URL, confirm HEADs the object, re-checks 
 | `slug` | `string` | - |  |
 | `description` | `string` | - |  |
 | `status` | `string` | - |  |
+| `visibility` | `string` | - |  |
 | `favicon` | `string` | - |  |
 
 **Responses**
@@ -4031,6 +4037,140 @@ After the client PUTs to the presigned URL, confirm HEADs the object, re-checks 
 
 - `200`  -  Site deleted
 - `404`  -  Not found
+
+---
+
+### `PUT` `/api/content/sites/{siteId}/consultation-lifecycle`
+
+**Apply verified consultation payment lifecycle evidence**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `siteId` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+See API schema for request body shape.
+
+**Responses**
+
+- `200`  -  Current consultation lifecycle
+- `409`  -  Evidence does not match the current binding or refund
+
+---
+
+### `GET` `/api/content/sites/{siteId}/collaborators`
+
+**List site collaborators**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `siteId` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Site collaborators
+
+---
+
+### `PUT` `/api/content/sites/{siteId}/collaborators/{userId}`
+
+**Grant or update a site collaborator**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `siteId` | `string` | ✓ |  |
+| `userId` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `role` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Site collaborator saved
+
+---
+
+### `DELETE` `/api/content/sites/{siteId}/collaborators/{userId}`
+
+**Revoke a site collaborator**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `siteId` | `string` | ✓ |  |
+| `userId` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Site collaborator revoked
+
+---
+
+### `GET` `/api/content/consultation-domain`
+
+**Resolve a published private consultation hostname**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `hostname` | `string` | ✓ |  -  |  |
+
+**Responses**
+
+- `200`  -  Authenticated reader target only
+- `404`  -  No active domain delivery
+
+---
+
+### `PUT` `/api/content/sites/{siteId}/consultation-domain`
+
+**Attach and verify a consultation hostname**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `siteId` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `hostname` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Verified domain attached
+- `202`  -  Ownership or DNS verification pending; domain is not attached
+- `409`  -  Current delivery cannot bind this domain
+
+---
+
+### `DELETE` `/api/content/sites/{siteId}/consultation-domain`
+
+**Detach a consultation hostname**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `siteId` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Domain detached
 
 ---
 
@@ -4488,6 +4628,7 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 - `200`  -  User updated
 - `404`  -  Not found
+- `409`  -  Owned domain cleanup required
 
 ---
 
@@ -4505,6 +4646,7 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 - `200`  -  User deleted
 - `404`  -  Not found
+- `409`  -  Owned domain cleanup required
 
 ---
 
@@ -4701,6 +4843,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 **Batch create items in a collection**
 
+Supports posts, pages and sites using the direct mutation contracts. Media creation requires the media upload endpoint. Each item reports its own result.
+
 **Request body** (JSON)
 
 | Field | Type | Required | Description |
@@ -4719,6 +4863,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 **Batch update items in a collection**
 
+Supports posts, pages, sites and media metadata using the direct mutation contracts and current per-item authority.
+
 **Request body** (JSON)
 
 | Field | Type | Required | Description |
@@ -4736,6 +4882,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 ### `POST` `/api/content/batch/delete`
 
 **Batch delete items in a collection**
+
+Supports posts, pages and sites. Detach consultation hostnames before deleting sites. Media deletion requires the media delete endpoint so storage cleanup runs.
 
 **Request body** (JSON)
 
@@ -5052,6 +5200,7 @@ After the client PUTs to the presigned URL, confirm HEADs the object, re-checks 
 | `limit` | `integer` | - | `20` |  |
 | `offset` | `integer` | - | `0` |  |
 | `status` | `string` | - |  -  |  |
+| `consultationBookingId` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -5071,6 +5220,8 @@ After the client PUTs to the presigned URL, confirm HEADs the object, re-checks 
 | `slug` | `string` | ✓ |  |
 | `description` | `string` | - |  |
 | `status` | `string` | - |  |
+| `visibility` | `string` | - |  |
+| `settings` | `object` | - |  |
 
 **Responses**
 
@@ -5114,6 +5265,7 @@ After the client PUTs to the presigned URL, confirm HEADs the object, re-checks 
 | `slug` | `string` | - |  |
 | `description` | `string` | - |  |
 | `status` | `string` | - |  |
+| `visibility` | `string` | - |  |
 | `favicon` | `string` | - |  |
 
 **Responses**
@@ -5137,6 +5289,140 @@ After the client PUTs to the presigned URL, confirm HEADs the object, re-checks 
 
 - `200`  -  Site deleted
 - `404`  -  Not found
+
+---
+
+### `PUT` `/api/v1/content/sites/{siteId}/consultation-lifecycle`
+
+**Apply verified consultation payment lifecycle evidence**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `siteId` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+See API schema for request body shape.
+
+**Responses**
+
+- `200`  -  Current consultation lifecycle
+- `409`  -  Evidence does not match the current binding or refund
+
+---
+
+### `GET` `/api/v1/content/sites/{siteId}/collaborators`
+
+**List site collaborators**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `siteId` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Site collaborators
+
+---
+
+### `PUT` `/api/v1/content/sites/{siteId}/collaborators/{userId}`
+
+**Grant or update a site collaborator**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `siteId` | `string` | ✓ |  |
+| `userId` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `role` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Site collaborator saved
+
+---
+
+### `DELETE` `/api/v1/content/sites/{siteId}/collaborators/{userId}`
+
+**Revoke a site collaborator**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `siteId` | `string` | ✓ |  |
+| `userId` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Site collaborator revoked
+
+---
+
+### `GET` `/api/v1/content/consultation-domain`
+
+**Resolve a published private consultation hostname**
+
+**Query parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|:--------:|---------|-------------|
+| `hostname` | `string` | ✓ |  -  |  |
+
+**Responses**
+
+- `200`  -  Authenticated reader target only
+- `404`  -  No active domain delivery
+
+---
+
+### `PUT` `/api/v1/content/sites/{siteId}/consultation-domain`
+
+**Attach and verify a consultation hostname**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `siteId` | `string` | ✓ |  |
+
+**Request body** (JSON)
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `hostname` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Verified domain attached
+- `202`  -  Ownership or DNS verification pending; domain is not attached
+- `409`  -  Current delivery cannot bind this domain
+
+---
+
+### `DELETE` `/api/v1/content/sites/{siteId}/consultation-domain`
+
+**Detach a consultation hostname**
+
+**Path parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `siteId` | `string` | ✓ |  |
+
+**Responses**
+
+- `200`  -  Domain detached
 
 ---
 
@@ -5594,6 +5880,7 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 - `200`  -  User updated
 - `404`  -  Not found
+- `409`  -  Owned domain cleanup required
 
 ---
 
@@ -5611,6 +5898,7 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 - `200`  -  User deleted
 - `404`  -  Not found
+- `409`  -  Owned domain cleanup required
 
 ---
 
@@ -5807,6 +6095,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 **Batch create items in a collection**
 
+Supports posts, pages and sites using the direct mutation contracts. Media creation requires the media upload endpoint. Each item reports its own result.
+
 **Request body** (JSON)
 
 | Field | Type | Required | Description |
@@ -5825,6 +6115,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 **Batch update items in a collection**
 
+Supports posts, pages, sites and media metadata using the direct mutation contracts and current per-item authority.
+
 **Request body** (JSON)
 
 | Field | Type | Required | Description |
@@ -5842,6 +6134,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 ### `POST` `/api/v1/content/batch/delete`
 
 **Batch delete items in a collection**
+
+Supports posts, pages and sites. Detach consultation hostnames before deleting sites. Media deletion requires the media delete endpoint so storage cleanup runs.
 
 **Request body** (JSON)
 
@@ -5903,7 +6197,6 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 - `200`  -  Indexing completed
 - `400`  -  Invalid collection name
 - `403`  -  AI feature requires Pro or Enterprise license
-- `502`  -  Admin fetch error
 
 ---
 
@@ -5973,7 +6266,6 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 - `200`  -  Indexing completed
 - `400`  -  Invalid collection name
 - `403`  -  AI feature requires Pro or Enterprise license
-- `502`  -  Admin fetch error
 
 ---
 

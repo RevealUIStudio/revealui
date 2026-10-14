@@ -125,7 +125,7 @@ Two paths, by layer:
 
 - **Unit tests** never touch a real database — they mock the Drizzle client, staying fast and isolated with zero setup.
 - **Packages that embed Postgres** (`@revealui/cache`, `@revealui/mcp`, `@revealui/harnesses`) use **PGlite**, an in-process PostgreSQL (WASM) that needs no running server.
-- **Relational integration tests** (`packages/test`, `@revealui/db`) run against a **real Postgres** provisioned by `pnpm db:setup-test` (the Nix dev-shell Postgres, docker-compose, a CI service container, or a Neon branch). PGlite is *not* wired as a `@revealui/db` driver: `createClient` selects `node-postgres` for localhost / non-Neon hosts and the Neon HTTP driver for `*.neon.tech` (which has no transaction support — see [`DATABASE.md`](./DATABASE.md)).
+- **Relational integration tests** (`packages/test`, `@revealui/db`) run against a **real Postgres** provisioned by `pnpm db:setup-test` (the Nix dev-shell Postgres, docker-compose, a CI service container, or a Neon branch). PGlite is *not* wired as a `@revealui/db` driver: `createClient` selects `node-postgres` for localhost / non-Neon hosts and the Neon HTTP driver for `*.neon.tech` (normal queries use HTTP; `withTransaction` resolves the same database through the maintained PostgreSQL pool).
 
 **Configuration:**
 - `hookTimeout: 30000` in PGlite test configs (30s for schema setup)
@@ -159,7 +159,7 @@ Tests run as part of the CI gate:
 | Accessibility | main only | Playwright accessibility audit |
 | Visual regression | main only | Screenshot comparison against baselines |
 
-Feature branches run quality-only gates (lint + typecheck) via the pre-push hook. Unit tests run in CI on PR to `test` or `main`.
+Use `pnpm push [target-branch [remote]]` from a clean, committed checkout. The helper awaits `pnpm gate --phase=1 --changed` for feature destinations, or `pnpm gate --no-build --no-test` for `test` and `main`, before opening Git transport. The pre-push hook only verifies its live admission and rejects unadmitted branch updates. Unit tests run in CI on PR to `test` or `main`.
 
 ## Writing Tests
 

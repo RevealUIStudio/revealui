@@ -18,6 +18,12 @@ import type { DatabaseAdapter, DatabaseResult, QueryableDatabaseAdapter } from '
 import { safeParseRevealDocuments } from './safe-parse.js';
 import { getSSLConfig } from './ssl-config.js';
 
+/** Borrowed from the shared pool's managed transaction; the owner controls its lifecycle. */
+export interface SharedPostgresTransactionContext {
+  connection: import('pg').PoolClient;
+  transaction<T>(fn: (connection: import('pg').PoolClient) => Promise<T>): Promise<T>;
+}
+
 export interface UniversalPostgresAdapterConfig {
   /**
    * Connection string for the database
@@ -50,6 +56,10 @@ export interface UniversalPostgresAdapterConfig {
    * module init issues in Next.js).
    */
   poolFactory?: () => Promise<import('pg').Pool | null>;
+  /** Resolve the current managed transaction lazily, without importing its owner here. */
+  transactionContext?: (
+    pool: import('pg').Pool,
+  ) => SharedPostgresTransactionContext | null | Promise<SharedPostgresTransactionContext | null>;
 }
 
 /**
@@ -211,6 +221,14 @@ export function universalPostgresAdapter(
     if (sharedPool) {
       provider = 'generic';
       queryFn = async (queryString: string, values: unknown[] = []) => {
+        const context = await config.transactionContext?.(sharedPool);
+        if (context) {
+          const result = await context.connection.query(queryString, values);
+          return {
+            rows: safeParseRevealDocuments(result.rows),
+            rowCount: result.rowCount || 0,
+          };
+        }
         const client = await sharedPool.connect();
         try {
           const result = await client.query(queryString, values);
@@ -222,7 +240,24 @@ export function universalPostgresAdapter(
           client.release();
         }
       };
-      transactionFn = buildPgTransactionFn(sharedPool, 'shared-pool');
+      const pooledTransaction = buildPgTransactionFn(sharedPool, 'shared-pool');
+      transactionFn = async (fn) => {
+        const context = await config.transactionContext?.(sharedPool);
+        if (!context) return pooledTransaction(fn);
+        // The maintained owner serializes sibling savepoints and preserves the
+        // outer transaction. Never commit or release its borrowed connection.
+        return context.transaction((connection) =>
+          fn({
+            query: async (queryString: string, values: unknown[] = []) => {
+              const result = await connection.query(queryString, values);
+              return {
+                rows: safeParseRevealDocuments(result.rows),
+                rowCount: result.rowCount || 0,
+              };
+            },
+          }),
+        );
+      };
       return;
     }
 

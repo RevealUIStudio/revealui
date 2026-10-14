@@ -15,21 +15,12 @@
  */
 
 import { eq } from 'drizzle-orm';
-import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
-import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import type { Database } from '../client/index.js';
 import { ragChunks, ragDocuments, ragWorkspaces } from '../schema/rag.js';
 
 // =============================================================================
 // Types
 // =============================================================================
-
-/**
- * Minimal Drizzle client interface accepted by cleanup functions.
- * Covers both NeonHttpDatabase and NodePgDatabase without importing
- * the full schema generic, keeping the API flexible for callers.
- */
-// biome-ignore lint/suspicious/noExplicitAny: Drizzle schema generic varies per client
-type DrizzleClient = NeonHttpDatabase<any> | NodePgDatabase<any>;
 
 export interface RagSiteCleanupResult {
   /** Site ID that was cleaned up */
@@ -69,7 +60,7 @@ export interface CleanupLogger {
  * @returns Summary of what was cleaned up
  */
 export async function cleanupRagDataForSite(
-  db: DrizzleClient,
+  db: Database,
   siteId: string,
   logger?: CleanupLogger,
 ): Promise<RagSiteCleanupResult> {

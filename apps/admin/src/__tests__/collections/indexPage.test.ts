@@ -20,9 +20,12 @@ describe('indexPage', () => {
   it('calls indexer.onDocumentChanged with page data', async () => {
     mockGetIndexer.mockResolvedValue({ onDocumentChanged: mockOnDocumentChanged });
 
-    const doc = { id: 'page-1', title: 'Test Page', slug: 'test' } as unknown as Parameters<
-      typeof indexPage
-    >[0]['doc'];
+    const doc = {
+      siteId: 'private-site',
+      id: 'page-1',
+      title: 'Test Page',
+      slug: 'test',
+    } as unknown as Parameters<typeof indexPage>[0]['doc'];
 
     const result = indexPage({
       doc,
@@ -37,9 +40,10 @@ describe('indexPage', () => {
     await vi.waitFor(() => {
       expect(mockOnDocumentChanged).toHaveBeenCalledWith({
         collection: 'pages',
+        workspaceId: 'private-site',
         id: 'page-1',
         operation: 'create',
-        doc: expect.objectContaining({ id: 'page-1' }),
+        doc: expect.objectContaining({ siteId: 'private-site', id: 'page-1' }),
       });
     });
 
@@ -49,7 +53,7 @@ describe('indexPage', () => {
   it('returns doc immediately (fire-and-forget)', () => {
     mockGetIndexer.mockResolvedValue({ onDocumentChanged: mockOnDocumentChanged });
 
-    const doc = { id: 'page-2', title: 'Test' } as unknown as Parameters<
+    const doc = { siteId: 'private-site', id: 'page-2', title: 'Test' } as unknown as Parameters<
       typeof indexPage
     >[0]['doc'];
 
@@ -69,7 +73,9 @@ describe('indexPage', () => {
   it('does not throw when indexer is null (Pro not installed)', async () => {
     mockGetIndexer.mockResolvedValue(null);
 
-    const doc = { id: 'page-3' } as unknown as Parameters<typeof indexPage>[0]['doc'];
+    const doc = { siteId: 'private-site', id: 'page-3' } as unknown as Parameters<
+      typeof indexPage
+    >[0]['doc'];
 
     const result = indexPage({
       doc,
@@ -90,7 +96,9 @@ describe('indexPage', () => {
   it('does not throw when indexer rejects', async () => {
     mockGetIndexer.mockRejectedValue(new Error('Indexer failed'));
 
-    const doc = { id: 'page-4' } as unknown as Parameters<typeof indexPage>[0]['doc'];
+    const doc = { siteId: 'private-site', id: 'page-4' } as unknown as Parameters<
+      typeof indexPage
+    >[0]['doc'];
 
     // Should not throw despite indexer error
     const result = indexPage({
@@ -111,7 +119,9 @@ describe('indexPage', () => {
     mockOnDocumentChanged.mockRejectedValue(new Error('Index write failed'));
     mockGetIndexer.mockResolvedValue({ onDocumentChanged: mockOnDocumentChanged });
 
-    const doc = { id: 'page-5' } as unknown as Parameters<typeof indexPage>[0]['doc'];
+    const doc = { siteId: 'private-site', id: 'page-5' } as unknown as Parameters<
+      typeof indexPage
+    >[0]['doc'];
 
     const result = indexPage({
       doc,

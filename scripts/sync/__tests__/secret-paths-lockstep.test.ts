@@ -60,6 +60,54 @@ const secretsMd = readFileSync(SECRETS_MD_PATH, 'utf8');
 const docPaths = extractGeneratedPaths(secretsMd);
 
 describe('secret-paths spec self-consistency', () => {
+  it('accepts declared consumers parsed from maintained Vercel and Fly slugs', () => {
+    const toml = `
+[projects.revealui-api.vars]
+STUDIO_VERCEL_TOKEN = { path = "revealui/prod/studio/vercel-token", sensitive = true }
+REVEALUI_SIGNUP_OPEN = "revealui/prod/admin/signup-open"
+[projects.revealui-api-staging.vars]
+GOOGLE_WIF_PROVIDER = "revealui/prod/google/wif-provider"
+[projects.revealui-agency.vars]
+STRIPE_SECRET_KEY = { path = "revealui/prod/stripe/secret-key", sensitive = true }
+STUDIO_CONTENT_DEVICE_TOKEN = { path = "revealui/prod/studio/content-device-token", sensitive = true }
+[fly-apps.revealui-worker.vars]
+GOOGLE_WIF_PROVIDER = "revealui/prod/google/wif-provider"
+REVEALUI_API_URL = "revealui/prod/public/api-url"
+`;
+    const vars = [
+      ...collectVars(toml, 'projects', 'vercel'),
+      ...collectVars(toml, 'fly-apps', 'fly'),
+    ];
+    expect(vars).toHaveLength(7);
+    // Path coverage is independent of runtime assignments: an optional consumer
+    // need not be configured, but every configured consumer must be declared.
+    expect(findManifestDrift([...SYNCED_PATHS, ...vars])).toEqual([]);
+  });
+
+  it('rejects parsed credential assignments outside their declared runtime consumers', () => {
+    const vars = collectVars(
+      `
+[projects.revealui-admin.vars]
+STUDIO_CONTENT_DEVICE_TOKEN = { path = "revealui/prod/studio/content-device-token", sensitive = true }
+[projects.revealui-api-staging.vars]
+GOOGLE_PRIVATE_KEY = { path = "revealui/prod/google/private-key", sensitive = true }
+[projects.revealui-marketing.vars]
+STUDIO_VERCEL_TOKEN = { path = "revealui/prod/studio/vercel-token", sensitive = true }
+[projects.not-revealui-api.vars]
+STUDIO_VERCEL_TOKEN = { path = "revealui/prod/studio/vercel-token", sensitive = true }
+`,
+      'projects',
+      'vercel',
+    );
+    expect(findManifestDrift([...SYNCED_PATHS, ...vars])).toEqual(
+      vars.map((entry) => ({
+        kind: 'undeclared-consumer',
+        path: entry.path,
+        detail: `${entry.source} var ${entry.name} is not a declared consumer of this path`,
+      })),
+    );
+  });
+
   it('every SecretPathDef.sensitive matches its kind', () => {
     expect(findSpecSensitivityInconsistencies(SECRET_PATHS)).toEqual([]);
   });
@@ -127,8 +175,8 @@ describe.skipIf(!hasManifests)('manifest ↔ spec lockstep', () => {
     expect(stagingVars.length).toBeGreaterThan(40);
   });
 
-  it('no undeclared manifest path and every synced spec path is explicitly listed', () => {
-    expect(findManifestDrift(allManifestPaths)).toEqual([]);
+  it('every manifest path and runtime consumer is declared and every synced path is listed', () => {
+    expect(findManifestDrift([...vercelVars, ...flyVars, ...stagingVars])).toEqual([]);
   });
 
   it('no retired (renamed-away) path is actively synced', () => {

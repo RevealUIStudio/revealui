@@ -17,6 +17,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 beforeEach(() => {
   vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', 'forge');
+  mockSiteQueries.getSiteContentActor.mockResolvedValue({
+    id: 'admin-1',
+    role: 'admin',
+    emailVerified: true,
+    _json: { roles: ['super-admin'] },
+  });
+  mockSiteQueries.actorCanManageSite.mockResolvedValue(true);
+  mockPageQueries.getPageById.mockResolvedValue({ id: 'page-1', siteId: 'owned-site' });
+  mockPostQueries.getPostById.mockResolvedValue({ id: 'p1', authorId: 'admin-1' });
+  mockMediaQueries.getMediaById.mockResolvedValue({ id: 'm1', uploadedBy: 'admin-1' });
 });
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -27,21 +37,29 @@ const { mockPostQueries, mockSiteQueries, mockPageQueries, mockMediaQueries } = 
     createPost: vi.fn(),
     updatePost: vi.fn(),
     deletePost: vi.fn(),
+    getPostById: vi.fn(),
   },
   mockSiteQueries: {
     createSite: vi.fn(),
     updateSite: vi.fn(),
     deleteSite: vi.fn(),
+    getSiteContentActor: vi.fn(),
+    actorCanManageSite: vi.fn(),
+    SiteMutationProtectedError: class extends Error {
+      readonly code = 'SITE_MUTATION_PROTECTED';
+    },
   },
   mockPageQueries: {
     createPage: vi.fn(),
     updatePage: vi.fn(),
     deletePage: vi.fn(),
+    getPageById: vi.fn(),
   },
   mockMediaQueries: {
     createMedia: vi.fn(),
     updateMedia: vi.fn(),
     deleteMedia: vi.fn(),
+    getMediaById: vi.fn(),
   },
 }));
 
@@ -112,7 +130,6 @@ describe('Batch Operations API', () => {
               title: 'Own',
               slug: 'own',
               path: '/own',
-              createdBy: 'forged',
             },
           ],
         }),
@@ -342,6 +359,20 @@ describe('hosted batch platform authority', () => {
   });
   afterEach(() => {
     vi.unstubAllEnvs();
+  });
+  it('rejects a stale elevated session when the canonical actor no longer has authority', async () => {
+    mockSiteQueries.getSiteContentActor.mockResolvedValue(null);
+    const response = await buildApp({
+      ...adminUser,
+      emailVerified: true,
+      _json: { roles: ['super-admin'] },
+    }).request('/batch/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ collection: 'posts', items: [{ id: 'post', title: 'Forged' }] }),
+    });
+    expect(response.status).toBe(403);
+    expect(mockPostQueries.updatePost).not.toHaveBeenCalled();
   });
   it.each(['create', 'update', 'delete'])(
     'denies raw tenant admin at batch %s before any mutation',

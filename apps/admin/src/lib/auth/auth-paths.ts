@@ -18,3 +18,9 @@ export function isAuthPath(pathname: string): boolean {
   const path = pathname.split('?')[0] ?? pathname;
   return AUTH_PATHS.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
 }
+
+/** Client deliveries use the maintained auth flow without admin navigation. */
+export function isClientSharePath(pathname: string): boolean {
+  const path = pathname.split('?')[0] ?? pathname;
+  return path === '/client-shares' || path.startsWith('/client-shares/');
+}

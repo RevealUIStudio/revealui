@@ -351,6 +351,27 @@
       "when": 1790918126362,
       "tag": "0049_page_creator_attribution",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1791170595843,
+      "tag": "0050_private_site_visibility",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1791191228123,
+      "tag": "0051_consultation_binding",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1791198485226,
+      "tag": "0052_consultation_domain",
+      "breakpoints": true
     }
   ]
 }

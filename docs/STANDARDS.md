@@ -1527,7 +1527,7 @@ This creates a cycle of:
 4. **Pre-commit Hook** (`scripts/git-hooks/pre-commit`)
    - Validates staged files before commit
    - Safety net for anything MCP layer missed
-   - Can be bypassed with `--no-verify` (emergencies only)
+   - Required for every commit; fix failures in the owning validator or source
 
 5. **CLI Tool** (`scripts/validate/validate-code.ts`)
    - Manual validation
@@ -1620,8 +1620,7 @@ The hook runs automatically on `git commit`:
 # Normal commit (hook validates)
 git commit -m "feat: add feature"
 
-# Emergency bypass (use sparingly!)
-git commit --no-verify -m "hotfix: emergency"
+# Resolve validation failures in their owning source before committing.
 ```
 
 ---

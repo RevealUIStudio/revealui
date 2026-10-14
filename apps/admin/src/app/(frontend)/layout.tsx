@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import { draftMode, headers } from 'next/headers';
 import type React from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { isAuthPath } from '@/lib/auth/auth-paths';
+import { isAuthPath, isClientSharePath } from '@/lib/auth/auth-paths';
 import { mergeOpenGraph } from '@/lib/cms/mergeOpenGraph';
 import { AdminBar } from '@/lib/components/AdminBar';
 import { LivePreviewListener } from '@/lib/components/LivePreviewListener';
@@ -46,7 +46,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // header-block + footer-block via env or admin settings.
   const isFleetMode = process.env.REVEALUI_FLEET_MODE === 'true';
   const pathname = (await headers()).get('x-revealui-pathname') ?? '';
-  const hideSiteChrome = isFleetMode || isAuthPath(pathname);
+  const isClientShare = isClientSharePath(pathname);
+  const hideSiteChrome = isFleetMode || isAuthPath(pathname) || isClientShare;
 
   // CSP nonce (set by the proxy in src/proxy.ts) — thread it to the inline theme
   // <Script> so it survives the nonce-based script-src (no 'unsafe-inline' in prod).
@@ -75,12 +76,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <body>
           <Providers isFleetMode={isFleetMode}>
             <ErrorBoundary>
-              <AdminBar
-                adminBarProps={{
-                  preview: isEnabled,
-                }}
-              />
-              <LivePreviewListener />
+              {isClientShare ? null : (
+                <AdminBar
+                  adminBarProps={{
+                    preview: isEnabled,
+                  }}
+                />
+              )}
+              {isClientShare ? null : <LivePreviewListener />}
 
               {hideSiteChrome ? null : <Header />}
               {hideSiteChrome ? children : <main>{children}</main>}

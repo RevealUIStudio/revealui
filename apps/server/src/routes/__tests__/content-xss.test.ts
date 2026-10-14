@@ -12,18 +12,10 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { z } from 'zod';
+import { SlugField } from '../_helpers/content-schemas.js';
 
 // ─── Schema-Level Tests ──────────────────────────────────────────────────────
-// Mirror the exact pattern from content.ts so these tests break if the
-// production regex is accidentally weakened.
-
-const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const SlugField = z
-  .string()
-  .min(1)
-  .max(200)
-  .regex(SLUG_PATTERN, 'Slug must be lowercase alphanumeric with hyphens only');
+// Exercise the owning schema used by direct and batch content routes.
 
 describe('SlugField schema validation', () => {
   describe('rejects XSS payloads', () => {
@@ -124,6 +116,7 @@ const { mockPostQueries, mockSiteQueries, mockPageQueries } = vi.hoisted(() => (
     getSiteById: vi.fn(),
     updateSite: vi.fn(),
     deleteSite: vi.fn(),
+    actorCanManageSite: vi.fn().mockResolvedValue(true),
   },
   mockPageQueries: {
     getAllPages: vi.fn(),
