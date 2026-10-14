@@ -15,7 +15,7 @@ export const crmTasks = pgTable('crm_tasks', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   index('crm_tasks_account_due_idx').on(t.accountId, t.dueAt),
-  foreignKey({ columns: [t.accountId, t.opportunityId], foreignColumns: [crmOpportunities.accountId, crmOpportunities.id] }),
+  foreignKey({ columns: [t.accountId, t.opportunityId], foreignColumns: [crmOpportunities.accountId, crmOpportunities.id] }).onDelete('cascade'),
 ])
 
 /** Drafts cannot be sent without separate reviewed transport and suppression checks. */
@@ -32,8 +32,8 @@ export const crmOutreachDrafts = pgTable('crm_outreach_drafts', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   index('crm_outreach_account_status_idx').on(t.accountId, t.status),
-  foreignKey({ columns: [t.accountId, t.contactId], foreignColumns: [crmContacts.accountId, crmContacts.id] }),
-  foreignKey({ columns: [t.accountId, t.campaignId], foreignColumns: [crmCampaigns.accountId, crmCampaigns.id] }),
+  foreignKey({ columns: [t.accountId, t.contactId], foreignColumns: [crmContacts.accountId, crmContacts.id] }).onDelete('restrict'),
+  foreignKey({ columns: [t.accountId, t.campaignId], foreignColumns: [crmCampaigns.accountId, crmCampaigns.id] }).onDelete('restrict'),
 ])
 
 export const crmSuppression = pgTable('crm_suppression', {
