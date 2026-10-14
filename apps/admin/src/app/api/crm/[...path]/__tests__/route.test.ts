@@ -8,6 +8,11 @@ const mocks = vi.hoisted(() => ({
   list: vi.fn(),
   create: vi.fn(),
   stage: vi.fn(),
+  target: vi.fn(),
+  operator: vi.fn(),
+  superAdmin: vi.fn(),
+  source: vi.fn(),
+  sync: vi.fn(),
 }));
 vi.mock('@/lib/auth/require-mfa', () => ({ requireSessionWithMfa: mocks.gate }));
 vi.mock('@/lib/utils/recovery-guard', () => ({ rejectRecoverySession: mocks.recovery }));
@@ -18,6 +23,9 @@ vi.mock('@revealui/db/crm-service', () => ({
     status = 403;
   },
 }));
+vi.mock('@revealui/db/queries/sites', () => ({ getSiteContentActor: mocks.operator }));
+vi.mock('@revealui/utils/validation', () => ({ isPlatformSuperAdmin: mocks.superAdmin }));
+vi.mock('@/lib/crm/booking-source', () => ({ readCrmBookingSource: mocks.source }));
 vi.mock('@revealui/utils/logger', () => ({ logger: { error: vi.fn() } }));
 
 import { GET, POST } from '../route';
@@ -37,10 +45,15 @@ beforeEach(() => {
   mocks.list.mockResolvedValue([]);
   mocks.create.mockResolvedValue({ id: 'record' });
   mocks.stage.mockResolvedValue({ stage: 'qualified' });
+  mocks.target.mockResolvedValue({ id: 'opportunity' });
+  mocks.operator.mockResolvedValue({ id: 'session-user' });
+  mocks.superAdmin.mockReturnValue(false);
   mocks.service.mockReturnValue({
     list: mocks.list,
     createOrganization: mocks.create,
     transition: mocks.stage,
+    verifyBookingSyncTarget: mocks.target,
+    syncSourceBooking: mocks.sync,
   });
 });
 describe('CRM session boundary', () => {
@@ -81,6 +94,39 @@ describe('CRM session boundary', () => {
       ).status,
     ).toBe(403);
     expect(mocks.create).not.toHaveBeenCalled();
+  });
+  it('does not release the Studio owner credential to ordinary account operators', async () => {
+    const response = await POST(
+      request('bookings/sync', 'POST', { opportunityId: 'opportunity', bookingId: 'booking' }),
+      context('bookings', 'sync'),
+    );
+    expect(response.status).toBe(403);
+    expect(mocks.target).toHaveBeenCalledWith('opportunity');
+    expect(mocks.source).not.toHaveBeenCalled();
+    expect(mocks.sync).not.toHaveBeenCalled();
+  });
+  it('fails closed before source IO on account denial and never treats provider failure as cancellation', async () => {
+    mocks.target.mockRejectedValueOnce(new Error('Account unavailable'));
+    expect(
+      (
+        await POST(
+          request('bookings/sync', 'POST', { opportunityId: 'opportunity', bookingId: 'booking' }),
+          context('bookings', 'sync'),
+        )
+      ).status,
+    ).toBe(503);
+    expect(mocks.source).not.toHaveBeenCalled();
+    mocks.superAdmin.mockReturnValue(true);
+    mocks.source.mockRejectedValueOnce(new Error('Provider unavailable'));
+    expect(
+      (
+        await POST(
+          request('bookings/sync', 'POST', { opportunityId: 'opportunity', bookingId: 'booking' }),
+          context('bookings', 'sync'),
+        )
+      ).status,
+    ).toBe(503);
+    expect(mocks.sync).not.toHaveBeenCalled();
   });
   it('routes only explicitly supported actions, never a send operation', async () => {
     expect(
