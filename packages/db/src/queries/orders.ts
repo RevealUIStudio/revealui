@@ -2,9 +2,13 @@
  * Order database queries
  */
 
-import { and, count, desc, eq } from 'drizzle-orm';
+import { and, count, desc, eq, isNull } from 'drizzle-orm';
 import type { Database } from '../client/index.js';
 import { orders } from '../schema/products.js';
+
+function activeOrderCondition() {
+  return isNull(orders.deletedAt);
+}
 
 /** Count orders matching filters (for pagination) */
 export async function countOrders(
@@ -19,7 +23,7 @@ export async function countOrders(
   const result = await db
     .select({ total: count() })
     .from(orders)
-    .where(conditions.length > 0 ? and(...conditions) : undefined);
+    .where(and(activeOrderCondition(), ...conditions));
   return result[0]?.total ?? 0;
 }
 
@@ -35,14 +39,18 @@ export async function getAllOrders(
   return db
     .select()
     .from(orders)
-    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .where(and(activeOrderCondition(), ...conditions))
     .orderBy(desc(orders.createdAt))
     .limit(limit)
     .offset(offset);
 }
 
 export async function getOrderById(db: Database, id: string) {
-  const result = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
+  const result = await db
+    .select()
+    .from(orders)
+    .where(and(activeOrderCondition(), eq(orders.id, id)))
+    .limit(1);
   return result[0] ?? null;
 }
 
@@ -59,7 +67,7 @@ export async function updateOrder(
   const result = await db
     .update(orders)
     .set({ ...data, updatedAt: new Date() })
-    .where(eq(orders.id, id))
+    .where(and(activeOrderCondition(), eq(orders.id, id)))
     .returning();
   return result[0] ?? null;
 }
