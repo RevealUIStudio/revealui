@@ -66,9 +66,18 @@ jobs:
       full_suite: ${{ steps.detect.outputs.full_suite }}
       reason: ${{ steps.detect.outputs.reason }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      # Classifier is a gate. On a pull request, run the base commit's copy.
+      # The file list still comes from the pull request API below.
+      - name: Checkout trusted classifier
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
           persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/expensive-suite.mjs
+          sparse-checkout-cone-mode: false
+          path: trusted-classifier
 
       - name: Classify diff
         id: detect
@@ -107,7 +116,7 @@ jobs:
               files="$(gh api "repos/${REPO}/compare/${BEFORE_SHA}...${SHA}" --jq '.files[]?.filename // empty')"
             fi
             if [ -n "$files" ]; then
-              suite_line="$(printf '%s\n' "$files" | node scripts/ci/expensive-suite.mjs | tr -d '\r')"
+              suite_line="$(printf '%s\n' "$files" | node trusted-classifier/scripts/ci/expensive-suite.mjs | tr -d '\r')"
               full_suite="${suite_line#full_suite=}"
               if [ "${full_suite}" != "true" ]; then
                 reason=docs-copy-only
@@ -170,7 +179,8 @@ jobs:
   quality:
     name: Quality
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Headroom for the base gates rebuild that doc-currency must execute.
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -345,6 +355,48 @@ jobs:
         # same keys are required (stale dist → 422 on session.patch). Does not
         # build @revealui/contracts (needs @revealui/db; Quality has install only).
         run: pnpm validate:marketing-voice-prose-slots
+
+      - name: Base-commit gate script contract (hard fail)
+        # Runs before the base resolver is copied over this workspace, so the
+        # contract covers this pull request's resolver and workflow files.
+        run: pnpm exec vitest run scripts/ci/__tests__/trusted-base-gates.test.ts scripts/validate/__tests__/gates-resolver.test.ts scripts/validate/__tests__/required-check-no-cancel.test.ts
+        env:
+          CI: "true"
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Checkout base gates resolver
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          path: trusted-gate
+          sparse-checkout: |
+            scripts/validate/gates-resolver.cjs
+            package.json
+            pnpm-workspace.yaml
+            pnpm-lock.yaml
+            .npmrc
+            packages/*/package.json
+            apps/*/package.json
+            packages/harnesses/
+            packages/dev/
+          sparse-checkout-cone-mode: false
+
+      - name: Pin gates resolver to the base build
+        run: |
+          set -euo pipefail
+          rm -rf "$RUNNER_TEMP/trusted-gate"
+          cp -a trusted-gate "$RUNNER_TEMP/trusted-gate"
+          rm -rf trusted-gate
+          cd "$RUNNER_TEMP/trusted-gate"
+          pnpm install --frozen-lockfile --filter @revealui/harnesses --filter @revealui/dev
+          pnpm --filter @revealui/harnesses exec tsup --config tsup.gates-cjs.ts
+          test -f packages/harnesses/dist/gates/index.cjs
+          test -f scripts/validate/gates-resolver.cjs
+          install -m 0644 scripts/validate/gates-resolver.cjs "$GITHUB_WORKSPACE/scripts/validate/gates-resolver.cjs"
+          mkdir -p "$GITHUB_WORKSPACE/packages/harnesses/dist/gates"
+          install -m 0644 packages/harnesses/dist/gates/index.cjs "$GITHUB_WORKSPACE/packages/harnesses/dist/gates/index.cjs"
 
       - name: Doc-currency validation (hard fail)
         # Stale-fact drift guard: docs/**/*.md + apps/marketing/**/*.md prose,

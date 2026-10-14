@@ -83,9 +83,18 @@ jobs:
       presentation: ${{ steps.detect.outputs.presentation }}
       adherence: ${{ steps.detect.outputs.adherence }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      # Classifier is a gate. On a pull request, run the base commit's copy.
+      # The file list still comes from the pull request API below.
+      - name: Checkout trusted classifier
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
           persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/expensive-suite.mjs
+          sparse-checkout-cone-mode: false
+          path: trusted-classifier
       - name: Classify diff
         id: detect
         env:
@@ -114,7 +123,7 @@ jobs:
             echo "empty or unknown diff — run all ds jobs"
             exit 0
           fi
-          printf '%s\n' "$files" | node scripts/ci/expensive-suite.mjs --ds >> "$GITHUB_OUTPUT"
+          printf '%s\n' "$files" | node trusted-classifier/scripts/ci/expensive-suite.mjs --ds >> "$GITHUB_OUTPUT"
           echo "classified ds paths"
 
   adherence:

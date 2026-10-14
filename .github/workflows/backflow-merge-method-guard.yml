@@ -30,17 +30,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      # Ancestry reads git HEAD. That checkout is the pushed commit. The
+      # decision script is a separate checkout: the pull request base, or the
+      # previous tip on push, so the commit under test cannot rewrite the guard.
+      - name: Checkout push tip for ancestry
+        if: github.event_name == 'push'
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          # PR: evaluate the head copy (required so the introducing PR can pass
-          # before the script exists on test; ancestry mode still fail-closes on
-          # push to test). Push: the pushed SHA.
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout trusted guard
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || (github.event.before == '0000000000000000000000000000000000000000' && github.sha || github.event.before) }}
+          persist-credentials: false
+          fetch-depth: 1
           sparse-checkout: |
             scripts/validate/backflow-merge-method-guard.cjs
           sparse-checkout-cone-mode: false
-          fetch-depth: 0
-          persist-credentials: false
+          path: trusted-guard
 
       - name: PR mode — backflow acknowledgment + instructions
         if: github.event_name == 'pull_request'
@@ -56,13 +66,11 @@ jobs:
           REVEALFLEET_BACKFLOW_APP_LOGIN: revealfleet-backflow[bot]
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node scripts/validate/backflow-merge-method-guard.cjs --mode=pr
+        run: node trusted-guard/scripts/validate/backflow-merge-method-guard.cjs --mode=pr
 
       - name: Ancestry mode — test must contain main
         if: github.event_name == 'push'
         run: |
+          set -euo pipefail
           git fetch origin main --depth=200
-          # Full tree for merge-base (push checkout may be sparse); re-fetch tip.
-          git fetch origin "${{ github.sha }}" --depth=200 || true
-          git checkout --force "${{ github.sha }}"
-          node scripts/validate/backflow-merge-method-guard.cjs --mode=ancestry
+          node trusted-guard/scripts/validate/backflow-merge-method-guard.cjs --mode=ancestry
