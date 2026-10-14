@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "knowledge-graph": {
+      "command": "revealui-mcp",
+      "args": [
+        "knowledge-graph"
+      ]
+    }
+  }
+}

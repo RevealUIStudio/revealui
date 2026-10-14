@@ -123,3 +123,10 @@ A skill is a set of local instructions to follow that is stored in a `SKILL.md` 
   - Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
   - When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
 - Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+
+<!-- revealui-codex:start -->
+## RevealUI project manager
+
+For Codex sessions, read [.revealui/adapters/codex.md](.revealui/adapters/codex.md).
+Shared project policy and skills use the manager's contentRoot under .revealui/.
+<!-- revealui-codex:end -->

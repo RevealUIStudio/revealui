@@ -2,7 +2,7 @@ import type { Rule } from '../../schemas/rule.js';
 
 /**
  * GAP-497: SemVer 1.0 is a contract claim, not a default bump.
- * SSOT is this definition → `.revealui/content/rules/versioning.md`.
+ * SSOT is this definition → `{{CONTENT_ROOT}}/rules/versioning.md`.
  * Adapter homes (`.claude/rules`, `.grok/rules`) are wrappers only.
  */
 export const versioningRule: Rule = {
@@ -16,7 +16,7 @@ export const versioningRule: Rule = {
   tags: ['semver', 'release', '1.0', 'changesets'],
   content: `# SemVer and 1.0 contract (M6)
 
-**SSOT:** \`.revealui/content/rules/versioning.md\` (this file, generated from \`@revealui/harnesses\`).
+**SSOT:** \`{{CONTENT_ROOT}}/rules/versioning.md\` (this file, generated from \`@revealui/harnesses\`).
 Adapter copies under \`.claude/rules/\` or \`.grok/rules/\` must be **wrappers** that point here. Do not author a second dialect.
 
 ## Rule

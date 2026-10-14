@@ -35,8 +35,9 @@ describe('protocol capabilities', () => {
 });
 
 describe('TOOL_PROFILES (shipped adapters)', () => {
-  it('contains cursor, grok, opencode, and revealui-agent', () => {
+  it('contains the shipped adapters', () => {
     expect(Object.keys(TOOL_PROFILES).sort()).toEqual([
+      'codex',
       'cursor',
       'grok',
       'opencode',
@@ -112,13 +113,12 @@ describe('TOOL_PROFILES (shipped adapters)', () => {
 
   it('does not contain entries for tools without adapters', () => {
     expect(TOOL_PROFILES['claude-code']).toBeUndefined();
-    expect(TOOL_PROFILES.codex).toBeUndefined();
   });
 });
 
 describe('ROADMAP_PROFILES (declared, no adapter)', () => {
   it('contains remaining roadmap tools (vscode Phase C; zed Phase D ACP client)', () => {
-    expect(Object.keys(ROADMAP_PROFILES).sort()).toEqual(['claude-code', 'codex', 'vscode', 'zed']);
+    expect(Object.keys(ROADMAP_PROFILES).sort()).toEqual(['claude-code', 'vscode', 'zed']);
   });
 
   it('vscode declares real hook support but no dispatch/adapter capabilities', () => {
@@ -134,8 +134,15 @@ describe('ROADMAP_PROFILES (declared, no adapter)', () => {
     expect(caps.dispatch.analyzeCode).toBe(false);
   });
 
-  it('codex has sandbox support', () => {
-    const caps = ROADMAP_PROFILES.codex;
+  it('codex has a shipped bounded runtime, without unimplemented roadmap claims', () => {
+    const caps = TOOL_PROFILES.codex;
+    expect(caps.dispatch.generateCode).toBe(true);
+    expect(caps.headless).toBe(true);
+    expect(caps.resumable).toBe(true);
+    expect(caps.hooks.canBlock).toBe(false);
+    expect(caps.supportsMcp).toBe(true);
+    expect(caps.memory.supported).toBe(false);
+    expect(ROADMAP_PROFILES.codex).toBeUndefined();
     expect(caps.sandbox.supported).toBe(true);
     expect(caps.sandbox.modes).toContain('read-only');
   });
@@ -265,7 +272,9 @@ describe('degradation strategies', () => {
   it('returns polyfill for synthesizable events', () => {
     expect(getDegradationStrategy('claude-code', 'session.crash')).toBe('polyfill');
     expect(getDegradationStrategy('claude-code', 'agent.heartbeat')).toBe('polyfill');
-    expect(getDegradationStrategy('codex', 'task.claimed')).toBe('polyfill');
+    expect(getDegradationStrategy('codex', 'session.crash')).toBe('polyfill');
+    expect(getDegradationStrategy('codex', 'task.claimed')).toBe('absent');
+    expect(getDegradationStrategy('codex', 'tool.before')).toBe('absent');
   });
 
   it('returns absent for cursor events', () => {

@@ -115,3 +115,39 @@ See [revealui.com/pricing](https://revealui.com/pricing) for the live catalog.
 - **Email.** support@revealui.com
 
 We prioritize based on customer impact, charge readiness, and community demand.
+
+### HARNESS-CODEX-RUNTIME — Codex execution and lifecycle integration
+
+Native instruction and skill delivery is implemented through the project manager.
+The execution adapter extends the existing harness framework and auto-detection
+with bounded app-server dispatch, streamed final output, cancellation/cleanup,
+project-scoped resume, canonical MCP attachment, and request-scoped host approval
+review. Its owner remains `@revealui/harnesses`. Configured authenticated memory
+uses the existing signed session boundary and installed knowledge-graph MCP
+launcher, with native tool calls requiring no model turn. Local and hosted
+reads enforce scope; scoped keys protect mutable node metadata. Historical
+unscoped memory is quarantined pending `KG-LEGACY-MEMORY-SCOPE-MIGRATION` in the
+knowledge-graph migration owner. Repository-filter support remains tracked in
+the shared search owner. Lifecycle hooks and a packaged approval UI remain
+follow-up work. Do not create a second identity or store; verify each integration
+before enabling its capability.
+
+Migration locations, owners, canonical sources, destinations, and removal evidence
+are recorded in [codex-native-delivery.json](audits/codex-native-delivery.json).
+
+### HARNESS-INTEGRATION-GATE-DEBT — Complete broad validation
+
+The bounded quick gate completed in 612.3 seconds. Native manager delivery,
+content snapshots, and content freshness passed; Biome lint failed on existing
+source findings. Fix the owning files listed in the migration audit and rerun
+`pnpm gate:quick`; do not suppress or bypass checks. Dependency owners must
+also address the security audit findings reported as a warning.
+
+### HARNESS-CLI-STARTUP — Bound cold CLI hook startup
+
+Resolved in the CLI owner: command routing now precedes imports of ACP,
+inference, content generation, session, and other command implementations.
+The hook path keeps its existing end-to-end assertions and 20-second subprocess
+budget. Cold full-suite validation passed after this change; keep the existing
+CLI hook suite as the regression gate. Evidence and prior failure behavior are
+recorded in the native delivery audit.

@@ -8,6 +8,7 @@
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { contentRootRelative, loadManager } from '../manager/paths.js';
 import { buildManifest } from './definitions/index.js';
 import { MANAGER_CONTENT_OUTPUT } from './generators/types.js';
 
@@ -120,6 +121,9 @@ function listSkillDir(skillsDir: string, source: SkillCatalogSource): SkillCatal
  * same id so a materialized project tree is what RevDev reports first.
  */
 export function listSkillCatalog(options: ListSkillCatalogOptions = {}): SkillCatalogEntry[] {
+  const contentRoot = options.projectRoot
+    ? contentRootRelative(loadManager(options.projectRoot))
+    : MANAGER_CONTENT_OUTPUT;
   const includeDefinitions = options.includeDefinitions !== false;
   const byId = new Map<string, SkillCatalogEntry>();
 
@@ -129,7 +133,7 @@ export function listSkillCatalog(options: ListSkillCatalogOptions = {}): SkillCa
         id: skill.id,
         name: skill.name,
         description: skill.description,
-        path: `${MANAGER_CONTENT_OUTPUT}/skills/${skill.id}/SKILL.md`,
+        path: `${contentRoot}/skills/${skill.id}/SKILL.md`,
         source: 'definitions',
       });
     }
@@ -142,7 +146,7 @@ export function listSkillCatalog(options: ListSkillCatalogOptions = {}): SkillCa
   }
 
   if (options.projectRoot) {
-    const contentDir = join(options.projectRoot, MANAGER_CONTENT_OUTPUT, 'skills');
+    const contentDir = join(options.projectRoot, contentRoot, 'skills');
     for (const entry of listSkillDir(contentDir, 'content')) {
       byId.set(entry.id, entry);
     }

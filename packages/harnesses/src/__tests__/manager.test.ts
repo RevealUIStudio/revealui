@@ -1,8 +1,9 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import fs, { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MANAGER_MATERIALIZE_GENERATORS, writeManagerAdapterContent } from '../content/index.js';
 import {
   checkManager,
@@ -11,11 +12,13 @@ import {
   materializeManager,
   writeManager,
 } from '../manager/index.js';
+import { readManagedFile } from '../manager/paths.js';
 
 describe('project manager (.revealui)', () => {
   const dirs: string[] = [];
 
   afterEach(() => {
+    vi.restoreAllMocks();
     for (const d of dirs) {
       rmSync(d, { recursive: true, force: true });
     }
@@ -27,6 +30,43 @@ describe('project manager (.revealui)', () => {
     dirs.push(d);
     return d;
   }
+
+  it('rejects a parent directory replaced during a managed read and closes its descriptor', () => {
+    const root = tempProject();
+    mkdirSync(join(root, 'content'));
+    writeFileSync(join(root, 'content/rule.md'), '# Rule\n');
+    const read = fs.readFileSync;
+    const close = vi.spyOn(fs, 'closeSync');
+    vi.spyOn(fs, 'readFileSync').mockImplementation((...args: Parameters<typeof read>) => {
+      fs.renameSync(join(root, 'content'), join(root, 'original'));
+      mkdirSync(join(root, 'content'));
+      writeFileSync(join(root, 'content/rule.md'), '# Rule\n');
+      return read(...args);
+    });
+    expect(() => readManagedFile(root, 'content/rule.md')).toThrow('path changed');
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects in-place changes during a managed read and closes its descriptor', () => {
+    const root = tempProject();
+    writeFileSync(join(root, 'rule.md'), '# Rule\n');
+    const read = fs.readFileSync;
+    const close = vi.spyOn(fs, 'closeSync');
+    vi.spyOn(fs, 'readFileSync').mockImplementation((...args: Parameters<typeof read>) => {
+      writeFileSync(join(root, 'rule.md'), '# Changed rule\n');
+      return read(...args);
+    });
+    expect(() => readManagedFile(root, 'rule.md')).toThrow('file changed');
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects nonregular managed files without leaking a descriptor', () => {
+    const root = tempProject();
+    mkdirSync(join(root, 'directory'));
+    const close = vi.spyOn(fs, 'closeSync');
+    expect(() => readManagedFile(root, 'directory')).toThrow('file changed');
+    expect(close).toHaveBeenCalledTimes(1);
+  });
 
   it('parses default manager config', () => {
     const cfg = ManagerSchema.parse({});
@@ -70,6 +110,35 @@ describe('project manager (.revealui)', () => {
     expect(revdevStub).toContain('.revealui/content/');
     expect(revdevStub).toContain('Do not create');
     expect(revdevStub).toContain('equal adapter');
+  });
+
+  it('keeps a tracked-files-only checkout valid while excluding private adapter state', () => {
+    const root = tempProject();
+    const clone = tempProject();
+    const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../../../..');
+    writeFileSync(join(root, '.gitignore'), readFileSync(join(repoRoot, '.gitignore')));
+    execFileSync('git', ['init', '-q', root]);
+    materializeManager(root);
+    writeManagerAdapterContent(root);
+    writeFileSync(join(root, '.claude/settings.local.json'), '{"private":true}');
+    writeFileSync(join(root, '.cursor/private.json'), '{"private":true}');
+    writeFileSync(join(root, '.opencode/private.json'), '{"private":true}');
+    execFileSync('git', ['add', '.'], { cwd: root });
+    const tracked = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' })
+      .split('\0')
+      .filter(Boolean);
+    for (const privateFile of [
+      '.claude/settings.local.json',
+      '.cursor/private.json',
+      '.opencode/private.json',
+    ]) {
+      expect(tracked).not.toContain(privateFile);
+    }
+    for (const rel of tracked) {
+      mkdirSync(dirname(join(clone, rel)), { recursive: true });
+      cpSync(join(root, rel), join(clone, rel));
+    }
+    expect(checkManager(clone).errors).toEqual([]);
   });
 
   it('materialize emits Grok peer SessionStart/SessionEnd control-layer hooks', () => {
@@ -150,6 +219,39 @@ describe('project manager (.revealui)', () => {
     expect(grokMd).toContain('token-budget.json');
   });
 
+  it('materialization records harness rule ownership and preserves profile entries', () => {
+    const root = tempProject();
+    materializeManager(root);
+    const profileEntry = {
+      source: 'profiles/revealfleet/claude/rules/git.md',
+      sha256: 'a'.repeat(64),
+      generatedFrom: '.revealui/content/rules/git.md',
+    };
+    const ledgerPath = join(root, '.claude/.revcon-manifest.json');
+    writeFileSync(
+      ledgerPath,
+      JSON.stringify({
+        mode: 'copy',
+        editor: 'claude',
+        profiles: ['revealfleet'],
+        generatedFrom: '.revealui',
+        files: { 'rules/git.md': profileEntry, 'rules/biome.md': profileEntry },
+      }),
+    );
+    writeManagerAdapterContent(root);
+    const ledger = JSON.parse(readFileSync(ledgerPath, 'utf8'));
+    expect(ledger.files['rules/git.md']).toEqual(profileEntry);
+    expect(ledger.generatedFrom).toBe('.revealui');
+    expect(ledger.files['rules/biome.md'].source).toBe('harnesses:rules/biome.md');
+    const first = readFileSync(ledgerPath, 'utf8');
+    writeManagerAdapterContent(root);
+    expect(readFileSync(ledgerPath, 'utf8')).toBe(first);
+    writeFileSync(ledgerPath, '{invalid');
+    const body = readFileSync(join(root, '.claude/rules/biome.md'), 'utf8');
+    expect(() => writeManagerAdapterContent(root)).toThrow();
+    expect(readFileSync(join(root, '.claude/rules/biome.md'), 'utf8')).toBe(body);
+  });
+
   it('writeManagerAdapterContent emits manager content + cursor hooks + opencode surfaces', () => {
     const root = tempProject();
     materializeManager(root);
@@ -166,7 +268,13 @@ describe('project manager (.revealui)', () => {
       written.byGenerator.grok;
     // GAP-421 phase 2: definition rules also mirrored under .claude/rules/
     expect(written.claudeRuleMirrors.length).toBeGreaterThan(0);
-    expect(written.total).toBe(generatorTotal + written.claudeRuleMirrors.length);
+    expect(written.total).toBe(
+      generatorTotal +
+        written.claudeRuleMirrors.length +
+        written.codexPaths.length +
+        written.claudeAdapterPaths.length +
+        1,
+    );
 
     const hooks = JSON.parse(readFileSync(join(root, '.cursor/hooks.json'), 'utf-8')) as {
       version: number;
@@ -280,15 +388,15 @@ describe('project manager (.revealui)', () => {
     expect(after.ok).toBe(true);
   });
 
-  it('checkManager warns when the RevDev consume-content stub is missing', () => {
+  it('checkManager fails when a registered RevDev consume-content stub is missing', () => {
     const root = tempProject();
     materializeManager(root, {
-      adapters: ['claude-code', 'cursor', 'opencode', 'grok'],
+      adapters: ['claude-code', 'codex', 'cursor', 'opencode', 'grok'],
     });
     writeManagerAdapterContent(root);
     const checked = checkManager(root);
-    expect(checked.ok).toBe(true);
-    expect(checked.warnings.some((w) => w.includes('revdev.md'))).toBe(true);
+    expect(checked.ok).toBe(false);
+    expect(checked.errors.some((w) => w.includes('revdev.md'))).toBe(true);
   });
 
   it('check fails when content tree is missing after manager.json exists', () => {

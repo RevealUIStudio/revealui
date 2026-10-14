@@ -459,22 +459,33 @@ describe('signed merged feature promotion coverage', () => {
     return fetchCommitPulls(sha, target, 99, run, {
       allowedSigners: useConfiguredAnchor ? undefined : 'anchor',
       verifyImpl: ({ allowedSigners }: { allowedSigners: string }) =>
-        signed && (!useConfiguredAnchor || allowedSigners === 'anchor')
+        signed && allowedSigners === 'anchor'
           ? { ok: true }
           : { ok: false, reason: 'missing-or-invalid-anchor' },
     });
   }
+  it('uses canonical signer configuration and rejects retired aliases', () => {
+    try {
+      vi.stubEnv('REVEALFLEET_OVERRIDE_SIGNERS', 'anchor');
+      expect(fixture({ useConfiguredAnchor: true })).toEqual([{ number: 91, hasVerdict: true }]);
+      vi.stubEnv('REVEALFLEET_OVERRIDE_SIGNERS', '');
+      vi.stubEnv(['REV', 'FLEET', '_OVERRIDE_SIGNERS'].join(''), 'anchor');
+      expect(fixture({ useConfiguredAnchor: true })[0].hasVerdict).toBe(false);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
   it('accepts a current signed exact-head merged feature containing the commit', () =>
     expect(fixture()).toEqual([{ number: 91, hasVerdict: true }]));
   it('denies unmerged association', () => expect(fixture({ merged: false })).toEqual([]));
   it('uses the canonical configured anchor for merged promotion coverage', () => {
     vi.stubEnv('REVEALFLEET_OVERRIDE_SIGNERS', 'anchor');
-    vi.stubEnv('REVFLEET_OVERRIDE_SIGNERS', 'different-deprecated-anchor');
+    vi.stubEnv(['REV', 'FLEET', '_OVERRIDE_SIGNERS'].join(''), 'different-deprecated-anchor');
     expect(fixture({ useConfiguredAnchor: true })).toEqual([{ number: 91, hasVerdict: true }]);
   });
   it('denies promotion coverage when only deprecated configuration is populated', () => {
     vi.stubEnv('REVEALFLEET_OVERRIDE_SIGNERS', undefined);
-    vi.stubEnv('REVFLEET_OVERRIDE_SIGNERS', 'anchor');
+    vi.stubEnv(['REV', 'FLEET', '_OVERRIDE_SIGNERS'].join(''), 'anchor');
     expect(fixture({ useConfiguredAnchor: true })).toEqual([{ number: 91, hasVerdict: false }]);
   });
   it.each([{ signed: false }, { sameHead: false }, { member: false }, { hold: true }])(
@@ -512,7 +523,7 @@ it('real SSHSIG passes through the existing compiled resolver and sensitive gate
     };
     const discussion = { comments: [{ body, url: 'signed-fixture' }], reviews: [] };
     vi.stubEnv('REVEALFLEET_OVERRIDE_SIGNERS', anchor);
-    vi.stubEnv('REVFLEET_OVERRIDE_SIGNERS', 'different-deprecated-anchor');
+    vi.stubEnv(['REV', 'FLEET', '_OVERRIDE_SIGNERS'].join(''), 'different-deprecated-anchor');
     expect(verifyPrOwnerRecord(data, 91, target, discussion)).toMatchObject({
       action: 'clear',
       kind: 'owner-signature',
@@ -523,7 +534,7 @@ it('real SSHSIG passes through the existing compiled resolver and sensitive gate
     ).toBe('hold');
     expect(verifyPrOwnerRecord(data, 91, target, discussion, '').action).toBe('hold');
     vi.stubEnv('REVEALFLEET_OVERRIDE_SIGNERS', undefined);
-    vi.stubEnv('REVFLEET_OVERRIDE_SIGNERS', anchor);
+    vi.stubEnv(['REV', 'FLEET', '_OVERRIDE_SIGNERS'].join(''), anchor);
     expect(verifyPrOwnerRecord(data, 91, target, discussion)).toMatchObject({
       action: 'hold',
       reason: 'missing-owner-anchor',

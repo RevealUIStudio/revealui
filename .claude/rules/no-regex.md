@@ -1,3 +1,4 @@
+<!-- generated from .revealui/content/rules/no-regex.md -->
 # No Regex Policy
 
 ## Rule

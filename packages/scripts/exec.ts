@@ -322,20 +322,44 @@ export async function execSequence(
  */
 export async function execParallel(
   commands: Array<[string, string[], ExecOptions?]>,
-  options: ExecOptions = {},
-): Promise<{ success: boolean; results: ScriptResult[] }> {
-  const promises = commands.map(([command, args, cmdOptions]) =>
-    execCommand(command, args, {
-      ...options,
-      ...cmdOptions,
-      dryRun: Boolean(options.dryRun || cmdOptions?.dryRun),
-    }),
-  );
-
-  const results = await Promise.all(promises);
+  options: ExecOptions & { concurrency?: number } = {},
+): Promise<{ success: boolean; results: ScriptResult[]; durationsMs: number[] }> {
+  // Match the maintained gate's two-process budget. Timeouts start when a
+  // command launches, so queueing cannot consume its execution deadline.
+  const { concurrency = 2, ...execOptions } = options;
+  if (!Number.isSafeInteger(concurrency) || concurrency < 1) {
+    throw new Error('Command concurrency must be a positive safe integer');
+  }
+  const results: ScriptResult[] = new Array(commands.length);
+  const durationsMs: number[] = new Array(commands.length);
+  let nextIndex = 0;
+  async function worker(): Promise<void> {
+    while (nextIndex < commands.length) {
+      const index = nextIndex++;
+      const entry = commands[index];
+      if (!entry) return;
+      const [command, args, cmdOptions] = entry;
+      const start = performance.now();
+      try {
+        results[index] = await execCommand(command, args, {
+          ...execOptions,
+          ...cmdOptions,
+          dryRun: Boolean(execOptions.dryRun || cmdOptions?.dryRun),
+        });
+      } catch (error) {
+        results[index] = {
+          success: false,
+          exitCode: 1,
+          message: error instanceof Error ? error.message : String(error),
+        };
+      }
+      durationsMs[index] = performance.now() - start;
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(concurrency, commands.length) }, worker));
   const success = results.every((r) => r.success);
 
-  return { success, results };
+  return { success, results, durationsMs };
 }
 
 /**

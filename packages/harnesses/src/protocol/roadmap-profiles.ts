@@ -62,38 +62,6 @@ export const ROADMAP_PROFILES: Record<string, ProtocolCapabilities> = {
     ],
   },
 
-  codex: {
-    dispatch: {
-      generateCode: false,
-      analyzeCode: false,
-      applyEdit: false,
-      executeCommand: false,
-    },
-    readWorkboard: true,
-    writeWorkboard: true,
-    claimTasks: true,
-    reportConflicts: false,
-    headless: true,
-    resumable: true,
-    forkable: true,
-    backgroundable: true,
-    hooks: { supported: true, granularity: 'bash-only', canBlock: true },
-    sandbox: { supported: true, modes: ['read-only', 'workspace-write', 'full-access'] },
-    supportsWorktrees: false,
-    supportsSkills: true,
-    supportsMcp: true,
-    memory: { supported: true, backend: 'sqlite' },
-    maxContextTokens: 200_000,
-    lifecycleEvents: [
-      'session.start',
-      'session.stop',
-      'prompt.submit',
-      'tool.before',
-      'tool.after',
-      'tool.blocked',
-    ],
-  },
-
   // VS Code's agent-plugin hook system IS real and shipped this phase
   // (`../hooks/normalizers/vscode.ts`, `../content/generators/vscode.ts`) --
   // unlike every other entry in this file, `hooks.supported: true` here is

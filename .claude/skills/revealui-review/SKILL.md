@@ -1,3 +1,4 @@
+<!-- generated from .revealui/content/skills/revealui-review/SKILL.md -->
 ---
 name: revealui-review
 description: |

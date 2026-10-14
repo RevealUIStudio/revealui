@@ -21,5 +21,10 @@ export {
   ingestEpisode,
   type ScanInput,
 } from './engine.js';
+export {
+  auditLegacyMemory,
+  type LegacyMemoryAudit,
+  type LegacyMemoryFinding,
+} from './legacy-memory.js';
 export { type ApplyOptions, applyOp, applyOps } from './merge.js';
 export { aliasOp, resolveAlias, resolveNaturalKey } from './resolve.js';

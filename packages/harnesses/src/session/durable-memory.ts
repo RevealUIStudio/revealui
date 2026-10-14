@@ -235,6 +235,19 @@ export async function publishDurableFinding(
   options: DurableMemoryOptions = {},
 ): Promise<MemoryResult<MemoryPublishData>> {
   try {
+    if (
+      input.scope.tenantId !== input.principal.tenantId ||
+      input.scope.workspaceId !== input.principal.workspaceId
+    ) {
+      return {
+        status: 'denied',
+        available: true,
+        reason: 'scope-denied',
+        scope: input.scope,
+        deniedCount: 1,
+        message: 'Publish scope does not match the authenticated principal',
+      };
+    }
     const timeoutMs = options.timeoutMs ?? DEFAULT_DURABLE_MEMORY_TIMEOUT_MS;
     return await raceTimeout(publishInner(input, options), timeoutMs, () =>
       unavailable('timeout', `durable memory publish timed out after ${timeoutMs}ms`),
@@ -273,7 +286,7 @@ export function formatDurableMemoryWarn(result: MemoryResult<unknown>): string {
     return `[durable-memory] deny: scope-denied (${result.scope.classification} ${result.scope.tenantId}). Proceeding without that read.\n`;
   }
   if (result.enforcement === 'deferred') {
-    return '[durable-memory] note: studio-local, unscoped by design (single-operator).\n';
+    return '[durable-memory] note: memory source did not report scope enforcement.\n';
   }
   return '';
 }

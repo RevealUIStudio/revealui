@@ -180,6 +180,37 @@ describe('skill suitability contract', () => {
     },
   );
 
+  it('cannot assess a checkpoint as fully suitable after dropping its write tools', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'skill-checkpoint-capabilities-'));
+    const skill = entry('revealui-checkpoint', dir);
+    writeFileSync(
+      skill.path,
+      '---\nname: revealui-checkpoint\nallowed-tools: Bash, Read, Write, Edit\n---\nSave source and checkpoint fragments.',
+    );
+    const preview = buildSkillInvokeRequest('checkpoint', [skill]);
+    if ('error' in preview) throw new Error(preview.error);
+    const assessment = {
+      skillSha256: preview.skillSha256,
+      desiredResult: 'Save all source work and publish the handoff',
+      outputDestination: 'Owning source branches and coordination fragments',
+      inputsVerified: true,
+      verdict: 'suitable' as const,
+      limitations: [],
+      authorizedTools: ['Bash', 'Read'],
+    };
+    expect(buildSkillInvokeRequest('checkpoint', [skill], assessment)).toHaveProperty('error');
+    const report = buildSkillInvokeRequest('checkpoint', [skill], {
+      ...assessment,
+      desiredResult: 'Report preservation evidence for the calling harness',
+      outputDestination: 'Response only',
+      verdict: 'partial',
+      limitations: ['Write, Edit and Git preservation require the authorized calling harness.'],
+    });
+    if ('error' in report) throw new Error(report.error);
+    expect(report.allowedTools).toEqual(['Bash', 'Read']);
+    expect(report.user).toContain('Write, Edit');
+  });
+
   it('rejects missing destination inputs, unapproved tools, and changed skill content', () => {
     const dir = mkdtempSync(join(tmpdir(), 'skill-assessment-'));
     const skill = entry('revealui-doctor', dir);

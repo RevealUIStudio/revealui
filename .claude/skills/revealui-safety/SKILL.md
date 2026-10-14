@@ -1,3 +1,4 @@
+<!-- generated from .revealui/content/skills/revealui-safety/SKILL.md -->
 ---
 name: revealui-safety
 description: |
@@ -23,7 +24,7 @@ Follow these rules for ALL code changes in the RevealUI monorepo.
 
 ## Import Boundaries
 
-All persistence goes through the single Drizzle/Neon client (`@revealui/db`). Do not introduce a second database client or a separate vector/auth SDK — vector data lives in pgvector on the same Neon database. (A customer-facing Supabase MCP adapter exists for connecting a customer's own Supabase project; that is not an internal store.)
+All persistence goes through the single Drizzle/Neon client (`@revealui/db`). Do not introduce a second database client or a separate vector/auth SDK — vector data lives in pgvector on the same Neon database. The legacy customer Supabase MCP adapter is retired; do not reintroduce its launchers.
 
 ## Code Quality
 

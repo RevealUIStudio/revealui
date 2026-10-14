@@ -1,3 +1,4 @@
+<!-- generated from .revealui/content/skills/revealui-debugging/SKILL.md -->
 ---
 name: revealui-debugging
 description: |

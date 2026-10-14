@@ -56,7 +56,7 @@
     },
     {
       "relativePath": ".grok/rules/ai-mechanics.md",
-      "sha256": "802943574202960b588a4d6d6d7b481a7a079b70e22db7f3179230f865321ed2"
+      "sha256": "408c1d0af062f7e25b412c4dbbaf4649143aea53d0b36ecda4b3050f3995503f"
     },
     {
       "relativePath": ".grok/rules/code-over-docs.md",
@@ -68,7 +68,7 @@
     },
     {
       "relativePath": ".grok/rules/durable-solutions.md",
-      "sha256": "c1b1ba64e96e0ce6a42c81550b72ef732024d37dfae18babaf1bfa8324be8fda"
+      "sha256": "94d6c766af19922af9b9021ca5656d782b1817481533aaaef80f2bea5e9cd4fa"
     },
     {
       "relativePath": ".grok/rules/monorepo.md",
@@ -84,7 +84,7 @@
     },
     {
       "relativePath": ".grok/rules/quality-over-speed.md",
-      "sha256": "8bfcbe93c5b73d738859656926478798a8bed2d55ca5be5dca50b6c997e9b009"
+      "sha256": "3aea4790fdb57a8273b757bbfa36690acc1936654f4ac377dd3ef999a5d6606c"
     },
     {
       "relativePath": ".grok/rules/stream-safe-secrets.md",

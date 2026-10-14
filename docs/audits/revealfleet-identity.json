@@ -1,0 +1,76 @@
+{
+  "date": "2026-10-06",
+  "fleet": "revealfleet",
+  "configurationNamespace": "REVEALFLEET",
+  "policy": "Only the exact canonical identity is accepted. Retired names are historical evidence, never active aliases.",
+  "inventory": [
+    {
+      "location": "packages/harnesses/src/content/definitions/rules/durable-solutions.ts",
+      "priorBehavior": "Fleet identity was not enforced uniformly across generated instructions.",
+      "owner": "@revealui/harnesses content definitions, schemas and generation",
+      "durableDestination": "Shared identity rule, manifest validation and post-resolution generation validation",
+      "removalEvidence": "Canonical rule exported to native adapters and RevCon; schema and generation regression tests reject retired inputs. Committed snapshots regenerated from staged sources."
+    },
+    {
+      "location": "revcon/link.sh and profiles/revealfleet",
+      "priorBehavior": "Profile directory and private-profile lookup accepted a retired identity.",
+      "owner": "RevCon profile distribution",
+      "durableDestination": "Canonical profile directory and validated profile selection",
+      "removalEvidence": "Canonical copy delivery passes; retired and differently cased fleet profiles are rejected without writes; profile listing filters them. Existing managed content digests verified against staged files."
+    },
+    {
+      "location": "revkit/bootstrap.sh and shell/shellrc.d",
+      "priorBehavior": "Root loaders and commands exported or accepted a second fleet namespace.",
+      "owner": "RevKit bootstrap and shell configuration",
+      "durableDestination": "REVEALFLEET_ROOT, REVEALFLEET_PLANNING and REVEALFLEET_ARCHIVE",
+      "removalEvidence": "Duplicate alias exports and fallbacks removed; fleet-root and planning-command suites pass."
+    },
+    {
+      "location": "revskills/scripts/lib/session-state.sh",
+      "priorBehavior": "Session-state loading accepted a retired environment namespace and home-directory fallback.",
+      "owner": "RevSkills session-state loader",
+      "durableDestination": "REVEALFLEET_ROOT with canonical default directory",
+      "removalEvidence": "Canonical root wins; retired environment input is ignored; regression is integrated into the maintained validator runner."
+    },
+    {
+      "location": "revdev/packages/daemon/src/server.ts and apps/studio/src-tauri/src/commands/fleet_map.rs",
+      "priorBehavior": "Daemon and local fleet map used different fleet environment names.",
+      "owner": "RevDev local configuration",
+      "durableDestination": "REVEALFLEET_ROOT",
+      "removalEvidence": "Alternate root fallback removed; fleet map uses the canonical root; daemon typecheck and Rust formatting pass after normal protocol build."
+    },
+    {
+      "location": "packages/harnesses/src/session/archive-exit.ts and packages/knowledge-graph/src/cli/revkg.ts",
+      "priorBehavior": "Archive and handoff readers used a retired configuration prefix.",
+      "owner": "Shared archive and graph CLI configuration",
+      "durableDestination": "REVEALFLEET_ARCHIVE and REVEALFLEET_HANDOFFS",
+      "removalEvidence": "Archive loader regression rejects the retired environment input; package builds pass."
+    },
+    {
+      "location": "Private planning repository: scripts/fleet-root.js, archive-check.js, session and gate resolvers",
+      "priorBehavior": "Maintained root and archive primitives accepted or documented retired namespaces.",
+      "owner": "Private planning configuration and archive workflow",
+      "durableDestination": "Canonical fleet root, archive, checkout and planning namespaces",
+      "removalEvidence": "Root fallback removed; maintained callers renamed; root, session, rewrite and fleet-sync fixtures pass. Canonical archive-token secret confirmed present through read-only GitHub metadata."
+    },
+    {
+      "location": "scripts/validate/backflow-merge-method-guard.cjs and organization backflow workflow",
+      "priorBehavior": "Merge-method guard identified the backflow actor by a retired app name.",
+      "owner": "Shared backflow guard and organization workflow",
+      "durableDestination": "revealfleet-backflow[bot]",
+      "removalEvidence": "GitHub app and bot verified read-only; canonical actor accepted and retired actor rejected by tests.",
+      "verifiedApp": "https://github.com/apps/revealfleet-backflow",
+      "verifiedAppOwner": "revealui-studio"
+    },
+    {
+      "location": "Shared leak classifier and fleet check-no-private-leaks.sh consumers",
+      "priorBehavior": "Private-path detection depended on a retired root spelling.",
+      "owner": "Shared privacy classification",
+      "durableDestination": "Detect canonical private paths while retaining historical-path detection",
+      "removalEvidence": "Canonical and historical inputs remain detectable; historical detection does not configure or resolve an alias. Built classifier and regression suite pass."
+    }
+  ],
+  "historicalEvidence": "Original transcripts, archives and historical scan fingerprints remain unchanged. Historical input fixtures are retained only for rejection, privacy detection or canonical-output repair tests.",
+  "organizationTransition": "Repository transfers are checked individually. No GitHub repository URL is replaced merely because another repository has transferred.",
+  "externalWrites": false
+}

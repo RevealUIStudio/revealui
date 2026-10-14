@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "revealui-harnesses session adapter cursor",
+        "type": "command"
+      },
+      {
+        "command": "revealui-harnesses hook cursor",
+        "type": "command"
+      }
+    ],
+    "sessionEnd": [
+      {
+        "command": "revealui-harnesses hook cursor",
+        "type": "command"
+      }
+    ],
+    "preToolUse": [
+      {
+        "command": "revealui-harnesses hook cursor",
+        "type": "command"
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": "revealui-harnesses hook cursor",
+        "type": "command"
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "revealui-harnesses hook cursor",
+        "type": "command"
+      }
+    ],
+    "afterShellExecution": [
+      {
+        "command": "revealui-harnesses hook cursor",
+        "type": "command"
+      }
+    ],
+    "beforeMCPExecution": [
+      {
+        "command": "revealui-harnesses hook cursor",
+        "type": "command"
+      }
+    ],
+    "afterMCPExecution": [
+      {
+        "command": "revealui-harnesses hook cursor",
+        "type": "command"
+      }
+    ],
+    "beforeReadFile": [
+      {
+        "command": "revealui-harnesses hook cursor",
+        "type": "command"
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": "revealui-harnesses hook cursor",
+        "type": "command"
+      }
+    ],
+    "stop": [
+      {
+        "command": "revealui-harnesses hook cursor",
+        "type": "command"
+      }
+    ]
+  }
+}

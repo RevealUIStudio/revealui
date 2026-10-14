@@ -7,7 +7,7 @@ reason to ship weak work, thin proofs, or dual-home shortcuts.
 ## Apply every session (including concurrent multi-agent work)
 
 1. **Correctness first.** Prove red→green where tests apply. Prefer root-cause
-   durable fixes over hotfixes (register any unavoidable hotfix the same turn).
+   durable fixes; never ship one-offs or registry-backed exceptions.
 2. **Proof over pace.** Claims about system behavior need `code:line` or test
    evidence (code-over-docs). Doc edits without proof are incomplete.
 3. **One solid change beats three rushed ones.** Do not expand scope to "finish

@@ -1,3 +1,4 @@
+export { materializeCodexPointer } from './codex.js';
 export {
   GROK_HOOK_FILES,
   GROK_HOOK_TEMPLATE_DIR,

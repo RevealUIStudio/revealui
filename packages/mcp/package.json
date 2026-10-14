@@ -153,7 +153,8 @@
       "types": "./dist/approvals/call-identity.d.ts",
       "import": "./dist/approvals/call-identity.js",
       "default": "./dist/approvals/call-identity.js"
-    }
+    },
+    "./cli": "./dist/cli.js"
   },
   "files": [
     "dist",

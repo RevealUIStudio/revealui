@@ -1,3 +1,4 @@
+<!-- generated from .revealui/content/skills/revealui-db/SKILL.md -->
 ---
 name: revealui-db
 description: |
@@ -19,7 +20,7 @@ RevealUI runs a **single Neon-primary PostgreSQL database** (Drizzle ORM), with 
 
 ## Boundary Rule
 
-There is no second database client. All persistence goes through the single Drizzle/Neon client (`@revealui/db`); vector data lives in pgvector on the same Neon database, so there is no separate vector/auth client to import. (A customer-facing Supabase MCP adapter exists for connecting a customer's OWN Supabase project as a selectable data source — it is never RevealUI's internal store.)
+There is no second database client. All persistence goes through the single Drizzle/Neon client (`@revealui/db`); vector data lives in pgvector on the same Neon database, so there is no separate vector/auth client to import. The legacy customer Supabase MCP adapter is retired; do not reintroduce its launchers.
 
 ## Schema Organization
 

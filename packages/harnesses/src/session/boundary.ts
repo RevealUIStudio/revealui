@@ -8,12 +8,16 @@
  * uses its Studio hook path which calls the same daemon + identity store.
  */
 
+import { randomUUID } from 'node:crypto';
 import { hostname } from 'node:os';
+import { resolve } from 'node:path';
 import { archiveSessionExit } from './archive-exit.js';
 import {
   clearDaemonSessionCache,
   clearHookIdentity,
+  defaultIdentityDir,
   type HookIdentity,
+  loadHookIdentity,
   readDaemonSessionCache,
   resolveAfterRegister,
   writeDaemonSessionCache,
@@ -28,8 +32,15 @@ export interface SessionBoundaryResult {
   readonly reason?: string;
 }
 
-export interface RegisterOptions {
+export interface SessionStorageOptions {
+  readonly identityDir?: string;
+  readonly sessionDir?: string;
+  readonly archiveDir?: string;
+}
+
+export interface RegisterOptions extends SessionStorageOptions {
   readonly backend: string;
+  readonly pid?: number;
   readonly workDir?: string;
   readonly agentId?: string;
   readonly agentName?: string;
@@ -38,7 +49,7 @@ export interface RegisterOptions {
   readonly timeoutMs?: number;
 }
 
-export interface EndOptions {
+export interface EndOptions extends SessionStorageOptions {
   readonly socketPath?: string;
   readonly ppid?: number | string;
   readonly timeoutMs?: number;
@@ -59,7 +70,7 @@ function defaultAgentId(backend: string): string {
     hostname()
       .replace(/[^a-zA-Z0-9_-]/g, '')
       .slice(0, 24) || 'host';
-  return `${backend}-${host}-${process.pid}-${Date.now().toString(36)}`;
+  return `${backend}-${host}-${process.pid}-${randomUUID()}`;
 }
 
 function asStringField(value: unknown): string | undefined {
@@ -106,7 +117,7 @@ export async function sessionRegister(options: RegisterOptions): Promise<Session
     agentName: options.agentName ?? agentId,
     workDir: options.workDir ?? process.cwd(),
     backend: options.backend,
-    pid: process.ppid,
+    pid: options.pid ?? process.ppid,
   };
 
   try {
@@ -118,8 +129,8 @@ export async function sessionRegister(options: RegisterOptions): Promise<Session
     if (!reg) {
       return { ok: false, skipped: false, reason: 'register returned no agentId' };
     }
-    resolveAfterRegister(reg);
-    writeDaemonSessionCache(reg.agentId, options.ppid ?? process.ppid);
+    resolveAfterRegister(reg, options.identityDir);
+    writeDaemonSessionCache(reg.agentId, options.ppid ?? process.ppid, options.sessionDir);
     return { ok: true, skipped: false, agentId: reg.agentId };
   } catch (err) {
     return {
@@ -141,22 +152,26 @@ export async function sessionEnd(options: EndOptions = {}): Promise<SessionBound
   const ppid = options.ppid ?? process.ppid;
 
   if (!isDaemonSocketPresent(socketPath)) {
-    const agentId = options.agentId ?? readDaemonSessionCache(ppid);
+    const agentId = options.agentId ?? readDaemonSessionCache(ppid, options.sessionDir);
     if (agentId && !options.skipArchive) {
-      archiveSessionExit({
-        agentId,
-        endedAt: new Date().toISOString(),
-        exitSummary,
-        backend: options.backend,
-        workDir: options.workDir ?? process.cwd(),
-        task: options.task,
-        ppid,
-        source: 'session.end',
-        daemonEnded: false,
-        notes: 'daemon socket absent; archived without session.end RPC',
-      });
+      archiveSessionExit(
+        {
+          agentId,
+          endedAt: new Date().toISOString(),
+          exitSummary,
+          backend: options.backend,
+          workDir: options.workDir ?? process.cwd(),
+          task: options.task,
+          ppid,
+          source: 'session.end',
+          daemonEnded: false,
+          notes: 'daemon socket absent; archived without session.end RPC',
+        },
+        options.archiveDir,
+      );
     }
-    clearDaemonSessionCache(ppid);
+    clearDaemonSessionCache(ppid, options.sessionDir);
+    if (agentId) clearHookIdentity(agentId, options.identityDir);
     return {
       ok: false,
       skipped: true,
@@ -165,28 +180,31 @@ export async function sessionEnd(options: EndOptions = {}): Promise<SessionBound
     };
   }
 
-  const agentId = options.agentId ?? readDaemonSessionCache(ppid);
+  const agentId = options.agentId ?? readDaemonSessionCache(ppid, options.sessionDir);
   if (!agentId) {
     return { ok: false, skipped: true, reason: 'no cached daemon session id' };
   }
 
-  const identity = resolveAfterRegister({ agentId });
+  const identity = resolveAfterRegister({ agentId }, options.identityDir);
   if (!identity) {
     if (!options.skipArchive) {
-      archiveSessionExit({
-        agentId,
-        endedAt: new Date().toISOString(),
-        exitSummary,
-        backend: options.backend,
-        workDir: options.workDir ?? process.cwd(),
-        task: options.task,
-        ppid,
-        source: 'session.end',
-        daemonEnded: false,
-        notes: 'no signing identity; cache cleared; prune may reap daemon row',
-      });
+      archiveSessionExit(
+        {
+          agentId,
+          endedAt: new Date().toISOString(),
+          exitSummary,
+          backend: options.backend,
+          workDir: options.workDir ?? process.cwd(),
+          task: options.task,
+          ppid,
+          source: 'session.end',
+          daemonEnded: false,
+          notes: 'no signing identity; cache cleared; prune may reap daemon row',
+        },
+        options.archiveDir,
+      );
     }
-    clearDaemonSessionCache(ppid);
+    clearDaemonSessionCache(ppid, options.sessionDir);
     return {
       ok: false,
       skipped: true,
@@ -216,22 +234,25 @@ export async function sessionEnd(options: EndOptions = {}): Promise<SessionBound
 
   // Always clear local cache after an exit attempt so peers do not keep a
   // stale "live" claim for this process.
-  clearDaemonSessionCache(ppid);
-  clearHookIdentity(agentId);
+  clearDaemonSessionCache(ppid, options.sessionDir);
+  clearHookIdentity(agentId, options.identityDir);
 
   if (!options.skipArchive) {
-    const archived = archiveSessionExit({
-      agentId,
-      endedAt: new Date().toISOString(),
-      exitSummary,
-      backend: options.backend,
-      workDir: options.workDir ?? process.cwd(),
-      task: options.task,
-      ppid,
-      source: 'session.end',
-      daemonEnded,
-      notes: endError ? `session.end RPC failed: ${endError}` : undefined,
-    });
+    const archived = archiveSessionExit(
+      {
+        agentId,
+        endedAt: new Date().toISOString(),
+        exitSummary,
+        backend: options.backend,
+        workDir: options.workDir ?? process.cwd(),
+        task: options.task,
+        ppid,
+        source: 'session.end',
+        daemonEnded,
+        notes: endError ? `session.end RPC failed: ${endError}` : undefined,
+      },
+      options.archiveDir,
+    );
     if (archived.ok && archived.path) {
       // Visible one-liner so SessionEnd logs show the archive path.
       process.stderr.write(`[session-archive] wrote ${archived.path}\n`);
@@ -250,5 +271,77 @@ export async function sessionEnd(options: EndOptions = {}): Promise<SessionBound
     skipped: false,
     agentId,
     reason: endError ?? 'session.end failed',
+  };
+}
+
+/** Maintained runtime lease: isolated cache key, daemon-issued identity, signed end. */
+export interface RuntimeSessionOptions extends SessionStorageOptions {
+  readonly socketPath?: string;
+  readonly timeoutMs?: number;
+}
+export interface RuntimeSessionLease extends SessionBoundaryResult {
+  readonly identity?: Pick<HookIdentity, 'agentId' | 'did' | 'fingerprint'>;
+  readonly identityDir?: string;
+  close(): Promise<SessionBoundaryResult>;
+}
+export async function openRuntimeSession(
+  backend: string,
+  workDir: string,
+  options: RuntimeSessionOptions = {},
+): Promise<RuntimeSessionLease> {
+  const storage: RuntimeSessionOptions = {
+    ...options,
+    identityDir:
+      options.identityDir === undefined
+        ? resolve(defaultIdentityDir())
+        : resolve(workDir, options.identityDir),
+    ...(options.sessionDir === undefined
+      ? {}
+      : { sessionDir: resolve(workDir, options.sessionDir) }),
+    ...(options.archiveDir === undefined
+      ? {}
+      : { archiveDir: resolve(workDir, options.archiveDir) }),
+    ...(options.socketPath === undefined
+      ? {}
+      : { socketPath: resolve(workDir, options.socketPath) }),
+  };
+  const ppid = `runtime-${randomUUID()}`;
+  const registered = await sessionRegister({
+    ...storage,
+    backend,
+    workDir,
+    ppid,
+    pid: process.pid,
+  });
+  const identity =
+    registered.ok && registered.agentId
+      ? loadHookIdentity(registered.agentId, storage.identityDir)
+      : null;
+  let closing: Promise<SessionBoundaryResult> | undefined;
+  const close = () =>
+    (closing ??= registered.agentId
+      ? sessionEnd({
+          ...storage,
+          backend,
+          workDir,
+          ppid,
+          agentId: registered.agentId,
+          exitSummary: 'runtime-session-end',
+        })
+      : Promise.resolve({ ok: false, skipped: true, reason: 'no registered runtime session' }));
+  if (!identity) {
+    await close();
+    return {
+      ...registered,
+      ok: false,
+      reason: registered.reason ?? 'registered signing identity unavailable',
+      close,
+    };
+  }
+  return {
+    ...registered,
+    identityDir: storage.identityDir,
+    identity: { agentId: identity.agentId, did: identity.did, fingerprint: identity.fingerprint },
+    close,
   };
 }

@@ -1,4 +1,4 @@
-import type { Manifest } from '../schemas/manifest.js';
+import { type Manifest, ManifestSchema } from '../schemas/manifest.js';
 import { agents } from './agents/index.js';
 import { commands } from './commands/index.js';
 import { preambles } from './preambles/index.js';
@@ -7,7 +7,7 @@ import { skills } from './skills/index.js';
 
 /** Build a complete manifest from all canonical definitions. */
 export function buildManifest(): Manifest {
-  return {
+  return ManifestSchema.parse({
     version: 1,
     generatedAt: new Date().toISOString(),
     rules,
@@ -15,7 +15,7 @@ export function buildManifest(): Manifest {
     agents,
     skills,
     preambles,
-  };
+  });
 }
 
 export { agents, commands, preambles, rules, skills };

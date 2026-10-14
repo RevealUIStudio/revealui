@@ -30,7 +30,7 @@ Every session does this, in this order, for whatever vendor it was pointed at:
 
 ## Authority order
 
-1. **Project manager** — \`./.revealui/manager.json\` (+ \`.revealui/content/\`)
+1. **Project manager** — \`./.revealui/manager.json\` (+ \`{{CONTENT_ROOT}}/\`)
 2. **Package definitions** — \`@revealui/harnesses\` content definitions (this rule set)
 3. **Fleet TRACKER** — free-surface board (\`docs/TRACKER.md\` / private planning tree)
 4. **Adapter homes** — thin pointers, vendor tool names, TUI ops only

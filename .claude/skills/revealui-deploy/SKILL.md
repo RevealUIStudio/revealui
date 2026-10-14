@@ -1,178 +1,93 @@
+<!-- generated from .revealui/content/skills/revealui-deploy/SKILL.md -->
 ---
 name: revealui-deploy
 description: |
-  RevealUI deployment guide — Vercel configuration, GitHub Actions deploy workflow,
-  secret management, domain aliasing, and troubleshooting. Invoke when working on
-  deploy.yml, vercel.json, deployment secrets, domain configuration, or debugging
-  deploy failures.
+  RevealUI deployment guide for the maintained GitHub Actions workflows,
+  Vault-backed credentials, deployment evidence, and failure diagnosis.
+  Use when reviewing deployment configuration or investigating a failed deployment.
 ---
 
 # RevealUI Deploy
 
-## Architecture
+## Deployment ownership
 
-RevealUI deploys 4 apps via GitHub Actions to Vercel. Vercel Git Integration is DISABLED — all deploys go through `.github/workflows/deploy.yml`. Only `test` and `main` branches trigger deploys; `develop` is local-only.
+The repository's maintained workflows own deployment. Read their current
+definitions before describing a trigger, app matrix, environment, or check:
 
-### Branch-to-Environment Mapping
+- `.github/workflows/deploy.yml` owns production deployment after a push to
+  `main`, including an approved promotion from `test`. It also declares a
+  manual dispatch interface.
+- `.github/workflows/deploy-test.yml` owns explicitly requested preview
+  deployment. A push to `test` runs CI; it does not automatically deploy.
+- `.github/workflows/ci.yml` owns the CI checks required for a change.
 
-| Branch | Environment | Domain Pattern |
-|--------|------------|----------------|
-| `main` | production | `*.revealui.com` |
-| `test` | test | `test.*.revealui.com` |
+Prepare fixes through the existing feature PR, `test`, and promotion flow.
+Confirm the exact revision's required checks and the user's authorization
+before a promotion merge or workflow dispatch. Reading this skill does not
+authorize deployment, release, credential changes, or domain changes.
+Emergency fixes use the same maintained workflow and checks.
 
-`develop` and `feature/*` branches do NOT deploy. Development is local-only.
+## App and environment evidence
 
-### App Matrix
+The workflows deploy the API, admin, marketing, and docs apps. Resolve the
+current app selection, project mapping, stable aliases, and smoke checks from
+the workflow and its declared configuration. Report the revision and run ID
+that support a deployment status. A passing build is not evidence that a
+deployment or public endpoint succeeded.
 
-| App | Prod Domain | Test Domain |
-|-----|-------------|-------------|
-| api | api.revealui.com | test.api.revealui.com |
-| admin | admin.revealui.com | test.admin.revealui.com |
-| marketing | revealui.com | test.revealui.com |
-| docs | docs.revealui.com | test.docs.revealui.com |
+## Credentials
 
-Project IDs are intentionally not published here. Resolve them at run time with
-`vercel projects ls` (team scope) or from the Vercel dashboard (Project →
-Settings → General), and keep any written copy on a private surface.
+The Vault is the source of truth. GitHub Actions secrets and hosting
+environment values are downstream mirrors. Follow the repository's maintained
+credential lifecycle and the shared `secrets.md` rule; inspect
+`docs/runbooks/secret-rotation.md` for the owning rotation and mirror flow.
+Confirm that flow's current validation and any recorded blockers before use.
 
-## GitHub Actions Secrets
+- An authorized human stores provider-issued values through the Vault CLI's
+  hidden terminal input. Do not ask for a value in chat or an agent tool call.
+- Never paste values into shell command text, command arguments, logs, or
+  plaintext temporary files. A fixed temporary filename is not a secret store.
+- Use the supported Vault-to-consumer mirror interface. If its source,
+  authorization, or exact-value handling is unverified, record the owning
+  lifecycle blocker rather than manually setting a divergent copy.
+- Choose provider-supported scope and expiration for the required consumer;
+  do not default to full-account access or an unbounded token lifetime.
+- Check credential availability and authentication through maintained tooling
+  that reports status without printing values. Authentication failure alone
+  does not establish secret corruption or authorize a rotation.
 
-| Secret | Source | Purpose |
-|--------|--------|---------|
-| `VERCEL_TOKEN` | vercel.com/account/tokens | API token for Vercel CLI |
-| `VERCEL_ORG_ID` | Vercel dashboard > Settings > General > Team ID | Team/org identifier (format: `team_...`) |
-| `TURBO_TOKEN` | Vercel remote cache token | Turborepo remote caching (optional) |
+## Workflow token handling
 
-GitHub Actions variable (not secret):
+Pass a GitHub secret through the step's environment, then expand the environment
+variable as a quoted shell argument. GitHub expression substitution inside
+`run` text can turn token content into shell syntax even inside double quotes.
+The existing Vercel CLI workflow uses its required token argument on the
+managed runner; do not copy a literal token into a local command.
 
-| Variable | Value | Purpose |
-|----------|-------|---------|
-| `TURBO_TEAM` | `revealuistudio` | Turborepo team slug |
-
-## Creating/Rotating VERCEL_TOKEN
-
-1. Go to **vercel.com/account/tokens** (must be logged into the RevealUIStudio account)
-2. Create token:
-   - **Name**: `revealui-github-actions-deploy`
-   - **Scope**: Full Account (covers all projects)
-   - **Expiration**: No expiration or 1 year
-3. Copy the token immediately (shown only once)
-4. Set in GitHub:
-   ```bash
-   # Write to file to avoid shell quoting issues
-   echo -n 'PASTE_TOKEN_HERE' > /tmp/vt.txt
-   gh secret set VERCEL_TOKEN < /tmp/vt.txt
-   rm /tmp/vt.txt
-   ```
-5. Verify locally before deploying:
-   ```bash
-   vercel whoami --token 'PASTE_TOKEN_HERE'
-   # Should return: revealuistudio
-   ```
-
-### Setting VERCEL_ORG_ID
-
-Find Team ID in Vercel dashboard under Settings > General, or:
-```bash
-vercel team ls --token 'YOUR_TOKEN'
-```
-The ID column shows the team ID (format: `team_...`).
-
-```bash
-gh secret set VERCEL_ORG_ID --body 'team_XXXXX'
-```
-
-## Deploy Workflow
-
-File: `.github/workflows/deploy.yml`
-
-### Flow
-1. **Resolve** — determines environment from branch name
-2. **Deploy** — 4 apps in parallel via matrix strategy:
-   - `vercel pull` — fetches env vars and project settings
-   - `vercel build` — builds with Vercel's build system
-   - `vercel deploy --prebuilt` — deploys build output
-   - `vercel alias` — aliases to stable custom domain (non-production only)
-3. **Smoke test** — health checks on production/test (API + admin)
-4. **Summary** — structured JSON output
-
-### Token Passing
-
-The `--token` flag MUST be passed explicitly to every `vercel` command. The Vercel CLI does NOT reliably read `VERCEL_TOKEN` from the environment in GitHub Actions CI.
-
-Use double-quoted interpolation to prevent shell mangling:
 ```yaml
-run: vercel pull --yes --token="${{ secrets.VERCEL_TOKEN }}"
+env:
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+run: vercel pull --yes --token="$VERCEL_TOKEN"
 ```
 
-**Never use** unquoted interpolation:
-```yaml
-# BAD — shell can mangle the token
-run: vercel pull --token=${{ secrets.VERCEL_TOKEN }}
-```
+Keep the workflow's existing secret masking and access controls. This example
+does not claim that the token argument is invisible to the runner's processes.
+Use the workflow's declared tool versions and frozen lockfile. Verify tool
+pinning from its current definition; production and preview may differ.
 
-### Lockfile Policy
+## Failure diagnosis
 
-All CI branches (`main`/`test`) use `--frozen-lockfile` (strict, supply chain protection). `develop` is local-only and has no CI lockfile policy.
+1. Read the failed run's revision, selected apps, environment, and failed step.
+2. Distinguish authorization, credential presence, project mapping, build,
+   deployment, alias, and smoke-check failures from their actual evidence.
+3. Fix the owning workflow, configuration, bootstrap, or product primitive.
+   Preserve failed-run evidence and run the relevant maintained checks.
+4. Prepare the normal reviewed change. Obtain any still-required authorization
+   for promotion, dispatch, credential lifecycle work, or domain changes.
+5. Verify the authorized run and its declared endpoint checks before reporting
+   success. Do not retry a metered deployment merely to diagnose its cause.
 
-## Troubleshooting
-
-### "The token provided via --token argument is not valid"
-
-1. Verify token works locally: `vercel whoami --token 'TOKEN'`
-2. If local works but CI doesn't — the stored secret is corrupted. Re-set via file:
-   ```bash
-   echo -n 'TOKEN' > /tmp/vt.txt
-   gh secret set VERCEL_TOKEN < /tmp/vt.txt
-   rm /tmp/vt.txt
-   ```
-3. If local also fails — token is expired or wrong scope. Create a new one.
-
-### "No existing credentials found"
-
-The `--token` flag is missing from the `vercel` command. Every `vercel pull`, `vercel build`, `vercel deploy`, and `vercel alias` call needs `--token="${{ secrets.VERCEL_TOKEN }}"`.
-
-### "No Project found"
-
-`VERCEL_PROJECT_ID` doesn't match any project in the org. Verify the project ID in the Vercel dashboard under Project Settings > General.
-
-### "Could not find org"
-
-`VERCEL_ORG_ID` is wrong. Get the correct team ID from Vercel dashboard or `vercel team ls`.
-
-### Deploy succeeds but domain not updating
-
-Non-production deploys need the `vercel alias` step. Check that:
-- The alias step's `if` condition matches the environment
-- `--scope` uses the correct org ID
-- The domain is configured in the Vercel project's domain settings
-
-## Manual Deploy (emergency)
-
-```bash
-cd ~/revealfleet/revealui
-
-# Deploy single app to preview
-VERCEL_PROJECT_ID=prj_XXX vercel pull --yes --environment=preview --token='TOKEN'
-VERCEL_PROJECT_ID=prj_XXX vercel build --token='TOKEN'
-VERCEL_PROJECT_ID=prj_XXX vercel deploy --prebuilt --token='TOKEN'
-
-# Deploy to production
-VERCEL_PROJECT_ID=prj_XXX vercel pull --yes --environment=production --token='TOKEN'
-VERCEL_PROJECT_ID=prj_XXX vercel build --prod --token='TOKEN'
-VERCEL_PROJECT_ID=prj_XXX vercel deploy --prebuilt --prod --token='TOKEN'
-```
-
-## Related Files
-
-- `.github/workflows/deploy.yml` — deploy workflow
-- `.github/workflows/ci.yml` — CI checks (must pass before deploy)
-- `apps/*/vercel.json` — per-app Vercel configuration (if any)
-
-## Rules
-
-1. **Never trigger deploys casually** — one attempt, then wait. Let git push handle it.
-2. **Never skip CI** — deploy workflow runs alongside CI, but broken builds should not deploy.
-3. **Production deploys require `main` branch** — no manual `--prod` deploys from feature branches.
-4. **Credential rotation** — when rotating VERCEL_TOKEN, test locally first, then set in GitHub.
-5. **Domain changes** — update both the Vercel project domain settings AND the deploy workflow matrix.
+Direct local deploy or rollback commands, manual credential copies, and
+machine-specific environment overrides are not alternate recovery paths.
+If the owning workflow cannot support required recovery, track the missing
+behavior and its validation in that workflow's maintained work item.

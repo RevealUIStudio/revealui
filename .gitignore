@@ -180,12 +180,20 @@ CLAUDE.md
 !.claude/rules/
 !.claude/agents/
 !.claude/skills/
+!.claude/workflows/
 !.claude/.revcon-manifest.json
-# Equal-rank adapter stubs from `revealui-harnesses manager materialize`
-# (must not enter the revcon rules-lockstep manifest).
-.claude/rules/00-revealui-manager.md
-.opencode/
-.agents/
+!.claude/settings.json
+# Portable manager pointers and generated adapter output are required in clean checkouts.
+# Local settings and other vendor state remain ignored. The manager owns its
+# Claude pointer through the existing ledger with a canonical adapter source.
+.opencode/*
+!.opencode/revealui-manager.md
+!.opencode/agents/
+!.opencode/commands/
+.agents/*
+!.agents/skills/
+!.agents/workflows/
+!.agents/.revcon-manifest.json
 
 # RevealUI cache files (PGlite database)
 .revealui/cache/
@@ -270,8 +278,10 @@ screenshots/
 apps/terminal/terminal
 apps/terminal/.ssh/
 
-# editor-configs (symlinked)
-.cursor/
+# Cursor manager delivery is portable; other editor state is local.
+.cursor/*
+!.cursor/revealui-manager.md
+!.cursor/hooks.json
 .zed/
 
 # Local design canvas — HTML mockups + drag-from-host design assets.

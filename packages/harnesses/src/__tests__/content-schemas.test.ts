@@ -179,6 +179,23 @@ describe('Content Schemas', () => {
   });
 
   describe('ManifestSchema', () => {
+    it('rejects retired fleet identities in current content and resource paths', () => {
+      const manifest = buildManifest();
+      const retired = ['rev', 'fleet'].join('');
+      for (const spelling of [retired, retired.toUpperCase(), 'Rev' + 'Fleet']) {
+        const changed = {
+          ...manifest,
+          rules: [{ ...manifest.rules[0], content: `Use ${spelling}_ROOT` }],
+        };
+        expect(ManifestSchema.safeParse(changed).success).toBe(false);
+      }
+      const changed = {
+        ...manifest,
+        skills: [{ ...manifest.skills[0], references: { [`${retired}/guide.md`]: 'guide' } }],
+      };
+      expect(ManifestSchema.safeParse(changed).success).toBe(false);
+      expect(ManifestSchema.safeParse(manifest).success).toBe(true);
+    });
     it('validates the full built manifest', () => {
       const manifest = buildManifest();
       const result = ManifestSchema.safeParse(manifest);

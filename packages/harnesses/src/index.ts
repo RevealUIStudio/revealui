@@ -20,6 +20,13 @@ export {
   type RevealUiAcpAgentOptions,
   runRevealUiAcpAgentStdio,
 } from './acp/index.js';
+// Adapters
+export {
+  CodexAdapter,
+  type CodexAdapterConfig,
+  type CodexApprovalDecision,
+  type CodexApprovalRequest,
+} from './adapters/codex-adapter.js';
 // Config
 export {
   diffAllConfigs,
@@ -189,6 +196,8 @@ export type {
   SnapStatus,
 } from './server/inference-service.js';
 export { InferenceService, PRODUCT_INFERENCE_SNAPS } from './server/inference-service.js';
+// Canonical shared-memory MCP configuration for host integrations.
+export { studioLocalKnowledgeGraphMcpServer } from './session/studio-local-kg-mcp.js';
 // HTTP gateway + PGlite DaemonStore were deleted after the RevDev port
 // (revdev#328/#329). Remote pairing lives in @revdev/daemon only.
 export type { HarnessAdapter } from './types/adapter.js';
