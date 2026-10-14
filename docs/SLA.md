@@ -73,4 +73,4 @@ the limits of support coverage.
 - [Status](https://revealui.com/status)
 - [Deployment](./guides/deployment.md)
 - [Enterprise](./ENTERPRISE.md)
-- [Enterprise SSO status](./FORGE_SSO_SETUP.md) — operator preview; [#449](https://github.com/RevealUIStudio/revealui/issues/449)
+- [Enterprise SSO status](./FORGE_SSO_SETUP.md): operator preview; [#449](https://github.com/RevealUIStudio/revealui/issues/449)

@@ -13,7 +13,7 @@ Live public get-started paths:
 
 - `npx create-revealui@latest`
 - GitHub templates (Use this template): [starter](https://github.com/RevealUIStudio/revealui-template-starter), [basic-blog](https://github.com/RevealUIStudio/revealui-template-basic-blog), [portfolio](https://github.com/RevealUIStudio/revealui-template-portfolio), [e-commerce](https://github.com/RevealUIStudio/revealui-template-e-commerce)
-- Apify [governed-agent-run](https://apify.com/revealuistudio/governed-agent-run) — pay-per-event. Receipt verification is $0.00001, not free.
+- Apify [governed-agent-run](https://apify.com/revealuistudio/governed-agent-run): pay-per-event. Receipt verification is $0.00001, not free.
 - [Templates](https://revealui.com/templates): visitor Deploy-to-Vercel on the four Next.js GitHub twins
 
 ---
@@ -56,7 +56,7 @@ Then continue from [Step 2](#step-2-set-up-environment-variables) below.
 revvault export-env
 ```
 
-See [RevVault](./fleet/revvault.md). Do not use `cp apps/admin/.env.example` — that file is not the on-ramp.
+See [RevVault](./fleet/revvault.md). Do not use `cp apps/admin/.env.example`. That file is not the on-ramp.
 
 Without [RevVault](./fleet/revvault.md) (separate product; first clone, no vault yet), copy the **repo-root** template:
 

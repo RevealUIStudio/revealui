@@ -23,6 +23,8 @@ const sessionState = vi.hoisted(() => ({
 const mockPush = vi.fn();
 const mockRouter = { push: mockPush };
 let mockLicenseParam: string | null = null;
+/** Set to a price string to stub /api/pricing. Null leaves the fetch failing. */
+let mockPerpetualPrice: string | null = null;
 
 vi.mock('@revealui/auth/react', () => ({
   useSession: () => ({
@@ -77,6 +79,7 @@ function jsonResponse(body: unknown): Pick<Response, 'ok' | 'json'> {
 beforeEach(() => {
   vi.clearAllMocks();
   mockLicenseParam = null;
+  mockPerpetualPrice = null;
   sessionState.data = { user: { id: 'user-1', email: 'owner@example.com' } };
   sessionState.isLoading = false;
   vi.stubGlobal(
@@ -100,6 +103,19 @@ beforeEach(() => {
       }
       if (url.endsWith('/api/studio-auth/devices')) {
         return Promise.resolve(jsonResponse({ devices: [] }));
+      }
+      if (url.endsWith('/api/pricing') && mockPerpetualPrice) {
+        return Promise.resolve(
+          jsonResponse({
+            perpetual: [
+              {
+                name: 'Pro Perpetual',
+                price: mockPerpetualPrice,
+                description: 'Pro features forever.',
+              },
+            ],
+          }),
+        );
       }
       return Promise.resolve({ ok: false, json: () => Promise.resolve({}) });
     }),
@@ -150,6 +166,7 @@ describe('LicensePage activation instructions', () => {
 // Enterprise is Contact sales — same door as public pricing — not a Buy.
 describe('LicensePage perpetual purchase plans', () => {
   it('renders Pro Perpetual as the only buyable leftover-admin SKU', async () => {
+    mockPerpetualPrice = '$1,499';
     render(<LicensePage />);
 
     await waitFor(() => {
@@ -160,8 +177,23 @@ describe('LicensePage perpetual purchase plans', () => {
     expect(screen.queryByText('Agency Perpetual')).toBeNull();
     expect(screen.queryByText('Enterprise Perpetual')).toBeNull();
     expect(screen.queryByText('Max Perpetual')).toBeNull();
-    expect(screen.getAllByRole('button', { name: /^Buy / })).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: 'Buy $1,499' })).toHaveLength(1);
     expect(screen.queryByRole('button', { name: /Buy \$42/ })).toBeNull();
+  });
+
+  it('hides the price and disables buy when pricing fails to load', async () => {
+    render(<LicensePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('test-license-jwt')).toBeDefined();
+    });
+
+    const buy = screen.getByRole('button', { name: /Price unavailable/ });
+    expect((buy as HTMLButtonElement).disabled).toBe(true);
+    expect(buy.textContent).toBe('Buy');
+    expect(document.body.textContent ?? '').not.toContain('N/A');
+    buy.click();
+    expect(apiFetch).not.toHaveBeenCalled();
   });
 
   it('names the SKU and auto-starts Pro Perpetual checkout from ?license=pro', async () => {
@@ -284,6 +316,7 @@ describe('LicensePage same-origin billing proxy', () => {
   });
 
   it('posts perpetual checkout to same-origin /api/billing/checkout-perpetual', async () => {
+    mockPerpetualPrice = '$1,499';
     vi.stubEnv('NEXT_PUBLIC_API_URL', stagingApi);
     vi.mocked(apiFetch).mockResolvedValue({
       json: () => Promise.resolve({ url: 'https://checkout.stripe.com/c/test' }),
@@ -295,7 +328,7 @@ describe('LicensePage same-origin billing proxy', () => {
       expect(screen.getByText('test-license-jwt')).toBeDefined();
     });
 
-    screen.getAllByRole('button', { name: /^Buy / })[0]?.click();
+    screen.getByRole('button', { name: 'Buy $1,499' }).click();
 
     await waitFor(() => {
       expect(apiFetch).toHaveBeenCalledWith(

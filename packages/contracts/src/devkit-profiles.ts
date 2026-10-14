@@ -60,14 +60,14 @@ export const DEVKIT_PROFILE_METADATA: readonly DevkitProfileMeta[] = [
     id: 'cursor',
     label: 'Cursor (external)',
     description:
-      'External-editor profile for Cursor IDE — MCP server registration, Composer rules, project-level config. Use this if you prefer Cursor as your primary IDE.',
+      'External-editor profile for Cursor IDE: MCP server registration, Composer rules, project-level config. Use this if you prefer Cursor as your primary IDE.',
     kind: 'external-editor',
   },
   {
     id: 'zed',
     label: 'Zed (external)',
     description:
-      'External-editor profile for Zed — task definitions and MCP wiring for the Zed agent panel. Use this if you prefer Zed as your primary IDE.',
+      'External-editor profile for Zed: task definitions and MCP wiring for the Zed agent panel. Use this if you prefer Zed as your primary IDE.',
     kind: 'external-editor',
   },
 ] as const;

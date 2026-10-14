@@ -54,7 +54,7 @@ const story: ShowcaseStory = {
     {
       name: 'Default (renders <a>)',
       description:
-        'Without LinkBehaviorProvider, LinkButton renders a native anchor — SSR-safe, zero deps, works everywhere.',
+        'Without LinkBehaviorProvider, LinkButton renders a native anchor (SSR-safe, zero deps, works everywhere).',
       render: () => <LinkButton href="/contact">Book a call</LinkButton>,
     },
     {
@@ -114,7 +114,7 @@ const story: ShowcaseStory = {
   },
 
   usage: {
-    when: `Reach for **LinkButton** when you need a styled button that **navigates** — e.g. "Get Started", "Book a call", "Read the docs". Pairs with \`LinkBehaviorProvider\` to wire SPA navigation through any router (\`@revealui/router\`, Next.js \`Link\`, react-router) once at the app root, with no per-call-site setup.`,
+    when: `Reach for **LinkButton** when you need a styled button that **navigates** (e.g. "Get Started", "Book a call", "Read the docs"). Pairs with \`LinkBehaviorProvider\` to wire SPA navigation through any router (\`@revealui/router\`, Next.js \`Link\`, react-router) once at the app root, with no per-call-site setup.`,
     avoid: `Don't use LinkButton when:\n- You need a click handler that doesn't navigate (use **Button** instead).\n- The element is purely decorative or non-interactive (use a **div** or **span**).\n- You want a text-style inline link (use **Link** or **TextLink**).`,
   },
 
@@ -129,7 +129,7 @@ const story: ShowcaseStory = {
     },
     aria: {
       'aria-disabled':
-        'Set to "true" when `disabled`. Anchor `href` is preserved — semantics unchanged — but click is prevented and `tabIndex={-1}`.',
+        'Set to "true" when `disabled`. Anchor `href` is preserved (semantics unchanged), but click is prevented and `tabIndex={-1}`.',
       'aria-busy': 'Set to "true" when `isLoading`.',
     },
     notes:
