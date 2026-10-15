@@ -1,0 +1,213 @@
+diff --git a/api/consultation/crm.ts b/api/consultation/crm.ts
+new file mode 100644
+index 0000000..a7d4ce2
+--- /dev/null
++++ b/api/consultation/crm.ts
+@@ -0,0 +1,6 @@
++import { handleConsultationRequest } from '../../server/consultation-http';
++export const config = { runtime: 'edge' };
++/** Server-to-server, owner-authenticated read; never a public buyer-data feed. */
++export default function handler(request: Request): Promise<Response> {
++  return handleConsultationRequest(request);
++}
+diff --git a/docs/consultation-actions.md b/docs/consultation-actions.md
+index 936d026..2f44a31 100644
+--- a/docs/consultation-actions.md
++++ b/docs/consultation-actions.md
+@@ -202,3 +202,21 @@ The booking registry itself requires no new secrets. Private fulfillment adds
+ the supported content API origin and existing operator device credential to the
+ server configuration; missing configuration fails closed. Merge with a merge
+ commit. Do not squash.
++
++## Native CRM booking projection
++
++`GET /api/consultation/crm?booking=<canonical-id>` is a read-only, server-to-server
++projection protected by the existing Studio owner bearer. Guests are denied before
++provider reads. It returns `studio-crm-booking-v1` evidence from the existing Calendar
++ledger, including held/paid status, start/end, 1–8 hours at $300 per hour, Stage B mode,
++Stripe/event bindings and persisted refund evidence. Authoritative absence returns
++`status: missing`; provider failure returns an error and must never be interpreted
++as cancellation. Private buyer fields are returned only to the credentialed operator
++consumer and are stored in account-scoped native CRM storage, never Git.
++
++The projection does not book, create Checkout, refund, reschedule, send an invite,
++mail a buyer or grant private material. The action registry and signed Stripe webhook
++remain the owners of those transitions. CRM synchronization requires an explicitly
++selected existing opportunity and verified native Studio operator/account authority.
++Paired implementation: [RevealUI draft #3128](https://github.com/RevealUIStudio/revealui/pull/3128).
++No deployment or production-provider test is authorized by this change.
+diff --git a/server/__tests__/crm-booking-source.test.ts b/server/__tests__/crm-booking-source.test.ts
+new file mode 100644
+index 0000000..36a353d
+--- /dev/null
++++ b/server/__tests__/crm-booking-source.test.ts
+@@ -0,0 +1,102 @@
++import { describe, expect, it, vi } from 'vitest';
++import type { Booking } from '../../app/lib/consultation-booking';
++import { createMemoryCalendar } from '../consultation-calendar';
++import { handleConsultationRequest } from '../consultation-http';
++
++const booking: Booking = {
++  booking_id: 'existing-booking',
++  start: '2026-10-20T14:00:00.000Z',
++  end: '2026-10-20T17:00:00.000Z',
++  hours: 3,
++  name: 'Example Buyer',
++  email: 'buyer@example.test',
++  company: 'Example Co',
++  stage_b: true,
++  stage_b_fee: 'paid_addon',
++  network_jti: null,
++  status: 'paid_scheduled',
++  expires_at: '2026-10-19T14:00:00.000Z',
++  event_id: 'calendar-event',
++  meet_link: 'https://meet.example.test/example',
++  stripe_session_id: 'cs_example',
++};
++function request(token?: string, method = 'GET') {
++  return new Request('https://studio.example.test/api/consultation/crm?booking=existing-booking', {
++    method,
++    headers: token ? { Authorization: `Bearer ${token}` } : {},
++  });
++}
++describe('owner-only native CRM booking projection', () => {
++  it('denies guest and forged owner sessions before calendar reads', async () => {
++    const calendar = createMemoryCalendar([booking]);
++    const get = vi.spyOn(calendar, 'get');
++    for (const token of [undefined, 'forged'])
++      expect(
++        (
++          await handleConsultationRequest(request(token), {
++            env: { ownerSession: 'owner-token' },
++            calendar,
++          })
++        ).status,
++      ).toBe(403);
++    expect(get).not.toHaveBeenCalled();
++  });
++  it('returns existing schedule, hour count, source status and refund evidence without side effects', async () => {
++    const calendar = createMemoryCalendar([
++      {
++        ...booking,
++        refund: {
++          chargeId: 'ch_example',
++          amountRefunded: 30000,
++          full: false,
++          domainPackReview: 'review_required',
++        },
++      },
++    ]);
++    const schedule = vi.spyOn(calendar, 'schedulePaid'),
++      release = vi.spyOn(calendar, 'release');
++    const response = await handleConsultationRequest(request('owner-token'), {
++      env: { ownerSession: 'owner-token' },
++      calendar,
++    });
++    expect(response.status).toBe(200);
++    expect(response.headers.get('cache-control')).toBe('private, no-store');
++    expect(await response.json()).toMatchObject({
++      contract: 'studio-crm-booking-v1',
++      bookingId: 'existing-booking',
++      status: 'paid_scheduled',
++      hours: 3,
++      refund: { amountRefunded: 30000, full: false },
++    });
++    expect(schedule).not.toHaveBeenCalled();
++    expect(release).not.toHaveBeenCalled();
++  });
++  it('distinguishes authoritative missing records from unavailable providers', async () => {
++    const calendar = createMemoryCalendar();
++    expect(
++      await (
++        await handleConsultationRequest(request('owner-token'), {
++          env: { ownerSession: 'owner-token' },
++          calendar,
++        })
++      ).json(),
++    ).toMatchObject({ status: 'missing' });
++    vi.spyOn(calendar, 'get').mockRejectedValue(new Error('provider unavailable'));
++    expect(
++      (
++        await handleConsultationRequest(request('owner-token'), {
++          env: { ownerSession: 'owner-token' },
++          calendar,
++        })
++      ).status,
++    ).toBe(502);
++  });
++  it('refuses methods that could imply booking mutation', async () =>
++    expect(
++      (
++        await handleConsultationRequest(request('owner-token', 'POST'), {
++          env: { ownerSession: 'owner-token' },
++        })
++      ).status,
++    ).toBe(405));
++});
+diff --git a/server/consultation-http.ts b/server/consultation-http.ts
+index 5bad7ce..e5955b1 100644
+--- a/server/consultation-http.ts
++++ b/server/consultation-http.ts
+@@ -550,6 +550,7 @@ export async function handleConsultationRequest(
+   const url = new URL(request.url);
+   const path = url.pathname;
+   const known =
++    path === '/api/consultation/crm' ||
+     path === '/api/consultation/availability' ||
+     path === '/api/consultation/book' ||
+     path === '/api/consultation/booking' ||
+@@ -558,7 +559,9 @@ export async function handleConsultationRequest(
+     path === '/api/stripe/webhook';
+   if (!known) return json(404, { error: 'not-found' });
+   const getOnly =
+-    path === '/api/consultation/availability' || path === '/api/consultation/network-status';
++    path === '/api/consultation/crm' ||
++    path === '/api/consultation/availability' ||
++    path === '/api/consultation/network-status';
+   if (
+     path === '/api/consultation/booking' &&
+     request.method !== 'GET' &&
+@@ -577,6 +580,8 @@ export async function handleConsultationRequest(
+ 
+   const env = deps.env ?? consultationEnvFromProcess();
+   const fetchImpl = deps.fetchImpl ?? fetch;
++  if (path === '/api/consultation/crm' && verifySession(request, env).role !== 'owner')
++    return json(403, { error: 'owner-required' });
+   // The address throttle already ran. The jti ledger is touched only after that.
+   const networkLedger =
+     deps.networkLedger ??
+@@ -597,6 +602,34 @@ export async function handleConsultationRequest(
+   const calendar = deps.calendar ?? calendarFromEnv(env, fetchImpl);
+   if (!calendar) return json(503, { error: 'calendar-unconfigured' });
+ 
++  if (path === '/api/consultation/crm') {
++    const bookingId = url.searchParams.get('booking') ?? '';
++    if (!/^[a-zA-Z0-9_-]{1,100}$/.test(bookingId)) return json(400, { error: 'invalid-reference' });
++    try {
++      const booking = await calendar.get(bookingId);
++      if (!booking)
++        return json(200, { contract: 'studio-crm-booking-v1', bookingId, status: 'missing' });
++      if (booking.booking_id !== bookingId) return json(502, { error: 'booking-binding' });
++      return json(200, {
++        contract: 'studio-crm-booking-v1',
++        bookingId,
++        status: booking.status,
++        start: booking.start,
++        end: booking.end,
++        hours: booking.hours,
++        name: booking.name,
++        email: booking.email,
++        company: booking.company,
++        stageB: booking.stage_b,
++        stageBFee: booking.stage_b_fee,
++        stripeSessionId: booking.stripe_session_id,
++        eventId: booking.event_id,
++        refund: booking.refund ?? null,
++      });
++    } catch {
++      return json(502, { error: 'calendar' });
++    }
++  }
+   if (path === '/api/consultation/availability') {
+     return availability(request, calendar, now, throttle);
+   }
