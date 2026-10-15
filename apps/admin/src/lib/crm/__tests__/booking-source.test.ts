@@ -119,6 +119,23 @@ describe('authoritative booking adapter', () => {
     );
     expect(stream.locked).toBe(false);
   });
+  it('preserves cancellation failure without masking the size-limit error', async () => {
+    const cause = new Error('cancellation failed');
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new Uint8Array(32769));
+      },
+      cancel() {
+        throw cause;
+      },
+    });
+    fetcher.mockResolvedValueOnce(new Response(stream));
+    await expect(readCrmBookingSource('existing-booking', fetcher)).rejects.toMatchObject({
+      message: 'Studio booking evidence exceeds limit',
+      cause,
+    });
+    expect(stream.locked).toBe(false);
+  });
   it('accepts only explicit authenticated source absence as missing, never a 404 error', async () => {
     fetcher.mockResolvedValueOnce(
       new Response(

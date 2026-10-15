@@ -26,8 +26,13 @@ export async function readCrmBookingSource(bookingId: string, fetchImpl: typeof 
       if (done) break;
       bytes += value.byteLength;
       if (bytes > 32768) {
-        await reader.cancel().catch(() => {});
-        throw new Error('Studio booking evidence exceeds limit');
+        const error = new Error('Studio booking evidence exceeds limit');
+        try {
+          await reader.cancel();
+        } catch (cause) {
+          error.cause = cause;
+        }
+        throw error;
       }
       text += decoder.decode(value, { stream: true });
     }
