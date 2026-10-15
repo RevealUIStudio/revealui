@@ -15,9 +15,28 @@ export async function readCrmBookingSource(bookingId: string, fetchImpl: typeof 
     headers: { Authorization: `Bearer ${config.ownerSession}` },
   });
   if (!response.ok) throw new Error('Studio booking source unavailable');
-  const text = await response.text();
-  if (text.length > 32768) throw new Error('Studio booking evidence exceeds limit');
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error('Studio booking evidence is empty');
+  const decoder = new TextDecoder();
+  let bytes = 0;
+  let text = '';
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > 32768) {
+        await reader.cancel().catch(() => {});
+        throw new Error('Studio booking evidence exceeds limit');
+      }
+      text += decoder.decode(value, { stream: true });
+    }
+    text += decoder.decode();
+  } finally {
+    reader.releaseLock();
+  }
   const snapshot = crmSourceBooking.parse(JSON.parse(text));
   if (snapshot.bookingId !== bookingId) throw new Error('Studio booking identity mismatch');
   return { snapshot, sourceUrl: url.toString() };
 }
+

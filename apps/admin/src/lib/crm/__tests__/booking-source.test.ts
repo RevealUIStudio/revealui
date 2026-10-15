@@ -54,6 +54,71 @@ describe('authoritative booking adapter', () => {
     fetcher.mockResolvedValueOnce(new Response('{}', { status: 502 }));
     await expect(readCrmBookingSource('existing-booking', fetcher)).rejects.toThrow('unavailable');
   });
+  it('cancels oversized streamed evidence before reading the remaining body', async () => {
+    const cancel = vi.fn();
+    let chunks = 0;
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        chunks += 1;
+        if (chunks <= 3) controller.enqueue(new Uint8Array(20000).fill(32));
+        else controller.close();
+      },
+      cancel,
+    });
+    fetcher.mockResolvedValueOnce(new Response(stream));
+    await expect(readCrmBookingSource('existing-booking', fetcher)).rejects.toThrow(
+      'exceeds limit',
+    );
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(stream.locked).toBe(false);
+  });
+  it('limits UTF-8 bytes rather than JavaScript characters', async () => {
+    const body = JSON.stringify({ ...snapshot, name: 'é'.repeat(17000) });
+    expect(body.length).toBeLessThan(32768);
+    fetcher.mockResolvedValueOnce(new Response(body));
+    await expect(readCrmBookingSource('existing-booking', fetcher)).rejects.toThrow(
+      'exceeds limit',
+    );
+  });
+  it('accepts evidence at the exact byte limit', async () => {
+    fetcher.mockResolvedValueOnce(new Response(JSON.stringify(snapshot).padEnd(32768, ' ')));
+    expect(await readCrmBookingSource('existing-booking', fetcher)).toMatchObject({ snapshot });
+  });
+  it('decodes UTF-8 characters split between streamed chunks', async () => {
+    const body = new TextEncoder().encode(JSON.stringify({ ...snapshot, name: 'José' }));
+    const split = body.indexOf(0xc3) + 1;
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(body.slice(0, split));
+        controller.enqueue(body.slice(split));
+        controller.close();
+      },
+    });
+    fetcher.mockResolvedValueOnce(new Response(stream));
+    expect(await readCrmBookingSource('existing-booking', fetcher)).toMatchObject({
+      snapshot: { name: 'José' },
+    });
+  });
+  it('enforces the actual byte count despite a smaller Content-Length', async () => {
+    fetcher.mockResolvedValueOnce(
+      new Response(' '.repeat(32769), { headers: { 'Content-Length': '1' } }),
+    );
+    await expect(readCrmBookingSource('existing-booking', fetcher)).rejects.toThrow(
+      'exceeds limit',
+    );
+  });
+  it('releases the reader when the source stream fails', async () => {
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        controller.error(new Error('source read failed'));
+      },
+    });
+    fetcher.mockResolvedValueOnce(new Response(stream));
+    await expect(readCrmBookingSource('existing-booking', fetcher)).rejects.toThrow(
+      'source read failed',
+    );
+    expect(stream.locked).toBe(false);
+  });
   it('accepts only explicit authenticated source absence as missing, never a 404 error', async () => {
     fetcher.mockResolvedValueOnce(
       new Response(
@@ -71,3 +136,4 @@ describe('authoritative booking adapter', () => {
     await expect(readCrmBookingSource('existing-booking', fetcher)).rejects.toThrow();
   });
 });
+
