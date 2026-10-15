@@ -136,4 +136,3 @@ describe('authoritative booking adapter', () => {
     await expect(readCrmBookingSource('existing-booking', fetcher)).rejects.toThrow();
   });
 });
-

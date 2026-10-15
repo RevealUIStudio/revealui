@@ -39,4 +39,3 @@ export async function readCrmBookingSource(bookingId: string, fetchImpl: typeof 
   if (snapshot.bookingId !== bookingId) throw new Error('Studio booking identity mismatch');
   return { snapshot, sourceUrl: url.toString() };
 }
-
