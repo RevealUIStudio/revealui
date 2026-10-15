@@ -30,7 +30,7 @@ jobs:
   backflow:
     # Pinned to a SHA — org-shared reusable was referenced by the mutable @main.
     # Bump this deliberately when the reusable changes.
-    uses: RevealUIStudio/.github/.github/workflows/backflow-reusable.yml@7d78f9135123f58c5a8b8658821fd13363b57cc6 # org .github#26 draft head: backflow_bot_login input. Repin to the merge SHA once #26 lands.
+    uses: RevealUIStudio/.github/.github/workflows/backflow-reusable.yml@b4f23b3aabd617bdf3729b669811fa4444593b3e # org .github#26 merge: require the in-repo Backflow App bot for the branch exemption.
     with:
       backflow_bot_login: revealfleet-backflow[bot]
     # Scope to ONLY the two secrets the reusable declares (its workflow_call.secrets
