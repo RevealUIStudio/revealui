@@ -8,7 +8,7 @@ audience: maintainer
 
 # Core 100: framework release evidence
 
-Owner issue: [#3137](https://github.com/RevealUIStudio/revealui/issues/3137). This is an engineering release checklist, **not** an assertion of 100% code coverage, certification, production traffic, or zero defects. An earlier 88/100 score was a qualitative assessment.
+Owner issue: [#3137](https://github.com/RevealUIStudio/revealui/issues/3137). This is an engineering release checklist, **not** an assertion of 100% code coverage, certification, production traffic, or zero defects.
 
 | Gate | Existing owner work | Required proof | Status |
 | --- | --- | --- | --- |
