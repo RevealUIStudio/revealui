@@ -81,6 +81,15 @@ Full details in `docs/PRO.md`.
 npm create revealui
 ```
 
+## Cursor Cloud specific instructions
+
+Cloud Agent setup installs Node `24.13.0` and pnpm `10.28.2` on `/usr/local` and symlinks them ahead of the image Node 22. `start` launches PostgreSQL 16 with pgvector, writes gitignored `.env.development.local` (local socket, `REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true`), runs `pnpm --filter @revealui/db db:migrate`, and starts four tmux sessions: `marketing` (`:3000`), `docs` (`:3002`), `api` (`:3004`), and `admin` (`:4000`).
+
+- Database URL: `postgresql://ubuntu@/revealui?host=/var/run/postgresql` (peer auth as the `ubuntu` role).
+- API liveness: `curl -sf http://127.0.0.1:3004/health`. Readiness, including Postgres, is `/health/ready`.
+- First admin account: `POST http://127.0.0.1:4000/api/setup` (the `/setup` page). Dev HMR websockets can fail in this VM; the setup route and server-rendered admin still work.
+- Representative checks that do not need a hosted database: `pnpm --filter @revealui/utils test`, `pnpm --filter marketing typecheck`, `pnpm --filter marketing test`.
+
 ---
 
 ## Skills
