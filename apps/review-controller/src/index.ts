@@ -1,6 +1,8 @@
 import { serve } from '@hono/node-server';
-import { createReviewControllerDatabase } from '@revealui/db/review-controller';
-import { Pool } from 'pg';
+import {
+  createReviewControllerDatabase,
+  createReviewControllerPublicationPool,
+} from '@revealui/db/review-controller';
 import { createReviewControllerApp } from './app.js';
 import { ShadowWebhookHandler } from './event-handler.js';
 import { GitHubAppClient } from './github-app.js';
@@ -37,12 +39,7 @@ async function boot(): Promise<void> {
   const privateKey = required('GITHUB_APP_PRIVATE_KEY');
   const databaseUrl = required('DATABASE_URL');
   const database = createReviewControllerDatabase(databaseUrl);
-  const publicationPool = new Pool({
-    connectionString: databaseUrl,
-    max: 1,
-    connectionTimeoutMillis: 10_000,
-    query_timeout: 60_000,
-  });
+  const publicationPool = createReviewControllerPublicationPool(databaseUrl);
   const publicationCoordinator = new PostgresPublicationCoordinator(publicationPool);
   const inbox = new PostgresWebhookInbox(database.db);
   await inbox.ready();

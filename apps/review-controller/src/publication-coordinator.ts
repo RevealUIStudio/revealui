@@ -1,4 +1,4 @@
-import type { Pool } from 'pg';
+import type { ReviewControllerPublicationPool } from '@revealui/db/review-controller';
 
 export interface PublicationCoordinator {
   run<T>(
@@ -12,7 +12,7 @@ export interface PublicationCoordinator {
  * Use a dedicated max:1 pool, so lock waiters cannot starve evidence-store work.
  */
 export class PostgresPublicationCoordinator implements PublicationCoordinator {
-  constructor(private readonly pool: Pick<Pool, 'connect'>) {}
+  constructor(private readonly pool: ReviewControllerPublicationPool) {}
 
   async run<T>(
     repositoryId: number,

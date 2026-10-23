@@ -1,6 +1,11 @@
 import { createHash } from 'node:crypto';
-import type { ReviewControllerDatabase } from '@revealui/db/review-controller';
-import { sql } from 'drizzle-orm';
+import { and, eq, inArray, notExists } from '@revealui/db/orm';
+import {
+  reviewControllerMergeIntents as intents,
+  reviewControllerMergeReconciliationObservations as observations,
+  type ReviewControllerDatabase,
+} from '@revealui/db/review-controller';
+import { alias } from 'drizzle-orm/pg-core';
 import { canonicalMergeIntent, mergeIntentSha256, validateMergeIntent } from './merge-admission.js';
 
 /** No caller-supplied transport, signing, object upload, GitHub calls or runtime
@@ -16,32 +21,51 @@ export class PostgresMergeIntentJournal {
     const intent = validateMergeIntent(input, this.now());
     const canonical = canonicalMergeIntent(intent);
     const digest = mergeIntentSha256(intent);
-    await this.db.execute(sql`
-      INSERT INTO review_controller_merge_intents
-        (job_id, repository_id, base_ref, canonical_payload, payload_sha256)
-      VALUES (${intent.jobId}, ${intent.repositoryId}, ${intent.baseRef}, ${canonical}, ${digest})
-      ON CONFLICT (job_id) DO NOTHING
-    `);
+    await this.db
+      .insert(intents)
+      .values({
+        jobId: intent.jobId,
+        repositoryId: intent.repositoryId,
+        baseRef: intent.baseRef,
+        canonicalPayload: canonical,
+        payloadSha256: digest,
+      })
+      .onConflictDoNothing({ target: intents.jobId });
     const row = await this.get(intent.jobId);
-    if (row.payload_sha256 !== digest || row.canonical_payload !== canonical)
+    if (row.payloadSha256 !== digest || row.canonicalPayload !== canonical)
       throw new Error('merge_intent_id_collision');
     return { jobId: intent.jobId, digest, state: row.state };
   }
 
   async recordInertDispatch(jobId: string) {
     const row = await this.get(jobId);
-    validateMergeIntent(JSON.parse(String(row.canonical_payload)), this.now());
+    validateMergeIntent(JSON.parse(String(row.canonicalPayload)), this.now());
     if (row.state !== 'proposed') throw new Error('merge_intent_already_consumed');
     try {
-      const updated = await this.db.execute(sql`
-        UPDATE review_controller_merge_intents j SET state = 'dispatch-committed'
-        WHERE job_id = ${jobId} AND state = 'proposed'
-          AND NOT EXISTS (SELECT 1 FROM review_controller_merge_intents other
-            WHERE other.repository_id = j.repository_id AND other.base_ref = j.base_ref
-              AND other.state IN ('dispatch-committed', 'unknown'))
-        RETURNING job_id
-      `);
-      if (updated.rows.length !== 1) throw new Error('merge_scope_quarantined');
+      const other = alias(intents, 'other_intent');
+      const updated = await this.db
+        .update(intents)
+        .set({ state: 'dispatch-committed' })
+        .where(
+          and(
+            eq(intents.jobId, jobId),
+            eq(intents.state, 'proposed'),
+            notExists(
+              this.db
+                .select({ jobId: other.jobId })
+                .from(other)
+                .where(
+                  and(
+                    eq(other.repositoryId, intents.repositoryId),
+                    eq(other.baseRef, intents.baseRef),
+                    inArray(other.state, ['dispatch-committed', 'unknown']),
+                  ),
+                ),
+            ),
+          ),
+        )
+        .returning({ jobId: intents.jobId });
+      if (updated.length !== 1) throw new Error('merge_scope_quarantined');
     } catch (error) {
       if (hasCode(error, '23505')) throw new Error('merge_scope_quarantined');
       throw error;
@@ -52,20 +76,22 @@ export class PostgresMergeIntentJournal {
   async quarantine(jobId: string) {
     const row = await this.get(jobId);
     if (row.state === 'unknown') return;
-    const updated = await this.db.execute(sql`
-      UPDATE review_controller_merge_intents SET state = 'unknown'
-      WHERE job_id = ${jobId} AND state = 'dispatch-committed' RETURNING job_id
-    `);
-    if (updated.rows.length !== 1) throw new Error('merge_intent_not_dispatched');
+    const updated = await this.db
+      .update(intents)
+      .set({ state: 'unknown' })
+      .where(and(eq(intents.jobId, jobId), eq(intents.state, 'dispatch-committed')))
+      .returning({ jobId: intents.jobId });
+    if (updated.length !== 1) throw new Error('merge_intent_not_dispatched');
   }
 
   /** Restart cannot infer rejection from a lost worker or unchanged refs. */
   async quarantineAbandonedDispatches() {
-    const result = await this.db.execute(sql`
-      UPDATE review_controller_merge_intents SET state = 'unknown'
-      WHERE state = 'dispatch-committed' RETURNING job_id
-    `);
-    return result.rows.length;
+    const result = await this.db
+      .update(intents)
+      .set({ state: 'unknown' })
+      .where(eq(intents.state, 'dispatch-committed'))
+      .returning({ jobId: intents.jobId });
+    return result.length;
   }
 
   async recordReconciliationObservation(input: {
@@ -99,25 +125,34 @@ export class PostgresMergeIntentJournal {
     const id = createHash('sha256')
       .update(JSON.stringify([input.jobId, input.kind, input.evidenceSha256, input.observedAt]))
       .digest('hex');
-    await this.db.execute(sql`
-      INSERT INTO review_controller_merge_reconciliation_observations
-        (observation_id, job_id, kind, evidence_sha256, observed_at)
-      VALUES (${id}, ${input.jobId}, ${input.kind}, ${input.evidenceSha256}, ${new Date(input.observedAt)})
-      ON CONFLICT (observation_id) DO NOTHING
-    `);
-    const stored = await this.db.execute(sql`
-      SELECT job_id, kind, evidence_sha256, observed_at
-      FROM review_controller_merge_reconciliation_observations WHERE observation_id = ${id}
-    `);
-    const row = stored.rows[0];
+    await this.db
+      .insert(observations)
+      .values({
+        observationId: id,
+        jobId: input.jobId,
+        kind: input.kind,
+        evidenceSha256: input.evidenceSha256,
+        observedAt: new Date(input.observedAt),
+      })
+      .onConflictDoNothing({ target: observations.observationId });
+    const stored = await this.db
+      .select({
+        jobId: observations.jobId,
+        kind: observations.kind,
+        evidenceSha256: observations.evidenceSha256,
+        observedAt: observations.observedAt,
+      })
+      .from(observations)
+      .where(eq(observations.observationId, id));
+    const row = stored[0];
     if (
       !row ||
-      row.job_id !== input.jobId ||
+      row.jobId !== input.jobId ||
       row.kind !== input.kind ||
-      row.evidence_sha256 !== input.evidenceSha256 ||
-      (row.observed_at instanceof Date
-        ? row.observed_at.getTime()
-        : Date.parse(String(row.observed_at))) !== Date.parse(input.observedAt)
+      row.evidenceSha256 !== input.evidenceSha256 ||
+      (row.observedAt instanceof Date
+        ? row.observedAt.getTime()
+        : Date.parse(String(row.observedAt))) !== Date.parse(input.observedAt)
     )
       throw new Error('merge_reconciliation_observation_unconfirmed');
     // Observations never clear quarantine: authenticated outcome/fencing
@@ -127,11 +162,15 @@ export class PostgresMergeIntentJournal {
 
   private async get(jobId: string) {
     if (!/^[a-f0-9]{64}$/.test(jobId)) throw new Error('merge_job_id_invalid');
-    const result = await this.db.execute(sql`
-      SELECT canonical_payload, payload_sha256, state
-      FROM review_controller_merge_intents WHERE job_id = ${jobId}
-    `);
-    const row = result.rows[0];
+    const result = await this.db
+      .select({
+        canonicalPayload: intents.canonicalPayload,
+        payloadSha256: intents.payloadSha256,
+        state: intents.state,
+      })
+      .from(intents)
+      .where(eq(intents.jobId, jobId));
+    const row = result[0];
     if (!row) throw new Error('merge_intent_not_found');
     return row;
   }
