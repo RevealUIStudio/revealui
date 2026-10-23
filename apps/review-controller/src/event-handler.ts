@@ -324,6 +324,7 @@ async function codexReviewEvidence(
   const currentHeadSha = snapshot.headSha;
   const author = isRecord(review.user) ? review.user : null;
   const action = webhook.payload.action;
+  const normalizedState = typeof review.state === 'string' ? review.state.toLowerCase() : null;
   if (
     !(
       author &&
@@ -337,7 +338,7 @@ async function codexReviewEvidence(
       ['submitted', 'edited', 'dismissed'].includes(String(action)) &&
       typeof review.commit_id === 'string' &&
       /^[a-f0-9]{40,64}$/.test(review.commit_id) &&
-      ['COMMENTED', 'APPROVED', 'CHANGES_REQUESTED', 'DISMISSED'].includes(String(review.state)) &&
+      ['commented', 'approved', 'changes_requested', 'dismissed'].includes(normalizedState ?? '') &&
       (review.body === null || typeof review.body === 'string') &&
       !(typeof review.body === 'string' && Buffer.byteLength(review.body, 'utf8') > 64 * 1024)
     )
@@ -347,12 +348,9 @@ async function codexReviewEvidence(
   const reviewedHeadSha = review.commit_id;
   const actionValue = action as CodexReviewObservation['action'];
   const state: CodexReviewObservation['state'] =
-    actionValue === 'dismissed' || review.state === 'DISMISSED'
+    actionValue === 'dismissed' || normalizedState === 'dismissed'
       ? 'dismissed'
-      : (String(review.state).toLowerCase() as Exclude<
-          CodexReviewObservation['state'],
-          'dismissed'
-        >);
+      : (normalizedState as Exclude<CodexReviewObservation['state'], 'dismissed'>);
   const submittedAt =
     typeof review.submitted_at === 'string' && Number.isFinite(Date.parse(review.submitted_at))
       ? new Date(review.submitted_at).toISOString()
