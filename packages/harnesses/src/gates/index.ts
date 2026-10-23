@@ -26,6 +26,7 @@ export {
   reviewReceiptCheckEvidenceSha256,
   signReviewReceipt,
   validReviewCheckSelector,
+  verifyReceiptAuthorization,
   verifyReviewReceipt,
 } from '@revealui/security/review-receipt';
 export {

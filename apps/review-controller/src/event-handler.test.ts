@@ -1,6 +1,10 @@
 import { createHash, generateKeyPairSync } from 'node:crypto';
 import { canonicalReviewReceiptEnvelope } from '@revealui/security/review-receipt';
 import { describe, expect, it, vi } from 'vitest';
+import {
+  createTestPublicationCoordinator,
+  createTestReceiptAuthority,
+} from './__tests__/publication-coordinator.js';
 import { ShadowWebhookHandler } from './event-handler.js';
 import type { GitHubAppClient, GitHubCheckRun } from './github-app.js';
 import type { ClaimedWebhook } from './inbox.js';
@@ -54,6 +58,7 @@ function fixtures() {
       treeSha: 'f'.repeat(40),
     })),
     listPullRequestReviewComments: vi.fn(async () => []),
+    listPullRequestReviews: vi.fn(async () => []),
     upsertReceiptCheckRun: vi.fn(async (input: { headSha: string; externalId: string }) => ({
       id: 800,
       name: 'RevealUI Receipt' as const,
@@ -99,7 +104,15 @@ describe('shadow webhook event handler', () => {
         },
       ]),
     };
-    const handler = new ShadowWebhookHandler(client, observations, policy, receiptStore);
+    const handler = new ShadowWebhookHandler(
+      client,
+      observations,
+      policy,
+      receiptStore,
+      undefined,
+      createTestPublicationCoordinator(),
+      createTestReceiptAuthority(),
+    );
     await handler.process(
       webhook('receipt_expiration', {
         receiptId: 'receipt-expired',
@@ -143,7 +156,15 @@ describe('shadow webhook event handler', () => {
         },
       ]),
     };
-    const handler = new ShadowWebhookHandler(client, observations, policy, receiptStore);
+    const handler = new ShadowWebhookHandler(
+      client,
+      observations,
+      policy,
+      receiptStore,
+      undefined,
+      createTestPublicationCoordinator(),
+      createTestReceiptAuthority(),
+    );
     await handler.process(
       webhook('receipt_expiration', {
         receiptId: 'receipt-expired',
@@ -189,7 +210,15 @@ describe('shadow webhook event handler', () => {
       head: { sha: 'c'.repeat(40) },
       base: { sha: 'b'.repeat(40) },
     });
-    const handler = new ShadowWebhookHandler(client, observations, policy, receiptStore);
+    const handler = new ShadowWebhookHandler(
+      client,
+      observations,
+      policy,
+      receiptStore,
+      undefined,
+      createTestPublicationCoordinator(),
+      createTestReceiptAuthority(),
+    );
     await handler.process(
       webhook('receipt_expiration', {
         receiptId: 'receipt-expired',
@@ -240,7 +269,15 @@ describe('shadow webhook event handler', () => {
           },
         ]),
     };
-    const handler = new ShadowWebhookHandler(client, observations, policy, receiptStore);
+    const handler = new ShadowWebhookHandler(
+      client,
+      observations,
+      policy,
+      receiptStore,
+      undefined,
+      createTestPublicationCoordinator(),
+      createTestReceiptAuthority(),
+    );
     await handler.process(
       webhook('receipt_expiration', {
         receiptId: 'receipt-expired',
@@ -383,6 +420,8 @@ describe('shadow webhook event handler', () => {
       policy,
       receiptStore,
       expiryQueue,
+      createTestPublicationCoordinator(),
+      createTestReceiptAuthority(),
     );
     const reviewWebhook = webhook('pull_request_review', {
       action: 'submitted',
@@ -393,7 +432,7 @@ describe('shadow webhook event handler', () => {
         commit_id: 'a'.repeat(40),
         state: 'APPROVED',
         body: 'Approved.',
-        submitted_at: '2026-10-06T11:58:00Z',
+        submitted_at: new Date().toISOString(),
       },
     });
     reviewWebhook.receivedAt = new Date();
@@ -635,6 +674,15 @@ describe('shadow webhook event handler', () => {
           submitted_at: '2026-10-06T12:02:00Z',
         },
       });
+    vi.mocked(client.listPullRequestReviews).mockResolvedValue([
+      {
+        id: 83,
+        user: { id: 90211, login: 'revealui-reviewer[bot]', type: 'Bot' },
+        commit_id: 'a'.repeat(40),
+        state: 'APPROVED',
+        body: boundBody,
+      },
+    ]);
     await handler.process(review(90210, 'chatgpt-codex-connector[bot]'));
     await handler.process(review(90210, 'revealui-reviewer[bot]'));
     await handler.process(review(90211, 'revealui-reviewer[bot]', 'b'.repeat(40)));

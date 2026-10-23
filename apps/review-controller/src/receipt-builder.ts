@@ -114,7 +114,19 @@ export function signCandidateReceipt(input: {
   const issuedAt = new Date(
     Math.max(...validEvidenceTimes.map((time) => Date.parse(time))),
   ).toISOString();
-  const expiresAt = new Date(Date.parse(issuedAt) + expected.maxReceiptLifetimeMs).toISOString();
+  // CI reruns and webhook replays cannot renew the original native approval.
+  const reviewDeadlines = currentReviews.map((review) => {
+    const observed = Date.parse(review.observedAt);
+    const submitted = review.submittedAt ? Date.parse(review.submittedAt) : NaN;
+    if (review.provider === 'trusted-reviewer-app' && !Number.isFinite(submitted))
+      throw new GitHubAppError('receipt_review_timestamp_missing');
+    const original = Number.isFinite(submitted) ? Math.min(observed, submitted) : observed;
+    return original + expected.maxReceiptLifetimeMs;
+  });
+  const expiry = Math.min(Date.parse(issuedAt) + expected.maxReceiptLifetimeMs, ...reviewDeadlines);
+  if (expiry <= (expected.now ?? new Date()).getTime() || expiry <= Date.parse(issuedAt))
+    throw new GitHubAppError('receipt_review_expired');
+  const expiresAt = new Date(expiry).toISOString();
   const reviewRows = [...reviews].sort((left, right) =>
     left.reviewerId.localeCompare(right.reviewerId),
   );

@@ -1,7 +1,10 @@
 import { createHash } from 'node:crypto';
+import { revalidateCurrentReview } from './current-review.js';
 import { type GitHubAppClient, GitHubAppError } from './github-app.js';
 import type { ClaimedWebhook, WebhookInbox } from './inbox.js';
 import type { ShadowObservationStore } from './observations.js';
+import type { PublicationCoordinator } from './publication-coordinator.js';
+import type { ReceiptAuthority } from './receipt-authority.js';
 import { evaluateReceiptShadow } from './receipt-evaluator.js';
 import type { ReceiptPolicy } from './receipt-policy.js';
 import { persistReceiptThenPublishCheck } from './receipt-publisher.js';
@@ -21,13 +24,18 @@ export class ShadowWebhookHandler implements WebhookHandler {
     private readonly receiptPolicy?: ReceiptPolicy,
     private readonly receiptStore?: SignedReceiptStore,
     private readonly expiryQueue?: Pick<WebhookInbox, 'scheduleReceiptExpiration'>,
+    private readonly publicationCoordinator?: PublicationCoordinator,
+    private readonly receiptAuthority?: ReceiptAuthority,
   ) {}
 
   async process(webhook: ClaimedWebhook): Promise<void> {
     if (webhook.repositoryId !== this.client.repositoryId)
       throw new GitHubAppError('repository_scope_mismatch');
     if (webhook.eventName === 'receipt_expiration') {
-      await this.expireReceipt(webhook);
+      const number = Number(webhook.payload.pullRequest);
+      if (!Number.isSafeInteger(number) || number <= 0)
+        throw new GitHubAppError('invalid_receipt_expiration_payload');
+      await this.runCandidate(number, (assertHeld) => this.expireReceipt(webhook, assertHeld));
       return;
     }
     if (
@@ -41,82 +49,154 @@ export class ShadowWebhookHandler implements WebhookHandler {
     }
     const pullRequests = extractPullRequestNumbers(webhook);
     for (const number of pullRequests) {
-      const snapshot = await fetchPullRequestSnapshot(this.client, number, this.snapshotCache);
-      const checkRuns = await this.client.listCheckRuns(snapshot.headSha);
-      const workflowRuns = this.receiptPolicy
-        ? await this.client.listWorkflowRuns(snapshot.headSha)
-        : [];
-      const reviewEvidence = await codexReviewEvidence(
-        this.client,
-        webhook,
-        number,
-        snapshot,
-        snapshot.draft,
-        this.receiptPolicy?.trustedReviewer,
-      );
-      const receiptEvaluation = this.receiptPolicy
-        ? await evaluateReceiptShadow({
-            policy: this.receiptPolicy,
-            snapshot,
-            checkRuns,
-            workflowRuns,
-            reviewEvidence: await latestCurrentCodexReview(
+      await this.runCandidate(number, async (assertHeld) => {
+        if (this.receiptPolicy?.mode === 'publish' && !this.receiptAuthority)
+          throw new Error('receipt_authority_required');
+        const generation =
+          this.receiptPolicy?.mode === 'publish'
+            ? await this.requireReceiptAuthority().begin(this.client.repositoryId, number)
+            : undefined;
+        const snapshot = await fetchPullRequestSnapshot(this.client, number, this.snapshotCache);
+        const checkRuns = await this.client.listCheckRuns(snapshot.headSha);
+        const workflowRuns = this.receiptPolicy
+          ? await this.client.listWorkflowRuns(snapshot.headSha)
+          : [];
+        const reviewEvidence = await codexReviewEvidence(
+          this.client,
+          webhook,
+          number,
+          snapshot,
+          snapshot.draft,
+          this.receiptPolicy?.trustedReviewer,
+        );
+        const storedEvidence = this.receiptPolicy
+          ? await latestCurrentCodexReview(
               this.observations,
               snapshot,
               reviewEvidence,
               this.receiptPolicy.trustedReviewer,
-            ),
-            getFreshMergeCandidate: async (current) => {
-              const candidate = await this.client.getFreshMergeCandidate({
-                pullNumber: current.pullRequest,
-                expectedHeadSha: current.headSha,
-                expectedBaseSha: current.baseSha,
-              });
-              return candidate.treeSha;
-            },
-          })
-        : undefined;
-      if (this.receiptPolicy?.mode === 'publish') {
-        if (!this.receiptStore) throw new Error('receipt_publisher_store_required');
-        const externalId = `pr-${snapshot.repositoryId}-${snapshot.pullRequest}`;
-        if (receiptEvaluation?.status === 'eligible') {
-          if (!this.expiryQueue) throw new Error('receipt_expiration_queue_required');
-          await persistReceiptThenPublishCheck({
-            envelope: receiptEvaluation.envelope,
-            store: this.receiptStore,
-            inbox: this.expiryQueue,
-            installationId: webhook.installationId,
-            github: this.client,
-          });
-        } else {
-          await this.client.upsertReceiptCheckRun({
-            headSha: snapshot.headSha,
-            externalId,
-            eligible: false,
-          });
+            )
+          : reviewEvidence;
+        const currentEvidence = this.receiptPolicy?.trustedReviewer
+          ? await revalidateCurrentReview({
+              github: this.client,
+              snapshot,
+              evidence: storedEvidence,
+              trustedReviewer: this.receiptPolicy.trustedReviewer,
+            })
+          : storedEvidence;
+        const receiptEvaluation = this.receiptPolicy
+          ? await evaluateReceiptShadow({
+              policy: this.receiptPolicy,
+              snapshot,
+              checkRuns,
+              workflowRuns,
+              reviewEvidence: currentEvidence,
+              getFreshMergeCandidate: async (current) => {
+                const candidate = await this.client.getFreshMergeCandidate({
+                  pullNumber: current.pullRequest,
+                  expectedHeadSha: current.headSha,
+                  expectedBaseSha: current.baseSha,
+                });
+                return candidate.treeSha;
+              },
+            })
+          : undefined;
+        const receiptMetadata = receiptEvaluation
+          ? receiptEvaluation.status === 'eligible'
+            ? {
+                status: receiptEvaluation.status,
+                evaluatedAt: receiptEvaluation.evaluatedAt,
+                receiptId: receiptEvaluation.receiptId,
+                envelopeSha256: receiptEvaluation.envelopeSha256,
+              }
+            : receiptEvaluation
+          : undefined;
+        await this.observations.recordPullRequest({
+          deliveryId: webhook.deliveryId,
+          snapshot,
+          checkRuns,
+          // Retain a freshly observed denial before any external check mutation.
+          // A later replay of the old native approval must not erase revocation.
+          reviewEvidence:
+            this.receiptPolicy?.trustedReviewer &&
+            currentEvidence.status === 'observed' &&
+            currentEvidence.review.receiptReview?.verdict === 'request-changes'
+              ? currentEvidence
+              : reviewEvidence,
+          ...(receiptMetadata ? { receiptEvaluation: receiptMetadata } : {}),
+        });
+        if (this.receiptPolicy?.mode === 'publish') {
+          if (!this.receiptStore) throw new Error('receipt_publisher_store_required');
+          const externalId = `pr-${snapshot.repositoryId}-${snapshot.pullRequest}`;
+          if (receiptEvaluation?.status === 'eligible') {
+            if (!this.expiryQueue) throw new Error('receipt_expiration_queue_required');
+            await persistReceiptThenPublishCheck({
+              envelope: receiptEvaluation.envelope,
+              store: this.receiptStore,
+              inbox: this.expiryQueue,
+              installationId: webhook.installationId,
+              github: {
+                upsertReceiptCheckRun: async (input) => {
+                  await assertHeld();
+                  const envelope = receiptEvaluation.envelope;
+                  const authorized = await this.requireReceiptAuthority().approve({
+                    repositoryId: snapshot.repositoryId,
+                    pullRequest: snapshot.pullRequest,
+                    generation: requiredPublicationGeneration(generation),
+                    receiptId: envelope.receipt.receiptId,
+                    envelopeSha256: createHash('sha256')
+                      .update(requiredPublicationEnvelope(input.receiptEnvelope))
+                      .digest('hex'),
+                    expiresAt: new Date(envelope.receipt.expiresAt),
+                  });
+                  if (!authorized) throw new Error('receipt_authorization_superseded');
+                  await assertHeld();
+                  return this.client.upsertReceiptCheckRun(input);
+                },
+              },
+            });
+          } else {
+            if (
+              !(await this.requireReceiptAuthority().revoke(
+                snapshot.repositoryId,
+                number,
+                requiredPublicationGeneration(generation),
+              ))
+            )
+              throw new Error('receipt_authorization_superseded');
+            await assertHeld();
+            await this.client.upsertReceiptCheckRun({
+              headSha: snapshot.headSha,
+              externalId,
+              eligible: false,
+            });
+          }
         }
-      }
-      const receiptMetadata = receiptEvaluation
-        ? receiptEvaluation.status === 'eligible'
-          ? {
-              status: receiptEvaluation.status,
-              evaluatedAt: receiptEvaluation.evaluatedAt,
-              receiptId: receiptEvaluation.receiptId,
-              envelopeSha256: receiptEvaluation.envelopeSha256,
-            }
-          : receiptEvaluation
-        : undefined;
-      await this.observations.recordPullRequest({
-        deliveryId: webhook.deliveryId,
-        snapshot,
-        checkRuns,
-        reviewEvidence,
-        ...(receiptMetadata ? { receiptEvaluation: receiptMetadata } : {}),
       });
     }
   }
 
-  private async expireReceipt(webhook: ClaimedWebhook): Promise<void> {
+  private requireReceiptAuthority(): ReceiptAuthority {
+    if (!this.receiptAuthority) throw new Error('receipt_authority_required');
+    return this.receiptAuthority;
+  }
+
+  private async runCandidate<T>(
+    number: number,
+    operation: (assertHeld: () => Promise<void>) => Promise<T>,
+  ): Promise<T> {
+    if (this.publicationCoordinator)
+      return this.publicationCoordinator.run(this.client.repositoryId, number, operation);
+    if (this.receiptPolicy?.mode === 'publish')
+      throw new Error('receipt_publication_coordinator_required');
+    return operation(async () => undefined);
+  }
+
+  private async expireReceipt(
+    webhook: ClaimedWebhook,
+    assertHeld: () => Promise<void>,
+  ): Promise<void> {
     if (this.receiptPolicy?.mode !== 'publish' || !this.receiptStore)
       throw new GitHubAppError('receipt_expiration_store_required');
     const payload = webhook.payload;
@@ -155,6 +235,9 @@ export class ShadowWebhookHandler implements WebhookHandler {
     );
     if (!confirmedLatest || confirmedLatest.receiptId !== receiptId) return;
     if (confirmedLatest.expiresAt.getTime() > Date.now()) return;
+    if (!this.receiptAuthority) throw new Error('receipt_authority_required');
+    await this.receiptAuthority.expire(this.client.repositoryId, Number(pullRequest), receiptId);
+    await assertHeld();
     await this.client.upsertReceiptCheckRun({
       headSha: currentHead,
       externalId: `pr-${this.client.repositoryId}-${Number(pullRequest)}`,
@@ -401,5 +484,16 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function sha(value: unknown): string {
   if (typeof value !== 'string' || !/^[a-f0-9]{40,64}$/.test(value))
     throw new GitHubAppError('invalid_merge_group_sha');
+  return value;
+}
+
+function requiredPublicationGeneration(value: number | undefined): number {
+  if (!Number.isSafeInteger(value) || Number(value) <= 0)
+    throw new Error('receipt_authorization_generation_unavailable');
+  return Number(value);
+}
+
+function requiredPublicationEnvelope(value: string | undefined): string {
+  if (!value) throw new Error('receipt_publication_envelope_required');
   return value;
 }

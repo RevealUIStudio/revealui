@@ -218,6 +218,40 @@ describe('GitHub App API client', () => {
     });
   });
 
+  it('replaces a successful check output when the current signed envelope changes', async () => {
+    const headSha = 'a'.repeat(40);
+    const receiptEnvelope = signedEnvelope(headSha);
+    let patched = false;
+    const fetchImpl = vi.fn<typeof fetch>(async (input, init) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      if (url.pathname.endsWith('/access_tokens')) return tokenResponse();
+      const run = {
+        id: 800,
+        check_suite: { id: 801 },
+        name: 'RevealUI Receipt',
+        head_sha: headSha,
+        status: 'completed',
+        conclusion: 'success',
+        completed_at: '2026-10-06T11:59:00Z',
+        external_id: 'pr-300-7',
+        app: { id: 100, slug: 'review-controller' },
+      };
+      if (init?.method === 'GET')
+        return new Response(JSON.stringify({ total_count: 1, check_runs: [run] }));
+      expect(init?.method).toBe('PATCH');
+      expect(JSON.parse(String(init?.body)).output.summary).toContain(receiptEnvelope);
+      patched = true;
+      return new Response(JSON.stringify(run));
+    });
+    await fixture(fetchImpl).upsertReceiptCheckRun({
+      headSha,
+      externalId: 'pr-300-7',
+      eligible: true,
+      receiptEnvelope,
+    });
+    expect(patched).toBe(true);
+  });
+
   it('rejects an eligible receipt check without a canonical signed envelope', async () => {
     const client = fixture(vi.fn<typeof fetch>());
     await expect(

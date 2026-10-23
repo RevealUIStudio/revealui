@@ -110,6 +110,69 @@ describe('trusted reviewer', () => {
     expect(client.submitPullRequestReview).not.toHaveBeenCalled();
   });
 
+  it.each([
+    { state: 'open', draft: true, baseRef: 'test' },
+    { state: 'closed', draft: false, baseRef: 'test' },
+    { state: 'open', draft: false, baseRef: 'main' },
+  ])(
+    'does not review a candidate outside ready test-targeting PRs: $state/$draft/$baseRef',
+    async ({ state, draft, baseRef }) => {
+      const client = github();
+      vi.mocked(client.getPullRequest).mockResolvedValue({
+        number: 7,
+        state,
+        draft,
+        head: { sha: headSha },
+        base: { sha: baseSha, ref: baseRef },
+      });
+      const review = vi.fn(async () => ({
+        verdict: 'approve' as const,
+        summary: 'Clean.',
+        findings: [],
+      }));
+      const handler = new TrustedReviewerWebhookHandler(
+        client,
+        {
+          repositoryId: 300,
+          reviewer: { id: 90211, login: 'revealui-reviewer[bot]' },
+          policyVersion: 'review-policy-1',
+          model: 'fixture-model',
+        },
+        review,
+      );
+      await handler.reviewPullRequest(7);
+      expect(review).not.toHaveBeenCalled();
+      expect(client.submitPullRequestReview).not.toHaveBeenCalled();
+    },
+  );
+
+  it('rejects a candidate that becomes draft during review', async () => {
+    const client = github();
+    const handler = new TrustedReviewerWebhookHandler(
+      client,
+      {
+        repositoryId: 300,
+        reviewer: { id: 90211, login: 'revealui-reviewer[bot]' },
+        policyVersion: 'review-policy-1',
+        model: 'fixture-model',
+      },
+      async () => {
+        vi.mocked(client.getPullRequest).mockResolvedValue({
+          number: 7,
+          state: 'open',
+          draft: true,
+          head: { sha: headSha },
+          base: { sha: baseSha, ref: 'test' },
+        });
+        return { verdict: 'approve', summary: 'Clean.', findings: [] };
+      },
+    );
+    await expect(handler.reviewPullRequest(7)).rejects.toMatchObject({
+      code: 'pull_request_changed_during_review',
+    });
+    expect(client.submitPullRequestReview).not.toHaveBeenCalled();
+  });
+
   it('fails closed on incomplete or refused model responses', async () => {
     const result = (status: string, content: unknown[]) =>
       Response.json({

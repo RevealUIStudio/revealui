@@ -57,13 +57,14 @@ export class TrustedReviewerWebhookHandler implements WebhookHandler {
     if (!Number.isSafeInteger(number) || number <= 0)
       throw new Error('invalid pull request number');
     const snapshot = await fetchPullRequestSnapshot(this.github, number);
-    if (snapshot.state !== 'open') return;
+    if (snapshot.state !== 'open' || snapshot.draft || snapshot.baseRef !== 'test') return;
     if (await this.hasBoundReview(number, snapshot)) return;
     const decision = await this.review(snapshot);
     if (!validDecision(decision)) throw new GitHubAppError('invalid_model_review');
     const current = await fetchPullRequestSnapshot(this.github, number);
     if (
       current.state !== 'open' ||
+      current.draft ||
       current.headSha !== snapshot.headSha ||
       current.baseSha !== snapshot.baseSha ||
       current.baseRef !== snapshot.baseRef ||

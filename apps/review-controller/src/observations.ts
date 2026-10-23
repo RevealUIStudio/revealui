@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import {
   type ReviewControllerDatabase,
   reviewControllerShadowObservations,
@@ -101,9 +102,23 @@ export class PostgresShadowObservationStore implements ShadowObservationStore {
       ...(input.receiptEvaluation ? { receiptEvaluation: input.receiptEvaluation } : {}),
       content: content.map(({ path, side, blobSha, sha256 }) => ({ path, side, blobSha, sha256 })),
     };
-    await this.db
+    // One delivery may observe a different review outcome on retry. Preserve
+    // every distinct result; identical replays remain idempotent.
+    const outcomeSha256 = createHash('sha256')
+      .update(
+        JSON.stringify({
+          headSha: snapshot.headSha,
+          baseSha: snapshot.baseSha,
+          manifestSha256: snapshot.manifest.sha256,
+          reviewEvidence: persistedSnapshot.reviewEvidence,
+          checkRuns: input.checkRuns,
+        }),
+      )
+      .digest('hex');
+    const inserted = await this.db
       .insert(reviewControllerShadowObservations)
       .values({
+        outcomeSha256,
         deliveryId: input.deliveryId,
         eventKind: 'pull_request',
         repositoryId: snapshot.repositoryId,
@@ -117,7 +132,28 @@ export class PostgresShadowObservationStore implements ShadowObservationStore {
         checkRuns: [...input.checkRuns],
         snapshot: persistedSnapshot,
       })
-      .onConflictDoNothing();
+      .onConflictDoNothing({
+        target: [
+          reviewControllerShadowObservations.deliveryId,
+          reviewControllerShadowObservations.pullRequest,
+          reviewControllerShadowObservations.outcomeSha256,
+        ],
+      })
+      .returning({ id: reviewControllerShadowObservations.observationId });
+    if (inserted.length === 0) {
+      const existing = await this.db
+        .select({ id: reviewControllerShadowObservations.observationId })
+        .from(reviewControllerShadowObservations)
+        .where(
+          and(
+            eq(reviewControllerShadowObservations.deliveryId, input.deliveryId),
+            eq(reviewControllerShadowObservations.pullRequest, snapshot.pullRequest),
+            eq(reviewControllerShadowObservations.outcomeSha256, outcomeSha256),
+          ),
+        )
+        .limit(1);
+      if (existing.length !== 1) throw new Error('review_observation_persistence_unconfirmed');
+    }
   }
 
   async recordMergeGroup(input: {
