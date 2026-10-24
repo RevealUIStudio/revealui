@@ -82,6 +82,11 @@ describe('shadow webhook event handler', () => {
     const { privateKey } = generateKeyPairSync('ed25519');
     const policy: ReceiptPolicy = {
       mode: 'publish',
+      publicationScope: {
+        repositoryId: 300,
+        repositoryFullName: 'RevealUIStudio/revealui',
+        pullRequests: [7],
+      },
       repositoryFullName: 'RevealUIStudio/revealui',
       keyId: 'receipt-key-1',
       privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
@@ -134,6 +139,11 @@ describe('shadow webhook event handler', () => {
     const { privateKey } = generateKeyPairSync('ed25519');
     const policy: ReceiptPolicy = {
       mode: 'publish',
+      publicationScope: {
+        repositoryId: 300,
+        repositoryFullName: 'RevealUIStudio/revealui',
+        pullRequests: [7],
+      },
       repositoryFullName: 'RevealUIStudio/revealui',
       keyId: 'receipt-key-1',
       privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
@@ -182,6 +192,11 @@ describe('shadow webhook event handler', () => {
     const { privateKey } = generateKeyPairSync('ed25519');
     const policy: ReceiptPolicy = {
       mode: 'publish',
+      publicationScope: {
+        repositoryId: 300,
+        repositoryFullName: 'RevealUIStudio/revealui',
+        pullRequests: [7],
+      },
       repositoryFullName: 'RevealUIStudio/revealui',
       keyId: 'receipt-key-1',
       privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
@@ -239,6 +254,11 @@ describe('shadow webhook event handler', () => {
     const { privateKey } = generateKeyPairSync('ed25519');
     const policy: ReceiptPolicy = {
       mode: 'publish',
+      publicationScope: {
+        repositoryId: 300,
+        repositoryFullName: 'RevealUIStudio/revealui',
+        pullRequests: [7],
+      },
       repositoryFullName: 'RevealUIStudio/revealui',
       keyId: 'receipt-key-1',
       privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
@@ -363,6 +383,11 @@ describe('shadow webhook event handler', () => {
     const { privateKey } = generateKeyPairSync('ed25519');
     const policy: ReceiptPolicy = {
       mode: 'publish',
+      publicationScope: {
+        repositoryId: 300,
+        repositoryFullName: 'RevealUIStudio/revealui',
+        pullRequests: [7],
+      },
       repositoryFullName: 'RevealUIStudio/revealui',
       keyId: 'receipt-key-1',
       privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
@@ -989,6 +1014,44 @@ describe('shadow webhook event handler', () => {
     const { client, observations, handler } = fixtures();
     await handler.process(webhook('check_run', { check_run: { pull_requests: [] } }));
     expect(client.getPullRequest).not.toHaveBeenCalled();
+    expect(observations.recordPullRequest).not.toHaveBeenCalled();
+  });
+});
+
+describe('publication scope boundary', () => {
+  it.each([
+    undefined,
+    { repositoryId: 301, repositoryFullName: 'RevealUIStudio/revealui', pullRequests: [7] },
+    { repositoryId: 300, repositoryFullName: 'RevealUIStudio/revealui', pullRequests: [8] },
+  ])('rejects excluded candidates before candidate side effects', async (publicationScope) => {
+    const { client, observations } = fixtures();
+    const authority = createTestReceiptAuthority();
+    const policy: ReceiptPolicy = {
+      mode: 'publish',
+      publicationScope,
+      repositoryFullName: 'RevealUIStudio/revealui',
+      keyId: 'test',
+      privateKey: 'unused',
+      version: 'test',
+      maxLifetimeMs: 60000,
+      requiredChecks: [],
+    };
+    const handler = new ShadowWebhookHandler(
+      client,
+      observations,
+      policy,
+      undefined,
+      undefined,
+      createTestPublicationCoordinator(),
+      authority,
+    );
+    await expect(
+      handler.process(
+        webhook('pull_request', { action: 'synchronize', pull_request: { number: 7 } }),
+      ),
+    ).rejects.toThrow('receipt_publication_out_of_scope');
+    expect(client.getPullRequest).not.toHaveBeenCalled();
+    expect(client.upsertReceiptCheckRun).not.toHaveBeenCalled();
     expect(observations.recordPullRequest).not.toHaveBeenCalled();
   });
 });

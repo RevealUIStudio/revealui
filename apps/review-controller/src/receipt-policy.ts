@@ -8,6 +8,7 @@ import {
 
 export interface ReceiptPolicy {
   mode: 'shadow' | 'publish';
+  publicationScope?: { repositoryId: number; repositoryFullName: string; pullRequests: number[] };
   repositoryFullName: string;
   keyId: string;
   privateKey: string;
@@ -33,6 +34,35 @@ export function readReceiptPolicy(env: NodeJS.ProcessEnv): ReceiptPolicy | undef
   const repositoryFullName = required(env, 'GITHUB_REPOSITORY_FULL_NAME');
   if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repositoryFullName))
     throw new Error('GITHUB_REPOSITORY_FULL_NAME must be owner/repository');
+  let publicationScope: ReceiptPolicy['publicationScope'];
+  if (mode === 'publish') {
+    let parsedScope: unknown;
+    try {
+      parsedScope = JSON.parse(required(env, 'REVIEW_RECEIPT_PUBLICATION_SCOPE'));
+    } catch {
+      throw new Error('publish mode requires a valid REVIEW_RECEIPT_PUBLICATION_SCOPE');
+    }
+    if (typeof parsedScope !== 'object' || parsedScope === null || Array.isArray(parsedScope))
+      throw new Error('invalid receipt publication scope');
+    const scope = parsedScope as Record<string, unknown>;
+    const repositoryId = Number(env.GITHUB_REPOSITORY_ID);
+    if (
+      Object.keys(scope).sort().join(',') !== 'pullRequests,repositoryFullName,repositoryId' ||
+      !Number.isSafeInteger(repositoryId) ||
+      repositoryId <= 0 ||
+      scope.repositoryId !== repositoryId ||
+      scope.repositoryFullName !== repositoryFullName ||
+      !Array.isArray(scope.pullRequests) ||
+      scope.pullRequests.length < 1 ||
+      scope.pullRequests.length > 16 ||
+      scope.pullRequests.some((number) => !Number.isSafeInteger(number) || number <= 0) ||
+      new Set(scope.pullRequests).size !== scope.pullRequests.length
+    )
+      throw new Error('invalid receipt publication scope');
+    publicationScope = { repositoryId, repositoryFullName, pullRequests: [...scope.pullRequests] };
+  } else if (env.REVIEW_RECEIPT_PUBLICATION_SCOPE?.trim()) {
+    throw new Error('publication scope requires publish mode');
+  }
   const privateKey = required(env, 'REVIEW_RECEIPT_PRIVATE_KEY').replace(/\\n/g, '\n');
   if (Buffer.byteLength(privateKey, 'utf8') > 16 * 1024)
     throw new Error('REVIEW_RECEIPT_PRIVATE_KEY exceeds size limit');
@@ -102,6 +132,7 @@ export function readReceiptPolicy(env: NodeJS.ProcessEnv): ReceiptPolicy | undef
 
   return {
     mode,
+    ...(publicationScope ? { publicationScope } : {}),
     repositoryFullName,
     keyId,
     privateKey,
@@ -116,4 +147,22 @@ function required(env: NodeJS.ProcessEnv, name: string): string {
   const value = env[name]?.trim() ?? '';
   if (!value) throw new Error(`${name} is required when REVIEW_RECEIPT_MODE is enabled`);
   return value;
+}
+
+/** Bound all publish-mode candidate work, including expiration and failure checks. */
+export function assertReceiptPublicationScope(
+  policy: ReceiptPolicy | undefined,
+  repositoryId: number,
+  pullRequest: number,
+): void {
+  if (policy?.mode !== 'publish') return;
+  const scope = policy.publicationScope;
+  if (
+    !scope ||
+    scope.repositoryId !== repositoryId ||
+    scope.repositoryFullName !== policy.repositoryFullName ||
+    !Number.isSafeInteger(pullRequest) ||
+    !scope.pullRequests.includes(pullRequest)
+  )
+    throw new Error('receipt_publication_out_of_scope');
 }

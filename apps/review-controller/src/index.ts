@@ -10,7 +10,7 @@ import { PostgresWebhookInbox } from './inbox.js';
 import { PostgresShadowObservationStore } from './observations.js';
 import { PostgresPublicationCoordinator } from './publication-coordinator.js';
 import { PostgresReceiptAuthority } from './receipt-authority.js';
-import { readReceiptPolicy } from './receipt-policy.js';
+import { assertReceiptPublicationScope, readReceiptPolicy } from './receipt-policy.js';
 import { PostgresSignedReceiptStore } from './receipt-store.js';
 import { runWebhookWorker } from './worker.js';
 
@@ -74,6 +74,9 @@ async function boot(): Promise<void> {
   await receipts.ready();
   if (receiptPolicy?.mode === 'publish') {
     const latestReceipts = await receipts.listLatest(repositoryId);
+    // Validate the full inventory before scheduling any expiration work.
+    for (const receipt of latestReceipts)
+      assertReceiptPublicationScope(receiptPolicy, repositoryId, receipt.pullRequest);
     for (const receipt of latestReceipts) {
       await inbox.scheduleReceiptExpiration({
         ...receipt,

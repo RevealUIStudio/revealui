@@ -127,6 +127,11 @@ describe('controller review revalidation with durable observations', () => {
     const { privateKey } = generateKeyPairSync('ed25519');
     policy = {
       mode: 'shadow',
+      publicationScope: {
+        repositoryId: 300,
+        repositoryFullName: 'Fixture/nonproduction',
+        pullRequests: [7],
+      },
       repositoryFullName: 'Fixture/nonproduction',
       keyId: 'test-key',
       privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),

@@ -7,6 +7,7 @@ import type { PublicationCoordinator } from './publication-coordinator.js';
 import type { ReceiptAuthority } from './receipt-authority.js';
 import { evaluateReceiptShadow } from './receipt-evaluator.js';
 import type { ReceiptPolicy } from './receipt-policy.js';
+import { assertReceiptPublicationScope } from './receipt-policy.js';
 import { persistReceiptThenPublishCheck } from './receipt-publisher.js';
 import type { SignedReceiptStore } from './receipt-store.js';
 import type { CodexReviewObservation, ReviewEvidence } from './reviewer.js';
@@ -186,6 +187,7 @@ export class ShadowWebhookHandler implements WebhookHandler {
     number: number,
     operation: (assertHeld: () => Promise<void>) => Promise<T>,
   ): Promise<T> {
+    assertReceiptPublicationScope(this.receiptPolicy, this.client.repositoryId, number);
     if (this.publicationCoordinator)
       return this.publicationCoordinator.run(this.client.repositoryId, number, operation);
     if (this.receiptPolicy?.mode === 'publish')
