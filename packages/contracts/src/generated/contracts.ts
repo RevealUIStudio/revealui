@@ -1055,6 +1055,344 @@ export const CrdtOperationsInsertContract = createContract({
 })
 
 // =============================================================================
+// CrmActivities Contracts
+// =============================================================================
+
+/**
+ * Contract for crmActivities row (Select)
+ * Database table: crm_activities
+ */
+export const CrmActivitiesRowContract = createContract({
+  name: 'CrmActivitiesRow',
+  version: '1',
+  description: 'Database row contract for crm_activities table',
+  schema: Schemas.CrmActivitiesSelectSchema,
+})
+
+/**
+ * Contract for crmActivities insert
+ * Database table: crm_activities
+ */
+export const CrmActivitiesInsertContract = createContract({
+  name: 'CrmActivitiesInsert',
+  version: '1',
+  description: 'Database insert contract for crm_activities table',
+  schema: Schemas.CrmActivitiesInsertSchema,
+})
+
+// =============================================================================
+// CrmAuditEvents Contracts
+// =============================================================================
+
+/**
+ * Contract for crmAuditEvents row (Select)
+ * Database table: crm_audit_events
+ */
+export const CrmAuditEventsRowContract = createContract({
+  name: 'CrmAuditEventsRow',
+  version: '1',
+  description: 'Database row contract for crm_audit_events table',
+  schema: Schemas.CrmAuditEventsSelectSchema,
+})
+
+/**
+ * Contract for crmAuditEvents insert
+ * Database table: crm_audit_events
+ */
+export const CrmAuditEventsInsertContract = createContract({
+  name: 'CrmAuditEventsInsert',
+  version: '1',
+  description: 'Database insert contract for crm_audit_events table',
+  schema: Schemas.CrmAuditEventsInsertSchema,
+})
+
+// =============================================================================
+// CrmBookingLinks Contracts
+// =============================================================================
+
+/**
+ * Contract for crmBookingLinks row (Select)
+ * Database table: crm_booking_links
+ */
+export const CrmBookingLinksRowContract = createContract({
+  name: 'CrmBookingLinksRow',
+  version: '1',
+  description: 'Database row contract for crm_booking_links table',
+  schema: Schemas.CrmBookingLinksSelectSchema,
+})
+
+/**
+ * Contract for crmBookingLinks insert
+ * Database table: crm_booking_links
+ */
+export const CrmBookingLinksInsertContract = createContract({
+  name: 'CrmBookingLinksInsert',
+  version: '1',
+  description: 'Database insert contract for crm_booking_links table',
+  schema: Schemas.CrmBookingLinksInsertSchema,
+})
+
+// =============================================================================
+// CrmCampaigns Contracts
+// =============================================================================
+
+/**
+ * Contract for crmCampaigns row (Select)
+ * Database table: crm_campaigns
+ */
+export const CrmCampaignsRowContract = createContract({
+  name: 'CrmCampaignsRow',
+  version: '1',
+  description: 'Database row contract for crm_campaigns table',
+  schema: Schemas.CrmCampaignsSelectSchema,
+})
+
+/**
+ * Contract for crmCampaigns insert
+ * Database table: crm_campaigns
+ */
+export const CrmCampaignsInsertContract = createContract({
+  name: 'CrmCampaignsInsert',
+  version: '1',
+  description: 'Database insert contract for crm_campaigns table',
+  schema: Schemas.CrmCampaignsInsertSchema,
+})
+
+// =============================================================================
+// CrmContacts Contracts
+// =============================================================================
+
+/**
+ * Contract for crmContacts row (Select)
+ * Database table: crm_contacts
+ */
+export const CrmContactsRowContract = createContract({
+  name: 'CrmContactsRow',
+  version: '1',
+  description: 'Database row contract for crm_contacts table',
+  schema: Schemas.CrmContactsSelectSchema,
+})
+
+/**
+ * Contract for crmContacts insert
+ * Database table: crm_contacts
+ */
+export const CrmContactsInsertContract = createContract({
+  name: 'CrmContactsInsert',
+  version: '1',
+  description: 'Database insert contract for crm_contacts table',
+  schema: Schemas.CrmContactsInsertSchema,
+})
+
+// =============================================================================
+// CrmEnrollments Contracts
+// =============================================================================
+
+/**
+ * Contract for crmEnrollments row (Select)
+ * Database table: crm_enrollments
+ */
+export const CrmEnrollmentsRowContract = createContract({
+  name: 'CrmEnrollmentsRow',
+  version: '1',
+  description: 'Database row contract for crm_enrollments table',
+  schema: Schemas.CrmEnrollmentsSelectSchema,
+})
+
+/**
+ * Contract for crmEnrollments insert
+ * Database table: crm_enrollments
+ */
+export const CrmEnrollmentsInsertContract = createContract({
+  name: 'CrmEnrollmentsInsert',
+  version: '1',
+  description: 'Database insert contract for crm_enrollments table',
+  schema: Schemas.CrmEnrollmentsInsertSchema,
+})
+
+// =============================================================================
+// CrmImports Contracts
+// =============================================================================
+
+/**
+ * Contract for crmImports row (Select)
+ * Database table: crm_imports
+ */
+export const CrmImportsRowContract = createContract({
+  name: 'CrmImportsRow',
+  version: '1',
+  description: 'Database row contract for crm_imports table',
+  schema: Schemas.CrmImportsSelectSchema,
+})
+
+/**
+ * Contract for crmImports insert
+ * Database table: crm_imports
+ */
+export const CrmImportsInsertContract = createContract({
+  name: 'CrmImportsInsert',
+  version: '1',
+  description: 'Database insert contract for crm_imports table',
+  schema: Schemas.CrmImportsInsertSchema,
+})
+
+// =============================================================================
+// CrmOpportunities Contracts
+// =============================================================================
+
+/**
+ * Contract for crmOpportunities row (Select)
+ * Database table: crm_opportunities
+ */
+export const CrmOpportunitiesRowContract = createContract({
+  name: 'CrmOpportunitiesRow',
+  version: '1',
+  description: 'Database row contract for crm_opportunities table',
+  schema: Schemas.CrmOpportunitiesSelectSchema,
+})
+
+/**
+ * Contract for crmOpportunities insert
+ * Database table: crm_opportunities
+ */
+export const CrmOpportunitiesInsertContract = createContract({
+  name: 'CrmOpportunitiesInsert',
+  version: '1',
+  description: 'Database insert contract for crm_opportunities table',
+  schema: Schemas.CrmOpportunitiesInsertSchema,
+})
+
+// =============================================================================
+// CrmOrganizations Contracts
+// =============================================================================
+
+/**
+ * Contract for crmOrganizations row (Select)
+ * Database table: crm_organizations
+ */
+export const CrmOrganizationsRowContract = createContract({
+  name: 'CrmOrganizationsRow',
+  version: '1',
+  description: 'Database row contract for crm_organizations table',
+  schema: Schemas.CrmOrganizationsSelectSchema,
+})
+
+/**
+ * Contract for crmOrganizations insert
+ * Database table: crm_organizations
+ */
+export const CrmOrganizationsInsertContract = createContract({
+  name: 'CrmOrganizationsInsert',
+  version: '1',
+  description: 'Database insert contract for crm_organizations table',
+  schema: Schemas.CrmOrganizationsInsertSchema,
+})
+
+// =============================================================================
+// CrmOutreachDrafts Contracts
+// =============================================================================
+
+/**
+ * Contract for crmOutreachDrafts row (Select)
+ * Database table: crm_outreach_drafts
+ */
+export const CrmOutreachDraftsRowContract = createContract({
+  name: 'CrmOutreachDraftsRow',
+  version: '1',
+  description: 'Database row contract for crm_outreach_drafts table',
+  schema: Schemas.CrmOutreachDraftsSelectSchema,
+})
+
+/**
+ * Contract for crmOutreachDrafts insert
+ * Database table: crm_outreach_drafts
+ */
+export const CrmOutreachDraftsInsertContract = createContract({
+  name: 'CrmOutreachDraftsInsert',
+  version: '1',
+  description: 'Database insert contract for crm_outreach_drafts table',
+  schema: Schemas.CrmOutreachDraftsInsertSchema,
+})
+
+// =============================================================================
+// CrmStageHistory Contracts
+// =============================================================================
+
+/**
+ * Contract for crmStageHistory row (Select)
+ * Database table: crm_stage_history
+ */
+export const CrmStageHistoryRowContract = createContract({
+  name: 'CrmStageHistoryRow',
+  version: '1',
+  description: 'Database row contract for crm_stage_history table',
+  schema: Schemas.CrmStageHistorySelectSchema,
+})
+
+/**
+ * Contract for crmStageHistory insert
+ * Database table: crm_stage_history
+ */
+export const CrmStageHistoryInsertContract = createContract({
+  name: 'CrmStageHistoryInsert',
+  version: '1',
+  description: 'Database insert contract for crm_stage_history table',
+  schema: Schemas.CrmStageHistoryInsertSchema,
+})
+
+// =============================================================================
+// CrmSuppression Contracts
+// =============================================================================
+
+/**
+ * Contract for crmSuppression row (Select)
+ * Database table: crm_suppression
+ */
+export const CrmSuppressionRowContract = createContract({
+  name: 'CrmSuppressionRow',
+  version: '1',
+  description: 'Database row contract for crm_suppression table',
+  schema: Schemas.CrmSuppressionSelectSchema,
+})
+
+/**
+ * Contract for crmSuppression insert
+ * Database table: crm_suppression
+ */
+export const CrmSuppressionInsertContract = createContract({
+  name: 'CrmSuppressionInsert',
+  version: '1',
+  description: 'Database insert contract for crm_suppression table',
+  schema: Schemas.CrmSuppressionInsertSchema,
+})
+
+// =============================================================================
+// CrmTasks Contracts
+// =============================================================================
+
+/**
+ * Contract for crmTasks row (Select)
+ * Database table: crm_tasks
+ */
+export const CrmTasksRowContract = createContract({
+  name: 'CrmTasksRow',
+  version: '1',
+  description: 'Database row contract for crm_tasks table',
+  schema: Schemas.CrmTasksSelectSchema,
+})
+
+/**
+ * Contract for crmTasks insert
+ * Database table: crm_tasks
+ */
+export const CrmTasksInsertContract = createContract({
+  name: 'CrmTasksInsert',
+  version: '1',
+  description: 'Database insert contract for crm_tasks table',
+  schema: Schemas.CrmTasksInsertSchema,
+})
+
+// =============================================================================
 // EditSessionDocs Contracts
 // =============================================================================
 

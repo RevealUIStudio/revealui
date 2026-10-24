@@ -1,7 +1,7 @@
 {
   "name": "@revealui/db",
   "version": "0.12.1",
-  "description": "Drizzle ORM schema (124 tables) for RevealUI on NeonDB (Postgres). Ships with RevealUI.",
+  "description": "Drizzle ORM schema (137 tables) for RevealUI on NeonDB (Postgres). Ships with RevealUI.",
   "license": "MIT",
   "dependencies": {
     "@neondatabase/serverless": "catalog:",
@@ -330,6 +330,21 @@
       "types": "./dist/testing/index.d.ts",
       "import": "./dist/testing/index.js",
       "default": "./dist/testing/index.js"
+    },
+    "./crm-service": {
+      "types": "./dist/crm-service.d.ts",
+      "import": "./dist/crm-service.js",
+      "default": "./dist/crm-service.js"
+    },
+    "./crm-contracts": {
+      "types": "./dist/crm-contracts.d.ts",
+      "import": "./dist/crm-contracts.js",
+      "default": "./dist/crm-contracts.js"
+    },
+    "./crm-policy": {
+      "types": "./dist/crm-policy.d.ts",
+      "import": "./dist/crm-policy.js",
+      "default": "./dist/crm-policy.js"
     }
   },
   "files": [

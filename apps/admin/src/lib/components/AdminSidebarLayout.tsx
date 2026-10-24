@@ -94,6 +94,11 @@ const aiItems: NavItem[] = [
 
 const operationsItems: NavItem[] = [
   {
+    href: '/crm',
+    label: 'Studio CRM',
+    icon: <IconInfo data-slot="icon" className={iconClass} aria-hidden="true" />,
+  },
+  {
     href: '/monitoring',
     label: 'Monitoring',
     icon: <IconInfo data-slot="icon" className={iconClass} aria-hidden="true" />,
