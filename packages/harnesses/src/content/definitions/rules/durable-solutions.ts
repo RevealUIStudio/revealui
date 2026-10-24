@@ -20,8 +20,8 @@ There is no one-off or hotfix exception.
 
 ## Canonical fleet identity
 
-Use **RevealFleet** as the visible fleet name, \`revealfleet\` as its profile
-and path slug, and \`REVEALFLEET\` as its configuration prefix. Reject alternate
+The only fleet identity is \`revealfleet\`. Use that exact spelling in visible
+names, profiles and paths, and \`REVEALFLEET\` as its configuration prefix. Reject alternate
 fleet identity spellings and aliases in active names, generated content and
 configuration. Migrate existing instances through their owning source and
 validated consumer cutover; do not add a compatibility alias or fallback.
