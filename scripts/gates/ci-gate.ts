@@ -685,7 +685,6 @@ export async function gate(): Promise<void> {
         name: 'Security audit',
         command: 'pnpm',
         args: ['gate:security'],
-        warnOnly: true,
         skip: skip.has('security'),
       },
       {

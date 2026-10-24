@@ -7,4 +7,11 @@ export default createVitestConfig({
     branches: 65,
     statements: 70,
   },
+  overrides: {
+    oxc: {
+      decorator: {
+        legacy: true,
+      },
+    },
+  },
 });
