@@ -3,7 +3,7 @@ import { z } from 'zod/v4';
 import { sanitizeProviderToolSchema, toolParametersToJsonSchema } from '../tool-json-schema.js';
 
 describe('toolParametersToJsonSchema', () => {
-  it('rewrites z.string().email() lookaround patterns to format: email', () => {
+  it('preserves compatible Zod email patterns and format', () => {
     const schema = z.object({
       email: z.string().email().describe('User email address'),
     });
@@ -11,11 +11,11 @@ describe('toolParametersToJsonSchema', () => {
     const raw = z.toJSONSchema(schema) as {
       properties?: { email?: { pattern?: string; format?: string } };
     };
-    expect(raw.properties?.email?.pattern).toMatch(/\(\?/);
+    expect(raw.properties?.email?.pattern).not.toMatch(/\(\?<?[=!]/);
 
     const safe = toolParametersToJsonSchema(schema);
     const email = (safe.properties as Record<string, { pattern?: string; format?: string }>).email;
-    expect(email.pattern).toBeUndefined();
+    expect(email.pattern).toBe(raw.properties?.email?.pattern);
     expect(email.format).toBe('email');
   });
 
