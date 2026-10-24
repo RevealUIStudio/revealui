@@ -1,6 +1,10 @@
 import { createHash, generateKeyPairSync } from 'node:crypto';
 import { canonicalReviewReceiptEnvelope } from '@revealui/security/review-receipt';
 import { describe, expect, it, vi } from 'vitest';
+import {
+  createTestPublicationCoordinator,
+  createTestReceiptAuthority,
+} from './__tests__/publication-coordinator.js';
 import { ShadowWebhookHandler } from './event-handler.js';
 import type { GitHubAppClient, GitHubCheckRun } from './github-app.js';
 import type { ClaimedWebhook } from './inbox.js';
@@ -54,6 +58,7 @@ function fixtures() {
       treeSha: 'f'.repeat(40),
     })),
     listPullRequestReviewComments: vi.fn(async () => []),
+    listPullRequestReviews: vi.fn(async () => []),
     upsertReceiptCheckRun: vi.fn(async (input: { headSha: string; externalId: string }) => ({
       id: 800,
       name: 'RevealUI Receipt' as const,
@@ -77,6 +82,11 @@ describe('shadow webhook event handler', () => {
     const { privateKey } = generateKeyPairSync('ed25519');
     const policy: ReceiptPolicy = {
       mode: 'publish',
+      publicationScope: {
+        repositoryId: 300,
+        repositoryFullName: 'RevealUIStudio/revealui',
+        pullRequests: [7],
+      },
       repositoryFullName: 'RevealUIStudio/revealui',
       keyId: 'receipt-key-1',
       privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
@@ -99,7 +109,15 @@ describe('shadow webhook event handler', () => {
         },
       ]),
     };
-    const handler = new ShadowWebhookHandler(client, observations, policy, receiptStore);
+    const handler = new ShadowWebhookHandler(
+      client,
+      observations,
+      policy,
+      receiptStore,
+      undefined,
+      createTestPublicationCoordinator(),
+      createTestReceiptAuthority(),
+    );
     await handler.process(
       webhook('receipt_expiration', {
         receiptId: 'receipt-expired',
@@ -121,6 +139,11 @@ describe('shadow webhook event handler', () => {
     const { privateKey } = generateKeyPairSync('ed25519');
     const policy: ReceiptPolicy = {
       mode: 'publish',
+      publicationScope: {
+        repositoryId: 300,
+        repositoryFullName: 'RevealUIStudio/revealui',
+        pullRequests: [7],
+      },
       repositoryFullName: 'RevealUIStudio/revealui',
       keyId: 'receipt-key-1',
       privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
@@ -143,7 +166,15 @@ describe('shadow webhook event handler', () => {
         },
       ]),
     };
-    const handler = new ShadowWebhookHandler(client, observations, policy, receiptStore);
+    const handler = new ShadowWebhookHandler(
+      client,
+      observations,
+      policy,
+      receiptStore,
+      undefined,
+      createTestPublicationCoordinator(),
+      createTestReceiptAuthority(),
+    );
     await handler.process(
       webhook('receipt_expiration', {
         receiptId: 'receipt-expired',
@@ -161,6 +192,11 @@ describe('shadow webhook event handler', () => {
     const { privateKey } = generateKeyPairSync('ed25519');
     const policy: ReceiptPolicy = {
       mode: 'publish',
+      publicationScope: {
+        repositoryId: 300,
+        repositoryFullName: 'RevealUIStudio/revealui',
+        pullRequests: [7],
+      },
       repositoryFullName: 'RevealUIStudio/revealui',
       keyId: 'receipt-key-1',
       privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
@@ -189,7 +225,15 @@ describe('shadow webhook event handler', () => {
       head: { sha: 'c'.repeat(40) },
       base: { sha: 'b'.repeat(40) },
     });
-    const handler = new ShadowWebhookHandler(client, observations, policy, receiptStore);
+    const handler = new ShadowWebhookHandler(
+      client,
+      observations,
+      policy,
+      receiptStore,
+      undefined,
+      createTestPublicationCoordinator(),
+      createTestReceiptAuthority(),
+    );
     await handler.process(
       webhook('receipt_expiration', {
         receiptId: 'receipt-expired',
@@ -210,6 +254,11 @@ describe('shadow webhook event handler', () => {
     const { privateKey } = generateKeyPairSync('ed25519');
     const policy: ReceiptPolicy = {
       mode: 'publish',
+      publicationScope: {
+        repositoryId: 300,
+        repositoryFullName: 'RevealUIStudio/revealui',
+        pullRequests: [7],
+      },
       repositoryFullName: 'RevealUIStudio/revealui',
       keyId: 'receipt-key-1',
       privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
@@ -240,7 +289,15 @@ describe('shadow webhook event handler', () => {
           },
         ]),
     };
-    const handler = new ShadowWebhookHandler(client, observations, policy, receiptStore);
+    const handler = new ShadowWebhookHandler(
+      client,
+      observations,
+      policy,
+      receiptStore,
+      undefined,
+      createTestPublicationCoordinator(),
+      createTestReceiptAuthority(),
+    );
     await handler.process(
       webhook('receipt_expiration', {
         receiptId: 'receipt-expired',
@@ -326,6 +383,11 @@ describe('shadow webhook event handler', () => {
     const { privateKey } = generateKeyPairSync('ed25519');
     const policy: ReceiptPolicy = {
       mode: 'publish',
+      publicationScope: {
+        repositoryId: 300,
+        repositoryFullName: 'RevealUIStudio/revealui',
+        pullRequests: [7],
+      },
       repositoryFullName: 'RevealUIStudio/revealui',
       keyId: 'receipt-key-1',
       privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
@@ -383,6 +445,8 @@ describe('shadow webhook event handler', () => {
       policy,
       receiptStore,
       expiryQueue,
+      createTestPublicationCoordinator(),
+      createTestReceiptAuthority(),
     );
     const reviewWebhook = webhook('pull_request_review', {
       action: 'submitted',
@@ -393,7 +457,7 @@ describe('shadow webhook event handler', () => {
         commit_id: 'a'.repeat(40),
         state: 'APPROVED',
         body: 'Approved.',
-        submitted_at: '2026-10-06T11:58:00Z',
+        submitted_at: new Date().toISOString(),
       },
     });
     reviewWebhook.receivedAt = new Date();
@@ -557,6 +621,59 @@ describe('shadow webhook event handler', () => {
     expect(JSON.stringify(observed?.reviewEvidence)).not.toContain('source excerpt');
   });
 
+  it.each([
+    ['approved', 'submitted', 'approve'],
+    ['APPROVED', 'submitted', 'approve'],
+    ['changes_requested', 'submitted', 'request-changes'],
+    ['CHANGES_REQUESTED', 'submitted', 'request-changes'],
+    ['commented', 'submitted', 'request-changes'],
+    ['COMMENTED', 'submitted', 'request-changes'],
+    ['dismissed', 'dismissed', 'request-changes'],
+    ['DISMISSED', 'dismissed', 'request-changes'],
+  ])('handles webhook state %s with action %s', async (state, action, verdict) => {
+    const { observations, handler } = fixtures();
+    await handler.process(
+      webhook('pull_request_review', {
+        action,
+        pull_request: { number: 7 },
+        review: {
+          id: 83,
+          user: { id: 90210, login: 'chatgpt-codex-connector[bot]', type: 'Bot' },
+          commit_id: 'a'.repeat(40),
+          state,
+          body: 'No blocking findings.',
+          submitted_at: '2026-10-06T12:02:00Z',
+        },
+      }),
+    );
+    expect(
+      vi.mocked(observations.recordPullRequest).mock.calls[0]?.[0].reviewEvidence,
+    ).toMatchObject({ status: 'observed', review: { receiptReview: { verdict } } });
+  });
+
+  it.each(['pending', 'unknown', null, 123])(
+    'rejects unsupported webhook state %s',
+    async (state) => {
+      const { observations, handler } = fixtures();
+      await handler.process(
+        webhook('pull_request_review', {
+          action: 'submitted',
+          pull_request: { number: 7 },
+          review: {
+            id: 83,
+            user: { id: 90210, login: 'chatgpt-codex-connector[bot]', type: 'Bot' },
+            commit_id: 'a'.repeat(40),
+            state,
+            body: 'No blocking findings.',
+          },
+        }),
+      );
+      expect(vi.mocked(observations.recordPullRequest).mock.calls[0]?.[0].reviewEvidence).toEqual({
+        status: 'not_requested',
+      });
+    },
+  );
+
   it('creates an approving receipt-review candidate only for a clean exact-head Codex review', async () => {
     const { observations, handler } = fixtures();
     await handler.process(
@@ -588,6 +705,93 @@ describe('shadow webhook event handler', () => {
       },
     });
   });
+
+  it.each(['approved', 'APPROVED'])(
+    'accepts only the configured reviewer App identity for %s and excludes legacy stored approvals',
+    async (state) => {
+      const { privateKey } = generateKeyPairSync('ed25519');
+      const { client, observations } = fixtures();
+      const policy: ReceiptPolicy = {
+        mode: 'shadow',
+        repositoryFullName: 'RevealUIStudio/revealui',
+        keyId: 'receipt-key-1',
+        privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
+        version: 'policy-1',
+        maxLifetimeMs: 21_600_000,
+        requiredChecks: [{ name: 'CI', appId: 77 }],
+        trustedReviewer: {
+          login: 'revealui-reviewer[bot]',
+          id: 90211,
+          policyVersion: 'review-policy-1',
+          model: 'gpt-6-astra',
+        },
+      };
+      const handler = new ShadowWebhookHandler(client, observations, policy);
+      const boundBody = JSON.stringify({
+        binding: {
+          version: 1,
+          repositoryId: 300,
+          pullRequest: 7,
+          headSha: 'a'.repeat(40),
+          baseSha: 'b'.repeat(40),
+          manifestSha256: createHash('sha256').update('[]').digest('hex'),
+          policyVersion: 'review-policy-1',
+          model: 'gpt-6-astra',
+        },
+        summary: 'No blocking findings.',
+        findings: [],
+      });
+      const review = (id: number, login: string, commit = 'a'.repeat(40), body = boundBody) =>
+        webhook('pull_request_review', {
+          action: 'submitted',
+          pull_request: { number: 7 },
+          review: {
+            id: 83,
+            user: { id, login, type: 'Bot' },
+            commit_id: commit,
+            state,
+            body,
+            submitted_at: '2026-10-06T12:02:00Z',
+          },
+        });
+      vi.mocked(client.listPullRequestReviews).mockResolvedValue([
+        {
+          id: 83,
+          user: { id: 90211, login: 'revealui-reviewer[bot]', type: 'Bot' },
+          commit_id: 'a'.repeat(40),
+          state: 'APPROVED',
+          body: boundBody,
+        },
+      ]);
+      await handler.process(review(90210, 'chatgpt-codex-connector[bot]'));
+      await handler.process(review(90210, 'revealui-reviewer[bot]'));
+      await handler.process(review(90211, 'revealui-reviewer[bot]', 'b'.repeat(40)));
+      await handler.process(review(90211, 'revealui-reviewer[bot]', 'a'.repeat(40), '{}'));
+      await handler.process(review(90211, 'revealui-reviewer[bot]'));
+      const calls = vi.mocked(observations.recordPullRequest).mock.calls;
+      expect(calls[0]?.[0].reviewEvidence).toEqual({ status: 'not_requested' });
+      expect(calls[1]?.[0].reviewEvidence).toEqual({ status: 'not_requested' });
+      expect(calls[2]?.[0].reviewEvidence).toMatchObject({
+        status: 'observed',
+        review: { exactHead: false },
+      });
+      expect(calls[3]?.[0].reviewEvidence).toMatchObject({
+        status: 'observed',
+        review: { receiptReview: { verdict: 'request-changes' } },
+      });
+      expect(calls[4]?.[0].reviewEvidence).toMatchObject({
+        status: 'observed',
+        review: {
+          provider: 'trusted-reviewer-app',
+          receiptReview: {
+            system: 'openai-api-trusted-reviewer-app',
+            reviewerId: 'github-user:90211',
+            verdict: 'approve',
+          },
+        },
+      });
+    },
+  );
 
   it('does not treat a comment-only review with no inline comments as approval', async () => {
     const { observations, handler } = fixtures();
@@ -810,6 +1014,44 @@ describe('shadow webhook event handler', () => {
     const { client, observations, handler } = fixtures();
     await handler.process(webhook('check_run', { check_run: { pull_requests: [] } }));
     expect(client.getPullRequest).not.toHaveBeenCalled();
+    expect(observations.recordPullRequest).not.toHaveBeenCalled();
+  });
+});
+
+describe('publication scope boundary', () => {
+  it.each([
+    undefined,
+    { repositoryId: 301, repositoryFullName: 'RevealUIStudio/revealui', pullRequests: [7] },
+    { repositoryId: 300, repositoryFullName: 'RevealUIStudio/revealui', pullRequests: [8] },
+  ])('rejects excluded candidates before candidate side effects', async (publicationScope) => {
+    const { client, observations } = fixtures();
+    const authority = createTestReceiptAuthority();
+    const policy: ReceiptPolicy = {
+      mode: 'publish',
+      publicationScope,
+      repositoryFullName: 'RevealUIStudio/revealui',
+      keyId: 'test',
+      privateKey: 'unused',
+      version: 'test',
+      maxLifetimeMs: 60000,
+      requiredChecks: [],
+    };
+    const handler = new ShadowWebhookHandler(
+      client,
+      observations,
+      policy,
+      undefined,
+      undefined,
+      createTestPublicationCoordinator(),
+      authority,
+    );
+    await expect(
+      handler.process(
+        webhook('pull_request', { action: 'synchronize', pull_request: { number: 7 } }),
+      ),
+    ).rejects.toThrow('receipt_publication_out_of_scope');
+    expect(client.getPullRequest).not.toHaveBeenCalled();
+    expect(client.upsertReceiptCheckRun).not.toHaveBeenCalled();
     expect(observations.recordPullRequest).not.toHaveBeenCalled();
   });
 });

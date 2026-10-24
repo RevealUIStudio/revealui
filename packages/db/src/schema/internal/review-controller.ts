@@ -6,6 +6,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -52,6 +53,7 @@ export const reviewControllerShadowObservations = pgTable(
     deliveryId: text('delivery_id')
       .notNull()
       .references(() => reviewControllerWebhookInbox.deliveryId, { onDelete: 'restrict' }),
+    outcomeSha256: text('outcome_sha256').default('legacy').notNull(),
     eventKind: text('event_kind').$type<'pull_request' | 'merge_group'>().notNull(),
     repositoryId: bigint('repository_id', { mode: 'number' }).notNull(),
     pullRequest: integer('pull_request'),
@@ -88,6 +90,7 @@ export const reviewControllerShadowObservations = pgTable(
     uniqueIndex('review_controller_observation_delivery_pr_unique').on(
       table.deliveryId,
       table.pullRequest,
+      table.outcomeSha256,
     ),
     uniqueIndex('review_controller_merge_group_delivery_idx')
       .on(table.deliveryId)
@@ -144,7 +147,28 @@ export const reviewControllerSignedReceipts = pgTable(
   ],
 );
 
+export const reviewControllerReceiptAuthorizations = pgTable(
+  'review_controller_receipt_authorizations',
+  {
+    repositoryId: bigint('repository_id', { mode: 'number' }).notNull(),
+    pullRequest: integer('pull_request').notNull(),
+    generation: bigint('generation', { mode: 'number' }).notNull(),
+    state: text('state').$type<'pending' | 'approved' | 'revoked' | 'expired'>().notNull(),
+    receiptId: text('receipt_id'),
+    envelopeSha256: text('envelope_sha256'),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.repositoryId, table.pullRequest] }),
+    check(
+      'review_controller_authorization_generation',
+      sql`${table.generation} > 0 AND ${table.generation} <= 9007199254740991`,
+    ),
+  ],
+);
+
 export const reviewControllerSchema = {
+  reviewControllerReceiptAuthorizations,
   reviewControllerWebhookInbox,
   reviewControllerShadowObservations,
   reviewControllerSignedReceipts,

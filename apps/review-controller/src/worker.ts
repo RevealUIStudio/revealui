@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import { GitHubAppError } from './github-app.js';
-import { type ClaimedWebhook, MAX_WEBHOOK_ATTEMPTS, type WebhookInbox } from './inbox.js';
+import type { ClaimedWebhook, WebhookInbox } from './inbox.js';
+import { MAX_WEBHOOK_ATTEMPTS } from './work-policy.js';
 
 export type WebhookWorkResult =
   | 'idle'

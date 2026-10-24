@@ -12,7 +12,7 @@ describe('review-controller migration scope and runtime grants', () => {
     database = new PGlite();
     await database.exec(`CREATE ROLE "${runtimeRole}" WITH LOGIN`);
     const migrations = readMigrationFiles({ migrationsFolder: 'migrations' });
-    expect(migrations).toHaveLength(3);
+    expect(migrations).toHaveLength(6);
     for (const migration of migrations) {
       for (const statement of migration.sql) {
         await database.exec(statement);

@@ -1,0 +1,30 @@
+name: Review Controller PostgreSQL contract
+description: Apply and verify the maintained controller migrations in the isolated CI database.
+runs:
+  using: composite
+  steps:
+    - name: Prepare isolated Review Controller migration database
+      shell: bash
+      run: |
+        psql -v ON_ERROR_STOP=1 -d postgres -c \
+          'CREATE ROLE "revealui-review-controller" WITH LOGIN PASSWORD $$review_controller_ci$$ NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS'
+        psql -v ON_ERROR_STOP=1 -d postgres -c \
+          'CREATE DATABASE revealui_review_controller_ci OWNER test'
+      env:
+        PGHOST: localhost
+        PGPORT: 5433
+        PGUSER: test
+        PGPASSWORD: test
+
+    - name: Apply isolated Review Controller migrations (hard fail)
+      shell: bash
+      run: pnpm --filter @revealui/review-controller db:migrate
+      env:
+        REVIEW_CONTROLLER_MIGRATION_DATABASE_URL: "postgresql://test:test@localhost:5433/revealui_review_controller_ci"
+
+    - name: Verify isolated Review Controller migration and runtime grants
+      shell: bash
+      run: pnpm --filter @revealui/review-controller exec vitest run --config vitest.postgres.config.ts
+      env:
+        REVIEW_CONTROLLER_MIGRATION_DATABASE_URL: "postgresql://test:test@localhost:5433/revealui_review_controller_ci"
+        REVIEW_CONTROLLER_TEST_RUNTIME_DATABASE_URL: "postgresql://revealui-review-controller:review_controller_ci@localhost:5433/revealui_review_controller_ci"

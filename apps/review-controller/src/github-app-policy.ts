@@ -15,7 +15,11 @@ export const GITHUB_INSTALLATION_PERMISSIONS = Object.freeze({
   pull_requests: 'write',
 } as const);
 
-export function installationPermissions(receiptEvaluationEnabled: boolean) {
+export function installationPermissions(
+  receiptEvaluationEnabled: boolean,
+  role: 'controller' | 'reviewer' = 'controller',
+) {
+  if (role === 'reviewer') return { contents: 'read' as const, pull_requests: 'write' as const };
   return {
     ...GITHUB_INSTALLATION_PERMISSIONS,
     ...(receiptEvaluationEnabled ? { actions: 'read' as const } : {}),

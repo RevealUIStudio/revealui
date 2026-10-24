@@ -1,0 +1,80 @@
+# Source validation for the maintained package, including stacked and draft PRs.
+# This workflow has no reviewer App/model credentials or merge authority.
+name: Review Controller Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+    paths:
+      - 'apps/review-controller/**'
+      - 'packages/**'
+      - 'scripts/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'tsconfig.json'
+      - 'biome.json'
+      - '.npmrc'
+      - '.pnpmfile.cjs'
+      - '.github/actions/**'
+      - '.github/workflows/review-controller-validation.yml'
+      - '.github/workflows/security-review-gate.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: review-controller-validation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Review Controller Source
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      review-controller-postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: postgres
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd="pg_isready -U test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: '10.28.2'
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: '24.13.0'
+          cache: pnpm
+      - name: Install locked package dependencies
+        run: pnpm --filter '@revealui/review-controller...' --filter '@revealui/harnesses...' --filter revealui --fail-if-no-match install --frozen-lockfile
+      - name: Build maintained dependency closure once
+        run: pnpm --filter '@revealui/review-controller^...' --fail-if-no-match --workspace-concurrency=1 build
+      - name: Typecheck controller
+        run: pnpm --filter @revealui/review-controller --fail-if-no-match typecheck
+      - name: Lint controller
+        run: pnpm --filter @revealui/review-controller --fail-if-no-match lint
+      - name: Run controller tests
+        run: pnpm --filter @revealui/review-controller --fail-if-no-match test
+      - name: Build controller
+        run: pnpm --filter @revealui/review-controller --fail-if-no-match build
+      - name: Verify receipt authorization signatures
+        run: pnpm --filter @revealui/security exec vitest run src/__tests__/receipt-authorization.test.ts src/__tests__/review-receipt.test.ts --maxWorkers=1
+      - name: Build maintained base-gate bundle
+        run: pnpm --filter @revealui/harnesses exec tsup --config tsup.gates-cjs.ts
+      - name: Verify base-trusted receipt acceptance
+        run: pnpm exec vitest run scripts/validate/__tests__/receipt-authorization.test.ts scripts/validate/__tests__/security-review-gate.test.ts scripts/validate/__tests__/security-review-receipt-shadow.test.ts --maxWorkers=1
+      - name: Verify isolated controller migration and runtime grants
+        uses: ./.github/actions/review-controller-postgres

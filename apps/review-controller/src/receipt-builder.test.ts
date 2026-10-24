@@ -106,6 +106,16 @@ function build(
 }
 
 describe('signCandidateReceipt', () => {
+  it('does not renew the review lifetime when CI runs again', () => {
+    const oldReview = review({
+      observedAt: '2026-10-06T01:00:00.000Z',
+      submittedAt: '2026-10-06T00:59:00.000Z',
+    });
+    expect(() => build({ reviews: [oldReview] })).toThrow('receipt_review_expired');
+    const envelope = build();
+    expect(envelope.receipt.expiresAt).toBe('2026-10-06T18:19:00.000Z');
+  });
+
   it('signs deterministic receipts from an exact-head clean review and required check', () => {
     const first = build();
     const repeated = build();

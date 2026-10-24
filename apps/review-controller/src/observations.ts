@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import {
   type ReviewControllerDatabase,
   reviewControllerShadowObservations,
@@ -18,6 +19,7 @@ export interface ShadowObservationStore {
     pullRequest: number;
     headSha: string;
     baseSha: string;
+    trustedReviewer?: { login: string; id: number };
   }): Promise<CodexReviewObservation[]>;
   recordPullRequest(input: {
     deliveryId: string;
@@ -45,7 +47,10 @@ export class PostgresShadowObservationStore implements ShadowObservationStore {
     pullRequest: number;
     headSha: string;
     baseSha: string;
+    trustedReviewer?: { login: string; id: number };
   }): Promise<CodexReviewObservation[]> {
+    const provider = input.trustedReviewer ? 'trusted-reviewer-app' : 'codex-subscription';
+    const reviewerLogin = input.trustedReviewer?.login ?? 'chatgpt-codex-connector[bot]';
     const candidate = and(
       eq(reviewControllerShadowObservations.eventKind, 'pull_request'),
       eq(reviewControllerShadowObservations.repositoryId, input.repositoryId),
@@ -55,6 +60,13 @@ export class PostgresShadowObservationStore implements ShadowObservationStore {
       sql`${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,status}' = 'observed'`,
       sql`${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,review,reviewedHeadSha}' = ${input.headSha}`,
       sql`${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,review,currentHeadSha}' = ${input.headSha}`,
+      sql`${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,review,provider}' = ${provider}`,
+      sql`${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,review,reviewerLogin}' = ${reviewerLogin}`,
+      ...(input.trustedReviewer
+        ? [
+            sql`${reviewControllerShadowObservations.snapshot} #>> '{reviewEvidence,review,reviewerId}' = ${String(input.trustedReviewer.id)}`,
+          ]
+        : []),
     );
     // One database snapshot selects a same-head denial before any approval.
     // Later check snapshots and replayed approvals cannot evict the denial.
@@ -90,9 +102,23 @@ export class PostgresShadowObservationStore implements ShadowObservationStore {
       ...(input.receiptEvaluation ? { receiptEvaluation: input.receiptEvaluation } : {}),
       content: content.map(({ path, side, blobSha, sha256 }) => ({ path, side, blobSha, sha256 })),
     };
-    await this.db
+    // One delivery may observe a different review outcome on retry. Preserve
+    // every distinct result; identical replays remain idempotent.
+    const outcomeSha256 = createHash('sha256')
+      .update(
+        JSON.stringify({
+          headSha: snapshot.headSha,
+          baseSha: snapshot.baseSha,
+          manifestSha256: snapshot.manifest.sha256,
+          reviewEvidence: persistedSnapshot.reviewEvidence,
+          checkRuns: input.checkRuns,
+        }),
+      )
+      .digest('hex');
+    const inserted = await this.db
       .insert(reviewControllerShadowObservations)
       .values({
+        outcomeSha256,
         deliveryId: input.deliveryId,
         eventKind: 'pull_request',
         repositoryId: snapshot.repositoryId,
@@ -106,7 +132,28 @@ export class PostgresShadowObservationStore implements ShadowObservationStore {
         checkRuns: [...input.checkRuns],
         snapshot: persistedSnapshot,
       })
-      .onConflictDoNothing();
+      .onConflictDoNothing({
+        target: [
+          reviewControllerShadowObservations.deliveryId,
+          reviewControllerShadowObservations.pullRequest,
+          reviewControllerShadowObservations.outcomeSha256,
+        ],
+      })
+      .returning({ id: reviewControllerShadowObservations.observationId });
+    if (inserted.length === 0) {
+      const existing = await this.db
+        .select({ id: reviewControllerShadowObservations.observationId })
+        .from(reviewControllerShadowObservations)
+        .where(
+          and(
+            eq(reviewControllerShadowObservations.deliveryId, input.deliveryId),
+            eq(reviewControllerShadowObservations.pullRequest, snapshot.pullRequest),
+            eq(reviewControllerShadowObservations.outcomeSha256, outcomeSha256),
+          ),
+        )
+        .limit(1);
+      if (existing.length !== 1) throw new Error('review_observation_persistence_unconfirmed');
+    }
   }
 
   async recordMergeGroup(input: {
@@ -144,7 +191,7 @@ export class PostgresShadowObservationStore implements ShadowObservationStore {
 function isCodexReviewObservation(value: unknown): value is CodexReviewObservation {
   return (
     isRecord(value) &&
-    value.provider === 'codex-subscription' &&
+    (value.provider === 'codex-subscription' || value.provider === 'trusted-reviewer-app') &&
     Number.isSafeInteger(value.reviewerId) &&
     Number.isSafeInteger(value.reviewId) &&
     typeof value.reviewedHeadSha === 'string' &&

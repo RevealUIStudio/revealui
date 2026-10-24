@@ -218,6 +218,40 @@ describe('GitHub App API client', () => {
     });
   });
 
+  it('replaces a successful check output when the current signed envelope changes', async () => {
+    const headSha = 'a'.repeat(40);
+    const receiptEnvelope = signedEnvelope(headSha);
+    let patched = false;
+    const fetchImpl = vi.fn<typeof fetch>(async (input, init) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      if (url.pathname.endsWith('/access_tokens')) return tokenResponse();
+      const run = {
+        id: 800,
+        check_suite: { id: 801 },
+        name: 'RevealUI Receipt',
+        head_sha: headSha,
+        status: 'completed',
+        conclusion: 'success',
+        completed_at: '2026-10-06T11:59:00Z',
+        external_id: 'pr-300-7',
+        app: { id: 100, slug: 'review-controller' },
+      };
+      if (init?.method === 'GET')
+        return new Response(JSON.stringify({ total_count: 1, check_runs: [run] }));
+      expect(init?.method).toBe('PATCH');
+      expect(JSON.parse(String(init?.body)).output.summary).toContain(receiptEnvelope);
+      patched = true;
+      return new Response(JSON.stringify(run));
+    });
+    await fixture(fetchImpl).upsertReceiptCheckRun({
+      headSha,
+      externalId: 'pr-300-7',
+      eligible: true,
+      receiptEnvelope,
+    });
+    expect(patched).toBe(true);
+  });
+
   it('rejects an eligible receipt check without a canonical signed envelope', async () => {
     const client = fixture(vi.fn<typeof fetch>());
     await expect(
@@ -379,6 +413,82 @@ describe('GitHub App API client', () => {
         pull_requests: 'write',
       },
     });
+  });
+
+  it('uses a separate reviewer token with no check or merge-queue permission', async () => {
+    const fetchImpl = vi.fn<typeof fetch>(async (input, init) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      if (url.pathname.endsWith('/access_tokens')) return tokenResponse();
+      if (init?.method === 'POST' && url.pathname.endsWith('/reviews'))
+        return Response.json(
+          {
+            id: 91,
+            commit_id: 'a'.repeat(40),
+            state: 'APPROVED',
+            user: { id: 90211, login: 'revealui-reviewer[bot]', type: 'Bot' },
+          },
+          { status: 200 },
+        );
+      return Response.json({ error: 'unexpected' }, { status: 404 });
+    });
+    const client = new GitHubAppClient(
+      {
+        appId: 101,
+        installationId: 201,
+        repositoryId: 300,
+        repositoryFullName: 'RevealUIStudio/revealui',
+        privateKey: pem,
+        role: 'reviewer',
+      },
+      fetchImpl,
+      () => now,
+    );
+    await expect(
+      client.submitPullRequestReview({
+        pullNumber: 7,
+        commitId: 'a'.repeat(40),
+        event: 'APPROVE',
+        body: '{}',
+        reviewer: { id: 90211, login: 'revealui-reviewer[bot]' },
+      }),
+    ).resolves.toBe(91);
+    expect(JSON.parse(String(fetchImpl.mock.calls[0]?.[1]?.body))).toEqual({
+      repository_ids: [300],
+      permissions: { contents: 'read', pull_requests: 'write' },
+    });
+    expect(JSON.parse(String(fetchImpl.mock.calls[1]?.[1]?.body))).toEqual({
+      commit_id: 'a'.repeat(40),
+      event: 'APPROVE',
+      body: '{}',
+    });
+  });
+
+  it('reconciles only open same-repository pull requests targeting the protected base', async () => {
+    const fetchImpl = vi.fn<typeof fetch>(async (input) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      if (url.pathname.endsWith('/access_tokens')) return tokenResponse();
+      if (url.pathname.endsWith('/pulls'))
+        return Response.json([
+          {
+            number: 7,
+            state: 'open',
+            base: { ref: 'test', repo: { id: 300 } },
+            head: { repo: { id: 300 } },
+          },
+          {
+            number: 8,
+            state: 'open',
+            base: { ref: 'test', repo: { id: 300 } },
+            head: { repo: { id: 999 } },
+          },
+        ]);
+      return Response.json({ error: 'unexpected' }, { status: 404 });
+    });
+    const client = fixture(fetchImpl);
+    await expect(client.listOpenPullRequestNumbers('test')).resolves.toEqual([7]);
+    const url = new URL(String(fetchImpl.mock.calls[1]?.[0]));
+    expect(url.searchParams.get('state')).toBe('open');
+    expect(url.searchParams.get('base')).toBe('test');
   });
 
   it('fetches complete paginated changed-file evidence and reuses the short-lived token', async () => {
