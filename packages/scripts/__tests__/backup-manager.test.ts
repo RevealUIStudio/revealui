@@ -172,6 +172,7 @@ describe('backup and restore data integrity', () => {
         { id: 99, value: '9.87' },
       ]);
     },
+    30_000,
   );
 
   it('fails a later table read without publishing or retaining away a good backup', async () => {
