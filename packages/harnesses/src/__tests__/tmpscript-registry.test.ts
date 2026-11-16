@@ -88,6 +88,29 @@ describe('temporary-artifact registry', () => {
     expect(statSync(f.controlPath).mode & 0o777).toBe(0o600);
     expect(statSync(dirname(f.controlPath)).mode & 0o777).toBe(0o700);
   });
+  it.each([true, false])('imports v2 consumers as unreviewed (references: %s)', (hasReferences) => {
+    const source = fixture();
+    const target = fixture();
+    const consumers = hasReferences
+      ? [
+          { reference: 'producer', state: 'active' as const },
+          { reference: 'former-reader', state: 'released' as const },
+          { reference: 'unreviewed-reader', state: 'unknown' as const },
+        ]
+      : [];
+    registerTmpscript({ path: source.filePath, consumers }, source);
+    const original = readFileSync(source.controlPath);
+    const artifact = readFileSync(source.filePath);
+    const imported = importManifest(source.controlPath, target);
+    const expected = hasReferences
+      ? consumers.map(({ reference }) => ({ reference, state: 'unknown' }))
+      : [{ reference: 'imported consumers not reviewed', state: 'unknown' }];
+    expect(imported.entries[0]?.consumers).toEqual(expected);
+    expect(imported.entries[0]?.status).toBe('held');
+    expect(loadManifest(target).entries[0]?.consumers).toEqual(expected);
+    expect(readFileSync(source.controlPath)).toEqual(original);
+    expect(readFileSync(source.filePath)).toEqual(artifact);
+  });
   it('records completion without executing or deleting a file', () => {
     const f = fixture();
     const e = registerTmpscript({ path: f.filePath }, f);

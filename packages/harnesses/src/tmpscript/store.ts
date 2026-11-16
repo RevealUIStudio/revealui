@@ -410,6 +410,9 @@ export function importManifest(source: string, options?: TmpscriptStoreOptions):
         ...e,
         status: 'held',
         disposition: 'retain',
+        consumers: e.consumers.length
+          ? e.consumers.map(({ reference }) => ({ reference, state: 'unknown' as const }))
+          : [{ reference: 'imported consumers not reviewed', state: 'unknown' as const }],
         lease: 'unknown',
         identity: null,
         completion: null,
