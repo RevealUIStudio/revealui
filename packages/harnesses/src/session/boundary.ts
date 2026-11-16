@@ -10,6 +10,7 @@
 
 import { hostname } from 'node:os';
 import { archiveSessionExit } from './archive-exit.js';
+import { ensureDaemonForSession } from './ensure-daemon.js';
 import {
   clearDaemonSessionCache,
   clearHookIdentity,
@@ -96,6 +97,7 @@ function asRegisterResult(raw: unknown): {
  */
 export async function sessionRegister(options: RegisterOptions): Promise<SessionBoundaryResult> {
   const socketPath = options.socketPath;
+  await ensureDaemonForSession(socketPath);
   if (!isDaemonSocketPresent(socketPath)) {
     return { ok: false, skipped: true, reason: 'daemon socket absent' };
   }
