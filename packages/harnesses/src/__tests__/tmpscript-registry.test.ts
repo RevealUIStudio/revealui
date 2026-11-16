@@ -261,6 +261,7 @@ describe('temporary-artifact registry', () => {
       { stdio: ['pipe', 'pipe', 'pipe'] },
     );
     const exited = new Promise<number | null>((resolve) => child.once('close', resolve));
+    let exitCode: number | null = null;
     try {
       await new Promise<void>((resolve, reject) => {
         const onExit = (code: number | null) => {
@@ -285,8 +286,9 @@ describe('temporary-artifact registry', () => {
       expect(() => registerTmpscript({ path: f.filePath }, f)).toThrow('locked');
     } finally {
       child.stdin.end();
-      expect(await exited).toBe(0);
+      exitCode = await exited;
     }
+    expect(exitCode).toBe(0);
     expect(registerTmpscript({ path: f.filePath }, f).status).toBe('pending');
   });
   it('sweep retains active, unknown and completed artifacts and all receipts', () => {
