@@ -30,7 +30,9 @@ jobs:
   backflow:
     # Pinned to a SHA — org-shared reusable was referenced by the mutable @main.
     # Bump this deliberately when the reusable changes.
-    uses: RevealUIStudio/.github/.github/workflows/backflow-reusable.yml@f2c6236edef8228e3cc2224401d2f80c620110bf # org .github#25 merge: client-id input, clean skip when the App is not installed
+    uses: RevealUIStudio/.github/.github/workflows/backflow-reusable.yml@b4f23b3aabd617bdf3729b669811fa4444593b3e # org .github#26 merge: require the in-repo Backflow App bot for the branch exemption.
+    with:
+      backflow_bot_login: revealfleet-backflow[bot]
     # Scope to ONLY the two secrets the reusable declares (its workflow_call.secrets
     # block documents this exact form) instead of `secrets: inherit`, which would
     # forward every caller secret (VERCEL_TOKEN, PROD_POSTGRES_URL, …) into it.
