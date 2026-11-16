@@ -10,9 +10,48 @@ import { describe, expect, it } from 'vitest';
 import { buildContractsOpenApi, serializeContractsOpenApi } from '../../scripts/emit-from-mcp.js';
 
 describe('emit-from-mcp / buildContractsOpenApi', () => {
+  it('emits schemas rather than serialization-error placeholders', () => {
+    expect(serializeContractsOpenApi(buildContractsOpenApi())).not.toContain(
+      'JSON Schema serialization failed:',
+    );
+  });
+
+  it('binds catalog recursion and definitions to components', () => {
+    const serialized = serializeContractsOpenApi(buildContractsOpenApi());
+    expect(serialized).not.toContain('"$ref": "#"');
+    expect(serialized).not.toContain('"$ref": "#/$defs/');
+    expect(serialized).toContain('"$ref": "#/components/schemas/');
+  });
+
   it('returns OpenAPI 3.1.0 spec', () => {
     const spec = buildContractsOpenApi();
     expect(spec.openapi).toBe('3.1.0');
+  });
+
+  it('resolves every emitted local reference inside its owning component', () => {
+    const spec = buildContractsOpenApi();
+    let checked = 0;
+    function check(value: unknown, owner: string): void {
+      if (!value || typeof value !== 'object') return;
+      const object = value as Record<string, unknown>;
+      if (typeof object.$ref === 'string' && object.$ref.startsWith('#')) {
+        const prefix = `#/components/schemas/${owner}`;
+        expect(object.$ref === prefix || object.$ref.startsWith(`${prefix}/`)).toBe(true);
+        const tokens = decodeURIComponent(object.$ref.slice(2)).split('/');
+        let target: unknown = spec;
+        for (const token of tokens) {
+          const key = token.replaceAll('~1', '/').replaceAll('~0', '~');
+          expect(target).not.toBeNull();
+          expect(Object.hasOwn(target as object, key)).toBe(true);
+          target = (target as Record<string, unknown>)[key];
+        }
+        expect(typeof target === 'object' || typeof target === 'boolean').toBe(true);
+        checked += 1;
+      }
+      for (const child of Object.values(object)) check(child, owner);
+    }
+    for (const [owner, schema] of Object.entries(spec.components.schemas)) check(schema, owner);
+    expect(checked).toBeGreaterThanOrEqual(55);
   });
 
   it('declares JSON Schema 2020-12 dialect at root', () => {
