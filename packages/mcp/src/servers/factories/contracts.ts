@@ -61,6 +61,7 @@ import {
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod/v4';
+import { toContractJsonSchema } from './contract-json-schema.js';
 
 // ---------------------------------------------------------------------------
 // Imports — Zod schemas grouped by category
@@ -456,6 +457,50 @@ export type ContractCategoryName = CategoryName;
 
 const CATEGORIES = Object.keys(SCHEMA_REGISTRY) as CategoryName[];
 
+// Request contracts describe accepted input, including pre-transform strings
+// and optional defaults. Response/entity contracts continue to describe output.
+const INPUT_SCHEMAS = new Set<z.ZodType>([
+  SignInRequestSchema,
+  SignUpRequestSchema,
+  PasswordResetRequestSchema,
+  PasswordResetTokenSchema,
+  MFAVerifyRequestSchema,
+  MFADisableRequestSchema,
+  MFABackupCodeRequestSchema,
+  PasskeyRegisterOptionsRequestSchema,
+  PasskeyRegisterVerifyRequestSchema,
+  PasskeyAuthenticateOptionsRequestSchema,
+  PasskeyAuthenticateVerifyRequestSchema,
+  PasskeyUpdateRequestSchema,
+  RecoveryRequestSchema,
+  RecoveryVerifyRequestSchema,
+  ChatRequestSchema,
+  GDPRExportRequestSchema,
+  GDPRDeleteRequestSchema,
+  AccountsInsertSchema,
+  AgentContextsInsertSchema,
+  AgentMemoriesInsertSchema,
+  PagesInsertSchema,
+  SessionsInsertSchema,
+  SitesInsertSchema,
+  UsersInsertSchema,
+]);
+
+// Deliberate serialization projections, not replacement validators. In
+// particular, JSON strings are not accepted by the existing z.date() parsers.
+const DATE_JSON_SCHEMAS = new Set<z.ZodType>([
+  SessionSchema,
+  AccountsSelectSchema,
+  AccountsInsertSchema,
+  AgentContextsInsertSchema,
+  AgentMemoriesInsertSchema,
+  PagesInsertSchema,
+  SessionsInsertSchema,
+  SitesInsertSchema,
+  UsersSelectSchema,
+  UsersInsertSchema,
+]);
+
 // Constant exports for tests + runtime introspection.
 export const REGISTERED_CATEGORIES = CATEGORIES as readonly string[];
 
@@ -488,12 +533,15 @@ export interface ContractCategorySchemas {
  * who want a long-lived snapshot (e.g. the MCP server's per-instance cache)
  * can call once and memoize the result themselves.
  *
- * Some Zod constructs (e.g. discriminated unions with overlapping
+ * Request schemas explicitly use input mode; Date-bearing schemas opt into a
+ * documented Date.toJSON projection. Runtime validators remain unchanged.
+ * Some other Zod constructs (e.g. discriminated unions with overlapping
  * discriminators, recursive schemas without lazy guards, custom transforms)
  * cannot be serialized to JSON Schema. For those entries, the catalog
  * surfaces a placeholder `{ $comment: "JSON Schema serialization failed: ..." }`
  * so the schema name still appears in the catalog; runtime validation
- * (via `validatePayload`) is unaffected.
+ * (via `validatePayload`) is unaffected. OpenAPI emission rejects these
+ * diagnostic placeholders rather than publishing an unconstrained schema.
  */
 export function getContractsCatalog(): Record<ContractCategoryName, ContractCategorySchemas> {
   const out: Record<string, ContractCategorySchemas> = {};
@@ -502,7 +550,10 @@ export function getContractsCatalog(): Record<ContractCategoryName, ContractCate
     const schemaJson: Record<string, unknown> = {};
     for (const [name, zodSchema] of Object.entries(entry.schemas)) {
       try {
-        schemaJson[name] = z.toJSONSchema(zodSchema);
+        schemaJson[name] = toContractJsonSchema(zodSchema, {
+          io: INPUT_SCHEMAS.has(zodSchema) ? 'input' : 'output',
+          ...(DATE_JSON_SCHEMAS.has(zodSchema) ? { dateProjection: 'date-to-json' as const } : {}),
+        });
       } catch (err) {
         schemaJson[name] = {
           $comment: `JSON Schema serialization failed: ${err instanceof Error ? err.message : String(err)}`,

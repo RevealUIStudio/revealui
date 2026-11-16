@@ -41,6 +41,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getContractsCatalog } from '@revealui/mcp/contracts-server';
+import { embedComponentSchema } from './component-schema.js';
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = join(SCRIPT_DIR, '..');
@@ -59,14 +60,6 @@ function readContractsVersion(): string {
   const path = join(PACKAGE_ROOT, '..', 'contracts', 'package.json');
   const pkg = JSON.parse(readFileSync(path, 'utf8')) as ContractsPackageJson;
   return pkg.version;
-}
-
-/** Strip the root `$schema` keyword from a JSON Schema so OpenAPI's root
- *  dialect declaration governs the whole document. */
-function stripRootSchemaKey(jsonSchema: unknown): unknown {
-  if (!jsonSchema || typeof jsonSchema !== 'object') return jsonSchema;
-  const { $schema: _ignored, ...rest } = jsonSchema as Record<string, unknown>;
-  return rest;
 }
 
 interface OpenApiInfo {
@@ -107,7 +100,7 @@ export function buildContractsOpenApi(): OpenApiSpec {
     if (!categoryEntry) continue;
     for (const [schemaName, jsonSchema] of Object.entries(categoryEntry.schemas)) {
       const componentName = `${category}_${schemaName}`;
-      entries.push([componentName, stripRootSchemaKey(jsonSchema)]);
+      entries.push([componentName, embedComponentSchema(componentName, jsonSchema)]);
     }
   }
   entries.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
@@ -171,7 +164,7 @@ if (isMain()) {
     }
     if (existing !== serialized) {
       process.stderr.write(
-        `[emit-from-mcp] check failed: ${OUTPUT_PATH} differs from regenerated output. Run \`pnpm --filter @revealui/openapi emit:contracts\` to update + commit.\n`,
+        `[emit-from-mcp] check failed: ${OUTPUT_PATH} differs from regenerated output. Review schema semantics and qualify consumers before updating the committed reference.\n`,
       );
       process.exit(1);
     }
