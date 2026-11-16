@@ -56,6 +56,8 @@ export * from './code-provenance.js';
 export * from './collab-edits.js';
 export * from './coordination.js';
 export * from './crdt-operations.js';
+export * from './crm.js';
+export * from './crm-workflows.js';
 export * from './edit-sessions.js';
 export * from './error-events.js';
 export * from './gdpr.js';
