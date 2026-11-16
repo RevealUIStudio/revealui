@@ -78,19 +78,19 @@ describe('compareVersions', () => {
 });
 
 describe('evaluateFloor', () => {
-  it('pins the floor constant to the final fix of the Dec-2025 CVE series', () => {
+  it('pins the floor constant to the CVE-2026-126187 fix', () => {
     // Lowering this constant is a security decision, not a refactor: the
     // test forces any such change to touch this file and say why.
-    expect(REACT_RSC_FLOOR).toBe('19.2.4');
+    expect(REACT_RSC_FLOOR).toBe('19.2.9');
     expect([...LOCKSTEP_PACKAGES]).toEqual(['react', 'react-dom', 'react-server-dom-webpack']);
   });
 
   it('passes when all three resolve lockstep above the floor', () => {
     const report = evaluateFloor(
       resolvedMap({
-        react: ['19.2.7'],
-        'react-dom': ['19.2.7'],
-        'react-server-dom-webpack': ['19.2.7'],
+        react: ['19.2.10'],
+        'react-dom': ['19.2.10'],
+        'react-server-dom-webpack': ['19.2.10'],
       }),
     );
     expect(report.violations).toEqual([]);
@@ -99,9 +99,9 @@ describe('evaluateFloor', () => {
   it('passes at exactly the floor (boundary)', () => {
     const report = evaluateFloor(
       resolvedMap({
-        react: ['19.2.4'],
-        'react-dom': ['19.2.4'],
-        'react-server-dom-webpack': ['19.2.4'],
+        react: ['19.2.9'],
+        'react-dom': ['19.2.9'],
+        'react-server-dom-webpack': ['19.2.9'],
       }),
     );
     expect(report.violations).toEqual([]);
@@ -109,7 +109,7 @@ describe('evaluateFloor', () => {
 
   it('passes with react-server-dom-webpack absent (pre-router-0.4.0 state) and says so', () => {
     const report = evaluateFloor(
-      resolvedMap({ react: ['19.2.7'], 'react-dom': ['19.2.7'], 'react-server-dom-webpack': [] }),
+      resolvedMap({ react: ['19.2.10'], 'react-dom': ['19.2.10'], 'react-server-dom-webpack': [] }),
     );
     expect(report.violations).toEqual([]);
     const skipLine = report.summary.find((line) => line.startsWith('react-server-dom-webpack'));
@@ -123,22 +123,22 @@ describe('evaluateFloor', () => {
   it('fails every resolution below the floor and names the CVE series', () => {
     const report = evaluateFloor(
       resolvedMap({
-        react: ['19.2.3'],
-        'react-dom': ['19.2.3'],
-        'react-server-dom-webpack': ['19.2.3'],
+        react: ['19.2.8'],
+        'react-dom': ['19.2.8'],
+        'react-server-dom-webpack': ['19.2.8'],
       }),
     );
     const belowFloor = report.violations.filter((violation) => violation.rule === 'below-floor');
     expect(belowFloor).toHaveLength(3);
-    expect(belowFloor[0]?.detail).toContain('CVE-2025-55182');
+    expect(belowFloor[0]?.detail).toContain('CVE-2026-126187');
   });
 
-  it('fails a pre-release of the floor version (19.2.4-canary is below 19.2.4)', () => {
+  it('fails a pre-release of the floor version (19.2.9-canary is below 19.2.9)', () => {
     const report = evaluateFloor(
       resolvedMap({
-        react: ['19.2.4'],
-        'react-dom': ['19.2.4'],
-        'react-server-dom-webpack': ['19.2.4-canary-abc'],
+        react: ['19.2.9'],
+        'react-dom': ['19.2.9'],
+        'react-server-dom-webpack': ['19.2.9-canary-abc'],
       }),
     );
     expect(report.violations.map((violation) => violation.rule)).toContain('below-floor');
@@ -147,21 +147,21 @@ describe('evaluateFloor', () => {
   it('fails lockstep skew even when every version clears the floor', () => {
     const report = evaluateFloor(
       resolvedMap({
-        react: ['19.2.7'],
-        'react-dom': ['19.2.6'],
-        'react-server-dom-webpack': ['19.2.7'],
+        react: ['19.2.10'],
+        'react-dom': ['19.2.9'],
+        'react-server-dom-webpack': ['19.2.10'],
       }),
     );
     expect(report.violations).toHaveLength(1);
     expect(report.violations[0]?.rule).toBe('version-skew');
-    expect(report.violations[0]?.detail).toContain('react-dom=19.2.6');
+    expect(report.violations[0]?.detail).toContain('react-dom=19.2.9');
   });
 
   it('fails when one package resolves to multiple versions (skew within a package)', () => {
     const report = evaluateFloor(
       resolvedMap({
-        react: ['19.2.7', '19.3.0'],
-        'react-dom': ['19.2.7'],
+        react: ['19.2.10', '19.3.1'],
+        'react-dom': ['19.2.10'],
         'react-server-dom-webpack': [],
       }),
     );

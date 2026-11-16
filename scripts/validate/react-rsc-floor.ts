@@ -3,25 +3,22 @@
 /**
  * React RSC CVE Floor Validation
  *
- * Enforces the resolved-version security floor for the December-2025 React
- * RSC CVE series: CVE-2025-55182 "React2Shell" (CVSS 10.0 unauthenticated
- * RCE via flight-protocol deserialization at Server Function endpoints),
- * CVE-2025-55184 (DoS) + CVE-2025-55183 (source exposure), and
- * CVE-2025-67779 (follow-up for the incomplete DoS fix). The final fixed
- * floor is 19.2.4 (react.dev advisories 2025-12-03 and 2025-12-11).
+ * Enforces the resolved-version security floor for the 19.2 patch line,
+ * including CVE-2026-126187 (React Server Components unauthenticated RCE)
+ * and the December-2025 RSC CVE series. The fixed floor is 19.2.9.
+ * Advisory: https://github.com/advisories/GHSA-xqc2-xf4c-x3h3
  *
  * Rules:
  *   1. react, react-dom, and react-server-dom-webpack must each RESOLVE at
- *      >=19.2.4. Resolved versions come from node_modules/.pnpm metadata,
+ *      >=19.2.9. Resolved versions come from node_modules/.pnpm metadata,
  *      not declared ranges, so catalog drift or a pnpm override below the
  *      floor is caught.
  *   2. All resolved copies of the three must be ONE identical version:
  *      skew between react and its server-dom binding is itself a failure
  *      mode for the RSC flight protocol.
  *   3. A package absent from the dependency graph passes (absence is not
- *      exposure). react-server-dom-webpack is not a dependency today; it
- *      arrives with @revealui/router 0.4.0 RSC mode and this check starts
- *      guarding it automatically.
+ *      exposure). The dependency audit also checks
+ *      advisories across other release lines.
  *
  * Source: internal RSC-router design re-audit (2026-07-04), finding F8.
  *
@@ -37,8 +34,8 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
-/** Final fixed version for the Dec-2025 React RSC CVE series. */
-export const REACT_RSC_FLOOR = '19.2.4';
+/** Fixed 19.2 patch version for CVE-2026-126187 and earlier RSC advisories. */
+export const REACT_RSC_FLOOR = '19.2.9';
 
 /** The flight-protocol trio that must clear the floor in lockstep. */
 export const LOCKSTEP_PACKAGES = ['react', 'react-dom', 'react-server-dom-webpack'] as const;
@@ -200,7 +197,7 @@ export function evaluateFloor(resolved: ReadonlyMap<string, readonly string[]>):
           rule: 'below-floor',
           detail:
             `${name}@${version} resolves below ${REACT_RSC_FLOOR}, the final fix for the ` +
-            'Dec-2025 React RSC CVE series (CVE-2025-55182 "React2Shell" RCE, ' +
+            'React RSC CVE-2026-126187 RCE and Dec-2025 series (CVE-2025-55182 RCE, ' +
             'CVE-2025-55184 DoS, CVE-2025-55183 source exposure, CVE-2025-67779 follow-up)',
         });
       }
@@ -244,7 +241,7 @@ function main(): void {
     }
     process.stderr.write(
       '\nReact RSC CVE floor: FAIL - hold react, react-dom, and react-server-dom-webpack ' +
-        `at >=${REACT_RSC_FLOOR}, lockstep-exact (react.dev advisories 2025-12-03 / 2025-12-11)\n`,
+        `at >=${REACT_RSC_FLOOR}, lockstep-exact (GHSA-xqc2-xf4c-x3h3)\n`,
     );
     process.exit(1);
   }
