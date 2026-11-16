@@ -260,21 +260,32 @@ describe('temporary-artifact registry', () => {
       ],
       { stdio: ['pipe', 'pipe', 'pipe'] },
     );
-    const exited = new Promise<void>((resolve, reject) => {
-      child.once('error', reject);
-      child.once('exit', (code) =>
-        code === 0 ? resolve() : reject(new Error(`child exit ${code}`)),
-      );
-    });
+    const exited = new Promise<number | null>((resolve) => child.once('close', resolve));
     try {
       await new Promise<void>((resolve, reject) => {
-        child.stdout.once('data', () => resolve());
-        child.once('error', reject);
+        const onExit = (code: number | null) => {
+          clearTimeout(timer);
+          reject(new Error(`lock child exited before readiness: ${code}`));
+        };
+        const timer = setTimeout(() => {
+          child.kill();
+          reject(new Error('lock child did not report readiness within 30 seconds'));
+        }, 30_000);
+        child.once('exit', onExit);
+        child.once('error', (error) => {
+          clearTimeout(timer);
+          reject(error);
+        });
+        child.stdout.once('data', () => {
+          clearTimeout(timer);
+          child.removeListener('exit', onExit);
+          resolve();
+        });
       });
       expect(() => registerTmpscript({ path: f.filePath }, f)).toThrow('locked');
     } finally {
       child.stdin.end();
-      await exited;
+      expect(await exited).toBe(0);
     }
     expect(registerTmpscript({ path: f.filePath }, f).status).toBe('pending');
   });
