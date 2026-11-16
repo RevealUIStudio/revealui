@@ -63,6 +63,17 @@ describe('Content Public API', () => {
   });
 
   describe('Definitions integrity', () => {
+    it('exports the exact fleet identity and root-cause policy into native content', () => {
+      const manifest = buildManifest();
+      const files = generateContent('claude-code', manifest, { projectRoot: '/test' });
+      const policy = files.find((file) =>
+        file.relativePath.endsWith('/rules/durable-solutions.md'),
+      );
+      expect(policy?.relativePath).toBe('.revealui/content/rules/durable-solutions.md');
+      expect(policy?.content).toContain('The only fleet identity is `revealfleet`');
+      expect(policy?.content).toContain('There is no one-off or hotfix exception.');
+    });
+
     it('all rule IDs are unique', () => {
       const manifest = buildManifest();
       const ids = manifest.rules.map((r) => r.id);
