@@ -61,7 +61,7 @@ function PhilosophyBody({ data, path, annotation }: PhilosophyBodyProps) {
           if (section.role === 'lead') {
             return (
               <p
-                key={`lead-${index}`}
+                key={section.body}
                 className="text-2xl font-medium leading-relaxed text-foreground sm:text-3xl"
                 {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
               >
@@ -72,7 +72,7 @@ function PhilosophyBody({ data, path, annotation }: PhilosophyBodyProps) {
           if (section.role === 'footer') {
             return (
               <p
-                key={`footer-${index}`}
+                key={section.body}
                 className="mt-12 border-t border-border pt-8 text-base font-medium leading-7 text-body"
                 {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
               >
@@ -82,7 +82,7 @@ function PhilosophyBody({ data, path, annotation }: PhilosophyBodyProps) {
           }
           return (
             <p
-              key={`body-${index}`}
+              key={section.body}
               className="text-lg leading-8 text-body"
               {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
             >

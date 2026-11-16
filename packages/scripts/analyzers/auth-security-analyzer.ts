@@ -109,7 +109,33 @@ function expressionMentionsPasswordLength(expression: ts.Expression): boolean {
   return false;
 }
 
+/**
+ * `length > 0` and `length >= 1` ask whether a value is present. They are not
+ * a minimum-length policy, including `url.password.length > 0`.
+ */
+function isEmptinessLengthCheck(node: ts.BinaryExpression): boolean {
+  const value = ts.isNumericLiteral(node.left)
+    ? Number(node.left.text)
+    : ts.isNumericLiteral(node.right)
+      ? Number(node.right.text)
+      : null;
+  if (value === null) return false;
+  switch (node.operatorToken.kind) {
+    case ts.SyntaxKind.GreaterThanToken:
+      return value === 0;
+    case ts.SyntaxKind.GreaterThanEqualsToken:
+      return value === 1;
+    case ts.SyntaxKind.LessThanToken:
+      return value === 1;
+    case ts.SyntaxKind.LessThanEqualsToken:
+      return value === 0;
+    default:
+      return false;
+  }
+}
+
 function isWeakPasswordLengthCheck(node: ts.BinaryExpression): boolean {
+  if (isEmptinessLengthCheck(node)) return false;
   const leftNumber = ts.isNumericLiteral(node.left) ? Number(node.left.text) : null;
   const rightNumber = ts.isNumericLiteral(node.right) ? Number(node.right.text) : null;
 

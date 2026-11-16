@@ -254,6 +254,7 @@ function FieldEditorPopover({
                     onClick={() => pickMedia(item.url)}
                     title={item.alt ?? item.filename}
                   >
+                    {/* biome-ignore lint/performance/noImgElement: canvas renders arbitrary media URLs and is not a Next.js image pipeline */}
                     <img
                       src={item.url}
                       alt={item.alt ?? item.filename}
