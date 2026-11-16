@@ -197,3 +197,19 @@ Results distinguish `executionStatus`, completed and successful tool counts,
 proof of task success. CLI output remains unverified until a reviewer checks the
 requested report and evidence. API callers may supply `validateOutput` to validate
 their output contract; a passing shape check does not prove the report's claims.
+
+## Temporary-artifact registry
+
+`tmpscript` records artifact ownership, identity and completion evidence. It does not execute artifact contents, run stored shell validation, delete source files or prune history. `list`, `check`, `store` and `sweep` are read-only. Sweep proposes owner review; age never grants removal authority.
+
+State lives at `$XDG_STATE_HOME/revealui/tmp-scripts/manifest.json`, defaulting to `~/.local/state/revealui/tmp-scripts/manifest.json`. A relative XDG override fails explicitly. Existing data-directory and Claude manifests are inspected without conversion. Use `tmpscript import <manifest-path>` to explicitly import one selected source. Conflicting existing destinations fail; original files remain intact, and in-place v1 conversion preserves the original bytes alongside the manifest. Imported entries remain held, with unknown consumers and leases. Import is not clearance to retire anything.
+
+Register with `tmpscript register <path> --purpose <description>`. `tmpscript confirm <id> --sha256 <digest> --evidence <outcome-reference>` records an operator's completion attestation against the original file identity and content. It does not independently prove the described business outcome. Source remains in place, including on repeated confirmation. Legacy `--validate` and confirmation without evidence fail explicitly. Legacy command text is retained privately as history, never printed or executed.
+
+Writes use an exclusive lock, validated schemas, fsync and same-directory atomic rename. Concurrent callers retry a reported busy/conflict result after the owning operation finishes; locks are never stolen based on age or PID. An interrupted operation's lock must be reconciled with its owning process before removal. A write or durability error is reported, never translated into successful cleanup.
+
+The typed registration API records artifact class, owning tool/session, sensitivity, consumer references and a content/identity snapshot. Unknown values default to retain. The preservation API verifies a separate byte-identical copy only for public artifacts. Confidential and unknown artifacts stay with their existing encrypted preservation owner. Preservation evidence is a point-in-time observation, not removal authorization.
+
+Retirement remains an explicit operation of the owning custody/preservation tool, requiring fresh source, consumer, lease and preservation verification and a durable receipt. This registry exposes no generic removal operation, recursive directory cleanup, receipt-pruning command or override flag. Directory artifacts must stay with an owner that implements exact inventory semantics. Session/runtime migrations and adapter deployment are separate coordinated changes; installing this source change does not move live stores automatically.
+
+A write that cannot sync the containing directory after atomic publication raises `ManifestPublishedError` (`TMPSCRIPT_PUBLISHED_DURABILITY_UNCONFIRMED`) with `published: true` and the visible revision. Reread the registry before retrying; this outcome differs from rejection before replacement. Serialized UTF-8 state is bounded by the same 16 MiB limit used for reads. Import entries, rollback bytes and digests come from one checked snapshot, with the complete source identity checked again before publication.

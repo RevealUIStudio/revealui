@@ -2,7 +2,7 @@
  * Temp-artifact lifecycle registry (RevealUI control layer, GAP-295).
  *
  * Claude Studio `~/.claude/scripts/tmpscript.js` is a thin adapter that
- * forwards here. Store: ~/.local/share/revealui/tmp-scripts/manifest.json
+ * forwards here. Store: $XDG_STATE_HOME/revealui/tmp-scripts/manifest.json (default ~/.local/state).
  */
 
 export { runTmpscriptCli } from './cli.js';
@@ -20,10 +20,11 @@ export {
   formatCheckLines,
   PENDING_TTL_DAYS,
   pendingEntries,
+  preserveTmpscript,
   registerTmpscript,
   sweepTmpscript,
 } from './registry.js';
-export { loadManifest, saveManifest } from './store.js';
+export { importManifest, loadManifest, ManifestPublishedError, saveManifest } from './store.js';
 export type {
   ConfirmTmpscriptOptions,
   RegisterTmpscriptInput,

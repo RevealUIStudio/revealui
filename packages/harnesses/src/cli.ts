@@ -863,8 +863,9 @@ Hotfix Subcommands (prefer durable root-cause fixes; register only as debt):
 
 Tmpscript Subcommands (one-shot helpers; confirm validates then deletes):
   tmpscript check | list | store | sweep
-  tmpscript register <path> --purpose "..." [--validate "cmd"]
-  tmpscript confirm <id|path>
+  tmpscript register <path> --purpose "..."
+  tmpscript confirm <id|path> --sha256 <digest> --evidence <reference>
+  tmpscript import <manifest-path>
 
 Default content generator: ${DEFAULT_CONTENT_GENERATOR_ID} → ${MANAGER_CONTENT_OUTPUT}
 `);
