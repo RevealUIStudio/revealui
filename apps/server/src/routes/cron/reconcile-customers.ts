@@ -39,6 +39,11 @@
  * user or subscription match still wins. Otherwise the scan records
  * `skipped-studio-consultation` and does not write an orphan alert.
  *
+ * Dry-run customers are stamped with metadata key `dry_run` set to a
+ * non-empty value other than `false`. Those scans record `skipped-dry-run`
+ * and do not write an orphan alert. Neither skip updates or deletes an
+ * existing `customer.orphaned` row.
+ *
  * Bounded batch: process up to 100 Stripe customers per cron tick. If
  * pagination would have continued beyond the batch, log a WARN so ops
  * knows the next tick has more work.
@@ -67,6 +72,8 @@ const ORPHAN_EVENT_TYPE = 'customer.orphaned';
  * by agency / book→pay. Product checkout uses `revealui_user_id` instead.
  */
 const STUDIO_CONSULTATION_DEAL_PREFIX = 'consultation_';
+/** Dry-run Stripe customers are stamped with this metadata key. */
+const DRY_RUN_METADATA_KEY = 'dry_run';
 
 interface CustomerScanResult {
   customerId: string;
@@ -75,7 +82,8 @@ interface CustomerScanResult {
     | 'matched'
     | 'orphan-already-tracked'
     | 'orphan-newly-alerted'
-    | 'skipped-studio-consultation';
+    | 'skipped-studio-consultation'
+    | 'skipped-dry-run';
 }
 
 function isStudioConsultationInvoiceCustomer(
@@ -83,6 +91,11 @@ function isStudioConsultationInvoiceCustomer(
 ): boolean {
   const deal = metadata?.deal;
   return typeof deal === 'string' && deal.startsWith(STUDIO_CONSULTATION_DEAL_PREFIX);
+}
+
+function isDryRunCustomer(metadata: Stripe.Metadata | null | undefined): boolean {
+  const dryRun = metadata?.[DRY_RUN_METADATA_KEY];
+  return typeof dryRun === 'string' && dryRun.length > 0 && dryRun !== 'false';
 }
 
 app.post('/reconcile-customers', async (c) => {
@@ -214,6 +227,21 @@ app.post('/reconcile-customers', async (c) => {
         customerId: customer.id,
         email: customer.email ?? null,
         outcome: 'skipped-studio-consultation',
+      });
+      continue;
+    }
+
+    // Dry-run customers are rehearsals, not product orphans. Leave any
+    // existing customer.orphaned row untouched: this path only skips the insert.
+    if (isDryRunCustomer(customer.metadata)) {
+      logger.info(`[reconcile-customers] skipped dry-run customer ${customer.id}`, {
+        customerId: customer.id,
+        reason: 'dry-run-metadata',
+      });
+      results.push({
+        customerId: customer.id,
+        email: customer.email ?? null,
+        outcome: 'skipped-dry-run',
       });
       continue;
     }
