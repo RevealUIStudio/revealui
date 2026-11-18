@@ -1,12 +1,12 @@
 ---
 title: "RevealUI Glossary"
-description: "Canonical vocabulary across [RevealFleet](#revealfleet). This page is the single source of truth for cross-cutting terminology — agent, runtime, tier, harness, license, and the rest. ..."
+description: "Canonical vocabulary across [RevealFleet](#revealfleet). This page is the single source of truth for cross-cutting terminology: agent, runtime, tier, harness, license, and the rest. ..."
 visibility: internal
 status: verified
 audience: maintainer
 ---
 
-Canonical vocabulary across [RevealFleet](#revealfleet). This page is the single source of truth for cross-cutting terminology — agent, runtime, tier, harness, license, and the rest. When the same concept shows up across two products with different names, this page picks the one canonical name and points the others at it.
+Canonical vocabulary across [RevealFleet](#revealfleet). This page is the single source of truth for cross-cutting terminology: agent, runtime, tier, harness, license, and the rest. When the same concept shows up across two products with different names, this page picks the one canonical name and points the others at it.
 
 > **Audience:** technical humans, non-technical operators, and AI agents working in or on a RevealUI deployment. Each entry leads with a one-sentence framing then expands. Internal-only codenames (Kingdom taxonomy) are listed at the end so they don't appear customer-facing.
 
@@ -18,27 +18,27 @@ A persistent, named, tool-using actor that operates inside a RevealUI runtime on
 
 Synonyms in older copy: *AI assistant*, *model*, *task runner*, *bot*. Use **agent** as the canonical term unless you specifically mean the underlying LLM (which is the *model*) or the named identity (which is the *Rev*).
 
-## A2A — Agent-to-Agent
+## A2A (Agent-to-Agent)
 
-The protocol agents use to discover and call each other. RevealUI's marketplace exposes A2A discovery alongside MCP tool invocation; the two together let an agent find the right specialist agent AND the right tools in one place. See [`docs/AI`](./AI.md).
+The protocol agents use to discover and call each other. RevealUI serves an A2A Agent Card for discovery alongside MCP tool invocation. A third-party marketplace is not open. See [`docs/AI`](./AI.md).
 
 ## Customer
 
-External party who deploys a RevealUI runtime — either via the hosted service at `revealui.com` (SaaS tier) or via a self-hosted [RevealUI Fleet](#revealui-fleet) instance (Enterprise tier). Distinct from a *user* (who logs in to a deployed instance) and an *operator* (who runs the deployment).
+External party who deploys a RevealUI runtime, either via the hosted service at `revealui.com` (SaaS tier) or via a self-hosted [RevealUI Fleet](#revealui-fleet) instance (Enterprise tier). Distinct from a *user* (who logs in to a deployed instance) and an *operator* (who runs the deployment).
 
 ## Enterprise (tier)
 
-The highest of the four customer-facing pricing tiers — *Free*, *Pro*, *Max*, *Enterprise*. Code identifier in [`@revealui/contracts/pricing`](https://github.com/RevealUIStudio/revealui/blob/main/packages/contracts/src/pricing.ts) is `enterprise`. Display label is **"Enterprise"** (decoupled from the runtime name; see [RevealUI Fleet](#revealui-fleet) for the deployable runtime that an Enterprise-tier customer typically deploys, produced by [RevForge](#revforge)).
+The highest of the four customer-facing pricing tiers: *Free*, *Pro*, *Max*, *Enterprise*. Code identifier in [`@revealui/contracts/pricing`](https://github.com/RevealUIStudio/revealui/blob/main/packages/contracts/src/pricing.ts) is `enterprise`. Display label is **"Enterprise"** (decoupled from the runtime name; see [RevealUI Fleet](#revealui-fleet) for the deployable runtime that an Enterprise-tier customer typically deploys, produced by [RevForge](#revforge)).
 
-Formerly displayed as **"Forge"** or **"Forge (Enterprise)"** — renamed 2026-05-02 to decouple the SaaS tier name from the runtime product name. The tier id (`enterprise`) is unchanged.
+Formerly displayed as **"Forge"** or **"Forge (Enterprise)"**, renamed 2026-05-02 to decouple the SaaS tier name from the runtime product name. The tier id (`enterprise`) is unchanged.
 
 ## RevealFleet
 
-The umbrella brand for the six-product RevealUI Studio family — RevealUI (runtime), RevDev (dev tools), RevVault (secrets), RevCon (configs), [RevealUI Fleet](#revealui-fleet) (self-host runtime kit, produced by [RevForge](#revforge)), RevSkills (skills). Formerly *Suite* / *RevealUI Studio Fleet*; canonical "RevealFleet" naming codified in ADR [`2026-05-03-revealfleet-rename.md`](./REVEALFLEET.md) Tier 2. See [`./REVEALFLEET`](./REVEALFLEET.md) — the RevealFleet architecture & 7-tier integration guide. Casual prose may use bare *the Fleet* where context resolves ambiguity; the rev-prefixed form is canonical.
+The umbrella brand for the six-product RevealUI Studio family: RevealUI (runtime), RevDev (dev tools), RevVault (secrets), RevCon (configs), [RevealUI Fleet](#revealui-fleet) (self-host runtime kit, produced by [RevForge](#revforge)), RevSkills (skills). Formerly *Suite* / *RevealUI Studio Fleet*; canonical "RevealFleet" naming codified in ADR [`2026-05-03-revealfleet-rename.md`](./REVEALFLEET.md) Tier 2. See [`./REVEALFLEET`](./REVEALFLEET.md): the RevealFleet architecture & 7-tier integration guide. Casual prose may use bare *the Fleet* where context resolves ambiguity; the rev-prefixed form is canonical.
 
 ## Forge
 
-**Deprecated as a single-name catchall.** The historical "Forge" referenced four distinct things — a drive (renamed `/mnt/sandbox` Phase 1, shipped 2026-05-02 via revkit#13), a stamping tool repo (renamed [RevForge](#revforge), Phase B pending), a self-hosted runtime kit (renamed [RevealUI Fleet](#revealui-fleet), Phase C pending), and a SaaS pricing tier (renamed [Enterprise](#enterprise-tier), shipping via revealui#719/#721). The 7-tier vocabulary split is codified in ADR [`2026-05-03-revealfleet-rename.md`](./REVEALFLEET.md) (supersedes 2026-05-01-forge-naming).
+**Deprecated as a single-name catchall.** The historical "Forge" referenced four distinct things: a drive (renamed `/mnt/sandbox` Phase 1, shipped 2026-05-02 via revkit#13), a stamping tool repo (renamed [RevForge](#revforge), Phase B pending), a self-hosted runtime kit (renamed [RevealUI Fleet](#revealui-fleet), Phase C pending), and a SaaS pricing tier (renamed [Enterprise](#enterprise-tier), shipping via revealui#719/#721). The 7-tier vocabulary split is codified in ADR [`2026-05-03-revealfleet-rename.md`](./REVEALFLEET.md) (supersedes 2026-05-01-forge-naming).
 
 ## Free / Pro / Max / Enterprise
 
@@ -50,7 +50,7 @@ A coordination layer that lets multiple AI coding tools (Claude Code, Cursor, Ai
 
 ## Inference Snaps
 
-Canonical's silicon-optimized snap-packaged LLMs running on Ubuntu. The **canonical default** open-model inference path for RevealUI per memory `project_canonical_inference_snap_stack`. Today the snap *provider* in `@revealui/ai` works (point `INFERENCE_SNAPS_BASE_URL` at a running snap and route LLM calls); Studio lifecycle management (auto-install, start/stop, health, model discovery) is **not yet shipped** — install + run snaps yourself. Product US-origin allowlist (2026-08): `gemma3` (default), `gemma4`, `nemotron-3-nano`, `nemotron-3-nano-omni`. Non-US catalog snaps are fail-closed. See [`./AI`](./AI.md). **Muse Glimmer** is an optional Ollama- / OpenAI-compatible local endpoint — not a Meta model SKU and not a RevealUI product SKU. Point RevealUI at it like any other OpenAI-compatible / Ollama base URL; do not add it to the Ubuntu snap catalog. Product allowlist SSOT: `packages/ai/src/llm/providers/us-origin-snaps.ts`.
+Canonical's silicon-optimized snap-packaged LLMs running on Ubuntu. The **canonical default** open-model inference path for RevealUI. Today the snap *provider* in `@revealui/ai` works (point `INFERENCE_SNAPS_BASE_URL` at a running snap and route LLM calls); Studio lifecycle management (auto-install, start/stop, health, model discovery) is **not yet shipped**: install + run snaps yourself. Product US-origin allowlist (2026-08): `gemma3` (default), `gemma4`, `nemotron-3-nano`, `nemotron-3-nano-omni`. Non-US catalog snaps are fail-closed. See [`./AI`](./AI.md). **Muse Glimmer** is an optional Ollama- / OpenAI-compatible local endpoint: not a Meta model SKU and not a RevealUI product SKU. Point RevealUI at it like any other OpenAI-compatible / Ollama base URL; do not add it to the Ubuntu snap catalog. Product allowlist SSOT: `packages/ai/src/llm/providers/us-origin-snaps.ts`.
 
 ## JWT
 
@@ -65,21 +65,21 @@ If a doc says "JWT" without qualifying which one, default to the license JWT.
 
 The customer's right to use the Pro tier features of a RevealUI runtime. Encoded as a `License JWT` (see [JWT](#jwt)) signed with the RevealUI license private key. The license JWT contains: tier (free/pro/max/enterprise), expiry, customer id, allowed features. Synonyms in older copy: *license key*. Use **license** as the canonical term.
 
-## MCP — Model Context Protocol
+## MCP (Model Context Protocol)
 
-The protocol agents use to discover and invoke external tools (Stripe, Neon, Vercel, Playwright, Slack, Linear, etc.). RevealUI ships first-party MCP servers plus an **incubating** multi-server process **hypervisor** in source (not app-mounted by default; ADR-007). See `packages/mcp` and [`./PRO`](./PRO.md) for the canonical server list.
+The protocol agents use to discover and invoke external tools (a payments processor, a database, a hosting provider, browser automation, a chat workspace, an issue tracker, and others). RevealUI ships first-party MCP servers plus an **incubating** multi-server process **hypervisor** in source (not app-mounted by default; ADR-007). See `packages/mcp` and [`./PRO`](./PRO.md) for the canonical server list.
 
 ## MCP server
 
-A specific tool integration exposed via [MCP](#mcp---model-context-protocol). E.g., `stripe-mcp`, `neon-mcp`. Distinct from the optional multi-server **MCP hypervisor** library that can host them when wired. RevealUI's marketplace path is for attaching third-party MCP servers without forking the framework.
+A specific tool integration exposed via [MCP](#mcp-model-context-protocol). E.g., the payments processor or database launcher in `@revealui/mcp`. Distinct from the optional multi-server **MCP hypervisor** library that can host them when wired. A third-party marketplace is not open.
 
 ## Operator
 
-A human or agent running a deployed RevealUI instance — distinct from a *user* (who logs in to that instance) and a *customer* (who pays for the deployment). The operator typically holds the credentials to RevVault, the deploy keys, and the database admin password.
+A human or agent running a deployed RevealUI instance, distinct from a *user* (who logs in to that instance) and a *customer* (who pays for the deployment). The operator typically holds the credentials to RevVault, the deploy keys, and the database admin password.
 
 ## Pro
 
-See [Free / Pro / Max / Enterprise](#free--pro--max--enterprise). Also: the **Pro packages** are the FSL-1.1-MIT subset (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) — source-visible, JWT-gated, auto-converts to MIT after 2 years. See [`./FAIR_SOURCE`](./FAIR_SOURCE.md) for what FSL-1.1-MIT means in practice.
+See [Free / Pro / Max / Enterprise](#free--pro--max--enterprise). Also: the **Pro packages** are the FSL-1.1-MIT subset (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`): source-visible, JWT-gated, auto-converts to MIT after 2 years. See [`./FAIR_SOURCE`](./FAIR_SOURCE.md) for what FSL-1.1-MIT means in practice.
 
 ## Rev
 
@@ -87,11 +87,11 @@ A RevealUI agent's permanent named identity, formatted as **`Rev [Surname]`** (e
 
 ## RevealUI Fleet
 
-The white-label self-hosted runtime kit — Docker Compose stack + domain lock + unlimited users. Customers on the [Enterprise](#enterprise-tier) tier typically deploy a RevealUI Fleet instance on their own infrastructure. Produced by the [RevForge](#revforge) stamping tool, which yields per-customer instances. Formerly *RevealUI Forge* per ADR [`2026-05-03-revealfleet-rename.md`](./REVEALFLEET.md) Tier 4. **Status:** preview. Runtime images are on GHCR and pull anonymously. A stamped kit still needs a license JWT. See [`./FLEET`](./FLEET.md) for the kit and [`./ENTERPRISE`](./ENTERPRISE.md) for the license.
+The white-label self-hosted runtime kit: Docker Compose stack + domain lock + unlimited users. Customers on the [Enterprise](#enterprise-tier) tier typically deploy a RevealUI Fleet instance on their own infrastructure. Produced by the [RevForge](#revforge) stamping tool, which yields per-customer instances. Formerly *RevealUI Forge* per ADR [`2026-05-03-revealfleet-rename.md`](./REVEALFLEET.md) Tier 4. **Status:** preview. Runtime images are on GHCR and pull anonymously. A stamped kit still needs a license JWT. See [`./FLEET`](./FLEET.md) for the kit and [`./ENTERPRISE`](./ENTERPRISE.md) for the license.
 
 ## RevForge
 
-The operator-only stamping tool. There is **no public GitHub repo** — `https://github.com/RevealUIStudio/revforge` 404s (verified 2026-08-19). Do not invent or publish one. Operators stamp from a private checkout; the customer-facing runtime is in-tree [`docker-compose.forge.yml`](../docker-compose.forge.yml) plus GHCR `ghcr.io/revealuistudio/revealui-{api,admin,migrate}`. Takes a config (company, slug, brand color, output) and produces a per-customer [RevealUI Fleet](#revealui-fleet) kit by substituting template tokens, generating per-customer secrets, issuing a studio-signed license JWT (via `@revealui/core/revforge-license` — mint key stays on the operator/signer), writing secrets to revvault under `forge/customers/<slug>/`, and outputting a self-contained customer kit. Never customer-facing. Per ADR [`2026-05-03-revealfleet-rename.md`](./REVEALFLEET.md) Tier 3.
+The operator-only stamping tool. There is **no public GitHub repo**: `https://github.com/RevealUIStudio/revforge` 404s (verified 2026-08-19). Do not invent or publish one. Operators stamp from a private checkout; the customer-facing runtime is in-tree [`docker-compose.forge.yml`](../docker-compose.forge.yml) plus GHCR `ghcr.io/revealuistudio/revealui-{api,admin,migrate}`. Takes a config (company, slug, brand color, output) and produces a per-customer [RevealUI Fleet](#revealui-fleet) kit by substituting template tokens, generating per-customer secrets, issuing a studio-signed license JWT (via `@revealui/core/revforge-license`: mint key stays on the operator/signer), writing secrets to revvault under `forge/customers/<slug>/`, and outputting a self-contained customer kit. Never customer-facing. Per ADR [`2026-05-03-revealfleet-rename.md`](./REVEALFLEET.md) Tier 3.
 
 ## RevVault
 
@@ -99,7 +99,7 @@ Age-encrypted secret vault. CLI (`revvault get/set/list/search/export-env`) + Ta
 
 ## Runtime
 
-A deployed RevealUI instance — the running stack that serves users, processes payments, runs agents, etc. Distinguish:
+A deployed RevealUI instance: the running stack that serves users, processes payments, runs agents, etc. Distinguish:
 
 - **The RevealUI runtime** (the agentic business runtime): the code in `~/revealfleet/revealui` that you deploy.
 - **The [RevealUI Fleet](#revealui-fleet) runtime kit**: the self-host wrapper around the RevealUI runtime that customers deploy on their own infrastructure ([Enterprise](#enterprise-tier) tier). Produced by [RevForge](#revforge).
@@ -109,14 +109,14 @@ The RevealUI runtime is a singular thing; "runtime" without qualifier usually re
 
 ## Site
 
-A logical content workspace inside a RevealUI runtime — synonyms: *project*, *tenant*. Tier-limited (Free: 1 site, Pro: 5, Max: 15, Enterprise: unlimited). See [`@revealui/contracts/pricing`](https://github.com/RevealUIStudio/revealui/blob/main/packages/contracts/src/pricing.ts) `TIER_LIMITS`.
+A logical content workspace inside a RevealUI runtime. Synonyms: *project*, *tenant*. Tier-limited (Free: 1 site, Pro: 5, Max: 15, Enterprise: unlimited). See [`@revealui/contracts/pricing`](https://github.com/RevealUIStudio/revealui/blob/main/packages/contracts/src/pricing.ts) `TIER_LIMITS`.
 
 ## Studio
 
-Overloaded — disambiguate every time:
+Overloaded: disambiguate every time:
 
-1. **Studio (Tauri app, in `~/revealfleet/revdev`)** — desktop AI editor + agent dashboard. Talks to the RevDev daemon over JSON-RPC. Ships per RevDev's release cadence.
-2. **`studio` (RevKit CLI command, in `~/revealfleet/revkit`)** — a binary in the RevKit toolkit (`studio help`, `studio validate`). Distinct from the Tauri app above.
+1. **Studio (Tauri app, in `~/revealfleet/revdev`)**: desktop AI editor + agent dashboard. Talks to the RevDev daemon over JSON-RPC. Ships per RevDev's release cadence.
+2. **`studio` (RevKit CLI command, in `~/revealfleet/revkit`)**: a binary in the RevKit toolkit (`studio help`, `studio validate`). Distinct from the Tauri app above.
 
 When writing docs, lead with the qualifier (*"the RevDev Studio app"* or *"the RevKit `studio` CLI"*) and never use "Studio" bare.
 
@@ -126,7 +126,7 @@ When writing docs, lead with the qualifier (*"the RevDev Studio app"* or *"the R
 
 ## Tenant
 
-A multi-tenant boundary inside a [RevealUI Fleet](#revealui-fleet) runtime — typically corresponds to one organization within an Enterprise-tier deployment. Each tenant has its own [sites](#site), users, content, and (optionally) its own subdomain. See `packages/db/src/schema/tenants.ts` and the multi-tenancy section of [`./FLEET`](./FLEET.md).
+A multi-tenant boundary inside a [RevealUI Fleet](#revealui-fleet) runtime. It typically corresponds to one organization within an Enterprise-tier deployment. Each tenant has its own [sites](#site), users, content, and (optionally) its own subdomain. See `packages/db/src/schema/tenants.ts` and the multi-tenancy section of [`./FLEET`](./FLEET.md).
 
 ## Tier
 
@@ -134,11 +134,11 @@ A SaaS pricing tier. Code identifiers: `free`, `pro`, `max`, `enterprise`. Custo
 
 ## User
 
-A person or agent who logs in to a deployed RevealUI runtime. Distinct from a *customer* (who paid for the deployment), an *operator* (who runs the deployment), and an *agent* in the conceptual sense (any tool-using actor — see [Agent](#agent)).
+A person or agent who logs in to a deployed RevealUI runtime. Distinct from a *customer* (who paid for the deployment), an *operator* (who runs the deployment), and an *agent* in the conceptual sense (any tool-using actor; see [Agent](#agent)).
 
 ## x402
 
-The HTTP 402 ("Payment Required") protocol for agent-to-agent micropayments. RevealUI's MCP marketplace can price each tool call via x402 (USDC on Base). **Status:** code-complete in `apps/server/src/routes/marketplace.ts`; deferred from staging activation per memory `project_x402_deferred_until_stripe_live` until Stripe billing flips from test to live mode.
+The HTTP 402 ("Payment Required") standard for agent-to-agent micropayments (USDC on Base). **Status:** off by default. Not a live payments product. The code sits behind `X402_ENABLED` in `packages/paywall/src/x402/`. It verifies payment proofs and does not settle them. See [x402 architecture](./architecture/x402.md).
 
 ---
 
@@ -148,8 +148,8 @@ These appear only in internal documentation and source code. **Never use these i
 
 | Codename | Customer-facing equivalent |
 |---|---|
-| Foundry | (no public name yet — autonomous agent engine, internal) |
-| Crown | (no public name yet — token economics layer, internal) |
+| Foundry | (no public name yet; autonomous agent engine, internal) |
+| Crown | (no public name yet; token economics layer, internal) |
 | Vault | [RevVault](#revvault) |
 | Gate | (auth layer, no separate public name) |
 | Keep | (data + sync layer, no separate public name) |
@@ -164,6 +164,6 @@ These appear only in internal documentation and source code. **Never use these i
 
 ## Last updated
 
-2026-05-03 — split `## Revealfleet` entry into `## RevealUI Fleet` (runtime kit, Tier 4) + `## RevForge` (stamping tool, Tier 3); rename `## Fleet` → `## RevealFleet` (umbrella, Tier 2); update Suite + Forge cross-references per ADR [`2026-05-03-revealfleet-rename.md`](./REVEALFLEET.md). Single source of truth; if you find a term used inconsistently elsewhere in the docs, update the inconsistent doc rather than this glossary.
+2026-05-03: split `## Revealfleet` entry into `## RevealUI Fleet` (runtime kit, Tier 4) + `## RevForge` (stamping tool, Tier 3); rename `## Fleet` → `## RevealFleet` (umbrella, Tier 2); update Suite + Forge cross-references per ADR [`2026-05-03-revealfleet-rename.md`](./REVEALFLEET.md). Single source of truth; if you find a term used inconsistently elsewhere in the docs, update the inconsistent doc rather than this glossary.
 
-2026-05-02 — initial draft.
+2026-05-02: initial draft.
