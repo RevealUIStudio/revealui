@@ -27,8 +27,13 @@ vi.mock('@revealui/core/features', () => ({
 }));
 
 vi.mock('@revealui/db/client', () => ({
-  getClient: vi.fn(() => {
-    throw new Error('no database in unit test');
+  getClient: vi.fn(() => ({})),
+}));
+
+vi.mock('@revealui/ai/llm/server', () => ({
+  resolveLLMClientForRequest: vi.fn(async () => ({ embed: vi.fn() })),
+  createLLMClientFromEnv: vi.fn(() => {
+    throw new Error('env model client must not be constructed');
   }),
 }));
 

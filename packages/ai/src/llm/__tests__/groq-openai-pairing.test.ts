@@ -62,6 +62,8 @@ const PROVIDER_ENV_KEYS = [
   'HF_TOKEN',
   'HF_MODEL_URL',
   'LLM_MODEL',
+  'REVEALUI_DEPLOYMENT_MODE',
+  'REVEALUI_LICENSE_PRIVATE_KEY',
 ] as const;
 
 const savedEnv: Record<string, string | undefined> = {};
@@ -155,6 +157,7 @@ beforeEach(() => {
     savedEnv[key] = process.env[key];
     delete process.env[key];
   }
+  process.env.REVEALUI_DEPLOYMENT_MODE = 'forge';
 });
 
 afterEach(() => {
