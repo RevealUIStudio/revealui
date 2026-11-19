@@ -25,33 +25,9 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createConnection } from 'node:net';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { runRevealUiAcpAgentStdio } from './acp/index.js';
-import {
-  buildManifest,
-  checkAllContentSnapshots,
-  checkContentSnapshot,
-  DEFAULT_CONTENT_GENERATOR_ID,
-  diffContent,
-  generateContent,
-  listContent,
-  listGenerators,
-  listSkillCatalog,
-  loadContentSnapshot,
-  MANAGER_CONTENT_OUTPUT,
-  MANAGER_MATERIALIZE_GENERATORS,
-  snapshotPathFor,
-  validateManifest,
-  writeAllContentSnapshots,
-  writeManagerAdapterContent,
-} from './content/index.js';
-import { defaultHookRunOptions, isImplementedHookSource, runHookCommand } from './hooks/index.js';
-import { runHotfixCli } from './hotfix/cli.js';
-import { checkManager, materializeManager } from './manager/index.js';
-import { InferenceService } from './server/inference-service.js';
-import { runSessionCli } from './session/cli.js';
-import { resolveSessionAdapter } from './session/resolve-adapter.js';
-import { runTmpscriptCli } from './tmpscript/cli.js';
-import { WorkboardManager } from './workboard/workboard-manager.js';
+
+// Load each command's implementation only after routing. In particular,
+// hook startup must not load ACP, inference, or the content generation graph.
 
 const DATA_DIR = join(homedir(), '.local', 'share', 'revealui');
 const DEFAULT_SOCKET = join(DATA_DIR, 'harness.sock');
@@ -92,6 +68,23 @@ async function rpcCall(method: string, params: unknown = {}): Promise<unknown> {
 }
 
 async function handleContentCommand(subcommand: string | undefined, args: string[]): Promise<void> {
+  const {
+    buildManifest,
+    checkAllContentSnapshots,
+    checkContentSnapshot,
+    DEFAULT_CONTENT_GENERATOR_ID,
+    diffContent,
+    generateContent,
+    listContent,
+    listGenerators,
+    loadContentSnapshot,
+    MANAGER_CONTENT_OUTPUT,
+    snapshotPathFor,
+    validateManifest,
+    writeAllContentSnapshots,
+    writeRuleProfileExports,
+    writeCanonicalDefinition,
+  } = await import('./content/index.js');
   const manifest = buildManifest();
   // Same --project resolution as `manager` (GAP-421 content freshness runs from
   // monorepo root via packages/harnesses/dist/cli.js).
@@ -285,6 +278,15 @@ async function handleContentCommand(subcommand: string | undefined, args: string
         process.exit(1);
       }
       const outputDir: string = rawOutput;
+      const ruleProfileDirectories: string[] = [];
+      const ruleIds: string[] = [];
+      for (const [index, flag] of args.entries()) {
+        if (flag !== '--rule-profile' && flag !== '--rule-id') continue;
+        const value = args[index + 1];
+        if (!value || value.startsWith('--')) throw new Error(`Missing value for ${flag}`);
+        (flag === '--rule-profile' ? ruleProfileDirectories : ruleIds).push(value);
+      }
+      const profileRuleCount = writeRuleProfileExports(manifest, ruleProfileDirectories, ruleIds);
 
       // 1. Write canonical definitions organized by type/tier
       const definitionTypes = [
@@ -297,10 +299,7 @@ async function handleContentCommand(subcommand: string | undefined, args: string
       let canonicalCount = 0;
       for (const { key, items } of definitionTypes) {
         for (const item of items) {
-          const tier = item.tier ?? 'oss';
-          const filePath = join(outputDir, key, tier, `${item.id}.md`);
-          mkdirSync(dirname(filePath), { recursive: true });
-          writeFileSync(filePath, item.content, 'utf-8');
+          writeCanonicalDefinition(outputDir, key, item);
           canonicalCount++;
         }
       }
@@ -376,6 +375,7 @@ async function handleContentCommand(subcommand: string | undefined, args: string
 
       process.stdout.write(`✓ Exported to ${outputDir}\n`);
       process.stdout.write(`  Canonical definitions: ${canonicalCount}\n`);
+      if (profileRuleCount) process.stdout.write(`  Profile rule copies: ${profileRuleCount}\n`);
       process.stdout.write(
         `  Generator output: ${generatedCount} files (${generatorIds.join(', ')})\n`,
       );
@@ -494,6 +494,10 @@ async function readStdin(): Promise<string> {
  * JSON) defaults to allow rather than crashing the editor's hook pipeline.
  */
 async function handleHookCommand(source: string | undefined): Promise<void> {
+  const { resolveSessionAdapter } = await import('./session/resolve-adapter.js');
+  const { defaultHookRunOptions, isImplementedHookSource, runHookCommand } = await import(
+    './hooks/index.js'
+  );
   const adapter = source ? resolveSessionAdapter(source) : null;
   if (!(source && (isImplementedHookSource(source) || adapter))) {
     process.stderr.write(
@@ -529,6 +533,7 @@ async function main() {
 
   // GAP-381 Phase D: ACP agent over stdio (blocks until client disconnects).
   if (command === 'acp') {
+    const { runRevealUiAcpAgentStdio } = await import('./acp/index.js');
     const connection = runRevealUiAcpAgentStdio();
     await connection.closed;
     return;
@@ -542,16 +547,19 @@ async function main() {
   }
 
   if (command === 'hotfix') {
+    const { runHotfixCli } = await import('./hotfix/cli.js');
     const code = runHotfixCli(args);
     process.exit(code);
   }
 
   if (command === 'tmpscript' || command === 'temp-script') {
+    const { runTmpscriptCli } = await import('./tmpscript/cli.js');
     const code = runTmpscriptCli(args);
     process.exit(code);
   }
 
   if (command === 'inference') {
+    const { InferenceService } = await import('./server/inference-service.js');
     const [subcommand, tierArg] = args;
     const inference = new InferenceService();
     if (subcommand === 'profile' || subcommand === 'status') {
@@ -581,6 +589,7 @@ async function main() {
   }
 
   if (command === 'skills') {
+    const { listSkillCatalog } = await import('./content/skill-catalog.js');
     const [subcommand] = args;
     const projectIdx = args.indexOf('--project');
     const revskillsIdx = args.indexOf('--revskills');
@@ -667,6 +676,13 @@ async function main() {
   }
 
   if (command === 'manager') {
+    const { checkManager, materializeManager } = await import('./manager/index.js');
+    const {
+      writeManagerAdapterContent,
+      MANAGER_MATERIALIZE_GENERATORS,
+      DEFAULT_CONTENT_GENERATOR_ID,
+      MANAGER_CONTENT_OUTPUT,
+    } = await import('./content/index.js');
     const [subcommand] = args;
     const projectIdx = args.indexOf('--project');
     const projectRoot =
@@ -770,6 +786,7 @@ async function main() {
     }
 
     case 'coordinate': {
+      const { WorkboardManager } = await import('./workboard/workboard-manager.js');
       // dump current workboard to stdout
       const projectRoot = args[args.indexOf('--project') + 1] ?? DEFAULT_PROJECT;
       const workboardPath = join(projectRoot, '.claude', 'workboard.md');
@@ -819,11 +836,15 @@ async function main() {
     }
 
     case 'session': {
+      const { runSessionCli } = await import('./session/cli.js');
       await runSessionCli(args);
       break;
     }
 
-    default:
+    default: {
+      const { DEFAULT_CONTENT_GENERATOR_ID, MANAGER_CONTENT_OUTPUT } = await import(
+        './content/index.js'
+      );
       process.stdout.write(`revealui-harnesses — AI harness coordination for RevealUI
 
 Commands:
@@ -853,6 +874,7 @@ Content Subcommands:
   content snapshot [--check|--write] [--generator <id>]  Definition ↔ committed snapshot (GAP-406)
   content sync [--generator <id>] [--dry-run]  Generate into .revealui/content (default generator)
   content export --output <path>    Export canonical + generated files to directory
+    [--rule-profile <rules-dir>] [--rule-id <id>] (repeatable; selected canonical profile copies)
   content pull [--generator <id>] [--tier oss|pro|all]  Pull rules from rules repo
 
 Hotfix Subcommands (prefer durable root-cause fixes; register only as debt):
@@ -869,6 +891,7 @@ Tmpscript Subcommands (one-shot helpers; confirm validates then deletes):
 Default content generator: ${DEFAULT_CONTENT_GENERATOR_ID} → ${MANAGER_CONTENT_OUTPUT}
 `);
       break;
+    }
   }
 }
 

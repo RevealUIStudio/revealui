@@ -132,7 +132,9 @@ export function buildSkillInvokeRequest(
     const msg = err instanceof Error ? err.message : String(err);
     return { error: `cannot read ${entry.path}: ${msg}` };
   }
-  const allowedTools = parseNativeWorkflowTools(skimSkillFrontmatter(body).allowedTools);
+  const declaredTools = skimSkillFrontmatter(body).allowedTools;
+  const allowedTools = parseNativeWorkflowTools(declaredTools);
+  const unsupportedTools = declaredTools.filter((tool) => !isNativeWorkflowToolName(tool));
   const skillSha256 = createHash('sha256').update(body).digest('hex');
   if (
     assessment &&
@@ -149,6 +151,11 @@ export function buildSkillInvokeRequest(
         'Skill assessment is stale, unsuitable, missing required inputs/output, or does not authorize the declared tools.',
     };
   }
+  if (assessment?.verdict === 'suitable' && unsupportedTools.length > 0) {
+    return {
+      error: `This native invoke cannot provide declared tools: ${unsupportedTools.join(', ')}. Assess a partial reporting pass with explicit limitations or use the authorized calling harness for preservation.`,
+    };
+  }
   const toolClause =
     allowedTools.length > 0
       ? `Use the provided tools (${allowedTools.join(', ')}) to gather facts. Do not invent file contents or command output. Do not commit or push.`
@@ -159,11 +166,19 @@ export function buildSkillInvokeRequest(
     suitability: assessment ? 'assessed' : 'unverified',
     model: PHASE_C_INFERENCE_SNAP,
     path: entry.path,
-    system: body,
+    system:
+      unsupportedTools.length > 0
+        ? `${body}\n\nNative invocation boundary: this is a partial reporting pass. Declared tools ${unsupportedTools.join(', ')} are unavailable. Do not perform workflow steps requiring them, commit, push, or claim artifacts were saved without verified persistence by the authorized calling harness.`
+        : body,
     user: [
       `Run the ${resolved} workflow as a RevDev-native pass.`,
       `Local model is the product default Inference Snap: ${PHASE_C_INFERENCE_SNAP}.`,
       toolClause,
+      ...(unsupportedTools.length > 0
+        ? [
+            `Declared tools unavailable in this invoke: ${unsupportedTools.join(', ')}. Report limitations; preservation belongs to the authorized calling harness.`,
+          ]
+        : []),
       ...(assessment
         ? [
             `Requested result: ${assessment.desiredResult}. Output destination: ${assessment.outputDestination}. Limitations: ${assessment.limitations.join('; ')}.`,

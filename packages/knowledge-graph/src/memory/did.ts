@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, createPublicKey } from 'node:crypto';
 
 const BASE58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 const AGENT_ID_CHARS = new Set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-');
@@ -53,4 +53,12 @@ export function httpFallbackDid(
     fingerprint,
     didKind: 'user-account-fallback',
   };
+}
+
+/** Daemon-compatible Ed25519 identity fingerprint: base58(SHA-256(raw public key)). */
+export function fingerprintAgentKey(publicKeyPem: string): string {
+  const key = createPublicKey(publicKeyPem);
+  if (key.asymmetricKeyType !== 'ed25519') throw new Error('Agent identity requires Ed25519');
+  const der = key.export({ type: 'spki', format: 'der' });
+  return base58Encode(createHash('sha256').update(der.subarray(-32)).digest());
 }

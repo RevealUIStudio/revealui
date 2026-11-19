@@ -79,6 +79,7 @@ import {
   MEMORY_SCHEMA,
   type MemoryClassification,
   type MemoryPrincipal,
+  scopedMemoryNaturalKey,
   shouldNamespaceKeys,
   tenantNaturalKey,
   validatePrincipal,
@@ -619,15 +620,24 @@ function pickAuditScalars(args: unknown): Record<string, string> {
   return out;
 }
 
-function namespaceKey(principal: MemoryPrincipal, kind: string, key: string): string {
+function namespaceKey(
+  principal: MemoryPrincipal,
+  kind: string,
+  key: string,
+  classification: MemoryClassification,
+): string {
   if (kind === 'agent') return key;
-  if (!shouldNamespaceKeys(principal)) return key;
-  return tenantNaturalKey(principal.tenantId, key);
+  return scopedMemoryNaturalKey(principal, classification, key);
 }
 
 function inboundKey(principal: MemoryPrincipal | null, key: string): string {
-  if (!(principal && shouldNamespaceKeys(principal))) return key;
-  return tenantNaturalKey(principal.tenantId, key);
+  if (!principal || principal.isFleetOperator) return key;
+  const legacy = shouldNamespaceKeys(principal) ? tenantNaturalKey(principal.tenantId, key) : key;
+  const raw = legacy.startsWith(`tenant:${principal.tenantId}:`)
+    ? legacy.slice(`tenant:${principal.tenantId}:`.length)
+    : legacy;
+  if (raw.startsWith('private:') || raw.startsWith('workspace:')) return legacy;
+  return scopedMemoryNaturalKey(principal, 'workspace', key);
 }
 
 function stampContentRef(
@@ -640,6 +650,7 @@ function stampContentRef(
   return {
     ...rest,
     schema: MEMORY_SCHEMA,
+    keyScopeVersion: 1,
     actorDid: principal.did,
     harness: principal.harness,
     scope: {
@@ -675,7 +686,7 @@ function wrapOk(
   deniedCount = 0,
 ): CallToolResult {
   if (mode === 'compat') return textResult(data);
-  const enforcement = principal?.trustBoundary === 'hosted' ? 'enforced' : 'deferred';
+  const enforcement = principal ? 'enforced' : 'deferred';
   return textResult({
     status: 'ok',
     available: true,
@@ -1049,22 +1060,40 @@ export function createKnowledgeGraphToolset(
           const v = parsed.value;
           const classification: MemoryClassification = v.classification ?? 'workspace';
           const referenceTime = v.referenceTime ? new Date(v.referenceTime) : new Date();
-          const nodes: NodeInput[] = v.nodes.map((n) => ({
-            kind: n.kind,
-            name: n.name,
-            naturalKey: namespaceKey(principal, n.kind, n.naturalKey),
-            repo: n.repo,
-            summary: n.summary,
-            attributes: n.attributes,
-          }));
+          const nodes: NodeInput[] = v.nodes.map((n) =>
+            n.kind === 'agent'
+              ? {
+                  kind: 'agent',
+                  name: n.naturalKey === principal.did ? principal.agentId : n.naturalKey,
+                  naturalKey: n.naturalKey,
+                }
+              : {
+                  kind: n.kind,
+                  name: n.name,
+                  naturalKey: namespaceKey(principal, n.kind, n.naturalKey, classification),
+                  repo: n.repo,
+                  summary: n.summary,
+                  attributes: n.attributes,
+                },
+          );
           const edges: EdgeInput[] = v.edges.map((e) => ({
             source: {
               kind: e.source.kind,
-              naturalKey: namespaceKey(principal, e.source.kind, e.source.naturalKey),
+              naturalKey: namespaceKey(
+                principal,
+                e.source.kind,
+                e.source.naturalKey,
+                classification,
+              ),
             },
             target: {
               kind: e.target.kind,
-              naturalKey: namespaceKey(principal, e.target.kind, e.target.naturalKey),
+              naturalKey: namespaceKey(
+                principal,
+                e.target.kind,
+                e.target.naturalKey,
+                classification,
+              ),
             },
             relation: e.relation,
             fact: e.fact,
@@ -1072,6 +1101,37 @@ export function createKnowledgeGraphToolset(
             validAt: e.validAt ? new Date(e.validAt) : undefined,
             attributes: e.attributes,
           }));
+          // Every product-memory subject needs episode-linked provenance for
+          // authenticated SQL visibility, including node-only publications.
+          const disconnected = nodes.filter(
+            (node) =>
+              !(
+                (node.kind === 'agent' && node.naturalKey === principal.did) ||
+                edges.some(
+                  (edge) =>
+                    (edge.source.kind === node.kind &&
+                      edge.source.naturalKey === node.naturalKey) ||
+                    (edge.target.kind === node.kind && edge.target.naturalKey === node.naturalKey),
+                )
+              ),
+          );
+          if (disconnected.length) {
+            if (!nodes.some((node) => node.kind === 'agent' && node.naturalKey === principal.did))
+              nodes.push({ kind: 'agent', name: principal.agentId, naturalKey: principal.did });
+            for (const node of disconnected)
+              edges.push({
+                source: { kind: 'agent', naturalKey: principal.did },
+                target: { kind: node.kind, naturalKey: node.naturalKey },
+                relation: 'discovered',
+                fact: `${principal.agentId} discovered: ${v.content}`,
+                repo: node.repo,
+              });
+            if (nodes.length > MEMORY_MAX_NODES || edges.length > MEMORY_MAX_EDGES)
+              return productUnavailable(
+                'payload-too-large',
+                'Publication provenance exceeds memory node/edge limits',
+              );
+          }
           const embedder = await resolveEmbedder();
           const result = await ingestEpisode(
             exec,

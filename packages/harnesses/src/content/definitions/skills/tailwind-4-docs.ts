@@ -11,7 +11,7 @@ export const tailwind4DocsSkill: Skill = {
   filePatterns: [],
   bashPatterns: [],
   references: {
-    gotchas: `# Tailwind CSS v4 Gotchas (Quick Scan)
+    'references/gotchas.md': `# Tailwind CSS v4 Gotchas (Quick Scan)
 
 - Browser support is modern-only: Safari 16.4+, Chrome 111+, Firefox 128+.
 - PostCSS plugin moved to \`@tailwindcss/postcss\`.

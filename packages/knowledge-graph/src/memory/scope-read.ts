@@ -12,7 +12,7 @@ interface NodeVisibilityRow {
 }
 
 /**
- * Defense-in-depth for kg_get_node. Hosted non-operators never see a
+ * Defense-in-depth for kg_get_node. Authenticated non-operators never see a
  * code-scan-only shell; mixed provenance returns name + naturalKey only.
  */
 export async function inspectNodeVisibility(
@@ -20,7 +20,7 @@ export async function inspectNodeVisibility(
   nodeId: string,
   principal: MemoryPrincipal | undefined,
 ): Promise<NodeVisibilityKind> {
-  if (principal?.trustBoundary !== 'hosted') return 'full';
+  if (!principal) return 'full';
 
   const params = new SqlParams();
   const vis = bindVisibility(principal, params);
@@ -38,7 +38,7 @@ export async function inspectNodeVisibility(
      LEFT JOIN kg_edges e ON e.source_id = n.id OR e.target_id = n.id
      LEFT JOIN kg_edge_episodes ee ON ee.edge_id = e.id
      LEFT JOIN kg_episodes ep ON ep.id = ee.episode_id
-     WHERE n.id = ${idParam}
+     WHERE n.id = ${idParam} AND (${vis.nodeVisible('n')})
      GROUP BY n.id, n.kind, n.natural_key`,
     params.values,
   );
@@ -62,7 +62,7 @@ export async function countDeniedMemoryHits(
   query: string,
   principal: MemoryPrincipal | undefined,
 ): Promise<number> {
-  if (principal?.trustBoundary !== 'hosted') return 0;
+  if (!principal) return 0;
 
   const params = new SqlParams();
   const vis = bindVisibility(principal, params);

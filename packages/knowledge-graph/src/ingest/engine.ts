@@ -24,6 +24,7 @@
  */
 
 import { deriveEdgeId, deriveEpisodeId, deriveNodeId, SEP } from '../ids.js';
+import { MEMORY_SCHEMA } from '../memory/types.js';
 import { validateNodeAttributes } from '../ontology/index.js';
 import { buildSearchText } from '../search/normalize-text.js';
 import type {
@@ -151,6 +152,33 @@ function episodeOp(episode: EpisodeInput): { id: string; op: KgOp } {
   };
 }
 
+/** Preserve authored memory metadata before mutable node upserts merge scopes.
+ * The snapshot travels in the immutable episode, including replica replay.
+ * Outbox order, timestamps and current nodes are not ownership evidence.
+ */
+function memoryEpisodeOp(
+  episode: EpisodeInput,
+  nodeOps: KgOp[],
+  edgeOps: KgOp[],
+): { id: string; op: KgOp } {
+  if (episode.contentRef?.schema !== MEMORY_SCHEMA) return episodeOp(episode);
+  const result = episodeOp({
+    ...episode,
+    contentRef: {
+      ...episode.contentRef,
+      ingestSnapshot: {
+        version: 1,
+        nodes: nodeOps.flatMap((op) => (op.t === 'node' ? [op.row] : [])),
+        edges: edgeOps.flatMap((op) => (op.t === 'edge' ? [op.row] : [])),
+      },
+    },
+  });
+  for (const op of edgeOps) {
+    if (op.t === 'edge') op.episodeIds = [result.id];
+  }
+  return result;
+}
+
 async function applyEmbeddings(
   exec: KgExecutor,
   embedder: Embedder | undefined,
@@ -255,9 +283,10 @@ export async function ingestEpisode(
   options: IngestOptions = {},
 ): Promise<ScanApplyResult> {
   const { referenceTime } = input.episode;
-  const { id: episodeId, op: epOp } = episodeOp(input.episode);
   const nodeOps = input.nodes.map((n) => nodeOp(n, referenceTime));
-  const edgeOps = input.edges.map((e) => edgeOp(e, episodeId, referenceTime, null, null));
+  const initialEpisodeId = deriveEpisodeId(input.episode);
+  const edgeOps = input.edges.map((e) => edgeOp(e, initialEpisodeId, referenceTime, null, null));
+  const { id: episodeId, op: epOp } = memoryEpisodeOp(input.episode, nodeOps, edgeOps);
 
   const ops: KgOp[] = [epOp, ...nodeOps, ...edgeOps];
   await exec.transaction((tx) =>

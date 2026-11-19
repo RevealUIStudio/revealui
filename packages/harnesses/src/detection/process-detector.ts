@@ -37,6 +37,7 @@ export async function findProcesses(pattern: string): Promise<{ pid: number; com
  */
 const HARNESS_PROCESS_PATTERNS: Record<string, string[]> = {
   'claude-code': ['claude'],
+  codex: ['codex'],
   cursor: ['cursor', 'Cursor'],
   copilot: ['copilot'],
   opencode: ['opencode'],

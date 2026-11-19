@@ -1,0 +1,1308 @@
+{
+  "date": "2026-10-06",
+  "fleet": "revealfleet",
+  "scope": "Codex native instruction and skill delivery; uniform project content paths",
+  "entries": [
+    {
+      "location": ".agents/skills/revealui-conventions/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "@revealui/harnesses",
+      "canonicalSource": "packages/harnesses/src/content/definitions/skills/revealui-conventions.ts",
+      "durableDestination": ".agents/skills/revealui-conventions/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "70e4edb8a20c040b9e5e4739ca5d14190ace9eee30d112149d4580fe0502b34c",
+        "ownershipLedger": ".revealui/adapters/codex-files.json"
+      }
+    },
+    {
+      "location": ".agents/skills/revealui-db/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "@revealui/harnesses",
+      "canonicalSource": "packages/harnesses/src/content/definitions/skills/revealui-db.ts",
+      "durableDestination": ".agents/skills/revealui-db/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "50da7f50fbabcc11d40b205b496167b8757e5a675c0d5c5c0f182b9daa37a9e8",
+        "ownershipLedger": ".revealui/adapters/codex-files.json"
+      }
+    },
+    {
+      "location": ".agents/skills/revealui-debugging/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "@revealui/harnesses",
+      "canonicalSource": "packages/harnesses/src/content/definitions/skills/revealui-debugging.ts",
+      "durableDestination": ".agents/skills/revealui-debugging/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "bf751f815af5ab74c197810015257ec975f65af3bc56dde6b903fb2259ccce9c",
+        "ownershipLedger": ".revealui/adapters/codex-files.json"
+      }
+    },
+    {
+      "location": ".agents/skills/revealui-review/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "@revealui/harnesses",
+      "canonicalSource": "packages/harnesses/src/content/definitions/skills/revealui-review.ts",
+      "durableDestination": ".agents/skills/revealui-review/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "88137c8bec0f75ffba707cfbcfc96a79e8288d862ffac6fd0f5de0a185e8ef40",
+        "ownershipLedger": ".revealui/adapters/codex-files.json"
+      }
+    },
+    {
+      "location": ".agents/skills/revealui-safety/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "@revealui/harnesses",
+      "canonicalSource": "packages/harnesses/src/content/definitions/skills/revealui-safety.ts",
+      "durableDestination": ".agents/skills/revealui-safety/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "8db2d19f7ec82e39b3344fc90d26bb1100bffbbee96b3ecad3955186f55e8883",
+        "ownershipLedger": ".revealui/adapters/codex-files.json"
+      }
+    },
+    {
+      "location": ".agents/skills/revealui-tdd/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "@revealui/harnesses",
+      "canonicalSource": "packages/harnesses/src/content/definitions/skills/revealui-tdd.ts",
+      "durableDestination": ".agents/skills/revealui-tdd/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "8eafbeee924be02dbd758b91067b02060058cdee2c9652f366725785e834b3e2",
+        "ownershipLedger": ".revealui/adapters/codex-files.json"
+      }
+    },
+    {
+      "location": ".agents/skills/revealui-testing/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "@revealui/harnesses",
+      "canonicalSource": "packages/harnesses/src/content/definitions/skills/revealui-testing.ts",
+      "durableDestination": ".agents/skills/revealui-testing/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "0b86c021c22f4bc2eadc36e22512da3bab9529a55a3110f0e73cc168bdf3b416",
+        "ownershipLedger": ".revealui/adapters/codex-files.json"
+      }
+    },
+    {
+      "location": ".agents/skills/next-best-practices/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "RevCon RevealUI profile",
+      "canonicalSource": "revcon/profiles/revealui/claude/skills/next-best-practices/SKILL.md",
+      "durableDestination": ".agents/skills/next-best-practices/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "6ff0eb7e14fd2d32992e6e48e8f86f60e917df6651c7ecdfe85fb9d309a8f0f8",
+        "ownershipLedger": ".agents/.revcon-manifest.json"
+      }
+    },
+    {
+      "location": ".agents/skills/next-cache-components/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "RevCon RevealUI profile",
+      "canonicalSource": "revcon/profiles/revealui/claude/skills/next-cache-components/SKILL.md",
+      "durableDestination": ".agents/skills/next-cache-components/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "e4af48d7ea08928da50117db5aaf21d5d112e4a01fbcac4d8ec7efa50acbe3a3",
+        "ownershipLedger": ".agents/.revcon-manifest.json"
+      }
+    },
+    {
+      "location": ".agents/skills/turborepo/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "RevCon RevealUI profile",
+      "canonicalSource": "revcon/profiles/revealui/claude/skills/turborepo/SKILL.md",
+      "durableDestination": ".agents/skills/turborepo/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "139eec113966c9b1403e8b6d9b83ee6b265ef85f2dbb1b9145224af28ca7493c",
+        "ownershipLedger": ".agents/.revcon-manifest.json"
+      }
+    },
+    {
+      "location": ".agents/skills/vercel-composition-patterns/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "RevCon RevealUI profile",
+      "canonicalSource": "revcon/profiles/revealui/claude/skills/vercel-composition-patterns/SKILL.md",
+      "durableDestination": ".agents/skills/vercel-composition-patterns/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "74b9bace3415020b17a56eaf9b124a5b8a37b3ec8ef89909d19f648498b50eda",
+        "ownershipLedger": ".agents/.revcon-manifest.json"
+      }
+    },
+    {
+      "location": ".agents/skills/vercel-deploy/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "RevCon RevealUI profile",
+      "canonicalSource": "revcon/profiles/revealui/claude/skills/vercel-deploy/SKILL.md",
+      "durableDestination": ".agents/skills/vercel-deploy/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "699b8d45d1faf8cc91107ef4353cde87dcb7c5b114647aca9438d035a2222cb1",
+        "ownershipLedger": ".agents/.revcon-manifest.json"
+      }
+    },
+    {
+      "location": ".agents/skills/vercel-react-best-practices/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "RevCon RevealUI profile",
+      "canonicalSource": "revcon/profiles/revealui/claude/skills/vercel-react-best-practices/SKILL.md",
+      "durableDestination": ".agents/skills/vercel-react-best-practices/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "e04d04e3bd65a25f0e3dc694d0b5d3141e2bbb5a3601754490b4829c313dfa42",
+        "ownershipLedger": ".agents/.revcon-manifest.json"
+      }
+    },
+    {
+      "location": ".agents/skills/web-design-guidelines/SKILL.md",
+      "priorBehavior": "Absolute link to a relocated RevCon profile checkout; target unavailable",
+      "owner": "RevCon RevealUI profile",
+      "canonicalSource": "revcon/profiles/revealui/claude/skills/web-design-guidelines/SKILL.md",
+      "durableDestination": ".agents/skills/web-design-guidelines/SKILL.md",
+      "removalEvidence": {
+        "regularFile": true,
+        "sha256": "ec0b6456e2b090190db71eeac716e67d3c1dcb9e93a7f86990fd0a822fc6339e",
+        "ownershipLedger": ".agents/.revcon-manifest.json"
+      }
+    }
+  ],
+  "followUp": {
+    "id": "HARNESS-CODEX-RUNTIME",
+    "status": "in-progress",
+    "owner": "@revealui/harnesses adapter/protocol framework",
+    "owningPaths": [
+      "packages/harnesses/src/adapters/codex-adapter.ts",
+      "packages/harnesses/src/adapters",
+      "packages/harnesses/src/detection/auto-detector.ts",
+      "packages/harnesses/src/protocol/capabilities.ts",
+      "packages/harnesses/src/session/resolve-adapter.ts"
+    ],
+    "currentBehavior": "Bounded dispatch, stream normalization, cancellation/cleanup, project-scoped persisted resume, canonical stdio MCP attachment, and bounded host approval review are implemented; authenticated shared memory, lifecycle hooks, and a packaged review UI remain follow-ups",
+    "durableTarget": "Supported Codex transport integrated with the existing adapter framework, shared MCP/memory, cancellation and resumable lifecycle; advertise only verified capabilities",
+    "validation": [
+      "Real Codex dispatch and output normalization",
+      "Cancellation and child cleanup",
+      "Resume/reconnect and lifecycle events",
+      "Authorization and supported blocking enforcement",
+      "Shared MCP and memory access"
+    ]
+  },
+  "validation": {
+    "managerDelivery": "passed after final build and regeneration",
+    "revconCopyLockstep": "passed; eight profile artifacts plus harness-owned assets",
+    "revconTests": "16 groups passed",
+    "subprocessPoolTests": "10 passed",
+    "fullGate": {
+      "result": "blocked",
+      "durationSeconds": 612.3,
+      "failure": "Biome lint; existing formatting and lint findings outside native delivery changes",
+      "owningLocations": [
+        "apps/docs/__tests__/utils/markdown.test.ts",
+        "apps/marketing/app/App.tsx",
+        "apps/marketing/app/components/ContactForm.tsx",
+        "apps/marketing/app/content/claims-evidence/blog-body-claims.ts",
+        "apps/marketing/app/content/claims-evidence/claims-part-1.ts",
+        "apps/marketing/app/content/claims-evidence/claims-part-2.ts",
+        "apps/marketing/app/content/claims-evidence/claims-part-4.ts",
+        "apps/marketing/app/content/home.ts",
+        "apps/marketing/app/content/pricing-faq.ts",
+        "apps/marketing/app/content/receipt.ts",
+        "apps/marketing/app/lib/api.ts",
+        "apps/marketing/app/lib/use-route-meta-title.ts",
+        "apps/marketing/app/routes/HomePage.tsx",
+        "apps/marketing/app/routes/LocalAiPage.tsx",
+        "apps/marketing/app/routes/MovedPage.tsx",
+        "packages/editor/src/canvas/EditSessionCanvas.tsx",
+        "packages/harnesses/src/__tests__/skill-invoke.test.ts",
+        "packages/harnesses/src/content/definitions/rules/token-economy.ts",
+        "packages/harnesses/src/content/index.ts",
+        "packages/harnesses/src/content/skill-invoke-runtime.ts",
+        "packages/harnesses/src/content/skill-invoke.ts",
+        "packages/harnesses/src/manager/grok-session-hooks.ts",
+        "packages/harnesses/src/session/reap.ts",
+        "scripts/docs/generate-api.ts",
+        "scripts/sync/__tests__/resolve-manifest-dir.test.ts",
+        "scripts/sync/resolve-manifest-dir.ts"
+      ],
+      "durableTarget": "Fix each finding in its source/configuration owner without bypassing lint",
+      "followUp": "HARNESS-INTEGRATION-GATE-DEBT",
+      "validationNeeded": "Run pnpm gate:quick after source-owner corrections",
+      "securityAudit": "Warning: dependency audit reports existing vulnerabilities; remediation belongs to dependency owners"
+    },
+    "harnessTests": "54 files, 643 tests passed",
+    "typechecks": "harnesses and scripts passed",
+    "build": "harnesses passed",
+    "revconReapply": "zero copied; eight unchanged",
+    "isolatedCommitTree": {
+      "harnessTests": "53 files, 637 tests passed",
+      "managerDelivery": "passed with no errors or warnings",
+      "revconTests": "10 groups passed, including five native fixtures",
+      "typecheck": "passed"
+    }
+  },
+  "runtimeSlice": {
+    "date": "2026-10-06",
+    "transport": "Codex app-server v2, stdio JSON messages",
+    "verifiedCliVersion": "0.160.0",
+    "documentation": "https://learn.chatgpt.com/docs/app-server",
+    "wireVerification": "Official documentation and installed CLI generate-ts schemas; no generated protocol dependency installed",
+    "owningAdapter": "packages/harnesses/src/adapters/codex-adapter.ts",
+    "implemented": [
+      "fresh-thread dispatch",
+      "streaming and authoritative final output",
+      "generation-ready event with task/thread/turn identifiers",
+      "turn/interrupt cancellation",
+      "timeout/output bounds",
+      "process-group termination and pipe cleanup",
+      "registered native-delivery preflight",
+      "existing registry auto-detection and public export",
+      "project-scoped persisted-thread resume",
+      "canonical required stdio MCP configuration",
+      "bounded request-scoped host approval callback",
+      "abort and discard late/resolved approval answers",
+      "command-routed lazy CLI imports",
+      "configured daemon-issued runtime identity lease",
+      "installed canonical MCP launcher with public identity propagation",
+      "native memory publish/query without inference",
+      "signed idempotent disposal and daemon-absent identity cleanup",
+      "local and hosted SQL scope enforcement",
+      "private/workspace metadata key isolation",
+      "historical unscoped memory provenance quarantine"
+    ],
+    "disabledCapabilities": [
+      "fork",
+      "background execution",
+      "interactive approval UI",
+      "lifecycle hooks",
+      "workboard/coordination"
+    ],
+    "validation": {
+      "liveDispatch": "passed; exact expected response; read-only temporary project",
+      "liveCancellation": "passed; ready event triggered cancellation, interrupted result, no generation-completed event",
+      "liveModel": "gpt-6.1-sol",
+      "liveReasoningEffort": "low",
+      "availability": "installed CLI version/help verified",
+      "tests": {
+        "fullSuite": "Final isolated staged tree: 54 files, 671 tests passed in 41.92 seconds",
+        "adapterSuite": "35 adapter regression tests passed, including host cancellation racing terminal completion",
+        "typecheck": "isolated staged tree passed",
+        "build": "passed after resume, MCP, approvals, and lazy CLI routing changes",
+        "changedSourceBiome": "13 staged source files passed; final cancellation edit formatted and checked",
+        "deliveryCheck": "maintained isolated manager materialize and manager check passed with no errors or warnings",
+        "isolatedCliDiagnostic": "Before the CLI root fix: six isolated hook tests passed in 3.52 seconds, while the full-suite cold-start failure still required correction",
+        "transportAndCapabilities": "Initial focused verification: 65 tests passed; final full suite includes the added host cancellation case",
+        "previousFullSuite": "55 files; 661 of 662 tests passed",
+        "previousFailure": "Existing CLI hook fixture timed out its first tsx startup after 20 seconds; exit 143"
+      },
+      "liveResume": "passed through built CodexAdapter; same thread and retained previous reply after completed initial turn",
+      "liveMcp": "passed against installed app-server with synthetic stdio server; startup, tools discovery, and canonical dotted configuration; zero inference calls"
+    },
+    "priorExceptionInventory": "No prior Codex executor, operational recipe, or second transport exists in the affected adapter/protocol/detection paths. Superseded aspirational profile is removed from ROADMAP_PROFILES; shipped capabilities remain conservative.",
+    "validationDebt": {
+      "id": "HARNESS-CLI-STARTUP",
+      "owningPaths": [
+        "packages/harnesses/src/__tests__/cli-hook.test.ts",
+        "packages/harnesses/src/cli.ts"
+      ],
+      "owner": "@revealui/harnesses CLI/bootstrap",
+      "failingBehavior": "Before the fix, first source-loaded CLI hook startup intermittently exceeded its 20-second subprocess budget in the complete suite; observed before this runtime slice as well",
+      "durableTarget": "CLI routes before importing ACP, inference, content, session, and other command implementations; preserve hook assertions and timeout",
+      "validationNeeded": "Continue running the existing full harness suite and CLI hook regression tests with their original deadlines.",
+      "status": "resolved",
+      "priorExceptionInventory": "The existing CLI hook test uses a synchronous stdin subprocess fixture; no timeout increase, environment override, or production workaround was introduced.",
+      "removalEvidence": "Command implementations moved from eager entry-point imports into their owning CLI branches; two complete isolated suites passed (670 then 671 tests), including all unchanged CLI hook deadline assertions."
+    },
+    "remainingWork": [
+      {
+        "id": "HARNESS-CODEX-APPROVAL-UI",
+        "owner": "@revealui/harnesses and consuming host UI",
+        "owningPaths": ["packages/harnesses/src/adapters/codex-adapter.ts"],
+        "failingBehavior": "Host callback is implemented, but no packaged host review UI is supplied.",
+        "durableTarget": "Wire the consuming host review surface to onApproval with the native request details and AbortSignal.",
+        "validationNeeded": "User accept/decline/cancel, expired review, cancellation, server resolution, and no late grants in the consuming host."
+      }
+    ],
+    "sharedMemory": {
+      "tracking": {
+        "id": "HARNESS-CODEX-MEMORY-AUTH",
+        "owner": "@revealui/harnesses session boundary and @revealui/mcp knowledge-graph principal/storage",
+        "owningPaths": [
+          "packages/harnesses/src/session/boundary.ts",
+          "packages/mcp/src/servers/_kg-principal.ts",
+          "packages/mcp/src/servers/knowledge-graph.ts"
+        ],
+        "failingBehavior": "MCP attachment is wired, but authenticated memory read/write through a registered Codex runtime session is not established; the MCP executable is not currently on the local PATH.",
+        "durableTarget": "Use maintained MCP package installation and existing signed session identity/authorization for the nested app-server process; retain unavailable/denied results when identity or storage is absent.",
+        "validationNeeded": "Authenticated publish/query round trip, missing principal/storage behavior, cross-scope denial, principal propagation and cleanup through real Codex; no new store, synthetic identity, or machine-only launcher.",
+        "status": "resolved",
+        "removalEvidence": "Existing signed session boundary, installed canonical MCP package CLI, verified key-backed principal, scoped SQL/metadata keys; native publish/read, denial, missing identity/storage and signed cleanup verified with synthetic storage and zero inference calls."
+      },
+      "capability": "Configured studioLocalMemory adapters only; default shipped profile remains disabled",
+      "nativeMethod": "mcpServer/tool/call",
+      "cliVersion": "0.160.0",
+      "inferenceCalls": 0,
+      "identitySource": "Existing RevDev session.register; private keys stay in the existing identity cache",
+      "storageSource": "Existing knowledge-graph product factory and database executor; no second store",
+      "priorExceptionInventory": [
+        {
+          "location": "packages/knowledge-graph/src/memory/scope-sql.ts and scope-read.ts",
+          "priorBehavior": "Studio-local bypassed authenticated visibility; operators could read isolated nodes without provenance",
+          "owner": "@revealui/knowledge-graph",
+          "durableDestination": "Shared SQL-before-LIMIT scope and provenance predicate",
+          "removalEvidence": "No studio-local/isolated-node bypass; local denial and unattributed-node tests"
+        },
+        {
+          "location": "packages/knowledge-graph/src/memory/tenant-key.ts and publish.ts; packages/mcp/src/servers/factories/knowledge-graph.ts",
+          "priorBehavior": "Private/workspace metadata reused graph keys; node-only MCP writes lacked episode-linked edges",
+          "owner": "@revealui/knowledge-graph and @revealui/mcp",
+          "durableDestination": "Existing key namespace primitive and product publication provenance",
+          "removalEvidence": "Scoped keys, public agent metadata, discovered edges, keyScopeVersion marker, metadata-collision and legacy-quarantine tests"
+        },
+        {
+          "location": "packages/harnesses/src/session/boundary.ts",
+          "priorBehavior": "Daemon-absent exit retained cached signing identity; PID-keyed cache could not identify a nested MCP process",
+          "owner": "@revealui/harnesses session boundary",
+          "durableDestination": "Registered runtime lease with explicit maintained storage paths and signed session end",
+          "removalEvidence": "Idempotent lease/disposal; daemon-present/absent cleanup; relative paths resolved in the maintained session boundary before public identity propagation."
+        },
+        {
+          "location": "packages/harnesses/src/session/studio-local-kg-mcp.ts",
+          "priorBehavior": "Managed launch depended on a global MCP executable and implicit parent PID",
+          "owner": "@revealui/harnesses and @revealui/mcp package exports",
+          "durableDestination": "Installed CLI resolution and public identity parameters",
+          "removalEvidence": "Normal optional workspace dependency; Node launches the package CLI; no home Codex config or signing key environment variable"
+        },
+        {
+          "location": "packages/harnesses/src/session/durable-memory.ts",
+          "priorBehavior": "Warning claimed studio-local memory was deliberately unscoped",
+          "owner": "@revealui/harnesses durable memory helper",
+          "durableDestination": "Accurate generic warning for sources without reported enforcement",
+          "removalEvidence": "Stale exemption wording removed and regression expectation updated"
+        }
+      ],
+      "remainingWork": [
+        {
+          "id": "KG-LEGACY-MEMORY-SCOPE-MIGRATION",
+          "owner": "@revealui/knowledge-graph ingestion/provenance and maintained migration tooling",
+          "owningPaths": [
+            "packages/knowledge-graph/src/ingest/index.ts",
+            "packages/knowledge-graph/src/memory/tenant-key.ts",
+            "packages/knowledge-graph/src/memory/scope-sql.ts",
+            "packages/knowledge-graph/src/ingest/engine.ts",
+            "packages/knowledge-graph/src/ingest/legacy-memory.ts",
+            "packages/knowledge-graph/src/cli/revkg.ts"
+          ],
+          "failingBehavior": "Historical unscoped writes can merge private/workspace node metadata; node-only rows lack episode-linked provenance. Current merged nodes cannot safely reconstruct ownership.",
+          "durableTarget": "Maintained idempotent reconstruction from authoritative episode/outbox provenance into scoped keys and episode-linked subjects. Restore historical reads after verifying metadata ownership; never merely stamp the marker onto old rows.",
+          "validationNeeded": "Mixed private/workspace/tenant rows, node-only publications, key collisions, rollback/idempotence, scan contamination and no cross-scope disclosure",
+          "currentBehavior": "Authenticated reads require node fields, attributes and timestamps to be attested by authorized immutable snapshots when any memory publication has incomplete provenance. Unattested scan metadata and both graph endpoints remain hidden. Memory edges always require an authorized snapshot of the actual immutable payload, preventing a colliding shared episode from authorizing an earlier private fact. Marked episodes with missing or invalid snapshots are included in the read-only audit. Original historical records remain unchanged.",
+          "recoveryBlocker": "Historical node outbox operations contain no episode identifier or atomic batch manifest. Sequence adjacency, timestamps and merged current nodes cannot prove node metadata ownership, including node-only publications. Full reconstruction requires authoritative original publication records or snapshots; current storage alone cannot recover missing ownership evidence.",
+          "inventory": [
+            {
+              "location": "packages/knowledge-graph/src/ingest/merge.ts: node upsert",
+              "behavior": "Historical unscoped mutable nodes merge metadata from memory scopes and scans; current node rows are not recovery evidence.",
+              "owner": "@revealui/knowledge-graph ingestion",
+              "durableDestination": "Scoped publication keys and immutable per-episode authored snapshots",
+              "removalEvidence": "Scoped keys already enforced; old contaminated rows remain quarantined pending safe reconstruction."
+            },
+            {
+              "location": "kg_outbox historical node ops and kg_edge_episodes",
+              "behavior": "Node ops have no episode ownership; edge provenance cannot attribute node-only rows or distinguish merged node metadata.",
+              "owner": "@revealui/knowledge-graph ingestion/provenance",
+              "durableDestination": "ingestEpisode memory snapshots in kg_episodes.content_ref, retained during replica replay",
+              "removalEvidence": "New writes retain authored snapshots. Missing historical evidence is explicitly reported; no adjacency-based or merged-node reconstruction path is introduced."
+            }
+          ],
+          "provenanceValidation": "38 focused graph tests passed across audit, publication, scoped reads and replica replay; seven new cases cover immutable payload preservation, node-only evidence, historical ambiguity, read-only inventory, tampering, transaction rollback/idempotence and edge provenance. Graph build and typecheck passed. Built audit CLI rejects --publish before database access. All 20 MCP product-mode integration cases passed against the rebuilt graph package; no production database access or inference calls.",
+          "availabilityLimit": "Unattested scan nodes, contaminated actors and their incident edges remain inaccessible to authenticated readers until authoritative reconstruction. A later publication cannot erase or bless unknown historical metadata. Fresh snapshots permit reads only when all required endpoints and metadata are attested.",
+          "archiveSearch": {
+            "searchedRoots": ["fleet checkout", "user home"],
+            "examinedDaemonSessions": 240,
+            "examinedSessionLedgerEntries": 240,
+            "sessionArchiveContents": "Session identity, task, notes and exit metadata; no authored node or edge publication payload.",
+            "hookReceipts": "No direct publication receipts identified by structured tool-name filtering. Text mentions are not publication evidence.",
+            "transcripts": "Original Claude, Codex and Grok session archives were searched. Examined publication mentions did not establish an authoritative node payload linked to episode and scope.",
+            "authoritativeHistoricalPublicationConfirmed": false,
+            "productionDatabaseAccess": false,
+            "historicalEvidenceModified": false,
+            "nextDurableWork": "Locate original publication records that bind authored node payloads to episode and scope, then implement maintained transactional reconstruction with rollback and idempotence tests."
+          },
+          "attestationValidation": "34 distinct graph cases passed across scoped reads, publication and historical provenance, including node-only scan contamination, later shared-edge authorization, immutable private-fact collisions, marked missing snapshots and ordered repeated operations. Rebuilt production MCP integration passed all 20 cases. Graph and harness builds/typechecks and normal commit gates passed. No production database access or inference calls."
+        },
+        {
+          "id": "KG-REPOSITORY-SEARCH-FILTER",
+          "owner": "@revealui/knowledge-graph shared search and MCP search schema",
+          "owningPaths": [
+            "packages/knowledge-graph/src/search/index.ts",
+            "packages/knowledge-graph/src/memory/query.ts",
+            "packages/mcp/src/servers/factories/knowledge-graph.ts",
+            "packages/harnesses/src/session/durable-memory.ts"
+          ],
+          "failingBehavior": "Existing MemoryQuery.repo is ignored by direct query and forwarded to an MCP schema that does not accept it.",
+          "durableTarget": "A uniform repository predicate in shared text/vector/traversal before LIMIT, exposed by the canonical MCP schema and existing helper.",
+          "validationNeeded": "Direct/MCP parity, all retrieval channels and existing authorization predicates",
+          "currentBehavior": "Codex memory command type excludes repo filtering; no unsupported filter is advertised."
+        }
+      ],
+      "validation": {
+        "nativeAcceptance": "Final rebuilt server passed real Codex app-server publish/query, private denial, foreign-scope denial, missing identity/storage, signed cleanup and cache removal; production MCP factory/principal provider with synthetic daemon/storage fixtures; zero turn/start calls",
+        "graphSuite": "Isolated staged suite: 143 cases; 141 passed in full run, two database beforeEach hooks exceeded the original 30-second deadline under concurrent package runs. Both affected files then passed all eight cases sequentially with unchanged deadlines.",
+        "mcpFocused": "Initial four focused files: 35 tests passed. Isolated full MCP suite: 500 passed, five skipped, three transport/fixture timeouts and one invalid historical key fixture. After correcting the fixture to use a real generated key, all 56 cases in the three affected files passed sequentially with unchanged deadlines.",
+        "adapterFocused": "Final adapter suite includes 40 cases; bounded registration and idempotent disposal are covered alongside native dispatch and managed memory.",
+        "harnessSuite": "Final isolated staged suite after relative-path normalization: 55 files, 679 tests passed in 53.37 seconds, including real native memory acceptance. Final additional stalled-registration deadline regression is covered by the adapter rerun.",
+        "builds": "All three isolated staged package builds passed; harness typecheck passed.",
+        "delivery": "Maintained manager materialize/check passed; generated Codex guide exactly matches the staged file.",
+        "changedSources": "Biome and staged diff whitespace checks passed."
+      },
+      "validationDebt": {
+        "id": "KG-MCP-TEST-RESOURCE-CONCURRENCY",
+        "owner": "@revealui/dev test/gate orchestration and knowledge-graph/MCP fixture owners",
+        "owningPaths": [
+          "packages/dev/src/vitest/create-config.ts",
+          "packages/knowledge-graph/src/__tests__/test-db.ts",
+          "packages/mcp/__tests__/knowledge-graph-factory.test.ts"
+        ],
+        "failingBehavior": "Concurrent full graph/MCP suites plus compiler processes exceeded database fixture startup and MCP transport deadlines; the same affected files passed sequentially with their original deadlines.",
+        "durableTarget": "Bound memory-heavy package/test orchestration and harden maintained fixture lifecycle so normal gates fit the existing budgets; do not raise deadlines or suppress assertions.",
+        "validationNeeded": "Full suites under normal gate load with original hook/transport deadlines and measured cold fixture memory/startup cost."
+      }
+    }
+  },
+  "existingContentOwnershipDebt": {
+    "id": "HARNESS-MANAGED-CONTENT-OWNERSHIP-CONVERGENCE",
+    "status": "complete",
+    "owner": "@revealui/harnesses manager adapter generation and RevCon ownership manifests",
+    "owningPaths": [
+      "packages/harnesses/src/content/write-manager-adapters.ts",
+      "packages/harnesses/src/manager/materialize.ts",
+      ".claude/.revcon-manifest.json",
+      "revcon/link.sh",
+      "revcon/scripts/verify-copy-lockstep.sh"
+    ],
+    "failingBehavior": "Five committed managed-content files differ from their legacy RevCon ownership hashes. The same mismatches were present before this identity change; pending working-tree policy edits are independent.",
+    "durableTarget": "Converge each managed file on one canonical source and declared owner; regenerate content and its ownership ledger through that maintained owner, with copy-lockstep validation.",
+    "validationNeeded": "Canonical source freshness, one-owner enforcement, committed file hashes, profile and native adapter delivery, preservation of pending user edits.",
+    "inventory": [
+      {
+        "location": ".claude/rules/agent-dispatch.md",
+        "behavior": "Committed content differs from legacy ownership hash.",
+        "owner": "Harness manager adapters and legacy RevCon distribution",
+        "durableDestination": "Single canonical generator and matching ownership ledger",
+        "removalEvidence": "Existing manifest entry migrated to the harness owner. Hash verified against staged canonical generation; original rule body and pending edits preserved. Regression tests prevent profile reapplication from reclaiming the file."
+      },
+      {
+        "location": ".claude/rules/biome.md",
+        "behavior": "Committed content differs from legacy ownership hash.",
+        "owner": "Harness manager adapters and legacy RevCon distribution",
+        "durableDestination": "Single canonical generator and matching ownership ledger",
+        "removalEvidence": "Existing manifest entry migrated to the harness owner. Hash verified against staged canonical generation; original rule body and pending edits preserved. Regression tests prevent profile reapplication from reclaiming the file."
+      },
+      {
+        "location": ".claude/rules/skills-usage.md",
+        "behavior": "Committed content differs from legacy ownership hash.",
+        "owner": "Harness manager adapters and legacy RevCon distribution",
+        "durableDestination": "Single canonical generator and matching ownership ledger",
+        "removalEvidence": "Existing manifest entry migrated to the harness owner. Hash verified against staged canonical generation; original rule body and pending edits preserved. Regression tests prevent profile reapplication from reclaiming the file."
+      },
+      {
+        "location": ".claude/rules/token-economy.md",
+        "behavior": "Committed content differs from legacy ownership hash.",
+        "owner": "Harness manager adapters and legacy RevCon distribution",
+        "durableDestination": "Single canonical generator and matching ownership ledger",
+        "removalEvidence": "Existing manifest entry migrated to the harness owner. Hash verified against staged canonical generation; original rule body and pending edits preserved. Regression tests prevent profile reapplication from reclaiming the file."
+      },
+      {
+        "location": ".claude/rules/versioning.md",
+        "behavior": "Committed content differs from legacy ownership hash.",
+        "owner": "Harness manager adapters and legacy RevCon distribution",
+        "durableDestination": "Single canonical generator and matching ownership ledger",
+        "removalEvidence": "Existing manifest entry migrated to the harness owner. Hash verified against staged canonical generation; original rule body and pending edits preserved. Regression tests prevent profile reapplication from reclaiming the file."
+      },
+      {
+        "location": ".claude/rules/coordination.md",
+        "behavior": "Installed profile rule differed from its recorded canonical profile source.",
+        "owner": "RevCon recorded profile source",
+        "durableDestination": "Existing profile rule and maintained copy distributor",
+        "removalEvidence": "Canonical profile reapplied through link.sh; source freshness and copy lockstep pass."
+      },
+      {
+        "location": ".claude/rules/git.md",
+        "behavior": "Installed profile rule differed from its recorded canonical profile source.",
+        "owner": "RevCon recorded profile source",
+        "durableDestination": "Existing profile rule and maintained copy distributor",
+        "removalEvidence": "Canonical profile reapplied through link.sh; source freshness and copy lockstep pass."
+      },
+      {
+        "location": ".claude/rules/opensrc.md",
+        "behavior": "Installed profile rule differed from its recorded canonical profile source.",
+        "owner": "RevCon recorded profile source",
+        "durableDestination": "Existing profile rule and maintained copy distributor",
+        "removalEvidence": "Profile source reapplied through link.sh; source freshness and copy lockstep pass. Fleet-root parameterization moved into the canonical opensrc profile."
+      },
+      {
+        "location": ".claude/rules/planning.md",
+        "behavior": "Installed profile rule differed from its recorded canonical profile source.",
+        "owner": "RevCon recorded profile source",
+        "durableDestination": "Existing profile rule and maintained copy distributor",
+        "removalEvidence": "Canonical profile reapplied through link.sh; source freshness and copy lockstep pass."
+      },
+      {
+        "location": ".claude/rules/priorities.md",
+        "behavior": "Installed profile rule differed from its recorded canonical profile source.",
+        "owner": "RevCon recorded profile source",
+        "durableDestination": "Existing profile rule and maintained copy distributor",
+        "removalEvidence": "Canonical profile reapplied through link.sh; source freshness and copy lockstep pass."
+      },
+      {
+        "location": ".claude/rules/single-source-of-truth.md",
+        "behavior": "Installed profile rule differed from its recorded canonical profile source.",
+        "owner": "RevCon recorded profile source",
+        "durableDestination": "Existing profile rule and maintained copy distributor",
+        "removalEvidence": "Canonical profile reapplied through link.sh; source freshness and copy lockstep pass."
+      },
+      {
+        "location": ".claude/rules/{control-layer,copy-voice,extend-before-create,model-allocation,no-em-dashes,secrets,temp-scripts}.md and .claude/workflows/WORKFLOWS.md",
+        "behavior": "Selected canonical profiles contained consumers absent from the installed tree and ledger.",
+        "owner": "RevCon selected profiles",
+        "durableDestination": "Existing profile distributor and ownership manifest",
+        "removalEvidence": "Regenerated by link.sh from tracked profile sources; generated copies and ledger entries pass copy lockstep."
+      }
+    ],
+    "resolution": "The existing Claude manifest now records harnesses:rules/<id>.md as the source for all 21 generated rule mirrors, with hashes generated by writeManagerAdapterContent. Profile-only entries retain their original owners. RevCon reapplication preserves harness-owned rules and their manifest entries; local and shared lockstep gates verify ownership and canonical content, including supported custom contentRoot configuration. RevCon unlink preserves harness ownership while pruning removed profile entries. Six stale profile rules were converged on their existing source owners; eight missing selected-profile consumers were regenerated by the maintained distributor. Source freshness and both lockstep gates pass for all 284 entries."
+  },
+  "organizationMigrationReview": {
+    "observedAt": "2026-10-07T04:07:33.911453+00:00",
+    "status": "owner-review-complete",
+    "authority": "Read-only GitHub GET /repositories/{immutable repository ID} and branch metadata, matched against local Git objects",
+    "reviewedCheckouts": 13,
+    "transferredCount": 8,
+    "originalOwnerCount": 5,
+    "integrationRepositories": [
+      {
+        "repositoryId": 1127197866,
+        "canonicalRepository": "RevealUIStudio/revealui",
+        "defaultBranch": "test"
+      },
+      {
+        "repositoryId": 1161509629,
+        "canonicalRepository": "revealui-studio/revcon",
+        "defaultBranch": "test"
+      },
+      {
+        "repositoryId": 1242355151,
+        "canonicalRepository": "RevealUIStudio/.github",
+        "defaultBranch": "main"
+      }
+    ],
+    "declarationConvergence": {
+      "commit": "49ecda655",
+      "owner": "Existing private fleet repository declarations and maintained apply tools",
+      "updatedBranchProtectionDeclarations": 7,
+      "updatedRulesetDeclarations": 8,
+      "policyBodiesChanged": false,
+      "liveSettingsApplied": false
+    },
+    "sharedWorkflowReferences": "RevealUIStudio/.github remains the verified canonical owner. Preserve existing SHA-pinned callers; update their owning references when that repository transfers, because Actions does not follow repository redirects.",
+    "remainingCanonicalReferenceWork": "ORG-TRANSFER-CANONICAL-REFERENCES is inventoried in the existing private migration runbook. Transferred origin URLs still depend on Git redirects; converge maintained clone/bootstrap instructions and active metadata before regenerating local configuration.",
+    "publicationBranchObservations": [
+      {
+        "repository": "RevealUIStudio/revealui",
+        "result": {
+          "name": "test",
+          "protected": true,
+          "sha": "8cbc25994f0723c8c0c9b1722a53b53384901567"
+        },
+        "localHead": "b0fb86fb374ef231556f19bf26f6b0347a9670c0",
+        "localHasLiveCommit": true,
+        "liveHeadIsAncestor": false,
+        "commitsBehind": 380,
+        "commitsAhead": 8
+      },
+      {
+        "repository": "revealui-studio/revcon",
+        "result": {
+          "name": "test",
+          "protected": true,
+          "sha": "0438842106bd3039c218947f049c68f03ba6a4e3"
+        },
+        "localHead": "6658fdf369c4202de193170f91dd79c1a7d7dcee",
+        "localHasLiveCommit": true,
+        "liveHeadIsAncestor": false,
+        "commitsBehind": 79,
+        "commitsAhead": 3
+      }
+    ],
+    "publicationFollowup": {
+      "id": "CODEX-INTEGRATION-LIVE-BRANCH-RECONCILIATION",
+      "status": "published-for-review; reconciled-update-ready",
+      "owner": "RevealUI harnesses/knowledge-graph/MCP and RevCon integration branches",
+      "owningPaths": [
+        "packages/harnesses",
+        "packages/knowledge-graph",
+        "packages/mcp",
+        "scripts/validate/rules-lockstep.ts",
+        "RevCon profile distribution"
+      ],
+      "failingBehavior": "Local integration commits are based on a test history that has diverged from live GitHub. Direct publication would not reconcile newer server changes.",
+      "durableTarget": "Reconcile the integration series onto each verified current test branch in an isolated clean checkout. Preserve the existing patched dependencies, shared typed database and transaction contracts, and vendor-neutral policy ownership; regenerate consumers through their maintained owners. Publish through the maintained push admission path after the required validations and session authorization.",
+      "validationNeeded": "Validate the resulting integrated source, canonical identity, portable native distribution, authenticated memory provenance and scoped reads, manager path support, source freshness and both lockstep gates. Confirm protected-branch required checks and app access before publication. Revalidate memory queries and transaction rollback against the shared database contract, preserve MCP SDK 1.31 and dependency overrides, retain the 25-minute CI suite timeout, and use the maintained clean-checkout push admission and planning projection lockstep gates.",
+      "localResolution": "Portable adapter consumers and the reconciled integration series are committed on the existing feature branch. Local regressions and implementation CI passed at the recorded pre-save head. Merge admission depends on the peer-owned revealui-review-controller cutover and required checks; no owner-signing procedure is requested.",
+      "qualityBoundary": {
+        "owner": "Biome source selection; harness manager and RevCon generated-copy checks",
+        "priorBehavior": "Byte-preserving generated ownership ledgers and vendored skill reference examples were linted as application source.",
+        "durableTarget": "Exclude ownership metadata and reference bundles uniformly by artifact class, while continuing to lint maintained application and harness source. Generated content continues to be validated by its existing materialization and ownership checks.",
+        "validation": "Full application lint; archive namespace fixture and existing ownership checks.",
+        "inventory": "Native Grok documentation copies had been reformatted by application formatter hooks, leaving their recorded source hashes stale. Their maintained profile sources remain authoritative; generated-copy repair is tracked separately rather than adopting local edits.",
+        "projectionRecovery": {
+          "id": "NATIVE-PROJECTION-FORMAT-RECOVERY",
+          "status": "resolved for the two recorded formatter-drifted consumers; owning primitive published for review",
+          "owner": "RevCon projection ownership and application formatter scope",
+          "owningPaths": [
+            "RevCon link.sh snapshot_projection_ownership",
+            "RevealUI .grok/skills/tailwind-4-docs/references/{docs-index.tsx,docs/utils/colors.ts}",
+            "RevealUI biome.json"
+          ],
+          "failingBehavior": "Earlier formatter hooks changed byte-preserving vendor copies without updating their source ownership records. Normal projection refresh correctly refuses modified copies.",
+          "durableTarget": "Add source-verifiable recovery to the maintained projection primitive, preserving genuine user edits; regenerate reference consumers through that primitive.",
+          "validationNeeded": "Reject arbitrary edits and untrusted ledgers; recover only copies proven to match an approved formatting transform or immutable source history; verify source hashes after regeneration.",
+          "removalEvidence": "RevCon PR #160 extends existing projection ownership recovery. Committed source ledger, unchanged canonical source, approved target formatter version and exact transformed-byte equality are required. Both consumers were regenerated through link.sh; canonical source hashes now match.",
+          "validation": "61 maintained RevCon checks and 17 focused native/projection checks passed. Real target formatter reproduced both historical drift hashes; dry-run did not write. Actual recovery, manager materialize/check and 286-entry/21-rule lockstep passed.",
+          "pullRequest": "https://github.com/revealui-studio/revcon/pull/160"
+        }
+      },
+      "currentStateAuthority": "organizationMigrationReview.complementaryLaneSave",
+      "bootstrapResolution": {
+        "observedAt": "2026-10-07T10:50:29.755254+00:00",
+        "status": "resolved-local; reconciled validation passed",
+        "owner": "Existing manager materializer, repository ignore policy and shared ownership gates",
+        "behavior": "Portable manager pointers, Cursor hooks and OpenCode agent/command output are versioned. Claude pointer has a canonical .revealui/adapters/claude-code.md source and its own entry in the existing Claude ownership ledger. Local settings and private vendor state remain ignored.",
+        "validation": "Fresh tracked-files-only regression fails before the fix and passes afterward. Actual tracked-file source snapshot passes full lint (4559 files) and structure validation. 143 merge/manager/ownership/shutdown regressions and 91 transaction/principal/Codex-memory/transport/delivery tests pass. Full RevCon suite: 61 checks; native delivery: 11 regressions; canonical rule/skill copy and public export scans pass.",
+        "upstreamTarget": "cbfaad90a51774474a940e0f3d685c4bdd09c0a5",
+        "inventoryRemoval": "Removed ignore entries that excluded required portable consumers. The private-state exclusion remains covered by the fresh-checkout fixture; no CI-only generation or gate bypass was introduced."
+      }
+    },
+    "disposition": "Owner, branch and source review refreshed; local audit update only. Pending edits preserved. No GitHub settings write, push, merge, production inference, or memory migration.",
+    "previousReview": {
+      "commit": "b0fb86fb3",
+      "observedAt": "2026-10-07T01:54:10.821740+00:00",
+      "publicationBranchObservations": [
+        {
+          "repository": "RevealUIStudio/revealui",
+          "result": {
+            "name": "test",
+            "protected": true,
+            "sha": "084016b527686797a214ea427ec2d3048b40e252"
+          },
+          "localHead": "14d783a7c0a6be6e3208fa3998e70283eed4b714",
+          "localHasLiveCommit": true,
+          "liveHeadIsAncestor": false,
+          "commitsBehind": 356,
+          "commitsAhead": 7
+        },
+        {
+          "repository": "revealui-studio/revcon",
+          "result": {
+            "name": "test",
+            "protected": true,
+            "sha": "0438842106bd3039c218947f049c68f03ba6a4e3"
+          },
+          "localHead": "6658fdf369c4202de193170f91dd79c1a7d7dcee",
+          "localHasLiveCommit": true,
+          "liveHeadIsAncestor": false,
+          "commitsBehind": 79,
+          "commitsAhead": 3
+        }
+      ]
+    },
+    "ownerChangesSincePreviousReview": 0,
+    "changesSincePreviousReview": {
+      "localIntegrationHeadsChanged": false,
+      "newRevealUITestCommits": 24,
+      "previousRevealUITestHead": "084016b527686797a214ea427ec2d3048b40e252",
+      "currentRevealUITestHead": "8cbc25994f0723c8c0c9b1722a53b53384901567",
+      "newRevealUITestMerges": [
+        {
+          "pullRequest": 3054,
+          "behavior": "Managed push admission completes gates before opening Git transport and requires a clean checkout.",
+          "owningPaths": [
+            "scripts/git-hooks/push-admission.cjs",
+            "scripts/git-hooks/push.sh",
+            ".husky/pre-push"
+          ]
+        },
+        {
+          "pullRequest": 3074,
+          "behavior": "MCP SDK dependency and override now require patched 1.31; preserve this during integration.",
+          "owningPaths": ["packages/mcp/package.json", "package.json", "pnpm-lock.yaml"]
+        },
+        {
+          "pullRequest": 3071,
+          "behavior": "Dependency overrides updated for audit advisories, including sharp.",
+          "owningPaths": ["package.json", "pnpm-lock.yaml"]
+        },
+        {
+          "pullRequest": 3052,
+          "behavior": "Private consultation fulfillment, provider lifecycle, domain erasure admission and shared typed PostgreSQL contracts landed.",
+          "owningPaths": [
+            "packages/db/src/client",
+            "packages/core/src/database",
+            "packages/db/migrations",
+            "apps/server",
+            "apps/admin"
+          ]
+        },
+        {
+          "pullRequest": 3079,
+          "behavior": "Unit suite timeout increased from 15 to 25 minutes so the runner can report completion.",
+          "owningPaths": [".github/workflows/ci.yml"]
+        }
+      ],
+      "newCommitsChangedHarnessOrKnowledgeGraphSources": false,
+      "planningBranchObservation": {
+        "liveHead": "3e8719ad26fcd80789489df89d4285b11570b9ca",
+        "localHead": "49ecda655baa685040fa74820e70522f2855b730",
+        "commitsBehind": 294,
+        "commitsAhead": 2
+      },
+      "planningChanges": [
+        {
+          "pullRequest": 2112,
+          "behavior": "Policy authority moved into .revealui/content with generated Claude projections and a maintained projection lockstep gate."
+        },
+        {
+          "pullRequest": 2114,
+          "behavior": "Tracker publication uses a scoped, short-lived GitHub App installation token and retains a read-only GITHUB_TOKEN."
+        },
+        {
+          "pullRequest": 2110,
+          "behavior": "Additional canonical fleet identifier changes landed."
+        }
+      ],
+      "assessment": "The latest 24 RevealUI commits do not directly change harnesses or knowledge-graph source. Database contracts and MCP dependencies did change, so memory transaction behavior, returned rows, authenticated scoped reads and native delivery require validation on the reconciled branch. Existing pending edits were preserved and were not attributed to upstream commits; their exact change time is not established by this review."
+    },
+    "localReconciliation": {
+      "date": "2026-10-07",
+      "status": "complete-local",
+      "branch": "fix/codex-integration-reconcile-20261007",
+      "bases": {
+        "RevealUIStudio/revealui": "3744de2def1ca2ac5294f7251dac053df6aa8068",
+        "revealui-studio/revcon": "0438842106bd3039c218947f049c68f03ba6a4e3"
+      },
+      "originalCheckouts": {
+        "revealui": "f08db5e82ca593810f649116fe099962291fca05",
+        "revcon": "6658fdf369c4202de193170f91dd79c1a7d7dcee",
+        ".jv": "49ecda655baa685040fa74820e70522f2855b730"
+      },
+      "preservedUpstream": [
+        "MCP SDK 1.31 and patched dependency overrides",
+        "Shared typed PostgreSQL row and transaction contracts",
+        "Maintained gate resource admission and global dry-run semantics",
+        "Configured App authorization and private-content checks",
+        "Native RevCon policy sources and vendor projections",
+        "25-minute unit CI timeout and clean-checkout push admission"
+      ],
+      "replayDecisions": [
+        "Replayed all nine local RevealUI integration commits onto the fetched test head.",
+        "Replayed portable delivery and harness ownership in RevCon; the old profile rename was superseded by the current canonical native source layout."
+      ],
+      "durableCorrections": [
+        {
+          "location": "RevCon link.sh: distribute_editors / projection_real_file_owned",
+          "priorBehavior": "Native distribution could overwrite package-owned rule twins or lose existing vendor ownership evidence before projection migration.",
+          "owner": "RevCon distribution",
+          "durableDestination": "Existing distributor validates harness ownership before writes, excludes package-owned native twins, and retains hash-verified legacy projection evidence only in runtime state.",
+          "removalEvidence": "Native delivery fixtures cover package-rule preservation, idempotent projection migration and rejection of modified copies before native writes."
+        },
+        {
+          "location": "packages/harnesses/src/content/write-manager-adapters.ts",
+          "priorBehavior": "Ownership schema parsing discarded upstream projection metadata.",
+          "owner": "Harness materializer",
+          "durableDestination": "Existing ownership schema preserves metadata while validating file ownership.",
+          "removalEvidence": "Manager regression preserves outer and per-file generatedFrom metadata."
+        },
+        {
+          "location": "scripts/validate/rules-lockstep.ts",
+          "priorBehavior": "Every native rule file was inferred to be package-owned, so current profile projections failed the gate.",
+          "owner": "Rules lockstep gate",
+          "durableDestination": "Package ownership derives from the canonical rule definition catalog; unknown harness owner claims fail.",
+          "removalEvidence": "Gate fixtures accept profile-owned native projections and reject forged package ownership."
+        },
+        {
+          "location": "RevCon README.md, link.sh usage and scripts/verify-copy-lockstep.sh; RevealUI scripts/validate/rules-lockstep.ts remediation",
+          "priorBehavior": "Operating examples assumed a home-directory checkout and described the former symlink default.",
+          "owner": "Distribution documentation and gate remediation",
+          "durableDestination": "Supported REVEALFLEET_ROOT and explicit target arguments; documentation states copy delivery is the default.",
+          "removalEvidence": "Maintained examples and remediation updated; shell syntax checks and distribution suites pass."
+        }
+      ],
+      "validation": {
+        "workspaceBuild": "passed",
+        "harnessTypecheck": "passed",
+        "harnessTests": 128,
+        "nativeCodexMemoryTests": 1,
+        "memoryAndTransactionTests": 49,
+        "mcpPrincipalAndMemoryTests": 15,
+        "ownershipAndCiGateTests": 43,
+        "executionUtilityTests": 28,
+        "revconChecks": 61,
+        "nativeDeliveryFixtureTests": 10,
+        "sourceAndConsumerLockstep": "passed: 14 shared-skill comparisons, 9 rule comparisons, 42 fresh generated files, 285 Claude copies and 8 profile-owned Codex copies; 21 package rule mirrors"
+      },
+      "validationNotes": [
+        "Initial concurrent-build test failures included missing dist exports and process startup contention. Failed suites were rerun after the supported workspace build; original deadlines were retained.",
+        "The server-resolved approval fixture now holds review until withdrawal and verifies that a late acceptance cannot be sent."
+      ],
+      "remainingWork": [
+        "Protected-branch required-check and App-access verification before publication through the maintained push admission path.",
+        "Historical memory scope reconstruction remains the separately tracked KG-LEGACY-MEMORY-SCOPE-MIGRATION blocker; no historical identity or scope was inferred."
+      ],
+      "disposition": "Local isolated branches only. Original committed heads and pending edits preserved. No push, merge, settings write, paid inference or historical memory migration.",
+      "deliveredSkills": [
+        {
+          "path": ".agents/skills/revealui-conventions/SKILL.md",
+          "sha256": "70e4edb8a20c040b9e5e4739ca5d14190ace9eee30d112149d4580fe0502b34c"
+        },
+        {
+          "path": ".agents/skills/revealui-db/SKILL.md",
+          "sha256": "50da7f50fbabcc11d40b205b496167b8757e5a675c0d5c5c0f182b9daa37a9e8"
+        },
+        {
+          "path": ".agents/skills/revealui-debugging/SKILL.md",
+          "sha256": "bf751f815af5ab74c197810015257ec975f65af3bc56dde6b903fb2259ccce9c"
+        },
+        {
+          "path": ".agents/skills/revealui-review/SKILL.md",
+          "sha256": "88137c8bec0f75ffba707cfbcfc96a79e8288d862ffac6fd0f5de0a185e8ef40"
+        },
+        {
+          "path": ".agents/skills/revealui-safety/SKILL.md",
+          "sha256": "8db2d19f7ec82e39b3344fc90d26bb1100bffbbee96b3ecad3955186f55e8883"
+        },
+        {
+          "path": ".agents/skills/revealui-tdd/SKILL.md",
+          "sha256": "8eafbeee924be02dbd758b91067b02060058cdee2c9652f366725785e834b3e2"
+        },
+        {
+          "path": ".agents/skills/revealui-testing/SKILL.md",
+          "sha256": "0b86c021c22f4bc2eadc36e22512da3bab9529a55a3110f0e73cc168bdf3b416"
+        },
+        {
+          "path": ".agents/skills/next-best-practices/SKILL.md",
+          "sha256": "6ff0eb7e14fd2d32992e6e48e8f86f60e917df6651c7ecdfe85fb9d309a8f0f8"
+        },
+        {
+          "path": ".agents/skills/next-cache-components/SKILL.md",
+          "sha256": "e4af48d7ea08928da50117db5aaf21d5d112e4a01fbcac4d8ec7efa50acbe3a3"
+        },
+        {
+          "path": ".agents/skills/turborepo/SKILL.md",
+          "sha256": "139eec113966c9b1403e8b6d9b83ee6b265ef85f2dbb1b9145224af28ca7493c"
+        },
+        {
+          "path": ".agents/skills/vercel-composition-patterns/SKILL.md",
+          "sha256": "74b9bace3415020b17a56eaf9b124a5b8a37b3ec8ef89909d19f648498b50eda"
+        },
+        {
+          "path": ".agents/skills/vercel-deploy/SKILL.md",
+          "sha256": "30b2b8e3941315bb00a91a52cf41c3a2f740eeff17f6b125dcb0e1042b91794d"
+        },
+        {
+          "path": ".agents/skills/vercel-react-best-practices/SKILL.md",
+          "sha256": "e04d04e3bd65a25f0e3dc694d0b5d3141e2bbb5a3601754490b4829c313dfa42"
+        },
+        {
+          "path": ".agents/skills/web-design-guidelines/SKILL.md",
+          "sha256": "ec0b6456e2b090190db71eeac716e67d3c1dcb9e93a7f86990fd0a822fc6339e"
+        }
+      ]
+    },
+    "publicationPreparation": {
+      "date": "2026-10-07",
+      "status": "published-for-review",
+      "repositories": [
+        {
+          "repository": "RevealUIStudio/revealui",
+          "testHead": "3744de2def1ca2ac5294f7251dac053df6aa8068",
+          "branchAccess": "verified",
+          "branchRules": "PR review, required checks, backflow check and signed commits"
+        },
+        {
+          "repository": "revealui-studio/revcon",
+          "testHead": "0438842106bd3039c218947f049c68f03ba6a4e3",
+          "branchAccess": "verified",
+          "branchRules": "PR review, deletion and non-fast-forward protection"
+        }
+      ],
+      "policyUpdate": {
+        "canonicalSource": "packages/harnesses/src/content/definitions/rules/durable-solutions.ts",
+        "behavior": "Root-cause-only rule has no owner or registry exception. Related quality and review instructions agree. Public exports use configured identity and approved project references.",
+        "consumerPrimitive": "content export supports repeated --rule-profile directories and explicit --rule-id selections; canonical exports remove obsolete tier copies.",
+        "validation": "73 delivery/export/snapshot tests; successful harness build, source freshness and root lockstep; 61 RevCon checks, source lockstep and public export scan"
+      },
+      "debtInventory": [
+        {
+          "location": "RevCon harnesses/rules/pro/{durable-solutions,disposition-actions,code-over-docs}.md and native profile copies",
+          "priorBehavior": "Obsolete tiers and manually synchronized rule copies survived canonical export.",
+          "owner": "Harness content exporter",
+          "durableDestination": "Canonical tier files and selected native profile consumers",
+          "removalEvidence": "Exporter removes opposite-tier copies, exports declared rule selections, and both maintained source/consumer lockstep gates pass."
+        },
+        {
+          "location": "Canonical ai-mechanics rule and review/safety skill definitions",
+          "priorBehavior": "Generated public exports contained private reference paths or machine-specific identity and backup defaults.",
+          "owner": "Harness content definitions",
+          "durableDestination": "Configured identity, manager-discovered project references and configured backup location",
+          "removalEvidence": "Regenerated export passes the unchanged RevCon private-path gate."
+        }
+      ],
+      "requiredPolicyFollowup": {
+        "id": "REVCON-TRANSFER-REQUIRED-CHECKS",
+        "owner": "Organization/repository policy bootstrap",
+        "owningPaths": [
+          "RevCon .github/workflows/ci.yml",
+          "Maintained organization ruleset configuration"
+        ],
+        "failingBehavior": "Effective transferred test-branch rules did not return required status checks or required signatures despite the documented protection contract.",
+        "durableTarget": "Reconcile the declared protection contract through the maintained repository-policy primitive.",
+        "validationNeeded": "Read back the effective rules for test and main and verify current workflow check names and signing constraints.",
+        "status": "tracked; settings writes require owner disposition"
+      },
+      "disposition": "Feature branch and review PR publication only; no merge, production deployment, paid inference, settings change or historical memory migration.",
+      "pullRequests": [
+        {
+          "repository": "RevealUIStudio/revealui",
+          "url": "https://github.com/RevealUIStudio/revealui/pull/3080"
+        },
+        {
+          "repository": "revealui-studio/revcon",
+          "url": "https://github.com/revealui-studio/revcon/pull/158"
+        }
+      ],
+      "signerConfiguration": "Canonical REVEALFLEET_OVERRIDE_SIGNERS repository variable verified present; workflow and validator now consume that namespace without a retired alias.",
+      "reviewRequirement": "RevealUI requires a request label and a current owner SSHSIG bound to the exact repo/PR/head/sec-review context. No label, signature, merge or repository settings mutation was performed."
+    },
+    "currentStateReview": {
+      "observedAt": "2026-10-07T10:25:56.771760+00:00",
+      "scope": "Refresh of integration PRs, repository identity, live test heads, local source state and completed CI evidence; no implementation, merge or settings change.",
+      "repositories": [
+        {
+          "repository": "RevealUIStudio/revealui",
+          "testHead": "19e3083c8121b401108d435f5a21229386cad252",
+          "previousReconciliationBase": "3744de2def1ca2ac5294f7251dac053df6aa8068",
+          "upstreamCommitsSinceBase": 4,
+          "upstreamChange": "PR #3078 merged pooled database client shutdown and graceful backup fixture shutdown. Integration branch has not incorporated this updated test head.",
+          "pullRequest": "https://github.com/RevealUIStudio/revealui/pull/3080",
+          "state": "OPEN",
+          "head": "c6c7b95f27b5b6d2cb21837e091609e166572184",
+          "mergeState": "BLOCKED",
+          "ci": {
+            "lint": "passed",
+            "admissionContracts": "passed",
+            "quality": "failed at Structure validation",
+            "suite": "Dependent expensive-suite jobs skipped; failing report wrappers do not establish independent suite failures.",
+            "images": "Latest image run passed; older failed or cancelled executions are superseded.",
+            "ownerReview": "Missing request label and unexpired exact-head owner SSHSIG.",
+            "qualityEvidence": "https://github.com/RevealUIStudio/revealui/actions/runs/37602299554/job/112729780072",
+            "ownerReviewEvidence": "https://github.com/RevealUIStudio/revealui/actions/runs/37602276024/job/112729269446"
+          }
+        },
+        {
+          "repository": "revealui-studio/revcon",
+          "testHead": "0438842106bd3039c218947f049c68f03ba6a4e3",
+          "pullRequest": "https://github.com/revealui-studio/revcon/pull/158",
+          "state": "OPEN",
+          "head": "9636e119eb14d121dfae3163e0c7c045da9f2e84",
+          "mergeState": "CLEAN",
+          "ci": "All 16 returned check runs passed; repository and test head unchanged."
+        }
+      ],
+      "localState": {
+        "originalCheckoutHeads": {
+          "revealui": "f08db5e82ca593810f649116fe099962291fca05",
+          "revcon": "6658fdf369c4202de193170f91dd79c1a7d7dcee",
+          ".jv": "49ecda655baa685040fa74820e70522f2855b730"
+        },
+        "observation": "Original checkout heads are unchanged and pending edits remain present. Integration worktrees matched their published heads and were clean before this audit refresh. Local pending changes have not been adopted or attributed to a time window.",
+        "auditDisposition": "Local state record only; not committed or published during this refresh."
+      },
+      "trackedRemainingWork": [
+        {
+          "id": "CODEX-INTEGRATION-CLEAN-CHECKOUT-BOOTSTRAP",
+          "owner": "Harness manager materialization and declared adapter delivery contract",
+          "owningPaths": [
+            "packages/harnesses/src/manager/materialize.ts",
+            "packages/harnesses/src/content/write-manager-adapters.ts",
+            ".gitignore",
+            "scripts/validate/structure.ts",
+            ".github/workflows/ci.yml"
+          ],
+          "failingBehavior": "Structure validation requires registered adapter artifacts that are present locally but ignored and untracked, so a clean CI checkout lacks them.",
+          "missingArtifacts": [
+            ".claude/rules/00-revealui-manager.md",
+            ".cursor/revealui-manager.md",
+            ".cursor/hooks.json",
+            ".opencode/revealui-manager.md",
+            ".claude/settings.json knowledge-graph stdio MCP declaration"
+          ],
+          "existingExceptionInventory": "Local generation satisfies manager check on a populated worktree, while Git ignores these required consumers. This local presence must not serve as proof of fresh-checkout delivery.",
+          "durableTarget": "Converge registered adapter materialization, portable generated artifacts and the maintained fresh-checkout bootstrap. Required consumers must be reproducible through the existing owner before validation, with ownership and secret-store boundaries preserved.",
+          "validationNeeded": "A tracked-files-only fresh checkout must satisfy structure and manager checks through the supported bootstrap. Verify regeneration and drift detection for each declared adapter, preserve existing gates and exercise the missing-artifact regression.",
+          "status": "tracked; implementation remains"
+        },
+        {
+          "id": "CODEX-INTEGRATION-LIVE-BRANCH-RECONCILIATION",
+          "owner": "RevealUI integration branch and shared database contract",
+          "owningPaths": [
+            "packages/db/src",
+            "packages/harnesses",
+            "packages/knowledge-graph",
+            "packages/mcp"
+          ],
+          "failingBehavior": "The reviewed integration series is based on the previous test head and does not include newly merged pooled client shutdown behavior.",
+          "durableTarget": "Reconcile the existing integration branch with current test without dropping integration or upstream changes.",
+          "validationNeeded": "Revalidate pool and backup shutdown, memory transaction rollback, scoped MCP memory reads, native delivery and the required CI checks on the final reconciled head. Re-prepare the unsigned owner-review payload if the PR head changes.",
+          "status": "tracked; reconciliation remains"
+        }
+      ],
+      "unchangedConstraints": [
+        "Only revealfleet identity and REVEALFLEET configuration namespace.",
+        "Root-cause fixes only; no gate bypass or one-off bootstrap recipe.",
+        "Existing native projection recovery and transferred RevCon protection follow-ups remain tracked; their resolution was not verified by this refresh.",
+        "No merge, security-gate clearance, settings write, paid inference or historical memory migration authorized by this state refresh."
+      ],
+      "supersededBy": "organizationMigrationReview.reconciledUpdate"
+    },
+    "reconciledUpdate": {
+      "observedAt": "2026-10-07T11:06:48.502521+00:00",
+      "upstreamTest": "cbfaad90a51774474a940e0f3d685c4bdd09c0a5",
+      "deliveryFixCommit": "217f27e07",
+      "status": "validated-local; feature publication follows maintained admission",
+      "preservedUpstream": [
+        "Pooled database client and backup fixture graceful shutdown",
+        "Canonical signer defaults with real SSHSIG and promotion coverage regressions",
+        "Bounded cold validator startup and worker lifecycle admission tests",
+        "MCP SDK and typed database contract",
+        "Existing CI suite timeout, dependency patches and resource admission"
+      ],
+      "conflictResolution": "Retained strict root-cause-only policy and sole canonical fleet identity; incorporated upstream cryptographic trust-anchor migration constraints and signer implementation. Retained both absent-anchor and empty-anchor regression coverage. Consumer conflicts were regenerated from canonical definitions.",
+      "validation": {
+        "reconciliationTests": 143,
+        "memoryAndCodexTests": 91,
+        "freshCheckout": "Full lint across 4559 files and the actual structure check pass without runtime materialization or changing the gate.",
+        "ownership": "286 Claude entries, 21 definition rules and the canonical manager pointer; local and shared ownership checks pass.",
+        "revcon": "61 maintained checks, 11 native delivery regressions, canonical policy/skill lockstep and private export scan.",
+        "earlierDiagnosticFailure": "The broad root-Vitest invocation used generic 5-second defaults and unconstrained workers; rerunning through the maintained package configurations passed all 91 cases. No product deadline or test configuration was changed.",
+        "snapshotTests": 8,
+        "snapshotCli": "Built CLI now writes and checks all five snapshots inside the owning harness package; source and bundled-entry regressions pass."
+      },
+      "durableWork": {
+        "CODEX-INTEGRATION-CLEAN-CHECKOUT-BOOTSTRAP": "resolved through portable tracked consumers and ownership regression tests",
+        "CODEX-INTEGRATION-LIVE-BRANCH-RECONCILIATION": "resolved locally against the recorded current test head",
+        "NATIVE-PROJECTION-FORMAT-RECOVERY": "still tracked; no unverified replacement of pre-existing modified vendor reference copies",
+        "REVCON-TRANSFER-REQUIRED-CHECKS": "still tracked; no repository settings disposition",
+        "KG-LEGACY-MEMORY-SCOPE-MIGRATION": "still tracked; no historical scope inferred"
+      },
+      "disposition": "Feature branch review publication only. No PR merge, owner signature, gate-clearing label, settings change, paid inference or historical memory migration.",
+      "companionPublication": {
+        "previousPullRequest": "https://github.com/revealui-studio/revcon/pull/158",
+        "previousState": "owner-merged at 2026-10-07T10:28:04Z",
+        "testHead": "14146d7e3a3031a87e9d065add30c6f7c73e1dd3",
+        "followupPullRequest": "https://github.com/revealui-studio/revcon/pull/159",
+        "followupHead": "33168ebbc198733244050fc52ef4745638852864",
+        "status": "published-for-review; remote checks pending"
+      },
+      "snapshotResolution": {
+        "owner": "packages/harnesses/src/content/snapshot.ts getContentSnapshotsDir",
+        "failingBehavior": "Fixed-depth module traversal resolved bundled dist/cli.js snapshots to packages/content-snapshots. Write and check shared the wrong path and could agree while committed package snapshots were stale. Push admission rejected the untracked output.",
+        "durableTarget": "Existing snapshot primitive locates its declared package owner for source and bundled layouts, preserving the supported explicit snapshot directory parameter.",
+        "removalEvidence": "Regenerated canonical package snapshots with the corrected built CLI. Two path regressions reproduced the failure before the fix; all eight snapshot tests and CLI checks pass. Only the session-produced misplaced snapshots were preserved in temporary diagnostic storage; no ignore exception or admission bypass was added."
+      }
+    },
+    "latestStateReview": {
+      "observedAt": "2026-10-07T21:24:01.771300+00:00",
+      "status": "RevCon follow-up merged; RevealUI implementation CI passed; security gates block merge",
+      "revealui": {
+        "repository": "RevealUIStudio/revealui",
+        "pullRequest": "https://github.com/RevealUIStudio/revealui/pull/3080",
+        "state": "OPEN",
+        "head": "443483703d2d57ca397322e61a10551ad7bb58fa",
+        "testHead": "0c8c71ce1cc73942f8fd7de2f336264bde89a003",
+        "mergeState": "BLOCKED",
+        "implementationCi": {
+          "run": "https://github.com/RevealUIStudio/revealui/actions/runs/37612298341",
+          "status": "completed successfully; quality, typecheck, unit, coverage, build, migrations, integration, E2E, accessibility and visual checks passed"
+        },
+        "imageCi": {
+          "run": "https://github.com/RevealUIStudio/revealui/actions/runs/37612298343",
+          "status": "server, admin, migrate and Docker image builds passed"
+        },
+        "priorRuns": "Earlier failures and cancellations remain visible in the PR rollup; replacement implementation and image runs passed at the same head.",
+        "securityReview": "HOLD: missing-request-label. Gate requires a request label and an unexpired owner SSHSIG bound to the exact repo/PR/head/sec-review context; labels and reviews alone cannot clear it.",
+        "codeql": {
+          "check": "https://github.com/RevealUIStudio/revealui/runs/112763639233",
+          "status": "failure: one high severity alert",
+          "title": "Potential file system race condition",
+          "path": "scripts/validate/rules-lockstep.ts",
+          "line": 150,
+          "message": "The file may have changed since it was checked."
+        }
+      },
+      "revcon": {
+        "repository": "revealui-studio/revcon",
+        "pullRequest": "https://github.com/revealui-studio/revcon/pull/159",
+        "state": "MERGED",
+        "mergedAt": "2026-10-07T11:12:37Z",
+        "head": "a152837f4f88344abc6beac2de087dbe1fb0a715",
+        "mergeCommit": "47119b2b6a0661c6e11ab13ac62f108715cb1cf4",
+        "testHead": "47119b2b6a0661c6e11ab13ac62f108715cb1cf4",
+        "checks": "All 14 returned checks passed; external owner merge, no merge performed by this session."
+      },
+      "durableWork": {
+        "CODEX-INTEGRATION-LOCKSTEP-FILE-RACE": {
+          "owner": "scripts/validate/rules-lockstep.ts verifyLockstep, supported by the existing managed destination/read primitive",
+          "failingBehavior": "Manager pointer validation checks path metadata before reopening the path to hash and read its contents; CodeQL flags a potential file system race at line 150.",
+          "durableTarget": "Converge validation on a safe existing read primitive, with consistent file identity and symlink handling; do not suppress the scanner or bypass the ownership gate.",
+          "validationNeeded": "Add a meaningful replacement/symlink race regression in scripts/validate/__tests__/rules-lockstep.test.ts, preserve native copy and pointer ownership checks, and obtain a passing CodeQL PR check.",
+          "trackedFollowup": "CODEX-INTEGRATION-LOCKSTEP-FILE-RACE in this existing audit; next implementation task.",
+          "existingOneOffInventory": "No exception introduced in this refresh. Inspect affected validation/read primitives and operating instructions before implementing the root fix."
+        }
+      },
+      "remainingDebt": [
+        "NATIVE-PROJECTION-FORMAT-RECOVERY",
+        "REVCON-TRANSFER-REQUIRED-CHECKS",
+        "KG-LEGACY-MEMORY-SCOPE-MIGRATION"
+      ],
+      "disposition": "Read-only remote refresh and local audit update only. Historical observations preserved. No source changes, commits, pushes, merges, signatures, labels or settings changes.",
+      "reviewAuthorityMigration": {
+        "authority": "revealui-review-controller",
+        "status": "Located implementation in the existing receipted-merge-flow worktree; migration PR is open and shadow-only.",
+        "disposition": "Integration remains a proposal pending controller cutover and required checks. No owner signature, approval label or self-merge is requested or produced.",
+        "implementation": "apps/review-controller and packages/harnesses/gates in feat/receipted-merge-flow-20261006",
+        "pullRequest": "https://github.com/RevealUIStudio/revealui/pull/3076",
+        "observedHead": "8f6da425ce7f532f146f35dd8ec6bfcd19a993a0",
+        "contract": "Exact-candidate Ed25519 receipts, append-only Postgres evidence and App-bound REVEALFLEET review receipt check; routine feature-to-test admission targets removal of per-PR human signing and labels. Current docs keep runtime receipt publication and merge authorization disabled; base owner gate remains active until protected cutover."
+      },
+      "supersededBy": "organizationMigrationReview.complementaryLaneSave"
+    },
+    "validatorRaceResolution": {
+      "observedAt": "2026-10-07T21:30:01.211188+00:00",
+      "status": "published; implementation CI and CodeQL passed at pre-save head 712fed8fa0602f54ed4bd6e4f4dba147e7b2e02a",
+      "owner": "packages/harnesses/src/manager/paths.ts readManagedFile; consumed by manager validation and scripts/validate/rules-lockstep.ts",
+      "behavior": "Open first with no-follow and nonblocking flags, validate regular-file descriptor identity against all path components, read descriptor bytes once, detect file/path changes, and close on every outcome. Hash and pointer checks reuse the same bytes.",
+      "validation": "The pointer-replacement regression failed before the fix and passes after it. All 64 focused manager/Codex/lockstep tests pass with the final open-first reader. Full harness package build, supported manager CLI check, and 286-entry rules-lockstep gate pass; formatting and diff checks pass.",
+      "existingOneOffInventory": [
+        {
+          "location": "scripts/validate/rules-lockstep.ts verifyLockstep",
+          "behavior": "Separate metadata check and path reopen; repeated hashing/reading could observe different files.",
+          "owner": "RevealUI native ownership validator",
+          "durableDestination": "Shared manager-path descriptor reader",
+          "removalEvidence": "Path reopens removed; all native ownership bytes originate in the shared reader."
+        },
+        {
+          "location": "packages/harnesses/src/manager/materialize.ts readFileOrNull/checkManager",
+          "behavior": "Expected-content path check followed by separate read; manager validator did not share stable reads.",
+          "owner": "RevealUI manager validation",
+          "durableDestination": "Shared manager-path descriptor reader",
+          "removalEvidence": "All existing nullable validation reads now use the shared reader; redundant check before read removed."
+        }
+      ],
+      "reviewAuthority": "revealui-review-controller migration; no owner-signing procedure requested or produced.",
+      "publicationAdmission": {
+        "status": "Published through maintained admission after the independent peer gate released; no lock removal or bypass.",
+        "validation": "Maintained push admission passed."
+      }
+    },
+    "complementaryLaneSave": {
+      "observedAt": "2026-10-07T22:28:30.016414+00:00",
+      "scope": "Complementary native projection recovery, checkpoint skill preservation contract and native suitability validation. Peer review-controller migration remains read-only.",
+      "status": "Source changes locally validated; scoped publication and private checkpoint fragments follow through maintained repository primitives.",
+      "preSaveRevealUI": {
+        "repository": "RevealUIStudio/revealui",
+        "head": "712fed8fa0602f54ed4bd6e4f4dba147e7b2e02a",
+        "pullRequest": "https://github.com/RevealUIStudio/revealui/pull/3080",
+        "implementationCi": "Replacement implementation, quality and image runs passed at this head; prior runs remain historical.",
+        "codeql": {
+          "status": "passed; no new alerts in changed code",
+          "check": "https://github.com/RevealUIStudio/revealui/runs/113031959222"
+        },
+        "mergeAdmission": "Open proposal dependent on revealui-review-controller cutover and required checks; base security gate still uses previous authority."
+      },
+      "projectionRecovery": {
+        "sourceRepository": "revealui-studio/revcon",
+        "sourceHead": "0d507b21086940690a6c6328f0de9c8588dd9a29",
+        "pullRequest": "https://github.com/revealui-studio/revcon/pull/160",
+        "owner": "link.sh snapshot_projection_ownership",
+        "mode": "Explicit --recover-formatting extends the existing copy distributor; ordinary modified-copy protection remains strict.",
+        "proof": "Committed ownership ledger, unchanged profile source and generatedFrom, approved target Biome 2.5.2 or 2.5.4, and exact formatter output equality before any native write.",
+        "consumers": [
+          {
+            "path": ".grok/skills/tailwind-4-docs/references/docs-index.tsx",
+            "canonicalSha256": "17016ea97e0376cd913e4f13781bde51d6d2710b911bf35d6b907f2dd1da8859"
+          },
+          {
+            "path": ".grok/skills/tailwind-4-docs/references/docs/utils/colors.ts",
+            "canonicalSha256": "58688f585e57fa8caf7300656d310bb8ae36d09bf45c6abfe1278ed9fb18784c"
+          }
+        ],
+        "validation": "61 maintained checks; final 17 focused cases; actual dry-run/recovery and canonical manager materialization/check passed. Historical drift bytes remain in published Git history."
+      },
+      "checkpointSkill": {
+        "repository": "revealui-studio/revskills",
+        "pullRequest": "https://github.com/revealui-studio/revskills/pull/191",
+        "owner": "skills/revealui-checkpoint/SKILL.md",
+        "behavior": "Scoped multi-repository recovery ledger; live repository identity/default branch; exact fragment paths in isolated writers; source commit/publication before handoff; separate saved, published, landed and review states; actual Codex session identity; no peer sweep, fabricated launch command, whole-directory staging or controller signing procedure.",
+        "validation": "Full maintained corpus: 246 passed, zero failed. Latest native capability and checker-path clarifications pass skill validators and normal publication hooks."
+      },
+      "nativeSkillAssessment": {
+        "owner": "packages/harnesses/src/content/skill-invoke.ts",
+        "failingBehavior": "Unsupported declared Write/Edit capabilities were filtered out while a full checkpoint suitability assessment could still be accepted.",
+        "durableTarget": "Reject suitable verdicts when required declared native tools are unavailable. Partial reporting explicitly names missing tools and requires observed authorized host preservation before saved-state claims.",
+        "validation": "Regression failed before the fix; 20 skill invocation/catalog tests pass. Full harness build, manager check and 286-entry/21-rule ownership checks pass."
+      },
+      "validationBoundary": {
+        "requiredOwningChecks": "Passed supported manager and rules-lockstep checks.",
+        "genericCopyChecks": "Claude 286-entry check passes. Grok has 34 pre-existing package-owned strays after removing two proven drift violations. Generic native check has 42 package-owned strays; published baseline lacks the ignored profile ledger. These failures are not represented as passing."
+      },
+      "durableFollowups": [
+        {
+          "id": "PROJECTION-MULTI-OWNER-GATE-COMPOSITION",
+          "owner": "Harness package materialization and RevCon shared copy verifier",
+          "owningPaths": [
+            "packages/harnesses/src/content/write-manager-adapters.ts",
+            "packages/harnesses/src/manager/materialize.ts",
+            "RevCon scripts/verify-copy-lockstep.sh",
+            "RevealUI .revealui and .grok ownership metadata"
+          ],
+          "failingBehavior": "Generic profile-copy verification treats legitimate package-owned native/Grok consumers as strays; the profile-only native ledger is ignored and absent in a fresh published checkout.",
+          "existingOneOffInventory": "Populated-checkout profile ledger provides local verification evidence that is absent from committed consumers. No exemptions, adopted hashes, untracking or replacement ledger were introduced.",
+          "durableTarget": "Extend the existing ownership contract and verifier to compose source-verifiable package and profile ownership with portable metadata, preserving genuine edit and forged ledger rejection.",
+          "validationNeeded": "Mixed package/profile owners, edited package bytes, forged claims, fresh tracked-only checkout, and existing profile-only regressions.",
+          "trackedFollowup": "PROJECTION-MULTI-OWNER-GATE-COMPOSITION in this audit; implementation remains."
+        },
+        {
+          "id": "REVCON-TRANSFER-REQUIRED-CHECKS",
+          "status": "Maintained policy bootstrap/readback remains tracked; no settings changes."
+        },
+        {
+          "id": "KG-LEGACY-MEMORY-SCOPE-MIGRATION",
+          "status": "Historical author publication episode/scope evidence remains unavailable; no identity or scope inferred."
+        }
+      ],
+      "peerBoundary": {
+        "repository": "RevealUIStudio/revealui",
+        "pullRequest": "https://github.com/RevealUIStudio/revealui/pull/3076",
+        "authority": "revealui-review-controller",
+        "status": "Peer-owned migration is shadow-only until protected cutover evidence and required check binding are complete.",
+        "disposition": "No edits to peer worktree, signatures, approval labels, merges or settings writes."
+      },
+      "preservation": "Only owned changes in isolated feature worktrees are committed and published. Original dirty checkouts and peer changes remain untouched. Exact final heads and checkpoint fragment publication are recorded by the private coordination handoff.",
+      "remainingMilestones": "Lifecycle hooks, packaged host approval UI, controller cutover and tracked memory/protection/ownership debt remain separate from completed native delivery and transport integration."
+    }
+  }
+}

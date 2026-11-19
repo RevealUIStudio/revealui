@@ -15,6 +15,8 @@ const ALIASES: Readonly<Record<string, string>> = {
   'grok-build': 'grok',
   claude: 'claude-code',
   'claude-code': 'claude-code',
+  codex: 'codex',
+  'codex-cli': 'codex',
   cursor: 'cursor',
   vscode: 'vscode',
   'vs-code': 'vscode',
@@ -30,6 +32,7 @@ const EXISTING: Readonly<
 > = {
   grok: { generatorId: 'grok', hookSource: 'grok' },
   'claude-code': { generatorId: 'claude-code', hookSource: 'claude-code' },
+  codex: { generatorId: null, hookSource: null },
   cursor: { generatorId: 'cursor', hookSource: 'cursor' },
   vscode: { generatorId: 'vscode', hookSource: 'vscode' },
   opencode: { generatorId: 'opencode', hookSource: null },

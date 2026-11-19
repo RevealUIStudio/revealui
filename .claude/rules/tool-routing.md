@@ -1,4 +1,5 @@
-# Claude Tool Routing
+<!-- generated from .revealui/content/rules/tool-routing.md -->
+# Filesystem Tool Routing
 
 RevealUI's authoritative working tree lives on a **WSL ext4 filesystem**. When you reach it from a **Windows host over UNC** (`\\wsl$\...` / `\\wsl.localhost\...`), route work by *where the filesystem boundary is safe*, not by which OS the tool runs on.
 
@@ -26,7 +27,7 @@ Fine to do over UNC from the Windows-host instance:
 
 ## Route writes, git, build, and test through WSL-native
 
-Any **write / git state / build / test** against the RevealUI tree must run from a **WSL-native Claude Code session** (start `claude` inside WSL at `~/revealfleet/revealui`), or be driven into WSL via `wsl.exe`. Do **not** use `Edit` / `Write`, or run Windows (MSYS) git, against the tree over UNC.
+Any **write / git state / build / test** against the RevealUI tree must run from a **WSL-native session** on the fleet tree (`.revealui`), or be driven into WSL via `wsl.exe`. Do **not** use `Edit` / `Write`, or run Windows (MSYS) git, against the tree over UNC.
 
 Why (a **correctness** choice, not a tool limitation):
 

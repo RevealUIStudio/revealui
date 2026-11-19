@@ -60,9 +60,11 @@ function stamp(): string {
  * Write one exit record + append a ledger line.
  * Soft: returns ok:false on I/O errors; never throws.
  */
-export function archiveSessionExit(record: SessionExitRecord): ArchiveExitResult {
+export function archiveSessionExit(
+  record: SessionExitRecord,
+  dir: string = coldDaemonSessionsDir(),
+): ArchiveExitResult {
   try {
-    const dir = coldDaemonSessionsDir();
     mkdirSync(dir, { recursive: true });
     const fileName = `${stamp()}-${safeSlug(record.agentId)}.json`;
     const filePath = join(dir, fileName);

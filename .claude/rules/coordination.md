@@ -1,6 +1,11 @@
+<!-- generated from .revealui/content/rules/coordination.md -->
 # Multi-Instance Coordination
 
-Multiple Claude Code instances may work on this repo simultaneously (e.g. terminal + Zed editor). A shared workboard at `.claude/workboard.md` tracks sessions, tasks, and file reservations.
+Multiple agents may work concurrently. Resolve the internal coordination hub through the repo
+`docs/INDEX.md` Fleet coordination entry (ADR-005). Its `.revealui/workboard.md`
+is rendered from vendor-neutral `.revealui/workboard.d/` fragments. `.claude/workboard.md` is an adapter pointer,
+not another board. Read the hub `.revealui/README.md` and its workboard lifecycle
+contract before writing coordination evidence.
 
 ## Identity
 
@@ -27,42 +32,46 @@ Agent identity is resolved automatically by `session-start.js` using a 3-tier de
 
 ### Configuration
 
-Profile mappings are in `~/.claude/agent-profiles.json`:
+Profile mappings live in the fleet `.revealui` (`agent-profiles.json`). Vendor homes are adapters:
 - `wt_profiles`: maps Windows Terminal profile GUID → identity
 - `default_zed_extension_name` / `default_zed_terminal_name`: override Zed auto-detection names
 
 On session start, the detected identity is logged. You can check it in the workboard Sessions table.
 
-## Automated Lifecycle (hooks handle this)
+## Maintained Workboard Lifecycle
 
-The following happen **automatically** — do not do them manually:
+The owning tools are in the resolved internal hub's `scripts/` directory:
+`workboard-heartbeat.js`, `workboard-fragment.js`, `workboard-sweep.js`, and
+`workboard-check.js`. Their maintained contract and the hub
+`.revealui/workboard.d/active/README.md` govern lifecycle; this profile does not
+promise that a vendor hook registered a session or captured every edited file.
 
-- **Session start**: `session-start.js` registers your row with `(starting)` and prunes rows older than 4 hours.
-- **File tracking**: `workboard-update.js` updates your `files` and `updated` columns on every Edit/Write.
-- **Session end**: `stop.js` removes your row and prepends a Recent entry from your `task` description. If your `files` column is non-empty, it prints a handoff warning.
-
-## Agent Responsibilities
-
-1. **On first real task**: Update your `task` column — change it from `(starting)` to a short description of what you're doing. This is the description that gets written to Recent on exit.
-2. **Before each task**: Re-read the workboard. Check `files` of other sessions for conflicts.
-3. **During work**: Update `task` as your work evolves. The hooks keep `files` and `updated` current.
-4. **After completing work**: Add a timestamped Recent entry with results. Leave `task` updated so the stop hook records it accurately.
-
-## Stale Sessions
-
-Rows older than 4 hours are pruned automatically by `session-start.js` on any agent's next session start. You do not need to clean up manually.
+- Active heartbeats are working-tree-only `active/pid-<ppid>.md` records with
+  `last-seen:` evidence. Only timestamps within **45 minutes**, at or before
+  the observation time, establish freshness. Unknown, future, and expired
+  claims are omitted. A registered worktree is not evidence of a live session.
+- Write only your own heartbeat and append-only note/log fragments through
+  the maintained helpers. Identify the existing gap/lane/PR and reserved paths
+  in the claim. Re-read current claims before editing overlapping paths.
+- Notes carry an expiry; expired or malformed expiry evidence invalidates the
+  whole note. The neutral fragment wins a same-name legacy collision. Consult
+  the hub contract for retention of untagged historical notes and log archives.
+- The sweep owns generated marker blocks. Do not append manual session rows,
+  board headings, task queues, or free-peer placeholders. Do not edit generated
+  blocks to manufacture freshness. Skipped or unavailable discovery leaves
+  explicitly unverified snapshots; re-check the owning evidence before acting.
 
 ## Handoff Protocol
 
-When you stop with incomplete work that another agent must continue:
+Record incomplete work in the hub's maintained rolling handoff and coordination
+fragment paths, naming the existing gap/lane, branch/worktree, observed validation,
+remaining work, and owner decisions. The receiving agent re-verifies those
+receipts and records its own claim; an old handoff does not establish ownership.
+Do not create a Plans queue or edit another session's heartbeat.
 
-1. **Update your `task` column** before stopping: `HANDOFF-><role>: <what's left>` (e.g. `HANDOFF->revealui-terminal: run pnpm gate after schema change`)
-2. **Tag the next agent in Plans**: add `<- HANDOFF from <your-id>` next to the relevant task
-3. The stop hook will print a warning and write your task description (including the `HANDOFF->` prefix) to Recent — the next agent will see it immediately on workboard read
-
-The receiving agent should:
-1. Remove the `HANDOFF->` prefix from the Plans task once picked up
-2. Update their own `task` column to reflect they've taken it over
+Commit coordination evidence in an isolated hub branch from `origin/test` and
+submit its normal review proposal. Do not push a handoff directly to `origin/main`
+or `origin/test`; publication and promotion keep their owner disposition gates.
 
 ## Archive-Readiness Convention
 
@@ -94,31 +103,32 @@ Wrap the prompt in a single fenced code block (` ``` `) the owner can triple-cli
 
 ## Conflict Resolution
 
-- File reservations are **advisory**, not locks. If you must edit a reserved file, note it in Context so the other instance sees it on next read.
-- For **architectural decisions** (new packages, schema changes, API contracts), add them to Plans and wait for the other instance to acknowledge before proceeding — but only if that instance is actively working in the affected area.
+- File reservations are **advisory**, not locks. If you must edit a reserved file, record an expiring coordination note on the owning hub surface so the other instance sees it on next read.
+- For **architectural decisions** (new packages, schema changes, API contracts), record them against the owning gap/lane and wait for the other instance to acknowledge before proceeding — but only if that instance is actively working in the affected area.
 - **Git conflicts** are resolved by whichever instance commits second. That instance must pull and rebase or merge before pushing.
 
 ## Master Plan Protocol
 
-The master plan lives in the internal coordination hub, per ADR-005 (see the repo's `docs/INDEX.md` "Fleet coordination"). The in-repo `docs/MASTER_PLAN.md` is a retired pointer stub, not a plan; a pre-tool-use hook blocks edits to it.
+The master plan lives in the internal coordination hub, per ADR-005 (see the
+repo's `docs/INDEX.md` "Fleet coordination"). Day-to-day free surfaces:
+hub `docs/TRACKER.md`.
 
-1. **On session start**: Read the hub master plan in full. Your work must align with the current phase.
-2. **Before starting any task**: Verify the task is listed in the hub plan's current phase. If not listed, ask the user before proceeding.
-3. **After completing any task**: Update the hub plan's checkboxes and add a session entry to Completed Work (a separate commit to the private repo, per ADR-005).
-4. **When discovering new work**: Add it to the appropriate phase in the hub plan, do not create separate plan files.
-5. **When multiple agents are active**: Each agent must re-read the hub plan before starting new work to see if another agent has updated it.
-6. **When updating the hub plan**: Also update the Plan Reference section in `.claude/workboard.md` with the current timestamp and your agent ID.
+The in-repo `docs/MASTER_PLAN.md` is a **retired public pointer stub**
+(2026-07-16), not the plan of record. Maintainers may edit the stub so it
+stays an honest pointer (GAP-336 allowlist); do not put fleet phase work there.
+Stray `MASTER_PLAN.md` files outside the holster allowlist remain blocked.
+
+1. **On session start**: Read the hub TRACKER / plan surfaces that apply. Your work must align with free surfaces or a named gap/lane.
+2. **Before starting any task**: Verify the task is listed on TRACKER or an open gap/lane. If not listed, ask the user before proceeding.
+3. **After completing any task**: Update the owning gap/lane or hub handoff surfaces (a separate commit to the private repo, per ADR-005).
+4. **When discovering new work**: File a gap or update a lane in the hub; do not create separate plan files in this repo.
+5. **When multiple agents are active**: Re-read TRACKER / workboard before starting new work.
+6. **When updating hub plan surfaces**: Also note the workboard when coordination requires it.
 
 ## Workboard Format
 
-Keep the workboard compact. The Sessions table uses these columns:
-- `id`: your detected identity (e.g. `conductor`, `revealui-terminal`, `agent-extension`, `agent-edit`, `agent-system`)
-- `env`: environment description (e.g. `PowerShell`, `Zed/WSL`)
-- `started`: ISO timestamp of session start
-- `task`: short description of current work
-- `files`: glob or list of files you are actively modifying
-- `updated`: ISO timestamp of last workboard update
-
-Recent entries use the format: `- [YYYY-MM-DD HH:MM] id: description`
-
-Plans are freeform markdown subsections with the instance id in the heading.
+Use the hub's maintained helpers and README for the current fragment and render
+formats. The board is a coordination view, not a second backlog or an editable
+Sessions/Recent/Plans schema. Durable execution status belongs to the owning
+gap YAML or lane plan; TRACKER is generated from those sources and initiative
+membership. Do not recreate the retired vendor-local table format here.
