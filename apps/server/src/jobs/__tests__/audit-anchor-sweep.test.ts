@@ -364,6 +364,7 @@ describe('runAuditAnchorSweep (PGlite)', () => {
 
     expect(result.anchorsInserted).toBe(0);
     expect(result.tenantsWaiting).toBe(1);
+    expect(result.nextReadinessAtMs).toBe(new Date('2026-07-23T13:00:00.000Z').getTime());
     const anchors = await db.select().from(auditAnchors);
     expect(anchors).toHaveLength(0);
   });
