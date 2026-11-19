@@ -14,15 +14,16 @@ function concurrencyBlock(yml: string): string {
 }
 
 describe('required-check workflows do not cancel in-flight runs', () => {
-  it.each(['.github/workflows/security.yml', '.github/workflows/security-review-gate.yml'])(
-    '%s sets cancel-in-progress: false',
-    (rel) => {
-      const yml = readFileSync(path.join(repoRoot, rel), 'utf8');
-      const block = concurrencyBlock(yml);
-      expect(block).toContain('cancel-in-progress: false');
-      expect(block).not.toContain('cancel-in-progress: true');
-    },
-  );
+  it.each([
+    '.github/workflows/security.yml',
+    '.github/workflows/security-review-gate.yml',
+    '.github/workflows/commit-signatures.yml',
+  ])('%s sets cancel-in-progress: false', (rel) => {
+    const yml = readFileSync(path.join(repoRoot, rel), 'utf8');
+    const block = concurrencyBlock(yml);
+    expect(block).toContain('cancel-in-progress: false');
+    expect(block).not.toContain('cancel-in-progress: true');
+  });
 });
 
 describe('required PR checks rerun after a base branch edit', () => {
@@ -32,6 +33,7 @@ describe('required PR checks rerun after a base branch edit', () => {
     '.github/workflows/no-submodules.yml',
     '.github/workflows/check-client-leaks.yml',
     '.github/workflows/backflow-main-into-test.yml',
+    '.github/workflows/commit-signatures.yml',
   ])('%s includes edited without dropping ordinary PR events', (rel) => {
     const yml = readFileSync(path.join(repoRoot, rel), 'utf8');
     const trigger = yml.match(/ {2}pull_request(?:_target)?:\n(?: {4}[^\n]+\n)+/g)?.[0];

@@ -1,0 +1,65 @@
+name: Commit Signatures
+
+# pull_request_target runs this file from the base branch. The job checks out
+# that same base commit and does not check out the pull request. A change to
+# this file or the checker cannot grade the pull request that introduces it.
+#
+# Job name stays "Commit signatures" so a ruleset can require it later.
+# Do not mark it required until open pull requests with unsigned commits are
+# re-signed or replaced.
+
+on:
+  pull_request_target:
+    branches: [test, main]
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  # Required-check shape. Cancelling an in-flight run leaves CANCELLED on the
+  # head SHA and blocks merge once the check is required.
+  group: commit-signatures-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  commit-signatures:
+    name: Commit signatures
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout base signature check
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/commit-signatures.mjs
+          sparse-checkout-cone-mode: false
+
+      - name: Require GitHub-verified commits
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          case "$BASE_SHA" in
+            *[!0-9a-fA-F]*) echo "::error::Base sha is not hex"; exit 1 ;;
+          esac
+          case "$HEAD_SHA" in
+            *[!0-9a-fA-F]*) echo "::error::Head sha is not hex"; exit 1 ;;
+          esac
+          case "${#BASE_SHA}" in
+            40|64) ;;
+            *) echo "::error::Unexpected base sha length"; exit 1 ;;
+          esac
+          case "${#HEAD_SHA}" in
+            40|64) ;;
+            *) echo "::error::Unexpected head sha length"; exit 1 ;;
+          esac
+          payload="$RUNNER_TEMP/compare.json"
+          gh api "repos/${REPO}/compare/${BASE_SHA}...${HEAD_SHA}" > "$payload"
+          node scripts/ci/commit-signatures.mjs < "$payload"
