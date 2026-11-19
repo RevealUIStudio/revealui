@@ -48,7 +48,7 @@ const story: ShowcaseStory = {
     {
       name: 'Default trigger (no `as`)',
       description:
-        'Without `as`, DropdownButton renders its built-in token-styled trigger primitive — a neutral surface with the shared --ring focus ring. Use this when you do not need a custom Button.',
+        'Without `as`, DropdownButton renders its built-in token-styled trigger primitive: a neutral surface with the shared --ring focus ring. Use this when you do not need a custom Button.',
       render: () => (
         <Dropdown>
           <DropdownButton>Options</DropdownButton>
