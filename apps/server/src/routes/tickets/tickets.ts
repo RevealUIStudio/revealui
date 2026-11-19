@@ -2,6 +2,7 @@ import { TICKET_PRIORITIES, TICKET_STATUSES, TICKET_TYPES } from '@revealui/cont
 import * as boardQueries from '@revealui/db/queries/boards';
 import * as ticketQueries from '@revealui/db/queries/tickets';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
+import { isAdmin } from '@revealui/utils/validation';
 import { HTTPException } from 'hono/http-exception';
 import { asNonEmptyTuple } from '../../lib/type-guards.js';
 import type { Variables } from '../_helpers/access.js';
@@ -128,7 +129,7 @@ app.openapi(
     if (!board) throw new HTTPException(404, { message: 'Board not found' });
     assertBoardTenantAccess(board, c.get('tenant'));
     const user = c.get('user');
-    if (board.ownerId && board.ownerId !== user?.id && user?.role !== 'admin') {
+    if (board.ownerId && board.ownerId !== user?.id && !isAdmin(user)) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const tickets = await ticketQueries.getTicketsByBoard(db, boardId, filters);

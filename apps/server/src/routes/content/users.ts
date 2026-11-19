@@ -17,7 +17,7 @@ import * as userQueries from '@revealui/db/queries/users';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { isPlatformSuperAdmin } from '@revealui/utils/validation';
 import { HTTPException } from 'hono/http-exception';
-import { isAdminRole } from '../../lib/access.js';
+import { isAdmin as holdsAdmin } from '../../lib/access.js';
 import { ErrorSchema, IdParam } from '../_helpers/content-schemas.js';
 import { dateToString, nullableDateToString } from '../_helpers/serialize.js';
 import type { ContentVariables } from './index.js';
@@ -131,7 +131,7 @@ app.openapi(
   async (c) => {
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-    if (!isAdminRole(user.role)) {
+    if (!holdsAdmin(user)) {
       throw new HTTPException(403, { message: 'Admin access required' });
     }
 
@@ -193,10 +193,12 @@ app.openapi(
     const { id } = c.req.valid('param');
 
     const db = c.get('db');
-    // Canonical verified platform operators may validate fulfillment buyers,
-    // including an operator whose account-wide role is viewer.
+    // Non-admins can only view their own profile. The shared ladder reads the
+    // session user, not the role string alone. A canonical verified platform
+    // operator may still look up a fulfillment buyer, including an operator
+    // whose account-wide role is viewer.
     if (
-      !isAdminRole(sessionUser.role) &&
+      !holdsAdmin(sessionUser) &&
       sessionUser.id !== id &&
       !isPlatformSuperAdmin(await getSiteContentActor(db, sessionUser.id))
     ) {
@@ -252,7 +254,7 @@ app.openapi(
     if (!sessionUser) throw new HTTPException(401, { message: 'Authentication required' });
 
     const { id } = c.req.valid('param');
-    const isAdmin = isAdminRole(sessionUser.role);
+    const isAdmin = holdsAdmin(sessionUser);
 
     // Non-admins can only update their own profile
     if (!isAdmin && sessionUser.id !== id) {
@@ -340,7 +342,7 @@ app.openapi(
   async (c) => {
     const sessionUser = c.get('user');
     if (!sessionUser) throw new HTTPException(401, { message: 'Authentication required' });
-    if (!isAdminRole(sessionUser.role)) {
+    if (!holdsAdmin(sessionUser)) {
       throw new HTTPException(403, { message: 'Admin access required' });
     }
 

@@ -17,6 +17,7 @@
 
 import { getSession } from '@revealui/auth/server';
 import { type LoggingLevel, McpCapabilityError } from '@revealui/mcp/client';
+import { isAdmin } from '@revealui/utils/validation';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import {
@@ -52,7 +53,7 @@ export async function GET(
   if (!authSession) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  if (authSession.user.role !== 'admin') {
+  if (!isAdmin(authSession.user)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

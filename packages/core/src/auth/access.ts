@@ -1,3 +1,9 @@
+import {
+  hasAnyRole as subjectHasAnyRole,
+  hasRole as subjectHasRole,
+  isAdmin as subjectIsAdmin,
+  isSuperAdmin as subjectIsSuperAdmin,
+} from '@revealui/utils/validation';
 import type { AccessResult } from '../types/index.js';
 
 // User type with roles for access control
@@ -23,21 +29,17 @@ export const authenticated: RevealAccessFunction = ({ req }) => {
 };
 
 export function isAdmin({ req }: { req: AccessRequest }): boolean {
-  return !!req.user && !!req.user.roles?.includes('admin');
+  return subjectIsAdmin(req.user);
 }
 
 export function isSuperAdmin({ req }: { req: AccessRequest }): boolean {
-  return !!req.user && !!req.user.roles?.includes('super-admin');
+  return subjectIsSuperAdmin(req.user);
 }
 
 export function hasRole(role: string): RevealAccessFunction {
-  return ({ req }) => {
-    return !!req.user && !!req.user.roles?.includes(role);
-  };
+  return ({ req }) => subjectHasRole(req.user, role);
 }
 
 export function hasAnyRole(roles: string[]): RevealAccessFunction {
-  return ({ req }) => {
-    return !!req.user && roles.some((role) => req.user?.roles?.includes(role));
-  };
+  return ({ req }) => subjectHasAnyRole(req.user, roles);
 }

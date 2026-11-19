@@ -1,3 +1,4 @@
+import { isAdmin as holdsAdmin } from '@revealui/utils/validation';
 import { Role } from '@/lib/access/permissions/roles';
 import { hasRole } from './hasRole';
 
@@ -20,6 +21,7 @@ export const isAdminOrPublished = ({
     return false;
   }
 
-  // Check if the user has admin roles
-  return hasRole(user, [Role.UserAdmin, Role.TenantAdmin]);
+  // Shell admin (ladder) or an exact tenant-admin. Tenant-admin is a
+  // different plane and stays an exact match.
+  return holdsAdmin(user) || hasRole(user, [Role.TenantAdmin]);
 };

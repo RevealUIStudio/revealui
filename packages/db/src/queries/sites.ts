@@ -691,6 +691,14 @@ export async function getSiteContentActor(
   return actor ?? null;
 }
 
+/** Per-site collaborator ACL. Not the platform users.role ladder. */
+function siteCollaboratorHolds(
+  membershipRole: string | null | undefined,
+  expected: 'admin' | 'editor',
+): boolean {
+  return membershipRole === expected;
+}
+
 /** Site authority. Agents may propose session drafts; human editors own live writes. */
 export async function actorCanManageSite(
   db: Database,
@@ -713,7 +721,10 @@ export async function actorCanManageSite(
       and(eq(siteCollaborators.siteId, siteId), eq(siteCollaborators.userId, String(actor.id))),
     )
     .limit(1);
-  return membership?.role === 'admin' || (action !== 'admin' && membership?.role === 'editor');
+  return (
+    siteCollaboratorHolds(membership?.role, 'admin') ||
+    (action !== 'admin' && siteCollaboratorHolds(membership?.role, 'editor'))
+  );
 }
 
 /** Live-site scope for queries whose caller already supplies authorization. */

@@ -43,7 +43,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const aiGate = await checkAIFeatureGate(session.user.id);
     if (aiGate) return aiGate;
 
-    if (!requireAdminRole(session.user.role)) {
+    if (!requireAdminRole(session.user)) {
       return createApplicationErrorResponse('Forbidden', 'FORBIDDEN', 403);
     }
 
