@@ -63,6 +63,7 @@ export {
   AgentSecuritySchema,
   type AgentSpec,
   AgentSpecSchema,
+  approvalConfigFromAgentSecurity,
   createAgentSpec,
   safeValidateAgentSpec,
   validateAgentSpec,
