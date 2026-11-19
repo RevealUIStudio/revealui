@@ -423,6 +423,12 @@ jobs:
           CI: "true"
           SKIP_ENV_VALIDATION: "true"
 
+      - name: Security audit label decision (hard fail)
+        run: pnpm exec vitest run scripts/validate/__tests__/sec-audit-label-decision.test.ts
+        env:
+          CI: "true"
+          SKIP_ENV_VALIDATION: "true"
+
   # ---------------------------------------------------------------------------
   # Phase 1.5: Drizzle migration apply (all branches)
   #
