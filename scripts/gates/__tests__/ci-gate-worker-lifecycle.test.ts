@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -61,8 +61,22 @@ it('retains admission in an actual validator after abrupt gate-parent terminatio
     await expect.poll(() => spawnSync('flock', ['--nonblock', lock, 'true']).status).toBe(0);
     expect(existsSync(lock)).toBe(true);
   } finally {
-    if (worker) process.kill(-worker, 'SIGKILL');
     if (parent.exitCode === null && parent.signalCode === null) parent.kill('SIGKILL');
     await exited;
+    // The parent can die before the test reads its marker; a live validator
+    // may still own the lock. Reclaim only this fixture's recorded process
+    // group, then prove its inherited lease is gone before deleting the root.
+    if (existsSync(lock) && spawnSync('flock', ['--nonblock', lock, 'true']).status !== 0) {
+      const ownedWorker =
+        worker ?? (existsSync(marker) ? Number(readFileSync(marker, 'utf8')) : NaN);
+      assert.ok(Number.isSafeInteger(ownedWorker) && ownedWorker > 1);
+      try {
+        process.kill(-ownedWorker, 'SIGKILL');
+      } catch (error) {
+        expect((error as NodeJS.ErrnoException).code).toBe('ESRCH');
+      }
+      await expect.poll(() => spawnSync('flock', ['--nonblock', lock, 'true']).status).toBe(0);
+    }
+    rmSync(directory, { recursive: true, force: true });
   }
 }, 60000);
