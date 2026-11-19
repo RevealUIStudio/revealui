@@ -8,22 +8,22 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { LEGACY_SLUG_ALIASES, SLUG_TO_PATH } from '../../app/lib/slug-manifest';
 
 const vercel = JSON.parse(
   readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../../vercel.json'), 'utf8'),
 ) as {
+  trailingSlash?: boolean;
+  cleanUrls?: boolean;
   rewrites?: Array<{ source: string; destination: string }>;
-  redirects?: Array<{ source: string; destination: string }>;
+  redirects?: Array<{ source: string; destination: string; permanent?: boolean }>;
 };
 
-describe('docs vercel.json SPA rewrite', () => {
-  it('does not catch-all rewrite markdown fetches to index.html', () => {
+describe('docs vercel.json routing', () => {
+  it('does not rewrite unknown paths or markdown fetches to index.html', () => {
     const rewrites = vercel.rewrites ?? [];
     const spa = rewrites.filter((rule) => rule.destination === '/index.html');
-    expect(spa.length).toBeGreaterThan(0);
-    for (const rule of spa) {
-      expect(rule.source.includes('md')).toBe(true);
-    }
+    expect(spa).toEqual([{ source: '/index', destination: '/index.html' }]);
     expect(
       rewrites.some((rule) => rule.source === '/(.*)' && rule.destination === '/index.html'),
     ).toBe(false);
@@ -37,5 +37,56 @@ describe('docs vercel.json SPA rewrite', () => {
     expect(bySource.get('/reference/auth')).toBe('/auth');
     expect(bySource.get('/reference/db')).toBe('/database');
     expect(bySource.get('/forge')).toBe('/enterprise');
+    expect(bySource.get('/api')).toBe('/api/rest-api');
+    expect(bySource.get('/mcp')).toBe('/pro/mcp');
+    expect(bySource.get('/index.html')).toBe('/');
+  });
+
+  it('normalizes trailing slashes and serves extensionless HTML shells', () => {
+    expect(vercel.trailingSlash).toBe(false);
+    expect(vercel.cleanUrls).toBe(true);
+  });
+
+  it('sends filename URLs and legacy aliases to the live route', () => {
+    const bySource = new Map(
+      (vercel.redirects ?? []).map((rule) => [rule.source, rule.destination]),
+    );
+    const slugByFile = new Map(Object.entries(SLUG_TO_PATH).map(([slug, file]) => [file, slug]));
+
+    function extensionless(file: string): string {
+      const suffix = '.md';
+      return file.endsWith(suffix) ? file.slice(0, -suffix.length) : file;
+    }
+
+    function livePath(file: string, slug: string): string {
+      if (file === 'api/rest-api/README.md') return '/api/rest-api';
+      if (file === 'INDEX.md') return '/index';
+      if (file === 'api/README.md') return '/api/readme';
+      if (file === 'guides/README.md') return '/guides/readme';
+      return `/${slug}`;
+    }
+
+    for (const [slug, file] of Object.entries(SLUG_TO_PATH)) {
+      const live = livePath(file, slug);
+      const raw = `/${extensionless(file)}`;
+      if (raw !== live) {
+        expect(bySource.get(raw), raw).toBe(live);
+      }
+      const slugPath = `/${slug}`;
+      if (slugPath !== live) {
+        expect(bySource.get(slugPath), slugPath).toBe(live);
+      }
+    }
+
+    for (const [alias, file] of Object.entries(LEGACY_SLUG_ALIASES)) {
+      const slug = slugByFile.get(file) ?? '';
+      expect(bySource.get(`/${alias}`), alias).toBe(livePath(file, slug));
+    }
+
+    expect(bySource.get('/guides')).toBe('/guides/readme');
+    expect(bySource.get('/docs')).toBe('/');
+    expect(bySource.get('/WHAT_WORKS_TODAY')).toBe('/what-works-today');
+    expect(bySource.get('/security/AUDIT_RECEIPTS')).toBe('/security/audit-receipts');
+    expect(bySource.get('/vaughn')).toBe('/harness-protocol');
   });
 });

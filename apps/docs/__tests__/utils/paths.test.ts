@@ -95,6 +95,14 @@ describe('resolveDocPath', () => {
       expect(result.markdownPath).toBe('/guides/getting-started.md');
     });
 
+    it('loads README.md for a readme segment', () => {
+      const result = resolveDocPath({
+        section: 'guides',
+        routePath: 'readme',
+      });
+      expect(result.markdownPath).toBe('/guides/README.md');
+    });
+
     it('should handle nested paths', () => {
       const result = resolveDocPath({
         section: 'guides',

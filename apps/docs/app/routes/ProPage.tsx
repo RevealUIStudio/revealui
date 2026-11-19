@@ -5,6 +5,8 @@ import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { NotFoundPage } from '../components/NotFoundPage';
 import { useNoindex } from '../hooks/useNoindex';
 import { useWildcardPath } from '../hooks/useWildcardPath';
+import { applyDocHead } from '../lib/head';
+import { titleFromMarkdown } from '../lib/route-paths';
 import { loadMarkdownFile, renderMarkdown } from '../utils/markdown';
 import { sanitizePath } from '../utils/paths';
 
@@ -80,6 +82,18 @@ function ProContent() {
       ctrl.abort();
     };
   }, [routePath]);
+
+  useEffect(() => {
+    if (loading) {
+      return;
+    }
+    if (notFound) {
+      applyDocHead({ title: 'Not Found', noindex: true });
+      return;
+    }
+    const page = titleFromMarkdown(content, 'Pro');
+    applyDocHead(page);
+  }, [loading, notFound, content]);
 
   if (loading) {
     return <LoadingSkeleton />;

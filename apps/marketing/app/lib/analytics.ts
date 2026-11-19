@@ -22,6 +22,7 @@
 // Do not add `@vercel/analytics` / Vercel Web Analytics.
 //
 import { isHipaaComplianceProfile } from './compliance';
+import { DOCUMENT_HEAD_EVENT } from './document-head';
 
 // Privacy disclosure: Cookie Policy §3 describes this sink. Adding Umami (or
 // Fly.io as its host) to Privacy Policy third-parties / the Subprocessors
@@ -233,36 +234,17 @@ export function track(event: string, props?: Record<string, string | number | bo
 }
 
 let mounted = false;
-let historyWrapped = false;
-
-function wrapHistoryMethod(method: 'pushState' | 'replaceState'): void {
-  const history = window.history;
-  const original = history[method];
-  if (typeof original !== 'function') {
-    return;
-  }
-  history[method] = function umamiHistoryProxy(
-    this: History,
-    ...args: Parameters<History['pushState']>
-  ): void {
-    original.apply(this, args);
-    trackUmamiPageview();
-  };
-}
 
 function installUmamiPageviewTracking(): void {
+  // SPA navigations publish revealui:document-head after the route title is
+  // written. Sending on pushState captured the previous page title.
+  document.addEventListener(DOCUMENT_HEAD_EVENT, () => {
+    trackUmamiPageview();
+  });
   if (typeof window.addEventListener === 'function') {
-    window.addEventListener('popstate', () => {
-      trackUmamiPageview();
-    });
     window.addEventListener(COOKIE_CONSENT_EVENT, () => {
       trackUmamiPageview();
     });
-  }
-  if (!historyWrapped && window.history) {
-    wrapHistoryMethod('pushState');
-    wrapHistoryMethod('replaceState');
-    historyWrapped = true;
   }
   trackUmamiPageview();
 }
