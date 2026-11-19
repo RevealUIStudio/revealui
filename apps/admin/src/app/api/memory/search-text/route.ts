@@ -10,6 +10,7 @@
 import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
+import { resolveMemoryReadScope } from '@/lib/memory/memory-read-scope';
 import { checkAIMemoryFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response';
 import { extractRequestContext } from '@/lib/utils/request-context';
@@ -100,15 +101,26 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Generate embedding from query text
     const embedding = await embeddingsMod.generateEmbedding(query);
 
-    // Perform vector search  -  enforce userId so non-admins can only search their own memories
-    // Strip siteId from options for non-admins to prevent cross-tenant data access
     const service = new vectorMod.VectorMemoryService();
-    const isAdmin = authSession.user.role === 'admin';
+    const memoryScope = await resolveMemoryReadScope({
+      userId: authSession.user.id,
+      user: authSession.user,
+      requestedSiteId: options.siteId,
+    });
+    if (!memoryScope) {
+      return NextResponse.json({
+        success: true,
+        results: [],
+        count: 0,
+        query: query.substring(0, 100),
+      });
+    }
     const safeOptions = {
-      ...options,
+      siteIds: memoryScope.siteIds,
+      agentId: options.agentId,
+      type: options.type,
       limit: options.limit ?? 10,
       threshold: options.threshold ?? 0.5,
-      ...(!isAdmin ? { userId: authSession.user.id, siteId: undefined } : {}),
     };
     const results = await service.searchSimilar(embedding.vector, safeOptions);
 
