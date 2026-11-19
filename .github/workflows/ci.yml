@@ -423,6 +423,12 @@ jobs:
           CI: "true"
           SKIP_ENV_VALIDATION: "true"
 
+      - name: Production deploy ref guard contract (hard fail)
+        run: pnpm exec vitest run scripts/ci/__tests__/deploy-ref-guard.test.ts
+        env:
+          CI: "true"
+          SKIP_ENV_VALIDATION: "true"
+
   # ---------------------------------------------------------------------------
   # Phase 1.5: Drizzle migration apply (all branches)
   #
