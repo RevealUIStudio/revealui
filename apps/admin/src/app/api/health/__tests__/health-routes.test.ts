@@ -204,6 +204,60 @@ describe('GET /api/health', () => {
     expect(body.checks.find((c) => c.name === 'database')?.status).toBe('unhealthy');
   });
 
+  it('unauthenticated + PRODUCTION self-test failure: bare 503, no detail', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const { audit, clearAuditSelfTestFailure, recordAuditSelfTestFailure } = await import(
+      '@revealui/security/server'
+    );
+    const probeSpy = vi.spyOn(audit, 'isInMemoryStorage').mockReturnValue(false);
+    recordAuditSelfTestFailure('seq allocation failed');
+    try {
+      mockGetSession.mockResolvedValue(null);
+      const { GET } = await loadRoute();
+      const res = await GET({ headers: { get: () => null } } as never);
+
+      expect((res as { status: number }).status).toBe(503);
+      const body = (res as unknown as { body: Record<string, unknown> }).body;
+      expect(body).toEqual({ status: 'unhealthy' });
+      expect(mockGetRevealUIInstance).not.toHaveBeenCalled();
+    } finally {
+      probeSpy.mockRestore();
+      clearAuditSelfTestFailure();
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it('authenticated admin + PRODUCTION self-test failure: unhealthy check carries the write error', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const { audit, clearAuditSelfTestFailure, recordAuditSelfTestFailure } = await import(
+      '@revealui/security/server'
+    );
+    const probeSpy = vi.spyOn(audit, 'isInMemoryStorage').mockReturnValue(false);
+    recordAuditSelfTestFailure('seq allocation failed');
+    try {
+      mockGetSession.mockResolvedValue({ user: { role: 'admin' } });
+      const mockFind = vi.fn().mockResolvedValue({ docs: [] });
+      mockGetRevealUIInstance.mockResolvedValue({ find: mockFind });
+
+      const { GET } = await loadRoute();
+      const res = await GET({ headers: { get: () => null } } as never);
+
+      expect((res as { status: number }).status).toBe(503);
+      const body = (
+        res as unknown as {
+          body: { checks: Array<{ name: string; status: string; message?: string }> };
+        }
+      ).body;
+      const auditCheck = body.checks.find((check) => check.name === 'audit-storage');
+      expect(auditCheck?.status).toBe('unhealthy');
+      expect(auditCheck?.message).toContain('seq allocation failed');
+    } finally {
+      probeSpy.mockRestore();
+      clearAuditSelfTestFailure();
+      vi.unstubAllEnvs();
+    }
+  });
+
   it('HEAD returns 200 with no body', async () => {
     const { HEAD } = await loadRoute();
     const res = await HEAD();
