@@ -48,10 +48,14 @@
   },
   "peerDependencies": {
     "@revealui/ai": "workspace:^",
+    "@revealui/harnesses": "workspace:^",
     "@revealui/services": "workspace:^"
   },
   "peerDependenciesMeta": {
     "@revealui/ai": {
+      "optional": true
+    },
+    "@revealui/harnesses": {
       "optional": true
     },
     "@revealui/services": {
