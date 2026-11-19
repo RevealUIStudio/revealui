@@ -33,10 +33,11 @@ describe('RevealUIWordmark', () => {
     expect(textWrapper?.style.fontFamily).not.toContain('Space Grotesk');
   });
 
-  it('colors "Reveal" with the brand-text token and "UI" with the accent token', () => {
+  it('colors "Reveal" with the brand-text token and "UI" with the AA warning-text token', () => {
     const { getByText } = render(<RevealUIWordmark />);
     expect(getByText('Reveal').style.color).toContain('--rvui-brand-text');
-    expect(getByText('UI').style.color).toContain('--rvui-accent');
+    expect(getByText('UI').style.color).toContain('--rvui-warning-text');
+    expect(getByText('UI').style.color.includes('--rvui-accent')).toBe(false);
   });
 
   it('keeps the same master asset when reveal is false', () => {
@@ -45,6 +46,19 @@ describe('RevealUIWordmark', () => {
     expect(container.querySelector('img[src="/revealui-logo-dark.svg"]')).toBeTruthy();
     expect(container.querySelector('path')).toBeNull();
     expect(container.innerHTML.includes('invert')).toBe(false);
+  });
+
+  it('accepts a Studio label while keeping the transparent mark', () => {
+    const { container, getByText } = render(<RevealUIWordmark label="RevealUI Studio" />);
+    expect(container).toHaveTextContent('RevealUI Studio');
+    expect(getByText('Reveal')).toBeInTheDocument();
+    expect(getByText('UI')).toBeInTheDocument();
+    const suffix = [...container.querySelectorAll('span')].find(
+      (el) => el.textContent === ' Studio',
+    );
+    expect(suffix).toBeTruthy();
+    expect(container.querySelector('img[src="/revealui-logo.svg"]')).toBeTruthy();
+    expect(container.querySelector('[class*="bg-"]')).toBeNull();
   });
 
   it('merges a custom className onto the outer wrapper', () => {

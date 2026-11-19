@@ -57,7 +57,7 @@ export function ShowcaseShell({ story }: ShowcaseShellProps) {
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold tracking-tight text-ink">{story.name}</h1>
-            <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
+            <span className="rounded-full bg-primary-subtle px-2 py-0.5 text-[10px] font-medium text-primary-text">
               {story.category}
             </span>
           </div>
@@ -116,7 +116,7 @@ export function ShowcaseShell({ story }: ShowcaseShellProps) {
             onClick={() => setActiveTab(tab.id)}
             className={`h-auto rounded-none border-b-2 px-4 py-2 text-sm font-medium ${
               activeTab === tab.id
-                ? 'border-accent text-accent'
+                ? 'border-primary text-primary-text'
                 : 'border-transparent text-text-muted hover:text-text-secondary'
             }`}
           >
