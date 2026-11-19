@@ -10,6 +10,7 @@
  * See packages/ai/src/client/hooks/useAgentStream.ts for the React hook.
  */
 
+import { isAiDisabled } from '@revealui/core/ai-runtime-guards';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import type { ElicitationHandler, McpClient, SamplingHandler } from '@revealui/mcp/client';
@@ -149,6 +150,13 @@ const agentStreamRoute = createRoute({
 });
 
 app.openapi(agentStreamRoute, async (c) => {
+  if (isAiDisabled()) {
+    return c.json(
+      { success: false, error: 'AI is temporarily disabled.', code: 'AI_DISABLED' },
+      503,
+    );
+  }
+
   const user = c.get('user');
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });

@@ -76,6 +76,7 @@ import { editSessionDocs, editSessionEvents, editSessions } from './edit-session
 import { errorEvents } from './error-events.js';
 import { workspaceInferenceConfigs } from './inference-configs.js';
 import { licenses } from './licenses.js';
+import { llmCallReceipts } from './llm-call-receipts.js';
 import { magicLinks } from './magic-links.js';
 import { marketplaceServers, marketplaceTransactions } from './marketplace.js';
 import { mcpApprovalSettings, mcpToolApprovals, mcpToolTrustRules } from './mcp-approvals.js';
@@ -128,6 +129,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   revmarketDisputes: many(revmarketDisputes),
   mcpApprovalsRequested: many(mcpToolApprovals, { relationName: 'mcpApprovalRequester' }),
   mcpApprovalsDecided: many(mcpToolApprovals, { relationName: 'mcpApprovalDecider' }),
+  llmCallReceipts: many(llmCallReceipts),
 }));
 
 export const tenantsRelations = relations(tenants, () => ({}));
@@ -137,6 +139,7 @@ export const accountsRelations = relations(accounts, ({ many, one }) => ({
   subscriptions: many(accountSubscriptions),
   entitlements: one(accountEntitlements),
   usageMeters: many(usageMeters),
+  llmCallReceipts: many(llmCallReceipts),
   mcpToolApprovals: many(mcpToolApprovals),
   mcpToolTrustRules: many(mcpToolTrustRules),
   mcpApprovalSettings: one(mcpApprovalSettings),
@@ -172,6 +175,17 @@ export const accountEntitlementsRelations = relations(accountEntitlements, ({ on
 export const usageMetersRelations = relations(usageMeters, ({ one }) => ({
   account: one(accounts, {
     fields: [usageMeters.accountId],
+    references: [accounts.id],
+  }),
+}));
+
+export const llmCallReceiptsRelations = relations(llmCallReceipts, ({ one }) => ({
+  user: one(users, {
+    fields: [llmCallReceipts.userId],
+    references: [users.id],
+  }),
+  account: one(accounts, {
+    fields: [llmCallReceipts.accountId],
     references: [accounts.id],
   }),
 }));

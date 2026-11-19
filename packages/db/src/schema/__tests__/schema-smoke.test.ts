@@ -55,6 +55,7 @@ import * as schema from '../index.js';
 import { workspaceInferenceConfigs } from '../inference-configs.js';
 import { jobs } from '../jobs.js';
 import { licenses } from '../licenses.js';
+import { llmCallReceipts } from '../llm-call-receipts.js';
 import { magicLinks } from '../magic-links.js';
 import { marketplaceServers, marketplaceTransactions } from '../marketplace.js';
 import { nodeIdMappings } from '../node-ids.js';
@@ -100,6 +101,7 @@ const allTables = [
   { table: accountEntitlements, name: 'account_entitlements' },
   { table: billingCatalog, name: 'billing_catalog' },
   { table: usageMeters, name: 'usage_meters' },
+  { table: llmCallReceipts, name: 'llm_call_receipts' },
   // admin.ts
   { table: posts, name: 'posts' },
   { table: media, name: 'media' },
@@ -224,6 +226,7 @@ const allRelations = [
   { relation: schema.accountSubscriptionsRelations, name: 'accountSubscriptionsRelations' },
   { relation: schema.accountEntitlementsRelations, name: 'accountEntitlementsRelations' },
   { relation: schema.usageMetersRelations, name: 'usageMetersRelations' },
+  { relation: schema.llmCallReceiptsRelations, name: 'llmCallReceiptsRelations' },
   { relation: schema.oauthAccountsRelations, name: 'oauthAccountsRelations' },
   { relation: schema.userApiKeysRelations, name: 'userApiKeysRelations' },
   { relation: schema.tenantProviderConfigsRelations, name: 'tenantProviderConfigsRelations' },

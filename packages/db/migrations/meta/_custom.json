@@ -209,6 +209,11 @@
       "tag": "0050_private_site_visibility",
       "rationale": "Normal drizzle-kit generation produced the companion SQL and snapshot from 0049. ADD COLUMN IF NOT EXISTS and a duplicate_object guard around the CHECK follow the maintained reapplication policy. No snapshot content was manually edited.",
       "missingSnapshot": false
+    },
+    {
+      "tag": "0055_llm_call_receipts",
+      "rationale": "Idempotent CREATE TABLE IF NOT EXISTS, CREATE INDEX IF NOT EXISTS, and duplicate_object foreign key guards are required for reapplication. drizzle-kit generate does not emit that form. The companion snapshot was produced by drizzle-kit generate from parent 0052 and only the filename was renamed so prevId still chains from that snapshot.",
+      "missingSnapshot": false
     }
   ]
 }

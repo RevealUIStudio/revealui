@@ -6,12 +6,14 @@
  * @see docs/specs/2026-08-09-gap-256-margin-admission-layers-2-3.md §2.2
  */
 
+import { LLM_CHAT_METER_NAME } from '@revealui/core/ai-runtime-guards';
+
 export type MeterCostClass = 'mcp' | 'cloud' | 'local_default' | 'ignore';
 
 export interface CostRates {
   /** Cents per minute of billable MCP duration */
   mcpMinuteCents: number;
-  /** Reserved for future hosted-provider meters */
+  /** Cents per minute for cloud LLM meters such as llm.chat */
   cloudMinuteCents: number;
   /** Free local / unknown-with-duration (default 0) */
   localMinuteCents: number;
@@ -35,7 +37,9 @@ export function classifyMeter(meterName: string): MeterCostClass {
   if (name.startsWith('mcp.') || name === 'mcp') {
     return 'mcp';
   }
-  // Future: cloud provider meter names land here as explicit cases before default.
+  if (name === LLM_CHAT_METER_NAME || name.startsWith('llm.')) {
+    return 'cloud';
+  }
   return 'local_default';
 }
 
