@@ -209,6 +209,12 @@
       "tag": "0050_private_site_visibility",
       "rationale": "Normal drizzle-kit generation produced the companion SQL and snapshot from 0049. ADD COLUMN IF NOT EXISTS and a duplicate_object guard around the CHECK follow the maintained reapplication policy. No snapshot content was manually edited.",
       "missingSnapshot": false
+    },
+    {
+      "tag": "0056_x402_settlements",
+      "rationale": "Hand-written CREATE TABLE IF NOT EXISTS for x402 settlement rows plus a unique index on payment_nonce. drizzle-kit generate against the current snapshot chain re-emits unrelated drift, so this migration is scoped to the new table only. Companion Drizzle schema is packages/db/src/schema/x402-settlements.ts.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Blocked on the pre-existing snapshot-debt backfill. Regen with pnpm --filter @revealui/db db:generate against a clean database once that backfill happens. The Drizzle table is the type contract."
     }
   ]
 }

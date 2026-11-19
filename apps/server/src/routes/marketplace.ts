@@ -23,6 +23,8 @@ import {
   marketplaceTransactions,
   type NewMarketplaceServer,
   type NewMarketplaceTransaction,
+  type NewX402Settlement,
+  x402Settlements,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { createSafeFetch } from '@revealui/security/server';
@@ -33,9 +35,14 @@ import { getServices, type ProtectedStripe } from '../lib/services-loader.js';
 import { authMiddleware } from '../middleware/auth.js';
 import {
   buildPaymentRequired,
+  decideNonceClaim,
   encodePaymentRequired,
   getAdvertisedCurrencyLabel,
   getX402Config,
+  readPaymentClaim,
+  settlementSupportsPayout,
+  settlePayment,
+  toUsdcAtomicUnits,
   verifyPayment,
 } from '../middleware/x402.js';
 
@@ -540,9 +547,10 @@ app.openapi(
  *
  * Payment flow:
  *   1. No X-PAYMENT-PAYLOAD → return 402 with server's price requirements
- *   2. X-PAYMENT-PAYLOAD present → verify with x402 facilitator
- *   3. Payment valid → proxy JSON-RPC request to the MCP server
- *   4. Record transaction; fire Stripe transfer if developer has Connect account
+ *   2. X-PAYMENT-PAYLOAD present → verify, then settle with the facilitator
+ *   3. Persist one settlement row keyed by payment nonce
+ *   4. Payment settled → proxy JSON-RPC request to the MCP server
+ *   5. Developer transfer runs only when that settled row matches the price
  */
 app.openapi(
   createRoute({
@@ -655,10 +663,69 @@ app.openapi(
     // Caller identity, recorded on the pending transaction below.
     const callerId = (c.get('user') as UserContext | undefined)?.id ?? null;
 
-    // Verify the payment proof against the facilitator
-    const verification = await verifyPayment(paymentHeader, resource, 'marketplace-invoke');
+    const claimResult = readPaymentClaim(paymentHeader, Date.now());
+    if (!claimResult.ok) {
+      return c.json({ error: claimResult.error }, 402);
+    }
+    const claim = claimResult.claim;
+    const expectedAmount = toUsdcAtomicUnits(server.pricePerCallUsdc);
+
+    const [existingSettlement] = await db
+      .select({ paymentNonce: x402Settlements.paymentNonce })
+      .from(x402Settlements)
+      .where(eq(x402Settlements.paymentNonce, claim.nonce))
+      .limit(1);
+    if (decideNonceClaim(existingSettlement ?? null) === 'replay') {
+      return c.json({ error: 'Payment was already used' }, 402);
+    }
+
+    // Verify, then settle. A verified payload that does not settle is not paid out.
+    const verification = await verifyPayment(
+      paymentHeader,
+      resource,
+      'marketplace-invoke',
+      server.pricePerCallUsdc,
+    );
     if (!verification.valid) {
       return c.json({ error: `Payment verification failed: ${verification.error}` }, 402);
+    }
+
+    const settled = await settlePayment(
+      paymentHeader,
+      resource,
+      'marketplace-invoke',
+      server.pricePerCallUsdc,
+    );
+    if (!settled.ok) {
+      return c.json({ error: `Payment settlement failed: ${settled.error}` }, 402);
+    }
+
+    const settlementRow: NewX402Settlement = {
+      id: crypto.randomUUID(),
+      paymentNonce: settled.nonce,
+      txHash: settled.txHash,
+      amount: settled.amount,
+      payer: settled.payer,
+      resource,
+      status: 'settled',
+      createdAt: new Date(),
+    };
+
+    try {
+      const inserted = await db
+        .insert(x402Settlements)
+        .values(settlementRow)
+        .onConflictDoNothing({ target: x402Settlements.paymentNonce })
+        .returning({ id: x402Settlements.id });
+      if (inserted.length === 0) {
+        return c.json({ error: 'Payment was already used' }, 402);
+      }
+    } catch (err) {
+      logger.error('Failed to record x402 settlement', err instanceof Error ? err : undefined, {
+        nonce: settled.nonce,
+        serverId: id,
+      });
+      return c.json({ error: 'Payment settlement could not be recorded' }, 402);
     }
 
     // ─── Proxy the MCP request ─────────────────────────────────────────────────
@@ -683,7 +750,7 @@ app.openapi(
       developerAmountUsdc: split.developerAmount,
       paymentMethod: 'x402',
       status: 'pending',
-      metadata: {},
+      metadata: { paymentNonce: settled.nonce, txHash: settled.txHash },
       createdAt: new Date(),
     };
 
@@ -769,9 +836,31 @@ app.openapi(
       );
     }
 
-    // Stripe transfer is best-effort  -  failures are logged at error level for admin review
+    // Stripe transfer is best-effort. It runs only when a settled row matches
+    // the listing price. A missing or mismatched row produces no payout.
+    let payoutAllowed = false;
     try {
-      if (callSucceeded && server.stripeAccountId) {
+      const [stored] = await db
+        .select({
+          amount: x402Settlements.amount,
+          resource: x402Settlements.resource,
+          status: x402Settlements.status,
+        })
+        .from(x402Settlements)
+        .where(eq(x402Settlements.paymentNonce, settled.nonce))
+        .limit(1);
+      payoutAllowed = settlementSupportsPayout(stored, expectedAmount, resource);
+    } catch (err) {
+      logger.error(
+        'Failed to load x402 settlement before developer payout',
+        err instanceof Error ? err : undefined,
+        { nonce: settled.nonce, serverId: id },
+      );
+      payoutAllowed = false;
+    }
+
+    try {
+      if (callSucceeded && server.stripeAccountId && payoutAllowed) {
         const developerCents = Math.round(Number.parseFloat(split.developerAmount) * 100);
         if (developerCents >= 50) {
           const stripe = await getStripeClient();
