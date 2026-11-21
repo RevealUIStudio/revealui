@@ -1,0 +1,6 @@
+# BEGIN GENERATED:studio-local-kg-mcp
+[mcp_servers.knowledge-graph]
+command = "revealui-mcp"
+args = ["knowledge-graph"]
+enabled = true
+# END GENERATED:studio-local-kg-mcp

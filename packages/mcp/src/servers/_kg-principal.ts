@@ -6,16 +6,19 @@
  * Does not import `@revealui/harnesses` (MCP stays free of the adapter layer).
  */
 
+import { createPrivateKey, createPublicKey } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import {
+  fingerprintAgentKey,
   type MemoryHarness,
   type MemoryPrincipal,
   STUDIO_LOCAL_TENANT,
 } from '@revealui/knowledge-graph/memory';
 
 const HARNESSES: readonly MemoryHarness[] = [
+  'codex',
   'claude',
   'grok',
   'cursor',
@@ -86,11 +89,17 @@ export function loadHookIdentity(
         parsed &&
         typeof parsed.did === 'string' &&
         typeof parsed.fingerprint === 'string' &&
-        typeof parsed.privateKeyPem === 'string'
+        typeof parsed.privateKeyPem === 'string' &&
+        parsed.did === `did:revealfleet:${agentId}:${parsed.fingerprint}`
       )
     ) {
       return null;
     }
+    const privateKey = createPrivateKey(parsed.privateKeyPem);
+    const publicKeyPem = createPublicKey(privateKey)
+      .export({ type: 'spki', format: 'pem' })
+      .toString();
+    if (fingerprintAgentKey(publicKeyPem) !== parsed.fingerprint) return null;
     return { agentId, did: parsed.did, fingerprint: parsed.fingerprint };
   } catch {
     return null;

@@ -1,3 +1,4 @@
+<!-- generated from .revealui/content/skills/revealui-conventions/SKILL.md -->
 ---
 name: revealui-conventions
 description: |

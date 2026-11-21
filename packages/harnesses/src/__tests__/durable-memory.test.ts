@@ -103,7 +103,7 @@ describe('formatDurableMemoryWarn', () => {
       data: {},
     });
     expect(deferred).toBe(
-      '[durable-memory] note: studio-local, unscoped by design (single-operator).\n',
+      '[durable-memory] note: memory source did not report scope enforcement.\n',
     );
     const enforced = formatDurableMemoryWarn({
       status: 'ok',

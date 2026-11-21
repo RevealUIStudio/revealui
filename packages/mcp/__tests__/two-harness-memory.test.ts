@@ -129,7 +129,7 @@ describe('Claude stdio + Grok stdio share studio-local memory', () => {
       data: { episodeId: string };
     }>(published);
     expect(written.status).toBe('ok');
-    expect(written.enforcement).toBe('deferred');
+    expect(written.enforcement).toBe('enforced');
     expect(written.data.episodeId).toBeTruthy();
 
     const searched = await grok.dispatch(call('kg_search', { query: TOKEN }));
@@ -143,7 +143,7 @@ describe('Claude stdio + Grok stdio share studio-local memory', () => {
       };
     }>(searched);
     expect(body.status).toBe('ok');
-    expect(body.enforcement).toBe('deferred');
+    expect(body.enforcement).toBe('enforced');
     expect(body.data.nodes.some((n) => n.naturalKey === `concept:${TOKEN}`)).toBe(true);
     expect(body.data.facts.some((f) => f.episodeIds.includes(written.data.episodeId))).toBe(true);
   });

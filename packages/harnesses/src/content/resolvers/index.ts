@@ -6,6 +6,7 @@ export type { ResolverContext, ResolverFn } from './types.js';
 
 const registry = new Map<string, ResolverFn>([
   ['PROJECT_NAME', project.PROJECT_NAME],
+  ['CONTENT_ROOT', project.CONTENT_ROOT],
   ['PHASE', project.PHASE],
   ['BRANCH_PIPELINE', project.BRANCH_PIPELINE],
   ['LICENSE_TIERS', project.LICENSE_TIERS],

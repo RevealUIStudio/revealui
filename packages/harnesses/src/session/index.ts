@@ -6,8 +6,12 @@ export {
 } from './archive-exit.js';
 export {
   type EndOptions,
+  openRuntimeSession,
   type RegisterOptions,
+  type RuntimeSessionLease,
+  type RuntimeSessionOptions,
   type SessionBoundaryResult,
+  type SessionStorageOptions,
   sessionEnd,
   sessionRegister,
 } from './boundary.js';

@@ -4,7 +4,7 @@
 
 import { getProcessStats, processRegistry } from '@revealui/core/monitoring';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { execCommand } from '../exec.js';
+import { execCommand, execParallel } from '../exec.js';
 import { createLogger } from '../logger.js';
 
 describe('Exec Monitoring Integration', () => {
@@ -15,6 +15,50 @@ describe('Exec Monitoring Integration', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     processRegistry.clear();
+  });
+
+  it('bounds command fanout, retains ordered failures, and executes queued commands', async () => {
+    let peak = 0;
+    const observer = setInterval(() => {
+      peak = Math.max(
+        peak,
+        processRegistry.getAll().filter((process) => process.status === 'running').length,
+      );
+    }, 5);
+    try {
+      const result = await execParallel(
+        [0, 1, 2, 3, 4].map((index) => [
+          process.execPath,
+          ['-e', `setTimeout(() => { process.exitCode = ${index}; }, 100)`],
+        ]),
+        { capture: true },
+      );
+      expect(peak).toBeGreaterThan(0);
+      expect(peak).toBeLessThanOrEqual(2);
+      expect(result.success).toBe(false);
+      expect(result.results[0]?.success, JSON.stringify(result.results)).toBe(true);
+      expect(result.results.map((entry) => entry.exitCode)).toEqual([0, 1, 2, 3, 4]);
+      expect(result.results.map((entry) => entry.success)).toEqual([
+        true,
+        false,
+        false,
+        false,
+        false,
+      ]);
+      expect(result.durationsMs.every((duration) => duration > 0)).toBe(true);
+    } finally {
+      clearInterval(observer);
+    }
+  });
+
+  it('rejects invalid batch limits before launching commands and accepts empty batches', async () => {
+    for (const concurrency of [0, -1, 1.5, Number.POSITIVE_INFINITY]) {
+      await expect(execParallel([['echo', ['never']]], { concurrency })).rejects.toThrow(
+        'concurrency',
+      );
+    }
+    expect(getProcessStats().total).toBe(0);
+    expect(await execParallel([])).toEqual({ success: true, results: [], durationsMs: [] });
   });
 
   it('should register process on spawn', async () => {

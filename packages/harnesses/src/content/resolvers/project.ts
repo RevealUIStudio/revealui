@@ -1,4 +1,7 @@
+import { contentRootRelative, loadManager } from '../../manager/paths.js';
 import type { ResolverFn } from './types.js';
+
+export const CONTENT_ROOT: ResolverFn = (ctx) => contentRootRelative(loadManager(ctx.projectRoot));
 
 export const PROJECT_NAME: ResolverFn = (ctx) => ctx.projectName ?? 'RevealUI';
 

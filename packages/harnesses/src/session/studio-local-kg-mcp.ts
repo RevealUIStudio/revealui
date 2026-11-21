@@ -10,6 +10,7 @@
  */
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import type { McpServerConfig } from '../protocol/adapter.js';
 
@@ -26,7 +27,28 @@ export const GROK_ADAPTER_MCP_REL = join('.revealui', 'adapters', 'grok', 'mcp.t
 const GENERATED_BEGIN = '# BEGIN GENERATED:studio-local-kg-mcp';
 const GENERATED_END = '# END GENERATED:studio-local-kg-mcp';
 
-export function studioLocalKnowledgeGraphMcpServer(): McpServerConfig {
+export interface StudioLocalMemoryRuntime {
+  agentId: string;
+  identityDir: string;
+  harness: string;
+}
+export function studioLocalKnowledgeGraphMcpServer(
+  runtime?: StudioLocalMemoryRuntime,
+): McpServerConfig {
+  if (runtime) {
+    // Resolve the installed maintained launcher, rather than requiring a global bin.
+    const cli = createRequire(import.meta.url).resolve('@revealui/mcp/cli');
+    return {
+      name: STUDIO_LOCAL_KG_MCP_SERVER_NAME,
+      command: process.execPath,
+      args: [cli, ...STUDIO_LOCAL_KG_MCP_ARGS],
+      env: {
+        REVDEV_AGENT_ID: runtime.agentId,
+        REVDEV_HOOK_IDENTITY_DIR: runtime.identityDir,
+        REVDEV_HARNESS: runtime.harness,
+      },
+    };
+  }
   return {
     name: STUDIO_LOCAL_KG_MCP_SERVER_NAME,
     command: STUDIO_LOCAL_KG_MCP_COMMAND,

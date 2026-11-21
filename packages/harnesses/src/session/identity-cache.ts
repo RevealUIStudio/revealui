@@ -161,21 +161,24 @@ export function daemonSessionCacheDir(): string {
   );
 }
 
-export function daemonSessionCachePath(ppid: number | string = process.ppid): string {
+export function daemonSessionCachePath(
+  ppid: number | string = process.ppid,
+  dir: string = daemonSessionCacheDir(),
+): string {
   const safe = String(ppid).replace(/[^a-zA-Z0-9_-]/g, '');
   if (!safe) {
     throw new Error('daemon-session-cache: invalid ppid');
   }
-  return join(daemonSessionCacheDir(), `${safe}.id`);
+  return join(dir, `${safe}.id`);
 }
 
 export function writeDaemonSessionCache(
   agentId: string,
   ppid: number | string = process.ppid,
+  dir: string = daemonSessionCacheDir(),
 ): void {
-  const dir = daemonSessionCacheDir();
   ensureDir(dir);
-  const target = daemonSessionCachePath(ppid);
+  const target = daemonSessionCachePath(ppid, dir);
   const tmp = `${target}.${process.pid}.tmp`;
   writeFileSync(tmp, agentId, { encoding: 'utf-8', mode: 0o600 });
   try {
@@ -191,17 +194,23 @@ export function writeDaemonSessionCache(
   }
 }
 
-export function readDaemonSessionCache(ppid: number | string = process.ppid): string | null {
+export function readDaemonSessionCache(
+  ppid: number | string = process.ppid,
+  dir: string = daemonSessionCacheDir(),
+): string | null {
   try {
-    return readFileSync(daemonSessionCachePath(ppid), 'utf-8').trim() || null;
+    return readFileSync(daemonSessionCachePath(ppid, dir), 'utf-8').trim() || null;
   } catch {
     return null;
   }
 }
 
-export function clearDaemonSessionCache(ppid: number | string = process.ppid): void {
+export function clearDaemonSessionCache(
+  ppid: number | string = process.ppid,
+  dir: string = daemonSessionCacheDir(),
+): void {
   try {
-    unlinkSync(daemonSessionCachePath(ppid));
+    unlinkSync(daemonSessionCachePath(ppid, dir));
   } catch {
     /* ok */
   }

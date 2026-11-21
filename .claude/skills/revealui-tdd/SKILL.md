@@ -1,3 +1,4 @@
+<!-- generated from .revealui/content/skills/revealui-tdd/SKILL.md -->
 ---
 name: revealui-tdd
 description: |

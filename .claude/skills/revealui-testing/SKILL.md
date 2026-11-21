@@ -1,3 +1,4 @@
+<!-- generated from .revealui/content/skills/revealui-testing/SKILL.md -->
 ---
 name: revealui-testing
 description: |
@@ -147,7 +148,7 @@ Do not keep stacking unrelated fixes without re-verifying the exact failing lane
 - `pnpm gate --phase=3 --no-build` is the fastest useful repro for test/build instability
 - if a gate hang appears, inspect shared process helpers before changing many tests
 - Turbo warnings about missing outputs are configuration debt, not test correctness
-- a warning-level test check in the gate still deserves cleanup if it hides real regressions
+- test failures block the gate; only checks explicitly marked warnOnly are advisory
 
 ## What Not To Do
 

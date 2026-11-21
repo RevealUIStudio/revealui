@@ -1,3 +1,4 @@
+<!-- generated from .revealui/content/agents/tester.md -->
 ---
 name: tester
 description: Runs tests for packages in isolation

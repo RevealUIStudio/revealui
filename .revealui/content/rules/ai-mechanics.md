@@ -13,8 +13,8 @@ Diagnose agent failures as **model / harness / context / smart zone / primary so
 ## Progressive disclosure
 
 - **Always-on:** this rule only.
-- **Full 20-term glossary + AX checklist (fleet):** `~/revealfleet/.jv/docs/research/2026-08-09-ai-mechanics-glossary-and-ax-checklist.md`
-- **Domain / RevealFleet names** stay in `~/revealfleet/.jv/docs/glossary.md`  -  do not mix.
+- **Full glossary and AX checklist:** use approved project references discovered through the project manager.
+- **Domain terminology:** use the project's configured glossary; keep private coordination locations out of exported instructions.
 
 ## Related
 

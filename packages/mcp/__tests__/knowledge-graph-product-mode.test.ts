@@ -51,6 +51,7 @@ async function seed(exec: KgExecutor): Promise<void> {
       repo: 'revealui',
       summary: 'the LLM client factory',
     },
+    { kind: 'symbol', name: 'getClient', naturalKey: `${FILE_KEY}#getClient` },
   ];
   await ingestEpisode(exec, {
     episode: {
@@ -61,7 +62,15 @@ async function seed(exec: KgExecutor): Promise<void> {
       contentRef: { repo: 'revealui' },
     },
     nodes,
-    edges: [],
+    edges: [
+      {
+        source: { kind: 'file', naturalKey: FILE_KEY },
+        target: { kind: 'symbol', naturalKey: `${FILE_KEY}#getClient` },
+        relation: 'exports',
+        fact: 'client.ts exports getClient',
+        validAt: T,
+      },
+    ],
   });
 }
 
@@ -224,7 +233,7 @@ describe('createKnowledgeGraphToolset product mode', () => {
     }>(search);
     expect(body.status).toBe('ok');
     expect(body.available).toBe(true);
-    expect(body.enforcement).toBe('deferred');
+    expect(body.enforcement).toBe('enforced');
     expect(body.deniedCount).toBe(0);
     expect(body.data.nodes.some((n) => n.naturalKey === FILE_KEY)).toBe(true);
 
@@ -271,7 +280,7 @@ describe('createKnowledgeGraphToolset product mode', () => {
       data: { episodeId: string; nodeCount: number };
     }>(result);
     expect(body.status).toBe('ok');
-    expect(body.data.nodeCount).toBe(1);
+    expect(body.data.nodeCount).toBe(2);
 
     const rows = await db.exec.query<{ source: string; content_ref: Record<string, unknown> }>(
       `SELECT source, content_ref FROM kg_episodes WHERE id = $1`,
@@ -381,6 +390,59 @@ describe('createKnowledgeGraphToolset product mode', () => {
     expect(ownBody.enforcement).toBe('enforced');
     expect(ownBody.data.nodes.some((n) => n.naturalKey === prefixed)).toBe(true);
   });
+
+  it.each(['private', 'workspace', 'tenant'])(
+    'enforces %s scope on studio-local reads, including node-only publications',
+    async (mode) => {
+      const db = await createTestDb();
+      teardowns.push(db.close);
+      const author =
+        mode === 'tenant'
+          ? hostedPrincipal()
+          : studioPrincipal({
+              workspaceId: mode === 'workspace' ? 'another-workspace' : undefined,
+            });
+      const writer = createKnowledgeGraphToolset({
+        executor: db.exec,
+        mode: 'product',
+        timeoutMs: 0,
+        trustBoundary: author.trustBoundary,
+        principalProvider: () => author,
+      });
+      expect(
+        (
+          await writer.dispatch(
+            call('kg_add_episode', {
+              episodeType: 'agent-fact',
+              content: 'saffron confidential finding',
+              classification: mode === 'private' ? 'private' : 'workspace',
+              nodes: [{ kind: 'concept', name: 'saffron', naturalKey: 'concept:saffron' }],
+            }),
+          )
+        ).isError,
+      ).not.toBe(true);
+      const reader = createKnowledgeGraphToolset({
+        executor: db.exec,
+        mode: 'product',
+        timeoutMs: 0,
+        principalProvider: () =>
+          studioPrincipal({
+            agentId: 'codex-reader',
+            did: 'did:revealfleet:codex-reader:fpcod',
+            fingerprint: 'fpcod',
+            harness: 'codex',
+          }),
+      });
+      expect(
+        parseJson<{ status: string }>(
+          await reader.dispatch(call('kg_search', { query: 'saffron' })),
+        ).status,
+      ).toBe('denied');
+      expect(
+        (await reader.dispatch(call('kg_get_node', { naturalKey: 'concept:saffron' }))).isError,
+      ).toBe(true);
+    },
+  );
 
   it('times out a hung dispatch as unavailable/timeout', async () => {
     const hanging: KgExecutor = {
@@ -512,4 +574,68 @@ describe('createKnowledgeGraphServer product mode over HTTP', () => {
     expect(body.status).toBe('ok');
     expect(Array.isArray(body.data.nodes)).toBe(true);
   });
+});
+
+describe('product memory metadata isolation', () => {
+  it.each(['private', 'workspace'] as const)(
+    'isolates reused keys in %s scope',
+    async (classification) => {
+      const db = await createTestDb();
+      teardowns.push(db.close);
+      const owner = studioPrincipal(classification === 'workspace' ? { workspaceId: 'alpha' } : {});
+      const peer = studioPrincipal({
+        did: 'did:revealfleet:codex-peer:fp',
+        agentId: 'codex-peer',
+        fingerprint: 'fp',
+        harness: 'codex',
+        ...(classification === 'workspace' ? { workspaceId: 'beta' } : {}),
+      });
+      const toolset = (principal: MemoryPrincipal) =>
+        createKnowledgeGraphToolset({
+          executor: db.exec,
+          mode: 'product',
+          timeoutMs: 0,
+          principalProvider: () => principal,
+          embedder: async () => {
+            throw new Error('synthetic no embeddings');
+          },
+        });
+      const first = toolset(peer),
+        second = toolset(owner);
+      const args = (name: string) => ({
+        episodeType: 'agent-fact',
+        classification,
+        content: name,
+        nodes: [
+          {
+            kind: 'concept',
+            naturalKey: 'concept:reused',
+            name,
+            summary: name,
+            attributes: { secret: name },
+          },
+        ],
+      });
+      expect((await first.dispatch(call('kg_add_episode', args('brassshared')))).isError).not.toBe(
+        true,
+      );
+      expect(
+        (await second.dispatch(call('kg_add_episode', args('saffronprivate')))).isError,
+      ).not.toBe(true);
+      const result = parseJson<{
+        status: string;
+        data: { nodes: Array<{ name: string; summary: string }> };
+      }>(await first.dispatch(call('kg_search', { query: 'brassshared' })));
+      expect(result.status).toBe('ok');
+      expect(result.data.nodes).toContainEqual(
+        expect.objectContaining({ name: 'brassshared', summary: 'brassshared' }),
+      );
+      expect(JSON.stringify(result)).not.toContain('saffronprivate');
+      expect(
+        parseJson<{ status: string }>(
+          await first.dispatch(call('kg_search', { query: 'saffronprivate' })),
+        ).status,
+      ).toBe('denied');
+    },
+  );
 });

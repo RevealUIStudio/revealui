@@ -1,5 +1,17 @@
 import { z } from 'zod';
 
+/** Portable paths are confined to their owning project directory. */
+export const RelativeManagerPathSchema = z
+  .string()
+  .min(1)
+  .refine(
+    (value) =>
+      !(value.includes('\\') || value.includes(':')) &&
+      value.split('/').every((part) => part.length > 0 && part !== '.' && part !== '..') &&
+      [...value].every((character) => character.charCodeAt(0) >= 32),
+    'Expected a portable relative path without traversal',
+  );
+
 /**
  * Project manager manifest (`.revealui/manager.json`).
  *
@@ -11,11 +23,11 @@ export const ManagerSchema = z.object({
   /** Human-readable project name */
   name: z.string().min(1).default('RevealUI project'),
   /** Relative content root under .revealui */
-  contentRoot: z.string().default('content'),
+  contentRoot: RelativeManagerPathSchema.default('content'),
   /** Day-to-day free surfaces (fleet uses .jv TRACKER; products may override) */
   tracker: z
     .object({
-      path: z.string().default('docs/TRACKER.md'),
+      path: RelativeManagerPathSchema.default('docs/TRACKER.md'),
       note: z.string().optional(),
     })
     .default({ path: 'docs/TRACKER.md' }),
@@ -25,6 +37,7 @@ export const ManagerSchema = z.object({
       z.object({
         id: z.enum([
           'claude-code',
+          'codex',
           'cursor',
           'opencode',
           'vscode',
@@ -33,13 +46,14 @@ export const ManagerSchema = z.object({
           'revdev',
         ]),
         /** Vendor tree relative to project root (null = consume .revealui/content) */
-        projectTree: z.string().nullable().default(null),
+        projectTree: RelativeManagerPathSchema.nullable().default(null),
         /** Equal rank — no adapter is more authoritative than another */
         rank: z.literal('equal').default('equal'),
       }),
     )
     .default([
       { id: 'claude-code', projectTree: '.claude', rank: 'equal' },
+      { id: 'codex', projectTree: null, rank: 'equal' },
       { id: 'cursor', projectTree: '.cursor', rank: 'equal' },
       { id: 'opencode', projectTree: '.opencode', rank: 'equal' },
       { id: 'vscode', projectTree: null, rank: 'equal' },
@@ -50,7 +64,7 @@ export const ManagerSchema = z.object({
   mcp: z
     .object({
       /** Path to mcp config with env-var token refs only (never secrets) */
-      configPath: z.string().default('mcp.json'),
+      configPath: RelativeManagerPathSchema.default('mcp.json'),
     })
     .default({ configPath: 'mcp.json' }),
   /** Package that owns definitions (build-time SSOT) */

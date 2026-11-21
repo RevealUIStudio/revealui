@@ -19,7 +19,8 @@
     "zod": "catalog:"
   },
   "optionalDependencies": {
-    "@revealui/ai": "workspace:*"
+    "@revealui/ai": "workspace:*",
+    "@revealui/mcp": "workspace:*"
   },
   "devDependencies": {
     "@revealui/dev": "workspace:*",

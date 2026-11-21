@@ -1,6 +1,7 @@
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   buildContentSnapshot,
@@ -24,6 +25,31 @@ describe('content snapshot (definition ↔ generator lock, GAP-406)', () => {
       rmSync(d, { recursive: true, force: true });
     }
     temps.length = 0;
+  });
+
+  it('resolves the same package snapshots from source and bundled entry layouts', () => {
+    const root = mkdtempSync(join(tmpdir(), 'snapshot-owner-'));
+    temps.push(root);
+    writeFileSync(join(root, 'package.json'), JSON.stringify({ name: '@revealui/harnesses' }));
+    for (const relativePath of [
+      'src/content/snapshot.ts',
+      'dist/content/index.js',
+      'dist/cli.js',
+    ]) {
+      mkdirSync(join(root, relativePath, '..'), { recursive: true });
+      expect(getContentSnapshotsDir(pathToFileURL(join(root, relativePath)).href)).toBe(
+        join(root, 'content-snapshots'),
+      );
+    }
+  });
+
+  it('rejects a module without the declared snapshot package owner', () => {
+    const root = mkdtempSync(join(tmpdir(), 'snapshot-unowned-'));
+    temps.push(root);
+    writeFileSync(join(root, 'package.json'), JSON.stringify({ name: 'unrelated-package' }));
+    expect(() => getContentSnapshotsDir(pathToFileURL(join(root, 'dist/cli.js')).href)).toThrow(
+      'snapshot package owner',
+    );
   });
 
   it('buildContentSnapshot is deterministic for the default generator', () => {
@@ -103,7 +129,8 @@ describe('content snapshot (definition ↔ generator lock, GAP-406)', () => {
       manifest.rules.length +
       manifest.commands.length +
       manifest.agents.length +
-      manifest.skills.length;
+      manifest.skills.length +
+      manifest.skills.reduce((count, skill) => count + Object.keys(skill.references).length, 0);
     expect(snap.files.length).toBe(expected);
   });
 });
