@@ -13,6 +13,7 @@
 export {
   BOOK_INTRO_HREF,
   CONSULTATION_PRICE,
+  DOMAIN_ADDON_LABEL,
   ENTERPRISE_SALES_HREF,
   isPublicPerpetualCatalogName,
   LAUNCH_PACKAGE_PRICE,
@@ -36,6 +37,7 @@ export {
 import {
   BOOK_INTRO_HREF,
   CONSULTATION_PRICE,
+  DOMAIN_ADDON_LABEL,
   ENTERPRISE_SALES_HREF,
   LAUNCH_PACKAGE_PRICE,
   type LicenseTierId,
@@ -196,6 +198,7 @@ export const CREDIT_BUNDLES: CreditBundle[] = [
 // Launch. Architecture work happens inside Launch. It is not a public SKU.
 // Hour and Architecture Review are not public middle SKUs. The $1,500 list
 // is retired. Proof Sprint is the retired public name for Pilot.
+// Stage B is the retired public name for the Domain add-on.
 // These are NOT the product-catalog offerings. The product /pricing page
 // sells licenses only (Free / Pro / Max / Enterprise + Perpetual Pro).
 // Studio SKUs live on revealuistudio.com and in
@@ -226,13 +229,12 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
     id: PILOT_SERVICE_ID,
     name: 'Pilot',
     price: PILOT_PRICE,
-    description:
-      'One site and one receipted action you operate. Includes 1 Adapter. Stage B is included. Credits 100% to Launch if you start Launch within 45 days of Pilot start.',
+    description: `One site and one receipted action you operate. Includes 1 Adapter. ${DOMAIN_ADDON_LABEL} is included. Credits 100% to Launch if you start Launch within 45 days of Pilot start.`,
     includes: [
       'One site',
       'One receipted action you operate',
       '1 Adapter included',
-      'Stage B included',
+      `${DOMAIN_ADDON_LABEL} included`,
       'Full credit toward Launch if you start Launch within 45 days of Pilot start',
     ],
     deliverable: 'A working site and one receipted action on your accounts',
@@ -248,6 +250,7 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
     includes: [
       'Architecture, schema, and security work inside Launch (not a separate SKU)',
       'Up to 3 Adapters included',
+      `${DOMAIN_ADDON_LABEL} included`,
       'Runbook',
       '30 days of async stabilization',
       'RevealUI project setup and configuration',

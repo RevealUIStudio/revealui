@@ -328,7 +328,7 @@ describe('PricingPage product catalog', () => {
     render(<PricingPage />);
     expect(await screen.findByText('What is RevealFleet?')).toBeInTheDocument();
     expect(screen.queryByText('What is RevFleet?')).toBeNull();
-    const answer = screen.getByText('RevealUI Studio ships RevealFleet', { exact: false });
+    const answer = screen.getByText('RevealFleet is the RevealUI product family', { exact: false });
     const text = answer.textContent ?? '';
     expect(text.includes('seven products')).toBe(false);
     expect(text.includes('RevForge')).toBe(false);

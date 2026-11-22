@@ -16,6 +16,7 @@
 
 import {
   CONSULTATION_PRICE,
+  DOMAIN_ADDON_LABEL,
   LAUNCH_PACKAGE_PRICE,
   PILOT_PRICE,
 } from '@revealui/contracts/public-catalog';
@@ -182,7 +183,7 @@ export const FOR_OPERATORS_PRICING = {
     {
       title: PILOT.name,
       price: agencyEngagementPriceDisplay(PILOT),
-      body: 'One site on your domain and one receipted action you operate. Includes 1 Adapter. Stage B is included. You keep it. The domain pack is included. Credits 100% to Launch if you start Launch within 45 days of Pilot start. This SKU lives on revealuistudio.com, not on the product catalog.',
+      body: `One site on your domain and one receipted action you operate. Includes 1 Adapter. ${DOMAIN_ADDON_LABEL} is included. You keep it. Credits 100% to Launch if you start Launch within 45 days of Pilot start. This SKU lives on revealuistudio.com, not on the product catalog.`,
       cta: { label: 'Book a Consultation', href: AGENCY_CONTACT, external: true },
     },
     {
