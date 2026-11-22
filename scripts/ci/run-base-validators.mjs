@@ -5,7 +5,7 @@
  */
 
 import { spawnSync } from 'node:child_process';
-import { cpSync, existsSync } from 'node:fs';
+import { cpSync, existsSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -114,6 +114,23 @@ export function copyJudgeTree(judgeRoot, scanRoot) {
 }
 
 /**
+ * Vitest collects every matching test under the scan root. A base checkout
+ * nested there resolves roots inside the sparse tree and fails. Drop that
+ * checkout after the copy. A judge directory outside the scan root stays.
+ * @param {string} judgeRoot
+ * @param {string} scanRoot
+ * @returns {boolean}
+ */
+export function removeNestedJudgeCheckout(judgeRoot, scanRoot) {
+  const judge = path.resolve(judgeRoot);
+  const scan = path.resolve(scanRoot);
+  const prefix = scan.endsWith(path.sep) ? scan : `${scan}${path.sep}`;
+  if (!judge.startsWith(prefix)) return false;
+  rmSync(judge, { recursive: true, force: true });
+  return true;
+}
+
+/**
  * @param {string} cwd
  * @param {string[]} argv
  * @param {NodeJS.ProcessEnv} env
@@ -174,6 +191,7 @@ function changedFiles(scanRoot, env) {
  */
 export function runBaseValidators(judgeRoot, scanRoot, env) {
   copyJudgeTree(judgeRoot, scanRoot);
+  removeNestedJudgeCheckout(judgeRoot, scanRoot);
   const childEnv = {
     ...env,
     SKIP_ENV_VALIDATION: env.SKIP_ENV_VALIDATION ?? 'true',

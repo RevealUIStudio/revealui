@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -6,6 +6,7 @@ import {
   copyJudgeTree,
   JUDGE_PATHS,
   managerCheckNeeded,
+  removeNestedJudgeCheckout,
   touchesManagerSurface,
   VALIDATOR_COMMANDS,
 } from '../run-base-validators.mjs';
@@ -66,6 +67,22 @@ describe('copyJudgeTree', () => {
     const scan = tempDir();
     expect(() => copyJudgeTree(judge, scan)).toThrow('base judge missing');
     expect(() => copyJudgeTree(scan, scan)).toThrow('same directory');
+  });
+});
+
+describe('removeNestedJudgeCheckout', () => {
+  it('removes a judge checkout nested in the scan root and keeps an outside one', () => {
+    const scan = tempDir();
+    const nested = path.join(scan, 'trusted-judge');
+    mkdirSync(nested, { recursive: true });
+    writeFileSync(path.join(nested, 'marker.txt'), 'base\n');
+    expect(removeNestedJudgeCheckout(nested, scan)).toBe(true);
+    expect(existsSync(nested)).toBe(false);
+
+    const outside = tempDir();
+    writeFileSync(path.join(outside, 'marker.txt'), 'base\n');
+    expect(removeNestedJudgeCheckout(outside, scan)).toBe(false);
+    expect(existsSync(path.join(outside, 'marker.txt'))).toBe(true);
   });
 });
 
