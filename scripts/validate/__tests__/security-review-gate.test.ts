@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { generateKeyPairSync } from 'node:crypto';
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -7,6 +8,7 @@ import {
   buildOwnerOverrideComment,
   buildOwnerOverridePayload,
 } from '../../../packages/harnesses/src/gates/signed-override.js';
+import { signReceiptAuthorization } from '../../../packages/security/src/review-receipt.js';
 
 const {
   SECURITY_PATHS,
@@ -512,6 +514,7 @@ describe('receipt gate configuration', () => {
     expect(
       readReceiptConfig({
         REVIEW_RECEIPT_MODE: 'enforce',
+        REVIEW_RECEIPT_AUTHORITY_URL: 'https://controller.example/receipt/authorization',
         REVIEW_RECEIPT_CONTROLLER_APP_ID: '30',
         REVIEW_RECEIPT_MAX_LIFETIME_MS: '3600000',
         REVIEW_RECEIPT_POLICY_VERSION: 'policy-1',
@@ -556,7 +559,7 @@ describe('receipt gate configuration', () => {
     expect(
       decideReceiptAdmission({
         mode: 'shadow',
-        receiptResult: { status: 'verified', receiptId: 'receipt-1' },
+        receiptResult: { status: 'verified', receiptId: 'receipt-1', authorizationVerified: true },
         ownerDecision: ownerHold,
       }),
     ).toEqual(ownerHold);
@@ -570,10 +573,20 @@ describe('receipt gate configuration', () => {
     expect(
       decideReceiptAdmission({
         mode: 'enforce',
-        receiptResult: { status: 'verified', receiptId: 'receipt-1' },
+        ...currentAuthorizationFixture(),
         ownerDecision: ownerHold,
       }),
     ).toMatchObject({ action: 'clear', kind: 'app-receipt', receiptId: 'receipt-1' });
+  });
+
+  it('holds a signed successful receipt without current online authorization', () => {
+    expect(
+      decideReceiptAdmission({
+        mode: 'enforce',
+        receiptResult: { status: 'verified', receiptId: 'receipt-1' },
+        ownerDecision: { action: 'hold', kind: 'no-owner-signature' },
+      }),
+    ).toMatchObject({ action: 'hold', kind: 'invalid-app-receipt' });
   });
 
   it('keeps live reviewer holds authoritative over receipt admission', () => {
@@ -586,7 +599,7 @@ describe('receipt gate configuration', () => {
     expect(
       decideReceiptAdmission({
         mode: 'enforce',
-        receiptResult: { status: 'verified', receiptId: 'receipt-1' },
+        receiptResult: { status: 'verified', receiptId: 'receipt-1', authorizationVerified: true },
         ownerDecision: reviewerHold,
       }),
     ).toEqual(reviewerHold);
@@ -772,3 +785,40 @@ it('real SSHSIG passes through the existing compiled resolver and sensitive gate
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+function currentAuthorizationFixture() {
+  const now = new Date();
+  const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+  const request = {
+    schema: 'revealfleet-receipt-authorization-request/v1' as const,
+    challenge: 'b'.repeat(64),
+    repositoryId: 300,
+    pullRequest: 7,
+    envelopeSha256: 'a'.repeat(64),
+  };
+  const receiptExpiresAt = new Date(now.getTime() + 60_000);
+  const envelope = signReceiptAuthorization({
+    request,
+    generation: 3,
+    authorized: true,
+    keyId: 'fixture',
+    privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
+    now,
+    receiptExpiresAt,
+  });
+  return {
+    now,
+    trustedKeys: { fixture: publicKey.export({ type: 'spki', format: 'pem' }).toString() },
+    receiptResult: {
+      status: 'verified',
+      receiptId: 'receipt-1',
+      authorizationVerified: true,
+      repositoryId: 300,
+      pullRequest: 7,
+      envelopeSha256: request.envelopeSha256,
+      receiptExpiresAt: receiptExpiresAt.toISOString(),
+      generation: 3,
+      authorizationContext: { envelope, request, requestedAt: now.toISOString() },
+    },
+  };
+}

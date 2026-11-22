@@ -1,7 +1,7 @@
 import { generateKeyPairSync } from 'node:crypto';
 import { REVIEW_RECEIPT_SECURITY_CHECKS } from '@revealui/security/review-receipt';
 import { describe, expect, it } from 'vitest';
-import { readReceiptPolicy } from './receipt-policy.js';
+import { assertReceiptPublicationScope, readReceiptPolicy } from './receipt-policy.js';
 
 const { privateKey } = generateKeyPairSync('ed25519');
 const securityChecks = REVIEW_RECEIPT_SECURITY_CHECKS.map((check) =>
@@ -94,9 +94,94 @@ describe('readReceiptPolicy', () => {
   });
 
   it('accepts publish mode while requiring the same complete signing policy', () => {
-    expect(readReceiptPolicy({ ...valid, REVIEW_RECEIPT_MODE: 'publish' })).toMatchObject({
+    expect(
+      readReceiptPolicy({
+        ...valid,
+        REVIEW_RECEIPT_MODE: 'publish',
+        GITHUB_REPOSITORY_ID: '300',
+        REVIEW_RECEIPT_PUBLICATION_SCOPE: JSON.stringify({
+          repositoryId: 300,
+          repositoryFullName: 'RevealUIStudio/revealui',
+          pullRequests: [7],
+        }),
+      }),
+    ).toMatchObject({
       mode: 'publish',
       repositoryFullName: 'RevealUIStudio/revealui',
     });
+  });
+
+  it('pins a separate reviewer App to both its bot login and numeric account ID', () => {
+    expect(
+      readReceiptPolicy({
+        ...valid,
+        REVIEW_RECEIPT_REVIEWER_LOGIN: 'revealui-reviewer[bot]',
+        REVIEW_RECEIPT_REVIEWER_ID: '90211',
+        REVIEW_RECEIPT_REVIEWER_POLICY_VERSION: 'review-policy-1',
+        REVIEW_RECEIPT_REVIEWER_MODEL: 'gpt-6-astra',
+      })?.trustedReviewer,
+    ).toEqual({
+      login: 'revealui-reviewer[bot]',
+      id: 90211,
+      policyVersion: 'review-policy-1',
+      model: 'gpt-6-astra',
+    });
+    expect(() =>
+      readReceiptPolicy({
+        ...valid,
+        REVIEW_RECEIPT_REVIEWER_LOGIN: 'revealui-reviewer[bot]',
+      }),
+    ).toThrow('must be set together');
+    expect(() =>
+      readReceiptPolicy({
+        ...valid,
+        REVIEW_RECEIPT_REVIEWER_LOGIN: 'revealui-reviewer[bot]',
+        REVIEW_RECEIPT_REVIEWER_ID: '0',
+        REVIEW_RECEIPT_REVIEWER_POLICY_VERSION: 'review-policy-1',
+        REVIEW_RECEIPT_REVIEWER_MODEL: 'gpt-6-astra',
+      }),
+    ).toThrow('invalid trusted reviewer App identity');
+  });
+});
+
+describe('bounded receipt publication policy', () => {
+  const scope = {
+    repositoryId: 300,
+    repositoryFullName: 'RevealUIStudio/revealui',
+    pullRequests: [7],
+  };
+  const publish = { ...valid, REVIEW_RECEIPT_MODE: 'publish', GITHUB_REPOSITORY_ID: '300' };
+  it('requires an explicit bounded publication scope', () => {
+    expect(() => readReceiptPolicy(publish)).toThrow('REVIEW_RECEIPT_PUBLICATION_SCOPE');
+  });
+  it.each([
+    null,
+    [],
+    {},
+    { ...scope, repositoryId: 301 },
+    { ...scope, repositoryFullName: 'Other/repo' },
+    { ...scope, pullRequests: [] },
+    { ...scope, pullRequests: [7, 7] },
+    { ...scope, pullRequests: ['7'] },
+    { ...scope, pullRequests: [0] },
+    { ...scope, pullRequests: Array.from({ length: 17 }, (_, i) => i + 1) },
+    { ...scope, wildcard: true },
+  ])('rejects malformed or overbroad scope %j', (value) => {
+    expect(() =>
+      readReceiptPolicy({ ...publish, REVIEW_RECEIPT_PUBLICATION_SCOPE: JSON.stringify(value) }),
+    ).toThrow();
+  });
+  it('admits only the configured numeric repository and PR', () => {
+    const policy = readReceiptPolicy({
+      ...publish,
+      REVIEW_RECEIPT_PUBLICATION_SCOPE: JSON.stringify(scope),
+    });
+    expect(() => assertReceiptPublicationScope(policy, 300, 7)).not.toThrow();
+    expect(() => assertReceiptPublicationScope(policy, 301, 7)).toThrow(
+      'receipt_publication_out_of_scope',
+    );
+    expect(() => assertReceiptPublicationScope(policy, 300, 8)).toThrow(
+      'receipt_publication_out_of_scope',
+    );
   });
 });

@@ -32,6 +32,7 @@
 
 'use strict';
 
+const { createHash, randomBytes } = require('node:crypto');
 const { execFileSync } = require('child_process');
 const { evaluateGuardrail2 } = require('./guardrail2-verdict.cjs');
 const { resolveGatesModule } = require('./gates-resolver.cjs');
@@ -109,11 +110,23 @@ function decideReviewGate({ verdict, labels = [], ownerVerification = { ok: fals
  * owner signature remains an explicit recovery path when receipt admission is
  * unavailable. Shadow mode never changes the owner decision.
  */
-function decideReceiptAdmission({ mode, receiptResult, ownerDecision }) {
+function decideReceiptAdmission({ mode, receiptResult, ownerDecision, trustedKeys = {}, now = new Date() }) {
   if (ownerDecision.kind === 'request-changes') return ownerDecision;
   if (mode !== 'enforce') return ownerDecision;
-  if (receiptResult?.status === 'verified')
-    return { action: 'clear', kind: 'app-receipt', receiptId: receiptResult.receiptId };
+  if (receiptResult?.status === 'verified' && receiptResult.authorizationVerified === true) {
+    const context = receiptResult.authorizationContext;
+    const receiptDeadline = Date.parse(receiptResult.receiptExpiresAt);
+    const matches = context?.request?.repositoryId === receiptResult.repositoryId &&
+      context?.request?.pullRequest === receiptResult.pullRequest &&
+      context?.request?.envelopeSha256 === receiptResult.envelopeSha256;
+    const checked = matches && Number.isFinite(receiptDeadline) && receiptDeadline > now.getTime()
+      ? sharedGates.verifyReceiptAuthorization({ envelope: context.envelope, expected: context.request,
+          requestedAt: new Date(context.requestedAt), trustedKeys, now })
+      : { ok: false, reason: 'receipt_authorization_expired_or_missing' };
+    if (checked.ok && checked.generation === receiptResult.generation)
+      return { action: 'clear', kind: 'app-receipt', receiptId: receiptResult.receiptId };
+    receiptResult = { status: 'ineligible', reason: checked.reason || 'receipt_authorization_generation_changed' };
+  }
   if (ownerDecision.action === 'clear') return ownerDecision;
   return {
     action: 'hold',
@@ -265,7 +278,48 @@ function readReceiptConfig(env = process.env) {
     throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS omits a mandatory security check');
   if (!sharedGates.hasReviewReceiptCiCheck(requiredChecks))
     throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS omits the trusted CI check');
-  return { mode, controllerAppId, maxLifetimeMs, policyVersion, trustedKeys, requiredChecks };
+  const authorityUrl = validateReceiptAuthorityUrl(requiredEnv(env, 'REVIEW_RECEIPT_AUTHORITY_URL'));
+  return { mode, controllerAppId, maxLifetimeMs, policyVersion, trustedKeys, requiredChecks, authorityUrl };
+}
+
+function validateReceiptAuthorityUrl(value) {
+  const url = new URL(value);
+  if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash ||
+      url.pathname !== '/receipt/authorization') throw new Error('receipt_authority_url_invalid');
+  return url.href;
+}
+
+/** A mutable successful GitHub check is evidence transport, never current authority. */
+async function verifyCurrentReceiptAuthorization({ result, config, fetchImpl = fetch, now = () => new Date(), challenge = () => randomBytes(32).toString('hex') }) {
+  const hold = (reason) => ({ status: 'ineligible', reason });
+  if (result.status !== 'verified') return result;
+  try {
+    const authorityUrl = validateReceiptAuthorityUrl(config.authorityUrl);
+    const requestedAt = now();
+    const request = { schema: 'revealfleet-receipt-authorization-request/v1', challenge: challenge(),
+      repositoryId: result.repositoryId, pullRequest: result.pullRequest, envelopeSha256: result.envelopeSha256 };
+    const response = await fetchImpl(authorityUrl, { method: 'POST', redirect: 'error', credentials: 'omit',
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+      body: JSON.stringify(request), signal: AbortSignal.timeout(5_000) });
+    if (!response.ok || !response.body) return hold('receipt_authority_unavailable');
+    const reader = response.body.getReader();
+    const parts = []; let size = 0;
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        size += value.byteLength;
+        if (size > 16 * 1024) { await reader.cancel(); return hold('receipt_authority_response_oversized'); }
+        parts.push(Buffer.from(value));
+      }
+    } finally { reader.releaseLock(); }
+    const envelope = JSON.parse(Buffer.concat(parts).toString('utf8'));
+    const checked = sharedGates.verifyReceiptAuthorization({ envelope, expected: request,
+      trustedKeys: config.trustedKeys, requestedAt, now: now() });
+    return checked.ok ? { ...result, authorizationVerified: true, generation: checked.generation,
+        authorizationContext: { envelope, request, requestedAt: requestedAt.toISOString() } }
+      : hold(checked.reason);
+  } catch { return hold('receipt_authority_unavailable'); }
 }
 
 function requiredEnv(env, name) {
@@ -376,7 +430,9 @@ function evaluateReceiptShadowForPr(prNumber, repo, files, config, ghImpl = gh, 
   if (fresh?.head?.sha !== headSha || fresh?.base?.sha !== baseSha || fresh?.merge_commit_sha !== mergeSha)
     return { status: 'ineligible', reason: 'pull_request_changed_during_receipt_verification' };
   return result.ok
-    ? { status: 'verified', receiptId: result.receiptId }
+    ? { status: 'verified', receiptId: result.receiptId, repositoryId, pullRequest: Number(prNumber), headSha, baseSha, mergeSha,
+        receiptExpiresAt: JSON.parse(receiptRuns[0].output.summary.split('<!-- revealui-review-receipt:v1 -->')[1].trim()).receipt.expiresAt,
+        envelopeSha256: createHash('sha256').update(receiptRuns[0].output.summary.split('<!-- revealui-review-receipt:v1 -->')[1].trim()).digest('hex') }
     : { status: 'ineligible', reason: result.reason || 'receipt_invalid' };
 }
 
@@ -553,12 +609,13 @@ function buildPromoteCoverage(prNumber, repo, ghImpl, options = {}) {
   return coverage;
 }
 
-function runPrMode(prNumber, repo) {
+async function runPrMode(prNumber, repo) {
   try {
     const target = repo || gh(['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner']).trim();
     const data = JSON.parse(gh(['pr', 'view', prNumber, '--repo', target, '--json', 'labels,title,author,headRefOid,baseRefName,headRefName,isCrossRepository']));
     const hits = hitsForFiles(fetchPrFiles(prNumber, target));
-    if (hits.length === 0) {
+    const receiptConfig = readReceiptConfig();
+    if (hits.length === 0 && receiptConfig?.mode !== 'enforce') {
       process.stdout.write(`PR #${prNumber}: no security-sensitive files touched — no review gate.\n`);
       process.exitCode = 0;
       return;
@@ -570,7 +627,6 @@ function runPrMode(prNumber, repo) {
       process.exitCode = 1;
       return;
     }
-    const receiptConfig = readReceiptConfig();
     let receiptResult;
     if (receiptConfig) {
       try {
@@ -586,6 +642,14 @@ function runPrMode(prNumber, repo) {
           reason: `receipt_observation_unavailable:${error instanceof Error ? error.message : 'unknown failure'}`,
         };
       }
+      if (receiptResult.status === 'verified')
+        receiptResult = await verifyCurrentReceiptAuthorization({ result: receiptResult, config: receiptConfig });
+      if (receiptResult.authorizationVerified === true) {
+        const fresh = fetchJson([`repos/${target}/pulls/${prNumber}`]);
+        if (fresh?.state !== 'open' || fresh.draft === true || fresh.head?.sha !== receiptResult.headSha ||
+            fresh.base?.sha !== receiptResult.baseSha || fresh.merge_commit_sha !== receiptResult.mergeSha)
+          receiptResult = { status: 'ineligible', reason: 'pull_request_changed_after_authorization' };
+      }
       if (receiptConfig.mode === 'shadow') {
         process.stdout.write(
           receiptResult.status === 'verified'
@@ -598,6 +662,8 @@ function runPrMode(prNumber, repo) {
       mode: receiptConfig?.mode,
       receiptResult,
       ownerDecision,
+      trustedKeys: receiptConfig?.trustedKeys,
+      now: new Date(),
     });
     if (decision.kind === 'app-receipt') {
       process.stdout.write(`PR #${prNumber}: verified App receipt ${decision.receiptId} for the exact current candidate.\n`);
@@ -656,13 +722,13 @@ function runDiffMode(base) {
   process.exit(1);
 }
 
-function main() {
+async function main() {
   const argv = process.argv.slice(2);
   const repoIdx = argv.indexOf('--repo');
   const repo = repoIdx !== -1 ? argv[repoIdx + 1] || '' : '';
   const prIdx = argv.indexOf('--pr');
   if (prIdx !== -1) {
-    runPrMode(argv[prIdx + 1] || '', repo);
+    await runPrMode(argv[prIdx + 1] || '', repo);
     return;
   }
   const diffIdx = argv.indexOf('--diff');
@@ -685,6 +751,8 @@ module.exports = {
   decideReviewGate,
   decideReceiptAdmission,
   verifyReceiptShadow,
+  verifyCurrentReceiptAuthorization,
+  validateReceiptAuthorityUrl,
   isPromotePr,
   decidePromoteUpstreamCoverage,
   prRecordHasVerdict,
@@ -702,5 +770,5 @@ module.exports = {
 };
 
 if (require.main === module) {
-  main();
+  main().catch(() => { process.stderr.write('HOLD — review gate unavailable.\n'); process.exitCode = 1; });
 }

@@ -90,6 +90,67 @@ The contract must be tested against findings, stale and replayed results,
 edited or deleted events, and unavailable provider data. This blocker is
 tracked in [#3087](https://github.com/RevealUIStudio/revealui/issues/3087).
 
+The proposed replacement runs `apps/review-controller`'s reviewer command in
+`trusted-reviewer.yml` under `pull_request_target`, checked out at the protected
+base SHA. It reads PR files through the existing bounded, object-hash-verified
+snapshot client; it never checks out or executes the PR head. A separate
+reviewer GitHub App requests only Contents read and Pull requests write on the
+single repository. Its installation token cannot write controller checks or
+merge queues. The reviewer sends the bounded snapshot to the OpenAI Responses
+API with strict JSON output and no tools, then re-fetches PR state before
+submitting a native `APPROVED` or `CHANGES_REQUESTED` review at the full head
+commit. Refusals, incomplete responses, malformed verdicts, changed heads or
+bases, and oversized inputs produce no approval. The review body binds the
+repository, PR, head, base, manifest, reviewer policy version, and model.
+The controller pins the reviewer App's bot login and numeric account ID and
+requires that binding before accepting its native approval. Existing
+subscription comments and stale reviews remain non-approving.
+The same protected-base workflow also reconciles open, same-repository PRs
+targeting `test` twice per hour. It skips a PR that already has a native
+review bound to the current snapshot, and retries transient failures without
+depending on a new PR event.
+
+The reviewer skips closed, draft, and non-`test` candidates before invoking the
+model. It checks the live draft state again after model execution alongside
+head, base, target, and manifest bindings, so making a candidate draft cannot
+leave an in-flight approval eligible for submission.
+
+Receipt evaluation revalidates an approving trusted-App observation against the
+current native review and inline findings. Deletion, dismissal, changed body,
+identity or binding drift, conflicting same-head evidence, and provider outage
+cannot approve. A revalidated denial is appended through the existing observation
+store before any external check mutation. Same-head replay or restoration of an
+old approval cannot evict that denial. Revalidation does not renew the original
+approval observation time.
+
+`review-controller-validation.yml` runs source validation for stacked and draft
+PRs as well as ordinary targets, with read-only repository access and no reviewer
+App, model, receipt-signer, or deployment secrets. It runs the maintained package
+commands with serialized database fixtures. Both it and the main CI workflow use
+the same composite action for the isolated PostgreSQL migration and runtime-grant
+contract. These are source checks, not trusted review receipts or merge admission.
+The existing required-check, owner-signature, signing, and publication policies
+remain authoritative.
+
+This path is not operational until its feature PR is reviewed and merged
+into the protected `test` branch, the dedicated reviewer App and model
+credential are provisioned, and a live exact-head positive and negative
+shadow trace is recorded. Until then `REVIEW_RECEIPT_MODE=shadow` and the
+owner-signature gate remain in force. The reviewer workflow is dormant unless
+`REVEALFLEET_REVIEWER_APP_ID` is configured as a repository variable. It also
+requires `REVEALFLEET_REVIEWER_INSTALLATION_ID`,
+`REVEALFLEET_REVIEWER_BOT_ID`, `REVEALFLEET_REVIEWER_BOT_LOGIN`,
+`REVEALFLEET_REVIEW_MODEL`, and `REVEALFLEET_REVIEW_POLICY_VERSION` as
+repository variables and `REVEALFLEET_REVIEWER_APP_PRIVATE_KEY` and
+`REVEALFLEET_REVIEWER_OPENAI_API_KEY` as Actions secrets. The controller's
+separate Fly app must receive matching `REVIEW_RECEIPT_REVIEWER_LOGIN`,
+`REVIEW_RECEIPT_REVIEWER_ID`, `REVIEW_RECEIPT_REVIEWER_MODEL`, and
+`REVIEW_RECEIPT_REVIEWER_POLICY_VERSION` settings before positive shadow
+evidence can be evaluated. Neither App's private key is shared with the other.
+Before the later organization move, verify the reviewer and controller App
+installations still target the same repository ID, then update their configured
+repository full name and any changed installation IDs through normal review.
+
 The owning replacement is the existing trusted review-gate and disposition
 path. Replace per-PR human grants with an independently produced receipt,
 extend the required check to validate that receipt, and configure a GitHub App
@@ -298,3 +359,35 @@ Validation must cover stale checks, counterfeit same-name checks from another
 App, moved base/head, merge conflicts, incomplete file manifests, controller
 and API outages, receipt replay, key rotation, and actual source-App
 enforcement.
+
+Retry and publication custody
+----------------------------
+
+Each distinct review/check outcome on a delivery is append-only and content-addressed. Retrying a previously approving delivery can append a newly discovered denial; duplicate outcomes must resolve to confirmed stored evidence. The isolated controller migration adds this outcome identity without rewriting prior evidence.
+
+Production workers acquire a PostgreSQL session advisory lock for the repository and pull request before snapshot collection, review selection, evaluation, evidence persistence and GitHub publication. Expiry work uses the same lock. A dedicated single-connection lock pool prevents lock waiters from exhausting evidence-store connections. Publishing without the coordinator is refused. Observed session loss blocks subsequent publication and destroys the connection. This serialization does not establish atomicity between PostgreSQL and GitHub: an HTTP write already in flight during an unobserved connection loss still requires hosted fault-injection validation before activation.
+
+Receipt expiry is bounded by the original native review submission and observation time, so CI reruns and webhook replays cannot renew approval. Success-to-success updates always send the current canonical receipt envelope. All normal activation and publication gates remain required; these source changes do not prove hosted enforcement.
+
+Current authorization at receipt acceptance
+-------------------------------------------
+
+The mutable GitHub receipt check transports evidence; its success never establishes current authorization. The isolated authorization table allocates a durable monotonic generation before every publishing evaluation, initially pending. Approval uses a compare-and-set on the current pending generation and requires the exact immutable stored receipt digest and expiry. Denial or a later evaluation supersedes older writers. Expiry independently invalidates authorization, even if a delayed GitHub success lands afterward.
+
+The base-trusted gate obtains a fresh 256-bit challenge and calls the protected-configured HTTPS `REVIEW_RECEIPT_AUTHORITY_URL` endpoint `/receipt/authorization`. The controller returns a domain-separated Ed25519 authorization proof bound to the nonce, repository, PR, exact envelope digest, and current generation. Proof validity is capped at five seconds and the receipt deadline. Unknown, pending, revoked, expired, unavailable, malformed, oversized, replayed and untrusted-key responses fail closed for App admission. The gate verifies normal exact-candidate receipt/check evidence first and rechecks head, base and merge candidate after the online lookup. After that final GitHub read, the clearance decision verifies the retained signed proof against its original request timing and checks the receipt deadline again. A proof or receipt that expires during the read holds App admission; unchanged candidate values cannot extend either lifetime. Enforce mode applies this requirement to routine PRs as well as security-sensitive PRs. Existing explicit owner SSHSIG recovery and live reviewer vetoes retain their existing scope.
+
+These online proofs are immediate decision evidence, not reusable merge permits. A future merge executor must repeat the current-authorization lookup at its final exact-head admission; it must not cache a passing GitHub check or an earlier proof as merge authority. No merge executor or authority activation is introduced by these changes.
+
+Before any enforce/publication activation, deploy the verified base gate and controller to an isolated primary database; prove the unavailable/revoked/delayed-write cases there. Stop every old publisher, disable its restart and rollback paths, and verify only the reviewed protocol can write. In particular, session advisory locks require a direct session-preserving database connection, never transaction-pool multiplexing. Provision the new narrow table grants through the isolated migration and retain existing independent reviewer identity, signing-key ownership, and publication gates. Existing immutable receipts are not retroactively changed; receipts without a current matching authority record cannot authorize App admission.
+
+The status endpoint only reads current state and signs the fixed domain-separated response; it does not enqueue work, change generations, publish checks, or merge. It is repository-scoped, body-bounded and non-cacheable, and discloses no receipt contents, credentials or private source.
+
+
+Disabled merge-intent validation and quarantine
+----------------------------------------------
+
+The offline merge-admission validator checks immutable candidate structure and deadlines, but always returns named execution holds. Candidate, owner-grant and signer identifiers are unverified descriptors; they never establish owner authorization, signing provenance or transport eligibility. No production entry point imports these modules, and no execution mode, transport callback, GitHub write, signing or object upload is provided.
+
+The isolated journal migration adds validation-only intents and append-only reconciliation observations. It deliberately grants the deployed controller role no access. Intent identity and bytes cannot change; a dispatch-committed or unknown row reserves its repository/base scope across all job IDs. No lease expiry or process restart releases it. Abandoned dispatch records become unknown, and unchanged refs, claimed rejection or other recorded observations cannot authorize retry or clear quarantine. Observation insertion does not authenticate an external outcome.
+
+These are disabled validation/custody primitives, not a final merge protocol. Owner disposition, signing custody, protection-compatible candidate writes, mutable PR eligibility and application-time revocation/expiry remain unsupported execution contracts. They require independent review and actual nonproduction proof before any corresponding activation proposal. Never promote a validation-only intent into a live job.
