@@ -61,7 +61,7 @@
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0",
-    "react-server-dom-webpack": "^19.2.8",
+    "react-server-dom-webpack": "^19.2.9",
     "@vitejs/plugin-rsc": "^0.5.27"
   },
   "peerDependenciesMeta": {
