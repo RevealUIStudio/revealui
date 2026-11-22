@@ -17,10 +17,19 @@ vi.mock('@revealui/core/observability/logger', () => ({
 const mockReturning = vi.fn();
 const mockInsertValues = vi.fn().mockReturnValue({ returning: mockReturning });
 const mockInsert = vi.fn().mockReturnValue({ values: mockInsertValues });
+const mockLimit = vi.fn(() => [{ status: 'active', deletedAt: null }]);
+const mockSelect = vi.fn(() => ({
+  from: vi.fn(() => ({
+    where: vi.fn(() => ({
+      limit: mockLimit,
+    })),
+  })),
+}));
 
 vi.mock('@revealui/db/client', () => ({
   getClient: vi.fn(() => ({
     insert: mockInsert,
+    select: mockSelect,
   })),
 }));
 
@@ -65,6 +74,16 @@ describe('createSession extensions', () => {
     mockInsertValues.mockReturnValue({ returning: mockReturning });
     mockInsert.mockReturnValue({ values: mockInsertValues });
     mockReturning.mockResolvedValue([makeSessionRow()]);
+    mockLimit.mockReset();
+    mockLimit.mockReturnValue([]);
+    mockLimit.mockReturnValueOnce([{ status: 'active', deletedAt: null }]);
+    mockSelect.mockReturnValue({
+      from: () => ({
+        where: () => ({
+          limit: mockLimit,
+        }),
+      }),
+    });
   });
 
   it('creates session with custom expiresAt', async () => {
