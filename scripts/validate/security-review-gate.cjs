@@ -623,7 +623,7 @@ async function runPrMode(prNumber, repo) {
     const discussion = fetchPrDiscussion(prNumber, target);
     const ownerDecision = verifyPrOwnerRecord(data, prNumber, target, discussion, resolveAllowedSigners());
     if (ownerDecision.kind === 'request-changes') {
-      process.stderr.write(`HOLD — live REQUEST-CHANGES by ${ownerDecision.reviewer || 'unknown'} at ${ownerDecision.timestamp || 'unknown time'}; receipt or owner signature cannot override it.\n`);
+      process.stderr.write(`HOLD: live REQUEST-CHANGES by ${ownerDecision.reviewer || 'unknown'} at ${ownerDecision.timestamp || 'unknown time'}; receipt or owner signature cannot override it.\n`);
       process.exitCode = 1;
       return;
     }
@@ -653,8 +653,8 @@ async function runPrMode(prNumber, repo) {
       if (receiptConfig.mode === 'shadow') {
         process.stdout.write(
           receiptResult.status === 'verified'
-            ? `SHADOW — controller receipt ${receiptResult.receiptId} verifies for this exact candidate; existing gate remains authoritative.\n`
-            : `SHADOW — controller receipt not verified (${receiptResult.reason || receiptResult.status}); existing gate remains authoritative.\n`,
+            ? `SHADOW: controller receipt ${receiptResult.receiptId} verifies for this exact candidate; existing gate remains authoritative.\n`
+            : `SHADOW: controller receipt not verified (${receiptResult.reason || receiptResult.status}); existing gate remains authoritative.\n`,
         );
       }
     }
@@ -671,7 +671,7 @@ async function runPrMode(prNumber, repo) {
       return;
     }
     if (decision.kind === 'invalid-app-receipt')
-      process.stderr.write(`HOLD — enforced App receipt is not valid for this exact candidate (${decision.reason}); only a valid owner SSHSIG may recover this gate.\n`);
+      process.stderr.write(`HOLD: enforced App receipt is not valid for this exact candidate (${decision.reason}); only a valid owner SSHSIG may recover this gate.\n`);
     if (decision.action === 'clear') {
       process.stdout.write(`PR #${prNumber}: verified exact-head owner sec-review signature (${decision.url || 'recorded comment'}).\n`);
       process.exitCode = 0;
@@ -770,5 +770,5 @@ module.exports = {
 };
 
 if (require.main === module) {
-  main().catch(() => { process.stderr.write('HOLD — review gate unavailable.\n'); process.exitCode = 1; });
+  main().catch(() => { process.stderr.write('HOLD: review gate unavailable.\n'); process.exitCode = 1; });
 }
