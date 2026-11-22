@@ -35,9 +35,9 @@ audience: maintainer
 
 | ID | Finding | Severity | Blocker? | Notes |
 |----|---------|----------|----------|-------|
-| CVE-1 | GHSA-86w9-cpqp-85rv node-forge via selfsigned | high | no | Dev-only in `@revealui/auth`. No safe patch. Recheck 2026-11-06. |
-| CVE-2 | GHSA-ch52-4w7c-c8xp http-cache-semantics via apify | high | no | Not reachable. Recheck 2026-11-06. |
-| CVE-3 | GHSA-vfj7-8cjw-p6xm braces via build tooling | high | no | Not reachable. Recheck 2026-11-06. |
+| CVE-1 | GHSA-86w9-cpqp-85rv node-forge 1.4.0 via selfsigned | high | no | Dev-only in `@revealui/auth`. Vulnerable range is `<=1.4.0`. node-forge 1.4.1 (2026-10-27) fixes the nested DigestAlgorithm forgery. Rechecked 2026-11-21. |
+| CVE-2 | GHSA-ch52-4w7c-c8xp http-cache-semantics | withdrawn | no | Withdrawn 2026-10-28. `pnpm audit` no longer reports it. |
+| CVE-3 | GHSA-vfj7-8cjw-p6xm braces | withdrawn | no | Withdrawn 2026-10-23. `pnpm audit` no longer reports it. |
 
 ## Verification Checks (2026-04-18)
 
