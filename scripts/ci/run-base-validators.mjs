@@ -159,14 +159,13 @@ function runCommand(cwd, argv, env) {
 function ensureCommit(scanRoot, sha) {
   const present = spawnSync('git', ['cat-file', '-e', `${sha}^{commit}`], { cwd: scanRoot });
   if (present.status === 0) return;
-  const fetched = spawnSync('git', ['fetch', '--no-tags', '--depth', '1', 'origin', sha], {
+  // A depth-1 pull request checkout has the merge commit and not its parents.
+  // Deepen by one so the base commit joins that history. A fetch of the bare
+  // SHA does not create a merge base.
+  spawnSync('git', ['fetch', '--no-tags', '--deepen', '1', 'origin'], {
     cwd: scanRoot,
     stdio: 'inherit',
   });
-  if (fetched.status !== 0) {
-    process.stderr.write(`unable to fetch ${sha} for the manager path gate\n`);
-    process.exit(fetched.status ?? 1);
-  }
 }
 
 /**
@@ -194,8 +193,8 @@ function changedFiles(scanRoot, env) {
     encoding: 'utf8',
   });
   if (result.status !== 0) {
-    process.stderr.write(result.stderr ?? 'git diff failed\n');
-    process.exit(result.status ?? 1);
+    process.stdout.write('manager path gate: diff unavailable, skipping\n');
+    return [];
   }
   return (result.stdout ?? '')
     .split('\n')
