@@ -63,12 +63,22 @@ describe('GET /admin/coordination/sessions', () => {
     expect(res.status).toBe(403);
   });
 
-  it('grants access to the canonical owner role', async () => {
+  it('grants access to the canonical owner role on forge', async () => {
     // Per #1219 an owner account carries DB role='owner'; the admin gate must
-    // admit it alongside 'admin'.
+    // admit it alongside 'admin' when the install is forge.
+    vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', 'forge');
     const { app } = createApp({ id: 'u1', role: 'owner' }, [[], [{ total: 0 }]]);
     const res = await app.fetch(new Request('http://localhost/sessions'));
     expect(res.status).toBe(200);
+    vi.unstubAllEnvs();
+  });
+
+  it('denies a bare owner when deployment mode is unset', async () => {
+    vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', '');
+    const { app } = createApp({ id: 'u1', role: 'owner' }, [[], [{ total: 0 }]]);
+    const res = await app.fetch(new Request('http://localhost/sessions'));
+    expect(res.status).toBe(403);
+    vi.unstubAllEnvs();
   });
 
   it('returns 200 with empty data when no rows exist', async () => {

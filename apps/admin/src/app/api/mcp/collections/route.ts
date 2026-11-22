@@ -21,6 +21,7 @@
 
 import { timingSafeEqual } from 'node:crypto';
 import { getSession } from '@revealui/auth/server';
+import { isAdmin } from '@revealui/utils/validation';
 import { type NextRequest, NextResponse } from 'next/server';
 import { allCollections } from '@/lib/collections/registry';
 import { resolveCollectionMcpSummary } from '@/lib/mcp/collections';
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    if (session.user.role !== 'admin') {
+    if (!isAdmin(session.user)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
   }

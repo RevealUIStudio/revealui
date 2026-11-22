@@ -9,9 +9,8 @@
 
 import type { Database } from '@revealui/db/client';
 import { siteCollaborators, sites, yjsDocuments } from '@revealui/db/schema';
-import { isPlatformSuperAdmin } from '@revealui/utils/validation';
+import { isAdmin, isPlatformSuperAdmin } from '@revealui/utils/validation';
 import { and, eq } from 'drizzle-orm';
-import { isAdminRole } from '@/lib/access/roles/isAdminRole';
 import { isRepoIdentifier, isSyncIdentifier, isUuid } from '@/lib/utils/identifier-validation';
 
 export { isUuid };
@@ -24,9 +23,9 @@ export interface ShapeAuthUser {
   _json?: unknown;
 }
 
-/** True when role is owner/admin/super-admin (CMS shell admin plane). */
-export function requireAdminRole(role: string | null | undefined): boolean {
-  return isAdminRole(role);
+/** True for the shell admin ladder (owner, super-admin, or admin). */
+export function requireAdminRole(subject: Parameters<typeof isAdmin>[0]): boolean {
+  return isAdmin(subject);
 }
 
 /**

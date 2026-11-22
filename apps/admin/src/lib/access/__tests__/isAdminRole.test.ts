@@ -1,11 +1,22 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { isAdminRole } from '../roles/isAdminRole';
 
 describe('isAdminRole', () => {
-  it('grants admin to owner, admin, and super-admin', () => {
-    expect(isAdminRole('owner')).toBe(true);
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('grants admin to owner on forge, and to admin and super-admin', () => {
+    expect(isAdminRole('owner', 'forge')).toBe(true);
     expect(isAdminRole('admin')).toBe(true);
     expect(isAdminRole('super-admin')).toBe(true);
+  });
+
+  it('denies a bare owner when deployment mode is unset or hosted', () => {
+    vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', '');
+    expect(isAdminRole('owner')).toBe(false);
+    expect(isAdminRole('owner', 'hosted')).toBe(false);
+    expect(isAdminRole('admin')).toBe(true);
   });
 
   it('denies non-admin roles', () => {

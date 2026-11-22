@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "path": "packages/contracts/src/entities/site.ts",
+      "reason": "Site collaborator ACL (editor or admin on one site). Not the platform users.role ladder. Leave it exact."
+    }
+  ]
+}

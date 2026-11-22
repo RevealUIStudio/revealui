@@ -19,4 +19,4 @@
  * locked the bootstrap owner out of /admin whenever they signed in via passkey
  * or OAuth (only sign-in had been corrected). Set lookup, no authored regex.
  */
-export { isAdminRole } from '@revealui/utils/validation';
+export { isAdmin, isAdminRole } from '@revealui/utils/validation';

@@ -1,5 +1,6 @@
 import * as commentQueries from '@revealui/db/queries/ticket-comments';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
+import { isAdmin } from '@revealui/utils/validation';
 import { HTTPException } from 'hono/http-exception';
 import type { Variables } from '../_helpers/access.js';
 import { assertTicketAccess } from '../_helpers/access.js';
@@ -143,7 +144,7 @@ app.openapi(
     if (!existing) throw new HTTPException(404, { message: 'Comment not found' });
     await assertTicketAccess(db, existing.ticketId, c);
     const user = c.get('user');
-    if (existing.authorId && existing.authorId !== user?.id && user?.role !== 'admin') {
+    if (existing.authorId && existing.authorId !== user?.id && !isAdmin(user)) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const comment = await commentQueries.updateComment(db, id, data);
@@ -178,7 +179,7 @@ app.openapi(
     if (!existing) throw new HTTPException(404, { message: 'Comment not found' });
     await assertTicketAccess(db, existing.ticketId, c);
     const user = c.get('user');
-    if (existing.authorId && existing.authorId !== user?.id && user?.role !== 'admin') {
+    if (existing.authorId && existing.authorId !== user?.id && !isAdmin(user)) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     await commentQueries.deleteComment(db, id);

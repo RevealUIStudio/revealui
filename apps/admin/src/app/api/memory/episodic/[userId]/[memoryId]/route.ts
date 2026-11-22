@@ -10,6 +10,7 @@ import type { AgentMemory } from '@revealui/contracts/agents';
 import { EmbeddingSchema } from '@revealui/contracts/representation';
 import { getClient } from '@revealui/db/client';
 import { logger } from '@revealui/utils/logger';
+import { isAdmin } from '@revealui/utils/validation';
 import { type NextRequest, NextResponse } from 'next/server';
 import { checkAIMemoryFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
@@ -82,7 +83,7 @@ export async function PUT(
       );
     }
 
-    if (authSession.user.id !== userId && authSession.user.role !== 'admin') {
+    if (authSession.user.id !== userId && !isAdmin(authSession.user)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -234,7 +235,7 @@ export async function DELETE(
       );
     }
 
-    if (authSession.user.id !== userId && authSession.user.role !== 'admin') {
+    if (authSession.user.id !== userId && !isAdmin(authSession.user)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

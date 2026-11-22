@@ -24,7 +24,7 @@ import { canAdministerAllContent as canAdministerContentForDeployment } from '@r
 import { type ApiAuthUser, isPlatformSuperAdmin } from './api-roles.js';
 
 /** DB roles that grant admin-level access to admin/owner-gated server routes. */
-export { ADMIN_ROLES, isAdminRole } from '@revealui/utils/validation';
+export { ADMIN_ROLES, isAdmin, isAdminRole } from '@revealui/utils/validation';
 
 /**
  * Fleet-wide operator surfaces (logs, margin). Tenant owner/admin is not

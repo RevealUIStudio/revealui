@@ -12,7 +12,7 @@ import { join } from 'node:path';
 import { isHostedDeployment } from '@revealui/core/deployment-mode';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
-import { isAdminRole } from '../../lib/access.js';
+import { isAdmin } from '../../lib/access.js';
 
 type AdminVariables = {
   user?: { id: string; role: string };
@@ -20,7 +20,7 @@ type AdminVariables = {
 
 function requireAdmin(user: { id: string; role: string } | undefined): void {
   if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-  if (!isAdminRole(user.role)) {
+  if (!isAdmin(user)) {
     throw new HTTPException(403, { message: 'Admin access required' });
   }
 }

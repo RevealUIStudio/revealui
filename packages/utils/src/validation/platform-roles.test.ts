@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   canAdministerAllContent,
   canManageSiteContent,
+  hasAnyRole,
+  hasRole,
+  isAdmin,
+  isAdminRole,
   isPlatformSuperAdmin,
+  isSuperAdmin,
+  platformPosture,
 } from './platform-roles.js';
 
 describe('canonical site content authority', () => {
@@ -48,5 +54,145 @@ describe('canonical site content authority', () => {
   it('preserves the explicit Forge administrator contract', () => {
     expect(canAdministerAllContent({ id: 'forge', role: 'admin' }, 'forge')).toBe(true);
     expect(canAdministerAllContent({ id: 'viewer', role: 'viewer' }, 'forge')).toBe(false);
+  });
+});
+
+const platformSuperAdmin = {
+  id: 'op',
+  role: 'viewer',
+  emailVerified: true,
+  _json: { roles: ['super-admin'] },
+};
+
+describe('platform role ladder', () => {
+  it('gives owner, super-admin, and admin the same admin answer on forge', () => {
+    for (const role of ['owner', 'super-admin', 'admin'] as const) {
+      expect(isAdmin(role, 'forge')).toBe(true);
+      expect(isAdminRole(role, 'forge')).toBe(true);
+      expect(hasRole(role, 'admin', 'forge')).toBe(true);
+    }
+  });
+
+  it('denies editor, user, and unauthenticated callers', () => {
+    expect(isAdmin('editor')).toBe(false);
+    expect(isAdmin('user')).toBe(false);
+    expect(isAdmin('viewer')).toBe(false);
+    expect(isAdmin('tenant-admin')).toBe(false);
+    expect(isAdmin(null)).toBe(false);
+    expect(isAdmin(undefined)).toBe(false);
+    expect(isAdmin('')).toBe(false);
+    expect(hasRole(null, 'admin')).toBe(false);
+  });
+
+  it('lets higher ladder roles satisfy lower checks and not the reverse on forge', () => {
+    expect(hasRole('owner', 'owner', 'forge')).toBe(true);
+    expect(hasRole('owner', 'super-admin', 'forge')).toBe(true);
+    expect(hasRole('owner', 'admin', 'forge')).toBe(true);
+    expect(hasRole('owner', 'editor', 'forge')).toBe(false);
+
+    expect(hasRole('super-admin', 'super-admin', 'forge')).toBe(true);
+    expect(hasRole('super-admin', 'admin', 'forge')).toBe(true);
+    expect(hasRole('super-admin', 'owner', 'forge')).toBe(false);
+
+    expect(hasRole('admin', 'admin', 'forge')).toBe(true);
+    expect(hasRole('admin', 'super-admin', 'forge')).toBe(false);
+    expect(hasRole('admin', 'owner', 'forge')).toBe(false);
+  });
+
+  it('treats a verified _json super-admin as super-admin rank', () => {
+    expect(isAdmin(platformSuperAdmin)).toBe(true);
+    expect(hasRole(platformSuperAdmin, 'admin')).toBe(true);
+    expect(hasRole(platformSuperAdmin, 'super-admin')).toBe(true);
+    expect(hasRole(platformSuperAdmin, 'owner')).toBe(false);
+    expect(isSuperAdmin(platformSuperAdmin)).toBe(true);
+    expect(isAdmin({ ...platformSuperAdmin, emailVerified: false })).toBe(false);
+  });
+
+  it('keeps isSuperAdmin exact so shell owner is not an operator', () => {
+    expect(isSuperAdmin('super-admin')).toBe(true);
+    expect(isSuperAdmin({ role: 'owner' })).toBe(false);
+    expect(isSuperAdmin({ role: 'admin' })).toBe(false);
+    expect(isSuperAdmin({ roles: ['super-admin'] })).toBe(true);
+    expect(isSuperAdmin(null)).toBe(false);
+  });
+
+  it('prefers globalRoles over roles and still honors the role column', () => {
+    expect(isAdmin({ globalRoles: ['viewer'], roles: ['admin'] })).toBe(false);
+    expect(isAdmin({ globalRoles: [], roles: ['admin'], role: 'editor' })).toBe(false);
+    expect(isAdmin({ globalRoles: ['viewer'], role: 'admin' })).toBe(true);
+    expect(isAdmin({ roles: ['admin'] })).toBe(true);
+  });
+
+  it('matches off-ladder roles only by exact equality', () => {
+    expect(hasRole({ role: 'editor' }, 'editor')).toBe(true);
+    expect(hasRole({ role: 'owner' }, 'editor')).toBe(false);
+    expect(hasAnyRole({ role: 'editor' }, ['admin', 'editor'])).toBe(true);
+    expect(hasAnyRole({ role: 'viewer' }, ['admin', 'owner'])).toBe(false);
+    expect(hasAnyRole(null, ['admin'])).toBe(false);
+  });
+});
+
+describe('unset deployment mode is hosted', () => {
+  it('treats a missing, blank, or unknown mode as hosted', () => {
+    expect(platformPosture({})).toBe('hosted');
+    expect(platformPosture({ REVEALUI_DEPLOYMENT_MODE: '' })).toBe('hosted');
+    expect(platformPosture({ REVEALUI_DEPLOYMENT_MODE: '   ' })).toBe('hosted');
+    expect(platformPosture({ REVEALUI_DEPLOYMENT_MODE: 'saas' })).toBe('hosted');
+    expect(platformPosture({ REVEALUI_DEPLOYMENT_MODE: 'hosted' })).toBe('hosted');
+    expect(platformPosture({ REVEALUI_DEPLOYMENT_MODE: '  HOSTED  ' })).toBe('hosted');
+    expect(platformPosture({ REVEALUI_DEPLOYMENT_MODE: 'forge' })).toBe('forge');
+    expect(platformPosture({ REVEALUI_DEPLOYMENT_MODE: ' Forge ' })).toBe('forge');
+  });
+
+  it('does not treat a bare owner as admin when the mode is unset', () => {
+    const previous = process.env.REVEALUI_DEPLOYMENT_MODE;
+    delete process.env.REVEALUI_DEPLOYMENT_MODE;
+    try {
+      expect(platformPosture()).toBe('hosted');
+      expect(isAdmin('owner')).toBe(false);
+      expect(isAdmin({ role: 'owner' })).toBe(false);
+      expect(isAdminRole('owner')).toBe(false);
+      expect(hasRole('owner', 'super-admin')).toBe(false);
+      expect(hasRole('owner', 'admin')).toBe(false);
+      expect(hasRole({ role: 'owner' }, 'owner')).toBe(true);
+      expect(isAdmin('admin')).toBe(true);
+      expect(isAdmin('super-admin')).toBe(true);
+    } finally {
+      if (previous === undefined) delete process.env.REVEALUI_DEPLOYMENT_MODE;
+      else process.env.REVEALUI_DEPLOYMENT_MODE = previous;
+    }
+  });
+});
+
+describe('hosted bare owner is not platform admin', () => {
+  const tenantOwner = { id: 'tenant', role: 'owner', emailVerified: true };
+  const platformOwner = {
+    id: 'platform',
+    role: 'owner',
+    emailVerified: true,
+    _json: { roles: ['super-admin'] },
+  };
+
+  it('denies a tenant owner on admin gates and still matches owner', () => {
+    expect(isAdmin(tenantOwner, 'hosted')).toBe(false);
+    expect(isAdminRole('owner', 'hosted')).toBe(false);
+    expect(hasRole(tenantOwner, 'admin', 'hosted')).toBe(false);
+    expect(hasRole(tenantOwner, 'super-admin', 'hosted')).toBe(false);
+    expect(hasRole(tenantOwner, 'owner', 'hosted')).toBe(true);
+    expect(isSuperAdmin(tenantOwner)).toBe(false);
+  });
+
+  it('allows admin, super-admin, and a verified operator', () => {
+    expect(isAdmin({ role: 'admin' }, 'hosted')).toBe(true);
+    expect(isAdmin({ role: 'super-admin' }, 'hosted')).toBe(true);
+    expect(isAdmin(platformSuperAdmin, 'hosted')).toBe(true);
+    expect(isAdmin(platformOwner, 'hosted')).toBe(true);
+    expect(hasRole(platformOwner, 'admin', 'hosted')).toBe(true);
+  });
+
+  it('does not treat an unverified _json marker as the operator', () => {
+    expect(
+      isAdmin({ role: 'owner', emailVerified: false, _json: { roles: ['super-admin'] } }, 'hosted'),
+    ).toBe(false);
   });
 });
