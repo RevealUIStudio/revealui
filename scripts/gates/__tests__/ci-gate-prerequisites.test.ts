@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 const state = vi.hoisted(() => ({
   calls: [] as string[][],
   failPrerequisite: false,
+  failSecurityAudit: false,
   log: vi.fn(),
   admissionDirectory: null as string | null,
   failure: null as {
@@ -32,9 +33,14 @@ vi.mock('@revealui/scripts/exec.js', () => ({
     return {
       success: !(
         state.failure ||
+        (state.failSecurityAudit && args.includes('gate:security')) ||
         (state.failPrerequisite && args.includes('--filter=@revealui/harnesses...'))
       ),
-      exitCode: state.failPrerequisite ? 7 : 0,
+      exitCode: state.failPrerequisite
+        ? 7
+        : state.failSecurityAudit && args.includes('gate:security')
+          ? 4
+          : 0,
       ...(state.failure || {}),
       message: 'secret=synthetic-credential',
       stdout: 'secret=synthetic-credential',
@@ -64,6 +70,7 @@ afterEach(() => {
   vi.restoreAllMocks();
   state.calls = [];
   state.failPrerequisite = false;
+  state.failSecurityAudit = false;
   state.admissionDirectory = null;
   state.failure = null;
   state.log.mockClear();
@@ -110,6 +117,18 @@ describe('gate command failure diagnostics', () => {
 });
 
 describe('quality prerequisite ordering', () => {
+  it('fails phase 1 when the security gate fails', async () => {
+    vi.spyOn(process, 'availableMemory').mockReturnValue(4 * 1024 ** 3);
+    vi.spyOn(process, 'argv', 'get').mockReturnValue(['node', 'ci-gate.ts', '--phase=1']);
+    vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('gate exit');
+    });
+    state.failSecurityAudit = true;
+    await expect(gate()).rejects.toThrow('gate exit');
+    expect(state.calls.some((call) => call.includes('gate:security'))).toBe(true);
+    expect(process.exit).toHaveBeenCalledWith(2);
+  });
+
   it('builds declared package graphs before quality consumers even with phase 3 disabled', async () => {
     vi.spyOn(process, 'availableMemory').mockReturnValue(4 * 1024 ** 3);
     vi.spyOn(process, 'argv', 'get').mockReturnValue([

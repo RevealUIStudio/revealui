@@ -36,7 +36,7 @@ Public get-started paths that are live today:
 
 1. `npx create-revealui@latest`
 2. GitHub templates (Use this template): [starter](https://github.com/RevealUIStudio/revealui-template-starter), [basic-blog](https://github.com/RevealUIStudio/revealui-template-basic-blog), [portfolio](https://github.com/RevealUIStudio/revealui-template-portfolio), [e-commerce](https://github.com/RevealUIStudio/revealui-template-e-commerce)
-3. Apify [governed-agent-run](https://apify.com/revealuistudio/governed-agent-run) — pay-per-event. Receipt verification is $0.00001, not free.
+3. Apify [governed-agent-run](https://apify.com/revealuistudio/governed-agent-run) — pay-per-event.
 4. Marketing templates page: [revealui.com/templates](https://revealui.com/templates) — Deploy to Vercel for the four Next.js GitHub twins. `starter-native` has no twin. There is no live `vercel.com/templates` listing.
 
 Open [http://localhost:4000/admin](http://localhost:4000/admin).
@@ -129,12 +129,12 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 
 ## Tiers
 
-| Tier           | Price     | What you get                                                       |
-| -------------- | --------- | ------------------------------------------------------------------ |
-| **Free**       | $0        | Full OSS core: people, content, offers, payments, admin              |
-| **Pro**        | $49/mo    | AI agents, AI memory, signed audit receipts, MCP framework, advanced sync, RevVault desktop + rotation engine |
-| **Max**        | $99/mo    | Unattended inference, higher limits         |
-| **Enterprise** | inquire / Contact sales | License + studio support (you self-host). SSO (operator preview, not customer-walked — [#449](https://github.com/RevealUIStudio/revealui/issues/449)). Domain-locked. Not a Studio-operated customer VM. |
+| Tier           | What you get                                                       |
+| -------------- | ------------------------------------------------------------------ |
+| **Free**       | Full OSS core: people, content, offers, payments, admin              |
+| **Pro**        | AI agents, AI memory, signed audit receipts, MCP framework, advanced sync, RevVault desktop + rotation engine |
+| **Max**        | Unattended inference, higher limits         |
+| **Enterprise** | License + studio support (you self-host). SSO (operator preview, not customer-walked — [#449](https://github.com/RevealUIStudio/revealui/issues/449)). Domain-locked. Not a Studio-operated customer VM. |
 
 ## Apps
 
