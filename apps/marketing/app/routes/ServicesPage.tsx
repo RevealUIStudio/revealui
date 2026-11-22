@@ -21,10 +21,9 @@ import {
 import { useMarketingPageBlocks } from '../lib/use-page-blocks';
 
 /**
- * Done-for-you services landing: `/services`. Narrative sections are CMS-wired
- * via useMarketingPageBlocks (VES residual, same pattern as fair-source).
- * Engagement ladder rungs and FAQ stay static (answers interpolate price
- * anchors from contracts). `?for=non-technical` on `/` is a static alias.
+ * Leftover services landing: `/services` redirects to `/pricing`. Narrative
+ * sections are CMS-wired via useMarketingPageBlocks. Studio prices stay in
+ * contracts. This page points at revealuistudio.com.
  */
 export function ServicesPage() {
   const { blocks, annotation } = useMarketingPageBlocks('services', SERVICES_FALLBACK_BLOCKS);

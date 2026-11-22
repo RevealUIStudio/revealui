@@ -510,15 +510,15 @@ describe('claims safety: prose is single-sourced, pinned values never enter bloc
     expect(haystack).not.toContain(PRODUCTS_FLAGSHIP.version);
     // The pro price lives only on the pricing surfaces, never in a block.
     expect(haystack).not.toContain(SUBSCRIPTION_PRICE_FALLBACKS.pro.price);
-    // Services engagement ladder rungs stay component-local: pricing intro is
-    // header-only (FAQ prose may still mention dollar anchors).
+    // Services pricing intro is a Studio pointer. Prices stay out of the block.
     const pricingIntro = servicesBlocks().find((b) => b.id === 'services-pricing-intro');
     expect(pricingIntro?.type).toBe('section');
     if (pricingIntro?.type === 'section') {
       expect(pricingIntro.data.items ?? []).toHaveLength(0);
-      for (const rung of FOR_OPERATORS_PRICING.rungs) {
-        expect(pricingIntro.data.body ?? '').not.toContain(rung.price);
-      }
+      expect(pricingIntro.data.body ?? '').not.toContain('$300');
+      expect(pricingIntro.data.body ?? '').not.toContain('$3,997');
+      expect(pricingIntro.data.body ?? '').not.toContain('$14,500');
+      expect(Object.hasOwn(FOR_OPERATORS_PRICING, 'rungs')).toBe(false);
     }
     // Metric counters are rendered from METRICS in TSX, never as block prose.
     // Fair-source hero (which interpolates METRICS) is intentionally not in blocks.
