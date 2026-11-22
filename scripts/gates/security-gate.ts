@@ -73,32 +73,12 @@ interface KnownUpstreamAdvisory {
 
 // Highs with no upstream patch. This list cannot excuse criticals:
 // checkDependencyAudit fails when critical > 0 before these entries are applied.
-const KnownUpstreamAdvisories: KnownUpstreamAdvisory[] = [
-  {
-    key: 'GHSA-86w9-cpqp-85rv',
-    moduleName: 'node-forge',
-    patchedVersions: '<0.0.0',
-    pathIncludes: 'packages__auth>selfsigned>node-forge',
-    description:
-      'GHSA-86w9-cpqp-85rv: node-forge via selfsigned is dev only in packages/auth. Recheck 2026-11-06.',
-  },
-  {
-    key: 'GHSA-ch52-4w7c-c8xp',
-    moduleName: 'http-cache-semantics',
-    patchedVersions: '<0.0.0',
-    pathIncludes: 'apify>@crawlee/core>got-scraping>got',
-    description:
-      'GHSA-ch52-4w7c-c8xp: http-cache-semantics via apify > crawlee > got is not reachable. Recheck 2026-11-06.',
-  },
-  {
-    key: 'GHSA-vfj7-8cjw-p6xm',
-    moduleName: 'braces',
-    patchedVersions: '<0.0.0',
-    pathIncludes: 'micromatch>braces',
-    description:
-      'GHSA-vfj7-8cjw-p6xm: braces via build tooling is not reachable. Recheck 2026-11-06.',
-  },
-];
+// Rechecked 2026-11-21. GHSA-86w9-cpqp-85rv is gone once node-forge is >=1.4.3
+// (pnpm override). GHSA-ch52-4w7c-c8xp was withdrawn 2026-10-28.
+// GHSA-vfj7-8cjw-p6xm was withdrawn 2026-10-23. GHSA-xqc2-xf4c-x3h3 is gone
+// once react-server-dom-webpack resolves at 19.2.9 in lockstep with react.
+// pnpm audit reports none of them.
+const KnownUpstreamAdvisories: KnownUpstreamAdvisory[] = [];
 
 function classifyAuditAdvisories(advisories: AuditAdvisory[]): {
   actionable: AuditAdvisory[];
