@@ -3,10 +3,13 @@
  * base commit. Reads file text only. Does not import or execute the head tree.
  */
 
+import { createRequire } from 'node:module';
 import { mkdirSync, readFileSync, writeFileSync, existsSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+const require = createRequire(import.meta.url);
 
 /** Whole files that must match the base commit byte for byte. */
 export const LOCKED_FILES = [
@@ -207,6 +210,38 @@ export function compareLockedSurfaces(baseRoot, headRoot) {
 }
 
 /**
+ * A locked difference clears only through the security review gate's owner
+ * record: the request label plus an unexpired owner SSHSIG for this exact
+ * head. A review-controller receipt path comes later.
+ * @param {JudgeReport} report
+ * @param {{ labels?: string[], head: string, pr: number, repo: string, comments?: { body: string, url?: string }[], reviews?: { body: string }[], allowedSigners?: string, authorLogin?: string, verifyImpl?: Function }} record
+ * @returns {{ ok: boolean, kind: string, reason?: string, errors: string[] }}
+ */
+export function decideTrustedGate(report, record) {
+  if (report.ok) return { ok: true, kind: 'unchanged', errors: [] };
+  const { verifyPrOwnerRecord } = require('../validate/security-review-gate.cjs');
+  const decision = verifyPrOwnerRecord(
+    {
+      labels: (record.labels ?? []).map((name) => ({ name })),
+      headRefOid: record.head,
+      author: { login: record.authorLogin ?? '' },
+    },
+    record.pr,
+    record.repo,
+    { comments: record.comments ?? [], reviews: record.reviews ?? [] },
+    record.allowedSigners,
+    record.verifyImpl,
+  );
+  if (decision.action === 'clear') return { ok: true, kind: 'owner-signature', errors: [] };
+  return {
+    ok: false,
+    kind: decision.kind ?? 'hold',
+    reason: decision.reason,
+    errors: report.errors,
+  };
+}
+
+/**
  * @param {string} repo
  * @param {string} sha
  * @param {string} rel
@@ -277,11 +312,88 @@ async function main() {
   }
 
   const report = compareLockedSurfaces(path.resolve(baseRoot), path.resolve(headRoot));
-  if (!report.ok) {
+  if (report.ok) {
+    process.stdout.write('trusted gate judge: head matches base\n');
+    return;
+  }
+  const sha = process.env.HEAD_SHA ?? '';
+  const repo = process.env.REPO ?? '';
+  const token = process.env.GH_TOKEN ?? process.env.GITHUB_TOKEN ?? '';
+  const prNumber = Number(process.env.PR_NUMBER ?? '');
+  if (!sha || !repo || !token || !Number.isSafeInteger(prNumber) || prNumber < 1) {
     for (const error of report.errors) process.stderr.write(`${error}\n`);
+    process.stderr.write('locked judge path differs and no pull request record is available\n');
     process.exit(1);
   }
-  process.stdout.write('trusted gate judge: head matches base\n');
+  const record = await fetchOwnerRecord(repo, prNumber, sha, token);
+  const decision = decideTrustedGate(report, record);
+  if (!decision.ok) {
+    for (const error of decision.errors) process.stderr.write(`${error}\n`);
+    process.stderr.write(
+      `locked judge path requires the owner request label and an unexpired owner SSHSIG for this exact head (${decision.reason || decision.kind})\n`,
+    );
+    process.exit(1);
+  }
+  process.stdout.write('trusted gate judge: owner signature cleared the locked path change\n');
+}
+
+/**
+ * @param {string} url
+ * @param {string} token
+ * @returns {Promise<unknown>}
+ */
+async function fetchJson(url, token) {
+  const response = await fetch(url, {
+    headers: {
+      Accept: 'application/vnd.github+json',
+      Authorization: `Bearer ${token}`,
+      'User-Agent': 'revealui-trusted-gate-judge',
+      'X-GitHub-Api-Version': '2022-11-28',
+    },
+  });
+  if (!response.ok) throw new Error(`github api returned ${response.status}`);
+  return response.json();
+}
+
+/**
+ * Read the pull request label and comment text. The bodies are data for the
+ * existing signature verifier. They are not executed.
+ * @param {string} repo
+ * @param {number} prNumber
+ * @param {string} sha
+ * @param {string} token
+ */
+async function fetchOwnerRecord(repo, prNumber, sha, token) {
+  const pr = await fetchJson(`https://api.github.com/repos/${repo}/pulls/${prNumber}`, token);
+  if (!pr || typeof pr !== 'object') throw new Error('invalid pull request');
+  const head = pr.head && typeof pr.head.sha === 'string' ? pr.head.sha : '';
+  if (head !== sha) throw new Error('pull request head does not match the event head');
+  const labels = Array.isArray(pr.labels)
+    ? pr.labels.map((label) => (label && typeof label.name === 'string' ? label.name : '')).filter((name) => name.length > 0)
+    : [];
+  /** @type {{ body: string, url?: string }[]} */
+  const comments = [];
+  for (let page = 1; page <= 10; page += 1) {
+    const batch = await fetchJson(
+      `https://api.github.com/repos/${repo}/issues/${prNumber}/comments?per_page=100&page=${page}`,
+      token,
+    );
+    if (!Array.isArray(batch)) throw new Error('invalid comment page');
+    for (const row of batch) {
+      if (!row || typeof row.body !== 'string') throw new Error('invalid comment body');
+      comments.push({ body: row.body, url: typeof row.html_url === 'string' ? row.html_url : undefined });
+    }
+    if (batch.length < 100) break;
+  }
+  return {
+    labels,
+    head: sha,
+    pr: prNumber,
+    repo,
+    comments,
+    reviews: [],
+    allowedSigners: process.env.REVEALFLEET_OVERRIDE_SIGNERS ?? '',
+  };
 }
 
 const thisFile = fileURLToPath(import.meta.url);
