@@ -15,7 +15,7 @@
  *   2 - filesystem error
  */
 
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const COMMIT_SHA_LENGTH = 40;
@@ -233,8 +233,8 @@ export function scanActionPinRoots(repoRoot: string): UnpinnedActionUse[] {
 
   const findings: UnpinnedActionUse[] = [];
   for (const fullPath of files) {
-    const stat = statSync(fullPath);
-    if (!stat.isFile()) continue;
+    // Directory entries already selected regular files. Read directly so the
+    // check does not stat and then open the same path.
     const text = readFileSync(fullPath, 'utf8');
     const file = posixRelative(repoRoot, fullPath);
     findings.push(...scanActionPinText(text, file));
