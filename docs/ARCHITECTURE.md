@@ -1211,8 +1211,8 @@ Four revenue tracks, all implemented:
 
 - **Track A  -  Subscriptions**: predictable recurring software fee (Free / Pro / Max / Enterprise)
 - **Track B  -  Agent credits**: usage billing for digital labor and automation (prepaid task bundles)
-- **Track C  -  Perpetual licenses**: one-time purchase with annual support renewals (checkout + webhook handler wired)
-- **Track D  -  Professional services**: per-engagement consulting, migration, architecture review, launch packages
+- **Track C  -  Perpetual licenses**: public perpetual is Pro, with annual support renewals; Enterprise perpetual by inquiry
+- **Track D  -  Hands-on work**: invoice or statement of work when scoped, not a self-serve catalog. Public paid product is licenses on revealui.com
 
 ### Preferred Metering Units
 

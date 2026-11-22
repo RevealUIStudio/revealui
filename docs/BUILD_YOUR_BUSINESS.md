@@ -36,6 +36,6 @@ Agent orchestration requires the appropriate paid entitlement, configured tools,
 
 Check the workflow as a user: can the right person sign in, complete the intended action, inspect the resulting data and supported records, and recover from a useful error? Confirm who will maintain it, what services it relies on, and what the software license permits.
 
-Compare licenses on [pricing](https://revealui.com/pricing). The core is MIT; Pro packages are source available under FSL-1.1-MIT. If you need help reviewing or implementing a bounded workflow, [RevealUI Studio](https://revealuistudio.com) offers Consultation, Pilot, and Launch. Agree on scope and ongoing responsibilities before work starts.
+Compare licenses on [pricing](https://revealui.com/pricing). The core is MIT; Pro packages are source available under FSL-1.1-MIT. Pro at $49/mo is the self-serve path.
 
 This replaces the earlier unverified “45 minutes” tutorial, which incorrectly combined a starter scaffold with full-monorepo paths and an unsupported seed script. A clean deployment timing claim should be published only after the maintained setup path has been reproduced and measured.

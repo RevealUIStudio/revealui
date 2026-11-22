@@ -36,6 +36,7 @@ Per-user or perpetual licenses can still exist for narrowly scoped products.
 - [Harnesses](#revealuiharnesses)
 - [Services](#revealuiservices)
 - [x402 Micropayments](#x402-micropayments)
+- [Professional Services (Track D)](#professional-services-track-d)
 - [Perpetual Licenses](#perpetual-licenses)
 - [MCP Marketplace](#mcp-marketplace)
 - [Enterprise tier](#enterprise-tier)
@@ -1200,23 +1201,19 @@ The SDK handles the full 402 → payment → retry cycle automatically.
 
 # Professional Services (Track D)
 
-RevealUI Studio’s public menu is Consultation, Pilot, and Launch. Architecture work happens inside Launch.
+Hands-on work is not a self-serve catalog on this site. The public product catalog is licenses on [revealui.com/pricing](https://revealui.com/pricing): Free, **Pro ($49/mo)** as the self-serve path, Max ($99/mo), and Enterprise as an inquiry license.
 
-| Service | Description | Deliverable |
-|---------|-------------|-------------|
-| **Consultation** | Scoped session with the founder. Tax $0. | Denser living pack and a Stage A share URL |
-| **Pilot** | One site and one receipted action you operate. Includes 1 Adapter. Stage B is included. $3,997. | Working site; 100% credit to Launch within 45 days of Pilot start |
-| **Launch** | Zero to production, including architecture inside Launch. Up to 3 Adapters included. $14,500. | Runbook and 30 days of async stabilization |
-
-Contact: [services@revealui.com](mailto:services@revealui.com)
+An invoice or statement of work, when one is written, is scoped in a conversation. It is not a named package on the product site.
 
 ---
 
 # Perpetual Licenses
 
-All perpetual tiers are available for purchase. The full checkout flow is wired  -  webhook handler extends `supportExpiresAt` by one year on renewal.
+The public perpetual offer is **Pro Perpetual**: buy once, use forever on a single production domain. Enterprise perpetual is an inquiry / license conversation, not an unattended checkout. Other one-time tiers are not public catalog items.
 
-RevealUI Pro is available as a **perpetual license** in addition to monthly/annual subscriptions. Buy once, use forever on a single production domain.
+A support renewal, when invoiced, extends `supportExpiresAt` by one year.
+
+RevealUI Pro is available as a **perpetual license** in addition to monthly/annual subscriptions.
 
 ## What's included
 
@@ -1257,7 +1254,7 @@ Content-Type: application/json
 
 ## Enterprise (perpetual)
 
-Enterprise licenses follow the same perpetual model but are scoped to self-hosted deployments with domain lock. See [Enterprise](./ENTERPRISE.md) and [Deployment](./guides/deployment.md).
+Enterprise perpetual, when issued, is a license for a self-hosted deployment with domain lock. It is not a hosted kit on the public catalog. See [Enterprise](./ENTERPRISE.md) and [Deployment](./guides/deployment.md).
 
 ---
 
@@ -1299,7 +1296,7 @@ GET /.well-known/marketplace.json
 
 # Enterprise tier
 
-Customers buy the Enterprise tier of RevealUI as a **license plus studio support** on admin.revealui.com (Contact sales / inquire — not a public monthly SKU). The customer self-hosts. See [Enterprise](./ENTERPRISE.md).
+Enterprise is a license. The public door is inquire / Contact sales, not a monthly checkout. The customer self-hosts. See [Enterprise](./ENTERPRISE.md).
 
 - **License (this tier)** — EdDSA-signed JWT, support, and Enterprise entitlements. Studio does **not** operate a dedicated customer VM on `revealui.com` infrastructure.
 - **Self-host** — You deploy on your own infrastructure. See [Enterprise](./ENTERPRISE.md) and [Deployment](./guides/deployment.md).

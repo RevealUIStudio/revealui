@@ -369,7 +369,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/open-runtime-for-fde-work',
     exportPath: 'body.21',
-    text: 'What Studio ships into the field',
+    text: 'Licenses, then the handoff',
     evidence: [
       {
         kind: 'code',
@@ -386,7 +386,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/open-runtime-for-fde-work',
     exportPath: 'body.22',
-    text: 'RevealUI Studio offers Consultation, Pilot, and Launch: a focused review, one implemented action, or one business workflow. Agree on deliverables and maintenance responsibilities before work starts. Product licenses are separate.',
+    text: 'Paid product on this site is licenses: Free, Pro at $49/mo, Max, and Enterprise as an inquiry. Hands-on work, when it happens, is an invoice or statement of work, not a menu of named packages. The product noun stays **runtime**. The homepage is for owner-operators who run their own business on it. Forward-deployed delivery is how field work enters, not a rename of the product.',
     evidence: [
       {
         kind: 'code',
@@ -454,7 +454,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/open-runtime-for-fde-work',
     exportPath: 'body.26',
-    text: 'Start with the source: [github.com/RevealUIStudio/revealui](https://github.com/RevealUIStudio/revealui). Or start a conversation about a fixed-bid engagement at [revealuistudio.com](https://revealuistudio.com).',
+    text: 'Start with the source: [github.com/RevealUIStudio/revealui](https://github.com/RevealUIStudio/revealui). Or start on [revealui.com/pricing](https://revealui.com/pricing) with Pro at $49/mo.',
     evidence: [
       {
         kind: 'code',
@@ -6336,7 +6336,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/open-source-and-pro',
     exportPath: 'body.31',
-    text: '**Track C: Perpetual licenses** -- Pay once, use forever. Pro Perpetual is the public perpetual SKU. Enterprise Perpetual is Contact sales / inquire (unlimited self-hosted deployments after studio onboarding). Agency perpetual licensing is a studio SKU on revealuistudio.com, not a public catalog price. Each public perpetual license includes one year of priority support and all updates released during that year. After the year, the software keeps working -- you just stop getting new releases unless you renew support.',
+    text: '**Track C: Perpetual licenses** -- Pay once, use forever. The public perpetual offer is Pro Perpetual. Enterprise perpetual is Contact sales / inquire. Other one-time tiers are not on the public catalog. Each public perpetual license includes one year of priority support and all updates released during that year. After the year, the software keeps working -- you just stop getting new releases unless you renew support.',
     evidence: [
       {
         kind: 'code',

@@ -102,7 +102,7 @@ Not everyone wants a subscription. We offer three ways to pay:
 
 **Track B: Agent credits** -- Buy task bundles that never expire. Top up any plan when you need burst capacity. Three tiers: Starter (10,000 tasks), Standard (60,000 tasks, 17% cheaper per task), and Scale (350,000 tasks, 29% cheaper per task).
 
-**Track C: Perpetual licenses** -- Pay once, use forever. Pro Perpetual is the public perpetual SKU. Enterprise Perpetual is Contact sales / inquire (unlimited self-hosted deployments after studio onboarding). Agency perpetual licensing is a studio SKU on revealuistudio.com, not a public catalog price. Each public perpetual license includes one year of priority support and all updates released during that year. After the year, the software keeps working -- you just stop getting new releases unless you renew support.
+**Track C: Perpetual licenses** -- Pay once, use forever. The public perpetual offer is Pro Perpetual. Enterprise perpetual is Contact sales / inquire. Other one-time tiers are not on the public catalog. Each public perpetual license includes one year of priority support and all updates released during that year. After the year, the software keeps working -- you just stop getting new releases unless you renew support.
 
 Perpetual licenses exist because some teams have procurement processes that can't handle subscriptions, and because "pay once, own it forever" is a model I personally respect.
 
