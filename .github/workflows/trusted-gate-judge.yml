@@ -4,9 +4,12 @@
 # base commit and reads head file text through the API. It does not execute
 # head code.
 #
-# The check name is "Trusted gate judge". It reports on the pull request
-# after this file is on the base branch. An owner has to mark that name
-# required before a rewritten result job fails the merge.
+# A locked path that differs from base clears only when the pull request
+# carries the owner request label and an unexpired owner SSHSIG for this
+# exact head. That grant is the one the security review gate already
+# verifies. A review-controller receipt comes later.
+#
+# The check name is "Trusted gate judge".
 
 name: Trusted gate judge
 
@@ -21,12 +24,13 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   trusted-gate-judge:
     name: Trusted gate judge
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
       - name: Log judge provenance
         run: |
@@ -47,6 +51,10 @@ jobs:
             scripts/ci/trusted-gate-judge.mjs
             scripts/ci/expensive-suite.mjs
             scripts/ci/required-check-result.mjs
+            scripts/validate/security-review-gate.cjs
+            scripts/validate/guardrail2-verdict.cjs
+            scripts/validate/gates-resolver.cjs
+            scripts/validate/security-paths.shared.json
             .github/workflows/ci.yml
             .github/workflows/docker.yml
             .github/workflows/ds.yml
@@ -54,11 +62,35 @@ jobs:
             .github/workflows/check-client-leaks.yml
             .github/workflows/backflow-merge-method-guard.yml
             .github/workflows/archive-check.yml
+            package.json
+            pnpm-workspace.yaml
+            pnpm-lock.yaml
+            .npmrc
+            packages/*/package.json
+            apps/*/package.json
+            packages/harnesses/
+            packages/dev/
           sparse-checkout-cone-mode: false
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: '10.28.2'
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: '24'
+
+      - name: Build the shared owner-signature verifier
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile --filter @revealui/harnesses --filter @revealui/dev
+          pnpm --filter @revealui/harnesses exec tsup --config tsup.gates-cjs.ts
 
       - name: Compare head result jobs and classifier to base
         env:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REVEALFLEET_OVERRIDE_SIGNERS: ${{ vars.REVEALFLEET_OVERRIDE_SIGNERS }}
         run: node scripts/ci/trusted-gate-judge.mjs --base "$GITHUB_WORKSPACE"
