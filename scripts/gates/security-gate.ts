@@ -75,7 +75,9 @@ interface KnownUpstreamAdvisory {
 // checkDependencyAudit fails when critical > 0 before these entries are applied.
 // Rechecked 2026-11-21. GHSA-86w9-cpqp-85rv is gone once node-forge is >=1.4.3
 // (pnpm override). GHSA-ch52-4w7c-c8xp was withdrawn 2026-10-28.
-// GHSA-vfj7-8cjw-p6xm was withdrawn 2026-10-23. pnpm audit reports none of them.
+// GHSA-vfj7-8cjw-p6xm was withdrawn 2026-10-23. GHSA-xqc2-xf4c-x3h3 is gone
+// once react-server-dom-webpack resolves at 19.2.9 in lockstep with react.
+// pnpm audit reports none of them.
 const KnownUpstreamAdvisories: KnownUpstreamAdvisory[] = [];
 
 function classifyAuditAdvisories(advisories: AuditAdvisory[]): {
