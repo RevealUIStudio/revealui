@@ -33,6 +33,7 @@ import {
   resolveDispatchMonitorSlug,
   resolveWorkerHeartbeatMs,
   resolveWorkerMonitorSlug,
+  SENTRY_CRON_FLUSH_TIMEOUT_MS,
   sendWorkerHeartbeat,
   sentryCronEnabled,
   startWorkerSentryHeartbeat,
@@ -55,6 +56,10 @@ describe('cron sentry monitor config', () => {
       recoveryThreshold: 1,
     });
     expect(DEFAULT_DISPATCH_MONITOR_SLUG).toBe('vercel-cron-dispatch');
+  });
+
+  it('waits two seconds for cron check-ins to flush', () => {
+    expect(SENTRY_CRON_FLUSH_TIMEOUT_MS).toBe(2000);
   });
 
   it('uses a 2 minute max runtime for monitored sub-jobs', () => {
@@ -135,8 +140,10 @@ describe('cron sentry monitor config', () => {
       resolve(__dirname, '../../routes/cron/dispatch.ts'),
       'utf8',
     );
-    expect(dispatchSource).toContain('Sentry.withMonitor(resolveDispatchMonitorSlug()');
+    expect(dispatchSource).toContain('await Sentry.withMonitor(');
+    expect(dispatchSource).toContain('resolveDispatchMonitorSlug()');
     expect(dispatchSource).toContain('Sentry.withMonitor(jobMonitorSlug(job.name)');
+    expect(dispatchSource).toContain('Sentry.flush(');
     expect(dispatchSource).toContain('readJsonJobBody(res, job.name)');
   });
 });

@@ -23,6 +23,14 @@ export const WORKER_CRONTAB = '*/5 * * * *';
 export const DEFAULT_DISPATCH_MONITOR_SLUG = 'vercel-cron-dispatch';
 export const DEFAULT_WORKER_MONITOR_SLUG = 'fly-worker-heartbeat';
 
+/**
+ * How long dispatch waits for cron check-in envelopes to leave the process.
+ * One flush covers the dispatch monitor and the nested per-job monitors.
+ * The serverless isolate freezes after the response, so an unflushed queue
+ * never reaches Sentry.
+ */
+export const SENTRY_CRON_FLUSH_TIMEOUT_MS = 2_000;
+
 /** Default heartbeat interval: 5 minutes, in milliseconds. */
 export const DEFAULT_WORKER_HEARTBEAT_MS = 5 * 60 * 1000;
 
