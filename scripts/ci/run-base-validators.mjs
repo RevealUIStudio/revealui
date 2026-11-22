@@ -153,6 +153,24 @@ function runCommand(cwd, argv, env) {
 
 /**
  * @param {string} scanRoot
+ * @param {string} sha
+ * @returns {void}
+ */
+function ensureCommit(scanRoot, sha) {
+  const present = spawnSync('git', ['cat-file', '-e', `${sha}^{commit}`], { cwd: scanRoot });
+  if (present.status === 0) return;
+  const fetched = spawnSync('git', ['fetch', '--no-tags', '--depth', '1', 'origin', sha], {
+    cwd: scanRoot,
+    stdio: 'inherit',
+  });
+  if (fetched.status !== 0) {
+    process.stderr.write(`unable to fetch ${sha} for the manager path gate\n`);
+    process.exit(fetched.status ?? 1);
+  }
+}
+
+/**
+ * @param {string} scanRoot
  * @param {NodeJS.ProcessEnv} env
  * @returns {string[]}
  */
@@ -163,8 +181,10 @@ function changedFiles(scanRoot, env) {
   /** @type {string[]} */
   let range = [];
   if (eventName === 'pull_request' && baseSha) {
+    ensureCommit(scanRoot, baseSha);
     range = [`${baseSha}...HEAD`];
   } else if (eventName === 'push' && beforeSha && beforeSha !== ZERO_SHA) {
+    ensureCommit(scanRoot, beforeSha);
     range = [`${beforeSha}...HEAD`];
   } else {
     return [];
