@@ -114,10 +114,11 @@ describe('workflow wiring', () => {
     expect(ci).toContain('name: Quality');
     expect(ci).toContain('name: Typecheck');
     expect(ci).toContain("needs.changes.outputs.full_suite == 'true'");
-    expect(ci).toContain('pnpm validate:secret-paths');
     const qualityIdx = ci.indexOf('\n  quality:');
     const unitIdx = ci.indexOf('\n  test-unit:');
-    const secretIdx = ci.indexOf('pnpm validate:secret-paths');
+    const secretIdx = ci.indexOf('node "$script"');
+    const runner = readFileSync(path.join(repoRoot, 'scripts/ci/run-base-validators.mjs'), 'utf8');
+    expect(runner).toContain('scripts/sync/__tests__/secret-paths-lockstep.test.ts');
     expect(qualityIdx).toBeGreaterThan(0);
     expect(unitIdx).toBeGreaterThan(qualityIdx);
     expect(secretIdx).toBeGreaterThan(qualityIdx);

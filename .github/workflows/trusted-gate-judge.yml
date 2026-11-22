@@ -1,0 +1,64 @@
+# Compares the pull request's required result jobs and classifier to the
+# base commit. pull_request_target runs this file from the base ref, so a
+# pull request cannot rewrite the comparison. The job checks out only that
+# base commit and reads head file text through the API. It does not execute
+# head code.
+#
+# The check name is "Trusted gate judge". It reports on the pull request
+# after this file is on the base branch. An owner has to mark that name
+# required before a rewritten result job fails the merge.
+
+name: Trusted gate judge
+
+on:
+  pull_request_target:
+    branches: [test, main]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+
+concurrency:
+  group: trusted-gate-judge-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  trusted-gate-judge:
+    name: Trusted gate judge
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Log judge provenance
+        run: |
+          set -euo pipefail
+          echo "event_name=${{ github.event_name }}"
+          echo "head_sha=${{ github.event.pull_request.head.sha }}"
+          echo "base_sha=${{ github.event.pull_request.base.sha }}"
+          echo "pr_number=${{ github.event.pull_request.number }}"
+          echo "workflow_ref=${{ github.workflow_ref }}"
+
+      - name: Checkout base judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/trusted-gate-judge.mjs
+            scripts/ci/expensive-suite.mjs
+            scripts/ci/required-check-result.mjs
+            .github/workflows/ci.yml
+            .github/workflows/docker.yml
+            .github/workflows/ds.yml
+            .github/workflows/security.yml
+            .github/workflows/check-client-leaks.yml
+            .github/workflows/backflow-merge-method-guard.yml
+            .github/workflows/archive-check.yml
+          sparse-checkout-cone-mode: false
+
+      - name: Compare head result jobs and classifier to base
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/ci/trusted-gate-judge.mjs --base "$GITHUB_WORKSPACE"
