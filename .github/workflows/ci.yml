@@ -244,6 +244,12 @@ jobs:
       - name: Boundary validation (hard fail)
         run: pnpm validate:boundary
 
+      - name: Action pin check (hard fail)
+        # Third-party uses in .github/workflows and .github/actions must be a
+        # 40-character commit SHA. Local ./ actions are exempt. Mirrors the
+        # local gate step in scripts/gates/ci-gate.ts.
+        run: pnpm validate:action-pins
+
       - name: Vercel project settings lockstep (files)
         run: pnpm validate:vercel-settings
 
