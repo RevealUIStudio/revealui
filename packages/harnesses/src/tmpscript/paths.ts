@@ -1,32 +1,22 @@
-import { existsSync, mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { isAbsolute, join } from 'node:path';
 
-/** Same data root as harness daemon sock / hotfix store. */
+/** Compatibility accessor for consumers of the former data root. */
 export function revealuiDataDir(): string {
   return join(homedir(), '.local', 'share', 'revealui');
 }
-
-/** Canonical control-layer temp-artifact registry directory. */
-export function controlTmpscriptDir(): string {
-  return join(revealuiDataDir(), 'tmp-scripts');
+export function previousControlManifestPath(): string {
+  return join(revealuiDataDir(), 'tmp-scripts', 'manifest.json');
 }
-
+export function controlTmpscriptDir(): string {
+  const configured = process.env.XDG_STATE_HOME;
+  if (configured && !isAbsolute(configured))
+    throw new Error('tmpscript: XDG_STATE_HOME must be absolute');
+  return join(configured || join(homedir(), '.local', 'state'), 'revealui', 'tmp-scripts');
+}
 export function controlManifestPath(): string {
   return join(controlTmpscriptDir(), 'manifest.json');
 }
-
-/**
- * Legacy Studio-adapter store (pre-cutover). Read for one-time migration only;
- * never write here after cutover.
- */
 export function legacyClaudeManifestPath(): string {
   return join(homedir(), '.claude', 'tmp-scripts', 'manifest.json');
-}
-
-export function ensureControlTmpscriptDir(): void {
-  const dir = controlTmpscriptDir();
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true, mode: 0o700 });
-  }
 }
