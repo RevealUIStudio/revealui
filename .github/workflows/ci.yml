@@ -12,8 +12,10 @@ name: CI
 #     names stay green via *-result jobs (docker.yml Docker images pattern).
 #   - Admin / server / packages / lockfile / workflows / Dockerfiles / e2e
 #     still run the full suite.
-#   - PR-to-main (promote) skips the expensive suite; promotion-gate is the
-#     thin policy check. Push-to-main still runs the production suite.
+#   - A same-repo promotion (head ref exactly test, base ref main) skips the
+#     expensive suite. promotion-gate stays the thin policy check. Any other
+#     pull request into main runs the full suite. Push to main still runs
+#     the production suite.
 #   - Push-to-test on a SHA that is already a test-targeting PR head skips
 #     the expensive suite (kills PR + push double-fire). Concurrency stays
 #     ref-keyed so we do not cancel a required check on the same SHA
@@ -22,9 +24,10 @@ name: CI
 # Optimizations:
 #   - Turbo remote cache: build artifacts shared across jobs
 #   - PR jobs use --affected: only build/typecheck changed packages
-#   - Coverage stays main/promote-only; E2E also runs on PRs into test so
-#     production admin boot (`next start` + Forge license gate) cannot land
-#     untested.
+#   - Coverage runs on push to main and on pull requests into main when the
+#     expensive suite is scheduled. A same-repo test-to-main promotion does
+#     not schedule it. E2E also runs on PRs into test so production admin
+#     boot (`next start` + Forge license gate) cannot land untested.
 #   - e2e-prepare installs Playwright Chromium and builds admin/server/marketing
 #     once; smoke / a11y / visual download those artifacts and only run tests.
 #     One combined playwright-report artifact (`e2e-results`) per workflow run.
@@ -84,6 +87,8 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           BASE_REF: ${{ github.base_ref }}
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
           REF: ${{ github.ref }}
           SHA: ${{ github.sha }}
           BEFORE_SHA: ${{ github.event.before }}
@@ -95,7 +100,8 @@ jobs:
           full_suite=true
           reason=default
 
-          if [ "$EVENT_NAME" = "pull_request" ] && [ "${BASE_REF:-}" = "main" ]; then
+          promotion="$(node scripts/ci/expensive-suite.mjs --promotion-skip | tr -d '\r\n')"
+          if [ "$promotion" = "promote-pr" ]; then
             full_suite=false
             reason=promote-pr
           elif [ "$EVENT_NAME" = "push" ] && [ "$REF" = "refs/heads/test" ]; then
@@ -505,7 +511,10 @@ jobs:
           POSTGRES_URL: "postgresql://test:test@localhost:5432/revealui_test"
 
   # ---------------------------------------------------------------------------
-  # Phase 3a.5: Coverage gate (main only)
+  # Phase 3a.5: Coverage gate
+  # Push to main, and pull requests into main when the expensive suite runs.
+  # A same-repo test-to-main promotion leaves full_suite false, so this job
+  # stays unscheduled there.
   # ---------------------------------------------------------------------------
   coverage:
     name: Coverage (suite)

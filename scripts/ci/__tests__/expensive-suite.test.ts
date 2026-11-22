@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,8 +8,19 @@ import {
   classifyDsPaths,
   formatCiOutputs,
   isCheapCopyPath,
+  isSameRepoTestToMainPromotion,
   shouldRunFullSuite,
 } from '../expensive-suite.mjs';
+
+interface PromotionEvent {
+  eventName: string;
+  baseRef: string;
+  headRef: string;
+  headRepo: string;
+  repo: string;
+}
+
+const sameRepo = 'RevealUIStudio/revealui';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -81,6 +93,81 @@ describe('shouldRunFullSuite', () => {
   it('fails open to the full suite on an empty diff', () => {
     expect(shouldRunFullSuite([])).toBe(true);
     expect(formatCiOutputs([])).toBe('full_suite=true\n');
+  });
+});
+
+describe('isSameRepoTestToMainPromotion', () => {
+  const promotion: PromotionEvent = {
+    eventName: 'pull_request',
+    baseRef: 'main',
+    headRef: 'test',
+    headRepo: sameRepo,
+    repo: sameRepo,
+  };
+
+  function promotionSkipToken(event: PromotionEvent): string {
+    const result = spawnSync(
+      process.execPath,
+      [path.join(repoRoot, 'scripts/ci/expensive-suite.mjs'), '--promotion-skip'],
+      {
+        cwd: repoRoot,
+        encoding: 'utf8',
+        env: {
+          PATH: process.env.PATH,
+          EVENT_NAME: event.eventName,
+          BASE_REF: event.baseRef,
+          HEAD_REF: event.headRef,
+          HEAD_REPO: event.headRepo,
+          REPO: event.repo,
+        },
+      },
+    );
+    expect(result.status).toBe(0);
+    return result.stdout;
+  }
+
+  it('skips the expensive suite for a same-repo test to main promotion', () => {
+    expect(isSameRepoTestToMainPromotion(promotion)).toBe(true);
+    expect(promotionSkipToken(promotion)).toBe('promote-pr\n');
+  });
+
+  it('runs the full suite when a non-test head targets main', () => {
+    const featureHead: PromotionEvent = { ...promotion, headRef: 'feature/coverage' };
+    const prefixedHead: PromotionEvent = { ...promotion, headRef: 'refs/heads/test' };
+    expect(isSameRepoTestToMainPromotion(featureHead)).toBe(false);
+    expect(isSameRepoTestToMainPromotion(prefixedHead)).toBe(false);
+    expect(promotionSkipToken(featureHead)).toBe('continue\n');
+  });
+
+  it('runs the full suite when a fork head named test targets main', () => {
+    const forkHead: PromotionEvent = { ...promotion, headRepo: 'contributor/revealui' };
+    const missingHeadRepo: PromotionEvent = { ...promotion, headRepo: '' };
+    expect(isSameRepoTestToMainPromotion(forkHead)).toBe(false);
+    expect(isSameRepoTestToMainPromotion(missingHeadRepo)).toBe(false);
+    expect(promotionSkipToken(forkHead)).toBe('continue\n');
+  });
+
+  it('leaves a pull request into test on the existing path classifier', () => {
+    const intoTest: PromotionEvent = { ...promotion, baseRef: 'test', headRef: 'feature/coverage' };
+    const headNamedTest: PromotionEvent = { ...promotion, baseRef: 'test', headRef: 'test' };
+    expect(isSameRepoTestToMainPromotion(intoTest)).toBe(false);
+    expect(isSameRepoTestToMainPromotion(headNamedTest)).toBe(false);
+    expect(promotionSkipToken(intoTest)).toBe('continue\n');
+    expect(shouldRunFullSuite(['docs/ROADMAP.md', 'README.md'])).toBe(false);
+    expect(shouldRunFullSuite(['apps/admin/src/app/page.tsx'])).toBe(true);
+    expect(shouldRunFullSuite([])).toBe(true);
+  });
+
+  it('does not skip a push to main', () => {
+    expect(
+      isSameRepoTestToMainPromotion({
+        eventName: 'push',
+        baseRef: '',
+        headRef: '',
+        headRepo: '',
+        repo: sameRepo,
+      }),
+    ).toBe(false);
   });
 });
 
@@ -185,9 +272,47 @@ describe('workflow wiring', () => {
   });
 
   it('skips a second full suite on promote PRs and on push-to-test when a PR already covers the SHA', () => {
-    expect(ci).toContain('reason=promote-pr');
+    const changesStart = ci.indexOf('\n  changes:');
+    const changesEnd = ci.indexOf('\n  ensure-ci-images:');
+    const changes = ci.slice(changesStart, changesEnd);
+    const blanketMainPullRequest = [
+      '[ "$EVENT_NAME" = "pull_request" ] && [ "',
+      '$',
+      '{BASE_REF:-}" = "main" ]',
+    ].join('');
+
+    expect(changesStart).toBeGreaterThan(0);
+    expect(changesEnd).toBeGreaterThan(changesStart);
+    expect(changes).toContain('reason=promote-pr');
+    expect(changes).toContain('--promotion-skip');
+    expect(changes).toContain(['HEAD_REF: ', '$', '{{ github.head_ref }}'].join(''));
+    expect(changes).toContain(
+      ['HEAD_REPO: ', '$', '{{ github.event.pull_request.head.repo.full_name }}'].join(''),
+    );
+    expect(changes).toContain('[ "$promotion" = "promote-pr" ]');
+    expect(changes).not.toContain(blanketMainPullRequest);
     expect(ci).toContain('reason=sha-covered-by-pr');
     expect(ci).toContain(['commits/', '$', '{SHA}/pulls'].join(''));
+  });
+
+  it('schedules Coverage for a full suite on push to main or a pull request into main', () => {
+    const coverageStart = ci.indexOf('\n  coverage:');
+    const coverageEnd = ci.indexOf('\n  build:');
+    const coverage = ci.slice(coverageStart, coverageEnd);
+    expect(coverageStart).toBeGreaterThan(0);
+    expect(coverageEnd).toBeGreaterThan(coverageStart);
+    expect(coverage).toContain('name: Coverage (suite)');
+    expect(coverage).toContain(
+      "if: needs.changes.outputs.full_suite == 'true' && (github.ref == 'refs/heads/main' || github.base_ref == 'main')",
+    );
+  });
+
+  it('keeps the Quality job off the expensive-suite gate', () => {
+    const qualityStart = ci.indexOf('\n  quality:');
+    const qualityEnd = ci.indexOf('\n  db-migrations:');
+    const quality = ci.slice(qualityStart, qualityEnd);
+    expect(quality).toContain('name: Quality');
+    expect(quality).not.toContain('needs.changes.outputs.full_suite');
   });
 
   it('keeps docker PR image builds behind the existing changes job + Docker images summary', () => {
