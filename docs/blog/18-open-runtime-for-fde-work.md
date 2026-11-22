@@ -46,9 +46,9 @@ If any of those are missing, the handoff is a laptop dependency with a nicer nam
 
 Who this is not for: six-month enterprise POCs that need a certification stamp before a first install. That path exists elsewhere. It is not the first-mile product.
 
-## What Studio ships into the field
+## Licenses, then the handoff
 
-RevealUI Studio offers Consultation, Pilot, and Launch: a focused review, one implemented action, or one business workflow. Agree on deliverables and maintenance responsibilities before work starts. Product licenses are separate.
+Paid product on this site is licenses: Free, Pro at $49/mo, Max, and Enterprise as an inquiry. Hands-on work, when it happens, is an invoice or statement of work, not a menu of named packages. The product noun stays **runtime**. The homepage is for owner-operators who run their own business on it. Forward-deployed delivery is how field work enters, not a rename of the product.
 
 You can read the runtime, run it, and check the claims against code. Used in production by the team that maintains it. That is the only production claim this post makes.
 
@@ -58,4 +58,4 @@ The industry already decided last-mile humans matter. The open question is what 
 
 RevealUI's approach is a self-hosted runtime for business data and supported agent workflows. Configure the tools, permissions, and action records your workflow needs, and review license and service dependencies before handoff.
 
-Start with the source: [github.com/RevealUIStudio/revealui](https://github.com/RevealUIStudio/revealui). Or start a conversation about a fixed-bid engagement at [revealuistudio.com](https://revealuistudio.com).
+Start with the source: [github.com/RevealUIStudio/revealui](https://github.com/RevealUIStudio/revealui). Or start on [revealui.com/pricing](https://revealui.com/pricing) with Pro at $49/mo.
