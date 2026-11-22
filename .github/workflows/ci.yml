@@ -100,7 +100,7 @@ jobs:
           full_suite=true
           reason=default
 
-          promotion="$(node scripts/ci/expensive-suite.mjs --promotion-skip | tr -d '\r\n')"
+          promotion="$(node trusted-classifier/scripts/ci/expensive-suite.mjs --promotion-skip | tr -d '\r\n')"
           if [ "$promotion" = "promote-pr" ]; then
             full_suite=false
             reason=promote-pr

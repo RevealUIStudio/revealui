@@ -284,7 +284,10 @@ describe('workflow wiring', () => {
     expect(changesStart).toBeGreaterThan(0);
     expect(changesEnd).toBeGreaterThan(changesStart);
     expect(changes).toContain('reason=promote-pr');
-    expect(changes).toContain('--promotion-skip');
+    expect(changes).toContain(
+      'node trusted-classifier/scripts/ci/expensive-suite.mjs --promotion-skip',
+    );
+    expect(changes.includes('node scripts/ci/expensive-suite.mjs')).toBe(false);
     expect(changes).toContain(['HEAD_REF: ', '$', '{{ github.head_ref }}'].join(''));
     expect(changes).toContain(
       ['HEAD_REPO: ', '$', '{{ github.event.pull_request.head.repo.full_name }}'].join(''),

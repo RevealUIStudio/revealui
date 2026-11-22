@@ -78,6 +78,7 @@ describe('gate scripts execute from the base commit', () => {
     expect(ci).toContain('path: trusted-classifier');
     expect(ci).toContain('github.event.pull_request.base.sha || github.sha');
     expect(ci).toContain('node trusted-classifier/scripts/ci/expensive-suite.mjs');
+    expect(ci).toContain('node trusted-classifier/scripts/ci/expensive-suite.mjs --promotion-skip');
     expect(ci.includes('node scripts/ci/expensive-suite.mjs')).toBe(false);
     expect(ds).toContain('node trusted-classifier/scripts/ci/expensive-suite.mjs --ds');
     expect(ds.includes('node scripts/ci/expensive-suite.mjs')).toBe(false);
