@@ -1,6 +1,6 @@
 ---
 title: "Security Audit Status"
-description: "**Last updated:** 2026-04-18"
+description: "**Last updated:** 2026-10-09"
 visibility: internal
 status: verified
 audience: maintainer
@@ -8,7 +8,7 @@ audience: maintainer
 
 # Security Audit Status
 
-**Last updated:** 2026-04-18
+**Last updated:** 2026-10-09
 **Session:** Commercial readiness marathon (continuation)
 
 ## Closed
@@ -29,11 +29,15 @@ audience: maintainer
 | WH-2 | License key non-idempotent across saga retries | Moved `generateLicenseKey()` inside saga steps + idempotency guard at all 4 call sites | #379 |
 | WH-3 | Concurrent event race on syncHostedSubscriptionState | `eventTimestamp` param + `WHERE updated_at < eventTimestamp` guard on all 15 call sites | #379 |
 | CRON | Reconciliation cron for unreconciled_webhooks | Weekly GitHub Actions workflow + `check-unreconciled.ts` script; creates/updates GitHub issue | #379 |
+| AUTH-1 | Password-length analyzer flagged `length > 0` presence checks, including `url.password.length` | Emptiness comparisons are not a minimum-length policy | this change |
 
 ## Open
 
 | ID | Finding | Severity | Blocker? | Notes |
 |----|---------|----------|----------|-------|
+| CVE-1 | GHSA-86w9-cpqp-85rv node-forge 1.4.0 via selfsigned | high | no | Dev-only in `@revealui/auth`. Vulnerable range is `<=1.4.0`. node-forge 1.4.1 (2026-10-27) fixes the nested DigestAlgorithm forgery. Rechecked 2026-11-21. |
+| CVE-2 | GHSA-ch52-4w7c-c8xp http-cache-semantics | withdrawn | no | Withdrawn 2026-10-28. `pnpm audit` no longer reports it. |
+| CVE-3 | GHSA-vfj7-8cjw-p6xm braces | withdrawn | no | Withdrawn 2026-10-23. `pnpm audit` no longer reports it. |
 
 ## Verification Checks (2026-04-18)
 
