@@ -8,6 +8,11 @@
  * server-tsx-boot) only when EVERY changed path is copy/docs. Any other path
  * — including apps/admin, apps/server, packages/**, lockfile, workflows,
  * Dockerfiles, e2e — keeps the full suite.
+ *
+ * Promotion skip is separate. `isSameRepoTestToMainPromotion` is true only
+ * for a pull request in this repo whose head ref is exactly `test` and whose
+ * base ref is `main`. `--promotion-skip` prints `promote-pr` for that case
+ * and `continue` otherwise. The changes job then classifies changed paths.
  */
 import { resolve } from 'node:path';
 import { createInterface } from 'node:readline';
@@ -25,6 +30,48 @@ export function isCheapCopyPath(file) {
   if (file.startsWith('apps/marketing/app/content/__tests__/')) return false;
   if (file.startsWith('apps/marketing/app/content/')) return true;
   return false;
+}
+
+/**
+ * @typedef {Object} PromotionEvent
+ * @property {string} eventName
+ * @property {string} baseRef
+ * @property {string} headRef
+ * @property {string} headRepo
+ * @property {string} repo
+ */
+
+/**
+ * Real promotion: a pull request whose head repository is this repo, whose
+ * head ref is exactly `test`, and whose base ref is `main`. A fork, a missing
+ * head repository, and any other head ref stay on the full suite.
+ *
+ * @param {PromotionEvent} event
+ * @returns {boolean}
+ */
+export function isSameRepoTestToMainPromotion(event) {
+  if (event.eventName !== 'pull_request') return false;
+  if (event.baseRef !== 'main') return false;
+  if (event.headRef !== 'test') return false;
+  if (event.repo.length === 0) return false;
+  return event.headRepo === event.repo;
+}
+
+/**
+ * Token the changes job compares. Reads EVENT_NAME, BASE_REF, HEAD_REF,
+ * HEAD_REPO, and REPO from the environment.
+ *
+ * @returns {string}
+ */
+export function promotionSkipToken() {
+  const skip = isSameRepoTestToMainPromotion({
+    eventName: process.env.EVENT_NAME ?? '',
+    baseRef: process.env.BASE_REF ?? '',
+    headRef: process.env.HEAD_REF ?? '',
+    headRepo: process.env.HEAD_REPO ?? '',
+    repo: process.env.REPO ?? '',
+  });
+  return skip ? 'promote-pr' : 'continue';
 }
 
 /**
@@ -140,6 +187,10 @@ async function readStdin() {
 }
 
 async function main() {
+  if (process.argv.includes('--promotion-skip')) {
+    process.stdout.write(`${promotionSkipToken()}\n`);
+    return;
+  }
   const mode = process.argv.includes('--ds') ? 'ds' : 'ci';
   const raw = await readStdin();
   const files = parseChangedFiles(raw);
