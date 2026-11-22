@@ -404,24 +404,10 @@ export const claimsPart3: readonly ClaimEntry[] = [
   },
   {
     file: 'for-operators-managed.ts',
-    exportPath: 'FO_MANAGED_TODAY.heading',
-    proofGrade: 'outcome',
-    text: 'Book the agency engagement.',
-    evidence: [COMMERCIAL_POLICY],
-  },
-  {
-    file: 'for-operators-managed.ts',
     exportPath: 'FO_MANAGED_TODAY.body',
     proofGrade: 'outcome',
-    text: '(operator-lane studio-voice copy; path-pinned so the phrasing stays out of the fleet-voice register scan)',
+    text: 'RevealUI Cloud does not ship. Studio does not operate a customer VM. There is no booking on this page.',
     match: 'path',
-    evidence: [COMMERCIAL_POLICY],
-  },
-  {
-    file: 'for-operators-managed.ts',
-    exportPath: 'FO_MANAGED_TODAY.detailLink.label',
-    proofGrade: 'path',
-    text: 'Read how the engagement works →',
     evidence: [COMMERCIAL_POLICY],
   },
   {

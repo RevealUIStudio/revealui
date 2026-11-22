@@ -4,10 +4,7 @@
  * artifacts → next. Not Studio Desk Sheet. Not a fourth SKU.
  */
 
-import {
-  CONSULTATION_PRICE,
-  consultationSessionBuyerCopy,
-} from '@revealui/contracts/public-catalog';
+import { consultationSessionBuyerCopy } from '@revealui/contracts/public-catalog';
 
 export const CONSULTATION_JOURNEY_PROGRESS_KEY = 'revealui-consultation-journey';
 
@@ -41,7 +38,7 @@ export const CONSULTATION_JOURNEY = {
     {
       id: 'pay',
       title: 'Pay',
-      body: `Invoice before the session begins. Consultation is ${CONSULTATION_PRICE}. You get a receipt you can keep.`,
+      body: 'Pay on revealuistudio.com before the session. This product site does not list that price. You get a receipt you can keep.',
     },
     {
       id: 'prep',

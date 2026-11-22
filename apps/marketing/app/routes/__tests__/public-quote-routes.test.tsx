@@ -41,13 +41,12 @@ describe('public product catalog routes', () => {
   it('home explains the product and account creation with the catalog teaser', () => {
     const { container } = renderRouted(<HomePage />);
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    const startFree = screen.getAllByRole('link', { name: /start free/i });
+    const docsLinks = screen.getAllByRole('link', { name: 'Read the docs' });
+    expect(docsLinks.length).toBeGreaterThan(0);
+    expect(docsLinks.every((link) => link.getAttribute('href') === SITE.urls.docs)).toBe(true);
+    const startFree = screen.getAllByRole('link', { name: 'Start free' });
     expect(startFree.length).toBeGreaterThan(0);
     expect(startFree.every((link) => link.getAttribute('href') === SITE.urls.signup)).toBe(true);
-    expect(screen.getByRole('link', { name: 'Create a RevealUI account' })).toHaveAttribute(
-      'href',
-      SITE.urls.signup,
-    );
     expect(screen.getByRole('link', { name: 'Inspect the source' })).toHaveAttribute(
       'href',
       SITE.urls.repo,
