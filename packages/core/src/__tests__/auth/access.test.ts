@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   anyone,
   authenticated,
@@ -16,6 +16,10 @@ const userWithRoles = (roles: string[]) => ({
 });
 
 describe('access control functions', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   describe('anyone', () => {
     it('returns true regardless of user', () => {
       expect(anyone(noUser)).toBe(true);
@@ -52,8 +56,16 @@ describe('access control functions', () => {
       expect(isAdmin(userWithRoles(['editor', 'admin', 'viewer']))).toBe(true);
     });
 
-    it('treats owner and super-admin as admin', () => {
+    it('treats owner and super-admin as admin on forge', () => {
+      vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', 'forge');
       expect(isAdmin(userWithRoles(['owner']))).toBe(true);
+      expect(isAdmin(userWithRoles(['super-admin']))).toBe(true);
+    });
+
+    it('does not treat a bare owner as admin when deployment mode is unset', () => {
+      vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', '');
+      expect(isAdmin(userWithRoles(['owner']))).toBe(false);
+      expect(isAdmin(userWithRoles(['admin']))).toBe(true);
       expect(isAdmin(userWithRoles(['super-admin']))).toBe(true);
     });
 
@@ -93,11 +105,19 @@ describe('access control functions', () => {
       expect(hasRole('editor')(userWithRoles(['editor']))).toBe(true);
     });
 
-    it('lets owner satisfy an admin check and not an editor check', () => {
+    it('lets owner satisfy an admin check and not an editor check on forge', () => {
+      vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', 'forge');
       expect(hasRole('admin')(userWithRoles(['owner']))).toBe(true);
       expect(hasRole('super-admin')(userWithRoles(['owner']))).toBe(true);
       expect(hasRole('editor')(userWithRoles(['owner']))).toBe(false);
       expect(hasRole('owner')(userWithRoles(['super-admin']))).toBe(false);
+    });
+
+    it('does not let a bare owner satisfy admin checks when deployment mode is unset', () => {
+      vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', '');
+      expect(hasRole('admin')(userWithRoles(['owner']))).toBe(false);
+      expect(hasRole('super-admin')(userWithRoles(['owner']))).toBe(false);
+      expect(hasRole('owner')(userWithRoles(['owner']))).toBe(true);
     });
   });
 

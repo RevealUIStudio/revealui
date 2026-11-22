@@ -8,6 +8,7 @@ import {
   isAdminRole,
   isPlatformSuperAdmin,
   isSuperAdmin,
+  platformPosture,
 } from './platform-roles.js';
 
 describe('canonical site content authority', () => {
@@ -64,11 +65,11 @@ const platformSuperAdmin = {
 };
 
 describe('platform role ladder', () => {
-  it('gives owner, super-admin, and admin the same admin answer', () => {
+  it('gives owner, super-admin, and admin the same admin answer on forge', () => {
     for (const role of ['owner', 'super-admin', 'admin'] as const) {
-      expect(isAdmin(role)).toBe(true);
-      expect(isAdminRole(role)).toBe(true);
-      expect(hasRole(role, 'admin')).toBe(true);
+      expect(isAdmin(role, 'forge')).toBe(true);
+      expect(isAdminRole(role, 'forge')).toBe(true);
+      expect(hasRole(role, 'admin', 'forge')).toBe(true);
     }
   });
 
@@ -83,19 +84,19 @@ describe('platform role ladder', () => {
     expect(hasRole(null, 'admin')).toBe(false);
   });
 
-  it('lets higher ladder roles satisfy lower checks and not the reverse', () => {
-    expect(hasRole('owner', 'owner')).toBe(true);
-    expect(hasRole('owner', 'super-admin')).toBe(true);
-    expect(hasRole('owner', 'admin')).toBe(true);
-    expect(hasRole('owner', 'editor')).toBe(false);
+  it('lets higher ladder roles satisfy lower checks and not the reverse on forge', () => {
+    expect(hasRole('owner', 'owner', 'forge')).toBe(true);
+    expect(hasRole('owner', 'super-admin', 'forge')).toBe(true);
+    expect(hasRole('owner', 'admin', 'forge')).toBe(true);
+    expect(hasRole('owner', 'editor', 'forge')).toBe(false);
 
-    expect(hasRole('super-admin', 'super-admin')).toBe(true);
-    expect(hasRole('super-admin', 'admin')).toBe(true);
-    expect(hasRole('super-admin', 'owner')).toBe(false);
+    expect(hasRole('super-admin', 'super-admin', 'forge')).toBe(true);
+    expect(hasRole('super-admin', 'admin', 'forge')).toBe(true);
+    expect(hasRole('super-admin', 'owner', 'forge')).toBe(false);
 
-    expect(hasRole('admin', 'admin')).toBe(true);
-    expect(hasRole('admin', 'super-admin')).toBe(false);
-    expect(hasRole('admin', 'owner')).toBe(false);
+    expect(hasRole('admin', 'admin', 'forge')).toBe(true);
+    expect(hasRole('admin', 'super-admin', 'forge')).toBe(false);
+    expect(hasRole('admin', 'owner', 'forge')).toBe(false);
   });
 
   it('treats a verified _json super-admin as super-admin rank', () => {
@@ -128,6 +129,38 @@ describe('platform role ladder', () => {
     expect(hasAnyRole({ role: 'editor' }, ['admin', 'editor'])).toBe(true);
     expect(hasAnyRole({ role: 'viewer' }, ['admin', 'owner'])).toBe(false);
     expect(hasAnyRole(null, ['admin'])).toBe(false);
+  });
+});
+
+describe('unset deployment mode is hosted', () => {
+  it('treats a missing, blank, or unknown mode as hosted', () => {
+    expect(platformPosture({})).toBe('hosted');
+    expect(platformPosture({ REVEALUI_DEPLOYMENT_MODE: '' })).toBe('hosted');
+    expect(platformPosture({ REVEALUI_DEPLOYMENT_MODE: '   ' })).toBe('hosted');
+    expect(platformPosture({ REVEALUI_DEPLOYMENT_MODE: 'saas' })).toBe('hosted');
+    expect(platformPosture({ REVEALUI_DEPLOYMENT_MODE: 'hosted' })).toBe('hosted');
+    expect(platformPosture({ REVEALUI_DEPLOYMENT_MODE: '  HOSTED  ' })).toBe('hosted');
+    expect(platformPosture({ REVEALUI_DEPLOYMENT_MODE: 'forge' })).toBe('forge');
+    expect(platformPosture({ REVEALUI_DEPLOYMENT_MODE: ' Forge ' })).toBe('forge');
+  });
+
+  it('does not treat a bare owner as admin when the mode is unset', () => {
+    const previous = process.env.REVEALUI_DEPLOYMENT_MODE;
+    delete process.env.REVEALUI_DEPLOYMENT_MODE;
+    try {
+      expect(platformPosture()).toBe('hosted');
+      expect(isAdmin('owner')).toBe(false);
+      expect(isAdmin({ role: 'owner' })).toBe(false);
+      expect(isAdminRole('owner')).toBe(false);
+      expect(hasRole('owner', 'super-admin')).toBe(false);
+      expect(hasRole('owner', 'admin')).toBe(false);
+      expect(hasRole({ role: 'owner' }, 'owner')).toBe(true);
+      expect(isAdmin('admin')).toBe(true);
+      expect(isAdmin('super-admin')).toBe(true);
+    } finally {
+      if (previous === undefined) delete process.env.REVEALUI_DEPLOYMENT_MODE;
+      else process.env.REVEALUI_DEPLOYMENT_MODE = previous;
+    }
   });
 });
 

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ADMIN_ROLES, isAdminRole, isFleetOperator } from '../access.js';
 import type { ApiAuthUser } from '../api-roles.js';
 
@@ -6,10 +6,20 @@ import type { ApiAuthUser } from '../api-roles.js';
 // isAdminRole — server-side admin/owner gate for admin-gated REST routes.
 // ---------------------------------------------------------------------------
 describe('isAdminRole', () => {
-  it('grants the canonical owner DB role', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('grants the canonical owner DB role on forge', () => {
     // Per #1219 an owner account carries DB role='owner'. This is the gap the
     // pre-consolidation per-route Sets (['admin','super-admin']) missed.
-    expect(isAdminRole('owner')).toBe(true);
+    expect(isAdminRole('owner', 'forge')).toBe(true);
+  });
+
+  it('denies a bare owner when deployment mode is unset', () => {
+    vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', '');
+    expect(isAdminRole('owner')).toBe(false);
+    expect(isAdminRole('admin')).toBe(true);
   });
 
   it('grants the legacy admin role', () => {

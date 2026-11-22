@@ -175,6 +175,13 @@ describe('isAdmin', () => {
     expect(isAdmin({ req: makeReq(shellOwner) })).toBe(false);
     vi.unstubAllEnvs();
   });
+
+  it('denies a bare shell owner when deployment mode is unset', () => {
+    vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', '');
+    const shellOwner: UserWithRoles = { id: 'own', role: 'owner', roles: [Role.Viewer] };
+    expect(isAdmin({ req: makeReq(shellOwner) })).toBe(false);
+    vi.unstubAllEnvs();
+  });
 });
 
 // ─── isSuperAdmin ────────────────────────────────────────────────────────────

@@ -10,14 +10,12 @@
  *   super-admin  satisfies super-admin and admin
  *   admin        satisfies admin
  *
- * Hosted exception (`REVEALUI_DEPLOYMENT_MODE=hosted`): a bare `owner`
- * does not satisfy admin or super-admin. It still matches an owner check.
- * Hosted account owners are stored as `users.role = admin`. `users.role =
- * owner` can also be written by a shell admin (user update, soft cap) or
- * an SSO group map, so it is not proof of the platform operator. On hosted,
- * owner satisfies admin only together with `isPlatformSuperAdmin` (verified
- * email and `_json.roles` contains `super-admin`). Forge, and an unset
- * mode, keep the full ladder: that install's owner is the operator.
+ * Hosted posture (`REVEALUI_DEPLOYMENT_MODE=hosted`, or an unset mode): a bare
+ * `owner` does not satisfy admin or super-admin. It still matches an owner
+ * check. On hosted, owner satisfies admin only together with
+ * `isPlatformSuperAdmin` (verified email and `_json.roles` contains
+ * `super-admin`). Explicit forge keeps the full ladder: owner satisfies admin
+ * and super-admin.
  *
  * Roles off the ladder (editor, viewer, user, tenant-admin, and so on)
  * match only themselves. They never elevate, and a ladder role does not
@@ -34,8 +32,7 @@
  * `hasRole(..., 'super-admin')` if the caller must stay exact):
  *   - `isSuperAdmin` / `isPlatformSuperAdmin`: the super-admin marker only.
  *     Shell owner does not pass. Fleet-operator surfaces use this so a
- *     hosted account owner (promoted to shell admin) cannot read other
- *     accounts.
+ *     hosted account owner cannot read other accounts.
  *   - account membership `owner` (billing seat) is a different plane.
  *   - site collaborator `admin` is a per-site ACL, not `users.role`.
  */
@@ -61,15 +58,15 @@ export const PLATFORM_ROLE_LADDER = ['owner', 'super-admin', 'admin'] as const;
 
 export type PlatformLadderRole = (typeof PLATFORM_ROLE_LADDER)[number];
 
-/** Product posture for the owner-elevation rule. Unset mode is forge. */
+/** Product posture for the owner-elevation rule. Unset mode is hosted. */
 export type PlatformPosture = 'hosted' | 'forge';
 
-/** Read `REVEALUI_DEPLOYMENT_MODE`. Only an explicit `hosted` is hosted. */
+/** Read `REVEALUI_DEPLOYMENT_MODE`. Only an explicit `forge` is forge. */
 export function platformPosture(
   env: Record<string, string | undefined> = process.env,
 ): PlatformPosture {
   const raw = (env.REVEALUI_DEPLOYMENT_MODE ?? '').trim().toLowerCase();
-  return raw === 'hosted' ? 'hosted' : 'forge';
+  return raw === 'forge' ? 'forge' : 'hosted';
 }
 
 const LADDER_RANK: ReadonlyMap<string, number> = new Map([
