@@ -77,7 +77,8 @@ describe('WHAT_IS leftover public-copy pins (#528 claim-drift)', () => {
 
   it('does not sell RevKit or a Fleet kit on the public README catalog table', () => {
     const readme = readRepo('README.md');
-    expect(readme.includes('| **Max**        | $99/mo    |')).toBe(true);
+    expect(readme.includes('| **Max**        | Unattended inference, higher limits')).toBe(true);
+    expect(readme.includes('| **Max**        | $99/mo')).toBe(false);
     expect(readme.includes('RevKit environment provisioning')).toBe(false);
     expect(readme.includes('Fleet kit via RevForge')).toBe(false);
     expect(readme.includes('RevealUI Fleet kit')).toBe(false);
