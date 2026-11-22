@@ -204,6 +204,17 @@ export async function signIn(
       );
     }
 
+    // Status is checked only after the password matches, so a wrong password
+    // still looks like invalid credentials. Inactive accounts never reach MFA
+    // or session mint.
+    if (user.status !== 'active') {
+      return {
+        success: false,
+        reason: 'account_inactive',
+        error: 'This account is not active.',
+      };
+    }
+
     // Hosted SaaS requires a verified email before password sign-in.
     // Self-host / Forge keeps sign-in for unverified bootstrap admins
     // (onInit first owner often has no mailer). A 24h hosted grace window

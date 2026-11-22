@@ -24,7 +24,7 @@ import { getClient } from '@revealui/db';
 import { userDevices } from '@revealui/db/schema';
 import { users } from '@revealui/db/schema/users';
 import { zValidator } from '@revealui/openapi';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { z } from 'zod/v4';
 import { sendEmail } from '../lib/email.js';
@@ -150,7 +150,7 @@ app.post('/link', zValidator('json', linkSchema), async (c) => {
   const [user] = await db
     .select({ id: users.id })
     .from(users)
-    .where(eq(users.email, email))
+    .where(and(eq(users.email, email), eq(users.status, 'active'), isNull(users.deletedAt)))
     .limit(1);
 
   if (!user) {
@@ -237,7 +237,7 @@ app.post('/verify', zValidator('json', verifySchema), async (c) => {
   const [user] = await db
     .select({ id: users.id, email: users.email, name: users.name, role: users.role })
     .from(users)
-    .where(eq(users.email, email))
+    .where(and(eq(users.email, email), eq(users.status, 'active'), isNull(users.deletedAt)))
     .limit(1);
 
   if (!user) {
@@ -339,6 +339,15 @@ app.post('/refresh', async (c) => {
     return c.json({ success: false, error: 'Invalid or expired token' }, 401);
   }
 
+  const [account] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(and(eq(users.id, device.userId), eq(users.status, 'active'), isNull(users.deletedAt)))
+    .limit(1);
+  if (!account) {
+    return c.json({ success: false, error: 'Account is not active' }, 401);
+  }
+
   // Generate new token
   const newToken = generateDeviceToken();
   const newHash = hashToken(newToken);
@@ -427,7 +436,7 @@ app.get('/status', async (c) => {
   const [user] = await db
     .select({ id: users.id, email: users.email, name: users.name, role: users.role })
     .from(users)
-    .where(eq(users.id, device.userId))
+    .where(and(eq(users.id, device.userId), eq(users.status, 'active'), isNull(users.deletedAt)))
     .limit(1);
 
   if (!user) {
