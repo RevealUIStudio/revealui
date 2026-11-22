@@ -23,9 +23,9 @@ export const METRICS = {
   /** Packages in `packages/` directories. Source: claim-drift countPackages. */
   packages: 33,
   /** Apps in `apps/`. Source: claim-drift countApps. */
-  apps: 6,
+  apps: 7,
   /** Workspaces (packages + apps). Source: claim-drift countWorkspaces. */
-  workspaces: 39,
+  workspaces: 40,
   /** Test files across the monorepo. Source: claim-drift countTestFiles. */
   testFiles: 1470,
   /** UI components in `packages/presentation/`. Source: claim-drift countUIComponents. */

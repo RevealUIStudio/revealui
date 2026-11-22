@@ -195,6 +195,22 @@ describe('workflow wiring', () => {
     expect(docker).toContain("needs.changes.outputs.docker == 'true'");
   });
 
+  it('keeps workspace manifest changes in the Docker image build selector', () => {
+    const controllerOnlySelector = docker.match(
+      /apps\/review-controller\/\*\|packages\/harnesses\/\*\)([\s\S]*?);;/,
+    )?.[0];
+    const dockerSelector = docker.match(
+      /apps\/admin\/\*\|apps\/server\/\*[\s\S]*?\.github\/actions\/setup-pnpm-node\/\*\)([\s\S]*?);;/,
+    )?.[0];
+
+    expect(controllerOnlySelector).toContain('review_controller=true');
+    expect(controllerOnlySelector).not.toContain('pnpm-lock.yaml');
+    expect(controllerOnlySelector).not.toContain('package.json');
+    expect(dockerSelector).toContain('pnpm-lock.yaml');
+    expect(dockerSelector).toContain('package.json');
+    expect(dockerSelector).toContain('docker=true');
+  });
+
   it('narrows design-system paths off apps/** and cancels leftover Showcase visual', () => {
     expect(ds).not.toContain("      - 'apps/**'");
     expect(ds).toContain('packages/tokens/**');
