@@ -49,6 +49,7 @@ import { and, desc, eq, ilike, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import { hasApiRole } from '../lib/api-roles.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { userHasPermission } from '../middleware/authorization.js';
 import {
   buildPaymentRequired,
   encodePaymentRequired,
@@ -102,7 +103,45 @@ function generateId(prefix: string): string {
 
 const VALID_CATEGORIES = ['coding', 'writing', 'data', 'design', 'other'] as const;
 const VALID_PRICING_MODELS = ['per-task', 'per-minute', 'flat'] as const;
-const VALID_STATUSES = ['draft', 'published', 'suspended', 'deprecated'] as const;
+const VALID_STATUSES = ['draft', 'pending', 'published', 'suspended', 'deprecated'] as const;
+const PUBLIC_LISTING_STATUS = 'published';
+const REVIEW_LISTING_STATUS = 'pending';
+
+/**
+ * Same marketplace admin gate as POST /api/marketplace/servers in app.ts.
+ * Admin and owner pass. Other roles do not.
+ */
+function assertMarketplaceAdmin(user: UserContext): void {
+  if (!userHasPermission(user.role, 'marketplace', 'admin')) {
+    throw new HTTPException(403, { message: 'Permission denied: marketplace:admin' });
+  }
+}
+
+interface ListingFieldInput {
+  name?: string;
+  description?: string;
+  definition?: Record<string, unknown>;
+  category?: (typeof VALID_CATEGORIES)[number];
+  tags?: string[];
+  pricingModel?: (typeof VALID_PRICING_MODELS)[number];
+  basePriceUsdc?: string;
+  maxExecutionSecs?: number;
+  license?: string;
+}
+
+function listingFieldChanges(data: ListingFieldInput): Partial<NewMarketplaceAgent> {
+  const changes: Partial<NewMarketplaceAgent> = {};
+  if (data.name !== undefined) changes.name = data.name;
+  if (data.description !== undefined) changes.description = data.description;
+  if (data.definition !== undefined) changes.definition = data.definition;
+  if (data.category !== undefined) changes.category = data.category;
+  if (data.tags !== undefined) changes.tags = data.tags;
+  if (data.pricingModel !== undefined) changes.pricingModel = data.pricingModel;
+  if (data.basePriceUsdc !== undefined) changes.basePriceUsdc = data.basePriceUsdc;
+  if (data.maxExecutionSecs !== undefined) changes.maxExecutionSecs = data.maxExecutionSecs;
+  if (data.license !== undefined) changes.license = data.license;
+  return changes;
+}
 
 // =============================================================================
 // Agent Browse & Discovery (public)
@@ -150,7 +189,7 @@ app.openapi(
       Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(Math.floor(rawLimit), 50) : 20;
     const offset = Number.isFinite(rawOffset) && rawOffset >= 0 ? Math.floor(rawOffset) : 0;
 
-    const conditions = [eq(marketplaceAgents.status, 'published')];
+    const conditions = [eq(marketplaceAgents.status, PUBLIC_LISTING_STATUS)];
     if (query.category) {
       conditions.push(eq(marketplaceAgents.category, query.category));
     }
@@ -233,9 +272,11 @@ app.openapi(
     const [agent] = await db
       .select()
       .from(marketplaceAgents)
-      .where(eq(marketplaceAgents.id, id))
+      .where(and(eq(marketplaceAgents.id, id), eq(marketplaceAgents.status, PUBLIC_LISTING_STATUS)))
       .limit(1);
-    if (!agent) throw new HTTPException(404, { message: 'Agent not found' });
+    if (!agent || agent.status !== PUBLIC_LISTING_STATUS) {
+      throw new HTTPException(404, { message: 'Agent not found' });
+    }
 
     const skills = await db.select().from(agentSkills).where(eq(agentSkills.agentId, id));
 
@@ -256,6 +297,7 @@ const PublishAgentSchema = z.object({
   pricingModel: z.enum(VALID_PRICING_MODELS).optional().default('per-task'),
   basePriceUsdc: z.string().optional().default('0.10'),
   maxExecutionSecs: z.number().int().min(10).max(3600).optional().default(300),
+  license: z.string().trim().min(1).max(500),
   resourceLimits: z
     .object({
       maxMemoryMb: z.number().int().min(64).max(4096),
@@ -317,7 +359,8 @@ app.openapi(
       basePriceUsdc: data.basePriceUsdc,
       maxExecutionSecs: data.maxExecutionSecs,
       resourceLimits: data.resourceLimits,
-      status: 'draft',
+      license: data.license,
+      status: REVIEW_LISTING_STATUS,
       createdAt: now,
       updatedAt: now,
     };
@@ -325,7 +368,7 @@ app.openapi(
     const db = getClient();
     const [created] = await db.insert(marketplaceAgents).values(newAgent).returning();
 
-    logger.info('RevMarket agent published', { agentId: id, publisherId: user.id });
+    logger.info('RevMarket agent submitted for review', { agentId: id, publisherId: user.id });
 
     return c.json({ agent: created }, 201);
   },
@@ -340,6 +383,7 @@ const UpdateAgentSchema = z.object({
   pricingModel: z.enum(VALID_PRICING_MODELS).optional(),
   basePriceUsdc: z.string().optional(),
   maxExecutionSecs: z.number().int().min(10).max(3600).optional(),
+  license: z.string().trim().min(1).max(500).optional(),
   status: z.enum(VALID_STATUSES).optional(),
 });
 
@@ -398,19 +442,46 @@ app.openapi(
     const db = getClient();
 
     const [existing] = await db
-      .select({ publisherId: marketplaceAgents.publisherId })
+      .select({
+        publisherId: marketplaceAgents.publisherId,
+        license: marketplaceAgents.license,
+      })
       .from(marketplaceAgents)
       .where(eq(marketplaceAgents.id, id))
       .limit(1);
 
     if (!existing) throw new HTTPException(404, { message: 'Agent not found' });
-    if (existing.publisherId !== user.id && !hasApiRole(user, 'admin')) {
-      throw new HTTPException(403, { message: 'Forbidden' });
+    if (existing.publisherId !== user.id) {
+      assertMarketplaceAdmin(user);
     }
 
+    const listingChanges = listingFieldChanges(data);
+    const edited = Object.keys(listingChanges).length > 0;
+
+    if (data.status === PUBLIC_LISTING_STATUS) {
+      assertMarketplaceAdmin(user);
+      if (edited) {
+        throw new HTTPException(400, { message: 'Approval cannot change listing fields' });
+      }
+      if (typeof existing.license !== 'string' || existing.license.trim().length === 0) {
+        throw new HTTPException(400, { message: 'A license is required before approval' });
+      }
+      const [updated] = await db
+        .update(marketplaceAgents)
+        .set({ status: PUBLIC_LISTING_STATUS, updatedAt: new Date() })
+        .where(eq(marketplaceAgents.id, id))
+        .returning();
+      return c.json({ agent: updated });
+    }
+
+    const nextStatus = edited ? REVIEW_LISTING_STATUS : data.status;
     const [updated] = await db
       .update(marketplaceAgents)
-      .set({ ...data, updatedAt: new Date() })
+      .set({
+        ...listingChanges,
+        ...(nextStatus !== undefined ? { status: nextStatus } : {}),
+        updatedAt: new Date(),
+      })
       .where(eq(marketplaceAgents.id, id))
       .returning();
 
@@ -670,7 +741,7 @@ app.openapi(
         .where(eq(marketplaceAgents.id, assignedAgentId))
         .limit(1);
 
-      if (agent?.status !== 'published') {
+      if (agent?.status !== PUBLIC_LISTING_STATUS) {
         throw new HTTPException(404, { message: 'Agent not found or unavailable' });
       }
       costUsdc = agent.basePriceUsdc;
@@ -683,7 +754,12 @@ app.openapi(
         })
         .from(agentSkills)
         .innerJoin(marketplaceAgents, eq(agentSkills.agentId, marketplaceAgents.id))
-        .where(and(eq(agentSkills.name, data.skillName), eq(marketplaceAgents.status, 'published')))
+        .where(
+          and(
+            eq(agentSkills.name, data.skillName),
+            eq(marketplaceAgents.status, PUBLIC_LISTING_STATUS),
+          ),
+        )
         .orderBy(desc(marketplaceAgents.rating))
         .limit(1);
 

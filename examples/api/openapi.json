@@ -21232,6 +21232,11 @@
                     "maximum": 3600,
                     "default": 300
                   },
+                  "license": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
                   "resourceLimits": {
                     "type": "object",
                     "properties": {
@@ -21259,7 +21264,8 @@
                 "required": [
                   "name",
                   "description",
-                  "definition"
+                  "definition",
+                  "license"
                 ]
               }
             }
@@ -21466,10 +21472,16 @@
                     "minimum": 10,
                     "maximum": 3600
                   },
+                  "license": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
                   "status": {
                     "type": "string",
                     "enum": [
                       "draft",
+                      "pending",
                       "published",
                       "suspended",
                       "deprecated"
@@ -42829,6 +42841,11 @@
                     "maximum": 3600,
                     "default": 300
                   },
+                  "license": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
                   "resourceLimits": {
                     "type": "object",
                     "properties": {
@@ -42856,7 +42873,8 @@
                 "required": [
                   "name",
                   "description",
-                  "definition"
+                  "definition",
+                  "license"
                 ]
               }
             }
@@ -43063,10 +43081,16 @@
                     "minimum": 10,
                     "maximum": 3600
                   },
+                  "license": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
                   "status": {
                     "type": "string",
                     "enum": [
                       "draft",
+                      "pending",
                       "published",
                       "suspended",
                       "deprecated"

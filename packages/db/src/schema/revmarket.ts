@@ -72,8 +72,15 @@ export const marketplaceAgents = pgTable(
     /** Total tasks completed */
     taskCount: integer('task_count').notNull().default(0),
 
-    /** Lifecycle: 'draft' | 'published' | 'suspended' | 'deprecated' */
+    /**
+     * Lifecycle: 'draft' | 'pending' | 'published' | 'suspended' | 'deprecated'.
+     * `pending` is the holding state from marketplace servers: submitted, not public.
+     * `published` is the public state. Only a marketplace admin can set it.
+     */
     status: text('status').notNull().default('draft'),
+
+    /** License identifier. Required before a listing can be submitted for review. */
+    license: text('license'),
 
     /** Category for filtering: 'coding' | 'writing' | 'data' | 'design' | 'other' */
     category: text('category').notNull().default('other'),
@@ -101,7 +108,7 @@ export const marketplaceAgents = pgTable(
     ),
     check(
       'marketplace_agents_status_check',
-      sql`status IN ('draft', 'published', 'suspended', 'deprecated')`,
+      sql`status IN ('draft', 'pending', 'published', 'suspended', 'deprecated')`,
     ),
     check(
       'marketplace_agents_category_check',
