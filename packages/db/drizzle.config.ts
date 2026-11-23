@@ -14,7 +14,7 @@ if (!dbUrl && process.env.DRIZZLE_REQUIRE_URL !== 'false') {
 
 export default defineConfig({
   // Schema location
-  schema: './dist/schema/index.js',
+  schema: ['./dist/schema/index.js', './dist/schema/internal/review-controller.js'],
 
   // Output directory for migrations (fixed to match actual location)
   out: './migrations',
