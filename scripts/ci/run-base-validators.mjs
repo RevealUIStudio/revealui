@@ -5,7 +5,7 @@
  */
 
 import { spawnSync } from 'node:child_process';
-import { cpSync, existsSync, rmSync } from 'node:fs';
+import { cpSync, existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -21,6 +21,13 @@ export const JUDGE_PATHS = [
   'apps/docs/scripts/check-links.ts',
   'apps/docs/scripts/check-docs-pro-boundary.mjs',
 ];
+
+/**
+ * Content the scan tree owns. Copying the base `scripts/sync` tree must not
+ * replace the promoted secrets spec, or the lockstep test compares the base
+ * spec to the head doc.
+ */
+export const HEAD_OWNED_PATHS = ['scripts/sync/secret-paths.ts'];
 
 /**
  * Validator entrypoints. Each item is an argv array, without a shell.
@@ -99,6 +106,11 @@ export function copyJudgeTree(judgeRoot, scanRoot) {
   if (judge === scan) {
     throw new Error('judge root and scan root are the same directory');
   }
+  const preserved = new Map();
+  for (const rel of HEAD_OWNED_PATHS) {
+    const abs = path.join(scan, rel);
+    if (existsSync(abs)) preserved.set(rel, readFileSync(abs));
+  }
   for (const rel of JUDGE_PATHS) {
     const src = path.join(judge, rel);
     if (!existsSync(src)) {
@@ -110,6 +122,9 @@ export function copyJudgeTree(judgeRoot, scanRoot) {
       force: true,
       filter: (source) => path.basename(source) !== 'node_modules',
     });
+  }
+  for (const [rel, bytes] of preserved) {
+    writeFileSync(path.join(scan, rel), bytes);
   }
 }
 
