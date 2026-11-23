@@ -1,8 +1,9 @@
 # Compares the pull request's required result jobs and classifier to the
-# base commit. pull_request_target runs this file from the base ref, so a
-# pull request cannot rewrite the comparison. The job checks out only that
-# base commit and reads head file text through the API. It does not execute
-# head code.
+# trusted scripts. pull_request_target runs this file from the commit that
+# supplied it, so a pull request cannot rewrite the comparison. The job
+# checks out github.workflow_sha, that same commit, so the scripts match the
+# workflow when the pull request's recorded base is stale. Head file text is
+# read through the API and is not executed.
 #
 # A locked path that differs from base clears only when the pull request
 # carries the owner request label and an unexpired owner SSHSIG for this
@@ -37,14 +38,14 @@ jobs:
           set -euo pipefail
           echo "event_name=${{ github.event_name }}"
           echo "head_sha=${{ github.event.pull_request.head.sha }}"
-          echo "base_sha=${{ github.event.pull_request.base.sha }}"
+          echo "workflow_sha=${{ github.workflow_sha }}"
           echo "pr_number=${{ github.event.pull_request.number }}"
           echo "workflow_ref=${{ github.workflow_ref }}"
 
       - name: Checkout base judge
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          ref: ${{ github.event.pull_request.base.sha }}
+          ref: ${{ github.workflow_sha }}
           persist-credentials: false
           fetch-depth: 1
           sparse-checkout: |
