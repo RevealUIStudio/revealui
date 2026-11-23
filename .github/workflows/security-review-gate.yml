@@ -1,10 +1,11 @@
 # Security review gate — review-before-merge enforcement (GAP-376 complete).
 #
-# Provenance: pull_request_target runs the WORKFLOW DEFINITION from the BASE
-# ref, so a PR cannot rewrite this file for its own evaluation. Scripts still
-# pin to base.sha (belt-and-braces with #1921). The job does not check out
-# PR-head code; it only runs trusted gate scripts and queries the API for
-# files/labels/reviews.
+# Provenance: pull_request_target runs the WORKFLOW DEFINITION from the
+# commit that supplied this file, so a PR cannot rewrite it for its own
+# evaluation. Scripts check out github.workflow_sha, that same commit, so
+# they match the workflow when the pull request's recorded base is stale.
+# The job does not check out PR-head code; it only runs trusted gate scripts
+# and queries the API for files/labels/reviews.
 #
 # Shadow verify (A1–A3) recorded 2026-07-24:
 #   A1 — check-run attaches to PR head SHA (#2110)
@@ -48,21 +49,20 @@ jobs:
           set -euo pipefail
           echo "event_name=${{ github.event_name }}"
           echo "head_sha=${{ github.event.pull_request.head.sha }}"
-          echo "base_sha=${{ github.event.pull_request.base.sha }}"
+          echo "workflow_sha=${{ github.workflow_sha }}"
           echo "pr_number=${{ github.event.pull_request.number }}"
           echo "workflow_ref=${{ github.workflow_ref }}"
 
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          # Evaluate with the BASE branch's copy of the gate scripts: the
-          # trusted (base) logic judges the untrusted (head) change, so a PR's
-          # own edits to these files cannot influence its evaluation. Changed
-          # files, labels, comments, and reviews all come from the API, so the
-          # checkout exists only to supply this script code.
-          # Kept under pull_request_target (defaults to base) as belt-and-braces.
-          ref: ${{ github.event.pull_request.base.sha }}
-          # GAP-404: the shared gates build embeds the canonical security path
-          # list from packages/harnesses/src/gates/security-paths.shared.json.
+          # Checkout the commit this workflow file came from. Head edits are
+          # not in this tree. Changed files, labels, comments, and reviews
+          # come from the API, so the checkout only supplies script code.
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+          # GAP-404: gate loads SECURITY_PATHS from security-paths.shared.json
+          # at module load. Sparse list must include that JSON or the job
+          # crashes ENOENT before it can classify the PR (revealui#2074).
           # GAP-408: guardrail2-verdict.cjs is a thin adapter over the
           # @revealui/harnesses gates module. Builds it from THIS checkout's
           # own source (packages/harnesses/ + packages/dev/ for the shared

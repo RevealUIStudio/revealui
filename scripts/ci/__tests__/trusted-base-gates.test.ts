@@ -115,8 +115,12 @@ describe('gate scripts execute from the base commit', () => {
     expect(archive).toContain('--root "$GITHUB_WORKSPACE/scan-tree"');
   });
 
-  it('keeps the security review gate on the base commit copy', () => {
-    expect(review).toContain(['ref: ', '$', '{{ github.event.pull_request.base.sha }}'].join(''));
+  it('checks the security review gate out at the workflow commit', () => {
+    const workflowRef = ['ref: ', '$', '{{ github.workflow_sha }}'].join('');
+    const recordedBase = ['ref: ', '$', '{{ github.event.pull_request.base.sha }}'].join('');
+    expect(review).toContain(workflowRef);
+    expect(review.includes(recordedBase)).toBe(false);
+    expect(review).toContain('echo "workflow_sha=');
     expect(review).toContain('scripts/validate/gates-resolver.cjs');
   });
 
@@ -156,14 +160,40 @@ describe('gate scripts execute from the base commit', () => {
     expect(judge).toContain('contents: read');
     expect(judge).toContain('cancel-in-progress: false');
     expect(judge).toContain('persist-credentials: false');
-    const baseRef = ['ref: $', '{{ github.event.pull_request.base.sha }}'].join('');
+    const workflowRef = ['ref: $', '{{ github.workflow_sha }}'].join('');
+    const recordedBase = ['ref: $', '{{ github.event.pull_request.base.sha }}'].join('');
     const headRef = ['ref: $', '{{ github.event.pull_request.head.sha }}'].join('');
     const token = ['GH_TOKEN: $', '{{ secrets.GITHUB_TOKEN }}'].join('');
-    expect(judge).toContain(baseRef);
+    expect(judge).toContain(workflowRef);
+    expect(judge.includes(recordedBase)).toBe(false);
     expect(judge).toContain('actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0');
     expect(judge).toContain(token);
     expect(judge.includes(headRef)).toBe(false);
     expect(judge.includes('pull-requests: write')).toBe(false);
     expect(judge.includes('permissions:\n  contents: write')).toBe(false);
+  });
+
+  it('checks the trusted gate judge out at github.workflow_sha', () => {
+    const workflowRef = ['ref: $', '{{ github.workflow_sha }}'].join('');
+    const recordedBase = ['ref: $', '{{ github.event.pull_request.base.sha }}'].join('');
+    const headRef = ['ref: $', '{{ github.event.pull_request.head.sha }}'].join('');
+    expect(judge).toContain('name: Checkout base judge');
+    expect(judge).toContain(workflowRef);
+    expect(judge).toContain('echo "workflow_sha=');
+    expect(judge).toContain('persist-credentials: false');
+    expect(judge.includes(recordedBase)).toBe(false);
+    expect(judge.includes(headRef)).toBe(false);
+  });
+
+  it('checks label-guard scripts out at the workflow commit except on review', () => {
+    const guard = read('.github/workflows/sec-audit-label-guard.yml');
+    const refLine = guard.split('\n').find((line) => line.includes('ref: $'));
+    const reviewFallback = [
+      "github.event_name == 'pull_request_review' && github.event.pull_request.base.sha || github.workflow_sha",
+    ].join('');
+    const headRef = ['github.event.pull_request.head.sha'].join('');
+    expect(refLine).toContain('github.workflow_sha');
+    expect(refLine).toContain(reviewFallback);
+    expect(refLine?.includes(headRef)).toBe(false);
   });
 });
