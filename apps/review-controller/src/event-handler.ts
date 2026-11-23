@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { canonicalReviewReceiptEnvelope } from '@revealui/security/review-receipt';
 import { revalidateCurrentReview } from './current-review.js';
 import { type GitHubAppClient, GitHubAppError } from './github-app.js';
 import type { ClaimedWebhook, WebhookInbox } from './inbox.js';
@@ -117,8 +118,6 @@ export class ShadowWebhookHandler implements WebhookHandler {
           deliveryId: webhook.deliveryId,
           snapshot,
           checkRuns,
-          // Retain a freshly observed denial before any external check mutation.
-          // A later replay of the old native approval must not erase revocation.
           reviewEvidence:
             this.receiptPolicy?.trustedReviewer &&
             currentEvidence.status === 'observed' &&
@@ -132,26 +131,33 @@ export class ShadowWebhookHandler implements WebhookHandler {
           const externalId = `pr-${snapshot.repositoryId}-${snapshot.pullRequest}`;
           if (receiptEvaluation?.status === 'eligible') {
             if (!this.expiryQueue) throw new Error('receipt_expiration_queue_required');
+            if (!this.receiptPolicy.receiptRef) throw new Error('receipt_ref_required');
+            const envelope = receiptEvaluation.envelope;
             await persistReceiptThenPublishCheck({
-              envelope: receiptEvaluation.envelope,
+              envelope,
               store: this.receiptStore,
               inbox: this.expiryQueue,
               installationId: webhook.installationId,
+              receiptRef: this.receiptPolicy.receiptRef,
+              privateKeyPem: this.receiptPolicy.privateKey,
               github: {
-                upsertReceiptCheckRun: async (input) => {
+                publishGateReceiptFile: async (input) => {
                   await assertHeld();
-                  const envelope = receiptEvaluation.envelope;
                   const authorized = await this.requireReceiptAuthority().approve({
                     repositoryId: snapshot.repositoryId,
                     pullRequest: snapshot.pullRequest,
                     generation: requiredPublicationGeneration(generation),
                     receiptId: envelope.receipt.receiptId,
                     envelopeSha256: createHash('sha256')
-                      .update(requiredPublicationEnvelope(input.receiptEnvelope))
+                      .update(requiredPublicationEnvelope(canonicalReviewReceiptEnvelope(envelope)))
                       .digest('hex'),
                     expiresAt: new Date(envelope.receipt.expiresAt),
                   });
                   if (!authorized) throw new Error('receipt_authorization_superseded');
+                  await assertHeld();
+                  await this.client.publishGateReceiptFile(input);
+                },
+                upsertReceiptCheckRun: async (input) => {
                   await assertHeld();
                   return this.client.upsertReceiptCheckRun(input);
                 },

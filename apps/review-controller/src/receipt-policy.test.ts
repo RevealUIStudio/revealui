@@ -93,8 +93,11 @@ describe('readReceiptPolicy', () => {
     ).toThrow('omits the trusted CI check');
   });
 
-  it('accepts publish mode while requiring the same complete signing policy', () => {
-    expect(
+  it('accepts publish mode only for a scoped repository ref the review gate reads', () => {
+    expect(() => readReceiptPolicy({ ...valid, REVIEW_RECEIPT_MODE: 'publish' })).toThrow(
+      'REVIEW_RECEIPT_PUBLICATION_SCOPE',
+    );
+    expect(() =>
       readReceiptPolicy({
         ...valid,
         REVIEW_RECEIPT_MODE: 'publish',
@@ -105,9 +108,38 @@ describe('readReceiptPolicy', () => {
           pullRequests: [7],
         }),
       }),
+    ).toThrow('REVIEW_RECEIPT_REPO is required');
+    expect(() =>
+      readReceiptPolicy({
+        ...valid,
+        REVIEW_RECEIPT_MODE: 'publish',
+        GITHUB_REPOSITORY_ID: '300',
+        REVIEW_RECEIPT_PUBLICATION_SCOPE: JSON.stringify({
+          repositoryId: 300,
+          repositoryFullName: 'RevealUIStudio/revealui',
+          pullRequests: [7],
+        }),
+        REVIEW_RECEIPT_REPO: 'other/repo',
+        REVIEW_RECEIPT_REF: 'receipts',
+      }),
+    ).toThrow('REVIEW_RECEIPT_REPO must match');
+    expect(
+      readReceiptPolicy({
+        ...valid,
+        REVIEW_RECEIPT_MODE: 'publish',
+        GITHUB_REPOSITORY_ID: '300',
+        REVIEW_RECEIPT_PUBLICATION_SCOPE: JSON.stringify({
+          repositoryId: 300,
+          repositoryFullName: 'RevealUIStudio/revealui',
+          pullRequests: [7],
+        }),
+        REVIEW_RECEIPT_REPO: 'RevealUIStudio/revealui',
+        REVIEW_RECEIPT_REF: 'receipts',
+      }),
     ).toMatchObject({
       mode: 'publish',
       repositoryFullName: 'RevealUIStudio/revealui',
+      receiptRef: 'receipts',
     });
   });
 
@@ -175,6 +207,8 @@ describe('bounded receipt publication policy', () => {
     const policy = readReceiptPolicy({
       ...publish,
       REVIEW_RECEIPT_PUBLICATION_SCOPE: JSON.stringify(scope),
+      REVIEW_RECEIPT_REPO: 'RevealUIStudio/revealui',
+      REVIEW_RECEIPT_REF: 'receipts',
     });
     expect(() => assertReceiptPublicationScope(policy, 300, 7)).not.toThrow();
     expect(() => assertReceiptPublicationScope(policy, 301, 7)).toThrow(

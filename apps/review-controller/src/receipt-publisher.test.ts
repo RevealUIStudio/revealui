@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, generateKeyPairSync } from 'node:crypto';
 import {
   canonicalReviewReceiptEnvelope,
   REVIEW_RECEIPT_SCHEMA,
@@ -51,8 +51,12 @@ const envelope: ReviewReceiptEnvelope = {
   },
 };
 
+const { privateKey } = generateKeyPairSync('ed25519');
+const privateKeyPem = privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();
+const publishedAt = new Date('2026-10-06T12:00:00.000Z');
+
 describe('persistReceiptThenPublishCheck', () => {
-  it('stores and verifies the immutable envelope before publishing the success check', async () => {
+  it('stores the envelope and publishes the gate object before the success check', async () => {
     const events: string[] = [];
     const sha256 = createHash('sha256')
       .update(canonicalReviewReceiptEnvelope(envelope), 'utf8')
@@ -71,7 +75,15 @@ describe('persistReceiptThenPublishCheck', () => {
         events.push('schedule-expiration');
       }),
     };
-    const github: Pick<GitHubAppClient, 'upsertReceiptCheckRun'> = {
+    const github: Pick<GitHubAppClient, 'upsertReceiptCheckRun' | 'publishGateReceiptFile'> = {
+      publishGateReceiptFile: vi.fn(async (input) => {
+        events.push(`object:${input.ref}`);
+        expect(input.pullRequest).toBe(3054);
+        expect(input.head).toBe(envelope.receipt.head.sha);
+        expect(input.body).toContain(
+          `repo=RevealUIStudio/revealui pr=3054 head=${envelope.receipt.head.sha} gate=sec-review expires=2026-10-07`,
+        );
+      }),
       upsertReceiptCheckRun: vi.fn(async (input) => {
         events.push(`publish:${input.eligible}`);
         return {
@@ -90,6 +102,9 @@ describe('persistReceiptThenPublishCheck', () => {
         store,
         inbox,
         installationId: 456,
+        receiptRef: 'receipts',
+        privateKeyPem,
+        now: publishedAt,
         github,
       }),
     ).resolves.toMatchObject({
@@ -97,7 +112,7 @@ describe('persistReceiptThenPublishCheck', () => {
       envelopeSha256: sha256,
       checkRun: { id: 800, conclusion: 'success' },
     });
-    expect(events).toEqual(['append', 'schedule-expiration', 'publish:true']);
+    expect(events).toEqual(['append', 'schedule-expiration', 'object:receipts', 'publish:true']);
     expect(inbox.scheduleReceiptExpiration).toHaveBeenCalledWith({
       receiptId: 'receipt-123',
       repositoryId: 1234,
@@ -116,7 +131,8 @@ describe('persistReceiptThenPublishCheck', () => {
   });
 
   it('never publishes a success check when durable receipt storage fails', async () => {
-    const github: Pick<GitHubAppClient, 'upsertReceiptCheckRun'> = {
+    const github: Pick<GitHubAppClient, 'upsertReceiptCheckRun' | 'publishGateReceiptFile'> = {
+      publishGateReceiptFile: vi.fn(),
       upsertReceiptCheckRun: vi.fn(),
     };
     await expect(
@@ -132,9 +148,43 @@ describe('persistReceiptThenPublishCheck', () => {
         },
         inbox: { scheduleReceiptExpiration: vi.fn(async () => undefined) },
         installationId: 456,
+        receiptRef: 'receipts',
+        privateKeyPem,
+        now: publishedAt,
         github,
       }),
     ).rejects.toThrow('database unavailable');
+    expect(github.publishGateReceiptFile).not.toHaveBeenCalled();
+    expect(github.upsertReceiptCheckRun).not.toHaveBeenCalled();
+  });
+
+  it('does not publish the check when the gate object write fails', async () => {
+    const sha256 = createHash('sha256')
+      .update(canonicalReviewReceiptEnvelope(envelope), 'utf8')
+      .digest('hex');
+    const github: Pick<GitHubAppClient, 'upsertReceiptCheckRun' | 'publishGateReceiptFile'> = {
+      publishGateReceiptFile: vi.fn(async () => {
+        throw new Error('receipt object unavailable');
+      }),
+      upsertReceiptCheckRun: vi.fn(),
+    };
+    await expect(
+      persistReceiptThenPublishCheck({
+        envelope,
+        store: {
+          ready: async () => undefined,
+          read: async () => null,
+          listLatest: async () => [],
+          append: vi.fn(async () => ({ receiptId: envelope.receipt.receiptId, sha256 })),
+        },
+        inbox: { scheduleReceiptExpiration: vi.fn(async () => undefined) },
+        installationId: 456,
+        receiptRef: 'receipts',
+        privateKeyPem,
+        now: publishedAt,
+        github,
+      }),
+    ).rejects.toThrow('receipt object unavailable');
     expect(github.upsertReceiptCheckRun).not.toHaveBeenCalled();
   });
 });

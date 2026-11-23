@@ -5,6 +5,7 @@ import {
   type ReviewCheckSelector,
   validReviewCheckSelector,
 } from '@revealui/security/review-receipt';
+import { validGateReceiptRef } from './gate-receipt.js';
 
 export interface ReceiptPolicy {
   mode: 'shadow' | 'publish';
@@ -16,6 +17,7 @@ export interface ReceiptPolicy {
   maxLifetimeMs: number;
   requiredChecks: ReviewCheckSelector[];
   trustedReviewer?: { login: string; id: number; policyVersion: string; model: string };
+  receiptRef?: string;
 }
 
 /** Missing mode keeps the receipt evaluator disabled; partial opt-in fails closed. */
@@ -130,6 +132,7 @@ export function readReceiptPolicy(env: NodeJS.ProcessEnv): ReceiptPolicy | undef
     };
   }
 
+  const receiptRef = publishReceiptRef(env, mode, repositoryFullName);
   return {
     mode,
     ...(publicationScope ? { publicationScope } : {}),
@@ -140,7 +143,24 @@ export function readReceiptPolicy(env: NodeJS.ProcessEnv): ReceiptPolicy | undef
     maxLifetimeMs,
     requiredChecks,
     ...(trustedReviewer ? { trustedReviewer } : {}),
+    ...(receiptRef ? { receiptRef } : {}),
   };
+}
+
+function publishReceiptRef(
+  env: NodeJS.ProcessEnv,
+  mode: ReceiptPolicy['mode'],
+  repositoryFullName: string,
+): string | undefined {
+  if (mode !== 'publish') return undefined;
+  const repo = env.REVIEW_RECEIPT_REPO?.trim() ?? '';
+  if (!repo) throw new Error('REVIEW_RECEIPT_REPO is required when receipt publication is enabled');
+  if (repo !== repositoryFullName)
+    throw new Error('REVIEW_RECEIPT_REPO must match the controller repository');
+  const ref = env.REVIEW_RECEIPT_REF?.trim() ?? '';
+  if (!ref) throw new Error('REVIEW_RECEIPT_REF is required when receipt publication is enabled');
+  if (!validGateReceiptRef(ref)) throw new Error('REVIEW_RECEIPT_REF is not a receipt ref');
+  return ref;
 }
 
 function required(env: NodeJS.ProcessEnv, name: string): string {

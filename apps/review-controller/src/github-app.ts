@@ -1,6 +1,7 @@
 import { createPrivateKey, createSign } from 'node:crypto';
 import type { ReviewWorkflowRun } from '@revealui/security/review-receipt';
 import { parseReviewReceiptEnvelope } from '@revealui/security/review-receipt';
+import { gateReceiptObjectPath, validGateReceiptRef } from './gate-receipt.js';
 import { installationPermissions } from './github-app-policy.js';
 import { MAX_REVIEW_BLOB_BYTES } from './review-limits.js';
 
@@ -107,6 +108,8 @@ export class GitHubAppClient {
   private readonly key;
   private cachedToken?: { value: string; expiresAt: number };
   private tokenPromise?: Promise<string>;
+  private cachedWriteToken?: { value: string; expiresAt: number };
+  private writeTokenPromise?: Promise<string>;
   private rateLimitedUntil = 0;
 
   constructor(
@@ -517,6 +520,60 @@ export class GitHubAppClient {
     };
   }
 
+  async publishGateReceiptFile(input: {
+    pullRequest: number;
+    head: string;
+    ref: string;
+    body: string;
+  }): Promise<void> {
+    const path = gateReceiptObjectPath(
+      this.config.repositoryFullName,
+      input.pullRequest,
+      input.head,
+    );
+    if (!validGateReceiptRef(input.ref) || input.ref === input.head)
+      throw new GitHubAppError('invalid_gate_receipt_ref');
+    const bound = `revealfleet-override v1 repo=${this.config.repositoryFullName} pr=${input.pullRequest} head=${input.head} gate=sec-review expires=`;
+    if (input.body.length === 0 || input.body.length > 65536 || !input.body.includes(`${bound}`))
+      throw new GitHubAppError('invalid_gate_receipt_body');
+    if (this.rateLimitedUntil > this.now())
+      throw new GitHubAppError('github_rate_limited', this.rateLimitedUntil);
+    const token = await this.contentsWriteToken();
+    const encodedPath = path
+      .split('/')
+      .map((segment) => encodeURIComponent(segment))
+      .join('/');
+    const url = new URL(
+      `/repos/${this.config.repositoryFullName}/contents/${encodedPath}`,
+      GITHUB_API,
+    );
+    url.searchParams.set('ref', input.ref);
+    const current = await this.contentsRequest(url, token, 'GET');
+    let existingSha: string | undefined;
+    if (current.status === 404) {
+      existingSha = undefined;
+    } else if (current.status === 200) {
+      const record = parseContentsRecord(current.body);
+      if (record.type !== 'file' || record.path !== path)
+        throw new GitHubAppError('invalid_gate_receipt_object');
+      if (decodeContents(record.content) === input.body) return;
+      existingSha = record.sha;
+    } else {
+      throw new GitHubAppError(`github_http_${current.status}`);
+    }
+    const written = await this.contentsRequest(new URL(url.pathname, GITHUB_API), token, 'PUT', {
+      message: 'record exact-head review receipt',
+      content: Buffer.from(input.body, 'utf8').toString('base64'),
+      branch: input.ref,
+      ...(existingSha ? { sha: existingSha } : {}),
+    });
+    if (written.status !== 200 && written.status !== 201)
+      throw new GitHubAppError(`github_http_${written.status}`);
+    const saved =
+      isRecord(written.body) && isRecord(written.body.content) ? written.body.content : null;
+    if (!saved || saved.path !== path) throw new GitHubAppError('invalid_gate_receipt_object');
+  }
+
   async listPullRequestReviewComments(
     pullNumber: number,
     reviewId: number,
@@ -683,16 +740,85 @@ export class GitHubAppClient {
     if (this.cachedToken && this.cachedToken.expiresAt - 60_000 > now)
       return this.cachedToken.value;
     if (this.tokenPromise) return this.tokenPromise;
-    this.tokenPromise = this.createInstallationToken();
+    this.tokenPromise = this.mintInstallationToken(
+      installationPermissions(Boolean(this.config.receiptEvaluationEnabled), this.config.role),
+    ).then((token) => {
+      this.cachedToken = token;
+      return token.value;
+    });
     try {
-      const token = await this.tokenPromise;
-      return token;
+      return await this.tokenPromise;
     } finally {
       this.tokenPromise = undefined;
     }
   }
 
-  private async createInstallationToken(): Promise<string> {
+  private async contentsWriteToken(): Promise<string> {
+    const now = this.now();
+    if (this.cachedWriteToken && this.cachedWriteToken.expiresAt - 60_000 > now)
+      return this.cachedWriteToken.value;
+    if (this.writeTokenPromise) return this.writeTokenPromise;
+    this.writeTokenPromise = this.mintInstallationToken({ contents: 'write' }).then((token) => {
+      this.cachedWriteToken = token;
+      return token.value;
+    });
+    try {
+      return await this.writeTokenPromise;
+    } finally {
+      this.writeTokenPromise = undefined;
+    }
+  }
+
+  private async contentsRequest(
+    url: URL,
+    token: string,
+    method: 'GET' | 'PUT',
+    body?: unknown,
+  ): Promise<{ status: number; body: unknown }> {
+    let response: Response;
+    try {
+      response = await this.fetchImpl(url, {
+        method,
+        redirect: 'error',
+        headers: {
+          accept: 'application/vnd.github+json',
+          authorization: `Bearer ${token}`,
+          ...(body === undefined ? {} : { 'content-type': 'application/json' }),
+          'x-github-api-version': API_VERSION,
+          'user-agent': 'RevealFleet-Review-Controller',
+        },
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      });
+    } catch {
+      throw new GitHubAppError('github_api_unavailable');
+    }
+    if (response.status === 404 && method === 'GET') return { status: 404, body: null };
+    if (!response.ok) {
+      const retryAt = rateLimitRetryAt(response, this.now());
+      if (retryAt !== undefined) {
+        this.rateLimitedUntil = Math.max(this.rateLimitedUntil, retryAt);
+        throw new GitHubAppError('github_rate_limited', this.rateLimitedUntil);
+      }
+      return { status: response.status, body: null };
+    }
+    let raw: string;
+    try {
+      raw = await response.text();
+    } catch {
+      throw new GitHubAppError('github_response_unavailable');
+    }
+    if (Buffer.byteLength(raw, 'utf8') > MAX_RESPONSE_BYTES)
+      throw new GitHubAppError('github_response_too_large');
+    try {
+      return { status: response.status, body: JSON.parse(raw) };
+    } catch {
+      throw new GitHubAppError('invalid_github_json');
+    }
+  }
+
+  private async mintInstallationToken(
+    permissions: Record<string, string>,
+  ): Promise<{ value: string; expiresAt: number }> {
     const nowSeconds = Math.floor(this.now() / 1000);
     const jwt = createAppJwt(this.config.appId, this.key, nowSeconds);
     let response: Response;
@@ -711,10 +837,7 @@ export class GitHubAppClient {
           },
           body: JSON.stringify({
             repository_ids: [this.config.repositoryId],
-            permissions: installationPermissions(
-              Boolean(this.config.receiptEvaluationEnabled),
-              this.config.role,
-            ),
+            permissions,
           }),
         },
       );
@@ -745,9 +868,33 @@ export class GitHubAppClient {
       throw new GitHubAppError('invalid_github_token_response');
     const expiresAt = Date.parse(body.expires_at);
     if (expiresAt - this.now() <= 60_000) throw new GitHubAppError('short_github_token_lifetime');
-    this.cachedToken = { value: body.token, expiresAt };
-    return body.token;
+    return { value: body.token, expiresAt };
   }
+}
+
+function parseContentsRecord(value: unknown): {
+  type: string;
+  path: string;
+  sha: string;
+  content: string;
+} {
+  if (
+    !isRecord(value) ||
+    typeof value.type !== 'string' ||
+    typeof value.path !== 'string' ||
+    typeof value.sha !== 'string' ||
+    typeof value.content !== 'string'
+  )
+    throw new GitHubAppError('invalid_gate_receipt_object');
+  return { type: value.type, path: value.path, sha: value.sha, content: value.content };
+}
+
+function decodeContents(content: string): string {
+  let compact = '';
+  for (const character of content) {
+    if (character !== '\n' && character !== '\r') compact += character;
+  }
+  return Buffer.from(compact, 'base64').toString('utf8');
 }
 
 function rateLimitRetryAt(response: Response, now: number): number | undefined {

@@ -707,6 +707,60 @@ describe('GitHub App API client', () => {
     ).toThrow('invalid GitHub App private key');
   });
 
+  it('writes the exact-head receipt object with a contents write token', async () => {
+    const head = 'a'.repeat(40);
+    const body = `revealfleet-override v1 repo=RevealUIStudio/revealui pr=7 head=${head} gate=sec-review expires=2026-12-01\n`;
+    const requests: Array<{ pathname: string; method: string; permissions?: unknown }> = [];
+    const fetchImpl = vi.fn<typeof fetch>(async (input, init) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      const method = init?.method ?? 'GET';
+      if (url.pathname.endsWith('/access_tokens')) {
+        requests.push({
+          pathname: url.pathname,
+          method,
+          permissions: JSON.parse(String(init?.body)).permissions,
+        });
+        return tokenResponse();
+      }
+      requests.push({ pathname: url.pathname, method });
+      if (method === 'GET') return new Response('{}', { status: 404 });
+      return new Response(
+        JSON.stringify({
+          content: {
+            path: `receipts/RevealUIStudio/revealui/7/${head}`,
+            sha: 'b'.repeat(40),
+          },
+        }),
+        { status: 201 },
+      );
+    });
+    const client = fixture(fetchImpl);
+    await client.publishGateReceiptFile({ pullRequest: 7, head, ref: 'receipts', body });
+    expect(requests).toEqual([
+      {
+        pathname: '/app/installations/200/access_tokens',
+        method: 'POST',
+        permissions: { contents: 'write' },
+      },
+      {
+        pathname: `/repos/RevealUIStudio/revealui/contents/receipts/RevealUIStudio/revealui/7/${head}`,
+        method: 'GET',
+      },
+      {
+        pathname: `/repos/RevealUIStudio/revealui/contents/receipts/RevealUIStudio/revealui/7/${head}`,
+        method: 'PUT',
+      },
+    ]);
+    await expect(
+      client.publishGateReceiptFile({
+        pullRequest: 7,
+        head,
+        ref: 'receipts',
+        body: 'unbound receipt',
+      }),
+    ).rejects.toMatchObject({ code: 'invalid_gate_receipt_body' });
+  });
+
   it.each([
     ['PKCS#1', privateKey.export({ type: 'pkcs1', format: 'pem' }).toString()],
     ['PKCS#8', pem],
