@@ -28,17 +28,19 @@ import {
 } from '../trusted-gate-judge.mjs';
 
 const require = createRequire(import.meta.url);
-const {
-  REVIEW_RECEIPT_MAX_BYTES,
-  buildReviewReceiptRequest,
-}: {
+
+function receiptGate(): {
   REVIEW_RECEIPT_MAX_BYTES: number;
   buildReviewReceiptRequest: (
     repo: string,
     pr: number,
     head: string,
   ) => { enabled: boolean; reason: string; url: string };
-} = require('../../validate/security-review-gate.cjs');
+} {
+  // Loaded after the suite builds the gates bundle. A top-level require
+  // fails the head contract job, which runs before that build.
+  return require('../../validate/security-review-gate.cjs');
+}
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const temps: string[] = [];
@@ -286,6 +288,7 @@ describe('owner signature clears a locked judge path', () => {
       ['owner/repo', 'receipts?raw=1'],
       ['bad repo/name', 'receipts'],
     ] as const;
+    const { buildReviewReceiptRequest } = receiptGate();
     for (const [repo, ref] of malformed) {
       vi.stubEnv('REVIEW_RECEIPT_REPO', repo);
       vi.stubEnv('REVIEW_RECEIPT_REF', ref);
@@ -303,6 +306,7 @@ describe('owner signature clears a locked judge path', () => {
   });
 
   it('fails when the receipt exceeds the loader size limit', () => {
+    const { REVIEW_RECEIPT_MAX_BYTES } = receiptGate();
     const receipt = signedComment(HEAD, future);
     expect(receipt.length).toBeLessThanOrEqual(REVIEW_RECEIPT_MAX_BYTES);
     const oversized = `${receipt}${'x'.repeat(REVIEW_RECEIPT_MAX_BYTES - receipt.length + 1)}`;
