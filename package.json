@@ -304,6 +304,7 @@
     "package:vscode-plugin": "tsx scripts/validate/vscode-marketplace-package.ts --pack",
     "validate:secret-paths": "vitest run scripts/sync/__tests__/secret-paths-lockstep.test.ts",
     "validate:ci-path-filters": "vitest run scripts/ci/__tests__/expensive-suite.test.ts",
+    "validate:action-pins": "vitest run scripts/validate/__tests__/action-pin.test.ts && tsx scripts/validate/action-pin.ts",
     "validate:doc-currency": "tsx scripts/validate/doc-currency.ts",
     "validate:rules-lockstep": "tsx scripts/validate/rules-lockstep.ts",
     "kek:rotate": "tsx scripts/security/rotate-kek.ts",
