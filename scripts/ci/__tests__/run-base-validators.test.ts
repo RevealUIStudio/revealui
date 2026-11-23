@@ -62,6 +62,21 @@ describe('copyJudgeTree', () => {
     );
   });
 
+  it('keeps the scan tree secrets spec when the base sync tree is copied', () => {
+    const judge = tempDir();
+    const scan = tempDir();
+    seedJudge(judge);
+    const spec = path.join(scan, 'scripts/sync/secret-paths.ts');
+    mkdirSync(path.dirname(spec), { recursive: true });
+    writeFileSync(spec, 'head-spec\n');
+    writeFileSync(path.join(judge, 'scripts/sync/secret-paths.ts'), 'base-spec\n');
+
+    copyJudgeTree(judge, scan);
+
+    expect(readFileSync(spec, 'utf8')).toBe('head-spec\n');
+    expect(readFileSync(path.join(scan, 'scripts/sync/marker.txt'), 'utf8')).toBe('base\n');
+  });
+
   it('refuses a missing base file and a shared root', () => {
     const judge = tempDir();
     const scan = tempDir();

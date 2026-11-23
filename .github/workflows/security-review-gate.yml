@@ -5,7 +5,8 @@
 # evaluation. Scripts check out github.workflow_sha, that same commit, so
 # they match the workflow when the pull request's recorded base is stale.
 # The job does not check out PR-head code; it only runs trusted gate scripts
-# and queries the API for files/labels/reviews.
+# and queries the API for files, labels, and reviews. Clearance is a
+# controller receipt for the exact head, not a comment signature.
 #
 # Shadow verify (A1–A3) recorded 2026-07-24:
 #   A1 — check-run attaches to PR head SHA (#2110)
@@ -33,9 +34,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  actions: read
   contents: read
-  checks: read
   pull-requests: read
 
 jobs:
@@ -56,8 +55,9 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           # Checkout the commit this workflow file came from. Head edits are
-          # not in this tree. Changed files, labels, comments, and reviews
-          # come from the API, so the checkout only supplies script code.
+          # not in this tree. Changed files, labels, and reviews come from
+          # the API. Comment text is read only for a live hold. The checkout
+          # only supplies script code.
           ref: ${{ github.workflow_sha }}
           persist-credentials: false
           # GAP-404: gate loads SECURITY_PATHS from security-paths.shared.json
@@ -79,6 +79,7 @@ jobs:
             scripts/validate/security-review-gate.cjs
             scripts/validate/guardrail2-verdict.cjs
             scripts/validate/gates-resolver.cjs
+            scripts/validate/security-paths.shared.json
             package.json
             pnpm-workspace.yaml
             pnpm-lock.yaml
@@ -87,12 +88,6 @@ jobs:
             apps/*/package.json
             packages/harnesses/
             packages/dev/
-            packages/security/
-            packages/contracts/
-            packages/db/
-            packages/config/
-            packages/utils/
-            packages/ts-strada/
           sparse-checkout-cone-mode: false
 
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
@@ -108,26 +103,22 @@ jobs:
           set -euo pipefail
           # Durable sparse-job contract (do not change without updating
           # scripts/validate/gates-resolver.cjs):
-          #   - install harnesses + dev and their declared workspace dependency closure
-          #   - include the full source/config for security's workspace build closure
+          #   - install only harnesses + dev (sparse checkout; no turbo, no security)
           #   - emit packages/harnesses/dist/gates/index.cjs via tsup.gates-cjs.ts
+          # Full package DTS needs @revealui/security (GAP-381) and is out of scope here.
           # tsup.gates-cjs.ts has lived on main and test for the full dual-format era;
           # never require a tip-only package.json script.
-          pnpm install --frozen-lockfile --filter @revealui/harnesses... --filter @revealui/dev
-          pnpm --filter @revealui/security... build
+          pnpm install --frozen-lockfile --filter @revealui/harnesses --filter @revealui/dev
           pnpm --filter @revealui/harnesses exec tsup --config tsup.gates-cjs.ts
 
       - name: Evaluate review gate
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REVEALFLEET_OVERRIDE_SIGNERS: ${{ vars.REVEALFLEET_OVERRIDE_SIGNERS }}
-          REVIEW_RECEIPT_MODE: ${{ vars.REVIEW_RECEIPT_MODE }}
-          REVIEW_RECEIPT_AUTHORITY_URL: ${{ vars.REVIEW_RECEIPT_AUTHORITY_URL }}
-          REVIEW_RECEIPT_CONTROLLER_APP_ID: ${{ vars.REVIEW_RECEIPT_CONTROLLER_APP_ID }}
-          REVIEW_RECEIPT_TRUSTED_KEYS: ${{ vars.REVIEW_RECEIPT_TRUSTED_KEYS }}
-          REVIEW_RECEIPT_POLICY_VERSION: ${{ vars.REVIEW_RECEIPT_POLICY_VERSION }}
-          REVIEW_RECEIPT_MAX_LIFETIME_MS: ${{ vars.REVIEW_RECEIPT_MAX_LIFETIME_MS }}
-          REVIEW_RECEIPT_REQUIRED_CHECKS: ${{ vars.REVIEW_RECEIPT_REQUIRED_CHECKS }}
+          REVIEW_RECEIPT_REPO: ${{ vars.REVIEW_RECEIPT_REPO }}
+          REVIEW_RECEIPT_REF: ${{ vars.REVIEW_RECEIPT_REF }}
+          REVIEW_RECEIPT_SIGNERS: ${{ vars.REVIEW_RECEIPT_SIGNERS }}
+          REVIEW_RECEIPT_TOKEN: ${{ secrets.REVIEW_RECEIPT_TOKEN }}
         run: |
           set -euo pipefail
           node scripts/validate/security-review-gate.cjs \

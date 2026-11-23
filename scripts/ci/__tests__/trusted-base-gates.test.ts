@@ -122,6 +122,10 @@ describe('gate scripts execute from the base commit', () => {
     expect(review.includes(recordedBase)).toBe(false);
     expect(review).toContain('echo "workflow_sha=');
     expect(review).toContain('scripts/validate/gates-resolver.cjs');
+    expect(review).toContain('REVIEW_RECEIPT_REPO:');
+    expect(review).toContain('REVIEW_RECEIPT_REF:');
+    expect(review).toContain('REVIEW_RECEIPT_SIGNERS:');
+    expect(review.includes('issue_comment:')).toBe(false);
   });
 
   it('runs the security gate script from the base checkout', () => {

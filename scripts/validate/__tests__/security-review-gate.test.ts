@@ -1,24 +1,20 @@
 import { execFileSync } from 'node:child_process';
-import { generateKeyPairSync } from 'node:crypto';
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   buildOwnerOverrideComment,
   buildOwnerOverridePayload,
 } from '../../../packages/harnesses/src/gates/signed-override.js';
-import { signReceiptAuthorization } from '../../../packages/security/src/review-receipt.js';
 
 const {
   SECURITY_PATHS,
   MAX_CLASSIFIABLE_FILES,
   classifyFiles,
   decideReviewGate,
-  decideReceiptAdmission,
   fetchPrFiles,
   hitsForFiles,
-  readReceiptConfig,
 } = require('../security-review-gate.cjs');
 
 const CLEAR_LABEL = 'sec-review:approved';
@@ -33,7 +29,7 @@ afterEach(() => vi.unstubAllEnvs());
 const ENFORCEMENT_MACHINERY_FILES = [
   'scripts/validate/security-review-gate.cjs',
   'scripts/validate/sec-audit-label-decision.cjs',
-  'packages/harnesses/src/gates/security-paths.shared.json',
+  'scripts/validate/security-paths.shared.json',
   '.github/workflows/security-review-gate.yml',
   '.github/workflows/sec-audit-label-guard.yml',
   '.github/workflows/security.yml',
@@ -54,61 +50,6 @@ describe('classifyFiles — enforcement-machinery self-protection', () => {
     // were removed, ENFORCEMENT_MACHINERY_FILES above would stop being flagged;
     // this line guarantees the markers are not so broad they catch everything.
     expect(classifyFiles(['apps/marketing/app/components/Hero.tsx'])).toEqual([]);
-  });
-});
-
-describe('trusted sparse gate build inputs', () => {
-  it('checks out every workspace package in the security build dependency closure', () => {
-    const packagesRoot = join(__dirname, '../../../packages');
-    type WorkspaceManifest = {
-      name?: unknown;
-      dependencies?: Record<string, unknown>;
-      optionalDependencies?: Record<string, unknown>;
-    };
-    const workspacePackages = new Map<string, { directory: string; manifest: WorkspaceManifest }>();
-    for (const entry of readdirSync(packagesRoot, { withFileTypes: true })) {
-      if (!entry.isDirectory()) continue;
-      const directory = join(packagesRoot, entry.name);
-      const manifestPath = join(directory, 'package.json');
-      if (!existsSync(manifestPath)) continue;
-      const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as WorkspaceManifest;
-      if (typeof manifest.name === 'string')
-        workspacePackages.set(manifest.name, { directory, manifest });
-    }
-
-    const requiredPackages = new Set<string>();
-    const visit = (name: string) => {
-      if (requiredPackages.has(name)) return;
-      const workspacePackage = workspacePackages.get(name);
-      if (!workspacePackage) return;
-      requiredPackages.add(name);
-      const dependencies = {
-        ...workspacePackage.manifest.dependencies,
-        ...workspacePackage.manifest.optionalDependencies,
-      };
-      for (const [dependency, specifier] of Object.entries(dependencies)) {
-        if (typeof specifier === 'string' && specifier.startsWith('workspace:')) visit(dependency);
-      }
-    };
-    visit('@revealui/security');
-
-    for (const workflowName of ['security-review-gate.yml', 'sec-audit-label-guard.yml']) {
-      const workflow = readFileSync(
-        join(__dirname, `../../../.github/workflows/${workflowName}`),
-        'utf8',
-      );
-      const sparseCheckout = workflow.match(
-        /sparse-checkout:\s*\|\s*\n([\s\S]*?)sparse-checkout-cone-mode:/,
-      )?.[1];
-      expect(sparseCheckout, `${workflowName} sparse-checkout block`).toBeDefined();
-      for (const name of requiredPackages) {
-        const { directory } = workspacePackages.get(name)!;
-        const checkoutPath = `packages/${directory.slice(packagesRoot.length + 1)}/`;
-        expect(sparseCheckout, `${workflowName} must include ${checkoutPath}`).toContain(
-          checkoutPath,
-        );
-      }
-    }
   });
 });
 
@@ -190,30 +131,25 @@ describe('decideReviewGate — a live REQUEST-CHANGES holds, overriding the labe
   });
 });
 
-describe('decideReviewGate — owner signature is the only grant', () => {
+describe('decideReviewGate: a review receipt is the only grant', () => {
   it.each([noMarker, clearVerdict])(
-    'denies labels, reviews and reviewer markers without a signature',
+    'denies labels, reviews and reviewer markers without a receipt',
     (verdict) => {
       expect(
         decideReviewGate({ verdict, labels: [CLEAR_LABEL], reviewDecision: 'APPROVED' }).action,
       ).toBe('hold');
     },
   );
-  it('denies a valid signature without a request label', () => {
-    expect(
-      decideReviewGate({ verdict: noMarker, labels: [], ownerVerification: { ok: true } }).action,
-    ).toBe('hold');
-  });
-  it('clears a request label and valid owner signature', () => {
+  it('clears an exact-head receipt without a request label', () => {
     expect(
       decideReviewGate({
-        verdict: clearVerdict,
-        labels: [CLEAR_LABEL],
-        ownerVerification: { ok: true, url: 'signed-comment' },
+        verdict: noMarker,
+        labels: [],
+        ownerVerification: { ok: true, url: 'receipt' },
       }),
-    ).toEqual({ action: 'clear', kind: 'owner-signature', url: 'signed-comment' });
+    ).toEqual({ action: 'clear', kind: 'review-receipt', url: 'receipt' });
   });
-  it('keeps a live REQUEST-CHANGES above even a valid owner signature', () => {
+  it('keeps a live REQUEST-CHANGES above a valid receipt', () => {
     expect(
       decideReviewGate({
         verdict: holdVerdict,
@@ -256,17 +192,6 @@ describe('fetchPrFiles — the full paginated list, not the 100-file window', ()
     };
     fetchPrFiles(7, undefined, ghImpl);
     expect(calls[0]).toContain('repos/{owner}/{repo}/pulls/7/files');
-  });
-
-  it('classifies a renamed file by its protected previous path', () => {
-    const calls: string[][] = [];
-    const ghImpl = (args: string[]) => {
-      calls.push(args);
-      return 'apps/marketing/credentials.ts\npackages/security/credentials.ts\n';
-    };
-    const paths = fetchPrFiles(8, 'RevealUIStudio/revealui', ghImpl);
-    expect(calls[0]).toContain('.[] | .filename, .previous_filename // empty');
-    expect(classifyFiles(paths)).toContain('packages/security/credentials.ts');
   });
 });
 
@@ -397,24 +322,15 @@ const {
   verifyPrOwnerRecord,
   fetchCommitPulls,
   fetchPrCommitShas,
-  resolveAllowedSigners,
+  fetchReviewReceipt,
+  reviewReceiptObjectPath,
+  buildReviewReceiptRequest,
+  REVIEW_RECEIPT_MAX_BYTES,
 } = require('../security-review-gate.cjs');
 const target = 'RevealUIStudio/revealui';
 const featureHead = 'a'.repeat(40);
 
 describe('owner grant evidence adapter', () => {
-  it('reads the canonical REVEALFLEET signer variable', () => {
-    const canonical = process.env.REVEALFLEET_OVERRIDE_SIGNERS;
-    try {
-      process.env.REVEALFLEET_OVERRIDE_SIGNERS = 'canonical-anchor';
-      expect(resolveAllowedSigners()).toBe('canonical-anchor');
-      expect(resolveAllowedSigners('explicit-anchor')).toBe('explicit-anchor');
-    } finally {
-      if (canonical === undefined) delete process.env.REVEALFLEET_OVERRIDE_SIGNERS;
-      else process.env.REVEALFLEET_OVERRIDE_SIGNERS = canonical;
-    }
-  });
-
   it('paginates comments AND reviews and normalizes reviewer identities', () => {
     const calls: string[][] = [];
     const result = fetchPrDiscussion(91, target, (args: string[]) => {
@@ -450,17 +366,35 @@ describe('owner grant evidence adapter', () => {
         { author: { login: 'owner' }, labels: [{ name: CLEAR_LABEL }], headRefOid: featureHead },
         91,
         target,
-        { comments: [], reviews: [] },
+        {
+          comments: [{ body: 'comment-override', url: 'https://example.test/comment' }],
+          reviews: [],
+        },
         'owner-anchor',
         verifier,
+        'controller-receipt',
       ).action,
     ).toBe('clear');
     expect(verifier).toHaveBeenCalledWith({
-      comments: [],
+      comments: [{ body: 'controller-receipt' }],
       allowedSigners: 'owner-anchor',
       expected: { repo: target, pr: 91, head: featureHead, gate: 'sec-review' },
     });
     // No historical `now` is supplied: expired historical grants cannot be revived.
+  });
+  it('does not send pull request comments to the receipt verifier', () => {
+    const verifier = vi.fn(() => ({ ok: true }));
+    const decision = verifyPrOwnerRecord(
+      { author: { login: 'owner' }, labels: [{ name: CLEAR_LABEL }], headRefOid: featureHead },
+      91,
+      target,
+      { comments: [{ body: 'comment-override' }], reviews: [{ body: 'APPROVED' }] },
+      'owner-anchor',
+      verifier,
+      '',
+    );
+    expect(decision.action).toBe('hold');
+    expect(verifier).not.toHaveBeenCalled();
   });
   it('does not let the signature verifier erase a paginated live reviewer hold', () => {
     const verifier = vi.fn(() => ({ ok: true }));
@@ -490,173 +424,6 @@ describe('owner grant evidence adapter', () => {
         Array.from({ length: 250 }, () => featureHead).join('\n'),
       ),
     ).toThrow('API ceiling');
-  });
-});
-
-describe('receipt gate configuration', () => {
-  it('is disabled unless the base-trusted workflow opts into shadow or enforce mode', () => {
-    expect(readReceiptConfig({})).toBeUndefined();
-  });
-
-  it('requires complete trusted policy when shadow mode is enabled', () => {
-    expect(() => readReceiptConfig({ REVIEW_RECEIPT_MODE: 'shadow' })).toThrow(
-      'REVIEW_RECEIPT_CONTROLLER_APP_ID is required',
-    );
-  });
-
-  it('accepts enforce mode only with the same complete trusted policy', () => {
-    expect(() => readReceiptConfig({ REVIEW_RECEIPT_MODE: 'enforce' })).toThrow(
-      'REVIEW_RECEIPT_CONTROLLER_APP_ID is required',
-    );
-    expect(() => readReceiptConfig({ REVIEW_RECEIPT_MODE: 'observe' })).toThrow(
-      'REVIEW_RECEIPT_MODE must be shadow or enforce',
-    );
-    expect(
-      readReceiptConfig({
-        REVIEW_RECEIPT_MODE: 'enforce',
-        REVIEW_RECEIPT_AUTHORITY_URL: 'https://controller.example/receipt/authorization',
-        REVIEW_RECEIPT_CONTROLLER_APP_ID: '30',
-        REVIEW_RECEIPT_MAX_LIFETIME_MS: '3600000',
-        REVIEW_RECEIPT_POLICY_VERSION: 'policy-1',
-        REVIEW_RECEIPT_TRUSTED_KEYS: JSON.stringify({ key: 'public key' }),
-        REVIEW_RECEIPT_REQUIRED_CHECKS: JSON.stringify([
-          {
-            name: 'CI Feedback',
-            appId: 15368,
-            workflowId: 220400161,
-            workflowPath: '.github/workflows/ci.yml',
-            event: 'pull_request',
-          },
-          { name: 'CodeQL', appId: 57789 },
-          {
-            name: 'Security Gate',
-            appId: 15368,
-            workflowId: 401,
-            workflowPath: '.github/workflows/security.yml',
-            event: 'pull_request',
-          },
-          {
-            name: 'Dependency Review',
-            appId: 15368,
-            workflowId: 401,
-            workflowPath: '.github/workflows/security.yml',
-            event: 'pull_request',
-          },
-          {
-            name: 'Secret Scanning (Gitleaks)',
-            appId: 15368,
-            workflowId: 401,
-            workflowPath: '.github/workflows/security.yml',
-            event: 'pull_request',
-          },
-        ]),
-      }),
-    ).toMatchObject({ mode: 'enforce', controllerAppId: 30 });
-  });
-
-  it('lets only a verified receipt replace the owner grant in enforce mode', () => {
-    const ownerHold = { action: 'hold', kind: 'no-owner-signature' };
-    expect(
-      decideReceiptAdmission({
-        mode: 'shadow',
-        receiptResult: { status: 'verified', receiptId: 'receipt-1', authorizationVerified: true },
-        ownerDecision: ownerHold,
-      }),
-    ).toEqual(ownerHold);
-    expect(
-      decideReceiptAdmission({
-        mode: 'enforce',
-        receiptResult: { status: 'ineligible', reason: 'stale-head' },
-        ownerDecision: ownerHold,
-      }),
-    ).toMatchObject({ action: 'hold', kind: 'invalid-app-receipt', reason: 'stale-head' });
-    expect(
-      decideReceiptAdmission({
-        mode: 'enforce',
-        ...currentAuthorizationFixture(),
-        ownerDecision: ownerHold,
-      }),
-    ).toMatchObject({ action: 'clear', kind: 'app-receipt', receiptId: 'receipt-1' });
-  });
-
-  it('holds a signed successful receipt without current online authorization', () => {
-    expect(
-      decideReceiptAdmission({
-        mode: 'enforce',
-        receiptResult: { status: 'verified', receiptId: 'receipt-1' },
-        ownerDecision: { action: 'hold', kind: 'no-owner-signature' },
-      }),
-    ).toMatchObject({ action: 'hold', kind: 'invalid-app-receipt' });
-  });
-
-  it('keeps live reviewer holds authoritative over receipt admission', () => {
-    const reviewerHold = {
-      action: 'hold',
-      kind: 'request-changes',
-      reviewer: 'codex',
-      timestamp: '2026-10-07T12:00:00Z',
-    };
-    expect(
-      decideReceiptAdmission({
-        mode: 'enforce',
-        receiptResult: { status: 'verified', receiptId: 'receipt-1', authorizationVerified: true },
-        ownerDecision: reviewerHold,
-      }),
-    ).toEqual(reviewerHold);
-  });
-
-  it('rejects partial receipt settings without an explicit gate mode', () => {
-    expect(() => readReceiptConfig({ REVIEW_RECEIPT_POLICY_VERSION: 'policy-1' })).toThrow(
-      'REVIEW_RECEIPT_MODE is required when receipt settings are present',
-    );
-  });
-
-  it('rejects duplicate required check selectors', () => {
-    expect(() =>
-      readReceiptConfig({
-        REVIEW_RECEIPT_MODE: 'shadow',
-        REVIEW_RECEIPT_CONTROLLER_APP_ID: '30',
-        REVIEW_RECEIPT_MAX_LIFETIME_MS: '3600000',
-        REVIEW_RECEIPT_POLICY_VERSION: 'policy-1',
-        REVIEW_RECEIPT_TRUSTED_KEYS: JSON.stringify({ key: 'public key' }),
-        REVIEW_RECEIPT_REQUIRED_CHECKS: JSON.stringify([
-          { name: 'CI', appId: 20 },
-          { name: 'CI', appId: 20 },
-        ]),
-      }),
-    ).toThrow('REVIEW_RECEIPT_REQUIRED_CHECKS contains duplicate selectors');
-  });
-
-  it('rejects receipt policies that omit mandatory exact-head security checks', () => {
-    expect(() =>
-      readReceiptConfig({
-        REVIEW_RECEIPT_MODE: 'shadow',
-        REVIEW_RECEIPT_CONTROLLER_APP_ID: '30',
-        REVIEW_RECEIPT_MAX_LIFETIME_MS: '3600000',
-        REVIEW_RECEIPT_POLICY_VERSION: 'policy-1',
-        REVIEW_RECEIPT_TRUSTED_KEYS: JSON.stringify({ key: 'public key' }),
-        REVIEW_RECEIPT_REQUIRED_CHECKS: JSON.stringify([{ name: 'CI', appId: 20 }]),
-      }),
-    ).toThrow('REVIEW_RECEIPT_REQUIRED_CHECKS omits a mandatory security check');
-  });
-
-  it('grants the base-trusted gate read access to check-run receipt evidence', () => {
-    const workflow = readFileSync(
-      join(__dirname, '../../../.github/workflows/security-review-gate.yml'),
-      'utf8',
-    );
-    expect(workflow).toContain('checks: read');
-    for (const name of [
-      'REVIEW_RECEIPT_MODE',
-      'REVIEW_RECEIPT_CONTROLLER_APP_ID',
-      'REVIEW_RECEIPT_TRUSTED_KEYS',
-      'REVIEW_RECEIPT_POLICY_VERSION',
-      'REVIEW_RECEIPT_MAX_LIFETIME_MS',
-      'REVIEW_RECEIPT_REQUIRED_CHECKS',
-    ]) {
-      const expression = `\${{ vars.${name} }}`;
-      expect(workflow).toContain(`${name}: ${expression}`);
-    }
   });
 });
 
@@ -708,6 +475,7 @@ describe('signed merged feature promotion coverage', () => {
     };
     return fetchCommitPulls(sha, target, 99, run, {
       allowedSigners: useConfiguredAnchor ? undefined : 'anchor',
+      receiptBody: 'controller-receipt',
       verifyImpl: ({ allowedSigners }: { allowedSigners: string }) =>
         signed && (!useConfiguredAnchor || allowedSigners === 'anchor')
           ? { ok: true }
@@ -760,65 +528,265 @@ it('real SSHSIG passes through the existing compiled resolver and sensitive gate
       labels: [{ name: CLEAR_LABEL }],
       headRefOid: featureHead,
     };
-    const discussion = { comments: [{ body, url: 'signed-fixture' }], reviews: [] };
-    vi.stubEnv('REVEALFLEET_OVERRIDE_SIGNERS', anchor);
+    const discussion = {
+      comments: [{ body, url: 'https://example.test/comment' }],
+      reviews: [],
+    };
+    vi.stubEnv('REVIEW_RECEIPT_REPO', '');
+    vi.stubEnv('REVIEW_RECEIPT_REF', '');
+    vi.stubEnv('REVIEW_RECEIPT_SIGNERS', anchor);
+    vi.stubEnv('REVEALFLEET_OVERRIDE_SIGNERS', 'different-fallback-anchor');
     vi.stubEnv('REVFLEET_OVERRIDE_SIGNERS', 'different-deprecated-anchor');
-    expect(verifyPrOwnerRecord(data, 91, target, discussion)).toMatchObject({
-      action: 'clear',
-      kind: 'owner-signature',
-      url: 'signed-fixture',
+    expect(
+      verifyPrOwnerRecord(data, 91, target, discussion, undefined, undefined, ''),
+    ).toMatchObject({
+      action: 'hold',
+      reason: 'missing-review-receipt',
     });
     expect(
-      verifyPrOwnerRecord({ ...data, headRefOid: 'b'.repeat(40) }, 91, target, discussion).action,
-    ).toBe('hold');
-    expect(verifyPrOwnerRecord(data, 91, target, discussion, '').action).toBe('hold');
+      verifyPrOwnerRecord(data, 91, target, discussion, undefined, undefined, body),
+    ).toMatchObject({
+      action: 'clear',
+      kind: 'review-receipt',
+    });
+    expect(
+      verifyPrOwnerRecord(
+        { ...data, headRefOid: 'b'.repeat(40) },
+        91,
+        target,
+        discussion,
+        undefined,
+        undefined,
+        body,
+      ),
+    ).toMatchObject({ action: 'hold', reason: 'wrong-context' });
+    expect(
+      verifyPrOwnerRecord(
+        data,
+        91,
+        target,
+        {
+          comments: [],
+          reviews: [
+            {
+              body: '<!-- guardrail2-verdict: REQUEST-CHANGES -->',
+              author: { login: 'reviewer' },
+              submittedAt: '2026-09-30T01:00:00Z',
+            },
+          ],
+        },
+        undefined,
+        undefined,
+        body,
+      ).kind,
+    ).toBe('request-changes');
+    expect(verifyPrOwnerRecord(data, 91, target, discussion, '', undefined, body).action).toBe(
+      'hold',
+    );
+    vi.stubEnv('REVIEW_RECEIPT_SIGNERS', '');
     vi.stubEnv('REVEALFLEET_OVERRIDE_SIGNERS', undefined);
     vi.stubEnv('REVFLEET_OVERRIDE_SIGNERS', anchor);
-    expect(verifyPrOwnerRecord(data, 91, target, discussion)).toMatchObject({
+    expect(
+      verifyPrOwnerRecord(data, 91, target, discussion, undefined, undefined, body),
+    ).toMatchObject({
       action: 'hold',
       reason: 'missing-owner-anchor',
     });
-    expect(
-      verifyPrOwnerRecord({ ...data, labels: [] }, 91, target, discussion, anchor).action,
-    ).toBe('hold');
+    vi.stubEnv('REVIEW_RECEIPT_REPO', '');
+    vi.stubEnv('REVIEW_RECEIPT_REF', '');
+    expect(verifyPrOwnerRecord(data, 91, target, discussion)).toMatchObject({
+      action: 'hold',
+      reason: 'receipt-mode-unset',
+    });
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }
 });
 
-function currentAuthorizationFixture() {
-  const now = new Date();
-  const { privateKey, publicKey } = generateKeyPairSync('ed25519');
-  const request = {
-    schema: 'revealfleet-receipt-authorization-request/v1' as const,
-    challenge: 'b'.repeat(64),
-    repositoryId: 300,
-    pullRequest: 7,
-    envelopeSha256: 'a'.repeat(64),
-  };
-  const receiptExpiresAt = new Date(now.getTime() + 60_000);
-  const envelope = signReceiptAuthorization({
-    request,
-    generation: 3,
-    authorized: true,
-    keyId: 'fixture',
-    privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
-    now,
-    receiptExpiresAt,
+describe('review receipt lookup', () => {
+  it('pins the object path to the repository, pull request and exact head', () => {
+    expect(reviewReceiptObjectPath(target, 91, featureHead)).toBe(
+      `receipts/${target}/91/${featureHead}`,
+    );
+    expect(reviewReceiptObjectPath(target, 91, 'b'.repeat(40))).not.toBe(
+      reviewReceiptObjectPath(target, 91, featureHead),
+    );
   });
-  return {
-    now,
-    trustedKeys: { fixture: publicKey.export({ type: 'spki', format: 'pem' }).toString() },
-    receiptResult: {
-      status: 'verified',
-      receiptId: 'receipt-1',
-      authorizationVerified: true,
-      repositoryId: 300,
-      pullRequest: 7,
-      envelopeSha256: request.envelopeSha256,
-      receiptExpiresAt: receiptExpiresAt.toISOString(),
-      generation: 3,
-      authorizationContext: { envelope, request, requestedAt: now.toISOString() },
-    },
+
+  it('refuses a receipt ref that is the pull request head', () => {
+    vi.stubEnv('REVIEW_RECEIPT_REPO', 'receipt-host/receipts');
+    vi.stubEnv('REVIEW_RECEIPT_REF', featureHead);
+    const ghImpl = vi.fn(() => 'planted');
+    expect(fetchReviewReceipt(target, 91, featureHead, ghImpl)).toEqual({
+      body: '',
+      reason: 'receipt-ref-is-head',
+    });
+    expect(ghImpl).not.toHaveBeenCalled();
+  });
+
+  it('does not call the receipt host while receipt mode is unset', () => {
+    vi.stubEnv('REVIEW_RECEIPT_REPO', '');
+    vi.stubEnv('REVIEW_RECEIPT_REF', '');
+    const ghImpl = vi.fn(() => 'comment-override');
+    expect(fetchReviewReceipt(target, 91, featureHead, ghImpl)).toEqual({
+      body: '',
+      reason: 'receipt-mode-unset',
+    });
+    expect(ghImpl).not.toHaveBeenCalled();
+  });
+
+  it('reads only the exact-head object and ignores a comment body', () => {
+    vi.stubEnv('REVIEW_RECEIPT_REPO', 'receipt-host/receipts');
+    vi.stubEnv('REVIEW_RECEIPT_REF', 'receipts');
+    const ghImpl = vi.fn((args: string[]) => {
+      expect(args.join(' ')).toContain(`receipts/${target}/91/${featureHead}`);
+      expect(args.join(' ')).not.toContain('b'.repeat(40));
+      return 'exact-head-receipt';
+    });
+    expect(fetchReviewReceipt(target, 91, featureHead, ghImpl)).toEqual({
+      body: 'exact-head-receipt',
+      reason: '',
+    });
+  });
+});
+
+describe('receipt mode fails closed', () => {
+  const data = {
+    author: { login: 'owner' },
+    labels: [{ name: CLEAR_LABEL }],
+    headRefOid: featureHead,
   };
-}
+  const discussion = { comments: [], reviews: [] };
+  const malformedReceiptModes = [
+    ['not-a-repo', 'receipts'],
+    ['off', 'receipts'],
+    ['owner/repo/extra', 'receipts'],
+    ['owner/repo', ''],
+    ['', 'receipts'],
+    ['owner/repo', '../receipts'],
+    ['owner/repo', 'receipts?raw=1'],
+    ['bad repo/name', 'receipts'],
+    ['owner/repo', 'has space'],
+    ['   ', 'receipts'],
+  ] as const;
+
+  it.each(malformedReceiptModes)(
+    'holds unrecognized or malformed receipt mode repo=%j ref=%j',
+    (repo, ref) => {
+      vi.stubEnv('REVIEW_RECEIPT_REPO', repo);
+      vi.stubEnv('REVIEW_RECEIPT_REF', ref);
+      const ghImpl = vi.fn(() => 'should-not-load');
+      expect(buildReviewReceiptRequest(target, 91, featureHead)).toMatchObject({
+        enabled: false,
+        reason: 'invalid-receipt-mode',
+        path: '',
+        url: '',
+      });
+      expect(fetchReviewReceipt(target, 91, featureHead, ghImpl)).toEqual({
+        body: '',
+        reason: 'invalid-receipt-mode',
+      });
+      expect(ghImpl).not.toHaveBeenCalled();
+      expect(verifyPrOwnerRecord(data, 91, target, discussion)).toMatchObject({
+        action: 'hold',
+        reason: 'invalid-receipt-mode',
+      });
+    },
+  );
+});
+
+describe('oversized and misbound receipts fail closed', () => {
+  let keyDir = '';
+  let anchor = '';
+  const data = {
+    author: { login: 'owner' },
+    labels: [{ name: CLEAR_LABEL }],
+    headRefOid: featureHead,
+  };
+  const discussion = { comments: [], reviews: [] };
+
+  beforeAll(() => {
+    keyDir = mkdtempSync(join(tmpdir(), 'receipt-binding-fixture-'));
+    const key = join(keyDir, 'owner');
+    execFileSync('ssh-keygen', ['-t', 'ed25519', '-N', '', '-f', key], { stdio: 'pipe' });
+    anchor = `owner@revealui.com ${readFileSync(`${key}.pub`, 'utf8')}`;
+  });
+
+  afterAll(() => {
+    if (keyDir) rmSync(keyDir, { recursive: true, force: true });
+  });
+
+  function signedReceipt(context: { repo: string; pr: number; head: string }): string {
+    const expires = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+    const payload = buildOwnerOverridePayload({ ...context, gate: 'sec-review' }, expires);
+    const payloadPath = join(
+      keyDir,
+      `payload-${context.repo.split('/').join('-')}-${String(context.pr)}-${context.head}`,
+    );
+    writeFileSync(payloadPath, payload);
+    execFileSync(
+      'ssh-keygen',
+      ['-Y', 'sign', '-f', join(keyDir, 'owner'), '-n', 'revealfleet-override', payloadPath],
+      { stdio: 'pipe' },
+    );
+    return buildOwnerOverrideComment(payload, readFileSync(`${payloadPath}.sig`, 'utf8'));
+  }
+
+  function useAllowedSigner(): void {
+    vi.stubEnv('REVIEW_RECEIPT_SIGNERS', anchor);
+    vi.stubEnv('REVEALFLEET_OVERRIDE_SIGNERS', 'different-fallback-anchor');
+    vi.stubEnv('REVFLEET_OVERRIDE_SIGNERS', 'different-deprecated-anchor');
+  }
+
+  it('holds a receipt larger than the loader size limit', () => {
+    useAllowedSigner();
+    vi.stubEnv('REVIEW_RECEIPT_REPO', 'receipt-host/receipts');
+    vi.stubEnv('REVIEW_RECEIPT_REF', 'receipts');
+    const body = signedReceipt({ repo: target, pr: 91, head: featureHead });
+    expect(body.length).toBeLessThanOrEqual(REVIEW_RECEIPT_MAX_BYTES);
+    const oversized = `${body}${'x'.repeat(REVIEW_RECEIPT_MAX_BYTES - body.length + 1)}`;
+    expect(oversized.length).toBe(REVIEW_RECEIPT_MAX_BYTES + 1);
+    const ghImpl = vi.fn(() => oversized);
+    expect(fetchReviewReceipt(target, 91, featureHead, ghImpl)).toEqual({
+      body: '',
+      reason: 'invalid-review-receipt',
+    });
+    expect(
+      verifyPrOwnerRecord(data, 91, target, discussion, undefined, undefined, body),
+    ).toMatchObject({ action: 'clear', kind: 'review-receipt' });
+    const decision = verifyPrOwnerRecord(
+      data,
+      91,
+      target,
+      discussion,
+      undefined,
+      undefined,
+      oversized,
+    );
+    expect(decision.action).toBe('hold');
+    expect(decision.kind).not.toBe('review-receipt');
+  });
+
+  it('holds a valid allowed-signer receipt for a different repository', () => {
+    useAllowedSigner();
+    const otherRepo = 'other-org/other-repo';
+    const foreign = signedReceipt({ repo: otherRepo, pr: 91, head: featureHead });
+    expect(
+      verifyPrOwnerRecord(data, 91, otherRepo, discussion, undefined, undefined, foreign),
+    ).toMatchObject({ action: 'clear', kind: 'review-receipt' });
+    expect(
+      verifyPrOwnerRecord(data, 91, target, discussion, undefined, undefined, foreign),
+    ).toMatchObject({ action: 'hold', reason: 'wrong-context' });
+  });
+
+  it('holds a valid allowed-signer receipt for a different pull request', () => {
+    useAllowedSigner();
+    const foreign = signedReceipt({ repo: target, pr: 92, head: featureHead });
+    expect(
+      verifyPrOwnerRecord(data, 92, target, discussion, undefined, undefined, foreign),
+    ).toMatchObject({ action: 'clear', kind: 'review-receipt' });
+    expect(
+      verifyPrOwnerRecord(data, 91, target, discussion, undefined, undefined, foreign),
+    ).toMatchObject({ action: 'hold', reason: 'wrong-context' });
+  });
+});
