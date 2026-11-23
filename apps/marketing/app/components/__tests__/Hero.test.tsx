@@ -65,9 +65,9 @@ describe('Hero (product homepage)', () => {
     );
   });
 
-  it('shows Start free, GitHub, and the create-revealui command', () => {
+  it('shows the docs link, GitHub, and the create-revealui command', () => {
     renderHero();
-    expect(screen.getByRole('link', { name: 'Create a RevealUI account' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Read the docs' })).toHaveAttribute(
       'href',
       HOME_HERO.cta.primary.href,
     );

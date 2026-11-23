@@ -10,7 +10,8 @@
  *   pnpm secrets:scan
  */
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 
 interface Finding {
   file: string;
@@ -69,13 +70,17 @@ function shouldSkip(filePath: string): boolean {
   return SKIP_PATTERNS.some((pattern) => pattern.test(filePath));
 }
 
-function getTrackedFiles(): string[] {
-  const output = execSync('git ls-files', { encoding: 'utf-8', cwd: process.cwd() });
-  return output
-    .trim()
-    .split('\n')
-    .filter((f) => f.length > 0)
-    .filter((f) => !shouldSkip(f));
+function getTrackedFiles(fromStdin: boolean): string[] {
+  const output = fromStdin
+    ? readFileSync(0, 'utf-8')
+    : execFileSync('git', ['ls-files', '-z'], {
+        encoding: 'utf-8',
+        cwd: process.cwd(),
+      });
+  const paths = output.includes('\0') ? output.split('\0') : output.trim().split('\n');
+  const files = paths.filter((f) => f.length > 0).filter((f) => !shouldSkip(f));
+  if (files.length === 0) throw new Error('tracked_file_list_empty');
+  return files;
 }
 
 function scanFile(filePath: string): Finding[] {
@@ -110,7 +115,7 @@ function scanFile(filePath: string): Finding[] {
 async function main(): Promise<void> {
   console.log('Scanning tracked files for secrets...\n');
 
-  const files = getTrackedFiles();
+  const files = getTrackedFiles(process.argv.includes('--stdin-files'));
   const allFindings: Finding[] = [];
 
   for (const file of files) {

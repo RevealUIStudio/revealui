@@ -78,6 +78,42 @@
       "rules": ["sql-file-outside-migrations"],
       "reason": "GAP-347 owner-run CREATE ROLE script for revealui_readonly. Not a schema migration and must not be applied by drizzle-kit or CI. The committed file refuses to create the role until the owner replaces the password sentinel. Permanent.",
       "migrationPhase": null
+    },
+    {
+      "path": "apps/review-controller/migrations/0000_review_controller_store.sql",
+      "rules": ["sql-file-outside-migrations"],
+      "reason": "The review controller owns its own store schema outside packages/db.",
+      "migrationPhase": null
+    },
+    {
+      "path": "apps/review-controller/migrations/0001_review_controller_receipt_immutable.sql",
+      "rules": ["sql-file-outside-migrations"],
+      "reason": "The review controller owns its own store schema outside packages/db.",
+      "migrationPhase": null
+    },
+    {
+      "path": "apps/review-controller/migrations/0002_review_controller_runtime_grants.sql",
+      "rules": ["sql-file-outside-migrations"],
+      "reason": "The review controller owns its own store schema outside packages/db.",
+      "migrationPhase": null
+    },
+    {
+      "path": "apps/review-controller/migrations/0003_review_observation_outcomes.sql",
+      "rules": ["sql-file-outside-migrations"],
+      "reason": "The review controller owns its own store schema outside packages/db.",
+      "migrationPhase": null
+    },
+    {
+      "path": "apps/review-controller/migrations/0004_receipt_authorization_generations.sql",
+      "rules": ["sql-file-outside-migrations"],
+      "reason": "The review controller owns its own store schema outside packages/db.",
+      "migrationPhase": null
+    },
+    {
+      "path": "apps/review-controller/migrations/0005_merge_intent_quarantine.sql",
+      "rules": ["sql-file-outside-migrations"],
+      "reason": "The review controller owns its own store schema outside packages/db.",
+      "migrationPhase": null
     }
   ]
 }

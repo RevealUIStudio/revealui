@@ -1,16 +1,13 @@
 /**
- * Drift gate for leftover studio anchors. The product /pricing catalog must
- * not derive a done-for-you ladder from AGENCY_ENGAGEMENT_LADDER. Studio
- * SKUs belong on revealuistudio.com: Consultation $300 / Pilot $3,997 /
- * Launch $14,500. Dead Fleet and Custom Build objects must not exist.
+ * Product marketing must not publish the Studio price ladder. Prices stay in
+ * @revealui/contracts for the agency path. Dead Fleet and Custom Build
+ * objects must not exist.
  */
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { FOUNDER_SERVICE_OFFERINGS } from '@revealui/contracts/pricing';
 import { describe, expect, it } from 'vitest';
 import {
-  AGENCY_ENGAGEMENT_LADDER,
-  agencyEngagementPriceDisplay,
   FOR_OPERATORS_CLOSING,
   FOR_OPERATORS_FAQ,
   FOR_OPERATORS_HERO,
@@ -44,32 +41,7 @@ function countOccurrencesInCode(source: string, needle: string): number {
   return count;
 }
 
-describe('AGENCY_ENGAGEMENT_LADDER — locked studio anchors', () => {
-  it('pins Consultation, Pilot, and Launch only', () => {
-    expect(AGENCY_ENGAGEMENT_LADDER.map((e) => [e.id, e.name, e.price, e.startsFrom])).toEqual([
-      ['consultation', 'Consultation', '$300', false],
-      ['pilot', 'Pilot', '$3,997', false],
-      ['launch-package', 'Launch', '$14,500', false],
-    ]);
-  });
-
-  it('does not include Fleet deployment or Custom Build', () => {
-    const names = AGENCY_ENGAGEMENT_LADDER.map((e) => e.name);
-    expect(names).not.toContain('Fleet deployment');
-    expect(names).not.toContain('Custom Build');
-  });
-
-  it('renders studio rungs as flat prices', () => {
-    const display = Object.fromEntries(
-      AGENCY_ENGAGEMENT_LADDER.map((e) => [e.id, agencyEngagementPriceDisplay(e)]),
-    );
-    expect(display.consultation).toBe('$300');
-    expect(display.pilot).toBe('$3,997');
-    expect(display['launch-package']).toBe('$14,500');
-  });
-});
-
-describe('product pricing.ts does not sell the studio ladder', () => {
+describe('product surfaces do not publish Studio prices', () => {
   it('does not export a done-for-you, starter-kit, founding-kit, or cost-calculator catalog', () => {
     expect(Object.hasOwn(pricing, 'PRICING_DONE_FOR_YOU')).toBe(false);
     expect(Object.hasOwn(pricing, 'PRICING_STARTER_KIT')).toBe(false);
@@ -77,21 +49,22 @@ describe('product pricing.ts does not sell the studio ladder', () => {
     expect(Object.hasOwn(pricing, 'PRICING_COST_CALCULATOR')).toBe(false);
   });
 
-  it('FOR_OPERATORS_PRICING rungs reuse ladder name + display price', () => {
-    expect(FOR_OPERATORS_PRICING.rungs.map((r) => [r.title, r.price])).toEqual(
-      AGENCY_ENGAGEMENT_LADDER.map((e) => [e.name, agencyEngagementPriceDisplay(e)]),
-    );
+  it('points /services copy at revealuistudio.com without a price ladder', () => {
+    expect(Object.hasOwn(FOR_OPERATORS_PRICING, 'rungs')).toBe(false);
+    expect(FOR_OPERATORS_PRICING.body).toContain('revealuistudio.com');
+    expect(FOR_OPERATORS_PRICING.primaryCta.href).toBe('https://revealuistudio.com');
+    expect(FOR_OPERATORS_HERO.primaryCta.href).toBe('https://revealuistudio.com');
+    expect(FOR_OPERATORS_CLOSING.primaryCta.href).toBe('https://revealuistudio.com');
   });
 
-  it('FAQ "How much does it cost?" interpolates locked studio anchors', () => {
+  it('FAQ "How much does it cost?" does not print Studio prices', () => {
     const faq = FOR_OPERATORS_FAQ.items.find(
       (item) => item.question === 'How much does it cost?',
     )?.answer;
-    expect(faq, 'FAQ entry missing').toBeDefined();
-    for (const engagement of AGENCY_ENGAGEMENT_LADDER) {
-      expect(faq, `FAQ must mention ${engagement.name}`).toContain(engagement.name);
-      expect(faq, `FAQ must reference ${engagement.price}`).toContain(engagement.price);
-    }
+    expect(faq).toContain('revealuistudio.com');
+    expect(faq?.includes('$300')).toBe(false);
+    expect(faq?.includes('$3,997')).toBe(false);
+    expect(faq?.includes('$14,500')).toBe(false);
     expect(faq?.includes('Fleet deployment')).toBe(false);
     expect(faq?.includes('Custom Build')).toBe(false);
   });
@@ -104,15 +77,10 @@ describe('for-operators retired public copy stays gone', () => {
     expect(countOccurrencesInCode(FOR_OPERATORS_SRC, 'Book a build call')).toBe(0);
   });
 
-  it('uses Consultation, Pilot, Launch, 5+ years, and a 30-minute intro', () => {
-    expect(AGENCY_ENGAGEMENT_LADDER.map((e) => e.name)).toEqual([
-      'Consultation',
-      'Pilot',
-      'Launch',
-    ]);
+  it('keeps the studio proof line and points humans at revealuistudio.com', () => {
     expect(FOR_OPERATORS_PROOF.body.includes('5+ years')).toBe(true);
-    expect(FOR_OPERATORS_HERO.primaryCta.label).toBe('Book a 30-minute intro');
-    expect(FOR_OPERATORS_CLOSING.primaryCta.label).toBe('Book a 30-minute intro');
+    expect(FOR_OPERATORS_HERO.primaryCta.label).toBe('Open revealuistudio.com');
+    expect(FOR_OPERATORS_CLOSING.primaryCta.label).toBe('Open revealuistudio.com');
   });
 });
 
@@ -130,35 +98,22 @@ describe('dead SKU anchors stay out of marketing content', () => {
   }
 });
 
-describe('FOUNDER_SERVICE_OFFERINGS — founder-led services menu', () => {
+describe('FOUNDER_SERVICE_OFFERINGS — contract menu, not product-page copy', () => {
   it('does not include Fleet deployment or Custom Build', () => {
     const names = FOUNDER_SERVICE_OFFERINGS.map((s) => s.name);
     expect(names).not.toContain('Fleet deployment');
     expect(names).not.toContain('Custom Build');
   });
 
-  it('agrees with the studio ladder on the shared Pilot price', () => {
-    const proof = FOUNDER_SERVICE_OFFERINGS.find((s) => s.price === '$3,997');
-    const ladderProof = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === 'pilot');
-    expect(proof?.id).toBe('pilot');
-    expect(proof?.name).toBe('Pilot');
-    expect(proof?.price).toBe('$3,997');
-    expect(proof?.price).toBe(ladderProof?.price);
-    expect(proof?.includes).toContain('1 Adapter included');
-    expect(proof?.description).toContain('Includes 1 Adapter');
-    expect(ladderProof?.name).toBe('Pilot');
-    expect(FOR_OPERATORS_PRICING.rungs[1]?.body).toContain('Includes 1 Adapter');
-    expect(FOR_OPERATORS_PRICING.rungs[1]?.body).toContain('Stage B is included');
-    expect(FOR_OPERATORS_PRICING.rungs[1]?.body.includes('Proof Sprint')).toBe(false);
-  });
-
-  it('agrees with the studio ladder on the shared Launch price', () => {
+  it('keeps Pilot and Launch prices in contracts, off the product pricing block', () => {
+    const proof = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'pilot');
     const launch = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'launch-package');
-    const ladderLaunch = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === 'launch-package');
+    expect(proof?.price).toBe('$3,997');
     expect(launch?.price).toBe('$14,500');
-    expect(launch?.price).toBe(ladderLaunch?.price);
-    expect(launch?.includes).toContain('Up to 3 Adapters included');
-    expect(FOR_OPERATORS_PRICING.rungs[2]?.body).toContain('Up to 3 Adapters included');
+    const productCopy = JSON.stringify(FOR_OPERATORS_PRICING);
+    expect(productCopy.includes('$3,997')).toBe(false);
+    expect(productCopy.includes('$14,500')).toBe(false);
+    expect(productCopy.includes('Proof Sprint')).toBe(false);
   });
 
   it('$14,500 does not appear as a hand-typed literal in content/for-operators.ts code', () => {

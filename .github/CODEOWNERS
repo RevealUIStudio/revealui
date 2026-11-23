@@ -1,6 +1,6 @@
 # Security-sensitive source and policy. GitHub requests a review from either
 # account; the protected test/main ruleset will require a code-owner approval.
-# Keep these patterns aligned with scripts/validate/security-paths.shared.json.
+# Keep these patterns aligned with packages/harnesses/src/gates/security-paths.shared.json.
 # The CODEOWNERS file owns itself so later policy edits require review.
 /.github/CODEOWNERS @joshua-v-dev @RevealUIStudio
 /.github/workflows/ @joshua-v-dev @RevealUIStudio

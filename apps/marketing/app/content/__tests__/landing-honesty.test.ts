@@ -6,12 +6,14 @@ import { SUBSCRIPTION_PRICE_FALLBACKS } from '../../lib/pricing-fallbacks';
 import {
   HOME_DEMO,
   HOME_FAQ,
+  HOME_GET_STARTED,
   HOME_HERO,
   HOME_HERO_FOUNDATION,
   HOME_HERO_L2,
   HOME_HERO_OWNERSHIP,
   HOME_PROBLEM,
 } from '../home';
+import { NAV_AUTH } from '../nav';
 import { PRICING_HERO, PRICING_HIGHLIGHTED_BADGE } from '../pricing';
 import {
   PRICING_TEASER_LINKS,
@@ -90,8 +92,14 @@ describe('landing payment and Enterprise honesty', () => {
     expect(max?.description).toBe('Max adds unattended inference and higher limits.');
   });
 
-  it('keeps Start free and Pro checkout doors on the homepage teaser', () => {
-    expect(HOME_HERO.cta.primary.label).toBe('Create a RevealUI account');
+  it('leads the homepage with docs and keeps the free license door on the teaser', () => {
+    expect(HOME_HERO.cta.primary.label).toBe('Read the docs');
+    expect(HOME_HERO.cta.primary.href).toBe('https://docs.revealui.com');
+    expect(HOME_GET_STARTED.cta.primary.label).toBe('Read the docs');
+    expect(HOME_GET_STARTED.cta.secondary.label).toBe('License account');
+    expect(HOME_GET_STARTED.cta.secondary.href).toContain('/signup');
+    expect(NAV_AUTH.signup.label).toBe('License account');
+    expect(NAV_AUTH.signup.href).toContain('/signup');
     expect(PRICING_TEASER_TIERS.find((tier) => tier.id === 'free')?.cta).toBe('Start free');
     expect(PRICING_TEASER_TIERS.find((tier) => tier.id === 'pro')?.href).toBe('/pricing');
   });

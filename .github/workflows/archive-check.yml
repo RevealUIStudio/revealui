@@ -14,6 +14,10 @@ name: Archive Check
 # The matching logic is shared with the coordination repo's checker via
 # @revealui/harnesses (packages/harnesses/src/gates/archive-check.ts), so the
 # two cannot drift.
+#
+# On a pull request the gate script, manifest, and gates bundle come from the
+# base commit. The tree that is scanned is the pull request. A change to
+# gates-resolver.cjs or archive-check.cjs cannot grade itself.
 
 on:
   push:
@@ -45,9 +49,25 @@ jobs:
     # workflow set 10 with an unscoped install and was cancelled at the limit.
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: Checkout trusted gate
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
           persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/validate/archive-check.cjs
+            scripts/validate/archived-paths.json
+            scripts/validate/gates-resolver.cjs
+            package.json
+            pnpm-workspace.yaml
+            pnpm-lock.yaml
+            .npmrc
+            packages/*/package.json
+            apps/*/package.json
+            packages/harnesses/
+            packages/dev/
+          sparse-checkout-cone-mode: false
 
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
@@ -88,5 +108,11 @@ jobs:
           printf 'no archived links here\n' > "$clean/docs/fine.md"
           node scripts/validate/archive-check.cjs --ci --root "$clean"
 
+      - name: Checkout tree to scan
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          path: scan-tree
+
       - name: Check for dead inbound links to archived docs
-        run: node scripts/validate/archive-check.cjs --ci
+        run: node scripts/validate/archive-check.cjs --ci --root "$GITHUB_WORKSPACE/scan-tree"

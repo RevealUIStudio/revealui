@@ -46,6 +46,11 @@
       "import": "./dist/schema/index.js",
       "default": "./dist/schema/index.js"
     },
+    "./review-controller": {
+      "types": "./dist/review-controller.d.ts",
+      "import": "./dist/review-controller.js",
+      "default": "./dist/review-controller.js"
+    },
     "./client": {
       "types": "./dist/client/index.d.ts",
       "import": "./dist/client/index.js",
@@ -343,8 +348,8 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
-    "db:backfill-migrations": "tsx src/scripts/backfill-migrations.ts",
-    "db:cleanup": "tsx src/scripts/cleanup-expired.ts",
+    "db:backfill-migrations": "node --import tsx src/scripts/backfill-migrations.ts",
+    "db:cleanup": "node --import tsx src/scripts/cleanup-expired.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
@@ -354,9 +359,9 @@
     "db:stop:studio": "systemctl --user stop drizzle-studio && bash systemd/clear-env.sh",
     "dev": "tsc --watch",
     "generate:all": "pnpm generate:types && pnpm generate:zod && pnpm generate:contracts",
-    "generate:contracts": "tsx src/types/generate-contracts.ts",
-    "generate:types": "tsx src/types/generate.ts",
-    "generate:zod": "tsx src/types/generate-zod-schemas.ts",
+    "generate:contracts": "node --import tsx src/types/generate-contracts.ts",
+    "generate:types": "node --import tsx src/types/generate.ts",
+    "generate:zod": "node --import tsx src/types/generate-zod-schemas.ts",
     "lint": "biome check .",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=html --coverage.reporter=text",
