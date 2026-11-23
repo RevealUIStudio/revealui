@@ -142,7 +142,8 @@ describe('quality wiring', () => {
     const workflow = readFileSync(join(repoRoot, '.github/workflows/ci.yml'), 'utf8');
     const pkg = readFileSync(join(repoRoot, 'package.json'), 'utf8');
     expect(gate.includes("args: ['validate:action-pins']")).toBe(true);
-    expect(workflow.includes('pnpm validate:action-pins')).toBe(true);
+    expect(workflow.includes('pnpm exec tsx scripts/validate/action-pin.ts')).toBe(true);
+    expect(workflow.includes('pnpm validate:action-pins')).toBe(false);
     expect(pkg.includes('"validate:action-pins"')).toBe(true);
   });
 });

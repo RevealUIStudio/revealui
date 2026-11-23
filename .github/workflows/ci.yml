@@ -221,9 +221,12 @@ jobs:
 
       - name: Action pin check (hard fail)
         # Third-party uses in .github/workflows and .github/actions must be a
-        # 40-character commit SHA. Local ./ actions are exempt. Mirrors the
-        # local gate step in scripts/gates/ci-gate.ts.
-        run: pnpm validate:action-pins
+        # 40-character commit SHA. Local ./ actions are exempt. Invoke the
+        # script by path so this job does not call a package.json alias.
+        run: |
+          set -euo pipefail
+          pnpm exec vitest run scripts/validate/__tests__/action-pin.test.ts
+          pnpm exec tsx scripts/validate/action-pin.ts
 
       - name: Head contract tests (before base judges are copied)
         run: |
