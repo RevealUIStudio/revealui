@@ -1,17 +1,18 @@
 name: Backflow merge-commit policy
 
-# Soft dual-method policy (option 1): feature→test may still squash; backflow
-# main→test must use Create a merge commit. GitHub cannot set a per-PR-class
-# UI default, so this workflow:
-#   - On PRs into test: fail hand-rolled backflow PRs until label
-#     backflow:merge-commit is applied, and print merge-commit-only UI/CLI
-#     instructions. The configured backflow App on
+# Feature PRs into test use merge commits only, never squash. Backflow
+# main into test must also use a merge commit. Repository settings cannot
+# set a per-PR-class UI default, so this workflow:
+#   - On PRs into test: feature PRs print merge-commit-only instructions
+#     (`gh pr merge --merge`; never --squash, --rebase, --admin, or --auto)
+#     and pass. Hand-rolled backflow PRs fail until label
+#     backflow:merge-commit is applied. The configured backflow App on
 #     chore/backflow-main-into-test passes without that label.
 #   - On push to test: fail if origin/main is not an ancestor of HEAD (catches
 #     a squash-merged backflow after the fact).
 #
-# Safe to mark "Backflow merge-commit policy" required on test: non-backflow
-# PRs always exit 0 (the job always runs; it does not skip).
+# Check name stays safe to require: feature PRs and other non-backflow PRs
+# always exit 0 (the job always runs; it does not skip).
 
 on:
   pull_request:
@@ -30,17 +31,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      # Ancestry reads git HEAD. That checkout is the pushed commit. The
+      # decision script is a separate checkout: the pull request base, or the
+      # previous tip on push, so the commit under test cannot rewrite the guard.
+      - name: Checkout push tip for ancestry
+        if: github.event_name == 'push'
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          # PR: evaluate the head copy (required so the introducing PR can pass
-          # before the script exists on test; ancestry mode still fail-closes on
-          # push to test). Push: the pushed SHA.
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout trusted guard
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || (github.event.before == '0000000000000000000000000000000000000000' && github.sha || github.event.before) }}
+          persist-credentials: false
+          fetch-depth: 1
           sparse-checkout: |
             scripts/validate/backflow-merge-method-guard.cjs
           sparse-checkout-cone-mode: false
-          fetch-depth: 0
-          persist-credentials: false
+          path: trusted-guard
 
       - name: PR mode — backflow acknowledgment + instructions
         if: github.event_name == 'pull_request'
@@ -56,13 +67,11 @@ jobs:
           REVEALFLEET_BACKFLOW_APP_LOGIN: revealfleet-backflow[bot]
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node scripts/validate/backflow-merge-method-guard.cjs --mode=pr
+        run: node trusted-guard/scripts/validate/backflow-merge-method-guard.cjs --mode=pr
 
       - name: Ancestry mode — test must contain main
         if: github.event_name == 'push'
         run: |
+          set -euo pipefail
           git fetch origin main --depth=200
-          # Full tree for merge-base (push checkout may be sparse); re-fetch tip.
-          git fetch origin "${{ github.sha }}" --depth=200 || true
-          git checkout --force "${{ github.sha }}"
-          node scripts/validate/backflow-merge-method-guard.cjs --mode=ancestry
+          node trusted-guard/scripts/validate/backflow-merge-method-guard.cjs --mode=ancestry

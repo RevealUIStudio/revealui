@@ -12,8 +12,10 @@ name: CI
 #     names stay green via *-result jobs (docker.yml Docker images pattern).
 #   - Admin / server / packages / lockfile / workflows / Dockerfiles / e2e
 #     still run the full suite.
-#   - PR-to-main (promote) skips the expensive suite; promotion-gate is the
-#     thin policy check. Push-to-main still runs the production suite.
+#   - A same-repo promotion (head ref exactly test, base ref main) skips the
+#     expensive suite. promotion-gate stays the thin policy check. Any other
+#     pull request into main runs the full suite. Push to main still runs
+#     the production suite.
 #   - Push-to-test on a SHA that is already a test-targeting PR head skips
 #     the expensive suite (kills PR + push double-fire). Concurrency stays
 #     ref-keyed so we do not cancel a required check on the same SHA
@@ -22,9 +24,10 @@ name: CI
 # Optimizations:
 #   - Turbo remote cache: build artifacts shared across jobs
 #   - PR jobs use --affected: only build/typecheck changed packages
-#   - Coverage stays main/promote-only; E2E also runs on PRs into test so
-#     production admin boot (`next start` + Forge license gate) cannot land
-#     untested.
+#   - Coverage runs on push to main and on pull requests into main when the
+#     expensive suite is scheduled. A same-repo test-to-main promotion does
+#     not schedule it. E2E also runs on PRs into test so production admin
+#     boot (`next start` + Forge license gate) cannot land untested.
 #   - e2e-prepare installs Playwright Chromium and builds admin/server/marketing
 #     once; smoke / a11y / visual download those artifacts and only run tests.
 #     One combined playwright-report artifact (`e2e-results`) per workflow run.
@@ -66,15 +69,26 @@ jobs:
       full_suite: ${{ steps.detect.outputs.full_suite }}
       reason: ${{ steps.detect.outputs.reason }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      # Classifier is a gate. On a pull request, run the base commit's copy.
+      # The file list still comes from the pull request API below.
+      - name: Checkout trusted classifier
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
           persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/expensive-suite.mjs
+          sparse-checkout-cone-mode: false
+          path: trusted-classifier
 
       - name: Classify diff
         id: detect
         env:
           EVENT_NAME: ${{ github.event_name }}
           BASE_REF: ${{ github.base_ref }}
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
           REF: ${{ github.ref }}
           SHA: ${{ github.sha }}
           BEFORE_SHA: ${{ github.event.before }}
@@ -86,7 +100,8 @@ jobs:
           full_suite=true
           reason=default
 
-          if [ "$EVENT_NAME" = "pull_request" ] && [ "${BASE_REF:-}" = "main" ]; then
+          promotion="$(node trusted-classifier/scripts/ci/expensive-suite.mjs --promotion-skip | tr -d '\r\n')"
+          if [ "$promotion" = "promote-pr" ]; then
             full_suite=false
             reason=promote-pr
           elif [ "$EVENT_NAME" = "push" ] && [ "$REF" = "refs/heads/test" ]; then
@@ -107,7 +122,7 @@ jobs:
               files="$(gh api "repos/${REPO}/compare/${BEFORE_SHA}...${SHA}" --jq '.files[]?.filename // empty')"
             fi
             if [ -n "$files" ]; then
-              suite_line="$(printf '%s\n' "$files" | node scripts/ci/expensive-suite.mjs | tr -d '\r')"
+              suite_line="$(printf '%s\n' "$files" | node trusted-classifier/scripts/ci/expensive-suite.mjs | tr -d '\r')"
               full_suite="${suite_line#full_suite=}"
               if [ "${full_suite}" != "true" ]; then
                 reason=docs-copy-only
@@ -170,7 +185,8 @@ jobs:
   quality:
     name: Quality
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Headroom for the base harnesses build that the quality judges run.
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -189,26 +205,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
-      - name: Build @revealui/harnesses (gates + manager modules, GAP-408/GAP-421)
-        # Built once, early, for two dist-only consumers that must not reach
-        # into src/ (GAP-421 §6.2): doc-currency.ts resolves its
-        # SHARED_FLEET_RULES detection tuples from dist/gates, and
-        # structure.ts resolves checkManager from dist/manager (manager-resolver.cjs,
-        # mirroring gates-resolver.cjs). Absence degrades gracefully for
-        # doc-currency (warn + shared-rules-skipped run) but fails closed for
-        # the manager check (GAP-406 hard-fail posture), so this step must run
-        # before Structure validation and the path-gated manager-only check
-        # below.
-        # `...` includes workspace deps (e.g. @revealui/security for policy
-        # snapshot crypto / GAP-381 I-5) so DTS can resolve @revealui/security/server.
-        # turbo ^build order applies.
-        run: pnpm turbo run build --filter=@revealui/harnesses...
-        env:
-          SKIP_ENV_VALIDATION: "true"
-
-      - name: Push and gate admission contracts
-        run: pnpm validate:push
-
       - name: Biome lint (hard fail)
         run: pnpm lint
 
@@ -223,211 +219,76 @@ jobs:
         continue-on-error: true
         run: pnpm audit:clones
 
-      - name: Structure validation
-        run: pnpm validate:structure
+      - name: Action pin check (hard fail)
+        # Third-party uses in .github/workflows and .github/actions must be a
+        # 40-character commit SHA. Local ./ actions are exempt. Invoke the
+        # script by path so this job does not call a package.json alias.
+        run: |
+          set -euo pipefail
+          pnpm exec vitest run scripts/validate/__tests__/action-pin.test.ts
+          pnpm exec tsx scripts/validate/action-pin.ts
 
-      - name: Version policy validation
-        run: pnpm validate:versions
+      - name: Head contract tests (before base judges are copied)
+        run: |
+          set -euo pipefail
+          node --test scripts/git-hooks/__tests__/push.test.cjs
+          pnpm exec vitest run \
+            scripts/ci/__tests__/trusted-base-gates.test.ts \
+            scripts/ci/__tests__/required-check-result.test.ts \
+            scripts/ci/__tests__/trusted-gate-judge.test.ts \
+            scripts/ci/__tests__/run-base-validators.test.ts \
+            scripts/ci/__tests__/expensive-suite.test.ts \
+            scripts/ci/__tests__/deploy-ref-guard.test.ts \
+            scripts/validate/__tests__/gates-resolver.test.ts \
+            scripts/validate/__tests__/required-check-no-cancel.test.ts \
+            scripts/gates/__tests__/ci-gate-prerequisites.test.ts \
+            scripts/gates/__tests__/ci-gate-worker-lifecycle.test.ts \
+            scripts/docs/__tests__/generate-api-bootstrap.test.ts
+        env:
+          CI: "true"
+          SKIP_ENV_VALIDATION: "true"
 
-      - name: React RSC CVE floor validation (hard fail)
-        # react / react-dom / react-server-dom-webpack must each RESOLVE at
-        # >=19.2.4 (final fix for the Dec-2025 React RSC CVE series:
-        # CVE-2025-55182 "React2Shell" RCE, CVE-2025-55184/55183,
-        # CVE-2025-67779) and in lockstep: version skew between react and
-        # its server-dom binding is an RSC flight-protocol failure mode.
-        # Reads resolved versions (pnpm virtual store), not declared ranges;
-        # absent packages pass, so the guard engages automatically when
-        # @revealui/router 0.4.0 adds react-server-dom-webpack. Mirrors the
-        # local gate step in scripts/gates/ci-gate.ts.
-        run: pnpm validate:react-floor
+      # trusted-judge:begin
+      # Validator scripts and the harnesses sources they import come from the
+      # base commit. The tree they scan is this checkout. package.json script
+      # aliases are not used. The introducing pull request falls back to its
+      # own runner when that file is not on the base commit yet.
+      - name: Checkout base quality judges
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          path: trusted-judge
+          sparse-checkout: |
+            scripts/validate/
+            scripts/gates/
+            scripts/utils/
+            scripts/sync/
+            scripts/ci/run-base-validators.mjs
+            packages/harnesses/
+            packages/dev/
+            packages/scripts/
+            apps/docs/scripts/check-links.ts
+            apps/docs/scripts/check-docs-pro-boundary.mjs
+          sparse-checkout-cone-mode: false
 
-      - name: Boundary validation (hard fail)
-        run: pnpm validate:boundary
-
-      - name: Vercel project settings lockstep (files)
-        run: pnpm validate:vercel-settings
-
-      - name: Incubate posture (ADR-007, hard fail)
-        run: pnpm validate:incubate-posture
-
-      - name: Engines posture (ADR-006, hard fail)
-        run: pnpm validate:engines-posture
-
-      - name: Claim drift validation (hard fail)
-        run: pnpm validate:claims
-
-      - name: API docs drift
-        run: pnpm validate:api-docs
-
-      - name: Docs public mirror (hard fail)
-        # ADR 2026-07-29: monorepo docs/ is SoT; fail if leftover generated
-        # apps/docs/public/**/*.md reappear (except docs-pro). Mirrors local
-        # gate step in scripts/gates/ci-gate.ts (fleet-redundancy C12).
-        run: pnpm validate:docs-public-mirror
-
-      - name: Claims evidence validation (hard fail)
-        # Every prose sentence in covered marketing content must carry a
-        # claims-evidence entry citing the code that proves it. Sibling of
-        # claim-drift (numbers); this step pins the sentences. Mirrors the
-        # local gate step in scripts/gates/ci-gate.ts.
-        run: pnpm validate:claims-evidence
-
-      - name: Marketing deploy lockstep (hard fail)
-        # GAP-466: test-branch marketing honesty is not customer-visible
-        # until production Deploy on main is green. Does not promote.
-        # Mirrors the local gate step in scripts/gates/ci-gate.ts.
-        run: pnpm validate:marketing-deploy-lockstep
-
-      - name: Rules lockstep validation (hard fail)
-        # The .claude config surface (rules/agents/skills) is materialized
-        # from revcon profiles with a sha256 manifest; tracked copies must
-        # match it exactly. Mirrors the local gate step in scripts/gates/ci-gate.ts.
-        run: pnpm validate:rules-lockstep
-
-      - name: Dockerfile deps COPY lockstep (hard fail)
-        # GAP-379: server/admin deps-stage package.json COPY lists must cover
-        # the pnpm --filter <app>... workspace closure. Names the exact missing
-        # COPY line on failure. Worker whole-tree Dockerfiles are out of scope.
-        # Mirrors the local gate step in scripts/gates/ci-gate.ts.
-        run: pnpm validate:dockerfile-deps
-
-      - name: Railway marketplace Dockerfile wiring (hard fail)
-        # GAP-430: committed marketplace-template.json must keep api/admin on
-        # Dockerfile (RAILWAY_DOCKERFILE_PATH) so Deploy Now cannot Railpack
-        # "No start command". Owner still republishes the live listing.
-        # Mirrors the local gate step in scripts/gates/ci-gate.ts.
-        run: pnpm validate:railway-marketplace
-
-      - name: Project manager check (path-gated hard fail)
-        # GAP-406: when a PR (or push) touches .revealui or packages/harnesses,
-        # hard-fail if manager.json is missing/invalid. Extends validate:structure
-        # (`--manager-only`) — same checkManager primitive as
-        # `revealui-harnesses manager check`. No parallel validator.
-        # Unrelated PRs skip. Full structure validation still runs above and
-        # includes the manager check when packages/harnesses is present.
+      - name: Run base quality validators
         env:
           EVENT_NAME: ${{ github.event_name }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           BEFORE_SHA: ${{ github.event.before }}
+          SKIP_ENV_VALIDATION: "true"
+          CI: "true"
         run: |
           set -euo pipefail
-          run_check=false
-          if [ "$EVENT_NAME" = "pull_request" ] && [ -n "${BASE_SHA:-}" ]; then
-            if git diff --name-only "$BASE_SHA"...HEAD | grep -qE '^(\.revealui/|packages/harnesses/)'; then
-              run_check=true
-            fi
-          elif [ "$EVENT_NAME" = "push" ]; then
-            if [ -n "${BEFORE_SHA:-}" ] && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
-              if git diff --name-only "$BEFORE_SHA"...HEAD | grep -qE '^(\.revealui/|packages/harnesses/)'; then
-                run_check=true
-              fi
-            else
-              run_check=true
-            fi
-          else
-            run_check=true
+          script="trusted-judge/scripts/ci/run-base-validators.mjs"
+          if [ ! -f "$script" ]; then
+            echo "base commit has no quality judge runner; using the introducing copy"
+            script="scripts/ci/run-base-validators.mjs"
           fi
-          if [ "$run_check" != "true" ]; then
-            echo "skip: no .revealui/ or packages/harnesses/ changes"
-            exit 0
-          fi
-          pnpm validate:structure -- --manager-only
-          # GAP-421 content materialization ADR: definitions ↔ committed
-          # `.revealui/content/` byte freshness (harnesses already built above).
-          pnpm validate:content-freshness
-
-      - name: Marketing voice validation (hard fail)
-        run: pnpm validate:marketing-voice
-
-      - name: Marketing voice prose-slot freshness (hard fail)
-        # Source MARKETING_PROSE_SLOTS must include VES block types
-        # (section/ctaSection). Dist is gitignored — when present locally the
-        # same keys are required (stale dist → 422 on session.patch). Does not
-        # build @revealui/contracts (needs @revealui/db; Quality has install only).
-        run: pnpm validate:marketing-voice-prose-slots
-
-      - name: Doc-currency validation (hard fail)
-        # Stale-fact drift guard: docs/**/*.md + apps/marketing/**/*.md prose,
-        # plus apps/marketing/app/content/**/*.ts marketing-copy string
-        # literals (TypeScript AST — string literals only, no
-        # identifiers/imports/comments). A baseline grandfathers the corpus
-        # at seed time; CI hard-fails only on NEW (file::ruleId)
-        # occurrences. Mirrors the local gate step in scripts/gates/ci-gate.ts.
-        run: pnpm validate:doc-currency --mode=ci
-
-      - name: Migration journal validation (hard fail)
-        run: pnpm validate:migrations
-
-      - name: Raw-SQL validation (hard fail)
-        run: pnpm validate:raw-sql
-
-      - name: Empty-catch validation (hard fail)
-        run: pnpm validate:empty-catch
-
-      - name: audit_log ONE DOOR validation (hard fail)
-        run: pnpm validate:audit-one-door
-
-      - name: Seed script wiring validation (hard fail)
-        run: pnpm validate:seed-wiring
-
-      - name: Changeset validation (hard fail)
-        # Catches mixed ignored+non-ignored changeset frontmatter BEFORE
-        # merge, instead of discovering the same rejection later in the
-        # release pipeline (release.yml) on main.
-        run: pnpm validate:changesets
-
-      - name: Changelog format validation (hard fail)
-        # packages/*/CHANGELOG.md are changesets-owned: changesets prepends
-        # new version sections by replacing the file's FIRST newline, so a
-        # leading docs-frontmatter block gets release sections injected
-        # inside it (#1377 corrupted 18 of 24 package changelogs). Fails if
-        # any package changelog starts with anything but its `# <package>`
-        # H1, or carries stranded frontmatter keys. See
-        # scripts/validate/changelog-format.ts.
-        run: pnpm validate:changelogs
-
-      - name: Docs link validation (hard fail)
-        # Fails when any served doc (apps/docs/public/ after copy-docs.sh)
-        # links to a relative .md target that 404s on the public site —
-        # internal-excluded, missing, or outside-root. Guards against the
-        # broken-link class fixed manually in #1096. See
-        # apps/docs/scripts/check-links.ts.
-        run: pnpm --filter docs check:links
-
-      - name: Docs-pro visibility boundary
-        # docs-app-hardening PR2: public/docs-pro/** is hand-tracked and not
-        # covered by prune-non-public.mjs. Fail if any file lacks visibility
-        # frontmatter or uses a NEVER_SERVE basename.
-        run: pnpm --filter docs check:docs-pro-boundary
-
-      - name: Citation gate (hard fail, validity + coverage-strict)
-        # Every code-behaviour claim in gated docs must cite a source:line that
-        # resolves and sits in range (VALIDITY, zero baseline), and must not add
-        # a NEW uncited claim beyond the grandfathered baseline (COVERAGE, via
-        # --coverage-strict, Phase 3). Mirrors the local pnpm gate citation step
-        # in scripts/gates/ci-gate.ts. See CONTRIBUTING.md "Source citations".
-        run: pnpm validate:citations --coverage-strict
-
-      # Moved out of Unit Tests so docs/copy PRs that skip the expensive suite
-      # still run the in-CI secret-path lockstep (Vercel/Fly manifests vs
-      # SECRET_PATHS vs docs/SECRETS.md). Not the weekly live drift job.
-      - name: Secret-path lockstep drift gate (hard fail)
-        run: pnpm validate:secret-paths
-        env:
-          CI: "true"
-          SKIP_ENV_VALIDATION: "true"
-
-      - name: CI path-filter lockstep (hard fail)
-        run: pnpm validate:ci-path-filters
-        env:
-          CI: "true"
-          SKIP_ENV_VALIDATION: "true"
-
-      - name: Production deploy ref guard contract (hard fail)
-        run: pnpm exec vitest run scripts/ci/__tests__/deploy-ref-guard.test.ts
-        env:
-          CI: "true"
-          SKIP_ENV_VALIDATION: "true"
+          node "$script"
+      # trusted-judge:end
 
   # ---------------------------------------------------------------------------
   # Phase 1.5: Drizzle migration apply (all branches)
@@ -677,7 +538,10 @@ jobs:
           POSTGRES_URL: "postgresql://test:test@localhost:5432/revealui_test"
 
   # ---------------------------------------------------------------------------
-  # Phase 3a.5: Coverage gate (main only)
+  # Phase 3a.5: Coverage gate
+  # Push to main, and pull requests into main when the expensive suite runs.
+  # A same-repo test-to-main promotion leaves full_suite false, so this job
+  # stays unscheduled there.
   # ---------------------------------------------------------------------------
   coverage:
     name: Coverage (suite)
@@ -1407,10 +1271,11 @@ jobs:
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
 
   # ---------------------------------------------------------------------------
-  # Required-check reporters — always run so skip does not leave Expected.
-  # Same pattern as docker.yml `docker-images`. Suite jobs use "(suite)" names;
-  # these jobs keep the ruleset contexts (protect-main-test).
+  # Required-check reporters. The decision script is loaded from the base
+  # commit when that file exists. The introducing pull request falls back to
+  # its own copy. Job names stay the ruleset contexts.
   # ---------------------------------------------------------------------------
+
   test-unit-result:
     name: Unit Tests
     runs-on: ubuntu-latest
@@ -1418,27 +1283,39 @@ jobs:
     needs: [changes, test-unit]
     if: always()
     steps:
+      - name: Checkout introducing result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: head-result
+      - name: Checkout trusted result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: trusted-result
       - name: Report Unit Tests
         env:
+          CHECK: unit
           CHANGES: ${{ needs.changes.result }}
           FULL_SUITE: ${{ needs.changes.outputs.full_suite }}
           RESULT: ${{ needs.test-unit.result }}
         run: |
           set -euo pipefail
-          if [ "$CHANGES" != "success" ]; then
-            echo "changes job result: $CHANGES"
-            exit 1
+          if [ -f trusted-result/scripts/ci/required-check-result.mjs ]; then
+            node trusted-result/scripts/ci/required-check-result.mjs
+          else
+            echo "base commit has no result judge; using the introducing copy"
+            node head-result/scripts/ci/required-check-result.mjs
           fi
-          if [ "$RESULT" = "success" ]; then
-            echo "Unit Tests green"
-            exit 0
-          fi
-          if [ "$RESULT" = "skipped" ] && [ "$FULL_SUITE" != "true" ]; then
-            echo "Unit Tests skipped (docs/copy, promote, or SHA already covered)"
-            exit 0
-          fi
-          echo "Unit Tests result: $RESULT full_suite=$FULL_SUITE"
-          exit 1
 
   build-result:
     name: Build
@@ -1447,27 +1324,39 @@ jobs:
     needs: [changes, build]
     if: always()
     steps:
+      - name: Checkout introducing result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: head-result
+      - name: Checkout trusted result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: trusted-result
       - name: Report Build
         env:
+          CHECK: build
           CHANGES: ${{ needs.changes.result }}
           FULL_SUITE: ${{ needs.changes.outputs.full_suite }}
           RESULT: ${{ needs.build.result }}
         run: |
           set -euo pipefail
-          if [ "$CHANGES" != "success" ]; then
-            echo "changes job result: $CHANGES"
-            exit 1
+          if [ -f trusted-result/scripts/ci/required-check-result.mjs ]; then
+            node trusted-result/scripts/ci/required-check-result.mjs
+          else
+            echo "base commit has no result judge; using the introducing copy"
+            node head-result/scripts/ci/required-check-result.mjs
           fi
-          if [ "$RESULT" = "success" ]; then
-            echo "Build green"
-            exit 0
-          fi
-          if [ "$RESULT" = "skipped" ] && [ "$FULL_SUITE" != "true" ]; then
-            echo "Build skipped (docs/copy, promote, or SHA already covered)"
-            exit 0
-          fi
-          echo "Build result: $RESULT full_suite=$FULL_SUITE"
-          exit 1
 
   db-migrations-result:
     name: Drizzle Migrations
@@ -1476,27 +1365,39 @@ jobs:
     needs: [changes, db-migrations]
     if: always()
     steps:
+      - name: Checkout introducing result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: head-result
+      - name: Checkout trusted result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: trusted-result
       - name: Report Drizzle Migrations
         env:
+          CHECK: migrations
           CHANGES: ${{ needs.changes.result }}
           FULL_SUITE: ${{ needs.changes.outputs.full_suite }}
           RESULT: ${{ needs.db-migrations.result }}
         run: |
           set -euo pipefail
-          if [ "$CHANGES" != "success" ]; then
-            echo "changes job result: $CHANGES"
-            exit 1
+          if [ -f trusted-result/scripts/ci/required-check-result.mjs ]; then
+            node trusted-result/scripts/ci/required-check-result.mjs
+          else
+            echo "base commit has no result judge; using the introducing copy"
+            node head-result/scripts/ci/required-check-result.mjs
           fi
-          if [ "$RESULT" = "success" ]; then
-            echo "Drizzle Migrations green"
-            exit 0
-          fi
-          if [ "$RESULT" = "skipped" ] && [ "$FULL_SUITE" != "true" ]; then
-            echo "Drizzle Migrations skipped (docs/copy, promote, or SHA already covered)"
-            exit 0
-          fi
-          echo "Drizzle Migrations result: $RESULT full_suite=$FULL_SUITE"
-          exit 1
 
   test-integration-result:
     name: Integration Tests
@@ -1505,8 +1406,28 @@ jobs:
     needs: [changes, test-integration]
     if: always()
     steps:
+      - name: Checkout introducing result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: head-result
+      - name: Checkout trusted result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: trusted-result
       - name: Report Integration Tests
         env:
+          CHECK: integration
           CHANGES: ${{ needs.changes.result }}
           FULL_SUITE: ${{ needs.changes.outputs.full_suite }}
           RESULT: ${{ needs.test-integration.result }}
@@ -1514,24 +1435,12 @@ jobs:
           REF: ${{ github.ref }}
         run: |
           set -euo pipefail
-          if [ "$CHANGES" != "success" ]; then
-            echo "changes job result: $CHANGES"
-            exit 1
+          if [ -f trusted-result/scripts/ci/required-check-result.mjs ]; then
+            node trusted-result/scripts/ci/required-check-result.mjs
+          else
+            echo "base commit has no result judge; using the introducing copy"
+            node head-result/scripts/ci/required-check-result.mjs
           fi
-          if [ "$RESULT" = "success" ]; then
-            echo "Integration Tests green"
-            exit 0
-          fi
-          scheduled=false
-          if [ "$FULL_SUITE" = "true" ] && { [ "$EVENT_NAME" = "pull_request" ] || [ "$REF" = "refs/heads/main" ]; }; then
-            scheduled=true
-          fi
-          if [ "$RESULT" = "skipped" ] && [ "$scheduled" != "true" ]; then
-            echo "Integration Tests skipped (docs/copy, promote, push-to-test, or SHA already covered)"
-            exit 0
-          fi
-          echo "Integration Tests result: $RESULT full_suite=$FULL_SUITE scheduled=$scheduled"
-          exit 1
 
   e2e-smoke-result:
     name: E2E Smoke
@@ -1540,27 +1449,39 @@ jobs:
     needs: [changes, e2e-smoke]
     if: always()
     steps:
+      - name: Checkout introducing result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: head-result
+      - name: Checkout trusted result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: trusted-result
       - name: Report E2E Smoke
         env:
+          CHECK: e2e-smoke
           CHANGES: ${{ needs.changes.result }}
           FULL_SUITE: ${{ needs.changes.outputs.full_suite }}
           RESULT: ${{ needs.e2e-smoke.result }}
         run: |
           set -euo pipefail
-          if [ "$CHANGES" != "success" ]; then
-            echo "changes job result: $CHANGES"
-            exit 1
+          if [ -f trusted-result/scripts/ci/required-check-result.mjs ]; then
+            node trusted-result/scripts/ci/required-check-result.mjs
+          else
+            echo "base commit has no result judge; using the introducing copy"
+            node head-result/scripts/ci/required-check-result.mjs
           fi
-          if [ "$RESULT" = "success" ]; then
-            echo "E2E Smoke green"
-            exit 0
-          fi
-          if [ "$RESULT" = "skipped" ] && [ "$FULL_SUITE" != "true" ]; then
-            echo "E2E Smoke skipped (docs/copy, promote, or SHA already covered)"
-            exit 0
-          fi
-          echo "E2E Smoke result: $RESULT full_suite=$FULL_SUITE"
-          exit 1
 
   e2e-accessibility-result:
     name: Accessibility (E2E)
@@ -1569,27 +1490,39 @@ jobs:
     needs: [changes, e2e-accessibility]
     if: always()
     steps:
+      - name: Checkout introducing result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: head-result
+      - name: Checkout trusted result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: trusted-result
       - name: Report Accessibility (E2E)
         env:
+          CHECK: e2e-accessibility
           CHANGES: ${{ needs.changes.result }}
           FULL_SUITE: ${{ needs.changes.outputs.full_suite }}
           RESULT: ${{ needs.e2e-accessibility.result }}
         run: |
           set -euo pipefail
-          if [ "$CHANGES" != "success" ]; then
-            echo "changes job result: $CHANGES"
-            exit 1
+          if [ -f trusted-result/scripts/ci/required-check-result.mjs ]; then
+            node trusted-result/scripts/ci/required-check-result.mjs
+          else
+            echo "base commit has no result judge; using the introducing copy"
+            node head-result/scripts/ci/required-check-result.mjs
           fi
-          if [ "$RESULT" = "success" ]; then
-            echo "Accessibility (E2E) green"
-            exit 0
-          fi
-          if [ "$RESULT" = "skipped" ] && [ "$FULL_SUITE" != "true" ]; then
-            echo "Accessibility (E2E) skipped (docs/copy, promote, or SHA already covered)"
-            exit 0
-          fi
-          echo "Accessibility (E2E) result: $RESULT full_suite=$FULL_SUITE"
-          exit 1
 
   e2e-visual-result:
     name: Visual Regression (E2E)
@@ -1598,27 +1531,39 @@ jobs:
     needs: [changes, e2e-visual]
     if: always()
     steps:
+      - name: Checkout introducing result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: head-result
+      - name: Checkout trusted result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: trusted-result
       - name: Report Visual Regression (E2E)
         env:
+          CHECK: e2e-visual
           CHANGES: ${{ needs.changes.result }}
           FULL_SUITE: ${{ needs.changes.outputs.full_suite }}
           RESULT: ${{ needs.e2e-visual.result }}
         run: |
           set -euo pipefail
-          if [ "$CHANGES" != "success" ]; then
-            echo "changes job result: $CHANGES"
-            exit 1
+          if [ -f trusted-result/scripts/ci/required-check-result.mjs ]; then
+            node trusted-result/scripts/ci/required-check-result.mjs
+          else
+            echo "base commit has no result judge; using the introducing copy"
+            node head-result/scripts/ci/required-check-result.mjs
           fi
-          if [ "$RESULT" = "success" ]; then
-            echo "Visual Regression (E2E) green"
-            exit 0
-          fi
-          if [ "$RESULT" = "skipped" ] && [ "$FULL_SUITE" != "true" ]; then
-            echo "Visual Regression (E2E) skipped (docs/copy, promote, or SHA already covered)"
-            exit 0
-          fi
-          echo "Visual Regression (E2E) result: $RESULT full_suite=$FULL_SUITE"
-          exit 1
 
   coverage-result:
     name: Coverage
@@ -1627,8 +1572,28 @@ jobs:
     needs: [changes, coverage]
     if: always()
     steps:
+      - name: Checkout introducing result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: head-result
+      - name: Checkout trusted result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: trusted-result
       - name: Report Coverage
         env:
+          CHECK: coverage
           CHANGES: ${{ needs.changes.result }}
           FULL_SUITE: ${{ needs.changes.outputs.full_suite }}
           RESULT: ${{ needs.coverage.result }}
@@ -1636,24 +1601,12 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         run: |
           set -euo pipefail
-          if [ "$CHANGES" != "success" ]; then
-            echo "changes job result: $CHANGES"
-            exit 1
+          if [ -f trusted-result/scripts/ci/required-check-result.mjs ]; then
+            node trusted-result/scripts/ci/required-check-result.mjs
+          else
+            echo "base commit has no result judge; using the introducing copy"
+            node head-result/scripts/ci/required-check-result.mjs
           fi
-          if [ "$RESULT" = "success" ]; then
-            echo "Coverage green"
-            exit 0
-          fi
-          scheduled=false
-          if [ "$FULL_SUITE" = "true" ] && { [ "$REF" = "refs/heads/main" ] || [ "$BASE_REF" = "main" ]; }; then
-            scheduled=true
-          fi
-          if [ "$RESULT" = "skipped" ] && [ "$scheduled" != "true" ]; then
-            echo "Coverage skipped (not a main/promote full suite, or docs/copy)"
-            exit 0
-          fi
-          echo "Coverage result: $RESULT full_suite=$FULL_SUITE scheduled=$scheduled"
-          exit 1
 
   # ---------------------------------------------------------------------------
   # CI Feedback — notify harness daemon of CI results

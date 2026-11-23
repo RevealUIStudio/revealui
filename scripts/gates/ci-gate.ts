@@ -447,6 +447,14 @@ export async function gate(): Promise<void> {
         args: ['validate:boundary'],
       },
       {
+        // Third-party uses in .github/workflows and .github/actions must be a
+        // 40-character commit SHA. Local ./ actions are exempt. Mirrors the
+        // Quality job step in .github/workflows/ci.yml.
+        name: 'Action pin check (hard fail)',
+        command: 'pnpm',
+        args: ['validate:action-pins'],
+      },
+      {
         name: 'Vercel project settings lockstep (files)',
         command: 'pnpm',
         args: ['validate:vercel-settings'],
