@@ -78,6 +78,24 @@
       "rules": ["sql-file-outside-migrations"],
       "reason": "GAP-347 owner-run CREATE ROLE script for revealui_readonly. Not a schema migration and must not be applied by drizzle-kit or CI. The committed file refuses to create the role until the owner replaces the password sentinel. Permanent.",
       "migrationPhase": null
+    },
+    {
+      "path": "apps/review-controller/migrations/0000_review_controller_store.sql",
+      "rules": ["sql-file-outside-migrations"],
+      "reason": "Isolated review-controller Drizzle journal, not a product schema migration. The controller applies this file through its own drizzle config.",
+      "migrationPhase": null
+    },
+    {
+      "path": "apps/review-controller/migrations/0001_review_controller_receipt_immutable.sql",
+      "rules": ["sql-file-outside-migrations"],
+      "reason": "Isolated review-controller Drizzle journal, not a product schema migration. The controller applies this file through its own drizzle config.",
+      "migrationPhase": null
+    },
+    {
+      "path": "apps/review-controller/migrations/0002_review_controller_runtime_grants.sql",
+      "rules": ["sql-file-outside-migrations"],
+      "reason": "Isolated review-controller Drizzle journal, not a product schema migration. The controller applies this file through its own drizzle config.",
+      "migrationPhase": null
     }
   ]
 }
