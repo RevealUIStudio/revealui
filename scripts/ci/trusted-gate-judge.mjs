@@ -210,11 +210,11 @@ export function compareLockedSurfaces(baseRoot, headRoot) {
 }
 
 /**
- * A locked difference clears only through the security review gate's owner
- * record: the request label plus an unexpired owner SSHSIG for this exact
- * head. A review-controller receipt path comes later.
+ * A locked difference clears only through the security review gate's
+ * review-controller receipt for this exact head. Pull request comments are
+ * not that receipt. A live request-changes review still holds.
  * @param {JudgeReport} report
- * @param {{ labels?: string[], head: string, pr: number, repo: string, comments?: { body: string, url?: string }[], reviews?: { body: string }[], allowedSigners?: string, authorLogin?: string, verifyImpl?: Function }} record
+ * @param {{ labels?: string[], head: string, pr: number, repo: string, comments?: { body: string, url?: string }[], reviews?: { body: string }[], receipt?: string, allowedSigners?: string, authorLogin?: string, verifyImpl?: Function }} record
  * @returns {{ ok: boolean, kind: string, reason?: string, errors: string[] }}
  */
 export function decideTrustedGate(report, record) {
@@ -231,8 +231,9 @@ export function decideTrustedGate(report, record) {
     { comments: record.comments ?? [], reviews: record.reviews ?? [] },
     record.allowedSigners,
     record.verifyImpl,
+    record.receipt,
   );
-  if (decision.action === 'clear') return { ok: true, kind: 'owner-signature', errors: [] };
+  if (decision.action === 'clear') return { ok: true, kind: 'review-receipt', errors: [] };
   return {
     ok: false,
     kind: decision.kind ?? 'hold',
@@ -330,11 +331,11 @@ async function main() {
   if (!decision.ok) {
     for (const error of decision.errors) process.stderr.write(`${error}\n`);
     process.stderr.write(
-      `locked judge path requires the owner request label and an unexpired owner SSHSIG for this exact head (${decision.reason || decision.kind})\n`,
+      `locked judge path requires a review-controller receipt for this exact head (${decision.reason || decision.kind})\n`,
     );
     process.exit(1);
   }
-  process.stdout.write('trusted gate judge: owner signature cleared the locked path change\n');
+  process.stdout.write('trusted gate judge: review receipt cleared the locked path change\n');
 }
 
 /**
@@ -356,8 +357,9 @@ async function fetchJson(url, token) {
 }
 
 /**
- * Read the pull request label and comment text. The bodies are data for the
- * existing signature verifier. They are not executed.
+ * Read the pull request discussion and, when receipt mode is configured, the
+ * exact-head review receipt. Comment bodies stay discussion evidence. They
+ * are not executed and they are not the receipt.
  * @param {string} repo
  * @param {number} prNumber
  * @param {string} sha
@@ -385,14 +387,53 @@ async function fetchOwnerRecord(repo, prNumber, sha, token) {
     }
     if (batch.length < 100) break;
   }
+  /** @type {{ body: string }[]} */
+  const reviews = [];
+  for (let page = 1; page <= 10; page += 1) {
+    const batch = await fetchJson(
+      `https://api.github.com/repos/${repo}/pulls/${prNumber}/reviews?per_page=100&page=${page}`,
+      token,
+    );
+    if (!Array.isArray(batch)) throw new Error('invalid review page');
+    for (const row of batch) {
+      if (!row || typeof row !== 'object') throw new Error('invalid review body');
+      reviews.push({
+        body: typeof row.body === 'string' ? row.body : '',
+        author: { login: row.user && typeof row.user.login === 'string' ? row.user.login : '' },
+        submittedAt: typeof row.submitted_at === 'string' ? row.submitted_at : '',
+      });
+    }
+    if (batch.length < 100) break;
+  }
+  const { buildReviewReceiptRequest, REVIEW_RECEIPT_MAX_BYTES, receiptSigners } = require('../validate/security-review-gate.cjs');
+  const request = buildReviewReceiptRequest(repo, prNumber, sha);
+  let receipt = '';
+  if (request.enabled) {
+    const receiptToken = process.env.REVIEW_RECEIPT_TOKEN || token;
+    const response = await fetch(request.url, {
+      headers: {
+        Accept: 'application/vnd.github.raw',
+        Authorization: `Bearer ${receiptToken}`,
+        'User-Agent': 'revealui-trusted-gate-judge',
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+    });
+    if (response.status !== 404) {
+      if (!response.ok) throw new Error(`review receipt request returned ${response.status}`);
+      const body = await response.text();
+      if (body.length > REVIEW_RECEIPT_MAX_BYTES) throw new Error('review receipt exceeds the size bound');
+      receipt = body;
+    }
+  }
   return {
     labels,
     head: sha,
     pr: prNumber,
     repo,
     comments,
-    reviews: [],
-    allowedSigners: process.env.REVEALFLEET_OVERRIDE_SIGNERS ?? '',
+    reviews,
+    receipt,
+    allowedSigners: receiptSigners(),
   };
 }
 

@@ -171,13 +171,14 @@ describe('owner signature clears a locked judge path', () => {
     return report;
   }
 
-  function record(body: string | undefined, labels: string[], head = HEAD) {
+  function record(body: string | undefined, labels: string[], head = HEAD, receipt?: string) {
     return {
       labels,
       head,
       pr: PR,
       repo: REPO,
       comments: body ? [{ body, url: 'signed-fixture' }] : [],
+      receipt,
       allowedSigners: anchor,
     };
   }
@@ -185,43 +186,65 @@ describe('owner signature clears a locked judge path', () => {
   const future = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
   const past = new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10);
 
-  it('accepts a valid signature on the exact head', () => {
+  it('accepts an exact-head receipt', () => {
     const decision = decideTrustedGate(
       lockedReport(),
-      record(signedComment(HEAD, future), [REQUEST_LABEL]),
+      record(undefined, [], HEAD, signedComment(HEAD, future)),
     );
     expect(decision.ok).toBe(true);
-    expect(decision.kind).toBe('owner-signature');
+    expect(decision.kind).toBe('review-receipt');
   });
 
-  it('fails when the request label is missing', () => {
-    const decision = decideTrustedGate(lockedReport(), record(signedComment(HEAD, future), []));
-    expect(decision.ok).toBe(false);
-    expect(decision.reason).toBe('missing-request-label');
-  });
-
-  it('fails when the label has no signature', () => {
-    const decision = decideTrustedGate(lockedReport(), record(undefined, [REQUEST_LABEL]));
-    expect(decision.ok).toBe(false);
-    expect(decision.reason).toBe('missing-owner-signature');
-  });
-
-  it('fails when the signature is expired', () => {
+  it('fails when a comment override is the only signature', () => {
     const decision = decideTrustedGate(
       lockedReport(),
-      record(signedComment(HEAD, past), [REQUEST_LABEL]),
+      record(signedComment(HEAD, future), [REQUEST_LABEL], HEAD, ''),
+    );
+    expect(decision.ok).toBe(false);
+    expect(decision.reason).toBe('missing-review-receipt');
+  });
+
+  it('fails when the receipt is missing', () => {
+    const decision = decideTrustedGate(
+      lockedReport(),
+      record(undefined, [REQUEST_LABEL], HEAD, ''),
+    );
+    expect(decision.ok).toBe(false);
+    expect(decision.reason).toBe('missing-review-receipt');
+  });
+
+  it('fails when the receipt is expired', () => {
+    const decision = decideTrustedGate(
+      lockedReport(),
+      record(undefined, [REQUEST_LABEL], HEAD, signedComment(HEAD, past)),
     );
     expect(decision.ok).toBe(false);
     expect(decision.reason).toBe('expired');
   });
 
-  it('fails when the signature is for a different head', () => {
+  it('fails when the receipt is for a different head', () => {
     const decision = decideTrustedGate(
       lockedReport(),
-      record(signedComment(OTHER_HEAD, future), [REQUEST_LABEL], HEAD),
+      record(undefined, [REQUEST_LABEL], HEAD, signedComment(OTHER_HEAD, future)),
     );
     expect(decision.ok).toBe(false);
     expect(decision.reason).toBe('wrong-context');
+  });
+
+  it('keeps a live REQUEST_CHANGES review above an exact-head receipt', () => {
+    const decision = decideTrustedGate(lockedReport(), {
+      ...record(undefined, [REQUEST_LABEL], HEAD, signedComment(HEAD, future)),
+      reviews: [
+        {
+          body: '<!-- guardrail2-verdict: REQUEST-CHANGES -->',
+          author: { login: 'reviewer' },
+          submittedAt: '2026-09-30T01:00:00Z',
+        },
+      ],
+      authorLogin: 'author',
+    });
+    expect(decision.ok).toBe(false);
+    expect(decision.kind).toBe('request-changes');
   });
 
   it('leaves a non-locked change alone', () => {

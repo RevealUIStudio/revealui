@@ -6,9 +6,8 @@
 # read through the API and is not executed.
 #
 # A locked path that differs from base clears only when the pull request
-# carries the owner request label and an unexpired owner SSHSIG for this
-# exact head. That grant is the one the security review gate already
-# verifies. A review-controller receipt comes later.
+# carries the review-controller receipt the security review gate already
+# verifies for this exact head. Comment signatures are not that receipt.
 #
 # The check name is "Trusted gate judge".
 
@@ -94,4 +93,8 @@ jobs:
           REPO: ${{ github.repository }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REVEALFLEET_OVERRIDE_SIGNERS: ${{ vars.REVEALFLEET_OVERRIDE_SIGNERS }}
+          REVIEW_RECEIPT_REPO: ${{ vars.REVIEW_RECEIPT_REPO }}
+          REVIEW_RECEIPT_REF: ${{ vars.REVIEW_RECEIPT_REF }}
+          REVIEW_RECEIPT_SIGNERS: ${{ vars.REVIEW_RECEIPT_SIGNERS }}
+          REVIEW_RECEIPT_TOKEN: ${{ secrets.REVIEW_RECEIPT_TOKEN }}
         run: node scripts/ci/trusted-gate-judge.mjs --base "$GITHUB_WORKSPACE"

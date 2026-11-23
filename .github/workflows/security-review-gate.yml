@@ -5,7 +5,8 @@
 # evaluation. Scripts check out github.workflow_sha, that same commit, so
 # they match the workflow when the pull request's recorded base is stale.
 # The job does not check out PR-head code; it only runs trusted gate scripts
-# and queries the API for files/labels/reviews.
+# and queries the API for files, labels, and reviews. Clearance is a
+# controller receipt for the exact head, not a comment signature.
 #
 # Shadow verify (A1–A3) recorded 2026-07-24:
 #   A1 — check-run attaches to PR head SHA (#2110)
@@ -54,8 +55,9 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           # Checkout the commit this workflow file came from. Head edits are
-          # not in this tree. Changed files, labels, comments, and reviews
-          # come from the API, so the checkout only supplies script code.
+          # not in this tree. Changed files, labels, and reviews come from
+          # the API. Comment text is read only for a live hold. The checkout
+          # only supplies script code.
           ref: ${{ github.workflow_sha }}
           persist-credentials: false
           # GAP-404: gate loads SECURITY_PATHS from security-paths.shared.json
@@ -113,6 +115,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REVEALFLEET_OVERRIDE_SIGNERS: ${{ vars.REVEALFLEET_OVERRIDE_SIGNERS }}
+          REVIEW_RECEIPT_REPO: ${{ vars.REVIEW_RECEIPT_REPO }}
+          REVIEW_RECEIPT_REF: ${{ vars.REVIEW_RECEIPT_REF }}
+          REVIEW_RECEIPT_SIGNERS: ${{ vars.REVIEW_RECEIPT_SIGNERS }}
+          REVIEW_RECEIPT_TOKEN: ${{ secrets.REVIEW_RECEIPT_TOKEN }}
         run: |
           set -euo pipefail
           node scripts/validate/security-review-gate.cjs \
