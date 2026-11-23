@@ -8,10 +8,11 @@ import {
   rmSync,
   writeFileSync,
 } from 'node:fs';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   buildOwnerOverrideComment,
   buildOwnerOverridePayload,
@@ -25,6 +26,21 @@ import {
   LOCKED_JOBS,
   LOCKED_REGIONS,
 } from '../trusted-gate-judge.mjs';
+
+const require = createRequire(import.meta.url);
+
+function receiptGate(): {
+  REVIEW_RECEIPT_MAX_BYTES: number;
+  buildReviewReceiptRequest: (
+    repo: string,
+    pr: number,
+    head: string,
+  ) => { enabled: boolean; reason: string; url: string };
+} {
+  // Loaded after the suite builds the gates bundle. A top-level require
+  // fails the head contract job, which runs before that build.
+  return require('../../validate/security-review-gate.cjs');
+}
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const temps: string[] = [];
@@ -53,6 +69,7 @@ function copyLocked(dest: string): void {
 
 afterEach(() => {
   for (const dir of temps.splice(0)) rmSync(dir, { recursive: true, force: true });
+  vi.unstubAllEnvs();
 });
 
 describe('extractJob', () => {
@@ -139,12 +156,18 @@ describe('owner signature clears a locked judge path', () => {
     rmSync(keyDir, { recursive: true, force: true });
   });
 
-  function signedComment(head: string, expires: string): string {
-    const payloadPath = path.join(keyDir, `payload-${head}-${expires}`);
-    const payload = buildOwnerOverridePayload(
-      { repo: REPO, pr: PR, head, gate: 'sec-review' },
-      expires,
+  function signedComment(
+    head: string,
+    expires: string,
+    binding: { repo?: string; pr?: number } = {},
+  ): string {
+    const repo = binding.repo ?? REPO;
+    const pr = binding.pr ?? PR;
+    const payloadPath = path.join(
+      keyDir,
+      `payload-${repo.split('/').join('-')}-${String(pr)}-${head}-${expires}`,
     );
+    const payload = buildOwnerOverridePayload({ repo, pr, head, gate: 'sec-review' }, expires);
     writeFileSync(payloadPath, payload);
     execFileSync(
       'ssh-keygen',
@@ -229,6 +252,71 @@ describe('owner signature clears a locked judge path', () => {
     );
     expect(decision.ok).toBe(false);
     expect(decision.reason).toBe('wrong-context');
+  });
+
+  it('fails when a valid receipt is signed for a different repository', () => {
+    const decision = decideTrustedGate(
+      lockedReport(),
+      record(
+        undefined,
+        [REQUEST_LABEL],
+        HEAD,
+        signedComment(HEAD, future, { repo: 'other-org/other-repo' }),
+      ),
+    );
+    expect(decision.ok).toBe(false);
+    expect(decision.reason).toBe('wrong-context');
+  });
+
+  it('fails when a valid receipt is signed for a different pull request', () => {
+    const decision = decideTrustedGate(
+      lockedReport(),
+      record(undefined, [REQUEST_LABEL], HEAD, signedComment(HEAD, future, { pr: PR + 1 })),
+    );
+    expect(decision.ok).toBe(false);
+    expect(decision.reason).toBe('wrong-context');
+  });
+
+  it('holds a locked change when receipt mode is unrecognized or malformed', () => {
+    const malformed = [
+      ['not-a-repo', 'receipts'],
+      ['off', 'receipts'],
+      ['owner/repo/extra', 'receipts'],
+      ['owner/repo', ''],
+      ['', 'receipts'],
+      ['owner/repo', '../receipts'],
+      ['owner/repo', 'receipts?raw=1'],
+      ['bad repo/name', 'receipts'],
+    ] as const;
+    const { buildReviewReceiptRequest } = receiptGate();
+    for (const [repo, ref] of malformed) {
+      vi.stubEnv('REVIEW_RECEIPT_REPO', repo);
+      vi.stubEnv('REVIEW_RECEIPT_REF', ref);
+      const request = buildReviewReceiptRequest(REPO, PR, HEAD);
+      expect(request.enabled).toBe(false);
+      expect(request.reason).toBe('invalid-receipt-mode');
+      expect(request.url).toBe('');
+    }
+    const decision = decideTrustedGate(
+      lockedReport(),
+      record(undefined, [REQUEST_LABEL], HEAD, ''),
+    );
+    expect(decision.ok).toBe(false);
+    expect(decision.kind).not.toBe('review-receipt');
+  });
+
+  it('fails when the receipt exceeds the loader size limit', () => {
+    const { REVIEW_RECEIPT_MAX_BYTES } = receiptGate();
+    const receipt = signedComment(HEAD, future);
+    expect(receipt.length).toBeLessThanOrEqual(REVIEW_RECEIPT_MAX_BYTES);
+    const oversized = `${receipt}${'x'.repeat(REVIEW_RECEIPT_MAX_BYTES - receipt.length + 1)}`;
+    expect(oversized.length).toBe(REVIEW_RECEIPT_MAX_BYTES + 1);
+    const decision = decideTrustedGate(
+      lockedReport(),
+      record(undefined, [REQUEST_LABEL], HEAD, oversized),
+    );
+    expect(decision.ok).toBe(false);
+    expect(decision.kind).not.toBe('review-receipt');
   });
 
   it('keeps a live REQUEST_CHANGES review above an exact-head receipt', () => {
