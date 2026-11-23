@@ -44,7 +44,7 @@
     },
     "rules/git.md": {
       "source": "profiles/revealfleet/claude/rules/git.md",
-      "sha256": "59fdde78476f102a1b65f88ec4a874471f5178e6ee9c1cdbe68f53f532221694"
+      "sha256": "3e17fed18dc863786de6322d538568f1a9bbde81f047531d0689d2a15b03291a"
     },
     "rules/no-regex.md": {
       "source": "profiles/revealui/claude/rules/no-regex.md",
@@ -84,7 +84,7 @@
     },
     "skills/revealui-conventions/SKILL.md": {
       "source": "profiles/revealui/claude/skills/revealui-conventions/SKILL.md",
-      "sha256": "e1df2b00ab8b006e2db443774bed0fd18e07907ac4021ac2cb166bdcfbae9282"
+      "sha256": "e3d52651743e08d1c2b423cede4ffc441916ee60dc22e7f59bbf1543c795948e"
     },
     "skills/revealui-db/SKILL.md": {
       "source": "profiles/revealui/claude/skills/revealui-db/SKILL.md",

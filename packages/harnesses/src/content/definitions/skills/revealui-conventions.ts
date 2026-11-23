@@ -41,6 +41,11 @@ Follow these conventions for ALL code in the RevealUI monorepo.
 - Bugfix: \`fix/<short-description>\`
 - Chore: \`chore/<short-description>\`
 
+### Merging into test
+- Feature pull requests into \`test\` use merge commits only.
+- Use \`gh pr merge <number> --merge\` only.
+- Never pass \`--squash\`, \`--rebase\`, \`--admin\`, or \`--auto\`.
+
 ### Identity
 - RevealUI Studio <founder@revealui.com>
 

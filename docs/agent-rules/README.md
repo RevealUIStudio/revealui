@@ -24,7 +24,7 @@ These files describe RevealUI's coding conventions, safety rules, and architectu
 
 | File | Covers |
 |------|--------|
-| `conventions.md` | TypeScript, ES Modules, git identity, parameterization |
+| `conventions.md` | TypeScript, ES Modules, git identity, merge commits into test, parameterization |
 | `monorepo.md` | Workspace protocol, turborepo, package conventions, publishing |
 | `database-boundaries.md` | Dual-DB architecture, Supabase import boundary map |
 | `tailwind-v4.md` | v4 syntax gotchas, migration notes, shared config |
