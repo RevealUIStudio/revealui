@@ -75,6 +75,6 @@ jobs:
       - name: Build maintained base-gate bundle
         run: pnpm --filter @revealui/harnesses exec tsup --config tsup.gates-cjs.ts
       - name: Verify base-trusted receipt acceptance
-        run: pnpm exec vitest run scripts/validate/__tests__/receipt-authorization.test.ts scripts/validate/__tests__/security-review-gate.test.ts scripts/validate/__tests__/security-review-receipt-shadow.test.ts --maxWorkers=1
+        run: pnpm exec vitest run scripts/validate/__tests__/security-review-gate.test.ts apps/review-controller/src/gate-receipt.test.ts --maxWorkers=1
       - name: Verify isolated controller migration and runtime grants
         uses: ./.github/actions/review-controller-postgres

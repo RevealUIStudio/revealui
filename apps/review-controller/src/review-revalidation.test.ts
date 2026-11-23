@@ -83,6 +83,7 @@ describe('controller review revalidation with durable observations', () => {
           external_id: input.externalId,
         }),
       ),
+      publishGateReceiptFile: vi.fn(async () => undefined),
     } as unknown as GitHubAppClient;
     const snapshot = await fetchPullRequestSnapshot(client, 7);
     const body = JSON.stringify({
@@ -139,6 +140,7 @@ describe('controller review revalidation with durable observations', () => {
       maxLifetimeMs: 3_600_000,
       requiredChecks: [{ name: check.name, appId: check.app.id }],
       trustedReviewer: reviewer,
+      receiptRef: 'receipts',
     };
     const seed = await delivery();
     await observations.recordPullRequest({
@@ -244,6 +246,16 @@ describe('controller review revalidation with durable observations', () => {
 
   it('keeps a current clean approval eligible without renewing its observed time', async () => {
     await handler('publish').process(await delivery());
+    expect(client.publishGateReceiptFile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pullRequest: 7,
+        head: headSha,
+        ref: 'receipts',
+        body: expect.stringContaining(
+          `repo=Fixture/nonproduction pr=7 head=${headSha} gate=sec-review`,
+        ),
+      }),
+    );
     expect(client.upsertReceiptCheckRun).toHaveBeenCalledWith(
       expect.objectContaining({ eligible: true }),
     );
