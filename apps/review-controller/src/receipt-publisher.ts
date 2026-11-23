@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { canonicalReviewReceiptEnvelope } from '@revealui/security/review-receipt';
+import { signGateReceipt, validGateReceiptRef } from './gate-receipt.js';
 import type { GitHubAppClient, ReceiptCheckRunResult } from './github-app.js';
 import type { WebhookInbox } from './inbox.js';
 import type { SignedReceiptStore } from './receipt-store.js';
@@ -16,7 +17,10 @@ export async function persistReceiptThenPublishCheck(input: {
   store: SignedReceiptStore;
   inbox: Pick<WebhookInbox, 'scheduleReceiptExpiration'>;
   installationId: number;
-  github: Pick<GitHubAppClient, 'upsertReceiptCheckRun'>;
+  receiptRef: string;
+  privateKeyPem: string;
+  now?: Date;
+  github: Pick<GitHubAppClient, 'upsertReceiptCheckRun' | 'publishGateReceiptFile'>;
 }): Promise<PublishedReceiptCheck> {
   const receipt = input.envelope.receipt;
   const canonical = canonicalReviewReceiptEnvelope(input.envelope);
@@ -32,6 +36,22 @@ export async function persistReceiptThenPublishCheck(input: {
     headSha: receipt.head.sha,
     baseSha: receipt.base.sha,
     expiresAt: new Date(receipt.expiresAt),
+  });
+  if (!validGateReceiptRef(input.receiptRef) || input.receiptRef === receipt.head.sha)
+    throw new Error('invalid_gate_receipt_ref');
+  const gateReceipt = signGateReceipt({
+    repositoryFullName: receipt.repository.fullName,
+    pullRequest: receipt.pullRequest,
+    head: receipt.head.sha,
+    expiresAt: new Date(receipt.expiresAt),
+    privateKeyPem: input.privateKeyPem,
+    ...(input.now ? { now: input.now } : {}),
+  });
+  await input.github.publishGateReceiptFile({
+    pullRequest: receipt.pullRequest,
+    head: receipt.head.sha,
+    ref: input.receiptRef,
+    body: gateReceipt.body,
   });
   const checkRun = await input.github.upsertReceiptCheckRun({
     headSha: receipt.head.sha,

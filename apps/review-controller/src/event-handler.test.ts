@@ -62,6 +62,7 @@ function fixtures() {
       conclusion: 'success' as const,
       external_id: input.externalId,
     })),
+    publishGateReceiptFile: vi.fn(async () => undefined),
   } as unknown as GitHubAppClient;
   const observations: ShadowObservationStore = {
     listReviewObservations: vi.fn(async () => []),
@@ -332,6 +333,7 @@ describe('shadow webhook event handler', () => {
       version: 'policy-1',
       maxLifetimeMs: 21_600_000,
       requiredChecks: [{ name: 'CI', appId: 77 }],
+      receiptRef: 'receipts',
     };
     const { client, observations } = fixtures();
     vi.mocked(client.listCheckRuns).mockResolvedValue([
@@ -377,6 +379,14 @@ describe('shadow webhook event handler', () => {
         external_id: input.externalId,
       };
     });
+    vi.mocked(client.publishGateReceiptFile).mockImplementation(async (input) => {
+      events.push(`object:${input.ref}`);
+      expect(input.head).toBe('a'.repeat(40));
+      expect(input.pullRequest).toBe(7);
+      expect(input.body).toContain(
+        `repo=RevealUIStudio/revealui pr=7 head=${'a'.repeat(40)} gate=sec-review`,
+      );
+    });
     const handler = new ShadowWebhookHandler(
       client,
       observations,
@@ -410,7 +420,7 @@ describe('shadow webhook event handler', () => {
       envelopeSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
     });
     expect(JSON.stringify(observation?.receiptEvaluation)).not.toContain('signature');
-    expect(events).toEqual(['persist', 'schedule-expiration', 'publish:true']);
+    expect(events).toEqual(['persist', 'schedule-expiration', 'object:receipts', 'publish:true']);
   });
 
   it('re-evaluates the latest same-head review when required checks finish later', async () => {

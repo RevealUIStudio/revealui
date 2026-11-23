@@ -93,10 +93,29 @@ describe('readReceiptPolicy', () => {
     ).toThrow('omits the trusted CI check');
   });
 
-  it('accepts publish mode while requiring the same complete signing policy', () => {
-    expect(readReceiptPolicy({ ...valid, REVIEW_RECEIPT_MODE: 'publish' })).toMatchObject({
+  it('accepts publish mode only with the repository and ref the review gate reads', () => {
+    expect(() => readReceiptPolicy({ ...valid, REVIEW_RECEIPT_MODE: 'publish' })).toThrow(
+      'REVIEW_RECEIPT_REPO is required',
+    );
+    expect(() =>
+      readReceiptPolicy({
+        ...valid,
+        REVIEW_RECEIPT_MODE: 'publish',
+        REVIEW_RECEIPT_REPO: 'other/repo',
+        REVIEW_RECEIPT_REF: 'receipts',
+      }),
+    ).toThrow('REVIEW_RECEIPT_REPO must match');
+    expect(
+      readReceiptPolicy({
+        ...valid,
+        REVIEW_RECEIPT_MODE: 'publish',
+        REVIEW_RECEIPT_REPO: 'RevealUIStudio/revealui',
+        REVIEW_RECEIPT_REF: 'receipts',
+      }),
+    ).toMatchObject({
       mode: 'publish',
       repositoryFullName: 'RevealUIStudio/revealui',
+      receiptRef: 'receipts',
     });
   });
 });

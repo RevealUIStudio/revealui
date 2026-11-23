@@ -78,11 +78,14 @@ export class ShadowWebhookHandler implements WebhookHandler {
         const externalId = `pr-${snapshot.repositoryId}-${snapshot.pullRequest}`;
         if (receiptEvaluation?.status === 'eligible') {
           if (!this.expiryQueue) throw new Error('receipt_expiration_queue_required');
+          if (!this.receiptPolicy.receiptRef) throw new Error('receipt_ref_required');
           await persistReceiptThenPublishCheck({
             envelope: receiptEvaluation.envelope,
             store: this.receiptStore,
             inbox: this.expiryQueue,
             installationId: webhook.installationId,
+            receiptRef: this.receiptPolicy.receiptRef,
+            privateKeyPem: this.receiptPolicy.privateKey,
             github: this.client,
           });
         } else {
