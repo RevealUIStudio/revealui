@@ -55,6 +55,23 @@ export const rateLimitConfigs = {
  * Takes the rightmost entry (appended by the outermost trusted proxy  -  Vercel/Cloudflare),
  * not the leftmost (which is attacker-controlled in multi-hop scenarios).
  */
+/**
+ * IP buckets stay `rate_limit:<ip>`. Routed buckets are `rate_limit:<route>:<subject>`
+ * and never fall back to a bare IP. A missing subject returns null so the caller
+ * can fail closed.
+ */
+export function rateLimitBucketKey(
+  request: NextRequest,
+  options: RateLimitCallOptions | undefined,
+  subject: string | null | undefined,
+): string | null {
+  if (options?.route) {
+    if (!subject || subject.trim().length === 0) return null;
+    return `rate_limit:${options.route}:${subject}`;
+  }
+  return `rate_limit:${extractTrustedIp(request)}`;
+}
+
 function extractTrustedIp(request: NextRequest): string {
   const xff = request.headers.get('x-forwarded-for');
   if (xff) {
@@ -65,11 +82,28 @@ function extractTrustedIp(request: NextRequest): string {
   return request.headers.get('x-real-ip') || (request as NextRequestWithIP).ip || 'unknown';
 }
 
-export function rateLimit(config: RateLimitConfig, options?: { failClosed?: boolean }) {
-  return async (request: NextRequest): Promise<NextResponse | null> => {
-    const ipAddress = extractTrustedIp(request);
+export interface RateLimitCallOptions {
+  /** When true, a store error rejects the request with 503. Default is fail-open. */
+  failClosed?: boolean;
+  /**
+   * When set, the bucket is `rate_limit:<route>:<subject>` and the IP is not
+   * used. The caller passes the subject (user id) on each invocation.
+   */
+  route?: string;
+}
 
-    const rateLimitKey = `rate_limit:${ipAddress}`;
+export function rateLimit(config: RateLimitConfig, options?: RateLimitCallOptions) {
+  return async (request: NextRequest, subject?: string | null): Promise<NextResponse | null> => {
+    const rateLimitKey = rateLimitBucketKey(request, options, subject);
+    if (!rateLimitKey) {
+      logger.error('Rate limit subject missing for a routed bucket, rejecting request', {
+        route: options?.route,
+      });
+      return NextResponse.json(
+        { error: 'Service temporarily unavailable. Please try again later.' },
+        { status: 503 },
+      );
+    }
 
     try {
       const result = await checkRateLimit(rateLimitKey, {

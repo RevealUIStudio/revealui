@@ -19,6 +19,7 @@ import { resolveSelfApiBaseUrl } from './lib/self-api-url.js';
  * @throws {Error} If CORS_ORIGIN is not set or empty in production
  */
 import { setCorsConfigMissing } from './lib/startup-state.js';
+import { rejectWhenAiDisabled } from './middleware/ai-disabled.js';
 import { auditMiddleware } from './middleware/audit.js';
 import { authMiddleware, requireRole } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';
@@ -986,6 +987,9 @@ app.post('/api/v1/auth/signup', userLimit);
 
 // Task quota metering (Track B)  -  runs after auth + feature gate so user context is set.
 // Applied to all AI task endpoints: agent-tasks, agent-stream, and A2A (a2a.ts wires its own).
+// The agent-stream kill switch is registered first so a disabled call does not reserve a slot.
+app.post('/api/agent-stream', rejectWhenAiDisabled);
+app.post('/api/v1/agent-stream', rejectWhenAiDisabled);
 app.post('/api/agent-tasks/*', requireTaskQuota);
 app.post('/api/v1/agent-tasks/*', requireTaskQuota);
 app.post('/api/agent-stream', requireTaskQuota);

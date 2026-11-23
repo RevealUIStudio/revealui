@@ -75,6 +75,7 @@ import type {
   licenseOperations,
   licenses,
   lifecycleEmailsSent,
+  llmCallReceipts,
   magicLinks,
   marginSnapshots,
   marketplaceAgents,
@@ -469,6 +470,11 @@ export type LifecycleEmailsSentRow = typeof lifecycleEmailsSent.$inferSelect
 export type LifecycleEmailsSentInsert = typeof lifecycleEmailsSent.$inferInsert
 export type LifecycleEmailsSentUpdate = Partial<LifecycleEmailsSentInsert>
 
+// Llm Call Receipts
+export type LlmCallReceiptsRow = typeof llmCallReceipts.$inferSelect
+export type LlmCallReceiptsInsert = typeof llmCallReceipts.$inferInsert
+export type LlmCallReceiptsUpdate = Partial<LlmCallReceiptsInsert>
+
 // Magic Links
 export type MagicLinksRow = typeof magicLinks.$inferSelect
 export type MagicLinksInsert = typeof magicLinks.$inferInsert
@@ -849,6 +855,7 @@ export type DatabaseRelationships = {
   licenseOperations: Relationship[]
   licenses: Relationship[]
   lifecycleEmailsSent: Relationship[]
+  llmCallReceipts: Relationship[]
   magicLinks: Relationship[]
   marginSnapshots: Relationship[]
   marketplaceAgents: Relationship[]
@@ -1153,6 +1160,12 @@ export const licensesRelationships = [
 
 // LifecycleEmailsSent relationships
 export const lifecycleEmailsSentRelationships: readonly Relationship[] = []
+
+// LlmCallReceipts relationships
+export const llmCallReceiptsRelationships = [
+  { foreignKeyName: 'llm_call_receipts_user_id_users_id_fk', columns: ['user_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+  { foreignKeyName: 'llm_call_receipts_account_id_accounts_id_fk', columns: ['account_id'], isOneToOne: true, referencedRelation: 'accounts', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
 
 // MagicLinks relationships
 export const magicLinksRelationships = [
@@ -1844,6 +1857,12 @@ export type Database = {
         Insert: LifecycleEmailsSentInsert
         Update: LifecycleEmailsSentUpdate
         Relationships: typeof lifecycleEmailsSentRelationships
+      }
+      llm_call_receipts: {
+        Row: LlmCallReceiptsRow
+        Insert: LlmCallReceiptsInsert
+        Update: LlmCallReceiptsUpdate
+        Relationships: typeof llmCallReceiptsRelationships
       }
       magic_links: {
         Row: MagicLinksRow
