@@ -79,6 +79,11 @@ describe('countDbTables', () => {
     fs.writeFileSync(path.join(tmp, 'users.test.ts'), "export const t = pgTable('t', {});\n");
     // comments must not inflate the count
     fs.writeFileSync(path.join(tmp, 'noise.ts'), "// pgTable('noise', {});\nexport const n = 1;\n");
+    fs.mkdirSync(path.join(tmp, 'internal'));
+    fs.writeFileSync(
+      path.join(tmp, 'internal', 'review-controller.ts'),
+      "export const internalQueue = pgTable('internal_queue', {});\n",
+    );
     expect(countDbTables(tmp)).toBe(3);
   });
 
@@ -106,6 +111,11 @@ describe('countCheckConstraints', () => {
     fs.writeFileSync(
       path.join(tmp, 'noise.ts'),
       "// check('noise', sql`true`);\nexport const n = 1;\n",
+    );
+    fs.mkdirSync(path.join(tmp, 'internal'));
+    fs.writeFileSync(
+      path.join(tmp, 'internal', 'review-controller.ts'),
+      "export const internalQueue = pgTable('internal_queue', {}, (t) => [check('internal_check', sql`true`)]);\n",
     );
     expect(countCheckConstraints(tmp)).toBe(1);
   });
