@@ -13,7 +13,8 @@
 // tsup.gates-cjs.ts` (or full package build, which runs that config second).
 // Sparse CI must never run full package DTS (needs @revealui/security).
 //
-// Returns null (never throws) when nothing resolves.
+// Returns null (never throws) when nothing resolves. A require failure is
+// written to stderr first. Callers still fail closed.
 //
 // The local bundle must stay inside this file's checkout. A symlink that
 // resolves outside that checkout is ignored. CI runs this file from the
@@ -46,6 +47,17 @@ function isResolvedInside(root, target) {
 }
 
 /**
+ * @param {unknown} error
+ */
+function reportLoadFailure(error) {
+  const detail =
+    error && typeof error === 'object' && 'stack' in error && typeof error.stack === 'string'
+      ? error.stack
+      : String(error);
+  process.stderr.write(`gates-resolver: failed to load the gates bundle\n${detail}\n`);
+}
+
+/**
  * @returns {unknown | null}
  */
 function resolveGatesModule() {
@@ -54,10 +66,15 @@ function resolveGatesModule() {
       const root = fs.realpathSync(path.join(__dirname, '..', '..'));
       const real = fs.realpathSync(LOCAL_DIST_CJS);
       if (isResolvedInside(root, real)) {
-        return require(real);
+        try {
+          return require(real);
+        } catch (error) {
+          reportLoadFailure(error);
+        }
       }
-    } catch {
+    } catch (error) {
       // Missing or unreadable bundle. Try the install-dir fallback below.
+      reportLoadFailure(error);
     }
   }
 
@@ -66,7 +83,8 @@ function resolveGatesModule() {
     try {
       const resolved = require.resolve('@revealui/harnesses/gates', { paths: [installDir] });
       return require(resolved);
-    } catch {
+    } catch (error) {
+      reportLoadFailure(error);
       return null;
     }
   }

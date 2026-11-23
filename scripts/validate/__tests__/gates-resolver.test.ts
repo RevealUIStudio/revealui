@@ -78,4 +78,26 @@ describe('resolveGatesModule checkout confinement', () => {
     symlinkSync(outside, path.join(dir, 'packages/harnesses/dist/gates/index.cjs'));
     expect(resolveMarker(dir)).toBe('null');
   });
+
+  it('prints the require error and still fails closed', () => {
+    const dir = makeCheckout();
+    writeFileSync(
+      path.join(dir, 'packages/harnesses/dist/gates/index.cjs'),
+      "throw new Error('missing @revealui/security/review-receipt');\n",
+    );
+    const script = path.join(dir, 'scripts/validate/gates-resolver.cjs');
+    const env = { ...process.env };
+    delete env.REVEALUI_HARNESSES_DIR;
+    const result = spawnSync(
+      process.execPath,
+      [
+        '-e',
+        `const mod = require(${JSON.stringify(script)}).resolveGatesModule(); process.stdout.write(mod ? 'loaded' : 'null');`,
+      ],
+      { encoding: 'utf8', env },
+    );
+    expect(result.status).toBe(0);
+    expect(result.stdout).toBe('null');
+    expect(result.stderr.includes('missing @revealui/security/review-receipt')).toBe(true);
+  });
 });

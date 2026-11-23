@@ -107,6 +107,39 @@ describe('gate scripts execute from the base commit', () => {
     );
   });
 
+  it('checks security sources out for every sparse gates build', () => {
+    for (const file of [
+      '.github/workflows/security-review-gate.yml',
+      '.github/workflows/archive-check.yml',
+      '.github/workflows/trusted-gate-judge.yml',
+    ]) {
+      const text = read(file);
+      expect(text).toContain('packages/security/src/');
+      expect(text).toContain('tsup --config tsup.gates-cjs.ts');
+    }
+    const guard = read('.github/workflows/sec-audit-label-guard.yml');
+    expect(guard).toContain('packages/security/');
+    expect(guard).toContain('tsup --config tsup.gates-cjs.ts');
+    const validation = read('.github/workflows/review-controller-validation.yml');
+    expect(validation).toContain('tsup --config tsup.gates-cjs.ts');
+    expect(validation.includes('sparse-checkout:')).toBe(false);
+  });
+
+  it('loads the gates bundle from pull request head with no secrets', () => {
+    const start = archive.indexOf('\n  gates-bundle-load:\n');
+    expect(start).toBeGreaterThan(0);
+    const job = archive.slice(start);
+    expect(job).toContain('name: Gates bundle load');
+    expect(job).toContain("if: github.event_name == 'pull_request'");
+    expect(job).toContain('contents: read');
+    expect(job).toContain('github.event.pull_request.head.sha');
+    expect(job).toContain('persist-credentials: false');
+    expect(job).toContain('packages/security/src/');
+    expect(job).toContain('guardrail2-verdict.cjs');
+    expect(job.includes('secrets.')).toBe(false);
+    expect(job.includes('name: Security review gate')).toBe(false);
+  });
+
   it('scans pull request changes with the base archive gate and gates resolver', () => {
     expect(archive).toContain('name: Checkout trusted gate');
     expect(archive).toContain('github.event.pull_request.base.sha || github.sha');
