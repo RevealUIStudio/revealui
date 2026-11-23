@@ -23,6 +23,22 @@
  * @packageDocumentation
  */
 
+import { readPaymentClaim } from './settlement.js';
+
+export type {
+  NonceClaimDecision,
+  NonceClaimStore,
+  PaymentClaim,
+  PaymentClaimResult,
+  StoredSettlement,
+} from './settlement.js';
+export {
+  createNonceClaimStore,
+  decideNonceClaim,
+  readPaymentClaim,
+  settlementSupportsPayout,
+} from './settlement.js';
+
 // =============================================================================
 // Minimal x402 protocol types (subset of @x402/core types we need)
 // =============================================================================
@@ -65,6 +81,14 @@ interface VerifyResponseBody {
   invalidReason?: string;
 }
 
+interface SettleResponseBody {
+  success?: boolean;
+  errorReason?: string | null;
+  transaction?: string;
+  txHash?: string;
+  payer?: string;
+}
+
 // =============================================================================
 // USDC contract addresses
 // =============================================================================
@@ -81,6 +105,9 @@ const DEFAULT_FACILITATOR_URL = 'https://x402.org/facilitator';
 
 // USDC has 6 decimal places: $0.001 = 1000 atomic units
 const USDC_DECIMALS = 6;
+
+/** Facilitator verify and settle calls share this timeout. */
+const FACILITATOR_TIMEOUT_MS = 10_000;
 
 // =============================================================================
 // Config
@@ -145,7 +172,11 @@ function decodePaymentPayload(header: string): PaymentPayloadV1 | null {
  * Convert a human-readable USDC amount (e.g. '0.001') to atomic units (e.g. '1000').
  * USDC has 6 decimal places.
  */
-function toAtomicUnits(humanAmount: string): string {
+/**
+ * Convert a human-readable USDC amount (e.g. '0.001') to atomic units (e.g. '1000').
+ * USDC has 6 decimal places. Non-positive or non-numeric input falls back to 1000.
+ */
+export function toUsdcAtomicUnits(humanAmount: string): string {
   const amount = Number.parseFloat(humanAmount);
   if (!Number.isFinite(amount) || amount <= 0) return '1000'; // fallback: $0.001
   return String(Math.round(amount * 10 ** USDC_DECIMALS));
@@ -169,7 +200,7 @@ export function buildPaymentRequired(resource: string, customPrice?: string): Pa
     {
       scheme: 'exact',
       network: config.network,
-      maxAmountRequired: toAtomicUnits(price),
+      maxAmountRequired: toUsdcAtomicUnits(price),
       resource,
       description: `RevealUI agent task — ${price} USDC per call`,
       mimeType: 'application/json',
@@ -203,8 +234,9 @@ export interface X402VerifyHooks {
 /**
  * Verify a client's X-PAYMENT-PAYLOAD header value.
  *
- * Verifies the `exact` (EVM/USDC) scheme via the Coinbase facilitator, which
- * handles replay protection in-house.
+ * Verifies the `exact` (EVM/USDC) scheme via the Coinbase facilitator.
+ * Verification does not settle the authorization or consume its nonce.
+ * Call `settlePayment` and persist the nonce before moving funds.
  *
  * @param payloadHeader - Raw base64 value from X-PAYMENT-PAYLOAD header
  * @param resource      - Canonical resource URL (must match what was sent in 402)
@@ -217,6 +249,7 @@ export async function verifyPayment(
   resource: string,
   route: string = 'unknown',
   hooks: X402VerifyHooks = {},
+  customPrice?: string,
 ): Promise<{ valid: true } | { valid: false; error: string }> {
   const config = getX402Config();
 
@@ -226,7 +259,7 @@ export async function verifyPayment(
   }
 
   const start = Date.now();
-  const result = await verifyEvmPayment(paymentPayload, resource, config, hooks);
+  const result = await verifyEvmPayment(paymentPayload, resource, config, hooks, customPrice);
   hooks.onVerified?.(route, Date.now() - start, result.valid);
   return result;
 }
@@ -239,9 +272,10 @@ async function verifyEvmPayment(
   resource: string,
   config: X402Config,
   hooks: X402VerifyHooks,
+  customPrice?: string,
 ): Promise<{ valid: true } | { valid: false; error: string }> {
   // Rebuild the requirements so the facilitator can verify against them
-  const requirements = buildPaymentRequired(resource).accepts[0];
+  const requirements = buildPaymentRequired(resource, customPrice).accepts[0];
   if (!requirements) {
     return { valid: false, error: 'Internal: could not build payment requirements' };
   }
@@ -257,7 +291,7 @@ async function verifyEvmPayment(
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(10_000),
+      signal: AbortSignal.timeout(FACILITATOR_TIMEOUT_MS),
     });
 
     if (!resp.ok) {
@@ -283,6 +317,92 @@ async function verifyEvmPayment(
   }
 }
 
+export interface SettledPayment {
+  ok: true;
+  nonce: string;
+  txHash: string;
+  amount: string;
+  payer: string;
+}
+
+export type SettlePaymentResult = SettledPayment | { ok: false; error: string };
+
+/**
+ * Settle a verified USDC authorization through the facilitator.
+ *
+ * Call this only after `verifyPayment` succeeds. A facilitator failure returns
+ * `{ ok: false }` and does not produce a settlement the caller can pay out on.
+ * The caller must persist `nonce` under a unique constraint before any payout.
+ */
+export async function settlePayment(
+  payloadHeader: string,
+  resource: string,
+  route: string = 'unknown',
+  hooks: X402VerifyHooks = {},
+  customPrice?: string,
+  nowMs: number = Date.now(),
+): Promise<SettlePaymentResult> {
+  const claim = readPaymentClaim(payloadHeader, nowMs);
+  if (!claim.ok) return claim;
+
+  if (customPrice && claim.claim.amount !== toUsdcAtomicUnits(customPrice)) {
+    return { ok: false, error: 'Payment amount does not match the resource price' };
+  }
+
+  const config = getX402Config();
+  const paymentPayload = decodePaymentPayload(payloadHeader);
+  const requirements = buildPaymentRequired(resource, customPrice).accepts[0];
+  if (!(paymentPayload && requirements)) {
+    return { ok: false, error: 'Internal: could not build settlement request' };
+  }
+
+  const body: VerifyRequestBody = {
+    x402Version: 1,
+    paymentPayload,
+    paymentRequirements: requirements,
+  };
+
+  try {
+    const resp = await fetch(`${config.facilitatorUrl}/settle`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(FACILITATOR_TIMEOUT_MS),
+    });
+
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => `HTTP ${resp.status}`);
+      hooks.onFacilitatorWarn?.('x402 facilitator settle returned non-OK status', {
+        status: resp.status,
+        route,
+        body: text.slice(0, 200),
+      });
+      return { ok: false, error: `Facilitator error: HTTP ${resp.status}` };
+    }
+
+    const result = (await resp.json()) as SettleResponseBody;
+    const txHash = result.transaction ?? result.txHash;
+    if (result.success !== true || !txHash) {
+      return {
+        ok: false,
+        error: result.errorReason ?? 'Payment was not settled by the facilitator',
+      };
+    }
+
+    return {
+      ok: true,
+      nonce: claim.claim.nonce,
+      txHash,
+      amount: claim.claim.amount,
+      payer: result.payer && result.payer.trim().length > 0 ? result.payer : claim.claim.payer,
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    hooks.onFacilitatorWarn?.('x402 facilitator settle request failed', { error: message, route });
+    return { ok: false, error: `Facilitator unreachable: ${message}` };
+  }
+}
+
 // =============================================================================
 // Well-known payment methods payload
 // =============================================================================
@@ -299,7 +419,7 @@ export function buildPaymentMethods(baseUrl: string): Record<string, unknown> | 
     {
       scheme: 'exact',
       network: config.network,
-      maxAmountRequired: toAtomicUnits(config.pricePerTask),
+      maxAmountRequired: toUsdcAtomicUnits(config.pricePerTask),
       resource: `${baseUrl}/api/agent-stream`,
       description: `RevealUI agent task — ${config.pricePerTask} USDC per call`,
       mimeType: 'application/json',
