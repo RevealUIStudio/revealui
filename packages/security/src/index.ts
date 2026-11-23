@@ -8,11 +8,12 @@
  *
  * Server-only modules that pull `node:` built-ins — authentication (node:crypto),
  * GDPR managers (node:crypto), audit logging (node:crypto), and SSRF/DNS
- * (node:dns) — live behind the explicit `@revealui/security/server` subpath so a
- * client/RSC bundle never drags the node: graph in (the crash class fixed by
- * #1046). `@revealui/core/security` re-exports both this barrel and `./server`,
- * so server consumers that go through core are unaffected. The `./sanitize`
- * subpath remains the minimal client-safe surface for URL/HTML helpers.
+ * (node:dns) — live behind the explicit `@revealui/security/server` subpath.
+ * The signed review-receipt contract is separately exposed through
+ * `@revealui/security/review-receipt`; neither Node-only path enters this barrel,
+ * so client/RSC bundles stay clear of the `node:` graph (the crash class fixed
+ * by #1046). `@revealui/core/security` re-exports this barrel and `./server`.
+ * The `./sanitize` subpath remains the minimal client-safe URL/HTML surface.
  *
  * @packageDocumentation
  */

@@ -1,0 +1,31 @@
+# Deploy from the monorepo root with --dockerfile apps/review-controller/Dockerfile
+# and --ha=false. The Dockerfile needs the root build context; only one worker
+# may run until per-PR check mutations are serialized.
+app = 'revealui-review-controller'
+primary_region = 'iad'
+
+[build]
+  dockerfile = 'Dockerfile'
+
+[env]
+  NODE_ENV = 'production'
+  PORT = '8080'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = 'off'
+  auto_start_machines = false
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '10s'
+    method = 'GET'
+    path = '/health/live'
+
+[[vm]]
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 256

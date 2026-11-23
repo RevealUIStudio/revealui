@@ -7,6 +7,7 @@ const state = vi.hoisted(() => ({
   calls: [] as string[][],
   failPrerequisite: false,
   failSecurityAudit: false,
+  failApiDocs: false,
   log: vi.fn(),
   admissionDirectory: null as string | null,
   failure: null as {
@@ -34,13 +35,15 @@ vi.mock('@revealui/scripts/exec.js', () => ({
       success: !(
         state.failure ||
         (state.failSecurityAudit && args.includes('gate:security')) ||
-        (state.failPrerequisite && args.includes('--filter=@revealui/harnesses...'))
+        (state.failPrerequisite && args.includes('--filter=@revealui/harnesses...')) ||
+        (state.failApiDocs && args.includes('validate:api-docs'))
       ),
-      exitCode: state.failPrerequisite
-        ? 7
-        : state.failSecurityAudit && args.includes('gate:security')
-          ? 4
-          : 0,
+      exitCode:
+        state.failPrerequisite || state.failApiDocs
+          ? 7
+          : state.failSecurityAudit && args.includes('gate:security')
+            ? 4
+            : 0,
       ...(state.failure || {}),
       message: 'secret=synthetic-credential',
       stdout: 'secret=synthetic-credential',
@@ -71,6 +74,7 @@ afterEach(() => {
   state.calls = [];
   state.failPrerequisite = false;
   state.failSecurityAudit = false;
+  state.failApiDocs = false;
   state.admissionDirectory = null;
   state.failure = null;
   state.log.mockClear();
@@ -147,6 +151,7 @@ describe('quality prerequisite ordering', () => {
       '--filter=@revealui/claim-gates...',
       '--concurrency=2',
     ]);
+    expect(state.calls[1]).toEqual(['pnpm', 'validate:api-docs']);
     expect(state.calls.some((call) => call.includes('--manager-only'))).toBe(true);
     expect(state.calls.some((call) => call.includes('validate:claims'))).toBe(true);
   });
@@ -159,6 +164,19 @@ describe('quality prerequisite ordering', () => {
     state.failPrerequisite = true;
     await expect(gate()).rejects.toThrow('gate exit');
     expect(state.calls).toHaveLength(1);
+    expect(process.exit).toHaveBeenCalledWith(expect.any(Number));
+  });
+
+  it('holds parallel quality checks until the API docs validator passes', async () => {
+    vi.spyOn(process, 'availableMemory').mockReturnValue(4 * 1024 ** 3);
+    vi.spyOn(process, 'argv', 'get').mockReturnValue(['node', 'ci-gate.ts', '--phase=1']);
+    vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('gate exit');
+    });
+    state.failApiDocs = true;
+    await expect(gate()).rejects.toThrow('gate exit');
+    expect(state.calls).toHaveLength(2);
+    expect(state.calls[1]).toEqual(['pnpm', 'validate:api-docs']);
     expect(process.exit).toHaveBeenCalledWith(expect.any(Number));
   });
 });
