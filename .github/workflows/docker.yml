@@ -220,15 +220,34 @@ jobs:
     needs: [changes, build-and-push]
     if: always()
     steps:
+      - name: Checkout introducing result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: head-result
+      - name: Checkout trusted result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: trusted-result
       - name: Evaluate build matrix result
         env:
+          CHECK: docker
           RESULT: ${{ needs.build-and-push.result }}
         run: |
-          case "$RESULT" in
-            success) echo "image builds green" ;;
-            skipped) echo "image-irrelevant diff, builds skipped" ;;
-            *)
-              echo "build-and-push result: $RESULT"
-              exit 1
-              ;;
-          esac
+          set -euo pipefail
+          if [ -f trusted-result/scripts/ci/required-check-result.mjs ]; then
+            node trusted-result/scripts/ci/required-check-result.mjs
+          else
+            echo "base commit has no result judge; using the introducing copy"
+            node head-result/scripts/ci/required-check-result.mjs
+          fi

@@ -29,9 +29,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: Checkout tree to scan
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
+      - name: Checkout trusted security gate
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          path: trusted-judge
+          sparse-checkout: |
+            scripts/gates/security-gate.ts
+            scripts/utils/
+            packages/scripts/
+          sparse-checkout-cone-mode: false
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
           version: ${{ env.PNPM_VERSION }}
@@ -40,8 +53,14 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Pin security gate to the base commit
+        run: |
+          set -euo pipefail
+          cp -a trusted-judge/scripts/gates/security-gate.ts scripts/gates/security-gate.ts
+          cp -a trusted-judge/scripts/utils/. scripts/utils/
+          cp -a trusted-judge/packages/scripts/. packages/scripts/
       - name: Run security gate
-        run: pnpm gate:security
+        run: pnpm exec tsx scripts/gates/security-gate.ts
 
   # Secret scanning
   #

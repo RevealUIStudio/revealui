@@ -201,10 +201,11 @@ describe('workflow wiring', () => {
     expect(ci).toContain('name: Quality');
     expect(ci).toContain('name: Typecheck');
     expect(ci).toContain("needs.changes.outputs.full_suite == 'true'");
-    expect(ci).toContain('pnpm validate:secret-paths');
     const qualityIdx = ci.indexOf('\n  quality:');
     const unitIdx = ci.indexOf('\n  test-unit:');
-    const secretIdx = ci.indexOf('pnpm validate:secret-paths');
+    const secretIdx = ci.indexOf('node "$script"');
+    const runner = readFileSync(path.join(repoRoot, 'scripts/ci/run-base-validators.mjs'), 'utf8');
+    expect(runner).toContain('scripts/sync/__tests__/secret-paths-lockstep.test.ts');
     expect(qualityIdx).toBeGreaterThan(0);
     expect(unitIdx).toBeGreaterThan(qualityIdx);
     expect(secretIdx).toBeGreaterThan(qualityIdx);
@@ -283,7 +284,10 @@ describe('workflow wiring', () => {
     expect(changesStart).toBeGreaterThan(0);
     expect(changesEnd).toBeGreaterThan(changesStart);
     expect(changes).toContain('reason=promote-pr');
-    expect(changes).toContain('--promotion-skip');
+    expect(changes).toContain(
+      'node trusted-classifier/scripts/ci/expensive-suite.mjs --promotion-skip',
+    );
+    expect(changes.includes('node scripts/ci/expensive-suite.mjs')).toBe(false);
     expect(changes).toContain(['HEAD_REF: ', '$', '{{ github.head_ref }}'].join(''));
     expect(changes).toContain(
       ['HEAD_REPO: ', '$', '{{ github.event.pull_request.head.repo.full_name }}'].join(''),
