@@ -244,6 +244,7 @@ jobs:
             scripts/gates/__tests__/ci-gate-prerequisites.test.ts \
             scripts/gates/__tests__/ci-gate-worker-lifecycle.test.ts \
             scripts/docs/__tests__/generate-api-bootstrap.test.ts
+          pnpm exec vitest run packages/harnesses/src/gates/__tests__/gates-cjs-bundle.test.ts
         env:
           CI: "true"
           SKIP_ENV_VALIDATION: "true"
