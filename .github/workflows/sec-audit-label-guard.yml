@@ -52,12 +52,14 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          # Evaluate with the BASE branch's copy of the decision scripts (same
-          # provenance rule as security-review-gate.yml). On issue_comment and
-          # check_suite events there is no pull_request payload, so this
-          # expression is empty and checkout falls back to the default-branch
-          # ref those events already run from.
-          ref: ${{ github.event.pull_request.base.sha }}
+          # pull_request_target, issue_comment, and check_suite run this file
+          # from the trusted branch. Check out github.workflow_sha so the
+          # scripts match that file when the recorded base is stale.
+          # pull_request_review runs this file from the pull request merge
+          # ref, so that event still checks out the recorded base and does
+          # not execute head files.
+          ref: ${{ github.event_name == 'pull_request_review' && github.event.pull_request.base.sha || github.workflow_sha }}
+          persist-credentials: false
           # GAP-408: guardrail2-verdict.cjs is a thin adapter over the
           # @revealui/harnesses gates module. Builds it from THIS checkout's
           # own source (packages/harnesses/ + packages/dev/ for the shared
