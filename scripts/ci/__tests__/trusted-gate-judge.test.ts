@@ -126,7 +126,7 @@ describe('owner signature clears a locked judge path', () => {
     const bundle = path.join(repoRoot, 'packages/harnesses/dist/gates/index.cjs');
     const securityEntry = path.join(repoRoot, 'packages/security/dist/review-receipt.js');
     if (!existsSync(securityEntry)) {
-      execFileSync('pnpm', ['--filter', '@revealui/security', 'build'], {
+      execFileSync('pnpm', ['--filter', '@revealui/security...', 'build'], {
         cwd: repoRoot,
         stdio: 'inherit',
       });
