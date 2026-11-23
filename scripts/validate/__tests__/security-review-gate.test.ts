@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   buildOwnerOverrideComment,
   buildOwnerOverridePayload,
@@ -324,6 +324,8 @@ const {
   fetchPrCommitShas,
   fetchReviewReceipt,
   reviewReceiptObjectPath,
+  buildReviewReceiptRequest,
+  REVIEW_RECEIPT_MAX_BYTES,
 } = require('../security-review-gate.cjs');
 const target = 'RevealUIStudio/revealui';
 const featureHead = 'a'.repeat(40);
@@ -645,5 +647,146 @@ describe('review receipt lookup', () => {
       body: 'exact-head-receipt',
       reason: '',
     });
+  });
+});
+
+describe('receipt mode fails closed', () => {
+  const data = {
+    author: { login: 'owner' },
+    labels: [{ name: CLEAR_LABEL }],
+    headRefOid: featureHead,
+  };
+  const discussion = { comments: [], reviews: [] };
+  const malformedReceiptModes = [
+    ['not-a-repo', 'receipts'],
+    ['off', 'receipts'],
+    ['owner/repo/extra', 'receipts'],
+    ['owner/repo', ''],
+    ['', 'receipts'],
+    ['owner/repo', '../receipts'],
+    ['owner/repo', 'receipts?raw=1'],
+    ['bad repo/name', 'receipts'],
+    ['owner/repo', 'has space'],
+    ['   ', 'receipts'],
+  ] as const;
+
+  it.each(malformedReceiptModes)(
+    'holds unrecognized or malformed receipt mode repo=%j ref=%j',
+    (repo, ref) => {
+      vi.stubEnv('REVIEW_RECEIPT_REPO', repo);
+      vi.stubEnv('REVIEW_RECEIPT_REF', ref);
+      const ghImpl = vi.fn(() => 'should-not-load');
+      expect(buildReviewReceiptRequest(target, 91, featureHead)).toMatchObject({
+        enabled: false,
+        reason: 'invalid-receipt-mode',
+        path: '',
+        url: '',
+      });
+      expect(fetchReviewReceipt(target, 91, featureHead, ghImpl)).toEqual({
+        body: '',
+        reason: 'invalid-receipt-mode',
+      });
+      expect(ghImpl).not.toHaveBeenCalled();
+      expect(verifyPrOwnerRecord(data, 91, target, discussion)).toMatchObject({
+        action: 'hold',
+        reason: 'invalid-receipt-mode',
+      });
+    },
+  );
+});
+
+describe('oversized and misbound receipts fail closed', () => {
+  let keyDir = '';
+  let anchor = '';
+  const data = {
+    author: { login: 'owner' },
+    labels: [{ name: CLEAR_LABEL }],
+    headRefOid: featureHead,
+  };
+  const discussion = { comments: [], reviews: [] };
+
+  beforeAll(() => {
+    keyDir = mkdtempSync(join(tmpdir(), 'receipt-binding-fixture-'));
+    const key = join(keyDir, 'owner');
+    execFileSync('ssh-keygen', ['-t', 'ed25519', '-N', '', '-f', key], { stdio: 'pipe' });
+    anchor = `owner@revealui.com ${readFileSync(`${key}.pub`, 'utf8')}`;
+  });
+
+  afterAll(() => {
+    if (keyDir) rmSync(keyDir, { recursive: true, force: true });
+  });
+
+  function signedReceipt(context: { repo: string; pr: number; head: string }): string {
+    const expires = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+    const payload = buildOwnerOverridePayload({ ...context, gate: 'sec-review' }, expires);
+    const payloadPath = join(
+      keyDir,
+      `payload-${context.repo.split('/').join('-')}-${String(context.pr)}-${context.head}`,
+    );
+    writeFileSync(payloadPath, payload);
+    execFileSync(
+      'ssh-keygen',
+      ['-Y', 'sign', '-f', join(keyDir, 'owner'), '-n', 'revealfleet-override', payloadPath],
+      { stdio: 'pipe' },
+    );
+    return buildOwnerOverrideComment(payload, readFileSync(`${payloadPath}.sig`, 'utf8'));
+  }
+
+  function useAllowedSigner(): void {
+    vi.stubEnv('REVIEW_RECEIPT_SIGNERS', anchor);
+    vi.stubEnv('REVEALFLEET_OVERRIDE_SIGNERS', 'different-fallback-anchor');
+    vi.stubEnv('REVFLEET_OVERRIDE_SIGNERS', 'different-deprecated-anchor');
+  }
+
+  it('holds a receipt larger than the loader size limit', () => {
+    useAllowedSigner();
+    vi.stubEnv('REVIEW_RECEIPT_REPO', 'receipt-host/receipts');
+    vi.stubEnv('REVIEW_RECEIPT_REF', 'receipts');
+    const body = signedReceipt({ repo: target, pr: 91, head: featureHead });
+    expect(body.length).toBeLessThanOrEqual(REVIEW_RECEIPT_MAX_BYTES);
+    const oversized = `${body}${'x'.repeat(REVIEW_RECEIPT_MAX_BYTES - body.length + 1)}`;
+    expect(oversized.length).toBe(REVIEW_RECEIPT_MAX_BYTES + 1);
+    const ghImpl = vi.fn(() => oversized);
+    expect(fetchReviewReceipt(target, 91, featureHead, ghImpl)).toEqual({
+      body: '',
+      reason: 'invalid-review-receipt',
+    });
+    expect(
+      verifyPrOwnerRecord(data, 91, target, discussion, undefined, undefined, body),
+    ).toMatchObject({ action: 'clear', kind: 'review-receipt' });
+    const decision = verifyPrOwnerRecord(
+      data,
+      91,
+      target,
+      discussion,
+      undefined,
+      undefined,
+      oversized,
+    );
+    expect(decision.action).toBe('hold');
+    expect(decision.kind).not.toBe('review-receipt');
+  });
+
+  it('holds a valid allowed-signer receipt for a different repository', () => {
+    useAllowedSigner();
+    const otherRepo = 'other-org/other-repo';
+    const foreign = signedReceipt({ repo: otherRepo, pr: 91, head: featureHead });
+    expect(
+      verifyPrOwnerRecord(data, 91, otherRepo, discussion, undefined, undefined, foreign),
+    ).toMatchObject({ action: 'clear', kind: 'review-receipt' });
+    expect(
+      verifyPrOwnerRecord(data, 91, target, discussion, undefined, undefined, foreign),
+    ).toMatchObject({ action: 'hold', reason: 'wrong-context' });
+  });
+
+  it('holds a valid allowed-signer receipt for a different pull request', () => {
+    useAllowedSigner();
+    const foreign = signedReceipt({ repo: target, pr: 92, head: featureHead });
+    expect(
+      verifyPrOwnerRecord(data, 92, target, discussion, undefined, undefined, foreign),
+    ).toMatchObject({ action: 'clear', kind: 'review-receipt' });
+    expect(
+      verifyPrOwnerRecord(data, 91, target, discussion, undefined, undefined, foreign),
+    ).toMatchObject({ action: 'hold', reason: 'wrong-context' });
   });
 });
