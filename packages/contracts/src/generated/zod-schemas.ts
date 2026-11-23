@@ -1054,6 +1054,344 @@ export type CrdtOperationsRow = z.infer<typeof CrdtOperationsSelectSchema>
 export type CrdtOperationsInsert = z.infer<typeof CrdtOperationsInsertSchema>
 
 // =============================================================================
+// CrmActivities Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting crmActivities rows from database
+ * Generated from Drizzle table definition: tables.crmActivities
+ */
+export const CrmActivitiesSelectSchema = createSelectSchema(tables.crmActivities)
+
+/**
+ * Zod schema for inserting crmActivities rows to database
+ * Generated from Drizzle table definition: tables.crmActivities
+ */
+export const CrmActivitiesInsertSchema = createInsertSchema(tables.crmActivities)
+
+/**
+ * TypeScript type for crmActivities row (Select)
+ */
+export type CrmActivitiesRow = z.infer<typeof CrmActivitiesSelectSchema>
+
+/**
+ * TypeScript type for crmActivities insert
+ */
+export type CrmActivitiesInsert = z.infer<typeof CrmActivitiesInsertSchema>
+
+// =============================================================================
+// CrmAuditEvents Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting crmAuditEvents rows from database
+ * Generated from Drizzle table definition: tables.crmAuditEvents
+ */
+export const CrmAuditEventsSelectSchema = createSelectSchema(tables.crmAuditEvents)
+
+/**
+ * Zod schema for inserting crmAuditEvents rows to database
+ * Generated from Drizzle table definition: tables.crmAuditEvents
+ */
+export const CrmAuditEventsInsertSchema = createInsertSchema(tables.crmAuditEvents)
+
+/**
+ * TypeScript type for crmAuditEvents row (Select)
+ */
+export type CrmAuditEventsRow = z.infer<typeof CrmAuditEventsSelectSchema>
+
+/**
+ * TypeScript type for crmAuditEvents insert
+ */
+export type CrmAuditEventsInsert = z.infer<typeof CrmAuditEventsInsertSchema>
+
+// =============================================================================
+// CrmBookingLinks Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting crmBookingLinks rows from database
+ * Generated from Drizzle table definition: tables.crmBookingLinks
+ */
+export const CrmBookingLinksSelectSchema = createSelectSchema(tables.crmBookingLinks)
+
+/**
+ * Zod schema for inserting crmBookingLinks rows to database
+ * Generated from Drizzle table definition: tables.crmBookingLinks
+ */
+export const CrmBookingLinksInsertSchema = createInsertSchema(tables.crmBookingLinks)
+
+/**
+ * TypeScript type for crmBookingLinks row (Select)
+ */
+export type CrmBookingLinksRow = z.infer<typeof CrmBookingLinksSelectSchema>
+
+/**
+ * TypeScript type for crmBookingLinks insert
+ */
+export type CrmBookingLinksInsert = z.infer<typeof CrmBookingLinksInsertSchema>
+
+// =============================================================================
+// CrmCampaigns Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting crmCampaigns rows from database
+ * Generated from Drizzle table definition: tables.crmCampaigns
+ */
+export const CrmCampaignsSelectSchema = createSelectSchema(tables.crmCampaigns)
+
+/**
+ * Zod schema for inserting crmCampaigns rows to database
+ * Generated from Drizzle table definition: tables.crmCampaigns
+ */
+export const CrmCampaignsInsertSchema = createInsertSchema(tables.crmCampaigns)
+
+/**
+ * TypeScript type for crmCampaigns row (Select)
+ */
+export type CrmCampaignsRow = z.infer<typeof CrmCampaignsSelectSchema>
+
+/**
+ * TypeScript type for crmCampaigns insert
+ */
+export type CrmCampaignsInsert = z.infer<typeof CrmCampaignsInsertSchema>
+
+// =============================================================================
+// CrmContacts Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting crmContacts rows from database
+ * Generated from Drizzle table definition: tables.crmContacts
+ */
+export const CrmContactsSelectSchema = createSelectSchema(tables.crmContacts)
+
+/**
+ * Zod schema for inserting crmContacts rows to database
+ * Generated from Drizzle table definition: tables.crmContacts
+ */
+export const CrmContactsInsertSchema = createInsertSchema(tables.crmContacts)
+
+/**
+ * TypeScript type for crmContacts row (Select)
+ */
+export type CrmContactsRow = z.infer<typeof CrmContactsSelectSchema>
+
+/**
+ * TypeScript type for crmContacts insert
+ */
+export type CrmContactsInsert = z.infer<typeof CrmContactsInsertSchema>
+
+// =============================================================================
+// CrmEnrollments Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting crmEnrollments rows from database
+ * Generated from Drizzle table definition: tables.crmEnrollments
+ */
+export const CrmEnrollmentsSelectSchema = createSelectSchema(tables.crmEnrollments)
+
+/**
+ * Zod schema for inserting crmEnrollments rows to database
+ * Generated from Drizzle table definition: tables.crmEnrollments
+ */
+export const CrmEnrollmentsInsertSchema = createInsertSchema(tables.crmEnrollments)
+
+/**
+ * TypeScript type for crmEnrollments row (Select)
+ */
+export type CrmEnrollmentsRow = z.infer<typeof CrmEnrollmentsSelectSchema>
+
+/**
+ * TypeScript type for crmEnrollments insert
+ */
+export type CrmEnrollmentsInsert = z.infer<typeof CrmEnrollmentsInsertSchema>
+
+// =============================================================================
+// CrmImports Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting crmImports rows from database
+ * Generated from Drizzle table definition: tables.crmImports
+ */
+export const CrmImportsSelectSchema = createSelectSchema(tables.crmImports)
+
+/**
+ * Zod schema for inserting crmImports rows to database
+ * Generated from Drizzle table definition: tables.crmImports
+ */
+export const CrmImportsInsertSchema = createInsertSchema(tables.crmImports)
+
+/**
+ * TypeScript type for crmImports row (Select)
+ */
+export type CrmImportsRow = z.infer<typeof CrmImportsSelectSchema>
+
+/**
+ * TypeScript type for crmImports insert
+ */
+export type CrmImportsInsert = z.infer<typeof CrmImportsInsertSchema>
+
+// =============================================================================
+// CrmOpportunities Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting crmOpportunities rows from database
+ * Generated from Drizzle table definition: tables.crmOpportunities
+ */
+export const CrmOpportunitiesSelectSchema = createSelectSchema(tables.crmOpportunities)
+
+/**
+ * Zod schema for inserting crmOpportunities rows to database
+ * Generated from Drizzle table definition: tables.crmOpportunities
+ */
+export const CrmOpportunitiesInsertSchema = createInsertSchema(tables.crmOpportunities)
+
+/**
+ * TypeScript type for crmOpportunities row (Select)
+ */
+export type CrmOpportunitiesRow = z.infer<typeof CrmOpportunitiesSelectSchema>
+
+/**
+ * TypeScript type for crmOpportunities insert
+ */
+export type CrmOpportunitiesInsert = z.infer<typeof CrmOpportunitiesInsertSchema>
+
+// =============================================================================
+// CrmOrganizations Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting crmOrganizations rows from database
+ * Generated from Drizzle table definition: tables.crmOrganizations
+ */
+export const CrmOrganizationsSelectSchema = createSelectSchema(tables.crmOrganizations)
+
+/**
+ * Zod schema for inserting crmOrganizations rows to database
+ * Generated from Drizzle table definition: tables.crmOrganizations
+ */
+export const CrmOrganizationsInsertSchema = createInsertSchema(tables.crmOrganizations)
+
+/**
+ * TypeScript type for crmOrganizations row (Select)
+ */
+export type CrmOrganizationsRow = z.infer<typeof CrmOrganizationsSelectSchema>
+
+/**
+ * TypeScript type for crmOrganizations insert
+ */
+export type CrmOrganizationsInsert = z.infer<typeof CrmOrganizationsInsertSchema>
+
+// =============================================================================
+// CrmOutreachDrafts Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting crmOutreachDrafts rows from database
+ * Generated from Drizzle table definition: tables.crmOutreachDrafts
+ */
+export const CrmOutreachDraftsSelectSchema = createSelectSchema(tables.crmOutreachDrafts)
+
+/**
+ * Zod schema for inserting crmOutreachDrafts rows to database
+ * Generated from Drizzle table definition: tables.crmOutreachDrafts
+ */
+export const CrmOutreachDraftsInsertSchema = createInsertSchema(tables.crmOutreachDrafts)
+
+/**
+ * TypeScript type for crmOutreachDrafts row (Select)
+ */
+export type CrmOutreachDraftsRow = z.infer<typeof CrmOutreachDraftsSelectSchema>
+
+/**
+ * TypeScript type for crmOutreachDrafts insert
+ */
+export type CrmOutreachDraftsInsert = z.infer<typeof CrmOutreachDraftsInsertSchema>
+
+// =============================================================================
+// CrmStageHistory Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting crmStageHistory rows from database
+ * Generated from Drizzle table definition: tables.crmStageHistory
+ */
+export const CrmStageHistorySelectSchema = createSelectSchema(tables.crmStageHistory)
+
+/**
+ * Zod schema for inserting crmStageHistory rows to database
+ * Generated from Drizzle table definition: tables.crmStageHistory
+ */
+export const CrmStageHistoryInsertSchema = createInsertSchema(tables.crmStageHistory)
+
+/**
+ * TypeScript type for crmStageHistory row (Select)
+ */
+export type CrmStageHistoryRow = z.infer<typeof CrmStageHistorySelectSchema>
+
+/**
+ * TypeScript type for crmStageHistory insert
+ */
+export type CrmStageHistoryInsert = z.infer<typeof CrmStageHistoryInsertSchema>
+
+// =============================================================================
+// CrmSuppression Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting crmSuppression rows from database
+ * Generated from Drizzle table definition: tables.crmSuppression
+ */
+export const CrmSuppressionSelectSchema = createSelectSchema(tables.crmSuppression)
+
+/**
+ * Zod schema for inserting crmSuppression rows to database
+ * Generated from Drizzle table definition: tables.crmSuppression
+ */
+export const CrmSuppressionInsertSchema = createInsertSchema(tables.crmSuppression)
+
+/**
+ * TypeScript type for crmSuppression row (Select)
+ */
+export type CrmSuppressionRow = z.infer<typeof CrmSuppressionSelectSchema>
+
+/**
+ * TypeScript type for crmSuppression insert
+ */
+export type CrmSuppressionInsert = z.infer<typeof CrmSuppressionInsertSchema>
+
+// =============================================================================
+// CrmTasks Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting crmTasks rows from database
+ * Generated from Drizzle table definition: tables.crmTasks
+ */
+export const CrmTasksSelectSchema = createSelectSchema(tables.crmTasks)
+
+/**
+ * Zod schema for inserting crmTasks rows to database
+ * Generated from Drizzle table definition: tables.crmTasks
+ */
+export const CrmTasksInsertSchema = createInsertSchema(tables.crmTasks)
+
+/**
+ * TypeScript type for crmTasks row (Select)
+ */
+export type CrmTasksRow = z.infer<typeof CrmTasksSelectSchema>
+
+/**
+ * TypeScript type for crmTasks insert
+ */
+export type CrmTasksInsert = z.infer<typeof CrmTasksInsertSchema>
+
+// =============================================================================
 // EditSessionDocs Schemas
 // =============================================================================
 
